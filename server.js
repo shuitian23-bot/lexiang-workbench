@@ -117,7 +117,6 @@ app.use('/api/stores', require('./routes/stores'));
 app.use('/api/leai', require('./routes/leai'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
-app.use('/api/workbench', require('./routes/workbench'));
 
 // SPA fallback
 app.get('/admin', (req, res) => {
