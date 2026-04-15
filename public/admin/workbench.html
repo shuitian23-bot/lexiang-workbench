@@ -713,6 +713,10 @@ async function loadUserContext() {
       if (STATE.visibleMenus.includes('dashboard') && !STATE.visibleMenus.includes('geo')) {
         STATE.visibleMenus.push('geo');
       }
+      // 新功能：企业认证模块默认可见
+      if (!STATE.visibleMenus.includes('certify')) {
+        STATE.visibleMenus.push('certify');
+      }
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
