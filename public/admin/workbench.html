@@ -1032,13 +1032,13 @@ const PAGE_RENDERERS = {
       </div>
       <div class="geo-filter-row">
         <span class="geo-label">时间范围</span>
-        <select id="geo-period" onchange="geoSetPeriod(this.value)" style="padding:5px 10px;border-radius:14px;font-size:12px;background:rgba(255,255,255,0.04);color:#e5e8f0;border:1px solid rgba(255,255,255,0.12);cursor:pointer;">
+        <select id="geo-period" onchange="geoSetPeriod(this.value)" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
           <option value="7d">最近 7 天</option>
           <option value="30d" selected>最近 30 天</option>
           <option value="year">本年度</option>
         </select>
         <span class="geo-label" style="margin-left:16px;">问题筛选</span>
-        <input id="geo-questions" type="text" placeholder="多个问题用逗号分隔，回车筛选" onkeydown="if(event.key==='Enter'){geoSetQuestions(this.value)}" style="padding:5px 10px;border-radius:14px;font-size:12px;background:rgba(255,255,255,0.04);color:#e5e8f0;border:1px solid rgba(255,255,255,0.12);min-width:260px;outline:none;">
+        <input id="geo-questions" type="text" placeholder="多个问题用逗号分隔，回车筛选" onkeydown="if(event.key==='Enter'){geoSetQuestions(this.value)}" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:260px;outline:none;">
       </div>
       <div class="geo-status-line" id="geo-status">加载中...</div>
 
@@ -1070,45 +1070,45 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 第二行：信源分布图 + 排行榜 -->
+      <!-- 第二行：信源分布 Treemap + 排行榜 -->
       <div class="geo-row">
         <div class="geo-panel">
-          <div class="gpnl-title">信源分布图 <span class="gpnl-tag">接口待开放</span></div>
-          <div class="geo-placeholder" style="min-height:260px;display:flex;align-items:center;justify-content:center"><div><div class="gp-title">Treemap 信源占比</div>点亮AI 接口暂未返回此数据</div></div>
+          <div class="gpnl-title">信源分布图</div>
+          <div id="geo-sites-treemap" style="min-height:260px"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
-          <div class="gpnl-title">信源排行榜 <span class="gpnl-tag">接口待开放</span></div>
-          <div class="geo-placeholder" style="min-height:260px;display:flex;align-items:center;justify-content:center"><div><div class="gp-title">Top10 站点引用次数</div>点亮AI 接口暂未返回此数据</div></div>
+          <div class="gpnl-title">信源排行榜 Top20</div>
+          <div class="geo-scroll-wrap" style="max-height:320px">
+            <div id="geo-sites-rank"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+          </div>
         </div>
       </div>
 
-      <!-- 第三行：各平台引用次数 + wiki Top50 -->
+      <!-- 第三行：各平台引用次数 -->
       <div class="geo-row wide-right">
         <div class="geo-panel">
-          <div class="gpnl-title">各 AI 平台引用次数 <span style="font-size:11px;color:#6b7390;font-weight:400">· wiki + 官网合计</span></div>
+          <div class="gpnl-title">各 AI 平台引用次数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· wiki + 官网合计</span></div>
           <div class="geo-kpi-grid cols-2" style="margin-bottom:12px">
             <div class="geo-kpi"><div class="gk-val" id="gv-lenovo-cite">--</div><div class="gk-label">联想官网引用次数</div></div>
             <div class="geo-kpi"><div class="gk-val" id="gv-wiki-cite">--</div><div class="gk-label">乐享/业务 wiki 引用次数</div></div>
           </div>
-          <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#6b7390;font-size:12px;padding:12px">加载中...</div></div>
+          <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
-          <div class="gpnl-title">wiki 页面引用排行榜 Top50 <span class="gpnl-tag">接口待开放</span></div>
-          <div class="geo-scroll-wrap">
-            <div class="geo-placeholder" style="min-height:340px;display:flex;align-items:center;justify-content:center"><div><div class="gp-title">wiki 页面引用 Top50</div>点亮AI 接口暂未返回此数据</div></div>
+          <div class="gpnl-title">信源站点总览</div>
+          <div class="geo-kpi-grid cols-3" style="margin-bottom:8px">
+            <div class="geo-kpi"><div class="gk-val" id="gv-sites-total">--</div><div class="gk-label">总信源站点数</div></div>
+            <div class="geo-kpi"><div class="gk-val" id="gv-sites-top1-name">--</div><div class="gk-label">最高信源站点</div></div>
+            <div class="geo-kpi"><div class="gk-val" id="gv-sites-top1-pct">--</div><div class="gk-label">最高占比</div></div>
           </div>
         </div>
       </div>
 
-      <!-- 第四行：意图总数 + 各平台意图覆盖 -->
-      <div class="geo-row">
-        <div class="geo-panel">
-          <div class="gpnl-title">总覆盖意图数 <span class="gpnl-tag">接口待开放</span></div>
-          <div class="geo-placeholder" style="min-height:160px;display:flex;align-items:center;justify-content:center"><div><div class="gp-title">所有平台覆盖的意图总数</div>点亮AI 接口暂未返回此数据</div></div>
-        </div>
-        <div class="geo-panel">
-          <div class="gpnl-title">各平台覆盖意图总数 <span class="gpnl-tag">接口待开放</span></div>
-          <div class="geo-placeholder" style="min-height:160px;display:flex;align-items:center;justify-content:center"><div><div class="gp-title">每个平台覆盖意图数</div>点亮AI 接口暂未返回此数据</div></div>
+      <!-- 第四行：问题列表 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">GEO 问题列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个问题 · 按模型展示可见性</span></div>
+        <div class="geo-scroll-wrap" style="max-height:500px">
+          <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
       </div>
     </div>
@@ -1117,16 +1117,20 @@ const PAGE_RENDERERS = {
   'dashboard.geoSource': () => `
     <div class="page-header">
       <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">各 AI 模型引用的内容发布平台分布及占比</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="geo-source-model" onchange="geoLoadSourcePage()" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
+          <option value="all">全平台</option>
+          <option value="doubao">豆包</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="yuanbao">元宝</option>
+          <option value="kimi">Kimi</option>
+        </select>
+      </div>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line">本模块数据需点亮AI 开放「各平台信源分布」接口后接入</div>
-      <div class="geo-placeholder" style="min-height:360px;display:flex;align-items:center;justify-content:center">
-        <div>
-          <div class="gp-title">各平台信源分布（Treemap / 排行 / 占比）</div>
-          各 AI 平台（豆包/DeepSeek/元宝/千问/Kimi/文心/夸克）分别的信源分布及排行<br>
-          当前点亮AI overview 接口不返回站点级数据，等待接口开放后接入
-        </div>
-      </div>
+      <div class="geo-status-line" id="geo-source-status">加载中...</div>
+      <div id="geo-source-list"><div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">加载中...</div></div>
+      <div id="geo-source-pager" style="text-align:center;margin-top:12px"></div>
     </div>
   `,
 
@@ -1195,6 +1199,47 @@ const PAGE_RENDERERS = {
           <div class="geo-conv-cell"></div>
         </div>
       </div>
+    </div>
+  `,
+
+  'dashboard.geoKnowledge': () => `
+    <div class="page-header">
+      <div><div class="page-title">GEO · 手工上传知识</div><div class="page-desc">上传文档或手动添加 QA 对，补充 AI 搜索引擎可抓取的知识内容</div></div>
+    </div>
+    <div class="kpi-grid" style="margin-bottom:16px">
+      <div class="kpi-card"><div class="kpi-label">文档总数</div><div class="kpi-value" style="font-size:20px" id="stat-docs">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">向量数</div><div class="kpi-value" style="font-size:20px" id="stat-vectors">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">QA 对数</div><div class="kpi-value" style="font-size:20px" id="stat-qa">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">图谱实体</div><div class="kpi-value" style="font-size:20px" id="stat-kg">-</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="tab-bar" style="display:flex;border-bottom:1px solid var(--border-light);margin-bottom:16px">
+        <div class="tab-item active" onclick="switchKbTab('upload',this)" style="padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:2px solid var(--primary);color:var(--primary)">上传文档</div>
+        <div class="tab-item" onclick="switchKbTab('qa',this)" style="padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:2px solid transparent;color:var(--text-tertiary)">手动添加 QA</div>
+        <div class="tab-item" onclick="switchKbTab('docs',this)" style="padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:2px solid transparent;color:var(--text-tertiary)">文档列表</div>
+        <div class="tab-item" onclick="switchKbTab('qalist',this)" style="padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:2px solid transparent;color:var(--text-tertiary)">QA 列表</div>
+      </div>
+      <div id="kb-tab-upload">
+        <div style="padding:20px;text-align:center;border:2px dashed var(--border-light);border-radius:10px;margin:0 16px 16px">
+          <div style="font-size:32px;margin-bottom:8px">📄</div>
+          <div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">支持 .txt / .md / .pdf / .docx / .xlsx 格式</div>
+          <input type="file" id="kb-file-input" accept=".txt,.md,.pdf,.docx,.xlsx,.csv" onchange="handleKBFileSelect(this)" style="display:none">
+          <button class="btn btn-sm btn-secondary" onclick="document.getElementById('kb-file-input').click()">选择文件</button>
+          <button class="btn btn-sm btn-primary" id="kb-upload-btn" disabled onclick="submitKBUpload()">上传并处理</button>
+          <div id="kb-upload-status" style="display:none;margin-top:10px;font-size:12px"></div>
+        </div>
+      </div>
+      <div id="kb-tab-qa" style="display:none">
+        <div style="padding:0 16px 16px">
+          <div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:4px">问题</label><input type="text" id="manual-qa-q" placeholder="输入问题" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;font-size:13px;box-sizing:border-box"></div>
+          <div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:4px">答案</label><textarea id="manual-qa-a" placeholder="输入答案" rows="4" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div>
+          <div style="margin-bottom:12px"><label style="font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:4px">场景标签（可选）</label><input type="text" id="manual-qa-scene" placeholder="如：售前咨询、产品对比" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;font-size:13px;box-sizing:border-box"></div>
+          <button class="btn btn-sm btn-primary" onclick="submitManualQA()">保存 QA 对</button>
+          <div id="manual-qa-status" style="display:none;margin-top:10px;font-size:12px"></div>
+        </div>
+      </div>
+      <div id="kb-tab-docs" style="display:none"><div id="kb-docs" style="padding:0 16px 16px"><div style="color:var(--text-tertiary);font-size:12px">加载中...</div></div></div>
+      <div id="kb-tab-qalist" style="display:none"><div style="padding:0 16px 16px"><div style="margin-bottom:8px;font-size:12px;color:var(--text-tertiary)" id="qa-count-label">共 - 条</div><table id="qa-table" style="width:100%"><tr><td style="text-align:center;color:var(--text-tertiary)">加载中...</td></tr></table></div></div>
     </div>
   `,
 
@@ -2106,6 +2151,8 @@ async function geoLoadData() {
       }
     });
     geoRenderPlatDist();
+    geoLoadSites();
+    geoLoadQuestions();
 
     const scopeLbl = { all:'整体', leai:'联想乐享', official:'联想官网' }[geoState.scope] || '整体';
     geoSetStatus('更新于 ' + new Date().toLocaleTimeString() + ' · 点亮AI · ' + scopeLbl + ' · ' + geoState.period);
@@ -2167,6 +2214,118 @@ function geoRenderPlatDist() {
       <div class="gpc-bar"><div class="gpc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
     </div>`;
   }).join('');
+}
+
+// ===== GEO 信源分布 (sites API) =====
+const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#4f46e5','#15803d','#b45309','#9333ea','#0e7490','#be123c','#6366f1','#047857','#ea580c'];
+
+async function geoLoadSites() {
+  try {
+    const body = { project_id: GEO_PROJECT_ID };
+    const resp = await fetch('/api/geo/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const json = await resp.json();
+    if (json.code !== 200) return;
+    const d = json.data;
+    const sites = d.sites || [];
+    geoRenderTreemap(sites);
+    geoRenderSiteRank(sites);
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('gv-sites-total', (d.total_records||0).toLocaleString());
+    if (sites.length) { set('gv-sites-top1-name', sites[0].name); set('gv-sites-top1-pct', sites[0].percentage + '%'); }
+  } catch(e) { console.error('geoLoadSites', e); }
+}
+
+function geoRenderTreemap(sites) {
+  const c = document.getElementById('geo-sites-treemap'); if(!c) return;
+  const top = sites.slice(0, 20);
+  const totalPct = top.reduce((s,x) => s + x.percentage, 0);
+  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  c.innerHTML = '<div class="geo-treemap">' + top.map((s, i) => {
+    const bg = GEO_TREEMAP_COLORS[i % GEO_TREEMAP_COLORS.length];
+    const flex = Math.max(s.percentage / totalPct * 100, 3);
+    return `<div class="gtm-cell" style="flex:${flex};background:${bg};min-width:60px;min-height:50px" title="${s.domain} · ${s.count.toLocaleString()}次 · ${s.percentage}%"><span class="gtm-name">${s.name}</span><span class="gtm-pct">${s.percentage}%</span></div>`;
+  }).join('') + '</div>';
+}
+
+function geoRenderSiteRank(sites) {
+  const c = document.getElementById('geo-sites-rank'); if(!c) return;
+  const top = sites.slice(0, 20);
+  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  c.innerHTML = '<ol class="geo-rank-list">' + top.map(s =>
+    `<li><span class="grl-idx">${s.rank}</span><span class="grl-name" title="${s.domain}">${s.name}</span><span class="grl-count">${s.count.toLocaleString()} · ${s.percentage}%</span></li>`
+  ).join('') + '</ol>';
+}
+
+// ===== GEO 问题列表 (questions API) =====
+const GEO_FIELD_LABELS = { brand_composite_exposure_rate:'品牌综合可见', brand_precise_exposure_rate:'品牌精准可见', competitor_exposure_rate:'竞品可见', brand_exposure_rate:'品牌曝光率', brand_top3_rate:'品牌前三率' };
+
+async function geoLoadQuestions() {
+  try {
+    const body = { project_id: GEO_PROJECT_ID };
+    const resp = await fetch('/api/geo/questions', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const json = await resp.json();
+    if (json.code !== 200) return;
+    const qs = json.data.questions || [];
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('gv-q-count', qs.length);
+    geoRenderQuestions(qs);
+  } catch(e) { console.error('geoLoadQuestions', e); }
+}
+
+function geoRenderQuestions(qs) {
+  const c = document.getElementById('geo-questions-table'); if(!c) return;
+  if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无问题</div>'; return; }
+  const fieldKeys = [];
+  if (qs[0].models && qs[0].models[0] && qs[0].models[0].fields) qs[0].models[0].fields.forEach(f => fieldKeys.push(f.field));
+  const models = (qs[0].models || []).map(m => m.model);
+  let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">问题</th>';
+  models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${name}<br><span style="font-size:10px;font-weight:400">${GEO_FIELD_LABELS[f] || f}</span></th>`; }); });
+  html += '</tr></thead><tbody>';
+  qs.forEach(q => {
+    html += `<tr><td class="name" title="${q.question}">${q.question.length > 20 ? q.question.slice(0,20)+'…' : q.question}</td>`;
+    models.forEach(m => { const md = (q.models || []).find(x => x.model === m); fieldKeys.forEach(f => { const fd = md && (md.fields || []).find(x => x.field === f); const v = fd ? fd.value : '-'; const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : ''); html += `<td class="${cls}">${v}</td>`; }); });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  c.innerHTML = html;
+}
+
+// ===== GEO 知识库 tab 切换 =====
+function switchKbTab(tab, el) {
+  ['upload','qa','docs','qalist'].forEach(t => { const d = document.getElementById('kb-tab-' + t); if (d) d.style.display = t === tab ? '' : 'none'; });
+  if (el) { el.parentElement.querySelectorAll('.tab-item').forEach(t => { t.style.borderBottomColor = 'transparent'; t.style.color = 'var(--text-tertiary)'; }); el.style.borderBottomColor = 'var(--primary)'; el.style.color = 'var(--primary)'; }
+  if (tab === 'docs') loadKnowledgeDocs();
+  if (tab === 'qalist') loadKnowledgeQA();
+}
+
+// ===== GEO 各平台信源分布子页 =====
+let geoSourcePage = 1;
+async function geoLoadSourcePage(page) {
+  geoSourcePage = page || 1;
+  const modelSel = document.getElementById('geo-source-model');
+  const model = modelSel ? modelSel.value : 'all';
+  const st = document.getElementById('geo-source-status');
+  const c = document.getElementById('geo-source-list');
+  if (st) st.textContent = '加载中...';
+  try {
+    const body = { project_id: GEO_PROJECT_ID, model: model === 'all' ? '' : model, page: geoSourcePage };
+    const resp = await fetch('/api/geo/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const json = await resp.json();
+    if (json.code !== 200) throw new Error(json.message);
+    const d = json.data; const sites = d.sites || []; const pg = d.pagination || {};
+    if (st) st.textContent = `共 ${(d.total_records||0).toLocaleString()} 个站点 · 第 ${pg.current_page}/${pg.total_pages} 页`;
+    if (!c) return;
+    c.innerHTML = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="width:50px">排名</th><th style="text-align:left">站点</th><th style="text-align:left">域名</th><th>引用次数</th><th>占比</th></tr></thead><tbody>' +
+      sites.map(s => `<tr><td>${s.rank}</td><td class="name">${s.name}</td><td class="name" style="font-size:11px;color:#6b7280">${s.domain}</td><td>${s.count.toLocaleString()}</td><td>${s.percentage}%</td></tr>`).join('') + '</tbody></table>';
+    const pager = document.getElementById('geo-source-pager');
+    if (pager && pg.total_pages > 1) {
+      let ph = '';
+      if (pg.has_prev) ph += `<button onclick="geoLoadSourcePage(${pg.prev_page})" style="margin:0 4px;padding:4px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px">上一页</button>`;
+      ph += `<span style="font-size:12px;color:#6b7280;margin:0 8px">第 ${pg.current_page} / ${pg.total_pages} 页</span>`;
+      if (pg.has_next) ph += `<button onclick="geoLoadSourcePage(${pg.next_page})" style="margin:0 4px;padding:4px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px">下一页</button>`;
+      pager.innerHTML = ph;
+    } else if (pager) { pager.innerHTML = ''; }
+  } catch(e) { if (st) st.textContent = '加载失败：' + e.message; console.error('geoLoadSourcePage', e); }
 }
 
 // ===== AI PANEL =====
@@ -4450,6 +4609,12 @@ switchPage = function(pageId) {
       const qi = document.getElementById('geo-questions'); if (qi) qi.value = '';
       geoLoadData();
     }, 50);
+  }
+  if (pageId === 'dashboard.geoSource') {
+    setTimeout(() => geoLoadSourcePage(), 50);
+  }
+  if (pageId === 'dashboard.geoKnowledge') {
+    setTimeout(() => loadKnowledgeStats(), 50);
   }
 };
 
