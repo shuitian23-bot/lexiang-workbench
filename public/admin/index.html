@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
-<!-- v2024-04-16-cert-review-redesign -->
+<!-- v2024-04-16-cert-view-button -->
 <style>
 :root {
   --primary: #3370ff;
@@ -5184,7 +5184,10 @@ function loadCertificationTable(page = 1) {
         <td style="padding:12px; font-size:12px;">${cert.created_at}</td>
         <td style="padding:12px;">${cert.reviewer}</td>
         <td style="padding:12px;">
-          <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showCertDetailPage(this, '${cert.id}')" style="padding:4px 8px; font-size:12px; background:#10b981; border:none;">审核</button>
+          ${cert.status === 'pending'
+            ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showCertDetailPage(this, '${cert.id}')" style="padding:4px 8px; font-size:12px; background:#10b981; border:none;">审核</button>`
+            : `<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); viewCertFromList(this, '${cert.applicant}')" style="padding:4px 8px; font-size:12px;">查看</button>`
+          }
         </td>
       </tr>
     `).join('');
@@ -5208,7 +5211,7 @@ function goToCertPage() {
 }
 
 function showCertDetailPage(btn, certId) {
-  // 从表格行提取认证申请数据，打开详情页面
+  // 从表格行提取认证申请数据，打开审核详情页面
   try {
     const row = btn.closest('tr');
     const tds = row.querySelectorAll('td');
@@ -5237,6 +5240,59 @@ function showCertDetailPage(btn, certId) {
     switchPage('employee.cert-detail');
   } catch (e) {
     console.error('打开认证详情失败:', e);
+    alert('打开详情页面失败');
+  }
+}
+
+function viewCertFromList(btn, applicant) {
+  // 从已通过/已拒绝列表查看员工详情页面
+  try {
+    // 从申请人信息中提取账号（user后面的数字）
+    const match = applicant.match(/\(user(\d+)\)/);
+    const userNum = match ? match[1] : '001';
+
+    // 生成员工数据并查找
+    const allEmployees = generateEmployeeData();
+    let emp = allEmployees.find(e => e.account.includes(userNum));
+
+    // 如果没找到，就用申请人名字查找
+    if (!emp) {
+      const name = applicant.split('(')[0].trim();
+      emp = allEmployees.find(e => e.real_name === name);
+    }
+
+    if (!emp) {
+      // 如果还是找不到，创建一个虚拟员工对象
+      emp = {
+        account: 'user' + userNum,
+        real_name: applicant.split('(')[0].trim(),
+        lenovo_id: 'L' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0'),
+        is_realname: '✓ 已认证',
+        dept_status: '普通职员',
+        company_name: '联想（北京）有限公司',
+        position: '产品经理',
+        email: applicant.split('(')[0].toLowerCase() + '@lenovo.com',
+        phone: '130' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0'),
+        gender: '男',
+        birthday: '1990-05-15',
+        address: '北京市朝阳区',
+        register_time: '2022-07-19 17:28:40',
+        user_type: '企业用户',
+        member_level: '白银会员',
+        activation_status: '已激活',
+        vip_status: '否',
+        cert_method: '企业邮箱',
+        cert_start_date: '2024-01-15',
+        cert_end_date: '2025-01-15',
+        cert_materials: ['劳动合同', '在职证明'],
+        cert_verified: '已验证'
+      };
+    }
+
+    window.currentEmployee = emp;
+    switchPage('employee.detail');
+  } catch (e) {
+    console.error('打开员工详情失败:', e);
     alert('打开详情页面失败');
   }
 }
