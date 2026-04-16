@@ -101,7 +101,7 @@ PARENT_CAT_MAP = {
     # 手机/平板
     '手机': 'tablet_phone',
     '平板电脑': 'tablet_phone',
-    '手表': 'tablet_phone',
+    '手表': 'smart_device',
     # 配件/办公
     '键鼠相关': 'accessory',
     '电脑外设与配件': 'accessory',
@@ -286,6 +286,16 @@ def get_product_theme(brand, name='', parent_cat='', cpu='', **_kw):
     b = (brand or '').strip().lower()
     name_l = (name or '').lower()
     pc = (parent_cat or '').strip()
+
+    # ── 第负一步：生活/宠物类 → 配件（优先排除，避免"宠物一体机"匹配台式关键词）──
+    _life_override = ['宠物', '猫砂', '猫厕所', '喂食', '净味']
+    if any(k in name for k in _life_override):
+        brand_info = _identify_brand(brand, name)
+        return ((brand_info[0] if brand_info else '联想'), 'accessory', (brand_info[1] if brand_info else 'lenovo'))
+    # 智能手表/手环 → 智能设备
+    if any(k in name for k in ['手表', '手环']) and not any(k in name for k in ['延保', '服务', '保护']):
+        brand_info = _identify_brand(brand, name)
+        return ((brand_info[0] if brand_info else '联想'), 'smart_device', (brand_info[1] if brand_info else 'lenovo'))
 
     # ── 第零步A：虚拟品关键词 → 配件（券/卡/会员/流量/云盘/订阅）──
     _virtual_kw = ['流量券', '笔记本券', '优惠券', '会员卡', 'wps', '云盘', '存储空间',
@@ -1208,16 +1218,23 @@ def gen_product_html_from_content(doc_id, title, source_url, content):
     kb_brand = ''
     kb_parent_cat = cat_name  # 默认用品类字段
 
+    # 0. 宠物/生活类 → 配件（优先于一体机等整机词判断，避免"宠物智能一体机"归台式）
+    _life_kw = ['宠物', '猫砂', '猫厕所', '喂食', '净味', '吹风机', '剃须刀', '台灯',
+                '洗手机', '洗手液', '加湿器', '净化器', '扫地机', '登机箱']
+    if any(k in name for k in _life_kw):
+        kb_brand, kb_parent_cat = '联想', '居家好物'
+    # 0b. 智能手表/手环 → 智能设备
+    elif any(k in name for k in ['手表', '手环', 'watch']):
+        kb_brand, kb_parent_cat = '联想', '手表'
     # 1. 配件/外设类关键词（最高优先，避免"拯救者充电器"被归为笔记本）
-    _accessory_kw = ['适配器', '充电器', '充电头', '充电线', '充电宝', '移动电源', '能量宝',
+    elif any(k in name_l_kb for k in ['适配器', '充电器', '充电头', '充电线', '充电宝', '移动电源', '能量宝',
                      '会议平板', '会议大屏', '会议电视', '电子白板', '智能白板',
                      '数据线', '鼠标', '键盘', '耳机', '音箱', '音响', '支架', '奇光板', '灯板',
                      '散热器', '散热台', '散热垫', '背包', '书包', '保护壳', '贴膜', '钢化膜',
                      '扩展坞', '扩展器', '集线器', 'hub', '笔记本支架', '手机支架', '显示器支架',
                      '椅子', '游戏椅', '电竞椅', '耳麦', '摄像头', '麦克风', '手柄', '方向盘',
-                     '脚架', 'u盘', '硬盘盒', '内存条', '网卡', '路由器',
-                     '洗手机', '洗手液', '智能家居', '扫地机', '加湿器', '净化器']
-    if any(k in name_l_kb for k in _accessory_kw):
+                     '全向麦', '脚架', 'u盘', '硬盘盒', '内存条', '网卡', '路由器',
+                     '智能家居']):
         kb_brand, kb_parent_cat = '联想', '电脑外设与配件'
     # 2. 服务类
     elif any(k in name for k in ['服务', '延保', '保修', '礼品卡', '充值', '会员']):
@@ -1241,7 +1258,13 @@ def gen_product_html_from_content(doc_id, title, source_url, content):
     elif 'thinkpad' in name_l_kb: kb_brand, kb_parent_cat = 'thinkpad', '笔记本电脑'
     elif 'thinkbook' in name_l_kb: kb_brand, kb_parent_cat = 'thinkbook', '笔记本电脑'
     elif '拯救者' in name or 'legion' in name_l_kb: kb_brand, kb_parent_cat = '拯救者', '笔记本电脑'
-    elif any(k in name for k in ['来酷', 'lecoo', 'Lecoo']): kb_brand, kb_parent_cat = '来酷', '显示器'
+    elif any(k in name for k in ['来酷', 'lecoo', 'Lecoo']):
+        # 来酷按产品类型细分，不默认归显示器
+        if any(k in name for k in ['笔记本', '斗战者']): kb_brand, kb_parent_cat = '来酷', '笔记本电脑'
+        elif any(k in name for k in ['一体', '台式']): kb_brand, kb_parent_cat = '来酷', '台式机'
+        elif '平板' in name: kb_brand, kb_parent_cat = '来酷', '平板电脑'
+        elif '显示器' in name or '显示屏' in name: kb_brand, kb_parent_cat = '来酷', '显示器'
+        else: kb_brand, kb_parent_cat = '来酷', '台式机'  # 来酷默认台式/显示器大类
     elif any(k in name for k in ['投影仪', '投影机', '智能投影']): kb_brand, kb_parent_cat = '联想', '投影设备'
     elif any(k in name for k in ['平板', 'pad']) and '笔记本' not in name: kb_brand, kb_parent_cat = '联想', '平板电脑'
     elif '小新' in name or 'yoga' in name_l_kb: kb_brand, kb_parent_cat = '联想', '笔记本电脑'
@@ -2321,8 +2344,8 @@ var _la_lenovo_website = 10000001;
     # 严格按飞书约定的分类白名单控制各子站内容
     BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz'}
     BU_ALLOWED_CATS = {
-        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device', 'service'},
-        'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution', 'service'},
+        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device'},
+        'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution'},
         'biz': {'notebook', 'desktop', 'monitor', 'workstation', 'tablet_phone', 'accessory',
                 'smart_device', 'server', 'solution', 'biz-case'},
     }
@@ -2388,6 +2411,11 @@ var _la_lenovo_website = 10000001;
             'by_cat': dict(sub_by_cat),
             'total': len(sub_articles),
         }
+
+        # 为子站生成独立的 articles-slim.json（搜索隔离）
+        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type','')} for a in sub_articles]
+        with open(os.path.join(sub_dir, 'articles-slim.json'), 'w') as _fh:
+            json.dump(_sub_slim, _fh, ensure_ascii=False, separators=(',',':'))
 
         print(f'  {dir_name}/: {len(sub_articles)} 条, 分类: {[c for c in sub_cats if c != "all"]}, {nf} 个分页文件')
 
@@ -2947,7 +2975,7 @@ fetch('/wiki/articles.json')
 
     # --- 第六步：生成子站 index.html ---
     print(f'\n[{datetime.now():%H:%M:%S}] === 生成子站 index.html ===')
-    BU_DIR_LABELS = {'wiki-c': '消费', 'wiki-b': 'SMB', 'wiki-biz': '政企'}
+    BU_DIR_LABELS = {'wiki-c': '消费业务', 'wiki-b': 'SMB业务', 'wiki-biz': '政企业务'}
     # 默认分类标签
     _DEFAULT_CAT_LABELS = {
         'brand_news': '品牌/新闻', 'notebook': '笔记本', 'desktop': '台式机', 'monitor': '显示器',
@@ -2966,9 +2994,9 @@ fetch('/wiki/articles.json')
         'biz-activity': '活动', 'biz-brand': '品牌', 'biz-other': '资讯',
     }
     _SUB_CAT_OVERRIDES = {
-        'wiki-c': {},
+        'wiki-c': {'smart_device': '智能生活'},
         'wiki-b': {},
-        'wiki-biz': {},
+        'wiki-biz': {'biz-case': '客户案例'},
     }
 
     for dir_name, label in BU_DIR_LABELS.items():
@@ -2997,7 +3025,11 @@ fetch('/wiki/articles.json')
             "/wiki/articles.json",
             f"/{dir_name}/articles.json"
         )
-        # articles-slim.json 搜索仍用主站数据（子站不生成slim）
+        # 搜索隔离：子站用自己的slim数据
+        sub_html = sub_html.replace(
+            "/wiki/articles-slim.json",
+            f"/{dir_name}/articles-slim.json"
+        )
 
         # 2. 标题加子站标签 + canonical/og指向子站
         sub_html = sub_html.replace(
