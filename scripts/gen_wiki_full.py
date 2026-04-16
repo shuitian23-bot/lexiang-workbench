@@ -447,14 +447,16 @@ def get_product_bu(cat_key, brand_key, name='', url=''):
     """根据分类和品牌判断子站归属，返回 'c'/'b'/'biz' """
     name_l = (name or '').lower()
 
-    # URL域名强制归站
-    _url = (url or '').lower()
-    if 'biz.lenovo' in _url:
-        return 'biz'
-    if 'b.lenovo' in _url or 'tk.lenovo' in _url:
-        return 'b'
-    if 'item.lenovo' in _url:
-        return 'c'
+    # ★ 品牌优先于URL：Think系列无论在哪个域名都不归c站
+    _brand_bu = BRAND_BU_MAP.get(brand_key)
+    if _brand_bu and _brand_bu != 'c':
+        pass  # Think品牌强制走后续品类/系列逻辑
+    else:
+        _url = (url or '').lower()
+        if 'biz.lenovo' in _url:
+            return 'biz'
+        if 'b.lenovo' in _url or 'tk.lenovo' in _url:
+            return 'b'
 
     # 标题含【企业购】→ b
     if '企业购' in (name or ''):
@@ -463,13 +465,18 @@ def get_product_bu(cat_key, brand_key, name='', url=''):
     # 品类级别强制归属
     if cat_key in ('server', 'workstation'):
         return 'biz'
+    if cat_key == 'service':
+        if any(k in name_l for k in ['thinkpad', 'thinkbook', 'thinkcentre', 'thinkvision',
+                                      'thinkstation', 'thinkplus', 'thinksmart', '扬天', '瑞天']):
+            return 'b'
+        if any(k in name_l for k in ['昭阳', '慧天', '开天', '启天', '服务支持']):
+            return 'biz'
+        return 'c'
     if cat_key == 'solution':
-        # 企业采购/行政采购 → b，其余 → biz
         if any(k in name for k in ('企业采购', '行政采购', '办公好物', '礼品甄选')):
             return 'b'
         return 'biz'
     if cat_key == 'smart_device':
-        # 投影/NAS → c，其余 → biz
         if any(k in name_l for k in ('投影', 'nas', '个人云')):
             return 'c'
         return 'biz'
@@ -1559,6 +1566,19 @@ def gen_product_html(row_vals, headers):
   <span class="mob-price">{price_str}</span>{_mob_buy_html}
   <a class="mob-btn-ai" href="{leai_aside_url}" target="_blank" rel="nofollow" latag="{_latag_mob_ai}">最低价</a>
 </div>'''
+    elif buy_url and cat_key in ('solution', 'server', 'workstation'):
+        # 无价格的方案/服务器/工作站：显示官网跳转按钮
+        mob_bar = f'''<div class="mob-buy-bar">
+  <a class="mob-btn-buy" href="{html.escape(buy_url)}" target="_blank" rel="nofollow">查看官网详情 →</a>
+  <a class="mob-btn-ai" href="{leai_aside_url}" target="_blank" rel="nofollow" latag="{_latag_mob_ai}">在乐享AI咨询</a>
+</div>'''
+        # 侧边栏也加
+        buy_box_html = f'''<div class="buy-box">
+  <a href="{html.escape(buy_url)}" target="_blank" rel="nofollow" style="background:#e2231a;color:#fff;padding:10px 16px;border-radius:6px;text-align:center;display:block;">查看官网详情 →</a>
+</div>'''
+        aside_html = f'''{buy_box_html}
+{spec_mini_html}
+<a class="leai-btn-aside" href="{leai_aside_url}" target="_blank" rel="nofollow" latag="{_latag_leai}">在乐享AI咨询 →</a>'''
     else:
         mob_bar = ''
 
@@ -1822,6 +1842,11 @@ def main():
                 if _pn in _xlsx_url_map:
                     _kb_url = _xlsx_url_map[_pn]
 
+        _kb_bkey = ''
+        if is_kb_product:
+            _bi = _identify_brand('', display_title)
+            _kb_bkey = _bi[1] if _bi else 'lenovo'
+
         if slug in PROTECTED:
             stats['skipped'] += 1
             desc = make_desc(content, title)
@@ -1830,6 +1855,7 @@ def main():
                 'title': display_title,
                 'desc': desc,
                 'cat': art_cat,
+                'brand_key': _kb_bkey,
                 'emoji': '💻' if is_kb_product else '📖',
                 'type': art_type,
                 'ts': str(created_at or '')[:19],
@@ -1850,6 +1876,7 @@ def main():
             'title': display_title,
             'desc': desc,
             'cat': art_cat,
+            'brand_key': _kb_bkey,
             'emoji': '💻' if is_kb_product else '📖',
             'type': art_type,
             'ts': str(created_at or '')[:19],
@@ -2294,10 +2321,10 @@ var _la_lenovo_website = 10000001;
     # 严格按飞书约定的分类白名单控制各子站内容
     BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz'}
     BU_ALLOWED_CATS = {
-        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device'},
-        'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution'},
+        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device', 'service'},
+        'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution', 'service'},
         'biz': {'notebook', 'desktop', 'monitor', 'workstation', 'tablet_phone', 'accessory',
-                'smart_device', 'server', 'solution'},
+                'smart_device', 'server', 'solution', 'biz-case'},
     }
     sub_site_data = {}  # 保存各子站分类数据供第六步用
 
@@ -2315,6 +2342,9 @@ var _la_lenovo_website = 10000001;
             cat = a.get('cat', '')
             if cat not in allowed:
                 return False
+            # biz-case等biz内容：只归biz站
+            if a.get('type') == 'biz':
+                return target == 'biz'
             # 只放商品
             if a.get('type') not in ('product',):
                 return False
