@@ -239,9 +239,9 @@ async function geoLoadSites() {
     const sites = d.sites || [];
     geoRenderTreemap(sites);
     geoRenderSiteRank(sites);
+    geoRenderLinkTop50(sites);
     const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
     set('gv-sites-total', (d.total_records||0).toLocaleString());
-    if (sites.length) { set('gv-sites-top1-name', sites[0].name); set('gv-sites-top1-pct', sites[0].percentage + '%'); }
   } catch(e) { console.error('geoLoadSites', e); }
 }
 
@@ -264,6 +264,28 @@ function geoRenderSiteRank(sites) {
   c.innerHTML = '<ol class="geo-rank-list">' + top.map(s =>
     `<li><span class="grl-idx">${s.rank}</span><span class="grl-name" title="${s.domain}">${s.name}</span><span class="grl-count">${s.count.toLocaleString()} · ${s.percentage}%</span></li>`
   ).join('') + '</ol>';
+}
+
+// ===== GEO AI引用链接 Top50 =====
+function geoRenderLinkTop50(sites) {
+  const c = document.getElementById('geo-link-top50'); if (!c) return;
+  const top = sites.slice(0, 50);
+  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  const maxCount = Math.max(...top.map(s => s.count), 1);
+  c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
+    const barW = Math.max((s.count / maxCount * 100), 2).toFixed(0);
+    return `<li style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #f3f4f6">
+      <span class="grl-idx" style="min-width:24px;text-align:center;font-size:12px;font-weight:600;color:${s.rank <= 3 ? '#2563eb' : '#6b7280'}">${s.rank}</span>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</span>
+          <a href="https://${s.domain}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${s.domain}">${s.domain}</a>
+        </div>
+        <div style="height:4px;background:#e5e7eb;border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${s.rank <= 3 ? '#2563eb' : '#93c5fd'};border-radius:2px"></div></div>
+      </div>
+      <span style="font-size:11px;color:#6b7280;white-space:nowrap;min-width:80px;text-align:right">${s.count.toLocaleString()} · ${s.percentage}%</span>
+    </li>`;
+  }).join('') + '</ol>';
 }
 
 // ===== GEO 问题列表 (questions API) =====
