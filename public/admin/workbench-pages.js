@@ -212,11 +212,9 @@ const PAGE_RENDERERS = {
           <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
-          <div class="gpnl-title">信源站点总览</div>
-          <div class="geo-kpi-grid cols-3" style="margin-bottom:8px">
-            <div class="geo-kpi"><div class="gk-val" id="gv-sites-total">--</div><div class="gk-label">总信源站点数</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-sites-top1-name">--</div><div class="gk-label">最高信源站点</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-sites-top1-pct">--</div><div class="gk-label">最高占比</div></div>
+          <div class="gpnl-title">联想 AI 引用链接 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个站点</span></div>
+          <div class="geo-scroll-wrap" style="max-height:380px;overflow-y:auto">
+            <div id="geo-link-top50"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
           </div>
         </div>
       </div>
