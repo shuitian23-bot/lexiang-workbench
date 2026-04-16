@@ -330,15 +330,15 @@ tr:hover td { background:#F6F6F6; }
 .geo-dark .geo-kpi-grid.cols-3 { grid-template-columns:repeat(3,1fr); }
 .geo-dark .geo-kpi-grid.cols-4 { grid-template-columns:repeat(4,1fr); }
 .geo-dark .geo-kpi { background:#f9fafb; border-radius:10px; padding:18px 16px; border:1px solid #e5e7eb; position:relative; }
-.geo-dark .geo-kpi.highlight { background:linear-gradient(135deg,#FF2F2F,#cc2626); border-color:transparent; color:#fff; }
+.geo-dark .geo-kpi.highlight { background:#FFF9F9; border-color:#FF2F2F; color:#252525; }
 .geo-dark .geo-kpi .gk-val { font-size:30px; font-weight:700; color:#111827; margin-bottom:4px; line-height:1.1; }
-.geo-dark .geo-kpi.highlight .gk-val { color:#fff; }
+.geo-dark .geo-kpi.highlight .gk-val { color:#252525; }
 .geo-dark .geo-kpi .gk-label { font-size:12px; color:#6b7280; }
-.geo-dark .geo-kpi.highlight .gk-label { color:rgba(255,255,255,0.9); }
+.geo-dark .geo-kpi.highlight .gk-label { color:#606060; }
 .geo-dark .geo-kpi .gk-tip { position:absolute; top:12px; right:12px; width:14px; height:14px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:help; }
-.geo-dark .geo-kpi.highlight .gk-tip { background:rgba(255,255,255,0.2); color:#fff; }
+.geo-dark .geo-kpi.highlight .gk-tip { background:#DBDBDB; color:#606060; }
 .geo-dark .geo-kpi .gk-sub { font-size:11px; color:#9ca3af; margin-top:4px; }
-.geo-dark .geo-kpi.highlight .gk-sub { color:rgba(255,255,255,0.8); }
+.geo-dark .geo-kpi.highlight .gk-sub { color:#979797; }
 
 /* 平台分布卡片网格 */
 .geo-dark .geo-plat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
