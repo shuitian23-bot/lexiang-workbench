@@ -396,9 +396,9 @@ const PAGE_RENDERERS = {
         <div class="card-header"><div class="card-title">转化漏斗</div></div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">浏览</span><div style="flex:1;height:32px;background:var(--primary);border-radius:4px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;">456,789 (100%)</div></div>
-          <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">收藏/对比</span><div style="width:46%;height:32px;background:rgba(51,112,255,0.7);border-radius:4px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;">212,468 (46.5%)</div></div>
-          <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">加购</span><div style="width:15%;height:32px;background:rgba(51,112,255,0.5);border-radius:4px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;">67,890 (14.9%)</div></div>
-          <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">下单</span><div style="width:10%;height:32px;background:rgba(51,112,255,0.3);border-radius:4px;display:flex;align-items:center;padding:0 10px;font-size:12px;">44,434 (9.7%)</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">收藏/对比</span><div style="width:46%;height:32px;background:rgba(255,47,47,0.7);border-radius:4px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;">212,468 (46.5%)</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">加购</span><div style="width:15%;height:32px;background:rgba(255,47,47,0.5);border-radius:4px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;">67,890 (14.9%)</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">下单</span><div style="width:10%;height:32px;background:rgba(255,47,47,0.3);border-radius:4px;display:flex;align-items:center;padding:0 10px;font-size:12px;">44,434 (9.7%)</div></div>
           <div style="display:flex;align-items:center;gap:12px;"><span style="width:100px;font-size:12px;text-align:right;">支付</span><div style="width:7.5%;height:32px;background:var(--green);border-radius:4px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;">34,567 (7.6%)</div></div>
         </div>
       </div>
@@ -751,7 +751,7 @@ const PAGE_RENDERERS = {
         <div style="display:grid; grid-template-columns: 280px 1fr; gap:30px;">
           <!-- 左侧用户卡片 -->
           <div class="card" style="height:fit-content; text-align:center;">
-            <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #3370ff, #06b6d4); color:#fff; font-size:40px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #FF2F2F, #ff6b6b); color:#fff; font-size:40px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
               ${firstLetter}
             </div>
             <div style="font-size:18px; font-weight:600; margin-bottom:4px;">${cert.applicant_name}</div>
@@ -762,7 +762,7 @@ const PAGE_RENDERERS = {
               <div style="margin-bottom:8px;">申请时间：${cert.created_at}</div>
               <div style="margin-bottom:8px;">申请类型：${cert.cert_type || '首次申请'}</div>
               <div style="margin-top:8px;">
-                <span style="display:inline-block; padding:4px 8px; background:#3370ff08; color:#3370ff; border-radius:3px; font-size:11px;">
+                <span style="display:inline-block; padding:4px 8px; background:#FF2F2F08; color:#FF2F2F; border-radius:3px; font-size:11px;">
                   ${cert.status === 'pending' ? '⏳ 待审核' : cert.status === 'approved' ? '✓ 已通过' : '✗ 已驳回'}
                 </span>
               </div>
@@ -907,7 +907,7 @@ const PAGE_RENDERERS = {
           <!-- 左侧用户卡片 -->
           <div style="display:flex; flex-direction:column; gap:16px;">
             <div class="card" style="text-align:center; padding:30px 20px;">
-              <div style="width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, #3370ff, #06b6d4); color:#fff; font-size:48px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+              <div style="width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, #FF2F2F, #ff6b6b); color:#fff; font-size:48px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
                 ${firstLetter}
               </div>
               <div style="font-size:18px; font-weight:600; margin-bottom:4px;">${emp.real_name || '-'}</div>
@@ -916,7 +916,7 @@ const PAGE_RENDERERS = {
               <div style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">联想账号</div>
               <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
                 <span style="display:inline-block; padding:4px 8px; background:#34c72408; color:#34c724; border-radius:3px; font-size:12px;">✓ 已实名</span>
-                <span style="display:inline-block; padding:4px 8px; background:#3370ff08; color:#3370ff; border-radius:3px; font-size:12px;">${emp.dept_status || '-'}</span>
+                <span style="display:inline-block; padding:4px 8px; background:#FF2F2F08; color:#FF2F2F; border-radius:3px; font-size:12px;">${emp.dept_status || '-'}</span>
               </div>
             </div>
           </div>
@@ -980,7 +980,7 @@ const PAGE_RENDERERS = {
                   <div>
                     <div style="color:var(--text-secondary); font-size:12px; margin-bottom:8px;">会员等级</div>
                     <div style="font-size:14px;">
-                      <span style="display:inline-block; padding:2px 6px; background:#3370ff08; color:#3370ff; border-radius:3px; font-size:12px;">${emp.member_level || '-'}</span>
+                      <span style="display:inline-block; padding:2px 6px; background:#FF2F2F08; color:#FF2F2F; border-radius:3px; font-size:12px;">${emp.member_level || '-'}</span>
                     </div>
                   </div>
                   <div>
@@ -1040,7 +1040,7 @@ const PAGE_RENDERERS = {
                   <div>
                     <div style="color:var(--text-secondary); font-size:12px; margin-bottom:8px;">职员认证状态</div>
                     <div style="font-size:14px;">
-                      <span style="display:inline-block; padding:4px 8px; background:#3370ff08; color:#3370ff; border-radius:3px; font-size:12px;">${emp.dept_status || '-'}</span>
+                      <span style="display:inline-block; padding:4px 8px; background:#FF2F2F08; color:#FF2F2F; border-radius:3px; font-size:12px;">${emp.dept_status || '-'}</span>
                     </div>
                   </div>
                   <div>
