@@ -223,7 +223,31 @@ git push -u origin feat/zhangsan-geo-title
 4. 点 **Create pull request**
 5. **通知 baiyu** 来 review（微信/钉钉发个链接）
 
-#### 第 8 步：baiyu 审核通过后，合并 PR
+#### 第 8 步：合并前同步最新代码（⚠️ 非常重要）
+
+**每次合并 PR 前，必须先把 main 最新代码同步到你的分支**，否则会覆盖别人的改动！
+
+```bash
+git checkout main
+git pull                              # 拉取 main 最新代码
+git checkout feat/zhangsan-geo-title   # 切回你的分支
+git merge main                         # 把 main 的更新合并进来
+```
+
+如果出现冲突：
+1. VS Code 会标出冲突位置（`<<<<<<` / `======` / `>>>>>>`）
+2. 手动编辑保留正确内容
+3. `git add .` → `git commit -m "merge: 合并 main 最新代码"`
+4. 看不懂冲突就联系 baiyu
+
+没有冲突的话直接推送更新后的分支：
+```bash
+git push
+```
+
+然后再去 GitHub 网页合并。
+
+#### 第 9 步：baiyu 审核通过后，合并 PR
 
 1. 打开你的 PR 页面，往下滚到底部
 2. 确认显示绿色的 **"No conflicts with base branch"**（没有冲突）
@@ -304,9 +328,10 @@ git log -p 文件名           # 看某个文件的所有改动历史
 3. ❌ **永远不要把 PAT、密码、`.env` 文件提交到仓库** — 上传后即使删除也已经被记录，必须重新生成
 4. ❌ **不要提交 `node_modules/`、`*.db`、大文件** — `.gitignore` 已经配置好，正常 `git add .` 不会带这些，但别手贱用 `-f` 强加
 5. ❌ **不要在不和 baiyu 沟通的情况下 merge 别人的 PR**
-6. ✅ **每次开工前先 `git pull`**
-7. ✅ **每个任务一个分支，分支用完即删**
-8. ✅ **commit message 写人话**，别用 "update"、"fix bug"、"."
+6. ⚠️ **合并 PR 前必须先同步 main 最新代码**（见第 8 步） — 不同步会覆盖别人的改动，已经出过事故
+7. ✅ **每次开工前先 `git pull`**
+8. ✅ **每个任务一个分支，分支用完即删**
+9. ✅ **commit message 写人话**，别用 "update"、"fix bug"、"."
 
 ---
 
