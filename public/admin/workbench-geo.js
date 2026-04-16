@@ -11,7 +11,7 @@ const GEO_SOURCES = {
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
 const geoState = { scope:'all', platform:'all', period:'30d', questions:[], apiData:null, platData:{} };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
-const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
+const geoPlatColors = { doubao:'#FF2F2F', deepseek:'#454545', yuanbao:'#ff7d00', kimi:'#f59e0b' };
 
 function geoSetScope(el) {
   document.querySelectorAll('.geo-scope-tab').forEach(t => t.classList.remove('active'));
@@ -136,7 +136,7 @@ function geoRenderPlatDist() {
   });
   const mx = Math.max(...rows.map(r => r.cites), 1);
   c.innerHTML = rows.map(r => {
-    const color = geoPlatColors[r.p] || '#3b82f6';
+    const color = geoPlatColors[r.p] || '#FF2F2F';
     const pct = Math.min(r.brand, 100).toFixed(0);
     if (r.missing) {
       return `<div class="geo-plat-card"><div class="gpc-name">${geoPlatNames[r.p] || r.p}</div><div style="color:#6b7390;font-size:11px">无数据</div></div>`;
@@ -151,7 +151,7 @@ function geoRenderPlatDist() {
 }
 
 // ===== GEO 信源分布 (sites API) =====
-const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#4f46e5','#15803d','#b45309','#9333ea','#0e7490','#be123c','#6366f1','#047857','#ea580c'];
+const GEO_TREEMAP_COLORS = ['#FF2F2F','#454545','#ff7d00','#606060','#d97706','#979797','#be185d','#252525','#34c724','#b45309','#722ed1','#0e7490','#be123c','#BDBDBD','#047857','#ea580c'];
 
 async function geoLoadSites() {
   try {
