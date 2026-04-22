@@ -528,14 +528,18 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <input type="text" id="emp-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-id" placeholder="身份证号..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <select id="emp-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="emp-ov-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-ov-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-ov-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <select id="emp-ov-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
+          <input type="date" id="emp-ov-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <span style="color:var(--text-secondary); font-size:12px;">至</span>
+          <input type="date" id="emp-ov-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable()">搜索</button>
         </div>
       </div>
@@ -583,14 +587,18 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
           <input type="text" id="emp-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-id" placeholder="身份证号..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
           <select id="emp-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
+          <input type="date" id="emp-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <span style="color:var(--text-secondary); font-size:12px;">至</span>
+          <input type="date" id="emp-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeList(1)">搜索</button>
         </div>
       </div>
