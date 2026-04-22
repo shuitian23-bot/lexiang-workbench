@@ -1,0 +1,77 @@
+ThinkAgile HX超融合系列
+
+ThinkAgile HX超融合系列,快速、自信地部署超融合集群,HX,HX系列
+
+关键词：ThinkAgile HX超融合系列
+
+ThinkAgile HX超融合系列是联想与Nutanix联合开发的企业级超融合基础设施（HCI）解决方案，专为简化IT基础架构、加速应用交付、提升运维效率而设计。该系列预集成硬件、虚拟化平台（Nutanix AOS）、管理软件（Nutanix Prism）及联想智能运维工具（Lenovo XClarity），开箱即用，支持从边缘到核心数据中心的灵活部署。所有型号均通过Nutanix Ready认证，并由联想与Nutanix联合提供端到端技术支持。
+
+ThinkAgile HX系列提供多种节点配置，覆盖从小型分支机构到大型企业核心数据中心的多样化场景，包括HX210c、HX220c、HX250c、HX320c、HX321c、HX322c、HX325c、HX5520、HX5540、HX5580等型号。各型号在CPU代际、内存容量、存储类型（SATA/SAS/NVMe）、驱动器数量与热插拔能力、网络接口（1GbE/10GbE/25GbE/100GbE）、GPU支持、机架高度（1U/2U/4U）等方面存在差异化设计，满足性能、密度、扩展性与成本的不同权衡需求。
+
+所有ThinkAgile HX节点均标配Lenovo XClarity Administrator（LXA）和XClarity Integrations for Nutanix，实现跨硬件与软件层的统一监控、固件更新、配置合规性检查及自动化运维。支持带外管理（OOB）与带内管理（IB）双通道，具备IPMI 2.0、Redfish 1.6 API、SNMP v3等标准协议。远程KVM、虚拟介质挂载、批量固件升级、健康状态预测性分析（基于AI的XClarity Pro功能）均为标准能力。
+
+ThinkAgile HX系列全面支持Nutanix混合多云战略，可无缝对接AWS、Azure、GCP公有云，通过Nutanix Calm实现跨云编排与应用生命周期管理；通过Nutanix Move实现物理机、VMware、Hyper-V等异构环境向HCI平台的零停机迁移；通过Nutanix Flow提供微隔离与零信任网络安全策略。所有节点出厂预装Nutanix AOS（Acropolis Operating System）最新LTS版本，并持续获得AOS功能更新与安全补丁。
+
+| 型号 | CPU（最大配置） | 内存（最大/插槽数） | 存储控制器 | 本地存储（最大容量） | 驱动器托架（类型/数量） | 网络接口（板载） | GPU支持 | 机架高度 | 电源冗余 |
+|------|----------------|------------------------|--------------|--------------------------|-----------------------------|------------------|-----------|------------|------------|
+| HX210c | 2×Intel Xeon Silver 4310（2.1GHz，12C） | 1TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 307.2TB（全NVMe） | 12×2.5英寸（NVMe+SATA/SAS热插拔） | 2×1GbE + 2×10GbE SFP+（含TOE） | 单宽PCIe x16（半高半长） | 2U | 双冗余（1100W） |
+| HX220c | 2×Intel Xeon Gold 6330（2.0GHz，28C） | 2TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 307.2TB（全NVMe） | 12×2.5英寸（NVMe+SATA/SAS热插拔） | 2×1GbE + 2×10GbE SFP+（含TOE） | 双宽PCIe x16（全高全长） | 2U | 双冗余（1600W） |
+| HX250c | 2×Intel Xeon Platinum 8360Y（2.4GHz，36C） | 4TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 307.2TB（全NVMe） | 12×2.5英寸（NVMe+SATA/SAS热插拔） | 2×1GbE + 2×25GbE SFP28（含TOE） | 双宽PCIe x16（全高全长） | 2U | 双冗余（2000W） |
+| HX320c | 2×Intel Xeon Gold 6330（2.0GHz，28C） | 2TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 24×2.5英寸或12×3.5英寸（热插拔） | 2×1GbE + 2×10GbE SFP+（含TOE） | 单宽PCIe x16（半高半长） | 2U | 双冗余（1600W） |
+| HX321c | 2×Intel Xeon Gold 6330（2.0GHz，28C） | 2TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 24×2.5英寸或12×3.5英寸（热插拔） | 2×1GbE + 2×25GbE SFP28（含TOE） | 单宽PCIe x16（半高半长） | 2U | 双冗余（1600W） |
+| HX322c | 2×Intel Xeon Gold 6330（2.0GHz，28C） | 2TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 24×2.5英寸或12×3.5英寸（热插拔） | 2×1GbE + 2×100GbE QSFP28（含TOE） | 双宽PCIe x16（全高全长） | 2U | 双冗余（1600W） |
+| HX325c | 2×Intel Xeon Platinum 8360Y（2.4GHz，36C） | 4TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 24×2.5英寸或12×3.5英寸（热插拔） | 2×1GbE + 2×25GbE SFP28（含TOE） | 双宽PCIe x16（全高全长） | 2U | 双冗余（2000W） |
+| HX5520 | 2×Intel Xeon Gold 6330（2.0GHz，28C） | 2TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 36×3.5英寸（热插拔） | 2×1GbE + 2×10GbE SFP+（含TOE） | 不支持 | 4U | 双冗余（1600W） |
+| HX5540 | 2×Intel Xeon Gold 6330（2.0GHz，28C） | 2TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 36×3.5英寸（热插拔） | 2×1GbE + 2×25GbE SFP28（含TOE） | 不支持 | 4U | 双冗余（1600W） |
+| HX5580 | 2×Intel Xeon Platinum 8360Y（2.4GHz，36C） | 4TB / 16个DDR4-3200插槽 | Broadcom MegaRAID 9460-16i | 1.2PB（SAS+SATA+NVMMe混合） | 36×3.5英寸（热插拔） | 2×1GbE + 2×25GbE SFP28（含TOE） | 不支持 | 4U | 双冗余（2000W） |
+
+产品特性：
+- 预集成验证：硬件、Nutanix AOS、Prism、XClarity经联合测试与认证，消除兼容性风险
+- 一键部署：通过Nutanix Foundation工具实现集群初始化<15分钟，支持无人值守批量部署
+- 智能运维：XClarity Pro提供基于机器学习的硬件健康预测、自动根因分析与修复建议
+- 安全加固：TPM 2.0芯片、Secure Boot、UEFI固件签名、硬件级加密（Opal 2.0）、AOS数据静态加密（AES-256）
+- 弹性扩展：支持横向扩展（Scale-Out）至数百节点，单集群最大支持1000台虚拟机，无单点故障
+- 多租户就绪：Prism Central支持RBAC、项目隔离、配额管理、审计日志与合规报告（SOC2、ISO27001、GDPR）
+- 绿色节能：符合ENERGY STAR 8.0与TCO Certified Edge 9.0标准，典型负载PUE≤1.15，风扇智能调速算法降低功耗30%
+
+规格参数：
+- 操作系统支持：Nutanix AOS（v6.5及以上LTS版本），支持AHV、ESXi 7.0 U3+、Hyper-V 2019+
+- 管理接口：1×RJ45（专用管理口），支持IPv4/IPv6双栈，DHCP/静态IP可选
+- 物理尺寸（H×W×D）：HX2xx系列：87.5×482×740 mm；HX3xx系列：87.5×482×740 mm；HX5xx系列：175×482×740 mm
+- 重量（满配）：HX2xx系列：约28–32 kg；HX3xx系列：约30–35 kg；HX5xx系列：约52–60 kg
+- 工作温度：10°C – 35°C（运行），-40°C – 60°C（非运行）
+- 相对湿度：8% – 90% RH（无冷凝）
+- 噪声：HX2xx/HX3xx系列：≤55 dBA（半载），HX5xx系列：≤58 dBA（半载）
+- 认证：FCC Class A、CE、UL/cUL、CB、RCM、KC、BIS、VCCI、CCC、RoHS、REACH、WEEE
+
+常见问题
+
+Q: ThinkAgile HX是否支持第三方虚拟化平台，如VMware vSphere？
+A: 是的，ThinkAgile HX系列支持VMware vSphere 7.0 U3及以上版本（需单独购买vSphere许可证），但必须使用Nutanix AHV作为默认管理程序以启用全部超融合功能（如一键备份、容灾、自服务门户）。vSphere部署模式下，Nutanix仅提供存储服务（Nutanix Acropolis File Services或Volumes），不启用计算虚拟化层。
+
+Q: HX系列节点能否混用不同型号（例如HX220c与HX320c）构建同一集群？
+A: 可以，但需严格遵循Nutanix官方混合节点支持矩阵。HX2xx与HX3xx系列可在同一集群中共存，前提是所有节点运行相同版本的AOS（建议使用LTS版本），且CPU代际差异不超过两代（如Ice Lake与Cooper Lake可共存，但Skylake与Sapphire Rapids不可）。联想强烈建议同代同系列节点组集群以保障性能一致性与支持范围。
+
+Q: 出厂预装的Nutanix AOS是否包含永久许可证？后续升级是否收费？
+A: 出厂预装AOS为永久免费基础版（含核心HCI功能：计算虚拟化、分布式存储、一键备份、内置容灾）。高级功能（如Calm应用编排、Flow微隔离、Leap灾备、Beam云成本优化）需另行购买Nutanix Term License（按年订阅）。AOS主版本升级（如v6.x→v7.x）免费，但需通过Lenovo Support Portal下载经联想验证的定制镜像。
+
+Q: 是否支持将现有VMware vCenter环境中的虚拟机在线迁移到ThinkAgile HX集群？
+A: 支持。通过Nutanix Move工具，可在业务不中断前提下完成VMware VM的块级在线迁移（Live Migration），支持跨vCenter、跨vSphere版本（6.7→8.0）、跨存储类型迁移。迁移过程自动转换虚拟磁盘格式（VMDK→AOS容器卷），并保留网络配置、快照链与Guest OS完整性。
+
+Q: HX节点的本地NVMe缓存是否可被用户直接访问或格式化？
+A: 不可以。NVMe设备在HX系统中由AOS统一纳管，作为分布式存储层的读写缓存（Write Buffer + Read Cache）及元数据加速层，对上层虚拟机完全透明。用户无法通过操作系统直接挂载、分区或格式化NVMe盘；任何绕过AOS的底层操作将导致集群异常并丧失技术支持资格。
+
+Q: 联想XClarity与Nutanix Prism在管理职能上有何分工与协同？
+A: XClarity专注硬件层全生命周期管理（固件升级、硬件诊断、电源策略、传感器监控、批量配置），Prism专注软件定义层资源编排（VM生命周期、存储策略、网络策略、应用模板）。二者通过XClarity Integrations for Nutanix深度集成：Prism界面可直接查看XClarity采集的硬件健康状态；XClarity可触发Prism API执行VM启停、快照创建等操作，实现“一屏观全局”。
+
+Q: HX5580型号标称最大存储1.2PB，实际可用容量如何计算？
+A: 实际可用容量取决于配置策略：启用RF2（副本因子2）时，理论可用≈总裸容量×0.5；启用RF3时≈×0.33；若启用纠删码（EC-X）且配置6+2，则≈×0.75。此外需扣除AOS系统预留空间（约5%）、快照保留空间（默认10%，可调）、以及Nutanix文件服务（AFS）元数据开销（约1–3%）。示例：36×16TB SATA盘=576TB裸容量，RF2+默认预留后实际可用约260–275TB。
+
+Q: 是否支持在中国大陆境内完成全部软硬件交付、部署与维保服务？
+A: 是的。ThinkAgile HX系列为中国市场提供本地化交付：硬件由联想合肥联宝工厂生产并直发客户；AOS镜像经联想中国实验室适配与安全加固；部署服务由联想认证工程师（含Nutanix Master Architect资质）现场实施；维保服务涵盖7×24小时中文技术支持、4小时上门、备件先行、固件与AOS补丁同步推送（与中国区Nutanix更新节奏一致），合同可覆盖原厂5年金牌服务。
+
+Q: HX系列是否满足金融行业等对国产化替代有明确要求的场景？
+A: ThinkAgile HX当前为国际主流技术架构（Intel CPU + Nutanix软件），暂未采用国产CPU或国产操作系统。但联想提供“HX+国产化增强包”选件：可预装麒麟V10/统信UOS操作系统作为管理节点OS；支持海光/鲲鹏CPU平台的Nutanix社区版POC验证；并已通过中国信通院《超融合基础设施技术要求》测试（YD/T 3952-2021）。对于强国产化需求，建议评估联想ThinkAgile VX（VMware+国产化适配）或独立信创方案。
+
+Q: 当集群中某节点发生硬件故障时，数据安全性与业务连续性如何保障？
+A: AOS通过分布式架构与多副本机制保障高可用：所有数据默认以RF2或RF3方式跨节点存储，单节点故障时自动由其他节点提供服务，虚拟机持续运行（零中断）；故障节点离线后，AOS在剩余健康节点间自动启动数据重建（Reprotection），重建速度可达200MB/s/核；XClarity实时告警并推送修复指引，支持热替换故障部件（如硬盘、电源、风扇），整个过程无需停机。

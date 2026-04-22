@@ -1,0 +1,81 @@
+Lenovo ThinkSystem SR860 V4
+
+ThinkSystem
+
+关键词：ThinkSystem SR860 V4
+
+Lenovo ThinkSystem SR860 V4 是一款高性能、高密度、四路机架式服务器，专为关键业务工作负载（如大型数据库、实时分析、企业资源规划ERP、客户关系管理CRM和虚拟化环境）而设计。该服务器采用第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），支持最高达 120 个内核和 240 个线程，提供卓越的单线程与多线程性能。SR860 V4 支持高达 12TB 的 DDR5 内存（32 个插槽，最高 384GB/插槽），具备全缓冲DIMM（LRDIMM）和RDIMM兼容性，并支持内存镜像、内存冗余和内存热备等高级RAS特性，确保极致可靠性与数据完整性。
+
+系统采用模块化设计，支持灵活的I/O扩展能力，标配8个PCIe 5.0 x16插槽（其中4个可配置为x8模式），全部支持热插拔；同时提供多达24个2.5英寸热插拔NVMe/SATA/SAS驱动器托架（可选前置12×2.5″+后置12×2.5″或前置24×2.5″配置），并支持U.2 NVMe SSD及Intel Optane™ 持久内存（PMem 300系列）。存储控制器支持Lenovo ThinkSystem RAID 930-16i（16端口，支持RAID 0/1/5/6/10/50/60）、RAID 935-24i（24端口）及HBA模式，满足不同性能与数据保护需求。
+
+SR860 V4 配备双冗余热插拔电源（最高支持3000W 80 PLUS Titanium认证），支持交流（AC）与高压直流（HVDC）输入；集成双千兆以太网端口（支持PXE启动、Wake-on-LAN、带外管理），并可选配双端口10GbE SFP+/RJ45、25GbE SFP28、100GbE QSFP28或InfiniBand EDR/HDR Mezzanine网卡。系统管理基于Lenovo XClarity Controller（XCC）——嵌入式BMC，支持IPMI 2.0、Redfish RESTful API、SNMP v3，并提供直观的Web界面、CLI及API集成能力；XCC Advanced许可证支持远程KVM、虚拟介质挂载、固件自动更新、预测性故障分析（PFA）及资产跟踪等功能。
+
+该服务器通过了严格的联想内部验证流程及多项行业认证，包括FIPS 140-2 Level 1加密合规、Common Criteria EAL2+、能源之星6.1、TCO Certified Edge 9.0，并符合RoHS、REACH、WEEE等环保指令。机箱尺寸为44.45 mm（高）× 482.6 mm（宽）× 857.2 mm（深），标准配置为4U高度，适用于全球主流数据中心机柜（兼容EIA-310-E标准）。
+
+| 特性类别 | 具体描述 |
+|----------|----------|
+| 处理器 | 支持4颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids-SP），最高350W TDP；支持全系列Platinum/Gold/Silver/Bronze型号；支持Intel Turbo Boost Technology 3.0、Intel Hyper-Threading Technology、Intel DL Boost、Intel AMX、Intel UPI 2.0（最高16 GT/s） |
+| 内存 | 最高12TB DDR5 RDIMM/LRDIMM；32个DDR5 DIMM插槽（每CPU 8个）；支持速率最高4800 MT/s；支持内存镜像、内存锁步（Lockstep）、内存热备（Spare）、内存地址奇偶校验（Address Parity）；支持Intel Optane™ 持久内存300系列（仅在特定SKU中启用） |
+| 存储 | 前置支持：12×2.5″ NVMe/SATA/SAS 或 24×2.5″ NVMe/SATA/SAS；后置支持：12×2.5″ NVMe/SATA/SAS（与前置组合时）；支持U.2 NVMe热插拔；支持Lenovo ThinkSystem RAID 930-16i（16端口，2GB缓存，支持CacheVault）、RAID 935-24i（24端口，4GB缓存）、RAID 940-16i（16端口，4GB缓存，支持NVMe直通）及HBA模式；支持SATA/SAS/NVMe混合部署 |
+| 扩展插槽 | 总计8个PCIe 5.0插槽：4×x16（物理）/x16（电气）、4×x16（物理）/x8（电气）；全部支持热插拔；支持全长全高GPU卡（如NVIDIA A100/A40/L40）及智能网卡（如NVIDIA BlueField-3）；支持Mezzanine网络子卡（2×10/25/100GbE或InfiniBand） |
+| 网络 | 板载2×1GbE RJ45（Intel i350-AM2），支持PXE、WOL、带外管理；可选：2×10GbE SFP+/RJ45（Intel X710-DA2/X550-AT2）、2×25GbE SFP28（Intel E810-CQDA2）、2×100GbE QSFP28（Intel E810-CQC）或2×HDR InfiniBand（Mellanox ConnectX-6） |
+| 电源与散热 | 双冗余热插拔电源：1600W/2000W/2400W/3000W 80 PLUS Titanium认证；支持AC（100–240V）与HVDC（240–380V）输入；6个热插拔N+1冗余风扇模组（每个模组含2个高速风扇），支持动态风扇调速与静音模式 |
+| 管理与安全 | Lenovo XClarity Controller（XCC）嵌入式BMC，支持IPMI 2.0、Redfish 1.12+、SNMP v3；标配XCC Standard，可升级至XCC Advanced；支持TPM 2.0（固件/离散可选）、Secure Boot、UEFI BIOS密码、BIOS恢复、带内/带外固件签名验证、硬件信任根（Root of Trust）；支持FIPS 140-2 Level 1加密模块 |
+| 物理规格 | 4U机架式；尺寸：44.45 mm（H）× 482.6 mm（W）× 857.2 mm（D）；重量（满配典型值）：约68.5 kg；工作温度：10°C – 35°C；相对湿度：8% – 90%（无冷凝）；符合EIA-310-E机柜标准 |
+
+产品特性  
+• 四路架构：原生支持4颗CPU协同计算，消除跨CPU通信瓶颈，提升NUMA一致性与低延迟访问效率  
+• 全栈RAS增强：涵盖处理器级（Machine Check Architecture）、内存级（ECC + Lockstep + Mirror）、I/O级（端到端CRC、PCIe AER）、固件级（安全启动、运行时验证）及系统级（XCC预测性故障分析、自动事件日志归档）  
+• 智能运维：XClarity Administrator统一管理平台支持跨设备批量部署、固件合规扫描、配置基线比对、自动化补丁分发；XClarity Integrations提供与VMware vCenter、Microsoft System Center、Red Hat Ansible及ServiceNow原生集成  
+• 绿色节能：Titanium电源转换效率≥96%，配合动态功耗封顶（Power Capping）、CPU/CPU内存自适应降频、风扇智能调速算法，在SPECpower_ssj2008基准下能效比上代提升32%  
+• 安全可信：出厂预装可信平台模块（TPM 2.0），支持固件签名验证、安全启动链（UEFI Secure Boot + Option ROM验证）、运行时内存加密（Intel TME）、虚拟机加密（Intel TDX）及机密计算（Intel SGX支持）  
+
+规格参数  
+处理器：4颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids-SP），最高350W TDP，支持UPI 2.0（16 GT/s）互联  
+芯片组：Intel C741  
+内存类型：DDR5 RDIMM（64GB/128GB/256GB）和LRDIMM（128GB/256GB/384GB）  
+内存容量：最大12TB（32×384GB LRDIMM）  
+内存插槽数：32个（每CPU 8个）  
+内存速率：4800/4400/4000/3200 MT/s（依CPU型号与配置自动协商）  
+存储驱动器：最多24×2.5″热插拔NVMe/SATA/SAS（前置+后置组合或全前置）；支持U.2 NVMe；支持SATA M.2（用于OS引导）  
+RAID控制器：ThinkSystem RAID 930-16i（16端口，2GB缓存，CacheVault）、RAID 935-24i（24端口，4GB缓存）、RAID 940-16i（16端口，4GB缓存，NVMe直通）  
+PCIe插槽：8个PCIe 5.0插槽（4×x16电气 + 4×x8电气），全部热插拔支持  
+网络接口：板载2×1GbE；可选2×10/25/100GbE或InfiniBand HDR  
+电源：双冗余热插拔，1600W/2000W/2400W/3000W，80 PLUS Titanium  
+风扇：6个热插拔N+1冗余风扇模组（每模组2风扇）  
+管理：Lenovo XClarity Controller（XCC），支持Redfish、IPMI、SNMP  
+安全：TPM 2.0（固件/离散可选）、Secure Boot、UEFI BIOS密码、BIOS恢复、硬件信任根  
+操作系统支持：Microsoft Windows Server 2022/2019，Red Hat Enterprise Linux 8.8+/9.2+，SUSE Linux Enterprise Server 15 SP4+/16 SP4+，VMware ESXi 7.0 U3+/8.0 U2+，Ubuntu Server 22.04 LTS+  
+认证：FIPS 140-2 Level 1，Common Criteria EAL2+，能源之星6.1，TCO Certified Edge 9.0，RoHS，REACH，WEEE  
+
+常见问题  
+
+Q: ThinkSystem SR860 V4 是否支持 Intel Optane™ 持久内存300系列？  
+A: 是的，SR860 V4 在特定SKU中支持Intel Optane™ 持久内存300系列（PMem 300），需搭配支持该功能的第四代至强® 处理器（如Platinum 84xx系列）及启用对应BIOS设置；PMem可配置为App Direct模式或Memory Mode，与DRAM协同构建大容量低延迟内存池。
+
+Q: 该服务器最多可安装多少块GPU？是否支持NVIDIA HGX平台？  
+A: SR860 V4 最多支持4块全长全高双宽GPU（如NVIDIA A100 80GB SXM4需配合专用背板，但本机型不内置HGX背板；标准配置支持A100/A40/L40 PCIe版本）；不原生支持NVIDIA HGX A100/H100 SXM模组，因缺少HGX mezzanine接口与专用供电/散热设计。
+
+Q: RAID 930-16i控制器是否支持NVMe SSD的RAID阵列？  
+A: 是的，RAID 930-16i控制器支持对U.2 NVMe SSD组建RAID 0/1/5/6/10/50/60阵列；但需注意：NVMe RAID仅在启用“NVMe RAID模式”时可用，且不支持与SATA/SAS混组同一RAID组；RAID缓存策略需启用CacheVault电池/超级电容保护以保障写缓存数据安全。
+
+Q: XCC Advanced许可证是否必须购买才能使用远程KVM功能？  
+A: 是的，远程KVM（键盘、视频、鼠标重定向）、虚拟介质挂载（ISO镜像上传与映射）、HTML5控制台及批量固件更新等高级功能仅在激活XCC Advanced许可证后可用；XCC Standard仅提供基础IPMI命令行、传感器监控与简单事件日志查看。
+
+Q: SR860 V4 是否兼容旧款ThinkSystem RAID 930-8i控制器？  
+A: 不兼容。SR860 V4 仅支持专为其设计的第四代RAID控制器（如RAID 930-16i、935-24i、940-16i），其物理接口、固件协议及PCIe拓扑均与上代930-8i不兼容；930-8i为PCIe 4.0控制器，且无SR860 V4主板对应的插槽电气定义与驱动支持。
+
+Q: 该服务器能否在35°C环境温度下持续满负荷运行？  
+A: 可以。SR860 V4 经过完整高温验证，在35°C、海拔≤2000米、相对湿度≤90%（无冷凝）条件下，配合3000W Titanium电源与全风扇模组运行，可支持所有CPU/内存/存储/PCIe设备满配满载工况，符合ASHRAE A4设备环境等级要求。
+
+Q: 是否支持将24个2.5英寸驱动器全部配置为NVMe？  
+A: 是的，SR860 V4 支持全24盘位NVMe配置（前置24×2.5″），但需选用支持全NVMe背板的机型SKU，并确保所选RAID控制器（如RAID 940-16i）及主板BIOS已启用全NVMe模式；此时无法混用SATA/SAS硬盘，且需注意NVMe设备功耗与散热密度对系统整体热设计的影响。
+
+Q: 在启用内存镜像（Memory Mirroring）模式下，系统可用内存容量如何计算？  
+A: 启用内存镜像后，系统将成对使用DIMM（例如Slot A1与A2互为镜像），总物理内存容量减半作为可用内存；例如安装32×384GB LRDIMM共12TB，启用镜像后操作系统识别约为6TB可用；该模式提供单DIMM故障零停机切换能力，是关键业务场景推荐配置。
+
+Q: 该服务器是否支持UEFI固件的在线热更新（Live Firmware Update）？  
+A: 是的，SR860 V4 支持通过XClarity Controller执行UEFI BIOS、XCC固件、RAID控制器微码等组件的在线热更新，无需重启服务器；更新过程自动校验数字签名、保留回滚副本，并在维护窗口期自动完成切换，确保业务连续性。
+
+Q: 对于运行Oracle Database RAC集群，SR860 V4 是否通过Oracle官方认证？  
+A: 是的，Lenovo ThinkSystem SR860 V4 已通过Oracle Database 19c/21c RAC（Real Application Clusters）认证，支持Linux平台（RHEL/SLES/Oracle Linux）下的多节点集群部署；认证涵盖共享存储（ASM、OCFS2）、网络心跳、OCR/Voting Disk高可用配置及Oracle Grid Infrastructure 19c/21c全栈兼容性验证。

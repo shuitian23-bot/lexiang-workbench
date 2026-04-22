@@ -1,0 +1,56 @@
+联想 ThinkSystem SR630 V4  -2
+
+联想 ThinkSystem SR630 V4 是一款2U双路机架式服务器，专为现代化数据中心设计，兼顾性能、密度、能效与可管理性。该服务器支持第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），最高支持双路60核处理器，提供卓越的计算能力；支持高达16TB DDR5内存（最高4800MT/s），并支持Intel® Optane™ 持久内存300系列（PMem 300）；存储方面支持多达16个3.5英寸热插拔硬盘/SSD（含最多8个NVMe U.2 SSD），或多达32个2.5英寸热插拔硬盘/SSD（含最多16个NVMe U.2 SSD），满足高I/O与大容量混合负载需求。SR630 V4 集成Lenovo XClarity Controller（XCC）基础版，支持带外远程管理、自动化部署与预测性故障分析，并兼容Lenovo XClarity Administrator（XCA）实现大规模统一运维。该机型通过ENERGY STAR® 认证与80 PLUS® 白金/钛金电源认证，具备智能风扇调速、热通道/冷通道部署优化及部件级功耗监控能力，显著降低TCO。适用于虚拟化、数据库、AI推理、企业应用、私有云及混合云基础设施等关键业务场景。
+
+产品特性  
+• 支持双路第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids-SP），最高60核/120线程，TDP最高350W，支持PCIe 5.0和DDR5内存  
+• 内存支持：最大16TB DDR5 RDIMM/LRDIMM，最高4800MT/s；支持Intel® Optane™ 持久内存300系列（PMem 300），最大8TB（需与DDR5混插）  
+• 存储灵活性：支持多种配置——16×3.5"（含最多8×NVMe U.2）、32×2.5"（含最多16×NVMe U.2）、或混合配置（如24×2.5" + 2×M.2）；支持RAID 0/1/10/5/50/6/60（通过ThinkSystem RAID 930-16i/940-16i控制器）  
+• I/O扩展：前置2×USB 3.2 Gen1、1×VGA；后置2×USB 3.2 Gen1、1×VGA、1×串口、1×RJ45 XCC管理端口；支持最多6个PCIe 5.0插槽（x16/x8/x4速率可配），含1个OCP 3.0插槽（支持10/25/100GbE）  
+• 管理能力：标配Lenovo XClarity Controller（XCC）基础版（含UEFI BIOS集成管理），支持IPMI 2.0、Redfish 1.8、SNMP v3；可升级至XCC Advanced授权以启用自动化运维、固件合规扫描、批量配置与安全启动策略管理  
+• 安全特性：支持TPM 2.0（离散/固件可选）、Secure Boot、Boot Guard、内存加密（Intel® Memory Protection Keys）、运行时固件验证（Intel® Total Memory Encryption）、硬件信任根（Root of Trust）  
+• 电源与散热：支持双冗余白金/钛金效率电源（550W/800W/1300W/1600W/1800W/2000W），支持高压直流（-48V DC）选项；智能散热系统支持N+1冗余风扇模组，支持环境温度最高45°C（ASHRAE A4）运行  
+
+规格参数  
+| 类别 | 参数 |
+|------|------|
+| 形态 | 2U机架式服务器 |
+| 处理器 | 支持2颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids-SP），最高60核/120线程，TDP最高350W；支持处理器间UPI互连（最高3条链路，16GT/s） |
+| 芯片组 | 英特尔® C741 芯片组 |
+| 内存 | 最大16TB（128个DIMM插槽）；支持DDR5 RDIMM（64GB/128GB）、LRDIMM（256GB）；速率支持4800/4400/4000/3200MT/s；支持Intel® Optane™ 持久内存300系列（PMem 300），最大8TB（需与DDR5混插，仅限特定SKU） |
+| 存储驱动器托架 | 配置1：16×3.5英寸热插拔SAS/SATA/NVMe U.2（含最多8×NVMe U.2）<br>配置2：32×2.5英寸热插拔SAS/SATA/NVMe U.2（含最多16×NVMe U.2）<br>配置3：24×2.5英寸 + 2×M.2 NVMe（用于OS引导）<br>所有配置均支持前置USB 3.2 Gen1接口用于外接存储 |
+| RAID控制器 | 标配ThinkSystem RAID 730-8i（8端口，2GB缓存，支持缓存超级电容保护）；可选升级为RAID 930-16i（16端口，4GB缓存，支持NVMe直通）或RAID 940-16i（16端口，8GB缓存，支持RAID 5/6/60及NVMe直通） |
+| 扩展插槽 | 最多6个PCIe 5.0插槽：<br>• 2×PCIe 5.0 x16（Gen5，全高全长）<br>• 2×PCIe 5.0 x8（Gen5，全高半长）<br>• 1×PCIe 5.0 x4（Gen5，全高半长）<br>• 1×OCP 3.0插槽（支持10/25/100GbE网卡，含PHY旁路功能） |
+| 网络 | 标配2×1GbE RJ45（板载，Intel® I350-AM2）；可选OCP 3.0网卡（10/25/100GbE SFP28/QSFP28）；支持NC-SI over LAN |
+| 管理接口 | 1×RJ45 XCC管理端口（独立千兆网口，支持IPv4/IPv6、DHCP、静态IP）；支持带内管理（通过OS代理）与带外管理（XCC专用通道） |
+| 电源 | 支持双冗余热插拔电源：<br>• 550W/800W 白金级（交流）<br>• 1300W/1600W/1800W/2000W 钛金级（交流）<br>• 可选-48V DC双电源（1300W）<br>支持电源功率限制（capping）、动态电源共享（DPS）与实时功耗监控 |
+| 风扇 | 6×N+1冗余热插拔风扇模组（每模组含2个风扇），支持PWM智能调速；风扇转速根据CPU、内存、存储及环境温度动态调节 |
+| 尺寸（高×宽×深） | 87.8 mm × 447 mm × 748 mm（不含挂耳）；87.8 mm × 482 mm × 775 mm（含标准挂耳） |
+| 重量（满配典型值） | 约32.5 kg（含双电源、双处理器、32×2.5"硬盘、128×DDR5 DIMM） |
+| 工作温度 | 10°C – 45°C（ASHRAE A4环境，海拔≤3000米）；支持短时48°C（≤5小时/天） |
+| 认证与合规 | ENERGY STAR® 认证；80 PLUS® 白金/钛金认证；FCC Class A；CE；UL/cUL；CCC；VCCI；KC；BIS；RoHS；REACH；WEEE |
+
+常见问题  
+Q: ThinkSystem SR630 V4 是否支持第三代英特尔® 至强® 可扩展处理器？  
+A: 不支持。SR630 V4 专为第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids-SP）设计，采用全新LGA4677插槽与C741芯片组，与第三代（Ice Lake-SP）的LGA4189插槽及C621A芯片组不兼容。
+
+Q: 最大16TB内存是否需要全部使用LRDIMM？能否混用RDIMM与LRDIMM？  
+A: 最大16TB容量需使用128条256GB LRDIMM（共32个内存通道×4插槽/通道）；RDIMM与LRDIMM不可在同一处理器上混插，但允许双处理器分别使用不同类型的内存（例如CPU1插RDIMM，CPU2插LRDIMM），前提是满足每CPU内存通道对称配置要求。
+
+Q: NVMe U.2驱动器是否支持热插拔？是否需要额外许可或配置？  
+A: 是，所有NVMe U.2驱动器均支持完整热插拔（包括断电、更换、自动识别与重建），无需额外许可；但需确保所选RAID控制器支持NVMe（如RAID 930-16i或940-16i），且BIOS中已启用NVMe控制器及相应PCIe插槽的AER（Advanced Error Reporting）功能。
+
+Q: XCC Advanced授权是否必须购买才能启用Redfish API？  
+A: 否。XCC基础版已原生支持Redfish 1.8 RESTful API（含系统、内存、存储、电源、日志等资源模型），无需升级授权；XCC Advanced主要增强自动化能力（如批量固件更新、合规策略执行、自定义工作流脚本），不影响Redfish核心功能可用性。
+
+Q: 该服务器是否支持液冷？是否有官方认证的液冷改装套件？  
+A: SR630 V4 当前未提供出厂预装液冷版本，亦无联想官方认证的第三方液冷改装套件；其散热设计基于风冷优化（含高风量风扇、定制散热器与风道），符合ASHRAE A4风冷部署规范；如需液冷方案，建议评估联想ThinkSystem SD650 V3等原生液冷机型。
+
+Q: M.2插槽是否可用于操作系统安装？是否支持RAID 1镜像？  
+A: 是，2×M.2 NVMe插槽（PCIe 4.0 x4）专为OS引导设计，支持Windows Server、RHEL、SUSE Linux等主流OS；可通过主板内置Intel® VROC（需启用VROC Key许可）实现M.2 RAID 0/1，或使用第三方软件RAID（如Linux mdadm）构建镜像。
+
+Q: 在32×2.5英寸配置下，是否所有硬盘位都支持NVMe？是否需要额外背板？  
+A: 否。32×2.5英寸配置中，最多16个位置支持NVMe U.2（由专用NVMe背板提供PCIe 5.0直连通道），其余16个位置仅支持SAS/SATA；该配置需标配NVMe优化背板（Part Number: 7ZT7A05555），不可替换为传统SAS背板。
+
+Q: 电源是否支持跨相位负载均衡？在单路市电输入场景下能否保障冗余？  
+A: 是，钛金级电源模块内置数字PMBus控制器，支持跨电源相位动态负载分配与实时功率同步；在单路市电输入（即仅1个PDU供电）场景下，双电源仍可提供N+1冗余（任一电源故障时另一电源可承载100%负载），但此时失去输入级冗余，建议部署双路独立市电或UPS输入以实现完整电力冗余。

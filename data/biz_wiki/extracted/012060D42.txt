@@ -1,0 +1,55 @@
+Lenovo ThinkSystem DE 系列
+
+Lenovo ThinkSystem DE 系列是联想面向中大型企业及云服务提供商推出的高性能、高密度、可扩展的分布式存储系统，专为混合云环境、AI训练数据湖、大规模虚拟化和大数据分析等数据密集型工作负载设计。该系列采用全闪存与混闪双模架构，支持横向扩展（Scale-Out）与纵向扩展（Scale-Up）灵活组合，具备端到端NVMe加速、智能分层存储、多协议统一访问（NFS/SMB/iSCSI/S3）、内置数据缩减（实时压缩与去重）、以及企业级数据保护（快照、克隆、异步/同步复制、WORM）等核心能力。系统通过Lenovo Storage Manager统一管理平台实现可视化运维、AI驱动的容量与性能预测、自动故障根因分析及一键式固件升级。
+
+ThinkSystem DE 系列当前包含以下主力型号：
+
+| 型号 | 控制器配置 | 最大前端带宽（单节点） | 最大后端带宽（单节点） | 支持驱动器类型 | 最大原始容量（单节点） | 支持协议 | 高可用特性 |
+|------|-------------|--------------------------|--------------------------|----------------|--------------------------|-----------|--------------|
+| DE2000H | 双控制器，2U12盘位，每控制器2颗Intel Xeon D-2700处理器，64GB DDR4 ECC内存（可扩展至128GB） | 32 Gb/s FC × 4 或 25GbE iSCSI × 4 或 100GbE RDMA × 2 | 24 Gb SAS3 × 4（双路径） | 2.5" NVMe/U.2、SAS/SATA SSD、7.2K NL-SAS | 307.2 TB（全NVMe）或 192 TB（混闪，含12×16TB NL-SAS） | NFS v3/v4.1、SMB 3.1.1、iSCSI、S3 RESTful API、FCP | 活动-活动双活控制器、无中断在线升级、自动故障切换（<100ms）、跨控制器缓存镜像 |
+| DE4000H | 双控制器，4U60盘位，每控制器2颗Intel Xeon Silver 4310处理器，128GB DDR4 ECC内存（可扩展至512GB） | 32 Gb/s FC × 8 或 25GbE iSCSI × 8 或 100GbE RDMA × 4 | 24 Gb SAS3 × 8（双路径） | 3.5" NL-SAS/NL-SATA、2.5" SAS/SATA SSD、U.2 NVMe | 1.8 PB（混闪，含60×30TB NL-SAS）或 720 TB（全闪，含60×12.8TB U.2 NVMe） | NFS v3/v4.1、SMB 3.1.1、iSCSI、S3 RESTful API、FCP、NVMe/TCP（可选激活） | 活动-活动双活控制器、无中断在线升级、自动故障切换（<100ms）、跨控制器缓存镜像、控制器间PCIe Gen4直连 |
+| DE6000H | 双控制器，4U60盘位，每控制器2颗Intel Xeon Gold 6330处理器，256GB DDR4 ECC内存（可扩展至1TB） | 32 Gb/s FC × 12 或 25GbE iSCSI × 12 或 100GbE RDMA × 6 | 24 Gb SAS3 × 12（双路径） | 3.5" NL-SAS/NL-SATA、2.5" SAS/SATA SSD、U.2 NVMe、E1.S（未来固件支持） | 2.7 PB（混闪，含60×45TB NL-SAS）或 1.152 PB（全闪，含60×19.2TB U.2 NVMe） | NFS v3/v4.1、SMB 3.1.1、iSCSI、S3 RESTful API、FCP、NVMe/TCP、NVMe/FC（可选激活） | 活动-活动双活控制器、无中断在线升级、自动故障切换（<100ms）、跨控制器缓存镜像、控制器间PCIe Gen4直连、内置仲裁节点（支持3节点集群仲裁） |
+
+产品特性：
+- 全栈NVMe加速：从主机接口（100GbE RDMA / FC-NVMe）、控制器内部PCIe Gen4互连，到U.2/E1.S NVMe驱动器，实现端到端低延迟（平均读取延迟<100μs，写入延迟<200μs）
+- 智能分层存储（IntelliTier）：基于I/O热度、访问频次与策略规则，自动在NVMe缓存层、SSD性能层、NL-SAS容量层之间迁移数据，支持手动策略配置与AI驱动的自适应调优
+- 多协议统一命名空间：单一存储池同时提供文件（NFS/SMB）、块（iSCSI/FC/NVMe-TCP）、对象（S3）三种访问方式，元数据全局一致，无需网关转换
+- 内置数据缩减引擎：支持在线实时压缩（LZ4+Zstandard双算法可选）、固定/可变长块级去重，全局去重粒度达4KB，实测平均缩减率3.5:1（VDI场景）至6.2:1（备份归档场景）
+- 企业级数据保护：应用一致性快照（支持VMware VADP、Microsoft VSS集成）、无限时间点克隆、跨站点异步复制（RPO<5秒）、同步复制（RPO=0，最大距离100km）、WORM（Write Once Read Many）合规模式（满足SEC/FINRA/ISO 27001要求）
+- Lenovo Storage Manager统一管理平台：B/S架构，支持集中纳管最多100个DE集群；提供容量热力图、IOPS/延迟趋势分析、AI预测性告警（提前72小时预警磁盘失效/容量瓶颈）、一键式固件与微码批量升级、RBAC细粒度权限控制（含AD/LDAP集成）
+
+规格参数：
+- 工作温度：5°C 至 35°C（操作），-40°C 至 65°C（非操作）
+- 存储温度：-40°C 至 65°C
+- 相对湿度：20% 至 80% RH（无冷凝）
+- 电源：双冗余热插拔电源模块（1+1或2+2），支持200–240V AC（50/60Hz）或 -48V DC；DE2000H额定功率350W，DE4000H额定功率1200W，DE6000H额定功率1800W
+- 物理尺寸（高×宽×深）：DE2000H：88.9 mm × 447 mm × 742 mm（2U）；DE4000H/DE6000H：177.8 mm × 447 mm × 872 mm（4U）
+- 重量（满配）：DE2000H：28.5 kg；DE4000H：72.3 kg；DE6000H：76.8 kg
+- 认证：FCC Class A、CE、UL 62368-1、EN 55032/55035、RoHS、ENERGY STAR 8.0、TCO Certified Edge 3.0
+- 支持操作系统：VMware vSphere 7.0 U3 及以上、Microsoft Windows Server 2016/2019/2022、Red Hat Enterprise Linux 8.4 及以上、SUSE Linux Enterprise Server 15 SP3 及以上、Ubuntu 20.04 LTS 及以上、Citrix Hypervisor 8.2 及以上
+
+常见问题
+
+Q: ThinkSystem DE 系列是否支持与VMware vSAN进行混合部署或数据迁移？
+A: 不支持直接与vSAN混合部署。DE系列为独立外部存储系统，可通过iSCSI/FC/NVMe-TCP协议为vSphere提供共享存储，但其架构、管理平面与vSAN完全分离；数据迁移需通过vMotion（虚拟机级别）或第三方工具（如Veeam Backup & Replication）完成，不提供原生vSAN-to-DE迁移工具。
+
+Q: DE系列的“内置仲裁节点”功能具体指什么？是否需要额外硬件？
+A: DE6000H控制器内嵌轻量级仲裁服务进程，可在两节点集群发生网络分区时，由第三节点（可为另一台DE6000H或专用虚拟仲裁机）提供法定人数投票，避免脑裂。该功能无需额外物理硬件，但需在Storage Manager中启用并配置仲裁节点IP；亦支持部署于VMware或Hyper-V上的虚拟仲裁机（OVA格式提供）。
+
+Q: 智能分层存储（IntelliTier）是否支持手动锁定某类数据始终驻留在NVMe层？
+A: 支持。除自动热度感知迁移外，管理员可通过Storage Manager为指定卷、LUN或S3存储桶设置“数据驻留策略”，包括“强制驻留NVMe层”、“禁止迁移至NL-SAS层”、“仅允许在SSD层内迁移”等选项，策略优先级高于AI自动调度。
+
+Q: 全闪配置下，DE4000H标称的最大IOPS是多少？测试条件是什么？
+A: 在4KB随机读、70%读/30%写的混合负载、启用了压缩与去重、使用100GbE RDMA主机连接的基准测试条件下，DE4000H全闪配置（60×12.8TB U.2 NVMe）实测持续IOPS达1,850,000，平均延迟128μs。该数据基于SPC-1基准测试方法论，结果已通过SPC官方认证并公开发布（SPC-1 IOPS: 1,852,341）。
+
+Q: S3对象存储是否支持跨区域复制（Cross-Region Replication）？
+A: 支持。DE系列S3服务内置跨区域复制功能，可配置将指定Bucket内的对象异步复制至另一DE集群、AWS S3、Azure Blob Storage或兼容S3协议的第三方对象存储。复制过程支持加密（AES-256）、带宽限速、失败重试策略及复制日志审计。
+
+Q: 是否支持NVMe/FC协议？哪些型号可启用？
+A: NVMe/FC协议支持需通过软件许可激活。DE4000H和DE6000H均支持，但仅DE6000H出厂预装NVMe/FC协议栈；DE4000H需单独购买“DE-NVMEFC-UPG”许可并升级至固件版本2.5.0及以上方可启用。DE2000H不支持NVMe/FC。
+
+Q: 数据去重是在写入时（inline）还是写入后（post-process）执行？
+A: 同时支持两种模式。默认启用inline去重（写入路径实时处理），确保写入性能与空间效率兼顾；也可按需切换为post-process模式（后台任务周期性扫描去重），适用于对写入延迟极度敏感的特定数据库日志卷场景，切换操作无需停机。
+
+Q: 是否提供针对勒索软件攻击的防护机制？
+A: 提供多层防护：1）WORM合规模式下，开启“勒索软件防护策略”后，关键卷自动启用不可删除/不可修改快照保留（最短保留期30天）；2）Storage Manager集成Cyber Recovery Analytics，可基于文件访问行为异常（如高频rename/delete）触发自动快照冻结与告警；3）所有快照默认不可被远程覆盖，需本地物理按键或双人审批授权才可删除。

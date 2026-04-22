@@ -1,0 +1,64 @@
+ThinkStation P620
+
+裂变重塑 原力新生
+
+全球首款64核处理器工作站
+
+技术亮点
+- 全球首款64核处理器：搭载AMD Ryzen Threadripper PRO 7000系列处理器，性能卓越。
+- 领先PCIe接口：支持最新PCIe 5.0标准，传输速度更快。
+- 顶级专业显卡：率先配备NVIDIA RTX A6000顶级专业显卡，图形处理能力强大。
+- Windows 11操作系统：预装Windows 11家庭中文版，推荐使用Windows 11专业版。
+
+硬件配置
+- 处理器：AMD Ryzen Threadripper PRO 7000系列
+- 内存：最高支持128GB DDR5内存
+- 存储：支持M.2 NVMe SSD和SATA SSD，提供高速数据读写
+- 显卡：NVIDIA RTX A6000
+- 操作系统：Windows 11 家庭中文版 / Windows 11 专业版
+
+性能表现
+- 多任务处理：64核处理器，轻松应对多任务处理需求。
+- 图形渲染：RTX A6000显卡，支持复杂图形渲染和3D建模。
+- 数据传输：PCIe 5.0接口，实现高速数据传输。
+
+应用场景
+- 专业设计：适用于CAD、3D建模等专业设计工作。
+- 视频编辑：支持4K、8K视频编辑，提升工作效率。
+- 科学计算：强大的计算能力，满足科学计算需求。
+
+服务保障
+- 保修政策：3年有限保修，2300+小时运行时间，7*12小时技术支持，2小时响应时间。
+- ISV全功能认证：通过Adobe、Autodesk、Unity等多家知名软件厂商的全功能认证。
+
+用户评价
+- 专业设计师："这款工作站的性能非常出色，能够轻松处理复杂的3D模型。"
+- 视频编辑师："RTX A6000显卡让我在4K视频编辑时游刃有余。"
+- 科研人员："强大的计算能力帮助我完成了多项复杂的科学计算任务。"
+
+结语
+ThinStation P620工作站凭借其强大的硬件配置和卓越的性能表现，成为专业用户和高性能需求用户的理想选择。无论是专业设计、视频编辑还是科学计算，它都能提供稳定可靠的支持。选择ThinStation P620，开启高效工作的新篇章。
+
+Q: ThinkStation P620搭载的是哪一代AMD处理器？
+A: ThinkStation P620搭载的是AMD Ryzen Threadripper PRO 7000系列处理器。
+
+Q: ThinkStation P620支持的最高内存容量和内存类型是什么？
+A: ThinkStation P620最高支持128GB DDR5内存。
+
+Q: ThinkStation P620配备的顶级专业显卡型号是什么？
+A: ThinkStation P620配备的是NVIDIA RTX A6000顶级专业显卡。
+
+Q: ThinkStation P620支持的PCIe标准是第几代？有何优势？
+A: ThinkStation P620支持最新PCIe 5.0标准，该标准可提供比PCIe 4.0翻倍的带宽，显著提升高速存储设备与专业显卡的数据传输速度。
+
+Q: ThinkStation P620预装的操作系统版本是什么？是否支持升级？
+A: ThinkStation P620预装Windows 11家庭中文版；页面明确推荐使用Windows 11专业版，表明支持升级至专业版。
+
+Q: ThinkStation P620通过了哪些主流ISV软件厂商的全功能认证？
+A: ThinkStation P620通过Adobe、Autodesk、Unity等多家知名软件厂商的全功能认证。
+
+Q: ThinkStation P620的保修政策具体包含哪些服务内容？
+A: ThinkStation P620提供3年有限保修，覆盖2300+小时运行时间，并享有7×12小时技术支持及2小时响应时间的服务保障。
+
+Q: ThinkStation P620适用于哪些典型专业应用场景？
+A: ThinkStation P620适用于专业设计（如CAD、3D建模）、4K/8K视频编辑以及科学计算等对计算性能、图形处理与I/O吞吐量要求极高的专业场景。

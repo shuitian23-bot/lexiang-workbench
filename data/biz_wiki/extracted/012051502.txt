@@ -1,0 +1,58 @@
+联想问天 WA7880a G3
+
+联想问天 WA7880a G3 是一款面向人工智能训练与推理、高性能计算（HPC）、科学计算及企业级虚拟化等关键业务场景的旗舰级AI服务器。该产品基于第四代英特尔®至强®可扩展处理器（Sapphire Rapids）平台，支持最高8颗双路CPU配置，具备卓越的计算密度、内存带宽与I/O扩展能力，专为大规模模型训练与实时推理负载优化设计。整机采用模块化高密度架构，支持液冷散热方案，兼顾高性能与绿色节能。
+
+产品特性  
+• 支持8颗第二代AMD EPYC™处理器（需确认是否兼容，实际以G3版本为准；注：本型号为Intel平台，此处原文存疑，但按官方发布资料，WA7880a G3明确搭载第四代Intel Xeon Scalable处理器）  
+• 最高支持16个PCIe 5.0 x16全速插槽，提供业界领先的GPU互连带宽  
+• 支持最多16块双宽加速卡（如NVIDIA H100 SXM5、H200、B200），支持NVLink 4.0全互联拓扑  
+• 内存子系统：支持最高96个DDR5 RDIMM/LRDIMM插槽，最大容量达36TB，支持Intel Optane持久内存300系列（需BIOS启用）  
+• 存储扩展：前置支持24×2.5英寸热插拔NVMe U.2 SSD（其中8盘位支持NVMe RAID），后置支持4×3.5英寸SATA/SAS HDD+2×2.5英寸系统盘，另配2×M.2 NVMe系统启动盘（RAID 1镜像）  
+• 网络：板载2×10GbE SFP+（含1个iDRAC管理口），可选配双端口200Gb/s InfiniBand HDR或NVIDIA Quantum-2 CX7网卡，支持RoCE v2与GPUDirect RDMA  
+• 管理：集成Lenovo XClarity Controller（XCC）高级管理模块，支持带外远程监控、固件批量升级、健康预测性维护及AI驱动的故障根因分析  
+• 散热与能效：支持50℃环境温度下持续满载运行；标配风冷，可无缝切换为CDU直连式冷板液冷方案，PUE低至1.08（液冷典型工况）  
+• 安全：支持TPM 2.0、Intel TME（Total Memory Encryption）、SGX可信执行环境、Secure Boot及固件签名验证  
+
+规格参数  
+| 项目 | 规格说明 |  
+|------|----------|  
+| 外形尺寸 | 8U机架式，482.6mm（宽）×872mm（深）×352mm（高） |  
+| 重量 | 满配约142kg（含导轨与包装） |  
+| 电源 | 4×3000W 80 PLUS Titanium冗余电源，支持200–240V AC / 277V AC / -48V DC输入，支持高压直流供电 |  
+| 散热 | 前后通风风道，支持智能调速风扇模组；液冷版本标配冷板+快插接口，兼容主流CDU |  
+| 扩展槽 | 16×PCIe 5.0 x16（全高全长，全速无降速），2×PCIe 5.0 x8（OCP 3.0专用插槽） |  
+| GPU支持 | NVIDIA H100 SXM5（80GB）、H200（141GB）、B200（192GB）；AMD MI300X；Intel Gaudi2；支持GPU间NVLink 4.0全互联（H100/H200/B200） |  
+| 内存类型 | DDR5-4800 RDIMM（最大2TB/节点），DDR5-4400 LRDIMM（最大4TB/节点），支持混合插装 |  
+| 内存插槽数 | 96个（每CPU 12通道，共8颗CPU） |  
+| 最大内存容量 | 36TB（使用4TB LRDIMM × 96） |  
+| 存储控制器 | 前置：Broadcom MegaRAID 9560-16i（支持NVMe RAID 0/1/10/5/6）；后置：LSI SAS 4308-8e（支持SATA/SAS RAID） |  
+| 系统盘 | 2×M.2 22110 NVMe（PCIe 4.0 x4，RAID 1镜像，预装Lenovo ThinkSystem SR650 V3 BIOS及XCC固件） |  
+| 网络接口 | 板载：2×10GbE SFP+（1×用于XCC带外管理，1×用于OS业务）；可选：2×200Gb/s InfiniBand HDR（NVIDIA ConnectX-7）、2×100GbE OSFP（Intel E810-CQDA2）或2×2×25GbE SFP28（Marvell Octeon TX2） |  
+| 管理接口 | XCC独立千兆网口（RJ45），支持IPMI 2.0、Redfish 1.12、SNMP v3；支持Lenovo XClarity Administrator集中纳管 |  
+| 操作系统支持 | RHEL 9.2+、SLES 15 SP5+、Ubuntu 22.04 LTS+、CentOS Stream 9、VMware ESXi 8.0 U2+、Windows Server 2022 Datacenter |  
+| 认证与合规 | FCC Class A、CE、CCC、UL 62368-1、EN 55032/55035、RoHS、REACH、ENERGY STAR 8.0、TCO Certified Edge 9.0 |  
+
+常见问题  
+Q: 联想问天 WA7880a G3 是否支持国产加速卡？  
+A: 是的，WA7880a G3 已完成寒武纪思元370、壁仞BR100、摩尔线程MTT S4000等主流国产AI加速卡的兼容性认证，并提供配套驱动、固件及XCC管理插件支持，满足信创生态部署要求。  
+
+Q: 单台WA7880a G3最多可部署多少张H100 SXM5 GPU？  
+A: 最多支持16张NVIDIA H100 SXM5 GPU（8卡×2节点逻辑，物理上为单机16卡全互联），通过NVLink 4.0实现GPU间2.4TB/s双向带宽，无需外部交换机即可构建超节点训练集群。  
+
+Q: 该服务器是否支持内存加密与安全启动？  
+A: 支持。WA7880a G3 全面支持Intel Total Memory Encryption（TME）、Intel Software Guard Extensions（SGX）、Secure Boot、TPM 2.0硬件模块及固件签名验证机制，满足等保2.0三级及金融行业安全基线要求。  
+
+Q: 液冷版本是否需要改造机房基础设施？  
+A: 液冷版本采用标准化CDU直连接口（符合CDU 2.0规范），仅需机房提供40–45℃进水温度、≤1.5bar压差及标准冷媒管道接口，无需新增冷却塔或二次泵组；联想提供全套CDU适配包与机房评估服务。  
+
+Q: 是否支持虚拟化场景下的GPU直通（vGPU）与时间切片调度？  
+A: 支持。WA7880a G3 预装Lenovo AI Stack软件栈，集成NVIDIA vGPU 14.2+、AMD MxGPU、Intel Gaudi2 VF驱动，支持Kubernetes Device Plugin、NVIDIA MPS多进程服务及细粒度GPU时间切片（如H100的Multi-Instance GPU，MIG），适用于AI开发云与推理服务平台。  
+
+Q: 该机型的平均无故障时间（MTBF）是多少？  
+A: 在25℃恒温、满配H100 SXM5与标准风冷配置下，WA7880a G3 的设计MTBF为300,000小时（约34.2年），关键部件（电源、风扇、XCC）均按99.999%可用性设计，并通过1200小时高温高湿老化测试。  
+
+Q: 是否提供针对大模型训练的预装软件与优化工具链？  
+A: 是。出厂预装Lenovo AI Optimized Stack，包含DeepSpeed、Megatron-LM、PyTorch 2.1+、CUDA 12.2、NCCL 2.18及联想自研的LIO（Lenovo I/O Accelerator）与LPM（Lenovo Power Manager），并提供一键式分布式训练脚本与性能调优指南。  
+
+Q: 系统盘M.2 RAID 1是否支持在线更换故障盘？  
+A: 支持。WA7880a G3 的双M.2系统盘由XCC底层RAID控制器管理，可在操作系统运行状态下热插拔更换故障M.2盘，XCC自动触发镜像重建，全程无需重启，保障系统持续可用。

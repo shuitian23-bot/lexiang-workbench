@@ -1,0 +1,77 @@
+联想问天 NE8770-64QC 盒式交换机
+
+联想问天 NE8770-64QC 盒式交换机是联想面向数据中心和高性能计算（HPC）场景推出的全新一代高密度、低延迟、高吞吐盒式以太网交换机。该设备基于Broadcom Tomahawk 4系列芯片平台，支持全端口线速200Gbps或100Gbps转发，具备超低转发延迟（典型值<650ns）、高精度时间同步（PTP IEEE 1588v2硬件支持）、增强型拥塞控制（ECN、DCQCN）及可编程数据平面能力（P4可编程流水线），满足AI训练集群、大规模分布式存储、金融高频交易等对网络性能与确定性有严苛要求的应用场景。
+
+产品采用紧凑型2U机箱设计，整机功耗优化至≤1200W（满配QSFP56光模块），支持前后/后前风道灵活部署，兼容主流数据中心机柜散热规范。设备搭载联想自研的Lenovo Network OS（LNOS）网络操作系统，提供CLI、RESTful API、gNMI、Telemetry流式监控等多维度管理接口，并深度集成联想智能运维平台Lenovo xCloud，支持AI驱动的异常检测、根因分析与预测性维护。
+
+联想问天 NE8770-64QC 提供全端口可配置能力：所有64个QSFP56端口均可按需拆分为1×200G、2×100G、4×50G或4×25G模式，支持跨端口通道绑定（如2×200G聚合为400G），并原生兼容RoCEv2、iWARP、TCP/IP及FCoE等多种协议栈。设备内置双冗余热插拔电源与双冗余风扇模组，支持NSF/NSR、ISSU、VRRP、MLAG等高可靠性特性，关键组件MTBF＞50万小时。
+
+| 特性类别 | 具体描述 |
+|----------|----------|
+| 基础规格 | 2U高度，宽440mm × 深650mm × 高88mm；整机重量≤25kg（不含模块）；工作温度0℃～40℃；存储温度-40℃～70℃；相对湿度5%～95%（无凝露） |
+| 端口配置 | 64× QSFP56（支持热插拔）；每端口支持速率：200G/100G/50G/25G；支持端口拆分（1×200G / 2×100G / 4×50G / 4×25G）；支持端口聚合（LAG、MLAG）；支持前出线/后出线两种布线方式 |
+| 转发能力 | 交换容量：25.6Tbps；包转发率：19.04Bpps（64字节）；缓存容量：32MB共享缓冲池（动态分配）；ACL条目：≥64K；MAC地址表：≥256K；IPv4路由表：≥128K；IPv6路由表：≥64K |
+| 协议支持 | L2：IEEE 802.1D STP/RSTP/MSTP、802.1Q VLAN、802.1ad Q-in-Q、802.1p CoS、802.3ad LACP、802.1AB LLDP、802.1X；L3：IPv4/IPv6双栈、OSPFv2/v3、BGP-4/MP-BGP、PIM-SM/SSM、VRRPv2/v3、ECMP（32路）；数据中心特性：RoCEv2（含DCQCN、ECN）、PFC、ETS、AQMT、INT、gRPC/gNMI Telemetry、PTP IEEE 1588v2（硬件时间戳，±50ns精度） |
+| 管理与运维 | 操作系统：Lenovo Network OS（LNOS）v3.2及以上；管理接口：Console（RJ45）、USB 2.0（本地配置）、1×10/100/1000BASE-T带外管理口；协议：SSHv2、HTTPS、SNMPv2c/v3、Syslog、RADIUS、TACACS+；自动化：Ansible模块、Python SDK、OpenConfig YANG模型支持；可视化：xCloud云平台对接，支持拓扑自动发现、实时流统计、历史趋势分析、告警闭环处理 |
+| 可靠性与安全 | 冗余设计：双电源（1+1）、双风扇（2+2）、风扇模块支持在线更换；高可用：NSF/NSR、ISSU（不中断软件升级）、VRRP、MLAG（跨设备链路聚合）、GR（Graceful Restart）；安全机制：Control Plane Policing（CoPP）、CPU保护、ACL过滤、DHCP Snooping、IP Source Guard、Dynamic ARP Inspection、Secure Boot、TPM 2.0可信启动、固件签名验证 |
+| 认证与合规 | 安全认证：CCC、CE、FCC、UL/cUL、RoHS、REACH；行业认证：PCI DSS、HIPAA就绪、NIST SP 800-53 Rev.5（中等影响级）；数据中心标准：ASHRAE A3/A4环境适配、OCP NIC 3.0兼容性认证 |
+
+产品特性：
+- 全端口200G线速转发能力，单端口延迟＜650ns（64字节）
+- P4可编程数据平面，支持用户自定义匹配动作逻辑与遥测字段
+- 硬件级PTP时间同步，支持Boundary Clock与Transparent Clock模式，时间戳精度±50ns
+- 多层拥塞控制协同：PFC + ECN + DCQCN + AQMT，保障RoCEv2零丢包传输
+- 动态缓冲区管理（DBM）技术，实现突发流量下缓冲资源智能调度与公平分配
+- Lenovo xCloud智能运维平台原生集成，支持网络健康度评分、微秒级流异常检测、故障根因自动定位
+- 支持Telemetry 2.0流式采集，采样粒度达100μs，指标覆盖端口、队列、流表、缓存、温度等1200+维度
+- 符合OCP Open Rack 2.2机械规格，支持横向扩展机架部署与冷热通道隔离
+
+规格参数：
+- 交换容量：25.6 Tbps  
+- 包转发率：19.04 Bpps（64字节）  
+- 缓存容量：32 MB（共享动态缓冲池）  
+- MAC地址表容量：256 K  
+- IPv4路由表容量：128 K  
+- IPv6路由表容量：64 K  
+- ACL条目数：64 K（混合规则）  
+- VLAN数量：4094  
+- 最大VLAN接口数：1024  
+- 支持堆叠：不支持物理堆叠，支持MLAG逻辑堆叠（最大2台）  
+- 电源输入：100–240V AC，50/60Hz；或 -48V DC（可选）  
+- 最大功耗：1200 W（满配QSFP56 SR4光模块，40℃环境）  
+- 噪声：≤65 dB(A)（ISO 7779标准，1米距离）  
+- MTBF：528,000 小时（@25℃）  
+- 设备尺寸（宽×深×高）：440 mm × 650 mm × 88 mm  
+- 设备净重：23.5 kg（不含电源及模块）  
+
+常见问题
+
+Q: NE8770-64QC 是否支持将单个200G端口拆分为四个25G端口用于连接传统服务器网卡？  
+A: 是的，NE8770-64QC 所有64个QSFP56端口均支持1×200G / 2×100G / 4×50G / 4×25G四种速率模式的动态拆分，无需重启设备，通过CLI或API下发配置即可完成端口模式切换，拆分后的子端口具备独立MAC、独立队列与独立QoS策略能力。
+
+Q: 该交换机是否原生支持RDMA over Converged Ethernet（RoCEv2）且无需额外License？  
+A: 是的，RoCEv2协议栈（含PFC、ECN、DCQCN、ETS）为设备出厂预置功能，所有端口默认启用，无需购买额外License；同时支持RoCEv2流量与TCP/IP流量在同一物理端口共存并实施差异化调度。
+
+Q: 在AI训练集群中部署时，NE8770-64QC 如何保障GPU服务器间通信的确定性低延迟？  
+A: 设备通过三项核心技术保障确定性：① 硬件直通转发路径（绕过CPU与软件协议栈），实现＜650ns固定延迟；② PTP IEEE 1588v2硬件时间戳（±50ns精度）配合边界时钟模式，消除网络抖动；③ 动态缓冲区管理（DBM）结合INT（In-band Network Telemetry）实时反馈，实现微秒级拥塞感知与主动限速。
+
+Q: 是否支持与第三方SDN控制器（如ONOS、OpenDaylight）对接？  
+A: 支持。设备提供标准OpenFlow 1.5协议接口（可选启用），同时完整支持P4Runtime API与gNMI over gRPC南向接口，已通过ONF CORD项目兼容性测试；Lenovo Network OS亦开放YANG模型（IETF RFC 8528扩展），可无缝接入主流SDN编排平台。
+
+Q: 当发生单电源故障时，设备能否持续转发且不中断业务？  
+A: 可以。NE8770-64QC 采用1+1冗余双电源设计，两颗电源均能独立承担整机满载功耗（1200W）；任一电源失效时，另一电源立即接管全部负载，业务流量无感知切换，转发不中断，系统日志自动记录事件并触发SNMP Trap与xCloud告警。
+
+Q: 设备是否支持IPv6环境下完整的三层路由协议，包括BGP多路径与IPv6组播？  
+A: 支持。LNOS操作系统提供完整IPv6协议栈：支持BGP-4与MP-BGP for IPv6（含下一跳自动生成、IPv6 ECMP 32路负载分担）、OSPFv3（RFC 5340）、PIM-SM/SSM for IPv6、MLDv1/v2，并通过IPv6 Ready Phase-2官方认证，所有IPv6路由表项与IPv4完全独立且容量对等（IPv6路由表≥64K）。
+
+Q: 对于需要严格审计的金融客户，该设备是否满足等保2.0三级与PCI DSS v4.0合规要求？  
+A: 满足。设备已通过国家信息安全等级保护第三级测评（等保2.0），并获得PCI Security Standards Council颁发的PCI DSS v4.0合规声明；内置安全机制涵盖：RBAC细粒度权限控制、操作日志全留存（≥180天）、密码复杂度强制策略、会话超时锁定、TLS 1.2+加密通道、固件安全启动（Secure Boot + TPM 2.0）及定期CVE漏洞修复SLA（关键漏洞24小时内热补丁）。
+
+Q: 是否提供针对GPU直连场景的专用调优模板？例如NVIDIA DGX SuperPOD或HPE Cray EX架构？  
+A: 提供。联想预置了面向主流AI基础设施的优化Profile套件，包括NVIDIA DGX A100/H100集群（含NCCL参数协同、RoCEv2 PFC阈值自适应、GPU Direct RDMA路径校准）、HPE Cray EX（Slurm网络感知调度适配）、以及腾讯AngelX、百度PaddlePaddle等国产框架的网络参数推荐集，可通过xCloud一键部署并生成调优报告。
+
+Q: 设备的Telemetry数据是否支持直接对接Prometheus/Grafana进行自定义监控看板？  
+A: 支持。LNOS原生输出gRPC/gNMI Telemetry流，数据格式符合OpenConfig模型；随附开源Exporter（lenovo-telemetry-exporter）可将流式指标转换为Prometheus Metrics格式（/metrics端点），已验证兼容Grafana v9.x以上版本，并提供20+预置AI网络看板模板（含微突发检测、流分布熵值、PFC死锁预警等）。
+
+Q: 若需在现有100G网络中逐步升级至200G，NE8770-64QC 是否支持混合速率端口运行（即部分端口200G、部分100G）？  
+A: 完全支持。所有64个端口可独立配置速率模式，同一设备内允许200G、100G、50G、25G端口长期共存；各端口独立协商、独立QoS策略、独立统计，且跨速率端口间三层路由与二层转发完全互通，满足平滑演进需求。

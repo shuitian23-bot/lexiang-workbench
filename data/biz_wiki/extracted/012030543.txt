@@ -1,0 +1,88 @@
+ThinkStation P520
+
+高精超能 极致成像
+
+强大扩展性  
+适用于复杂工业设计  
+医疗行业精密影像处理  
+
+双路主流 精于专业  
+Windows 11  
+英特尔® 至强®  
+RTX A6000  
+
+先进的模块化机箱设计  
+8个  
+6个  
+60TB  
+12个  
+
+ISV全功能认证 稳定持续不卡顿  
+Autodesk  
+Bentley  
+Creo  
+LRC  
+Ps  
+Id  
+Ai  
+Vectorworks  
+
+ThinkStation P520 广泛应用于  
+制造业CAD设计  
+医疗及生物科学 医疗设备开发  
+GIS地理信息系统  
+
+尊享服务  
+3年  
+2300+  
+7*12h  
+2h
+
+|特性类别|具体内容|
+|---|---|
+|操作系统|Windows 11|
+|处理器|英特尔® 至强®|
+|显卡|RTX A6000|
+|ISV认证软件|Autodesk, Bentley, Creo, LRC, Ps, Id, Ai, Vectorworks|
+|应用领域|制造业CAD设计, 医疗及生物科学 医疗设备开发, GIS地理信息系统|
+|扩展能力|强大扩展性|
+|适用场景|复杂工业设计, 医疗行业精密影像处理|
+|机箱设计|先进的模块化机箱设计|
+|服务保障|3年, 2300+, 7*12h, 2h|
+
+|规格参数|数值|
+|---|---|
+|PCIe插槽数量|8个|
+|内存插槽数量|6个|
+|最大存储容量|60TB|
+|硬盘托架数量|12个|
+
+Q: ThinkStation P520预装的操作系统是什么？  
+A: Windows 11  
+
+Q: ThinkStation P520支持的处理器品牌和系列是什么？  
+A: 英特尔® 至强®  
+
+Q: ThinkStation P520配备的专业级显卡型号是什么？  
+A: RTX A6000  
+
+Q: ThinkStation P520通过了哪些主流ISV软件的全功能认证？  
+A: Autodesk、Bentley、Creo、LRC、Ps、Id、Ai、Vectorworks  
+
+Q: ThinkStation P520的机箱设计有何特点？  
+A: 先进的模块化机箱设计  
+
+Q: ThinkStation P520最多可支持多少TB的存储容量？  
+A: 60TB  
+
+Q: ThinkStation P520提供多少个PCIe插槽？  
+A: 8个  
+
+Q: ThinkStation P520的内存插槽数量是多少？  
+A: 6个  
+
+Q: ThinkStation P520标配的硬盘托架数量是多少？  
+A: 12个  
+
+Q: ThinkStation P520面向哪些主要行业应用场景？  
+A: 制造业CAD设计、医疗及生物科学（含医疗设备开发）、GIS地理信息系统

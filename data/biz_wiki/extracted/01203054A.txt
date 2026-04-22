@@ -1,0 +1,68 @@
+ThinkStation PX
+
+ThinkStation PX 了解联想史诗级工作站
+
+颠覆性的工作站革新
+- ThinkStation PX
+- ThinkStation P7
+- ThinkStation P5
+
+联想与超级豪华跑车制造商阿斯顿·马丁联手打造
+- Lenovo OFFICIAL WORKSTATION PARTNER
+
+内部采用先进的空气动力学散热设计架构
+- 实现关键部件性能最大化
+
+外部采用标志性模块化设计
+- 带来更丰富的可用性
+
+从新一代联想ThinkStation工作站产品
+- 探索更多无限潜能
+
+从桌面端到数据中心端的终极灵活性
+- ThinkStation PX
+
+无与伦比工业设计
+- 融合科技创新的巅峰之作
+  - 支持Windows 11 64位
+  - 支持Intel Xeon处理器
+  - 支持NVIDIA Quadro显卡
+  - 支持PCIe Gen4扩展
+  - 支持M.2 NVMe SSD
+  - 支持Thunderbolt 4接口
+  - 支持Wi-Fi 6E无线网络
+  - 支持蓝牙5.2
+  - 支持TPM 2.0安全芯片
+  - 支持联想智能管理软件
+
+常见问题
+
+Q: ThinkStation PX是否支持Windows 11操作系统？
+A: 是的，ThinkStation PX支持Windows 11 64位操作系统。
+
+Q: ThinkStation PX搭载的是哪一类处理器？
+A: ThinkStation PX支持Intel Xeon处理器。
+
+Q: ThinkStation PX是否兼容NVIDIA Quadro系列专业显卡？
+A: 是的，ThinkStation PX支持NVIDIA Quadro显卡。
+
+Q: ThinkStation PX是否支持PCIe Gen4扩展？
+A: 是的，ThinkStation PX支持PCIe Gen4扩展。
+
+Q: ThinkStation PX是否支持M.2 NVMe SSD？
+A: 是的，ThinkStation PX支持M.2 NVMe SSD。
+
+Q: ThinkStation PX是否配备Thunderbolt 4接口？
+A: 是的，ThinkStation PX支持Thunderbolt 4接口。
+
+Q: ThinkStation PX是否支持Wi-Fi 6E无线网络？
+A: 是的，ThinkStation PX支持Wi-Fi 6E无线网络。
+
+Q: ThinkStation PX是否支持蓝牙5.2？
+A: 是的，ThinkStation PX支持蓝牙5.2。
+
+Q: ThinkStation PX是否内置TPM 2.0安全芯片？
+A: 是的，ThinkStation PX支持TPM 2.0安全芯片。
+
+Q: ThinkStation PX是否预装或支持联想智能管理软件？
+A: 是的，ThinkStation PX支持联想智能管理软件。

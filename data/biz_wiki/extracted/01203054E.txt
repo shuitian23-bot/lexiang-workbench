@@ -1,0 +1,105 @@
+ThinkStation P3
+
+ThinkStation P3 高能稳定 突破想象
+
+全新一代P3 Tower 工作站
+
+- 操作系统：Windows 11 专业版
+- 处理器：第14代英特尔® 酷睿™ i9 处理器
+- 内存：DDR5 内存
+- 存储：27L大机箱 + 1100W大电源，支持48TB NVMe SSD + 2TB HDD
+- 显卡：T4000/RTX 6000/RTX A5000/RTX 4080/RTX 4090D
+- PCIe 4.0
+- 显示器：最多支持12个显示器
+
+搭载14代处理器 性能显著提升
+
+- 处理器：Intel Core i9
+- 内存：DDR5 内存
+
+27L大机箱+1100W大电源
+
+- 电源功率：1100W
+- 最大功耗：350W
+
+支持多种顶级高性能显卡
+
+- 显卡型号：T4000/RTX 6000/RTX A5000/RTX 4080/RTX 4090D
+
+联想工作站秉持可持续环保理念
+
+- ISV全功能认证，打造专业平台
+
+应用场景
+
+- 多体仿真工作室
+- 工程设计/CAD应用
+- 工业设计/CAD应用
+
+联想 Premier Support 尊享服务
+
+- 服务内容：
+  - 10000+小时技术支持
+  - 23000+小时远程支持
+  - 30天快速响应
+
+产品特性：
+- 高能稳定，突破想象
+- 全新一代P3 Tower工作站
+- 搭载第14代英特尔® 酷睿™ i9处理器，性能显著提升
+- DDR5内存支持高速数据处理
+- 27L大机箱设计，提供充足内部扩展空间
+- 1100W高功率电源，保障多GPU及高负载稳定运行
+- 支持最高48TB NVMe SSD + 2TB HDD混合存储配置
+- 兼容多款专业级与消费级高端显卡（T4000/RTX 6000/RTX A5000/RTX 4080/RTX 4090D）
+- 原生支持PCIe 4.0总线标准
+- 最多支持12个显示器输出，满足多任务可视化需求
+- 通过ISV全功能认证，确保主流专业软件（如AutoCAD、SolidWorks、ANSYS等）稳定运行
+- 融入可持续环保设计理念
+- 面向多体仿真、工程设计/CAD、工业设计/CAD等专业应用场景
+- 配备联想Premier Support尊享服务，含10000+小时技术支持、23000+小时远程支持及30天快速响应承诺
+
+规格参数：
+| 项目 | 参数 |
+|------|------|
+| 操作系统 | Windows 11 专业版 |
+| 处理器 | 第14代英特尔® 酷睿™ i9 处理器 / Intel Core i9 |
+| 内存 | DDR5 内存 |
+| 存储支持 | 48TB NVMe SSD + 2TB HDD |
+| 机箱体积 | 27L |
+| 电源功率 | 1100W |
+| 最大功耗 | 350W |
+| 显卡支持 | T4000 / RTX 6000 / RTX A5000 / RTX 4080 / RTX 4090D |
+| 扩展总线 | PCIe 4.0 |
+| 显示器支持数量 | 最多12个显示器 |
+| 认证 | ISV全功能认证 |
+
+Q: ThinkStation P3 支持哪些操作系统？
+A: ThinkStation P3 预装并支持 Windows 11 专业版操作系统。
+
+Q: ThinkStation P3 搭载的处理器具体型号是什么？
+A: ThinkStation P3 搭载第14代英特尔® 酷睿™ i9 处理器，也简称为 Intel Core i9。
+
+Q: 该工作站最大可支持多少容量的固态硬盘和机械硬盘？
+A: ThinkStation P3 支持最高48TB NVMe SSD + 2TB HDD 的混合存储配置。
+
+Q: ThinkStation P3 的机箱尺寸和电源功率分别是多少？
+A: ThinkStation P3 采用27L大机箱设计，配备1100W高功率电源。
+
+Q: 该工作站最多可以连接几个显示器？
+A: ThinkStation P3 最多支持12个显示器同时输出。
+
+Q: ThinkStation P3 是否通过专业软件兼容性认证？
+A: 是的，ThinkStation P3 通过ISV全功能认证，确保在AutoCAD、SolidWorks、ANSYS等主流专业软件中稳定可靠运行。
+
+Q: 该工作站支持哪些高端显卡型号？
+A: ThinkStation P3 支持 T4000、RTX 6000、RTX A5000、RTX 4080 和 RTX 4090D 等多款专业级与高性能消费级显卡。
+
+Q: 联想为ThinkStation P3 提供的尊享服务包含哪些具体内容？
+A: 联想 Premier Support 尊享服务包含10000+小时技术支持、23000+小时远程支持以及30天快速响应承诺。
+
+Q: ThinkStation P3 主要面向哪些专业应用场景？
+A: ThinkStation P3 主要面向多体仿真工作室、工程设计/CAD应用、工业设计/CAD应用等专业领域。
+
+Q: 该工作站是否支持PCIe 4.0接口标准？
+A: 是的，ThinkStation P3 原生支持PCIe 4.0总线标准，保障高速数据传输与设备扩展能力。

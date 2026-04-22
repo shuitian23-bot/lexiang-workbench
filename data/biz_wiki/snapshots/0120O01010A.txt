@@ -1,0 +1,64 @@
+ThinkSmart Core G2
+
+Intel® Core™ Ultra 5/7处理器
+内置NPU（神经网络单元）
+支持Copilot等人工智能平台
+内置视频采集功能
+单/双流屏显
+内置BYOM一键切换
+丰富接口扩展音视频外设
+智慧中控随心切换
+
+强芯聚力，高效运行
+搭载Intel® CoreTM Ultra 5 135H/7 165H processor on Intel vPro® platform，AI运行更从容，远程管理更便捷
+
+Intel CORE ULTRA 7
+
+内置NPU
+(神经网络单元)
+
+支持Copilot等
+人工智能平台
+
+16GB / 32GB(可选)
+256GB PCIe SSD
+
+丰富接口，超强扩展
+覆盖USB、HDMI、网口等多类型接口适配，设备连接更自由
+
+图片中的文字内容如下：
+
+- 1x HDMI-In
+- 3x USB-C
+- 2x HDMI-Out
+- 1x Gigabit Ethernet
+- 4x USB-A
+- 1x Power
+
+立挂随需，超远传输
+
+支持桌面和壁挂两种安装方式，搭配POE供电编解码盒，超百米远距离控制。
+
+多云会议，无界畅联
+
+可选预装业界主流认证云视频会议平台，Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms，
+智慧中控，多平台切换，助力高效远程协作
+
+图片中的所有文字内容如下：
+
+- Teams Room
+- 腾讯会议ROOMS
+- ZOOM Rooms
+- 智慧服务，全球覆盖
+
+这些文字分别对应了图片中展示的三种不同类型的会议室设备及其功能界面。
+
+图片中的文字内容如下：
+
+标题：
+- 百思服务，全球覆盖
+
+描述：
+- 三年上门保修服务，智慧服务一部到位
+
+图片中没有规格参数或表格内容。

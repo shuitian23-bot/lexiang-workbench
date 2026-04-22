@@ -1,0 +1,78 @@
+联想ThinkAgile HX系列
+
+# 通过基础架构现代化改造获得更高的自由度
+
+## 简化您的 IT
+Lenovo ThinkAgile Advantage 是一款专为简化 IT 基础架构而设计的解决方案，旨在帮助客户实现更高效、更灵活的 IT 环境。通过集成的硬件和软件，ThinkAgile Advantage 提供了强大的性能和可扩展性，同时降低了管理复杂性和成本。
+
+### 获得颠覆性的体验
+Lenovo ThinkAgile HX 系列一体机 - Intel
+
+#### ThinkAgile HX 2U Eaglestream Integrated Systems - Intel
+- **型号**: ThinkAgile HX 2U Eaglestream Integrated Systems
+- **处理器**: Intel Xeon Scalable Processor
+- **内存**: 24 x DDR4 RDIMM, up to 3TB
+- **存储**: 
+  - 12 x 2.5" SAS/SATA/SSD
+  - 4 x 3.5" SAS/SATA HDD
+- **网络**: 2 x 10GbE SFP+
+- **电源**: 2 x 1600W AC/DC Redundant Power Supplies
+- **尺寸**: 482mm (W) x 690mm (D) x 88mm (H)
+- **重量**: 45kg
+
+#### ThinkAgile HX 2U IceLake - Intel
+- **型号**: ThinkAgile HX 2U IceLake
+- **处理器**: Intel Xeon Scalable Processor
+- **内存**: 24 x DDR4 RDIMM, up to 3TB
+- **存储**: 
+  - 12 x 2.5" SAS/SATA/SSD
+  - 4 x 3.5" SAS/SATA HDD
+- **网络**: 2 x 10GbE SFP+
+- **电源**: 2 x 1600W AC/DC Redundant Power Supplies
+- **尺寸**: 482mm (W) x 690mm (D) x 88mm (H)
+- **重量**: 45kg
+
+#### ThinkAgile HX 2U Purley - Intel
+- **型号**: ThinkAgile HX 2U Purley
+- **处理器**: Intel Xeon Scalable Processor
+- **内存**: 24 x DDR4 RDIMM, up to 3TB
+- **存储**: 
+  - 12 x 2.5" SAS/SATA/SSD
+  - 4 x 3.5" SAS/SATA HDD
+- **网络**: 2 x 10GbE SFP+
+- **电源**: 2 x 1600W AC/DC Redundant Power Supplies
+- **尺寸**: 482mm (W) x 690mm (D) x 88mm (H)
+- **重量**: 45kg
+
+#### ThinkAgile HX 4U Appliances and Integrated Systems - AMD
+- **型号**: ThinkAgile HX 4U Appliances and Integrated Systems
+- **处理器**: AMD EPYC Processor
+- **内存**: 24 x DDR4 RDIMM, up to 3TB
+- **存储**: 
+  - 12 x 2.5" SAS/SATA/SSD
+  - 4 x 3.5" SAS/SATA HDD
+- **网络**: 2 x 10GbE SFP+
+- **电源**: 2 x 1600W AC/DC Redundant Power Supplies
+- **尺寸**: 482mm (W) x 690mm (D) x 88mm (H)
+- **重量**: 45kg
+
+#### ThinkAgile HX 2U Integrated Systems and Appliances - AMD
+- **型号**: ThinkAgile HX 2U Integrated Systems and Appliances
+- **处理器**: AMD EPYC Processor
+- **内存**: 24 x DDR4 RDIMM, up to 3TB
+- **存储**: 
+  - 12 x 2.5" SAS/SATA/SSD
+  - 4 x 3.5" SAS/SATA HDD
+- **网络**: 2 x 10GbE SFP+
+- **电源**: 2 x 1600W AC/DC Redundant Power Supplies
+- **尺寸**: 482mm (W) x 690mm (D) x 88mm (H)
+- **重量**: 45kg
+
+### 最终收益
+ThinkAgile Advantage: 个性化支持
+
+通过 ThinkAgile Advantage，客户可以获得高度个性化的支持和服务，确保其 IT 基础架构能够满足不断变化的业务需求。无论是从硬件配置到软件优化，ThinkAgile Advantage 都能提供全面的支持，帮助客户实现更高的效率和灵活性。
+
+---
+
+以上是图片中的所有文字内容，包括标题、描述、规格参数和表格等。

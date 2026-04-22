@@ -1,0 +1,55 @@
+ThinkSystem ST50 V3
+
+Lenovo ThinkSystem ST50 V3 Lenovo  最大高达 8核性能，适合远程及分支机构工作
+
+关键词：IntelXeonE-2400、DDR5 内存、PCIe Gen5
+
+产品特性  
+• 支持最新第13代Intel® Xeon® E-2400系列处理器，最高可达8核16线程，提供卓越单线程与多线程性能，满足虚拟化、数据库、协作应用等严苛工作负载需求  
+• 支持高达128GB DDR5 ECC UDIMM内存（4插槽），频率最高4800MT/s，显著提升数据处理吞吐量与系统响应速度  
+• 前置双M.2 NVMe插槽（2280规格），支持RAID 0/1，实现超低延迟本地存储加速；后置可选双U.2 NVMe热插拔托架（需选配RAID子卡）  
+• 全新PCIe Gen5 x16扩展插槽（物理x16，电气x16），带宽达64GB/s，为AI推理加速卡、高性能GPU或高速网络适配器提供未来就绪的I/O能力  
+• 集成双千兆以太网端口（Intel I350-AM2），支持链路聚合与故障切换；可选升级至双2.5GbE或四千兆以太网（通过PCIe扩展卡）  
+• 支持Lenovo XClarity Administrator（LXA）统一管理平台，实现远程部署、监控、固件更新与健康告警，降低IT运维复杂度  
+• 采用静音散热设计，满载运行噪音低至24.5 dBA，适用于开放式办公环境与小型机柜部署  
+• 通过能源之星® 9.0认证与80 PLUS白金级电源（92%+转换效率），兼顾高性能与绿色节能  
+
+规格参数  
+| 类别 | 规格 |
+|------|------|
+| 处理器 | 支持1颗Intel® Xeon® E-2400系列处理器（最高8核16线程），TDP最高65W；支持Intel® Turbo Boost Technology 3.0、Intel® Hyper-Threading Technology、Intel® vPro®（可选） |
+| 芯片组 | Intel® C256服务器芯片组 |
+| 内存 | 4个DDR5 ECC UDIMM插槽；支持容量：16GB/32GB/64GB/128GB；支持频率：4000MT/s、4400MT/s、4800MT/s；最大支持128GB；支持内存镜像与内存热备（SDDC） |
+| 存储控制器 | 板载SATA控制器：支持6个6Gb/s SATA端口（RAID 0/1/5/10 via BIOS）；板载M.2控制器：2个PCIe Gen4 x4 M.2 NVMe插槽（前置，2280）；可选LSI 9400-8i RAID子卡（支持U.2 NVMe热插拔，RAID 0/1/5/6/10/50/60） |
+| 存储驱动器 | 前置：2×3.5英寸或4×2.5英寸热插拔SAS/SATA HDD/SSD（含1个NVMe专用2.5英寸托架）；内置：2×M.2 NVMe（2280，PCIe Gen4 x4）；可选后置：2×U.2 NVMe热插拔（需RAID子卡） |
+| 扩展插槽 | 1×PCIe Gen5 x16（全高全长，电气x16）；1×PCIe Gen4 x4（OCP 3.0 Mezzanine插槽，用于网络子卡）；1×PCIe Gen3 x1（内部，用于TPM或串口模块） |
+| 网络 | 集成2×1GbE RJ45（Intel I350-AM2）；可选：2×2.5GbE（Intel I350-AM2升级）、4×1GbE（通过PCIe扩展）、1×10GbE SFP+（通过PCIe扩展）、OCP 3.0网络子卡（支持1×10/25GbE） |
+| 电源 | 1×550W 80 PLUS白金级冗余电源（交流输入：100–240V，50–60Hz）；支持热插拔与N+1冗余配置（需双电源选件） |
+| 管理功能 | Lenovo XClarity Controller（XCC）基础版（标配）；支持IPMI 2.0、Redfish RESTful API、SNMP v3；支持远程KVM、虚拟媒体、批量固件更新；可升级至XCC Enterprise（需许可证） |
+| 物理规格 | 机箱形态：塔式；尺寸（高×宽×深）：375mm × 175mm × 375mm；重量（满配）：约12.5kg；工作温度：10°C – 35°C；存储温度：-40°C – 70°C；相对湿度：20% – 80%（无冷凝） |
+| 认证与合规 | 能源之星® 9.0、TCO Certified Edge 9、CE、FCC Class B、UL/cUL、CB Scheme、RoHS、REACH、WEEE |
+
+常见问题  
+Q: ThinkSystem ST50 V3是否支持双路处理器？  
+A: 不支持。ThinkSystem ST50 V3为单路塔式服务器，仅支持1颗Intel Xeon E-2400系列处理器。
+
+Q: 最大可安装多少根DDR5内存条？是否必须成对安装？  
+A: 最多支持4根DDR5 ECC UDIMM内存条；内存安装需遵循插槽配对规则（Channel A/B各2插槽），建议成对安装以启用双通道模式，但单根也可启动（降为单通道）。
+
+Q: 前置M.2插槽是否支持PCIe Gen5？能否配置RAID？  
+A: 前置2个M.2插槽为PCIe Gen4 x4规格，不支持Gen5；支持RAID 0和RAID 1，由主板BIOS直接配置，无需额外RAID卡。
+
+Q: 是否可安装独立显卡？对显卡尺寸和功耗有何限制？  
+A: 可安装全高全长双槽位PCIe Gen5 x16显卡；推荐显卡长度≤240mm，高度≤111mm，整卡功耗建议≤75W（依赖PCIe插槽供电），如需更高功耗显卡须确认电源余量并考虑辅助供电可行性（本机型无PCIe 6+2pin供电接口）。
+
+Q: XClarity Controller（XCC）基础版与企业版的主要区别是什么？  
+A: 基础版支持基本远程管理（KVM、虚拟媒体、传感器监控、固件更新）；企业版额外支持自动化部署（XClarity Provisioning Manager）、高级安全策略（如BIOS/UEFI策略推送）、批量配置同步、增强型日志分析及与XClarity Administrator集中管理平台的深度集成。
+
+Q: 该服务器是否支持Windows Server 2022和Ubuntu 22.04 LTS操作系统？  
+A: 是。Lenovo官方兼容性列表明确支持Windows Server 2022（含Desktop Experience与Core版本）及Ubuntu 22.04 LTS（x86_64），所有驱动与固件均通过对应OS认证测试。
+
+Q: 热插拔硬盘托架是否支持NVMe SSD？是否需要额外授权或子卡？  
+A: 前置3.5/2.5英寸托架仅支持SATA/SAS SSD/HDD；NVMe SSD仅可通过前置M.2插槽或后置U.2托架（后者需单独配置LSI 9400-8i RAID子卡及U.2背板套件，无软件授权要求）。
+
+Q: 电源是否支持直流输入（如-48V DC）？能否在无市电环境下使用UPS直连？  
+A: 不支持直流输入；标配电源为交流输入（100–240V AC）；可连接标准在线式UPS（输出正弦波），推荐UPS容量≥1000VA，具备USB或网络管理接口以便与XCC联动实现有序关机。

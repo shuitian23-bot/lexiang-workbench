@@ -1,0 +1,159 @@
+ThinkPad P14s Gen5 2024
+
+创意不受拘束，灵感自由迸发  
+每个瞬间，思维都可能绽放  
+ThinkPad P14s AI 轻薄灵动间  
+释放无限创造，梦想触手可及  
+
+核芯强劲，创作无界。  
+
+Windows 11 家庭中文版  
+[联想]推荐使用商用 Windows 11 专业版  
+
+最高搭载全新英特尔® 酷睿™  
+Ultra 9 185H  
+标压处理器  
+
+可选NVIDIA® RTX™  
+500 Ado 专业显卡  
+最高睿频
+
+500 Ada专业图形显卡
+5.1GHz
+CPU性能释放
+16核心
+22线程
+45W
+4GB
+GDDR6独立显存
+
+ISV设计、工程领域软件开发商出厂专业认证与优化
+
+视野无界，成就非凡。
+ThinkPad P14s
+
+可选
+3K超清屏幕
+
+色彩校正
+ΔE平均值小于1
+
+全能拓展，实力卓然。
+ThinkPad P14s
+Windows 11 家庭中文版
+[联想]推荐使用商用 Windows 11 专业版
+430 尼特亮度
+100% DCI-P3色域
+莱茵低蓝光 防眩真护眼
+最高可扩展至双通道
+96GB DDR5内存（2*48GB）
+最高可扩展至
+2TB PCIe Gen 4 固态硬盘
+
+专注细节，专业领先。
+
+ThinkPad P14s
+
+2×USB 3.2 Gen 1接口、2×USB-C (TBT4)接口、耳机/麦克风接口、HDMI 2.1 TMDS接口、RJ45、可选智能卡读卡器
+
+可选
+75Wh/57Wh电池
+大容量，高续航
+
+五百万像素+红外摄像头
+支持HPD人体动态追踪
+
+支持杜比语音及Glance软件
+
+高标准：
+通过基于MIL-STD-810H标准的26细项严苛对照测试
+
+好服务：
+服务专线，一键直通
+7×24小时专家在线服务
+
+强劲芯实力，铸就创想新辉煌。
+
+ThinkPad P14s
+
+最高搭载全新英特尔® 酷睿™ Ultra 9 185H标压处理器，16核22线程处理器机型。
+
+intel
+CORE
+ULTRA 9
+
+搭载5600MHz DDR5内存，最高支持96GB内存。
+全系标配固态硬盘，最大支持2TB PCIe固态硬盘。
+
+「使用Adobe Premiere顺滑流畅地编辑、导出视频，让这台性能高手，助你大显身手。」
+
+Adobe Premiere
+
+另可选搭载英特尔® 酷睿™ Ultra 5、Ultra 7处理器机型
+
+专业图形显卡
+随意创想，皆可呈现。
+
+ThinkPad P14s
+
+可选配备NVIDIA® RTX 500Ada 4GB GDDR6专业图形显卡，
+全新架构，高速显存，助力高效图形创作。
+单精度浮点运算能力9.2；Tensor Performance（TFLOPS）高达147.4，
+
+显卡TOPS高达154，整机TOPS高达190。
+生成式AI相比CPU提高14.8倍。
+
+NVIDIA RTX 500Ada
+Up to 2X Faster
+
+Rendering: 2.5 (RTX 500) vs 1.9 (RTX A500)
+CAD: 1.9 (RTX 500) vs 1.3 (RTX A500)
+Video: 1.3 (RTX 500) vs 1.1 (RTX A500)
+2D Design: 1.1 (RTX 500) vs 1.0 (RTX A500)
+
+NVIDIA Ada架构 vs Ampere架构
+
+NVIDIA RTX 500Ada
+Up to 5X Faster
+
+Rendering: 5.1 (RTX 500) vs 1.9 (T550)
+CAD: 1.9 (RTX 500) vs 1.7 (T550)
+Video: 1.7 (RTX 500) vs 2.0 (T550)
+2D Design: 2.0 (RTX 500) vs 1.0 (T550)
+
+NVIDIA Ada架构 vs Turing架构
+
+NVIDIA RTX 500 vs 某果M3 CPU
+
+Rendering: 14.8 (NVIDIA RTX 500) vs 6.9 (某果M3 CPU)
+CAD: 10.5 (NVIDIA RTX 500) vs 8.5 (某果M3 CPU)
+Video: 6.4 (NVIDIA RTX 500) vs 3.8 (某果M3 CPU)
+2D Design: 3.7 (NVIDIA RTX 500) vs 1.0 (某果M3 CPU)
+
+```
+0
+Stable Diffusion
+Gen AI
+
+Premiere Pro
+Video Editing
+
+Autodesk Arnold
+Rendering / 3D CAD
+
+SOLIDWORKS
+DNR
+
+On1 Resize AI
+AI-Photo Editing
+
+「使用AutoCAD软件制图，无论是装饰装潢，工业制图，或是土木工程，都能出色完成。」
+
+「使用Autodesk REVIT轻松绘制草图，快速创建三维模型，交互处理，全都手到擒来，加持良好的可移动性，让你既可随时随地尽兴创作，又能将所有大作随身携带。」
+
+A
+Autodesk CAD
+
+R
+Autodesk REVIT
+```

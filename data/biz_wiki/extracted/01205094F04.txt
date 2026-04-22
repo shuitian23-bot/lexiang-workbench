@@ -1,0 +1,58 @@
+联想问天 WR5220 G5 服务器
+
+联想问天 WR5220 G5 服务器是联想面向人工智能、高性能计算、虚拟化及企业关键业务场景推出的双路机架式服务器。该产品基于第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids）平台，支持最高350W TDP的CPU，具备强大的计算性能与灵活的I/O扩展能力。整机采用高效散热设计与模块化架构，兼顾高密度部署与长期稳定运行，适用于AI训练推理、科学计算、数据库、私有云及混合云基础设施等多样化工作负载。
+
+产品特性  
+• 支持双路第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），最高支持350W TDP，最多128核/256线程  
+• 最高支持2TB DDR5 RDIMM内存（32个插槽，最高4800MT/s），支持Intel® Optane™ 持久内存300系列（需BIOS启用）  
+• 提供多达11个PCIe 5.0 x16插槽（含1个OCP 3.0网卡专用插槽），支持GPU直通与NVMe SSD高速存储扩展  
+• 前置支持24块2.5英寸热插拔NVMe/SAS/SATA混插硬盘，可选配8块3.5英寸SAS/SATA硬盘后置扩展（需选配后置硬盘模组）  
+• 集成双口25GbE SFP28智能网卡（Broadcom BCM57416），支持RoCEv2、SR-IOV、PXE Boot及网络虚拟化加速  
+• 支持联想ThinkSystem XClarity Manager统一管理平台，提供带外远程监控、固件批量升级、健康状态预测性分析及自动化运维能力  
+• 符合TCO优化设计理念：支持96%高效铂金级电源（1+1冗余）、智能风扇调速策略、冷通道适配机柜部署，典型功耗降低12%（相较上一代同配置机型）  
+• 通过多项国际安全与可靠性认证：FCC Class A、CE、UL/cUL、CCC、RoHS、ENERGY STAR 8.0  
+
+规格参数  
+| 类别 | 参数项 | 详细说明 |
+|------|--------|----------|
+| 处理器 | CPU型号 | 支持2颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids-SP），包括Platinum、Gold、Silver、Bronze全系列，最高350W TDP |
+| 处理器 | 核心/线程 | 最高128核/256线程（单CPU最高64核/128线程） |
+| 内存 | 类型与容量 | DDR5 RDIMM / 3DS RDIMM；最大2TB（32个插槽，每插槽最高64GB） |
+| 内存 | 速率与配置 | 支持4800MT/s，支持1DPC/2DPC配置；支持Intel® Optane™ 持久内存300系列（仅限特定SKU，需BIOS启用且与内存混插有限制） |
+| 存储 | 前置硬盘 | 24×2.5英寸热插拔NVMe/SAS/SATA混插（支持全闪配置），其中8个盘位支持NVMe U.2直连（PCIe 5.0 x4） |
+| 存储 | 后置硬盘（可选） | 8×3.5英寸热插拔SAS/SATA（需选配Rear HDD Cage Kit） |
+| 存储 | RAID支持 | 板载SATA RAID 0/1/10（UEFI RAID）；可选配Lenovo ThinkSystem RAID 940-16i（PCIe 5.0，支持RAID 0/1/5/6/10/50/60，缓存2GB，带超级电容保护） |
+| 扩展插槽 | PCIe插槽数量与规格 | 总计11个PCIe 5.0插槽：<br>– 8×PCIe 5.0 x16（LP）物理插槽（实际x16电气）<br>– 1×PCIe 5.0 x16（FH/HL）物理插槽（实际x16电气）<br>– 1×OCP 3.0网卡专用插槽（PCIe 5.0 x16，仅支持OCP 3.0规范网卡）<br>– 1×PCIe 5.0 x8（内部专用，用于连接板载NVMe控制器或BMC扩展） |
+| 网络 | 板载网卡 | 双端口25GbE SFP28（Broadcom BCM57416），支持RoCEv2、SR-IOV、PXE、DCB、FCoE |
+| 网络 | 可选网卡 | 支持PCIe 5.0双口100GbE（QSFP28）、四口25GbE（SFP28）、双口InfiniBand HDR（200Gb/s）等多种OCP 3.0或标准PCIe网卡 |
+| 电源 | 类型与冗余 | 1+1冗余热插拔铂金级电源，支持240V DC输入；单电源额定功率：1600W / 2000W / 2400W（按配置选择） |
+| 电源 | 效率 | 典型负载下转换效率≥96%（符合80 PLUS Platinum认证） |
+| 管理 | 远程管理 | 集成Lenovo XClarity Controller（XCC）高级版，支持IPMI 2.0、Redfish 1.12、SNMP v3；提供HTML5 KVM、虚拟媒体、批量固件升级、健康预测（Predictive Failure Analysis） |
+| 物理规格 | 尺寸（高×宽×深） | 87.8 mm × 447 mm × 748 mm（2U高度） |
+| 物理规格 | 重量（满配典型值） | 约32.5 kg（含双电源、24×2.5 NVMe、2×CPU、16×64GB RDIMM） |
+| 认证与合规 | 安全与能效 | FCC Class A、CE、UL/cUL 62368-1、CCC、RoHS、ENERGY STAR 8.0、TCO Certified Edge 3.0 |
+
+常见问题  
+Q: 联想问天 WR5220 G5 是否支持NVIDIA H100 PCIe GPU？  
+A: 是的，WR5220 G5 完全兼容NVIDIA H100 PCIe GPU（单宽/双宽全高全长），得益于其11个PCIe 5.0 x16插槽及强化供电设计（单槽支持高达300W GPU供电），并支持GPU直通（GPU Passthrough）与CUDA多实例（MIG）技术，适用于AI训练与推理场景。
+
+Q: 该服务器是否支持Intel Optane持久内存300系列？如何启用？  
+A: 支持，但需满足以下条件：仅限特定SKU主板（BIOS版本需≥2.10），且必须在BIOS中手动启用“Optane Memory Support”选项；不可与RDIMM混插于同一内存通道，推荐采用独立Optane内存区域配置；具体兼容列表请参考《联想ThinkSystem兼容性列表（HCL）》最新版。
+
+Q: 前置24个2.5英寸盘位是否全部支持NVMe U.2？  
+A: 否。前置24盘位中，仅8个（编号为U.2_0至U.2_7）为原生PCIe 5.0 x4 NVMe U.2接口，其余16个为SAS/SATA接口（通过板载SAS控制器或可选RAID卡提供）；所有盘位均支持热插拔，但NVMe与SAS/SATA需按物理接口类型区分使用。
+
+Q: 是否可选配后置硬盘模组？安装后是否影响PCIe插槽可用性？  
+A: 是，可通过选配Rear HDD Cage Kit（部件号：7ZT7A00585）扩展8个3.5英寸SAS/SATA硬盘；该模组安装于机箱后部独立托架，不占用任何PCIe插槽空间，所有11个PCIe插槽（含OCP 3.0插槽）在安装后置模组后仍保持完整可用。
+
+Q: 板载25GbE网卡是否支持RDMA over Converged Ethernet（RoCEv2）？需要哪些配置前提？  
+A: 是，板载Broadcom BCM57416双口25GbE网卡原生支持RoCEv2；启用前提包括：安装支持RoCE的驱动（Broadcom bnxt_en v22.12.101+）、启用DCB（Data Center Bridging）与PFC（Priority Flow Control）交换机侧配置、操作系统内核启用ib_core与rdma_rxe模块；建议搭配联想ThinkSystem SN5700系列RoCE交换机实现端到端低延迟网络。
+
+Q: XClarity Manager是否支持跨品牌设备统一管理？  
+A: Lenovo XClarity Manager 主要针对联想ThinkSystem及问天系列服务器提供深度集成管理（如固件策略、配置模板、预测性故障分析）；对于第三方品牌设备，可通过标准协议（IPMI、Redfish、SNMP）进行基础监控与告警接入，但不支持固件批量升级、配置同步、拓扑自动发现等高级功能。
+
+Q: 该服务器在AI训练场景下的典型GPU拓扑配置是什么？  
+A: 典型AI训练配置为：2×Intel Xeon Platinum 8490H（60核/120线程）、16×64GB DDR5 RDIMM（1TB）、4×NVIDIA H100 PCIe GPU（占用4个PCIe 5.0 x16 FH/HL插槽）、2×25GbE RoCE网卡（1个板载+1个PCIe扩展）、24×1.92TB NVMe U.2系统盘+数据盘；所有GPU通过PCIe 5.0直连CPU，无PLX桥接，确保GPU间通信带宽达64GB/s（PCIe 5.0 x16双向）。
+
+Q: 是否支持液冷散热方案？是否有官方认证的冷板适配套件？  
+A: WR5220 G5 当前未提供原厂液冷版本，亦无官方认证的冷板适配套件；其散热设计基于高风量涡轮风扇与优化风道，已通过ASHRAE A4环境（5°C–45°C）认证；如需液冷部署，需由客户或第三方集成商进行定制化改造，并自行承担兼容性与可靠性风险；联想建议对高密度AI集群优先选用问天WA5480 G5（原生支持50℃进水温度冷板液冷）。

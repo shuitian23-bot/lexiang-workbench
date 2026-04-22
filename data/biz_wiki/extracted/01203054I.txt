@@ -1,0 +1,88 @@
+ThinkStation P8
+
+史诗级澎湃算力
+施耐德95核处理器工作站
+
+AMD线程撕裂者PRO 7000WX系列处理器
+为高性能塔式工作站打造
+
+- AMD Ryzen Threadripper PRO
+- 96核心/192线程
+- PCIe Gen 4.0
+- Windows 11 家庭中文版
+- NVIDIA RTX A6000
+- 1TB DDR5内存
+- 1400W电源
+- 全系ISV专业认证
+
+联想与超级豪华跑车制造商阿斯顿马丁联手打造
+
+内部采用先进的空气动力学散热设计架构
+实现关键部件性能最大化
+
+外部采用标志性模块化设计
+带来更丰富的可用性
+蜂窝六边形进气格栅
+更大面积散热设计
+
+4U机架优化设计机箱
+
+ISV全功能认证
+使ThinkStation成为行业领先的专业工作站，满足各种专业应用需求。
+
+- Adobe
+- Autodesk
+- Unity
+- NVIDIA
+- V-Ray
+- Cinema 4D
+- Maya
+- SolidWorks
+- CATIA
+- Nuke
+
+突破算力！为“新时代”产业而诞生
+
+联想 Premier Support 尊享服务
+
+规格参数
+- CPU: AMD Ryzen Threadripper PRO 7000WX
+- 内存: 1TB DDR5
+- 显卡: NVIDIA RTX A6000
+- 电源: 1400W
+- 操作系统: Windows 11 家庭中文版
+- 认证: 全系ISV专业认证
+
+价格信息
+| 项目 | 价格（元） |
+|------|------------|
+| 基础配置起售价 | 10000+ |
+| 服务升级包 | 2300+ |
+| 月度订阅选项 | 30 |
+
+Q: ThinkStation P8搭载的CPU具体型号和核心线程规格是什么？
+A: ThinkStation P8搭载AMD Ryzen Threadripper PRO 7000WX系列处理器，具备96核心/192线程规格。
+
+Q: ThinkStation P8是否支持PCIe 5.0？
+A: 否，ThinkStation P8明确标注支持PCIe Gen 4.0，未提及PCIe 5.0支持。
+
+Q: 该工作站预装的操作系统版本是什么？
+A: 预装Windows 11 家庭中文版。
+
+Q: ThinkStation P8配备的显卡型号及内存容量分别是多少？
+A: 配备NVIDIA RTX A6000显卡，系统内存为1TB DDR5。
+
+Q: ThinkStation P8通过了哪些主流ISV专业软件认证？
+A: 已通过Adobe、Autodesk、Unity、NVIDIA、V-Ray、Cinema 4D、Maya、SolidWorks、CATIA、Nuke共10家ISV厂商的全功能专业认证。
+
+Q: 该产品采用何种机箱形态设计？有何特殊结构特征？
+A: 采用4U机架优化设计机箱；外部为标志性模块化设计，含蜂窝六边形进气格栅与更大面积散热设计；内部采用先进的空气动力学散热设计架构。
+
+Q: ThinkStation P8的电源功率是多少？是否属于高功率工作站范畴？
+A: 配备1400W电源，属于面向极致计算负载的高功率专业工作站范畴。
+
+Q: “全系ISV专业认证”在本产品中具体指什么含义？
+A: 指该型号全线配置均通过全部所列ISV（独立软件供应商）的严格测试与官方认证，确保在Adobe、Autodesk、SolidWorks等专业应用中稳定运行并启用全部硬件加速功能。
+
+Q: 联想Premier Support尊享服务是否为ThinkStation P8标配？
+A: 页面中将“联想 Premier Support 尊享服务”作为独立宣传模块列出，但未明确说明是否标配；根据联想常规产品策略，该服务通常为可选增值服务，需单独选购或按配置等级匹配。

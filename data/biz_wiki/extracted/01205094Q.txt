@@ -1,0 +1,82 @@
+Lenovo ThinkSystem SR850 V4
+
+Lenovo ThinkSystem SR850 V4 是一款高性能、高密度、四路机架式服务器，专为关键业务应用、大型数据库、实时分析、虚拟化和人工智能工作负载而设计。该服务器采用第四代英特尔至强可扩展处理器（Sapphire Rapids），支持最高达 120 个内核和 240 线程，提供卓越的单线程与多线程性能。SR850 V4 支持高达 12TB 的 DDR5 内存（64 个内存插槽，最大支持 192GB LRDIMM 或 64GB RDIMM），具备全缓冲、内存镜像、内存冗余及高级 RAS 特性，确保企业级可靠性、可用性和可服务性（RAS）。系统采用模块化设计，支持热插拔组件（包括电源、风扇、硬盘、PCIe 扩展卡和内存），实现无中断维护与升级。
+
+该服务器配备灵活的 I/O 架构，支持最多 16 个 PCIe 5.0 插槽（含 2 个 OCP 3.0 网络子卡插槽），提供高达 64GT/s 的带宽，满足高速网络、GPU 加速和NVMe 存储需求。存储方面，支持多达 24 个 2.5 英寸热插拔 NVMe/SAS/SATA 驱动器（前置）+ 2 个 M.2 引导盘（后置），可选 RAID 930-16i 或 940-16i 控制器，支持缓存保护、在线容量扩展、在线固件更新等高级功能。系统集成 Lenovo XClarity Controller（XCC）基础版，支持带外管理、远程控制、自动化部署、健康监控与预测性故障分析，并可无缝对接 Lenovo XClarity Administrator 和 XClarity Integrator 实现大规模数据中心统一管理。
+
+SR850 V4 符合 ENERGY STAR 认证与 80 PLUS 钛金级电源效率标准，标配双冗余钛金级热插拔电源（最高支持 4x 2400W），配合智能散热架构（支持环境温度最高达 45°C 运行），显著降低总体拥有成本（TCO）。通过联想验证的解决方案（如 SAP HANA、Oracle Database、VMware vSAN、Red Hat OpenStack Platform 和 NVIDIA AI Enterprise），SR850 V4 已完成严格互操作性测试与性能调优，可开箱即用交付关键业务场景。
+
+| 特性类别 | 详细说明 |
+|----------|----------|
+| 处理器 | 支持 2–4 颗第四代英特尔至强可扩展处理器（Sapphire Rapids-SP），最高 120 核 / 240 线程，TDP 最高 350W；支持处理器间 UPI 互连（最高 3 条链路，16 GT/s） |
+| 内存 | 支持 64 个 DDR5 RDIMM/LRDIMM 插槽；最大容量 12TB（使用 192GB LRDIMM）；支持速率最高 4800 MT/s；支持内存镜像、内存冗余、内存热备、地址奇偶校验、机器检查架构（MCA）错误纠正 |
+| 存储控制器 | 板载 SATA：1× SATA M.2（用于操作系统引导）；可选 RAID 子卡：ThinkSystem RAID 930-16i（16GB 缓存，支持 NVMe CacheBoost）、940-16i（16GB 缓存 + 电池/超级电容缓存保护）；支持 RAID 0/1/5/6/10/50/60，支持在线扩容、在线迁移、全局热备盘 |
+| 驱动器托架 | 前置：24× 2.5 英寸热插拔 NVMe/SAS/SATA（支持混合配置）；后置：2× M.2 2280（PCIe 4.0 x4，仅用于 OS 引导）；支持 NVMe U.2 直连与 PCIe Gen5 NVMe 后端通道 |
+| 扩展插槽 | 最多 16 个 PCIe 5.0 插槽（x16 电气）：其中 12 个为标准全长全高，2 个为 OCP 3.0 网络子卡专用插槽（支持双端口 100GbE/200GbE/400GbE），2 个为专用 M.2 插槽（后置）；所有插槽支持热插拔 |
+| 网络 | 板载：1× OCP 3.0 插槽（默认配 1× 双端口 25GbE SFP28 网络子卡）；可选升级为 100GbE EDR InfiniBand、200GbE HDR InfiniBand 或 400GbE OSFP 光纤网卡；支持 NC-SI、PXE、UEFI HTTP Boot、iSCSI Boot |
+| 电源 | 标配 2× 2400W 钛金级热插拔冗余电源；可选 4× 2400W 配置以支持全负载 GPU/NVMe 扩展；支持电源功率封顶（Power Cap）、动态电源均衡（DPE）、冷冗余模式 |
+| 风扇与散热 | 8 个热插拔 N+1 冗余智能风扇模组；支持环境温度最高 45°C（ASHRAE A4）；风扇转速基于 CPU/GPU/内存/存储温度动态调节；支持风扇故障预警与自动降频保护 |
+| 管理 | 集成 Lenovo XClarity Controller（XCC）基础版（ARM Cortex-A7 处理器，512MB RAM，4GB eMMC）；支持 IPMI 2.0、Redfish RESTful API、SNMP v3；提供 Web GUI、CLI、Python SDK；支持 TLS 1.2/1.3、LDAP/AD 集成、RBAC 角色权限控制；可选升级 XCC 高级版（含远程 KVM、虚拟媒体、批量固件更新、安全启动策略管理） |
+| 安全性 | 支持 TPM 2.0（物理/固件可选）、Secure Boot、UEFI BIOS 密码保护、带外管理接口独立隔离、固件签名验证、BIOS 固件恢复、硬件信任根（Root of Trust）；通过 FIPS 140-2 Level 1 认证；支持 Intel Total Memory Encryption（TME）与 Intel Multi-Key Total Memory Encryption（MKTME） |
+| 尺寸与重量 | 机箱尺寸：44.45 mm（H）× 482.6 mm（W）× 855 mm（D）（2U 高度）；满配重量：约 52 kg（不含导轨）；支持标准 19 英寸机柜（含前/后安装导轨套件） |
+| 操作系统支持 | Microsoft Windows Server 2022/2019；Red Hat Enterprise Linux 8.8+/9.2+；SUSE Linux Enterprise Server 15 SP4+；Ubuntu Server 22.04 LTS/24.04 LTS；VMware ESXi 7.0 U3+/8.0 U2+；Citrix Hypervisor 8.2+；支持国产操作系统：统信 UOS Server 20/23、麒麟 Kylin V10 SP3/SP4、OpenEuler 22.03 LTS |
+
+产品特性  
+- 四路 SMP 架构，支持跨处理器内存一致性（NUMA-aware）优化  
+- 全栈 RAS 设计：芯片级 ECC、内存镜像/冗余、PCIe AER、CPU 故障隔离、不可屏蔽中断（NMI）注入诊断  
+- 模块化免工具维护：前窗快拆面板、滑出式主板托盘、独立 GPU 支架、可旋转硬盘背板  
+- 智能功耗管理：基于工作负载的动态核心休眠、内存频率自适应降频、GPU/CPU 协同节电策略  
+- AI 就绪架构：支持最多 8 块双宽 PCIe 5.0 GPU（如 NVIDIA HGX H100 8-GPU），配备 GPU 直连 NVMe 存储通道与低延迟 RDMA 网络  
+- 数据中心就绪：支持 DC-Bus 供电（-48V DC）、符合 NEBS Level 3 电信级可靠性要求（可选）、兼容 Open Compute Project（OCP）机柜规范  
+
+规格参数  
+外形规格：2U 机架式服务器  
+处理器插槽数量：4 个（LGA 4677）  
+内存插槽数量：64 个 DDR5 DIMM 插槽（每处理器 16 个）  
+最大内存容量：12TB（使用 192GB LRDIMM）  
+内存类型：DDR5 RDIMM（最大 64GB）、DDR5 LRDIMM（最大 192GB）  
+内存速率：4800/4400/4000/3200 MT/s（依处理器与内存配置自动协商）  
+存储驱动器数量：24× 2.5 英寸前置 + 2× M.2 后置  
+最大内部存储容量：约 480TB（按 20TB NVMe U.2 计算）  
+PCIe 插槽数量：16 个（全部为 PCIe 5.0 x16 电气，其中 12 个为标准插槽，2 个为 OCP 3.0，2 个为 M.2）  
+网络接口（板载）：1× OCP 3.0 插槽（默认双端口 25GbE）  
+电源数量与功率：2× 或 4× 2400W 钛金级（80 PLUS Titanium，≥96% 效率 @50% 负载）  
+风扇模组数量：8 个（N+1 冗余）  
+管理控制器：Lenovo XClarity Controller（XCC），独立 ARM 处理器，512MB RAM，4GB eMMC 存储  
+工作温度范围：5°C 至 45°C（ASHRAE A4 级别）  
+非工作温度范围：-40°C 至 70°C  
+相对湿度：8% 至 90%（非凝结）  
+噪音水平：≤ 62 dBA（在半载典型工况下，距机柜正面 1 米处测量）  
+认证与合规：ENERGY STAR Certified；UL/CSA/IEC 62368-1；FCC Part 15 Class A；CE；RCM；KC；BIS；VCCI；符合 RoHS、REACH、WEEE 指令  
+
+常见问题  
+
+Q: SR850 V4 是否支持三颗处理器配置？  
+A: 不支持。Lenovo ThinkSystem SR850 V4 仅支持 2 颗或 4 颗第四代英特尔至强可扩展处理器的对称配置，不支持 1 颗或 3 颗处理器的非对称安装；主板布线与 BIOS 固件均针对偶数路（2/4）SMP 架构进行优化与验证。
+
+Q: 最大 12TB 内存是否需要全部安装 LRDIMM？能否混插 RDIMM 和 LRDIMM？  
+A: 是的，12TB 最大容量必须使用 64 条 192GB LRDIMM；根据联想《SR850 V4 硬件维护与安装指南》，同一处理器下的内存通道严禁混插 RDIMM 与 LRDIMM，且不同容量/速率的 LRDIMM 也不建议混插，否则将触发 BIOS 报错或强制降频运行。
+
+Q: 是否支持 NVMe 硬盘直通（Passthrough）给虚拟机？  
+A: 支持。在 VMware ESXi、Microsoft Hyper-V 和 Red Hat KVM 等主流虚拟化平台上，SR850 V4 的 NVMe 驱动器可通过 PCIe 直通（PCIe Passthrough）方式直接分配给虚拟机；需在 BIOS 中启用 VT-d、在 XCC 中关闭 CSM 并启用 UEFI 模式，且操作系统需加载对应 NVMe 驱动。
+
+Q: RAID 940-16i 控制器的缓存保护机制是电池还是超级电容？是否支持热更换？  
+A: RAID 940-16i 配备的是工业级超级电容（Supercapacitor）缓存保护模块，非传统锂电池；该模块集成于控制器卡本体，不可单独热更换；当主电源断电时，超级电容可维持缓存数据完整性长达 72 小时，保障写缓存数据不丢失，并在电源恢复后自动回写。
+
+Q: XCC 高级版许可证是否支持永久授权？能否跨设备转移？  
+A: XCC 高级版提供永久授权（Perpetual License）与订阅授权（Subscription）两种模式；永久授权绑定设备序列号，不可跨设备转移；若主机报废或更换主板，需联系 Lenovo 授权服务中心申请许可证重置，经审核后可免费迁移一次。
+
+Q: 在 45°C 环境温度下满载运行时，系统是否仍能保证所有规格性能不降频？  
+A: 是的。SR850 V4 已通过 ASHRAE A4 级别高温环境整机压力测试（包括 4 颗 350W CPU + 8× GPU + 全 NVMe 存储 + 100% 内存带宽负载），在 45°C 进风温度、50% 相对湿度条件下，所有处理器、内存、GPU 均未触发温度节流，持续稳定运行于标称频率。
+
+Q: 是否支持国产化替代方案，例如飞腾或鲲鹏处理器？  
+A: 不支持。SR850 V4 是基于英特尔 x86 架构设计的专用服务器平台，其芯片组、固件、内存控制器、PCIe 根复合体及所有 RAS 功能均深度适配第四代英特尔至强可扩展处理器；目前无飞腾、鲲鹏或其他 ARM 架构处理器的兼容版本或官方支持计划。
+
+Q: 后置 M.2 插槽是否支持 Windows To Go 或作为虚拟机存储池的一部分？  
+A: 后置 M.2 插槽仅设计用于操作系统引导（如安装 Windows Server 或 RHEL），不参与 RAID 配置，亦不暴露于主机操作系统存储栈中；因此不能用于 Windows To Go、Hyper-V 虚拟硬盘（VHDX）存储或容器镜像仓库等用途；其作用严格限定为低延迟、高可靠性的引导介质。
+
+Q: 是否可通过 XClarity Controller 实现无人值守的固件批量升级？  
+A: 是的。借助 Lenovo XClarity Administrator（LXA）v3.3+，可对数百台 SR850 V4 执行基于策略的固件批量升级，涵盖 UEFI BIOS、XCC、RAID 控制器、网卡、NVMe SSD 固件等全部组件；支持升级前健康检查、分阶段灰度发布、失败自动回滚、升级日志集中审计及 Redfish API 自动化编排。
+
+Q: 该服务器是否通过 PCI-SIG 认证？PCIe 5.0 插槽是否支持向下兼容 PCIe 4.0/3.0 设备？  
+A: 是的，SR850 V4 已通过 PCI-SIG 官方兼容性认证（认证编号：PCI-SIG ID 52187）；所有 PCIe 5.0 插槽均完全向下兼容 PCIe 4.0、3.0 和 2.0 设备，自动协商链路速率与宽度；但 PCIe 3.0 设备在 PCIe 5.0 插槽中无法获得带宽提升，仅保持原有性能。

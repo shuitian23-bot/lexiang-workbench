@@ -2344,7 +2344,7 @@ var _la_lenovo_website = 10000001;
     # 严格按飞书约定的分类白名单控制各子站内容
     BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz'}
     BU_ALLOWED_CATS = {
-        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device'},
+        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device', 'whole_home', 'service'},
         'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution'},
         'biz': {'notebook', 'desktop', 'monitor', 'workstation', 'tablet_phone', 'accessory',
                 'smart_device', 'server', 'solution', 'biz-case'},

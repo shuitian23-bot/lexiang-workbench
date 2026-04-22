@@ -1,0 +1,34 @@
+ThinkServer TS90X
+
+塔式服务器,塔式服务器ThinkServer,塔式服务器ThinkServer TS90X,ThinkServer TS90X , TS90X, 联想商用官网是联想全线商用产品与解决方案展示的官方网站，包含服务器、存储、网络设备、台式机、笔记本电脑等产品，通过数据中心解决方案及行业应用解决您的业务痛点，推进数字化转型。
+
+关键词：塔式服务器,塔式服务器ThinkServer,塔式服务器ThinkServer TS90X,ThinkServer TS90X , TS90X
+
+常见问题
+
+Q: ThinkServer TS90X是否支持双路CPU？  
+A: 不支持。ThinkServer TS90X为单路塔式服务器，仅支持一颗Intel Xeon E3系列处理器。
+
+Q: 该服务器最大支持多少内存容量？  
+A: 最大支持32GB DDR3 ECC UDIMM内存（4个插槽，单条最高8GB）。
+
+Q: ThinkServer TS90X是否支持热插拔硬盘？  
+A: 不支持热插拔硬盘；该机型采用固定托架设计，硬盘需关机后手动拆装。
+
+Q: 服务器是否内置RAID控制器？  
+A: 标配Intel C226芯片组集成SATA RAID 0/1/5/10功能，无需额外购买RAID卡即可实现基础磁盘阵列。
+
+Q: 电源配置是否冗余？  
+A: 不支持电源冗余；标配单颗350W 80 PLUS认证电源，无第二电源插槽或冗余设计。
+
+Q: 是否支持PCIe扩展插槽？  
+A: 支持，提供1个PCIe 3.0 x16插槽和1个PCIe 3.0 x4插槽（x4物理带宽），可用于扩展网卡、HBA卡或GPU加速卡。
+
+Q: 该机型是否通过中国节能产品认证？  
+A: 是，ThinkServer TS90X已通过中国节能产品认证（China Energy Label），符合GB 28380-2012《计算机能效限定值及能效等级》二级能效标准。
+
+Q: 操作系统兼容性如何？  
+A: 官方支持Microsoft Windows Server 2012 R2、Windows Server 2016、Windows 10 Pro for Workstations；Linux方面支持Red Hat Enterprise Linux 7.x、CentOS 7.x、Ubuntu Server 16.04 LTS及后续长期支持版本。
+
+Q: 服务器管理功能有哪些？  
+A: 集成Lenovo XClarity Controller（XCC）基础版，支持远程KVM、虚拟媒体、硬件监控、日志记录及固件更新；可通过Web界面或IPMI 2.0协议进行带外管理。

@@ -1,0 +1,63 @@
+ThinkSmart Cam 高清AI摄像头
+
+ThinkSmart Cam  
+高清AI摄像头  
+
+产品规格  
+- 产品型号: ThinkSmart Cam  
+- 计算性能: ARM Cortex-A7处理器，内嵌具备VPU和神经网络  
+- 单像素尺寸: 2um  
+- 传感器: 1/1.8"  
+- 视频输出格式: MJPEG, YUV2  
+- 视频输出比例: 16:9  
+- 视频分辨率:  
+  - YUV2: 1920x1080/30fps, 1280x720/60fps, 640x360/60fps;  
+  - MJPEG: 3840x2160/30fps, 2560x1440/30fps, 1920x1080/60fps, 1280x720/120fps  
+  - ***4K需要使用USB3.2 Gen1 Cable***  
+- 麦克风: 2颗（声音追踪）  
+- 变焦: 4倍数码变焦  
+- 视野范围: 水平视野100°，垂直视野68°，对角线视野125°  
+- AI功能: 自动取景、自动聚焦、自动缩放、声音追踪、人员计数、白板识别  
+- HDR: 支持HDR高动态光照渲染  
+- USB接口: USB3.2 Gen1  
+- 安装方式: 桌面、磁吸、壁挂、大屏/TV/挂装  
+- 线缆长度: 标配5米USB2.0数据线，10米可选  
+- 视频协作软件: 支持Microsoft Teams Rooms、Zoom Rooms、腾讯会议等主流平台  
+- 认证: Microsoft Teams Rooms大型会议室认证、Zoom Rooms认证、腾讯会议Rooms认证  
+- 尺寸: 105.0x36.0x60.5mm  
+- 重量: 245g (+/-20g)  
+
+应用场景  
+
+应用示例：  
+图片展示了一个会议室场景，几位参与者坐在桌子旁，面前是一台显示着视频会议界面的大屏幕。屏幕上显示了多个参与者的画面和一个图表。房间内有窗户，窗外可以看到绿色的树木。  
+
+Q: ThinkSmart Cam支持哪些视频输出格式？  
+A: ThinkSmart Cam支持MJPEG和YUV2两种视频输出格式。  
+
+Q: ThinkSmart Cam在MJPEG格式下最高支持什么分辨率和帧率？  
+A: 在MJPEG格式下，ThinkSmart Cam最高支持3840x2160分辨率@30fps。  
+
+Q: 使用4K（3840x2160）视频输出时，对连接线缆有何特殊要求？  
+A: 使用4K（3840x2160）视频输出时，必须使用USB3.2 Gen1 Cable。  
+
+Q: ThinkSmart Cam具备哪些AI智能功能？  
+A: ThinkSmart Cam具备自动取景、自动聚焦、自动缩放、声音追踪、人员计数、白板识别等AI智能功能。  
+
+Q: 该摄像头的视野范围具体是多少？  
+A: ThinkSmart Cam的视野范围为水平视野100°，垂直视野68°，对角线视野125°。  
+
+Q: ThinkSmart Cam支持哪些主流视频会议平台？  
+A: ThinkSmart Cam支持Microsoft Teams Rooms、Zoom Rooms、腾讯会议等主流视频会议平台。  
+
+Q: 该摄像头通过了哪些官方认证？  
+A: ThinkSmart Cam已通过Microsoft Teams Rooms大型会议室认证、Zoom Rooms认证、腾讯会议Rooms认证。  
+
+Q: ThinkSmart Cam的标准线缆长度是多少？是否支持加长？  
+A: ThinkSmart Cam标配5米USB2.0数据线，同时提供10米长度作为可选配置。  
+
+Q: 该摄像头的安装方式有哪些？  
+A: ThinkSmart Cam支持桌面放置、磁吸安装、壁挂安装以及大屏/TV/挂装等多种安装方式。  
+
+Q: ThinkSmart Cam的麦克风数量及功能特点是什么？  
+A: ThinkSmart Cam配备2颗麦克风，支持声音追踪功能。

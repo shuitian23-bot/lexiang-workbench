@@ -1,0 +1,55 @@
+联想问天 CM7010 G2
+
+联想问天 CM7010 G2 是一款面向人工智能训练与推理、高性能计算（HPC）、科学仿真及大规模数据分析场景的旗舰级AI服务器。该产品基于第四代英特尔®至强®可扩展处理器（Sapphire Rapids）平台，支持最高8颗双路CPU配置，具备极致的计算密度、内存带宽与I/O扩展能力。整机采用模块化设计，支持灵活的GPU拓扑配置，兼容NVIDIA HGX H100 8-GPU模组及多种国产加速卡，满足从千卡集群到单节点多卡异构计算的多样化部署需求。系统集成联想原创的LiCO智能集群管理平台与AIOps运维工具链，提供全生命周期智能运维能力。
+
+产品特性：
+- 支持8颗第四代英特尔®至强®可扩展处理器（Sapphire Rapids），单颗最高60核，TDP最高350W，支持Intel® AMX、DL Boost等AI加速指令集
+- 最高支持16TB DDR5 4800MT/s Registered ECC内存，32个内存插槽，支持内存交错与Optane持久内存扩展
+- 支持双模GPU部署：可选配NVIDIA HGX H100 8-GPU模组（NVLink全互联），或8张PCIe 5.0 x16单宽GPU（如A100/A800/H100/AI300等），支持GPU直通与MIG切分
+- 全冗余高可靠设计：双2400W 80 PLUS Titanium电源、热插拔风扇模组、全路径冗余供电与散热架构
+- 智能管理：预装Lenovo XClarity Controller（XCC）基础版，支持IPMI 2.0、Redfish API、KVM over IP；可选升级XClarity Administrator实现跨节点批量部署与固件统一管理
+- 散热优化：支持液冷（CDU兼容）与风冷双模式，标配高效涡轮风扇+定向风道，GPU区域独立风压调控，满载PUE可低至1.12（液冷工况）
+- 安全可信：支持TPM 2.0、Secure Boot、固件签名验证、机箱入侵检测、内存加密（Intel TME/SGX）、硬件级可信执行环境（TEE）
+
+规格参数：
+| 项目 | 规格说明 |
+|------|----------|
+| 外形尺寸 | 8U机架式，482.6mm（宽）× 848mm（深）× 352mm（高） |
+| 重量 | 满配约128kg（含HGX H100模组与双电源） |
+| 处理器 | 支持2–8颗第四代英特尔®至强®可扩展处理器（Sapphire Rapids），Socket E LGA4677，支持双路/四路/八路互连（需对应主板型号） |
+| 芯片组 | 英特尔C741芯片组（八路配置下采用多芯片互连架构） |
+| 内存 | 最高16TB DDR5 RDIMM/LRDIMM，4800MT/s，32个插槽；支持内存镜像、内存热备、高级ECC |
+| 存储 | 前置：最高支持24×2.5英寸热插拔SAS/SATA/NVMe SSD（其中16个支持NVMe U.2）；后置：2×M.2 NVMe（PCIe 4.0 x4，支持RAID 1）；内置：2×M.2 SATA（用于OS镜像盘） |
+| 扩展插槽 | PCIe 5.0：最高24条x16通道（物理x16插槽共12个，含GPU专用通道）；支持PCIe 5.0 Switch扩展；OCP 3.0网卡插槽×1（前置）；USB 3.2 Gen2 Type-C ×2（前面板），USB 3.2 Gen1 ×2（后置） |
+| 网络 | 标配双端口25GbE SFP28（Intel E810），可选配双端口100GbE QSFP28（NVIDIA ConnectX-6/7）、200GbE HDR InfiniBand（NVIDIA Quantum-2）、或10GbE Base-T（Marvell AQC113） |
+| 管理接口 | 前置LCD状态屏（128×64像素），后置RJ45 XCC管理口（支持IPv4/IPv6）、串口（RJ45）、VGA（后置） |
+| 电源 | 双2400W 80 PLUS Titanium热插拔冗余电源，支持200–240V AC / -48V DC输入，支持高压直流（HVDC） |
+| 风扇 | 8个热插拔N+1冗余涡轮风扇模组，支持PWM智能调速与故障预测 |
+| 工作温度 | 10°C – 35°C（ASHRAE A4标准），支持短时40°C进风（≤8小时/天） |
+| 认证与合规 | 通过CE、FCC、UL、CCC、RoHS、ENERGY STAR、TCO Certified Edge 3.0认证；符合GB/T 17626电磁兼容系列标准 |
+
+常见问题
+
+Q: 联想问天 CM7010 G2 是否支持国产加速卡？  
+A: 是的，CM7010 G2 在硬件层面全面兼容主流国产AI加速卡，包括寒武纪思元370/590、昆仑芯XPU R200、天数智芯智铠100、壁仞BR100等PCIe 5.0接口加速卡；BIOS与驱动已通过兼容性认证，并提供厂商联合调优支持包。
+
+Q: 该服务器能否在不更换机柜的情况下升级为液冷方案？  
+A: 可以。CM7010 G2 采用前挂式CDU（Coolant Distribution Unit）兼容设计，支持在现有风冷机柜中加装联想ThinkSystem Liquid Cooling Kit，无需更换机柜主体结构；所有GPU、CPU及内存模块均配备标准化冷板接口，改造周期小于4小时/节点。
+
+Q: 单台CM7010 G2最多可部署多少张H100 GPU？是否支持NVLink全互联？  
+A: 单台最高支持8张NVIDIA H100 SXM5 GPU（通过HGX H100 8-GPU模组），全部GPU之间通过NVLink 4.0实现全互联，总带宽达900GB/s（双向），支持GPU Direct RDMA与GPUDirect Storage，满足大模型全参数训练通信需求。
+
+Q: 内存配置是否支持混合使用RDIMM和LRDIMM？  
+A: 不支持混合使用。为确保系统稳定性与性能一致性，CM7010 G2 要求同一内存通道内必须使用同类型、同容量、同频率的内存模组；RDIMM与LRDIMM不可混插，且不同容量模组（如64GB与128GB）在同一通道内亦不可混用。
+
+Q: XClarity Controller（XCC）是否支持远程GPU状态监控与故障预警？  
+A: 是的，XCC固件v3.20及以上版本原生支持GPU健康度实时采集，包括显存利用率、温度、功耗、ECC错误计数、NVLink链路状态等27项指标；结合Lenovo AIOps引擎，可提前72小时预测GPU潜在故障并推送告警至企业微信/钉钉/邮件。
+
+Q: 该服务器是否通过信创适配认证？支持哪些国产操作系统？  
+A: 已通过工信部“信息技术应用创新工作委员会”（信创工委会）认证，完成与麒麟软件银河麒麟V10 SP3、统信软件UOS Server 2023、中科方德Server V7.0的全栈兼容性测试；支持鲲鹏、飞腾、海光等平台交叉编译环境下的AI框架容器化部署。
+
+Q: 存储方面是否支持RAID 10与RAID 50混合配置？  
+A: 支持。通过板载LSI MegaRAID 9560-16i控制器（可选配）或第三方HBA卡，可在前置24盘位中划分多个逻辑阵列：例如将16块NVMe SSD配置为RAID 10用于训练数据缓存，剩余8块SATA SSD配置为RAID 50用于日志与检查点存储，各阵列独立管理、互不影响。
+
+Q: 是否提供针对大模型训练的预装软件栈？  
+A: 提供Lenovo AI Stack for LLM预装镜像，包含经过深度优化的PyTorch 2.3+、DeepSpeed v0.14、Megatron-LM v2.10、FlashAttention-2、vLLM v0.5.3等核心组件，并预集成Hugging Face Transformers、ModelScope适配层及中文分词与评估工具链，开箱即支持Llama-3、Qwen2、GLM-4等主流模型微调与推理。

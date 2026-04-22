@@ -1,0 +1,59 @@
+ThinkSmartCore G2
+
+Intel® Core™ Ultra 5/7处理器
+内置NPU（神经网络单元）
+支持Copilot等人工智能平台
+内置视频采集功能
+单/双流屏显
+内置BYOM一键切换
+丰富接口扩展音视频外设
+智慧中控随心切换
+
+强芯聚力，高效运行
+搭载Intel® CoreTM Ultra 5 135H/7 165H processor on Intel vPro® platform，AI运行更从容，远程管理更便捷
+
+Intel CORE ULTRA 7
+
+内置NPU
+(神经网络单元)
+
+支持Copilot等
+人工智能平台
+
+16GB / 32GB(可选)
+256GB PCIe SSD
+
+丰富接口，超强扩展
+覆盖USB、HDMI、网口等多类型接口适配，设备连接更自由
+
+桌面控制，多角度切换
+USB C/C控制屏即插即用，内置人体红外感应，支持30°/60°角度自适应切换
+
+- 1x HDMI-In
+- 2x HDMI-Out
+- 4x USB-A
+- 3x USB-C
+- 1x Gigabit Ethernet
+- 1x Power
+
+多云会议，无界畅联
+
+可选预装业界主流认证云视频会议平台，Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms，
+智慧中控，多平台切换，助力高效远程协作
+
+图片中的所有文字内容如下：
+
+- Teams Room
+- 腾讯会议ROOMS
+- ZOOM Rooms
+- 智慧服务，全球覆盖
+
+请注意，图片中没有标题、描述或规格参数等详细信息，只有上述提到的设备名称和一句标语。
+
+图片中的文字内容如下：
+
+```
+三年上门保修服务，智慧服务一部到位
+```
+
+这是图片中唯一可见的文字内容。

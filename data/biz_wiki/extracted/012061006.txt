@@ -1,0 +1,59 @@
+Lenovo ThinkSystem DM 系列
+
+Lenovo ThinkSystem DM 系列是联想面向现代数据中心推出的高密度、模块化、全闪存存储系统，专为人工智能训练、高性能计算（HPC）、实时分析和大规模虚拟化等I/O密集型工作负载设计。该系列采用创新的“Data Mesh”架构，支持横向扩展（scale-out）与纵向扩展（scale-up）混合部署模式，可在单个集群内无缝整合多达128个节点，提供高达300PB原始容量与25M IOPS持续性能。系统内置智能数据服务引擎（IDSE），集成AI驱动的预测性运维、自动分层存储、细粒度QoS策略及跨云数据生命周期管理能力。
+
+ThinkSystem DM 系列提供三种基础型号：DM1000、DM5000 和 DM9000，分别面向入门级AI实验环境、企业级核心业务存储及超大规模云原生数据中心场景。所有型号均基于统一软件栈（ThinkSystem Storage OS v4.2+），确保功能一致性与升级平滑性。硬件平台采用全冗余无单点故障设计，支持热插拔NVMe U.2/U.3 SSD、双端口25/100GbE RDMA over Converged Ethernet（RoCEv2）网络接口、以及可选配的FPGA加速卡用于实时压缩与加密卸载。
+
+产品特性  
+• 全闪存架构：标配企业级NVMe SSD，支持混合介质配置（NVMe + QLC NAND）以优化成本/性能比  
+• 智能数据服务引擎（IDSE）：内置嵌入式AI推理引擎，实现亚秒级故障预测准确率＞99.2%，自动执行存储卷健康修复与IO路径重路由  
+• 多协议统一访问：同时支持块（iSCSI, FC-NVMe, RoCE-NVMe）、文件（NFS v3/v4.1, SMB 3.1.1, NFS-Ganesha）与对象（S3兼容API）协议，无需网关或额外网关设备  
+• 零信任安全框架：硬件级TPM 2.0可信平台模块、AES-256全盘静态加密、FIPS 140-3 Level 3认证密钥管理、动态数据脱敏与基于属性的访问控制（ABAC）  
+• 云原生集成：原生支持Kubernetes CSI Driver、Red Hat OpenShift Operator、Terraform Provider及AWS/Azure/GCP多云快照同步服务  
+• 绿色节能设计：符合ENERGY STAR® 8.0与TCO Certified Edge标准，典型负载下PUE优化至1.08，单TB年耗电量低于125kWh  
+
+规格参数  
+
+| 项目 | DM1000 | DM5000 | DM9000 |
+|------|--------|--------|--------|
+| 最大节点数（单集群） | 16 | 64 | 128 |
+| 单节点控制器CPU | 2× Intel Xeon Silver 4310 (2.1GHz, 12C/24T) | 2× Intel Xeon Gold 6330 (2.0GHz, 28C/56T) | 2× Intel Xeon Platinum 8360Y (2.4GHz, 36C/72T) |
+| 单节点内存 | 256GB DDR4 ECC（可扩展至512GB） | 512GB DDR4 ECC（可扩展至1TB） | 1TB DDR4 ECC（可扩展至2TB） |
+| 前端主机接口 | 4× 25GbE RoCEv2（含2× SFP56光模块） | 8× 25GbE RoCEv2 或 4× 100GbE RoCEv2（含QSFP56光模块） | 16× 25GbE RoCEv2 或 8× 100GbE RoCEv2（含QSFP56光模块） |
+| 后端NVMe互联 | PCIe Gen4 x16 NVMe-oF Fabric（专用背板） | PCIe Gen4 x16 NVMe-oF Fabric（专用背板） | PCIe Gen5 x16 NVMe-oF Fabric（专用背板） |
+| 单节点最大SSD槽位 | 24 × 2.5" U.2/U.3 NVMe | 48 × 2.5" U.2/U.3 NVMe | 96 × 2.5" U.2/U.3 NVMe |
+| 支持SSD类型 | U.2/U.3 NVMe SSD（PCIe 4.0），支持热插拔 | U.2/U.3 NVMe SSD（PCIe 4.0），支持热插拔 | U.2/U.3 NVMe SSD（PCIe 5.0），支持热插拔 |
+| 原始容量范围（单节点） | 19.2TB – 192TB | 38.4TB – 384TB | 76.8TB – 768TB |
+| 持续读带宽（4K随机） | 最高1.2M IOPS | 最高6.8M IOPS | 最高25M IOPS |
+| 数据保护机制 | RAID 5/6/10、纠删码（EC 12+4 / 16+4）、三副本、异步/同步远程复制、应用一致性快照 | RAID 5/6/10、纠删码（EC 12+4 / 16+4 / 24+4）、三副本、同步远程复制（RPO=0）、应用一致性快照、WAN优化复制 | RAID 5/6/10、纠删码（EC 12+4 / 16+4 / 24+4 / 32+4）、三副本、同步远程复制（RPO=0）、应用一致性快照、WAN优化复制、跨地域多活（Active-Active） |
+| 管理接口 | 1× 1GbE带外管理口（IPv4/IPv6双栈）、RESTful API、SNMP v3、Syslog | 1× 1GbE带外管理口（IPv4/IPv6双栈）、RESTful API、SNMP v3、Syslog、Prometheus Exporter | 1× 1GbE带外管理口（IPv4/IPv6双栈）、RESTful API、SNMP v3、Syslog、Prometheus Exporter、OpenTelemetry Collector |
+| 物理尺寸（高×宽×深） | 2U（88.9mm × 482mm × 750mm） | 4U（177.8mm × 482mm × 850mm） | 6U（266.7mm × 482mm × 950mm） |
+| 电源 | 2× 1600W 80 PLUS Titanium（支持200–240V AC或-48V DC） | 2× 2000W 80 PLUS Titanium（支持200–240V AC或-48V DC） | 4× 2000W 80 PLUS Titanium（支持200–240V AC或-48V DC） |
+| 工作温度 | 10°C – 35°C（运行），-40°C – 65°C（非运行） | 10°C – 35°C（运行），-40°C – 65°C（非运行） | 10°C – 35°C（运行），-40°C – 65°C（非运行） |
+| 认证合规 | FCC Class A, CE, VCCI, BSMI, KC, RCM, UL 62368-1, IEC 62368-1, RoHS, REACH, WEEE | FCC Class A, CE, VCCI, BSMI, KC, RCM, UL 62368-1, IEC 62368-1, RoHS, REACH, WEEE | FCC Class A, CE, VCCI, BSMI, KC, RCM, UL 62368-1, IEC 62368-1, RoHS, REACH, WEEE |
+
+常见问题  
+
+Q: ThinkSystem DM 系列是否支持与现有VMware vSphere环境集成？  
+A: 是的，ThinkSystem DM 系列通过VMware vSphere VAAI（vStorage APIs for Array Integration）认证，完整支持Full Copy、Block Zeroing、Hardware Assisted Locking等加速功能，并预集成VMware vCenter Plug-in，可直接在vCenter界面完成存储池配置、LUN映射、快照与克隆操作，无需额外代理。
+
+Q: DM系列的纠删码（Erasure Coding）是否影响实时AI训练性能？  
+A: 不影响。IDSE引擎采用专用FPGA协处理器与并行流水线算法，在启用EC 16+4时仍保障95%以上原始IOPS吞吐，且所有EC计算均在控制器内存中完成，不经过SSD写入路径；实测ResNet-50训练任务在EC保护下端到端延迟波动＜±1.2ms。
+
+Q: 是否允许混合部署不同型号节点（如DM1000与DM5000）于同一集群？  
+A: 不允许。ThinkSystem DM 系列要求单集群内所有节点必须为同一型号（DM1000/DM5000/DM9000），以确保固件版本、NVMe Fabric拓扑兼容性及QoS策略一致性；跨型号扩容需通过集群联邦（Cluster Federation）方式实现逻辑统一管理。
+
+Q: 数据加密密钥是否支持外部密钥管理系统（KMS）？  
+A: 支持。系统兼容主流KMIP 1.4协议KMS（如Thales CipherTrust Manager、HashiCorp Vault、AWS CloudHSM），可配置为密钥托管模式（Key Custodian Mode），所有静态加密密钥均由外部KMS生成、分发与轮换，存储系统仅持有加密后的密钥句柄。
+
+Q: DM9000的PCIe Gen5 NVMe-oF Fabric是否向后兼容PCIe Gen4 SSD？  
+A: 完全兼容。DM9000背板采用自适应速率协商机制，可自动识别并降速运行PCIe Gen4 U.2/U.3 SSD，同时保持Gen5链路其余通道满带宽用于节点间通信；兼容列表已通过联想实验室全量验证（含Samsung PM1733、Kioxia CD6、Micron 7450等主流型号）。
+
+Q: 系统是否提供针对容器化数据库（如MySQL on Kubernetes）的优化存储策略？  
+A: 提供。ThinkSystem Storage OS内置Database-Aware I/O Scheduler（DAIS），可自动识别MySQL、PostgreSQL、MongoDB等容器化数据库的IO模式特征（如WAL日志顺序写、Buffer Pool随机读），动态分配专用缓存分区、绑定低延迟NVMe队列深度，并支持Per-Pod级别IOPS/QoS硬隔离。
+
+Q: 远程复制是否支持跨不同代际DM型号（如DM5000→DM9000）？  
+A: 支持。通过ThinkSystem Replication Gateway（TRG）软件组件，可在DM5000与DM9000之间建立异步远程复制链路，TRG自动处理协议转换、元数据映射与带宽自适应压缩，RPO可配置为5秒至24小时，且目标端DM9000可直接挂载复制卷进行即时恢复验证。
+
+Q: 是否支持现场更换故障电源模块而无需停机？  
+A: 支持。所有型号均采用N+1冗余热插拔电源设计（DM1000/DM5000为2×，DM9000为4×），电源模块具备独立风扇与数字健康监控，更换过程中系统自动重平衡负载，控制器与SSD供电无中断，MTTR（平均修复时间）＜2分钟。

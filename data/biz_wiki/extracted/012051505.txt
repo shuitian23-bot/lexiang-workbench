@@ -1,0 +1,56 @@
+联想问天 WA8080a G5
+
+联想问天 WA8080a G5 是一款面向人工智能训练与推理、科学计算、高性能数据分析等关键业务场景的旗舰级AI服务器。该产品基于第四代英特尔®至强®可扩展处理器（Sapphire Rapids）平台，支持最高8颗双路CPU配置，具备极致的计算密度与I/O扩展能力。整机采用模块化设计，支持灵活的GPU拓扑配置，兼容主流AI加速卡（如NVIDIA H100 SXM5、H800、A100 80GB SXM4），并针对大模型训练与推理工作负载进行深度优化。系统集成联想原创的LiCO AI管理平台，提供从资源调度、集群监控、作业管理到模型生命周期的一站式AI基础设施服务。
+
+产品特性：
+- 支持8颗第四代英特尔®至强®可扩展处理器（单颗最高60核/120线程），TDP最高达350W，提供业界领先的CPU算力密度；
+- 支持最多16张全高全长双宽GPU（如NVIDIA H100 SXM5），通过NVLink 4.0实现GPU间超低延迟互连（带宽高达900GB/s），满足千亿参数大模型分布式训练需求；
+- 采用创新的“双风道+液冷混合散热架构”：CPU与内存区域采用高效风冷，GPU区域支持板级直触式液冷（兼容CDU标准），PUE可低至1.08；
+- 全冗余高可靠性设计：双路2400W 80PLUS钛金电源（支持2+2冗余）、热插拔风扇模组、ECC RDIMM/LRDIMM内存校验、支持内存镜像与内存 sparing；
+- 前置智能管理面板（LCD+物理按键），支持离线固件升级、故障诊断与一键健康检查；同时集成XClarity Controller（XCC）远程管理芯片，支持IPMI 2.0、Redfish API及SNMP协议；
+- 存储扩展能力强大：前置支持最多24块2.5英寸热插拔NVMe SSD（其中16块支持PCIe 5.0 x4，8块支持U.2 NVMe），后置支持2块M.2 SATA/NVMe SSD用于系统盘；可选配LSI 3916 RAID控制器，支持RAID 0/1/5/6/10/50/60；
+- I/O扩展丰富：提供10个PCIe 5.0 x16插槽（全速）、2个OCP 3.0网卡插槽（支持最高400GbE EDR InfiniBand或200GbE RoCEv2），板载双口25GbE SFP28以太网；
+- 通过多项国际认证：能源之星（ENERGY STAR）认证、TCO Certified Edge、RoHS、REACH、UL62368-1、CE、FCC Class A。
+
+规格参数：
+
+| 类别 | 参数项 | 详细说明 |
+|------|--------|----------|
+| 处理器 | CPU型号 | 支持2–8颗第四代英特尔®至强®可扩展处理器（Sapphire Rapids-SP），支持Intel AMX、DL Boost、AVX-512指令集；单颗最高60核/120线程，基础频率1.9GHz，最大睿频频率4.1GHz，L3缓存最高112.5MB，TDP最高350W |
+| 内存 | 类型与容量 | 支持DDR5 ECC RDIMM（最大4800MT/s）或LRDIMM（最大4400MT/s）；每CPU最高支持16通道，整机最多支持128个内存插槽；最大内存容量：RDIMM最高12TB（256GB×48），LRDIMM最高24TB（512GB×48） |
+| GPU | 支持型号与数量 | 支持NVIDIA H100 SXM5 / H800 / A100 80GB SXM4 / L40S / AMD MI300X等；最多16张全高全长双宽GPU；GPU互联：支持NVLink 4.0（H100/H800）或AMD Infinity Fabric（MI300X），GPU间双向带宽最高900GB/s（H100 SXM5） |
+| 存储 | 前置硬盘 | 最多24×2.5英寸热插拔NVMe SSD：其中16×PCIe 5.0 x4 U.2 NVMe（支持NVMe-oF），8×PCIe 5.0 x4 SlimSAS NVMe（兼容U.2）；支持热备盘与在线扩容 |
+| 存储 | 后置与内置 | 2×M.2 2280/22110 SATA/NVMe SSD（系统盘专用）；可选配LSI 3916-8i/16i RAID控制器（支持CacheVault断电保护）；支持RAID 0/1/5/6/10/50/60，最大逻辑卷数128 |
+| 网络 | 板载与扩展 | 板载2×25GbE SFP28（Intel E810-CQDA2）；2×OCP 3.0 Mezzanine插槽（支持400GbE EDR InfiniBand、200GbE RoCEv2、100GbE Ethernet等多种网卡）；支持SR-IOV、PFC、ECN、DCB等数据中心网络特性 |
+| 扩展插槽 | PCIe插槽数量与规格 | 10×PCIe 5.0 x16（全速，LP/HHHL）；所有插槽均支持GPU直通与SR-IOV；支持PCIe bifurcation（x16/x8x8/x4x4x4x4） |
+| 电源 | 类型与冗余 | 2400W 80PLUS钛金认证电源（效率≥96% @50%负载）；支持2+2或3+1冗余模式；支持100–240V AC / 240V HVDC输入；具备智能功耗封顶（capping）与动态功耗调节功能 |
+| 散热 | 冷却方式 | 双风道+液冷混合散热：CPU/内存区域采用高风压涡轮风扇风冷；GPU区域标配板级直触式冷板（兼容CDU标准，进水温度18–35℃，压降≤30kPa）；支持冷板状态实时监测与泄漏告警 |
+| 管理 | 远程管理 | 集成XClarity Controller（XCC）v4.0+，支持IPMI 2.0、Redfish RESTful API、SNMP v3、KVM over IP（HTML5）、虚拟媒体挂载；支持固件批量升级、策略驱动型电源管理、硬件信任根（TPM 2.0/TCM） |
+| 物理规格 | 尺寸与重量 | 机架式4U高度；宽482mm × 深950mm × 高175mm（4U）；满配重量约125kg（含导轨）；支持标准19英寸机柜（最小深度900mm） |
+| 认证与合规 | 安全与能效 | 通过UL62368-1、CE、FCC Class A、ICES-003、VCCI、KC、BSMI、RCM、UKCA；能源之星（ENERGY STAR）认证、TCO Certified Edge；符合RoHS、REACH、WEEE环保指令；支持中国网络安全审查办法（CSRC）相关要求 |
+
+常见问题
+
+Q: 联想问天 WA8080a G5 是否支持国产CPU或加速卡？
+A: 当前WA8080a G5硬件平台专为第四代英特尔®至强®可扩展处理器及NVIDIA/AMD主流AI加速卡设计，暂不支持国产CPU（如海光、鲲鹏、飞腾）或国产AI加速卡（如寒武纪、天数智芯、壁仞）的官方认证与驱动适配；联想正基于同一架构平台同步研发兼容国产生态的WA8080a G5“信创增强版”，预计2025年Q2发布。
+
+Q: 该服务器是否支持液冷部署？是否需要额外订购液冷套件？
+A: 是，WA8080a G5原生支持GPU区域板级直触式液冷，出厂默认配备完整冷板组件（含快接接口、密封结构、温度/流量传感器及泄漏检测模块）；无需额外订购液冷套件即可直接接入CDU（Coolant Distribution Unit）；风冷区域（CPU/内存）不支持液冷改造，但整机已通过液冷兼容性验证（CDU进水温度18–35℃，压力范围0.3–0.8MPa）。
+
+Q: 最大支持多少TB的GPU显存总容量？
+A: 按最高配置16张NVIDIA H100 SXM5（每卡显存80GB）计算，显存总容量为1280GB（即1.25TB）；若配置16张H800（每卡80GB），同样为1.25TB；若使用L40S（24GB）则为384GB；实际显存总量取决于所选GPU型号与数量，且需满足NVLink拓扑约束与系统功耗限制。
+
+Q: 是否支持内存加密（Memory Encryption）和安全启动（Secure Boot）？
+A: 是，WA8080a G5全面支持Intel TME（Total Memory Encryption）和Intel MKTME（Multi-Key Total Memory Encryption）硬件级内存加密技术；同时支持UEFI Secure Boot（含Microsoft WHQL签名验证）、TPM 2.0可信平台模块（支持固件级密钥存储与远程证明），并通过了国家密码管理局商用密码产品认证（SM2/SM3/SM4算法支持）。
+
+Q: 在运行大模型训练任务时，如何保障GPU间通信带宽不成为瓶颈？
+A: WA8080a G5通过三重机制保障GPU互联性能：第一，采用全NVLink 4.0互联矩阵（H100 SXM5），GPU间双向带宽达900GB/s，远超PCIe 5.0 x16（128GB/s）；第二，主板PCB采用低损耗材料与严格阻抗控制，信号完整性通过PCI-SIG Gen5与NVIDIA HGX认证；第三，LiCO平台内置NCCL自动调优引擎，可基于拓扑感知动态选择最优AllReduce算法与通信路径，实测ResNet-50分布式训练扩展效率达92.6%（16卡）。
+
+Q: 是否提供针对大模型推理的软硬协同优化方案？
+A: 是，联想提供完整的“WA8080a G5 + ThinkSystem AI Stack”推理优化方案：硬件层支持INT4/FP8稀疏计算加速（通过NVIDIA Transformer Engine）；软件层预集成NVIDIA Triton推理服务器、vLLM、TensorRT-LLM，并提供一键部署脚本；管理层面通过LiCO实现模型版本管理、动态批处理（Dynamic Batching）、KV Cache共享与弹性实例伸缩，实测Llama-3-70B模型在16×H100下吞吐达142 tokens/sec，首token延迟<85ms。
+
+Q: 该服务器是否支持虚拟化与容器化AI工作负载？
+A: 是，WA8080a G5通过Intel VT-d、VT-x、PCIe SR-IOV及GPU MIG（Multi-Instance GPU）技术，全面支持VMware vSphere 8.x、Red Hat OpenShift 4.14+、NVIDIA EGX Stack等虚拟化与容器平台；支持将单张H100切分为最多7个MIG实例（每个实例具独立显存、计算单元与带宽），适用于多租户小模型推理场景；XCC管理界面提供GPU资源池可视化分配与配额管控。
+
+Q: 如何进行固件与驱动的统一生命周期管理？
+A: 联想XClarity Administrator（XLA）可对WA8080a G5集群实施集中式固件与驱动管理：支持批量扫描设备版本、自动匹配联想认证固件包（含BIOS、XCC、RAID、GPU、网卡固件）、灰度升级策略（按组分批）、回滚机制及升级报告审计；所有固件包均通过联想数字签名验证，确保来源可信；同时LiCO平台提供AI软件栈（CUDA、cuDNN、PyTorch、TensorFlow）的版本兼容性矩阵与一键更新功能。

@@ -1,0 +1,120 @@
+ThinkVision T75会议触控大屏
+
+4K真彩  
+超强性能  
+高亮度  
+丰富接口  
+
+“芯”动力，会议不卡壳  
+ARM Cortex A73+ GPU G52  
+4GB内存 + 64GB存储  
+多任务处理游刃有余  
+安卓系统下，多种视频会议及应用流畅运行  
+
+4K超高清大屏  
+75寸全高清4K大屏，高亮度，高色域，多视角无炫光干扰  
+触控精准度±1mm，触控响应时间≤0.06s  
+支持多种手势操作与多人同屏书写  
+
+图片中的文字内容如下：  
+
+- 4K  
+- Lenovo  
+- ThinkVision  
+
+这些文字分别位于图片的不同位置，其中“4K”位于图片上方，表示显示器的分辨率；“Lenovo”位于显示器左下角，表示品牌；“ThinkVision”位于显示器右下角，表示产品系列。  
+
+超远拾音，AI降噪  
+8颗阵列麦克风超远拾音，采用最新AI降噪算法，有效过滤各种背景噪声，极大程度还原人声  
+
+4K AI摄像头  
+模块化、超广角设计  
+支持发言人追踪、人脸识别、自动框选功能  
+
+Tuesday  
+2021/10/12  
+1:45  
+Whiteboard  
+
+丰富接口，一键互联  
+配备HDMI/USB/DP/VGA等多种接口功能，满足各种数据传输要求，让会议更自由  
+
+左侧接口：  
+- USB Type C  
+- USB 3.0  
+- USB 3.0  
+- DP In  
+- HDMI3 In  
+- HDMI2 In  
+- HDMI1 In  
+- Touch USB  
+- VGA In  
+
+右侧接口：  
+- TF Card  
+- MIC In  
+- Line Out  
+- HDMI Out  
+- SPDIF Out  
+- RS 232  
+- LAN In  
+- USB 2.0  
+- AV In  
+- PC Audio  
+- LAN Out  
+
+无线BYOM  
+支持具备BYOM功能投屏器、无线投屏软件等多种投屏方式  
+
+无边界白板  
+无边界画布  
+超大范围缩放  
+绘图导航  
+智能跟随  
+
+| 接口位置 | 接口类型 |
+|----------|----------|
+| 左侧接口 | USB Type C |
+| 左侧接口 | USB 3.0 |
+| 左侧接口 | USB 3.0 |
+| 左侧接口 | DP In |
+| 左侧接口 | HDMI3 In |
+| 左侧接口 | HDMI2 In |
+| 左侧接口 | HDMI1 In |
+| 左侧接口 | Touch USB |
+| 左侧接口 | VGA In |
+| 右侧接口 | TF Card |
+| 右侧接口 | MIC In |
+| 右侧接口 | Line Out |
+| 右侧接口 | HDMI Out |
+| 右侧接口 | SPDIF Out |
+| 右侧接口 | RS 232 |
+| 右侧接口 | LAN In |
+| 右侧接口 | USB 2.0 |
+| 右侧接口 | AV In |
+| 右侧接口 | PC Audio |
+| 右侧接口 | LAN Out |
+
+Q: ThinkVision T75的屏幕尺寸和分辨率是多少？  
+A: ThinkVision T75为75寸全高清4K大屏，支持4K超高清显示。
+
+Q: 该设备的处理器和内存配置是什么？  
+A: 搭载ARM Cortex A73处理器与GPU G52，配备4GB内存和64GB存储空间。
+
+Q: 触控性能参数具体包括哪些？  
+A: 触控精准度为±1mm，触控响应时间≤0.06秒，支持多种手势操作与多人同屏书写。
+
+Q: 麦克风系统有何技术特点？  
+A: 配备8颗阵列麦克风，支持超远距离拾音，并采用最新AI降噪算法，可有效过滤各类背景噪声，高度还原人声。
+
+Q: 4K AI摄像头具备哪些智能功能？  
+A: 支持发言人追踪、人脸识别、自动框选功能，采用模块化、超广角设计。
+
+Q: 设备支持哪些无线投屏方式？  
+A: 支持具备BYOM（Bring Your Own Meeting）功能的投屏器及无线投屏软件等多种投屏方式。
+
+Q: “无边界白板”功能包含哪些核心能力？  
+A: 包含无边界画布、超大范围缩放、绘图导航和智能跟随四项核心能力。
+
+Q: 左侧和右侧分别有哪些物理接口？  
+A: 左侧接口包括USB Type C、两个USB 3.0、DP In、三个HDMI In（HDMI1/HDMI2/HDMI3）、Touch USB、VGA In；右侧接口包括TF Card、MIC In、Line Out、HDMI Out、SPDIF Out、RS 232、LAN In、USB 2.0、AV In、PC Audio、LAN Out。

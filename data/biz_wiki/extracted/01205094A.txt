@@ -1,0 +1,68 @@
+Lenovo ThinkSystem SD650 V3
+
+高密度服务器、intel、英特尔
+
+关键词：Lenovo ThinkSystem SD650 V3 服务器，服务器、intel、英特尔
+
+产品概述  
+Lenovo ThinkSystem SD650 V3 是一款2U双节点高密度液冷服务器，专为高性能计算（HPC）、人工智能（AI）训练与推理、大数据分析及云原生工作负载优化设计。该服务器采用直接接触式液冷技术（Direct-to-Chip），支持全机柜级冷板冷却，显著降低数据中心PUE，提升能效比。每个节点独立运行，支持热插拔维护，具备高可靠性、高可扩展性与高密度部署能力。
+
+核心优势  
+• 全栈液冷设计：支持100%液冷散热，CPU、内存、GPU及VRM等关键部件均通过冷板直连冷却，无需风扇辅助，实现静音运行与极致能效  
+• 密度领先：单2U机箱容纳2个独立计算节点，最高支持4颗第三代或第四代Intel® Xeon® Scalable处理器（每节点2颗），整机最大支持8颗CPU  
+• 灵活I/O与存储：每个节点提供8个PCIe 5.0 x16插槽（物理x16，电气x16），支持最多4块双宽GPU（如NVIDIA H100 SXM5）或8块单宽加速卡；内置16个DDR5 RDIMM插槽（最高支持4TB内存），支持Intel Optane™ Persistent Memory 300系列  
+• 智能管理：预装Lenovo XClarity Controller（XCC）高级版，支持带外管理、固件自动更新、健康监控、功耗封顶及液冷系统状态实时可视化  
+• 绿色节能：在典型AI负载下，相比传统风冷方案，整机功耗降低高达40%，PUE可低至1.05–1.15（取决于机房基础设施）
+
+规格参数  
+| 类别 | 参数详情 |
+|------|----------|
+| 形态 | 2U机架式，双节点模块化设计，支持独立电源与管理模块 |
+| 处理器 | 每节点支持2颗Intel® Xeon® Scalable处理器（Sapphire Rapids / Emerald Rapids），最高支持TDP 350W，共支持8颗CPU（整机） |
+| 内存 | 每节点支持16个DDR5 RDIMM插槽，速率最高4800 MT/s；最大容量4TB（256GB RDIMM）；支持Intel Optane™ Persistent Memory 300系列（需BIOS启用） |
+| 存储 | 每节点前置支持：2个热插拔NVMe U.2 SSD（PCIe 5.0 x4）；后置支持：2个M.2 SATA/NVMe SSD（PCIe 4.0 x4）；板载支持：2个NVMe M.2（PCIe 4.0 x4，仅用于OS启动）；无内置3.5"/2.5" SATA/SAS硬盘位 |
+| 扩展插槽 | 每节点8个PCIe 5.0 x16插槽（全高全长，物理x16，电气x16），支持GPU/加速卡/智能网卡；1个OCP 3.0插槽（PCIe 5.0 x16，支持双端口200GbE或4x25GbE） |
+| 网络 | 标配：每节点1个OCP 3.0夹层卡插槽（出厂可选配Intel E810-CQDA2、NVIDIA ConnectX-7 CX7、或Broadcom BCM57416等）；另支持2个板载1GbE RJ45（用于XCC管理） |
+| 液冷接口 | 标准CDU（Coolant Distribution Unit）对接接口：2× G1/2" NPT螺纹快接接头（进/回水），支持乙二醇-水混合液（浓度35%±5%），工作压力范围1.5–4.0 bar，流量要求≥12 L/min/节点 |
+| 电源 | 冗余2600W 80 PLUS Titanium认证液冷专用电源（PSU），支持200–240V AC输入；整机满配2个电源模块，支持N+1冗余 |
+| 管理 | Lenovo XClarity Controller（XCC）高级版，集成于主板；支持IPMI 2.0、Redfish RESTful API、SNMP v3、KVM over IP、远程介质挂载；液冷状态监控（温度、流量、压力、泄漏检测） |
+| 尺寸与重量 | 高：87.8 mm（2U）；宽：447 mm；深：810 mm（不含液冷快接头）/ 860 mm（含快接头）；空机重量：约32 kg；满配重量（含CPU/GPU/内存/SSD）：约58–65 kg |
+| 认证与合规 | 通过CE、FCC、UL/cUL、KC、VCCI、RCM、BSMI、ISED、ENERGY STAR® 8.0、TCO Certified Edge 3.0认证；符合ASHRAE A4环境等级（运行温度5–40°C，湿度8–90% RH，非凝露） |
+
+产品特性  
+• 双节点隔离架构：两节点间无共享组件（包括电源、风扇、散热系统、管理控制器），故障域完全隔离，保障业务连续性  
+• 全部件液冷适配：CPU冷板、内存导冷模块、GPU冷板（支持H100 SXM5/H800/A100 SXM4/L40S等）、VRM冷板、M.2 SSD导冷支架全部预集成并经2000小时老化验证  
+• 智能节流联动：XCC可依据液冷进水温度、芯片温度、功耗阈值动态调节CPU/GPU频率，确保在冷却能力波动时仍维持系统稳定运行  
+• 快速部署液冷系统：支持“Plug-and-Cool”即插即用液冷管路连接，出厂预充注、真空检漏、压力测试，现场安装仅需对接CDU主干管路，无需现场灌液或排气  
+• 安全增强：支持TPM 2.0（可选fTPM或dTPM）、Secure Boot、UEFI安全启动、固件签名验证、带内/带外BIOS密码保护、XCC硬件加密引擎  
+
+常见问题  
+Q: ThinkSystem SD650 V3 是否支持风冷配置？  
+A: 不支持。SD650 V3 是专为液冷场景设计的强制液冷服务器，无风扇散热模组，不提供风冷版本或风冷兼容选项；所有散热均依赖外部CDU提供的冷却液循环系统。
+
+Q: 单节点最多可安装多少块GPU？是否支持NVIDIA H100 PCIe版本？  
+A: 单节点最多支持4块双宽GPU（如H100 SXM5）或8块单宽GPU（如L40S）；不支持H100 PCIe版本，因该机型PCIe插槽全部用于SXM5 GPU供电与互连，且机箱内部空间与供电设计仅适配SXM5模组。
+
+Q: 内存是否支持ECC与RDIMM混插？是否兼容LRDIMM？  
+A: 支持ECC校验，但仅支持RDIMM类型；不支持UDIMM、LRDIMM或3DS RDIMM；混插不同容量/速率RDIMM将自动降频至最低规格运行，建议同规格成对安装以启用双通道。
+
+Q: 液冷系统发生泄漏时，服务器是否会自动关机？  
+A: 是。XCC内置微流体传感器与多点压力监测模块，一旦检测到冷却液泄漏（压力骤降或传感器触发），将在500ms内向BMC发送告警，并在3秒内执行安全关机流程，同时锁定相关节点电源输出。
+
+Q: 是否支持热更换液冷快接头？是否需要停机维护CDU？  
+A: 液冷快接头为工业级自密封设计，支持带压热插拔（≤3.5 bar），更换过程无需停机、无需排空管路；CDU本身为外部独立设备，其维护不影响服务器节点运行，XCC可实时显示CDU运行状态与告警。
+
+Q: 操作系统兼容性如何？是否预装操作系统？  
+A: 支持主流Linux发行版（RHEL 8.8+/9.2+、SLES 15 SP4+、Ubuntu 22.04 LTS/24.04 LTS）、VMware ESXi 7.0 U3+/8.0 U2+、Microsoft Windows Server 2022；出厂不预装操作系统，提供Lenovo OS Deployment Tool（LODT）一键部署工具及驱动ISO镜像。
+
+Q: 板载M.2插槽是否可用于数据存储？能否作为ZFS ZIL或L2ARC缓存？  
+A: 两个板载M.2插槽（PCIe 4.0 x4）支持NVMe协议，可用于OS启动或数据存储；经Lenovo验证，可配置为ZFS ZIL（日志设备）或L2ARC（二级缓存），但需用户自行在OS层完成配置与调优，不在标准保修支持范围内。
+
+Q: 是否支持Intel AMX指令集？是否启用AVX-512？  
+A: 支持。当搭载支持AMX的Intel Xeon Platinum 84xx/85xx系列处理器时，AMX指令集默认启用；AVX-512同样默认启用，但高负载下可能触发XCC动态功耗封顶策略，用户可通过XCC界面手动调整AVX性能模式（Balance/Performance/Power Saving）。
+
+Q: 每个节点的PCIe 5.0插槽是否全部由CPU直连？是否存在PLX或Switch芯片？  
+A: 是。所有8个PCIe 5.0 x16插槽均由本节点2颗CPU的PCIe控制器直连（每CPU分配4条x16链路），无任何PCIe Switch或PLX桥接芯片，确保端到端低延迟与全带宽可用性。
+
+Q: 是否提供液冷系统设计咨询服务与机房CDU部署指南？  
+A: 是。Lenovo提供免费液冷就绪评估服务（Liquid Cooling Readiness Assessment），涵盖机房承重、管路布局、CDU选型、冷却液配比、系统压降计算等；配套交付《ThinkSystem SD650 V3 Liquid Cooling Integration Guide》PDF文档（含CAD管路图纸与BIM模型）。

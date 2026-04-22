@@ -1,0 +1,5 @@
+NE2580E交换机
+
+Lenovo,ThinkServer,NE2580E,以太网,交换机
+
+关键词：Lenovo,ThinkServer,NE2580E,以太网,交换机

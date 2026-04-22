@@ -1,0 +1,75 @@
+Think System ST250 V3
+
+Intel Xeon E-2400、DDR5 内存、PCIe Gen5
+
+关键词：Think System ST250 V3
+
+ThinkSystem ST250 V3 是一款紧凑型 1U 塔式服务器，专为中小型企业和远程办公分支机构设计，兼顾性能、可扩展性与静音运行。该机型支持最新一代 Intel Xeon E-2400 系列处理器，最高可配置 64GB DDR5 ECC UDIMM 内存（2 个插槽），提供高达 4800 MT/s 的内存带宽；存储方面支持最多 4 块 3.5 英寸或 8 块 2.5 英寸热插拔 SATA/SAS/NVMe 驱动器，并可选配 RAID 控制器实现数据保护；I/O 扩展能力包括 1 个 PCIe Gen5 x16 插槽（全高全长）、1 个 PCIe Gen4 x4 插槽（半高半长）及板载双千兆以太网端口；整机采用低噪音散热设计，典型运行噪音低于 42 dBA（A 计权），适合部署于开放式办公环境；支持 Lenovo XClarity Administrator 进行集中化远程管理，并兼容 VMware vSphere、Microsoft Hyper-V 和 Linux KVM 等主流虚拟化平台。
+
+ThinkSystem ST250 V3 提供灵活的部署形态：既可作为传统塔式服务器直立放置于桌面或机柜内，亦可通过选购的机架安装套件（RK100）转换为 2U 机架式部署；电源支持 350W 或 500W 80 PLUS 白金级高效冗余电源（单电或可选 1+1 冗余配置）；前面板配备 USB 3.2 Gen1（2 个）、USB 2.0（1 个）、VGA 视频输出、诊断 LED 及系统状态按钮；后置接口包括双 RJ-45 千兆以太网、串口（RJ-45）、PS/2 键盘/鼠标接口（可选）、HDMI 输出（可选）以及 3 个 USB 3.2 Gen1 端口；机箱结构采用模块化设计，免工具拆装前面板与硬盘托架，支持快速维护与升级。
+
+| 特性类别 | 具体描述 |
+|----------|----------|
+| 处理器 | 支持 1 颗 Intel Xeon E-2400 系列处理器（最高 8 核 / 16 线程，TDP 最高 95W），支持 Intel Turbo Boost Technology 3.0、Intel Hyper-Threading Technology、Intel vPro 技术（需处理器支持） |
+| 内存 | 最高支持 64GB DDR5 ECC UDIMM（2 个 DIMM 插槽），频率支持 4000/4400/4800 MT/s；支持内存镜像与内存备用（Spare）模式；不支持 RDIMM/LRDIMM |
+| 存储控制器 | 板载 SATA 控制器（支持 RAID 0/1/10）；可选 LSI 9300-8i SAS/SATA RAID 控制器（支持 RAID 0/1/5/10/50/60，含 2GB 缓存与超级电容断电保护）；可选 Broadcom 9500-8i NVMe RAID 控制器（支持 RAID 0/1/5/10，含 4GB 缓存与超级电容） |
+| 驱动器支持 | 前置：4×3.5 英寸热插拔 SATA/SAS（7.2K/10K RPM）或 8×2.5 英寸热插拔 SATA/SAS/NVMe（U.2 或 M.2 形态，需对应控制器支持）；M.2 插槽（2280 规格，支持 PCIe Gen4 x4 NVMe 启动盘，非热插拔） |
+| 扩展插槽 | 1×PCIe Gen5 x16（全高全长，机械 x16，电气 x16）；1×PCIe Gen4 x4（半高半长，机械 x4，电气 x4）；1×PCIe Gen3 x1（OCP 3.0 网络子卡专用，非用户可插拔） |
+| 网络 | 板载双端口 1GbE LAN（Intel I350-AM2），支持 PXE 启动、Wake-on-LAN、链路聚合与故障切换；可选 Mellanox ConnectX-6 Dx 10/25GbE OCP 3.0 网络子卡（需 OCP 插槽） |
+| 电源 | 标配 350W 或 500W 80 PLUS 白金级单电源；可选 500W 80 PLUS 白金级 1+1 冗余电源套件（需 RK100 机架套件配合使用）；支持宽幅交流输入（100–240V AC，50/60Hz）与直流输入（-48V DC，仅限特定型号） |
+| 管理功能 | 集成 Lenovo XClarity Controller（XCC）基础版（标配），支持 IPMI 2.0、Redfish API、SNMP、KVM over IP、远程控制台、固件更新、硬件监控与告警；可升级至 XClarity Controller Advanced 版本（需许可证）以启用自动化部署、策略驱动配置与预测性故障分析 |
+| 安全特性 | 支持 TPM 2.0（可选物理模块或固件 TPM）、Secure Boot、UEFI BIOS 密码保护、机箱入侵检测、Boot Guard、Intel TXT（可信执行技术，需处理器与操作系统支持） |
+| 认证与合规 | 通过 FCC Class B、CE、ICES-003、VCCI、KC、BIS、RCM、UKCA 等全球主要电磁兼容与安全认证；符合 ENERGY STAR 8.0、EPEAT Gold 环保标准；支持 RoHS、REACH、China RoHS 等环保指令 |
+
+产品特性  
+• 支持最新 Intel Xeon E-2400 系列处理器，提供更强单核性能与能效比  
+• DDR5 内存支持，带宽提升显著，同时降低功耗与延迟  
+• PCIe Gen5 扩展能力，为未来高性能 GPU、智能网卡与加速器提供充足带宽  
+• 多形态部署：原生塔式 + 可选机架转换套件（RK100），适应不同空间约束场景  
+• 静音优化设计，42 dBA 典型噪音水平，满足开放式办公环境要求  
+• 全面远程管理支持：XClarity Controller 基础版标配，覆盖监控、维护、固件更新等核心运维需求  
+• 灵活存储架构：兼容 SATA/SAS/NVMe 多类型驱动器，支持混合部署与分层存储策略  
+• 强化安全机制：从硬件（TPM 2.0）、固件（Secure Boot、Boot Guard）到平台（Intel TXT）的纵深防御体系  
+
+规格参数  
+外形尺寸（塔式）：438 mm（宽）× 430 mm（深）× 437 mm（高）；重量（满配）：约 18.5 kg  
+外形尺寸（机架式，配 RK100）：482 mm（宽）× 675 mm（深）× 88 mm（高，2U）；重量（满配）：约 20.2 kg  
+工作温度：10°C 至 35°C（50°F 至 95°F）  
+非工作温度：-40°C 至 60°C（-40°F 至 140°F）  
+工作湿度：8% 至 90% RH（无冷凝）  
+非工作湿度：5% 至 95% RH（无冷凝）  
+海拔高度：工作时最高 3000 米（9842 英尺），非工作时最高 12000 米（39370 英尺）  
+冷却系统：2 个智能调速风扇（N+1 冗余设计），支持风扇故障告警与降频保护  
+保修：标准 3 年客户更换部件（CRU）与现场有限保修（可选延长至 5 年）  
+
+常见问题  
+
+Q: ThinkSystem ST250 V3 是否支持双路处理器？  
+A: 不支持。ThinkSystem ST250 V3 仅支持单颗 Intel Xeon E-2400 系列处理器，为单路（1P）架构设计。
+
+Q: 该服务器是否支持 ECC 内存？是否必须使用 ECC 内存？  
+A: 是，ST250 V3 仅支持 DDR5 ECC UDIMM 内存，不兼容非 ECC 或 RDIMM/LRDIMM；ECC 功能为强制启用，无法在 BIOS 中关闭，确保数据完整性与系统稳定性。
+
+Q: 前面板 M.2 插槽是否支持热插拔？能否用作系统启动盘？  
+A: M.2 插槽（2280 规格）为内部固定安装设计，不支持热插拔；但支持 PCIe Gen4 x4 NVMe 协议，可安装 NVMe SSD 作为主启动盘，且 BIOS 中可设置为首选启动设备。
+
+Q: 在塔式形态下，是否可以安装全高全长的双宽 GPU？  
+A: 可以。ST250 V3 配备 1 个 PCIe Gen5 x16 全高全长插槽（机械 x16，电气 x16），物理空间与供电（通过主板 8-pin 辅助供电接口）均支持主流双宽 GPU（如 NVIDIA T4、L4 或 AMD W6800X），但需注意整机散热与机箱风道适配性。
+
+Q: XClarity Controller（XCC）高级版功能是否需要额外付费？如何激活？  
+A: 是，XCC Advanced 为许可制功能，需单独购买永久许可证（SKU：7Z97A02255）；激活方式为在 XClarity Administrator 界面中输入许可证密钥，或通过 CLI 使用命令“xcc license activate <key>”完成。
+
+Q: 该服务器是否支持 Windows Server 2022 操作系统？是否有官方驱动支持？  
+A: 是，ThinkSystem ST250 V3 已通过 Windows Server 2022 认证，联想官网提供完整驱动程序包（含芯片组、网络、存储、显卡、管理控制器等），并持续更新至最新版本，支持 Server Core 与 Desktop Experience 两种安装模式。
+
+Q: 当配置为机架式（使用 RK100 套件）时，是否仍保留全部前置 USB 与视频接口？  
+A: 是，RK100 机架安装套件为外部转换支架，不改变主机箱前部结构；所有前置接口（2×USB 3.2 Gen1、1×USB 2.0、VGA、诊断 LED）均保持完全可用，仅物理朝向由垂直改为水平面向机柜前门。
+
+Q: 是否支持 NVMe RAID？需要哪些硬件组件？  
+A: 支持。需配置 Broadcom 9500-8i NVMe RAID 控制器（含 4GB 缓存与超级电容），搭配 U.2 NVMe 驱动器（最多 8 块），即可实现 RAID 0/1/5/10；该控制器占用 PCIe Gen5 x16 插槽，且需在 BIOS 中启用相应 PCIe 拓扑模式。
+
+Q: 电源是否支持 240V 直流输入？所有型号都具备该能力吗？  
+A: 仅特定定制型号（如 ST250 V3-D24）支持 -48V DC 输入，标准商用型号（如 7Y37A00DUS）仅支持 100–240V AC 宽幅交流输入；DC 型号需单独订购，且电源模块与主板固件均为专用版本，不可混用。
+
+Q: 能否在不关机的情况下更换系统风扇？  
+A: 可以。ST250 V3 采用 N+1 冗余风扇设计（2 个风扇），任一风扇故障或拆卸时，剩余风扇将自动升频维持散热能力，支持在线热更换（Hot-Swap），无需停机；更换后系统自动识别并恢复风扇协同控制策略。
