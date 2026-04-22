@@ -14,6 +14,7 @@ const registry = require('./core/skill-registry');
 registry.load();
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = 3001;
 
 app.use(express.json({
