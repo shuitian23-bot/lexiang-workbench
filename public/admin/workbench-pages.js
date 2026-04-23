@@ -147,34 +147,33 @@ const PAGE_RENDERERS = {
       </div>
       <div class="geo-status-line" id="geo-status">加载中...</div>
 
-      <!-- 品牌 vs 竞品切换 -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <span style="font-size:12px;color:#6b7280">对比视角</span>
-        <div id="geo-compare-toggle" style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
-          <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌</button>
-          <button onclick="geoSetCompare('competitor')" class="geo-cmp-btn" data-cmp="competitor" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">竞品</button>
-          <button onclick="geoSetCompare('both')" class="geo-cmp-btn" data-cmp="both" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">对比</button>
+      <!-- 对比视角 + 竞品选择器 合并一行 -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:#6b7280;white-space:nowrap">对比视角</span>
+          <div id="geo-compare-toggle" style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
+            <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌</button>
+            <button onclick="geoSetCompare('competitor')" class="geo-cmp-btn" data-cmp="competitor" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">竞品</button>
+            <button onclick="geoSetCompare('both')" class="geo-cmp-btn" data-cmp="both" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">对比</button>
+          </div>
+        </div>
+        <div style="width:1px;height:20px;background:#e5e7eb"></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:12px;color:#6b7280;white-space:nowrap">竞品对比</span>
+          <button class="geo-comp-pill" data-brand="hp" onclick="geoToggleCompetitor(this)">惠普</button>
+          <button class="geo-comp-pill" data-brand="dell" onclick="geoToggleCompetitor(this)">戴尔</button>
+          <button class="geo-comp-pill" data-brand="huawei" onclick="geoToggleCompetitor(this)">华为</button>
+          <button class="geo-comp-pill" data-brand="apple" onclick="geoToggleCompetitor(this)">苹果</button>
+          <button class="geo-comp-pill" data-brand="asus" onclick="geoToggleCompetitor(this)">华硕</button>
+          <button class="geo-comp-pill" data-brand="xiaomi" onclick="geoToggleCompetitor(this)">小米</button>
+          <button class="geo-comp-pill" data-brand="acer" onclick="geoToggleCompetitor(this)">宏碁</button>
+          <button class="geo-comp-pill" data-brand="honor" onclick="geoToggleCompetitor(this)">荣耀</button>
+          <span style="font-size:10px;color:#9ca3af">最多5个</span>
         </div>
       </div>
 
-      <!-- 竞品对比选择器 -->
-      <div class="geo-filter-row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">
-        <span class="geo-label">竞品对比</span>
-        <div id="geo-competitor-pills" style="display:inline-flex;gap:6px;flex-wrap:wrap">
-          <button class="geo-comp-pill" data-brand="hp" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">惠普</button>
-          <button class="geo-comp-pill" data-brand="dell" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">戴尔</button>
-          <button class="geo-comp-pill" data-brand="huawei" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">华为</button>
-          <button class="geo-comp-pill" data-brand="apple" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">苹果</button>
-          <button class="geo-comp-pill" data-brand="asus" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">华硕</button>
-          <button class="geo-comp-pill" data-brand="xiaomi" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">小米</button>
-          <button class="geo-comp-pill" data-brand="acer" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">宏碁</button>
-          <button class="geo-comp-pill" data-brand="honor" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">荣耀</button>
-        </span>
-        <span style="font-size:11px;color:#9ca3af;margin-left:4px">限制每次勾选最多5个品牌</span>
-      </div>
-
       <!-- 4 个核心 KPI -->
-      <div class="geo-kpi-grid cols-4" id="geo-kpi-cards">
+      <div class="geo-kpi-grid cols-4" id="geo-kpi-cards" style="margin-bottom:16px">
         <div class="geo-kpi highlight" data-metric="visible">
           <div class="gk-tip" title="AI 答案中提及目标品牌的问题数占比，衡量品牌基础曝光能力">?</div>
           <div class="gk-val" id="gv-brand-visible">--</div>
@@ -205,36 +204,36 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 趋势折线图（真实数据 from 点亮AI） -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          <div class="gpnl-title" style="margin:0">可见性趋势</div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            <select id="geo-trend-model" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer">
-              <option value="">按模型查看</option>
-              <option value="deepseek">DeepSeek</option>
-              <option value="doubao">豆包</option>
-              <option value="yuanbao">元宝</option>
-              <option value="kimi">Kimi</option>
-            </select>
-            <select id="geo-trend-question" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer;max-width:240px">
-              <option value="">按意图查看</option>
-            </select>
+      <!-- 趋势折线图 + 品牌vs竞品 并排 -->
+      <div class="geo-row" style="margin-bottom:12px">
+        <div class="geo-panel" style="flex:2;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+            <div class="gpnl-title" style="margin:0">可见性趋势</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <select id="geo-trend-model" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer">
+                <option value="">按模型查看</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="doubao">豆包</option>
+                <option value="yuanbao">元宝</option>
+                <option value="kimi">Kimi</option>
+              </select>
+              <select id="geo-trend-question" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer;max-width:200px">
+                <option value="">按意图查看</option>
+              </select>
+            </div>
           </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280">
+            <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌综合可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#10b981;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌精准可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#6b7280;border-radius:2px;vertical-align:middle;margin-right:4px"></span>竞品可见性</span>
+          </div>
+          <canvas id="geo-trend-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
+          <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
         </div>
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280">
-          <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌综合可见性</span>
-          <span><span style="display:inline-block;width:20px;height:3px;background:#10b981;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌精准可见性</span>
-          <span><span style="display:inline-block;width:20px;height:3px;background:#6b7280;border-radius:2px;vertical-align:middle;margin-right:4px"></span>竞品可见性</span>
+        <div class="geo-panel" style="flex:1;min-width:280px">
+          <div class="gpnl-title">品牌 vs 竞品 对比</div>
+          <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
-        <canvas id="geo-trend-canvas" width="800" height="300" style="width:100%;height:300px;cursor:crosshair"></canvas>
-        <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
-      </div>
-
-      <!-- 品牌 vs 竞品 柱状对比（保留） -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">品牌 vs 竞品 对比</div>
-        <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
       </div>
 
       <!-- 第二行：信源分布 Treemap + 排行榜 -->
