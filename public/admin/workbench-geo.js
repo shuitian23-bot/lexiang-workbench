@@ -44,7 +44,7 @@ async function geoFetch(models) {
   const srcs = GEO_SOURCES[geoState.scope];
   if (srcs && srcs.length) body.sources = srcs;
   if (geoState.questions && geoState.questions.length) body.questions = geoState.questions;
-  const resp = await fetch('/api/geo/overview', {
+  const resp = await fetch('/api/geo-dashboard/overview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -175,7 +175,7 @@ async function geoFetchTrend(models) {
     if (models && models.length) prevBody.models = models;
     const srcs = GEO_SOURCES[geoState.scope];
     if (srcs && srcs.length) prevBody.sources = srcs;
-    const resp = await fetch('/api/geo/overview', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(prevBody) });
+    const resp = await fetch('/api/geo-dashboard/overview', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(prevBody) });
     const prev = await resp.json();
     if (prev.code !== 200) return;
     const raw = geoState._kpiRaw; if (!raw) return;
@@ -400,7 +400,7 @@ const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#
 async function geoLoadSites() {
   try {
     const body = { project_id: GEO_PROJECT_ID };
-    const resp = await fetch('/api/geo/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) return;
     const d = json.data;
@@ -469,7 +469,7 @@ const GEO_FIELD_LABELS = { brand_composite_exposure_rate:'品牌综合可见', b
 async function geoLoadQuestions() {
   try {
     const body = { project_id: GEO_PROJECT_ID };
-    const resp = await fetch('/api/geo/questions', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const resp = await fetch('/api/geo-dashboard/questions', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) return;
     const qs = json.data.questions || [];
@@ -580,7 +580,7 @@ async function geoLoadSourcePage(page) {
   if (st) st.textContent = '加载中...';
   try {
     const body = { project_id: GEO_PROJECT_ID, model: model === 'all' ? '' : model, page: geoSourcePage };
-    const resp = await fetch('/api/geo/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) throw new Error(json.message);
     const d = json.data; const sites = d.sites || []; const pg = d.pagination || {};
