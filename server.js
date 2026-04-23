@@ -121,10 +121,10 @@ app.use('/api/webhook', require('./routes/webhook'));
 
 // SPA fallback
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/admin/index.html'));
+  res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
 });
 app.get('/admin/*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/admin/index.html'));
+  res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
 });
 // Share page
 app.get('/share/:token', (req, res) => {
