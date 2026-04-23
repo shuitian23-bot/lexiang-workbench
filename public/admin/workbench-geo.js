@@ -129,6 +129,8 @@ async function geoLoadData() {
     const sitesPromise = geoLoadSites();
     const questionsPromise = geoLoadQuestions();
     const trendPromise = geoFetchTrend(selectedModels);
+    const trendChartPromise = geoLoadTrendChart();
+    const wordCloudPromise = geoLoadWordCloud(30);
 
     // 平台分布完成后立即渲染
     platPromise.then(results => {
@@ -455,6 +457,7 @@ async function geoLoadQuestions() {
     set('gv-q-count', qs.length);
     geoRenderQuestions(qs);
     geoRenderIntentPlatformSummary(qs);
+    geoPopulateTrendQuestions();
   } catch(e) { console.error('geoLoadQuestions', e); }
 }
 
@@ -574,4 +577,179 @@ async function geoLoadSourcePage(page) {
       pager.innerHTML = ph;
     } else if (pager) { pager.innerHTML = ''; }
   } catch(e) { if (st) st.textContent = '加载失败：' + e.message; console.error('geoLoadSourcePage', e); }
+}
+
+// ===== GEO 趋势折线图（真实数据 from 点亮AI） =====
+let _trendChartData = null;
+
+async function geoLoadTrendChart() {
+  const canvas = document.getElementById('geo-trend-canvas');
+  if (!canvas) return;
+  const modelSel = document.getElementById('geo-trend-model');
+  const qSel = document.getElementById('geo-trend-question');
+  const params = { project_id: GEO_PROJECT_ID };
+  const days = (geoState.startDate && geoState.endDate) ? Math.round((new Date(geoState.endDate) - new Date(geoState.startDate)) / 86400000) + 1 : (geoState.period === '7d' ? 7 : 30);
+  params.time_range = days <= 7 ? 7 : 30;
+  if (modelSel && modelSel.value) params.filter_model = modelSel.value;
+  if (qSel && qSel.value) params.filter_question = qSel.value;
+  try {
+    const qs = new URLSearchParams(params).toString();
+    const resp = await fetch('/api/geo-dashboard/project-chart?' + qs);
+    const json = await resp.json();
+    if (!json.success || !json.data?.project?.chart_data) return;
+    _trendChartData = json.data.project.chart_data;
+    geoDrawTrendCanvas();
+  } catch(e) { console.error('geoLoadTrendChart', e); }
+}
+
+function geoPopulateTrendQuestions() {
+  const sel = document.getElementById('geo-trend-question');
+  if (!sel || !geoState._questionsData) return;
+  if (sel.options.length > 1) return;
+  geoState._questionsData.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q.question_id || q.id || '';
+    opt.textContent = q.question.length > 30 ? q.question.slice(0,30)+'…' : q.question;
+    sel.appendChild(opt);
+  });
+}
+
+function geoDrawTrendCanvas() {
+  const canvas = document.getElementById('geo-trend-canvas');
+  if (!canvas || !_trendChartData) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const pad = { top: 20, right: 20, bottom: 40, left: 45 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const dates = _trendChartData.dates || [];
+  const series = _trendChartData.series || [];
+  if (!dates.length || !series.length) return;
+
+  const allVals = series.flatMap(s => s.data);
+  const maxV = Math.max(...allVals, 1);
+  const minV = Math.min(...allVals, 0);
+  const range = maxV - minV || 1;
+  const yPad = range * 0.1;
+  const yMin = Math.max(0, minV - yPad);
+  const yMax = maxV + yPad;
+  const yRange = yMax - yMin || 1;
+
+  // Y axis gridlines
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 0.5;
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  const ySteps = 5;
+  for (let i = 0; i <= ySteps; i++) {
+    const v = yMin + (yRange / ySteps) * i;
+    const y = pad.top + plotH - (v - yMin) / yRange * plotH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+    ctx.fillText(Math.round(v), pad.left - 6, y + 3);
+  }
+
+  // X axis labels
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9ca3af';
+  const step = Math.max(1, Math.floor(dates.length / 8));
+  dates.forEach((d, i) => {
+    if (i % step === 0 || i === dates.length - 1) {
+      const x = pad.left + (i / (dates.length - 1)) * plotW;
+      ctx.fillText(d, x, H - pad.bottom + 18);
+    }
+  });
+
+  // Draw lines
+  const colors = ['#2563eb', '#10b981', '#6b7280'];
+  series.forEach((s, si) => {
+    const color = colors[si] || '#6b7280';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.data.forEach((v, i) => {
+      const x = pad.left + (i / (dates.length - 1)) * plotW;
+      const y = pad.top + plotH - (v - yMin) / yRange * plotH;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw dots
+    s.data.forEach((v, i) => {
+      const x = pad.left + (i / (dates.length - 1)) * plotW;
+      const y = pad.top + plotH - (v - yMin) / yRange * plotH;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+
+  // Tooltip on hover
+  canvas.onmousemove = (e) => {
+    const bRect = canvas.getBoundingClientRect();
+    const mx = e.clientX - bRect.left;
+    const idx = Math.round((mx - pad.left) / plotW * (dates.length - 1));
+    if (idx < 0 || idx >= dates.length) { document.getElementById('geo-trend-tooltip').style.display = 'none'; return; }
+    const tip = document.getElementById('geo-trend-tooltip');
+    let html = `<div style="font-weight:600;margin-bottom:4px">${dates[idx]}</div>`;
+    series.forEach((s, si) => {
+      const color = colors[si] || '#6b7280';
+      html += `<div><span style="color:${color}">●</span> ${s.field_name}: ${s.data[idx]}</div>`;
+    });
+    tip.innerHTML = html;
+    tip.style.display = 'block';
+    tip.style.left = (e.pageX + 12) + 'px';
+    tip.style.top = (e.pageY - 10) + 'px';
+  };
+  canvas.onmouseleave = () => { document.getElementById('geo-trend-tooltip').style.display = 'none'; };
+}
+
+// ===== GEO 词云 =====
+async function geoLoadWordCloud(days) {
+  days = days || 30;
+  document.querySelectorAll('.geo-wc-btn').forEach(b => {
+    const active = +b.dataset.days === days;
+    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.color = active ? '#fff' : '#374151';
+  });
+  const c = document.getElementById('geo-word-cloud');
+  if (!c) return;
+  try {
+    const resp = await fetch('/api/geo-dashboard/word-cloud?days=' + days);
+    const json = await resp.json();
+    if (!json.success || !json.data) return;
+    geoRenderWordCloud(json.data, c);
+  } catch(e) { console.error('geoLoadWordCloud', e); c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">加载失败</div>'; }
+}
+
+function geoRenderWordCloud(words, container) {
+  if (!words.length) { container.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">暂无数据</div>'; return; }
+  const top = words.slice(0, 80);
+  const maxVal = top[0].value;
+  const minVal = top[top.length - 1].value;
+  const range = maxVal - minVal || 1;
+  const colors = ['#1e40af','#2563eb','#3b82f6','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#be185d','#4f46e5'];
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:6px 10px;padding:12px;align-items:center;justify-content:center;line-height:1.8">';
+  top.forEach((w, i) => {
+    const ratio = (w.value - minVal) / range;
+    const size = 12 + ratio * 24;
+    const opacity = 0.5 + ratio * 0.5;
+    const color = colors[i % colors.length];
+    html += `<span style="font-size:${size.toFixed(0)}px;color:${color};opacity:${opacity.toFixed(2)};font-weight:${ratio > 0.5 ? 600 : 400};cursor:default" title="${w.name}: ${w.value}">${w.name}</span>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
 }

@@ -189,9 +189,35 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 趋势对比图：品牌 vs 竞品 -->
+      <!-- 趋势折线图（真实数据 from 点亮AI） -->
       <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">品牌 vs 竞品 趋势对比</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div class="gpnl-title" style="margin:0">可见性趋势</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select id="geo-trend-model" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer">
+              <option value="">按模型查看</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="doubao">豆包</option>
+              <option value="yuanbao">元宝</option>
+              <option value="kimi">Kimi</option>
+            </select>
+            <select id="geo-trend-question" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer;max-width:240px">
+              <option value="">按意图查看</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280">
+          <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌综合可见性</span>
+          <span><span style="display:inline-block;width:20px;height:3px;background:#10b981;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌精准可见性</span>
+          <span><span style="display:inline-block;width:20px;height:3px;background:#6b7280;border-radius:2px;vertical-align:middle;margin-right:4px"></span>竞品可见性</span>
+        </div>
+        <canvas id="geo-trend-canvas" width="800" height="300" style="width:100%;height:300px;cursor:crosshair"></canvas>
+        <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
+      </div>
+
+      <!-- 品牌 vs 竞品 柱状对比（保留） -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">品牌 vs 竞品 对比</div>
         <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
       </div>
 
@@ -242,6 +268,18 @@ const PAGE_RENDERERS = {
       <div class="geo-panel" style="margin-bottom:12px">
         <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
         <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+      </div>
+
+      <!-- 第六行：品牌AI词云 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="gpnl-title" style="margin:0">品牌 AI 词云</div>
+          <div style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
+            <button onclick="geoLoadWordCloud(7)" class="geo-wc-btn" data-days="7" style="padding:3px 10px;font-size:11px;border:none;cursor:pointer;background:#fff;color:#374151">近7天</button>
+            <button onclick="geoLoadWordCloud(30)" class="geo-wc-btn active" data-days="30" style="padding:3px 10px;font-size:11px;border:none;cursor:pointer;background:#2563eb;color:#fff">近30天</button>
+          </div>
+        </div>
+        <div id="geo-word-cloud" style="min-height:200px"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
       </div>
     </div>
   `,
