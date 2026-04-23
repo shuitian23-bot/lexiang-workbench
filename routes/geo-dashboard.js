@@ -56,6 +56,53 @@ async function proxyGet(apiPath, query) {
   });
 }
 
+// 外部API代理（overview等），替代nginx proxy
+const EXT_BASE = 'https://api.dianliang.ai/api/external/geo';
+const EXT_HEADERS = {
+  'X-Client-Code': 'lenovo',
+  'Authorization': 'Bearer 828c1e338a6297b45286ee676b8b8cfd',
+  'Content-Type': 'application/json'
+};
+
+router.post('/overview', async (req, res) => {
+  try {
+    const data = await fetchJSON(`${EXT_BASE}/overview`, {
+      method: 'POST',
+      headers: EXT_HEADERS,
+      body: JSON.stringify(req.body)
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/questions', async (req, res) => {
+  try {
+    const data = await fetchJSON(`${EXT_BASE}/questions`, {
+      method: 'POST',
+      headers: EXT_HEADERS,
+      body: JSON.stringify(req.body)
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/sites', async (req, res) => {
+  try {
+    const data = await fetchJSON(`${EXT_BASE}/sites`, {
+      method: 'POST',
+      headers: EXT_HEADERS,
+      body: JSON.stringify(req.body)
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // 趋势折线图
 router.get('/project-chart', async (req, res) => {
   try {
