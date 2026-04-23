@@ -233,27 +233,28 @@ function geoRenderTrendChart() {
     { label: '推荐置顶率', key: 'top1' },
     { label: '推荐前三率', key: 'top3' },
   ];
-  const maxVal = Math.max(...items.map(i => Math.max(raw[i.key].brand||0, raw[i.key].comp||0)), 1);
-  let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">';
+  let html = '<div style="display:flex;flex-direction:column;gap:14px;padding:4px 0">';
   items.forEach(item => {
     const b = raw[item.key].brand || 0;
     const cv = raw[item.key].comp || 0;
-    const bW = (b / maxVal * 100).toFixed(0);
-    const cW = (cv / maxVal * 100).toFixed(0);
     const diff = b - cv;
     const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
     const diffSign = diff > 0 ? '+' : '';
-    html += `<div style="padding:12px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb">
-      <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:10px">${item.label}</div>
-      <div style="margin-bottom:6px">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:#374151;margin-bottom:3px"><span>联想</span><span style="font-weight:600">${b.toFixed(2)}%</span></div>
-        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden"><div style="height:100%;width:${bW}%;background:#2563eb;border-radius:4px;transition:width .3s"></div></div>
+    html += `<div style="padding:10px 14px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:600;color:#374151">${item.label}</span>
+        <span style="font-size:11px;font-weight:600;color:${diffColor}">${diffSign}${diff.toFixed(2)}pp</span>
       </div>
-      <div style="margin-bottom:6px">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:#374151;margin-bottom:3px"><span>竞品</span><span style="font-weight:600">${cv.toFixed(2)}%</span></div>
-        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden"><div style="height:100%;width:${cW}%;background:#f59e0b;border-radius:4px;transition:width .3s"></div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-size:10px;color:#6b7280;width:24px">联想</span>
+        <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(b,100).toFixed(0)}%;background:#2563eb;border-radius:3px"></div></div>
+        <span style="font-size:11px;font-weight:600;color:#374151;min-width:48px;text-align:right">${b.toFixed(2)}%</span>
       </div>
-      <div style="text-align:center;font-size:11px;color:${diffColor};font-weight:600;margin-top:4px">差值 ${diffSign}${diff.toFixed(2)}pp</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:10px;color:#6b7280;width:24px">竞品</span>
+        <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(cv,100).toFixed(0)}%;background:#f59e0b;border-radius:3px"></div></div>
+        <span style="font-size:11px;font-weight:600;color:#374151;min-width:48px;text-align:right">${cv.toFixed(2)}%</span>
+      </div>
     </div>`;
   });
   html += '</div>';
@@ -760,14 +761,39 @@ function geoRenderWordCloud(words, container) {
   const maxVal = top[0].value;
   const minVal = top[top.length - 1].value;
   const range = maxVal - minVal || 1;
-  const colors = ['#1e40af','#2563eb','#3b82f6','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#be185d','#4f46e5'];
-  let html = '<div style="display:flex;flex-wrap:wrap;gap:6px 10px;padding:12px;align-items:center;justify-content:center;line-height:1.8">';
-  top.forEach((w, i) => {
+  const colors = ['#1e40af','#2563eb','#3b82f6','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#be185d','#4f46e5','#0d9488','#b45309'];
+  const W = container.clientWidth || 700;
+  const H = 320;
+  const cx = W / 2, cy = H / 2;
+  const shuffled = top.map((w,i) => ({...w, origIdx: i}));
+  for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.random() * (i+1)|0; [shuffled[i],shuffled[j]] = [shuffled[j],shuffled[i]]; }
+  shuffled.sort((a,b) => b.value - a.value);
+  const placed = [];
+  let html = `<div style="position:relative;width:100%;height:${H}px;overflow:hidden">`;
+  shuffled.forEach((w, idx) => {
     const ratio = (w.value - minVal) / range;
-    const size = 12 + ratio * 24;
-    const opacity = 0.5 + ratio * 0.5;
-    const color = colors[i % colors.length];
-    html += `<span style="font-size:${size.toFixed(0)}px;color:${color};opacity:${opacity.toFixed(2)};font-weight:${ratio > 0.5 ? 600 : 400};cursor:default" title="${w.name}: ${w.value}">${w.name}</span>`;
+    const size = 13 + ratio * 30;
+    const color = colors[w.origIdx % colors.length];
+    const fw = ratio > 0.6 ? 700 : ratio > 0.3 ? 500 : 400;
+    const rotate = idx > 5 ? (Math.random() < 0.25 ? (Math.random() < 0.5 ? 90 : -90) : (Math.random()*30-15)|0) : 0;
+    const charW = size * 0.65 * w.name.length;
+    const charH = size * 1.3;
+    let bestX = cx, bestY = cy, found = false;
+    for (let spiral = 0; spiral < 300 && !found; spiral++) {
+      const angle = spiral * 0.5;
+      const r = 3 + spiral * 1.2;
+      const tx = cx + r * Math.cos(angle) - charW/2;
+      const ty = cy + r * Math.sin(angle) - charH/2;
+      if (tx < 0 || ty < 0 || tx + charW > W || ty + charH > H) continue;
+      let overlap = false;
+      for (const p of placed) {
+        if (tx < p.x+p.w+4 && tx+charW+4 > p.x && ty < p.y+p.h+2 && ty+charH+2 > p.y) { overlap=true; break; }
+      }
+      if (!overlap) { bestX=tx; bestY=ty; found=true; }
+    }
+    if (!found) { bestX = Math.random()*(W-charW); bestY = Math.random()*(H-charH); }
+    placed.push({x:bestX,y:bestY,w:charW,h:charH});
+    html += `<span style="position:absolute;left:${bestX.toFixed(0)}px;top:${bestY.toFixed(0)}px;font-size:${size.toFixed(0)}px;color:${color};font-weight:${fw};transform:rotate(${rotate}deg);white-space:nowrap;cursor:default;line-height:1.2;transition:opacity .2s" title="${w.name}: ${w.value}">${w.name}</span>`;
   });
   html += '</div>';
   container.innerHTML = html;
