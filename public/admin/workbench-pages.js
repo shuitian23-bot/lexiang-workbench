@@ -143,7 +143,9 @@ const PAGE_RENDERERS = {
           <button onclick="geoQuickPeriod('30d')" class="geo-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#2563eb;color:#fff;transition:all .15s">近30天</button>
         </div>
         <span class="geo-label" style="margin-left:12px;">意图筛选</span>
-        <input id="geo-questions" type="text" placeholder="多个意图用逗号分隔，回车筛选" onkeydown="if(event.key==='Enter'){geoSetQuestions(this.value)}" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:260px;outline:none;">
+        <select id="geo-questions-select" onchange="geoSetQuestionFromSelect(this.value)" style="padding:5px 10px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:200px;max-width:320px;cursor:pointer">
+          <option value="">全部意图</option>
+        </select>
       </div>
       <div class="geo-status-line" id="geo-status">加载中...</div>
 
@@ -172,30 +174,30 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 4 个核心 KPI -->
+      <!-- 4 个核心 KPI（可点选） -->
       <div class="geo-kpi-grid cols-4" id="geo-kpi-cards" style="margin-bottom:16px">
-        <div class="geo-kpi highlight" data-metric="visible">
+        <div class="geo-kpi highlight" data-metric="visible" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中提及目标品牌的问题数占比，衡量品牌基础曝光能力">?</div>
           <div class="gk-val" id="gv-brand-visible">--</div>
           <div class="gk-label">品牌可见度</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品可见度 <span id="gv-comp-visible">--</span></div>
         </div>
-        <div class="geo-kpi" data-metric="rec">
+        <div class="geo-kpi" data-metric="rec" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中推荐目标品牌/产品的次数占比">?</div>
           <div class="gk-val" id="gv-brand-rec">--</div>
           <div class="gk-label">品牌推荐率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品推荐率 <span id="gv-comp-rec">--</span></div>
         </div>
-        <div class="geo-kpi" data-metric="top1">
+        <div class="geo-kpi" data-metric="top1" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中目标品牌/产品出现在推荐首位（置顶）的次数占比">?</div>
           <div class="gk-val" id="gv-brand-top1">--</div>
           <div class="gk-label">品牌推荐置顶率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品置顶率 <span id="gv-comp-top1">--</span></div>
         </div>
-        <div class="geo-kpi" data-metric="top3">
+        <div class="geo-kpi" data-metric="top3" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中目标品牌/产品出现在推荐列表前 3 位的次数占比">?</div>
           <div class="gk-val" id="gv-brand-top3">--</div>
           <div class="gk-label">品牌推荐前三率</div>
@@ -207,20 +209,8 @@ const PAGE_RENDERERS = {
       <!-- 趋势折线图 + 品牌vs竞品 并排 -->
       <div class="geo-row" style="margin-bottom:12px">
         <div class="geo-panel" style="flex:2;min-width:0">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div style="margin-bottom:8px">
             <div class="gpnl-title" style="margin:0">可见性趋势</div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-              <select id="geo-trend-model" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer">
-                <option value="">按模型查看</option>
-                <option value="deepseek">DeepSeek</option>
-                <option value="doubao">豆包</option>
-                <option value="yuanbao">元宝</option>
-                <option value="kimi">Kimi</option>
-              </select>
-              <select id="geo-trend-question" onchange="geoLoadTrendChart()" style="padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer;max-width:200px">
-                <option value="">按意图查看</option>
-              </select>
-            </div>
           </div>
           <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280">
             <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌综合可见性</span>
@@ -268,24 +258,7 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 第四行：意图列表 -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
-          <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
-        </div>
-        <div class="geo-scroll-wrap" style="max-height:500px">
-          <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
-        </div>
-      </div>
-
-      <!-- 第五行：各优化平台意图总数 -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
-        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
-      </div>
-
-      <!-- 第六行：品牌AI词云 -->
+      <!-- 品牌AI词云 -->
       <div class="geo-panel" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div class="gpnl-title" style="margin:0">品牌 AI 词云</div>
@@ -322,14 +295,23 @@ const PAGE_RENDERERS = {
   'dashboard.geoIntent': () => `
     <div class="page-header">
       <div><div class="page-title">GEO · 各平台意图分布</div><div class="page-desc">各 AI 平台覆盖意图总数及可见性矩阵</div></div>
+      <button class="btn btn-sm btn-secondary" onclick="geoLoadIntentPage()">🔄 刷新</button>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line">本模块数据需点亮AI 开放「意图分布」接口后接入</div>
-      <div class="geo-placeholder" style="min-height:360px;display:flex;align-items:center;justify-content:center">
-        <div>
-          <div class="gp-title">意图可见性矩阵</div>
-          可见性分 4 类：品牌综合可见性 · 品牌精准可见性 · 竞品可见性 · 链接可见性<br>
-          当前点亮AI overview 接口不返回意图级数据
+      <!-- 各优化平台意图总数 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
+        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+      </div>
+
+      <!-- 意图列表 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
+          <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="geo-scroll-wrap" style="max-height:600px">
+          <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
       </div>
     </div>

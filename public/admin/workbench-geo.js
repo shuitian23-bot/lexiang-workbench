@@ -9,7 +9,7 @@ const GEO_SOURCES = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[] };
+const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible' };
 const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', apple:'#555555', asus:'#00529b', xiaomi:'#ff6900', acer:'#83b81a', honor:'#d4003c' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
 const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
@@ -101,6 +101,25 @@ function geoInitDatePicker() {
 function geoSetQuestions(text) {
   geoState.questions = (text || '').split(/[,，]/).map(s => s.trim()).filter(Boolean);
   geoLoadData();
+}
+function geoSetQuestionFromSelect(val) {
+  geoState.questions = val ? [val] : [];
+  geoLoadData();
+}
+function geoPopulateQuestionsSelect() {
+  const sel = document.getElementById('geo-questions-select');
+  if (!sel || !geoState._questionsData) return;
+  const existing = sel.options.length;
+  if (existing > 1) return;
+  geoState._questionsData.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q.question || '';
+    opt.textContent = q.question.length > 40 ? q.question.slice(0,40)+'…' : q.question;
+    sel.appendChild(opt);
+  });
+}
+function geoLoadIntentPage() {
+  geoLoadQuestions();
 }
 
 function geoSetStatus(text, isError) {
@@ -233,6 +252,7 @@ function geoRenderTrendChart() {
     { label: '推荐置顶率', key: 'top1' },
     { label: '推荐前三率', key: 'top3' },
   ];
+  const sel = geoState.selectedKpi || 'visible';
   let html = '<div style="display:flex;flex-direction:column;gap:14px;padding:4px 0">';
   items.forEach(item => {
     const b = raw[item.key].brand || 0;
@@ -240,7 +260,10 @@ function geoRenderTrendChart() {
     const diff = b - cv;
     const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
     const diffSign = diff > 0 ? '+' : '';
-    html += `<div style="padding:10px 14px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb">
+    const isActive = item.key === sel;
+    const bg = isActive ? '#eff6ff' : '#f9fafb';
+    const border = isActive ? '#93c5fd' : '#e5e7eb';
+    html += `<div style="padding:10px 14px;background:${bg};border-radius:8px;border:1px solid ${border};transition:all .15s">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:12px;font-weight:600;color:#374151">${item.label}</span>
         <span style="font-size:11px;font-weight:600;color:${diffColor}">${diffSign}${diff.toFixed(2)}pp</span>
@@ -259,6 +282,15 @@ function geoRenderTrendChart() {
   });
   html += '</div>';
   c.innerHTML = html;
+}
+
+function geoSelectKpi(el) {
+  const metric = el.dataset.metric;
+  geoState.selectedKpi = metric;
+  document.querySelectorAll('.geo-kpi[data-metric]').forEach(k => {
+    k.classList.toggle('highlight', k.dataset.metric === metric);
+  });
+  geoRenderTrendChart();
 }
 
 function geoToggleCompetitor(el) {
@@ -478,6 +510,7 @@ async function geoLoadQuestions() {
     geoRenderQuestions(qs);
     geoRenderIntentPlatformSummary(qs);
     geoPopulateTrendQuestions();
+    geoPopulateQuestionsSelect();
   } catch(e) { console.error('geoLoadQuestions', e); }
 }
 
@@ -605,13 +638,12 @@ let _trendChartData = null;
 async function geoLoadTrendChart() {
   const canvas = document.getElementById('geo-trend-canvas');
   if (!canvas) return;
-  const modelSel = document.getElementById('geo-trend-model');
-  const qSel = document.getElementById('geo-trend-question');
   const params = { project_id: GEO_PROJECT_ID };
   const days = (geoState.startDate && geoState.endDate) ? Math.round((new Date(geoState.endDate) - new Date(geoState.startDate)) / 86400000) + 1 : (geoState.period === '7d' ? 7 : 30);
   params.time_range = days <= 7 ? 7 : 30;
-  if (modelSel && modelSel.value) params.filter_model = modelSel.value;
-  if (qSel && qSel.value) params.filter_question = qSel.value;
+  const platform = geoState.platform;
+  if (platform && platform !== 'all') params.filter_model = platform.split(',')[0];
+  if (geoState.questions && geoState.questions.length === 1) params.filter_question = geoState.questions[0];
   try {
     const qs = new URLSearchParams(params).toString();
     const resp = await fetch('/api/geo-dashboard/project-chart?' + qs);
