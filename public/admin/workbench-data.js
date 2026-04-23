@@ -1799,9 +1799,8 @@ switchPage = function(pageId) {
   if (pageId === 'dashboard.overview') loadOverviewStats();
   if (pageId === 'dashboard.query') loadQueryAnalysis();
   if (pageId === 'dashboard.geo') {
-    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.questions = [];
+    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = [];
     setTimeout(() => {
-      const ps = document.getElementById('geo-period'); if (ps) ps.value = '30d';
       const qi = document.getElementById('geo-questions'); if (qi) qi.value = '';
       geoLoadData();
     }, 50);

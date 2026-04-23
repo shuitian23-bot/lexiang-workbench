@@ -133,15 +133,17 @@ const PAGE_RENDERERS = {
         <span class="geo-pill-disabled" title="项目未开启该平台">文心 (未开启)</span>
         <span class="geo-pill-disabled" title="项目未开启该平台">夸克 (未开启)</span>
       </div>
-      <div class="geo-filter-row">
+      <div class="geo-filter-row" style="flex-wrap:wrap;gap:8px">
         <span class="geo-label">时间范围</span>
-        <select id="geo-period" onchange="geoSetPeriod(this.value)" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
-          <option value="7d">最近 7 天</option>
-          <option value="30d" selected>最近 30 天</option>
-          <option value="year">本年度</option>
-        </select>
-        <span class="geo-label" style="margin-left:16px;">问题筛选</span>
-        <input id="geo-questions" type="text" placeholder="多个问题用逗号分隔，回车筛选" onkeydown="if(event.key==='Enter'){geoSetQuestions(this.value)}" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:260px;outline:none;">
+        <input type="date" id="geo-date-start" style="padding:4px 8px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer" onchange="geoDateRangeChanged()">
+        <span style="font-size:12px;color:#6b7280">至</span>
+        <input type="date" id="geo-date-end" style="padding:4px 8px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer" onchange="geoDateRangeChanged()">
+        <div style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;margin-left:4px">
+          <button onclick="geoQuickPeriod('7d')" class="geo-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#fff;color:#374151;transition:all .15s">近7天</button>
+          <button onclick="geoQuickPeriod('30d')" class="geo-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#2563eb;color:#fff;transition:all .15s">近30天</button>
+        </div>
+        <span class="geo-label" style="margin-left:12px;">意图筛选</span>
+        <input id="geo-questions" type="text" placeholder="多个意图用逗号分隔，回车筛选" onkeydown="if(event.key==='Enter'){geoSetQuestions(this.value)}" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:260px;outline:none;">
       </div>
       <div class="geo-status-line" id="geo-status">加载中...</div>
 
@@ -219,12 +221,18 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 第四行：问题列表 -->
+      <!-- 第四行：意图列表 -->
       <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">GEO 问题列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个问题 · 按模型展示可见性</span></div>
+        <div class="gpnl-title">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
         <div class="geo-scroll-wrap" style="max-height:500px">
           <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
+      </div>
+
+      <!-- 第五行：各优化平台意图总数 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
+        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
       </div>
     </div>
   `,

@@ -9,7 +9,7 @@ const GEO_SOURCES = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platform:'all', period:'30d', questions:[], apiData:null, platData:{}, compare:'brand' };
+const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
 const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
 
@@ -32,7 +32,13 @@ function geoTogglePlatform(el) {
   geoLoadData();
 }
 async function geoFetch(models) {
-  const body = { project_id: GEO_PROJECT_ID, period: geoState.period || '30d' };
+  const body = { project_id: GEO_PROJECT_ID };
+  if (geoState.startDate && geoState.endDate) {
+    body.start_date = geoState.startDate;
+    body.end_date = geoState.endDate;
+  } else {
+    body.period = geoState.period || '30d';
+  }
   if (models && models.length) body.models = models;
   const srcs = GEO_SOURCES[geoState.scope];
   if (srcs && srcs.length) body.sources = srcs;
@@ -45,7 +51,52 @@ async function geoFetch(models) {
   return resp.json();
 }
 
-function geoSetPeriod(v) { geoState.period = v; geoLoadData(); }
+function geoSetPeriod(v) { geoState.period = v; geoState.startDate = null; geoState.endDate = null; geoLoadData(); }
+
+function geoQuickPeriod(period) {
+  const endEl = document.getElementById('geo-date-end');
+  const endDate = endEl && endEl.value ? new Date(endEl.value) : new Date();
+  const days = period === '7d' ? 7 : 30;
+  const startDate = new Date(endDate);
+  startDate.setDate(startDate.getDate() - days + 1);
+  const fmt = d => d.toISOString().slice(0,10);
+  geoState.startDate = fmt(startDate);
+  geoState.endDate = fmt(endDate);
+  geoState.period = null;
+  const startEl = document.getElementById('geo-date-start');
+  if (startEl) startEl.value = geoState.startDate;
+  if (endEl && !endEl.value) endEl.value = geoState.endDate;
+  document.querySelectorAll('.geo-period-btn').forEach(b => {
+    const active = b.dataset.period === period;
+    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.color = active ? '#fff' : '#374151';
+  });
+  geoLoadData();
+}
+
+function geoDateRangeChanged() {
+  const s = document.getElementById('geo-date-start');
+  const e = document.getElementById('geo-date-end');
+  if (s && s.value && e && e.value) {
+    geoState.startDate = s.value;
+    geoState.endDate = e.value;
+    geoState.period = null;
+    document.querySelectorAll('.geo-period-btn').forEach(b => { b.style.background = '#fff'; b.style.color = '#374151'; });
+    geoLoadData();
+  }
+}
+
+function geoInitDatePicker() {
+  const startEl = document.getElementById('geo-date-start');
+  const endEl = document.getElementById('geo-date-end');
+  if (!startEl || !endEl || startEl.value) return;
+  const today = new Date();
+  const end = today.toISOString().slice(0,10);
+  const start = new Date(today);
+  start.setDate(start.getDate() - 29);
+  startEl.value = start.toISOString().slice(0,10);
+  endEl.value = end;
+}
 function geoSetQuestions(text) {
   geoState.questions = (text || '').split(/[,，]/).map(s => s.trim()).filter(Boolean);
   geoLoadData();
@@ -58,11 +109,11 @@ function geoSetStatus(text, isError) {
 function geoFmtPct(v) { return (v == null || v === '' || isNaN(v)) ? '—' : (+v).toFixed(2) + '%'; }
 
 async function geoLoadData() {
-  if (!document.getElementById('gv-brand-visible')) return; // 页面尚未渲染
+  if (!document.getElementById('gv-brand-visible')) return;
+  geoInitDatePicker();
   geoSetStatus('加载中...');
   const selectedModels = geoState.platform === 'all' ? [] : geoState.platform.split(',');
   try {
-    // 第一步：拉总体 overview，先渲染 KPI（最快，~0.2s）
     const data = await geoFetch(selectedModels);
     if (data.code !== 200) throw new Error(data.message || '请求失败');
     geoState.apiData = data;
@@ -70,13 +121,14 @@ async function geoLoadData() {
     geoRenderEcology(data);
 
     const scopeLbl = { all:'整体', leai:'联想乐享', official:'联想官网' }[geoState.scope] || '整体';
-    geoSetStatus('更新于 ' + new Date().toLocaleTimeString() + ' · 点亮AI · ' + scopeLbl + ' · ' + geoState.period);
+    const periodLbl = geoState.startDate ? `${geoState.startDate} ~ ${geoState.endDate}` : (geoState.period || '30d');
+    geoSetStatus('更新于 ' + new Date().toLocaleTimeString() + ' · 点亮AI · ' + scopeLbl + ' · ' + periodLbl);
 
     // 第二步：剩余请求全部并发，互不阻塞
-    // 平台分布 + sites + questions 同时发出
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
     const sitesPromise = geoLoadSites();
     const questionsPromise = geoLoadQuestions();
+    const trendPromise = geoFetchTrend(selectedModels);
 
     // 平台分布完成后立即渲染
     platPromise.then(results => {
@@ -97,6 +149,64 @@ async function geoLoadData() {
 }
 
 function geoClampPct(v) { return (v == null || isNaN(v)) ? null : Math.min(+v, 100); }
+
+async function geoFetchTrend(models) {
+  try {
+    const prevBody = { project_id: GEO_PROJECT_ID };
+    if (geoState.startDate && geoState.endDate) {
+      const s = new Date(geoState.startDate), e = new Date(geoState.endDate);
+      const days = Math.round((e - s) / 86400000) + 1;
+      const prevEnd = new Date(s); prevEnd.setDate(prevEnd.getDate() - 1);
+      const prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate() - days + 1);
+      prevBody.start_date = prevStart.toISOString().slice(0,10);
+      prevBody.end_date = prevEnd.toISOString().slice(0,10);
+    } else {
+      const p = geoState.period || '30d';
+      const days = p === '7d' ? 7 : p === '30d' ? 30 : 365;
+      const today = new Date();
+      const end = new Date(today); end.setDate(end.getDate() - days);
+      const start = new Date(end); start.setDate(start.getDate() - days + 1);
+      prevBody.start_date = start.toISOString().slice(0,10);
+      prevBody.end_date = end.toISOString().slice(0,10);
+    }
+    if (models && models.length) prevBody.models = models;
+    const srcs = GEO_SOURCES[geoState.scope];
+    if (srcs && srcs.length) prevBody.sources = srcs;
+    const resp = await fetch('/api/geo/overview', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(prevBody) });
+    const prev = await resp.json();
+    if (prev.code !== 200) return;
+    const raw = geoState._kpiRaw; if (!raw) return;
+    const pbcm = prev.brand_coverage_metrics || {};
+    const pcm = prev.conversion_metrics || {};
+    const prevRaw = {
+      visible: pbcm.brand_exposure_rate, rec: pcm.brand_priority_rate,
+      top1: pcm.brand_top1_rate, top3: pcm.brand_top3_rate
+    };
+    geoState._trendPrev = prevRaw;
+    geoRenderTrend();
+  } catch(e) { console.error('geoFetchTrend', e); }
+}
+
+function geoRenderTrend() {
+  const raw = geoState._kpiRaw;
+  const prev = geoState._trendPrev;
+  if (!raw || !prev) return;
+  const metrics = ['visible','rec','top1','top3'];
+  metrics.forEach(m => {
+    const card = document.querySelector(`.geo-kpi[data-metric="${m}"]`);
+    if (!card) return;
+    let trendEl = card.querySelector('.gk-trend');
+    if (!trendEl) { trendEl = document.createElement('div'); trendEl.className = 'gk-trend'; card.appendChild(trendEl); }
+    const cur = raw[m].brand || 0;
+    const prv = prev[m] || 0;
+    const diff = cur - prv;
+    if (Math.abs(diff) < 0.01) { trendEl.innerHTML = `<span style="font-size:11px;color:#6b7280">— 持平</span>`; return; }
+    const up = diff > 0;
+    const arrow = up ? '↑' : '↓';
+    const color = up ? '#059669' : '#dc2626';
+    trendEl.innerHTML = `<span style="font-size:11px;color:${color};font-weight:500">${arrow} ${Math.abs(diff).toFixed(2)}pp</span><span style="font-size:10px;color:#9ca3af;margin-left:4px">环比</span>`;
+  });
+}
 
 function geoRenderKpis(data) {
   const bcm = data.brand_coverage_metrics || {};
@@ -274,21 +384,28 @@ function geoRenderLinkTop50(sites) {
   const maxCount = Math.max(...top.map(s => s.count), 1);
   c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
     const barW = Math.max((s.count / maxCount * 100), 2).toFixed(0);
-    return `<li style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #f3f4f6">
-      <span class="grl-idx" style="min-width:24px;text-align:center;font-size:12px;font-weight:600;color:${s.rank <= 3 ? '#2563eb' : '#6b7280'}">${s.rank}</span>
+    const isTop3 = s.rank <= 3;
+    const idxStyle = isTop3
+      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#2563eb;border-radius:50%;flex-shrink:0'
+      : 'min-width:28px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0';
+    const countStyle = isTop3
+      ? 'font-size:14px;font-weight:700;color:#1d4ed8;white-space:nowrap;min-width:90px;text-align:right'
+      : 'font-size:11px;color:#6b7280;white-space:nowrap;min-width:80px;text-align:right';
+    return `<li style="display:flex;align-items:center;gap:8px;padding:${isTop3 ? '8px' : '6px'} 8px;border-bottom:1px solid #f3f4f6;${isTop3 ? 'background:#f0f7ff;' : ''}">
+      <span style="${idxStyle}">${s.rank}</span>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</span>
+          <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</span>
           <a href="https://${s.domain}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${s.domain}">${s.domain}</a>
         </div>
-        <div style="height:4px;background:#e5e7eb;border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${s.rank <= 3 ? '#2563eb' : '#93c5fd'};border-radius:2px"></div></div>
+        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e7eb;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#2563eb' : '#93c5fd'};border-radius:3px"></div></div>
       </div>
-      <span style="font-size:11px;color:#6b7280;white-space:nowrap;min-width:80px;text-align:right">${s.count.toLocaleString()} · ${s.percentage}%</span>
+      <span style="${countStyle}">${s.count.toLocaleString()}</span>
     </li>`;
   }).join('') + '</ol>';
 }
 
-// ===== GEO 问题列表 (questions API) =====
+// ===== GEO 意图列表 (questions API) =====
 const GEO_FIELD_LABELS = { brand_composite_exposure_rate:'品牌综合可见', brand_precise_exposure_rate:'品牌精准可见', competitor_exposure_rate:'竞品可见', brand_exposure_rate:'品牌曝光率', brand_top3_rate:'品牌前三率' };
 
 async function geoLoadQuestions() {
@@ -301,16 +418,17 @@ async function geoLoadQuestions() {
     const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
     set('gv-q-count', qs.length);
     geoRenderQuestions(qs);
+    geoRenderIntentPlatformSummary(qs);
   } catch(e) { console.error('geoLoadQuestions', e); }
 }
 
 function geoRenderQuestions(qs) {
   const c = document.getElementById('geo-questions-table'); if(!c) return;
-  if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无问题</div>'; return; }
+  if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无意图</div>'; return; }
   const fieldKeys = [];
   if (qs[0].models && qs[0].models[0] && qs[0].models[0].fields) qs[0].models[0].fields.forEach(f => fieldKeys.push(f.field));
   const models = (qs[0].models || []).map(m => m.model);
-  let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">问题</th>';
+  let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
   models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${name}<br><span style="font-size:10px;font-weight:400">${GEO_FIELD_LABELS[f] || f}</span></th>`; }); });
   html += '</tr></thead><tbody>';
   qs.forEach(q => {
@@ -319,6 +437,40 @@ function geoRenderQuestions(qs) {
     html += '</tr>';
   });
   html += '</tbody></table>';
+  c.innerHTML = html;
+}
+
+function geoRenderIntentPlatformSummary(qs) {
+  const c = document.getElementById('geo-intent-platform-summary'); if (!c) return;
+  if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  const models = (qs[0].models || []).map(m => m.model);
+  const totalCount = qs.length;
+  const platStats = {};
+  models.forEach(m => { platStats[m] = 0; });
+  qs.forEach(q => {
+    (q.models || []).forEach(md => {
+      const visible = (md.fields || []).some(f => f.value === '是');
+      if (visible) platStats[md.model] = (platStats[md.model] || 0) + 1;
+    });
+  });
+  let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;padding:8px 0">';
+  html += `<div style="flex:1;min-width:140px;padding:16px;background:#f0f7ff;border-radius:10px;text-align:center;border:1px solid #dbeafe">
+    <div style="font-size:28px;font-weight:700;color:#1e40af">${totalCount}</div>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px">优化意图总数</div>
+  </div>`;
+  models.forEach(m => {
+    const name = geoPlatNames[m] || m;
+    const color = geoPlatColors[m] || '#6b7280';
+    const count = platStats[m] || 0;
+    const pct = totalCount ? (count / totalCount * 100).toFixed(0) : 0;
+    html += `<div style="flex:1;min-width:140px;padding:16px;background:#fff;border-radius:10px;text-align:center;border:1px solid #e5e7eb">
+      <div style="font-size:28px;font-weight:700;color:${color}">${count}</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:4px">${name} 覆盖意图数</div>
+      <div style="height:4px;background:#e5e7eb;border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px"></div></div>
+      <div style="font-size:10px;color:#9ca3af;margin-top:2px">${pct}% 覆盖率</div>
+    </div>`;
+  });
+  html += '</div>';
   c.innerHTML = html;
 }
 
