@@ -189,6 +189,12 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
+      <!-- 趋势对比图：品牌 vs 竞品 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">品牌 vs 竞品 趋势对比</div>
+        <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+      </div>
+
       <!-- 第二行：信源分布 Treemap + 排行榜 -->
       <div class="geo-row">
         <div class="geo-panel">
@@ -223,7 +229,10 @@ const PAGE_RENDERERS = {
 
       <!-- 第四行：意图列表 -->
       <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
+          <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
         <div class="geo-scroll-wrap" style="max-height:500px">
           <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>

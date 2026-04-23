@@ -211,7 +211,6 @@ function geoRenderTrend() {
 function geoRenderKpis(data) {
   const bcm = data.brand_coverage_metrics || {};
   const cm = data.conversion_metrics || {};
-  // 保存原始数据供 compare 切换用
   geoState._kpiRaw = {
     visible: { brand: bcm.brand_exposure_rate, comp: geoClampPct(bcm.competitor_exposure_rate) },
     rec:     { brand: cm.brand_priority_rate,  comp: geoClampPct(cm.competitor_priority_rate) },
@@ -219,6 +218,43 @@ function geoRenderKpis(data) {
     top3:    { brand: cm.brand_top3_rate,       comp: geoClampPct(cm.competitor_top3_rate) },
   };
   geoApplyCompare();
+  geoRenderTrendChart();
+}
+
+function geoRenderTrendChart() {
+  const c = document.getElementById('geo-trend-chart'); if (!c) return;
+  const raw = geoState._kpiRaw; if (!raw) return;
+  const items = [
+    { label: '品牌可见度', key: 'visible' },
+    { label: '品牌推荐率', key: 'rec' },
+    { label: '推荐置顶率', key: 'top1' },
+    { label: '推荐前三率', key: 'top3' },
+  ];
+  const maxVal = Math.max(...items.map(i => Math.max(raw[i.key].brand||0, raw[i.key].comp||0)), 1);
+  let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">';
+  items.forEach(item => {
+    const b = raw[item.key].brand || 0;
+    const cv = raw[item.key].comp || 0;
+    const bW = (b / maxVal * 100).toFixed(0);
+    const cW = (cv / maxVal * 100).toFixed(0);
+    const diff = b - cv;
+    const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
+    const diffSign = diff > 0 ? '+' : '';
+    html += `<div style="padding:12px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb">
+      <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:10px">${item.label}</div>
+      <div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#374151;margin-bottom:3px"><span>联想</span><span style="font-weight:600">${b.toFixed(2)}%</span></div>
+        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden"><div style="height:100%;width:${bW}%;background:#2563eb;border-radius:4px;transition:width .3s"></div></div>
+      </div>
+      <div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#374151;margin-bottom:3px"><span>竞品</span><span style="font-weight:600">${cv.toFixed(2)}%</span></div>
+        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden"><div style="height:100%;width:${cW}%;background:#f59e0b;border-radius:4px;transition:width .3s"></div></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:${diffColor};font-weight:600;margin-top:4px">差值 ${diffSign}${diff.toFixed(2)}pp</div>
+    </div>`;
+  });
+  html += '</div>';
+  c.innerHTML = html;
 }
 
 function geoSetCompare(mode) {
@@ -423,11 +459,15 @@ async function geoLoadQuestions() {
 }
 
 function geoRenderQuestions(qs) {
+  geoState._questionsData = qs;
+  const visibleModels = geoState._visibleIntentModels || null;
   const c = document.getElementById('geo-questions-table'); if(!c) return;
   if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无意图</div>'; return; }
   const fieldKeys = [];
   if (qs[0].models && qs[0].models[0] && qs[0].models[0].fields) qs[0].models[0].fields.forEach(f => fieldKeys.push(f.field));
-  const models = (qs[0].models || []).map(m => m.model);
+  const allModels = (qs[0].models || []).map(m => m.model);
+  const models = visibleModels ? allModels.filter(m => visibleModels.includes(m)) : allModels;
+  geoRenderIntentFilter(allModels, models);
   let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
   models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${name}<br><span style="font-size:10px;font-weight:400">${GEO_FIELD_LABELS[f] || f}</span></th>`; }); });
   html += '</tr></thead><tbody>';
@@ -438,6 +478,30 @@ function geoRenderQuestions(qs) {
   });
   html += '</tbody></table>';
   c.innerHTML = html;
+}
+
+function geoRenderIntentFilter(allModels, activeModels) {
+  const c = document.getElementById('geo-intent-plat-filter'); if (!c) return;
+  c.innerHTML = allModels.map(m => {
+    const name = geoPlatNames[m] || m;
+    const color = geoPlatColors[m] || '#6b7280';
+    const active = activeModels.includes(m);
+    return `<button onclick="geoToggleIntentModel('${m}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? color : '#d1d5db'};background:${active ? color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${name}</button>`;
+  }).join('');
+}
+
+function geoToggleIntentModel(model) {
+  if (!geoState._questionsData) return;
+  const allModels = (geoState._questionsData[0].models || []).map(m => m.model);
+  let vis = geoState._visibleIntentModels || [...allModels];
+  if (vis.includes(model)) {
+    vis = vis.filter(m => m !== model);
+    if (!vis.length) vis = [...allModels];
+  } else {
+    vis.push(model);
+  }
+  geoState._visibleIntentModels = vis.length === allModels.length ? null : vis;
+  geoRenderQuestions(geoState._questionsData);
 }
 
 function geoRenderIntentPlatformSummary(qs) {
