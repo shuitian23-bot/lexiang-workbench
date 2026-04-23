@@ -9,7 +9,8 @@ const GEO_SOURCES = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand' };
+const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[] };
+const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', apple:'#555555', asus:'#00529b', xiaomi:'#ff6900', acer:'#83b81a', honor:'#d4003c' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
 const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
 
@@ -257,6 +258,24 @@ function geoRenderTrendChart() {
   });
   html += '</div>';
   c.innerHTML = html;
+}
+
+function geoToggleCompetitor(el) {
+  const brand = el.dataset.brand;
+  const idx = geoState.competitors.indexOf(brand);
+  if (idx >= 0) {
+    geoState.competitors.splice(idx, 1);
+    el.style.background = '#fff';
+    el.style.color = '#374151';
+    el.style.borderColor = '#d1d5db';
+  } else {
+    if (geoState.competitors.length >= 5) return;
+    geoState.competitors.push(brand);
+    const color = GEO_COMPETITOR_COLORS[brand] || '#6b7280';
+    el.style.background = color;
+    el.style.color = '#fff';
+    el.style.borderColor = color;
+  }
 }
 
 function geoSetCompare(mode) {

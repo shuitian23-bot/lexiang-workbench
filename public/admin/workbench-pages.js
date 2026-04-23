@@ -157,6 +157,22 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
+      <!-- 竞品对比选择器 -->
+      <div class="geo-filter-row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">
+        <span class="geo-label">竞品对比</span>
+        <div id="geo-competitor-pills" style="display:inline-flex;gap:6px;flex-wrap:wrap">
+          <button class="geo-comp-pill" data-brand="hp" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">惠普</button>
+          <button class="geo-comp-pill" data-brand="dell" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">戴尔</button>
+          <button class="geo-comp-pill" data-brand="huawei" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">华为</button>
+          <button class="geo-comp-pill" data-brand="apple" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">苹果</button>
+          <button class="geo-comp-pill" data-brand="asus" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">华硕</button>
+          <button class="geo-comp-pill" data-brand="xiaomi" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">小米</button>
+          <button class="geo-comp-pill" data-brand="acer" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">宏碁</button>
+          <button class="geo-comp-pill" data-brand="honor" onclick="geoToggleCompetitor(this)" style="padding:4px 14px;font-size:12px;border-radius:16px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-weight:500;transition:all .15s">荣耀</button>
+        </span>
+        <span style="font-size:11px;color:#9ca3af;margin-left:4px">限制每次勾选最多5个品牌</span>
+      </div>
+
       <!-- 4 个核心 KPI -->
       <div class="geo-kpi-grid cols-4" id="geo-kpi-cards">
         <div class="geo-kpi highlight" data-metric="visible">
