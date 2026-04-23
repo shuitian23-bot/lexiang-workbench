@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乐享 AI 工作台</title>
+<!-- v2024-04-16-cert-view-button -->
+<link rel="stylesheet" href="/admin/workbench.css">
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo" style="margin-bottom:40px;">
+      <div class="icon">L</div>
+      <span>联想乐享</span>
+    </div>
+    <div class="login-title">登录</div>
+    <div class="form-group">
+      <label class="form-label">用户名</label>
+      <input class="form-input" id="login-user" placeholder="admin" autofocus>
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="••••••">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary login-btn" onclick="doLogin()">登录工作台</button>
+  </div>
+</div>
+
+<!-- ===== THREE-COLUMN LAYOUT ===== -->
+
+<!-- LEFT: Sidebar Menu -->
+<div class="sidebar" id="sidebar" style="display:none">
+  <div class="sidebar-header">
+    <img class="logo-full" src="assets/logo-full.png" alt="联想乐享">
+    <img class="logo-icon-img" src="assets/logo-icon.png" alt="联想乐享">
+    <button class="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="收起侧栏">
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="16" height="14" rx="3"/><line x1="8" y1="3" x2="8" y2="17"/><path d="M13 8l-2 2 2 2"/></svg>
+    </button>
+  </div>
+  <div class="sidebar-nav" id="sidebar-nav">
+    <!-- 动态渲染 -->
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">A</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">admin</div>
+        <div class="user-role" id="user-role">管理员</div>
+      </div>
+      <span class="user-logout" onclick="doLogout()" title="退出登录">退出</span>
+    </div>
+  </div>
+</div>
+
+<!-- CENTER: Main Content -->
+<div class="main" id="main-area" style="display:none">
+  <div class="topbar">
+    <div class="topbar-breadcrumb" id="breadcrumb">
+      <span>数据中心</span> / <span>运营总览</span>
+    </div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <input class="topbar-search" placeholder="搜索菜单或输入指令..." id="global-search" autocomplete="off">
+        <div id="search-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);margin-top:4px;max-height:320px;overflow-y:auto;z-index:100">
+        </div>
+      </div>
+      <div style="cursor:pointer;padding:4px 8px;border-radius:6px;font-size:14px" onclick="toggleDarkMode()" title="切换深色模式" id="dark-mode-btn">🌙</div>
+      <div class="ai-toggle" id="ai-toggle-btn" onclick="toggleAI()">🤖 AI 助手</div>
+    </div>
+  </div>
+
+  <!-- Page Content Area -->
+  <div class="page-content" id="page-content">
+    <!-- 动态渲染 -->
+  </div>
+</div>
+
+<!-- RIGHT: AI Panel -->
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-resize-handle" id="ai-resize-handle"></div>
+  <div class="ai-panel-header">
+    <h3>🤖 AI 助手</h3>
+    <div style="display:flex;gap:4px;align-items:center">
+      <span style="cursor:pointer;padding:2px 6px;border-radius:4px;font-size:12px;color:var(--text-tertiary)" onclick="newAiConversation()" title="新建对话">🔄</span>
+      <span class="ai-panel-close" onclick="toggleAI()">✕</span>
+    </div>
+  </div>
+  <div class="ai-shortcuts" id="ai-shortcuts">
+    <span class="ai-shortcut" onclick="aiQuick('今日核心指标')">📊 今日指标</span>
+    <span class="ai-shortcut" onclick="aiQuick('最近7天订单按渠道汇总')">💹 查数据</span>
+    <span class="ai-shortcut" onclick="aiQuick('打开商品管理')">📦 商品管理</span>
+    <span class="ai-shortcut" onclick="aiQuick('打开知识库')">📚 知识库</span>
+    <span class="ai-shortcut" onclick="aiQuick('打开页面管理')">📄 CMS</span>
+    <span class="ai-shortcut" onclick="aiQuick('本周运营建议')">💡 运营建议</span>
+  </div>
+  <div class="ai-messages" id="ai-messages">
+    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手 🤖<br><br>我可以帮你：<br>· <b>导航操作</b> — "打开商品管理"、"去知识库"<br>· <b>查数据</b> — 自然语言直接查库，例如：<br>&nbsp;&nbsp;&nbsp;· 最近 7 天订单按渠道汇总<br>&nbsp;&nbsp;&nbsp;· 昨天新增客户数<br>&nbsp;&nbsp;&nbsp;· 知识库里关于退货的 QA 有多少条<br>· <b>生成报告</b> — "本周运营报告"<br>· <b>执行操作</b> — "创建营销任务"<br><br>试试直接说你想去哪、想做什么！</div></div>
+  </div>
+  <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
+    <span>📎</span><span id="ai-file-name"></span>
+    <span style="cursor:pointer;margin-left:auto;color:var(--text-tertiary)" onclick="aiClearFile()">✕</span>
+  </div>
+  <div class="ai-input-area" id="ai-input-area">
+    <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
+    <span style="cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" onclick="document.getElementById('ai-file-input').click()" title="上传文件">📎</span>
+    <textarea class="ai-input" id="ai-input" placeholder="输入指令或查询..." rows="1"></textarea>
+    <button class="ai-send" id="ai-send" onclick="aiSend()">发送</button>
+  </div>
+</div>
+
+
+<script src="/admin/demo-mock.js"></script>
+<script>
+/* ===== 核心框架（STATE/MENU/LOGIN/SIDEBAR/PAGE_SWITCH）===== */
+// ===== STATE =====
+const STATE = {
+  user: null,
+  role: null,
+  permissions: [],
+  visibleMenus: [],
+  currentPage: 'dashboard.overview',
+  aiOpen: false,
+  aiMessages: [],
+  aiConvId: null  // Harness 会话ID，复用 conversations 表
+};
+
+// ===== MENU DEFINITION =====
+const MENU_TREE = {
+  dashboard: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:6px;color:#fff;font-size:13px;font-weight:700">📊</span>', label: '乐享运营', children: {
+      'dashboard.overview': { label: '运营总览' },
+      'dashboard.query': { label: 'Query 分析' },
+      'dashboard.behavior': { label: '客户行为' }
+    }
+  },
+  geo: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:6px;color:#fff;font-size:11px;font-weight:700">GEO</span>', label: 'GEO 看板', children: {
+      'dashboard.geo': { label: '整体数据概览' },
+      'dashboard.geoSource': { label: '各平台信源分布' },
+      'dashboard.geoIntent': { label: '各平台意图分布' },
+      'dashboard.geoConversion': { label: 'GEO 转化看板' },
+      'dashboard.geoKnowledge': { label: '手工上传知识' }
+    }
+  },
+  employee: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#3b82f6,#06b6d4);border-radius:6px;color:#fff;font-size:14px;font-weight:700">👥</span>', label: '在职员工管理', children: {
+      'employee.overview': { label: '概览' },
+      'employee.certification': { label: '认证审核' }
+    }
+  },
+};
+
+// ===== LOGIN =====
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  if (!username || !password) return showLoginError('请输入用户名和密码');
+
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) return showLoginError(data.error || '登录失败');
+
+    STATE.user = data.username;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-area').style.display = 'flex';
+
+    await loadUserContext();
+    renderSidebar();
+    restoreSidebarState();
+    restoreAIState();
+    switchPage(STATE.currentPage);
+  } catch (e) {
+    showLoginError('网络错误，请重试');
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function doLogout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  location.reload();
+}
+
+// Enter 键登录
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ===== LOAD USER CONTEXT =====
+async function loadUserContext() {
+  try {
+    const res = await fetch('/api/harness/menu');
+    if (res.ok) {
+      const data = await res.json();
+      STATE.visibleMenus = data.menus || [];
+      STATE.permissions = data.permissions || [];
+      // 兼容：GEO 之前在 dashboard 下，有 dashboard 权限就自动补 geo
+      if (STATE.visibleMenus.includes('dashboard') && !STATE.visibleMenus.includes('geo')) {
+        STATE.visibleMenus.push('geo');
+      }
+      // 新功能：员工管理模块默认可见
+      if (!STATE.visibleMenus.includes('employee')) {
+        STATE.visibleMenus.push('employee');
+      }
+      // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
+      STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
+    } else {
+      // fallback：旧版兼容，默认全部可见
+      STATE.visibleMenus = Object.keys(MENU_TREE);
+      STATE.permissions = ['*'];
+    }
+  } catch {
+    STATE.visibleMenus = Object.keys(MENU_TREE);
+    STATE.permissions = ['*'];
+  }
+
+  // 获取当前用户信息
+  try {
+    const res = await fetch('/api/admin/me');
+    if (res.ok) {
+      const data = await res.json();
+      STATE.user = data.admin?.username || 'admin';
+    }
+  } catch {}
+
+  document.getElementById('user-name').textContent = STATE.user;
+  document.getElementById('user-avatar').textContent = (STATE.user || 'A')[0].toUpperCase();
+
+  // 找角色名
+  const roleMap = { '*': '平台管理员' };
+  if (STATE.permissions.includes('*')) {
+    STATE.role = '平台管理员';
+  } else if (STATE.permissions.some(p => p.startsWith('ai:'))) {
+    STATE.role = 'AI 运维';
+  } else if (STATE.permissions.some(p => p.startsWith('ecommerce:'))) {
+    STATE.role = '运营';
+  } else {
+    STATE.role = '工作台用户';
+  }
+  document.getElementById('user-role').textContent = STATE.role;
+
+  // 确保默认页面在可见菜单中
+  const firstMenu = STATE.visibleMenus[0];
+  if (firstMenu && MENU_TREE[firstMenu]) {
+    const children = Object.keys(MENU_TREE[firstMenu].children);
+    if (children.length) STATE.currentPage = children[0];
+  }
+}
+
+// ===== SIDEBAR COLLAPSE =====
+function toggleSidebarCollapse() {
+  const sb = document.getElementById('sidebar');
+  _sidebarPeek = false; // 手动操作，取消peek模式
+  clearTimeout(_sidebarPeekTimer);
+  sb.classList.toggle('collapsed');
+  localStorage.setItem('sidebar_collapsed', sb.classList.contains('collapsed') ? '1' : '0');
+}
+function restoreSidebarState() {
+  if (localStorage.getItem('sidebar_collapsed') === '1') {
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
+}
+
+// ===== RENDER SIDEBAR =====
+function renderSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  let html = '';
+
+  for (const [key, group] of Object.entries(MENU_TREE)) {
+    if (!STATE.visibleMenus.includes(key)) continue;
+
+    const children = Object.entries(group.children);
+    const isActive = !!group.children[STATE.currentPage];
+    const isOpen = isActive;
+
+    html += `<div class="nav-group" data-group="${key}">`;
+    html += `<div class="nav-item ${isActive ? 'active' : ''}" data-tip="${group.label}" onclick="toggleGroup('${key}')">
+      <span class="ni">${group.icon}</span>
+      <span>${group.label}</span>
+      <span class="arrow ${isOpen ? 'open' : ''}">▶</span>
+    </div>`;
+    html += `<div class="nav-sub ${isOpen ? 'open' : ''}">`;
+    for (const [pageId, page] of children) {
+      html += `<div class="nav-item ${STATE.currentPage === pageId ? 'active' : ''}" onclick="switchPage('${pageId}')">
+        <span>${page.label}</span>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  nav.innerHTML = html;
+}
+
+let _sidebarPeek = false;
+let _sidebarPeekTimer = null;
+
+function toggleGroup(key) {
+  const sb = document.getElementById('sidebar');
+  // 收起状态下：临时展开侧栏
+  if (sb.classList.contains('collapsed')) {
+    _sidebarPeek = true;
+    sb.classList.remove('collapsed');
+    // 展开对应分组
+    setTimeout(() => {
+      const group = document.querySelector(`.nav-group[data-group="${key}"]`);
+      if (group) { group.querySelector('.nav-sub')?.classList.add('open'); group.querySelector('.arrow')?.classList.add('open'); }
+    }, 50);
+    // 鼠标离开侧栏后自动收回
+    clearTimeout(_sidebarPeekTimer);
+    const onLeave = () => {
+      _sidebarPeekTimer = setTimeout(() => {
+        if (_sidebarPeek) { sb.classList.add('collapsed'); _sidebarPeek = false; }
+      }, 1500);
+    };
+    const onEnter = () => { clearTimeout(_sidebarPeekTimer); };
+    // 清除旧事件再绑新的
+    sb.removeEventListener('mouseleave', sb._peekLeave);
+    sb.removeEventListener('mouseenter', sb._peekEnter);
+    sb._peekLeave = onLeave;
+    sb._peekEnter = onEnter;
+    sb.addEventListener('mouseleave', onLeave);
+    sb.addEventListener('mouseenter', onEnter);
+    return;
+  }
+  const group = document.querySelector(`.nav-group[data-group="${key}"]`);
+  if (!group) return;
+  const sub = group.querySelector('.nav-sub');
+  const arrow = group.querySelector('.arrow');
+  sub.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+
+
+
+// ===== PAGE SWITCH =====
+function switchPage(pageId) {
+  STATE.currentPage = pageId;
+
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
+  // Find and activate the clicked item
+  const groupKey = pageId.split('.')[0];
+  const group = document.querySelector(`.nav-group[data-group="${groupKey}"]`);
+  if (group) {
+    group.querySelector('.nav-sub').classList.add('open');
+    group.querySelector('.arrow')?.classList.add('open');
+    group.querySelectorAll('.nav-sub .nav-item').forEach(el => {
+      if (el.textContent.trim() === getPageLabel(pageId)) el.classList.add('active');
+    });
+  }
+
+  // Update breadcrumb
+  const groupLabel = findPageGroup(pageId)?.label || pageId.split('.')[0];
+  const pageLabel = getPageLabel(pageId);
+  document.getElementById('breadcrumb').innerHTML = `<span>${groupLabel}</span> / <span>${pageLabel}</span>`;
+
+  // Render page
+  renderPage(pageId);
+
+  // Auto-load data for specific pages
+  if (pageId === 'employee.overview') {
+    setTimeout(() => loadEmployeeOverview(), 50);
+  } else if (pageId === 'employee.list') {
+    setTimeout(() => loadEmployeeList(1), 50);
+  } else if (pageId === 'employee.certification') {
+    setTimeout(() => loadCertificationTable(1), 50);
+  }
+}
+
+function findPageGroup(pageId) {
+  for (const g of Object.values(MENU_TREE)) {
+    if (g.children && g.children[pageId]) return g;
+  }
+  return null;
+}
+
+function getPageLabel(pageId) {
+  const g = findPageGroup(pageId);
+  return g?.children[pageId]?.label || pageId.split('.')[1] || '';
+}
+
+
+// ===== 认证材料预览弹窗 =====
+function showMaterialPreview(title, icon) {
+  // 创建弹窗背景
+  const overlay = document.createElement('div');
+  overlay.id = 'material-preview-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+
+  // 创建弹窗容器
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  `;
+
+  // 弹窗内容
+  modal.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border);">
+      <div style="font-size: 18px; font-weight: 600;">${icon} ${title}</div>
+      <button onclick="document.getElementById('material-preview-overlay').remove()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--text-secondary);">×</button>
+    </div>
+    <div style="padding: 40px; text-align: center;">
+      <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #e5e7eb, #f3f4f6); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <div style="font-size: 120px; opacity: 0.3;">${icon}</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+        ${title} 预览（演示图片）
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <button class="btn btn-primary" onclick="alert('下载：${title}'); document.getElementById('material-preview-overlay').remove()">📥 下载</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('material-preview-overlay').remove()">关闭</button>
+      </div>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // 点击背景关闭
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+}
+
+// ===== TAB SWITCH =====
+function switchTab(el, tabId) {
+  el.parentElement.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  el.closest('.page-content, .card').querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tabId)?.classList.add('active');
+}
+
+// ===== BEHAVIOR TAB =====
+function switchBehaviorTab(tab, el) {
+  if (el) {
+    el.parentElement.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  ['conversion','intent','churn','marketing','member'].forEach(t => {
+    const d = document.getElementById('behavior-' + t);
+    if (d) d.style.display = t === tab ? '' : 'none';
+  });
+}
+
+
+</script>
+<!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
+<script src="/admin/workbench-pages.js"></script>
+<script src="/admin/workbench-geo.js"></script>
+<script src="/admin/workbench-ai.js"></script>
+<script src="/admin/workbench-data.js"></script>
+<script src="/admin/workbench-employee.js"></script>
+<script>
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('login-screen').style.display = 'flex';
+  // Check if already logged in
+  fetch('/api/admin/me').then(r => {
+    if (r.ok) return r.json();
+    throw new Error('not logged in');
+  }).then(async data => {
+    STATE.user = data.admin?.username;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-area').style.display = 'flex';
+    await loadUserContext();
+    renderSidebar();
+    restoreSidebarState();
+    restoreAIState();
+    _aiInitDragDrop();
+    switchPage(STATE.currentPage);
+  }).catch(() => {
+    // Show login screen
+  });
+});
+</script>
+</body>
+</html>
