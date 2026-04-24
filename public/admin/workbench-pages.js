@@ -258,6 +258,12 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
+      <!-- 各优化平台意图总数 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
+        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+      </div>
+
     </div>
   `,
 
