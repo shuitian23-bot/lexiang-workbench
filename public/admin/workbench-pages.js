@@ -258,17 +258,6 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 品牌AI词云 -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div class="gpnl-title" style="margin:0">品牌 AI 词云</div>
-          <div style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
-            <button onclick="geoLoadWordCloud(7)" class="geo-wc-btn" data-days="7" style="padding:3px 10px;font-size:11px;border:none;cursor:pointer;background:#fff;color:#374151">近7天</button>
-            <button onclick="geoLoadWordCloud(30)" class="geo-wc-btn active" data-days="30" style="padding:3px 10px;font-size:11px;border:none;cursor:pointer;background:#2563eb;color:#fff">近30天</button>
-          </div>
-        </div>
-        <div id="geo-word-cloud" style="min-height:200px"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
-      </div>
     </div>
   `,
 
