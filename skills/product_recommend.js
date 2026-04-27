@@ -1,15 +1,15 @@
-// Skill: 联想产品推荐
-// 根据用户需求推荐合适的联想产品线和购买建议
+// Skill: 联想产品推荐（基于products表实时数据）
+const db = require('../db/schema');
 
 module.exports = {
   name: 'product_recommend',
-  description: '根据用户描述的需求（预算、用途、偏好）推荐联想产品线，并给出购买建议和官网链接引导。',
+  description: '根据用户需求（预算、用途、偏好）从产品库中查询在售商品并推荐，返回真实商品名称、价格和链接。',
   parameters: {
     type: 'object',
     properties: {
       use_case: {
         type: 'string',
-        description: '用户的使用场景，如：办公、游戏、学生、设计、服务器等'
+        description: '用户的使用场景，如：办公、游戏、学生、设计、服务器、平板等'
       },
       budget: {
         type: 'string',
@@ -17,59 +17,105 @@ module.exports = {
       },
       preference: {
         type: 'string',
-        description: '其他偏好，如：轻薄、高性能、长续航、大屏等'
+        description: '其他偏好，如：轻薄、高性能、长续航、大屏、ThinkPad、小新等'
       }
     },
     required: ['use_case']
   },
   execute: async ({ use_case, budget, preference }) => {
-    // 产品线知识库（静态数据，可后续替换为动态API）
-    const catalog = {
-      '商务办公': {
-        series: ['ThinkPad X系列（轻薄商务）', 'ThinkPad T系列（经典商务）', 'ThinkPad E系列（入门商务）'],
-        highlights: ['军规认证耐用性', 'ThinkShield安全套件', '长达20小时续航'],
-        price_range: '4000-20000',
-        url: 'https://www.lenovo.com.cn/products/laptops/thinkpad/'
-      },
-      '游戏娱乐': {
-        series: ['拯救者Y系列（旗舰游戏）', '拯救者R系列（主流游戏）', 'IdeaPad Gaming系列（入门游戏）'],
-        highlights: ['高刷新率屏幕165Hz+', '独立显卡RTX40系列', '高效散热液金属技术'],
-        price_range: '5000-20000',
-        url: 'https://www.lenovo.com.cn/products/laptops/legion/'
-      },
-      '学生': {
-        series: ['小新系列（性价比首选）', 'IdeaPad系列（入门全能）'],
-        highlights: ['轻薄便携', '高性价比', '长续航'],
-        price_range: '3000-7000',
-        url: 'https://www.lenovo.com.cn/products/laptops/ideapad/'
-      },
-      '创意设计': {
-        series: ['YOGA系列（创意旗舰）', 'ThinkBook系列（轻薄创作）'],
-        highlights: ['色域广屏幕100% sRGB', 'OLED可选', '触控翻转'],
-        price_range: '6000-15000',
-        url: 'https://www.lenovo.com.cn/products/laptops/yoga/'
-      },
-      '服务器': {
-        series: ['ThinkSystem系列', 'ThinkAgile超融合系列', 'ThinkEdge边缘计算系列'],
-        highlights: ['全球第一服务器品牌', '24/7企业级支持', '混合云解决方案'],
-        price_range: '15000+',
-        url: 'https://www.lenovo.com.cn/products/servers/'
-      }
-    };
+    const useLower = (use_case || '').toLowerCase();
+    const prefLower = (preference || '').toLowerCase();
+    const combined = useLower + ' ' + prefLower;
 
-    // 简单匹配逻辑
-    let matched = null;
-    const useLower = use_case.toLowerCase();
-    if (useLower.includes('游戏') || useLower.includes('game')) matched = catalog['游戏娱乐'];
-    else if (useLower.includes('设计') || useLower.includes('创意') || useLower.includes('绘图')) matched = catalog['创意设计'];
-    else if (useLower.includes('学生') || useLower.includes('学习')) matched = catalog['学生'];
-    else if (useLower.includes('服务器') || useLower.includes('企业') || useLower.includes('数据中心')) matched = catalog['服务器'];
-    else matched = catalog['商务办公'];
+    // 确定搜索的产品类别
+    let category = '笔记本电脑';
+    if (combined.includes('服务器') || combined.includes('数据中心')) category = '服务器';
+    else if (combined.includes('平板')) category = '平板电脑';
+    else if (combined.includes('台式') || combined.includes('一体机')) category = '台式机';
+    else if (combined.includes('显示') || combined.includes('屏幕')) category = '显示器';
+    else if (combined.includes('工作站')) category = '工作站';
+
+    // 确定品牌/系列筛选
+    const brandFilters = [];
+    if (combined.includes('游戏') || combined.includes('game') || combined.includes('拯救者')) brandFilters.push('拯救者');
+    if (combined.includes('商务') || combined.includes('办公') || combined.includes('thinkpad')) brandFilters.push('thinkpad');
+    if (combined.includes('学生') || combined.includes('学习') || combined.includes('小新') || combined.includes('性价比')) brandFilters.push('小新');
+    if (combined.includes('设计') || combined.includes('创意') || combined.includes('yoga')) brandFilters.push('yoga');
+    if (combined.includes('thinkbook')) brandFilters.push('thinkbook');
+    if (combined.includes('轻薄')) { brandFilters.push('小新'); brandFilters.push('yoga'); }
+
+    // 解析预算
+    let minPrice = 0, maxPrice = Infinity;
+    if (budget) {
+      const m1 = budget.match(/(\d+)\s*[以-]?\s*内/);
+      const m2 = budget.match(/(\d+)\s*[-~到至]\s*(\d+)/);
+      const m3 = budget.match(/(\d+)\s*以上/);
+      if (m1) maxPrice = parseInt(m1[1]);
+      else if (m2) { minPrice = parseInt(m2[1]); maxPrice = parseInt(m2[2]); }
+      else if (m3) minPrice = parseInt(m3[1]);
+    }
+
+    // 构建SQL查询
+    let sql = `SELECT name, sku, price, specs FROM products WHERE status = 'active' AND category = ?`;
+    const params = [category];
+
+    if (minPrice > 0) { sql += ` AND price >= ?`; params.push(minPrice); }
+    if (maxPrice < Infinity) { sql += ` AND price <= ?`; params.push(maxPrice); }
+
+    if (brandFilters.length > 0) {
+      const brandClauses = brandFilters.map(() =>
+        `(json_extract(specs, '$.brand') LIKE ? OR json_extract(specs, '$.lvl3') LIKE ?)`
+      );
+      sql += ` AND (${brandClauses.join(' OR ')})`;
+      for (const b of brandFilters) { params.push(`%${b}%`, `%${b}%`); }
+    }
+
+    sql += ` ORDER BY price ASC LIMIT 20`;
+
+    let rows = db.prepare(sql).all(...params);
+
+    // 如果品牌筛选无结果，放宽条件重查
+    if (rows.length === 0 && brandFilters.length > 0) {
+      let fallbackSql = `SELECT name, sku, price, specs FROM products WHERE status = 'active' AND category = ?`;
+      const fallbackParams = [category];
+      if (minPrice > 0) { fallbackSql += ` AND price >= ?`; fallbackParams.push(minPrice); }
+      if (maxPrice < Infinity) { fallbackSql += ` AND price <= ?`; fallbackParams.push(maxPrice); }
+      fallbackSql += ` ORDER BY price ASC LIMIT 20`;
+      rows = db.prepare(fallbackSql).all(...fallbackParams);
+    }
+
+    // 格式化结果
+    const products = rows.map(row => {
+      let specs = {};
+      try { specs = JSON.parse(row.specs || '{}'); } catch {}
+      return {
+        name: row.name,
+        sku: row.sku,
+        price: row.price,
+        brand: specs.brand || '',
+        series: specs.lvl3 || '',
+        url: specs.url || `https://item.lenovo.com.cn/product/${row.sku}.html`
+      };
+    });
+
+    // 按品牌去重，每品牌最多取3款，总共最多8款
+    const byBrand = {};
+    const results = [];
+    for (const p of products) {
+      const key = p.brand || p.name;
+      byBrand[key] = (byBrand[key] || 0) + 1;
+      if (byBrand[key] <= 3 && results.length < 8) results.push(p);
+    }
+
+    const totalActive = db.prepare(
+      `SELECT count(*) as cnt FROM products WHERE status = 'active' AND category = ?`
+    ).get(category);
 
     return {
-      recommendations: matched,
-      query: { use_case, budget, preference },
-      note: '以上为产品线概述，具体型号和最新价格请访问联想官网或联系官方客服'
+      products: results,
+      total_active: totalActive?.cnt || 0,
+      query: { use_case, budget, preference, category },
+      note: `以上为${category}类目在售商品（共${totalActive?.cnt || 0}款在售），所有链接均为官网真实商品页。如需更多筛选条件请告知。`
     };
   }
 };
