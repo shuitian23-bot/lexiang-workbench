@@ -1808,6 +1808,9 @@ switchPage = function(pageId) {
   if (pageId === 'dashboard.geoSource') {
     setTimeout(() => geoLoadSourcePage(), 50);
   }
+  if (pageId === 'dashboard.geoIntent') {
+    setTimeout(() => geoLoadIntentPage(), 50);
+  }
   if (pageId === 'dashboard.geoKnowledge') {
     setTimeout(() => loadKnowledgeStats(), 50);
   }
