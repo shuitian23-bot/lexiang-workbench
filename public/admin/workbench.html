@@ -146,6 +146,21 @@ const MENU_TREE = {
       'dashboard.geoKnowledge': { label: '手工上传知识' }
     }
   },
+  ops: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:6px;color:#fff;font-size:13px">📈</span>', label: '运营分析', children: {
+      'ops.traffic': { label: '流量分析' },
+      'ops.gmv': { label: 'GMV 分析' },
+      'ops.keywords': { label: '敏感词库' },
+      'ops.queryBiz': { label: 'Query 业务分析' }
+    }
+  },
+  report: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#0f3460,#e94560);border-radius:6px;color:#fff;font-size:13px">📊</span>', label: '深度分析', children: {
+      'report.overview': { label: '分析概览' },
+      'report.detail': { label: '趋势与性能' },
+      'report.quality': { label: '质量与明细' }
+    }
+  },
   employee: {
     icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
       'employee.overview': { label: '概览' },
@@ -212,10 +227,10 @@ async function loadUserContext() {
       if (STATE.visibleMenus.includes('dashboard') && !STATE.visibleMenus.includes('geo')) {
         STATE.visibleMenus.push('geo');
       }
-      // 新功能：员工管理模块默认可见
-      if (!STATE.visibleMenus.includes('employee')) {
-        STATE.visibleMenus.push('employee');
-      }
+      // 新功能：员工管理/运营分析/深度分析模块默认可见
+      ['employee', 'ops', 'report'].forEach(m => {
+        if (!STATE.visibleMenus.includes(m)) STATE.visibleMenus.push(m);
+      });
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
@@ -479,12 +494,16 @@ function switchBehaviorTab(tab, el) {
 
 
 </script>
+<!-- Chart.js for dashboard charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-pages.js"></script>
 <script src="/admin/workbench-geo.js"></script>
 <script src="/admin/workbench-ai.js"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
+<script src="/admin/workbench-ops.js"></script>
+<script src="/admin/workbench-report.js"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {

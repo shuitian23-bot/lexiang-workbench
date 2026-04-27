@@ -25,10 +25,11 @@ const PAGE_RENDERERS = {
         <div class="page-title">运营总览</div>
         <div class="page-desc">乐享 & 官网全渠道数据概览</div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <select style="padding:6px 10px;border:1px solid var(--border-light);border-radius:6px;font-size:12px;background:#fff;cursor:pointer">
-          <option>最近7天</option><option>最近30天</option><option>本月</option>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="ov-time-range" style="padding:6px 10px;border:1px solid var(--border-light);border-radius:6px;font-size:12px;background:#fff;cursor:pointer" onchange="ovTimeRangeChanged(this.value)">
+          <option value="7d">最近7天</option><option value="30d" selected>最近30天</option><option value="90d">最近90天</option><option value="custom">自定义</option>
         </select>
+        <span id="ov-custom-dates" style="display:none"><input type="date" id="ov-date-start" style="padding:4px 8px;border:1px solid var(--border-light);border-radius:6px;font-size:12px"> 至 <input type="date" id="ov-date-end" style="padding:4px 8px;border:1px solid var(--border-light);border-radius:6px;font-size:12px"></span>
         <button class="btn btn-sm btn-secondary" onclick="aiQuick('生成本周运营报告')">📄 生成报告</button>
       </div>
     </div>
@@ -60,6 +61,41 @@ const PAGE_RENDERERS = {
       <div class="kpi-card"><div class="kpi-label">用户消息总数</div><div class="kpi-value" style="font-size:20px" id="ov-msgs">-</div></div>
       <div class="kpi-card"><div class="kpi-label">知识库文档</div><div class="kpi-value" style="font-size:20px" id="ov-docs">-</div></div>
       <div class="kpi-card"><div class="kpi-label">好评率</div><div class="kpi-value" style="font-size:20px" id="ov-satisfaction">-</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">💰 交易指标 · 分业务</div></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+        <div class="kpi-card" style="border-left:3px solid #2563eb">
+          <div class="kpi-label">消费业务 GMV</div>
+          <div class="kpi-value" style="font-size:20px" id="ov-gmv-consumer">-</div>
+          <div class="kpi-sub">订单 <span id="ov-orders-consumer">-</span></div>
+        </div>
+        <div class="kpi-card" style="border-left:3px solid #f59e0b">
+          <div class="kpi-label">SMB 业务 GMV</div>
+          <div class="kpi-value" style="font-size:20px" id="ov-gmv-smb">-</div>
+          <div class="kpi-sub">订单 <span id="ov-orders-smb">-</span></div>
+        </div>
+        <div class="kpi-card" style="border-left:3px solid #8b5cf6">
+          <div class="kpi-label">政企业务 GMV</div>
+          <div class="kpi-value" style="font-size:20px" id="ov-gmv-gov">-</div>
+          <div class="kpi-sub">订单 <span id="ov-orders-gov">-</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">🌐 交易指标 · 分平台</div></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0">
+        <div class="kpi-card" style="border-left:3px solid #2563eb">
+          <div class="kpi-label">官网 GMV</div>
+          <div class="kpi-value" style="font-size:20px" id="ov-gmv-official">-</div>
+          <div class="kpi-sub">占比 <span id="ov-gmv-official-pct">-</span> · 订单 <span id="ov-orders-official">-</span></div>
+        </div>
+        <div class="kpi-card" style="border-left:3px solid #94a3b8">
+          <div class="kpi-label">非官网 GMV</div>
+          <div class="kpi-value" style="font-size:20px" id="ov-gmv-other">-</div>
+          <div class="kpi-sub">占比 <span id="ov-gmv-other-pct">-</span> · 订单 <span id="ov-orders-other">-</span></div>
+        </div>
+      </div>
     </div>
     <div class="grid-2">
       <div class="card">
@@ -1102,3 +1138,8 @@ const PAGE_RENDERERS = {
     `;
   },
 };
+
+function ovTimeRangeChanged(val) {
+  const custom = document.getElementById('ov-custom-dates');
+  if (custom) custom.style.display = val === 'custom' ? 'inline' : 'none';
+}
