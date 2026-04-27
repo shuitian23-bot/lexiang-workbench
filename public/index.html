@@ -765,8 +765,8 @@ function openPreview(url) {
   document.getElementById('previewUrl').textContent = url;
   fb.style.display = 'none';
   iframe.style.display = 'block';
-  iframe.onload = function() { try { iframe.contentDocument; } catch(e) { showPreviewFallback(url); } };
-  iframe.src = url;
+  const proxyUrl = '/api/preview?url=' + encodeURIComponent(url);
+  iframe.src = proxyUrl;
   panel.classList.add('open');
 }
 function showPreviewFallback(url) {

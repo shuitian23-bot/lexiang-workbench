@@ -120,6 +120,35 @@ app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 
+// Preview proxy — 绕过外部站点 X-Frame-Options 限制
+app.get('/api/preview', async (req, res) => {
+  const url = req.query.url;
+  if (!url || !/^https?:\/\//.test(url)) return res.status(400).send('Invalid URL');
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000)
+    });
+    const ct = resp.headers.get('content-type') || 'text/html';
+    if (ct.includes('text/html')) {
+      let html = await resp.text();
+      const origin = new URL(url).origin;
+      if (!html.includes('<base')) {
+        html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${origin}/">`);
+      }
+      res.set('Content-Type', 'text/html; charset=utf-8');
+      res.send(html);
+    } else {
+      res.set('Content-Type', ct);
+      const buf = Buffer.from(await resp.arrayBuffer());
+      res.send(buf);
+    }
+  } catch(e) {
+    res.status(502).send('Preview failed: ' + e.message);
+  }
+});
+
 // SPA fallback
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
