@@ -786,9 +786,10 @@ function openPreviewExternal() { if (_previewUrl) window.open(_previewUrl, '_bla
 // ── Configure marked: all links open in preview panel ──
 if (typeof marked !== 'undefined') {
   const renderer = new marked.Renderer();
-  renderer.link = function({ href, text }) {
+  renderer.link = function(href, title, text) {
     const safeHref = (href || '').replace(/"/g, '&quot;').replace(/'/g, "\\'");
-    return '<a href="javascript:void(0)" onclick="openPreview(\'' + safeHref + '\')" style="cursor:pointer">' + (text || href) + '</a>';
+    const label = text || href || '链接';
+    return '<a href="javascript:void(0)" onclick="openPreview(\'' + safeHref + '\')" style="cursor:pointer">' + label + '</a>';
   };
   marked.setOptions({ renderer: renderer });
 }
