@@ -463,6 +463,21 @@ html,body{height:100%;overflow:hidden}
 .scroll-down-btn:hover{border-color:var(--accent);color:var(--accent)}
 .scroll-down-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none}
 
+/* ── Preview Panel ── */
+.preview-panel{width:0;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border);background:var(--bg);transition:width .3s ease;overflow:hidden;position:relative}
+.preview-panel.open{width:50%}
+.preview-topbar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;min-height:44px}
+[data-theme="dark"] .preview-topbar{background:var(--card)}
+.preview-url{flex:1;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace}
+.preview-btns{display:flex;gap:6px;flex-shrink:0}
+.preview-btn{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;cursor:pointer;transition:all .15s;font-family:inherit}
+.preview-btn:hover{border-color:var(--accent);color:var(--accent)}
+.preview-iframe{flex:1;border:none;width:100%;background:#fff}
+.preview-fallback{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;text-align:center}
+.preview-fallback-icon{font-size:48px;opacity:.4}
+.preview-fallback-text{font-size:14px;color:var(--text2);line-height:1.7}
+.preview-fallback-link{color:var(--accent);font-size:13px}
+
 /* Mobile chat */
 @media(max-width:768px){
   #chatApp .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:20;transform:translateX(-100%);transition:transform .3s cubic-bezier(.19,1,.22,1);box-shadow:6px 0 32px rgba(0,0,0,.18)}
@@ -479,6 +494,7 @@ html,body{height:100%;overflow:hidden}
   .chat-topbar{padding:0 14px}
   .ta{font-size:16px}
   .scroll-down-btn{bottom:10px;margin-right:10px}
+  .preview-panel.open{position:fixed;inset:0;width:100%;z-index:200}
 }
 
 .qp:hover{color:var(--text);border-color:var(--text)!important;transform:translateY(-1px)}
@@ -720,10 +736,63 @@ html,body{height:100%;overflow:hidden}
       <div class="input-hint">内容由联想乐享AI生成，仅供参考</div>
     </div>
   </div>
+  <div class="preview-panel" id="previewPanel">
+    <div class="preview-topbar">
+      <span class="preview-url" id="previewUrl"></span>
+      <div class="preview-btns">
+        <button class="preview-btn" onclick="openPreviewExternal()">↗ 新标签</button>
+        <button class="preview-btn" onclick="closePreview()">✕ 关闭</button>
+      </div>
+    </div>
+    <iframe class="preview-iframe" id="previewIframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    <div class="preview-fallback" id="previewFallback" style="display:none">
+      <div class="preview-fallback-icon">🔗</div>
+      <div class="preview-fallback-text">此链接无法预览（跨域限制）</div>
+      <a class="preview-fallback-link" id="previewFallbackLink" target="_blank" rel="noopener">在新标签页打开 ↗</a>
+    </div>
+  </div>
 </div><!-- /chatApp -->
 
 
 <script>
+// ── Preview Panel ──
+let _previewUrl = '';
+function openPreview(url) {
+  _previewUrl = url;
+  const panel = document.getElementById('previewPanel');
+  const iframe = document.getElementById('previewIframe');
+  const fb = document.getElementById('previewFallback');
+  document.getElementById('previewUrl').textContent = url;
+  fb.style.display = 'none';
+  iframe.style.display = 'block';
+  iframe.onload = function() { try { iframe.contentDocument; } catch(e) { showPreviewFallback(url); } };
+  iframe.src = url;
+  panel.classList.add('open');
+}
+function showPreviewFallback(url) {
+  document.getElementById('previewIframe').style.display = 'none';
+  const fb = document.getElementById('previewFallback');
+  fb.style.display = 'flex';
+  document.getElementById('previewFallbackLink').href = url;
+}
+function closePreview() {
+  const panel = document.getElementById('previewPanel');
+  panel.classList.remove('open');
+  setTimeout(() => { document.getElementById('previewIframe').src = 'about:blank'; }, 300);
+  _previewUrl = '';
+}
+function openPreviewExternal() { if (_previewUrl) window.open(_previewUrl, '_blank'); }
+
+// ── Configure marked: all links open in preview panel ──
+if (typeof marked !== 'undefined') {
+  const renderer = new marked.Renderer();
+  renderer.link = function({ href, text }) {
+    const safeHref = (href || '').replace(/"/g, '&quot;').replace(/'/g, "\\'");
+    return '<a href="javascript:void(0)" onclick="openPreview(\'' + safeHref + '\')" style="cursor:pointer">' + (text || href) + '</a>';
+  };
+  marked.setOptions({ renderer: renderer });
+}
+
 // ══════════════════════════════════════
 //  持久 Session UID
 //  localStorage + 1年 cookie 双保险
