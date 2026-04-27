@@ -783,6 +783,20 @@ function closePreview() {
 }
 function openPreviewExternal() { if (_previewUrl) window.open(_previewUrl, '_blank'); }
 
+// ── Global link interceptor: all external links open in preview panel ──
+document.addEventListener('click', function(e) {
+  const a = e.target.closest('a[href]');
+  if (!a) return;
+  const href = a.getAttribute('href');
+  if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('/api/')) return;
+  if (href.startsWith('http') || href.startsWith('//')) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = href.startsWith('//') ? 'https:' + href : href;
+    openPreview(url);
+  }
+}, true);
+
 // ── Configure marked: all links open in preview panel ──
 if (typeof marked !== 'undefined') {
   const renderer = new marked.Renderer();
