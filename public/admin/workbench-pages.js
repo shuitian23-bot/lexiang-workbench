@@ -19,11 +19,21 @@ function renderPage(pageId) {
 }
 
 const PAGE_RENDERERS = {
-  'dashboard.overview': () => `
+  'dashboard.overview': () => {
+    const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+    const lt = L ? L.latest : {};
+    const lc = L ? L.consumer[L.consumer.length-1] : {};
+    const ls = L ? L.smb[L.smb.length-1] : {};
+    const lg = L ? L.gov[L.gov.length-1] : {};
+    const fmtW = v => v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
+    const fmtY = v => v >= 100000000 ? (v/100000000).toFixed(2)+'亿' : v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
+    const offPct = lt.offGmvM && lt.nonGmvM ? ((lt.offGmvM/(lt.offGmvM+lt.nonGmvM))*100).toFixed(1)+'%' : '-';
+    const nonPct = lt.offGmvM && lt.nonGmvM ? ((lt.nonGmvM/(lt.offGmvM+lt.nonGmvM))*100).toFixed(1)+'%' : '-';
+    return `
     <div class="page-header">
       <div>
         <div class="page-title">运营总览</div>
-        <div class="page-desc">乐享 & 官网全渠道数据概览</div>
+        <div class="page-desc">乐享全渠道数据 · ${L ? L.period : ''} · 数据更新于 ${L ? L.updated : '-'}</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <select id="ov-time-range" style="padding:6px 10px;border:1px solid var(--border-light);border-radius:6px;font-size:12px;background:#fff;cursor:pointer" onchange="ovTimeRangeChanged(this.value)">
@@ -35,24 +45,23 @@ const PAGE_RENDERERS = {
     </div>
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">MAU（月活跃用户）</div>
-        <div class="kpi-value">823万</div>
-        <div class="kpi-sub"><span class="up">↑ 12.3%</span> 较上月</div>
+        <div class="kpi-label">DAU（日活跃用户）</div>
+        <div class="kpi-value">${fmtW(lt.dau)}</div>
+        <div class="kpi-sub">登录 ${fmtW(lt.login)} · 互动 ${fmtW(lt.inter)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
-        <div class="kpi-value">289万</div>
-        <div class="kpi-sub"><span class="up">↑ 5.7%</span> 较上周</div>
+        <div class="kpi-value">${fmtW(lt.wau)}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">GMV（交易额）</div>
-        <div class="kpi-value">38.2亿</div>
-        <div class="kpi-sub"><span class="up">↑ 8.1%</span> 较上月</div>
+        <div class="kpi-label">MAU（月活跃用户）</div>
+        <div class="kpi-value">${fmtW(lt.mau)}</div>
+        <div class="kpi-sub">登录 ${fmtW(lt.loginM)} · 互动 ${fmtW(lt.interM)}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">登录客户数</div>
-        <div class="kpi-value">541万</div>
-        <div class="kpi-sub"><span class="down">↓ 2.1%</span> 较上月</div>
+        <div class="kpi-label">月GMV</div>
+        <div class="kpi-value">${fmtY(lt.gmvM)}</div>
+        <div class="kpi-sub">今日 ${fmtY(lt.gmv)} · 购买 ${lt.buy?.toLocaleString() || '-'}人</div>
       </div>
     </div>
     <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
@@ -63,37 +72,37 @@ const PAGE_RENDERERS = {
       <div class="kpi-card"><div class="kpi-label">好评率</div><div class="kpi-value" style="font-size:20px" id="ov-satisfaction">-</div></div>
     </div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><div class="card-title">💰 交易指标 · 分业务</div></div>
+      <div class="card-header"><div class="card-title">💰 交易指标 · 分业务（月累计）</div></div>
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
         <div class="kpi-card" style="border-left:3px solid #2563eb">
           <div class="kpi-label">消费业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px" id="ov-gmv-consumer">-</div>
-          <div class="kpi-sub">订单 <span id="ov-orders-consumer">-</span></div>
+          <div class="kpi-value" style="font-size:20px">${fmtY(lc.gmvM)}</div>
+          <div class="kpi-sub">今日 ${fmtY(lc.gmv)} · 购买 ${lc.buy || 0}人</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #f59e0b">
           <div class="kpi-label">SMB 业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px" id="ov-gmv-smb">-</div>
-          <div class="kpi-sub">订单 <span id="ov-orders-smb">-</span></div>
+          <div class="kpi-value" style="font-size:20px">${fmtY(ls.gmvM)}</div>
+          <div class="kpi-sub">今日 ${fmtY(ls.gmv)} · 购买 ${ls.buy || 0}人</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #8b5cf6">
           <div class="kpi-label">政企业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px" id="ov-gmv-gov">-</div>
-          <div class="kpi-sub">订单 <span id="ov-orders-gov">-</span></div>
+          <div class="kpi-value" style="font-size:20px">${fmtY(lg.gmvM)}</div>
+          <div class="kpi-sub">今日 ${fmtY(lg.gmv)} · 购买 ${lg.buy || 0}人</div>
         </div>
       </div>
     </div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><div class="card-title">🌐 交易指标 · 分平台</div></div>
+      <div class="card-header"><div class="card-title">🌐 交易指标 · 分平台（月累计）</div></div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0">
         <div class="kpi-card" style="border-left:3px solid #2563eb">
           <div class="kpi-label">官网 GMV</div>
-          <div class="kpi-value" style="font-size:20px" id="ov-gmv-official">-</div>
-          <div class="kpi-sub">占比 <span id="ov-gmv-official-pct">-</span> · 订单 <span id="ov-orders-official">-</span></div>
+          <div class="kpi-value" style="font-size:20px">${fmtY(lt.offGmvM)}</div>
+          <div class="kpi-sub">占比 ${offPct} · 购买 ${lt.offBuy?.toLocaleString() || '-'}人</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #94a3b8">
           <div class="kpi-label">非官网 GMV</div>
-          <div class="kpi-value" style="font-size:20px" id="ov-gmv-other">-</div>
-          <div class="kpi-sub">占比 <span id="ov-gmv-other-pct">-</span> · 订单 <span id="ov-orders-other">-</span></div>
+          <div class="kpi-value" style="font-size:20px">${fmtY(lt.nonGmvM)}</div>
+          <div class="kpi-sub">占比 ${nonPct} · 购买 ${lt.nonBuy?.toLocaleString() || '-'}人</div>
         </div>
       </div>
     </div>
@@ -144,7 +153,7 @@ const PAGE_RENDERERS = {
       <div class="card-header"><div class="card-title">📊 7 日对话趋势 (实时)</div></div>
       <div id="ov-trend" style="display:flex;align-items:flex-end;gap:12px;height:120px;padding-top:10px;"></div>
     </div>
-  `,
+  `;},
 
   // ===== GEO DASHBOARD =====
   'dashboard.geo': () => `

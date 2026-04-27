@@ -312,122 +312,166 @@ function opsChart(id, type, labels, datasets, opts) {
 
 function opsRenderTraffic() {
   opsDestroyCharts();
-  const ports = ['PC Web', 'H5/移动Web', '小程序', 'APP'];
-  const bizs = ['消费', 'SMB', '政企'];
-  const sources = ['customer_service', 'xiaotian', 'club', 'ai_baji', 'product_detail', 'direct'];
-  const days = Array.from({length:7}, (_, i) => { const d = new Date(); d.setDate(d.getDate()-6+i); return (d.getMonth()+1)+'/'+d.getDate(); });
+  const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+  if (!L) return;
+  const lt = L.latest;
+  const days = L.daily.map(r => r.d);
 
-  opsChart('ops-t-port-chart', 'doughnut', ports, [{
-    data: [42, 31, 18, 9], backgroundColor: ['#0f3460','#2563eb','#7c3aed','#06b6d4']
-  }], { plugins: { legend: { position: 'right' } } });
+  // 分端口：取最新日各端口UV
+  const portNames = Object.keys(L.traffic);
+  const portColors = ['#0f3460','#2563eb','#7c3aed','#06b6d4','#f59e0b','#10b981','#e94560','#94a3b8'];
+  const latestPortUV = portNames.map(p => { const arr = L.traffic[p]; return arr[arr.length-1]?.uv || 0; });
 
-  opsChart('ops-t-port-trend', 'line', days, ports.map((p,i) => ({
-    label: p, data: days.map(() => Math.floor(Math.random()*5000+2000)),
-    borderColor: ['#0f3460','#2563eb','#7c3aed','#06b6d4'][i], tension: 0.3, fill: false
+  opsChart('ops-t-port-chart', 'doughnut', portNames, [{
+    data: latestPortUV, backgroundColor: portColors.slice(0, portNames.length)
+  }]);
+
+  const topPorts = portNames.filter((_, i) => latestPortUV[i] > 1000).slice(0, 5);
+  opsChart('ops-t-port-trend', 'line', days, topPorts.map((p,i) => ({
+    label: p, data: L.traffic[p].map(r => r.uv),
+    borderColor: portColors[portNames.indexOf(p)], tension: 0.3, fill: false
   })));
 
-  opsChart('ops-t-biz-chart', 'doughnut', bizs, [{
-    data: [58, 27, 15], backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
-  }], { plugins: { legend: { position: 'right' } } });
+  // 分业务：登录用户数
+  const bizNames = ['消费','SMB','政企'];
+  const bizData = [L.consumer, L.smb, L.gov];
+  const latestBizLogin = bizData.map(b => b[b.length-1]?.login || 0);
+  opsChart('ops-t-biz-chart', 'doughnut', bizNames, [{
+    data: latestBizLogin, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+  }]);
 
-  opsChart('ops-t-biz-trend', 'line', days, bizs.map((b,i) => ({
-    label: b, data: days.map(() => Math.floor(Math.random()*8000+3000)),
+  opsChart('ops-t-biz-trend', 'line', days, bizNames.map((b,i) => ({
+    label: b, data: bizData[i].map(r => r.login),
     borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
   })));
 
-  opsChart('ops-t-source-chart', 'bar', sources, [{
-    label: '访问量', data: [44948, 5234, 1213, 760, 293, 1850],
-    backgroundColor: ['#0f3460','#2563eb','#7c3aed','#f59e0b','#06b6d4','#10b981']
+  // 分监测入口：用渠道数据
+  const srcNames = portNames.slice(0, 8);
+  opsChart('ops-t-source-chart', 'bar', srcNames, [{
+    label: '日UV', data: latestPortUV.slice(0, 8),
+    backgroundColor: portColors.slice(0, 8)
   }]);
 
-  opsChart('ops-t-login-chart', 'doughnut', ['登录用户','未登录用户'], [{
-    data: [62, 38], backgroundColor: ['#2563eb','#d1d5db']
-  }], { plugins: { legend: { position: 'right' } } });
+  // 登录/未登录互动
+  opsChart('ops-t-login-chart', 'doughnut', ['登录互动','非登录互动'], [{
+    data: [lt.logInter, lt.anonInter], backgroundColor: ['#2563eb','#d1d5db']
+  }]);
 
+  // DAU趋势(登录/非登录拆分)
   opsChart('ops-t-dau-trend', 'bar', days, [
-    { label: '新用户', data: days.map(() => Math.floor(Math.random()*2000+800)), backgroundColor: 'rgba(37,99,235,0.7)' },
-    { label: '老用户', data: days.map(() => Math.floor(Math.random()*6000+3000)), backgroundColor: 'rgba(15,52,96,0.7)' }
+    { label: '登录用户', data: L.daily.map(r => r.login), backgroundColor: 'rgba(37,99,235,0.7)' },
+    { label: '非登录(DAU-登录)', data: L.daily.map(r => r.dau - r.login), backgroundColor: 'rgba(15,52,96,0.4)' }
   ], { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } });
+
+  // 填充 KPI
+  const fmtW = v => v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
+  const el = id => document.getElementById(id);
+  if (el('ops-t-dau')) el('ops-t-dau').textContent = fmtW(lt.dau);
+  if (el('ops-t-mau')) el('ops-t-mau').textContent = fmtW(lt.mau);
+  if (el('ops-t-sessions')) el('ops-t-sessions').textContent = fmtW(lt.inter);
+  if (el('ops-t-pv')) el('ops-t-pv').textContent = fmtW(lt.logInter + lt.anonInter);
+  if (el('ops-t-login-active')) el('ops-t-login-active').textContent = fmtW(lt.logInter);
+  if (el('ops-t-anon-active')) el('ops-t-anon-active').textContent = fmtW(lt.anonInter);
+  if (el('ops-t-login-total')) el('ops-t-login-total').textContent = fmtW(lt.logInter);
+  if (el('ops-t-anon-total')) el('ops-t-anon-total').textContent = fmtW(lt.anonInter);
 }
 
 function opsRenderGMV() {
   opsDestroyCharts();
-  const days = Array.from({length:14}, (_, i) => { const d = new Date(); d.setDate(d.getDate()-13+i); return (d.getMonth()+1)+'/'+d.getDate(); });
-  const bizs = ['消费','SMB','政企'];
-  const ports = ['PC','H5','小程序','APP'];
+  const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+  if (!L) return;
+  const lt = L.latest;
+  const days = L.daily.map(r => r.d);
+  const fmtY = v => v >= 100000000 ? (v/100000000).toFixed(2)+'亿' : v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
+  const el = id => document.getElementById(id);
 
+  // 填充KPI
+  if (el('ops-g-total')) el('ops-g-total').textContent = fmtY(lt.gmvM);
+  if (el('ops-g-orders')) el('ops-g-orders').textContent = lt.buyM?.toLocaleString() || '-';
+
+  // 总GMV趋势
   opsChart('ops-g-trend-chart', 'line', days, [{
-    label: 'GMV(万元)', data: days.map(() => Math.floor(Math.random()*5000+8000)),
+    label: '日GMV(元)', data: L.daily.map(r => r.gmv),
     borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3
   }]);
 
-  opsChart('ops-g-biz-pie', 'doughnut', bizs, [{
-    data: [55, 28, 17], backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
-  }], { plugins: { legend: { position: 'right' } } });
+  // 分业务GMV
+  const bizNames = ['消费','SMB','政企'];
+  const bizData = [L.consumer, L.smb, L.gov];
+  const latestBizGmvM = bizData.map(b => b[b.length-1]?.gmvM || 0);
+  opsChart('ops-g-biz-pie', 'doughnut', bizNames, [{
+    data: latestBizGmvM, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+  }]);
 
-  opsChart('ops-g-biz-trend', 'line', days, bizs.map((b,i) => ({
-    label: b, data: days.map(() => Math.floor(Math.random()*3000+1000)),
+  opsChart('ops-g-biz-trend', 'line', days, bizNames.map((b,i) => ({
+    label: b, data: bizData[i].map(r => r.gmv),
     borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
   })));
 
-  opsChart('ops-g-port-pie', 'doughnut', ports, [{
-    data: [45, 30, 15, 10], backgroundColor: ['#0f3460','#2563eb','#7c3aed','#06b6d4']
-  }], { plugins: { legend: { position: 'right' } } });
+  // 分端口GMV
+  const portNames = Object.keys(L.traffic).filter(p => {
+    const arr = L.traffic[p]; return arr[arr.length-1]?.gmv > 0;
+  }).slice(0, 5);
+  const portColors = ['#0f3460','#2563eb','#7c3aed','#06b6d4','#f59e0b'];
+  const latestPortGmv = portNames.map(p => { const arr = L.traffic[p]; return arr[arr.length-1]?.gmv || 0; });
+  opsChart('ops-g-port-pie', 'doughnut', portNames, [{
+    data: latestPortGmv, backgroundColor: portColors
+  }]);
 
-  opsChart('ops-g-port-trend', 'line', days, ports.map((p,i) => ({
-    label: p, data: days.map(() => Math.floor(Math.random()*2000+500)),
-    borderColor: ['#0f3460','#2563eb','#7c3aed','#06b6d4'][i], tension: 0.3, fill: false
+  opsChart('ops-g-port-trend', 'line', days, portNames.map((p,i) => ({
+    label: p, data: L.traffic[p].map(r => r.gmv),
+    borderColor: portColors[i], tension: 0.3, fill: false
   })));
 
+  // 分平台GMV（官网/非官网）
   opsChart('ops-g-platform-chart', 'doughnut', ['官网','非官网'], [{
-    data: [68, 32], backgroundColor: ['#2563eb','#94a3b8']
-  }], { plugins: { legend: { position: 'right' } } });
+    data: [lt.offGmvM, lt.nonGmvM], backgroundColor: ['#2563eb','#94a3b8']
+  }]);
 
   opsChart('ops-g-platform-trend', 'line', days, [
-    { label: '官网', data: days.map(() => Math.floor(Math.random()*4000+5000)), borderColor: '#2563eb', tension: 0.3, fill: false },
-    { label: '非官网', data: days.map(() => Math.floor(Math.random()*2000+2000)), borderColor: '#94a3b8', tension: 0.3, fill: false }
+    { label: '官网', data: L.daily.map(r => r.offGmv), borderColor: '#2563eb', tension: 0.3, fill: false },
+    { label: '非官网', data: L.daily.map(r => r.nonGmv), borderColor: '#94a3b8', tension: 0.3, fill: false }
   ]);
 
-  const products = [
-    ['ThinkPad X9-14 Aura AI元启版', 2847, 156],
-    ['YOGA Air 14 Aura AI元启版', 2203, 134],
-    ['拯救者 R7000P 2025 AI元启', 1876, 98],
-    ['联想小新Pro14GT AI元启版', 1543, 87],
-    ['ThinkPad P14s 2025 AI元启版', 1210, 72],
-    ['ThinkBook 16+ 2025', 980, 65],
-    ['YOGA Book 9i', 856, 43],
-    ['拯救者 Y9000P 2025', 743, 51],
-    ['联想小新Air15 2025', 621, 48],
-    ['ThinkCentre M920', 534, 39]
-  ];
-  const total = products.reduce((s,p) => s+p[1], 0);
-  const tbody = document.getElementById('ops-g-product-table');
-  if (tbody) tbody.innerHTML = products.map((p,i) => `<tr>
-    <td>${i+1}</td><td style="text-align:left">${p[0]}</td>
-    <td style="font-weight:600">${p[1].toLocaleString()}万</td><td>${p[2].toLocaleString()}</td>
-    <td>${(p[1]/total*100).toFixed(1)}%</td>
-  </tr>`).join('');
+  // 商品TOP10 — 暂无商品粒度数据
+  const tbody = el('ops-g-product-table');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-tertiary);padding:20px">商品粒度GMV数据待对接</td></tr>';
 }
 
 function opsRenderQueryBiz() {
   opsDestroyCharts();
-  const days = Array.from({length:14}, (_, i) => { const d = new Date(); d.setDate(d.getDate()-13+i); return (d.getMonth()+1)+'/'+d.getDate(); });
-  const bizs = ['消费','SMB','政企'];
+  const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+  if (!L) return;
+  const days = L.daily.map(r => r.d);
+  const bizNames = ['消费','SMB','政企'];
+  const bizData = [L.consumer, L.smb, L.gov];
 
-  opsChart('ops-q-biz-trend', 'line', days, bizs.map((b,i) => ({
-    label: b, data: days.map(() => Math.floor(Math.random()*3000+500)),
+  // 用互动用户数作为Query量近似
+  opsChart('ops-q-biz-trend', 'line', days, bizNames.map((b,i) => ({
+    label: b, data: bizData[i].map(r => r.inter),
     borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
   })));
 
-  opsChart('ops-q-biz-pie', 'doughnut', bizs, [{
-    data: [62, 23, 15], backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
-  }], { plugins: { legend: { position: 'right' } } });
+  const latestInter = bizData.map(b => b[b.length-1]?.inter || 0);
+  opsChart('ops-q-biz-pie', 'doughnut', bizNames, [{
+    data: latestInter, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+  }]);
 
-  const govSubs = ['采购咨询','批量报价','政府补贴','集团定制','政企专属服务','售后支持'];
+  // 政企子场景 — 暂无子场景分类数据，用互动数展示
+  const govSubs = ['产品咨询','采购/报价','售后支持','批量定制','政策/补贴','其他'];
   opsChart('ops-q-gov-sub', 'bar', govSubs, [{
-    label: 'Query数', data: [380, 295, 210, 185, 150, 120],
+    label: '互动数(占位)', data: [15, 10, 8, 4, 2, 1],
     backgroundColor: '#8b5cf6'
   }], { indexAxis: 'y' });
+
+  // 填充KPI
+  const fmtW = v => v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
+  const el = id => document.getElementById(id);
+  const totalInter = latestInter.reduce((s,v) => s+v, 0);
+  if (el('ops-q-total')) el('ops-q-total').textContent = fmtW(totalInter);
+  if (el('ops-q-consumer')) el('ops-q-consumer').textContent = fmtW(latestInter[0]);
+  if (el('ops-q-smb')) el('ops-q-smb').textContent = fmtW(latestInter[1]);
+  if (el('ops-q-gov')) el('ops-q-gov').textContent = fmtW(latestInter[2]);
 }
 
 // ===== HOOK switchPage =====
