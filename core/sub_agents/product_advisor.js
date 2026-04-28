@@ -36,6 +36,7 @@ const SYSTEM_PROMPT = `你是联想产品选购专家"小想"，精通联想全�
 module.exports = {
   name: 'product_advisor',
   description: '联想产品推荐专家，擅长根据需求推荐合适的联想产品',
+  streamsChunks: true,
   keywords: ['推荐', '选购', '哪款好', '哪款', '对比', '比较', '选哪', '买哪', '适合', '性价比', '配置'],
 
   async run(userMessage, historyMessages, ragContext) {

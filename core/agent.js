@@ -595,6 +595,8 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     }
 
     if (subText) {
+      // 非流式子Agent兜底：如果子Agent没自行调用onChunk，把完整文本推送给前端
+      if (onChunk && !subAgent.streamsChunks) onChunk(subText);
       // 保存消息、更新对话
       const subInsert = db.prepare('INSERT INTO messages (conv_id, role, content, tool_calls) VALUES (?, ?, ?, ?)').run(convId, 'assistant', subText, null);
       db.prepare('UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(convId);
