@@ -148,7 +148,6 @@ async function geoLoadData() {
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
     const sitesPromise = geoLoadSites();
     const questionsPromise = geoLoadQuestions();
-    const trendPromise = geoFetchTrend(selectedModels);
     const trendChartPromise = geoLoadTrendChart();
     const wordCloudPromise = geoLoadWordCloud(30);
 
@@ -172,63 +171,6 @@ async function geoLoadData() {
 
 function geoClampPct(v) { return (v == null || isNaN(v)) ? null : Math.min(+v, 100); }
 
-async function geoFetchTrend(models) {
-  try {
-    const prevBody = { project_id: GEO_PROJECT_ID };
-    if (geoState.startDate && geoState.endDate) {
-      const s = new Date(geoState.startDate), e = new Date(geoState.endDate);
-      const days = Math.round((e - s) / 86400000) + 1;
-      const prevEnd = new Date(s); prevEnd.setDate(prevEnd.getDate() - 1);
-      const prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate() - days + 1);
-      prevBody.start_date = prevStart.toISOString().slice(0,10);
-      prevBody.end_date = prevEnd.toISOString().slice(0,10);
-    } else {
-      const p = geoState.period || '30d';
-      const days = p === '7d' ? 7 : p === '30d' ? 30 : 365;
-      const today = new Date();
-      const end = new Date(today); end.setDate(end.getDate() - days);
-      const start = new Date(end); start.setDate(start.getDate() - days + 1);
-      prevBody.start_date = start.toISOString().slice(0,10);
-      prevBody.end_date = end.toISOString().slice(0,10);
-    }
-    if (models && models.length) prevBody.models = models;
-    const srcs = GEO_SOURCES[geoState.scope];
-    if (srcs && srcs.length) prevBody.sources = srcs;
-    const resp = await fetch('/api/geo-dashboard/overview', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(prevBody) });
-    const prev = await resp.json();
-    if (prev.code !== 200) return;
-    const raw = geoState._kpiRaw; if (!raw) return;
-    const pbcm = prev.brand_coverage_metrics || {};
-    const pcm = prev.conversion_metrics || {};
-    const prevRaw = {
-      visible: pbcm.brand_exposure_rate, rec: pcm.brand_priority_rate,
-      top1: pcm.brand_top1_rate, top3: pcm.brand_top3_rate
-    };
-    geoState._trendPrev = prevRaw;
-    geoRenderTrend();
-  } catch(e) { console.error('geoFetchTrend', e); }
-}
-
-function geoRenderTrend() {
-  const raw = geoState._kpiRaw;
-  const prev = geoState._trendPrev;
-  if (!raw || !prev) return;
-  const metrics = ['visible','rec','top1','top3'];
-  metrics.forEach(m => {
-    const card = document.querySelector(`.geo-kpi[data-metric="${m}"]`);
-    if (!card) return;
-    let trendEl = card.querySelector('.gk-trend');
-    if (!trendEl) { trendEl = document.createElement('div'); trendEl.className = 'gk-trend'; card.appendChild(trendEl); }
-    const cur = raw[m].brand || 0;
-    const prv = prev[m] || 0;
-    const diff = cur - prv;
-    if (Math.abs(diff) < 0.01) { trendEl.innerHTML = `<span style="font-size:11px;color:#6b7280">— 持平</span>`; return; }
-    const up = diff > 0;
-    const arrow = up ? '↑' : '↓';
-    const color = up ? '#059669' : '#dc2626';
-    trendEl.innerHTML = `<span style="font-size:11px;color:${color};font-weight:500">${arrow} ${Math.abs(diff).toFixed(2)}pp</span><span style="font-size:10px;color:#9ca3af;margin-left:4px">环比</span>`;
-  });
-}
 
 function geoRenderKpis(data) {
   const bcm = data.brand_coverage_metrics || {};
