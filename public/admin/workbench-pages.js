@@ -296,7 +296,7 @@ const PAGE_RENDERERS = {
           <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
-          <div class="gpnl-title">联想 AI 引用链接 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个站点</span></div>
+          <div class="gpnl-title">联想域名 AI 引用 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个联想站点</span></div>
           <div class="geo-scroll-wrap" style="max-height:380px;overflow-y:auto">
             <div id="geo-link-top50"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
           </div>

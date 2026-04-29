@@ -441,7 +441,8 @@ async function geoLoadSites() {
     geoRenderSiteRank(sites);
     geoRenderLinkTop50(sites);
     const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    set('gv-sites-total', (d.total_records||0).toLocaleString());
+    const lenovoCount = sites.filter(s => s.domain && s.domain.includes('lenovo')).length;
+    set('gv-sites-total', lenovoCount.toLocaleString());
   } catch(e) { console.error('geoLoadSites', e); }
 }
 
@@ -466,10 +467,11 @@ function geoRenderSiteRank(sites) {
   ).join('') + '</ol>';
 }
 
-// ===== GEO AI引用链接 Top50 =====
+// ===== GEO AI引用链接 Top50（仅联想域名） =====
 function geoRenderLinkTop50(sites) {
   const c = document.getElementById('geo-link-top50'); if (!c) return;
-  const top = sites.slice(0, 50);
+  const lenovoSites = sites.filter(s => s.domain && s.domain.includes('lenovo'));
+  const top = lenovoSites.slice(0, 50).map((s, i) => ({...s, rank: i + 1}));
   if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
   const maxCount = Math.max(...top.map(s => s.count), 1);
   c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
