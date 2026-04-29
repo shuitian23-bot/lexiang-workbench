@@ -412,16 +412,12 @@ function geoRenderPlatDist() {
   });
   const mx = Math.max(...rows.map(r => r.cites), 1);
   c.innerHTML = rows.map(r => {
-    const color = geoPlatColors[r.p] || '#3b82f6';
-    const pct = Math.min(r.brand, 100).toFixed(0);
     if (r.missing) {
       return `<div class="geo-plat-card"><div class="gpc-name">${geoPlatNames[r.p] || r.p}</div><div style="color:#6b7390;font-size:11px">无数据</div></div>`;
     }
     return `<div class="geo-plat-card">
       <div class="gpc-name">${geoPlatNames[r.p] || r.p}</div>
       <div class="gpc-row"><span>引用次数</span><span class="gpc-val">${r.cites.toLocaleString()}</span></div>
-      <div class="gpc-row"><span>品牌可见度</span><span class="gpc-val">${r.brand.toFixed(1)}%</span></div>
-      <div class="gpc-bar"><div class="gpc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
     </div>`;
   }).join('');
 }
@@ -584,12 +580,9 @@ function geoRenderIntentPlatformSummary(qs) {
     const name = geoPlatNames[m] || m;
     const color = geoPlatColors[m] || '#6b7280';
     const count = platStats[m] || 0;
-    const pct = totalCount ? (count / totalCount * 100).toFixed(0) : 0;
     html += `<div style="flex:1;min-width:140px;padding:16px;background:#fff;border-radius:10px;text-align:center;border:1px solid #e5e7eb">
       <div style="font-size:28px;font-weight:700;color:${color}">${count}</div>
       <div style="font-size:12px;color:#6b7280;margin-top:4px">${name} 覆盖意图数</div>
-      <div style="height:4px;background:#e5e7eb;border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px"></div></div>
-      <div style="font-size:10px;color:#9ca3af;margin-top:2px">${pct}% 覆盖率</div>
     </div>`;
   });
   html += '</div>';
