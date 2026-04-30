@@ -3,7 +3,7 @@
    移动端 (max-width:768px) 不应用，保持原 is-chat 切换逻辑
    ══════════════════════════════════════════════════════════════ */
 
-@media (min-width: 769px) {
+@media (min-width: 1100px) {
   html.split-mode, html.split-mode body {
     overflow: hidden;
     height: 100vh;
@@ -301,7 +301,7 @@
 }
 
 /* 移动端：禁用分屏，恢复原 is-chat 切换 */
-@media (max-width: 768px) {
+@media (max-width: 1099px) {
   html.split-mode #splitDivider,
   html.split-mode #splitControls { display: none !important; }
   html.split-mode body > #splitRoot {
