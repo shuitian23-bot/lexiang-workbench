@@ -2342,12 +2342,14 @@ var _la_lenovo_website = 10000001;
 
     # === 3 子目录分页：wiki-c(消费) / wiki-b(SMB/企业购) / wiki-biz(政企) ===
     # 严格按飞书约定的分类白名单控制各子站内容
-    BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz'}
+    BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz', 'wiki-shop': 'shop'}
     BU_ALLOWED_CATS = {
         'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device', 'whole_home', 'service'},
         'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution'},
         'biz': {'notebook', 'desktop', 'monitor', 'workstation', 'tablet_phone', 'accessory',
                 'smart_device', 'server', 'solution', 'biz-case'},
+        'shop': {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory',
+                 'smart_device', 'service'},
     }
     sub_site_data = {}  # 保存各子站分类数据供第六步用
 
@@ -2376,6 +2378,10 @@ var _la_lenovo_website = 10000001;
             title = a.get('title', '')
             url = a.get('url', '')
             product_bu = get_product_bu(cat, bkey, title, url)
+            if target == 'shop':
+                if '企业购' in title:
+                    return False
+                return product_bu in ('c', 'b')
             return product_bu == target
 
         sub_articles = [a for a in all_articles if _match_bu(a)]
@@ -2975,7 +2981,7 @@ fetch('/wiki/articles.json')
 
     # --- 第六步：生成子站 index.html ---
     print(f'\n[{datetime.now():%H:%M:%S}] === 生成子站 index.html ===')
-    BU_DIR_LABELS = {'wiki-c': '消费业务', 'wiki-b': 'SMB业务', 'wiki-biz': '政企业务'}
+    BU_DIR_LABELS = {'wiki-c': '消费业务', 'wiki-b': 'SMB业务', 'wiki-biz': '政企业务', 'wiki-shop': '联想商城'}
     # 默认分类标签
     _DEFAULT_CAT_LABELS = {
         'brand_news': '品牌/新闻', 'notebook': '笔记本', 'desktop': '台式机', 'monitor': '显示器',
@@ -2997,6 +3003,7 @@ fetch('/wiki/articles.json')
         'wiki-c': {'smart_device': '智能生活'},
         'wiki-b': {},
         'wiki-biz': {'biz-case': '客户案例'},
+        'wiki-shop': {'smart_device': '智能产品'},
     }
 
     for dir_name, label in BU_DIR_LABELS.items():
@@ -3218,7 +3225,7 @@ fetch('/wiki/articles.json')
         print(f'  {dir_name}/index.html ({label}): 分类={cat_names}')
 
     # --- 生成 robots.txt（测试期禁止抓取） ---
-    _robots_body = 'User-agent: *\nDisallow: /wiki/*\nDisallow: /wiki-c/*\nDisallow: /wiki-b/*\nDisallow: /wiki-biz/*\n'
+    _robots_body = 'User-agent: *\nDisallow: /wiki/*\nDisallow: /wiki-c/*\nDisallow: /wiki-b/*\nDisallow: /wiki-biz/*\nDisallow: /wiki-shop/*\n'
     # 写到域名根目录（生效的位置）
     _site_root = os.path.dirname(WIKI_DIR)
     for _rp in (os.path.join(_site_root, 'robots.txt'), os.path.join(WIKI_DIR, 'robots.txt')):
@@ -3251,7 +3258,7 @@ fetch('/wiki/articles.json')
 跳过已存在:   {stats["skipped"] + product_skip:,} 篇
 articles.json: {len(all_articles):,} 条
 sitemap.xml:   {len(all_articles):,} 条URL
-子站:          wiki-c/ wiki-b/ wiki-biz/
+子站:          wiki-c/ wiki-b/ wiki-biz/ wiki-shop/
 输出目录:      {WIKI_DIR}
 ''')
 
