@@ -278,7 +278,8 @@ html,body{height:100%;overflow:hidden}
 /* Input bar */
 .input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom))}
 .input-inner{display:flex;gap:8px;align-items:flex-end}
-.input-tools{display:flex;align-items:center;gap:6px;padding:6px 0 0}
+.input-tools{display:flex;align-items:center;gap:6px;padding:6px 0 0;flex-wrap:wrap}
+.input-tools-right{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
 .mode-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;user-select:none;white-space:nowrap}
 .mode-pill svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
 .mode-pill:hover{border-color:var(--primary);color:var(--primary)}
@@ -318,7 +319,7 @@ html,body{height:100%;overflow:hidden}
 .ta-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(61,3,102,.08)}
 .ta{width:100%;resize:none;border:none;outline:none;padding:0;font-size:15px;font-family:inherit;background:transparent;color:var(--text);line-height:1.6;max-height:120px;min-height:26px}
 .ta::placeholder{color:var(--text2);font-size:15px}
-.send-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--send-btn-bg);color:#fff;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.send-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--send-btn-bg);color:#fff;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;cursor:pointer}
 .send-btn:hover:not(:disabled){opacity:.85;transform:scale(1.04)}
 .send-btn:disabled{background:#DDD5E8;cursor:not-allowed}
 .input-hint{text-align:center;font-size:11px;color:var(--text2);opacity:.5;margin-top:7px}
@@ -724,15 +725,16 @@ html,body{height:100%;overflow:hidden}
               <span id="leaiLabel">官方AI</span>
             </button>
             <button class="mode-pill hb-pill" onclick="triggerHongbao()">🧧 买平板返100</button>
-            <button class="img-upload-btn" id="imgUploadBtn" title="上传图片" onclick="document.getElementById('imgFileInput').click()" style="margin-left:auto">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </button>
-            <button class="audio-upload-btn" id="audioUploadBtn" title="上传音频" onclick="document.getElementById('audioFileInput').click()">🎤</button>
+            <div class="input-tools-right">
+              <button class="img-upload-btn" id="imgUploadBtn" title="上传图片" onclick="document.getElementById('imgFileInput').click()">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <button class="send-btn" id="mainSend">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </button>
+            </div>
           </div>
         </div>
-        <button class="send-btn" id="mainSend">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-        </button>
       </div>
       <div class="input-hint">内容由联想乐享AI生成，仅供参考</div>
     </div>
