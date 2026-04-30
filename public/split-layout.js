@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  var MQ = window.matchMedia('(min-width: 1100px)');
+  var MQ = window.matchMedia('(min-width: 769px)');
   var STORE_KEY = 'lexiang.splitLayout.v1';
   var DEFAULT_LEFT_PCT = 55;
   var MIN_LEFT_PCT = 28;

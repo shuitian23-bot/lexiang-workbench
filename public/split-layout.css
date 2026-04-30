@@ -3,7 +3,7 @@
    移动端 (max-width:768px) 不应用，保持原 is-chat 切换逻辑
    ══════════════════════════════════════════════════════════════ */
 
-@media (min-width: 1100px) {
+@media (min-width: 769px) {
   html.split-mode, html.split-mode body {
     overflow: hidden;
     height: 100vh;
@@ -291,17 +291,57 @@
     100% { box-shadow: 0 0 0 0 rgba(32, 119, 255, 0); }
   }
 
-  /* 窄分屏自适应：左右栏太窄时把 landing 内 nav 隐藏 / 缩字 */
-  html.split-mode #landingPage[data-narrow="1"] nav .nlinks { display: none; }
+  /* ── 窄分屏自适应（核心：左栏被拖窄时退化为移动端式排版） ── */
+  /* narrow=1: 520-760px — 多列退到 2 列 */
+  html.split-mode #landingPage[data-narrow="1"] nav .nlinks,
+  html.split-mode #landingPage[data-narrow="1"] nav .nright > a:not(:last-of-type) { display: none; }
+  html.split-mode #landingPage[data-narrow="1"] nav { padding: 0 16px; }
   html.split-mode #landingPage[data-narrow="1"] .hero h1 { font-size: 28px; }
+  html.split-mode #landingPage[data-narrow="1"] .wrap { padding: 0 20px; }
   html.split-mode #landingPage[data-narrow="1"] .pgrid,
-  html.split-mode #landingPage[data-narrow="1"] .sgrid { grid-template-columns: 1fr 1fr !important; }
+  html.split-mode #landingPage[data-narrow="1"] .sgrid,
+  html.split-mode #landingPage[data-narrow="1"] .ngrid,
+  html.split-mode #landingPage[data-narrow="1"] .feat,
+  html.split-mode #landingPage[data-narrow="1"] .fgrid { grid-template-columns: 1fr 1fr !important; }
+  html.split-mode #landingPage[data-narrow="1"] .crow { flex-direction: row; flex-wrap: wrap; }
+  html.split-mode #landingPage[data-narrow="1"] .crow > * { flex: 1 1 calc(50% - 12px); min-width: 0; }
+
+  /* narrow=2: <520px — 单列布局，所有 grid 退到 1 列 */
+  html.split-mode #landingPage[data-narrow="2"] nav .nlinks,
+  html.split-mode #landingPage[data-narrow="2"] nav .nright > a,
+  html.split-mode #landingPage[data-narrow="2"] nav .sep,
+  html.split-mode #landingPage[data-narrow="2"] nav #navAuthArea { display: none; }
+  html.split-mode #landingPage[data-narrow="2"] nav { padding: 0 12px; height: 48px; }
+  html.split-mode #landingPage[data-narrow="2"] .hero { padding: 60px 16px 40px; }
+  html.split-mode #landingPage[data-narrow="2"] .hero h1 { font-size: 22px; }
+  html.split-mode #landingPage[data-narrow="2"] .hero p { font-size: 13px; }
+  html.split-mode #landingPage[data-narrow="2"] .wrap { padding: 0 14px; }
+  html.split-mode #landingPage[data-narrow="2"] .sec-head h2 { font-size: 17px; }
   html.split-mode #landingPage[data-narrow="2"] .pgrid,
-  html.split-mode #landingPage[data-narrow="2"] .sgrid { grid-template-columns: 1fr !important; }
+  html.split-mode #landingPage[data-narrow="2"] .sgrid,
+  html.split-mode #landingPage[data-narrow="2"] .ngrid,
+  html.split-mode #landingPage[data-narrow="2"] .feat,
+  html.split-mode #landingPage[data-narrow="2"] .fgrid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  html.split-mode #landingPage[data-narrow="2"] .crow { flex-direction: column; gap: 10px; }
+  html.split-mode #landingPage[data-narrow="2"] .crow > * { width: 100%; min-width: 0; }
+  html.split-mode #landingPage[data-narrow="2"] .pcard,
+  html.split-mode #landingPage[data-narrow="2"] .scard,
+  html.split-mode #landingPage[data-narrow="2"] .ncard { padding: 14px; }
+  html.split-mode #landingPage[data-narrow="2"] .ncard {
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  html.split-mode #landingPage[data-narrow="2"] .ncard .num { flex-shrink: 0; }
+  html.split-mode #landingPage[data-narrow="2"] .ncard h4 {
+    font-size: 14px; line-height: 1.5; white-space: normal;
+    writing-mode: horizontal-tb !important;
+  }
+  html.split-mode #landingPage[data-narrow="2"] .cta { padding: 32px 18px; }
+  html.split-mode #landingPage[data-narrow="2"] .cta h2 { font-size: 20px; }
+  html.split-mode #landingPage[data-narrow="2"] footer { padding: 24px 14px; }
 }
 
 /* 移动端：禁用分屏，恢复原 is-chat 切换 */
-@media (max-width: 1099px) {
+@media (max-width: 768px) {
   html.split-mode #splitDivider,
   html.split-mode #splitControls { display: none !important; }
   html.split-mode body > #splitRoot {
