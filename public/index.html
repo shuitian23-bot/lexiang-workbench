@@ -42,7 +42,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .logo img{height:26px;width:auto;object-fit:contain;display:block}
 .nlinks{display:flex;gap:20px;flex-shrink:0}
 .nlinks a{text-decoration:none;color:var(--text);font-size:13px;opacity:.6;transition:opacity .3s;white-space:nowrap}
-.nlinks a:hover{opacity:1}.nlinks a.nav-active{opacity:1;border-bottom:2px solid var(--text);padding-bottom:2px}
+.nlinks a:hover{opacity:1}
 .nright{display:flex;align-items:center;gap:16px;margin-left:auto;flex-shrink:0}
 .nright a{text-decoration:none;font-size:13px;color:var(--text);opacity:.6;white-space:nowrap;transition:opacity .3s}
 .nright a:hover{opacity:1}
@@ -1054,7 +1054,7 @@ window.addEventListener('popstate', () => {
     else openChatFresh();
   }
 });
-function openChatFresh(){ setNavActive(null);
+function openChatFresh(){
   // 匿名用户也能进聊天界面，超过免费轮次时再弹登录
   convId = null;
   // 重置加载状态，防止上次请求异常卡住
@@ -1884,15 +1884,6 @@ async function callCompareAPI(msg) {
 }
 
 // ── Start chat from landing page ──
-
-// ── Nav active state ──
-function setNavActive(key) {
-  document.querySelectorAll('.nlinks a').forEach(a => a.classList.remove('nav-active'));
-  if (key) {
-    const el = document.querySelector(`.nlinks a[data-nav="${key}"]`);
-    if (el) el.classList.add('nav-active');
-  }
-}
 async function startChat(msg){
   convId = null;
   document.getElementById('msgsInner').innerHTML = '';
