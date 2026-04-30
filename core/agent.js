@@ -643,11 +643,11 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
           const input = JSON.parse(tc.function.arguments || '{}');
           result = await registry.execute(tc.function.name, input);
           toolCallLog.push({ name: tc.function.name, input, success: true });
-          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: true });
+          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: true, result });
         } catch (err) {
           result = { error: err.message };
           toolCallLog.push({ name: tc.function.name, success: false, error: err.message });
-          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: false });
+          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: false, result });
         }
         return { role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) };
       }));

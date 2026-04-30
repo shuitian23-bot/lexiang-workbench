@@ -29,3 +29,8 @@ public/exports/
 .vscode/
 .idea/
 .DS_Store
+
+# Split-layout backups
+*.bak-split-*
+*.bak-*
+

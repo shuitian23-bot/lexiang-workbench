@@ -190,7 +190,15 @@ router.post('/stream', async (req, res) => {
         imageUrl: image_url || null,
         audioUrl: audio_url || null,
         userId: req.userId || null,
-        onStatus: (status) => send('status', status),
+        onStatus: (status) => {
+          // 拦截 frontend_navigate tool 调用，转发为 nav 事件给前端
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_navigate') {
+            send('nav', { target: status.result.target, reason: status.result.reason || '' });
+          }
+          // 转发 status 事件时剥离 result 字段，避免大对象（如 product_query 返回）塞进 SSE
+          const { result, ...lite } = status || {};
+          send('status', lite);
+        },
         onThinking: (text) => send('thinking', { text }),
         onThinkEnd: () => send('think_end', {}),
         onSuggestions: (suggestions) => {

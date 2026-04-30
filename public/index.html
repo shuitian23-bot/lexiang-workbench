@@ -557,6 +557,7 @@ html,body{height:100%;overflow:hidden}
 .hb-order-no{font-size:11px;color:var(--text3,#aaa);text-align:center;margin:8px 0 0}
 .hb-share-row{display:flex;gap:8px}
 </style>
+<link rel="stylesheet" href="/split-layout.css">
 </head>
 <body>
 <script>var _p=location.pathname;if(_p.startsWith('/chat')){document.documentElement.classList.add('is-chat');if(_p.split('/')[2])document.documentElement.classList.add('is-chat-conv');}</script>
@@ -718,9 +719,9 @@ html,body{height:100%;overflow:hidden}
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
               <span id="webSearchLabel">联网搜索</span>
             </button>
-            <button class="mode-pill active-web" id="leaiToggle" onclick="toggleLeai()" title="切换到联想官方AI回答">
+            <button class="mode-pill" id="leaiToggle" onclick="toggleLeai()" title="切换到联想官方AI回答">
               <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-              <span id="leaiLabel">对比模式</span>
+              <span id="leaiLabel">官方AI</span>
             </button>
             <button class="mode-pill hb-pill" onclick="triggerHongbao()">🧧 买平板返100</button>
             <button class="img-upload-btn" id="imgUploadBtn" title="上传图片" onclick="document.getElementById('imgFileInput').click()" style="margin-left:auto">
@@ -889,7 +890,7 @@ let convId = null;
 let isLoading = false;
 let webSearchEnabled = false;
 let thinkingEnabled = false;
-let leaiCompare = true;
+let leaiCompare = false;
 let leaiSession = { token: null, sessionId: null };
 let currentLang = localStorage.getItem('lexiang-lang') || 'zh';
 
@@ -1436,6 +1437,12 @@ async function callAPI(msg, imageUrl, audioUrl){
 
         else if (lastEvent === 'suggestions') {
           if (d.suggestions?.length) renderSuggestions(bubbleEl, d.suggestions);
+        }
+
+        else if (lastEvent === 'nav') {
+          if (d.target && typeof window.__navigateLandingTo === 'function') {
+            try { window.__navigateLandingTo(d.target); } catch(e) { console.warn('nav handler error', e); }
+          }
         }
 
         else if (lastEvent === 'error') {
@@ -2248,12 +2255,15 @@ async function findNearbyStores() {
     const res = await apiFetch(`/api/stores/nearby?lat=${lat}&lng=${lng}`);
     result = await res.json();
   } catch (e) {
-    mbubble.textContent = '搜索失败，请稍后重试。';
+    userBubble.remove(); bubbleEl.remove();
+    await startChat('我想查询附近的联想门店，请问如何找到最近的线下服务中心或体验店？');
     return;
   }
 
   if (result.error) {
-    mbubble.textContent = result.hint || result.error;
+    // 后端地图 API 不可用 → 降级走 AI 问答，不暴露原始错误给用户
+    userBubble.remove(); bubbleEl.remove();
+    await startChat('我想查询附近的联想门店，请问如何找到最近的线下服务中心或体验店？');
     return;
   }
 
@@ -2742,5 +2752,6 @@ function setLoginMsg(msg, color){
 
 
 </script>
+<script src="/split-layout.js"></script>
 </body>
 </html>
