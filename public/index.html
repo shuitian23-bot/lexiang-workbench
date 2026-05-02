@@ -587,6 +587,49 @@ html,body{height:100%;overflow:hidden}
 .mall-feat-item p{font-size:12px;color:var(--text2);line-height:1.6}
 @media(max-width:900px){.mall-grid{grid-template-columns:repeat(2,1fr)}.mall-features{grid-template-columns:1fr;gap:20px}.wrap{padding:0 16px}}
 @media(max-width:600px){.mall-hero{height:200px}.mall-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ── 商品详情页 ── */
+.pd-back{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text2);font-size:13px;cursor:pointer;margin:16px 0 20px;transition:all .2s;font-family:inherit}
+.pd-back:hover{border-color:var(--accent);color:var(--accent)}
+.pd-wrap{display:grid;grid-template-columns:420px 1fr;gap:48px;align-items:flex-start;padding-bottom:40px}
+.pd-gallery{}
+.pd-main-img{background:var(--card);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:20px;min-height:340px}
+.pd-main-img img{width:100%;max-height:340px;object-fit:contain;display:block}
+.pd-info{padding-top:4px}
+.pd-name{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3}
+.pd-slogan{font-size:12px;color:var(--accent);margin-bottom:12px;line-height:1.6}
+.pd-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.pd-price{font-size:28px;font-weight:700;color:var(--accent)}
+.pd-original{font-size:13px;color:#999;text-decoration:line-through}
+.pd-location{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--search-bg);border-radius:8px;font-size:13px;color:var(--text2);margin-bottom:16px}
+.pd-stock{color:#22c55e;font-size:12px}
+.pd-option-group{margin-bottom:18px}
+.pd-option-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px}
+.pd-option-btns{display:flex;flex-wrap:wrap;gap:8px}
+.pd-opt{padding:8px 18px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:13px;color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.pd-opt:hover{border-color:var(--accent)}
+.pd-opt.active{border-color:var(--accent);color:var(--accent);background:rgba(61,3,102,.06)}
+[data-theme="dark"] .pd-opt.active{background:rgba(167,139,250,.1)}
+.pd-warranty{border:1px solid var(--border);border-radius:10px;padding:0;margin-bottom:20px;overflow:hidden}
+.pd-warranty-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:13px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border)}
+.pd-warranty-link{font-size:12px;color:var(--accent);font-weight:400;cursor:pointer}
+.pd-warranty-item{display:block;cursor:pointer}
+.pd-warranty-item input{display:none}
+.pd-warranty-body{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.pd-warranty-icon{font-size:22px;flex-shrink:0}
+.pd-warranty-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.pd-warranty-save{font-style:normal;background:var(--accent);color:#fff;font-size:11px;padding:1px 6px;border-radius:4px;margin-left:6px}
+.pd-warranty-desc{font-size:11px;color:var(--text2)}
+.pd-warranty-price{margin-left:auto;font-size:13px;color:var(--text2);flex-shrink:0}
+.pd-actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.pd-btn-buy{flex:1;min-width:120px;padding:13px 0;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s;font-family:inherit}
+.pd-btn-buy:hover{opacity:.88}
+.pd-btn-consult{flex:1;min-width:120px;padding:13px 0;background:var(--card);color:var(--accent);border:2px solid var(--accent);border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.pd-btn-consult:hover{background:rgba(61,3,102,.06)}
+.pd-btn-like{padding:13px 18px;background:var(--card);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit;flex-shrink:0}
+.pd-btn-like:hover{border-color:var(--accent);color:var(--accent)}
+.pd-services{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--text2)}
+@media(max-width:900px){.pd-wrap{grid-template-columns:1fr;gap:24px}.pd-main-img{min-height:220px}}
 </style>
 <link rel="stylesheet" href="/split-layout.css?v=20260430-4">
 </head>
@@ -642,7 +685,7 @@ html,body{height:100%;overflow:hidden}
       <p>企业遴购首选，品质保证</p>
     </div>
     <div class="mall-grid">
-      <div class="mall-card" onclick="startChat('帮我介绍 ThinkPad X1 Carbon Gen11 的核心卖点和适用场景')">
+      <div class="mall-card" data-product="x1carbon" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkPad X1 Carbon"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkPad X1 Carbon Gen11</div>
@@ -650,7 +693,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥12,999 <span class="mall-original">¥14,999</span></div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('ThinkPad T14s Gen6 的配置和价格？')">
+      <div class="mall-card" data-product="t14s" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkPad T14s"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkPad T14s Gen6</div>
@@ -658,7 +701,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥8,999</div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('ThinkCentre M70q Gen5 小主机适合哪些企业场景？')">
+      <div class="mall-card" data-product="m70q" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkCentre M70q"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkCentre M70q Gen5</div>
@@ -666,7 +709,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥4,299</div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('ThinkVision P27h-30 显示器参数和功能？')">
+      <div class="mall-card" data-product="p27h" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkVision P27h"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkVision P27h-30</div>
@@ -674,7 +717,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥2,699</div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('联想拯救者刃9000K旗舰主机的配置？')">
+      <div class="mall-card" data-product="ren9000k" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="拯救者刃9000K"></div>
         <div class="mall-info">
           <div class="mall-name">拯救者刃 9000K</div>
@@ -682,7 +725,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥28,999 <span class="mall-original">¥31,999</span></div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('小新Pro 16 2024款有哪些亮点？')">
+      <div class="mall-card" data-product="xiaoxin16" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro 16"></div>
         <div class="mall-info">
           <div class="mall-name">小新 Pro 16 2024</div>
@@ -690,7 +733,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥6,499</div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('YOGA Pro 14s 轻薄本适合什么用户？')">
+      <div class="mall-card" data-product="yogapro14s" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="YOGA Pro 14s"></div>
         <div class="mall-info">
           <div class="mall-name">YOGA Pro 14s 2024</div>
@@ -698,7 +741,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥9,999</div>
         </div>
       </div>
-      <div class="mall-card" onclick="startChat('Lecoo 路由管理7000 的核心卖点和适用网络规模？')">
+      <div class="mall-card" data-product="lecoo7000" onclick="openDetail(this)">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="Lecoo 路由管理7000"></div>
         <div class="mall-info">
           <div class="mall-name">Lecoo 路由管理 7000</div>
@@ -708,6 +751,79 @@ html,body{height:100%;overflow:hidden}
       </div>
     </div>
   </section>
+
+  <!-- 商品详情页（点击卡片后显示） -->
+  <div id="mallDetail" style="display:none">
+    <button class="pd-back" onclick="closeDetail()">← 返回商品列表</button>
+    <div class="pd-wrap">
+      <!-- 左：产品图 -->
+      <div class="pd-gallery">
+        <div class="pd-main-img">
+          <img id="pdMainImg" src="" alt="">
+        </div>
+      </div>
+      <!-- 右：详情信息 -->
+      <div class="pd-info">
+        <h1 class="pd-name" id="pdName"></h1>
+        <p class="pd-slogan" id="pdSlogan"></p>
+        <div class="pd-price-row">
+          <span class="pd-price" id="pdPrice"></span>
+          <span class="pd-original" id="pdOriginal"></span>
+        </div>
+        <!-- 地址 -->
+        <div class="pd-location">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          北京 · 北京市 · 海淀区 &nbsp;<span class="pd-stock" id="pdStock">有现货</span>
+        </div>
+        <!-- 颜色选择 -->
+        <div class="pd-option-group" id="pdColorGroup">
+          <div class="pd-option-label">选择颜色</div>
+          <div class="pd-option-btns" id="pdColorBtns"></div>
+        </div>
+        <!-- 规格选择 -->
+        <div class="pd-option-group" id="pdSpecGroup">
+          <div class="pd-option-label">选择配置</div>
+          <div class="pd-option-btns" id="pdSpecBtns"></div>
+        </div>
+        <!-- 延保 -->
+        <div class="pd-warranty">
+          <div class="pd-warranty-head">
+            <span>延保服务</span>
+            <span class="pd-warranty-link">了解延保 ›</span>
+          </div>
+          <label class="pd-warranty-item">
+            <input type="checkbox" id="pdWarrantyCheck">
+            <div class="pd-warranty-body">
+              <span class="pd-warranty-icon">🛡</span>
+              <div>
+                <div class="pd-warranty-title">延保服务 1年 <em class="pd-warranty-save">已省120元</em></div>
+                <div class="pd-warranty-desc">原厂保障，延保期内性能故障免费维修</div>
+              </div>
+              <span class="pd-warranty-price">299元</span>
+            </div>
+          </label>
+        </div>
+        <!-- 操作按钮 -->
+        <div class="pd-actions">
+          <button class="pd-btn-buy" id="pdBuyBtn">立即购买</button>
+          <button class="pd-btn-consult" id="pdConsultBtn">咨询乐享</button>
+          <button class="pd-btn-like">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            喜欢
+          </button>
+        </div>
+        <!-- 服务说明 -->
+        <div class="pd-services">
+          <span>✓ 联想自营</span>
+          <span>✓ 发货说明</span>
+          <span>✓ 支持7天无理由退货</span>
+          <span>✓ 运费说明</span>
+          <span>✓ 企业信息</span>
+          <span>✓ 7天价格保护</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 特色服务 -->
   <section class="mall-features">
@@ -2296,6 +2412,123 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
   const idx = Math.round(pcarousel.scrollLeft / (pcarousel.scrollWidth / dc));
   document.querySelectorAll('.cdot').forEach((x,i)=>x.classList.toggle('active',i===idx));
 },{passive:true});
+
+// ── 商城商品详情 ──
+const mallProducts = {
+  x1carbon: {
+    name: 'ThinkPad X1 Carbon Gen11',
+    slogan: '至高可享企业采购优惠 | 第十三代英特尔酷睿Ultra处理器 | 至高32W整机性能释放 | 2.8K专业护眼屏',
+    price: '¥12,999', original: '¥14,999',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['深空黑', '钛银灰'],
+    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 7 / 16GB / 512GB', 'Ultra 5 / 16GB / 512GB'],
+    chat: 'ThinkPad X1 Carbon Gen11 的详细配置、企业采购价格和使用场景'
+  },
+  t14s: {
+    name: 'ThinkPad T14s Gen6',
+    slogan: '企业商务首选 | Ultra 7 处理器 | 14" 2.8K 高分屏 | 轻薄便携',
+    price: '¥8,999', original: '',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['深空黑'],
+    specs: ['Ultra 7 / 16GB / 512GB', 'Ultra 5 / 16GB / 512GB'],
+    chat: 'ThinkPad T14s Gen6 的配置选择和企业采购方案'
+  },
+  m70q: {
+    name: 'ThinkCentre M70q Gen5',
+    slogan: '小巧高性能台式机 | i5-14500T 处理器 | 超低功耗 | 企业办公利器',
+    price: '¥4,299', original: '',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['经典黑'],
+    specs: ['i5-14500T / 16GB / 512GB', 'i7-14700T / 16GB / 512GB', 'i5-14400 / 8GB / 256GB'],
+    chat: 'ThinkCentre M70q Gen5 小主机适合哪些企业部署场景？'
+  },
+  p27h: {
+    name: 'ThinkVision P27h-30',
+    slogan: '27" 2K IPS 专业显示器 | USB-C 90W 供电 | 一线连接全搞定',
+    price: '¥2,699', original: '',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['经典黑'],
+    specs: ['标准版', '含USB-C线缆版'],
+    chat: 'ThinkVision P27h-30 显示器的接口和色彩规格？'
+  },
+  ren9000k: {
+    name: '拯救者刃 9000K',
+    slogan: '旗舰游戏主机 | i9-14900K | RTX 4090 24G | 64GB DDR5 | 极限性能释放',
+    price: '¥28,999', original: '¥31,999',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['深空黑'],
+    specs: ['i9 / RTX4090 / 64GB', 'i7 / RTX4080 / 32GB'],
+    chat: '拯救者刃9000K旗舰主机的完整配置和适合哪些专业场景？'
+  },
+  xiaoxin16: {
+    name: '小新 Pro 16 2024',
+    slogan: '轻薄全能本 | Ryzen 7 8845H | 2.5K OLED 护眼屏 | 长续航',
+    price: '¥6,499', original: '',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['云杉绿', '星云灰'],
+    specs: ['Ryzen 7 / 16GB / 1TB', 'Ryzen 5 / 16GB / 512GB'],
+    chat: '小新Pro 16 2024款的续航表现和屏幕效果如何？'
+  },
+  yogapro14s: {
+    name: 'YOGA Pro 14s 2024',
+    slogan: '创作者轻薄旗舰 | Ultra 7 | 3K OLED触控屏 | 32GB大内存',
+    price: '¥9,999', original: '',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['月光白', '曜石黑'],
+    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
+    chat: 'YOGA Pro 14s 2024 适合哪类创作者使用？'
+  },
+  lecoo7000: {
+    name: 'Lecoo 路由管理 7000',
+    slogan: '企业级集中管控路由 | Wi-Fi 6 高速 | 支持200+设备 | 云端运维',
+    price: '¥6,499', original: '',
+    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
+    colors: ['商务白'],
+    specs: ['标准版 5台起', '企业版 20台起'],
+    chat: 'Lecoo 路由管理7000 的组网方案和适用网络规模？'
+  }
+};
+
+function openDetail(el) {
+  const key = el.dataset.product;
+  const p = mallProducts[key];
+  if (!p) return;
+  // 填充数据
+  document.getElementById('pdMainImg').src = p.img;
+  document.getElementById('pdMainImg').alt = p.name;
+  document.getElementById('pdName').textContent = p.name;
+  document.getElementById('pdSlogan').textContent = p.slogan;
+  document.getElementById('pdPrice').textContent = p.price;
+  const orig = document.getElementById('pdOriginal');
+  orig.textContent = p.original;
+  orig.style.display = p.original ? '' : 'none';
+  // 颜色按钮
+  const colorBtns = document.getElementById('pdColorBtns');
+  colorBtns.innerHTML = p.colors.map((c,i)=>`<button class="pd-opt${i===0?' active':''}" onclick="selectOpt(this)">${c}</button>`).join('');
+  // 规格按钮
+  const specBtns = document.getElementById('pdSpecBtns');
+  specBtns.innerHTML = p.specs.map((s,i)=>`<button class="pd-opt${i===0?' active':''}" onclick="selectOpt(this)">${s}</button>`).join('');
+  // 咨询按钮
+  document.getElementById('pdConsultBtn').onclick = ()=>{ startChat(p.chat); };
+  document.getElementById('pdBuyBtn').onclick = ()=>{ startChat('我想购买 '+p.name+'，请帮我了解下单流程和企业采购优惠。'); };
+  // 切换显示
+  document.querySelector('.mall-hero').style.display = 'none';
+  document.querySelector('.mall-sec').style.display = 'none';
+  document.getElementById('mallDetail').style.display = 'block';
+  document.getElementById('landingPage').scrollTop = 0;
+}
+
+function closeDetail() {
+  document.getElementById('mallDetail').style.display = 'none';
+  document.querySelector('.mall-hero').style.display = '';
+  document.querySelector('.mall-sec').style.display = '';
+}
+
+function selectOpt(btn) {
+  const group = btn.closest('.pd-option-btns');
+  group.querySelectorAll('.pd-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
 // ── 商城 Banner 轮播 ──
 (function(){
