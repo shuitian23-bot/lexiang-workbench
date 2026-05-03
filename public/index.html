@@ -588,17 +588,13 @@ html,body{height:100%;overflow:hidden}
 @media(max-width:900px){.mall-grid{grid-template-columns:repeat(2,1fr)}.mall-features{grid-template-columns:1fr;gap:20px}.wrap{padding:0 16px}}
 @media(max-width:600px){.mall-hero{height:200px}.mall-grid{grid-template-columns:repeat(2,1fr)}}
 
-/* ── 商品详情页（独立全屏页面，右滑进入动画）── */
+/* ── 商品详情页（独立全屏页面，display:none 隐藏，JS 驱动右滑动画）── */
 #mallDetail{
-  position:fixed;inset:0;z-index:200;
+  display:none;
+  position:fixed;inset:0;z-index:9999;
   background:var(--bg);overflow-y:auto;
-  transform:translateX(100%);
-  transition:transform .32s cubic-bezier(.22,.68,0,1.2);
-  will-change:transform;
-  pointer-events:none;
-  visibility:hidden;
 }
-#mallDetail.page-active{transform:translateX(0);visibility:visible;pointer-events:auto}
+#mallDetail.page-active{display:block}
 /* 详情页顶部导航栏 */
 .pd-topbar{
   position:sticky;top:0;z-index:10;
@@ -2526,12 +2522,27 @@ function openDetail(el) {
   // 右滑动画展示
   var detail = document.getElementById('mallDetail');
   detail.scrollTop = 0;
-  requestAnimationFrame(function(){ detail.classList.add('page-active'); });
+  detail.classList.add('page-active');
+  detail.style.transform = 'translateX(100%)';
+  detail.style.transition = 'none';
+  // 下一帧触发动画
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      detail.style.transition = 'transform .32s cubic-bezier(.22,.68,0,1.2)';
+      detail.style.transform = 'translateX(0)';
+    });
+  });
 }
 
 function closeDetail() {
   var detail = document.getElementById('mallDetail');
-  detail.classList.remove('page-active');
+  detail.style.transition = 'transform .28s cubic-bezier(.55,0,1,.45)';
+  detail.style.transform = 'translateX(100%)';
+  setTimeout(function(){
+    detail.classList.remove('page-active');
+    detail.style.transform = '';
+    detail.style.transition = '';
+  }, 300);
   // 清除 hash（不产生额外历史条目）
   if (location.hash.startsWith('#/product/')) {
     history.pushState(null, '', location.pathname);
