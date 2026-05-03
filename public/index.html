@@ -2492,7 +2492,9 @@ function openDetail(el) {
   specBtns.innerHTML = allOpts.map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
   document.getElementById('pdCartBtn').onclick = function(){ startChat(p.chat); };
   document.getElementById('pdBuyBtn').onclick = function(){ startChat('我想购买 '+p.name+'，请帮我了解下单流程和企业采购优惠。'); };
-  // 隐藏商城列表，显示详情页（与参考文件完全一致的 show/hide 逻辑）
+  // 隐藏商城列表和 hero，显示详情页
+  var heroWrap = document.querySelector('.hero-wrap');
+  if (heroWrap) heroWrap.style.display = 'none';
   document.querySelector('.mall-hero').style.display = 'none';
   document.querySelector('.mall-sec').style.display = 'none';
   var detail = document.getElementById('mallDetail');
@@ -2504,6 +2506,8 @@ function openDetail(el) {
 
 function closeDetail() {
   document.getElementById('mallDetail').classList.remove('active');
+  var heroWrap = document.querySelector('.hero-wrap');
+  if (heroWrap) heroWrap.style.display = '';
   document.querySelector('.mall-hero').style.display = '';
   document.querySelector('.mall-sec').style.display = '';
 }
