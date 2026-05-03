@@ -685,7 +685,7 @@ html,body{height:100%;overflow:hidden}
       <p>企业选购首选，品质保证</p>
     </div>
     <div class="mall-grid">
-      <div class="mall-card" data-product="x1carbon" onclick="openDetail(this)">
+      <div class="mall-card" data-product="x1carbon">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkPad X1 Carbon"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkPad X1 Carbon Gen11</div>
@@ -693,7 +693,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥12,999 <span class="mall-original">¥14,999</span></div>
         </div>
       </div>
-      <div class="mall-card" data-product="t14s" onclick="openDetail(this)">
+      <div class="mall-card" data-product="t14s">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkPad T14s"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkPad T14s Gen6</div>
@@ -701,7 +701,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥8,999</div>
         </div>
       </div>
-      <div class="mall-card" data-product="m70q" onclick="openDetail(this)">
+      <div class="mall-card" data-product="m70q">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkCentre M70q"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkCentre M70q Gen5</div>
@@ -709,7 +709,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥4,299</div>
         </div>
       </div>
-      <div class="mall-card" data-product="p27h" onclick="openDetail(this)">
+      <div class="mall-card" data-product="p27h">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="ThinkVision P27h"></div>
         <div class="mall-info">
           <div class="mall-name">ThinkVision P27h-30</div>
@@ -717,7 +717,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥2,699</div>
         </div>
       </div>
-      <div class="mall-card" data-product="ren9000k" onclick="openDetail(this)">
+      <div class="mall-card" data-product="ren9000k">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="拯救者刃9000K"></div>
         <div class="mall-info">
           <div class="mall-name">拯救者刃 9000K</div>
@@ -725,7 +725,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥28,999 <span class="mall-original">¥31,999</span></div>
         </div>
       </div>
-      <div class="mall-card" data-product="xiaoxin16" onclick="openDetail(this)">
+      <div class="mall-card" data-product="xiaoxin16">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro 16"></div>
         <div class="mall-info">
           <div class="mall-name">小新 Pro 16 2024</div>
@@ -733,7 +733,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥6,499</div>
         </div>
       </div>
-      <div class="mall-card" data-product="yogapro14s" onclick="openDetail(this)">
+      <div class="mall-card" data-product="yogapro14s">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="YOGA Pro 14s"></div>
         <div class="mall-info">
           <div class="mall-name">YOGA Pro 14s 2024</div>
@@ -741,7 +741,7 @@ html,body{height:100%;overflow:hidden}
           <div class="mall-price">¥9,999</div>
         </div>
       </div>
-      <div class="mall-card" data-product="lecoo7000" onclick="openDetail(this)">
+      <div class="mall-card" data-product="lecoo7000">
         <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="Lecoo 路由管理7000"></div>
         <div class="mall-info">
           <div class="mall-name">Lecoo 路由管理 7000</div>
@@ -754,7 +754,7 @@ html,body{height:100%;overflow:hidden}
 
   <!-- 商品详情页（点击卡片后显示） -->
   <div id="mallDetail" style="display:none">
-    <button class="pd-back" onclick="closeDetail()">← 返回商品列表</button>
+    <button class="pd-back">← 返回商品列表</button>
     <div class="pd-wrap">
       <!-- 左：产品图 -->
       <div class="pd-gallery">
@@ -2504,10 +2504,10 @@ function openDetail(el) {
   orig.style.display = p.original ? '' : 'none';
   // 颜色按钮
   const colorBtns = document.getElementById('pdColorBtns');
-  colorBtns.innerHTML = p.colors.map((c,i)=>`<button class="pd-opt${i===0?' active':''}" onclick="selectOpt(this)">${c}</button>`).join('');
+  colorBtns.innerHTML = p.colors.map((c,i)=>`<button class="pd-opt${i===0?' active':''}">${c}</button>`).join('');
   // 规格按钮
   const specBtns = document.getElementById('pdSpecBtns');
-  specBtns.innerHTML = p.specs.map((s,i)=>`<button class="pd-opt${i===0?' active':''}" onclick="selectOpt(this)">${s}</button>`).join('');
+  specBtns.innerHTML = p.specs.map((s,i)=>`<button class="pd-opt${i===0?' active':''}">${s}</button>`).join('');
   // 咨询按钮
   document.getElementById('pdConsultBtn').onclick = ()=>{ startChat(p.chat); };
   document.getElementById('pdBuyBtn').onclick = ()=>{ startChat('我想购买 '+p.name+'，请帮我了解下单流程和企业采购优惠。'); };
@@ -2529,9 +2529,27 @@ function selectOpt(btn) {
   group.querySelectorAll('.pd-opt').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
-window.openDetail = openDetail;
-window.closeDetail = closeDetail;
-window.selectOpt = selectOpt;
+// ── 商城卡片点击（事件委托，避免 inline onclick 全局作用域问题）──
+(function(){
+  var grid = document.querySelector('.mall-grid');
+  if (grid) {
+    grid.addEventListener('click', function(e) {
+      var card = e.target.closest('.mall-card');
+      if (card) openDetail(card);
+    });
+  }
+  var backBtn = document.querySelector('.pd-back');
+  if (backBtn) {
+    backBtn.addEventListener('click', closeDetail);
+  }
+  // pd-opt 规格/颜色选择（动态生成，用委托挂在 mallDetail 上）
+  var detail = document.getElementById('mallDetail');
+  if (detail) {
+    detail.addEventListener('click', function(e) {
+      if (e.target.classList.contains('pd-opt')) selectOpt(e.target);
+    });
+  }
+})();
 
 // ── 商城 Banner 轮播 ──
 (function(){
