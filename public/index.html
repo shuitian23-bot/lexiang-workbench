@@ -2483,8 +2483,16 @@ function openDetail(el) {
   // 切换显示
   document.querySelector('.mall-hero').style.display = 'none';
   document.querySelector('.mall-sec').style.display = 'none';
-  document.getElementById('mallDetail').style.display = 'block';
-  document.getElementById('landingPage').scrollTop = 0;
+  var detail = document.getElementById('mallDetail');
+  detail.style.display = 'block';
+  // 滚到详情页顶部
+  var lp = document.getElementById('landingPage');
+  var isScrollContainer = lp && lp.scrollHeight > lp.clientHeight && getComputedStyle(lp).overflowY !== 'visible';
+  if (isScrollContainer) {
+    lp.scrollTo({ top: detail.offsetTop - 16, behavior: 'smooth' });
+  } else {
+    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function closeDetail() {
