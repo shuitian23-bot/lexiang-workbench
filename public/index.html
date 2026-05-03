@@ -2529,6 +2529,9 @@ function selectOpt(btn) {
   group.querySelectorAll('.pd-opt').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
+window.openDetail = openDetail;
+window.closeDetail = closeDetail;
+window.selectOpt = selectOpt;
 
 // ── 商城 Banner 轮播 ──
 (function(){
