@@ -588,37 +588,18 @@ html,body{height:100%;overflow:hidden}
 @media(max-width:900px){.mall-grid{grid-template-columns:repeat(2,1fr)}.mall-features{grid-template-columns:1fr;gap:20px}.wrap{padding:0 16px}}
 @media(max-width:600px){.mall-hero{height:200px}.mall-grid{grid-template-columns:repeat(2,1fr)}}
 
-/* ── 商品详情页（独立全屏页面，display:none 隐藏，JS 驱动右滑动画）── */
-#mallDetail{
-  display:none;
-  position:fixed;inset:0;z-index:9999;
-  background:var(--bg);overflow-y:auto;
-}
-#mallDetail.page-active{display:block}
-/* 详情页顶部导航栏 */
-.pd-topbar{
-  position:sticky;top:0;z-index:10;
-  background:var(--nav-bg);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--nav-bd);
-  padding:0 40px;height:56px;
-  display:flex;align-items:center;gap:8px;
-}
-.pd-topbar-back{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:6px 12px;border-radius:6px;border:none;
-  background:transparent;color:var(--text2);font-size:13px;
-  cursor:pointer;font-family:inherit;transition:all .15s;
-}
-.pd-topbar-back:hover{background:var(--border);color:var(--text)}
+/* ── 商品详情页 ── */
+#mallDetail{display:none}
+#mallDetail.active{display:block}
+/* 详情页顶部返回栏 */
+.pd-topbar{display:flex;align-items:center;gap:8px;padding:12px 0 20px}
+.pd-topbar-back{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text2);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.pd-topbar-back:hover{border-color:var(--accent);color:var(--accent)}
 .pd-topbar-back svg{width:16px;height:16px;flex-shrink:0}
 .pd-breadcrumb{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:4px}
 .pd-breadcrumb .crumb-sep{opacity:.4}
 .pd-breadcrumb .crumb-cur{color:var(--text);font-weight:500}
-/* 详情页内容区 */
-.pd-body{padding:32px 48px 64px;max-width:1200px;margin:0 auto}
-@media(max-width:768px){.pd-body{padding:20px 16px 48px}.pd-topbar{padding:0 16px}}
-/* split 模式下详情页只覆盖左侧 landing 面板 */
-html.split-mode #mallDetail{right:auto;width:var(--split-left-w,55%);}
+/* split 模式下不需要额外处理，detail 跟随 landingPage 滚动 */
 /* 白色卡片容器 */
 .pd-card{background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.08);display:grid;grid-template-columns:45% 55%;min-height:480px;overflow:hidden}
 [data-theme="dark"] .pd-card{background:var(--card);box-shadow:0 2px 16px rgba(0,0,0,.3)}
@@ -777,49 +758,19 @@ html.split-mode #mallDetail{right:auto;width:var(--split-left-w,55%);}
     </div>
   </section>
 
-  <!-- 特色服务 -->
-  <section class="mall-features">
-    <div class="mall-feat-item">
-      <div class="mall-feat-icon">🤖</div>
-      <h3>智能推荐</h3>
-      <p>AI 智能分析您的需求，精准推荐适合的产品方案</p>
+  <!-- 商品详情页（与商品网格同级，show/hide 切换） -->
+  <div id="mallDetail">
+    <div class="pd-topbar">
+      <button class="pd-topbar-back" onclick="closeDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        返回
+      </button>
+      <div class="pd-breadcrumb">
+        <span>商城</span>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-cur" id="pdBreadcrumb">产品详情</span>
+      </div>
     </div>
-    <div class="mall-feat-item">
-      <div class="mall-feat-icon">💰</div>
-      <h3>企业专享价</h3>
-      <p>企业用户专享折扣，批量采购更优惠</p>
-    </div>
-    <div class="mall-feat-item">
-      <div class="mall-feat-icon">🚚</div>
-      <h3>快速配送</h3>
-      <p>全国覆盖，急速配送，安装无忧</p>
-    </div>
-  </section>
-</div>
-<footer><div class="fgrid">
-  <div><h5>关于乐享</h5><a>企业介绍</a><a>联系我们</a><a>加入我们</a></div>
-  <div><h5>产品服务</h5><a>PC产品</a><a>显示设备</a><a>配件周边</a></div>
-  <div><h5>支持</h5><a>帮助中心</a><a>售后服务</a><a>驱动下载</a></div>
-  <div><h5>法律声明</h5><a>隐私政策</a><a>使用条款</a></div>
-</div><div class="fbot">© 2026 联想乐享 版权所有 | ICP备案号: 京ICP备12345678号</div></footer>
-</div><!-- /landingPage -->
-
-<!-- 商品详情页（独立全屏子页面，右滑动画进入） -->
-<div id="mallDetail">
-  <!-- 顶部导航栏 -->
-  <div class="pd-topbar">
-    <button class="pd-topbar-back" onclick="closeDetail()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      返回
-    </button>
-    <div class="pd-breadcrumb">
-      <span>商城</span>
-      <span class="crumb-sep">/</span>
-      <span class="crumb-cur" id="pdBreadcrumb">产品详情</span>
-    </div>
-  </div>
-  <!-- 内容区 -->
-  <div class="pd-body">
     <div class="pd-card">
       <div class="pd-gallery">
         <img id="pdMainImg" src="" alt="">
@@ -856,7 +807,33 @@ html.split-mode #mallDetail{right:auto;width:var(--split-left-w,55%);}
       </div>
     </div>
   </div>
+
+  <!-- 特色服务 -->
+  <section class="mall-features">
+    <div class="mall-feat-item">
+      <div class="mall-feat-icon">🤖</div>
+      <h3>智能推荐</h3>
+      <p>AI 智能分析您的需求，精准推荐适合的产品方案</p>
+    </div>
+    <div class="mall-feat-item">
+      <div class="mall-feat-icon">💰</div>
+      <h3>企业专享价</h3>
+      <p>企业用户专享折扣，批量采购更优惠</p>
+    </div>
+    <div class="mall-feat-item">
+      <div class="mall-feat-icon">🚚</div>
+      <h3>快速配送</h3>
+      <p>全国覆盖，急速配送，安装无忧</p>
+    </div>
+  </section>
 </div>
+<footer><div class="fgrid">
+  <div><h5>关于乐享</h5><a>企业介绍</a><a>联系我们</a><a>加入我们</a></div>
+  <div><h5>产品服务</h5><a>PC产品</a><a>显示设备</a><a>配件周边</a></div>
+  <div><h5>支持</h5><a>帮助中心</a><a>售后服务</a><a>驱动下载</a></div>
+  <div><h5>法律声明</h5><a>隐私政策</a><a>使用条款</a></div>
+</div><div class="fbot">© 2026 联想乐享 版权所有 | ICP备案号: 京ICP备12345678号</div></footer>
+</div><!-- /landingPage -->
 
 <!-- ══════════ CHAT APP ══════════ -->
 <div id="chatApp">
@@ -2515,38 +2492,20 @@ function openDetail(el) {
   specBtns.innerHTML = allOpts.map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
   document.getElementById('pdCartBtn').onclick = function(){ startChat(p.chat); };
   document.getElementById('pdBuyBtn').onclick = function(){ startChat('我想购买 '+p.name+'，请帮我了解下单流程和企业采购优惠。'); };
-  // push hash（支持浏览器后退）
-  if (location.hash !== '#/product/' + key) {
-    history.pushState({ product: key }, '', '#/product/' + key);
-  }
-  // 右滑动画展示
+  // 隐藏商城列表，显示详情页（与参考文件完全一致的 show/hide 逻辑）
+  document.querySelector('.mall-hero').style.display = 'none';
+  document.querySelector('.mall-sec').style.display = 'none';
   var detail = document.getElementById('mallDetail');
-  detail.scrollTop = 0;
-  detail.classList.add('page-active');
-  detail.style.transform = 'translateX(100%)';
-  detail.style.transition = 'none';
-  // 下一帧触发动画
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      detail.style.transition = 'transform .32s cubic-bezier(.22,.68,0,1.2)';
-      detail.style.transform = 'translateX(0)';
-    });
-  });
+  detail.classList.add('active');
+  // 滚动到顶部
+  var lp = document.getElementById('landingPage');
+  if (lp) lp.scrollTop = 0; else window.scrollTo(0, 0);
 }
 
 function closeDetail() {
-  var detail = document.getElementById('mallDetail');
-  detail.style.transition = 'transform .28s cubic-bezier(.55,0,1,.45)';
-  detail.style.transform = 'translateX(100%)';
-  setTimeout(function(){
-    detail.classList.remove('page-active');
-    detail.style.transform = '';
-    detail.style.transition = '';
-  }, 300);
-  // 清除 hash（不产生额外历史条目）
-  if (location.hash.startsWith('#/product/')) {
-    history.pushState(null, '', location.pathname);
-  }
+  document.getElementById('mallDetail').classList.remove('active');
+  document.querySelector('.mall-hero').style.display = '';
+  document.querySelector('.mall-sec').style.display = '';
 }
 
 function selectOpt(btn) {
@@ -2554,21 +2513,6 @@ function selectOpt(btn) {
   group.querySelectorAll('.pd-opt').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
 }
-
-// hash 路由：浏览器后退时关闭详情页
-window.addEventListener('popstate', function(e) {
-  var detail = document.getElementById('mallDetail');
-  if (!location.hash.startsWith('#/product/')) {
-    detail.classList.remove('page-active');
-  } else {
-    var key = location.hash.replace('#/product/', '');
-    var p = mallProducts[key];
-    if (p) {
-      var fakeCard = { dataset: { product: key }, closest: function(){ return this; } };
-      openDetail(fakeCard);
-    }
-  }
-});
 
 // ── 商城卡片点击（事件委托 + inline onclick 兼容）──
 window.openDetail = openDetail;
@@ -2588,14 +2532,6 @@ window.selectOpt = selectOpt;
     detail.addEventListener('click', function(e) {
       if (e.target.classList.contains('pd-opt')) selectOpt(e.target);
     });
-  }
-  // 页面加载时如果 hash 带产品 key，直接打开
-  if (location.hash.startsWith('#/product/')) {
-    var key = location.hash.replace('#/product/', '');
-    if (mallProducts[key]) {
-      var fakeCard = document.querySelector('.mall-card[data-product="'+key+'"]');
-      if (fakeCard) openDetail(fakeCard);
-    }
   }
 })();
 
