@@ -595,10 +595,10 @@ html,body{height:100%;overflow:hidden}
   transform:translateX(100%);
   transition:transform .32s cubic-bezier(.22,.68,0,1.2);
   will-change:transform;
-  display:block !important;
+  pointer-events:none;
   visibility:hidden;
 }
-#mallDetail.page-active{transform:translateX(0);visibility:visible}
+#mallDetail.page-active{transform:translateX(0);visibility:visible;pointer-events:auto}
 /* 详情页顶部导航栏 */
 .pd-topbar{
   position:sticky;top:0;z-index:10;
