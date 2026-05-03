@@ -589,6 +589,9 @@ html,body{height:100%;overflow:hidden}
 @media(max-width:600px){.mall-hero{height:200px}.mall-grid{grid-template-columns:repeat(2,1fr)}}
 
 /* ── 商品详情页 ── */
+/* 覆盖整个 landingPage，独立滚动，不依赖父容器滚动位置 */
+#mallDetail{position:absolute;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding:0 48px 48px}
+@media(max-width:768px){#mallDetail{padding:0 16px 32px}}
 .pd-back{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text2);font-size:13px;cursor:pointer;margin:16px 0 20px;transition:all .2s;font-family:inherit}
 .pd-back:hover{border-color:var(--accent);color:var(--accent)}
 /* 白色卡片容器 */
@@ -2485,14 +2488,7 @@ function openDetail(el) {
   document.querySelector('.mall-sec').style.display = 'none';
   var detail = document.getElementById('mallDetail');
   detail.style.display = 'block';
-  // 滚到详情页顶部
-  var lp = document.getElementById('landingPage');
-  var isScrollContainer = lp && lp.scrollHeight > lp.clientHeight && getComputedStyle(lp).overflowY !== 'visible';
-  if (isScrollContainer) {
-    lp.scrollTo({ top: detail.offsetTop - 16, behavior: 'smooth' });
-  } else {
-    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  detail.scrollTop = 0;
 }
 
 function closeDetail() {
