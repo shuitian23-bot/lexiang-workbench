@@ -1158,7 +1158,7 @@ function applyLang() {
   document.querySelector('.input-hint').textContent = s.hint;
   document.getElementById('webSearchLabel').textContent = s.webSearch;
   document.getElementById('thinkLabel').textContent = s.thinking;
-  document.getElementById('langBtn').classList.toggle('active', currentLang === 'en');
+  var langBtn = document.getElementById('langBtn'); if (langBtn) langBtn.classList.toggle('active', currentLang === 'en');
   // Sidebar
   document.getElementById('newConvLabel').textContent = s.newConv;
   document.getElementById('historyLabel').textContent = s.history;
