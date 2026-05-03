@@ -88,6 +88,8 @@
     if (lpW < 520) lp.dataset.narrow = '2';
     else if (lpW < 760) lp.dataset.narrow = '1';
     else lp.removeAttribute('data-narrow');
+    // 同步 --split-left-w，供 #mallDetail 在 split 模式下只覆盖左侧
+    document.documentElement.style.setProperty('--split-left-w', 'calc(' + state.leftPct + '% - 3px)');
   }
 
   // ── 1. 包装 DOM：landing + splitter + chat → splitRoot ──
