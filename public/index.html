@@ -556,6 +556,39 @@ html,body{height:100%;overflow:hidden}
 .hb-order-no{font-size:11px;color:var(--text3,#aaa);text-align:center;margin:8px 0 0}
 .hb-share-row{display:flex;gap:8px}
 
+/* ── 购买优惠领取卡片 ── */
+.coupon-card{border-radius:14px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.10);font-size:14px;width:300px}
+.coupon-card-head{padding:12px 16px;display:flex;align-items:center;gap:10px}
+.coupon-card-head.red{background:linear-gradient(135deg,#e03c31,#ff6b35)}
+.coupon-card-head.blue{background:linear-gradient(135deg,#2077ff,#42a5f5)}
+.coupon-card-head.gold{background:linear-gradient(135deg,#e8a020,#ffc843)}
+.coupon-card-head.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
+.coupon-ico{width:36px;height:36px;background:rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.coupon-head-info{flex:1;min-width:0}
+.coupon-head-title{font-size:13px;font-weight:700;color:#fff;line-height:1.3}
+.coupon-head-sub{font-size:10px;color:rgba(255,255,255,.78);margin-top:1px}
+.coupon-body{background:var(--card2,#fff);padding:12px 16px}
+.coupon-amount{display:flex;align-items:baseline;gap:3px;margin-bottom:6px}
+.coupon-amount .cu{font-size:14px;color:#e03c31;font-weight:700}
+.coupon-amount .ca{font-size:32px;font-weight:800;color:#e03c31;line-height:1}
+.coupon-amount .cd{font-size:12px;color:var(--text2,#777);margin-left:6px}
+.coupon-cond{font-size:11px;color:var(--text2,#777);background:rgba(224,60,49,.05);border-radius:6px;padding:6px 10px;margin-bottom:10px;line-height:1.7}
+.coupon-cond b{color:#e03c31}
+.coupon-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.coupon-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;border:1px solid}
+.coupon-badge.red{color:#e03c31;border-color:rgba(224,60,49,.3);background:rgba(224,60,49,.06)}
+.coupon-badge.blue{color:#2077ff;border-color:rgba(32,119,255,.3);background:rgba(32,119,255,.06)}
+.coupon-badge.gold{color:#c47d00;border-color:rgba(228,160,32,.3);background:rgba(228,160,32,.08)}
+.coupon-progress{font-size:11px;color:var(--text2,#777);margin-bottom:10px;display:flex;justify-content:space-between}
+.coupon-progress .cp-done{color:#22c55e;font-weight:600}
+.coupon-summary{background:rgba(224,60,49,.05);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.coupon-summary-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:5px}
+.coupon-summary-row:last-child{margin-bottom:0;border-top:1px dashed var(--border,#e8e8e8);padding-top:7px;margin-top:3px}
+.cs-label{color:var(--text2,#777)}
+.cs-val{color:#e03c31;font-weight:700}
+.cs-val.big{font-size:16px}
+.cs-val.gray{color:var(--text2,#999)}
+
 /* ── 商城内容区 ── */
 .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
 .mall-hero{position:relative;margin:20px 0;border-radius:12px;overflow:hidden;height:300px;background:#f5f5f5}
@@ -2491,7 +2524,7 @@ function openDetail(el) {
   var allOpts = (p.colors||[]).concat(p.specs||[]);
   specBtns.innerHTML = allOpts.map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
   document.getElementById('pdCartBtn').onclick = function(){ startChat(p.chat); };
-  document.getElementById('pdBuyBtn').onclick = function(){ startChat('我想购买 '+p.name+'，请帮我了解下单流程和企业采购优惠。'); };
+  document.getElementById('pdBuyBtn').onclick = function(){ startBuyFlow(p.name, p.price); };
   // 隐藏商城列表和 hero，显示详情页
   var heroWrap = document.querySelector('.hero-wrap');
   if (heroWrap) heroWrap.style.display = 'none';
@@ -2971,6 +3004,163 @@ function showToastHb(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
+
+// ══════════════════════════════════════
+//  🎟️ 立即购买 → 自动领取所有优惠流程
+// ══════════════════════════════════════
+function startBuyFlow(productName, productPrice) {
+  if (typeof showChatApp === 'function') showChatApp();
+  if (typeof window.__revealChat === 'function') window.__revealChat();
+
+  // 从价格字符串中提取数字，用于计算优惠后价格
+  var priceNum = parseInt(String(productPrice).replace(/[^\d]/g, '')) || 0;
+
+  // 优惠券定义：icon/颜色/名称/面额/条件/徽标
+  var coupons = [
+    {
+      color: 'red', icon: '🎫', title: '企业满减券', sub: '企业采购专属',
+      amount: 500, cond: '购买企业级产品满 ¥3,000 可用，可叠加其他优惠',
+      badges: [{c:'red',t:'企业专属'},{c:'gold',t:'可叠加'}],
+      progress: '本月已领 826 张', total: '限额 1,000 张',
+      btnText: '立即领取 -¥500'
+    },
+    {
+      color: 'blue', icon: '💳', title: '联想会员折扣券', sub: '乐享会员专享',
+      amount: 300, cond: '会员等级 V2 及以上可用，满 ¥2,000 使用',
+      badges: [{c:'blue',t:'会员专享'},{c:'gold',t:'可叠加'}],
+      progress: '本月已领 512 张', total: '限额 800 张',
+      btnText: '领取会员券 -¥300'
+    },
+    {
+      color: 'gold', icon: '⚡', title: '限时活动补贴', sub: '联想官方补贴',
+      amount: 200, cond: '活动期间（今日截止）下单，自动抵扣 ¥200',
+      badges: [{c:'gold',t:'今日截止'},{c:'red',t:'限时'}],
+      progress: '今日剩余 143 张', total: '每日限量 300 张',
+      btnText: '抢限时补贴 -¥200'
+    }
+  ];
+  var totalSaving = coupons.reduce(function(s, c) { return s + c.amount; }, 0);
+  var finalPrice = Math.max(0, priceNum - totalSaving);
+
+  var _step = 0;
+
+  function _bfAiCard(cardEl, textBefore) {
+    var ws = document.getElementById('welcomeScreen');
+    if (ws) ws.remove();
+    var inner = document.getElementById('msgsInner');
+    var d = document.createElement('div');
+    d.className = 'msg ai';
+    var body = document.createElement('div');
+    body.className = 'msg-body';
+    var preHtml = textBefore ? '<div class="mbubble" style="margin-bottom:8px">' + escHtml(textBefore) + '</div>' : '';
+    body.innerHTML = '<div class="msg-pre"></div>' + preHtml + '<div class="mbubble hb-mbubble"></div>';
+    d.appendChild(body);
+    inner.appendChild(d);
+    body.querySelector('.hb-mbubble').appendChild(cardEl);
+    scrollBottom();
+  }
+
+  function _buildCouponCard(idx, onClaim) {
+    var c = coupons[idx];
+    var card = document.createElement('div');
+    card.className = 'coupon-card';
+    var badgesHtml = c.badges.map(function(b) {
+      return '<span class="coupon-badge ' + b.c + '">' + b.t + '</span>';
+    }).join('');
+    var btnId = 'cpnBtn_' + idx + '_' + Date.now();
+    card.innerHTML =
+      '<div class="coupon-card-head ' + c.color + '">' +
+        '<div class="coupon-ico">' + c.icon + '</div>' +
+        '<div class="coupon-head-info">' +
+          '<div class="coupon-head-title">' + escHtml(c.title) + '</div>' +
+          '<div class="coupon-head-sub">' + escHtml(c.sub) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="coupon-body">' +
+        '<div class="coupon-amount"><span class="cu">¥</span><span class="ca">' + c.amount + '</span><span class="cd">立减优惠</span></div>' +
+        '<div class="coupon-cond">' + escHtml(c.cond) + '</div>' +
+        '<div class="coupon-badge-row">' + badgesHtml + '</div>' +
+        '<div class="coupon-progress"><span>' + escHtml(c.progress) + '</span><span>' + escHtml(c.total) + '</span></div>' +
+        '<button class="hb-btn" id="' + btnId + '">' + escHtml(c.btnText) + '</button>' +
+      '</div>';
+    setTimeout(function() {
+      var btn = document.getElementById(btnId);
+      if (btn) btn.onclick = function() { onClaim(btn); };
+    }, 0);
+    return card;
+  }
+
+  function _buildSummaryCard() {
+    var card = document.createElement('div');
+    card.className = 'coupon-card';
+    var rowsHtml = coupons.map(function(c) {
+      return '<div class="coupon-summary-row"><span class="cs-label">' + escHtml(c.title) + '</span><span class="cs-val">-¥' + c.amount + '</span></div>';
+    }).join('');
+    var finalText = priceNum > 0 ? '¥' + finalPrice.toLocaleString() : '优惠已全部到账';
+    card.innerHTML =
+      '<div class="coupon-card-head green">' +
+        '<div class="coupon-ico">🎉</div>' +
+        '<div class="coupon-head-info">' +
+          '<div class="coupon-head-title">所有优惠已领取完毕！</div>' +
+          '<div class="coupon-head-sub">共为您节省 ¥' + totalSaving + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="coupon-body">' +
+        '<div class="coupon-summary">' +
+          rowsHtml +
+          '<div class="coupon-summary-row"><span class="cs-label" style="font-weight:700">合计优惠</span><span class="cs-val big">-¥' + totalSaving + '</span></div>' +
+          (priceNum > 0 ? '<div class="coupon-summary-row"><span class="cs-label">到手价</span><span class="cs-val big">¥' + finalPrice.toLocaleString() + '</span></div>' : '') +
+        '</div>' +
+        '<button class="hb-btn" style="background:linear-gradient(135deg,#16a34a,#22c55e)" onclick="showToastHb(\'正在跳转下单页面…\')">立即下单，省 ¥' + totalSaving + ' →</button>' +
+      '</div>';
+    return card;
+  }
+
+  function claimNext(btn) {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '已领取 ✓';
+      btn.style.opacity = '0.6';
+    }
+    var currentStep = _step;
+    _step++;
+    setTimeout(function() {
+      if (currentStep < coupons.length - 1) {
+        // 还有下一张优惠券
+        var nextIdx = currentStep + 1;
+        appendBubble('user', '领取' + coupons[nextIdx].title);
+        showTyping();
+        setTimeout(function() {
+          hideTyping();
+          var card = _buildCouponCard(nextIdx, claimNext);
+          var remaining = coupons.length - nextIdx - 1;
+          var msg = remaining > 0
+            ? '第 ' + (nextIdx + 1) + '/' + coupons.length + ' 张优惠已就绪，还剩 ' + remaining + ' 张 👇'
+            : '最后一张优惠券，领完即可下单 👇';
+          _bfAiCard(card, msg);
+        }, 900);
+      } else {
+        // 全部领完，显示汇总
+        appendBubble('user', '确认领取所有优惠');
+        showTyping();
+        setTimeout(function() {
+          hideTyping();
+          _bfAiCard(_buildSummaryCard(), '所有优惠已到账，为您节省 ¥' + totalSaving + ' 🎉');
+        }, 1000);
+      }
+    }, 300);
+  }
+
+  // 入口：发送用户消息，然后展示第一张优惠券
+  appendBubble('user', '我要购买 ' + productName + '，帮我领取所有可用优惠');
+  showTyping();
+  setTimeout(function() {
+    hideTyping();
+    var card = _buildCouponCard(0, claimNext);
+    _bfAiCard(card, '好的！我为您找到 ' + coupons.length + ' 张专属优惠，依次领取即可到账 👇');
+  }, 1000);
+}
+window.startBuyFlow = startBuyFlow;
 
 </script>
 <div id="hbToast" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.72);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;pointer-events:none;opacity:0;transition:all .25s;z-index:9999;white-space:nowrap"></div>
