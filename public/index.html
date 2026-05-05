@@ -3078,7 +3078,9 @@ function startBuyFlow(productName, productPrice) {
         '</div>' +
         '<div class="bf-item-status loading" id="bfSt_'+i+'"><span class="bf-spinner"></span> 领取中</div>';
       list.appendChild(item);
-      scrollBottom();
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){ scrollBottom(true); });
+      });
     }, base + APPEAR);
 
     // 2. 打勾
@@ -3111,7 +3113,10 @@ function startBuyFlow(productName, productPrice) {
     btn.onclick = function(){ showToastHb('正在跳转下单页面…'); };
     card.appendChild(btn);
     setTimeout(function(){ btn.classList.add('show'); }, 50);
-    scrollBottom();
+    // 等渲染完成后强制滚到底，露出订单按钮
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ scrollBottom(true); });
+    });
   }, allDone);
 }
 window.startBuyFlow = startBuyFlow;
