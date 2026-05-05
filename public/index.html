@@ -815,8 +815,12 @@ html,body{height:100%;overflow:hidden}
           <span class="pd-stock-dot"></span>
           <span class="pd-stock-label">有货</span>
         </div>
+        <div class="pd-option-group" id="pdColorGroup">
+          <div class="pd-option-label">选择颜色</div>
+          <div class="pd-option-btns" id="pdColorBtns"></div>
+        </div>
         <div class="pd-option-group" id="pdSpecGroup">
-          <div class="pd-option-label">型号选择</div>
+          <div class="pd-option-label">选择配置</div>
           <div class="pd-option-btns" id="pdSpecBtns"></div>
         </div>
         <div class="pd-addr-row">
@@ -2520,9 +2524,14 @@ function openDetail(el) {
   var orig = document.getElementById('pdOriginal');
   orig.textContent = p.original || '';
   orig.style.display = p.original ? '' : 'none';
+  var colorBtns = document.getElementById('pdColorBtns');
+  colorBtns.innerHTML = (p.colors||[]).map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
+  var colorGroup = document.getElementById('pdColorGroup');
+  if (colorGroup) colorGroup.style.display = (p.colors && p.colors.length) ? '' : 'none';
   var specBtns = document.getElementById('pdSpecBtns');
-  var allOpts = (p.colors||[]).concat(p.specs||[]);
-  specBtns.innerHTML = allOpts.map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
+  specBtns.innerHTML = (p.specs||[]).map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
+  var specGroup = document.getElementById('pdSpecGroup');
+  if (specGroup) specGroup.style.display = (p.specs && p.specs.length) ? '' : 'none';
   document.getElementById('pdCartBtn').onclick = function(){ startChat(p.chat); };
   document.getElementById('pdBuyBtn').onclick = function(){ startBuyFlow(p.name, p.price); };
   // 隐藏商城列表和 hero，显示详情页
