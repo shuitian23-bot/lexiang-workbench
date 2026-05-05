@@ -102,7 +102,7 @@
     z-index: 30;
   }
   #splitDivider:hover,
-  #splitDivider.dragging { background: var(--accent, #2077FF); }
+  #splitDivider.dragging { background: #979797; }
   #splitDivider::before {
     content: '';
     position: absolute;
