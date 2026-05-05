@@ -3041,7 +3041,6 @@ function startBuyFlow(productName, productPrice) {
 
   var itemsHtml = coupons.map(function(c, i) {
     return '<div class="bf-item" id="bfItem_'+i+'">' +
-      '<div class="bf-item-ico '+c.color+'">'+c.icon+'</div>' +
       '<div class="bf-item-info">' +
         '<div class="bf-item-name">'+escHtml(c.title)+'</div>' +
         '<div class="bf-item-amount">-¥'+c.amount+' · '+escHtml(c.sub)+'</div>' +
