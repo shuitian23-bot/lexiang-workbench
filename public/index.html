@@ -3068,6 +3068,10 @@ function showToastHb(msg) {
 //  🎟️ 立即购买 → 自动顺序领取所有优惠
 // ══════════════════════════════════════
 function startBuyFlow(productName, productPrice) {
+  // 防重：进行中或已完成时不重复触发
+  if (startBuyFlow._running || startBuyFlow._done) return;
+  startBuyFlow._running = true;
+
   if (typeof showChatApp === 'function') showChatApp();
   if (typeof window.__revealChat === 'function') window.__revealChat();
 
@@ -3147,6 +3151,12 @@ function startBuyFlow(productName, productPrice) {
   // 全部完成后追加价格 + 下单按钮，并自动弹出订单确认层
   var allDone = 400 + (coupons.length - 1) * NEXT_GAP + DONE + 400;
   setTimeout(function() {
+    // 标记流程结束：释放运行锁，置已完成，禁用购买按钮
+    startBuyFlow._running = false;
+    startBuyFlow._done = true;
+    var pdBtn = document.getElementById('pdBuyBtn');
+    if (pdBtn) { pdBtn.disabled = true; pdBtn.textContent = '优惠已领取'; pdBtn.style.opacity = '.5'; pdBtn.style.cursor = 'default'; }
+
     var priceWrap = document.createElement('div');
     priceWrap.className = 'bf-price-wrap';
     priceWrap.innerHTML =
