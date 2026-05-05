@@ -588,7 +588,7 @@ html,body{height:100%;overflow:hidden}
 /* ── 订单确认弹层 ── */
 .order-overlay{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;pointer-events:none;padding:20px;box-sizing:border-box}
 .order-overlay.show{opacity:1;pointer-events:all}
-.order-sheet{background:#fff;border-radius:16px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;transform:scale(.94) translateY(12px);transition:transform .3s cubic-bezier(.19,1,.22,1);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.order-sheet{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;transform:scale(.94) translateY(12px);transition:transform .3s cubic-bezier(.19,1,.22,1);box-shadow:0 20px 60px rgba(0,0,0,.25)}
 .order-overlay.show .order-sheet{transform:scale(1) translateY(0)}
 .order-sheet-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--border,#eee);position:sticky;top:0;background:#fff;z-index:1}
 .order-sheet-title{font-size:16px;font-weight:700;color:var(--text,#1a1a1a)}
@@ -3192,18 +3192,18 @@ function startBuyFlow(productName, productPrice) {
           '<span class="order-sheet-title">确认订单</span>' +
           '<button class="order-close" onclick="document.getElementById(\'orderOverlay\').classList.remove(\'show\')">×</button>' +
         '</div>' +
-        '<div class="order-addr">' +
-          '<div class="order-addr-ico">📍</div>' +
-          '<div class="order-addr-info">' +
-            '<div class="order-addr-name">张伟<span>138 **** 8888</span></div>' +
-            '<div class="order-addr-detail"><span class="order-addr-tag">默认</span>北京市朝阳区望京街道望京 SOHO T1 栋 2018 室</div>' +
-          '</div>' +
-        '</div>' +
         '<div class="order-product">' +
           '<img class="order-product-img" src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="">' +
           '<div class="order-product-info">' +
             '<div class="order-product-name">'+escHtml(productName)+'</div>' +
             '<div class="order-product-spec">Ultra7-356H · 14英寸 · 32GB · 1T SSD</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="order-addr">' +
+          '<div class="order-addr-ico">📍</div>' +
+          '<div class="order-addr-info">' +
+            '<div class="order-addr-name">张伟<span>138 **** 8888</span></div>' +
+            '<div class="order-addr-detail"><span class="order-addr-tag">默认</span>北京市朝阳区望京街道望京 SOHO T1 栋 2018 室</div>' +
           '</div>' +
         '</div>' +
         '<div class="order-breakdown">' +
@@ -3242,7 +3242,7 @@ function startBuyFlow(productName, productPrice) {
         '<div class="order-notice">优惠券已自动领取并抵扣 · 订单号 <b>'+no+'</b></div>' +
         '<div class="order-footer">' +
           '<button class="order-btn-cancel" onclick="document.getElementById(\'orderOverlay\').classList.remove(\'show\')">再想想</button>' +
-          '<button class="order-btn-confirm" onclick="showToastHb(\'订单提交成功！\');document.getElementById(\'orderOverlay\').classList.remove(\'show\')">确认下单</button>' +
+          '<button class="order-btn-confirm" onclick="showToastHb(\'订单提交成功！\');document.getElementById(\'orderOverlay\').classList.remove(\'show\')">立即支付</button>' +
         '</div>' +
       '</div>';
 
