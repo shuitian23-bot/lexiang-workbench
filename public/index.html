@@ -618,6 +618,12 @@ html,body{height:100%;overflow:hidden}
 .order-total-saving{font-size:11px;color:#22c55e;background:rgba(34,197,94,.1);padding:2px 8px;border-radius:99px;margin-left:8px;font-weight:600}
 .order-notice{margin:0 20px 14px;padding:10px 12px;background:rgba(32,119,255,.05);border-radius:8px;font-size:11px;color:var(--text2,#777);line-height:1.6}
 .order-notice b{color:#2077ff}
+.order-invoice{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border,#eee)}
+.order-invoice-ico{font-size:16px;flex-shrink:0}
+.order-invoice-info{flex:1;min-width:0}
+.order-invoice-label{font-size:13px;font-weight:600;color:var(--text,#1a1a1a);margin-bottom:2px}
+.order-invoice-sub{font-size:12px;color:var(--text2,#777)}
+.order-invoice-tag{display:inline-block;font-size:10px;color:#16a34a;border:1px solid rgba(22,163,74,.35);border-radius:3px;padding:0 4px;margin-right:5px;vertical-align:middle}
 .order-footer{padding:0 20px 20px;display:flex;gap:10px}
 .order-btn-cancel{flex:1;padding:12px;border:1.5px solid var(--border,#e0e0e0);border-radius:10px;background:#fff;color:var(--text2,#666);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .order-btn-cancel:hover{border-color:#aaa}
@@ -3204,6 +3210,13 @@ function startBuyFlow(productName, productPrice) {
               '<span class="order-total-price">'+finalText+'</span>' +
               '<span class="order-total-saving">已省¥'+totalSaving+'</span>' +
             '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="order-invoice">' +
+          '<div class="order-invoice-ico">🧾</div>' +
+          '<div class="order-invoice-info">' +
+            '<div class="order-invoice-label"><span class="order-invoice-tag">默认</span>个人发票</div>' +
+            '<div class="order-invoice-sub">电子普通发票 · 发至注册邮箱</div>' +
           '</div>' +
         '</div>' +
         '<div class="order-notice">优惠券已自动领取并抵扣 · 订单号 <b>'+no+'</b></div>' +
