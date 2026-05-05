@@ -560,6 +560,8 @@ html,body{height:100%;overflow:hidden}
 /* ── 购买优惠领取卡片（自动顺序领取） ── */
 .bf-card{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.12);font-size:14px;background:#fff}
 .bf-card-head{padding:14px 16px;background:#fff;border-bottom:1px solid var(--border,#eee)}
+.bf-progress-wrap{height:4px;background:#eee;border-radius:2px;margin-top:10px;overflow:hidden}
+.bf-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#ff2f2f,#ff7043);border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 .bf-card-head-title{font-size:14px;font-weight:700;color:var(--text,#1a1a1a)}
 .bf-card-head-sub{font-size:11px;color:var(--text2,#777);margin-top:3px}
 .bf-list{padding:12px 14px 4px}
@@ -3094,6 +3096,7 @@ function startBuyFlow(productName, productPrice) {
     '<div class="bf-card-head">' +
       '<div class="bf-card-head-title">正在为您自动领取优惠</div>' +
       '<div class="bf-card-head-sub">'+escHtml(productName)+'</div>' +
+      '<div class="bf-progress-wrap"><div class="bf-progress-bar" id="bfProgressBar"></div></div>' +
     '</div>' +
     '<div class="bf-list" id="bfList"></div>';
 
@@ -3144,6 +3147,8 @@ function startBuyFlow(productName, productPrice) {
       var it = document.getElementById('bfItem_'+i);
       if (st) { st.className='bf-item-status done'; st.textContent='✓ 已领取'; }
       if (it) { it.classList.remove('active'); it.classList.add('claimed'); }
+      var pb = document.getElementById('bfProgressBar');
+      if (pb) pb.style.width = Math.round((i + 1) / coupons.length * 100) + '%';
       scrollBottom();
     }, base + DONE);
   });
