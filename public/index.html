@@ -586,16 +586,22 @@ html,body{height:100%;overflow:hidden}
 .bf-order-btn.show{opacity:1;transform:translateY(0)}
 
 /* ── 订单确认弹层 ── */
-.order-overlay{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s;pointer-events:none}
+.order-overlay{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;pointer-events:none;padding:20px;box-sizing:border-box}
 .order-overlay.show{opacity:1;pointer-events:all}
-.order-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:0 0 env(safe-area-inset-bottom);transform:translateY(40px);transition:transform .35s cubic-bezier(.19,1,.22,1);overflow:hidden}
-.order-overlay.show .order-sheet{transform:translateY(0)}
-.order-sheet-handle{width:36px;height:4px;border-radius:2px;background:#e0e0e0;margin:12px auto 0}
-.order-sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px}
+.order-sheet{background:#fff;border-radius:16px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;transform:scale(.94) translateY(12px);transition:transform .3s cubic-bezier(.19,1,.22,1);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.order-overlay.show .order-sheet{transform:scale(1) translateY(0)}
+.order-sheet-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--border,#eee);position:sticky;top:0;background:#fff;z-index:1}
 .order-sheet-title{font-size:16px;font-weight:700;color:var(--text,#1a1a1a)}
 .order-close{background:none;border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2,#999);font-size:20px;line-height:1;flex-shrink:0}
 .order-close:hover{background:#f5f5f5}
-.order-product{display:flex;align-items:center;gap:14px;padding:10px 20px 16px;border-bottom:1px solid var(--border,#eee)}
+.order-addr{display:flex;align-items:flex-start;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border,#eee);background:#fafafa}
+.order-addr-ico{font-size:16px;flex-shrink:0;margin-top:1px}
+.order-addr-info{flex:1;min-width:0}
+.order-addr-name{font-size:13px;font-weight:600;color:var(--text,#1a1a1a);margin-bottom:2px}
+.order-addr-name span{font-size:12px;font-weight:400;color:var(--text2,#777);margin-left:8px}
+.order-addr-detail{font-size:12px;color:var(--text2,#666);line-height:1.5}
+.order-addr-tag{display:inline-block;font-size:10px;color:#2077ff;border:1px solid rgba(32,119,255,.35);border-radius:3px;padding:0 4px;margin-right:5px;vertical-align:middle}
+.order-product{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border,#eee)}
 .order-product-img{width:72px;height:72px;border-radius:10px;object-fit:contain;background:#f5f5f5;flex-shrink:0;padding:4px;box-sizing:border-box}
 .order-product-info{flex:1;min-width:0}
 .order-product-name{font-size:14px;font-weight:600;color:var(--text,#1a1a1a);margin-bottom:4px;line-height:1.4}
@@ -3170,10 +3176,16 @@ function startBuyFlow(productName, productPrice) {
     overlay.id = 'orderOverlay';
     overlay.innerHTML =
       '<div class="order-sheet">' +
-        '<div class="order-sheet-handle"></div>' +
         '<div class="order-sheet-head">' +
           '<span class="order-sheet-title">确认订单</span>' +
           '<button class="order-close" onclick="document.getElementById(\'orderOverlay\').classList.remove(\'show\')">×</button>' +
+        '</div>' +
+        '<div class="order-addr">' +
+          '<div class="order-addr-ico">📍</div>' +
+          '<div class="order-addr-info">' +
+            '<div class="order-addr-name">张伟<span>138 **** 8888</span></div>' +
+            '<div class="order-addr-detail"><span class="order-addr-tag">默认</span>北京市朝阳区望京街道望京 SOHO T1 栋 2018 室</div>' +
+          '</div>' +
         '</div>' +
         '<div class="order-product">' +
           '<img class="order-product-img" src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="">' +
