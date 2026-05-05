@@ -275,6 +275,7 @@ html,body{height:100%;overflow:hidden}
 
 /* Input bar */
 .input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.input-bar-toprow{display:flex;align-items:center;gap:6px;padding-bottom:8px;flex-wrap:wrap}
 .input-inner{display:flex;gap:8px;align-items:flex-end}
 .input-tools{display:flex;align-items:center;gap:6px;padding:6px 0 0;flex-wrap:wrap}
 .input-tools-right{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
@@ -935,6 +936,13 @@ html,body{height:100%;overflow:hidden}
       </button>
     </div>
     <div class="input-bar">
+      <div class="input-bar-toprow">
+        <button class="mode-pill" id="leaiToggle" onclick="toggleLeai()" title="切换到联想官方AI回答">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          <span id="leaiLabel">官方AI</span>
+        </button>
+        <button class="mode-pill hb-pill" onclick="triggerHongbao()">🧧 买平板返100</button>
+      </div>
       <div id="imgPreviewArea" style="display:none" class="img-preview-wrap">
         <img id="imgPreviewThumb" class="img-preview-thumb" src="" alt="预览">
         <span id="imgPreviewName" class="img-preview-name"></span>
@@ -963,11 +971,6 @@ html,body{height:100%;overflow:hidden}
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
               <span id="webSearchLabel">联网搜索</span>
             </button>
-            <button class="mode-pill" id="leaiToggle" onclick="toggleLeai()" title="切换到联想官方AI回答">
-              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-              <span id="leaiLabel">官方AI</span>
-            </button>
-            <button class="mode-pill hb-pill" onclick="triggerHongbao()">🧧 买平板返100</button>
             <div class="input-tools-right">
               <button class="img-upload-btn" id="imgUploadBtn" title="上传图片" onclick="document.getElementById('imgFileInput').click()">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
