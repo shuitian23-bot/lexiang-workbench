@@ -3156,6 +3156,9 @@ function startBuyFlow(productName, productPrice) {
     startBuyFlow._done = true;
     var pdBtn = document.getElementById('pdBuyBtn');
     if (pdBtn) { pdBtn.disabled = true; pdBtn.textContent = '优惠已领取'; pdBtn.style.opacity = '.5'; pdBtn.style.cursor = 'default'; }
+    // 更新卡片标题
+    var titleEl = card.querySelector('.bf-card-head-title');
+    if (titleEl) titleEl.textContent = '已经帮你自动领完优惠';
 
     var priceWrap = document.createElement('div');
     priceWrap.className = 'bf-price-wrap';
