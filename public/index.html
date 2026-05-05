@@ -577,7 +577,7 @@ html,body{height:100%;overflow:hidden}
 .bf-item-status.loading{color:var(--text2,#999)}
 .bf-item-status.done{color:#22c55e;font-weight:600}
 @keyframes bf-spin{to{transform:rotate(360deg)}}
-.bf-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(32,119,255,.2);border-top-color:#2077ff;border-radius:50%;animation:bf-spin .7s linear infinite}
+.bf-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(150,150,150,.2);border-top-color:#999;border-radius:50%;animation:bf-spin .7s linear infinite}
 .bf-price-wrap{margin:4px 14px 12px;padding:12px 14px;border-radius:10px;background:rgba(224,60,49,.05);border:1px dashed rgba(224,60,49,.2);animation:bf-fadein .4s ease}
 .bf-price-label{font-size:11px;color:var(--text2,#777);margin-bottom:4px}
 .bf-price-row2{display:flex;align-items:baseline;gap:8px}
@@ -3161,9 +3161,11 @@ function startBuyFlow(productName, productPrice) {
     startBuyFlow._done = true;
     var pdBtn = document.getElementById('pdBuyBtn');
     if (pdBtn) { pdBtn.disabled = true; pdBtn.textContent = '优惠已领取'; pdBtn.style.opacity = '.5'; pdBtn.style.cursor = 'default'; }
-    // 更新卡片标题
+    // 更新卡片标题，隐藏进度条
     var titleEl = card.querySelector('.bf-card-head-title');
     if (titleEl) titleEl.textContent = '已经帮你自动领完优惠';
+    var pwrap = card.querySelector('.bf-progress-wrap');
+    if (pwrap) pwrap.style.display = 'none';
 
     var priceWrap = document.createElement('div');
     priceWrap.className = 'bf-price-wrap';
