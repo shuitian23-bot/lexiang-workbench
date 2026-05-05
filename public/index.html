@@ -559,19 +559,14 @@ html,body{height:100%;overflow:hidden}
 
 /* ── 购买优惠领取卡片（自动顺序领取） ── */
 .bf-card{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.12);font-size:14px;width:300px;background:#fff}
-.bf-card-head{padding:14px 16px;background:linear-gradient(135deg,#1a1a2e,#2077ff);display:flex;align-items:center;gap:10px}
-.bf-card-head-ico{width:38px;height:38px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.bf-card-head-info{flex:1;min-width:0}
-.bf-card-head-title{font-size:13px;font-weight:700;color:#fff}
-.bf-card-head-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bf-card-head{padding:14px 16px;background:#fff;border-bottom:1px solid var(--border,#eee)}
+.bf-card-head-title{font-size:14px;font-weight:700;color:var(--text,#1a1a1a)}
+.bf-card-head-sub{font-size:11px;color:var(--text2,#777);margin-top:3px}
 .bf-list{padding:12px 14px 4px}
-.bf-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border,#eee);margin-bottom:8px;transition:all .3s;background:#fafafa}
+@keyframes bf-fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.bf-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border,#eee);margin-bottom:8px;transition:border-color .3s,background .3s;background:#fafafa;animation:bf-fadein .3s ease}
 .bf-item.active{border-color:#2077ff;background:rgba(32,119,255,.04)}
 .bf-item.claimed{border-color:#22c55e;background:rgba(34,197,94,.05)}
-.bf-item-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.bf-item-ico.red{background:linear-gradient(135deg,#e03c31,#ff6b35)}
-.bf-item-ico.blue{background:linear-gradient(135deg,#2077ff,#42a5f5)}
-.bf-item-ico.gold{background:linear-gradient(135deg,#e8a020,#ffc843)}
 .bf-item-info{flex:1;min-width:0}
 .bf-item-name{font-size:12px;font-weight:600;color:var(--text,#1a1a1a);line-height:1.3}
 .bf-item-amount{font-size:11px;color:#e03c31;font-weight:700;margin-top:2px}
@@ -581,7 +576,7 @@ html,body{height:100%;overflow:hidden}
 .bf-item-status.done{color:#22c55e;font-weight:600}
 @keyframes bf-spin{to{transform:rotate(360deg)}}
 .bf-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(32,119,255,.2);border-top-color:#2077ff;border-radius:50%;animation:bf-spin .7s linear infinite}
-.bf-price-wrap{margin:4px 14px 12px;padding:12px 14px;border-radius:10px;background:rgba(224,60,49,.05);border:1px dashed rgba(224,60,49,.2)}
+.bf-price-wrap{margin:4px 14px 12px;padding:12px 14px;border-radius:10px;background:rgba(224,60,49,.05);border:1px dashed rgba(224,60,49,.2);animation:bf-fadein .4s ease}
 .bf-price-label{font-size:11px;color:var(--text2,#777);margin-bottom:4px}
 .bf-price-row2{display:flex;align-items:baseline;gap:8px}
 .bf-price-orig{font-size:13px;color:#bbb;text-decoration:line-through}
@@ -3028,48 +3023,24 @@ function startBuyFlow(productName, productPrice) {
   var priceNum = parseInt(String(productPrice).replace(/[^\d]/g, '')) || 0;
 
   var coupons = [
-    { color:'red',  icon:'🎫', title:'企业满减券',    sub:'企业采购专属', amount:500 },
-    { color:'blue', icon:'💳', title:'联想会员折扣券', sub:'乐享会员专享', amount:300 },
-    { color:'gold', icon:'⚡', title:'限时活动补贴',   sub:'今日截止·限量', amount:200 }
+    { title:'企业满减券',    sub:'企业采购专属', amount:500 },
+    { title:'联想会员折扣券', sub:'乐享会员专享', amount:300 },
+    { title:'限时活动补贴',   sub:'今日截止·限量', amount:200 }
   ];
   var totalSaving = coupons.reduce(function(s,c){ return s+c.amount; }, 0);
   var finalPrice  = Math.max(0, priceNum - totalSaving);
+  var origText    = priceNum > 0 ? '¥'+priceNum.toLocaleString() : '';
+  var finalText   = priceNum > 0 ? '¥'+finalPrice.toLocaleString() : '优惠到账';
 
-  // 构建整张卡片
+  // 构建卡片骨架（初始无优惠项）
   var card = document.createElement('div');
   card.className = 'bf-card';
-
-  var itemsHtml = coupons.map(function(c, i) {
-    return '<div class="bf-item" id="bfItem_'+i+'">' +
-      '<div class="bf-item-info">' +
-        '<div class="bf-item-name">'+escHtml(c.title)+'</div>' +
-        '<div class="bf-item-amount">-¥'+c.amount+' · '+escHtml(c.sub)+'</div>' +
-      '</div>' +
-      '<div class="bf-item-status pending" id="bfSt_'+i+'">待领取</div>' +
-    '</div>';
-  }).join('');
-
-  var origText  = priceNum > 0 ? '¥'+priceNum.toLocaleString() : '';
-  var finalText = priceNum > 0 ? '¥'+finalPrice.toLocaleString() : '优惠到账';
-
   card.innerHTML =
     '<div class="bf-card-head">' +
-      '<div class="bf-card-head-ico">🛍️</div>' +
-      '<div class="bf-card-head-info">' +
-        '<div class="bf-card-head-title">正在为您自动领取优惠</div>' +
-        '<div class="bf-card-head-sub">'+escHtml(productName)+'</div>' +
-      '</div>' +
+      '<div class="bf-card-head-title">正在为您自动领取优惠</div>' +
+      '<div class="bf-card-head-sub">'+escHtml(productName)+'</div>' +
     '</div>' +
-    '<div class="bf-list">'+itemsHtml+'</div>' +
-    '<div class="bf-price-wrap">' +
-      '<div class="bf-price-label">到手价</div>' +
-      '<div class="bf-price-row2">' +
-        (origText ? '<span class="bf-price-orig" id="bfOrig">'+origText+'</span>' : '') +
-        '<span class="bf-price-final" id="bfFinal">'+(origText||finalText)+'</span>' +
-        '<span class="bf-price-saving" id="bfSaving" style="display:none">省¥'+totalSaving+'</span>' +
-      '</div>' +
-    '</div>' +
-    '<button class="bf-order-btn" id="bfOrderBtn" onclick="showToastHb(\'正在跳转下单页面…\')">立即下单 →</button>';
+    '<div class="bf-list" id="bfList"></div>';
 
   // 插入用户消息 + AI 卡片
   appendBubble('user', '我要购买 ' + productName + '，帮我领取所有可用优惠');
@@ -3086,38 +3057,62 @@ function startBuyFlow(productName, productPrice) {
   body.querySelector('.hb-mbubble').appendChild(card);
   scrollBottom();
 
-  // 自动依次打勾
+  // 每张券：出现 → 领取中 → 已领取，依次触发
+  // 节奏：每张券占 1100ms（200ms出现后立即开始，700ms后打勾，再等400ms出下一张）
+  var APPEAR = 0, LOAD = 200, DONE = 900, NEXT_GAP = 1100;
+
   coupons.forEach(function(c, i) {
-    var delay = 700 + i * 900;
-    // 领取中
+    var base = 400 + i * NEXT_GAP;
+
+    // 1. 追加这张券（淡入）
     setTimeout(function() {
-      var st = document.getElementById('bfSt_'+i);
-      var it = document.getElementById('bfItem_'+i);
-      if (st) { st.className='bf-item-status loading'; st.innerHTML='<span class="bf-spinner"></span> 领取中'; }
-      if (it) it.classList.add('active');
+      var list = document.getElementById('bfList');
+      if (!list) return;
+      var item = document.createElement('div');
+      item.className = 'bf-item active';
+      item.id = 'bfItem_'+i;
+      item.innerHTML =
+        '<div class="bf-item-info">' +
+          '<div class="bf-item-name">'+escHtml(c.title)+'</div>' +
+          '<div class="bf-item-amount">-¥'+c.amount+' · '+escHtml(c.sub)+'</div>' +
+        '</div>' +
+        '<div class="bf-item-status loading" id="bfSt_'+i+'"><span class="bf-spinner"></span> 领取中</div>';
+      list.appendChild(item);
       scrollBottom();
-    }, delay);
-    // 已领取
+    }, base + APPEAR);
+
+    // 2. 打勾
     setTimeout(function() {
       var st = document.getElementById('bfSt_'+i);
       var it = document.getElementById('bfItem_'+i);
       if (st) { st.className='bf-item-status done'; st.textContent='✓ 已领取'; }
       if (it) { it.classList.remove('active'); it.classList.add('claimed'); }
       scrollBottom();
-    }, delay + 600);
+    }, base + DONE);
   });
 
-  // 全部完成后更新价格 + 显示下单按钮
-  var allDoneDelay = 700 + (coupons.length - 1) * 900 + 600 + 400;
+  // 全部完成后追加价格 + 下单按钮
+  var allDone = 400 + (coupons.length - 1) * NEXT_GAP + DONE + 400;
   setTimeout(function() {
-    var finalEl  = document.getElementById('bfFinal');
-    var savingEl = document.getElementById('bfSaving');
-    var btn      = document.getElementById('bfOrderBtn');
-    if (finalEl && priceNum > 0) finalEl.textContent = finalText;
-    if (savingEl) savingEl.style.display = '';
-    if (btn) btn.classList.add('show');
+    var priceWrap = document.createElement('div');
+    priceWrap.className = 'bf-price-wrap';
+    priceWrap.innerHTML =
+      '<div class="bf-price-label">到手价</div>' +
+      '<div class="bf-price-row2">' +
+        (origText ? '<span class="bf-price-orig">'+origText+'</span>' : '') +
+        '<span class="bf-price-final">'+finalText+'</span>' +
+        '<span class="bf-price-saving">省¥'+totalSaving+'</span>' +
+      '</div>';
+    card.appendChild(priceWrap);
+
+    var btn = document.createElement('button');
+    btn.className = 'bf-order-btn';
+    btn.textContent = '立即下单 →';
+    btn.onclick = function(){ showToastHb('正在跳转下单页面…'); };
+    card.appendChild(btn);
+    setTimeout(function(){ btn.classList.add('show'); }, 50);
     scrollBottom();
-  }, allDoneDelay);
+  }, allDone);
 }
 window.startBuyFlow = startBuyFlow;
 
