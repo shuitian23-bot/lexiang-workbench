@@ -624,6 +624,19 @@ html,body{height:100%;overflow:hidden}
 .order-invoice-label{font-size:13px;font-weight:600;color:var(--text,#1a1a1a);margin-bottom:2px}
 .order-invoice-sub{font-size:12px;color:var(--text2,#777)}
 .order-invoice-tag{display:inline-block;font-size:10px;color:#16a34a;border:1px solid rgba(22,163,74,.35);border-radius:3px;padding:0 4px;margin-right:5px;vertical-align:middle}
+.order-pay{padding:12px 20px;border-bottom:1px solid var(--border,#eee)}
+.order-pay-label{font-size:13px;font-weight:600;color:var(--text,#1a1a1a);margin-bottom:10px}
+.order-pay-list{display:flex;flex-direction:column;gap:8px}
+.order-pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border,#eee);border-radius:10px;cursor:pointer;transition:all .2s;background:#fafafa}
+.order-pay-item.selected{border-color:#2077ff;background:rgba(32,119,255,.04)}
+.order-pay-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.order-pay-ico.wechat{background:#07c160}
+.order-pay-ico.alipay{background:#1677ff}
+.order-pay-ico.jd{background:#e03c31}
+.order-pay-name{flex:1;font-size:13px;font-weight:600;color:var(--text,#1a1a1a)}
+.order-pay-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border,#ddd);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.order-pay-item.selected .order-pay-check{border-color:#2077ff;background:#2077ff}
+.order-pay-item.selected .order-pay-check::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff;display:block}
 .order-footer{padding:0 20px 20px;display:flex;gap:10px}
 .order-btn-cancel{flex:1;padding:12px;border:1.5px solid var(--border,#e0e0e0);border-radius:10px;background:#fff;color:var(--text2,#666);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .order-btn-cancel:hover{border-color:#aaa}
@@ -3219,6 +3232,26 @@ function startBuyFlow(productName, productPrice) {
             '<div class="order-invoice-sub">电子普通发票 · 发至注册邮箱</div>' +
           '</div>' +
         '</div>' +
+        '<div class="order-pay">' +
+          '<div class="order-pay-label">支付方式</div>' +
+          '<div class="order-pay-list">' +
+            '<div class="order-pay-item selected" onclick="selectPayMethod(this)">' +
+              '<div class="order-pay-ico wechat">💚</div>' +
+              '<span class="order-pay-name">微信支付</span>' +
+              '<div class="order-pay-check"></div>' +
+            '</div>' +
+            '<div class="order-pay-item" onclick="selectPayMethod(this)">' +
+              '<div class="order-pay-ico alipay">💙</div>' +
+              '<span class="order-pay-name">支付宝</span>' +
+              '<div class="order-pay-check"></div>' +
+            '</div>' +
+            '<div class="order-pay-item" onclick="selectPayMethod(this)">' +
+              '<div class="order-pay-ico jd">❤️</div>' +
+              '<span class="order-pay-name">京东支付</span>' +
+              '<div class="order-pay-check"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
         '<div class="order-notice">优惠券已自动领取并抵扣 · 订单号 <b>'+no+'</b></div>' +
         '<div class="order-footer">' +
           '<button class="order-btn-cancel" onclick="document.getElementById(\'orderOverlay\').classList.remove(\'show\')">再想想</button>' +
@@ -3233,6 +3266,16 @@ function startBuyFlow(productName, productPrice) {
   }
 }
 window.startBuyFlow = startBuyFlow;
+
+function selectPayMethod(el) {
+  var list = el.closest('.order-pay-list');
+  if (!list) return;
+  list.querySelectorAll('.order-pay-item').forEach(function(item) {
+    item.classList.remove('selected');
+  });
+  el.classList.add('selected');
+}
+window.selectPayMethod = selectPayMethod;
 
 </script>
 <div id="hbToast" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.72);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;pointer-events:none;opacity:0;transition:all .25s;z-index:9999;white-space:nowrap"></div>
