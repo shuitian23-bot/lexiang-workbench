@@ -69,8 +69,7 @@
 
   /* 首屏未触发对话：只显示 landing 全宽，splitter + chat 隐藏 */
   html.split-mode:not(.chat-revealed) #splitDivider,
-  html.split-mode:not(.chat-revealed) #chatApp,
-  html.split-mode:not(.chat-revealed) #splitControls { display: none !important; }
+  html.split-mode:not(.chat-revealed) #chatApp { display: none !important; }
   html.split-mode:not(.chat-revealed) #landingPage {
     flex: 1 1 auto !important;
     width: 100% !important;
@@ -125,38 +124,32 @@
     pointer-events: none;
   }
 
-  /* 顶部浮动控制条（换位按钮） */
+  /* 顶栏内换位/重置控制组 */
   #splitControls {
-    position: fixed;
-    top: 12px;
-    right: 50%;
-    transform: translateX(50%);
-    z-index: 999;
-    display: flex;
-    gap: 6px;
-    pointer-events: none;
+    display: none;
+    align-items: center;
+    gap: 4px;
   }
+  html.split-mode.chat-revealed #splitControls { display: inline-flex; }
   #splitControls button {
-    pointer-events: all;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(8px);
+    background: transparent;
     border: 1px solid var(--border, #E8ECF0);
-    color: var(--text, #1A1A1A);
+    color: var(--text2, #666);
     font-size: 12px;
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 999px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     transition: all 0.15s;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    font-family: inherit;
   }
   #splitControls button:hover {
     border-color: var(--accent, #2077FF);
     color: var(--accent, #2077FF);
   }
-  #splitControls button svg { width: 14px; height: 14px; }
+  #splitControls button svg { width: 13px; height: 13px; }
 
   /* 拖拽期间禁选文本 */
   html.split-mode.split-dragging,

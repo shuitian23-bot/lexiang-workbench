@@ -114,16 +114,16 @@
     root.appendChild(divider);
     root.appendChild(ca);
 
-    // 控制条（换位按钮）
-    var controls = document.createElement('div');
-    controls.id = 'splitControls';
-    controls.innerHTML =
-      '<button type="button" id="btnSwapPanes" title="左右换位">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
-        '<span>换位</span>' +
-      '</button>' +
-      '<button type="button" id="btnResetSplit" title="重置分屏比例">重置</button>';
-    document.body.appendChild(controls);
+    // 控制条（换位按钮）——已预置在 chat-topbar 内，直接注入内容
+    var controls = document.getElementById('splitControls');
+    if (controls) {
+      controls.innerHTML =
+        '<button type="button" id="btnSwapPanes" title="左右换位">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
+          '<span>换位</span>' +
+        '</button>' +
+        '<button type="button" id="btnResetSplit" title="重置分屏比例">重置</button>';
+    }
 
     // 拖拽
     bindDrag(divider);
