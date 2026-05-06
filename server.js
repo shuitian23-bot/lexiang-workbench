@@ -120,12 +120,20 @@ app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 
-// 精选产品列表（landing page 用）
+// 精选产品列表（landing page 用，按子站分类过滤）
 app.get('/api/products', (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 8, 20);
+  const site = req.query.site; // shop=消费, b=企业购, biz=商用
+  let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500`;
+  if (site === 'shop') {
+    where += ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
+  } else if (site === 'b') {
+    where += ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%开天%' OR name LIKE '%企业购%')))`;
+  } else if (site === 'biz') {
+    where += ` AND category IN ('服务器','工作站','服务产品')`;
+  }
   const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
-    FROM products WHERE status = 'active' AND image_url IS NOT NULL AND image_url != ''
-    AND price > 500 ORDER BY RANDOM() LIMIT ?`).all(limit);
+    FROM products WHERE ${where} ORDER BY RANDOM() LIMIT ?`).all(limit);
   res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
 });
 
