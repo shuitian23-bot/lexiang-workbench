@@ -120,6 +120,15 @@ app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 
+// 商品详情 API
+app.get('/api/products/:sku', (req, res) => {
+  const row = db.prepare('SELECT * FROM products WHERE sku = ?').get(req.params.sku);
+  if (!row) return res.status(404).json({ error: 'not found' });
+  let specs = {};
+  try { specs = JSON.parse(row.specs || '{}'); } catch {}
+  res.json({ ...row, specs });
+});
+
 // Preview proxy — 绕过外部站点 X-Frame-Options 限制
 app.get('/api/preview', async (req, res) => {
   const url = req.query.url;
