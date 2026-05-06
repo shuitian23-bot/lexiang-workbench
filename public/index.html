@@ -910,72 +910,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       <h2>精选产品</h2>
       <p>官方定制你的专属电脑，14天无理由退换货</p>
     </div>
-    <div class="mall-grid">
-      <div class="mall-card" data-product="x1carbon" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥12,999 <span class="mall-original">¥14,999</span></div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="t14s" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥8,999</div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="m70q" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥4,299</div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="p27h" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥2,699</div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="ren9000k" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥28,999 <span class="mall-original">¥31,999</span></div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="xiaoxin16" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥6,499</div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="yogapro14s" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥9,999</div>
-        </div>
-      </div>
-      <div class="mall-card" data-product="lecoo7000" onclick="openDetail(this)">
-        <div class="mall-img"><img src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="小新Pro14 酷睿 AI元启版"></div>
-        <div class="mall-info">
-          <div class="mall-name">小新Pro14 酷睿 AI元启版</div>
-          <div class="mall-desc">Ultra7-356H丨14英寸丨32GB丨1T SSD</div>
-          <div class="mall-price">¥6,499</div>
-        </div>
-      </div>
-    </div>
+    <div class="mall-grid" id="mallGrid"></div>
   </section>
 
   <!-- 商品详情页（与商品网格同级，show/hide 切换） -->
@@ -2671,117 +2606,71 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
 },{passive:true});
 
 // ── 商城商品详情 ──
-const mallProducts = {
-  x1carbon: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥12,999', original: '¥14,999',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['深空黑', '钛银灰'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 7 / 16GB / 512GB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版的详细配置、企业采购价格和使用场景'
-  },
-  t14s: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥8,999', original: '',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['深空黑'],
-    specs: ['Ultra 7 / 16GB / 512GB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版的配置选择和企业采购方案'
-  },
-  m70q: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥4,299', original: '',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['经典黑'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版适合哪些企业部署场景？'
-  },
-  p27h: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥2,699', original: '',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['经典黑'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版的接口和性能规格？'
-  },
-  ren9000k: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥28,999', original: '¥31,999',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['深空黑'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版的完整配置和适合哪些专业场景？'
-  },
-  xiaoxin16: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥6,499', original: '',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['云杉绿', '星云灰'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版的续航表现和屏幕效果如何？'
-  },
-  yogapro14s: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥9,999', original: '',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['月光白', '曜石黑'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版适合哪类创作者使用？'
-  },
-  lecoo7000: {
-    name: '小新Pro14 酷睿 AI元启版',
-    slogan: 'Ultra7-356H丨14英寸丨32GB丨1T SSD',
-    price: '¥6,499', original: '',
-    img: 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg',
-    colors: ['商务白'],
-    specs: ['Ultra 7 / 32GB / 1TB', 'Ultra 5 / 16GB / 512GB'],
-    chat: '小新Pro14 酷睿 AI元启版的组网方案和适用网络规模？'
-  }
-};
+var mallProducts = {};
+(function(){
+  fetch('/api/products?limit=8').then(function(r){return r.json()}).then(function(products){
+    var grid = document.getElementById('mallGrid');
+    if (!grid || !products.length) return;
+    grid.innerHTML = products.map(function(p){
+      mallProducts[p.sku] = {
+        name: p.name, slogan: p.description || '', price: '¥' + Number(p.price).toLocaleString(),
+        original: p.original_price > p.price ? '¥' + Number(p.original_price).toLocaleString() : '',
+        img: p.image_url || '', colors: [], specs: [],
+        chat: p.name + ' 的详细配置和购买建议'
+      };
+      var origHtml = p.original_price > p.price ? ' <span class="mall-original">¥' + Number(p.original_price).toLocaleString() + '</span>' : '';
+      return '<div class="mall-card" data-product="' + p.sku + '" onclick="openDetail(this)">' +
+        '<div class="mall-img"><img src="' + (p.image_url||'') + '" alt="' + escHtml(p.name) + '" onerror="this.parentElement.innerHTML=\'<div style=padding:30px;text-align:center;color:#999>敬请期待</div>\'"></div>' +
+        '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
+        '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
+        '<div class="mall-price">¥' + Number(p.price).toLocaleString() + origHtml + '</div></div></div>';
+    }).join('');
+  }).catch(function(e){ console.warn('loadMallProducts failed:', e); });
+})();
 
 function openDetail(el) {
   var card = el.closest ? el.closest('.mall-card') : el;
   if (!card) card = el;
   var key = card.dataset.product;
   var p = mallProducts[key];
-  if (!p) return;
-  // 填充数据
-  document.getElementById('pdMainImg').src = p.img;
-  document.getElementById('pdMainImg').alt = p.name;
-  document.getElementById('pdName').textContent = p.name;
-  document.getElementById('pdSubtitle').textContent = p.slogan;
-  document.getElementById('pdBreadcrumb').textContent = p.name;
-  document.getElementById('pdPrice').textContent = p.price;
-  var orig = document.getElementById('pdOriginal');
-  orig.textContent = p.original || '';
-  orig.style.display = p.original ? '' : 'none';
-  var colorBtns = document.getElementById('pdColorBtns');
-  colorBtns.innerHTML = (p.colors||[]).map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
-  var colorGroup = document.getElementById('pdColorGroup');
-  if (colorGroup) colorGroup.style.display = (p.colors && p.colors.length) ? '' : 'none';
-  var specBtns = document.getElementById('pdSpecBtns');
-  specBtns.innerHTML = (p.specs||[]).map(function(s,i){ return '<button class="pd-opt'+(i===0?' active':'')+'">' + s + '</button>'; }).join('');
-  var specGroup = document.getElementById('pdSpecGroup');
-  if (specGroup) specGroup.style.display = (p.specs && p.specs.length) ? '' : 'none';
-  document.getElementById('pdCartBtn').onclick = function(){ startChat(p.chat); };
-  document.getElementById('pdBuyBtn').onclick = function(){ startBuyFlow(p.name, p.price); };
-  // 隐藏商城列表和 hero，显示详情页
-  var heroWrap = document.querySelector('.hero-wrap');
-  if (heroWrap) heroWrap.style.display = 'none';
-  document.querySelector('.mall-hero').style.display = 'none';
-  document.querySelector('.mall-sec').style.display = 'none';
-  var detail = document.getElementById('mallDetail');
-  detail.classList.add('active');
-  // 滚动到顶部
+  if (!p) { showProductDetail(key); return; }
+  var base = window.__chatBase || '/chat';
+  var dc = document.getElementById('displayCanvas');
+  var origHtml = p.original ? '<span style="text-decoration:line-through;color:#999;font-size:14px;margin-left:8px">' + p.original + '</span>' : '';
+  dc.innerHTML = '<div style="max-width:900px;margin:0 auto;padding:20px">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">' +
+      '<button onclick="closeDisplayCanvas()" style="background:none;border:1px solid #ddd;border-radius:20px;padding:6px 16px;cursor:pointer;font-size:13px">← 返回浏览</button>' +
+      '<span style="font-size:15px;color:#333;font-weight:500">' + escHtml(p.name) + '</span>' +
+    '</div>' +
+    '<div style="color:#999;font-size:13px;margin-bottom:20px">首页 / ' + escHtml(p.name) + '</div>' +
+    '<div style="display:flex;gap:30px;flex-wrap:wrap">' +
+      '<div style="flex:0 0 300px;max-width:300px"><img src="' + p.img + '" alt="' + escHtml(p.name) + '" style="width:100%;border-radius:8px" onerror="this.style.display=\'none\'"></div>' +
+      '<div style="flex:1;min-width:260px">' +
+        '<h2 style="font-size:20px;margin:0 0 8px">' + escHtml(p.name) + '</h2>' +
+        '<p style="color:#666;font-size:14px;margin:0 0 16px">' + escHtml(p.slogan) + '</p>' +
+        '<div style="background:#FFF5F5;border-radius:8px;padding:16px;margin-bottom:16px">' +
+          '<span style="color:#999;font-size:13px">价格 </span><span style="color:#E12521;font-size:28px;font-weight:700">' + p.price + '</span>' + origHtml +
+        '</div>' +
+        '<div style="color:#52c41a;font-size:13px;margin-bottom:16px">● 有货 现货速发</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">' +
+          '<span style="font-size:13px;color:#666">数量</span>' +
+          '<button onclick="var n=this.nextElementSibling;n.value=Math.max(1,+n.value-1)" style="width:30px;height:30px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:16px">−</button>' +
+          '<input type="number" value="1" min="1" max="5" style="width:50px;height:30px;text-align:center;border:1px solid #ddd;border-radius:4px">' +
+          '<button onclick="var n=this.previousElementSibling;n.value=Math.min(5,+n.value*1+1)" style="width:30px;height:30px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:16px">+</button>' +
+          '<span style="color:#999;font-size:12px">（最多5件）</span>' +
+        '</div>' +
+        '<button onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',\'' + p.price.replace(/'/g,"\\'") + '\')" style="width:100%;padding:12px;background:#E12521;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px">立即购买</button>' +
+        '<div style="display:flex;gap:10px">' +
+          '<button onclick="startChat(\'' + escHtml(p.chat).replace(/'/g,"\\'") + '\')" style="flex:1;padding:10px;border:2px solid #E12521;color:#E12521;background:#fff;border-radius:8px;font-size:14px;cursor:pointer">加入购物车</button>' +
+          '<button onclick="quickAsk(\'' + escHtml(p.name).replace(/'/g,"\\'") + ' 怎么样？\')" style="padding:10px 20px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:14px;cursor:pointer">问AI</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+  dc.style.display = 'block';
   var lp = document.getElementById('landingPage');
-  if (lp) lp.scrollTop = 0; else window.scrollTo(0, 0);
+  if (lp) lp.style.overflow = 'hidden';
+  history.replaceState(null, '', base + '/product/' + key + '.html');
 }
 
 function closeDetail() {
