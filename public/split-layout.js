@@ -12,7 +12,10 @@
   'use strict';
 
   var MQ = window.matchMedia('(min-width: 769px)');
+  var CHAT_PREFIXES = ['/chat', '/shop-chat', '/b-chat', '/biz-chat'];
   var STORE_KEY = 'lexiang.splitLayout.v1';
+  function isChatPath(p) { p = p || location.pathname; return CHAT_PREFIXES.some(function(x){ return p.startsWith(x); }); }
+  function chatBase() { var p = location.pathname; for (var i = 0; i < CHAT_PREFIXES.length; i++) { if (p.startsWith(CHAT_PREFIXES[i])) return CHAT_PREFIXES[i]; } return '/chat'; }
   var DEFAULT_LEFT_PCT = 55;
   var MIN_LEFT_PCT = 28;
   var MAX_LEFT_PCT = 78;
@@ -202,7 +205,7 @@
           revealChat();
           if (pushUrl !== false && typeof convId !== 'undefined') {
             try {
-              var base = location.pathname.startsWith('/shop-chat') ? '/shop-chat' : '/chat';
+              var base = chatBase();
               var url = (typeof convId !== 'undefined' && convId) ? base + '/' + convId : base;
               history.replaceState(null, '', url);
             } catch (e) {}
@@ -360,7 +363,7 @@
     patchPreviewFn();
     patchChatTriggers();
     // 直接 /chat URL 进入：自动 reveal
-    if (isPC() && (location.pathname.startsWith('/chat') || location.pathname.startsWith('/shop-chat'))) {
+    if (isPC() && isChatPath()) {
       document.documentElement.classList.add('is-chat');
       revealChat();
     }
