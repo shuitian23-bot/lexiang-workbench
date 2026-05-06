@@ -764,22 +764,52 @@ html,body{height:100%;overflow:hidden}
 #displayCanvas .dc-card-price{font-size:15px;font-weight:600;color:#e1251b;margin-top:6px}
 #displayCanvas .dc-card-price .dc-orig{font-size:11px;color:#999;text-decoration:line-through;margin-left:6px;font-weight:400}
 @media(max-width:768px){#displayCanvas{position:fixed;z-index:200}}
-.pd-detail-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0}
-.pd-detail-img{background:#f5f5f5;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:300px}
-.pd-detail-img img{width:100%;max-height:400px;object-fit:contain;padding:20px}
-.pd-detail-info{display:flex;flex-direction:column;gap:12px}
-.pd-detail-name{font-size:20px;font-weight:600;color:var(--text);line-height:1.4;margin:0}
-.pd-detail-cat{font-size:13px;color:var(--text2)}
-.pd-detail-price{font-size:24px;font-weight:700;color:#e1251b}
-.pd-detail-orig{font-size:14px;color:#999;text-decoration:line-through;margin-left:8px;font-weight:400}
-.pd-detail-desc{font-size:13px;color:var(--text2);line-height:1.6;max-height:120px;overflow-y:auto}
-.pd-detail-meta{display:flex;gap:16px;font-size:12px;color:var(--text2);flex-wrap:wrap}
-.pd-detail-actions{display:flex;gap:12px;margin-top:8px}
-.pd-buy-btn{display:inline-flex;align-items:center;padding:10px 24px;background:#e1251b;color:#fff;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;transition:background .2s}
-.pd-buy-btn:hover{background:#c71e18}
-.pd-ask-btn{display:inline-flex;align-items:center;padding:10px 24px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit}
-.pd-ask-btn:hover{border-color:var(--accent);color:var(--accent)}
-@media(max-width:600px){.pd-detail-wrap{grid-template-columns:1fr}}
+.pd-page{padding:12px 20px}
+.pd-breadcrumb{padding:8px 0;font-size:13px;color:#999}
+.pd-breadcrumb a{color:#666;cursor:pointer;text-decoration:none}
+.pd-breadcrumb a:hover{color:#e1251b}
+.pd-breadcrumb .sep{margin:0 6px;color:#ddd}
+.pd-detail-main{display:flex;gap:24px;background:#fff;border-radius:4px;padding:24px;margin-bottom:16px}
+[data-theme="dark"] .pd-detail-main{background:var(--card2)}
+.pd-gallery{width:45%;max-width:400px;flex-shrink:0}
+.pd-main-img{width:100%;aspect-ratio:1;border:1px solid #eee;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fafafa;margin-bottom:10px}
+.pd-main-img img{max-width:100%;max-height:100%;object-fit:contain}
+.pd-thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.pd-thumb{width:52px;height:52px;border:2px solid transparent;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fafafa;overflow:hidden}
+.pd-thumb:hover,.pd-thumb.active{border-color:#e1251b}
+.pd-thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.pd-info{flex:1;min-width:0}
+.pd-prod-name{font-size:18px;font-weight:bold;color:var(--text,#333);line-height:1.4;margin-bottom:6px}
+.pd-prod-brief{font-size:13px;color:var(--text2,#999);margin-bottom:14px;line-height:1.5}
+.pd-price-box{background:#fff8f0;padding:14px 18px;border-radius:4px;margin-bottom:16px}
+[data-theme="dark"] .pd-price-box{background:rgba(225,37,27,.08)}
+.pd-price-label{font-size:12px;color:#999;margin-right:8px}
+.pd-price-val{font-size:28px;font-weight:bold;color:#e1251b}
+.pd-price-val small{font-size:14px}
+.pd-price-orig{font-size:14px;color:#999;text-decoration:line-through;margin-left:12px}
+.pd-spec-list{margin-bottom:14px}
+.pd-spec-row{display:flex;padding:5px 0;font-size:13px;border-bottom:1px solid #f5f5f5}
+[data-theme="dark"] .pd-spec-row{border-bottom-color:var(--border)}
+.pd-spec-label{width:60px;color:#999;flex-shrink:0}
+.pd-spec-value{color:var(--text,#333);flex:1}
+.pd-stock{font-size:13px;margin-bottom:10px}
+.pd-stock .in{color:#52c41a}
+.pd-stock .out{color:#ff4d4f}
+.pd-qty-box{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.pd-qty-box label{font-size:13px;color:#666}
+.pd-qty-ctrl{display:flex;align-items:center;border:1px solid #ddd;border-radius:4px;overflow:hidden}
+.pd-qty-ctrl button{width:30px;height:30px;border:none;background:#f5f5f5;cursor:pointer;font-size:15px;color:#333}
+.pd-qty-ctrl button:hover{background:#eee}
+.pd-qty-ctrl input{width:40px;height:30px;border:none;border-left:1px solid #ddd;border-right:1px solid #ddd;text-align:center;font-size:13px;outline:none;background:#fff}
+[data-theme="dark"] .pd-qty-ctrl input{background:var(--card);color:var(--text)}
+.pd-action-btns{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.pd-btn-buy{padding:0 32px;height:40px;background:#e1251b;color:#fff;border:none;border-radius:4px;font-size:15px;font-weight:bold;cursor:pointer;transition:background .2s}
+.pd-btn-buy:hover{background:#c41d15}
+.pd-btn-cart{padding:0 32px;height:40px;background:#fff;color:#e1251b;border:2px solid #e1251b;border-radius:4px;font-size:15px;font-weight:bold;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.pd-btn-cart:hover{background:#fff0f0}
+.pd-btn-ask{padding:0 20px;height:40px;background:var(--card,#f5f5f5);border:1px solid var(--border,#ddd);border-radius:4px;font-size:13px;color:var(--text2,#666);cursor:pointer;transition:all .2s;font-family:inherit}
+.pd-btn-ask:hover{border-color:var(--accent);color:var(--accent)}
+@media(max-width:600px){.pd-detail-main{flex-direction:column}.pd-gallery{width:100%;max-width:none}}
 </style>
 <link rel="stylesheet" href="/split-layout.css?v=20260430-4">
 </head>
@@ -2802,7 +2832,7 @@ function closeDisplayCanvas() {
 window.showDisplayCanvas = showDisplayCanvas;
 window.closeDisplayCanvas = closeDisplayCanvas;
 
-// ── 商品详情页（左侧渲染，URL驱动） ──
+// ── 商品详情页（左侧渲染，联想商城风格） ──
 async function showProductDetail(sku) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
@@ -2819,25 +2849,65 @@ async function showProductDetail(sku) {
     var imgUrl = p.image_url || 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg';
     var buyUrl = specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html';
     document.getElementById('dcTitle').textContent = p.name;
-    window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price };
+    window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price, description: p.description };
+
+    // 从 description 提取亮点（按 / 分隔的配置项）
+    var highlights = [];
+    if (p.description) {
+      var parts = p.description.split('/');
+      if (parts.length >= 3) highlights = parts.map(function(s){ return s.trim(); }).filter(Boolean);
+    }
+
+    // 从 specs 提取可展示参数
+    var specRows = '';
+    var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3'];
+    Object.keys(specs).forEach(function(k) {
+      if (skipKeys.indexOf(k) >= 0 || !specs[k]) return;
+      specRows += '<div class="pd-spec-row"><span class="pd-spec-label">' + escHtml(k) + '</span><span class="pd-spec-value">' + escHtml(String(specs[k])) + '</span></div>';
+    });
+
+    var priceInt = String(Math.floor(p.price));
+    var priceDec = p.price % 1 ? '.' + String(p.price).split('.')[1] : '';
+
     body.innerHTML =
-      '<div class="pd-detail-wrap">' +
-        '<div class="pd-detail-img"><img src="' + imgUrl + '" alt="' + p.name + '"></div>' +
-        '<div class="pd-detail-info">' +
-          '<h2 class="pd-detail-name">' + p.name + '</h2>' +
-          '<div class="pd-detail-cat">' + (p.category || '') + (specs.lvl3 ? ' · ' + specs.lvl3 : '') + '</div>' +
-          '<div class="pd-detail-price">¥' + Number(p.price).toLocaleString() +
-            (p.original_price && p.original_price > p.price ? '<span class="pd-detail-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') +
+      '<div class="pd-page">' +
+        '<div class="pd-breadcrumb">' +
+          '<a onclick="closeDisplayCanvas()">首页</a><span class="sep">/</span>' +
+          '<a onclick="closeDisplayCanvas()">' + escHtml(p.category || '商品') + '</a><span class="sep">/</span>' +
+          '<span style="color:var(--text)">' + escHtml(p.name) + '</span>' +
+        '</div>' +
+        '<div class="pd-detail-main">' +
+          '<div class="pd-gallery">' +
+            '<div class="pd-main-img"><img src="' + imgUrl + '" alt="' + escHtml(p.name) + '"></div>' +
           '</div>' +
-          (p.description ? '<div class="pd-detail-desc">' + p.description + '</div>' : '') +
-          '<div class="pd-detail-meta">' +
-            '<span>SKU: ' + p.sku + '</span>' +
-            '<span>库存: ' + (p.stock > 0 ? p.stock + '件' : '暂无') + '</span>' +
-            '<span>状态: ' + (p.status === 'active' ? '在售' : '已下架') + '</span>' +
-          '</div>' +
-          '<div class="pd-detail-actions">' +
-            '<a href="' + buyUrl + '" target="_blank" rel="noopener" class="pd-buy-btn">去官网购买</a>' +
-            '<button class="pd-ask-btn" onclick="askAboutProduct()">问AI关于此商品</button>' +
+          '<div class="pd-info">' +
+            '<div class="pd-prod-name">' + escHtml(p.name) + '</div>' +
+            (p.description ? '<div class="pd-prod-brief">' + escHtml(p.description) + '</div>' : '') +
+            '<div class="pd-price-box">' +
+              '<span class="pd-price-label">价格</span>' +
+              '<span class="pd-price-val"><small>¥</small>' + priceInt + (priceDec ? '<small>' + priceDec + '</small>' : '') + '</span>' +
+              (p.original_price && p.original_price > p.price ? '<span class="pd-price-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') +
+            '</div>' +
+            '<div class="pd-stock">' +
+              (p.stock > 0 ? '<span class="in">● 有货</span><span style="color:#999;margin-left:8px">库存 ' + (p.stock > 999 ? '充足' : p.stock + '件') + '</span>' : '<span class="out">● 无货</span>') +
+              '<span style="color:#999;margin-left:8px">' + (p.status === 'active' ? '在售' : '已下架') + '</span>' +
+            '</div>' +
+            (highlights.length > 0 ? '<div class="pd-spec-list">' + highlights.map(function(h){ return '<div class="pd-spec-row"><span class="pd-spec-label">亮点</span><span class="pd-spec-value">' + escHtml(h) + '</span></div>'; }).join('') + '</div>' : '') +
+            (specRows ? '<div class="pd-spec-list">' + specRows + '</div>' : '') +
+            '<div class="pd-qty-box">' +
+              '<label>数量</label>' +
+              '<div class="pd-qty-ctrl">' +
+                '<button onclick="var i=this.parentNode.querySelector(\'input\');i.value=Math.max(1,Number(i.value)-1)">−</button>' +
+                '<input type="text" value="1" readonly>' +
+                '<button onclick="var i=this.parentNode.querySelector(\'input\');i.value=Math.min(5,Number(i.value)+1)">+</button>' +
+              '</div>' +
+              '<span style="font-size:12px;color:#999">（最多5件）</span>' +
+            '</div>' +
+            '<div class="pd-action-btns">' +
+              '<a href="' + buyUrl + '" target="_blank" rel="noopener" class="pd-btn-buy">立即购买</a>' +
+              '<a href="' + buyUrl + '" target="_blank" rel="noopener" class="pd-btn-cart">加入购物车</a>' +
+              '<button class="pd-btn-ask" onclick="askAboutProduct()">问AI</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</div>';
