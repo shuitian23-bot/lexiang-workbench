@@ -126,7 +126,7 @@ app.get('/api/products', (req, res) => {
   const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
     FROM products WHERE status = 'active' AND image_url IS NOT NULL AND image_url != ''
     AND price > 500 ORDER BY RANDOM() LIMIT ?`).all(limit);
-  res.json(rows);
+  res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
 });
 
 // 商品详情 API
