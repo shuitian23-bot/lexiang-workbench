@@ -724,7 +724,7 @@ html,body{height:100%;overflow:hidden}
 <link rel="stylesheet" href="/split-layout.css?v=20260430-4">
 </head>
 <body>
-<script>var _p=location.pathname;if(_p.startsWith('/chat')){document.documentElement.classList.add('is-chat');if(_p.split('/')[2])document.documentElement.classList.add('is-chat-conv');}</script>
+<script>var _p=location.pathname;if(_p.startsWith('/chat')||_p.startsWith('/shop-chat')){document.documentElement.classList.add('is-chat');if(_p.replace('/shop-chat','').split('/')[2])document.documentElement.classList.add('is-chat-conv');}</script>
 
 <!-- ══════════ LANDING PAGE ══════════ -->
 <div id="landingPage">
@@ -1346,8 +1346,8 @@ window.addEventListener('popstate', () => {
   if (p === '/' || p === '') {
     document.getElementById('chatApp').classList.remove('active');
     document.getElementById('landingPage').classList.remove('exit');
-  } else if (p.startsWith('/chat')) {
-    const id = Number(p.split('/')[2]);
+  } else if (p.startsWith('/chat') || p.startsWith('/shop-chat')) {
+    const id = Number(p.replace('/shop-chat','').split('/')[2]);
     if (id) loadConv(id);
     else openChatFresh();
   }
@@ -2663,8 +2663,8 @@ async function restoreFromUrl(){
   // 等登录态检查完成再做路由，避免已登录用户被弹登录框
   if (window._authReady) await window._authReady;
   const p = location.pathname;
-  if (p.startsWith('/chat')){
-    const id = p.split('/')[2];
+  if (p.startsWith('/chat') || p.startsWith('/shop-chat')){
+    const id = p.replace('/shop-chat','').split('/')[2];
     if (id) {
       await Promise.all([loadConvList(), loadConv(id)]);
     } else {
