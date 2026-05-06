@@ -3072,8 +3072,14 @@ function showToastHb(msg) {
 //  🎟️ 立即购买 → 自动顺序领取所有优惠
 // ══════════════════════════════════════
 function startBuyFlow(productName, productPrice) {
-  // 防重：进行中或已完成时不重复触发
-  if (startBuyFlow._running || startBuyFlow._done) return;
+  // 已完成：直接重新弹出订单弹层
+  if (startBuyFlow._done) {
+    var ov = document.getElementById('orderOverlay');
+    if (ov) ov.classList.add('show');
+    return;
+  }
+  // 进行中：不重复触发
+  if (startBuyFlow._running) return;
   startBuyFlow._running = true;
 
   if (typeof showChatApp === 'function') showChatApp();
@@ -3162,7 +3168,7 @@ function startBuyFlow(productName, productPrice) {
     startBuyFlow._running = false;
     startBuyFlow._done = true;
     var pdBtn = document.getElementById('pdBuyBtn');
-    if (pdBtn) { pdBtn.disabled = true; pdBtn.textContent = '优惠已领取'; pdBtn.style.opacity = '.5'; pdBtn.style.cursor = 'default'; }
+    if (pdBtn) { pdBtn.disabled = false; pdBtn.textContent = '立即购买'; pdBtn.style.opacity = ''; pdBtn.style.cursor = ''; }
     // 更新卡片标题，隐藏进度条
     var titleEl = card.querySelector('.bf-card-head-title');
     if (titleEl) titleEl.textContent = '已经帮你自动领完优惠';
