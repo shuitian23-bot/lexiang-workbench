@@ -748,7 +748,7 @@ html,body{height:100%;overflow:hidden}
 .pd-btn-cart:hover{background:rgba(225,37,33,.06)}
 @media(max-width:900px){.pd-card{grid-template-columns:1fr}.pd-gallery{min-height:220px}}
 /* ── AI展示画布 ── */
-#displayCanvas{position:absolute;top:0;left:0;right:0;bottom:0;background:#f8f8f8;z-index:180;overflow-y:auto;padding:0 20px 40px}
+#displayCanvas{position:absolute;top:56px;left:0;right:0;height:calc(100vh - 56px);height:calc(100dvh - 56px);background:#f8f8f8;z-index:90;overflow-y:auto;padding:0 20px 40px}
 #displayCanvas .dc-topbar{display:flex;align-items:center;gap:12px;padding:14px 0;position:sticky;top:0;background:#f8f8f8;z-index:1}
 #displayCanvas .dc-back{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text2);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
 #displayCanvas .dc-back:hover{border-color:var(--accent);color:var(--accent)}
@@ -763,7 +763,7 @@ html,body{height:100%;overflow:hidden}
 #displayCanvas .dc-card-desc{font-size:12px;color:var(--text2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #displayCanvas .dc-card-price{font-size:15px;font-weight:600;color:#e1251b;margin-top:6px}
 #displayCanvas .dc-card-price .dc-orig{font-size:11px;color:#999;text-decoration:line-through;margin-left:6px;font-weight:400}
-@media(max-width:768px){#displayCanvas{position:fixed;z-index:200}}
+@media(max-width:768px){#displayCanvas{position:fixed;top:0;z-index:200}}
 .pd-page{padding:12px 20px}
 .pd-breadcrumb{padding:8px 0;font-size:13px;color:#999}
 .pd-breadcrumb a{color:#666;cursor:pointer;text-decoration:none}
@@ -803,11 +803,11 @@ html,body{height:100%;overflow:hidden}
 .pd-qty-ctrl input{width:40px;height:30px;border:none;border-left:1px solid #ddd;border-right:1px solid #ddd;text-align:center;font-size:13px;outline:none;background:#fff}
 [data-theme="dark"] .pd-qty-ctrl input{background:var(--card);color:var(--text)}
 .pd-action-btns{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.pd-btn-buy{padding:0 28px;height:40px;background:#e1251b;color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;transition:background .2s;white-space:nowrap}
-.pd-btn-buy:hover{background:#c41d15}
-.pd-btn-cart{padding:0 28px;height:40px;background:#fff;color:#e1251b;border:2px solid #e1251b;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap}
-.pd-btn-cart:hover{background:#fff0f0}
-.pd-btn-ask{padding:0 20px;height:40px;background:var(--card,#f5f5f5);border:1px solid var(--border,#ddd);border-radius:4px;font-size:13px;color:var(--text2,#666);cursor:pointer;transition:all .2s;font-family:inherit}
+.pd-action-btns .pd-btn-buy{flex:none;padding:0 36px;height:42px;background:#e1251b;color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.pd-action-btns .pd-btn-buy:hover{background:#c41d15}
+.pd-action-btns .pd-btn-cart{flex:none;padding:0 36px;height:42px;background:#fff;color:#e1251b;border:1.5px solid #e1251b;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.pd-action-btns .pd-btn-cart:hover{background:#fff0f0}
+.pd-action-btns .pd-btn-ask{flex:none;padding:0 20px;height:42px;background:var(--card,#f5f5f5);border:1px solid var(--border,#ddd);border-radius:4px;font-size:13px;color:var(--text2,#666);cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center}
 .pd-btn-ask:hover{border-color:var(--accent);color:var(--accent)}
 /* 商品详情区下半部分：tabs + 内容 */
 .pd-detail-below{background:#fff;border-radius:4px;margin-top:16px;overflow:hidden}
@@ -2626,7 +2626,7 @@ var mallProducts = {};
       };
       var origHtml = p.original_price > p.price ? ' <span class="mall-original">¥' + Number(p.original_price).toLocaleString() + '</span>' : '';
       return '<div class="mall-card" data-product="' + p.sku + '" onclick="openDetail(this)">' +
-        '<div class="mall-img"><img src="' + (p.image_url||'') + '" alt="' + escHtml(p.name) + '" onerror="this.parentElement.innerHTML=\'<div style=padding:30px;text-align:center;color:#999>敬请期待</div>\'"></div>' +
+        '<div class="mall-img"><img src="' + (p.image_url||'') + '" alt="' + escHtml(p.name) + '" onerror="this.style.display=\'none\'"></div>' +
         '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
         '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
         '<div class="mall-price">¥' + Number(p.price).toLocaleString() + origHtml + '</div></div></div>';
@@ -2661,7 +2661,7 @@ function showDisplayCanvas(title, products) {
   var body = document.getElementById('dcBody');
   document.getElementById('dcTitle').textContent = title;
   body.innerHTML = products.map(function(p) {
-    var img = p.image_url || p.图片 || 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg';
+    var img = p.image_url || p.图片 || '';
     var name = p.name || p.名称 || '';
     var desc = p.description || p.描述 || p.分类 || '';
     var price = p.price || p.价格 || '';
@@ -2676,15 +2676,15 @@ function showDisplayCanvas(title, products) {
         (price ? '<div class="dc-card-price">¥' + Number(price).toLocaleString() + (origPrice ? '<span class="dc-orig">¥' + Number(origPrice).toLocaleString() + '</span>' : '') + '</div>' : '') +
       '</div></a>';
   }).join('');
+  var lp = document.getElementById('landingPage');
+  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; }
   dc.style.display = 'block';
   dc.scrollTop = 0;
-  var lp = document.getElementById('landingPage');
-  if (lp) lp.style.overflow = 'hidden';
 }
 function closeDisplayCanvas() {
   document.getElementById('displayCanvas').style.display = 'none';
   var lp = document.getElementById('landingPage');
-  if (lp) lp.style.overflow = '';
+  if (lp) { lp.style.overflow = ''; lp.style.height = ''; }
 }
 window.showDisplayCanvas = showDisplayCanvas;
 window.closeDisplayCanvas = closeDisplayCanvas;
@@ -2695,7 +2695,10 @@ async function showProductDetail(sku) {
   var body = document.getElementById('dcBody');
   document.getElementById('dcTitle').textContent = '加载中...';
   body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">正在加载商品信息...</div>';
+  var lp = document.getElementById('landingPage');
+  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; }
   dc.style.display = 'block';
+  dc.scrollTop = 0;
   body.style.display = 'block';
   body.style.gridTemplateColumns = '1fr';
   try {
@@ -2703,7 +2706,7 @@ async function showProductDetail(sku) {
     if (!res.ok) { body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">未找到该商品</div>'; return; }
     var p = await res.json();
     var specs = p.specs || {};
-    var imgUrl = p.image_url || 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg';
+    var imgUrl = p.image_url || '';
     var buyUrl = specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html';
     document.getElementById('dcTitle').textContent = p.name;
     window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price, description: p.description };
@@ -3534,7 +3537,7 @@ function startBuyFlow(productName, productPrice) {
         '</div>' +
         '<div class="order-sheet-body">' +
         '<div class="order-product">' +
-          '<img class="order-product-img" src="https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg" alt="">' +
+          '<img class="order-product-img" src="" alt="">' +
           '<div class="order-product-info">' +
             '<div class="order-product-name">'+escHtml(productName)+'</div>' +
             '<div class="order-product-spec">Ultra7-356H · 14英寸 · 32GB · 1T SSD</div>' +

@@ -124,7 +124,11 @@ app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 app.get('/api/products', (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 8, 20);
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
-  let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500`;
+  let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
+    AND SUBSTR(image_url, -30) NOT IN (
+      SELECT SUBSTR(image_url, -30) FROM products WHERE image_url IS NOT NULL AND image_url != ''
+      GROUP BY SUBSTR(image_url, -30) HAVING count(*) > 5
+    )`;
   if (site === 'shop') {
     where += ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
   } else if (site === 'b') {
