@@ -164,18 +164,7 @@
   html.split-mode #chatApp {
     width: 100%;
   }
-  html.split-mode #chatApp .sidebar {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 25;
-    width: 240px;
-    transform: translateX(-100%);
-    transition: transform 0.25s cubic-bezier(.19,1,.22,1);
-    box-shadow: 6px 0 24px rgba(0,0,0,0.12);
-  }
-  html.split-mode #chatApp .sidebar.open { transform: translateX(0); }
+  /* sidebar 已改为全屏弹层，split 模式下不再 override 位置 */
   html.split-mode #chatApp .chat-main { width: 100%; flex: 1; }
   html.split-mode #chatApp .menu-btn { display: inline-flex !important; }
 
