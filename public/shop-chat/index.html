@@ -212,7 +212,7 @@ html,body{height:100%;overflow:hidden}
 .topbar-btn:hover{border-color:var(--accent);color:var(--accent)}
 .topbar-btn.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
 #shareBtn{display:none!important}
-.menu-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text);margin-right:10px;flex-shrink:0;transition:all .2s}
+.menu-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text);flex-shrink:0;transition:all .2s}
 .menu-btn:hover{border-color:var(--accent);color:var(--accent)}
 .menu-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
 
@@ -957,15 +957,15 @@ html,body{height:100%;overflow:hidden}
   </div>
   <div class="chat-main">
     <div class="chat-topbar">
-      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()" aria-label="打开侧栏">
-        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
       <div class="chat-title" id="chatTitle">联想乐享官方AI助手</div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <button class="topbar-btn" id="shareBtn" onclick="shareConv()" title="分享对话" style="display:none">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </button>
         <div id="splitControls"></div>
+        <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()" aria-label="打开侧栏">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
     </div>
     <div class="msgs-wrap" id="msgsWrap">
@@ -2185,8 +2185,6 @@ async function callCompareAPI(msg) {
 
 // ── Nav active state ──
 function setNavActive(key) {
-  // /shop-chat 路径下始终锁定"商城"高亮，忽略 null 清除
-  if (!key && location.pathname.startsWith('/shop-chat')) key = '商城';
   document.querySelectorAll('.nlinks a').forEach(a => a.classList.remove('nav-active'));
   if (key) {
     const el = document.querySelector('.nlinks a[data-nav="' + key + '"]');
