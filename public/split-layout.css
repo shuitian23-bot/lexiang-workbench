@@ -94,7 +94,7 @@
   /* 拖拽分隔条 */
   #splitDivider {
     flex: 0 0 6px;
-    background: #D8D0E8;
+    background: transparent;
     cursor: col-resize;
     position: relative;
     user-select: none;
@@ -102,7 +102,7 @@
     z-index: 30;
   }
   #splitDivider:hover,
-  #splitDivider.dragging { background: #f6f6f6; }
+  #splitDivider.dragging { background: #D8D0E8; }
   #splitDivider::before {
     content: '';
     position: absolute;
@@ -122,7 +122,11 @@
     background: rgba(255,255,255,0.7);
     box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
   }
+  #splitDivider:hover .grip,
+  #splitDivider.dragging .grip { opacity: 1; }
 
   /* 顶栏内换位/重置控制组 */
   #splitControls {
