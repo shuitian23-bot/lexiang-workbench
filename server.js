@@ -120,6 +120,15 @@ app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 
+// 精选产品列表（landing page 用）
+app.get('/api/products', (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 8, 20);
+  const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
+    FROM products WHERE status = 'active' AND image_url IS NOT NULL AND image_url != ''
+    AND price > 500 ORDER BY RANDOM() LIMIT ?`).all(limit);
+  res.json(rows);
+});
+
 // 商品详情 API
 app.get('/api/products/:sku', (req, res) => {
   const row = db.prepare('SELECT * FROM products WHERE sku = ?').get(req.params.sku);
