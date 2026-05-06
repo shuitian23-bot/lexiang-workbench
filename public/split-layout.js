@@ -122,13 +122,15 @@
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
           '<span>换位</span>' +
         '</button>' +
-        '<button type="button" id="btnResetSplit" title="重置分屏比例">重置</button>';
+        '<button type="button" id="btnNewConv" title="新建对话">新建</button>';
     }
 
     // 拖拽
     bindDrag(divider);
     document.getElementById('btnSwapPanes').addEventListener('click', toggleSwap);
-    document.getElementById('btnResetSplit').addEventListener('click', resetSplit);
+    document.getElementById('btnNewConv').addEventListener('click', function () {
+      if (typeof openChatFresh === 'function') openChatFresh();
+    });
   }
 
   function bindDrag(divider) {
