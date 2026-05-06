@@ -2625,7 +2625,8 @@ var mallProducts = {};
         '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
         '<div class="mall-price">¥' + Number(p.price).toLocaleString() + origHtml + '</div></div></div>';
     }).join('');
-  }).catch(function(e){ console.warn('loadMallProducts failed:', e); });
+    console.log('[MallGrid] rendered ' + grid.children.length + ' cards');
+  }).catch(function(e){ console.error('[MallGrid] FAILED:', e); });
 })();
 
 function openDetail(el) {
