@@ -960,7 +960,7 @@ html,body{height:100%;overflow:hidden}
       <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()" aria-label="打开侧栏">
         <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <div class="chat-title" id="chatTitle">联想乐享 · 官方AI助手</div>
+      <div class="chat-title" id="chatTitle">联想乐享官方AI助手</div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <button class="topbar-btn" id="shareBtn" onclick="shareConv()" title="分享对话" style="display:none">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1195,7 +1195,7 @@ let currentLang = localStorage.getItem('lexiang-lang') || 'zh';
 // i18n strings
 const I18N = {
   zh: {
-    title: '联想乐享 · 官方AI助手',
+    title: '联想乐享官方AI助手',
     placeholder: '向乐享提问…',
     hint: '内容由联想乐享AI生成，仅供参考',
     newConv: '新建对话',
@@ -1361,7 +1361,7 @@ function openChatFresh(){ setNavActive(null);
   document.querySelectorAll('.suggestions').forEach(el => el.remove());
   document.getElementById('msgsInner').innerHTML = welcomeHTML();
   updateSidebar();
-  updateTitle('联想乐享 · 官方AI助手');
+  updateTitle('联想乐享官方AI助手');
   showChatApp();
   closeSidebar();
 }
