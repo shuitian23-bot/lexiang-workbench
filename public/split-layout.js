@@ -200,7 +200,8 @@
           revealChat();
           if (pushUrl !== false && typeof convId !== 'undefined') {
             try {
-              var url = (typeof convId !== 'undefined' && convId) ? '/chat/' + convId : '/chat';
+              var base = location.pathname.startsWith('/shop-chat') ? '/shop-chat' : '/chat';
+              var url = (typeof convId !== 'undefined' && convId) ? base + '/' + convId : base;
               history.replaceState(null, '', url);
             } catch (e) {}
           }
@@ -357,7 +358,7 @@
     patchPreviewFn();
     patchChatTriggers();
     // 直接 /chat URL 进入：自动 reveal
-    if (isPC() && location.pathname.startsWith('/chat')) {
+    if (isPC() && (location.pathname.startsWith('/chat') || location.pathname.startsWith('/shop-chat'))) {
       document.documentElement.classList.add('is-chat');
       revealChat();
     }
