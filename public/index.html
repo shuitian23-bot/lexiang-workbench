@@ -803,9 +803,9 @@ html,body{height:100%;overflow:hidden}
 .pd-qty-ctrl input{width:40px;height:30px;border:none;border-left:1px solid #ddd;border-right:1px solid #ddd;text-align:center;font-size:13px;outline:none;background:#fff}
 [data-theme="dark"] .pd-qty-ctrl input{background:var(--card);color:var(--text)}
 .pd-action-btns{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.pd-btn-buy{padding:0 32px;height:40px;background:#e1251b;color:#fff;border:none;border-radius:4px;font-size:15px;font-weight:bold;cursor:pointer;transition:background .2s}
+.pd-btn-buy{padding:0 28px;height:40px;background:#e1251b;color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;transition:background .2s;white-space:nowrap}
 .pd-btn-buy:hover{background:#c41d15}
-.pd-btn-cart{padding:0 32px;height:40px;background:#fff;color:#e1251b;border:2px solid #e1251b;border-radius:4px;font-size:15px;font-weight:bold;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.pd-btn-cart{padding:0 28px;height:40px;background:#fff;color:#e1251b;border:2px solid #e1251b;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap}
 .pd-btn-cart:hover{background:#fff0f0}
 .pd-btn-ask{padding:0 20px;height:40px;background:var(--card,#f5f5f5);border:1px solid var(--border,#ddd);border-radius:4px;font-size:13px;color:var(--text2,#666);cursor:pointer;transition:all .2s;font-family:inherit}
 .pd-btn-ask:hover{border-color:var(--accent);color:var(--accent)}
@@ -2858,12 +2858,16 @@ async function showProductDetail(sku) {
       if (parts.length >= 3) highlights = parts.map(function(s){ return s.trim(); }).filter(Boolean);
     }
 
-    // 从 specs 提取可展示参数
+    // 从 specs 提取可展示参数（过滤内部字段+中文化label+格式化值）
     var specRows = '';
-    var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3'];
+    var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3','target_user','highlights','images','ad_picture'];
+    var labelMap = {brand:'品牌',color:'颜色',mtm:'型号',weight:'重量',screen_size:'屏幕',battery:'电池',os:'系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率'};
     Object.keys(specs).forEach(function(k) {
       if (skipKeys.indexOf(k) >= 0 || !specs[k]) return;
-      specRows += '<div class="pd-spec-row"><span class="pd-spec-label">' + escHtml(k) + '</span><span class="pd-spec-value">' + escHtml(String(specs[k])) + '</span></div>';
+      var v = specs[k];
+      if (typeof v === 'object') return;
+      var label = labelMap[k] || k;
+      specRows += '<div class="pd-spec-row"><span class="pd-spec-label">' + escHtml(label) + '</span><span class="pd-spec-value">' + escHtml(String(v)) + '</span></div>';
     });
 
     var priceInt = String(Math.floor(p.price));
