@@ -225,16 +225,13 @@ html,body{height:100%;overflow:hidden}
 
 /* Welcome */
 .welcome{padding:48px 32px 32px;text-align:left}
-.welcome h2{font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:10px;letter-spacing:-.03em;line-height:1.2}
+.welcome h2{font-size:clamp(26px,4vw,38px);font-weight:900;margin-bottom:10px;letter-spacing:-.03em;line-height:1.2}
 .welcome h2 .grad{background:var(--primary-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200%;animation:sg 4s linear infinite}
 @keyframes sg{0%{background-position:0%}100%{background-position:200%}}
 .welcome p{font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.7}
-.wgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;text-align:left}
-.wcard{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;font-size:13px;line-height:1.5;position:relative;overflow:hidden}
-.wcard::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--primary-grad);transform:scaleX(0);transition:transform .25s;transform-origin:left}
-.wcard:hover{border-color:var(--primary);transform:translateY(-1px);box-shadow:0 4px 16px rgba(61,3,102,.08)}
-.wcard:hover::after{transform:scaleX(1)}
-.wcard strong{display:block;font-size:11px;color:var(--primary);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.wlist{display:flex;flex-direction:column;gap:8px}
+.wlist-item{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;color:var(--text)}
+.wlist-item:hover{border-color:var(--primary);background:var(--card);color:var(--primary)}
 
 /* Msg bubbles */
 .msg{display:flex;gap:10px;animation:msgIn .25s ease}
@@ -486,7 +483,7 @@ html,body{height:100%;overflow:hidden}
   .chat-main{width:100%}
   .menu-btn{display:flex}
   .welcome{padding:24px 12px}
-  .wgrid{grid-template-columns:1fr}
+  
   .welcome h2{font-size:22px}
   #msgsInner{padding:0 12px}
   .input-bar{padding:8px 10px 10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
@@ -1208,13 +1205,14 @@ const I18N = {
     thinking: '深度思考',
     share: '分享',
     shareSuccess: '链接已复制！',
-    welcomeTitle: '你好，我是<em style="font-style:normal;color:var(--accent)">乐享</em>',
-    welcomeSub: '联想官方AI助手，随时为你解答产品、优惠、解决方案相关问题',
+    welcomeTitle: '有什么我能帮你的吗？',
+    welcomeSub: '联想官方AI助手，随时为你解答产品、优惠、商品对比相关问题',
     wCards: [
-      ['🎁 优惠活动','最近联想有什么促销活动？'],
-      ['💻 产品推荐','5000元预算，办公本怎么选？'],
-      ['🔍 产品对比','拯救者和小新系列有什么区别？'],
-      ['⭐ 会员权益','联想会员有哪些专属权益？']
+      ['帮我选购商品','帮我选购商品'],
+      ['有哪些优惠商品？','有哪些优惠商品？'],
+      ['商品参数性能对比','商品参数性能对比'],
+      ['我要查找订单','我要查找订单'],
+      ['我要预约维修','我要预约维修']
     ]
   },
   en: {
@@ -1370,13 +1368,13 @@ function openChatFresh(){ setNavActive(null);
 // ── Welcome screen HTML ──
 function welcomeHTML(){
   const s = I18N[currentLang];
-  const cards = s.wCards.map(([label, q]) =>
-    `<div class="wcard" onclick="quickAsk('${q.replace(/'/g,"\\'")}')"><strong>${label}</strong>${q}</div>`
+  const items = s.wCards.map(([label, q]) =>
+    `<div class="wlist-item" onclick="quickAsk('${q.replace(/'/g,"\\'")}')"><span>${label}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></div>`
   ).join('');
   return `<div class="welcome" id="welcomeScreen">
     <h2>${s.welcomeTitle}</h2>
     <p>${s.welcomeSub}</p>
-    <div class="wgrid">${cards}</div>
+    <div class="wlist">${items}</div>
   </div>`;
 }
 
