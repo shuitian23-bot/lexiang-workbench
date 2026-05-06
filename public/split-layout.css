@@ -280,7 +280,7 @@
 
   /* ── 窄分屏自适应（核心：左栏被拖窄时退化为移动端式排版） ── */
   /* narrow=1: 520-760px — 多列退到 2 列 */
-  html.split-mode #landingPage[data-narrow="1"] nav .nlinks,
+  html.split-mode #landingPage[data-narrow="1"] nav .nlinks { display: flex; gap: 12px; overflow-x: auto; font-size: 12px; }
   html.split-mode #landingPage[data-narrow="1"] nav .nright > a:not(:last-of-type) { display: none; }
   html.split-mode #landingPage[data-narrow="1"] nav { padding: 0 16px; }
   html.split-mode #landingPage[data-narrow="1"] .hero h1 { font-size: 28px; }
@@ -294,7 +294,8 @@
   html.split-mode #landingPage[data-narrow="1"] .crow > * { flex: 1 1 calc(50% - 12px); min-width: 0; }
 
   /* narrow=2: <520px — 单列布局，所有 grid 退到 1 列 */
-  html.split-mode #landingPage[data-narrow="2"] nav .nlinks,
+  html.split-mode #landingPage[data-narrow="2"] nav .nlinks { display: flex; gap: 8px; overflow-x: auto; font-size: 11px; }
+  html.split-mode #landingPage[data-narrow="2"] nav .nlinks a { min-width: max-content; }
   html.split-mode #landingPage[data-narrow="2"] nav .nright > a,
   html.split-mode #landingPage[data-narrow="2"] nav .sep,
   html.split-mode #landingPage[data-narrow="2"] nav #navAuthArea { display: none; }
