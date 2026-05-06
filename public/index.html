@@ -809,7 +809,37 @@ html,body{height:100%;overflow:hidden}
 .pd-btn-cart:hover{background:#fff0f0}
 .pd-btn-ask{padding:0 20px;height:40px;background:var(--card,#f5f5f5);border:1px solid var(--border,#ddd);border-radius:4px;font-size:13px;color:var(--text2,#666);cursor:pointer;transition:all .2s;font-family:inherit}
 .pd-btn-ask:hover{border-color:var(--accent);color:var(--accent)}
-@media(max-width:600px){.pd-detail-main{flex-direction:column}.pd-gallery{width:100%;max-width:none}}
+/* 商品详情区下半部分：tabs + 内容 */
+.pd-detail-below{background:#fff;border-radius:4px;margin-top:16px;overflow:hidden}
+[data-theme="dark"] .pd-detail-below{background:var(--card2)}
+.pd-tabs{display:flex;border-bottom:2px solid #f0f0f0;padding:0 24px}
+[data-theme="dark"] .pd-tabs{border-bottom-color:var(--border)}
+.pd-tab{padding:14px 20px;font-size:14px;color:#666;cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.pd-tab:hover{color:#333}
+.pd-tab.active{color:#e1251b;border-bottom-color:#e1251b;font-weight:600}
+[data-theme="dark"] .pd-tab:hover{color:var(--text)}
+[data-theme="dark"] .pd-tab.active{color:#e1251b}
+.pd-tab-panel{padding:24px;display:none}
+.pd-tab-panel.active{display:block}
+.pd-hl-title{font-size:15px;font-weight:600;color:var(--text,#333);margin:0 0 14px}
+.pd-hl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:24px}
+.pd-hl-item{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;background:#fafafa;border-radius:4px;font-size:13px;color:#333;line-height:1.5}
+[data-theme="dark"] .pd-hl-item{background:var(--card);color:var(--text)}
+.pd-hl-item::before{content:'✓';color:#e1251b;font-weight:bold;flex-shrink:0}
+.pd-tu-title{font-size:14px;font-weight:600;color:var(--text,#333);margin:0 0 10px}
+.pd-tu-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.pd-tu-tag{padding:5px 14px;background:#f0f7ff;color:#1677ff;border-radius:16px;font-size:12px}
+[data-theme="dark"] .pd-tu-tag{background:rgba(22,119,255,.1)}
+.pd-detail-img{text-align:center;margin:20px 0}
+.pd-detail-img img{max-width:100%;border-radius:4px}
+.pd-specs-tbl{width:100%;border-collapse:collapse}
+.pd-specs-tbl tr{border-bottom:1px solid #f5f5f5}
+[data-theme="dark"] .pd-specs-tbl tr{border-bottom-color:var(--border)}
+.pd-specs-tbl td{padding:10px 14px;font-size:13px;vertical-align:top}
+.pd-specs-tbl td:first-child{width:100px;color:#999;background:#fafafa;white-space:nowrap}
+[data-theme="dark"] .pd-specs-tbl td:first-child{background:var(--card)}
+.pd-specs-tbl td:last-child{color:var(--text,#333)}
+@media(max-width:600px){.pd-detail-main{flex-direction:column}.pd-gallery{width:100%;max-width:none}.pd-hl-grid{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/split-layout.css?v=20260430-4">
 </head>
@@ -2608,42 +2638,7 @@ var mallProducts = {};
 function openDetail(el) {
   var card = el.closest ? el.closest('.mall-card') : el;
   if (!card) card = el;
-  var key = card.dataset.product;
-  var p = mallProducts[key];
-  if (!p) { showProductDetail(key); return; }
-  var base = window.__chatBase || '/chat';
-  var dc = document.getElementById('displayCanvas');
-  var origHtml = p.original ? '<span style="text-decoration:line-through;color:#999;font-size:14px;margin-left:8px">' + p.original + '</span>' : '';
-  var eName = escHtml(p.name).replace(/'/g,"\\'");
-  dc.innerHTML = '<div style="max-width:1100px;margin:0 auto;padding:20px 32px">' +
-    '<div style="font-size:13px;color:#999;margin-bottom:20px"><a href="' + base + '/" onclick="closeDisplayCanvas();return false;" style="color:#666;text-decoration:none">首页</a> / <span style="color:#666">商品</span> / <span style="color:#333">' + escHtml(p.name) + '</span></div>' +
-    '<div style="display:flex;gap:40px;flex-wrap:wrap">' +
-      '<div style="flex:0 0 380px;max-width:420px"><img src="' + p.img + '" alt="' + escHtml(p.name) + '" style="width:100%;border-radius:4px;border:1px solid #f0f0f0" onerror="this.parentElement.innerHTML=\'<div style=padding:60px;text-align:center;color:#ccc;font-size:14px>暂无图片</div>\'"></div>' +
-      '<div style="flex:1;min-width:280px">' +
-        '<h1 style="font-size:22px;font-weight:600;margin:0 0 10px;line-height:1.4">' + escHtml(p.name) + '</h1>' +
-        '<p style="color:#666;font-size:14px;margin:0 0 20px;line-height:1.6">' + escHtml(p.slogan) + '</p>' +
-        '<div style="background:#FFF5F5;border-radius:4px;padding:16px 20px;margin-bottom:20px">' +
-          '<span style="color:#999;font-size:13px">价格 </span><span style="color:#E12521;font-size:32px;font-weight:700">' + p.price + '</span><span style="color:#E12521;font-size:14px">.00</span>' + origHtml +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">' +
-          '<span style="font-size:13px;color:#666">数量</span>' +
-          '<button onclick="var n=this.nextElementSibling;n.value=Math.max(1,+n.value-1)" style="width:32px;height:32px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:16px;line-height:1">−</button>' +
-          '<input type="number" value="1" min="1" max="5" style="width:50px;height:32px;text-align:center;border:1px solid #ddd;border-radius:4px;font-size:14px">' +
-          '<button onclick="var n=this.previousElementSibling;n.value=Math.min(5,+n.value*1+1)" style="width:32px;height:32px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:16px;line-height:1">+</button>' +
-          '<span style="color:#999;font-size:12px">（最多5件）</span>' +
-        '</div>' +
-        '<div style="display:flex;gap:12px;margin-bottom:12px">' +
-          '<button onclick="startBuyFlow(\'' + eName + '\',\'' + p.price.replace(/'/g,"\\'") + '\')" style="flex:1;padding:14px;background:#E12521;color:#fff;border:none;border-radius:4px;font-size:16px;font-weight:600;cursor:pointer">立即购买</button>' +
-          '<button onclick="startChat(\'' + escHtml(p.chat).replace(/'/g,"\\'") + '\')" style="flex:1;padding:14px;border:2px solid #E12521;color:#E12521;background:#fff;border-radius:4px;font-size:16px;cursor:pointer">加入购物车</button>' +
-        '</div>' +
-        '<button onclick="quickAsk(\'' + eName + ' 怎么样？\')" style="width:100%;padding:10px;border:1px solid #ddd;background:#f9f9f9;border-radius:4px;font-size:14px;cursor:pointer;color:#666">🤖 问AI助手了解更多</button>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
-  dc.style.display = 'block';
-  var lp = document.getElementById('landingPage');
-  if (lp) lp.style.overflow = 'hidden';
-  history.replaceState(null, '', base + '/product/' + key + '.html');
+  showProductDetail(card.dataset.product);
 }
 
 function closeDetail() {
@@ -2720,20 +2715,46 @@ async function showProductDetail(sku) {
       if (parts.length >= 3) highlights = parts.map(function(s){ return s.trim(); }).filter(Boolean);
     }
 
-    // 从 specs 提取可展示参数（过滤内部字段+中文化label+格式化值）
-    var specRows = '';
-    var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3','target_user','highlights','images','ad_picture'];
-    var labelMap = {brand:'品牌',color:'颜色',mtm:'型号',weight:'重量',screen_size:'屏幕',battery:'电池',os:'系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率'};
+    // 从 specs 提取可展示参数
+    var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3','target_user','highlights','images','ad_picture','is_ai','bu','mtm'];
+    var labelMap = {brand:'品牌',color:'颜色',weight:'重量',screen_size:'屏幕尺寸',battery:'电池',os:'操作系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率'};
+    var specRowsInline = '';
+    var specTableRows = '';
     Object.keys(specs).forEach(function(k) {
       if (skipKeys.indexOf(k) >= 0 || !specs[k]) return;
       var v = specs[k];
       if (typeof v === 'object') return;
       var label = labelMap[k] || k;
-      specRows += '<div class="pd-spec-row"><span class="pd-spec-label">' + escHtml(label) + '</span><span class="pd-spec-value">' + escHtml(String(v)) + '</span></div>';
+      specRowsInline += '<div class="pd-spec-row"><span class="pd-spec-label">' + escHtml(label) + '</span><span class="pd-spec-value">' + escHtml(String(v)) + '</span></div>';
+      specTableRows += '<tr><td>' + escHtml(label) + '</td><td>' + escHtml(String(v)) + '</td></tr>';
     });
+
+    // 解析 target_user
+    var targetUsers = [];
+    try { if (specs.target_user) targetUsers = JSON.parse(specs.target_user); } catch(e){}
 
     var priceInt = String(Math.floor(p.price));
     var priceDec = p.price % 1 ? '.' + String(p.price).split('.')[1] : '';
+
+    // 下半部分：配置亮点 grid
+    var hlGridHtml = '';
+    if (highlights.length > 0) {
+      hlGridHtml = '<h4 class="pd-hl-title">配置亮点</h4><div class="pd-hl-grid">' +
+        highlights.map(function(h){ return '<div class="pd-hl-item">' + escHtml(h) + '</div>'; }).join('') + '</div>';
+    }
+    // 适合人群
+    var tuHtml = '';
+    if (targetUsers.length > 0) {
+      tuHtml = '<h4 class="pd-tu-title">适合人群</h4><div class="pd-tu-grid">' +
+        targetUsers.map(function(u){ return '<span class="pd-tu-tag">' + escHtml(u) + '</span>'; }).join('') + '</div>';
+    }
+    // 规格参数表
+    var specsTblHtml = specTableRows ? '<table class="pd-specs-tbl">' +
+      '<tr><td>商品名称</td><td>' + escHtml(p.name) + '</td></tr>' +
+      '<tr><td>分类</td><td>' + escHtml(p.category || '-') + '</td></tr>' +
+      '<tr><td>SKU</td><td>' + escHtml(String(p.sku)) + '</td></tr>' +
+      specTableRows + '</table>' :
+      '<div style="text-align:center;padding:40px;color:#999">暂无详细规格参数</div>';
 
     body.innerHTML =
       '<div class="pd-page">' +
@@ -2759,7 +2780,7 @@ async function showProductDetail(sku) {
               '<span style="color:#999;margin-left:8px">' + (p.status === 'active' ? '在售' : '已下架') + '</span>' +
             '</div>' +
             (highlights.length > 0 ? '<div class="pd-spec-list">' + highlights.map(function(h){ return '<div class="pd-spec-row"><span class="pd-spec-label">亮点</span><span class="pd-spec-value">' + escHtml(h) + '</span></div>'; }).join('') + '</div>' : '') +
-            (specRows ? '<div class="pd-spec-list">' + specRows + '</div>' : '') +
+            (specRowsInline ? '<div class="pd-spec-list">' + specRowsInline + '</div>' : '') +
             '<div class="pd-qty-box">' +
               '<label>数量</label>' +
               '<div class="pd-qty-ctrl">' +
@@ -2776,6 +2797,21 @@ async function showProductDetail(sku) {
             '</div>' +
           '</div>' +
         '</div>' +
+        // 下半部分：tabs + 详情内容
+        '<div class="pd-detail-below">' +
+          '<div class="pd-tabs">' +
+            '<button class="pd-tab active" onclick="switchPdTab(this,0)">商品详情</button>' +
+            '<button class="pd-tab" onclick="switchPdTab(this,1)">规格参数</button>' +
+          '</div>' +
+          '<div class="pd-tab-panel active">' +
+            hlGridHtml +
+            tuHtml +
+            '<div class="pd-detail-img"><img src="' + imgUrl + '" alt="' + escHtml(p.name) + '"></div>' +
+          '</div>' +
+          '<div class="pd-tab-panel">' +
+            specsTblHtml +
+          '</div>' +
+        '</div>' +
       '</div>';
     var base = window.__chatBase || '/chat';
     history.replaceState(null, '', base + '/product/' + sku + '.html');
@@ -2787,6 +2823,15 @@ function askAboutProduct() {
   var p = window.__currentProduct;
   if (p) quickAsk('请详细介绍一下 ' + p.name + '（SKU: ' + p.sku + '），包括配置、优缺点和适合人群。');
 }
+function switchPdTab(btn, idx) {
+  var tabs = btn.parentNode.querySelectorAll('.pd-tab');
+  var panels = btn.closest('.pd-detail-below').querySelectorAll('.pd-tab-panel');
+  tabs.forEach(function(t){ t.classList.remove('active'); });
+  panels.forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  if (panels[idx]) panels[idx].classList.add('active');
+}
+window.switchPdTab = switchPdTab;
 window.showProductDetail = showProductDetail;
 
 // ── AI 弹层系统（由 SSE event:modal 触发） ──
