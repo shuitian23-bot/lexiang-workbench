@@ -3346,6 +3346,8 @@ window.addEventListener('DOMContentLoaded', function(){
   onLoginSuccess({ nickname: '观同学', phone: '13800008888' });
   // 检查登录态（_authReady 供 restoreFromUrl 等待）
   window._authReady = fetch('/api/auth/me').then(function(r){return r.json();}).then(function(d){ if(d.user) onLoginSuccess(d.user); }).catch(function(){});
+  // /shop-chat 路径下自动高亮"商城"导航
+  if(location.pathname.startsWith('/shop-chat')) setNavActive('商城');
 });
 
 var _captchaAnswer = 0;
