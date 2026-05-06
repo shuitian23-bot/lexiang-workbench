@@ -2185,6 +2185,8 @@ async function callCompareAPI(msg) {
 
 // ── Nav active state ──
 function setNavActive(key) {
+  // /shop-chat 路径下始终锁定"商城"高亮，忽略 null 清除
+  if (!key && location.pathname.startsWith('/shop-chat')) key = '商城';
   document.querySelectorAll('.nlinks a').forEach(a => a.classList.remove('nav-active'));
   if (key) {
     const el = document.querySelector('.nlinks a[data-nav="' + key + '"]');
