@@ -160,6 +160,13 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
+// Shop-chat page
+app.get('/shop-chat', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/shop-chat/index.html'));
+});
+app.get('/shop-chat/*path', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/shop-chat/index.html'));
+});
 app.get('/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
