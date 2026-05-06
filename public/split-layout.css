@@ -94,7 +94,7 @@
   /* 拖拽分隔条 */
   #splitDivider {
     flex: 0 0 6px;
-    background: var(--border, #E8ECF0);
+    background: #D8D0E8;
     cursor: col-resize;
     position: relative;
     user-select: none;
