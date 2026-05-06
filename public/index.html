@@ -1445,7 +1445,7 @@ window.addEventListener('popstate', () => {
     else openChatFresh();
   }
 });
-function openChatFresh(){ setNavActive(null);
+function openChatFresh(){ if(window.__siteType==='default') setNavActive(null);
   // 匿名用户也能进聊天界面，超过免费轮次时再弹登录
   convId = null;
   // 重置加载状态，防止上次请求异常卡住
