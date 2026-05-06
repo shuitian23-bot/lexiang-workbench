@@ -534,7 +534,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
  * @param {function} onChunk  - 每收到一段文字调用
  * @param {function} onDone   - 全部完成后调用，参数 {convId, fullText}
  */
-async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null } = {}) {
+async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null, productContext = null } = {}) {
   if (!convId) {
     convId = uuidv4();
     db.prepare('INSERT INTO conversations (id, session_id) VALUES (?, ?)').run(convId, sessionId || null);
@@ -578,6 +578,12 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     } catch (e) {
       if (onStatus) onStatus({ type: 'tool_done', name: 'web_search', success: false });
     }
+  }
+
+  // 注入当前浏览商品上下文，让 AI 知道用户正在看什么
+  if (productContext) {
+    const pc = typeof productContext === 'string' ? productContext : JSON.stringify(productContext);
+    ragContext += '\n\n---\n## 用户当前正在浏览的商品\n' + pc + '\n（用户可能会针对这个商品提问，请结合商品信息回答）';
   }
 
   // L2.7 多Agent协作：检查是否分发给子 Agent

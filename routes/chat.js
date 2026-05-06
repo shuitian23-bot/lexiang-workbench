@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
 
 // POST /api/chat/stream — SSE 流式响应
 router.post('/stream', async (req, res) => {
-  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url } = req.body;
+  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url, product_context } = req.body;
   const sessionId = getUid(req);
 
   if (!message || !message.trim()) {
@@ -190,6 +190,7 @@ router.post('/stream', async (req, res) => {
         imageUrl: image_url || null,
         audioUrl: audio_url || null,
         userId: req.userId || null,
+        productContext: product_context || null,
         onStatus: (status) => {
           // 拦截 frontend_navigate tool 调用，转发为 nav 事件给前端
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_navigate') {

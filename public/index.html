@@ -734,6 +734,22 @@ html,body{height:100%;overflow:hidden}
 #displayCanvas .dc-card-price{font-size:15px;font-weight:600;color:#e1251b;margin-top:6px}
 #displayCanvas .dc-card-price .dc-orig{font-size:11px;color:#999;text-decoration:line-through;margin-left:6px;font-weight:400}
 @media(max-width:768px){#displayCanvas{position:fixed;z-index:200}}
+.pd-detail-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0}
+.pd-detail-img{background:#f5f5f5;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:300px}
+.pd-detail-img img{width:100%;max-height:400px;object-fit:contain;padding:20px}
+.pd-detail-info{display:flex;flex-direction:column;gap:12px}
+.pd-detail-name{font-size:20px;font-weight:600;color:var(--text);line-height:1.4;margin:0}
+.pd-detail-cat{font-size:13px;color:var(--text2)}
+.pd-detail-price{font-size:24px;font-weight:700;color:#e1251b}
+.pd-detail-orig{font-size:14px;color:#999;text-decoration:line-through;margin-left:8px;font-weight:400}
+.pd-detail-desc{font-size:13px;color:var(--text2);line-height:1.6;max-height:120px;overflow-y:auto}
+.pd-detail-meta{display:flex;gap:16px;font-size:12px;color:var(--text2);flex-wrap:wrap}
+.pd-detail-actions{display:flex;gap:12px;margin-top:8px}
+.pd-buy-btn{display:inline-flex;align-items:center;padding:10px 24px;background:#e1251b;color:#fff;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;transition:background .2s}
+.pd-buy-btn:hover{background:#c71e18}
+.pd-ask-btn{display:inline-flex;align-items:center;padding:10px 24px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit}
+.pd-ask-btn:hover{border-color:var(--accent);color:var(--accent)}
+@media(max-width:600px){.pd-detail-wrap{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/split-layout.css?v=20260430-4">
 </head>
@@ -1737,6 +1753,7 @@ async function callAPI(msg, imageUrl, audioUrl){
     const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled };
     if (imageUrl) bodyData.image_url = imageUrl;
     if (audioUrl) bodyData.audio_url = audioUrl;
+    if (window.__currentProduct) bodyData.product_context = window.__currentProduct;
     const res = await apiFetch('/api/chat/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2751,6 +2768,57 @@ function closeDisplayCanvas() {
 window.showDisplayCanvas = showDisplayCanvas;
 window.closeDisplayCanvas = closeDisplayCanvas;
 
+// ── 商品详情页（左侧渲染，URL驱动） ──
+async function showProductDetail(sku) {
+  var dc = document.getElementById('displayCanvas');
+  var body = document.getElementById('dcBody');
+  document.getElementById('dcTitle').textContent = '加载中...';
+  body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">正在加载商品信息...</div>';
+  dc.style.display = 'block';
+  body.style.display = 'block';
+  body.style.gridTemplateColumns = '1fr';
+  try {
+    var res = await fetch('/api/products/' + encodeURIComponent(sku));
+    if (!res.ok) { body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">未找到该商品</div>'; return; }
+    var p = await res.json();
+    var specs = p.specs || {};
+    var imgUrl = p.image_url || 'https://p3.lefile.cn/fes/cms/2026/03/31/bdgj3m0mcdf5a59suu6shc4wynpqlx966018.jpg';
+    var buyUrl = specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html';
+    document.getElementById('dcTitle').textContent = p.name;
+    window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price };
+    body.innerHTML =
+      '<div class="pd-detail-wrap">' +
+        '<div class="pd-detail-img"><img src="' + imgUrl + '" alt="' + p.name + '"></div>' +
+        '<div class="pd-detail-info">' +
+          '<h2 class="pd-detail-name">' + p.name + '</h2>' +
+          '<div class="pd-detail-cat">' + (p.category || '') + (specs.lvl3 ? ' · ' + specs.lvl3 : '') + '</div>' +
+          '<div class="pd-detail-price">¥' + Number(p.price).toLocaleString() +
+            (p.original_price && p.original_price > p.price ? '<span class="pd-detail-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') +
+          '</div>' +
+          (p.description ? '<div class="pd-detail-desc">' + p.description + '</div>' : '') +
+          '<div class="pd-detail-meta">' +
+            '<span>SKU: ' + p.sku + '</span>' +
+            '<span>库存: ' + (p.stock > 0 ? p.stock + '件' : '暂无') + '</span>' +
+            '<span>状态: ' + (p.status === 'active' ? '在售' : '已下架') + '</span>' +
+          '</div>' +
+          '<div class="pd-detail-actions">' +
+            '<a href="' + buyUrl + '" target="_blank" rel="noopener" class="pd-buy-btn">去官网购买</a>' +
+            '<button class="pd-ask-btn" onclick="askAboutProduct()">问AI关于此商品</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    var base = window.__chatBase || '/chat';
+    history.replaceState(null, '', base + '/product/' + sku + '.html');
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载失败，请稍后重试</div>';
+  }
+}
+function askAboutProduct() {
+  var p = window.__currentProduct;
+  if (p) quickAsk('请详细介绍一下 ' + p.name + '（SKU: ' + p.sku + '），包括配置、优缺点和适合人群。');
+}
+window.showProductDetail = showProductDetail;
+
 // ── 商城卡片点击（事件委托 + inline onclick 兼容）──
 window.openDetail = openDetail;
 window.closeDetail = closeDetail;
@@ -2803,12 +2871,24 @@ async function restoreFromUrl(){
   var chatPrefixes = ['/shop-chat','/b-chat','/biz-chat','/chat'];
   var matchedBase = chatPrefixes.find(x => p.startsWith(x));
   if (matchedBase){
-    const id = p.slice(matchedBase.length).split('/')[1];
-    if (id) {
-      await Promise.all([loadConvList(), loadConv(id)]);
-    } else {
+    var rest = p.slice(matchedBase.length);
+    var productMatch = rest.match(/^\/product\/(\d+)\.html/);
+    var activityMatch = rest.match(/^\/activity\/(.+)\.html/);
+    if (productMatch) {
       await loadConvList();
       openChatFresh();
+      showProductDetail(productMatch[1]);
+    } else if (activityMatch) {
+      await loadConvList();
+      openChatFresh();
+    } else {
+      const id = rest.split('/')[1];
+      if (id) {
+        await Promise.all([loadConvList(), loadConv(id)]);
+      } else {
+        await loadConvList();
+        openChatFresh();
+      }
     }
   }
 }
