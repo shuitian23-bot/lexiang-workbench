@@ -434,6 +434,36 @@ html,body{height:100%;overflow:hidden}
 .leai-modal-compare:hover{filter:brightness(1.15)}
 @media(max-width:600px){.leai-ppanel.active{flex-direction:column}.leai-ppanel-img{width:100%;height:160px}.leai-ppanel-info{min-height:auto}.leai-modal{max-width:96vw;max-height:85vh}}
 
+/* ── AI 弹层（通用 + 对比表） ── */
+.ai-modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;animation:leaiFadeIn .2s;padding:20px}
+.ai-modal{background:#fff;border-radius:12px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden}
+[data-theme="dark"] .ai-modal{background:var(--card2);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.ai-modal-close{position:absolute;top:12px;right:14px;width:28px;height:28px;cursor:pointer;font-size:20px;color:#999;display:flex;align-items:center;justify-content:center;border:none;background:none;z-index:1}
+.ai-modal-close:hover{color:#333}
+.ai-modal-title{padding:18px 20px 12px;font-size:17px;font-weight:700;color:var(--text,#1a1a1a);border-bottom:1px solid var(--border,#eee);flex-shrink:0}
+.ai-modal-body{flex:1;overflow-y:auto;padding:16px 20px;font-size:14px;line-height:1.7;color:var(--text,#333)}
+.cmp-modal{width:auto;min-width:560px}
+.cmp-table-wrap{flex:1;overflow:auto;padding:0 4px 16px}
+.cmp-table{border-collapse:collapse;width:100%;font-size:13px}
+.cmp-table th,.cmp-table td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border,#f0f0f0);vertical-align:top}
+.cmp-label-col{font-weight:600;color:var(--text2,#666);white-space:nowrap;width:80px;background:var(--card,#fafafa);position:sticky;left:0;z-index:1}
+[data-theme="dark"] .cmp-label-col{background:var(--card)}
+.cmp-prod-col{min-width:160px}
+.cmp-prod-name{font-size:13px;font-weight:700;color:var(--text,#1a1a1a);line-height:1.4}
+.cmp-img-wrap{width:120px;height:90px;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:8px;overflow:hidden}
+.cmp-img-wrap img{max-width:100%;max-height:100%;object-fit:contain}
+.cmp-no-img{font-size:12px;color:#ccc}
+.cmp-price{font-size:16px;font-weight:700;color:#e03c31}
+.cmp-orig{font-size:12px;color:#999;text-decoration:line-through;margin-left:6px}
+.cmp-desc{font-size:12px;color:var(--text2,#666);line-height:1.5;max-width:200px}
+.cmp-buy{display:inline-block;padding:6px 14px;background:var(--primary,#3D0366);color:#fff;border-radius:6px;font-size:12px;text-decoration:none;margin-right:6px}
+.cmp-buy:hover{opacity:.85}
+.cmp-ask{display:inline-block;padding:6px 14px;background:transparent;border:1px solid var(--border,#ddd);color:var(--text2,#666);border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+.cmp-ask:hover{border-color:var(--accent,#e12521);color:var(--accent,#e12521)}
+.cmp-img-row td{padding-top:14px}
+.cmp-buy-row td{padding:14px}
+@media(max-width:600px){.cmp-modal{min-width:auto;width:96vw}.cmp-table{font-size:12px}.cmp-prod-col{min-width:130px}.cmp-img-wrap{width:80px;height:60px}}
+
 /* Store cards */
 .store-wrap{display:flex;flex-direction:column}
 .store-intro{font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6}
@@ -1863,6 +1893,10 @@ async function callAPI(msg, imageUrl, audioUrl){
           }
         }
 
+        else if (lastEvent === 'modal') {
+          showAIModal(d);
+        }
+
         else if (lastEvent === 'error') {
           stream.finish();
           bubbleEl.querySelector('.mbubble').textContent = '抱歉，出了点问题：' + (d.message || '未知错误');
@@ -2818,6 +2852,84 @@ function askAboutProduct() {
   if (p) quickAsk('请详细介绍一下 ' + p.name + '（SKU: ' + p.sku + '），包括配置、优缺点和适合人群。');
 }
 window.showProductDetail = showProductDetail;
+
+// ── AI 弹层系统（由 SSE event:modal 触发） ──
+function showAIModal(data) {
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+  if (data.error) return;
+  var mask = document.createElement('div');
+  mask.className = 'ai-modal-mask';
+  mask.onclick = function(e){ if (e.target === mask) mask.remove(); };
+
+  if (data.type === 'compare' && data.products?.length >= 2) {
+    var products = data.products;
+    // 收集所有 specs key
+    var specKeys = {};
+    products.forEach(function(p){
+      if (p.specs) Object.keys(p.specs).forEach(function(k){
+        if (k !== 'url' && k !== 'bu_ids') specKeys[k] = true;
+      });
+    });
+    var keys = Object.keys(specKeys);
+
+    var colW = Math.max(180, Math.floor(600 / products.length));
+    var headHtml = '<th class="cmp-label-col">参数</th>';
+    var imgRow = '<td class="cmp-label-col">外观</td>';
+    var priceRow = '<td class="cmp-label-col">价格</td>';
+    var catRow = '<td class="cmp-label-col">分类</td>';
+    var descRow = '<td class="cmp-label-col">简介</td>';
+    var buyRow = '<td class="cmp-label-col">操作</td>';
+
+    products.forEach(function(p){
+      var img = p.image_url || '';
+      headHtml += '<th class="cmp-prod-col" style="min-width:'+colW+'px"><div class="cmp-prod-name">' + escHtml(p.name) + '</div></th>';
+      imgRow += '<td><div class="cmp-img-wrap">' + (img ? '<img src="'+img+'" alt="">' : '<div class="cmp-no-img">暂无图</div>') + '</div></td>';
+      priceRow += '<td><span class="cmp-price">¥' + Number(p.price).toLocaleString() + '</span>' +
+        (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
+      catRow += '<td>' + escHtml(p.category || '-') + '</td>';
+      descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
+      buyRow += '<td><a href="' + (p.url || '#') + '" target="_blank" class="cmp-buy">去购买</a>' +
+        '<button class="cmp-ask" onclick="document.querySelector(\'.ai-modal-mask\').remove();quickAsk(\'详细介绍 ' + escHtml(p.name).replace(/'/g,"\\'") + '\')">问AI</button></td>';
+    });
+
+    var specRows = '';
+    keys.forEach(function(k){
+      var label = k;
+      var row = '<td class="cmp-label-col">' + escHtml(label) + '</td>';
+      products.forEach(function(p){
+        var v = p.specs?.[k];
+        row += '<td>' + escHtml(v != null ? String(v) : '-') + '</td>';
+      });
+      specRows += '<tr>' + row + '</tr>';
+    });
+
+    mask.innerHTML =
+      '<div class="ai-modal cmp-modal">' +
+        '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()">×</button>' +
+        '<div class="ai-modal-title">' + escHtml(data.title) + '</div>' +
+        '<div class="cmp-table-wrap"><table class="cmp-table">' +
+          '<thead><tr>' + headHtml + '</tr></thead>' +
+          '<tbody>' +
+            '<tr class="cmp-img-row">' + imgRow + '</tr>' +
+            '<tr>' + priceRow + '</tr>' +
+            '<tr>' + catRow + '</tr>' +
+            '<tr>' + descRow + '</tr>' +
+            specRows +
+            '<tr class="cmp-buy-row">' + buyRow + '</tr>' +
+          '</tbody>' +
+        '</table></div>' +
+      '</div>';
+  } else if (data.type === 'info') {
+    var rendered = typeof marked !== 'undefined' ? marked.parse(data.content || '') : escHtml(data.content || '');
+    mask.innerHTML =
+      '<div class="ai-modal">' +
+        '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()">×</button>' +
+        '<div class="ai-modal-title">' + escHtml(data.title) + '</div>' +
+        '<div class="ai-modal-body">' + rendered + '</div>' +
+      '</div>';
+  }
+  document.body.appendChild(mask);
+}
 
 // ── 商城卡片点击（事件委托 + inline onclick 兼容）──
 window.openDetail = openDetail;
