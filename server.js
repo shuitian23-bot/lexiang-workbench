@@ -160,12 +160,12 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
-// Shop-chat page
+// Shop-chat page — 复用主页，内容与 /chat 保持一致
 app.get('/shop-chat', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/shop-chat/index.html'));
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 app.get('/shop-chat/*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/shop-chat/index.html'));
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 app.get('/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
