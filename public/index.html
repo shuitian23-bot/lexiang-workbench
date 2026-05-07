@@ -152,6 +152,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .cta h2{font-size:28px;font-weight:700;letter-spacing:-1px;margin-bottom:12px}
 .cta p{font-size:14px;color:var(--text2);margin-bottom:24px}
 .cta .btn{padding:14px 32px;font-size:14px}
+/* 首页/子站内容切换 */
+html:not([data-site="default"]) #homeContent{display:none}
+html[data-site="default"] #shopContent{display:none}
 
 footer{border-top:1px solid var(--ft-bd);padding:40px 48px;max-width:1080px;margin:0 auto}
 .fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-bottom:32px}
@@ -873,6 +876,39 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <script>!function(){var A=['最近有什么优惠活动？','办公用5000元左右怎么选？','Y7000P和R7000P选哪个？','帮我推荐一款ThinkPad','小新Pro 14值得买吗？','拯救者系列有哪些旗舰机型？','联想会员有哪些专属权益？','ThinkBook和ThinkPad有什么区别？','联想有哪些AI PC？','想买游戏本，预算8000怎么选？'];var s=A.slice().sort(function(){return Math.random()-.5}).slice(0,5);document.getElementById('qpills').innerHTML=s.map(function(t){return'<button class="qp" style="padding:7px 16px;border-radius:999px;font-size:12px;color:var(--text2);background:var(--tag-bg);border:1px solid var(--tag-bd);backdrop-filter:blur(8px);transition:all .3s;white-space:nowrap;cursor:pointer">'+t+'</button>';}).join('');}();</script>
 </section></div>
 <div class="wrap">
+<!-- ═══ 方案C首页（仅 data-site="default" 显示） ═══ -->
+<div id="homeContent">
+  <section class="sec fi"><div class="sec-head"><h2>最新动态</h2><a href="#">查看全部 →</a></div>
+    <div class="feat">
+      <div class="feat-main" style="background:linear-gradient(135deg,#3D0366,#87112b)"><div class="ov"><span class="badge">新品首发</span><h3>拯救者 Y9000K</h3><p>搭载最新处理器，极致性能释放</p></div></div>
+      <div class="feat-s" style="background:linear-gradient(135deg,#667eea,#764ba2)"><p>SAP · 企业服务</p><h4>SAP 基础架构解决方案</h4></div>
+      <div class="feat-s" style="background:linear-gradient(135deg,#11998e,#38ef7d)"><p>AI · 智慧办公</p><h4>AI+ PC 重新定义生产力</h4></div>
+    </div></section>
+  <section class="sec fi"><div class="sec-head"><h2>热销产品</h2><a href="#">查看全部 →</a></div>
+    <div class="pgrid">
+      <div class="pcard" onclick="quickAsk('推荐一款高性能路由器')"><div class="ico">🖥</div><h4>Lecoo 路由管家 7000</h4><p class="desc">高性能企业级路由</p><div class="price">¥6,499</div></div>
+      <div class="pcard" onclick="quickAsk('联想小新7000P怎么样')"><div class="ico">💻</div><h4>联想 小新 7000P</h4><p class="desc">强劲简约·办公首选</p><div class="price">¥9,899</div></div>
+      <div class="pcard" onclick="quickAsk('拯救者Y9000K配置如何')"><div class="ico">🎮</div><h4>拯救者 Y9000K</h4><p class="desc">游戏性能旗舰</p><div class="price">¥10,999</div></div>
+      <div class="pcard" onclick="quickAsk('小新Pro27一体机适合办公吗')"><div class="ico">🖥️</div><h4>小新Pro 27一体机</h4><p class="desc">27寸大屏·一体美学</p><div class="price">¥7,305</div></div>
+    </div></section>
+  <section class="sec fi"><div class="sec-head"><h2>解决方案</h2><a href="#">查看全部 →</a></div>
+    <div class="sgrid">
+      <div class="scard" onclick="quickAsk('联想数字化碳中和平台是什么')"><div class="thumb" style="background:linear-gradient(135deg,#0061ff,#60efff)"></div><div class="info"><h4>数字化碳中和平台</h4><p>助力企业数字化转型与碳中和</p></div></div>
+      <div class="scard" onclick="quickAsk('联想智慧教育方案有哪些')"><div class="thumb" style="background:linear-gradient(135deg,#ff930f,#fff95b)"></div><div class="info"><h4>智慧教育</h4><p>推动教育数字化升级</p></div></div>
+      <div class="scard" onclick="quickAsk('联想智慧办公解决方案介绍')"><div class="thumb" style="background:linear-gradient(135deg,#a8edea,#fed6e3)"></div><div class="info"><h4>智慧办公</h4><p>高效协同智能办公</p></div></div>
+    </div></section>
+  <section class="sec fi"><div class="sec-head"><h2>新闻中心</h2><a href="#">更多 →</a></div>
+    <div class="ngrid">
+      <div class="ncard"><div class="num">01</div><div><h4>联想对标全国人大代表建议，为穹港智慧城市赋能</h4><span class="date">2025-03-10</span></div></div>
+      <div class="ncard"><div class="num">02</div><div><h4>中超开赛，联想混合式AI助力赛事足球</h4><span class="date">2025-03-08</span></div></div>
+      <div class="ncard"><div class="num">03</div><div><h4>超级热AI场景升级，2025联想春季新品发布</h4><span class="date">2025-03-05</span></div></div>
+    </div></section>
+  <section class="sec fi"><div class="sec-head"><h2>客户案例</h2><a href="#">查看全部 →</a></div>
+    <div class="crow"><div class="citem"><div class="cn">迪安诊断</div><p>迪安诊断科技股份有限公司</p></div><div class="citem"><div class="cn">中石油</div><p>联想助力中石油勘探设计院</p></div><div class="citem"><div class="cn">汽车展开</div><p>打造先进IPC平台</p></div></div></section>
+  <section class="sec fi"><div class="cta"><h2>开始探索联想产品</h2><p>从个人到企业，联想为每一种场景提供智能解决方案</p><button class="btn" onclick="quickAsk('请介绍联想的全线产品和解决方案')">立即咨询 →</button></div></section>
+</div>
+<!-- ═══ 子站商城内容（shop/b/biz 显示） ═══ -->
+<div id="shopContent">
   <!-- Banner 轮播 -->
   <div class="mall-hero">
     <div class="mall-slides" id="mallSlides">
@@ -928,7 +964,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       <p>全国覆盖，急速配送，安装无忧</p>
     </div>
   </section>
-</div>
+</div><!-- /shopContent -->
+</div><!-- /wrap -->
 <footer><div class="fgrid">
   <div><h5>关于联想</h5><a>企业介绍</a><a>联系我们</a><a>加入我们</a></div>
   <div><h5>产品服务</h5><a>PC产品</a><a>显示设备</a><a>配件周边</a></div>
@@ -2563,6 +2600,7 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
 // ── 商城商品详情 ──
 var mallProducts = {};
 (function(){
+  if(typeof _siteType !== 'undefined' && _siteType === 'default') return;
   var _site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? '&site=' + _siteType : '';
   fetch('/api/products?limit=8' + _site).then(function(r){return r.json()}).then(function(products){
     var grid = document.getElementById('mallGrid');
