@@ -1,109 +1,356 @@
-/* ══════════════════════════════════════════════════════════════
-   Split Layout — PC 端左右分屏 controller
-   职责：
-   1. 启动时把 #landingPage / #splitDivider / #chatApp 包进 #splitRoot
-   2. 拖拽 splitter 改大小，localStorage 持久化
-   3. "⇄ 换位" 按钮切换左右顺序
-   4. 拦截 startChat() / openChatFresh() / goHome()：PC 分屏下不再全屏切换
-   5. 监听 chat SSE event:nav，滚动 / 高亮左侧对应 section
-   6. 移动端 (max-width:768px) 完全不启用，保持原 is-chat 切换
-   ══════════════════════════════════════════════════════════════ */
+/* split-layout.js — PC 端分屏布局控制器 v2 */
 (function () {
   'use strict';
 
   var MQ = window.matchMedia('(min-width: 769px)');
   var CHAT_PREFIXES = ['/chat', '/shop-chat', '/b-chat', '/biz-chat'];
-  var STORE_KEY = 'lexiang.splitLayout.v1';
-  function isChatPath(p) { p = p || location.pathname; return CHAT_PREFIXES.some(function(x){ return p.startsWith(x); }); }
-  function chatBase() { var p = location.pathname; for (var i = 0; i < CHAT_PREFIXES.length; i++) { if (p.startsWith(CHAT_PREFIXES[i])) return CHAT_PREFIXES[i]; } return '/chat'; }
-  var DEFAULT_LEFT_PCT = 55;
-  var MIN_LEFT_PCT = 28;
-  var MAX_LEFT_PCT = 78;
+  var STORE_KEY = 'lexiang.splitV2';
+  var DEFAULT_LEFT_PCT = 50;
+  var MIN_LEFT_PCT = 25;
+  var MAX_LEFT_PCT = 75;
 
+  function isPC() { return MQ.matches; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function isChatPath(p) { p = p || location.pathname; return CHAT_PREFIXES.some(function (x) { return p.startsWith(x); }); }
+  function chatBase() { var p = location.pathname; for (var i = 0; i < CHAT_PREFIXES.length; i++) { if (p.startsWith(CHAT_PREFIXES[i])) return CHAT_PREFIXES[i]; } return window.__chatBase || '/chat'; }
+
+  // ── 状态持久化 ──
+  var state = { leftPct: DEFAULT_LEFT_PCT, swapped: false };
   function loadState() {
     try {
       var raw = localStorage.getItem(STORE_KEY);
-      if (!raw) return null;
+      if (!raw) return;
       var s = JSON.parse(raw);
-      return {
-        leftPct: clamp(s.leftPct || DEFAULT_LEFT_PCT, MIN_LEFT_PCT, MAX_LEFT_PCT),
-        swapped: !!s.swapped
-      };
-    } catch (e) { return null; }
+      state.leftPct = clamp(s.leftPct || DEFAULT_LEFT_PCT, MIN_LEFT_PCT, MAX_LEFT_PCT);
+      state.swapped = !!s.swapped;
+    } catch (e) {}
   }
-  function saveState(s) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {}
-  }
-  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-
-  var state = loadState() || { leftPct: DEFAULT_LEFT_PCT, swapped: false };
-
-  function isPC() { return MQ.matches; }
-
-  function applySplitMode() {
-    if (isPC()) {
-      document.documentElement.classList.add('split-mode');
-      if (state.swapped) document.documentElement.classList.add('layout-swapped');
-      else document.documentElement.classList.remove('layout-swapped');
-      applyWidths();
-      // 不主动 add chat-revealed —— 由 revealChat() 触发
-    } else {
-      document.documentElement.classList.remove('split-mode', 'layout-swapped', 'chat-revealed');
-      var lp = document.getElementById('landingPage');
-      var ca = document.getElementById('chatApp');
-      if (lp) lp.style.width = '';
-      if (ca) ca.style.width = '';
-    }
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ leftPct: state.leftPct, swapped: state.swapped })); } catch (e) {}
   }
 
-  function revealChat() {
+  // ── Tab 管理 ──
+  var tabs = [];
+  var activeTabId = null;
+  var tabCounter = 0;
+
+  // ── 核心状态机 ──
+
+  function getState() {
+    var html = document.documentElement;
+    if (html.classList.contains('in-chat') && html.classList.contains('content-open')) return 3;
+    if (html.classList.contains('in-chat')) return 2;
+    return 1;
+  }
+
+  // 状态1→2
+  function enterChat() {
     if (!isPC()) return;
     var html = document.documentElement;
-    if (html.classList.contains('chat-revealed')) return;
-    html.classList.add('chat-revealed');
+    html.classList.add('split-mode', 'in-chat', 'is-chat');
     document.getElementById('chatApp').classList.add('active');
-    applyWidths();
-    // 输入框聚焦（让用户感知右侧已就绪）
+    try {
+      var base = chatBase();
+      var cid = (typeof convId !== 'undefined' && convId) ? convId : null;
+      var url = cid ? base + '/' + cid : base;
+      history.replaceState(null, '', url);
+    } catch (e) {}
     setTimeout(function () {
       var ta = document.getElementById('mainTa');
       if (ta) try { ta.focus(); } catch (e) {}
     }, 200);
   }
-  function hideChat() {
-    if (!isPC()) return;
-    document.documentElement.classList.remove('chat-revealed');
+
+  // 添加 Tab → 状态2→3 或保持3
+  function openContent(type, title, data) {
+    if (!isPC()) return null;
+    var id = 'tab-' + (++tabCounter);
+    var tab = { id: id, type: type, title: title, data: data, el: null, contentEl: null };
+    if (tabs.length >= 5) {
+      var old = tabs.shift();
+      if (old.el && old.el.parentNode) old.el.parentNode.removeChild(old.el);
+      if (old.contentEl && old.contentEl.parentNode) old.contentEl.parentNode.removeChild(old.contentEl);
+    }
+    tabs.push(tab);
+
+    var tabsContainer = document.getElementById('cpTabs');
+    var bodyContainer = document.getElementById('cpBody');
+    if (!tabsContainer || !bodyContainer) return null;
+
+    // tab 按钮
+    var btn = document.createElement('button');
+    btn.className = 'cp-tab';
+    btn.textContent = title;
+    btn.setAttribute('data-tab-id', id);
+    btn.addEventListener('click', function () { switchTab(id); });
+    tabsContainer.appendChild(btn);
+    tab.el = btn;
+
+    // tab 内容
+    var contentDiv = document.createElement('div');
+    contentDiv.className = 'cp-tab-content';
+    contentDiv.setAttribute('data-tab-id', id);
+    contentDiv.style.display = 'none';
+    bodyContainer.appendChild(contentDiv);
+    tab.contentEl = contentDiv;
+
+    // 渲染
+    var renderer = RENDERERS[type];
+    if (renderer) renderer(contentDiv, data);
+
+    switchTab(id);
+
+    // 进入状态3
+    var html = document.documentElement;
+    if (!html.classList.contains('in-chat')) {
+      html.classList.add('split-mode', 'in-chat', 'is-chat');
+      document.getElementById('chatApp').classList.add('active');
+    }
+    if (!html.classList.contains('content-open')) {
+      html.classList.remove('content-closing');
+      html.classList.add('content-open');
+      applyWidths();
+    }
+    return id;
   }
-  window.__revealChat = revealChat;
-  window.__hideChat = hideChat;
+
+  // 状态3→2
+  function closeContent() {
+    if (!isPC()) return;
+    var html = document.documentElement;
+    if (!html.classList.contains('content-open')) return;
+    html.classList.add('content-closing');
+    html.classList.remove('content-open');
+    // 清除 applyWidths() 设置的内联样式，恢复 CSS 控制
+    var ca = document.getElementById('chatApp');
+    if (ca) {
+      ca.style.flex = '';
+      ca.style.width = '';
+      ca.style.maxWidth = '';
+      ca.style.margin = '';
+    }
+    setTimeout(function () {
+      html.classList.remove('content-closing');
+    }, 220);
+  }
+
+  // 任何→状态1
+  function goHomePC() {
+    if (!isPC()) return;
+    var html = document.documentElement;
+    html.classList.remove('in-chat', 'content-open', 'content-closing', 'is-chat', 'is-chat-conv');
+    var ca = document.getElementById('chatApp');
+    ca.classList.remove('active');
+    ca.style.flex = '';
+    ca.style.width = '';
+    ca.style.maxWidth = '';
+    ca.style.margin = '';
+    document.getElementById('landingPage').classList.remove('exit');
+    history.pushState(null, '', '/');
+    try { closeSidebar(); } catch (e) {}
+  }
+
+  function switchTab(tabId) {
+    activeTabId = tabId;
+    for (var i = 0; i < tabs.length; i++) {
+      var t = tabs[i];
+      var isActive = t.id === tabId;
+      if (t.el) {
+        if (isActive) t.el.classList.add('active');
+        else t.el.classList.remove('active');
+      }
+      if (t.contentEl) t.contentEl.style.display = isActive ? '' : 'none';
+    }
+  }
+
+  // ── 全局 API ──
+  window.__enterChat = enterChat;
+  window.__openContent = openContent;
+  window.__closeContent = closeContent;
+  window.__goHome = goHomePC;
+  window.__switchTab = switchTab;
+  // 向后兼容旧 API（index.html 中有引用）
+  window.__revealChat = enterChat;
+  window.__hideChat = function () { /* 新架构中由 goHome 替代 */ };
+
+  // ── Tab 渲染器 ──
+  var RENDERERS = {};
+
+  RENDERERS.products = function (container, data) {
+    var products = data && data.products || [];
+    var grid = document.createElement('div');
+    grid.className = 'cp-products';
+    products.forEach(function (p) {
+      var img = (p.image_url || '').replace(/^http:/, 'https:');
+      var name = p.name || '';
+      var price = p.price || '';
+      var desc = p.description || '';
+      var sku = p.sku || '';
+      var url = p.pcDetailUrl || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#');
+
+      var card = document.createElement('div');
+      card.className = 'cp-product-card';
+      card.innerHTML =
+        (img ? '<img src="' + escH(img) + '" alt="' + escH(name) + '" loading="lazy">' : '') +
+        '<div class="cp-product-name">' + escH(name) + '</div>' +
+        (price ? '<div class="cp-product-price">¥' + Number(price).toLocaleString() + '</div>' : '') +
+        (desc ? '<div class="cp-product-desc">' + escH(desc) + '</div>' : '') +
+        '<div style="padding:0 12px 12px"><button class="cp-product-btn" data-url="' + escH(url) + '">去看看</button></div>';
+      card.querySelector('.cp-product-btn').addEventListener('click', function () { window.open(url, '_blank'); });
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  };
+
+  RENDERERS.compare = function (container, data) {
+    var products = data && data.products || [];
+    if (products.length < 2) return;
+    var specKeys = {};
+    products.forEach(function (p) {
+      if (p.specs) Object.keys(p.specs).forEach(function (k) {
+        if (k !== 'url' && k !== 'bu_ids') specKeys[k] = true;
+      });
+    });
+    var keys = Object.keys(specKeys);
+    var table = document.createElement('table');
+    table.className = 'cp-compare';
+
+    // header
+    var thead = '<tr><th>参数</th>';
+    products.forEach(function (p) { thead += '<th>' + escH(p.name || '') + '</th>'; });
+    thead += '</tr>';
+
+    // body
+    var tbody = '';
+    keys.forEach(function (k) {
+      var vals = products.map(function (p) { return p.specs && p.specs[k] != null ? String(p.specs[k]) : '-'; });
+      var allSame = vals.every(function (v) { return v === vals[0]; });
+      var row = '<td>' + escH(k) + '</td>';
+      vals.forEach(function (v) {
+        row += '<td' + (allSame ? '' : ' class="diff-cell"') + '>' + escH(v) + '</td>';
+      });
+      tbody += '<tr>' + row + '</tr>';
+    });
+
+    table.innerHTML = '<thead>' + thead + '</thead><tbody>' + tbody + '</tbody>';
+    container.appendChild(table);
+  };
+
+  RENDERERS.stores = function (container, data) {
+    var stores = data && data.stores || [];
+    var ul = document.createElement('ul');
+    ul.className = 'cp-stores';
+    stores.forEach(function (s) {
+      var li = document.createElement('li');
+      li.innerHTML =
+        '<div class="cp-store-name">' + escH(s.name || '') + '</div>' +
+        '<div class="cp-store-address">' + escH(s.address || '') + '</div>' +
+        (s.phone ? '<div class="cp-store-phone"><a href="tel:' + escH(s.phone) + '">' + escH(s.phone) + '</a></div>' : '') +
+        (s.distance ? '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + escH(s.distance) + '</div>' : '');
+      ul.appendChild(li);
+    });
+    container.appendChild(ul);
+  };
+
+  RENDERERS.preview = function (container, data) {
+    var url = data && data.url || '';
+    var bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:#6B7280';
+    bar.innerHTML = '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(url) + '</span>' +
+      '<a href="' + escH(url) + '" target="_blank" rel="noopener" style="color:#6D28D9;white-space:nowrap">↗ 新窗口打开</a>';
+    container.appendChild(bar);
+    var iframe = document.createElement('iframe');
+    iframe.className = 'cp-preview';
+    iframe.src = '/api/preview?url=' + encodeURIComponent(url);
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+    container.appendChild(iframe);
+  };
+
+  RENDERERS.form = function (container, data) {
+    var fields = data && data.fields || [];
+    var form = document.createElement('form');
+    form.className = 'cp-form';
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var result = {};
+      fields.forEach(function (f) {
+        var el = form.querySelector('[name="' + f.name + '"]');
+        if (el) result[f.name] = el.value;
+      });
+      if (typeof sendMain === 'function') {
+        sendMain(JSON.stringify(result));
+      }
+    });
+    fields.forEach(function (f) {
+      var group = document.createElement('div');
+      group.className = 'cp-form-group';
+      var label = document.createElement('label');
+      label.textContent = f.label || f.name;
+      group.appendChild(label);
+      var input;
+      if (f.type === 'textarea') {
+        input = document.createElement('textarea');
+      } else if (f.type === 'select' && f.options) {
+        input = document.createElement('select');
+        f.options.forEach(function (opt) {
+          var o = document.createElement('option');
+          o.value = opt; o.textContent = opt;
+          input.appendChild(o);
+        });
+      } else {
+        input = document.createElement('input');
+        input.type = f.type || 'text';
+      }
+      input.name = f.name;
+      if (f.required) input.required = true;
+      group.appendChild(input);
+      form.appendChild(group);
+    });
+    var submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.className = 'cp-form-submit';
+    submit.textContent = '提交';
+    form.appendChild(submit);
+    container.appendChild(form);
+  };
+
+  function escH(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  // ── 布局尺寸 ──
 
   function applyWidths() {
-    if (!isPC()) return;
-    var lp = document.getElementById('landingPage');
+    if (!isPC() || getState() !== 3) return;
     var ca = document.getElementById('chatApp');
-    if (!lp || !ca) return;
-    // landing 用 calc 锁定，chat 用 flex 占剩余空间，避免百分比加起来溢出
-    lp.style.flex = '0 0 auto';
-    lp.style.width = 'calc(' + state.leftPct + '% - 3px)';
-    ca.style.flex = '1 1 0';
-    ca.style.width = '0';
-    ca.style.minWidth = '0';
-    var lpW = lp.getBoundingClientRect().width;
-    if (lpW < 520) lp.dataset.narrow = '2';
-    else if (lpW < 760) lp.dataset.narrow = '1';
-    else lp.removeAttribute('data-narrow');
-    // 同步 --split-left-w，供 #mallDetail 在 split 模式下只覆盖左侧
-    document.documentElement.style.setProperty('--split-left-w', 'calc(' + state.leftPct + '% - 3px)');
+    if (!ca) return;
+    var pct = state.leftPct;
+    ca.style.flex = '0 0 auto';
+    ca.style.width = 'calc(' + pct + '% - 3px)';
+    ca.style.maxWidth = 'none';
+    ca.style.margin = '0';
   }
 
-  // ── 1. 包装 DOM：landing + splitter + chat → splitRoot ──
-  function wrapDom() {
-    if (document.getElementById('splitRoot')) return;
-    var lp = document.getElementById('landingPage');
-    var ca = document.getElementById('chatApp');
-    if (!lp || !ca) return;
+  // ── DOM 结构创建 ──
 
-    var root = document.createElement('div');
-    root.id = 'splitRoot';
+  function createContentPanel() {
+    if (document.getElementById('contentPanel')) return;
+    var cp = document.createElement('div');
+    cp.id = 'contentPanel';
+    cp.innerHTML =
+      '<div class="cp-header">' +
+        '<div class="cp-tabs" id="cpTabs"></div>' +
+        '<button class="cp-close" id="cpClose" title="关闭">×</button>' +
+      '</div>' +
+      '<div class="cp-body" id="cpBody"></div>';
+    return cp;
+  }
+
+  function wrapInSplitRoot() {
+    if (document.getElementById('splitRoot')) return;
+    var ca = document.getElementById('chatApp');
+    if (!ca) return;
+
+    var cp = createContentPanel();
+    if (!cp) return;
 
     var divider = document.createElement('div');
     divider.id = 'splitDivider';
@@ -111,13 +358,18 @@
     divider.setAttribute('aria-orientation', 'vertical');
     divider.innerHTML = '<div class="grip"></div>';
 
-    // 把 lp 和 ca 移进 root
-    lp.parentNode.insertBefore(root, lp);
-    root.appendChild(lp);
-    root.appendChild(divider);
-    root.appendChild(ca);
+    var root = document.createElement('div');
+    root.id = 'splitRoot';
 
-    // 控制条（换位按钮）——已预置在 chat-topbar 内，直接注入内容
+    ca.parentNode.insertBefore(root, ca);
+    root.appendChild(ca);
+    root.appendChild(divider);
+    root.appendChild(cp);
+
+    // 关闭按钮
+    document.getElementById('cpClose').addEventListener('click', closeContent);
+
+    // 控制栏（换位 / 新建）
     var controls = document.getElementById('splitControls');
     if (controls) {
       controls.innerHTML =
@@ -126,20 +378,31 @@
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
           '<span>换位</span>' +
         '</button>';
+      document.getElementById('btnSwapPanes').addEventListener('click', function () {
+        state.swapped = !state.swapped;
+        saveState();
+        applySwap();
+      });
+      document.getElementById('btnNewConv').addEventListener('click', function () {
+        if (typeof openChatFresh === 'function') openChatFresh();
+      });
     }
 
-    // 拖拽
     bindDrag(divider);
-    document.getElementById('btnSwapPanes').addEventListener('click', toggleSwap);
-    document.getElementById('btnNewConv').addEventListener('click', function () {
-      if (typeof openChatFresh === 'function') openChatFresh();
-    });
   }
+
+  function applySwap() {
+    var html = document.documentElement;
+    if (state.swapped) html.classList.add('layout-swapped');
+    else html.classList.remove('layout-swapped');
+  }
+
+  // ── 拖拽分割线 ──
 
   function bindDrag(divider) {
     var startX = 0, startPct = 0, viewportW = 0;
     function onDown(e) {
-      if (!isPC()) return;
+      if (!isPC() || getState() !== 3) return;
       e.preventDefault();
       var pt = e.touches ? e.touches[0] : e;
       startX = pt.clientX;
@@ -156,7 +419,6 @@
       var pt = e.touches ? e.touches[0] : e;
       var dx = pt.clientX - startX;
       var deltaPct = (dx / viewportW) * 100;
-      // swapped 时，landing 在右侧，向右拖应该缩小 landing；翻转 delta
       var pct = state.swapped ? startPct - deltaPct : startPct + deltaPct;
       state.leftPct = clamp(pct, MIN_LEFT_PCT, MAX_LEFT_PCT);
       applyWidths();
@@ -169,82 +431,161 @@
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onUp);
-      saveState(state);
+      saveState();
     }
     divider.addEventListener('mousedown', onDown);
     divider.addEventListener('touchstart', onDown, { passive: false });
-    // 双击重置
-    divider.addEventListener('dblclick', resetSplit);
+    divider.addEventListener('dblclick', function () {
+      state.leftPct = DEFAULT_LEFT_PCT;
+      state.swapped = false;
+      saveState();
+      applySwap();
+      applyWidths();
+    });
   }
 
-  function toggleSwap() {
-    state.swapped = !state.swapped;
-    saveState(state);
-    applySplitMode();
-    applyWidths();
-  }
-  function resetSplit() {
-    state.leftPct = DEFAULT_LEFT_PCT;
-    state.swapped = false;
-    saveState(state);
-    applySplitMode();
-    applyWidths();
-  }
+  // ── 劫持现有函数 ──
 
-  // ── 2. 拦截 fullscreen 切换（PC 分屏下不再隐藏 landing） ──
-  function patchNavigationFns() {
-    // showChatApp/openChatFresh/goHome 在 PC 分屏下退化为：仅准备聊天态，不改 landing 可见性
+  function patchFunctions() {
+    // showChatApp
     var origShow = window.showChatApp;
-    var origGo = window.goHome;
-    var origOpen = window.openChatFresh;
-
     if (typeof origShow === 'function') {
-      window.showChatApp = function (pushUrl) {
-        if (isPC()) {
-          document.documentElement.classList.add('is-chat');
-          revealChat();
-          if (pushUrl !== false && typeof convId !== 'undefined') {
-            try {
-              var base = chatBase();
-              var url = (typeof convId !== 'undefined' && convId) ? base + '/' + convId : base;
-              history.replaceState(null, '', url);
-            } catch (e) {}
-          }
-          return;
-        }
+      window.showChatApp = function () {
+        if (isPC()) { enterChat(); return; }
         return origShow.apply(this, arguments);
       };
     }
-    if (typeof origGo === 'function') {
+
+    // openChatFresh
+    var origOpen = window.openChatFresh;
+    if (typeof origOpen === 'function') {
+      window.openChatFresh = function () {
+        if (isPC()) enterChat();
+        return origOpen.apply(this, arguments);
+      };
+    }
+
+    // goHome
+    var origGoHome = window.goHome;
+    if (typeof origGoHome === 'function') {
       window.goHome = function () {
-        if (isPC()) {
-          // 分屏下"返回首页" = 滚动 landing 到顶 + 隐藏右侧 chat
-          var lp = document.getElementById('landingPage');
-          if (lp) lp.scrollTo({ top: 0, behavior: 'smooth' });
-          hideChat();
+        if (isPC()) { goHomePC(); return; }
+        return origGoHome.apply(this, arguments);
+      };
+    }
+
+    // showDisplayCanvas → openContent('products')
+    var origDC = window.showDisplayCanvas;
+    if (typeof origDC === 'function') {
+      window.showDisplayCanvas = function (title, products) {
+        if (isPC()) { openContent('products', title, { products: products }); return; }
+        return origDC.apply(this, arguments);
+      };
+    }
+
+    // showAIModal → compare 走 openContent
+    var origModal = window.showAIModal;
+    if (typeof origModal === 'function') {
+      window.showAIModal = function (data) {
+        if (isPC() && data && data.type === 'compare') {
+          openContent('compare', data.title || '对比', data);
           return;
         }
-        return origGo.apply(this, arguments);
+        return origModal.apply(this, arguments);
       };
+    }
+
+    // openPreview → openContent('preview')
+    var origPreview = window.openPreview;
+    if (typeof origPreview === 'function') {
+      window.openPreview = function (url) {
+        if (isPC()) { openContent('preview', url, { url: url }); return; }
+        return origPreview.apply(this, arguments);
+      };
+    }
+
+    // 触发聊天的函数：进入对话状态
+    function wrapTrigger(name) {
+      var orig = window[name];
+      if (typeof orig !== 'function') return;
+      window[name] = function () {
+        if (isPC()) enterChat();
+        return orig.apply(this, arguments);
+      };
+    }
+    ['startChat', 'quickAsk', 'findNearbyStores', 'triggerHongbao'].forEach(wrapTrigger);
+
+    // heroSend 按钮
+    var heroSend = document.getElementById('heroSend');
+    if (heroSend) heroSend.addEventListener('click', function () { if (isPC()) enterChat(); }, true);
+
+    // Logo 回首页：拦截主导航 .logo 的 onclick
+    var logoEl = document.querySelector('nav .logo');
+    if (logoEl) {
+      logoEl.addEventListener('click', function (e) {
+        if (isPC() && getState() > 1) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          goHomePC();
+        }
+      }, true);
+    }
+
+    // 侧边栏 logo 和 返回首页按钮
+    var sbLogo = document.querySelector('.sb-logo');
+    if (sbLogo) {
+      sbLogo.addEventListener('click', function (e) {
+        if (isPC()) { e.preventDefault(); e.stopImmediatePropagation(); goHomePC(); }
+      }, true);
+    }
+    var backHome = document.getElementById('backHomeBtn');
+    if (backHome) {
+      backHome.addEventListener('click', function (e) {
+        if (isPC()) { e.preventDefault(); e.stopImmediatePropagation(); goHomePC(); }
+      }, true);
     }
   }
 
-  // ── 3. 监听 chat SSE event:nav，滚动 landing ──
-  // 通过 patch fetch 拦截 /api/chat/stream 响应，重新解析 SSE 文本流
-  // 简单做法：暴露 window.__handleNavTarget，由 index.html SSE 解析处调用
+  // ── resize 适配 ──
+
+  function onResize() {
+    if (!isPC()) {
+      var html = document.documentElement;
+      html.classList.remove('split-mode', 'layout-swapped', 'content-open', 'content-closing');
+    } else {
+      document.documentElement.classList.add('split-mode');
+      applySwap();
+      applyWidths();
+    }
+  }
+  if (MQ.addEventListener) MQ.addEventListener('change', onResize);
+  else if (MQ.addListener) MQ.addListener(onResize);
+  window.addEventListener('resize', applyWidths);
+
+  // ── URL 检查 ──
+
+  function checkInitialUrl() {
+    if (isPC() && isChatPath()) {
+      document.documentElement.classList.add('is-chat');
+      enterChat();
+    }
+  }
+
+  // ── 保留 landing 导航功能 ──
+
   var SECTION_MAP = {
-    home:        function () { return document.querySelector('#landingPage .hero'); },
-    top:         function () { return document.querySelector('#landingPage .hero'); },
-    hero:        function () { return document.querySelector('#landingPage .hero'); },
-    featured:    function () { return getSec(0); },
-    news_dynamic:function () { return getSec(0); },
+    home: function () { return document.querySelector('#landingPage .hero'); },
+    top: function () { return document.querySelector('#landingPage .hero'); },
+    hero: function () { return document.querySelector('#landingPage .hero'); },
+    featured: function () { return getSec(0); },
+    news_dynamic: function () { return getSec(0); },
     bestsellers: function () { return getSec(1); },
-    products:    function () { return getSec(1); },
-    solutions:   function () { return getSec(2); },
-    news:        function () { return getSec(3); },
-    cases:       function () { return getSec(4); },
-    cta:         function () { return getSec(5); },
-    contact:     function () { return getSec(5); }
+    products: function () { return getSec(1); },
+    solutions: function () { return getSec(2); },
+    news: function () { return getSec(3); },
+    cases: function () { return getSec(4); },
+    cta: function () { return getSec(5); },
+    contact: function () { return getSec(5); }
   };
   function getSec(idx) {
     var list = document.querySelectorAll('#landingPage .sec');
@@ -256,7 +597,6 @@
     var fn = SECTION_MAP[key];
     var el = fn ? fn() : null;
     if (!el) {
-      // 容错：尝试模糊匹配
       var keys = Object.keys(SECTION_MAP);
       for (var i = 0; i < keys.length; i++) {
         if (key.indexOf(keys[i]) >= 0) { el = SECTION_MAP[keys[i]](); break; }
@@ -265,124 +605,26 @@
     if (!el) return;
     var lp = document.getElementById('landingPage');
     if (isPC() && lp) {
-      var top = el.offsetTop - 24;
-      lp.scrollTo({ top: top, behavior: 'smooth' });
+      lp.scrollTo({ top: el.offsetTop - 24, behavior: 'smooth' });
     } else {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     el.classList.remove('nav-flash');
-    void el.offsetWidth; // reflow
+    void el.offsetWidth;
     el.classList.add('nav-flash');
   }
   window.__navigateLandingTo = navigateLeft;
 
-  // ── 3b. 左侧 preview overlay：分屏模式下点 chat 链接，URL 加载到左侧 ──
-  function ensureLeftPreviewPanel() {
-    var lp = document.getElementById('landingPage');
-    if (!lp) return null;
-    var panel = document.getElementById('leftPreviewPanel');
-    if (panel) return panel;
-    panel = document.createElement('div');
-    panel.id = 'leftPreviewPanel';
-    panel.innerHTML =
-      '<div class="lpp-bar">' +
-        '<button type="button" class="lpp-back" id="lppBack">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
-          '<span>返回首页</span>' +
-        '</button>' +
-        '<span class="lpp-url" id="lppUrl"></span>' +
-        '<a class="lpp-ext" id="lppExt" target="_blank" rel="noopener">↗ 新标签</a>' +
-      '</div>' +
-      '<iframe id="lppIframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>' +
-      '<div class="lpp-fallback" id="lppFallback" style="display:none">' +
-        '<div style="font-size:48px;opacity:.4">🔗</div>' +
-        '<div>此链接无法在内嵌窗口预览（跨域限制）</div>' +
-        '<a id="lppFallbackLink" target="_blank" rel="noopener" style="color:var(--accent,#2077FF);font-size:13px">在新标签页打开 ↗</a>' +
-      '</div>';
-    lp.appendChild(panel);
-    panel.querySelector('#lppBack').addEventListener('click', closeLeftPreview);
-    return panel;
-  }
-  function openLeftPreview(url) {
-    if (!isPC()) return false;
-    var panel = ensureLeftPreviewPanel();
-    if (!panel) return false;
-    var iframe = panel.querySelector('#lppIframe');
-    var fb = panel.querySelector('#lppFallback');
-    var ext = panel.querySelector('#lppExt');
-    var urlSpan = panel.querySelector('#lppUrl');
-    var fbLink = panel.querySelector('#lppFallbackLink');
-    fb.style.display = 'none';
-    iframe.style.display = 'block';
-    urlSpan.textContent = url;
-    ext.href = url;
-    fbLink.href = url;
-    var proxyUrl = '/api/preview?url=' + encodeURIComponent(url);
-    iframe.src = proxyUrl;
-    panel.classList.add('open');
-    iframe.onerror = function () {
-      iframe.style.display = 'none';
-      fb.style.display = 'flex';
-    };
-    return true;
-  }
-  function closeLeftPreview() {
-    var panel = document.getElementById('leftPreviewPanel');
-    if (!panel) return;
-    panel.classList.remove('open');
-    var iframe = panel.querySelector('#lppIframe');
-    if (iframe) setTimeout(function () { iframe.src = 'about:blank'; }, 300);
-  }
-  window.__openLeftPreview = openLeftPreview;
-  window.__closeLeftPreview = closeLeftPreview;
+  // ── 初始化 ──
 
-  // 拦截原 openPreview：分屏下走左侧，否则保留原行为
-  function patchPreviewFn() {
-    var orig = window.openPreview;
-    window.openPreview = function (url) {
-      if (isPC() && openLeftPreview(url)) return;
-      if (typeof orig === 'function') return orig.apply(this, arguments);
-      window.open(url, '_blank');
-    };
-  }
-
-  // ── 4. resize 适配 ──
-  function onResize() {
-    applySplitMode();
-    applyWidths();
-  }
-  if (MQ.addEventListener) MQ.addEventListener('change', onResize);
-  else if (MQ.addListener) MQ.addListener(onResize);
-  window.addEventListener('resize', applyWidths);
-
-  // ── 5. 初始化 ──
   function init() {
-    wrapDom();
-    applySplitMode();
-    patchNavigationFns();
-    patchPreviewFn();
-    patchChatTriggers();
-    // 直接 /chat URL 进入：自动 reveal
-    if (isPC() && isChatPath()) {
-      document.documentElement.classList.add('is-chat');
-      revealChat();
-    }
-  }
-
-  // 拦 hero / quickAsk / startChat / findNearbyStores / openChatFresh 触发 reveal
-  function patchChatTriggers() {
-    function wrap(name) {
-      var orig = window[name];
-      if (typeof orig !== 'function') return;
-      window[name] = function () {
-        if (isPC()) revealChat();
-        return orig.apply(this, arguments);
-      };
-    }
-    ['startChat','quickAsk','openChatFresh','findNearbyStores','sendFromHero','triggerHongbao'].forEach(wrap);
-    // hero 主搜索框 send 按钮（#heroSend）也走 revealChat
-    var heroSend = document.getElementById('heroSend');
-    if (heroSend) heroSend.addEventListener('click', function () { if (isPC()) revealChat(); }, true);
+    if (!isPC()) return;
+    document.documentElement.classList.add('split-mode');
+    loadState();
+    wrapInSplitRoot();
+    applySwap();
+    patchFunctions();
+    checkInitialUrl();
   }
 
   if (document.readyState === 'loading') {

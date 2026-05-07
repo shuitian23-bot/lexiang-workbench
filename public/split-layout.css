@@ -1,345 +1,525 @@
 /* ══════════════════════════════════════════════════════════════
-   Split Layout — PC 端左右分屏（landing | splitter | chat）
-   移动端 (max-width:768px) 不应用，保持原 is-chat 切换逻辑
+   Split Layout — PC 端分屏布局
+   三种状态：
+     1. 首页门户（默认）— landingPage 全宽
+     2. 全宽对话（html.in-chat）— chatApp 居中全宽
+     3. 分屏对话（html.in-chat.content-open）— 左聊天 + 右内容面板
+   移动端 (max-width:768px) 不启用分屏
    ══════════════════════════════════════════════════════════════ */
 
+/* ── 状态1：首页门户（默认） ── */
+#splitDivider,
+#contentPanel {
+  display: none;
+}
+
+/* PC 端用 display:none 隐藏 chatApp；移动端保留原始 opacity 机制 */
 @media (min-width: 769px) {
-  html.split-mode, html.split-mode body {
+  #chatApp {
+    display: none;
+  }
+}
+
+/* ── 状态2：全宽对话 ── */
+html.in-chat #landingPage {
+  display: none;
+}
+
+html.in-chat #chatApp {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+}
+
+html.in-chat #splitDivider,
+html.in-chat #contentPanel {
+  display: none;
+}
+
+/* ── 状态3：分屏对话 ── */
+@media (min-width: 769px) {
+  html.in-chat.content-open,
+  html.in-chat.content-open body {
     overflow: hidden;
     height: 100vh;
     height: 100dvh;
   }
 
-  /* 顶层分屏容器 */
-  html.split-mode body > #splitRoot {
+  html.in-chat.content-open #splitRoot {
     display: flex;
     flex-direction: row;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
     z-index: 1;
   }
 
-  /* 左右两栏通用 */
-  html.split-mode #landingPage,
-  html.split-mode #chatApp {
-    height: 100vh;
-    height: 100dvh;
-    overflow-y: auto;
-    overflow-x: hidden;
+  /* 换位：flex 反转 */
+  html.in-chat.content-open.layout-swapped #splitRoot {
+    flex-direction: row-reverse;
+  }
+
+  html.in-chat.content-open #landingPage {
+    display: none;
+  }
+
+  html.in-chat.content-open #chatApp {
+    display: flex;
     flex: 0 0 auto;
-    min-width: 0;
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: none !important;
-    opacity: 1 !important;
-    pointer-events: all !important;
-    transition: none !important;
-    z-index: auto !important;
-  }
-  /* chat-app 内部 chat-main 锁高度，防止 input-bar 被挤出可视区 */
-  html.split-mode #chatApp {
-    display: flex !important;
-    flex-direction: row;
-  }
-  html.split-mode #chatApp .chat-main {
+    /* width 由 JS 控制，默认 50% */
+    width: 50%;
+    max-width: none;
+    margin: 0;
     height: 100%;
     min-width: 0;
-    max-width: 100%;
     overflow: hidden;
-  }
-  html.split-mode #chatApp .msgs-wrap {
-    flex: 1 1 0;
-    min-height: 0;
-  }
-  html.split-mode #chatApp .input-bar {
-    flex: 0 0 auto;
-  }
-
-  /* 左右顺序：默认 landing 左 / chat 右 */
-  html.split-mode #splitRoot { flex-direction: row; }
-  html.split-mode.layout-swapped #splitRoot { flex-direction: row-reverse; }
-
-  /* 首屏未触发对话：只显示 landing 全宽，splitter + chat 隐藏 */
-  html.split-mode:not(.chat-revealed) #splitDivider,
-  html.split-mode:not(.chat-revealed) #chatApp { display: none !important; }
-  html.split-mode:not(.chat-revealed) #landingPage {
-    flex: 1 1 auto !important;
-    width: 100% !important;
-  }
-  /* chat 揭示后整个 hero 区（hero-wrap 含装饰背景 blob + 标题 + 输入框 + tag）全 hide */
-  html.split-mode.chat-revealed #landingPage .hero-wrap { display: none !important; }
-
-  /* PC 分屏下 landing 即使有 .exit class 也不隐藏 */
-  html.split-mode.is-chat #landingPage,
-  html.split-mode #landingPage.exit {
-    display: block !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  html.split-mode.is-chat #chatApp,
-  html.split-mode #chatApp {
-    display: flex !important;
-    opacity: 1 !important;
-    pointer-events: all !important;
-  }
-
-  /* 拖拽分隔条 */
-  #splitDivider {
-    flex: 0 0 6px;
-    background: transparent;
-    cursor: col-resize;
+    /* 覆盖原始 position:fixed，让 chatApp 参与 splitRoot flex 布局 */
     position: relative;
-    user-select: none;
-    transition: background 0.15s;
-    z-index: 30;
-  }
-  #splitDivider:hover,
-  #splitDivider.dragging { background: #D8D0E8; }
-  #splitDivider::before {
-    content: '';
-    position: absolute;
-    left: -3px;
-    right: -3px;
-    top: 0;
-    bottom: 0;
-  }
-  #splitDivider .grip {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 4px;
-    height: 36px;
-    border-radius: 2px;
-    background: rgba(255,255,255,0.7);
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  #splitDivider:hover .grip,
-  #splitDivider.dragging .grip { opacity: 1; }
-
-  /* 顶栏内换位/重置控制组 */
-  #splitControls {
-    display: none;
-    align-items: center;
-    gap: 4px;
-  }
-  html.split-mode.chat-revealed #splitControls { display: inline-flex; }
-  #splitControls button {
-    background: transparent;
-    border: 1px solid var(--border, #E8ECF0);
-    color: var(--text2, #666);
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: inherit;
-  }
-  #splitControls button:hover {
-    border-color: var(--accent, #2077FF);
-    color: var(--accent, #2077FF);
-  }
-  #splitControls button svg { width: 13px; height: 13px; }
-
-  /* 拖拽期间禁选文本 */
-  html.split-mode.split-dragging,
-  html.split-mode.split-dragging * {
-    user-select: none !important;
-    cursor: col-resize !important;
-  }
-  html.split-mode.split-dragging iframe,
-  html.split-mode.split-dragging embed { pointer-events: none; }
-
-  /* PC 分屏下 chatApp 内部布局：sidebar 默认收起，由按钮 toggle */
-  html.split-mode #chatApp {
-    width: 100%;
-  }
-  /* sidebar 已改为全屏弹层，split 模式下不再 override 位置 */
-  html.split-mode #chatApp .chat-main { width: 100%; flex: 1; }
-  html.split-mode #chatApp .menu-btn { display: inline-flex !important; }
-
-  /* 隐藏 chat-main 顶部的 "返回首页" 概念（PC 分屏下不需要返回，landing 一直在左侧） */
-  html.split-mode #chatApp .back-home-btn { display: none; }
-
-  /* 分屏下禁用 chat 内右侧 preview-panel（链接改在左侧打开） */
-  html.split-mode #chatApp .preview-panel,
-  html.split-mode #chatApp .preview-panel.open { width: 0 !important; display: none !important; }
-
-  /* 分屏下 landing 内 nav 改 sticky，不横跨整屏且滚动时吸顶 */
-  html.split-mode #landingPage > nav {
-    position: sticky !important;
-    top: 0 !important;
-    left: auto !important;
-    right: auto !important;
-    width: auto !important;
-    z-index: 40 !important;
+    top: auto;
+    left: auto;
+    right: auto;
+    z-index: auto;
   }
 
-  /* 左侧 preview overlay：覆盖 landing（含 nav，z-index 高于 nav 100） */
-  #leftPreviewPanel {
-    position: absolute;
-    inset: 0;
-    z-index: 200;
-    background: var(--bg, #F7F5FB);
-    display: none;
-    flex-direction: column;
+  html.in-chat.content-open #splitDivider {
+    display: block;
   }
-  #leftPreviewPanel.open { display: flex; }
-  #leftPreviewPanel .lpp-bar {
+
+  html.in-chat.content-open #contentPanel {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: #fff;
-    border-bottom: 1px solid var(--border, #E8ECF0);
-    flex-shrink: 0;
-    min-height: 44px;
-  }
-  #leftPreviewPanel .lpp-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border, #E8ECF0);
-    background: #fff;
-    color: var(--text2, #555);
-    font-size: 12px;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  #leftPreviewPanel .lpp-back:hover { border-color: var(--accent, #2077FF); color: var(--accent, #2077FF); }
-  #leftPreviewPanel .lpp-back svg { width: 14px; height: 14px; }
-  #leftPreviewPanel .lpp-url {
+    flex-direction: column;
     flex: 1;
-    font-size: 12px;
-    color: var(--text2, #555);
+    min-width: 0;
+    height: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: monospace;
-  }
-  #leftPreviewPanel .lpp-ext {
-    flex-shrink: 0;
-    padding: 5px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border, #E8ECF0);
-    background: #fff;
-    color: var(--text2, #555);
-    font-size: 12px;
-    cursor: pointer;
-    text-decoration: none;
-    font-family: inherit;
-  }
-  #leftPreviewPanel .lpp-ext:hover { border-color: var(--accent, #2077FF); color: var(--accent, #2077FF); }
-  #leftPreviewPanel iframe {
-    flex: 1;
-    border: none;
-    width: 100%;
-    background: #fff;
-  }
-  #leftPreviewPanel .lpp-fallback {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 40px;
-    text-align: center;
-    font-size: 14px;
-    color: var(--text2, #555);
-  }
-  /* landing 设 position:relative，让 leftPreviewPanel(absolute) 相对它定位 */
-  html.split-mode #landingPage { position: relative; }
-
-  /* nav 高亮反馈：被 AI 导航命中时短暂高亮 */
-  #landingPage .sec.nav-flash,
-  #landingPage .hero.nav-flash {
-    animation: nav-flash 1.4s ease-out;
-  }
-  @keyframes nav-flash {
-    0%   { box-shadow: 0 0 0 0 rgba(32, 119, 255, 0.45); }
-    40%  { box-shadow: 0 0 0 8px rgba(32, 119, 255, 0.25); }
-    100% { box-shadow: 0 0 0 0 rgba(32, 119, 255, 0); }
   }
 
-  /* ── 窄分屏自适应（核心：左栏被拖窄时退化为移动端式排版） ── */
-  /* narrow=1: 520-760px — 多列退到 2 列 */
-  html.split-mode #landingPage[data-narrow="1"] nav .nlinks { display: flex; gap: 12px; overflow-x: auto; font-size: 12px; }
-  html.split-mode #landingPage[data-narrow="1"] nav .nright > a:not(:last-of-type) { display: none; }
-  html.split-mode #landingPage[data-narrow="1"] nav { padding: 0 16px; }
-  html.split-mode #landingPage[data-narrow="1"] .hero h1 { font-size: 28px; }
-  html.split-mode #landingPage[data-narrow="1"] .wrap { padding: 0 20px; }
-  html.split-mode #landingPage[data-narrow="1"] .pgrid,
-  html.split-mode #landingPage[data-narrow="1"] .sgrid,
-  html.split-mode #landingPage[data-narrow="1"] .ngrid,
-  html.split-mode #landingPage[data-narrow="1"] .feat,
-  html.split-mode #landingPage[data-narrow="1"] .fgrid { grid-template-columns: 1fr 1fr !important; }
-  html.split-mode #landingPage[data-narrow="1"] .crow { flex-direction: row; flex-wrap: wrap; }
-  html.split-mode #landingPage[data-narrow="1"] .crow > * { flex: 1 1 calc(50% - 12px); min-width: 0; }
+  /* ── 内容面板滑入/滑出动画 ── */
+  html.in-chat.content-open #contentPanel {
+    animation: cp-slide-in 300ms ease-out;
+  }
 
-  /* narrow=2: <520px — 单列布局，所有 grid 退到 1 列 */
-  html.split-mode #landingPage[data-narrow="2"] nav .nlinks { display: flex; gap: 8px; overflow-x: auto; font-size: 11px; }
-  html.split-mode #landingPage[data-narrow="2"] nav .nlinks a { min-width: max-content; }
-  html.split-mode #landingPage[data-narrow="2"] nav .nright > a,
-  html.split-mode #landingPage[data-narrow="2"] nav .sep,
-  html.split-mode #landingPage[data-narrow="2"] nav #navAuthArea { display: none; }
-  html.split-mode #landingPage[data-narrow="2"] nav { padding: 0 12px; height: 48px; }
-  html.split-mode #landingPage[data-narrow="2"] .hero { padding: 60px 16px 40px; }
-  html.split-mode #landingPage[data-narrow="2"] .hero h1 { font-size: 22px; }
-  html.split-mode #landingPage[data-narrow="2"] .hero p { font-size: 13px; }
-  html.split-mode #landingPage[data-narrow="2"] .wrap { padding: 0 14px; }
-  html.split-mode #landingPage[data-narrow="2"] .sec-head h2 { font-size: 17px; }
-  html.split-mode #landingPage[data-narrow="2"] .pgrid,
-  html.split-mode #landingPage[data-narrow="2"] .sgrid,
-  html.split-mode #landingPage[data-narrow="2"] .ngrid,
-  html.split-mode #landingPage[data-narrow="2"] .feat,
-  html.split-mode #landingPage[data-narrow="2"] .fgrid { grid-template-columns: 1fr !important; gap: 12px !important; }
-  html.split-mode #landingPage[data-narrow="2"] .crow { flex-direction: column; gap: 10px; }
-  html.split-mode #landingPage[data-narrow="2"] .crow > * { width: 100%; min-width: 0; }
-  html.split-mode #landingPage[data-narrow="2"] .pcard,
-  html.split-mode #landingPage[data-narrow="2"] .scard,
-  html.split-mode #landingPage[data-narrow="2"] .ncard { padding: 14px; }
-  html.split-mode #landingPage[data-narrow="2"] .ncard {
-    display: flex; gap: 12px; align-items: flex-start;
+  html.in-chat.content-closing #contentPanel {
+    animation: cp-slide-out 200ms ease-in forwards;
   }
-  html.split-mode #landingPage[data-narrow="2"] .ncard .num { flex-shrink: 0; }
-  html.split-mode #landingPage[data-narrow="2"] .ncard h4 {
-    font-size: 14px; line-height: 1.5; white-space: normal;
-    writing-mode: horizontal-tb !important;
+
+  @keyframes cp-slide-in {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
   }
-  html.split-mode #landingPage[data-narrow="2"] .cta { padding: 32px 18px; }
-  html.split-mode #landingPage[data-narrow="2"] .cta h2 { font-size: 20px; }
-  html.split-mode #landingPage[data-narrow="2"] footer { padding: 24px 14px; }
+
+  @keyframes cp-slide-out {
+    from { transform: translateX(0); }
+    to   { transform: translateX(100%); }
+  }
 }
 
-/* 移动端：禁用分屏，恢复原 is-chat 切换 */
+/* ── 分割线 #splitDivider ── */
+#splitDivider {
+  flex: 0 0 6px;
+  width: 6px;
+  background: #E5E7EB;
+  cursor: col-resize;
+  position: relative;
+  user-select: none;
+  transition: background 0.15s;
+  z-index: 30;
+}
+
+#splitDivider:hover,
+#splitDivider.dragging {
+  background: #D8D0E8;
+}
+
+/* 扩大可拖拽区域 */
+#splitDivider::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+}
+
+/* grip 手柄：3个小圆点竖排 */
+#splitDivider .grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+#splitDivider .grip::before,
+#splitDivider .grip::after,
+#splitDivider .grip span {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#splitDivider:hover .grip,
+#splitDivider.dragging .grip {
+  opacity: 1;
+}
+
+/* ── 拖拽状态 ── */
+html.split-dragging,
+html.split-dragging * {
+  user-select: none !important;
+  cursor: col-resize !important;
+}
+
+html.split-dragging iframe,
+html.split-dragging embed {
+  pointer-events: none;
+}
+
+/* ── 内容面板 #contentPanel ── */
+
+/* 头部 */
+.cp-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  background: #fff;
+  border-bottom: 1px solid #E5E7EB;
+  flex-shrink: 0;
+}
+
+/* Tab 容器 */
+.cp-tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+/* 单个 Tab */
+.cp-tab {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  color: #6B7280;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.cp-tab:hover {
+  border-bottom-color: #E5E7EB;
+}
+
+.cp-tab.active {
+  border-bottom-color: #6D28D9;
+  color: #6D28D9;
+  font-weight: 600;
+}
+
+/* 关闭按钮 */
+.cp-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  margin-left: 4px;
+}
+
+.cp-close:hover {
+  background: #F3F4F6;
+}
+
+/* 内容区 */
+.cp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #FAFAFA;
+}
+
+/* ── Tab 内容：商品网格 ── */
+.cp-products {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.cp-product-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.cp-product-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.cp-product-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #F9FAFB;
+  display: block;
+}
+
+.cp-product-card .cp-product-name {
+  font-size: 14px;
+  color: #111827;
+  padding: 10px 12px 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cp-product-card .cp-product-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #E53E3E;
+  padding: 6px 12px 0;
+}
+
+.cp-product-card .cp-product-desc {
+  font-size: 12px;
+  color: #6B7280;
+  padding: 4px 12px 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cp-product-btn {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid #E53E3E;
+  border-radius: 6px;
+  background: none;
+  color: #E53E3E;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cp-product-btn:hover {
+  background: #E53E3E;
+  color: #fff;
+}
+
+/* ── Tab 内容：对比表 ── */
+.cp-compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.cp-compare th {
+  background: #F9FAFB;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #111827;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.cp-compare td {
+  padding: 12px;
+  border-bottom: 1px solid #E5E7EB;
+  color: #111827;
+}
+
+.cp-compare .diff-cell {
+  background: #FEF3C7;
+}
+
+/* ── Tab 内容：门店列表 ── */
+.cp-stores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cp-stores li {
+  padding: 12px 0;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.cp-stores li:last-child {
+  border-bottom: none;
+}
+
+.cp-store-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+}
+
+.cp-store-address,
+.cp-store-phone {
+  font-size: 13px;
+  color: #6B7280;
+  margin-top: 2px;
+}
+
+/* ── Tab 内容：iframe 预览 ── */
+.cp-preview {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Tab 内容：留资表单 ── */
+.cp-form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.cp-form .cp-form-group {
+  margin-bottom: 16px;
+}
+
+.cp-form label {
+  display: block;
+  font-size: 14px;
+  color: #111827;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.cp-form input,
+.cp-form select,
+.cp-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.cp-form input:focus,
+.cp-form select:focus,
+.cp-form textarea:focus {
+  outline: none;
+  border-color: #6D28D9;
+}
+
+.cp-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.cp-form .cp-form-submit {
+  width: 100%;
+  padding: 12px;
+  background: #E53E3E;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cp-form .cp-form-submit:hover {
+  background: #C53030;
+}
+
+/* ── 顶部控制按钮 #splitControls ── */
+#splitControls {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+html.in-chat #splitControls {
+  display: inline-flex;
+}
+
+#splitControls button {
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  color: #6B7280;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+}
+
+#splitControls button:hover {
+  border-color: #6D28D9;
+  color: #6D28D9;
+}
+
+#splitControls button svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── 移动端：禁用所有分屏逻辑 ── */
 @media (max-width: 768px) {
-  html.split-mode #splitDivider,
-  html.split-mode #splitControls { display: none !important; }
-  html.split-mode body > #splitRoot {
+  #splitRoot {
     display: contents;
   }
-}
 
-/* 分屏激活后暂停 hero 动画节省 GPU */
-html.split-mode.chat-revealed .hero-wrap .blob,
-html.split-mode.chat-revealed .hero-wrap::before,
-html.split-mode.chat-revealed .hero-wrap::after {
-  animation-play-state: paused !important;
+  #splitDivider,
+  #contentPanel,
+  #splitControls {
+    display: none !important;
+  }
+
+  /* 移动端全宽对话保持默认行为 */
+  html.in-chat #chatApp {
+    max-width: none;
+  }
 }
