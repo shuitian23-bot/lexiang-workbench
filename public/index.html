@@ -2544,7 +2544,7 @@ var mallProducts = {};
         chat: p.name + ' 的详细配置和购买建议'
       };
       var origHtml = p.original_price > p.price ? ' <span class="mall-original">¥' + Number(p.original_price).toLocaleString() + '</span>' : '';
-      return '<div class="mall-card" data-product="' + p.sku + '" onclick="openDetail(this)">' +
+      return '<div class="mall-card" data-product="' + p.sku + '">' +
         '<div class="mall-img"><img src="' + (p.image_url||'') + '" alt="' + escHtml(p.name) + '" onerror="this.style.display=\'none\'"></div>' +
         '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
         '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
