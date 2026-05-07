@@ -1807,7 +1807,13 @@ async function callAPI(msg, imageUrl, audioUrl){
 
         else if (lastEvent === 'error') {
           stream.finish();
-          bubbleEl.querySelector('.mbubble').textContent = '抱歉，出了点问题：' + (d.message || '未知错误');
+          var emb = bubbleEl.querySelector('.mbubble');
+          var errMsg = '抱歉，出了点问题：' + (d.message || '未知错误');
+          if (emb && emb.textContent.trim()) {
+            emb.insertAdjacentHTML('beforeend', '<p style="color:#e53e3e;margin-top:8px;font-size:13px">⚠ ' + errMsg + '</p>');
+          } else {
+            emb.textContent = errMsg;
+          }
         }
       }
     }
@@ -1815,7 +1821,12 @@ async function callAPI(msg, imageUrl, audioUrl){
   } catch(e) {
     _log.error('callAPI stream error', e.stack, { msg: msg.slice(0,80) });
     stream.finish();
-    bubbleEl.querySelector('.mbubble').textContent = '网络错误，请稍后重试。';
+    var mb = bubbleEl.querySelector('.mbubble');
+    if (mb && mb.textContent.trim()) {
+      mb.insertAdjacentHTML('beforeend', '<p style="color:#e53e3e;margin-top:8px;font-size:13px">⚠ 生成中断，以上为已接收内容。</p>');
+    } else {
+      mb.textContent = '网络错误，请稍后重试。';
+    }
   } finally {
     isLoading = false;
     document.getElementById('mainSend').disabled = false;
