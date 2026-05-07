@@ -284,7 +284,7 @@ html,body{height:100%;overflow:hidden}
 .suggest-chip:hover{border-color:var(--primary);color:var(--primary)}
 
 /* Input bar */
-.input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom));position:relative;overflow:hidden}
+.input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom));position:relative}
 .input-bar-toprow{display:flex;align-items:center;gap:6px;padding-bottom:8px;flex-wrap:wrap}
 .input-inner{display:flex;gap:8px;align-items:flex-end}
 .input-tools{display:flex;align-items:center;gap:6px;padding:6px 0 0;flex-wrap:wrap}
@@ -780,17 +780,17 @@ html,body{height:100%;overflow:hidden}
 .pd-action-btns .pd-btn-ask{flex:none;padding:0 24px;height:42px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:4px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .pd-btn-ask:hover{opacity:.88;transform:translateY(-1px)}
 /* AI 商品上下文浮层（覆盖 input-bar） */
-.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;top:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #c4b5fd;padding:20px 24px 24px;display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
+.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #c4b5fd;border-radius:16px 16px 0 0;padding:24px 24px 28px;box-shadow:0 -8px 32px rgba(109,40,217,.12);display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
 .ai-product-overlay.hiding{transform:translateY(100%);opacity:0;pointer-events:none}
-.ai-product-overlay .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.ai-product-overlay .ov-label{font-size:12px;color:#8b5cf6;font-weight:700;letter-spacing:.5px}
-.ai-product-overlay .ov-name{font-size:16px;font-weight:700;color:#1a1a2e;margin-top:4px;line-height:1.5}
-.ai-product-overlay .ov-price{color:#e1251b;font-weight:700;font-size:16px}
+.ai-product-overlay .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.ai-product-overlay .ov-label{font-size:13px;color:#8b5cf6;font-weight:700;letter-spacing:.5px}
+.ai-product-overlay .ov-name{font-size:17px;font-weight:700;color:#1a1a2e;margin-top:6px;line-height:1.5}
+.ai-product-overlay .ov-price{color:#e1251b;font-weight:700;font-size:17px}
 .ai-product-overlay .ov-close{flex-shrink:0;width:32px;height:32px;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
 .ai-product-overlay .ov-close:hover{background:rgba(0,0,0,.14)}
 .ai-product-overlay .ov-close svg{width:16px;height:16px;stroke:#555;stroke-width:2.5;fill:none}
-.ai-product-overlay .ov-chips{display:flex;gap:10px;flex-wrap:wrap}
-.ai-product-overlay .ov-chips button{padding:10px 20px;border:1px solid #c4b5fd;border-radius:22px;background:#fff;color:#6d28d9;font-size:14px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:600;box-shadow:0 1px 4px rgba(109,40,217,.08)}
+.ai-product-overlay .ov-chips{display:flex;gap:12px;flex-wrap:wrap}
+.ai-product-overlay .ov-chips button{padding:12px 24px;border:1px solid #c4b5fd;border-radius:22px;background:#fff;color:#6d28d9;font-size:15px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:600;box-shadow:0 1px 4px rgba(109,40,217,.08)}
 .ai-product-overlay .ov-chips button:hover{background:#7c3aed;color:#fff;border-color:#7c3aed;box-shadow:0 2px 8px rgba(124,58,237,.25)}
 [data-theme="dark"] .ai-product-overlay{background:linear-gradient(135deg,rgba(30,27,58,.98),rgba(42,31,63,.98));border-color:#3b3560}
 [data-theme="dark"] .ai-product-overlay .ov-name{color:#e0e0e0}
