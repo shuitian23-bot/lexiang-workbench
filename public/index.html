@@ -1364,7 +1364,7 @@ function showChatApp(pushUrl){
 window.addEventListener('popstate', (e) => {
   const p = location.pathname;
   var dc = document.getElementById('displayCanvas');
-  if (dc && dc.style.display !== 'none' && !(e.state && e.state.displayCanvas)) {
+  if (dc && dc.style.display !== 'none' && !p.includes('/product/')) {
     closeDisplayCanvas();
   }
   if (p === '/' || p === '') {
@@ -1373,9 +1373,11 @@ window.addEventListener('popstate', (e) => {
     document.documentElement.classList.remove('is-chat');
   } else if (['/chat','/shop-chat','/b-chat','/biz-chat'].some(x => p.startsWith(x))) {
     const base = ['/shop-chat','/b-chat','/biz-chat','/chat'].find(x => p.startsWith(x));
-    const id = Number(p.slice(base.length).split('/')[1]);
+    const rest = p.slice(base.length).replace(/^\//, '');
+    const id = Number(rest.split('/')[0]);
     if (id) loadConv(id);
-    else openChatFresh();
+    else if (rest && rest.startsWith('product/')) { /* handled by displayCanvas logic above */ }
+    else if (!document.documentElement.classList.contains('split-mode')) openChatFresh();
   }
 });
 function openChatFresh(){ if(window.__siteType==='default') setNavActive(null);
