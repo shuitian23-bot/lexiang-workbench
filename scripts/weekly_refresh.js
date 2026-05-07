@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * 知识库每周自动刷新脚本
- * 重跑联想各站点爬虫 + 新闻爬虫 + 增量向量化 + 自动重新生成wiki
- * cron: 0 3 * * 0 (每周日凌晨3点)
+ * 知识库每日自动刷新脚本
+ * 重跑联想各站点爬虫 + 商品API + 新闻爬虫 + 增量向量化 + 自动重新生成wiki
+ * cron: 0 3 * * * (每天凌晨3点)
  */
 const path = require('path');
 const { execSync } = require('child_process');
@@ -56,8 +56,34 @@ async function run() {
     LOG(`向量化完成：成功 ${r.done}，失败 ${r.failed}`);
   } catch (e) { LOG('向量化失败: ' + e.message); }
 
-  // 6. 重新生成 wiki 页面
-  LOG('Step 6/6: 重新生成 wiki 页面...');
+  // 6. 商品数据更新（联想开放API）
+  LOG('Step 6/8: 更新商品数据（open.lenovo.com.cn）...');
+  try {
+    execSync('node /root/lexiang/scripts/import_from_openapi.js 2>&1', {
+      timeout: 300000,
+      encoding: 'utf-8',
+      cwd: '/root/lexiang',
+    });
+    LOG('商品数据更新完成');
+  } catch (e) {
+    LOG('商品数据更新失败: ' + (e.stderr || e.message).slice(0, 200));
+  }
+
+  // 7. 品牌新闻全量爬取
+  LOG('Step 7/8: 爬取 brand.lenovo.com.cn 全量文章...');
+  try {
+    execSync('python3 /root/lexiang/scripts/crawl_brand_full.py 2>&1', {
+      timeout: 600000,
+      encoding: 'utf-8',
+      cwd: '/root/lexiang',
+    });
+    LOG('品牌新闻全量爬取完成');
+  } catch (e) {
+    LOG('品牌新闻全量爬取失败: ' + (e.stderr || e.message).slice(0, 200));
+  }
+
+  // 8. 重新生成 wiki 页面
+  LOG('Step 8/8: 重新生成 wiki 页面...');
   try {
     execSync('python3 /root/lexiang/scripts/gen_wiki_full.py 2>&1', {
       timeout: 600000,
