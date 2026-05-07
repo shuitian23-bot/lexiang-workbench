@@ -18,7 +18,7 @@ from datetime import datetime
 WIKI_DIR = '/var/www/leaibot/wiki'
 DB_PATH = '/root/lexiang/lexiang.db'
 XLSX_PATH = '/root/downloads/agent_agent_item_profile_base_info_v2_20260319.xlsx'
-TODAY = '2026-03-31'
+TODAY = datetime.now().strftime('%Y-%m-%d')
 
 # 受保护文件（不覆盖）
 PROTECTED = {
