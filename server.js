@@ -89,8 +89,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Static files — JS/CSS/图片缓存7天，HTML不缓存
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '7d',
+  etag: true,
+  setHeaders: function(res, filePath) {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
 // Health check routes（无需鉴权）
 const healthRouter = require('./routes/health');

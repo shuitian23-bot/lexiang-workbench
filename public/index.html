@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>联想乐享AI-联想官方AI助手-懂你所需更方便-企业超级智能体-企业智能体解决方案</title>
-<script src="/marked.min.js"></script>
+<title>联想乐享AI - 联想官方AI购物助手</title>
+<meta name="description" content="联想乐享AI官方购物助手，智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
+<meta property="og:title" content="联想乐享AI - 联想官方AI购物助手">
+<meta property="og:description" content="智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://leaibot.cn/favicon.svg">
+<link rel="canonical" href="https://leaibot.cn/shop-chat">
+<script src="/marked.min.js" defer></script>
 <style>
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -164,6 +170,8 @@ footer{border-top:1px solid var(--ft-bd);padding:40px 48px;max-width:1080px;marg
   .wrap{padding:0 20px}.feat{grid-template-columns:1fr}.feat-main{grid-row:auto;min-height:250px}
   .pgrid,.sgrid,.ngrid{grid-template-columns:1fr}.crow{flex-direction:column}
   .citem{border-right:none;border-bottom:1px solid var(--border)}.fgrid{grid-template-columns:repeat(2,1fr)}
+  .hero-wrap .blob,.hero-wrap::before,.hero-wrap::after{animation:none!important}
+  .wgrid{grid-template-columns:repeat(2,1fr)!important}
 }
 
 
@@ -806,6 +814,12 @@ html,body{height:100%;overflow:hidden}
 [data-theme="dark"] .pd-specs-tbl td:first-child{background:var(--card)}
 .pd-specs-tbl td:last-child{color:var(--text,#333)}
 @media(max-width:600px){.pd-detail-main{flex-direction:column}.pd-gallery{width:100%;max-width:none}.pd-hl-grid{grid-template-columns:1fr}}
+/* AI 悬浮入口按钮 */
+.ai-fab{position:fixed;bottom:24px;right:24px;z-index:999;display:inline-flex;align-items:center;gap:6px;padding:12px 20px;border:none;border-radius:999px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(102,126,234,.4);transition:all .25s}
+.ai-fab:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(102,126,234,.55)}
+.ai-fab:active{transform:translateY(0)}
+html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
+@media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
 <link rel="stylesheet" href="/split-layout.css?v=20260430-4">
 </head>
@@ -921,6 +935,10 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <div><h5>支持</h5><a>帮助中心</a><a>售后服务</a><a>驱动下载</a></div>
   <div><h5>法律声明</h5><a>隐私政策</a><a>使用条款</a></div>
 </div><div class="fbot">© 2026 联想乐享 版权所有 | ICP备案号: 京ICP备12345678号</div></footer>
+<button class="ai-fab" id="aiFab" onclick="if(typeof window.__revealChat==='function'){window.__revealChat()}else{showChatApp()}">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  问AI
+</button>
 </div><!-- /landingPage -->
 
 <!-- ══════════ CHAT APP ══════════ -->
@@ -1360,6 +1378,7 @@ function showChatApp(pushUrl){
     var base = window.__chatBase || '/chat';
     history.pushState(null, '', convId ? base + '/' + convId : base);
   }
+  if (window.__pendingProductCtx) notifyAIProductContext(window.__pendingProductCtx);
 }
 window.addEventListener('popstate', (e) => {
   const p = location.pathname;
@@ -2447,8 +2466,9 @@ function copyMsg(btn){
 
 // ── Render follow-up suggestions ──
 function renderSuggestions(bubbleEl, suggestions) {
-  // 移除旧的 suggestions（如果有）
-  document.querySelectorAll('.suggestions').forEach(el => el.remove());
+  // 移除前一轮 suggestions（保持只有最新一组可见）
+  var msgsInner = document.getElementById('msgsInner');
+  if (msgsInner) msgsInner.querySelectorAll('.suggestions').forEach(el => el.remove());
   const wrap = document.createElement('div');
   wrap.className = 'suggestions';
   suggestions.forEach(s => {
@@ -2620,6 +2640,8 @@ window.showCategoryProducts = showCategoryProducts;
 
 // ── 商品详情页（左侧渲染，联想商城风格） ──
 async function showProductDetail(sku) {
+  startBuyFlow._done = false;
+  startBuyFlow._running = false;
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
   document.getElementById('dcTitle').textContent = '加载中...';
@@ -2718,7 +2740,7 @@ async function showProductDetail(sku) {
             (specRowsInline ? '<div class="pd-spec-list">' + specRowsInline + '</div>' : '') +
             '<div class="pd-action-btns">' +
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">立即购买</button>' +
-              '<a href="' + buyUrl + '" target="_blank" rel="noopener" class="pd-btn-cart">在联想官网购买</a>' +
+              '<button class="pd-btn-cart" onclick="quickAsk(\'我想把 ' + escHtml(p.name).replace(/'/g, "\\'") + ' 加入购物车，有什么优惠可以一起用吗？\')">加入购物车</button>' +
               '<button class="pd-btn-ask" onclick="askAboutProduct()">问AI助手</button>' +
             '</div>' +
           '</div>' +
@@ -2763,17 +2785,33 @@ window.showProductDetail = showProductDetail;
 function notifyAIProductContext(p) {
   var inner = document.getElementById('msgsInner');
   if (!inner) return;
+  var isSplit = document.documentElement.classList.contains('split-mode');
+  var isChatVisible = isSplit || document.documentElement.classList.contains('is-chat');
   inner.querySelectorAll('.ai-product-ctx').forEach(function(el){ el.remove(); });
+  if (!isChatVisible) { window.__pendingProductCtx = p; return; }
+  window.__pendingProductCtx = null;
   var ctx = document.createElement('div');
   ctx.className = 'ai-product-ctx';
   var priceStr = p.price ? '¥' + Number(p.price).toLocaleString() : '';
+  var n = escHtml(p.name).replace(/'/g, "\\'");
+  var cat = (p.category || '').toLowerCase();
+  var chips;
+  if (cat.indexOf('手机') >= 0) {
+    chips = [['拍照表现如何？','的拍照和影像表现怎么样'],['续航够用吗？','电池续航表现如何'],['和同价位手机比？','和同价位竞品手机对比']];
+  } else if (cat.indexOf('笔记本') >= 0 || cat.indexOf('电脑') >= 0) {
+    chips = [['性能够用吗？','的CPU/GPU性能表现如何，适合什么场景'],['散热和噪音？','散热表现和噪音控制如何'],['和竞品对比？','和同价位竞品笔记本对比']];
+  } else if (cat.indexOf('平板') >= 0) {
+    chips = [['适合办公吗？','适合办公和学习吗，有键盘配件吗'],['屏幕素质？','的屏幕分辨率、色域表现如何'],['和iPad比？','和同价位iPad对比优劣']];
+  } else if (cat.indexOf('服务器') >= 0 || cat.indexOf('工作站') >= 0) {
+    chips = [['配置方案？','推荐什么配置方案，适合什么业务场景'],['售后服务？','的保修和企业售后服务如何'],['和竞品对比？','和同类竞品对比']];
+  } else {
+    chips = [['值得买吗？','值得买吗？优缺点分析一下'],['对比竞品','和同价位竞品对比'],['有优惠吗？','有什么优惠活动吗']];
+  }
   ctx.innerHTML =
     '<div class="ai-ctx-label">正在浏览</div>' +
     '<div class="ai-ctx-name">' + escHtml(p.name) + (priceStr ? ' <span class="ai-ctx-price">' + priceStr + '</span>' : '') + '</div>' +
     '<div class="ai-ctx-chips">' +
-      '<button onclick="quickAsk(\'这款 ' + escHtml(p.name).replace(/'/g,"\\'") + ' 值得买吗？优缺点分析一下\')">值得买吗？</button>' +
-      '<button onclick="quickAsk(\'帮我对比一下 ' + escHtml(p.name).replace(/'/g,"\\'") + ' 和同价位竞品\')">对比竞品</button>' +
-      '<button onclick="quickAsk(\'这款 ' + escHtml(p.name).replace(/'/g,"\\'") + ' 有什么优惠活动吗？\')">有优惠吗？</button>' +
+      chips.map(function(c){ return '<button onclick="quickAsk(\'这款 ' + n + ' ' + c[1] + '\')">' + c[0] + '</button>'; }).join('') +
     '</div>';
   inner.appendChild(ctx);
   inner.scrollTop = inner.scrollHeight;
@@ -3335,10 +3373,11 @@ function startBuyFlow(productName, productPrice) {
 
   var priceNum = parseInt(String(productPrice).replace(/[^\d]/g, '')) || 0;
 
+  var couponRate = priceNum >= 10000 ? [500,300,200] : priceNum >= 3000 ? [200,100,50] : priceNum >= 1000 ? [80,30,20] : [15,10,5];
   var coupons = [
-    { title:'商品平台 2000减20券', sub:'联想商城专属', amount:500 },
-    { title:'联想会员折扣券', sub:'乐享会员专享', amount:300 },
-    { title:'限时活动补贴',   sub:'今日截止·限量', amount:200 }
+    { title:'商品平台满减券', sub:'联想商城专属', amount:couponRate[0] },
+    { title:'联想会员折扣券', sub:'乐享会员专享', amount:couponRate[1] },
+    { title:'限时活动补贴',   sub:'今日截止·限量', amount:couponRate[2] }
   ];
   var totalSaving = coupons.reduce(function(s,c){ return s+c.amount; }, 0);
   var finalPrice  = Math.max(0, priceNum - totalSaving);

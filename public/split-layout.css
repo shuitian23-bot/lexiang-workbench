@@ -336,3 +336,10 @@
     display: contents;
   }
 }
+
+/* 分屏激活后暂停 hero 动画节省 GPU */
+html.split-mode.chat-revealed .hero-wrap .blob,
+html.split-mode.chat-revealed .hero-wrap::before,
+html.split-mode.chat-revealed .hero-wrap::after {
+  animation-play-state: paused !important;
+}
