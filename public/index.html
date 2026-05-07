@@ -780,7 +780,7 @@ html,body{height:100%;overflow:hidden}
 .pd-action-btns .pd-btn-ask{flex:none;padding:0 24px;height:42px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:4px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .pd-btn-ask:hover{opacity:.88;transform:translateY(-1px)}
 /* AI 商品上下文浮层（覆盖 input-bar） */
-.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #c4b5fd;border-radius:16px 16px 0 0;padding:24px 24px 28px;box-shadow:0 -8px 32px rgba(109,40,217,.12);display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
+.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #c4b5fd;border-radius:16px 16px 0 0;padding:36px 28px 40px;min-height:260px;box-shadow:0 -8px 32px rgba(109,40,217,.12);display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
 .ai-product-overlay.hiding{transform:translateY(100%);opacity:0;pointer-events:none}
 .ai-product-overlay .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
 .ai-product-overlay .ov-label{font-size:13px;color:#8b5cf6;font-weight:700;letter-spacing:.5px}
@@ -1591,7 +1591,7 @@ function appendBubble(role, text, renderMd=false){
     d.innerHTML = `<div class="mbubble">${content}</div>`;
   }
   inner.appendChild(d);
-  scrollBottom();
+  scrollBottom(role === 'user');
   return d;
 }
 
