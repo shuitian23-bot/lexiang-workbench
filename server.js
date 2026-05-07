@@ -129,15 +129,19 @@ app.get('/api/products', (req, res) => {
       SELECT SUBSTR(image_url, -30) FROM products WHERE image_url IS NOT NULL AND image_url != ''
       GROUP BY SUBSTR(image_url, -30) HAVING count(*) > 5
     )`;
-  if (site === 'shop') {
+  const category = req.query.category;
+  if (category) {
+    where += ` AND category = ?`;
+  } else if (site === 'shop') {
     where += ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
   } else if (site === 'b') {
     where += ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%开天%' OR name LIKE '%企业购%')))`;
   } else if (site === 'biz') {
     where += ` AND category IN ('服务器','工作站','服务产品')`;
   }
+  const params = category ? [category, limit] : [limit];
   const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
-    FROM products WHERE ${where} ORDER BY RANDOM() LIMIT ?`).all(limit);
+    FROM products WHERE ${where} ORDER BY RANDOM() LIMIT ?`).all(...params);
   res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
 });
 

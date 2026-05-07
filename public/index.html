@@ -2601,6 +2601,20 @@ function closeDisplayCanvas() {
 }
 window.showDisplayCanvas = showDisplayCanvas;
 window.closeDisplayCanvas = closeDisplayCanvas;
+function showCategoryProducts(category) {
+  var dc = document.getElementById('displayCanvas');
+  var body = document.getElementById('dcBody');
+  document.getElementById('dcTitle').textContent = category;
+  body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
+  var topbar = dc.querySelector('.dc-topbar');
+  if (topbar) topbar.style.display = '';
+  dc.style.display = 'block';
+  dc.scrollTop = 0;
+  fetch('/api/products?category=' + encodeURIComponent(category) + '&limit=20')
+    .then(function(r){ return r.json(); })
+    .then(function(products){ showDisplayCanvas(category, products); });
+}
+window.showCategoryProducts = showCategoryProducts;
 
 // ── 商品详情页（左侧渲染，联想商城风格） ──
 async function showProductDetail(sku) {
@@ -2679,7 +2693,7 @@ async function showProductDetail(sku) {
       '<div class="pd-page">' +
         '<div class="pd-breadcrumb">' +
           '<a onclick="closeDisplayCanvas()" style="cursor:pointer">首页</a><span class="sep">/</span>' +
-          '<a onclick="closeDisplayCanvas()" style="cursor:pointer">' + escHtml(p.category || '商品') + '</a><span class="sep">/</span>' +
+          '<a onclick="showCategoryProducts(\'' + escHtml(p.category || '商品').replace(/'/g, "\\'") + '\')" style="cursor:pointer">' + escHtml(p.category || '商品') + '</a><span class="sep">/</span>' +
           '<span style="color:var(--text);font-weight:500">' + escHtml(p.name) + '</span>' +
         '</div>' +
         '<div class="pd-detail-main">' +
