@@ -748,7 +748,7 @@ html,body{height:100%;overflow:hidden}
 .pd-btn-cart:hover{background:rgba(225,37,33,.06)}
 @media(max-width:900px){.pd-card{grid-template-columns:1fr}.pd-gallery{min-height:220px}}
 /* ── AI展示画布 ── */
-#displayCanvas{position:absolute;top:56px;left:0;right:0;height:calc(100vh - 56px);height:calc(100dvh - 56px);background:#f8f8f8;z-index:90;overflow-y:auto;padding:0 20px 40px}
+#displayCanvas{position:absolute;top:56px;left:0;right:0;height:calc(100vh - 56px);height:calc(100dvh - 56px);background:#f8f8f8;z-index:90;overflow-y:auto;overscroll-behavior:contain;padding:0 20px 40px}
 #displayCanvas .dc-topbar{display:flex;align-items:center;gap:12px;padding:14px 0;position:sticky;top:0;background:#f8f8f8;z-index:1}
 #displayCanvas .dc-back{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text2);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
 #displayCanvas .dc-back:hover{border-color:var(--accent);color:var(--accent)}
@@ -763,7 +763,7 @@ html,body{height:100%;overflow:hidden}
 #displayCanvas .dc-card-desc{font-size:12px;color:var(--text2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #displayCanvas .dc-card-price{font-size:15px;font-weight:600;color:#e1251b;margin-top:6px}
 #displayCanvas .dc-card-price .dc-orig{font-size:11px;color:#999;text-decoration:line-through;margin-left:6px;font-weight:400}
-@media(max-width:768px){#displayCanvas{position:fixed;top:0;z-index:200}}
+@media(max-width:768px){#displayCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;z-index:200}#landingPage.dc-open{display:block!important;z-index:30!important;opacity:1!important;transform:none!important;pointer-events:auto!important}}
 .pd-page{padding:12px 20px}
 .pd-breadcrumb{padding:8px 0;font-size:13px;color:#999}
 .pd-breadcrumb a{color:#666;cursor:pointer;text-decoration:none}
@@ -2677,14 +2677,14 @@ function showDisplayCanvas(title, products) {
       '</div></a>';
   }).join('');
   var lp = document.getElementById('landingPage');
-  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; }
+  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
   dc.style.display = 'block';
   dc.scrollTop = 0;
 }
 function closeDisplayCanvas() {
   document.getElementById('displayCanvas').style.display = 'none';
   var lp = document.getElementById('landingPage');
-  if (lp) { lp.style.overflow = ''; lp.style.height = ''; }
+  if (lp) { lp.style.overflow = ''; lp.style.height = ''; lp.classList.remove('dc-open'); }
 }
 window.showDisplayCanvas = showDisplayCanvas;
 window.closeDisplayCanvas = closeDisplayCanvas;
@@ -2696,7 +2696,7 @@ async function showProductDetail(sku) {
   document.getElementById('dcTitle').textContent = '加载中...';
   body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">正在加载商品信息...</div>';
   var lp = document.getElementById('landingPage');
-  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; }
+  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
   dc.style.display = 'block';
   dc.scrollTop = 0;
   body.style.display = 'block';
