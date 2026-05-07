@@ -2585,9 +2585,14 @@ function showDisplayCanvas(title, products) {
   if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
   dc.style.display = 'block';
   dc.scrollTop = 0;
+  var topbar = dc.querySelector('.dc-topbar');
+  if (topbar) topbar.style.display = '';
 }
 function closeDisplayCanvas() {
-  document.getElementById('displayCanvas').style.display = 'none';
+  var dc = document.getElementById('displayCanvas');
+  dc.style.display = 'none';
+  var topbar = dc.querySelector('.dc-topbar');
+  if (topbar) topbar.style.display = '';
   var body = document.getElementById('dcBody');
   if (body) { body.style.display = ''; body.style.gridTemplateColumns = ''; }
   var lp = document.getElementById('landingPage');
@@ -2609,6 +2614,8 @@ async function showProductDetail(sku) {
   dc.scrollTop = 0;
   body.style.display = 'block';
   body.style.gridTemplateColumns = '1fr';
+  var topbar = dc.querySelector('.dc-topbar');
+  if (topbar) topbar.style.display = 'none';
   try {
     var res = await fetch('/api/products/' + encodeURIComponent(sku));
     if (!res.ok) { body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">未找到该商品</div>'; return; }
@@ -2671,8 +2678,8 @@ async function showProductDetail(sku) {
     body.innerHTML =
       '<div class="pd-page">' +
         '<div class="pd-breadcrumb">' +
-          '<span>首页</span><span class="sep">/</span>' +
-          '<span>' + escHtml(p.category || '商品') + '</span><span class="sep">/</span>' +
+          '<a onclick="closeDisplayCanvas()" style="cursor:pointer">首页</a><span class="sep">/</span>' +
+          '<a onclick="closeDisplayCanvas()" style="cursor:pointer">' + escHtml(p.category || '商品') + '</a><span class="sep">/</span>' +
           '<span style="color:var(--text);font-weight:500">' + escHtml(p.name) + '</span>' +
         '</div>' +
         '<div class="pd-detail-main">' +
