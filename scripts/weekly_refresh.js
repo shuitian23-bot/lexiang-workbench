@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * 知识库每日自动刷新脚本
- * 重跑联想各站点爬虫 + 商品API + 新闻爬虫 + 增量向量化 + 自动重新生成wiki
+ * iKnow + biz + brand + 新闻 + 向量化 + 商品API + 品牌全量 + wiki生成
+ * 每步有超时保护，失败不阻塞后续步骤
  * cron: 0 3 * * * (每天凌晨3点)
  */
 const path = require('path');
@@ -11,91 +12,84 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const LOG = s => console.log(`[${new Date().toISOString()}] ${s}`);
 
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} 超时(${ms/1000}s)`)), ms)),
+  ]);
+}
+
+async function step(n, total, label, fn, timeoutMs = 300000) {
+  LOG(`Step ${n}/${total}: ${label}...`);
+  try {
+    const result = await withTimeout(fn(), timeoutMs, label);
+    LOG(`${label} ✓`);
+    return result;
+  } catch (e) {
+    LOG(`${label} ✗ ${e.message.slice(0, 200)}`);
+    return null;
+  }
+}
+
 async function run() {
-  LOG('=== 联想知识库每周刷新开始 ===');
+  const T = 8;
+  LOG('=== 知识库每日刷新开始 ===');
 
-  // 1. iknow 知识库
-  LOG('Step 1/6: 爬取 iknow.lenovo.com.cn...');
-  try {
+  // 1. iKnow — 增量模式，只抓最新500篇（去重后实际入库仅新增部分）
+  await step(1, T, 'iKnow 知识库(增量500)', async () => {
     const { crawlLenovo } = require('../knowledge/lenovo_crawler');
-    const jobId = 'weekly_iknow_' + Date.now();
-    await crawlLenovo(jobId, { keyword: ' ', maxArticles: 0 });
-    LOG('iknow 完成');
-  } catch (e) { LOG('iknow 爬虫失败: ' + e.message); }
+    await crawlLenovo('daily_iknow_' + Date.now(), { keyword: ' ', maxArticles: 500 });
+  }, 600000);
 
-  // 2. 企业/政教站
-  LOG('Step 2/6: 爬取 biz.lenovo.com.cn...');
-  try {
+  // 2. biz 企业站（超时2分钟，这个爬虫容易卡死）
+  await step(2, T, 'biz 企业站', async () => {
     const { crawlBizLenovo } = require('../knowledge/biz_lenovo_crawler');
-    const jobId = 'weekly_biz_' + Date.now();
-    await crawlBizLenovo(jobId);
-    LOG('biz 完成');
-  } catch (e) { LOG('biz 爬虫失败: ' + e.message); }
+    await crawlBizLenovo('daily_biz_' + Date.now());
+  }, 120000);
 
-  // 3. 品牌/ESG/合作伙伴
-  LOG('Step 3/6: 爬取 brand/esg/partner.lenovo.com.cn...');
-  try {
+  // 3. brand/ESG/合作伙伴
+  await step(3, T, 'brand/ESG/合作伙伴', async () => {
     const { crawlBrandSites } = require('../knowledge/brand_crawl');
     const r = await crawlBrandSites();
-    LOG(`brand 完成：入库 ${r.done || r.ingested || 0}`);
-  } catch (e) { LOG('brand 爬虫失败: ' + e.message); }
+    LOG(`  入库 ${r.done || r.ingested || 0}`);
+  }, 300000);
 
-  // 4. 新闻爬虫（新增）
-  LOG('Step 4/6: 爬取联想新闻...');
-  try {
+  // 4. 新闻
+  await step(4, T, '联想新闻', async () => {
     const { crawlNews } = require('../knowledge/news_crawler');
     const r = await crawlNews();
-    LOG(`新闻 完成：入库 ${r.ingested}，跳过 ${r.skipped}`);
-  } catch (e) { LOG('新闻爬虫失败: ' + e.message); }
+    LOG(`  入库 ${r.ingested}，跳过 ${r.skipped}`);
+  }, 300000);
 
   // 5. 增量向量化
-  LOG('Step 5/6: 增量向量化...');
-  try {
+  await step(5, T, '增量向量化', async () => {
     const { buildVectors } = require('../knowledge/build_vectors');
     const r = await buildVectors();
-    LOG(`向量化完成：成功 ${r.done}，失败 ${r.failed}`);
-  } catch (e) { LOG('向量化失败: ' + e.message); }
+    LOG(`  成功 ${r.done}，失败 ${r.failed}`);
+  }, 600000);
 
-  // 6. 商品数据更新（联想开放API）
-  LOG('Step 6/8: 更新商品数据（open.lenovo.com.cn）...');
-  try {
-    execSync('node /root/lexiang/scripts/import_from_openapi.js 2>&1', {
-      timeout: 300000,
-      encoding: 'utf-8',
-      cwd: '/root/lexiang',
+  // 6. 商品API
+  await step(6, T, '商品数据(open API)', async () => {
+    execSync('node /root/lexiang/scripts/import_from_openapi.js', {
+      timeout: 300000, encoding: 'utf-8', cwd: '/root/lexiang', stdio: 'pipe',
     });
-    LOG('商品数据更新完成');
-  } catch (e) {
-    LOG('商品数据更新失败: ' + (e.stderr || e.message).slice(0, 200));
-  }
+  }, 300000);
 
-  // 7. 品牌新闻全量爬取
-  LOG('Step 7/8: 爬取 brand.lenovo.com.cn 全量文章...');
-  try {
-    execSync('python3 /root/lexiang/scripts/crawl_brand_full.py 2>&1', {
-      timeout: 600000,
-      encoding: 'utf-8',
-      cwd: '/root/lexiang',
+  // 7. 品牌新闻全量
+  await step(7, T, '品牌新闻全量(brand.lenovo)', async () => {
+    execSync('python3 /root/lexiang/scripts/crawl_brand_full.py', {
+      timeout: 600000, encoding: 'utf-8', cwd: '/root/lexiang', stdio: 'pipe',
     });
-    LOG('品牌新闻全量爬取完成');
-  } catch (e) {
-    LOG('品牌新闻全量爬取失败: ' + (e.stderr || e.message).slice(0, 200));
-  }
+  }, 600000);
 
-  // 8. 重新生成 wiki 页面
-  LOG('Step 8/8: 重新生成 wiki 页面...');
-  try {
-    execSync('python3 /root/lexiang/scripts/gen_wiki_full.py 2>&1', {
-      timeout: 600000,
-      encoding: 'utf-8',
-      cwd: '/root/lexiang',
+  // 8. wiki 页面生成（最后跑，依赖前面所有数据）
+  await step(8, T, 'wiki 页面生成', async () => {
+    execSync('python3 /root/lexiang/scripts/gen_wiki_full.py', {
+      timeout: 600000, encoding: 'utf-8', cwd: '/root/lexiang', stdio: 'pipe',
     });
-    LOG('wiki 生成完成');
-  } catch (e) {
-    LOG('wiki 生成失败: ' + (e.stderr || e.message).slice(0, 200));
-  }
+  }, 600000);
 
-  LOG('=== 刷新完成 ===');
+  LOG('=== 每日刷新完成 ===');
   process.exit(0);
 }
 
