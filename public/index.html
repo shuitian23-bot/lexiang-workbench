@@ -2565,6 +2565,8 @@ function openDetail(el) {
 function showDisplayCanvas(title, products) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
+  body.style.display = '';
+  body.style.gridTemplateColumns = '';
   document.getElementById('dcTitle').textContent = title;
   body.innerHTML = products.map(function(p) {
     var img = escHtml(p.image_url || p.图片 || '');
