@@ -528,9 +528,10 @@ html,body{height:100%;overflow:hidden}
   .welcome h2{font-size:22px}
   #msgsInner{padding:0 12px}
   .input-bar{padding:8px 10px 10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
-  .ai-product-overlay{padding:12px 14px 14px}
+  .ai-product-overlay{padding:16px 14px 18px}
   .ai-product-overlay .ov-name{font-size:14px}
-  .ai-product-overlay .ov-chips button{padding:7px 14px;font-size:12px}
+  .ai-product-overlay .ov-chips button{padding:8px 16px;font-size:13px}
+  .product-chips-bar button{padding:7px 14px;font-size:12px}
   .input-inner{gap:6px}
   .input-tools{padding:4px 0 0}
   .chat-topbar{padding:0 14px}
@@ -779,23 +780,30 @@ html,body{height:100%;overflow:hidden}
 .pd-action-btns .pd-btn-ask{flex:none;padding:0 24px;height:42px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:4px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .pd-btn-ask:hover{opacity:.88;transform:translateY(-1px)}
 /* AI 商品上下文浮层（覆盖 input-bar） */
-.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(240,244,255,.97),rgba(245,240,255,.97));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid #d4daf0;padding:14px 20px 16px;transform:translateY(0);opacity:1;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
+.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;top:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #c4b5fd;padding:20px 24px 24px;display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
 .ai-product-overlay.hiding{transform:translateY(100%);opacity:0;pointer-events:none}
-.ai-product-overlay .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
-.ai-product-overlay .ov-label{font-size:11px;color:#8b5cf6;font-weight:600;letter-spacing:.5px}
-.ai-product-overlay .ov-name{font-size:15px;font-weight:600;color:#333;margin-top:2px;line-height:1.4}
-.ai-product-overlay .ov-price{color:#e1251b;font-weight:700}
-.ai-product-overlay .ov-close{flex-shrink:0;width:28px;height:28px;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
-.ai-product-overlay .ov-close:hover{background:rgba(0,0,0,.12)}
-.ai-product-overlay .ov-close svg{width:14px;height:14px;stroke:#666;stroke-width:2.5;fill:none}
-.ai-product-overlay .ov-chips{display:flex;gap:8px;flex-wrap:wrap}
-.ai-product-overlay .ov-chips button{padding:8px 16px;border:1px solid #c4b5fd;border-radius:20px;background:#fff;color:#7c3aed;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:500}
-.ai-product-overlay .ov-chips button:hover{background:#7c3aed;color:#fff;border-color:#7c3aed}
-[data-theme="dark"] .ai-product-overlay{background:linear-gradient(135deg,rgba(30,27,58,.97),rgba(42,31,63,.97));border-color:#3b3560}
+.ai-product-overlay .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.ai-product-overlay .ov-label{font-size:12px;color:#8b5cf6;font-weight:700;letter-spacing:.5px}
+.ai-product-overlay .ov-name{font-size:16px;font-weight:700;color:#1a1a2e;margin-top:4px;line-height:1.5}
+.ai-product-overlay .ov-price{color:#e1251b;font-weight:700;font-size:16px}
+.ai-product-overlay .ov-close{flex-shrink:0;width:32px;height:32px;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.ai-product-overlay .ov-close:hover{background:rgba(0,0,0,.14)}
+.ai-product-overlay .ov-close svg{width:16px;height:16px;stroke:#555;stroke-width:2.5;fill:none}
+.ai-product-overlay .ov-chips{display:flex;gap:10px;flex-wrap:wrap}
+.ai-product-overlay .ov-chips button{padding:10px 20px;border:1px solid #c4b5fd;border-radius:22px;background:#fff;color:#6d28d9;font-size:14px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:600;box-shadow:0 1px 4px rgba(109,40,217,.08)}
+.ai-product-overlay .ov-chips button:hover{background:#7c3aed;color:#fff;border-color:#7c3aed;box-shadow:0 2px 8px rgba(124,58,237,.25)}
+[data-theme="dark"] .ai-product-overlay{background:linear-gradient(135deg,rgba(30,27,58,.98),rgba(42,31,63,.98));border-color:#3b3560}
 [data-theme="dark"] .ai-product-overlay .ov-name{color:#e0e0e0}
 [data-theme="dark"] .ai-product-overlay .ov-close{background:rgba(255,255,255,.1)}
 [data-theme="dark"] .ai-product-overlay .ov-close svg{stroke:#aaa}
 [data-theme="dark"] .ai-product-overlay .ov-chips button{background:#2a2540;color:#c4b5fd;border-color:#4c3d80}
+/* 收起后的按钮条（输入框上方） */
+.product-chips-bar{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 10px;animation:chipsSlideIn .3s ease}
+.product-chips-bar.hidden{display:none}
+.product-chips-bar button{padding:8px 18px;border:1px solid #c4b5fd;border-radius:20px;background:#fff;color:#6d28d9;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:600}
+.product-chips-bar button:hover{background:#7c3aed;color:#fff;border-color:#7c3aed}
+[data-theme="dark"] .product-chips-bar button{background:#2a2540;color:#c4b5fd;border-color:#4c3d80}
+@keyframes chipsSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 /* 商品详情区下半部分：tabs + 内容 */
 .pd-detail-below{background:#fff;border-radius:4px;margin-top:16px;overflow:hidden}
 [data-theme="dark"] .pd-detail-below{background:var(--card2)}
@@ -1053,6 +1061,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     </div>
     <div class="input-bar">
       <div id="productOverlay" class="ai-product-overlay hiding"></div>
+      <div id="productChipsBar" class="product-chips-bar hidden"></div>
       <div id="imgPreviewArea" style="display:none" class="img-preview-wrap">
         <img id="imgPreviewThumb" class="img-preview-thumb" src="" alt="预览">
         <span id="imgPreviewName" class="img-preview-name"></span>
@@ -2837,6 +2846,7 @@ window.showProductDetail = showProductDetail;
 
 function notifyAIProductContext(p) {
   var ov = document.getElementById('productOverlay');
+  var bar = document.getElementById('productChipsBar');
   if (!ov) return;
   var isSplit = document.documentElement.classList.contains('split-mode');
   var isChatVisible = isSplit || document.documentElement.classList.contains('is-chat');
@@ -2857,6 +2867,8 @@ function notifyAIProductContext(p) {
   } else {
     chips = [['值得买吗？','值得买吗？优缺点分析一下'],['对比竞品','和同价位竞品对比'],['有优惠吗？','有什么优惠活动吗']];
   }
+  window.__currentProductChips = chips;
+  window.__currentProductQuery = n;
   ov.innerHTML =
     '<div class="ov-top"><div><div class="ov-label">正在浏览</div>' +
     '<div class="ov-name">' + escHtml(p.name) + priceStr + '</div></div>' +
@@ -2865,10 +2877,18 @@ function notifyAIProductContext(p) {
       chips.map(function(c){ return '<button onclick="dismissProductOverlay();quickAsk(\'这款 ' + n + ' ' + c[1] + '\')">' + c[0] + '</button>'; }).join('') +
     '</div>';
   ov.classList.remove('hiding');
+  if (bar) bar.classList.add('hidden');
 }
 function dismissProductOverlay() {
   var ov = document.getElementById('productOverlay');
   if (ov) ov.classList.add('hiding');
+  var bar = document.getElementById('productChipsBar');
+  var chips = window.__currentProductChips;
+  var n = window.__currentProductQuery;
+  if (bar && chips && n) {
+    bar.innerHTML = chips.map(function(c){ return '<button onclick="quickAsk(\'这款 ' + n + ' ' + c[1] + '\')">' + c[0] + '</button>'; }).join('');
+    bar.classList.remove('hidden');
+  }
 }
 
 // ── AI 弹层系统（由 SSE event:modal 触发） ──
