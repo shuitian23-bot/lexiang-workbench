@@ -370,8 +370,9 @@ const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#
 
 function geoCitesFromSites(sites) {
   const lenovo = sites.filter(s => s.domain && s.domain.includes('lenovo'));
-  const wiki = lenovo.filter(s => s.domain.includes('leai.') || s.domain.includes('wiki.'));
-  const official = lenovo.filter(s => !s.domain.includes('leai.') && !s.domain.includes('wiki.'));
+  const isWiki = d => /leai\.|wiki\.|iknow\./.test(d);
+  const wiki = lenovo.filter(s => isWiki(s.domain));
+  const official = lenovo.filter(s => !isWiki(s.domain));
   return {
     wiki: wiki.reduce((sum, s) => sum + (s.count || 0), 0),
     official: official.reduce((sum, s) => sum + (s.count || 0), 0),
