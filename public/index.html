@@ -1530,10 +1530,11 @@ async function loadConv(id){
   convId = id;
   history.pushState(null, '', '/chat/' + id);
   updateSidebar();
-  const msgs = await apiFetch('/api/chat/history/' + id).then(r=>r.json()).catch(e => {
+  var msgs = await apiFetch('/api/chat/history/' + id).then(r=>r.ok?r.json():[]).catch(e => {
     _log.error('loadConv history fetch failed', e.stack, { convId: id });
     return [];
   });
+  if (!Array.isArray(msgs)) msgs = [];
   const inner = document.getElementById('msgsInner');
   document.querySelectorAll('.suggestions').forEach(el => el.remove());
   inner.innerHTML = '';
