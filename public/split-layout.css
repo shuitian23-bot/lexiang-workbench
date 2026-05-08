@@ -409,6 +409,94 @@ html.split-dragging embed {
   margin-top: 2px;
 }
 
+/* ── Tab 内容：商品详情页 ── */
+.cpd-loading {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 200px; color: #9CA3AF; font-size: 14px;
+}
+.cpd-spinner {
+  width: 20px; height: 20px; border: 2px solid #E5E7EB; border-top-color: #6D28D9;
+  border-radius: 50%; animation: cpd-spin .6s linear infinite;
+}
+@keyframes cpd-spin { to { transform: rotate(360deg); } }
+
+.cpd-page { padding: 0; }
+.cpd-hero {
+  background: linear-gradient(135deg, #F8F7FF 0%, #F0EEFF 100%);
+  padding: 24px; text-align: center;
+}
+.cpd-img-wrap img {
+  max-width: 100%; max-height: 240px; object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.08));
+}
+.cpd-info { padding: 16px 20px 0; }
+.cpd-name {
+  margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #111827; line-height: 1.4;
+}
+.cpd-price-row {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.cpd-price { font-size: 26px; font-weight: 700; color: #E53E3E; }
+.cpd-orig-price { font-size: 14px; color: #9CA3AF; text-decoration: line-through; }
+.cpd-stock { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+.cpd-stock.in { color: #059669; background: #ECFDF5; }
+.cpd-stock.out { color: #DC2626; background: #FEF2F2; }
+
+.cpd-highlights {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+.cpd-hl-tag {
+  font-size: 12px; padding: 3px 10px; border-radius: 12px;
+  background: #F3F0FF; color: #6D28D9; border: 1px solid #E9E5FF;
+}
+.cpd-desc {
+  font-size: 13px; color: #6B7280; line-height: 1.6; margin: 0 0 12px;
+}
+
+.cpd-actions {
+  display: flex; gap: 10px; padding: 12px 20px 0;
+}
+.cpd-actions .cpd-buy {
+  flex: 1; padding: 12px; background: linear-gradient(135deg, #E53E3E, #C53030);
+  color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: transform .1s;
+}
+.cpd-actions .cpd-buy:active { transform: scale(.97); }
+.cpd-actions .cpd-ask {
+  flex: 1; padding: 12px; background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  color: #fff; border: none; border-radius: 10px; font-size: 15px; cursor: pointer;
+  transition: transform .1s;
+}
+.cpd-actions .cpd-ask:active { transform: scale(.97); }
+
+.cpd-actions-sub {
+  display: flex; gap: 10px; padding: 10px 20px 0;
+}
+.cpd-actions-sub .cpd-link,
+.cpd-actions-sub .cpd-compare {
+  flex: 1; padding: 9px; text-align: center; border-radius: 8px; font-size: 13px;
+  border: 1px solid #E5E7EB; background: #fff; color: #374151; cursor: pointer;
+  text-decoration: none; transition: background .15s;
+}
+.cpd-actions-sub .cpd-link:hover,
+.cpd-actions-sub .cpd-compare:hover { background: #F9FAFB; }
+
+.cpd-specs-section { padding: 16px 20px 20px; }
+.cpd-specs-title {
+  margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #374151;
+  padding-bottom: 8px; border-bottom: 2px solid #6D28D9;
+  display: inline-block;
+}
+.cpd-specs {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.cpd-specs tr { border-bottom: 1px solid #F3F4F6; }
+.cpd-specs tr:nth-child(even) { background: #FAFAFA; }
+.cpd-spec-label {
+  color: #6B7280; padding: 8px 12px; white-space: nowrap; width: 100px;
+}
+.cpd-spec-value { color: #111827; padding: 8px 12px; }
+
 /* ── Tab 内容：iframe 预览 ── */
 .cp-preview {
   width: 100%;
