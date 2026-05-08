@@ -846,7 +846,7 @@ html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
-_chatPrefixes.forEach(function(x){if(_p.startsWith(x)){document.documentElement.classList.add('is-chat');_siteType=x.replace('/','').replace('-chat','');var rest=_p.slice(x.length);if(rest.split('/')[1])document.documentElement.classList.add('is-chat-conv');}});
+_chatPrefixes.forEach(function(x){if(_p.startsWith(x)){_siteType=x.replace('/','').replace('-chat','');var rest=_p.slice(x.length);if(x==='/chat'){document.documentElement.classList.add('is-chat');if(rest.split('/')[1])document.documentElement.classList.add('is-chat-conv');}}});
 if(_siteType==='chat')_siteType='default';
 document.documentElement.dataset.site=_siteType;
 window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+_siteType+'-chat';</script>
