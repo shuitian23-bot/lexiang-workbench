@@ -16,7 +16,7 @@ registry.load();
 
 const app = express();
 app.set('trust proxy', 1);
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT) || 3001;
 
 app.use(express.json({
   limit: '10mb',
