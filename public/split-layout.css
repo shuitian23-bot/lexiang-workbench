@@ -52,8 +52,20 @@ html.in-chat #contentPanel {
   html.split-mode.in-chat #landingPage .hero {
     display: none !important;
   }
-  /* chat topbar 隐藏（nav 已拉通） */
+  /* chat topbar 精简：隐藏标题，保留按钮 */
   html.split-mode.in-chat:not(.content-open) .chat-topbar {
+    border-bottom: none !important;
+    background: transparent !important;
+    position: absolute;
+    top: 4px; right: 8px;
+    left: auto;
+    width: auto;
+    z-index: 10;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  html.split-mode.in-chat:not(.content-open) .chat-topbar .chat-title {
     display: none !important;
   }
   /* landing 面板 */
