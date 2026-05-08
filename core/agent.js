@@ -632,8 +632,8 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   const PRODUCT_KEYWORDS = /推荐|选购|预算|买|对比|选哪|值得买|怎么选|游戏本|笔记本|thinkpad|小新|拯救者|yoga|thinkbook|台式机|一体机|显示器|工作站|平板|服务器/i;
   let forceToolChoice = null;
   if (!imageUrl && !audioUrl && !thinkingMode && PRODUCT_KEYWORDS.test(userMessage)) {
-    forceToolChoice = { type: 'function', function: { name: 'product_recommend' } };
-    console.log('[Agent] 产品意图检测命中，强制 tool_choice: product_recommend');
+    forceToolChoice = 'required';
+    console.log('[Agent] 产品意图检测命中，强制 tool_choice: required');
   }
 
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续
