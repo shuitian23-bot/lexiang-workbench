@@ -842,7 +842,7 @@ html,body{height:100%;overflow:hidden}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260508-10">
+<link rel="stylesheet" href="/split-layout.css?v=20260508-11">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1031,7 +1031,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   </div>
   <div class="chat-main">
     <div class="chat-topbar">
-      <div class="chat-title" id="chatTitle">联想乐享官方AI助手</div>
+      <div class="chat-title" id="chatTitle"></div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <button class="topbar-btn" id="shareBtn" onclick="shareConv()" title="分享对话" style="display:none">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1264,7 +1264,7 @@ let currentLang = localStorage.getItem('lexiang-lang') || 'zh';
 // i18n strings
 const I18N = {
   zh: {
-    title: '联想乐享官方AI助手',
+    title: '',
     placeholder: '向乐享提问…',
     hint: '内容由联想乐享AI生成，仅供参考',
     newConv: '新建对话',
@@ -1287,7 +1287,7 @@ const I18N = {
     ],
     siteWelcome: {
       'shop': {
-        title: '联想乐享官方AI助手',
+        title: '',
         sub: '随时为你解答产品、优惠、商品对比相关问题',
         cards: [['帮我选购商品','帮我选购商品'],['有哪些优惠商品？','有哪些优惠商品？'],['商品参数性能对比','商品参数性能对比'],['我要查找订单','我要查找订单'],['我要预约维修','我要预约维修']]
       },
@@ -1458,7 +1458,7 @@ function openChatFresh(){ if(window.__siteType==='default') setNavActive(null);
   document.querySelectorAll('.suggestions').forEach(el => el.remove());
   document.getElementById('msgsInner').innerHTML = welcomeHTML();
   updateSidebar();
-  updateTitle('联想乐享官方AI助手');
+  updateTitle('');
   showChatApp();
   closeSidebar();
 }
@@ -3827,6 +3827,6 @@ function setLoginMsg(msg, color){
 
 
 </script>
-<script src="/split-layout.js?v=20260508-10"></script>
+<script src="/split-layout.js?v=20260508-11"></script>
 </body>
 </html>

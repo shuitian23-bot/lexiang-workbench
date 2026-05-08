@@ -22,11 +22,12 @@
       if (!raw) return;
       var s = JSON.parse(raw);
       state.leftPct = clamp(s.leftPct || DEFAULT_LEFT_PCT, MIN_LEFT_PCT, MAX_LEFT_PCT);
-      state.swapped = !!s.swapped;
+      // swapped 只在用户显式点击换位后才 true，不从旧存储恢复
+      if (s.v2Layout) state.swapped = !!s.swapped;
     } catch (e) {}
   }
   function saveState() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify({ leftPct: state.leftPct, swapped: state.swapped })); } catch (e) {}
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ leftPct: state.leftPct, swapped: state.swapped, v2Layout: true })); } catch (e) {}
   }
 
   // ── Tab 管理 ──
@@ -50,6 +51,15 @@
     var nav = lp.querySelector(':scope > nav');
     if (!nav || nav.parentNode === document.body) return;
     nav.id = 'mainNav';
+    // 给 logo 加"乐享"文字
+    var logo = nav.querySelector('.logo');
+    if (logo && !logo.querySelector('.logo-text')) {
+      var sp = document.createElement('span');
+      sp.className = 'logo-text';
+      sp.textContent = '乐享';
+      sp.style.cssText = 'display:none;font-weight:700;font-size:18px;color:#e1251b;margin-left:4px;vertical-align:middle';
+      logo.appendChild(sp);
+    }
     document.body.insertBefore(nav, document.body.firstChild);
   }
   function restoreNav() {
@@ -527,7 +537,13 @@
       var pt = e.touches ? e.touches[0] : e;
       var dx = pt.clientX - startX;
       var deltaPct = (dx / viewportW) * 100;
-      var pct = state.swapped ? startPct - deltaPct : startPct + deltaPct;
+      var s = getState();
+      var pct;
+      if (s === 3 && state.swapped) {
+        pct = startPct - deltaPct;
+      } else {
+        pct = startPct + deltaPct;
+      }
       state.leftPct = clamp(pct, MIN_LEFT_PCT, MAX_LEFT_PCT);
       applyWidths();
       e.preventDefault();

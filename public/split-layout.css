@@ -39,7 +39,7 @@ html.in-chat #contentPanel {
   display: none;
 }
 
-/* ── 状态2b：分屏对话（PC，landing 左 + chat 右） ── */
+/* ── 状态2b：分屏对话（PC，默认 chat 左 + landing 右） ── */
 @media (min-width: 769px) {
   /* nav 拉通全宽（被 JS 提取到 body 顶层） */
   html.split-mode.in-chat #mainNav {
@@ -48,12 +48,19 @@ html.in-chat #contentPanel {
     width: 100vw !important;
     z-index: 100;
   }
-  /* hero 隐藏（右侧有真正的聊天） */
+  /* nav logo 在分屏模式下显示"联想乐享"文字 */
+  html.split-mode.in-chat #mainNav .logo img {
+    height: 24px;
+  }
+  html.split-mode.in-chat #mainNav .logo .logo-text {
+    display: inline !important;
+  }
+  /* hero 隐藏（左侧已有聊天） */
   html.split-mode.in-chat #landingPage .hero {
     display: none !important;
   }
   /* chat topbar 精简：隐藏标题，保留按钮 */
-  html.split-mode.in-chat:not(.content-open) .chat-topbar {
+  html.split-mode.in-chat .chat-topbar {
     border-bottom: none !important;
     background: transparent !important;
     position: absolute;
@@ -65,18 +72,31 @@ html.in-chat #contentPanel {
     min-height: 0 !important;
     height: auto !important;
   }
-  html.split-mode.in-chat:not(.content-open) .chat-topbar .chat-title {
+  html.split-mode.in-chat .chat-topbar .chat-title {
     display: none !important;
   }
-  html.split-mode.in-chat:not(.content-open) .chat-topbar .menu-btn {
+  html.split-mode.in-chat .chat-topbar .menu-btn {
     display: flex !important;
   }
-  /* landing 面板 */
+  /* 默认：chat 左，landing 右 */
+  html.split-mode.in-chat #chatApp {
+    display: flex !important;
+    position: fixed;
+    left: 0; right: auto; top: 0;
+    width: var(--split-left, 50%);
+    max-width: none;
+    margin: 0;
+    padding-top: 56px;
+    z-index: 2;
+    height: 100vh; height: 100dvh;
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
   html.split-mode.in-chat #landingPage {
     display: block !important;
     position: fixed;
-    left: 0; top: 0;
-    width: var(--split-left, 50%);
+    right: 0; left: auto; top: 0;
+    width: calc(100vw - var(--split-left, 50%) - 6px);
     height: 100vh; height: 100dvh;
     padding-top: 56px;
     overflow-y: auto;
@@ -85,19 +105,14 @@ html.in-chat #contentPanel {
     transform: none !important;
     pointer-events: all !important;
   }
-  /* chat 面板 */
-  html.split-mode.in-chat #chatApp {
-    display: flex !important;
-    position: fixed;
-    left: auto; right: 0; top: 0;
+  /* 换位：landing 左，chat 右 */
+  html.split-mode.in-chat.layout-swapped #chatApp {
+    left: auto; right: 0;
     width: calc(100vw - var(--split-left, 50%) - 6px);
-    max-width: none;
-    margin: 0;
-    padding-top: 56px;
-    z-index: 2;
-    height: 100vh; height: 100dvh;
-    opacity: 1 !important;
-    pointer-events: all !important;
+  }
+  html.split-mode.in-chat.layout-swapped #landingPage {
+    left: 0; right: auto;
+    width: var(--split-left, 50%);
   }
   /* divider 在状态2b可见可拖 */
   html.split-mode.in-chat:not(.content-open) #splitDivider {
