@@ -362,48 +362,43 @@ const PAGE_RENDERERS = {
       <div><div class="page-title">GEO · 转化看板</div><div class="page-desc">通过 AI 搜索平台入站的访问 / 登录 / 注册 / 购买转化</div></div>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line">以下字段依据 GEO看板样式.xlsx 定义，数据需埋点系统 + 点亮AI 转化接口对接后接入</div>
+      <div class="geo-status-line">AI搜索平台：豆包、元宝、Kimi、DS、千问 &nbsp;|&nbsp; 交易：当日访问，当日购买</div>
 
       <div class="geo-conv-section">
-        <div class="geo-conv-title">联想整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
+        <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
         <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想 UV</div><div class="gcc-val">--</div><div class="gcc-def">通过 AI 搜索平台访问联想域名的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户-Lenovo</div><div class="gcc-val">--</div><div class="gcc-def">当天访问联想的用户中有 Lenovoid 登录行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-Lenovo</div><div class="gcc-val">--</div><div class="gcc-def">当天访问联想的登录用户中是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日付费用户数</div><div class="gcc-val">--</div><div class="gcc-def">用户入站后在当日产生购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日 GMV</div><div class="gcc-val">--</div><div class="gcc-def">用户入站后当日产生的订单交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计付费用户数</div><div class="gcc-val">--</div><div class="gcc-def">本财年通过 AI 搜索入站并产生购买的用户去重数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计 GMV</div><div class="gcc-val">--</div><div class="gcc-def">本财年通过 AI 搜索入站的用户产生的订单交易额</div></div>
-          <div class="geo-conv-cell"></div>
+          <div class="geo-conv-cell"><div class="gcc-label">访问联想UV</div><div class="gcc-val" id="gc-all-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想域名的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录用户</div><div class="gcc-val" id="gc-all-login">--</div><div class="gcc-def">访问联想的用户中，有Lenovoid登录行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新注册用户</div><div class="gcc-val" id="gc-all-newreg">--</div><div class="gcc-def">访问联想的登录用户中，是新注册的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">付费用户</div><div class="gcc-val" id="gc-all-paid">--</div><div class="gcc-def">用户入站后，发生了购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-all-ca">--</div><div class="gcc-def">购买用户产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-all-gmv">--</div><div class="gcc-def">购买用户产生的订单交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-all-newpaid">--</div><div class="gcc-def">购买用户中，是首次发生购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-all-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-all-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-all-leai-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-all-leai-ca">--</div><div class="gcc-def">通过乐享自主下单功能，发生购买行为的用户产生的销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-all-leai-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，发生购买行为的用户产生的交易额</div></div>
         </div>
       </div>
 
       <div class="geo-conv-section">
-        <div class="geo-conv-title">联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
+        <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
         <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享 UV</div><div class="gcc-val">--</div><div class="gcc-def">通过 AI 搜索平台访问联想乐享的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val">--</div><div class="gcc-def">当天访问乐享的用户中有 Lenovoid 登录的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val">--</div><div class="gcc-def">当天访问乐享的登录用户中是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">互动用户数/日</div><div class="gcc-val">--</div><div class="gcc-def">当天访问乐享的用户中至少有 1 次会话的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录状态互动人数</div><div class="gcc-val">--</div><div class="gcc-def">当日互动用户中有登录状态的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日付费用户数-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，当日通过乐享自主功能下单的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日 GMV-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，当日通过乐享自主下单的交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计付费-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，本财年通过乐享自主下单的用户去重数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计 GMV-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，本财年通过乐享自主下单的交易额</div></div>
-        </div>
-      </div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">访问来源（按 AI 平台拆分）</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">豆包</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"豆包"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">元宝</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"元宝"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">Kimi</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"Kimi"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">DeepSeek</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"DS"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">千问</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"千问"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">文心</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"文心"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">夸克</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"夸克"标识</div></div>
-          <div class="geo-conv-cell"></div>
+          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享UV</div><div class="gcc-val" id="gc-leai-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想乐享的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val" id="gc-leai-login">--</div><div class="gcc-def">访问联想乐享的用户中，有Lenovoid登录行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val" id="gc-leai-newreg">--</div><div class="gcc-def">访问联想乐享的登录用户中，是新注册的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">互动用户数</div><div class="gcc-val" id="gc-leai-interact">--</div><div class="gcc-def">访问联想乐享的用户中，至少有1次会话的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录状态下互动人数</div><div class="gcc-val" id="gc-leai-login-interact">--</div><div class="gcc-def">互动用户中，是有登录状态的互动用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">付费用户数</div><div class="gcc-val" id="gc-leai-paid">--</div><div class="gcc-def">访问联想乐享后，在站内发生了购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-leai-ca">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-leai-gmv">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-leai-newpaid">--</div><div class="gcc-def">访问联想乐享后发生购买的用户中，首次购买的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-leai-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-leai-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-leai-order-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-leai-order-ca">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-leai-order-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的交易额</div></div>
         </div>
       </div>
     </div>
