@@ -197,8 +197,8 @@
         (desc ? '<div class="cp-product-desc">' + escH(desc) + '</div>' : '') +
         '<div style="padding:0 12px 12px"><button class="cp-product-btn" data-url="' + escH(url) + '">去看看</button></div>';
       card.querySelector('.cp-product-btn').addEventListener('click', function () {
-        if (isPC() && sku && typeof showProductDetail === 'function') {
-          showProductDetail(sku);
+        if (isPC() && sku) {
+          openContent('productDetail', name, { sku: sku });
         } else if (isPC()) {
           openContent('preview', name, { url: url });
         } else {
@@ -320,6 +320,58 @@
     submit.textContent = '提交';
     form.appendChild(submit);
     container.appendChild(form);
+  };
+
+  RENDERERS.productDetail = function (container, data) {
+    var sku = data && data.sku;
+    if (!sku) return;
+    container.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
+    fetch('/api/products/' + encodeURIComponent(sku)).then(function (r) { return r.json(); }).then(function (p) {
+      var img = (p.image_url || '').replace(/^http:/, 'https:');
+      var specs = p.specs || {};
+      var priceInt = String(Math.floor(p.price || 0));
+      var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3','target_user','highlights','images','ad_picture','is_ai','bu','mtm'];
+      var labelMap = {brand:'品牌',color:'颜色',weight:'重量',screen_size:'屏幕尺寸',battery:'电池',os:'操作系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率'};
+      var specRows = '';
+      Object.keys(specs).forEach(function (k) {
+        if (skipKeys.indexOf(k) >= 0 || !specs[k] || typeof specs[k] === 'object') return;
+        specRows += '<tr><td style="color:#6B7280;padding:6px 12px;white-space:nowrap">' + escH(labelMap[k] || k) + '</td><td style="padding:6px 12px">' + escH(String(specs[k])) + '</td></tr>';
+      });
+      var buyUrl = specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html';
+      container.innerHTML =
+        '<div style="padding:16px;overflow-y:auto;height:100%">' +
+          (img ? '<div style="text-align:center;margin-bottom:16px"><img src="' + escH(img) + '" style="max-width:100%;max-height:280px;border-radius:8px" alt="' + escH(p.name || '') + '"></div>' : '') +
+          '<h3 style="margin:0 0 8px;font-size:16px">' + escH(p.name || '') + '</h3>' +
+          '<div style="color:#E53E3E;font-size:22px;font-weight:700;margin-bottom:4px">¥' + priceInt + '</div>' +
+          (p.description ? '<div style="color:#6B7280;font-size:13px;margin-bottom:12px">' + escH(p.description) + '</div>' : '') +
+          '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">' +
+            '<button class="cpd-buy" style="flex:1;min-width:120px;padding:10px;background:#E53E3E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">立即购买</button>' +
+            '<button class="cpd-ask" style="flex:1;min-width:120px;padding:10px;background:#6D28D9;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">问AI助手</button>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;margin-bottom:16px">' +
+            '<a href="' + escH(buyUrl) + '" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:8px;border:1px solid #D1D5DB;border-radius:8px;color:#6D28D9;text-decoration:none;font-size:13px">↗ 官网查看</a>' +
+            '<button class="cpd-compare" style="flex:1;padding:8px;border:1px solid #D1D5DB;border-radius:8px;background:#fff;color:#374151;font-size:13px;cursor:pointer">和竞品对比</button>' +
+          '</div>' +
+          (specRows ? '<table style="width:100%;border-collapse:collapse;font-size:13px;border-top:1px solid #E5E7EB">' + specRows + '</table>' : '') +
+        '</div>';
+      // 绑定按钮事件
+      var buyBtn = container.querySelector('.cpd-buy');
+      if (buyBtn) buyBtn.addEventListener('click', function () {
+        if (typeof startBuyFlow === 'function') startBuyFlow(p.name, p.price);
+      });
+      var askBtn = container.querySelector('.cpd-ask');
+      if (askBtn) askBtn.addEventListener('click', function () {
+        if (typeof quickAsk === 'function') quickAsk(p.name + ' 怎么样？值得买吗？');
+      });
+      var cmpBtn = container.querySelector('.cpd-compare');
+      if (cmpBtn) cmpBtn.addEventListener('click', function () {
+        if (typeof quickAsk === 'function') quickAsk('帮我对比 ' + p.name + ' 和同价位竞品');
+      });
+      // 通知AI当前商品上下文
+      if (typeof notifyAIProductContext === 'function') notifyAIProductContext(p);
+    }).catch(function () {
+      container.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载失败</div>';
+    });
   };
 
   function escH(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
