@@ -1561,6 +1561,11 @@ async function loadConv(id){
   if (conv) updateTitle(conv.title);
   document.getElementById('landingPage').classList.add('exit');
   document.getElementById('chatApp').classList.add('active');
+  // 恢复右侧产品面板
+  try {
+    var saved = sessionStorage.getItem('lx.display.' + id);
+    if (saved) { var dd = JSON.parse(saved); if (dd.products?.length) showDisplayCanvas(dd.title, dd.products); }
+  } catch(e){}
   setTimeout(() => document.getElementById('mainTa').focus(), 100);
 }
 
@@ -1848,6 +1853,7 @@ async function callAPI(msg, imageUrl, audioUrl){
         else if (lastEvent === 'display') {
           if (d.products?.length) {
             showDisplayCanvas(d.title || 'AI推荐', d.products);
+            try { sessionStorage.setItem('lx.display.' + convId, JSON.stringify({title: d.title || 'AI推荐', products: d.products})); } catch(e){}
           }
         }
 
