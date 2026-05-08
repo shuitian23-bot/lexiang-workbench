@@ -385,7 +385,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
 // 返回 { fullText, toolCalls: null | Array, finishReason }
 // 如果 finish_reason=tool_calls，则 toolCalls 是完整的工具调用数组，fullText=''
 // 如果 finish_reason=stop，则 toolCalls=null，内容已通过 onChunk 实时推送
-function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null } = {}) {
+function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null, toolChoice = null } = {}) {
   return new Promise((resolve, reject) => {
     // 图片模式用 qwen-vl-plus，音频模式用 qwen-audio-turbo，深度思考模式用 qwq-plus，否则用默认模型
     const hasImage = !!imageUrl;
@@ -443,7 +443,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
         type: 'function',
         function: { name: t.name, description: t.description, parameters: t.input_schema || { type: 'object', properties: {} } }
       }));
-      bodyObj.tool_choice = 'auto';
+      bodyObj.tool_choice = toolChoice || 'auto';
     }
     const body = JSON.stringify(bodyObj);
 
@@ -628,15 +628,24 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   let rounds = 0;
   let fullText = '';
 
+  // 产品推荐意图检测：强制调用 product_recommend 工具
+  const PRODUCT_KEYWORDS = /推荐|选购|预算|买|对比|选哪|值得买|怎么选|游戏本|笔记本|thinkpad|小新|拯救者|yoga|thinkbook|台式机|一体机|显示器|工作站|平板|服务器/i;
+  let forceToolChoice = null;
+  if (!imageUrl && !audioUrl && !thinkingMode && PRODUCT_KEYWORDS.test(userMessage)) {
+    forceToolChoice = { type: 'function', function: { name: 'product_recommend' } };
+  }
+
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续
   while (rounds < MAX_TOOL_ROUNDS) {
     rounds++;
     // 图片/音频只在第一轮传入（多模态模型不支持 tools，第一轮不会有 tool_calls）
     const roundImageUrl = rounds === 1 ? imageUrl : null;
     const roundAudioUrl = rounds === 1 ? audioUrl : null;
+    // 仅第一轮强制工具调用，后续轮次恢复 auto
+    const roundToolChoice = rounds === 1 ? forceToolChoice : null;
     const { fullText: streamedText, toolCalls } = await callLLMStream(
       messages, tools, ragContext, onChunk, lang,
-      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl }
+      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl, toolChoice: roundToolChoice }
     );
 
     if (toolCalls && toolCalls.length > 0) {
