@@ -41,8 +41,8 @@ html.in-chat #contentPanel {
 
 /* ── 状态2b：分屏对话（PC，landing 左 + chat 右） ── */
 @media (min-width: 769px) {
-  /* nav 拉通全宽 */
-  html.split-mode.in-chat #landingPage > nav {
+  /* nav 拉通全宽（被 JS 提取到 body 顶层） */
+  html.split-mode.in-chat #mainNav {
     position: fixed !important;
     top: 0; left: 0;
     width: 100vw !important;

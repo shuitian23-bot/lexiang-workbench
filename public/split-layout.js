@@ -43,12 +43,30 @@
     return 1;
   }
 
+  // nav 提取到 body 顶层（状态2b/3共用，不被 landingPage display:none 影响）
+  function extractNav() {
+    var lp = document.getElementById('landingPage');
+    if (!lp) return;
+    var nav = lp.querySelector(':scope > nav');
+    if (!nav || nav.parentNode === document.body) return;
+    nav.id = 'mainNav';
+    document.body.insertBefore(nav, document.body.firstChild);
+  }
+  function restoreNav() {
+    var nav = document.getElementById('mainNav');
+    var lp = document.getElementById('landingPage');
+    if (!nav || !lp) return;
+    lp.insertBefore(nav, lp.firstChild);
+    nav.removeAttribute('id');
+  }
+
   // 状态1→2
   function enterChat() {
     if (!isPC()) return;
     var html = document.documentElement;
     html.classList.add('split-mode', 'in-chat', 'is-chat');
     html.style.setProperty('--split-left', state.leftPct + '%');
+    extractNav();
     document.getElementById('chatApp').classList.add('active');
     try {
       var base = chatBase();
@@ -138,6 +156,7 @@
   // 任何→状态1
   function goHomePC() {
     if (!isPC()) return;
+    restoreNav();
     var html = document.documentElement;
     html.classList.remove('in-chat', 'content-open', 'content-closing', 'is-chat', 'is-chat-conv');
     var ca = document.getElementById('chatApp');
