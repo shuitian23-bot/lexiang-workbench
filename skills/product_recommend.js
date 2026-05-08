@@ -35,14 +35,24 @@ module.exports = {
     else if (combined.includes('显示') || combined.includes('屏幕')) category = '显示器';
     else if (combined.includes('工作站')) category = '工作站';
 
-    // 确定品牌/系列筛选
+    // 确定品牌/系列筛选 — 明确品牌优先，不叠加场景推断
     const brandFilters = [];
-    if (combined.includes('游戏') || combined.includes('game') || combined.includes('拯救者')) brandFilters.push('拯救者');
-    if (combined.includes('商务') || combined.includes('办公') || combined.includes('thinkpad')) brandFilters.push('thinkpad');
-    if (combined.includes('学生') || combined.includes('学习') || combined.includes('小新') || combined.includes('性价比')) brandFilters.push('小新');
-    if (combined.includes('设计') || combined.includes('创意') || combined.includes('yoga')) brandFilters.push('yoga');
-    if (combined.includes('thinkbook')) brandFilters.push('thinkbook');
-    if (combined.includes('轻薄')) { brandFilters.push('小新'); brandFilters.push('yoga'); }
+    const explicitBrands = [];
+    if (combined.includes('thinkpad')) explicitBrands.push('thinkpad');
+    if (combined.includes('thinkbook')) explicitBrands.push('thinkbook');
+    if (combined.includes('小新')) explicitBrands.push('小新');
+    if (combined.includes('拯救者')) explicitBrands.push('拯救者');
+    if (combined.includes('yoga')) explicitBrands.push('yoga');
+
+    if (explicitBrands.length > 0) {
+      brandFilters.push(...explicitBrands);
+    } else {
+      if (combined.includes('游戏') || combined.includes('game')) brandFilters.push('拯救者');
+      if (combined.includes('商务') || combined.includes('办公')) brandFilters.push('thinkpad');
+      if (combined.includes('学生') || combined.includes('学习') || combined.includes('性价比')) brandFilters.push('小新');
+      if (combined.includes('设计') || combined.includes('创意')) brandFilters.push('yoga');
+      if (combined.includes('轻薄')) { brandFilters.push('小新'); brandFilters.push('yoga'); }
+    }
 
     // 解析预算
     let minPrice = 0, maxPrice = Infinity;
