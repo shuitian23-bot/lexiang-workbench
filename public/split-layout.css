@@ -68,6 +68,9 @@ html.in-chat #contentPanel {
   html.split-mode.in-chat:not(.content-open) .chat-topbar .chat-title {
     display: none !important;
   }
+  html.split-mode.in-chat:not(.content-open) .chat-topbar .menu-btn {
+    display: flex !important;
+  }
   /* landing 面板 */
   html.split-mode.in-chat #landingPage {
     display: block !important;
