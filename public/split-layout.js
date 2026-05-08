@@ -196,7 +196,15 @@
         (price ? '<div class="cp-product-price">¥' + Number(price).toLocaleString() + '</div>' : '') +
         (desc ? '<div class="cp-product-desc">' + escH(desc) + '</div>' : '') +
         '<div style="padding:0 12px 12px"><button class="cp-product-btn" data-url="' + escH(url) + '">去看看</button></div>';
-      card.querySelector('.cp-product-btn').addEventListener('click', function () { window.open(url, '_blank'); });
+      card.querySelector('.cp-product-btn').addEventListener('click', function () {
+        if (isPC() && sku && typeof showProductDetail === 'function') {
+          showProductDetail(sku);
+        } else if (isPC()) {
+          openContent('preview', name, { url: url });
+        } else {
+          window.open(url, '_blank');
+        }
+      });
       grid.appendChild(card);
     });
     container.appendChild(grid);
