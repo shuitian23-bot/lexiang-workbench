@@ -56,7 +56,7 @@ module.exports = {
     }
 
     // 构建SQL查询
-    let sql = `SELECT name, sku, price, specs FROM products WHERE status = 'active' AND category = ?`;
+    let sql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?`;
     const params = [category];
 
     if (minPrice > 0) { sql += ` AND price >= ?`; params.push(minPrice); }
@@ -76,7 +76,7 @@ module.exports = {
 
     // 如果品牌筛选无结果，放宽条件重查
     if (rows.length === 0 && brandFilters.length > 0) {
-      let fallbackSql = `SELECT name, sku, price, specs FROM products WHERE status = 'active' AND category = ?`;
+      let fallbackSql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?`;
       const fallbackParams = [category];
       if (minPrice > 0) { fallbackSql += ` AND price >= ?`; fallbackParams.push(minPrice); }
       if (maxPrice < Infinity) { fallbackSql += ` AND price <= ?`; fallbackParams.push(maxPrice); }
@@ -92,8 +92,10 @@ module.exports = {
         name: row.name,
         sku: row.sku,
         price: row.price,
+        image_url: row.image_url || '',
         brand: specs.brand || '',
         series: specs.lvl3 || '',
+        description: (specs.lvl3 || category),
         url: specs.url || `https://item.lenovo.com.cn/product/${row.sku}.html`
       };
     });
@@ -111,7 +113,11 @@ module.exports = {
       `SELECT count(*) as cnt FROM products WHERE status = 'active' AND category = ?`
     ).get(category);
 
+    const title = budget ? `${budget}${category}推荐` : `${use_case}${category}推荐`;
+
     return {
+      action: 'frontend_display',
+      title,
       products: results,
       total_active: totalActive?.cnt || 0,
       query: { use_case, budget, preference, category },
