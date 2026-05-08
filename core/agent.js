@@ -633,6 +633,7 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   let forceToolChoice = null;
   if (!imageUrl && !audioUrl && !thinkingMode && PRODUCT_KEYWORDS.test(userMessage)) {
     forceToolChoice = { type: 'function', function: { name: 'product_recommend' } };
+    console.log('[Agent] 产品意图检测命中，强制 tool_choice: product_recommend');
   }
 
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续

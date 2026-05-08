@@ -26,8 +26,8 @@ function shouldDispatch(userMessage) {
   // 过短消息（单字、2字以下）不分发
   if (msg.length < 3) return null;
 
-  // 优先检查产品推荐和售后（关键词精准匹配）
-  for (const agent of [productAdvisor, supportAgent]) {
+  // 售后关键词精准匹配（产品推荐已改由主Agent处理，走 product_recommend 工具触发分屏）
+  for (const agent of [supportAgent]) {
     if (!agent.keywords || agent.keywords.length === 0) continue;
     const matched = agent.keywords.some(kw => msg.includes(kw));
     if (matched) {
