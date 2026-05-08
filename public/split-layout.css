@@ -20,12 +20,12 @@
   }
 }
 
-/* ── 状态2：全宽对话 ── */
-html.in-chat #landingPage {
+/* ── 状态2a：全宽对话（非分屏） ── */
+html.in-chat:not(.split-mode) #landingPage {
   display: none;
 }
 
-html.in-chat #chatApp {
+html.in-chat:not(.split-mode) #chatApp {
   display: flex;
   width: 100%;
   max-width: 900px;
@@ -37,6 +37,33 @@ html.in-chat #chatApp {
 html.in-chat #splitDivider,
 html.in-chat #contentPanel {
   display: none;
+}
+
+/* ── 状态2b：分屏对话（PC，landing 左 + chat 右） ── */
+@media (min-width: 769px) {
+  html.split-mode.in-chat #landingPage {
+    display: block !important;
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--split-left, 50%);
+    height: 100vh; height: 100dvh;
+    overflow-y: auto;
+    z-index: 1;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: all !important;
+  }
+  html.split-mode.in-chat #chatApp {
+    display: flex !important;
+    position: fixed;
+    right: 0; top: 0;
+    width: calc(100vw - var(--split-left, 50%));
+    max-width: none;
+    margin: 0;
+    height: 100vh; height: 100dvh;
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
 }
 
 /* ── 状态3：分屏对话 ── */

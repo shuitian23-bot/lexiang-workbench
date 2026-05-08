@@ -48,6 +48,7 @@
     if (!isPC()) return;
     var html = document.documentElement;
     html.classList.add('split-mode', 'in-chat', 'is-chat');
+    html.style.setProperty('--split-left', state.leftPct + '%');
     document.getElementById('chatApp').classList.add('active');
     try {
       var base = chatBase();
@@ -535,11 +536,6 @@
       window.showChatApp = function (pushUrl) {
         if (isPC()) {
           enterChat();
-          if (pushUrl !== false) {
-            var base = window.__chatBase || '/chat';
-            var cid = (typeof convId !== 'undefined' && convId) ? convId : null;
-            try { history.pushState(null, '', cid ? base + '/' + cid : base); } catch(e){}
-          }
           if (window.__pendingProductCtx && typeof notifyAIProductContext === 'function') {
             notifyAIProductContext(window.__pendingProductCtx);
           }
