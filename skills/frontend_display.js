@@ -27,7 +27,7 @@ module.exports = {
       const placeholders = skus.map(() => '?').join(',');
       rows = db.prepare(`SELECT * FROM products WHERE sku IN (${placeholders}) AND status = 'active'`).all(...skus);
     } else {
-      let sql = `SELECT * FROM products WHERE status = 'active'`;
+      let sql = `SELECT * FROM products WHERE status = 'active' AND name NOT LIKE '%测试%' AND name NOT LIKE '%请勿下单%' AND name NOT LIKE '%勿拍%' AND name NOT LIKE '%不发货%'`;
       const params = [];
       if (keyword) { sql += ` AND name LIKE ?`; params.push(`%${keyword}%`); }
       if (category) { sql += ` AND category = ?`; params.push(category); }

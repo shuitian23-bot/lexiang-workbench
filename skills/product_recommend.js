@@ -56,7 +56,9 @@ module.exports = {
     }
 
     // 构建SQL查询
-    let sql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?`;
+    // 排除测试商品
+    const EXCLUDE_TEST = ` AND name NOT LIKE '%测试%' AND name NOT LIKE '%请勿下单%' AND name NOT LIKE '%勿拍%' AND name NOT LIKE '%不发货%'`;
+    let sql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?` + EXCLUDE_TEST;
     const params = [category];
 
     if (minPrice > 0) { sql += ` AND price >= ?`; params.push(minPrice); }
@@ -76,7 +78,7 @@ module.exports = {
 
     // 如果品牌筛选无结果，放宽条件重查
     if (rows.length === 0 && brandFilters.length > 0) {
-      let fallbackSql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?`;
+      let fallbackSql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?` + EXCLUDE_TEST;
       const fallbackParams = [category];
       if (minPrice > 0) { fallbackSql += ` AND price >= ?`; fallbackParams.push(minPrice); }
       if (maxPrice < Infinity) { fallbackSql += ` AND price <= ?`; fallbackParams.push(maxPrice); }
