@@ -402,14 +402,19 @@
   // ── 布局尺寸 ──
 
   function applyWidths() {
-    if (!isPC() || getState() !== 3) return;
-    var ca = document.getElementById('chatApp');
-    if (!ca) return;
+    if (!isPC()) return;
+    var s = getState();
     var pct = state.leftPct;
-    ca.style.flex = '0 0 auto';
-    ca.style.width = 'calc(' + pct + '% - 3px)';
-    ca.style.maxWidth = 'none';
-    ca.style.margin = '0';
+    if (s === 2) {
+      document.documentElement.style.setProperty('--split-left', pct + '%');
+    } else if (s === 3) {
+      var ca = document.getElementById('chatApp');
+      if (!ca) return;
+      ca.style.flex = '0 0 auto';
+      ca.style.width = 'calc(' + pct + '% - 3px)';
+      ca.style.maxWidth = 'none';
+      ca.style.margin = '0';
+    }
   }
 
   // ── DOM 结构创建 ──
@@ -485,7 +490,8 @@
   function bindDrag(divider) {
     var startX = 0, startPct = 0, viewportW = 0;
     function onDown(e) {
-      if (!isPC() || getState() !== 3) return;
+      var s = getState();
+      if (!isPC() || (s !== 2 && s !== 3)) return;
       e.preventDefault();
       var pt = e.touches ? e.touches[0] : e;
       startX = pt.clientX;
