@@ -529,11 +529,22 @@
   // ── 劫持现有函数 ──
 
   function patchFunctions() {
-    // showChatApp
+    // showChatApp — PC 下走 enterChat 保留 landing 可见
     var origShow = window.showChatApp;
     if (typeof origShow === 'function') {
-      window.showChatApp = function () {
-        if (isPC()) { enterChat(); return; }
+      window.showChatApp = function (pushUrl) {
+        if (isPC()) {
+          enterChat();
+          if (pushUrl !== false) {
+            var base = window.__chatBase || '/chat';
+            var cid = (typeof convId !== 'undefined' && convId) ? convId : null;
+            try { history.pushState(null, '', cid ? base + '/' + cid : base); } catch(e){}
+          }
+          if (window.__pendingProductCtx && typeof notifyAIProductContext === 'function') {
+            notifyAIProductContext(window.__pendingProductCtx);
+          }
+          return;
+        }
         return origShow.apply(this, arguments);
       };
     }

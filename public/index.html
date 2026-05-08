@@ -1560,8 +1560,7 @@ async function loadConv(id){
   scrollBottom();
   const conv = convList.find(c => c.id === id);
   if (conv) updateTitle(conv.title);
-  document.getElementById('landingPage').classList.add('exit');
-  document.getElementById('chatApp').classList.add('active');
+  showChatApp(false);
   // 恢复右侧产品面板
   try {
     var saved = sessionStorage.getItem('lx.display.' + id);
@@ -3828,6 +3827,6 @@ function setLoginMsg(msg, color){
 
 
 </script>
-<script src="/split-layout.js?v=20260508-3"></script>
+<script src="/split-layout.js?v=20260508-5"></script>
 </body>
 </html>
