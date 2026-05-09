@@ -70,6 +70,23 @@
     nav.removeAttribute('id');
   }
 
+  // 关闭右侧landing面板 → 纯全宽聊天
+  function collapseLanding() {
+    if (!isPC()) return;
+    var html = document.documentElement;
+    html.classList.add('landing-collapsed');
+    html.style.removeProperty('--split-left');
+  }
+  // 恢复分屏
+  function expandLanding() {
+    if (!isPC()) return;
+    var html = document.documentElement;
+    html.classList.remove('landing-collapsed');
+    html.style.setProperty('--split-left', state.leftPct + '%');
+  }
+  window.__collapseLanding = collapseLanding;
+  window.__expandLanding = expandLanding;
+
   // 状态1→2
   function enterChat() {
     if (!isPC()) return;
@@ -473,7 +490,19 @@
     divider.id = 'splitDivider';
     divider.setAttribute('role', 'separator');
     divider.setAttribute('aria-orientation', 'vertical');
-    divider.innerHTML = '<div class="grip"></div>';
+    divider.innerHTML = '<div class="grip"></div>' +
+      '<button class="split-collapse-btn" id="collapseLandingBtn" title="收起右侧面板">' +
+        '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>' +
+      '</button>';
+
+    // 展开按钮（收起后显示在右侧边缘）
+    var expandBtn = document.createElement('button');
+    expandBtn.id = 'expandLandingBtn';
+    expandBtn.title = '展开右侧面板';
+    expandBtn.style.cssText = 'display:none;position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:60;background:var(--bg,#fff);border:1px solid var(--border,#e5e7eb);border-right:none;border-radius:8px 0 0 8px;padding:8px 4px;cursor:pointer;color:var(--text2,#666);box-shadow:-2px 0 8px rgba(0,0,0,.08)';
+    expandBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 7 6 12 11 17"/><polyline points="18 7 13 12 18 17"/></svg>';
+    expandBtn.addEventListener('click', expandLanding);
+    document.body.appendChild(expandBtn);
 
     var root = document.createElement('div');
     root.id = 'splitRoot';
@@ -504,6 +533,13 @@
         if (typeof openChatFresh === 'function') openChatFresh();
       });
     }
+
+    // 折叠按钮
+    var collapseBtn = document.getElementById('collapseLandingBtn');
+    if (collapseBtn) collapseBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      collapseLanding();
+    });
 
     bindDrag(divider);
   }

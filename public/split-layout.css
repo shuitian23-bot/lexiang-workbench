@@ -130,6 +130,47 @@ html.in-chat #contentPanel {
   html.split-mode.in-chat:not(.content-open) #splitDivider.dragging {
     background: var(--accent, #7c3aed);
   }
+  /* divider 上的折叠按钮 */
+  .split-collapse-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: var(--text2, #666);
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 51;
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+  }
+  #splitDivider:hover .split-collapse-btn {
+    opacity: 1;
+  }
+  /* ── 收起landing：纯聊天全宽 ── */
+  html.split-mode.in-chat.landing-collapsed #landingPage {
+    display: none !important;
+  }
+  html.split-mode.in-chat.landing-collapsed #splitDivider {
+    display: none !important;
+  }
+  html.split-mode.in-chat.landing-collapsed #chatApp {
+    width: 100% !important;
+    max-width: 900px;
+    margin: 0 auto;
+    left: 0; right: 0;
+  }
+  /* 收起时显示展开按钮 */
+  html.split-mode.in-chat.landing-collapsed #expandLandingBtn {
+    display: flex !important;
+  }
 }
 
 /* ── 状态3：分屏对话 ── */
