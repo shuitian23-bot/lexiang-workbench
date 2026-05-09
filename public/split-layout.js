@@ -87,6 +87,20 @@
   window.__collapseLanding = collapseLanding;
   window.__expandLanding = expandLanding;
 
+  // 给 landing 面板加关闭按钮
+  function ensureLandingCloseBtn() {
+    if (document.getElementById('closeLandingBtn')) return;
+    var lp = document.getElementById('landingPage');
+    if (!lp) return;
+    var btn = document.createElement('button');
+    btn.id = 'closeLandingBtn';
+    btn.title = '收起此面板';
+    btn.innerHTML = '×';
+    btn.style.cssText = 'position:fixed;top:62px;right:8px;z-index:60;background:var(--bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2,#666);box-shadow:0 1px 4px rgba(0,0,0,.1);line-height:1';
+    btn.addEventListener('click', collapseLanding);
+    document.body.appendChild(btn);
+  }
+
   // 状态1→2
   function enterChat() {
     if (!isPC()) return;
@@ -94,6 +108,7 @@
     html.classList.add('split-mode', 'in-chat', 'is-chat');
     html.style.setProperty('--split-left', state.leftPct + '%');
     extractNav();
+    ensureLandingCloseBtn();
     document.getElementById('chatApp').classList.add('active');
     try {
       var base = chatBase();

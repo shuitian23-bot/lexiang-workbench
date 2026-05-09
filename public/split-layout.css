@@ -117,6 +117,10 @@ html.in-chat #contentPanel {
     left: 0; right: auto;
     width: var(--split-left, 50%);
   }
+  /* sidebar 弹出时提升 chatApp z-index，让 overlay(9980) 盖过 divider */
+  html.split-mode.in-chat #chatApp:has(.sb-overlay.active) {
+    z-index: 100 !important;
+  }
   /* divider 在状态2b可见可拖 */
   html.split-mode.in-chat:not(.content-open) #splitDivider {
     display: block !important;
@@ -163,6 +167,14 @@ html.in-chat #contentPanel {
   }
   html.split-mode.in-chat.landing-collapsed #splitDivider {
     display: none !important;
+  }
+  html.split-mode.in-chat.landing-collapsed #closeLandingBtn {
+    display: none !important;
+  }
+  /* 换位时关闭按钮在左侧 */
+  html.split-mode.in-chat.layout-swapped #closeLandingBtn {
+    right: auto;
+    left: 8px;
   }
   html.split-mode.in-chat.landing-collapsed #chatApp {
     width: 100% !important;
