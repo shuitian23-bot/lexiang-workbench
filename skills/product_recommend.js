@@ -1,6 +1,79 @@
 // Skill: 联想产品推荐（基于products表实时数据）
 const db = require('../db/schema');
 
+function parsePriceToken(value) {
+  const text = String(value || '').trim().toLowerCase();
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(万|w|k|千)?/i);
+  if (!match) return null;
+  const num = Number(match[1]);
+  if (!Number.isFinite(num)) return null;
+  const unit = match[2];
+  if (unit === '万' || unit === 'w') return Math.round(num * 10000);
+  if (unit === 'k' || unit === '千') return Math.round(num * 1000);
+  return Math.round(num);
+}
+
+function parseBudgetRange(budget) {
+  const raw = String(budget || '').trim();
+  if (!raw || /不限|无所谓|都可以|随便/.test(raw)) {
+    return { minPrice: 0, maxPrice: Infinity, applied: false, label: raw };
+  }
+
+  const text = raw
+    .toLowerCase()
+    .replace(/[￥¥]/g, '')
+    .replace(/人民币|rmb|元|块钱|块/g, '')
+    .replace(/[，,]/g, '');
+
+  const token = '(\\d+(?:\\.\\d+)?\\s*(?:万|w|k|千)?)';
+  const range = text.match(new RegExp(`${token}\\s*(?:-|~|到|至|—|－)\\s*${token}`, 'i'));
+  if (range) {
+    const a = parsePriceToken(range[1]);
+    const b = parsePriceToken(range[2]);
+    if (a !== null && b !== null) {
+      return {
+        minPrice: Math.min(a, b),
+        maxPrice: Math.max(a, b),
+        applied: true,
+        label: raw
+      };
+    }
+  }
+
+  const upper = text.match(new RegExp(`(?:不超过|不高于|低于|小于|少于|<=|≤)\\s*${token}|${token}\\s*(?:以内|以下|之内|内|封顶)`, 'i'));
+  if (upper) {
+    const value = parsePriceToken(upper[1] || upper[2]);
+    if (value !== null) return { minPrice: 0, maxPrice: value, applied: true, label: raw };
+  }
+
+  const lower = text.match(new RegExp(`(?:不低于|高于|大于|>=|≥)\\s*${token}|${token}\\s*(?:以上|起)`, 'i'));
+  if (lower) {
+    const value = parsePriceToken(lower[1] || lower[2]);
+    if (value !== null) return { minPrice: value, maxPrice: Infinity, applied: true, label: raw };
+  }
+
+  const around = text.match(new RegExp(`${token}\\s*(?:左右|上下|附近|大概|约)`, 'i'));
+  if (around) {
+    const value = parsePriceToken(around[1]);
+    if (value !== null) {
+      return {
+        minPrice: Math.max(0, Math.round(value * 0.8)),
+        maxPrice: Math.round(value * 1.2),
+        applied: true,
+        label: raw
+      };
+    }
+  }
+
+  const simpleBudget = text.match(new RegExp(`(?:预算|价位|价格)?\\s*${token}`, 'i'));
+  if (simpleBudget && /预算|价位|价格/.test(text)) {
+    const value = parsePriceToken(simpleBudget[1]);
+    if (value !== null) return { minPrice: 0, maxPrice: value, applied: true, label: raw };
+  }
+
+  return { minPrice: 0, maxPrice: Infinity, applied: false, label: raw };
+}
+
 module.exports = {
   name: 'product_recommend',
   description: '根据用户需求（预算、用途、偏好）从产品库中查询在售商品并推荐，返回真实商品名称、价格和链接。',
@@ -54,16 +127,8 @@ module.exports = {
       if (combined.includes('轻薄')) { brandFilters.push('小新'); brandFilters.push('yoga'); }
     }
 
-    // 解析预算
-    let minPrice = 0, maxPrice = Infinity;
-    if (budget) {
-      const m1 = budget.match(/(\d+)\s*[以-]?\s*内/);
-      const m2 = budget.match(/(\d+)\s*[-~到至]\s*(\d+)/);
-      const m3 = budget.match(/(\d+)\s*以上/);
-      if (m1) maxPrice = parseInt(m1[1]);
-      else if (m2) { minPrice = parseInt(m2[1]); maxPrice = parseInt(m2[2]); }
-      else if (m3) minPrice = parseInt(m3[1]);
-    }
+    const budgetRange = parseBudgetRange(budget);
+    const { minPrice, maxPrice } = budgetRange;
 
     // 构建SQL查询
     // 排除测试商品
@@ -132,8 +197,11 @@ module.exports = {
       title,
       products: results,
       total_active: totalActive?.cnt || 0,
-      query: { use_case, budget, preference, category },
-      note: `以上为${category}类目在售商品（共${totalActive?.cnt || 0}款在售），所有链接均为官网真实商品页。如需更多筛选条件请告知。`
+      budget_applied: budgetRange.applied,
+      query: { use_case, budget, preference, category, minPrice, maxPrice: maxPrice < Infinity ? maxPrice : null },
+      note: `以上为${category}类目在售商品${budgetRange.applied ? `，已按预算「${budgetRange.label}」筛选` : ''}（共${totalActive?.cnt || 0}款在售），所有链接均为官网真实商品页。如需更多筛选条件请告知。`
     };
   }
 };
+
+module.exports._parseBudgetRange = parseBudgetRange;
