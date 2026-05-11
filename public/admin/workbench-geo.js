@@ -150,6 +150,13 @@ async function geoLoadData() {
       fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({project_id:GEO_PROJECT_ID, model:p}) }).then(r => r.json())
     ));
     const sitesPromise = geoLoadSites();
+    const citationsPromise = (async () => {
+      try {
+        const body = { project_id: GEO_PROJECT_ID };
+        const r = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        geoState.citationsData = await r.json();
+      } catch (e) { console.error('citations fetch', e); geoState.citationsData = null; }
+    })();
     const questionsPromise = geoLoadQuestions();
     const trendChartPromise = geoLoadTrendChart();
     const wordCloudPromise = geoLoadWordCloud(30);
@@ -345,13 +352,22 @@ function geoRenderPlatDist() {
   const c = document.getElementById('geo-plat-dist'); if (!c) return;
   const pd = geoState.platData;
   const psd = geoState.platSitesData || {};
+  // 优先用 citations API 的 model_counts（wiki + lenovo 合计），失败回退 sites 合计
+  const cit = geoState.citationsData || {};
+  const modelCountsMap = {};
+  (cit.model_counts || []).forEach(mc => {
+    modelCountsMap[mc.model] = (mc.wiki_citation_count || 0) + (mc.lenovo_citation_count || 0);
+  });
   const rows = GEO_PLATFORMS.map(p => {
     const d = pd[p];
     if (!d) return { p, cites: 0, brand: 0, missing: true };
     const bcm = d.brand_coverage_metrics || {};
-    const sites = psd[p] || [];
-    const citesObj = geoCitesFromSites(sites);
-    return { p, cites: citesObj.total, brand: bcm.brand_exposure_rate || 0, missing: false };
+    let cites = modelCountsMap[p];
+    if (cites === undefined) {
+      const sites = psd[p] || [];
+      cites = geoCitesFromSites(sites).total;
+    }
+    return { p, cites, brand: bcm.brand_exposure_rate || 0, missing: false };
   });
   const mx = Math.max(...rows.map(r => r.cites), 1);
   c.innerHTML = rows.map(r => {
