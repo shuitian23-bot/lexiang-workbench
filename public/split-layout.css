@@ -48,12 +48,9 @@ html.in-chat #contentPanel {
     width: 100vw !important;
     z-index: 100;
   }
-  /* nav logo 在分屏模式下显示"联想乐享"文字 */
+  /* nav logo 在分屏模式下保持完整图片 */
   html.split-mode.in-chat #mainNav .logo img {
     height: 24px;
-  }
-  html.split-mode.in-chat #mainNav .logo .logo-text {
-    display: inline !important;
   }
   /* hero 隐藏（左侧已有聊天） */
   html.split-mode.in-chat #landingPage .hero {

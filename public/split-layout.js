@@ -51,15 +51,6 @@
     var nav = lp.querySelector(':scope > nav');
     if (!nav || nav.parentNode === document.body) return;
     nav.id = 'mainNav';
-    // 给 logo 加"乐享"文字
-    var logo = nav.querySelector('.logo');
-    if (logo && !logo.querySelector('.logo-text')) {
-      var sp = document.createElement('span');
-      sp.className = 'logo-text';
-      sp.textContent = '乐享';
-      sp.style.cssText = 'display:none;font-weight:700;font-size:18px;color:#e1251b;margin-left:4px;vertical-align:middle';
-      logo.appendChild(sp);
-    }
     document.body.insertBefore(nav, document.body.firstChild);
   }
   function restoreNav() {
@@ -201,6 +192,9 @@
     restoreNav();
     var html = document.documentElement;
     html.classList.remove('in-chat', 'content-open', 'content-closing', 'is-chat', 'is-chat-conv');
+    window.__siteType = 'default';
+    window.__chatBase = '/chat';
+    html.dataset.site = 'default';
     var ca = document.getElementById('chatApp');
     ca.classList.remove('active');
     ca.style.flex = '';
@@ -210,6 +204,8 @@
     document.getElementById('landingPage').classList.remove('exit');
     history.pushState(null, '', '/');
     try { closeSidebar(); } catch (e) {}
+    try { closeDisplayCanvas(); } catch (e) {}
+    try { setNavActive(null); } catch (e) {}
   }
 
   function switchTab(tabId) {
