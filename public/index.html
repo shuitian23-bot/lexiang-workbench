@@ -2477,6 +2477,7 @@ function extractStoreLocation(msg) {
 }
 
 async function sendMain(directMsg){
+  document.getElementById('productOverlay').classList.add('hiding');
   if(!checkAnonLimit()) return;
   const ta = document.getElementById('mainTa');
   const msg = (typeof directMsg === 'string' ? directMsg : ta.value).trim();
