@@ -3,25 +3,33 @@
 const https = require('https');
 const Database = require('better-sqlite3');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const DB_PATH = path.join(__dirname, '..', 'lexiang.db');
-const API_URL = '/router/v2/search/v2/selLenovoGoodsForBD';
-const ACCESS_KEY = 'jrBgvf';
+const API_PATH = '/router/v2/search/v2/selLenovoGoodsForBD';
+const ACCESS_KEY = process.env.LENOVO_OPEN_ACCESS_KEY || process.env.LENOVO_OPEN_API_ACCESS_KEY;
 const PAGE_SIZE = 500;
+
+if (!ACCESS_KEY) {
+  console.error('缺少 LENOVO_OPEN_ACCESS_KEY，无法拉取联想开放平台商品数据');
+  process.exit(1);
+}
 
 function fetch(page) {
   return new Promise((resolve, reject) => {
-    const body = JSON.stringify({ page, size: PAGE_SIZE });
+    const query = new URLSearchParams({ page: String(page), size: String(PAGE_SIZE) });
     const opts = {
-      hostname: 'open.lenovo.com.cn', path: API_URL, method: 'POST',
-      headers: { 'Access-Key': ACCESS_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+      hostname: 'open.lenovo.com.cn',
+      path: `${API_PATH}?${query.toString()}`,
+      method: 'GET',
+      headers: { 'Access-Key': ACCESS_KEY }
     };
     const r = https.request(opts, res => {
       let buf = ''; res.on('data', c => buf += c);
       res.on('end', () => { try { resolve(JSON.parse(buf)); } catch (e) { reject(e); } });
     });
     r.on('error', reject);
-    r.write(body); r.end();
+    r.end();
   });
 }
 
@@ -29,6 +37,22 @@ function fetch(page) {
 function extractSku(url) {
   const m = url && url.match(/\/product\/(\d+)\.html/);
   return m ? m[1] : null;
+}
+
+function normalizeUrl(url) {
+  if (!url) return '';
+  const text = String(url).trim();
+  if (!text) return '';
+  if (text.startsWith('//')) return 'https:' + text;
+  if (text.startsWith('http://')) return text.replace(/^http:\/\//, 'https://');
+  return text;
+}
+
+function normalizeImageUrl(url) {
+  const normalized = normalizeUrl(url);
+  if (!normalized) return '';
+  if (normalized.startsWith('/')) return 'https://p1.lefile.cn' + normalized;
+  return normalized;
 }
 
 // 映射分类：用level1-5和name推断简洁分类名
@@ -88,6 +112,9 @@ async function main() {
   // 拉取全量数据
   console.log('开始拉取联想官方商品数据...');
   const firstPage = await fetch(1);
+  if (firstPage.rc !== 0 || !Array.isArray(firstPage.result)) {
+    throw new Error('第一页商品数据拉取失败：' + JSON.stringify(firstPage).slice(0, 300));
+  }
   const total = firstPage.total;
   const totalPages = Math.ceil(total / PAGE_SIZE);
   console.log(`总计 ${total} 件商品，${totalPages} 页`);
@@ -105,15 +132,27 @@ async function main() {
   }
   console.log(`\n拉取完成: ${allItems.length} 件`);
 
+  // API返回有大量重复SKU，先去重（同SKU取价格最高的/最后出现的）
+  const deduped = new Map();
+  for (const item of allItems) {
+    const sku = extractSku(item.pcDetailUrl);
+    if (!sku) continue;
+    const existing = deduped.get(sku);
+    if (!existing || parseFloat(item.pcPrice) > parseFloat(existing.pcPrice)) {
+      deduped.set(sku, item);
+    }
+  }
+  const uniqueItems = [...deduped.values()];
+  console.log(`去重后: ${uniqueItems.length} 件唯一商品`);
+
+  if (uniqueItems.length < Math.min(1000, Math.floor(total * 0.2))) {
+    throw new Error(`官方商品数据过少，停止导入以保护现有商品库：${uniqueItems.length}/${total}`);
+  }
+
   // 删除纯测试数据
   const delTest = db.prepare(`DELETE FROM products WHERE name LIKE '%test%' OR name = '' OR sku = ''`);
   const delResult = delTest.run();
   console.log(`删除测试数据: ${delResult.changes} 条`);
-
-  // 把所有现有商品标记为 offline，API中存在的会被重新激活
-  const markOffline = db.prepare(`UPDATE products SET status = 'offline', updated_at = datetime('now') WHERE 1=1`);
-  markOffline.run();
-  console.log('已将所有现有商品标记为offline');
 
   // upsert
   const upsert = db.prepare(`
@@ -132,44 +171,44 @@ async function main() {
       updated_at = datetime('now')
   `);
 
-  // API返回有大量重复SKU，先去重（同SKU取价格最高的/最后出现的）
-  const deduped = new Map();
-  for (const item of allItems) {
-    const sku = extractSku(item.pcDetailUrl);
-    if (!sku) continue;
-    const existing = deduped.get(sku);
-    if (!existing || parseFloat(item.pcPrice) > parseFloat(existing.pcPrice)) {
-      deduped.set(sku, item);
-    }
-  }
-  const uniqueItems = [...deduped.values()];
-  console.log(`去重后: ${uniqueItems.length} 件唯一商品`);
-
   const tx = db.transaction((items) => {
+    db.exec('CREATE TEMP TABLE IF NOT EXISTS tmp_openapi_skus (sku TEXT PRIMARY KEY)');
+    db.exec('DELETE FROM tmp_openapi_skus');
+    const touchSku = db.prepare('INSERT OR IGNORE INTO tmp_openapi_skus (sku) VALUES (?)');
     let ok = 0, skip = 0;
     for (const item of items) {
       const sku = extractSku(item.pcDetailUrl);
       if (!sku) { skip++; continue; }
       const price = parseFloat(item.pcPrice) || 0;
       const category = mapCategory(item);
-      const imageUrl = (item.gphoto || '').replace(/^http:\/\//, 'https://');
+      const imageUrl = normalizeImageUrl(item.gphoto);
       const specs = JSON.stringify({
+        source: 'lenovo_open_api',
         lvl1: item.goodsCategoryNameLevel1 || '',
         lvl2: item.goodsCategoryNameLevel2 || '',
         lvl3: item.goodsCategoryNameLevel3 || '',
         lvl4: item.goodsCategoryNameLevel4 || '',
         lvl5: item.goodsCategoryNameLevel5 || '',
-        url: item.pcDetailUrl || '',
-        wapUrl: item.wapDetailUrl || ''
+        url: normalizeUrl(item.pcDetailUrl),
+        pcDetailUrl: normalizeUrl(item.pcDetailUrl),
+        wapUrl: normalizeUrl(item.wapDetailUrl),
+        wapDetailUrl: normalizeUrl(item.wapDetailUrl)
       });
+      touchSku.run(sku);
       upsert.run(sku, item.name, category, price, price, imageUrl, item.gbrief || '', specs);
       ok++;
     }
-    return { ok, skip };
+    const offline = db.prepare(`
+      UPDATE products
+      SET status = 'offline', updated_at = datetime('now')
+      WHERE json_extract(specs, '$.source') = 'lenovo_open_api'
+        AND sku NOT IN (SELECT sku FROM tmp_openapi_skus)
+    `).run();
+    return { ok, skip, offline: offline.changes };
   });
 
   const result = tx(uniqueItems);
-  console.log(`导入完成: ${result.ok} 条成功, ${result.skip} 条跳过(无SKU)`);
+  console.log(`导入完成: ${result.ok} 条成功, ${result.skip} 条跳过(无SKU), ${result.offline} 条官方下架`);
 
   // 统计
   const stats = db.prepare(`SELECT status, count(*) as cnt FROM products GROUP BY status`).all();
