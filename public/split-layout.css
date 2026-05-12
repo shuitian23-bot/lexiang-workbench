@@ -26,23 +26,24 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid rgba(255,255,255,.14);
+  border: 1px solid var(--border, #E5E7EB);
   border-radius: 9px;
-  background: rgba(18,18,22,.92);
-  color: #F9FAFB;
+  background: #fff;
+  color: var(--text2, #666);
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: background .16s, border-color .16s, transform .16s;
 }
 
 .split-panel-float-btn:hover {
-  background: rgba(32,32,38,.96);
-  border-color: rgba(255,255,255,.26);
+  background: #fff;
+  border-color: #D1D5DB;
+  color: #374151;
   transform: translateY(-1px);
 }
 

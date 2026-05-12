@@ -234,7 +234,7 @@
     btn.className = 'split-panel-float-btn';
     btn.title = '收起右侧面板';
     btn.setAttribute('aria-label', '收起右侧面板');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="m8 9 3 3-3 3"/></svg>';
     btn.addEventListener('click', collapseLanding);
     document.body.appendChild(btn);
   }
@@ -829,7 +829,7 @@
     expandBtn.className = 'split-panel-float-btn';
     expandBtn.title = '展开右侧面板';
     expandBtn.setAttribute('aria-label', '展开右侧面板');
-    expandBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M14 4v16"/></svg>';
+    expandBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="m10 15-3-3 3-3"/></svg>';
     expandBtn.addEventListener('click', expandLanding);
     document.body.appendChild(expandBtn);
 
