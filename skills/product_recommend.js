@@ -74,6 +74,158 @@ function parseBudgetRange(budget) {
   return { minPrice: 0, maxPrice: Infinity, applied: false, label: raw };
 }
 
+const BRAND_KEYWORDS = {
+  thinkpad: ['thinkpad'],
+  thinkbook: ['thinkbook'],
+  xiaoxin: ['小新'],
+  yoga: ['yoga'],
+  legion: ['拯救者', 'legion', 'y7000', 'y9000', 'r7000', 'r9000'],
+  ideapad: ['ideapad'],
+  lecoo: ['来酷', 'lecoo'],
+  moto: ['moto', 'motorola'],
+  tianyi: ['天逸'],
+  thinkcentre: ['thinkcentre'],
+  thinkstation: ['thinkstation'],
+  zhaoyang: ['昭阳'],
+  kaitian: ['开天'],
+  qitian: ['启天'],
+  yangtian: ['扬天'],
+  ruitian: ['瑞天']
+};
+
+const BRAND_SQL = {
+  thinkpad: ['ThinkPad'],
+  thinkbook: ['ThinkBook'],
+  xiaoxin: ['小新'],
+  yoga: ['YOGA', 'Yoga', 'yoga'],
+  legion: ['拯救者', 'Legion', 'LEGION', 'Y7000', 'Y9000', 'R7000', 'R9000'],
+  ideapad: ['IdeaPad', 'ideapad'],
+  lecoo: ['来酷', 'Lecoo', 'lecoo'],
+  moto: ['moto', 'Moto', 'motorola'],
+  tianyi: ['天逸'],
+  thinkcentre: ['ThinkCentre'],
+  thinkstation: ['ThinkStation'],
+  zhaoyang: ['昭阳'],
+  kaitian: ['开天'],
+  qitian: ['启天'],
+  yangtian: ['扬天'],
+  ruitian: ['瑞天']
+};
+
+const BUSINESS_BRANDS = ['thinkpad', 'thinkbook', 'thinkcentre', 'thinkstation', 'zhaoyang', 'kaitian', 'qitian', 'yangtian', 'ruitian'];
+const CONSUMER_BRANDS = ['xiaoxin', 'yoga', 'legion', 'ideapad', 'lecoo', 'moto', 'tianyi'];
+
+function normalizeSiteType(siteType) {
+  if (siteType === 'shop' || siteType === 'b' || siteType === 'biz') return siteType;
+  return 'default';
+}
+
+function findExplicitBrands(text) {
+  const lower = String(text || '').toLowerCase();
+  const brands = [];
+  for (const [brand, keywords] of Object.entries(BRAND_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw.toLowerCase()))) brands.push(brand);
+  }
+  return brands;
+}
+
+function hasBusinessIntent(text) {
+  return /企业|公司|采购|商务|办公采购|批量|政企|政教|大企业|中小企业|服务器|工作站|云桌面|解决方案/.test(String(text || ''));
+}
+
+function hasSecondHandIntent(text) {
+  return /二手|官翻|翻新|95新|成色/.test(String(text || ''));
+}
+
+function addBrandFilter(sql, params, brands, mode = 'include') {
+  const tokens = [];
+  for (const brand of brands) tokens.push(...(BRAND_SQL[brand] || []));
+  if (!tokens.length) return sql;
+  const clauses = tokens.map(() =>
+    `(LOWER(name) ${mode === 'exclude' ? 'NOT LIKE' : 'LIKE'} LOWER(?)
+      AND COALESCE(LOWER(json_extract(specs, '$.lvl1')), '') ${mode === 'exclude' ? 'NOT LIKE' : 'LIKE'} LOWER(?)
+      AND COALESCE(LOWER(json_extract(specs, '$.lvl2')), '') ${mode === 'exclude' ? 'NOT LIKE' : 'LIKE'} LOWER(?)
+      AND COALESCE(LOWER(json_extract(specs, '$.lvl3')), '') ${mode === 'exclude' ? 'NOT LIKE' : 'LIKE'} LOWER(?))`
+  );
+  if (mode === 'exclude') {
+    sql += ` AND ${clauses.join(' AND ')}`;
+  } else {
+    sql += ` AND (${clauses.map(c => c.replace(/ AND /g, ' OR ')).join(' OR ')})`;
+  }
+  for (const token of tokens) {
+    const like = `%${token}%`;
+    params.push(like, like, like, like);
+  }
+  return sql;
+}
+
+function siteOrderClause(siteType) {
+  if (siteType === 'shop') {
+    return `CASE
+      WHEN name LIKE '%小新%' THEN 0
+      WHEN LOWER(name) LIKE '%yoga%' THEN 1
+      WHEN name LIKE '%拯救者%' OR LOWER(name) LIKE '%legion%' THEN 2
+      WHEN LOWER(name) LIKE '%ideapad%' THEN 3
+      WHEN name LIKE '%天逸%' OR name LIKE '%来酷%' OR LOWER(name) LIKE '%lecoo%' THEN 4
+      WHEN LOWER(name) LIKE '%thinkbook%' OR LOWER(name) LIKE '%thinkpad%' THEN 9
+      ELSE 6
+    END,`;
+  }
+  if (siteType === 'b') {
+    return `CASE
+      WHEN LOWER(name) LIKE '%thinkbook%' THEN 0
+      WHEN LOWER(name) LIKE '%thinkpad%' THEN 1
+      WHEN LOWER(name) LIKE '%thinkcentre%' THEN 2
+      WHEN name LIKE '%扬天%' OR name LIKE '%瑞天%' THEN 3
+      ELSE 6
+    END,`;
+  }
+  if (siteType === 'biz') {
+    return `CASE
+      WHEN LOWER(name) LIKE '%thinkstation%' THEN 0
+      WHEN name LIKE '%服务器%' THEN 1
+      WHEN name LIKE '%工作站%' THEN 2
+      WHEN name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%启天%' THEN 3
+      ELSE 6
+    END,`;
+  }
+  return '';
+}
+
+function inferBrand(product) {
+  const name = product.name || '';
+  const found = findExplicitBrands(name);
+  return found[0] || product.brand || product.series || name;
+}
+
+function addDeviceProductGuard(sql, category) {
+  const accessoryExcludes = [
+    '鼠标', '键盘膜', '钢化膜', '贴膜', '保护膜', '保护壳', '皮套', '内胆包', '电脑包',
+    '双肩包', '背包', '支架', '底座', '适配器', '充电器', '电源', '数据线', '扩展坞',
+    '转接', '硬盘盒', '上门服务', '意外保护', '延保', '保修', '服务', '软膜',
+    '全面保', 'IT管家', '随身WiFi', '无线上网', '墨水', '耗材'
+  ];
+  const excludeSql = accessoryExcludes.map(k => `name NOT LIKE '%${k}%'`).join(' AND ');
+  if (category === '笔记本电脑') {
+    return sql + ` AND COALESCE(json_extract(specs, '$.lvl1'), '') LIKE '%笔记本%' AND (${excludeSql}) AND (
+      name LIKE '%笔记本%' OR name LIKE '%轻薄本%' OR name LIKE '%全能本%' OR name LIKE '%AI本%'
+      OR name LIKE '%游戏本%' OR name LIKE '%设计本%' OR LOWER(name) LIKE '%laptop%'
+      OR LOWER(name) LIKE '%thinkpad%' OR LOWER(name) LIKE '%thinkbook%'
+      OR name LIKE '%小新%' OR LOWER(name) LIKE '%yoga%' OR name LIKE '%拯救者%'
+    )`;
+  }
+  if (category === '平板电脑') {
+    return sql + ` AND (${excludeSql}) AND (name LIKE '%平板%' OR name LIKE '%Pad%' OR name LIKE '%Tab%')`;
+  }
+  if (category === '台式机') {
+    return sql + ` AND (${excludeSql}) AND (name LIKE '%台式%' OR name LIKE '%主机%' OR name LIKE '%一体机%' OR LOWER(name) LIKE '%thinkcentre%')`;
+  }
+  if (category === '显示器') {
+    return sql + ` AND (${excludeSql}) AND (name LIKE '%显示器%' OR LOWER(name) LIKE '%thinkvision%')`;
+  }
+  return sql;
+}
+
 module.exports = {
   name: 'product_recommend',
   description: '根据用户需求（预算、用途、偏好）从产品库中查询在售商品并推荐，返回真实商品名称、价格和链接。',
@@ -91,11 +243,18 @@ module.exports = {
       preference: {
         type: 'string',
         description: '其他偏好，如：轻薄、高性能、长续航、大屏、ThinkPad、小新等'
+      },
+      site_type: {
+        type: 'string',
+        enum: ['default', 'shop', 'b', 'biz'],
+        description: '当前业务入口：shop=个人及家庭，b=中小企业，biz=政教及大企业。一般由系统传入，不需要用户填写。'
       }
     },
     required: ['use_case']
   },
-  execute: async ({ use_case, budget, preference }) => {
+  execute: async ({ use_case, budget, preference, site_type }, context = {}) => {
+    const siteType = normalizeSiteType(site_type || context.siteType);
+    const originalText = String(context.userMessage || [use_case, budget, preference].filter(Boolean).join(' '));
     const useLower = (use_case || '').toLowerCase();
     const prefLower = (preference || '').toLowerCase();
     const combined = useLower + ' ' + prefLower;
@@ -108,23 +267,24 @@ module.exports = {
     else if (combined.includes('显示') || combined.includes('屏幕')) category = '显示器';
     else if (combined.includes('工作站')) category = '工作站';
 
-    // 确定品牌/系列筛选 — 明确品牌优先，不叠加场景推断
+    // 确定品牌/系列筛选。显式品牌只认用户原话，避免模型在工具参数里自行加 ThinkBook/ThinkPad。
     const brandFilters = [];
-    const explicitBrands = [];
-    if (combined.includes('thinkpad')) explicitBrands.push('thinkpad');
-    if (combined.includes('thinkbook')) explicitBrands.push('thinkbook');
-    if (combined.includes('小新')) explicitBrands.push('小新');
-    if (combined.includes('拯救者')) explicitBrands.push('拯救者');
-    if (combined.includes('yoga')) explicitBrands.push('yoga');
+    const explicitBrands = findExplicitBrands(originalText);
 
     if (explicitBrands.length > 0) {
       brandFilters.push(...explicitBrands);
     } else {
-      if (combined.includes('游戏') || combined.includes('game')) brandFilters.push('拯救者');
-      if (combined.includes('商务') || combined.includes('办公')) brandFilters.push('thinkpad');
-      if (combined.includes('学生') || combined.includes('学习') || combined.includes('性价比')) brandFilters.push('小新');
+      if (combined.includes('游戏') || combined.includes('game')) brandFilters.push('legion');
+      if ((combined.includes('商务') || combined.includes('办公')) && siteType !== 'shop') {
+        brandFilters.push(siteType === 'b' ? 'thinkbook' : 'thinkpad');
+      }
+      if ((combined.includes('商务') || combined.includes('办公')) && siteType === 'shop') {
+        brandFilters.push('xiaoxin');
+        brandFilters.push('yoga');
+      }
+      if (combined.includes('学生') || combined.includes('学习') || combined.includes('性价比')) brandFilters.push('xiaoxin');
       if (combined.includes('设计') || combined.includes('创意')) brandFilters.push('yoga');
-      if (combined.includes('轻薄')) { brandFilters.push('小新'); brandFilters.push('yoga'); }
+      if (combined.includes('轻薄')) { brandFilters.push('xiaoxin'); brandFilters.push('yoga'); }
     }
 
     const budgetRange = parseBudgetRange(budget);
@@ -133,21 +293,28 @@ module.exports = {
     // 构建SQL查询
     // 排除测试商品
     const EXCLUDE_TEST = ` AND name NOT LIKE '%测试%' AND name NOT LIKE '%请勿下单%' AND name NOT LIKE '%勿拍%' AND name NOT LIKE '%不发货%'`;
+    const excludeSecondHand = !hasSecondHandIntent(originalText)
+      ? ` AND name NOT LIKE '%二手%' AND name NOT LIKE '%官翻%' AND name NOT LIKE '%翻新%'`
+      : '';
     let sql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?` + EXCLUDE_TEST;
     const params = [category];
+    sql += excludeSecondHand;
+    sql = addDeviceProductGuard(sql, category);
 
     if (minPrice > 0) { sql += ` AND price >= ?`; params.push(minPrice); }
     if (maxPrice < Infinity) { sql += ` AND price <= ?`; params.push(maxPrice); }
 
     if (brandFilters.length > 0) {
-      const brandClauses = brandFilters.map(() =>
-        `(json_extract(specs, '$.brand') LIKE ? OR json_extract(specs, '$.lvl3') LIKE ?)`
-      );
-      sql += ` AND (${brandClauses.join(' OR ')})`;
-      for (const b of brandFilters) { params.push(`%${b}%`, `%${b}%`); }
+      sql = addBrandFilter(sql, params, brandFilters, 'include');
+    } else if (siteType === 'shop' && !hasBusinessIntent(originalText)) {
+      sql = addBrandFilter(sql, params, BUSINESS_BRANDS, 'exclude');
+    } else if (siteType === 'b') {
+      sql = addBrandFilter(sql, params, ['thinkstation', 'zhaoyang', 'kaitian', 'qitian'], 'exclude');
+    } else if (siteType === 'biz') {
+      sql = addBrandFilter(sql, params, ['xiaoxin', 'yoga', 'legion', 'ideapad', 'lecoo', 'moto'], 'exclude');
     }
 
-    sql += ` ORDER BY price ASC LIMIT 20`;
+    sql += ` ORDER BY ${siteOrderClause(siteType)} price ASC LIMIT 20`;
 
     let rows = db.prepare(sql).all(...params);
 
@@ -155,9 +322,14 @@ module.exports = {
     if (rows.length === 0 && brandFilters.length > 0) {
       let fallbackSql = `SELECT name, sku, price, image_url, specs FROM products WHERE status = 'active' AND category = ?` + EXCLUDE_TEST;
       const fallbackParams = [category];
+      fallbackSql += excludeSecondHand;
+      fallbackSql = addDeviceProductGuard(fallbackSql, category);
       if (minPrice > 0) { fallbackSql += ` AND price >= ?`; fallbackParams.push(minPrice); }
       if (maxPrice < Infinity) { fallbackSql += ` AND price <= ?`; fallbackParams.push(maxPrice); }
-      fallbackSql += ` ORDER BY price ASC LIMIT 20`;
+      if (siteType === 'shop' && !hasBusinessIntent(originalText)) {
+        fallbackSql = addBrandFilter(fallbackSql, fallbackParams, BUSINESS_BRANDS, 'exclude');
+      }
+      fallbackSql += ` ORDER BY ${siteOrderClause(siteType)} price ASC LIMIT 20`;
       rows = db.prepare(fallbackSql).all(...fallbackParams);
     }
 
@@ -173,7 +345,7 @@ module.exports = {
         brand: specs.brand || '',
         series: specs.lvl3 || '',
         description: (specs.lvl3 || category),
-        url: specs.url || `https://item.lenovo.com.cn/product/${row.sku}.html`
+        url: specs.url || specs.pcDetailUrl || `https://item.lenovo.com.cn/product/${row.sku}.html`
       };
     });
 
@@ -181,7 +353,7 @@ module.exports = {
     const byBrand = {};
     const results = [];
     for (const p of products) {
-      const key = p.brand || p.name;
+      const key = inferBrand(p);
       byBrand[key] = (byBrand[key] || 0) + 1;
       if (byBrand[key] <= 3 && results.length < 8) results.push(p);
     }
@@ -198,8 +370,8 @@ module.exports = {
       products: results,
       total_active: totalActive?.cnt || 0,
       budget_applied: budgetRange.applied,
-      query: { use_case, budget, preference, category, minPrice, maxPrice: maxPrice < Infinity ? maxPrice : null },
-      note: `以上为${category}类目在售商品${budgetRange.applied ? `，已按预算「${budgetRange.label}」筛选` : ''}（共${totalActive?.cnt || 0}款在售），所有链接均为官网真实商品页。如需更多筛选条件请告知。`
+      query: { use_case, budget, preference, site_type: siteType, category, minPrice, maxPrice: maxPrice < Infinity ? maxPrice : null },
+      note: `以上为${category}类目在售商品${budgetRange.applied ? `，已按预算「${budgetRange.label}」筛选` : ''}。当前入口为${siteType === 'shop' ? '个人及家庭，已优先消费线' : siteType === 'b' ? '中小企业' : siteType === 'biz' ? '政教及大企业' : '首页'}；所有链接均为官网真实商品页。如需更多筛选条件请告知。`
     };
   }
 };

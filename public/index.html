@@ -773,7 +773,7 @@ html,body{height:100%;overflow:hidden}
 #displayCanvas .dc-card-price .dc-orig{font-size:11px;color:#999;text-decoration:line-through;margin-left:6px;font-weight:400}
 @media(max-width:768px){#displayCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;z-index:200}#landingPage.dc-open{display:block!important;z-index:30!important;opacity:1!important;transform:none!important;pointer-events:auto!important}}
 /* AI 商品上下文浮层（覆盖 input-bar） */
-.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #c4b5fd;border-radius:16px 16px 0 0;padding:36px 28px 40px;min-height:260px;box-shadow:0 -8px 32px rgba(109,40,217,.12);display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
+.ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(237,233,254,.98),rgba(245,240,255,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:16px 16px 0 0;padding:36px 28px 40px;min-height:260px;display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
 .ai-product-overlay.hiding{transform:translateY(100%);opacity:0;pointer-events:none}
 .ai-product-overlay .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
 .ai-product-overlay .ov-label{font-size:13px;color:#8b5cf6;font-weight:700;letter-spacing:.5px}
@@ -785,7 +785,7 @@ html,body{height:100%;overflow:hidden}
 .ai-product-overlay .ov-chips{display:flex;gap:12px;flex-wrap:wrap}
 .ai-product-overlay .ov-chips button{padding:12px 24px;border:1px solid #c4b5fd;border-radius:22px;background:#fff;color:#6d28d9;font-size:15px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:600;box-shadow:0 1px 4px rgba(109,40,217,.08)}
 .ai-product-overlay .ov-chips button:hover{background:#7c3aed;color:#fff;border-color:#7c3aed;box-shadow:0 2px 8px rgba(124,58,237,.25)}
-[data-theme="dark"] .ai-product-overlay{background:linear-gradient(135deg,rgba(30,27,58,.98),rgba(42,31,63,.98));border-color:#3b3560}
+[data-theme="dark"] .ai-product-overlay{background:linear-gradient(135deg,rgba(30,27,58,.98),rgba(42,31,63,.98))}
 [data-theme="dark"] .ai-product-overlay .ov-name{color:#e0e0e0}
 [data-theme="dark"] .ai-product-overlay .ov-close{background:rgba(255,255,255,.1)}
 [data-theme="dark"] .ai-product-overlay .ov-close svg{stroke:#aaa}
@@ -1758,7 +1758,7 @@ async function callAPI(msg, imageUrl, audioUrl){
   let firstChunk = true;
 
   try {
-    const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled };
+    const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled, site_type: window.__siteType || 'default' };
     if (imageUrl) bodyData.image_url = imageUrl;
     if (audioUrl) bodyData.audio_url = audioUrl;
     let workspaceContext = null;
@@ -2190,7 +2190,7 @@ async function callCompareAPI(msg) {
 
   const selfStream = (async () => {
     try {
-      const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled };
+      const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled, site_type: window.__siteType || 'default' };
       const res = await apiFetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
