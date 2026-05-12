@@ -961,7 +961,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 #displayCanvas .dc-back:hover{border-color:var(--accent);color:var(--accent)}
 #displayCanvas .dc-back svg{width:16px;height:16px}
 #displayCanvas .dc-title{font-size:15px;font-weight:600;color:var(--text)}
-#displayCanvas .dc-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+#displayCanvas .dc-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;width:100%}
 #displayCanvas .dc-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;display:flex;flex-direction:column}
 #displayCanvas .dc-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
 #displayCanvas .dc-card img{width:100%;aspect-ratio:1;object-fit:contain;background:#f5f5f5;padding:10px;box-sizing:border-box}
@@ -3030,8 +3030,10 @@ function openDetail(el) {
 function showDisplayCanvas(title, products) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
-  body.style.display = '';
-  body.style.gridTemplateColumns = '';
+  // 强制 grid 列表布局，避免被 showProductDetail 残留的 display:block + 1fr 污染
+  body.style.display = 'grid';
+  body.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
+  body.style.gap = '12px';
   document.getElementById('dcTitle').textContent = title;
   body.innerHTML = products.map(function(p) {
     var img = escHtml(p.image_url || p.图片 || '');
