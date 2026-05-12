@@ -3479,6 +3479,7 @@ function showToastHb(msg) {
 //  🎟️ 立即购买 → 自动顺序领取所有优惠
 // ══════════════════════════════════════
 function startBuyFlow(productName, productPrice) {
+  hideProductContextPrompt();
   // 已完成：直接重新弹出订单弹层
   if (startBuyFlow._done) {
     var ov = document.getElementById('orderOverlay');
