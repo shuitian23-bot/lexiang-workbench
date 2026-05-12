@@ -1069,9 +1069,15 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
   <div class="subnav-extra">
-    <button class="se-btn" onclick="openCustomizer()" title="定制配置 + 私人定制（AI 可话推荐方案）"><span class="ico">🛠</span>定制</button>
-    <button class="se-btn" onclick="openCouponCenter()" title="优惠券中心（AI 智能发券）"><span class="ico">🎟</span>优惠</button>
-    <button class="se-btn" onclick="openTradeIn()" title="以旧换新（AI 多轮估价）"><span class="ico">♻️</span>换新</button>
+    <button class="se-btn" onclick="openCustomizer()" title="定制配置 + 私人定制"><span class="ico">🛠</span>定制</button>
+    <button class="se-btn" onclick="openCouponCenter()" title="AI 智能发券"><span class="ico">🎟</span>优惠</button>
+    <button class="se-btn" onclick="quickAsk('我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" title="会员中心 · AI 助手"><span class="ico">👤</span>会员</button>
+    <button class="se-btn" onclick="openTradeIn()" title="AI 多轮估价"><span class="ico">♻️</span>换新</button>
+    <button class="se-btn" onclick="_askWarranty()" title="保修查询 · AI 助手"><span class="ico">🔧</span>保修</button>
+    <button class="se-btn" onclick="quickAsk('帮我生成一份晒单文案，机型不限，包括卖点、使用感受、推荐人群三段，并给我配图建议')" title="AI 写晒单"><span class="ico">📸</span>晒单</button>
+    <button class="se-btn" onclick="quickAsk('联想官方今晚和未来一周有什么直播？告诉我节目单和专享福利')" title="AI 查直播"><span class="ico">🎥</span>直播</button>
+    <button class="se-btn" onclick="quickAsk('我准备买一台拯救者笔记本，推荐哪些增值服务（延保/意外保/上门/数据迁移）最值得买，给个组合方案')" title="AI 推增值服务"><span class="ico">🛡</span>增值</button>
+    <button class="se-btn" onclick="quickAsk('帮我找北京最近的联想体验店，能预约到店体验拯救者 Y9000K 吗？')" title="AI 找门店"><span class="ico">📍</span>门店</button>
   </div>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -4883,15 +4889,13 @@ function openTradeIn() {
   }
 }
 window.openTradeIn = openTradeIn;
-function openWarrantyCheck() {
-  var sn = prompt('请输入序列号 SN（POC 演示，任意输入 6+ 位字符即可）：');
+function _askWarranty() {
+  var sn = prompt('请输入序列号 SN（POC 演示，任意 6+ 位即可）：');
   if (!sn || sn.length < 6) return;
-  showAIModal({
-    type: 'info',
-    title: '🔧 保修查询结果',
-    content: '## 序列号：' + sn + '\n\n| 项目 | 详情 |\n|---|---|\n| 机型 | ThinkPad X1 Carbon Gen 11 |\n| 购机日期 | 2024-03-15 |\n| 保修类型 | 整机 3 年（含上门） + 电池 1 年 |\n| 保修剩余 | **523 天**（至 2027-03-14） |\n| 已使用维修次数 | 0 次 |\n| 服务网点 | 联想北京海淀朝阳门店（距您 3.2km）|\n\n### 可申请服务\n- 🛠 **预约维修**（上门 / 寄修 / 到店）\n- 📞 **400 客服**：400-810-8888 转 1\n- 🔋 **电池健康检测**（剩 18 天保修内免费）\n\n*POC 演示数据，实际接联想服务系统*'
-  });
+  if (typeof quickAsk === 'function') quickAsk('帮我查询保修，SN: ' + sn);
 }
+window._askWarranty = _askWarranty;
+function openWarrantyCheck() { _askWarranty(); }
 function openStoreReservation() {
   showAIModal({
     type: 'info',

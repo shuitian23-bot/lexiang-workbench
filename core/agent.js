@@ -645,14 +645,21 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   const PRODUCT_KEYWORDS = /推荐|选购|预算|买|对比|选哪|值得买|怎么选|游戏本|笔记本|thinkpad|小新|拯救者|yoga|thinkbook|台式机|一体机|显示器|工作站|平板|服务器/i;
   // 场景化方案意图检测：强制调用 solution_recommend 工具
   const SOLUTION_KEYWORDS = /方案|解决方案|行业方案|教育采购|教育信息化|学校采购|医疗方案|医院方案|金融方案|政府方案|政务方案|党政|事业单位|会议室|智慧会议|数据中心|机房|私有云|虚拟化|等保|国密|中小企业|smb|批量采购|采购清单|全场景|学生方案|家庭方案|商旅|外勤|分支机构/i;
-  // 定制 / 优惠券 / 以旧换新 意图检测：强制调用对应 skill
+  // 定制 / 优惠券 / 以旧换新 / 会员 / 保修 / 晒单 / 直播 / 增值 / 门店 意图检测
   const CUSTOMIZE_KEYWORDS = /定制|diy|cto|私人定制|刻字|喷绘|礼盒|自己配|自定义配置|顶配|满配|选 ?cpu|选 ?内存|配一台|攒一台/i;
   const COUPON_KEYWORDS = /优惠|折扣|券|学生认证|教师认证|企业开户|新用户|开学季|开学|促销|秒杀|活动|领券|福利/i;
   const TRADEIN_KEYWORDS = /以旧换新|旧机抵扣|换购|旧的换新|抵扣价|回收|trade.?in/i;
+  const MEMBER_KEYWORDS = /我的会员|我的等级|我的乐豆|我的积分|我的权益|我的订单|会员中心|乐享会员|乐豆余额/i;
+  const WARRANTY_KEYWORDS = /保修|质保|保修期|保修剩余|sn|序列号|售后/i;
+  const SHOWCASE_KEYWORDS = /晒单|写晒单|帮我评测|写体验|写测评|发评测/i;
+  const LIVE_KEYWORDS = /直播|开播|主播|直播预告|直播间|直播抽奖/i;
+  const VAS_KEYWORDS = /增值服务|延保|意外保|碎屏险|上门安装|上门维修|数据迁移|系统重装/i;
+  const STORE_KEYWORDS = /门店|线下店|体验店|预约到店|实体店|店地址|附近的联想/i;
   let forceToolChoice = null;
-  if (!imageUrl && !audioUrl && !thinkingMode && (PRODUCT_KEYWORDS.test(userMessage) || SOLUTION_KEYWORDS.test(userMessage) || CUSTOMIZE_KEYWORDS.test(userMessage) || COUPON_KEYWORDS.test(userMessage) || TRADEIN_KEYWORDS.test(userMessage))) {
+  const ALL_KEYWORDS = [PRODUCT_KEYWORDS, SOLUTION_KEYWORDS, CUSTOMIZE_KEYWORDS, COUPON_KEYWORDS, TRADEIN_KEYWORDS, MEMBER_KEYWORDS, WARRANTY_KEYWORDS, SHOWCASE_KEYWORDS, LIVE_KEYWORDS, VAS_KEYWORDS, STORE_KEYWORDS];
+  if (!imageUrl && !audioUrl && !thinkingMode && ALL_KEYWORDS.some(re => re.test(userMessage))) {
     forceToolChoice = 'required';
-    console.log('[Agent] 推荐/方案/定制/优惠/换新意图检测命中，强制 tool_choice: required');
+    console.log('[Agent] 业务意图检测命中，强制 tool_choice: required');
   }
 
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续
