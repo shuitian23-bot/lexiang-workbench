@@ -128,7 +128,7 @@ router.post('/upload-audio', (req, res, next) => {
 
 // POST /api/chat
 router.post('/', async (req, res) => {
-  const { message, conv_id } = req.body;
+  const { message, conv_id, site_type } = req.body;
   const sessionId = getUid(req);
 
   if (!message || !message.trim()) {
@@ -136,7 +136,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const result = await runAgent(message.trim(), conv_id || null, sessionId, { userId: req.userId || null });
+    const result = await runAgent(message.trim(), conv_id || null, sessionId, { userId: req.userId || null, siteType: site_type || 'default' });
     if (req.userId && result.convId) {
       db.prepare('UPDATE conversations SET user_id = ? WHERE id = ? AND user_id IS NULL').run(req.userId, result.convId);
     }
@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
 
 // POST /api/chat/stream — SSE 流式响应
 router.post('/stream', async (req, res) => {
-  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url, product_context } = req.body;
+  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url, product_context, site_type } = req.body;
   const sessionId = getUid(req);
 
   if (!message || !message.trim()) {
@@ -190,6 +190,7 @@ router.post('/stream', async (req, res) => {
         imageUrl: image_url || null,
         audioUrl: audio_url || null,
         userId: req.userId || null,
+        siteType: site_type || 'default',
         productContext: product_context || null,
         onStatus: (status) => {
           // 拦截 frontend_navigate tool 调用，转发为 nav 事件给前端

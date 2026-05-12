@@ -13,6 +13,11 @@
   display: none;
 }
 
+#closeLandingBtn,
+#expandLandingBtn {
+  display: none !important;
+}
+
 /* PC 端用 display:none 隐藏 chatApp；移动端保留原始 opacity 机制 */
 @media (min-width: 769px) {
   #chatApp {
@@ -20,12 +25,12 @@
   }
 }
 
-/* ── 状态2：全宽对话 ── */
-html.in-chat #landingPage {
+/* ── 状态2a：全宽对话（非分屏） ── */
+html.in-chat:not(.split-mode) #landingPage {
   display: none;
 }
 
-html.in-chat #chatApp {
+html.in-chat:not(.split-mode) #chatApp {
   display: flex;
   width: 100%;
   max-width: 900px;
@@ -37,6 +42,152 @@ html.in-chat #chatApp {
 html.in-chat #splitDivider,
 html.in-chat #contentPanel {
   display: none;
+}
+
+/* ── 状态2b：分屏对话（PC，默认 chat 左 + landing 右） ── */
+@media (min-width: 769px) {
+  /* nav 拉通全宽（被 JS 提取到 body 顶层） */
+  html.split-mode.in-chat #mainNav {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vw !important;
+    z-index: 100;
+  }
+  /* nav logo 在分屏模式下保持完整图片 */
+  html.split-mode.in-chat #mainNav .logo img {
+    height: 24px;
+  }
+  /* hero 隐藏（左侧已有聊天） */
+  html.split-mode.in-chat #landingPage .hero {
+    display: none !important;
+  }
+  /* chat topbar 精简：隐藏标题，保留按钮 */
+  html.split-mode.in-chat .chat-topbar {
+    border-bottom: none !important;
+    background: var(--bg, #fff) !important;
+    position: sticky;
+    top: 0;
+    left: auto; right: 0;
+    width: 100%;
+    z-index: 10;
+    padding: 4px 8px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    justify-content: flex-end;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  html.split-mode.in-chat .chat-topbar .chat-title {
+    display: none !important;
+  }
+  html.split-mode.in-chat .chat-topbar .menu-btn {
+    display: flex !important;
+  }
+  /* 默认：chat 左，landing 右 */
+  html.split-mode.in-chat #chatApp {
+    display: flex !important;
+    position: fixed;
+    left: 0; right: auto; top: 0;
+    width: var(--split-left, 50%);
+    max-width: none;
+    margin: 0;
+    padding-top: 56px;
+    z-index: 2;
+    height: 100vh; height: 100dvh;
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
+  html.split-mode.in-chat #landingPage {
+    display: block !important;
+    position: fixed;
+    right: 0; left: auto; top: 0;
+    width: calc(100vw - var(--split-left, 50%) - 6px);
+    height: 100vh; height: 100dvh;
+    padding-top: 56px;
+    overflow-y: auto;
+    z-index: 1;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: all !important;
+  }
+  /* 换位：landing 左，chat 右 */
+  html.split-mode.in-chat.layout-swapped #chatApp {
+    left: auto; right: 0;
+    width: calc(100vw - var(--split-left, 50%) - 6px);
+  }
+  html.split-mode.in-chat.layout-swapped #landingPage {
+    left: 0; right: auto;
+    width: var(--split-left, 50%);
+  }
+  /* sidebar 弹出时提升 chatApp z-index，让 overlay(9980) 盖过 divider */
+  html.split-mode.in-chat #chatApp:has(.sb-overlay.active) {
+    z-index: 100 !important;
+  }
+  /* divider 在状态2b可见可拖 */
+  html.split-mode.in-chat:not(.content-open) #splitDivider {
+    display: block !important;
+    position: fixed;
+    left: var(--split-left, 50%);
+    top: 56px;
+    width: 6px;
+    height: calc(100vh - 56px);
+    z-index: 50;
+    cursor: col-resize;
+    background: var(--border, #e5e7eb);
+  }
+  html.split-mode.in-chat:not(.content-open) #splitDivider:hover,
+  html.split-mode.in-chat:not(.content-open) #splitDivider.dragging {
+    background: var(--accent, #7c3aed);
+  }
+  /* divider 上的折叠按钮 */
+  .split-collapse-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: var(--text2, #666);
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 51;
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+  }
+  #splitDivider:hover .split-collapse-btn {
+    opacity: 1;
+  }
+  /* ── 收起landing：纯聊天全宽 ── */
+  html.split-mode.in-chat.landing-collapsed #landingPage {
+    display: none !important;
+  }
+  html.split-mode.in-chat.landing-collapsed #splitDivider {
+    display: none !important;
+  }
+  html.split-mode.in-chat:not(.content-open):not(.landing-collapsed) #closeLandingBtn {
+    display: flex !important;
+  }
+  /* 换位时关闭按钮在左侧 */
+  html.split-mode.in-chat.layout-swapped #closeLandingBtn {
+    right: auto;
+    left: 8px;
+  }
+  html.split-mode.in-chat.landing-collapsed #chatApp {
+    width: 100% !important;
+    max-width: 900px;
+    margin: 0 auto;
+    left: 0; right: 0;
+  }
+  /* 收起时显示展开按钮 */
+  html.split-mode.in-chat.landing-collapsed #expandLandingBtn {
+    display: flex !important;
+  }
 }
 
 /* ── 状态3：分屏对话 ── */
@@ -52,11 +203,11 @@ html.in-chat #contentPanel {
     display: flex;
     flex-direction: row;
     position: fixed;
-    top: 0;
+    top: 56px;
     left: 0;
     width: 100vw;
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
     overflow: hidden;
     z-index: 1;
   }
@@ -80,6 +231,7 @@ html.in-chat #contentPanel {
     height: 100%;
     min-width: 0;
     overflow: hidden;
+    padding-top: 0;
     /* 覆盖原始 position:fixed，让 chatApp 参与 splitRoot flex 布局 */
     position: relative;
     top: auto;
@@ -99,6 +251,16 @@ html.in-chat #contentPanel {
     min-width: 0;
     height: 100%;
     overflow: hidden;
+  }
+
+  html.in-chat.content-open.content-maximized #chatApp,
+  html.in-chat.content-open.content-maximized #splitDivider {
+    display: none !important;
+  }
+
+  html.in-chat.content-open.content-maximized #contentPanel {
+    flex: 1 1 100%;
+    width: 100%;
   }
 
   /* ── 内容面板滑入/滑出动画 ── */
@@ -200,66 +362,152 @@ html.split-dragging embed {
   align-items: center;
   height: 44px;
   min-height: 44px;
-  padding: 0 12px;
+  padding: 0 10px 0 12px;
   background: #fff;
   border-bottom: 1px solid #E5E7EB;
   flex-shrink: 0;
+  gap: 10px;
 }
 
 /* Tab 容器 */
 .cp-tabs {
   display: flex;
   flex-direction: row;
-  gap: 0;
+  gap: 4px;
   flex: 1;
   min-width: 0;
   overflow-x: auto;
 }
 
+.cp-actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Tab + 单标签关闭 */
+.cp-tab-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 220px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cp-tab-wrap:hover,
+.cp-tab-wrap.active {
+  background: #F6F4FF;
+  border-color: #D8D0FF;
+}
+
+.cp-tab-wrap.home .cp-tab {
+  padding-right: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.cp-tab-wrap.active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #6D28D9;
+}
+
 /* 单个 Tab */
 .cp-tab {
-  padding: 10px 16px;
-  font-size: 14px;
+  max-width: 190px;
+  padding: 10px 26px 10px 12px;
+  font-size: 13px;
   font-family: inherit;
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
   cursor: pointer;
   color: #6B7280;
   white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s;
 }
 
-.cp-tab:hover {
-  border-bottom-color: #E5E7EB;
-}
-
+.cp-tab:hover,
+.cp-tab-wrap.active .cp-tab,
 .cp-tab.active {
-  border-bottom-color: #6D28D9;
   color: #6D28D9;
+}
+
+.cp-tab-wrap.active .cp-tab,
+.cp-tab.active {
   font-weight: 600;
 }
 
-/* 关闭按钮 */
-.cp-close {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.cp-tab-x {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
   border: none;
-  background: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #9CA3AF;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 15px;
+  line-height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-tab-x:hover {
+  background: #ECE7FF;
+  color: #6D28D9;
+}
+
+.cp-icon-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
   color: #6B7280;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
-  margin-left: 4px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.cp-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cp-icon-btn:hover,
+.cp-icon-btn.active {
+  background: #F3F4F6;
+  border-color: #E5E7EB;
+  color: #374151;
 }
 
 .cp-close:hover {
-  background: #F3F4F6;
+  color: #E53E3E;
 }
 
 /* 内容区 */
@@ -277,6 +525,42 @@ html.split-dragging embed {
   min-height: 0;
   overflow-y: auto;
   padding: 16px;
+}
+
+.cp-tab-content.cp-home-content {
+  padding: 0;
+  background: var(--bg, #F7F5FB);
+}
+
+html.in-chat.content-open .cp-home-content #landingPage {
+  display: block !important;
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding-top: 0 !important;
+  overflow-y: auto !important;
+  z-index: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+html.in-chat.content-open .cp-home-content #closeLandingBtn,
+html.in-chat.content-open .cp-home-content #expandLandingBtn {
+  display: none !important;
+}
+
+.cp-empty {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  font-size: 14px;
+  background: #fff;
+  border: 1px dashed #E5E7EB;
+  border-radius: 8px;
 }
 
 /* ── Tab 内容：商品网格 ── */
@@ -421,15 +705,33 @@ html.split-dragging embed {
 @keyframes cpd-spin { to { transform: rotate(360deg); } }
 
 .cpd-page { padding: 0; }
+.cpd-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(300px, 420px);
+  gap: 20px;
+  padding: 16px 20px 0;
+  align-items: stretch;
+}
 .cpd-hero {
   background: linear-gradient(135deg, #F8F7FF 0%, #F0EEFF 100%);
   padding: 24px; text-align: center;
+  border-radius: 12px;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .cpd-img-wrap img {
-  max-width: 100%; max-height: 240px; object-fit: contain;
+  max-width: 100%; max-height: 300px; object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,.08));
 }
-.cpd-info { padding: 16px 20px 0; }
+.cpd-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.cpd-info { padding: 0; }
 .cpd-name {
   margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #111827; line-height: 1.4;
 }
@@ -454,7 +756,7 @@ html.split-dragging embed {
 }
 
 .cpd-actions {
-  display: flex; gap: 10px; padding: 12px 20px 0;
+  display: flex; gap: 10px; padding: 14px 0 0;
 }
 .cpd-actions .cpd-buy {
   flex: 1; padding: 12px; background: linear-gradient(135deg, #E53E3E, #C53030);
@@ -470,7 +772,7 @@ html.split-dragging embed {
 .cpd-actions .cpd-ask:active { transform: scale(.97); }
 
 .cpd-actions-sub {
-  display: flex; gap: 10px; padding: 10px 20px 0;
+  display: flex; gap: 10px; padding: 10px 0 0;
 }
 .cpd-actions-sub .cpd-link,
 .cpd-actions-sub .cpd-compare {
@@ -496,6 +798,15 @@ html.split-dragging embed {
   color: #6B7280; padding: 8px 12px; white-space: nowrap; width: 100px;
 }
 .cpd-spec-value { color: #111827; padding: 8px 12px; }
+
+@media (max-width: 860px) {
+  .cpd-main {
+    grid-template-columns: 1fr;
+  }
+  .cpd-hero {
+    min-height: 260px;
+  }
+}
 
 /* ── Tab 内容：iframe 预览 ── */
 .cp-preview {

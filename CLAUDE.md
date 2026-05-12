@@ -1,6 +1,6 @@
 # 联想乐享（lexiang）— Claude Code 上手指南
 
-> **生产**: https://leaibot.cn （新加坡服务器 `/root/lexiang`，PM2 进程 `lexiang`，端口 `:3001`）
+> **生产**: https://leaibot.cn （leaiteam 服务器 `/opt/projects/lexiang`，PM2 进程 `lexiang`，端口 `:3001`）
 > **业务**: 联想官方 B 端 AI 购物助手 — 商品导购、企业方案、订单售后、门店查询
 > **Stack**: Node.js + Express + SQLite + dashscope (qwen) + 联想 AIGC 代理
 
@@ -135,14 +135,14 @@ pnpm start                  # 跑 server.js 监听 :3001
 ## 六、生产部署
 
 ```bash
-# 改完本地 → push → 服务器拉
+# 改完本地 → push → leaiteam 自动部署
 git push origin main
-ssh singapore "cd /root/lexiang && git pull && pm2 reload lexiang"
+# cron 1 分钟内自动 pull + reload
 # 看日志
-ssh singapore "pm2 logs lexiang --lines 50"
+ssh leaiteam "sudo pm2 logs lexiang --lines 50"
 ```
 
-**生产 PM2 进程 id 9**。回滚：`git revert HEAD && git push && pm2 reload`。
+**生产 PM2 进程**：leaiteam root 用户下的 `lexiang`。回滚：`git revert HEAD && git push`，等 cron 自动部署，或手动 `ssh leaiteam "cd /opt/projects/lexiang && git pull && sudo pm2 reload lexiang"`。
 
 数据库 `lexiang.db` 是 SQLite WAL 模式，改 schema 走 `db/migrations/`。
 
@@ -173,6 +173,8 @@ ssh singapore "pm2 logs lexiang --lines 50"
 
 ## 九、最近 commit 重点
 
+- `da7eaa0` PC 导购预算解析修复：支持 5000元以内 / 5千以内 / 区间价，不再混入超预算商品
+- `0f9bc1a` PC 分屏导航与首页状态收口：logo、导航高亮、回首页状态复位
 - `263744a` PC 左右分屏 + AI 控制 landing 导航（本次）
 - `3af9328` wiki-shop 子站
 - `1f9f14e` GEO 看板优化
@@ -180,3 +182,86 @@ ssh singapore "pm2 logs lexiang --lines 50"
 - `293f555` 右侧预览面板（旧逻辑，分屏后已被 split-layout.js 接管）
 
 完整历史 `git log --oneline | head -30`。
+
+---
+
+## 十、团队协作约定（**所有人/所有 AI 必读**）
+
+### 部署架构（2026-05-10 起）
+
+- **生产**: leaiteam 服务器 `/opt/projects/lexiang`（不是 singapore 了）
+- **域名**: leaibot.cn + 8 个二级域名 wiki/leai/ai/biz/b/admin/shop/www，全 HTTPS
+- **进程**: PM2 fork mode，端口 3001
+- **自动部署**: cron 每分钟 `git pull origin main && pm2 reload lexiang`（带 `--is-ancestor` 防循环）
+- **每日备份**: 03:00 sqlite3 .backup → /opt/backups/lexiang/（保留 30 天）
+
+### 改代码必须 commit + push（**强制**）
+
+不管你用 Claude / GLM / Kimi / Sonnet，每次改完代码：
+
+```bash
+git add -A
+git commit -m "feat|fix|chore|docs: 简短描述"
+git push origin main
+# cron 1 分钟内自动 pull + reload
+```
+
+**为什么**：cron 自动部署依赖 GitHub main 是最新。如果你只改不 commit，部署机制会卡住别人的改动。
+
+**Commit message 格式**（Conventional Commits）：
+- `feat:` 新功能
+- `fix:` 修 bug
+- `chore:` 杂事（依赖升级、配置）
+- `docs:` 改文档
+- `refactor:` 重构（功能不变）
+
+### 紧急小调整可以直接改
+
+改 CSS 颜色、文案、配置数值这种 1 分钟修复：
+- 直接 vim 改 + 保存（前端文件即生效）
+- 改完**当天必须 commit + push**，别养成漂着不 push 的坏习惯
+
+### 后端代码必须 reload
+
+改 `server.js` / `routes/` / `skills/` / `core/` / `db/` 后：
+```bash
+sudo pm2 reload lexiang
+```
+（如果你 push 了，cron 会自动 reload，不用手动）
+
+### 多人协作防冲突
+
+改之前先拉：
+```bash
+cd /opt/projects/lexiang
+git pull origin main           # 先拉别人改动
+# 然后改 + commit + push
+```
+
+push 失败 `rejected`：
+```bash
+git pull --rebase origin main  # rebase 别人改动到你之上
+# 解冲突后
+git push origin main
+```
+
+### 端口约定
+
+| 用途 | 端口 |
+|---|---|
+| **生产** /opt/projects/lexiang | 3001 |
+| baiyu 个人 dev ~/lexiang | 3002 |
+| guanjf2（观）个人 dev ~/lexiang | 3011 |
+
+### Backup 紧急恢复
+
+```bash
+# 列 backup
+ls -lt /opt/backups/lexiang/ | head -5
+# 恢复某个时间点（先 stop pm2）
+sudo pm2 stop lexiang
+sudo rm /opt/projects/lexiang/lexiang.db /opt/projects/lexiang/lexiang.db-wal /opt/projects/lexiang/lexiang.db-shm
+gunzip -c /opt/backups/lexiang/lexiang_YYYYMMDD_HHMMSS.db.gz > /opt/projects/lexiang/lexiang.db
+sudo chown ubuntu:dev /opt/projects/lexiang/lexiang.db
+sudo pm2 start lexiang
+```

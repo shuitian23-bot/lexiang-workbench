@@ -146,17 +146,31 @@ async function geoLoadData() {
 
     // 第二步：剩余请求全部并发，互不阻塞
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
+    const platSitesPromise = Promise.allSettled(GEO_PLATFORMS.map(p =>
+      fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({project_id:GEO_PROJECT_ID, model:p}) }).then(r => r.json())
+    ));
     const sitesPromise = geoLoadSites();
+    const citationsPromise = (async () => {
+      try {
+        const body = { project_id: GEO_PROJECT_ID };
+        const r = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        geoState.citationsData = await r.json();
+      } catch (e) { console.error('citations fetch', e); geoState.citationsData = null; }
+    })();
     const questionsPromise = geoLoadQuestions();
     const trendChartPromise = geoLoadTrendChart();
     const wordCloudPromise = geoLoadWordCloud(30);
 
-    // 平台分布完成后立即渲染
-    platPromise.then(results => {
+    // 平台分布 + 平台级sites一起完成后渲染
+    Promise.all([platPromise, platSitesPromise]).then(([overviewResults, sitesResults]) => {
       geoState.platData = {};
+      geoState.platSitesData = {};
       GEO_PLATFORMS.forEach((p, i) => {
-        if (results[i].status === 'fulfilled' && results[i].value.code === 200) {
-          geoState.platData[p] = results[i].value;
+        if (overviewResults[i].status === 'fulfilled' && overviewResults[i].value.code === 200) {
+          geoState.platData[p] = overviewResults[i].value;
+        }
+        if (sitesResults[i].status === 'fulfilled' && sitesResults[i].value.code === 200) {
+          geoState.platSitesData[p] = sitesResults[i].value.data?.sites || [];
         }
       });
       geoRenderPlatDist();
@@ -331,26 +345,29 @@ function geoApplyCompare() {
 }
 
 function geoRenderEcology(data) {
-  const cem = data.content_ecology_metrics || {};
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v || 0).toLocaleString(); };
-  set('gv-wiki-cite', cem.wiki_citation_count);
-  set('gv-lenovo-cite', cem.lenovo_citation_count);
+  // overview API的citation字段经常返回0，实际引用数据由geoLoadSites()从sites数据计算
 }
 
 function geoRenderPlatDist() {
   const c = document.getElementById('geo-plat-dist'); if (!c) return;
   const pd = geoState.platData;
+  const psd = geoState.platSitesData || {};
+  // 优先用 citations API 的 model_counts（wiki + lenovo 合计），失败回退 sites 合计
+  const cit = geoState.citationsData || {};
+  const modelCountsMap = {};
+  (cit.model_counts || []).forEach(mc => {
+    modelCountsMap[mc.model] = (mc.wiki_citation_count || 0) + (mc.lenovo_citation_count || 0);
+  });
   const rows = GEO_PLATFORMS.map(p => {
     const d = pd[p];
     if (!d) return { p, cites: 0, brand: 0, missing: true };
-    const cem = d.content_ecology_metrics || {};
     const bcm = d.brand_coverage_metrics || {};
-    return {
-      p,
-      cites: (cem.wiki_citation_count || 0) + (cem.lenovo_citation_count || 0),
-      brand: bcm.brand_exposure_rate || 0,
-      missing: false,
-    };
+    let cites = modelCountsMap[p];
+    if (cites === undefined) {
+      const sites = psd[p] || [];
+      cites = geoCitesFromSites(sites).total;
+    }
+    return { p, cites, brand: bcm.brand_exposure_rate || 0, missing: false };
   });
   const mx = Math.max(...rows.map(r => r.cites), 1);
   c.innerHTML = rows.map(r => {
@@ -367,9 +384,22 @@ function geoRenderPlatDist() {
 // ===== GEO 信源分布 (sites API) =====
 const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#4f46e5','#15803d','#b45309','#9333ea','#0e7490','#be123c','#6366f1','#047857','#ea580c'];
 
+function geoCitesFromSites(sites) {
+  const lenovo = sites.filter(s => s.domain && s.domain.includes('lenovo'));
+  const isWiki = d => /leai\.|wiki\.|iknow\./.test(d);
+  const wiki = lenovo.filter(s => isWiki(s.domain));
+  const official = lenovo.filter(s => !isWiki(s.domain));
+  return {
+    wiki: wiki.reduce((sum, s) => sum + (s.count || 0), 0),
+    official: official.reduce((sum, s) => sum + (s.count || 0), 0),
+    total: lenovo.reduce((sum, s) => sum + (s.count || 0), 0),
+    count: lenovo.length,
+  };
+}
+
 async function geoLoadSites() {
   try {
-    const body = { project_id: GEO_PROJECT_ID };
+const body = { project_id: GEO_PROJECT_ID };
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) return;
@@ -379,8 +409,20 @@ async function geoLoadSites() {
     geoRenderSiteRank(sites);
     geoRenderLinkTop50(sites);
     const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    const lenovoCount = sites.filter(s => s.domain && s.domain.includes('lenovo')).length;
-    set('gv-sites-total', lenovoCount.toLocaleString());
+    const cites = geoCitesFromSites(sites);
+    set('gv-sites-total', cites.count.toLocaleString());
+    // wiki/lenovo 引用数走 citations 接口（content_ecology_metrics），sites 域名合计不准
+    try {
+      const citeResp = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const citeJson = await citeResp.json();
+      const cem = citeJson.content_ecology_metrics || {};
+      set('gv-wiki-cite', (cem.wiki_citation_count || 0).toLocaleString());
+      set('gv-lenovo-cite', (cem.lenovo_citation_count || 0).toLocaleString());
+    } catch (err) {
+      console.error('citations API failed', err);
+      set('gv-lenovo-cite', cites.official.toLocaleString());
+      set('gv-wiki-cite', cites.wiki.toLocaleString());
+    }
   } catch(e) { console.error('geoLoadSites', e); }
 }
 

@@ -165,6 +165,56 @@ app.get('/api/products/:sku', (req, res) => {
   res.json({ ...row, specs });
 });
 
+function normalizeLenovoUrl(url) {
+  if (!url) return '';
+  const text = String(url).trim();
+  if (!text) return '';
+  if (text.startsWith('//')) return 'https:' + text;
+  if (text.startsWith('http://')) return text.replace(/^http:\/\//, 'https://');
+  return text;
+}
+
+function canonicalProductUrl(row) {
+  if (!row) return '';
+  let specs = {};
+  try { specs = JSON.parse(row.specs || '{}'); } catch {}
+  const candidates = [specs.url, specs.pcDetailUrl, specs.wapUrl, specs.mobileUrl]
+    .map(normalizeLenovoUrl)
+    .filter(Boolean);
+  const preferred = candidates.find(u => /\/\/(b|item|tk)\.lenovo\.com\.cn\//.test(u)) || candidates[0];
+  if (row.status !== 'active') {
+    return 'https://s.lenovo.com.cn/search/?key=' + encodeURIComponent(row.name || row.sku || '联想');
+  }
+  return preferred || (row.sku ? `https://item.lenovo.com.cn/product/${row.sku}.html` : '');
+}
+
+// 链接解析：把模型可能写错的联想商品页，按 SKU 修正为产品库里的真实 URL
+app.get('/api/resolve-link', (req, res) => {
+  const raw = normalizeLenovoUrl(req.query.url);
+  if (!raw) return res.status(400).json({ error: 'missing url' });
+  let parsed;
+  try { parsed = new URL(raw); } catch { return res.status(400).json({ error: 'invalid url' }); }
+
+  let resolved = raw;
+  let source = 'input';
+  let product = null;
+  const productMatch = parsed.pathname.match(/\/product\/(\d+)\.html/i);
+  if (/lenovo\.com\.cn$/i.test(parsed.hostname) && productMatch) {
+    const sku = productMatch[1];
+    const row = db.prepare('SELECT sku, name, status, specs FROM products WHERE sku = ?').get(sku);
+    if (row) {
+      const canonical = canonicalProductUrl(row);
+      if (canonical) {
+        resolved = canonical;
+        source = 'products';
+        product = { sku: row.sku, name: row.name, status: row.status };
+      }
+    }
+  }
+
+  res.json({ url: resolved, changed: resolved !== raw, source, product });
+});
+
 // Preview proxy — 绕过外部站点 X-Frame-Options 限制
 app.get('/api/preview', async (req, res) => {
   const url = req.query.url;
