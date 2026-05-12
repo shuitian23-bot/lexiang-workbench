@@ -221,6 +221,22 @@ router.post('/stream', async (req, res) => {
               products: status.result.products || [],
             });
           }
+          // 拦截 frontend_customize tool 调用，弹 CTO 配置器
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_customize') {
+            send('customize', {
+              product_name: status.result.product_name || '',
+              schema: status.result.schema || 'laptop',
+              preset: status.result.preset || 'default',
+            });
+          }
+          // 拦截 frontend_coupon tool 调用，弹优惠券中心
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_coupon') {
+            send('coupon', {
+              highlight: status.result.highlight || [],
+              title: status.result.title || '为您推荐的优惠券',
+              desc: status.result.desc || '',
+            });
+          }
           // 转发 status 事件时剥离 result 字段，避免大对象（如 product_query 返回）塞进 SSE
           const { result, ...lite } = status || {};
           send('status', lite);

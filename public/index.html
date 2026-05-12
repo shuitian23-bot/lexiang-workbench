@@ -736,6 +736,89 @@ html,body{height:100%;overflow:hidden}
 .mall-sec-empty{padding:32px 16px;text-align:center;color:var(--text2);font-size:13px;border:1px dashed var(--border);border-radius:10px}
 .mall-sec-empty button{margin-left:8px;padding:4px 12px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-size:12px;font-family:inherit}
 .mall-sec-empty button:hover{background:var(--accent);color:#fff}
+/* ── CTO 定制配置器 modal ── */
+.cto-modal{width:min(960px,94vw);height:min(720px,86vh)}
+.cto-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.cto-head img{width:64px;height:64px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border);padding:4px}
+.cto-head .cto-title{flex:1}
+.cto-head .cto-title h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.cto-head .cto-title p{font-size:12px;color:var(--text2)}
+.cto-tabs{display:flex;gap:0;padding:0 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cto-tab{padding:12px 20px;cursor:pointer;font-size:14px;color:var(--text2);border-bottom:2px solid transparent;transition:all .2s;font-weight:500}
+.cto-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.cto-body{flex:1;overflow:auto;padding:18px 22px}
+.cto-group{margin-bottom:18px}
+.cto-group-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.cto-group-label small{font-size:11px;color:var(--text2);font-weight:400}
+.cto-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.cto-opt{border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:2px;background:var(--card)}
+.cto-opt:hover{border-color:#bbb}
+.cto-opt.active{border-color:var(--accent);background:rgba(184,51,64,.05)}
+[data-theme="dark"] .cto-opt.active{background:rgba(184,51,64,.12)}
+.cto-opt-name{font-size:13px;font-weight:500;color:var(--text)}
+.cto-opt-add{font-size:12px;color:var(--accent);font-weight:600}
+.cto-opt-add.zero{color:#999;font-weight:400}
+.cto-opt-desc{font-size:11px;color:var(--text2)}
+.cto-opt-color{display:flex;align-items:center;gap:8px}
+.cto-opt-color-swatch{width:18px;height:18px;border-radius:50%;border:1px solid var(--border)}
+/* 私人定制 tab */
+.cto-pers-block{padding:14px;border:1px dashed var(--border);border-radius:8px;margin-bottom:14px}
+.cto-pers-block h4{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.cto-pers-block h4 .price-add{font-size:12px;color:var(--accent);font-weight:500}
+.cto-pers-input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);box-sizing:border-box}
+.cto-pers-input:focus{outline:none;border-color:var(--accent)}
+.cto-pers-spots{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.cto-pers-spot{padding:4px 12px;border-radius:999px;border:1px solid var(--border);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s}
+.cto-pers-spot.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cto-pers-presets{display:flex;gap:8px;flex-wrap:wrap}
+.cto-pers-preset{padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:12px;cursor:pointer;background:var(--card);color:var(--text);transition:all .15s}
+.cto-pers-preset:hover{border-color:var(--accent);color:var(--accent)}
+.cto-pers-preset.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* 底部总价栏 */
+.cto-foot{flex-shrink:0;padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--card2);background:rgba(0,0,0,.02)}
+[data-theme="dark"] .cto-foot{background:rgba(255,255,255,.03)}
+.cto-foot-price{flex:1}
+.cto-foot-price .label{font-size:11px;color:var(--text2)}
+.cto-foot-price .total{font-size:24px;font-weight:800;color:var(--accent);font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.cto-foot-price .total::before{content:'¥';font-size:16px;margin-right:2px}
+.cto-foot-price .breakdown{font-size:11px;color:var(--text2);margin-top:2px}
+.cto-foot-actions{display:flex;gap:10px}
+.cto-btn{padding:11px 22px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.cto-btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.cto-btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.cto-btn-primary{background:linear-gradient(90deg,#6b2068,#b83340);color:#fff}
+.cto-btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 6px 16px rgba(184,51,64,.3)}
+/* ── 优惠券中心 modal ── */
+.coupon-modal{width:min(560px,94vw);max-height:80vh;display:flex;flex-direction:column}
+.coupon-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.coupon-head h3{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.coupon-head p{font-size:12px;color:var(--text2)}
+.coupon-list{flex:1;overflow:auto;padding:14px 22px}
+.coupon-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:10px;margin-bottom:10px;background:linear-gradient(90deg,#fff5f5,#fff0f6);border:1px solid #fce0e6;position:relative;overflow:hidden}
+[data-theme="dark"] .coupon-item{background:linear-gradient(90deg,rgba(184,51,64,.12),rgba(107,32,104,.12));border-color:rgba(184,51,64,.3)}
+.coupon-item.received{opacity:.55}
+.coupon-amount{flex-shrink:0;text-align:center;min-width:80px}
+.coupon-amount .num{font-size:28px;font-weight:800;color:#b83340;line-height:1;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.coupon-amount .num::before{content:'¥';font-size:14px;margin-right:1px;font-weight:600}
+.coupon-amount .cond{font-size:11px;color:#666;margin-top:4px}
+.coupon-info{flex:1;min-width:0}
+.coupon-info h4{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.coupon-info p{font-size:11px;color:var(--text2);line-height:1.5}
+.coupon-info .scope{display:inline-block;padding:1px 7px;border-radius:4px;background:rgba(184,51,64,.1);color:#b83340;font-size:10px;margin-top:4px}
+.coupon-take{flex-shrink:0;padding:8px 16px;border-radius:999px;background:#b83340;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.coupon-take:hover{filter:brightness(1.1);transform:scale(1.05)}
+.coupon-take.done{background:#999;cursor:default;transform:none}
+.coupon-take.done:hover{filter:none}
+@keyframes couponFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(60vw,40vh) scale(.2);opacity:0}}
+.coupon-fly{animation:couponFly 1s ease-out forwards;position:fixed;z-index:99999;pointer-events:none}
+/* 顶部「优惠」「定制」「会员」入口（仅子站） */
+.subnav-extra{display:none;align-items:center;gap:6px;margin-left:18px}
+html[data-site="shop"] .subnav-extra,
+html[data-site="b"] .subnav-extra,
+html[data-site="biz"] .subnav-extra{display:flex}
+.subnav-extra .se-btn{padding:5px 11px;border-radius:6px;font-size:12.5px;color:var(--text2);background:transparent;border:1px solid transparent;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .15s}
+.subnav-extra .se-btn:hover{color:var(--accent);background:rgba(184,51,64,.06)}
+.subnav-extra .se-btn .ico{font-size:14px}
 /* 服务腰带（节奏穿插） */
 .mall-belt{margin:24px 0;padding:18px 24px;border-radius:14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .mall-belt-text{flex:1;min-width:200px}
@@ -939,6 +1022,13 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
+  <div class="subnav-extra">
+    <button class="se-btn" onclick="openCustomizer()" title="定制配置 / 私人定制"><span class="ico">🛠</span>定制</button>
+    <button class="se-btn" onclick="openCouponCenter()" title="优惠券中心"><span class="ico">🎟</span>优惠</button>
+    <button class="se-btn" onclick="openMemberCenter()" title="会员中心"><span class="ico">👤</span>会员</button>
+    <button class="se-btn" onclick="openTradeIn()" title="以旧换新"><span class="ico">♻️</span>换新</button>
+    <button class="se-btn" onclick="openWarrantyCheck()" title="保修查询"><span class="ico">🔧</span>保修</button>
+  </div>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
@@ -1943,6 +2033,18 @@ async function callAPI(msg, imageUrl, audioUrl){
             const html = renderSolutions(d.solutions, d.title);
             if (html) bubbleEl.querySelector('.mbubble').insertAdjacentHTML('beforeend', html);
             scrollBottom();
+          }
+        }
+
+        else if (lastEvent === 'customize') {
+          if (typeof openCustomizer === 'function') {
+            openCustomizer({ productName: d.product_name, schema: d.schema, preset: d.preset });
+          }
+        }
+
+        else if (lastEvent === 'coupon') {
+          if (typeof openCouponCenter === 'function') {
+            openCouponCenter({ highlight: d.highlight, title: d.title, desc: d.desc });
           }
         }
 
@@ -4248,6 +4350,347 @@ function setLoginMsg(msg, color){
   el.textContent = msg;
   el.style.color = color === 'green' ? '#10b981' : '#e03c31';
 }
+
+// ════════════════════════════════════════════════════════════════
+//  POC 体验场景模块（mock 数据演示）
+//  CTO 定制 / 私人定制 / 优惠券 / 会员 / 以旧换新 / 保修查询 / 预约到店
+// ════════════════════════════════════════════════════════════════
+
+// ── CTO 配置矩阵（按 category 内置） ──
+var CTO_CONFIG = {
+  laptop: {
+    label: '笔记本电脑',
+    base: 6999,
+    groups: [
+      { key:'cpu', label:'处理器', required:true, options:[
+        { id:'i5', name:'酷睿 Ultra 5 225H', desc:'14 核 18 线程',  add:0 },
+        { id:'i7', name:'酷睿 Ultra 7 255H', desc:'16 核 22 线程',  add:1500 },
+        { id:'i9', name:'酷睿 Ultra 9 285H', desc:'24 核 32 线程',  add:3500 },
+      ]},
+      { key:'ram', label:'内存', required:true, options:[
+        { id:'16',  name:'16GB DDR5 5600',  desc:'够用',        add:0 },
+        { id:'32',  name:'32GB DDR5 5600',  desc:'多任务推荐',  add:800 },
+        { id:'64',  name:'64GB DDR5 5600',  desc:'创作 / 虚拟机',add:2200 },
+      ]},
+      { key:'ssd', label:'固态硬盘', required:true, options:[
+        { id:'512', name:'512GB PCIe 4.0', desc:'',          add:0 },
+        { id:'1t',  name:'1TB PCIe 4.0',   desc:'推荐',      add:400 },
+        { id:'2t',  name:'2TB PCIe 4.0',   desc:'素材库充足',add:1100 },
+        { id:'4t',  name:'4TB PCIe 4.0',   desc:'专业创作', add:2800 },
+      ]},
+      { key:'gpu', label:'独立显卡', required:false, options:[
+        { id:'arc',  name:'核显 Arc 140T',     desc:'轻办公',          add:0 },
+        { id:'5070', name:'RTX 5070 8GB',      desc:'游戏 / 渲染',      add:2200 },
+        { id:'5080', name:'RTX 5080 12GB',     desc:'高画质 4K',        add:4500 },
+        { id:'5090', name:'RTX 5090 D 16GB',   desc:'电竞旗舰',         add:8000 },
+      ]},
+      { key:'screen', label:'屏幕', required:false, options:[
+        { id:'fhd',  name:'15.6" FHD 144Hz',  desc:'',                add:0 },
+        { id:'2k',   name:'16" 2.5K 165Hz',   desc:'高刷推荐',        add:600 },
+        { id:'oled', name:'16" 4K OLED',      desc:'设计师专业屏',    add:2000 },
+      ]},
+      { key:'color', label:'颜色', type:'color', options:[
+        { id:'gray',  name:'碳晶黑',  swatch:'#1a1a1a', add:0 },
+        { id:'white', name:'冰魄白',  swatch:'#f0f0f0', add:0 },
+        { id:'silver',name:'信风灰',  swatch:'#9aa0a6', add:0 },
+      ]},
+    ],
+  },
+  desktop: {
+    label: '台式机',
+    base: 5999,
+    groups: [
+      { key:'cpu', label:'处理器', required:true, options:[
+        { id:'i5',  name:'i5-14600KF',  desc:'14 核', add:0 },
+        { id:'i7',  name:'i7-14700KF',  desc:'20 核', add:1800 },
+        { id:'i9',  name:'i9-14900KF',  desc:'24 核', add:3500 },
+      ]},
+      { key:'ram', label:'内存', required:true, options:[
+        { id:'16', name:'16GB DDR5', desc:'', add:0 },
+        { id:'32', name:'32GB DDR5', desc:'推荐', add:600 },
+        { id:'64', name:'64GB DDR5', desc:'专业', add:1800 },
+      ]},
+      { key:'ssd', label:'固态硬盘', required:true, options:[
+        { id:'512', name:'512GB NVMe', desc:'',     add:0 },
+        { id:'1t',  name:'1TB NVMe',   desc:'推荐', add:300 },
+        { id:'2t',  name:'2TB NVMe',   desc:'',     add:900 },
+      ]},
+      { key:'gpu', label:'独立显卡', required:true, options:[
+        { id:'5060', name:'RTX 5060 Ti 8GB', desc:'1080p 游戏', add:0 },
+        { id:'5070', name:'RTX 5070 12GB',   desc:'2K 游戏',   add:1500 },
+        { id:'5080', name:'RTX 5080 16GB',   desc:'4K 游戏',   add:3500 },
+        { id:'5090', name:'RTX 5090 D 24GB', desc:'电竞旗舰',  add:7500 },
+      ]},
+    ],
+  },
+};
+
+// 按机型名/category 推断走哪套 CTO 配置
+function _detectCtoSchema(productName, category) {
+  if (category === '台式机' || /台式|主机|刃9000|GeekPro/i.test(productName||'')) return 'desktop';
+  return 'laptop';
+}
+
+// 私人定制选项
+var PERSONAL_CUSTOM = {
+  engrave: { label:'激光刻字', add:50, maxLen:18, spots:['A 面 LOGO 区','键盘掌托','电源适配器','收纳包'] },
+  print:   { label:'喷绘图案', add:200, presets:['🐉 中国龙','🚀 太空火箭','🎮 电竞图腾','🌸 樱花','⚡ 闪电','🦄 独角兽'] },
+  gift:    { label:'礼盒包装', add:30, presets:['经典商务礼盒','节日喜庆礼盒','简约白礼盒','学生纪念礼盒'] },
+};
+
+// 当前定制状态（单例）
+var _ctoState = null;
+
+function openCustomizer(opts) {
+  opts = opts || {};
+  var schemaKey = opts.schema || 'laptop';
+  if (opts.productName) schemaKey = _detectCtoSchema(opts.productName, opts.category);
+  var schema = CTO_CONFIG[schemaKey];
+  if (!schema) return;
+  // 默认选第 1 项
+  var selections = {};
+  schema.groups.forEach(function(g){ if (g.options.length) selections[g.key] = g.options[0].id; });
+  if (opts.preset === 'top') {
+    schema.groups.forEach(function(g){ var last = g.options[g.options.length-1]; if (last) selections[g.key] = last.id; });
+  } else if (opts.preset === 'value') {
+    schema.groups.forEach(function(g){ if (g.options.length >= 2) selections[g.key] = g.options[1].id; });
+  }
+  _ctoState = {
+    schemaKey: schemaKey,
+    productName: opts.productName || schema.label + '（自定义机型）',
+    productImg: opts.productImg || '',
+    selections: selections,
+    personal: { engrave:{enabled:false,text:'',spot:0}, print:{enabled:false,preset:0}, gift:{enabled:false,preset:0} },
+    activeTab: 'config',
+  };
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+  var mask = document.createElement('div');
+  mask.className = 'ai-modal-mask';
+  mask.onclick = function(e){ if (e.target === mask) mask.remove(); };
+  mask.innerHTML = '<div class="ai-modal cto-modal" id="ctoModal"></div>';
+  document.body.appendChild(mask);
+  _renderCustomizer();
+}
+window.openCustomizer = openCustomizer;
+
+function _renderCustomizer() {
+  var s = _ctoState;
+  if (!s) return;
+  var modal = document.getElementById('ctoModal');
+  if (!modal) return;
+  var schema = CTO_CONFIG[s.schemaKey];
+  var imgHtml = s.productImg ? '<img src="'+escHtml(s.productImg)+'" alt="">' : '<div style="width:64px;height:64px;background:linear-gradient(135deg,#f0f0f0,#dadada);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px">💻</div>';
+  // 总价
+  var total = schema.base;
+  schema.groups.forEach(function(g){
+    var sel = g.options.find(function(o){ return o.id === s.selections[g.key]; });
+    if (sel) total += (sel.add || 0);
+  });
+  var personalAdd = 0;
+  if (s.personal.engrave.enabled) personalAdd += PERSONAL_CUSTOM.engrave.add;
+  if (s.personal.print.enabled)   personalAdd += PERSONAL_CUSTOM.print.add;
+  if (s.personal.gift.enabled)    personalAdd += PERSONAL_CUSTOM.gift.add;
+  total += personalAdd;
+  // 配置 tab
+  var configBody = schema.groups.map(function(g){
+    var opts = g.options.map(function(o){
+      var active = s.selections[g.key] === o.id ? ' active' : '';
+      var addLbl = o.add > 0 ? '+¥'+o.add.toLocaleString() : '已含';
+      var addCls = o.add > 0 ? '' : ' zero';
+      if (g.type === 'color') {
+        return '<div class="cto-opt'+active+'" onclick="_ctoSelect(\''+g.key+'\',\''+o.id+'\')"><div class="cto-opt-color"><span class="cto-opt-color-swatch" style="background:'+o.swatch+'"></span><span class="cto-opt-name">'+escHtml(o.name)+'</span></div></div>';
+      }
+      return '<div class="cto-opt'+active+'" onclick="_ctoSelect(\''+g.key+'\',\''+o.id+'\')">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="cto-opt-name">'+escHtml(o.name)+'</span><span class="cto-opt-add'+addCls+'">'+addLbl+'</span></div>'+
+        (o.desc ? '<div class="cto-opt-desc">'+escHtml(o.desc)+'</div>' : '')+
+        '</div>';
+    }).join('');
+    return '<div class="cto-group"><div class="cto-group-label">'+escHtml(g.label)+(g.required?'':' <small>可选</small>')+'</div><div class="cto-options">'+opts+'</div></div>';
+  }).join('');
+  // 私人定制 tab
+  var p = s.personal;
+  var spotsHtml = PERSONAL_CUSTOM.engrave.spots.map(function(sp,i){
+    return '<span class="cto-pers-spot'+(p.engrave.spot===i?' active':'')+'" onclick="_ctoSetEngraveSpot('+i+')">'+escHtml(sp)+'</span>';
+  }).join('');
+  var printHtml = PERSONAL_CUSTOM.print.presets.map(function(pr,i){
+    return '<span class="cto-pers-preset'+(p.print.preset===i?' active':'')+'" onclick="_ctoSetPrint('+i+')">'+pr+'</span>';
+  }).join('');
+  var giftHtml = PERSONAL_CUSTOM.gift.presets.map(function(g,i){
+    return '<span class="cto-pers-preset'+(p.gift.preset===i?' active':'')+'" onclick="_ctoSetGift('+i+')">'+escHtml(g)+'</span>';
+  }).join('');
+  var personalBody =
+    '<div class="cto-pers-block">'+
+      '<h4><label><input type="checkbox" '+(p.engrave.enabled?'checked':'')+' onchange="_ctoTogglePers(\'engrave\',this.checked)" style="margin-right:6px;vertical-align:middle"> '+PERSONAL_CUSTOM.engrave.label+'</label><span class="price-add">+¥'+PERSONAL_CUSTOM.engrave.add+'</span></h4>'+
+      (p.engrave.enabled ? (
+        '<input class="cto-pers-input" placeholder="刻字内容（最多 '+PERSONAL_CUSTOM.engrave.maxLen+' 字符，仅限中英文/数字）" value="'+escHtml(p.engrave.text)+'" maxlength="'+PERSONAL_CUSTOM.engrave.maxLen+'" oninput="_ctoSetEngraveText(this.value)">'+
+        '<div class="cto-pers-spots">'+spotsHtml+'</div>'
+      ) : '<div style="font-size:12px;color:var(--text2)">勾选启用：在 A 面 / 掌托 / 电源 / 收纳包 选位置激光刻字（永久）</div>')+
+    '</div>'+
+    '<div class="cto-pers-block">'+
+      '<h4><label><input type="checkbox" '+(p.print.enabled?'checked':'')+' onchange="_ctoTogglePers(\'print\',this.checked)" style="margin-right:6px;vertical-align:middle"> '+PERSONAL_CUSTOM.print.label+'</label><span class="price-add">+¥'+PERSONAL_CUSTOM.print.add+'</span></h4>'+
+      (p.print.enabled ? '<div class="cto-pers-presets">'+printHtml+'</div><div style="font-size:11px;color:var(--text2);margin-top:6px">或上传自定义图案（POC 演示，未实现上传）</div>' : '<div style="font-size:12px;color:var(--text2)">勾选启用：A 面定制喷绘，6 款预设图案 / 自定义上传</div>')+
+    '</div>'+
+    '<div class="cto-pers-block">'+
+      '<h4><label><input type="checkbox" '+(p.gift.enabled?'checked':'')+' onchange="_ctoTogglePers(\'gift\',this.checked)" style="margin-right:6px;vertical-align:middle"> '+PERSONAL_CUSTOM.gift.label+'</label><span class="price-add">+¥'+PERSONAL_CUSTOM.gift.add+'</span></h4>'+
+      (p.gift.enabled ? '<div class="cto-pers-presets">'+giftHtml+'</div>' : '<div style="font-size:12px;color:var(--text2)">勾选启用：4 款礼盒包装，可附手写卡片</div>')+
+    '</div>';
+  // 整体
+  var bodyHtml = s.activeTab === 'config' ? configBody : personalBody;
+  var breakdown = '基础 ¥'+schema.base.toLocaleString();
+  if (personalAdd > 0) breakdown += ' + 私人定制 ¥'+personalAdd;
+  modal.innerHTML =
+    '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--text2);z-index:2">×</button>'+
+    '<div class="cto-head">'+imgHtml+'<div class="cto-title"><h3>定制 '+escHtml(s.productName)+'</h3><p>选配置 → 实时算价 → 加入对比 / 立即购买</p></div></div>'+
+    '<div class="cto-tabs">'+
+      '<div class="cto-tab'+(s.activeTab==='config'?' active':'')+'" onclick="_ctoSwitchTab(\'config\')">基础配置</div>'+
+      '<div class="cto-tab'+(s.activeTab==='personal'?' active':'')+'" onclick="_ctoSwitchTab(\'personal\')">私人定制</div>'+
+    '</div>'+
+    '<div class="cto-body">'+bodyHtml+'</div>'+
+    '<div class="cto-foot">'+
+      '<div class="cto-foot-price"><div class="label">实时报价（含选配项）</div><div class="total">'+total.toLocaleString()+'</div><div class="breakdown">'+breakdown+'</div></div>'+
+      '<div class="cto-foot-actions">'+
+        '<button class="cto-btn cto-btn-ghost" onclick="_ctoAddCompare()">加入对比</button>'+
+        '<button class="cto-btn cto-btn-primary" onclick="_ctoBuy()">立即购买</button>'+
+      '</div>'+
+    '</div>';
+}
+function _ctoSelect(group, optId) { _ctoState.selections[group] = optId; _renderCustomizer(); }
+function _ctoSwitchTab(t) { _ctoState.activeTab = t; _renderCustomizer(); }
+function _ctoTogglePers(key, checked) { _ctoState.personal[key].enabled = checked; _renderCustomizer(); }
+function _ctoSetEngraveText(t) { _ctoState.personal.engrave.text = t; }
+function _ctoSetEngraveSpot(i) { _ctoState.personal.engrave.spot = i; _renderCustomizer(); }
+function _ctoSetPrint(i) { _ctoState.personal.print.preset = i; _renderCustomizer(); }
+function _ctoSetGift(i) { _ctoState.personal.gift.preset = i; _renderCustomizer(); }
+window._ctoSelect = _ctoSelect; window._ctoSwitchTab = _ctoSwitchTab; window._ctoTogglePers = _ctoTogglePers;
+window._ctoSetEngraveText = _ctoSetEngraveText; window._ctoSetEngraveSpot = _ctoSetEngraveSpot;
+window._ctoSetPrint = _ctoSetPrint; window._ctoSetGift = _ctoSetGift;
+
+function _ctoBuy() {
+  var s = _ctoState;
+  alert('已生成定制订单（POC 演示）：\n\n' + s.productName + '\n配置：' + JSON.stringify(s.selections) + (s.personal.engrave.enabled ? '\n刻字："' + s.personal.engrave.text + '"' : '') + '\n\n实际生产环境会跳转到联想官网下单页。');
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+}
+function _ctoAddCompare() {
+  var s = _ctoState;
+  var schema = CTO_CONFIG[s.schemaKey];
+  var total = schema.base;
+  schema.groups.forEach(function(g){ var sel = g.options.find(function(o){ return o.id === s.selections[g.key]; }); if (sel) total += sel.add; });
+  if (s.personal.engrave.enabled) total += PERSONAL_CUSTOM.engrave.add;
+  if (s.personal.print.enabled) total += PERSONAL_CUSTOM.print.add;
+  if (s.personal.gift.enabled) total += PERSONAL_CUSTOM.gift.add;
+  var key = 'cto-' + Date.now();
+  window._compareList.push({ key:key, name:'[定制] '+s.productName, price:total, image_url:s.productImg, description:'定制配置 '+JSON.stringify(s.selections), category:schema.label });
+  if (typeof _saveCompare === 'function') _saveCompare();
+  if (typeof _renderCmpFab === 'function') _renderCmpFab();
+  alert('已加入对比清单（'+window._compareList.length+'/'+(typeof COMPARE_MAX!=='undefined'?COMPARE_MAX:4)+'）');
+}
+window._ctoBuy = _ctoBuy; window._ctoAddCompare = _ctoAddCompare;
+
+// ── 优惠券中心（mock 数据） ──
+var COUPONS = [
+  { id:'student-500',  amount:500,  cond:'满 5000 可用',  title:'学生认证立减券', scope:'笔记本 / 平板', tag:'student',  desc:'认证学生身份后立减 500，每人限 1 张' },
+  { id:'teacher-300',  amount:300,  cond:'满 3000 可用',  title:'教师专享券',     scope:'全场 PC',      tag:'teacher',  desc:'认证教师身份后可领，每月 1 张' },
+  { id:'enterprise-1000', amount:1000, cond:'满 10000 可用', title:'企业新户开户金', scope:'B 端整机',     tag:'enterprise', desc:'企业账号首次注册可领' },
+  { id:'gov-2000',     amount:2000, cond:'满 50000 可用', title:'政教大单优惠',   scope:'工作站 / 服务器', tag:'gov',     desc:'政府/事业单位采购专享' },
+  { id:'newuser-200',  amount:200,  cond:'满 2000 可用',  title:'新用户专享',     scope:'全场',         tag:'newuser', desc:'新注册用户立享，30 天有效' },
+  { id:'tradein-300',  amount:300,  cond:'以旧换新可叠加',title:'换新加码券',     scope:'换新机型',     tag:'tradein', desc:'以旧换新订单可额外抵扣 300' },
+  { id:'gaming-500',   amount:500,  cond:'满 8000 可用',  title:'电竞旗舰券',     scope:'拯救者 / 刃9000K', tag:'gaming', desc:'游戏本/电竞台式机专享' },
+  { id:'creator-400',  amount:400,  cond:'满 7000 可用',  title:'创作者专享',     scope:'YOGA Pro / 工作站',tag:'creator',desc:'设计师 / 视频创作者' },
+];
+var _receivedCoupons = JSON.parse(localStorage.getItem('lexiang.coupons.v1') || '[]');
+
+function openCouponCenter(opts) {
+  opts = opts || {};
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+  var mask = document.createElement('div');
+  mask.className = 'ai-modal-mask';
+  mask.onclick = function(e){ if (e.target === mask) mask.remove(); };
+  // 高亮指定 tag 的券到顶部
+  var highlight = opts.highlight || [];
+  var sorted = COUPONS.slice().sort(function(a,b){
+    var ai = highlight.indexOf(a.tag), bi = highlight.indexOf(b.tag);
+    if (ai >= 0 && bi < 0) return -1;
+    if (bi >= 0 && ai < 0) return 1;
+    if (ai >= 0 && bi >= 0) return ai - bi;
+    return 0;
+  });
+  var headTitle = opts.title || '优惠券中心';
+  var headDesc = opts.desc || '当前可领取的券，点「立即领取」一键收入钱包';
+  var listHtml = sorted.map(function(c){
+    var done = _receivedCoupons.indexOf(c.id) >= 0;
+    var hi = highlight.indexOf(c.tag) >= 0 ? ' style="box-shadow:0 0 0 2px #b83340"' : '';
+    return '<div class="coupon-item'+(done?' received':'')+'" data-id="'+c.id+'"'+hi+'>'+
+      '<div class="coupon-amount"><div class="num">'+c.amount+'</div><div class="cond">'+escHtml(c.cond)+'</div></div>'+
+      '<div class="coupon-info"><h4>'+escHtml(c.title)+'</h4><p>'+escHtml(c.desc)+'</p><span class="scope">'+escHtml(c.scope)+'</span></div>'+
+      '<button class="coupon-take'+(done?' done':'')+'" onclick="_takeCoupon(\''+c.id+'\',this)" '+(done?'disabled':'')+'>'+(done?'已领取':'立即领取')+'</button>'+
+      '</div>';
+  }).join('');
+  mask.innerHTML = '<div class="ai-modal coupon-modal">'+
+    '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--text2);z-index:2">×</button>'+
+    '<div class="coupon-head"><h3>'+escHtml(headTitle)+'</h3><p>'+escHtml(headDesc)+'</p></div>'+
+    '<div class="coupon-list">'+listHtml+'</div>'+
+    '</div>';
+  document.body.appendChild(mask);
+}
+window.openCouponCenter = openCouponCenter;
+
+function _takeCoupon(id, btn) {
+  if (_receivedCoupons.indexOf(id) >= 0) return;
+  _receivedCoupons.push(id);
+  try { localStorage.setItem('lexiang.coupons.v1', JSON.stringify(_receivedCoupons)); } catch(e){}
+  // 飞行动效到右下角
+  var rect = btn.getBoundingClientRect();
+  var fly = document.createElement('div');
+  fly.className = 'coupon-fly';
+  fly.style.left = rect.left + 'px';
+  fly.style.top = rect.top + 'px';
+  fly.style.width = rect.width + 'px';
+  fly.style.height = rect.height + 'px';
+  fly.innerHTML = '<div style="background:#b83340;color:#fff;border-radius:999px;padding:8px 16px;font-weight:600;text-align:center;line-height:1.2;box-shadow:0 8px 24px rgba(184,51,64,.4)">🎟 +1</div>';
+  document.body.appendChild(fly);
+  setTimeout(function(){ fly.remove(); }, 1100);
+  btn.textContent = '已领取';
+  btn.classList.add('done');
+  btn.disabled = true;
+  btn.closest('.coupon-item').classList.add('received');
+}
+window._takeCoupon = _takeCoupon;
+
+// ── 会员中心 / 以旧换新 / 保修查询 / 预约到店（轻量 mock 模态） ──
+function openMemberCenter() {
+  showAIModal({
+    type: 'info',
+    title: '👤 会员中心',
+    content: '## V3 黄金会员\n\n**乐豆余额**：12,380 颗\n**等级进度**：距 V4 钻石还差 8,620 成长值\n\n---\n\n### 会员权益（4 项可用）\n\n- 🎁 **生日礼**：联名手机壳 1 件（待领取）\n- 🚚 **免邮特权**：全年免邮（已生效）\n- 🛠 **延保 1 年**：仅限新购整机（待激活）\n- 📞 **专属客服**：1对1 选购顾问（拨打 400-810-8888 转 V）\n\n---\n\n### 我的订单（mock）\n- LX2026050801 待发货 · ThinkBook 16+ 2026 · ¥9,999\n- LX2026042315 已收货 · 拯救者 Y9000P · ¥14,999\n\n*POC 演示数据，实际接联想会员系统*'
+  });
+}
+function openTradeIn() {
+  showAIModal({
+    type: 'info',
+    title: '♻️ 以旧换新评估',
+    content: '## 通过 AI 估价（推荐）\n\n点右下角 **乐享 AI** → 输入：\n> 我有一台 ThinkPad T14 2021 i7 16G 512G，外观九成新，想换 ThinkBook 16+ 2026\n\nAI 会多轮询问 → 给出抵扣价 + 推荐换购机型 + 加码券。\n\n---\n\n## 或手动评估\n\n填写旧机信息（POC 演示 mock）：\n\n| 项目 | 您的旧机 | 抵扣价 |\n|---|---|---|\n| 品牌 / 型号 | ThinkPad T14 (2021) | — |\n| CPU | i7-1165G7 | — |\n| 内存 / 硬盘 | 16G / 512G | — |\n| 外观成色 | 九成新 | — |\n| **预估抵扣** | | **¥3,200** |\n\n+ 可叠加「换新加码券 ¥300」\n\n*实际由联想 IT 服务事业部估价系统出价*'
+  });
+}
+function openWarrantyCheck() {
+  var sn = prompt('请输入序列号 SN（POC 演示，任意输入 6+ 位字符即可）：');
+  if (!sn || sn.length < 6) return;
+  showAIModal({
+    type: 'info',
+    title: '🔧 保修查询结果',
+    content: '## 序列号：' + sn + '\n\n| 项目 | 详情 |\n|---|---|\n| 机型 | ThinkPad X1 Carbon Gen 11 |\n| 购机日期 | 2024-03-15 |\n| 保修类型 | 整机 3 年（含上门） + 电池 1 年 |\n| 保修剩余 | **523 天**（至 2027-03-14） |\n| 已使用维修次数 | 0 次 |\n| 服务网点 | 联想北京海淀朝阳门店（距您 3.2km）|\n\n### 可申请服务\n- 🛠 **预约维修**（上门 / 寄修 / 到店）\n- 📞 **400 客服**：400-810-8888 转 1\n- 🔋 **电池健康检测**（剩 18 天保修内免费）\n\n*POC 演示数据，实际接联想服务系统*'
+  });
+}
+function openStoreReservation() {
+  showAIModal({
+    type: 'info',
+    title: '📍 预约到店体验',
+    content: '## 推荐就近门店\n\n### 联想北京朝阳大悦城店 ⭐ 4.8\n- 📍 朝阳区朝阳北路 101 号大悦城 4 层\n- 🕐 10:00-22:00（今日营业中）\n- 📞 010-5867-1234\n- 🚇 朝阳门站 D 口出 步行 5 分钟\n\n**可体验机型**：拯救者 Y9000K / 小新 Pro 2026 / YOGA Air 14s / ThinkPad X1 / 会议平板\n\n---\n\n### 预约时段（POC 演示）\n选择时段一键预约，到店出示短信验证：\n- ✅ 今日 14:00-15:00（剩 3 个名额）\n- ✅ 今日 16:00-17:00（剩 5 个名额）\n- ✅ 明日 10:00-11:00（剩 8 个名额）\n\n*实际接联想门店预约系统，可手机短信验证到店*'
+  });
+}
+window.openMemberCenter = openMemberCenter;
+window.openTradeIn = openTradeIn;
+window.openWarrantyCheck = openWarrantyCheck;
+window.openStoreReservation = openStoreReservation;
 
 
 </script>
