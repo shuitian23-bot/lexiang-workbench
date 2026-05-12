@@ -231,9 +231,10 @@
     if (!lp) return;
     var btn = document.createElement('button');
     btn.id = 'closeLandingBtn';
-    btn.title = '收起此面板';
-    btn.innerHTML = '×';
-    btn.style.cssText = 'position:fixed;top:62px;right:8px;z-index:60;background:var(--bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2,#666);box-shadow:0 1px 4px rgba(0,0,0,.1);line-height:1';
+    btn.className = 'split-panel-float-btn';
+    btn.title = '收起右侧面板';
+    btn.setAttribute('aria-label', '收起右侧面板');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
     btn.addEventListener('click', collapseLanding);
     document.body.appendChild(btn);
   }
@@ -825,9 +826,10 @@
     // 展开按钮（收起后显示在右侧边缘）
     var expandBtn = document.createElement('button');
     expandBtn.id = 'expandLandingBtn';
+    expandBtn.className = 'split-panel-float-btn';
     expandBtn.title = '展开右侧面板';
-    expandBtn.style.cssText = 'display:none;position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:60;background:var(--bg,#fff);border:1px solid var(--border,#e5e7eb);border-right:none;border-radius:8px 0 0 8px;padding:8px 4px;cursor:pointer;color:var(--text2,#666);box-shadow:-2px 0 8px rgba(0,0,0,.08)';
-    expandBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 7 6 12 11 17"/><polyline points="18 7 13 12 18 17"/></svg>';
+    expandBtn.setAttribute('aria-label', '展开右侧面板');
+    expandBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M14 4v16"/></svg>';
     expandBtn.addEventListener('click', expandLanding);
     document.body.appendChild(expandBtn);
 
