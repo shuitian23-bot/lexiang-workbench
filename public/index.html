@@ -890,7 +890,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <section class="sec fi"><div class="sec-head"><h2>最新动态</h2><a href="#">查看全部 →</a></div>
     <div class="feat">
       <div class="feat-main" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(lexiang-legion-y9000k.jpg);background-size:cover;background-position:center"><div class="ov"><span class="badge">新品首发</span><h3>拯救者 Y9000K</h3><p>搭载最新处理器，极致性能释放</p></div></div>
-      <div class="feat-s" style="background:linear-gradient(135deg,#667eea,#764ba2)"><p>SAP · 企业服务</p><h4>SAP 基础架构解决方案</h4></div>
+      <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(img/r-2.png);background-size:cover;background-position:center"><p>SAP · 企业服务</p><h4>SAP 基础架构解决方案</h4></div>
       <div class="feat-s" style="background:linear-gradient(135deg,#11998e,#38ef7d)"><p>AI · 智慧办公</p><h4>AI+ PC 重新定义生产力</h4></div>
     </div></section>
   <section class="sec fi"><div class="sec-head"><h2>热销产品</h2><a href="#">查看全部 →</a></div>
@@ -1174,6 +1174,12 @@ if (typeof marked !== 'undefined') {
     return '<a href="javascript:void(0)" onclick="openPreview(\'' + safeHref + '\')" style="cursor:pointer">' + label + '</a>';
   };
   marked.setOptions({ renderer: renderer });
+}
+
+// 裸 URL 与紧跟的中文/中文标点之间插空格，避免 marked autolink 把中文吞进 href
+function sanitizeAutolink(text) {
+  if (!text) return text;
+  return text.replace(/(https?:\/\/[!-~]+?)([^\s\x00-\x7F])/g, '$1 $2');
 }
 
 // ══════════════════════════════════════
@@ -1592,7 +1598,7 @@ function appendBubble(role, text, renderMd=false){
   const d = document.createElement('div');
   d.className = 'msg ' + role;
   const content = (renderMd && role === 'ai' && typeof marked !== 'undefined')
-    ? marked.parse(text).replace(/<table/g,'<div class="table-wrap"><table').replace(/<\/table>/g,'</table></div>')
+    ? marked.parse(sanitizeAutolink(text)).replace(/<table/g,'<div class="table-wrap"><table').replace(/<\/table>/g,'</table></div>')
     : escHtml(text);
   if (role === 'ai') {
     const body = document.createElement('div');
@@ -1618,7 +1624,7 @@ function appendBubble(role, text, renderMd=false){
 // ── Markdown render helper ──
 function renderMdText(text) {
   if (typeof marked === 'undefined') return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  return marked.parse(text)
+  return marked.parse(sanitizeAutolink(text))
     .replace(/<table/g,'<div class="table-wrap"><table')
     .replace(/<\/table>/g,'</table></div>');
 }
@@ -3005,7 +3011,7 @@ function showAIModal(data) {
         '</table></div>' +
       '</div>';
   } else if (data.type === 'info') {
-    var rendered = typeof marked !== 'undefined' ? marked.parse(data.content || '') : escHtml(data.content || '');
+    var rendered = typeof marked !== 'undefined' ? marked.parse(sanitizeAutolink(data.content || '')) : escHtml(data.content || '');
     mask.innerHTML =
       '<div class="ai-modal">' +
         '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()">×</button>' +
