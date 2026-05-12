@@ -152,6 +152,21 @@
     }
   }
 
+  function normalizeUrl(url) {
+    url = String(url || '').trim();
+    if (url.indexOf('//') === 0) return 'https:' + url;
+    if (url.indexOf('http://') === 0) return url.replace(/^http:\/\//, 'https://');
+    return url;
+  }
+
+  function resolvePreviewUrl(url) {
+    url = normalizeUrl(url);
+    return fetch('/api/resolve-link?url=' + encodeURIComponent(url))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) { return data && data.url ? normalizeUrl(data.url) : url; })
+      .catch(function () { return url; });
+  }
+
   function findReusableTab(type, data) {
     data = data || {};
     for (var i = 0; i < tabs.length; i++) {
@@ -524,7 +539,7 @@
       var price = p.price || '';
       var desc = p.description || '';
       var sku = p.sku || '';
-      var url = p.pcDetailUrl || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#');
+      var url = normalizeUrl(p.url || p.pcDetailUrl || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#'));
 
       var card = document.createElement('div');
       card.className = 'cp-product-card';
@@ -602,14 +617,21 @@
     var url = data && data.url || '';
     var bar = document.createElement('div');
     bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:#6B7280';
-    bar.innerHTML = '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(url) + '</span>' +
-      '<a href="' + escH(url) + '" target="_blank" rel="noopener" style="color:#6D28D9;white-space:nowrap">↗ 新窗口打开</a>';
+    bar.innerHTML = '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">正在校验链接...</span>' +
+      '<a href="' + escH(normalizeUrl(url)) + '" target="_blank" rel="noopener" style="color:#6D28D9;white-space:nowrap">↗ 新窗口打开</a>';
     container.appendChild(bar);
     var iframe = document.createElement('iframe');
     iframe.className = 'cp-preview';
-    iframe.src = '/api/preview?url=' + encodeURIComponent(url);
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
     container.appendChild(iframe);
+    resolvePreviewUrl(url).then(function (resolvedUrl) {
+      data.url = resolvedUrl;
+      var changed = normalizeUrl(url) !== resolvedUrl;
+      bar.innerHTML = '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(resolvedUrl) + (changed ? '（已校正链接）' : '') + '</span>' +
+        '<a href="' + escH(resolvedUrl) + '" target="_blank" rel="noopener" style="color:#6D28D9;white-space:nowrap">↗ 新窗口打开</a>';
+      iframe.src = '/api/preview?url=' + encodeURIComponent(resolvedUrl);
+      updateWorkspaceContextFromTab(getActiveTab());
+    });
   };
 
   RENDERERS.form = function (container, data) {

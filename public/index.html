@@ -1125,12 +1125,20 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 <script>
 // ── Preview Panel ──
 let _previewUrl = '';
-function openPreview(url) {
+function resolvePreviewUrl(url) {
+  return fetch('/api/resolve-link?url=' + encodeURIComponent(url))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){ return data && data.url ? data.url : url; })
+    .catch(function(){ return url; });
+}
+async function openPreview(url) {
+  const originalUrl = url;
+  url = await resolvePreviewUrl(url);
   _previewUrl = url;
   const panel = document.getElementById('previewPanel');
   const iframe = document.getElementById('previewIframe');
   const fb = document.getElementById('previewFallback');
-  document.getElementById('previewUrl').textContent = url;
+  document.getElementById('previewUrl').textContent = url !== originalUrl ? url + '（已校正链接）' : url;
   fb.style.display = 'none';
   iframe.style.display = 'block';
   const proxyUrl = '/api/preview?url=' + encodeURIComponent(url);
@@ -3861,6 +3869,6 @@ function setLoginMsg(msg, color){
 
 
 </script>
-<script src="/split-layout.js?v=20260512-floating-close"></script>
+<script src="/split-layout.js?v=20260512-link-resolver"></script>
 </body>
 </html>

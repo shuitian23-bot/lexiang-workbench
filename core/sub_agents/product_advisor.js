@@ -9,6 +9,26 @@ const db = require('../../db/schema');
 const API_KEY = process.env.DASHSCOPE_API_KEY;
 const MODEL = 'qwen-plus';
 
+function normalizeUrl(url) {
+  if (!url) return '';
+  const text = String(url).trim();
+  if (!text) return '';
+  if (text.startsWith('//')) return 'https:' + text;
+  if (text.startsWith('http://')) return text.replace(/^http:\/\//, 'https://');
+  return text;
+}
+
+function productUrl(row) {
+  let specs = {};
+  try { specs = JSON.parse(row.specs || '{}'); } catch {}
+  const candidates = [specs.url, specs.pcDetailUrl, specs.wapUrl, specs.mobileUrl]
+    .map(normalizeUrl)
+    .filter(Boolean);
+  return candidates.find(u => /\/\/(b|item|tk)\.lenovo\.com\.cn\//.test(u)) ||
+    candidates[0] ||
+    (row.sku ? `https://item.lenovo.com.cn/product/${row.sku}.html` : '');
+}
+
 const SYSTEM_PROMPT = `你是联想产品选购专家"小想"，精通联想全线产品的性能参数、定位和价格区间。
 
 ## 你的专长
@@ -24,7 +44,8 @@ const SYSTEM_PROMPT = `你是联想产品选购专家"小想"，精通联想全�
 - 给出2-3个具体型号或系列，简要说明适合理由
 - 有预算限制时严格按预算筛选
 - 对比类问题直接列表对比核心差异
-- 末尾提示"更多详情请访问联想官网 lenovo.com.cn"
+- 不要自行编造或改写商品链接；只能使用"已校验商品链接"里的 URL
+- 禁止输出 www.lenovo.com.cn/product/数字.html 这种猜测链接；没有已校验 URL 就只给商品名并建议到官网搜索
 
 ## 产品知识
 价位参考：
@@ -47,9 +68,19 @@ module.exports = {
       if (keywords.length > 0) {
         const where = keywords.map(() => '(name LIKE ? OR category LIKE ?)').join(' OR ');
         const params = keywords.flatMap(k => [`%${k}%`, `%${k}%`]);
-        matchedProducts = db.prepare(
-          `SELECT name, category, price, original_price, description, specs FROM products WHERE price > 0 AND (${where}) ORDER BY price ASC LIMIT 5`
+        const rows = db.prepare(
+          `SELECT sku, name, category, price, original_price, description, specs, status FROM products WHERE status = 'active' AND price > 0 AND (${where}) ORDER BY price ASC LIMIT 5`
         ).all(...params);
+        matchedProducts = rows.map(row => ({
+          sku: row.sku,
+          name: row.name,
+          category: row.category,
+          price: row.price,
+          original_price: row.original_price,
+          description: row.description,
+          specs: row.specs,
+          url: productUrl(row)
+        }));
       }
     } catch (e) { /* ignore */ }
 
@@ -70,6 +101,12 @@ module.exports = {
     let systemContent = SYSTEM_PROMPT;
     if (extraContext && extraContext.trim()) {
       systemContent += '\n\n## 知识库参考\n' + extraContext;
+    }
+    if (matchedProducts.length > 0) {
+      systemContent += '\n\n## 已校验商品链接\n' + matchedProducts.map((p, i) =>
+        `${i + 1}. ${p.name} | SKU: ${p.sku || '-'} | 价格: ${p.price || '-'} | URL: ${p.url || '无'}`
+      ).join('\n');
+      systemContent += '\n请在需要给链接时只使用以上 URL，不能把域名改成 www.lenovo.com.cn。';
     }
 
     const messages = [
