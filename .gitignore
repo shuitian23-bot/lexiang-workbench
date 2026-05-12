@@ -39,3 +39,4 @@ public/shop-chat/
 public/b-chat/
 public/biz-chat/
 
+.claude/settings.local.json

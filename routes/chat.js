@@ -205,6 +205,14 @@ router.post('/stream', async (req, res) => {
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_modal') {
             send('modal', status.result);
           }
+          // 拦截 frontend_solutions tool 调用，推送场景化方案卡片
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_solutions') {
+            send('solutions', {
+              title: status.result.title || '推荐方案',
+              solutions: status.result.solutions || [],
+              note: status.result.note || ''
+            });
+          }
           // 转发 status 事件时剥离 result 字段，避免大对象（如 product_query 返回）塞进 SSE
           const { result, ...lite } = status || {};
           send('status', lite);

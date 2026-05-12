@@ -406,6 +406,35 @@ html,body{height:100%;overflow:hidden}
 .leai-pbtn{display:flex;align-items:center;justify-content:center;gap:4px;width:129px;height:35px;border-radius:100px;background:#f3f0f7;color:#4d144a;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;border:none}
 .leai-pbtn:hover{background:#e8e0f0}
 [data-theme="dark"] .leai-pbtn{background:var(--card);color:var(--text2)}
+/* ── 场景化方案卡（AI 输出 solutions event）── */
+.sol-wrap{margin-top:16px}
+.sol-head{font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
+.sol-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.sol-card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:linear-gradient(135deg,#f8fafc,#eef2ff);display:flex;flex-direction:column;gap:10px;transition:all .25s}
+[data-theme="dark"] .sol-card{background:linear-gradient(135deg,#1d1d28,#1a1a25);border-color:var(--border)}
+.sol-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px)}
+.sol-card-top{display:flex;align-items:center;gap:10px}
+.sol-icon{width:38px;height:38px;border-radius:10px;background:rgba(107,32,104,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+[data-theme="dark"] .sol-icon{background:rgba(184,51,64,.15)}
+.sol-meta{flex:1;min-width:0}
+.sol-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sol-scene{font-size:11px;color:var(--text2)}
+.sol-summary{font-size:12.5px;color:var(--text2);line-height:1.6}
+.sol-tags{display:flex;flex-wrap:wrap;gap:4px}
+.sol-tag{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(107,32,104,.08);color:#6b2068}
+[data-theme="dark"] .sol-tag{background:rgba(184,51,64,.15);color:#e0b0c0}
+.sol-prods{display:flex;flex-direction:column;gap:6px;padding-top:6px;border-top:1px dashed var(--border)}
+.sol-prod{display:flex;gap:8px;align-items:center;cursor:pointer;padding:4px 6px;border-radius:6px;transition:background .15s;text-decoration:none;color:inherit}
+.sol-prod:hover{background:rgba(0,0,0,.04)}
+[data-theme="dark"] .sol-prod:hover{background:rgba(255,255,255,.04)}
+.sol-prod-img{width:34px;height:34px;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.sol-prod-img img{width:100%;height:100%;object-fit:contain}
+.sol-prod-info{flex:1;min-width:0}
+.sol-prod-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sol-prod-price{font-size:12px;color:var(--accent);font-weight:600}
+.sol-cta{align-self:flex-start;padding:6px 14px;border-radius:999px;border:none;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;margin-top:auto}
+.sol-cta:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 12px rgba(107,32,104,.3)}
+@media(max-width:600px){.sol-cards{grid-template-columns:1fr}}
 /* ── 商品弹窗 ── */
 .leai-modal-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;animation:leaiFadeIn .2s}
 @keyframes leaiFadeIn{from{opacity:0}to{opacity:1}}
@@ -702,6 +731,20 @@ html,body{height:100%;overflow:hidden}
 .mall-sec-more:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mall-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#bbb;background:linear-gradient(135deg,#f5f5f7,#e8e8ec)}
 [data-theme="dark"] .mall-img-fallback{background:linear-gradient(135deg,#2a2a2e,#1d1d20);color:#555}
+.mall-card{position:relative}
+.mall-cmp-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.92);color:#666;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:2;padding:0;line-height:1}
+.mall-cmp-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.1)}
+.mall-cmp-btn.active{background:#6b2068;color:#fff;border-color:#6b2068}
+[data-theme="dark"] .mall-cmp-btn{background:rgba(40,40,46,.92);color:#bbb}
+.cmp-fab{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#6b2068,#b83340);color:#fff;border-radius:999px;padding:12px 18px 12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 32px rgba(107,32,104,.35);cursor:pointer;font-size:13px;font-weight:500;z-index:9999;transition:all .25s;animation:fabIn .3s ease;user-select:none}
+.cmp-fab:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(107,32,104,.45)}
+.cmp-fab-count{background:rgba(255,255,255,.25);border-radius:999px;padding:2px 9px;font-weight:700;font-size:12px}
+.cmp-fab-go{background:#fff;color:#6b2068;border:none;border-radius:999px;padding:6px 14px;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
+.cmp-fab-go:hover{filter:brightness(.95)}
+.cmp-fab-clear{background:transparent;color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit}
+.cmp-fab-clear:hover{background:rgba(255,255,255,.15);color:#fff}
+@keyframes fabIn{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(max-width:600px){.cmp-fab{bottom:14px;right:14px;left:14px;justify-content:space-between}}
 .mall-sec-skeleton{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .mall-sec-skeleton .skel{height:240px;border-radius:10px;background:linear-gradient(90deg,var(--card) 0%,var(--border) 50%,var(--card) 100%);background-size:200% 100%;animation:skelpulse 1.4s ease-in-out infinite}
 @keyframes skelpulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -1903,6 +1946,14 @@ async function callAPI(msg, imageUrl, audioUrl){
           showAIModal(d);
         }
 
+        else if (lastEvent === 'solutions') {
+          if (d.solutions?.length) {
+            const html = renderSolutions(d.solutions, d.title);
+            if (html) bubbleEl.querySelector('.mbubble').insertAdjacentHTML('beforeend', html);
+            scrollBottom();
+          }
+        }
+
         else if (lastEvent === 'error') {
           stream.finish();
           var emb = bubbleEl.querySelector('.mbubble');
@@ -1972,6 +2023,41 @@ async function callLeaiStream(bubble) {
 }
 
 // ── 渲染自研AI商品卡片（基于products表数据） ──
+// ── 渲染场景化解决方案卡片（多卡横向滚动 + 关联机型 chips） ──
+function renderSolutions(solutions, title) {
+  if (!solutions?.length) return '';
+  const uid = 'sol' + Date.now();
+  const head = title ? '<div class="sol-head">' + escHtml(title) + '</div>' : '';
+  const cards = solutions.map(function(s, i){
+    var name = escHtml(s.title || '');
+    var icon = escHtml(s.icon || '💡');
+    var summary = escHtml(s.summary || '');
+    var scene = escHtml(s.scene || '');
+    var industries = (s.industries||[]).map(function(t){ return '<span class="sol-tag">'+escHtml(t)+'</span>'; }).join('');
+    var products = (s.products||[]).slice(0,3).map(function(p){
+      var img = p.image_url ? '<img src="'+escHtml(p.image_url)+'" alt="'+escHtml(p.name||'')+'" loading="lazy">' : '<span style="font-size:18px">📦</span>';
+      var askText = (p.name||'').replace(/['"\\]/g,'').slice(0,40) + ' 配置与价格';
+      return '<a class="sol-prod" data-product="'+escHtml(p.sku||String(p.id||''))+'" title="'+escHtml(p.name||'')+'" onclick="quickAsk(\''+escHtml(askText)+'\')">'+
+        '<div class="sol-prod-img">'+img+'</div>'+
+        '<div class="sol-prod-info"><div class="sol-prod-name">'+escHtml((p.name||'').slice(0,20))+'</div>'+
+          '<div class="sol-prod-price">¥'+Number(p.price||0).toLocaleString()+'</div></div>'+
+        '</a>';
+    }).join('');
+    var ctaText = escHtml(s.cta_text || '了解详情');
+    var ctaTarget = escHtml(s.cta_target || '');
+    return '<div class="sol-card" data-solution="'+escHtml(s.key||'')+'">'+
+      '<div class="sol-card-top"><div class="sol-icon">'+icon+'</div>'+
+        '<div class="sol-meta"><div class="sol-title">'+name+'</div>'+
+          (scene ? '<div class="sol-scene">'+scene+'</div>' : '')+'</div></div>'+
+      '<div class="sol-summary">'+summary+'</div>'+
+      (industries ? '<div class="sol-tags">'+industries+'</div>' : '')+
+      (products ? '<div class="sol-prods">'+products+'</div>' : '')+
+      '<button class="sol-cta" onclick="quickAsk(\''+ctaText+' '+name+'\')">'+ctaText+' →</button>'+
+    '</div>';
+  }).join('');
+  return '<div class="sol-wrap" id="'+uid+'">'+head+'<div class="sol-cards">'+cards+'</div></div>';
+}
+
 function renderSelfProducts(products) {
   if (!products?.length) return '';
   const uid = 'sp' + Date.now();
@@ -2673,7 +2759,11 @@ function _renderProductCard(p) {
   var imgHtml = p.image_url
     ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
     : '<div class="mall-img-fallback">📦</div>';
-  return '<div class="mall-card" data-product="' + escHtml(p.sku || String(p.id)) + '">' +
+  var prodKey = p.sku || String(p.id);
+  var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
+  var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : '+') + '</button>';
+  return '<div class="mall-card" data-product="' + escHtml(prodKey) + '">' +
+    cmpBtn +
     '<div class="mall-img">' + imgHtml + '</div>' +
     '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
     '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
@@ -3076,15 +3166,130 @@ function showAIModal(data) {
   document.body.appendChild(mask);
 }
 
-// ── 商城卡片点击（事件委托：feedSections 容器，覆盖所有 mall-grid 分区）──
+// ── 商城卡片点击 + 对比按钮（事件委托：feedSections 容器）──
 window.openDetail = openDetail;
 (function(){
   var container = document.getElementById('feedSections') || document.body;
   container.addEventListener('click', function(e) {
+    var cmpBtn = e.target.closest('.mall-cmp-btn');
+    if (cmpBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleCompare(cmpBtn.dataset.cmpKey, cmpBtn);
+      return;
+    }
     var card = e.target.closest('.mall-card');
     if (card) openDetail(card);
   });
 })();
+
+// ── 商品对比清单（localStorage 持久化，最多 4 件）──
+var COMPARE_KEY = 'lexiang.compare.v1';
+var COMPARE_MAX = 4;
+window._compareList = [];
+try {
+  var stored = localStorage.getItem(COMPARE_KEY);
+  if (stored) window._compareList = JSON.parse(stored) || [];
+} catch(e){}
+
+function _saveCompare() {
+  try { localStorage.setItem(COMPARE_KEY, JSON.stringify(window._compareList)); } catch(e){}
+}
+
+function toggleCompare(key, btn) {
+  if (!key) return;
+  var list = window._compareList;
+  var idx = list.findIndex(function(x){ return x.key === key; });
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    if (btn) { btn.classList.remove('active'); btn.textContent = '+'; }
+  } else {
+    if (list.length >= COMPARE_MAX) {
+      alert('最多对比 ' + COMPARE_MAX + ' 件商品');
+      return;
+    }
+    var p = (mallProducts && Object.keys(mallProducts).length) ? Object.values(mallProducts).find(function(m){ return m._key === key; }) : null;
+    if (!p) {
+      var rec = (window.mallProducts || {})[key];
+      if (rec) p = { key: key, name: rec.name, price: rec.price, image_url: rec.img, description: rec.slogan };
+    }
+    if (!p) {
+      var card = document.querySelector('.mall-card[data-product="' + CSS.escape(key) + '"]');
+      if (card) {
+        p = {
+          key: key,
+          name: card.querySelector('.mall-name')?.textContent || '商品',
+          price: (card.querySelector('.mall-price')?.textContent || '').replace(/[^\d.]/g, '').split('.')[0] || '0',
+          image_url: card.querySelector('.mall-img img')?.src || '',
+          description: card.querySelector('.mall-desc')?.textContent || '',
+        };
+      }
+    }
+    if (!p) return;
+    list.push(p);
+    if (btn) { btn.classList.add('active'); btn.textContent = '✓'; }
+  }
+  _saveCompare();
+  _renderCmpFab();
+}
+window.toggleCompare = toggleCompare;
+
+function _renderCmpFab() {
+  var existing = document.getElementById('cmpFab');
+  var list = window._compareList || [];
+  if (!list.length) {
+    if (existing) existing.remove();
+    return;
+  }
+  var html = '<span>对比清单</span>' +
+    '<span class="cmp-fab-count">' + list.length + '/' + COMPARE_MAX + '</span>' +
+    '<button class="cmp-fab-go" onclick="openCompareModal()">开始对比</button>' +
+    '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
+  if (existing) {
+    existing.innerHTML = html;
+  } else {
+    var fab = document.createElement('div');
+    fab.id = 'cmpFab';
+    fab.className = 'cmp-fab';
+    fab.innerHTML = html;
+    document.body.appendChild(fab);
+  }
+}
+
+function clearCompare() {
+  window._compareList = [];
+  _saveCompare();
+  _renderCmpFab();
+  document.querySelectorAll('.mall-cmp-btn.active').forEach(function(b){
+    b.classList.remove('active');
+    b.textContent = '+';
+  });
+}
+window.clearCompare = clearCompare;
+
+function openCompareModal() {
+  var list = window._compareList || [];
+  if (list.length < 2) {
+    alert('请至少加入 2 件商品再对比');
+    return;
+  }
+  var products = list.map(function(p){
+    return {
+      name: p.name,
+      price: Number(p.price) || 0,
+      image_url: p.image_url || '',
+      category: p.category || '',
+      description: p.description || '',
+      specs: p.specs || {},
+      url: p.url || ('https://item.lenovo.com.cn/product/' + (p.key||'') + '.html'),
+    };
+  });
+  showAIModal({ type: 'compare', title: '商品参数对比', products: products });
+}
+window.openCompareModal = openCompareModal;
+
+// 首屏加载已存对比清单
+setTimeout(_renderCmpFab, 100);
 
 // ── 商城 Banner 轮播 ──
 (function(){
