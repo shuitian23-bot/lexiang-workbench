@@ -645,13 +645,14 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   const PRODUCT_KEYWORDS = /推荐|选购|预算|买|对比|选哪|值得买|怎么选|游戏本|笔记本|thinkpad|小新|拯救者|yoga|thinkbook|台式机|一体机|显示器|工作站|平板|服务器/i;
   // 场景化方案意图检测：强制调用 solution_recommend 工具
   const SOLUTION_KEYWORDS = /方案|解决方案|行业方案|教育采购|教育信息化|学校采购|医疗方案|医院方案|金融方案|政府方案|政务方案|党政|事业单位|会议室|智慧会议|数据中心|机房|私有云|虚拟化|等保|国密|中小企业|smb|批量采购|采购清单|全场景|学生方案|家庭方案|商旅|外勤|分支机构/i;
-  // 定制 / 优惠券 意图检测：强制调用 frontend_customize / coupon_recommend
+  // 定制 / 优惠券 / 以旧换新 意图检测：强制调用对应 skill
   const CUSTOMIZE_KEYWORDS = /定制|diy|cto|私人定制|刻字|喷绘|礼盒|自己配|自定义配置|顶配|满配|选 ?cpu|选 ?内存|配一台|攒一台/i;
-  const COUPON_KEYWORDS = /优惠|折扣|券|学生认证|教师认证|企业开户|新用户|以旧换新|换新|开学季|开学|促销|秒杀|活动|领券|福利/i;
+  const COUPON_KEYWORDS = /优惠|折扣|券|学生认证|教师认证|企业开户|新用户|开学季|开学|促销|秒杀|活动|领券|福利/i;
+  const TRADEIN_KEYWORDS = /以旧换新|旧机抵扣|换购|旧的换新|抵扣价|回收|trade.?in/i;
   let forceToolChoice = null;
-  if (!imageUrl && !audioUrl && !thinkingMode && (PRODUCT_KEYWORDS.test(userMessage) || SOLUTION_KEYWORDS.test(userMessage) || CUSTOMIZE_KEYWORDS.test(userMessage) || COUPON_KEYWORDS.test(userMessage))) {
+  if (!imageUrl && !audioUrl && !thinkingMode && (PRODUCT_KEYWORDS.test(userMessage) || SOLUTION_KEYWORDS.test(userMessage) || CUSTOMIZE_KEYWORDS.test(userMessage) || COUPON_KEYWORDS.test(userMessage) || TRADEIN_KEYWORDS.test(userMessage))) {
     forceToolChoice = 'required';
-    console.log('[Agent] 推荐/方案/定制/优惠意图检测命中，强制 tool_choice: required');
+    console.log('[Agent] 推荐/方案/定制/优惠/换新意图检测命中，强制 tool_choice: required');
   }
 
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续

@@ -811,6 +811,43 @@ html,body{height:100%;overflow:hidden}
 .coupon-take.done:hover{filter:none}
 @keyframes couponFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(60vw,40vh) scale(.2);opacity:0}}
 .coupon-fly{animation:couponFly 1s ease-out forwards;position:fixed;z-index:99999;pointer-events:none}
+/* ── 会员中心卡片 ── */
+.member-head{padding:22px 24px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#fff5f5,#fef0f7)}
+[data-theme="dark"] .member-head{background:linear-gradient(135deg,rgba(184,51,64,.12),rgba(107,32,104,.12))}
+.member-title h3{font-size:20px;font-weight:800;color:#b83340;margin-bottom:6px}
+.member-title p{font-size:12px;color:var(--text2)}
+.member-points{text-align:right;flex-shrink:0}
+.member-points .num{font-size:28px;font-weight:800;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1}
+.member-points .lbl{font-size:11px;color:var(--text2);margin-top:4px}
+.member-progress{padding:0 24px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#fff5f5,#fef0f7);padding-bottom:16px}
+[data-theme="dark"] .member-progress{background:linear-gradient(135deg,rgba(184,51,64,.12),rgba(107,32,104,.12))}
+.member-progress .bar{flex:1;height:6px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden}
+[data-theme="dark"] .member-progress .bar{background:rgba(255,255,255,.08)}
+.member-progress .fill{height:100%;background:linear-gradient(90deg,#b83340,#6b2068);transition:width .4s}
+.member-progress span{font-size:11px;color:var(--text2);font-weight:600}
+.member-body{flex:1;overflow:auto;padding:16px 24px 24px}
+.member-section{margin-bottom:18px}
+.member-section h5{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px}
+.member-btn{padding:7px 16px;border-radius:999px;border:1px solid var(--accent);background:#fff;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+[data-theme="dark"] .member-btn{background:transparent}
+.member-btn:hover{background:var(--accent);color:#fff}
+.member-btn.primary{background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border-color:transparent}
+.member-btn.primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.member-btn.done{background:#f0f0f0;color:#999;border-color:#ddd;cursor:default}
+[data-theme="dark"] .member-btn.done{background:rgba(255,255,255,.06);color:#666;border-color:#333}
+.member-benefits{display:flex;flex-direction:column;gap:8px}
+.member-benefit{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.member-bicon{width:36px;height:36px;border-radius:8px;background:rgba(184,51,64,.08);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+[data-theme="dark"] .member-bicon{background:rgba(184,51,64,.18)}
+.member-binfo{flex:1;min-width:0}
+.member-binfo h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.member-binfo p{font-size:11px;color:var(--text2)}
+.member-orders{display:flex;flex-direction:column;gap:8px}
+.member-order{padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:12px}
+.member-order .tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:4px;background:rgba(184,51,64,.1);color:#b83340;font-size:10px;font-weight:600}
+.member-order .oname{margin-top:4px;color:var(--text);font-size:13px;font-weight:500}
+.member-order .oname .oprice{color:#b83340;font-weight:700;margin-left:6px}
+.member-order .oeta{margin-top:2px;color:var(--text2);font-size:11px}
 /* 顶部「优惠」「定制」「会员」入口（仅子站） */
 .subnav-extra{display:none;align-items:center;gap:6px;margin-left:18px}
 html[data-site="shop"] .subnav-extra,
@@ -1037,6 +1074,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     <button class="se-btn" onclick="openMemberCenter()" title="会员中心"><span class="ico">👤</span>会员</button>
     <button class="se-btn" onclick="openTradeIn()" title="以旧换新"><span class="ico">♻️</span>换新</button>
     <button class="se-btn" onclick="openWarrantyCheck()" title="保修查询"><span class="ico">🔧</span>保修</button>
+    <button class="se-btn" onclick="openShowcase()" title="晒单中心"><span class="ico">📸</span>晒单</button>
+    <button class="se-btn" onclick="openLive()" title="联想直播"><span class="ico">🎥</span>直播</button>
+    <button class="se-btn" onclick="openServicePlus()" title="增值服务"><span class="ico">🛡</span>增值</button>
   </div>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -2883,9 +2923,11 @@ function _renderProductCard(p) {
   var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
   var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : '+') + '</button>';
   var askName = (p.name || '').replace(/['"\\]/g, '');
+  var safeImg = (p.image_url || '').replace(/"/g,'&quot;');
   var hoverActions = '<div class="card-hover-actions">'+
-    '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">📖 解读商品</button>'+
+    '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">📖 解读</button>'+
     '<button data-action="cmp-toggle" data-cmp-key="'+escHtml(prodKey)+'">+ 对比</button>'+
+    '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImg+'" data-cat="'+escHtml(p.category||'')+'">🛠 定制</button>'+
   '</div>';
   return '<div class="mall-card" data-product="' + escHtml(prodKey) + '">' +
     cmpBtn +
@@ -2990,9 +3032,11 @@ function showDisplayCanvas(title, products) {
     var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
     var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" data-action="cmp-toggle-dc" title="加入对比">' + (inCmp ? '✓' : '+') + '</button>';
     var askName = rawName.replace(/['"\\]/g, '');
+    var safeImgDc = String(p.image_url || '').replace(/"/g,'&quot;');
     var hoverActions = '<div class="card-hover-actions">'+
-      '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">📖 解读商品</button>'+
+      '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">📖 解读</button>'+
       '<button data-action="cmp-toggle-dc" data-cmp-key="'+escHtml(prodKey)+'">+ 对比</button>'+
+      '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImgDc+'" data-cat="'+escHtml(p.category||'')+'">🛠 定制</button>'+
     '</div>';
     return '<div class="dc-card" data-product="' + escHtml(prodKey) + '" data-name="' + name + '" data-price="' + escHtml(String(price)) + '" data-img="' + img + '">' +
       cmpBtn +
@@ -3337,6 +3381,19 @@ function _cardContainerClickHandler(e) {
   if (cmpBtn) {
     e.stopPropagation(); e.preventDefault();
     if (typeof toggleCompare === 'function') toggleCompare(cmpBtn.dataset.cmpKey, cmpBtn);
+    return;
+  }
+  // 2.5) 定制按钮
+  var ctoBtn = e.target.closest('[data-action="customize"]');
+  if (ctoBtn) {
+    e.stopPropagation(); e.preventDefault();
+    if (typeof openCustomizer === 'function') {
+      openCustomizer({
+        productName: ctoBtn.dataset.name || '',
+        productImg: ctoBtn.dataset.img || '',
+        category: ctoBtn.dataset.cat || '',
+      });
+    }
     return;
   }
   // 3) 卡片整体点击进详情
@@ -4735,20 +4792,102 @@ function _takeCoupon(id, btn) {
 window._takeCoupon = _takeCoupon;
 
 // ── 会员中心 / 以旧换新 / 保修查询 / 预约到店（轻量 mock 模态） ──
+// ── 会员中心（HTML 卡片交互版） ──
+var _memberState = {
+  level: 'V3 黄金',
+  points: 12380,
+  growth: 11380,
+  growthMax: 20000,
+  signedToday: false,
+  benefits: [
+    { id:'birthday', icon:'🎁', name:'生日礼', desc:'联名手机壳 1 件', status:'unclaimed' },
+    { id:'freeship', icon:'🚚', name:'免邮特权', desc:'全年免邮', status:'active' },
+    { id:'warranty', icon:'🛠',  name:'延保 1 年', desc:'仅限新购整机', status:'unclaimed' },
+    { id:'service',  icon:'📞', name:'专属客服', desc:'1对1 选购顾问', status:'active' },
+  ],
+  orders: [
+    { id:'LX2026050801', status:'待发货', name:'ThinkBook 16+ 2026', price:9999, eta:'明天送达' },
+    { id:'LX2026042315', status:'已收货', name:'拯救者 Y9000P',     price:14999, eta:'2026-04-26 签收' },
+  ],
+};
 function openMemberCenter() {
-  showAIModal({
-    type: 'info',
-    title: '👤 会员中心',
-    content: '## V3 黄金会员\n\n**乐豆余额**：12,380 颗\n**等级进度**：距 V4 钻石还差 8,620 成长值\n\n---\n\n### 会员权益（4 项可用）\n\n- 🎁 **生日礼**：联名手机壳 1 件（待领取）\n- 🚚 **免邮特权**：全年免邮（已生效）\n- 🛠 **延保 1 年**：仅限新购整机（待激活）\n- 📞 **专属客服**：1对1 选购顾问（拨打 400-810-8888 转 V）\n\n---\n\n### 我的订单（mock）\n- LX2026050801 待发货 · ThinkBook 16+ 2026 · ¥9,999\n- LX2026042315 已收货 · 拯救者 Y9000P · ¥14,999\n\n*POC 演示数据，实际接联想会员系统*'
-  });
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+  var mask = document.createElement('div');
+  mask.className = 'ai-modal-mask';
+  mask.onclick = function(e){ if (e.target === mask) mask.remove(); };
+  mask.innerHTML = '<div class="ai-modal" id="memberModal" style="width:min(640px,94vw);max-height:88vh;display:flex;flex-direction:column"></div>';
+  document.body.appendChild(mask);
+  _renderMemberCenter();
 }
+function _renderMemberCenter() {
+  var m = _memberState;
+  var modal = document.getElementById('memberModal');
+  if (!modal) return;
+  var pct = Math.round(m.growth / m.growthMax * 100);
+  var benefits = m.benefits.map(function(b){
+    var btn;
+    if (b.status === 'active') btn = '<button class="member-btn done" disabled>已生效</button>';
+    else if (b.status === 'claimed') btn = '<button class="member-btn done" disabled>已领取</button>';
+    else btn = '<button class="member-btn" onclick="_memberClaim(\''+b.id+'\')">立即领取</button>';
+    return '<div class="member-benefit">'+
+      '<div class="member-bicon">'+b.icon+'</div>'+
+      '<div class="member-binfo"><h4>'+escHtml(b.name)+'</h4><p>'+escHtml(b.desc)+'</p></div>'+
+      btn +
+    '</div>';
+  }).join('');
+  var orders = m.orders.map(function(o){
+    return '<div class="member-order">'+
+      '<div><strong>'+escHtml(o.id)+'</strong> <span class="tag">'+escHtml(o.status)+'</span></div>'+
+      '<div class="oname">'+escHtml(o.name)+' <span class="oprice">¥'+o.price.toLocaleString()+'</span></div>'+
+      '<div class="oeta">'+escHtml(o.eta)+'</div>'+
+    '</div>';
+  }).join('');
+  var signBtn = m.signedToday
+    ? '<button class="member-btn done" disabled>今日已签到 +20</button>'
+    : '<button class="member-btn primary" onclick="_memberSign()">每日签到 +20 乐豆</button>';
+  modal.innerHTML =
+    '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--text2);z-index:2">×</button>'+
+    '<div class="member-head">'+
+      '<div class="member-title"><h3>'+escHtml(m.level)+' 会员</h3><p>距 V4 钻石还差 <strong>'+(m.growthMax - m.growth).toLocaleString()+'</strong> 成长值</p></div>'+
+      '<div class="member-points"><div class="num">'+m.points.toLocaleString()+'</div><div class="lbl">乐豆余额</div></div>'+
+    '</div>'+
+    '<div class="member-progress"><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><span>'+pct+'%</span></div>'+
+    '<div class="member-body">'+
+      '<div class="member-section"><h5>每日任务</h5>'+signBtn+'</div>'+
+      '<div class="member-section"><h5>会员权益（'+m.benefits.filter(function(b){return b.status==='unclaimed'}).length+' 项可领）</h5><div class="member-benefits">'+benefits+'</div></div>'+
+      '<div class="member-section"><h5>我的订单</h5><div class="member-orders">'+orders+'</div></div>'+
+    '</div>';
+}
+function _memberClaim(id) {
+  var b = _memberState.benefits.find(function(x){ return x.id === id; });
+  if (!b) return;
+  b.status = 'claimed';
+  _memberState.points += 100;
+  _renderMemberCenter();
+  alert('🎉 已领取「'+b.name+'」+ 100 乐豆奖励');
+}
+function _memberSign() {
+  if (_memberState.signedToday) return;
+  _memberState.signedToday = true;
+  _memberState.points += 20;
+  _memberState.growth += 50;
+  _renderMemberCenter();
+  alert('✅ 签到成功 +20 乐豆 +50 成长值');
+}
+window.openMemberCenter = openMemberCenter;
+window._memberClaim = _memberClaim; window._memberSign = _memberSign;
+
+// ── 以旧换新（默认引导走 AI 多轮，按钮也直接 quickAsk） ──
 function openTradeIn() {
-  showAIModal({
-    type: 'info',
-    title: '♻️ 以旧换新评估',
-    content: '## 通过 AI 估价（推荐）\n\n点右下角 **乐享 AI** → 输入：\n> 我有一台 ThinkPad T14 2021 i7 16G 512G，外观九成新，想换 ThinkBook 16+ 2026\n\nAI 会多轮询问 → 给出抵扣价 + 推荐换购机型 + 加码券。\n\n---\n\n## 或手动评估\n\n填写旧机信息（POC 演示 mock）：\n\n| 项目 | 您的旧机 | 抵扣价 |\n|---|---|---|\n| 品牌 / 型号 | ThinkPad T14 (2021) | — |\n| CPU | i7-1165G7 | — |\n| 内存 / 硬盘 | 16G / 512G | — |\n| 外观成色 | 九成新 | — |\n| **预估抵扣** | | **¥3,200** |\n\n+ 可叠加「换新加码券 ¥300」\n\n*实际由联想 IT 服务事业部估价系统出价*'
-  });
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+  if (typeof quickAsk === 'function') {
+    // 直接进 AI 多轮估价对话（skill tradein_estimate 接管）
+    quickAsk('我想以旧换新，请帮我估价并推荐换购机型');
+  } else {
+    showAIModal({ type:'info', title:'♻️ 以旧换新', content:'请通过右下角 AI 助手描述您的旧机型号、配置和成色' });
+  }
 }
+window.openTradeIn = openTradeIn;
 function openWarrantyCheck() {
   var sn = prompt('请输入序列号 SN（POC 演示，任意输入 6+ 位字符即可）：');
   if (!sn || sn.length < 6) return;
@@ -4769,6 +4908,36 @@ window.openMemberCenter = openMemberCenter;
 window.openTradeIn = openTradeIn;
 window.openWarrantyCheck = openWarrantyCheck;
 window.openStoreReservation = openStoreReservation;
+
+// ── 晒单中心 ──
+function openShowcase() {
+  showAIModal({
+    type: 'info',
+    title: '📸 晒单中心',
+    content: '## 我的晒单（POC 演示）\n\n### 已发布（2 篇）\n\n**🏆 拯救者 Y9000P 一周深度评测**\n- 发布于 2026-04-22 · 阅读 1,2305 · 点赞 348 · 评论 42\n- 已获奖励：**+500 乐豆 + 500 元代金券**\n\n**📷 小新 Pro 14 开箱实拍**\n- 发布于 2026-03-15 · 阅读 8,902 · 点赞 156 · 评论 28\n- 已获奖励：**+200 乐豆**\n\n---\n\n### 晒单奖励规则\n\n| 类型 | 字数要求 | 奖励 |\n|---|---|---|\n| 📝 简评 | 50 字 + 1 张图 | +50 乐豆 |\n| 📷 开箱 | 200 字 + 5 张图 | +200 乐豆 + 50 元券 |\n| 🎬 视频评测 | 60 秒+ | +500 乐豆 + 500 元券 |\n| ⭐ 月度精选 | 编辑推荐 | 额外 +1000 乐豆 |\n\n### 当前活动\n- 🎯 **「换新季」晒单赛**：4-6 月晒拯救者新机最高赢 5000 元\n- 🎁 **小新粉丝月**：晒单送品牌联名手机壳\n\n*实际接联想社区评测系统*'
+  });
+}
+window.openShowcase = openShowcase;
+
+// ── 联想直播 ──
+function openLive() {
+  showAIModal({
+    type: 'info',
+    title: '🎥 联想官方直播',
+    content: '## 🔴 正在直播（POC 演示）\n\n### 拯救者 Y9000K 首发深度解读\n- 主播：联想拯救者官方\n- 在线 **3,892** 人 · 已开播 1 小时 23 分\n- 直播间专享：满 10000 减 800 + 抽 RTX 5090 D 显卡\n- [立即进入直播间 →]\n\n---\n\n## 📅 直播预告\n\n| 时间 | 节目 | 主播 |\n|---|---|---|\n| 今晚 19:30 | 小新 Pro 27 一体机 上手实测 | 数码闲聊 |\n| 5 月 14 日 20:00 | ThinkBook 16+ 商务党专场 | ThinkBook 联盟 |\n| 5 月 16 日 14:00 | YOGA Pro 创作者圆桌 | 设计师阿杰 |\n| 5 月 18 日 19:00 | 政教大单选购指南 | 联想政企事业部 |\n\n---\n\n## 🎁 直播专享福利\n- 💰 直播间专属优惠（不公开比价）\n- 🎟 弹幕抽奖（每场抽 5 名免单）\n- 🛒 直播下单送 1 年延保\n\n*实际接联想官方直播平台 / 抖音 / 视频号*'
+  });
+}
+window.openLive = openLive;
+
+// ── 增值服务 ──
+function openServicePlus() {
+  showAIModal({
+    type: 'info',
+    title: '🛡 增值服务（POC 演示）',
+    content: '## 整机延保\n\n| 服务 | 期限 | 价格 |\n|---|---|---|\n| 整机延保 1 年 | 第 4 年 | ¥399 |\n| 整机延保 2 年 | 第 4-5 年 | ¥699 |\n| 整机延保 3 年 | 第 4-6 年 | ¥999 |\n\n## 意外保障\n\n| 服务 | 覆盖 | 价格 |\n|---|---|---|\n| 屏幕意外保 1 年 | 摔屏 / 进液 | ¥299 |\n| 整机意外保 2 年 | 全损全包 | ¥699 |\n| 数据恢复服务 | 单次 | ¥499 |\n\n## 上门服务\n\n- 🚚 **上门安装**（¥99）：北上广深 24h 上门\n- 🛠 **上门维修**（¥199）：48h 内工程师到家\n- 📦 **数据迁移**（¥299）：旧机数据 1:1 搬到新机\n- 💾 **系统重装**（¥99）：含驱动 + 常用软件\n\n## 企业专属\n\n- 🏢 **托管运维**（¥1999/月起）：全公司 IT 设备维护\n- 🔐 **远程控制**：批量装机 + 远程协助\n- 📊 **资产报表**：导出全公司设备清单\n\n*实际接联想 IT 服务事业部*'
+  });
+}
+window.openServicePlus = openServicePlus;
 
 
 </script>
