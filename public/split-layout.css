@@ -248,6 +248,16 @@ html.in-chat #contentPanel {
     overflow: hidden;
   }
 
+  html.in-chat.content-open.content-maximized #chatApp,
+  html.in-chat.content-open.content-maximized #splitDivider {
+    display: none !important;
+  }
+
+  html.in-chat.content-open.content-maximized #contentPanel {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
   /* ── 内容面板滑入/滑出动画 ── */
   html.in-chat.content-open #contentPanel {
     animation: cp-slide-in 300ms ease-out;
@@ -364,6 +374,13 @@ html.split-dragging embed {
   overflow-x: auto;
 }
 
+.cp-actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Tab + 单标签关闭 */
 .cp-tab-wrap {
   position: relative;
@@ -452,26 +469,40 @@ html.split-dragging embed {
   color: #6D28D9;
 }
 
-/* 关闭按钮 */
-.cp-close {
+.cp-icon-btn {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
   cursor: pointer;
-  font-size: 18px;
   color: #6B7280;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
-  margin-left: 4px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.cp-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cp-icon-btn:hover,
+.cp-icon-btn.active {
+  background: #F3F4F6;
+  border-color: #E5E7EB;
+  color: #374151;
 }
 
 .cp-close:hover {
-  background: #F3F4F6;
+  color: #E53E3E;
 }
 
 /* 内容区 */

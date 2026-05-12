@@ -36,6 +36,8 @@
   var tabCounter = 0;
   var workspaceContext = null;
   var landingMarker = null;
+  var ICON_MAXIMIZE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M21 21l-7-7"/></svg>';
+  var ICON_RESTORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4v6H4"/><path d="M4 10l6-6"/><path d="M14 20v-6h6"/><path d="M20 14l-6 6"/></svg>';
 
   function compactProduct(p) {
     if (!p) return null;
@@ -334,13 +336,32 @@
     }, 40);
   }
 
+  function updateContentMaxButton() {
+    var btn = document.getElementById('cpMax');
+    if (!btn) return;
+    var maximized = document.documentElement.classList.contains('content-maximized');
+    btn.classList.toggle('active', maximized);
+    btn.title = maximized ? '还原分屏' : '放大浏览区';
+    btn.setAttribute('aria-label', maximized ? '还原分屏' : '放大浏览区');
+    btn.innerHTML = maximized ? ICON_RESTORE : ICON_MAXIMIZE;
+  }
+
+  function toggleContentMaximized() {
+    if (!isPC()) return;
+    var html = document.documentElement;
+    if (!html.classList.contains('content-open')) return;
+    html.classList.toggle('content-maximized');
+    updateContentMaxButton();
+    applyWidths();
+  }
+
   // 状态3→2
   function closeContent() {
     if (!isPC()) return;
     var html = document.documentElement;
     if (!html.classList.contains('content-open')) return;
     html.classList.add('content-closing');
-    html.classList.remove('content-open');
+    html.classList.remove('content-open', 'content-maximized');
     restoreLandingHome();
     // 清除 applyWidths() 设置的内联样式，恢复 CSS 控制
     var ca = document.getElementById('chatApp');
@@ -367,7 +388,7 @@
     if (!isPC()) return;
     restoreNav();
     var html = document.documentElement;
-    html.classList.remove('in-chat', 'content-open', 'content-closing', 'is-chat', 'is-chat-conv');
+    html.classList.remove('in-chat', 'content-open', 'content-closing', 'content-maximized', 'is-chat', 'is-chat-conv');
     restoreLandingHome();
     window.__siteType = 'default';
     window.__chatBase = '/chat';
@@ -440,6 +461,7 @@
   window.__closeContent = closeContent;
   window.__closeWorkspaceTab = closeTab;
   window.__getWorkspaceContext = getWorkspaceContext;
+  window.__toggleContentMaximized = toggleContentMaximized;
   window.__goHome = goHomePC;
   window.__switchTab = switchTab;
   // 向后兼容旧 API（index.html 中有引用）
@@ -746,7 +768,12 @@
     cp.innerHTML =
       '<div class="cp-header">' +
         '<div class="cp-tabs" id="cpTabs"></div>' +
-        '<button class="cp-close" id="cpClose" title="关闭工作区">×</button>' +
+        '<div class="cp-actions">' +
+          '<button class="cp-icon-btn" id="cpMax" title="放大浏览区" aria-label="放大浏览区">' + ICON_MAXIMIZE + '</button>' +
+          '<button class="cp-icon-btn cp-close" id="cpClose" title="关闭浏览区" aria-label="关闭浏览区">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+          '</button>' +
+        '</div>' +
       '</div>' +
       '<div class="cp-body" id="cpBody"></div>';
     return cp;
@@ -787,6 +814,7 @@
     root.appendChild(cp);
 
     // 关闭按钮
+    document.getElementById('cpMax').addEventListener('click', toggleContentMaximized);
     document.getElementById('cpClose').addEventListener('click', closeContent);
 
     // 控制栏（换位 / 新建）
@@ -1023,11 +1051,12 @@
   function onResize() {
     if (!isPC()) {
       var html = document.documentElement;
-      html.classList.remove('split-mode', 'layout-swapped', 'content-open', 'content-closing');
+      html.classList.remove('split-mode', 'layout-swapped', 'content-open', 'content-closing', 'content-maximized');
     } else {
       document.documentElement.classList.add('split-mode');
       applySwap();
       applyWidths();
+      updateContentMaxButton();
     }
   }
   if (MQ.addEventListener) MQ.addEventListener('change', onResize);
