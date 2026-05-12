@@ -856,6 +856,13 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .subnav-extra .se-btn{padding:5px 11px;border-radius:6px;font-size:12.5px;color:var(--text2);background:transparent;border:1px solid transparent;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .15s}
 .subnav-extra .se-btn:hover{color:var(--accent);background:rgba(184,51,64,.06)}
 .subnav-extra .se-btn .ico{font-size:14px}
+.se-more{position:relative;display:inline-block}
+.se-more .se-dropdown{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.12);padding:6px;display:none;z-index:1000;animation:seFadeIn .15s ease}
+.se-more.open .se-dropdown{display:block}
+.se-more .se-dropdown button{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:none;background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;border-radius:6px;text-align:left;transition:background .12s}
+.se-more .se-dropdown button:hover{background:rgba(184,51,64,.08);color:var(--accent)}
+.se-more .se-dropdown button span{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+@keyframes seFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 /* 服务腰带（节奏穿插） */
 .mall-belt{margin:24px 0;padding:18px 24px;border-radius:14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .mall-belt-text{flex:1;min-width:200px}
@@ -1073,11 +1080,16 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     <button class="se-btn" onclick="openCouponCenter()" title="AI 智能发券"><span class="ico">🎟</span>优惠</button>
     <button class="se-btn" onclick="quickAsk('我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" title="会员中心 · AI 助手"><span class="ico">👤</span>会员</button>
     <button class="se-btn" onclick="openTradeIn()" title="AI 多轮估价"><span class="ico">♻️</span>换新</button>
-    <button class="se-btn" onclick="_askWarranty()" title="保修查询 · AI 助手"><span class="ico">🔧</span>保修</button>
-    <button class="se-btn" onclick="quickAsk('帮我生成一份晒单文案，机型不限，包括卖点、使用感受、推荐人群三段，并给我配图建议')" title="AI 写晒单"><span class="ico">📸</span>晒单</button>
-    <button class="se-btn" onclick="quickAsk('联想官方今晚和未来一周有什么直播？告诉我节目单和专享福利')" title="AI 查直播"><span class="ico">🎥</span>直播</button>
-    <button class="se-btn" onclick="quickAsk('我准备买一台拯救者笔记本，推荐哪些增值服务（延保/意外保/上门/数据迁移）最值得买，给个组合方案')" title="AI 推增值服务"><span class="ico">🛡</span>增值</button>
-    <button class="se-btn" onclick="quickAsk('帮我找北京最近的联想体验店，能预约到店体验拯救者 Y9000K 吗？')" title="AI 找门店"><span class="ico">📍</span>门店</button>
+    <div class="se-more" id="seMoreWrap">
+      <button class="se-btn" onclick="document.getElementById('seMoreWrap').classList.toggle('open')" title="更多服务">更多 ▾</button>
+      <div class="se-dropdown">
+        <button onclick="_askWarranty();_seCloseMore()"><span>🔧</span>保修查询</button>
+        <button onclick="quickAsk('帮我生成一份晒单文案，机型不限，包括卖点、使用感受、推荐人群三段，并给我配图建议');_seCloseMore()"><span>📸</span>AI 写晒单</button>
+        <button onclick="quickAsk('联想官方今晚和未来一周有什么直播？告诉我节目单和专享福利');_seCloseMore()"><span>🎥</span>直播预告</button>
+        <button onclick="quickAsk('我准备买一台拯救者笔记本，推荐哪些增值服务（延保/意外保/上门/数据迁移）最值得买，给个组合方案');_seCloseMore()"><span>🛡</span>增值服务</button>
+        <button onclick="quickAsk('帮我找北京最近的联想体验店，能预约到店体验拯救者 Y9000K 吗？');_seCloseMore()"><span>📍</span>门店预约</button>
+      </div>
+    </div>
   </div>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -4907,6 +4919,14 @@ window.openMemberCenter = openMemberCenter;
 window.openTradeIn = openTradeIn;
 window.openWarrantyCheck = openWarrantyCheck;
 window.openStoreReservation = openStoreReservation;
+
+// ── 顶部「更多 ▾」下拉控制 ──
+function _seCloseMore() { var w = document.getElementById('seMoreWrap'); if (w) w.classList.remove('open'); }
+window._seCloseMore = _seCloseMore;
+document.addEventListener('click', function(e){
+  var w = document.getElementById('seMoreWrap');
+  if (w && w.classList.contains('open') && !w.contains(e.target)) w.classList.remove('open');
+});
 
 // ── 晒单中心 ──
 function openShowcase() {
