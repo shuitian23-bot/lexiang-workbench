@@ -13,6 +13,11 @@
   display: none;
 }
 
+#closeLandingBtn,
+#expandLandingBtn {
+  display: none !important;
+}
+
 /* PC 端用 display:none 隐藏 chatApp；移动端保留原始 opacity 机制 */
 @media (min-width: 769px) {
   #chatApp {
@@ -165,8 +170,8 @@ html.in-chat #contentPanel {
   html.split-mode.in-chat.landing-collapsed #splitDivider {
     display: none !important;
   }
-  html.split-mode.in-chat.landing-collapsed #closeLandingBtn {
-    display: none !important;
+  html.split-mode.in-chat:not(.content-open):not(.landing-collapsed) #closeLandingBtn {
+    display: flex !important;
   }
   /* 换位时关闭按钮在左侧 */
   html.split-mode.in-chat.layout-swapped #closeLandingBtn {

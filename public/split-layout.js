@@ -388,7 +388,7 @@
     if (!isPC()) return;
     restoreNav();
     var html = document.documentElement;
-    html.classList.remove('in-chat', 'content-open', 'content-closing', 'content-maximized', 'is-chat', 'is-chat-conv');
+    html.classList.remove('in-chat', 'content-open', 'content-closing', 'content-maximized', 'landing-collapsed', 'is-chat', 'is-chat-conv');
     restoreLandingHome();
     window.__siteType = 'default';
     window.__chatBase = '/chat';
