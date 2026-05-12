@@ -34,6 +34,91 @@
   var tabs = [];
   var activeTabId = null;
   var tabCounter = 0;
+  var workspaceContext = null;
+
+  function compactProduct(p) {
+    if (!p) return null;
+    return {
+      sku: p.sku,
+      name: p.name,
+      category: p.category,
+      price: p.price,
+      description: p.description
+    };
+  }
+
+  function compactProducts(products) {
+    return (products || []).slice(0, 8).map(compactProduct).filter(Boolean);
+  }
+
+  function getActiveTab() {
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].id === activeTabId) return tabs[i];
+    }
+    return null;
+  }
+
+  function setWorkspaceContext(ctx) {
+    workspaceContext = ctx || null;
+    window.__workspaceContext = workspaceContext;
+  }
+
+  function updateWorkspaceContextFromTab(tab) {
+    if (!tab) { setWorkspaceContext(null); return; }
+    var data = tab.data || {};
+    if (data.context) {
+      setWorkspaceContext(data.context);
+      return;
+    }
+    if (tab.type === 'products') {
+      setWorkspaceContext({
+        type: 'products',
+        title: tab.title,
+        category: data.category || tab.title,
+        products: compactProducts(data.products || [])
+      });
+    } else if (tab.type === 'productDetail' && data.product) {
+      setWorkspaceContext({ type: 'product', title: tab.title, product: compactProduct(data.product) });
+    } else if (tab.type === 'compare') {
+      setWorkspaceContext({ type: 'compare', title: tab.title, products: compactProducts(data.products || []) });
+    } else if (tab.type === 'preview') {
+      setWorkspaceContext({ type: 'preview', title: tab.title, url: data.url || '' });
+    } else {
+      setWorkspaceContext({ type: tab.type, title: tab.title });
+    }
+  }
+
+  function getWorkspaceContext() {
+    return workspaceContext;
+  }
+
+  function clearWorkspaceContext() {
+    setWorkspaceContext(null);
+    window.__currentProduct = null;
+    window.__pendingProductCtx = null;
+    window.__currentProductChips = null;
+    window.__currentProductQuery = null;
+    var ov = document.getElementById('productOverlay');
+    if (ov) ov.classList.add('hiding');
+    var bar = document.getElementById('productChipsBar');
+    if (bar) {
+      bar.classList.add('hidden');
+      bar.innerHTML = '';
+    }
+  }
+
+  function findReusableTab(type, data) {
+    data = data || {};
+    for (var i = 0; i < tabs.length; i++) {
+      var t = tabs[i];
+      var td = t.data || {};
+      if (t.type !== type) continue;
+      if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
+      if (type === 'products' && data.category && td.category === data.category) return t;
+      if (type === 'preview' && data.url && td.url === data.url) return t;
+    }
+    return null;
+  }
 
   // ── 核心状态机 ──
 
@@ -116,8 +201,18 @@
   // 添加 Tab → 状态2→3 或保持3
   function openContent(type, title, data) {
     if (!isPC()) return null;
+    var html = document.documentElement;
+    if (!html.classList.contains('in-chat')) enterChat();
+
+    var reusable = findReusableTab(type, data);
+    if (reusable) {
+      ensureContentPanelOpen();
+      switchTab(reusable.id);
+      return reusable.id;
+    }
+
     var id = 'tab-' + (++tabCounter);
-    var tab = { id: id, type: type, title: title, data: data, el: null, contentEl: null };
+    var tab = { id: id, type: type, title: title || '内容', data: data || {}, el: null, contentEl: null };
     if (tabs.length >= 5) {
       var old = tabs.shift();
       if (old.el && old.el.parentNode) old.el.parentNode.removeChild(old.el);
@@ -130,13 +225,28 @@
     if (!tabsContainer || !bodyContainer) return null;
 
     // tab 按钮
+    var wrap = document.createElement('div');
+    wrap.className = 'cp-tab-wrap';
+    wrap.setAttribute('data-tab-id', id);
     var btn = document.createElement('button');
     btn.className = 'cp-tab';
-    btn.textContent = title;
+    btn.textContent = tab.title;
     btn.setAttribute('data-tab-id', id);
     btn.addEventListener('click', function () { switchTab(id); });
-    tabsContainer.appendChild(btn);
-    tab.el = btn;
+    var x = document.createElement('button');
+    x.className = 'cp-tab-x';
+    x.type = 'button';
+    x.title = '关闭标签';
+    x.setAttribute('aria-label', '关闭标签');
+    x.textContent = '×';
+    x.addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeTab(id);
+    });
+    wrap.appendChild(btn);
+    wrap.appendChild(x);
+    tabsContainer.appendChild(wrap);
+    tab.el = wrap;
 
     // tab 内容
     var contentDiv = document.createElement('div');
@@ -151,19 +261,25 @@
     if (renderer) renderer(contentDiv, data);
 
     switchTab(id);
-
-    // 进入状态3
-    var html = document.documentElement;
-    if (!html.classList.contains('in-chat')) {
-      html.classList.add('split-mode', 'in-chat', 'is-chat');
-      document.getElementById('chatApp').classList.add('active');
-    }
-    if (!html.classList.contains('content-open')) {
-      html.classList.remove('content-closing');
-      html.classList.add('content-open');
-      applyWidths();
-    }
+    ensureContentPanelOpen();
     return id;
+  }
+
+  function ensureContentPanelOpen() {
+    var html = document.documentElement;
+    html.classList.remove('landing-collapsed', 'content-closing');
+    if (!html.classList.contains('content-open')) html.classList.add('content-open');
+    var cp = document.getElementById('contentPanel');
+    if (cp) {
+      cp.style.animation = 'none';
+      void cp.offsetWidth;
+      cp.style.animation = '';
+    }
+    applyWidths();
+    setTimeout(function () {
+      var ta = document.getElementById('mainTa');
+      if (ta) try { ta.focus(); } catch (e) {}
+    }, 40);
   }
 
   // 状态3→2
@@ -181,6 +297,13 @@
       ca.style.maxWidth = '';
       ca.style.margin = '';
     }
+    var tabsContainer = document.getElementById('cpTabs');
+    var bodyContainer = document.getElementById('cpBody');
+    if (tabsContainer) tabsContainer.innerHTML = '';
+    if (bodyContainer) bodyContainer.innerHTML = '';
+    tabs = [];
+    activeTabId = null;
+    clearWorkspaceContext();
     setTimeout(function () {
       html.classList.remove('content-closing');
     }, 220);
@@ -201,10 +324,16 @@
     ca.style.width = '';
     ca.style.maxWidth = '';
     ca.style.margin = '';
+    var tabsContainer = document.getElementById('cpTabs');
+    var bodyContainer = document.getElementById('cpBody');
+    if (tabsContainer) tabsContainer.innerHTML = '';
+    if (bodyContainer) bodyContainer.innerHTML = '';
+    tabs = [];
+    activeTabId = null;
+    clearWorkspaceContext();
     document.getElementById('landingPage').classList.remove('exit');
     history.pushState(null, '', '/');
     try { closeSidebar(); } catch (e) {}
-    try { closeDisplayCanvas(); } catch (e) {}
     try { setNavActive(null); } catch (e) {}
   }
 
@@ -219,12 +348,40 @@
       }
       if (t.contentEl) t.contentEl.style.display = isActive ? '' : 'none';
     }
+    updateWorkspaceContextFromTab(getActiveTab());
+    setTimeout(function () {
+      var ta = document.getElementById('mainTa');
+      if (ta) try { ta.focus(); } catch (e) {}
+    }, 30);
+  }
+
+  function closeTab(tabId) {
+    var idx = -1;
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].id === tabId) { idx = i; break; }
+    }
+    if (idx < 0) return;
+    var tab = tabs[idx];
+    var wasActive = tab.id === activeTabId;
+    if (tab.el && tab.el.parentNode) tab.el.parentNode.removeChild(tab.el);
+    if (tab.contentEl && tab.contentEl.parentNode) tab.contentEl.parentNode.removeChild(tab.contentEl);
+    tabs.splice(idx, 1);
+    if (!tabs.length) {
+      closeContent();
+      return;
+    }
+    if (wasActive) {
+      var next = tabs[Math.min(idx, tabs.length - 1)];
+      switchTab(next.id);
+    }
   }
 
   // ── 全局 API ──
   window.__enterChat = enterChat;
   window.__openContent = openContent;
   window.__closeContent = closeContent;
+  window.__closeWorkspaceTab = closeTab;
+  window.__getWorkspaceContext = getWorkspaceContext;
   window.__goHome = goHomePC;
   window.__switchTab = switchTab;
   // 向后兼容旧 API（index.html 中有引用）
@@ -235,7 +392,31 @@
   var RENDERERS = {};
 
   RENDERERS.products = function (container, data) {
-    var products = data && data.products || [];
+    data = data || {};
+    if (data.fetchCategory && data.category) {
+      container.innerHTML = '<div class="cpd-loading"><div class="cpd-spinner"></div>加载中...</div>';
+      fetch('/api/products?category=' + encodeURIComponent(data.category) + '&limit=20')
+        .then(function (r) { return r.json(); })
+        .then(function (products) {
+          data.products = products || [];
+          renderProducts(container, data.products);
+          updateWorkspaceContextFromTab(getActiveTab());
+        })
+        .catch(function () {
+          container.innerHTML = '<div class="cp-empty">加载失败，请稍后再试</div>';
+        });
+      return;
+    }
+    renderProducts(container, data.products || []);
+  };
+
+  function renderProducts(container, products) {
+    products = products || [];
+    container.innerHTML = '';
+    if (!products.length) {
+      container.innerHTML = '<div class="cp-empty">暂时没有找到相关商品</div>';
+      return;
+    }
     var grid = document.createElement('div');
     grid.className = 'cp-products';
     products.forEach(function (p) {
@@ -266,7 +447,7 @@
       grid.appendChild(card);
     });
     container.appendChild(grid);
-  };
+  }
 
   RENDERERS.compare = function (container, data) {
     var products = data && data.products || [];
@@ -385,6 +566,8 @@
     if (!sku) return;
     container.innerHTML = '<div class="cpd-loading"><div class="cpd-spinner"></div>加载中...</div>';
     fetch('/api/products/' + encodeURIComponent(sku)).then(function (r) { return r.json(); }).then(function (p) {
+      data.product = p;
+      data.context = { type: 'product', title: p.name || '商品详情', product: compactProduct(p) };
       var img = (p.image_url || '').replace(/^http:/, 'https:');
       var specs = p.specs || {};
       var priceInt = String(Math.floor(p.price || 0));
@@ -449,6 +632,7 @@
         if (typeof quickAsk === 'function') quickAsk('帮我对比 ' + p.name + ' 和同价位竞品');
       });
       if (typeof notifyAIProductContext === 'function') notifyAIProductContext(p);
+      updateWorkspaceContextFromTab(getActiveTab());
     }).catch(function () {
       container.innerHTML = '<div class="cpd-loading">加载失败</div>';
     });
@@ -657,6 +841,38 @@
       window.showDisplayCanvas = function (title, products) {
         if (isPC()) { openContent('products', title, { products: products }); return; }
         return origDC.apply(this, arguments);
+      };
+    }
+
+    var origCloseDC = window.closeDisplayCanvas;
+    if (typeof origCloseDC === 'function') {
+      window.closeDisplayCanvas = function () {
+        if (isPC() && getState() === 3) { closeContent(); return; }
+        return origCloseDC.apply(this, arguments);
+      };
+    }
+
+    var origCategory = window.showCategoryProducts;
+    if (typeof origCategory === 'function') {
+      window.showCategoryProducts = function (category) {
+        if (isPC()) {
+          enterChat();
+          openContent('products', category || '商品', { category: category || '商品', fetchCategory: true });
+          return;
+        }
+        return origCategory.apply(this, arguments);
+      };
+    }
+
+    var origProductDetail = window.showProductDetail;
+    if (typeof origProductDetail === 'function') {
+      window.showProductDetail = function (sku) {
+        if (isPC()) {
+          enterChat();
+          openContent('productDetail', '商品详情', { sku: sku });
+          return;
+        }
+        return origProductDetail.apply(this, arguments);
       };
     }
 

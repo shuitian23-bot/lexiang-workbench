@@ -1761,7 +1761,12 @@ async function callAPI(msg, imageUrl, audioUrl){
     const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled };
     if (imageUrl) bodyData.image_url = imageUrl;
     if (audioUrl) bodyData.audio_url = audioUrl;
-    if (window.__currentProduct) bodyData.product_context = window.__currentProduct;
+    let workspaceContext = null;
+    try {
+      if (typeof window.__getWorkspaceContext === 'function') workspaceContext = window.__getWorkspaceContext();
+    } catch(e) {}
+    if (workspaceContext) bodyData.product_context = workspaceContext;
+    else if (window.__currentProduct) bodyData.product_context = window.__currentProduct;
     const res = await apiFetch('/api/chat/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -356,34 +356,88 @@ html.split-dragging embed {
 .cp-tabs {
   display: flex;
   flex-direction: row;
-  gap: 0;
+  gap: 4px;
   flex: 1;
   min-width: 0;
   overflow-x: auto;
 }
 
+/* Tab + 单标签关闭 */
+.cp-tab-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.cp-tab-wrap:hover,
+.cp-tab-wrap.active {
+  background: #F6F4FF;
+}
+
+.cp-tab-wrap.active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #6D28D9;
+}
+
 /* 单个 Tab */
 .cp-tab {
-  padding: 10px 16px;
+  max-width: 180px;
+  padding: 10px 26px 10px 12px;
   font-size: 14px;
   font-family: inherit;
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
   cursor: pointer;
   color: #6B7280;
   white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s;
 }
 
-.cp-tab:hover {
-  border-bottom-color: #E5E7EB;
-}
-
+.cp-tab:hover,
+.cp-tab-wrap.active .cp-tab,
 .cp-tab.active {
-  border-bottom-color: #6D28D9;
   color: #6D28D9;
+}
+
+.cp-tab-wrap.active .cp-tab,
+.cp-tab.active {
   font-weight: 600;
+}
+
+.cp-tab-x {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #9CA3AF;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-tab-x:hover {
+  background: #ECE7FF;
+  color: #6D28D9;
 }
 
 /* 关闭按钮 */
@@ -423,6 +477,18 @@ html.split-dragging embed {
   min-height: 0;
   overflow-y: auto;
   padding: 16px;
+}
+
+.cp-empty {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  font-size: 14px;
+  background: #fff;
+  border: 1px dashed #E5E7EB;
+  border-radius: 8px;
 }
 
 /* ── Tab 内容：商品网格 ── */
