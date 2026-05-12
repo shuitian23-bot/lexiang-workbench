@@ -35,6 +35,7 @@
   var activeTabId = null;
   var tabCounter = 0;
   var workspaceContext = null;
+  var landingMarker = null;
 
   function compactProduct(p) {
     if (!p) return null;
@@ -92,6 +93,34 @@
     return workspaceContext;
   }
 
+  function rememberLandingHome() {
+    var lp = document.getElementById('landingPage');
+    if (!lp || landingMarker) return;
+    landingMarker = document.createComment('landingPage-home-anchor');
+    lp.parentNode.insertBefore(landingMarker, lp.nextSibling);
+  }
+
+  function restoreLandingHome() {
+    var lp = document.getElementById('landingPage');
+    if (!lp || !landingMarker || !landingMarker.parentNode) return;
+    if (lp.parentNode !== landingMarker.parentNode || lp.nextSibling !== landingMarker) {
+      landingMarker.parentNode.insertBefore(lp, landingMarker);
+    }
+  }
+
+  function getHomeTitle() {
+    var active = document.querySelector('.nlinks a.nav-active');
+    var label = active && active.textContent ? active.textContent.trim() : '';
+    if (label) return label;
+    var map = { shop: '个人及家庭', b: '中小企业', biz: '政教及大企业', default: '首页' };
+    return map[window.__siteType || 'default'] || '首页';
+  }
+
+  function ensureHomeTab() {
+    if (findReusableTab('home')) return;
+    openContent('home', getHomeTitle(), { fixed: true }, true);
+  }
+
   function renameTab(tabId, title) {
     if (!title) return;
     for (var i = 0; i < tabs.length; i++) {
@@ -127,6 +156,7 @@
       var t = tabs[i];
       var td = t.data || {};
       if (t.type !== type) continue;
+      if (type === 'home') return t;
       if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
       if (type === 'products' && data.category && td.category === data.category) return t;
       if (type === 'preview' && data.url && td.url === data.url) return t;
@@ -213,10 +243,11 @@
   }
 
   // 添加 Tab → 状态2→3 或保持3
-  function openContent(type, title, data) {
+  function openContent(type, title, data, skipHome) {
     if (!isPC()) return null;
     var html = document.documentElement;
     if (!html.classList.contains('in-chat')) enterChat();
+    if (!skipHome && type !== 'home') ensureHomeTab();
 
     var reusable = findReusableTab(type, data);
     if (reusable) {
@@ -228,11 +259,16 @@
     var id = 'tab-' + (++tabCounter);
     var tab = { id: id, type: type, title: title || '内容', data: data || {}, el: null, contentEl: null };
     if (tabs.length >= 5) {
-      var old = tabs.shift();
+      var removeAt = 0;
+      for (var ri = 0; ri < tabs.length; ri++) {
+        if (tabs[ri].type !== 'home') { removeAt = ri; break; }
+      }
+      var old = tabs.splice(removeAt, 1)[0];
       if (old.el && old.el.parentNode) old.el.parentNode.removeChild(old.el);
       if (old.contentEl && old.contentEl.parentNode) old.contentEl.parentNode.removeChild(old.contentEl);
     }
-    tabs.push(tab);
+    if (type === 'home') tabs.unshift(tab);
+    else tabs.push(tab);
 
     var tabsContainer = document.getElementById('cpTabs');
     var bodyContainer = document.getElementById('cpBody');
@@ -241,6 +277,7 @@
     // tab 按钮
     var wrap = document.createElement('div');
     wrap.className = 'cp-tab-wrap';
+    if (type === 'home') wrap.classList.add('home');
     wrap.setAttribute('data-tab-id', id);
     var btn = document.createElement('button');
     btn.className = 'cp-tab';
@@ -258,8 +295,9 @@
       closeTab(id);
     });
     wrap.appendChild(btn);
-    wrap.appendChild(x);
-    tabsContainer.appendChild(wrap);
+    if (type !== 'home') wrap.appendChild(x);
+    if (type === 'home' && tabsContainer.firstChild) tabsContainer.insertBefore(wrap, tabsContainer.firstChild);
+    else tabsContainer.appendChild(wrap);
     tab.el = wrap;
 
     // tab 内容
@@ -303,6 +341,7 @@
     if (!html.classList.contains('content-open')) return;
     html.classList.add('content-closing');
     html.classList.remove('content-open');
+    restoreLandingHome();
     // 清除 applyWidths() 设置的内联样式，恢复 CSS 控制
     var ca = document.getElementById('chatApp');
     if (ca) {
@@ -329,6 +368,7 @@
     restoreNav();
     var html = document.documentElement;
     html.classList.remove('in-chat', 'content-open', 'content-closing', 'is-chat', 'is-chat-conv');
+    restoreLandingHome();
     window.__siteType = 'default';
     window.__chatBase = '/chat';
     html.dataset.site = 'default';
@@ -376,6 +416,10 @@
     }
     if (idx < 0) return;
     var tab = tabs[idx];
+    if (tab.type === 'home') {
+      switchTab(tab.id);
+      return;
+    }
     var wasActive = tab.id === activeTabId;
     if (tab.el && tab.el.parentNode) tab.el.parentNode.removeChild(tab.el);
     if (tab.contentEl && tab.contentEl.parentNode) tab.contentEl.parentNode.removeChild(tab.contentEl);
@@ -404,6 +448,25 @@
 
   // ── Tab 渲染器 ──
   var RENDERERS = {};
+
+  RENDERERS.home = function (container) {
+    rememberLandingHome();
+    container.classList.add('cp-home-content');
+    container.innerHTML = '';
+    var lp = document.getElementById('landingPage');
+    if (!lp) {
+      container.innerHTML = '<div class="cp-empty">首页暂时不可用</div>';
+      return;
+    }
+    try {
+      var dc = document.getElementById('displayCanvas');
+      if (dc) dc.style.display = 'none';
+      lp.classList.remove('exit', 'dc-open');
+      lp.style.overflow = '';
+      lp.style.height = '';
+    } catch (e) {}
+    container.appendChild(lp);
+  };
 
   RENDERERS.products = function (container, data) {
     data = data || {};
@@ -682,7 +745,6 @@
     cp.id = 'contentPanel';
     cp.innerHTML =
       '<div class="cp-header">' +
-        '<div class="cp-title">浏览工作区</div>' +
         '<div class="cp-tabs" id="cpTabs"></div>' +
         '<button class="cp-close" id="cpClose" title="关闭工作区">×</button>' +
       '</div>' +
@@ -1029,6 +1091,7 @@
 
   function init() {
     if (!isPC()) return;
+    rememberLandingHome();
     document.documentElement.classList.add('split-mode');
     loadState();
     wrapInSplitRoot();
