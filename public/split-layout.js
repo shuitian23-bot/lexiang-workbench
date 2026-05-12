@@ -718,26 +718,30 @@
 
       container.innerHTML =
         '<div class="cpd-page">' +
-          '<div class="cpd-hero">' +
-            (img ? '<div class="cpd-img-wrap"><img src="' + escH(img) + '" alt="' + escH(p.name || '') + '"></div>' : '') +
-          '</div>' +
-          '<div class="cpd-info">' +
-            '<h2 class="cpd-name">' + escH(p.name || '') + '</h2>' +
-            '<div class="cpd-price-row">' +
-              '<span class="cpd-price">¥' + Number(priceInt).toLocaleString() + '</span>' +
-              (p.original_price && p.original_price > p.price ? '<span class="cpd-orig-price">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') +
-              stockHtml +
+          '<div class="cpd-main">' +
+            '<div class="cpd-hero">' +
+              (img ? '<div class="cpd-img-wrap"><img src="' + escH(img) + '" alt="' + escH(p.name || '') + '"></div>' : '') +
             '</div>' +
-            (highlights.length > 0 ? '<div class="cpd-highlights">' + highlights.map(function(h){ return '<span class="cpd-hl-tag">' + escH(h) + '</span>'; }).join('') + '</div>' : '') +
-            (p.description && highlights.length === 0 ? '<p class="cpd-desc">' + escH(p.description) + '</p>' : '') +
-          '</div>' +
-          '<div class="cpd-actions">' +
-            '<button class="cpd-buy">立即购买</button>' +
-            '<button class="cpd-ask">问AI助手</button>' +
-          '</div>' +
-          '<div class="cpd-actions-sub">' +
-            '<a href="' + escH(buyUrl) + '" target="_blank" rel="noopener" class="cpd-link">↗ 官网查看</a>' +
-            '<button class="cpd-compare">和竞品对比</button>' +
+            '<div class="cpd-side">' +
+              '<div class="cpd-info">' +
+                '<h2 class="cpd-name">' + escH(p.name || '') + '</h2>' +
+                '<div class="cpd-price-row">' +
+                  '<span class="cpd-price">¥' + Number(priceInt).toLocaleString() + '</span>' +
+                  (p.original_price && p.original_price > p.price ? '<span class="cpd-orig-price">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') +
+                  stockHtml +
+                '</div>' +
+                (highlights.length > 0 ? '<div class="cpd-highlights">' + highlights.map(function(h){ return '<span class="cpd-hl-tag">' + escH(h) + '</span>'; }).join('') + '</div>' : '') +
+                (p.description && highlights.length === 0 ? '<p class="cpd-desc">' + escH(p.description) + '</p>' : '') +
+              '</div>' +
+              '<div class="cpd-actions">' +
+                '<button class="cpd-buy">立即购买</button>' +
+                '<button class="cpd-ask">问AI助手</button>' +
+              '</div>' +
+              '<div class="cpd-actions-sub">' +
+                '<a href="' + escH(buyUrl) + '" target="_blank" rel="noopener" class="cpd-link">↗ 官网查看</a>' +
+                '<button class="cpd-compare">和竞品对比</button>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
           (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-specs-title">规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
         '</div>';

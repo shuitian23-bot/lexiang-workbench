@@ -835,7 +835,7 @@ html,body{height:100%;overflow:hidden}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260512-floating-close">
+<link rel="stylesheet" href="/split-layout.css?v=20260512-product-detail-split">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2361,6 +2361,7 @@ async function startChat(msg){
 // ── Quick ask from welcome cards ──
 async function quickAsk(msg){
   if(!checkAnonLimit()) return;
+  hideProductContextPrompt();
   appendBubble('user', msg);
   if(!isLoggedIn()) _anonRounds++;
   if (leaiCompare) await callCompareAPI(msg);
@@ -2477,7 +2478,6 @@ function extractStoreLocation(msg) {
 }
 
 async function sendMain(directMsg){
-  document.getElementById('productOverlay').classList.add('hiding');
   if(!checkAnonLimit()) return;
   const ta = document.getElementById('mainTa');
   const msg = (typeof directMsg === 'string' ? directMsg : ta.value).trim();
@@ -2485,6 +2485,7 @@ async function sendMain(directMsg){
   const imageUrl = _pendingImageUrl;
   const audioUrl = _pendingAudioUrl;
   if (!msg && !imageUrl && !audioUrl || isLoading) return;
+  hideProductContextPrompt();
   ta.value = ''; ta.style.height = '';
   document.querySelectorAll('.suggestions').forEach(el => el.remove());
 
@@ -2926,6 +2927,16 @@ function dismissProductOverlay() {
     bar.classList.remove('hidden');
   }
 }
+function hideProductContextPrompt() {
+  var ov = document.getElementById('productOverlay');
+  if (ov) ov.classList.add('hiding');
+  var bar = document.getElementById('productChipsBar');
+  if (bar) {
+    bar.classList.add('hidden');
+    bar.innerHTML = '';
+  }
+}
+window.hideProductContextPrompt = hideProductContextPrompt;
 
 // ── AI 弹层系统（由 SSE event:modal 触发） ──
 function showAIModal(data) {
@@ -3862,6 +3873,6 @@ function setLoginMsg(msg, color){
 
 
 </script>
-<script src="/split-layout.js?v=20260512-link-resolver"></script>
+<script src="/split-layout.js?v=20260512-product-detail-split"></script>
 </body>
 </html>
