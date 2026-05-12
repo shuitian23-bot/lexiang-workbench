@@ -694,9 +694,17 @@ html,body{height:100%;overflow:hidden}
 .mall-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:background .3s}
 .mall-dot.active{background:#fff}
 .mall-sec{padding:28px 0}
-.mall-sec-head{margin-bottom:24px}
+.mall-sec-head{margin-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.mall-sec-head .mall-sec-titles{flex:1;min-width:200px}
 .mall-sec-head h2{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--text);margin-bottom:4px}
 .mall-sec-head p{font-size:13px;color:var(--text2)}
+.mall-sec-more{font-size:13px;color:var(--accent);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:999px;transition:all .2s;white-space:nowrap;cursor:pointer;background:transparent;font-family:inherit}
+.mall-sec-more:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mall-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#bbb;background:linear-gradient(135deg,#f5f5f7,#e8e8ec)}
+[data-theme="dark"] .mall-img-fallback{background:linear-gradient(135deg,#2a2a2e,#1d1d20);color:#555}
+.mall-sec-skeleton{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mall-sec-skeleton .skel{height:240px;border-radius:10px;background:linear-gradient(90deg,var(--card) 0%,var(--border) 50%,var(--card) 100%);background-size:200% 100%;animation:skelpulse 1.4s ease-in-out infinite}
+@keyframes skelpulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .mall-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .mall-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .25s;background:var(--card)}
 .mall-card:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-3px)}
@@ -934,14 +942,13 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     </div>
   </div>
 
-  <!-- 精选产品 -->
-  <section class="mall-sec">
-    <div class="mall-sec-head">
-      <h2>精选产品</h2>
-      <p>官方定制你的专属电脑，14天无理由退换货</p>
-    </div>
-    <div class="mall-grid" id="mallGrid"></div>
-  </section>
+  <!-- 分区 Feed: 新品/超值/热门/各品类 -->
+  <div id="feedSections">
+    <section class="mall-sec">
+      <div class="mall-sec-head"><div class="mall-sec-titles"><h2>正在加载推荐...</h2><p>为您准备最新商品</p></div></div>
+      <div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </section>
+  </div>
 
   <!-- AI展示画布：AI推送商品/搜索结果到左侧 -->
   <div id="displayCanvas" style="display:none">
@@ -2653,30 +2660,77 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
   document.querySelectorAll('.cdot').forEach((x,i)=>x.classList.toggle('active',i===idx));
 },{passive:true});
 
-// ── 商城商品详情 ──
+// ── 商城分区 Feed（新品/超值/热门 + 各品类） ──
 var mallProducts = {};
+function _renderProductCard(p) {
+  mallProducts[p.sku] = {
+    name: p.name, slogan: p.description || '', price: '¥' + Number(p.price).toLocaleString(),
+    original: p.original_price > p.price ? '¥' + Number(p.original_price).toLocaleString() : '',
+    img: p.image_url || '', colors: [], specs: [],
+    chat: p.name + ' 的详细配置和购买建议'
+  };
+  var origHtml = p.original_price > p.price ? ' <span class="mall-original">¥' + Number(p.original_price).toLocaleString() + '</span>' : '';
+  var imgHtml = p.image_url
+    ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
+    : '<div class="mall-img-fallback">📦</div>';
+  return '<div class="mall-card" data-product="' + escHtml(p.sku || String(p.id)) + '">' +
+    '<div class="mall-img">' + imgHtml + '</div>' +
+    '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
+    '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
+    '<div class="mall-price">¥' + Number(p.price).toLocaleString() + origHtml + '</div></div></div>';
+}
+function _renderFeedSection(sec) {
+  var cards = sec.products.map(_renderProductCard).join('');
+  return '<section class="mall-sec" data-section="' + escHtml(sec.key) + '">' +
+    '<div class="mall-sec-head">' +
+      '<div class="mall-sec-titles"><h2>' + escHtml(sec.title) + '</h2>' +
+        (sec.subtitle ? '<p>' + escHtml(sec.subtitle) + '</p>' : '') +
+      '</div>' +
+      '<button class="mall-sec-more" onclick="openSectionAll(\'' + escHtml(sec.key) + '\',\'' + escHtml(sec.title) + '\')">查看全部 →</button>' +
+    '</div>' +
+    '<div class="mall-grid">' + cards + '</div>' +
+  '</section>';
+}
+function openSectionAll(sectionKey, title) {
+  var dc = document.getElementById('displayCanvas');
+  var body = document.getElementById('dcBody');
+  if (!dc || !body) return;
+  document.getElementById('dcTitle').textContent = title;
+  body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
+  var topbar = dc.querySelector('.dc-topbar');
+  if (topbar) topbar.style.display = '';
+  dc.style.display = 'block';
+  dc.scrollTop = 0;
+  var lp = document.getElementById('landingPage');
+  if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
+  var siteParam = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
+  fetch('/api/site/feed?site=' + encodeURIComponent(siteParam) + '&section=' + encodeURIComponent(sectionKey) + '&limit=48')
+    .then(function(r){ return r.json(); })
+    .then(function(json){
+      if (!json.products || !json.products.length) {
+        body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">暂无商品</div>';
+        return;
+      }
+      showDisplayCanvas(title, json.products);
+    })
+    .catch(function(e){
+      body.innerHTML = '<div style="text-align:center;padding:60px;color:#c00">加载失败：' + escHtml(e.message || e) + '</div>';
+    });
+}
+window.openSectionAll = openSectionAll;
 (function(){
   if(typeof _siteType !== 'undefined' && _siteType === 'default') return;
-  var _site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? '&site=' + _siteType : '';
-  fetch('/api/products?limit=8' + _site).then(function(r){return r.json()}).then(function(products){
-    var grid = document.getElementById('mallGrid');
-    if (!grid || !products.length) return;
-    grid.innerHTML = products.map(function(p){
-      mallProducts[p.sku] = {
-        name: p.name, slogan: p.description || '', price: '¥' + Number(p.price).toLocaleString(),
-        original: p.original_price > p.price ? '¥' + Number(p.original_price).toLocaleString() : '',
-        img: p.image_url || '', colors: [], specs: [],
-        chat: p.name + ' 的详细配置和购买建议'
-      };
-      var origHtml = p.original_price > p.price ? ' <span class="mall-original">¥' + Number(p.original_price).toLocaleString() + '</span>' : '';
-      return '<div class="mall-card" data-product="' + p.sku + '">' +
-        '<div class="mall-img"><img src="' + (p.image_url||'') + '" alt="' + escHtml(p.name) + '" onerror="this.style.display=\'none\'"></div>' +
-        '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
-        '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
-        '<div class="mall-price">¥' + Number(p.price).toLocaleString() + origHtml + '</div></div></div>';
-    }).join('');
-    console.log('[MallGrid] rendered ' + grid.children.length + ' cards');
-  }).catch(function(e){ console.error('[MallGrid] FAILED:', e); });
+  var siteParam = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
+  fetch('/api/site/feed?site=' + encodeURIComponent(siteParam) + '&limit=8').then(function(r){return r.json()}).then(function(json){
+    var container = document.getElementById('feedSections');
+    if (!container || !json.sections || !json.sections.length) return;
+    container.innerHTML = json.sections.map(_renderFeedSection).join('');
+    console.log('[Feed] rendered ' + json.sections.length + ' sections, site=' + siteParam);
+  }).catch(function(e){
+    console.error('[Feed] FAILED:', e);
+    var container = document.getElementById('feedSections');
+    if (container) container.innerHTML = '<section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2>加载失败</h2><p>' + escHtml(e.message || e) + '</p></div></div></section>';
+  });
 })();
 
 function openDetail(el) {
@@ -3022,16 +3076,14 @@ function showAIModal(data) {
   document.body.appendChild(mask);
 }
 
-// ── 商城卡片点击（事件委托 + inline onclick 兼容）──
+// ── 商城卡片点击（事件委托：feedSections 容器，覆盖所有 mall-grid 分区）──
 window.openDetail = openDetail;
 (function(){
-  var grid = document.querySelector('.mall-grid');
-  if (grid) {
-    grid.addEventListener('click', function(e) {
-      var card = e.target.closest('.mall-card');
-      if (card) openDetail(card);
-    });
-  }
+  var container = document.getElementById('feedSections') || document.body;
+  container.addEventListener('click', function(e) {
+    var card = e.target.closest('.mall-card');
+    if (card) openDetail(card);
+  });
 })();
 
 // ── 商城 Banner 轮播 ──

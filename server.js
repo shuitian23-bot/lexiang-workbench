@@ -130,6 +130,7 @@ app.use('/api/leai', require('./routes/leai'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
+app.use('/api/site', require('./routes/feed'));
 
 // 精选产品列表（landing page 用，按子站分类过滤）
 app.get('/api/products', (req, res) => {
