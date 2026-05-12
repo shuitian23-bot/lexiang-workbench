@@ -134,8 +134,8 @@ class HarnessRegistry {
   }
 
   // 兼容旧接口
-  async execute(name, input) {
-    return this.invoke(name, input);
+  async execute(name, input, context = {}) {
+    return this.invoke(name, input, context);
   }
 
   // 完整 skill 元数据列表（含 schema，供 UI 渲染表单）

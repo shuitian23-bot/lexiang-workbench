@@ -282,9 +282,14 @@ module.exports = {
         brandFilters.push('xiaoxin');
         brandFilters.push('yoga');
       }
-      if (combined.includes('学生') || combined.includes('学习') || combined.includes('性价比')) brandFilters.push('xiaoxin');
-      if (combined.includes('设计') || combined.includes('创意')) brandFilters.push('yoga');
-      if (combined.includes('轻薄')) { brandFilters.push('xiaoxin'); brandFilters.push('yoga'); }
+      if (siteType === 'shop' && (combined.includes('学生') || combined.includes('学习') || combined.includes('性价比'))) {
+        brandFilters.push('xiaoxin');
+      }
+      if (siteType === 'shop' && (combined.includes('设计') || combined.includes('创意'))) brandFilters.push('yoga');
+      if (combined.includes('轻薄')) {
+        if (siteType === 'shop') { brandFilters.push('xiaoxin'); brandFilters.push('yoga'); }
+        else if (siteType === 'b') { brandFilters.push('thinkbook'); brandFilters.push('thinkpad'); }
+      }
     }
 
     const budgetRange = parseBudgetRange(budget);
@@ -351,8 +356,12 @@ module.exports = {
 
     // 按品牌去重，每品牌最多取3款，总共最多8款
     const byBrand = {};
+    const seenNames = new Set();
     const results = [];
     for (const p of products) {
+      const nameKey = String(p.name || '').replace(/\s+/g, '').toLowerCase();
+      if (seenNames.has(nameKey)) continue;
+      seenNames.add(nameKey);
       const key = inferBrand(p);
       byBrand[key] = (byBrand[key] || 0) + 1;
       if (byBrand[key] <= 3 && results.length < 8) results.push(p);

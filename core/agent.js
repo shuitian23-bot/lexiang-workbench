@@ -48,7 +48,17 @@ function getSystemPrompt(lang) {
 }
 
 // Build system prompt with language, RAG context, and user profile
-function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId = null, userMessage = null) {
+function siteContextText(siteType) {
+  const map = {
+    shop: '个人及家庭：优先消费线商品和内容，如小新、YOGA、拯救者、IdeaPad、天逸、来酷、Moto、平板/手机/配件。不要默认推荐 ThinkBook/ThinkPad 等企业购或商务采购线，除非用户明确点名这些系列。',
+    b: '中小企业：优先企业购/SMB 商品和内容，如 ThinkPad、ThinkBook、ThinkCentre、ThinkPlus、扬天、瑞天、办公外设和中小企业解决方案。',
+    biz: '政教及大企业：优先政企/行业方案、服务器、工作站、存储、ThinkStation、昭阳、开天、启天、行业解决方案和服务产品。',
+    default: '首页：先根据用户当前意图判断入口；不确定时先澄清用途、预算、是否个人消费或企业采购。'
+  };
+  return map[siteType] || map.default;
+}
+
+function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId = null, userMessage = null, siteType = 'default') {
   // L1.5 Persona 前缀注入：激活的 Persona 有 prompt_prefix 则 prepend
   const persona = _promptCache.persona;
   const personaPrefix = (persona && persona.prompt_prefix && persona.prompt_prefix.trim())
@@ -93,6 +103,9 @@ function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId
     prompt += '\n\nBefore giving your final answer, please verify:\n1. All URLs come from the knowledge base or official Lenovo domains — do not generate URLs yourself\n2. Product specs and prices are consistent with the knowledge base; if unsure, note "Please check the official website for the latest information"\n3. Your answer directly addresses the user\'s question';
   } else {
     prompt += '\n\n在给出最终回答前，请先确认：\n1. 所有 URL 均来自知识库或官方域名，不自行生成\n2. 产品参数、价格与知识库一致，不确定时注明"请以官网为准"\n3. 回答直接回应用户问题';
+  }
+  if (lang !== 'en') {
+    prompt += '\n\n## 当前业务入口\n' + siteContextText(siteType) + '\n回答和工具调用必须尊重当前入口。商品推荐时，只有用户明确提出商务/企业采购/ThinkBook/ThinkPad 等需求，才跨到企业购系列。知识库/WIKI 中的产品分类、解决方案、技术支持内容可以作为页面讲解依据。';
   }
   if (thinkingMode) {
     prompt += lang === 'en'
@@ -196,12 +209,12 @@ AI：${aiReply.slice(0, 300)}`;
 }
 
 // Call DashScope OpenAI-compatible API (non-streaming, with tool_calls)
-function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null) {
+function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: MODEL,
       messages: [
-        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage) },
+        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
         ...messages
       ],
       tools: tools.length > 0 ? tools.map(t => ({
@@ -242,20 +255,20 @@ function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMe
 }
 
 // 带重试的 callLLM（最多重试1次，间隔2s）
-async function callLLMWithRetry(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null) {
+async function callLLMWithRetry(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
   try {
-    return await callLLM(messages, tools, ragContext, lang, userId, userMessage);
+    return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType);
   } catch (e) {
     if (e.message.includes('timeout') || e.message.includes('ECONNRESET') || e.message.includes('ETIMEDOUT')) {
       console.warn('[Agent] API 第一次失败，2s 后重试:', e.message);
       await new Promise(r => setTimeout(r, 2000));
-      return await callLLM(messages, tools, ragContext, lang, userId, userMessage);
+      return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType);
     }
     throw e;
   }
 }
 
-async function runAgent(userMessage, convId, sessionId, { webSearch = false, lang = 'zh', userId = null } = {}) {
+async function runAgent(userMessage, convId, sessionId, { webSearch = false, lang = 'zh', userId = null, siteType = 'default' } = {}) {
   // Load or create conversation
   if (!convId) {
     convId = uuidv4();
@@ -311,7 +324,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
 
   while (rounds < MAX_TOOL_ROUNDS) {
     rounds++;
-    const response = await callLLMWithRetry(messages, tools, ragContext, lang, userId, userMessage);
+    const response = await callLLMWithRetry(messages, tools, ragContext, lang, userId, userMessage, siteType);
 
     if (response.error) {
       throw new Error(response.error.message || JSON.stringify(response.error));
@@ -330,7 +343,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
           let result;
           try {
             const input = JSON.parse(tc.function.arguments || '{}');
-            result = await registry.execute(tc.function.name, input);
+            result = await registry.execute(tc.function.name, input, { siteType, userMessage });
             toolCallLog.push({ name: tc.function.name, input, success: true });
           } catch (err) {
             result = { error: err.message };
@@ -385,7 +398,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
 // 返回 { fullText, toolCalls: null | Array, finishReason }
 // 如果 finish_reason=tool_calls，则 toolCalls 是完整的工具调用数组，fullText=''
 // 如果 finish_reason=stop，则 toolCalls=null，内容已通过 onChunk 实时推送
-function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null, toolChoice = null } = {}) {
+function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null, toolChoice = null, siteType = 'default' } = {}) {
   return new Promise((resolve, reject) => {
     // 图片模式用 qwen-vl-plus，音频模式用 qwen-audio-turbo，深度思考模式用 qwq-plus，否则用默认模型
     const hasImage = !!imageUrl;
@@ -429,7 +442,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
       stream: true,
       stream_options: { include_usage: false },
       messages: [
-        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage) },
+        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
         ...finalMessages
       ],
     };
@@ -534,7 +547,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
  * @param {function} onChunk  - 每收到一段文字调用
  * @param {function} onDone   - 全部完成后调用，参数 {convId, fullText}
  */
-async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null, productContext = null } = {}) {
+async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null, productContext = null, siteType = 'default' } = {}) {
   if (!convId) {
     convId = uuidv4();
     db.prepare('INSERT INTO conversations (id, session_id) VALUES (?, ?)').run(convId, sessionId || null);
@@ -646,7 +659,7 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     const roundToolChoice = rounds === 1 ? forceToolChoice : null;
     const { fullText: streamedText, toolCalls } = await callLLMStream(
       messages, tools, ragContext, onChunk, lang,
-      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl, toolChoice: roundToolChoice }
+      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl, toolChoice: roundToolChoice, siteType }
     );
 
     if (toolCalls && toolCalls.length > 0) {
@@ -657,7 +670,7 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
         let result;
         try {
           const input = JSON.parse(tc.function.arguments || '{}');
-          result = await registry.execute(tc.function.name, input);
+          result = await registry.execute(tc.function.name, input, { siteType, userMessage });
           toolCallLog.push({ name: tc.function.name, input, success: true });
           if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: true, result });
         } catch (err) {
