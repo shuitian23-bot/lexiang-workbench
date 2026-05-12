@@ -719,9 +719,30 @@ html,body{height:100%;overflow:hidden}
 .mall-slide{position:absolute;inset:0;opacity:0;transition:opacity .5s ease}
 .mall-slide.active{opacity:1}
 .mall-slide img{width:100%;height:100%;object-fit:cover;display:block}
-.mall-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
+.mall-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3}
 .mall-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:background .3s}
 .mall-dot.active{background:#fff}
+.mall-hero-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 8% 0 7%;color:#fff;z-index:2;pointer-events:none}
+.mall-hero-overlay h1{font-size:42px;font-weight:800;letter-spacing:-1px;margin-bottom:10px;line-height:1.1;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.mall-hero-overlay p{font-size:15px;color:rgba(255,255,255,.92);margin-bottom:18px;max-width:520px;text-shadow:0 1px 6px rgba(0,0,0,.3)}
+.mall-hero-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:999px;background:#fff;color:#000;font-size:14px;font-weight:600;border:none;cursor:pointer;pointer-events:auto;transition:all .2s;align-self:flex-start;font-family:inherit}
+.mall-hero-cta:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.25)}
+.mall-hero-cta.ghost{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.65);backdrop-filter:blur(8px);margin-left:10px}
+.mall-hero-cta.ghost:hover{background:rgba(255,255,255,.28)}
+.mall-hero-slide-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .8s;opacity:0}
+.mall-hero-slide-bg.active{opacity:1}
+@media(max-width:600px){.mall-hero-overlay h1{font-size:26px}.mall-hero-overlay p{font-size:12px;margin-bottom:12px}.mall-hero-cta{padding:8px 16px;font-size:12px}.mall-hero-cta.ghost{display:none}}
+/* 分区失败/空态 */
+.mall-sec-empty{padding:32px 16px;text-align:center;color:var(--text2);font-size:13px;border:1px dashed var(--border);border-radius:10px}
+.mall-sec-empty button{margin-left:8px;padding:4px 12px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-size:12px;font-family:inherit}
+.mall-sec-empty button:hover{background:var(--accent);color:#fff}
+/* 服务腰带（节奏穿插） */
+.mall-belt{margin:24px 0;padding:18px 24px;border-radius:14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.mall-belt-text{flex:1;min-width:200px}
+.mall-belt-text strong{font-size:16px;display:block;margin-bottom:2px}
+.mall-belt-text small{font-size:12px;color:rgba(255,255,255,.85)}
+.mall-belt-cta{padding:8px 18px;border-radius:999px;background:#fff;color:#6b2068;font-weight:600;font-size:13px;border:none;cursor:pointer;font-family:inherit;white-space:nowrap}
+.mall-belt-cta:hover{filter:brightness(.95)}
 .mall-sec{padding:28px 0}
 .mall-sec-head{margin-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .mall-sec-head .mall-sec-titles{flex:1;min-width:200px}
@@ -969,28 +990,15 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 </div>
 <!-- ═══ 子站商城内容（shop/b/biz 显示） ═══ -->
 <div id="shopContent">
-  <!-- Banner 轮播 -->
-  <div class="mall-hero">
-    <div class="mall-slides" id="mallSlides">
-      <div class="mall-slide active">
-        <img src="https://p2.lefile.cn/fes/cms/2026/03/30/ibvdvsnx97diclo613gzovsczsdwtz508246.jpg" alt="乐享智能助手">
-      </div>
-      <div class="mall-slide">
-        <img src="https://p1.lefile.cn/fes/cms/2026/04/23/i6q4k1edv9e3os5hm9r8qffjuxfffb331900.jpg" alt="广告图">
-      </div>
-    </div>
-    <div class="mall-dots" id="mallDots">
-      <span class="mall-dot active"></span>
-      <span class="mall-dot"></span>
-    </div>
-  </div>
+  <!-- Banner 轮播：内容由 JS 按 _siteType 注入 -->
+  <div class="mall-hero" id="mallHero"></div>
 
-  <!-- 分区 Feed: 新品/超值/热门/各品类 -->
+  <!-- 分区 Feed: 新品/超值/热门/各品类。初始渲染 8 套骨架占位，避免单区骨架后整页跳出 -->
   <div id="feedSections">
-    <section class="mall-sec">
-      <div class="mall-sec-head"><div class="mall-sec-titles"><h2>正在加载推荐...</h2><p>为您准备最新商品</p></div></div>
-      <div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-    </section>
+    <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
+    <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
+    <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
+    <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
   </div>
 
   <!-- AI展示画布：AI推送商品/搜索结果到左侧 -->
@@ -1005,24 +1013,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     <div class="dc-body" id="dcBody"></div>
   </div>
 
-  <!-- 特色服务 -->
-  <section class="mall-features">
-    <div class="mall-feat-item">
-      <div class="mall-feat-icon">🤖</div>
-      <h3>智能推荐</h3>
-      <p>AI 智能分析您的需求，精准推荐适合的产品方案</p>
-    </div>
-    <div class="mall-feat-item">
-      <div class="mall-feat-icon">💰</div>
-      <h3>企业专享价</h3>
-      <p>企业用户专享折扣，批量采购更优惠</p>
-    </div>
-    <div class="mall-feat-item">
-      <div class="mall-feat-icon">🚚</div>
-      <h3>快速配送</h3>
-      <p>全国覆盖，急速配送，安装无忧</p>
-    </div>
-  </section>
+  <!-- 特色服务：内容由 JS 按 _siteType 注入 -->
+  <section class="mall-features" id="mallFeatures"></section>
 </div><!-- /shopContent -->
 </div><!-- /wrap -->
 <footer><div class="fgrid">
@@ -2825,20 +2817,34 @@ function openSectionAll(sectionKey, title) {
     });
 }
 window.openSectionAll = openSectionAll;
-(function(){
+function loadFeed() {
   if(typeof _siteType !== 'undefined' && _siteType === 'default') return;
   var siteParam = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
-  fetch('/api/site/feed?site=' + encodeURIComponent(siteParam) + '&limit=8').then(function(r){return r.json()}).then(function(json){
-    var container = document.getElementById('feedSections');
-    if (!container || !json.sections || !json.sections.length) return;
-    container.innerHTML = json.sections.map(_renderFeedSection).join('');
+  var container = document.getElementById('feedSections');
+  if (!container) return;
+  fetch('/api/site/feed?site=' + encodeURIComponent(siteParam) + '&limit=8').then(function(r){
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(json){
+    if (!json.sections || !json.sections.length) {
+      container.innerHTML = '<div class="mall-sec-empty">暂无推荐商品 <button onclick="loadFeed()">刷新</button></div>';
+      return;
+    }
+    var sectionsHtml = json.sections.map(function(sec, i){
+      var html = _renderFeedSection(sec);
+      // 第 3 个分区后插入服务腰带（节奏感）
+      if (i === 2) html += (typeof renderMallBelt === 'function' ? renderMallBelt() : '');
+      return html;
+    }).join('');
+    container.innerHTML = sectionsHtml;
     console.log('[Feed] rendered ' + json.sections.length + ' sections, site=' + siteParam);
   }).catch(function(e){
     console.error('[Feed] FAILED:', e);
-    var container = document.getElementById('feedSections');
-    if (container) container.innerHTML = '<section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2>加载失败</h2><p>' + escHtml(e.message || e) + '</p></div></div></section>';
+    container.innerHTML = '<div class="mall-sec-empty">加载推荐失败：' + escHtml(e.message || String(e)) + ' <button onclick="loadFeed()">重试</button></div>';
   });
-})();
+}
+window.loadFeed = loadFeed;
+loadFeed();
 
 function openDetail(el) {
   var card = el.closest ? el.closest('.mall-card') : el;
@@ -3315,27 +3321,111 @@ window.openCompareModal = openCompareModal;
 // 首屏加载已存对比清单
 setTimeout(_renderCmpFab, 100);
 
-// ── 商城 Banner 轮播 ──
-(function(){
-  var slides = document.querySelectorAll('.mall-slide');
-  var dots = document.querySelectorAll('.mall-dot');
-  if(!slides.length) return;
+// ── 三子站主题：banner 文案 + 特色服务 ──
+var SITE_THEMES = {
+  shop: {
+    heroes: [
+      { bg:'linear-gradient(120deg,#1e1638 0%,#3d0a4a 45%,#8b1538 100%)', title:'拯救者 Y9000K', subtitle:'酷睿 Ultra + RTX 5090 D 性能巅峰，电竞旗舰即刻拥有', cta:'查看新品', target:'gaming', ghost:{text:'问 AI 推荐', ask:'帮我推荐一台 1 万元左右的游戏本'} },
+      { bg:'linear-gradient(120deg,#0c4a6e 0%,#0e7490 50%,#06b6d4 100%)', title:'小新 Pro 2026', subtitle:'轻薄 1.4kg + 2.8K 高刷 + 90 度键程，新一代家用旗舰', cta:'查看小新', target:'xiaoxin', ghost:{text:'对比 YOGA', ask:'小新 Pro 14 和 YOGA Air 14s 怎么选'} },
+    ],
+    features: [
+      { icon:'🎁', title:'享：会员积分', desc:'下单赠乐豆，可兑配件与服务' },
+      { icon:'📅', title:'晒：12 期免息', desc:'部分机型支持 12 期免息分期' },
+      { icon:'🚚', title:'急速送达', desc:'全国 200+ 城市次日达，安装无忧' },
+    ],
+    belt: { text:'<strong>以旧换新 立减 500</strong><small>旧机一键评估，整机回收 + 新机直减</small>', cta:'立即评估', ask:'我想以旧换新，怎么操作？' },
+  },
+  b: {
+    heroes: [
+      { bg:'linear-gradient(120deg,#1e3a8a 0%,#1e40af 50%,#3b82f6 100%)', title:'ThinkPad / ThinkBook', subtitle:'专业商用 5 年质保 + 工程师上门 + 批采返点，10 万家中小企业之选', cta:'询价采购', target:'thinkpad', ghost:{text:'问 AI 选型', ask:'10 人团队办公电脑 30 万预算怎么配置'} },
+      { bg:'linear-gradient(120deg,#0f766e 0%,#10b981 50%,#22c55e 100%)', title:'天逸 / 扬天', subtitle:'国民商务台式 + 一体机，5 千元起搭建企业 IT 基础', cta:'查看商用', target:'tianyi', ghost:{text:'询价 BD', ask:'天逸 510S 批量采购 20 台报价'} },
+    ],
+    features: [
+      { icon:'🏢', title:'对公开票', desc:'增值税专票电子化，发票 24 小时回传' },
+      { icon:'🛠', title:'30 天质保', desc:'整机 3 年 + 上门服务，故障 24h 响应' },
+      { icon:'📦', title:'批量直采', desc:'10 台起团购返点，专属采购顾问对接' },
+    ],
+    belt: { text:'<strong>10 台起询价立省 8%</strong><small>BD 顾问 30 分钟出方案 + 报价单</small>', cta:'立即询价', ask:'我要批量采购 ThinkBook，请帮我做询价' },
+  },
+  biz: {
+    heroes: [
+      { bg:'linear-gradient(120deg,#581c87 0%,#7e22ce 50%,#a855f7 100%)', title:'政教大企业方案', subtitle:'信创 + 等保 2.0 + 国密合规，从终端到数据中心一站交付', cta:'获取方案', target:'solution', ghost:{text:'问 AI 顾问', ask:'政府机构 100 人 IT 采购方案需要哪些资质'} },
+      { bg:'linear-gradient(120deg,#7f1d1d 0%,#b91c1c 50%,#dc2626 100%)', title:'ThinkStation + 服务器', subtitle:'科研工作站 + SR 机架服务器 + 私有云方案，金融医疗教育首选', cta:'查看工作站', target:'workstation', ghost:{text:'方案咨询', ask:'医院 PACS 影像工作站需要什么配置'} },
+    ],
+    features: [
+      { icon:'🛡', title:'信创合规', desc:'等保 2.0 / 国密支持 / 国产化适配' },
+      { icon:'🏛', title:'政采资质', desc:'央采名录品牌 + 教育电子卖场 + 政采资质' },
+      { icon:'🌐', title:'全国服务', desc:'31 省落地 BD + 县域服务网点 + SLA 4 小时' },
+    ],
+    belt: { text:'<strong>专属方案 + BD 上门</strong><small>100 万以上项目专人接洽 + 现场 POC</small>', cta:'预约 BD', ask:'我有一个 200 万的政企 IT 采购项目，希望联系 BD' },
+  },
+};
+
+function renderMallHero() {
+  var hero = document.getElementById('mallHero');
+  if (!hero) return;
+  var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
+  var theme = SITE_THEMES[site] || SITE_THEMES.shop;
+  var slides = theme.heroes.map(function(s, i){
+    return '<div class="mall-hero-slide-bg' + (i===0?' active':'') + '" style="background:' + s.bg + '"></div>';
+  }).join('');
+  var overlay = theme.heroes.map(function(s, i){
+    var ghost = s.ghost ? '<button class="mall-hero-cta ghost" onclick="quickAsk(\''+s.ghost.ask.replace(/'/g,"\\'")+'\')">'+s.ghost.text+'</button>' : '';
+    var ctaAsk = '帮我推荐 ' + s.title;
+    return '<div class="mall-hero-overlay" data-slide="'+i+'" style="display:' + (i===0?'flex':'none') + '">'+
+      '<h1>'+s.title+'</h1>'+
+      '<p>'+s.subtitle+'</p>'+
+      '<div style="display:flex;align-items:center"><button class="mall-hero-cta" onclick="quickAsk(\''+ctaAsk.replace(/'/g,"\\'")+'\')">'+s.cta+' →</button>'+ghost+'</div>'+
+    '</div>';
+  }).join('');
+  var dots = theme.heroes.map(function(_, i){
+    return '<span class="mall-dot' + (i===0?' active':'') + '" data-i="'+i+'"></span>';
+  }).join('');
+  hero.innerHTML = slides + overlay + '<div class="mall-dots">' + dots + '</div>';
+
+  // 轮播
+  var bgs = hero.querySelectorAll('.mall-hero-slide-bg');
+  var overlays = hero.querySelectorAll('.mall-hero-overlay');
+  var dotEls = hero.querySelectorAll('.mall-dot');
   var cur = 0;
   function show(i){
-    slides[cur].classList.remove('active');
-    dots[cur].classList.remove('active');
+    bgs[cur].classList.remove('active'); overlays[cur].style.display = 'none'; dotEls[cur].classList.remove('active');
     cur = i;
-    slides[cur].classList.add('active');
-    dots[cur].classList.add('active');
+    bgs[cur].classList.add('active'); overlays[cur].style.display = 'flex'; dotEls[cur].classList.add('active');
   }
-  dots.forEach(function(d,i){ d.addEventListener('click',function(){ clearInterval(timer); show(i); timer=setInterval(next,4000); }); });
-  function next(){ show((cur+1)%slides.length); }
-  var timer = setInterval(next, 4000);
-  var hero = document.querySelector('.mall-hero');
-  if(hero){
-    hero.addEventListener('mouseenter',function(){ clearInterval(timer); });
-    hero.addEventListener('mouseleave',function(){ timer=setInterval(next,4000); });
+  if (bgs.length > 1) {
+    dotEls.forEach(function(d, i){ d.addEventListener('click', function(){ clearInterval(timer); show(i); timer=setInterval(next,5000); }); });
+    function next(){ show((cur+1)%bgs.length); }
+    var timer = setInterval(next, 5000);
+    hero.addEventListener('mouseenter', function(){ clearInterval(timer); });
+    hero.addEventListener('mouseleave', function(){ timer=setInterval(next,5000); });
   }
+}
+
+function renderMallFeatures() {
+  var box = document.getElementById('mallFeatures');
+  if (!box) return;
+  var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
+  var theme = SITE_THEMES[site] || SITE_THEMES.shop;
+  box.innerHTML = theme.features.map(function(f){
+    return '<div class="mall-feat-item"><div class="mall-feat-icon">'+f.icon+'</div><h3>'+escHtml(f.title)+'</h3><p>'+escHtml(f.desc)+'</p></div>';
+  }).join('');
+}
+
+function renderMallBelt() {
+  var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
+  var theme = SITE_THEMES[site] || SITE_THEMES.shop;
+  if (!theme.belt) return '';
+  var ask = (theme.belt.ask || '').replace(/'/g,"\\'");
+  return '<div class="mall-belt"><div class="mall-belt-text">'+theme.belt.text+'</div>'+
+    '<button class="mall-belt-cta" onclick="quickAsk(\''+ask+'\')">'+theme.belt.cta+' →</button></div>';
+}
+
+// 子站首屏：hero + features 立即渲染（feed 异步加载）
+(function(){
+  if (typeof _siteType !== 'undefined' && _siteType === 'default') return;
+  renderMallHero();
+  renderMallFeatures();
 })();
 
 // ── URL router: restore state on refresh ──
