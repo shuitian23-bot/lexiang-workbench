@@ -940,9 +940,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 <div id="homeContent">
   <section class="sec fi"><div class="sec-head"><h2>最新动态</h2><a href="#">查看全部 →</a></div>
     <div class="feat">
-      <div class="feat-main" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(lexiang-legion-y9000k.jpg);background-size:cover;background-position:center"><div class="ov"><span class="badge">新品首发</span><h3>拯救者 Y9000K</h3><p>搭载最新处理器，极致性能释放</p></div></div>
-      <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(img/r-2.png);background-size:cover;background-position:center"><p style="color:#606060">张凌赫签名款</p><h4 style="color:#000000">心动赫兹联名礼盒</h4></div>
-      <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(img/r-3.png);background-size:cover;background-position:center"><p>AI · 智慧办公</p><h4>AI+ PC 重新定义生产力</h4></div>
+      <div class="feat-main" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(lexiang-legion-y9000k.webp);background-size:cover;background-position:center"><div class="ov"><span class="badge">新品首发</span><h3>拯救者 Y9000K</h3><p>搭载最新处理器，极致性能释放</p></div></div>
+      <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(img/r-2.webp);background-size:cover;background-position:center"><p style="color:#606060">张凌赫签名款</p><h4 style="color:#000000">心动赫兹联名礼盒</h4></div>
+      <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(img/r-3.webp);background-size:cover;background-position:center"><p>AI · 智慧办公</p><h4>AI+ PC 重新定义生产力</h4></div>
     </div></section>
   <section class="sec fi"><div class="sec-head"><h2>热销产品</h2><a href="#">查看全部 →</a></div>
     <div class="pgrid">
@@ -2648,6 +2648,23 @@ function scrollBottom(force){
 }
 function escHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// 给联想官网跳转链接拼 UTM，便于联想总部归因 leaibot 引流
+function lxUtm(url, sku) {
+  if (!url || typeof url !== 'string') return url;
+  if (!/lenovo\.com\.cn/i.test(url)) return url;
+  if (/[?&]utm_source=/.test(url)) return url;
+  try {
+    var site = (typeof _siteType !== 'undefined' && _siteType) ? _siteType : 'default';
+    var u = new URL(url, location.origin);
+    u.searchParams.set('utm_source', 'leaibot');
+    u.searchParams.set('utm_medium', 'ai');
+    u.searchParams.set('utm_campaign', site);
+    if (sku) u.searchParams.set('utm_content', String(sku));
+    return u.toString();
+  } catch(e) { return url; }
+}
+window.lxUtm = lxUtm;
+
 // ── Copy AI message ──
 function copyMsg(btn){
   const text = btn.closest('.msg').querySelector('.mbubble').innerText;
@@ -2909,7 +2926,7 @@ async function showProductDetail(sku) {
     var p = await res.json();
     var specs = p.specs || {};
     var imgUrl = p.image_url || '';
-    var buyUrl = specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html';
+    var buyUrl = lxUtm(specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html', sku);
     document.getElementById('dcTitle').textContent = p.name;
     window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price, description: p.description };
     notifyAIProductContext(p);
@@ -3123,7 +3140,7 @@ function showAIModal(data) {
         (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
       catRow += '<td>' + escHtml(p.category || '-') + '</td>';
       descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
-      buyRow += '<td><a href="' + (p.url || '#') + '" target="_blank" class="cmp-buy">去购买</a>' +
+      buyRow += '<td><a href="' + lxUtm(p.url || '#', p.sku || '') + '" target="_blank" rel="noopener" class="cmp-buy">去购买</a>' +
         '<button class="cmp-ask" onclick="document.querySelector(\'.ai-modal-mask\').remove();quickAsk(\'详细介绍 ' + escHtml(p.name).replace(/'/g,"\\'") + '\')">问AI</button></td>';
     });
 
@@ -3241,10 +3258,17 @@ function _renderCmpFab() {
     if (existing) existing.remove();
     return;
   }
-  var html = '<span>对比清单</span>' +
-    '<span class="cmp-fab-count">' + list.length + '/' + COMPARE_MAX + '</span>' +
-    '<button class="cmp-fab-go" onclick="openCompareModal()">开始对比</button>' +
-    '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
+  var html;
+  if (list.length === 1) {
+    html = '<span>已选 1 件</span>' +
+      '<span class="cmp-fab-count">再加 1 件即可对比</span>' +
+      '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
+  } else {
+    html = '<span>对比清单</span>' +
+      '<span class="cmp-fab-count">' + list.length + '/' + COMPARE_MAX + '</span>' +
+      '<button class="cmp-fab-go" onclick="openCompareModal()">开始对比</button>' +
+      '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
+  }
   if (existing) {
     existing.innerHTML = html;
   } else {
@@ -3281,7 +3305,7 @@ function openCompareModal() {
       category: p.category || '',
       description: p.description || '',
       specs: p.specs || {},
-      url: p.url || ('https://item.lenovo.com.cn/product/' + (p.key||'') + '.html'),
+      url: lxUtm(p.url || ('https://item.lenovo.com.cn/product/' + (p.key||'') + '.html'), p.key || ''),
     };
   });
   showAIModal({ type: 'compare', title: '商品参数对比', products: products });
