@@ -213,6 +213,14 @@ router.post('/stream', async (req, res) => {
               note: status.result.note || ''
             });
           }
+          // 拦截 frontend_filter tool 调用，按 AI 给的筛选条件推送商品到左侧 displayCanvas
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_filter') {
+            send('display', {
+              title: status.result.title || '筛选结果',
+              filter_tags: status.result.filter_tags || [],
+              products: status.result.products || [],
+            });
+          }
           // 转发 status 事件时剥离 result 字段，避免大对象（如 product_query 返回）塞进 SSE
           const { result, ...lite } = status || {};
           send('status', lite);
