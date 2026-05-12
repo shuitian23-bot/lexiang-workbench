@@ -92,6 +92,20 @@
     return workspaceContext;
   }
 
+  function renameTab(tabId, title) {
+    if (!title) return;
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].id !== tabId) continue;
+      tabs[i].title = title;
+      if (tabs[i].el) {
+        var btn = tabs[i].el.querySelector('.cp-tab');
+        if (btn) btn.textContent = title;
+      }
+      updateWorkspaceContextFromTab(tabs[i]);
+      return;
+    }
+  }
+
   function clearWorkspaceContext() {
     setWorkspaceContext(null);
     window.__currentProduct = null;
@@ -568,6 +582,8 @@
     fetch('/api/products/' + encodeURIComponent(sku)).then(function (r) { return r.json(); }).then(function (p) {
       data.product = p;
       data.context = { type: 'product', title: p.name || '商品详情', product: compactProduct(p) };
+      var current = getActiveTab();
+      if (current) renameTab(current.id, p.name || '商品详情');
       var img = (p.image_url || '').replace(/^http:/, 'https:');
       var specs = p.specs || {};
       var priceInt = String(Math.floor(p.price || 0));
@@ -666,8 +682,9 @@
     cp.id = 'contentPanel';
     cp.innerHTML =
       '<div class="cp-header">' +
+        '<div class="cp-title">浏览工作区</div>' +
         '<div class="cp-tabs" id="cpTabs"></div>' +
-        '<button class="cp-close" id="cpClose" title="关闭">×</button>' +
+        '<button class="cp-close" id="cpClose" title="关闭工作区">×</button>' +
       '</div>' +
       '<div class="cp-body" id="cpBody"></div>';
     return cp;

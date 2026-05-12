@@ -346,10 +346,21 @@ html.split-dragging embed {
   align-items: center;
   height: 44px;
   min-height: 44px;
-  padding: 0 12px;
+  padding: 0 10px 0 12px;
   background: #fff;
   border-bottom: 1px solid #E5E7EB;
   flex-shrink: 0;
+  gap: 10px;
+}
+
+.cp-title {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  padding-right: 10px;
+  border-right: 1px solid #E5E7EB;
+  line-height: 20px;
 }
 
 /* Tab 容器 */
@@ -368,13 +379,17 @@ html.split-dragging embed {
   display: inline-flex;
   align-items: center;
   min-width: 0;
+  max-width: 220px;
+  border: 1px solid #E5E7EB;
   border-radius: 8px;
-  transition: background 0.15s;
+  background: #fff;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .cp-tab-wrap:hover,
 .cp-tab-wrap.active {
   background: #F6F4FF;
+  border-color: #D8D0FF;
 }
 
 .cp-tab-wrap.active::after {
@@ -390,9 +405,9 @@ html.split-dragging embed {
 
 /* 单个 Tab */
 .cp-tab {
-  max-width: 180px;
+  max-width: 190px;
   padding: 10px 26px 10px 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-family: inherit;
   background: none;
   border: none;
