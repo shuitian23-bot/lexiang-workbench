@@ -1043,6 +1043,19 @@
   };
 
   RENDERERS.tradein = function (container, data) {
+    data = data || {};
+    // 若 AI 已估价（含 content/data.valuation）→ 直接渲染估价结果，不再显引导按钮
+    if (data.content) {
+      var html;
+      try { html = (typeof marked !== 'undefined') ? marked.parse(data.content) : '<pre>' + escH(data.content) + '</pre>'; }
+      catch(e) { html = '<pre>' + escH(data.content) + '</pre>'; }
+      container.innerHTML =
+        '<div class="cp-svc-page">' +
+          '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#10b981,#22c55e)"><h2>♻️ 估价结果</h2><p>下方为 AI 给您的旧机抵扣报价，可直接对话深入沟通</p></div>' +
+          '<div class="cp-info-page" style="padding:16px 24px">' + html + '</div>' +
+        '</div>';
+      return;
+    }
     container.innerHTML =
       '<div class="cp-svc-page">' +
         '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#10b981,#22c55e)">' +

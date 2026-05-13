@@ -119,8 +119,7 @@ module.exports = {
     const key = pickModelKey(old_model);
     if (!key) {
       return {
-        action: 'frontend_modal',
-        type: 'info',
+        action: 'frontend_tradein',
         title: '♻️ 以旧换新',
         content: `未识别您的型号「${old_model || '未知'}」。请补充描述（如「拯救者 Y9000P 2023 款」「ThinkPad T14 2022」）。\n\n常见可估价系列：拯救者 Y/R 系列、小新 Pro/小新、ThinkPad X1/T14/T16/E14、ThinkBook 16+/14+、YOGA Pro/Air/Book。`,
       };
@@ -163,8 +162,7 @@ ${upgradeRows}
 
 *POC 演示估价，正式回收价以联想 IT 服务事业部到货检测为准。*`;
     return {
-      action: 'frontend_modal',
-      type: 'info',
+      action: 'frontend_tradein',
       title: '♻️ 以旧换新估价结果',
       content,
       data: { key, year, base, condition: cond.label, ratio: cond.ratio, bonus, valuation, total, upgrades },
