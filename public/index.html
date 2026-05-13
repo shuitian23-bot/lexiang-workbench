@@ -8,6 +8,25 @@
 <meta http-equiv="expires" content="0">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>联想乐享AI - 联想官方AI购物助手</title>
+<script>
+// BUILD 标记 + 自检：如果用户客户端版本与服务器不一致，强制 reload
+window.__BUILD = '20260513-v2';
+(function(){
+  try {
+    var stored = localStorage.getItem('lx.build');
+    if (stored && stored !== window.__BUILD) {
+      console.warn('[BUILD] 客户端版本过期，强制刷新:', stored, '→', window.__BUILD);
+      localStorage.setItem('lx.build', window.__BUILD);
+      // 加随机参数防止任何缓存命中
+      var u = new URL(location.href);
+      u.searchParams.set('_v', window.__BUILD);
+      location.replace(u.toString());
+      return;
+    }
+    localStorage.setItem('lx.build', window.__BUILD);
+  } catch(e) {}
+})();
+</script>
 <meta name="description" content="联想乐享AI官方购物助手，智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
 <meta property="og:title" content="联想乐享AI - 联想官方AI购物助手">
 <meta property="og:description" content="智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
