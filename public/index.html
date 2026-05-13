@@ -2280,7 +2280,18 @@ function renderLeaiProducts(productList) {
     const satisfied = score ? score.filter(s => s.is_satisfied).length : 0;
     const scoreHtml = score ? `<div class="leai-pscore">推荐度：<b>已有${satisfied}项满足</b> ›</div>` : '';
 
-    panels += `<div class="leai-ppanel${i===0?' active':''}" id="${uid}-p${i}">
+    const skuKey = item.spuId || item.skuId || item.code || item.itemCode || ('leai-' + uid + '-' + i);
+    const inCmpL = window._compareList && window._compareList.some(function(x){ return x.key === skuKey; });
+    const cmpBtnL = `<button class="mall-cmp-btn${inCmpL?' active':''}" data-cmp-key="${escHtml(skuKey)}" data-action="cmp-toggle-leai" title="加入对比" style="position:absolute;top:8px;right:8px;z-index:3">${inCmpL?'✓':'PK'}</button>`;
+    const askLeai = (item.name || '').replace(/['"\\]/g, '');
+    const safeImgL = String(img).replace(/"/g,'&quot;');
+    const hoverLeai = `<div class="card-hover-actions">
+      <button class="primary" data-action="explain" data-name="${escHtml(askLeai)}">📖 解读</button>
+      <button data-action="cmp-toggle-leai" data-cmp-key="${escHtml(skuKey)}" data-name="${escHtml(askLeai)}" data-img="${safeImgL}" data-price="${price}">+ 对比</button>
+      <button data-action="customize" data-name="${escHtml(askLeai)}" data-img="${safeImgL}">🛠 定制</button>
+    </div>`;
+    panels += `<div class="leai-ppanel${i===0?' active':''}" id="${uid}-p${i}" data-product="${escHtml(skuKey)}" data-name="${escHtml(askLeai)}" data-price="${price}" data-img="${safeImgL}" style="position:relative;cursor:pointer">
+      ${cmpBtnL}
       <div style="width:100%">${scoreHtml}</div>
       ${img ? `<img class="leai-ppanel-img" src="${img}" alt="" loading="lazy">` : ''}
       <div class="leai-ppanel-info">
@@ -2289,9 +2300,10 @@ function renderLeaiProducts(productList) {
         ${tagsHtml ? `<div class="leai-ppanel-tags">${tagsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">预估到手：</span><span class="leai-ppanel-price">${price}</span>` : ''}</div>
-          <a class="leai-ppanel-buy" href="${url}" target="_blank" rel="noopener">立即购买</a>
+          <a class="leai-ppanel-buy" href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">立即购买</a>
         </div>
       </div>
+      ${hoverLeai}
     </div>`;
   });
   tabs += '</div>';
@@ -3447,10 +3459,29 @@ function _cardContainerClickHandler(e) {
     if (typeof quickAsk === 'function') quickAsk('详细解读 ' + name + ' 的配置亮点、适用人群和性价比');
     return;
   }
-  // 2) +对比 按钮（mall + dc 通用）
-  var cmpBtn = e.target.closest('[data-action="cmp-toggle"], [data-action="cmp-toggle-dc"], .mall-cmp-btn');
+  // 2) +对比 按钮（mall + dc + leai 通用）
+  var cmpBtn = e.target.closest('[data-action="cmp-toggle"], [data-action="cmp-toggle-dc"], [data-action="cmp-toggle-leai"], .mall-cmp-btn');
   if (cmpBtn) {
     e.stopPropagation(); e.preventDefault();
+    if (cmpBtn.dataset.action === 'cmp-toggle-leai') {
+      // leai 卡数据不在 mallProducts，直接从 dataset 构造 compareList 项
+      var key = cmpBtn.dataset.cmpKey;
+      var list = window._compareList || [];
+      var idx = list.findIndex(function(x){ return x.key === key; });
+      if (idx >= 0) {
+        list.splice(idx, 1);
+        cmpBtn.classList.remove('active');
+        cmpBtn.textContent = 'PK';
+      } else {
+        if (list.length >= (typeof COMPARE_MAX !== 'undefined' ? COMPARE_MAX : 4)) { alert('最多对比 4 件'); return; }
+        list.push({ key: key, name: cmpBtn.dataset.name || '商品', price: parseFloat(cmpBtn.dataset.price) || 0, image_url: cmpBtn.dataset.img || '', description: '', category: '' });
+        cmpBtn.classList.add('active');
+        cmpBtn.textContent = '✓';
+      }
+      if (typeof _saveCompare === 'function') _saveCompare();
+      if (typeof _renderCmpFab === 'function') _renderCmpFab();
+      return;
+    }
     if (typeof toggleCompare === 'function') toggleCompare(cmpBtn.dataset.cmpKey, cmpBtn);
     return;
   }
@@ -3474,13 +3505,21 @@ function _cardContainerClickHandler(e) {
   if (dcCard && typeof showProductDetail === 'function') {
     var sku = dcCard.dataset.product;
     if (sku) showProductDetail(sku);
+    return;
+  }
+  // leai-ppanel 整卡进详情（chat 气泡内 AI 推荐卡）
+  var leaiPanel = e.target.closest('.leai-ppanel');
+  if (leaiPanel && typeof showProductDetail === 'function') {
+    var lsku = leaiPanel.dataset.product;
+    if (lsku && /^\d+$/.test(lsku)) showProductDetail(lsku);
+    return;
   }
 }
 
 // 为容器内所有卡片绑定 hover 1s 显示操作层
 function _attachCardHover(container) {
   if (!container) return;
-  container.querySelectorAll('.mall-card, .dc-card').forEach(function(card){
+  container.querySelectorAll('.mall-card, .dc-card, .leai-ppanel').forEach(function(card){
     if (card._hoverBound) return;
     card._hoverBound = true;
     var t;
@@ -3504,14 +3543,25 @@ window._attachCardHover = _attachCardHover;
   feedC.addEventListener('click', _cardContainerClickHandler);
   var dcBody = document.getElementById('dcBody');
   if (dcBody) dcBody.addEventListener('click', _cardContainerClickHandler);
+  // chat 气泡（mbubble）内的 leai-ppanel 也走同一委托 — 用 capture=false + body 兜底
+  document.body.addEventListener('click', function(e){
+    if (e.target.closest('#feedSections, #dcBody')) return; // 已委托过
+    if (e.target.closest('.leai-ppanel, .mall-cmp-btn, [data-action]')) {
+      _cardContainerClickHandler(e);
+    }
+  });
 
   // MutationObserver: feed/dc 容器内容变化时自动绑定 hover
   var mo = new MutationObserver(function(){
     _attachCardHover(feedC);
     if (dcBody) _attachCardHover(dcBody);
+    _attachCardHover(document.body);  // 覆盖 chat 气泡内的 leai-ppanel
   });
   mo.observe(feedC, { childList:true, subtree:true });
   if (dcBody) mo.observe(dcBody, { childList:true, subtree:true });
+  // 监听 chat 气泡变化（msgsInner 是 chat 容器）
+  var msgsInner = document.getElementById('msgsInner');
+  if (msgsInner) mo.observe(msgsInner, { childList:true, subtree:true });
 })();
 
 // ── 商品对比清单（localStorage 持久化，最多 4 件）──
