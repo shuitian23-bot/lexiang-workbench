@@ -901,61 +901,92 @@
   };
 
   RENDERERS.coupon = function (container, data) {
+    var COUPONS = window.COUPONS || [];
+    var received = (function(){ try { return JSON.parse(localStorage.getItem('lexiang.coupons.v1') || '[]'); } catch(e){ return []; } })();
+    var highlight = (data && data.highlight) || [];
+    var sorted = COUPONS.slice().sort(function(a,b){
+      var ai = highlight.indexOf(a.tag), bi = highlight.indexOf(b.tag);
+      if (ai >= 0 && bi < 0) return -1;
+      if (bi >= 0 && ai < 0) return 1;
+      if (ai >= 0 && bi >= 0) return ai - bi;
+      return 0;
+    });
+    var listHtml = sorted.map(function(c){
+      var done = received.indexOf(c.id) >= 0;
+      var hi = highlight.indexOf(c.tag) >= 0 ? ' style="box-shadow:0 0 0 2px #b83340"' : '';
+      return '<div class="coupon-item'+(done?' received':'')+'" data-id="'+c.id+'"'+hi+'>'+
+        '<div class="coupon-amount"><div class="num">'+c.amount+'</div><div class="cond">'+escH(c.cond||'')+'</div></div>'+
+        '<div class="coupon-info"><h4>'+escH(c.title||'')+'</h4><p>'+escH(c.desc||'')+'</p><span class="scope">'+escH(c.scope||'')+'</span></div>'+
+        '<button class="coupon-take'+(done?' done':'')+'" data-cid="'+c.id+'" '+(done?'disabled':'')+'>'+(done?'已领取':'立即领取')+'</button>'+
+        '</div>';
+    }).join('');
     container.innerHTML =
       '<div class="cp-svc-page">' +
         '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#b83340,#ef4444)">' +
           '<h2>🎟 优惠券中心</h2>' +
-          '<p>学生 / 教师 / 企业新户 / 政教大单 / 新用户 / 换新加码 / 电竞 / 创作者 — 8 张可领券</p>' +
+          '<p>已领 ' + received.length + ' / ' + COUPONS.length + ' 张 — 学生 / 教师 / 企业 / 政教 / 新用户 / 换新 / 电竞 / 创作者</p>' +
         '</div>' +
-        '<div class="cp-svc-actions">' +
-          '<button class="cp-svc-btn primary" data-act="open">🎁 打开优惠券中心</button>' +
-          '<button class="cp-svc-btn" data-act="ask-student">🎓 学生认证立减 500</button>' +
-          '<button class="cp-svc-btn" data-act="ask-enterprise">🏢 企业新户开户金 1000</button>' +
-          '<button class="cp-svc-btn" data-act="ask-teacher">👩‍🏫 教师专享券</button>' +
-          '<button class="cp-svc-btn" data-act="ask-tradein">♻️ 换新加码券</button>' +
-        '</div>' +
-        '<div class="cp-svc-tips"><strong>💡</strong>左侧 AI 已根据您身份推荐可领券，点上方按钮一键领取。</div>' +
+        '<div class="coupon-list" style="padding:18px 24px">' + listHtml + '</div>' +
       '</div>';
-    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
+    container.querySelectorAll('.coupon-take').forEach(function(btn){
       btn.addEventListener('click', function(){
-        var act = btn.dataset.act;
-        if (act === 'open' && typeof openCouponCenter === 'function') openCouponCenter({});
-        else if (act === 'ask-student' && typeof quickAsk === 'function') quickAsk('我是学生，怎么认证学生身份并领取学生立减 500 的优惠券？');
-        else if (act === 'ask-enterprise' && typeof quickAsk === 'function') quickAsk('企业新户怎么开户领 1000 元开户金？需要什么资质？');
-        else if (act === 'ask-teacher' && typeof quickAsk === 'function') quickAsk('教师专享券怎么领取？');
-        else if (act === 'ask-tradein' && typeof quickAsk === 'function') quickAsk('换新加码券怎么用？可以叠加什么活动？');
+        if (typeof window._takeCoupon === 'function') window._takeCoupon(btn.dataset.cid, btn);
       });
     });
   };
 
   RENDERERS.member = function (container, data) {
+    var m = window._memberState || { level:'V3 黄金', points:12380, growth:11380, growthMax:20000, signedToday:false, benefits:[], orders:[] };
+    var pct = Math.round(m.growth / m.growthMax * 100);
+    var benefits = (m.benefits || []).map(function(b){
+      var btn;
+      if (b.status === 'active') btn = '<button class="member-btn done" disabled>已生效</button>';
+      else if (b.status === 'claimed') btn = '<button class="member-btn done" disabled>已领取</button>';
+      else btn = '<button class="member-btn" data-claim="'+b.id+'">立即领取</button>';
+      return '<div class="member-benefit">'+
+        '<div class="member-bicon">'+b.icon+'</div>'+
+        '<div class="member-binfo"><h4>'+escH(b.name||'')+'</h4><p>'+escH(b.desc||'')+'</p></div>'+
+        btn +
+      '</div>';
+    }).join('');
+    var orders = (m.orders || []).map(function(o){
+      return '<div class="member-order">'+
+        '<div><strong>'+escH(o.id||'')+'</strong> <span class="tag">'+escH(o.status||'')+'</span></div>'+
+        '<div class="oname">'+escH(o.name||'')+' <span class="oprice">¥'+(o.price||0).toLocaleString()+'</span></div>'+
+        '<div class="oeta">'+escH(o.eta||'')+'</div>'+
+      '</div>';
+    }).join('');
+    var signBtn = m.signedToday
+      ? '<button class="member-btn done" disabled>今日已签到 +20</button>'
+      : '<button class="member-btn primary" data-act="sign">每日签到 +20 乐豆</button>';
     container.innerHTML =
       '<div class="cp-svc-page">' +
-        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">' +
-          '<h2>👤 我的会员中心</h2>' +
-          '<p>V3 黄金会员 · 12,380 乐豆 · 4 项可领权益 · 距 V4 钻石还差 8,620 成长值</p>' +
-        '</div>' +
-        '<div class="cp-svc-actions">' +
-          '<button class="cp-svc-btn primary" data-act="ask-status">📊 查询完整会员状态</button>' +
-          '<button class="cp-svc-btn" data-act="ask-points">💎 乐豆怎么赚 / 怎么用</button>' +
-          '<button class="cp-svc-btn" data-act="ask-benefits">🎁 我的可领权益（4 项）</button>' +
-          '<button class="cp-svc-btn" data-act="ask-orders">📦 我的最近订单</button>' +
-          '<button class="cp-svc-btn" data-act="ask-upgrade">⬆️ 怎么升级到 V4 钻石</button>' +
-        '</div>' +
-        '<div class="cp-svc-tips"><strong>💡</strong>左侧 AI 助手会展示您的完整会员信息卡片。</div>' +
+        '<div class="member-head">'+
+          '<div class="member-title"><h3>'+escH(m.level||'')+' 会员</h3><p>距 V4 钻石还差 <strong>'+(m.growthMax - m.growth).toLocaleString()+'</strong> 成长值</p></div>'+
+          '<div class="member-points"><div class="num">'+m.points.toLocaleString()+'</div><div class="lbl">乐豆余额</div></div>'+
+        '</div>'+
+        '<div class="member-progress"><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><span>'+pct+'%</span></div>'+
+        '<div class="member-body">'+
+          '<div class="member-section"><h5>每日任务</h5>'+signBtn+'</div>'+
+          '<div class="member-section"><h5>会员权益（'+(m.benefits||[]).filter(function(b){return b.status==='unclaimed'}).length+' 项可领）</h5><div class="member-benefits">'+benefits+'</div></div>'+
+          '<div class="member-section"><h5>我的订单</h5><div class="member-orders">'+orders+'</div></div>'+
+        '</div>'+
       '</div>';
-    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
+    container.querySelectorAll('[data-claim]').forEach(function(btn){
       btn.addEventListener('click', function(){
-        var ask = '';
-        switch (btn.dataset.act) {
-          case 'ask-status': ask = '我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来'; break;
-          case 'ask-points': ask = '乐豆怎么赚？哪些场景可以使用乐豆抵扣？'; break;
-          case 'ask-benefits': ask = '我有哪些可领的会员权益？怎么领取？'; break;
-          case 'ask-orders': ask = '我最近的订单情况怎么样？物流到哪了？'; break;
-          case 'ask-upgrade': ask = '我现在 V3 黄金，怎么升级到 V4 钻石？需要多少消费？'; break;
+        if (typeof window._memberClaim === 'function') {
+          window._memberClaim(btn.dataset.claim);
+          // 重渲染 tab
+          RENDERERS.member(container, data);
         }
-        if (ask && typeof quickAsk === 'function') quickAsk(ask);
       });
+    });
+    var signBtnEl = container.querySelector('[data-act="sign"]');
+    if (signBtnEl) signBtnEl.addEventListener('click', function(){
+      if (typeof window._memberSign === 'function') {
+        window._memberSign();
+        RENDERERS.member(container, data);
+      }
     });
   };
 
