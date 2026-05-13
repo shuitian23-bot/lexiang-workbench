@@ -939,7 +939,8 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .subnav-extra-input .se-more { position: relative; display: inline-block; }
 .subnav-extra-input .se-more.open .se-dropdown { display: block; }
 .subnav-extra-input .se-dropdown {
-  display: none; position: absolute; bottom: calc(100% + 6px); left: 0; min-width: 160px;
+  display: none; position: absolute; top: auto !important; bottom: calc(100% + 6px) !important;
+  left: 0; right: auto !important; min-width: 160px;
   background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
   box-shadow: 0 -8px 24px rgba(0,0,0,.12); padding: 6px; z-index: 1000;
 }

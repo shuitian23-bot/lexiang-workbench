@@ -1059,8 +1059,11 @@
           '<span>换位</span>' +
         '</button>';
       document.getElementById('btnSwapPanes').addEventListener('click', function () {
+        // 换位时翻转 leftPct 让两侧占比保持不变（如 chat 原占 1/3 在右，换到左仍占 1/3）
         state.swapped = !state.swapped;
+        state.leftPct = 100 - state.leftPct;
         saveState();
+        applyWidths();
         applySwap();
       });
       document.getElementById('btnNewConv').addEventListener('click', function () {
