@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-next-s1b';
+window.__BUILD = '20260514-next-s1c';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -5232,15 +5232,23 @@ function _ctoAddCompare() {
 window._ctoBuy = _ctoBuy; window._ctoAddCompare = _ctoAddCompare;
 
 // ── 优惠券中心（mock 数据） ──
+// sites 字段标识券适用子站：shop=个人/家庭、b=中小企业、biz=政教大企业、'*'=全部
 var COUPONS = [
-  { id:'student-500',  amount:500,  cond:'满 5000 可用',  title:'学生认证立减券', scope:'笔记本 / 平板', tag:'student',  desc:'认证学生身份后立减 500，每人限 1 张' },
-  { id:'teacher-300',  amount:300,  cond:'满 3000 可用',  title:'教师专享券',     scope:'全场 PC',      tag:'teacher',  desc:'认证教师身份后可领，每月 1 张' },
-  { id:'enterprise-1000', amount:1000, cond:'满 10000 可用', title:'企业新户开户金', scope:'B 端整机',     tag:'enterprise', desc:'企业账号首次注册可领' },
-  { id:'gov-2000',     amount:2000, cond:'满 50000 可用', title:'政教大单优惠',   scope:'工作站 / 服务器', tag:'gov',     desc:'政府/事业单位采购专享' },
-  { id:'newuser-200',  amount:200,  cond:'满 2000 可用',  title:'新用户专享',     scope:'全场',         tag:'newuser', desc:'新注册用户立享，30 天有效' },
-  { id:'tradein-300',  amount:300,  cond:'以旧换新可叠加',title:'换新加码券',     scope:'换新机型',     tag:'tradein', desc:'以旧换新订单可额外抵扣 300' },
-  { id:'gaming-500',   amount:500,  cond:'满 8000 可用',  title:'电竞旗舰券',     scope:'拯救者 / 刃9000K', tag:'gaming', desc:'游戏本/电竞台式机专享' },
-  { id:'creator-400',  amount:400,  cond:'满 7000 可用',  title:'创作者专享',     scope:'YOGA Pro / 工作站',tag:'creator',desc:'设计师 / 视频创作者' },
+  // 个人/家庭专属
+  { id:'student-500',  amount:500,  cond:'满 5000 可用',  title:'学生认证立减券', scope:'笔记本 / 平板', tag:'student',  sites:['shop'], desc:'认证学生身份后立减 500，每人限 1 张' },
+  { id:'teacher-300',  amount:300,  cond:'满 3000 可用',  title:'教师专享券',     scope:'全场 PC',      tag:'teacher',  sites:['shop'], desc:'认证教师身份后可领，每月 1 张' },
+  { id:'newuser-200',  amount:200,  cond:'满 2000 可用',  title:'新用户专享',     scope:'全场',         tag:'newuser',  sites:['shop'], desc:'新注册用户立享，30 天有效' },
+  { id:'gaming-500',   amount:500,  cond:'满 8000 可用',  title:'电竞旗舰券',     scope:'拯救者 / 刃9000K', tag:'gaming',  sites:['shop'], desc:'游戏本/电竞台式机专享' },
+  { id:'creator-400',  amount:400,  cond:'满 7000 可用',  title:'创作者专享',     scope:'YOGA Pro / 工作站',tag:'creator', sites:['shop'], desc:'设计师 / 视频创作者' },
+  { id:'tradein-300',  amount:300,  cond:'以旧换新可叠加',title:'换新加码券',     scope:'换新机型',     tag:'tradein',  sites:['shop','b'], desc:'以旧换新订单可额外抵扣 300' },
+  // 中小企业专属
+  { id:'enterprise-1000', amount:1000, cond:'满 10000 可用', title:'企业新户开户金', scope:'B 端整机',  tag:'enterprise', sites:['b'], desc:'企业账号首次注册可领' },
+  { id:'bulk-3000',    amount:3000, cond:'满 50000 可用（10 台起）', title:'批采阶梯券', scope:'ThinkBook / ThinkPad', tag:'bulk', sites:['b'], desc:'10 台起企业批采立减' },
+  { id:'smb-onsite',   amount:500,  cond:'购机送上门',     title:'SMB 上门安装券',  scope:'天逸 / 扬天 / ThinkCentre', tag:'onsite', sites:['b'], desc:'购机赠免费上门安装服务' },
+  // 政教大企业专属
+  { id:'gov-2000',     amount:2000, cond:'满 50000 可用', title:'政教大单优惠',   scope:'工作站 / 服务器', tag:'gov',  sites:['biz'], desc:'政府/事业单位采购专享' },
+  { id:'tender-5000',  amount:5000, cond:'满 200000 可用', title:'招投标支持券', scope:'整体方案',     tag:'tender', sites:['biz'], desc:'招投标项目专属，含资质代办' },
+  { id:'compliance-10pct', amount:0, cond:'10% 服务包减免', title:'信创合规减免', scope:'国密 / 等保 / 国产化', tag:'compliance', sites:['biz'], desc:'信创合规服务费 10% 减免' },
 ];
 var _receivedCoupons = JSON.parse(localStorage.getItem('lexiang.coupons.v1') || '[]');
 
@@ -5257,7 +5265,10 @@ function openCouponCenter(opts) {
   mask.onclick = function(e){ if (e.target === mask) mask.remove(); };
   // 高亮指定 tag 的券到顶部
   var highlight = opts.highlight || [];
-  var sorted = COUPONS.slice().sort(function(a,b){
+  var site = (typeof window.__siteType !== 'undefined') ? window.__siteType : 'default';
+  var filtered = COUPONS.filter(function(c){ return !c.sites || c.sites.indexOf(site) >= 0 || c.sites.indexOf('*') >= 0; });
+  if (!filtered.length) filtered = COUPONS; // fallback
+  var sorted = filtered.slice().sort(function(a,b){
     var ai = highlight.indexOf(a.tag), bi = highlight.indexOf(b.tag);
     if (ai >= 0 && bi < 0) return -1;
     if (bi >= 0 && ai < 0) return 1;
@@ -5411,25 +5422,58 @@ function _takeCoupon(id, btn) {
 }
 window._takeCoupon = _takeCoupon;
 
-// ── 会员中心 / 以旧换新 / 保修查询 / 预约到店（轻量 mock 模态） ──
-// ── 会员中心（HTML 卡片交互版） ──
-var _memberState = {
-  level: 'V3 黄金',
-  points: 12380,
-  growth: 11380,
-  growthMax: 20000,
-  signedToday: false,
-  benefits: [
-    { id:'birthday', icon:'🎁', name:'生日礼', desc:'联名手机壳 1 件', status:'unclaimed' },
-    { id:'freeship', icon:'🚚', name:'免邮特权', desc:'全年免邮', status:'active' },
-    { id:'warranty', icon:'🛠',  name:'延保 1 年', desc:'仅限新购整机', status:'unclaimed' },
-    { id:'service',  icon:'📞', name:'专属客服', desc:'1对1 选购顾问', status:'active' },
-  ],
-  orders: [
-    { id:'LX2026050801', status:'待发货', name:'ThinkBook 16+ 2026', price:9999, eta:'明天送达' },
-    { id:'LX2026042315', status:'已收货', name:'拯救者 Y9000P',     price:14999, eta:'2026-04-26 签收' },
-  ],
+// ── 会员中心 三子站差异化 mock 数据 ──
+var _MEMBER_BY_SITE = {
+  shop: {
+    level: 'V3 黄金会员', points: 12380, growth: 11380, growthMax: 20000, signedToday: false,
+    benefits: [
+      { id:'birthday', icon:'🎁', name:'生日礼', desc:'联名手机壳 1 件', status:'unclaimed' },
+      { id:'freeship', icon:'🚚', name:'免邮特权', desc:'全年免邮', status:'active' },
+      { id:'warranty', icon:'🛠', name:'延保 1 年', desc:'仅限新购整机', status:'unclaimed' },
+      { id:'service',  icon:'📞', name:'专属客服', desc:'1对1 选购顾问', status:'active' },
+    ],
+    orders: [
+      { id:'LX2026050801', status:'待发货', name:'拯救者 Y9000K', price:18999, eta:'明天送达' },
+      { id:'LX2026042315', status:'已收货', name:'小新 Pro 2026', price:6999,  eta:'2026-04-26 签收' },
+    ],
+  },
+  b: {
+    level: 'SMB 银牌企业', points: 56820, growth: 56820, growthMax: 100000, signedToday: false,
+    benefits: [
+      { id:'b-onsite',  icon:'🚚', name:'上门安装', desc:'本季度 5 次额度', status:'active' },
+      { id:'b-invoice', icon:'📋', name:'增值税专票', desc:'电子专票 7 工作日', status:'active' },
+      { id:'b-bd',      icon:'👨‍💼', name:'专属 BD',   desc:'10 台起 BD 1对1', status:'unclaimed' },
+      { id:'b-bulk',    icon:'💰', name:'阶梯返点', desc:'30 台起额外 3% 返', status:'unclaimed' },
+    ],
+    orders: [
+      { id:'B2026050912', status:'待发货', name:'ThinkBook 16+ × 10 台', price:99990, eta:'48h 内分批送达' },
+      { id:'B2026042608', status:'已收货', name:'天逸 510S × 5 台',     price:39495, eta:'2026-04-28 签收' },
+    ],
+  },
+  biz: {
+    level: '政企事业部直签客户', points: 0, growth: 0, growthMax: 0, signedToday: true,
+    benefits: [
+      { id:'biz-tender',     icon:'📜', name:'招投标支持', desc:'BD 48h 出方案', status:'active' },
+      { id:'biz-compliance', icon:'🛡', name:'信创合规',   desc:'国密/等保/适配清单', status:'active' },
+      { id:'biz-onsite',     icon:'🏛', name:'现场 POC',  desc:'100 万+ 项目', status:'active' },
+      { id:'biz-sla',        icon:'⏱', name:'4h SLA',     desc:'全国服务网点', status:'active' },
+    ],
+    orders: [
+      { id:'BIZ2026050701', status:'实施中', name:'某省厅 工作站 × 30 台 + 服务器 × 8', price:1280000, eta:'5/20 现场实施完成' },
+      { id:'BIZ2026031203', status:'已签收', name:'某高校 智慧教室方案',                price: 856000, eta:'2026-03-22 验收' },
+    ],
+  },
 };
+function _initMemberState() {
+  var site = (typeof window.__siteType !== 'undefined') ? window.__siteType : 'default';
+  var src = _MEMBER_BY_SITE[site] || _MEMBER_BY_SITE.shop;
+  // deep clone 防止跨切换状态污染
+  _memberState = JSON.parse(JSON.stringify(src));
+  return _memberState;
+}
+var _memberState = null;
+_initMemberState();
+window._initMemberState = _initMemberState;
 function openMemberCenter() {
   if (typeof window.__openContent === 'function' && document.documentElement.classList.contains('split-mode')) {
     window.__openContent('member', '我的会员中心', {});

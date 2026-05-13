@@ -966,7 +966,10 @@
     var COUPONS = window.COUPONS || [];
     var received = (function(){ try { return JSON.parse(localStorage.getItem('lexiang.coupons.v1') || '[]'); } catch(e){ return []; } })();
     var highlight = (data && data.highlight) || [];
-    var sorted = COUPONS.slice().sort(function(a,b){
+    var site = (typeof window.__siteType !== 'undefined') ? window.__siteType : 'default';
+    var filtered = COUPONS.filter(function(c){ return !c.sites || c.sites.indexOf(site) >= 0 || c.sites.indexOf('*') >= 0; });
+    if (!filtered.length) filtered = COUPONS;
+    var sorted = filtered.slice().sort(function(a,b){
       var ai = highlight.indexOf(a.tag), bi = highlight.indexOf(b.tag);
       if (ai >= 0 && bi < 0) return -1;
       if (bi >= 0 && ai < 0) return 1;
