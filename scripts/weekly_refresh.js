@@ -70,22 +70,22 @@ async function run() {
 
   // 6. 商品API
   await step(6, T, '商品数据(open API)', async () => {
-    execSync('node /root/lexiang/scripts/import_from_openapi.js', {
-      timeout: 300000, encoding: 'utf-8', cwd: '/root/lexiang', stdio: 'pipe',
+    execSync('node /opt/projects/lexiang/scripts/import_from_openapi.js', {
+      timeout: 300000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
   }, 300000);
 
   // 7. 品牌新闻全量
   await step(7, T, '品牌新闻全量(brand.lenovo)', async () => {
-    execSync('python3 /root/lexiang/scripts/crawl_brand_full.py', {
-      timeout: 600000, encoding: 'utf-8', cwd: '/root/lexiang', stdio: 'pipe',
+    execSync('python3 /opt/projects/lexiang/scripts/crawl_brand_full.py', {
+      timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
   }, 600000);
 
   // 8. wiki 页面生成（最后跑，依赖前面所有数据）
   await step(8, T, 'wiki 页面生成', async () => {
-    execSync('python3 /root/lexiang/scripts/gen_wiki_full.py', {
-      timeout: 600000, encoding: 'utf-8', cwd: '/root/lexiang', stdio: 'pipe',
+    execSync('python3 /opt/projects/lexiang/scripts/gen_wiki_full.py', {
+      timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
   }, 600000);
 

@@ -4,7 +4,7 @@ import json, re, sqlite3, html, sys, time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-DB_PATH = '/root/lexiang/lexiang.db'
+DB_PATH = '/opt/projects/lexiang/lexiang.db'
 API_URL = 'https://s.lenovo.com.cn/search/brand?id=85&type=brand&curPage={page}&pageSize=48'
 WORKERS = 10
 
