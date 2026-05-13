@@ -965,7 +965,10 @@ html[data-site="biz"] .subnav-extra{display:flex}
 #displayCanvas .dc-back:hover{border-color:var(--accent);color:var(--accent)}
 #displayCanvas .dc-back svg{width:16px;height:16px}
 #displayCanvas .dc-title{font-size:15px;font-weight:600;color:var(--text)}
-#displayCanvas .dc-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;width:100%}
+#displayCanvas .dc-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%}
+@media(min-width:700px){#displayCanvas .dc-body{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1000px){#displayCanvas .dc-body{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:1400px){#displayCanvas .dc-body{grid-template-columns:repeat(5,minmax(0,1fr))}}
 #displayCanvas .dc-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;display:flex;flex-direction:column;min-width:0}
 #displayCanvas .dc-card-info{min-width:0}
 #displayCanvas .dc-card-desc{min-width:0}
@@ -2233,14 +2236,16 @@ function renderSelfProducts(products) {
       } catch {}
     }
 
-    panels += `<div class="leai-ppanel${i===0?' active':''}" id="${uid}-p${i}">
+    const skuStr = p.sku || '';
+    const buyUrl = lxUtm(p.url || (p.specs && (typeof p.specs === 'string' ? (function(){try{return JSON.parse(p.specs).url}catch{return null}})() : p.specs.url)) || (skuStr ? `https://item.lenovo.com.cn/product/${skuStr}.html` : 'https://www.lenovo.com.cn'), skuStr);
+    panels += `<div class="leai-ppanel${i===0?' active':''}" id="${uid}-p${i}" data-product="${escHtml(skuStr)}" style="cursor:pointer" onclick="if(event.target.closest('.leai-ppanel-buy'))return;showProductDetail('${escHtml(skuStr)}')">
       <div class="leai-ppanel-info" style="width:100%">
         <div class="leai-ppanel-name">${name}</div>
         <div class="leai-ppanel-brief">${desc}</div>
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <a class="leai-ppanel-buy" href="https://www.lenovo.com.cn" target="_blank" rel="noopener">去看看</a>
+          <a class="leai-ppanel-buy" href="${buyUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">去官网</a>
         </div>
       </div>
     </div>`;
@@ -3025,10 +3030,10 @@ function openDetail(el) {
 function showDisplayCanvas(title, products) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
-  // 强制 grid 列表布局，避免被 showProductDetail 残留的 display:block + 1fr 污染
+  // 强制 grid 让 CSS media query 控列数；清 inline 防详情页残留 1fr 污染
   body.style.display = 'grid';
-  body.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
-  body.style.gap = '12px';
+  body.style.gridTemplateColumns = '';
+  body.style.gap = '';
   document.getElementById('dcTitle').textContent = title;
   body.innerHTML = products.map(function(p) {
     var img = escHtml(p.image_url || p.图片 || '');
@@ -3116,7 +3121,9 @@ async function showProductDetail(sku) {
     var p = await res.json();
     var specs = p.specs || {};
     var imgUrl = p.image_url || '';
-    var buyUrl = lxUtm(specs.url || 'https://item.lenovo.com.cn/product/' + sku + '.html', sku);
+    // specs.url 经常 404（联想数据下架），改优先 item.lenovo.com.cn/product/{sku}.html，规范一致
+    var buyUrl = lxUtm('https://item.lenovo.com.cn/product/' + sku + '.html', sku);
+    var searchUrl = 'https://search.lenovo.com.cn/result.html?keyword=' + encodeURIComponent(p.name);
     document.getElementById('dcTitle').textContent = p.name;
     window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price, description: p.description };
     notifyAIProductContext(p);
@@ -3128,9 +3135,14 @@ async function showProductDetail(sku) {
       if (parts.length >= 3) highlights = parts.map(function(s){ return s.trim(); }).filter(Boolean);
     }
 
-    // 从 specs 提取可展示参数
-    var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3','target_user','highlights','images','ad_picture','is_ai','bu','mtm'];
-    var labelMap = {brand:'品牌',color:'颜色',weight:'重量',screen_size:'屏幕尺寸',battery:'电池',os:'操作系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率'};
+    // 从 specs 提取可展示参数（保留更多有用 key）
+    var skipKeys = ['url','pcDetailUrl','wapUrl','wapDetailUrl','bu_ids','target_user','highlights','images','ad_picture','source'];
+    var labelMap = {
+      brand:'品牌', color:'颜色', weight:'重量', screen_size:'屏幕尺寸', battery:'电池', os:'操作系统',
+      cpu:'处理器', gpu:'显卡', ram:'内存', storage:'存储', resolution:'分辨率',
+      lvl1:'一级分类', lvl2:'二级分类', lvl3:'系列', lvl4:'子系列', lvl5:'细分',
+      mtm:'MTM 编码', bu:'事业部', is_ai:'AI 商品'
+    };
     var specRowsInline = '';
     var specTableRows = '';
     Object.keys(specs).forEach(function(k) {
@@ -3196,7 +3208,8 @@ async function showProductDetail(sku) {
             (specRowsInline ? '<div class="pd-spec-list">' + specRowsInline + '</div>' : '') +
             '<div class="pd-action-btns">' +
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">立即购买</button>' +
-              '<button class="pd-btn-cart" onclick="quickAsk(\'我想把 ' + escHtml(p.name).replace(/'/g, "\\'") + ' 加入购物车，有什么优惠可以一起用吗？\')">加入购物车</button>' +
+              '<a class="pd-btn-cart" href="' + buyUrl + '" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">↗ 官网查看</a>' +
+              '<a class="pd-btn-cart" href="' + searchUrl + '" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">🔍 同款搜索</a>' +
               '<button class="pd-btn-ask" onclick="askAboutProduct()">问AI助手</button>' +
             '</div>' +
           '</div>' +
@@ -3460,7 +3473,7 @@ function _attachCardHover(container) {
       t = setTimeout(function(){
         var act = card.querySelector('.card-hover-actions');
         if (act) act.classList.add('show');
-      }, 500);
+      }, 300);
     });
     card.addEventListener('mouseleave', function(){
       clearTimeout(t);
@@ -3537,17 +3550,34 @@ function toggleCompare(key, btn) {
 }
 window.toggleCompare = toggleCompare;
 
-// 浮标已废弃，改为顶部 subnav「PK 对比 (N)」入口
 function _renderCmpFab() {
   var existing = document.getElementById('cmpFab');
-  if (existing) existing.remove();
-  // 同步刷新顶部对比入口角标
-  var pkBtn = document.getElementById('subnavPkBtn');
   var list = window._compareList || [];
-  if (pkBtn) {
-    var n = list.length;
-    pkBtn.innerHTML = '<span class="ico">⚖</span>对比' + (n > 0 ? '<span class="pk-badge">' + n + '</span>' : '');
-    pkBtn.classList.toggle('has-items', n > 0);
+  // default 主页（leaibot.cn 首页）不显示，避免打扰；仅子站显示
+  var isDefault = (typeof _siteType === 'undefined') || _siteType === 'default';
+  if (!list.length || isDefault) {
+    if (existing) existing.remove();
+    return;
+  }
+  var html;
+  if (list.length === 1) {
+    html = '<span>已选 1 件</span>' +
+      '<span class="cmp-fab-count">再加 1 件即可对比</span>' +
+      '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
+  } else {
+    html = '<span>对比清单</span>' +
+      '<span class="cmp-fab-count">' + list.length + '/' + COMPARE_MAX + '</span>' +
+      '<button class="cmp-fab-go" onclick="openCompareModal()">开始对比</button>' +
+      '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
+  }
+  if (existing) {
+    existing.innerHTML = html;
+  } else {
+    var fab = document.createElement('div');
+    fab.id = 'cmpFab';
+    fab.className = 'cmp-fab';
+    fab.innerHTML = html;
+    document.body.appendChild(fab);
   }
 }
 
@@ -3656,10 +3686,7 @@ function renderSubnav() {
       '<div class="se-dropdown">'+items+'</div>'+
     '</div>';
   }
-  var pkBtn = '<button class="se-btn pk-btn" id="subnavPkBtn" onclick="openCompareModal()" title="商品对比清单"><span class="ico">⚖</span>对比</button>';
-  box.innerHTML = mainHtml + moreHtml + pkBtn;
-  // 触发一次角标渲染
-  if (typeof _renderCmpFab === 'function') _renderCmpFab();
+  box.innerHTML = mainHtml + moreHtml;
 }
 // 首屏渲染（仅子站）
 (function(){ if (typeof _siteType !== 'undefined' && _siteType !== 'default') renderSubnav(); })();
