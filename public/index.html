@@ -1312,6 +1312,17 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 
 
 <script>
+// ── 价格展示 helper：占位价（0 / 99999 / 888888 / >=999999）一律显示「暂未公布」──
+window.formatPrice = function(p) {
+  const v = Number(p);
+  if (!v || v >= 999999 || v === 99999 || v === 888888) return '暂未公布';
+  return '¥' + v.toLocaleString();
+};
+window.isPriceDisclosed = function(p) {
+  const v = Number(p);
+  return !!v && v < 999999 && v !== 99999 && v !== 888888;
+};
+
 // ── Preview Panel ──
 let _previewUrl = '';
 function resolvePreviewUrl(url) {
@@ -2199,7 +2210,7 @@ function renderSolutions(solutions, title) {
       return '<a class="sol-prod" data-product="'+escHtml(p.sku||String(p.id||''))+'" title="'+escHtml(p.name||'')+'" onclick="quickAsk(\''+escHtml(askText)+'\')">'+
         '<div class="sol-prod-img">'+img+'</div>'+
         '<div class="sol-prod-info"><div class="sol-prod-name">'+escHtml((p.name||'').slice(0,20))+'</div>'+
-          '<div class="sol-prod-price">¥'+Number(p.price||0).toLocaleString()+'</div></div>'+
+          '<div class="sol-prod-price">'+formatPrice(p.price)+'</div></div>'+
         '</a>';
     }).join('');
     var ctaText = escHtml(s.cta_text || '了解详情');
@@ -2228,8 +2239,9 @@ function renderSelfProducts(products) {
 
     const name = escHtml(p.name || '');
     const desc = escHtml(p.description || '');
-    const price = p.price ? '¥' + p.price : '';
-    const origPrice = p.original_price && p.original_price > p.price ? `<s style="color:#999;font-size:12px;margin-left:6px">¥${p.original_price}</s>` : '';
+    const priceDisclosed = isPriceDisclosed(p.price);
+    const price = priceDisclosed ? formatPrice(p.price) : '暂未公布';
+    const origPrice = (priceDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? `<s style="color:#999;font-size:12px;margin-left:6px">${formatPrice(p.original_price)}</s>` : '';
     let specsHtml = '';
     if (p.specs) {
       try {
@@ -2939,13 +2951,14 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
 // ── 商城分区 Feed（新品/超值/热门 + 各品类） ──
 var mallProducts = {};
 function _renderProductCard(p) {
+  var _pDisclosed = isPriceDisclosed(p.price);
   mallProducts[p.sku] = {
-    name: p.name, slogan: p.description || '', price: '¥' + Number(p.price).toLocaleString(),
-    original: p.original_price > p.price ? '¥' + Number(p.original_price).toLocaleString() : '',
+    name: p.name, slogan: p.description || '', price: _pDisclosed ? formatPrice(p.price) : '暂未公布',
+    original: (_pDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? formatPrice(p.original_price) : '',
     img: p.image_url || '', colors: [], specs: [],
     chat: p.name + ' 的详细配置和购买建议'
   };
-  var origHtml = p.original_price > p.price ? ' <span class="mall-original">¥' + Number(p.original_price).toLocaleString() + '</span>' : '';
+  var origHtml = (_pDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? ' <span class="mall-original">' + formatPrice(p.original_price) + '</span>' : '';
   var imgHtml = p.image_url
     ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
     : '<div class="mall-img-fallback">📦</div>';
@@ -2964,7 +2977,7 @@ function _renderProductCard(p) {
     '<div class="mall-img">' + imgHtml + '</div>' +
     '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
     '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
-    '<div class="mall-price">¥' + Number(p.price).toLocaleString() + origHtml + '</div></div>' +
+    '<div class="mall-price">' + (_pDisclosed ? formatPrice(p.price) : '暂未公布') + origHtml + '</div></div>' +
     hoverActions +
     '</div>';
 }
@@ -3085,7 +3098,7 @@ function showDisplayCanvas(title, products) {
       '<div class="dc-card-info">' +
         '<div class="dc-card-name">' + name + '</div>' +
         (desc ? '<div class="dc-card-desc">' + desc + '</div>' : '') +
-        (price ? '<div class="dc-card-price">¥' + Number(price).toLocaleString() + (origPrice ? '<span class="dc-orig">¥' + Number(origPrice).toLocaleString() + '</span>' : '') + '</div>' : '') +
+        (function(){ var d=isPriceDisclosed(price); var o=(d&&isPriceDisclosed(origPrice)&&Number(origPrice)>Number(price)); return '<div class="dc-card-price">'+(d?formatPrice(price):'暂未公布')+(o?'<span class="dc-orig">'+formatPrice(origPrice)+'</span>':'')+'</div>'; })() +
       '</div>' +
       hoverActions +
     '</div>';
@@ -3186,8 +3199,9 @@ async function showProductDetail(sku) {
     var targetUsers = [];
     try { if (specs.target_user) targetUsers = JSON.parse(specs.target_user); } catch(e){}
 
-    var priceInt = String(Math.floor(p.price));
-    var priceDec = p.price % 1 ? '.' + String(p.price).split('.')[1] : '';
+    var _pdDisclosed = isPriceDisclosed(p.price);
+    var priceInt = _pdDisclosed ? Number(Math.floor(p.price)).toLocaleString() : '';
+    var priceDec = (_pdDisclosed && p.price % 1) ? '.' + String(p.price).split('.')[1] : '';
 
     // 下半部分：配置亮点 grid
     var hlGridHtml = '';
@@ -3225,8 +3239,10 @@ async function showProductDetail(sku) {
             (p.description ? '<div class="pd-prod-brief">' + escHtml(p.description) + '</div>' : '') +
             '<div class="pd-price-box">' +
               '<span class="pd-price-label">价格</span>' +
-              '<span class="pd-price-val"><small>¥</small>' + priceInt + (priceDec ? '<small>' + priceDec + '</small>' : '') + '</span>' +
-              (p.original_price && p.original_price > p.price ? '<span class="pd-price-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') +
+              (_pdDisclosed
+                ? '<span class="pd-price-val"><small>¥</small>' + priceInt + (priceDec ? '<small>' + priceDec + '</small>' : '') + '</span>'
+                : '<span class="pd-price-val" style="font-size:20px;color:#999">暂未公布</span>') +
+              ((_pdDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? '<span class="pd-price-orig">' + formatPrice(p.original_price) + '</span>' : '') +
             '</div>' +
             '<div class="pd-stock">' +
               (p.stock > 0 ? '<span class="in">● 有货</span><span style="color:#999;margin-left:8px">库存 ' + (p.stock > 999 ? '充足' : p.stock + '件') + '</span>' : '<span class="out">● 无货</span>') +

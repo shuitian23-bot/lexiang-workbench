@@ -30,6 +30,23 @@ PROTECTED = {
 # 存在的文件集合（加速跳过判断）
 existing_files = set(os.listdir(WIKI_DIR))
 
+# 价格占位魔数（0 / 99999 / 888888 / >=999999 一律显示「暂未公布」）
+def format_price(price):
+    try:
+        v = int(float(price))
+    except Exception:
+        return '暂未公布'
+    if v <= 0 or v == 99999 or v == 888888 or v >= 999999:
+        return '暂未公布'
+    return f'¥{v:,}'
+
+def is_price_disclosed(price):
+    try:
+        v = int(float(price))
+    except Exception:
+        return False
+    return v > 0 and v != 99999 and v != 888888 and v < 999999
+
 # 计数器
 stats = {'new_know': 0, 'new_product': 0, 'skipped': 0, 'total': 0}
 
@@ -1339,9 +1356,12 @@ def gen_product_html(row_vals, headers):
     # 生成slug：统一用 product-{pid}.html
     slug = f'product-{pid}.html'
 
-    # 价格
-    price = int(float(baseprice)) if baseprice else 0
-    price_str = f'¥{price:,}' if price else ''
+    # 价格（占位价显示「暂未公布」）
+    try:
+        price = int(float(baseprice)) if baseprice else 0
+    except Exception:
+        price = 0
+    price_str = format_price(price)
 
     title = f'{name}-联想乐享知识库'
     title_safe = html.escape(title[:80])
@@ -2943,7 +2963,7 @@ fetch('/wiki/articles.json')
         _a_cat_label = html.escape(CAT_LABELS.get(_a_cat, _a_cat))
         _a_price = _a.get('price') or 0
         _a_type = _a.get('type') or ''
-        _price_html = f'<span class="card-price">¥{int(_a_price):,}</span>' if _a_type == 'product' and _a_price else ''
+        _price_html = (f'<span class="card-price">{format_price(_a_price)}</span>' if _a_type == 'product' else '')
         _ssr_cards.append(f'''<article class="card">
         <a href="/wiki/{_a_slug}" title="{_a_title}">
           <div class="card-tag">{_a_cat_label}</div>
@@ -3188,7 +3208,7 @@ fetch('/wiki/articles.json')
             _a_cat_label = html.escape(ALL_CAT_LABELS.get(_a_cat, _a_cat))
             _a_price = _a.get('price') or 0
             _a_type = _a.get('type') or ''
-            _price_html = f'<span class="card-price">¥{int(_a_price):,}</span>' if _a_type == 'product' and _a_price else ''
+            _price_html = (f'<span class="card-price">{format_price(_a_price)}</span>' if _a_type == 'product' else '')
             _sub_ssr_cards.append(f'''<article class="card">
         <a href="/wiki/{_a_slug}" title="{_a_title}" target="_blank">
           <div class="card-tag">{_a_cat_label}</div>
