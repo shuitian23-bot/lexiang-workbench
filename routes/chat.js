@@ -168,6 +168,16 @@ router.post('/stream', async (req, res) => {
   };
 
   let doneTimer = null;
+  // 延迟 send 队列：流式中拦截到 tab/modal 类事件先缓存，AI 回答完成后一次性 flush
+  // 避免 chunk 还在流时右侧 tab 已弹出干扰用户读流式回答
+  const _pending = [];
+  function _sendDeferred(event, data) { _pending.push({ event, data }); }
+  function _flushDeferred() {
+    while (_pending.length) {
+      const { event, data } = _pending.shift();
+      try { send(event, data); } catch (e) {}
+    }
+  }
   try {
     await runAgentStream(
       message.trim(),
@@ -179,6 +189,8 @@ router.post('/stream', async (req, res) => {
           db.prepare('UPDATE conversations SET user_id = ? WHERE id = ? AND user_id IS NULL').run(req.userId, convId);
         }
         if (products?.length) send('products', { products });
+        // AI 流式答完，再 flush 此前缓存的 tab/modal 事件
+        _flushDeferred();
         send('done', { convId, msgId });
         // 不立即 end，等 suggestions 发完再关闭（最多等5秒）
         doneTimer = setTimeout(() => res.end(), 5000);
@@ -197,49 +209,43 @@ router.post('/stream', async (req, res) => {
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_navigate') {
             send('nav', { target: status.result.target, reason: status.result.reason || '' });
           }
-          // 拦截 frontend_display tool 调用，推送商品到左侧画布
+          // tab/modal/卡片 类 UI 事件全部延迟到 AI 流式答完再 flush
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_display') {
-            send('display', { title: status.result.title || 'AI推荐', products: status.result.products || [] });
+            _sendDeferred('display', { title: status.result.title || 'AI推荐', products: status.result.products || [] });
           }
-          // 拦截 frontend_modal tool 调用，弹出模态框
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_modal') {
-            send('modal', status.result);
+            _sendDeferred('modal', status.result);
           }
-          // 拦截 frontend_solutions tool 调用，推送场景化方案卡片
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_solutions') {
-            send('solutions', {
+            _sendDeferred('solutions', {
               title: status.result.title || '推荐方案',
               solutions: status.result.solutions || [],
               note: status.result.note || ''
             });
           }
-          // 拦截 frontend_filter tool 调用，按 AI 给的筛选条件推送商品到左侧 displayCanvas
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_filter') {
-            send('display', {
+            _sendDeferred('display', {
               title: status.result.title || '筛选结果',
               filter_tags: status.result.filter_tags || [],
               products: status.result.products || [],
             });
           }
-          // 拦截 frontend_customize tool 调用，弹 CTO 配置器
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_customize') {
-            send('customize', {
+            _sendDeferred('customize', {
               product_name: status.result.product_name || '',
               schema: status.result.schema || 'laptop',
               preset: status.result.preset || 'default',
             });
           }
-          // 拦截 frontend_coupon tool 调用，弹优惠券中心
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_coupon') {
-            send('coupon', {
+            _sendDeferred('coupon', {
               highlight: status.result.highlight || [],
               title: status.result.title || '为您推荐的优惠券',
               desc: status.result.desc || '',
             });
           }
-          // 拦截 frontend_stores tool 调用，PC 端走右侧 tab 卡片化
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_stores') {
-            send('stores', {
+            _sendDeferred('stores', {
               title: status.result.title || '联想体验店',
               city: status.result.city || '',
               product: status.result.product || '',
@@ -247,9 +253,8 @@ router.post('/stream', async (req, res) => {
               perks: status.result.perks || [],
             });
           }
-          // 拦截 frontend_lead tool（留资表单）→ PC 弹表单 modal
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_lead') {
-            send('lead', {
+            _sendDeferred('lead', {
               title: status.result.title || '留下您的联系方式',
               desc:  status.result.desc  || '',
               fields: status.result.fields || [],
