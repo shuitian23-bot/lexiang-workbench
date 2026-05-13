@@ -641,31 +641,31 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   let rounds = 0;
   let fullText = '';
 
-  // 产品推荐意图检测：强制调用 product_recommend 工具
-  const PRODUCT_KEYWORDS = /推荐|选购|预算|买|对比|选哪|值得买|怎么选|游戏本|笔记本|thinkpad|小新|拯救者|yoga|thinkbook|台式机|一体机|显示器|工作站|平板|服务器/i;
-  // 场景化方案意图检测：强制调用 solution_recommend 工具
-  const SOLUTION_KEYWORDS = /方案|解决方案|行业方案|教育采购|教育信息化|学校采购|医疗方案|医院方案|金融方案|政府方案|政务方案|党政|事业单位|会议室|智慧会议|数据中心|机房|私有云|虚拟化|等保|国密|中小企业|smb|批量采购|采购清单|全场景|学生方案|家庭方案|商旅|外勤|分支机构/i;
-  // 定制 / 优惠券 / 以旧换新 / 会员 / 保修 / 晒单 / 直播 / 增值 / 门店 意图检测
-  const CUSTOMIZE_KEYWORDS = /定制|diy|cto|私人定制|刻字|喷绘|礼盒|自己配|自定义配置|顶配|满配|选 ?cpu|选 ?内存|配一台|攒一台/i;
-  const COUPON_KEYWORDS = /优惠|折扣|券|学生认证|教师认证|企业开户|新用户|开学季|开学|促销|秒杀|活动|领券|福利/i;
-  const TRADEIN_KEYWORDS = /以旧换新|旧机抵扣|换购|旧的换新|抵扣价|回收|trade.?in/i;
-  const MEMBER_KEYWORDS = /我的会员|我的等级|我的乐豆|我的积分|我的权益|我的订单|会员中心|乐享会员|乐豆余额/i;
-  const WARRANTY_KEYWORDS = /保修|质保|保修期|保修剩余|sn|序列号|售后/i;
-  const SHOWCASE_KEYWORDS = /晒单|写晒单|帮我评测|写体验|写测评|发评测/i;
-  const LIVE_KEYWORDS = /直播|开播|主播|直播预告|直播间|直播抽奖/i;
-  const VAS_KEYWORDS = /增值服务|延保|意外保|碎屏险|上门安装|上门维修|数据迁移|系统重装/i;
-  const STORE_KEYWORDS = /门店|线下店|体验店|预约到店|实体店|店地址|附近的联想/i;
-  // B 端 / 政企新增意图
-  const BULK_KEYWORDS = /批量采购|批采|集采|团购|阶梯价|几十台|百台|千台|采购清单|公司采购/i;
-  const INVOICE_KEYWORDS = /开票|开发票|增值税|专票|普票|发票抬头|对公|开户行|企业账户/i;
-  const TENDER_KEYWORDS = /招投标|投标|政采|央采|政府采购|教育电子卖场|资质文件|授权书|偏离表|招标/i;
-  const COMPLIANCE_KEYWORDS = /信创|等保|国密|国产化|麒麟|统信|uos|涉密|涉密改造|合规|tcm|sm[234]/i;
-  const LEAD_KEYWORDS = /联系我|请联系|留下电话|留下联系|安排上门|bd上门|上门接洽|大额项目|联系顾问|让bd|留资|联系销售|留下我的|找人对接|预约 ?bd/i;
+  // 意图分类（替代旧 _KEYWORDS 正则强制）
+  // 默认走 LLM cheap call；失败 fallback 旧正则保兜底
   let forceToolChoice = null;
-  const ALL_KEYWORDS = [PRODUCT_KEYWORDS, SOLUTION_KEYWORDS, CUSTOMIZE_KEYWORDS, COUPON_KEYWORDS, TRADEIN_KEYWORDS, MEMBER_KEYWORDS, WARRANTY_KEYWORDS, SHOWCASE_KEYWORDS, LIVE_KEYWORDS, VAS_KEYWORDS, STORE_KEYWORDS, BULK_KEYWORDS, INVOICE_KEYWORDS, TENDER_KEYWORDS, COMPLIANCE_KEYWORDS, LEAD_KEYWORDS];
-  if (!imageUrl && !audioUrl && !thinkingMode && ALL_KEYWORDS.some(re => re.test(userMessage))) {
-    forceToolChoice = 'required';
-    console.log('[Agent] 业务意图检测命中，强制 tool_choice: required');
+  let intentResult = null;
+  if (!imageUrl && !audioUrl && !thinkingMode && userMessage && userMessage.trim().length >= 2) {
+    try {
+      const { classifyIntent } = require('./intent_classifier');
+      intentResult = await classifyIntent(userMessage, siteType, { timeoutMs: 3500 });
+      if (intentResult && intentResult.requires_tool && intentResult.confidence >= 0.6) {
+        forceToolChoice = 'required';
+        console.log('[Agent] intent=' + intentResult.intent + ' (conf=' + intentResult.confidence + ') → tool_choice: required');
+      } else {
+        console.log('[Agent] intent=' + (intentResult && intentResult.intent) + ' (conf=' + (intentResult && intentResult.confidence) + ') → tool_choice: auto');
+      }
+    } catch (e) {
+      console.warn('[Agent] intent classifier err:', e.message);
+    }
+    // fallback 旧正则（classifier 完全失败时）
+    if (!intentResult || intentResult.reason === 'fallback (classifier failed)') {
+      const FALLBACK_KW = /推荐|选购|预算|定制|优惠|换新|会员|保修|招投标|信创|批量|开票|门店|联系|留资|方案|工作站|笔记本|台式机|拯救者|小新|yoga|thinkpad|thinkbook/i;
+      if (FALLBACK_KW.test(userMessage)) {
+        forceToolChoice = 'required';
+        console.log('[Agent] fallback kw → tool_choice: required');
+      }
+    }
   }
 
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续
