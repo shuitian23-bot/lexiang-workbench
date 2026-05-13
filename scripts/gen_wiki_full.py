@@ -16,7 +16,7 @@ from datetime import datetime
 
 # ===== 配置 =====
 WIKI_DIR = '/var/www/leaibot/wiki'
-DB_PATH = '/root/lexiang/lexiang.db'
+DB_PATH = '/opt/projects/lexiang/lexiang.db'
 XLSX_PATH = '/root/downloads/agent_agent_item_profile_base_info_v2_20260319.xlsx'
 TODAY = datetime.now().strftime('%Y-%m-%d')
 
@@ -2852,6 +2852,24 @@ fetch('/wiki/articles.json')
         r'(id="stat-total">)[^<]*(</strong>)',
         rf'\g<1>{total_count:,}\2',
         index_html
+    )
+    # hero 第三栏：今日更新数（来自 DB updated_at；连接失败时降级为 0）
+    try:
+        _cn = sqlite3.connect(DB_PATH)
+        _row = _cn.execute(
+            "SELECT (SELECT COUNT(*) FROM products WHERE date(updated_at)=?) "
+            "+ (SELECT COUNT(*) FROM knowledge_docs WHERE date(updated_at)=?)",
+            (TODAY, TODAY)
+        ).fetchone()
+        today_updated = int(_row[0] or 0)
+        _cn.close()
+    except Exception:
+        today_updated = 0
+    index_html = re.sub(
+        r'<div><strong(?:\s[^>]*)?>[^<]*</strong>(?:持续更新|今日更新)</div>',
+        f'<div><strong id="stat-today">{today_updated:,}</strong>今日更新</div>',
+        index_html,
+        count=1
     )
     paged_list = ','.join(f"'{c}'" for c in _all_cats if c != 'all')
     index_html = re.sub(
