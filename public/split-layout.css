@@ -615,17 +615,19 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 }
 
 .cp-product-card {
-  background: #fff;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #E5E7EB);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow .2s, transform .2s, border-color .2s;
   cursor: pointer;
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+.cp-product-card:hover { border-color: var(--accent, #E12521); }
 
 .cp-product-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -689,10 +691,11 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 }
 
 .cp-product-card .cp-product-price {
-  font-size: 16px;
-  font-weight: 700;
-  color: #E53E3E;
-  padding: 6px 12px 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--accent, #E12521);
+  padding: 6px 12px 12px;
+  letter-spacing: -.2px;
 }
 
 .cp-product-card .cp-product-desc {
