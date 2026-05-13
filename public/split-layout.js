@@ -177,6 +177,8 @@
       if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
       if (type === 'products' && data.category && td.category === data.category) return t;
       if (type === 'preview' && data.url && td.url === data.url) return t;
+      // 服务中心类 tab：同 type 即复用（避免点会员/定制/优惠/换新等出多个同名 tab）
+      if (type === 'member' || type === 'customize' || type === 'coupon' || type === 'tradein' || type === 'stores' || type === 'info' || type === 'solutions' || type === 'compare') return t;
     }
     return null;
   }

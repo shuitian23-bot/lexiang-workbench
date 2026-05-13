@@ -5,9 +5,9 @@ module.exports = {
   parameters: { type:'object', properties:{}, required:[] },
   execute: () => {
     return {
-      action: 'frontend_modal',
-      type: 'info',
-      title: '👤 我的会员中心',
+      action: 'frontend_member',
+      title: '我的会员中心',
+      // markdown content 兼容非 PC / 不支持 tab 场景
       content:
 `## V3 黄金会员
 

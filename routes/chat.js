@@ -253,6 +253,9 @@ router.post('/stream', async (req, res) => {
               perks: status.result.perks || [],
             });
           }
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_member') {
+            _sendDeferred('member', { title: status.result.title || '我的会员中心' });
+          }
           if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_lead') {
             _sendDeferred('lead', {
               title: status.result.title || '留下您的联系方式',
