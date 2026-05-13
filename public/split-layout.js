@@ -925,31 +925,41 @@
   // ── 服务中心 4 类 tab：customize / coupon / member / tradein ──
   // POC：tab 内显示功能引导 + 触发原 modal 完整 UI；同时左侧 chat 自动 quickAsk
   RENDERERS.customize = function (container, data) {
-    container.innerHTML =
-      '<div class="cp-svc-page">' +
-        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#6b2068,#b83340)">' +
-          '<h2>🛠 商品定制</h2>' +
-          '<p>选 CPU / 内存 / 硬盘 / 显卡 / 屏幕 / 颜色，实时算价；支持私人定制（激光刻字 / 喷绘 / 礼盒）</p>' +
-        '</div>' +
-        '<div class="cp-svc-actions">' +
-          '<button class="cp-svc-btn primary" data-act="laptop">💻 配置笔记本</button>' +
-          '<button class="cp-svc-btn primary" data-act="desktop">🖥 配置台式机</button>' +
-          '<button class="cp-svc-btn" data-act="ask-engrave">🎨 私人定制（刻字 / 喷绘）</button>' +
-          '<button class="cp-svc-btn" data-act="ask-top">⚡ 顶配方案推荐</button>' +
-          '<button class="cp-svc-btn" data-act="ask-value">💰 性价比方案推荐</button>' +
-        '</div>' +
-        '<div class="cp-svc-tips"><strong>💡 温馨提示</strong>左侧 AI 助手已为您打开定制咨询，可同时聊天。</div>' +
+    data = data || {};
+    var opts = data.opts || {};
+    // 复用 index.html 内 CTO 完整渲染：init state + 写入 container
+    if (typeof window._initCtoState === 'function' && typeof window._renderCustomizer === 'function') {
+      if (!window._ctoState) window._initCtoState(opts);
+      window.__ctoContainer = container;
+      // 顶部加预设切换栏
+      var schema = (window.CTO_CONFIG && window.CTO_CONFIG[window._ctoState.schemaKey]) || null;
+      var presetBar = '<div class="cp-cto-presetbar">' +
+        '<button class="cp-cto-preset' + (window._ctoState.schemaKey==='laptop'?' active':'') + '" data-schema="laptop">💻 笔记本</button>' +
+        '<button class="cp-cto-preset' + (window._ctoState.schemaKey==='desktop'?' active':'') + '" data-schema="desktop">🖥 台式机</button>' +
+        '<span class="cp-cto-spacer"></span>' +
+        '<button class="cp-cto-preset" data-preset="value">💰 性价比</button>' +
+        '<button class="cp-cto-preset" data-preset="top">⚡ 顶配</button>' +
+        '<button class="cp-cto-preset" data-ask="我想做私人定制，可以刻字和喷绘吗？有哪些位置和图案可选？">🎨 问 AI 定制</button>' +
       '</div>';
-    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var act = btn.dataset.act;
-        if (act === 'laptop' && typeof openCustomizer === 'function') openCustomizer({ schema:'laptop' });
-        else if (act === 'desktop' && typeof openCustomizer === 'function') openCustomizer({ schema:'desktop' });
-        else if (act === 'ask-engrave' && typeof quickAsk === 'function') quickAsk('我想做私人定制，可以刻字和喷绘吗？有哪些位置和图案可选？');
-        else if (act === 'ask-top' && typeof openCustomizer === 'function') openCustomizer({ schema:'laptop', preset:'top' });
-        else if (act === 'ask-value' && typeof openCustomizer === 'function') openCustomizer({ schema:'laptop', preset:'value' });
+      // 包一层 wrapper：预设栏 + CTO 渲染区
+      container.innerHTML = presetBar + '<div class="cp-cto-host" id="cpCtoHost"></div>';
+      window.__ctoContainer = container.querySelector('#cpCtoHost');
+      try { window._renderCustomizer(); } catch(e){}
+      container.querySelectorAll('.cp-cto-preset').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (btn.dataset.schema && typeof window.openCustomizer === 'function') {
+            window.openCustomizer({ schema: btn.dataset.schema });
+          } else if (btn.dataset.preset && typeof window.openCustomizer === 'function') {
+            window.openCustomizer({ schema: window._ctoState ? window._ctoState.schemaKey : 'laptop', preset: btn.dataset.preset });
+          } else if (btn.dataset.ask && typeof quickAsk === 'function') {
+            quickAsk(btn.dataset.ask);
+          }
+        });
       });
-    });
+    } else {
+      // fallback：旧引导按钮
+      container.innerHTML = '<div class="cp-svc-page"><div class="cp-svc-hero" style="background:linear-gradient(135deg,#6b2068,#b83340)"><h2>🛠 商品定制</h2><p>请稍后再试</p></div></div>';
+    }
   };
 
   RENDERERS.coupon = function (container, data) {

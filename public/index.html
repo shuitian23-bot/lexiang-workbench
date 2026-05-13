@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-v19';
+window.__BUILD = '20260514-v20';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -1196,7 +1196,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v19-tradein">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v20-cto-tab">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5059,18 +5059,13 @@ var PERSONAL_CUSTOM = {
 // 当前定制状态（单例）
 var _ctoState = null;
 
-function openCustomizer(opts) {
+// 初始化 _ctoState（共用 modal 和 tab 路径）
+function _initCtoState(opts) {
   opts = opts || {};
-  // PC 模式优先走右侧 tab，避免重复弹窗
-  if (typeof window.__openContent === 'function' && document.documentElement.classList.contains('split-mode')) {
-    window.__openContent('customize', '商品定制', opts || {});
-    return;
-  }
   var schemaKey = opts.schema || 'laptop';
   if (opts.productName) schemaKey = _detectCtoSchema(opts.productName, opts.category);
   var schema = CTO_CONFIG[schemaKey];
-  if (!schema) return;
-  // 默认选第 1 项
+  if (!schema) return null;
   var selections = {};
   schema.groups.forEach(function(g){ if (g.options.length) selections[g.key] = g.options[0].id; });
   if (opts.preset === 'top') {
@@ -5086,6 +5081,20 @@ function openCustomizer(opts) {
     personal: { engrave:{enabled:false,text:'',spot:0}, print:{enabled:false,preset:0}, gift:{enabled:false,preset:0} },
     activeTab: 'config',
   };
+  return _ctoState;
+}
+window._initCtoState = _initCtoState;
+
+function openCustomizer(opts) {
+  opts = opts || {};
+  if (!_initCtoState(opts)) return;
+  // PC split → tab 渲染（split-layout RENDERERS.customize 调 _renderCustomizer 写入 container）
+  if (typeof window.__openContent === 'function' && document.documentElement.classList.contains('split-mode')) {
+    window.__openContent('customize', '商品定制', { opts: opts });
+    return;
+  }
+  // 移动 / 无 split → modal 路径
+  window.__ctoContainer = null;
   document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
   var mask = document.createElement('div');
   mask.className = 'ai-modal-mask';
@@ -5095,11 +5104,12 @@ function openCustomizer(opts) {
   _renderCustomizer();
 }
 window.openCustomizer = openCustomizer;
+window._renderCustomizer = function(){ return _renderCustomizer(); };
 
 function _renderCustomizer() {
   var s = _ctoState;
   if (!s) return;
-  var modal = document.getElementById('ctoModal');
+  var modal = window.__ctoContainer || document.getElementById('ctoModal');
   if (!modal) return;
   var schema = CTO_CONFIG[s.schemaKey];
   var imgHtml = s.productImg ? '<img src="'+escHtml(s.productImg)+'" alt="">' : '<div style="width:64px;height:64px;background:linear-gradient(135deg,#f0f0f0,#dadada);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px">💻</div>';
@@ -5522,6 +5532,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v19-tradein"></script>
+<script src="/split-layout.js?v=20260514-v20-cto-tab"></script>
 </body>
 </html>
