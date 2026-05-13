@@ -1092,6 +1092,8 @@ html[data-site="biz"] .subnav-extra{display:flex}
 [data-theme="dark"] .pd-tu-tag{background:rgba(22,119,255,.1)}
 .pd-detail-img{text-align:center;margin:20px 0}
 .pd-detail-img img{max-width:100%;border-radius:4px}
+.pd-intro-img{text-align:center;margin:20px 0}
+.pd-intro-img img{max-width:100%;border-radius:8px}
 .pd-specs-tbl{width:100%;border-collapse:collapse}
 .pd-specs-tbl tr{border-bottom:1px solid #f5f5f5}
 [data-theme="dark"] .pd-specs-tbl tr{border-bottom-color:var(--border)}
@@ -3372,6 +3374,9 @@ async function showProductDetail(sku) {
           '<div class="pd-section"><h3 class="pd-section-title">📋 规格参数</h3>' + specsTblHtml + '</div>' +
           '<div class="pd-section"><h3 class="pd-section-title">📚 联想百科</h3>' +
             '<div id="pdWikiPanel"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div>' +
+          '</div>' +
+          '<div class="pd-section"><h3 class="pd-section-title">📸 商品介绍详情图</h3>' +
+            '<div class="pd-intro-img"><img src="https://p3.lefile.cn/fes/cms/2026/05/13/tak8ww41yz73en4j07bjtf6ts0w6zs621719.jpg" alt="商品介绍详情图"></div>' +
           '</div>' +
         '</div>' +
       '</div>';

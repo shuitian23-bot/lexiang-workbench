@@ -80,6 +80,10 @@ const AI_NAV_MAP = [
   { keywords: ['geo','seo','搜索引擎','站外'], page: 'dashboard.geo' },
   { keywords: ['query分析','查询分析','query','热词'], page: 'dashboard.query' },
   { keywords: ['客户行为','行为分析','漏斗','留存'], page: 'dashboard.behavior' },
+  { keywords: ['query分析看板','标注看板','数据标注','标注'], page: 'pipeline.annotate' },
+  { keywords: ['统计分析','统计','数据统计'], page: 'pipeline.stats' },
+  { keywords: ['口令过滤','过滤口令','去口令'], page: 'pipeline.filter' },
+  { keywords: ['监控看板','监控','流水线','pipeline监控','流水线监控'], page: 'pipeline.monitor' },
 ];
 
 function aiTryNavigate(text) {

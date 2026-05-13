@@ -159,6 +159,11 @@ const MENU_TREE = {
       'employee.certification': { label: '认证审核' }
     }
   },
+  pipeline: {
+    icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '数据流水线', children: {
+      'pipeline.annotate': { label: 'Query 分析' }
+    }
+  },
 };
 
 // ===== LOGIN =====
@@ -221,6 +226,8 @@ async function loadUserContext() {
       }
       // 员工管理默认可见
       if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
+      // 数据流水线默认可见
+      if (!STATE.visibleMenus.includes('pipeline')) STATE.visibleMenus.push('pipeline');
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
@@ -355,6 +362,9 @@ function toggleGroup(key) {
 // ===== PAGE SWITCH =====
 function switchPage(pageId) {
   STATE.currentPage = pageId;
+
+  // Dispatch page-change event for plugins to hook into
+  document.dispatchEvent(new CustomEvent('page-change', { detail: pageId }));
 
   // Update sidebar active state
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
@@ -495,6 +505,7 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/workbench-employee.js"></script>
 <script src="/admin/workbench-ops.js"></script>
 <script src="/admin/workbench-report.js"></script>
+<script src="/admin/workbench-pipeline.js?v=20260513d"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
