@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-v15';
+window.__BUILD = '20260514-v16';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -1196,7 +1196,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v15-no-redirect">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v16-preview">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2442,7 +2442,7 @@ function renderSelfProducts(products) {
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <a class="leai-ppanel-buy" href="${buyUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">去官网</a>
+          <a class="leai-ppanel-buy" href="${buyUrl}" rel="noopener" onclick="event.stopPropagation();event.preventDefault();openPreview('${buyUrl.replace(/'/g,"\\'")}')">去官网</a>
         </div>
       </div>
     </div>`;
@@ -2491,7 +2491,7 @@ function renderLeaiProducts(productList) {
         ${tagsHtml ? `<div class="leai-ppanel-tags">${tagsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">预估到手：</span><span class="leai-ppanel-price">${price}</span>` : ''}</div>
-          <a class="leai-ppanel-buy" href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">立即购买</a>
+          <a class="leai-ppanel-buy" href="${url}" rel="noopener" onclick="event.stopPropagation();event.preventDefault();openPreview('${url.replace(/'/g,"\\'")}')">立即购买</a>
         </div>
       </div>
       ${hoverLeai}
@@ -3481,8 +3481,8 @@ async function showProductDetail(sku) {
             optionGroupsHtml +
             '<div class="pd-action-btns">' +
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">立即购买</button>' +
-              '<a class="pd-btn-cart" href="' + buyUrl + '" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">↗ 官网查看</a>' +
-              '<a class="pd-btn-cart" href="' + searchUrl + '" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">🔍 同款搜索</a>' +
+              '<a class="pd-btn-cart" href="' + buyUrl + '" rel="noopener" onclick="event.preventDefault();openPreview(this.href)" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">↗ 官网查看</a>' +
+              '<a class="pd-btn-cart" href="' + searchUrl + '" rel="noopener" onclick="event.preventDefault();openPreview(this.href)" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">🔍 同款搜索</a>' +
               '<button class="pd-btn-ask" onclick="askAboutProduct()">问AI助手</button>' +
             '</div>' +
           '</div>' +
@@ -3651,7 +3651,7 @@ function showAIModal(data) {
         (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
       catRow += '<td>' + escHtml(p.category || '-') + '</td>';
       descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
-      buyRow += '<td><a href="' + lxUtm(p.url || '#', p.sku || '') + '" target="_blank" rel="noopener" class="cmp-buy">去购买</a>' +
+      buyRow += '<td><a href="' + lxUtm(p.url || '#', p.sku || '') + '" rel="noopener" class="cmp-buy" onclick="event.preventDefault();openPreview(this.href)">去购买</a>' +
         '<button class="cmp-ask" onclick="document.querySelector(\'.ai-modal-mask\').remove();quickAsk(\'详细介绍 ' + escHtml(p.name).replace(/'/g,"\\'") + '\')">问AI</button></td>';
     });
 
@@ -5514,6 +5514,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v15-no-redirect"></script>
+<script src="/split-layout.js?v=20260514-v16-preview"></script>
 </body>
 </html>

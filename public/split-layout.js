@@ -651,7 +651,7 @@
       descRow += '<td class="cp-cmp-desc">' + escH((p.description || '').slice(0, 80) || '-') + '</td>';
       var sku = p.sku || p.key || '';
       var url = (p.url || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#'));
-      actRow += '<td><a class="cp-cmp-buy" href="' + escH(url) + '" target="_blank" rel="noopener">↗ 官网</a> <button class="cp-cmp-ask" data-name="'+escH(p.name||'')+'">问 AI</button></td>';
+      actRow += '<td><a class="cp-cmp-buy" href="' + escH(url) + '" rel="noopener" onclick="event.preventDefault();window.openPreview&&openPreview(this.href)">↗ 官网</a> <button class="cp-cmp-ask" data-name="'+escH(p.name||'')+'">问 AI</button></td>';
     });
     imgRow += '</tr>'; priceRow += '</tr>'; catRow += '</tr>'; descRow += '</tr>'; actRow += '</tr>';
 
@@ -852,8 +852,8 @@
                 '<button class="cpd-ask">问AI助手</button>' +
               '</div>' +
               '<div class="cpd-actions-sub">' +
-                '<a href="' + escH(buyUrl) + '" target="_blank" rel="noopener" class="cpd-link">↗ 官网查看</a>' +
-                '<a href="' + escH(searchUrl) + '" target="_blank" rel="noopener" class="cpd-link">🔍 同款搜索</a>' +
+                '<a href="' + escH(buyUrl) + '" rel="noopener" class="cpd-link" onclick="event.preventDefault();window.openPreview&&openPreview(this.href)">↗ 官网查看</a>' +
+                '<a href="' + escH(searchUrl) + '" rel="noopener" class="cpd-link" onclick="event.preventDefault();window.openPreview&&openPreview(this.href)">🔍 同款搜索</a>' +
                 '<button class="cpd-compare">和竞品对比</button>' +
               '</div>' +
             '</div>' +
