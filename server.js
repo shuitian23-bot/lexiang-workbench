@@ -257,14 +257,19 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
+// SPA 兜底统一 no-cache，避免浏览器/CDN 缓存旧 HTML（部署后用户看不到新版）
+function _sendIndexNoCache(res) {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+}
 // 三子站 — 复用主页，前端根据 URL 前缀切换导航和内容
 for (const prefix of ['/shop-chat', '/b-chat', '/biz-chat']) {
-  app.get(prefix, (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
-  app.get(prefix + '/*path', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
+  app.get(prefix, (req, res) => _sendIndexNoCache(res));
+  app.get(prefix + '/*path', (req, res) => _sendIndexNoCache(res));
 }
-app.get('/*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
+app.get('/*path', (req, res) => _sendIndexNoCache(res));
 
 // 记录活跃请求数量，用于优雅关闭
 let activeRequests = 0;

@@ -3042,10 +3042,9 @@ window.addEventListener('resize', _resizeDcBody);
 function showDisplayCanvas(title, products) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
-  // 强制 grid + JS 按容器实测宽度切列（媒体查询用 viewport，分屏后不准）
+  // 强制 grid（_resizeDcBody 必须在 dc 显示后调，否则 offsetWidth=0 算成 2 列）
   body.style.display = 'grid';
   body.style.gap = '12px';
-  _resizeDcBody();
   document.getElementById('dcTitle').textContent = title;
   body.innerHTML = products.map(function(p) {
     var img = escHtml(p.image_url || p.图片 || '');
@@ -3082,6 +3081,8 @@ function showDisplayCanvas(title, products) {
   dc.scrollTop = 0;
   var topbar = dc.querySelector('.dc-topbar');
   if (topbar) topbar.style.display = '';
+  // dc 显示后才能取 offsetWidth → 切列数
+  requestAnimationFrame(_resizeDcBody);
 }
 function closeDisplayCanvas() {
   var dc = document.getElementById('displayCanvas');
