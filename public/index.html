@@ -1125,9 +1125,10 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     // 直接从 pathname 计算，不用依赖 __siteType（避免时序问题）
     var _path = location.pathname;
     var _prefixMap = {'/shop-chat':'shop','/b-chat':'b','/biz-chat':'biz'};
-    var _st = 'default';
+    var _st = 'home'; // 默认首页
     for(var k in _prefixMap){ if(_path.startsWith(k)){ _st=_prefixMap[k]; break; } }
     var NAV_ITEMS=[
+      {label:'首页',href:'/',key:'home'},
       {label:'个人及家庭',href:'/shop-chat/',key:'shop'},
       {label:'中小企业',href:'/b-chat/',key:'b'},
       {label:'政教及大企业',href:'/biz-chat/',key:'biz'},
@@ -4698,10 +4699,10 @@ window.addEventListener('DOMContentLoaded', function(){
   // 检查登录态（_authReady 供 restoreFromUrl 等待）
   window._authReady = fetch('/api/auth/me').then(function(r){return r.json();}).then(function(d){ if(d.user) onLoginSuccess(d.user); }).catch(function(){});
   // 子站路径自动高亮对应导航
-  var _sn={'shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  var _sn={'home':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
   // 首页直接清除高亮，不再依赖 __siteType
   if(location.pathname === '/') {
-    document.querySelectorAll('.nlinks a').forEach(function(a){ a.classList.remove('nav-active'); });
+    setNavActive('首页');
   } else if(_sn[window.__siteType]) {
     setNavActive(_sn[window.__siteType]);
   }
