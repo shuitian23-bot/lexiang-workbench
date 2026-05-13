@@ -540,25 +540,80 @@
       var price = p.price || '';
       var desc = p.description || '';
       var sku = p.sku || '';
+      var prodKey = sku || String(p.id || '');
       var url = normalizeUrl(p.url || p.pcDetailUrl || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#'));
+      var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
 
       var card = document.createElement('div');
       card.className = 'cp-product-card';
+      card.dataset.product = prodKey;
+      card.dataset.name = name;
+      card.dataset.img = img;
+      card.dataset.price = String(price || '');
       card.innerHTML =
+        '<button class="cp-pk-btn' + (inCmp?' active':'') + '" data-cmp-key="' + escH(prodKey) + '" title="加入对比">' + (inCmp?'✓':'PK') + '</button>' +
         (img ? '<img src="' + escH(img) + '" alt="' + escH(name) + '" loading="lazy">' : '') +
         '<div class="cp-product-name">' + escH(name) + '</div>' +
         (price ? '<div class="cp-product-price">¥' + Number(price).toLocaleString() + '</div>' : '') +
         (desc ? '<div class="cp-product-desc">' + escH(desc) + '</div>' : '') +
-        '<div style="padding:0 12px 12px"><button class="cp-product-btn" data-url="' + escH(url) + '">去看看</button></div>';
-      card.querySelector('.cp-product-btn').addEventListener('click', function () {
-        if (isPC() && sku) {
-          openContent('productDetail', name, { sku: sku });
-        } else if (isPC()) {
-          openContent('preview', name, { url: url });
-        } else {
-          window.open(url, '_blank');
+        '<div class="cp-hover-actions">' +
+          '<button class="primary" data-action="explain">📖 解读</button>' +
+          '<button data-action="cmp">+ 对比</button>' +
+          '<button data-action="customize">🛠 定制</button>' +
+        '</div>';
+
+      // 整卡 click 进详情；PK / hover 按钮 stopPropagation
+      card.addEventListener('click', function (e) {
+        var pk = e.target.closest('.cp-pk-btn, [data-action="cmp"]');
+        if (pk) {
+          e.stopPropagation();
+          var key = card.dataset.product;
+          var list = window._compareList || (window._compareList = []);
+          var idx = list.findIndex(function(x){ return x.key === key; });
+          var pkBtn = card.querySelector('.cp-pk-btn');
+          if (idx >= 0) {
+            list.splice(idx, 1);
+            if (pkBtn) { pkBtn.classList.remove('active'); pkBtn.textContent = 'PK'; }
+          } else {
+            if (list.length >= (typeof COMPARE_MAX !== 'undefined' ? COMPARE_MAX : 4)) { alert('最多对比 4 件'); return; }
+            list.push({ key: key, name: card.dataset.name, price: parseFloat(card.dataset.price) || 0, image_url: card.dataset.img, description: '', category: '' });
+            if (pkBtn) { pkBtn.classList.add('active'); pkBtn.textContent = '✓'; }
+          }
+          try { localStorage.setItem('lexiang.compare.v1', JSON.stringify(list)); } catch(_){}
+          if (typeof _renderCmpFab === 'function') _renderCmpFab();
+          return;
         }
+        var explainBtn = e.target.closest('[data-action="explain"]');
+        if (explainBtn) {
+          e.stopPropagation();
+          if (typeof quickAsk === 'function') quickAsk('详细解读 ' + name + ' 的配置亮点、适用人群和性价比');
+          return;
+        }
+        var ctoBtn = e.target.closest('[data-action="customize"]');
+        if (ctoBtn) {
+          e.stopPropagation();
+          if (typeof openCustomizer === 'function') openCustomizer({ productName: name, productImg: img, category: p.category || '' });
+          return;
+        }
+        // 整卡其他位置 → 进详情
+        if (sku) openContent('productDetail', name, { sku: sku });
+        else openContent('preview', name, { url: url });
       });
+
+      // hover 0.3s 浮现操作层
+      var hoverT;
+      card.addEventListener('mouseenter', function(){
+        hoverT = setTimeout(function(){
+          var act = card.querySelector('.cp-hover-actions');
+          if (act) act.classList.add('show');
+        }, 300);
+      });
+      card.addEventListener('mouseleave', function(){
+        clearTimeout(hoverT);
+        var act = card.querySelector('.cp-hover-actions');
+        if (act) act.classList.remove('show');
+      });
+
       grid.appendChild(card);
     });
     container.appendChild(grid);
