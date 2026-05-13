@@ -16,6 +16,7 @@ registry.load();
 
 const app = express();
 app.set('trust proxy', 1);
+app.set('etag', false);  // 全局禁 ETag，防 304 命中旧 SPA 缓存
 const PORT = parseInt(process.env.PORT) || 3001;
 
 app.use(express.json({
@@ -130,6 +131,7 @@ app.use('/api/leai', require('./routes/leai'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
+app.use('/api/pipeline', adminLimiter, require('./routes/pipeline'));
 app.use('/api/site', require('./routes/feed'));
 app.use('/', require('./routes/sitemap'));
 
@@ -257,12 +259,14 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
-// SPA 兜底统一 no-cache，避免浏览器/CDN 缓存旧 HTML（部署后用户看不到新版）
+// SPA 兜底彻底禁缓存：no-store + 关 ETag/Last-Modified 防 304 命中旧
 function _sendIndexNoCache(res) {
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+  res.removeHeader('ETag');
+  res.removeHeader('Last-Modified');
+  res.sendFile(path.join(__dirname, 'public/index.html'), { etag: false, lastModified: false, cacheControl: false });
 }
 // 三子站 — 复用主页，前端根据 URL 前缀切换导航和内容
 for (const prefix of ['/shop-chat', '/b-chat', '/biz-chat']) {
