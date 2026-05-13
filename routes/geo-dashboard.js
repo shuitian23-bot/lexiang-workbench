@@ -116,6 +116,19 @@ router.post('/sites', async (req, res) => {
   }
 });
 
+router.post('/summary', async (req, res) => {
+  try {
+    const data = await fetchJSON(`${EXT_BASE}/summary`, {
+      method: 'POST',
+      headers: EXT_HEADERS,
+      body: JSON.stringify(req.body)
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // 趋势折线图
 router.get('/project-chart', async (req, res) => {
   try {

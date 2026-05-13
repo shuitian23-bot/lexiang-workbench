@@ -146,13 +146,16 @@ async function geoLoadData() {
 
     // 第二步：剩余请求全部并发，互不阻塞
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
-    const platSitesPromise = Promise.allSettled(GEO_PLATFORMS.map(p =>
-      fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({project_id:GEO_PROJECT_ID, model:p}) }).then(r => r.json())
-    ));
+    const platSitesPromise = Promise.allSettled(GEO_PLATFORMS.map(p => {
+      const b = { project_id: GEO_PROJECT_ID, model: p };
+      if (geoState.startDate && geoState.endDate) { b.start_date = geoState.startDate; b.end_date = geoState.endDate; }
+      return fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }).then(r => r.json());
+    }));
     const sitesPromise = geoLoadSites();
     const citationsPromise = (async () => {
       try {
         const body = { project_id: GEO_PROJECT_ID };
+        if (geoState.startDate && geoState.endDate) { body.start_date = geoState.startDate; body.end_date = geoState.endDate; }
         const r = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
         geoState.citationsData = await r.json();
       } catch (e) { console.error('citations fetch', e); geoState.citationsData = null; }
@@ -399,7 +402,9 @@ function geoCitesFromSites(sites) {
 
 async function geoLoadSites() {
   try {
-const body = { project_id: GEO_PROJECT_ID };
+    const body = { project_id: GEO_PROJECT_ID };
+    if (geoState.startDate && geoState.endDate) { body.start_date = geoState.startDate; body.end_date = geoState.endDate; }
+    // 全站点（treemap / site rank 用）
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) return;
@@ -407,10 +412,17 @@ const body = { project_id: GEO_PROJECT_ID };
     const sites = d.sites || [];
     geoRenderTreemap(sites);
     geoRenderSiteRank(sites);
-    geoRenderLinkTop50(sites);
+    // 联想 Top50（后端 filter，量级跟时段对齐）
+    const lenovoBody = { ...body, lenovo_top50: true };
+    let lenovoSites = sites.filter(s => s.domain && s.domain.includes('lenovo'));
+    try {
+      const lr = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(lenovoBody) });
+      const lj = await lr.json();
+      if (lj.code === 200 && lj.data?.sites) lenovoSites = lj.data.sites;
+    } catch (err) { console.error('lenovo_top50 fetch fail, fallback to client filter', err); }
+    geoRenderLinkTop50(lenovoSites);
     const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    const cites = geoCitesFromSites(sites);
-    set('gv-sites-total', cites.count.toLocaleString());
+    set('gv-sites-total', lenovoSites.length.toLocaleString());
     // wiki/lenovo 引用数走 citations 接口（content_ecology_metrics），sites 域名合计不准
     try {
       const citeResp = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
@@ -420,6 +432,7 @@ const body = { project_id: GEO_PROJECT_ID };
       set('gv-lenovo-cite', (cem.lenovo_citation_count || 0).toLocaleString());
     } catch (err) {
       console.error('citations API failed', err);
+      const cites = geoCitesFromSites(lenovoSites);
       set('gv-lenovo-cite', cites.official.toLocaleString());
       set('gv-wiki-cite', cites.wiki.toLocaleString());
     }
@@ -447,11 +460,10 @@ function geoRenderSiteRank(sites) {
   ).join('') + '</ol>';
 }
 
-// ===== GEO AI引用链接 Top50（仅联想域名） =====
+// ===== GEO AI引用链接 Top50（仅联想域名，后端 lenovo_top50 已 filter） =====
 function geoRenderLinkTop50(sites) {
   const c = document.getElementById('geo-link-top50'); if (!c) return;
-  const lenovoSites = sites.filter(s => s.domain && s.domain.includes('lenovo'));
-  const top = lenovoSites.slice(0, 50).map((s, i) => ({...s, rank: i + 1}));
+  const top = (sites || []).slice(0, 50).map((s, i) => ({...s, rank: i + 1}));
   if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
   const maxCount = Math.max(...top.map(s => s.count), 1);
   c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
@@ -617,18 +629,37 @@ let _trendChartData = null;
 async function geoLoadTrendChart() {
   const canvas = document.getElementById('geo-trend-canvas');
   if (!canvas) return;
-  const params = { project_id: GEO_PROJECT_ID };
-  const days = (geoState.startDate && geoState.endDate) ? Math.round((new Date(geoState.endDate) - new Date(geoState.startDate)) / 86400000) + 1 : (geoState.period === '7d' ? 7 : 30);
-  params.time_range = days <= 7 ? 7 : 30;
+  // summary 接口 30 天上限：算出窗口
+  const today = new Date();
+  let end = geoState.endDate, start = geoState.startDate;
+  if (!start || !end) {
+    const days = geoState.period === '7d' ? 7 : 30;
+    const endD = today, startD = new Date(today.getTime() - (days - 1) * 86400000);
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    start = fmt(startD); end = fmt(endD);
+  }
+  const body = { project_id: GEO_PROJECT_ID, start_date: start, end_date: end };
   const platform = geoState.platform;
-  if (platform && platform !== 'all') params.filter_model = platform.split(',')[0];
-  if (geoState.questions && geoState.questions.length === 1) params.filter_question = geoState.questions[0];
+  if (platform && platform !== 'all') body.model = platform.split(',')[0];
   try {
-    const qs = new URLSearchParams(params).toString();
-    const resp = await fetch('/api/geo-dashboard/project-chart?' + qs);
+    const resp = await fetch('/api/geo-dashboard/summary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
-    if (!json.success || !json.data?.project?.chart_data) return;
-    _trendChartData = json.data.project.chart_data;
+    if (json.code !== 200 || !json.data) return;
+    const d = json.data;
+    const xs = d.x_axis || [];
+    const dates = xs.map(x => x.label || x.date);
+    const series = (d.series || []).map(s => {
+      const valMap = {};
+      (s.values || []).forEach(v => { valMap[v.date] = v.value; });
+      return {
+        field: s.field,
+        field_name: s.field_name,
+        data: xs.map(x => Number(valMap[x.date] ?? 0))
+      };
+    });
+    // all 字段排第一位，方便颜色与图例对齐
+    series.sort((a, b) => (a.field === 'all' ? -1 : b.field === 'all' ? 1 : 0));
+    _trendChartData = { dates, series };
     geoDrawTrendCanvas();
   } catch(e) { console.error('geoLoadTrendChart', e); }
 }
@@ -703,9 +734,16 @@ function geoDrawTrendCanvas() {
   });
 
   // Draw lines
-  const colors = ['#2563eb', '#10b981', '#6b7280'];
+  const fieldColor = {
+    all: '#9333ea',
+    brand_composite_exposure_rate: '#2563eb',
+    brand_precise_exposure_rate: '#10b981',
+    competitor_exposure_rate: '#6b7280',
+  };
+  const fallback = ['#2563eb', '#10b981', '#6b7280', '#9333ea'];
+  const colors = series.map((s, si) => fieldColor[s.field] || fallback[si] || '#6b7280');
   series.forEach((s, si) => {
-    const color = colors[si] || '#6b7280';
+    const color = colors[si];
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';

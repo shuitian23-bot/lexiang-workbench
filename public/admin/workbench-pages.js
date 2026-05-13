@@ -257,9 +257,10 @@ const PAGE_RENDERERS = {
           <div style="margin-bottom:8px">
             <div class="gpnl-title" style="margin:0">可见性趋势</div>
           </div>
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280">
-            <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌综合可见性</span>
-            <span><span style="display:inline-block;width:20px;height:3px;background:#10b981;border-radius:2px;vertical-align:middle;margin-right:4px"></span>品牌精准可见性</span>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280;flex-wrap:wrap">
+            <span><span style="display:inline-block;width:20px;height:3px;background:#9333ea;border-radius:2px;vertical-align:middle;margin-right:4px"></span>整体可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>联想官网可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#10b981;border-radius:2px;vertical-align:middle;margin-right:4px"></span>联想乐享可见性</span>
             <span><span style="display:inline-block;width:20px;height:3px;background:#6b7280;border-radius:2px;vertical-align:middle;margin-right:4px"></span>竞品可见性</span>
           </div>
           <canvas id="geo-trend-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
