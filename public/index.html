@@ -9,18 +9,19 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
-// BUILD 标记 + 自检：如果用户客户端版本与服务器不一致，强制 reload
-window.__BUILD = '20260513-v2';
+// BUILD 标记 + 自检
+window.__BUILD = '20260513-v3';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
-    if (stored && stored !== window.__BUILD) {
-      console.warn('[BUILD] 客户端版本过期，强制刷新:', stored, '→', window.__BUILD);
+    var url = new URL(location.href);
+    var qv = url.searchParams.get('_v');
+    // 如果 URL 没带 _v 或 _v 与当前 BUILD 不同，强制带最新 BUILD 重 navigate（绕过 disk cache）
+    if (qv !== window.__BUILD) {
+      console.warn('[BUILD] 强制带 _v query 拿全新:', qv, '→', window.__BUILD);
+      url.searchParams.set('_v', window.__BUILD);
       localStorage.setItem('lx.build', window.__BUILD);
-      // 加随机参数防止任何缓存命中
-      var u = new URL(location.href);
-      u.searchParams.set('_v', window.__BUILD);
-      location.replace(u.toString());
+      location.replace(url.toString());
       return;
     }
     localStorage.setItem('lx.build', window.__BUILD);
