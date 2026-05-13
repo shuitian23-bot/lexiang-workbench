@@ -2,16 +2,45 @@ const db = require('../db/schema');
 const path = require('path');
 const fs = require('fs');
 
-// Split text into overlapping chunks
-function chunkText(text, size = 500, overlap = 100) {
-  const chunks = [];
-  let start = 0;
-  while (start < text.length) {
-    const end = Math.min(start + size, text.length);
-    chunks.push(text.slice(start, end).trim());
-    start += size - overlap;
-    if (start >= text.length) break;
+// 智能切分：优先按段落（\n\n / \n）→ 中文句号 → 字符长度兜底
+// 保证语义完整，避免切到句子中间。仍带 overlap 防边界丢上下文
+function chunkText(text, size = 500, overlap = 80) {
+  if (!text || text.length <= size) return text && text.trim().length > 20 ? [text.trim()] : [];
+  // 1. 先按段落切，单段 > size 再按句号切
+  const paragraphs = text.split(/\n{2,}|\n/).map(s => s.trim()).filter(Boolean);
+  const sentences = [];
+  for (const p of paragraphs) {
+    if (p.length <= size) {
+      sentences.push(p);
+    } else {
+      const sents = p.split(/(?<=[。！？!?；;])/).map(s => s.trim()).filter(Boolean);
+      for (const s of sents) {
+        if (s.length <= size) {
+          sentences.push(s);
+        } else {
+          // 超长句按字符 size 硬切
+          for (let i = 0; i < s.length; i += size - overlap) {
+            sentences.push(s.slice(i, i + size));
+          }
+        }
+      }
+    }
   }
+  // 2. 贪心合并：累加直到接近 size，flush
+  const chunks = [];
+  let buf = '';
+  for (const s of sentences) {
+    if (!buf) {
+      buf = s;
+    } else if (buf.length + s.length + 1 <= size) {
+      buf += '\n' + s;
+    } else {
+      chunks.push(buf);
+      // overlap：取上一 chunk 末尾 overlap 字符做前缀
+      buf = (overlap > 0 && buf.length > overlap) ? buf.slice(-overlap) + '\n' + s : s;
+    }
+  }
+  if (buf) chunks.push(buf);
   return chunks.filter(c => c.length > 20);
 }
 
@@ -140,4 +169,4 @@ async function deleteDoc(docId) {
   db.prepare('DELETE FROM knowledge_docs WHERE id = ?').run(docId);
 }
 
-module.exports = { ingestFile, ingestUrl, ingestText, deleteDoc };
+module.exports = { ingestFile, ingestUrl, ingestText, deleteDoc, chunkText };

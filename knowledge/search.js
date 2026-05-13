@@ -46,6 +46,9 @@ async function searchAsync(query, userMessage, topK = 5) {
   if (!query || query.trim().length === 0) return [];
 
   const results = new Map(); // chunk_id → result
+  // RRF 融合：每个来源记录 rank（1-based），最终 score = Σ 1/(k+rank)，k=60 (业界默认)
+  const RRF_K = 60;
+  const rrfMap = new Map(); // chunk_id → 累加 RRF 分
 
   // 1. 向量语义搜索
   if (vectorReady && vectorModule && embedModule) {
@@ -63,11 +66,15 @@ async function searchAsync(query, userMessage, topK = 5) {
           WHERE kc.id IN (${placeholders})
         `).all(...chunkIds);
 
-        // 合并向量分数
-        const scoreMap = new Map(vecHits.map(h => [h.chunk_id, h.score]));
-        for (const row of rows) {
-          results.set(row.chunk_id, { ...row, score: scoreMap.get(row.chunk_id) || 0, source: 'vector' });
-        }
+        const rowMap = new Map(rows.map(r => [r.chunk_id, r]));
+        vecHits.forEach((h, idx) => {
+          const row = rowMap.get(h.chunk_id);
+          if (!row) return;
+          if (!results.has(row.chunk_id)) {
+            results.set(row.chunk_id, { ...row, source: 'vector' });
+          }
+          rrfMap.set(row.chunk_id, (rrfMap.get(row.chunk_id) || 0) + 1 / (RRF_K + idx + 1));
+        });
       }
     } catch (e) {
       // 向量搜索失败不影响FTS
@@ -82,17 +89,16 @@ async function searchAsync(query, userMessage, topK = 5) {
       WHERE knowledge_fts MATCH ?
       ORDER BY score
       LIMIT ?
-    `).all(query, topK);
+    `).all(query, topK * 2);
 
-    for (const row of ftsRows) {
+    ftsRows.forEach((row, idx) => {
       if (!results.has(row.chunk_id)) {
         results.set(row.chunk_id, { ...row, source: 'fts' });
       } else {
-        // 两种方式都找到了，加权提升分数
-        results.get(row.chunk_id).score += 0.2;
         results.get(row.chunk_id).source = 'hybrid';
       }
-    }
+      rrfMap.set(row.chunk_id, (rrfMap.get(row.chunk_id) || 0) + 1 / (RRF_K + idx + 1));
+    });
   } catch (e) {
     // FTS 语法错误降级 LIKE
     if (results.size === 0) {
@@ -107,10 +113,13 @@ async function searchAsync(query, userMessage, topK = 5) {
     }
   }
 
-  // 按分数排序，取 topK
+  // RRF 融合分回写后排序，取 topK*2 余量给 rerank
+  for (const [cid, r] of results) {
+    r.score = rrfMap.get(cid) || r.score || 0;
+  }
   const hits = [...results.values()]
     .sort((a, b) => b.score - a.score)
-    .slice(0, topK);
+    .slice(0, topK * 2);
 
   // L3.1 Graph-RAG 图增强（失败不影响正常检索）
   let graphHits = hits;
