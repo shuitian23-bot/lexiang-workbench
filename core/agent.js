@@ -660,8 +660,9 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   const INVOICE_KEYWORDS = /开票|开发票|增值税|专票|普票|发票抬头|对公|开户行|企业账户/i;
   const TENDER_KEYWORDS = /招投标|投标|政采|央采|政府采购|教育电子卖场|资质文件|授权书|偏离表|招标/i;
   const COMPLIANCE_KEYWORDS = /信创|等保|国密|国产化|麒麟|统信|uos|涉密|涉密改造|合规|tcm|sm[234]/i;
+  const LEAD_KEYWORDS = /联系我|请联系|留下电话|留下联系|安排上门|bd上门|上门接洽|大额项目|联系顾问|让bd|留资|联系销售|留下我的|找人对接|预约 ?bd/i;
   let forceToolChoice = null;
-  const ALL_KEYWORDS = [PRODUCT_KEYWORDS, SOLUTION_KEYWORDS, CUSTOMIZE_KEYWORDS, COUPON_KEYWORDS, TRADEIN_KEYWORDS, MEMBER_KEYWORDS, WARRANTY_KEYWORDS, SHOWCASE_KEYWORDS, LIVE_KEYWORDS, VAS_KEYWORDS, STORE_KEYWORDS, BULK_KEYWORDS, INVOICE_KEYWORDS, TENDER_KEYWORDS, COMPLIANCE_KEYWORDS];
+  const ALL_KEYWORDS = [PRODUCT_KEYWORDS, SOLUTION_KEYWORDS, CUSTOMIZE_KEYWORDS, COUPON_KEYWORDS, TRADEIN_KEYWORDS, MEMBER_KEYWORDS, WARRANTY_KEYWORDS, SHOWCASE_KEYWORDS, LIVE_KEYWORDS, VAS_KEYWORDS, STORE_KEYWORDS, BULK_KEYWORDS, INVOICE_KEYWORDS, TENDER_KEYWORDS, COMPLIANCE_KEYWORDS, LEAD_KEYWORDS];
   if (!imageUrl && !audioUrl && !thinkingMode && ALL_KEYWORDS.some(re => re.test(userMessage))) {
     forceToolChoice = 'required';
     console.log('[Agent] 业务意图检测命中，强制 tool_choice: required');

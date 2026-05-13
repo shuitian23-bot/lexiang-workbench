@@ -902,6 +902,35 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
   }
 }
 
+/* ── Tab 内容：门店卡片 ── */
+.cp-stores-page { padding: 18px 22px; }
+.cp-perks { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:10px 14px; margin-bottom:14px; background:#FEF3F2; border-left:3px solid #B83340; border-radius:6px; font-size:12.5px; color:#6B7280; }
+.cp-perks strong { color:#B83340; font-size:13px; }
+.cp-store-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:16px 18px; margin-bottom:12px; transition:box-shadow .15s; }
+.cp-store-card:hover { box-shadow:0 4px 14px rgba(0,0,0,.08); }
+.cp-store-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.cp-store-name { font-size:15px; font-weight:700; color:#111827; display:flex; align-items:center; gap:8px; }
+.cp-store-rating { font-size:12px; color:#F59E0B; font-weight:600; }
+.cp-store-flag { padding:1px 8px; border-radius:4px; background:#FEE2E2; color:#B83340; font-size:10px; font-weight:600; }
+.cp-store-distance { font-size:12px; color:#9CA3AF; }
+.cp-store-meta { font-size:13px; color:#4B5563; line-height:1.9; }
+.cp-store-meta a { color:#6D28D9; }
+.cp-store-tags { font-size:12px; color:#6B7280; margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.cp-store-tags strong { font-size:12px; color:#374151; }
+.cp-store-tag { padding:3px 9px; border-radius:999px; background:#EEF2FF; color:#4338CA; font-size:11px; }
+.cp-store-slots { margin-top:12px; padding-top:10px; border-top:1px dashed #E5E7EB; }
+.cp-store-slots h4 { font-size:13px; font-weight:600; color:#374151; margin:0 0 8px; }
+.cp-store-slot { display:flex; align-items:center; gap:10px; padding:8px 10px; margin-bottom:6px; background:#FAFAFA; border-radius:8px; }
+.cp-slot-time { flex:1; font-size:13px; color:#111827; font-weight:500; }
+.cp-slot-remain { font-size:11px; color:#9CA3AF; }
+.cp-slot-btn { padding:5px 12px; border-radius:6px; border:1px solid #B83340; background:#fff; color:#B83340; font-size:12px; cursor:pointer; font-family:inherit; transition:all .15s; }
+.cp-slot-btn:hover { background:#B83340; color:#fff; }
+[data-theme="dark"] .cp-store-card { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08); }
+[data-theme="dark"] .cp-store-name { color:#fafafa; }
+[data-theme="dark"] .cp-store-meta { color:#a1a1aa; }
+[data-theme="dark"] .cp-store-slot { background:rgba(255,255,255,.04); }
+[data-theme="dark"] .cp-slot-time { color:#fafafa; }
+
 /* ── Tab 内容：通用 info（markdown 渲染） ── */
 .cp-info-page { padding: 20px 24px; font-size: 14px; color: #1f2937; line-height: 1.7; }
 .cp-info-page h1, .cp-info-page h2, .cp-info-page h3, .cp-info-page h4 { color: #111827; margin: 18px 0 10px; font-weight: 700; }

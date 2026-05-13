@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v8';
+window.__BUILD = '20260513-v9';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -815,6 +815,24 @@ html,body{height:100%;overflow:hidden}
 .cto-btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 6px 16px rgba(184,51,64,.3)}
 /* ── 优惠券中心 modal ── */
 .coupon-modal{width:min(560px,94vw);max-height:80vh;display:flex;flex-direction:column}
+.lead-modal{padding:0}
+.lead-head{padding:22px 24px 14px;border-bottom:1px solid var(--border)}
+.lead-head h3{font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px}
+.lead-head p{font-size:12.5px;color:var(--text2);line-height:1.6}
+.lead-scenario{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:6px;background:rgba(184,51,64,.08);color:#b83340;font-size:11px;font-weight:600}
+.lead-form{padding:18px 24px 20px}
+.lead-field{margin-bottom:12px}
+.lead-field label{display:block;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:4px}
+.lead-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-size:13.5px;font-family:inherit;background:var(--bg);color:var(--text);box-sizing:border-box;transition:border-color .15s}
+.lead-input:focus{outline:none;border-color:#b83340;box-shadow:0 0 0 3px rgba(184,51,64,.1)}
+textarea.lead-input{resize:vertical;min-height:60px;line-height:1.6}
+.lead-actions{display:flex;gap:10px;margin-top:14px}
+.lead-btn-cancel,.lead-btn-submit{flex:1;padding:10px 18px;border-radius:8px;border:none;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.lead-btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.lead-btn-cancel:hover{background:var(--card)}
+.lead-btn-submit{background:linear-gradient(90deg,#6b2068,#b83340);color:#fff}
+.lead-btn-submit:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 6px 14px rgba(184,51,64,.25)}
+.lead-tip{margin-top:10px;text-align:center;font-size:11px;color:var(--text2)}
 .coupon-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .coupon-head h3{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
 .coupon-head p{font-size:12px;color:var(--text2)}
@@ -1089,7 +1107,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v8-svc-data">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v9-stores-lead">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2152,6 +2170,16 @@ async function callAPI(msg, imageUrl, audioUrl){
           }
         }
 
+        else if (lastEvent === 'stores') {
+          if (typeof window.__openContent === 'function') {
+            window.__openContent('stores', d.title || '联想体验店', { stores: d.stores || [], city: d.city || '', product: d.product || '', perks: d.perks || [] });
+          }
+        }
+
+        else if (lastEvent === 'lead') {
+          if (typeof openLeadForm === 'function') openLeadForm(d);
+        }
+
         else if (lastEvent === 'error') {
           stream.finish();
           var emb = bubbleEl.querySelector('.mbubble');
@@ -3189,6 +3217,7 @@ async function showProductDetail(sku) {
     if (!res.ok) { body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">未找到该商品</div>'; return; }
     var p = await res.json();
     var specs = p.specs || {};
+    if (typeof specs === string) { try { specs = JSON.parse(specs); } catch(e) { specs = {}; } }
     var imgUrl = p.image_url || '';
     // specs.url 经常 404（联想数据下架），改优先 item.lenovo.com.cn/product/{sku}.html，规范一致
     var buyUrl = lxUtm('https://item.lenovo.com.cn/product/' + sku + '.html', sku);
@@ -4877,6 +4906,11 @@ var _ctoState = null;
 
 function openCustomizer(opts) {
   opts = opts || {};
+  // PC 模式优先走右侧 tab，避免重复弹窗
+  if (typeof window.__openContent === 'function' && document.documentElement.classList.contains('split-mode')) {
+    window.__openContent('customize', '商品定制', opts || {});
+    return;
+  }
   var schemaKey = opts.schema || 'laptop';
   if (opts.productName) schemaKey = _detectCtoSchema(opts.productName, opts.category);
   var schema = CTO_CONFIG[schemaKey];
@@ -5035,6 +5069,11 @@ var _receivedCoupons = JSON.parse(localStorage.getItem('lexiang.coupons.v1') || 
 
 function openCouponCenter(opts) {
   opts = opts || {};
+  // PC 模式优先走右侧 tab
+  if (typeof window.__openContent === 'function' && document.documentElement.classList.contains('split-mode')) {
+    window.__openContent('coupon', opts.title || '优惠券中心', opts);
+    return;
+  }
   document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
   var mask = document.createElement('div');
   mask.className = 'ai-modal-mask';
@@ -5067,6 +5106,54 @@ function openCouponCenter(opts) {
   document.body.appendChild(mask);
 }
 window.openCouponCenter = openCouponCenter;
+
+// 留资表单 modal（POC 演示，提交本地 toast）
+function openLeadForm(opts) {
+  opts = opts || {};
+  document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
+  var fields = (opts.fields && opts.fields.length) ? opts.fields : [
+    { key:'name',  label:'姓名',  type:'text', required:true, placeholder:'您的称呼' },
+    { key:'phone', label:'手机号', type:'tel',  required:true, placeholder:'用于 BD 联系' },
+  ];
+  var fieldsHtml = fields.map(function(f){
+    var input;
+    if (f.type === 'textarea') {
+      input = '<textarea class="lead-input" name="'+f.key+'" placeholder="'+escHtml(f.placeholder||'')+'" '+(f.required?'required':'')+' rows="3"></textarea>';
+    } else {
+      input = '<input class="lead-input" type="'+(f.type||'text')+'" name="'+f.key+'" placeholder="'+escHtml(f.placeholder||'')+'" '+(f.required?'required':'')+'>';
+    }
+    return '<div class="lead-field"><label>'+escHtml(f.label||'')+(f.required?' <span style="color:#dc2626">*</span>':'')+'</label>'+input+'</div>';
+  }).join('');
+  var mask = document.createElement('div');
+  mask.className = 'ai-modal-mask';
+  mask.onclick = function(e){ if (e.target === mask) mask.remove(); };
+  mask.innerHTML = '<div class="ai-modal lead-modal" style="width:min(440px,94vw)">'+
+    '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--text2);z-index:2">×</button>'+
+    '<div class="lead-head"><h3>'+escHtml(opts.title||'留下您的联系方式')+'</h3>'+
+      (opts.desc ? '<p>'+escHtml(opts.desc)+'</p>' : '')+
+      (opts.scenario ? '<div class="lead-scenario">📋 '+escHtml(opts.scenario)+'</div>' : '')+
+    '</div>'+
+    '<form class="lead-form">'+fieldsHtml+
+      '<div class="lead-actions">'+
+        '<button type="button" class="lead-btn-cancel" onclick="this.closest(\'.ai-modal-mask\').remove()">取消</button>'+
+        '<button type="submit" class="lead-btn-submit">提交（POC 演示）</button>'+
+      '</div>'+
+      '<div class="lead-tip">🔒 联想官方承诺：仅用于业务联络，不分享给第三方</div>'+
+    '</form>'+
+  '</div>';
+  document.body.appendChild(mask);
+  mask.querySelector('.lead-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var data = {};
+    fd.forEach(function(v,k){ data[k] = v; });
+    if (!data.name || !data.phone) { alert('请填写姓名和手机号'); return; }
+    console.log('[Lead]', opts.scenario || '', data);
+    mask.remove();
+    if (typeof _showToast === 'function') _showToast('✓ 已提交，BD 顾问 30 分钟内主动联系您（POC 演示，未真实提交）');
+  });
+}
+window.openLeadForm = openLeadForm;
 
 function _showToast(msg, ms) {
   var t = document.createElement('div');
@@ -5120,6 +5207,10 @@ var _memberState = {
   ],
 };
 function openMemberCenter() {
+  if (typeof window.__openContent === 'function' && document.documentElement.classList.contains('split-mode')) {
+    window.__openContent('member', '我的会员中心', {});
+    return;
+  }
   document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
   var mask = document.createElement('div');
   mask.className = 'ai-modal-mask';
@@ -5256,6 +5347,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v8-svc-data"></script>
+<script src="/split-layout.js?v=20260513-v9-stores-lead"></script>
 </body>
 </html>

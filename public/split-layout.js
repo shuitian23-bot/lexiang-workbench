@@ -654,19 +654,40 @@
   };
 
   RENDERERS.stores = function (container, data) {
-    var stores = data && data.stores || [];
-    var ul = document.createElement('ul');
-    ul.className = 'cp-stores';
-    stores.forEach(function (s) {
-      var li = document.createElement('li');
-      li.innerHTML =
-        '<div class="cp-store-name">' + escH(s.name || '') + '</div>' +
-        '<div class="cp-store-address">' + escH(s.address || '') + '</div>' +
-        (s.phone ? '<div class="cp-store-phone"><a href="tel:' + escH(s.phone) + '">' + escH(s.phone) + '</a></div>' : '') +
-        (s.distance ? '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + escH(s.distance) + '</div>' : '');
-      ul.appendChild(li);
+    data = data || {};
+    var stores = data.stores || [];
+    var perks = data.perks || [];
+    var perksHtml = perks.length ? '<div class="cp-perks"><strong>🎁 到店专享</strong>' + perks.map(function(p){ return '<span>' + escH(p) + '</span>'; }).join('') + '</div>' : '';
+    var cardsHtml = stores.map(function(s){
+      var slotsHtml = (s.slots||[]).map(function(t){
+        var ask = '我要预约' + (s.name || '') + ' ' + (t.time || '') + '，请帮我下单';
+        var safe = ask.replace(/'/g, "\\'");
+        return '<div class="cp-store-slot"><span class="cp-slot-time">'+escH(t.time||'')+'</span><span class="cp-slot-remain">剩 '+(t.remain||0)+' 名额</span><button class="cp-slot-btn" data-ask="'+escH(safe)+'">立即预约</button></div>';
+      }).join('');
+      var prodLines = (s.product_lines||[]).map(function(pl){ return '<span class="cp-store-tag">'+escH(pl)+'</span>'; }).join('');
+      var flag = s.is_flagship ? '<span class="cp-store-flag">旗舰</span>' : '';
+      var ratingHtml = s.rating ? '<span class="cp-store-rating">⭐ ' + s.rating + '</span>' : '';
+      return '<div class="cp-store-card">' +
+        '<div class="cp-store-head">' +
+          '<div class="cp-store-name">' + escH(s.name||'') + ratingHtml + flag + '</div>' +
+          (s.distance ? '<div class="cp-store-distance">' + escH(s.distance) + '</div>' : '') +
+        '</div>' +
+        '<div class="cp-store-meta">' +
+          (s.address ? '<div>📍 ' + escH(s.address) + '</div>' : '') +
+          (s.hours   ? '<div>🕐 ' + escH(s.hours) + '</div>' : '') +
+          (s.metro   ? '<div>🚇 ' + escH(s.metro) + '</div>' : '') +
+          (s.phone   ? '<div>📞 <a href="tel:'+escH(s.phone)+'">'+escH(s.phone)+'</a></div>' : '') +
+        '</div>' +
+        (prodLines ? '<div class="cp-store-tags"><strong>在售：</strong>' + prodLines + '</div>' : '') +
+        (slotsHtml ? '<div class="cp-store-slots"><h4>📅 可预约时段</h4>' + slotsHtml + '</div>' : '') +
+      '</div>';
+    }).join('');
+    container.innerHTML = '<div class="cp-stores-page">' + perksHtml + cardsHtml + '</div>';
+    container.querySelectorAll('.cp-slot-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (typeof quickAsk === 'function') quickAsk(btn.dataset.ask || '我要预约门店');
+      });
     });
-    container.appendChild(ul);
   };
 
   RENDERERS.preview = function (container, data) {

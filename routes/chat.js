@@ -237,6 +237,25 @@ router.post('/stream', async (req, res) => {
               desc: status.result.desc || '',
             });
           }
+          // 拦截 frontend_stores tool 调用，PC 端走右侧 tab 卡片化
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_stores') {
+            send('stores', {
+              title: status.result.title || '联想体验店',
+              city: status.result.city || '',
+              product: status.result.product || '',
+              stores: status.result.stores || [],
+              perks: status.result.perks || [],
+            });
+          }
+          // 拦截 frontend_lead tool（留资表单）→ PC 弹表单 modal
+          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_lead') {
+            send('lead', {
+              title: status.result.title || '留下您的联系方式',
+              desc:  status.result.desc  || '',
+              fields: status.result.fields || [],
+              scenario: status.result.scenario || '',
+            });
+          }
           // 转发 status 事件时剥离 result 字段，避免大对象（如 product_query 返回）塞进 SSE
           const { result, ...lite } = status || {};
           send('status', lite);
