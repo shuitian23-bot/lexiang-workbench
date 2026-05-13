@@ -386,12 +386,14 @@ html,body{height:100%;overflow:hidden}
 .leai-ptab.active{color:#4d144a;font-weight:900;border-bottom-color:transparent}
 [data-theme="dark"] .leai-ptab{color:var(--text2)}[data-theme="dark"] .leai-ptab.active{color:#e8a0c0;border-bottom-color:transparent}
 .leai-pscore{width:100%;padding:6px 12px;font-size:12px;color:#6a352a;font-weight:700;display:flex;align-items:center;gap:4px}
-.leai-ppanel{display:none;padding:12px 16px 14px}
-.leai-ppanel.active{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
-.leai-ppanel-img{width:142px;height:142px;object-fit:contain;flex-shrink:0;border-radius:8px}
+.leai-ppanel{display:none;padding:10px 14px 12px;cursor:pointer;transition:background .15s;border-radius:8px}
+.leai-ppanel.active{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.leai-ppanel:hover{background:rgba(184,51,64,.04)}
+[data-theme="dark"] .leai-ppanel:hover{background:rgba(184,51,64,.1)}
+.leai-ppanel-img{width:96px;height:96px;object-fit:contain;flex-shrink:0;border-radius:6px}
 [data-theme="dark"] .leai-ppanel-img{filter:brightness(.92)}
-.leai-ppanel-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;min-height:142px}
-.leai-ppanel-name{font-size:14px;font-weight:500;color:#000;line-height:1.4;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leai-ppanel-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;min-height:96px}
+.leai-ppanel-name{font-size:13px;font-weight:500;color:#000;line-height:1.4;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [data-theme="dark"] .leai-ppanel-name{color:var(--text)}
 .leai-ppanel-brief{font-size:12px;color:#606060;line-height:1.7;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .leai-ppanel-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
@@ -966,9 +968,6 @@ html[data-site="biz"] .subnav-extra{display:flex}
 #displayCanvas .dc-back svg{width:16px;height:16px}
 #displayCanvas .dc-title{font-size:15px;font-weight:600;color:var(--text)}
 #displayCanvas .dc-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%}
-@media(min-width:700px){#displayCanvas .dc-body{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(min-width:1000px){#displayCanvas .dc-body{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(min-width:1400px){#displayCanvas .dc-body{grid-template-columns:repeat(5,minmax(0,1fr))}}
 #displayCanvas .dc-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;display:flex;flex-direction:column;min-width:0}
 #displayCanvas .dc-card-info{min-width:0}
 #displayCanvas .dc-card-desc{min-width:0}
@@ -3029,14 +3028,24 @@ function openDetail(el) {
 }
 
 
+// 按 dc-body 实际宽度计算列数（分屏后 viewport 媒体查询不准）
+function _resizeDcBody() {
+  var body = document.getElementById('dcBody');
+  if (!body || body.style.display !== 'grid') return;
+  var w = body.offsetWidth;
+  var cols = w >= 1100 ? 5 : w >= 850 ? 4 : w >= 600 ? 3 : 2;
+  body.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr))';
+}
+window.addEventListener('resize', _resizeDcBody);
+
 // ── AI展示画布 ──
 function showDisplayCanvas(title, products) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
-  // 强制 grid 让 CSS media query 控列数；清 inline 防详情页残留 1fr 污染
+  // 强制 grid + JS 按容器实测宽度切列（媒体查询用 viewport，分屏后不准）
   body.style.display = 'grid';
-  body.style.gridTemplateColumns = '';
-  body.style.gap = '';
+  body.style.gap = '12px';
+  _resizeDcBody();
   document.getElementById('dcTitle').textContent = title;
   body.innerHTML = products.map(function(p) {
     var img = escHtml(p.image_url || p.图片 || '');
