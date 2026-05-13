@@ -2292,15 +2292,19 @@ function renderSolutions(solutions, title) {
 async function renderHotProducts() {
   const grid = document.getElementById('hotProductsGrid');
   if (!grid) return;
+  const cats = ['笔记本电脑', '台式机', '一体机', '手机'];
   try {
-    const res = await fetch('/api/products?limit=4');
-    if (!res.ok) throw new Error('api error');
-    const products = await res.json();
-    if (!products?.length) {
+    const settled = await Promise.allSettled(
+      cats.map(c => fetch('/api/products?category=' + encodeURIComponent(c) + '&limit=1').then(r => r.json()))
+    );
+    const products = settled
+      .filter(s => s.status === 'fulfilled' && s.value?.[0])
+      .map(s => s.value[0]);
+    if (!products.length) {
       grid.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px">暂无产品数据</div>';
       return;
     }
-    grid.innerHTML = products.slice(0, 4).map(p => {
+    grid.innerHTML = products.map(p => {
       const name = escHtml(p.name || '');
       const desc = escHtml(p.description || '').slice(0, 30);
       const price = p.price ? '¥' + Number(p.price).toLocaleString('zh-CN') : '暂无报价';

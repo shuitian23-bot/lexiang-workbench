@@ -190,7 +190,7 @@ router.get('/classify/:taskId/download', (req, res) => {
 
 // ===== Stats =====
 
-router.post('/stats', upload.single('file'), (req, res) => {
+router.post('/stats', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未提供文件' });
 
   const suffix = path.extname(req.file.originalname).toLowerCase();
@@ -202,14 +202,17 @@ router.post('/stats', upload.single('file'), (req, res) => {
   const filePath = req.file.path + suffix;
   fs.renameSync(req.file.path, filePath);
 
-  const script = path.join(SKILLS_DIR, 'lexiang-pipeline', 'pipeline.py');
-  execFile(PYTHON_BIN, [script, '--once', '--json', filePath], { timeout: 600000, maxBuffer: 50 * 1024 * 1024 }, (err, stdout) => {
+  try {
+    const result = await registry.invoke('lexiang.pipeline', {
+      mode: 'once',
+      file_path: filePath,
+    }, { permissions: ['*'], admin: req.session?.admin });
     try { fs.unlinkSync(filePath); } catch {}
-    if (err) return res.status(500).json({ error: err.message });
-    const result = _parseJson(stdout);
-    if (!result || result.error) return res.status(500).json({ error: result?.error || '统计失败' });
     res.json(result);
-  });
+  } catch (e) {
+    try { fs.unlinkSync(filePath); } catch {}
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.get('/stats/history', (req, res) => {
@@ -332,25 +335,24 @@ router.post('/filter', multiUpload.array('files', 10), async (req, res) => {
   }
 
   const filePaths = req.files.map(f => f.path);
-  const script = path.join(SKILLS_DIR, 'lexiang-filter-kouling', 'filter_kouling.py');
-  const args = ['--json', ...filePaths];
 
-  execFile(PYTHON_BIN, [script, ...args], { timeout: 300000, maxBuffer: 50 * 1024 * 1024 }, (err, stdout) => {
+  try {
+    const result = await registry.invoke('lexiang.filter', {
+      file_paths: filePaths,
+    }, { permissions: ['*'], admin: req.session?.admin });
+
     // Cleanup uploaded files
     for (const f of req.files) {
       try { fs.unlinkSync(f.path); } catch {}
     }
 
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    const result = _parseJson(stdout);
-    if (!result || result.error) {
-      return res.status(500).json({ error: result?.error || '过滤失败' });
-    }
-
     res.json(result);
+  } catch (e) {
+    for (const f of req.files) {
+      try { fs.unlinkSync(f.path); } catch {}
+    }
+    res.status(500).json({ error: e.message });
+  }
   });
 });
 
