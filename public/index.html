@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v13';
+window.__BUILD = '20260513-v14';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -1202,7 +1202,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v13-syntax">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v14-fab">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3872,10 +3872,13 @@ window.toggleCompare = toggleCompare;
 function _renderCmpFab() {
   var existing = document.getElementById('cmpFab');
   var list = window._compareList || [];
-  // 仅 chat 已激活（split / is-chat）时显示，避免 landing 首页打扰
-  var html = document.documentElement;
-  var chatActive = html.classList.contains('is-chat') || html.classList.contains('split-mode') || html.classList.contains('chat-revealed');
-  if (!list.length || !chatActive) {
+  // default 主页（leaibot.cn 首页）永不显示，避免打扰
+  var siteType = (typeof window.__siteType !== 'undefined') ? window.__siteType : 'default';
+  if (siteType === 'default') {
+    if (existing) existing.remove();
+    return;
+  }
+  if (!list.length) {
     if (existing) existing.remove();
     return;
   }
@@ -5517,6 +5520,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v13-syntax"></script>
+<script src="/split-layout.js?v=20260513-v14-fab"></script>
 </body>
 </html>
