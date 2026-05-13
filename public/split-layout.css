@@ -609,8 +609,9 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 /* ── Tab 内容：商品网格 ── */
 .cp-products {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 18px;
+  padding: 4px;
 }
 
 .cp-product-card {
@@ -1004,7 +1005,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .subnav-extra-input .se-more { position: relative; display: inline-block; }
 .subnav-extra-input .se-more.open .se-dropdown { display: block; }
 .subnav-extra-input .se-dropdown {
-  display: none; position: fixed; min-width: 180px;
+  display: none; position: fixed; width: 180px; max-width: 220px;
   background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
   box-shadow: 0 -8px 24px rgba(0,0,0,.18); padding: 6px; z-index: 100000;
 }

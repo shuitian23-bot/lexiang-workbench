@@ -555,7 +555,6 @@
         (img ? '<img src="' + escH(img) + '" alt="' + escH(name) + '" loading="lazy">' : '') +
         '<div class="cp-product-name">' + escH(name) + '</div>' +
         (price ? '<div class="cp-product-price">¥' + Number(price).toLocaleString() + '</div>' : '') +
-        (desc ? '<div class="cp-product-desc">' + escH(desc) + '</div>' : '') +
         '<div class="cp-hover-actions">' +
           '<button class="primary" data-action="explain">📖 解读</button>' +
           '<button data-action="customize">🛠 定制</button>' +

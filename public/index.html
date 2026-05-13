@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v11';
+window.__BUILD = '20260513-v12';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -1128,7 +1128,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .card-hover-actions button{flex:1;padding:7px 8px;border-radius:6px;border:none;background:rgba(255,255,255,.95);color:#1a1a1a;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
 .card-hover-actions button:hover{background:#fff}
 .card-hover-actions button.primary{background:linear-gradient(90deg,#6b2068,#b83340);color:#fff}
-.card-hover-actions button.primary:hover{filter:brightness(1.1)}
+.card-hover-actions button svg{width:13px;height:13px;flex-shrink:0}
 @media(max-width:768px){#displayCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;z-index:200}#landingPage.dc-open{display:block!important;z-index:30!important;opacity:1!important;transform:none!important;pointer-events:auto!important}}
 /* AI 商品上下文浮层（覆盖 input-bar） */
 .ai-product-overlay{position:absolute;left:0;right:0;bottom:0;z-index:10;background:linear-gradient(135deg,rgba(252,242,248,.98),rgba(227,234,253,.98));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #E2DDEB;border-radius:16px 16px 0 0;padding:36px 28px 40px;min-height:260px;box-shadow:0 -8px 32px rgba(77,20,74,.12);display:flex;flex-direction:column;justify-content:center;transform:translateY(0);opacity:1;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;pointer-events:auto}
@@ -1202,7 +1202,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v11-cmp-table">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v12-card-fix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2484,8 +2484,8 @@ function renderLeaiProducts(productList) {
     const askLeai = (item.name || '').replace(/['"\\]/g, '');
     const safeImgL = String(img).replace(/"/g,'&quot;');
     const hoverLeai = `<div class="card-hover-actions">
-      <button class="primary" data-action="explain" data-name="${escHtml(askLeai)}">📖 解读</button>
-      <button data-action="customize" data-name="${escHtml(askLeai)}" data-img="${safeImgL}">🛠 定制</button>
+      <button class="primary" data-action="explain" data-name="${escHtml(askLeai)}">${__leaiIcon('📖',{size:13})} 解读</button>
+      <button data-action="customize" data-name="${escHtml(askLeai)}" data-img="${safeImgL}">${__leaiIcon('🛠',{size:13})} 定制</button>
     </div>`;
     panels += `<div class="leai-ppanel${i===0?' active':''}" id="${uid}-p${i}" data-product="${escHtml(skuKey)}" data-name="${escHtml(askLeai)}" data-price="${price}" data-img="${safeImgL}" style="position:relative;cursor:pointer">
       ${cmpBtnL}
@@ -3145,16 +3145,16 @@ function _renderProductCard(p) {
   };
   var origHtml = (_pDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? ' <span class="mall-original">' + formatPrice(p.original_price) + '</span>' : '';
   var imgHtml = p.image_url
-    ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
-    : '<div class="mall-img-fallback">📦</div>';
+    ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>\'+__leaiIcon(\'📦\',{size:36})+\'</div>\''">'
+    : '<div class="mall-img-fallback">'+__leaiIcon('📦',{size:36})+'</div>';
   var prodKey = p.sku || String(p.id);
   var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
   var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
   var askName = (p.name || '').replace(/['"\\]/g, '');
   var safeImg = (p.image_url || '').replace(/"/g,'&quot;');
   var hoverActions = '<div class="card-hover-actions">'+
-    '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">📖 解读</button>'+
-    '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImg+'" data-cat="'+escHtml(p.category||'')+'">🛠 定制</button>'+
+    '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">'+__leaiIcon('📖',{size:13})+' 解读</button>'+
+    '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImg+'" data-cat="'+escHtml(p.category||'')+'">'+__leaiIcon('🛠',{size:13})+' 定制</button>'+
   '</div>';
   return '<div class="mall-card" data-product="' + escHtml(prodKey) + '">' +
     cmpBtn +
@@ -3272,8 +3272,8 @@ function showDisplayCanvas(title, products) {
     var askName = rawName.replace(/['"\\]/g, '');
     var safeImgDc = String(p.image_url || '').replace(/"/g,'&quot;');
     var hoverActions = '<div class="card-hover-actions">'+
-      '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">📖 解读</button>'+
-      '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImgDc+'" data-cat="'+escHtml(p.category||'')+'">🛠 定制</button>'+
+      '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">'+__leaiIcon('📖',{size:13})+' 解读</button>'+
+      '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImgDc+'" data-cat="'+escHtml(p.category||'')+'">'+__leaiIcon('🛠',{size:13})+' 定制</button>'+
     '</div>';
     return '<div class="dc-card" data-product="' + escHtml(prodKey) + '" data-name="' + name + '" data-price="' + escHtml(String(price)) + '" data-img="' + img + '">' +
       cmpBtn +
@@ -3501,7 +3501,7 @@ async function showProductDetail(sku) {
             '<div class="pd-detail-img"><img src="' + imgUrl + '" alt="' + escHtml(p.name) + '"></div>' +
           '</div>' +
           '<div class="pd-section"><h3 class="pd-section-title">📋 规格参数</h3>' + specsTblHtml + '</div>' +
-          '<div class="pd-section"><h3 class="pd-section-title">📚 联想百科</h3>' +
+          '<div class="pd-section"><h3 class="pd-section-title">📖 联想百科</h3>' +
             '<div id="pdWikiPanel"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div>' +
           '</div>' +
           '<div class="pd-section"><h3 class="pd-section-title">📸 商品介绍详情图</h3>' +
@@ -4403,7 +4403,7 @@ function _buildHbStep1() {
   card.className = 'hb-card';
   card.innerHTML = `
     <div class="hb-card-head">
-      <div class="hb-ico">🧧</div>
+      <div class="hb-ico">${__leaiIcon('🧧',{size:24})}</div>
       <div class="hb-info">
         <div class="hb-title">联想乐享消费红包</div>
         <div class="hb-sub">限时活动 · 购平板立减¥100</div>
@@ -4441,7 +4441,7 @@ function _buildHbStep2() {
   card.className = 'hb-card';
   card.innerHTML = `
     <div class="hb-card-head">
-      <div class="hb-ico">🎉</div>
+      <div class="hb-ico">${__leaiIcon('🎉',{size:24})}</div>
       <div class="hb-info">
         <div class="hb-title">恭喜！红包到手了</div>
         <div class="hb-sub">¥100 已存入您的账户</div>
@@ -4491,7 +4491,7 @@ function _buildHbStep3() {
     </div>`).join('');
   card.innerHTML = `
     <div class="hb-card-head">
-      <div class="hb-ico">🛍️</div>
+      <div class="hb-ico">${__leaiIcon('🛍',{size:24})}</div>
       <div class="hb-info">
         <div class="hb-title">选择平板</div>
         <div class="hb-sub">红包自动抵扣 · 已为您省¥100</div>
@@ -4531,7 +4531,7 @@ function _buildHbStep4(p) {
   card.className = 'hb-card';
   card.innerHTML = `
     <div class="hb-card-head" style="background:linear-gradient(135deg,#16a34a,#22c55e)">
-      <div class="hb-ico" style="background:linear-gradient(135deg,#bbf7d0,#86efac)">✅</div>
+      <div class="hb-ico" style="background:linear-gradient(135deg,#bbf7d0,#86efac)">${__leaiIcon('✅',{size:24})}</div>
       <div class="hb-info">
         <div class="hb-title">下单成功！</div>
         <div class="hb-sub">预计3-5个工作日发货</div>
@@ -5517,6 +5517,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v11-cmp-table"></script>
+<script src="/split-layout.js?v=20260513-v12-card-fix"></script>
 </body>
 </html>
