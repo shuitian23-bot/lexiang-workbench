@@ -28,6 +28,22 @@ const upload = multer({
   }
 });
 
+// S1④ frontend_* action → SSE event 映射表（替代 11 个 if 分支）
+// navigate 立即 send，其余 tab/modal/卡片 类延迟到 AI 流式答完 _flushDeferred
+const FRONTEND_DISPATCH = {
+  frontend_navigate: (r, send) => send('nav', { target: r.target, reason: r.reason || '' }),
+  frontend_display:  (r, _, defer) => defer('display', { title: r.title || 'AI推荐', products: r.products || [] }),
+  frontend_modal:    (r, _, defer) => defer('modal', r),
+  frontend_solutions:(r, _, defer) => defer('solutions', { title: r.title || '推荐方案', solutions: r.solutions || [], note: r.note || '' }),
+  frontend_filter:   (r, _, defer) => defer('display', { title: r.title || '筛选结果', filter_tags: r.filter_tags || [], products: r.products || [] }),
+  frontend_customize:(r, _, defer) => defer('customize', { product_name: r.product_name || '', schema: r.schema || 'laptop', preset: r.preset || 'default' }),
+  frontend_coupon:   (r, _, defer) => defer('coupon', { highlight: r.highlight || [], title: r.title || '为您推荐的优惠券', desc: r.desc || '' }),
+  frontend_stores:   (r, _, defer) => defer('stores', { title: r.title || '联想体验店', city: r.city || '', product: r.product || '', stores: r.stores || [], perks: r.perks || [] }),
+  frontend_member:   (r, _, defer) => defer('member', { title: r.title || '我的会员中心' }),
+  frontend_tradein:  (r, _, defer) => defer('tradein', { title: r.title || '以旧换新', content: r.content || '', data: r.data || {} }),
+  frontend_lead:     (r, _, defer) => defer('lead', { title: r.title || '留下您的联系方式', desc: r.desc || '', fields: r.fields || [], scenario: r.scenario || '' }),
+};
+
 // ── 音频上传配置 ──
 const AUDIO_UPLOAD_DIR = path.join(__dirname, '../public/uploads/audio');
 if (!fs.existsSync(AUDIO_UPLOAD_DIR)) fs.mkdirSync(AUDIO_UPLOAD_DIR, { recursive: true });
@@ -205,69 +221,14 @@ router.post('/stream', async (req, res) => {
         siteType: site_type || 'default',
         productContext: product_context || null,
         onStatus: (status) => {
-          // 拦截 frontend_navigate tool 调用，转发为 nav 事件给前端
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_navigate') {
-            send('nav', { target: status.result.target, reason: status.result.reason || '' });
+          // S1④ SSE 单路径：frontend_* action → 统一映射表 dispatch
+          // navigate 立即发，其余 tab/modal/卡片类延迟到 AI 流式答完 flush
+          if (status?.type === 'tool_done' && status.success && status.result?.action) {
+            const r = status.result;
+            const handler = FRONTEND_DISPATCH[r.action];
+            if (handler) handler(r, send, _sendDeferred);
           }
-          // tab/modal/卡片 类 UI 事件全部延迟到 AI 流式答完再 flush
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_display') {
-            _sendDeferred('display', { title: status.result.title || 'AI推荐', products: status.result.products || [] });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_modal') {
-            _sendDeferred('modal', status.result);
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_solutions') {
-            _sendDeferred('solutions', {
-              title: status.result.title || '推荐方案',
-              solutions: status.result.solutions || [],
-              note: status.result.note || ''
-            });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_filter') {
-            _sendDeferred('display', {
-              title: status.result.title || '筛选结果',
-              filter_tags: status.result.filter_tags || [],
-              products: status.result.products || [],
-            });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_customize') {
-            _sendDeferred('customize', {
-              product_name: status.result.product_name || '',
-              schema: status.result.schema || 'laptop',
-              preset: status.result.preset || 'default',
-            });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_coupon') {
-            _sendDeferred('coupon', {
-              highlight: status.result.highlight || [],
-              title: status.result.title || '为您推荐的优惠券',
-              desc: status.result.desc || '',
-            });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_stores') {
-            _sendDeferred('stores', {
-              title: status.result.title || '联想体验店',
-              city: status.result.city || '',
-              product: status.result.product || '',
-              stores: status.result.stores || [],
-              perks: status.result.perks || [],
-            });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_member') {
-            _sendDeferred('member', { title: status.result.title || '我的会员中心' });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_tradein') {
-            _sendDeferred('tradein', { title: status.result.title || '以旧换新', content: status.result.content || '', data: status.result.data || {} });
-          }
-          if (status?.type === 'tool_done' && status.success && status.result?.action === 'frontend_lead') {
-            _sendDeferred('lead', {
-              title: status.result.title || '留下您的联系方式',
-              desc:  status.result.desc  || '',
-              fields: status.result.fields || [],
-              scenario: status.result.scenario || '',
-            });
-          }
-          // 转发 status 事件时剥离 result 字段，避免大对象（如 product_query 返回）塞进 SSE
+          // 转发 status 事件时剥离 result 字段，避免大对象塞进 SSE
           const { result, ...lite } = status || {};
           send('status', lite);
         },
