@@ -880,8 +880,8 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .mall-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#bbb;background:linear-gradient(135deg,#f5f5f7,#e8e8ec)}
 [data-theme="dark"] .mall-img-fallback{background:linear-gradient(135deg,#2a2a2e,#1d1d20);color:#555}
 .mall-card{position:relative}
-.mall-cmp-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.92);color:#666;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:2;padding:0;line-height:1}
-.mall-cmp-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.1)}
+.mall-cmp-btn{position:absolute;top:8px;right:8px;min-width:30px;height:26px;padding:0 8px;border-radius:13px;border:1px solid var(--border);background:rgba(255,255,255,.92);color:#666;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:2;line-height:1;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.mall-cmp-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.08)}
 .mall-cmp-btn.active{background:#6b2068;color:#fff;border-color:#6b2068}
 [data-theme="dark"] .mall-cmp-btn{background:rgba(40,40,46,.92);color:#bbb}
 .cmp-fab{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#6b2068,#b83340);color:#fff;border-radius:999px;padding:12px 18px 12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 32px rgba(107,32,104,.35);cursor:pointer;font-size:13px;font-weight:500;z-index:9999;transition:all .25s;animation:fabIn .3s ease;user-select:none}
@@ -971,7 +971,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 #displayCanvas .dc-card-price{font-size:15px;font-weight:600;color:#e1251b;margin-top:6px}
 #displayCanvas .dc-card-price .dc-orig{font-size:11px;color:#999;text-decoration:line-through;margin-left:6px;font-weight:400}
 /* dc-card 右上角 +对比 按钮（同 mall-card 风格） */
-#displayCanvas .dc-card .mall-cmp-btn{position:absolute;top:6px;right:6px;width:24px;height:24px;font-size:14px;z-index:3}
+#displayCanvas .dc-card .mall-cmp-btn{position:absolute;top:6px;right:6px;min-width:30px;height:24px;padding:0 7px;font-size:11px;z-index:3}
 /* hover 1s 后浮现的「解读商品 / 加入对比」操作层 */
 .card-hover-actions{position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;padding:10px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease;pointer-events:none;z-index:2}
 .card-hover-actions.show{opacity:1;transform:translateY(0);pointer-events:auto}
@@ -2919,7 +2919,7 @@ function _renderProductCard(p) {
     : '<div class="mall-img-fallback">📦</div>';
   var prodKey = p.sku || String(p.id);
   var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
-  var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : '+') + '</button>';
+  var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
   var askName = (p.name || '').replace(/['"\\]/g, '');
   var safeImg = (p.image_url || '').replace(/"/g,'&quot;');
   var hoverActions = '<div class="card-hover-actions">'+
@@ -3030,7 +3030,7 @@ function showDisplayCanvas(title, products) {
     var sku = p.sku || p.SKU || '';
     var prodKey = sku || String(p.id || '');
     var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
-    var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" data-action="cmp-toggle-dc" title="加入对比">' + (inCmp ? '✓' : '+') + '</button>';
+    var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" data-action="cmp-toggle-dc" title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
     var askName = rawName.replace(/['"\\]/g, '');
     var safeImgDc = String(p.image_url || '').replace(/"/g,'&quot;');
     var hoverActions = '<div class="card-hover-actions">'+
@@ -3462,7 +3462,7 @@ function toggleCompare(key, btn) {
   var idx = list.findIndex(function(x){ return x.key === key; });
   if (idx >= 0) {
     list.splice(idx, 1);
-    if (btn) { btn.classList.remove('active'); btn.textContent = '+'; }
+    if (btn) { btn.classList.remove('active'); btn.textContent = 'PK'; }
   } else {
     if (list.length >= COMPARE_MAX) {
       alert('最多对比 ' + COMPARE_MAX + ' 件商品');
@@ -3529,7 +3529,7 @@ function clearCompare() {
   _renderCmpFab();
   document.querySelectorAll('.mall-cmp-btn.active').forEach(function(b){
     b.classList.remove('active');
-    b.textContent = '+';
+    b.textContent = 'PK';
   });
 }
 window.clearCompare = clearCompare;
