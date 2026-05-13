@@ -1075,22 +1075,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
-  <div class="subnav-extra">
-    <button class="se-btn" onclick="openCustomizer()" title="定制配置 + 私人定制"><span class="ico">🛠</span>定制</button>
-    <button class="se-btn" onclick="openCouponCenter()" title="AI 智能发券"><span class="ico">🎟</span>优惠</button>
-    <button class="se-btn" onclick="quickAsk('我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" title="会员中心 · AI 助手"><span class="ico">👤</span>会员</button>
-    <button class="se-btn" onclick="openTradeIn()" title="AI 多轮估价"><span class="ico">♻️</span>换新</button>
-    <div class="se-more" id="seMoreWrap">
-      <button class="se-btn" onclick="document.getElementById('seMoreWrap').classList.toggle('open')" title="更多服务">更多 ▾</button>
-      <div class="se-dropdown">
-        <button onclick="_askWarranty();_seCloseMore()"><span>🔧</span>保修查询</button>
-        <button onclick="quickAsk('帮我生成一份晒单文案，机型不限，包括卖点、使用感受、推荐人群三段，并给我配图建议');_seCloseMore()"><span>📸</span>AI 写晒单</button>
-        <button onclick="quickAsk('联想官方今晚和未来一周有什么直播？告诉我节目单和专享福利');_seCloseMore()"><span>🎥</span>直播预告</button>
-        <button onclick="quickAsk('我准备买一台拯救者笔记本，推荐哪些增值服务（延保/意外保/上门/数据迁移）最值得买，给个组合方案');_seCloseMore()"><span>🛡</span>增值服务</button>
-        <button onclick="quickAsk('帮我找北京最近的联想体验店，能预约到店体验拯救者 Y9000K 吗？');_seCloseMore()"><span>📍</span>门店预约</button>
-      </div>
-    </div>
-  </div>
+  <div class="subnav-extra" id="subnavExtra"></div>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
@@ -3572,6 +3557,81 @@ window.openCompareModal = openCompareModal;
 
 // 首屏加载已存对比清单
 setTimeout(_renderCmpFab, 100);
+
+// ── 三子站顶部入口（subnav-extra）按子站差异化配置 ──
+var SUBNAV_BY_SITE = {
+  // 个人 / 家庭：偏消费（定制 + 优惠 + 会员 + 换新）
+  shop: {
+    main: [
+      { ico:'🛠', label:'定制',  title:'定制配置 + 私人定制（刻字喷绘）',  fn:'openCustomizer()' },
+      { ico:'🎟', label:'优惠',  title:'优惠券中心（学生/教师/新人券）',    fn:'openCouponCenter()' },
+      { ico:'👤', label:'会员',  title:'我的会员等级 / 乐豆 / 权益 / 订单', fn:"quickAsk('我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" },
+      { ico:'♻️', label:'换新',  title:'以旧换新 AI 多轮估价',              fn:'openTradeIn()' },
+    ],
+    more: [
+      { ico:'🔧', label:'保修查询',  fn:'_askWarranty()' },
+      { ico:'📸', label:'AI 写晒单', fn:"quickAsk('帮我生成一份晒单文案，机型不限，包括卖点、使用感受、推荐人群三段，并给我配图建议')" },
+      { ico:'🎥', label:'直播预告',  fn:"quickAsk('联想官方今晚和未来一周有什么直播？告诉我节目单和专享福利')" },
+      { ico:'🛡', label:'增值服务',  fn:"quickAsk('我准备买一台拯救者笔记本，推荐哪些增值服务（延保/意外保/上门/数据迁移）最值得买，给个组合方案')" },
+      { ico:'📍', label:'门店预约',  fn:"quickAsk('帮我找北京最近的联想体验店，能预约到店体验拯救者 Y9000K 吗？')" },
+    ],
+  },
+  // 中小企业：偏批采、对公财务、上门
+  b: {
+    main: [
+      { ico:'💼', label:'批量询价',  title:'10 台起 BD 顾问 30 分钟出方案', fn:"quickAsk('我要批量采购 10 台 ThinkBook 16+ 给销售团队，请帮我做询价并给出阶梯价')" },
+      { ico:'📋', label:'对公开票',  title:'增值税专票 + 银行对公账户',     fn:"quickAsk('企业采购怎么开增值税专票？需要提供哪些资料、走什么流程？')" },
+      { ico:'🛠', label:'商用定制',  title:'统一资产标识 + 系统镜像 + 域控接入', fn:'openCustomizer()' },
+      { ico:'🚚', label:'上门服务',  title:'24h 上门安装 + 远程运维',       fn:"quickAsk('中小企业上门安装、远程运维、保修上门，分别是什么服务、价格如何？')" },
+    ],
+    more: [
+      { ico:'📊', label:'资产盘点',  fn:"quickAsk('我们公司有 30 台联想电脑，怎么用联想资产管家盘点和管理？')" },
+      { ico:'🔧', label:'保修批量查',fn:"quickAsk('我们企业有一批联想机器，能否批量查询保修剩余天数？需要提供哪些信息？')" },
+      { ico:'🎟', label:'企业券',    fn:"quickAsk('中小企业新户开户有哪些专属优惠券和首单礼？')" },
+      { ico:'♻️', label:'集中换新',  fn:"quickAsk('我们公司一批 4 年前的 ThinkPad T 系列 30 台，想集中以旧换新，估价和流程怎么走？')" },
+      { ico:'📞', label:'BD 联络',   fn:"quickAsk('我想直接联系负责中小企业的销售 BD，请告诉我对接方式')" },
+    ],
+  },
+  // 政教大企业：偏行业方案、招投标、合规、BD
+  biz: {
+    main: [
+      { ico:'🏛', label:'行业方案',  title:'金融/医疗/教育/政府 全场景方案', fn:"quickAsk('请按行业（金融、医疗、教育、政府）展示联想完整解决方案')" },
+      { ico:'📜', label:'招投标',    title:'政采资质 / 央采名录 / 投标支持', fn:"quickAsk('我们要做联想产品的招投标，需要哪些资质文件、参数模板、产品授权？')" },
+      { ico:'🛡', label:'信创合规',  title:'等保 2.0 / 国密 / 国产化适配',   fn:"quickAsk('政企采购需要满足等保 2.0、国密合规、国产化适配，联想哪些产品达标？')" },
+      { ico:'📞', label:'BD 接洽',   title:'专人对接 + 现场 POC',           fn:"quickAsk('我们有一个 200 万的政企 IT 采购项目，请安排区域 BD 上门接洽和 POC')" },
+    ],
+    more: [
+      { ico:'☁️', label:'私有云',    fn:"quickAsk('我们想搭建企业私有云（虚拟化/容器/裸金属），联想 ThinkSystem 服务器有哪些方案？')" },
+      { ico:'🎨', label:'工作站方案',fn:"quickAsk('科研院所做仿真和 3D 渲染，ThinkStation P 系列工作站怎么选？')" },
+      { ico:'🗄', label:'服务器方案',fn:"quickAsk('企业数据中心建设，机架式服务器 + 存储 + 网络的整体方案怎么规划？')" },
+      { ico:'📺', label:'智慧会议',  fn:"quickAsk('多个会议室部署 thinkplus 会议平板，需要哪些配套软硬件？')" },
+      { ico:'🌐', label:'全国服务',  fn:"quickAsk('我们公司在全国有 20 个分支机构，联想有什么全国统一售后服务方案？')" },
+    ],
+  },
+};
+
+function renderSubnav() {
+  var box = document.getElementById('subnavExtra');
+  if (!box) return;
+  var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
+  var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
+  var mainHtml = cfg.main.map(function(it){
+    return '<button class="se-btn" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+it.ico+'</span>'+escHtml(it.label)+'</button>';
+  }).join('');
+  var moreHtml = '';
+  if (cfg.more && cfg.more.length) {
+    var items = cfg.more.map(function(it){
+      return '<button onclick="'+it.fn.replace(/"/g,'&quot;')+';_seCloseMore()"><span>'+it.ico+'</span>'+escHtml(it.label)+'</button>';
+    }).join('');
+    moreHtml = '<div class="se-more" id="seMoreWrap">'+
+      '<button class="se-btn" onclick="document.getElementById(\'seMoreWrap\').classList.toggle(\'open\')" title="更多服务">更多 ▾</button>'+
+      '<div class="se-dropdown">'+items+'</div>'+
+    '</div>';
+  }
+  box.innerHTML = mainHtml + moreHtml;
+}
+// 首屏渲染（仅子站）
+(function(){ if (typeof _siteType !== 'undefined' && _siteType !== 'default') renderSubnav(); })();
 
 // ── 三子站主题：banner 文案 + 特色服务 ──
 var SITE_THEMES = {

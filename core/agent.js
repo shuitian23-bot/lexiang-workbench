@@ -655,8 +655,13 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   const LIVE_KEYWORDS = /直播|开播|主播|直播预告|直播间|直播抽奖/i;
   const VAS_KEYWORDS = /增值服务|延保|意外保|碎屏险|上门安装|上门维修|数据迁移|系统重装/i;
   const STORE_KEYWORDS = /门店|线下店|体验店|预约到店|实体店|店地址|附近的联想/i;
+  // B 端 / 政企新增意图
+  const BULK_KEYWORDS = /批量采购|批采|集采|团购|阶梯价|几十台|百台|千台|采购清单|公司采购/i;
+  const INVOICE_KEYWORDS = /开票|开发票|增值税|专票|普票|发票抬头|对公|开户行|企业账户/i;
+  const TENDER_KEYWORDS = /招投标|投标|政采|央采|政府采购|教育电子卖场|资质文件|授权书|偏离表|招标/i;
+  const COMPLIANCE_KEYWORDS = /信创|等保|国密|国产化|麒麟|统信|uos|涉密|涉密改造|合规|tcm|sm[234]/i;
   let forceToolChoice = null;
-  const ALL_KEYWORDS = [PRODUCT_KEYWORDS, SOLUTION_KEYWORDS, CUSTOMIZE_KEYWORDS, COUPON_KEYWORDS, TRADEIN_KEYWORDS, MEMBER_KEYWORDS, WARRANTY_KEYWORDS, SHOWCASE_KEYWORDS, LIVE_KEYWORDS, VAS_KEYWORDS, STORE_KEYWORDS];
+  const ALL_KEYWORDS = [PRODUCT_KEYWORDS, SOLUTION_KEYWORDS, CUSTOMIZE_KEYWORDS, COUPON_KEYWORDS, TRADEIN_KEYWORDS, MEMBER_KEYWORDS, WARRANTY_KEYWORDS, SHOWCASE_KEYWORDS, LIVE_KEYWORDS, VAS_KEYWORDS, STORE_KEYWORDS, BULK_KEYWORDS, INVOICE_KEYWORDS, TENDER_KEYWORDS, COMPLIANCE_KEYWORDS];
   if (!imageUrl && !audioUrl && !thinkingMode && ALL_KEYWORDS.some(re => re.test(userMessage))) {
     forceToolChoice = 'required';
     console.log('[Agent] 业务意图检测命中，强制 tool_choice: required');
