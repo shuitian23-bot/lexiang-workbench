@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v12';
+window.__BUILD = '20260513-v13';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -1202,7 +1202,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v12-card-fix">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v13-syntax">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3145,8 +3145,8 @@ function _renderProductCard(p) {
   };
   var origHtml = (_pDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? ' <span class="mall-original">' + formatPrice(p.original_price) + '</span>' : '';
   var imgHtml = p.image_url
-    ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>\'+__leaiIcon(\'📦\',{size:36})+\'</div>\''">'
-    : '<div class="mall-img-fallback">'+__leaiIcon('📦',{size:36})+'</div>';
+    ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
+    : '<div class="mall-img-fallback">📦</div>';
   var prodKey = p.sku || String(p.id);
   var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
   var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
@@ -5517,6 +5517,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v12-card-fix"></script>
+<script src="/split-layout.js?v=20260513-v13-syntax"></script>
 </body>
 </html>
