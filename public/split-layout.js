@@ -695,8 +695,8 @@
       var img = (p.image_url || '').replace(/^http:/, 'https:');
       var specs = p.specs || {};
       var priceInt = String(Math.floor(p.price || 0));
-      var skipKeys = ['url','bu_ids','lvl1','lvl2','lvl3','lvl4','lvl5','target_user','highlights','images','ad_picture','is_ai','bu','mtm','wapUrl','pcDetailUrl','mobileUrl'];
-      var labelMap = {brand:'品牌',color:'颜色',weight:'重量',screen_size:'屏幕尺寸',battery:'电池',os:'操作系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率',screen:'屏幕',ports:'接口',wireless:'无线',keyboard:'键盘',camera:'摄像头',audio:'音频',security:'安全',material:'材质'};
+      var skipKeys = ['url','bu_ids','target_user','highlights','images','ad_picture','source','wapUrl','pcDetailUrl','mobileUrl','wapDetailUrl'];
+      var labelMap = {brand:'品牌',color:'颜色',weight:'重量',screen_size:'屏幕尺寸',battery:'电池',os:'操作系统',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',resolution:'分辨率',screen:'屏幕',ports:'接口',wireless:'无线',keyboard:'键盘',camera:'摄像头',audio:'音频',security:'安全',material:'材质',lvl1:'一级分类',lvl2:'二级分类',lvl3:'系列',lvl4:'子系列',lvl5:'细分',mtm:'MTM 编码',bu:'事业部',is_ai:'AI 商品'};
       var specRows = '';
       Object.keys(specs).forEach(function (k) {
         if (skipKeys.indexOf(k) >= 0 || !specs[k] || typeof specs[k] === 'object') return;
@@ -716,6 +716,14 @@
       var stockHtml = p.stock > 0
         ? '<span class="cpd-stock in">● 有货</span>'
         : '<span class="cpd-stock out">● 暂时缺货</span>';
+
+      // 适合人群
+      var targetUsers = [];
+      try { if (specs.target_user) targetUsers = JSON.parse(specs.target_user); } catch(e){}
+      var tuHtml = targetUsers.length > 0
+        ? '<div class="cpd-tu"><h4 class="cpd-section-title">👥 适合人群</h4><div class="cpd-tu-tags">' + targetUsers.map(function(u){ return '<span class="cpd-tu-tag">' + escH(u) + '</span>'; }).join('') + '</div></div>'
+        : '';
+      var searchUrl = 'https://search.lenovo.com.cn/result.html?keyword=' + encodeURIComponent(p.name || '');
 
       container.innerHTML =
         '<div class="cpd-page">' +
@@ -740,12 +748,33 @@
               '</div>' +
               '<div class="cpd-actions-sub">' +
                 '<a href="' + escH(buyUrl) + '" target="_blank" rel="noopener" class="cpd-link">↗ 官网查看</a>' +
+                '<a href="' + escH(searchUrl) + '" target="_blank" rel="noopener" class="cpd-link">🔍 同款搜索</a>' +
                 '<button class="cpd-compare">和竞品对比</button>' +
               '</div>' +
             '</div>' +
           '</div>' +
-          (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-specs-title">规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
+          tuHtml +
+          (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-section-title">📋 规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
+          '<div class="cpd-wiki-section"><h4 class="cpd-section-title">📚 联想百科</h4><div class="cpd-wiki-body" id="cpd-wiki-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div></div>' +
         '</div>';
+
+      // 异步拉 wiki RAG
+      (function(){
+        var wikiBox = container.querySelector('#cpd-wiki-' + encodeURIComponent(sku));
+        if (!wikiBox) return;
+        fetch('/api/knowledge/public-search?q=' + encodeURIComponent(p.name || '') + '&topK=3')
+          .then(function(r){ return r.json(); })
+          .then(function(hits){
+            if (!Array.isArray(hits) || !hits.length) {
+              wikiBox.innerHTML = '<div style="text-align:center;padding:24px;color:#999">未找到该机型的百科条目</div>';
+              return;
+            }
+            wikiBox.innerHTML = hits.map(function(h, i){
+              return '<div class="cpd-wiki-block"><div class="cpd-wiki-title">📖 ' + escH(h.title || ('百科 ' + (i+1))) + '</div><div class="cpd-wiki-content">' + escH(h.content || '').replace(/\n/g, '<br>') + '</div></div>';
+            }).join('');
+          })
+          .catch(function(e){ wikiBox.innerHTML = '<div style="text-align:center;padding:24px;color:#c00">加载失败</div>'; });
+      })();
 
       var buyBtn = container.querySelector('.cpd-buy');
       if (buyBtn) buyBtn.addEventListener('click', function () {

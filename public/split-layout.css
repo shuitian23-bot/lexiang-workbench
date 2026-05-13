@@ -826,12 +826,21 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cpd-actions-sub .cpd-link:hover,
 .cpd-actions-sub .cpd-compare:hover { background: #F9FAFB; }
 
-.cpd-specs-section { padding: 16px 20px 20px; }
+.cpd-specs-section,
+.cpd-wiki-section,
+.cpd-tu { padding: 16px 20px 20px; border-top: 1px solid #F3F4F6; }
+.cpd-section-title,
 .cpd-specs-title {
-  margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #374151;
+  margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #374151;
   padding-bottom: 8px; border-bottom: 2px solid #6D28D9;
   display: inline-block;
 }
+.cpd-tu-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cpd-tu-tag { padding: 4px 10px; border-radius: 999px; background: #EEF2FF; color: #4338CA; font-size: 12px; }
+.cpd-wiki-body { font-size: 13px; color: #4B5563; line-height: 1.7; }
+.cpd-wiki-block { padding: 12px 14px; margin-bottom: 12px; background: #FAFAFA; border-left: 3px solid #B83340; border-radius: 8px; }
+.cpd-wiki-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 6px; }
+.cpd-wiki-content { font-size: 12.5px; color: #6B7280; line-height: 1.7; white-space: pre-wrap; }
 .cpd-specs {
   width: 100%; border-collapse: collapse; font-size: 13px;
 }
