@@ -1026,6 +1026,9 @@ html[data-site="biz"] .subnav-extra{display:flex}
 [data-theme="dark"] .pd-tab.active{color:#e1251b}
 .pd-tab-panel{padding:24px;display:none}
 .pd-tab-panel.active{display:block}
+.pd-section{padding:20px 24px;border-bottom:1px solid var(--border)}
+.pd-section:last-child{border-bottom:none}
+.pd-section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
 .pd-wiki .wiki-block{margin-bottom:18px;padding:14px 16px;background:#fafafa;border-radius:8px;border-left:3px solid #b83340}
 [data-theme="dark"] .pd-wiki .wiki-block{background:rgba(255,255,255,.03)}
 .pd-wiki .wiki-title{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)}
@@ -3216,24 +3219,19 @@ async function showProductDetail(sku) {
         '</div>' +
         // 下半部分：tabs + 详情内容
         '<div class="pd-detail-below">' +
-          '<div class="pd-tabs">' +
-            '<button class="pd-tab active" onclick="switchPdTab(this,0)">商品详情</button>' +
-            '<button class="pd-tab" onclick="switchPdTab(this,1)">规格参数</button>' +
-            '<button class="pd-tab" onclick="switchPdTab(this,2);_loadWikiTab(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\')">联想百科</button>' +
-          '</div>' +
-          '<div class="pd-tab-panel active">' +
+          '<div class="pd-section"><h3 class="pd-section-title">📦 商品详情</h3>' +
             hlGridHtml +
             tuHtml +
             '<div class="pd-detail-img"><img src="' + imgUrl + '" alt="' + escHtml(p.name) + '"></div>' +
           '</div>' +
-          '<div class="pd-tab-panel">' +
-            specsTblHtml +
-          '</div>' +
-          '<div class="pd-tab-panel" id="pdWikiPanel">' +
-            '<div style="text-align:center;padding:40px;color:#999">点击 tab 加载</div>' +
+          '<div class="pd-section"><h3 class="pd-section-title">📋 规格参数</h3>' + specsTblHtml + '</div>' +
+          '<div class="pd-section"><h3 class="pd-section-title">📚 联想百科</h3>' +
+            '<div id="pdWikiPanel"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div>' +
           '</div>' +
         '</div>' +
       '</div>';
+    // 立即异步加载 wiki
+    setTimeout(function(){ _loadWikiTab(p.name); }, 100);
     var base = window.__chatBase || '/chat';
     history.pushState({displayCanvas:true, sku:sku}, '', base + '/product/' + sku + '.html');
   } catch(e) {
@@ -3318,8 +3316,12 @@ function notifyAIProductContext(p) {
     '</div>';
   ov.classList.remove('hiding');
   if (bar) bar.classList.add('hidden');
+  // 10 秒无操作自动收起到下方 chips 条
+  if (window.__ovAutoHide) clearTimeout(window.__ovAutoHide);
+  window.__ovAutoHide = setTimeout(function(){ dismissProductOverlay(); }, 10000);
 }
 function dismissProductOverlay() {
+  if (window.__ovAutoHide) { clearTimeout(window.__ovAutoHide); window.__ovAutoHide = null; }
   var ov = document.getElementById('productOverlay');
   if (ov) ov.classList.add('hiding');
   var bar = document.getElementById('productChipsBar');
@@ -3553,9 +3555,10 @@ window.toggleCompare = toggleCompare;
 function _renderCmpFab() {
   var existing = document.getElementById('cmpFab');
   var list = window._compareList || [];
-  // default 主页（leaibot.cn 首页）不显示，避免打扰；仅子站显示
-  var isDefault = (typeof _siteType === 'undefined') || _siteType === 'default';
-  if (!list.length || isDefault) {
+  // 仅 chat 已激活（split / is-chat）时显示，避免 landing 首页打扰
+  var html = document.documentElement;
+  var chatActive = html.classList.contains('is-chat') || html.classList.contains('split-mode') || html.classList.contains('chat-revealed');
+  if (!list.length || !chatActive) {
     if (existing) existing.remove();
     return;
   }
@@ -3615,6 +3618,8 @@ window.openCompareModal = openCompareModal;
 
 // 首屏加载已存对比清单
 setTimeout(_renderCmpFab, 100);
+// chat 状态切换时（is-chat / split-mode / chat-revealed 类变化）刷新 fab 显隐
+try { new MutationObserver(_renderCmpFab).observe(document.documentElement, { attributes:true, attributeFilter:['class'] }); } catch(e){}
 
 // ── 三子站顶部入口（subnav-extra）按子站差异化配置 ──
 var SUBNAV_BY_SITE = {
@@ -4902,10 +4907,20 @@ function openCouponCenter(opts) {
 }
 window.openCouponCenter = openCouponCenter;
 
+function _showToast(msg, ms) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(40,40,46,.95);color:#fff;padding:11px 20px;border-radius:10px;z-index:100000;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .3s;font-family:inherit;backdrop-filter:blur(10px)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 300); }, ms || 2800);
+}
+window._showToast = _showToast;
+
 function _takeCoupon(id, btn) {
   if (_receivedCoupons.indexOf(id) >= 0) return;
   _receivedCoupons.push(id);
   try { localStorage.setItem('lexiang.coupons.v1', JSON.stringify(_receivedCoupons)); } catch(e){}
+  _showToast('✓ 已存入钱包，再次打开「优惠」入口可见已领券（共 ' + _receivedCoupons.length + ' 张）');
   // 飞行动效到右下角
   var rect = btn.getBoundingClientRect();
   var fly = document.createElement('div');
