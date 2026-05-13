@@ -902,6 +902,57 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
   }
 }
 
+/* ── Tab 内容：服务中心（customize / coupon / member / tradein） ── */
+.cp-svc-page { padding: 0 0 24px; }
+.cp-svc-hero { padding: 28px 28px; color: #fff; border-radius: 0 0 14px 14px; margin-bottom: 18px; }
+.cp-svc-hero h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+.cp-svc-hero p { margin: 0; font-size: 13px; line-height: 1.7; opacity: .92; }
+.cp-svc-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 0 24px; }
+.cp-svc-btn {
+  padding: 14px 18px; border-radius: 10px; border: 1px solid #E5E7EB; background: #fff;
+  color: #374151; font-size: 14px; font-weight: 500; cursor: pointer;
+  font-family: inherit; transition: all .15s; text-align: left;
+  display: flex; align-items: center; gap: 8px;
+}
+.cp-svc-btn:hover { border-color: #6b2068; color: #6b2068; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(107,32,104,.12); }
+.cp-svc-btn.primary { background: linear-gradient(90deg,#6b2068,#b83340); color: #fff; border-color: transparent; }
+.cp-svc-btn.primary:hover { filter: brightness(1.08); color: #fff; }
+.cp-svc-tips {
+  margin: 18px 24px 0; padding: 12px 16px;
+  background: #FEF3F2; border-left: 3px solid #B83340; border-radius: 6px;
+  font-size: 12.5px; color: #6B7280; line-height: 1.7;
+}
+.cp-svc-tips strong { color: #B83340; margin-right: 6px; }
+
+/* ── 输入框上方功能 chips（subnav-extra-input） ── */
+.subnav-extra-input {
+  display: flex; gap: 6px; padding: 0 0 10px; flex-wrap: wrap; align-items: center;
+}
+.subnav-extra-input .se-btn {
+  padding: 5px 11px; border-radius: 999px; border: 1px solid #E5E7EB; background: #fff;
+  color: #6B7280; font-size: 12.5px; cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 4px; transition: all .15s;
+  white-space: nowrap;
+}
+.subnav-extra-input .se-btn:hover { border-color: #6b2068; color: #6b2068; background: #FEF3F2; }
+.subnav-extra-input .se-btn .ico { font-size: 13px; }
+.subnav-extra-input .se-more { position: relative; display: inline-block; }
+.subnav-extra-input .se-more.open .se-dropdown { display: block; }
+.subnav-extra-input .se-dropdown {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 0; min-width: 160px;
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
+  box-shadow: 0 -8px 24px rgba(0,0,0,.12); padding: 6px; z-index: 1000;
+}
+.subnav-extra-input .se-dropdown button {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 12px; border: none; background: transparent; color: #374151;
+  font-size: 13px; cursor: pointer; font-family: inherit; border-radius: 6px; text-align: left;
+}
+.subnav-extra-input .se-dropdown button:hover { background: #FEF3F2; color: #6b2068; }
+[data-theme="dark"] .subnav-extra-input .se-btn { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.1); color: #9CA3AF; }
+[data-theme="dark"] .subnav-extra-input .se-dropdown { background: #1f1f23; border-color: rgba(255,255,255,.1); }
+[data-theme="dark"] .subnav-extra-input .se-dropdown button { color: #d4d4d8; }
+
 /* ── Tab 内容：iframe 预览 ── */
 .cp-preview {
   width: 100%;

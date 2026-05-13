@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v4';
+window.__BUILD = '20260513-v5';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -1081,7 +1081,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v4-cards">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v5-tab">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1113,7 +1113,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
-  <div class="subnav-extra" id="subnavExtra"></div>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
@@ -1271,6 +1270,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     <div class="input-bar">
       <div id="productOverlay" class="ai-product-overlay hiding"></div>
       <div id="productChipsBar" class="product-chips-bar hidden"></div>
+      <div id="subnavExtraInput" class="subnav-extra-input"></div>
       <div id="imgPreviewArea" style="display:none" class="img-preview-wrap">
         <img id="imgPreviewThumb" class="img-preview-thumb" src="" alt="预览">
         <span id="imgPreviewName" class="img-preview-name"></span>
@@ -3725,10 +3725,10 @@ var SUBNAV_BY_SITE = {
   // 个人 / 家庭：偏消费（定制 + 优惠 + 会员 + 换新）
   shop: {
     main: [
-      { ico:'🛠', label:'定制',  title:'定制配置 + 私人定制（刻字喷绘）',  fn:'openCustomizer()' },
-      { ico:'🎟', label:'优惠',  title:'优惠券中心（学生/教师/新人券）',    fn:'openCouponCenter()' },
-      { ico:'👤', label:'会员',  title:'我的会员等级 / 乐豆 / 权益 / 订单', fn:"quickAsk('我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" },
-      { ico:'♻️', label:'换新',  title:'以旧换新 AI 多轮估价',              fn:'openTradeIn()' },
+      { ico:'🛠', label:'定制',  title:'定制配置 + 私人定制（右侧画布展开）',  fn:"_openSvc('customize','商品定制','我想定制一台联想电脑，请帮我推荐配置方案')" },
+      { ico:'🎟', label:'优惠',  title:'优惠券中心（右侧画布展开）',          fn:"_openSvc('coupon','优惠券中心','请按我的身份（学生/教师/企业/新用户）推荐我能领的优惠券')" },
+      { ico:'👤', label:'会员',  title:'我的会员等级 / 乐豆 / 权益 / 订单',   fn:"_openSvc('member','我的会员中心','我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" },
+      { ico:'♻️', label:'换新',  title:'以旧换新 AI 多轮估价',                fn:"_openSvc('tradein','以旧换新','我想以旧换新，请帮我估价并推荐换购机型')" },
     ],
     more: [
       { ico:'🔧', label:'保修查询',  fn:'_askWarranty()' },
@@ -3772,8 +3772,16 @@ var SUBNAV_BY_SITE = {
   },
 };
 
+// PC 端 tab 化：右侧画布开 service tab + 左侧 chat 同步 AI 引导
+function _openSvc(type, title, ask) {
+  // openContent 内部已做 isPC 检测（非 PC 返 null 不影响）
+  try { if (typeof openContent === 'function') openContent(type, title, {}); } catch(e){}
+  if (ask && typeof quickAsk === 'function') quickAsk(ask);
+}
+window._openSvc = _openSvc;
+
 function renderSubnav() {
-  var box = document.getElementById('subnavExtra');
+  var box = document.getElementById('subnavExtraInput') || document.getElementById('subnavExtra');
   if (!box) return;
   var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
@@ -5194,6 +5202,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v4-cards"></script>
+<script src="/split-layout.js?v=20260513-v5-tab"></script>
 </body>
 </html>

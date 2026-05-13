@@ -852,6 +852,126 @@
 
   function escH(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+  // ── 服务中心 4 类 tab：customize / coupon / member / tradein ──
+  // POC：tab 内显示功能引导 + 触发原 modal 完整 UI；同时左侧 chat 自动 quickAsk
+  RENDERERS.customize = function (container, data) {
+    container.innerHTML =
+      '<div class="cp-svc-page">' +
+        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#6b2068,#b83340)">' +
+          '<h2>🛠 商品定制</h2>' +
+          '<p>选 CPU / 内存 / 硬盘 / 显卡 / 屏幕 / 颜色，实时算价；支持私人定制（激光刻字 / 喷绘 / 礼盒）</p>' +
+        '</div>' +
+        '<div class="cp-svc-actions">' +
+          '<button class="cp-svc-btn primary" data-act="laptop">💻 配置笔记本</button>' +
+          '<button class="cp-svc-btn primary" data-act="desktop">🖥 配置台式机</button>' +
+          '<button class="cp-svc-btn" data-act="ask-engrave">🎨 私人定制（刻字 / 喷绘）</button>' +
+          '<button class="cp-svc-btn" data-act="ask-top">⚡ 顶配方案推荐</button>' +
+          '<button class="cp-svc-btn" data-act="ask-value">💰 性价比方案推荐</button>' +
+        '</div>' +
+        '<div class="cp-svc-tips"><strong>💡 温馨提示</strong>左侧 AI 助手已为您打开定制咨询，可同时聊天。</div>' +
+      '</div>';
+    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var act = btn.dataset.act;
+        if (act === 'laptop' && typeof openCustomizer === 'function') openCustomizer({ schema:'laptop' });
+        else if (act === 'desktop' && typeof openCustomizer === 'function') openCustomizer({ schema:'desktop' });
+        else if (act === 'ask-engrave' && typeof quickAsk === 'function') quickAsk('我想做私人定制，可以刻字和喷绘吗？有哪些位置和图案可选？');
+        else if (act === 'ask-top' && typeof openCustomizer === 'function') openCustomizer({ schema:'laptop', preset:'top' });
+        else if (act === 'ask-value' && typeof openCustomizer === 'function') openCustomizer({ schema:'laptop', preset:'value' });
+      });
+    });
+  };
+
+  RENDERERS.coupon = function (container, data) {
+    container.innerHTML =
+      '<div class="cp-svc-page">' +
+        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#b83340,#ef4444)">' +
+          '<h2>🎟 优惠券中心</h2>' +
+          '<p>学生 / 教师 / 企业新户 / 政教大单 / 新用户 / 换新加码 / 电竞 / 创作者 — 8 张可领券</p>' +
+        '</div>' +
+        '<div class="cp-svc-actions">' +
+          '<button class="cp-svc-btn primary" data-act="open">🎁 打开优惠券中心</button>' +
+          '<button class="cp-svc-btn" data-act="ask-student">🎓 学生认证立减 500</button>' +
+          '<button class="cp-svc-btn" data-act="ask-enterprise">🏢 企业新户开户金 1000</button>' +
+          '<button class="cp-svc-btn" data-act="ask-teacher">👩‍🏫 教师专享券</button>' +
+          '<button class="cp-svc-btn" data-act="ask-tradein">♻️ 换新加码券</button>' +
+        '</div>' +
+        '<div class="cp-svc-tips"><strong>💡</strong>左侧 AI 已根据您身份推荐可领券，点上方按钮一键领取。</div>' +
+      '</div>';
+    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var act = btn.dataset.act;
+        if (act === 'open' && typeof openCouponCenter === 'function') openCouponCenter({});
+        else if (act === 'ask-student' && typeof quickAsk === 'function') quickAsk('我是学生，怎么认证学生身份并领取学生立减 500 的优惠券？');
+        else if (act === 'ask-enterprise' && typeof quickAsk === 'function') quickAsk('企业新户怎么开户领 1000 元开户金？需要什么资质？');
+        else if (act === 'ask-teacher' && typeof quickAsk === 'function') quickAsk('教师专享券怎么领取？');
+        else if (act === 'ask-tradein' && typeof quickAsk === 'function') quickAsk('换新加码券怎么用？可以叠加什么活动？');
+      });
+    });
+  };
+
+  RENDERERS.member = function (container, data) {
+    container.innerHTML =
+      '<div class="cp-svc-page">' +
+        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">' +
+          '<h2>👤 我的会员中心</h2>' +
+          '<p>V3 黄金会员 · 12,380 乐豆 · 4 项可领权益 · 距 V4 钻石还差 8,620 成长值</p>' +
+        '</div>' +
+        '<div class="cp-svc-actions">' +
+          '<button class="cp-svc-btn primary" data-act="ask-status">📊 查询完整会员状态</button>' +
+          '<button class="cp-svc-btn" data-act="ask-points">💎 乐豆怎么赚 / 怎么用</button>' +
+          '<button class="cp-svc-btn" data-act="ask-benefits">🎁 我的可领权益（4 项）</button>' +
+          '<button class="cp-svc-btn" data-act="ask-orders">📦 我的最近订单</button>' +
+          '<button class="cp-svc-btn" data-act="ask-upgrade">⬆️ 怎么升级到 V4 钻石</button>' +
+        '</div>' +
+        '<div class="cp-svc-tips"><strong>💡</strong>左侧 AI 助手会展示您的完整会员信息卡片。</div>' +
+      '</div>';
+    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var ask = '';
+        switch (btn.dataset.act) {
+          case 'ask-status': ask = '我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来'; break;
+          case 'ask-points': ask = '乐豆怎么赚？哪些场景可以使用乐豆抵扣？'; break;
+          case 'ask-benefits': ask = '我有哪些可领的会员权益？怎么领取？'; break;
+          case 'ask-orders': ask = '我最近的订单情况怎么样？物流到哪了？'; break;
+          case 'ask-upgrade': ask = '我现在 V3 黄金，怎么升级到 V4 钻石？需要多少消费？'; break;
+        }
+        if (ask && typeof quickAsk === 'function') quickAsk(ask);
+      });
+    });
+  };
+
+  RENDERERS.tradein = function (container, data) {
+    container.innerHTML =
+      '<div class="cp-svc-page">' +
+        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#10b981,#22c55e)">' +
+          '<h2>♻️ 以旧换新</h2>' +
+          '<p>旧机一键评估 → 抵扣价 + 加码券 → 推荐换购新机型 — 全程 AI 多轮对话引导</p>' +
+        '</div>' +
+        '<div class="cp-svc-actions">' +
+          '<button class="cp-svc-btn primary" data-act="ask-laptop">💻 笔记本换新</button>' +
+          '<button class="cp-svc-btn primary" data-act="ask-desktop">🖥 台式机换新</button>' +
+          '<button class="cp-svc-btn" data-act="ask-thinkpad">💼 ThinkPad 换新</button>' +
+          '<button class="cp-svc-btn" data-act="ask-batch">📦 企业批量换新（10+ 台）</button>' +
+          '<button class="cp-svc-btn" data-act="ask-rules">📋 换新规则与流程</button>' +
+        '</div>' +
+        '<div class="cp-svc-tips"><strong>💡</strong>告诉 AI 您旧机的型号 / 成色 / 配置，秒出抵扣价 + 推荐换购。</div>' +
+      '</div>';
+    container.querySelectorAll('.cp-svc-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var ask = '';
+        switch (btn.dataset.act) {
+          case 'ask-laptop': ask = '我有一台旧笔记本想换新，请帮我估价。型号是 ___，成色 ___，配置 ___'; break;
+          case 'ask-desktop': ask = '我有一台旧台式机想换新，请帮我估价。型号是 ___，成色 ___'; break;
+          case 'ask-thinkpad': ask = '我有一台旧 ThinkPad 想换新，请帮我估价。型号是 ThinkPad ___ 年代 ___'; break;
+          case 'ask-batch': ask = '我们公司有 30 台旧 ThinkPad 想集中换新，怎么走流程？能多优惠多少？'; break;
+          case 'ask-rules': ask = '以旧换新的规则是什么？哪些机型支持？折旧怎么算？'; break;
+        }
+        if (ask && typeof quickAsk === 'function') quickAsk(ask);
+      });
+    });
+  };
+
   // ── 布局尺寸 ──
 
   function applyWidths() {
