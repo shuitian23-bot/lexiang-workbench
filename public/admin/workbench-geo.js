@@ -10,6 +10,16 @@ const GEO_SOURCES = {
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
 const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible' };
+
+// 算时段窗口：用户选了用用户的，否则按 period（'7d'/'30d'）算 today 回推
+function geoResolveDateRange() {
+  if (geoState.startDate && geoState.endDate) return { start_date: geoState.startDate, end_date: geoState.endDate };
+  const days = geoState.period === '7d' ? 7 : 30;
+  const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const end = new Date();
+  const start = new Date(end.getTime() - (days - 1) * 86400000);
+  return { start_date: fmt(start), end_date: fmt(end) };
+}
 const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', apple:'#555555', asus:'#00529b', xiaomi:'#ff6900', acer:'#83b81a', honor:'#d4003c' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
 const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
@@ -147,15 +157,14 @@ async function geoLoadData() {
     // 第二步：剩余请求全部并发，互不阻塞
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
     const platSitesPromise = Promise.allSettled(GEO_PLATFORMS.map(p => {
-      const b = { project_id: GEO_PROJECT_ID, model: p };
-      if (geoState.startDate && geoState.endDate) { b.start_date = geoState.startDate; b.end_date = geoState.endDate; }
+      const dr = geoResolveDateRange();
+      const b = { project_id: GEO_PROJECT_ID, model: p, ...dr };
       return fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }).then(r => r.json());
     }));
     const sitesPromise = geoLoadSites();
     const citationsPromise = (async () => {
       try {
-        const body = { project_id: GEO_PROJECT_ID };
-        if (geoState.startDate && geoState.endDate) { body.start_date = geoState.startDate; body.end_date = geoState.endDate; }
+        const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
         const r = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
         geoState.citationsData = await r.json();
       } catch (e) { console.error('citations fetch', e); geoState.citationsData = null; }
@@ -402,8 +411,7 @@ function geoCitesFromSites(sites) {
 
 async function geoLoadSites() {
   try {
-    const body = { project_id: GEO_PROJECT_ID };
-    if (geoState.startDate && geoState.endDate) { body.start_date = geoState.startDate; body.end_date = geoState.endDate; }
+    const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
     // 全站点（treemap / site rank 用）
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
@@ -629,16 +637,7 @@ let _trendChartData = null;
 async function geoLoadTrendChart() {
   const canvas = document.getElementById('geo-trend-canvas');
   if (!canvas) return;
-  // summary 接口 30 天上限：算出窗口
-  const today = new Date();
-  let end = geoState.endDate, start = geoState.startDate;
-  if (!start || !end) {
-    const days = geoState.period === '7d' ? 7 : 30;
-    const endD = today, startD = new Date(today.getTime() - (days - 1) * 86400000);
-    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    start = fmt(startD); end = fmt(endD);
-  }
-  const body = { project_id: GEO_PROJECT_ID, start_date: start, end_date: end };
+  const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
   const platform = geoState.platform;
   if (platform && platform !== 'all') body.model = platform.split(',')[0];
   try {
