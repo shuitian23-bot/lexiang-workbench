@@ -723,6 +723,17 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
   color: #fff;
 }
 
+/* ── Tab 内容：对比表（增强：含外观/价格/分类/简介/操作） ── */
+.cp-cmp-label { color:#6B7280; font-size:12px; white-space:nowrap; padding:8px 10px; background:#FAFAFA; }
+.cp-cmp-img-wrap { width:100px; height:100px; background:#F9FAFB; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.cp-cmp-img-wrap img { max-width:100%; max-height:100%; object-fit:contain; }
+.cp-cmp-price { font-size:16px; font-weight:700; color:#E53E3E; }
+.cp-cmp-desc { color:#4B5563; font-size:12.5px; line-height:1.6; }
+.cp-cmp-buy { display:inline-block; padding:5px 12px; border-radius:6px; background:#fff; border:1px solid #B83340; color:#B83340; font-size:12px; text-decoration:none; }
+.cp-cmp-buy:hover { background:#B83340; color:#fff; }
+.cp-cmp-ask { padding:5px 12px; border-radius:6px; background:#6D28D9; border:none; color:#fff; font-size:12px; cursor:pointer; font-family:inherit; margin-left:6px; }
+.cp-cmp-ask:hover { filter:brightness(1.08); }
+
 /* ── Tab 内容：对比表 ── */
 .cp-compare {
   width: 100%;

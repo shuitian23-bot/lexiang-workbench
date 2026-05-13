@@ -558,7 +558,6 @@
         (desc ? '<div class="cp-product-desc">' + escH(desc) + '</div>' : '') +
         '<div class="cp-hover-actions">' +
           '<button class="primary" data-action="explain">📖 解读</button>' +
-          '<button data-action="cmp">+ 对比</button>' +
           '<button data-action="customize">🛠 定制</button>' +
         '</div>';
 
@@ -621,36 +620,67 @@
 
   RENDERERS.compare = function (container, data) {
     var products = data && data.products || [];
-    if (products.length < 2) return;
+    if (products.length < 2) {
+      container.innerHTML = '<div class="cp-empty" style="padding:60px 24px;text-align:center;color:#9CA3AF">请至少加入 2 件商品再对比</div>';
+      return;
+    }
     var specKeys = {};
     products.forEach(function (p) {
       if (p.specs) Object.keys(p.specs).forEach(function (k) {
-        if (k !== 'url' && k !== 'bu_ids') specKeys[k] = true;
+        if (k !== 'url' && k !== 'bu_ids' && k !== 'pcDetailUrl' && k !== 'wapUrl' && k !== 'wapDetailUrl' && k !== 'mobileUrl' && k !== 'highlights' && k !== 'images' && k !== 'ad_picture') specKeys[k] = true;
       });
     });
     var keys = Object.keys(specKeys);
-    var table = document.createElement('table');
-    table.className = 'cp-compare';
+    var labelMap = {brand:'品牌',color:'颜色',weight:'重量',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',os:'操作系统',screen_size:'屏幕尺寸',battery:'电池',resolution:'分辨率',lvl1:'一级分类',lvl2:'二级分类',lvl3:'系列',lvl4:'子系列',lvl5:'细分',mtm:'MTM',bu:'事业部',is_ai:'AI 商品',source:'数据源',target_user:'适合人群'};
 
     // header
-    var thead = '<tr><th>参数</th>';
+    var thead = '<tr><th class="cp-cmp-label">参数</th>';
     products.forEach(function (p) { thead += '<th>' + escH(p.name || '') + '</th>'; });
     thead += '</tr>';
 
-    // body
+    // 固定 row：外观图 + 价格 + 分类 + 简介
+    var imgRow = '<tr><td class="cp-cmp-label">外观</td>';
+    var priceRow = '<tr><td class="cp-cmp-label">价格</td>';
+    var catRow   = '<tr><td class="cp-cmp-label">分类</td>';
+    var descRow  = '<tr><td class="cp-cmp-label">简介</td>';
+    var actRow   = '<tr><td class="cp-cmp-label">操作</td>';
+    products.forEach(function (p) {
+      var img = p.image_url || '';
+      imgRow += '<td><div class="cp-cmp-img-wrap">' + (img ? '<img src="'+escH(img)+'" alt="">' : '<span style="color:#bbb;font-size:12px">无图</span>') + '</div></td>';
+      priceRow += '<td><span class="cp-cmp-price">¥' + Number(p.price || 0).toLocaleString() + '</span></td>';
+      catRow += '<td>' + escH(p.category || '-') + '</td>';
+      descRow += '<td class="cp-cmp-desc">' + escH((p.description || '').slice(0, 80) || '-') + '</td>';
+      var sku = p.sku || p.key || '';
+      var url = (p.url || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#'));
+      actRow += '<td><a class="cp-cmp-buy" href="' + escH(url) + '" target="_blank" rel="noopener">↗ 官网</a> <button class="cp-cmp-ask" data-name="'+escH(p.name||'')+'">问 AI</button></td>';
+    });
+    imgRow += '</tr>'; priceRow += '</tr>'; catRow += '</tr>'; descRow += '</tr>'; actRow += '</tr>';
+
+    // specs body
     var tbody = '';
     keys.forEach(function (k) {
       var vals = products.map(function (p) { return p.specs && p.specs[k] != null ? String(p.specs[k]) : '-'; });
+      if (vals.every(function(v){ return v === '-'; })) return;
       var allSame = vals.every(function (v) { return v === vals[0]; });
-      var row = '<td>' + escH(k) + '</td>';
+      var label = labelMap[k] || k;
+      var row = '<td class="cp-cmp-label">' + escH(label) + '</td>';
       vals.forEach(function (v) {
         row += '<td' + (allSame ? '' : ' class="diff-cell"') + '>' + escH(v) + '</td>';
       });
       tbody += '<tr>' + row + '</tr>';
     });
+    if (!tbody) tbody = '<tr><td class="cp-cmp-label" style="color:#999">规格</td>' + products.map(function(){ return '<td style="color:#999">—（暂无详细规格，可点「问 AI」展开）</td>'; }).join('') + '</tr>';
 
-    table.innerHTML = '<thead>' + thead + '</thead><tbody>' + tbody + '</tbody>';
+    var table = document.createElement('table');
+    table.className = 'cp-compare';
+    table.innerHTML = '<thead>' + thead + '</thead><tbody>' + imgRow + priceRow + catRow + descRow + tbody + actRow + '</tbody>';
+    container.innerHTML = '';
     container.appendChild(table);
+    container.querySelectorAll('.cp-cmp-ask').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (typeof quickAsk === 'function') quickAsk('详细介绍 ' + (btn.dataset.name || '') + ' 的配置和卖点');
+      });
+    });
   };
 
   RENDERERS.stores = function (container, data) {
