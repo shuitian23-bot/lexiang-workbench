@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-v20';
+window.__BUILD = '20260514-v21';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -227,7 +227,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .pcard .desc{font-size:11px;color:var(--text2);margin-bottom:12px}
 .pcard .price{font-size:17px;font-weight:800;color:var(--accent)}
 /* 热销产品 - 带图片版本 */
-.pcard-img{width:100%;height:140px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:var(--card-grad);border-radius:10px;overflow:hidden}
+.pcard-img{width:100%;height:140px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;border-radius:10px;overflow:hidden}
 .pcard-img img{max-width:90%;max-height:90%;object-fit:contain}
 .pcard-img .ico{width:68px;height:68px;margin:0 auto;background:var(--icon-bg);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;transition:transform .3s}
 .pcard.has-img .ico{display:none}
@@ -1196,7 +1196,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v20-cto-tab">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v21-cto-fix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5532,6 +5532,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v20-cto-tab"></script>
+<script src="/split-layout.js?v=20260514-v21-cto-fix"></script>
 </body>
 </html>

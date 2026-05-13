@@ -974,9 +974,13 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cp-cto-preset:hover { border-color:#6b2068; color:#6b2068; }
 .cp-cto-preset.active { background:linear-gradient(90deg,#6b2068,#b83340); color:#fff; border-color:transparent; }
 .cp-cto-spacer { flex:1; }
-.cp-cto-host { padding:0; min-height:400px; }
-.cp-cto-host > .cto-modal,
-.cp-cto-host .cto-modal { all:unset; display:flex; flex-direction:column; width:100%; min-height:400px; }
+.cp-cto-host { padding:0; min-height:600px; display:flex; flex-direction:column; background:#fff; }
+[data-theme="dark"] .cp-cto-host { background:var(--card2); }
+.cp-cto-host .ai-modal-close { display:none !important; }
+.cp-cto-host .cto-head { padding:18px 22px; border-bottom:1px solid #E5E7EB; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.cp-cto-host .cto-tabs { display:flex; padding:0 22px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+.cp-cto-host .cto-body { flex:1 1 auto; overflow:visible; padding:18px 22px; }
+.cp-cto-host .cto-foot { flex-shrink:0; padding:14px 22px; border-top:1px solid #E5E7EB; display:flex; align-items:center; justify-content:space-between; gap:14px; background:rgba(0,0,0,.02); }
 [data-theme="dark"] .cp-cto-presetbar { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08); }
 [data-theme="dark"] .cp-cto-preset { background:transparent; border-color:rgba(255,255,255,.12); color:#d4d4d8; }
 

@@ -944,7 +944,7 @@
       // 包一层 wrapper：预设栏 + CTO 渲染区
       container.innerHTML = presetBar + '<div class="cp-cto-host" id="cpCtoHost"></div>';
       window.__ctoContainer = container.querySelector('#cpCtoHost');
-      try { window._renderCustomizer(); } catch(e){}
+      try { window._renderCustomizer(); } catch(e){ console.warn('[customize tab] _renderCustomizer failed:', e); }
       container.querySelectorAll('.cp-cto-preset').forEach(function(btn){
         btn.addEventListener('click', function(){
           if (btn.dataset.schema && typeof window.openCustomizer === 'function') {
