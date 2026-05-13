@@ -226,8 +226,8 @@ async function loadUserContext() {
       }
       // 员工管理默认可见
       if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
-      // 数据流水线默认可见
-      if (!STATE.visibleMenus.includes('pipeline')) STATE.visibleMenus.push('pipeline');
+      // 数据流水线仅管理员可见
+      if (STATE.permissions.includes("*") && !STATE.visibleMenus.includes('pipeline')) STATE.visibleMenus.push('pipeline');
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {

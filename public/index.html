@@ -3220,7 +3220,7 @@ async function showProductDetail(sku) {
     if (!res.ok) { body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">未找到该商品</div>'; return; }
     var p = await res.json();
     var specs = p.specs || {};
-    if (typeof specs === string) { try { specs = JSON.parse(specs); } catch(e) { specs = {}; } }
+    if (typeof specs === 'string') { try { specs = JSON.parse(specs); } catch(e) { specs = {}; } }
     var imgUrl = p.image_url || '';
     // specs.url 经常 404（联想数据下架），改优先 item.lenovo.com.cn/product/{sku}.html，规范一致
     var buyUrl = lxUtm('https://item.lenovo.com.cn/product/' + sku + '.html', sku);
@@ -3286,6 +3286,11 @@ async function showProductDetail(sku) {
     ]);
     if (!modelOptions.length && highlights.length) modelOptions = pdUnique(highlights.slice(0, 4));
     var colorOptions = pdUnique([pdSpecVal('color')]);
+    if (!colorOptions.length) {
+      var colorText = [p.name, p.description].filter(Boolean).join(' ');
+      var colorMatch = colorText.match(/(银色|银灰|深空灰|钛金灰|灰色|黑色|白色|晴空蓝|蓝色|金色|绿色|粉色|红色)/);
+      if (colorMatch) colorOptions = [colorMatch[1]];
+    }
     var optionGroupsHtml = '<div class="pd-option-groups">' +
       pdOptionGroup('选择型号', modelOptions, '') +
       pdOptionGroup('选择颜色', colorOptions, 'color-option') +
