@@ -46,7 +46,7 @@ window.__BUILD = '20260513-v9';
   --search-bg:#ffffff;--search-bd:#DDD5E8;
   --tag-bg:#F4EFFA;--tag-bd:#DDD5E8;
   --hero-bg:#F7F5FB;--hp:rgba(200,180,240,.25);--hb:rgba(135,17,43,.1);--hv:rgba(61,3,102,.12);--hr:rgba(225,37,33,.08);
-  --icon-bg:#EBE5F2;--cta-bg:#F4EFFA;--ft-bd:#EBE5F2;
+  --icon-bg:#EBE5F2;--cta-bg:#F4EFFA;--ft-bd:#EBE5F2;--card-grad:linear-gradient(135deg,#f5f0fc,#ece6f7);
   --btn-bg:#3D0366;--btn-bg2:#2a0248;--btn-c:#fff;
   --tog-bg:#DDD5E8;--tog-knob:#fff;--logo-f:none;
   --send-btn-bg:linear-gradient(135deg,#3D0366,#87112b);
@@ -58,7 +58,7 @@ window.__BUILD = '20260513-v9';
   --search-bg:rgba(25,25,40,.7);--search-bd:rgba(50,50,70,.55);
   --tag-bg:rgba(25,25,40,.55);--tag-bd:rgba(50,50,70,.45);
   --hero-bg:#09090d;--hp:rgba(200,60,100,.18);--hb:rgba(60,120,220,.17);--hv:rgba(140,80,220,.14);--hr:rgba(180,70,100,.12);
-  --icon-bg:#1a1a2a;--cta-bg:#131320;--ft-bd:#1a1a26;
+  --icon-bg:#1a1a2a;--cta-bg:#131320;--ft-bd:#1a1a26;--card-grad:linear-gradient(135deg,#1c1c2e,#252540);
   --btn-bg:#e2e2ea;--btn-bg2:#bbb;--btn-c:#09090d;
   --tog-bg:#222230;--tog-knob:#e2e2ea;--logo-f:brightness(0) invert(1);
 }
@@ -147,6 +147,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .pcard h4{font-size:13px;font-weight:600;margin-bottom:5px}
 .pcard .desc{font-size:11px;color:var(--text2);margin-bottom:12px}
 .pcard .price{font-size:17px;font-weight:800;color:var(--accent)}
+/* 热销产品 - 带图片版本 */
+.pcard-img{width:100%;height:140px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:var(--card-grad);border-radius:10px;overflow:hidden}
+.pcard-img img{max-width:90%;max-height:90%;object-fit:contain}
+.pcard-img .ico{width:68px;height:68px;margin:0 auto;background:var(--icon-bg);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;transition:transform .3s}
+.pcard.has-img .ico{display:none}
 
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .scard{border-radius:14px;overflow:hidden;background:var(--card);cursor:pointer;border:1px solid transparent;transition:all .3s}
@@ -1168,12 +1173,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(/img/r-2.webp);background-size:cover;background-position:center"><p style="color:#606060">张凌赫签名款</p><h4 style="color:#000000">心动赫兹联名礼盒</h4></div>
       <div class="feat-s" style="background:linear-gradient(135deg,#3D0366,#87112b);background-image:url(/img/r-3.webp);background-size:cover;background-position:center"><p>AI · 智慧办公</p><h4>AI+ PC 重新定义生产力</h4></div>
     </div></section>
-  <section class="sec fi"><div class="sec-head"><h2>热销产品</h2><a href="#">查看全部 →</a></div>
-    <div class="pgrid">
-      <div class="pcard" onclick="quickAsk('推荐一款高性能路由器')"><div class="ico">🖥</div><h4>Lecoo 路由管家 7000</h4><p class="desc">高性能企业级路由</p><div class="price">¥6,499</div></div>
-      <div class="pcard" onclick="quickAsk('联想小新7000P怎么样')"><div class="ico">💻</div><h4>联想 小新 7000P</h4><p class="desc">强劲简约·办公首选</p><div class="price">¥9,899</div></div>
-      <div class="pcard" onclick="quickAsk('拯救者Y9000K配置如何')"><div class="ico">🎮</div><h4>拯救者 Y9000K</h4><p class="desc">游戏性能旗舰</p><div class="price">¥10,999</div></div>
-      <div class="pcard" onclick="quickAsk('小新Pro27一体机适合办公吗')"><div class="ico">🖥️</div><h4>小新Pro 27一体机</h4><p class="desc">27寸大屏·一体美学</p><div class="price">¥7,305</div></div>
+  <section class="sec fi"><div class="sec-head"><h2>热销产品</h2><a href="/shop">查看全部 →</a></div>
+    <div class="pgrid" id="hotProductsGrid">
+      <div class="pcard" style="display:flex;align-items:center;justify-content:center;min-height:200px"><span style="color:var(--text2);font-size:14px">加载中...</span></div>
     </div></section>
   <section class="sec fi"><div class="sec-head"><h2>解决方案</h2><a href="#">查看全部 →</a></div>
     <div class="sgrid">
@@ -2285,6 +2287,39 @@ function renderSolutions(solutions, title) {
     '</div>';
   }).join('');
   return '<div class="sol-wrap" id="'+uid+'">'+head+'<div class="sol-cards">'+cards+'</div></div>';
+}
+
+async function renderHotProducts() {
+  const grid = document.getElementById('hotProductsGrid');
+  if (!grid) return;
+  try {
+    const res = await fetch('/api/products?limit=4');
+    if (!res.ok) throw new Error('api error');
+    const products = await res.json();
+    if (!products?.length) {
+      grid.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px">暂无产品数据</div>';
+      return;
+    }
+    grid.innerHTML = products.slice(0, 4).map(p => {
+      const name = escHtml(p.name || '');
+      const desc = escHtml(p.description || '').slice(0, 30);
+      const price = p.price ? '¥' + Number(p.price).toLocaleString('zh-CN') : '暂无报价';
+      const img = p.image_url
+        ? `<img src="${escHtml(p.image_url)}" alt="${name}" loading="lazy" style="max-width:90%;max-height:90%;object-fit:contain">`
+        : '';
+      const sku = escHtml(p.sku || '');
+      const buyUrl = sku ? `onclick="go('/product/${sku}.html')"` : `onclick="quickAsk('${name}怎么样')"`;
+      return `<div class="pcard has-img" ${buyUrl}>
+        <div class="pcard-img">${img || '<span style="font-size:40px">📦</span>'}</div>
+        <h4>${name}</h4>
+        <p class="desc">${desc}</p>
+        <div class="price">${price}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.warn('renderHotProducts failed', e);
+    grid.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px">产品加载失败</div>';
+  }
 }
 
 function renderSelfProducts(products) {
@@ -3998,8 +4033,12 @@ function renderMallBelt() {
 }
 
 // 子站首屏：hero + features 立即渲染（feed 异步加载）
+// 主页（default）：加载热销产品
 (function(){
-  if (typeof _siteType !== 'undefined' && _siteType === 'default') return;
+  if (typeof _siteType !== 'undefined' && _siteType === 'default') {
+    renderHotProducts();
+    return;
+  }
   renderMallHero();
   renderMallFeatures();
 })();

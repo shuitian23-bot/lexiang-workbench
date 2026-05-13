@@ -59,41 +59,38 @@ router.post('/classify', upload.single('file'), async (req, res) => {
     _filePath: filePath,
   });
 
-  // Run in background
-  const script = path.join(SKILLS_DIR, 'lexiang-query-classify', 'run_annotation.py');
-  execFile(PYTHON_BIN, [script, '--json', filePath], { timeout: 600000, maxBuffer: 50 * 1024 * 1024 }, (err, stdout) => {
+  // 调 skill 统一入口（含 LLM 兜底）
+  (async () => {
     const task = tasks.get(taskId);
-    if (!task) return;
-
-    if (err) {
-      task.status = 'error';
-      task.progress = err.message;
-      return;
-    }
-
     try {
-      const result = _parseJson(stdout);
-      if (result && !result.error) {
-        task.status = 'done';
-        task.progress = '完成';
-        task.result = {
-          total: result.total,
-          unclear_count: result.unclear_count,
-          output: result.output,
-          report: result.report,
-          issues: result.issues,
-          warnings: result.warnings,
-          fix_log: result.fix_log,
-        };
-      } else {
-        task.status = 'error';
-        task.progress = result?.error || '标注失败';
-      }
+      const result = await registry.invoke('lexiang.classify', {
+        file_path: filePath,
+      }, { permissions: ['*'], admin: req.session?.admin });
+
+      if (!task) return;
+      task.status = 'done';
+      task.progress = '完成';
+      task.result = {
+        total: result.total,
+        unclear_count: result.unclear_count || 0,
+        output: result.output,
+        report: result.report,
+        issues: result.issues,
+        warnings: result.warnings,
+        fix_log: result.fix_log,
+        llm_fixed_count: result.llm_fixed_count || 0,
+        distribution: result.distribution,
+        total_users: result.total_users,
+        total_sessions: result.total_sessions,
+        active_count: result.active_count,
+        passive_count: result.passive_count,
+      };
     } catch (e) {
+      if (!task) return;
       task.status = 'error';
       task.progress = e.message;
     }
-  });
+  })();
 
   res.json({ task_id: taskId, filename: req.file.originalname, status: 'running' });
 });
@@ -138,7 +135,6 @@ router.post('/classify/:taskId/restart', (req, res) => {
   if (!task) return res.status(404).json({ error: '任务不存在' });
   if (task.status !== 'cancelled') return res.status(400).json({ error: '只能重启已取消的任务' });
 
-  // Re-run the annotation
   const filePath = task._filePath;
   if (!filePath || !fs.existsSync(filePath)) {
     return res.status(400).json({ error: '原文件已不可用，请重新上传' });
@@ -147,37 +143,37 @@ router.post('/classify/:taskId/restart', (req, res) => {
   task.status = 'running';
   task.progress = '重新标注中...';
 
-  const script = path.join(SKILLS_DIR, 'lexiang-query-classify', 'run_annotation.py');
-  execFile(PYTHON_BIN, [script, '--json', filePath], { timeout: 600000, maxBuffer: 50 * 1024 * 1024 }, (err, stdout) => {
-    if (!tasks.has(req.params.taskId)) return;
-    if (err) {
-      task.status = 'error';
-      task.progress = err.message;
-      return;
-    }
+  // 调 skill 统一入口（含 LLM 兜底）
+  (async () => {
     try {
-      const result = _parseJson(stdout);
-      if (result && !result.error) {
-        task.status = 'done';
-        task.progress = '完成';
-        task.result = {
-          total: result.total,
-          unclear_count: result.unclear_count,
-          output: result.output,
-          report: result.report,
-          issues: result.issues,
-          warnings: result.warnings,
-          fix_log: result.fix_log,
-        };
-      } else {
-        task.status = 'error';
-        task.progress = result?.error || '标注失败';
-      }
+      const result = await registry.invoke('lexiang.classify', {
+        file_path: filePath,
+      }, { permissions: ['*'], admin: req.session?.admin });
+
+      if (!tasks.has(req.params.taskId)) return;
+      task.status = 'done';
+      task.progress = '完成';
+      task.result = {
+        total: result.total,
+        unclear_count: result.unclear_count || 0,
+        output: result.output,
+        report: result.report,
+        issues: result.issues,
+        warnings: result.warnings,
+        fix_log: result.fix_log,
+        llm_fixed_count: result.llm_fixed_count || 0,
+        distribution: result.distribution,
+        total_users: result.total_users,
+        total_sessions: result.total_sessions,
+        active_count: result.active_count,
+        passive_count: result.passive_count,
+      };
     } catch (e) {
+      if (!tasks.has(req.params.taskId)) return;
       task.status = 'error';
       task.progress = e.message;
     }
-  });
+  })();
 
   res.json({ task_id: req.params.taskId, status: 'running' });
 });

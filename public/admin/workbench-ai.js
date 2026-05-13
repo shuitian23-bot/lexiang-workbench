@@ -102,6 +102,10 @@ function aiTryNavigate(text) {
   for (const rule of AI_NAV_MAP) {
     for (const kw of rule.keywords) {
       if (target ? matchText.includes(kw) : matchText === kw) {
+        // pipeline 页面仅管理员可访问
+        if (rule.page.startsWith('pipeline.') && !STATE.permissions.includes('*')) {
+          return '⚠️ 数据流水线功能仅管理员可用';
+        }
         switchPage(rule.page);
         const label = getPageLabel(rule.page);
         return `已为你打开 **${label}** 📂`;
