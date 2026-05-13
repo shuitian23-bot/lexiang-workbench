@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v6';
+window.__BUILD = '20260513-v7';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -970,6 +970,14 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .pd-price-val small{font-size:16px}
 .pd-price-orig{font-size:14px;color:#999;text-decoration:line-through;margin-left:12px}
 .pd-spec-list{margin-bottom:14px}
+.pd-option-groups{display:flex;flex-direction:column;gap:20px;margin:18px 0 20px}
+.pd-option-title{font-size:16px;font-weight:700;color:#252525;margin-bottom:12px}
+.pd-option-grid{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px 14px}
+.pd-option-card{min-height:52px;padding:0 18px;border:1px solid #E2DDEB;background:#FCFAFF;color:#606060;border-radius:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;font-weight:600;line-height:1.35;cursor:default;box-sizing:border-box}
+.pd-option-card.selected{border-color:#4D144A;background:linear-gradient(90deg,#FCF2F8,#E3EAFD);color:#4D144A}
+.pd-option-card.color-option{justify-content:center}
+.pd-option-card .swatch{width:14px;height:14px;border-radius:50%;border:1px solid #E2DDEB;background:#d8d8d8;margin-right:8px;flex-shrink:0}
+@media(max-width:600px){.pd-option-grid{grid-template-columns:1fr}.pd-option-card{min-height:48px;font-size:14px}}
 .pd-spec-row{display:flex;padding:5px 0;font-size:13px;border-bottom:1px solid #f5f5f5}
 [data-theme="dark"] .pd-spec-row{border-bottom-color:var(--border)}
 .pd-spec-label{width:60px;color:#999;flex-shrink:0}
@@ -1081,7 +1089,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v6-svc">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v7-info">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3204,6 +3212,53 @@ async function showProductDetail(sku) {
       lvl1:'一级分类', lvl2:'二级分类', lvl3:'系列', lvl4:'子系列', lvl5:'细分',
       mtm:'MTM 编码', bu:'事业部', is_ai:'AI 商品'
     };
+    function pdSpecVal(key) {
+      var v = specs[key];
+      if (v === undefined || v === null || v === '') return '';
+      if (typeof v === 'object') return '';
+      return String(v).trim();
+    }
+    function pdUnique(arr) {
+      var seen = {};
+      return arr.map(function(x){ return String(x || '').trim(); }).filter(function(x){
+        if (!x || seen[x]) return false;
+        seen[x] = true; return true;
+      });
+    }
+    function pdSwatchStyle(colorName) {
+      var c = String(colorName || '');
+      var hex = '#d8d8d8';
+      if (/银|灰/.test(c)) hex = '#c9c9c9';
+      else if (/黑/.test(c)) hex = '#2f2f2f';
+      else if (/白|雪/.test(c)) hex = '#f7f7f7';
+      else if (/蓝/.test(c)) hex = '#8fb4d8';
+      else if (/金/.test(c)) hex = '#d8bf8f';
+      else if (/绿/.test(c)) hex = '#9fbea4';
+      else if (/粉|红/.test(c)) hex = '#e7a8b4';
+      return 'background:' + hex;
+    }
+    function pdOptionGroup(title, options, extraClass) {
+      options = pdUnique(options);
+      if (!options.length) return '';
+      return '<div class="pd-option-group"><div class="pd-option-title">' + escHtml(title) + '</div><div class="pd-option-grid">' +
+        options.map(function(opt, idx){
+          var swatch = extraClass === 'color-option' ? '<span class="swatch" style="' + pdSwatchStyle(opt) + '"></span>' : '';
+          return '<div class="pd-option-card ' + (idx === 0 ? 'selected ' : '') + (extraClass || '') + '">' + swatch + escHtml(opt) + '</div>';
+        }).join('') + '</div></div>';
+    }
+    var modelOptions = pdUnique([
+      [pdSpecVal('cpu'), pdSpecVal('ram'), pdSpecVal('storage')].filter(Boolean).join(' '),
+      [pdSpecVal('cpu'), pdSpecVal('gpu')].filter(Boolean).join(' '),
+      pdSpecVal('mtm'),
+      pdSpecVal('lvl5')
+    ]);
+    if (!modelOptions.length && highlights.length) modelOptions = pdUnique(highlights.slice(0, 4));
+    var colorOptions = pdUnique([pdSpecVal('color')]);
+    var optionGroupsHtml = '<div class="pd-option-groups">' +
+      pdOptionGroup('选择型号', modelOptions, '') +
+      pdOptionGroup('选择颜色', colorOptions, 'color-option') +
+      '</div>';
+
     var specRowsInline = '';
     var specTableRows = '';
     Object.keys(specs).forEach(function(k) {
@@ -3268,8 +3323,7 @@ async function showProductDetail(sku) {
               (p.stock > 0 ? '<span class="in">● 有货</span><span style="color:#999;margin-left:8px">库存 ' + (p.stock > 999 ? '充足' : p.stock + '件') + '</span>' : '<span class="out">● 无货</span>') +
               '<span style="color:#999;margin-left:8px">' + (p.status === 'active' ? '在售' : '已下架') + '</span>' +
             '</div>' +
-            (highlights.length > 0 ? '<div class="pd-spec-list">' + highlights.map(function(h){ return '<div class="pd-spec-row"><span class="pd-spec-label">亮点</span><span class="pd-spec-value">' + escHtml(h) + '</span></div>'; }).join('') + '</div>' : '') +
-            (specRowsInline ? '<div class="pd-spec-list">' + specRowsInline + '</div>' : '') +
+            optionGroupsHtml +
             '<div class="pd-action-btns">' +
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">立即购买</button>' +
               '<a class="pd-btn-cart" href="' + buyUrl + '" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">↗ 官网查看</a>' +
@@ -5202,6 +5256,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v6-svc"></script>
+<script src="/split-layout.js?v=20260513-v7-info"></script>
 </body>
 </html>

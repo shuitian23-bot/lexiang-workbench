@@ -852,6 +852,24 @@
 
   function escH(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+  // ── 通用 info tab：渲染 markdown 内容（替代 showAIModal info 弹窗） ──
+  RENDERERS.info = function (container, data) {
+    data = data || {};
+    var content = data.content || '';
+    var html;
+    try {
+      if (typeof marked !== 'undefined') {
+        var src = (typeof sanitizeAutolink === 'function') ? sanitizeAutolink(content) : content;
+        html = marked.parse(src);
+      } else {
+        html = '<pre>' + escH(content) + '</pre>';
+      }
+    } catch(e) {
+      html = '<pre>' + escH(content) + '</pre>';
+    }
+    container.innerHTML = '<div class="cp-info-page">' + html + '</div>';
+  };
+
   // ── 服务中心 4 类 tab：customize / coupon / member / tradein ──
   // POC：tab 内显示功能引导 + 触发原 modal 完整 UI；同时左侧 chat 自动 quickAsk
   RENDERERS.customize = function (container, data) {
@@ -1218,13 +1236,13 @@
       };
     }
 
-    // showAIModal → compare 走 openContent
+    // showAIModal → PC 端 compare/info 都走 openContent tab，不弹 modal
     var origModal = window.showAIModal;
     if (typeof origModal === 'function') {
       window.showAIModal = function (data) {
-        if (isPC() && data && data.type === 'compare') {
-          openContent('compare', data.title || '对比', data);
-          return;
+        if (isPC() && data) {
+          if (data.type === 'compare') { openContent('compare', data.title || '对比', data); return; }
+          if (data.type === 'info')    { openContent('info',    data.title || '详情', data); return; }
         }
         return origModal.apply(this, arguments);
       };
