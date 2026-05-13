@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-v22';
+window.__BUILD = '20260514-next-s1b';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -179,6 +179,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .hero-wrap .blob2{width:45%;height:50%;top:10%;right:2%;background:var(--hb);animation:gb2 16s linear infinite}
 .hero-wrap .blob3{width:42%;height:48%;bottom:5%;left:25%;background:var(--hv);animation:gb3 20s linear infinite}
 .hero-wrap .blob4{width:38%;height:42%;bottom:10%;right:10%;background:var(--hr);animation:gb4 14s linear infinite}
+/* LxStatus 三件套 CSS */
+@keyframes lx-skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes lx-spin{to{transform:rotate(360deg)}}
+.lx-empty{padding:48px 24px;text-align:center;color:var(--text2,#9CA3AF)}
+.lx-empty-icon{font-size:48px;margin-bottom:14px;opacity:.7}
+.lx-empty-title{font-size:14px;font-weight:600;color:var(--text,#374151);margin-bottom:6px}
+.lx-empty-hint{font-size:12px;color:var(--text2,#9CA3AF);margin-bottom:14px;line-height:1.6}
+.lx-empty-btn{padding:7px 18px;border:1px solid var(--accent,#E12521);border-radius:999px;background:transparent;color:var(--accent,#E12521);font-size:12.5px;cursor:pointer;font-family:inherit;transition:all .15s}
+.lx-empty-btn:hover{background:var(--accent,#E12521);color:#fff}
+.lx-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text2,#9CA3AF);font-size:13px}
+.lx-spinner{width:18px;height:18px;border:2px solid #E5E7EB;border-top-color:var(--accent,#E12521);border-radius:50%;animation:lx-spin 0.8s linear infinite}
+[data-theme="dark"] .lx-skeleton-bar{background:linear-gradient(90deg,#27272a 0%,#3f3f46 50%,#27272a 100%)!important}
 @keyframes gf1{0%{transform:translate(0,0) scale(1) rotate(0deg)}25%{transform:translate(-80px,60px) scale(1.12) rotate(90deg)}50%{transform:translate(70px,-50px) scale(.9) rotate(180deg)}75%{transform:translate(-50px,-70px) scale(1.08) rotate(270deg)}100%{transform:translate(0,0) scale(1) rotate(360deg)}}
 @keyframes gf2{0%{transform:translate(0,0) scale(1) rotate(0deg)}25%{transform:translate(75px,-60px) scale(1.1) rotate(-90deg)}50%{transform:translate(-60px,75px) scale(1.14) rotate(-180deg)}75%{transform:translate(60px,45px) scale(.9) rotate(-270deg)}100%{transform:translate(0,0) scale(1) rotate(-360deg)}}
 @keyframes gb1{0%{transform:translate(0,0) scale(1) rotate(0deg)}25%{transform:translate(100px,-80px) scale(1.25) rotate(120deg)}50%{transform:translate(-70px,100px) scale(.8) rotate(240deg)}75%{transform:translate(80px,30px) scale(1.18) rotate(300deg)}100%{transform:translate(0,0) scale(1) rotate(360deg)}}
@@ -3842,7 +3854,7 @@ function toggleCompare(key, btn) {
     if (btn) { btn.classList.remove('active'); btn.textContent = 'PK'; }
   } else {
     if (list.length >= COMPARE_MAX) {
-      alert('最多对比 ' + COMPARE_MAX + ' 件商品');
+      LxStatus.toast('最多对比 ' + COMPARE_MAX + ' 件商品', { type:'warn' });
       return;
     }
     var p = (mallProducts && Object.keys(mallProducts).length) ? Object.values(mallProducts).find(function(m){ return m._key === key; }) : null;
@@ -3920,7 +3932,7 @@ window.clearCompare = clearCompare;
 function openCompareModal() {
   var list = window._compareList || [];
   if (list.length < 2) {
-    alert('请至少加入 2 件商品再对比');
+    LxStatus.toast('请至少加入 2 件商品再对比', { type:'warn' });
     return;
   }
   var products = list.map(function(p){
@@ -5215,7 +5227,7 @@ function _ctoAddCompare() {
   window._compareList.push({ key:key, name:'[定制] '+s.productName, price:total, image_url:s.productImg, description:'定制配置 '+JSON.stringify(s.selections), category:schema.label });
   if (typeof _saveCompare === 'function') _saveCompare();
   if (typeof _renderCmpFab === 'function') _renderCmpFab();
-  alert('已加入对比清单（'+window._compareList.length+'/'+(typeof COMPARE_MAX!=='undefined'?COMPARE_MAX:4)+'）');
+  LxStatus.toast('已加入对比清单（'+window._compareList.length+'/'+(typeof COMPARE_MAX!=='undefined'?COMPARE_MAX:4)+'）', { type:'success' });
 }
 window._ctoBuy = _ctoBuy; window._ctoAddCompare = _ctoAddCompare;
 
@@ -5320,14 +5332,61 @@ function openLeadForm(opts) {
 }
 window.openLeadForm = openLeadForm;
 
-function _showToast(msg, ms) {
-  var t = document.createElement('div');
-  t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(40,40,46,.95);color:#fff;padding:11px 20px;border-radius:10px;z-index:100000;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .3s;font-family:inherit;backdrop-filter:blur(10px)';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 300); }, ms || 2800);
-}
-window._showToast = _showToast;
+// LxStatus 全局状态工具：toast / skeleton / empty / loading 三件套
+window.LxStatus = (function(){
+  var TYPE_BG = {
+    info:    'rgba(40,40,46,.95)',
+    success: 'rgba(16,185,129,.96)',
+    warn:    'rgba(245,158,11,.96)',
+    error:   'rgba(220,38,38,.96)',
+  };
+  function toast(msg, opts) {
+    opts = opts || {};
+    var type = opts.type || 'info';
+    var ms = opts.ms || 2800;
+    var t = document.createElement('div');
+    t.className = 'lx-toast lx-toast-' + type;
+    t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:' + (TYPE_BG[type]||TYPE_BG.info) + ';color:#fff;padding:11px 20px;border-radius:10px;z-index:100000;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .3s;font-family:inherit;backdrop-filter:blur(10px);max-width:90vw;text-align:center';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 300); }, ms);
+    return t;
+  }
+  function skeleton(opts) {
+    opts = opts || {};
+    var rows = opts.rows || 4;
+    var cols = opts.cols || 1;
+    var height = opts.height || 90;
+    var html = '<div class="lx-skeleton-grid" style="display:grid;gap:12px;grid-template-columns:repeat(' + cols + ',1fr)">';
+    for (var i = 0; i < rows * cols; i++) {
+      html += '<div class="lx-skeleton-bar" style="height:' + height + 'px;border-radius:8px;background:linear-gradient(90deg,#f4f4f5 0%,#e4e4e7 50%,#f4f4f5 100%);background-size:200% 100%;animation:lx-skel 1.4s infinite linear"></div>';
+    }
+    return html + '</div>';
+  }
+  function empty(opts) {
+    opts = opts || {};
+    var title = opts.title || '暂无内容';
+    var hint = opts.hint || '';
+    var icon = opts.icon || '📭';
+    var actionHtml = '';
+    if (opts.actionText && opts.onAction) {
+      var fnName = '_lxEmptyAct_' + Math.random().toString(36).slice(2,9);
+      window[fnName] = function(){ try{ opts.onAction(); }catch(e){} delete window[fnName]; };
+      actionHtml = '<button class="lx-empty-btn" onclick="' + fnName + '()">' + opts.actionText + '</button>';
+    }
+    return '<div class="lx-empty"><div class="lx-empty-icon">' + icon + '</div><div class="lx-empty-title">' + title + '</div>' + (hint ? '<div class="lx-empty-hint">' + hint + '</div>' : '') + actionHtml + '</div>';
+  }
+  function loading(msg) {
+    return '<div class="lx-loading"><div class="lx-spinner"></div><span>' + (msg || '加载中...') + '</span></div>';
+  }
+  function error(opts) {
+    opts = opts || {};
+    return empty({ icon: '⚠️', title: opts.title || '加载失败', hint: opts.hint || '请稍后重试', actionText: opts.actionText || '重试', onAction: opts.onAction });
+  }
+  return { toast: toast, skeleton: skeleton, empty: empty, loading: loading, error: error };
+})();
+// 兼容旧 _showToast
+window._showToast = function(msg, ms){ return window.LxStatus.toast(msg, { ms: ms }); };
 
 function _takeCoupon(id, btn) {
   if (_receivedCoupons.indexOf(id) >= 0) return;
@@ -5429,7 +5488,7 @@ function _memberClaim(id) {
   b.status = 'claimed';
   _memberState.points += 100;
   _renderMemberCenter();
-  alert('🎉 已领取「'+b.name+'」+ 100 乐豆奖励');
+  LxStatus.toast('🎉 已领取「'+b.name+'」+ 100 乐豆奖励', { type:'success', ms: 3500 });
 }
 function _memberSign() {
   if (_memberState.signedToday) return;

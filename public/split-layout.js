@@ -575,7 +575,7 @@
             list.splice(idx, 1);
             if (pkBtn) { pkBtn.classList.remove('active'); pkBtn.textContent = 'PK'; }
           } else {
-            if (list.length >= (typeof COMPARE_MAX !== 'undefined' ? COMPARE_MAX : 4)) { alert('最多对比 4 件'); return; }
+            if (list.length >= (typeof COMPARE_MAX !== 'undefined' ? COMPARE_MAX : 4)) { if (window.LxStatus) window.LxStatus.toast('最多对比 4 件', {type:'warn'}); return; }
             list.push({ key: key, name: card.dataset.name, price: parseFloat(card.dataset.price) || 0, image_url: card.dataset.img, description: '', category: '' });
             if (pkBtn) { pkBtn.classList.add('active'); pkBtn.textContent = '✓'; }
           }
