@@ -856,6 +856,10 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .subnav-extra .se-btn{padding:5px 11px;border-radius:6px;font-size:12.5px;color:var(--text2);background:transparent;border:1px solid transparent;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .15s}
 .subnav-extra .se-btn:hover{color:var(--accent);background:rgba(184,51,64,.06)}
 .subnav-extra .se-btn .ico{font-size:14px}
+.subnav-extra .pk-btn{position:relative;border:1px solid var(--border)}
+.subnav-extra .pk-btn.has-items{color:#fff;background:linear-gradient(90deg,#6b2068,#b83340);border-color:transparent}
+.subnav-extra .pk-btn .pk-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:#fff;color:#b83340;font-size:11px;font-weight:700;line-height:1}
+.subnav-extra .pk-btn:not(.has-items) .pk-badge{display:none}
 .se-more{position:relative;display:inline-block}
 .se-more .se-dropdown{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.12);padding:6px;display:none;z-index:1000;animation:seFadeIn .15s ease}
 .se-more.open .se-dropdown{display:block}
@@ -1019,6 +1023,10 @@ html[data-site="biz"] .subnav-extra{display:flex}
 [data-theme="dark"] .pd-tab.active{color:#e1251b}
 .pd-tab-panel{padding:24px;display:none}
 .pd-tab-panel.active{display:block}
+.pd-wiki .wiki-block{margin-bottom:18px;padding:14px 16px;background:#fafafa;border-radius:8px;border-left:3px solid #b83340}
+[data-theme="dark"] .pd-wiki .wiki-block{background:rgba(255,255,255,.03)}
+.pd-wiki .wiki-title{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.pd-wiki .wiki-content{font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap}
 .pd-hl-title{font-size:15px;font-weight:600;color:var(--text,#333);margin:0 0 14px}
 .pd-hl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:24px}
 .pd-hl-item{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;background:#fafafa;border-radius:4px;font-size:13px;color:#333;line-height:1.5}
@@ -3198,6 +3206,7 @@ async function showProductDetail(sku) {
           '<div class="pd-tabs">' +
             '<button class="pd-tab active" onclick="switchPdTab(this,0)">商品详情</button>' +
             '<button class="pd-tab" onclick="switchPdTab(this,1)">规格参数</button>' +
+            '<button class="pd-tab" onclick="switchPdTab(this,2);_loadWikiTab(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\')">联想百科</button>' +
           '</div>' +
           '<div class="pd-tab-panel active">' +
             hlGridHtml +
@@ -3206,6 +3215,9 @@ async function showProductDetail(sku) {
           '</div>' +
           '<div class="pd-tab-panel">' +
             specsTblHtml +
+          '</div>' +
+          '<div class="pd-tab-panel" id="pdWikiPanel">' +
+            '<div style="text-align:center;padding:40px;color:#999">点击 tab 加载</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -3219,6 +3231,35 @@ function askAboutProduct() {
   var p = window.__currentProduct;
   if (p) quickAsk('请详细介绍一下 ' + p.name + '（SKU: ' + p.sku + '），包括配置、优缺点和适合人群。');
 }
+
+// 异步拉 wiki RAG 内容到详情页「联想百科」tab
+function _loadWikiTab(productName) {
+  var panel = document.getElementById('pdWikiPanel');
+  if (!panel || panel._loaded) return;
+  panel._loaded = true;
+  panel.innerHTML = '<div style="text-align:center;padding:40px;color:#999">从联想百科加载中...</div>';
+  fetch('/api/knowledge/public-search?q=' + encodeURIComponent(productName) + '&topK=3')
+    .then(function(r){ return r.json(); })
+    .then(function(hits){
+      if (!Array.isArray(hits) || !hits.length) {
+        panel.innerHTML = '<div style="text-align:center;padding:40px;color:#999">未找到该机型的百科条目</div>';
+        return;
+      }
+      var html = hits.map(function(h, i){
+        var t = h.title || ('百科条目 ' + (i+1));
+        var c = (h.content || '').replace(/\n/g, '<br>');
+        return '<div class="wiki-block">'+
+          '<h4 class="wiki-title">📚 ' + escHtml(t) + '</h4>'+
+          '<div class="wiki-content">' + escHtml(c).replace(/&lt;br&gt;/g, '<br>') + '</div>'+
+        '</div>';
+      }).join('');
+      panel.innerHTML = '<div class="pd-wiki">' + html + '<div style="font-size:11px;color:#999;text-align:center;margin-top:16px">内容来自联想百科 RAG 知识库</div></div>';
+    })
+    .catch(function(e){
+      panel.innerHTML = '<div style="text-align:center;padding:40px;color:#c00">加载失败：' + escHtml(e.message || String(e)) + '</div>';
+    });
+}
+window._loadWikiTab = _loadWikiTab;
 function switchPdTab(btn, idx) {
   var tabs = btn.parentNode.querySelectorAll('.pd-tab');
   var panels = btn.closest('.pd-detail-below').querySelectorAll('.pd-tab-panel');
@@ -3419,7 +3460,7 @@ function _attachCardHover(container) {
       t = setTimeout(function(){
         var act = card.querySelector('.card-hover-actions');
         if (act) act.classList.add('show');
-      }, 1000);
+      }, 500);
     });
     card.addEventListener('mouseleave', function(){
       clearTimeout(t);
@@ -3496,32 +3537,17 @@ function toggleCompare(key, btn) {
 }
 window.toggleCompare = toggleCompare;
 
+// 浮标已废弃，改为顶部 subnav「PK 对比 (N)」入口
 function _renderCmpFab() {
   var existing = document.getElementById('cmpFab');
+  if (existing) existing.remove();
+  // 同步刷新顶部对比入口角标
+  var pkBtn = document.getElementById('subnavPkBtn');
   var list = window._compareList || [];
-  if (!list.length) {
-    if (existing) existing.remove();
-    return;
-  }
-  var html;
-  if (list.length === 1) {
-    html = '<span>已选 1 件</span>' +
-      '<span class="cmp-fab-count">再加 1 件即可对比</span>' +
-      '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
-  } else {
-    html = '<span>对比清单</span>' +
-      '<span class="cmp-fab-count">' + list.length + '/' + COMPARE_MAX + '</span>' +
-      '<button class="cmp-fab-go" onclick="openCompareModal()">开始对比</button>' +
-      '<button class="cmp-fab-clear" onclick="clearCompare()">清空</button>';
-  }
-  if (existing) {
-    existing.innerHTML = html;
-  } else {
-    var fab = document.createElement('div');
-    fab.id = 'cmpFab';
-    fab.className = 'cmp-fab';
-    fab.innerHTML = html;
-    document.body.appendChild(fab);
+  if (pkBtn) {
+    var n = list.length;
+    pkBtn.innerHTML = '<span class="ico">⚖</span>对比' + (n > 0 ? '<span class="pk-badge">' + n + '</span>' : '');
+    pkBtn.classList.toggle('has-items', n > 0);
   }
 }
 
@@ -3630,7 +3656,10 @@ function renderSubnav() {
       '<div class="se-dropdown">'+items+'</div>'+
     '</div>';
   }
-  box.innerHTML = mainHtml + moreHtml;
+  var pkBtn = '<button class="se-btn pk-btn" id="subnavPkBtn" onclick="openCompareModal()" title="商品对比清单"><span class="ico">⚖</span>对比</button>';
+  box.innerHTML = mainHtml + moreHtml + pkBtn;
+  // 触发一次角标渲染
+  if (typeof _renderCmpFab === 'function') _renderCmpFab();
 }
 // 首屏渲染（仅子站）
 (function(){ if (typeof _siteType !== 'undefined' && _siteType !== 'default') renderSubnav(); })();
