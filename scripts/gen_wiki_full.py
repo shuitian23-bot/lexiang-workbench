@@ -1945,21 +1945,65 @@ def main():
     product_count = 0
     product_skip = 0
     if not os.path.exists(XLSX_PATH):
-        print(f'⚠ XLSX 文件不存在: {XLSX_PATH}，跳过商品页生成（仅刷新知识页 / 索引 / 子站）')
+        print(f'⚠ XLSX 文件不存在: {XLSX_PATH}，改用 DB products 表生成商品页（规格细节会比 xlsx 少）')
         wb = None
         ws = None
     else:
         wb = openpyxl.load_workbook(XLSX_PATH, read_only=True, data_only=True)
         ws = wb.active
 
+    def _iter_product_rows():
+        """yield (kind, vals)。kind 'header' 给一次表头，'row' 给商品数据。
+           DB fallback：products 表适配成 xlsx vals 索引格式（多数规格列空，gen_product_html 不影响）"""
+        if ws:
+            for _i, _row in enumerate(ws.rows):
+                _vals = [_cell.value for _cell in _row]
+                yield ('header' if _i == 0 else 'row'), _vals
+        else:
+            print(f'[{datetime.now():%H:%M:%S}] 从 DB products 表读 active 商品...')
+            _cn = sqlite3.connect(DB_PATH)
+            _q = ("SELECT id, name, sku, category, price, status, stock, image_url, "
+                  "description, specs, created_at FROM products "
+                  "WHERE name IS NOT NULL AND name != '' AND status = 'active' "
+                  "ORDER BY created_at DESC")
+            for _p in _cn.execute(_q):
+                _id, _name, _sku, _category, _price, _status, _stock, _image_url, _description, _specs_str, _created_at = _p
+                try:
+                    _specs = json.loads(_specs_str) if _specs_str else {}
+                except Exception:
+                    _specs = {}
+                # 跳过测试/占位品
+                _nl = (_name or '').lower()
+                if any(t in _nl for t in ('test', '测试', '勿拍', 'testaiadmin', '国补白链')):
+                    continue
+                _sku_key = _sku or str(_id)
+                _v = [None] * 200
+                _v[0] = _sku_key
+                _v[1] = _name
+                _v[3] = _description or ''
+                _v[4] = _specs.get('pcDetailUrl') or _specs.get('url') or f'https://item.lenovo.com.cn/product/{_sku_key}.html'
+                _v[5] = 0  # is_del
+                _v[6] = _specs.get('color') or ''
+                _v[8] = _price or 0
+                _v[15] = _specs.get('bu') or ''
+                _v[17] = 1 if (_stock or 0) > 0 else 0
+                _v[25] = _description or ''
+                _v[26] = _specs.get('target_user') or ''
+                _v[30] = _specs.get('lvl1') or _category or ''
+                _v[31] = _specs.get('lvl2') or _category or ''
+                _v[35] = _specs.get('brand') or ''
+                _v[41] = _specs.get('lvl1') or _category or ''
+                _v[42] = _specs.get('lvl2') or _category or ''
+                _v[136] = str(_created_at or '')[:19]
+                yield 'row', _v
+            _cn.close()
+
     headers = None
 
-    for i, row in enumerate(ws.rows if ws else []):
-        if i == 0:
-            headers = [cell.value for cell in row]
+    for kind, vals in _iter_product_rows():
+        if kind == 'header':
+            headers = vals
             continue
-
-        vals = [cell.value for cell in row]
 
         # 过滤
         name = vals[1] if len(vals) > 1 else None
