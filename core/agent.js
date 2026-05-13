@@ -666,6 +666,25 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
         console.log('[Agent] fallback kw → tool_choice: required');
       }
     }
+
+    // S2② planner：长消息 + 高置信意图时拆并行子任务，hint 注入 messages 引导一次性多 tool_calls
+    if (intentResult && intentResult.confidence >= 0.6 && userMessage.trim().length >= 12) {
+      try {
+        const { planTasks, buildPlanHintMessage } = require('./planner');
+        const plan = await planTasks(userMessage, intentResult.intent, siteType, { timeoutMs: 3500 });
+        if (plan && plan.needs_planning) {
+          const hintText = buildPlanHintMessage(plan);
+          if (hintText) {
+            messages.unshift({ role: 'system', content: hintText });
+            forceToolChoice = 'required';
+            console.log('[Agent] planner: ' + plan.subtasks.length + ' subtasks → ' +
+              plan.subtasks.map(t => t.intent).join(','));
+          }
+        }
+      } catch (e) {
+        console.warn('[Agent] planner err:', e.message);
+      }
+    }
   }
 
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续
