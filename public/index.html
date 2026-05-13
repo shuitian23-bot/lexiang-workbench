@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-v21';
+window.__BUILD = '20260514-v22';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -1196,7 +1196,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v21-cto-fix">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v22-cto-norec">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5104,7 +5104,7 @@ function openCustomizer(opts) {
   _renderCustomizer();
 }
 window.openCustomizer = openCustomizer;
-window._renderCustomizer = function(){ return _renderCustomizer(); };
+// 函数声明已自动挂 window，无需 wrapper（wrapper 会导致递归调用栈溢出）
 
 function _renderCustomizer() {
   var s = _ctoState;
@@ -5532,6 +5532,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v21-cto-fix"></script>
+<script src="/split-layout.js?v=20260514-v22-cto-norec"></script>
 </body>
 </html>
