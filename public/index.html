@@ -10,7 +10,7 @@
 <title>联想乐享AI - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记 + 自检
-window.__BUILD = '20260513-v9';
+window.__BUILD = '20260513-v10';
 (function(){
   try {
     var stored = localStorage.getItem('lx.build');
@@ -1114,7 +1114,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260513-v9-stores-lead">
+<link rel="stylesheet" href="/split-layout.css?v=20260513-v10-more-stores">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3923,7 +3923,7 @@ function renderSubnav() {
       return '<button onclick="'+it.fn.replace(/"/g,'&quot;')+';_seCloseMore()"><span>'+it.ico+'</span>'+escHtml(it.label)+'</button>';
     }).join('');
     moreHtml = '<div class="se-more" id="seMoreWrap">'+
-      '<button class="se-btn" onclick="document.getElementById(\'seMoreWrap\').classList.toggle(\'open\')" title="更多服务">更多 ▾</button>'+
+      '<button class="se-btn" onclick="_seToggleMore()" title="更多服务">更多 ▾</button>'+
       '<div class="se-dropdown">'+items+'</div>'+
     '</div>';
   }
@@ -4085,16 +4085,27 @@ async function findStoresByLocation(origMsg, locName) {
   try {
     const geoRes = await apiFetch(`/api/stores/geocode?address=${encodeURIComponent(locName)}`);
     const geo = await geoRes.json();
-    if (geo.error) { mbubble.textContent = geo.error; return; }
+    if (geo.error) {
+      // 百度地理编码失败 → fallback 到 AI store_finder（mock 卡片）
+      mbubble.innerHTML = '🤖 正在用 AI 助手为您查找联想体验店…';
+      if (typeof quickAsk === 'function') quickAsk('帮我找' + locName + '的联想体验店，能预约到店体验吗？');
+      return;
+    }
 
     mbubble.textContent = '🏪 正在搜索附近联想门店…';
     const storeRes = await apiFetch(`/api/stores/nearby?lat=${geo.lat}&lng=${geo.lng}`);
     const result = await storeRes.json();
-    if (result.error) { mbubble.textContent = result.error; return; }
+    if (result.error) {
+      mbubble.innerHTML = '🤖 正在用 AI 助手为您查找联想体验店…';
+      if (typeof quickAsk === 'function') quickAsk('帮我找' + locName + '的联想体验店');
+      return;
+    }
 
     renderStoreCards(mbubble, result.stores || [], geo.lat, geo.lng, geo.name);
   } catch (e) {
-    mbubble.textContent = '搜索失败，请稍后重试。';
+    // 网络/异常也走 AI fallback
+    mbubble.innerHTML = '🤖 正在用 AI 助手为您查找联想体验店…';
+    if (typeof quickAsk === 'function') quickAsk('帮我找' + locName + '的联想体验店');
   }
 }
 
@@ -5357,12 +5368,32 @@ window.openTradeIn = openTradeIn;
 window.openWarrantyCheck = openWarrantyCheck;
 window.openStoreReservation = openStoreReservation;
 
-// ── 顶部「更多 ▾」下拉控制 ──
-function _seCloseMore() { var w = document.getElementById('seMoreWrap'); if (w) w.classList.remove('open'); }
+// ── 顶部「更多 ▾」下拉控制（fixed 定位逃 #chatApp overflow:hidden） ──
+function _seCloseMore() {
+  var w = document.getElementById('seMoreWrap');
+  if (w) w.classList.remove('open');
+}
+function _seToggleMore() {
+  var w = document.getElementById('seMoreWrap');
+  if (!w) return;
+  var willOpen = !w.classList.contains('open');
+  w.classList.toggle('open');
+  if (willOpen) {
+    var btn = w.querySelector('.se-btn');
+    var dd = w.querySelector('.se-dropdown');
+    if (btn && dd) {
+      var r = btn.getBoundingClientRect();
+      dd.style.left = r.left + 'px';
+      dd.style.bottom = (window.innerHeight - r.top + 6) + 'px';
+      dd.style.top = 'auto';
+    }
+  }
+}
 window._seCloseMore = _seCloseMore;
+window._seToggleMore = _seToggleMore;
 document.addEventListener('click', function(e){
   var w = document.getElementById('seMoreWrap');
-  if (w && w.classList.contains('open') && !w.contains(e.target)) w.classList.remove('open');
+  if (w && w.classList.contains('open') && !w.contains(e.target)) _seCloseMore();
 });
 
 // ── 晒单中心 ──
@@ -5397,6 +5428,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260513-v9-stores-lead"></script>
+<script src="/split-layout.js?v=20260513-v10-more-stores"></script>
 </body>
 </html>
