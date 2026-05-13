@@ -1942,14 +1942,19 @@ def main():
         os.system('pip install openpyxl -q')
         import openpyxl
 
-    wb = openpyxl.load_workbook(XLSX_PATH, read_only=True, data_only=True)
-    ws = wb.active
-
-    headers = None
     product_count = 0
     product_skip = 0
+    if not os.path.exists(XLSX_PATH):
+        print(f'⚠ XLSX 文件不存在: {XLSX_PATH}，跳过商品页生成（仅刷新知识页 / 索引 / 子站）')
+        wb = None
+        ws = None
+    else:
+        wb = openpyxl.load_workbook(XLSX_PATH, read_only=True, data_only=True)
+        ws = wb.active
 
-    for i, row in enumerate(ws.rows):
+    headers = None
+
+    for i, row in enumerate(ws.rows if ws else []):
         if i == 0:
             headers = [cell.value for cell in row]
             continue
@@ -2039,7 +2044,8 @@ def main():
         if product_count % 1000 == 0:
             print(f'[{datetime.now():%H:%M:%S}] 商品页进度: 新生成 {product_count} 篇，跳过 {product_skip}')
 
-    wb.close()
+    if wb:
+        wb.close()
     print(f'[{datetime.now():%H:%M:%S}] 商品页完成: 新生成 {stats["new_product"]} 篇，跳过 {product_skip} 篇')
 
     # --- 第2.5步：biz.lenovo.com.cn 内容页 ---
