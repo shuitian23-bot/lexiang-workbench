@@ -2293,37 +2293,37 @@ async function renderHotProducts() {
   const grid = document.getElementById('hotProductsGrid');
   if (!grid) return;
   const cats = ['笔记本电脑', '台式机', '一体机', '手机'];
-  try {
-    const settled = await Promise.allSettled(
-      cats.map(c => fetch('/api/products?category=' + encodeURIComponent(c) + '&limit=1').then(r => r.json()))
-    );
-    const products = settled
-      .filter(s => s.status === 'fulfilled' && s.value?.[0])
-      .map(s => s.value[0]);
-    if (!products.length) {
-      grid.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px">暂无产品数据</div>';
-      return;
+  const products = [];
+  for (const c of cats) {
+    try {
+      const res = await fetch('/api/products?category=' + encodeURIComponent(c) + '&limit=1');
+      if (!res.ok) throw new Error('http ' + res.status);
+      const data = await res.json();
+      if (data?.[0]) products.push(data[0]);
+    } catch(e) {
+      console.warn('renderHotProducts cat=' + c, e);
     }
-    grid.innerHTML = products.map(p => {
-      const name = escHtml(p.name || '');
-      const desc = escHtml(p.description || '').slice(0, 30);
-      const price = p.price ? '¥' + Number(p.price).toLocaleString('zh-CN') : '暂无报价';
-      const img = p.image_url
-        ? `<img src="${escHtml(p.image_url)}" alt="${name}" loading="lazy" style="max-width:90%;max-height:90%;object-fit:contain">`
-        : '';
-      const sku = escHtml(p.sku || '');
-      const buyUrl = sku ? `onclick="go('/product/${sku}.html')"` : `onclick="quickAsk('${name}怎么样')"`;
-      return `<div class="pcard has-img" ${buyUrl}>
-        <div class="pcard-img">${img || '<span style="font-size:40px">📦</span>'}</div>
-        <h4>${name}</h4>
-        <p class="desc">${desc}</p>
-        <div class="price">${price}</div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    console.warn('renderHotProducts failed', e);
-    grid.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px">产品加载失败</div>';
   }
+  if (!products.length) {
+    grid.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px">暂无产品数据</div>';
+    return;
+  }
+  grid.innerHTML = products.map(p => {
+    const name = escHtml(p.name || '');
+    const desc = escHtml(p.description || '').slice(0, 30);
+    const price = p.price ? '¥' + Number(p.price).toLocaleString('zh-CN') : '暂无报价';
+    const img = p.image_url
+      ? `<img src="${escHtml(p.image_url)}" alt="${name}" loading="lazy" style="max-width:90%;max-height:90%;object-fit:contain">`
+      : '';
+    const sku = escHtml(p.sku || '');
+    const buyUrl = sku ? `onclick="go('/product/${sku}.html')"` : `onclick="quickAsk('${name}怎么样')"`;
+    return `<div class="pcard has-img" ${buyUrl}>
+      <div class="pcard-img">${img || '<span style="font-size:40px">📦</span>'}</div>
+      <h4>${name}</h4>
+      <p class="desc">${desc}</p>
+      <div class="price">${price}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderSelfProducts(products) {

@@ -353,7 +353,6 @@ router.post('/filter', multiUpload.array('files', 10), async (req, res) => {
     }
     res.status(500).json({ error: e.message });
   }
-  });
 });
 
 // ===== Pipeline Control =====
