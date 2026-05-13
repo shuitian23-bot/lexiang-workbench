@@ -11,7 +11,7 @@
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
-window.__BUILD = '20260514-v16';
+window.__BUILD = '20260514-v17';
 try { localStorage.setItem('lx.build', window.__BUILD); } catch(e){}
 // 一次性清掉历史 URL 上残留的 _v query（用 history.replaceState 静默去掉）
 try {
@@ -1196,7 +1196,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v16-preview">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v17-no-auto-preview">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2197,15 +2197,7 @@ async function callAPI(msg, imageUrl, audioUrl){
           _log.event('chat_reply', { ms: Date.now()-t0, convId });
           if (convId) history.replaceState(null, '', (window.__chatBase||'/chat') + '/' + convId);
           loadConvList();
-          // 自动预览：回复完成后，取最后一个气泡里的第一个外部链接在右侧打开
-          setTimeout(function(){
-            if (!bubbleEl || typeof openPreview !== 'function') return;
-            var links = bubbleEl.querySelectorAll('a[onclick*="openPreview"]');
-            if (!links.length) return;
-            var oc = links[links.length - 1].getAttribute('onclick') || '';
-            var m = oc.match(/openPreview\(['"]([^'"]+)['"]\)/);
-            if (m && m[1]) openPreview(m[1]);
-          }, 300);
+          // 用户反馈：AI 答案中的官网链接不自动预览，让用户主动点击
         }
 
         else if (lastEvent === 'products') {
@@ -5514,6 +5506,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v16-preview"></script>
+<script src="/split-layout.js?v=20260514-v17-no-auto-preview"></script>
 </body>
 </html>
