@@ -3149,36 +3149,75 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
 
 // ── 商城分区 Feed（新品/超值/热门 + 各品类） ──
 var mallProducts = {};
-function _renderProductCard(p) {
-  var _pDisclosed = isPriceDisclosed(p.price);
-  mallProducts[p.sku] = {
-    name: p.name, slogan: p.description || '', price: _pDisclosed ? formatPrice(p.price) : '暂未公布',
-    original: (_pDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? formatPrice(p.original_price) : '',
-    img: p.image_url || '', colors: [], specs: [],
-    chat: p.name + ' 的详细配置和购买建议'
-  };
-  var origHtml = (_pDisclosed && isPriceDisclosed(p.original_price) && p.original_price > p.price) ? ' <span class="mall-original">' + formatPrice(p.original_price) + '</span>' : '';
-  var imgHtml = p.image_url
-    ? '<img src="' + escHtml(p.image_url) + '" alt="' + escHtml(p.name) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
-    : '<div class="mall-img-fallback">📦</div>';
-  var prodKey = p.sku || String(p.id);
+// S3① 公共商品卡：mall(首页 feed) / dc(displayCanvas AI 推荐) 两 variant
+// 字段统一：name, description, price, original_price, image_url, sku, id, category
+function _renderUnifiedProductCard(p, variant) {
+  variant = variant || 'mall';
+  var prefix = variant === 'dc' ? 'dc' : 'mall';
+  var rawName = String(p.name || p.名称 || '');
+  var name = escHtml(rawName);
+  var desc = String(p.description || p.描述 || p.分类 || '');
+  var price = p.price || p.价格 || '';
+  var origPrice = p.original_price || p.原价 || '';
+  var img = p.image_url || p.图片 || '';
+  var prodKey = p.sku || p.SKU || String(p.id || '');
+  var disclosed = isPriceDisclosed(price);
+  var hasOrig = disclosed && isPriceDisclosed(origPrice) && Number(origPrice) > Number(price);
+  if (variant === 'mall' && p.sku) {
+    mallProducts[p.sku] = {
+      name: rawName, slogan: desc, price: disclosed ? formatPrice(price) : '暂未公布',
+      original: hasOrig ? formatPrice(origPrice) : '',
+      img: img || '', colors: [], specs: [],
+      chat: rawName + ' 的详细配置和购买建议'
+    };
+  }
   var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
-  var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
-  var askName = (p.name || '').replace(/['"\\]/g, '');
-  var safeImg = (p.image_url || '').replace(/"/g,'&quot;');
-  var hoverActions = '<div class="card-hover-actions">'+
-    '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">'+__leaiIcon('📖',{size:13})+' 解读</button>'+
-    '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImg+'" data-cat="'+escHtml(p.category||'')+'">'+__leaiIcon('🛠',{size:13})+' 定制</button>'+
-  '</div>';
+  var cmpAttr = variant === 'dc' ? ' data-action="cmp-toggle-dc"' : '';
+  var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '"' + cmpAttr + ' title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
+  var askName = rawName.replace(/['"\\]/g, '');
+  var safeImg = String(img).replace(/"/g, '&quot;');
+  var hoverActions = '<div class="card-hover-actions">' +
+    '<button class="primary" data-action="explain" data-name="' + escHtml(askName) + '">' + __leaiIcon('📖', { size: 13 }) + ' 解读</button>' +
+    '<button data-action="customize" data-name="' + escHtml(askName) + '" data-img="' + safeImg + '" data-cat="' + escHtml(p.category || '') + '">' + __leaiIcon('🛠', { size: 13 }) + ' 定制</button>' +
+    '</div>';
+  var priceCls = variant === 'dc' ? 'dc-card-price' : 'mall-price';
+  var origCls  = variant === 'dc' ? 'dc-orig'       : 'mall-original';
+  var priceHtml = '<div class="' + priceCls + '">' +
+    (disclosed ? formatPrice(price) : '暂未公布') +
+    (hasOrig ? '<span class="' + origCls + '">' + formatPrice(origPrice) + '</span>' : '') +
+    '</div>';
+
+  if (variant === 'dc') {
+    var imgHtmlDc = img
+      ? '<img src="' + escHtml(img) + '" alt="' + name + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
+      : '<div class="mall-img-fallback">📦</div>';
+    return '<div class="dc-card" data-product="' + escHtml(prodKey) + '" data-name="' + name + '" data-price="' + escHtml(String(price)) + '" data-img="' + escHtml(img) + '">' +
+      cmpBtn + imgHtmlDc +
+      '<div class="dc-card-info">' +
+        '<div class="dc-card-name">' + name + '</div>' +
+        (desc ? '<div class="dc-card-desc">' + escHtml(desc) + '</div>' : '') +
+        priceHtml +
+      '</div>' +
+      hoverActions +
+    '</div>';
+  }
+  // mall variant
+  var imgHtml = img
+    ? '<img src="' + escHtml(img) + '" alt="' + name + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;mall-img-fallback&quot;>📦</div>\'">'
+    : '<div class="mall-img-fallback">📦</div>';
   return '<div class="mall-card" data-product="' + escHtml(prodKey) + '">' +
     cmpBtn +
     '<div class="mall-img">' + imgHtml + '</div>' +
-    '<div class="mall-info"><div class="mall-name">' + escHtml(p.name) + '</div>' +
-    '<div class="mall-desc">' + escHtml((p.description||'').substring(0,40)) + '</div>' +
-    '<div class="mall-price">' + (_pDisclosed ? formatPrice(p.price) : '暂未公布') + origHtml + '</div></div>' +
+    '<div class="mall-info">' +
+      '<div class="mall-name">' + name + '</div>' +
+      '<div class="mall-desc">' + escHtml(desc.substring(0, 40)) + '</div>' +
+      priceHtml +
+    '</div>' +
     hoverActions +
     '</div>';
 }
+// 兼容旧调用
+function _renderProductCard(p) { return _renderUnifiedProductCard(p, 'mall'); }
 function _renderFeedSection(sec) {
   var cards = sec.products.map(_renderProductCard).join('');
   return '<section class="mall-sec" data-section="' + escHtml(sec.key) + '">' +
@@ -3272,34 +3311,8 @@ function showDisplayCanvas(title, products) {
   body.style.display = 'grid';
   body.style.gap = '12px';
   document.getElementById('dcTitle').textContent = title;
-  body.innerHTML = products.map(function(p) {
-    var img = escHtml(p.image_url || p.图片 || '');
-    var rawName = String(p.name || p.名称 || '');
-    var name = escHtml(rawName);
-    var desc = escHtml(p.description || p.描述 || p.分类 || '');
-    var price = p.price || p.价格 || '';
-    var origPrice = p.original_price || p.原价 || '';
-    var sku = p.sku || p.SKU || '';
-    var prodKey = sku || String(p.id || '');
-    var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
-    var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '" data-action="cmp-toggle-dc" title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
-    var askName = rawName.replace(/['"\\]/g, '');
-    var safeImgDc = String(p.image_url || '').replace(/"/g,'&quot;');
-    var hoverActions = '<div class="card-hover-actions">'+
-      '<button class="primary" data-action="explain" data-name="'+escHtml(askName)+'">'+__leaiIcon('📖',{size:13})+' 解读</button>'+
-      '<button data-action="customize" data-name="'+escHtml(askName)+'" data-img="'+safeImgDc+'" data-cat="'+escHtml(p.category||'')+'">'+__leaiIcon('🛠',{size:13})+' 定制</button>'+
-    '</div>';
-    return '<div class="dc-card" data-product="' + escHtml(prodKey) + '" data-name="' + name + '" data-price="' + escHtml(String(price)) + '" data-img="' + img + '">' +
-      cmpBtn +
-      '<img src="' + img + '" alt="' + name + '" loading="lazy">' +
-      '<div class="dc-card-info">' +
-        '<div class="dc-card-name">' + name + '</div>' +
-        (desc ? '<div class="dc-card-desc">' + desc + '</div>' : '') +
-        (function(){ var d=isPriceDisclosed(price); var o=(d&&isPriceDisclosed(origPrice)&&Number(origPrice)>Number(price)); return '<div class="dc-card-price">'+(d?formatPrice(price):'暂未公布')+(o?'<span class="dc-orig">'+formatPrice(origPrice)+'</span>':'')+'</div>'; })() +
-      '</div>' +
-      hoverActions +
-    '</div>';
-  }).join('');
+  // S3① 复用 _renderUnifiedProductCard('dc')，与首页 mall feed 同源
+  body.innerHTML = products.map(function(p){ return _renderUnifiedProductCard(p, 'dc'); }).join('');
   var lp = document.getElementById('landingPage');
   if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
   dc.style.display = 'block';
