@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v33-behavior-fix">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v34-predict">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3378,7 +3378,7 @@ async function showProductDetail(sku) {
     window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price, description: p.description };
     notifyAIProductContext(p);
     // S5⑤⑥ 行为追踪：用户看了哪个商品，多个就提示对比
-    if (window.LxBehavior) window.LxBehavior.trackProduct(p.sku, p.name, p.price, p.image_url);
+    if (window.LxBehavior) window.LxBehavior.trackProduct(p.sku, p.name, p.price, p.image_url, p.category);
 
     // 从 description 提取亮点（按 / 分隔的配置项）
     var highlights = [];
@@ -5453,16 +5453,27 @@ window._showToast = function(msg, ms){ return window.LxStatus.toast(msg, { ms: m
 // 3) landing 子区块停留 ≥30s → 提示 AI 选购
 // ════════════════════════════════════════════════════════════════
 window.LxBehavior = (function(){
-  var recentProducts = []; // [{sku, name, price, image, ts}]
+  var recentProducts = []; // [{sku, name, price, image, category, ts}]
+  var categoryCount = {}; // category → count
   var sessionStart = Date.now();
-  var dismissedHints = {}; // hintId → ts
-  var DISMISS_TTL = 60 * 60 * 1000; // 1h 内不重复提示
+  var dismissedHints = {};
+  var DISMISS_TTL = 60 * 60 * 1000;
+  var lastTypingTs = 0;
 
-  function trackProduct(sku, name, price, image){
+  // 用户正在打字 5s 内不弹 hint，避免打扰
+  document.addEventListener('input', function(e){
+    if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
+      lastTypingTs = Date.now();
+    }
+  }, true);
+  function isUserBusy(){ return (Date.now() - lastTypingTs) < 5000; }
+
+  function trackProduct(sku, name, price, image, category){
     if (!sku) return;
     recentProducts = recentProducts.filter(function(p){ return p.sku !== sku; });
-    recentProducts.unshift({ sku: sku, name: name, price: price, image: image, ts: Date.now() });
-    if (recentProducts.length > 5) recentProducts.length = 5;
+    recentProducts.unshift({ sku: sku, name: name, price: price, image: image, category: category || '', ts: Date.now() });
+    if (recentProducts.length > 8) recentProducts.length = 8;
+    if (category) categoryCount[category] = (categoryCount[category] || 0) + 1;
     setTimeout(checkHints, 500);
   }
 
@@ -5482,7 +5493,7 @@ window.LxBehavior = (function(){
   };
 
   function showHint(id, contentHtml, primaryText, primaryFn){
-    if (isDismissed(id)) return;
+    if (isDismissed(id) || isUserBusy()) return;
     hintActions[id] = primaryFn;
     var existing = document.getElementById('lxHintBubble');
     if (existing) existing.remove();
@@ -5504,20 +5515,51 @@ window.LxBehavior = (function(){
   }
 
   function checkHints(){
+    // 规则 1: 同类目 ≥3 → 推 AI 智能选购
+    var topCat = '', topCnt = 0;
+    Object.keys(categoryCount).forEach(function(c){ if (categoryCount[c] > topCnt) { topCnt = categoryCount[c]; topCat = c; } });
+    if (topCnt >= 3) {
+      showHint('cat-pick-' + topCat,
+        '看出你想买 <b>' + escHtml(topCat) + '</b> 类<br>告诉我预算和场景，给你精准选 1 款',
+        '🎯 让 AI 选',
+        function(){ if (typeof quickAsk === 'function') quickAsk('我想买 ' + topCat + '，预算 5000-8000，主要办公写代码偶尔打游戏，给我精准推 1 款最值的'); });
+      return;
+    }
+    // 规则 2: ≥2 个商品 → 提示对比
     if (recentProducts.length >= 2) {
       var top3 = recentProducts.slice(0, 3);
-      var names = top3.map(function(p){ return p.name; }).join('、');
       showHint('compare-multi',
         '我看你浏览了 <b>' + recentProducts.length + '</b> 款机型<br>要不要帮你做个参数对比？',
         '✨ 对比这几款',
-        function(){
-          var ask = '帮我对比 ' + top3.map(function(p){ return p.name; }).join(' 和 ') + ' 这几款';
-          if (typeof quickAsk === 'function') quickAsk(ask);
-        });
+        function(){ if (typeof quickAsk === 'function') quickAsk('帮我对比 ' + top3.map(function(p){ return p.name; }).join(' 和 ') + ' 这几款'); });
+    }
+  }
+
+  // 公开 hook 给外部模块调用（addToCart / addToWishlist 后触发）
+  function onCartAdd(item){
+    setTimeout(function(){
+      var ct = JSON.parse(localStorage.getItem('lexiang.cart.v1') || '[]');
+      var still = ct.some(function(x){ return x.sku === item.sku; });
+      if (!still) return;
+      showHint('cart-stale-' + item.sku,
+        '<b>' + escHtml(item.name) + '</b> 还在购物车<br>限时优惠快过期，现在结算最划算',
+        '🎁 立即领优惠',
+        function(){ if (typeof startBuyFlow === 'function') startBuyFlow(item.name, item.price); });
+    }, 5 * 60 * 1000);
+  }
+  function onWishlistAdd(){
+    var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
+    if (wl.length >= 3) {
+      var top3 = wl.slice(0, 3);
+      showHint('wishlist-cmp',
+        '心愿单已有 <b>' + wl.length + '</b> 款<br>要不要 AI 帮你对比，挑出性价比最高的？',
+        '✨ 对比心愿单',
+        function(){ if (typeof quickAsk === 'function') quickAsk('对比我心愿单里 ' + top3.map(function(x){ return x.name; }).join(' 和 ') + ' 哪个最值'); });
     }
   }
 
   function start(){
+    // 单商品停留 15s
     var lastSku = null, stayStart = 0;
     setInterval(function(){
       var top = recentProducts[0];
@@ -5527,17 +5569,38 @@ window.LxBehavior = (function(){
         showHint('stay-one-' + top.sku,
           '在 <b>' + escHtml(top.name) + '</b> 上停留挺久了～<br>要不要 AI 推荐<b>同价位</b>替代款？',
           '🔍 看同类',
-          function(){
-            if (typeof quickAsk === 'function') quickAsk(top.name + ' 还有什么同价位的替代款？');
-          });
+          function(){ if (typeof quickAsk === 'function') quickAsk(top.name + ' 还有什么同价位的替代款？'); });
       }
     }, 5000);
+
+    // hero idle 30s 没输入 + 没发问 → 推预设 6 场景之一
+    var heroIn = document.getElementById('heroInput');
+    if (heroIn) {
+      var idleStart = Date.now();
+      heroIn.addEventListener('input', function(){ idleStart = Date.now(); });
+      heroIn.addEventListener('focus', function(){ idleStart = Date.now(); });
+      setInterval(function(){
+        if (recentProducts.length > 0) return; // 已经在交互
+        if (document.documentElement.classList.contains('in-chat')) return;
+        if (Date.now() - idleStart > 30000) {
+          showHint('hero-idle',
+            '不知道问什么？<br>试试这些热门场景，一键直达',
+            '✨ 看 6 大场景',
+            function(){
+              var w = document.getElementById('welcomeScreen');
+              if (w) w.scrollIntoView({ behavior: 'smooth' });
+              else window.LxStatus && window.LxStatus.toast('点击下方欢迎卡试试', { type: 'info' });
+            });
+          idleStart = Date.now() + 60 * 60 * 1000; // 别再触发
+        }
+      }, 5000);
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 
-  return { trackProduct: trackProduct, dismiss: dismiss };
+  return { trackProduct: trackProduct, dismiss: dismiss, onCartAdd: onCartAdd, onWishlistAdd: onWishlistAdd };
 })();
 (function(){
   var WL_KEY = 'lexiang.wishlist.v1';
@@ -5568,6 +5631,7 @@ window.LxBehavior = (function(){
     list.unshift({ sku: sku, name: name, price: price, image: image, ts: Date.now() });
     save(WL_KEY, list); refreshBadges();
     window.LxStatus && window.LxStatus.toast('已加心愿单 ❤', { type: 'success' });
+    if (window.LxBehavior && window.LxBehavior.onWishlistAdd) window.LxBehavior.onWishlistAdd();
   };
   window.addToCart = function(sku, name, price, image){
     var list = load(CT_KEY);
@@ -5576,6 +5640,7 @@ window.LxBehavior = (function(){
     else { list.unshift({ sku: sku, name: name, price: price, image: image, qty: 1, ts: Date.now() }); }
     save(CT_KEY, list); refreshBadges();
     window.LxStatus && window.LxStatus.toast('已加购物车 🛒', { type: 'success' });
+    if (window.LxBehavior && window.LxBehavior.onCartAdd) window.LxBehavior.onCartAdd({ sku: sku, name: name, price: price });
   };
   window.addOrder = function(name, price){
     var list = load(OD_KEY);
@@ -5874,6 +5939,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v33-behavior-fix"></script>
+<script src="/split-layout.js?v=20260514-v34-predict"></script>
 </body>
 </html>
