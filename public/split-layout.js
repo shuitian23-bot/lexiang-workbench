@@ -1439,7 +1439,15 @@
   // ── URL 检查 ──
 
   function checkInitialUrl() {
-    if (isPC() && isChatPath()) {
+    if (!isPC()) return;
+    // S4: 仅当 URL 带 convId（恢复历史会话）才 enterChat；单纯 /chat/ /shop-chat/ 等保持 landing 全宽
+    var p = location.pathname.replace(/\/$/, '');
+    var hasConv = false;
+    for (var i = 0; i < CHAT_PREFIXES.length; i++) {
+      var pre = CHAT_PREFIXES[i];
+      if (p.length > pre.length && p.startsWith(pre + '/')) { hasConv = true; break; }
+    }
+    if (hasConv) {
       document.documentElement.classList.add('is-chat');
       enterChat();
     }
