@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v48-realdetail">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v49-rmwiki">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3572,16 +3572,11 @@ async function showProductDetail(sku) {
             '<div class="pd-detail-img"><img src="' + imgUrl + '" alt="' + escHtml(p.name) + '"></div>' +
           '</div>' +
           '<div class="pd-section"><h3 class="pd-section-title">📋 规格参数</h3>' + specsTblHtml + '</div>' +
-          '<div class="pd-section"><h3 class="pd-section-title">📖 联想百科</h3>' +
-            '<div id="pdWikiPanel"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div>' +
-          '</div>' +
           '<div class="pd-section"><h3 class="pd-section-title">📸 商品介绍详情图</h3>' +
             '<div id="pdDetailImagesPanel">' + (window.LxStatus && window.LxStatus.skeleton({ rows: 2, cols: 1, height: 240 }) || '<div style="text-align:center;padding:24px;color:#999">加载详情图…</div>') + '</div>' +
           '</div>' +
         '</div>' +
       '</div>';
-    // 立即异步加载 wiki
-    setTimeout(function(){ _loadWikiTab(p.name); }, 100);
     // 异步抓 lenovo 详情图
     if (sku) {
       fetch('/api/product/' + encodeURIComponent(sku) + '/detail-images').then(function(r){ return r.json(); }).then(function(json){
@@ -6078,6 +6073,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v48-realdetail"></script>
+<script src="/split-layout.js?v=20260515-v49-rmwiki"></script>
 </body>
 </html>

@@ -867,28 +867,8 @@
           '</div>' +
           tuHtml +
           (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-section-title">📋 规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
-          '<div class="cpd-wiki-section"><h4 class="cpd-section-title">📚 联想百科</h4><div class="cpd-wiki-body" id="cpd-wiki-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div></div>' +
           '<div class="cpd-detail-images-section"><h4 class="cpd-section-title">📸 商品介绍详情图</h4><div class="cpd-detail-images-body" id="cpd-detail-images-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">加载详情图…</div></div></div>' +
         '</div>';
-
-      // 异步拉 wiki RAG
-      (function(){
-        var wikiBox = container.querySelector('#cpd-wiki-' + encodeURIComponent(sku));
-        if (!wikiBox) return;
-        fetch('/api/knowledge/public-search?q=' + encodeURIComponent(p.name || '') + '&topK=3')
-          .then(function(r){ return r.json(); })
-          .then(function(hits){
-            if (!Array.isArray(hits) || !hits.length) {
-              wikiBox.innerHTML = '<div style="text-align:center;padding:24px;color:#999">未找到该机型的百科条目</div>';
-              return;
-            }
-            wikiBox.innerHTML = hits.map(function(h, i){
-              return '<div class="cpd-wiki-block"><div class="cpd-wiki-title">📖 ' + escH(h.title || ('百科 ' + (i+1))) + '</div><div class="cpd-wiki-content">' + escH(h.content || '').replace(/\n/g, '<br>') + '</div></div>';
-            }).join('');
-          })
-          .catch(function(e){ wikiBox.innerHTML = '<div style="text-align:center;padding:24px;color:#c00">加载失败</div>'; });
-      })();
-
 
       // 异步拉 lenovo 详情图
       (function(){
