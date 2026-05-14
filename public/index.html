@@ -3235,7 +3235,7 @@ function openSectionAll(sectionKey, title) {
   var body = document.getElementById('dcBody');
   if (!dc || !body) return;
   document.getElementById('dcTitle').textContent = title;
-  body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
+  body.innerHTML = (window.LxStatus && window.LxStatus.skeleton({ rows: 3, cols: 3 })) || '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
   var topbar = dc.querySelector('.dc-topbar');
   if (topbar) topbar.style.display = '';
   dc.style.display = 'block';
@@ -3339,7 +3339,7 @@ function showCategoryProducts(category) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
   document.getElementById('dcTitle').textContent = category;
-  body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
+  body.innerHTML = (window.LxStatus && window.LxStatus.skeleton({ rows: 3, cols: 3 })) || '<div style="text-align:center;padding:60px;color:#999">加载中...</div>';
   var topbar = dc.querySelector('.dc-topbar');
   if (topbar) topbar.style.display = '';
   dc.style.display = 'block';
@@ -3357,7 +3357,7 @@ async function showProductDetail(sku) {
   var dc = document.getElementById('displayCanvas');
   var body = document.getElementById('dcBody');
   document.getElementById('dcTitle').textContent = '加载中...';
-  body.innerHTML = '<div style="text-align:center;padding:60px;color:#999">正在加载商品信息...</div>';
+  body.innerHTML = (window.LxStatus && window.LxStatus.skeleton({ rows: 3, cols: 3 })) || '<div style="text-align:center;padding:60px;color:#999">正在加载商品信息...</div>';
   var lp = document.getElementById('landingPage');
   if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
   dc.style.display = 'block';
@@ -3554,7 +3554,7 @@ function _loadWikiTab(productName) {
   var panel = document.getElementById('pdWikiPanel');
   if (!panel || panel._loaded) return;
   panel._loaded = true;
-  panel.innerHTML = '<div style="text-align:center;padding:40px;color:#999">从联想百科加载中...</div>';
+  panel.innerHTML = (window.LxStatus && window.LxStatus.loading('从联想百科加载中...')) || '<div style="text-align:center;padding:40px;color:#999">从联想百科加载中...</div>';
   fetch('/api/knowledge/public-search?q=' + encodeURIComponent(productName) + '&topK=3')
     .then(function(r){ return r.json(); })
     .then(function(hits){
@@ -3754,7 +3754,7 @@ function _cardContainerClickHandler(e) {
         cmpBtn.classList.remove('active');
         cmpBtn.textContent = 'PK';
       } else {
-        if (list.length >= (typeof COMPARE_MAX !== 'undefined' ? COMPARE_MAX : 4)) { alert('最多对比 4 件'); return; }
+        if (list.length >= (typeof COMPARE_MAX !== 'undefined' ? COMPARE_MAX : 4)) { window.LxStatus && window.LxStatus.toast('最多对比 4 件', { type: 'warn' }); return; }
         list.push({ key: key, name: cmpBtn.dataset.name || '商品', price: parseFloat(cmpBtn.dataset.price) || 0, image_url: cmpBtn.dataset.img || '', description: '', category: '' });
         cmpBtn.classList.add('active');
         cmpBtn.textContent = '✓';
@@ -5225,7 +5225,7 @@ window._ctoSetPrint = _ctoSetPrint; window._ctoSetGift = _ctoSetGift;
 
 function _ctoBuy() {
   var s = _ctoState;
-  alert('已生成定制订单（POC 演示）：\n\n' + s.productName + '\n配置：' + JSON.stringify(s.selections) + (s.personal.engrave.enabled ? '\n刻字："' + s.personal.engrave.text + '"' : '') + '\n\n实际生产环境会跳转到联想官网下单页。');
+  window.LxStatus && window.LxStatus.toast('已生成定制订单（POC 演示）：' + s.productName, { type: 'success', ms: 3000 });
   document.querySelectorAll('.ai-modal-mask').forEach(function(m){ m.remove(); });
 }
 function _ctoAddCompare() {
@@ -5348,7 +5348,7 @@ function openLeadForm(opts) {
     var fd = new FormData(e.target);
     var data = {};
     fd.forEach(function(v,k){ data[k] = v; });
-    if (!data.name || !data.phone) { alert('请填写姓名和手机号'); return; }
+    if (!data.name || !data.phone) { window.LxStatus && window.LxStatus.toast('请填写姓名和手机号', { type: 'warn' }); return; }
     console.log('[Lead]', opts.scenario || '', data);
     mask.remove();
     if (typeof _showToast === 'function') _showToast('✓ 已提交，BD 顾问 30 分钟内主动联系您（POC 演示，未真实提交）');
@@ -5553,7 +5553,7 @@ function _memberSign() {
   _memberState.points += 20;
   _memberState.growth += 50;
   _renderMemberCenter();
-  alert('✅ 签到成功 +20 乐豆 +50 成长值');
+  window.LxStatus && window.LxStatus.toast('签到成功 +20 乐豆 +50 成长值', { type: 'success' });
 }
 window.openMemberCenter = openMemberCenter;
 window._memberClaim = _memberClaim; window._memberSign = _memberSign;
