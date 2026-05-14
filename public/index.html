@@ -1103,11 +1103,15 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .pd-stock{font-size:13px;margin-bottom:12px}
 .pd-stock .in{color:#52c41a}
 .pd-stock .out{color:#ff4d4f}
-.pd-action-btns{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.pd-action-btns .pd-btn-buy{flex:none;padding:0 40px;height:44px;background:#e1251b;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
-.pd-action-btns .pd-btn-buy:hover{background:#c41d15}
-.pd-action-btns .pd-btn-cart{flex:none;padding:0 40px;height:44px;background:#fff;color:#e1251b;border:1.5px solid #e1251b;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
-.pd-action-btns .pd-btn-cart:hover{background:#fff0f0}
+.pd-action-btns{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.pd-action-btns .pd-btn-buy{flex:2.2;min-width:200px;padding:0 28px;height:48px;background:linear-gradient(135deg,#FF4842 0%,#C41A1F 100%);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;letter-spacing:.5px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 6px 18px rgba(225,37,27,.32),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .15s ease,box-shadow .15s ease,filter .15s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.pd-action-btns .pd-btn-buy::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.25) 50%,transparent 100%);transform:translateX(-100%);transition:transform .6s}
+.pd-action-btns .pd-btn-buy:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(225,37,27,.42),inset 0 1px 0 rgba(255,255,255,.18);filter:brightness(1.05)}
+.pd-action-btns .pd-btn-buy:hover::before{transform:translateX(100%)}
+.pd-action-btns .pd-btn-buy:active{transform:translateY(0) scale(.98)}
+.pd-action-btns .pd-btn-cart{flex:1;min-width:140px;padding:0 18px;height:48px;background:#fff;color:#1F2937;border:1.5px solid #E5E7EB;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s ease;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.pd-action-btns .pd-btn-cart:hover{background:#FFF5F5;border-color:#E1251B;color:#C41A1F;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.pd-action-btns .pd-btn-cart:active{transform:translateY(0)}
 .pd-action-btns .pd-btn-ask{flex:none;padding:0 24px;height:44px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .pd-btn-ask:hover{opacity:.88;transform:translateY(-1px)}
 #displayCanvas{position:absolute;top:56px;left:0;right:0;height:calc(100vh - 56px);height:calc(100dvh - 56px);background:#f8f8f8;z-index:90;overflow-y:auto;overscroll-behavior:contain;padding:0 20px 40px}
@@ -1209,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v49-rmwiki">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v50-btnui">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -6073,6 +6077,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v49-rmwiki"></script>
+<script src="/split-layout.js?v=20260515-v50-btnui"></script>
 </body>
 </html>

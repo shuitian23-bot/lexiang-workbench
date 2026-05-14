@@ -859,29 +859,49 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
   display: flex; gap: 10px; padding: 14px 0 0;
 }
 .cpd-actions .cpd-buy {
-  flex: 1; padding: 12px; background: linear-gradient(135deg, #E53E3E, #C53030);
-  color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
-  cursor: pointer; transition: transform .1s;
+  flex: 2.2; padding: 14px 20px;
+  background: linear-gradient(135deg, #FF4842 0%, #C41A1F 100%);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; letter-spacing: .5px;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 6px 18px rgba(225, 37, 27, .32), inset 0 1px 0 rgba(255,255,255,.18);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s;
 }
-.cpd-actions .cpd-buy:active { transform: scale(.97); }
-.cpd-actions .cpd-ask {
-  flex: 1; padding: 12px; background: linear-gradient(135deg, #4D144A, #6D28D9);
-  color: #fff; border: none; border-radius: 10px; font-size: 15px; cursor: pointer;
-  transition: transform .1s;
+.cpd-actions .cpd-buy::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.25) 50%, transparent 100%);
+  transform: translateX(-100%); transition: transform .6s;
 }
-.cpd-actions .cpd-ask:active { transform: scale(.97); }
+.cpd-actions .cpd-buy:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(225,37,27,.42), inset 0 1px 0 rgba(255,255,255,.18); filter: brightness(1.05); }
+.cpd-actions .cpd-buy:hover::before { transform: translateX(100%); }
+.cpd-actions .cpd-buy:active { transform: translateY(0) scale(.98); }
+
+.cpd-actions .cpd-cart {
+  flex: 1; padding: 14px 16px;
+  background: #fff; color: #1F2937;
+  border: 1.5px solid #E5E7EB; border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .15s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.cpd-actions .cpd-cart:hover {
+  background: #FFF5F5; border-color: #E1251B; color: #C41A1F;
+  transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+.cpd-actions .cpd-cart:active { transform: translateY(0); }
 
 .cpd-actions-sub {
   display: flex; gap: 10px; padding: 10px 0 0;
 }
-.cpd-actions-sub .cpd-link,
 .cpd-actions-sub .cpd-compare {
-  flex: 1; padding: 9px; text-align: center; border-radius: 8px; font-size: 13px;
-  border: 1px solid #E5E7EB; background: #fff; color: #374151; cursor: pointer;
-  text-decoration: none; transition: background .15s;
+  flex: 1; padding: 10px 14px;
+  text-align: center; border-radius: 10px; font-size: 13px; font-weight: 500;
+  border: 1px dashed #D1D5DB; background: transparent; color: #6B7280;
+  cursor: pointer; transition: all .15s ease;
 }
-.cpd-actions-sub .cpd-link:hover,
-.cpd-actions-sub .cpd-compare:hover { background: #F9FAFB; }
+.cpd-actions-sub .cpd-compare:hover {
+  border-style: solid; border-color: #6D28D9; color: #6D28D9; background: #F5F3FF;
+}
 
 .cpd-specs-section,
 .cpd-wiki-section,
