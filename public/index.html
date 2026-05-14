@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v40-restorefix">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v41-sitehero">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1246,7 +1246,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   }();</script>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-    <a href="#" id="navWishlistBtn" onclick="openWishlist();return false;" title="心愿单" style="position:relative;font-size:18px">❤<span id="navWishlistBadge" class="lx-nav-badge" style="display:none"></span></a>
     <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;font-size:18px">🛒<span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
     <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="display:none;position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
@@ -1259,10 +1258,36 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   </div>
 </nav>
 <div class="hero-wrap"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div><div class="blob blob4"></div><section class="hero">
-  <h1>你好，我是联想乐享</h1>
+  <h1 id="heroTitle">你好，我是联想乐享</h1>
+  <p id="heroSubtitle" style="text-align:center;color:var(--text2);margin:8px 0 18px;font-size:15px">联想官方 AI 助手 · 随时为你解答</p>
   <div class="search"><input type="text" placeholder="最近有什么促销活动？" id="heroInput" autocomplete="off"><button class="send-btn" id="heroSend" aria-label="发送"><svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></button></div>
-  <div class="tags"><a class="tag" onclick="startChat('我想买一台笔记本电脑，能帮我推荐适合的联想产品吗？')">商品导购</a><a class="tag" onclick="startChat('联想有哪些适合企业的解决方案？请介绍一下。')">解决方案</a><a class="tag" onclick="findNearbyStores()">门店查询</a><a class="tag" onclick="startChat('我购买了联想产品，想了解我的质保权益和售后服务，怎么查询？')">我的权益</a><a class="tag" onclick="startChat('我想预约联想服务，请问如何预约？')">预约服务</a>  <div class="qpills" id="qpills" style="margin-top:18px"></div>
-  <script>!function(){var A=['最近有什么优惠活动？','办公用5000元左右怎么选？','Y7000P和R7000P选哪个？','帮我推荐一款ThinkPad','小新Pro 14值得买吗？','拯救者系列有哪些旗舰机型？','联想会员有哪些专属权益？','ThinkBook和ThinkPad有什么区别？','联想有哪些AI PC？','想买游戏本，预算8000怎么选？'];var s=A.slice().sort(function(){return Math.random()-.5}).slice(0,5);document.getElementById('qpills').innerHTML=s.map(function(t){return'<button class="qp" style="padding:8px 18px;border-radius:999px;font-size:12px;color:var(--text2);background:var(--tag-bg);border:1px solid var(--tag-bd);backdrop-filter:blur(8px);transition:all .3s;white-space:nowrap;cursor:pointer">'+t+'</button>';}).join('');}();</script>
+  <div class="tags" id="heroTags"></div>
+  <div class="qpills" id="qpills" style="margin-top:18px"></div>
+  <script>!function(){
+    var SITE_HERO = {
+      'default': { title:'你好，我是联想乐享', sub:'联想官方 AI 助手 · 个人/家庭/企业全场景咨询',
+        tags:[['商品导购','我想买一台笔记本电脑，能帮我推荐吗？'],['解决方案','联想有哪些适合企业的解决方案？'],['门店查询','__store__'],['我的权益','我购买的联想产品质保和售后怎么查？'],['预约服务','我想预约联想服务，请问如何预约？']],
+        chips:['最近有什么促销活动？','办公用5000元左右怎么选？','Y7000P和R7000P选哪个？','帮我推荐一款ThinkPad','小新Pro 14值得买吗？','拯救者系列有哪些旗舰机型？','联想会员有哪些专属权益？','想买游戏本，预算8000怎么选？'] },
+      'shop':    { title:'你好，乐享个人 / 家庭购', sub:'游戏本 / 轻薄本 / 一体机 · 学生认证 + 会员折扣 + 12 期免息',
+        tags:[['新品上市','介绍最新发布的联想新品'],['以旧换新','以旧换新怎么操作？能抵多少？'],['会员权益','联想会员能得什么乐豆和折扣？'],['门店预约','__store__'],['优惠领取','现在能领什么优惠券？']],
+        chips:['拯救者 Y9000K 怎么样？','学生认证能省多少？','小新 Pro 2026 值不值？','女朋友礼物送什么联想？','晚上下单明天能到么？','12 期免息支持哪些机型？'] },
+      'b':       { title:'中小企业首选 · 5 年质保', sub:'ThinkPad / ThinkBook · 批采返点 + 工程师上门 + 增值税专票',
+        tags:[['批量询价','30 台 ThinkPad 批量采购报价'],['对公开票','开增值税专票需要什么资料？'],['上门服务','保修和上门服务有哪些？'],['资产管理','30 台联想电脑怎么资产盘点？'],['企业认证','企业认证后能有什么优惠？']],
+        chips:['10 人团队办公电脑 30 万预算怎么配？','ThinkBook 和 ThinkPad 区别？','天逸 510S 批量采购 20 台报价','商用台式 + 一体机推荐','5 年质保都包什么？','工程师上门怎么预约？'] },
+      'biz':     { title:'政教及大企业 · 信创合规', sub:'招投标支持 + 等保 / 国密 / 国产化适配 + 全国服务',
+        tags:[['行业方案','金融/医疗/教育/政府全场景方案'],['招投标','政采资质 / 央采名录 / 投标支持'],['信创合规','等保 2.0 / 国密 / 国产化'],['BD 接洽','安排区域 BD 上门 POC'],['工作站','ThinkStation P 系列工作站怎么选？']],
+        chips:['信创合规需要哪些资质？','麒麟 / 统信 UOS 适配机型','ThinkSystem 服务器方案','政企采购批量报价','智慧会议室一站式方案','全国 20 分支机构售后方案'] }
+    };
+    var s = (window.__siteType && SITE_HERO[window.__siteType]) ? SITE_HERO[window.__siteType] : SITE_HERO['default'];
+    document.getElementById('heroTitle').textContent = s.title;
+    document.getElementById('heroSubtitle').textContent = s.sub;
+    document.getElementById('heroTags').innerHTML = s.tags.map(function(t){
+      var fn = t[1] === '__store__' ? "findNearbyStores()" : "startChat('" + t[1].replace(/'/g, "\\'") + "')";
+      return '<a class="tag" onclick="' + fn + '">' + t[0] + '</a>';
+    }).join('');
+    var picks = s.chips.slice().sort(function(){return Math.random()-.5}).slice(0,5);
+    document.getElementById('qpills').innerHTML = picks.map(function(t){return'<button class="qp" style="padding:8px 18px;border-radius:999px;font-size:12px;color:var(--text2);background:var(--tag-bg);border:1px solid var(--tag-bd);backdrop-filter:blur(8px);transition:all .3s;white-space:nowrap;cursor:pointer">'+t+'</button>';}).join('');
+  }();</script>
 </section></div>
 <div class="wrap">
 <!-- ═══ 方案C首页（仅 data-site="default" 显示） ═══ -->
@@ -3535,7 +3560,6 @@ async function showProductDetail(sku) {
             optionGroupsHtml +
             '<div class="pd-action-btns">' +
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button>' +
-              '<button class="pd-btn-cart" onclick="addToWishlist(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">❤ 加入心愿单</button>' +
               '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
           '</div>' +
@@ -6024,6 +6048,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v40-restorefix"></script>
+<script src="/split-layout.js?v=20260514-v41-sitehero"></script>
 </body>
 </html>

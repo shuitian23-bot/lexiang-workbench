@@ -858,7 +858,6 @@
               '</div>' +
               '<div class="cpd-actions">' +
                 '<button class="cpd-buy">🎁 一键领取优惠</button>' +
-                '<button class="cpd-wish">❤ 加入心愿单</button>' +
                 '<button class="cpd-cart">🛒 加入购物车</button>' +
               '</div>' +
               '<div class="cpd-actions-sub">' +
@@ -892,10 +891,6 @@
       var buyBtn = container.querySelector('.cpd-buy');
       if (buyBtn) buyBtn.addEventListener('click', function () {
         if (typeof startBuyFlow === 'function') startBuyFlow(p.name, p.price);
-      });
-      var wishBtn = container.querySelector('.cpd-wish');
-      if (wishBtn) wishBtn.addEventListener('click', function () {
-        if (typeof addToWishlist === 'function') addToWishlist(p.sku || '', p.name, p.price || 0, p.image_url || '');
       });
       var cartBtn = container.querySelector('.cpd-cart');
       if (cartBtn) cartBtn.addEventListener('click', function () {
