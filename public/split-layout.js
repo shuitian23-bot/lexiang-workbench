@@ -563,15 +563,11 @@
       card.dataset.name = name;
       card.dataset.img = img;
       card.dataset.price = String(price || '');
+      // S6 商品卡去掉 PK / 解读 / 定制 hover 按钮
       card.innerHTML =
-        '<button class="cp-pk-btn' + (inCmp?' active':'') + '" data-cmp-key="' + escH(prodKey) + '" title="加入对比">' + (inCmp?'✓':'PK') + '</button>' +
         (img ? '<img src="' + escH(img) + '" alt="' + escH(name) + '" loading="lazy">' : '') +
         '<div class="cp-product-name">' + escH(name) + '</div>' +
-        (price ? '<div class="cp-product-price">¥' + Number(price).toLocaleString() + '</div>' : '') +
-        '<div class="cp-hover-actions">' +
-          '<button class="primary" data-action="explain">📖 解读</button>' +
-          '<button data-action="customize">🛠 定制</button>' +
-        '</div>';
+        (price ? '<div class="cp-product-price">¥' + Number(price).toLocaleString() + '</div>' : '');
 
       // 整卡 click 进详情；PK / hover 按钮 stopPropagation
       card.addEventListener('click', function (e) {
@@ -861,13 +857,12 @@
                 (p.description && highlights.length === 0 ? '<p class="cpd-desc">' + escH(p.description) + '</p>' : '') +
               '</div>' +
               '<div class="cpd-actions">' +
-                '<button class="cpd-buy">立即购买</button>' +
-                '<button class="cpd-ask">问AI助手</button>' +
+                '<button class="cpd-buy">🎁 一键领取优惠</button>' +
+                '<button class="cpd-wish">❤ 加入心愿单</button>' +
+                '<button class="cpd-cart">🛒 加入购物车</button>' +
               '</div>' +
               '<div class="cpd-actions-sub">' +
-                '<a href="' + escH(buyUrl) + '" rel="noopener" class="cpd-link" onclick="event.preventDefault();window.openPreview&&openPreview(this.href)">↗ 官网查看</a>' +
-                '<a href="' + escH(searchUrl) + '" rel="noopener" class="cpd-link" onclick="event.preventDefault();window.openPreview&&openPreview(this.href)">🔍 同款搜索</a>' +
-                '<button class="cpd-compare">和竞品对比</button>' +
+                '<button class="cpd-compare">✨ 和竞品对比</button>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -898,9 +893,13 @@
       if (buyBtn) buyBtn.addEventListener('click', function () {
         if (typeof startBuyFlow === 'function') startBuyFlow(p.name, p.price);
       });
-      var askBtn = container.querySelector('.cpd-ask');
-      if (askBtn) askBtn.addEventListener('click', function () {
-        if (typeof quickAsk === 'function') quickAsk(p.name + ' 怎么样？值得买吗？');
+      var wishBtn = container.querySelector('.cpd-wish');
+      if (wishBtn) wishBtn.addEventListener('click', function () {
+        if (typeof addToWishlist === 'function') addToWishlist(p.sku || '', p.name, p.price || 0, p.image_url || '');
+      });
+      var cartBtn = container.querySelector('.cpd-cart');
+      if (cartBtn) cartBtn.addEventListener('click', function () {
+        if (typeof addToCart === 'function') addToCart(p.sku || '', p.name, p.price || 0, p.image_url || '');
       });
       var cmpBtn = container.querySelector('.cpd-compare');
       if (cmpBtn) cmpBtn.addEventListener('click', function () {
