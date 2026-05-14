@@ -1434,16 +1434,24 @@
 
   function checkInitialUrl() {
     if (!isPC()) return;
-    // S4: 仅当 URL 带 convId（恢复历史会话）才 enterChat；单纯 /chat/ /shop-chat/ 等保持 landing 全宽
     var p = location.pathname.replace(/\/$/, '');
     var hasConv = false;
+    var matchedPrefix = null;
     for (var i = 0; i < CHAT_PREFIXES.length; i++) {
       var pre = CHAT_PREFIXES[i];
-      if (p.length > pre.length && p.startsWith(pre + '/')) { hasConv = true; break; }
+      if (p === pre || p.startsWith(pre + '/')) {
+        matchedPrefix = pre;
+        if (p.length > pre.length && p.startsWith(pre + '/')) hasConv = true;
+        break;
+      }
     }
     if (hasConv) {
       document.documentElement.classList.add('is-chat');
       enterChat();
+    } else if (matchedPrefix && matchedPrefix !== '/chat') {
+      // S6: 子站入口（/shop-chat /b-chat /biz-chat）默认左右分屏「边聊边逛」
+      document.documentElement.classList.add('is-chat');
+      enterSplit();
     }
   }
 
