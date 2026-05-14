@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v36-orderviz">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v37-placeholder">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3021,6 +3021,23 @@ document.getElementById('heroSend').addEventListener('click', () => {
 document.getElementById('heroInput').addEventListener('keydown', e => {
   if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); document.getElementById('heroSend').click(); }
 });
+// S6 hero placeholder 动态轮播：根据时段切换 + 每 4s 滚一句
+(function(){
+  var heroIn = document.getElementById('heroInput');
+  if (!heroIn) return;
+  var hour = new Date().getHours();
+  var POOL;
+  if (hour < 11) POOL = ['今天上班用什么本？给我推荐 5000 内的办公本','早上想看新品，有啥值得买？','怎么选 ThinkPad X1 和小新 Pro？'];
+  else if (hour < 18) POOL = ['打游戏选拯救者还是 ROG？','预算 8000 推荐一台游戏本','以旧换新能抵多少？','北京附近的联想体验店在哪？'];
+  else POOL = ['女朋友礼物送什么联想？','晚上下单明天能到么？','优惠券现在还有什么活动？','学生认证能省多少？'];
+  var idx = 0;
+  heroIn.placeholder = POOL[0];
+  setInterval(function(){
+    if (document.activeElement === heroIn || heroIn.value) return;
+    idx = (idx + 1) % POOL.length;
+    heroIn.placeholder = POOL[idx];
+  }, 4000);
+})();
 // ── Pills 点击事件（内容已在脚本顶部立即渲染）──
 document.getElementById('qpills').addEventListener('click', e => {
   const btn = e.target.closest('.qp');
@@ -6005,6 +6022,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v36-orderviz"></script>
+<script src="/split-layout.js?v=20260514-v37-placeholder"></script>
 </body>
 </html>
