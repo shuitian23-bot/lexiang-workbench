@@ -1426,7 +1426,7 @@
       var html = document.documentElement;
       html.classList.remove('split-mode', 'layout-swapped', 'content-open', 'content-closing', 'content-maximized');
     } else {
-      document.documentElement.classList.add('split-mode');
+      // S4: 不强制加 split-mode；保留当前状态
       applySwap();
       applyWidths();
       updateContentMaxButton();
@@ -1494,7 +1494,7 @@
   function init() {
     if (!isPC()) return;
     rememberLandingHome();
-    document.documentElement.classList.add('split-mode');
+    // S4: 默认不加 split-mode；只在 chat URL 时按需加
     loadState();
     wrapInSplitRoot();
     applySwap();
