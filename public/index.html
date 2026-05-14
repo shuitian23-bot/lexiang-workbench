@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v39-defensiveclean">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v40-restorefix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -4240,8 +4240,8 @@ async function restoreFromUrl(){
       if (id) {
         await Promise.all([loadConvList(), loadConv(id)]);
       } else {
+        // S6: 子站入口 /shop-chat /b-chat /biz-chat（无 conv）保持 landing 全宽
         await loadConvList();
-        openChatFresh();
       }
     }
   }
@@ -6024,6 +6024,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v39-defensiveclean"></script>
+<script src="/split-layout.js?v=20260514-v40-restorefix"></script>
 </body>
 </html>
