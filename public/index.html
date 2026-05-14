@@ -1209,11 +1209,13 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v38-cleanbtn">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v39-defensiveclean">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
-_chatPrefixes.forEach(function(x){if(_p.startsWith(x)){_siteType=x.replace('/','').replace('-chat','');var rest=_p.slice(x.length);var hasConv=!!(rest.split('/')[1]);if(hasConv){document.documentElement.classList.add('is-chat','is-chat-conv');}}});
+_chatPrefixes.forEach(function(x){if(_p.startsWith(x)){_siteType=x.replace('/','').replace('-chat','');var rest=_p.slice(x.length);var hasConv=!!(rest.split('/')[1]);if(hasConv){document.documentElement.classList.add('is-chat','is-chat-conv');}else{document.documentElement.classList.remove('is-chat','is-chat-conv','in-chat','split-mode');}}});
+// 防御：DOM ready 后强制清 .exit + 残余 chat class（无 conv 时）
+document.addEventListener('DOMContentLoaded',function(){var p=location.pathname;var pre=['/chat','/shop-chat','/b-chat','/biz-chat'];var base=pre.find(function(x){return p.startsWith(x)});if(base){var rest=p.slice(base.length).replace(/^\//,'');if(!rest){var lp=document.getElementById('landingPage');if(lp){lp.classList.remove('exit','dc-open');lp.style.opacity='';lp.style.transform='';lp.style.pointerEvents='';}document.documentElement.classList.remove('is-chat','in-chat','split-mode');}}});
 if(_siteType==='chat')_siteType='default';
 document.documentElement.dataset.site=_siteType;
 window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+_siteType+'-chat';</script>
@@ -6022,6 +6024,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v38-cleanbtn"></script>
+<script src="/split-layout.js?v=20260514-v39-defensiveclean"></script>
 </body>
 </html>
