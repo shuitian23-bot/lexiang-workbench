@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v35-aiassist">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v36-orderviz">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5695,9 +5695,23 @@ window.LxBehavior = (function(){
     return '<button onclick="document.querySelectorAll(\'.ai-modal-mask\').forEach(function(m){m.remove()});quickAsk(\''+ask.replace(/'/g, "\\'")+'\')" style="padding:8px 14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🤖 '+label+'</button>';
   }
 
+  window._wlSort = 'time';
+  window.setWlSort = function(mode){
+    window._wlSort = mode;
+    document.querySelectorAll('.ai-modal-mask').forEach(function(m){m.remove()});
+    openWishlist();
+  };
   window.openWishlist = function(){
-    var list = load(WL_KEY);
-    var html = buildListHtml(list, WL_KEY, '心愿单为空');
+    var list = load(WL_KEY).slice();
+    if (window._wlSort === 'price-asc') list.sort(function(a,b){ return (a.price||0) - (b.price||0); });
+    else if (window._wlSort === 'price-desc') list.sort(function(a,b){ return (b.price||0) - (a.price||0); });
+    var sortBar = list.length >= 2 ? '<div style="display:flex;gap:6px;margin-bottom:10px;font-size:12px">' +
+      ['time:最近加','price-asc:价↑','price-desc:价↓'].map(function(s){
+        var k = s.split(':')[0], n = s.split(':')[1];
+        var on = window._wlSort === k;
+        return '<button onclick="setWlSort(\''+k+'\')" style="padding:4px 10px;border-radius:12px;border:1px solid '+(on?'var(--accent,#E12521)':'#e5e7eb')+';background:'+(on?'var(--accent,#E12521)':'#fff')+';color:'+(on?'#fff':'#666')+';cursor:pointer">'+n+'</button>';
+      }).join('') + '</div>' : '';
+    var html = sortBar + buildListHtml(list, WL_KEY, '心愿单为空');
     if (list.length >= 2) {
       var ask = '帮我从心愿单 ' + list.slice(0,3).map(function(x){ return x.name; }).join(' / ') + ' 里挑 1 款最值的';
       html += '<div style="margin-top:14px;padding:12px;background:linear-gradient(90deg,#f5f7ff,#fff);border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:12px;color:#666">犹豫不决？让 AI 帮你选</span>' + aiAssistBtn('AI 选 1 款', ask) + '</div>';
@@ -5724,11 +5738,21 @@ window.LxBehavior = (function(){
       showAIModal({ type: 'info', title: '我的订单 📦', content: window.LxStatus.empty({ icon: '📦', title: '暂无订单', hint: '一键领取优惠后订单将显示在这里' }) });
       return;
     }
-    var html = '<div style="display:flex;flex-direction:column;gap:10px">' + list.map(function(o){
-      return '<div style="padding:12px;border:1px solid var(--border,#eee);border-radius:8px">' +
-        '<div style="display:flex;justify-content:space-between;font-size:12px;color:#999"><span>订单号 '+o.orderId+'</span><span style="color:var(--accent,#E12521)">'+o.status+'</span></div>' +
-        '<div style="margin-top:8px;font-size:14px">'+escHtml(o.name)+'</div>' +
+    var STAGES = ['已下单', '备货中', '已发货', '派送中', '已签收'];
+    var html = '<div style="display:flex;flex-direction:column;gap:12px">' + list.map(function(o){
+      // 模拟进度：根据下单时间推进，1h/格
+      var elapsedH = Math.floor((Date.now() - (o.ts || Date.now())) / (60*60*1000));
+      var stageIdx = Math.min(elapsedH, 4);
+      var stageBar = '<div style="display:flex;gap:2px;margin-top:10px">' + STAGES.map(function(s, i){
+        var done = i <= stageIdx;
+        return '<div style="flex:1;text-align:center"><div style="height:4px;border-radius:2px;background:'+(done?'var(--accent,#E12521)':'#e5e7eb')+';margin-bottom:4px"></div><div style="font-size:10px;color:'+(done?'var(--accent,#E12521)':'#bbb')+'">'+s+'</div></div>';
+      }).join('') + '</div>';
+      var eta = stageIdx < 4 ? '<div style="margin-top:8px;font-size:12px;color:#666">📅 预计 '+(['今日 18:00','明日 12:00','明日 20:00','后天上午'][stageIdx])+'前送达</div>' : '';
+      return '<div style="padding:14px;border:1px solid var(--border,#eee);border-radius:10px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:12px;color:#999"><span>订单号 '+o.orderId+'</span><span style="color:var(--accent,#E12521)">'+STAGES[stageIdx]+'</span></div>' +
+        '<div style="margin-top:8px;font-size:14px;font-weight:500">'+escHtml(o.name)+'</div>' +
         (o.price ? '<div style="margin-top:6px;color:var(--accent,#E12521);font-weight:700">¥'+Number(o.price).toLocaleString()+'</div>' : '') +
+        stageBar + eta +
       '</div>';
     }).join('') + '</div>';
     var lastName = list[0].name;
@@ -5981,6 +6005,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v35-aiassist"></script>
+<script src="/split-layout.js?v=20260514-v36-orderviz"></script>
 </body>
 </html>
