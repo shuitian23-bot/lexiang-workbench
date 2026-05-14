@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v51-tabdrag">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v52-predict4">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5611,6 +5611,19 @@ window.LxBehavior = (function(){
 
   // 公开 hook 给外部模块调用（addToCart / addToWishlist 后触发）
   function onCartAdd(item){
+    // 立即凑单 / 配件推荐
+    var price = Number(item.price) || 0;
+    var nextThreshold = price < 3000 ? 3000 : price < 5000 ? 5000 : price < 10000 ? 10000 : 0;
+    if (nextThreshold) {
+      var diff = nextThreshold - price;
+      setTimeout(function(){
+        showHint('cart-cross-' + item.sku,
+          '差 <b>¥' + diff + '</b> 满 <b>¥' + nextThreshold + '</b><br>凑个鼠标 / 包 / 耳机刚好到门槛',
+          '🎁 看推荐配件',
+          function(){ if (typeof quickAsk === 'function') quickAsk(item.name + ' 配什么鼠标键盘耳机？预算 ' + diff + ' 内推荐 1 套'); });
+      }, 3000);
+    }
+    // 5min 未结算提示
     setTimeout(function(){
       var ct = JSON.parse(localStorage.getItem('lexiang.cart.v1') || '[]');
       var still = ct.some(function(x){ return x.sku === item.sku; });
@@ -5669,6 +5682,64 @@ window.LxBehavior = (function(){
         }
       }, 5000);
     }
+
+    // S8① 详情页（pd-detail-below 或 cpd-specs-section）滚到底 → 立即下单引导
+    var scrolledBottomSku = {};
+    document.addEventListener('scroll', function(e){
+      var t = e.target;
+      if (!t || !t.id) return;
+      // dcBody 或 cpd-tab-content 等可滚详情容器
+      if (!/dcBody|cpd-|cp-tab-content|displayCanvas/.test(t.id + ' ' + (t.className || ''))) return;
+      if (t.scrollTop + t.clientHeight < t.scrollHeight - 50) return;
+      var top = recentProducts[0];
+      if (!top || scrolledBottomSku[top.sku]) return;
+      scrolledBottomSku[top.sku] = 1;
+      showHint('scrollend-' + top.sku,
+        '看完<b>' + escHtml(top.name.slice(0, 14)) + '</b>详情了？<br>看上的话现在领优惠最划算',
+        '🎁 立即领优惠',
+        function(){ if (typeof startBuyFlow === 'function') startBuyFlow(top.name, top.price); });
+    }, true);
+
+    // S8③ chat 内复制 AI 答复 → 推 share
+    document.addEventListener('copy', function(){
+      var sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      var node = sel.getRangeAt(0).commonAncestorContainer;
+      var el = node.nodeType === 1 ? node : node.parentElement;
+      if (!el || !el.closest || !el.closest('.mbubble')) return;
+      var text = String(sel.toString()).slice(0, 40);
+      if (text.length < 8) return;
+      showHint('copy-share',
+        '答案不错？<br>顺手分享给朋友吧',
+        '📤 分享',
+        function(){
+          if (navigator.share) {
+            navigator.share({ title: '联想乐享 AI 推荐', text: text + '...', url: location.href }).catch(function(){});
+          } else {
+            navigator.clipboard.writeText(text + '... 来自联想乐享 ' + location.href);
+            window.LxStatus && window.LxStatus.toast('链接已复制，去微信粘贴吧', { type: 'success' });
+          }
+        });
+    });
+
+    // S8② mouseleave 顶部（要关页面）→ 挽留专属券
+    var leftOnce = false;
+    document.addEventListener('mouseleave', function(e){
+      if (leftOnce || isUserBusy()) return;
+      if (e.clientY > 5) return; // 仅鼠标向上离开顶部触发
+      if (Date.now() - sessionStart < 30000) return; // 至少呆 30s 才挽留
+      var ct = JSON.parse(localStorage.getItem('lexiang.cart.v1') || '[]');
+      var msg = ct.length
+        ? '购物车 <b>' + ct.length + '</b> 件商品还没结算<br>临走给您一张<b>专属 ¥50 券</b>，立即下单可叠加'
+        : '别走呀～<br>送您一张 <b>¥50 新人券</b>，再看看？';
+      showHint('exit-intent',
+        msg, '🎁 领走再走',
+        function(){
+          window.LxStatus && window.LxStatus.toast('🎉 已派发 ¥50 专属券到账户', { type: 'success', ms: 3000 });
+          if (ct.length && typeof startBuyFlow === 'function') startBuyFlow(ct[0].name, ct[0].price);
+        });
+      leftOnce = true;
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
@@ -6077,6 +6148,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v51-tabdrag"></script>
+<script src="/split-layout.js?v=20260515-v52-predict4"></script>
 </body>
 </html>
