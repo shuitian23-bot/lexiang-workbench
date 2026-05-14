@@ -648,7 +648,7 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   if (!imageUrl && !audioUrl && !thinkingMode && userMessage && userMessage.trim().length >= 2) {
     try {
       const { classifyIntent } = require('./intent_classifier');
-      intentResult = await classifyIntent(userMessage, siteType, { timeoutMs: 3500 });
+      intentResult = await classifyIntent(userMessage, siteType, { timeoutMs: 5500 });
       if (intentResult && intentResult.requires_tool && intentResult.confidence >= 0.6) {
         forceToolChoice = 'required';
         console.log('[Agent] intent=' + intentResult.intent + ' (conf=' + intentResult.confidence + ') → tool_choice: required');
@@ -671,7 +671,7 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     if (intentResult && intentResult.confidence >= 0.6 && userMessage.trim().length >= 12) {
       try {
         const { planTasks, buildPlanHintMessage } = require('./planner');
-        const plan = await planTasks(userMessage, intentResult.intent, siteType, { timeoutMs: 3500 });
+        const plan = await planTasks(userMessage, intentResult.intent, siteType, { timeoutMs: 5500 });
         if (plan && plan.needs_planning) {
           const hintText = buildPlanHintMessage(plan);
           if (hintText) {
