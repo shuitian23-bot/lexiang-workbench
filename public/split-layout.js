@@ -241,14 +241,12 @@
     document.body.appendChild(btn);
   }
 
-  // 状态1→2
+  // 状态1→2a：全屏 chat（不分屏，landing 隐藏，chat 居中 max 900）
   function enterChat() {
     if (!isPC()) return;
     var html = document.documentElement;
-    html.classList.add('split-mode', 'in-chat', 'is-chat');
-    html.style.setProperty('--split-left', state.leftPct + '%');
+    html.classList.add('in-chat', 'is-chat');
     extractNav();
-    ensureLandingCloseBtn();
     document.getElementById('chatApp').classList.add('active');
     try {
       var base = chatBase();
@@ -262,11 +260,23 @@
     }, 200);
   }
 
-  // 添加 Tab → 状态2→3 或保持3
+  // 状态2a→2b：升级真分屏（AI 触发 tab 时调用）
+  function enterSplit() {
+    if (!isPC()) return;
+    var html = document.documentElement;
+    if (!html.classList.contains('in-chat')) enterChat();
+    if (html.classList.contains('split-mode')) return;
+    html.classList.add('split-mode');
+    html.style.setProperty('--split-left', state.leftPct + '%');
+    ensureLandingCloseBtn();
+  }
+
+  // 添加 Tab → 升级分屏（必加 split-mode，让左侧 chat / 右侧 tab 同时可见）
   function openContent(type, title, data, skipHome) {
     if (!isPC()) return null;
     var html = document.documentElement;
     if (!html.classList.contains('in-chat')) enterChat();
+    if (!html.classList.contains('split-mode')) enterSplit();
     if (!skipHome && type !== 'home') ensureHomeTab();
 
     var reusable = findReusableTab(type, data);
@@ -475,6 +485,7 @@
 
   // ── 全局 API ──
   window.__enterChat = enterChat;
+  window.__enterSplit = enterSplit;
   window.__openContent = openContent;
   window.__closeContent = closeContent;
   window.__closeWorkspaceTab = closeTab;
