@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v42-substsplit">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v43-subnavRO">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -4071,9 +4071,15 @@ function _openSvc(type, title, ask) {
 }
 window._openSvc = _openSvc;
 
+var _subnavRO = null;
 function renderSubnav() {
   var box = document.getElementById('subnavExtraInput') || document.getElementById('subnavExtra');
   if (!box) return;
+  // ResizeObserver 监听容器宽度变化（splitter 拖拽不触发 window resize，必须靠这个）
+  if (!_subnavRO && typeof ResizeObserver !== 'undefined') {
+    _subnavRO = new ResizeObserver(function(){ if (box._allItems) fitSubnav(box); });
+    _subnavRO.observe(box);
+  }
   var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
   // 全部 button（main + more）一起渲染到 nowrap flex，JS 测宽溢出的隐藏 + 加进 more 下拉
@@ -6057,6 +6063,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v42-substsplit"></script>
+<script src="/split-layout.js?v=20260514-v43-subnavRO"></script>
 </body>
 </html>
