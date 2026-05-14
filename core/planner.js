@@ -21,7 +21,8 @@ function buildPrompt(userMessage, primaryIntent, siteType) {
 
 【判断规则】
 - 单一意图（仅推荐 / 仅查询 / 仅咨询）→ needs_planning=false，subtasks=[]
-- 同时含 ≥2 类诉求（如"推荐机型 + 查门店"、"以旧换新 + 查会员权益"）→ needs_planning=true
+- 同时含 ≥2 类**异质**诉求（如"推荐机型 + 查门店"、"以旧换新 + 查会员权益"、"推荐机型 + 看优惠券"）→ needs_planning=true
+- **不要拆**：纯对比咨询（"A vs B 哪个好"是单 product_explain，不要再拆 product_recommend）；同类追问（"再贵一点"是 filter 单一）；闲聊；多个候选机型本身（"Yoga 还是小新"是 product_explain）
 - 子任务最多 3 个，每个含 intent + 一句话 query
 
 【输出格式】严格 JSON 单行：

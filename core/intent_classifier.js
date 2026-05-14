@@ -23,7 +23,7 @@ const INTENTS = {
   bulk_purchase: '批量采购 / 团购 / 几十台 / 阶梯价',
   invoice: '开票 / 增值税 / 专票 / 普票 / 对公',
   tender: '招投标 / 政采 / 央采 / 资质文件 / 授权书',
-  compliance: '信创 / 等保 / 国密 / 国产化 / 麒麟 / 统信 / 涉密',
+  compliance: '信创 / 等保 / 国密 / 国产化 / 麒麟系统 / 统信 UOS / 银河麒麟 / 涉密 / 国产 OS / 操作系统国产化（含「机器是否支持麒麟/统信」类问题）',
   lead: '请联系我 / 留下电话 / 安排上门 / BD 接洽 / 大额项目',
   filter: '在已展示商品上二次筛选（再贵一点 / 只看 ThinkPad / 5000 以下）',
   navigate: '滚到 / 跳到 / 看看主页某区块（新品/热销/方案/案例）',
@@ -58,6 +58,11 @@ ${intentList}
 - chitchat requires_tool 必为 false
 - product_recommend / customize / coupon / member / tradein / store / lead / bulk_purchase / tender / compliance / warranty / vas / showcase / live / solution / filter / navigate 通常 requires_tool=true
 - confidence < 0.6 时 requires_tool 设为 false（让 LLM 自己决定调不调工具）
+- **关键词强信号**（命中即对应意图，优先级高于其他）：
+  - 含「麒麟 / 统信 / UOS / 信创 / 国产 OS / 等保 / 国密」→ compliance
+  - 含「招标 / 投标 / 政采 / 央采 / 资质」→ tender
+  - 含「专票 / 增值税 / 普票 / 对公开票」→ invoice
+  - 含「批量 / 团购 / 阶梯价 / N 台」→ bulk_purchase
 
 【用户消息】"${(userMessage || '').replace(/"/g, '\\"').slice(0, 500)}"
 
