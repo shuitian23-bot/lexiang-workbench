@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v52-predict4">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v53-aipick">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1250,6 +1250,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   }();</script>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <a href="#" id="navAiPickBtn" onclick="aiPickForMe();return false;" title="AI 综合给你选 1 款" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff!important;font-weight:600;font-size:12px;box-shadow:0 4px 12px rgba(184,51,64,.3);animation:lx-skel 3s ease-in-out infinite alternate">🤖 AI 帮我选</a>
     <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;font-size:18px">🛒<span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
     <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="display:none;position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
@@ -5722,6 +5723,52 @@ window.LxBehavior = (function(){
         });
     });
 
+    // S9⑤ 心愿单 ≥2 → nav 「🤖 AI 帮我选」按钮显隐
+    function refreshAiPick(){
+      var btn = document.getElementById('navAiPickBtn');
+      if (!btn) return;
+      var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
+      btn.style.display = (wl.length >= 2 || recentProducts.length >= 2) ? 'inline-flex' : 'none';
+    }
+    setInterval(refreshAiPick, 3000);
+    refreshAiPick();
+    window.aiPickForMe = function(){
+      var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
+      var pool = wl.length >= 2 ? wl.slice(0,5) : recentProducts.slice(0,5);
+      if (!pool.length) { window.LxStatus && window.LxStatus.toast('先看几个商品 / 加心愿单，AI 才能帮你选', { type: 'info' }); return; }
+      var ask = '基于我浏览/心愿单的 ' + pool.map(function(p){ return p.name; }).join('、') + '，综合性价比/性能/设计/品牌口碑，直接给我推 1 款最优，并说理由 + 立即下单链接';
+      if (typeof quickAsk === 'function') quickAsk(ask);
+    };
+
+    // S9⑥ tab 切换 ≥3 次 → 「比来比去？让 AI 直接定」
+    var tabSwitches = 0;
+    document.addEventListener('click', function(e){
+      if (!e.target.closest) return;
+      var tab = e.target.closest('.cp-tab');
+      if (!tab) return;
+      tabSwitches++;
+      if (tabSwitches === 4) {
+        showHint('tab-shuffle',
+          '看你切来切去比对～<br>让 AI 综合参数 + 评价，<b>直接帮你定</b>怎么样？',
+          '🤖 AI 帮我决定',
+          function(){ window.aiPickForMe(); });
+      }
+    });
+
+    // S9⑦ 输入含「保修/延保/退换/售后」 → 立即提示售后入口
+    var afterSaleSeen = false;
+    document.addEventListener('input', function(e){
+      if (afterSaleSeen) return;
+      if (!e.target || (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA')) return;
+      var v = (e.target.value || '').toLowerCase();
+      if (!/保修|延保|退换|售后|退货|换货|质保/.test(v)) return;
+      afterSaleSeen = true;
+      showHint('aftersale',
+        '想查保修 / 延保 / 退换？<br>1 键预约售后，AI 直接对接客服',
+        '🛠 预约售后',
+        function(){ if (typeof quickAsk === 'function') quickAsk('我要预约售后服务，帮我查保修剩余 + 上门维修流程'); });
+    }, true);
+
     // S8② mouseleave 顶部（要关页面）→ 挽留专属券
     var leftOnce = false;
     document.addEventListener('mouseleave', function(e){
@@ -6148,6 +6195,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v52-predict4"></script>
+<script src="/split-layout.js?v=20260515-v53-aipick"></script>
 </body>
 </html>
