@@ -464,6 +464,10 @@ html.split-dragging embed {
   border-radius: 999px;
   background: #6D28D9;
 }
+.cp-tab-wrap[draggable="true"] { cursor: grab; }
+.cp-tab-wrap[draggable="true"]:active { cursor: grabbing; }
+.cp-tab-wrap.cp-tab-dragging { opacity: .4; }
+.cp-tab-wrap.cp-tab-dropover { border-color: #6D28D9; box-shadow: -3px 0 0 #6D28D9; }
 
 /* 单个 Tab */
 .cp-tab {

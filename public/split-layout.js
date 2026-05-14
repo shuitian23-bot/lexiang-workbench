@@ -330,6 +330,42 @@
     else tabsContainer.appendChild(wrap);
     tab.el = wrap;
 
+    // S7 tab 拖拽换序（home tab 不可拖）
+    if (type !== 'home') {
+      wrap.draggable = true;
+      wrap.addEventListener('dragstart', function (e) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', id);
+        wrap.classList.add('cp-tab-dragging');
+      });
+      wrap.addEventListener('dragend', function () { wrap.classList.remove('cp-tab-dragging'); });
+      wrap.addEventListener('dragover', function (e) {
+        var srcId = (e.dataTransfer && (e.dataTransfer.types || [])).indexOf && (e.dataTransfer.types || []).indexOf('text/plain') >= 0;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        wrap.classList.add('cp-tab-dropover');
+      });
+      wrap.addEventListener('dragleave', function () { wrap.classList.remove('cp-tab-dropover'); });
+      wrap.addEventListener('drop', function (e) {
+        e.preventDefault();
+        wrap.classList.remove('cp-tab-dropover');
+        var srcId = e.dataTransfer.getData('text/plain');
+        if (!srcId || srcId === id) return;
+        var srcIdx = -1, tgtIdx = -1;
+        for (var i = 0; i < tabs.length; i++) {
+          if (tabs[i].id === srcId) srcIdx = i;
+          if (tabs[i].id === id) tgtIdx = i;
+        }
+        if (srcIdx < 0 || tgtIdx < 0) return;
+        if (tabs[srcIdx].type === 'home' || tabs[tgtIdx].type === 'home') return;
+        var moved = tabs.splice(srcIdx, 1)[0];
+        tabs.splice(tgtIdx, 0, moved);
+        // 重排 DOM
+        var afterEl = (srcIdx < tgtIdx) ? wrap.nextSibling : wrap;
+        if (moved.el) tabsContainer.insertBefore(moved.el, afterEl);
+      });
+    }
+
     // tab 内容
     var contentDiv = document.createElement('div');
     contentDiv.className = 'cp-tab-content';
@@ -804,6 +840,10 @@
     fetch('/api/products/' + encodeURIComponent(sku)).then(function (r) { return r.json(); }).then(function (p) {
       data.product = p;
       data.context = { type: 'product', title: p.name || '商品详情', product: compactProduct(p) };
+      // S6 行为追踪：split-chat 内查商品也算
+      if (window.LxBehavior && window.LxBehavior.trackProduct) {
+        window.LxBehavior.trackProduct(p.sku, p.name, p.price, p.image_url, p.category);
+      }
       var current = getActiveTab();
       if (current) renameTab(current.id, p.name || '商品详情');
       var img = (p.image_url || '').replace(/^http:/, 'https:');
