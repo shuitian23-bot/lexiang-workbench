@@ -868,6 +868,7 @@
           tuHtml +
           (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-section-title">📋 规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
           '<div class="cpd-wiki-section"><h4 class="cpd-section-title">📚 联想百科</h4><div class="cpd-wiki-body" id="cpd-wiki-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">从联想百科加载中...</div></div></div>' +
+          '<div class="cpd-detail-images-section"><h4 class="cpd-section-title">📸 商品介绍详情图</h4><div class="cpd-detail-images-body" id="cpd-detail-images-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">加载详情图…</div></div></div>' +
         '</div>';
 
       // 异步拉 wiki RAG
@@ -888,6 +889,22 @@
           .catch(function(e){ wikiBox.innerHTML = '<div style="text-align:center;padding:24px;color:#c00">加载失败</div>'; });
       })();
 
+
+      // 异步拉 lenovo 详情图
+      (function(){
+        var box = container.querySelector('#cpd-detail-images-' + encodeURIComponent(sku));
+        if (!box || !sku) return;
+        fetch('/api/product/' + encodeURIComponent(sku) + '/detail-images')
+          .then(function(r){ return r.json(); })
+          .then(function(json){
+            if (json.images && json.images.length) {
+              box.innerHTML = json.images.map(function(u){ return '<img src="' + escH(u) + '" alt="详情图" loading="lazy" style="width:100%;display:block;margin-bottom:8px">'; }).join('');
+            } else {
+              box.innerHTML = '<div style="text-align:center;padding:24px;color:#999">暂无详情图</div>';
+            }
+          })
+          .catch(function(){ box.innerHTML = '<div style="text-align:center;padding:24px;color:#c00">加载失败</div>'; });
+      })();
 
       var buyBtn = container.querySelector('.cpd-buy');
       if (buyBtn) buyBtn.addEventListener('click', function () {

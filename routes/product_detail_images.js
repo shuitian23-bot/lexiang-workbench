@@ -33,27 +33,23 @@ function extractDetailImages(html) {
   const $ = cheerio.load(html);
   const seen = new Set();
   const out = [];
-  // 候选容器：详情/产品段落
-  const containers = ['.detail-all-tab-container', '.detail_con', '.detail_bottom', '.cms_curren', '.product-detail', 'body'];
-  for (const sel of containers) {
-    $(sel).find('img').each(function() {
-      let src = $(this).attr('src') || $(this).attr('data-src') || $(this).attr('data-original') || $(this).attr('data-lazy-src') || '';
-      if (!src) return;
-      src = src.trim();
-      if (src.startsWith('//')) src = 'https:' + src;
-      if (!/^https?:\/\//.test(src)) return;
-      if (!/lefile\.cn|lenovo\./i.test(src)) return;
-      // 仅 product/adminweb 或 cms uuid hash 路径（详情图常见）
-      if (!/\/product\/adminweb\/|\/fes\/cms\//.test(src)) return;
-      // 排除明显的 nav/icon/装饰
-      if (/(nav|icon|logo|favicon|arrow|btn|button|sprite|placeholder)\.png$/i.test(src)) return;
-      if (/(navnew|navold|righttop|rightbtm|leftsan|rightsan|sdefault)/i.test(src)) return;
-      if (seen.has(src)) return;
-      seen.add(src);
-      out.push(src);
-    });
-    if (out.length >= 5) break;
-  }
+  // lenovo 详情图用 lazy load，真实 URL 在 data-original 属性
+  // 命名规律：/product/adminweb/{YYYY}/{MM}/{DD}/{随机串}-{4位数}.jpg
+  $('img[data-original]').each(function() {
+    let src = ($(this).attr('data-original') || '').trim();
+    if (!src || src === 'error' || /\/error$/.test(src)) return;
+    if (src.startsWith('//')) src = 'https:' + src;
+    if (!/^https?:\/\//.test(src)) return;
+    if (!/lefile\.cn/.test(src)) return;
+    // 真实详情图必含 product/adminweb 路径 + 「随机串-数字.jpg」格式
+    if (!/\/product\/adminweb\/(\d{4})\/\d{2}\/\d{2}\/[A-Za-z0-9]{10,}-\d+\.(jpg|jpeg|png|webp)/i.test(src)) return;
+    // 优先 2024+ 上传的图（早期是装饰素材）
+    const yearMatch = src.match(/\/adminweb\/(\d{4})\//);
+    if (yearMatch && parseInt(yearMatch[1], 10) < 2023) return;
+    if (seen.has(src)) return;
+    seen.add(src);
+    out.push(src);
+  });
   return out.slice(0, 30);
 }
 
