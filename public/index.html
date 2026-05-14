@@ -1208,11 +1208,11 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v28-subnav">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v29-subnav-fix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
-_chatPrefixes.forEach(function(x){if(_p.startsWith(x)){_siteType=x.replace('/','').replace('-chat','');var rest=_p.slice(x.length);document.documentElement.classList.add('is-chat');if(rest.split('/')[1])document.documentElement.classList.add('is-chat-conv');}});
+_chatPrefixes.forEach(function(x){if(_p.startsWith(x)){_siteType=x.replace('/','').replace('-chat','');var rest=_p.slice(x.length);var hasConv=!!(rest.split('/')[1]);if(hasConv){document.documentElement.classList.add('is-chat','is-chat-conv');}}});
 if(_siteType==='chat')_siteType='default';
 document.documentElement.dataset.site=_siteType;
 window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+_siteType+'-chat';</script>
@@ -4053,26 +4053,23 @@ function renderSubnav() {
 // 测宽自适应：超容器的 button 隐藏 + 加进「更多」下拉
 function fitSubnav(box) {
   if (!box || !box._allItems) return;
+  var containerW = box.clientWidth;
+  // 容器没渲染好（width=0）→ 下一帧重试，避免误把所有按钮判超宽
+  if (containerW < 80) { requestAnimationFrame(function(){ fitSubnav(box); }); return; }
   var items = box._allItems;
   var moreWrap = box.querySelector('#seMoreWrap');
   var dropdown = box.querySelector('#seMoreDropdown');
   if (!moreWrap || !dropdown) return;
   var btns = box.querySelectorAll('.se-btn[data-se-idx]');
-  // 全显示先测宽
   btns.forEach(function(b){ b.style.display = ''; });
   moreWrap.style.display = '';
-  var containerW = box.clientWidth;
-  var moreBtnW = moreWrap.offsetWidth + 8; // 给 more 按钮预留
+  var moreBtnW = moreWrap.offsetWidth + 8;
   var used = 0;
   var hiddenIdx = [];
-  btns.forEach(function(b, i){
+  btns.forEach(function(b){
     var w = b.offsetWidth + 8;
-    if (used + w + moreBtnW <= containerW) {
-      used += w;
-    } else {
-      b.style.display = 'none';
-      hiddenIdx.push(parseInt(b.dataset.seIdx, 10));
-    }
+    if (used + w + moreBtnW <= containerW) used += w;
+    else { b.style.display = 'none'; hiddenIdx.push(parseInt(b.dataset.seIdx, 10)); }
   });
   if (hiddenIdx.length === 0) {
     moreWrap.style.display = 'none';
@@ -5689,6 +5686,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v28-subnav"></script>
+<script src="/split-layout.js?v=20260514-v29-subnav-fix"></script>
 </body>
 </html>
