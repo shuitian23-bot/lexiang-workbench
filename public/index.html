@@ -181,6 +181,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .hero-wrap .blob4{width:38%;height:42%;bottom:10%;right:10%;background:var(--hr);animation:gb4 14s linear infinite}
 /* LxStatus 三件套 CSS */
 @keyframes lx-skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.lx-nav-badge{position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:10px;background:var(--accent,#E12521);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1}
 @keyframes lx-spin{to{transform:rotate(360deg)}}
 .lx-empty{padding:48px 24px;text-align:center;color:var(--text2,#9CA3AF)}
 .lx-empty-icon{font-size:48px;margin-bottom:14px;opacity:.7}
@@ -1208,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v30-nobtn">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v31-cart">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1243,6 +1244,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   }();</script>
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <a href="#" id="navWishlistBtn" onclick="openWishlist();return false;" title="心愿单" style="position:relative;font-size:18px">❤<span id="navWishlistBadge" class="lx-nav-badge" style="display:none"></span></a>
+    <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;font-size:18px">🛒<span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
+    <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="display:none;position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
     <div id="navUserArea" style="display:none;align-items:center;gap:8px;"><span id="navNickname" style="font-size:13px;cursor:pointer;"></span><a href="#" onclick="doLogout();return false;" style="font-size:12px;opacity:.6;">退出</a></div>
     <button class="tog" id="tog" aria-label="切换主题" style="display:none">
@@ -2464,7 +2468,7 @@ function renderSelfProducts(products) {
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <a class="leai-ppanel-buy" href="${buyUrl}" rel="noopener" onclick="event.stopPropagation();event.preventDefault();openPreview('${buyUrl.replace(/'/g,"\\'")}')">去官网</a>
+          <button class="leai-ppanel-buy" onclick="event.stopPropagation();startBuyFlow('${escHtml(name).replace(/'/g, "\\\\'")}',${typeof p.price==='number'?p.price:0})">🎁 一键领取优惠</button>
         </div>
       </div>
     </div>`;
@@ -3507,10 +3511,9 @@ async function showProductDetail(sku) {
             '</div>' +
             optionGroupsHtml +
             '<div class="pd-action-btns">' +
-              '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">立即购买</button>' +
-              '<a class="pd-btn-cart" href="' + buyUrl + '" rel="noopener" onclick="event.preventDefault();openPreview(this.href)" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">↗ 官网查看</a>' +
-              '<a class="pd-btn-cart" href="' + searchUrl + '" rel="noopener" onclick="event.preventDefault();openPreview(this.href)" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">🔍 同款搜索</a>' +
-              '<button class="pd-btn-ask" onclick="askAboutProduct()">问AI助手</button>' +
+              '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button>' +
+              '<button class="pd-btn-cart" onclick="addToWishlist(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">❤ 加入心愿单</button>' +
+              '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -3678,8 +3681,7 @@ function showAIModal(data) {
         (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
       catRow += '<td>' + escHtml(p.category || '-') + '</td>';
       descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
-      buyRow += '<td><a href="' + lxUtm(p.url || '#', p.sku || '') + '" rel="noopener" class="cmp-buy" onclick="event.preventDefault();openPreview(this.href)">去购买</a>' +
-        '<button class="cmp-ask" onclick="document.querySelector(\'.ai-modal-mask\').remove();quickAsk(\'详细介绍 ' + escHtml(p.name).replace(/'/g,"\\'") + '\')">问AI</button></td>';
+      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();startBuyFlow(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button></td>';
     });
 
     var specRows = '';
@@ -4728,6 +4730,7 @@ function startBuyFlow(productName, productPrice) {
     // 标记流程结束：释放运行锁，置已完成，禁用购买按钮
     startBuyFlow._running = false;
     startBuyFlow._done = true;
+    if (typeof window.addOrder === 'function') window.addOrder(productName, finalPrice);
     var pdBtn = document.getElementById('pdBuyBtn');
     if (pdBtn) { pdBtn.disabled = false; pdBtn.textContent = '立即购买'; pdBtn.style.opacity = ''; pdBtn.style.cursor = ''; }
     // 更新卡片标题，隐藏进度条
@@ -5442,6 +5445,108 @@ window.LxStatus = (function(){
 // 兼容旧 _showToast
 window._showToast = function(msg, ms){ return window.LxStatus.toast(msg, { ms: ms }); };
 
+// ════════════════════════════════════════════════════════════════
+// S5 心愿单 / 购物车 / 订单
+// ════════════════════════════════════════════════════════════════
+(function(){
+  var WL_KEY = 'lexiang.wishlist.v1';
+  var CT_KEY = 'lexiang.cart.v1';
+  var OD_KEY = 'lexiang.orders.v1';
+
+  function load(k){ try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch(e){ return []; } }
+  function save(k, arr){ try { localStorage.setItem(k, JSON.stringify(arr)); } catch(e){} }
+
+  function refreshBadges(){
+    var wl = load(WL_KEY), ct = load(CT_KEY), od = load(OD_KEY);
+    var wb = document.getElementById('navWishlistBadge');
+    var cb = document.getElementById('navCartBadge');
+    var ob = document.getElementById('navOrdersBadge');
+    var ot = document.getElementById('navOrdersBtn');
+    if (wb) { wb.style.display = wl.length ? 'inline-flex' : 'none'; wb.textContent = wl.length; }
+    if (cb) { cb.style.display = ct.length ? 'inline-flex' : 'none'; cb.textContent = ct.length; }
+    if (ob) { ob.style.display = od.length ? 'inline-flex' : 'none'; ob.textContent = od.length; }
+    if (ot) { ot.style.display = od.length ? 'inline-flex' : 'none'; }
+  }
+
+  window.addToWishlist = function(sku, name, price, image){
+    var list = load(WL_KEY);
+    if (list.some(function(x){ return x.sku === sku; })) {
+      window.LxStatus && window.LxStatus.toast('已在心愿单', { type: 'info' });
+      return;
+    }
+    list.unshift({ sku: sku, name: name, price: price, image: image, ts: Date.now() });
+    save(WL_KEY, list); refreshBadges();
+    window.LxStatus && window.LxStatus.toast('已加心愿单 ❤', { type: 'success' });
+  };
+  window.addToCart = function(sku, name, price, image){
+    var list = load(CT_KEY);
+    var exist = list.find(function(x){ return x.sku === sku; });
+    if (exist) { exist.qty = (exist.qty||1) + 1; }
+    else { list.unshift({ sku: sku, name: name, price: price, image: image, qty: 1, ts: Date.now() }); }
+    save(CT_KEY, list); refreshBadges();
+    window.LxStatus && window.LxStatus.toast('已加购物车 🛒', { type: 'success' });
+  };
+  window.addOrder = function(name, price){
+    var list = load(OD_KEY);
+    list.unshift({ name: name, price: price, status: '待发货', orderId: 'LX' + Date.now().toString().slice(-8), ts: Date.now() });
+    save(OD_KEY, list); refreshBadges();
+  };
+  window.removeFromList = function(key, sku){
+    var list = load(key).filter(function(x){ return x.sku !== sku; });
+    save(key, list); refreshBadges();
+    if (key === WL_KEY) openWishlist(); else if (key === CT_KEY) openCart();
+  };
+
+  function buildListHtml(list, key, emptyTitle){
+    if (!list.length) {
+      return window.LxStatus.empty({ icon: '📭', title: emptyTitle, hint: '去逛逛商品发现心仪好物' });
+    }
+    return '<div style="display:flex;flex-direction:column;gap:10px">' + list.map(function(it){
+      var img = it.image ? '<img src="'+it.image+'" style="width:60px;height:60px;object-fit:contain;background:#f5f5f5;border-radius:6px" loading="lazy">' : '<div style="width:60px;height:60px;background:#f5f5f5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px">📦</div>';
+      var qty = it.qty ? '<div style="font-size:12px;color:#999">×'+it.qty+'</div>' : '';
+      return '<div style="display:flex;gap:12px;padding:10px;border:1px solid var(--border,#eee);border-radius:8px;align-items:center">' +
+        img +
+        '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+escHtml(it.name)+'</div>' +
+        (it.price ? '<div style="color:var(--accent,#E12521);font-weight:700;margin-top:4px">¥'+Number(it.price).toLocaleString()+'</div>' : '') + qty +
+        '</div>' +
+        '<button onclick="removeFromList(\''+key+'\',\''+escHtml(it.sku)+'\')" style="background:none;border:none;color:#999;cursor:pointer;font-size:18px;padding:6px">×</button>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  window.openWishlist = function(){
+    var list = load(WL_KEY);
+    var html = buildListHtml(list, WL_KEY, '心愿单为空');
+    showAIModal({ type: 'info', title: '我的心愿单 ❤ ('+list.length+')', content: html });
+  };
+  window.openCart = function(){
+    var list = load(CT_KEY);
+    var total = list.reduce(function(s, x){ return s + (x.price||0) * (x.qty||1); }, 0);
+    var html = buildListHtml(list, CT_KEY, '购物车为空');
+    if (list.length) html += '<div style="margin-top:14px;padding:12px;background:#fff8f0;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:#666">合计</span><span style="font-size:20px;font-weight:800;color:var(--accent,#E12521)">¥'+total.toLocaleString()+'</span></div>';
+    showAIModal({ type: 'info', title: '购物车 🛒 ('+list.length+')', content: html });
+  };
+  window.openOrders = function(){
+    var list = load(OD_KEY);
+    if (!list.length) {
+      showAIModal({ type: 'info', title: '我的订单 📦', content: window.LxStatus.empty({ icon: '📦', title: '暂无订单', hint: '一键领取优惠后订单将显示在这里' }) });
+      return;
+    }
+    var html = '<div style="display:flex;flex-direction:column;gap:10px">' + list.map(function(o){
+      return '<div style="padding:12px;border:1px solid var(--border,#eee);border-radius:8px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:12px;color:#999"><span>订单号 '+o.orderId+'</span><span style="color:var(--accent,#E12521)">'+o.status+'</span></div>' +
+        '<div style="margin-top:8px;font-size:14px">'+escHtml(o.name)+'</div>' +
+        (o.price ? '<div style="margin-top:6px;color:var(--accent,#E12521);font-weight:700">¥'+Number(o.price).toLocaleString()+'</div>' : '') +
+      '</div>';
+    }).join('') + '</div>';
+    showAIModal({ type: 'info', title: '我的订单 📦 ('+list.length+')', content: html });
+  };
+
+  // 启动初始化
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refreshBadges);
+  else refreshBadges();
+})();
+
 function _takeCoupon(id, btn) {
   if (_receivedCoupons.indexOf(id) >= 0) return;
   _receivedCoupons.push(id);
@@ -5678,6 +5783,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v30-nobtn"></script>
+<script src="/split-layout.js?v=20260514-v31-cart"></script>
 </body>
 </html>
