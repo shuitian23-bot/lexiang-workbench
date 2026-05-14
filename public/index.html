@@ -1208,7 +1208,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v29-subnav-fix">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v30-nobtn">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2496,13 +2496,11 @@ function renderLeaiProducts(productList) {
 
     const skuKey = item.spuId || item.skuId || item.code || item.itemCode || ('leai-' + uid + '-' + i);
     const inCmpL = window._compareList && window._compareList.some(function(x){ return x.key === skuKey; });
-    const cmpBtnL = `<button class="mall-cmp-btn${inCmpL?' active':''}" data-cmp-key="${escHtml(skuKey)}" data-action="cmp-toggle-leai" title="加入对比" style="position:absolute;top:8px;right:8px;z-index:3">${inCmpL?'✓':'PK'}</button>`;
+    // S4: 去掉 PK / 解读 / 定制 三按钮
+    const cmpBtnL = '';
     const askLeai = (item.name || '').replace(/['"\\]/g, '');
     const safeImgL = String(img).replace(/"/g,'&quot;');
-    const hoverLeai = `<div class="card-hover-actions">
-      <button class="primary" data-action="explain" data-name="${escHtml(askLeai)}">${__leaiIcon('📖',{size:13})} 解读</button>
-      <button data-action="customize" data-name="${escHtml(askLeai)}" data-img="${safeImgL}">${__leaiIcon('🛠',{size:13})} 定制</button>
-    </div>`;
+    const hoverLeai = '';
     panels += `<div class="leai-ppanel${i===0?' active':''}" id="${uid}-p${i}" data-product="${escHtml(skuKey)}" data-name="${escHtml(askLeai)}" data-price="${price}" data-img="${safeImgL}" style="position:relative;cursor:pointer">
       ${cmpBtnL}
       <div style="width:100%">${scoreHtml}</div>
@@ -3173,15 +3171,9 @@ function _renderUnifiedProductCard(p, variant) {
       chat: rawName + ' 的详细配置和购买建议'
     };
   }
-  var inCmp = window._compareList && window._compareList.some(function(x){ return x.key === prodKey; });
-  var cmpAttr = variant === 'dc' ? ' data-action="cmp-toggle-dc"' : '';
-  var cmpBtn = '<button class="mall-cmp-btn' + (inCmp ? ' active' : '') + '" data-cmp-key="' + escHtml(prodKey) + '"' + cmpAttr + ' title="加入对比">' + (inCmp ? '✓' : 'PK') + '</button>';
-  var askName = rawName.replace(/['"\\]/g, '');
-  var safeImg = String(img).replace(/"/g, '&quot;');
-  var hoverActions = '<div class="card-hover-actions">' +
-    '<button class="primary" data-action="explain" data-name="' + escHtml(askName) + '">' + __leaiIcon('📖', { size: 13 }) + ' 解读</button>' +
-    '<button data-action="customize" data-name="' + escHtml(askName) + '" data-img="' + safeImg + '" data-cat="' + escHtml(p.category || '') + '">' + __leaiIcon('🛠', { size: 13 }) + ' 定制</button>' +
-    '</div>';
+  // S4: 去掉 PK / 解读 / 定制 三按钮
+  var cmpBtn = '';
+  var hoverActions = '';
   var priceCls = variant === 'dc' ? 'dc-card-price' : 'mall-price';
   var origCls  = variant === 'dc' ? 'dc-orig'       : 'mall-original';
   var priceHtml = '<div class="' + priceCls + '">' +
@@ -5686,6 +5678,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v29-subnav-fix"></script>
+<script src="/split-layout.js?v=20260514-v30-nobtn"></script>
 </body>
 </html>
