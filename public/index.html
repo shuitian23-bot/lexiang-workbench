@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v31-cart">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v32-behavior">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3377,6 +3377,8 @@ async function showProductDetail(sku) {
     document.getElementById('dcTitle').textContent = p.name;
     window.__currentProduct = { sku: p.sku, name: p.name, category: p.category, price: p.price, description: p.description };
     notifyAIProductContext(p);
+    // S5⑤⑥ 行为追踪：用户看了哪个商品，多个就提示对比
+    if (window.LxBehavior) window.LxBehavior.trackProduct(p.sku, p.name, p.price, p.image_url);
 
     // 从 description 提取亮点（按 / 分隔的配置项）
     var highlights = [];
@@ -5446,8 +5448,83 @@ window.LxStatus = (function(){
 window._showToast = function(msg, ms){ return window.LxStatus.toast(msg, { ms: ms }); };
 
 // ════════════════════════════════════════════════════════════════
-// S5 心愿单 / 购物车 / 订单
+// S5⑤⑥ AI 主动问询：行为追踪 + 浮窗提示
+// 场景：1) 看 ≥2 个商品 → 提示对比  2) 单商品停留 ≥15s → 提示同类
+// 3) landing 子区块停留 ≥30s → 提示 AI 选购
 // ════════════════════════════════════════════════════════════════
+window.LxBehavior = (function(){
+  var recentProducts = []; // [{sku, name, price, image, ts}]
+  var sessionStart = Date.now();
+  var dismissedHints = {}; // hintId → ts
+  var DISMISS_TTL = 60 * 60 * 1000; // 1h 内不重复提示
+
+  function trackProduct(sku, name, price, image){
+    if (!sku) return;
+    recentProducts = recentProducts.filter(function(p){ return p.sku !== sku; });
+    recentProducts.unshift({ sku: sku, name: name, price: price, image: image, ts: Date.now() });
+    if (recentProducts.length > 5) recentProducts.length = 5;
+    setTimeout(checkHints, 500);
+  }
+
+  function isDismissed(id){
+    var t = dismissedHints[id];
+    return t && (Date.now() - t < DISMISS_TTL);
+  }
+  function dismiss(id){ dismissedHints[id] = Date.now(); var el = document.getElementById('lxHintBubble'); if (el) el.remove(); }
+  window._lxHintDismiss = dismiss;
+
+  function showHint(id, content, primaryText, primaryFn){
+    if (isDismissed(id)) return;
+    var existing = document.getElementById('lxHintBubble');
+    if (existing) existing.remove();
+    var el = document.createElement('div');
+    el.id = 'lxHintBubble';
+    el.style.cssText = 'position:fixed;right:20px;bottom:90px;width:300px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);padding:14px 16px;z-index:300;animation:lx-skel 0.3s ease;font-size:13px;line-height:1.5';
+    el.innerHTML = '<div style="display:flex;align-items:start;gap:10px">' +
+      '<div style="width:28px;height:28px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#6b2068,#b83340);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">🤖</div>' +
+      '<div style="flex:1">' + content + '</div>' +
+      '<button onclick="_lxHintDismiss(\''+id+'\')" style="background:none;border:none;color:#999;font-size:18px;cursor:pointer;padding:0;line-height:1;margin:-4px -4px 0 0">×</button>' +
+      '</div>' +
+      '<div style="margin-top:10px;display:flex;gap:8px"><button onclick="(function(){var f='+primaryFn+';f();_lxHintDismiss(\''+id+'\')})()" style="flex:1;padding:7px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">'+primaryText+'</button>' +
+      '<button onclick="_lxHintDismiss(\''+id+'\')" style="padding:7px 12px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button></div>';
+    document.body.appendChild(el);
+    // 30s 自动消失
+    setTimeout(function(){ var x = document.getElementById('lxHintBubble'); if (x && x === el) x.remove(); }, 30000);
+  }
+
+  function checkHints(){
+    // 规则 1: 浏览过 ≥2 个商品 → 提示对比
+    if (recentProducts.length >= 2) {
+      var skus = recentProducts.slice(0, 3).map(function(p){ return p.name; }).join('、');
+      showHint('compare-multi',
+        '我看你浏览了 <b>' + recentProducts.length + '</b> 款机型（' + escHtml(skus.slice(0, 30)) + '...）<br>要不要帮你做个参数对比？',
+        '✨ 对比这几款',
+        'function(){ if(typeof openCompareTab===\"function\")openCompareTab();else if(window._compareList){window._compareList=' + JSON.stringify(recentProducts.slice(0,3).map(function(p){return {key:p.sku,name:p.name,price:p.price,image_url:p.image,description:\"\",category:\"\"}})) + ';if(typeof renderCompareModal===\"function\")renderCompareModal();else quickAsk(\"对比 ' + recentProducts.slice(0,3).map(function(p){return p.name.replace(/[\"\\\\]/g,\"\")}).join(\" 和 \") + '\");}else{quickAsk(\"对比 ' + recentProducts.slice(0,3).map(function(p){return p.name.replace(/[\"\\\\]/g,\"\")}).join(\" 和 \") + '\");}}');
+    }
+  }
+
+  function start(){
+    // 单商品停留检测
+    var lastSku = null, stayStart = 0;
+    setInterval(function(){
+      var top = recentProducts[0];
+      if (!top) return;
+      if (top.sku !== lastSku) { lastSku = top.sku; stayStart = Date.now(); return; }
+      var stayMs = Date.now() - stayStart;
+      if (stayMs > 15000 && recentProducts.length === 1) {
+        showHint('stay-one-' + top.sku,
+          '在 <b>' + escHtml(top.name) + '</b> 上停留有点久了～<br>要不要 AI 推荐<b>同价位</b>替代款？',
+          '🔍 看同类',
+          'function(){quickAsk(\"' + top.name.replace(/[\"\\\\]/g,\"\") + ' 还有什么同价位替代款？\")}');
+      }
+    }, 5000);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+
+  return { trackProduct: trackProduct, dismiss: dismiss };
+})();
 (function(){
   var WL_KEY = 'lexiang.wishlist.v1';
   var CT_KEY = 'lexiang.cart.v1';
@@ -5783,6 +5860,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v31-cart"></script>
+<script src="/split-layout.js?v=20260514-v32-behavior"></script>
 </body>
 </html>
