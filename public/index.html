@@ -1208,7 +1208,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v27-navfix">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v28-subnav">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -4035,21 +4035,60 @@ function renderSubnav() {
   if (!box) return;
   var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
-  var mainHtml = cfg.main.map(function(it){
-    return '<button class="se-btn" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
+  // 全部 button（main + more）一起渲染到 nowrap flex，JS 测宽溢出的隐藏 + 加进 more 下拉
+  var allItems = (cfg.main || []).concat(cfg.more || []);
+  var btnsHtml = allItems.map(function(it, i){
+    return '<button class="se-btn" data-se-idx="'+i+'" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
   }).join('');
-  var moreHtml = '';
-  if (cfg.more && cfg.more.length) {
-    var items = cfg.more.map(function(it){
+  var moreHtml = '<div class="se-more" id="seMoreWrap" style="display:none">'+
+    '<button class="se-btn" onclick="_seToggleMore()" title="更多">更多 ▾</button>'+
+    '<div class="se-dropdown" id="seMoreDropdown"></div>'+
+  '</div>';
+  box.innerHTML = btnsHtml + moreHtml;
+  box.style.flexWrap = 'nowrap';
+  box.style.overflow = 'hidden';
+  box._allItems = allItems;
+  fitSubnav(box);
+}
+// 测宽自适应：超容器的 button 隐藏 + 加进「更多」下拉
+function fitSubnav(box) {
+  if (!box || !box._allItems) return;
+  var items = box._allItems;
+  var moreWrap = box.querySelector('#seMoreWrap');
+  var dropdown = box.querySelector('#seMoreDropdown');
+  if (!moreWrap || !dropdown) return;
+  var btns = box.querySelectorAll('.se-btn[data-se-idx]');
+  // 全显示先测宽
+  btns.forEach(function(b){ b.style.display = ''; });
+  moreWrap.style.display = '';
+  var containerW = box.clientWidth;
+  var moreBtnW = moreWrap.offsetWidth + 8; // 给 more 按钮预留
+  var used = 0;
+  var hiddenIdx = [];
+  btns.forEach(function(b, i){
+    var w = b.offsetWidth + 8;
+    if (used + w + moreBtnW <= containerW) {
+      used += w;
+    } else {
+      b.style.display = 'none';
+      hiddenIdx.push(parseInt(b.dataset.seIdx, 10));
+    }
+  });
+  if (hiddenIdx.length === 0) {
+    moreWrap.style.display = 'none';
+    dropdown.innerHTML = '';
+  } else {
+    dropdown.innerHTML = hiddenIdx.map(function(i){
+      var it = items[i];
       return '<button onclick="'+it.fn.replace(/"/g,'&quot;')+';_seCloseMore()"><span>'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
     }).join('');
-    moreHtml = '<div class="se-more" id="seMoreWrap">'+
-      '<button class="se-btn" onclick="_seToggleMore()" title="更多服务">更多 ▾</button>'+
-      '<div class="se-dropdown">'+items+'</div>'+
-    '</div>';
   }
-  box.innerHTML = mainHtml + moreHtml;
 }
+// 容器变宽变窄重测
+window.addEventListener('resize', function(){
+  var box = document.getElementById('subnavExtraInput') || document.getElementById('subnavExtra');
+  if (box && box._allItems) fitSubnav(box);
+});
 // 首屏渲染（仅子站）
 (function(){ if (typeof _siteType !== 'undefined' && _siteType !== 'default') renderSubnav(); })();
 
@@ -5650,6 +5689,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v27-navfix"></script>
+<script src="/split-layout.js?v=20260514-v28-subnav"></script>
 </body>
 </html>
