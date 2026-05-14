@@ -1209,7 +1209,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260514-v34-predict">
+<link rel="stylesheet" href="/split-layout.css?v=20260514-v35-aiassist">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2223,6 +2223,8 @@ async function callAPI(msg, imageUrl, audioUrl){
             const cardsHtml = renderSelfProducts(d.products);
             if (cardsHtml) bubbleEl.querySelector('.mbubble').insertAdjacentHTML('beforeend', cardsHtml);
             scrollBottom();
+            // S6 AI 推完商品 8s 后主动引导加心愿/购物车
+            if (window.LxBehavior && window.LxBehavior.onProductsShown) window.LxBehavior.onProductsShown(d.products);
           }
         }
 
@@ -5600,7 +5602,26 @@ window.LxBehavior = (function(){
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 
-  return { trackProduct: trackProduct, dismiss: dismiss, onCartAdd: onCartAdd, onWishlistAdd: onWishlistAdd };
+  // AI 推完商品 8s 内没操作 → hint 引导加心愿/购物
+  function onProductsShown(products){
+    if (!products || !products.length) return;
+    var first = products[0];
+    setTimeout(function(){
+      // 用户已主动加过则不弹
+      var ct = JSON.parse(localStorage.getItem('lexiang.cart.v1') || '[]');
+      var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
+      if (ct.length || wl.length) return;
+      var name = first.name || first.名称 || '它';
+      showHint('ai-recommended-' + (first.sku || first.id || 'x'),
+        '看上 <b>' + escHtml(String(name).slice(0, 20)) + '</b> 了么？<br>加个心愿单 / 购物车，回头再决定也方便',
+        '❤ 收藏起来',
+        function(){
+          window.addToWishlist && window.addToWishlist(first.sku || String(first.id || ''), name, first.price || 0, first.image_url || '');
+        });
+    }, 8000);
+  }
+
+  return { trackProduct: trackProduct, dismiss: dismiss, onCartAdd: onCartAdd, onWishlistAdd: onWishlistAdd, onProductsShown: onProductsShown };
 })();
 (function(){
   var WL_KEY = 'lexiang.wishlist.v1';
@@ -5670,16 +5691,31 @@ window.LxBehavior = (function(){
     }).join('') + '</div>';
   }
 
+  function aiAssistBtn(label, ask){
+    return '<button onclick="document.querySelectorAll(\'.ai-modal-mask\').forEach(function(m){m.remove()});quickAsk(\''+ask.replace(/'/g, "\\'")+'\')" style="padding:8px 14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🤖 '+label+'</button>';
+  }
+
   window.openWishlist = function(){
     var list = load(WL_KEY);
     var html = buildListHtml(list, WL_KEY, '心愿单为空');
+    if (list.length >= 2) {
+      var ask = '帮我从心愿单 ' + list.slice(0,3).map(function(x){ return x.name; }).join(' / ') + ' 里挑 1 款最值的';
+      html += '<div style="margin-top:14px;padding:12px;background:linear-gradient(90deg,#f5f7ff,#fff);border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:12px;color:#666">犹豫不决？让 AI 帮你选</span>' + aiAssistBtn('AI 选 1 款', ask) + '</div>';
+    }
     showAIModal({ type: 'info', title: '我的心愿单 ❤ ('+list.length+')', content: html });
   };
   window.openCart = function(){
     var list = load(CT_KEY);
     var total = list.reduce(function(s, x){ return s + (x.price||0) * (x.qty||1); }, 0);
     var html = buildListHtml(list, CT_KEY, '购物车为空');
-    if (list.length) html += '<div style="margin-top:14px;padding:12px;background:#fff8f0;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:#666">合计</span><span style="font-size:20px;font-weight:800;color:var(--accent,#E12521)">¥'+total.toLocaleString()+'</span></div>';
+    if (list.length) {
+      html += '<div style="margin-top:14px;padding:12px;background:#fff8f0;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:#666">合计</span><span style="font-size:20px;font-weight:800;color:var(--accent,#E12521)">¥'+total.toLocaleString()+'</span></div>';
+      var firstName = list[0].name;
+      html += '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
+        aiAssistBtn('AI 选最值优惠券', '我购物车有 '+firstName+'，给我推荐能用的最大优惠券') +
+        aiAssistBtn('推荐搭配配件', firstName+' 适合配什么鼠标键盘耳机？给我推荐 1 套') +
+        '</div>';
+    }
     showAIModal({ type: 'info', title: '购物车 🛒 ('+list.length+')', content: html });
   };
   window.openOrders = function(){
@@ -5695,6 +5731,12 @@ window.LxBehavior = (function(){
         (o.price ? '<div style="margin-top:6px;color:var(--accent,#E12521);font-weight:700">¥'+Number(o.price).toLocaleString()+'</div>' : '') +
       '</div>';
     }).join('') + '</div>';
+    var lastName = list[0].name;
+    html += '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
+      aiAssistBtn('查物流进度', lastName+' 的物流到哪了？') +
+      aiAssistBtn('售后申请', '我的 '+lastName+' 想申请售后/退换') +
+      aiAssistBtn('配件推荐', lastName+' 配什么外设最好用？') +
+      '</div>';
     showAIModal({ type: 'info', title: '我的订单 📦 ('+list.length+')', content: html });
   };
 
@@ -5939,6 +5981,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260514-v34-predict"></script>
+<script src="/split-layout.js?v=20260514-v35-aiassist"></script>
 </body>
 </html>
