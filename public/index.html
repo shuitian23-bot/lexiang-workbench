@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v64-convert">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v65-convert2">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5671,13 +5671,13 @@ window.LxBehavior = (function(){
         function(){ if (typeof quickAsk === 'function') quickAsk('我想买 ' + topCat + '，预算 5000-8000，主要办公写代码偶尔打游戏，给我精准推 1 款最值的'); });
       return;
     }
-    // 规则 2: ≥2 个商品 → 提示对比
+    // 规则 2: ≥2 个商品 → 对比 + 临门一脚（直接给该买哪款 + 下单理由）
     if (recentProducts.length >= 2) {
       var top3 = recentProducts.slice(0, 3);
       showHint('compare-multi',
-        '我看你浏览了 <b>' + recentProducts.length + '</b> 款机型<br>要不要帮你做个参数对比？',
-        '✨ 对比这几款',
-        function(){ if (typeof quickAsk === 'function') quickAsk('帮我对比 ' + top3.map(function(p){ return p.name; }).join(' 和 ') + ' 这几款'); });
+        '你看了 <b>' + recentProducts.length + '</b> 款还没定？<br>我直接帮你拍板选 1 款最值的，告诉你为啥+现在买省多少',
+        '🎯 帮我拍板',
+        function(){ if (typeof quickAsk === 'function') quickAsk('我在 ' + top3.map(function(p){ return p.name; }).join('、') + ' 之间纠结，别让我自己比，你直接告诉我最该买哪 1 款、3 个核心理由、现在下单能省多少、并给下单引导'); });
     }
   }
 
@@ -5711,9 +5711,9 @@ window.LxBehavior = (function(){
     if (wl.length >= 3) {
       var top3 = wl.slice(0, 3);
       showHint('wishlist-cmp',
-        '心愿单已有 <b>' + wl.length + '</b> 款<br>要不要 AI 帮你对比，挑出性价比最高的？',
-        '✨ 对比心愿单',
-        function(){ if (typeof quickAsk === 'function') quickAsk('对比我心愿单里 ' + top3.map(function(x){ return x.name; }).join(' 和 ') + ' 哪个最值'); });
+        '心愿单 <b>' + wl.length + '</b> 款攒够了～<br>别再纠结，我帮你定 1 款 + 现在领券下单立省',
+        '🎯 帮我定 + 领券',
+        function(){ if (typeof quickAsk === 'function') quickAsk('我心愿单有 ' + top3.map(function(x){ return x.name; }).join('、') + '，别让我对比，直接告诉我买哪 1 款最值、为什么、现在下单能省多少、给下单引导'); });
     }
   }
 
@@ -6005,11 +6005,14 @@ window.LxBehavior = (function(){
       var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
       if (ct.length || wl.length) return;
       var name = first.name || first.名称 || '它';
+      var fp = Number(first.price) || 0;
+      var fc = fp >= 10000 ? 800 : fp >= 6000 ? 500 : fp >= 3000 ? 300 : fp >= 1000 ? 120 : 50;
       showHint('ai-recommended-' + (first.sku || first.id || 'x'),
-        '看上 <b>' + escHtml(String(name).slice(0, 20)) + '</b> 了么？<br>加个心愿单 / 购物车，回头再决定也方便',
-        '❤ 收藏起来',
+        '<b>' + escHtml(String(name).slice(0, 18)) + '</b> 就是你要的？<br>🎁 现在下单立减 <b>¥' + fc + '</b>，限时，别犹豫',
+        '🎁 领券下单',
         function(){
-          window.addToWishlist && window.addToWishlist(first.sku || String(first.id || ''), name, first.price || 0, first.image_url || '');
+          window.LxStatus && window.LxStatus.toast('🎉 ¥' + fc + ' 券已到账，下单自动抵', { type: 'success', ms: 2500 });
+          if (typeof startBuyFlow === 'function') startBuyFlow(name, first.price);
         });
     }, 8000);
   }
@@ -6398,6 +6401,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v64-convert"></script>
+<script src="/split-layout.js?v=20260515-v65-convert2"></script>
 </body>
 </html>
