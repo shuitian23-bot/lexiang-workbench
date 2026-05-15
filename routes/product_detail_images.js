@@ -29,23 +29,29 @@ function fetchHtml(url) {
   });
 }
 
+const DECOR_NAMES = /(navnew|navold|navNew|navOld|righttop|rightbtm|rightSan|leftSan|topSan|sdefault|certified|placeholder|loading|error|favicon|sprite|signin|qrcode|app_qr|tab[a-z]*\.png|bg_[a-z]*|btn_[a-z]*|icon_)/i;
+
 function extractDetailImages(html) {
   const $ = cheerio.load(html);
   const seen = new Set();
   const out = [];
-  // lenovo 详情图用 lazy load，真实 URL 在 data-original 属性
-  // 命名规律：/product/adminweb/{YYYY}/{MM}/{DD}/{随机串}-{4位数}.jpg
-  $('img[data-original]').each(function() {
-    let src = ($(this).attr('data-original') || '').trim();
+  // 真实详情图来源：img.data-original (lazy load) + img.src
+  $('img').each(function() {
+    let src = ($(this).attr('data-original') || $(this).attr('data-src') || $(this).attr('src') || '').trim();
     if (!src || src === 'error' || /\/error$/.test(src)) return;
     if (src.startsWith('//')) src = 'https:' + src;
     if (!/^https?:\/\//.test(src)) return;
     if (!/lefile\.cn/.test(src)) return;
-    // 真实详情图必含 product/adminweb 路径 + 「随机串-数字.jpg」格式
-    if (!/\/product\/adminweb\/(\d{4})\/\d{2}\/\d{2}\/[A-Za-z0-9]{10,}-\d+\.(jpg|jpeg|png|webp)/i.test(src)) return;
-    // 优先 2024+ 上传的图（早期是装饰素材）
-    const yearMatch = src.match(/\/adminweb\/(\d{4})\//);
-    if (yearMatch && parseInt(yearMatch[1], 10) < 2023) return;
+    if (DECOR_NAMES.test(src)) return;
+    // 模式 1: /product/adminweb/{年}/{月}/{日}/{随机串10+}-{数字}.jpg|png|webp
+    const productAdminweb = /\/product\/adminweb\/(\d{4})\/\d{2}\/\d{2}\/[A-Za-z0-9]{10,}-\d+\.(jpg|jpeg|png|webp)/i;
+    // 模式 2: /fes/cms/{年}/{月}/{日}/{长 hash 含数字 25+}.jpg|png|webp（详情段 banner）
+    const fesCms = /\/fes\/cms\/(\d{4})\/\d{2}\/\d{2}\/[a-z0-9]{25,}\.(jpg|jpeg|png|webp)/i;
+    let yearMatch = null;
+    if (productAdminweb.test(src)) yearMatch = src.match(/\/adminweb\/(\d{4})\//);
+    else if (fesCms.test(src)) yearMatch = src.match(/\/cms\/(\d{4})\//);
+    else return;
+    if (yearMatch && parseInt(yearMatch[1], 10) < 2022) return;
     if (seen.has(src)) return;
     seen.add(src);
     out.push(src);
@@ -66,8 +72,24 @@ router.get('/:sku/detail-images', async (req, res) => {
   }
 
   try {
-    const html = await fetchHtml(`https://item.lenovo.com.cn/product/${sku}.html`);
-    const images = extractDetailImages(html);
+    // 多源 fallback：item.lenovo（消费版） → b.lenovo（企业购）→ tk.lenovo（教育）
+    const sources = [
+      `https://item.lenovo.com.cn/product/${sku}.html`,
+      `https://b.lenovo.com.cn/product/${sku}.html`,
+      `https://tk.lenovo.com.cn/product/${sku}.html`,
+    ];
+    let images = [];
+    for (const url of sources) {
+      try {
+        const html = await fetchHtml(url);
+        if (!html || html.length < 5000) continue;
+        const got = extractDetailImages(html);
+        if (got.length > images.length) images = got;
+        if (images.length >= 5) break;
+      } catch (e) {
+        // 单源失败继续下一个
+      }
+    }
     if (row) {
       db.prepare('UPDATE products SET detail_images = ?, detail_images_at = ? WHERE sku = ?')
         .run(JSON.stringify(images), Date.now(), sku);
