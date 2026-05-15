@@ -1994,6 +1994,21 @@ def main():
                 _v[35] = _specs.get('brand') or ''
                 _v[41] = _specs.get('lvl1') or _category or ''
                 _v[42] = _specs.get('lvl2') or _category or ''
+                # 规格字段（crawl_item_pages.js 扁平化写入 specs）
+                _v[49] = _specs.get('weight') or ''
+                _v[50] = _specs.get('warranty') or ''
+                _v[55] = _specs.get('os') or ''
+                _v[57] = _specs.get('memory') or ''
+                _v[62] = _specs.get('disk') or ''
+                _v[68] = _specs.get('cpu') or ''
+                _v[79] = _specs.get('gpu') or ''
+                _v[85] = _specs.get('screen_size') or ''
+                _scr = _specs.get('screen_res') or ''
+                _rfr = _specs.get('refresh') or ''
+                _v[89] = (f'{_scr} {_rfr}'.strip()) if (_scr or _rfr) else ''
+                _v[96] = _specs.get('port') or ''
+                _v[99] = _specs.get('power') or ''
+                _v[106] = _specs.get('wifi') or ''
                 _v[136] = str(_created_at or '')[:19]
                 yield 'row', _v
             _cn.close()
