@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v66-hooks">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v67-role">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5548,6 +5548,41 @@ window.LxBehavior = (function(){
   var DISMISS_TTL = 60 * 60 * 1000;
   var lastTypingTs = 0;
 
+  // ── S14 用户角色系统 ──
+  var visitCount = (function(){
+    try {
+      var n = parseInt(localStorage.getItem('lexiang.visits') || '0', 10) + 1;
+      localStorage.setItem('lexiang.visits', String(n));
+      return n;
+    } catch(e){ return 1; }
+  })();
+  function isLoggedIn(){
+    try {
+      var ua = document.getElementById('navUserArea');
+      return ua && ua.style.display !== 'none' && ua.offsetParent !== null;
+    } catch(e){ return false; }
+  }
+  // 角色：enterprise > high_intent > returning > new_visitor > browsing
+  function getUserRole(){
+    var site = window.__siteType || 'default';
+    if (site === 'b' || site === 'biz') return 'enterprise';
+    var ct = JSON.parse(localStorage.getItem('lexiang.cart.v1') || '[]');
+    var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
+    if (ct.length || wl.length >= 2 || recentProducts.length >= 2) return 'high_intent';
+    if (visitCount >= 2 && !isLoggedIn()) return 'returning';
+    if (visitCount === 1) return 'new_visitor';
+    return 'browsing';
+  }
+  // 角色 → 转化文案模板（leaibot 即官网，靠官方券/活动促单，不比价）
+  var ROLE_COPY = {
+    enterprise:  { tag: '🏢 企业专属', cta: '获取批量报价', ask: '我是企业采购，给我这款的批量阶梯价 + 对公开票 + BD 对接方式' },
+    high_intent: { tag: '🎁 立减到手', cta: '领券立即下单', ask: '我要买这款，给我能用的最大官方券 + 现在下单到手价 + 下单引导' },
+    returning:   { tag: '👋 欢迎回来', cta: '继续上次的', ask: '我上次看过一些机型，结合我浏览历史推荐 1 款最值的并给下单引导' },
+    new_visitor: { tag: '🎉 新人专享', cta: '领新人礼包', ask: '我是新用户，有哪些新人专属优惠券和首单礼包？帮我领并推荐 1 款最值的' },
+    browsing:    { tag: '💡 小享建议', cta: '帮我推荐', ask: '帮我精准推荐 1 款最值的并给下单引导' },
+  };
+  window.LxRole = { get: getUserRole, copy: function(){ return ROLE_COPY[getUserRole()] || ROLE_COPY.browsing; }, visits: function(){ return visitCount; } };
+
   // 用户正在打字 5s 内不弹 hint，避免打扰
   document.addEventListener('input', function(e){
     if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
@@ -5729,6 +5764,30 @@ window.LxBehavior = (function(){
   }
 
   function start(){
+    // S14 首单新人礼包：首访（visitCount==1）+ 未领过 → 3s 后弹大礼包
+    if (visitCount === 1 && !localStorage.getItem('lexiang.newbieGift') && window.__siteType !== 'b' && window.__siteType !== 'biz') {
+      setTimeout(function(){
+        if (isUserBusy() || document.documentElement.classList.contains('in-chat')) return;
+        localStorage.setItem('lexiang.newbieGift', '1');
+        var mask = document.createElement('div');
+        mask.id = 'lxNewbieGift';
+        mask.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center';
+        mask.innerHTML =
+          '<div style="width:340px;background:linear-gradient(160deg,#fff 60%,#fff5f5);border-radius:18px;padding:26px 24px;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+            '<button onclick="document.getElementById(\'lxNewbieGift\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer">×</button>' +
+            '<div style="font-size:44px">🎁</div>' +
+            '<div style="font-size:20px;font-weight:800;margin:8px 0 4px;color:#C41A1F">新人专享礼包</div>' +
+            '<div style="font-size:13px;color:#666;margin-bottom:16px">首次光临联想乐享，送你这些 ↓</div>' +
+            '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;font-size:13px;text-align:left">' +
+              '<div style="background:#fff5f5;border:1px dashed #FF4842;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between"><span>🎫 ¥300 新人无门槛券</span><b style="color:#C41A1F">已放入账户</b></div>' +
+              '<div style="background:#fff5f5;border:1px dashed #FF4842;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between"><span>📅 12 期免息（部分机型）</span><b style="color:#C41A1F">已激活</b></div>' +
+              '<div style="background:#fff5f5;border:1px dashed #FF4842;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between"><span>🚚 顺丰包邮 + 晒单送延保</span><b style="color:#C41A1F">已享</b></div>' +
+            '</div>' +
+            '<button onclick="(function(){document.getElementById(\'lxNewbieGift\').remove();if(window.LxStatus)window.LxStatus.toast(\'🎉 新人礼包已到账\',{type:\'success\'});if(window.quickAsk)quickAsk(\'我是新用户领了 ¥300 新人券，推荐 3 款现在用券最划算的机型并给下单引导\')})()" style="width:100%;padding:13px;background:linear-gradient(135deg,#FF4842,#C41A1F);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(225,37,27,.35)">🎁 收下礼包，看能买啥</button>' +
+          '</div>';
+        document.body.appendChild(mask);
+      }, 3000);
+    }
     // 单商品停留 15s
     var lastSku = null, stayStart = 0;
     setInterval(function(){
@@ -6442,6 +6501,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v66-hooks"></script>
+<script src="/split-layout.js?v=20260515-v67-role"></script>
 </body>
 </html>
