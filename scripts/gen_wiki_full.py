@@ -2366,27 +2366,33 @@ var _la_lenovo_website = 10000001;
     _CAT_ORDER = {'notebook': 1, 'desktop': 2, 'monitor': 3, 'tablet_phone': 4,
                   'workstation': 5, 'server': 6, 'smart_device': 7,
                   'solution': 8, 'accessory': 9, 'service': 10}
+    def _pid(a):
+        # slug 内 productId / docId，单调递增，越大越新。ts 同批相等时作新鲜度兜底
+        m = re.search(r'-(\d+)\.html', a.get('slug', '') or '')
+        return int(m.group(1)) if m else 0
+
     def sort_articles(arts):
-        """全部分类排序：有库存优先 → 分类优先级 → 上架时间倒序；知识按入库时间倒序；全部页商品在前"""
+        """全部分类排序：有库存优先 → 分类优先级 → 上架时间倒序（ts 相同按 productId 倒序）；知识按入库时间倒序；全部页商品在前"""
         products = [a for a in arts if a.get('type') == 'product']
         knowledge = [a for a in arts if a.get('type') != 'product']
-        knowledge.sort(key=lambda a: str(a.get('ts') or ''), reverse=True)
+        knowledge.sort(key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
         def _pk(a):
             return (_CAT_ORDER.get(a.get('cat'), 99),
-                    -int(str(a.get('ts') or '').replace('-', '').replace(':', '').replace(' ', '')[:14] or 0))
+                    -int(str(a.get('ts') or '').replace('-', '').replace(':', '').replace(' ', '')[:14] or 0),
+                    -_pid(a))
         in_stock = sorted([a for a in products if (a.get('is_stock') or 0) == 1], key=_pk)
         out_stock = sorted([a for a in products if (a.get('is_stock') or 0) != 1], key=_pk)
         return in_stock + knowledge + out_stock
 
     def sort_products_only(arts):
-        """纯商品分类排序：有库存优先 + 上架时间倒序"""
-        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=lambda a: str(a.get('ts') or ''), reverse=True)
-        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=lambda a: str(a.get('ts') or ''), reverse=True)
+        """纯商品分类排序：有库存优先 + 上架时间倒序（ts 相同按 productId 倒序，最新入库置顶）"""
+        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
+        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
         return in_stock + out_stock
 
     def sort_knowledge_only(arts):
-        """纯知识分类排序：按入库时间倒序"""
-        return sorted(arts, key=lambda a: str(a.get('ts') or ''), reverse=True)
+        """纯知识分类排序：按入库时间倒序（ts 相同按 docId 倒序）"""
+        return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
 
     # 各分类排好序
     PRODUCT_CATS = {'notebook','desktop','monitor','tablet_phone','accessory','smart_device','service'}
