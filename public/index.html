@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v61-prefetch">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v62-replayfix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5609,7 +5609,7 @@ window.LxBehavior = (function(){
     if (!h) return;
     var panel = document.getElementById('lxHintHistoryPanel');
     if (panel) panel.remove();
-    showHint(h.id + '-replay-' + Date.now(), h.html, h.primaryText, h.primaryFn);
+    showHint(h.id + '-replay-' + Date.now(), h.html, h.primaryText, h.primaryFn, { skipHistory: true });
   };
 
   function showHint(id, contentHtml, primaryText, primaryFn, opts){
@@ -5642,7 +5642,7 @@ window.LxBehavior = (function(){
           '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:7px 12px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
         '</div>');
     if (!loadingMode) {
-      pushHistory({ id: id, html: contentHtml, primaryText: primaryText, primaryFn: primaryFn, ts: Date.now() });
+      if (!opts.skipHistory) pushHistory({ id: id, html: contentHtml, primaryText: primaryText, primaryFn: primaryFn, ts: Date.now() });
       // 双指向类延长 60s，其他 30s
       var ttl = /vs|刚才/.test(contentHtml) ? 60000 : 30000;
       setTimeout(function(){ var x = document.querySelector('[data-hint-id="' + id + '"]'); if (x === el) x.remove(); }, ttl);
@@ -5964,8 +5964,13 @@ window.LxBehavior = (function(){
       showHint('exit-intent',
         msg, '🎁 领走再走',
         function(){
-          window.LxStatus && window.LxStatus.toast('🎉 已派发 ¥50 专属券到账户', { type: 'success', ms: 3000 });
-          if (ct.length && typeof startBuyFlow === 'function') startBuyFlow(ct[0].name, ct[0].price);
+          window.LxStatus && window.LxStatus.toast('🎉 已派发 ¥50 专属券到账户', { type: 'success', ms: 2000 });
+          // 跳：购物车有 → 走结算流程；无 → 让 AI 推可用券的商品
+          if (ct.length && typeof startBuyFlow === 'function') {
+            startBuyFlow(ct[0].name, ct[0].price);
+          } else if (typeof quickAsk === 'function') {
+            quickAsk('我刚领了一张 ¥50 新人券，推荐 3 款现在就能用这张券、性价比最高的联想机型');
+          }
         });
       leftOnce = true;
     });
@@ -6377,6 +6382,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v61-prefetch"></script>
+<script src="/split-layout.js?v=20260515-v62-replayfix"></script>
 </body>
 </html>
