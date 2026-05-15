@@ -130,6 +130,7 @@ app.use('/api/stores', require('./routes/stores'));
 app.use('/api/leai', require('./routes/leai'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/product', require('./routes/product_detail_images'));
+app.use('/api/pointer', require('./routes/pointer'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 app.use('/api/pipeline', adminLimiter, require('./routes/pipeline'));

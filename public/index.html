@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v57-clickfix">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v58-pointer">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5725,6 +5725,54 @@ window.LxBehavior = (function(){
         });
     });
 
+    // ════════════════════════════════════════════════════════════
+    // AI-Pointer MVP: 光标悬停 800ms → DOM 文本 → qwen → 浮窗
+    // ════════════════════════════════════════════════════════════
+    var pointerTimer = null;
+    var pointerLastEl = null;
+    var pointerEnabled = localStorage.getItem('lexiang.pointer.disabled') !== '1';
+    var pointerCooldown = 0;
+    function pointerExtractContext(el){
+      // 找父级 block 取文本
+      var block = el.closest('article, section, .mall-card, .dc-card, .leai-ppanel, .cpd-section, .pd-section, .sec, [data-block]') || el.parentElement;
+      if (!block) return '';
+      var text = (block.innerText || block.textContent || '').replace(/\s+/g, ' ').trim();
+      return text.slice(0, 800);
+    }
+    document.addEventListener('mousemove', function(e){
+      if (!pointerEnabled) return;
+      if (isUserBusy()) return;
+      if (Date.now() < pointerCooldown) return;
+      var el = e.target;
+      if (!el || el === pointerLastEl) return;
+      // 仅在商品卡 / 详情段 / chat 答复内触发
+      if (!el.closest || !el.closest('.mall-card, .dc-card, .cpd-section, .pd-section, .leai-ppanel, .mbubble')) return;
+      pointerLastEl = el;
+      clearTimeout(pointerTimer);
+      pointerTimer = setTimeout(function(){
+        var ctx = pointerExtractContext(el);
+        if (ctx.length < 20) return;
+        fetch('/api/pointer/infer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ context: ctx, page_url: location.pathname, recent_products: recentProducts.slice(0, 3) }),
+        }).then(function(r){ return r.json(); }).then(function(json){
+          if (!json.hint || !json.ask) return;
+          showHint('pointer-' + Date.now(),
+            '<span style="color:#6D28D9;font-size:11px;margin-bottom:4px;display:block">🎯 AI 看到了你在看的</span>' + escHtml(json.hint),
+            '💬 详细问',
+            function(){ if (typeof quickAsk === 'function') quickAsk(json.ask); });
+          pointerCooldown = Date.now() + 30000; // 30s 冷却防打扰
+        }).catch(function(){});
+      }, 800);
+    }, true);
+    // 永久关 pointer
+    window._lxPointerOff = function(){
+      pointerEnabled = false;
+      localStorage.setItem('lexiang.pointer.disabled', '1');
+      window.LxStatus && window.LxStatus.toast('AI-Pointer 已关闭', { type: 'info' });
+    };
+
     // S9⑤ 心愿单 ≥2 → nav 「🤖 AI 帮我选」按钮显隐
     function refreshAiPick(){
       var btn = document.getElementById('navAiPickBtn');
@@ -6197,6 +6245,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v57-clickfix"></script>
+<script src="/split-layout.js?v=20260515-v58-pointer"></script>
 </body>
 </html>
