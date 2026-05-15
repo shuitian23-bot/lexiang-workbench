@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v56-strictdetail">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v57-clickfix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3887,7 +3887,7 @@ window._attachCardHover = _attachCardHover;
   // chat 气泡（mbubble）内的 leai-ppanel 也走同一委托 — 用 capture=false + body 兜底
   document.body.addEventListener('click', function(e){
     if (e.target.closest('#feedSections, #dcBody')) return; // 已委托过
-    if (e.target.closest('.leai-ppanel, .mall-cmp-btn, [data-action]')) {
+    if (e.target.closest('.mall-card, .dc-card, .leai-ppanel, .mall-cmp-btn, [data-action]')) {
       _cardContainerClickHandler(e);
     }
   });
@@ -6197,6 +6197,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v56-strictdetail"></script>
+<script src="/split-layout.js?v=20260515-v57-clickfix"></script>
 </body>
 </html>
