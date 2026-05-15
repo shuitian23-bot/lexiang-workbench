@@ -43,14 +43,10 @@ function extractDetailImages(html) {
     if (!/^https?:\/\//.test(src)) return;
     if (!/lefile\.cn/.test(src)) return;
     if (DECOR_NAMES.test(src)) return;
-    // 模式 1: /product/adminweb/{年}/{月}/{日}/{随机串10+}-{数字}.jpg|png|webp
+    // 仅 /product/adminweb/ 路径（商品专属上传），舍弃 /fes/cms/（多商品复用的营销通用素材，含 APP 二维码等装饰）
     const productAdminweb = /\/product\/adminweb\/(\d{4})\/\d{2}\/\d{2}\/[A-Za-z0-9]{10,}-\d+\.(jpg|jpeg|png|webp)/i;
-    // 模式 2: /fes/cms/{年}/{月}/{日}/{长 hash 含数字 25+}.jpg|png|webp（详情段 banner）
-    const fesCms = /\/fes\/cms\/(\d{4})\/\d{2}\/\d{2}\/[a-z0-9]{25,}\.(jpg|jpeg|png|webp)/i;
-    let yearMatch = null;
-    if (productAdminweb.test(src)) yearMatch = src.match(/\/adminweb\/(\d{4})\//);
-    else if (fesCms.test(src)) yearMatch = src.match(/\/cms\/(\d{4})\//);
-    else return;
+    if (!productAdminweb.test(src)) return;
+    const yearMatch = src.match(/\/adminweb\/(\d{4})\//);
     if (yearMatch && parseInt(yearMatch[1], 10) < 2022) return;
     if (seen.has(src)) return;
     seen.add(src);
