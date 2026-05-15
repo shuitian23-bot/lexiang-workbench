@@ -280,8 +280,8 @@ app.get('/*path', (req, res) => _sendIndexNoCache(res));
 let activeRequests = 0;
 app.use((req, res, next) => {
   activeRequests++;
-  res.on('finish', () => { activeRequests--; });
-  res.on('close', () => { activeRequests--; });
+  // close 在响应结束或连接断开时必触发一次；用 once 防重复递减导致计数漂负
+  res.once('close', () => { activeRequests--; });
   next();
 });
 
@@ -302,8 +302,19 @@ const server = app.listen(PORT, () => {
 });
 
 // 优雅关闭
+let shuttingDown = false;
 function gracefulShutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.log(`\n[Shutdown] 收到 ${signal} 信号，开始优雅关闭...`);
+
+  // 硬兜底：无论 checkAndExit 是否卡住，deadline+2s 后强制退出，
+  // 防止进程僵死（listener 已关但进程不退，pm2 误报 online → nginx 502）
+  const hardKill = setTimeout(() => {
+    console.error('[Shutdown] 硬超时，强制退出');
+    process.exit(1);
+  }, 12000);
+  hardKill.unref();
 
   // 停止接收新连接
   server.close(() => {
