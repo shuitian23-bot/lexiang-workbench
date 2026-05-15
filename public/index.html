@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v60-s10">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v61-prefetch">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5569,26 +5569,85 @@ window.LxBehavior = (function(){
     dismiss(id);
   };
 
-  function showHint(id, contentHtml, primaryText, primaryFn){
-    if (isDismissed(id) || isUserBusy()) return;
+  // S11 历史 5 条
+  var hintHistory = []; // [{id, html, primaryText, primaryFn, ts}]
+  function pushHistory(item){
+    hintHistory.unshift(item);
+    if (hintHistory.length > 5) hintHistory.length = 5;
+    refreshHistoryBadge();
+  }
+  function refreshHistoryBadge(){
+    var b = document.getElementById('lxHintHistoryBadge');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'lxHintHistoryBadge';
+      b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#6D28D9;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
+      b.onclick = function(){ openHistoryPanel(); };
+      document.body.appendChild(b);
+    }
+    if (hintHistory.length === 0) { b.style.display = 'none'; return; }
+    b.innerHTML = '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
+    b.style.display = 'inline-flex';
+  }
+  function openHistoryPanel(){
+    var existing = document.getElementById('lxHintHistoryPanel');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'lxHintHistoryPanel';
+    p.style.cssText = 'position:fixed;right:20px;bottom:60px;width:320px;max-height:420px;overflow-y:auto;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:301;padding:8px';
+    p.innerHTML = '<div style="padding:8px 8px 4px;font-size:11px;color:#999;display:flex;justify-content:space-between"><span>最近 ' + hintHistory.length + ' 条 AI 提示</span><button onclick="document.getElementById(\'lxHintHistoryPanel\').remove()" style="background:none;border:none;color:#999;cursor:pointer;font-size:16px;line-height:1">×</button></div>' +
+      hintHistory.map(function(h, i){
+        return '<div onclick="_lxHintReplay(' + i + ')" style="padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;line-height:1.5;border-bottom:1px solid #f5f5f5" onmouseover="this.style.background=\'#f9f5ff\'" onmouseout="this.style.background=\'\'">' +
+          '<div style="color:#999;font-size:10px">' + new Date(h.ts).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) + '</div>' +
+          '<div style="color:#333">' + h.html.replace(/<[^>]+>/g,' ').slice(0, 80) + '</div>' +
+        '</div>';
+      }).join('');
+    document.body.appendChild(p);
+  }
+  window._lxHintReplay = function(idx){
+    var h = hintHistory[idx];
+    if (!h) return;
+    var panel = document.getElementById('lxHintHistoryPanel');
+    if (panel) panel.remove();
+    showHint(h.id + '-replay-' + Date.now(), h.html, h.primaryText, h.primaryFn);
+  };
+
+  function showHint(id, contentHtml, primaryText, primaryFn, opts){
+    opts = opts || {};
+    if (isDismissed(id) || isUserBusy()) return null;
     hintActions[id] = primaryFn;
-    var existing = document.getElementById('lxHintBubble');
-    if (existing) existing.remove();
-    var el = document.createElement('div');
-    el.id = 'lxHintBubble';
-    el.style.cssText = 'position:fixed;right:20px;bottom:90px;width:300px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);padding:14px 16px;z-index:300;font-size:13px;line-height:1.5';
+    // S11-B 替换模式：opts.replaceId 时复用已有元素 fill 内容（防止 loading→full 闪烁）
+    var el = opts.replaceId ? document.querySelector('[data-hint-id="' + opts.replaceId + '"]') : null;
+    if (!el) {
+      var existing = document.getElementById('lxHintBubble');
+      if (existing) existing.remove();
+      el = document.createElement('div');
+      el.id = 'lxHintBubble';
+      el.setAttribute('data-hint-id', id);
+      el.style.cssText = 'position:fixed;right:20px;bottom:90px;width:300px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);padding:14px 16px;z-index:300;font-size:13px;line-height:1.5';
+      document.body.appendChild(el);
+    } else {
+      el.setAttribute('data-hint-id', id);
+    }
+    var loadingMode = !!opts.loading;
     el.innerHTML =
       '<div style="display:flex;align-items:flex-start;gap:10px">' +
         '<div style="width:28px;height:28px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#6b2068,#b83340);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">🤖</div>' +
         '<div style="flex:1">' + contentHtml + '</div>' +
         '<button onclick="_lxHintDismiss(\'' + id + '\')" style="background:none;border:none;color:#999;font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>' +
       '</div>' +
-      '<div style="margin-top:10px;display:flex;gap:8px">' +
-        '<button onclick="_lxHintRun(\'' + id + '\')" style="flex:1;padding:7px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">' + primaryText + '</button>' +
-        '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:7px 12px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
-      '</div>';
-    document.body.appendChild(el);
-    setTimeout(function(){ var x = document.getElementById('lxHintBubble'); if (x && x === el) x.remove(); }, 30000);
+      (loadingMode ? '' :
+        '<div style="margin-top:10px;display:flex;gap:8px">' +
+          '<button onclick="_lxHintRun(\'' + id + '\')" style="flex:1;padding:7px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">' + primaryText + '</button>' +
+          '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:7px 12px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
+        '</div>');
+    if (!loadingMode) {
+      pushHistory({ id: id, html: contentHtml, primaryText: primaryText, primaryFn: primaryFn, ts: Date.now() });
+      // 双指向类延长 60s，其他 30s
+      var ttl = /vs|刚才/.test(contentHtml) ? 60000 : 30000;
+      setTimeout(function(){ var x = document.querySelector('[data-hint-id="' + id + '"]'); if (x === el) x.remove(); }, ttl);
+    }
+    return id;
   }
 
   function checkHints(){
@@ -5732,7 +5791,10 @@ window.LxBehavior = (function(){
     var pointerLastEl = null;
     var pointerEnabled = localStorage.getItem('lexiang.pointer.disabled') !== '1';
     var pointerCooldown = 0;
-    var pointerLastContext = ''; // V1 双指向：保存上次指过的文本
+    var pointerLastContext = '';
+    // S11-A 预拉缓存：mouseenter 卡片即后台 fetch，500ms debounce 命中时直接复用
+    var prefetchMap = new Map(); // el → Promise
+    var prefetchTimers = new WeakMap(); // el → enter timer
     function pointerExtractContext(el){
       var block = el.closest('article, section, .mall-card, .dc-card, .leai-ppanel, .cpd-section, .pd-section, .sec, [data-block]') || el.parentElement;
       if (!block) return { text: '', images: [] };
@@ -5746,36 +5808,69 @@ window.LxBehavior = (function(){
       });
       return { text: text, images: imgs.slice(0, 3) };
     }
+    function pointerFetch(el){
+      var ctx = pointerExtractContext(el);
+      if (ctx.text.length < 20) return null;
+      var p = fetch('/api/pointer/infer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: ctx.text,
+          image_urls: ctx.images,
+          page_url: location.pathname,
+          recent_products: recentProducts.slice(0, 3),
+          last_pointed: pointerLastContext || null,
+        }),
+      }).then(function(r){ return r.json(); }).then(function(json){
+        return { json: json, ctx: ctx };
+      });
+      return p;
+    }
     document.addEventListener('mousemove', function(e){
       if (!pointerEnabled) return;
       if (isUserBusy()) return;
       if (Date.now() < pointerCooldown) return;
       var el = e.target;
       if (!el || el === pointerLastEl) return;
-      // S10-B 扩触发：商品卡 + 详情段 + 详情图 + 参数行 + 评价 + chat 答复 + 方案/feed 卡
       if (!el.closest || !el.closest('.mall-card, .dc-card, .cpd-section, .pd-section, .leai-ppanel, .mbubble, .pd-detail-img, .pd-spec-row, .cpd-spec-label, .cpd-spec-value, .feed-cmt, .review, .sec, .scard, .wcard')) return;
+      var card = el.closest('.mall-card, .dc-card, .leai-ppanel, .scard, .wcard, .sec') || el;
+      // S11-A 预拉：mouseenter 卡片 200ms 即后台拉，hover 满 500ms 命中时已 ready
+      if (!prefetchMap.has(card)) {
+        var enterT = setTimeout(function(){
+          var pp = pointerFetch(card);
+          if (pp) prefetchMap.set(card, pp);
+        }, 200);
+        prefetchTimers.set(card, enterT);
+      }
       pointerLastEl = el;
       clearTimeout(pointerTimer);
       pointerTimer = setTimeout(function(){
         var ctx = pointerExtractContext(el);
         if (ctx.text.length < 20) return;
-        fetch('/api/pointer/infer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            context: ctx.text,
-            image_urls: ctx.images,
-            page_url: location.pathname,
-            recent_products: recentProducts.slice(0, 3),
-            last_pointed: pointerLastContext || null,
-          }),
-        }).then(function(r){ return r.json(); }).then(function(json){
-          if (!json.hint || !json.ask) return;
+        // 显 loading 骨架立即出框
+        var loadingId = 'pointer-loading-' + Date.now();
+        showHint(loadingId,
+          '<span style="color:#6D28D9;font-size:11px;margin-bottom:4px;display:block">🎯 AI 正在看…</span>' +
+          '<div style="display:flex;gap:6px;margin-top:6px"><div style="height:10px;flex:1;border-radius:5px;background:linear-gradient(90deg,#f4f4f5 0%,#e4e4e7 50%,#f4f4f5 100%);background-size:200% 100%;animation:lx-skel 1.4s infinite linear"></div></div>' +
+          '<div style="height:10px;width:70%;margin-top:6px;border-radius:5px;background:linear-gradient(90deg,#f4f4f5 0%,#e4e4e7 50%,#f4f4f5 100%);background-size:200% 100%;animation:lx-skel 1.4s infinite linear"></div>',
+          '', null, { loading: true });
+        // 优先用预拉
+        var p = prefetchMap.get(card) || pointerFetch(card);
+        if (!p) return;
+        p.then(function(pkg){
+          if (!pkg) return;
+          var json = pkg.json;
+          if (!json.hint || !json.ask) {
+            // 失败：移除骨架
+            var lx = document.querySelector('[data-hint-id="' + loadingId + '"]');
+            if (lx) lx.remove();
+            return;
+          }
+          var ctxNow = pkg.ctx;
           var icon = json.vl ? '👁 AI 看到（含图）' : '🎯 AI 看到了你在看的';
-          // S10-C 双指向可视化：last_pointed 时浮窗内嵌「刚才 vs 现在」对比小卡
           var dualHtml = '';
           if (pointerLastContext && pointerLastImage) {
-            var nowImg = (ctx.images && ctx.images[0]) || '';
+            var nowImg = (ctxNow.images && ctxNow.images[0]) || '';
             var lastImg = pointerLastImage;
             dualHtml = '<div style="display:flex;gap:6px;margin:6px 0 8px;font-size:10px">' +
               '<div style="flex:1;padding:4px;border:1px solid #e5e7eb;border-radius:6px;text-align:center"><img src="' + escHtml(lastImg) + '" style="width:100%;height:32px;object-fit:contain"><div style="color:#999;margin-top:2px">刚才指过</div></div>' +
@@ -5783,15 +5878,22 @@ window.LxBehavior = (function(){
               '<div style="flex:1;padding:4px;border:1px solid #6D28D9;border-radius:6px;text-align:center"><img src="' + escHtml(nowImg) + '" style="width:100%;height:32px;object-fit:contain"><div style="color:#6D28D9;margin-top:2px">现在</div></div>' +
               '</div>';
           }
+          // 替换 loading 骨架（同位置 fill 不闪）
           showHint('pointer-' + Date.now(),
             '<span style="color:#6D28D9;font-size:11px;margin-bottom:4px;display:block">' + icon + '</span>' + dualHtml + escHtml(json.hint),
             '💬 详细问',
-            function(){ if (typeof quickAsk === 'function') quickAsk(json.ask); });
-          pointerLastContext = ctx.text.slice(0, 200); // 双指向记忆
-          pointerLastImage = (ctx.images && ctx.images[0]) || ''; // C 双指向可视化
+            function(){ if (typeof quickAsk === 'function') quickAsk(json.ask); },
+            { replaceId: loadingId });
+          pointerLastContext = ctxNow.text.slice(0, 200);
+          pointerLastImage = (ctxNow.images && ctxNow.images[0]) || '';
           pointerCooldown = Date.now() + 30000;
-        }).catch(function(){});
-      }, 500); // S10-A debounce 800→500，体感更快
+          // 清预拉，下次新鲜
+          setTimeout(function(){ prefetchMap.delete(card); }, 60000);
+        }).catch(function(){
+          var lx = document.querySelector('[data-hint-id="' + loadingId + '"]');
+          if (lx) lx.remove();
+        });
+      }, 500);
     }, true);
     var pointerLastImage = '';
     // 30 分钟后清双指向记忆
@@ -6275,6 +6377,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v60-s10"></script>
+<script src="/split-layout.js?v=20260515-v61-prefetch"></script>
 </body>
 </html>
