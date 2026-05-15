@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v62-replayfix">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v63-dedup">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5572,6 +5572,9 @@ window.LxBehavior = (function(){
   // S11 历史 5 条
   var hintHistory = []; // [{id, html, primaryText, primaryFn, ts}]
   function pushHistory(item){
+    // 去重：相同 html 文本不重复入队（移到队首刷新时间）
+    var plain = item.html.replace(/<[^>]+>/g, '').trim();
+    hintHistory = hintHistory.filter(function(h){ return h.html.replace(/<[^>]+>/g, '').trim() !== plain; });
     hintHistory.unshift(item);
     if (hintHistory.length > 5) hintHistory.length = 5;
     refreshHistoryBadge();
@@ -5612,9 +5615,16 @@ window.LxBehavior = (function(){
     showHint(h.id + '-replay-' + Date.now(), h.html, h.primaryText, h.primaryFn, { skipHistory: true });
   };
 
+  var _lastHintPlain = '', _lastHintTs = 0;
   function showHint(id, contentHtml, primaryText, primaryFn, opts){
     opts = opts || {};
     if (isDismissed(id) || isUserBusy()) return null;
+    // 去重：相同文本 hint 10 分钟内不重复弹（loading 骨架除外）
+    if (!opts.loading) {
+      var plain = String(contentHtml).replace(/<[^>]+>/g, '').trim();
+      if (plain === _lastHintPlain && Date.now() - _lastHintTs < 10 * 60 * 1000) return null;
+      _lastHintPlain = plain; _lastHintTs = Date.now();
+    }
     hintActions[id] = primaryFn;
     // S11-B 替换模式：opts.replaceId 时复用已有元素 fill 内容（防止 loading→full 闪烁）
     var el = opts.replaceId ? document.querySelector('[data-hint-id="' + opts.replaceId + '"]') : null;
@@ -6382,6 +6392,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v62-replayfix"></script>
+<script src="/split-layout.js?v=20260515-v63-dedup"></script>
 </body>
 </html>

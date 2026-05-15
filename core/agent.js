@@ -98,11 +98,18 @@ function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId
   } catch (e) {
     // 读取失败不影响主流程
   }
+  // 当前日期 + 禁用陈旧训练知识做时序判断（防"截至2024年 RTX5070 未发布"类错误）
+  const _today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (lang === 'en') {
+    prompt += `\n\n## Current Date: ${_today}\nYour training data may be outdated. NEVER use phrases like "as of 2024" or "not yet released". Treat the商品库/RAG real-time data and current date as ground truth. If a product appears in the knowledge base or product DB, it IS on sale NOW — do not deny its existence based on training knowledge.`;
+  } else {
+    prompt += `\n\n## 当前日期：${_today}\n你的训练知识可能已过时。**严禁**说"截至2024年""尚未发布""目前还没有"这类基于训练时点的判断。一切以商品库/RAG 实时检索数据 + 当前日期为准。只要商品库或知识库里有这个产品，它就是现在在售的——不要用旧训练知识否定它的存在或发布时间。产品代际（如 RTX 50 系列、新款机型）默认已上市，按检索到的真实参数回答。`;
+  }
   // L2.5 自检指令
   if (lang === 'en') {
     prompt += '\n\nBefore giving your final answer, please verify:\n1. All URLs come from the knowledge base or official Lenovo domains — do not generate URLs yourself\n2. Product specs and prices are consistent with the knowledge base; if unsure, note "Please check the official website for the latest information"\n3. Your answer directly addresses the user\'s question';
   } else {
-    prompt += '\n\n在给出最终回答前，请先确认：\n1. 所有 URL 均来自知识库或官方域名，不自行生成\n2. 产品参数、价格与知识库一致，不确定时注明"请以官网为准"\n3. 回答直接回应用户问题';
+    prompt += '\n\n在给出最终回答前，请先确认：\n1. 所有 URL 均来自知识库或官方域名，不自行生成\n2. 产品参数、价格与知识库一致，不确定时注明"请以官网为准"\n3. 回答直接回应用户问题\n4. 未使用过时训练知识否定产品存在/发布时间';
   }
   if (lang !== 'en') {
     prompt += '\n\n## 当前业务入口\n' + siteContextText(siteType) + '\n回答和工具调用必须尊重当前入口。商品推荐时，只有用户明确提出商务/企业采购/ThinkBook/ThinkPad 等需求，才跨到企业购系列。知识库/WIKI 中的产品分类、解决方案、技术支持内容可以作为页面讲解依据。';
