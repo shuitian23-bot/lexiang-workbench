@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v63-dedup">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v64-convert">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5725,10 +5725,16 @@ window.LxBehavior = (function(){
       if (!top) return;
       if (top.sku !== lastSku) { lastSku = top.sku; stayStart = Date.now(); return; }
       if (Date.now() - stayStart > 15000 && recentProducts.length === 1) {
+        // 停留久 = 已心动锁定 → 天降红包促转化（不再推对比让用户纠结）
+        var pr = Number(top.price) || 0;
+        var coupon = pr >= 10000 ? 800 : pr >= 6000 ? 500 : pr >= 3000 ? 300 : pr >= 1000 ? 120 : 50;
         showHint('stay-one-' + top.sku,
-          '在 <b>' + escHtml(top.name) + '</b> 上停留挺久了～<br>要不要 AI 推荐<b>同价位</b>替代款？',
-          '🔍 看同类',
-          function(){ if (typeof quickAsk === 'function') quickAsk(top.name + ' 还有什么同价位的替代款？'); });
+          '看你对 <b>' + escHtml(String(top.name).slice(0, 16)) + '</b> 很心动～<br>🎁 <b>天降专属券 ¥' + coupon + '</b>，30 分钟内下单立减，手慢就没了！',
+          '🎁 领券立即下单',
+          function(){
+            window.LxStatus && window.LxStatus.toast('🎉 ¥' + coupon + ' 专属券已到账，下单自动抵扣', { type: 'success', ms: 2500 });
+            if (typeof startBuyFlow === 'function') startBuyFlow(top.name, top.price);
+          });
       }
     }, 5000);
 
@@ -6392,6 +6398,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v63-dedup"></script>
+<script src="/split-layout.js?v=20260515-v64-convert"></script>
 </body>
 </html>
