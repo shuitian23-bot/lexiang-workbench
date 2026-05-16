@@ -2129,12 +2129,182 @@ async function loadLenovoTouch() {
     </div>`:''}`;
 }
 
+// ===== 注册完整模块 PAGE_RENDERERS =====
+Object.assign(PAGE_RENDERERS, {
+  'ecommerce.products': () => `
+    <div class="page-header"><div><div class="page-title">商品管理</div><div class="page-desc">管理所有在售商品</div></div>
+      <button class="btn btn-sm btn-primary" onclick="showProductForm()">+ 新增商品</button>
+    </div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card"><div class="kpi-label">在售</div><div class="kpi-value" style="font-size:20px" id="prod-active">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">已下架</div><div class="kpi-value" style="font-size:20px" id="prod-offline">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">草稿</div><div class="kpi-value" style="font-size:20px" id="prod-draft">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">总计</div><div class="kpi-value" style="font-size:20px" id="prod-total">-</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="prod-search" placeholder="搜索商品..." style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;width:180px" onkeydown="if(event.key==='Enter')loadProducts()">
+        <select id="prod-cat-filter" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" onchange="loadProducts()"><option value="">全部分类</option></select>
+        <select id="prod-status-filter" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" onchange="loadProducts()"><option value="">全部状态</option><option value="active">在售</option><option value="offline">已下架</option><option value="draft">草稿</option></select>
+      </div>
+      <div id="prod-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>
+    </div>`,
+  'ecommerce.categories': () => `
+    <div class="page-header"><div><div class="page-title">分类管理</div><div class="page-desc">管理商品分类</div></div>
+      <button class="btn btn-sm btn-primary" onclick="showCategoryForm()">+ 新增分类</button>
+    </div>
+    <div class="card"><div id="cat-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>`,
+  'marketing.tasks': () => `
+    <div class="page-header"><div><div class="page-title">营销任务</div><div class="page-desc">创建和管理营销触达任务</div></div>
+      <button class="btn btn-sm btn-primary" onclick="showMarketingForm()">+ 新建任务</button>
+    </div>
+    <div id="marketing-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'content.pages': () => `
+    <div class="page-header"><div><div class="page-title">页面管理</div><div class="page-desc">CMS 页面构建与管理</div></div>
+      <button class="btn btn-sm btn-primary" onclick="renderPageBuilder()">+ 新建页面</button>
+    </div>
+    <div id="pages-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'content.conversations': () => `
+    <div class="page-header"><div><div class="page-title">对话管理</div><div class="page-desc">查看用户与 AI 的历史对话</div></div></div>
+    <div class="grid-2">
+      <div class="card" style="max-height:70vh;overflow-y:auto"><div class="card-header"><div class="card-title">对话列表</div></div><div id="conv-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>
+      <div class="card" style="max-height:70vh;overflow-y:auto"><div class="card-header"><div class="card-title">对话详情</div></div><div id="conv-detail"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">请选择一个对话</div></div></div>
+    </div>`,
+  'ai.skills': () => `
+    <div class="page-header"><div><div class="page-title">技能管理</div><div class="page-desc">AI 工具技能注册与配置</div></div></div>
+    <div id="skills-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'ai.config': () => `
+    <div class="page-header"><div><div class="page-title">AI 配置</div><div class="page-desc">模型参数与系统提示词配置</div></div></div>
+    <div id="bot-config"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'ai.monitor': () => `
+    <div class="page-header"><div><div class="page-title">监控告警</div><div class="page-desc">系统运行指标与告警</div></div>
+      <button class="btn btn-sm btn-secondary" onclick="loadMonitor()">刷新</button>
+    </div>
+    <div id="monitor-data"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'users.staff': () => `
+    <div class="page-header"><div><div class="page-title">客户画像</div><div class="page-desc">用户行为分析与画像标签</div></div></div>
+    <div class="card"><div id="staff-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>`,
+  'users.accounts': () => `
+    <div class="page-header"><div><div class="page-title">账号管理</div><div class="page-desc">后台管理员账号</div></div>
+      <button class="btn btn-sm btn-primary" onclick="showAddAccount()">+ 新增账号</button>
+    </div>
+    <div id="accounts-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'users.personas': () => `
+    <div class="page-header"><div><div class="page-title">Persona 管理</div><div class="page-desc">AI 人格角色配置</div></div>
+      <button class="btn btn-sm btn-primary" onclick="showAddPersona()">+ 新增 Persona</button>
+    </div>
+    <div id="persona-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'settings.service': () => `
+    <div class="page-header"><div><div class="page-title">服务状态</div><div class="page-desc">系统健康检查与服务监控</div></div>
+      <button class="btn btn-sm btn-secondary" onclick="loadServiceStatus()">刷新</button>
+    </div>
+    <div id="service-status"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'settings.logs': () => `
+    <div class="page-header"><div><div class="page-title">操作日志</div><div class="page-desc">前端错误与操作日志</div></div></div>
+    <div class="card"><div id="fe-logs"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>`,
+  'settings.roles': () => `
+    <div class="page-header"><div><div class="page-title">角色管理</div><div class="page-desc">管理工作台角色与权限</div></div></div>
+    <div id="roles-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'settings.backup': () => `
+    <div class="page-header"><div><div class="page-title">备份与重启</div><div class="page-desc">数据库备份与服务重启</div></div></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
+      <div class="kpi-card" style="cursor:pointer" onclick="doBackup()"><div class="kpi-label">数据库备份</div><div class="kpi-value" style="font-size:24px">💾</div><div style="font-size:12px;color:var(--text-tertiary);margin-top:4px">点击备份 SQLite 数据库</div></div>
+      <div class="kpi-card" style="cursor:pointer" onclick="doRestart()"><div class="kpi-label">重启服务</div><div class="kpi-value" style="font-size:24px">🔄</div><div style="font-size:12px;color:var(--text-tertiary);margin-top:4px">PM2 自动重拉进程</div></div>
+    </div>`,
+  'ai.evolution': () => `
+    <div class="page-header"><div><div class="page-title">进化与反思</div><div class="page-desc">AI 自我进化记录与反思日志</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-primary" onclick="triggerEvolution()">触发进化</button>
+        <button class="btn btn-sm btn-secondary" onclick="triggerLearning()">触发学习</button>
+      </div>
+    </div>
+    <div id="evo-status"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-header"><div class="card-title">进化记录</div></div><div id="evo-notes"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">反思日志</div></div><div id="evo-reflections"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>
+    </div>`,
+  'ai.regression': () => `
+    <div class="page-header"><div><div class="page-title">回归测试</div><div class="page-desc">AI 回答质量回归测试用例</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-primary" onclick="showAddRegression()">+ 添加用例</button>
+        <button class="btn btn-sm btn-secondary" onclick="runRegression()">▶ 运行全部</button>
+      </div>
+    </div>
+    <div class="card"><div id="regression-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>`,
+  'lenovo.bigscreen': () => `
+    <div class="page-header"><div><div class="page-title">联想交易大屏</div><div class="page-desc">联想全渠道实时付款数据 · 数据源: aiadmin cdashboard</div></div>
+      <button class="btn btn-sm btn-secondary" onclick="loadLenovoBigscreen()">刷新</button>
+    </div>
+    <div id="lenovo-bigscreen-content"><div style="text-align:center;padding:40px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'lenovo.touch': () => `
+    <div class="page-header"><div><div class="page-title">触达消息</div><div class="page-desc">联想智能触达计划管理 · 数据源: smart touch API</div></div>
+      <button class="btn btn-sm btn-secondary" onclick="loadLenovoTouch()">刷新</button>
+    </div>
+    <div id="lenovo-touch-content"><div style="text-align:center;padding:40px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'support.aftersale': () => `
+    <div class="page-header"><div><div class="page-title">售后知识库</div><div class="page-desc">联想售后支持文章与驱动搜索</div></div></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-header"><div class="card-title">📚 售后文章 <span class="badge status-on" id="as-article-count">-</span></div></div><div id="as-articles"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">💿 驱动搜索</div></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px"><input id="as-driver-kw" placeholder="输入机型或驱动名称..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px" onkeydown="if(event.key==='Enter')searchDrivers()"><button class="btn btn-sm btn-primary" onclick="searchDrivers()">搜索</button></div>
+        <div id="as-drivers"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">输入关键词搜索驱动</div></div>
+      </div>
+    </div>`,
+  'support.orders': () => `
+    <div class="page-header"><div><div class="page-title">订单查询</div><div class="page-desc">联想官网用户订单 · 需要 Passport Cookie</div></div></div>
+    <div id="order-auth-status"></div>
+    <div id="order-content"><div style="text-align:center;padding:40px;color:var(--text-tertiary)">加载中...</div></div>`,
+  'support.stores': () => `
+    <div class="page-header"><div><div class="page-title">门店查询</div><div class="page-desc">联想线下门店搜索 · 百度地图 API</div></div></div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;gap:8px"><input id="store-address" placeholder="输入地址或城市名，如：北京中关村" style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px" onkeydown="if(event.key==='Enter')searchStores()"><button class="btn btn-primary" onclick="searchStores()">🔍 搜索</button></div>
+    </div>
+    <div id="store-results"><div style="text-align:center;padding:40px;color:var(--text-tertiary)">输入地址搜索附近联想门店</div></div>`,
+  'experiments.ab': () => `
+    <div class="page-header"><div><div class="page-title">AB 实验管理</div><div class="page-desc">创建和管理 AB 测试实验</div></div>
+      <button class="btn btn-sm btn-primary" onclick="showCreateExperiment()">+ 创建实验</button>
+    </div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card"><div class="kpi-label">运行中</div><div class="kpi-value" style="font-size:20px" id="exp-running">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">已结束</div><div class="kpi-value" style="font-size:20px" id="exp-completed">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">其他</div><div class="kpi-value" style="font-size:20px" id="exp-other">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">总计</div><div class="kpi-value" style="font-size:20px" id="exp-total">-</div></div>
+    </div>
+    <div class="card"><div id="exp-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div></div>`,
+  'content.pagebuilder': () => `
+    <div class="page-header"><div><div class="page-title">网页制作</div><div class="page-desc">可视化拖拽页面构建器 + AI 生成</div></div>
+      <button class="btn btn-sm btn-primary" onclick="renderPageBuilder()">+ 新建页面</button>
+    </div>
+    <div id="pages-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>`,
+});
+
 // Hook switchPage for new pages
 const _origSwitchLenovo = switchPage;
 switchPage = function(pageId) {
   _origSwitchLenovo(pageId);
-  // 企业认证页面初始化
   if (pageId === 'certify.overview') { setTimeout(loadCertOverview, 0); }
   if (pageId === 'certify.users') { setTimeout(loadCertUsers, 50); }
   if (pageId === 'certify.history') { setTimeout(loadCertHistory, 50); }
+  if (pageId === 'ecommerce.products') { setTimeout(loadProducts, 50); }
+  if (pageId === 'ecommerce.categories') { setTimeout(loadCategories, 50); }
+  if (pageId === 'marketing.tasks') { setTimeout(loadMarketingTasks, 50); }
+  if (pageId === 'content.pages') { setTimeout(loadPagesList, 50); }
+  if (pageId === 'content.conversations') { setTimeout(loadConversations, 50); }
+  if (pageId === 'ai.skills') { setTimeout(loadSkills, 50); }
+  if (pageId === 'ai.config') { setTimeout(loadBotConfig, 50); }
+  if (pageId === 'ai.monitor') { setTimeout(loadMonitor, 50); }
+  if (pageId === 'users.staff') { setTimeout(() => loadStaff(1), 50); }
+  if (pageId === 'users.accounts') { setTimeout(loadAccounts, 50); }
+  if (pageId === 'users.personas') { setTimeout(loadPersonas, 50); }
+  if (pageId === 'settings.service') { setTimeout(loadServiceStatus, 50); }
+  if (pageId === 'settings.logs') { setTimeout(loadFeLogs, 50); }
+  if (pageId === 'settings.roles') { setTimeout(loadRoles, 50); }
+  if (pageId === 'ai.evolution') { setTimeout(loadEvolution, 50); }
+  if (pageId === 'ai.regression') { setTimeout(loadRegression, 50); }
+  if (pageId === 'lenovo.bigscreen') { setTimeout(loadLenovoBigscreen, 50); }
+  if (pageId === 'lenovo.touch') { setTimeout(loadLenovoTouch, 50); }
+  if (pageId === 'support.aftersale') { setTimeout(loadAftersale, 50); }
+  if (pageId === 'support.orders') { setTimeout(loadOrders, 50); }
+  if (pageId === 'experiments.ab') { setTimeout(loadExperiments, 50); }
+  if (pageId === 'content.pagebuilder') { setTimeout(loadPagesList, 50); }
 };
