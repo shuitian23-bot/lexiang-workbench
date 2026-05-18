@@ -2094,7 +2094,7 @@ def main():
         desc = make_desc(gbrief or str(name))
         all_articles.append({
             'slug': slug,
-            'title': (str(name)[:100] + ' — 完整规格与使用指南')[:120],
+            'title': str(name)[:120],
             'desc': desc,
             'cat': cat_key,
             'brand_key': _bkey2,
