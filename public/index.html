@@ -5599,13 +5599,35 @@ function openBenefitPanel(d) {
       '<div style="text-align:right"><div style="font-size:11px;color:#999">AI 编排到手价</div><div style="font-size:24px;font-weight:800;color:#C41A1F">' + escHtml(d.final_text || ('¥'+(d.final_price||0))) + '</div></div>' +
     '</div>' +
     tcoHtml + auditHtml +
-    '<button onclick="if(window.startBuyFlow)startBuyFlow(\'' + escHtml(String(p.name||'').replace(/[\x27\\]/g,'')) + '\',' + (d.final_price||0) + ')" style="width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,#FF4842,#C41A1F);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">🎁 一键领取全部权益并下单</button>' +
+    '<button onclick="confirmBenefitOrder(\'' + escHtml(String(p.name||'').replace(/[\x27\\]/g,'')) + '\',' + (d.final_price||0) + ',' + (p.base||0) + ')" style="width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,#FF4842,#C41A1F);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">🎁 一键领取全部权益并下单（到手 ' + escHtml(d.final_text || ('¥'+(d.final_price||0))) + '）</button>' +
   '</div>';
   try {
     if (typeof window.__openContent === 'function') window.__openContent('info', d.title || 'AI 权益管家', { html: html });
   } catch(e){ if (typeof showAIModal === 'function') showAIModal({ type:'info', title: d.title || 'AI 权益管家', content: html }); }
 }
 window.openBenefitPanel = openBenefitPanel;
+
+// 权益管家下单：价格 = 瀑布最终价，不再二次叠券（杜绝两边价格不一致）
+function confirmBenefitOrder(name, finalPrice, base) {
+  finalPrice = Math.round(Number(finalPrice) || 0);
+  var saved = Math.max(0, Math.round((Number(base) || 0) - finalPrice));
+  try { if (typeof window.addOrder === 'function') window.addOrder(name, finalPrice); } catch(e){}
+  var html = '<div style="text-align:center;padding:10px 4px">' +
+    '<div style="font-size:40px">🎉</div>' +
+    '<div style="font-size:17px;font-weight:800;margin:8px 0 4px">下单成功</div>' +
+    '<div style="font-size:13px;color:#666;margin-bottom:14px">' + escHtml(name) + '</div>' +
+    '<div style="display:inline-block;padding:14px 28px;background:linear-gradient(90deg,#fff5f5,#fff);border-radius:12px">' +
+      '<div style="font-size:11px;color:#999">权益已全部领取并抵扣，实付</div>' +
+      '<div style="font-size:28px;font-weight:800;color:#C41A1F">¥' + finalPrice.toLocaleString() + '</div>' +
+      (saved > 0 ? '<div style="font-size:12px;color:#16a34a;margin-top:2px">已为你省 ¥' + saved.toLocaleString() + '</div>' : '') +
+    '</div>' +
+    '<div style="font-size:12px;color:#aaa;margin-top:14px">价格与权益管家测算一致 · POC 演示，未真实扣款</div>' +
+    '<div style="font-size:12px;color:#888;margin-top:6px">📦 订单已生成，可在右上角订单查看物流</div>' +
+  '</div>';
+  if (typeof showAIModal === 'function') showAIModal({ type:'success', title:'订单确认', content: html });
+  else if (window.LxStatus) window.LxStatus.toast('下单成功，实付 ¥' + finalPrice.toLocaleString() + '（与测算一致）', { type:'success', ms:3000 });
+}
+window.confirmBenefitOrder = confirmBenefitOrder;
 
 // S21 入口A：商品「一键领取优惠」→ 触发 AI 权益管家（带真实机型/SKU，价格准）
 function openBenefitFor(name, sku) {
