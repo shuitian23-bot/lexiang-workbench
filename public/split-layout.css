@@ -274,8 +274,8 @@ html.in-chat #contentPanel {
   html.in-chat.content-open #chatApp {
     display: flex;
     flex: 0 0 auto;
-    /* width 由 JS 控制，默认 50% */
-    width: 50%;
+    /* 沿用 2b 分屏的 --split-left，点商品开 tab 前后宽度连续不突变 */
+    width: var(--split-left, 50%);
     max-width: none;
     margin: 0;
     height: 100%;
