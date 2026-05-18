@@ -264,9 +264,10 @@ router.patch('/messages/:msgId/leai', (req, res) => {
 router.get('/history/:convId', (req, res) => {
   // IDOR修复：验证对话属于当前用户
   const convId = req.params.convId;
+  // 鉴权口径与 /conversations 一致：匿名按 getUid(req)（lexiang-uid），不是 express sessionID
   const conv = req.userId
     ? db.prepare('SELECT id FROM conversations WHERE id = ? AND user_id = ?').get(convId, req.userId)
-    : db.prepare('SELECT id FROM conversations WHERE id = ? AND session_id = ?').get(convId, req.sessionID);
+    : db.prepare('SELECT id FROM conversations WHERE id = ? AND session_id = ?').get(convId, getUid(req));
   if (!conv) return res.status(403).json({ error: '无权访问此对话' });
   const msgs = db.prepare(
     'SELECT id, role, content, leai_response, created_at FROM messages WHERE conv_id = ? ORDER BY created_at ASC'
