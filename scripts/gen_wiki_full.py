@@ -2523,7 +2523,7 @@ var _la_lenovo_website = 10000001;
         for _a in sub_articles:
             sub_by_cat[_a['cat']].append(_a)
         sub_sorted = {}
-        sub_sorted['all'] = sort_articles(sub_articles)
+        sub_sorted['all'] = sort_all_latest(sub_articles)  # 与主站[全部]一致：全局最新+配件/服务降权
         for _cat, _arts in sub_by_cat.items():
             if _cat == 'all': continue
             if _cat in PRODUCT_CATS:
