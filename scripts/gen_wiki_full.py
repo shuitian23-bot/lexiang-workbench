@@ -2389,12 +2389,28 @@ var _la_lenovo_website = 10000001;
         out_stock = sorted([a for a in products if (a.get('is_stock') or 0) != 1], key=_pk)
         return in_stock + knowledge + out_stock
 
+    # 配件/服务/周边判定（这类降权，整机优先）
+    _ACCESSORY_KW = ('保护夹', '保护壳', '保护套', '保护膜', '钢化膜', '贴膜', '屏幕膜',
+                     '延保', '延长保修', '保修服务', '换新服务', '碎屏', '屏碎', '电池延保',
+                     '上门服务', '到店服务', '安装服务', '清洁', '原厂.*服务', '服务-特别版',
+                     '鼠标', '键盘', '耳机', '音箱', '适配器', '充电器', '数据线', '扩展坞',
+                     '支架', '背包', '电脑包', '双肩包', '内胆包', '散热', '底座', '手写笔',
+                     '碳粉', '墨盒', '硒鼓', '换购', '以旧换新', '套餐', '套装', '礼包')
+    def _is_accessory_like(a):
+        nm = (a.get('title') or '')
+        if a.get('cat') in ('accessory', 'service'):
+            return True
+        return any(re.search(k, nm) for k in _ACCESSORY_KW)
+
     def sort_products_only(arts):
-        """纯商品分类排序：有库存优先 + productId 倒序自动置顶新品。
+        """纯商品分类排序：有库存优先 → 整机优先(配件/服务降权) → productId 倒序自动置顶新品。
         规则依据：联想 productId 全局严格单调递增，越大=越新上架，
         无需人工新品清单/promote，自动判定。"""
-        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=_pid, reverse=True)
-        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=_pid, reverse=True)
+        def _key(a):
+            # (是配件/服务降权, -productId)：整机段在前，各段内 productId 倒序
+            return (1 if _is_accessory_like(a) else 0, -_pid(a))
+        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=_key)
+        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=_key)
         return in_stock + out_stock
 
     def sort_knowledge_only(arts):
