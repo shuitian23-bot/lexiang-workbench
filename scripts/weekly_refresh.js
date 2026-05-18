@@ -55,11 +55,35 @@ async function sendFeishu() {
   const text = lines.join('\n');
   console.log('\n' + text + '\n');
 
-  if (!url) { LOG('未配置 FEISHU_WEBHOOK_URL，跳过飞书推送（消息已打印上方）'); return; }
+  // 优先飞书应用模式（app_id/secret + chat_id），其次自定义机器人 webhook
+  const appId = process.env.FEISHU_APP_ID;
+  const appSecret = process.env.FEISHU_APP_SECRET;
+  const chatId = process.env.FEISHU_CHAT_ID;
+  if (appId && appSecret && chatId) {
+    try {
+      const tr = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ app_id: appId, app_secret: appSecret }),
+      });
+      const tj = await tr.json();
+      const token = tj.tenant_access_token;
+      if (!token) { LOG(`飞书取 token 失败：${JSON.stringify(tj).slice(0, 200)}`); return; }
+      const mr = await fetch('https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=chat_id', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receive_id: chatId, msg_type: 'text', content: JSON.stringify({ text }) }),
+      });
+      const mj = await mr.json();
+      LOG(`飞书推送：${mj.code === 0 ? 'OK' : JSON.stringify(mj).slice(0, 200)}`);
+    } catch (e) {
+      LOG(`飞书推送失败：${e.message}`);
+    }
+    return;
+  }
+  if (!url) { LOG('未配置飞书（FEISHU_APP_ID/SECRET/CHAT_ID 或 FEISHU_WEBHOOK_URL），跳过推送'); return; }
   try {
     const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ msg_type: 'text', content: { text } }),
     });
     const j = await resp.json().catch(() => ({}));
