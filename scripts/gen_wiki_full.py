@@ -2396,7 +2396,10 @@ var _la_lenovo_website = 10000001;
                      '换新', '保值', '以旧换新', '回收', '抵扣', '权益',
                      '鼠标', '键盘', '耳机', '音箱', '适配器', '充电器', '数据线', '扩展坞',
                      '支架', '背包', '电脑包', '双肩包', '内胆包', '散热', '底座', '手写笔',
-                     '碳粉', '墨盒', '硒鼓', '换购', '以旧换新', '套餐', '套装', '礼包')
+                     '碳粉', '墨盒', '硒鼓', '换购', '以旧换新', '套餐', '套装', '礼包',
+                     '闪存盘', 'U盘', '优盘', '移动硬盘', '移动固态', '硬盘盒', '读卡器',
+                     '存储卡', 'TF卡', 'SD卡', '内存条', '扩展卡', '网卡', '声卡', '集线器',
+                     '转接', '拓展坞', 'HUB', '延长线', '排插', '插座', '清洁', '贴纸', '挂件')
     def _is_accessory_like(a):
         nm = (a.get('title') or '')
         if a.get('cat') in ('accessory', 'service'):
@@ -2419,8 +2422,12 @@ var _la_lenovo_website = 10000001;
         return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
 
     def sort_all_latest(arts):
-        """[全部]分类：全局按更新/发布时间倒序，商品+新闻+知识混排，最新在最前（不分类块、不分库存）"""
-        return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
+        """[全部]分类：整机/新闻/知识 优先（配件/服务降权），各段内按时间倒序(ts同按pid)。
+        商品+新闻+知识混排，最新在最前；配件/延保/保护壳等沉到后段。"""
+        main = [a for a in arts if not (a.get('type') == 'product' and _is_accessory_like(a))]
+        acc = [a for a in arts if a.get('type') == 'product' and _is_accessory_like(a)]
+        _k = lambda a: (str(a.get('ts') or ''), _pid(a))
+        return sorted(main, key=_k, reverse=True) + sorted(acc, key=_k, reverse=True)
 
     # 各分类排好序
     PRODUCT_CATS = {'notebook','desktop','monitor','tablet_phone','accessory','smart_device','service'}
