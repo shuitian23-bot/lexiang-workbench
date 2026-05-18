@@ -32,13 +32,14 @@ const upload = multer({
 // navigate 立即 send，其余 tab/modal/卡片 类延迟到 AI 流式答完 _flushDeferred
 const FRONTEND_DISPATCH = {
   frontend_navigate: (r, send) => send('nav', { target: r.target, reason: r.reason || '' }),
-  frontend_display:  (r, _, defer) => defer('display', { title: r.title || 'AI推荐', products: r.products || [] }),
+  // 重内容（商品/筛选/方案/门店）即时 send，右侧 tab 跟左侧文字同步出，不等 chat 答完（消除几秒延迟）
+  frontend_display:  (r, send) => send('display', { title: r.title || 'AI推荐', products: r.products || [] }),
   frontend_modal:    (r, _, defer) => defer('modal', r),
-  frontend_solutions:(r, _, defer) => defer('solutions', { title: r.title || '推荐方案', solutions: r.solutions || [], note: r.note || '' }),
-  frontend_filter:   (r, _, defer) => defer('display', { title: r.title || '筛选结果', filter_tags: r.filter_tags || [], products: r.products || [] }),
+  frontend_solutions:(r, send) => send('solutions', { title: r.title || '推荐方案', solutions: r.solutions || [], note: r.note || '' }),
+  frontend_filter:   (r, send) => send('display', { title: r.title || '筛选结果', filter_tags: r.filter_tags || [], products: r.products || [] }),
   frontend_customize:(r, _, defer) => defer('customize', { product_name: r.product_name || '', schema: r.schema || 'laptop', preset: r.preset || 'default' }),
   frontend_coupon:   (r, _, defer) => defer('coupon', { highlight: r.highlight || [], title: r.title || '为您推荐的优惠券', desc: r.desc || '' }),
-  frontend_stores:   (r, _, defer) => defer('stores', { title: r.title || '联想体验店', city: r.city || '', product: r.product || '', stores: r.stores || [], perks: r.perks || [] }),
+  frontend_stores:   (r, send) => send('stores', { title: r.title || '联想体验店', city: r.city || '', product: r.product || '', stores: r.stores || [], perks: r.perks || [] }),
   frontend_member:   (r, _, defer) => defer('member', { title: r.title || '我的会员中心' }),
   frontend_tradein:  (r, _, defer) => defer('tradein', { title: r.title || '以旧换新', content: r.content || '', data: r.data || {} }),
   frontend_lead:     (r, _, defer) => defer('lead', { title: r.title || '留下您的联系方式', desc: r.desc || '', fields: r.fields || [], scenario: r.scenario || '' }),

@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v68-hintpos">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v69-restraint">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5882,9 +5882,11 @@ window.LxBehavior = (function(){
     var prefetchMap = new Map(); // el → Promise
     var prefetchTimers = new WeakMap(); // el → enter timer
     function pointerExtractContext(el){
-      var block = el.closest('article, section, .mall-card, .dc-card, .leai-ppanel, .cpd-section, .pd-section, .sec, [data-block]') || el.parentElement;
+      var block = el.closest('.mall-card, .dc-card, .leai-ppanel, .pd-detail-img, .pd-spec-row, .pd-section') || el.parentElement;
       if (!block) return { text: '', images: [] };
       var text = (block.innerText || block.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 800);
+      // 必须含商品价格信号（¥/￥/价格/元/起），否则不是商品上下文 → 不预判（预判不出就闭嘴）
+      if (!/[¥￥]\s*\d|价格|\d+\s*元|起售|\d{3,}/.test(text)) return { text: '', images: [] };
       // V1 多模态：取 block 内 lefile.cn 图（最多 3 张）
       var imgs = [];
       block.querySelectorAll('img').forEach(function(img){
@@ -5918,8 +5920,10 @@ window.LxBehavior = (function(){
       if (Date.now() < pointerCooldown) return;
       var el = e.target;
       if (!el || el === pointerLastEl) return;
-      if (!el.closest || !el.closest('.mall-card, .dc-card, .cpd-section, .pd-section, .leai-ppanel, .mbubble, .pd-detail-img, .pd-spec-row, .cpd-spec-label, .cpd-spec-value, .feed-cmt, .review, .sec, .scard, .wcard')) return;
-      var card = el.closest('.mall-card, .dc-card, .leai-ppanel, .scard, .wcard, .sec') || el;
+      // 收窄：只在确证「商品」上下文触发（去掉 .sec/.mbubble/.cpd-section/.scard/.wcard
+      // 等会命中门店/方案/纯文本的宽选择器，避免门店 tab 误触发瞎预判）
+      if (!el.closest || !el.closest('.mall-card, .dc-card, .leai-ppanel, .pd-detail-img, .pd-spec-row')) return;
+      var card = el.closest('.mall-card, .dc-card, .leai-ppanel') || el;
       // S11-A 预拉：mouseenter 卡片 200ms 即后台拉，hover 满 500ms 命中时已 ready
       if (!prefetchMap.has(card)) {
         var enterT = setTimeout(function(){
@@ -6044,9 +6048,12 @@ window.LxBehavior = (function(){
       if (e.clientY > 5) return; // 仅鼠标向上离开顶部触发
       if (Date.now() - sessionStart < 30000) return; // 至少呆 30s 才挽留
       var ct = JSON.parse(localStorage.getItem('lexiang.cart.v1') || '[]');
+      var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
+      // 克制：只有真有流失价值（购物车/心愿单/看过商品）才挽留。纯逛/搜门店无意图 → 不弹
+      if (!ct.length && !wl.length && recentProducts.length === 0) return;
       var msg = ct.length
         ? '购物车 <b>' + ct.length + '</b> 件商品还没结算<br>临走给您一张<b>专属 ¥50 券</b>，立即下单可叠加'
-        : '别走呀～<br>送您一张 <b>¥50 新人券</b>，再看看？';
+        : '看你心仪几款还没定～<br>临走送你 <b>¥50 券</b>，回来下单直接抵';
       showHint('exit-intent',
         msg, '🎁 领走再走',
         function(){
@@ -6501,6 +6508,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v68-hintpos"></script>
+<script src="/split-layout.js?v=20260515-v69-restraint"></script>
 </body>
 </html>
