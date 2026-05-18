@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v74-subnav-ia">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v75-usercenter">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1254,7 +1254,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <a href="#" id="navAiPickBtn" onclick="aiPickForMe();return false;" title="AI 综合给你选 1 款" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff!important;font-weight:600;font-size:12px;box-shadow:0 4px 12px rgba(184,51,64,.3);animation:lx-skel 3s ease-in-out infinite alternate">🤖 AI 帮我选</a>
     <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;font-size:18px">🛒<span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
-    <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="display:none;position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
+    <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
+    <a href="#" id="navUserCenterBtn" onclick="openUserCenter();return false;" title="个人中心（信息/权益/发票/价保）" style="position:relative;font-size:18px">👤</a>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
     <div id="navUserArea" style="display:none;align-items:center;gap:8px;"><span id="navNickname" style="font-size:13px;cursor:pointer;"></span><a href="#" onclick="doLogout();return false;" style="font-size:12px;opacity:.6;">退出</a></div>
     <button class="tog" id="tog" aria-label="切换主题" style="display:none">
@@ -6176,7 +6177,7 @@ window.LxBehavior = (function(){
     if (wb) { wb.style.display = wl.length ? 'inline-flex' : 'none'; wb.textContent = wl.length; }
     if (cb) { cb.style.display = ct.length ? 'inline-flex' : 'none'; cb.textContent = ct.length; }
     if (ob) { ob.style.display = od.length ? 'inline-flex' : 'none'; ob.textContent = od.length; }
-    if (ot) { ot.style.display = od.length ? 'inline-flex' : 'none'; }
+    // 订单入口常显（无单点开走空态引导），不再 od.length 才显
   }
 
   window.addToWishlist = function(sku, name, price, image){
@@ -6268,10 +6269,15 @@ window.LxBehavior = (function(){
     }
     showAIModal({ type: 'info', title: '购物车 🛒 ('+list.length+')', content: html });
   };
+  // 个人中心：POC 复用 member RENDERER 聚合（含等级/乐豆/权益/订单）+ AI 引导
+  window.openUserCenter = function(){
+    try { if (typeof window.__openContent === 'function') window.__openContent('member', '个人中心', {}); } catch(e){}
+    if (typeof quickAsk === 'function') quickAsk('打开我的个人中心：把我的账户信息、会员权益、发票抬头、价保资格整理出来，有待领权益或可申请价保的直接提示我');
+  };
   window.openOrders = function(){
     var list = load(OD_KEY);
     if (!list.length) {
-      showAIModal({ type: 'info', title: '我的订单 📦', content: window.LxStatus.empty({ icon: '📦', title: '暂无订单', hint: '一键领取优惠后订单将显示在这里' }) });
+      showAIModal({ type: 'info', title: '我的订单 📦', content: (window.LxStatus.empty({ icon: '📦', title: '暂无订单', hint: '看中的机型一键领券下单，订单会显示在这里' })) + '<div style="text-align:center;margin-top:14px"><button onclick="document.querySelectorAll(\'.ai-modal-mask\').forEach(function(m){m.remove()});quickAsk(\'根据热销推荐 3 款现在最值得买的，并给下单引导\')" style="padding:9px 18px;background:linear-gradient(135deg,#FF4842,#C41A1F);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🔥 去逛逛热销</button></div>' });
       return;
     }
     var STAGES = ['已下单', '备货中', '已发货', '派送中', '已签收'];
@@ -6571,6 +6577,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v74-subnav-ia"></script>
+<script src="/split-layout.js?v=20260515-v75-usercenter"></script>
 </body>
 </html>
