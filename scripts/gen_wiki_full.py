@@ -1827,7 +1827,7 @@ def main():
     print(f'\n[{datetime.now():%H:%M:%S}] === 生成知识文章页 ===')
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute('SELECT id, title, source_url, content, created_at FROM knowledge_docs WHERE (length(content) > 100 OR source_url LIKE \'%brand.lenovo%\') AND length(content) > 30 ORDER BY id DESC')
+    cur.execute('SELECT id, title, source_url, content, COALESCE(NULLIF(publish_date,\'\'), created_at) FROM knowledge_docs WHERE (length(content) > 100 OR source_url LIKE \'%brand.lenovo%\') AND length(content) > 30 ORDER BY id DESC')
 
     rows = cur.fetchall()
     print(f'共 {len(rows)} 篇知识文章')
@@ -2394,13 +2394,17 @@ var _la_lenovo_website = 10000001;
         """纯知识分类排序：按入库时间倒序（ts 相同按 docId 倒序）"""
         return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
 
+    def sort_all_latest(arts):
+        """[全部]分类：全局按更新/发布时间倒序，商品+新闻+知识混排，最新在最前（不分类块、不分库存）"""
+        return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
+
     # 各分类排好序
     PRODUCT_CATS = {'notebook','desktop','monitor','tablet_phone','accessory','smart_device','service'}
     # 这些分类混合了商品和知识文章，用混合排序
     MIXED_CATS = {'server', 'workstation', 'solution'}
     KNOWLEDGE_CATS = {'knowledge', 'brand_news'}
     sorted_by_cat = {}
-    sorted_by_cat['all'] = sort_articles(all_articles)
+    sorted_by_cat['all'] = sort_all_latest(all_articles)
     for _cat, _arts in by_cat.items():
         if _cat == 'all': continue
         if _cat in PRODUCT_CATS:
