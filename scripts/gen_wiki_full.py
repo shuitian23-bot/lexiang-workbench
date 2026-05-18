@@ -118,6 +118,9 @@ PARENT_CAT_MAP = {
     # 手机/平板
     '手机': 'tablet_phone',
     '平板电脑': 'tablet_phone',
+    '平板': 'tablet_phone',
+    '笔记本': 'notebook',
+    '台式': 'desktop',
     '手表': 'smart_device',
     # 配件/办公
     '键鼠相关': 'accessory',
@@ -302,7 +305,7 @@ def get_product_theme(brand, name='', parent_cat='', cpu='', **_kw):
     """
     b = (brand or '').strip().lower()
     name_l = (name or '').lower()
-    pc = (parent_cat or '').strip()
+    pc = re.sub(r'[（(]标准分类[)）]\s*$', '', (parent_cat or '').strip()).strip()
 
     # ── 第负一步：生活/宠物类 → 配件（优先排除，避免"宠物一体机"匹配台式关键词）──
     _life_override = ['宠物', '猫砂', '猫厕所', '喂食', '净味']
@@ -1962,10 +1965,13 @@ def main():
         else:
             print(f'[{datetime.now():%H:%M:%S}] 从 DB products 表读 active 商品...')
             _cn = sqlite3.connect(DB_PATH)
+            # ts 用 max(created_at, updated_at)：OpenAPI 每次 upsert 刷 updated_at，
+            # 在售/新品自动近期靠前，[全部]页无需人工 promote 清单
             _q = ("SELECT id, name, sku, category, price, status, stock, image_url, "
-                  "description, specs, created_at FROM products "
+                  "description, specs, MAX(COALESCE(updated_at,''), COALESCE(created_at,'')) "
+                  "FROM products "
                   "WHERE name IS NOT NULL AND name != '' AND status = 'active' "
-                  "ORDER BY created_at DESC")
+                  "ORDER BY id DESC")
             for _p in _cn.execute(_q):
                 _id, _name, _sku, _category, _price, _status, _stock, _image_url, _description, _specs_str, _created_at = _p
                 try:
@@ -1989,11 +1995,12 @@ def main():
                 _v[17] = 1 if (_stock or 0) > 0 else 0
                 _v[25] = _description or ''
                 _v[26] = _specs.get('target_user') or ''
-                _v[30] = _specs.get('lvl1') or _category or ''
-                _v[31] = _specs.get('lvl2') or _category or ''
+                # 分类优先用 DB products.category（干净，如「平板电脑」直命中 PARENT_CAT_MAP），specs.lvl1 格式脏（「平板(标准分类)」）作兜底
+                _v[30] = _category or _specs.get('lvl1') or ''
+                _v[31] = _category or _specs.get('lvl2') or ''
                 _v[35] = _specs.get('brand') or ''
-                _v[41] = _specs.get('lvl1') or _category or ''
-                _v[42] = _specs.get('lvl2') or _category or ''
+                _v[41] = _category or _specs.get('lvl1') or ''
+                _v[42] = _category or _specs.get('lvl2') or ''
                 # 规格字段（crawl_item_pages.js 扁平化写入 specs）
                 _v[49] = _specs.get('weight') or ''
                 _v[50] = _specs.get('warranty') or ''
@@ -2057,7 +2064,7 @@ def main():
             desc = make_desc(gbrief or str(name))
             all_articles.append({
                 'slug': slug,
-                'title': (str(name)[:100] + ' — 完整规格与使用指南')[:120],
+                'title': str(name)[:120],
                 'desc': desc,
                 'cat': _cat,
                 'brand_key': _bkey,
@@ -2335,11 +2342,9 @@ var _la_lenovo_website = 10000001;
         if slug not in seen:
             seen[slug] = a
         else:
-            # xlsx商品（title含"—完整规格"且type=product）优先
+            # 商品（type=product）优先于知识文档
             prev = seen[slug]
-            if a.get('type') == 'product' and '完整规格' in a.get('title', ''):
-                seen[slug] = a
-            elif prev.get('type') != 'product' or '完整规格' not in prev.get('title', ''):
+            if a.get('type') == 'product' and prev.get('type') != 'product':
                 seen[slug] = a
     all_articles = list(seen.values())
 
@@ -2385,9 +2390,11 @@ var _la_lenovo_website = 10000001;
         return in_stock + knowledge + out_stock
 
     def sort_products_only(arts):
-        """纯商品分类排序：有库存优先 + 上架时间倒序（ts 相同按 productId 倒序，最新入库置顶）"""
-        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
-        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
+        """纯商品分类排序：有库存优先 + productId 倒序自动置顶新品。
+        规则依据：联想 productId 全局严格单调递增，越大=越新上架，
+        无需人工新品清单/promote，自动判定。"""
+        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=_pid, reverse=True)
+        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=_pid, reverse=True)
         return in_stock + out_stock
 
     def sort_knowledge_only(arts):
