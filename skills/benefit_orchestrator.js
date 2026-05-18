@@ -40,10 +40,27 @@ module.exports = {
         var kw = String(product_name).replace(/[【】\[\]()（）]/g, ' ').trim().split(/\s+/).filter(function(w){ return w.length >= 2; }).slice(0, 3);
         if (kw.length) {
           var like = kw.map(function(){ return 'name LIKE ?'; }).join(' AND ');
-          prod = db.prepare('SELECT sku,name,price,original_price,image_url,category FROM products WHERE price > 0 AND ' + like + ' ORDER BY price ASC LIMIT 1').get.apply(
-            db.prepare('SELECT sku,name,price,original_price,image_url,category FROM products WHERE price > 0 AND ' + like + ' ORDER BY price ASC LIMIT 1'),
-            kw.map(function(w){ return '%' + w + '%'; })
-          );
+          // 只查整机（笔记本/台式/一体/平板），排配件贴膜服务，价格 ≥1500 防匹配到 ¥69 贴膜
+          // 有预算→取 ≤预算*1.3 里最高配（最贴近用户意图）；无预算→取主流价（避免最低端）
+          var hasB = (typeof budget === 'number' && budget > 0);
+          var sql = "SELECT sku,name,price,original_price,image_url,category FROM products" +
+            " WHERE price >= 1500 AND status='active'" +
+            " AND category IN ('笔记本电脑','台式机','平板电脑','一体机','工作站')" +
+            " AND name NOT LIKE '%贴膜%' AND name NOT LIKE '%膜%' AND name NOT LIKE '%支架%'" +
+            " AND name NOT LIKE '%包%' AND name NOT LIKE '%鼠标%' AND name NOT LIKE '%键盘%'" +
+            " AND name NOT LIKE '%延保%' AND name NOT LIKE '%碎屏%' AND name NOT LIKE '%服务%'" +
+            " AND " + like +
+            (hasB ? " AND price <= ? ORDER BY price DESC LIMIT 1" : " ORDER BY price ASC LIMIT 1");
+          var params = kw.map(function(w){ return '%' + w + '%'; });
+          if (hasB) params.push(Math.round(budget * 1.3));
+          var stmt = db.prepare(sql);
+          prod = stmt.get.apply(stmt, params);
+          // 预算内没匹配到 → 放宽不卡预算再查一次（仍限整机）
+          if (!prod && hasB) {
+            var sql2 = sql.replace(" AND price <= ? ORDER BY price DESC LIMIT 1", " ORDER BY price ASC LIMIT 1");
+            var st2 = db.prepare(sql2);
+            prod = st2.get.apply(st2, kw.map(function(w){ return '%' + w + '%'; }));
+          }
         }
       }
     } catch (e) {}

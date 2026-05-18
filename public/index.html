@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v81-s21">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v82-s21fix">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1871,7 +1871,13 @@ function openChatFresh(){ if(window.__siteType==='default') setNavActive(null);
   isLoading = false;
   document.getElementById('mainSend').disabled = false;
   document.querySelectorAll('.suggestions').forEach(el => el.remove());
-  document.getElementById('msgsInner').innerHTML = welcomeHTML();
+  // 新建：先关右侧 tab/详情，回干净 chat（否则 content-open/displayCanvas 盖住 welcome → 白屏）
+  try { if (typeof closeDisplayCanvas === 'function') closeDisplayCanvas(); } catch(e){}
+  try { if (typeof window.__closeContent === 'function') window.__closeContent(); } catch(e){}
+  var _inner = document.getElementById('msgsInner');
+  var _html = '';
+  try { _html = welcomeHTML(); } catch(e){ _html = '<div class="welcome" id="welcomeScreen"><h2>开始新对话</h2><p>问我商品、优惠、方案都行</p></div>'; }
+  if (_inner) _inner.innerHTML = _html;
   updateSidebar();
   updateTitle('');
   showChatApp();
@@ -6680,6 +6686,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v81-s21"></script>
+<script src="/split-layout.js?v=20260515-v82-s21fix"></script>
 </body>
 </html>
