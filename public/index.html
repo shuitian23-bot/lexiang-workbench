@@ -1221,7 +1221,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v66-hooks">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v78-panelpersist">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1991,11 +1991,28 @@ async function loadConv(id){
   const conv = convList.find(c => c.id === id);
   if (conv) updateTitle(conv.title);
   showChatApp(false);
-  // 恢复右侧产品面板
+  // 恢复内容面板：优先持久化快照直接重开（不走 AI），跨 session 用 localStorage
+  var _hadPanel = false;
   try {
-    var saved = sessionStorage.getItem('lx.display.' + id);
-    if (saved) { var dd = JSON.parse(saved); if (dd.products?.length) showDisplayCanvas(dd.title, dd.products); }
+    var saved = sessionStorage.getItem('lx.display.' + id) || localStorage.getItem('lx.display.' + id);
+    if (saved) { var dd = JSON.parse(saved); if (dd.products && dd.products.length) { showDisplayCanvas(dd.title, dd.products); _hadPanel = true; window._lastConvPanel = dd; } }
   } catch(e){}
+  // 含商品/方案语义 → chat 末尾留重开 chip。有快照=秒开；无快照才 fallback 让 AI 重生成
+  var lastAi = msgs.filter(function(m){ return m.role !== 'user'; }).map(function(m){ return m.content || ''; }).join(' ');
+  if (/[¥￥]\s*\d|推荐|对比|方案|配置|机型|ThinkPad|拯救者|小新|YOGA|ThinkBook/.test(lastAi)) {
+    var inner2 = document.getElementById('msgsInner');
+    if (inner2 && !document.getElementById('convPanelChip')) {
+      var pc = document.createElement('div');
+      pc.id = 'convPanelChip';
+      pc.style.cssText = 'margin:10px 0;display:flex;justify-content:center';
+      var hasSnap = !!(window._lastConvPanel && window._lastConvPanel.products && window._lastConvPanel.products.length);
+      var act = hasSnap
+        ? 'showDisplayCanvas(window._lastConvPanel.title, window._lastConvPanel.products)'
+        : "quickAsk('把我们刚才聊过的商品/方案完整展示出来')";
+      pc.innerHTML = '<button onclick="' + act + '" style="padding:8px 18px;border-radius:16px;border:1px solid #6D28D9;background:#fff;color:#6D28D9;font-size:13px;font-weight:600;cursor:pointer">📂 打开商品/方案详情</button>';
+      inner2.appendChild(pc);
+    }
+  }
   setTimeout(() => document.getElementById('mainTa').focus(), 100);
 }
 
@@ -2291,7 +2308,11 @@ async function callAPI(msg, imageUrl, audioUrl){
         else if (lastEvent === 'display') {
           if (d.products?.length) {
             showDisplayCanvas(d.title || 'AI推荐', d.products);
-            try { sessionStorage.setItem('lx.display.' + convId, JSON.stringify({title: d.title || 'AI推荐', products: d.products})); } catch(e){}
+            try {
+              var _snap = JSON.stringify({title: d.title || 'AI推荐', products: d.products});
+              sessionStorage.setItem('lx.display.' + convId, _snap);
+              localStorage.setItem('lx.display.' + convId, _snap); // 跨 session 持久，loadConv 直接重开不走 AI
+            } catch(e){}
           }
         }
 
@@ -6520,6 +6541,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v66-hooks"></script>
+<script src="/split-layout.js?v=20260515-v78-panelpersist"></script>
 </body>
 </html>
