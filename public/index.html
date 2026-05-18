@@ -1221,7 +1221,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v79-splitkey">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v80-benefit">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2364,6 +2364,10 @@ async function callAPI(msg, imageUrl, audioUrl){
 
         else if (lastEvent === 'lead') {
           if (typeof openLeadForm === 'function') openLeadForm(d);
+        }
+
+        else if (lastEvent === 'benefit') {
+          if (typeof openBenefitPanel === 'function') openBenefitPanel(d);
         }
 
         else if (lastEvent === 'error') {
@@ -5516,6 +5520,49 @@ function openLeadForm(opts) {
 }
 window.openLeadForm = openLeadForm;
 
+// AI 权益管家：到手价瀑布 + 来源解释 + 公平预算池审计（右侧分栏）
+function openBenefitPanel(d) {
+  d = d || {};
+  var wf = d.waterfall || [], tco = d.tco || [], audit = d.audit || [];
+  var rows = wf.map(function(w){
+    var isBase = w.kind === 'base';
+    var amtColor = isBase ? '#1a1a1a' : (w.amount < 0 ? '#16a34a' : '#999');
+    var amtTxt = isBase ? ('¥' + Math.round(w.amount).toLocaleString())
+      : (w.amount < 0 ? '-¥' + Math.abs(Math.round(w.amount)).toLocaleString() : (w.amount === 0 ? '免息/赠' : '+¥' + w.amount));
+    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #eee">' +
+      '<div style="flex:1;padding-right:12px"><div style="font-size:13px;font-weight:600;color:#1a1a1a">' + escHtml(w.label) +
+        (w.pool ? ' <span style="font-size:10px;color:#6D28D9;background:#f3f0ff;padding:1px 6px;border-radius:6px;margin-left:4px">' + escHtml(w.pool) + '池</span>' : '') + '</div>' +
+        (w.reason ? '<div style="font-size:11px;color:#888;margin-top:3px;line-height:1.5">ⓘ ' + escHtml(w.reason) + '</div>' : '') +
+      '</div>' +
+      '<div style="font-size:14px;font-weight:700;white-space:nowrap;color:' + amtColor + '">' + amtTxt + '</div>' +
+    '</div>';
+  }).join('');
+  var tcoHtml = tco.length ? '<div style="margin-top:14px;padding:12px;background:#f5f7ff;border-radius:10px">' +
+    '<div style="font-size:12px;font-weight:700;color:#4338ca;margin-bottom:8px">🎁 TCO 总拥有成本增值（不降价，提升长期价值）</div>' +
+    tco.map(function(t){ return '<div style="font-size:12px;color:#555;padding:3px 0">✓ <b>' + escHtml(t.label) + '</b> · ' + escHtml(t.desc) + '</div>'; }).join('') + '</div>' : '';
+  var auditHtml = audit.length ? '<details style="margin-top:14px"><summary style="font-size:12px;color:#6D28D9;cursor:pointer;font-weight:600">🔎 这些优惠为什么给我？（公平预算池审计）</summary>' +
+    '<div style="margin-top:8px;font-size:11px;color:#666;line-height:1.7">' +
+    audit.map(function(a){ return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0"><b>' + escHtml(a.label) + '</b>：' + escHtml(a.note || '') + '<br><span style="color:#999">命中：' + escHtml(a.hit || '') + '</span></div>'; }).join('') +
+    '<div style="margin-top:8px;color:#aaa">leaibot 是联想官方商城，标价稳定统一，差异只在可解释的券与权益，不做隐形高低价。</div></div></details>' : '';
+  var p = d.product || {};
+  var html = '<div style="max-width:560px">' +
+    (p.image ? '<div style="text-align:center;margin-bottom:10px"><img src="' + escHtml(p.image) + '" style="height:120px;object-fit:contain"></div>' : '') +
+    '<div style="font-size:15px;font-weight:700;margin-bottom:4px">' + escHtml(p.name || '该机型') + '</div>' +
+    (d.usage ? '<div style="font-size:12px;color:#888;margin-bottom:10px">场景：' + escHtml(d.usage) + '</div>' : '') +
+    rows +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:14px;background:linear-gradient(90deg,#fff5f5,#fff);border-radius:10px">' +
+      '<div><div style="font-size:11px;color:#999">已叠加官方权益省</div><div style="font-size:13px;color:#16a34a;font-weight:700">-¥' + Math.round(d.discount_total||0).toLocaleString() + '</div></div>' +
+      '<div style="text-align:right"><div style="font-size:11px;color:#999">AI 编排到手价</div><div style="font-size:24px;font-weight:800;color:#C41A1F">' + escHtml(d.final_text || ('¥'+(d.final_price||0))) + '</div></div>' +
+    '</div>' +
+    tcoHtml + auditHtml +
+    '<button onclick="if(window.startBuyFlow)startBuyFlow(\'' + escHtml(String(p.name||'').replace(/[\x27\\]/g,'')) + '\',' + (d.final_price||0) + ')" style="width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,#FF4842,#C41A1F);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">🎁 一键领取全部权益并下单</button>' +
+  '</div>';
+  try {
+    if (typeof window.__openContent === 'function') window.__openContent('info', d.title || 'AI 权益管家', { html: html });
+  } catch(e){ if (typeof showAIModal === 'function') showAIModal({ type:'info', title: d.title || 'AI 权益管家', content: html }); }
+}
+window.openBenefitPanel = openBenefitPanel;
+
 // LxStatus 全局状态工具：toast / skeleton / empty / loading 三件套
 window.LxStatus = (function(){
   var TYPE_BG = {
@@ -6541,6 +6588,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v79-splitkey"></script>
+<script src="/split-layout.js?v=20260515-v80-benefit"></script>
 </body>
 </html>
