@@ -39,7 +39,17 @@ module.exports = {
       if (!prod && product_name) {
         var kw = String(product_name).replace(/[【】\[\]()（）]/g, ' ').trim().split(/\s+/).filter(function(w){ return w.length >= 2; }).slice(0, 3);
         if (kw.length) {
-          var like = kw.map(function(){ return 'name LIKE ?'; }).join(' AND ');
+          // 业务线隔离：消费线(小新/YOGA/拯救者…)与 Think 线绝不互推（业务红线）
+          var pn = String(product_name);
+          var CONSUMER = ['小新','YOGA','Yoga','拯救者','异能者','Legion','天逸','来酷','Lecoo','moto','Moto','平板','Tab'];
+          var THINK = ['ThinkPad','ThinkBook','ThinkCentre','Thinkplus','ThinkStation','昭阳','扬天','开天','启天'];
+          var seriesClause = '';
+          var hitC = CONSUMER.filter(function(w){ return pn.indexOf(w) >= 0; });
+          var hitT = THINK.filter(function(w){ return pn.indexOf(w) >= 0; });
+          if (hitC.length) seriesClause = ' AND (' + hitC.map(function(){ return 'name LIKE ?'; }).join(' OR ') + ')';
+          else if (hitT.length) seriesClause = ' AND (' + hitT.map(function(){ return 'name LIKE ?'; }).join(' OR ') + ')';
+          var seriesParams = (hitC.length ? hitC : hitT).map(function(w){ return '%' + w + '%'; });
+          var like = kw.map(function(){ return 'name LIKE ?'; }).join(' AND ') + seriesClause;
           // 只查整机（笔记本/台式/一体/平板），排配件贴膜服务，价格 ≥1500 防匹配到 ¥69 贴膜
           // 有预算→取 ≤预算*1.3 里最高配（最贴近用户意图）；无预算→取主流价（避免最低端）
           var hasB = (typeof budget === 'number' && budget > 0);
@@ -51,15 +61,16 @@ module.exports = {
             " AND name NOT LIKE '%延保%' AND name NOT LIKE '%碎屏%' AND name NOT LIKE '%服务%'" +
             " AND " + like +
             (hasB ? " AND price <= ? ORDER BY price DESC LIMIT 1" : " ORDER BY price ASC LIMIT 1");
-          var params = kw.map(function(w){ return '%' + w + '%'; });
+          var baseParams = kw.map(function(w){ return '%' + w + '%'; }).concat(seriesParams);
+          var params = baseParams.slice();
           if (hasB) params.push(Math.round(budget * 1.3));
           var stmt = db.prepare(sql);
           prod = stmt.get.apply(stmt, params);
-          // 预算内没匹配到 → 放宽不卡预算再查一次（仍限整机）
+          // 预算内没匹配到 → 放宽不卡预算再查一次（仍限整机 + 同业务线，绝不跨线兜底）
           if (!prod && hasB) {
             var sql2 = sql.replace(" AND price <= ? ORDER BY price DESC LIMIT 1", " ORDER BY price ASC LIMIT 1");
             var st2 = db.prepare(sql2);
-            prod = st2.get.apply(st2, kw.map(function(w){ return '%' + w + '%'; }));
+            prod = st2.get.apply(st2, baseParams);
           }
         }
       }
