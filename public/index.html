@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v80-benefit">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v81-s21">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2536,7 +2536,7 @@ function renderSelfProducts(products) {
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <button class="leai-ppanel-buy" onclick="event.stopPropagation();startBuyFlow('${escHtml(name).replace(/'/g, "\\\\'")}',${typeof p.price==='number'?p.price:0})">🎁 一键领取优惠</button>
+          <button class="leai-ppanel-buy" onclick="event.stopPropagation();openBenefitFor('${escHtml(name).replace(/'/g, "\\\\'")}','${escHtml(p.sku||'')}')">🎁 一键领取优惠</button>
         </div>
       </div>
     </div>`;
@@ -3632,7 +3632,7 @@ async function showProductDetail(sku) {
             '</div>' +
             optionGroupsHtml +
             '<div class="pd-action-btns">' +
-              '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button>' +
+              '<button class="pd-btn-buy" onclick="openBenefitFor(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',\'' + escHtml(p.sku||'') + '\')">🎁 一键领取优惠</button>' +
               '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
           '</div>' +
@@ -3811,7 +3811,7 @@ function showAIModal(data) {
         (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
       catRow += '<td>' + escHtml(p.category || '-') + '</td>';
       descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
-      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();startBuyFlow(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button></td>';
+      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();openBenefitFor(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',\'' + escHtml(p.sku||'') + '\')">🎁 一键领取优惠</button></td>';
     });
 
     var specRows = '';
@@ -5601,6 +5601,15 @@ function openBenefitPanel(d) {
 }
 window.openBenefitPanel = openBenefitPanel;
 
+// S21 入口A：商品「一键领取优惠」→ 触发 AI 权益管家（带真实机型/SKU，价格准）
+function openBenefitFor(name, sku) {
+  var n = String(name || '该机型').replace(/['"\\]/g, '');
+  var q = '请用 AI 权益管家帮我算【' + n + '】' + (sku ? '（SKU:' + sku + '）' : '') +
+    ' 的到手价：先看我能用哪些官方权益（国补/教育/会员/乐豆/以旧换新/分期/延保），叠加后给到手价瀑布并逐项说明来源，不确定我身份就先问我（学生/教师/企业/老用户）和预算';
+  if (typeof quickAsk === 'function') quickAsk(q);
+}
+window.openBenefitFor = openBenefitFor;
+
 // LxStatus 全局状态工具：toast / skeleton / empty / loading 三件套
 window.LxStatus = (function(){
   var TYPE_BG = {
@@ -6671,6 +6680,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v80-benefit"></script>
+<script src="/split-layout.js?v=20260515-v81-s21"></script>
 </body>
 </html>
