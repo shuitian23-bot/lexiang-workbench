@@ -52,7 +52,7 @@ function getUserMenuTree(adminId) {
   }
   // 没分配角色默认全部可见
   if (menus.size === 0) {
-    return ['dashboard', 'geo', 'ecommerce', 'marketing', 'content', 'ai', 'users', 'settings'];
+    return ['dashboard', 'geo', 'ops', 'report', 'ecommerce', 'marketing', 'content', 'ai', 'lenovo', 'support', 'experiments', 'users', 'settings', 'employee'];
   }
   return [...menus];
 }
