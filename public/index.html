@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v73-splitwidth2">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v74-subnav-ia">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -4063,53 +4063,57 @@ setTimeout(_renderCmpFab, 100);
 try { new MutationObserver(_renderCmpFab).observe(document.documentElement, { attributes:true, attributeFilter:['class'] }); } catch(e){}
 
 // ── 三子站顶部入口（subnav-extra）按子站差异化配置 ──
+// S19 重构：命名优化 + 三子站 main(演示主线)/more(长尾)。⚠NAME 标记的命名待用户终验可回退
 var SUBNAV_BY_SITE = {
-  // 个人 / 家庭：偏消费（定制 + 优惠 + 会员 + 换新）
+  // 个人 / 家庭：消费钩子（国补/换新/乐豆/试用/订制）
   shop: {
     main: [
-      { ico:'🛠', label:'定制',  title:'定制配置 + 私人定制（右侧画布展开）',  fn:"_openSvc('customize','商品定制','我想定制一台联想电脑，请帮我推荐配置方案')" },
-      { ico:'🎟', label:'优惠',  title:'优惠券中心（右侧画布展开）',          fn:"_openSvc('coupon','优惠券中心','请按我的身份（学生/教师/企业/新用户）推荐我能领的优惠券')" },
-      { ico:'👤', label:'会员',  title:'我的会员等级 / 乐豆 / 权益 / 订单',   fn:"_openSvc('member','我的会员中心','我的会员等级、乐豆余额、可领权益和最近订单情况，帮我整理出来')" },
-      { ico:'♻️', label:'换新',  title:'以旧换新 AI 多轮估价',                fn:"_openSvc('tradein','以旧换新','我想以旧换新，请帮我估价并推荐换购机型')" },
+      { ico:'🇨🇳', label:'国补教育特惠', title:'国家补贴 + 教育优惠可叠加', fn:"_openSvc('coupon','国补教育特惠','我想了解国补和教育特惠，先按我的身份（学生/教师/普通消费者）告诉我能省多少、推荐能用的机型和券')" },
+      { ico:'♻️', label:'以旧换新',  title:'旧机估价 + 加价换新',     fn:"_openSvc('tradein','以旧换新','我想以旧换新，请帮我估价并推荐加价换购机型')" },
+      { ico:'🪙', label:'乐豆商城',  title:'乐豆 + 现金兑换实物/券',  fn:"_openSvc('member','乐豆商城','我的乐豆余额和可兑换的实物/券，按性价比帮我排出来')" },
+      { ico:'🎁', label:'0元试用',  title:'0 元试用，满意再买',      fn:"quickAsk('我想申请 0 元试用，先帮我登记机型和收货信息锁名额，并讲下试用规则')" },
+      { ico:'🛠', label:'私人订制', title:'选配 + 刻字 + 礼盒',      fn:"_openSvc('customize','私人订制','我想私人订制一台联想电脑，先按用途给我一版配置方案')" },
     ],
     more: [
-      { ico:'🔧', label:'保修查询',  fn:'_askWarranty()' },
-      { ico:'📸', label:'AI 写晒单', fn:"quickAsk('帮我生成一份晒单文案，机型不限，包括卖点、使用感受、推荐人群三段，并给我配图建议')" },
-      { ico:'🎥', label:'直播预告',  fn:"quickAsk('联想官方今晚和未来一周有什么直播？告诉我节目单和专享福利')" },
-      { ico:'🛡', label:'增值服务',  fn:"quickAsk('我准备买一台拯救者笔记本，推荐哪些增值服务（延保/意外保/上门/数据迁移）最值得买，给个组合方案')" },
-      { ico:'📍', label:'门店预约',  fn:"quickAsk('帮我找北京最近的联想体验店，能预约到店体验拯救者 Y9000K 吗？')" },
+      { ico:'👤', label:'会员中心',  fn:"_openSvc('member','我的会员中心','我的会员等级、乐豆、可领权益和最近订单，帮我整理')" },
+      { ico:'🤝', label:'拉新返利',  fn:"quickAsk('介绍下拉新返利：我推荐朋友来买联想，怎么返利、返多少、怎么提现')" }, // ⚠NAME: C2C→拉新返利 可回退
+      { ico:'🏪', label:'门店闪送',  fn:"quickAsk('我想到店自提或门店闪送（最快多久送达），帮我找最近的联想体验店并说明自提/闪送规则')" }, // ⚠NAME: OMO→门店闪送 可回退
+      { ico:'🎥', label:'直播',      fn:"quickAsk('联想官方今晚和未来一周有什么直播？节目单和专享福利')" },
+      { ico:'🎧', label:'专属顾问',  fn:"quickAsk('我想要一位专属顾问一对一帮我选购，请登记我的需求并安排')" },
     ],
   },
-  // 中小企业：偏批采、对公财务、上门
+  // 中小企业：5 个全演示主线（专属顾问/定制/积分/会员/员工专享）
   b: {
     main: [
-      { ico:'💼', label:'批量询价',  title:'10 台起 BD 顾问 30 分钟出方案', fn:"quickAsk('我要批量采购 10 台 ThinkBook 16+ 给销售团队，请帮我做询价并给出阶梯价')" },
-      { ico:'📋', label:'对公开票',  title:'增值税专票 + 银行对公账户',     fn:"quickAsk('企业采购怎么开增值税专票？需要提供哪些资料、走什么流程？')" },
-      { ico:'🛠', label:'商用定制',  title:'统一资产标识 + 系统镜像 + 域控接入', fn:'openCustomizer()' },
-      { ico:'🚚', label:'上门服务',  title:'24h 上门安装 + 远程运维',       fn:"quickAsk('中小企业上门安装、远程运维、保修上门，分别是什么服务、价格如何？')" },
+      { ico:'🎧', label:'专属顾问',  title:'专人 1 对 1 + 30 分钟出方案', fn:"quickAsk('我是企业采购，想要一位专属顾问对接：请登记我的企业名称、采购品类、预计台量、期望到货时间，并安排专人 30 分钟内联系')" },
+      { ico:'🛠', label:'定制专配',  title:'选配 + 统一资产标识 + 系统镜像', fn:"_openSvc('customize','定制专配','企业批量定制：先问我用途和台量，给一版标准化配置并估算批量总价')" },
+      { ico:'🎯', label:'积分商城',  title:'企业积分 + 现金兑换服务/券',   fn:"_openSvc('member','积分商城','我的企业账户积分和可兑换的服务包/延保/采购券，按对企业最实用排序')" },
+      { ico:'🏅', label:'会员权益',  title:'企业会员等级 / 待领权益',     fn:"_openSvc('member','企业会员中心','我的企业会员等级和待领权益，帮我点亮可领的，并提示哪些没用足')" },
+      { ico:'🪪', label:'企业员工专享', title:'员工专属价 + 专属券',      fn:"_openSvc('coupon','企业员工专享','我们公司想给员工开通专享购机通道，介绍专享价和专属券，并帮我登记开通')" },
     ],
     more: [
-      { ico:'📊', label:'资产盘点',  fn:"quickAsk('我们公司有 30 台联想电脑，怎么用联想资产管家盘点和管理？')" },
-      { ico:'🔧', label:'保修批量查',fn:"quickAsk('我们企业有一批联想机器，能否批量查询保修剩余天数？需要提供哪些信息？')" },
-      { ico:'🎟', label:'企业券',    fn:"quickAsk('中小企业新户开户有哪些专属优惠券和首单礼？')" },
-      { ico:'♻️', label:'集中换新',  fn:"quickAsk('我们公司一批 4 年前的 ThinkPad T 系列 30 台，想集中以旧换新，估价和流程怎么走？')" },
-      { ico:'📞', label:'BD 联络',   fn:"quickAsk('我想直接联系负责中小企业的销售 BD，请告诉我对接方式')" },
+      { ico:'📋', label:'对公开票',  fn:"quickAsk('企业采购怎么开增值税专票？需要哪些资料、走什么流程')" },
+      { ico:'🏬', label:'Think门店', fn:"quickAsk('帮我找最近的联想 Think 门店，能否预约企业到店洽谈')" },
+      { ico:'✍️', label:'电子签约',  fn:"quickAsk('企业采购的电子签约流程是怎样的？给我看下合同模板和签署步骤')" }, // ⚠NAME: 电子合同→电子签约
+      { ico:'🚚', label:'上门服务',  fn:"quickAsk('中小企业上门安装、远程运维、保修上门，分别是什么服务、价格如何')" },
+      { ico:'🧑‍💼', label:'合伙人计划', fn:"quickAsk('介绍联想企业合伙人/带货计划：怎么加入、分成规则')" },
     ],
   },
-  // 政教大企业：偏行业方案、招投标、合规、BD
+  // 政教大企业：线索转化 + 政企采购
   biz: {
     main: [
-      { ico:'🏛', label:'行业方案',  title:'金融/医疗/教育/政府 全场景方案', fn:"quickAsk('请按行业（金融、医疗、教育、政府）展示联想完整解决方案')" },
-      { ico:'📜', label:'招投标',    title:'政采资质 / 央采名录 / 投标支持', fn:"quickAsk('我们要做联想产品的招投标，需要哪些资质文件、参数模板、产品授权？')" },
-      { ico:'🛡', label:'信创合规',  title:'等保 2.0 / 国密 / 国产化适配',   fn:"quickAsk('政企采购需要满足等保 2.0、国密合规、国产化适配，联想哪些产品达标？')" },
-      { ico:'📞', label:'BD 接洽',   title:'专人对接 + 现场 POC',           fn:"quickAsk('我们有一个 200 万的政企 IT 采购项目，请安排区域 BD 上门接洽和 POC')" },
+      { ico:'📝', label:'方案咨询',  title:'按行业出整体方案框架',     fn:"quickAsk('我有政企项目需求，先问我行业（金融/医疗/教育/政府）和预算规模，给一套整体方案框架并可留资约 BD')" },
+      { ico:'🎧', label:'专属顾问',  title:'专人对接 + 现场 POC',     fn:"quickAsk('我们有政企采购意向，想要专人对接：登记项目信息并安排区域 BD 上门接洽和现场 POC')" },
+      { ico:'🛠', label:'定制专配',  title:'信创适配 + 政企专配',     fn:"_openSvc('customize','定制专配','政企定制：可指定国产化 OS（麒麟/统信）适配、满足等保2.0，先问我用途和台量给配置')" },
+      { ico:'📦', label:'政企集采',  title:'阶梯价 + 招投标支持',     fn:"quickAsk('我们要政企集采，告诉我品类和台量，给阶梯报价并登记项目，需要招投标支持也一并说明')" }, // ⚠NAME: 惠采→政企集采 可回退
+      { ico:'🏛', label:'行业解决方案', title:'金融/医疗/教育/政府',   fn:"quickAsk('按行业（金融、医疗、教育、政府）展示联想完整解决方案，并配套推荐产品')" },
     ],
     more: [
-      { ico:'☁️', label:'私有云',    fn:"quickAsk('我们想搭建企业私有云（虚拟化/容器/裸金属），联想 ThinkSystem 服务器有哪些方案？')" },
-      { ico:'🎨', label:'工作站方案',fn:"quickAsk('科研院所做仿真和 3D 渲染，ThinkStation P 系列工作站怎么选？')" },
-      { ico:'🗄', label:'服务器方案',fn:"quickAsk('企业数据中心建设，机架式服务器 + 存储 + 网络的整体方案怎么规划？')" },
-      { ico:'📺', label:'智慧会议',  fn:"quickAsk('多个会议室部署 thinkplus 会议平板，需要哪些配套软硬件？')" },
-      { ico:'🌐', label:'全国服务',  fn:"quickAsk('我们公司在全国有 20 个分支机构，联想有什么全国统一售后服务方案？')" },
+      { ico:'💰', label:'惠享金',    fn:"quickAsk('我的政企账户惠享金（积分）余额和可兑换内容，帮我整理')" },
+      { ico:'📚', label:'资料与案例',fn:"quickAsk('给我下载政企采购相关资料和同行业客户案例')" },
+      { ico:'📜', label:'招投标',    fn:"quickAsk('联想产品招投标需要哪些资质文件、参数模板、产品授权')" },
+      { ico:'🛡', label:'信创合规',  fn:"quickAsk('政企采购需满足等保 2.0、国密、国产化适配，联想哪些产品达标')" },
+      { ico:'🗄', label:'服务器/工作站', fn:"quickAsk('数据中心/科研院所，机架式服务器 + ThinkStation 工作站整体方案怎么规划')" },
     ],
   },
 };
@@ -6567,6 +6571,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v73-splitwidth2"></script>
+<script src="/split-layout.js?v=20260515-v74-subnav-ia"></script>
 </body>
 </html>
