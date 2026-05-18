@@ -1213,7 +1213,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v69-restraint">
+<link rel="stylesheet" href="/split-layout.css?v=20260515-v70-throttle-role">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -5600,12 +5600,36 @@ window.LxBehavior = (function(){
     setTimeout(checkHints, 500);
   }
 
+  // 类型 key：去掉尾部 sku/时间戳，归类（stay-one-1052→stay-one, pointer-x-123→pointer）
+  function _typeKey(id){
+    return String(id).replace(/^(pointer)[-a-z]*-?\d*$/, '$1').replace(/-(\d{4,}|[A-Za-z0-9]{6,})$/, '');
+  }
+  function _today(){ return new Date().toISOString().slice(0, 10); }
   function isDismissed(id){
     var t = dismissedHints[id];
-    return t && (Date.now() - t < DISMISS_TTL);
+    if (t && (Date.now() - t < DISMISS_TTL)) return true;
+    // 同类型当天 dismiss ≥2 次 → 当天静默该类
+    try {
+      var tk = _typeKey(id);
+      var rec = JSON.parse(localStorage.getItem('lexiang.hintMute') || '{}');
+      if (rec[tk] && rec[tk].d === _today() && rec[tk].n >= 2) return true;
+    } catch(e){}
+    return false;
   }
-  function dismiss(id){ dismissedHints[id] = Date.now(); var el = document.getElementById('lxHintBubble'); if (el) el.remove(); }
+  function dismiss(id){
+    dismissedHints[id] = Date.now();
+    try {
+      var tk = _typeKey(id), rec = JSON.parse(localStorage.getItem('lexiang.hintMute') || '{}');
+      if (!rec[tk] || rec[tk].d !== _today()) rec[tk] = { d: _today(), n: 0 };
+      rec[tk].n++;
+      localStorage.setItem('lexiang.hintMute', JSON.stringify(rec));
+    } catch(e){}
+    var el = document.getElementById('lxHintBubble'); if (el) el.remove();
+  }
   window._lxHintDismiss = dismiss;
+  // 全局节流：非 pointer 类 hint 之间至少隔 45s（pointer 主动 hover 高意图豁免，靠自身 cooldown）
+  var _lastGlobalHintTs = 0;
+  var GLOBAL_HINT_GAP = 45000;
 
   // 主动作: id → 调用函数（避免 onclick 字符串拼接 escape 灾难）
   var hintActions = {};
@@ -5665,11 +5689,17 @@ window.LxBehavior = (function(){
   function showHint(id, contentHtml, primaryText, primaryFn, opts){
     opts = opts || {};
     if (isDismissed(id) || isUserBusy()) return null;
+    var isPointer = /^pointer/.test(String(id));
+    // 全局节流：非 pointer 非 loading 非 replace 的 hint 之间至少隔 45s
+    if (!opts.loading && !opts.replaceId && !isPointer) {
+      if (Date.now() - _lastGlobalHintTs < GLOBAL_HINT_GAP) return null;
+    }
     // 去重：相同文本 hint 10 分钟内不重复弹（loading 骨架除外）
     if (!opts.loading) {
       var plain = String(contentHtml).replace(/<[^>]+>/g, '').trim();
       if (plain === _lastHintPlain && Date.now() - _lastHintTs < 10 * 60 * 1000) return null;
       _lastHintPlain = plain; _lastHintTs = Date.now();
+      if (!isPointer) _lastGlobalHintTs = Date.now();
     }
     hintActions[id] = primaryFn;
     // S11-B 替换模式：opts.replaceId 时复用已有元素 fill 内容（防止 loading→full 闪烁）
@@ -5720,10 +5750,15 @@ window.LxBehavior = (function(){
     // 规则 2: ≥2 个商品 → 对比 + 临门一脚（直接给该买哪款 + 下单理由）
     if (recentProducts.length >= 2) {
       var top3 = recentProducts.slice(0, 3);
+      var rc = window.LxRole ? window.LxRole.copy() : { tag:'💡', cta:'帮我拍板', ask:'' };
+      var names = top3.map(function(p){ return p.name; }).join('、');
+      var roleAsk = window.LxRole && window.LxRole.get() === 'enterprise'
+        ? '我企业采购在 ' + names + ' 间纠结，直接给我最该批量采购哪 1 款 + 阶梯价 + 对公开票 + BD 对接'
+        : '我在 ' + names + ' 之间纠结，别让我自己比，直接告诉我最该买哪 1 款、3 个核心理由、现在下单/领券能省多少、并给下单引导';
       showHint('compare-multi',
-        '你看了 <b>' + recentProducts.length + '</b> 款还没定？<br>我直接帮你拍板选 1 款最值的，告诉你为啥+现在买省多少',
-        '🎯 帮我拍板',
-        function(){ if (typeof quickAsk === 'function') quickAsk('我在 ' + top3.map(function(p){ return p.name; }).join('、') + ' 之间纠结，别让我自己比，你直接告诉我最该买哪 1 款、3 个核心理由、现在下单能省多少、并给下单引导'); });
+        rc.tag + ' 你看了 <b>' + recentProducts.length + '</b> 款还没定？<br>别纠结，我直接帮你拍板选 1 款最值的',
+        '🎯 ' + rc.cta,
+        function(){ if (typeof quickAsk === 'function') quickAsk(roleAsk); });
     }
   }
 
@@ -5756,9 +5791,10 @@ window.LxBehavior = (function(){
     var wl = JSON.parse(localStorage.getItem('lexiang.wishlist.v1') || '[]');
     if (wl.length >= 3) {
       var top3 = wl.slice(0, 3);
+      var rcw = window.LxRole ? window.LxRole.copy() : { tag:'💡', cta:'帮我定 + 领券' };
       showHint('wishlist-cmp',
-        '心愿单 <b>' + wl.length + '</b> 款攒够了～<br>别再纠结，我帮你定 1 款 + 现在领券下单立省',
-        '🎯 帮我定 + 领券',
+        rcw.tag + ' 心愿单 <b>' + wl.length + '</b> 款攒够了～<br>别再纠结，我帮你定 1 款直接拿下',
+        '🎯 ' + rcw.cta,
         function(){ if (typeof quickAsk === 'function') quickAsk('我心愿单有 ' + top3.map(function(x){ return x.name; }).join('、') + '，别让我对比，直接告诉我买哪 1 款最值、为什么、现在下单能省多少、给下单引导'); });
     }
   }
@@ -6508,6 +6544,6 @@ window.openServicePlus = openServicePlus;
 
 
 </script>
-<script src="/split-layout.js?v=20260515-v69-restraint"></script>
+<script src="/split-layout.js?v=20260515-v70-throttle-role"></script>
 </body>
 </html>
