@@ -43,6 +43,8 @@ const FRONTEND_DISPATCH = {
   frontend_member:   (r, _, defer) => defer('member', { title: r.title || '我的会员中心' }),
   frontend_tradein:  (r, _, defer) => defer('tradein', { title: r.title || '以旧换新', content: r.content || '', data: r.data || {} }),
   frontend_lead:     (r, _, defer) => defer('lead', { title: r.title || '留下您的联系方式', desc: r.desc || '', fields: r.fields || [], scenario: r.scenario || '' }),
+  // AI 权益管家：到手价瀑布即时 send（重内容，跟左侧文字同步出）
+  frontend_benefit:  (r, send) => send('benefit', { title: r.title || 'AI 权益管家', product: r.product || {}, waterfall: r.waterfall || [], discount_total: r.discount_total || 0, final_price: r.final_price || 0, final_text: r.final_text || '', tco: r.tco || [], audit: r.audit || [], usage: r.usage || '' }),
 };
 
 // ── 音频上传配置 ──

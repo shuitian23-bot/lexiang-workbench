@@ -950,6 +950,8 @@
   // ── 通用 info tab：渲染 markdown 内容（替代 showAIModal info 弹窗） ──
   RENDERERS.info = function (container, data) {
     data = data || {};
+    // 支持直传 html（如 AI 权益管家瀑布卡），跳过 markdown
+    if (data.html) { container.innerHTML = '<div class="cp-info-page">' + data.html + '</div>'; return; }
     var content = data.content || '';
     var html;
     try {
