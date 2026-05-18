@@ -114,17 +114,20 @@ def main():
         print('没有获取到文章，退出')
         return
 
-    # 2. 查已有
+    # 2. 查已有（按规范化 url 去重 key：去协议头 + 去末尾斜杠 + 小写，彻底防 http/https/变体重复入库）
+    def _norm_url(u):
+        u = (u or '').strip().lower()
+        u = re.sub(r'^https?://', '', u)
+        return u.rstrip('/')
+
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA busy_timeout=30000")
     cur = conn.cursor()
     existing = {}
     for row in cur.execute("SELECT id, source_url, length(content) FROM knowledge_docs WHERE source_url LIKE '%brand.lenovo%'"):
-        existing[row[1]] = (row[0], row[2])
-        # 也存https版本
-        url_https = row[1] if row[1].startswith('https:') else 'https:' + row[1].lstrip('https:')
-        existing[url_https] = (row[0], row[2])
+        existing[_norm_url(row[1])] = (row[0], row[2])
 
-    print(f'数据库已有 {len(existing)//2} 条brand记录\n')
+    print(f'数据库已有 {len(existing)} 条brand记录\n')
 
     # 3. 并发拉正文
     print('步骤2: 拉取正文...')
@@ -157,8 +160,9 @@ def main():
             skip_count += 1
             continue
 
-        # 检查是否已存在
-        ex = existing.get(url)
+        # 检查是否已存在（规范化 url 比对，杜绝 http/https/斜杠变体重复入库）
+        nkey = _norm_url(url)
+        ex = existing.get(nkey)
         if ex:
             doc_id, old_len = ex
             # 只在新内容明显更长时更新
@@ -174,6 +178,7 @@ def main():
                 "INSERT INTO knowledge_docs (title, filename, source_type, source_url, content, publish_date) VALUES (?, ?, ?, ?, ?, ?)",
                 (title, f'brand-{code}', 'brand_news', url, content, r.get('publish_date'))
             )
+            existing[nkey] = (cur.lastrowid, len(content))  # 防同批内重复 INSERT
             new_count += 1
 
     conn.commit()
