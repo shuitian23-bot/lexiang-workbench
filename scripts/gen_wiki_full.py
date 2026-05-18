@@ -307,8 +307,13 @@ def get_product_theme(brand, name='', parent_cat='', cpu='', **_kw):
     name_l = (name or '').lower()
     pc = re.sub(r'[（(]标准分类[)）]\s*$', '', (parent_cat or '').strip()).strip()
 
-    # ── 第负一步：生活/宠物类 → 配件（优先排除，避免"宠物一体机"匹配台式关键词）──
-    _life_override = ['宠物', '猫砂', '猫厕所', '喂食', '净味']
+    # ── 第负一步：生活/宠物/服装周边 → 配件（优先排除，避免「拯救者卫衣」匹配品牌走 notebook）──
+    _life_override = ['宠物', '猫砂', '猫厕所', '喂食', '净味',
+                      '卫衣', 'T恤', 'T恤', '文化衫', '外套', '夹克', '帽衫', '帽子',
+                      '背心', '短袖', '长袖', '服装', '工服', '马甲',
+                      '抱枕', '玩偶', '公仔', '手办', '钥匙扣', '挂件', '徽章', '胸针',
+                      '水杯', '保温杯', '马克杯', '雨伞', '帆布包',
+                      '贴纸', '鼠标垫', '桌垫', '周边', '联名礼', '盲盒', '勋章']
     if any(k in name for k in _life_override):
         brand_info = _identify_brand(brand, name)
         return ((brand_info[0] if brand_info else '联想'), 'accessory', (brand_info[1] if brand_info else 'lenovo'))
