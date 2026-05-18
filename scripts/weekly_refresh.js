@@ -32,7 +32,7 @@ async function step(n, total, label, fn, timeoutMs = 300000) {
 }
 
 async function run() {
-  const T = 8;
+  const T = 9;
   LOG('=== 知识库每日刷新开始 ===');
 
   // 1. iKnow — 增量模式，只抓最新500篇（去重后实际入库仅新增部分）
@@ -82,8 +82,26 @@ async function run() {
     });
   }, 600000);
 
-  // 8. wiki 页面生成（最后跑，依赖前面所有数据）
-  await step(8, T, 'wiki 页面生成', async () => {
+  // 8. 补缺规格：扫无规格整机 → 爬 item 详情页补 specs（持续重试直到补完，新品发布后自动补上价格/参数）
+  await step(8, T, '补缺商品规格(item详情)', async () => {
+    try {
+      execSync('python3 /opt/projects/lexiang/scripts/select_missing_specs.py', {
+        timeout: 120000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+      });
+    } catch (e) { /* 退出码1=空清单，非错误 */ }
+    const fs = require('fs');
+    const lst = '/opt/projects/lexiang/data/missing_specs.txt';
+    if (fs.existsSync(lst) && fs.readFileSync(lst, 'utf-8').trim()) {
+      execSync(`node /opt/projects/lexiang/scripts/crawl_item_pages.js ${lst}`, {
+        timeout: 1800000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+      });
+    } else {
+      LOG('  无待补规格，跳过');
+    }
+  }, 1800000);
+
+  // 9. wiki 页面生成（最后跑，依赖前面所有数据）
+  await step(9, T, 'wiki 页面生成', async () => {
     execSync('python3 /opt/projects/lexiang/scripts/gen_wiki_full.py', {
       timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
