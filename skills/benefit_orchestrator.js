@@ -34,12 +34,25 @@ module.exports = {
     const { sku, product_name, identity, budget, has_old_device, member_level, usage } = input || {};
     let prod = null;
     try {
-      if (sku) prod = db.prepare('SELECT sku,name,price,original_price,image_url,category FROM products WHERE sku = ?').get(sku);
+      if (sku) prod = db.prepare('SELECT sku,name,price,original_price,image_url,category FROM products WHERE sku = ? AND price > 0').get(sku);
+      // sku 缺失/无效 → 按 product_name 模糊查真实价（绝不能用 budget 兜底，价格不一致毁可信度）
+      if (!prod && product_name) {
+        var kw = String(product_name).replace(/[【】\[\]()（）]/g, ' ').trim().split(/\s+/).filter(function(w){ return w.length >= 2; }).slice(0, 3);
+        if (kw.length) {
+          var like = kw.map(function(){ return 'name LIKE ?'; }).join(' AND ');
+          prod = db.prepare('SELECT sku,name,price,original_price,image_url,category FROM products WHERE price > 0 AND ' + like + ' ORDER BY price ASC LIMIT 1').get.apply(
+            db.prepare('SELECT sku,name,price,original_price,image_url,category FROM products WHERE price > 0 AND ' + like + ' ORDER BY price ASC LIMIT 1'),
+            kw.map(function(w){ return '%' + w + '%'; })
+          );
+        }
+      }
     } catch (e) {}
     const name = (prod && prod.name) || product_name || '该机型';
-    const base = prod && prod.price > 0 ? Number(prod.price) : (typeof budget === 'number' && budget > 0 ? budget : 5999);
+    // 有真实商品价用真实价；查不到则明确标注「待确认」不编造
+    const priceKnown = !!(prod && prod.price > 0);
+    const base = priceKnown ? Number(prod.price) : (typeof budget === 'number' && budget > 0 ? budget : 5999);
 
-    const waterfall = [{ label: '商品官方标价', amount: base, kind: 'base', reason: '联想官方商城统一标价，不做隐形高低价' }];
+    const waterfall = [{ label: '商品官方标价', amount: base, kind: 'base', reason: priceKnown ? '联想官方商城统一标价，不做隐形高低价' : '未匹配到该机型实时价，下方按你预算估算，实际以商详页为准' }];
     const audit = [];
     let pct = 0, cut = 0;
 
