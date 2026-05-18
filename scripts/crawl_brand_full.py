@@ -36,6 +36,20 @@ def fetch_article_list():
     return all_items
 
 
+_PUB_PAT = re.compile(r'(20\d{2})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?')
+
+def extract_pubdate(text):
+    """从正文前 800 字提首个完整日期 → 'YYYY-MM-DD HH:MM:SS'，无则 None"""
+    m = _PUB_PAT.search((text or '')[:800])
+    if not m:
+        return None
+    y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    if not (2018 <= y <= 2027 and 1 <= mo <= 12 and 1 <= d <= 31):
+        return None
+    hh = m.group(4) or '00'; mm = m.group(5) or '00'; ss = m.group(6) or '00'
+    return f"{y:04d}-{mo:02d}-{d:02d} {int(hh):02d}:{mm}:{ss}"
+
+
 def extract_body(raw_html):
     """从HTML提取正文"""
     for pat in [
@@ -83,7 +97,8 @@ def fetch_article_content(item):
 
     return {
         'code': code, 'title': title, 'url': pc_url,
-        'content': content, 'body_len': len(body)
+        'content': content, 'body_len': len(body),
+        'publish_date': extract_pubdate(content)
     }
 
 
@@ -148,13 +163,16 @@ def main():
             doc_id, old_len = ex
             # 只在新内容明显更长时更新
             if len(content) > old_len * 1.5:
-                cur.execute("UPDATE knowledge_docs SET content = ?, title = ? WHERE id = ?",
-                            (content, title, doc_id))
+                cur.execute("UPDATE knowledge_docs SET content = ?, title = ?, publish_date = COALESCE(?, publish_date) WHERE id = ?",
+                            (content, title, r.get('publish_date'), doc_id))
                 update_count += 1
+            elif r.get('publish_date'):
+                cur.execute("UPDATE knowledge_docs SET publish_date = COALESCE(publish_date, ?) WHERE id = ?",
+                            (r.get('publish_date'), doc_id))
         else:
             cur.execute(
-                "INSERT INTO knowledge_docs (title, filename, source_type, source_url, content) VALUES (?, ?, ?, ?, ?)",
-                (title, f'brand-{code}', 'brand_news', url, content)
+                "INSERT INTO knowledge_docs (title, filename, source_type, source_url, content, publish_date) VALUES (?, ?, ?, ?, ?, ?)",
+                (title, f'brand-{code}', 'brand_news', url, content, r.get('publish_date'))
             )
             new_count += 1
 
