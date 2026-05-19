@@ -182,6 +182,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 /* LxStatus 三件套 CSS */
 @keyframes lx-skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .lx-nav-badge{position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:10px;background:var(--accent,#E12521);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1}
+.nav-cart-icon{width:24px;height:24px;display:block;color:#333}.nav-cart-icon path,.nav-cart-icon circle{fill:currentColor}[data-theme="dark"] .nav-cart-icon{color:#e2e2ea}
 @keyframes lx-spin{to{transform:rotate(360deg)}}
 .lx-empty{padding:48px 24px;text-align:center;color:var(--text2,#9CA3AF)}
 .lx-empty-icon{font-size:48px;margin-bottom:14px;opacity:.7}
@@ -1253,7 +1254,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <div class="nright">
     <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <a href="#" id="navAiPickBtn" onclick="aiPickForMe();return false;" title="AI 综合给你选 1 款" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:14px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff!important;font-weight:600;font-size:12px;box-shadow:0 4px 12px rgba(184,51,64,.3);animation:lx-skel 3s ease-in-out infinite alternate">🤖 AI 帮我选</a>
-    <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;font-size:18px">🛒<span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
+    <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;display:inline-flex;align-items:center;justify-content:center"><svg class="nav-cart-icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M26 56c0-22 18-40 40-40h48c18 0 34 12 39 30l16 58h287c13 0 25 6 33 16s11 24 8 37l-50 204c-5 19-22 33-42 33H156c-20 0-37-14-42-33L60 88H66c-22 0-40-10-40-32Zm154 296h227l38-156H147l33 156Z"/><circle cx="164" cy="444" r="50"/><circle cx="396" cy="444" r="50"/><circle cx="164" cy="444" r="13" style="fill:#fff"/><circle cx="396" cy="444" r="13" style="fill:#fff"/></svg><span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
     <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="display:none;position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
     <div id="navAuthArea"><a href="#" onclick="showLoginModal();return false;">登录</a><span class="sep">|</span><a href="#" onclick="showLoginModal();return false;">注册</a></div>
     <div id="navUserArea" style="display:none;align-items:center;gap:8px;"><span id="navNickname" style="font-size:13px;cursor:pointer;"></span><a href="#" onclick="doLogout();return false;" style="font-size:12px;opacity:.6;">退出</a></div>
