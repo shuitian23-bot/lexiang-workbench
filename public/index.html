@@ -2052,6 +2052,81 @@ function renderMdText(text) {
     .replace(/<\/table>/g,'</table></div>');
 }
 
+// ── 结构化选择卡片（类 CC 提问框）──
+// AI 协议: :::choice key=身份 multi=false
+//          标题行
+//          - 选项1
+//          - 选项2
+//          :::
+// 抽出后渲染为单选/多选卡片，确认 → quickAsk 自动发结构化回答
+function extractChoiceBlocks(text) {
+  var cards = [];
+  var stripped = text.replace(/:::choice([^\n]*)\n([\s\S]*?):::/g, function(_m, attr, body) {
+    var multi = /multi\s*=\s*true/i.test(attr);
+    var keyM = attr.match(/key\s*=\s*([^\s]+)/i);
+    var lines = body.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+    var opts = [], title = '';
+    lines.forEach(function(l){
+      var om = l.match(/^[-*]\s+(.+)$/);
+      if (om) opts.push(om[1].trim());
+      else if (!title) title = l;
+    });
+    if (opts.length) cards.push({ id: 'ch'+cards.length+'_'+Date.now(), key: (keyM&&keyM[1])||title, title: title, multi: multi, options: opts });
+    return opts.length ? (' CHOICE'+(cards.length-1)+' ') : _m;
+  });
+  return { stripped: stripped, cards: cards };
+}
+
+function buildChoiceCard(c) {
+  var wrap = document.createElement('div');
+  wrap.className = 'lx-choice';
+  wrap.style.cssText = 'margin:10px 0;padding:14px 16px;border:1px solid #f0d5d3;border-radius:14px;background:linear-gradient(180deg,#fff8f7,#fff)';
+  var inputType = c.multi ? 'checkbox' : 'radio';
+  var optsHtml = c.options.map(function(o, i){
+    return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin:6px 0;border:1px solid #eee;border-radius:10px;cursor:pointer;font-size:14px;background:#fff;transition:.15s" '+
+      'onmouseover="this.style.borderColor=\'#FF4842\'" onmouseout="if(!this.querySelector(\'input\').checked)this.style.borderColor=\'#eee\'">'+
+      '<input type="'+inputType+'" name="'+c.id+'" value="'+escHtml(o)+'" style="accent-color:#C41A1F;width:16px;height:16px" '+
+      'onchange="(function(b){var card=b.closest(\'.lx-choice\');card.querySelectorAll(\'label\').forEach(function(l){l.style.borderColor=l.querySelector(\'input\').checked?\'#FF4842\':\'#eee\';l.style.background=l.querySelector(\'input\').checked?\'#fff5f5\':\'#fff\'});card.querySelector(\'.lx-choice-go\').disabled=!card.querySelector(\'input:checked\')})(this)">'+
+      '<span>'+escHtml(o)+'</span></label>';
+  }).join('');
+  wrap.innerHTML = (c.title ? '<div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:8px">'+escHtml(c.title)+(c.multi?' <span style="font-size:11px;color:#999;font-weight:400">（可多选）</span>':'')+'</div>' : '') +
+    optsHtml +
+    '<button class="lx-choice-go" disabled style="width:100%;margin-top:10px;padding:11px;background:linear-gradient(135deg,#FF4842,#C41A1F);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;opacity:1;transition:.15s">确认</button>';
+  var btn = wrap.querySelector('.lx-choice-go');
+  btn.style.cssText += ';';
+  function syncDisabled(){ btn.style.opacity = btn.disabled ? '.45' : '1'; btn.style.cursor = btn.disabled ? 'not-allowed' : 'pointer'; }
+  syncDisabled();
+  wrap.addEventListener('change', syncDisabled);
+  btn.addEventListener('click', function(){
+    var chosen = [].slice.call(wrap.querySelectorAll('input:checked')).map(function(x){ return x.value; });
+    if (!chosen.length) return;
+    wrap.querySelectorAll('input,button').forEach(function(x){ x.disabled = true; });
+    btn.textContent = '已选择：' + chosen.join('、');
+    btn.style.background = '#16a34a'; btn.style.opacity = '1'; btn.style.cursor = 'default';
+    var answer = (c.title ? c.title + '：' : '') + chosen.join('、');
+    if (typeof window.quickAsk === 'function') window.quickAsk(answer);
+  });
+  return wrap;
+}
+
+// 把 bubble 内  CHOICEn  占位替换为卡片 DOM
+function mountChoiceCards(bubble, cards) {
+  if (!cards.length) return;
+  var walker = document.createTreeWalker(bubble, NodeFilter.SHOW_TEXT, null);
+  var hits = [], n;
+  while ((n = walker.nextNode())) { if (/ CHOICE\d+ /.test(n.nodeValue)) hits.push(n); }
+  hits.forEach(function(node){
+    var parts = node.nodeValue.split(/( CHOICE\d+ )/);
+    var frag = document.createDocumentFragment();
+    parts.forEach(function(p){
+      var m = p.match(/^ CHOICE(\d+) $/);
+      if (m && cards[+m[1]]) frag.appendChild(buildChoiceCard(cards[+m[1]]));
+      else if (p) frag.appendChild(document.createTextNode(p));
+    });
+    node.parentNode.replaceChild(frag, node);
+  });
+}
+
 // ── Real-time streaming render ──
 function startStream(el) {
   const bubble = el.querySelector('.mbubble');
@@ -2064,7 +2139,8 @@ function startStream(el) {
     if (renderTimer) return;
     renderTimer = setTimeout(() => {
       renderTimer = null;
-      bubble.innerHTML = renderMdText(accumulated);
+      // 流式中途隐藏未闭合/已闭合 choice 协议文本，避免露出 :::choice 原文
+      bubble.innerHTML = renderMdText(extractChoiceBlocks(accumulated).stripped.replace(/:::choice[\s\S]*$/,''));
       scrollBottom();
     }, 80); // 80ms 节流渲染，避免频繁重排
   }
@@ -2077,7 +2153,9 @@ function startStream(el) {
     finish() {
       if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
       bubble.classList.remove('streaming');
-      bubble.innerHTML = renderMdText(accumulated);
+      var ex = extractChoiceBlocks(accumulated);
+      bubble.innerHTML = renderMdText(ex.stripped);
+      mountChoiceCards(bubble, ex.cards);
       scrollBottom();
       return accumulated;
     }
