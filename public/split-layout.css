@@ -158,6 +158,13 @@ html.in-chat #contentPanel {
     left: 0; right: auto;
     width: var(--split-left, 50%);
   }
+  /* S15: swapped 时 chat 在右，AI 提示浮窗/历史移到左侧 landing 区右下，不压 chat */
+  html.split-mode.in-chat.layout-swapped #lxHintBubble,
+  html.split-mode.in-chat.layout-swapped #lxHintHistoryBadge,
+  html.split-mode.in-chat.layout-swapped #lxHintHistoryPanel {
+    right: calc(100vw - var(--split-left, 50%) + 20px) !important;
+    left: auto !important;
+  }
   /* sidebar 弹出时提升 chatApp z-index，让 overlay(9980) 盖过 divider */
   html.split-mode.in-chat #chatApp:has(.sb-overlay.active) {
     z-index: 100 !important;
