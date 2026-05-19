@@ -2553,14 +2553,14 @@ var _la_lenovo_website = 10000001;
         }
 
         # 为子站生成独立的 articles-slim.json（搜索隔离）
-        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type','')} for a in sub_articles]
+        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':(a.get('desc') or '')[:120],'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if re.search(r'-(\d+)\.html',a['slug']) else '')} for a in sub_articles]
         with open(os.path.join(sub_dir, 'articles-slim.json'), 'w') as _fh:
             json.dump(_sub_slim, _fh, ensure_ascii=False, separators=(',',':'))
 
         print(f'  {dir_name}/: {len(sub_articles)} 条, 分类: {[c for c in sub_cats if c != "all"]}, {nf} 个分页文件')
 
     # 生成 slim 和 recent
-    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type','')} for a in all_articles]
+    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':(a.get('desc') or '')[:120],'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if re.search(r'-(\d+)\.html',a['slug']) else '')} for a in all_articles]
     with open(os.path.join(WIKI_DIR, 'articles-slim.json'), 'w') as _fh:
         json.dump(_slim, _fh, ensure_ascii=False, separators=(',',':'))
     # recent：取all分类排序后的前480条
