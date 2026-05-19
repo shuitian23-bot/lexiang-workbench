@@ -1999,9 +1999,12 @@ def main():
                     _l1c = _lvl1 + (_category or '')
                     if '积分' in _l1c:
                         continue
-                    if any(k in _nl for k in ('定制服务', '开机画面', '换新服务', '保值换', '以旧换', '延保', '延长保修')):
+                    if any(k in _nl for k in ('定制服务', '开机画面', '换新服务', '保值换', '以旧换', '延保', '延长保修', '支付宝', '立减', '碰一下', '权益', '充值', '礼券', '礼包')):
                         continue
-                    if not any(k in _l1c for k in ('笔记本', '台式', '平板', '手机', '工作站', '服务器', '显示器', '一体机', '掌机', '游戏本', '电脑')):
+                    if '定制' in _nl and ('工作站' in _l1c or '服务器' in _l1c):
+                        continue
+                    # offline 仅收消费整机；工作站/服务器定制配置 SKU 变体爆炸且非 POC 重点，offline 不收(active 在售仍保留)
+                    if not any(k in _l1c for k in ('笔记本', '台式', '平板', '手机', '显示器', '一体机', '掌机', '游戏本')):
                         continue
                 # 积分商城兑换品（active 第三方代销，如 Apple/华为）：name 加【积分兑换】前缀标识
                 if ('积分商城' in _lvl1 or '积分' in (_category or '')) and '积分兑换' not in (_name or ''):
