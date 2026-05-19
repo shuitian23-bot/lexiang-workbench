@@ -3137,6 +3137,13 @@ fetch('/wiki/articles.json')
         count=1
     )
 
+    # 破缓存：articles-slim.json?v= 用 slim 文件 mtime（每次重生变，避免浏览器缓存旧搜索索引）
+    try:
+        _sv = str(int(os.path.getmtime(os.path.join(WIKI_DIR, 'articles-slim.json'))))
+        index_html = re.sub(r'articles-slim\.json\?v=\d+', f'articles-slim.json?v={_sv}', index_html)
+    except Exception:
+        pass
+
     with open(index_path, 'w', encoding='utf-8') as f:
         f.write(index_html)
     print(f'COUNTS 已更新: {total_count:,} 条')
@@ -3200,6 +3207,12 @@ fetch('/wiki/articles.json')
             "/wiki/articles-slim.json",
             f"/{dir_name}/articles-slim.json"
         )
+        # 破缓存：子站 slim?v= 用子站 slim 文件 mtime
+        try:
+            _ssv = str(int(os.path.getmtime(os.path.join(sub_dir, 'articles-slim.json'))))
+            sub_html = re.sub(r'articles-slim\.json\?v=\d+', f'articles-slim.json?v={_ssv}', sub_html)
+        except Exception:
+            pass
 
         # 2. 标题加子站标签 + canonical/og指向子站
         sub_html = sub_html.replace(
