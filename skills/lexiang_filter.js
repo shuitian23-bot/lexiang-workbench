@@ -4,8 +4,6 @@ const path = require('path');
 
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
 const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
-const RESULT_DIR = path.join(__dirname, '..', 'data', 'pipeline', 'results');
-const fs = require('fs');
 
 function runPython(script, args, timeout = 120000) {
   return new Promise((resolve, reject) => {
@@ -55,13 +53,9 @@ module.exports = {
   },
   execute: async ({ file_paths, output_path }) => {
     const script = path.join(SKILLS_DIR, 'lexiang-filter-kouling', 'filter_kouling.py');
-    fs.mkdirSync(RESULT_DIR, { recursive: true });
     const args = ['--json', ...file_paths];
     if (output_path) {
       args.push('--output', output_path);
-    } else {
-      const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
-      args.push('--output', path.join(RESULT_DIR, `过滤结果_${ts}.xlsx`));
     }
 
     const stdout = await runPython(script, args);

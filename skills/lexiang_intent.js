@@ -4,8 +4,6 @@ const path = require('path');
 
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
 const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
-const RESULT_DIR = path.join(__dirname, '..', 'data', 'pipeline', 'results');
-const fs = require('fs');
 
 function runPython(script, args, timeout = 300000) {
   return new Promise((resolve, reject) => {
@@ -56,8 +54,7 @@ module.exports = {
   },
   execute: async ({ file_path, period = '周' }) => {
     const script = path.join(SKILLS_DIR, 'lexiang-pipeline', 'intent_service.py');
-    fs.mkdirSync(RESULT_DIR, { recursive: true });
-    const args = ['--json', '--period', period, '--output-dir', RESULT_DIR, file_path];
+    const args = ['--json', '--period', period, file_path];
 
     const stdout = await runPython(script, args);
     const result = parseJsonOutput(stdout);
