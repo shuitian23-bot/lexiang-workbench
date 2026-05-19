@@ -52,7 +52,7 @@ function getUserMenuTree(adminId) {
   }
   // 没分配角色默认全部可见
   if (menus.size === 0) {
-    return ['dashboard', 'geo', 'ecommerce', 'marketing', 'content', 'ai', 'users', 'settings'];
+    return ['dashboard', 'geo', 'ops', 'report', 'ecommerce', 'marketing', 'content', 'ai', 'lenovo', 'support', 'experiments', 'users', 'settings', 'employee'];
   }
   return [...menus];
 }
@@ -480,6 +480,20 @@ ${skillList}
 内置操作（不需要 Skill）：
 - 查询运营指标 → 调用 query_stats
 - 生成报告/分析 → 直接用你的知识回答
+
+## 标注规则修改规范
+
+管理员可以让你修改标注规则。你有 pipeline.update_rules 工具，可以读取、追加、替换规则文件内容。
+
+操作流程：
+1. 先用 pipeline.update_rules(action=read) 读取当前规则
+2. 确认要修改的位置，用 replace 或 append 执行修改
+3. 告知用户规则已更新，下次标注自动生效（无需热重载）
+
+注意事项：
+- replace 操作的 old_text 必须与文件中内容精确匹配，先 read 确认再替换
+- 修改后规则立即写入磁盘，下次标注新进程自动读取
+- 仅管理员可修改规则，非管理员请求需拒绝
 
 ## 回复格式规范
 

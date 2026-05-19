@@ -32,6 +32,24 @@ const tasks = new Map();
 
 // ===== Classify =====
 
+router.get('/classify/rules/status', (req, res) => {
+  const rulesDir = path.join(SKILLS_DIR, 'lexiang-query-classify', 'references');
+  const sceneFile = path.join(SKILLS_DIR, 'lexiang-query-classify', '场景分类定义.md');
+  const files = [
+    { path: path.join(rulesDir, 'rules.md'), name: '标注规则' },
+    { path: sceneFile, name: '场景分类定义' },
+  ];
+  const result = files.map(f => {
+    try {
+      const stat = fs.statSync(f.path);
+      return { path: f.path, name: f.name, mtime: stat.mtime.toISOString().slice(0, 19).replace('T', ' '), size: stat.size };
+    } catch {
+      return { path: f.path, name: f.name, mtime: '未找到', size: 0 };
+    }
+  });
+  res.json({ files: result });
+});
+
 router.post('/classify', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未提供文件' });
 

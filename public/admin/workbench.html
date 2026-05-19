@@ -133,7 +133,7 @@ const MENU_TREE = {
   dashboard: {
     icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
-      'dashboard.query': { label: 'Query 分析' },
+      'pipeline.annotate': { label: 'Query 分析' },
       'dashboard.behavior': { label: '客户行为' },
       'ops.traffic': { label: '流量分析' },
       'ops.gmv': { label: 'GMV 分析' },
@@ -153,15 +153,87 @@ const MENU_TREE = {
       'dashboard.geoKnowledge': { label: '手工上传知识' }
     }
   },
+  ops: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:6px;color:#fff;font-size:13px">📈</span>', label: '运营分析', children: {
+      'ops.traffic': { label: '流量分析' },
+      'ops.gmv': { label: 'GMV 分析' },
+      'ops.keywords': { label: '敏感词库' },
+      'ops.queryBiz': { label: 'Query 业务分析' }
+    }
+  },
+  report: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#0f3460,#e94560);border-radius:6px;color:#fff;font-size:13px">📊</span>', label: '深度分析', children: {
+      'report.overview': { label: '分析概览' },
+      'report.detail': { label: '趋势与性能' },
+      'report.quality': { label: '质量与明细' }
+    }
+  },
+  ecommerce: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#10b981,#059669);border-radius:6px;color:#fff;font-size:13px">🛒</span>', label: '商品管理', children: {
+      'ecommerce.products': { label: '商品列表' },
+      'ecommerce.categories': { label: '分类管理' }
+    }
+  },
+  marketing: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:6px;color:#fff;font-size:13px">📣</span>', label: '营销触达', children: {
+      'marketing.tasks': { label: '营销任务' }
+    }
+  },
+  content: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:6px;color:#fff;font-size:13px">📝</span>', label: '内容管理', children: {
+      'content.knowledge': { label: '知识库管理' },
+      'content.pages': { label: '页面管理' },
+      'content.pagebuilder': { label: '网页制作' },
+      'content.conversations': { label: '对话管理' }
+    }
+  },
+  ai: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:6px;color:#fff;font-size:13px">🤖</span>', label: 'AI 运维', children: {
+      'ai.console': { label: 'AI 控制台' },
+      'ai.skills': { label: '技能管理' },
+      'ai.config': { label: 'AI 配置' },
+      'ai.monitor': { label: '监控告警' },
+      'ai.evolution': { label: '进化与反思' },
+      'ai.regression': { label: '回归测试' }
+    }
+  },
+  lenovo: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#e3002c,#b8002a);border-radius:6px;color:#fff;font-size:13px;font-weight:700">L</span>', label: '联想数据', children: {
+      'lenovo.bigscreen': { label: '交易大屏' },
+      'lenovo.touch': { label: '触达消息' }
+    }
+  },
+  support: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#14b8a6,#0d9488);border-radius:6px;color:#fff;font-size:13px">🛠️</span>', label: '服务支持', children: {
+      'support.aftersale': { label: '售后知识库' },
+      'support.orders': { label: '订单查询' },
+      'support.stores': { label: '门店查询' }
+    }
+  },
+  experiments: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#ec4899,#db2777);border-radius:6px;color:#fff;font-size:13px">🧪</span>', label: 'AB 实验', children: {
+      'experiments.ab': { label: '实验管理' }
+    }
+  },
+  users: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:6px;color:#fff;font-size:13px">👤</span>', label: '用户管理', children: {
+      'users.staff': { label: '客户画像' },
+      'users.accounts': { label: '账号管理' },
+      'users.personas': { label: 'Persona 管理' }
+    }
+  },
+  settings: {
+    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#64748b,#475569);border-radius:6px;color:#fff;font-size:13px">⚙️</span>', label: '系统设置', children: {
+      'settings.service': { label: '服务状态' },
+      'settings.logs': { label: '操作日志' },
+      'settings.roles': { label: '角色管理' },
+      'settings.backup': { label: '备份与重启' }
+    }
+  },
   employee: {
     icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
       'employee.overview': { label: '概览' },
       'employee.certification': { label: '认证审核' }
-    }
-  },
-  pipeline: {
-    icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '数据流水线', children: {
-      'pipeline.annotate': { label: 'Query 分析' }
     }
   },
 };
@@ -226,8 +298,6 @@ async function loadUserContext() {
       }
       // 员工管理默认可见
       if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
-      // 数据流水线仅管理员可见
-      if (STATE.permissions.includes("*") && !STATE.visibleMenus.includes('pipeline')) STATE.visibleMenus.push('pipeline');
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
@@ -363,9 +433,6 @@ function toggleGroup(key) {
 function switchPage(pageId) {
   STATE.currentPage = pageId;
 
-  // Dispatch page-change event for plugins to hook into
-  document.dispatchEvent(new CustomEvent('page-change', { detail: pageId }));
-
   // Update sidebar active state
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
   // Find and activate the clicked item
@@ -500,12 +567,12 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/workbench-data-leai.js"></script>
 <script src="/admin/workbench-pages.js?v=20260508"></script>
 <script src="/admin/workbench-geo.js?v=20260508"></script>
-<script src="/admin/workbench-ai.js"></script>
+<script src="/admin/workbench-pipeline.js?v=20260515"></script>
+<script src="/admin/workbench-ai.js?v=20260518"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
 <script src="/admin/workbench-ops.js"></script>
 <script src="/admin/workbench-report.js"></script>
-<script src="/admin/workbench-pipeline.js?v=20260513e"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
