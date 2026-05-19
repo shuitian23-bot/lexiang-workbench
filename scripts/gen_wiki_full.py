@@ -320,6 +320,10 @@ def get_product_theme(brand, name='', parent_cat='', cpu='', **_kw):
     if any(k in _name_lc for k in _life_override):
         brand_info = _identify_brand(brand, name)
         return ((brand_info[0] if brand_info else '联想'), 'accessory', (brand_info[1] if brand_info else 'lenovo'))
+    # 耳机/耳塞 → 配件（优先于 moto/品牌判定，避免 moto buds 误归手机）
+    if any(k in _name_lc for k in ['耳机', '耳塞', 'buds', 'earbuds', 'earphone', 'headphone', 'airpods', '降噪豆', '蓝牙耳']) and not any(k in name for k in ['延保', '服务', '保护套', '保护壳', '收纳']):
+        brand_info = _identify_brand(brand, name)
+        return ((brand_info[0] if brand_info else '联想'), 'accessory', (brand_info[1] if brand_info else 'lenovo'))
     # 智能手表/手环 → 智能设备
     if any(k in name for k in ['手表', '手环']) and not any(k in name for k in ['延保', '服务', '保护']):
         brand_info = _identify_brand(brand, name)
