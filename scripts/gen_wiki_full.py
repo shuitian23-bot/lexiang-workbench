@@ -2556,17 +2556,26 @@ var _la_lenovo_website = 10000001;
         }
 
         # 为子站生成独立的 articles-slim.json（搜索隔离）
-        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':(a.get('desc') or '')[:120],'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if re.search(r'-(\d+)\.html',a['slug']) else '')} for a in sub_articles]
-        with open(os.path.join(sub_dir, 'articles-slim.json'), 'w') as _fh:
-            json.dump(_sub_slim, _fh, ensure_ascii=False, separators=(',',':'))
-
+        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else '')} for a in sub_articles]
+        _sub_slim_path = os.path.join(sub_dir, 'articles-slim.json')
+        _sub_slim_str = json.dumps(_sub_slim, ensure_ascii=False, separators=(',',':'))
+        with open(_sub_slim_path, 'w', encoding='utf-8') as _fh:
+            _fh.write(_sub_slim_str)
+        # 预压 .gz，nginx gzip_static 直发，免每请求实时压缩(原慢29s)
+        import gzip as _gz
+        with _gz.open(_sub_slim_path + '.gz', 'wt', encoding='utf-8', compresslevel=6) as _gf:
+            _gf.write(_sub_slim_str)
         print(f'  {dir_name}/: {len(sub_articles)} 条, 分类: {[c for c in sub_cats if c != "all"]}, {nf} 个分页文件')
 
     # 生成 slim 和 recent
-    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':(a.get('desc') or '')[:120],'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if re.search(r'-(\d+)\.html',a['slug']) else '')} for a in all_articles]
-    with open(os.path.join(WIKI_DIR, 'articles-slim.json'), 'w') as _fh:
-        json.dump(_slim, _fh, ensure_ascii=False, separators=(',',':'))
-    # recent：取all分类排序后的前480条
+    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else '')} for a in all_articles]
+    _slim_path = os.path.join(WIKI_DIR, 'articles-slim.json')
+    _slim_str = json.dumps(_slim, ensure_ascii=False, separators=(',',':'))
+    with open(_slim_path, 'w', encoding='utf-8') as _fh:
+        _fh.write(_slim_str)
+    import gzip as _gz0
+    with _gz0.open(_slim_path + '.gz', 'wt', encoding='utf-8', compresslevel=6) as _gf0:
+        _gf0.write(_slim_str)    # recent：取all分类排序后的前480条
     _recent = sorted_by_cat.get('all', all_articles)[:480]
     with open(os.path.join(WIKI_DIR, 'articles-recent.json'), 'w') as _fh:
         json.dump(_recent, _fh, ensure_ascii=False, separators=(',',':'))
