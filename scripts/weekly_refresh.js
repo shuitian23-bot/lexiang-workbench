@@ -147,10 +147,10 @@ async function run() {
   // 7. 品牌新闻全量
   await step(7, T, '品牌新闻全量', async () => {
     const out = execSync('python3 /opt/projects/lexiang/scripts/crawl_brand_full.py', {
-      timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+      timeout: 1500000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
     return `新增${pick(out, /新[增入]\D*(\d+)/)} 更新${pick(out, /更新\D*(\d+)/)}`;
-  }, 600000);
+  }, 1500000);
 
   // 8. 补缺规格
   await step(8, T, '补缺商品规格', async () => {
