@@ -2526,6 +2526,9 @@ var _la_lenovo_website = 10000001;
             # 只放商品
             if a.get('type') not in ('product',):
                 return False
+            # 工作站/服务器是纯政企品类，强制归 biz（OpenAPI 部分无 bu 标识，避免只在主站漏入子站）
+            if cat in ('workstation', 'server'):
+                return target == 'biz'
             # 商品：用 brand_key + cat_key + url 判断归属
             bkey = a.get('brand_key', 'lenovo')
             title = a.get('title', '')
