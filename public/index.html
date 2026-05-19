@@ -5586,7 +5586,7 @@ function confirmBenefitOrder(name, finalPrice, base) {
     '<div style="font-size:12px;color:#aaa;margin-top:14px">价格与权益管家测算一致 · POC 演示，未真实扣款</div>' +
     '<div style="font-size:12px;color:#888;margin-top:6px">📦 订单已生成，可在右上角订单查看物流</div>' +
   '</div>';
-  if (typeof showAIModal === 'function') showAIModal({ type:'success', title:'订单确认', content: html });
+  if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'订单确认', content: html });
   else if (window.LxStatus) window.LxStatus.toast('下单成功，实付 ¥' + finalPrice.toLocaleString() + '（与测算一致）', { type:'success', ms:3000 });
 }
 window.confirmBenefitOrder = confirmBenefitOrder;
