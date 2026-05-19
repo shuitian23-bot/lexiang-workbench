@@ -2542,7 +2542,7 @@ function renderSelfProducts(products) {
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <button class="leai-ppanel-buy" onclick="event.stopPropagation();openBenefitFor('${escHtml(name).replace(/'/g, "\\\\'")}','${escHtml(p.sku||'')}')">🎁 一键领取优惠</button>
+          <button class="leai-ppanel-buy" onclick="event.stopPropagation();startBuyFlow('${escHtml(name).replace(/'/g, "\\\\'")}','${price||0}')">🎁 一键领取优惠</button>
         </div>
       </div>
     </div>`;
