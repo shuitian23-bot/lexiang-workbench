@@ -1990,6 +1990,10 @@ def main():
                 _nl = (_name or '').lower()
                 if any(t in _nl for t in ('test', '测试', '勿拍', 'testaiadmin', '国补白链')):
                     continue
+                # 积分商城兑换品（如第三方 Apple/华为 等代销）：name 加【积分兑换】前缀标识
+                _lvl1 = str(_specs.get('lvl1') or '')
+                if ('积分商城' in _lvl1 or '积分' in (_category or '')) and '积分兑换' not in (_name or ''):
+                    _name = f'【积分兑换】{_name}'
                 _sku_key = _sku or str(_id)
                 _v = [None] * 200
                 _v[0] = _sku_key
