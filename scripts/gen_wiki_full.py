@@ -1993,6 +1993,22 @@ def main():
                 _nl = (_name or '').lower()
                 if any(t in _nl for t in ('test', '测试', '勿拍', 'testaiadmin', '国补白链')):
                     continue
+<<<<<<< HEAD
+=======
+                _lvl1 = str(_specs.get('lvl1') or '')
+                # 预售收紧：offline(近21天)仅收联想自营整机，排除积分商城/第三方杂货/纯服务/占位
+                if _status == 'offline':
+                    _l1c = _lvl1 + (_category or '')
+                    if '积分' in _l1c:
+                        continue
+                    if any(k in _nl for k in ('定制服务', '开机画面', '换新服务', '保值换', '以旧换', '延保', '延长保修')):
+                        continue
+                    if not any(k in _l1c for k in ('笔记本', '台式', '平板', '手机', '工作站', '服务器', '显示器', '一体机', '掌机', '游戏本', '电脑')):
+                        continue
+                # 积分商城兑换品（active 第三方代销，如 Apple/华为）：name 加【积分兑换】前缀标识
+                if ('积分商城' in _lvl1 or '积分' in (_category or '')) and '积分兑换' not in (_name or ''):
+                    _name = f'【积分兑换】{_name}'
+>>>>>>> d348b1b (fix(wiki): offline预售收紧-仅联想自营整机, 排除积分/第三方杂货/服务/占位)
                 _sku_key = _sku or str(_id)
                 _v = [None] * 200
                 _v[0] = _sku_key
