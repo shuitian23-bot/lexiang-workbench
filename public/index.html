@@ -1434,6 +1434,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       </button>
     </div>
     <div class="input-bar">
+      <div id="lxHintChipSlot"></div>
       <div id="productOverlay" class="ai-product-overlay hiding"></div>
       <div id="productChipsBar" class="product-chips-bar hidden"></div>
       <div id="subnavExtraInput" class="subnav-extra-input"></div>
@@ -5549,6 +5550,14 @@ window.LxBehavior = (function(){
   var DISMISS_TTL = 60 * 60 * 1000;
   var lastTypingTs = 0;
 
+  // lxHint 形态：chip(默认新条) / legacy(旧浮窗) / off(关)，后台 config/lxhint.json 控
+  window.__lxHintMode = window.__lxHintMode || 'chip';
+  try {
+    fetch('/api/config/lxhint', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(d){
+      if (d && ['legacy','chip','off'].indexOf(d.mode) >= 0) window.__lxHintMode = d.mode;
+    }).catch(function(){});
+  } catch (e) {}
+
   // 用户正在打字 5s 内不弹 hint，避免打扰
   document.addEventListener('input', function(e){
     if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
@@ -5570,7 +5579,7 @@ window.LxBehavior = (function(){
     var t = dismissedHints[id];
     return t && (Date.now() - t < DISMISS_TTL);
   }
-  function dismiss(id){ dismissedHints[id] = Date.now(); var el = document.getElementById('lxHintBubble'); if (el) el.remove(); }
+  function dismiss(id){ dismissedHints[id] = Date.now(); var el = document.getElementById('lxHintBubble'); if (el) el.remove(); var slot = document.getElementById('lxHintChipSlot'); if (slot) slot.innerHTML = ''; }
   window._lxHintDismiss = dismiss;
 
   // 主动作: id → 调用函数（避免 onclick 字符串拼接 escape 灾难）
@@ -5628,6 +5637,54 @@ window.LxBehavior = (function(){
   };
 
   var _lastHintPlain = '', _lastHintTs = 0;
+  // 情境转化 chip：输入框上方单行，绑当前浏览商品，点开展开，不遮挡内容
+  var _lxChipTimer = null;
+  function _lxRenderChip(id, contentHtml, primaryText, primaryFn, opts){
+    opts = opts || {};
+    var slot = document.getElementById('lxHintChipSlot');
+    if (!slot) return;
+    var plain = String(contentHtml).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    // 绑定当前浏览商品（前 14 字）
+    var prod = window.__currentProduct && window.__currentProduct.name ? String(window.__currentProduct.name).slice(0, 14) : '';
+    // 强提示：AI 看到 / 转化类（下单·领券·限时·省¥·库存），左侧描边 + 脉冲点
+    var strong = /^pointer-/.test(id) || /看到|下单|领券|领取|限时|省¥|省 ¥|剩\s*\d|库存|今日剩/.test(plain + ' ' + (primaryText || ''));
+    var sumMax = 42;
+    var summary = (prod ? prod + '：' : '') + plain;
+    if (summary.length > sumMax) summary = summary.slice(0, sumMax) + '…';
+    var pText = (primaryText || '查看').length > 8 ? String(primaryText).slice(0, 8) : (primaryText || '查看');
+    var accent = strong ? 'border-left:3px solid #b83340;background:linear-gradient(90deg,#fdf3f4,#fff)' : 'border-left:3px solid #e5e7eb;background:#fafafa';
+    var dot = strong ? '<span style="width:6px;height:6px;border-radius:50%;background:#b83340;flex-shrink:0;animation:lx-skel 1.6s ease-in-out infinite alternate"></span>' : '';
+    if (opts.loading) {
+      slot.innerHTML = '<div style="margin:0 0 8px;padding:8px 12px;border-radius:10px;' + accent + ';font-size:12px;color:#999;display:flex;align-items:center;gap:8px">🤖 <span>AI 正在看你浏览的…</span></div>';
+      return;
+    }
+    slot.innerHTML =
+      '<div data-hint-id="' + id + '" style="margin:0 0 8px;border-radius:10px;' + accent + ';box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden">' +
+        '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;cursor:pointer" onclick="_lxChipToggle(\'' + id + '\')">' +
+          '<span style="font-size:14px;flex-shrink:0">🤖</span>' + dot +
+          '<span style="flex:1;font-size:12px;line-height:1.4;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + summary + '</span>' +
+          '<button onclick="event.stopPropagation();_lxHintRun(\'' + id + '\')" style="flex-shrink:0;padding:5px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer">' + pText + '</button>' +
+          '<button onclick="event.stopPropagation();_lxHintDismiss(\'' + id + '\')" title="不再提示" style="flex-shrink:0;background:none;border:none;color:#bbb;font-size:16px;cursor:pointer;padding:0 2px;line-height:1">×</button>' +
+        '</div>' +
+        '<div id="lxChipExpand-' + id + '" style="display:none;padding:0 12px 10px;font-size:12px;line-height:1.6;color:#555">' + contentHtml +
+          '<div style="margin-top:8px;display:flex;gap:8px">' +
+            '<button onclick="_lxHintRun(\'' + id + '\')" style="flex:1;padding:7px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">' + (primaryText || '查看') + '</button>' +
+            '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:7px 12px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    if (_lxChipTimer) clearTimeout(_lxChipTimer);
+    _lxChipTimer = setTimeout(function(){
+      var box = slot.querySelector('[data-hint-id="' + id + '"]');
+      var exp = document.getElementById('lxChipExpand-' + id);
+      if (box && (!exp || exp.style.display === 'none') && !box.matches(':hover')) slot.innerHTML = '';
+    }, strong ? 60000 : 40000);
+  }
+  window._lxChipToggle = function(id){
+    var exp = document.getElementById('lxChipExpand-' + id);
+    if (exp) exp.style.display = exp.style.display === 'none' ? 'block' : 'none';
+  };
+
   function showHint(id, contentHtml, primaryText, primaryFn, opts){
     opts = opts || {};
     if (isDismissed(id) || isUserBusy()) return null;
@@ -5638,6 +5695,12 @@ window.LxBehavior = (function(){
       _lastHintPlain = plain; _lastHintTs = Date.now();
     }
     hintActions[id] = primaryFn;
+    if (window.__lxHintMode === 'off') return null;
+    if (window.__lxHintMode === 'chip') {
+      _lxRenderChip(id, contentHtml, primaryText, primaryFn, opts);
+      if (!opts.loading && !opts.skipHistory) pushHistory({ id: id, html: contentHtml, primaryText: primaryText, primaryFn: primaryFn, ts: Date.now() });
+      return id;
+    }
     // S11-B 替换模式：opts.replaceId 时复用已有元素 fill 内容（防止 loading→full 闪烁）
     var el = opts.replaceId ? document.querySelector('[data-hint-id="' + opts.replaceId + '"]') : null;
     if (!el) {
