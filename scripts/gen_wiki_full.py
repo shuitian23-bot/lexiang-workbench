@@ -1978,7 +1978,10 @@ def main():
             _q = ("SELECT id, name, sku, category, price, status, stock, image_url, "
                   "description, specs, MAX(COALESCE(updated_at,''), COALESCE(created_at,'')) "
                   "FROM products "
-                  "WHERE name IS NOT NULL AND name != '' AND status = 'active' "
+                  "WHERE name IS NOT NULL AND name != '' AND ("
+                  "  status = 'active' "
+                  "  OR (status = 'offline' AND date(COALESCE(updated_at,created_at)) >= date('now','-21 day'))"
+                  ") "
                   "ORDER BY id DESC")
             for _p in _cn.execute(_q):
                 _id, _name, _sku, _category, _price, _status, _stock, _image_url, _description, _specs_str, _created_at = _p
