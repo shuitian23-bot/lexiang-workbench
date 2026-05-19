@@ -1148,15 +1148,11 @@
     if (!isPC()) return;
     var s = getState();
     var pct = state.leftPct;
-    if (s === 2) {
-      document.documentElement.style.setProperty('--split-left', pct + '%');
-    } else if (s === 3) {
+    // 统一只设 --split-left，宽度由 css 接管（state2b 与 state3 同变量，切换连续）
+    document.documentElement.style.setProperty('--split-left', pct + '%');
+    if (s === 3) {
       var ca = document.getElementById('chatApp');
-      if (!ca) return;
-      ca.style.flex = '0 0 auto';
-      ca.style.width = 'calc(' + pct + '% - 3px)';
-      ca.style.maxWidth = 'none';
-      ca.style.margin = '0';
+      if (ca) { ca.style.width = ''; ca.style.flex = ''; ca.style.maxWidth = ''; ca.style.margin = ''; }
     }
   }
 
