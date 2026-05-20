@@ -7001,6 +7001,7 @@ window.openServicePlus = openServicePlus;
   function _cfg(){ var st = window.__siteType || 'default'; return CS_HOTLINE[st] || CS_HOTLINE['default']; }
   function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   // 直接 DOM 注入 ai bubble, 保留 raw html (appendBubble 默认 escHtml 会破)
+  window._csAppend = _csAppend;
   function _csAppend(html){
     if (typeof showChatApp === 'function') showChatApp();
     if (typeof window.__revealChat === 'function') window.__revealChat();
@@ -7081,10 +7082,21 @@ window.openServicePlus = openServicePlus;
     try { if (typeof renderMallHero === 'function') renderMallHero(); } catch(e){}
     try { if (typeof renderMallFeatures === 'function') renderMallFeatures(); } catch(e){}
     try { if (typeof loadFeed === 'function') loadFeed(); } catch(e){}
-    // chat 流通知 AI 切站
-    if (typeof appendBubble === 'function') {
-      appendBubble('ai', '↪ 已切换到「<b>' + (label || newSite) + '</b>」子站, 接下来我会按新子站语境回答。');
-    }
+    // chat 流通知 + 新子站常用问题 chip (用 _csAppend 防 appendBubble escHtml)
+    var SITE_QUICK = {
+      'default': ['有什么促销活动？','帮我推荐一款笔记本','以旧换新怎么算？','找附近门店'],
+      'shop':    ['学生认证省多少？','拯救者Y9000K怎么样？','小新 Pro 值不值？','12 期免息哪些机型？'],
+      'b':       ['30 台 ThinkPad 批量报价','开增值税专票要啥资料','5 年质保都包啥','上门服务怎么预约'],
+      'biz':     ['信创合规需要哪些资质','麒麟/统信 UOS 适配机型','政企采购流程','智慧会议室方案']
+    };
+    var qs = SITE_QUICK[newSite] || SITE_QUICK['default'];
+    var pillsHtml = qs.map(function(q){
+      return '<button onclick="quickAsk(\'' + q.replace(/'/g,"\\'") + '\')" style="padding:6px 14px;border-radius:14px;border:1px solid #E2DDEB;background:#FCFAFF;color:#454545;font-size:12px;cursor:pointer;margin:2px">'+ q + '</button>';
+    }).join('');
+    var sysHtml = '<div style="font-size:13px;color:#454545;line-height:1.6">↪ 已切换到「<b style="color:#4D144A">' + (label || newSite) + '</b>」子站, 接下来我会按新子站语境回答。</div>' +
+      '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">' + pillsHtml + '</div>';
+    if (typeof window._csAppend === 'function') window._csAppend(sysHtml);
+    else if (typeof appendBubble === 'function') appendBubble('ai', sysHtml);
   };
 
   // 拦 site nav 链接(主 nav / 顶 nav extras / siteSeg / 任何 href 是子站根的 a)
