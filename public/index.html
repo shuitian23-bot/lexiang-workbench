@@ -3347,8 +3347,8 @@ function renderSuggestions(bubbleEl, suggestions) {
     };
     wrap.appendChild(chip);
   });
-  // 插在 actBar 之后（顺序：bubble → 行动按钮 → 建议追问）
-  actBar.insertAdjacentElement('afterend', wrap);
+  // 插在 bubble 之后(原 actBar 已删, 直接挂 bubble 后)
+  bubbleEl.insertAdjacentElement('afterend', wrap);
   scrollBottom();
 }
 
