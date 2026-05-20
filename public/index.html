@@ -4805,6 +4805,14 @@ function showToastHb(msg) {
 function startBuyFlow(productName, productPrice, productImage) {
   hideProductContextPrompt();
   window.__lastBuyImage = productImage || '';
+  // 跨商品重置：不同商品要重跑领券动画，旧 _done 锁仅对同商品复点生效
+  if (startBuyFlow._lastProduct !== productName) {
+    startBuyFlow._done = false;
+    startBuyFlow._running = false;
+    var oldOv = document.getElementById('orderOverlay');
+    if (oldOv) oldOv.remove();
+  }
+  startBuyFlow._lastProduct = productName;
   // 已完成：直接重新弹出订单弹层
   if (startBuyFlow._done) {
     var ov = document.getElementById('orderOverlay');
