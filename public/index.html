@@ -3218,9 +3218,14 @@ async function sendMain(directMsg){
   const displayMsg = msg || (audioUrl ? '请转写并分析这段音频' : '请分析这张图片');
   appendBubble('user', displayMsg);
   if(!isLoggedIn()) _anonRounds++;
+  // 人工模式: 给后端的 msg 前缀注入客服小李身份指令, user bubble 仍显原文 (UI 体验"已转人工")
+  var backendMsg = displayMsg;
+  if (window.__inHumanMode) {
+    backendMsg = '[系统提示: 现在请用"客服小李"身份回复, 亲切热情接地气, 像微信客服一样直接答, 不要 markdown/列表/标题, 不要 "您好这边为您查询" 等冗长开场, 不要暴露 AI 身份, 句末可加 ~ 或 😊 等友好语气. 不要喊"亲" 太套路, 自然就好.]\n\n用户问: ' + displayMsg;
+  }
   // 对比模式：仅纯文本支持，有图片/音频走普通模式
-  if (leaiCompare && !imageUrl && !audioUrl) await callCompareAPI(displayMsg);
-  else await callAPI(displayMsg, imageUrl, audioUrl);
+  if (leaiCompare && !imageUrl && !audioUrl) await callCompareAPI(backendMsg);
+  else await callAPI(backendMsg, imageUrl, audioUrl);
 }
 document.getElementById('mainSend').addEventListener('click', sendMain);
 document.getElementById('mainTa').addEventListener('keydown', e => {
