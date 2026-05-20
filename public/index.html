@@ -2476,7 +2476,17 @@ async function callAPI(msg, imageUrl, audioUrl){
         else if (lastEvent === 'solutions') {
           if (d.solutions?.length) {
             const html = renderSolutions(d.solutions, d.title);
-            if (html) bubbleEl.querySelector('.mbubble').insertAdjacentHTML('beforeend', html);
+            // 卡片放新 ai bubble (不复用 streaming bubble, 否则 stream.push innerHTML 重渲会覆盖卡片)
+            if (html) {
+              if (typeof window._csAppend === 'function') window._csAppend(html);
+              else {
+                const innerEl = document.getElementById('msgsInner');
+                const dEl = document.createElement('div'); dEl.className = 'msg ai';
+                const bdEl = document.createElement('div'); bdEl.className = 'msg-body';
+                bdEl.innerHTML = '<div class="msg-pre"></div><div class="mbubble">' + html + '</div>';
+                dEl.appendChild(bdEl); innerEl.appendChild(dEl);
+              }
+            }
             scrollBottom();
           }
         }
@@ -7083,13 +7093,15 @@ window.openServicePlus = openServicePlus;
     try { if (typeof renderMallFeatures === 'function') renderMallFeatures(); } catch(e){}
     try { if (typeof loadFeed === 'function') loadFeed(); } catch(e){}
     // chat 流通知 + 新子站常用问题 chip (用 _csAppend 防 appendBubble escHtml)
-    var SITE_QUICK = {
-      'default': ['有什么促销活动？','帮我推荐一款笔记本','以旧换新怎么算？','找附近门店'],
-      'shop':    ['学生认证省多少？','拯救者Y9000K怎么样？','小新 Pro 值不值？','12 期免息哪些机型？'],
-      'b':       ['30 台 ThinkPad 批量报价','开增值税专票要啥资料','5 年质保都包啥','上门服务怎么预约'],
-      'biz':     ['信创合规需要哪些资质','麒麟/统信 UOS 适配机型','政企采购流程','智慧会议室方案']
+    var SITE_QUICK_POOL = {
+      'default': ['有什么促销活动？','帮我推荐一款笔记本','以旧换新怎么算？','找附近门店','联想会员怎么注册','旗舰新品有啥','今天能下单明天到么','双 11 哪些机型优惠最大','5000 元怎么选','二手回收价'],
+      'shop':    ['学生认证省多少？','拯救者 Y9000K 怎么样？','小新 Pro 值不值？','12 期免息哪些机型？','女朋友礼物送啥联想','轻薄本+游戏一台搞定推荐','5000 内最值笔记本','晚上下单明天能到么','保值换购规则','以旧换新流程'],
+      'b':       ['30 台 ThinkPad 批量报价','开增值税专票要啥资料','5 年质保都包啥','上门服务怎么预约','10 人团队办公电脑 30 万怎么配','ThinkBook 和 ThinkPad 区别','商用台式 + 一体机推荐','工程师上门怎么预约','延保如何续','企业账户等级权益','增值服务有哪些'],
+      'biz':     ['信创合规需要哪些资质','麒麟/统信 UOS 适配机型','政企采购流程','智慧会议室方案','ThinkSystem 服务器方案','智慧教育区校一体方案','政采资质 / 央采名录','工作站 P 系列怎么选','区域 BD 上门 POC','大客户专属服务','国密 / 等保 2.0 适配']
     };
-    var qs = SITE_QUICK[newSite] || SITE_QUICK['default'];
+    var pool = (SITE_QUICK_POOL[newSite] || SITE_QUICK_POOL['default']).slice();
+    pool.sort(function(){ return Math.random() - .5; });
+    var qs = pool.slice(0, 4);
     var pillsHtml = qs.map(function(q){
       return '<button onclick="quickAsk(\'' + q.replace(/'/g,"\\'") + '\')" style="padding:6px 14px;border-radius:14px;border:1px solid #E2DDEB;background:#FCFAFF;color:#454545;font-size:12px;cursor:pointer;margin:2px">'+ q + '</button>';
     }).join('');
