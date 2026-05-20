@@ -5662,23 +5662,23 @@ window.LxBehavior = (function(){
     var prod = window.__currentProduct && window.__currentProduct.name ? String(window.__currentProduct.name).slice(0, 14) : '';
     // 强提示：AI 看到 / 转化类（下单·领券·限时·省¥·库存），左侧描边 + 脉冲点
     var strong = /^pointer-/.test(id) || /看到|下单|领券|领取|限时|省¥|省 ¥|剩\s*\d|库存|今日剩/.test(plain + ' ' + (primaryText || ''));
-    var sumMax = 42;
+    var sumMax = 80; // 2 行 clamp，可容纳更多
     var summary = (prod ? prod + '：' : '') + plain;
     if (summary.length > sumMax) summary = summary.slice(0, sumMax) + '…';
     var pText = (primaryText || '查看').length > 8 ? String(primaryText).slice(0, 8) : (primaryText || '查看');
     var accent = strong ? 'border-left:3px solid #b83340;background:linear-gradient(90deg,#fdf3f4,#fff)' : 'border-left:3px solid #e5e7eb;background:#fafafa';
-    var dot = strong ? '<span style="width:6px;height:6px;border-radius:50%;background:#b83340;flex-shrink:0;animation:lx-skel 1.6s ease-in-out infinite alternate"></span>' : '';
+    var dot = strong ? '<span style="width:6px;height:6px;border-radius:50%;background:#b83340;flex-shrink:0;margin-top:6px;animation:lx-skel 1.6s ease-in-out infinite alternate"></span>' : '';
     if (opts.loading) {
       slot.innerHTML = '<div style="margin:0 0 8px;padding:8px 12px;border-radius:10px;' + accent + ';font-size:12px;color:#999;display:flex;align-items:center;gap:8px">🤖 <span>AI 正在看你浏览的…</span></div>';
       return;
     }
     slot.innerHTML =
       '<div data-hint-id="' + id + '" style="margin:0 0 8px;border-radius:10px;' + accent + ';box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden">' +
-        '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;cursor:pointer" onclick="_lxChipToggle(\'' + id + '\')">' +
-          '<span style="font-size:14px;flex-shrink:0">🤖</span>' + dot +
-          '<span style="flex:1;font-size:12px;line-height:1.4;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + summary + '</span>' +
-          '<button onclick="event.stopPropagation();_lxHintRun(\'' + id + '\')" style="flex-shrink:0;padding:5px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer">' + pText + '</button>' +
-          '<button onclick="event.stopPropagation();_lxHintDismiss(\'' + id + '\')" title="不再提示" style="flex-shrink:0;background:none;border:none;color:#bbb;font-size:16px;cursor:pointer;padding:0 2px;line-height:1">×</button>' +
+        '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px 8px 12px;cursor:pointer" onclick="_lxChipToggle(\'' + id + '\')">' +
+          '<span style="font-size:14px;flex-shrink:0;margin-top:1px">🤖</span>' + dot +
+          '<span style="flex:1;font-size:12px;line-height:1.45;color:#333;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word">' + summary + '</span>' +
+          '<button onclick="event.stopPropagation();_lxHintRun(\'' + id + '\')" style="flex-shrink:0;padding:5px 12px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;align-self:center">' + pText + '</button>' +
+          '<button onclick="event.stopPropagation();_lxHintDismiss(\'' + id + '\')" title="不再提示" style="flex-shrink:0;background:none;border:none;color:#bbb;font-size:16px;cursor:pointer;padding:0 2px;line-height:1;align-self:center">×</button>' +
         '</div>' +
         '<div id="lxChipExpand-' + id + '" style="display:none;padding:0 12px 10px;font-size:12px;line-height:1.6;color:#555">' + contentHtml +
           '<div style="margin-top:8px;display:flex;gap:8px">' +
