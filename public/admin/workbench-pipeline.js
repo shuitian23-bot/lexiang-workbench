@@ -1905,6 +1905,7 @@ document.addEventListener('page-change', function(e) {
   else if (pageId === 'pipeline.monitor') setTimeout(loadMonitorStatus, 100);
   else if (pageId === 'pipeline.stats') setTimeout(loadPipelineHistory, 100);
   else if (pageId === 'pipeline.task') setTimeout(_initTaskPage, 100);
+  else if (pageId === 'pipeline.quality') { setTimeout(function(){ if (typeof qualityRefresh === 'function') qualityRefresh(); }, 500); }
 });
 
 // 兜底：如果没有 page-change 事件，hook switchPage
@@ -1918,6 +1919,7 @@ document.addEventListener('page-change', function(e) {
     else if (pageId === 'pipeline.monitor') setTimeout(loadMonitorStatus, 100);
     else if (pageId === 'pipeline.stats') setTimeout(loadPipelineHistory, 100);
     else if (pageId === 'pipeline.task') setTimeout(_initTaskPage, 100);
+	  else if (pageId === 'pipeline.quality') setTimeout(qualityRefresh, 100);
   };
 })();
 
