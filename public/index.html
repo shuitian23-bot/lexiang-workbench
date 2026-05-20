@@ -4769,8 +4769,9 @@ function showToastHb(msg) {
 // ══════════════════════════════════════
 //  🎟️ 立即购买 → 自动顺序领取所有优惠
 // ══════════════════════════════════════
-function startBuyFlow(productName, productPrice) {
+function startBuyFlow(productName, productPrice, productImage) {
   hideProductContextPrompt();
+  window.__lastBuyImage = productImage || '';
   // 已完成：直接重新弹出订单弹层
   if (startBuyFlow._done) {
     var ov = document.getElementById('orderOverlay');
@@ -4923,7 +4924,7 @@ function startBuyFlow(productName, productPrice) {
         '</div>' +
         '<div class="order-sheet-body">' +
         '<div class="order-product">' +
-          '<img class="order-product-img" src="" alt="">' +
+          '<img class="order-product-img" src="' + (window.__lastBuyImage || '') + '" alt="" onerror="this.style.visibility=\'hidden\'">' +
           '<div class="order-product-info">' +
             '<div class="order-product-name">'+escHtml(productName)+'</div>' +
             '<div class="order-product-spec">Ultra7-356H · 14英寸 · 32GB · 1T SSD</div>' +
@@ -5897,7 +5898,7 @@ window.LxBehavior = (function(){
       showHint('cart-stale-' + item.sku,
         '<b>' + escHtml(item.name) + '</b> 还在购物车<br>限时优惠快过期，现在结算最划算',
         '🎁 立即领优惠',
-        function(){ if (typeof startBuyFlow === 'function') startBuyFlow(item.name, item.price); });
+        function(){ if (typeof startBuyFlow === 'function') startBuyFlow(item.name, item.price, item.image_url || item.image || ''); });
     }, 5 * 60 * 1000);
   }
   function onWishlistAdd(){
@@ -6177,7 +6178,7 @@ window.LxBehavior = (function(){
           window.LxStatus && window.LxStatus.toast('🎉 已派发 ¥50 专属券到账户', { type: 'success', ms: 2000 });
           // 跳：购物车有 → 走结算流程；无 → 让 AI 推可用券的商品
           if (ct.length && typeof startBuyFlow === 'function') {
-            startBuyFlow(ct[0].name, ct[0].price);
+            startBuyFlow(ct[0].name, ct[0].price, ct[0].image_url || ct[0].image || '');
           } else if (typeof quickAsk === 'function') {
             quickAsk('我刚领了一张 ¥50 新人券，推荐 3 款现在就能用这张券、性价比最高的联想机型');
           }
