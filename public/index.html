@@ -149,6 +149,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .nlinks{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:28px;flex-shrink:0;align-items:center}
 .nlinks a{text-decoration:none;color:#454545;font-size:15px;opacity:.8;transition:opacity .3s;white-space:nowrap;border-bottom:3px solid transparent}
 .nlinks a:hover{opacity:1}.nlinks a.nav-active{opacity:1;color:#E1251B;font-weight:700;border-bottom-color:#E1251B}
+.nlinks .nav-sep{display:inline-block;width:1px;height:14px;background:#d0d0d0;margin:0 -10px 0 4px;align-self:center}
+.nlinks .nav-extra{font-size:14px;color:#888;opacity:.85;border-bottom:none}
+.nlinks .nav-extra:hover{color:#333;opacity:1}
 .nright{display:flex;align-items:center;gap:16px;margin-left:auto;flex-shrink:0}
 .nright a{text-decoration:none;font-size:13px;color:var(--text);opacity:.6;white-space:nowrap;transition:opacity .3s}
 .nright a:hover{opacity:1}
@@ -413,20 +416,24 @@ html,body{height:100%;overflow:hidden}
 
 /* Input bar */
 .input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom));position:relative}
-/* 在线客服 / 热线 rail */
-.cs-rail{display:flex;gap:6px;margin:0 0 8px;flex-wrap:wrap}
-.cs-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#f5f5f7;border:1px solid #e5e7eb;border-radius:14px;font-size:11px;color:#555;cursor:pointer;transition:all .15s;font-family:inherit}
-.cs-pill:hover{background:#eef2ff;border-color:#c7d2fe;color:#4338ca}
-.cs-pill[data-on="1"]{background:linear-gradient(90deg,#fff7ed,#ffedd5);border-color:#fed7aa;color:#9a3412}
-/* 转人工 banner */
-.human-banner{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:linear-gradient(90deg,#fff7ed,#fff);border-left:3px solid #f97316;display:flex;align-items:center;gap:10px;font-size:12px;color:#7c2d12}
-.human-banner-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-.human-banner-text{flex:1;line-height:1.45}
-.human-banner-text b{color:#9a3412}
-.human-banner-exit{padding:5px 12px;background:#fff;border:1px solid #fed7aa;border-radius:8px;font-size:11px;color:#9a3412;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0}
-.human-banner-exit:hover{background:#fff7ed;border-color:#fdba74}
-[data-theme="dark"] .cs-pill{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#9ca3af}
-[data-theme="dark"] .human-banner{background:linear-gradient(90deg,#2a1a0a,#1a1a1a);color:#fbbf24}
+/* 客服信息卡 (inline in AI bubble) */
+.cs-card{padding:6px 0}
+.cs-card-hdr{font-size:13px;font-weight:600;color:#333;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.cs-card-row{display:flex;justify-content:space-between;font-size:12px;color:#666;padding:6px 0;border-bottom:1px solid #f0f0f0}
+.cs-card-row:last-of-type{border-bottom:0}
+.cs-card-row b{color:#b83340;font-size:14px}
+.cs-card-actions{display:flex;gap:8px;margin-top:10px}
+.cs-card-actions a,.cs-card-actions button{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:none;font-weight:600;text-decoration:none;display:inline-block;font-family:inherit}
+.cs-card-actions .cs-btn-tel{background:linear-gradient(90deg,#6b2068,#b83340);color:#fff}
+.cs-card-actions .cs-btn-human{background:linear-gradient(90deg,#f97316,#ea580c);color:#fff}
+/* 转人工 inline banner (in chat bubble) */
+.cs-human-card{padding:8px 0;display:flex;align-items:center;gap:10px}
+.cs-human-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.cs-human-text{flex:1;font-size:12px;color:#7c2d12;line-height:1.5}
+.cs-human-text b{color:#9a3412}
+.cs-human-exit{padding:6px 14px;background:#fff;border:1px solid #fed7aa;border-radius:8px;font-size:11px;color:#9a3412;cursor:pointer;font-weight:600;font-family:inherit;flex-shrink:0}
+.cs-human-exit:hover{background:#fff7ed}
+[data-theme="dark"] .cs-card-row{border-bottom-color:rgba(255,255,255,.06)}
 .input-bar-toprow{display:flex;align-items:center;gap:6px;padding-bottom:8px;flex-wrap:wrap}
 .input-inner{display:flex;gap:8px;align-items:flex-end}
 .input-tools{display:flex;align-items:center;gap:6px;padding:6px 0 0;flex-wrap:wrap}
@@ -1306,6 +1313,16 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       if(it.href) return '<a href="'+it.href+'" data-nav="'+it.label+'"'+(it.active?' class="nav-active"':'')+'>'+it.label+'</a>';
       return '<a href="#" data-nav="'+it.label+'" onclick="setNavActive(\''+it.label+'\');startChat(\''+it.q.replace(/'/g,"\\'")+'\');return false;">'+it.label+'</a>';
     }).join('');
+    // 全局 quick action(所有子站): 服务/门店/会员 -- 跟 nav 主链接同排但用分隔符区分
+    var QUICK = [
+      { label:'服务', q:'联想售后/增值服务全清单(延保/上门/维修/数据迁移/技术支持/原厂硬盘加密)' },
+      { label:'门店', store:true },
+      { label:'会员', q:'查我的会员等级、乐豆余额和专属权益' }
+    ];
+    html += '<span class="nav-sep"></span>' + QUICK.map(function(q){
+      var oc = q.store ? "findNearbyStores();return false;" : "quickAsk('"+q.q.replace(/'/g,"\\'")+"');return false;";
+      return '<a href="#" class="nav-extra" onclick="'+oc+'">'+q.label+'</a>';
+    }).join('');
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
   <div class="nright">
@@ -1564,8 +1581,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     </div>
     <div class="input-bar">
       <div id="lxHintChipSlot"></div>
-      <div id="humanModeBanner" class="human-banner" style="display:none"></div>
-      <div id="csActionRail" class="cs-rail"></div>
       <div id="productOverlay" class="ai-product-overlay hiding"></div>
       <div id="productChipsBar" class="product-chips-bar hidden"></div>
       <div id="subnavExtraInput" class="subnav-extra-input"></div>
@@ -4308,7 +4323,8 @@ function renderSubnav() {
   var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
   // 全部 button（main + more）一起渲染到 nowrap flex，JS 测宽溢出的隐藏 + 加进 more 下拉
-  var allItems = (cfg.main || []).concat(cfg.more || []);
+  // 全站尾追"客服"按钮 (点开 chat 里 inline 出电话/工作时间/转人工卡)
+  var allItems = (cfg.main || []).concat(cfg.more || []).concat([{ico:'📞',label:'客服',title:'客服热线 / 在线咨询 / 转人工',fn:"csQuick()"}]);
   var btnsHtml = allItems.map(function(it, i){
     return '<button class="se-btn" data-se-idx="'+i+'" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
   }).join('');
@@ -6929,10 +6945,9 @@ window.openServicePlus = openServicePlus;
 </script>
 <script>
 // ══════════════════════════════════════════
-//  在线客服 / 转人工 (POC mock)
+//  客服 (inline in AI chat) — 1 按钮挂 subnav, 点开 chat 里 append 卡, 含 电话/工作时间/转人工
 // ══════════════════════════════════════════
 (function(){
-  // 子站客服 hotline / 队列映射
   var CS_HOTLINE = {
     'default': { tel:'400-990-8888',       label:'联想官方客服',    queue:'综合' },
     'shop':    { tel:'400-990-8888 转 1', label:'个人/家庭购客服', queue:'消费' },
@@ -6942,84 +6957,48 @@ window.openServicePlus = openServicePlus;
   function _cfg(){ var st = window.__siteType || 'default'; return CS_HOTLINE[st] || CS_HOTLINE['default']; }
   function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // 📞 热线: 仅展示子站电话 + 拨打
-  window.csOpenHotline = function(){
+  // 📞 客服 1 按钮: chat 里 append 信息卡 (电话+工作时间+转人工 button)
+  window.csQuick = function(){
     var c = _cfg();
     var telDigits = c.tel.replace(/[^\d]/g, '');
-    var html = '<div style="padding:14px 4px;text-align:center">' +
-      '<div style="font-size:13px;color:#666;margin-bottom:6px">' + _esc(c.label) + ' · ' + _esc(c.queue) + ' 队列</div>' +
-      '<div style="font-size:26px;font-weight:800;color:#b83340;margin:14px 0;letter-spacing:1px">' + _esc(c.tel) + '</div>' +
-      '<div style="font-size:12px;color:#888;margin-bottom:16px">服务时间: 9:00 - 21:00 (含节假日)</div>' +
-      '<a href="tel:' + telDigits + '" style="display:inline-block;padding:11px 28px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px">📞 立即拨打</a>' +
-    '</div>';
-    if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'📞 客服热线', content: html });
+    var html = '<div class="cs-card">' +
+      '<div class="cs-card-hdr">📞 ' + _esc(c.label) + '</div>' +
+      '<div class="cs-card-row"><span>客服热线</span><b>' + _esc(c.tel) + '</b></div>' +
+      '<div class="cs-card-row"><span>工作时间</span><span>9:00 - 21:00 (含节假日)</span></div>' +
+      '<div class="cs-card-row"><span>队列</span><span>' + _esc(c.queue) + '</span></div>' +
+      '<div class="cs-card-actions">' +
+        '<a class="cs-btn-tel" href="tel:' + telDigits + '">📞 立即拨打</a>' +
+        '<button class="cs-btn-human" onclick="csStartHuman()">🧑‍💼 进入人工应答</button>' +
+      '</div></div>';
+    if (typeof showChatApp === 'function') showChatApp();
+    if (typeof window.__revealChat === 'function') window.__revealChat();
+    if (typeof appendBubble === 'function') appendBubble('ai', html);
     else if (window.LxStatus) window.LxStatus.toast(c.tel, { ms: 3000 });
   };
 
-  // 💬 在线咨询: 入口卡 → 继续问 AI / 转人工
-  window.csOpenChat = function(){
-    var c = _cfg();
-    var html = '<div style="padding:10px 6px">' +
-      '<div style="font-size:13px;color:#666;line-height:1.7;margin-bottom:14px">' +
-        '当前为 <b style="color:#333">' + _esc(c.label) + '</b> 队列。AI 助手可解答 90%+ 常见问题；复杂咨询可转人工。' +
-      '</div>' +
-      '<div style="display:flex;gap:8px;justify-content:center">' +
-        '<button onclick="(document.querySelector(\'.ai-modal-mask\')||{}).remove&&document.querySelector(\'.ai-modal-mask\').remove();" style="padding:10px 20px;background:#f5f5f7;color:#333;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit">继续问 AI</button>' +
-        '<button onclick="(document.querySelector(\'.ai-modal-mask\')||{}).remove&&document.querySelector(\'.ai-modal-mask\').remove();csStartHuman();" style="padding:10px 20px;background:linear-gradient(90deg,#f97316,#ea580c);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">🧑‍💼 转人工</button>' +
-      '</div></div>';
-    if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'💬 在线客服', content: html });
-  };
-
-  // 转人工: 状态切换 + banner + placeholder + 标记
+  // 进入人工: chat 流 append 系统消息 + placeholder 变, 标 humanMode
   window.csStartHuman = function(){
     var c = _cfg();
     window.__inHumanMode = true;
     window.__humanAgentName = '客服小李';
-    var b = document.getElementById('humanModeBanner');
-    if (b) {
-      b.style.display = 'flex';
-      b.innerHTML =
-        '<div class="human-banner-avatar">李</div>' +
-        '<div class="human-banner-text"><b>' + window.__humanAgentName + '</b> · 已接入 ' + _esc(c.queue) + ' 队列<br><span style="opacity:.75;font-size:11px">您的咨询将由人工客服处理 (POC 演示, 回答仍由 AI mock)</span></div>' +
-        '<button class="human-banner-exit" onclick="csExitHuman()">退出人工</button>';
-    }
+    var html = '<div class="cs-human-card">' +
+      '<div class="cs-human-avatar">李</div>' +
+      '<div class="cs-human-text"><b>' + window.__humanAgentName + '</b> 已为您接入 ' + _esc(c.queue) + ' 队列<br><span style="opacity:.75">提问会优先发给人工 (POC 演示, 实际仍由 AI mock)</span></div>' +
+      '<button class="cs-human-exit" onclick="csExitHuman()">退出人工</button>' +
+    '</div>';
+    if (typeof appendBubble === 'function') appendBubble('ai', html);
     var ta = document.getElementById('mainTa');
     if (ta) { if (!ta.__origPh) ta.__origPh = ta.placeholder; ta.placeholder = '向 ' + window.__humanAgentName + ' 提问...'; }
-    // rail pill 标视觉态
-    var rail = document.getElementById('csActionRail');
-    if (rail) {
-      var pills = rail.querySelectorAll('.cs-pill');
-      pills.forEach(function(p){ if (p.dataset.action === 'chat') p.setAttribute('data-on', '1'); });
-    }
-    if (window.LxStatus) window.LxStatus.toast('已转接 ' + window.__humanAgentName + ' (POC 演示)', { type:'success', ms: 2500 });
   };
 
-  // 退出人工
   window.csExitHuman = function(){
     window.__inHumanMode = false;
     window.__humanAgentName = null;
-    var b = document.getElementById('humanModeBanner');
-    if (b) { b.style.display = 'none'; b.innerHTML = ''; }
     var ta = document.getElementById('mainTa');
     if (ta && ta.__origPh) ta.placeholder = ta.__origPh;
-    var rail = document.getElementById('csActionRail');
-    if (rail) rail.querySelectorAll('.cs-pill').forEach(function(p){ p.removeAttribute('data-on'); });
-    if (window.LxStatus) window.LxStatus.toast('已退出人工模式, 继续与 AI 对话', { ms: 2000 });
+    var html = '<div style="font-size:12px;color:#888;padding:6px 0">↩ 已退出人工模式, 继续与 AI 对话</div>';
+    if (typeof appendBubble === 'function') appendBubble('ai', html);
   };
-
-  // 渲染 rail 按钮
-  function _csRenderRail(){
-    var rail = document.getElementById('csActionRail');
-    if (!rail || rail.dataset.rendered) return;
-    rail.innerHTML =
-      '<button class="cs-pill" data-action="chat" onclick="csOpenChat()" title="在线咨询 / 转人工"><span>💬</span>在线咨询</button>' +
-      '<button class="cs-pill" data-action="tel"  onclick="csOpenHotline()" title="客服热线"><span>📞</span>热线</button>';
-    rail.dataset.rendered = '1';
-  }
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(_csRenderRail, 50); });
-  // 进 chat 时也渲一次(分屏 split-mode 直入兜底)
-  var _origReveal = window.__revealChat;
-  window.__revealChat = function(){ try { if (_origReveal) _origReveal.apply(this, arguments); } catch(e){} _csRenderRail(); };
 })();
 </script>
 <script src="/split-layout.js?v=20260515-v82-s21fix"></script>
