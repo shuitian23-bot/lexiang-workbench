@@ -1352,7 +1352,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <div class="search"><input type="text" placeholder="最近有什么促销活动？" id="heroInput" autocomplete="off"><button class="send-btn" id="heroSend" aria-label="发送"><svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></button></div>
   <div class="tags" id="heroTags"></div>
   <div class="qpills" id="qpills" style="margin-top:18px"></div>
-  <script>!function(){
+  <script>window.__renderSiteHero = function(){
     var SITE_HERO = {
       'default': { title:'你好，我是联想乐享', sub:'联想乐享 · 个人/家庭/企业全场景咨询',
         tags:[['商品导购','我想买一台笔记本电脑，能帮我推荐吗？'],['解决方案','联想有哪些适合企业的解决方案？'],['门店查询','__store__'],['我的权益','我购买的联想产品质保和售后怎么查？'],['预约服务','我想预约联想服务，请问如何预约？']],
@@ -1376,7 +1376,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }).join('');
     var picks = s.chips.slice().sort(function(){return Math.random()-.5}).slice(0,5);
     document.getElementById('qpills').innerHTML = picks.map(function(t){return'<button class="qp" style="padding:8px 18px;border-radius:999px;font-size:12px;color:var(--text2);background:var(--tag-bg);border:1px solid var(--tag-bd);backdrop-filter:blur(8px);transition:all .3s;white-space:nowrap;cursor:pointer">'+t+'</button>';}).join('');
-  }();</script>
+  }; window.__renderSiteHero();</script>
 </section></div>
 <div class="wrap">
 <!-- ═══ 方案C首页（仅 data-site="default" 显示） ═══ -->
@@ -1414,10 +1414,13 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 
   <!-- 子站专属促销模块: shop=秒杀, b=新人专享, 其他不显; 内容 hardcode mock POC -->
   <section id="siteLandingExtra" style="display:none"></section>
-  <script>!function(){
+  <script>window.__renderSiteLandingExtra = function(){
     var st = window.__siteType || 'default';
     var box = document.getElementById('siteLandingExtra');
     if (!box) return;
+    box.className = '';
+    box.style.display = 'none';
+    box.innerHTML = '';
     if (st === 'shop') {
       var items = [
         { ico:'🖱️', name:'联想 一键服务鼠标M25 白色', price:45,  orig:49,    discount:'9.2折' },
@@ -1481,7 +1484,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
           }).join('') +
         '</div>';
     }
-  }();</script>
+  }; window.__renderSiteLandingExtra();</script>
 
   <!-- 分区 Feed: 新品/超值/热门/各品类。初始渲染 8 套骨架占位，避免单区骨架后整页跳出 -->
   <div id="feedSections">
@@ -7051,6 +7054,60 @@ window.openServicePlus = openServicePlus;
     _csAppend('<div style="font-size:12px;color:#888;padding:4px 0">↩ 已退出人工模式, 继续与 AI 对话</div>');
     if (typeof renderSubnav === 'function') renderSubnav();
   };
+})();
+</script>
+<script>
+// ════════════════════════════════════════
+//  SPA 切站: 有对话 → 保留 session SPA 切 + landing 重渲; 无对话 → 走原 href 整页
+// ════════════════════════════════════════
+(function(){
+  var LABELS = {'default':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  window.spaSwitchSite = function(newSite, newPath){
+    window.__siteType = newSite;
+    window.__chatBase = newSite === 'default' ? '/chat' : '/' + newSite + '-chat';
+    document.documentElement.dataset.site = newSite;
+    history.pushState(null, '', newPath || (window.__chatBase + '/'));
+    // nav-active 切
+    document.querySelectorAll('.nlinks a').forEach(function(a){ a.classList.remove('nav-active'); });
+    var label = LABELS[newSite];
+    if (label) document.querySelectorAll('.nlinks a').forEach(function(a){ if (a.getAttribute('data-nav') === label) a.classList.add('nav-active'); });
+    // 子站 landing 重渲
+    try { if (typeof window.__renderSiteHero === 'function') window.__renderSiteHero(); } catch(e){}
+    try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(); } catch(e){}
+    try { if (typeof renderSubnav === 'function') renderSubnav(); } catch(e){}
+    // chat 流通知 AI 切站
+    if (typeof appendBubble === 'function') {
+      appendBubble('ai', '↪ 已切换到「<b>' + (label || newSite) + '</b>」子站, 接下来我会按新子站语境回答。');
+    }
+  };
+
+  // 拦 site nav 链接(主 nav / 顶 nav extras / siteSeg / 任何 href 是子站根的 a)
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href) return;
+    // 匹配 / 或 /shop-chat/ /b-chat/ /biz-chat/ /chat/ (尾巴 / 可有可无)
+    var m = href.match(/^\/((shop-chat|b-chat|biz-chat|chat))\/?$/);
+    var newSite = null;
+    if (m) {
+      newSite = m[1].replace('-chat','');
+      if (newSite === 'chat') newSite = 'default';
+    } else if (href === '/') {
+      newSite = 'default';
+    }
+    if (!newSite) return;
+    // 同站点不切
+    if (newSite === window.__siteType) return;
+    // 检测当前有无 chat 消息
+    var inner = document.getElementById('msgsInner');
+    var hasMsgs = inner && inner.querySelectorAll('.msg').length > 0;
+    if (hasMsgs) {
+      e.preventDefault();
+      window.spaSwitchSite(newSite, href);
+    }
+    // 无消息 → 走原 href 全页跳, 不拦
+  }, true);
 })();
 </script>
 <script src="/split-layout.js?v=20260515-v82-s21fix"></script>
