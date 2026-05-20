@@ -7063,6 +7063,9 @@ window.openServicePlus = openServicePlus;
 (function(){
   var LABELS = {'default':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
   window.spaSwitchSite = function(newSite, newPath){
+    // 同时更新底层 _siteType var(mall 函数读它) + window 镜像
+    try { _siteType = newSite; } catch(e){}
+    window._siteType = newSite;
     window.__siteType = newSite;
     window.__chatBase = newSite === 'default' ? '/chat' : '/' + newSite + '-chat';
     document.documentElement.dataset.site = newSite;
@@ -7071,10 +7074,13 @@ window.openServicePlus = openServicePlus;
     document.querySelectorAll('.nlinks a').forEach(function(a){ a.classList.remove('nav-active'); });
     var label = LABELS[newSite];
     if (label) document.querySelectorAll('.nlinks a').forEach(function(a){ if (a.getAttribute('data-nav') === label) a.classList.add('nav-active'); });
-    // 子站 landing 重渲
+    // 子站全套 landing 重渲: hero/landing-extra/subnav/mall hero/mall features/feed
     try { if (typeof window.__renderSiteHero === 'function') window.__renderSiteHero(); } catch(e){}
     try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(); } catch(e){}
     try { if (typeof renderSubnav === 'function') renderSubnav(); } catch(e){}
+    try { if (typeof renderMallHero === 'function') renderMallHero(); } catch(e){}
+    try { if (typeof renderMallFeatures === 'function') renderMallFeatures(); } catch(e){}
+    try { if (typeof loadFeed === 'function') loadFeed(); } catch(e){}
     // chat 流通知 AI 切站
     if (typeof appendBubble === 'function') {
       appendBubble('ai', '↪ 已切换到「<b>' + (label || newSite) + '</b>」子站, 接下来我会按新子站语境回答。');
