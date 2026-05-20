@@ -928,8 +928,7 @@
 
       var buyBtn = container.querySelector('.cpd-buy');
       if (buyBtn) buyBtn.addEventListener('click', function () {
-        if (typeof window.openBenefitFor === 'function') window.openBenefitFor(p.name, p.sku || '');
-        else if (typeof startBuyFlow === 'function') startBuyFlow(p.name, p.price, p.image_url || '');
+        if (typeof startBuyFlow === 'function') startBuyFlow(p.name, p.price, p.image_url || '');
       });
       var cartBtn = container.querySelector('.cpd-cart');
       if (cartBtn) cartBtn.addEventListener('click', function () {
