@@ -136,13 +136,19 @@ async function run() {
     return `成功${r.done || 0} 失败${r.failed || 0}`;
   }, 600000);
 
-  // 6. 商品 OpenAPI
-  await step(6, T, '商品OpenAPI', async () => {
+  // 6. 商品 OpenAPI + 补真价(OpenAPI 给占位的, 走 f.lenovo 商城运行时端点拿真价)
+  await step(6, T, '商品OpenAPI+补真价', async () => {
     const out = execSync('node /opt/projects/lexiang/scripts/import_from_openapi.js', {
       timeout: 300000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
-    return `更新${pick(out, /(?:更新|入库|upsert)[^\d]*(\d+)/i)} 条`;
-  }, 300000);
+    let priceOut = '';
+    try {
+      priceOut = execSync('python3 /opt/projects/lexiang/scripts/fetch_real_prices.py', {
+        timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+      });
+    } catch (e) { priceOut = '补真价失败'; }
+    return `OpenAPI更新${pick(out, /(?:更新|入库|upsert)[^\d]*(\d+)/i)} 补真价${pick(priceOut, /补真价\s*(\d+)/)}`;
+  }, 900000);
 
   // 7. 品牌新闻全量
   await step(7, T, '品牌新闻全量', async () => {
