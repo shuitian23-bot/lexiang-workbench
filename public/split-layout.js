@@ -4,8 +4,8 @@
 
   var MQ = window.matchMedia('(min-width: 769px)');
   var CHAT_PREFIXES = ['/chat', '/shop-chat', '/b-chat', '/biz-chat'];
-  var STORE_KEY = 'lexiang.splitV3'; // v3: 默认 25(chat):75(landing); 旧 v2 50:50 失效
-  var DEFAULT_LEFT_PCT = 25; // chat 占 1/4, landing 占 3/4 (默认分屏比)
+  var STORE_KEY = 'lexiang.splitV4'; // v4: 默认 29(chat):71(landing) 即 1:2.5; 旧版失效
+  var DEFAULT_LEFT_PCT = 29; // chat 占 ~1/3.5, landing 占 ~2.5/3.5 (1:2.5 分屏比)
   var MIN_LEFT_PCT = 20;
   var MAX_LEFT_PCT = 80;
 
@@ -908,6 +908,28 @@
             '</div>' +
           '</div>' +
           tuHtml +
+          // 用户评价 section: 横排单行 (mock POC, 抓官网精选好评)
+          (function(){
+            var REVIEWS = [
+              { u:'彼岸若雪****', s:5, t:'屏幕清晰、重量还可以，电池续航非常不错，新机已开荒！' },
+              { u:'lenovo94****', s:5, t:'颜值真的超级高，办公+轻度游戏都满足，非常满意！' },
+              { u:'科技小白****', s:5, t:'性能强，温控好，键盘手感舒服，办公无敌！' },
+              { u:'职场达人****', s:5, t:'轻薄便携，续航给力，开会出差神器！' },
+              { u:'数码玩家****', s:4, t:'外观漂亮、运行流畅，比同价位竞品强不少。' },
+              { u:'学生党****',   s:5, t:'学生认证后非常划算，写作业打游戏都顺。' },
+              { u:'lenovo46****', s:5, t:'设计精致、做工扎实，性价比非常高，强烈推荐！' }
+            ];
+            var cards = REVIEWS.map(function(r){
+              return '<div class="cpd-rev-card">' +
+                '<div class="cpd-rev-head"><span class="cpd-rev-user">' + escH(r.u) + '</span><span class="cpd-rev-stars">' + '★'.repeat(r.s) + '<span style="color:#ddd">' + '★'.repeat(5 - r.s) + '</span></span></div>' +
+                '<div class="cpd-rev-text">' + escH(r.t) + '</div>' +
+              '</div>';
+            }).join('');
+            return '<div class="cpd-reviews-section">' +
+              '<h4 class="cpd-section-title">💬 用户评价 <span class="cpd-rev-stat">满意度 <b>99%</b> · 9073 条</span></h4>' +
+              '<div class="cpd-rev-list">' + cards + '</div>' +
+            '</div>';
+          })() +
           (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-section-title">📋 规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
           '<div class="cpd-detail-images-section"><h4 class="cpd-section-title">📸 商品介绍详情图</h4><div class="cpd-detail-images-body" id="cpd-detail-images-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">加载详情图…</div></div></div>' +
         '</div>';

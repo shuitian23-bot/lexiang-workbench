@@ -916,7 +916,19 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 
 .cpd-specs-section,
 .cpd-wiki-section,
-.cpd-tu { padding: 16px 20px 20px; border-top: 1px solid #F3F4F6; }
+.cpd-tu,
+.cpd-reviews-section { padding: 16px 20px 20px; border-top: 1px solid #F3F4F6; }
+/* 用户评价: 横排单行卡片 */
+.cpd-reviews-section .cpd-rev-stat { font-size: 12px; color: #999; font-weight: normal; margin-left: 8px }
+.cpd-reviews-section .cpd-rev-stat b { color: #B8252E; font-weight: 700; }
+.cpd-rev-list { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.cpd-rev-list::-webkit-scrollbar { height: 6px; } .cpd-rev-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+.cpd-rev-card { flex: 0 0 280px; padding: 10px 14px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; scroll-snap-align: start; transition: border-color .15s, background .15s; }
+.cpd-rev-card:hover { border-color: #E2DDEB; background: #FCFAFF; }
+.cpd-rev-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+.cpd-rev-user { font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cpd-rev-stars { font-size: 11px; color: #fbbf24; letter-spacing: 1px; flex-shrink: 0; }
+.cpd-rev-text { font-size: 12px; color: #333; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cpd-section-title,
 .cpd-specs-title {
   margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #374151;
