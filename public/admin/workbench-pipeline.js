@@ -50,6 +50,7 @@ const TAG_COLORS = {'电商':'#3370ff','服务':'#34c724','会员':'#722ed1','�
 const PALETTE = ['#3370ff','#34c724','#722ed1','#ff7d00','#e2001a','#8f959e','#00b578','#f59e0b','#ec4899','#14b8a6'];
 const TAG_ORDER = ['电商','服务','会员','门店','咨询','其他','多模态'];
 function tagColor(name) { return TAG_COLORS[name] || PALETTE[Object.keys(TAG_COLORS).indexOf(name) % PALETTE.length]; }
+const AP_COLOR = {'主动':'#3370ff','被动':'#ff7d00','口令活动':'#e2001a'};
 
 // ===== PAGE RENDERERS =====
 
@@ -931,7 +932,9 @@ function renderDailyVolume(recs, TH) {
 
 function renderTagTrend(recs, TH) {
   const ch = _dashCharts.cTagTrend; if (!ch) return;
+  // 拆分周汇总记录，使每天一条
   const expanded = _expandRecordsByDailyVolume(recs);
+  // 合并同日期记录
   const dateMap = {};
   expanded.forEach(r => {
     const d = r.date;
@@ -957,36 +960,30 @@ function renderTagTrend(recs, TH) {
   });
 }
 
-const AP_COLOR = {'主动':'#3370ff','被动':'#ff7d00','口令活动':'#e2001a'};
-
 function renderApTrend(recs, TH) {
   const ch = _dashCharts.cApTrend; if (!ch) return;
   const dateMap = {};
   recs.forEach(r => {
     const dap = r.daily_active_passive || {};
-    for (const [d, dist] of Object.entries(dap)) {
-      if (!dateMap[d]) dateMap[d] = {'主动':0,'被动':0,'口令活动':0};
-      for (const k of ['主动','被动','口令活动']) {
-        dateMap[d][k] = (dateMap[d][k] || 0) + (dist[k] || 0);
-      }
-    }
+    Object.entries(dap).forEach(([d, vals]) => {
+      if (!dateMap[d]) dateMap[d] = { '主动': 0, '被动': 0, '口令活动': 0 };
+      dateMap[d]['主动'] += (vals['主动'] || 0);
+      dateMap[d]['被动'] += (vals['被动'] || 0);
+      dateMap[d]['口令活动'] += (vals['口令活动'] || 0);
+    });
   });
   const dates = Object.keys(dateMap).sort();
-  const types = ['主动','被动','口令活动'];
-  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis', formatter: p => {
-      let s = p[0].axisValue + '<br/>';
-      p.forEach(x => { s += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + x.color + ';margin-right:4px"></span>' + x.seriesName + ': <b>' + x.value.toLocaleString() + '</b><br/>'; });
-      return s;
-    } },
+  const series = ['主动', '被动', '口令活动'].map(key => ({
+    name: key, type: 'line', smooth: true, symbol: 'circle', symbolSize: 4,
+    lineStyle: { width: 1.5 }, itemStyle: { color: AP_COLOR[key] },
+    data: dates.map(d => dateMap[d][key] || 0)
+  }));
+  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis' },
     legend: { bottom: 0, type: 'scroll', textStyle: { color: '#646a73', fontSize: 10 } },
     grid: { left: 64, right: 16, top: 12, bottom: 36 },
     xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#dee0e3' } }, axisTick: { show: false }, axisLabel: { color: '#8f959e', fontSize: 9 } },
-    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9, formatter: v => v >= 1e4 ? (v/1e4).toFixed(0) + '万' : v } },
-    series: types.map(t => ({
-      name: t, type: 'line', smooth: true, symbol: 'circle', symbolSize: 4,
-      lineStyle: { width: 1.5 }, itemStyle: { color: AP_COLOR[t] },
-      data: dates.map(d => (dateMap[d] || {})[t] || 0)
-    }))
+    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    series
   });
 }
 
@@ -995,22 +992,22 @@ function renderAtTrend(recs, TH) {
   const dateMap = {};
   recs.forEach(r => {
     const dat = r.daily_active_tag || {};
-    for (const [d, dist] of Object.entries(dat)) {
+    Object.entries(dat).forEach(([d, dist]) => {
       if (!dateMap[d]) dateMap[d] = {};
-      for (const [tag, c] of Object.entries(dist)) {
-        dateMap[d][tag] = (dateMap[d][tag] || 0) + c;
-      }
-    }
+      Object.entries(dist).forEach(([tag, cnt]) => {
+        dateMap[d][tag] = (dateMap[d][tag] || 0) + cnt;
+      });
+    });
   });
-  const ts = new Set();
-  Object.values(dateMap).forEach(dist => Object.keys(dist).forEach(t => ts.add(t)));
-  const tags = TAG_ORDER.filter(t => ts.has(t));
   const dates = Object.keys(dateMap).sort();
-  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' }, confine: true },
+  const tagSet = new Set();
+  Object.values(dateMap).forEach(dist => Object.keys(dist).forEach(t => tagSet.add(t)));
+  const tags = TAG_ORDER.filter(t => tagSet.has(t));
+  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
     legend: { bottom: 0, type: 'scroll', textStyle: { color: '#646a73', fontSize: 10 } },
     grid: { left: 64, right: 16, top: 12, bottom: 36 },
     xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#dee0e3' } }, axisTick: { show: false }, axisLabel: { color: '#8f959e', fontSize: 9 } },
-    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9, formatter: v => v >= 1e4 ? (v/1e4).toFixed(0) + '万' : v } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9 } },
     series: tags.map((tag, i) => ({
       name: tag, type: 'bar', stack: 't', emphasis: { focus: 'series' },
       itemStyle: { color: tagColor(tag), borderRadius: tags.length - 1 === i ? [2,2,0,0] : [0,0,0,0] },
@@ -1029,7 +1026,7 @@ function switchTag3Mode(mode) {
 }
 
 function renderTag3Current(r) {
-  const TH = { backgroundColor: 'transparent', tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, trigger: 'axis', axisPointer: { type: 'shadow' } };
+  const TH = { backgroundColor: 'transparent', tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, trigger: 'axis', axisPointer: { type: 'shadow' } } };
   const data = _tag3Mode === 'nokouling' ? (r.tag3_dist_top20_no_kouling || {}) : (r.tag3_dist_top20_semantic || {});
   hbarChart('cTag3', data, _tag3Mode === 'nokouling' ? '#ff7d00' : '#3370ff', TH, 170);
 }
