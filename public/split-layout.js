@@ -936,7 +936,25 @@
       });
       var cmpBtn = container.querySelector('.cpd-compare');
       if (cmpBtn) cmpBtn.addEventListener('click', function () {
-        if (typeof quickAsk === 'function') quickAsk('找几款与「' + p.name + '」相似的联想机型，列出 3-5 款同价位/同系列的对比卡');
+        // 找相似：fetch 同 category + 同价位带商品, 开内容面板新 tab(左侧分栏), 不走 AI 文字
+        var srcSku = p.sku || sku;
+        if (!srcSku) return;
+        cmpBtn.disabled = true; cmpBtn.textContent = '✨ 找相似中…';
+        fetch('/api/products?similar=' + encodeURIComponent(srcSku) + '&limit=5')
+          .then(function (r) { return r.json(); })
+          .then(function (list) {
+            cmpBtn.disabled = false; cmpBtn.textContent = '✨ 找相似';
+            if (!list || !list.length) {
+              if (window.LxStatus) window.LxStatus.toast('暂未找到相似商品', { ms: 2000 });
+              return;
+            }
+            var title = '✨ 找相似·' + String(p.name || '').slice(0, 12);
+            if (typeof openContent === 'function') openContent('products', title, { products: list, sourceSku: srcSku });
+          })
+          .catch(function () {
+            cmpBtn.disabled = false; cmpBtn.textContent = '✨ 找相似';
+            if (window.LxStatus) window.LxStatus.toast('找相似失败，稍后重试', { ms: 2000 });
+          });
       });
       if (typeof notifyAIProductContext === 'function') notifyAIProductContext(p);
       updateWorkspaceContextFromTab(getActiveTab());

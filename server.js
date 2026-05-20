@@ -140,6 +140,22 @@ app.use('/', require('./routes/sitemap'));
 // 精选产品列表（landing page 用，按子站分类过滤）
 app.get('/api/products', (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 8, 20);
+  // 找相似：按源 sku 同 category 同价位带(±50%)拉，排除源
+  const similar = req.query.similar;
+  if (similar) {
+    const src = db.prepare('SELECT category, price, name FROM products WHERE sku = ?').get(similar);
+    if (!src) return res.json([]);
+    let simWhere = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND sku != ? AND category = ?`;
+    const params = [similar, src.category];
+    if (src.price > 0) {
+      simWhere += ` AND price BETWEEN ? AND ?`;
+      params.push(Math.round(src.price * 0.5), Math.round(src.price * 1.6));
+    }
+    params.push(src.price || 0, limit);
+    const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
+      FROM products WHERE ${simWhere} ORDER BY ABS(price - ?) ASC LIMIT ?`).all(...params);
+    return res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
+  }
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
   let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
     AND SUBSTR(image_url, -30) NOT IN (
