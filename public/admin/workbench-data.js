@@ -1797,7 +1797,7 @@ switchPage = function(pageId) {
   _origSwitch(pageId);
   // peek模式下选完页面，不立即收回，等鼠标离开侧栏后收回
   if (pageId === 'dashboard.overview') loadOverviewStats();
-  if (pageId === 'dashboard.query') loadQueryAnalysis();
+  // dashboard.query replaced by pipeline.annotate — handled by workbench-pipeline.js
   if (pageId === 'dashboard.geo') {
     geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = [];
     setTimeout(() => {

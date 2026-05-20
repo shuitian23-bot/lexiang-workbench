@@ -11,11 +11,50 @@ const registry = require('../core/skill-registry');
 
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
 const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'pipeline');
-const OUTPUT_DIR = path.join(__dirname, '..', 'output', 'pipeline');
+const DATA_DIR = path.join(__dirname, '..', 'data', 'pipeline');
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+const RESULT_DIR = path.join(DATA_DIR, 'results');
+const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+const STATS_FILE = path.join(DATA_DIR, 'stats_history.json');
+const MAX_RESULTS = 10; // 标注结果最多保留10份
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+fs.mkdirSync(RESULT_DIR, { recursive: true });
+
+// 统计历史文件路径：优先 data/pipeline，fallback 到旧路径
+function _statsFilePath() {
+  if (fs.existsSync(STATS_FILE)) return STATS_FILE;
+  const legacy = path.join(SKILLS_DIR, 'lexiang-pipeline', 'data', 'stats_history.json');
+  if (fs.existsSync(legacy)) {
+    try { fs.copyFileSync(legacy, STATS_FILE); } catch {}
+    return STATS_FILE;
+  }
+  return STATS_FILE;
+}
+
+// 标注结果目录：优先 data/pipeline/results，fallback 到旧路径
+function _resultDirs() {
+  const dirs = [RESULT_DIR];
+  const legacy1 = path.join(SKILLS_DIR, 'lexiang-query-classify', 'output');
+  const legacy2 = path.join(SKILLS_DIR, 'lexiang-api', 'output');
+  if (fs.existsSync(legacy1)) dirs.push(legacy1);
+  if (fs.existsSync(legacy2)) dirs.push(legacy2);
+  return dirs;
+}
+
+// 清理旧标注结果，保留最近 MAX_RESULTS 份
+function _cleanupOldResults() {
+  try {
+    const files = fs.readdirSync(RESULT_DIR)
+      .filter(f => f.startsWith('标注结果_') && f.endsWith('.csv'))
+      .map(f => ({ name: f, path: path.join(RESULT_DIR, f), mtime: fs.statSync(path.join(RESULT_DIR, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime);
+    for (let i = MAX_RESULTS; i < files.length; i++) {
+      try { fs.unlinkSync(files[i].path); } catch {}
+      try { fs.unlinkSync(files[i].path.replace('.csv', '.zip')); } catch {}
+    }
+  } catch {}
+}
 
 // Multer for file uploads
 const upload = multer({
@@ -27,10 +66,74 @@ const multiUpload = multer({
   limits: { fileSize: 200 * 1024 * 1024 }
 });
 
-// In-memory task store
+// In-memory task store (backed by tasks.json)
 const tasks = new Map();
 
+function _loadTasks() {
+  try {
+    if (fs.existsSync(TASKS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(TASKS_FILE, 'utf-8'));
+      for (const t of data) {
+        tasks.set(t.task_id, t);
+      }
+    }
+  } catch {}
+}
+
+function _saveTasks() {
+  try {
+    const arr = Array.from(tasks.values()).map(t => ({
+      task_id: t.task_id, filename: t.filename, user_id: t.user_id,
+      status: t.status, progress: t.progress, created_at: t.created_at,
+      result: t.result ? {
+        total: t.result.total, unclear_count: t.result.unclear_count,
+        output: t.result.output, report: t.result.report,
+        issues: t.result.issues, warnings: t.result.warnings,
+        fix_log: t.result.fix_log, llm_fixed_count: t.result.llm_fixed_count,
+        distribution: t.result.distribution, total_users: t.result.total_users,
+        total_sessions: t.result.total_sessions,
+        active_count: t.result.active_count, passive_count: t.result.passive_count,
+      } : null,
+    }));
+    fs.writeFileSync(TASKS_FILE, JSON.stringify(arr, null, 2));
+  } catch {}
+}
+
+_loadTasks();
+
+// Cleanup uploads older than 24h
+function _cleanupOldUploads() {
+  try {
+    const cutoff = Date.now() - 24 * 3600000;
+    for (const f of fs.readdirSync(UPLOAD_DIR)) {
+      const fp = path.join(UPLOAD_DIR, f);
+      try {
+        if (fs.statSync(fp).mtimeMs < cutoff) fs.unlinkSync(fp);
+      } catch {}
+    }
+  } catch {}
+}
+_cleanupOldUploads();
+
 // ===== Classify =====
+
+router.get('/classify/rules/status', (req, res) => {
+  const rulesDir = path.join(SKILLS_DIR, 'lexiang-query-classify', 'references');
+  const sceneFile = path.join(SKILLS_DIR, 'lexiang-query-classify', '场景分类定义.md');
+  const files = [
+    { path: path.join(rulesDir, 'rules.md'), name: '标注规则' },
+    { path: sceneFile, name: '场景分类定义' },
+  ];
+  const result = files.map(f => {
+    try {
+      const stat = fs.statSync(f.path);
+      return { path: f.path, name: f.name, mtime: stat.mtime.toISOString().slice(0, 19).replace('T', ' '), size: stat.size };
+    } catch {
+      return { path: f.path, name: f.name, mtime: '未找到', size: 0 };
+    }
+  });
+  res.json({ files: result });
+});
 
 router.post('/classify', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未提供文件' });
@@ -90,6 +193,11 @@ router.post('/classify', upload.single('file'), async (req, res) => {
       task.status = 'error';
       task.progress = e.message;
     }
+    // Cleanup upload file after annotation
+    try { fs.unlinkSync(filePath); } catch {}
+    // Rotate old results
+    _cleanupOldResults();
+    _saveTasks();
   })();
 
   res.json({ task_id: taskId, filename: req.file.originalname, status: 'running' });
@@ -127,6 +235,7 @@ router.post('/classify/:taskId/cancel', (req, res) => {
   if (task.status !== 'running') return res.status(400).json({ error: '任务不在运行中' });
   task.status = 'cancelled';
   task.progress = '用户取消';
+  _saveTasks();
   res.json({ task_id: req.params.taskId, status: 'cancelled' });
 });
 
@@ -173,6 +282,8 @@ router.post('/classify/:taskId/restart', (req, res) => {
       task.status = 'error';
       task.progress = e.message;
     }
+    _cleanupOldResults();
+    _saveTasks();
   })();
 
   res.json({ task_id: req.params.taskId, status: 'running' });
@@ -216,7 +327,7 @@ router.post('/stats', upload.single('file'), async (req, res) => {
 });
 
 router.get('/stats/history', (req, res) => {
-  const statsFile = path.join(SKILLS_DIR, 'lexiang-pipeline', 'data', 'stats_history.json');
+  const statsFile = _statsFilePath();
   if (!fs.existsSync(statsFile)) {
     return res.json({ version: 1, records: [] });
   }
@@ -229,7 +340,7 @@ router.get('/stats/history', (req, res) => {
 });
 
 router.get('/stats/latest', (req, res) => {
-  const statsFile = path.join(SKILLS_DIR, 'lexiang-pipeline', 'data', 'stats_history.json');
+  const statsFile = _statsFilePath();
   if (!fs.existsSync(statsFile)) {
     return res.json({});
   }
@@ -245,7 +356,7 @@ router.get('/stats/latest', (req, res) => {
 router.get('/stats/summary', (req, res) => {
   const from = req.query.from;
   const to = req.query.to;
-  const statsFile = path.join(SKILLS_DIR, 'lexiang-pipeline', 'data', 'stats_history.json');
+  const statsFile = _statsFilePath();
 
   if (!fs.existsSync(statsFile)) {
     return res.json({ error: '无统计数据', count: 0 });
@@ -304,23 +415,24 @@ router.get('/download', (req, res) => {
 
   // For detail type, try to find and concatenate annotated CSVs
   if (type === 'detail') {
-    const outputDir = path.join(SKILLS_DIR, 'lexiang-api', 'output');
-    if (!fs.existsSync(outputDir)) {
-      return res.status(404).json({ error: '无标注输出目录' });
+    const dirs = _resultDirs();
+    let csvFiles = [];
+    for (const dir of dirs) {
+      try {
+        const files = fs.readdirSync(dir)
+          .filter(f => f.startsWith('标注结果_') && f.endsWith('.csv'))
+          .map(f => path.join(dir, f));
+        csvFiles.push(...files);
+      } catch {}
     }
-    // Find CSV files in output directory
-    const csvFiles = fs.readdirSync(outputDir)
-      .filter(f => f.startsWith('标注结果_') && f.endsWith('.csv'))
-      .map(f => path.join(outputDir, f));
 
     if (csvFiles.length === 0) {
       return res.status(404).json({ error: '无标注结果文件' });
     }
 
-    // For now, return the most recent file
+    // Return the most recent file
     csvFiles.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-    const latestFile = csvFiles[0];
-    res.download(latestFile);
+    res.download(csvFiles[0]);
     return;
   }
 
@@ -455,22 +567,5 @@ router.post('/start', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-
-// ===== Helper =====
-
-function _parseJson(stdout) {
-  const lines = stdout.trim().split('\n');
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i].trim();
-    if (line.startsWith('{')) {
-      try {
-        return JSON.parse(lines.slice(i).join('\n'));
-      } catch {
-        try { return JSON.parse(line); } catch {}
-      }
-    }
-  }
-  return null;
-}
 
 module.exports = router;
