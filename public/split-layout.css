@@ -97,7 +97,7 @@ html.in-chat #contentPanel {
     height: 24px;
   }
   /* hero 隐藏（左侧已有聊天） */
-  html.split-mode.in-chat #landingPage .hero {
+  html.split-mode.in-chat #landingPage .hero-wrap {
     display: none !important;
   }
   /* chat topbar 精简：隐藏标题，保留按钮 */

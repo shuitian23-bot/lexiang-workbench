@@ -7,25 +7,139 @@ function opsLoadKeywords() {
 }
 function opsSaveKeywords(list) { localStorage.setItem('ops_keywords', JSON.stringify(list)); }
 
+const OPS_STATE = {
+  trafficRange: '30d',
+  trafficCustomStart: '',
+  trafficCustomEnd: '',
+  trafficMetric: 'uv',
+  gmvRange: '30d',
+  gmvCustomStart: '',
+  gmvCustomEnd: '',
+  gmvTrendScope: 'all'
+};
+
+const OPS_TRAFFIC_METRICS = {
+  uv: { label: '访问', field: 'uv' },
+  login: { label: '登录', field: 'login' },
+  inter: { label: '互动', field: 'inter' }
+};
+
 // ===== 通用时间筛选HTML =====
+function opsTimeKind(id) {
+  return id.startsWith('traffic') ? 'traffic' : 'gmv';
+}
+
+function opsEnsureCustomRange(kind) {
+  const bounds = typeof leaiDateBounds === 'function' ? leaiDateBounds() : { min: '', max: '' };
+  if (kind === 'traffic') {
+    OPS_STATE.trafficCustomStart ||= bounds.min;
+    OPS_STATE.trafficCustomEnd ||= bounds.max;
+  } else {
+    OPS_STATE.gmvCustomStart ||= bounds.min;
+    OPS_STATE.gmvCustomEnd ||= bounds.max;
+  }
+}
+
 function opsTimeFilter(id) {
+  const kind = opsTimeKind(id);
+  const range = kind === 'traffic' ? OPS_STATE.trafficRange : OPS_STATE.gmvRange;
+  const bounds = typeof leaiDateBounds === 'function' ? leaiDateBounds() : { min: '', max: '' };
+  const customStart = kind === 'traffic' ? (OPS_STATE.trafficCustomStart || bounds.min) : (OPS_STATE.gmvCustomStart || bounds.min);
+  const customEnd = kind === 'traffic' ? (OPS_STATE.trafficCustomEnd || bounds.max) : (OPS_STATE.gmvCustomEnd || bounds.max);
+  const customFilter = range === 'custom' ? `
+    <span class="ops-custom-range">
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customStart}" onchange="opsCustomTimeChanged('${id}','start',this.value)">
+      <span>至</span>
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customEnd}" onchange="opsCustomTimeChanged('${id}','end',this.value)">
+    </span>` : '';
   return `<div class="ops-time-filter" id="${id}">
     <select class="ops-select" onchange="opsTimeChanged('${id}',this.value)">
-      <option value="7d">最近7天</option><option value="14d">最近14天</option>
-      <option value="30d" selected>最近30天</option><option value="90d">最近90天</option>
-      <option value="custom">自定义</option>
+      ${['1d','7d','14d','30d','custom'].map(v => `<option value="${v}" ${range === v ? 'selected' : ''}>${leaiRangeLabel(v)}</option>`).join('')}
     </select>
+    ${customFilter}
     <span class="ops-date-range" id="${id}-range"></span>
   </div>`;
 }
 function opsTimeChanged(id, val) {
-  const range = document.getElementById(id + '-range');
-  if (!range) return;
-  if (val === 'custom') {
-    range.innerHTML = '<input type="date" class="ops-date-input"> 至 <input type="date" class="ops-date-input">';
+  if (opsTimeKind(id) === 'traffic') {
+    OPS_STATE.trafficRange = val;
+    if (val === 'custom') opsEnsureCustomRange('traffic');
+    switchPage('ops.traffic');
   } else {
-    range.textContent = '';
+    OPS_STATE.gmvRange = val;
+    if (val === 'custom') opsEnsureCustomRange('gmv');
+    switchPage('ops.gmv');
   }
+}
+
+function opsCustomTimeChanged(id, part, value) {
+  const kind = opsTimeKind(id);
+  if (kind === 'traffic') {
+    OPS_STATE.trafficRange = 'custom';
+    if (part === 'start') OPS_STATE.trafficCustomStart = value;
+    if (part === 'end') OPS_STATE.trafficCustomEnd = value;
+    if (OPS_STATE.trafficCustomStart && OPS_STATE.trafficCustomEnd && OPS_STATE.trafficCustomStart > OPS_STATE.trafficCustomEnd) {
+      if (part === 'start') OPS_STATE.trafficCustomEnd = OPS_STATE.trafficCustomStart;
+      if (part === 'end') OPS_STATE.trafficCustomStart = OPS_STATE.trafficCustomEnd;
+    }
+    switchPage('ops.traffic');
+  } else {
+    OPS_STATE.gmvRange = 'custom';
+    if (part === 'start') OPS_STATE.gmvCustomStart = value;
+    if (part === 'end') OPS_STATE.gmvCustomEnd = value;
+    if (OPS_STATE.gmvCustomStart && OPS_STATE.gmvCustomEnd && OPS_STATE.gmvCustomStart > OPS_STATE.gmvCustomEnd) {
+      if (part === 'start') OPS_STATE.gmvCustomEnd = OPS_STATE.gmvCustomStart;
+      if (part === 'end') OPS_STATE.gmvCustomStart = OPS_STATE.gmvCustomEnd;
+    }
+    switchPage('ops.gmv');
+  }
+}
+
+function opsRows(range, source, customStart, customEnd) {
+  return typeof leaiRows === 'function' ? leaiRows(range, source, customStart, customEnd) : (source || []).slice(-30);
+}
+
+function opsRowsForDates(source, baseRows) {
+  const dates = new Set(baseRows.map(r => r.d));
+  return (source || []).filter(r => dates.has(r.d));
+}
+
+function opsSeriesForDates(source, baseRows, key) {
+  const map = new Map((source || []).map(r => [r.d, r]));
+  return baseRows.map(r => Number(map.get(r.d)?.[key]) || 0);
+}
+
+function opsPortSummary(baseRows, metric) {
+  const L = leaiGetData();
+  const dates = new Set(baseRows.map(r => r.d));
+  return Object.entries(L?.traffic || {}).map(([name, rows]) => {
+    const picked = rows.filter(r => dates.has(r.d));
+    return {
+      name,
+      uv: leaiSum(picked, 'uv'),
+      login: leaiSum(picked, 'login'),
+      inter: leaiSum(picked, 'inter'),
+      buy: leaiSum(picked, 'buy'),
+      gmv: leaiSum(picked, 'gmv'),
+      value: leaiSum(picked, metric)
+    };
+  }).filter(r => r.value > 0).sort((a, b) => b.value - a.value);
+}
+
+function opsSetGmvTrendScope(scope) {
+  OPS_STATE.gmvTrendScope = scope;
+  opsRenderGMV();
+}
+
+function opsSetTrafficMetric(metric) {
+  OPS_STATE.trafficMetric = metric;
+  opsRenderTraffic();
+}
+
+function opsTrafficMetricPills() {
+  return Object.entries(OPS_TRAFFIC_METRICS).map(([key, meta]) =>
+    `<button class="dash-pill ${OPS_STATE.trafficMetric === key ? 'active' : ''}" onclick="opsSetTrafficMetric('${key}')">${meta.label}</button>`
+  ).join('');
 }
 
 // ===== PAGE RENDERERS =====
@@ -33,95 +147,86 @@ Object.assign(PAGE_RENDERERS, {
 
   'ops.traffic': () => `
     <div class="page-header">
-      <div><div class="page-title">流量分析</div><div class="page-desc">分端口 · 分业务 · 分监测入口 · 登录态 · DAU/MAU</div></div>
+      <div><div class="page-title">流量分析</div><div class="page-desc">核心活跃趋势 · 监测入口 · 分端口 · 分业务</div></div>
       ${opsTimeFilter('traffic-time')}
     </div>
-    <div class="ops-section-title">📊 核心流量指标</div>
+    <div class="ops-section-title">核心流量指标</div>
     <div class="grid-4">
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-dau">-</div><div class="ops-kpi-label">DAU（日活）</div><div class="ops-kpi-sub">新用户 <span id="ops-t-dau-new">-</span> · 老用户 <span id="ops-t-dau-old">-</span></div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-mau">-</div><div class="ops-kpi-label">MAU（月活）</div><div class="ops-kpi-sub">新用户 <span id="ops-t-mau-new">-</span> · 老用户 <span id="ops-t-mau-old">-</span></div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-sessions">-</div><div class="ops-kpi-label">会话数</div><div class="ops-kpi-sub">人均 <span id="ops-t-avg-sess">-</span> 次</div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-pv">-</div><div class="ops-kpi-label">PV（页面浏览）</div><div class="ops-kpi-sub">跳出率 <span id="ops-t-bounce">-</span></div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-dau">-</div><div class="ops-kpi-label">DAU（日活）</div><div class="ops-kpi-sub">日均登录 <span id="ops-t-dau-login">-</span></div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-mau">-</div><div class="ops-kpi-label">MAU（月活）</div><div class="ops-kpi-sub">月登录均值 <span id="ops-t-mau-login">-</span></div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-login">-</div><div class="ops-kpi-label">登录用户</div><div class="ops-kpi-sub">选期累计</div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-inter">-</div><div class="ops-kpi-label">互动用户</div><div class="ops-kpi-sub">选期累计</div></div>
     </div>
 
-    <div class="ops-section-title">📱 分端口流量</div>
+    <div class="ops-section-title">DAU / MAU 趋势</div>
+    <div class="ops-card"><div class="chart-wrap"><canvas id="ops-t-user-trend"></canvas></div></div>
+
+    <div class="ops-section-title">监测入口 TOP10</div>
+    <div class="ops-card">
+      <div class="ops-card-head">
+        <h3>按入口查看流量贡献</h3>
+        <div class="dash-filter-bar">${opsTrafficMetricPills()}</div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th style="text-align:left">入口</th><th>访问量</th><th>登录</th><th>互动</th><th>购买</th><th>占比</th></tr></thead>
+        <tbody id="ops-t-source-table"></tbody>
+      </table>
+    </div>
+
+    <div class="ops-section-title">分端口流量</div>
     <div class="grid-2">
       <div class="ops-card"><h3>端口占比</h3><div class="chart-wrap-sm"><canvas id="ops-t-port-chart"></canvas></div></div>
       <div class="ops-card"><h3>分端口趋势</h3><div class="chart-wrap"><canvas id="ops-t-port-trend"></canvas></div></div>
     </div>
 
-    <div class="ops-section-title">🏢 分业务流量</div>
+    <div class="ops-section-title">分业务流量</div>
     <div class="grid-2">
       <div class="ops-card"><h3>业务占比</h3><div class="chart-wrap-sm"><canvas id="ops-t-biz-chart"></canvas></div></div>
       <div class="ops-card"><h3>分业务趋势</h3><div class="chart-wrap"><canvas id="ops-t-biz-trend"></canvas></div></div>
     </div>
-
-    <div class="ops-section-title">📡 分监测入口</div>
-    <div class="ops-card"><h3>各入口流量分布</h3><div class="chart-wrap"><canvas id="ops-t-source-chart"></canvas></div></div>
-
-    <div class="ops-section-title">🔐 登录态分析</div>
-    <div class="grid-2">
-      <div class="ops-card"><h3>登录/未登录用户占比</h3><div class="chart-wrap-sm"><canvas id="ops-t-login-chart"></canvas></div></div>
-      <div class="ops-card"><h3>互动行为（登录/未登录 × 主动/被动）</h3>
-        <div class="ops-matrix">
-          <table class="data-table">
-            <thead><tr><th></th><th>主动互动</th><th>被动互动</th><th>合计</th></tr></thead>
-            <tbody>
-              <tr><td style="font-weight:600">登录用户</td><td id="ops-t-login-active">-</td><td id="ops-t-login-passive">-</td><td id="ops-t-login-total">-</td></tr>
-              <tr><td style="font-weight:600">未登录用户</td><td id="ops-t-anon-active">-</td><td id="ops-t-anon-passive">-</td><td id="ops-t-anon-total">-</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="ops-section-title">📈 DAU/MAU 新老用户拆解</div>
-    <div class="ops-card"><h3>日活用户趋势（新/老拆分）</h3><div class="chart-wrap"><canvas id="ops-t-dau-trend"></canvas></div></div>
-    <div class="ops-note">💡 数据来源：乐享运营后台统计接口。DAU/MAU拆新老用户需求已提需求，待数据就位后自动对接。</div>
   `,
 
   'ops.gmv': () => `
     <div class="page-header">
-      <div><div class="page-title">GMV 分析</div><div class="page-desc">交易额趋势 · 分业务 · 分端口 · 分平台 · 分商品</div></div>
+      <div><div class="page-title">GMV 分析</div><div class="page-desc">整体趋势 · 分业务 · 官网/非官网</div></div>
       ${opsTimeFilter('gmv-time')}
     </div>
-    <div class="ops-section-title">💰 GMV 核心指标</div>
+    <div class="ops-section-title">GMV 核心指标</div>
     <div class="grid-4">
-      <div class="ops-kpi highlight"><div class="ops-kpi-val" id="ops-g-total">-</div><div class="ops-kpi-label">总GMV</div><div class="ops-kpi-sub">较上期 <span id="ops-g-change">-</span></div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-g-orders">-</div><div class="ops-kpi-label">订单数</div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-g-aov">-</div><div class="ops-kpi-label">客单价</div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-g-cvr">-</div><div class="ops-kpi-label">转化率</div></div>
+      <div class="ops-kpi highlight"><div class="ops-kpi-val" id="ops-g-total">-</div><div class="ops-kpi-label">整体 GMV</div><div class="ops-kpi-sub">购买 <span id="ops-g-buy">-</span>人</div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-g-consumer">-</div><div class="ops-kpi-label">消费业务 GMV</div><div class="ops-kpi-sub">购买 <span id="ops-g-consumer-buy">-</span>人</div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-g-smb">-</div><div class="ops-kpi-label">SMB 业务 GMV</div><div class="ops-kpi-sub">购买 <span id="ops-g-smb-buy">-</span>人</div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-g-gov">-</div><div class="ops-kpi-label">政企业务 GMV</div><div class="ops-kpi-sub">购买 <span id="ops-g-gov-buy">-</span>人</div></div>
     </div>
 
-    <div class="ops-section-title">📈 总GMV趋势</div>
-    <div class="ops-card"><div class="chart-wrap"><canvas id="ops-g-trend-chart"></canvas></div></div>
+    <div class="ops-section-title">GMV 趋势</div>
+    <div class="ops-card">
+      <div class="dash-filter-bar" style="justify-content:flex-end;margin-bottom:8px">
+        <button class="dash-pill" id="gmv-scope-all" onclick="opsSetGmvTrendScope('all')">整体</button>
+        <button class="dash-pill" id="gmv-scope-consumer" onclick="opsSetGmvTrendScope('consumer')">消费</button>
+        <button class="dash-pill" id="gmv-scope-smb" onclick="opsSetGmvTrendScope('smb')">SMB</button>
+        <button class="dash-pill" id="gmv-scope-gov" onclick="opsSetGmvTrendScope('gov')">政企</button>
+      </div>
+      <div class="chart-wrap"><canvas id="ops-g-trend-chart"></canvas></div>
+    </div>
 
-    <div class="ops-section-title">🏢 分业务GMV（消费/SMB/政企）</div>
+    <div class="ops-section-title">分业务 GMV</div>
     <div class="grid-2">
       <div class="ops-card"><h3>业务GMV占比</h3><div class="chart-wrap-sm"><canvas id="ops-g-biz-pie"></canvas></div></div>
-      <div class="ops-card"><h3>分业务趋势</h3><div class="chart-wrap"><canvas id="ops-g-biz-trend"></canvas></div></div>
+      <div class="ops-card">
+        <h3>业务贡献明细</h3>
+        <table class="data-table">
+          <thead><tr><th style="text-align:left">业务</th><th>GMV</th><th>购买人数</th><th>占比</th></tr></thead>
+          <tbody id="ops-g-biz-table"></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="ops-section-title">📱 分端口GMV</div>
-    <div class="grid-2">
-      <div class="ops-card"><h3>端口占比</h3><div class="chart-wrap-sm"><canvas id="ops-g-port-pie"></canvas></div></div>
-      <div class="ops-card"><h3>分端口趋势</h3><div class="chart-wrap"><canvas id="ops-g-port-trend"></canvas></div></div>
-    </div>
-
-    <div class="ops-section-title">🌐 分平台GMV（官网/非官网）</div>
+    <div class="ops-section-title">分平台 GMV（官网/非官网）</div>
     <div class="grid-2">
       <div class="ops-card"><h3>官网 vs 非官网</h3><div class="chart-wrap-sm"><canvas id="ops-g-platform-chart"></canvas></div></div>
-      <div class="ops-card"><h3>分平台趋势</h3><div class="chart-wrap"><canvas id="ops-g-platform-trend"></canvas></div></div>
+      <div class="ops-card"><h3>平台趋势</h3><div class="chart-wrap"><canvas id="ops-g-platform-trend"></canvas></div></div>
     </div>
-
-    <div class="ops-section-title">🛒 分商品GMV TOP10</div>
-    <div class="ops-card">
-      <table class="data-table">
-        <thead><tr><th>排名</th><th style="text-align:left">商品</th><th>GMV</th><th>订单数</th><th>占比</th></tr></thead>
-        <tbody id="ops-g-product-table"></tbody>
-      </table>
-    </div>
-    <div class="ops-note">💡 GMV数据待对接交易系统接口，当前为结构占位。数据就位后将自动展示。</div>
   `,
 
   'ops.keywords': () => {
@@ -312,130 +417,140 @@ function opsChart(id, type, labels, datasets, opts) {
 
 function opsRenderTraffic() {
   opsDestroyCharts();
-  const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+  const L = leaiGetData();
   if (!L) return;
-  const lt = L.latest;
-  const days = L.daily.map(r => r.d);
-
-  // 分端口：取最新日各端口UV
-  const portNames = Object.keys(L.traffic);
+  const range = OPS_STATE.trafficRange;
+  const rows = opsRows(range, L.daily, OPS_STATE.trafficCustomStart, OPS_STATE.trafficCustomEnd);
+  const days = rows.map(r => r.d);
+  const summary = leaiBuildSummary(range, OPS_STATE.trafficCustomStart, OPS_STATE.trafficCustomEnd);
+  const metric = OPS_STATE.trafficMetric;
+  const metricField = OPS_TRAFFIC_METRICS[metric]?.field || 'uv';
+  const metricLabel = OPS_TRAFFIC_METRICS[metric]?.label || '访问';
   const portColors = ['#0f3460','#2563eb','#7c3aed','#06b6d4','#f59e0b','#10b981','#e94560','#94a3b8'];
-  const latestPortUV = portNames.map(p => { const arr = L.traffic[p]; return arr[arr.length-1]?.uv || 0; });
+  const portRows = opsPortSummary(rows, metricField);
+  const topPortRows = portRows.slice(0, 8);
 
-  opsChart('ops-t-port-chart', 'doughnut', portNames, [{
-    data: latestPortUV, backgroundColor: portColors.slice(0, portNames.length)
+  opsChart('ops-t-user-trend', 'line', days, [
+    { label: 'DAU', data: rows.map(r => r.dau), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.3, yAxisID: 'y' },
+    { label: '登录', data: rows.map(r => r.login), borderColor: '#10b981', tension: 0.3, fill: false, yAxisID: 'y' },
+    { label: 'MAU', data: rows.map(r => r.mau), borderColor: '#7c3aed', tension: 0.3, fill: false, yAxisID: 'y1' }
+  ], {
+    scales: {
+      x: { ticks: { font: { size: 10 } } },
+      y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+      y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } }
+    }
+  });
+
+  opsChart('ops-t-port-chart', 'doughnut', topPortRows.map(r => r.name), [{
+    data: topPortRows.map(r => r.value), backgroundColor: portColors.slice(0, topPortRows.length)
   }]);
 
-  const topPorts = portNames.filter((_, i) => latestPortUV[i] > 1000).slice(0, 5);
+  const topPorts = topPortRows.slice(0, 5).map(r => r.name);
   opsChart('ops-t-port-trend', 'line', days, topPorts.map((p,i) => ({
-    label: p, data: L.traffic[p].map(r => r.uv),
-    borderColor: portColors[portNames.indexOf(p)], tension: 0.3, fill: false
+    label: `${p}${metricLabel}`, data: opsSeriesForDates(L.traffic[p], rows, metricField),
+    borderColor: portColors[i], tension: 0.3, fill: false
   })));
 
-  // 分业务：登录用户数
   const bizNames = ['消费','SMB','政企'];
   const bizData = [L.consumer, L.smb, L.gov];
-  const latestBizLogin = bizData.map(b => b[b.length-1]?.login || 0);
+  const bizPicked = bizData.map(b => opsRowsForDates(b, rows));
+  const bizField = metric === 'inter' ? 'inter' : 'login';
+  const bizMetric = bizPicked.map(b => leaiSum(b, bizField));
   opsChart('ops-t-biz-chart', 'doughnut', bizNames, [{
-    data: latestBizLogin, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+    data: bizMetric, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
   }]);
 
   opsChart('ops-t-biz-trend', 'line', days, bizNames.map((b,i) => ({
-    label: b, data: bizData[i].map(r => r.login),
+    label: `${b}${bizField === 'inter' ? '互动' : '登录'}`, data: opsSeriesForDates(bizData[i], rows, bizField),
     borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
   })));
 
-  // 分监测入口：用渠道数据
-  const srcNames = portNames.slice(0, 8);
-  opsChart('ops-t-source-chart', 'bar', srcNames, [{
-    label: '日UV', data: latestPortUV.slice(0, 8),
-    backgroundColor: portColors.slice(0, 8)
-  }]);
+  const tbody = document.getElementById('ops-t-source-table');
+  if (tbody) {
+    const totalValue = portRows.reduce((s, r) => s + r.value, 0);
+    tbody.innerHTML = portRows.slice(0, 10).map(r => `<tr>
+      <td style="text-align:left;font-weight:500">${r.name}</td>
+      <td class="${metric === 'uv' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.uv)}</td>
+      <td class="${metric === 'login' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.login)}</td>
+      <td class="${metric === 'inter' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.inter)}</td>
+      <td>${r.buy.toLocaleString()}</td>
+      <td>${leaiFmtPct(r.value, totalValue)}</td>
+    </tr>`).join('');
+  }
 
-  // 登录/未登录互动
-  opsChart('ops-t-login-chart', 'doughnut', ['登录互动','非登录互动'], [{
-    data: [lt.logInter, lt.anonInter], backgroundColor: ['#2563eb','#d1d5db']
-  }]);
-
-  // DAU趋势(登录/非登录拆分)
-  opsChart('ops-t-dau-trend', 'bar', days, [
-    { label: '登录用户', data: L.daily.map(r => r.login), backgroundColor: 'rgba(37,99,235,0.7)' },
-    { label: '非登录(DAU-登录)', data: L.daily.map(r => r.dau - r.login), backgroundColor: 'rgba(15,52,96,0.4)' }
-  ], { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } });
-
-  // 填充 KPI
-  const fmtW = v => v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
   const el = id => document.getElementById(id);
-  if (el('ops-t-dau')) el('ops-t-dau').textContent = fmtW(lt.dau);
-  if (el('ops-t-mau')) el('ops-t-mau').textContent = fmtW(lt.mau);
-  if (el('ops-t-sessions')) el('ops-t-sessions').textContent = fmtW(lt.inter);
-  if (el('ops-t-pv')) el('ops-t-pv').textContent = fmtW(lt.logInter + lt.anonInter);
-  if (el('ops-t-login-active')) el('ops-t-login-active').textContent = fmtW(lt.logInter);
-  if (el('ops-t-anon-active')) el('ops-t-anon-active').textContent = fmtW(lt.anonInter);
-  if (el('ops-t-login-total')) el('ops-t-login-total').textContent = fmtW(lt.logInter);
-  if (el('ops-t-anon-total')) el('ops-t-anon-total').textContent = fmtW(lt.anonInter);
+  if (el('ops-t-dau')) el('ops-t-dau').textContent = leaiFmtW(summary.dau);
+  if (el('ops-t-mau')) el('ops-t-mau').textContent = leaiFmtW(summary.mau);
+  if (el('ops-t-dau-login')) el('ops-t-dau-login').textContent = leaiFmtW(summary.loginAvg);
+  if (el('ops-t-mau-login')) el('ops-t-mau-login').textContent = leaiFmtW(summary.loginM);
+  if (el('ops-t-login')) el('ops-t-login').textContent = leaiFmtW(summary.login);
+  if (el('ops-t-inter')) el('ops-t-inter').textContent = leaiFmtW(summary.inter);
 }
 
 function opsRenderGMV() {
   opsDestroyCharts();
-  const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+  const L = leaiGetData();
   if (!L) return;
-  const lt = L.latest;
-  const days = L.daily.map(r => r.d);
-  const fmtY = v => v >= 100000000 ? (v/100000000).toFixed(2)+'亿' : v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
+  const range = OPS_STATE.gmvRange;
+  const rows = opsRows(range, L.daily, OPS_STATE.gmvCustomStart, OPS_STATE.gmvCustomEnd);
+  const days = rows.map(r => r.d);
+  const summary = leaiBuildSummary(range, OPS_STATE.gmvCustomStart, OPS_STATE.gmvCustomEnd);
   const el = id => document.getElementById(id);
-
-  // 填充KPI
-  if (el('ops-g-total')) el('ops-g-total').textContent = fmtY(lt.gmvM);
-  if (el('ops-g-orders')) el('ops-g-orders').textContent = lt.buyM?.toLocaleString() || '-';
-
-  // 总GMV趋势
-  opsChart('ops-g-trend-chart', 'line', days, [{
-    label: '日GMV(元)', data: L.daily.map(r => r.gmv),
-    borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3
-  }]);
-
-  // 分业务GMV
   const bizNames = ['消费','SMB','政企'];
+  const bizKeys = ['consumer','smb','gov'];
   const bizData = [L.consumer, L.smb, L.gov];
-  const latestBizGmvM = bizData.map(b => b[b.length-1]?.gmvM || 0);
+  const bizPicked = bizData.map(b => opsRowsForDates(b, rows));
+  const bizGmv = bizPicked.map(b => leaiSum(b, 'gmv'));
+  const bizBuy = bizPicked.map(b => leaiSum(b, 'buy'));
+
+  if (el('ops-g-total')) el('ops-g-total').textContent = leaiFmtY(summary.gmv);
+  if (el('ops-g-buy')) el('ops-g-buy').textContent = summary.buy.toLocaleString();
+  if (el('ops-g-consumer')) el('ops-g-consumer').textContent = leaiFmtY(bizGmv[0]);
+  if (el('ops-g-smb')) el('ops-g-smb').textContent = leaiFmtY(bizGmv[1]);
+  if (el('ops-g-gov')) el('ops-g-gov').textContent = leaiFmtY(bizGmv[2]);
+  if (el('ops-g-consumer-buy')) el('ops-g-consumer-buy').textContent = bizBuy[0].toLocaleString();
+  if (el('ops-g-smb-buy')) el('ops-g-smb-buy').textContent = bizBuy[1].toLocaleString();
+  if (el('ops-g-gov-buy')) el('ops-g-gov-buy').textContent = bizBuy[2].toLocaleString();
+
+  ['all', 'consumer', 'smb', 'gov'].forEach(scope => {
+    const btn = el('gmv-scope-' + scope);
+    if (btn) btn.classList.toggle('active', OPS_STATE.gmvTrendScope === scope);
+  });
+
+  const colors = ['#2563eb','#f59e0b','#8b5cf6'];
+  let trendSets;
+  if (OPS_STATE.gmvTrendScope === 'all') {
+    trendSets = [{ label: '整体GMV', data: rows.map(r => r.gmv), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.10)', fill: true, tension: 0.3 }];
+  } else {
+    const idx = bizKeys.indexOf(OPS_STATE.gmvTrendScope);
+    trendSets = [{ label: bizNames[idx] + 'GMV', data: opsSeriesForDates(bizData[idx], rows, 'gmv'), borderColor: colors[idx], backgroundColor: colors[idx] + '22', fill: true, tension: 0.3 }];
+  }
+  opsChart('ops-g-trend-chart', 'line', days, trendSets);
+
   opsChart('ops-g-biz-pie', 'doughnut', bizNames, [{
-    data: latestBizGmvM, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+    data: bizGmv, backgroundColor: colors
   }]);
 
-  opsChart('ops-g-biz-trend', 'line', days, bizNames.map((b,i) => ({
-    label: b, data: bizData[i].map(r => r.gmv),
-    borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
-  })));
+  const bizTable = el('ops-g-biz-table');
+  if (bizTable) {
+    const rowsHtml = bizNames.map((name, i) => `<tr>
+      <td style="text-align:left;font-weight:500"><span class="ops-dot" style="background:${colors[i]}"></span>${name}</td>
+      <td>${leaiFmtY(bizGmv[i])}</td>
+      <td>${bizBuy[i].toLocaleString()}</td>
+      <td>${leaiFmtPct(bizGmv[i], summary.gmv)}</td>
+    </tr>`).join('');
+    bizTable.innerHTML = rowsHtml;
+  }
 
-  // 分端口GMV
-  const portNames = Object.keys(L.traffic).filter(p => {
-    const arr = L.traffic[p]; return arr[arr.length-1]?.gmv > 0;
-  }).slice(0, 5);
-  const portColors = ['#0f3460','#2563eb','#7c3aed','#06b6d4','#f59e0b'];
-  const latestPortGmv = portNames.map(p => { const arr = L.traffic[p]; return arr[arr.length-1]?.gmv || 0; });
-  opsChart('ops-g-port-pie', 'doughnut', portNames, [{
-    data: latestPortGmv, backgroundColor: portColors
-  }]);
-
-  opsChart('ops-g-port-trend', 'line', days, portNames.map((p,i) => ({
-    label: p, data: L.traffic[p].map(r => r.gmv),
-    borderColor: portColors[i], tension: 0.3, fill: false
-  })));
-
-  // 分平台GMV（官网/非官网）
   opsChart('ops-g-platform-chart', 'doughnut', ['官网','非官网'], [{
-    data: [lt.offGmvM, lt.nonGmvM], backgroundColor: ['#2563eb','#94a3b8']
+    data: [summary.offGmv, summary.nonGmv], backgroundColor: ['#2563eb','#94a3b8']
   }]);
 
   opsChart('ops-g-platform-trend', 'line', days, [
-    { label: '官网', data: L.daily.map(r => r.offGmv), borderColor: '#2563eb', tension: 0.3, fill: false },
-    { label: '非官网', data: L.daily.map(r => r.nonGmv), borderColor: '#94a3b8', tension: 0.3, fill: false }
+    { label: '官网', data: rows.map(r => r.offGmv), borderColor: '#2563eb', tension: 0.3, fill: false },
+    { label: '非官网', data: rows.map(r => r.nonGmv), borderColor: '#94a3b8', tension: 0.3, fill: false }
   ]);
-
-  // 商品TOP10 — 暂无商品粒度数据
-  const tbody = el('ops-g-product-table');
-  if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-tertiary);padding:20px">商品粒度GMV数据待对接</td></tr>';
 }
 
 function opsRenderQueryBiz() {

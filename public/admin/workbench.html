@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260520-ops1">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260520-ops3">
 </head>
 <body>
 
@@ -134,14 +134,8 @@ const MENU_TREE = {
     icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
       'pipeline.annotate': { label: 'Query 分析' },
-      'dashboard.behavior': { label: '客户行为' },
       'ops.traffic': { label: '流量分析' },
-      'ops.gmv': { label: 'GMV 分析' },
-      'ops.keywords': { label: '敏感词库' },
-      'ops.queryBiz': { label: 'Query 业务分析' },
-      'report.overview': { label: '深度分析概览' },
-      'report.detail': { label: '趋势与性能' },
-      'report.quality': { label: '质量与明细' }
+      'ops.gmv': { label: 'GMV 分析' }
     }
   },
   geo: {
@@ -362,7 +356,7 @@ function switchPage(pageId) {
   // Update sidebar active state
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
   // Find and activate the clicked item
-  const groupKey = pageId.split('.')[0];
+  const groupKey = Object.entries(MENU_TREE).find(([, g]) => g.children && g.children[pageId])?.[0] || pageId.split('.')[0];
   const group = document.querySelector(`.nav-group[data-group="${groupKey}"]`);
   if (group) {
     group.querySelector('.nav-sub').classList.add('open');
@@ -491,12 +485,12 @@ function switchBehaviorTab(tab, el) {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260520-ops1"></script>
+<script src="/admin/workbench-pages.js?v=20260520-ops3"></script>
 <script src="/admin/workbench-geo.js?v=20260508"></script>
 <script src="/admin/workbench-ai.js?v=20260518"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
-<script src="/admin/workbench-ops.js?v=20260520-ops1"></script>
+<script src="/admin/workbench-ops.js?v=20260520-ops3"></script>
 <script src="/admin/workbench-report.js"></script>
 <script src="/admin/workbench-pipeline.js?v=20260520c"></script>
 <script>

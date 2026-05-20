@@ -472,9 +472,11 @@ router.get('/download', async (req, res) => {
       rows.push(`合计,${totalAll},100%,${totalActive},100%`);
 
       const csv = '﻿' + rows.join('\n');
-      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', 'attachment; filename=一级分类占比.csv');
-      res.send(csv);
+      res.set({
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename=tag_ratio.csv',
+      });
+      res.send(Buffer.from(csv, 'utf-8'));
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -507,7 +509,8 @@ router.get('/download', async (req, res) => {
       }, { permissions: ['*'], admin: req.session?.admin });
 
       if (result.output_file && fs.existsSync(result.output_file)) {
-        return res.download(result.output_file);
+        const fname = encodeURIComponent(path.basename(result.output_file));
+        return res.download(result.output_file, fname);
       }
       // fallback: 如果没有生成 Excel，返回 JSON
       res.json(result);
