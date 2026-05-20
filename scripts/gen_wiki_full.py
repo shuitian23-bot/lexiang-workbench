@@ -2437,13 +2437,22 @@ var _la_lenovo_website = 10000001;
             return True
         return any(re.search(k, nm) for k in _ACCESSORY_KW)
 
+    def _has_real_price(a):
+        # 有真价 = 非占位(0/99999/888888/>=999999)
+        p = a.get('price') or 0
+        try:
+            p = float(p)
+        except Exception:
+            return False
+        return p > 0 and p < 999999 and p != 99999 and p != 888888
+
     def sort_products_only(arts):
-        """纯商品分类排序：有库存优先 → 整机优先(配件/服务降权) → productId 倒序自动置顶新品。
-        规则依据：联想 productId 全局严格单调递增，越大=越新上架，
-        无需人工新品清单/promote，自动判定。"""
+        """纯商品分类排序：有库存优先 → 整机优先(配件降权) → 有真价优先(占位价沉后) → productId 倒序新品置顶。
+        修首屏全是 999999 占位款的问题；同型号有价款(如 razr Fold 14999)排前，未公布价款沉后。"""
         def _key(a):
-            # (是配件/服务降权, -productId)：整机段在前，各段内 productId 倒序
-            return (1 if _is_accessory_like(a) else 0, -_pid(a))
+            return (1 if _is_accessory_like(a) else 0,
+                    0 if _has_real_price(a) else 1,
+                    -_pid(a))
         in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=_key)
         out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=_key)
         return in_stock + out_stock
@@ -2453,12 +2462,25 @@ var _la_lenovo_website = 10000001;
         return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
 
     def sort_all_latest(arts):
-        """[全部]分类：整机/新闻/知识 优先（配件/服务降权），各段内按时间倒序(ts同按pid)。
-        商品+新闻+知识混排，最新在最前；配件/延保/保护壳等沉到后段。"""
+        """[全部]分类：整机/新闻/知识 优先（配件/服务降权），段内有价品优先(占位价沉后), 按时间倒序(ts同按pid)。"""
         main = [a for a in arts if not (a.get('type') == 'product' and _is_accessory_like(a))]
         acc = [a for a in arts if a.get('type') == 'product' and _is_accessory_like(a)]
-        _k = lambda a: (str(a.get('ts') or ''), _pid(a))
-        return sorted(main, key=_k, reverse=True) + sorted(acc, key=_k, reverse=True)
+        # knowledge 无 price 概念视为"有价"段(不被沉底); product 看 _has_real_price
+        def _k(a):
+            placeholder = (a.get('type') == 'product' and not _has_real_price(a))
+            return (1 if placeholder else 0, '-' + (str(a.get('ts') or '0000')), -_pid(a))
+        # 用元组 reverse 不对(混排各字段方向不一)。改: 不 reverse, key 内部正负
+        def _k2(a):
+            placeholder = (a.get('type') == 'product' and not _has_real_price(a))
+            ts = str(a.get('ts') or '')
+            # 占位降权(1后); 段内 ts 倒序(取负字符比对不行,用-ord累加复杂)→简单: 先按 placeholder 分两段,各段 (ts,pid) reverse
+            return placeholder
+        main_priced = [a for a in main if not (a.get('type')=='product' and not _has_real_price(a))]
+        main_placeholder = [a for a in main if a.get('type')=='product' and not _has_real_price(a)]
+        _sk = lambda a: (str(a.get('ts') or ''), _pid(a))
+        return (sorted(main_priced, key=_sk, reverse=True)
+                + sorted(main_placeholder, key=_sk, reverse=True)
+                + sorted(acc, key=_sk, reverse=True))
 
     # 各分类排好序
     PRODUCT_CATS = {'notebook','desktop','monitor','tablet_phone','accessory','smart_device','service'}
