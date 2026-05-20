@@ -4,10 +4,10 @@
 
   var MQ = window.matchMedia('(min-width: 769px)');
   var CHAT_PREFIXES = ['/chat', '/shop-chat', '/b-chat', '/biz-chat'];
-  var STORE_KEY = 'lexiang.splitV2';
-  var DEFAULT_LEFT_PCT = 50;
-  var MIN_LEFT_PCT = 25;
-  var MAX_LEFT_PCT = 75;
+  var STORE_KEY = 'lexiang.splitV3'; // v3: 默认 25(chat):75(landing); 旧 v2 50:50 失效
+  var DEFAULT_LEFT_PCT = 25; // chat 占 1/4, landing 占 3/4 (默认分屏比)
+  var MIN_LEFT_PCT = 20;
+  var MAX_LEFT_PCT = 80;
 
   function isPC() { return MQ.matches; }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }

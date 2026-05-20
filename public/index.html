@@ -6101,9 +6101,6 @@ window.LxBehavior = (function(){
           '<button onclick="event.stopPropagation();_lxHintDismiss(\'' + id + '\')" title="不再提示" style="flex-shrink:0;background:none;border:none;color:#bbb;font-size:16px;cursor:pointer;padding:0 2px;line-height:1;align-self:center">×</button>' +
         '</div>' +
         '<div id="lxChipExpand-' + id + '" style="display:none;padding:0 12px 10px;font-size:12px;line-height:1.6;color:#555">' + contentHtml +
-          '<div style="margin-top:8px;text-align:right">' +
-            '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:6px 14px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
-          '</div>' +
         '</div>' +
       '</div>';
     if (_lxChipTimer) clearTimeout(_lxChipTimer);
