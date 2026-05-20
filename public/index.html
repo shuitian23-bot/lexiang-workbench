@@ -1580,7 +1580,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       </button>
     </div>
     <div class="input-bar">
-      <div id="lxHintChipSlot"></div>
+      <div id="lxHintRow" style="display:flex;align-items:flex-start;gap:8px"><div id="lxHintChipSlot" style="flex:1;min-width:0"></div></div>
       <div id="productOverlay" class="ai-product-overlay hiding"></div>
       <div id="productChipsBar" class="product-chips-bar hidden"></div>
       <div id="subnavExtraInput" class="subnav-extra-input"></div>
@@ -4323,8 +4323,20 @@ function renderSubnav() {
   var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
   // 全部 button（main + more）一起渲染到 nowrap flex，JS 测宽溢出的隐藏 + 加进 more 下拉
-  // 全站"客服"按钮放最前 (点开 chat 里 inline 出电话/工作时间/转人工卡)
-  var allItems = [{ico:'📞',label:'客服',title:'客服热线 / 在线咨询 / 转人工',fn:"csQuick()"}].concat(cfg.main || []).concat(cfg.more || []);
+  var allItems;
+  if (window.__inHumanMode) {
+    // 人工模式 subnav: 隐主菜单 + 客服入口, 改显人工服务专属按钮
+    allItems = [
+      { ico:'↩', label:'退出人工', title:'退回 AI 对话', fn:"csExitHuman()" },
+      { ico:'📦', label:'我的订单',  fn:"quickAsk('小李, 帮我查最近的订单状态和物流')" },
+      { ico:'🖼', label:'发图片',    title:'上传截图给客服', fn:"document.getElementById('imgFileInput').click()" },
+      { ico:'⭐', label:'评价服务',  fn:"quickAsk('给小李的服务打个 5 星好评, 服务专业体验好')" },
+      { ico:'📋', label:'需求清单',  fn:"quickAsk('小李, 我整理一份采购需求清单发给你确认')" }
+    ];
+  } else {
+    // 常规模式: 客服 + 子站主菜单 + more
+    allItems = [{ico:'📞',label:'客服',title:'客服热线 / 在线咨询 / 转人工',fn:"csQuick()"}].concat(cfg.main || []).concat(cfg.more || []);
+  }
   var btnsHtml = allItems.map(function(it, i){
     return '<button class="se-btn" data-se-idx="'+i+'" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
   }).join('');
@@ -5976,9 +5988,9 @@ window.LxBehavior = (function(){
   }
   function refreshHistoryBadge(){
     var isChip = window.__lxHintMode === 'chip';
-    // chip 模式：badge 挂 input-bar 顶(跟 chip slot 同区域), 让 chip + 历史"在一起"; legacy: 原 fixed bottom-right
-    var mount = isChip ? document.querySelector('.input-bar') : document.body;
-    if (!mount) return; // input-bar 不在(未进 chat)就跳，下次 hint 触发再试
+    // chip 模式：badge 挂 #lxHintRow 内(跟 chip 同一 horizontal row, 不占第 2 行); legacy: 原 fixed bottom-right
+    var mount = isChip ? document.getElementById('lxHintRow') : document.body;
+    if (!mount) return; // row 不在(未进 chat)就跳，下次 hint 触发再试
     var b = document.getElementById('lxHintHistoryBadge');
     // 模式切换或父节点不对时，重建到正确容器
     if (b && b.parentNode !== mount) { b.remove(); b = null; }
@@ -5986,18 +5998,14 @@ window.LxBehavior = (function(){
       b = document.createElement('div');
       b.id = 'lxHintHistoryBadge';
       if (isChip) {
-        // chip 模式：input-bar 内的小 pill, 跟 chip 同区域显示
-        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#6D28D9;cursor:pointer;display:none;align-items:center;gap:4px;align-self:flex-start;margin:0 0 6px;width:fit-content';
+        // chip 模式：横排在 chip 右侧, 不占第 2 行
+        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#6D28D9;cursor:pointer;display:none;align-items:center;gap:4px;flex-shrink:0;align-self:center';
       } else {
         // legacy 浮窗模式：原 fixed bottom-right
         b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#6D28D9;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
       }
       b.onclick = function(){ openHistoryPanel(); };
-      if (mount) {
-        // chip 模式插 input-bar 第一个位置(在 chip slot 之前), legacy 模式 append 到 body
-        if (isChip && mount.firstChild) mount.insertBefore(b, mount.firstChild);
-        else mount.appendChild(b);
-      }
+      if (mount) mount.appendChild(b); // chip 模式 row 内 append=右侧; legacy body append
     }
     if (hintHistory.length === 0) { b.style.display = 'none'; return; }
     b.innerHTML = isChip ? '📜 历史 <b>' + hintHistory.length + '</b>' : '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
@@ -6994,12 +7002,12 @@ window.openServicePlus = openServicePlus;
     window.__humanAgentName = '客服小李';
     var html = '<div class="cs-human-card">' +
       '<div class="cs-human-avatar">李</div>' +
-      '<div class="cs-human-text"><b>' + window.__humanAgentName + '</b> 已为您接入 ' + _esc(c.queue) + ' 队列<br><span style="opacity:.75">提问会优先发给人工 (POC 演示, 实际仍由 AI mock)</span></div>' +
-      '<button class="cs-human-exit" onclick="csExitHuman()">退出人工</button>' +
+      '<div class="cs-human-text"><b>' + window.__humanAgentName + '</b> 已为您接入 <b>' + _esc(c.queue) + '</b> 队列, 下方菜单已切人工模式</div>' +
     '</div>';
     _csAppend(html);
     var ta = document.getElementById('mainTa');
     if (ta) { if (!ta.__origPh) ta.__origPh = ta.placeholder; ta.placeholder = '向 ' + window.__humanAgentName + ' 提问...'; }
+    if (typeof renderSubnav === 'function') renderSubnav();
   };
 
   window.csExitHuman = function(){
@@ -7007,8 +7015,8 @@ window.openServicePlus = openServicePlus;
     window.__humanAgentName = null;
     var ta = document.getElementById('mainTa');
     if (ta && ta.__origPh) ta.placeholder = ta.__origPh;
-    var html = '<div style="font-size:12px;color:#888;padding:6px 0">↩ 已退出人工模式, 继续与 AI 对话</div>';
-    _csAppend(html);
+    _csAppend('<div style="font-size:12px;color:#888;padding:4px 0">↩ 已退出人工模式, 继续与 AI 对话</div>');
+    if (typeof renderSubnav === 'function') renderSubnav();
   };
 })();
 </script>
