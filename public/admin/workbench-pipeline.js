@@ -38,6 +38,10 @@ let _trendFrom = '';
 let _trendTo = '';
 let _tagTrendFrom = '';
 let _tagTrendTo = '';
+let _apTrendFrom = '';
+let _apTrendTo = '';
+let _atTrendFrom = '';
+let _atTrendTo = '';
 let _autoRefreshTimer = null;
 let _tag3Mode = 'active';
 let _hotMode = 'active';
@@ -118,6 +122,28 @@ PAGE_RENDERERS['pipeline.annotate'] = () => `
           </div>
         </div>
         <div id="cTagTrend" style="height:280px"></div>
+      </div>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">主被动 Query 趋势</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-tertiary);margin-left:auto">
+              <span style="font-size:10px">从</span><input type="date" id="apTrendFrom" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <span style="font-size:10px">至</span><input type="date" id="apTrendTo" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <button class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:10px" onclick="applyTrendFilter('ap')">确定</button>
+            </div>
+          </div>
+          <div id="cApTrend" style="height:280px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">主动场景变化趋势</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-tertiary);margin-left:auto">
+              <span style="font-size:10px">从</span><input type="date" id="atTrendFrom" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <span style="font-size:10px">至</span><input type="date" id="atTrendTo" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <button class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:10px" onclick="applyTrendFilter('at')">确定</button>
+            </div>
+          </div>
+          <div id="cAtTrend" style="height:280px"></div>
+        </div>
       </div>
       <div class="grid-2" style="margin-top:16px">
         <div class="card">
@@ -377,6 +403,20 @@ function tagTrendFilteredRecords() {
   return recs;
 }
 
+function apTrendFilteredRecords() {
+  let recs = _allRecords;
+  if (_apTrendFrom) recs = recs.filter(r => r.date >= _apTrendFrom);
+  if (_apTrendTo) recs = recs.filter(r => r.date <= _apTrendTo);
+  return recs;
+}
+
+function atTrendFilteredRecords() {
+  let recs = _allRecords;
+  if (_atTrendFrom) recs = recs.filter(r => r.date >= _atTrendFrom);
+  if (_atTrendTo) recs = recs.filter(r => r.date <= _atTrendTo);
+  return recs;
+}
+
 function applyDateFilter() {
   const fromEl = document.getElementById('dateFrom');
   const toEl = document.getElementById('dateTo');
@@ -395,6 +435,16 @@ function applyTrendFilter(which) {
     const attEl = document.getElementById('tagTrendTo');
     if (atfEl) _tagTrendFrom = atfEl.value;
     if (attEl) _tagTrendTo = attEl.value;
+  } else if (which === 'ap') {
+    const apfEl = document.getElementById('apTrendFrom');
+    const aptEl = document.getElementById('apTrendTo');
+    if (apfEl) _apTrendFrom = apfEl.value;
+    if (aptEl) _apTrendTo = aptEl.value;
+  } else if (which === 'at') {
+    const atfEl = document.getElementById('atTrendFrom');
+    const attEl = document.getElementById('atTrendTo');
+    if (atfEl) _atTrendFrom = atfEl.value;
+    if (attEl) _atTrendTo = attEl.value;
   } else {
     const tfEl = document.getElementById('trendFrom');
     const ttEl = document.getElementById('trendTo');
@@ -405,6 +455,8 @@ function applyTrendFilter(which) {
     const TH = { backgroundColor: 'transparent', textStyle: { color: '#646a73' }, legend: { textStyle: { color: '#646a73', fontSize: 10 } }, tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, extraCssText: 'box-shadow:0 4px 12px rgba(0,0,0,.08)' } };
     renderDailyVolume(trendFilteredRecords(), TH);
     renderTagTrend(tagTrendFilteredRecords(), TH);
+    renderApTrend(apTrendFilteredRecords(), TH);
+    renderAtTrend(atTrendFilteredRecords(), TH);
   }
 }
 
@@ -476,7 +528,7 @@ function downloadExcel(type) {
 function initDashboard() {
   ensureECharts(() => {
     if (!window.echarts) { refreshDashboard(); return; }
-    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct'];
+    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct','cApTrend','cAtTrend'];
     _dashCharts = {};
     ids.forEach(id => {
       const el = document.getElementById(id);
@@ -515,7 +567,7 @@ function _initDefaultDates() {
   const maxDate = dates[dates.length - 1];
 
   // 给所有日期输入框设置 min/max 并绑定校验
-  const allDateInputs = ['dateFrom', 'dateTo', 'trendFrom', 'trendTo', 'tagTrendFrom', 'tagTrendTo'];
+  const allDateInputs = ['dateFrom', 'dateTo', 'trendFrom', 'trendTo', 'tagTrendFrom', 'tagTrendTo', 'apTrendFrom', 'apTrendTo', 'atTrendFrom', 'atTrendTo'];
   allDateInputs.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -566,6 +618,20 @@ function _initDefaultDates() {
   if (attEl && !attEl.value) attEl.value = defDate;
   if (atfEl && atfEl.value) _tagTrendFrom = atfEl.value;
   if (attEl && attEl.value) _tagTrendTo = attEl.value;
+
+  const apfEl = document.getElementById('apTrendFrom');
+  const aptEl = document.getElementById('apTrendTo');
+  if (apfEl && !apfEl.value) apfEl.value = trendFromDef;
+  if (aptEl && !aptEl.value) aptEl.value = defDate;
+  if (apfEl && apfEl.value) _apTrendFrom = apfEl.value;
+  if (aptEl && aptEl.value) _apTrendTo = aptEl.value;
+
+  const atf2El = document.getElementById('atTrendFrom');
+  const att2El = document.getElementById('atTrendTo');
+  if (atf2El && !atf2El.value) atf2El.value = trendFromDef;
+  if (att2El && !att2El.value) att2El.value = defDate;
+  if (atf2El && atf2El.value) _atTrendFrom = atf2El.value;
+  if (att2El && att2El.value) _atTrendTo = att2El.value;
 }
 
 function _findNearestDate(target, dates) {
@@ -772,6 +838,8 @@ function renderDashboardCharts(recs) {
   renderTag3Current(r);
   renderDailyVolume(trendFilteredRecords(), TH);
   renderTagTrend(tagTrendFilteredRecords(), TH);
+  renderApTrend(apTrendFilteredRecords(), TH);
+  renderAtTrend(atTrendFilteredRecords(), TH);
   renderHotCurrent(r);
   hbarChart('cSource', mergedSource, '#722ed1', TH, 100);
   hbarChart('cProduct', mergedProduct, '#ff7d00', TH, 100);
@@ -863,15 +931,75 @@ function renderDailyVolume(recs, TH) {
 
 function renderTagTrend(recs, TH) {
   const ch = _dashCharts.cTagTrend; if (!ch) return;
-  // 拆分周汇总记录，使每天一条
   const expanded = _expandRecordsByDailyVolume(recs);
-  // 合并同日期记录
   const dateMap = {};
   expanded.forEach(r => {
     const d = r.date;
     if (!dateMap[d]) dateMap[d] = {};
     for (const [t, c] of Object.entries(r.tag_dist_all || {})) {
       dateMap[d][t] = (dateMap[d][t] || 0) + c;
+    }
+  });
+  const ts = new Set();
+  Object.values(dateMap).forEach(dist => Object.keys(dist).forEach(t => ts.add(t)));
+  const tags = TAG_ORDER.filter(t => ts.has(t));
+  const dates = Object.keys(dateMap).sort();
+  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' }, confine: true },
+    legend: { bottom: 0, type: 'scroll', textStyle: { color: '#646a73', fontSize: 10 } },
+    grid: { left: 64, right: 16, top: 12, bottom: 36 },
+    xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#dee0e3' } }, axisTick: { show: false }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9, formatter: v => v >= 1e4 ? (v/1e4).toFixed(0) + '万' : v } },
+    series: tags.map((tag, i) => ({
+      name: tag, type: 'bar', stack: 't', emphasis: { focus: 'series' },
+      itemStyle: { color: tagColor(tag), borderRadius: tags.length - 1 === i ? [2,2,0,0] : [0,0,0,0] },
+      data: dates.map(d => (dateMap[d] || {})[tag] || 0)
+    }))
+  });
+}
+
+const AP_COLOR = {'主动':'#3370ff','被动':'#ff7d00','口令活动':'#e2001a'};
+
+function renderApTrend(recs, TH) {
+  const ch = _dashCharts.cApTrend; if (!ch) return;
+  const dateMap = {};
+  recs.forEach(r => {
+    const dap = r.daily_active_passive || {};
+    for (const [d, dist] of Object.entries(dap)) {
+      if (!dateMap[d]) dateMap[d] = {'主动':0,'被动':0,'口令活动':0};
+      for (const k of ['主动','被动','口令活动']) {
+        dateMap[d][k] = (dateMap[d][k] || 0) + (dist[k] || 0);
+      }
+    }
+  });
+  const dates = Object.keys(dateMap).sort();
+  const types = ['主动','被动','口令活动'];
+  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis', formatter: p => {
+      let s = p[0].axisValue + '<br/>';
+      p.forEach(x => { s += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + x.color + ';margin-right:4px"></span>' + x.seriesName + ': <b>' + x.value.toLocaleString() + '</b><br/>'; });
+      return s;
+    } },
+    legend: { bottom: 0, type: 'scroll', textStyle: { color: '#646a73', fontSize: 10 } },
+    grid: { left: 64, right: 16, top: 12, bottom: 36 },
+    xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#dee0e3' } }, axisTick: { show: false }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9, formatter: v => v >= 1e4 ? (v/1e4).toFixed(0) + '万' : v } },
+    series: types.map(t => ({
+      name: t, type: 'line', smooth: true, symbol: 'circle', symbolSize: 4,
+      lineStyle: { width: 1.5 }, itemStyle: { color: AP_COLOR[t] },
+      data: dates.map(d => (dateMap[d] || {})[t] || 0)
+    }))
+  });
+}
+
+function renderAtTrend(recs, TH) {
+  const ch = _dashCharts.cAtTrend; if (!ch) return;
+  const dateMap = {};
+  recs.forEach(r => {
+    const dat = r.daily_active_tag || {};
+    for (const [d, dist] of Object.entries(dat)) {
+      if (!dateMap[d]) dateMap[d] = {};
+      for (const [tag, c] of Object.entries(dist)) {
+        dateMap[d][tag] = (dateMap[d][tag] || 0) + c;
+      }
     }
   });
   const ts = new Set();
@@ -900,26 +1028,9 @@ function switchTag3Mode(mode) {
   if (_dashRecords.length) renderTag3Current(_dashRecords[_dashRecords.length - 1]);
 }
 
-function _filterKoulingTag3(dist) {
-  // 用 filter_kouling 的口令规则过滤 tag3 分布
-  if (!dist) return {};
-  const koulingKeys = ['口令活动', '红包活动', '乐豆活动', '幸运上上签', '开运签活动', '运营活动', '官网活动', '公益活动', '平板活动', 'SMB活动', '会员活动'];
-  const filtered = {};
-  for (const [k, v] of Object.entries(dist)) {
-    const trimmed = k.trim();
-    if (koulingKeys.includes(trimmed)) continue;
-    filtered[trimmed] = (filtered[trimmed] || 0) + v;
-  }
-  // 截取 top20
-  const sorted = Object.entries(filtered).sort((a, b) => b[1] - a[1]).slice(0, 20);
-  const result = {};
-  for (const [k, v] of sorted) result[k] = v;
-  return result;
-}
-
 function renderTag3Current(r) {
-  const TH = { backgroundColor: 'transparent', tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, trigger: 'axis', axisPointer: { type: 'shadow' } } };
-  const data = _tag3Mode === 'nokouling' ? _filterKoulingTag3(r.tag3_dist_top20_semantic) : (r.tag3_dist_top20_semantic || {});
+  const TH = { backgroundColor: 'transparent', tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, trigger: 'axis', axisPointer: { type: 'shadow' } };
+  const data = _tag3Mode === 'nokouling' ? (r.tag3_dist_top20_no_kouling || {}) : (r.tag3_dist_top20_semantic || {});
   hbarChart('cTag3', data, _tag3Mode === 'nokouling' ? '#ff7d00' : '#3370ff', TH, 170);
 }
 
