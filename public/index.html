@@ -2551,7 +2551,7 @@ function renderSelfProducts(products) {
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <button class="leai-ppanel-buy" onclick="event.stopPropagation();openBenefitFor('${escHtml(name).replace(/'/g, "\\\\'")}','${escHtml(p.sku||'')}')">🎁 一键领取优惠</button>
+          <button class="leai-ppanel-buy" onclick="event.stopPropagation();startBuyFlow('${escHtml(name).replace(/'/g, "\\\\'")}','${price||0}','${escHtml(p.image_url||'').replace(/'/g, "\\\\'")}')">🎁 一键领取优惠</button>
         </div>
       </div>
     </div>`;
@@ -3624,7 +3624,7 @@ async function showProductDetail(sku) {
             '</div>' +
             optionGroupsHtml +
             '<div class="pd-action-btns">' +
-              '<button class="pd-btn-buy" onclick="openBenefitFor(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',\'' + escHtml(p.sku||'') + '\')">🎁 一键领取优惠</button>' +
+              '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'').replace(/'/g, "\\'") + '\')">🎁 一键领取优惠</button>' +
               '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
           '</div>' +
@@ -3803,7 +3803,7 @@ function showAIModal(data) {
         (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
       catRow += '<td>' + escHtml(p.category || '-') + '</td>';
       descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
-      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();openBenefitFor(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',\'' + escHtml(p.sku||'') + '\')">🎁 一键领取优惠</button></td>';
+      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();startBuyFlow(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'').replace(/'/g,"\\'") + '\')">🎁 一键领取优惠</button></td>';
     });
 
     var specRows = '';
