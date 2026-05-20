@@ -408,12 +408,12 @@ router.get('/stats/summary', (req, res) => {
 
 // ===== Download =====
 
-router.get('/download', (req, res) => {
+router.get('/download', async (req, res) => {
   const from = req.query.from;
   const to = req.query.to;
   const type = req.query.type || 'detail';
 
-  // For detail type, try to find and concatenate annotated CSVs
+  // detail: 下载最近的标注结果 CSV
   if (type === 'detail') {
     const dirs = _resultDirs();
     let csvFiles = [];
@@ -430,9 +430,90 @@ router.get('/download', (req, res) => {
       return res.status(404).json({ error: '无标注结果文件' });
     }
 
-    // Return the most recent file
     csvFiles.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
     res.download(csvFiles[0]);
+    return;
+  }
+
+  // ratio: 一级分类占比（从 stats_history 汇总）
+  if (type === 'ratio') {
+    const statsFile = _statsFilePath();
+    if (!fs.existsSync(statsFile)) {
+      return res.status(404).json({ error: '无统计数据' });
+    }
+    try {
+      const data = JSON.parse(fs.readFileSync(statsFile, 'utf-8'));
+      let records = data.records || [];
+      if (from) records = records.filter(r => (r.date || '') >= from);
+      if (to) records = records.filter(r => (r.date || '') <= to);
+
+      const mergedTag = {};
+      const mergedTagActive = {};
+      let totalAll = 0, totalActive = 0;
+      for (const r of records) {
+        for (const [k, v] of Object.entries(r.tag_dist_all || r.tag_distribution || {})) {
+          mergedTag[k] = (mergedTag[k] || 0) + v;
+          totalAll += v;
+        }
+        for (const [k, v] of Object.entries(r.tag_dist_active || {})) {
+          mergedTagActive[k] = (mergedTagActive[k] || 0) + v;
+          totalActive += v;
+        }
+      }
+
+      // 生成 CSV
+      const rows = ['一级分类,总量,占比,主动量,主动占比'];
+      const tags = Object.keys(mergedTag).sort((a, b) => mergedTag[b] - mergedTag[a]);
+      for (const tag of tags) {
+        const total = mergedTag[tag] || 0;
+        const active = mergedTagActive[tag] || 0;
+        rows.push(`${tag},${total},${(total / totalAll * 100).toFixed(1)}%,${active},${(active / totalActive * 100).toFixed(1)}%`);
+      }
+      rows.push(`合计,${totalAll},100%,${totalActive},100%`);
+
+      const csv = '﻿' + rows.join('\n');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename=一级分类占比.csv');
+      res.send(csv);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+    return;
+  }
+
+  // tag3: 细分类别分布 — 生成带格式的 Excel（一级场景合并+意图提炼）
+  if (type === 'tag3') {
+    // 找最近的标注结果文件
+    const dirs = _resultDirs();
+    let csvFiles = [];
+    for (const dir of dirs) {
+      try {
+        const files = fs.readdirSync(dir)
+          .filter(f => f.startsWith('标注结果_') && f.endsWith('.csv'))
+          .map(f => path.join(dir, f));
+        csvFiles.push(...files);
+      } catch {}
+    }
+    if (csvFiles.length === 0) {
+      return res.status(404).json({ error: '无标注结果文件，请先标注数据' });
+    }
+    csvFiles.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+    const latestFile = csvFiles[0];
+
+    try {
+      const result = await registry.invoke('lexiang.intent', {
+        file_path: latestFile,
+        period: '周',
+      }, { permissions: ['*'], admin: req.session?.admin });
+
+      if (result.output_file && fs.existsSync(result.output_file)) {
+        return res.download(result.output_file);
+      }
+      // fallback: 如果没有生成 Excel，返回 JSON
+      res.json(result);
+    } catch (e) {
+      res.status(500).json({ error: '生成二级分类 Excel 失败: ' + e.message });
+    }
     return;
   }
 

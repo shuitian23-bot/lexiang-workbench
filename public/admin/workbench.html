@@ -159,11 +159,6 @@ const MENU_TREE = {
       'employee.certification': { label: '认证审核' }
     }
   },
-  pipeline: {
-    icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '数据流水线', children: {
-      'pipeline.annotate': { label: 'Query 分析' }
-    }
-  },
 };
 
 // ===== LOGIN =====
@@ -226,8 +221,6 @@ async function loadUserContext() {
       }
       // 员工管理默认可见
       if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
-      // 数据流水线仅管理员可见
-      if (STATE.permissions.includes("*") && !STATE.visibleMenus.includes('pipeline')) STATE.visibleMenus.push('pipeline');
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {

@@ -794,7 +794,7 @@ function donutChart(id, data, useTagColor, TH) {
 
 function donutChannel(id, data, TH) {
   const ch = _dashCharts[id]; if (!ch) return;
-  const cm = {'主动':'#3370ff','被动':'#ff7d00','customer_service':'#e2001a'};
+  const cm = {'主动':'#3370ff','被动':'#ff7d00','口令活动':'#e2001a'};
   const n = Object.keys(data), v = Object.values(data);
   ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'item', formatter: '{b}<br/>{c} ({d}%)' },
     legend: { bottom: 0, textStyle: { color: '#646a73', fontSize: 10 } },
