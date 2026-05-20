@@ -6040,9 +6040,20 @@ window.LxBehavior = (function(){
   function openHistoryPanel(){
     var existing = document.getElementById('lxHintHistoryPanel');
     if (existing) { existing.remove(); return; }
+    // 锚定 badge: 弹出在 badge 上方; fallback 右下 (legacy 浮窗模式)
+    var b = document.getElementById('lxHintHistoryBadge');
+    var pos;
+    if (b) {
+      var rect = b.getBoundingClientRect();
+      var bottomFromVp = Math.max(8, window.innerHeight - rect.top + 8);
+      var leftClamped = Math.max(10, Math.min(rect.left, window.innerWidth - 340));
+      pos = 'position:fixed;left:' + leftClamped + 'px;bottom:' + bottomFromVp + 'px;';
+    } else {
+      pos = 'position:fixed;right:20px;bottom:60px;';
+    }
     var p = document.createElement('div');
     p.id = 'lxHintHistoryPanel';
-    p.style.cssText = 'position:fixed;right:20px;bottom:60px;width:320px;max-height:420px;overflow-y:auto;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:301;padding:8px';
+    p.style.cssText = pos + 'width:320px;max-height:420px;overflow-y:auto;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:301;padding:8px';
     p.innerHTML = '<div style="padding:8px 8px 4px;font-size:11px;color:#999;display:flex;justify-content:space-between"><span>最近 ' + hintHistory.length + ' 条 AI 提示</span><button onclick="document.getElementById(\'lxHintHistoryPanel\').remove()" style="background:none;border:none;color:#999;cursor:pointer;font-size:16px;line-height:1">×</button></div>' +
       hintHistory.map(function(h, i){
         return '<div onclick="_lxHintReplay(' + i + ')" style="padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;line-height:1.5;border-bottom:1px solid #f5f5f5" onmouseover="this.style.background=\'#f9f5ff\'" onmouseout="this.style.background=\'\'">' +
