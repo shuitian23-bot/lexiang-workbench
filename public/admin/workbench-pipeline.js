@@ -169,6 +169,10 @@ PAGE_RENDERERS['pipeline.annotate'] = () => `
         <div class="card-header"><div class="card-title">商品咨询 TOP20</div></div>
         <div id="cProduct" style="height:300px"></div>
       </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><div class="card-title">终端类型分布</div></div>
+        <div id="cMedium" style="height:300px"></div>
+      </div>
     </div>
   `;
 
@@ -529,7 +533,7 @@ function downloadExcel(type) {
 function initDashboard() {
   ensureECharts(() => {
     if (!window.echarts) { refreshDashboard(); return; }
-    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct','cApTrend','cAtTrend'];
+    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct','cMedium','cApTrend','cAtTrend'];
     _dashCharts = {};
     ids.forEach(id => {
       const el = document.getElementById(id);
@@ -824,8 +828,9 @@ function renderDashboardCharts(recs) {
   const mergedChannel = _mergeDist(recs, 'channel_dist');
   const mergedSource = _mergeDist(recs, 'source_dist');
   const mergedProduct = _mergeDist(recs, 'product_dist');
+  const mergedMedium = _mergeDist(recs, 'medium_dist');
   const mergedHot = _mergeHotQueries(recs);
-  const r = { tag_dist_all: mergedTagAll, tag_dist_semantic: mergedTagSem, channel_dist: mergedChannel, source_dist: mergedSource, product_dist: mergedProduct, hot_queries_top20: mergedHot, tag3_dist_top20_semantic: _mergeDist(recs, 'tag3_dist_top20_semantic'), tag3_dist_top20_no_kouling: _mergeDist(recs, 'tag3_dist_top20_no_kouling') };
+  const r = { tag_dist_all: mergedTagAll, tag_dist_semantic: mergedTagSem, channel_dist: mergedChannel, source_dist: mergedSource, product_dist: mergedProduct, medium_dist: mergedMedium, hot_queries_top20: mergedHot, tag3_dist_top20_semantic: _mergeDist(recs, 'tag3_dist_top20_semantic'), tag3_dist_top20_no_kouling: _mergeDist(recs, 'tag3_dist_top20_no_kouling') };
 
   const TH = {
     backgroundColor: 'transparent',
@@ -844,6 +849,7 @@ function renderDashboardCharts(recs) {
   renderHotCurrent(r);
   hbarChart('cSource', mergedSource, '#722ed1', TH, 100);
   hbarChart('cProduct', mergedProduct, '#ff7d00', TH, 100);
+  hbarChart('cMedium', mergedMedium, '#00b578', TH, 100);
 }
 
 function donutChart(id, data, useTagColor, TH) {
