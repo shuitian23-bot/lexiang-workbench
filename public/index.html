@@ -1313,15 +1313,14 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       if(it.href) return '<a href="'+it.href+'" data-nav="'+it.label+'"'+(it.active?' class="nav-active"':'')+'>'+it.label+'</a>';
       return '<a href="#" data-nav="'+it.label+'" onclick="setNavActive(\''+it.label+'\');startChat(\''+it.q.replace(/'/g,"\\'")+'\');return false;">'+it.label+'</a>';
     }).join('');
-    // 全局 quick action(所有子站): 服务/门店/会员 -- 跟 nav 主链接同排但用分隔符区分
+    // 全局 quick action(所有子站): 服务/门店/会员 -- 点击开对应内容 tab(不是 quickAsk 文字)
     var QUICK = [
-      { label:'服务', q:'联想售后/增值服务全清单(延保/上门/维修/数据迁移/技术支持/原厂硬盘加密)' },
-      { label:'门店', store:true },
-      { label:'会员', q:'查我的会员等级、乐豆余额和专属权益' }
+      { label:'服务', fn:'openServiceTab' },
+      { label:'门店', fn:'openStoresTab' },
+      { label:'会员', fn:'openMemberTab' }
     ];
     html += '<span class="nav-sep"></span>' + QUICK.map(function(q){
-      var oc = q.store ? "findNearbyStores();return false;" : "quickAsk('"+q.q.replace(/'/g,"\\'")+"');return false;";
-      return '<a href="#" class="nav-extra" onclick="'+oc+'">'+q.label+'</a>';
+      return '<a href="#" class="nav-extra" onclick="'+q.fn+'();return false;">'+q.label+'</a>';
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
@@ -3772,6 +3771,7 @@ async function showProductDetail(sku) {
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'').replace(/'/g, "\\'") + '\')">🎁 一键领取优惠</button>' +
               '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
+            '<div style="margin-top:8px"><button onclick="findSimilar(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\')" style="width:100%;padding:10px;background:#fff;border:1px dashed #d1d5db;border-radius:10px;color:#6D28D9;font-size:13px;font-weight:600;cursor:pointer">✨ 找相似</button></div>' +
           '</div>' +
         '</div>' +
         // 下半部分：tabs + 详情内容
@@ -3995,6 +3995,50 @@ function showAIModal(data) {
 
 // ── 商城卡片点击 + 对比按钮 + hover 解读（事件委托：feedSections + displayCanvas）──
 window.openDetail = openDetail;
+
+// 全局 helper: 找相似 — 任意商品详情页都能调
+window.findSimilar = function(sku, name) {
+  if (!sku) { if (window.LxStatus) window.LxStatus.toast('缺 sku 无法找相似', {ms:1500}); return; }
+  fetch('/api/products?similar=' + encodeURIComponent(sku) + '&limit=5')
+    .then(function(r){ return r.json(); })
+    .then(function(list){
+      if (!list || !list.length) { if (window.LxStatus) window.LxStatus.toast('暂未找到相似商品', {ms:2000}); return; }
+      var title = '✨ 找相似·' + String(name||'').slice(0, 12);
+      if (typeof window.__openContent === 'function') window.__openContent('products', title, {products: list, sourceSku: sku});
+      else if (typeof quickAsk === 'function') quickAsk('找几款与「'+name+'」相似的联想机型, 列 3-5 款对比');
+    })
+    .catch(function(){ if (window.LxStatus) window.LxStatus.toast('找相似失败', {ms:2000}); });
+};
+
+// 全局 helper: 服务/门店/会员 顶 nav 点击对应 tab
+window.openServiceTab = function(){
+  var html = '<div style="padding:8px 0"><div style="font-size:14px;color:#666;margin-bottom:14px">联想官方服务清单 · POC 演示数据</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">' +
+    [
+      ['🛡', '原厂延保', '保修期延长 1/2/3 年, 官方授权服务', '¥299 起/年'],
+      ['🚪', '上门维修', '工程师上门检测 + 维修, 含配件费另计', '¥199 单次'],
+      ['💾', '数据迁移', '旧机数据完整迁移到新机, 含系统/软件', '¥99'],
+      ['🔐', '原厂硬盘加密', '出厂级硬盘加密, 政企信息安全合规', '¥499'],
+      ['💻', '上门安装', '工程师上门开箱 + 系统配置 + 培训', '¥99'],
+      ['🆘', '远程技术支持', '联想会员专享, 7×24h 远程协助', '会员免费']
+    ].map(function(s){ return '<div style="background:#fafafa;border:1px solid #eee;border-radius:10px;padding:14px"><div style="font-size:30px;margin-bottom:6px">'+s[0]+'</div><div style="font-size:14px;font-weight:600;color:#222;margin-bottom:4px">'+s[1]+'</div><div style="font-size:12px;color:#666;line-height:1.5;margin-bottom:8px">'+s[2]+'</div><div style="font-size:13px;color:#C41A1F;font-weight:700">'+s[3]+'</div></div>'; }).join('') +
+    '</div></div>';
+  if (typeof window.__openContent === 'function') window.__openContent('info', '🛠 联想服务', {html: html, content: html, rawHtml: true});
+  else if (typeof quickAsk === 'function') quickAsk('联想售后/增值服务全清单');
+};
+window.openStoresTab = function(){
+  var mockStores = [
+    { name:'联想北京西单旗舰店', distance:'1.2km', address:'西城区西单北大街 133 号', hours:'10:00-21:00', metro:'4 号线西单站 C 口', phone:'010-66001234', rating:'4.8', is_flagship:true, product_lines:['ThinkPad','拯救者','小新','YOGA'], slots:[{time:'今天 14:00', remain:3},{time:'今天 16:00', remain:5},{time:'明天 10:00', remain:8}] },
+    { name:'联想北京中关村体验店', distance:'3.5km', address:'海淀区中关村大街 1 号', hours:'10:00-22:00', metro:'4 号线中关村站', phone:'010-62550000', rating:'4.7', product_lines:['ThinkPad','拯救者','打印机'], slots:[{time:'今天 15:00', remain:2},{time:'明天 11:00', remain:6}] },
+    { name:'联想北京三里屯体验中心', distance:'5.8km', address:'朝阳区三里屯太古里南区 N1-01', hours:'11:00-22:00', metro:'10 号线团结湖站', phone:'010-64688888', rating:'4.9', is_flagship:true, product_lines:['全系列','配件'], slots:[{time:'今天 18:00', remain:4}] }
+  ];
+  if (typeof window.__openContent === 'function') window.__openContent('stores', '📍 附近门店', {stores: mockStores, perks:['现场体验最新机型','享受到店专属优惠','现场试机 + 选配']});
+  else if (typeof findNearbyStores === 'function') findNearbyStores();
+};
+window.openMemberTab = function(){
+  // 复用 RENDERERS.member 自带 mock 数据
+  if (typeof window.__openContent === 'function') window.__openContent('member', '👤 我的会员', {});
+  else if (typeof quickAsk === 'function') quickAsk('查我的会员等级、乐豆余额和专属权益');
+};
 
 // 统一 click 处理器：data-action 按钮优先，否则卡片整体点击进详情
 function _cardContainerClickHandler(e) {
