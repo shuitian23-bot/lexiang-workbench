@@ -1021,7 +1021,7 @@
       });
     } else {
       // fallback：旧引导按钮
-      container.innerHTML = '<div class="cp-svc-page"><div class="cp-svc-hero" style="background:linear-gradient(135deg,#6b2068,#b83340)"><h2>🛠 商品定制</h2><p>请稍后再试</p></div></div>';
+      container.innerHTML = '<div class="cp-svc-page"><div class="cp-svc-hero" style="background:linear-gradient(135deg,#4D144A,#B8252E)"><h2>🛠 商品定制</h2><p>请稍后再试</p></div></div>';
     }
   };
 
@@ -1041,7 +1041,7 @@
     });
     var listHtml = sorted.map(function(c){
       var done = received.indexOf(c.id) >= 0;
-      var hi = highlight.indexOf(c.tag) >= 0 ? ' style="box-shadow:0 0 0 2px #b83340"' : '';
+      var hi = highlight.indexOf(c.tag) >= 0 ? ' style="box-shadow:0 0 0 2px #B8252E"' : '';
       return '<div class="coupon-item'+(done?' received':'')+'" data-id="'+c.id+'"'+hi+'>'+
         '<div class="coupon-amount"><div class="num">'+c.amount+'</div><div class="cond">'+escH(c.cond||'')+'</div></div>'+
         '<div class="coupon-info"><h4>'+escH(c.title||'')+'</h4><p>'+escH(c.desc||'')+'</p><span class="scope">'+escH(c.scope||'')+'</span></div>'+
@@ -1050,7 +1050,7 @@
     }).join('');
     container.innerHTML =
       '<div class="cp-svc-page">' +
-        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#b83340,#ef4444)">' +
+        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#B8252E,#ef4444)">' +
           '<h2>🎟 优惠券中心</h2>' +
           '<p>已领 ' + received.length + ' / ' + COUPONS.length + ' 张 — 学生 / 教师 / 企业 / 政教 / 新用户 / 换新 / 电竞 / 创作者</p>' +
         '</div>' +
