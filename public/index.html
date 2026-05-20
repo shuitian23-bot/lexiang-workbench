@@ -846,6 +846,43 @@ html,body{height:100%;overflow:hidden}
 /* ── 商城内容区 ── */
 .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
 .mall-hero{position:relative;margin:20px 0;border-radius:12px;overflow:hidden;height:300px;background:#f5f5f5}
+/* 秒杀模块(shop landing) */
+.flash-sale{display:flex;background:#fff;border-radius:12px;overflow:hidden;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.flash-sale-left{flex:0 0 160px;background:linear-gradient(135deg,#e8261a 0%,#a01713 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 10px;text-align:center;position:relative}
+.flash-sale-left .fs-title{font-size:22px;font-weight:800;margin-bottom:10px;letter-spacing:2px}
+.flash-sale-left .fs-bolt{font-size:28px;margin-bottom:8px}
+.flash-sale-left .fs-session{font-size:13px;margin-bottom:4px;opacity:.95}
+.flash-sale-left .fs-countdown{font-size:11px;opacity:.85;margin-bottom:8px}
+.flash-sale-left .fs-timer{display:flex;gap:4px;font-family:Menlo,Consolas,monospace;font-weight:700}
+.flash-sale-left .fs-timer span{background:rgba(0,0,0,.35);padding:3px 6px;border-radius:4px;min-width:24px;text-align:center;font-size:13px}
+.flash-sale-right{flex:1;display:flex;flex-direction:column;padding:14px 18px;position:relative}
+.flash-sale-tag{position:absolute;top:14px;left:18px;background:linear-gradient(90deg,#ff8b50,#e8261a);color:#fff;padding:4px 14px;border-radius:14px;font-size:12px;font-weight:600;z-index:1}
+.flash-sale-list{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;flex:1;margin-top:36px}
+.flash-sale-card{text-align:center;cursor:pointer;transition:transform .2s;padding:8px;border-radius:8px}
+.flash-sale-card:hover{transform:translateY(-2px);background:#fafafa}
+.fs-card-ico{font-size:42px;height:80px;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:6px;margin-bottom:8px}
+.fs-card-name{font-size:12px;color:#333;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fs-discount{display:inline-block;background:#fff5f5;color:#e8261a;font-size:10px;padding:1px 5px;border-radius:3px;margin-bottom:2px;font-weight:600;border:1px solid #fad7d7}
+.fs-price{color:#e8261a;font-size:15px;font-weight:700}
+.fs-orig{color:#999;font-size:11px;text-decoration:line-through;margin-left:4px;font-weight:400}
+.flash-sale-more{flex:0 0 48px;background:#fef2f2;color:#e8261a;display:flex;align-items:center;justify-content:center;cursor:pointer;writing-mode:vertical-rl;text-orientation:upright;font-size:12px;letter-spacing:4px;border-left:1px solid #ffe0e0}
+.flash-sale-more:hover{background:#fde2e2}
+/* 企业新人专享(b landing) */
+.newcomer-zone{margin:24px 0;padding:20px;background:linear-gradient(180deg,#eef5ff 0%,#fff 100%);border-radius:12px}
+.newcomer-zone-title{font-size:22px;font-weight:800;text-align:center;margin-bottom:4px;color:#1f2937}
+.newcomer-zone-sub{font-size:12px;color:#9ca3af;text-align:center;margin-bottom:16px}
+.newcomer-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.newcomer-card{display:flex;align-items:center;background:#fff;border-radius:12px;padding:18px;cursor:pointer;transition:transform .2s,box-shadow .2s;border:1px solid #dde7f7;gap:14px}
+.newcomer-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.nc-ico{width:80px;height:80px;display:flex;align-items:center;justify-content:center;background:#f6faff;border-radius:8px;font-size:38px;flex-shrink:0}
+.newcomer-card-text{flex:1;min-width:0}
+.newcomer-card-name{font-size:15px;font-weight:600;color:#1f2937;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.newcomer-card-price{font-size:13px;color:#6b7280;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px}
+.newcomer-card-price .nc-special{color:#0066cc;font-size:22px;font-weight:800}
+.newcomer-card-price .nc-orig{color:#9ca3af;text-decoration:line-through;font-size:12px}
+.newcomer-card-cta{padding:8px 18px;background:#0066cc;color:#fff;border-radius:18px;font-size:12px;border:none;cursor:pointer;flex-shrink:0;font-weight:600;transition:filter .15s}
+.newcomer-card-cta:hover{filter:brightness(1.1)}
+@media(max-width:768px){.flash-sale{flex-direction:column}.flash-sale-list{grid-template-columns:repeat(2,1fr)}.flash-sale-more{writing-mode:horizontal-tb;flex:0 0 36px;border-left:none;border-top:1px solid #ffe0e0}.newcomer-cards{grid-template-columns:1fr}}
 .mall-slides{width:100%;height:100%;position:relative}
 .mall-slide{position:absolute;inset:0;opacity:0;transition:opacity .5s ease}
 .mall-slide.active{opacity:1}
@@ -1337,6 +1374,77 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 <div id="shopContent">
   <!-- Banner 轮播：内容由 JS 按 _siteType 注入 -->
   <div class="mall-hero" id="mallHero"></div>
+
+  <!-- 子站专属促销模块: shop=秒杀, b=新人专享, 其他不显; 内容 hardcode mock POC -->
+  <section id="siteLandingExtra" style="display:none"></section>
+  <script>!function(){
+    var st = window.__siteType || 'default';
+    var box = document.getElementById('siteLandingExtra');
+    if (!box) return;
+    if (st === 'shop') {
+      var items = [
+        { ico:'🖱️', name:'联想 一键服务鼠标M25 白色', price:45,  orig:49,    discount:'9.2折' },
+        { ico:'🔌', name:'【3C认证】联想来酷充电器',     price:239.9,orig:299,  discount:'8.1折' },
+        { ico:'💻', name:'联想拯救者Y7000P 2025',         price:10699,orig:11699,discount:'9.2折' },
+        { ico:'🔋', name:'联想原装氮化镓适配器 68w',      price:129,  orig:139,  discount:'9.3折' }
+      ];
+      box.className = 'flash-sale';
+      box.style.display = 'flex';
+      box.innerHTML =
+        '<div class="flash-sale-left">' +
+          '<div class="fs-title">联想秒杀</div>' +
+          '<div class="fs-bolt">⚡</div>' +
+          '<div class="fs-session">12:00 场</div>' +
+          '<div class="fs-countdown">距结束还剩</div>' +
+          '<div class="fs-timer" id="flashTimer"><span>10</span><span>12</span><span>57</span></div>' +
+        '</div>' +
+        '<div class="flash-sale-right">' +
+          '<div class="flash-sale-tag">12:00 场·正在抢购</div>' +
+          '<div class="flash-sale-list">' +
+            items.map(function(it){
+              return '<div class="flash-sale-card">' +
+                '<div class="fs-card-ico">' + it.ico + '</div>' +
+                '<div class="fs-card-name">' + it.name + '</div>' +
+                '<div><span class="fs-discount">折 ' + it.discount + '</span></div>' +
+                '<div><span class="fs-price">¥' + it.price + '</span><span class="fs-orig">¥' + it.orig + '</span></div>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="flash-sale-more">更多秒杀 ›</div>';
+      // 倒计时
+      var t = 10*3600 + 12*60 + 57;
+      setInterval(function(){
+        if (t <= 0) return;
+        t--;
+        var h = Math.floor(t/3600), m = Math.floor((t%3600)/60), s = t%60;
+        var el = document.getElementById('flashTimer');
+        if (el) el.innerHTML = '<span>'+String(h).padStart(2,'0')+'</span><span>'+String(m).padStart(2,'0')+'</span><span>'+String(s).padStart(2,'0')+'</span>';
+      }, 1000);
+    } else if (st === 'b') {
+      var bizItems = [
+        { ico:'🎧', name:'联想thinkplus头戴式蓝牙耳机TH62', special:69,  market:99 },
+        { ico:'🎵', name:'网易云音乐黑胶会员月卡',          special:5.9, market:18 }
+      ];
+      box.className = 'newcomer-zone';
+      box.style.display = 'block';
+      box.innerHTML =
+        '<div class="newcomer-zone-title">企业新人专享</div>' +
+        '<div class="newcomer-zone-sub">数量有限·先到先得</div>' +
+        '<div class="newcomer-cards">' +
+          bizItems.map(function(it){
+            return '<div class="newcomer-card">' +
+              '<div class="nc-ico">' + it.ico + '</div>' +
+              '<div class="newcomer-card-text">' +
+                '<div class="newcomer-card-name">' + it.name + '</div>' +
+                '<div class="newcomer-card-price">新人专享价<span class="nc-special">¥' + it.special + '</span><span class="nc-orig">市场价¥' + it.market + '</span></div>' +
+              '</div>' +
+              '<button class="newcomer-card-cta">立即领取</button>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+    }
+  }();</script>
 
   <!-- 分区 Feed: 新品/超值/热门/各品类。初始渲染 8 套骨架占位，避免单区骨架后整页跳出 -->
   <div id="feedSections">
