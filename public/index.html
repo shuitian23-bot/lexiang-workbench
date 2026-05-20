@@ -1348,13 +1348,13 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 </nav>
 <div class="hero-wrap"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div><div class="blob blob4"></div><section class="hero">
   <h1 id="heroTitle">你好，我是联想乐享</h1>
-  <p id="heroSubtitle" style="text-align:center;color:var(--text2);margin:8px 0 18px;font-size:15px">联想官方 AI 助手 · 随时为你解答</p>
+  <p id="heroSubtitle" style="text-align:center;color:var(--text2);margin:8px 0 18px;font-size:15px">联想乐享 · 随时为你解答</p>
   <div class="search"><input type="text" placeholder="最近有什么促销活动？" id="heroInput" autocomplete="off"><button class="send-btn" id="heroSend" aria-label="发送"><svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></button></div>
   <div class="tags" id="heroTags"></div>
   <div class="qpills" id="qpills" style="margin-top:18px"></div>
   <script>!function(){
     var SITE_HERO = {
-      'default': { title:'你好，我是联想乐享', sub:'联想官方 AI 助手 · 个人/家庭/企业全场景咨询',
+      'default': { title:'你好，我是联想乐享', sub:'联想乐享 · 个人/家庭/企业全场景咨询',
         tags:[['商品导购','我想买一台笔记本电脑，能帮我推荐吗？'],['解决方案','联想有哪些适合企业的解决方案？'],['门店查询','__store__'],['我的权益','我购买的联想产品质保和售后怎么查？'],['预约服务','我想预约联想服务，请问如何预约？']],
         chips:['最近有什么促销活动？','办公用5000元左右怎么选？','Y7000P和R7000P选哪个？','帮我推荐一款ThinkPad','小新Pro 14值得买吗？','拯救者系列有哪些旗舰机型？','联想会员有哪些专属权益？','想买游戏本，预算8000怎么选？'] },
       'shop':    { title:'你好，乐享个人 / 家庭购', sub:'游戏本 / 轻薄本 / 一体机 · 学生认证 + 会员折扣 + 12 期免息',
@@ -1570,7 +1570,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
         <div class="welcome" id="welcomeScreen">
           <button class="welcome-close" onclick="this.closest('.welcome').remove()">×</button>
           <h2>你好，我是<span class="grad">联想乐享</span></h2>
-          <p>联想官方AI助手，随时为你解答产品、优惠、解决方案相关问题</p>
+          <p>联想乐享，随时为你解答产品、优惠、解决方案相关问题</p>
           <div class="wgrid">
             <div class="wcard" onclick="quickAsk('帮我推荐学生用的小新本，再看下能用的优惠券')"><strong>多任务并行</strong>推荐机型 + 查优惠券（一句话两件事）</div>
             <div class="wcard" onclick="quickAsk('我想定制一台 ThinkPad X1 Carbon，给我女朋友刻字「Forever Yours」')"><strong>CTO 定制</strong>选配置 + 刻字 + 礼盒</div>
@@ -1830,7 +1830,7 @@ const I18N = {
     share: '分享',
     shareSuccess: '链接已复制！',
     welcomeTitle: '有什么我能帮你的吗？',
-    welcomeSub: '联想官方AI助手，随时为你解答产品、优惠、商品对比相关问题',
+    welcomeSub: '联想乐享，随时为你解答产品、优惠、商品对比相关问题',
     wCards: [
       ['帮我选购商品','帮我选购商品'],
       ['有哪些优惠商品？','有哪些优惠商品？'],
@@ -1840,17 +1840,17 @@ const I18N = {
     ],
     siteWelcome: {
       'shop': {
-        title: '',
+        title: '联想乐享 · 个人/家庭',
         sub: '随时为你解答产品、优惠、商品对比相关问题',
         cards: [['帮我选购商品','帮我选购商品'],['有哪些优惠商品？','有哪些优惠商品？'],['商品参数性能对比','商品参数性能对比'],['我要查找订单','我要查找订单'],['我要预约维修','我要预约维修']]
       },
       'b': {
-        title: '联想企业购AI助手',
+        title: '联想企业购',
         sub: '为企业客户提供批量采购、方案定制、报价咨询服务',
         cards: [['企业批量采购','企业批量采购有什么优惠？'],['定制化方案','我需要为公司定制IT设备方案'],['询价报价','帮我查询企业采购价格'],['售后服务','企业购售后服务怎么联系？'],['增值服务','联想企业购有哪些可加购的增值服务？比如延保、上门维修、数据迁移、远程配置、原厂硬盘加密等，请列出价格和适用场景'],['会员权益','我是中小企业客户，联想企业购的企业账户等级体系是怎样的？不同等级享有什么专属价/账期/SLA/BD 权益？怎么升级到更高等级？'],['行业解决方案','联想有哪些行业解决方案？']]
       },
       'biz': {
-        title: '联想政教及大企业AI助手',
+        title: '联想政教及大企业',
         sub: '为政府、教育机构和大型企业提供专属解决方案',
         cards: [['智慧教育方案','联想智慧教育有哪些解决方案？'],['政务解决方案','联想政务行业解决方案介绍'],['大企业采购','大企业IT设备采购流程'],['数据中心方案','联想数据中心产品和方案'],['专属服务','政教客户有哪些专属服务？']]
       }
@@ -4591,7 +4591,7 @@ async function findStoresByLocation(origMsg, locName) {
     const geo = await geoRes.json();
     if (geo.error) {
       // 百度地理编码失败 → fallback 到 AI store_finder（mock 卡片）
-      mbubble.innerHTML = '🤖 正在用 AI 助手为您查找联想体验店…';
+      mbubble.innerHTML = '🤖 正在为您查找联想体验店…';
       if (typeof quickAsk === 'function') quickAsk('帮我找' + locName + '的联想体验店，能预约到店体验吗？');
       return;
     }
@@ -4600,7 +4600,7 @@ async function findStoresByLocation(origMsg, locName) {
     const storeRes = await apiFetch(`/api/stores/nearby?lat=${geo.lat}&lng=${geo.lng}`);
     const result = await storeRes.json();
     if (result.error) {
-      mbubble.innerHTML = '🤖 正在用 AI 助手为您查找联想体验店…';
+      mbubble.innerHTML = '🤖 正在为您查找联想体验店…';
       if (typeof quickAsk === 'function') quickAsk('帮我找' + locName + '的联想体验店');
       return;
     }
@@ -4608,7 +4608,7 @@ async function findStoresByLocation(origMsg, locName) {
     renderStoreCards(mbubble, result.stores || [], geo.lat, geo.lng, geo.name);
   } catch (e) {
     // 网络/异常也走 AI fallback
-    mbubble.innerHTML = '🤖 正在用 AI 助手为您查找联想体验店…';
+    mbubble.innerHTML = '🤖 正在为您查找联想体验店…';
     if (typeof quickAsk === 'function') quickAsk('帮我找' + locName + '的联想体验店');
   }
 }
@@ -6090,9 +6090,8 @@ window.LxBehavior = (function(){
           '<button onclick="event.stopPropagation();_lxHintDismiss(\'' + id + '\')" title="不再提示" style="flex-shrink:0;background:none;border:none;color:#bbb;font-size:16px;cursor:pointer;padding:0 2px;line-height:1;align-self:center">×</button>' +
         '</div>' +
         '<div id="lxChipExpand-' + id + '" style="display:none;padding:0 12px 10px;font-size:12px;line-height:1.6;color:#555">' + contentHtml +
-          '<div style="margin-top:8px;display:flex;gap:8px">' +
-            '<button onclick="_lxHintRun(\'' + id + '\')" style="flex:1;padding:7px 12px;background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">' + (primaryText || '查看') + '</button>' +
-            '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:7px 12px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
+          '<div style="margin-top:8px;text-align:right">' +
+            '<button onclick="_lxHintDismiss(\'' + id + '\')" style="padding:6px 14px;background:#f0f0f0;color:#666;border:none;border-radius:8px;font-size:12px;cursor:pointer">不了</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -6894,7 +6893,7 @@ function openTradeIn() {
     // 直接进 AI 多轮估价对话（skill tradein_estimate 接管）
     quickAsk('我想以旧换新，请帮我估价并推荐换购机型');
   } else {
-    showAIModal({ type:'info', title:'♻️ 以旧换新', content:'请通过右下角 AI 助手描述您的旧机型号、配置和成色' });
+    showAIModal({ type:'info', title:'♻️ 以旧换新', content:'请向乐享描述您的旧机型号、配置和成色' });
   }
 }
 window.openTradeIn = openTradeIn;
