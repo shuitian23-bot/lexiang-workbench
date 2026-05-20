@@ -4323,8 +4323,8 @@ function renderSubnav() {
   var site = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var cfg = SUBNAV_BY_SITE[site] || SUBNAV_BY_SITE.shop;
   // 全部 button（main + more）一起渲染到 nowrap flex，JS 测宽溢出的隐藏 + 加进 more 下拉
-  // 全站尾追"客服"按钮 (点开 chat 里 inline 出电话/工作时间/转人工卡)
-  var allItems = (cfg.main || []).concat(cfg.more || []).concat([{ico:'📞',label:'客服',title:'客服热线 / 在线咨询 / 转人工',fn:"csQuick()"}]);
+  // 全站"客服"按钮放最前 (点开 chat 里 inline 出电话/工作时间/转人工卡)
+  var allItems = [{ico:'📞',label:'客服',title:'客服热线 / 在线咨询 / 转人工',fn:"csQuick()"}].concat(cfg.main || []).concat(cfg.more || []);
   var btnsHtml = allItems.map(function(it, i){
     return '<button class="se-btn" data-se-idx="'+i+'" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
   }).join('');
@@ -6956,6 +6956,18 @@ window.openServicePlus = openServicePlus;
   };
   function _cfg(){ var st = window.__siteType || 'default'; return CS_HOTLINE[st] || CS_HOTLINE['default']; }
   function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  // 直接 DOM 注入 ai bubble, 保留 raw html (appendBubble 默认 escHtml 会破)
+  function _csAppend(html){
+    if (typeof showChatApp === 'function') showChatApp();
+    if (typeof window.__revealChat === 'function') window.__revealChat();
+    var ws = document.getElementById('welcomeScreen'); if (ws) ws.remove();
+    var inner = document.getElementById('msgsInner'); if (!inner) return;
+    var d = document.createElement('div'); d.className = 'msg ai';
+    var body = document.createElement('div'); body.className = 'msg-body';
+    body.innerHTML = '<div class="msg-pre"></div><div class="mbubble">' + html + '</div>';
+    d.appendChild(body); inner.appendChild(d);
+    if (typeof scrollBottom === 'function') scrollBottom();
+  }
 
   // 📞 客服 1 按钮: chat 里 append 信息卡 (电话+工作时间+转人工 button)
   window.csQuick = function(){
@@ -6972,8 +6984,7 @@ window.openServicePlus = openServicePlus;
       '</div></div>';
     if (typeof showChatApp === 'function') showChatApp();
     if (typeof window.__revealChat === 'function') window.__revealChat();
-    if (typeof appendBubble === 'function') appendBubble('ai', html);
-    else if (window.LxStatus) window.LxStatus.toast(c.tel, { ms: 3000 });
+    _csAppend(html);
   };
 
   // 进入人工: chat 流 append 系统消息 + placeholder 变, 标 humanMode
@@ -6986,7 +6997,7 @@ window.openServicePlus = openServicePlus;
       '<div class="cs-human-text"><b>' + window.__humanAgentName + '</b> 已为您接入 ' + _esc(c.queue) + ' 队列<br><span style="opacity:.75">提问会优先发给人工 (POC 演示, 实际仍由 AI mock)</span></div>' +
       '<button class="cs-human-exit" onclick="csExitHuman()">退出人工</button>' +
     '</div>';
-    if (typeof appendBubble === 'function') appendBubble('ai', html);
+    _csAppend(html);
     var ta = document.getElementById('mainTa');
     if (ta) { if (!ta.__origPh) ta.__origPh = ta.placeholder; ta.placeholder = '向 ' + window.__humanAgentName + ' 提问...'; }
   };
@@ -6997,7 +7008,7 @@ window.openServicePlus = openServicePlus;
     var ta = document.getElementById('mainTa');
     if (ta && ta.__origPh) ta.placeholder = ta.__origPh;
     var html = '<div style="font-size:12px;color:#888;padding:6px 0">↩ 已退出人工模式, 继续与 AI 对话</div>';
-    if (typeof appendBubble === 'function') appendBubble('ai', html);
+    _csAppend(html);
   };
 })();
 </script>
