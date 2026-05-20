@@ -40,7 +40,8 @@ function shouldDispatch(userMessage) {
   const complexIndicators = ['帮我', '制定', '方案', '规划', '分析', '总结', '写', '生成', '翻译', '代码'];
   const hasComplex = complexIndicators.some(kw => msg.includes(kw));
   // 导购/购买意图必须走主 Agent 的 product_recommend（触发商品卡 + 一键下单），不能被 FAQ 截胡
-  const shoppingIndicators = ['推荐', '选购', '购买', '买', '哪款', '哪个好', '性价比', '预算', '报价', '多少钱', '值得', '导购', '求推荐'];
+  // 新品/新款/最新/怎么样/如何 等"产品咨询/询问类"也走主 agent（出商品卡）, 不能被 faq_agent 文字截胡
+  const shoppingIndicators = ['推荐', '选购', '购买', '买', '哪款', '哪个好', '性价比', '预算', '报价', '多少钱', '值得', '导购', '求推荐', '新品', '新款', '最新', '怎么样', '如何', '好不好', '值不值', '咋样', '怎样'];
   const isShopping = shoppingIndicators.some(kw => msg.includes(kw));
   if (msg.length < 20 && !hasComplex && !isShopping) {
     // 必须是联想相关（含联想/ThinkPad/小新等产品词，或是简单的是/否问题）

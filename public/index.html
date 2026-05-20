@@ -2557,7 +2557,7 @@ function renderSelfProducts(products) {
         ${specsHtml ? `<div class="leai-ppanel-tags">${specsHtml}</div>` : ''}
         <div class="leai-ppanel-row">
           <div>${price ? `<span class="leai-ppanel-pricelabel">参考价：</span><span class="leai-ppanel-price">${price}</span>${origPrice}` : ''}</div>
-          <button class="leai-ppanel-buy" onclick="event.stopPropagation();startBuyFlow('${escHtml(name).replace(/'/g, "\\\\'")}','${price||0}')">🎁 一键领取优惠</button>
+          <button class="leai-ppanel-buy" onclick="event.stopPropagation();startBuyFlow('${escHtml(name).replace(/'/g, "\\\\'")}','${price||0}','${escHtml(p.image_url||'').replace(/'/g, "\\\\'")}')">🎁 一键领取优惠</button>
         </div>
       </div>
     </div>`;
@@ -3653,7 +3653,7 @@ async function showProductDetail(sku) {
             '</div>' +
             optionGroupsHtml +
             '<div class="pd-action-btns">' +
-              '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button>' +
+              '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'').replace(/'/g, "\\'") + '\')">🎁 一键领取优惠</button>' +
               '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
           '</div>' +
@@ -3832,7 +3832,7 @@ function showAIModal(data) {
         (p.original_price && p.original_price > p.price ? '<span class="cmp-orig">¥' + Number(p.original_price).toLocaleString() + '</span>' : '') + '</td>';
       catRow += '<td>' + escHtml(p.category || '-') + '</td>';
       descRow += '<td class="cmp-desc">' + escHtml((p.description || '').slice(0, 100)) + '</td>';
-      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();startBuyFlow(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',' + (p.price||0) + ')">🎁 一键领取优惠</button></td>';
+      buyRow += '<td><button class="cmp-buy" onclick="document.querySelector(\'.ai-modal-mask\').remove();startBuyFlow(\'' + escHtml(p.name).replace(/'/g,"\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'').replace(/'/g,"\\'") + '\')">🎁 一键领取优惠</button></td>';
     });
 
     var specRows = '';
@@ -4802,8 +4802,9 @@ function showToastHb(msg) {
 // ══════════════════════════════════════
 //  🎟️ 立即购买 → 自动顺序领取所有优惠
 // ══════════════════════════════════════
-function startBuyFlow(productName, productPrice) {
+function startBuyFlow(productName, productPrice, productImage) {
   hideProductContextPrompt();
+  window.__lastBuyImage = productImage || '';
   // 已完成：直接重新弹出订单弹层
   if (startBuyFlow._done) {
     var ov = document.getElementById('orderOverlay');
@@ -4956,7 +4957,7 @@ function startBuyFlow(productName, productPrice) {
         '</div>' +
         '<div class="order-sheet-body">' +
         '<div class="order-product">' +
-          '<img class="order-product-img" src="" alt="">' +
+          '<img class="order-product-img" src="' + (window.__lastBuyImage || '') + '" alt="" onerror="this.style.visibility=\'hidden\'">' +
           '<div class="order-product-info">' +
             '<div class="order-product-name">'+escHtml(productName)+'</div>' +
             '<div class="order-product-spec">Ultra7-356H · 14英寸 · 32GB · 1T SSD</div>' +
@@ -6332,7 +6333,7 @@ window.LxBehavior = (function(){
           window.LxStatus && window.LxStatus.toast('🎉 已派发 ¥50 专属券到账户', { type: 'success', ms: 2000 });
           // 跳：购物车有 → 走结算流程；无 → 让 AI 推可用券的商品
           if (ct.length && typeof startBuyFlow === 'function') {
-            startBuyFlow(ct[0].name, ct[0].price);
+            startBuyFlow(ct[0].name, ct[0].price, ct[0].image_url || '');
           } else if (typeof quickAsk === 'function') {
             quickAsk('我刚领了一张 ¥50 新人券，推荐 3 款现在就能用这张券、性价比最高的联想机型');
           }
