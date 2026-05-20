@@ -11,10 +11,16 @@ WORKERS = 10
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
 def fetch_article_list():
-    """通过API拉全量文章列表"""
+    """通过API拉文章列表。默认增量模式(只拉最新N页), 环境变量 CRAWL_BRAND_PAGES=0 全量。
+    增量足够日常 cron(几千篇全量太慢25min+ 超时), 全量手动跑。"""
+    import os as _os
+    max_pages = int(_os.environ.get('CRAWL_BRAND_PAGES', '5'))  # 默认 5 页 ≈ 240 篇/次, _norm_url 去重新增
     all_items = []
     page = 1
     while True:
+        if max_pages > 0 and page > max_pages:
+            print(f'  增量模式: 拉满 {max_pages} 页, 停止 (累计{len(all_items)}). 全量用 CRAWL_BRAND_PAGES=0')
+            break
         url = API_URL.format(page=page)
         req = urllib.request.Request(url, headers=HEADERS)
         try:
