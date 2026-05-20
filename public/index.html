@@ -3979,7 +3979,10 @@ function showAIModal(data) {
         '</table></div>' +
       '</div>';
   } else if (data.type === 'info') {
-    var rendered = typeof marked !== 'undefined' ? marked.parse(sanitizeAutolink(data.content || '')) : escHtml(data.content || '');
+    // data.rawHtml=true 时直接注入 html, 跳过 marked.parse (避免对纯 HTML 复杂内嵌 div 解析炸)
+    var rendered = data.rawHtml
+      ? (data.content || '')
+      : (typeof marked !== 'undefined' ? marked.parse(sanitizeAutolink(data.content || '')) : escHtml(data.content || ''));
     mask.innerHTML =
       '<div class="ai-modal">' +
         '<button class="ai-modal-close" onclick="this.closest(\'.ai-modal-mask\').remove()">×</button>' +
@@ -5777,7 +5780,7 @@ function confirmBenefitOrder(name, finalPrice, base) {
     '<div style="font-size:12px;color:#aaa;margin-top:14px">价格与权益管家测算一致 · POC 演示，未真实扣款</div>' +
     '<div style="font-size:12px;color:#888;margin-top:6px">📦 订单已生成，可在右上角订单查看物流</div>' +
   '</div>';
-  if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'订单确认', content: html });
+  if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'订单确认', content: html, rawHtml: true });
   else if (window.LxStatus) window.LxStatus.toast('下单成功，实付 ¥' + finalPrice.toLocaleString() + '（与测算一致）', { type:'success', ms:3000 });
 }
 window.confirmBenefitOrder = confirmBenefitOrder;
