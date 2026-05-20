@@ -109,7 +109,7 @@ module.exports = {
         });
       });
       req.on('error', reject);
-      req.setTimeout(30000, () => { req.destroy(); reject(new Error('support_agent timeout')); });
+      req.setTimeout(90000, () => { req.destroy(); reject(new Error('support_agent timeout')); });
       req.write(body);
       req.end();
     });

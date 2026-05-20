@@ -85,7 +85,7 @@ module.exports = {
         });
       });
       req.on('error', reject);
-      req.setTimeout(20000, () => { req.destroy(); reject(new Error('faq_agent timeout')); });
+      req.setTimeout(60000, () => { req.destroy(); reject(new Error('faq_agent timeout')); });
       req.write(body);
       req.end();
     });
