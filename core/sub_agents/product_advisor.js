@@ -171,7 +171,7 @@ module.exports = {
         }
       });
       req.on('error', reject);
-      req.setTimeout(30000, () => { req.destroy(); reject(new Error('product_advisor timeout')); });
+      req.setTimeout(90000, () => { req.destroy(); reject(new Error('product_advisor timeout')); });
       req.write(body);
       req.end();
     });

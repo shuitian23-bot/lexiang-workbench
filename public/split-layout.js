@@ -4,10 +4,10 @@
 
   var MQ = window.matchMedia('(min-width: 769px)');
   var CHAT_PREFIXES = ['/chat', '/shop-chat', '/b-chat', '/biz-chat'];
-  var STORE_KEY = 'lexiang.splitV2';
-  var DEFAULT_LEFT_PCT = 50;
-  var MIN_LEFT_PCT = 25;
-  var MAX_LEFT_PCT = 75;
+  var STORE_KEY = 'lexiang.splitV4'; // v4: 默认 29(chat):71(landing) 即 1:2.5; 旧版失效
+  var DEFAULT_LEFT_PCT = 29; // chat 占 ~1/3.5, landing 占 ~2.5/3.5 (1:2.5 分屏比)
+  var MIN_LEFT_PCT = 20;
+  var MAX_LEFT_PCT = 80;
 
   function isPC() { return MQ.matches; }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -167,7 +167,7 @@
       .catch(function () { return url; });
   }
 
-  function findReusableTab(type, data) {
+  function findReusableTab(type, data, title) {
     data = data || {};
     for (var i = 0; i < tabs.length; i++) {
       var t = tabs[i];
@@ -177,8 +177,10 @@
       if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
       if (type === 'products' && data.category && td.category === data.category) return t;
       if (type === 'preview' && data.url && td.url === data.url) return t;
+      // info tab: 按 title 严格区分(权益管家·A vs 权益管家·B / 联想服务 / 订单确认 各自独立 tab)
+      if (type === 'info') { if (title && t.title === title) return t; else continue; }
       // 服务中心类 tab：同 type 即复用（避免点会员/定制/优惠/换新等出多个同名 tab）
-      if (type === 'member' || type === 'customize' || type === 'coupon' || type === 'tradein' || type === 'stores' || type === 'info' || type === 'solutions' || type === 'compare') return t;
+      if (type === 'member' || type === 'customize' || type === 'coupon' || type === 'tradein' || type === 'stores' || type === 'solutions' || type === 'compare') return t;
     }
     return null;
   }
@@ -279,7 +281,7 @@
     if (!html.classList.contains('split-mode')) enterSplit();
     if (!skipHome && type !== 'home') ensureHomeTab();
 
-    var reusable = findReusableTab(type, data);
+    var reusable = findReusableTab(type, data, title);
     if (reusable) {
       ensureContentPanelOpen();
       switchTab(reusable.id);
@@ -906,6 +908,28 @@
             '</div>' +
           '</div>' +
           tuHtml +
+          // 用户评价 section: 横排单行 (mock POC, 抓官网精选好评)
+          (function(){
+            var REVIEWS = [
+              { u:'彼岸若雪****', s:5, t:'屏幕清晰、重量还可以，电池续航非常不错，新机已开荒！' },
+              { u:'lenovo94****', s:5, t:'颜值真的超级高，办公+轻度游戏都满足，非常满意！' },
+              { u:'科技小白****', s:5, t:'性能强，温控好，键盘手感舒服，办公无敌！' },
+              { u:'职场达人****', s:5, t:'轻薄便携，续航给力，开会出差神器！' },
+              { u:'数码玩家****', s:4, t:'外观漂亮、运行流畅，比同价位竞品强不少。' },
+              { u:'学生党****',   s:5, t:'学生认证后非常划算，写作业打游戏都顺。' },
+              { u:'lenovo46****', s:5, t:'设计精致、做工扎实，性价比非常高，强烈推荐！' }
+            ];
+            var cards = REVIEWS.map(function(r){
+              return '<div class="cpd-rev-card">' +
+                '<div class="cpd-rev-head"><span class="cpd-rev-user">' + escH(r.u) + '</span><span class="cpd-rev-stars">' + '★'.repeat(r.s) + '<span style="color:#ddd">' + '★'.repeat(5 - r.s) + '</span></span></div>' +
+                '<div class="cpd-rev-text">' + escH(r.t) + '</div>' +
+              '</div>';
+            }).join('');
+            return '<div class="cpd-reviews-section">' +
+              '<h4 class="cpd-section-title">💬 用户评价 <span class="cpd-rev-stat">满意度 <b>99%</b> · 9073 条</span></h4>' +
+              '<div class="cpd-rev-list">' + cards + '</div>' +
+            '</div>';
+          })() +
           (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-section-title">📋 规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
           '<div class="cpd-detail-images-section"><h4 class="cpd-section-title">📸 商品介绍详情图</h4><div class="cpd-detail-images-body" id="cpd-detail-images-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">加载详情图…</div></div></div>' +
         '</div>';
@@ -1021,7 +1045,7 @@
       });
     } else {
       // fallback：旧引导按钮
-      container.innerHTML = '<div class="cp-svc-page"><div class="cp-svc-hero" style="background:linear-gradient(135deg,#6b2068,#b83340)"><h2>🛠 商品定制</h2><p>请稍后再试</p></div></div>';
+      container.innerHTML = '<div class="cp-svc-page"><div class="cp-svc-hero" style="background:linear-gradient(135deg,#4D144A,#B8252E)"><h2>🛠 商品定制</h2><p>请稍后再试</p></div></div>';
     }
   };
 
@@ -1041,7 +1065,7 @@
     });
     var listHtml = sorted.map(function(c){
       var done = received.indexOf(c.id) >= 0;
-      var hi = highlight.indexOf(c.tag) >= 0 ? ' style="box-shadow:0 0 0 2px #b83340"' : '';
+      var hi = highlight.indexOf(c.tag) >= 0 ? ' style="box-shadow:0 0 0 2px #B8252E"' : '';
       return '<div class="coupon-item'+(done?' received':'')+'" data-id="'+c.id+'"'+hi+'>'+
         '<div class="coupon-amount"><div class="num">'+c.amount+'</div><div class="cond">'+escH(c.cond||'')+'</div></div>'+
         '<div class="coupon-info"><h4>'+escH(c.title||'')+'</h4><p>'+escH(c.desc||'')+'</p><span class="scope">'+escH(c.scope||'')+'</span></div>'+
@@ -1050,7 +1074,7 @@
     }).join('');
     container.innerHTML =
       '<div class="cp-svc-page">' +
-        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#b83340,#ef4444)">' +
+        '<div class="cp-svc-hero" style="background:linear-gradient(135deg,#B8252E,#ef4444)">' +
           '<h2>🎟 优惠券中心</h2>' +
           '<p>已领 ' + received.length + ' / ' + COUPONS.length + ' 张 — 学生 / 教师 / 企业 / 政教 / 新用户 / 换新 / 电竞 / 创作者</p>' +
         '</div>' +
