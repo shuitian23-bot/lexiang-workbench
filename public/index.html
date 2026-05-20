@@ -413,6 +413,20 @@ html,body{height:100%;overflow:hidden}
 
 /* Input bar */
 .input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom));position:relative}
+/* 在线客服 / 热线 rail */
+.cs-rail{display:flex;gap:6px;margin:0 0 8px;flex-wrap:wrap}
+.cs-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#f5f5f7;border:1px solid #e5e7eb;border-radius:14px;font-size:11px;color:#555;cursor:pointer;transition:all .15s;font-family:inherit}
+.cs-pill:hover{background:#eef2ff;border-color:#c7d2fe;color:#4338ca}
+.cs-pill[data-on="1"]{background:linear-gradient(90deg,#fff7ed,#ffedd5);border-color:#fed7aa;color:#9a3412}
+/* 转人工 banner */
+.human-banner{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:linear-gradient(90deg,#fff7ed,#fff);border-left:3px solid #f97316;display:flex;align-items:center;gap:10px;font-size:12px;color:#7c2d12}
+.human-banner-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.human-banner-text{flex:1;line-height:1.45}
+.human-banner-text b{color:#9a3412}
+.human-banner-exit{padding:5px 12px;background:#fff;border:1px solid #fed7aa;border-radius:8px;font-size:11px;color:#9a3412;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0}
+.human-banner-exit:hover{background:#fff7ed;border-color:#fdba74}
+[data-theme="dark"] .cs-pill{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#9ca3af}
+[data-theme="dark"] .human-banner{background:linear-gradient(90deg,#2a1a0a,#1a1a1a);color:#fbbf24}
 .input-bar-toprow{display:flex;align-items:center;gap:6px;padding-bottom:8px;flex-wrap:wrap}
 .input-inner{display:flex;gap:8px;align-items:flex-end}
 .input-tools{display:flex;align-items:center;gap:6px;padding:6px 0 0;flex-wrap:wrap}
@@ -1550,6 +1564,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     </div>
     <div class="input-bar">
       <div id="lxHintChipSlot"></div>
+      <div id="humanModeBanner" class="human-banner" style="display:none"></div>
+      <div id="csActionRail" class="cs-rail"></div>
       <div id="productOverlay" class="ai-product-overlay hiding"></div>
       <div id="productChipsBar" class="product-chips-bar hidden"></div>
       <div id="subnavExtraInput" class="subnav-extra-input"></div>
@@ -6910,6 +6926,101 @@ function openServicePlus() {
 window.openServicePlus = openServicePlus;
 
 
+</script>
+<script>
+// ══════════════════════════════════════════
+//  在线客服 / 转人工 (POC mock)
+// ══════════════════════════════════════════
+(function(){
+  // 子站客服 hotline / 队列映射
+  var CS_HOTLINE = {
+    'default': { tel:'400-990-8888',       label:'联想官方客服',    queue:'综合' },
+    'shop':    { tel:'400-990-8888 转 1', label:'个人/家庭购客服', queue:'消费' },
+    'b':       { tel:'400-990-8888 转 2', label:'中小企业购客服',  queue:'SMB' },
+    'biz':     { tel:'400-990-8888 转 3', label:'政教/大企业客服', queue:'大客户' }
+  };
+  function _cfg(){ var st = window.__siteType || 'default'; return CS_HOTLINE[st] || CS_HOTLINE['default']; }
+  function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // 📞 热线: 仅展示子站电话 + 拨打
+  window.csOpenHotline = function(){
+    var c = _cfg();
+    var telDigits = c.tel.replace(/[^\d]/g, '');
+    var html = '<div style="padding:14px 4px;text-align:center">' +
+      '<div style="font-size:13px;color:#666;margin-bottom:6px">' + _esc(c.label) + ' · ' + _esc(c.queue) + ' 队列</div>' +
+      '<div style="font-size:26px;font-weight:800;color:#b83340;margin:14px 0;letter-spacing:1px">' + _esc(c.tel) + '</div>' +
+      '<div style="font-size:12px;color:#888;margin-bottom:16px">服务时间: 9:00 - 21:00 (含节假日)</div>' +
+      '<a href="tel:' + telDigits + '" style="display:inline-block;padding:11px 28px;background:linear-gradient(90deg,#6b2068,#b83340);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px">📞 立即拨打</a>' +
+    '</div>';
+    if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'📞 客服热线', content: html });
+    else if (window.LxStatus) window.LxStatus.toast(c.tel, { ms: 3000 });
+  };
+
+  // 💬 在线咨询: 入口卡 → 继续问 AI / 转人工
+  window.csOpenChat = function(){
+    var c = _cfg();
+    var html = '<div style="padding:10px 6px">' +
+      '<div style="font-size:13px;color:#666;line-height:1.7;margin-bottom:14px">' +
+        '当前为 <b style="color:#333">' + _esc(c.label) + '</b> 队列。AI 助手可解答 90%+ 常见问题；复杂咨询可转人工。' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:center">' +
+        '<button onclick="(document.querySelector(\'.ai-modal-mask\')||{}).remove&&document.querySelector(\'.ai-modal-mask\').remove();" style="padding:10px 20px;background:#f5f5f7;color:#333;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit">继续问 AI</button>' +
+        '<button onclick="(document.querySelector(\'.ai-modal-mask\')||{}).remove&&document.querySelector(\'.ai-modal-mask\').remove();csStartHuman();" style="padding:10px 20px;background:linear-gradient(90deg,#f97316,#ea580c);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">🧑‍💼 转人工</button>' +
+      '</div></div>';
+    if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'💬 在线客服', content: html });
+  };
+
+  // 转人工: 状态切换 + banner + placeholder + 标记
+  window.csStartHuman = function(){
+    var c = _cfg();
+    window.__inHumanMode = true;
+    window.__humanAgentName = '客服小李';
+    var b = document.getElementById('humanModeBanner');
+    if (b) {
+      b.style.display = 'flex';
+      b.innerHTML =
+        '<div class="human-banner-avatar">李</div>' +
+        '<div class="human-banner-text"><b>' + window.__humanAgentName + '</b> · 已接入 ' + _esc(c.queue) + ' 队列<br><span style="opacity:.75;font-size:11px">您的咨询将由人工客服处理 (POC 演示, 回答仍由 AI mock)</span></div>' +
+        '<button class="human-banner-exit" onclick="csExitHuman()">退出人工</button>';
+    }
+    var ta = document.getElementById('mainTa');
+    if (ta) { if (!ta.__origPh) ta.__origPh = ta.placeholder; ta.placeholder = '向 ' + window.__humanAgentName + ' 提问...'; }
+    // rail pill 标视觉态
+    var rail = document.getElementById('csActionRail');
+    if (rail) {
+      var pills = rail.querySelectorAll('.cs-pill');
+      pills.forEach(function(p){ if (p.dataset.action === 'chat') p.setAttribute('data-on', '1'); });
+    }
+    if (window.LxStatus) window.LxStatus.toast('已转接 ' + window.__humanAgentName + ' (POC 演示)', { type:'success', ms: 2500 });
+  };
+
+  // 退出人工
+  window.csExitHuman = function(){
+    window.__inHumanMode = false;
+    window.__humanAgentName = null;
+    var b = document.getElementById('humanModeBanner');
+    if (b) { b.style.display = 'none'; b.innerHTML = ''; }
+    var ta = document.getElementById('mainTa');
+    if (ta && ta.__origPh) ta.placeholder = ta.__origPh;
+    var rail = document.getElementById('csActionRail');
+    if (rail) rail.querySelectorAll('.cs-pill').forEach(function(p){ p.removeAttribute('data-on'); });
+    if (window.LxStatus) window.LxStatus.toast('已退出人工模式, 继续与 AI 对话', { ms: 2000 });
+  };
+
+  // 渲染 rail 按钮
+  function _csRenderRail(){
+    var rail = document.getElementById('csActionRail');
+    if (!rail || rail.dataset.rendered) return;
+    rail.innerHTML =
+      '<button class="cs-pill" data-action="chat" onclick="csOpenChat()" title="在线咨询 / 转人工"><span>💬</span>在线咨询</button>' +
+      '<button class="cs-pill" data-action="tel"  onclick="csOpenHotline()" title="客服热线"><span>📞</span>热线</button>';
+    rail.dataset.rendered = '1';
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(_csRenderRail, 50); });
+  // 进 chat 时也渲一次(分屏 split-mode 直入兜底)
+  var _origReveal = window.__revealChat;
+  window.__revealChat = function(){ try { if (_origReveal) _origReveal.apply(this, arguments); } catch(e){} _csRenderRail(); };
+})();
 </script>
 <script src="/split-layout.js?v=20260515-v82-s21fix"></script>
 </body>
