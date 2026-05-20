@@ -174,6 +174,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 /* IconPark SVG icon sizing */
 .pcard .ico svg,.mall-feat-icon svg,.se-btn .ico svg{display:block;width:100%;height:100%}
 .se-btn .ico{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.se-btn.se-btn-exit{background:linear-gradient(90deg,#f97316,#ea580c);color:#fff;border-color:transparent;font-weight:600}
+.se-btn.se-btn-exit:hover{filter:brightness(1.1);background:linear-gradient(90deg,#ea580c,#c2410c)}
+.se-btn.se-btn-exit .ico{color:#fff}
 .hero-wrap{position:relative;overflow:hidden;background:var(--hero-bg)}
 .hero-wrap::before{content:'';position:absolute;inset:-40% -20%;background:radial-gradient(ellipse 60% 55% at 25% 45%,var(--hp) 0%,transparent 70%),radial-gradient(ellipse 35% 30% at 80% 65%,var(--hr) 0%,transparent 60%);filter:blur(34px);animation:gf1 14s linear infinite;z-index:0}
 .hero-wrap::after{content:'';position:absolute;inset:-40% -20%;background:radial-gradient(ellipse 50% 50% at 70% 35%,var(--hb) 0%,transparent 70%),radial-gradient(ellipse 40% 45% at 50% 70%,var(--hv) 0%,transparent 65%);filter:blur(34px);animation:gf2 18s linear infinite;z-index:0}
@@ -4358,7 +4361,7 @@ function renderSubnav() {
   if (window.__inHumanMode) {
     // 人工模式 subnav: 隐主菜单 + 客服入口, 改显人工服务专属按钮
     allItems = [
-      { ico:'↩', label:'退出人工', title:'退回 AI 对话', fn:"csExitHuman()" },
+      { ico:'↩', label:'退出人工', title:'退回 AI 对话', fn:"csExitHuman()", cls:'se-btn-exit' },
       { ico:'📦', label:'我的订单',  fn:"quickAsk('小李, 帮我查最近的订单状态和物流')" },
       { ico:'🖼', label:'发图片',    title:'上传截图给客服', fn:"document.getElementById('imgFileInput').click()" },
       { ico:'⭐', label:'评价服务',  fn:"quickAsk('给小李的服务打个 5 星好评, 服务专业体验好')" },
@@ -4369,7 +4372,7 @@ function renderSubnav() {
     allItems = [{ico:'📞',label:'客服',title:'客服热线 / 在线咨询 / 转人工',fn:"csQuick()"}].concat(cfg.main || []).concat(cfg.more || []);
   }
   var btnsHtml = allItems.map(function(it, i){
-    return '<button class="se-btn" data-se-idx="'+i+'" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
+    return '<button class="se-btn '+(it.cls||'')+'" data-se-idx="'+i+'" onclick="'+it.fn.replace(/"/g,'&quot;')+'" title="'+escHtml(it.title||it.label)+'"><span class="ico">'+__leaiIcon(it.ico,{size:18})+'</span>'+escHtml(it.label)+'</button>';
   }).join('');
   var moreHtml = '<div class="se-more" id="seMoreWrap" style="display:none">'+
     '<button class="se-btn" onclick="_seToggleMore()" title="更多">更多 ▾</button>'+
