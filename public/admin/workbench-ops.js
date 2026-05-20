@@ -53,9 +53,9 @@ function opsTimeFilter(id) {
       <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customEnd}" onchange="opsCustomTimeChanged('${id}','end',this.value)">
     </span>` : '';
   return `<div class="ops-time-filter" id="${id}">
-    <select class="ops-select" onchange="opsTimeChanged('${id}',this.value)">
-      ${['1d','7d','14d','30d','custom'].map(v => `<option value="${v}" ${range === v ? 'selected' : ''}>${leaiRangeLabel(v)}</option>`).join('')}
-    </select>
+    <div class="dash-filter-bar">
+      ${['1d','7d','14d','30d','custom'].map(v => `<button class="dash-pill ${range === v ? 'active' : ''}" onclick="opsTimeChanged('${id}','${v}')">${leaiRangeLabel(v)}</button>`).join('')}
+    </div>
     ${customFilter}
     <span class="ops-date-range" id="${id}-range"></span>
   </div>`;

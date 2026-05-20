@@ -1,3 +1,4 @@
+console.log('[SERVER-V2] Loading server.js at', new Date().toISOString());
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const session = require('express-session');
@@ -133,7 +134,10 @@ app.use('/api/product', require('./routes/product_detail_images'));
 app.use('/api/pointer', require('./routes/pointer'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
-app.use('/api/pipeline', adminLimiter, require('./routes/pipeline'));
+app.use('/api/pipeline', (req, res, next) => {
+  console.log('[PIPELINE-TRACE]', req.method, req.originalUrl, '→', req.url);
+  next();
+}, adminLimiter, require('./routes/pipeline'));
 app.use('/api/site', require('./routes/feed'));
 app.use('/', require('./routes/sitemap'));
 

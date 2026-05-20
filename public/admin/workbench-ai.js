@@ -83,6 +83,7 @@ const AI_NAV_MAP = [
   { keywords: ['统计分析','统计','数据统计'], page: 'pipeline.stats' },
   { keywords: ['口令过滤','过滤口令','去口令'], page: 'pipeline.filter' },
   { keywords: ['监控看板','监控','流水线','pipeline监控','流水线监控'], page: 'pipeline.monitor' },
+  { keywords: ['质量分析','质量','满意度','性能','异常','评分','osat','nps'], page: 'pipeline.quality' },
 ];
 
 function aiTryNavigate(text) {

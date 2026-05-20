@@ -437,6 +437,7 @@ router.get('/download', async (req, res) => {
 
   // ratio: 一级分类占比（从 stats_history 汇总）
   if (type === 'ratio') {
+    console.log('[RATIO-HANDLER] called at', new Date().toISOString());
     const statsFile = _statsFilePath();
     if (!fs.existsSync(statsFile)) {
       return res.status(404).json({ error: '无统计数据' });

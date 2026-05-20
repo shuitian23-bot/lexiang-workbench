@@ -551,9 +551,11 @@ select.pb-prop-input { background:#fff; }
 .data-table tr:hover td { background:rgba(37,99,235,0.03); }
 
 /* ===== Ops Module ===== */
-.ops-time-filter { display:flex; align-items:center; gap:8px; }
+.ops-time-filter { display:flex; align-items:center; gap:8px; flex-shrink:0; flex-wrap:nowrap; }
+.ops-time-filter > .dash-filter-bar { flex-wrap:nowrap; }
+.ops-time-filter .dash-pill { white-space:nowrap; }
 .ops-select { padding:6px 10px; border:1px solid var(--border-light); border-radius:6px; font-size:12px; background:#fff; cursor:pointer; }
-.ops-date-input { padding:4px 8px; border:1px solid var(--border-light); border-radius:6px; font-size:12px; }
+.ops-date-input { padding:4px 8px; border:1px solid var(--border-light); border-radius:6px; font-size:12px; width:118px; }
 .ops-custom-range { display:inline-flex; align-items:center; gap:6px; color:var(--text-tertiary); font-size:12px; white-space:nowrap; }
 .ops-date-range { font-size:12px; color:var(--text-tertiary); display:flex; align-items:center; gap:4px; }
 .ops-section-title { font-size:14px; font-weight:600; color:var(--text); margin:20px 0 12px; display:flex; align-items:center; gap:8px; }

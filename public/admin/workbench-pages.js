@@ -231,6 +231,23 @@ function leaiSetOverviewRange(range) {
   switchPage('dashboard.overview');
 }
 
+function leaiOverviewTimeFilterHtml(bounds, customStart, customEnd) {
+  const range = LEAI_DASH_STATE.overviewRange;
+  const pill = v => `dash-pill ${range === v ? 'active' : ''}`;
+  const customFilter = range === 'custom' ? `
+    <span class="ops-custom-range">
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customStart}" onchange="leaiSetOverviewCustom('start',this.value)">
+      <span>至</span>
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customEnd}" onchange="leaiSetOverviewCustom('end',this.value)">
+    </span>` : '';
+  return `<div class="ops-time-filter">
+    <div class="dash-filter-bar">
+      ${['1d', '7d', '14d', '30d', 'custom'].map(v => `<button class="${pill(v)}" onclick="leaiSetOverviewRange('${v}')">${leaiRangeLabel(v)}</button>`).join('')}
+    </div>
+    ${customFilter}
+  </div>`;
+}
+
 function leaiSetOverviewCustom(part, value) {
   LEAI_DASH_STATE.overviewRange = 'custom';
   if (part === 'start') LEAI_DASH_STATE.overviewCustomStart = value;
@@ -266,15 +283,6 @@ const PAGE_RENDERERS = {
     const lg = leaiBizSummary(summary.rows, L.gov);
     const platformTotal = summary.offGmv + summary.nonGmv;
     const activeBase = summary.dau * Math.max(summary.rows.length, 1);
-    const rangeOptions = ['1d', '7d', '14d', '30d', 'custom'].map(v =>
-      `<option value="${v}" ${range === v ? 'selected' : ''}>${leaiRangeLabel(v)}</option>`
-    ).join('');
-    const customFilter = range === 'custom' ? `
-      <span class="ops-custom-range">
-        <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customStart}" onchange="leaiSetOverviewCustom('start',this.value)">
-        <span>至</span>
-        <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customEnd}" onchange="leaiSetOverviewCustom('end',this.value)">
-      </span>` : '';
     return `
     <div class="page-header">
       <div>
@@ -282,8 +290,7 @@ const PAGE_RENDERERS = {
         <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated}</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <select id="ov-time-range" class="ops-select" onchange="leaiSetOverviewRange(this.value)">${rangeOptions}</select>
-        ${customFilter}
+        ${leaiOverviewTimeFilterHtml(bounds, customStart, customEnd)}
         <button class="btn btn-sm btn-secondary" onclick="aiQuick('解释${leaiRangeLabel(range)}乐享运营关键变化')">AI 解读</button>
       </div>
     </div>

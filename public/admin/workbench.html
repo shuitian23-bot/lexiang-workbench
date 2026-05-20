@@ -134,6 +134,7 @@ const MENU_TREE = {
     icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
       'pipeline.annotate': { label: 'Query 分析' },
+	      'pipeline.quality': { label: '质量分析' },
       'ops.traffic': { label: '流量分析' },
       'ops.gmv': { label: 'GMV 分析' }
     }
@@ -493,6 +494,7 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/workbench-ops.js?v=20260520-ops3"></script>
 <script src="/admin/workbench-report.js"></script>
 <script src="/admin/workbench-pipeline.js?v=20260520c"></script>
+  <script src="/admin/workbench-quality.js?v=20260520"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
