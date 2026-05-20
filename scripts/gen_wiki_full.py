@@ -1980,7 +1980,7 @@ def main():
             # ts 用 max(created_at, updated_at)：OpenAPI 每次 upsert 刷 updated_at，
             # 在售/新品自动近期靠前，[全部]页无需人工 promote 清单
             _q = ("SELECT id, name, sku, category, price, status, stock, image_url, "
-                  "description, specs, MAX(COALESCE(updated_at,''), COALESCE(created_at,'')) "
+                  "description, specs, COALESCE(created_at, updated_at) "
                   "FROM products "
                   "WHERE name IS NOT NULL AND name != '' AND ("
                   "  status = 'active' "
