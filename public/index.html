@@ -1409,13 +1409,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   </div>
   <div class="chat-main">
     <div class="chat-topbar">
-      <div class="site-seg" id="siteSeg"></div>
-      <script>!function(){
-        var st=window.__siteType||'default';
-        var S=[{k:'default',label:'综合',href:'/chat/'},{k:'shop',label:'个人家庭',href:'/shop-chat/'},{k:'b',label:'中小企业',href:'/b-chat/'},{k:'biz',label:'政教大企业',href:'/biz-chat/'}];
-        var el=document.getElementById('siteSeg');
-        if(el)el.innerHTML=S.map(function(s){return '<a href="'+s.href+'"'+(s.k===st?' class="on"':'')+' title="切换到'+s.label+'子站">'+s.label+'</a>';}).join('');
-      }();</script>
       <div class="chat-title" id="chatTitle"></div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <button class="topbar-btn" id="shareBtn" onclick="shareConv()" title="分享对话" style="display:none">
@@ -5843,8 +5836,9 @@ window.LxBehavior = (function(){
   }
   function refreshHistoryBadge(){
     var isChip = window.__lxHintMode === 'chip';
-    var mount = isChip ? document.querySelector('.chat-topbar') : document.body;
-    if (!mount) return; // chat-topbar 不在(未进 chat)就跳，下次 hint 触发再试
+    // chip 模式：badge 挂 input-bar 顶(跟 chip slot 同区域), 让 chip + 历史"在一起"; legacy: 原 fixed bottom-right
+    var mount = isChip ? document.querySelector('.input-bar') : document.body;
+    if (!mount) return; // input-bar 不在(未进 chat)就跳，下次 hint 触发再试
     var b = document.getElementById('lxHintHistoryBadge');
     // 模式切换或父节点不对时，重建到正确容器
     if (b && b.parentNode !== mount) { b.remove(); b = null; }
@@ -5852,18 +5846,22 @@ window.LxBehavior = (function(){
       b = document.createElement('div');
       b.id = 'lxHintHistoryBadge';
       if (isChip) {
-        // chip 模式：挂 chat-topbar 内，紧凑 pill 跟 site-seg 一排，不抢内容区
-        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:12px;color:#6D28D9;cursor:pointer;display:none;align-items:center;gap:4px;flex-shrink:0;margin-left:4px';
+        // chip 模式：input-bar 内的小 pill, 跟 chip 同区域显示
+        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#6D28D9;cursor:pointer;display:none;align-items:center;gap:4px;align-self:flex-start;margin:0 0 6px;width:fit-content';
       } else {
         // legacy 浮窗模式：原 fixed bottom-right
         b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#6D28D9;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
       }
       b.onclick = function(){ openHistoryPanel(); };
-      if (mount) mount.appendChild(b);
+      if (mount) {
+        // chip 模式插 input-bar 第一个位置(在 chip slot 之前), legacy 模式 append 到 body
+        if (isChip && mount.firstChild) mount.insertBefore(b, mount.firstChild);
+        else mount.appendChild(b);
+      }
     }
     if (hintHistory.length === 0) { b.style.display = 'none'; return; }
-    b.innerHTML = isChip ? '📜 <b>' + hintHistory.length + '</b>' : '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
-    b.style.display = 'inline-flex';
+    b.innerHTML = isChip ? '📜 历史 <b>' + hintHistory.length + '</b>' : '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
+    b.style.display = isChip ? 'inline-flex' : 'inline-flex';
   }
   function openHistoryPanel(){
     var existing = document.getElementById('lxHintHistoryPanel');
