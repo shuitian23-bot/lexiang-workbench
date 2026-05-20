@@ -664,7 +664,7 @@ function _showDateTip(inputEl, msg) {
 
 // Strip trailing spaces from tag keys to merge duplicates like "电商 " → "电商"
 function _cleanRecordKeys(rec) {
-  const tagKeys = ['tag_dist_all', 'tag_dist_active', 'tag_dist_semantic', 'channel_dist', 'source_dist', 'product_dist', 'turn_distribution'];
+  const tagKeys = ['tag_dist_all', 'tag_dist_active', 'tag_dist_semantic', 'channel_dist', 'source_dist', 'product_dist', 'medium_dist', 'turn_distribution'];
   for (const key of tagKeys) {
     const dist = rec[key];
     if (!dist || typeof dist !== 'object') continue;
