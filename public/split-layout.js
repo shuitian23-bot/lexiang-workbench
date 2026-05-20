@@ -901,7 +901,7 @@
                 '<button class="cpd-cart">🛒 加入购物车</button>' +
               '</div>' +
               '<div class="cpd-actions-sub">' +
-                '<button class="cpd-compare">✨ 和竞品对比</button>' +
+                '<button class="cpd-compare">✨ 找相似</button>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -936,7 +936,7 @@
       });
       var cmpBtn = container.querySelector('.cpd-compare');
       if (cmpBtn) cmpBtn.addEventListener('click', function () {
-        if (typeof quickAsk === 'function') quickAsk('帮我对比 ' + p.name + ' 和同价位竞品');
+        if (typeof quickAsk === 'function') quickAsk('找几款与「' + p.name + '」相似的联想机型，列出 3-5 款同价位/同系列的对比卡');
       });
       if (typeof notifyAIProductContext === 'function') notifyAIProductContext(p);
       updateWorkspaceContextFromTab(getActiveTab());
