@@ -5729,16 +5729,27 @@ window.LxBehavior = (function(){
     refreshHistoryBadge();
   }
   function refreshHistoryBadge(){
+    var isChip = window.__lxHintMode === 'chip';
+    var mount = isChip ? document.querySelector('.chat-topbar') : document.body;
+    if (!mount) return; // chat-topbar 不在(未进 chat)就跳，下次 hint 触发再试
     var b = document.getElementById('lxHintHistoryBadge');
+    // 模式切换或父节点不对时，重建到正确容器
+    if (b && b.parentNode !== mount) { b.remove(); b = null; }
     if (!b) {
       b = document.createElement('div');
       b.id = 'lxHintHistoryBadge';
-      b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#6D28D9;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
+      if (isChip) {
+        // chip 模式：挂 chat-topbar 内，紧凑 pill 跟 site-seg 一排，不抢内容区
+        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:12px;color:#6D28D9;cursor:pointer;display:none;align-items:center;gap:4px;flex-shrink:0;margin-left:4px';
+      } else {
+        // legacy 浮窗模式：原 fixed bottom-right
+        b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#6D28D9;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
+      }
       b.onclick = function(){ openHistoryPanel(); };
-      document.body.appendChild(b);
+      if (mount) mount.appendChild(b);
     }
     if (hintHistory.length === 0) { b.style.display = 'none'; return; }
-    b.innerHTML = '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
+    b.innerHTML = isChip ? '📜 <b>' + hintHistory.length + '</b>' : '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
     b.style.display = 'inline-flex';
   }
   function openHistoryPanel(){
