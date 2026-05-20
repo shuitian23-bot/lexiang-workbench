@@ -163,11 +163,11 @@ PAGE_RENDERERS['pipeline.annotate'] = () => `
             </table>
           </div>
         </div>
-        <div class="card"><div class="card-header"><div class="card-title">终端类型分布</div></div><div id="cMedium" style="height:300px"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">商品咨询 TOP20</div></div><div id="cProduct" style="height:300px"></div></div>
       </div>
-      <div class="card" style="margin-top:16px">
-        <div class="card-header"><div class="card-title">商品咨询 TOP20</div></div>
-        <div id="cProduct" style="height:300px"></div>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card"><div class="card-header"><div class="card-title">来源分布</div></div><div id="cSource" style="height:300px"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">终端类型分布</div></div><div id="cMedium" style="height:300px"></div></div>
       </div>
     </div>
   `;
@@ -529,7 +529,7 @@ function downloadExcel(type) {
 function initDashboard() {
   ensureECharts(() => {
     if (!window.echarts) { refreshDashboard(); return; }
-    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cMedium','cProduct','cApTrend','cAtTrend'];
+    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct','cMedium','cApTrend','cAtTrend'];
     _dashCharts = {};
     ids.forEach(id => {
       const el = document.getElementById(id);
@@ -843,6 +843,7 @@ function renderDashboardCharts(recs) {
   renderApTrend(apTrendFilteredRecords(), TH);
   renderAtTrend(atTrendFilteredRecords(), TH);
   renderHotCurrent(r);
+  hbarChart('cSource', mergedSource, '#722ed1', TH, 100);
   hbarChart('cProduct', mergedProduct, '#ff7d00', TH, 100);
   hbarChart('cMedium', mergedMedium, '#00b578', TH, 100);
 }
