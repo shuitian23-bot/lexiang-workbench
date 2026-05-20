@@ -167,7 +167,7 @@
       .catch(function () { return url; });
   }
 
-  function findReusableTab(type, data) {
+  function findReusableTab(type, data, title) {
     data = data || {};
     for (var i = 0; i < tabs.length; i++) {
       var t = tabs[i];
@@ -177,8 +177,10 @@
       if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
       if (type === 'products' && data.category && td.category === data.category) return t;
       if (type === 'preview' && data.url && td.url === data.url) return t;
+      // info tab: 按 title 严格区分(权益管家·A vs 权益管家·B / 联想服务 / 订单确认 各自独立 tab)
+      if (type === 'info') { if (title && t.title === title) return t; else continue; }
       // 服务中心类 tab：同 type 即复用（避免点会员/定制/优惠/换新等出多个同名 tab）
-      if (type === 'member' || type === 'customize' || type === 'coupon' || type === 'tradein' || type === 'stores' || type === 'info' || type === 'solutions' || type === 'compare') return t;
+      if (type === 'member' || type === 'customize' || type === 'coupon' || type === 'tradein' || type === 'stores' || type === 'solutions' || type === 'compare') return t;
     }
     return null;
   }
@@ -279,7 +281,7 @@
     if (!html.classList.contains('split-mode')) enterSplit();
     if (!skipHome && type !== 'home') ensureHomeTab();
 
-    var reusable = findReusableTab(type, data);
+    var reusable = findReusableTab(type, data, title);
     if (reusable) {
       ensureContentPanelOpen();
       switchTab(reusable.id);
