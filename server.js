@@ -261,6 +261,14 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
+// lxHint 形态配置（legacy 旧浮窗 / chip 新情境转化条 / off 关闭）— 改 config/lxhint.json 即时生效，无需重启
+app.get('/api/config/lxhint', (req, res) => {
+  let mode = 'chip';
+  try { mode = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'config/lxhint.json'), 'utf8')).mode || 'chip'; } catch (e) {}
+  if (['legacy', 'chip', 'off'].indexOf(mode) < 0) mode = 'chip';
+  res.set('Cache-Control', 'no-store');
+  res.json({ mode });
+});
 // SPA 兜底彻底禁缓存：no-store + 关 ETag/Last-Modified 防 304 命中旧
 function _sendIndexNoCache(res) {
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
