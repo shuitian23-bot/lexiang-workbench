@@ -1997,8 +1997,6 @@ def main():
                 _nl = (_name or '').lower()
                 if any(t in _nl for t in ('test', '测试', '勿拍', 'testaiadmin', '国补白链')):
                     continue
-<<<<<<< HEAD
-=======
                 _lvl1 = str(_specs.get('lvl1') or '')
                 # 预售收紧：offline(近21天)仅收联想自营整机，排除积分商城/第三方杂货/纯服务/占位
                 if _status == 'offline':
@@ -2015,7 +2013,6 @@ def main():
                 # 积分商城兑换品（active 第三方代销，如 Apple/华为）：name 加【积分兑换】前缀标识
                 if ('积分商城' in _lvl1 or '积分' in (_category or '')) and '积分兑换' not in (_name or ''):
                     _name = f'【积分兑换】{_name}'
->>>>>>> d348b1b (fix(wiki): offline预售收紧-仅联想自营整机, 排除积分/第三方杂货/服务/占位)
                 _sku_key = _sku or str(_id)
                 _v = [None] * 200
                 _v[0] = _sku_key
