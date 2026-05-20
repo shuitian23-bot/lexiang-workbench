@@ -540,7 +540,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
       res.on('error', reject);
     });
     req.on('error', reject);
-    req.setTimeout(thinkingMode ? 180000 : 90000, () => { req.destroy(); reject(new Error('stream timeout')); });
+    req.setTimeout(thinkingMode ? 240000 : 150000, () => { req.destroy(); reject(new Error('stream timeout')); });
     req.write(body);
     req.end();
   });
