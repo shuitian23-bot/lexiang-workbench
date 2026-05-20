@@ -431,9 +431,9 @@ html,body{height:100%;overflow:hidden}
 .cs-card-row:last-of-type{border-bottom:0}
 .cs-card-row b{color:#B8252E;font-size:14px}
 .cs-card-actions{display:flex;gap:8px;margin-top:10px}
-.cs-card-actions a,.cs-card-actions button{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:none;font-weight:600;text-decoration:none;display:inline-block;font-family:inherit}
-.cs-card-actions .cs-btn-tel{background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff}
-.cs-card-actions .cs-btn-human{background:linear-gradient(90deg,#f97316,#ea580c);color:#fff}
+.cs-card-actions a,.cs-card-actions button{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:none;font-weight:600;text-decoration:none!important;display:inline-block;font-family:inherit}
+.msg.ai .mbubble .cs-card-actions a.cs-btn-tel,.cs-card-actions .cs-btn-tel{background:linear-gradient(90deg,#4D144A,#B8252E)!important;color:#fff!important;border-bottom:none!important}
+.msg.ai .mbubble .cs-card-actions button.cs-btn-human,.cs-card-actions .cs-btn-human{background:linear-gradient(90deg,#f97316,#ea580c)!important;color:#fff!important}
 /* 转人工 inline banner (in chat bubble) */
 .cs-human-card{padding:8px 0;display:flex;align-items:center;gap:10px}
 .cs-human-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
@@ -1333,7 +1333,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
   <div class="nright">
-    <svg class="nav-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <a href="#" id="navAiPickBtn" onclick="aiPickForMe();return false;" title="AI 综合给你选 1 款" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:14px;background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff!important;font-weight:600;font-size:12px;box-shadow:0 4px 12px rgba(184,51,64,.3);animation:lx-skel 3s ease-in-out infinite alternate">🤖 AI 帮我选</a>
     <a href="#" id="navCartBtn" onclick="openCart();return false;" title="购物车" style="position:relative;font-size:18px">🛒<span id="navCartBadge" class="lx-nav-badge" style="display:none"></span></a>
     <a href="#" id="navOrdersBtn" onclick="openOrders();return false;" title="我的订单" style="position:relative;font-size:18px">📦<span id="navOrdersBadge" class="lx-nav-badge" style="display:none"></span></a>
@@ -7014,7 +7013,7 @@ window.openServicePlus = openServicePlus;
     var body = document.createElement('div'); body.className = 'msg-body';
     body.innerHTML = '<div class="msg-pre"></div><div class="mbubble">' + html + '</div>';
     d.appendChild(body); inner.appendChild(d);
-    if (typeof scrollBottom === 'function') scrollBottom();
+    if (typeof scrollBottom === 'function') scrollBottom(true); // force 滚底, 用户不在底部也滚
   }
 
   // 📞 客服 1 按钮: chat 里 append 信息卡 (电话+工作时间+转人工 button)
