@@ -3309,28 +3309,7 @@ function renderSuggestions(bubbleEl, suggestions) {
   // 移除前一轮 suggestions（保持只有最新一组可见）
   var msgsInner = document.getElementById('msgsInner');
   if (msgsInner) msgsInner.querySelectorAll('.suggestions, .reply-actions').forEach(el => el.remove());
-  // S17-5 答复末尾固定行动按钮（转化导向，比 suggestion chip 更突出）
-  var actBar = document.createElement('div');
-  actBar.className = 'reply-actions';
-  actBar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px';
-  var ACTS = [
-    ['🎁 领券', '给我现在能领的最大官方优惠券，并说明用在哪些机型最划算'],
-    ['🛒 帮我下单', '根据刚才聊的，直接推 1 款最值的并给下单引导'],
-    ['⚖️ 对比', '把刚才提到的机型做个参数对比，并直接告诉我选哪个'],
-    ['📍 找门店', '查我附近的联想体验店和可预约时段'],
-    ['🛠 售后', '我要查保修 / 预约维修 / 申请退换'],
-  ];
-  ACTS.forEach(function(a){
-    var b = document.createElement('button');
-    b.className = 'reply-act-btn';
-    b.textContent = a[0];
-    b.style.cssText = 'padding:7px 14px;border-radius:16px;border:1px solid #E5E7EB;background:#fff;color:#374151;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s';
-    b.onmouseover = function(){ b.style.background = '#FFF5F5'; b.style.borderColor = '#E1251B'; b.style.color = '#C41A1F'; };
-    b.onmouseout = function(){ b.style.background = '#fff'; b.style.borderColor = '#E5E7EB'; b.style.color = '#374151'; };
-    b.onclick = function(){ if (typeof quickAsk === 'function') quickAsk(a[1]); };
-    actBar.appendChild(b);
-  });
-  bubbleEl.insertAdjacentElement('afterend', actBar);
+  // (S17-5 5 chip 行动按钮已删, 用户嫌吵; 移除前一轮的 reply-actions 残留仍在上方循环)
 
   const wrap = document.createElement('div');
   wrap.className = 'suggestions';
