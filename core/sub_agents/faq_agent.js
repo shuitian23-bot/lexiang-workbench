@@ -26,8 +26,9 @@ module.exports = {
   name: 'faq_agent',
   description: '快速问答专家，简洁回答联想相关常见问题',
   keywords: [], // FAQ Agent 通过问题长度判断，不用关键词
+  streamsChunks: true,
 
-  async run(userMessage, historyMessages, ragContext) {
+  async run(userMessage, historyMessages, ragContext, onChunk) {
     // 做知识库搜索，优先给出精准答案
     let extraContext = ragContext || '';
     try {
@@ -58,9 +59,12 @@ module.exports = {
         model: MODEL,
         messages,
         max_tokens: 300,
-        temperature: 0.3
+        temperature: 0.3,
+        stream: true
       });
 
+      let fullText = '';
+      let buf = '';
       const req = https.request({
         hostname: 'dashscope.aliyuncs.com',
         path: '/compatible-mode/v1/chat/completions',
@@ -71,18 +75,28 @@ module.exports = {
           'Content-Length': Buffer.byteLength(body)
         }
       }, (res) => {
-        let data = '';
-        res.on('data', c => data += c);
-        res.on('end', () => {
-          try {
-            const j = JSON.parse(data);
-            if (j.error) return reject(new Error(j.error.message || 'API error'));
-            const text = j.choices?.[0]?.message?.content || '';
-            resolve({ text });
-          } catch (e) {
-            reject(new Error('JSON parse error: ' + data.slice(0, 100)));
+        res.on('data', chunk => {
+          buf += chunk.toString();
+          let idx;
+          while ((idx = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, idx).trim();
+            buf = buf.slice(idx + 1);
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+            try {
+              const j = JSON.parse(payload);
+              if (j.error) return reject(new Error(j.error.message || 'API error'));
+              const delta = j.choices?.[0]?.delta?.content || '';
+              if (delta) {
+                fullText += delta;
+                if (typeof onChunk === 'function') onChunk(delta);
+              }
+            } catch (e) {}
           }
         });
+        res.on('end', () => resolve({ text: fullText }));
+        res.on('error', reject);
       });
       req.on('error', reject);
       req.setTimeout(60000, () => { req.destroy(); reject(new Error('faq_agent timeout')); });
