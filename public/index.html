@@ -5816,24 +5816,11 @@ window.openBenefitPanel = openBenefitPanel;
 
 // 权益管家下单：价格 = 瀑布最终价，不再二次叠券（杜绝两边价格不一致）
 function confirmBenefitOrder(name, finalPrice, base) {
-  finalPrice = Math.round(Number(finalPrice) || 0);
-  var saved = Math.max(0, Math.round((Number(base) || 0) - finalPrice));
-  try { if (typeof window.addOrder === 'function') window.addOrder(name, finalPrice); } catch(e){}
-  var html = '<div style="text-align:center;padding:10px 4px">' +
-    '<div style="font-size:40px">🎉</div>' +
-    '<div style="font-size:17px;font-weight:800;margin:8px 0 4px">下单成功</div>' +
-    '<div style="font-size:13px;color:#666;margin-bottom:14px">' + escHtml(name) + '</div>' +
-    '<div style="display:inline-block;padding:14px 28px;background:linear-gradient(90deg,#fff5f5,#fff);border-radius:12px">' +
-      '<div style="font-size:11px;color:#999">权益已全部领取并抵扣，实付</div>' +
-      '<div style="font-size:28px;font-weight:800;color:#B8252E">¥' + finalPrice.toLocaleString() + '</div>' +
-      (saved > 0 ? '<div style="font-size:12px;color:#16a34a;margin-top:2px">已为你省 ¥' + saved.toLocaleString() + '</div>' : '') +
-    '</div>' +
-    '<div style="font-size:12px;color:#aaa;margin-top:14px">价格与权益管家测算一致 · POC 演示，未真实扣款</div>' +
-    '<div style="font-size:12px;color:#888;margin-top:6px">📦 订单已生成，可在右上角订单查看物流</div>' +
-  '</div>';
-  // 双字段: html 给 PC RENDERERS.info(走 tab), content+rawHtml 给 mobile showAIModal info(走 modal)
-  if (typeof showAIModal === 'function') showAIModal({ type:'info', title:'订单确认', content: html, html: html, rawHtml: true });
-  else if (window.LxStatus) window.LxStatus.toast('下单成功，实付 ¥' + finalPrice.toLocaleString() + '（与测算一致）', { type:'success', ms:3000 });
+  // 走和商品详情页一致的 startBuyFlow 路线: 领券动画卡 + 订单确认弹窗(_showOrderOverlay)
+  // 价格用 base(商品标价) 让动画里展示三档券; 如无 base 则用 finalPrice 兜底
+  var priceForFlow = Number(base) > 0 ? Number(base) : (Number(finalPrice) || 0);
+  if (typeof startBuyFlow === 'function') startBuyFlow(name, priceForFlow, '');
+  else if (window.LxStatus) window.LxStatus.toast('下单成功，实付 ¥' + Math.round(Number(finalPrice)||0).toLocaleString(), { type:'success', ms:3000 });
 }
 window.confirmBenefitOrder = confirmBenefitOrder;
 
