@@ -2601,7 +2601,7 @@ var _la_lenovo_website = 10000001;
         }
 
         # 为子站生成独立的 articles-slim.json（搜索隔离）
-        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else '')} for a in sub_articles]
+        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else ''),'price':(int(a.get('price') or 0) if a.get('type')=='product' else 0)} for a in sub_articles]
         _sub_slim_path = os.path.join(sub_dir, 'articles-slim.json')
         _sub_slim_str = json.dumps(_sub_slim, ensure_ascii=False, separators=(',',':'))
         with open(_sub_slim_path, 'w', encoding='utf-8') as _fh:
@@ -2614,7 +2614,7 @@ var _la_lenovo_website = 10000001;
         print(f'  {dir_name}/: {len(sub_articles)} 条, 分类: {[c for c in sub_cats if c != "all"]}, {nf} 个分页文件')
 
     # 生成 slim 和 recent
-    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else '')} for a in all_articles]
+    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else ''),'price':(int(a.get('price') or 0) if a.get('type')=='product' else 0)} for a in all_articles]
     _slim_path = os.path.join(WIKI_DIR, 'articles-slim.json')
     _slim_str = json.dumps(_slim, ensure_ascii=False, separators=(',',':'))
     with open(_slim_path, 'w', encoding='utf-8') as _fh:
