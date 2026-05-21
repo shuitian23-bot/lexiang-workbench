@@ -300,7 +300,7 @@ footer{border-top:1px solid var(--ft-bd);padding:40px 48px;max-width:1080px;marg
 .fi.v{opacity:1;transform:translateY(0)}
 
 @media(max-width:768px){
-  nav{padding:0 16px;gap:8px}.nlinks{display:none}.nright a,.nright .sep,.nav-search{display:none}.nright{gap:10px}#navAuthArea{display:flex!important}#navUserArea{display:flex!important}#navAuthArea a,#navUserArea a{display:inline!important}.hero{padding:240px 20px 120px}.hero h1{font-size:30px}
+  nav{padding:0 16px;gap:8px}.nlinks{display:none}.nright a,.nright .sep,.nav-search{display:none}.nright{gap:10px}#navAuthArea a,#navUserArea a{display:inline!important}.hero{padding:240px 20px 120px}.hero h1{font-size:30px}
   .wrap{padding:0 20px}.feat{grid-template-columns:1fr}.feat-main{grid-row:auto;min-height:250px}
   .pgrid,.sgrid,.ngrid{grid-template-columns:1fr}.crow{flex-direction:column}
   .citem{border-right:none;border-bottom:1px solid var(--border)}.fgrid{grid-template-columns:repeat(2,1fr)}
@@ -1414,7 +1414,95 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 
   <!-- 子站专属促销模块: shop=秒杀, b=新人专享, 其他不显; 内容 hardcode mock POC -->
   <section id="siteLandingExtra" style="display:none"></section>
-  <script>window.__renderSiteLandingExtra = function(){
+  <script>
+  // 秒杀: 弹抢购 modal(库存+倒计时) → mock 70% 成功率
+  window.__seckillBuy = function(name, price, stock){
+    var html = '<div style="padding:14px 4px;text-align:center">' +
+      '<div style="font-size:17px;font-weight:800;margin-bottom:4px">⚡ ' + name + '</div>' +
+      '<div style="font-size:13px;color:#666;margin-bottom:14px">秒杀价 <span style="color:#e8261a;font-size:26px;font-weight:800;margin-left:4px">¥' + price + '</span></div>' +
+      '<div style="background:linear-gradient(90deg,#fff5f5,#fff);border:1px solid #fad7d7;border-radius:8px;padding:10px;margin-bottom:14px;font-size:13px;color:#e8261a">🔥 库存 <b>仅剩 ' + stock + ' 件</b> · 倒计时 <b id="_skTimer">02:00</b></div>' +
+      '<button onclick="__seckillGo(\'' + String(name).replace(/\x27/g,"\\\x27") + '\',' + price + ')" style="width:100%;padding:13px;background:linear-gradient(90deg,#e8261a,#a01713);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(232,38,26,.3)">⚡ 立即秒杀</button>' +
+      '<div style="font-size:11px;color:#999;margin-top:10px">手慢即无, 抢到自动锁定订单</div>' +
+    '</div>';
+    if (typeof showAIModal === 'function') showAIModal({type:'info', title:'⚡ 限时秒杀', content: html, html: html, rawHtml: true});
+    var s = 120;
+    var id = setInterval(function(){
+      if (s <= 0) { clearInterval(id); return; }
+      s--;
+      var el = document.getElementById('_skTimer');
+      if (!el) { clearInterval(id); return; }
+      var m = Math.floor(s/60), ss = s % 60;
+      el.textContent = String(m).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+    }, 1000);
+  };
+  window.__seckillGo = function(name, price){
+    var success = Math.random() < 0.7;
+    var mask = document.querySelector('.ai-modal-mask'); if (mask) mask.remove();
+    if (success) {
+      if (window.LxStatus) window.LxStatus.toast('🎉 抢到了! ¥' + price + ', 自动跳订单', {type:'success', ms:2500});
+      setTimeout(function(){ if (typeof startBuyFlow === 'function') startBuyFlow(name, price, ''); }, 400);
+    } else {
+      if (window.LxStatus) window.LxStatus.toast('💔 慢一步, 已被抢光, 等下一场?', {type:'error', ms:3000});
+    }
+  };
+  // 更多秒杀: 开 content tab 列全部
+  window.__openAllSeckill = function(){
+    var items = [
+      { ico:'🖱️', name:'联想 一键服务鼠标M25 白色', price:45, orig:49, stock:3 },
+      { ico:'🔌', name:'【3C认证】联想来酷充电器', price:239.9, orig:299, stock:8 },
+      { ico:'💻', name:'联想拯救者 Y7000P 2025', price:10699, orig:11699, stock:2 },
+      { ico:'🔋', name:'联想原装氮化镓适配器 68w', price:129, orig:139, stock:15 },
+      { ico:'⌨️', name:'联想小新机械键盘', price:199, orig:299, stock:5 },
+      { ico:'🎧', name:'联想 H3 蓝牙耳机', price:99, orig:199, stock:11 },
+      { ico:'🖥️', name:'联想 27 寸 2K 显示器', price:899, orig:1199, stock:7 },
+      { ico:'📱', name:'联想 Tab P12 平板', price:1999, orig:2599, stock:4 }
+    ];
+    var html = '<div style="padding:10px 0">' +
+      '<div style="font-size:12px;color:#e8261a;margin-bottom:12px;text-align:center;background:#fff5f5;padding:8px;border-radius:8px">⚡ <b>12:00 场</b> · 全部秒杀商品 · 倒计时 <b>09:42:11</b></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px">' +
+      items.map(function(it){
+        var safeName = it.name.replace(/'/g,"\\'");
+        return '<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:transform .15s,border-color .15s" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'#fad7d7\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'#eee\'" onclick="__seckillBuy(\'' + safeName + '\',' + it.price + ',' + it.stock + ')">' +
+          '<div style="font-size:40px;margin-bottom:6px">' + it.ico + '</div>' +
+          '<div style="font-size:12px;color:#333;margin-bottom:6px;height:32px;overflow:hidden;line-height:1.35">' + it.name + '</div>' +
+          '<div><span style="color:#e8261a;font-size:16px;font-weight:800">¥' + it.price + '</span><span style="color:#999;font-size:11px;text-decoration:line-through;margin-left:4px">¥' + it.orig + '</span></div>' +
+          '<div style="font-size:10px;color:#e8261a;background:#fff5f5;padding:2px 8px;border-radius:10px;margin-top:6px;display:inline-block">仅剩 ' + it.stock + ' 件</div>' +
+        '</div>';
+      }).join('') +
+      '</div></div>';
+    if (typeof window.__openContent === 'function') window.__openContent('info', '🔥 秒杀全场', {html: html, content: html, rawHtml: true});
+    else if (typeof showAIModal === 'function') showAIModal({type:'info', title:'🔥 秒杀全场', content: html, html: html, rawHtml: true});
+  };
+  // 新人专享: 领券 toast + 开商品详情 tab(mock html 含卖点+下单)
+  window.__newcomerClaim = function(name, special, market, ico){
+    var saved = (market - special).toFixed(2).replace(/\.?0+$/, '');
+    if (window.LxStatus) window.LxStatus.toast('🎉 新人专享券已到账, 实付 ¥' + special + ' (省 ¥' + saved + ')', {type:'success', ms:2500});
+    // mock 商品详情(图标 + 名 + 价 + 卖点 + 立即下单)
+    var safeName = String(name).replace(/'/g, "\\'");
+    var sellPoints = {
+      '联想thinkplus头戴式蓝牙耳机TH62': ['40mm 大动圈, 沉浸低音', '80 小时续航, 通勤旅行无忧', '蓝牙 5.3 + 多设备切换', '可折叠便携设计, 仅 220g'],
+      '网易云音乐黑胶会员月卡': ['4000 万曲库全免费听', '320kbps + 无损音质', '专享黑胶唱片视觉效果', '会员可下载到本地, 离线听']
+    }[name] || ['企业新人专享', '官方品质保障', '7 天无理由退换'];
+    var html = '<div style="padding:14px 4px">' +
+      '<div style="display:flex;gap:18px;align-items:center;margin-bottom:18px">' +
+        '<div style="width:120px;height:120px;background:#f6faff;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:64px;flex-shrink:0">' + (ico||'🎁') + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:18px;font-weight:700;color:#222;margin-bottom:6px">' + name + '</div>' +
+          '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px"><span style="color:#0066cc;font-size:28px;font-weight:800">¥' + special + '</span><span style="color:#999;text-decoration:line-through;font-size:13px">¥' + market + '</span><span style="background:#fff5f5;color:#e8261a;padding:1px 8px;border-radius:8px;font-size:11px;font-weight:600">省¥' + saved + '</span></div>' +
+          '<div style="background:linear-gradient(90deg,#fff7ed,#fff);color:#9a3412;padding:6px 12px;border-radius:6px;font-size:12px;display:inline-block">✅ 企业新人专享券已到账, 下单自动抵扣</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:14px;font-weight:600;color:#222;margin:14px 0 10px">📌 核心卖点</div>' +
+      '<ul style="list-style:none;padding:0;margin:0 0 18px 0">' +
+        sellPoints.map(function(p){ return '<li style="padding:6px 0;color:#454545;font-size:13px;line-height:1.6;border-bottom:1px solid #f5f5f5">✓ ' + p + '</li>'; }).join('') +
+      '</ul>' +
+      '<button onclick="startBuyFlow(\'' + safeName + '\',' + special + ',\'\')" style="width:100%;padding:14px;background:linear-gradient(90deg,#0066cc,#0052a3);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">🎁 立即下单 (实付 ¥' + special + ')</button>' +
+    '</div>';
+    if (typeof window.__openContent === 'function') window.__openContent('info', '🎁 ' + String(name).slice(0,14), {html: html, content: html, rawHtml: true});
+    else if (typeof showAIModal === 'function') showAIModal({type:'info', title:'🎁 ' + name, content: html, html: html, rawHtml: true});
+  };
+
+  window.__renderSiteLandingExtra = function(){
     var st = window.__siteType || 'default';
     var box = document.getElementById('siteLandingExtra');
     if (!box) return;
@@ -1423,10 +1511,10 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     box.innerHTML = '';
     if (st === 'shop') {
       var items = [
-        { ico:'🖱️', name:'联想 一键服务鼠标M25 白色', price:45,  orig:49,    discount:'9.2折' },
-        { ico:'🔌', name:'【3C认证】联想来酷充电器',     price:239.9,orig:299,  discount:'8.1折' },
-        { ico:'💻', name:'联想拯救者Y7000P 2025',         price:10699,orig:11699,discount:'9.2折' },
-        { ico:'🔋', name:'联想原装氮化镓适配器 68w',      price:129,  orig:139,  discount:'9.3折' }
+        { ico:'🖱️', name:'联想 一键服务鼠标M25 白色', price:45,  orig:49,    discount:'9.2折', stock:3 },
+        { ico:'🔌', name:'【3C认证】联想来酷充电器',     price:239.9,orig:299,  discount:'8.1折', stock:8 },
+        { ico:'💻', name:'联想拯救者Y7000P 2025',         price:10699,orig:11699,discount:'9.2折', stock:2 },
+        { ico:'🔋', name:'联想原装氮化镓适配器 68w',      price:129,  orig:139,  discount:'9.3折', stock:15 }
       ];
       box.className = 'flash-sale';
       box.style.display = 'flex';
@@ -1442,7 +1530,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
           '<div class="flash-sale-tag">12:00 场·正在抢购</div>' +
           '<div class="flash-sale-list">' +
             items.map(function(it){
-              return '<div class="flash-sale-card">' +
+              var safeName = String(it.name).replace(/'/g, "\\'");
+              return '<div class="flash-sale-card" onclick="__seckillBuy(\'' + safeName + '\',' + it.price + ',' + it.stock + ')">' +
                 '<div class="fs-card-ico">' + it.ico + '</div>' +
                 '<div class="fs-card-name">' + it.name + '</div>' +
                 '<div><span class="fs-discount">折 ' + it.discount + '</span></div>' +
@@ -1451,7 +1540,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
             }).join('') +
           '</div>' +
         '</div>' +
-        '<div class="flash-sale-more">更多秒杀 ›</div>';
+        '<div class="flash-sale-more" onclick="__openAllSeckill()">更多秒杀 ›</div>';
       // 倒计时
       var t = 10*3600 + 12*60 + 57;
       setInterval(function(){
@@ -1473,13 +1562,15 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
         '<div class="newcomer-zone-sub">数量有限·先到先得</div>' +
         '<div class="newcomer-cards">' +
           bizItems.map(function(it){
-            return '<div class="newcomer-card">' +
+            var safeName = String(it.name).replace(/'/g, "\\'");
+            var act = "event.stopPropagation();__newcomerClaim('" + safeName + "'," + it.special + "," + it.market + ",'" + it.ico + "')";
+            return '<div class="newcomer-card" onclick="' + act + '">' +
               '<div class="nc-ico">' + it.ico + '</div>' +
               '<div class="newcomer-card-text">' +
                 '<div class="newcomer-card-name">' + it.name + '</div>' +
                 '<div class="newcomer-card-price">新人专享价<span class="nc-special">¥' + it.special + '</span><span class="nc-orig">市场价¥' + it.market + '</span></div>' +
               '</div>' +
-              '<button class="newcomer-card-cta">立即领取</button>' +
+              '<button class="newcomer-card-cta" onclick="' + act + '">立即领取</button>' +
             '</div>';
           }).join('') +
         '</div>';
@@ -1996,6 +2087,13 @@ window.addEventListener('popstate', (e) => {
     closeDisplayCanvas();
   }
   if (p === '/' || p === '') {
+    // chat 有消息时不 reset(防 mobile 右滑返回 gesture 误把进行中的 chat 跳回首页), 推回 chat URL
+    var _inner = document.getElementById('msgsInner');
+    if (_inner && _inner.querySelectorAll('.msg').length > 0) {
+      var _back = (window.__chatBase || '/chat') + (typeof convId !== 'undefined' && convId ? '/' + convId : '/');
+      try { history.pushState(null, '', _back); } catch(_){}
+      return;
+    }
     document.getElementById('chatApp').classList.remove('active');
     document.getElementById('landingPage').classList.remove('exit');
     document.documentElement.classList.remove('is-chat');
@@ -6133,11 +6231,12 @@ window.LxBehavior = (function(){
     if (isDismissed(id) || isUserBusy()) return null;
     var isPointer = /^pointer/.test(String(id));
     // 全局节流：非 pointer 非 loading 非 replace 的 hint 之间至少隔 45s
-    if (!opts.loading && !opts.replaceId && !isPointer) {
+    // replay (skipHistory) 跳 dedup + global gap, 用户主动点历史复现, 必须弹
+    if (!opts.loading && !opts.replaceId && !isPointer && !opts.skipHistory) {
       if (Date.now() - _lastGlobalHintTs < GLOBAL_HINT_GAP) return null;
     }
-    // 去重：相同文本 hint 10 分钟内不重复弹（loading 骨架除外）
-    if (!opts.loading) {
+    // 去重：相同文本 hint 10 分钟内不重复弹（loading 骨架除外, replay 例外）
+    if (!opts.loading && !opts.skipHistory) {
       var plain = String(contentHtml).replace(/<[^>]+>/g, '').trim();
       if (plain === _lastHintPlain && Date.now() - _lastHintTs < 10 * 60 * 1000) return null;
       _lastHintPlain = plain; _lastHintTs = Date.now();
