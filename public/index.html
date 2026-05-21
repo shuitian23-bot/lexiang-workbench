@@ -6133,11 +6133,12 @@ window.LxBehavior = (function(){
     if (isDismissed(id) || isUserBusy()) return null;
     var isPointer = /^pointer/.test(String(id));
     // 全局节流：非 pointer 非 loading 非 replace 的 hint 之间至少隔 45s
-    if (!opts.loading && !opts.replaceId && !isPointer) {
+    // replay (skipHistory) 跳 dedup + global gap, 用户主动点历史复现, 必须弹
+    if (!opts.loading && !opts.replaceId && !isPointer && !opts.skipHistory) {
       if (Date.now() - _lastGlobalHintTs < GLOBAL_HINT_GAP) return null;
     }
-    // 去重：相同文本 hint 10 分钟内不重复弹（loading 骨架除外）
-    if (!opts.loading) {
+    // 去重：相同文本 hint 10 分钟内不重复弹（loading 骨架除外, replay 例外）
+    if (!opts.loading && !opts.skipHistory) {
       var plain = String(contentHtml).replace(/<[^>]+>/g, '').trim();
       if (plain === _lastHintPlain && Date.now() - _lastHintTs < 10 * 60 * 1000) return null;
       _lastHintPlain = plain; _lastHintTs = Date.now();
