@@ -1996,6 +1996,13 @@ window.addEventListener('popstate', (e) => {
     closeDisplayCanvas();
   }
   if (p === '/' || p === '') {
+    // chat 有消息时不 reset(防 mobile 右滑返回 gesture 误把进行中的 chat 跳回首页), 推回 chat URL
+    var _inner = document.getElementById('msgsInner');
+    if (_inner && _inner.querySelectorAll('.msg').length > 0) {
+      var _back = (window.__chatBase || '/chat') + (typeof convId !== 'undefined' && convId ? '/' + convId : '/');
+      try { history.pushState(null, '', _back); } catch(_){}
+      return;
+    }
     document.getElementById('chatApp').classList.remove('active');
     document.getElementById('landingPage').classList.remove('exit');
     document.documentElement.classList.remove('is-chat');
