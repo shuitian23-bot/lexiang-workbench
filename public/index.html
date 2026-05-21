@@ -1476,7 +1476,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
           bizItems.map(function(it){
             var safeName = String(it.name).replace(/'/g, "\\'");
             var saved = (it.market - it.special).toFixed(2).replace(/\.?0+$/, '');
-            var act = "event.stopPropagation();if(window.LxStatus)window.LxStatus.toast('🎉 新人专享券已到账, 实付 ¥" + it.special + " (省 ¥" + saved + ")', {type:'success',ms:2500});if(typeof startBuyFlow===\\'function\\')startBuyFlow(\\'" + safeName + "\\'," + it.special + ",\\'\\')";
+            var act = "event.stopPropagation();if(window.LxStatus)window.LxStatus.toast('🎉 新人专享券已到账, 实付 ¥" + it.special + " (省 ¥" + saved + ")', {type:'success',ms:2500});if(typeof startBuyFlow==='function')startBuyFlow('" + safeName + "'," + it.special + ",'')";
             return '<div class="newcomer-card" onclick="' + act + '">' +
               '<div class="nc-ico">' + it.ico + '</div>' +
               '<div class="newcomer-card-text">' +
