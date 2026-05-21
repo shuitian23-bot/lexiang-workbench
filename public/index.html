@@ -1441,8 +1441,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
         '<div class="flash-sale-right">' +
           '<div class="flash-sale-tag">12:00 场·正在抢购</div>' +
           '<div class="flash-sale-list">' +
-            items.map(function(it){
-              return '<div class="flash-sale-card">' +
+            items.map(function(it, i){
+              var safeName = String(it.name).replace(/'/g, "\\'");
+              return '<div class="flash-sale-card" onclick="if(typeof startBuyFlow===\'function\')startBuyFlow(\'' + safeName + '\',' + it.price + ',\'\');">' +
                 '<div class="fs-card-ico">' + it.ico + '</div>' +
                 '<div class="fs-card-name">' + it.name + '</div>' +
                 '<div><span class="fs-discount">折 ' + it.discount + '</span></div>' +
@@ -1451,7 +1452,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
             }).join('') +
           '</div>' +
         '</div>' +
-        '<div class="flash-sale-more">更多秒杀 ›</div>';
+        '<div class="flash-sale-more" onclick="if(typeof quickAsk===\'function\')quickAsk(\'有哪些正在秒杀的商品, 全部列出来给我看, 含价格和折扣\');">更多秒杀 ›</div>';
       // 倒计时
       var t = 10*3600 + 12*60 + 57;
       setInterval(function(){
@@ -1473,13 +1474,16 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
         '<div class="newcomer-zone-sub">数量有限·先到先得</div>' +
         '<div class="newcomer-cards">' +
           bizItems.map(function(it){
-            return '<div class="newcomer-card">' +
+            var safeName = String(it.name).replace(/'/g, "\\'");
+            var saved = (it.market - it.special).toFixed(2).replace(/\.?0+$/, '');
+            var act = "event.stopPropagation();if(window.LxStatus)window.LxStatus.toast('🎉 新人专享券已到账, 实付 ¥" + it.special + " (省 ¥" + saved + ")', {type:'success',ms:2500});if(typeof startBuyFlow===\\'function\\')startBuyFlow(\\'" + safeName + "\\'," + it.special + ",\\'\\')";
+            return '<div class="newcomer-card" onclick="' + act + '">' +
               '<div class="nc-ico">' + it.ico + '</div>' +
               '<div class="newcomer-card-text">' +
                 '<div class="newcomer-card-name">' + it.name + '</div>' +
                 '<div class="newcomer-card-price">新人专享价<span class="nc-special">¥' + it.special + '</span><span class="nc-orig">市场价¥' + it.market + '</span></div>' +
               '</div>' +
-              '<button class="newcomer-card-cta">立即领取</button>' +
+              '<button class="newcomer-card-cta" onclick="' + act + '">立即领取</button>' +
             '</div>';
           }).join('') +
         '</div>';
