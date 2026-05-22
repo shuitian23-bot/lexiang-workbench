@@ -7360,10 +7360,10 @@ window.openServicePlus = openServicePlus;
     var ansEl = document.getElementById('lxTempAnswer');
     sendBtn.disabled = true; sendBtn.textContent = '思考中…';
     ans.style.display = 'block'; ansEl.textContent = '…';
-    // 独立 fetch /api/chat/stream(conv_id=null, 不写入主对话)
-    fetch('/api/chat/stream', {
+    // 极速接口 /api/chat/quick(lite 模型 + 跳 RAG/工具/dispatcher + 流式)
+    fetch('/api/chat/quick', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: q, conv_id: null, site_type: window.__siteType || 'default' })
+      body: JSON.stringify({ message: q, site_type: window.__siteType || 'default' })
     }).then(function(r){
       var reader = r.body.getReader(), dec = new TextDecoder(), buf='', full='', lastEv='';
       function pump(){

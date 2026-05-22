@@ -346,4 +346,45 @@ router.get('/share/:token', (req, res) => {
   res.json({ conv, messages });
 });
 
+// ── 极速问答 /api/chat/quick：lite 模型 + 跳 RAG/工具/dispatcher, 纯流式直答（划词/临时气泡用）──
+const https = require('https');
+router.post('/quick', (req, res) => {
+  const message = (req.body && req.body.message || '').toString().trim();
+  if (!message) return res.status(400).json({ error: 'message required' });
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  const sys = '你是联想乐享导购助手。简洁口语化直答(≤120字), 不要客套开场/列表/标题, 第一句直接给要点。';
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role:'system', content: sys }, { role:'user', content: message }],
+    max_tokens: 400, temperature: 0.5, stream: true, thinking: { type: 'disabled' }
+  });
+  const ar = https.request({
+    hostname: 'ark.cn-beijing.volces.com', path: '/api/coding/v3/chat/completions', method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+  }, (r) => {
+    let buf = '';
+    r.on('data', chunk => {
+      buf += chunk.toString();
+      let idx;
+      while ((idx = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === '[DONE]') continue;
+        try { const j = JSON.parse(payload); const d = j.choices?.[0]?.delta?.content || '';
+          if (d) res.write('event: chunk\ndata: ' + JSON.stringify({ text: d }) + '\n\n');
+        } catch (e) {}
+      }
+    });
+    r.on('end', () => { res.write('event: done\ndata: {}\n\n'); res.end(); });
+    r.on('error', () => { res.write('event: error\ndata: {}\n\n'); res.end(); });
+  });
+  ar.on('error', () => { try { res.write('event: error\ndata: {}\n\n'); res.end(); } catch(e){} });
+  ar.setTimeout(30000, () => { ar.destroy(); try { res.end(); } catch(e){} });
+  ar.write(body); ar.end();
+});
+
 module.exports = router;
