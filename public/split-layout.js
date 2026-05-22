@@ -897,6 +897,7 @@
                 '</div>' +
                 (highlights.length > 0 ? '<div class="cpd-highlights">' + highlights.map(function(h){ return '<span class="cpd-hl-tag">' + escH(h) + '</span>'; }).join('') + '</div>' : '') +
                 (p.description && highlights.length === 0 ? '<p class="cpd-desc">' + escH(p.description) + '</p>' : '') +
+                '<div class="cpd-fit-reason" id="cpd-fit-' + encodeURIComponent(sku) + '"><span class="cpd-fit-ico">✨</span><span class="cpd-fit-txt">正在为你分析适配度…</span></div>' +
               '</div>' +
               '<div class="cpd-actions">' +
                 '<button class="cpd-buy">🎁 一键领取优惠</button>' +
@@ -933,6 +934,20 @@
           (specRows ? '<div class="cpd-specs-section"><h4 class="cpd-section-title">📋 规格参数</h4><table class="cpd-specs">' + specRows + '</table></div>' : '') +
           '<div class="cpd-detail-images-section"><h4 class="cpd-section-title">📸 商品介绍详情图</h4><div class="cpd-detail-images-body" id="cpd-detail-images-' + encodeURIComponent(sku) + '"><div style="text-align:center;padding:24px;color:#999">加载详情图…</div></div></div>' +
         '</div>';
+
+      // 异步拉「✨ 适合你」千人千面理由
+      (function(){
+        var fit = container.querySelector('#cpd-fit-' + encodeURIComponent(sku));
+        if (!fit || !sku) return;
+        fetch('/api/products/' + encodeURIComponent(sku) + '/reason')
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            var txt = fit.querySelector('.cpd-fit-txt');
+            if (j && j.reason) { if (txt) txt.textContent = j.reason; }
+            else { fit.style.display = 'none'; }
+          })
+          .catch(function(){ fit.style.display = 'none'; });
+      })();
 
       // 异步拉 lenovo 详情图
       (function(){

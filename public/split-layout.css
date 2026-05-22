@@ -858,6 +858,13 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cpd-highlights {
   display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
 }
+.cpd-fit-reason {
+  display: flex; align-items: flex-start; gap: 6px; margin: 0 0 12px;
+  padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;
+  background: linear-gradient(90deg, #FCF2F8, #E3EAFD); color: #4D144A; border: 1px solid #E2DDEB;
+}
+.cpd-fit-reason .cpd-fit-ico { flex-shrink: 0; }
+.cpd-fit-reason .cpd-fit-txt { flex: 1; }
 .cpd-hl-tag {
   font-size: 12px; padding: 3px 10px; border-radius: 12px;
   background: #F3F0FF; color: #6D28D9; border: 1px solid #E9E5FF;

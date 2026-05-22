@@ -191,6 +191,38 @@ app.get('/api/products/:sku', (req, res) => {
   res.json({ ...row, specs });
 });
 
+// 商详「✨ 适合你」千人千面理由: flash 快模型 + 用户画像, 1 句 ≤40 字
+app.get('/api/products/:sku/reason', (req, res) => {
+  const row = db.prepare('SELECT name, price, description, category FROM products WHERE sku = ?').get(req.params.sku);
+  if (!row) return res.status(404).json({ error: 'not found' });
+  let profileText = '';
+  try {
+    const { getProfilePrompt } = require('./core/profiler');
+    if (req.userId) profileText = (getProfilePrompt(req.userId) || '').slice(0, 400);
+  } catch (e) {}
+  const sys = '你是联想导购。用一句话(≤40字, 不要换行/列表/客套)说这款机型为什么适合"这位用户", 结合其画像与商品卖点, 口语化直给。无画像则按机型亮点给通用一句话适配点。';
+  const usr = '商品：' + row.name + '｜¥' + (row.price||'-') + '｜' + (row.description||'').slice(0,120) + (profileText ? ('\n用户画像：' + profileText) : '\n(无画像, 给通用适配点)');
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role:'system', content: sys }, { role:'user', content: usr }],
+    max_tokens: 80, temperature: 0.5, thinking: { type: 'disabled' }
+  });
+  const https = require('https');
+  const r2 = https.request({
+    hostname: 'ark.cn-beijing.volces.com', path: '/api/coding/v3/chat/completions', method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+  }, (ar) => {
+    let data = ''; ar.on('data', c => data += c);
+    ar.on('end', () => {
+      try { const j = JSON.parse(data); const reason = (j.choices?.[0]?.message?.content || '').trim().replace(/^["'「『]|["'」』]$/g,''); res.json({ reason: reason || '' }); }
+      catch (e) { res.json({ reason: '' }); }
+    });
+  });
+  r2.on('error', () => res.json({ reason: '' }));
+  r2.setTimeout(15000, () => { r2.destroy(); res.json({ reason: '' }); });
+  r2.write(body); r2.end();
+});
+
 function normalizeLenovoUrl(url) {
   if (!url) return '';
   const text = String(url).trim();
