@@ -424,6 +424,29 @@ html,body{height:100%;overflow:hidden}
 
 /* Input bar */
 .input-bar{padding:8px 20px 10px;border-top:1px solid var(--border);flex-shrink:0;background:#fff;padding-bottom:max(10px,env(safe-area-inset-bottom));position:relative}
+/* 划词提问 popup + 临时气泡 */
+.lx-hl-popup{position:fixed;background:#fff;border:1px solid var(--border,#E2DDEB);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:5px;display:none;z-index:9999;gap:5px;flex-direction:column;min-width:140px}
+.lx-hl-popup.show{display:flex}
+.lx-hl-popup button{padding:7px 12px;border:none;border-radius:6px;font-size:12px;cursor:pointer;text-align:left;font-family:inherit;transition:background .15s}
+.lx-hl-popup .lx-hl-ask{background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;font-weight:600}
+.lx-hl-popup .lx-hl-ask:hover{filter:brightness(1.08)}
+.lx-hl-popup .lx-hl-bring{background:#f5f5f7;color:#454545}
+.lx-hl-popup .lx-hl-bring:hover{background:#e8e8ea}
+.lx-temp-chat{position:fixed;width:320px;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);border:1px solid var(--border,#E2DDEB);z-index:10000;display:none;flex-direction:column;overflow:hidden}
+.lx-temp-chat.show{display:flex}
+.lx-temp-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;font-size:12px;font-weight:600}
+.lx-temp-head button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;line-height:1;opacity:.85}
+.lx-temp-head button:hover{opacity:1}
+.lx-temp-input-area{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lx-temp-input-area textarea{width:100%;border:1px solid var(--border,#E2DDEB);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;color:#252525;resize:none;outline:none;line-height:1.5;background:#fafafa}
+.lx-temp-input-area textarea:focus{border-color:#4D144A;background:#fff}
+.lx-temp-input-area .lx-temp-send{align-self:flex-end;padding:6px 18px;background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;border:none;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer}
+.lx-temp-input-area .lx-temp-send:disabled{background:#ccc;cursor:default}
+.lx-temp-answer-area{border-top:1px solid var(--border,#E2DDEB);max-height:240px;overflow-y:auto}
+.lx-temp-a{padding:10px 12px;font-size:12px;color:#454545;line-height:1.65;white-space:pre-wrap}
+.lx-temp-footer{padding:6px 12px 10px;text-align:right}
+.lx-temp-footer button{font-size:11px;color:#4D144A;background:none;border:1px solid #4D144A;border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit}
+.lx-temp-footer button:hover{background:#FCFAFF}
 /* 客服信息卡 (inline in AI bubble) */
 .cs-card{padding:6px 0}
 .cs-card-hdr{font-size:13px;font-weight:600;color:#333;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -7237,6 +7260,131 @@ window.openServicePlus = openServicePlus;
     }
     // 无消息 → 走原 href 全页跳, 不拦
   }, true);
+})();
+</script>
+<!-- 划词提问: 选中正文 → 问乐享(临时气泡) / 带入对话 -->
+<div id="lxHighlightPopup" class="lx-hl-popup">
+  <button class="lx-hl-ask" onclick="window.__hlAsk()">💬 问乐享</button>
+  <button class="lx-hl-bring" onclick="window.__hlBring()">📋 带入对话</button>
+</div>
+<div id="lxTempChat" class="lx-temp-chat">
+  <div class="lx-temp-head"><span>💬 问乐享</span><button onclick="window.__closeTempChat()">×</button></div>
+  <div class="lx-temp-input-area">
+    <textarea id="lxTempInput" rows="2" placeholder="问关于这段内容的问题…"></textarea>
+    <button class="lx-temp-send" id="lxTempSend" onclick="window.__submitTempChat()">发送</button>
+  </div>
+  <div class="lx-temp-answer-area" id="lxTempAnswerArea" style="display:none">
+    <div class="lx-temp-a" id="lxTempAnswer"></div>
+    <div class="lx-temp-footer"><button onclick="window.__tempBring()">带入对话继续聊 →</button></div>
+  </div>
+</div>
+<script>
+// ════════════════════════════════════════
+//  划词提问: 选中 landing/内容面板正文 → 问乐享(独立临时气泡, 不污染主对话) / 带入主对话
+// ════════════════════════════════════════
+(function(){
+  var _hlText = '', _hlRect = null;
+  function inContentArea(node){
+    if (!node) return false;
+    var lp = document.getElementById('landingPage');
+    var cp = document.getElementById('contentPanel');
+    return (lp && lp.contains(node)) || (cp && cp.contains(node));
+  }
+  document.addEventListener('mouseup', function(e){
+    if (e.target.closest && (e.target.closest('#lxHighlightPopup') || e.target.closest('#lxTempChat'))) return;
+    var sel = window.getSelection();
+    var text = sel ? sel.toString().trim() : '';
+    if (!text || text.length < 2 || text.length > 200) { hideHl(); return; }
+    if (!inContentArea(sel.anchorNode)) { hideHl(); return; }
+    _hlText = text;
+    var range = sel.getRangeAt(0);
+    var rect = range.getBoundingClientRect();
+    _hlRect = { top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width };
+    var popup = document.getElementById('lxHighlightPopup');
+    var pw = 150;
+    var left = Math.max(8, Math.min(window.innerWidth - pw - 8, rect.left + rect.width/2 - pw/2));
+    var top = rect.bottom + 8;
+    if (top + 70 > window.innerHeight) top = rect.top - 70;
+    popup.style.left = left + 'px'; popup.style.top = top + 'px';
+    popup.classList.add('show');
+  });
+  document.addEventListener('mousedown', function(e){
+    if (!(e.target.closest && (e.target.closest('#lxHighlightPopup') || e.target.closest('#lxTempChat')))) { hideHl(); }
+  });
+  function hideHl(){ var p = document.getElementById('lxHighlightPopup'); if (p) p.classList.remove('show'); }
+
+  window.__hlAsk = function(){ showTempChat(_hlText, _hlRect); hideHl(); try{ window.getSelection().removeAllRanges(); }catch(e){} };
+  window.__hlBring = function(){ bringToMain(_hlText); hideHl(); try{ window.getSelection().removeAllRanges(); }catch(e){} };
+
+  function bringToMain(text){
+    var ta = document.getElementById('mainTa');
+    if (!ta) return;
+    if (typeof showChatApp === 'function') showChatApp();
+    if (typeof window.__revealChat === 'function') window.__revealChat();
+    ta.value = text; ta.focus();
+    try { ta.style.height=''; ta.style.height = Math.min(ta.scrollHeight,150)+'px'; } catch(e){}
+  }
+  window.__tempBring = function(){
+    var q = document.getElementById('lxTempInput').value.trim();
+    window.__closeTempChat();
+    bringToMain(q || _hlText);
+  };
+
+  function showTempChat(text, rect){
+    var box = document.getElementById('lxTempChat');
+    var input = document.getElementById('lxTempInput');
+    var ans = document.getElementById('lxTempAnswerArea');
+    input.value = '请解释/分析这段内容：' + text;
+    ans.style.display = 'none';
+    var bw = 320, bh = 170, left = 40, top = 120;
+    if (rect){
+      left = Math.max(8, Math.min(window.innerWidth - bw - 8, rect.left + rect.width/2 - bw/2));
+      top = rect.top - bh - 10;
+      if (top < 64) top = rect.bottom + 10;
+      top = Math.max(64, Math.min(window.innerHeight - 230, top));
+    }
+    box.style.left = left + 'px'; box.style.top = top + 'px';
+    box.classList.add('show');
+    setTimeout(function(){ input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 50);
+  }
+  window.__closeTempChat = function(){ var b = document.getElementById('lxTempChat'); if (b) b.classList.remove('show'); };
+
+  window.__submitTempChat = function(){
+    var input = document.getElementById('lxTempInput');
+    var q = input.value.trim(); if (!q) return;
+    var sendBtn = document.getElementById('lxTempSend');
+    var ans = document.getElementById('lxTempAnswerArea');
+    var ansEl = document.getElementById('lxTempAnswer');
+    sendBtn.disabled = true; sendBtn.textContent = '思考中…';
+    ans.style.display = 'block'; ansEl.textContent = '…';
+    // 独立 fetch /api/chat/stream(conv_id=null, 不写入主对话)
+    fetch('/api/chat/stream', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: q, conv_id: null, site_type: window.__siteType || 'default' })
+    }).then(function(r){
+      var reader = r.body.getReader(), dec = new TextDecoder(), buf='', full='', lastEv='';
+      function pump(){
+        return reader.read().then(function(res){
+          if (res.done){ sendBtn.disabled=false; sendBtn.textContent='重新发送'; return; }
+          buf += dec.decode(res.value, {stream:true});
+          var lines = buf.split('\n'); buf = lines.pop();
+          lines.forEach(function(line){
+            line = line.trim();
+            if (line.indexOf('event:') === 0) lastEv = line.slice(6).trim();
+            else if (line.indexOf('data:') === 0){
+              try { var d = JSON.parse(line.slice(5).trim());
+                if ((lastEv==='chunk' || (!lastEv && d.text)) && d.text){ full += d.text; ansEl.textContent = full; ans.scrollTop = ans.scrollHeight; }
+              } catch(e){}
+            }
+          });
+          return pump();
+        });
+      }
+      return pump();
+    }).catch(function(){ ansEl.textContent='出错了，稍后再试'; sendBtn.disabled=false; sendBtn.textContent='重新发送'; });
+  };
+  var _ti = document.getElementById('lxTempInput');
+  if (_ti) _ti.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); window.__submitTempChat(); } });
 })();
 </script>
 <script src="/split-layout.js?v=20260515-v82-s21fix"></script>
