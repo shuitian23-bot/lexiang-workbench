@@ -3681,6 +3681,7 @@ window.loadFeed = loadFeed;
 loadFeed();
 
 function openDetail(el) {
+  if (window.getSelection && window.getSelection().toString().trim()) return; // 划词中不跳
   var card = el.closest ? el.closest('.mall-card') : el;
   if (!card) card = el;
   showProductDetail(card.dataset.product);
@@ -4183,6 +4184,8 @@ window.openMemberTab = function(){
 
 // 统一 click 处理器：data-action 按钮优先，否则卡片整体点击进详情
 function _cardContainerClickHandler(e) {
+  // 划词中(有选中文字)不触发卡片跳转, 让划词 popup 能出
+  if (window.getSelection && window.getSelection().toString().trim()) return;
   // 1) 解读商品按钮
   var explainBtn = e.target.closest('[data-action="explain"]');
   if (explainBtn) {
