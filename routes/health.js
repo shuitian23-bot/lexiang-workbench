@@ -16,8 +16,8 @@ async function checkLLMApi() {
   const start = Date.now();
   return new Promise((resolve) => {
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/models',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/models',
       method: 'GET',
       headers: { 'Authorization': `Bearer ${API_KEY}` }
     }, (res) => {

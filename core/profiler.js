@@ -8,13 +8,13 @@ const db = require('../db/schema');
 // 调用 LLM 提取画像（直接用 inference 层）
 async function callLLM(messages) {
   const fetch = require('node-fetch');
-  const apiUrl = process.env.DASHSCOPE_API_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+  const apiUrl = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/compatible-mode/v1';
   const apiKey = process.env.DASHSCOPE_API_KEY;
 
   const res = await fetch(`${apiUrl}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: 'qwen-plus', messages, max_tokens: 512, temperature: 0.2 })
+    body: JSON.stringify({ model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' }, messages, max_tokens: 512, temperature: 0.2 })
   });
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';

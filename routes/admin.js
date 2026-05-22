@@ -463,19 +463,19 @@ router.post('/generate-qa', requireAdmin, (req, res) => {
     const https = require('https');
     const { insertQA } = require('../knowledge/qa_search');
     const API_KEY = process.env.DASHSCOPE_API_KEY;
-    const MODEL = 'qwen-plus';
+    const MODEL = 'doubao-seed-2.0-lite';
 
     function callLLM(prompt) {
       return new Promise((resolve, reject) => {
         const body = JSON.stringify({
-          model: MODEL,
+          model: MODEL, thinking: { type: 'disabled' },
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 1200,
           temperature: 0.3
         });
         const req = https.request({
-          hostname: 'dashscope.aliyuncs.com',
-          path: '/compatible-mode/v1/chat/completions',
+          hostname: 'ark.cn-beijing.volces.com',
+          path: '/api/coding/v3/chat/completions',
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${API_KEY}`,

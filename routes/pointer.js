@@ -6,8 +6,8 @@ const https = require('https');
 const router = express.Router();
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL_TEXT = process.env.POINTER_MODEL || 'qwen-turbo';
-const MODEL_VL = process.env.POINTER_VL_MODEL || 'qwen-vl-max-latest';
+const MODEL_TEXT = process.env.POINTER_MODEL || 'doubao-seed-2.0-lite';
+const MODEL_VL = process.env.POINTER_VL_MODEL || 'doubao-seed-2.0-pro';
 const TIMEOUT_MS = 6000;
 
 // 简单内存缓存：context hash → result，5 分钟 TTL
@@ -58,11 +58,12 @@ function callQwen(model, messages) {
       messages,
       temperature: 0.3,
       max_tokens: 250,
+      thinking: { type: 'disabled' },
       response_format: { type: 'json_object' },
     });
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,

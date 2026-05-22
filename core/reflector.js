@@ -6,7 +6,7 @@ const https = require('https');
 const db = require('../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'doubao-seed-2.0-lite';
 const MAX_ANSWER_LEN = 800;
 
 /**
@@ -44,15 +44,15 @@ ${truncatedAnswer}
 
   return new Promise((resolve) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 200,
       temperature: 0.1
     });
 
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,

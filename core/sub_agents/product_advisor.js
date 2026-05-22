@@ -7,7 +7,7 @@ const { searchAsync } = require('../../knowledge/search');
 const db = require('../../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'doubao-seed-2.0-pro';
 
 function normalizeUrl(url) {
   if (!url) return '';
@@ -120,7 +120,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const useStream = typeof onChunk === 'function';
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages,
         max_tokens: 800,
         temperature: 0.4,
@@ -128,8 +128,8 @@ module.exports = {
       });
 
       const req = https.request({
-        hostname: 'dashscope.aliyuncs.com',
-        path: '/compatible-mode/v1/chat/completions',
+        hostname: 'ark.cn-beijing.volces.com',
+        path: '/api/coding/v3/chat/completions',
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + API_KEY,
