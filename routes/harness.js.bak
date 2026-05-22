@@ -7,7 +7,7 @@ const { buildContextMessages } = require('../core/compressor');
 const { v4: uuidv4 } = require('uuid');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-flash';
+const MODEL = 'qwen-plus';
 
 // 鉴权中间件：需要 admin 登录
 function requireAdmin(req, res, next) {
@@ -52,7 +52,7 @@ function getUserMenuTree(adminId) {
   }
   // 没分配角色默认全部可见
   if (menus.size === 0) {
-    return ['dashboard', 'geo', 'ops', 'report', 'ecommerce', 'marketing', 'content', 'ai', 'lenovo', 'support', 'experiments', 'users', 'settings', 'employee'];
+    return ['dashboard', 'geo', 'ecommerce', 'marketing', 'content', 'ai', 'users', 'settings'];
   }
   return [...menus];
 }
@@ -387,8 +387,8 @@ function callLLM(messages, tools, maxTokens = 1024) {
     });
 
     const req = https.request({
-      hostname: 'ark.cn-beijing.volces.com',
-      path: '/api/coding/v3/chat/completions',
+      hostname: 'dashscope.aliyuncs.com',
+      path: '/compatible-mode/v1/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
@@ -425,8 +425,8 @@ function callLLMStream(messages, onDelta, maxTokens = 1024) {
     });
 
     const req = https.request({
-      hostname: 'ark.cn-beijing.volces.com',
-      path: '/api/coding/v3/chat/completions',
+      hostname: 'dashscope.aliyuncs.com',
+      path: '/compatible-mode/v1/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,

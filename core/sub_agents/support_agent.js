@@ -6,7 +6,7 @@ const https = require('https');
 const { searchAsync } = require('../../knowledge/search');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'deepseek-v4-pro';
 
 const SYSTEM_PROMPT = `你是联想售后服务专家"小联"，精通联想产品的保修政策、维修流程、驱动下载和故障排查。
 
@@ -91,8 +91,8 @@ module.exports = {
       let fullText = '';
       let buf = '';
       const req = https.request({
-        hostname: 'dashscope.aliyuncs.com',
-        path: '/compatible-mode/v1/chat/completions',
+        hostname: 'ark.cn-beijing.volces.com',
+        path: '/api/coding/v3/chat/completions',
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + API_KEY,

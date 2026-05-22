@@ -13,9 +13,9 @@ const { getLearningStatus } = require('./learner');
 const { shouldDispatch, dispatch } = require('./dispatcher');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
-const VL_MODEL = 'qwen-vl-plus'; // 图文多模态模型
-const AUDIO_MODEL = 'qwen-audio-turbo'; // 音频多模态模型
+const MODEL = 'deepseek-v4-pro';
+const VL_MODEL = 'doubao-seed-2.0-pro'; // 图文多模态模型
+const AUDIO_MODEL = 'doubao-seed-2.0-pro'; // 音频多模态模型
 const MAX_TOOL_ROUNDS = 5;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3001'; // 图片完整URL前缀
 
@@ -144,8 +144,8 @@ AI回答摘要：${aiReply.slice(0, 200)}`;
   });
 
   const req = https.request({
-    hostname: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
+    hostname: 'ark.cn-beijing.volces.com',
+    path: '/api/coding/v3/chat/completions',
     method: 'POST',
     headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
   }, (res) => {
@@ -190,8 +190,8 @@ AI：${aiReply.slice(0, 300)}`;
   });
 
   const req = https.request({
-    hostname: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
+    hostname: 'ark.cn-beijing.volces.com',
+    path: '/api/coding/v3/chat/completions',
     method: 'POST',
     headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
   }, (res) => {
@@ -236,8 +236,8 @@ function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMe
     });
 
     const options = {
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,
@@ -410,7 +410,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
     // 图片模式用 qwen-vl-plus，音频模式用 qwen-audio-turbo，深度思考模式用 qwq-plus，否则用默认模型
     const hasImage = !!imageUrl;
     const hasAudio = !!audioUrl;
-    const useModel = hasAudio ? AUDIO_MODEL : (hasImage ? VL_MODEL : (thinkingMode ? 'qwq-plus' : MODEL));
+    const useModel = hasAudio ? AUDIO_MODEL : (hasImage ? VL_MODEL : (thinkingMode ? MODEL : MODEL));
 
     // 构造消息列表：有图片或音频时，把最后一条 user 消息改成多模态格式
     let finalMessages = [...messages];
@@ -468,8 +468,8 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
     const body = JSON.stringify(bodyObj);
 
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,

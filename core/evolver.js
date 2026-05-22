@@ -8,7 +8,7 @@ const https = require('https');
 const db = require('../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'deepseek-v4-flash';
 const MIN_FEEDBACK = 5;   // 数据不足阈值：feedback < 5
 const MIN_REFLECTION = 5; // 数据不足阈值：reflection < 5
 const LLM_TIMEOUT = 15000; // 15秒超时
@@ -26,8 +26,8 @@ function callLLMForEvolution(prompt) {
     });
 
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,

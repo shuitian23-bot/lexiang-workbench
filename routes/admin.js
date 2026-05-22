@@ -463,7 +463,7 @@ router.post('/generate-qa', requireAdmin, (req, res) => {
     const https = require('https');
     const { insertQA } = require('../knowledge/qa_search');
     const API_KEY = process.env.DASHSCOPE_API_KEY;
-    const MODEL = 'qwen-plus';
+    const MODEL = 'deepseek-v4-flash';
 
     function callLLM(prompt) {
       return new Promise((resolve, reject) => {
@@ -474,8 +474,8 @@ router.post('/generate-qa', requireAdmin, (req, res) => {
           temperature: 0.3
         });
         const req = https.request({
-          hostname: 'dashscope.aliyuncs.com',
-          path: '/compatible-mode/v1/chat/completions',
+          hostname: 'ark.cn-beijing.volces.com',
+          path: '/api/coding/v3/chat/completions',
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${API_KEY}`,

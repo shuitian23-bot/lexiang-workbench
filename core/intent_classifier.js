@@ -6,7 +6,7 @@
 const https = require('https');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = process.env.INTENT_MODEL || 'qwen-turbo';
+const MODEL = process.env.INTENT_MODEL || 'deepseek-v4-flash';
 
 const INTENTS = {
   product_recommend: '推荐机型 / 选购 / 比型号 / 预算导购',
@@ -82,8 +82,8 @@ function classifyIntent(userMessage, siteType = 'default', options = {}) {
     response_format: { type: 'json_object' },
   });
   const opts = {
-    hostname: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
+    hostname: 'ark.cn-beijing.volces.com',
+    path: '/api/coding/v3/chat/completions',
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + API_KEY,

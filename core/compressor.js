@@ -35,7 +35,7 @@ function estimateTokens(text) {
   return Math.ceil(chineseChars * 1.5 + englishWords * 1.3);
 }
 
-const DASHSCOPE_API_URL = process.env.DASHSCOPE_API_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+const DASHSCOPE_API_URL = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/compatible-mode/v1';
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
 
 async function summarizeMessages(messages, existingSummary) {
@@ -50,7 +50,7 @@ async function summarizeMessages(messages, existingSummary) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DASHSCOPE_API_KEY}` },
     body: JSON.stringify({
-      model: 'qwen-plus',
+      model: 'deepseek-v4-flash',
       messages: [
         { role: 'system', content: '你是对话摘要助手，只输出摘要正文。' },
         { role: 'user', content: prompt }

@@ -7,7 +7,7 @@ const https = require('https');
 const { INTENTS } = require('./intent_classifier');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = process.env.PLANNER_MODEL || 'qwen-turbo';
+const MODEL = process.env.PLANNER_MODEL || 'deepseek-v4-flash';
 
 const FALLBACK = { needs_planning: false, subtasks: [], hint: '', reason: 'fallback' };
 
@@ -47,8 +47,8 @@ function planTasks(userMessage, primaryIntent = 'chitchat', siteType = 'default'
     response_format: { type: 'json_object' },
   });
   const opts = {
-    hostname: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
+    hostname: 'ark.cn-beijing.volces.com',
+    path: '/api/coding/v3/chat/completions',
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + API_KEY,

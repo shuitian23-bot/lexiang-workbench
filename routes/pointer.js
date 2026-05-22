@@ -6,8 +6,8 @@ const https = require('https');
 const router = express.Router();
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL_TEXT = process.env.POINTER_MODEL || 'qwen-turbo';
-const MODEL_VL = process.env.POINTER_VL_MODEL || 'qwen-vl-max-latest';
+const MODEL_TEXT = process.env.POINTER_MODEL || 'deepseek-v4-flash';
+const MODEL_VL = process.env.POINTER_VL_MODEL || 'doubao-seed-2.0-pro';
 const TIMEOUT_MS = 6000;
 
 // 简单内存缓存：context hash → result，5 分钟 TTL
@@ -40,11 +40,13 @@ ${recentText || '（无）'}${lastText}
 - 不要反问"要不要看看别的""要不要对比"——那是把用户推回选择困难
 - ask 字段也要导向下单/领券，不是开放式比较
 
-【bad 反例】"这是好商品" / "要不要对比下别的" / "适合办公"
+【身份约束】leaibot 是联想官方商城本身，**禁止**说"比官网低/比官网便宜/低于官网"——我们就是官网。促单靠官方优惠券/限时活动/赠品/分期/以旧换新，不靠跟官网比价。
+
+【bad 反例】"这是好商品" / "要不要对比下别的" / "比官网便宜¥X" / "适合办公"
 【good 范例】
-- "16GB 够用，这配置现价 ¥5999 是年内低点，下单再减 ¥300"（亮点+转化）
-- "凑个 ¥99 内胆包到 ¥5000 满减 ¥200，等于包白送"（凑单促单）
-- "RTX5070 散热顶级，这款限时直降 ¥800，库存仅剩个位数"（紧迫感）
+- "这配置 ¥5999，下单立领官方券再减 ¥300，到手 ¥5699"（官方券促单）
+- "凑个 ¥99 内胆包到 ¥5000 享满减 ¥200，等于包白送"（凑单促单）
+- "RTX5070 散热顶级，限时官方直降 ¥800 + 晒单送延保，库存个位数"（紧迫感+赠品）
 
 输出严格 JSON 单行：{"hint":"...","ask":"..."}`;
 }
@@ -59,8 +61,8 @@ function callQwen(model, messages) {
       response_format: { type: 'json_object' },
     });
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,
