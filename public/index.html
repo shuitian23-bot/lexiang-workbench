@@ -1309,7 +1309,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260515-v82-s21fix">
+<link rel="stylesheet" href="/split-layout.css?v=20260522-tl-ref">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1701,6 +1701,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       <button class="scroll-down-btn" id="scrollDownBtn" onclick="scrollBottom()" title="回到底部">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
       </button>
+      <button class="lx-tl-toggle" id="lxTlToggle" onclick="window.__lxToggleTimeline&&window.__lxToggleTimeline()" title="对话脉络竖轴">
+        <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><line x1="6" y1="8" x2="6" y2="16"/><line x1="11" y1="6" x2="20" y2="6"/><line x1="11" y1="18" x2="20" y2="18"/></svg>
+      </button>
     </div>
     <div class="input-bar">
       <div id="lxHintRow" style="display:flex;align-items:flex-start;gap:8px"><div id="lxHintChipSlot" style="flex:1;min-width:0"></div></div>
@@ -1723,6 +1726,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       </div>
       <input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="onImageFileSelected(this)">
       <input type="file" id="audioFileInput" accept="audio/*" style="display:none" onchange="onAudioFileSelected(this)">
+      <div id="lxRefBar" class="lx-ref-bar"></div>
+      <div id="lxAtPicker" class="lx-at-picker"></div>
       <div class="input-inner">
         <div class="ta-wrap">
           <textarea class="ta" id="mainTa" placeholder="我想问..." rows="1"></textarea>
@@ -2297,6 +2302,7 @@ function appendBubble(role, text, renderMd=false){
   const inner = document.getElementById('msgsInner');
   const d = document.createElement('div');
   d.className = 'msg ' + role;
+  d.dataset.mid = String(window.__lxMidSeq = (window.__lxMidSeq || 0) + 1);
   const content = (renderMd && role === 'ai' && typeof marked !== 'undefined')
     ? marked.parse(sanitizeAutolink(text)).replace(/<table/g,'<div class="table-wrap"><table').replace(/<\/table>/g,'</table></div>')
     : escHtml(text);
@@ -2317,6 +2323,7 @@ function appendBubble(role, text, renderMd=false){
     d.innerHTML = `<div class="mbubble">${content}</div>`;
   }
   inner.appendChild(d);
+  try { window.__lxOnBubble && window.__lxOnBubble(d, role); } catch(e){}
   scrollBottom(role === 'user');
   return d;
 }
@@ -3355,13 +3362,21 @@ async function sendMain(directMsg){
     // 否则（只说"门店"没说位置）→ 走普通 AI 问答
   }
 
-  const displayMsg = msg || (audioUrl ? '请转写并分析这段音频' : '请分析这张图片');
+  const cleanMsg = msg || (audioUrl ? '请转写并分析这段音频' : '请分析这张图片');
+  // @引用: 取待引用片段, 拼成可见前缀(bubble) + 后端上下文
+  const _refs = (window.__lxRefs || []).slice();
+  let _refCtx = '', displayMsg = cleanMsg;
+  if (_refs.length) {
+    displayMsg = _refs.map(r => '↳「' + r.snippet.slice(0, 22) + (r.snippet.length > 22 ? '…' : '') + '」').join(' ') + '\n' + cleanMsg;
+    _refCtx = '用户引用了前文内容作为上下文：\n' + _refs.map(r => '【' + (r.role === 'user' ? '我之前说' : '乐享之前说') + '】' + r.snippet).join('\n') + '\n\n基于以上引用，';
+  }
   appendBubble('user', displayMsg);
+  if (window.__lxClearRefs) window.__lxClearRefs();
   if(!isLoggedIn()) _anonRounds++;
   // 人工模式: 给后端的 msg 前缀注入客服小李身份指令, user bubble 仍显原文 (UI 体验"已转人工")
-  var backendMsg = displayMsg;
+  var backendMsg = _refCtx + cleanMsg;
   if (window.__inHumanMode) {
-    backendMsg = '[系统提示: 现在请用"客服小李"身份回复, 亲切热情接地气, 像微信客服一样直接答, 不要 markdown/列表/标题, 不要 "您好这边为您查询" 等冗长开场, 不要暴露 AI 身份, 句末可加 ~ 或 😊 等友好语气. 不要喊"亲" 太套路, 自然就好.]\n\n用户问: ' + displayMsg;
+    backendMsg = '[系统提示: 现在请用"客服小李"身份回复, 亲切热情接地气, 像微信客服一样直接答, 不要 markdown/列表/标题, 不要 "您好这边为您查询" 等冗长开场, 不要暴露 AI 身份, 句末可加 ~ 或 😊 等友好语气. 不要喊"亲" 太套路, 自然就好.]\n\n' + _refCtx + '用户问: ' + cleanMsg;
   }
   // 对比模式：仅纯文本支持，有图片/音频走普通模式
   if (leaiCompare && !imageUrl && !audioUrl) await callCompareAPI(backendMsg);
@@ -7390,6 +7405,121 @@ window.openServicePlus = openServicePlus;
   if (_ti) _ti.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); window.__submitTempChat(); } });
 })();
 </script>
-<script src="/split-layout.js?v=20260515-v82-s21fix"></script>
+<script>
+// ════════════════════════════════════════
+//  对话竖轴 timeline (①) + @引用 (③)
+// ════════════════════════════════════════
+(function(){
+  window.__lxRefs = window.__lxRefs || [];
+
+  // ── ① 竖轴: 每条用户消息挂一个节点(序号+圆点), 点击跳转 ──
+  function snippetOf(el){
+    var b = el.querySelector('.mbubble') || el.querySelector('.msg-body') || el;
+    return (b.textContent || '').replace(/\s+/g,' ').trim();
+  }
+  function userTurnCount(){ return document.querySelectorAll('#msgsInner .msg.user').length; }
+  window.__lxOnBubble = function(d, role){
+    if (role !== 'user') return;
+    var n = userTurnCount();
+    var node = document.createElement('div');
+    node.className = 'lx-tl-node';
+    node.innerHTML = '<span class="lx-tl-dot"></span><span class="lx-tl-num">'+n+'</span>';
+    node.title = '第 '+n+' 轮 · 点击回看';
+    node.onclick = function(){ jumpTo(d.dataset.mid); };
+    d.appendChild(node);
+  };
+  function jumpTo(mid){
+    var el = document.querySelector('#msgsInner .msg[data-mid="'+mid+'"]');
+    if (!el) return;
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+    el.classList.add('lx-tl-flash');
+    setTimeout(function(){ el.classList.remove('lx-tl-flash'); }, 1400);
+  }
+  window.__lxToggleTimeline = function(){
+    var on = document.body.classList.toggle('lx-tl-on');
+    try { localStorage.setItem('lexiang.timeline', on ? '1' : '0'); } catch(e){}
+    var btn = document.getElementById('lxTlToggle'); if (btn) btn.classList.toggle('active', on);
+  };
+  // 默认开
+  try { if (localStorage.getItem('lexiang.timeline') !== '0') { document.body.classList.add('lx-tl-on'); var b=document.getElementById('lxTlToggle'); if(b)b.classList.add('active'); } }
+  catch(e){ document.body.classList.add('lx-tl-on'); }
+
+  // ── ③ @引用: textarea 输 @ → 选历史消息作为上下文 ──
+  var picker = document.getElementById('lxAtPicker');
+  var refBar = document.getElementById('lxRefBar');
+  var ta = document.getElementById('mainTa');
+  var atStart = -1; // 当前 @ 触发位置
+
+  function listMsgs(q){
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('#msgsInner .msg[data-mid]'));
+    var out = [];
+    nodes.forEach(function(el){
+      var role = el.classList.contains('user') ? 'user' : 'ai';
+      var sn = snippetOf(el);
+      if (!sn) return;
+      if (q && sn.toLowerCase().indexOf(q.toLowerCase()) < 0) return;
+      out.push({ mid: el.dataset.mid, role: role, snippet: sn });
+    });
+    return out.reverse().slice(0, 8);
+  }
+  function openPicker(q){
+    var items = listMsgs(q);
+    if (!items.length){ closePicker(); return; }
+    picker.innerHTML = items.map(function(it){
+      var tag = it.role === 'user' ? '我' : '乐享';
+      var cls = it.role === 'user' ? 'u' : 'a';
+      return '<div class="lx-at-item" data-mid="'+it.mid+'"><span class="lx-at-tag '+cls+'">'+tag+'</span><span class="lx-at-txt">'+escHtml(it.snippet.slice(0,46))+(it.snippet.length>46?'…':'')+'</span></div>';
+    }).join('');
+    picker.classList.add('show');
+  }
+  function closePicker(){ picker.classList.remove('show'); atStart = -1; }
+
+  function addRef(mid){
+    var el = document.querySelector('#msgsInner .msg[data-mid="'+mid+'"]');
+    if (!el) return;
+    if (window.__lxRefs.some(function(r){ return r.mid === mid; })) return;
+    window.__lxRefs.push({ mid: mid, role: el.classList.contains('user')?'user':'ai', snippet: snippetOf(el) });
+    renderRefBar();
+  }
+  function renderRefBar(){
+    if (!window.__lxRefs.length){ refBar.classList.remove('show'); refBar.innerHTML=''; return; }
+    refBar.innerHTML = '<span class="lx-ref-label">引用</span>' + window.__lxRefs.map(function(r,i){
+      var tag = r.role==='user'?'我':'乐享';
+      return '<span class="lx-ref-chip"><b>'+tag+'</b>'+escHtml(r.snippet.slice(0,16))+(r.snippet.length>16?'…':'')+'<i data-i="'+i+'">×</i></span>';
+    }).join('');
+    refBar.classList.add('show');
+  }
+  window.__lxClearRefs = function(){ window.__lxRefs = []; renderRefBar(); };
+
+  if (refBar) refBar.addEventListener('click', function(e){
+    var x = e.target.closest('i[data-i]'); if (!x) return;
+    window.__lxRefs.splice(+x.dataset.i, 1); renderRefBar();
+  });
+  if (picker) picker.addEventListener('mousedown', function(e){
+    var it = e.target.closest('.lx-at-item'); if (!it) return;
+    e.preventDefault();
+    addRef(it.dataset.mid);
+    // 删除触发用的 "@查询" 文本
+    if (ta && atStart >= 0){
+      var caret = ta.selectionStart;
+      ta.value = ta.value.slice(0, atStart) + ta.value.slice(caret);
+      ta.setSelectionRange(atStart, atStart); ta.focus();
+    }
+    closePicker();
+  });
+  if (ta){
+    ta.addEventListener('input', function(){
+      var caret = ta.selectionStart;
+      var before = ta.value.slice(0, caret);
+      var m = before.match(/(^|\s)@([^\s@]{0,20})$/);
+      if (m){ atStart = caret - m[2].length - 1; openPicker(m[2]); }
+      else closePicker();
+    });
+    ta.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePicker(); });
+    ta.addEventListener('blur', function(){ setTimeout(closePicker, 150); });
+  }
+})();
+</script>
+<script src="/split-layout.js?v=20260522-tl-ref"></script>
 </body>
 </html>
