@@ -490,10 +490,20 @@
       if (t.contentEl) t.contentEl.style.display = isActive ? '' : 'none';
     }
     updateWorkspaceContextFromTab(getActiveTab());
+    fireTabsChanged();
     setTimeout(function () {
       var ta = document.getElementById('mainTa');
       if (ta) try { ta.focus(); } catch (e) {}
     }, 30);
+  }
+
+  // 通知前端: 网页标签竖轴(timeline) 用 — 当前打开的 tab 列表 + 激活 id
+  function fireTabsChanged() {
+    if (typeof window.__lxOnTabsChanged !== 'function') return;
+    try {
+      var list = tabs.map(function (t) { return { id: t.id, type: t.type, title: t.title, data: t.data }; });
+      window.__lxOnTabsChanged(list, activeTabId);
+    } catch (e) {}
   }
 
   function closeTab(tabId) {

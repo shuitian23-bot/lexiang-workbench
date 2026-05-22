@@ -1212,15 +1212,15 @@ html.in-chat #splitControls {
   }
 }
 
-/* ════════ 对话竖轴 timeline ① — 右侧轨道, 复用滚动区不另起竖线 ════════ */
-.lx-tl-rail{display:none;position:absolute;top:16px;bottom:74px;right:5px;width:18px;z-index:6;pointer-events:none}
-.lx-tl-rail.show{display:block}
-.lx-tl-rail::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(#E3007F33,#0050A033);border-radius:2px}
-.lx-tl-pt{position:absolute;left:0;width:18px;height:16px;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto}
-.lx-tl-pt i{font-style:normal;width:15px;height:15px;border-radius:50%;background:#E3007F;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--card,#fff);box-shadow:0 0 0 1px #E3007F;transition:transform .15s}
-.lx-tl-pt:hover i{transform:scale(1.45)}
-.lx-tl-flash{animation:lxTlFlash 1.4s ease;border-radius:10px}
-@keyframes lxTlFlash{0%,100%{background:transparent}25%{background:#FCEFF688}}
+/* ════════ 网页标签竖轴 timeline ① — 右侧打开过的内容 tab 竖向排布, 点击切到那个网页 ════════ */
+.lx-tl-rail{display:none;position:absolute;right:8px;top:60px;flex-direction:column;align-items:flex-end;gap:6px;max-width:150px;z-index:6;pointer-events:none}
+.lx-tl-rail.show{display:flex}
+.lx-tl-tab{pointer-events:auto;display:inline-flex;align-items:center;gap:5px;max-width:150px;background:var(--card,#fff);border:1px solid var(--border,#e5d9ee);border-radius:14px;padding:3px 9px 3px 7px;font-size:11px;color:var(--text2,#888);cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.08);transition:.15s;white-space:nowrap;opacity:.55}
+.lx-tl-rail:hover .lx-tl-tab,.lx-tl-tab.active{opacity:1}
+.lx-tl-tab:hover{border-color:#E3007F66;color:#E3007F;opacity:1}
+.lx-tl-tab.active{background:#FCEFF6;border-color:#E3007F;color:#E3007F;font-weight:700}
+.lx-tl-d{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.75}
+.lx-tl-t{overflow:hidden;text-overflow:ellipsis;max-width:118px}
 @media(max-width:768px){.lx-tl-rail{display:none!important}}
 
 /* ════════ @引用 ③ ════════ */
