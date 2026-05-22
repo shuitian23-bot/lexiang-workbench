@@ -6,7 +6,7 @@ const https = require('https');
 const { searchAsync } = require('../../knowledge/search');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-pro';
+const MODEL = 'doubao-seed-2.0-pro';
 
 const SYSTEM_PROMPT = `你是联想售后服务专家"小联"，精通联想产品的保修政策、维修流程、驱动下载和故障排查。
 
@@ -81,7 +81,7 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages,
         max_tokens: 600,
         temperature: 0.3,

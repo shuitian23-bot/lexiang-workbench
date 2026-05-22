@@ -6,7 +6,7 @@
 const https = require('https');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = process.env.INTENT_MODEL || 'deepseek-v4-flash';
+const MODEL = process.env.INTENT_MODEL || 'doubao-seed-2.0-lite';
 
 const INTENTS = {
   product_recommend: '推荐机型 / 选购 / 比型号 / 预算导购',
@@ -75,7 +75,7 @@ function classifyIntent(userMessage, siteType = 'default', options = {}) {
   }
   const timeoutMs = options.timeoutMs || 4000;
   const body = JSON.stringify({
-    model: MODEL,
+    model: MODEL, thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: buildPrompt(userMessage, siteType) }],
     temperature: 0,
     max_tokens: 200,

@@ -15,12 +15,12 @@ const https = require('https');
 const db = require('../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-flash';
+const MODEL = 'doubao-seed-2.0-lite';
 
 function callLLM(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: '你是经验提取助手，只输出 JSON 对象。' },
         { role: 'user', content: prompt }

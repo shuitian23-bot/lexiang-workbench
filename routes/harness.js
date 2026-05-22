@@ -7,7 +7,7 @@ const { buildContextMessages } = require('../core/compressor');
 const { v4: uuidv4 } = require('uuid');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-flash';
+const MODEL = 'doubao-seed-2.0-lite';
 
 // 鉴权中间件：需要 admin 登录
 function requireAdmin(req, res, next) {
@@ -379,7 +379,7 @@ router.put('/user-roles/:userId', requireAdmin, (req, res) => {
 function callLLM(messages, tools, maxTokens = 1024) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages,
       max_tokens: maxTokens,
       temperature: 0.3,
@@ -417,7 +417,7 @@ function callLLM(messages, tools, maxTokens = 1024) {
 function callLLMStream(messages, onDelta, maxTokens = 1024) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages,
       max_tokens: maxTokens,
       temperature: 0.3,

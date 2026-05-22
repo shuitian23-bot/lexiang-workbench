@@ -7,7 +7,7 @@ const { searchAsync } = require('../../knowledge/search');
 const db = require('../../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-pro';
+const MODEL = 'doubao-seed-2.0-pro';
 
 function normalizeUrl(url) {
   if (!url) return '';
@@ -120,7 +120,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const useStream = typeof onChunk === 'function';
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages,
         max_tokens: 800,
         temperature: 0.4,

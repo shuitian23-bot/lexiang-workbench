@@ -50,7 +50,7 @@ async function summarizeMessages(messages, existingSummary) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DASHSCOPE_API_KEY}` },
     body: JSON.stringify({
-      model: 'deepseek-v4-flash',
+      model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: '你是对话摘要助手，只输出摘要正文。' },
         { role: 'user', content: prompt }

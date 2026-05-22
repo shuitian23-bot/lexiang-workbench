@@ -13,7 +13,7 @@ const { getLearningStatus } = require('./learner');
 const { shouldDispatch, dispatch } = require('./dispatcher');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-pro';
+const MODEL = 'doubao-seed-2.0-pro';
 const VL_MODEL = 'doubao-seed-2.0-pro'; // 图文多模态模型
 const AUDIO_MODEL = 'doubao-seed-2.0-pro'; // 音频多模态模型
 const MAX_TOOL_ROUNDS = 5;
@@ -137,7 +137,7 @@ function generateTitle(convId, userMessage, aiReply) {
 AI回答摘要：${aiReply.slice(0, 200)}`;
 
   const body = JSON.stringify({
-    model: MODEL,
+    model: MODEL, thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 30,
     temperature: 0.3
@@ -183,7 +183,7 @@ AI: ${aiReply.slice(0, 300)}`
 AI：${aiReply.slice(0, 300)}`;
 
   const body = JSON.stringify({
-    model: MODEL,
+    model: MODEL, thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 150,
     temperature: 0.7
@@ -219,7 +219,7 @@ AI：${aiReply.slice(0, 300)}`;
 function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
         ...messages
@@ -445,7 +445,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
     }
 
     const bodyObj = {
-      model: useModel,
+      model: useModel, thinking: { type: thinkingMode ? 'enabled' : 'disabled' },
       stream: true,
       stream_options: { include_usage: false },
       messages: [

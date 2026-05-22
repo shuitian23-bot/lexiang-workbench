@@ -45,7 +45,7 @@ async function callLLM(prompt) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DASHSCOPE_API_KEY}` },
     body: JSON.stringify({
-      model: 'deepseek-v4-flash',
+      model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: '你是记忆提取助手，只输出 JSON 数组。' },
         { role: 'user', content: prompt }
@@ -64,7 +64,7 @@ async function callLLMForConflict(systemMsg, userMsg) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DASHSCOPE_API_KEY}` },
     body: JSON.stringify({
-      model: 'deepseek-v4-flash',
+      model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: systemMsg },
         { role: 'user', content: userMsg }

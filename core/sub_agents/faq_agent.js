@@ -6,7 +6,7 @@ const https = require('https');
 const { searchAsync } = require('../../knowledge/search');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-pro';
+const MODEL = 'doubao-seed-2.0-pro';
 
 const SYSTEM_PROMPT = `你是联想快速问答助手"小Q"，专门用简洁直接的方式回答联想相关常见问题。
 
@@ -57,7 +57,7 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages,
         max_tokens: 300,
         temperature: 0.3,

@@ -8,7 +8,7 @@ const https = require('https');
 const db = require('../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-flash';
+const MODEL = 'doubao-seed-2.0-lite';
 const MIN_FEEDBACK = 5;   // 数据不足阈值：feedback < 5
 const MIN_REFLECTION = 5; // 数据不足阈值：reflection < 5
 const LLM_TIMEOUT = 15000; // 15秒超时
@@ -19,7 +19,7 @@ const LLM_TIMEOUT = 15000; // 15秒超时
 function callLLMForEvolution(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 300,
       temperature: 0.5

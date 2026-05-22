@@ -4,7 +4,7 @@
 const https = require('https');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-flash';
+const MODEL = 'doubao-seed-2.0-lite';
 
 module.exports = {
   name: 'task_planner',
@@ -43,7 +43,7 @@ module.exports = {
 
     return new Promise((resolve) => {
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 800,
         temperature: 0.3

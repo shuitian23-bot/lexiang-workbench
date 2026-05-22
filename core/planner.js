@@ -7,7 +7,7 @@ const https = require('https');
 const { INTENTS } = require('./intent_classifier');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = process.env.PLANNER_MODEL || 'deepseek-v4-flash';
+const MODEL = process.env.PLANNER_MODEL || 'doubao-seed-2.0-lite';
 
 const FALLBACK = { needs_planning: false, subtasks: [], hint: '', reason: 'fallback' };
 
@@ -40,7 +40,7 @@ function planTasks(userMessage, primaryIntent = 'chitchat', siteType = 'default'
   }
   const timeoutMs = options.timeoutMs || 4000;
   const body = JSON.stringify({
-    model: MODEL,
+    model: MODEL, thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: buildPrompt(userMessage, primaryIntent, siteType) }],
     temperature: 0,
     max_tokens: 300,

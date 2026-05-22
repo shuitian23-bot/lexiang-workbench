@@ -14,7 +14,7 @@ async function callLLM(messages) {
   const res = await fetch(`${apiUrl}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: 'deepseek-v4-flash', messages, max_tokens: 512, temperature: 0.2 })
+    body: JSON.stringify({ model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' }, messages, max_tokens: 512, temperature: 0.2 })
   });
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';

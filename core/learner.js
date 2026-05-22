@@ -14,7 +14,7 @@ const https = require('https');
 const db = require('../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'deepseek-v4-flash';
+const MODEL = 'doubao-seed-2.0-lite';
 const LLM_TIMEOUT = 15000;
 
 // 数据不足阈值
@@ -31,7 +31,7 @@ const MAX_FAILURE_PATTERNS = 200;
 function callLLMSilent(prompt, maxTokens = 400) {
   return new Promise((resolve) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: prompt }],
       max_tokens: maxTokens,
       temperature: 0.4
