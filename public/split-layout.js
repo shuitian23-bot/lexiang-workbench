@@ -388,9 +388,11 @@
   function ensureContentPanelOpen() {
     var html = document.documentElement;
     html.classList.remove('landing-collapsed', 'content-closing');
-    if (!html.classList.contains('content-open')) html.classList.add('content-open');
+    var wasOpen = html.classList.contains('content-open');
+    if (!wasOpen) html.classList.add('content-open');
     var cp = document.getElementById('contentPanel');
-    if (cp) {
+    // 仅首次打开才重播滑入动画; 切换已开面板时不重播(避免闪一下)
+    if (cp && !wasOpen) {
       cp.style.animation = 'none';
       void cp.offsetWidth;
       cp.style.animation = '';

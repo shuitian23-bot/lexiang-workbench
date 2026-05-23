@@ -1309,7 +1309,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260522-tl-ref5">
+<link rel="stylesheet" href="/split-layout.css?v=20260522-tl-ref6">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7425,8 +7425,10 @@ window.openServicePlus = openServicePlus;
     (list || []).forEach(function(t){
       var k = tabKey(t);
       _liveKeyId[k] = t.id;
-      if (!window.__lxTabHist.some(function(h){ return h.key === k; }))
-        window.__lxTabHist.push({ key:k, type:t.type, title:t.title || '网页', data:t.data });
+      if (!window.__lxTabHist.some(function(h){ return h.key === k; })) {
+        var _w = document.getElementById('msgsWrap');
+        window.__lxTabHist.push({ key:k, type:t.type, title:t.title || '网页', data:t.data, scroll:(_w ? _w.scrollTop : 0) });
+      }
       if (t.id === activeId) _activeKey = k;
     });
     if (window.__lxTabHist.length > 8) window.__lxTabHist = window.__lxTabHist.slice(-8);
@@ -7450,9 +7452,11 @@ window.openServicePlus = openServicePlus;
   if (_rail) _rail.addEventListener('click', function(e){
     var b = e.target.closest('.lx-tl-tab'); if (!b) return;
     var h = window.__lxTabHist[+b.dataset.i]; if (!h) return;
+    // 切完后把左侧聊天滚回打开这个网页时的位置
+    function restoreScroll(){ var w = document.getElementById('msgsWrap'); if (w && typeof h.scroll === 'number') setTimeout(function(){ w.scrollTo({ top:h.scroll, behavior:'smooth' }); }, 60); }
     // 已打开 → 切回那个标签; 已关闭 → 重开
-    if (_liveKeyId[h.key] && typeof window.__switchContentTab === 'function' && window.__switchContentTab(_liveKeyId[h.key])) return;
-    if (typeof window.__openContent === 'function') window.__openContent(h.type, h.title, h.data);
+    if (_liveKeyId[h.key] && typeof window.__switchContentTab === 'function' && window.__switchContentTab(_liveKeyId[h.key])) { restoreScroll(); return; }
+    if (typeof window.__openContent === 'function') { window.__openContent(h.type, h.title, h.data); restoreScroll(); }
   });
   window.addEventListener('resize', renderTlRail);
 
@@ -7532,6 +7536,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260522-tl-ref5"></script>
+<script src="/split-layout.js?v=20260522-tl-ref6"></script>
 </body>
 </html>
