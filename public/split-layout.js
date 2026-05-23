@@ -175,7 +175,7 @@
       if (t.type !== type) continue;
       if (type === 'home') return t;
       if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
-      if (type === 'products' && data.category && td.category === data.category) return t;
+      if (type === 'products') { if (data.category) { if (td.category === data.category) return t; } else if (title && t.title === title) return t; continue; }
       if (type === 'preview' && data.url && td.url === data.url) return t;
       // info tab: 按 title 严格区分(权益管家·A vs 权益管家·B / 联想服务 / 订单确认 各自独立 tab)
       if (type === 'info') { if (title && t.title === title) return t; else continue; }
@@ -535,6 +535,7 @@
   window.__enterChat = enterChat;
   window.__enterSplit = enterSplit;
   window.__openContent = openContent;
+  window.__switchContentTab = function(id){ for (var i=0;i<tabs.length;i++){ if (tabs[i].id===id){ switchTab(id); ensureContentPanelOpen(); return true; } } return false; };
   window.__closeContent = closeContent;
   window.__closeWorkspaceTab = closeTab;
   window.__getWorkspaceContext = getWorkspaceContext;
