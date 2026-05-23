@@ -1309,7 +1309,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260522-tl-ref4">
+<link rel="stylesheet" href="/split-layout.css?v=20260522-tl-ref5">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2276,7 +2276,7 @@ async function loadConv(id){
   } catch(e){}
   // 含商品/方案语义 → chat 末尾留重开 chip。有快照=秒开；无快照才 fallback 让 AI 重生成
   var lastAi = msgs.filter(function(m){ return m.role !== 'user'; }).map(function(m){ return m.content || ''; }).join(' ');
-  if (/[¥￥]\s*\d|推荐|对比|方案|配置|机型|ThinkPad|拯救者|小新|YOGA|ThinkBook/.test(lastAi)) {
+  if (!_hadPanel && /[¥￥]\s*\d|推荐|对比|方案|配置|机型|ThinkPad|拯救者|小新|YOGA|ThinkBook/.test(lastAi)) {
     var inner2 = document.getElementById('msgsInner');
     if (inner2 && !document.getElementById('convPanelChip')) {
       var pc = document.createElement('div');
@@ -7417,11 +7417,14 @@ window.openServicePlus = openServicePlus;
   }
   window.__lxTabHist = window.__lxTabHist || [];
   var _activeKey = '';
+  var _liveKeyId = {}; // 当前仍打开的 tab: key → id, 点击优先切回不重开
   function tabKey(t){ return t.type + '|' + ((t.data && t.data.sku) || t.title || ''); }
   // split-layout 每次打开/切换 tab 推送当前列表 + 激活 id
   window.__lxOnTabsChanged = function(list, activeId){
+    _liveKeyId = {};
     (list || []).forEach(function(t){
       var k = tabKey(t);
+      _liveKeyId[k] = t.id;
       if (!window.__lxTabHist.some(function(h){ return h.key === k; }))
         window.__lxTabHist.push({ key:k, type:t.type, title:t.title || '网页', data:t.data });
       if (t.id === activeId) _activeKey = k;
@@ -7447,6 +7450,8 @@ window.openServicePlus = openServicePlus;
   if (_rail) _rail.addEventListener('click', function(e){
     var b = e.target.closest('.lx-tl-tab'); if (!b) return;
     var h = window.__lxTabHist[+b.dataset.i]; if (!h) return;
+    // 已打开 → 切回那个标签; 已关闭 → 重开
+    if (_liveKeyId[h.key] && typeof window.__switchContentTab === 'function' && window.__switchContentTab(_liveKeyId[h.key])) return;
     if (typeof window.__openContent === 'function') window.__openContent(h.type, h.title, h.data);
   });
   window.addEventListener('resize', renderTlRail);
@@ -7527,6 +7532,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260522-tl-ref4"></script>
+<script src="/split-layout.js?v=20260522-tl-ref5"></script>
 </body>
 </html>
