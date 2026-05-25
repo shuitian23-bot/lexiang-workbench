@@ -285,6 +285,8 @@
     var reusable = findReusableTab(type, data, title);
     if (reusable) {
       ensureContentPanelOpen();
+      // 复用时标题变了就改名(如切站后首页 tab 跟随当前子站名)
+      if (title && reusable.title !== title) renameTab(reusable.id, title);
       switchTab(reusable.id);
       return reusable.id;
     }
