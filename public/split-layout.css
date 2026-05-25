@@ -1239,3 +1239,13 @@ html.in-chat #splitControls {
 .lx-at-tag.u{background:#E3007F1a;color:#E3007F}
 .lx-at-tag.a{background:#0050A01a;color:#0050A0}
 .lx-at-txt{color:var(--text,#333);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 浏览区控制按钮收进顶部 splitControls */
+/* 非分屏: 全隐 */
+html:not(.split-mode) #splitControls .cp-ctrl{display:none}
+/* 分屏但没开 tab(状态2b): 只留收起/展开, 放大和关闭无意义先隐 */
+html.split-mode:not(.content-open) #splitControls #cpMax,
+html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
+#splitControls .cp-ctrl{padding:5px 7px;display:inline-flex;align-items:center;justify-content:center}
+#splitControls .cp-ctrl svg{width:15px;height:15px;stroke:currentColor;fill:none}
+#splitControls .cp-close:hover{color:#E3007F;border-color:#E3007F66}

@@ -271,7 +271,7 @@
     if (html.classList.contains('split-mode')) return;
     html.classList.add('split-mode');
     html.style.setProperty('--split-left', state.leftPct + '%');
-    ensureLandingCloseBtn();
+    // 收起按钮已移到顶部 splitControls, 不再用浮钮
   }
 
   // 添加 Tab → 升级分屏（必加 split-mode，让左侧 chat / 右侧 tab 同时可见）
@@ -1238,12 +1238,7 @@
     cp.innerHTML =
       '<div class="cp-header">' +
         '<div class="cp-tabs" id="cpTabs"></div>' +
-        '<div class="cp-actions">' +
-          '<button class="cp-icon-btn" id="cpMax" title="放大浏览区" aria-label="放大浏览区">' + ICON_MAXIMIZE + '</button>' +
-          '<button class="cp-icon-btn cp-close" id="cpClose" title="关闭浏览区" aria-label="关闭浏览区">' +
-            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
-          '</button>' +
-        '</div>' +
+        '<div class="cp-actions"></div>' +
       '</div>' +
       '<div class="cp-body" id="cpBody"></div>';
     return cp;
@@ -1261,20 +1256,7 @@
     divider.id = 'splitDivider';
     divider.setAttribute('role', 'separator');
     divider.setAttribute('aria-orientation', 'vertical');
-    divider.innerHTML = '<div class="grip"></div>' +
-      '<button class="split-collapse-btn" id="collapseLandingBtn" title="收起右侧面板">' +
-        '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>' +
-      '</button>';
-
-    // 展开按钮（收起后显示在右侧边缘）
-    var expandBtn = document.createElement('button');
-    expandBtn.id = 'expandLandingBtn';
-    expandBtn.className = 'split-panel-float-btn';
-    expandBtn.title = '展开右侧面板';
-    expandBtn.setAttribute('aria-label', '展开右侧面板');
-    expandBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="m10 15-3-3 3-3"/></svg>';
-    expandBtn.addEventListener('click', expandLanding);
-    document.body.appendChild(expandBtn);
+    divider.innerHTML = '<div class="grip"></div>';
 
     var root = document.createElement('div');
     root.id = 'splitRoot';
@@ -1284,11 +1266,7 @@
     root.appendChild(divider);
     root.appendChild(cp);
 
-    // 关闭按钮
-    document.getElementById('cpMax').addEventListener('click', toggleContentMaximized);
-    document.getElementById('cpClose').addEventListener('click', closeContent);
-
-    // 控制栏（换位 / 新建）
+    // 控制栏（新建 / 换位 / 放大 / 收起 / 关闭 — 浏览区控制全收顶部）
     var controls = document.getElementById('splitControls');
     if (controls) {
       controls.innerHTML =
@@ -1296,7 +1274,20 @@
         '<button type="button" id="btnSwapPanes" title="左右换位">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
           '<span>换位</span>' +
+        '</button>' +
+        '<button type="button" id="cpMax" class="cp-ctrl cp-icon-btn" title="放大浏览区" aria-label="放大浏览区">' + ICON_MAXIMIZE + '</button>' +
+        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="收起/展开浏览区" aria-label="收起/展开浏览区">' +
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>' +
+        '</button>' +
+        '<button type="button" id="cpClose" class="cp-ctrl cp-icon-btn cp-close" title="关闭浏览区" aria-label="关闭浏览区">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
         '</button>';
+      document.getElementById('cpMax').addEventListener('click', toggleContentMaximized);
+      document.getElementById('cpClose').addEventListener('click', closeContent);
+      document.getElementById('cpCollapse').addEventListener('click', function () {
+        if (document.documentElement.classList.contains('landing-collapsed')) expandLanding();
+        else collapseLanding();
+      });
       document.getElementById('btnSwapPanes').addEventListener('click', function () {
         // 换位时翻转 leftPct 让两侧占比保持不变（如 chat 原占 1/3 在右，换到左仍占 1/3）
         state.swapped = !state.swapped;
@@ -1309,13 +1300,6 @@
         if (typeof openChatFresh === 'function') openChatFresh();
       });
     }
-
-    // 折叠按钮
-    var collapseBtn = document.getElementById('collapseLandingBtn');
-    if (collapseBtn) collapseBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      collapseLanding();
-    });
 
     bindDrag(divider);
   }

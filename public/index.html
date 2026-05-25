@@ -1256,8 +1256,9 @@ html[data-site="biz"] .subnav-extra{display:flex}
 [data-theme="dark"] .ai-product-overlay .ov-close svg{stroke:#aaa}
 [data-theme="dark"] .ai-product-overlay .ov-chips button{background:#2a2540;color:#E2DDEB;border-color:#4c3d80}
 /* 收起后的按钮条（输入框上方） */
-.product-chips-bar{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 10px;animation:chipsSlideIn .3s ease}
+.product-chips-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:0 0 10px;animation:chipsSlideIn .3s ease}
 .product-chips-bar.hidden{display:none}
+.product-chips-bar .pcb-label{font-size:12px;color:#8a7a9e;font-weight:600;white-space:nowrap;margin-right:2px}
 .product-chips-bar button{padding:8px 18px;border:1px solid #E2DDEB;border-radius:20px;background:#fff;color:#4D144A;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;font-weight:600}
 .product-chips-bar button:hover{background:#4D144A;color:#fff;border-color:#4D144A}
 [data-theme="dark"] .product-chips-bar button{background:#2a2540;color:#E2DDEB;border-color:#4c3d80}
@@ -1309,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260523-tl-ref7">
+<link rel="stylesheet" href="/split-layout.css?v=20260523-ux8">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -4007,6 +4008,41 @@ function switchPdTab(btn, idx) {
 window.switchPdTab = switchPdTab;
 window.showProductDetail = showProductDetail;
 
+// 半动态快捷问: 模板 + 商品参数(从 name/description 正则提取)填充, 无 LLM
+function buildChips(p) {
+  var txt = (p.name || '') + ' ' + (p.description || '');
+  var cat = (p.category || '').toLowerCase();
+  function m(re){ var x = txt.match(re); return x ? x[0].replace(/\s+/g, '') : ''; }
+  var price = p.price ? ('¥' + Number(p.price).toLocaleString()) : '';
+  if (cat.indexOf('手机') >= 0) {
+    var cam = m(/\d{3,4}\s?万(像素)?|潜望|长焦|超广角/);
+    return [ cam ? [cam + '拍照如何？','的' + cam + '拍照影像实拍怎么样'] : ['拍照表现？','的拍照影像表现怎么样'],
+      ['续航够用吗？','电池续航和快充表现如何'],
+      price ? [price + '值吗？', price + '这价和同价位手机比值不值'] : ['和同价位比？','和同价位竞品手机对比'] ];
+  }
+  if (cat.indexOf('平板') >= 0) {
+    return [ ['适合办公吗？','适合办公学习吗，有键盘/手写笔配件吗'], ['屏幕素质？','屏幕分辨率色域护眼如何'],
+      price ? [price + '值吗？', price + '和同价位平板比怎么样'] : ['和iPad比？','和同价位iPad对比优劣'] ];
+  }
+  if (cat.indexOf('笔记本') >= 0 || cat.indexOf('电脑') >= 0 || cat.indexOf('台式') >= 0) {
+    var gpu = m(/RTX\s?\d{3,4}|GTX\s?\d{3,4}|RX\s?\d{3,4}/i);
+    var cpu = m(/酷睿\s?Ultra\s?\d|Ultra\s?\d|i[3579][- ]?\d{3,5}[HXU]?|锐龙\s?[R]?[3579]?\s?\d{3,4}[HSU]?/i);
+    var screen = m(/2\.5K|2\.8K|3K|4K|2K|OLED|\d{2,3}\s?Hz|\d{2}\.?\d?\s?英寸/i);
+    var weight = m(/\d\.\d+\s?kg/i);
+    var perf = gpu ? ['这块' + gpu + '够玩什么？','搭载' + gpu + '打游戏和创作性能如何，能流畅玩什么3A']
+      : (cpu ? ['这颗' + cpu + '够用吗？', cpu + '办公/多开/剪辑性能够用吗'] : ['性能够用吗？','的CPU/GPU性能适合什么场景']);
+    var disp = screen ? [screen + '屏怎么样？','这块' + screen + '屏幕素质色域护眼表现如何'] : ['屏幕和续航？','屏幕素质和续航表现如何'];
+    var third = weight ? [weight + '便携+散热？','重' + weight + '携带方便吗，散热和噪音控制如何'] : ['散热和噪音？','散热表现和噪音控制如何'];
+    return [perf, disp, third];
+  }
+  if (cat.indexOf('服务器') >= 0 || cat.indexOf('工作站') >= 0) {
+    return [ ['配置方案？','推荐什么配置方案，适合什么业务场景'], ['售后服务？','保修和企业售后服务如何'],
+      price ? [price + '值吗？', price + '和同类竞品对比性价比'] : ['和竞品对比？','和同类竞品对比'] ];
+  }
+  return [ ['值得买吗？','值得买吗，优缺点分析一下'],
+    price ? [price + '值吗？', price + '和同价位竞品比值不值'] : ['对比竞品','和同价位竞品对比'],
+    ['有优惠吗？','有什么优惠活动和券吗'] ];
+}
 function notifyAIProductContext(p) {
   var ov = document.getElementById('productOverlay');
   var bar = document.getElementById('productChipsBar');
@@ -4015,35 +4051,18 @@ function notifyAIProductContext(p) {
   var isChatVisible = isSplit || document.documentElement.classList.contains('is-chat');
   if (!isChatVisible) { window.__pendingProductCtx = p; return; }
   window.__pendingProductCtx = null;
-  var priceStr = p.price ? ' <span class="ov-price">¥' + Number(p.price).toLocaleString() + '</span>' : '';
   var n = escHtml(p.name).replace(/'/g, "\\'");
-  var cat = (p.category || '').toLowerCase();
-  var chips;
-  if (cat.indexOf('手机') >= 0) {
-    chips = [['拍照表现如何？','的拍照和影像表现怎么样'],['续航够用吗？','电池续航表现如何'],['和同价位手机比？','和同价位竞品手机对比']];
-  } else if (cat.indexOf('平板') >= 0) {
-    chips = [['适合办公吗？','适合办公和学习吗，有键盘配件吗'],['屏幕素质？','的屏幕分辨率、色域表现如何'],['和iPad比？','和同价位iPad对比优劣']];
-  } else if (cat.indexOf('笔记本') >= 0 || cat.indexOf('电脑') >= 0) {
-    chips = [['性能够用吗？','的CPU/GPU性能表现如何，适合什么场景'],['散热和噪音？','散热表现和噪音控制如何'],['和竞品对比？','和同价位竞品笔记本对比']];
-  } else if (cat.indexOf('服务器') >= 0 || cat.indexOf('工作站') >= 0) {
-    chips = [['配置方案？','推荐什么配置方案，适合什么业务场景'],['售后服务？','的保修和企业售后服务如何'],['和竞品对比？','和同类竞品对比']];
-  } else {
-    chips = [['值得买吗？','值得买吗？优缺点分析一下'],['对比竞品','和同价位竞品对比'],['有优惠吗？','有什么优惠活动吗']];
-  }
+  var chips = buildChips(p);
   window.__currentProductChips = chips;
   window.__currentProductQuery = n;
-  ov.innerHTML =
-    '<div class="ov-top"><div><div class="ov-label">正在浏览</div>' +
-    '<div class="ov-name">' + escHtml(p.name) + priceStr + '</div></div>' +
-    '<button class="ov-close" onclick="dismissProductOverlay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
-    '<div class="ov-chips">' +
-      chips.map(function(c){ return '<button onclick="dismissProductOverlay();quickAsk(\'这款 ' + n + ' ' + c[1] + '\')">' + c[0] + '</button>'; }).join('') +
-    '</div>';
-  ov.classList.remove('hiding');
-  if (bar) bar.classList.add('hidden');
-  // 10 秒无操作自动收起到下方 chips 条
-  if (window.__ovAutoHide) clearTimeout(window.__ovAutoHide);
-  window.__ovAutoHide = setTimeout(function(){ dismissProductOverlay(); }, 10000);
+  // 不弹大卡(遮内容/打扰), 直接在输入框上方渲轻量 chips 条
+  if (ov) ov.classList.add('hiding');
+  if (bar) {
+    var nm = String(p.name);
+    bar.innerHTML = '<span class="pcb-label">关于「' + escHtml(nm.slice(0, 14)) + (nm.length > 14 ? '…' : '') + '」</span>' +
+      chips.map(function(c){ return '<button onclick="quickAsk(\'这款 ' + n + ' ' + c[1] + '\')">' + c[0] + '</button>'; }).join('');
+    bar.classList.remove('hidden');
+  }
 }
 function dismissProductOverlay() {
   if (window.__ovAutoHide) { clearTimeout(window.__ovAutoHide); window.__ovAutoHide = null; }
@@ -7540,6 +7559,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260523-tl-ref7"></script>
+<script src="/split-layout.js?v=20260523-ux8"></script>
 </body>
 </html>
