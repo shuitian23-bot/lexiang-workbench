@@ -280,7 +280,7 @@
     var html = document.documentElement;
     if (!html.classList.contains('in-chat')) enterChat();
     if (!html.classList.contains('split-mode')) enterSplit();
-    if (!skipHome && type !== 'home') ensureHomeTab();
+    // 不再自动塞「首页」tab(按反馈去掉) — 回首页走顶部 nav
 
     var reusable = findReusableTab(type, data, title);
     if (reusable) {
