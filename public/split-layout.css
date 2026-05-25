@@ -1220,7 +1220,7 @@ html.in-chat #splitControls {
 .lx-tl-tab:hover{border-color:#E3007F66;color:#E3007F;opacity:1}
 .lx-tl-tab.active{background:#FCEFF6;border-color:#E3007F;color:#E3007F;font-weight:700}
 .lx-tl-d{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.75}
-.lx-tl-t{overflow:hidden;text-overflow:ellipsis;max-width:118px}
+.lx-tl-t{overflow:hidden;text-overflow:ellipsis;max-width:92px}
 @media(max-width:768px){.lx-tl-rail{display:none!important}}
 
 /* ════════ @引用 ③ ════════ */
