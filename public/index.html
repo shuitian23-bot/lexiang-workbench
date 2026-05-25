@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260523-ux10">
+<link rel="stylesheet" href="/split-layout.css?v=20260523-ux11">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1345,8 +1345,10 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       if(it.href) return '<a href="'+it.href+'" data-nav="'+it.label+'"'+(it.active?' class="nav-active"':'')+'>'+it.label+'</a>';
       return '<a href="#" data-nav="'+it.label+'" onclick="setNavActive(\''+it.label+'\');startChat(\''+it.q.replace(/'/g,"\\'")+'\');return false;">'+it.label+'</a>';
     }).join('');
-    // 全局 quick action(所有子站): 服务/门店/会员 -- 点击开对应内容 tab(不是 quickAsk 文字)
+    // 全局 quick action(所有子站): 品牌/合作伙伴/服务/门店/会员 -- 点击开对应内容 tab(不是 quickAsk 文字)
     var QUICK = [
+      { label:'品牌', fn:'openBrandTab' },
+      { label:'合作伙伴', fn:'openPartnerTab' },
       { label:'服务', fn:'openServiceTab' },
       { label:'门店', fn:'openStoresTab' },
       { label:'会员', fn:'openMemberTab' }
@@ -4211,6 +4213,37 @@ window.openMemberTab = function(){
   // 复用 RENDERERS.member 自带 mock 数据
   if (typeof window.__openContent === 'function') window.__openContent('member', '👤 我的会员', {});
   else if (typeof quickAsk === 'function') quickAsk('查我的会员等级、乐豆余额和专属权益');
+};
+window.openBrandTab = function(){
+  var brands = [
+    ['💼','ThinkPad','商用旗舰 · 小黑传奇','政企 / 商务精英'],
+    ['🎮','拯救者 Legion','游戏电竞 · 极致性能释放','硬核游戏玩家'],
+    ['✨','小新 Xiaoxin','轻薄全能 · 高性价比','学生 / 日常办公'],
+    ['🪶','YOGA','高端轻薄 · 创意设计','内容创作者'],
+    ['📘','ThinkBook','中小企业 · 商务轻薄','中小企业'],
+    ['📱','moto 摩托罗拉','经典手机 · 折叠先锋','手机用户'],
+    ['🏠','来酷 Lecoo','智能生态 · 家用周边','家庭用户'],
+    ['🔌','thinkplus','配件外设 · 一站配齐','全场景']
+  ];
+  var html = '<div style="padding:8px 0"><div style="font-size:14px;color:#666;margin-bottom:14px">联想旗下品牌矩阵 · POC 演示数据</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">' +
+    brands.map(function(b){ return '<div style="background:#fafafa;border:1px solid #eee;border-radius:10px;padding:14px"><div style="font-size:30px;margin-bottom:6px">'+b[0]+'</div><div style="font-size:15px;font-weight:700;color:#222;margin-bottom:4px">'+b[1]+'</div><div style="font-size:12px;color:#666;line-height:1.5;margin-bottom:8px">'+b[2]+'</div><div style="font-size:12px;color:#B8252E;font-weight:600">'+b[3]+'</div></div>'; }).join('') +
+    '</div></div>';
+  if (typeof window.__openContent === 'function') window.__openContent('info', '🏷 品牌', {html: html, content: html, rawHtml: true});
+  else if (typeof quickAsk === 'function') quickAsk('联想旗下都有哪些品牌，分别定位什么人群');
+};
+window.openPartnerTab = function(){
+  var groups = [
+    ['芯片 / 平台', [['Intel','英特尔 酷睿 / 至强'],['AMD','锐龙 / 霄龙'],['NVIDIA','RTX 显卡'],['Qualcomm','骁龙 移动平台'],['Microsoft','Windows / Copilot'],['麒麟软件','国产信创 OS']]],
+    ['渠道 / 零售', [['京东','官方旗舰'],['天猫','官方旗舰'],['抖音','直播电商'],['苏宁','线下零售']]],
+    ['生态 / 服务', [['WPS','办公套件'],['钉钉','企业协同'],['Adobe','创意软件'],['顺丰','物流配送']]]
+  ];
+  var html = '<div style="padding:8px 0"><div style="font-size:14px;color:#666;margin-bottom:14px">联想生态合作伙伴 · POC 演示数据</div>' +
+    groups.map(function(g){ return '<div style="margin-bottom:18px"><div style="font-size:13px;font-weight:700;color:#444;margin-bottom:10px;border-left:3px solid #B8252E;padding-left:8px">'+g[0]+'</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">' +
+      g[1].map(function(p){ return '<div style="background:#fafafa;border:1px solid #eee;border-radius:8px;padding:10px 12px"><div style="font-size:14px;font-weight:700;color:#222">'+p[0]+'</div><div style="font-size:11.5px;color:#777;margin-top:2px">'+p[1]+'</div></div>'; }).join('') +
+    '</div></div>'; }).join('') +
+    '</div>';
+  if (typeof window.__openContent === 'function') window.__openContent('info', '🤝 合作伙伴', {html: html, content: html, rawHtml: true});
+  else if (typeof quickAsk === 'function') quickAsk('联想有哪些芯片、渠道、生态合作伙伴');
 };
 
 // 统一 click 处理器：data-action 按钮优先，否则卡片整体点击进详情
@@ -7558,6 +7591,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260523-ux10"></script>
+<script src="/split-layout.js?v=20260523-ux11"></script>
 </body>
 </html>
