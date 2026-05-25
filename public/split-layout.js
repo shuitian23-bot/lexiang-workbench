@@ -684,14 +684,23 @@
       container.innerHTML = '<div class="cp-empty" style="padding:60px 24px;text-align:center;color:#9CA3AF">请至少加入 2 件商品再对比</div>';
       return;
     }
-    var specKeys = {};
-    products.forEach(function (p) {
-      if (p.specs) Object.keys(p.specs).forEach(function (k) {
-        if (k !== 'url' && k !== 'bu_ids' && k !== 'pcDetailUrl' && k !== 'wapUrl' && k !== 'wapDetailUrl' && k !== 'mobileUrl' && k !== 'highlights' && k !== 'images' && k !== 'ad_picture') specKeys[k] = true;
-      });
-    });
-    var keys = Object.keys(specKeys);
-    var labelMap = {brand:'品牌',color:'颜色',weight:'重量',cpu:'处理器',gpu:'显卡',ram:'内存',storage:'存储',os:'操作系统',screen_size:'屏幕尺寸',battery:'电池',resolution:'分辨率',lvl1:'一级分类',lvl2:'二级分类',lvl3:'系列',lvl4:'子系列',lvl5:'细分',mtm:'MTM',bu:'事业部',is_ai:'AI 商品',source:'数据源',target_user:'适合人群'};
+    // 白名单: 只显有意义的中文参数, 去发散/英文/内部字段(materialNumber/productsCode/buOwner/marketable/数据源/分类层级 等)
+    var DISPLAY = [
+      ['处理器',['cpu','处理器']], ['显卡',['gpu','显卡']], ['内存',['ram','memory','内存']],
+      ['存储',['storage','disk','存储']], ['屏幕尺寸',['screen_size','屏幕尺寸']],
+      ['分辨率',['resolution','screen_res','分辨率']], ['刷新率',['refresh','刷新率']],
+      ['电池',['battery','power','电池']], ['接口',['port','接口']], ['无线',['wifi','无线']],
+      ['重量',['weight','重量']], ['操作系统',['os','操作系统']], ['保修',['warranty','保修']],
+      ['定位',['position','定位']], ['适合人群',['target_user','适合人群']], ['颜色',['color','颜色']]
+    ];
+    function specVal(p, aliases) {
+      if (!p.specs) return '-';
+      for (var i = 0; i < aliases.length; i++) {
+        var v = p.specs[aliases[i]];
+        if (v != null && String(v).trim() && String(v) !== '-') return String(v);
+      }
+      return '-';
+    }
 
     // header
     var thead = '<tr><th class="cp-cmp-label">参数</th>';
@@ -712,33 +721,37 @@
       descRow += '<td class="cp-cmp-desc">' + escH((p.description || '').slice(0, 80) || '-') + '</td>';
       var sku = p.sku || p.key || '';
       var url = (p.url || (sku ? 'https://item.lenovo.com.cn/product/' + sku + '.html' : '#'));
-      actRow += '<td><a class="cp-cmp-buy" href="' + escH(url) + '" rel="noopener" onclick="event.preventDefault();window.openPreview&&openPreview(this.href)">↗ 官网</a> <button class="cp-cmp-ask" data-name="'+escH(p.name||'')+'">问 AI</button></td>';
+      actRow += '<td><button class="cp-cmp-cart" data-sku="'+escH(sku)+'" data-name="'+escH(p.name||'')+'" data-price="'+(p.price||0)+'" data-img="'+escH(p.image_url||'')+'">🛒 加购</button> <button class="cp-cmp-buy2" data-name="'+escH(p.name||'')+'" data-price="'+(p.price||0)+'" data-img="'+escH(p.image_url||'')+'">立即购买</button></td>';
     });
     imgRow += '</tr>'; priceRow += '</tr>'; catRow += '</tr>'; descRow += '</tr>'; actRow += '</tr>';
 
-    // specs body
+    // specs body — 只遍历白名单, 中文 label, 同别名取首个有值
     var tbody = '';
-    keys.forEach(function (k) {
-      var vals = products.map(function (p) { return p.specs && p.specs[k] != null ? String(p.specs[k]) : '-'; });
+    DISPLAY.forEach(function (d) {
+      var vals = products.map(function (p) { return specVal(p, d[1]); });
       if (vals.every(function(v){ return v === '-'; })) return;
       var allSame = vals.every(function (v) { return v === vals[0]; });
-      var label = labelMap[k] || k;
-      var row = '<td class="cp-cmp-label">' + escH(label) + '</td>';
+      var row = '<td class="cp-cmp-label">' + escH(d[0]) + '</td>';
       vals.forEach(function (v) {
         row += '<td' + (allSame ? '' : ' class="diff-cell"') + '>' + escH(v) + '</td>';
       });
       tbody += '<tr>' + row + '</tr>';
     });
-    if (!tbody) tbody = '<tr><td class="cp-cmp-label" style="color:#999">规格</td>' + products.map(function(){ return '<td style="color:#999">—（暂无详细规格，可点「问 AI」展开）</td>'; }).join('') + '</tr>';
+    if (!tbody) tbody = '<tr><td class="cp-cmp-label" style="color:#999">规格</td>' + products.map(function(){ return '<td style="color:#999">暂无详细规格</td>'; }).join('') + '</tr>';
 
     var table = document.createElement('table');
     table.className = 'cp-compare';
     table.innerHTML = '<thead>' + thead + '</thead><tbody>' + imgRow + priceRow + catRow + descRow + tbody + actRow + '</tbody>';
     container.innerHTML = '';
     container.appendChild(table);
-    container.querySelectorAll('.cp-cmp-ask').forEach(function(btn){
+    container.querySelectorAll('.cp-cmp-cart').forEach(function(btn){
       btn.addEventListener('click', function(){
-        if (typeof quickAsk === 'function') quickAsk('详细介绍 ' + (btn.dataset.name || '') + ' 的配置和卖点');
+        if (typeof addToCart === 'function') addToCart(btn.dataset.sku || '', btn.dataset.name || '', Number(btn.dataset.price) || 0, btn.dataset.img || '');
+      });
+    });
+    container.querySelectorAll('.cp-cmp-buy2').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (typeof startBuyFlow === 'function') startBuyFlow(btn.dataset.name || '', Number(btn.dataset.price) || 0, btn.dataset.img || '');
       });
     });
   };

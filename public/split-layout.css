@@ -744,10 +744,10 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cp-cmp-img-wrap img { max-width:100%; max-height:100%; object-fit:contain; }
 .cp-cmp-price { font-size:16px; font-weight:700; color:#E53E3E; }
 .cp-cmp-desc { color:#4B5563; font-size:12.5px; line-height:1.6; }
-.cp-cmp-buy { display:inline-block; padding:5px 12px; border-radius:6px; background:#fff; border:1px solid #B83340; color:#B83340; font-size:12px; text-decoration:none; }
-.cp-cmp-buy:hover { background:#B83340; color:#fff; }
-.cp-cmp-ask { padding:5px 12px; border-radius:6px; background:#6D28D9; border:none; color:#fff; font-size:12px; cursor:pointer; font-family:inherit; margin-left:6px; }
-.cp-cmp-ask:hover { filter:brightness(1.08); }
+.cp-cmp-cart { padding:5px 12px; border-radius:6px; background:#fff; border:1px solid #E3007F; color:#E3007F; font-size:12px; cursor:pointer; font-family:inherit; }
+.cp-cmp-cart:hover { background:#FCEFF6; }
+.cp-cmp-buy2 { padding:5px 12px; border-radius:6px; background:linear-gradient(90deg,#E3007F,#B83340); border:none; color:#fff; font-size:12px; cursor:pointer; font-family:inherit; margin-left:6px; font-weight:600; }
+.cp-cmp-buy2:hover { filter:brightness(1.08); }
 
 /* ── Tab 内容：对比表 ── */
 .cp-compare {
