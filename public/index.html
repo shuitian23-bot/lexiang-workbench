@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260523-ux11">
+<link rel="stylesheet" href="/split-layout.css?v=20260523-ux12">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7298,6 +7298,12 @@ window.openServicePlus = openServicePlus;
       '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">' + pillsHtml + '</div>';
     if (typeof window._csAppend === 'function') window._csAppend(sysHtml);
     else if (typeof appendBubble === 'function') appendBubble('ai', sysHtml);
+    // 有 session 切站: 右侧打开该子站首页 tab(重渲后的 landing 搬入), 不再只 SPA 切上下文
+    try {
+      if (typeof window.__openContent === 'function' && window.matchMedia && window.matchMedia('(min-width:769px)').matches) {
+        window.__openContent('home', (label || newSite) + ' 首页', {});
+      }
+    } catch(e){}
   };
 
   // 拦 site nav 链接(主 nav / 顶 nav extras / siteSeg / 任何 href 是子站根的 a)
@@ -7591,6 +7597,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260523-ux11"></script>
+<script src="/split-layout.js?v=20260523-ux12"></script>
 </body>
 </html>
