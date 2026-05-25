@@ -133,6 +133,7 @@
         if (btn) btn.textContent = title;
       }
       updateWorkspaceContextFromTab(tabs[i]);
+      fireTabsChanged();
       return;
     }
   }
