@@ -137,6 +137,26 @@ app.use('/api/pipeline', adminLimiter, require('./routes/pipeline'));
 app.use('/api/site', require('./routes/feed'));
 app.use('/', require('./routes/sitemap'));
 
+// 子站规则: 把商品归到 shop(个人及家庭)/b(中小企业)/biz(政教大企业)
+function siteWhereClause(site) {
+  if (site === 'shop') return ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
+  if (site === 'b') return ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%开天%' OR name LIKE '%企业购%')))`;
+  if (site === 'biz') return ` AND category IN ('服务器','工作站','服务产品')`;
+  return '';
+}
+function classifySite(p) {
+  const c = p.category || '', n = p.name || '';
+  if (['服务器', '工作站', '服务产品'].includes(c)) return 'biz';
+  if (['打印机及配件', '显示器', '键鼠相关'].includes(c)) return 'b';
+  if (c === '笔记本电脑') {
+    if (/ThinkPad|ThinkBook|昭阳|开天|企业购/.test(n)) return 'b';
+    if (/小新|YOGA|拯救者|Lecoo|来酷/.test(n)) return 'shop';
+  }
+  if (c === '台式机' && /ThinkCentre|开天|企业购/.test(n)) return 'b';
+  if (['手机', '平板电脑', '耳机', '包袋'].includes(c)) return 'shop';
+  return '';
+}
+
 // 精选产品列表（landing page 用，按子站分类过滤）
 app.get('/api/products', (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 8, 20);
@@ -146,6 +166,8 @@ app.get('/api/products', (req, res) => {
     const src = db.prepare('SELECT category, price, name FROM products WHERE sku = ?').get(similar);
     if (!src) return res.json([]);
     let simWhere = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND sku != ? AND category = ?`;
+    // 同子站约束: 笔记本/台式机跨子站, 防个人家庭找相似混进企业购(ThinkPad/开天等)
+    simWhere += siteWhereClause(classifySite(src));
     const params = [similar, src.category];
     if (src.price > 0) {
       simWhere += ` AND price BETWEEN ? AND ?`;
