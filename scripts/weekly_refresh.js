@@ -21,18 +21,26 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
-async function step(n, total, label, fn, timeoutMs = 300000) {
+async function step(n, total, label, fn, timeoutMs = 300000, retries = 1) {
   LOG(`Step ${n}/${total}: ${label}...`);
-  try {
-    const detail = await withTimeout(fn(), timeoutMs, label);
-    const d = (detail == null || detail === '') ? '0' : String(detail);
-    LOG(`${label} ✓ ${d}`);
-    results.push({ n, label, status: 'ok', detail: d });
-  } catch (e) {
-    const msg = (e.message || String(e)).slice(0, 200);
-    LOG(`${label} ✗ ${msg}`);
-    results.push({ n, label, status: 'fail', detail: msg });
+  let lastErr = '';
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const detail = await withTimeout(fn(), timeoutMs, label);
+      const d = (detail == null || detail === '') ? '0' : String(detail);
+      LOG(`${label} ✓ ${d}${attempt > 0 ? ` (重试${attempt}次成功)` : ''}`);
+      results.push({ n, label, status: 'ok', detail: d + (attempt > 0 ? `(重试${attempt})` : '') });
+      return;
+    } catch (e) {
+      lastErr = (e.message || String(e)).slice(0, 200);
+      if (attempt < retries) {
+        LOG(`${label} ✗ ${lastErr} — ${10}s 后重试 (${attempt + 1}/${retries})`);
+        await new Promise(r => setTimeout(r, 10000));
+      }
+    }
   }
+  LOG(`${label} ✗ ${lastErr} (重试 ${retries} 次均失败)`);
+  results.push({ n, label, status: 'fail', detail: lastErr });
 }
 
 // 从子进程 stdout 抓第一个匹配组，失败返回 fallback
@@ -111,9 +119,10 @@ async function run() {
   // 2. biz 企业站
   await step(2, T, 'biz企业站', async () => {
     const { crawlBizLenovo } = require('../knowledge/biz_lenovo_crawler');
-    const r = await crawlBizLenovo('daily_biz_' + Date.now());
+    // maxPages 限增量(默认0=爬整站几千页必超时)。biz 资讯/案例已由 brand 全量覆盖, 这里只增量补
+    const r = await crawlBizLenovo('daily_biz_' + Date.now(), { maxPages: 60 });
     return r ? `入库${r.ingested || r.done || 0}` : '0';
-  }, 120000);
+  }, 300000);
 
   // 3. brand/ESG/合作伙伴
   await step(3, T, 'brand/ESG', async () => {
