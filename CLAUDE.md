@@ -229,6 +229,14 @@ sudo pm2 reload lexiang
 ```
 （如果你 push 了，cron 会自动 reload，不用手动）
 
+### 所有改动统一在 new 改（**强制**，2026-05-26 起）
+
+- **任何代码改动（前端 / 后端 / 后台 workbench）都在 `new` 改**：`/opt/projects/lexiang-new`（next 分支，new.leaibot.cn），改完 `commit + push origin next`，验证 OK 再同步到 prod。
+- **禁止在 prod 工作树（`/opt/projects/lexiang`）裸改不提交**。prod 漂着未提交 WIP → 别人/AI 同步时拿不到、两边持续漂移、cron 自动部署被卡。
+- **后台 workbench 同理**：在 `new.leaibot.cn/admin/workbench.html` 改 + commit push，不要直接改 prod 后台（new 已是 prod 后台的完整快照）。
+- **prod 只接收同步过来的 commit**（cherry-pick / pull），不在 prod 上手改代码。
+- 例外：CSS 颜色/文案这种 1 分钟改也尽量走 new；真要在 prod 救急，**当天必须 commit + push**。
+
 ### 多人协作防冲突
 
 改之前先拉：
