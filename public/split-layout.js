@@ -37,6 +37,14 @@
   var workspaceContext = null;
   var landingMarker = null;
   var ICON_MAXIMIZE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M21 21l-7-7"/></svg>';
+  var CHEV_R = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>';
+  var CHEV_L = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>';
+  function setCollapseIcon() {
+    var b = document.getElementById('cpCollapse'); if (!b) return;
+    var c = document.documentElement.classList.contains('landing-collapsed');
+    b.innerHTML = c ? CHEV_L : CHEV_R;
+    b.title = c ? '展开浏览区' : '收起浏览区';
+  }
   var ICON_RESTORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4v6H4"/><path d="M4 10l6-6"/><path d="M14 20v-6h6"/><path d="M20 14l-6 6"/></svg>';
 
   function compactProduct(p) {
@@ -218,6 +226,7 @@
     var html = document.documentElement;
     html.classList.add('landing-collapsed');
     html.style.removeProperty('--split-left');
+    setCollapseIcon();
   }
   // 恢复分屏
   function expandLanding() {
@@ -225,6 +234,7 @@
     var html = document.documentElement;
     html.classList.remove('landing-collapsed');
     html.style.setProperty('--split-left', state.leftPct + '%');
+    setCollapseIcon();
   }
   window.__collapseLanding = collapseLanding;
   window.__expandLanding = expandLanding;
@@ -1290,14 +1300,10 @@
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
           '<span>换位</span>' +
         '</button>' +
-        '<button type="button" id="cpMax" class="cp-ctrl cp-icon-btn" title="放大浏览区" aria-label="放大浏览区">' + ICON_MAXIMIZE + '</button>' +
-        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="收起/展开浏览区" aria-label="收起/展开浏览区">' +
-          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>' +
-        '</button>' +
+        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="收起浏览区" aria-label="收起浏览区">' + CHEV_R + '</button>' +
         '<button type="button" id="cpClose" class="cp-ctrl cp-icon-btn cp-close" title="关闭浏览区" aria-label="关闭浏览区">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
         '</button>';
-      document.getElementById('cpMax').addEventListener('click', toggleContentMaximized);
       document.getElementById('cpClose').addEventListener('click', closeContent);
       document.getElementById('cpCollapse').addEventListener('click', function () {
         if (document.documentElement.classList.contains('landing-collapsed')) expandLanding();
