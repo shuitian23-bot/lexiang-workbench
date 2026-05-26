@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260523-ux14">
+<link rel="stylesheet" href="/split-layout.css?v=20260523-ux15">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7274,6 +7274,12 @@ window.openServicePlus = openServicePlus;
     document.querySelectorAll('.nlinks a').forEach(function(a){ a.classList.remove('nav-active'); });
     var label = LABELS[newSite];
     if (label) document.querySelectorAll('.nlinks a').forEach(function(a){ if (a.getAttribute('data-nav') === label) a.classList.add('nav-active'); });
+    // 先把 landing 放进/切到 home tab(active), 再重渲它 → 渲完即在当前 tab 可见
+    try {
+      if (typeof window.__openContent === 'function' && window.matchMedia && window.matchMedia('(min-width:769px)').matches) {
+        window.__openContent('home', (label || newSite) + ' 首页', {});
+      }
+    } catch(e){}
     // 子站全套 landing 重渲: hero/landing-extra/subnav/mall hero/mall features/feed
     try { if (typeof window.__renderSiteHero === 'function') window.__renderSiteHero(); } catch(e){}
     try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(); } catch(e){}
@@ -7298,12 +7304,6 @@ window.openServicePlus = openServicePlus;
       '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">' + pillsHtml + '</div>';
     if (typeof window._csAppend === 'function') window._csAppend(sysHtml);
     else if (typeof appendBubble === 'function') appendBubble('ai', sysHtml);
-    // 有 session 切站: 右侧打开该子站首页 tab(重渲后的 landing 搬入), 不再只 SPA 切上下文
-    try {
-      if (typeof window.__openContent === 'function' && window.matchMedia && window.matchMedia('(min-width:769px)').matches) {
-        window.__openContent('home', (label || newSite) + ' 首页', {});
-      }
-    } catch(e){}
   };
 
   // 拦 site nav 链接(主 nav / 顶 nav extras / siteSeg / 任何 href 是子站根的 a)
@@ -7597,6 +7597,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260523-ux14"></script>
+<script src="/split-layout.js?v=20260523-ux15"></script>
 </body>
 </html>
