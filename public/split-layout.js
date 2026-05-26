@@ -184,6 +184,7 @@
       if (t.type !== type) continue;
       if (type === 'home') return t;
       if (type === 'productDetail' && data.sku && td.sku === data.sku) return t;
+      if (type === 'sitehome') { if (data.site && td.site === data.site) return t; else continue; }
       if (type === 'products') { if (data.category) { if (td.category === data.category) return t; } else if (title && t.title === title) return t; continue; }
       if (type === 'preview' && data.url && td.url === data.url) return t;
       // info tab: 按 title 严格区分(权益管家·A vs 权益管家·B / 联想服务 / 订单确认 各自独立 tab)
@@ -581,6 +582,36 @@
       lp.style.height = '';
     } catch (e) {}
     container.appendChild(lp);
+  };
+
+  // 轻量子站首页(独立组件, 不碰 #landingPage, 每子站独立 tab 并存)
+  RENDERERS.sitehome = function (container, data) {
+    data = data || {};
+    var BANNERS = {
+      shop:    { t:'个人及家庭', s:'小新 / 拯救者 / YOGA · 高性价比之选', bg:'linear-gradient(120deg,#7b2ff7,#4D144A)' },
+      b:       { t:'中小企业',   s:'ThinkPad / ThinkBook · 5 年质保 + 批采返点 + 工程师上门', bg:'linear-gradient(120deg,#1e4d8c,#0a2a5e)' },
+      biz:     { t:'政教及大企业', s:'信创合规 + 等保 2.0 + 国密 · 端到数据中心一站交付', bg:'linear-gradient(120deg,#a01e2e,#5e0a14)' },
+      'default': { t:'联想乐享', s:'全场景智能导购 · 随时为你解答产品/优惠/方案', bg:'linear-gradient(120deg,#4D144A,#B8252E)' }
+    };
+    var b = BANNERS[data.site] || BANNERS['default'];
+    container.innerHTML = '<div class="cp-sh-banner" style="background:' + b.bg + '"><h1>' + escH(b.t) + '</h1><p>' + escH(b.s) + '</p></div>' +
+      '<div class="cp-sh-sec">🔥 热销推荐</div>' +
+      '<div class="cp-sh-grid"><div class="cpd-loading"><div class="cpd-spinner"></div>加载中...</div></div>';
+    var grid = container.querySelector('.cp-sh-grid');
+    var q = (data.site && data.site !== 'default') ? ('?site=' + data.site + '&limit=8') : '?limit=8';
+    fetch('/api/products' + q).then(function (r) { return r.json(); }).then(function (ps) {
+      if (!ps || !ps.length) { grid.innerHTML = '<div class="cp-empty">暂无商品</div>'; return; }
+      grid.innerHTML = ps.map(function (p) {
+        var img = (p.image_url || '').replace(/^http:/, 'https:');
+        return '<div class="cp-sh-card" data-sku="' + escH(p.sku || '') + '" data-name="' + escH((p.name || '').replace(/"/g, '')) + '">' +
+          '<div class="cp-sh-img">' + (img ? '<img src="' + escH(img) + '" alt="" loading="lazy">' : '') + '</div>' +
+          '<div class="cp-sh-nm">' + escH((p.name || '').slice(0, 42)) + '</div>' +
+          '<div class="cp-sh-pr">¥' + Number(p.price || 0).toLocaleString() + '</div></div>';
+      }).join('');
+      grid.querySelectorAll('.cp-sh-card').forEach(function (c) {
+        c.addEventListener('click', function () { openContent('productDetail', c.dataset.name || '商品', { sku: c.dataset.sku }); });
+      });
+    }).catch(function () { grid.innerHTML = '<div class="cp-empty">加载失败，稍后再试</div>'; });
   };
 
   RENDERERS.products = function (container, data) {
