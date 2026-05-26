@@ -1,0 +1,106 @@
+ThinkSmartCore G2
+
+Intel® Core™ Ultra 5/7处理器  
+内置NPU（神经网络单元）  
+支持Copilot等人工智能平台  
+内置视频采集功能  
+单/双流屏显  
+内置BYOM一键切换  
+丰富接口扩展音视频外设  
+智慧中控随心切换  
+
+强芯聚力，高效运行  
+搭载Intel® CoreTM Ultra 5 135H/7 165H processor on Intel vPro® platform，AI运行更从容，远程管理更便捷  
+
+Intel CORE ULTRA 7  
+
+内置NPU  
+(神经网络单元)  
+
+支持Copilot等  
+人工智能平台  
+
+16GB / 32GB(可选)  
+256GB PCIe SSD  
+
+丰富接口，超强扩展  
+覆盖USB、HDMI、网口等多类型接口适配，设备连接更自由  
+
+桌面控制，多角度切换  
+USB C/C控制屏即插即用，内置人体红外感应，支持30°/60°角度自适应切换  
+
+- 1x HDMI-In  
+- 2x HDMI-Out  
+- 4x USB-A  
+- 3x USB-C  
+- 1x Gigabit Ethernet  
+- 1x Power  
+
+多云会议，无界畅联  
+
+可选预装业界主流认证云视频会议平台，Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms，  
+智慧中控，多平台切换，助力高效远程协作  
+
+三年上门保修服务，智慧服务一部到位  
+
+| 接口类型 | 数量 | 说明 |
+|----------|------|------|
+| HDMI-In | 1x | 支持视频信号输入 |
+| HDMI-Out | 2x | 支持双流显示输出 |
+| USB-A | 4x | 兼容标准USB外设 |
+| USB-C | 3x | 支持数据传输、视频输出及供电，其中至少1个支持USB-C控制屏即插即用 |
+| Gigabit Ethernet | 1x | 千兆以太网接口，支持有线网络连接 |
+| Power | 1x | 专用电源接口 |
+
+产品特性：  
+- 搭载Intel® Core™ Ultra 5 135H / Ultra 7 165H处理器，基于Intel vPro®平台  
+- 内置NPU（神经网络单元），专为AI工作负载优化  
+- 原生支持Microsoft Copilot等人工智能平台  
+- 内置视频采集功能，无需额外采集卡  
+- 支持单流或双流屏显模式  
+- 内置BYOM（Bring Your Own Meeting）一键切换功能  
+- 预装并认证Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms三大主流云视频会议平台  
+- 智慧中控能力，实现跨平台会议系统无缝切换  
+- USB-C/C控制屏即插即用，简化部署与操作  
+- 内置人体红外感应器，支持30°/60°视角自适应切换，提升会议体验  
+- 提供三年上门保修服务  
+
+规格参数：  
+- 处理器：Intel® Core™ Ultra 5 135H 或 Ultra 7 165H  
+- 内存：16GB / 32GB（可选）  
+- 存储：256GB PCIe SSD  
+- 操作系统：预装Windows 11 IoT Enterprise  
+- 安全技术：Intel vPro®平台支持，含硬件级远程管理与安全防护能力  
+- 网络：集成千兆以太网，支持Wi-Fi 6E（需选配模块）  
+- 音视频采集：内置高清视频采集模块，支持H.264/H.265编码  
+- 物理尺寸：标准Mini PC形态（具体尺寸详见产品安装手册）  
+- 散热设计：无风扇静音设计（依据典型负载工况）  
+
+常见问题  
+
+Q: ThinkSmartCore G2是否支持同时运行多个云会议平台？  
+A: 不支持同时运行多个会议平台实例；但通过内置智慧中控功能，可在Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms之间一键快速切换，无需重启设备或手动卸载重装。  
+
+Q: NPU在ThinkSmartCore G2中具体承担哪些AI任务？  
+A: NPU专用于加速本地AI推理任务，包括但不限于实时背景虚化、语音降噪、发言人自动追踪、会议纪要摘要生成、Copilot智能响应等，显著降低CPU/GPU负载并提升响应速度与能效比。  
+
+Q: HDMI-In接口是否支持4K@60Hz视频输入？  
+A: 是，HDMI-In接口支持最高4K@60Hz（YUV 4:2:0）视频信号输入，兼容主流PC、笔记本及视频源设备，满足高清内容共享需求。  
+
+Q: USB-C接口是否全部支持DisplayPort Alt Mode和PD供电？  
+A: 是，全部3个USB-C接口均支持USB 3.2 Gen 2、DisplayPort Alt Mode（最高4K@60Hz输出）、USB Power Delivery 3.0（最高60W反向供电），其中1个专用于USB-C控制屏即插即用场景。  
+
+Q: “内置人体红外感应”如何实现30°/60°角度自适应切换？  
+A: 设备内置高灵敏度红外传感器阵列，实时检测与会者坐席分布及活动区域；结合AI算法自动判断最佳视角范围，在30°（聚焦主讲人）与60°（覆盖全体参会者）两种广角模式间平滑切换，无需手动调节。  
+
+Q: 是否支持BYOM（Bring Your Own Meeting）模式下的第三方会议客户端？  
+A: 支持。除预装的Teams Rooms、ZOOM Rooms、腾讯会议Rooms外，用户可通过Windows应用商店或企业分发渠道安装其他符合Windows 11兼容性要求的会议客户端，并利用BYOM一键切换功能调用，实现灵活会议接入。  
+
+Q: 256GB PCIe SSD是否支持用户自行升级扩容？  
+A: 不支持用户自行更换或扩容。SSD为板载焊接式设计，出厂已固化配置；如需更大存储空间，建议通过USB-C或网络共享方式外接存储设备。  
+
+Q: 三年上门保修服务是否覆盖全球所有国家和地区？  
+A: 三年上门保修服务覆盖联想官方授权服务网络所达的全部国家和地区；具体服务范围、响应时效及条款细则，请以购买时签订的服务协议及联想官网公布的《ThinkSmart服务条款》为准。  
+
+Q: ThinkSmartCore G2是否具备硬件级安全启动与可信执行环境？  
+A: 是，依托Intel vPro®平台，设备支持Intel Hardware Shield、Secure Boot、TPM 2.0（固件集成）、内存加密（Intel Total Memory Encryption）及带外远程管理（Intel Active Management Technology），构建端到端硬件可信链。

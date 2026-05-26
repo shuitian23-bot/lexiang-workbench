@@ -1,0 +1,70 @@
+联想问天 WR5220 G3
+
+联想问天 WR5220 G3 服务器
+
+关键词：联想问天 WR5220 G3 问天，服务器
+
+产品概述  
+联想问天 WR5220 G3 是一款面向人工智能训练与推理、高性能计算（HPC）、科学计算及企业级虚拟化等关键业务场景的双路机架式服务器。该产品基于第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids）平台设计，支持最高 60 核/120 线程、最大 4TB 3DS RDIMM 内存容量、8 个 PCIe 5.0 x16 插槽（全高全长），并提供灵活的存储扩展能力与先进的散热架构，满足 AI 大模型训练对算力密度、内存带宽和 I/O 吞吐的严苛要求。
+
+核心优势  
+• 全栈AI加速能力：支持最多 8 块双宽 NVIDIA H100 SXM5 或 8 块 AMD MI300X 加速卡，通过 NVLink/CXL 互连实现超低延迟、高带宽GPU-GPU通信；标配双路CPU直连PCIe 5.0通道，无PLX芯片瓶颈。  
+• 极致内存带宽与容量：支持 16 个 DDR5-4800 RDIMM/LRDIMM 插槽，最大内存容量达 4TB（LRDIMM），内存带宽提升至 307.2 GB/s（单CPU），显著加速大模型参数加载与中间特征计算。  
+• 智能散热与高能效设计：采用分区风冷+GPU专用涡流导风罩设计，支持 H100 SXM5 卡长期满载运行（AIB TDP 700W），整机典型功耗下PUE优化至1.12；支持智能功耗封顶（cTDP）与实时温度感知调速策略。  
+• 企业级可靠性与可管理性：通过联想XClarity Controller（XCC）实现带外全生命周期管理，支持远程KVM、固件自动更新、硬件健康预测（Predictive Failure Analysis）、一键式故障诊断报告；关键部件（CPU、内存、电源、风扇）均支持热插拔与冗余配置。  
+• 开放生态兼容性：全面支持主流AI框架（PyTorch、TensorFlow、JAX）、容器平台（Kubernetes + NVIDIA GPU Operator）、AI开发套件（NVIDIA AI Enterprise、AMD ROCm），并通过MLPerf™ Training v4.0基准测试认证。
+
+规格参数  
+| 类别 | 参数项 | 详细规格 |
+|------|--------|----------|
+| 处理器 | CPU型号 | 支持2颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），最高60核/120线程，TDP最高350W |
+| 处理器 | CPU插槽数量 | 2个LGA4677插槽，支持CPU间UPI互联（最高3条链路，16 GT/s） |
+| 内存 | 类型与插槽数 | 16个DDR5 RDIMM/LRDIMM插槽（每CPU 8个），支持ECC、内存镜像、内存热备 |
+| 内存 | 最大容量 | 最大4TB（使用128GB LRDIMM）；最大2TB（使用128GB RDIMM） |
+| 内存 | 速率 | 支持DDR5-4800/4400/4000 MT/s，实际频率取决于CPU型号与内存配置 |
+| 存储 | 前置硬盘托架 | 支持8×3.5" SATA/SAS/NVMe混插（含4×NVMe U.2）或12×3.5" SATA/SAS（需选配后置盘笼） |
+| 存储 | 内置M.2 | 2个PCIe 4.0 x4 M.2 2280插槽（支持RAID 0/1，用于OS启动盘） |
+| 存储 | RAID控制器 | 板载SATA RAID 0/1/10；可选Lenovo ThinkSystem RAID 930-16i（支持缓存保护、RAID 5/6/50/60） |
+| 扩展插槽 | PCIe插槽数量与规格 | 8个PCIe 5.0 x16（全高全长，Gen5速率）；其中6个为GPU专用插槽（x16电气），2个为CPU直连IO插槽（x16电气）；所有插槽支持热插拔 |
+| 扩展插槽 | OCP网络插槽 | 1个OCP 3.0 x16插槽（支持1×100GbE或2×25GbE网卡） |
+| 网络 | 板载LAN | 2×10GbE SFP+（Intel X710）或2×25GbE SFP28（Broadcom BCM57416），支持PXE、Wake-on-LAN、虚拟化网卡（SR-IOV） |
+| 电源 | 类型与数量 | 2个热插拔冗余电源（1+1），支持交流输入（100–240V AC）或高压直流（-48V DC） |
+| 电源 | 功率选项 | 2400W（白金效率94%）、2600W（钛金效率96%）、3000W（钛金效率96.5%，专为H100 SXM5满配优化） |
+| 风扇 | 冷却系统 | 6个热插拔N+1冗余风扇模组，支持PWM智能调速；GPU区域配备独立涡流导风罩与高静压风扇 |
+| 物理规格 | 尺寸（高×宽×深） | 87.8 mm × 447 mm × 815 mm（2U机架高度） |
+| 物理规格 | 重量（满配典型值） | 约38.5 kg（含8×H100 SXM5、双电源、全内存、全硬盘） |
+| 管理功能 | 远程管理 | Lenovo XClarity Controller（XCC）标准配置，支持IPMI 2.0、Redfish RESTful API、SNMP v3、KVM over IP、虚拟媒体挂载 |
+| 管理功能 | 安全特性 | 支持TPM 2.0（可选固件TPM）、Secure Boot、UEFI安全启动、BIOS密码、带外管理口物理隔离 |
+
+产品特性  
+• 双路第四代英特尔® 至强® 可扩展处理器平台，原生支持AMX、AVX-512、DL Boost指令集，强化AI推理性能  
+• 全PCIe 5.0互连架构，消除I/O瓶颈，GPU间通信延迟降低40%，带宽提升至128 GB/s（双向）  
+• 支持CXL 1.1内存池化扩展（需配合CXL内存扩展卡），突破单机内存物理限制，适配百亿级参数模型训练  
+• 前置模块化设计：支持免工具拆装硬盘背板、GPU支架与风扇模组，5分钟内完成8卡更换维护  
+• 全面国产化适配：通过麒麟软件V10、统信UOS V20、中科方德V7.0操作系统兼容性认证；支持海光DCU加速卡（需固件升级）  
+• 绿色节能认证：通过中国节能产品认证（CQC）、能源之星（ENERGY STAR）v8.0、TCO Certified Edge 9.0  
+
+常见问题  
+Q: 联想问天 WR5220 G3 是否支持液冷散热？  
+A: 当前标准版WR5220 G3采用增强型风冷设计，暂不支持直接集成式冷板液冷；但提供液冷就绪（Liquid-Cooling Ready）版本选件（型号后缀为-LC），可选配GPU冷板、CPU冷板及配套CDU，满足PUE≤1.05的数据中心部署需求。  
+
+Q: 最大可支持多少块NVMe SSD？  
+A: 前置支持最多4块U.2 NVMe SSD（通过主板直连PCIe 5.0）；另可通过2个内置M.2插槽扩展2块NVMe SSD；若配置OCP网卡或RAID卡，部分PCIe通道可能被复用，实际NVMe设备总数需根据具体扩展卡配置进行通道规划。  
+
+Q: 是否兼容NVIDIA HGX H100 8-GPU模组？  
+A: 不兼容。WR5220 G3采用独立GPU插槽设计，支持单卡H100 SXM5（非HGX模组），最大8卡以SXM5形态直连CPU，具备完整NVLink拓扑（4×NVLink每卡），但不支持HGX底板及HGX固件协议栈。  
+
+Q: 内存是否必须成对安装？是否支持混合插装RDIMM与LRDIMM？  
+A: 必须成对安装（每CPU的8个插槽需按Channel×Slot规则配对以启用多通道模式）；严禁在同一系统中混插RDIMM与LRDIMM，否则将导致内存初始化失败或系统无法启动，BIOS会强制报错并阻止开机。  
+
+Q: XCC管理口是否支持IPv6？是否可与企业AD域集成？  
+A: XCC固件版本2.50及以上全面支持IPv6双栈（SLAAC/DHCPv6）；支持LDAPv3及Microsoft Active Directory域集成，可配置域用户组映射权限策略，实现统一账号鉴权与审计日志同步。  
+
+Q: 电源是否支持在线更换？更换时是否需要关机？  
+A: 支持完全在线热更换：在系统运行状态下，可依次拔出并更换任一电源模块，另一电源持续供电保障业务不中断；XCC实时监控电源状态，更换过程中自动触发负载均衡与告警抑制机制。  
+
+Q: 是否可通过XClarity Administrator（XCA）实现多台WR5220 G3的集群批量部署？  
+A: 支持。XCA 5.10及以上版本提供AI服务器集群模板（AI Cluster Profile），可一次性下发BIOS设置、固件版本、RAID配置、OS镜像（支持PXE+Kickstart/Cloud-init）、GPU驱动及CUDA环境，实现百台规模节点15分钟内完成标准化交付。  
+
+Q: 对于运行Llama 3-70B模型的推理服务，推荐的最小配置是什么？  
+A: 推荐最小配置：2×Intel Xeon Platinum 8490H（60核）、512GB DDR5-4800（8×64GB RDIMM）、2×NVIDIA H100 SXM5（显存共192GB）、2×10GbE网卡、2×M.2 OS盘（RAID 1）；该配置可支撑约120 tokens/sec（batch=8, seq_len=2048）的稳定推理吞吐，并预留30%资源余量应对峰值请求。

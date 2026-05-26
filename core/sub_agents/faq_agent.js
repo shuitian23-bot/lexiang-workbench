@@ -6,11 +6,12 @@ const https = require('https');
 const { searchAsync } = require('../../knowledge/search');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'doubao-seed-2.0-pro';
 
 const SYSTEM_PROMPT = `你是联想快速问答助手"小Q"，专门用简洁直接的方式回答联想相关常见问题。
 
 ## 回答原则
+- **禁止**客套开场("您好"/"欢迎您"/"请问有什么可以帮到您"/"很高兴为您服务" 等), 第一句话直接答题
 - 直接给答案，不废话，不重复用户的问题
 - 不超过100字（除非列表/步骤确实需要）
 - 不知道就直接说"建议联系官方客服：400-990-8888"
@@ -26,8 +27,9 @@ module.exports = {
   name: 'faq_agent',
   description: '快速问答专家，简洁回答联想相关常见问题',
   keywords: [], // FAQ Agent 通过问题长度判断，不用关键词
+  streamsChunks: true,
 
-  async run(userMessage, historyMessages, ragContext) {
+  async run(userMessage, historyMessages, ragContext, onChunk) {
     // 做知识库搜索，优先给出精准答案
     let extraContext = ragContext || '';
     try {
@@ -55,15 +57,18 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages,
         max_tokens: 300,
-        temperature: 0.3
+        temperature: 0.3,
+        stream: true
       });
 
+      let fullText = '';
+      let buf = '';
       const req = https.request({
-        hostname: 'dashscope.aliyuncs.com',
-        path: '/compatible-mode/v1/chat/completions',
+        hostname: 'ark.cn-beijing.volces.com',
+        path: '/api/coding/v3/chat/completions',
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + API_KEY,
@@ -71,21 +76,31 @@ module.exports = {
           'Content-Length': Buffer.byteLength(body)
         }
       }, (res) => {
-        let data = '';
-        res.on('data', c => data += c);
-        res.on('end', () => {
-          try {
-            const j = JSON.parse(data);
-            if (j.error) return reject(new Error(j.error.message || 'API error'));
-            const text = j.choices?.[0]?.message?.content || '';
-            resolve({ text });
-          } catch (e) {
-            reject(new Error('JSON parse error: ' + data.slice(0, 100)));
+        res.on('data', chunk => {
+          buf += chunk.toString();
+          let idx;
+          while ((idx = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, idx).trim();
+            buf = buf.slice(idx + 1);
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+            try {
+              const j = JSON.parse(payload);
+              if (j.error) return reject(new Error(j.error.message || 'API error'));
+              const delta = j.choices?.[0]?.delta?.content || '';
+              if (delta) {
+                fullText += delta;
+                if (typeof onChunk === 'function') onChunk(delta);
+              }
+            } catch (e) {}
           }
         });
+        res.on('end', () => resolve({ text: fullText }));
+        res.on('error', reject);
       });
       req.on('error', reject);
-      req.setTimeout(20000, () => { req.destroy(); reject(new Error('faq_agent timeout')); });
+      req.setTimeout(60000, () => { req.destroy(); reject(new Error('faq_agent timeout')); });
       req.write(body);
       req.end();
     });

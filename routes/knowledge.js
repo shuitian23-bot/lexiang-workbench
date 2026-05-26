@@ -49,6 +49,26 @@ router.get('/', requireAdmin, (req, res) => {
   res.json({ total, page, limit, pages: Math.ceil(total / limit), docs });
 });
 
+// GET /api/knowledge/public-search?q=xxx - 前端公开搜索（POC：商品详情页拉百科）
+// 必须放在 /:id 之前以免被它捕获导致 401
+router.get('/public-search', (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const topK = Math.min(Math.max(parseInt(req.query.topK, 10) || 3, 1), 5);
+  if (!q || q.length < 2) return res.json([]);
+  try {
+    const { search } = require('../knowledge/search');
+    const hits = search(q, topK);
+    res.json((hits || []).map(h => ({
+      title: h.title || h.docTitle || h.doc_title || '',
+      content: String(h.content || h.text || '').slice(0, 1200),
+      score: h.score || 0,
+    })));
+  } catch (e) {
+    console.error('[public-search]', e);
+    res.json([]);
+  }
+});
+
 // GET /api/knowledge/:id - get doc detail with content
 router.get('/:id', requireAdmin, (req, res) => {
   const doc = db.prepare('SELECT * FROM knowledge_docs WHERE id = ?').get(req.params.id);

@@ -1,0 +1,80 @@
+联想问天NE8570-4C机架式交换机
+
+联想问天NE8570-4C机架式交换机 机架式交换机
+
+关键词：联想问天NE8570-4C机架式交换机 NE8570-4C 机架式交换机
+
+产品概述  
+联想问天NE8570-4C是面向数据中心和高性能计算场景推出的高密度、低延迟、高吞吐量的4U机架式以太网交换机。该设备基于Broadcom Trident4芯片平台，支持全端口线速转发，具备完善的L2/L3功能、丰富的数据中心特性（如ECN、PFC、ETS、DCBX、RoCEv2等），可广泛应用于AI训练集群、HPC超算中心、云原生网络及大规模分布式存储网络。
+
+核心特性  
+• 全端口无阻塞线速转发：支持128个200GbE端口或64个400GbE端口（通过拆分支持）  
+• 超低转发延迟：典型端口到端口延迟低至550ns（200GbE），支持微秒级确定性时延保障  
+• 高可靠性设计：双冗余热插拔电源+双冗余风扇模组，支持NSR（不间断路由）、ISSU（不中断软件升级）、硬件BFD等高可用机制  
+• 智能运维能力：内置Telemetry 2.0流式遥测引擎，支持gRPC订阅、INT（带内网络遥测）及实时流量可视化分析  
+• 安全合规：支持MACsec 256位硬件加密（全线速）、ACL深度包检测、DHCP Snooping、IP Source Guard、动态ARP检测（DAI）等企业级安全策略  
+• 开放生态：支持SONiC开源网络操作系统（预装社区版及联想增强版），兼容P4可编程数据平面，提供RESTful API、CLI、NETCONF/YANG等多种管理接口  
+
+规格参数  
+|项目|规格说明|  
+|---|---|  
+|外形尺寸|4U高度，宽440mm × 深790mm × 高177.8mm（4U）|  
+|重量|净重约38.5kg，满配模块后约45.2kg|  
+|电源|双冗余热插拔AC电源（100–240V AC，50/60Hz）或DC电源（-48V DC）；单电源最大输出功率2200W；支持电源效率≥94%（230V输入，50%负载）|  
+|散热|6个热插拔智能调速风扇模组（N+1冗余），前→后风道（标准）；可选后→前风道（定制）|  
+|端口配置|128× SFP-DD（支持200GbE）；可通过SFP-DD to QSFP-DD转接器支持64× QSFP-DD（400GbE）；另提供2× RJ45管理口（10/100/1000BASE-T）、1× USB 2.0 Console口、1× DB9 RS232 Console口|  
+|交换容量|5.12Tbps（200GbE全端口线速）或10.24Tbps（400GbE全端口线速，需QSFP-DD上联）|  
+|包转发率|3.808Bpps（200GbE全端口）或7.616Bpps（400GbE全端口）|  
+|缓存容量|共24MB共享缓冲区（per-chip 12MB，双芯片架构），支持动态分配与池化管理|  
+|MAC地址表|1M条|  
+|IPv4路由表|512K条（支持ECMP最大64路）|  
+|IPv6路由表|256K条|  
+|ACL规则数|IPv4+IPv6混合ACL共64K条（TCAM资源可灵活分配）|  
+|延迟|550ns（200GbE，64字节小包，cut-through模式）；720ns（store-and-forward模式）|  
+|工作温度|0℃～40℃（海拔≤2000m）；短期允许45℃（≤30分钟）|  
+|存储温度|-40℃～70℃|  
+|相对湿度|5%～90% RH（无凝露）|  
+|认证与合规|通过CCC、CE、FCC、UL/cUL、RoHS、REACH、ENERGY STAR® 8.0认证；符合GB/T 2423、IEC 60950-1、IEC 61000-4系列电磁兼容标准|  
+
+软件特性  
+• L2功能：IEEE 802.1D STP/RSTP/MSTP、802.1Q VLAN、802.1ad Q-in-Q、802.1p CoS、802.3ad LACP、GVRP、IGMP Snooping v1/v2/v3、MLD Snooping  
+• L3功能：静态路由、RIP v1/v2、OSPF v2/v3、BGP-4、VRRPv2/v3、PIM-SM/SSM、MSDP、Anycast RP  
+• 数据中心特性：Priority Flow Control (PFC)、Explicit Congestion Notification (ECN)、Enhanced Transmission Selection (ETS)、Data Center Bridging Exchange (DCBX)、RoCEv2（RDMA over Converged Ethernet）、Congestion Control for RoCE（DCQCN）  
+• 可靠性协议：NSR、ISSU、GR（Graceful Restart）、BFD（毫秒级链路检测）、VRRP Track、Ethernet OAM（802.3ah/802.1ag）  
+• 管理与运维：SNMP v2c/v3、Syslog、RMON、sFlow v5、NetFlow v9、Telemetry gRPC、INT、CLI、Web UI（HTTPS）、RESTful API（OpenAPI 3.0规范）、Ansible模块、Python SDK  
+
+物理接口与LED指示灯  
+• 前面板：128个SFP-DD光模块插槽（每4个一组共32组，每组配备独立状态LED：Link/Act/SPEED）；2个10/100/1000BASE-T管理口（LED：Link/Act）；1个USB 2.0 Console口；1个DB9 RS232 Console口；1个系统状态LED（Power/Status/Fault）  
+• 后面板：2个热插拔AC/DC电源模块槽位（含独立电源状态LED）；6个热插拔风扇模组槽位（每模组含运行状态LED与故障LED）；1个接地柱  
+
+安装与部署  
+本设备支持标准19英寸机柜安装（兼容ETSI机柜），采用前后通风设计，建议机柜预留最小前后空间各150mm以确保散热效能。安装时须使用随机附带的L型滑轨套件及固定螺钉，严禁悬空安装或单侧支撑。首次上电前请确认所有模块已就位、风扇模组方向正确（箭头指向气流方向）、电源输入电压与设备标称一致。设备支持带电热插拔所有I/O模块、电源及风扇，但更换主控板（非模块化设计，本机型无独立主控板）需整机重启。
+
+常见问题  
+
+Q: 联想问天NE8570-4C是否支持400GbE端口？如何实现？  
+A: 支持。NE8570-4C原生提供128个SFP-DD端口，可通过SFP-DD to QSFP-DD转接器将每2个200GbE SFP-DD端口聚合为1个400GbE QSFP-DD端口，从而实现最高64个400GbE上联端口；设备交换容量与包转发率同步提升至10.24Tbps与7.616Bpps。
+
+Q: 该交换机是否支持RoCEv2网络部署？需要哪些配套配置？  
+A: 完全支持。NE8570-4C原生集成RoCEv2协议栈，需同时启用PFC（针对RoCE优先级）、ECN（用于拥塞控制）、DCBX（自动协商参数）及ETS（带宽分配），并配合支持RoCE的服务器网卡与上层应用（如NCCL、MPI）方可构建端到端无损RDMA网络。
+
+Q: 设备的缓存机制如何工作？是否支持动态共享？  
+A: 采用双Broadcom Trident4芯片架构，共24MB全局共享缓冲区（每芯片12MB），支持基于队列、端口、服务等级（CoS）的三级动态缓冲区分配策略，可按流量突发特征自动调整各端口/队列可用缓存空间，避免传统静态分区导致的缓存浪费或头部丢包。
+
+Q: 是否支持在线升级操作系统而不中断业务流量？  
+A: 支持ISSU（In-Service Software Upgrade）。在满足双主控冗余前提下（注：NE8570-4C为单主控芯片集成设计，但通过NSR+ISSU联合机制实现控制面平滑切换），可对软件镜像进行热补丁升级或版本滚动更新，数据平面持续转发，业务零中断；升级过程全程可监控，失败自动回滚。
+
+Q: 管理接口有哪些？是否支持带外管理与带内管理分离？  
+A: 提供2个独立RJ45千兆管理口（默认启用带外管理），支持绑定为管理VLAN子接口实现带内管理；同时支持通过业务端口配置管理IP（需划分独立管理VRF），实现物理隔离的带外+逻辑隔离的带内双通道管理，满足等保2.0三级对管理通道分离的要求。
+
+Q: 该设备能否部署在高温机房环境中？最高允许工作温度是多少？  
+A: 可部署于高温机房，额定工作温度范围为0℃～40℃（海拔≤2000m）；在短时（≤30分钟）且有良好气流组织条件下，允许环境温度达45℃；超出此限值将触发风扇全速与告警，持续超温将自动降频或关机保护。
+
+Q: 是否支持硬件级MACsec加密？密钥管理方式是什么？  
+A: 支持全线速256位AES-GCM MACsec加密（IEEE 802.1AE-2018），所有128个200GbE端口均可独立启用；密钥由设备内置可信平台模块（TPM 2.0）安全生成与存储，支持MKA（MACsec Key Agreement）协议自动协商，亦支持手工密钥配置与周期轮换策略。
+
+Q: 对于AI训练集群场景，该交换机在流量调度方面有何优化？  
+A: 针对AI AllReduce通信模型，内置NCCL-aware流量工程模块，可识别集合通信报文特征（如AllReduce TCP/UDP标志、特定端口范围、RoCEv2操作码），结合ECN阈值自适应调节、动态PFC pause帧门限、以及基于INT的GPU-NIC-交换机三级路径质量感知，实现跨机架AllReduce流量的低抖动、低丢包、高吞吐调度。
+
+Q: 设备是否通过中国网络安全审查？是否满足信创适配要求？  
+A: 已通过国家互联网应急中心（CNCERT）安全评估及中国信息安全测评中心（CNITSEC）EAL3+级安全认证；软件栈全面适配国产CPU平台（海光Hygon C86、飞腾Phytium ARM64），支持麒麟V10、统信UOS、中科方德等主流信创操作系统，提供完整驱动与SDK，列入《信创产品名录（网络设备类）》。

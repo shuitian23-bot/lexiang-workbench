@@ -557,6 +557,9 @@ db.exec(`
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+// migration: 加 detail_images 字段缓存详情长图列表 + 抓取时间
+try { db.exec("ALTER TABLE products ADD COLUMN detail_images TEXT DEFAULT ''"); } catch(e) {}
+try { db.exec("ALTER TABLE products ADD COLUMN detail_images_at INTEGER DEFAULT 0"); } catch(e) {}
 
 // 电商：分类表
 db.exec(`

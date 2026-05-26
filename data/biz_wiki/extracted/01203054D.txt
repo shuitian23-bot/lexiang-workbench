@@ -1,0 +1,93 @@
+ThinkStation P368
+
+ThinkStation P368 创意工作站
+
+创想无界 酷出境界
+
+- Windows 11 家庭中文版（预装）推荐使用 Windows 11 专业版
+- Intel Core i9-12900H
+- NVIDIA RTX A5000
+- AMD Radeon Pro W6600
+- 大容量存储
+- 高速网络
+
+创意动力 极速性能
+
+- 高性能显卡 让创作再无桎梏
+  - NVIDIA
+  - AMD Radeon
+  - Intel
+
+芯片级数据安全保护 让重要资产安全无忧
+
+智能安全套件4.0 保证数据处理不受威胁
+
+PCIe 4.0接口 又一次提升性能天花板
+
+- PCIe 4.0 x16
+- PCIe 4.0 x8
+
+持久战斗 强劲支撑电力全开
+
+细节处处为创意
+
+高速网络互联 无惧网速约束
+
+- Wi-Fi 6E
+- 蓝牙 5.2
+
+接口功能齐全 协同工作快捷
+
+- USB 3.2 Gen 2
+- Thunderbolt 4
+- HDMI 2.1
+- DisplayPort 1.4a
+- Ethernet 2.5GbE
+
+多重保险配置 守护资产安全
+
+- TPM 2.0
+- 硬盘加密
+- BIOS 密码保护
+
+可选光触媒风扇 让空气更洁净
+
+尊享服务极速版
+
+- 2年有限硬件保修
+- 24x7 全天候技术支持
+- 优先响应时间
+
+大型企业客户专属服务
+
+- 快速响应
+- 定制化解决方案
+- 高级技术支持
+- 灵活的采购方案
+
+Q: ThinkStation P368 预装的操作系统是什么？  
+A: 预装 Windows 11 家庭中文版，但页面明确提示推荐使用 Windows 11 专业版。
+
+Q: ThinkStation P368 搭载的处理器型号是什么？  
+A: Intel Core i9-12900H。
+
+Q: ThinkStation P368 支持哪些专业级显卡选项？  
+A: 支持 NVIDIA RTX A5000 和 AMD Radeon Pro W6600 两种专业显卡。
+
+Q: ThinkStation P368 提供哪些 PCIe 4.0 接口规格？  
+A: 提供 PCIe 4.0 x16 和 PCIe 4.0 x8 两种接口规格。
+
+Q: ThinkStation P368 的无线连接能力包括哪些标准？  
+A: 支持 Wi-Fi 6E 和蓝牙 5.2。
+
+Q: ThinkStation P368 配备了哪些视频输出接口？  
+A: 配备 HDMI 2.1 和 DisplayPort 1.4a 视频输出接口。
+
+Q: ThinkStation P368 提供哪些硬件级安全特性？  
+A: 包含 TPM 2.0、硬盘加密和 BIOS 密码保护三项硬件级安全配置。
+
+Q: ThinkStation P368 的标准保修与技术支持服务包含哪些内容？  
+A: 提供 2 年有限硬件保修、24x7 全天候技术支持以及优先响应时间。
+
+Q: ThinkStation P368 是否支持企业级定制化服务？  
+A: 是，面向大型企业客户提供快速响应、定制化解决方案、高级技术支持和灵活的采购方案。

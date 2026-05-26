@@ -1,0 +1,82 @@
+联想问天 WR5225 G3
+
+联想问天 WR5225 G3 是一款面向人工智能训练与推理、高性能计算（HPC）、科学仿真、大数据分析等关键业务场景的双路机架式服务器。该产品基于第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids）平台，支持最高 60 核/120 线程、最大 4TB 4800MT/s DDR5 内存、PCIe 5.0 高速总线及多卡 GPU 协同加速架构，具备高算力密度、高内存带宽、高 I/O 扩展性与企业级可靠性。
+
+产品设计采用模块化机箱结构，支持热插拔冗余电源与智能风扇调速系统，整机支持 2U 高度部署，优化数据中心空间利用率与散热效率。前置提供 USB 3.0 接口、VGA 显示接口及 UID 指示灯；后置集成双千兆以太网口（支持 LACP/负载均衡）、IPMI 独立管理网口、串口及多个 USB 2.0 接口。支持 UEFI BIOS、TPM 2.0 安全芯片、Secure Boot、机箱入侵检测等多重安全机制。
+
+联想问天 WR5225 G3 全面兼容主流 AI 框架（如 PyTorch、TensorFlow、PaddlePaddle）及国产化操作系统（麒麟 V10、统信 UOS），并通过 NVIDIA 认证，支持 NVIDIA HGX™ H100 8-GPU 模块（需选配专用背板与散热组件），亦可灵活配置单卡至四卡 A100/A800/H100/L40S 等多种 GPU 组合，满足从模型预训练、微调到大规模在线推理的全栈AI需求。
+
+为保障长期稳定运行，该服务器通过联想严苛的 72 小时高温高湿老化测试、12000 次硬盘插拔耐久测试、EMC 电磁兼容性认证及多项能源之星（ENERGY STAR）能效验证。出厂预装 Lenovo XClarity Controller（XCC）基础版管理固件，支持远程开关机、固件升级、日志收集、硬件健康监控及 RESTful API 集成，可无缝对接 Lenovo XClarity Administrator（XCA）统一管理平台。
+
+| 特性类别 | 详细描述 |
+|----------|----------|
+| 处理器 | 支持 2 颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），最高 60 核 / 120 线程，TDP 最高 350W，支持 Intel® Turbo Boost Max Technology 3.0、Intel® DL Boost、Intel® AMX 等 AI 加速指令集 |
+| 内存 | 支持 32 个 DDR5 RDIMM/LRDIMM 插槽，最大容量 4TB（LRDIMM），速率最高 4800MT/s，支持 ECC、内存镜像、内存热备（Sparing）及 Lockstep 模式 |
+| 存储 | 前置：最高支持 12×3.5" 或 24×2.5" 热插拔 SATA/SAS/NVMe 混合硬盘托架（含 2×NVMe U.2 后置专用槽位）；支持 RAID 0/1/10/5/50/6/60（需选配 RAID 卡）；可选 NVMe 直通模式（DirectPath I/O） |
+| 扩展插槽 | 最高支持 8×PCIe 5.0 x16 插槽（物理 x16，电气 x16），其中 2 个为 OCP 3.0 网络子卡专用槽位；支持全高全长 GPU 卡，GPU 间采用 NVLink（A100/A800）或 NVSwitch（H100）高速互联（需对应 GPU 与背板） |
+| 网络 | 板载 2×1GbE RJ45（Intel i350-AM2），支持 PXE 启动、Wake-on-LAN；可选配双端口 10/25/100GbE OCP 3.0 网络子卡（如 Mellanox ConnectX-6/7、Intel E810）；支持 SR-IOV、VMDq、DCB、FCoE |
+| 电源 | 标配 2×2400W 80 PLUS 钛金级冗余电源（交流输入），支持 200–240V AC 或 -48V DC 输入（需选配直流电源模块），转换效率 ≥96%，支持电源健康预测与动态功率封顶（Power Capping） |
+| 管理 | 集成 Lenovo XClarity Controller（XCC）基础版，独立 1GbE 管理网口，支持 IPMI 2.0、Redfish RESTful API、SNMP v3、KVM over IP、虚拟媒体挂载、批量固件升级；可选升级至 XCC 高级版（含自动化部署、策略驱动运维） |
+| 安全 | 支持 TPM 2.0 安全芯片（可选固件/离散式）、Secure Boot、UEFI 安全启动、机箱入侵开关、BIOS 密码保护、USB 端口禁用策略、固件签名验证（Signed Firmware Update） |
+| 物理规格 | 2U 机架式，尺寸：87.8 mm（高）× 482 mm（宽）× 815 mm（深）；满配重量约 42 kg（含导轨）；工作温度：5℃–35℃；相对湿度：8%–90%（非凝露）；符合 FCC Class A、CE、CCC、RoHS 等认证 |
+
+产品特性  
+• 双路 Sapphire Rapids 架构，原生支持 AMX 指令集，显著加速 Transformer 类大模型训练推理  
+• 全 PCIe 5.0 互连：CPU-GPU、CPU-存储、GPU-GPU 均达 32 GT/s 带宽，消除 I/O 瓶颈  
+• 内存带宽高达 400 GB/s（双 CPU），配合 32 通道 DDR5，保障 HPC 与内存敏感型应用性能  
+• 灵活 GPU 配置：支持单卡、双卡、四卡及 8-GPU HGX 模块（需选配 WR5225 G3-HGX 型号）  
+• 智能散热设计：GPU 区域独立风道 + 可变转速 8 热管散热模组，支持 300W+ GPU 长期满载运行  
+• 全栈国产化适配：通过麒麟软件 NeoCertified 认证、统信软件 Compatible 认证、华为鲲鹏生态兼容性认证（部分配置）  
+• 运维极简：XCC 内置 AI 驱动的故障预测（Predictive Failure Analytics），提前 72 小时预警硬盘、电源、风扇等部件潜在失效  
+
+规格参数  
+处理器：2 颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），最高 60 核 / 120 线程，TDP 最高 350W  
+芯片组：Intel C741  
+内存类型：DDR5 RDIMM（最大 2TB）/ LRDIMM（最大 4TB）  
+内存插槽数：32 个（每 CPU 16 个）  
+内存速率：4800MT/s（LRDIMM）、4400MT/s（RDIMM）  
+最大内存容量：4TB（使用 128GB LRDIMM）  
+存储控制器：板载 SATA 控制器（Intel C741 PCH），支持 12×SATA 3.0；可选 LSI 3916/9560-16i RAID 卡（支持 NVMe RAID）  
+硬盘托架：前置 12×3.5" 或 24×2.5" 热插拔托架（含 2×NVMe U.2 后置槽位）  
+扩展插槽：8×PCIe 5.0 x16（全高全长），2×OCP 3.0 网络子卡专用槽位  
+网络接口：2×1GbE（板载），1×1GbE（XCC 管理口），可选 10/25/100GbE OCP 子卡  
+电源：2×2400W 80 PLUS 钛金级冗余电源（AC），可选 -48V DC 电源模块  
+风扇：6×智能调速重型风扇（N+1 冗余）  
+管理功能：Lenovo XClarity Controller（XCC）基础版，支持 IPMI 2.0、Redfish、KVM over IP、虚拟媒体  
+安全特性：TPM 2.0（固件/离散可选）、Secure Boot、机箱入侵检测、BIOS 密码、USB 策略控制  
+物理尺寸：87.8 mm（H）× 482 mm（W）× 815 mm（D）  
+重量：约 42 kg（满配，含导轨）  
+工作环境：5℃–35℃，8%–90% RH（非凝露）  
+认证标准：FCC Class A、CE、CCC、RoHS、ENERGY STAR、UL 62368-1  
+
+常见问题  
+
+Q: 联想问天 WR5225 G3 是否支持 NVIDIA H100 GPU？  
+A: 支持，但需选择 WR5225 G3-HGX 专用型号，并配备 HGX™ H100 8-GPU 模块、专用高速背板、增强散热组件及对应固件版本；标准型号支持单卡至四卡 H100 SXM5（需搭配 NVIDIA-Certified 系统配置）。
+
+Q: 该服务器是否兼容国产操作系统和数据库？  
+A: 是，已通过麒麟软件 NeoCertified V10 SP3 认证、统信软件 UOS Server 20 2311 认证，并完成达梦数据库 DM8、人大金仓 KingbaseES V8R6、海量数据库 Hubble 的兼容性测试与联合解决方案验证。
+
+Q: 最大可配置多少块 NVMe SSD？  
+A: 前置最高支持 24×2.5" 硬盘托架（含 NVMe），其中最多 16×NVMe U.2（通过主板直连）+ 2×NVMe U.2（后置专用槽位），另可通过 PCIe 5.0 插槽扩展 NVMe AIC 卡，理论总计支持超 20 块 NVMe SSD（具体数量取决于 RAID 卡与散热布局限制）。
+
+Q: 是否支持内存加密（Memory Encryption）和虚拟化嵌套（Nested Virtualization）？  
+A: 支持 Intel TME（Total Memory Encryption）全内存加密及 MKTME（Multi-Key TME）多密钥加密；同时支持 Intel VT-x、VT-d、EPT 及嵌套虚拟化（Nested VMX），适用于 KVM/QEMU、VMware ESXi 8.0+ 等虚拟化平台。
+
+Q: XClarity Controller（XCC）是否支持中文界面与微信告警？  
+A: XCC Web 界面原生支持中英文切换；通过 XClarity Administrator（XCA）集中管理平台可配置微信机器人告警（需对接企业微信自建应用），实现硬件故障、温度越限、电源异常等事件实时推送。
+
+Q: 该服务器能否在 35℃以上高温机房部署？  
+A: 标准规格工作温度上限为 35℃；若需在更高环境温度下运行，可选配“高温增强散热套件”（含强化铜管散热模组、定制风扇曲线与进风滤网），经测试可在 40℃环温下持续稳定运行（需满足机房气流组织与冷通道封闭要求）。
+
+Q: 是否提供固件层面的 AI 加速支持？  
+A: 是，除 CPU 原生 AMX 指令集外，XCC 固件内置 AI 驱动的 Predictive Failure Analytics 引擎，可基于传感器数据（温度、电压、SMART 日志、功耗波动）训练轻量级时序模型，对硬盘剩余寿命、电源电容衰减、风扇轴承磨损进行早期预测。
+
+Q: 对于金融行业客户，该服务器是否满足等保 2.0 三级合规要求？  
+A: 满足，已通过国家信息安全等级保护测评中心三级等保预测评：硬件层支持 TPM 2.0+Secure Boot+机箱入侵检测；固件层支持固件签名验证与安全启动链；管理层面支持 RBAC 权限分级、操作日志审计（保留≥180天）、SSL/TLS 1.2+ 加密通信及 SNMPv3 安全协议。
+
+Q: 是否支持液冷改造？  
+A: 支持，联想提供官方认证的“WR5225 G3 冷板式液冷套件”，覆盖 CPU、GPU 及 VRM 区域，兼容 ASHRAE A3/A4 环境，PUE 可降至 1.1 以下；改造需由联想认证工程师实施，并同步升级 BIOS/XCC 固件与液冷监控模块。
+
+Q: 如何获取针对大模型训练场景的 BIOS 与驱动优化配置？  
+A: 联想提供《WR5225 G3 大模型训练调优指南》白皮书，内含 BIOS 设置推荐（如关闭 C-states、启用 Sub-NUMA Clustering、GPU PCIe ASPM 策略）、CUDA/NVIDIA 驱动版本矩阵、NCCL 多节点通信参数模板及 XCC 自动化部署脚本，客户可通过联想服务门户下载或联系 AI 解决方案团队获取定制化支持。

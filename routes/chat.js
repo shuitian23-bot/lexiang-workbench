@@ -28,6 +28,24 @@ const upload = multer({
   }
 });
 
+// S1④ frontend_* action → SSE event 映射表（替代 11 个 if 分支）
+// navigate 立即 send，其余 tab/modal/卡片 类延迟到 AI 流式答完 _flushDeferred
+const FRONTEND_DISPATCH = {
+  frontend_navigate: (r, send) => send('nav', { target: r.target, reason: r.reason || '' }),
+  frontend_display:  (r, _, defer) => defer('display', { title: r.title || 'AI推荐', products: r.products || [] }),
+  frontend_modal:    (r, _, defer) => defer('modal', r),
+  frontend_solutions:(r, _, defer) => defer('solutions', { title: r.title || '推荐方案', solutions: r.solutions || [], note: r.note || '' }),
+  frontend_filter:   (r, _, defer) => defer('display', { title: r.title || '筛选结果', filter_tags: r.filter_tags || [], products: r.products || [] }),
+  frontend_customize:(r, _, defer) => defer('customize', { product_name: r.product_name || '', schema: r.schema || 'laptop', preset: r.preset || 'default' }),
+  frontend_coupon:   (r, _, defer) => defer('coupon', { highlight: r.highlight || [], title: r.title || '为您推荐的优惠券', desc: r.desc || '' }),
+  frontend_stores:   (r, _, defer) => defer('stores', { title: r.title || '联想体验店', city: r.city || '', product: r.product || '', stores: r.stores || [], perks: r.perks || [] }),
+  frontend_member:   (r, _, defer) => defer('member', { title: r.title || '我的会员中心' }),
+  frontend_tradein:  (r, _, defer) => defer('tradein', { title: r.title || '以旧换新', content: r.content || '', data: r.data || {} }),
+  frontend_lead:     (r, _, defer) => defer('lead', { title: r.title || '留下您的联系方式', desc: r.desc || '', fields: r.fields || [], scenario: r.scenario || '' }),
+  // AI 权益管家：到手价瀑布即时 send（重内容，跟左侧文字同步出）
+  frontend_benefit:  (r, send) => send('benefit', { title: r.title || 'AI 权益管家', product: r.product || {}, waterfall: r.waterfall || [], discount_total: r.discount_total || 0, final_price: r.final_price || 0, final_text: r.final_text || '', tco: r.tco || [], audit: r.audit || [], usage: r.usage || '' }),
+};
+
 // ── 音频上传配置 ──
 const AUDIO_UPLOAD_DIR = path.join(__dirname, '../public/uploads/audio');
 if (!fs.existsSync(AUDIO_UPLOAD_DIR)) fs.mkdirSync(AUDIO_UPLOAD_DIR, { recursive: true });
@@ -128,7 +146,7 @@ router.post('/upload-audio', (req, res, next) => {
 
 // POST /api/chat
 router.post('/', async (req, res) => {
-  const { message, conv_id } = req.body;
+  const { message, conv_id, site_type } = req.body;
   const sessionId = getUid(req);
 
   if (!message || !message.trim()) {
@@ -136,7 +154,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const result = await runAgent(message.trim(), conv_id || null, sessionId, { userId: req.userId || null });
+    const result = await runAgent(message.trim(), conv_id || null, sessionId, { userId: req.userId || null, siteType: site_type || 'default' });
     if (req.userId && result.convId) {
       db.prepare('UPDATE conversations SET user_id = ? WHERE id = ? AND user_id IS NULL').run(req.userId, result.convId);
     }
@@ -149,7 +167,7 @@ router.post('/', async (req, res) => {
 
 // POST /api/chat/stream — SSE 流式响应
 router.post('/stream', async (req, res) => {
-  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url } = req.body;
+  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url, product_context, site_type } = req.body;
   const sessionId = getUid(req);
 
   if (!message || !message.trim()) {
@@ -168,6 +186,16 @@ router.post('/stream', async (req, res) => {
   };
 
   let doneTimer = null;
+  // 延迟 send 队列：流式中拦截到 tab/modal 类事件先缓存，AI 回答完成后一次性 flush
+  // 避免 chunk 还在流时右侧 tab 已弹出干扰用户读流式回答
+  const _pending = [];
+  function _sendDeferred(event, data) { _pending.push({ event, data }); }
+  function _flushDeferred() {
+    while (_pending.length) {
+      const { event, data } = _pending.shift();
+      try { send(event, data); } catch (e) {}
+    }
+  }
   try {
     await runAgentStream(
       message.trim(),
@@ -179,6 +207,8 @@ router.post('/stream', async (req, res) => {
           db.prepare('UPDATE conversations SET user_id = ? WHERE id = ? AND user_id IS NULL').run(req.userId, convId);
         }
         if (products?.length) send('products', { products });
+        // AI 流式答完，再 flush 此前缓存的 tab/modal 事件
+        _flushDeferred();
         send('done', { convId, msgId });
         // 不立即 end，等 suggestions 发完再关闭（最多等5秒）
         doneTimer = setTimeout(() => res.end(), 5000);
@@ -190,7 +220,20 @@ router.post('/stream', async (req, res) => {
         imageUrl: image_url || null,
         audioUrl: audio_url || null,
         userId: req.userId || null,
-        onStatus: (status) => send('status', status),
+        siteType: site_type || 'default',
+        productContext: product_context || null,
+        onStatus: (status) => {
+          // S1④ SSE 单路径：frontend_* action → 统一映射表 dispatch
+          // navigate 立即发，其余 tab/modal/卡片类延迟到 AI 流式答完 flush
+          if (status?.type === 'tool_done' && status.success && status.result?.action) {
+            const r = status.result;
+            const handler = FRONTEND_DISPATCH[r.action];
+            if (handler) handler(r, send, _sendDeferred);
+          }
+          // 转发 status 事件时剥离 result 字段，避免大对象塞进 SSE
+          const { result, ...lite } = status || {};
+          send('status', lite);
+        },
         onThinking: (text) => send('thinking', { text }),
         onThinkEnd: () => send('think_end', {}),
         onSuggestions: (suggestions) => {
@@ -299,6 +342,47 @@ router.get('/share/:token', (req, res) => {
   const conv = db.prepare('SELECT id, title, created_at FROM conversations WHERE id = ?').get(row.conv_id);
   const messages = db.prepare("SELECT role, content FROM messages WHERE conv_id = ? AND role IN ('user','assistant') ORDER BY created_at ASC").all(row.conv_id);
   res.json({ conv, messages });
+});
+
+// ── 极速问答 /api/chat/quick：lite 模型 + 跳 RAG/工具/dispatcher, 纯流式直答（划词/临时气泡用）──
+const https = require('https');
+router.post('/quick', (req, res) => {
+  const message = (req.body && req.body.message || '').toString().trim();
+  if (!message) return res.status(400).json({ error: 'message required' });
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  const sys = '你是联想乐享导购助手。简洁口语化直答(≤120字), 不要客套开场/列表/标题, 第一句直接给要点。';
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role:'system', content: sys }, { role:'user', content: message }],
+    max_tokens: 400, temperature: 0.5, stream: true, thinking: { type: 'disabled' }
+  });
+  const ar = https.request({
+    hostname: 'ark.cn-beijing.volces.com', path: '/api/coding/v3/chat/completions', method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+  }, (r) => {
+    let buf = '';
+    r.on('data', chunk => {
+      buf += chunk.toString();
+      let idx;
+      while ((idx = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === '[DONE]') continue;
+        try { const j = JSON.parse(payload); const d = j.choices?.[0]?.delta?.content || '';
+          if (d) res.write('event: chunk\ndata: ' + JSON.stringify({ text: d }) + '\n\n');
+        } catch (e) {}
+      }
+    });
+    r.on('end', () => { res.write('event: done\ndata: {}\n\n'); res.end(); });
+    r.on('error', () => { res.write('event: error\ndata: {}\n\n'); res.end(); });
+  });
+  ar.on('error', () => { try { res.write('event: error\ndata: {}\n\n'); res.end(); } catch(e){} });
+  ar.setTimeout(30000, () => { ar.destroy(); try { res.end(); } catch(e){} });
+  ar.write(body); ar.end();
 });
 
 module.exports = router;

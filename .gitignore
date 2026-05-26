@@ -29,3 +29,14 @@ public/exports/
 .vscode/
 .idea/
 .DS_Store
+
+# Split-layout backups
+*.bak-split-*
+*.bak-*
+
+# 子站目录禁止放index.html（SPA统一走主index.html）
+public/shop-chat/
+public/b-chat/
+public/biz-chat/
+
+.claude/settings.local.json

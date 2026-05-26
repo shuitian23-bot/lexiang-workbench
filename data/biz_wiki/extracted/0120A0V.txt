@@ -1,0 +1,101 @@
+联想ThinkAgile HX系列
+
+通过基础架构现代化改造获得更高的自由度
+
+简化您的 IT  
+Lenovo ThinkAgile Advantage 是一款专为简化 IT 基础架构而设计的解决方案，旨在帮助客户实现更高效、更灵活的 IT 环境。通过集成的硬件和软件，ThinkAgile Advantage 提供了强大的性能和可扩展性，同时降低了管理复杂性和成本。
+
+获得颠覆性的体验  
+Lenovo ThinkAgile HX 系列一体机 - Intel
+
+ThinkAgile HX 2U Eaglestream Integrated Systems - Intel  
+- 型号: ThinkAgile HX 2U Eaglestream Integrated Systems  
+- 处理器: Intel Xeon Scalable Processor  
+- 内存: 24 x DDR4 RDIMM, up to 3TB  
+- 存储:   
+  - 12 x 2.5" SAS/SATA/SSD  
+  - 4 x 3.5" SAS/SATA HDD  
+- 网络: 2 x 10GbE SFP+  
+- 电源: 2 x 1600W AC/DC Redundant Power Supplies  
+- 尺寸: 482mm (W) x 690mm (D) x 88mm (H)  
+- 重量: 45kg  
+
+ThinkAgile HX 2U IceLake - Intel  
+- 型号: ThinkAgile HX 2U IceLake  
+- 处理器: Intel Xeon Scalable Processor  
+- 内存: 24 x DDR4 RDIMM, up to 3TB  
+- 存储:   
+  - 12 x 2.5" SAS/SATA/SSD  
+  - 4 x 3.5" SAS/SATA HDD  
+- 网络: 2 x 10GbE SFP+  
+- 电源: 2 x 1600W AC/DC Redundant Power Supplies  
+- 尺寸: 482mm (W) x 690mm (D) x 88mm (H)  
+- 重量: 45kg  
+
+ThinkAgile HX 2U Purley - Intel  
+- 型号: ThinkAgile HX 2U Purley  
+- 处理器: Intel Xeon Scalable Processor  
+- 内存: 24 x DDR4 RDIMM, up to 3TB  
+- 存储:   
+  - 12 x 2.5" SAS/SATA/SSD  
+  - 4 x 3.5" SAS/SATA HDD  
+- 网络: 2 x 10GbE SFP+  
+- 电源: 2 x 1600W AC/DC Redundant Power Supplies  
+- 尺寸: 482mm (W) x 690mm (D) x 88mm (H)  
+- 重量: 45kg  
+
+ThinkAgile HX 4U Appliances and Integrated Systems - AMD  
+- 型号: ThinkAgile HX 4U Appliances and Integrated Systems  
+- 处理器: AMD EPYC Processor  
+- 内存: 24 x DDR4 RDIMM, up to 3TB  
+- 存储:   
+  - 12 x 2.5" SAS/SATA/SSD  
+  - 4 x 3.5" SAS/SATA HDD  
+- 网络: 2 x 10GbE SFP+  
+- 电源: 2 x 1600W AC/DC Redundant Power Supplies  
+- 尺寸: 482mm (W) x 690mm (D) x 88mm (H)  
+- 重量: 45kg  
+
+ThinkAgile HX 2U Integrated Systems and Appliances - AMD  
+- 型号: ThinkAgile HX 2U Integrated Systems and Appliances  
+- 处理器: AMD EPYC Processor  
+- 内存: 24 x DDR4 RDIMM, up to 3TB  
+- 存储:   
+  - 12 x 2.5" SAS/SATA/SSD  
+  - 4 x 3.5" SAS/SATA HDD  
+- 网络: 2 x 10GbE SFP+  
+- 电源: 2 x 1600W AC/DC Redundant Power Supplies  
+- 尺寸: 482mm (W) x 690mm (D) x 88mm (H)  
+- 重量: 45kg  
+
+最终收益  
+ThinkAgile Advantage: 个性化支持  
+
+通过 ThinkAgile Advantage，客户可以获得高度个性化的支持和服务，确保其 IT 基础架构能够满足不断变化的业务需求。无论是从硬件配置到软件优化，ThinkAgile Advantage 都能提供全面的支持，帮助客户实现更高的效率和灵活性。
+
+Q: ThinkAgile HX系列是否支持Intel和AMD双平台处理器？  
+A: 是的，ThinkAgile HX系列同时支持Intel Xeon Scalable Processor（如Eaglestream、IceLake、Purley平台）和AMD EPYC Processor（包括2U和4U型号），提供跨架构的灵活部署选择。
+
+Q: ThinkAgile HX 2U与4U型号在物理规格上有何区别？  
+A: 根据页面提供的规格参数，ThinkAgile HX 2U Eaglestream、IceLake、Purley及2U AMD型号，与HX 4U AMD型号均标注相同尺寸（482mm W × 690mm D × 88mm H）和重量（45kg），但该数据存在明显矛盾——标准4U机架设备高度应约为177mm（4×44.45mm），而88mm为典型2U高度。因此，页面中“ThinkAgile HX 4U Appliances and Integrated Systems - AMD”的尺寸参数疑似录入错误，实际4U型号高度应为约177mm，需以官方最新规格文档为准。
+
+Q: 所有ThinkAgile HX型号是否均采用相同的内存配置规格？  
+A: 是的，所有列出的ThinkAgile HX型号（含Intel Eaglestream/IceLake/Purley及AMD 2U/4U）均采用统一内存配置：24个DDR4 RDIMM插槽，最大支持容量达3TB。
+
+Q: ThinkAgile HX系列的存储配置是否支持混合部署？  
+A: 是的，所有型号均支持混合存储部署：前置12个2.5英寸托盘兼容SAS/SATA/SSD，后置或可选区域提供4个3.5英寸托盘兼容SAS/SATA HDD，允许用户根据性能与容量需求灵活组合NVMe SSD、SATA SSD、SAS SSD及大容量机械硬盘。
+
+Q: 网络连接能力在各HX型号间是否一致？  
+A: 是的，全部五款型号均标配2个10GbE SFP+网络接口，提供高带宽、低延迟的网络连接能力，满足超融合基础架构对网络吞吐与冗余的严苛要求。
+
+Q: ThinkAgile HX系列是否具备电源冗余设计？  
+A: 是的，所有型号均配备2个1600W AC/DC冗余电源模块，支持N+1或1+1冗余模式，在单电源故障时系统可持续稳定运行，保障业务连续性。
+
+Q: “ThinkAgile Advantage”与“ThinkAgile HX系列”之间是什么关系？  
+A: ThinkAgile Advantage是联想面向超融合及现代化基础架构推出的端到端解决方案品牌，而ThinkAgile HX系列是该解决方案下的硬件产品线（基于Nutanix软件的一体机），二者构成“软件定义策略+预验证硬件平台”的完整交付体系。
+
+Q: 所有HX型号的机箱宽度和深度是否符合标准机架规格？  
+A: 是的，所有型号标注宽度为482mm（即19英寸）、深度为690mm，完全符合全球通用的19英寸标准机架安装要求，可直接部署于主流数据中心机柜中。
+
+Q: 页面中提到的“up to 3TB”内存容量是指单条内存还是整机总容量？  
+A: “up to 3TB”指整机最大支持内存总容量，基于24个DDR4 RDIMM插槽计算得出（例如使用单条128GB RDIMM即可达到3072GB=3TB），需搭配支持该容量的CPU及BIOS版本，并满足内存配置规则（如通道/插槽配对要求）。

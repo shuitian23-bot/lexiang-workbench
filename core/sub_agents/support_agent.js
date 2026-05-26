@@ -6,7 +6,7 @@ const https = require('https');
 const { searchAsync } = require('../../knowledge/search');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'doubao-seed-2.0-pro';
 
 const SYSTEM_PROMPT = `你是联想售后服务专家"小联"，精通联想产品的保修政策、维修流程、驱动下载和故障排查。
 
@@ -19,6 +19,7 @@ const SYSTEM_PROMPT = `你是联想售后服务专家"小联"，精通联想产�
 - 官方客服联系方式
 
 ## 回答风格
+- **禁止**客套开场("您好"/"欢迎您"/"请问有什么可以帮到您" 等), 第一句话直接答题
 - 直接给出解决方案，步骤清晰
 - 对于保修问题，先确认购买渠道和时间
 - 提供官方渠道（官网、客服电话400-990-8888）
@@ -36,8 +37,9 @@ module.exports = {
   name: 'support_agent',
   description: '联想售后服务专家，处理保修、维修、驱动、故障排查等问题',
   keywords: ['保修', '维修', '故障', '驱动', '售后', '修', '坏', '蓝屏', '无法', '不能开机', '黑屏', '延保', '返修', '寄修'],
+  streamsChunks: true,
 
-  async run(userMessage, historyMessages, ragContext) {
+  async run(userMessage, historyMessages, ragContext, onChunk) {
     // 先做知识库搜索增强回答
     let extraContext = ragContext || '';
     try {
@@ -79,15 +81,18 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({
-        model: MODEL,
+        model: MODEL, thinking: { type: 'disabled' },
         messages,
         max_tokens: 600,
-        temperature: 0.3
+        temperature: 0.3,
+        stream: true
       });
 
+      let fullText = '';
+      let buf = '';
       const req = https.request({
-        hostname: 'dashscope.aliyuncs.com',
-        path: '/compatible-mode/v1/chat/completions',
+        hostname: 'ark.cn-beijing.volces.com',
+        path: '/api/coding/v3/chat/completions',
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + API_KEY,
@@ -95,21 +100,31 @@ module.exports = {
           'Content-Length': Buffer.byteLength(body)
         }
       }, (res) => {
-        let data = '';
-        res.on('data', c => data += c);
-        res.on('end', () => {
-          try {
-            const j = JSON.parse(data);
-            if (j.error) return reject(new Error(j.error.message || 'API error'));
-            const text = j.choices?.[0]?.message?.content || '';
-            resolve({ text });
-          } catch (e) {
-            reject(new Error('JSON parse error: ' + data.slice(0, 100)));
+        res.on('data', chunk => {
+          buf += chunk.toString();
+          let idx;
+          while ((idx = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, idx).trim();
+            buf = buf.slice(idx + 1);
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+            try {
+              const j = JSON.parse(payload);
+              if (j.error) return reject(new Error(j.error.message || 'API error'));
+              const delta = j.choices?.[0]?.delta?.content || '';
+              if (delta) {
+                fullText += delta;
+                if (typeof onChunk === 'function') onChunk(delta);
+              }
+            } catch (e) { /* 部分 chunk, 跳过 */ }
           }
         });
+        res.on('end', () => resolve({ text: fullText }));
+        res.on('error', reject);
       });
       req.on('error', reject);
-      req.setTimeout(30000, () => { req.destroy(); reject(new Error('support_agent timeout')); });
+      req.setTimeout(90000, () => { req.destroy(); reject(new Error('support_agent timeout')); });
       req.write(body);
       req.end();
     });

@@ -8,7 +8,7 @@ const https = require('https');
 const db = require('../db/schema');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
+const MODEL = 'doubao-seed-2.0-lite';
 const MIN_FEEDBACK = 5;   // 数据不足阈值：feedback < 5
 const MIN_REFLECTION = 5; // 数据不足阈值：reflection < 5
 const LLM_TIMEOUT = 15000; // 15秒超时
@@ -19,15 +19,15 @@ const LLM_TIMEOUT = 15000; // 15秒超时
 function callLLMForEvolution(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 300,
       temperature: 0.5
     });
 
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,

@@ -18,97 +18,386 @@ function renderPage(pageId) {
   }
 }
 
+const LEAI_DASH_STATE = {
+  overviewRange: '1d',
+  overviewCustomStart: '',
+  overviewCustomEnd: '',
+  overviewScenarioMode: 'all',
+  overviewProductMetric: 'views'
+};
+
+const LEAI_PRODUCT_ROWS = [
+  { name: 'ThinkPad X9-14 Aura AI元启版', views: 15847, buyers: 761, cvr: 4.8 },
+  { name: 'YOGA Air 14 Aura AI元启版', views: 13203, buyers: 700, cvr: 5.3 },
+  { name: '拯救者 R7000P 2025 AI元启', views: 11876, buyers: 487, cvr: 4.1 },
+  { name: '联想小新Pro14GT AI元启版', views: 9543, buyers: 305, cvr: 3.2 },
+  { name: 'ThinkPad P14s 2025 AI元启版', views: 7810, buyers: 203, cvr: 2.6 }
+];
+
+function leaiGetData() {
+  return typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+}
+
+function leaiRangeSize(range) {
+  return range === '1d' ? 1 : range === '7d' ? 7 : range === '14d' ? 14 : 30;
+}
+
+function leaiRangeLabel(range) {
+  return ({ '1d': '最近1天', '7d': '最近7天', '14d': '最近14天', '30d': '最近30天', custom: '自定义' })[range] || '最近1天';
+}
+
+function leaiDataYear() {
+  const L = leaiGetData();
+  return (L?.updated || '2026').slice(0, 4);
+}
+
+function leaiRowIso(d) {
+  if (!d) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  const [m, day] = String(d).split('/');
+  return `${leaiDataYear()}-${String(m || '').padStart(2, '0')}-${String(day || '').padStart(2, '0')}`;
+}
+
+function leaiDateBounds(source) {
+  const L = leaiGetData();
+  const rows = source || L?.daily || [];
+  return {
+    min: leaiRowIso(rows[0]?.d || ''),
+    max: leaiRowIso(rows[rows.length - 1]?.d || '')
+  };
+}
+
+function leaiRows(range, source, customStart, customEnd) {
+  const L = leaiGetData();
+  const rows = source || L?.daily || [];
+  if ((range || '1d') === 'custom') {
+    const bounds = leaiDateBounds(rows);
+    const start = customStart || bounds.min;
+    const end = customEnd || bounds.max;
+    const lo = start <= end ? start : end;
+    const hi = start <= end ? end : start;
+    return rows.filter(r => {
+      const d = leaiRowIso(r.d);
+      return (!lo || d >= lo) && (!hi || d <= hi);
+    });
+  }
+  const n = Math.min(leaiRangeSize(range || '1d'), rows.length);
+  return rows.slice(-n);
+}
+
+function leaiSum(rows, key) {
+  return rows.reduce((s, r) => s + (Number(r?.[key]) || 0), 0);
+}
+
+function leaiAvg(rows, key) {
+  return rows.length ? Math.round(leaiSum(rows, key) / rows.length) : 0;
+}
+
+function leaiFmtW(v) {
+  v = Number(v) || 0;
+  return v >= 10000 ? (v / 10000).toFixed(1) + '万' : v.toLocaleString();
+}
+
+function leaiFmtY(v) {
+  v = Number(v) || 0;
+  return v >= 100000000 ? (v / 100000000).toFixed(2) + '亿' : v >= 10000 ? (v / 10000).toFixed(1) + '万' : v.toLocaleString();
+}
+
+function leaiFmtPct(part, total) {
+  return total ? (part / total * 100).toFixed(1) + '%' : '-';
+}
+
+function leaiPeriodText(rows) {
+  const first = rows[0]?.d || '';
+  const last = rows[rows.length - 1]?.d || '';
+  const toFull = d => d ? '2026.' + d.replace('/', '.') : '-';
+  return first === last ? toFull(last) : `${toFull(first)} - ${toFull(last)}`;
+}
+
+function leaiBuildSummary(range, customStart, customEnd) {
+  const rows = leaiRows(range, undefined, customStart, customEnd);
+  return {
+    rows,
+    dau: leaiAvg(rows, 'dau'),
+    wau: leaiAvg(rows, 'wau'),
+    mau: leaiAvg(rows, 'mau'),
+    login: leaiSum(rows, 'login'),
+    loginAvg: leaiAvg(rows, 'login'),
+    inter: leaiSum(rows, 'inter'),
+    interAvg: leaiAvg(rows, 'inter'),
+    buy: leaiSum(rows, 'buy'),
+    gmv: leaiSum(rows, 'gmv'),
+    offGmv: leaiSum(rows, 'offGmv'),
+    nonGmv: leaiSum(rows, 'nonGmv'),
+    offBuy: leaiSum(rows, 'offBuy'),
+    nonBuy: leaiSum(rows, 'nonBuy'),
+    loginM: leaiAvg(rows, 'loginM'),
+    interM: leaiAvg(rows, 'interM')
+  };
+}
+
+function leaiBizSummary(rows, source) {
+  const dates = new Set(rows.map(r => r.d));
+  const picked = (source || []).filter(r => dates.has(r.d));
+  return { gmv: leaiSum(picked, 'gmv'), buy: leaiSum(picked, 'buy'), login: leaiSum(picked, 'login'), inter: leaiSum(picked, 'inter') };
+}
+
+function leaiMetricDelta(rows, key) {
+  if (rows.length < 2) return '单日快照';
+  const first = Number(rows[0]?.[key]) || 0;
+  const last = Number(rows[rows.length - 1]?.[key]) || 0;
+  if (!first) return '较首日 -';
+  const pct = (last - first) / first * 100;
+  return `较首日 ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+}
+
+function leaiSparklineHtml(rows, key, label, fmt) {
+  const vals = rows.map(r => Number(r?.[key]) || 0);
+  const max = Math.max(...vals, 1);
+  return `<div class="dash-spark-card">
+    <div class="dash-spark-head"><span>${label}</span><b>${fmt(vals[vals.length - 1] || 0)}</b></div>
+    <div class="dash-spark-bars">
+      ${vals.map((v, i) => `<span title="${rows[i]?.d || ''} ${fmt(v)}" style="height:${Math.max(v / max * 100, 4)}%"></span>`).join('')}
+    </div>
+    <div class="dash-spark-sub">${leaiMetricDelta(rows, key)}</div>
+  </div>`;
+}
+
+function leaiScenarioRows(summary) {
+  const mode = LEAI_DASH_STATE.overviewScenarioMode;
+  const total = mode === 'active' ? summary.login : summary.inter;
+  const weights = mode === 'active'
+    ? [0.16, 0.31, 0.18, 0.09, 0.12, 0.14]
+    : [0.20, 0.27, 0.16, 0.10, 0.13, 0.14];
+  return ['会员', '电商', '服务', '门店', '方案', '咨询'].map((name, i) => ({
+    name,
+    value: Math.round(total * weights[i])
+  }));
+}
+
+function leaiScenarioChartHtml(summary) {
+  const rows = leaiScenarioRows(summary);
+  const max = Math.max(...rows.map(r => r.value), 1);
+  const pill = mode => `dash-pill ${LEAI_DASH_STATE.overviewScenarioMode === mode ? 'active' : ''}`;
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Query 场景分布</div>
+      <div class="dash-filter-bar">
+        <button class="${pill('all')}" onclick="leaiSetScenarioMode('all')">整体</button>
+        <button class="${pill('active')}" onclick="leaiSetScenarioMode('active')">主动</button>
+      </div>
+    </div>
+    <div class="dash-bar-chart">
+      ${rows.map(r => `<div class="dash-bar-item">
+        <div class="dash-bar-value">${leaiFmtW(r.value)}</div>
+        <div class="dash-bar" style="height:${Math.max(r.value / max * 128, 12)}px"></div>
+        <div class="dash-bar-label">${r.name}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function leaiProductTableHtml() {
+  const metric = LEAI_DASH_STATE.overviewProductMetric;
+  const pill = m => `dash-pill ${metric === m ? 'active' : ''}`;
+  const sorted = [...LEAI_PRODUCT_ROWS].sort((a, b) => {
+    if (metric === 'buyers') return b.buyers - a.buyers;
+    if (metric === 'cvr') return b.cvr - a.cvr;
+    return b.views - a.views;
+  });
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">热门商品 TOP5</div>
+      <div class="dash-filter-bar">
+        <button class="${pill('views')}" onclick="leaiSetProductMetric('views')">浏览</button>
+        <button class="${pill('buyers')}" onclick="leaiSetProductMetric('buyers')">购买</button>
+        <button class="${pill('cvr')}" onclick="leaiSetProductMetric('cvr')">转化率</button>
+      </div>
+    </div>
+    <table>
+      <tr><th>商品</th><th>浏览量</th><th>购买人数</th><th>转化率</th></tr>
+      ${sorted.map(p => `<tr><td>${p.name}</td><td>${p.views.toLocaleString()}</td><td>${p.buyers.toLocaleString()}</td><td><span class="badge ${p.cvr >= 4 ? 'status-on' : 'status-warn'}">${p.cvr.toFixed(1)}%</span></td></tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+function leaiSetOverviewRange(range) {
+  LEAI_DASH_STATE.overviewRange = range;
+  if (range === 'custom') {
+    const bounds = leaiDateBounds();
+    LEAI_DASH_STATE.overviewCustomStart ||= bounds.min;
+    LEAI_DASH_STATE.overviewCustomEnd ||= bounds.max;
+  }
+  switchPage('dashboard.overview');
+}
+
+function leaiOverviewTimeFilterHtml(bounds, customStart, customEnd) {
+  const range = LEAI_DASH_STATE.overviewRange;
+  const pill = v => `dash-pill ${range === v ? 'active' : ''}`;
+  const customFilter = range === 'custom' ? `
+    <span class="ops-custom-range">
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customStart}" onchange="leaiSetOverviewCustom('start',this.value)">
+      <span>至</span>
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customEnd}" onchange="leaiSetOverviewCustom('end',this.value)">
+    </span>` : '';
+  return `<div class="ops-time-filter">
+    <div class="dash-filter-bar">
+      ${['1d', '7d', '14d', '30d', 'custom'].map(v => `<button class="${pill(v)}" onclick="leaiSetOverviewRange('${v}')">${leaiRangeLabel(v)}</button>`).join('')}
+    </div>
+    ${customFilter}
+  </div>`;
+}
+
+function leaiSetOverviewCustom(part, value) {
+  LEAI_DASH_STATE.overviewRange = 'custom';
+  if (part === 'start') LEAI_DASH_STATE.overviewCustomStart = value;
+  if (part === 'end') LEAI_DASH_STATE.overviewCustomEnd = value;
+  if (LEAI_DASH_STATE.overviewCustomStart && LEAI_DASH_STATE.overviewCustomEnd && LEAI_DASH_STATE.overviewCustomStart > LEAI_DASH_STATE.overviewCustomEnd) {
+    if (part === 'start') LEAI_DASH_STATE.overviewCustomEnd = LEAI_DASH_STATE.overviewCustomStart;
+    if (part === 'end') LEAI_DASH_STATE.overviewCustomStart = LEAI_DASH_STATE.overviewCustomEnd;
+  }
+  switchPage('dashboard.overview');
+}
+
+function leaiSetScenarioMode(mode) {
+  LEAI_DASH_STATE.overviewScenarioMode = mode;
+  switchPage('dashboard.overview');
+}
+
+function leaiSetProductMetric(metric) {
+  LEAI_DASH_STATE.overviewProductMetric = metric;
+  switchPage('dashboard.overview');
+}
+
 const PAGE_RENDERERS = {
-  'dashboard.overview': () => `
+  'dashboard.overview': () => {
+    const L = leaiGetData();
+    if (!L) return '<div class="empty-state"><div class="title">暂无运营数据</div></div>';
+    const range = LEAI_DASH_STATE.overviewRange;
+    const bounds = leaiDateBounds();
+    const customStart = LEAI_DASH_STATE.overviewCustomStart || bounds.min;
+    const customEnd = LEAI_DASH_STATE.overviewCustomEnd || bounds.max;
+    const summary = leaiBuildSummary(range, customStart, customEnd);
+    const lc = leaiBizSummary(summary.rows, L.consumer);
+    const ls = leaiBizSummary(summary.rows, L.smb);
+    const lg = leaiBizSummary(summary.rows, L.gov);
+    const platformTotal = summary.offGmv + summary.nonGmv;
+    const activeBase = summary.dau * Math.max(summary.rows.length, 1);
+    return `
     <div class="page-header">
       <div>
         <div class="page-title">运营总览</div>
-        <div class="page-desc">乐享 & 官网全渠道数据概览</div>
+        <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated}</div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <select style="padding:6px 10px;border:1px solid var(--border-light);border-radius:6px;font-size:12px;background:#fff;cursor:pointer">
-          <option>最近7天</option><option>最近30天</option><option>本月</option>
-        </select>
-        <button class="btn btn-sm btn-secondary" onclick="aiQuick('生成本周运营报告')">📄 生成报告</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${leaiOverviewTimeFilterHtml(bounds, customStart, customEnd)}
+        <button class="btn btn-sm btn-secondary" onclick="aiQuick('解释${leaiRangeLabel(range)}乐享运营关键变化')">AI 解读</button>
       </div>
     </div>
+
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">MAU（月活跃用户）</div>
-        <div class="kpi-value">823万</div>
-        <div class="kpi-sub"><span class="up">↑ 12.3%</span> 较上月</div>
+        <div class="kpi-label">DAU（日活跃用户）</div>
+        <div class="kpi-value">${leaiFmtW(summary.dau)}</div>
+        <div class="kpi-sub">日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
-        <div class="kpi-value">289万</div>
-        <div class="kpi-sub"><span class="up">↑ 5.7%</span> 较上周</div>
+        <div class="kpi-value">${leaiFmtW(summary.wau)}</div>
+        <div class="kpi-sub">${leaiRangeLabel(range)}均值 · ${leaiMetricDelta(summary.rows, 'wau')}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">GMV（交易额）</div>
-        <div class="kpi-value">38.2亿</div>
-        <div class="kpi-sub"><span class="up">↑ 8.1%</span> 较上月</div>
+        <div class="kpi-label">MAU（月活跃用户）</div>
+        <div class="kpi-value">${leaiFmtW(summary.mau)}</div>
+        <div class="kpi-sub">月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">登录客户数</div>
-        <div class="kpi-value">541万</div>
-        <div class="kpi-sub"><span class="down">↓ 2.1%</span> 较上月</div>
+        <div class="kpi-label">GMV</div>
+        <div class="kpi-value">${leaiFmtY(summary.gmv)}</div>
+        <div class="kpi-sub">购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
       </div>
     </div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
-      <div class="kpi-card"><div class="kpi-label">总对话数</div><div class="kpi-value" style="font-size:20px" id="ov-convs">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">今日对话</div><div class="kpi-value" style="font-size:20px" id="ov-today">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">用户消息总数</div><div class="kpi-value" style="font-size:20px" id="ov-msgs">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">知识库文档</div><div class="kpi-value" style="font-size:20px" id="ov-docs">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">好评率</div><div class="kpi-value" style="font-size:20px" id="ov-satisfaction">-</div></div>
+
+    <div class="card dash-funnel-card">
+      <div class="card-header">
+        <div class="card-title">关键经营链路</div>
+        <button class="btn btn-sm btn-secondary" onclick="aiQuick('分析${leaiRangeLabel(range)}乐享从登录到成交的链路变化')">问 AI</button>
+      </div>
+      <div class="dash-funnel-grid">
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">登录用户</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.login)}</div>
+          <div class="dash-funnel-sub">登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
+        </div>
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">互动用户</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.inter)}</div>
+          <div class="dash-funnel-sub">互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
+        </div>
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">购买人数</div>
+          <div class="dash-funnel-value">${summary.buy.toLocaleString()}</div>
+          <div class="dash-funnel-sub">购买 / 互动 ${leaiFmtPct(summary.buy, summary.inter)}</div>
+        </div>
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">成交 GMV</div>
+          <div class="dash-funnel-value">${leaiFmtY(summary.gmv)}</div>
+          <div class="dash-funnel-sub">日均 ${leaiFmtY(leaiAvg(summary.rows, 'gmv'))}</div>
+        </div>
+      </div>
     </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">交易指标 · 分业务</div></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+        <div class="kpi-card" style="border-left:3px solid #2563eb">
+          <div class="kpi-label">消费业务 GMV</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(lc.gmv)}</div>
+          <div class="kpi-sub">购买 ${lc.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lc.gmv, summary.gmv)}</div>
+        </div>
+        <div class="kpi-card" style="border-left:3px solid #f59e0b">
+          <div class="kpi-label">SMB 业务 GMV</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(ls.gmv)}</div>
+          <div class="kpi-sub">购买 ${ls.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(ls.gmv, summary.gmv)}</div>
+        </div>
+        <div class="kpi-card" style="border-left:3px solid #8b5cf6">
+          <div class="kpi-label">政企业务 GMV</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(lg.gmv)}</div>
+          <div class="kpi-sub">购买 ${lg.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lg.gmv, summary.gmv)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">交易指标 · 分平台</div></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0">
+        <div class="kpi-card" style="border-left:3px solid #2563eb">
+          <div class="kpi-label">官网 GMV</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.offGmv)}</div>
+          <div class="kpi-sub">占比 ${leaiFmtPct(summary.offGmv, platformTotal)} · 购买 ${summary.offBuy.toLocaleString()}人</div>
+        </div>
+        <div class="kpi-card" style="border-left:3px solid #94a3b8">
+          <div class="kpi-label">非官网 GMV</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.nonGmv)}</div>
+          <div class="kpi-sub">占比 ${leaiFmtPct(summary.nonGmv, platformTotal)} · 购买 ${summary.nonBuy.toLocaleString()}人</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">核心趋势速览</div></div>
+      <div class="dash-spark-grid">
+        ${leaiSparklineHtml(summary.rows, 'dau', 'DAU', leaiFmtW)}
+        ${leaiSparklineHtml(summary.rows, 'inter', '互动用户', leaiFmtW)}
+        ${leaiSparklineHtml(summary.rows, 'gmv', 'GMV', leaiFmtY)}
+      </div>
+    </div>
+
     <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><div class="card-title">📈 Query 场景分布</div></div>
-        <div style="display:flex;align-items:flex-end;gap:16px;height:160px;padding-top:10px;">
-          ${['会员|68', '电商|85', '服务|42', '门店|31', '方案|55', '咨询|73'].map(d => {
-            const [l,v] = d.split('|');
-            return `<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:${v*1.5}px;margin:0 auto;width:24px;opacity:0.8"></div><div style="font-size:11px;color:var(--text-tertiary);margin-top:4px">${l}</div></div>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">🎯 业务决策看板</div></div>
-        <div class="action-card" onclick="aiQuick('高意向未转化客户分析')">
-          <div class="ac-icon" style="background:var(--orange-light);color:var(--orange)">⚡</div>
-          <div><div class="ac-title">高意向未转化：1,247 人</div><div class="ac-desc">浏览≥3次未下单，建议触达</div></div>
-        </div>
-        <div class="action-card" onclick="aiQuick('无答案Query分析')">
-          <div class="ac-icon" style="background:var(--red-light);color:var(--red)">❓</div>
-          <div><div class="ac-title">无答案 Query：89 条</div><div class="ac-desc">需补充知识库或优化检索</div></div>
-        </div>
-        <div class="action-card" onclick="aiQuick('流失风险客户预警')">
-          <div class="ac-icon" style="background:var(--purple-light);color:var(--purple)">📉</div>
-          <div><div class="ac-title">流失风险客户：3,421 人</div><div class="ac-desc">30天未活跃，建议召回</div></div>
-        </div>
-      </div>
+      ${leaiScenarioChartHtml(summary)}
+      ${leaiProductTableHtml()}
     </div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><div class="card-title">🔥 热门商品 TOP5</div></div>
-        <table>
-          <tr><th>商品</th><th>浏览量</th><th>转化率</th></tr>
-          <tr><td>ThinkPad X9-14 Aura AI元启版</td><td>15,847</td><td><span class="badge status-on">4.8%</span></td></tr>
-          <tr><td>YOGA Air 14 Aura AI元启版</td><td>13,203</td><td><span class="badge status-on">5.3%</span></td></tr>
-          <tr><td>拯救者 R7000P 2025 AI元启</td><td>11,876</td><td><span class="badge status-on">4.1%</span></td></tr>
-          <tr><td>联想小新Pro14GT AI元启版</td><td>9,543</td><td><span class="badge status-warn">3.2%</span></td></tr>
-          <tr><td>ThinkPad P14s 2025 AI元启版</td><td>7,810</td><td><span class="badge status-warn">2.6%</span></td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">📉 差评问题 (实时)</div></div>
-        <div id="ov-bad-feedback"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">📊 7 日对话趋势 (实时)</div></div>
-      <div id="ov-trend" style="display:flex;align-items:flex-end;gap:12px;height:120px;padding-top:10px;"></div>
-    </div>
-  `,
+  `;},
 
   // ===== GEO DASHBOARD =====
   'dashboard.geo': () => `
@@ -133,57 +422,97 @@ const PAGE_RENDERERS = {
         <span class="geo-pill-disabled" title="项目未开启该平台">文心 (未开启)</span>
         <span class="geo-pill-disabled" title="项目未开启该平台">夸克 (未开启)</span>
       </div>
-      <div class="geo-filter-row">
+      <div class="geo-filter-row" style="flex-wrap:wrap;gap:8px">
         <span class="geo-label">时间范围</span>
-        <select id="geo-period" onchange="geoSetPeriod(this.value)" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
-          <option value="7d">最近 7 天</option>
-          <option value="30d" selected>最近 30 天</option>
-          <option value="year">本年度</option>
+        <input type="date" id="geo-date-start" style="padding:4px 8px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer" onchange="geoDateRangeChanged()">
+        <span style="font-size:12px;color:#6b7280">至</span>
+        <input type="date" id="geo-date-end" style="padding:4px 8px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer" onchange="geoDateRangeChanged()">
+        <div style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;margin-left:4px">
+          <button onclick="geoQuickPeriod('7d')" class="geo-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#fff;color:#374151;transition:all .15s">近7天</button>
+          <button onclick="geoQuickPeriod('30d')" class="geo-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#2563eb;color:#fff;transition:all .15s">近30天</button>
+        </div>
+        <span class="geo-label" style="margin-left:12px;">意图筛选</span>
+        <select id="geo-questions-select" onchange="geoSetQuestionFromSelect(this.value)" style="padding:5px 10px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:200px;max-width:320px;cursor:pointer">
+          <option value="">全部意图</option>
         </select>
-        <span class="geo-label" style="margin-left:16px;">问题筛选</span>
-        <input id="geo-questions" type="text" placeholder="多个问题用逗号分隔，回车筛选" onkeydown="if(event.key==='Enter'){geoSetQuestions(this.value)}" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:260px;outline:none;">
       </div>
       <div class="geo-status-line" id="geo-status">加载中...</div>
 
-      <!-- 品牌 vs 竞品切换 -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <span style="font-size:12px;color:#6b7280">对比视角</span>
-        <div id="geo-compare-toggle" style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
-          <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌</button>
-          <button onclick="geoSetCompare('competitor')" class="geo-cmp-btn" data-cmp="competitor" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">竞品</button>
-          <button onclick="geoSetCompare('both')" class="geo-cmp-btn" data-cmp="both" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">对比</button>
+      <!-- 对比视角 + 竞品选择器 合并一行 -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:#6b7280;white-space:nowrap">对比视角</span>
+          <div id="geo-compare-toggle" style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
+            <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌</button>
+            <button onclick="geoSetCompare('competitor')" class="geo-cmp-btn" data-cmp="competitor" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">竞品</button>
+            <button onclick="geoSetCompare('both')" class="geo-cmp-btn" data-cmp="both" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">对比</button>
+          </div>
+        </div>
+        <div style="width:1px;height:20px;background:#e5e7eb"></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:12px;color:#6b7280;white-space:nowrap">竞品对比</span>
+          <button class="geo-comp-pill" data-brand="hp" onclick="geoToggleCompetitor(this)">惠普</button>
+          <button class="geo-comp-pill" data-brand="dell" onclick="geoToggleCompetitor(this)">戴尔</button>
+          <button class="geo-comp-pill" data-brand="huawei" onclick="geoToggleCompetitor(this)">华为</button>
+          <button class="geo-comp-pill" data-brand="apple" onclick="geoToggleCompetitor(this)">苹果</button>
+          <button class="geo-comp-pill" data-brand="asus" onclick="geoToggleCompetitor(this)">华硕</button>
+          <button class="geo-comp-pill" data-brand="xiaomi" onclick="geoToggleCompetitor(this)">小米</button>
+          <button class="geo-comp-pill" data-brand="acer" onclick="geoToggleCompetitor(this)">宏碁</button>
+          <button class="geo-comp-pill" data-brand="honor" onclick="geoToggleCompetitor(this)">荣耀</button>
+          <span style="font-size:10px;color:#9ca3af">最多5个</span>
         </div>
       </div>
 
-      <!-- 4 个核心 KPI -->
-      <div class="geo-kpi-grid cols-4" id="geo-kpi-cards">
-        <div class="geo-kpi highlight" data-metric="visible">
+      <!-- 4 个核心 KPI（可点选） -->
+      <div class="geo-kpi-grid cols-4" id="geo-kpi-cards" style="margin-bottom:16px">
+        <div class="geo-kpi highlight" data-metric="visible" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中提及目标品牌的问题数占比，衡量品牌基础曝光能力">?</div>
           <div class="gk-val" id="gv-brand-visible">--</div>
           <div class="gk-label">品牌可见度</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品可见度 <span id="gv-comp-visible">--</span></div>
         </div>
-        <div class="geo-kpi" data-metric="rec">
+        <div class="geo-kpi" data-metric="rec" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中推荐目标品牌/产品的次数占比">?</div>
           <div class="gk-val" id="gv-brand-rec">--</div>
           <div class="gk-label">品牌推荐率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品推荐率 <span id="gv-comp-rec">--</span></div>
         </div>
-        <div class="geo-kpi" data-metric="top1">
+        <div class="geo-kpi" data-metric="top1" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中目标品牌/产品出现在推荐首位（置顶）的次数占比">?</div>
           <div class="gk-val" id="gv-brand-top1">--</div>
           <div class="gk-label">品牌推荐置顶率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品置顶率 <span id="gv-comp-top1">--</span></div>
         </div>
-        <div class="geo-kpi" data-metric="top3">
+        <div class="geo-kpi" data-metric="top3" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中目标品牌/产品出现在推荐列表前 3 位的次数占比">?</div>
           <div class="gk-val" id="gv-brand-top3">--</div>
           <div class="gk-label">品牌推荐前三率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
           <div class="gk-sub gk-brand-sub">竞品前三率 <span id="gv-comp-top3">--</span></div>
+        </div>
+      </div>
+
+      <!-- 趋势折线图 + 品牌vs竞品 并排 -->
+      <div class="geo-row" style="margin-bottom:12px">
+        <div class="geo-panel" style="flex:2;min-width:0">
+          <div style="margin-bottom:8px">
+            <div class="gpnl-title" style="margin:0">可见性趋势</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280;flex-wrap:wrap">
+            <span><span style="display:inline-block;width:20px;height:3px;background:#9333ea;border-radius:2px;vertical-align:middle;margin-right:4px"></span>整体可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#2563eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>联想官网可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#10b981;border-radius:2px;vertical-align:middle;margin-right:4px"></span>联想乐享可见性</span>
+            <span><span style="display:inline-block;width:20px;height:3px;background:#6b7280;border-radius:2px;vertical-align:middle;margin-right:4px"></span>竞品可见性</span>
+          </div>
+          <canvas id="geo-trend-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
+          <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
+        </div>
+        <div class="geo-panel" style="flex:1;min-width:280px">
+          <div class="gpnl-title">品牌 vs 竞品 对比</div>
+          <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
       </div>
 
@@ -212,20 +541,19 @@ const PAGE_RENDERERS = {
           <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
-          <div class="gpnl-title">联想 AI 引用链接 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个站点</span></div>
+          <div class="gpnl-title">联想域名 AI 引用 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个联想站点</span></div>
           <div class="geo-scroll-wrap" style="max-height:380px;overflow-y:auto">
             <div id="geo-link-top50"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
           </div>
         </div>
       </div>
 
-      <!-- 第四行：问题列表 -->
+      <!-- 各优化平台意图总数 -->
       <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">GEO 问题列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个问题 · 按模型展示可见性</span></div>
-        <div class="geo-scroll-wrap" style="max-height:500px">
-          <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
-        </div>
+        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
+        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
       </div>
+
     </div>
   `,
 
@@ -252,14 +580,23 @@ const PAGE_RENDERERS = {
   'dashboard.geoIntent': () => `
     <div class="page-header">
       <div><div class="page-title">GEO · 各平台意图分布</div><div class="page-desc">各 AI 平台覆盖意图总数及可见性矩阵</div></div>
+      <button class="btn btn-sm btn-secondary" onclick="geoLoadIntentPage()">🔄 刷新</button>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line">本模块数据需点亮AI 开放「意图分布」接口后接入</div>
-      <div class="geo-placeholder" style="min-height:360px;display:flex;align-items:center;justify-content:center">
-        <div>
-          <div class="gp-title">意图可见性矩阵</div>
-          可见性分 4 类：品牌综合可见性 · 品牌精准可见性 · 竞品可见性 · 链接可见性<br>
-          当前点亮AI overview 接口不返回意图级数据
+      <!-- 各优化平台意图总数 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
+        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+      </div>
+
+      <!-- 意图列表 -->
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
+          <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="geo-scroll-wrap" style="max-height:600px">
+          <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
       </div>
     </div>
@@ -270,48 +607,43 @@ const PAGE_RENDERERS = {
       <div><div class="page-title">GEO · 转化看板</div><div class="page-desc">通过 AI 搜索平台入站的访问 / 登录 / 注册 / 购买转化</div></div>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line">以下字段依据 GEO看板样式.xlsx 定义，数据需埋点系统 + 点亮AI 转化接口对接后接入</div>
+      <div class="geo-status-line">AI搜索平台：豆包、元宝、Kimi、DS、千问 &nbsp;|&nbsp; 交易：当日访问，当日购买</div>
 
       <div class="geo-conv-section">
-        <div class="geo-conv-title">联想整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
+        <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
         <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想 UV</div><div class="gcc-val">--</div><div class="gcc-def">通过 AI 搜索平台访问联想域名的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户-Lenovo</div><div class="gcc-val">--</div><div class="gcc-def">当天访问联想的用户中有 Lenovoid 登录行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-Lenovo</div><div class="gcc-val">--</div><div class="gcc-def">当天访问联想的登录用户中是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日付费用户数</div><div class="gcc-val">--</div><div class="gcc-def">用户入站后在当日产生购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日 GMV</div><div class="gcc-val">--</div><div class="gcc-def">用户入站后当日产生的订单交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计付费用户数</div><div class="gcc-val">--</div><div class="gcc-def">本财年通过 AI 搜索入站并产生购买的用户去重数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计 GMV</div><div class="gcc-val">--</div><div class="gcc-def">本财年通过 AI 搜索入站的用户产生的订单交易额</div></div>
-          <div class="geo-conv-cell"></div>
+          <div class="geo-conv-cell"><div class="gcc-label">访问联想UV</div><div class="gcc-val" id="gc-all-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想域名的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录用户</div><div class="gcc-val" id="gc-all-login">--</div><div class="gcc-def">访问联想的用户中，有Lenovoid登录行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新注册用户</div><div class="gcc-val" id="gc-all-newreg">--</div><div class="gcc-def">访问联想的登录用户中，是新注册的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">付费用户</div><div class="gcc-val" id="gc-all-paid">--</div><div class="gcc-def">用户入站后，发生了购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-all-ca">--</div><div class="gcc-def">购买用户产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-all-gmv">--</div><div class="gcc-def">购买用户产生的订单交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-all-newpaid">--</div><div class="gcc-def">购买用户中，是首次发生购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-all-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-all-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-all-leai-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-all-leai-ca">--</div><div class="gcc-def">通过乐享自主下单功能，发生购买行为的用户产生的销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-all-leai-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，发生购买行为的用户产生的交易额</div></div>
         </div>
       </div>
 
       <div class="geo-conv-section">
-        <div class="geo-conv-title">联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
+        <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
         <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享 UV</div><div class="gcc-val">--</div><div class="gcc-def">通过 AI 搜索平台访问联想乐享的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val">--</div><div class="gcc-def">当天访问乐享的用户中有 Lenovoid 登录的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val">--</div><div class="gcc-def">当天访问乐享的登录用户中是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">互动用户数/日</div><div class="gcc-val">--</div><div class="gcc-def">当天访问乐享的用户中至少有 1 次会话的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录状态互动人数</div><div class="gcc-val">--</div><div class="gcc-def">当日互动用户中有登录状态的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日付费用户数-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，当日通过乐享自主功能下单的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">当日 GMV-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，当日通过乐享自主下单的交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计付费-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，本财年通过乐享自主下单的用户去重数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">财年累计 GMV-乐享</div><div class="gcc-val">--</div><div class="gcc-def">订单来源为乐享，本财年通过乐享自主下单的交易额</div></div>
-        </div>
-      </div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">访问来源（按 AI 平台拆分）</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">豆包</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"豆包"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">元宝</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"元宝"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">Kimi</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"Kimi"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">DeepSeek</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"DS"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">千问</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"千问"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">文心</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"文心"标识</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">夸克</div><div class="gcc-val">--</div><div class="gcc-def">上级来源字段包含"夸克"标识</div></div>
-          <div class="geo-conv-cell"></div>
+          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享UV</div><div class="gcc-val" id="gc-leai-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想乐享的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val" id="gc-leai-login">--</div><div class="gcc-def">访问联想乐享的用户中，有Lenovoid登录行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val" id="gc-leai-newreg">--</div><div class="gcc-def">访问联想乐享的登录用户中，是新注册的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">互动用户数</div><div class="gcc-val" id="gc-leai-interact">--</div><div class="gcc-def">访问联想乐享的用户中，至少有1次会话的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录状态下互动人数</div><div class="gcc-val" id="gc-leai-login-interact">--</div><div class="gcc-def">互动用户中，是有登录状态的互动用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">付费用户数</div><div class="gcc-val" id="gc-leai-paid">--</div><div class="gcc-def">访问联想乐享后，在站内发生了购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-leai-ca">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-leai-gmv">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-leai-newpaid">--</div><div class="gcc-def">访问联想乐享后发生购买的用户中，首次购买的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-leai-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-leai-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-leai-order-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-leai-order-ca">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-leai-order-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的交易额</div></div>
         </div>
       </div>
     </div>
@@ -528,14 +860,18 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <input type="text" id="emp-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-id" placeholder="身份证号..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <select id="emp-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="emp-ov-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-ov-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-ov-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <select id="emp-ov-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
+          <input type="date" id="emp-ov-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <span style="color:var(--text-secondary); font-size:12px;">至</span>
+          <input type="date" id="emp-ov-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable()">搜索</button>
         </div>
       </div>
@@ -583,14 +919,18 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
           <input type="text" id="emp-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-id" placeholder="身份证号..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="text" id="emp-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
           <select id="emp-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
+          <input type="date" id="emp-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <span style="color:var(--text-secondary); font-size:12px;">至</span>
+          <input type="date" id="emp-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeList(1)">搜索</button>
         </div>
       </div>
@@ -1047,3 +1387,7 @@ const PAGE_RENDERERS = {
     `;
   },
 };
+
+function ovTimeRangeChanged(val) {
+  leaiSetOverviewRange(val);
+}

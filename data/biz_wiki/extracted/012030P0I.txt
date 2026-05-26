@@ -1,0 +1,177 @@
+ThinkPad P14s Gen5 2024
+
+创意不受拘束，灵感自由迸发  
+每个瞬间，思维都可能绽放  
+ThinkPad P14s AI 轻薄灵动间  
+释放无限创造，梦想触手可及  
+
+核芯强劲，创作无界。  
+
+Windows 11 家庭中文版  
+[联想]推荐使用商用 Windows 11 专业版  
+
+最高搭载全新英特尔® 酷睿™  
+Ultra 9 185H  
+标压处理器  
+
+可选NVIDIA® RTX™  
+500 Ado 专业显卡  
+最高睿频
+
+500 Ada专业图形显卡  
+5.1GHz  
+CPU性能释放  
+16核心  
+22线程  
+45W  
+4GB  
+GDDR6独立显存  
+
+ISV设计、工程领域软件开发商出厂专业认证与优化  
+
+视野无界，成就非凡。  
+ThinkPad P14s  
+
+可选  
+3K超清屏幕  
+
+色彩校正  
+ΔE平均值小于1  
+
+全能拓展，实力卓然。  
+ThinkPad P14s  
+Windows 11 家庭中文版  
+[联想]推荐使用商用 Windows 11 专业版  
+430 尼特亮度  
+100% DCI-P3色域  
+莱茵低蓝光 防眩真护眼  
+最高可扩展至双通道  
+96GB DDR5内存（2*48GB）  
+最高可扩展至  
+2TB PCIe Gen 4 固态硬盘  
+
+专注细节，专业领先。  
+
+ThinkPad P14s  
+
+2×USB 3.2 Gen 1接口、2×USB-C (TBT4)接口、耳机/麦克风接口、HDMI 2.1 TMDS接口、RJ45、可选智能卡读卡器  
+
+可选  
+75Wh/57Wh电池  
+大容量，高续航  
+
+五百万像素+红外摄像头  
+支持HPD人体动态追踪  
+
+支持杜比语音及Glance软件  
+
+高标准：  
+通过基于MIL-STD-810H标准的26细项严苛对照测试  
+
+好服务：  
+服务专线，一键直通  
+7×24小时专家在线服务  
+
+强劲芯实力，铸就创想新辉煌。  
+
+ThinkPad P14s  
+
+最高搭载全新英特尔® 酷睿™ Ultra 9 185H标压处理器，16核22线程处理器机型。  
+
+intel  
+CORE  
+ULTRA 9  
+
+搭载5600MHz DDR5内存，最高支持96GB内存。  
+全系标配固态硬盘，最大支持2TB PCIe固态硬盘。  
+
+「使用Adobe Premiere顺滑流畅地编辑、导出视频，让这台性能高手，助你大显身手。」  
+
+Adobe Premiere  
+
+另可选搭载英特尔® 酷睿™ Ultra 5、Ultra 7处理器机型  
+
+专业图形显卡  
+随意创想，皆可呈现。  
+
+ThinkPad P14s  
+
+可选配备NVIDIA® RTX 500Ada 4GB GDDR6专业图形显卡，  
+全新架构，高速显存，助力高效图形创作。  
+单精度浮点运算能力9.2；Tensor Performance（TFLOPS）高达147.4，  
+
+显卡TOPS高达154，整机TOPS高达190。  
+生成式AI相比CPU提高14.8倍。  
+
+NVIDIA RTX 500Ada  
+Up to 2X Faster  
+
+Rendering: 2.5 (RTX 500) vs 1.9 (RTX A500)  
+CAD: 1.9 (RTX 500) vs 1.3 (RTX A500)  
+Video: 1.3 (RTX 500) vs 1.1 (RTX A500)  
+2D Design: 1.1 (RTX 500) vs 1.0 (RTX A500)  
+
+NVIDIA Ada架构 vs Ampere架构  
+
+NVIDIA RTX 500Ada  
+Up to 5X Faster  
+
+Rendering: 5.1 (RTX 500) vs 1.9 (T550)  
+CAD: 1.9 (RTX 500) vs 1.7 (T550)  
+Video: 1.7 (RTX 500) vs 2.0 (T550)  
+2D Design: 2.0 (RTX 500) vs 1.0 (T550)  
+
+NVIDIA Ada架构 vs Turing架构  
+
+NVIDIA RTX 500 vs 某果M3 CPU  
+
+Rendering: 14.8 (NVIDIA RTX 500) vs 6.9 (某果M3 CPU)  
+CAD: 10.5 (NVIDIA RTX 500) vs 8.5 (某果M3 CPU)  
+Video: 6.4 (NVIDIA RTX 500) vs 3.8 (某果M3 CPU)  
+2D Design: 3.7 (NVIDIA RTX 500) vs 1.0 (某果M3 CPU)  
+
+|应用软件|场景说明|
+|---|---|
+|0|Stable Diffusion|
+|Gen AI|Gen AI|
+|Premiere Pro|Video Editing|
+|Autodesk Arnold|Rendering / 3D CAD|
+|SOLIDWORKS|DNR|
+|On1 Resize AI|AI-Photo Editing|
+
+「使用AutoCAD软件制图，无论是装饰装潢，工业制图，或是土木工程，都能出色完成。」  
+
+「使用Autodesk REVIT轻松绘制草图，快速创建三维模型，交互处理，全都手到擒来，加持良好的可移动性，让你既可随时随地尽兴创作，又能将所有大作随身携带。」  
+
+A  
+Autodesk CAD  
+
+R  
+Autodesk REVIT  
+
+Q: ThinkPad P14s Gen5 2024 最高可选配的处理器型号是什么？  
+A: 最高可选配全新英特尔® 酷睿™ Ultra 9 185H 标压处理器。
+
+Q: 该机型是否支持专业级ISV认证？支持哪些领域？  
+A: 支持ISV设计、工程领域软件开发商出厂专业认证与优化。
+
+Q: 屏幕最高可选配置参数有哪些？包括分辨率、亮度、色域和护眼认证？  
+A: 可选3K超清屏幕，430尼特亮度，100% DCI-P3色域，支持莱茵低蓝光防眩真护眼，且色彩校正ΔE平均值小于1。
+
+Q: 内存和存储的最大扩展规格分别是多少？  
+A: 最高可扩展至双通道96GB DDR5内存（2×48GB），最高可扩展至2TB PCIe Gen 4固态硬盘。
+
+Q: NVIDIA RTX 500 Ada专业显卡的显存规格和关键AI性能指标是什么？  
+A: 配备4GB GDDR6独立显存；单精度浮点运算能力9.2 TFLOPS，Tensor Performance高达147.4 TFLOPS，显卡TOPS高达154，整机TOPS高达190，生成式AI性能相比CPU提升14.8倍。
+
+Q: 该机型通过哪些军规级可靠性测试？具体标准名称和测试项数量是多少？  
+A: 通过基于MIL-STD-810H标准的26细项严苛对照测试。
+
+Q: 接口配置中，Thunderbolt 4接口数量是多少？是否支持HDMI 2.1？  
+A: 配备2×USB-C（TBT4）接口；支持HDMI 2.1 TMDS接口。
+
+Q: 摄像头和音频相关特性有哪些？是否支持人脸识别和智能语音增强？  
+A: 配备五百万像素+红外摄像头，支持HPD人体动态追踪；支持杜比语音及Glance软件，具备智能语音增强与隐私感知功能。
+
+Q: 电池选项有哪几种容量？是否支持长续航移动办公场景？  
+A: 可选75Wh或57Wh电池，大容量设计专为高负载、长时移动办公场景优化，保障持久续航能力。

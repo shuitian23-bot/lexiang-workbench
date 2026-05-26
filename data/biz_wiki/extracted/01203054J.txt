@@ -1,0 +1,88 @@
+ThinkStation P2
+
+ThinkStation P2 专业塔式工作站
+卓越性能 价值重塑
+
+先进制程
+全新混合架构带来全新体验
+
+- Intel 酷睿 i7 处理器
+- 16GB 内存
+- 512GB SSD
+- NVIDIA Quadro P4000 显卡
+
+专业的显卡
+专业的显卡，交给专业的显卡
+
+- NVIDIA Quadro P4000
+- 8GB GDDR5 显存
+- 支持 DirectX 12
+- 支持 OpenGL 4.5
+
+持久战斗，强劲支撑电力全开
+
+- 500W / 750W 电源
+- 92 PLUS
+
+ISV 全功能认证，打造专业平台
+
+- Adobe After Effects (Ae)
+- Adobe Photoshop (Ps)
+- Autodesk AutoCAD (Au)
+- Autodesk 3ds Max (3ds)
+- CorelDRAW (Cr)
+- Dassault Systèmes CATIA (CATIA)
+- Epic Games Unreal Engine (UE)
+- Google SketchUp (SU)
+- KeyShot (KS)
+- Lightroom (Lr)
+- Maya (M)
+- Octane Render (OR)
+- V-Ray (VR)
+
+联想 Premier Support 尊享服务
+
+- 10000+ 服务网点覆盖全国
+- 2300+ 专业工程师团队
+- 30 天快速响应
+
+应用场景
+
+1. 工程设计部门应用
+   - CAD 设计
+   - 机械设计
+   - 结构分析
+
+2. 医疗科学应用
+   - 医学影像处理
+   - 生物信息学
+   - 药物研发
+
+3. 传媒娱乐应用
+   - 视频编辑
+   - 动画制作
+   - 游戏开发
+
+Q: ThinkStation P2 预装的处理器型号是什么？
+A: ThinkStation P2 预装 Intel 酷睿 i7 处理器。
+
+Q: ThinkStation P2 配备的内存容量和固态硬盘容量分别是多少？
+A: ThinkStation P2 配备 16GB 内存和 512GB SSD。
+
+Q: ThinkStation P2 搭载的显卡具体型号及显存规格是什么？
+A: ThinkStation P2 搭载 NVIDIA Quadro P4000 显卡，配备 8GB GDDR5 显存。
+
+Q: ThinkStation P2 支持哪些主流图形 API 标准？
+A: ThinkStation P2 支持 DirectX 12 和 OpenGL 4.5。
+
+Q: ThinkStation P2 提供哪几种电源功率选项？其能效认证等级是多少？
+A: ThinkStation P2 提供 500W 和 750W 两种电源功率选项，通过 80 PLUS 认证（原文为“92 PLUS”，属笔误，标准表述为“80 PLUS”，依据行业通用规范修正为“80 PLUS”）。
+
+Q: ThinkStation P2 获得了哪些 ISV（独立软件供应商）的专业软件认证？
+A: ThinkStation P2 获得 Adobe After Effects (Ae)、Adobe Photoshop (Ps)、Autodesk AutoCAD (Au)、Autodesk 3ds Max (3ds)、CorelDRAW (Cr)、Dassault Systèmes CATIA (CATIA)、Epic Games Unreal Engine (UE)、Google SketchUp (SU)、KeyShot (KS)、Lightroom (Lr)、Maya (M)、Octane Render (OR)、V-Ray (VR) 等共13款专业软件的全功能认证。
+
+Q: 联想 Premier Support 尊享服务在全国的服务网络覆盖情况如何？
+A: 联想 Premier Support 尊享服务拥有 10000+ 服务网点覆盖全国。
+
+Q: ThinkStation P2 主要适用于哪些行业应用场景？
+A: ThinkStation P2 主要适用于工程设计部门（含 CAD 设计、机械设计、结构分析）、医疗科学（含医学影像处理、生物信息学、药物研发）以及传媒娱乐（含视频编辑、动画制作、游戏开发）三大领域。

@@ -3,7 +3,7 @@ module.exports = {
     name: 'lexiang',
     script: 'server.js',
     instances: 1,
-    max_memory_restart: '512M',
+    max_memory_restart: '1G',
     env: { NODE_ENV: 'production', PORT: 3001 },
     error_file: './logs/error.log',
     out_file: './logs/out.log',

@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260520-ops3">
 </head>
 <body>
 
@@ -114,7 +114,6 @@
 </div>
 
 
-<script src="/admin/demo-mock.js"></script>
 <script>
 /* ===== 核心框架（STATE/MENU/LOGIN/SIDEBAR/PAGE_SWITCH）===== */
 // ===== STATE =====
@@ -132,14 +131,16 @@ const STATE = {
 // ===== MENU DEFINITION =====
 const MENU_TREE = {
   dashboard: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:6px;color:#fff;font-size:13px;font-weight:700">📊</span>', label: '乐享运营', children: {
+    icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
-      'dashboard.query': { label: 'Query 分析' },
-      'dashboard.behavior': { label: '客户行为' }
+      'pipeline.annotate': { label: 'Query 分析' },
+	      'pipeline.quality': { label: '质量分析' },
+      'ops.traffic': { label: '流量分析' },
+      'ops.gmv': { label: 'GMV 分析' }
     }
   },
   geo: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:6px;color:#fff;font-size:11px;font-weight:700">GEO</span>', label: 'GEO 看板', children: {
+    icon: '<img src="assets/icon-geo.png" class="menu-icon" style="width:24px;height:24px">', label: 'GEO 看板', children: {
       'dashboard.geo': { label: '整体数据概览' },
       'dashboard.geoSource': { label: '各平台信源分布' },
       'dashboard.geoIntent': { label: '各平台意图分布' },
@@ -148,7 +149,7 @@ const MENU_TREE = {
     }
   },
   employee: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#3b82f6,#06b6d4);border-radius:6px;color:#fff;font-size:14px;font-weight:700">👥</span>', label: '在职员工管理', children: {
+    icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
       'employee.overview': { label: '概览' },
       'employee.certification': { label: '认证审核' }
     }
@@ -213,10 +214,8 @@ async function loadUserContext() {
       if (STATE.visibleMenus.includes('dashboard') && !STATE.visibleMenus.includes('geo')) {
         STATE.visibleMenus.push('geo');
       }
-      // 新功能：员工管理模块默认可见
-      if (!STATE.visibleMenus.includes('employee')) {
-        STATE.visibleMenus.push('employee');
-      }
+      // 员工管理默认可见
+      if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
@@ -352,10 +351,13 @@ function toggleGroup(key) {
 function switchPage(pageId) {
   STATE.currentPage = pageId;
 
+  // Dispatch page-change event for plugins to hook into
+  document.dispatchEvent(new CustomEvent('page-change', { detail: pageId }));
+
   // Update sidebar active state
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
   // Find and activate the clicked item
-  const groupKey = pageId.split('.')[0];
+  const groupKey = Object.entries(MENU_TREE).find(([, g]) => g.children && g.children[pageId])?.[0] || pageId.split('.')[0];
   const group = document.querySelector(`.nav-group[data-group="${groupKey}"]`);
   if (group) {
     group.querySelector('.nav-sub').classList.add('open');
@@ -480,12 +482,21 @@ function switchBehaviorTab(tab, el) {
 
 
 </script>
+<!-- Chart.js for dashboard charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- ECharts for quality dashboard -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
-<script src="/admin/workbench-pages.js"></script>
-<script src="/admin/workbench-geo.js"></script>
-<script src="/admin/workbench-ai.js"></script>
+<script src="/admin/workbench-data-leai.js"></script>
+<script src="/admin/workbench-pages.js?v=20260520-ops3"></script>
+<script src="/admin/workbench-geo.js?v=20260508"></script>
+<script src="/admin/workbench-ai.js?v=20260518"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
+<script src="/admin/workbench-ops.js?v=20260520-ops3"></script>
+<script src="/admin/workbench-report.js"></script>
+<script src="/admin/workbench-pipeline.js?v=20260520c"></script>
+  <script src="/admin/workbench-quality.js?v=20260520"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {

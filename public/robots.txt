@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /shop-chat
+Allow: /b-chat
+Allow: /biz-chat
+Disallow: /api/
+Disallow: /admin/
+Disallow: /harness/
+Disallow: /uploads/
+
+Sitemap: https://leaibot.cn/sitemap.xml

@@ -1,0 +1,117 @@
+联想问天NE5530G-24
+
+联想问天 NE5530G-24/48GT4XS盒式交换机
+
+关键词：联想问天 NE5530G-24/48GT4XS盒式交换机
+
+产品概述  
+联想问天NE5530G-24是一款高性能、高密度、低功耗的盒式以太网交换机，面向企业园区接入层、中小型数据中心汇聚层及边缘计算场景设计。该设备采用新一代可编程芯片架构，支持全端口线速转发、精细化QoS调度、丰富安全策略及全面的IPv6能力，具备电信级可靠性与智能运维特性。整机提供24个千兆电口（RJ45）+ 4个万兆光口（SFP+）+ 2个扩展插槽（可选配2×10G SFP+、2×25G SFP28或1×40G QSFP+模块），满足多样化组网需求。
+
+核心优势  
+• 全线速无阻塞转发：背板带宽达176Gbps，交换容量132Gbps，支持L2/L3全线速转发  
+• 智能弹性扩展：双扩展插槽设计，支持按需升级上行带宽与接口类型，保护用户投资  
+• 全面安全防护：支持ACL、端口安全、DHCP Snooping、IP Source Guard、ARP Inspection、CPU保护（CPP）、广播风暴抑制等多层安全机制  
+• 绿色节能设计：支持EEE（IEEE 802.3az）节能以太网、智能风扇调速、端口休眠及电源动态调节，典型功耗低于25W  
+• 云智融合运维：预置Lenovo xCloud Agent，支持零配置上线（ZTP）、远程批量配置、拓扑自动发现、故障自诊断与告警推送（微信/邮件/短信）  
+• 开放可编程：支持OpenFlow 1.3、NETCONF/YANG、gRPC、Python脚本扩展，兼容主流SDN控制器及自动化运维平台  
+
+硬件规格  
+|项目|规格|
+|---|---|
+|外形尺寸（宽×深×高）|440mm × 280mm × 43.6mm（1U高度）|
+|重量（满配）|≤5.2kg|
+|电源|单电源：100–240V AC，50/60Hz；可选双电源冗余（需另购NE-PSU-AC-DUAL模块）|
+|功耗（典型/最大）|22.3W / 38.5W|
+|工作温度|0℃～45℃|
+|存储温度|-40℃～70℃|
+|相对湿度|5%～95%（非凝露）|
+|散热方式|智能调速风扇（前→后风道）|
+|安装方式|标准19英寸机架安装（含挂耳）|
+
+接口规格  
+|接口类型|数量|详细说明|
+|---|---|---|
+|千兆以太网电口（RJ45）|24个|支持10/100/1000BASE-T，全双工，MDI/MDIX自适应，PoE不支持|
+|万兆光口（SFP+）|4个|支持10GBASE-SR/LR/ER，支持10G Base-T（需外接10G-T模块）|
+|扩展插槽|2个|支持热插拔；可选配：<br>• NE-MOD-2SFPPLUS（2×10G SFP+）<br>• NE-MOD-2SFP28（2×25G SFP28）<br>• NE-MOD-1QSFPPLUS（1×40G QSFP+）<br>• NE-MOD-1QSFP28（1×100G QSFP28，需固件v2.3.0及以上）|
+|Console口|1个|RJ45串口（RS232），默认波特率9600|
+|USB口|1个|Type-A，用于固件升级、配置备份与日志导出|
+|告警输出口|1个|干接点，支持故障/电源/温度告警信号输出|
+
+性能参数  
+|项目|参数|
+|---|---|
+|交换容量|132Gbps|
+|包转发率|98.4Mpps|
+|MAC地址表|32K|
+|ARP表项|4K|
+|路由表（IPv4）|8K（支持静态路由、RIP v1/v2、OSPF v2、BGP v4）|
+|路由表（IPv6）|4K（支持静态路由、RIPng、OSPF v3、BGP4+）|
+|ACL条目|2K（支持基于源/目的IP、端口、协议、TCP标志位、时间段等多维匹配）|
+|VLAN数量|4094|
+|堆叠能力|支持横向虚拟化（IRF2），最多支持9台设备堆叠，跨设备链路聚合（IRF-Link Aggregation）|
+|L2特性|IEEE 802.1D STP、802.1w RSTP、802.1s MSTP、802.1Q VLAN、802.1ad Q-in-Q、802.3ad LACP、802.1X认证、GVRP、LLDP、Jumbo Frame（最大9216字节）|
+|L3特性|IPv4/IPv6双栈、VRRP/VRRPv3、PIM-SM/DM/SSM（IPv4/IPv6）、IGMP v1/v2/v3/MLD v1/v2、策略路由（PBR）、ECMP（等价多路径）|
+|QoS|8个优先级队列，SP/WRR/DWRR调度，基于流的限速（Ingress/Egress）、拥塞避免（WRED）、流量整形（Shaping）、CoS/DSCP映射、端口镜像（SPAN/RSPAN/ERSPAN）|
+|可靠性|支持BFD for OSPF/BGP/PIM/Static Route、GR（Graceful Restart）、NSF（Non-Stop Forwarding）、VRRP Track、链路检测（Loopback Detection）|
+|管理方式|CLI（Telnet/SSH）、Web GUI（HTTPS）、SNMP v1/v2c/v3、RMON、Syslog、TFTP/FTP/SFTP固件升级、NetStream、sFlow|
+
+软件特性  
+• 支持Lenovo Network OS（LNOS）v3.2及以上版本，基于Linux微内核定制，模块化设计，支持热补丁升级  
+• 内置Lenovo AI Insight Engine，提供流量基线建模、异常流量检测（如DDoS初筛）、端口健康度评分与根因推荐  
+• 支持IPv6 Ready Logo Phase-2认证，通过IPv6 Forum权威测试  
+• 支持国密算法SM2/SM3/SM4，满足《GB/T 38540-2020 信息安全技术 安全电子签章密码技术规范》要求  
+• 符合《YD/T 2435-2012 通信行业绿色低碳发展指导意见》及《GB/T 2423.1-2008 电工电子产品环境试验》标准  
+
+认证与合规  
+• 国家无线电发射设备型号核准证（SRRC）  
+• 中国强制性产品认证（CCC）  
+• 电磁兼容性：GB 9254-2008 Class A，GB/T 17626系列（ESD、EFT、Surge、RS、CS等）  
+• 安全：GB 4943.1-2022 / IEC 60950-1:2005 + A1:2010 + A2:2019  
+• RoHS指令（2011/65/EU）及REACH法规（EC No.1907/2006）  
+• UL 62368-1、CE、FCC Part 15 Subpart B  
+
+包装清单  
+• 联想问天NE5530G-24主机 × 1  
+• 交流电源线 × 1（国标三芯）  
+• 机架安装挂耳 × 1套（含螺钉）  
+• 快速入门指南 × 1  
+• 保修卡 × 1  
+• 防静电腕带 × 1  
+
+售后服务  
+• 标准保修：3年有限保修（含人工与部件），7×24小时热线支持（400-818-0808）  
+• 可选服务：Lenovo ProSupport Plus（含预测性故障分析、4小时上门、备件先行、配置审计与优化建议）  
+• 固件与文档持续更新：通过lenovo.com/support可下载最新LNOS固件、配置手册、命令参考、排错指南及白皮书  
+
+常见问题  
+
+Q: NE5530G-24是否支持PoE供电？  
+A: 不支持。该型号为纯数据交换机型，所有24个千兆电口均不具备PoE（802.3af/at/bt）供电能力；如需PoE接入，建议选用联想问天NE5530P系列。
+
+Q: 扩展插槽是否支持混合配置？例如一个插槽安装2×10G SFP+，另一个插槽安装1×40G QSFP+？  
+A: 支持。两个扩展插槽完全独立，可任意组合搭配不同模块（如NE-MOD-2SFPPLUS + NE-MOD-1QSFPPLUS），无需统一类型，系统自动识别并启用对应端口。
+
+Q: 设备是否支持IPv6路由协议中的BGP4+？其最大支持的IPv6路由条目数是多少？  
+A: 支持BGP4+（RFC 4760），在LNOS v3.2及以上版本中，IPv6路由表容量为4K条，支持BGP4+邻居建立、路由反射、路由策略（Route-map）、前缀列表（Prefix-list）及IPv6地址族（AFI/SAFI）配置。
+
+Q: 双电源冗余是否为内置设计？若需双电源，是否必须更换整机？  
+A: 否。NE5530G-24默认标配单电源，但机身预留双电源模块安装位；用户可后期加装NE-PSU-AC-DUAL双电源模块（需单独订购），无需更换主机或返厂，支持热插拔与负载分担。
+
+Q: Console口是否支持USB转串口适配器？对驱动和终端软件有何要求？  
+A: 支持主流USB-to-RS232适配器（如FTDI、CH340芯片方案）；需安装对应驱动；终端软件推荐使用SecureCRT、PuTTY或Windows Terminal，设置为：9600波特率、8数据位、无校验、1停止位、无流控（None）。
+
+Q: 是否可通过Web界面完成全部功能配置？是否存在CLI专属功能？  
+A: Web GUI覆盖95%以上常用功能（含VLAN、ACL、QoS、路由、安全策略、系统管理）；但部分高级功能（如BFD精细化定时器调优、Python脚本部署、YANG模型实例化、sFlow采样率精确到1:1024级）仍需通过CLI实现。
+
+Q: 设备在45℃高温环境下长期运行是否可靠？散热设计能否保障稳定性？  
+A: 是。设备已通过45℃满负载连续72小时老化测试，智能风扇支持5档温控调速（2000–8000 RPM），前→后直通风道经CFD仿真优化，关键芯片结温始终低于85℃，符合工业级可靠性要求。
+
+Q: LNOS固件升级是否支持断点续传与回滚？升级失败时是否会自动恢复？  
+A: 支持。LNOS采用双Boot镜像架构（Active/Backup），升级过程支持TFTP/FTP/SFTP断点续传；若新固件启动失败，系统将在3次尝试后自动回退至上一稳定版本，并记录完整升级日志供排查。
+
+Q: 是否支持将流量镜像（SPAN）输出至远程服务器进行深度分析？是否兼容Wireshark等工具？  
+A: 支持ERSPAN（Encapsulated Remote SPAN），可将镜像流量封装为GRE隧道发送至指定IPv4/IPv6远程采集器；接收端解封装后为标准以太网帧，完全兼容Wireshark、nProbe、Elastic Stack等主流分析平台。
+
+Q: 设备是否具备防环路能力？除STP/RSTP外，是否提供更快速的二层环路检测机制？  
+A: 具备。除标准STP/RSTP/MSTP外，还支持增强型环路检测（Loopback Detection），基于周期性探测帧（LBD PDU）实现毫秒级环路识别（最快200ms响应），并可联动端口自动Shutdown或告警上报，无需依赖生成树收敛时间。

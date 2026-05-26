@@ -1,0 +1,82 @@
+Lenovo ThinkSystem ST45 V3
+
+Lenovo ThinkSystem
+
+关键词：Lenovo ThinkSystem ST45 V3
+
+产品概述  
+Lenovo ThinkSystem ST45 V3 是一款2U双路机架式服务器，专为中大型企业关键业务应用、虚拟化、数据库、AI推理及混合工作负载优化设计。该服务器采用最新一代Intel® Xeon® Scalable处理器（第四代/第五代），支持高达64个核心和128线程，提供卓越的单核与多核性能。ST45 V3 配备灵活的存储架构，支持最多12个3.5英寸热插拔SAS/SATA/NVMe硬盘，或24个2.5英寸热插拔SAS/SATA/NVMe硬盘（含最高8个NVMe U.2），并可选配Lenovo Flex System Fabric或PCIe Gen5 NVMe直连拓扑，满足高I/O吞吐与低延迟需求。系统集成Lenovo XClarity Controller（XCC）基础版，支持带外管理、固件更新、健康监控与自动化部署，同时兼容Lenovo XClarity Administrator（XCA）实现大规模数据中心统一运维。
+
+关键特性  
+• 支持双路Intel® Xeon® Scalable处理器（第四代Sapphire Rapids / 第五代Emerald Rapids），最大TDP 350W，支持Intel® Turbo Boost Technology 3.0与Intel® Hyper-Threading Technology  
+• 最高支持6TB DDR5 RDIMM/LRDIMM内存（48个DIMM插槽），支持内存加密（Intel® Memory Protection Keys）、内存镜像与内存备用（Spare）模式  
+• 灵活I/O扩展：标配2个PCIe Gen5 x16插槽（全高全长），1个PCIe Gen5 x8插槽（OCP 3.0网卡专用），可选配最多3个额外PCIe Gen5 x16插槽（需配置扩展模块）  
+• 全面存储支持：支持SAS 4.0（24Gbps）、NVMe U.2（PCIe Gen5 x4）、NVMe M.2（PCIe Gen4 x4，板载）、SATA 3.0（6Gbps）；RAID控制器可选Lenovo ThinkSystem RAID 930-16i（16口，支持RAID 0/1/5/6/10/50/60，缓存最高8GB）或Lenovo ThinkSystem RAID 940-16i（16口，支持RAID 0/1/5/6/10/50/60/7，缓存最高16GB，支持NVMe CacheCade）  
+• 冗余高可靠性设计：双冗余热插拔电源（80 PLUS Titanium认证，支持2+2或1+1配置），N+1冗余热插拔风扇模组，支持环境温度最高45°C（ASHRAE A4）运行，符合能源之星® 8.0与TCO Certified Edge 9.0标准  
+• 智能管理：预装Lenovo XClarity Controller（XCC）基础版（含HTML5远程控制台、KVM over IP、虚拟媒体、硬件监控、告警推送）；可升级至XCC Enterprise版（支持批量固件更新、策略驱动配置、RESTful API集成）；全面支持Redfish 1.12与IPMI 2.0  
+
+规格参数  
+| 类别 | 参数项 | 详细说明 |
+|------|--------|----------|
+| 外形规格 | 机箱形态 | 2U机架式服务器 |
+| | 尺寸（高×宽×深） | 87.8 mm × 482 mm × 748 mm（不含导轨）；87.8 mm × 482 mm × 805 mm（含满配导轨） |
+| | 重量（起始配置） | 约22.5 kg（含双电源、无硬盘、无CPU）；满配可达48.3 kg |
+| 处理器 | CPU数量 | 支持2颗Intel® Xeon® Scalable处理器（第四代/第五代） |
+| | 核心/线程 | 单颗最高64核/128线程（取决于具体SKU） |
+| | TDP支持 | 150W–350W（每颗CPU） |
+| | 插槽类型 | LGA4677（Socket E） |
+| 内存 | 类型 | DDR5 RDIMM（最高4800 MT/s）或DDR5 LRDIMM（最高4400 MT/s） |
+| | 插槽数量 | 48个（每CPU 24个） |
+| | 最大容量 | 6TB（使用128GB LRDIMM）或3TB（使用64GB RDIMM） |
+| | 内存保护 | 支持ECC、Chipkill、内存镜像、内存备用（Spare）、内存加密（Intel® MKTME） |
+| 存储 | 前置硬盘托架（3.5"） | 最多12个热插拔3.5英寸SAS/SATA/NVMe硬盘（支持混插） |
+| | 前置硬盘托架（2.5"） | 最多24个热插拔2.5英寸SAS/SATA/NVMe硬盘（含最高8个NVMe U.2） |
+| | 板载M.2 | 2个M.2 2280/22110插槽（PCIe Gen4 x4，支持NVMe，仅用于OS启动盘） |
+| | RAID控制器 | 可选：ThinkSystem RAID 930-16i（16口，8GB缓存）、ThinkSystem RAID 940-16i（16口，16GB缓存，支持NVMe CacheCade）、ThinkSystem RAID 930-8i（8口，4GB缓存）或HBA模式（IT模式） |
+| I/O扩展 | PCIe插槽总数 | 标配3个（2×Gen5 x16 + 1×Gen5 x8 OCP）；可扩展至最多6个（需选配PCIe扩展模块） |
+| | 网络接口（板载） | 2×1GbE RJ45（Intel i350-AM2），可选升级为2×10/25/100GbE SFP28/QSFP28（通过OCP 3.0网卡） |
+| | USB接口 | 2×USB 3.2 Gen1（前置），2×USB 3.2 Gen1（后置），1×USB 2.0（内部Type-A，用于诊断） |
+| | 视频输出 | 1×VGA（后置，共享显卡） |
+| | 串口 | 1×RJ45串口（后置，支持IPMI重定向） |
+| 电源 | 类型 | 热插拔冗余电源（2+2或1+1配置） |
+| | 功率选项 | 1100W / 1600W / 2000W / 2400W（80 PLUS Titanium认证） |
+| | 输入电压 | 100–240V AC（50/60Hz），200–240V DC（-48V DC可选） |
+| 风扇 | 冷却系统 | N+1冗余热插拔风扇模组（共6个风扇，每模组含2个风扇） |
+| | 噪声 | 最大声压级≤62.5 dBA（ISO 7779，半消音室，满配负载） |
+| 管理 | 基础管理 | Lenovo XClarity Controller（XCC）基础版（集成于主板，独立网口） |
+| | 远程功能 | HTML5 KVM、虚拟媒体（ISO/IMG挂载）、远程开关机、固件更新、资产跟踪、SNMP v3、SMTP告警 |
+| | 高级管理 | 可升级XCC Enterprise版；支持Lenovo XClarity Administrator（XCA）、Redfish 1.12、IPMI 2.0、WS-Man |
+| 合规与认证 | 安全认证 | FIPS 140-2 Level 1（加密模块）、TPM 2.0（可选固件/离散TPM）、Intel® TXT、Secure Boot |
+| | 环保标准 | 能源之星® 8.0、TCO Certified Edge 9.0、RoHS、REACH、WEEE、China RoHS II |
+| | 数据中心标准 | 符合ASHRAE A4（5–45°C进风温度）、UL 62368-1、IEC 62368-1、EN 62368-1 |
+
+常见问题  
+Q: ST45 V3是否支持第五代Intel® Xeon® Scalable处理器？  
+A: 是的，Lenovo ThinkSystem ST45 V3全面支持第五代Intel® Xeon® Scalable处理器（Emerald Rapids），包括所有主流SKU，需确保BIOS版本为1.10或更高，并配合对应版本的XCC固件。
+
+Q: 最大内存容量是否需要特定内存类型才能达到6TB？  
+A: 是的，6TB最大容量需使用128GB DDR5 LRDIMM内存条（共48条），在48个DIMM插槽全部插满的前提下实现；若使用64GB RDIMM，则最大容量为3TB。
+
+Q: 是否可以同时安装12个3.5英寸硬盘和8个NVMe U.2硬盘？  
+A: 不可以。ST45 V3的硬盘托架为物理互斥设计：选择12×3.5英寸配置时，无法启用2.5英寸NVMe U.2托架；选择24×2.5英寸配置时，才支持最高8个NVMe U.2（位于前部硬盘背板区域）。
+
+Q: RAID 940-16i控制器是否支持将NVMe SSD用作CacheCade加速层？  
+A: 是的，ThinkSystem RAID 940-16i控制器支持NVMe CacheCade功能，允许将1–4块NVMe U.2 SSD（需为读密集型或混合型）配置为RAID阵列的读写缓存，显著提升随机I/O性能。
+
+Q: XCC Enterprise版是否需要单独购买许可证？  
+A: 是的，XCC Enterprise功能需通过Lenovo官网或授权渠道购买永久许可证（SKU：MTM-XXXXX-EX），激活后可通过XCC Web界面在线启用，无需更换硬件。
+
+Q: 服务器在45°C环境温度下持续运行是否会影响硬件寿命？  
+A: 不会。ST45 V3已通过ASHRAE A4等级完整验证，在进风温度5–45°C范围内，所有组件（含CPU、内存、SSD、电源）均按工业级可靠性设计并完成100%满负载老化测试，符合Lenovo 5年有限保修对高温工况的覆盖要求。
+
+Q: 是否支持安装Windows Server 2022操作系统？  
+A: 是的，ST45 V3已在Lenovo官方兼容性列表（LCOS）中认证支持Windows Server 2022（Standard/Datacenter，x64），包括所有驱动程序、UEFI固件、安全启动及HVCI（Hypervisor-protected Code Integrity）功能。
+
+Q: 板载M.2插槽是否可用于数据存储而非仅限OS启动？  
+A: 板载2个M.2插槽默认设计为OS引导盘（支持RAID 1镜像），但可通过BIOS设置为HBA模式，并在操作系统中识别为独立NVMe设备，用于日志存储、临时文件或轻量级应用数据——不建议作为主业务数据盘，因无热插拔与冗余保护。
+
+Q: 2000W电源是否必须搭配特定CPU或GPU配置才能启用？  
+A: 否。2000W（及2400W）钛金电源为通用冗余模块，无需绑定特定CPU或扩展卡；但当系统总功耗超过单电源额定功率时（如双CPU满频+8×NVMe+4×GPU），需启用2+2冗余配置以保障供电稳定性与故障切换能力。
+
+Q: 是否提供针对AI推理场景的预验证软件栈（如TensorRT、ONNX Runtime）？  
+A: 是的，Lenovo提供ThinkSystem AI Optimized Stack（TAOS）v2.1及以上版本，预集成NVIDIA CUDA 12.2、cuDNN 8.9、TensorRT 8.6、ONNX Runtime 1.16，并通过ST45 V3硬件平台完成端到端推理基准测试（ResNet-50、BERT-Large），相关镜像与部署指南可在Lenovo Support Portal下载。

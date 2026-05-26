@@ -16,9 +16,9 @@ from datetime import datetime
 
 # ===== 配置 =====
 WIKI_DIR = '/var/www/leaibot/wiki'
-DB_PATH = '/root/lexiang/lexiang.db'
+DB_PATH = '/opt/projects/lexiang/lexiang.db'
 XLSX_PATH = '/root/downloads/agent_agent_item_profile_base_info_v2_20260319.xlsx'
-TODAY = '2026-03-31'
+TODAY = datetime.now().strftime('%Y-%m-%d')
 
 # 受保护文件（不覆盖）
 PROTECTED = {
@@ -29,6 +29,23 @@ PROTECTED = {
 
 # 存在的文件集合（加速跳过判断）
 existing_files = set(os.listdir(WIKI_DIR))
+
+# 价格占位魔数（0 / 99999 / 888888 / >=999999 一律显示「暂未公布」）
+def format_price(price):
+    try:
+        v = int(float(price))
+    except Exception:
+        return '暂未公布'
+    if v <= 0 or v == 99999 or v == 888888 or v >= 999999:
+        return '暂未公布'
+    return f'¥{v:,}'
+
+def is_price_disclosed(price):
+    try:
+        v = int(float(price))
+    except Exception:
+        return False
+    return v > 0 and v != 99999 and v != 888888 and v < 999999
 
 # 计数器
 stats = {'new_know': 0, 'new_product': 0, 'skipped': 0, 'total': 0}
@@ -101,6 +118,9 @@ PARENT_CAT_MAP = {
     # 手机/平板
     '手机': 'tablet_phone',
     '平板电脑': 'tablet_phone',
+    '平板': 'tablet_phone',
+    '笔记本': 'notebook',
+    '台式': 'desktop',
     '手表': 'smart_device',
     # 配件/办公
     '键鼠相关': 'accessory',
@@ -285,11 +305,23 @@ def get_product_theme(brand, name='', parent_cat='', cpu='', **_kw):
     """
     b = (brand or '').strip().lower()
     name_l = (name or '').lower()
-    pc = (parent_cat or '').strip()
+    pc = re.sub(r'[（(]标准分类[)）]\s*$', '', (parent_cat or '').strip()).strip()
 
-    # ── 第负一步：生活/宠物类 → 配件（优先排除，避免"宠物一体机"匹配台式关键词）──
-    _life_override = ['宠物', '猫砂', '猫厕所', '喂食', '净味']
-    if any(k in name for k in _life_override):
+    # ── 第负一步：生活/宠物/服装周边 → 配件（优先排除，避免「拯救者T-Shirt」匹配品牌走 notebook）
+    #    大小写不敏感比对，覆盖中英文及变体 ──
+    _life_override = ['宠物', '猫砂', '猫厕所', '喂食', '净味',
+                      '卫衣', 't恤', 't-shirt', 'tshirt', 'tee', 'polo衫', 'polo',
+                      '文化衫', '外套', '夹克', '帽衫', '冲锋衣', '衬衫', '羽绒',
+                      '背心', '短袖', '长袖', '服装', '工服', '马甲', '帽子',
+                      '抱枕', '玩偶', '公仔', '手办', '钥匙扣', '挂件', '徽章', '胸针',
+                      '水杯', '保温杯', '马克杯', '雨伞', '帆布包', '袜', '围巾', '手套',
+                      '贴纸', '鼠标垫', '桌垫', '周边', '联名礼', '盲盒', '勋章']
+    _name_lc = (name or '').lower()
+    if any(k in _name_lc for k in _life_override):
+        brand_info = _identify_brand(brand, name)
+        return ((brand_info[0] if brand_info else '联想'), 'accessory', (brand_info[1] if brand_info else 'lenovo'))
+    # 耳机/耳塞 → 配件（优先于 moto/品牌判定，避免 moto buds 误归手机）
+    if any(k in _name_lc for k in ['耳机', '耳塞', 'buds', 'earbuds', 'earphone', 'headphone', 'airpods', '降噪豆', '蓝牙耳']) and not any(k in name for k in ['延保', '服务', '保护套', '保护壳', '收纳']):
         brand_info = _identify_brand(brand, name)
         return ((brand_info[0] if brand_info else '联想'), 'accessory', (brand_info[1] if brand_info else 'lenovo'))
     # 智能手表/手环 → 智能设备
@@ -1339,9 +1371,12 @@ def gen_product_html(row_vals, headers):
     # 生成slug：统一用 product-{pid}.html
     slug = f'product-{pid}.html'
 
-    # 价格
-    price = int(float(baseprice)) if baseprice else 0
-    price_str = f'¥{price:,}' if price else ''
+    # 价格（占位价显示「暂未公布」）
+    try:
+        price = int(float(baseprice)) if baseprice else 0
+    except Exception:
+        price = 0
+    price_str = format_price(price)
 
     title = f'{name}-联想乐享知识库'
     title_safe = html.escape(title[:80])
@@ -1807,7 +1842,7 @@ def main():
     print(f'\n[{datetime.now():%H:%M:%S}] === 生成知识文章页 ===')
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute('SELECT id, title, source_url, content, created_at FROM knowledge_docs WHERE (length(content) > 100 OR source_url LIKE \'%brand.lenovo%\') AND length(content) > 30 ORDER BY id DESC')
+    cur.execute('SELECT id, title, source_url, content, COALESCE(NULLIF(publish_date,\'\'), created_at) FROM knowledge_docs WHERE (length(content) > 100 OR source_url LIKE \'%brand.lenovo%\') AND length(content) > 30 ORDER BY id DESC')
 
     rows = cur.fetchall()
     print(f'共 {len(rows)} 篇知识文章')
@@ -1922,19 +1957,106 @@ def main():
         os.system('pip install openpyxl -q')
         import openpyxl
 
-    wb = openpyxl.load_workbook(XLSX_PATH, read_only=True, data_only=True)
-    ws = wb.active
-
-    headers = None
     product_count = 0
     product_skip = 0
+    if not os.path.exists(XLSX_PATH):
+        print(f'⚠ XLSX 文件不存在: {XLSX_PATH}，改用 DB products 表生成商品页（规格细节会比 xlsx 少）')
+        wb = None
+        ws = None
+    else:
+        wb = openpyxl.load_workbook(XLSX_PATH, read_only=True, data_only=True)
+        ws = wb.active
 
-    for i, row in enumerate(ws.rows):
-        if i == 0:
-            headers = [cell.value for cell in row]
+    def _iter_product_rows():
+        """yield (kind, vals)。kind 'header' 给一次表头，'row' 给商品数据。
+           DB fallback：products 表适配成 xlsx vals 索引格式（多数规格列空，gen_product_html 不影响）"""
+        if ws:
+            for _i, _row in enumerate(ws.rows):
+                _vals = [_cell.value for _cell in _row]
+                yield ('header' if _i == 0 else 'row'), _vals
+        else:
+            print(f'[{datetime.now():%H:%M:%S}] 从 DB products 表读 active 商品...')
+            _cn = sqlite3.connect(DB_PATH)
+            # ts 用 max(created_at, updated_at)：OpenAPI 每次 upsert 刷 updated_at，
+            # 在售/新品自动近期靠前，[全部]页无需人工 promote 清单
+            _q = ("SELECT id, name, sku, category, price, status, stock, image_url, "
+                  "description, specs, COALESCE(created_at, updated_at) "
+                  "FROM products "
+                  "WHERE name IS NOT NULL AND name != '' AND ("
+                  "  status = 'active' "
+                  "  OR (status = 'offline' AND date(COALESCE(updated_at,created_at)) >= date('now','-21 day'))"
+                  ") "
+                  "ORDER BY id DESC")
+            for _p in _cn.execute(_q):
+                _id, _name, _sku, _category, _price, _status, _stock, _image_url, _description, _specs_str, _created_at = _p
+                try:
+                    _specs = json.loads(_specs_str) if _specs_str else {}
+                except Exception:
+                    _specs = {}
+                # 跳过测试/占位品
+                _nl = (_name or '').lower()
+                if any(t in _nl for t in ('test', '测试', '勿拍', 'testaiadmin', '国补白链')):
+                    continue
+                _lvl1 = str(_specs.get('lvl1') or '')
+                # 预售收紧：offline(近21天)仅收联想自营整机，排除积分商城/第三方杂货/纯服务/占位
+                if _status == 'offline':
+                    _l1c = _lvl1 + (_category or '')
+                    if '积分' in _l1c:
+                        continue
+                    if any(k in _nl for k in ('定制服务', '开机画面', '换新服务', '保值换', '以旧换', '延保', '延长保修', '支付宝', '立减', '碰一下', '权益', '充值', '礼券', '礼包')):
+                        continue
+                    if '定制' in _nl and ('工作站' in _l1c or '服务器' in _l1c):
+                        continue
+                    # offline 仅收消费整机；工作站/服务器定制配置 SKU 变体爆炸且非 POC 重点，offline 不收(active 在售仍保留)
+                    if not any(k in _l1c for k in ('笔记本', '台式', '平板', '手机', '显示器', '一体机', '掌机', '游戏本')):
+                        continue
+                # 积分商城兑换品（active 第三方代销，如 Apple/华为）：name 加【积分兑换】前缀标识
+                if ('积分商城' in _lvl1 or '积分' in (_category or '')) and '积分兑换' not in (_name or ''):
+                    _name = f'【积分兑换】{_name}'
+                _sku_key = _sku or str(_id)
+                _v = [None] * 200
+                _v[0] = _sku_key
+                _v[1] = _name
+                _v[3] = _description or ''
+                _v[4] = _specs.get('pcDetailUrl') or _specs.get('url') or f'https://item.lenovo.com.cn/product/{_sku_key}.html'
+                _v[5] = 0  # is_del
+                _v[6] = _specs.get('color') or ''
+                _v[8] = _price or 0
+                _v[15] = _specs.get('bu') or ''
+                _v[17] = 1 if (_stock or 0) > 0 else 0
+                _v[25] = _description or ''
+                _v[26] = _specs.get('target_user') or ''
+                # 分类优先用 DB products.category（干净，如「平板电脑」直命中 PARENT_CAT_MAP），specs.lvl1 格式脏（「平板(标准分类)」）作兜底
+                _v[30] = _category or _specs.get('lvl1') or ''
+                _v[31] = _category or _specs.get('lvl2') or ''
+                _v[35] = _specs.get('brand') or ''
+                _v[41] = _category or _specs.get('lvl1') or ''
+                _v[42] = _category or _specs.get('lvl2') or ''
+                # 规格字段（crawl_item_pages.js 扁平化写入 specs）
+                _v[49] = _specs.get('weight') or ''
+                _v[50] = _specs.get('warranty') or ''
+                _v[55] = _specs.get('os') or ''
+                _v[57] = _specs.get('memory') or ''
+                _v[62] = _specs.get('disk') or ''
+                _v[68] = _specs.get('cpu') or ''
+                _v[79] = _specs.get('gpu') or ''
+                _v[85] = _specs.get('screen_size') or ''
+                _scr = _specs.get('screen_res') or ''
+                _rfr = _specs.get('refresh') or ''
+                _v[89] = (f'{_scr} {_rfr}'.strip()) if (_scr or _rfr) else ''
+                _v[96] = _specs.get('port') or ''
+                _v[99] = _specs.get('power') or ''
+                _v[106] = _specs.get('wifi') or ''
+                _v[136] = str(_created_at or '')[:19]
+                yield 'row', _v
+            _cn.close()
+
+    headers = None
+
+    for kind, vals in _iter_product_rows():
+        if kind == 'header':
+            headers = vals
             continue
-
-        vals = [cell.value for cell in row]
 
         # 过滤
         name = vals[1] if len(vals) > 1 else None
@@ -1973,7 +2095,7 @@ def main():
             desc = make_desc(gbrief or str(name))
             all_articles.append({
                 'slug': slug,
-                'title': (str(name)[:100] + ' — 完整规格与使用指南')[:120],
+                'title': str(name)[:120],
                 'desc': desc,
                 'cat': _cat,
                 'brand_key': _bkey,
@@ -2003,7 +2125,7 @@ def main():
         desc = make_desc(gbrief or str(name))
         all_articles.append({
             'slug': slug,
-            'title': (str(name)[:100] + ' — 完整规格与使用指南')[:120],
+            'title': str(name)[:120],
             'desc': desc,
             'cat': cat_key,
             'brand_key': _bkey2,
@@ -2019,7 +2141,8 @@ def main():
         if product_count % 1000 == 0:
             print(f'[{datetime.now():%H:%M:%S}] 商品页进度: 新生成 {product_count} 篇，跳过 {product_skip}')
 
-    wb.close()
+    if wb:
+        wb.close()
     print(f'[{datetime.now():%H:%M:%S}] 商品页完成: 新生成 {stats["new_product"]} 篇，跳过 {product_skip} 篇')
 
     # --- 第2.5步：biz.lenovo.com.cn 内容页 ---
@@ -2250,11 +2373,9 @@ var _la_lenovo_website = 10000001;
         if slug not in seen:
             seen[slug] = a
         else:
-            # xlsx商品（title含"—完整规格"且type=product）优先
+            # 商品（type=product）优先于知识文档
             prev = seen[slug]
-            if a.get('type') == 'product' and '完整规格' in a.get('title', ''):
-                seen[slug] = a
-            elif prev.get('type') != 'product' or '完整规格' not in prev.get('title', ''):
+            if a.get('type') == 'product' and prev.get('type') != 'product':
                 seen[slug] = a
     all_articles = list(seen.values())
 
@@ -2281,27 +2402,85 @@ var _la_lenovo_website = 10000001;
     _CAT_ORDER = {'notebook': 1, 'desktop': 2, 'monitor': 3, 'tablet_phone': 4,
                   'workstation': 5, 'server': 6, 'smart_device': 7,
                   'solution': 8, 'accessory': 9, 'service': 10}
+    def _pid(a):
+        # slug 内 productId / docId，单调递增，越大越新。ts 同批相等时作新鲜度兜底
+        m = re.search(r'-(\d+)\.html', a.get('slug', '') or '')
+        return int(m.group(1)) if m else 0
+
     def sort_articles(arts):
-        """全部分类排序：有库存优先 → 分类优先级 → 上架时间倒序；知识按入库时间倒序；全部页商品在前"""
+        """全部分类排序：有库存优先 → 分类优先级 → 上架时间倒序（ts 相同按 productId 倒序）；知识按入库时间倒序；全部页商品在前"""
         products = [a for a in arts if a.get('type') == 'product']
         knowledge = [a for a in arts if a.get('type') != 'product']
-        knowledge.sort(key=lambda a: str(a.get('ts') or ''), reverse=True)
+        knowledge.sort(key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
         def _pk(a):
             return (_CAT_ORDER.get(a.get('cat'), 99),
-                    -int(str(a.get('ts') or '').replace('-', '').replace(':', '').replace(' ', '')[:14] or 0))
+                    -int(str(a.get('ts') or '').replace('-', '').replace(':', '').replace(' ', '')[:14] or 0),
+                    -_pid(a))
         in_stock = sorted([a for a in products if (a.get('is_stock') or 0) == 1], key=_pk)
         out_stock = sorted([a for a in products if (a.get('is_stock') or 0) != 1], key=_pk)
         return in_stock + knowledge + out_stock
 
+    # 配件/服务/周边判定（这类降权，整机优先）
+    _ACCESSORY_KW = ('保护夹', '保护壳', '保护套', '保护膜', '钢化膜', '贴膜', '屏幕膜',
+                     '延保', '延长保修', '保修服务', '换新服务', '碎屏', '屏碎', '电池延保',
+                     '上门服务', '到店服务', '安装服务', '清洁', '原厂.*服务', '服务-特别版',
+                     '换新', '保值', '以旧换新', '回收', '抵扣', '权益',
+                     '鼠标', '键盘', '耳机', '音箱', '适配器', '充电器', '数据线', '扩展坞',
+                     '支架', '背包', '电脑包', '双肩包', '内胆包', '散热', '底座', '手写笔',
+                     '碳粉', '墨盒', '硒鼓', '换购', '以旧换新', '套餐', '套装', '礼包',
+                     '闪存盘', 'U盘', '优盘', '移动硬盘', '移动固态', '硬盘盒', '读卡器',
+                     '存储卡', 'TF卡', 'SD卡', '内存条', '扩展卡', '网卡', '声卡', '集线器',
+                     '转接', '拓展坞', 'HUB', '延长线', '排插', '插座', '清洁', '贴纸', '挂件')
+    def _is_accessory_like(a):
+        nm = (a.get('title') or '')
+        if a.get('cat') in ('accessory', 'service'):
+            return True
+        return any(re.search(k, nm) for k in _ACCESSORY_KW)
+
+    def _has_real_price(a):
+        # 有真价 = 非占位(0/99999/888888/>=999999)
+        p = a.get('price') or 0
+        try:
+            p = float(p)
+        except Exception:
+            return False
+        return p > 0 and p < 999999 and p != 99999 and p != 888888
+
     def sort_products_only(arts):
-        """纯商品分类排序：有库存优先 + 上架时间倒序"""
-        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=lambda a: str(a.get('ts') or ''), reverse=True)
-        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=lambda a: str(a.get('ts') or ''), reverse=True)
+        """纯商品分类排序：有库存优先 → 整机优先(配件降权) → 有真价优先(占位价沉后) → productId 倒序新品置顶。
+        修首屏全是 999999 占位款的问题；同型号有价款(如 razr Fold 14999)排前，未公布价款沉后。"""
+        def _key(a):
+            return (1 if _is_accessory_like(a) else 0,
+                    0 if _has_real_price(a) else 1,
+                    -_pid(a))
+        in_stock = sorted([a for a in arts if (a.get('is_stock') or 0) == 1], key=_key)
+        out_stock = sorted([a for a in arts if (a.get('is_stock') or 0) != 1], key=_key)
         return in_stock + out_stock
 
     def sort_knowledge_only(arts):
-        """纯知识分类排序：按入库时间倒序"""
-        return sorted(arts, key=lambda a: str(a.get('ts') or ''), reverse=True)
+        """纯知识分类排序：按入库时间倒序（ts 相同按 docId 倒序）"""
+        return sorted(arts, key=lambda a: (str(a.get('ts') or ''), _pid(a)), reverse=True)
+
+    def sort_all_latest(arts):
+        """[全部]分类：整机/新闻/知识 优先（配件/服务降权），段内有价品优先(占位价沉后), 按时间倒序(ts同按pid)。"""
+        main = [a for a in arts if not (a.get('type') == 'product' and _is_accessory_like(a))]
+        acc = [a for a in arts if a.get('type') == 'product' and _is_accessory_like(a)]
+        # knowledge 无 price 概念视为"有价"段(不被沉底); product 看 _has_real_price
+        def _k(a):
+            placeholder = (a.get('type') == 'product' and not _has_real_price(a))
+            return (1 if placeholder else 0, '-' + (str(a.get('ts') or '0000')), -_pid(a))
+        # 用元组 reverse 不对(混排各字段方向不一)。改: 不 reverse, key 内部正负
+        def _k2(a):
+            placeholder = (a.get('type') == 'product' and not _has_real_price(a))
+            ts = str(a.get('ts') or '')
+            # 占位降权(1后); 段内 ts 倒序(取负字符比对不行,用-ord累加复杂)→简单: 先按 placeholder 分两段,各段 (ts,pid) reverse
+            return placeholder
+        main_priced = [a for a in main if not (a.get('type')=='product' and not _has_real_price(a))]
+        main_placeholder = [a for a in main if a.get('type')=='product' and not _has_real_price(a)]
+        _sk = lambda a: (str(a.get('ts') or ''), _pid(a))
+        return (sorted(main_priced, key=_sk, reverse=True)
+                + sorted(main_placeholder, key=_sk, reverse=True)
+                + sorted(acc, key=_sk, reverse=True))
 
     # 各分类排好序
     PRODUCT_CATS = {'notebook','desktop','monitor','tablet_phone','accessory','smart_device','service'}
@@ -2309,7 +2488,7 @@ var _la_lenovo_website = 10000001;
     MIXED_CATS = {'server', 'workstation', 'solution'}
     KNOWLEDGE_CATS = {'knowledge', 'brand_news'}
     sorted_by_cat = {}
-    sorted_by_cat['all'] = sort_articles(all_articles)
+    sorted_by_cat['all'] = sort_all_latest(all_articles)
     for _cat, _arts in by_cat.items():
         if _cat == 'all': continue
         if _cat in PRODUCT_CATS:
@@ -2342,12 +2521,14 @@ var _la_lenovo_website = 10000001;
 
     # === 3 子目录分页：wiki-c(消费) / wiki-b(SMB/企业购) / wiki-biz(政企) ===
     # 严格按飞书约定的分类白名单控制各子站内容
-    BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz'}
+    BU_DIRS = {'wiki-c': 'c', 'wiki-b': 'b', 'wiki-biz': 'biz', 'wiki-shop': 'shop'}
     BU_ALLOWED_CATS = {
-        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device'},
+        'c':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'smart_device', 'whole_home', 'service'},
         'b':   {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory', 'solution'},
         'biz': {'notebook', 'desktop', 'monitor', 'workstation', 'tablet_phone', 'accessory',
                 'smart_device', 'server', 'solution', 'biz-case'},
+        'shop': {'notebook', 'desktop', 'monitor', 'tablet_phone', 'accessory',
+                 'smart_device', 'service'},
     }
     sub_site_data = {}  # 保存各子站分类数据供第六步用
 
@@ -2371,11 +2552,18 @@ var _la_lenovo_website = 10000001;
             # 只放商品
             if a.get('type') not in ('product',):
                 return False
+            # 工作站/服务器是纯政企品类，强制归 biz（OpenAPI 部分无 bu 标识，避免只在主站漏入子站）
+            if cat in ('workstation', 'server'):
+                return target == 'biz'
             # 商品：用 brand_key + cat_key + url 判断归属
             bkey = a.get('brand_key', 'lenovo')
             title = a.get('title', '')
             url = a.get('url', '')
             product_bu = get_product_bu(cat, bkey, title, url)
+            if target == 'shop':
+                if '企业购' in title:
+                    return False
+                return product_bu in ('c', 'b')
             return product_bu == target
 
         sub_articles = [a for a in all_articles if _match_bu(a)]
@@ -2386,7 +2574,7 @@ var _la_lenovo_website = 10000001;
         for _a in sub_articles:
             sub_by_cat[_a['cat']].append(_a)
         sub_sorted = {}
-        sub_sorted['all'] = sort_articles(sub_articles)
+        sub_sorted['all'] = sort_all_latest(sub_articles)  # 与主站[全部]一致：全局最新+配件/服务降权
         for _cat, _arts in sub_by_cat.items():
             if _cat == 'all': continue
             if _cat in PRODUCT_CATS:
@@ -2413,16 +2601,27 @@ var _la_lenovo_website = 10000001;
         }
 
         # 为子站生成独立的 articles-slim.json（搜索隔离）
-        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type','')} for a in sub_articles]
-        with open(os.path.join(sub_dir, 'articles-slim.json'), 'w') as _fh:
-            json.dump(_sub_slim, _fh, ensure_ascii=False, separators=(',',':'))
+        _sub_slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else ''),'price':(int(a.get('price') or 0) if a.get('type')=='product' else 0)} for a in sub_articles]
+        _sub_slim_path = os.path.join(sub_dir, 'articles-slim.json')
+        _sub_slim_str = json.dumps(_sub_slim, ensure_ascii=False, separators=(',',':'))
+        with open(_sub_slim_path, 'w', encoding='utf-8') as _fh:
+            _fh.write(_sub_slim_str)
+        # 预压 .gz，nginx gzip_static 直发，免每请求实时压缩(原慢29s)
+        import gzip as _gz
+        with _gz.open(_sub_slim_path + '.gz', 'wt', encoding='utf-8', compresslevel=6) as _gf:
+            _gf.write(_sub_slim_str)
 
         print(f'  {dir_name}/: {len(sub_articles)} 条, 分类: {[c for c in sub_cats if c != "all"]}, {nf} 个分页文件')
 
     # 生成 slim 和 recent
-    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type','')} for a in all_articles]
-    with open(os.path.join(WIKI_DIR, 'articles-slim.json'), 'w') as _fh:
-        json.dump(_slim, _fh, ensure_ascii=False, separators=(',',':'))
+    _slim = [{'slug':a['slug'],'title':a['title'],'cat':a['cat'],'type':a.get('type',''),'desc':((a.get('desc') or '')[:40] if a.get('type')=='product' else ''),'sku':(re.search(r'-(\d+)\.html',a['slug']).group(1) if (a.get('type')=='product' and re.search(r'-(\d+)\.html',a['slug'])) else ''),'price':(int(a.get('price') or 0) if a.get('type')=='product' else 0)} for a in all_articles]
+    _slim_path = os.path.join(WIKI_DIR, 'articles-slim.json')
+    _slim_str = json.dumps(_slim, ensure_ascii=False, separators=(',',':'))
+    with open(_slim_path, 'w', encoding='utf-8') as _fh:
+        _fh.write(_slim_str)
+    import gzip as _gz0
+    with _gz0.open(_slim_path + '.gz', 'wt', encoding='utf-8', compresslevel=6) as _gf0:
+        _gf0.write(_slim_str)
     # recent：取all分类排序后的前480条
     _recent = sorted_by_cat.get('all', all_articles)[:480]
     with open(os.path.join(WIKI_DIR, 'articles-recent.json'), 'w') as _fh:
@@ -2937,7 +3136,7 @@ fetch('/wiki/articles.json')
         _a_cat_label = html.escape(CAT_LABELS.get(_a_cat, _a_cat))
         _a_price = _a.get('price') or 0
         _a_type = _a.get('type') or ''
-        _price_html = f'<span class="card-price">¥{int(_a_price):,}</span>' if _a_type == 'product' and _a_price else ''
+        _price_html = (f'<span class="card-price">{format_price(_a_price)}</span>' if _a_type == 'product' else '')
         _ssr_cards.append(f'''<article class="card">
         <a href="/wiki/{_a_slug}" title="{_a_title}">
           <div class="card-tag">{_a_cat_label}</div>
@@ -2968,6 +3167,13 @@ fetch('/wiki/articles.json')
         count=1
     )
 
+    # 破缓存：articles-slim.json?v= 用 slim 文件 mtime（每次重生变，避免浏览器缓存旧搜索索引）
+    try:
+        _sv = str(int(os.path.getmtime(os.path.join(WIKI_DIR, 'articles-slim.json'))))
+        index_html = re.sub(r'articles-slim\.json\?v=\d+', f'articles-slim.json?v={_sv}', index_html)
+    except Exception:
+        pass
+
     with open(index_path, 'w', encoding='utf-8') as f:
         f.write(index_html)
     print(f'COUNTS 已更新: {total_count:,} 条')
@@ -2975,7 +3181,7 @@ fetch('/wiki/articles.json')
 
     # --- 第六步：生成子站 index.html ---
     print(f'\n[{datetime.now():%H:%M:%S}] === 生成子站 index.html ===')
-    BU_DIR_LABELS = {'wiki-c': '消费业务', 'wiki-b': 'SMB业务', 'wiki-biz': '政企业务'}
+    BU_DIR_LABELS = {'wiki-c': '消费业务', 'wiki-b': 'SMB业务', 'wiki-biz': '政企业务', 'wiki-shop': '联想商城'}
     # 默认分类标签
     _DEFAULT_CAT_LABELS = {
         'brand_news': '品牌/新闻', 'notebook': '笔记本', 'desktop': '台式机', 'monitor': '显示器',
@@ -2997,6 +3203,7 @@ fetch('/wiki/articles.json')
         'wiki-c': {'smart_device': '智能生活'},
         'wiki-b': {},
         'wiki-biz': {'biz-case': '客户案例'},
+        'wiki-shop': {'smart_device': '智能产品'},
     }
 
     for dir_name, label in BU_DIR_LABELS.items():
@@ -3030,6 +3237,12 @@ fetch('/wiki/articles.json')
             "/wiki/articles-slim.json",
             f"/{dir_name}/articles-slim.json"
         )
+        # 破缓存：子站 slim?v= 用子站 slim 文件 mtime
+        try:
+            _ssv = str(int(os.path.getmtime(os.path.join(sub_dir, 'articles-slim.json'))))
+            sub_html = re.sub(r'articles-slim\.json\?v=\d+', f'articles-slim.json?v={_ssv}', sub_html)
+        except Exception:
+            pass
 
         # 2. 标题加子站标签 + canonical/og指向子站
         sub_html = sub_html.replace(
@@ -3181,7 +3394,7 @@ fetch('/wiki/articles.json')
             _a_cat_label = html.escape(ALL_CAT_LABELS.get(_a_cat, _a_cat))
             _a_price = _a.get('price') or 0
             _a_type = _a.get('type') or ''
-            _price_html = f'<span class="card-price">¥{int(_a_price):,}</span>' if _a_type == 'product' and _a_price else ''
+            _price_html = (f'<span class="card-price">{format_price(_a_price)}</span>' if _a_type == 'product' else '')
             _sub_ssr_cards.append(f'''<article class="card">
         <a href="/wiki/{_a_slug}" title="{_a_title}" target="_blank">
           <div class="card-tag">{_a_cat_label}</div>
@@ -3218,7 +3431,7 @@ fetch('/wiki/articles.json')
         print(f'  {dir_name}/index.html ({label}): 分类={cat_names}')
 
     # --- 生成 robots.txt（测试期禁止抓取） ---
-    _robots_body = 'User-agent: *\nDisallow: /wiki/*\nDisallow: /wiki-c/*\nDisallow: /wiki-b/*\nDisallow: /wiki-biz/*\n'
+    _robots_body = 'User-agent: *\nDisallow: /wiki/*\nDisallow: /wiki-c/*\nDisallow: /wiki-b/*\nDisallow: /wiki-biz/*\nDisallow: /wiki-shop/*\n'
     # 写到域名根目录（生效的位置）
     _site_root = os.path.dirname(WIKI_DIR)
     for _rp in (os.path.join(_site_root, 'robots.txt'), os.path.join(WIKI_DIR, 'robots.txt')):
@@ -3251,7 +3464,7 @@ fetch('/wiki/articles.json')
 跳过已存在:   {stats["skipped"] + product_skip:,} 篇
 articles.json: {len(all_articles):,} 条
 sitemap.xml:   {len(all_articles):,} 条URL
-子站:          wiki-c/ wiki-b/ wiki-biz/
+子站:          wiki-c/ wiki-b/ wiki-biz/ wiki-shop/
 输出目录:      {WIKI_DIR}
 ''')
 

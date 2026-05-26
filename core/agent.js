@@ -13,9 +13,9 @@ const { getLearningStatus } = require('./learner');
 const { shouldDispatch, dispatch } = require('./dispatcher');
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'qwen-plus';
-const VL_MODEL = 'qwen-vl-plus'; // 图文多模态模型
-const AUDIO_MODEL = 'qwen-audio-turbo'; // 音频多模态模型
+const MODEL = 'doubao-seed-2.0-pro';
+const VL_MODEL = 'doubao-seed-2.0-pro'; // 图文多模态模型
+const AUDIO_MODEL = 'doubao-seed-2.0-pro'; // 音频多模态模型
 const MAX_TOOL_ROUNDS = 5;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3001'; // 图片完整URL前缀
 
@@ -48,7 +48,17 @@ function getSystemPrompt(lang) {
 }
 
 // Build system prompt with language, RAG context, and user profile
-function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId = null, userMessage = null) {
+function siteContextText(siteType) {
+  const map = {
+    shop: '个人及家庭：优先消费线商品和内容，如小新、YOGA、拯救者、IdeaPad、天逸、来酷、Moto、平板/手机/配件。不要默认推荐 ThinkBook/ThinkPad 等企业购或商务采购线，除非用户明确点名这些系列。',
+    b: '中小企业：优先企业购/SMB 商品和内容，如 ThinkPad、ThinkBook、ThinkCentre、ThinkPlus、扬天、瑞天、办公外设和中小企业解决方案。',
+    biz: '政教及大企业：优先政企/行业方案、服务器、工作站、存储、ThinkStation、昭阳、开天、启天、行业解决方案和服务产品。',
+    default: '首页：先根据用户当前意图判断入口；不确定时先澄清用途、预算、是否个人消费或企业采购。'
+  };
+  return map[siteType] || map.default;
+}
+
+function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId = null, userMessage = null, siteType = 'default') {
   // L1.5 Persona 前缀注入：激活的 Persona 有 prompt_prefix 则 prepend
   const persona = _promptCache.persona;
   const personaPrefix = (persona && persona.prompt_prefix && persona.prompt_prefix.trim())
@@ -88,11 +98,21 @@ function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId
   } catch (e) {
     // 读取失败不影响主流程
   }
+  // 当前日期 + 禁用陈旧训练知识做时序判断（防"截至2024年 RTX5070 未发布"类错误）
+  const _today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (lang === 'en') {
+    prompt += `\n\n## Current Date: ${_today}\nYour training data may be outdated. NEVER use phrases like "as of 2024" or "not yet released". Treat the商品库/RAG real-time data and current date as ground truth. If a product appears in the knowledge base or product DB, it IS on sale NOW — do not deny its existence based on training knowledge.`;
+  } else {
+    prompt += `\n\n## 当前日期：${_today}\n你的训练知识可能已过时。**严禁**说"截至2024年""尚未发布""目前还没有"这类基于训练时点的判断。一切以商品库/RAG 实时检索数据 + 当前日期为准。只要商品库或知识库里有这个产品，它就是现在在售的——不要用旧训练知识否定它的存在或发布时间。产品代际（如 RTX 50 系列、新款机型）默认已上市，按检索到的真实参数回答。`;
+  }
   // L2.5 自检指令
   if (lang === 'en') {
     prompt += '\n\nBefore giving your final answer, please verify:\n1. All URLs come from the knowledge base or official Lenovo domains — do not generate URLs yourself\n2. Product specs and prices are consistent with the knowledge base; if unsure, note "Please check the official website for the latest information"\n3. Your answer directly addresses the user\'s question';
   } else {
-    prompt += '\n\n在给出最终回答前，请先确认：\n1. 所有 URL 均来自知识库或官方域名，不自行生成\n2. 产品参数、价格与知识库一致，不确定时注明"请以官网为准"\n3. 回答直接回应用户问题';
+    prompt += '\n\n在给出最终回答前，请先确认：\n1. 所有 URL 均来自知识库或官方域名，不自行生成\n2. 产品参数、价格与知识库一致，不确定时注明"请以官网为准"\n3. 回答直接回应用户问题\n4. 未使用过时训练知识否定产品存在/发布时间';
+  }
+  if (lang !== 'en') {
+    prompt += '\n\n## 当前业务入口\n' + siteContextText(siteType) + '\n回答和工具调用必须尊重当前入口。商品推荐时，只有用户明确提出商务/企业采购/ThinkBook/ThinkPad 等需求，才跨到企业购系列。知识库/WIKI 中的产品分类、解决方案、技术支持内容可以作为页面讲解依据。';
   }
   if (thinkingMode) {
     prompt += lang === 'en'
@@ -117,15 +137,15 @@ function generateTitle(convId, userMessage, aiReply) {
 AI回答摘要：${aiReply.slice(0, 200)}`;
 
   const body = JSON.stringify({
-    model: MODEL,
+    model: MODEL, thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 30,
     temperature: 0.3
   });
 
   const req = https.request({
-    hostname: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
+    hostname: 'ark.cn-beijing.volces.com',
+    path: '/api/coding/v3/chat/completions',
     method: 'POST',
     headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
   }, (res) => {
@@ -163,15 +183,15 @@ AI: ${aiReply.slice(0, 300)}`
 AI：${aiReply.slice(0, 300)}`;
 
   const body = JSON.stringify({
-    model: MODEL,
+    model: MODEL, thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 150,
     temperature: 0.7
   });
 
   const req = https.request({
-    hostname: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
+    hostname: 'ark.cn-beijing.volces.com',
+    path: '/api/coding/v3/chat/completions',
     method: 'POST',
     headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
   }, (res) => {
@@ -196,12 +216,12 @@ AI：${aiReply.slice(0, 300)}`;
 }
 
 // Call DashScope OpenAI-compatible API (non-streaming, with tool_calls)
-function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null) {
+function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: MODEL,
+      model: MODEL, thinking: { type: 'disabled' },
       messages: [
-        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage) },
+        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
         ...messages
       ],
       tools: tools.length > 0 ? tools.map(t => ({
@@ -216,8 +236,8 @@ function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMe
     });
 
     const options = {
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,
@@ -242,20 +262,20 @@ function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMe
 }
 
 // 带重试的 callLLM（最多重试1次，间隔2s）
-async function callLLMWithRetry(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null) {
+async function callLLMWithRetry(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
   try {
-    return await callLLM(messages, tools, ragContext, lang, userId, userMessage);
+    return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType);
   } catch (e) {
     if (e.message.includes('timeout') || e.message.includes('ECONNRESET') || e.message.includes('ETIMEDOUT')) {
       console.warn('[Agent] API 第一次失败，2s 后重试:', e.message);
       await new Promise(r => setTimeout(r, 2000));
-      return await callLLM(messages, tools, ragContext, lang, userId, userMessage);
+      return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType);
     }
     throw e;
   }
 }
 
-async function runAgent(userMessage, convId, sessionId, { webSearch = false, lang = 'zh', userId = null } = {}) {
+async function runAgent(userMessage, convId, sessionId, { webSearch = false, lang = 'zh', userId = null, siteType = 'default' } = {}) {
   // Load or create conversation
   if (!convId) {
     convId = uuidv4();
@@ -311,7 +331,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
 
   while (rounds < MAX_TOOL_ROUNDS) {
     rounds++;
-    const response = await callLLMWithRetry(messages, tools, ragContext, lang, userId, userMessage);
+    const response = await callLLMWithRetry(messages, tools, ragContext, lang, userId, userMessage, siteType);
 
     if (response.error) {
       throw new Error(response.error.message || JSON.stringify(response.error));
@@ -330,7 +350,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
           let result;
           try {
             const input = JSON.parse(tc.function.arguments || '{}');
-            result = await registry.execute(tc.function.name, input);
+            result = await registry.execute(tc.function.name, input, { siteType, userMessage });
             toolCallLog.push({ name: tc.function.name, input, success: true });
           } catch (err) {
             result = { error: err.message };
@@ -385,12 +405,12 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
 // 返回 { fullText, toolCalls: null | Array, finishReason }
 // 如果 finish_reason=tool_calls，则 toolCalls 是完整的工具调用数组，fullText=''
 // 如果 finish_reason=stop，则 toolCalls=null，内容已通过 onChunk 实时推送
-function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null } = {}) {
+function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null, toolChoice = null, siteType = 'default' } = {}) {
   return new Promise((resolve, reject) => {
     // 图片模式用 qwen-vl-plus，音频模式用 qwen-audio-turbo，深度思考模式用 qwq-plus，否则用默认模型
     const hasImage = !!imageUrl;
     const hasAudio = !!audioUrl;
-    const useModel = hasAudio ? AUDIO_MODEL : (hasImage ? VL_MODEL : (thinkingMode ? 'qwq-plus' : MODEL));
+    const useModel = hasAudio ? AUDIO_MODEL : (hasImage ? VL_MODEL : (thinkingMode ? MODEL : MODEL));
 
     // 构造消息列表：有图片或音频时，把最后一条 user 消息改成多模态格式
     let finalMessages = [...messages];
@@ -425,11 +445,11 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
     }
 
     const bodyObj = {
-      model: useModel,
+      model: useModel, thinking: { type: thinkingMode ? 'enabled' : 'disabled' },
       stream: true,
       stream_options: { include_usage: false },
       messages: [
-        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage) },
+        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
         ...finalMessages
       ],
     };
@@ -443,13 +463,13 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
         type: 'function',
         function: { name: t.name, description: t.description, parameters: t.input_schema || { type: 'object', properties: {} } }
       }));
-      bodyObj.tool_choice = 'auto';
+      bodyObj.tool_choice = toolChoice || 'auto';
     }
     const body = JSON.stringify(bodyObj);
 
     const req = https.request({
-      hostname: 'dashscope.aliyuncs.com',
-      path: '/compatible-mode/v1/chat/completions',
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + API_KEY,
@@ -520,7 +540,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
       res.on('error', reject);
     });
     req.on('error', reject);
-    req.setTimeout(thinkingMode ? 180000 : 90000, () => { req.destroy(); reject(new Error('stream timeout')); });
+    req.setTimeout(thinkingMode ? 240000 : 150000, () => { req.destroy(); reject(new Error('stream timeout')); });
     req.write(body);
     req.end();
   });
@@ -534,7 +554,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
  * @param {function} onChunk  - 每收到一段文字调用
  * @param {function} onDone   - 全部完成后调用，参数 {convId, fullText}
  */
-async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null } = {}) {
+async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null, productContext = null, siteType = 'default' } = {}) {
   if (!convId) {
     convId = uuidv4();
     db.prepare('INSERT INTO conversations (id, session_id) VALUES (?, ?)').run(convId, sessionId || null);
@@ -580,6 +600,12 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     }
   }
 
+  // 注入当前浏览商品上下文，让 AI 知道用户正在看什么
+  if (productContext) {
+    const pc = typeof productContext === 'string' ? productContext : JSON.stringify(productContext);
+    ragContext += '\n\n---\n## 用户当前正在浏览的商品\n' + pc + '\n（用户可能会针对这个商品提问，请结合商品信息回答）';
+  }
+
   // L2.7 多Agent协作：检查是否分发给子 Agent
   const subAgent = shouldDispatch(userMessage);
   if (subAgent) {
@@ -595,6 +621,8 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     }
 
     if (subText) {
+      // 非流式子Agent兜底：如果子Agent没自行调用onChunk，把完整文本推送给前端
+      if (onChunk && !subAgent.streamsChunks) onChunk(subText);
       // 保存消息、更新对话
       const subInsert = db.prepare('INSERT INTO messages (conv_id, role, content, tool_calls) VALUES (?, ?, ?, ?)').run(convId, 'assistant', subText, null);
       db.prepare('UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(convId);
@@ -620,15 +648,63 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
   let rounds = 0;
   let fullText = '';
 
+  // 意图分类（替代旧 _KEYWORDS 正则强制）
+  // 默认走 LLM cheap call；失败 fallback 旧正则保兜底
+  let forceToolChoice = null;
+  let intentResult = null;
+  if (!imageUrl && !audioUrl && !thinkingMode && userMessage && userMessage.trim().length >= 2) {
+    try {
+      const { classifyIntent } = require('./intent_classifier');
+      intentResult = await classifyIntent(userMessage, siteType, { timeoutMs: 5500 });
+      if (intentResult && intentResult.requires_tool && intentResult.confidence >= 0.6) {
+        forceToolChoice = 'required';
+        console.log('[Agent] intent=' + intentResult.intent + ' (conf=' + intentResult.confidence + ') → tool_choice: required');
+      } else {
+        console.log('[Agent] intent=' + (intentResult && intentResult.intent) + ' (conf=' + (intentResult && intentResult.confidence) + ') → tool_choice: auto');
+      }
+    } catch (e) {
+      console.warn('[Agent] intent classifier err:', e.message);
+    }
+    // fallback 旧正则（classifier 完全失败时）
+    if (!intentResult || intentResult.reason === 'fallback (classifier failed)') {
+      const FALLBACK_KW = /推荐|选购|预算|定制|优惠|换新|会员|保修|招投标|信创|批量|开票|门店|联系|留资|方案|工作站|笔记本|台式机|拯救者|小新|yoga|thinkpad|thinkbook/i;
+      if (FALLBACK_KW.test(userMessage)) {
+        forceToolChoice = 'required';
+        console.log('[Agent] fallback kw → tool_choice: required');
+      }
+    }
+
+    // S2② planner：长消息 + 高置信意图时拆并行子任务，hint 注入 messages 引导一次性多 tool_calls
+    if (intentResult && intentResult.confidence >= 0.6 && userMessage.trim().length >= 12) {
+      try {
+        const { planTasks, buildPlanHintMessage } = require('./planner');
+        const plan = await planTasks(userMessage, intentResult.intent, siteType, { timeoutMs: 5500 });
+        if (plan && plan.needs_planning) {
+          const hintText = buildPlanHintMessage(plan);
+          if (hintText) {
+            messages.unshift({ role: 'system', content: hintText });
+            forceToolChoice = 'required';
+            console.log('[Agent] planner: ' + plan.subtasks.length + ' subtasks → ' +
+              plan.subtasks.map(t => t.intent).join(','));
+          }
+        }
+      } catch (e) {
+        console.warn('[Agent] planner err:', e.message);
+      }
+    }
+  }
+
   // 全程流式：第一轮直接流式推送，若返回 tool_calls 则执行工具后继续
   while (rounds < MAX_TOOL_ROUNDS) {
     rounds++;
     // 图片/音频只在第一轮传入（多模态模型不支持 tools，第一轮不会有 tool_calls）
     const roundImageUrl = rounds === 1 ? imageUrl : null;
     const roundAudioUrl = rounds === 1 ? audioUrl : null;
+    // 仅第一轮强制工具调用，后续轮次恢复 auto
+    const roundToolChoice = rounds === 1 ? forceToolChoice : null;
     const { fullText: streamedText, toolCalls } = await callLLMStream(
       messages, tools, ragContext, onChunk, lang,
-      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl }
+      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl, toolChoice: roundToolChoice, siteType }
     );
 
     if (toolCalls && toolCalls.length > 0) {
@@ -639,13 +715,13 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
         let result;
         try {
           const input = JSON.parse(tc.function.arguments || '{}');
-          result = await registry.execute(tc.function.name, input);
+          result = await registry.execute(tc.function.name, input, { siteType, userMessage });
           toolCallLog.push({ name: tc.function.name, input, success: true });
-          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: true });
+          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: true, result });
         } catch (err) {
           result = { error: err.message };
           toolCallLog.push({ name: tc.function.name, success: false, error: err.message });
-          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: false });
+          if (onStatus) onStatus({ type: 'tool_done', name: tc.function.name, success: false, result });
         }
         return { role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) };
       }));

@@ -1797,17 +1797,19 @@ switchPage = function(pageId) {
   _origSwitch(pageId);
   // peek模式下选完页面，不立即收回，等鼠标离开侧栏后收回
   if (pageId === 'dashboard.overview') loadOverviewStats();
-  if (pageId === 'dashboard.query') loadQueryAnalysis();
+  // dashboard.query replaced by pipeline.annotate — handled by workbench-pipeline.js
   if (pageId === 'dashboard.geo') {
-    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.questions = [];
+    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = [];
     setTimeout(() => {
-      const ps = document.getElementById('geo-period'); if (ps) ps.value = '30d';
       const qi = document.getElementById('geo-questions'); if (qi) qi.value = '';
       geoLoadData();
     }, 50);
   }
   if (pageId === 'dashboard.geoSource') {
     setTimeout(() => geoLoadSourcePage(), 50);
+  }
+  if (pageId === 'dashboard.geoIntent') {
+    setTimeout(() => geoLoadIntentPage(), 50);
   }
   if (pageId === 'dashboard.geoKnowledge') {
     setTimeout(() => loadKnowledgeStats(), 50);

@@ -14,7 +14,7 @@
 const db = require('../db/schema');
 const fetch = require('node-fetch');
 
-const DASHSCOPE_API_URL = process.env.DASHSCOPE_API_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+const DASHSCOPE_API_URL = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/compatible-mode/v1';
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
 const MAX_MEMORIES = 20; // 每用户最多保留记忆条数（按重要性+时间淘汰）
 const CONSOLIDATE_THRESHOLD = 15; // 超过此数量时触发合并
@@ -45,7 +45,7 @@ async function callLLM(prompt) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DASHSCOPE_API_KEY}` },
     body: JSON.stringify({
-      model: 'qwen-plus',
+      model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: '你是记忆提取助手，只输出 JSON 数组。' },
         { role: 'user', content: prompt }
@@ -64,7 +64,7 @@ async function callLLMForConflict(systemMsg, userMsg) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DASHSCOPE_API_KEY}` },
     body: JSON.stringify({
-      model: 'qwen-plus',
+      model: 'doubao-seed-2.0-lite', thinking: { type: 'disabled' },
       messages: [
         { role: 'system', content: systemMsg },
         { role: 'user', content: userMsg }

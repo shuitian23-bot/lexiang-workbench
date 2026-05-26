@@ -26,8 +26,8 @@ function shouldDispatch(userMessage) {
   // 过短消息（单字、2字以下）不分发
   if (msg.length < 3) return null;
 
-  // 优先检查产品推荐和售后（关键词精准匹配）
-  for (const agent of [productAdvisor, supportAgent]) {
+  // 售后关键词精准匹配（产品推荐已改由主Agent处理，走 product_recommend 工具触发分屏）
+  for (const agent of [supportAgent]) {
     if (!agent.keywords || agent.keywords.length === 0) continue;
     const matched = agent.keywords.some(kw => msg.includes(kw));
     if (matched) {
@@ -39,7 +39,11 @@ function shouldDispatch(userMessage) {
   // FAQ Agent：问题 < 20字 且不含复杂需求标志
   const complexIndicators = ['帮我', '制定', '方案', '规划', '分析', '总结', '写', '生成', '翻译', '代码'];
   const hasComplex = complexIndicators.some(kw => msg.includes(kw));
-  if (msg.length < 20 && !hasComplex) {
+  // 导购/购买意图必须走主 Agent 的 product_recommend（触发商品卡 + 一键下单），不能被 FAQ 截胡
+  // 新品/新款/最新/怎么样/如何 等"产品咨询/询问类"也走主 agent（出商品卡）, 不能被 faq_agent 文字截胡
+  const shoppingIndicators = ['推荐', '选购', '购买', '买', '哪款', '哪个好', '性价比', '预算', '报价', '多少钱', '值得', '导购', '求推荐', '新品', '新款', '最新', '怎么样', '如何', '好不好', '值不值', '咋样', '怎样'];
+  const isShopping = shoppingIndicators.some(kw => msg.includes(kw));
+  if (msg.length < 20 && !hasComplex && !isShopping) {
     // 必须是联想相关（含联想/ThinkPad/小新等产品词，或是简单的是/否问题）
     const lenovo_keywords = ['联想', 'lenovo', 'thinkpad', 'thinkbook', '小新', 'yoga', '拯救者', 'ideapad', '天逸', '昭阳'];
     const isLenovoRelated = lenovo_keywords.some(kw => msg.toLowerCase().includes(kw));

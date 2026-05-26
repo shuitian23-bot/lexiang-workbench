@@ -1,0 +1,69 @@
+Lenovo ThinkServer DN8848 V2存储服务器
+
+可靠、灵活、经济实惠、支持第三代英特尔®至强® 可扩展处理器
+
+关键词：Lenovo ThinkServer DN8848 V2存储服务器,Lenovo ThinkServer DN8848 V2 ,服务器,机架式,机架,Lenovo ThinkServer DN8848 V2 ,8848,8848 V2
+
+产品特性  
+• 支持最多2颗第三代英特尔®至强®可扩展处理器（Ice Lake-SP），单颗最高40核，TDP最高270W  
+• 最高支持2TB DDR4 ECC RDIMM内存（32个插槽，最高运行频率3200MHz）  
+• 支持多种存储配置：前置最多24个3.5英寸热插拔SAS/SATA/NVMe混合托架，或最多24个2.5英寸热插拔SAS/SATA/NVMe托架；后置最多2个2.5英寸NVMe U.2 SSD托架  
+• 内置M.2插槽支持双启动盘（PCIe x2接口，支持RAID 1镜像）  
+• 板载集成双口10GbE SFP+网卡（支持TOE、iSCSI卸载、PXE启动）及双口1GbE RJ45管理网卡  
+• 支持Lenovo XClarity Controller（XCC）高级版，提供带外远程管理、固件更新、健康监控、自动化部署与诊断功能  
+• 支持RAID 0/1/5/6/10/50/60，可选Lenovo ThinkSystem RAID 930-16i（16端口，2GB缓存，支持NVMe直通与CacheVault断电保护）  
+• 全冗余设计：双热插拔电源（支持1+1冗余）、双热插拔系统风扇模块、N+1散热风扇冗余  
+• 符合能源之星® 8.0和TCO Certified Edge 3.0标准，典型负载下PUE优化达1.12  
+• 支持Lenovo Smart Power Manager实现动态功耗封顶与能效策略调度  
+
+规格参数  
+| 类别 | 参数 |
+|------|------|
+| 形态 | 2U机架式服务器 |
+| 处理器 | 支持2颗第三代英特尔®至强®可扩展处理器（Ice Lake-SP），支持Platinum/Gold/Silver/Bronze系列，最大TDP 270W，支持超线程与睿频加速技术 |
+| 内存 | 最高2TB DDR4 ECC RDIMM；32个DIMM插槽；支持RDIMM/LRDIMM；速率支持2666/2933/3200MHz；支持内存镜像、内存 sparing、Lockstep模式 |
+| 存储控制器 | 板载SATA控制器（支持12Gbps SAS/SATA）；可选ThinkSystem RAID 930-16i（16端口，2GB缓存，支持RAID 0/1/5/6/10/50/60/100，支持NVMe直通，配备CacheVault断电保护模块） |
+| 前置存储 | 配置一：24×3.5英寸热插拔托架（支持SAS/SATA/NVMe混合，其中最多8个NVMe U.2）；配置二：24×2.5英寸热插拔托架（支持SAS/SATA/NVMe混合，其中最多16个NVMe U.2） |
+| 后置存储 | 2×2.5英寸热插拔NVMe U.2 SSD托架（支持PCIe 4.0 x4，双端口） |
+| M.2存储 | 2×M.2 2280 PCIe x2 NVMe插槽（支持RAID 1镜像，用于操作系统引导盘） |
+| 扩展插槽 | 6×PCIe 4.0插槽（x16/x8/x8/x8/x8/x4物理布局，其中1个为OCP 3.0专用插槽）；支持全高全长卡；含1个专用Riser 2用于GPU或高速HBA卡 |
+| 网络 | 板载：2×10GbE SFP+（支持TOE/iSCSI卸载/PXE）、2×1GbE RJ45（专用XCC管理端口）；可选：OCP 3.0网卡（支持1×25GbE/2×10GbE/4×1GbE等） |
+| 电源 | 双热插拔冗余电源；可选：1600W（白金效率94%）、2000W（白金效率94%）、2400W（钛金效率96%）；支持高压直流（-48V DC）输入选项 |
+| 风扇 | 6×热插拔N+1冗余系统风扇模块（每模块含2个智能调速风扇） |
+| 管理 | Lenovo XClarity Controller（XCC）高级版（标配）；支持IPMI 2.0、Redfish RESTful API、SNMP v3；内置16GB eMMC用于XCC固件与日志存储；支持Lenovo XClarity Administrator集中管理平台 |
+| 安全性 | 支持TPM 2.0（可选固件级TPM或离散TPM芯片）；支持Secure Boot、UEFI安全启动、BIOS密码、机箱入侵检测、带外固件签名验证 |
+| 操作系统支持 | Microsoft Windows Server 2022/2019/2016；VMware vSphere 7.0 U3/8.0；Red Hat Enterprise Linux 8.6+/9.0+；SUSE Linux Enterprise Server 15 SP4+；Ubuntu Server 20.04 LTS/22.04 LTS；CentOS Stream 8/9；Oracle Linux 8.6+/9.0+ |
+| 物理尺寸 | 87.4 mm（高） × 482 mm（宽） × 805 mm（深）（不含挂耳）；含挂耳深度825 mm |
+| 重量 | 起始配置约28.5 kg（含导轨与包装），满配最高约52.3 kg |
+| 认证与合规 | FCC Class A、CE、UL/cUL、CB Scheme、CCC、BIS、KC、VCCI、RCM、Energy Star 8.0、TCO Certified Edge 3.0、RoHS、REACH、WEEE |
+
+常见问题  
+Q: Lenovo ThinkServer DN8848 V2是否支持双路AMD EPYC处理器？  
+A: 不支持。该服务器仅支持两颗第三代英特尔®至强®可扩展处理器（Ice Lake-SP），不兼容AMD EPYC平台。
+
+Q: 前置24个3.5英寸托架能否全部安装NVMe U.2 SSD？  
+A: 不能。在3.5英寸托架配置下，最多支持8个NVMe U.2 SSD（其余托架仅支持SAS/SATA）；如需更多NVMe容量，建议选用24×2.5英寸托架配置（最多支持16个NVMe U.2）。
+
+Q: 板载M.2插槽是否可用于数据存储，而不仅限于系统引导？  
+A: 板载双M.2插槽专为操作系统引导盘设计，出厂默认配置RAID 1镜像，不支持作为通用数据卷挂载；数据存储应通过前置/后置热插拔托架或PCIe NVMe扩展卡实现。
+
+Q: 是否支持GPU加速计算工作负载？  
+A: 支持。通过Riser 2扩展槽可安装全高全长双宽GPU（如NVIDIA A100 40GB PCIe、A40、L40），需搭配2000W或2400W钛金电源及相应散热配置，并启用GPU BIOS与PCIe ACS设置。
+
+Q: XClarity Controller（XCC）高级版是否需要额外授权或订阅？  
+A: 不需要。XCC高级版功能（包括远程KVM、虚拟介质、固件批量更新、健康告警推送、自动化部署模板）已内置于硬件，无需单独购买许可证或按年订阅。
+
+Q: 该服务器是否支持NVMe over Fabrics（NVMe-oF）协议？  
+A: 支持。通过板载10GbE SFP+端口（启用iSCSI或RoCEv2驱动）或可选OCP 3.0 25GbE RoCE网卡，配合对应操作系统与存储软件（如Windows Storage Spaces Direct、VMware vSAN ESA、Linux NVMe-oF target），可构建端到端NVMe-oF架构。
+
+Q: 在RAID 930-16i控制器上启用CacheVault断电保护时，是否必须使用指定电池模块？  
+A: 是。CacheVault为专用超级电容+闪存组合模块（非传统锂电池），随RAID 930-16i控制器整机出货，不可单独更换为第三方电池；其设计寿命为5年，到期需通过Lenovo认证服务更换整套RAID卡与CacheVault组件。
+
+Q: 2U机箱内安装24个3.5英寸硬盘后，是否仍可安装全尺寸PCIe扩展卡？  
+A: 可以。DN8848 V2采用分层背板架构：前置硬盘托架与PCIe插槽物理隔离，所有6个PCIe 4.0插槽（含全高全长x16槽）在满配24盘情况下均可正常使用，无空间或散热冲突。
+
+Q: 是否支持Legacy BIOS模式启动？  
+A: 不支持。该服务器仅支持UEFI固件启动模式，所有操作系统安装与引导均需基于UEFI环境；Legacy CSM（Compatibility Support Module）已在BIOS中永久禁用，以保障安全启动与现代硬件特性兼容性。
+
+Q: 电源是否支持交流与直流混合输入（即AC+DC双输入）？  
+A: 不支持。单台服务器电源模块仅支持单一输入类型：交流（100–240V AC）或高压直流（-48V DC），二者不可混用；若需双路供电可靠性，须通过外部PDU实现AC与DC双路馈入，服务器内部仍为单路径供电。

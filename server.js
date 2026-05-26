@@ -1,6 +1,8 @@
+console.log('[SERVER-V2] Loading server.js at', new Date().toISOString());
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const session = require('express-session');
+const SqliteStore = require('better-sqlite3-session-store')(session);
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const { rateLimit } = require('express-rate-limit');
@@ -14,7 +16,9 @@ const registry = require('./core/skill-registry');
 registry.load();
 
 const app = express();
-const PORT = 3001;
+app.set('trust proxy', 1);
+app.set('etag', false);  // 全局禁 ETag，防 304 命中旧 SPA 缓存
+const PORT = parseInt(process.env.PORT) || 3001;
 
 app.use(express.json({
   limit: '10mb',
@@ -23,11 +27,13 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const sessionDb = require('better-sqlite3')(path.join(__dirname, 'sessions.db'));
 app.use(session({
+  store: new SqliteStore({ client: sessionDb, expired: { clear: true, intervalMs: 3600000 } }),
   secret: process.env.SESSION_SECRET || require('crypto').randomBytes(32).toString('hex'),
   resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 days
+  saveUninitialized: false,
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
 // Rate limiting：每个 IP 每分钟最多 30 次对话请求
@@ -88,8 +94,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Static files — JS/CSS/图片缓存7天，HTML不缓存
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '7d',
+  etag: true,
+  setHeaders: function(res, filePath) {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
 // Health check routes（无需鉴权）
 const healthRouter = require('./routes/health');
@@ -116,29 +130,219 @@ app.use('/api/log', require('./routes/log'));
 app.use('/api/stores', require('./routes/stores'));
 app.use('/api/leai', require('./routes/leai'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
+app.use('/api/product', require('./routes/product_detail_images'));
+app.use('/api/pointer', require('./routes/pointer'));
 app.use('/api/webhook', require('./routes/webhook'));
+app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
+app.use('/api/pipeline', (req, res, next) => {
+  console.log('[PIPELINE-TRACE]', req.method, req.originalUrl, '→', req.url);
+  next();
+}, adminLimiter, require('./routes/pipeline'));
+app.use('/api/site', require('./routes/feed'));
+app.use('/', require('./routes/sitemap'));
+
+// 精选产品列表（landing page 用，按子站分类过滤）
+app.get('/api/products', (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 8, 20);
+  // 找相似：按源 sku 同 category 同价位带(±50%)拉，排除源
+  const similar = req.query.similar;
+  if (similar) {
+    const src = db.prepare('SELECT category, price, name FROM products WHERE sku = ?').get(similar);
+    if (!src) return res.json([]);
+    let simWhere = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND sku != ? AND category = ?`;
+    const params = [similar, src.category];
+    if (src.price > 0) {
+      simWhere += ` AND price BETWEEN ? AND ?`;
+      params.push(Math.round(src.price * 0.5), Math.round(src.price * 1.6));
+    }
+    params.push(src.price || 0, limit);
+    const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
+      FROM products WHERE ${simWhere} ORDER BY ABS(price - ?) ASC LIMIT ?`).all(...params);
+    return res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
+  }
+  const site = req.query.site; // shop=消费, b=企业购, biz=商用
+  let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
+    AND SUBSTR(image_url, -30) NOT IN (
+      SELECT SUBSTR(image_url, -30) FROM products WHERE image_url IS NOT NULL AND image_url != ''
+      GROUP BY SUBSTR(image_url, -30) HAVING count(*) > 5
+    )`;
+  const category = req.query.category;
+  if (category) {
+    where += ` AND category = ?`;
+  } else if (site === 'shop') {
+    where += ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
+  } else if (site === 'b') {
+    where += ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%开天%' OR name LIKE '%企业购%')))`;
+  } else if (site === 'biz') {
+    where += ` AND category IN ('服务器','工作站','服务产品')`;
+  }
+  const params = category ? [category, limit] : [limit];
+  const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
+    FROM products WHERE ${where} ORDER BY RANDOM() LIMIT ?`).all(...params);
+  res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
+});
+
+// 商品详情 API
+app.get('/api/products/:sku', (req, res) => {
+  const row = db.prepare('SELECT * FROM products WHERE sku = ?').get(req.params.sku);
+  if (!row) return res.status(404).json({ error: 'not found' });
+  let specs = {};
+  try { specs = JSON.parse(row.specs || '{}'); } catch {}
+  res.json({ ...row, specs });
+});
+
+// 商详「✨ 适合你」千人千面理由: flash 快模型 + 用户画像, 1 句 ≤40 字
+app.get('/api/products/:sku/reason', (req, res) => {
+  const row = db.prepare('SELECT name, price, description, category FROM products WHERE sku = ?').get(req.params.sku);
+  if (!row) return res.status(404).json({ error: 'not found' });
+  let profileText = '';
+  try {
+    const { getProfilePrompt } = require('./core/profiler');
+    if (req.userId) profileText = (getProfilePrompt(req.userId) || '').slice(0, 400);
+  } catch (e) {}
+  const sys = '你是联想导购。用一句话(≤40字, 不要换行/列表/客套)说这款机型为什么适合"这位用户", 结合其画像与商品卖点, 口语化直给。无画像则按机型亮点给通用一句话适配点。';
+  const usr = '商品：' + row.name + '｜¥' + (row.price||'-') + '｜' + (row.description||'').slice(0,120) + (profileText ? ('\n用户画像：' + profileText) : '\n(无画像, 给通用适配点)');
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role:'system', content: sys }, { role:'user', content: usr }],
+    max_tokens: 80, temperature: 0.5, thinking: { type: 'disabled' }
+  });
+  const https = require('https');
+  const r2 = https.request({
+    hostname: 'ark.cn-beijing.volces.com', path: '/api/coding/v3/chat/completions', method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+  }, (ar) => {
+    let data = ''; ar.on('data', c => data += c);
+    ar.on('end', () => {
+      try { const j = JSON.parse(data); const reason = (j.choices?.[0]?.message?.content || '').trim().replace(/^["'「『]|["'」』]$/g,''); res.json({ reason: reason || '' }); }
+      catch (e) { res.json({ reason: '' }); }
+    });
+  });
+  r2.on('error', () => res.json({ reason: '' }));
+  r2.setTimeout(15000, () => { r2.destroy(); res.json({ reason: '' }); });
+  r2.write(body); r2.end();
+});
+
+function normalizeLenovoUrl(url) {
+  if (!url) return '';
+  const text = String(url).trim();
+  if (!text) return '';
+  if (text.startsWith('//')) return 'https:' + text;
+  if (text.startsWith('http://')) return text.replace(/^http:\/\//, 'https://');
+  return text;
+}
+
+function canonicalProductUrl(row) {
+  if (!row) return '';
+  let specs = {};
+  try { specs = JSON.parse(row.specs || '{}'); } catch {}
+  const candidates = [specs.url, specs.pcDetailUrl, specs.wapUrl, specs.mobileUrl]
+    .map(normalizeLenovoUrl)
+    .filter(Boolean);
+  const preferred = candidates.find(u => /\/\/(b|item|tk)\.lenovo\.com\.cn\//.test(u)) || candidates[0];
+  if (row.status !== 'active') {
+    return 'https://s.lenovo.com.cn/search/?key=' + encodeURIComponent(row.name || row.sku || '联想');
+  }
+  return preferred || (row.sku ? `https://item.lenovo.com.cn/product/${row.sku}.html` : '');
+}
+
+// 链接解析：把模型可能写错的联想商品页，按 SKU 修正为产品库里的真实 URL
+app.get('/api/resolve-link', (req, res) => {
+  const raw = normalizeLenovoUrl(req.query.url);
+  if (!raw) return res.status(400).json({ error: 'missing url' });
+  let parsed;
+  try { parsed = new URL(raw); } catch { return res.status(400).json({ error: 'invalid url' }); }
+
+  let resolved = raw;
+  let source = 'input';
+  let product = null;
+  const productMatch = parsed.pathname.match(/\/product\/(\d+)\.html/i);
+  if (/lenovo\.com\.cn$/i.test(parsed.hostname) && productMatch) {
+    const sku = productMatch[1];
+    const row = db.prepare('SELECT sku, name, status, specs FROM products WHERE sku = ?').get(sku);
+    if (row) {
+      const canonical = canonicalProductUrl(row);
+      if (canonical) {
+        resolved = canonical;
+        source = 'products';
+        product = { sku: row.sku, name: row.name, status: row.status };
+      }
+    }
+  }
+
+  res.json({ url: resolved, changed: resolved !== raw, source, product });
+});
+
+// Preview proxy — 绕过外部站点 X-Frame-Options 限制
+app.get('/api/preview', async (req, res) => {
+  const url = req.query.url;
+  if (!url || !/^https?:\/\//.test(url)) return res.status(400).send('Invalid URL');
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000)
+    });
+    const ct = resp.headers.get('content-type') || 'text/html';
+    if (ct.includes('text/html')) {
+      let html = await resp.text();
+      const origin = new URL(url).origin;
+      if (!html.includes('<base')) {
+        html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${origin}/">`);
+      }
+      res.set('Content-Type', 'text/html; charset=utf-8');
+      res.send(html);
+    } else {
+      res.set('Content-Type', ct);
+      const buf = Buffer.from(await resp.arrayBuffer());
+      res.send(buf);
+    }
+  } catch(e) {
+    res.status(502).send('Preview failed: ' + e.message);
+  }
+});
 
 // SPA fallback
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/admin/index.html'));
+  res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
 });
 app.get('/admin/*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/admin/index.html'));
+  res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
 });
 // Share page
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
-app.get('/*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+// lxHint 形态配置（legacy 旧浮窗 / chip 新情境转化条 / off 关闭）— 改 config/lxhint.json 即时生效，无需重启
+app.get('/api/config/lxhint', (req, res) => {
+  let mode = 'chip';
+  try { mode = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'config/lxhint.json'), 'utf8')).mode || 'chip'; } catch (e) {}
+  if (['legacy', 'chip', 'off'].indexOf(mode) < 0) mode = 'chip';
+  res.set('Cache-Control', 'no-store');
+  res.json({ mode });
 });
+// SPA 兜底彻底禁缓存：no-store + 关 ETag/Last-Modified 防 304 命中旧
+function _sendIndexNoCache(res) {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.removeHeader('ETag');
+  res.removeHeader('Last-Modified');
+  res.sendFile(path.join(__dirname, 'public/index.html'), { etag: false, lastModified: false, cacheControl: false });
+}
+// 三子站 — 复用主页，前端根据 URL 前缀切换导航和内容
+for (const prefix of ['/shop-chat', '/b-chat', '/biz-chat']) {
+  app.get(prefix, (req, res) => _sendIndexNoCache(res));
+  app.get(prefix + '/*path', (req, res) => _sendIndexNoCache(res));
+}
+app.get('/*path', (req, res) => _sendIndexNoCache(res));
 
 // 记录活跃请求数量，用于优雅关闭
 let activeRequests = 0;
 app.use((req, res, next) => {
   activeRequests++;
-  res.on('finish', () => { activeRequests--; });
-  res.on('close', () => { activeRequests--; });
+  // close 在响应结束或连接断开时必触发一次；用 once 防重复递减导致计数漂负
+  res.once('close', () => { activeRequests--; });
   next();
 });
 
@@ -159,8 +363,19 @@ const server = app.listen(PORT, () => {
 });
 
 // 优雅关闭
+let shuttingDown = false;
 function gracefulShutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.log(`\n[Shutdown] 收到 ${signal} 信号，开始优雅关闭...`);
+
+  // 硬兜底：无论 checkAndExit 是否卡住，deadline+2s 后强制退出，
+  // 防止进程僵死（listener 已关但进程不退，pm2 误报 online → nginx 502）
+  const hardKill = setTimeout(() => {
+    console.error('[Shutdown] 硬超时，强制退出');
+    process.exit(1);
+  }, 12000);
+  hardKill.unref();
 
   // 停止接收新连接
   server.close(() => {
