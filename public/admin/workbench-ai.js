@@ -65,7 +65,7 @@ function restoreAIState() {
 function newAiConversation() {
   STATE.aiConvId = null;
   const container = document.getElementById('ai-messages');
-  container.innerHTML = '<div class="ai-msg assistant"><div class="bubble">新对话已开启。有什么可以帮你的？</div></div>';
+  container.innerHTML = `<div class="ai-msg assistant"><div class="bubble">${aiCurrentWelcomeHtml()}</div></div>`;
 }
 
 function aiQuick(text) {
@@ -74,16 +74,154 @@ function aiQuick(text) {
   aiSend();
 }
 
+function aiCurrentWelcomeHtml() {
+  const page = STATE.currentPage;
+  if (page === 'dashboard.overview') {
+    return '我会基于当前运营总览的时间范围、核心指标、链路转化、分业务和分平台数据做分析。你也可以填写阶段目标，我会一起评估目标缺口和动作优先级。';
+  }
+  if (page === 'ops.traffic') {
+    return '我会基于当前流量分析页的时间范围、DAU/MAU、登录互动、媒体TOP10、端口和业务流量结构回答问题。';
+  }
+  if (page === 'ops.gmv') {
+    return '我会基于当前GMV分析页的时间范围、GMV趋势、购买人数、分业务和官网/非官网结构回答问题。';
+  }
+  return '你好！我是乐享 AI 助手。你可以让我导航、查数据、生成报告，或基于当前页面做分析。';
+}
+
+function aiShortcutItemsForPage(page) {
+  if (page === 'dashboard.overview') {
+    return [
+      { label: '总览解读', text: '基于当前运营总览看板，分析主要趋势、风险和机会。' },
+      { label: '链路瓶颈', text: '基于当前运营总览看板，找出登录、互动、购买、GMV链路中的最大瓶颈。' },
+      { label: '增长动作', text: '基于当前运营总览看板，给出未来两周最优先的运营动作。' },
+      { label: '补数建议', text: '基于当前运营总览看板，指出还缺少哪些数据才能判断问题原因。' }
+    ];
+  }
+  if (page === 'ops.traffic') {
+    return [
+      { label: '入口贡献', text: '当前时间范围内，哪些入口贡献最大？这些入口的登录和互动质量怎么样？' },
+      { label: '媒体TOP10', text: '分析监测媒体TOP10的访问、登录、互动贡献，并给出优化建议。' },
+      { label: '登录转化', text: '当前流量的登录率和互动率是否异常？瓶颈在哪里？' },
+      { label: '端口结构', text: '分端口流量结构有什么变化？APP、WAP、PC分别应该怎么优化？' },
+      { label: '补数建议', text: '流量分析还缺哪些数据，才能判断渠道质量和转化原因？' }
+    ];
+  }
+  if (page === 'ops.gmv') {
+    return [
+      { label: 'GMV解读', text: '基于当前GMV分析看板，分析GMV趋势、风险和机会。' },
+      { label: '业务贡献', text: '消费、SMB、政企业务谁在拉动GMV，谁拖后腿？' },
+      { label: '平台结构', text: '官网和非官网GMV结构是否健康？下一步怎么优化？' },
+      { label: '目标缺口', text: '如果阶段目标是GMV提升10%，当前看板显示最大的缺口在哪里？' }
+    ];
+  }
+  return [
+    { label: '今日指标', text: '今日核心指标' },
+    { label: '查数据', text: '最近7天订单按渠道汇总' },
+    { label: '商品管理', text: '打开商品管理' },
+    { label: '知识库', text: '打开知识库' },
+    { label: 'CMS', text: '打开页面管理' },
+    { label: '运营建议', text: '本周运营建议' }
+  ];
+}
+
+function aiRefreshPageAssistant() {
+  const shortcuts = document.getElementById('ai-shortcuts');
+  if (shortcuts) {
+    const items = aiShortcutItemsForPage(STATE.currentPage);
+    shortcuts.innerHTML = items.map((item, i) => `<span class="ai-shortcut" data-ai-shortcut="${i}">${escapeHtml(item.label).replace(/<br>/g, '')}</span>`).join('');
+    shortcuts.querySelectorAll('[data-ai-shortcut]').forEach(el => {
+      el.addEventListener('click', () => {
+        const item = items[Number(el.dataset.aiShortcut)];
+        if (item) aiQuick(item.text);
+      });
+    });
+  }
+
+  const bar = document.getElementById('ai-page-context');
+  if (!bar) return;
+  const page = STATE.currentPage;
+  if (page === 'dashboard.overview') {
+    const saved = localStorage.getItem('ai_goal_dashboard_overview') || '';
+    bar.style.display = '';
+    bar.innerHTML = `
+      <div class="ai-goal-card">
+        <div class="ai-goal-head">
+          <span>阶段目标</span>
+          <button type="button" onclick="aiSendGoalAnalysis()">分析</button>
+        </div>
+        <textarea id="ai-stage-goal" rows="2" placeholder="例如：近30天GMV提升10%，互动率不下降">${escapeHtml(saved).replace(/<br>/g, '\n')}</textarea>
+      </div>`;
+    const input = document.getElementById('ai-stage-goal');
+    if (input) input.addEventListener('input', () => localStorage.setItem('ai_goal_dashboard_overview', input.value.trim()));
+  } else {
+    bar.style.display = 'none';
+    bar.innerHTML = '';
+  }
+}
+
+function aiPageGoal() {
+  const el = document.getElementById('ai-stage-goal');
+  return (el?.value || '').trim();
+}
+
+function aiSendGoalAnalysis() {
+  if (!STATE.aiOpen) toggleAI(true);
+  const goal = aiPageGoal();
+  if (!goal) {
+    addAiMessage('assistant', '先填一个阶段目标，比如“近30天GMV提升10%，互动率不下降”。');
+    return;
+  }
+  const input = document.getElementById('ai-input');
+  input.value = `我的阶段目标是：${goal}。请基于当前运营总览看板评估目标达成路径、关键指标缺口、优先动作和需要补充的数据。`;
+  aiSend();
+}
+
+function aiBuildPageContextForMessage() {
+  const goal = aiPageGoal();
+  if (STATE.currentPage === 'dashboard.overview' && typeof leaiCurrentOverviewAiContext === 'function') {
+    return leaiCurrentOverviewAiContext(goal);
+  }
+  if (STATE.currentPage === 'ops.traffic' && typeof opsCurrentTrafficAiContext === 'function') {
+    return opsCurrentTrafficAiContext(goal);
+  }
+  if (STATE.currentPage === 'ops.gmv' && typeof opsCurrentGmvAiContext === 'function') {
+    return opsCurrentGmvAiContext(goal);
+  }
+  return '';
+}
+
+function aiHasLeaiOpsContext() {
+  return ['dashboard.overview', 'ops.traffic', 'ops.gmv'].includes(STATE.currentPage);
+}
+
+function aiAttachPageContext(msgForApi, hadFile) {
+  if (hadFile) return msgForApi;
+  const context = aiBuildPageContextForMessage();
+  if (!context) return msgForApi;
+  return `【乐享运营看板上下文】
+以下数据来自当前页面已选择的时间范围和筛选条件，是本轮回答的可信数据源。不要改用通用统计覆盖这些数据；没有提供的数据请明确说缺少，并说明应向业务补充什么。
+
+${context}
+
+【用户问题】
+${msgForApi}
+
+【回答要求】
+1. 只基于上述页面数据和用户问题做分析，不要编造未提供的数据。
+2. 先给结论，再说明关键证据、可能原因、建议动作。
+3. 如果判断原因还需要更多数据，列出需要补充的数据口径和用途。`;
+}
+
 // AI导航指令映射 — 自然语言→页面ID
 const AI_NAV_MAP = [
   { keywords: ['运营总览','数据总览','dashboard','首页','大盘','概览'], page: 'dashboard.overview' },
   { keywords: ['geo','seo','搜索引擎','站外'], page: 'dashboard.geo' },
-  { keywords: ['query分析','查询分析','query','热词'], page: 'dashboard.query' },
+  { keywords: ['query分析','查询分析','query','热词','标注看板','数据标注','标注'], page: 'pipeline.annotate' },
   { keywords: ['客户行为','行为分析','漏斗','留存'], page: 'dashboard.behavior' },
-  { keywords: ['query分析看板','标注看板','数据标注','标注'], page: 'pipeline.annotate' },
   { keywords: ['统计分析','统计','数据统计'], page: 'pipeline.stats' },
   { keywords: ['口令过滤','过滤口令','去口令'], page: 'pipeline.filter' },
   { keywords: ['监控看板','监控','流水线','pipeline监控','流水线监控'], page: 'pipeline.monitor' },
+  { keywords: ['质量分析','质量','满意度','性能','异常','评分','osat','nps'], page: 'pipeline.quality' },
 ];
 
 function aiTryNavigate(text) {
@@ -112,6 +250,137 @@ function aiTryNavigate(text) {
       }
     }
   }
+  return null;
+}
+
+function aiTryLocalCommand(text) {
+  const lower = text.toLowerCase().trim();
+  const isAdmin = STATE.permissions.includes('*');
+
+  // 日期解析
+  function parseDateRange(input) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const fmt = d => d.toISOString().slice(0,10);
+    const m = input.match(/昨[天日]/); if (m) { const d = new Date(today-86400000); return {from:fmt(d),to:fmt(d),label:'昨天'}; }
+    const m7 = input.match(/近\s*(\d+)\s*天/); if (m7) { const n=parseInt(m7[1]); return {from:fmt(new Date(today-n*86400000)),to:fmt(today),label:`近${n}天`}; }
+    if (/近7天|7天/.test(input)) return {from:fmt(new Date(today-7*86400000)),to:fmt(today),label:'近7天'};
+    if (/近30天|30天/.test(input)) return {from:fmt(new Date(today-30*86400000)),to:fmt(today),label:'近30天'};
+    if (/本周/.test(input)) { const d=today.getDay()||7; return {from:fmt(new Date(today-(d-1)*86400000)),to:fmt(today),label:'本周'}; }
+    if (/上周/.test(input)) { const d=today.getDay()||7; return {from:fmt(new Date(today-(d+6)*86400000)),to:fmt(new Date(today-d*86400000)),label:'上周'}; }
+    if (/本月/.test(input)) { const y=today.getFullYear(),m=today.getMonth(); return {from:fmt(new Date(y,m,1)),to:fmt(today),label:'本月'}; }
+    if (/上月/.test(input)) { const y=today.getFullYear(),m=today.getMonth(); return {from:fmt(new Date(y,m-1,1)),to:fmt(new Date(y,m,0)),label:'上月'}; }
+    return null;
+  }
+
+  // 帮我标注
+  if (/^(帮我标注|开始标注|上传标注|标注文件)$/.test(lower)) {
+    switchPage('pipeline.task');
+    setTimeout(() => { const el = document.getElementById('task-upload'); if (el) el.click(); }, 300);
+    return '📁 已打开标注页面，请选择要标注的文件';
+  }
+  // 标注记录
+  if (/^(标注记录|标注历史|标注任务)$/.test(lower)) {
+    switchPage('pipeline.task');
+    return '📋 已打开标注记录';
+  }
+  // 导出数据
+  if (/^(导出|导出数据|下载|下载数据)$/.test(lower)) {
+    return '请选择导出格式：\n- **标注明细** → 详细的每条query分类结果\n- **分类占比** → 一级分类分布统计\n- **三级分类** → 细分类别分布\n\n请在聊天中告诉我你要哪种格式，或直接在看板页面点击导出按钮。';
+  }
+  // 二级分类
+  if (/^(二级分类|细分类别|意图分析)$/.test(lower)) {
+    switchPage('pipeline.stats');
+    setTimeout(() => { const el = document.getElementById('stats-upload'); if (el) el.click(); }, 300);
+    return '📊 已打开二级分类分析页面，请上传已标注的文件';
+  }
+  // 更新看板
+  if (/^(更新看板|刷新看板|刷新数据)$/.test(lower)) {
+    if (!isAdmin) return '⚠️ 仅管理员可操作';
+    if (typeof initDashboard === 'function') { initDashboard(); return '✅ 看板数据已刷新'; }
+    return '⚠️ 当前不在看板页面，请先打开 Query 分析看板';
+  }
+  // 启动流水线
+  if (/^(启动流水线|开始流水线|开启流水线)$/.test(lower)) {
+    if (!isAdmin) return '⚠️ 仅管理员可操作';
+    switchPage('pipeline.monitor');
+    return '🚀 已打开流水线监控页面，请点击启动按钮';
+  }
+  // 总结标注结果
+  if (/^(总结|总结标注|总结结果|总结标注结果)$/.test(lower)) {
+    fetch('/api/pipeline/classify/tasks?user_id=' + (STATE.admin?.username || ''), { credentials: 'include' })
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(data => {
+        const tasks = data.tasks || [];
+        const done = tasks.filter(t => t.status === 'done');
+        if (done.length === 0) { addAiMessage('assistant', '暂无已完成的标注任务'); return; }
+        const latest = done[0];
+        fetch('/api/pipeline/classify/' + latest.task_id, { credentials: 'include' })
+          .then(r => r.ok ? r.json() : Promise.reject(r))
+          .then(task => {
+            const r = task.result || {};
+            let msg = `**最新标注结果** (${latest.filename})\n\n`;
+            msg += `- 总条数：${r.total || '-'}\n`;
+            msg += `- 意图不明：${r.unclear_count || 0}\n`;
+            if (r.llm_fixed_count) msg += `- LLM 兜底修正：${r.llm_fixed_count}\n`;
+            if (r.distribution) {
+              msg += '\n**一级分类分布：**\n';
+              for (const [k,v] of Object.entries(r.distribution).sort((a,b) => b[1]-a[1])) {
+                const pct = ((v / r.total) * 100).toFixed(1);
+                msg += `- ${k}：${v} (${pct}%)\n`;
+              }
+            }
+            if (r.issues?.length) msg += `\n⚠️ 问题：${r.issues.join('、')}`;
+            addAiMessage('assistant', msg);
+          })
+          .catch(() => addAiMessage('assistant', '获取标注详情失败'));
+      })
+      .catch(() => addAiMessage('assistant', '获取标注记录失败'));
+    return '⏳ 正在获取最近标注结果...';
+  }
+  // 日期+分析/分布/统计
+  const dateRange = parseDateRange(lower);
+  if (dateRange && /(分析|分布|统计|query|数据)/.test(lower) && !aiHasLeaiOpsContext()) {
+    const url = `/api/pipeline/stats/summary?from=${dateRange.from}&to=${dateRange.to}`;
+    fetch(url, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(data => {
+        if (data.error) { addAiMessage('assistant', `⚠️ ${data.error}`); return; }
+        let msg = `**${dateRange.label}统计** (${data.from} ~ ${data.to})\n\n`;
+        msg += `- 总 Query：${data.total_queries || 0}\n`;
+        msg += `- 总用户：${data.total_users || 0}\n`;
+        msg += `- 统计天数：${data.days || 0}\n`;
+        if (data.tag_dist && Object.keys(data.tag_dist).length) {
+          msg += '\n**一级分类分布：**\n';
+          for (const [k,v] of Object.entries(data.tag_dist).sort((a,b) => b[1]-a[1])) {
+            msg += `- ${k}：${v}\n`;
+          }
+        }
+        if (data.tag_dist_active && Object.keys(data.tag_dist_active).length) {
+          msg += '\n**主动query分类：**\n';
+          for (const [k,v] of Object.entries(data.tag_dist_active).sort((a,b) => b[1]-a[1])) {
+            msg += `- ${k}：${v}\n`;
+          }
+        }
+        addAiMessage('assistant', msg);
+      })
+      .catch(() => addAiMessage('assistant', '获取统计数据失败，可能暂无该时段数据'));
+    return `⏳ 正在查询${dateRange.label}统计数据...`;
+  }
+  // 热重载
+  if (['热重载', '重载规则', 'reload', '热加载', '重新加载规则'].includes(lower)) {
+    if (!isAdmin) return '⚠️ 热重载仅管理员可用';
+    fetch('/api/pipeline/classify/rules/status', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(data => {
+        const msg = data.files.map(f => `• \`${f.path}\` — 修改时间 ${f.mtime}`).join('\n');
+        addAiMessage('assistant', `✅ 标注规则已就绪，下次标注将直接使用最新规则。\n\n规则文件：\n${msg}`);
+      })
+      .catch(() => {
+        addAiMessage('assistant', '✅ 标注规则热重载完成。每次标注会从磁盘实时读取规则文件，修改后无需重启服务，下次标注自动生效。');
+      });
+    return '⏳ 正在检查规则文件...';
+  }
+
   return null;
 }
 
@@ -202,6 +471,7 @@ function aiSend() {
   // 构建用户消息（含文件）
   let userMsg = text;
   let msgForApi = text;
+  const hadFile = !!_aiPendingFile;
   if (_aiPendingFile) {
     const fileInfo = '📎 ' + _aiPendingFile.name;
     userMsg = text ? fileInfo + '\n' + text : fileInfo;
@@ -216,7 +486,14 @@ function aiSend() {
   input.value = '';
   aiClearFile();
 
-  // 先尝试本地导航指令
+  // 先尝试本地命令（热重载、标注等）
+  const localResult = aiTryLocalCommand(text);
+  if (localResult) {
+    addAiMessage('assistant', localResult);
+    return;
+  }
+
+  // 再尝试本地导航指令
   const navResult = aiTryNavigate(text);
   if (navResult) {
     addAiMessage('assistant', navResult);
@@ -230,11 +507,13 @@ function aiSend() {
   document.getElementById('ai-messages').appendChild(typing);
   scrollAiToBottom();
 
+  msgForApi = aiAttachPageContext(msgForApi, hadFile);
+
   // 流式调用 Harness Chat API
-  streamHarnessChat(msgForApi, typing);
+  streamHarnessChat(msgForApi, typing, userMsg);
 }
 
-async function streamHarnessChat(msgForApi, typingEl) {
+async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
   let streamMsgEl = null;
   let accumulated = '';
   let toolsUsed = [];
@@ -265,6 +544,7 @@ async function streamHarnessChat(msgForApi, typingEl) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: msgForApi,
+        displayMessage: displayMessage || msgForApi,
         convId: STATE.aiConvId,
         currentPage: STATE.currentPage,
         stream: true

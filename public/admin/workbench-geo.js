@@ -1,28 +1,84 @@
-// ===== GEO DASHBOARD JS (真实数据来自点亮AI /api/geo/overview) =====
-// 项目 project_id=143（联想乐享），通过 sources 参数切片不同站点
+// ===== GEO DASHBOARD JS (真实数据来自点亮AI /api/external/geo/*) =====
+// 项目 project_id=143（联想乐享）
 const GEO_PROJECT_ID = 143;
-// scope → sources 切片：all=不传（整体），leai=乐享站，official=官网
-const GEO_SOURCES = {
+// 2026-05-13 接口：overview 不再支持 period/sources，品牌口径用 brands 切片
+const GEO_BRANDS = {
   all: null,
-  leai: ['leai.lenovo.com.cn'],
-  official: ['www.lenovo.com.cn', 'shop.lenovo.com.cn'],
+  leai: '联想乐享',
+  official: '联想官网',
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
 const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible' };
 
-// 算时段窗口：用户选了用用户的，否则按 period（'7d'/'30d'）算 today 回推
+// 算时段窗口：用户选了用用户的，否则按接口默认口径从昨天往前回推
 function geoResolveDateRange() {
   if (geoState.startDate && geoState.endDate) return { start_date: geoState.startDate, end_date: geoState.endDate };
   const days = geoState.period === '7d' ? 7 : 30;
-  const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const end = new Date();
+  end.setDate(end.getDate() - 1);
   const start = new Date(end.getTime() - (days - 1) * 86400000);
-  return { start_date: fmt(start), end_date: fmt(end) };
+  return { start_date: geoFmtDate(start), end_date: geoFmtDate(end) };
 }
 const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', apple:'#555555', asus:'#00529b', xiaomi:'#ff6900', acer:'#83b81a', honor:'#d4003c' };
+const GEO_COMPETITOR_NAMES = { hp:'惠普', dell:'戴尔', huawei:'华为', apple:'苹果', asus:'华硕', xiaomi:'小米', acer:'宏碁', honor:'荣耀', oppo:'oppo', vivo:'vivo', samsung:'三星' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
 const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
+
+function geoFmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function geoSelectedModels() {
+  return geoState.platform === 'all' ? [] : geoState.platform.split(',').filter(Boolean);
+}
+
+function geoSelectedQuestion() {
+  return geoState.questions?.[0] || '';
+}
+
+function geoSelectedCompetitors() {
+  return (geoState.competitors || []).map(k => GEO_COMPETITOR_NAMES[k] || k).filter(Boolean);
+}
+
+function geoSyncCompetitorButtons() {
+  document.querySelectorAll('.geo-comp-pill').forEach(el => {
+    const brand = el.dataset.brand;
+    const active = geoState.competitors.includes(brand);
+    const color = GEO_COMPETITOR_COLORS[brand] || '#6b7280';
+    el.style.background = active ? color : '#fff';
+    el.style.color = active ? '#fff' : '#374151';
+    el.style.borderColor = active ? color : '#d1d5db';
+  });
+}
+
+function geoOverviewBody(models) {
+  const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
+  const pickedModels = models || geoSelectedModels();
+  if (pickedModels.length) body.models = pickedModels;
+  const brand = GEO_BRANDS[geoState.scope];
+  if (brand) body.brands = brand;
+  if (geoState.questions && geoState.questions.length) body.questions = geoState.questions;
+  const competitors = geoSelectedCompetitors();
+  if (competitors.length) body.competitors = competitors;
+  return body;
+}
+
+function geoSitesBody(extra = {}) {
+  const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange(), ...extra };
+  if (!body.model || body.model === 'all') delete body.model;
+  const q = geoSelectedQuestion();
+  if (q && !body.question) body.question = q;
+  return body;
+}
+
+function geoCitationsBody(extra = {}) {
+  const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange(), ...extra };
+  if (!body.model || body.model === 'all') delete body.model;
+  const q = geoSelectedQuestion();
+  if (q && !body.question) body.question = q;
+  return body;
+}
 
 function geoSetScope(el) {
   document.querySelectorAll('.geo-scope-tab').forEach(t => t.classList.remove('active'));
@@ -43,17 +99,7 @@ function geoTogglePlatform(el) {
   geoLoadData();
 }
 async function geoFetch(models) {
-  const body = { project_id: GEO_PROJECT_ID };
-  if (geoState.startDate && geoState.endDate) {
-    body.start_date = geoState.startDate;
-    body.end_date = geoState.endDate;
-  } else {
-    body.period = geoState.period || '30d';
-  }
-  if (models && models.length) body.models = models;
-  const srcs = GEO_SOURCES[geoState.scope];
-  if (srcs && srcs.length) body.sources = srcs;
-  if (geoState.questions && geoState.questions.length) body.questions = geoState.questions;
+  const body = geoOverviewBody(models);
   const resp = await fetch('/api/geo-dashboard/overview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,12 +113,12 @@ function geoSetPeriod(v) { geoState.period = v; geoState.startDate = null; geoSt
 function geoQuickPeriod(period) {
   const endEl = document.getElementById('geo-date-end');
   const endDate = endEl && endEl.value ? new Date(endEl.value) : new Date();
+  if (!endEl || !endEl.value) endDate.setDate(endDate.getDate() - 1);
   const days = period === '7d' ? 7 : 30;
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0,10);
-  geoState.startDate = fmt(startDate);
-  geoState.endDate = fmt(endDate);
+  geoState.startDate = geoFmtDate(startDate);
+  geoState.endDate = geoFmtDate(endDate);
   geoState.period = null;
   const startEl = document.getElementById('geo-date-start');
   if (startEl) startEl.value = geoState.startDate;
@@ -101,11 +147,12 @@ function geoInitDatePicker() {
   const startEl = document.getElementById('geo-date-start');
   const endEl = document.getElementById('geo-date-end');
   if (!startEl || !endEl || startEl.value) return;
-  const today = new Date();
-  const end = today.toISOString().slice(0,10);
-  const start = new Date(today);
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() - 1);
+  const end = geoFmtDate(endDate);
+  const start = new Date(endDate);
   start.setDate(start.getDate() - 29);
-  startEl.value = start.toISOString().slice(0,10);
+  startEl.value = geoFmtDate(start);
   endEl.value = end;
 }
 function geoSetQuestions(text) {
@@ -141,8 +188,9 @@ function geoFmtPct(v) { return (v == null || v === '' || isNaN(v)) ? '—' : (+v
 async function geoLoadData() {
   if (!document.getElementById('gv-brand-visible')) return;
   geoInitDatePicker();
+  geoSyncCompetitorButtons();
   geoSetStatus('加载中...');
-  const selectedModels = geoState.platform === 'all' ? [] : geoState.platform.split(',');
+  const selectedModels = geoSelectedModels();
   try {
     const data = await geoFetch(selectedModels);
     if (data.code !== 200) throw new Error(data.message || '请求失败');
@@ -157,14 +205,13 @@ async function geoLoadData() {
     // 第二步：剩余请求全部并发，互不阻塞
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
     const platSitesPromise = Promise.allSettled(GEO_PLATFORMS.map(p => {
-      const dr = geoResolveDateRange();
-      const b = { project_id: GEO_PROJECT_ID, model: p, ...dr };
+      const b = geoSitesBody({ model: p });
       return fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }).then(r => r.json());
     }));
     const sitesPromise = geoLoadSites();
     const citationsPromise = (async () => {
       try {
-        const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
+        const body = geoCitationsBody();
         const r = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
         geoState.citationsData = await r.json();
       } catch (e) { console.error('citations fetch', e); geoState.citationsData = null; }
@@ -277,6 +324,7 @@ function geoToggleCompetitor(el) {
     el.style.color = '#fff';
     el.style.borderColor = color;
   }
+  geoLoadData();
 }
 
 function geoSetCompare(mode) {
@@ -411,7 +459,7 @@ function geoCitesFromSites(sites) {
 
 async function geoLoadSites() {
   try {
-    const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
+    const body = geoSitesBody();
     // 全站点（treemap / site rank 用）
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
@@ -433,7 +481,7 @@ async function geoLoadSites() {
     set('gv-sites-total', lenovoSites.length.toLocaleString());
     // wiki/lenovo 引用数走 citations 接口（content_ecology_metrics），sites 域名合计不准
     try {
-      const citeResp = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const citeResp = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(geoCitationsBody()) });
       const citeJson = await citeResp.json();
       const cem = citeJson.content_ecology_metrics || {};
       set('gv-wiki-cite', (cem.wiki_citation_count || 0).toLocaleString());
@@ -502,7 +550,7 @@ const GEO_FIELD_LABELS = { brand_composite_exposure_rate:'品牌综合可见', b
 
 async function geoLoadQuestions() {
   try {
-    const body = { project_id: GEO_PROJECT_ID };
+    const body = { project_id: GEO_PROJECT_ID, date: geoResolveDateRange().end_date };
     const resp = await fetch('/api/geo-dashboard/questions', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) return;
@@ -611,7 +659,7 @@ async function geoLoadSourcePage(page) {
   const c = document.getElementById('geo-source-list');
   if (st) st.textContent = '加载中...';
   try {
-    const body = { project_id: GEO_PROJECT_ID, model: model === 'all' ? '' : model, page: geoSourcePage };
+    const body = geoSitesBody({ model: model === 'all' ? '' : model, page: geoSourcePage });
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) throw new Error(json.message);
@@ -639,7 +687,8 @@ async function geoLoadTrendChart() {
   if (!canvas) return;
   const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
   const platform = geoState.platform;
-  if (platform && platform !== 'all') body.model = platform.split(',')[0];
+  const models = geoSelectedModels();
+  if (platform && platform !== 'all' && models.length === 1) body.model = models[0];
   try {
     const resp = await fetch('/api/geo-dashboard/summary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();

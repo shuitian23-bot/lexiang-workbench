@@ -596,6 +596,8 @@ async function loadPendingCertifications() {
 
 // ===== 看板概览数据加载 =====
 function loadEmployeeOverview() {
+  DASHBOARD_STATE.currentMethod = null;
+
   // 演示统计数据（在实际应用中应从 API 获取）
   const stats = {
     total: 2847,
@@ -623,6 +625,7 @@ function loadEmployeeOverview() {
   document.getElementById('method-other').textContent = stats.methods.other.toLocaleString();
 
   // 加载表格数据
+  setupEmployeeOverviewExport();
   loadEmployeeOverviewTable();
 }
 
@@ -636,29 +639,23 @@ function loadEmployeeOverviewTable(page = 1) {
     const dateEnd = document.getElementById('emp-ov-date-end')?.value || '';
 
     // 使用完整演示数据
-    const allEmployees = generateEmployeeData();
+    const allEmployees = getEmployeeOverviewData();
     console.log('✓ 生成的员工数据条数:', allEmployees.length);
 
     // 应用过滤
-    let filtered = allEmployees;
+    let filtered = getFilteredEmployeeOverviewData(allEmployees);
 
-    if (nameFilter) {
-      filtered = filtered.filter(e => e.real_name.includes(nameFilter));
-    }
-    if (positionFilter) {
-      filtered = filtered.filter(e => (e.position || '').toLowerCase().includes(positionFilter));
-    }
-    if (companyFilter) {
-      filtered = filtered.filter(e => (e.company || '').toLowerCase().includes(companyFilter));
-    }
-    if (statusFilter && statusFilter !== '') {
-      filtered = filtered.filter(e => e.status === statusFilter);
-    }
-    if (dateStart) {
-      filtered = filtered.filter(e => (e.cert_time || '').substring(0, 10) >= dateStart);
-    }
-    if (dateEnd) {
-      filtered = filtered.filter(e => (e.cert_time || '').substring(0, 10) <= dateEnd);
+    if (nameFilter || positionFilter || companyFilter || statusFilter || dateStart || dateEnd) {
+      DASHBOARD_STATE.currentFilter = {
+        name: nameFilter,
+        position: positionFilter,
+        company: companyFilter,
+        status: statusFilter,
+        dateStart,
+        dateEnd
+      };
+    } else {
+      DASHBOARD_STATE.currentFilter = null;
     }
 
     console.log('✓ 过滤后的员工数据条数:', filtered.length);
@@ -717,6 +714,96 @@ const DASHBOARD_STATE = {
   currentMethod: null
 };
 
+let EMPLOYEE_OVERVIEW_DATA_CACHE = null;
+
+function getEmployeeOverviewData() {
+  if (!EMPLOYEE_OVERVIEW_DATA_CACHE) {
+    EMPLOYEE_OVERVIEW_DATA_CACHE = generateEmployeeData();
+  }
+  return EMPLOYEE_OVERVIEW_DATA_CACHE;
+}
+
+function getFilteredEmployeeOverviewData(sourceData = getEmployeeOverviewData()) {
+  const nameFilter = document.getElementById('emp-ov-search-name')?.value || '';
+  const positionFilter = (document.getElementById('emp-ov-search-position')?.value || '').toLowerCase();
+  const companyFilter = (document.getElementById('emp-ov-search-company')?.value || '').toLowerCase();
+  const statusFilter = document.getElementById('emp-ov-search-status')?.value || '';
+  const dateStart = document.getElementById('emp-ov-date-start')?.value || '';
+  const dateEnd = document.getElementById('emp-ov-date-end')?.value || '';
+
+  return sourceData.filter(emp => {
+    if (nameFilter && !(emp.real_name || '').includes(nameFilter)) return false;
+    if (positionFilter && !(emp.position || '').toLowerCase().includes(positionFilter)) return false;
+    if (companyFilter && !(emp.company || '').toLowerCase().includes(companyFilter)) return false;
+    if (statusFilter && emp.status !== statusFilter) return false;
+    if (dateStart && (emp.cert_time || '').substring(0, 10) < dateStart) return false;
+    if (dateEnd && (emp.cert_time || '').substring(0, 10) > dateEnd) return false;
+    if (DASHBOARD_STATE.currentMethod && emp.material_method_enum !== DASHBOARD_STATE.currentMethod) return false;
+    return true;
+  });
+}
+
+function setupEmployeeOverviewExport() {
+  const actionBar = document.getElementById('emp-ov-search-name')?.parentElement;
+  if (!actionBar || document.getElementById('emp-overview-export-btn')) return;
+
+  const exportBtn = document.createElement('button');
+  exportBtn.id = 'emp-overview-export-btn';
+  exportBtn.type = 'button';
+  exportBtn.className = 'btn btn-sm btn-primary';
+  exportBtn.textContent = '导出';
+  exportBtn.onclick = exportEmployeeOverview;
+  actionBar.appendChild(exportBtn);
+}
+
+function escapeEmployeeCsvValue(value) {
+  const text = value == null ? '' : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function exportEmployeeOverview() {
+  const rows = getFilteredEmployeeOverviewData();
+  if (!rows.length) {
+    alert('当前筛选条件下暂无可导出的员工数据');
+    return;
+  }
+
+  const columns = [
+    ['account', '账号'],
+    ['real_name', '真实姓名'],
+    ['lenovo_id', 'LenovoID'],
+    ['phone', '关联手机号'],
+    ['email', '邮箱'],
+    ['position', '岗位信息'],
+    ['company', '所属企业'],
+    ['dept_status', '职员认证状态'],
+    ['material_method', '认证方式'],
+    ['cert_time', '认证时间'],
+    ['current_status', '当前状态'],
+    ['id_no', '身份证号'],
+    ['company_code', '企业统一社会信用代码'],
+    ['register_time', '注册时间'],
+    ['member_level', '会员等级'],
+    ['activation_status', '激活状态']
+  ];
+
+  const csv = [
+    columns.map(([, title]) => escapeEmployeeCsvValue(title)).join(','),
+    ...rows.map(row => columns.map(([key]) => escapeEmployeeCsvValue(row[key])).join(','))
+  ].join('\n');
+
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `职场人群认证概览_${date}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function filterAndNavigate(status) {
   // 在看板页面内过滤表格
   const statusMap = {
@@ -726,9 +813,19 @@ function filterAndNavigate(status) {
     'pending': 'pending'
   };
 
-  document.getElementById('emp-search-name').value = '';
-  document.getElementById('emp-search-id').value = '';
-  document.getElementById('emp-search-status').value = statusMap[status] || '';
+  DASHBOARD_STATE.currentMethod = null;
+  const nameInput = document.getElementById('emp-ov-search-name');
+  const positionInput = document.getElementById('emp-ov-search-position');
+  const companyInput = document.getElementById('emp-ov-search-company');
+  const statusInput = document.getElementById('emp-ov-search-status');
+  const dateStartInput = document.getElementById('emp-ov-date-start');
+  const dateEndInput = document.getElementById('emp-ov-date-end');
+  if (nameInput) nameInput.value = '';
+  if (positionInput) positionInput.value = '';
+  if (companyInput) companyInput.value = '';
+  if (statusInput) statusInput.value = statusMap[status] || '';
+  if (dateStartInput) dateStartInput.value = '';
+  if (dateEndInput) dateEndInput.value = '';
   loadEmployeeOverviewTable();
 }
 
@@ -799,35 +896,8 @@ function generateEmployeeData() {
 function filterByMethod(method) {
   // 按认证方式筛选（在看板页面内过滤）
   try {
-    const allEmployees = generateEmployeeData();
-    const filtered = allEmployees.filter(e => e.material_method_enum === method);
-
-    // 分页
-    const pageSize = 20;
-    const totalPages = Math.ceil(filtered.length / pageSize) || 1;
-    const page = 1;
-    const startIdx = 0;
-    const paginatedData = filtered.slice(startIdx, startIdx + pageSize);
-
-    const tbody = document.getElementById('emp-overview-tbody');
-    if (!filtered || filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:20px;">暂无员工数据</td></tr>';
-      document.getElementById('emp-overview-count').textContent = '0';
-      document.getElementById('emp-overview-page').textContent = '1';
-      document.getElementById('emp-overview-total-pages').textContent = '1';
-      return;
-    }
-
-    tbody.innerHTML = paginatedData.map(emp => renderEmployeeRow(emp)).join('');
-    document.getElementById('emp-overview-count').textContent = filtered.length;
-    document.getElementById('emp-overview-page').textContent = page;
-    document.getElementById('emp-overview-total-pages').textContent = totalPages;
-
-    // 更新分页按钮状态
-    const prevBtn = document.getElementById('emp-overview-prev-btn');
-    const nextBtn = document.getElementById('emp-overview-next-btn');
-    if (prevBtn) prevBtn.disabled = true;
-    if (nextBtn) nextBtn.disabled = totalPages <= 1;
+    DASHBOARD_STATE.currentMethod = method;
+    loadEmployeeOverviewTable(1);
   } catch (e) {
     console.error('✗ 按方式筛选失败:', e);
   }

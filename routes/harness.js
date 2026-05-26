@@ -147,7 +147,8 @@ router.post('/sse/say', requireAdmin, async (req, res) => {
 
     const permissions = getUserPermissions(adminId);
     const skills = registry.getToolsForRole(permissions);
-    const llmTools = [
+    const hasPageContext = message.includes('【乐享运营看板上下文】');
+    const llmTools = hasPageContext ? [] : [
       { type: 'function', function: { name: 'query_stats', description: '查询运营统计数据', parameters: { type: 'object', properties: { type: { type: 'string', default: 'overview' } } } } },
       ...skills.map(s => ({ type: 'function', function: { name: s.name, description: s.description || s.name, parameters: s.input_schema || { type: 'object', properties: {} } } }))
     ];
@@ -481,6 +482,16 @@ ${skillList}
 - 查询运营指标 → 调用 query_stats
 - 生成报告/分析 → 直接用你的知识回答
 
+## 当前页面数据上下文
+
+如果用户消息中包含「【乐享运营看板上下文】」，其中的数据来自前端当前看板已渲染的指标、时间筛选和页面状态，等同于本轮已经查询到的工具结果。
+
+处理这类消息时：
+- 优先使用「乐享运营看板上下文」里的数据回答，不要再调用 query_stats 覆盖它
+- 分析必须围绕当前页面、当前时间范围和用户目标展开
+- 不要编造上下文里没有的数据；缺数据时明确说明缺少的字段、口径和建议由哪个业务侧补充
+- 回答要给运营可执行动作，而不是只复述指标
+
 ## 回复格式规范
 
 你的回复会被渲染为富文本卡片，请善用以下 markdown 格式：
@@ -513,6 +524,7 @@ ${skillList}
 | 搜知识/查文档 | knowledge_search | 不能编造文档链接 |
 | 导出/下载 | data_export | 不能只打印数据 |
 | 查统计/查运营数据 | query_stats | 不能编数字 |
+| 消息已包含「乐享运营看板上下文」 | 不需要工具，直接基于上下文分析 | 不能忽略当前页面数据 |
 
 ### 绝对禁止：
 1. **禁止编造数据** — 你没有通过工具查询就没有数据，不能根据上下文旧信息或训练知识编造
@@ -535,7 +547,7 @@ ${skillList}
 4. 如果没有合适的后续操作，就**不要**列建议，直接结束回答。宁可不建议也不要乱承诺。
 
 ## 规则
-1. 涉及具体数据 → 必须 tool_call，不能凭记忆
+1. 涉及具体数据 → 必须 tool_call，不能凭记忆；但用户消息已包含「乐享运营看板上下文」时，直接基于该上下文分析
 2. 涉及写操作 → 必须 tool_call，不能伪装
 3. 回答简洁有力，用结构化格式
 4. 始终用中文回答`;
@@ -543,8 +555,9 @@ ${skillList}
 
 // POST /api/harness/chat — 工作台 AI 助手（复用 Harness 会话架构）
 router.post('/chat', requireAdmin, async (req, res) => {
-  const { message, convId: clientConvId, currentPage = 'dashboard.overview', stream } = req.body;
+  const { message, displayMessage, convId: clientConvId, currentPage = 'dashboard.overview', stream } = req.body;
   if (!message) return res.status(400).json({ error: 'message required' });
+  const messageForHistory = String(displayMessage || message);
 
   // ===== 流式分支 =====
   if (stream) {
@@ -580,7 +593,8 @@ router.post('/chat', requireAdmin, async (req, res) => {
 
     const permissions = getUserPermissions(adminId);
     const skills = registry.getToolsForRole(permissions);
-    const llmTools = [
+    const hasPageContext = message.includes('【乐享运营看板上下文】');
+    const llmTools = hasPageContext ? [] : [
       { type: 'function', function: { name: 'query_stats', description: '查询运营统计数据', parameters: { type: 'object', properties: { type: { type: 'string', default: 'overview' } } } } },
       ...skills.map(s => ({ type: 'function', function: { name: s.name, description: s.description || s.name, parameters: s.input_schema || { type: 'object', properties: {} } } }))
     ];
@@ -588,7 +602,7 @@ router.post('/chat', requireAdmin, async (req, res) => {
 
     try {
       const { messages: historyMessages } = await buildContextMessages(convId, 'zh');
-      db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', message);
+      db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', messageForHistory);
       const contextMsgs = historyMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 
       // 第一轮非流式：判定是否有 tool_call
@@ -680,8 +694,9 @@ router.post('/chat', requireAdmin, async (req, res) => {
 
   const permissions = getUserPermissions(adminId);
   const skills = registry.getToolsForRole(permissions);
+  const hasPageContext = message.includes('【乐享运营看板上下文】');
 
-  const llmTools = [
+  const llmTools = hasPageContext ? [] : [
     {
       type: 'function',
       function: {
@@ -707,7 +722,7 @@ router.post('/chat', requireAdmin, async (req, res) => {
     const { messages: historyMessages } = await buildContextMessages(convId, 'zh');
 
     // 保存本轮 user 消息到 DB
-    db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', message);
+    db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', messageForHistory);
 
     const contextMsgs = historyMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 

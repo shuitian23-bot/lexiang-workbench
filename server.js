@@ -134,6 +134,7 @@ app.use('/api/pointer', require('./routes/pointer'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/geo-dashboard', adminLimiter, require('./routes/geo-dashboard'));
 app.use('/api/pipeline', adminLimiter, require('./routes/pipeline'));
+app.use('/api/supplier', require('./routes/supplier'));
 app.use('/api/site', require('./routes/feed'));
 app.use('/', require('./routes/sitemap'));
 

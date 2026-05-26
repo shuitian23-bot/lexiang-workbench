@@ -18,140 +18,524 @@ function renderPage(pageId) {
   }
 }
 
+const LEAI_DASH_STATE = {
+  overviewRange: '1d',
+  overviewCustomStart: '',
+  overviewCustomEnd: '',
+  overviewScenarioMode: 'all',
+  overviewProductMetric: 'views'
+};
+
+const LEAI_PRODUCT_ROWS = [
+  { name: 'ThinkPad X9-14 Aura AI元启版', views: 15847, buyers: 761, cvr: 4.8 },
+  { name: 'YOGA Air 14 Aura AI元启版', views: 13203, buyers: 700, cvr: 5.3 },
+  { name: '拯救者 R7000P 2025 AI元启', views: 11876, buyers: 487, cvr: 4.1 },
+  { name: '联想小新Pro14GT AI元启版', views: 9543, buyers: 305, cvr: 3.2 },
+  { name: 'ThinkPad P14s 2025 AI元启版', views: 7810, buyers: 203, cvr: 2.6 }
+];
+
+function leaiGetData() {
+  return typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
+}
+
+function leaiRangeSize(range) {
+  return range === '1d' ? 1 : range === '7d' ? 7 : range === '14d' ? 14 : 30;
+}
+
+function leaiRangeLabel(range) {
+  return ({ '1d': '最近1天', '7d': '最近7天', '14d': '最近14天', '30d': '最近30天', custom: '自定义' })[range] || '最近1天';
+}
+
+function leaiDataYear() {
+  const L = leaiGetData();
+  return (L?.updated || '2026').slice(0, 4);
+}
+
+function leaiRowIso(d) {
+  if (!d) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  const [m, day] = String(d).split('/');
+  return `${leaiDataYear()}-${String(m || '').padStart(2, '0')}-${String(day || '').padStart(2, '0')}`;
+}
+
+function leaiDateBounds(source) {
+  const L = leaiGetData();
+  const rows = source || L?.daily || [];
+  return {
+    min: leaiRowIso(rows[0]?.d || ''),
+    max: leaiRowIso(rows[rows.length - 1]?.d || '')
+  };
+}
+
+function leaiRows(range, source, customStart, customEnd) {
+  const L = leaiGetData();
+  const rows = source || L?.daily || [];
+  if ((range || '1d') === 'custom') {
+    const bounds = leaiDateBounds(rows);
+    const start = customStart || bounds.min;
+    const end = customEnd || bounds.max;
+    const lo = start <= end ? start : end;
+    const hi = start <= end ? end : start;
+    return rows.filter(r => {
+      const d = leaiRowIso(r.d);
+      return (!lo || d >= lo) && (!hi || d <= hi);
+    });
+  }
+  const n = Math.min(leaiRangeSize(range || '1d'), rows.length);
+  return rows.slice(-n);
+}
+
+function leaiSum(rows, key) {
+  return rows.reduce((s, r) => s + (Number(r?.[key]) || 0), 0);
+}
+
+function leaiAvg(rows, key) {
+  return rows.length ? Math.round(leaiSum(rows, key) / rows.length) : 0;
+}
+
+function leaiFmtW(v) {
+  v = Number(v) || 0;
+  return v >= 10000 ? (v / 10000).toFixed(1) + '万' : v.toLocaleString();
+}
+
+function leaiFmtY(v) {
+  v = Number(v) || 0;
+  return v >= 100000000 ? (v / 100000000).toFixed(2) + '亿' : v >= 10000 ? (v / 10000).toFixed(1) + '万' : v.toLocaleString();
+}
+
+function leaiFmtPct(part, total) {
+  return total ? (part / total * 100).toFixed(1) + '%' : '-';
+}
+
+function leaiPeriodText(rows) {
+  const first = rows[0]?.d || '';
+  const last = rows[rows.length - 1]?.d || '';
+  const toFull = d => d ? '2026.' + d.replace('/', '.') : '-';
+  return first === last ? toFull(last) : `${toFull(first)} - ${toFull(last)}`;
+}
+
+function leaiBuildSummary(range, customStart, customEnd) {
+  const rows = leaiRows(range, undefined, customStart, customEnd);
+  return {
+    rows,
+    dau: leaiAvg(rows, 'dau'),
+    wau: leaiAvg(rows, 'wau'),
+    mau: leaiAvg(rows, 'mau'),
+    login: leaiSum(rows, 'login'),
+    loginAvg: leaiAvg(rows, 'login'),
+    inter: leaiSum(rows, 'inter'),
+    interAvg: leaiAvg(rows, 'inter'),
+    buy: leaiSum(rows, 'buy'),
+    gmv: leaiSum(rows, 'gmv'),
+    offGmv: leaiSum(rows, 'offGmv'),
+    nonGmv: leaiSum(rows, 'nonGmv'),
+    offBuy: leaiSum(rows, 'offBuy'),
+    nonBuy: leaiSum(rows, 'nonBuy'),
+    loginM: leaiAvg(rows, 'loginM'),
+    interM: leaiAvg(rows, 'interM')
+  };
+}
+
+function leaiBizSummary(rows, source) {
+  const dates = new Set(rows.map(r => r.d));
+  const picked = (source || []).filter(r => dates.has(r.d));
+  return { gmv: leaiSum(picked, 'gmv'), buy: leaiSum(picked, 'buy'), login: leaiSum(picked, 'login'), inter: leaiSum(picked, 'inter') };
+}
+
+function leaiDistributeAmount(total, weights) {
+  total = Math.max(0, Math.round(Number(total) || 0));
+  const sum = weights.reduce((s, v) => s + (Number(v) || 0), 0);
+  const shares = sum ? weights.map(v => (Number(v) || 0) / sum) : weights.map(() => 1 / Math.max(weights.length, 1));
+  const raw = shares.map(v => v * total);
+  const ints = raw.map(Math.floor);
+  let left = total - ints.reduce((s, v) => s + v, 0);
+  raw.map((v, i) => ({ i, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac)
+    .forEach(({ i }) => { if (left > 0) { ints[i] += 1; left -= 1; } });
+  return ints;
+}
+
+function leaiBizTradeSummaries(rows) {
+  const L = leaiGetData();
+  const meta = [
+    { key: 'consumer', label: '消费业务', source: L?.consumer || [], color: '#2563eb' },
+    { key: 'smb', label: 'SMB 业务', source: L?.smb || [], color: '#f59e0b' },
+    { key: 'gov', label: '政企业务', source: L?.gov || [], color: '#8b5cf6' }
+  ];
+  const loginRows = meta.map(m => ({ ...m, ...leaiBizSummary(rows, m.source) }));
+  const loginGmvTotal = loginRows.reduce((s, r) => s + r.gmv, 0);
+  const loginBuyTotal = loginRows.reduce((s, r) => s + r.buy, 0);
+  const extraGmv = Math.max(0, leaiSum(rows, 'gmv') - loginGmvTotal);
+  const extraBuy = Math.max(0, leaiSum(rows, 'buy') - loginBuyTotal);
+  const gmvAdds = leaiDistributeAmount(extraGmv, loginRows.map(r => r.gmv));
+  const buyAdds = leaiDistributeAmount(extraBuy, loginRows.map(r => r.buy));
+  return loginRows.map((r, i) => ({
+    ...r,
+    loginGmv: r.gmv,
+    loginBuy: r.buy,
+    platformGmv: gmvAdds[i],
+    platformBuy: buyAdds[i],
+    gmv: r.gmv + gmvAdds[i],
+    buy: r.buy + buyAdds[i]
+  }));
+}
+
+function leaiMetricDelta(rows, key) {
+  if (rows.length < 2) return '单日快照';
+  const first = Number(rows[0]?.[key]) || 0;
+  const last = Number(rows[rows.length - 1]?.[key]) || 0;
+  if (!first) return '较首日 -';
+  const pct = (last - first) / first * 100;
+  return `较首日 ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+}
+
+function leaiSparklineHtml(rows, key, label, fmt, displayValue, subText) {
+  const vals = rows.map(r => Number(r?.[key]) || 0);
+  const max = Math.max(...vals, 1);
+  const value = displayValue == null ? (vals[vals.length - 1] || 0) : displayValue;
+  return `<div class="dash-spark-card">
+    <div class="dash-spark-head"><span>${label}</span><b>${fmt(value)}</b></div>
+    <div class="dash-spark-bars">
+      ${vals.map((v, i) => `<span title="${rows[i]?.d || ''} ${fmt(v)}" style="height:${Math.max(v / max * 100, 4)}%"></span>`).join('')}
+    </div>
+    <div class="dash-spark-sub">${subText || leaiMetricDelta(rows, key)}</div>
+  </div>`;
+}
+
+function leaiScenarioRows(summary) {
+  const mode = LEAI_DASH_STATE.overviewScenarioMode;
+  const total = mode === 'active' ? summary.login : summary.inter;
+  const weights = mode === 'active'
+    ? [0.16, 0.31, 0.18, 0.09, 0.12, 0.14]
+    : [0.20, 0.27, 0.16, 0.10, 0.13, 0.14];
+  return ['会员', '电商', '服务', '门店', '方案', '咨询'].map((name, i) => ({
+    name,
+    value: Math.round(total * weights[i])
+  }));
+}
+
+function leaiScenarioChartHtml(summary) {
+  const rows = leaiScenarioRows(summary);
+  const max = Math.max(...rows.map(r => r.value), 1);
+  const pill = mode => `dash-pill ${LEAI_DASH_STATE.overviewScenarioMode === mode ? 'active' : ''}`;
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Query 场景分布</div>
+      <div class="dash-filter-bar">
+        <button class="${pill('all')}" onclick="leaiSetScenarioMode('all')">整体</button>
+        <button class="${pill('active')}" onclick="leaiSetScenarioMode('active')">主动</button>
+      </div>
+    </div>
+    <div class="dash-bar-chart">
+      ${rows.map(r => `<div class="dash-bar-item">
+        <div class="dash-bar-value">${leaiFmtW(r.value)}</div>
+        <div class="dash-bar" style="height:${Math.max(r.value / max * 128, 12)}px"></div>
+        <div class="dash-bar-label">${r.name}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function leaiProductTableHtml() {
+  const metric = LEAI_DASH_STATE.overviewProductMetric;
+  const pill = m => `dash-pill ${metric === m ? 'active' : ''}`;
+  const sorted = [...LEAI_PRODUCT_ROWS].sort((a, b) => {
+    if (metric === 'buyers') return b.buyers - a.buyers;
+    if (metric === 'cvr') return b.cvr - a.cvr;
+    return b.views - a.views;
+  });
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">热门商品 TOP5</div>
+      <div class="dash-filter-bar">
+        <button class="${pill('views')}" onclick="leaiSetProductMetric('views')">浏览</button>
+        <button class="${pill('buyers')}" onclick="leaiSetProductMetric('buyers')">购买</button>
+        <button class="${pill('cvr')}" onclick="leaiSetProductMetric('cvr')">转化率</button>
+      </div>
+    </div>
+    <table>
+      <tr><th>商品</th><th>浏览量</th><th>购买人数</th><th>转化率</th></tr>
+      ${sorted.map(p => `<tr><td>${p.name}</td><td>${p.views.toLocaleString()}</td><td>${p.buyers.toLocaleString()}</td><td><span class="badge ${p.cvr >= 4 ? 'status-on' : 'status-warn'}">${p.cvr.toFixed(1)}%</span></td></tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+function leaiAiNum(v) {
+  return (Number(v) || 0).toLocaleString();
+}
+
+function leaiAiMoney(v) {
+  return leaiFmtY(v) + ` (${leaiAiNum(v)}元)`;
+}
+
+function leaiAiPct(part, total) {
+  return total ? (part / total * 100).toFixed(2) + '%' : '-';
+}
+
+function leaiAiTrend(rows, key, fmt) {
+  if (!rows || rows.length === 0) return `${key}: 无数据`;
+  const first = Number(rows[0]?.[key]) || 0;
+  const last = Number(rows[rows.length - 1]?.[key]) || 0;
+  const values = rows.map(r => Number(r?.[key]) || 0);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const maxRow = rows[values.indexOf(max)];
+  const minRow = rows[values.indexOf(min)];
+  const change = first ? ((last - first) / first * 100).toFixed(1) + '%' : '-';
+  return `${fmt(first)} -> ${fmt(last)}，首尾变化 ${change}，峰值 ${fmt(max)}(${maxRow?.d || '-'})，低点 ${fmt(min)}(${minRow?.d || '-'})`;
+}
+
+function leaiAiTopDays(rows, key, fmt, n = 3) {
+  return [...(rows || [])]
+    .sort((a, b) => (Number(b?.[key]) || 0) - (Number(a?.[key]) || 0))
+    .slice(0, n)
+    .map(r => `${r.d}:${fmt(r[key])}`)
+    .join('、') || '-';
+}
+
+function leaiCurrentOverviewAiContext(goal) {
+  const L = leaiGetData();
+  if (!L) return '';
+  const range = LEAI_DASH_STATE.overviewRange;
+  const bounds = leaiDateBounds();
+  const customStart = LEAI_DASH_STATE.overviewCustomStart || bounds.min;
+  const customEnd = LEAI_DASH_STATE.overviewCustomEnd || bounds.max;
+  const summary = leaiBuildSummary(range, customStart, customEnd);
+  const rows = summary.rows || [];
+  const [consumer, smb, gov] = leaiBizTradeSummaries(rows);
+  const platformTotal = summary.offGmv + summary.nonGmv;
+  const activeBase = summary.dau * Math.max(rows.length, 1);
+  const aov = summary.buy ? Math.round(summary.gmv / summary.buy) : 0;
+  const productRows = [...LEAI_PRODUCT_ROWS].sort((a, b) => b.buyers - a.buyers).slice(0, 5);
+
+  return [
+    `页面: 乐享运营 / 运营总览`,
+    `时间范围: ${leaiRangeLabel(range)}，${leaiPeriodText(rows)}，统计天数 ${rows.length}，数据更新 ${L.updated}`,
+    goal ? `阶段目标: ${goal}` : '阶段目标: 未填写',
+    '',
+    '核心指标:',
+    `- DAU日均: ${leaiFmtW(summary.dau)} (${leaiAiNum(summary.dau)})`,
+    `- WAU均值: ${leaiFmtW(summary.wau)} (${leaiAiNum(summary.wau)})`,
+    `- MAU均值: ${leaiFmtW(summary.mau)} (${leaiAiNum(summary.mau)})`,
+    `- GMV累计: ${leaiAiMoney(summary.gmv)}`,
+    `- 购买人数累计: ${leaiAiNum(summary.buy)}，客单价约 ${leaiAiMoney(aov)}`,
+    '',
+    '关键经营链路:',
+    `- 登录用户: ${leaiFmtW(summary.login)}，登录/日活 ${leaiAiPct(summary.login, activeBase)}`,
+    `- 互动用户: ${leaiFmtW(summary.inter)}，互动/登录 ${leaiAiPct(summary.inter, summary.login)}`,
+    `- 购买人数: ${leaiAiNum(summary.buy)}，购买/互动 ${leaiAiPct(summary.buy, summary.inter)}`,
+    `- 成交GMV: ${leaiAiMoney(summary.gmv)}，日均 ${leaiAiMoney(leaiAvg(rows, 'gmv'))}`,
+    '',
+    '分业务交易:',
+    `- 消费业务: GMV ${leaiAiMoney(consumer.gmv)}，购买 ${leaiAiNum(consumer.buy)}，GMV占比 ${leaiAiPct(consumer.gmv, summary.gmv)}`,
+    `- SMB业务: GMV ${leaiAiMoney(smb.gmv)}，购买 ${leaiAiNum(smb.buy)}，GMV占比 ${leaiAiPct(smb.gmv, summary.gmv)}`,
+    `- 政企业务: GMV ${leaiAiMoney(gov.gmv)}，购买 ${leaiAiNum(gov.buy)}，GMV占比 ${leaiAiPct(gov.gmv, summary.gmv)}`,
+    '',
+    '分平台交易:',
+    `- 官网: GMV ${leaiAiMoney(summary.offGmv)}，购买 ${leaiAiNum(summary.offBuy)}，占比 ${leaiAiPct(summary.offGmv, platformTotal)}`,
+    `- 非官网: GMV ${leaiAiMoney(summary.nonGmv)}，购买 ${leaiAiNum(summary.nonBuy)}，占比 ${leaiAiPct(summary.nonGmv, platformTotal)}`,
+    '',
+    '趋势特征:',
+    `- DAU: ${leaiAiTrend(rows, 'dau', leaiFmtW)}`,
+    `- 登录: ${leaiAiTrend(rows, 'login', leaiFmtW)}`,
+    `- 互动: ${leaiAiTrend(rows, 'inter', leaiFmtW)}`,
+    `- GMV: ${leaiAiTrend(rows, 'gmv', leaiFmtY)}`,
+    `- GMV高点: ${leaiAiTopDays(rows, 'gmv', leaiFmtY)}`,
+    '',
+    '热门商品TOP5:',
+    ...productRows.map(p => `- ${p.name}: 浏览 ${leaiAiNum(p.views)}，购买 ${leaiAiNum(p.buyers)}，转化率 ${p.cvr.toFixed(1)}%`),
+    '',
+    '日序列:',
+    ...rows.map(r => `- ${r.d}: DAU ${leaiAiNum(r.dau)}，登录 ${leaiAiNum(r.login)}，互动 ${leaiAiNum(r.inter)}，购买 ${leaiAiNum(r.buy)}，GMV ${leaiAiNum(r.gmv)}`)
+  ].join('\n');
+}
+
+function leaiAskOverview(kind) {
+  const range = leaiRangeLabel(LEAI_DASH_STATE.overviewRange);
+  const prompts = {
+    overview: `基于当前运营总览看板，分析${range}的主要趋势、核心风险、增长机会和优先动作。`,
+    funnel: `基于当前运营总览看板，重点分析${range}从登录、互动到购买和GMV的转化链路，指出瓶颈和需要补充的数据。`,
+    goal: '基于当前运营总览看板和我输入的阶段目标，评估目标达成路径、关键缺口、优先动作和需要业务补充的数据。'
+  };
+  aiQuick(prompts[kind] || prompts.overview);
+}
+
+function leaiSetOverviewRange(range) {
+  LEAI_DASH_STATE.overviewRange = range;
+  if (range === 'custom') {
+    const bounds = leaiDateBounds();
+    LEAI_DASH_STATE.overviewCustomStart ||= bounds.min;
+    LEAI_DASH_STATE.overviewCustomEnd ||= bounds.max;
+  }
+  switchPage('dashboard.overview');
+}
+
+function leaiOverviewTimeFilterHtml(bounds, customStart, customEnd) {
+  const range = LEAI_DASH_STATE.overviewRange;
+  const pill = v => `dash-pill ${range === v ? 'active' : ''}`;
+  const customFilter = range === 'custom' ? `
+    <span class="ops-custom-range">
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customStart}" onchange="leaiSetOverviewCustom('start',this.value)">
+      <span>至</span>
+      <input type="date" class="ops-date-input" min="${bounds.min}" max="${bounds.max}" value="${customEnd}" onchange="leaiSetOverviewCustom('end',this.value)">
+    </span>` : '';
+  return `<div class="ops-time-filter">
+    <div class="dash-filter-bar">
+      ${['1d', '7d', '14d', '30d', 'custom'].map(v => `<button class="${pill(v)}" onclick="leaiSetOverviewRange('${v}')">${leaiRangeLabel(v)}</button>`).join('')}
+    </div>
+    ${customFilter}
+  </div>`;
+}
+
+function leaiSetOverviewCustom(part, value) {
+  LEAI_DASH_STATE.overviewRange = 'custom';
+  if (part === 'start') LEAI_DASH_STATE.overviewCustomStart = value;
+  if (part === 'end') LEAI_DASH_STATE.overviewCustomEnd = value;
+  if (LEAI_DASH_STATE.overviewCustomStart && LEAI_DASH_STATE.overviewCustomEnd && LEAI_DASH_STATE.overviewCustomStart > LEAI_DASH_STATE.overviewCustomEnd) {
+    if (part === 'start') LEAI_DASH_STATE.overviewCustomEnd = LEAI_DASH_STATE.overviewCustomStart;
+    if (part === 'end') LEAI_DASH_STATE.overviewCustomStart = LEAI_DASH_STATE.overviewCustomEnd;
+  }
+  switchPage('dashboard.overview');
+}
+
+function leaiSetScenarioMode(mode) {
+  LEAI_DASH_STATE.overviewScenarioMode = mode;
+  switchPage('dashboard.overview');
+}
+
+function leaiSetProductMetric(metric) {
+  LEAI_DASH_STATE.overviewProductMetric = metric;
+  switchPage('dashboard.overview');
+}
+
 const PAGE_RENDERERS = {
   'dashboard.overview': () => {
-    const L = typeof LEAI_DATA !== 'undefined' ? LEAI_DATA : null;
-    const lt = L ? L.latest : {};
-    const lc = L ? L.consumer[L.consumer.length-1] : {};
-    const ls = L ? L.smb[L.smb.length-1] : {};
-    const lg = L ? L.gov[L.gov.length-1] : {};
-    const fmtW = v => v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
-    const fmtY = v => v >= 100000000 ? (v/100000000).toFixed(2)+'亿' : v >= 10000 ? (v/10000).toFixed(1)+'万' : v?.toLocaleString() || '-';
-    const offPct = lt.offGmvM && lt.nonGmvM ? ((lt.offGmvM/(lt.offGmvM+lt.nonGmvM))*100).toFixed(1)+'%' : '-';
-    const nonPct = lt.offGmvM && lt.nonGmvM ? ((lt.nonGmvM/(lt.offGmvM+lt.nonGmvM))*100).toFixed(1)+'%' : '-';
+    const L = leaiGetData();
+    if (!L) return '<div class="empty-state"><div class="title">暂无运营数据</div></div>';
+    const range = LEAI_DASH_STATE.overviewRange;
+    const bounds = leaiDateBounds();
+    const customStart = LEAI_DASH_STATE.overviewCustomStart || bounds.min;
+    const customEnd = LEAI_DASH_STATE.overviewCustomEnd || bounds.max;
+    const summary = leaiBuildSummary(range, customStart, customEnd);
+    const [lc, ls, lg] = leaiBizTradeSummaries(summary.rows);
+    const platformTotal = summary.offGmv + summary.nonGmv;
+    const activeBase = summary.dau * Math.max(summary.rows.length, 1);
     return `
     <div class="page-header">
       <div>
         <div class="page-title">运营总览</div>
-        <div class="page-desc">乐享全渠道数据 · ${L ? L.period : ''} · 数据更新于 ${L ? L.updated : '-'}</div>
+        <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated}</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <select id="ov-time-range" style="padding:6px 10px;border:1px solid var(--border-light);border-radius:6px;font-size:12px;background:#fff;cursor:pointer" onchange="ovTimeRangeChanged(this.value)">
-          <option value="7d">最近7天</option><option value="30d" selected>最近30天</option><option value="90d">最近90天</option><option value="custom">自定义</option>
-        </select>
-        <span id="ov-custom-dates" style="display:none"><input type="date" id="ov-date-start" style="padding:4px 8px;border:1px solid var(--border-light);border-radius:6px;font-size:12px"> 至 <input type="date" id="ov-date-end" style="padding:4px 8px;border:1px solid var(--border-light);border-radius:6px;font-size:12px"></span>
-        <button class="btn btn-sm btn-secondary" onclick="aiQuick('生成本周运营报告')">📄 生成报告</button>
+        ${leaiOverviewTimeFilterHtml(bounds, customStart, customEnd)}
+        <button class="btn btn-sm btn-secondary" onclick="leaiAskOverview('overview')">AI 解读</button>
       </div>
     </div>
+
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">DAU（日活跃用户）</div>
-        <div class="kpi-value">${fmtW(lt.dau)}</div>
-        <div class="kpi-sub">登录 ${fmtW(lt.login)} · 互动 ${fmtW(lt.inter)}</div>
+        <div class="kpi-value">${leaiFmtW(summary.dau)}</div>
+        <div class="kpi-sub">日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
-        <div class="kpi-value">${fmtW(lt.wau)}</div>
+        <div class="kpi-value">${leaiFmtW(summary.wau)}</div>
+        <div class="kpi-sub">${leaiRangeLabel(range)}均值 · ${leaiMetricDelta(summary.rows, 'wau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">MAU（月活跃用户）</div>
-        <div class="kpi-value">${fmtW(lt.mau)}</div>
-        <div class="kpi-sub">登录 ${fmtW(lt.loginM)} · 互动 ${fmtW(lt.interM)}</div>
+        <div class="kpi-value">${leaiFmtW(summary.mau)}</div>
+        <div class="kpi-sub">月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">月GMV</div>
-        <div class="kpi-value">${fmtY(lt.gmvM)}</div>
-        <div class="kpi-sub">今日 ${fmtY(lt.gmv)} · 购买 ${lt.buy?.toLocaleString() || '-'}人</div>
+        <div class="kpi-label">GMV</div>
+        <div class="kpi-value">${leaiFmtY(summary.gmv)}</div>
+        <div class="kpi-sub">购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
       </div>
     </div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
-      <div class="kpi-card"><div class="kpi-label">总对话数</div><div class="kpi-value" style="font-size:20px" id="ov-convs">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">今日对话</div><div class="kpi-value" style="font-size:20px" id="ov-today">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">用户消息总数</div><div class="kpi-value" style="font-size:20px" id="ov-msgs">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">知识库文档</div><div class="kpi-value" style="font-size:20px" id="ov-docs">-</div></div>
-      <div class="kpi-card"><div class="kpi-label">好评率</div><div class="kpi-value" style="font-size:20px" id="ov-satisfaction">-</div></div>
+
+    <div class="card dash-funnel-card">
+      <div class="card-header">
+        <div class="card-title">关键经营链路</div>
+        <button class="btn btn-sm btn-secondary" onclick="leaiAskOverview('funnel')">问 AI</button>
+      </div>
+      <div class="dash-funnel-grid">
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">登录用户</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.login)}</div>
+          <div class="dash-funnel-sub">登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
+        </div>
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">互动用户</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.inter)}</div>
+          <div class="dash-funnel-sub">互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
+        </div>
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">购买人数</div>
+          <div class="dash-funnel-value">${summary.buy.toLocaleString()}</div>
+          <div class="dash-funnel-sub">购买 / 互动 ${leaiFmtPct(summary.buy, summary.inter)}</div>
+        </div>
+        <div class="dash-funnel-item">
+          <div class="dash-funnel-label">成交 GMV</div>
+          <div class="dash-funnel-value">${leaiFmtY(summary.gmv)}</div>
+          <div class="dash-funnel-sub">日均 ${leaiFmtY(leaiAvg(summary.rows, 'gmv'))}</div>
+        </div>
+      </div>
     </div>
+
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><div class="card-title">💰 交易指标 · 分业务（月累计）</div></div>
+      <div class="card-header">
+        <div class="card-title">交易指标 · 分业务</div>
+        <div class="dash-card-note">登录口径 + 平台交易回算</div>
+      </div>
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
         <div class="kpi-card" style="border-left:3px solid #2563eb">
           <div class="kpi-label">消费业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${fmtY(lc.gmvM)}</div>
-          <div class="kpi-sub">今日 ${fmtY(lc.gmv)} · 购买 ${lc.buy || 0}人</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(lc.gmv)}</div>
+          <div class="kpi-sub">购买 ${lc.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lc.gmv, summary.gmv)}</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #f59e0b">
           <div class="kpi-label">SMB 业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${fmtY(ls.gmvM)}</div>
-          <div class="kpi-sub">今日 ${fmtY(ls.gmv)} · 购买 ${ls.buy || 0}人</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(ls.gmv)}</div>
+          <div class="kpi-sub">购买 ${ls.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(ls.gmv, summary.gmv)}</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #8b5cf6">
           <div class="kpi-label">政企业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${fmtY(lg.gmvM)}</div>
-          <div class="kpi-sub">今日 ${fmtY(lg.gmv)} · 购买 ${lg.buy || 0}人</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(lg.gmv)}</div>
+          <div class="kpi-sub">购买 ${lg.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lg.gmv, summary.gmv)}</div>
         </div>
       </div>
     </div>
+
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><div class="card-title">🌐 交易指标 · 分平台（月累计）</div></div>
+      <div class="card-header"><div class="card-title">交易指标 · 分平台</div></div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0">
         <div class="kpi-card" style="border-left:3px solid #2563eb">
           <div class="kpi-label">官网 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${fmtY(lt.offGmvM)}</div>
-          <div class="kpi-sub">占比 ${offPct} · 购买 ${lt.offBuy?.toLocaleString() || '-'}人</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.offGmv)}</div>
+          <div class="kpi-sub">占比 ${leaiFmtPct(summary.offGmv, platformTotal)} · 购买 ${summary.offBuy.toLocaleString()}人</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #94a3b8">
           <div class="kpi-label">非官网 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${fmtY(lt.nonGmvM)}</div>
-          <div class="kpi-sub">占比 ${nonPct} · 购买 ${lt.nonBuy?.toLocaleString() || '-'}人</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.nonGmv)}</div>
+          <div class="kpi-sub">占比 ${leaiFmtPct(summary.nonGmv, platformTotal)} · 购买 ${summary.nonBuy.toLocaleString()}人</div>
         </div>
       </div>
     </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">核心趋势速览</div></div>
+      <div class="dash-spark-grid">
+        ${leaiSparklineHtml(summary.rows, 'dau', 'DAU', leaiFmtW, summary.dau, `${leaiRangeLabel(range)}日均 · ${leaiMetricDelta(summary.rows, 'dau')}`)}
+        ${leaiSparklineHtml(summary.rows, 'inter', '互动用户', leaiFmtW, summary.inter, `${leaiRangeLabel(range)}累计 · ${leaiMetricDelta(summary.rows, 'inter')}`)}
+        ${leaiSparklineHtml(summary.rows, 'gmv', 'GMV', leaiFmtY, summary.gmv, `${leaiRangeLabel(range)}累计 · ${leaiMetricDelta(summary.rows, 'gmv')}`)}
+      </div>
+    </div>
+
     <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><div class="card-title">📈 Query 场景分布</div></div>
-        <div style="display:flex;align-items:flex-end;gap:16px;height:160px;padding-top:10px;">
-          ${['会员|68', '电商|85', '服务|42', '门店|31', '方案|55', '咨询|73'].map(d => {
-            const [l,v] = d.split('|');
-            return `<div style="flex:1;text-align:center"><div style="background:var(--primary);border-radius:4px 4px 0 0;height:${v*1.5}px;margin:0 auto;width:24px;opacity:0.8"></div><div style="font-size:11px;color:var(--text-tertiary);margin-top:4px">${l}</div></div>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">🎯 业务决策看板</div></div>
-        <div class="action-card" onclick="aiQuick('高意向未转化客户分析')">
-          <div class="ac-icon" style="background:var(--orange-light);color:var(--orange)">⚡</div>
-          <div><div class="ac-title">高意向未转化：1,247 人</div><div class="ac-desc">浏览≥3次未下单，建议触达</div></div>
-        </div>
-        <div class="action-card" onclick="aiQuick('无答案Query分析')">
-          <div class="ac-icon" style="background:var(--red-light);color:var(--red)">❓</div>
-          <div><div class="ac-title">无答案 Query：89 条</div><div class="ac-desc">需补充知识库或优化检索</div></div>
-        </div>
-        <div class="action-card" onclick="aiQuick('流失风险客户预警')">
-          <div class="ac-icon" style="background:var(--purple-light);color:var(--purple)">📉</div>
-          <div><div class="ac-title">流失风险客户：3,421 人</div><div class="ac-desc">30天未活跃，建议召回</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><div class="card-title">🔥 热门商品 TOP5</div></div>
-        <table>
-          <tr><th>商品</th><th>浏览量</th><th>转化率</th></tr>
-          <tr><td>ThinkPad X9-14 Aura AI元启版</td><td>15,847</td><td><span class="badge status-on">4.8%</span></td></tr>
-          <tr><td>YOGA Air 14 Aura AI元启版</td><td>13,203</td><td><span class="badge status-on">5.3%</span></td></tr>
-          <tr><td>拯救者 R7000P 2025 AI元启</td><td>11,876</td><td><span class="badge status-on">4.1%</span></td></tr>
-          <tr><td>联想小新Pro14GT AI元启版</td><td>9,543</td><td><span class="badge status-warn">3.2%</span></td></tr>
-          <tr><td>ThinkPad P14s 2025 AI元启版</td><td>7,810</td><td><span class="badge status-warn">2.6%</span></td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">📉 差评问题 (实时)</div></div>
-        <div id="ov-bad-feedback"><div style="text-align:center;padding:20px;color:var(--text-tertiary)">加载中...</div></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">📊 7 日对话趋势 (实时)</div></div>
-      <div id="ov-trend" style="display:flex;align-items:flex-end;gap:12px;height:120px;padding-top:10px;"></div>
+      ${leaiScenarioChartHtml(summary)}
+      ${leaiProductTableHtml()}
     </div>
   `;},
 
@@ -1145,6 +1529,5 @@ const PAGE_RENDERERS = {
 };
 
 function ovTimeRangeChanged(val) {
-  const custom = document.getElementById('ov-custom-dates');
-  if (custom) custom.style.display = val === 'custom' ? 'inline' : 'none';
+  leaiSetOverviewRange(val);
 }

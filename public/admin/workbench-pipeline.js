@@ -38,6 +38,10 @@ let _trendFrom = '';
 let _trendTo = '';
 let _tagTrendFrom = '';
 let _tagTrendTo = '';
+let _apTrendFrom = '';
+let _apTrendTo = '';
+let _atTrendFrom = '';
+let _atTrendTo = '';
 let _autoRefreshTimer = null;
 let _tag3Mode = 'active';
 let _hotMode = 'active';
@@ -46,6 +50,7 @@ const TAG_COLORS = {'电商':'#3370ff','服务':'#34c724','会员':'#722ed1','�
 const PALETTE = ['#3370ff','#34c724','#722ed1','#ff7d00','#e2001a','#8f959e','#00b578','#f59e0b','#ec4899','#14b8a6'];
 const TAG_ORDER = ['电商','服务','会员','门店','咨询','其他','多模态'];
 function tagColor(name) { return TAG_COLORS[name] || PALETTE[Object.keys(TAG_COLORS).indexOf(name) % PALETTE.length]; }
+const AP_COLOR = {'主动':'#3370ff','被动':'#ff7d00','口令活动':'#e2001a'};
 
 // ===== PAGE RENDERERS =====
 
@@ -121,6 +126,28 @@ PAGE_RENDERERS['pipeline.annotate'] = () => `
       </div>
       <div class="grid-2" style="margin-top:16px">
         <div class="card">
+          <div class="card-header"><div class="card-title">主被动 Query 趋势</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-tertiary);margin-left:auto">
+              <span style="font-size:10px">从</span><input type="date" id="apTrendFrom" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <span style="font-size:10px">至</span><input type="date" id="apTrendTo" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <button class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:10px" onclick="applyTrendFilter('ap')">确定</button>
+            </div>
+          </div>
+          <div id="cApTrend" style="height:280px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">主动场景变化趋势</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-tertiary);margin-left:auto">
+              <span style="font-size:10px">从</span><input type="date" id="atTrendFrom" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <span style="font-size:10px">至</span><input type="date" id="atTrendTo" style="padding:2px 6px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center">
+              <button class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:10px" onclick="applyTrendFilter('at')">确定</button>
+            </div>
+          </div>
+          <div id="cAtTrend" style="height:280px"></div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
           <div class="card-header">
             <div class="card-title">热门 Query TOP10</div>
             <div style="display:flex;gap:4px;margin-left:auto;background:var(--bg);border-radius:6px;padding:2px">
@@ -136,11 +163,11 @@ PAGE_RENDERERS['pipeline.annotate'] = () => `
             </table>
           </div>
         </div>
-        <div class="card"><div class="card-header"><div class="card-title">来源分布</div></div><div id="cSource" style="height:300px"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">商品咨询 TOP20</div></div><div id="cProduct" style="height:300px"></div></div>
       </div>
-      <div class="card" style="margin-top:16px">
-        <div class="card-header"><div class="card-title">商品咨询 TOP20</div></div>
-        <div id="cProduct" style="height:300px"></div>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card"><div class="card-header"><div class="card-title">来源分布</div></div><div id="cSource" style="height:300px"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">终端类型分布</div></div><div id="cMedium" style="height:300px"></div></div>
       </div>
     </div>
   `;
@@ -354,6 +381,142 @@ PAGE_RENDERERS['pipeline.monitor'] = () => `
     </div>
   `;
 
+// ─────────────── 质量分析 ───────────────
+PAGE_RENDERERS['pipeline.quality'] = () => `
+<div class="page-header">
+  <div>
+    <div class="page-title">质量分析</div>
+    <div class="page-desc">服务满意度 · 性能 · 对话质量 · 异常监控 · 用户评分</div>
+  </div>
+  <div class="filter-bar">
+    <div style="display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;font-size:11px">
+      <span style="color:var(--text-tertiary);font-size:9px;font-family:monospace">FROM</span>
+      <input type="date" id="qDateFrom" onchange="qualityApplyFilter()">
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;font-size:11px">
+      <span style="color:var(--text-tertiary);font-size:9px;font-family:monospace">TO</span>
+      <input type="date" id="qDateTo" onchange="qualityApplyFilter()">
+    </div>
+    <button class="btn btn-primary" onclick="qualityApplyFilter()">筛选</button>
+    <button class="btn btn-secondary" onclick="qualityClearFilter()">清除</button>
+    <button class="btn btn-secondary" onclick="qualityRefresh()">&#8635;</button>
+  </div>
+</div>
+
+<!-- ====== 原生 ====== -->
+<div class="ops-section-title">原生</div>
+<div class="grid-4">
+  <div class="ops-kpi highlight"><div class="ops-kpi-label">点踩率</div><div class="ops-kpi-val" id="qk-thumbdown-rate">--</div><div class="ops-kpi-sub">点踩case / 主动query</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">低满意率</div><div class="ops-kpi-val" id="qk-lowsat-rate">--</div><div class="ops-kpi-sub">低满意度case / 弹窗样本量</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">点踩case</div><div class="ops-kpi-val" id="qk-thumbdown-count">--</div><div class="ops-kpi-sub">T-1/筛选时段</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">低满意度case</div><div class="ops-kpi-val" id="qk-lowsat-count">--</div><div class="ops-kpi-sub">T-1/筛选时段</div></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card"><h3>乐享原生 Badcase 总数概况（堆积柱状图）</h3><div id="qChartSatisfactionTrend" style="height:280px"></div></div>
+  <div class="ops-card"><h3>点踩率 + 低满意率</h3><div id="qChartRateTrend" style="height:280px"></div></div>
+</div>
+
+<!-- ====== 智能客服 ====== -->
+<div class="ops-section-title">智能客服</div>
+<div class="grid-4">
+  <div class="ops-kpi highlight"><div class="ops-kpi-label">点踩率</div><div class="ops-kpi-val" id="qk-cs-thumbdown-rate">--</div><div class="ops-kpi-sub">点踩case / 智能客服总量</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">点踩case</div><div class="ops-kpi-val" id="qk-cs-thumbdown-count">--</div><div class="ops-kpi-sub">T-1/筛选时段</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">智能客服总量</div><div class="ops-kpi-val" id="qk-cs-total">--</div><div class="ops-kpi-sub">T-1/筛选时段</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">转人工率</div><div class="ops-kpi-val" id="qk-cs-transfer-rate">--</div><div class="ops-kpi-sub">转人工 / 智能客服</div></div>
+</div>
+<div class="ops-card" style="margin-top:12px"><h3>点踩 case 趋势</h3><div id="qChartCsThumbdownTrend" style="height:260px"></div></div>
+
+<!-- ====== 性能 ====== -->
+<div class="ops-section-title">性能</div>
+<div class="grid-4">
+  <div class="ops-kpi highlight"><div class="ops-kpi-label">首token avg</div><div class="ops-kpi-val" id="qk-first-token-avg">--</div><div class="ops-kpi-sub">T-1</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">首token p90</div><div class="ops-kpi-val" id="qk-first-token-p90">--</div><div class="ops-kpi-sub">T-1</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">首token p95</div><div class="ops-kpi-val" id="qk-first-token-p95">--</div><div class="ops-kpi-sub">T-1</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">首token p99</div><div class="ops-kpi-val" id="qk-first-token-p99">--</div><div class="ops-kpi-sub">T-1</div></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card">
+    <h3>分意图首token平均耗时</h3>
+    <div style="display:flex;gap:4px;margin-bottom:8px;background:var(--bg);border-radius:6px;padding:2px;width:fit-content">
+      <span style="padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)" id="q-ft-tab-think" onclick="switchFirstTokenMode('think')">思考</span>
+      <span style="padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)" id="q-ft-tab-nothink" onclick="switchFirstTokenMode('nothink')">非思考</span>
+    </div>
+    <div id="qChartFirstTokenByIntent" style="height:300px"></div>
+  </div>
+  <div class="ops-card"><h3>问答类正文首token</h3><div id="qChartQaFirstToken" style="height:300px"></div></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card"><h3>单次会话平均等待时长</h3><div id="qChartSessionWait" style="height:240px"></div></div>
+  <div class="ops-card"><h3>首token性能趋势（avg/p90/p95/p99）</h3><div id="qChartFirstTokenTrend" style="height:300px"></div></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card"><h3>首token(非缓存/非思考) 趋势</h3><div id="qChartFirstTokenNoCacheTrend" style="height:280px"></div></div>
+  <div class="ops-card"><h3>单次回答平均等待时长</h3>
+    <div style="display:flex;gap:4px;margin-bottom:8px;background:var(--bg);border-radius:6px;padding:2px;width:fit-content">
+      <span style="padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)" id="q-wait-tab-short" onclick="switchWaitLenMode('short')">&le;300字</span>
+      <span style="padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)" id="q-wait-tab-long" onclick="switchWaitLenMode('long')">&gt;300字</span>
+    </div>
+    <div id="qChartAnswerWaitTrend" style="height:260px"></div>
+  </div>
+</div>
+
+<!-- ====== 对话质量 ====== -->
+<div class="ops-section-title">对话质量</div>
+<div class="grid-4">
+  <div class="ops-kpi highlight"><div class="ops-kpi-label">平均对话轮数</div><div class="ops-kpi-val" id="qk-avg-turns">--</div><div class="ops-kpi-sub">轮</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">人均交互次数</div><div class="ops-kpi-val" id="qk-avg-interactions">--</div><div class="ops-kpi-sub">次</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">多轮对话占比</div><div class="ops-kpi-val" id="qk-multi-turn-pct">--</div><div class="ops-kpi-sub">&ge;2轮 / 总会话</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">单轮解决率</div><div class="ops-kpi-val" id="qk-single-turn-pct">--</div><div class="ops-kpi-sub">1轮 / 总会话</div></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card"><h3>多轮对话深度分布</h3><div id="qChartTurnDepth" style="height:280px"></div></div>
+  <div class="ops-card"><h3>人均交互次数趋势</h3><div id="qChartInteractionTrend" style="height:280px"></div></div>
+</div>
+
+<!-- ====== 异常 ====== -->
+<div class="ops-section-title">异常</div>
+<div class="grid-4">
+  <div class="ops-kpi" style="border-color:var(--red)"><div class="ops-kpi-label">异常占比</div><div class="ops-kpi-val" style="color:var(--red)" id="qk-error-pct">--</div><div class="ops-kpi-sub">异常case / 总case</div></div>
+  <div class="ops-kpi" style="border-color:var(--orange)"><div class="ops-kpi-label">MCP异常次数</div><div class="ops-kpi-val" style="color:var(--orange)" id="qk-mcp-error">--</div><div class="ops-kpi-sub">T-1/筛选时段</div></div>
+  <div class="ops-kpi" style="border-color:var(--orange)"><div class="ops-kpi-label">用户中断率</div><div class="ops-kpi-val" style="color:var(--orange)" id="qk-interrupt-rate">--</div><div class="ops-kpi-sub">中断交互 / 总交互</div></div>
+  <div class="ops-kpi" style="border-color:var(--red)"><div class="ops-kpi-label">回复空白率</div><div class="ops-kpi-val" style="color:var(--red)" id="qk-empty-resp-rate">--</div><div class="ops-kpi-sub">空response / 总response</div></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card">
+    <h3>各工具失败次数</h3>
+    <div id="qToolFailureTable" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+  <div class="ops-card">
+    <h3>各场景工具失败次数</h3>
+    <div id="qChartSceneFailure" style="height:300px"></div>
+  </div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+  <div class="ops-card">
+    <h3>Agent 异常次数统计</h3>
+    <div id="qAgentErrorTable" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+  <div class="ops-card">
+    <h3>核心工具异常次数</h3>
+    <div id="qCoreToolErrorTable" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- ====== 用户评分 ====== -->
+<div class="ops-section-title">用户评分</div>
+<div class="grid-3">
+  <div class="ops-kpi highlight"><div class="ops-kpi-label">OSAT</div><div class="ops-kpi-val" id="qk-osat">--</div><div class="ops-kpi-sub">满意度</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">NPS</div><div class="ops-kpi-val" id="qk-nps">--</div><div class="ops-kpi-sub">净推荐值</div></div>
+  <div class="ops-kpi"><div class="ops-kpi-label">净评价值</div><div class="ops-kpi-val" id="qk-net-score">--</div><div class="ops-kpi-sub">(点赞-点踩)/(点赞+点踩)</div></div>
+</div>
+<div class="grid-3" style="margin-top:12px">
+  <div class="ops-card"><h3>满意度 / OSAT 趋势</h3><div id="qChartOsatTrend" style="height:280px"></div></div>
+  <div class="ops-card"><h3>NPS 趋势</h3><div id="qChartNpsTrend" style="height:280px"></div></div>
+  <div class="ops-card"><h3>净评价值趋势</h3><div id="qChartNetScoreTrend" style="height:280px"></div></div>
+</div>
+<img src=x onerror="setTimeout(function(){if(typeof qualityRefresh==='function')qualityRefresh();},300)">
+  `;
+
 // ===== 日期筛选 =====
 
 function filteredRecords() {
@@ -377,6 +540,20 @@ function tagTrendFilteredRecords() {
   return recs;
 }
 
+function apTrendFilteredRecords() {
+  let recs = _allRecords;
+  if (_apTrendFrom) recs = recs.filter(r => r.date >= _apTrendFrom);
+  if (_apTrendTo) recs = recs.filter(r => r.date <= _apTrendTo);
+  return recs;
+}
+
+function atTrendFilteredRecords() {
+  let recs = _allRecords;
+  if (_atTrendFrom) recs = recs.filter(r => r.date >= _atTrendFrom);
+  if (_atTrendTo) recs = recs.filter(r => r.date <= _atTrendTo);
+  return recs;
+}
+
 function applyDateFilter() {
   const fromEl = document.getElementById('dateFrom');
   const toEl = document.getElementById('dateTo');
@@ -395,6 +572,16 @@ function applyTrendFilter(which) {
     const attEl = document.getElementById('tagTrendTo');
     if (atfEl) _tagTrendFrom = atfEl.value;
     if (attEl) _tagTrendTo = attEl.value;
+  } else if (which === 'ap') {
+    const apfEl = document.getElementById('apTrendFrom');
+    const aptEl = document.getElementById('apTrendTo');
+    if (apfEl) _apTrendFrom = apfEl.value;
+    if (aptEl) _apTrendTo = aptEl.value;
+  } else if (which === 'at') {
+    const atfEl = document.getElementById('atTrendFrom');
+    const attEl = document.getElementById('atTrendTo');
+    if (atfEl) _atTrendFrom = atfEl.value;
+    if (attEl) _atTrendTo = attEl.value;
   } else {
     const tfEl = document.getElementById('trendFrom');
     const ttEl = document.getElementById('trendTo');
@@ -405,6 +592,8 @@ function applyTrendFilter(which) {
     const TH = { backgroundColor: 'transparent', textStyle: { color: '#646a73' }, legend: { textStyle: { color: '#646a73', fontSize: 10 } }, tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, extraCssText: 'box-shadow:0 4px 12px rgba(0,0,0,.08)' } };
     renderDailyVolume(trendFilteredRecords(), TH);
     renderTagTrend(tagTrendFilteredRecords(), TH);
+    renderApTrend(apTrendFilteredRecords(), TH);
+    renderAtTrend(atTrendFilteredRecords(), TH);
   }
 }
 
@@ -476,7 +665,7 @@ function downloadExcel(type) {
 function initDashboard() {
   ensureECharts(() => {
     if (!window.echarts) { refreshDashboard(); return; }
-    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct'];
+    const ids = ['cTagAll','cTagSem','cChannel','cTag3','cDaily','cTagTrend','cSource','cProduct','cMedium','cApTrend','cAtTrend'];
     _dashCharts = {};
     ids.forEach(id => {
       const el = document.getElementById(id);
@@ -515,7 +704,7 @@ function _initDefaultDates() {
   const maxDate = dates[dates.length - 1];
 
   // 给所有日期输入框设置 min/max 并绑定校验
-  const allDateInputs = ['dateFrom', 'dateTo', 'trendFrom', 'trendTo', 'tagTrendFrom', 'tagTrendTo'];
+  const allDateInputs = ['dateFrom', 'dateTo', 'trendFrom', 'trendTo', 'tagTrendFrom', 'tagTrendTo', 'apTrendFrom', 'apTrendTo', 'atTrendFrom', 'atTrendTo'];
   allDateInputs.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -566,6 +755,20 @@ function _initDefaultDates() {
   if (attEl && !attEl.value) attEl.value = defDate;
   if (atfEl && atfEl.value) _tagTrendFrom = atfEl.value;
   if (attEl && attEl.value) _tagTrendTo = attEl.value;
+
+  const apfEl = document.getElementById('apTrendFrom');
+  const aptEl = document.getElementById('apTrendTo');
+  if (apfEl && !apfEl.value) apfEl.value = trendFromDef;
+  if (aptEl && !aptEl.value) aptEl.value = defDate;
+  if (apfEl && apfEl.value) _apTrendFrom = apfEl.value;
+  if (aptEl && aptEl.value) _apTrendTo = aptEl.value;
+
+  const atf2El = document.getElementById('atTrendFrom');
+  const att2El = document.getElementById('atTrendTo');
+  if (atf2El && !atf2El.value) atf2El.value = trendFromDef;
+  if (att2El && !att2El.value) att2El.value = defDate;
+  if (atf2El && atf2El.value) _atTrendFrom = atf2El.value;
+  if (att2El && att2El.value) _atTrendTo = att2El.value;
 }
 
 function _findNearestDate(target, dates) {
@@ -593,7 +796,7 @@ function _showDateTip(inputEl, msg) {
 
 // Strip trailing spaces from tag keys to merge duplicates like "电商 " → "电商"
 function _cleanRecordKeys(rec) {
-  const tagKeys = ['tag_dist_all', 'tag_dist_active', 'tag_dist_semantic', 'channel_dist', 'source_dist', 'product_dist', 'turn_distribution'];
+  const tagKeys = ['tag_dist_all', 'tag_dist_active', 'tag_dist_semantic', 'channel_dist', 'source_dist', 'product_dist', 'medium_dist', 'turn_distribution'];
   for (const key of tagKeys) {
     const dist = rec[key];
     if (!dist || typeof dist !== 'object') continue;
@@ -757,8 +960,9 @@ function renderDashboardCharts(recs) {
   const mergedChannel = _mergeDist(recs, 'channel_dist');
   const mergedSource = _mergeDist(recs, 'source_dist');
   const mergedProduct = _mergeDist(recs, 'product_dist');
+  const mergedMedium = _mergeDist(recs, 'medium_dist');
   const mergedHot = _mergeHotQueries(recs);
-  const r = { tag_dist_all: mergedTagAll, tag_dist_semantic: mergedTagSem, channel_dist: mergedChannel, source_dist: mergedSource, product_dist: mergedProduct, hot_queries_top20: mergedHot, tag3_dist_top20_semantic: _mergeDist(recs, 'tag3_dist_top20_semantic'), tag3_dist_top20_no_kouling: _mergeDist(recs, 'tag3_dist_top20_no_kouling') };
+  const r = { tag_dist_all: mergedTagAll, tag_dist_semantic: mergedTagSem, channel_dist: mergedChannel, source_dist: mergedSource, product_dist: mergedProduct, medium_dist: mergedMedium, hot_queries_top20: mergedHot, tag3_dist_top20_semantic: _mergeDist(recs, 'tag3_dist_top20_semantic'), tag3_dist_top20_no_kouling: _mergeDist(recs, 'tag3_dist_top20_no_kouling') };
 
   const TH = {
     backgroundColor: 'transparent',
@@ -772,9 +976,12 @@ function renderDashboardCharts(recs) {
   renderTag3Current(r);
   renderDailyVolume(trendFilteredRecords(), TH);
   renderTagTrend(tagTrendFilteredRecords(), TH);
+  renderApTrend(apTrendFilteredRecords(), TH);
+  renderAtTrend(atTrendFilteredRecords(), TH);
   renderHotCurrent(r);
   hbarChart('cSource', mergedSource, '#722ed1', TH, 100);
   hbarChart('cProduct', mergedProduct, '#ff7d00', TH, 100);
+  hbarChart('cMedium', mergedMedium, '#00b578', TH, 100);
 }
 
 function donutChart(id, data, useTagColor, TH) {
@@ -794,7 +1001,7 @@ function donutChart(id, data, useTagColor, TH) {
 
 function donutChannel(id, data, TH) {
   const ch = _dashCharts[id]; if (!ch) return;
-  const cm = {'主动':'#3370ff','被动':'#ff7d00','customer_service':'#e2001a'};
+  const cm = {'主动':'#3370ff','被动':'#ff7d00','口令活动':'#e2001a'};
   const n = Object.keys(data), v = Object.values(data);
   ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'item', formatter: '{b}<br/>{c} ({d}%)' },
     legend: { bottom: 0, textStyle: { color: '#646a73', fontSize: 10 } },
@@ -891,6 +1098,62 @@ function renderTagTrend(recs, TH) {
   });
 }
 
+function renderApTrend(recs, TH) {
+  const ch = _dashCharts.cApTrend; if (!ch) return;
+  const dateMap = {};
+  recs.forEach(r => {
+    const dap = r.daily_active_passive || {};
+    Object.entries(dap).forEach(([d, vals]) => {
+      if (!dateMap[d]) dateMap[d] = { '主动': 0, '被动': 0, '口令活动': 0 };
+      dateMap[d]['主动'] += (vals['主动'] || 0);
+      dateMap[d]['被动'] += (vals['被动'] || 0);
+      dateMap[d]['口令活动'] += (vals['口令活动'] || 0);
+    });
+  });
+  const dates = Object.keys(dateMap).sort();
+  const series = ['主动', '被动', '口令活动'].map(key => ({
+    name: key, type: 'line', smooth: true, symbol: 'circle', symbolSize: 4,
+    lineStyle: { width: 1.5 }, itemStyle: { color: AP_COLOR[key] },
+    data: dates.map(d => dateMap[d][key] || 0)
+  }));
+  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis' },
+    legend: { bottom: 0, type: 'scroll', textStyle: { color: '#646a73', fontSize: 10 } },
+    grid: { left: 64, right: 16, top: 12, bottom: 36 },
+    xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#dee0e3' } }, axisTick: { show: false }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    series
+  });
+}
+
+function renderAtTrend(recs, TH) {
+  const ch = _dashCharts.cAtTrend; if (!ch) return;
+  const dateMap = {};
+  recs.forEach(r => {
+    const dat = r.daily_active_tag || {};
+    Object.entries(dat).forEach(([d, dist]) => {
+      if (!dateMap[d]) dateMap[d] = {};
+      Object.entries(dist).forEach(([tag, cnt]) => {
+        dateMap[d][tag] = (dateMap[d][tag] || 0) + cnt;
+      });
+    });
+  });
+  const dates = Object.keys(dateMap).sort();
+  const tagSet = new Set();
+  Object.values(dateMap).forEach(dist => Object.keys(dist).forEach(t => tagSet.add(t)));
+  const tags = TAG_ORDER.filter(t => tagSet.has(t));
+  ch.setOption({ ...TH, tooltip: { ...TH.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: { bottom: 0, type: 'scroll', textStyle: { color: '#646a73', fontSize: 10 } },
+    grid: { left: 64, right: 16, top: 12, bottom: 36 },
+    xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#dee0e3' } }, axisTick: { show: false }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }, axisLabel: { color: '#8f959e', fontSize: 9 } },
+    series: tags.map((tag, i) => ({
+      name: tag, type: 'bar', stack: 't', emphasis: { focus: 'series' },
+      itemStyle: { color: tagColor(tag), borderRadius: tags.length - 1 === i ? [2,2,0,0] : [0,0,0,0] },
+      data: dates.map(d => (dateMap[d] || {})[tag] || 0)
+    }))
+  });
+}
+
 function switchTag3Mode(mode) {
   _tag3Mode = mode;
   const a = document.getElementById('tag3-tab-active');
@@ -900,26 +1163,9 @@ function switchTag3Mode(mode) {
   if (_dashRecords.length) renderTag3Current(_dashRecords[_dashRecords.length - 1]);
 }
 
-function _filterKoulingTag3(dist) {
-  // 用 filter_kouling 的口令规则过滤 tag3 分布
-  if (!dist) return {};
-  const koulingKeys = ['口令活动', '红包活动', '乐豆活动', '幸运上上签', '开运签活动', '运营活动', '官网活动', '公益活动', '平板活动', 'SMB活动', '会员活动'];
-  const filtered = {};
-  for (const [k, v] of Object.entries(dist)) {
-    const trimmed = k.trim();
-    if (koulingKeys.includes(trimmed)) continue;
-    filtered[trimmed] = (filtered[trimmed] || 0) + v;
-  }
-  // 截取 top20
-  const sorted = Object.entries(filtered).sort((a, b) => b[1] - a[1]).slice(0, 20);
-  const result = {};
-  for (const [k, v] of sorted) result[k] = v;
-  return result;
-}
-
 function renderTag3Current(r) {
   const TH = { backgroundColor: 'transparent', tooltip: { backgroundColor: '#fff', borderColor: '#e5e6eb', borderWidth: 1, textStyle: { color: '#1f2329', fontSize: 12 }, trigger: 'axis', axisPointer: { type: 'shadow' } } };
-  const data = _tag3Mode === 'nokouling' ? _filterKoulingTag3(r.tag3_dist_top20_semantic) : (r.tag3_dist_top20_semantic || {});
+  const data = _tag3Mode === 'nokouling' ? (r.tag3_dist_top20_no_kouling || {}) : (r.tag3_dist_top20_semantic || {});
   hbarChart('cTag3', data, _tag3Mode === 'nokouling' ? '#ff7d00' : '#3370ff', TH, 170);
 }
 
@@ -1660,6 +1906,7 @@ document.addEventListener('page-change', function(e) {
   else if (pageId === 'pipeline.monitor') setTimeout(loadMonitorStatus, 100);
   else if (pageId === 'pipeline.stats') setTimeout(loadPipelineHistory, 100);
   else if (pageId === 'pipeline.task') setTimeout(_initTaskPage, 100);
+  else if (pageId === 'pipeline.quality') { setTimeout(function(){ if (typeof qualityRefresh === 'function') qualityRefresh(); }, 500); }
 });
 
 // 兜底：如果没有 page-change 事件，hook switchPage
@@ -1673,6 +1920,7 @@ document.addEventListener('page-change', function(e) {
     else if (pageId === 'pipeline.monitor') setTimeout(loadMonitorStatus, 100);
     else if (pageId === 'pipeline.stats') setTimeout(loadPipelineHistory, 100);
     else if (pageId === 'pipeline.task') setTimeout(_initTaskPage, 100);
+	  else if (pageId === 'pipeline.quality') setTimeout(function(){ if(typeof qualityRefresh==='function') qualityRefresh(); }, 100);
   };
 })();
 

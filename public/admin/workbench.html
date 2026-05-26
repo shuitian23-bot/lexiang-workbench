@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260525-ai2">
 </head>
 <body>
 
@@ -98,8 +98,9 @@
     <span class="ai-shortcut" onclick="aiQuick('打开页面管理')">📄 CMS</span>
     <span class="ai-shortcut" onclick="aiQuick('本周运营建议')">💡 运营建议</span>
   </div>
+  <div class="ai-page-context" id="ai-page-context" style="display:none"></div>
   <div class="ai-messages" id="ai-messages">
-    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手 🤖<br><br>我可以帮你：<br>· <b>导航操作</b> — "打开商品管理"、"去知识库"<br>· <b>查数据</b> — 自然语言直接查库，例如：<br>&nbsp;&nbsp;&nbsp;· 最近 7 天订单按渠道汇总<br>&nbsp;&nbsp;&nbsp;· 昨天新增客户数<br>&nbsp;&nbsp;&nbsp;· 知识库里关于退货的 QA 有多少条<br>· <b>生成报告</b> — "本周运营报告"<br>· <b>执行操作</b> — "创建营销任务"<br><br>试试直接说你想去哪、想做什么！</div></div>
+    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手。<br><br>在乐享运营看板里，我会自动带入当前页面的时间范围、指标、趋势和业务拆分，再回答你的问题。你可以让我分析总览、定位流量瓶颈、评估GMV结构，也可以填写阶段目标后让我拆解达成路径和缺失数据。</div></div>
   </div>
   <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
     <span>📎</span><span id="ai-file-name"></span>
@@ -133,15 +134,10 @@ const MENU_TREE = {
   dashboard: {
     icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
-      'dashboard.query': { label: 'Query 分析' },
-      'dashboard.behavior': { label: '客户行为' },
+      'pipeline.annotate': { label: 'Query 分析' },
+	      'pipeline.quality': { label: '质量分析' },
       'ops.traffic': { label: '流量分析' },
-      'ops.gmv': { label: 'GMV 分析' },
-      'ops.keywords': { label: '敏感词库' },
-      'ops.queryBiz': { label: 'Query 业务分析' },
-      'report.overview': { label: '深度分析概览' },
-      'report.detail': { label: '趋势与性能' },
-      'report.quality': { label: '质量与明细' }
+      'ops.gmv': { label: 'GMV 分析' }
     }
   },
   geo: {
@@ -151,83 +147,6 @@ const MENU_TREE = {
       'dashboard.geoIntent': { label: '各平台意图分布' },
       'dashboard.geoConversion': { label: 'GEO 转化看板' },
       'dashboard.geoKnowledge': { label: '手工上传知识' }
-    }
-  },
-  ops: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:6px;color:#fff;font-size:13px">📈</span>', label: '运营分析', children: {
-      'ops.traffic': { label: '流量分析' },
-      'ops.gmv': { label: 'GMV 分析' },
-      'ops.keywords': { label: '敏感词库' },
-      'ops.queryBiz': { label: 'Query 业务分析' }
-    }
-  },
-  report: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#0f3460,#e94560);border-radius:6px;color:#fff;font-size:13px">📊</span>', label: '深度分析', children: {
-      'report.overview': { label: '分析概览' },
-      'report.detail': { label: '趋势与性能' },
-      'report.quality': { label: '质量与明细' }
-    }
-  },
-  ecommerce: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#10b981,#059669);border-radius:6px;color:#fff;font-size:13px">🛒</span>', label: '商品管理', children: {
-      'ecommerce.products': { label: '商品列表' },
-      'ecommerce.categories': { label: '分类管理' }
-    }
-  },
-  marketing: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:6px;color:#fff;font-size:13px">📣</span>', label: '营销触达', children: {
-      'marketing.tasks': { label: '营销任务' }
-    }
-  },
-  content: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:6px;color:#fff;font-size:13px">📝</span>', label: '内容管理', children: {
-      'content.knowledge': { label: '知识库管理' },
-      'content.pages': { label: '页面管理' },
-      'content.pagebuilder': { label: '网页制作' },
-      'content.conversations': { label: '对话管理' }
-    }
-  },
-  ai: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:6px;color:#fff;font-size:13px">🤖</span>', label: 'AI 运维', children: {
-      'ai.console': { label: 'AI 控制台' },
-      'ai.skills': { label: '技能管理' },
-      'ai.config': { label: 'AI 配置' },
-      'ai.monitor': { label: '监控告警' },
-      'ai.evolution': { label: '进化与反思' },
-      'ai.regression': { label: '回归测试' }
-    }
-  },
-  lenovo: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#e3002c,#b8002a);border-radius:6px;color:#fff;font-size:13px;font-weight:700">L</span>', label: '联想数据', children: {
-      'lenovo.bigscreen': { label: '交易大屏' },
-      'lenovo.touch': { label: '触达消息' }
-    }
-  },
-  support: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#14b8a6,#0d9488);border-radius:6px;color:#fff;font-size:13px">🛠️</span>', label: '服务支持', children: {
-      'support.aftersale': { label: '售后知识库' },
-      'support.orders': { label: '订单查询' },
-      'support.stores': { label: '门店查询' }
-    }
-  },
-  experiments: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#ec4899,#db2777);border-radius:6px;color:#fff;font-size:13px">🧪</span>', label: 'AB 实验', children: {
-      'experiments.ab': { label: '实验管理' }
-    }
-  },
-  users: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:6px;color:#fff;font-size:13px">👤</span>', label: '用户管理', children: {
-      'users.staff': { label: '客户画像' },
-      'users.accounts': { label: '账号管理' },
-      'users.personas': { label: 'Persona 管理' }
-    }
-  },
-  settings: {
-    icon: '<span class="menu-icon" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:linear-gradient(135deg,#64748b,#475569);border-radius:6px;color:#fff;font-size:13px">⚙️</span>', label: '系统设置', children: {
-      'settings.service': { label: '服务状态' },
-      'settings.logs': { label: '操作日志' },
-      'settings.roles': { label: '角色管理' },
-      'settings.backup': { label: '备份与重启' }
     }
   },
   employee: {
@@ -433,10 +352,13 @@ function toggleGroup(key) {
 function switchPage(pageId) {
   STATE.currentPage = pageId;
 
+  // Dispatch page-change event for plugins to hook into
+  document.dispatchEvent(new CustomEvent('page-change', { detail: pageId }));
+
   // Update sidebar active state
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
   // Find and activate the clicked item
-  const groupKey = pageId.split('.')[0];
+  const groupKey = Object.entries(MENU_TREE).find(([, g]) => g.children && g.children[pageId])?.[0] || pageId.split('.')[0];
   const group = document.querySelector(`.nav-group[data-group="${groupKey}"]`);
   if (group) {
     group.querySelector('.nav-sub').classList.add('open');
@@ -453,6 +375,9 @@ function switchPage(pageId) {
 
   // Render page
   renderPage(pageId);
+  if (typeof aiRefreshPageAssistant === 'function') {
+    aiRefreshPageAssistant();
+  }
 
   // Auto-load data for specific pages
   if (pageId === 'employee.overview') {
@@ -561,17 +486,21 @@ function switchBehaviorTab(tab, el) {
 
 
 </script>
-<!-- Chart.js for dashboard charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- Chart.js for report charts; async so ops pages are not blocked by the CDN. -->
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- ECharts for quality dashboard -->
+<script src="/admin/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260508"></script>
-<script src="/admin/workbench-geo.js?v=20260508"></script>
-<script src="/admin/workbench-ai.js"></script>
+<script src="/admin/workbench-pages.js?v=20260525-ai2"></script>
+<script src="/admin/workbench-geo.js?v=20260525-geo1"></script>
+<script src="/admin/workbench-ai.js?v=20260526-ai3"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
-<script src="/admin/workbench-ops.js"></script>
+<script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
 <script src="/admin/workbench-report.js"></script>
+<script src="/admin/workbench-pipeline.js?v=20260520e"></script>
+  <script src="/admin/workbench-quality.js?v=20260520d"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
