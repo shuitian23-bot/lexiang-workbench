@@ -1249,3 +1249,16 @@ html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
 #splitControls .cp-ctrl{padding:5px 7px;display:inline-flex;align-items:center;justify-content:center}
 #splitControls .cp-ctrl svg{width:15px;height:15px;stroke:currentColor;fill:none}
 #splitControls .cp-close:hover{color:#E3007F;border-color:#E3007F66}
+
+/* ════════ 轻量子站首页组件(每子站独立 tab) ════════ */
+.cp-sh-banner{border-radius:14px;padding:36px 32px;color:#fff;margin:4px 4px 20px}
+.cp-sh-banner h1{font-size:30px;font-weight:800;margin:0 0 10px;color:#fff}
+.cp-sh-banner p{font-size:14px;opacity:.92;margin:0;line-height:1.6}
+.cp-sh-sec{font-size:17px;font-weight:700;color:var(--text,#222);margin:0 4px 14px;padding-left:10px;border-left:3px solid #E3007F}
+.cp-sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;padding:0 4px 24px}
+.cp-sh-card{border:1px solid var(--border,#eee);border-radius:12px;padding:12px;cursor:pointer;transition:.15s;background:var(--card,#fff)}
+.cp-sh-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-2px);border-color:#E3007F44}
+.cp-sh-img{height:130px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;background:#fafafa;border-radius:8px;overflow:hidden}
+.cp-sh-img img{max-width:100%;max-height:100%;object-fit:contain}
+.cp-sh-nm{font-size:13px;color:var(--text,#333);line-height:1.45;height:38px;overflow:hidden;margin-bottom:6px}
+.cp-sh-pr{font-size:16px;font-weight:700;color:#B8252E}
