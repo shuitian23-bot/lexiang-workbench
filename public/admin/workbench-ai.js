@@ -77,15 +77,15 @@ function aiQuick(text) {
 function aiCurrentWelcomeHtml() {
   const page = STATE.currentPage;
   if (page === 'dashboard.overview') {
-    return '我会基于当前运营总览的时间范围、核心指标、链路转化、分业务和分平台数据做分析。你也可以填写阶段目标，我会一起评估目标缺口和动作优先级。';
+    return '我是全局 Agent，会读取当前运营总览上下文，但不会绑定到这个菜单。你可以让我分析指标、拆解目标，也可以发起运营配置或平台操作；涉及写入时会先二次确认。';
   }
   if (page === 'ops.traffic') {
-    return '我会基于当前流量分析页的时间范围、DAU/MAU、登录互动、媒体TOP10、端口和业务流量结构回答问题。';
+    return '我是全局 Agent，会读取当前流量分析页的时间范围、DAU/MAU、登录互动、媒体TOP10、端口和业务流量结构回答问题，同时保持跨菜单独立运行。';
   }
   if (page === 'ops.gmv') {
-    return '我会基于当前GMV分析页的时间范围、GMV趋势、购买人数、分业务和官网/非官网结构回答问题。';
+    return '我是全局 Agent，会读取当前GMV分析页的趋势、购买人数、业务和平台结构回答问题；如果要执行配置修改，会先说明影响范围并等待确认。';
   }
-  return '你好！我是乐享 AI 助手。你可以让我导航、查数据、生成报告，或基于当前页面做分析。';
+  return '你好！我是乐享全局 Agent，独立运行在门户工作台右侧。你可以让我做数据分析、运营配置、平台操作、Skill 申请和任务追踪。';
 }
 
 function aiShortcutItemsForPage(page) {
@@ -115,12 +115,12 @@ function aiShortcutItemsForPage(page) {
     ];
   }
   return [
-    { label: '今日指标', text: '今日核心指标' },
-    { label: '查数据', text: '最近7天订单按渠道汇总' },
-    { label: '商品管理', text: '打开商品管理' },
-    { label: '知识库', text: '打开知识库' },
-    { label: 'CMS', text: '打开页面管理' },
-    { label: '运营建议', text: '本周运营建议' }
+    { label: '数据分析', text: '基于当前页面上下文，分析关键指标、异常和机会。' },
+    { label: '运营配置', text: '帮我规划一个运营配置任务，先列出需要确认的参数和风险。' },
+    { label: '平台操作', text: '帮我执行平台操作，写入前必须先让我二次确认。' },
+    { label: 'Skills管理', text: '__open_skill_management__' },
+    { label: '任务记录', text: '__open_task_log__' },
+    { label: '知识问答', text: '查询当前业务相关操作说明和知识库。' }
   ];
 }
 
@@ -132,7 +132,10 @@ function aiRefreshPageAssistant() {
     shortcuts.querySelectorAll('[data-ai-shortcut]').forEach(el => {
       el.addEventListener('click', () => {
         const item = items[Number(el.dataset.aiShortcut)];
-        if (item) aiQuick(item.text);
+        if (!item) return;
+        if (item.text === '__open_skill_management__') return aiOpenSkillManagement();
+        if (item.text === '__open_task_log__') return aiOpenTaskLog();
+        aiQuick(item.text);
       });
     });
   }
@@ -157,6 +160,24 @@ function aiRefreshPageAssistant() {
     bar.style.display = 'none';
     bar.innerHTML = '';
   }
+}
+
+function aiOpenSkillManagement() {
+  if (!STATE.aiOpen) toggleAI(true);
+  addAiMessage('assistant', `
+    <strong>Skills 管理 / 申请</strong><br>
+    普通运营可查看已启用 Skills、推荐 Skills 和申请状态；管理员/PM 可进入配置、审批和权限管理。<br><br>
+    <button class="ai-inline-action" onclick="aiQuick('打开 Skills 管理页面，查看可用 Skills、可申请 Skills 和我的申请状态。')">打开管理入口</button>
+  `);
+}
+
+function aiOpenTaskLog() {
+  if (!STATE.aiOpen) toggleAI(true);
+  addAiMessage('assistant', `
+    <strong>任务执行记录</strong><br>
+    后续所有关键任务都会记录：任务名称、状态、执行人、时间、关联 Skill 和执行结果。<br><br>
+    示例：修改首页商品模块 / 待确认 / 张瑞 / 关联 Skill：商品配置。
+  `);
 }
 
 function aiPageGoal() {

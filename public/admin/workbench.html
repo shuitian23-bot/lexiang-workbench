@@ -91,16 +91,37 @@
     </div>
   </div>
   <div class="ai-shortcuts" id="ai-shortcuts">
-    <span class="ai-shortcut" onclick="aiQuick('今日核心指标')">📊 今日指标</span>
-    <span class="ai-shortcut" onclick="aiQuick('最近7天订单按渠道汇总')">💹 查数据</span>
-    <span class="ai-shortcut" onclick="aiQuick('打开商品管理')">📦 商品管理</span>
-    <span class="ai-shortcut" onclick="aiQuick('打开知识库')">📚 知识库</span>
-    <span class="ai-shortcut" onclick="aiQuick('打开页面管理')">📄 CMS</span>
-    <span class="ai-shortcut" onclick="aiQuick('本周运营建议')">💡 运营建议</span>
+    <span class="ai-shortcut" onclick="aiQuick('分析当前页面的关键指标、异常和机会')">📊 数据分析</span>
+    <span class="ai-shortcut" onclick="aiQuick('帮我完成当前运营配置任务')">🛠️ 运营配置</span>
+    <span class="ai-shortcut" onclick="aiQuick('帮我执行平台操作并说明影响范围')">⚙️ 平台操作</span>
+    <span class="ai-shortcut" onclick="aiOpenSkillManagement()">🧩 Skills 管理</span>
+    <span class="ai-shortcut" onclick="aiOpenTaskLog()">🧾 任务记录</span>
+    <span class="ai-shortcut" onclick="aiQuick('查询当前业务相关操作说明和知识库')">📚 知识问答</span>
+  </div>
+  <div class="ai-agent-hub" id="ai-agent-hub">
+    <div class="ai-agent-title">
+      <span>全局 Agent 工作区</span>
+      <em>独立运行 · 跨菜单生效</em>
+    </div>
+    <div class="ai-agent-layers">
+      <button type="button" onclick="aiQuick('基于当前页面上下文，做数据分析并给出结论、证据和建议动作。')">
+        <strong>数据分析</strong><small>查数 / 异常 / 归因</small>
+      </button>
+      <button type="button" onclick="aiQuick('帮我规划一个运营配置任务，先列出需要确认的参数和风险。')">
+        <strong>运营配置</strong><small>内容 / 商品 / 活动</small>
+      </button>
+      <button type="button" onclick="aiQuick('帮我执行平台操作，写入前必须先让我二次确认。')">
+        <strong>平台操作</strong><small>配置 / 发布 / 巡检</small>
+      </button>
+    </div>
+    <div class="ai-agent-actions">
+      <button type="button" onclick="aiOpenSkillManagement()">Skills 管理 / 申请</button>
+      <button type="button" onclick="aiOpenTaskLog()">查看任务记录</button>
+    </div>
   </div>
   <div class="ai-page-context" id="ai-page-context" style="display:none"></div>
   <div class="ai-messages" id="ai-messages">
-    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手。<br><br>在乐享运营看板里，我会自动带入当前页面的时间范围、指标、趋势和业务拆分，再回答你的问题。你可以让我分析总览、定位流量瓶颈、评估GMV结构，也可以填写阶段目标后让我拆解达成路径和缺失数据。</div></div>
+    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享全局 Agent。<br><br>我独立运行在门户工作台右侧，不属于任何菜单页面。你可以让我做数据分析、运营配置和平台操作；涉及写入或发布时，我会先展示影响范围并等待二次确认。</div></div>
   </div>
   <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
     <span>📎</span><span id="ai-file-name"></span>
