@@ -130,7 +130,8 @@ def main():
     conn.execute("PRAGMA busy_timeout=30000")
     cur = conn.cursor()
     existing = {}
-    for row in cur.execute("SELECT id, source_url, length(content) FROM knowledge_docs WHERE source_url LIKE '%brand.lenovo%'"):
+    # 按 source_type 查全部已入库(含 biz.lenovo/case 等), 原 LIKE '%brand.lenovo%' 漏 biz url 致每日重复
+    for row in cur.execute("SELECT id, source_url, length(content) FROM knowledge_docs WHERE source_type='brand_news'"):
         existing[_norm_url(row[1])] = (row[0], row[2])
 
     print(f'数据库已有 {len(existing)} 条brand记录\n')
