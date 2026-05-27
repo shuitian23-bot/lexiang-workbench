@@ -2378,6 +2378,18 @@ var _la_lenovo_website = 10000001;
             if a.get('type') == 'product' and prev.get('type') != 'product':
                 seen[slug] = a
     all_articles = list(seen.values())
+    # 知识/新闻按标题去重（联想同一新闻发多个 url/多次抓取 → 同标题多条），保留 ts 最新；商品不去重(同名不同配置合法)
+    _prods = [a for a in all_articles if a.get('type') == 'product']
+    _knls = [a for a in all_articles if a.get('type') != 'product']
+    _best = {}
+    for a in _knls:
+        t = (a.get('title') or '').strip()
+        if not t:
+            _best[a['slug']] = a  # 无标题按 slug 留
+        elif t not in _best or str(a.get('ts') or '') > str(_best[t].get('ts') or ''):
+            _best[t] = a
+    all_articles = _prods + list(_best.values())
+    print(f'知识/新闻标题去重: {len(_knls)} → {len(_best)} 条')
 
     print(f'\n[{datetime.now():%H:%M:%S}] === 生成 articles.json ===')
     articles_path = os.path.join(WIKI_DIR, 'articles.json')
