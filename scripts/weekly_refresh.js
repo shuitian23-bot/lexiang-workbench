@@ -167,6 +167,14 @@ async function run() {
     return `新增${pick(out, /新[增入]\D*(\d+)/)} 更新${pick(out, /更新\D*(\d+)/)}`;
   }, 1500000);
 
+  // 7.5 补 biz/case 资讯(brand API 不返回的老编号 zixun)
+  await step(7, T, 'biz案例资讯补全', async () => {
+    const out = execSync('python3 /opt/projects/lexiang/scripts/crawl_biz_case.py 60', {
+      timeout: 300000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+    });
+    return `新增${pick(out, /新增\s*(\d+)/)}`;
+  }, 300000);
+
   // 8. 补缺规格
   await step(8, T, '补缺商品规格', async () => {
     try {
