@@ -227,10 +227,42 @@ CTO 定制（选配+刻字+礼盒）、以旧换新（旧机抵扣估价）、�
 ---
 
 ## 附录 A：SSE 事件总表
-见 §3.3。
 
-## 附录 B：内容标签类型
-见 §3.2。
+| event | data | 行为 |
+|---|---|---|
+| `chunk` | `{text}` | 流式正文 |
+| `thinking` / `think_end` | 思考块 | 深度思考过程（仅开启时） |
+| `status` | `{type,name,success}` | RAG / 工具调用进度 |
+| `products` | `{products}` | chat 插卡 + 右侧 `openContent('products')` |
+| `display` | `{title,products}` | 右侧展示，即时 send（不等答完） |
+| `solutions` | `{solutions,title,note}` | 方案卡 |
+| `compare` | `{products}` | 右侧对比表 |
+| `stores` | `{stores,perks,city,product}` | 门店列表 + 到店权益 + 预约 |
+| `modal` | 弹层数据 | 抢购 / 确认订单等 modal |
+| `nav` | `{target}` | AI 控制 landing 滚动 + 高亮 |
+| `suggestions` | `{suggestions}` | 追问 chip |
+| `done` | — | 收尾 |
+| `error` | `{message}` | 错误 |
+
+## 附录 B：内容标签（content tab）类型
+
+| 类型 | 内容 | 复用规则 |
+|---|---|---|
+| `sitehome` | 子站轻量首页（banner + 热销 grid） | 按 site，每子站独立 tab |
+| `products` | 商品列表 grid | 按 category / title |
+| `productDetail` | 商品详情（图 / 参数 / 适配理由 / 找相似 / 加购购买 / 评价） | 按 sku |
+| `compare` | 参数对比表（白名单中文参数 + 差异高亮 + 加购购买） | 同类复用 |
+| `info` | 通用信息卡（服务 / 品牌 / 合作伙伴 / 订单确认等） | 按 title |
+| `member` | 会员中心（等级 / 乐豆 / 权益） | 同类复用 |
+| `coupon` | 优惠券 | 同类复用 |
+| `tradein` | 以旧换新估价 | 同类复用 |
+| `customize` | CTO 定制（选配 / 刻字 / 礼盒） | 同类复用 |
+| `stores` | 门店 + 预约时段 | 同类复用 |
+| `form` | 留资 / 表单 | 同类复用 |
+| `home` | 旧首页门户（landing DOM 搬入） | 复用 |
+| `preview` | 外部网页预览（`/api/preview` 代理绕 X-Frame-Options） | 按 url |
+
+> 标签上限 5（home 常驻，超出驱逐最旧非 home）；支持拖拽换序、关闭、放大、收起。
 
 ## 附录 C：术语
 - **子站**：shop/b/biz/default 四套语境与商品集
