@@ -409,6 +409,60 @@ function leaiSetProductMetric(metric) {
 }
 
 const PAGE_RENDERERS = {
+  'agent.skills': () => {
+    const skills = [
+      { icon: '📊', color: '#3370ff', title: '经营指标解读', badge: '已启用', desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用', action: '使用' },
+      { icon: '📦', color: '#ff8f1f', title: '商品配置助手', badge: '已启用', desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用', action: '使用' },
+      { icon: '📄', color: '#10b981', title: '内容发布检查', badge: '已启用', desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用', action: '使用' },
+      { icon: '🎯', color: '#7c3aed', title: '活动复盘报告', badge: '可申请', desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '申请后可用', action: '申请' },
+      { icon: '👥', color: '#14b8a6', title: '会员分层洞察', badge: '可申请', desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '申请后可用', action: '申请' },
+      { icon: '🛡️', color: '#f97316', title: '发布风险确认', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' }
+    ];
+    const card = s => `
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div style="display:flex;gap:12px;min-width:0">
+            <div class="skill-card-icon" style="background:${s.color}">${s.icon}</div>
+            <div>
+              <div class="skill-card-title">${s.title}<span class="skill-card-badge">${s.badge}</span></div>
+            </div>
+          </div>
+          <span class="skill-card-more">···</span>
+        </div>
+        <div class="skill-card-desc">${s.desc}</div>
+        <div class="skill-card-meta">${s.tags.map(t => `<span class="skill-card-tag">${t}</span>`).join('')}</div>
+        <div class="skill-card-foot">
+          <span>${s.usage}</span>
+          <button class="skill-card-action" onclick="aiQuick('${s.action === '申请' ? `申请开通${s.title}` : `使用${s.title}`}')">${s.action}</button>
+        </div>
+      </div>`;
+    return `
+      <div class="page-header">
+        <div>
+          <div class="page-title">Skills 管理</div>
+          <div class="page-desc">查看可用 Skills、提交能力申请，并管理常用运营能力。</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>
+          <button class="btn btn-primary" onclick="aiQuick('我想申请一个新的运营 Skill，请引导我填写申请信息。')">申请 Skill</button>
+        </div>
+      </div>
+      <div class="skill-page-shell">
+        <div class="skill-page-toolbar">
+          <div class="skill-page-tabs">
+            <button class="skill-page-tab active">我添加的</button>
+            <button class="skill-page-tab">技能申请</button>
+          </div>
+          <input class="skill-page-search" placeholder="搜索 Skill 名称、分类或用途">
+        </div>
+        <div class="skill-page-grid">
+          ${skills.map(card).join('')}
+        </div>
+        <div class="skill-page-empty-note">
+          普通运营可查看和申请 Skills；管理员/PM 可配置参数、权限和审批规则。创建 Skill 的过程不在此页呈现。
+        </div>
+      </div>`;
+  },
   'dashboard.overview': () => {
     const L = leaiGetData();
     if (!L) return '<div class="empty-state"><div class="title">暂无运营数据</div></div>';

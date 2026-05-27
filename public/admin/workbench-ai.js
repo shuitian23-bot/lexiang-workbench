@@ -161,10 +161,7 @@ function aiRefreshPageAssistant() {
 
 function aiOpenSkillManagement() {
   if (!STATE.aiOpen) toggleAI(true);
-  addAiMessage('assistant', `
-    <strong>Skills 管理 / 申请</strong><br>
-    普通运营可查看已启用 Skills、推荐 Skills 和申请状态；管理员/PM 可进入配置、审批和权限管理。后续这里会打开完整 Skills 管理页面。
-  `);
+  switchPage('agent.skills');
 }
 
 function aiOpenTaskLog() {
