@@ -18,6 +18,32 @@ function renderPage(pageId) {
   }
 }
 
+function updateSkillCardEmptyState() {
+  const cards = Array.from(document.querySelectorAll('.agent-skill-card'));
+  const empty = document.getElementById('skill-page-empty');
+  if (!empty) return;
+  empty.style.display = cards.some(card => card.style.display !== 'none') ? 'none' : '';
+}
+
+function filterSkillCards(status, btn) {
+  document.querySelectorAll('.skill-page-tab').forEach(tab => tab.classList.remove('active'));
+  btn?.classList.add('active');
+  document.querySelectorAll('.agent-skill-card').forEach(card => {
+    card.dataset.filterVisible = status === 'all' || card.dataset.skillStatus === status ? '1' : '0';
+  });
+  searchSkillCards(document.querySelector('.skill-page-search')?.value || '');
+}
+
+function searchSkillCards(keyword) {
+  const q = (keyword || '').trim().toLowerCase();
+  document.querySelectorAll('.agent-skill-card').forEach(card => {
+    const filterVisible = card.dataset.filterVisible !== '0';
+    const textVisible = !q || card.textContent.toLowerCase().includes(q);
+    card.style.display = filterVisible && textVisible ? '' : 'none';
+  });
+  updateSkillCardEmptyState();
+}
+
 const LEAI_DASH_STATE = {
   overviewRange: '1d',
   overviewCustomStart: '',
@@ -411,29 +437,43 @@ function leaiSetProductMetric(metric) {
 const PAGE_RENDERERS = {
   'agent.skills': () => {
     const skills = [
-      { icon: '📊', color: '#3370ff', title: '经营指标解读', badge: '已启用', desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用', action: '使用' },
-      { icon: '📦', color: '#ff8f1f', title: '商品配置助手', badge: '已启用', desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用', action: '使用' },
-      { icon: '📄', color: '#10b981', title: '内容发布检查', badge: '已启用', desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用', action: '使用' },
-      { icon: '🎯', color: '#7c3aed', title: '活动复盘报告', badge: '可申请', desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '申请后可用', action: '申请' },
-      { icon: '👥', color: '#14b8a6', title: '会员分层洞察', badge: '可申请', desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '申请后可用', action: '申请' },
-      { icon: '🛡️', color: '#f97316', title: '发布风险确认', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' }
+      { icon: '📊', color: '#3370ff', title: '经营指标解读', status: 'available', badge: '可用', desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用', action: '使用' },
+      { icon: '📦', color: '#ff8f1f', title: '商品配置助手', status: 'available', badge: '可用', desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用', action: '使用' },
+      { icon: '📄', color: '#10b981', title: '内容发布检查', status: 'available', badge: '可用', desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用', action: '使用' },
+      { icon: '🎯', color: '#7c3aed', title: '活动复盘报告', status: 'requestable', badge: '可申请', desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '申请后可用', action: '申请' },
+      { icon: '👥', color: '#14b8a6', title: '会员分层洞察', status: 'requestable', badge: '可申请', desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '申请后可用', action: '申请' },
+      { icon: '🧾', color: '#6366f1', title: '认证失败用户导出', status: 'pending', badge: '待审批', desc: '导出认证失败用户和失败原因，用于客服回访和运营复盘。', tags: ['用户/会员', '数据导出'], usage: '申请已提交', action: '查看进度' },
+      { icon: '🧪', color: '#94a3b8', title: '灰度发布助手', status: 'disabled', badge: '已禁用', desc: '用于灰度发布和回滚演练，当前因权限策略调整暂不可用。', tags: ['平台配置', '发布'], usage: '管理员已停用', action: '查看原因' },
+      { icon: '🛡️', color: '#f97316', title: '发布风险确认', status: 'admin', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' },
+      { icon: '🔎', color: '#0ea5e9', title: '链路巡检', status: 'requestable', badge: '可申请', desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '申请后可用', action: '申请' }
     ];
+    const statusMeta = {
+      all: { label: '全部', count: skills.length },
+      available: { label: '可用的', count: skills.filter(s => s.status === 'available').length },
+      requestable: { label: '可申请的', count: skills.filter(s => s.status === 'requestable').length },
+      pending: { label: '待审批', count: skills.filter(s => s.status === 'pending').length },
+      disabled: { label: '禁用的', count: skills.filter(s => s.status === 'disabled').length },
+      admin: { label: '管理员配置', count: skills.filter(s => s.status === 'admin').length }
+    };
+    const tabs = Object.entries(statusMeta).map(([key, meta], i) =>
+      `<button class="skill-page-tab ${i === 0 ? 'active' : ''}" data-skill-filter="${key}" onclick="filterSkillCards('${key}', this)">${meta.label}<span>${meta.count}</span></button>`
+    ).join('');
     const card = s => `
-      <div class="skill-card">
-        <div class="skill-card-head">
+      <div class="agent-skill-card" data-skill-status="${s.status}">
+        <div class="agent-skill-card-head">
           <div style="display:flex;gap:12px;min-width:0">
-            <div class="skill-card-icon" style="background:${s.color}">${s.icon}</div>
+            <div class="agent-skill-card-icon" style="background:${s.color}">${s.icon}</div>
             <div>
-              <div class="skill-card-title">${s.title}<span class="skill-card-badge">${s.badge}</span></div>
+              <div class="agent-skill-card-title">${s.title}<span class="agent-skill-card-badge status-${s.status}">${s.badge}</span></div>
             </div>
           </div>
-          <span class="skill-card-more">···</span>
+          <span class="agent-skill-card-more">···</span>
         </div>
-        <div class="skill-card-desc">${s.desc}</div>
-        <div class="skill-card-meta">${s.tags.map(t => `<span class="skill-card-tag">${t}</span>`).join('')}</div>
-        <div class="skill-card-foot">
+        <div class="agent-skill-card-desc">${s.desc}</div>
+        <div class="agent-skill-card-meta">${s.tags.map(t => `<span class="agent-skill-card-tag">${t}</span>`).join('')}</div>
+        <div class="agent-skill-card-foot">
           <span>${s.usage}</span>
-          <button class="skill-card-action" onclick="aiQuick('${s.action === '申请' ? `申请开通${s.title}` : `使用${s.title}`}')">${s.action}</button>
+          <button class="agent-skill-card-action" onclick="aiQuick('${s.action === '申请' ? `申请开通${s.title}` : s.action === '使用' ? `使用${s.title}` : `查看${s.title}`}')">${s.action}</button>
         </div>
       </div>`;
     return `
@@ -448,16 +488,22 @@ const PAGE_RENDERERS = {
         </div>
       </div>
       <div class="skill-page-shell">
+        <div class="skill-page-summary">
+          <div><strong>${statusMeta.available.count}</strong><span>可用 Skills</span></div>
+          <div><strong>${statusMeta.requestable.count}</strong><span>可申请</span></div>
+          <div><strong>${statusMeta.pending.count}</strong><span>待审批</span></div>
+          <div><strong>${statusMeta.disabled.count}</strong><span>禁用</span></div>
+        </div>
         <div class="skill-page-toolbar">
           <div class="skill-page-tabs">
-            <button class="skill-page-tab active">我添加的</button>
-            <button class="skill-page-tab">技能申请</button>
+            ${tabs}
           </div>
-          <input class="skill-page-search" placeholder="搜索 Skill 名称、分类或用途">
+          <input class="skill-page-search" placeholder="搜索 Skill 名称、分类或用途" oninput="searchSkillCards(this.value)">
         </div>
         <div class="skill-page-grid">
           ${skills.map(card).join('')}
         </div>
+        <div class="skill-page-empty" id="skill-page-empty" style="display:none;">当前筛选下暂无 Skill</div>
         <div class="skill-page-empty-note">
           普通运营可查看和申请 Skills；管理员/PM 可配置参数、权限和审批规则。创建 Skill 的过程不在此页呈现。
         </div>
