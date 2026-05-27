@@ -106,7 +106,7 @@ async function sendFeishu() {
 }
 
 async function run() {
-  const T = 9;
+  const T = 10;
   LOG('=== 知识库每日刷新开始 ===');
 
   // 1. iKnow 增量500
@@ -168,7 +168,7 @@ async function run() {
   }, 1500000);
 
   // 7.5 补 biz/case 资讯(brand API 不返回的老编号 zixun)
-  await step(7, T, 'biz案例资讯补全', async () => {
+  await step(8, T, 'biz案例资讯补全', async () => {
     const out = execSync('python3 /opt/projects/lexiang/scripts/crawl_biz_case.py 60', {
       timeout: 300000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
@@ -176,7 +176,7 @@ async function run() {
   }, 300000);
 
   // 8. 补缺规格
-  await step(8, T, '补缺商品规格', async () => {
+  await step(9, T, '补缺商品规格', async () => {
     try {
       execSync('python3 /opt/projects/lexiang/scripts/select_missing_specs.py', {
         timeout: 120000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
@@ -194,7 +194,7 @@ async function run() {
   }, 1800000);
 
   // 9. wiki 页面生成
-  await step(9, T, 'wiki页面生成', async () => {
+  await step(10, T, 'wiki页面生成', async () => {
     const out = execSync('python3 /opt/projects/lexiang/scripts/gen_wiki_full.py', {
       timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
     });
