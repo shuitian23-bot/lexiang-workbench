@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260525-ai2">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260527-agent-skills2">
 </head>
 <body>
 
@@ -86,7 +86,9 @@
   <div class="ai-panel-header">
     <h3>🤖 AI 助手</h3>
     <div style="display:flex;gap:4px;align-items:center">
-      <button type="button" class="ai-skill-entry" onclick="aiOpenSkillManagement()" title="管理技能">管理技能</button>
+      <button type="button" class="ai-skill-entry" onclick="switchPage('agent.skills')" title="管理技能">
+        <span>⚙</span><span>管理技能</span>
+      </button>
       <span style="cursor:pointer;padding:2px 6px;border-radius:4px;font-size:12px;color:var(--text-tertiary)" onclick="newAiConversation()" title="新建对话">🔄</span>
       <span class="ai-panel-close" onclick="toggleAI()">✕</span>
     </div>
@@ -498,9 +500,9 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260525-ai2"></script>
+<script src="/admin/workbench-pages.js?v=20260527-agent-skills2"></script>
 <script src="/admin/workbench-geo.js?v=20260525-geo1"></script>
-<script src="/admin/workbench-ai.js?v=20260526-ai3"></script>
+<script src="/admin/workbench-ai.js?v=20260527-agent-skills2"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
 <script src="/admin/workbench-ops.js?v=20260525-ai2"></script>

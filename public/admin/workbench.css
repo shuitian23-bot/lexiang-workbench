@@ -196,10 +196,13 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 }
 .ai-panel-header h3 { font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px; }
 .ai-skill-entry {
-  cursor:pointer; padding:4px 10px; border-radius:6px; font-size:12px; line-height:1.2;
-  color:var(--text-secondary); border:1px solid var(--border-light); background:#fff;
+  appearance:none; height:28px; cursor:pointer; padding:0 10px; border-radius:6px; font-size:12px; line-height:1;
+  display:inline-flex; align-items:center; gap:5px; color:var(--text-secondary);
+  border:1px solid var(--border-light); background:#fff; font-family:inherit;
+  transition:all .12s ease;
 }
 .ai-skill-entry:hover { color:var(--primary); border-color:var(--primary); background:var(--primary-light); }
+.ai-skill-entry:active { transform:translateY(1px); }
 .ai-panel-close { cursor:pointer; padding:4px 6px; border-radius:4px; font-size:16px; color:var(--text-tertiary); }
 .ai-panel-close:hover { background:var(--bg); }
 
