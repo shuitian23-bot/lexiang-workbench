@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux19">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux20">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -4066,6 +4066,8 @@ function notifyAIProductContext(p) {
       chips.map(function(c){ return '<button onclick="quickAsk(\'这款 ' + n + ' ' + c[1] + '\')">' + c[0] + '</button>'; }).join('');
     bar.classList.remove('hidden');
   }
+  // 商详场景清掉 lxHint chip(语义重叠, 避免两条提示串行)
+  try { var _s = document.getElementById('lxHintChipSlot'); if (_s) _s.innerHTML = ''; } catch(e){}
 }
 function dismissProductOverlay() {
   if (window.__ovAutoHide) { clearTimeout(window.__ovAutoHide); window.__ovAutoHide = null; }
@@ -6280,6 +6282,9 @@ window.LxBehavior = (function(){
     opts = opts || {};
     var slot = document.getElementById('lxHintChipSlot');
     if (!slot) return;
+    // 商详场景已有 product chips 条, 不再叠 lxHint chip(语义重叠)
+    var pcb = document.getElementById('productChipsBar');
+    if (pcb && !pcb.classList.contains('hidden')) { slot.innerHTML = ''; return; }
     var plain = String(contentHtml).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     var prod = window.__currentProduct && window.__currentProduct.name ? String(window.__currentProduct.name).slice(0, 14) : '';
     var strong = /^pointer-/.test(id) || /看到|下单|领券|领取|限时|省¥|省 ¥|剩\s*\d|库存|今日剩/.test(plain + ' ' + (primaryText || ''));
@@ -7598,6 +7603,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux19"></script>
+<script src="/split-layout.js?v=20260527-ux20"></script>
 </body>
 </html>
