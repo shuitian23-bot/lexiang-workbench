@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux20">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux21">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7280,10 +7280,10 @@ window.openServicePlus = openServicePlus;
     document.querySelectorAll('.nlinks a').forEach(function(a){ a.classList.remove('nav-active'); });
     var label = LABELS[newSite];
     if (label) document.querySelectorAll('.nlinks a').forEach(function(a){ if (a.getAttribute('data-nav') === label) a.classList.add('nav-active'); });
-    // 右侧开该子站独立首页 tab(轻量组件, 每子站各一个, 已开则切换; 不碰 #landingPage)
+    // 单首页 tab(复用+改名), 内容由下方重渲注入完整 landing(hero/秒杀/新品/feed/feed); 代价: 失多子站并存
     try {
       if (typeof window.__openContent === 'function' && window.matchMedia && window.matchMedia('(min-width:769px)').matches) {
-        window.__openContent('sitehome', (label || newSite) + ' 首页', { site: newSite });
+        window.__openContent('home', (label || newSite) + ' 首页', {});
       }
     } catch(e){}
     // 子站全套 landing 重渲: hero/landing-extra/subnav/mall hero/mall features/feed
@@ -7603,6 +7603,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux20"></script>
+<script src="/split-layout.js?v=20260527-ux21"></script>
 </body>
 </html>
