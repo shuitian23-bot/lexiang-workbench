@@ -43,7 +43,7 @@
     var b = document.getElementById('cpCollapse'); if (!b) return;
     var c = document.documentElement.classList.contains('landing-collapsed');
     b.innerHTML = c ? CHEV_L : CHEV_R;
-    b.title = c ? '展开浏览区' : '收起浏览区';
+    b.title = c ? '恢复浏览区' : '全屏对话(收起浏览区)';
   }
   var ICON_RESTORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4v6H4"/><path d="M4 10l6-6"/><path d="M14 20v-6h6"/><path d="M20 14l-6 6"/></svg>';
 
@@ -1331,11 +1331,7 @@
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
           '<span>换位</span>' +
         '</button>' +
-        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="收起浏览区" aria-label="收起浏览区">' + CHEV_R + '</button>' +
-        '<button type="button" id="cpClose" class="cp-ctrl cp-icon-btn cp-close" title="关闭浏览区" aria-label="关闭浏览区">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
-        '</button>';
-      document.getElementById('cpClose').addEventListener('click', closeContent);
+        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="全屏对话(收起浏览区)" aria-label="全屏对话">' + CHEV_R + '</button>';
       document.getElementById('cpCollapse').addEventListener('click', function () {
         if (document.documentElement.classList.contains('landing-collapsed')) expandLanding();
         else collapseLanding();

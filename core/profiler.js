@@ -8,7 +8,7 @@ const db = require('../db/schema');
 // 调用 LLM 提取画像（直接用 inference 层）
 async function callLLM(messages) {
   const fetch = require('node-fetch');
-  const apiUrl = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/compatible-mode/v1';
+  const apiUrl = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/api/coding/v3';
   const apiKey = process.env.DASHSCOPE_API_KEY;
 
   const res = await fetch(`${apiUrl}/chat/completions`, {

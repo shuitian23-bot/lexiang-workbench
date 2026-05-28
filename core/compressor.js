@@ -35,7 +35,7 @@ function estimateTokens(text) {
   return Math.ceil(chineseChars * 1.5 + englishWords * 1.3);
 }
 
-const DASHSCOPE_API_URL = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/compatible-mode/v1';
+const DASHSCOPE_API_URL = process.env.DASHSCOPE_API_URL || 'https://ark.cn-beijing.volces.com/api/coding/v3';
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
 
 async function summarizeMessages(messages, existingSummary) {
