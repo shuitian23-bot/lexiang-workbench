@@ -56,16 +56,45 @@ def extract_pubdate(text):
     return f"{y:04d}-{mo:02d}-{d:02d} {int(hh):02d}:{mm}:{ss}"
 
 
+def _normalize_img_url(src):
+    src = (src or '').strip()
+    if not src or src.startswith('data:'):
+        return ''
+    if src.startswith('//'):
+        return 'https:' + src
+    if src.startswith('/'):
+        return 'https://biz.lenovo.com.cn' + src
+    return src
+
 def extract_body(raw_html):
-    """从HTML提取正文"""
+    """从HTML提取正文, 保留 <img src> 转 markdown ![alt](src), 供 gen_wiki format_content 渲染"""
     for pat in [
         r'class="center-content"[^>]*>([\s\S]*?)</div>\s*</div>\s*</div>',
         r'class="pcContent"[^>]*>([\s\S]*?)</div>\s*</div>',
         r'class="detail-content"[^>]*>([\s\S]*?)</div>\s*</div>',
+        # zixun/biz case 用 le-seo-content-text 容器
+        r'class="le-seo-content-text"[^>]*>([\s\S]*?)(?=<div\s+class="le-seo-content-pagination|</section>|</main>|<footer)',
+        # 其他常见容器
+        r'class="article-content[^"]*"[^>]*>([\s\S]*?)</div>\s*</div>',
+        r'class="news-detail[^"]*"[^>]*>([\s\S]*?)</article>',
+        r'<article[^>]*>([\s\S]*?)</article>',
     ]:
         m = re.search(pat, raw_html)
         if m:
-            body = re.sub(r'<[^>]+>', '\n', m.group(1))
+            body = m.group(1)
+            # 先转 img → markdown(避免后续 del tags 把 img 干掉)
+            def _img(mm):
+                src = _normalize_img_url(mm.group(1))
+                if not src or re.search(r'\{\{|\$\{', src):  # 跳过模板占位
+                    return ''
+                # 过滤 1x1 像素/小图标
+                if re.search(r'(icon|logo|sprite|spacer|placeholder)\.(png|gif|svg)', src, re.I):
+                    return ''
+                return f'\n\n![]({src})\n\n'
+            body = re.sub(r'<img[^>]*?src="([^"]+)"[^>]*>', _img, body, flags=re.I)
+            body = re.sub(r'<script[\s\S]*?</script>', '', body, flags=re.I)
+            body = re.sub(r'<style[\s\S]*?</style>', '', body, flags=re.I)
+            body = re.sub(r'<[^>]+>', '\n', body)  # 删剩余标签
             body = re.sub(r'\n{3,}', '\n\n', body).strip()
             body = html.unescape(body)
             return body
