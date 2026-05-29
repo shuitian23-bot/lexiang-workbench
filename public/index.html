@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux24">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux25">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1354,7 +1354,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       { label:'会员', fn:'openMemberTab' }
     ];
     html += '<span class="nav-sep"></span>' + QUICK.map(function(q){
-      return '<a href="#" class="nav-extra" onclick="'+q.fn+'();return false;">'+q.label+'</a>';
+      return '<a href="#" class="nav-extra" onclick="document.querySelectorAll(\'.nlinks a.nav-active\').forEach(function(x){x.classList.remove(\'nav-active\')});'+q.fn+'();return false;">'+q.label+'</a>';
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
   }();</script>
@@ -7618,6 +7618,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux24"></script>
+<script src="/split-layout.js?v=20260527-ux25"></script>
 </body>
 </html>
