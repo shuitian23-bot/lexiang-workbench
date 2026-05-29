@@ -1266,3 +1266,7 @@ html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
 /* 子站首页克隆体(spaSwitchSite 克隆 #landingPage 放入 sitehome tab, 外层 id 改, 用 class 覆盖分屏定位) */
 .landingPage-clone{position:static!important;left:auto!important;right:auto!important;top:auto!important;width:100%!important;height:auto!important;display:block!important;padding-top:0!important;overflow:visible!important;max-width:none!important;opacity:1!important;transform:none!important}
 .landingPage-clone .hero{display:none!important}
+
+/* timeline rail 显示时给 #msgsInner 让出右侧空间, 避免 pill 遮 chat 文字 */
+#msgsInner.with-tl-rail{padding-right:160px}
+@media(max-width:768px){#msgsInner.with-tl-rail{padding-right:12px}}

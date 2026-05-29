@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux25">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux26">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7520,7 +7520,9 @@ window.openServicePlus = openServicePlus;
     var wrap = document.getElementById('msgsWrap');
     if (!rail) return;
     var hist = window.__lxTabHist;
-    if (!hist.length){ rail.classList.remove('show'); rail.innerHTML = ''; return; }
+    var inner = document.getElementById('msgsInner');
+    if (!hist.length){ rail.classList.remove('show'); rail.innerHTML = ''; if (inner) inner.classList.remove('with-tl-rail'); return; }
+    if (inner) inner.classList.add('with-tl-rail');
     var main = rail.offsetParent;
     if (main && wrap){ var wr = wrap.getBoundingClientRect(), mr = main.getBoundingClientRect(); rail.style.top = (wr.top - mr.top + 10) + 'px'; }
     rail.innerHTML = hist.map(function(h, i){
@@ -7618,6 +7620,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux25"></script>
+<script src="/split-layout.js?v=20260527-ux26"></script>
 </body>
 </html>
