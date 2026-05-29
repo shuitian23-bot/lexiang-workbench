@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux26">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux27">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7345,14 +7345,15 @@ window.openServicePlus = openServicePlus;
     if (!newSite) return;
     // 同站点不切
     if (newSite === window.__siteType) return;
-    // 检测当前有无 chat 消息
+    // 检测当前有无 chat 消息 / 已分屏 / 已 in-chat (任一为真都 SPA 切, 保 tabs)
     var inner = document.getElementById('msgsInner');
     var hasMsgs = inner && inner.querySelectorAll('.msg').length > 0;
-    if (hasMsgs) {
+    var inChat = document.documentElement.classList.contains('in-chat') || document.documentElement.classList.contains('content-open');
+    if (hasMsgs || inChat) {
       e.preventDefault();
       window.spaSwitchSite(newSite, href);
     }
-    // 无消息 → 走原 href 全页跳, 不拦
+    // 都没 → 走原 href 全页跳, 不拦
   }, true);
 })();
 </script>
@@ -7620,6 +7621,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux26"></script>
+<script src="/split-layout.js?v=20260527-ux27"></script>
 </body>
 </html>
