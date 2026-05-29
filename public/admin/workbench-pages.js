@@ -302,10 +302,8 @@ function renderAgentSkillsManager(options = {}) {
       </div>
     </div>`;
   const headerActions = isModal
-    ? `<button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
-       <button class="agent-skill-modal-close" onclick="closeSkillManagerOverlay()" title="关闭">×</button>`
-    : `<button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>
-       <button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>`;
+    ? `<button class="agent-skill-modal-close" onclick="closeSkillManagerOverlay()" title="关闭">×</button>`
+    : `<button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>`;
   return `
     <div class="${isModal ? 'agent-skill-modal-panel' : ''}" role="${isModal ? 'dialog' : 'region'}" aria-label="Skills 管理">
       <div class="page-header ${isModal ? 'agent-skill-modal-head' : ''}">
@@ -332,7 +330,10 @@ function renderAgentSkillsManager(options = {}) {
           <div class="skill-page-tabs">
             ${tabs}
           </div>
-          <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
+          <div class="skill-page-toolbar-actions">
+            <button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
+            <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
+          </div>
         </div>
         <div class="skill-manager-section active" data-skill-view="packages">
           <div id="skill-package-action-panel" class="skill-package-action-panel"></div>

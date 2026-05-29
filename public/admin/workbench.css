@@ -246,6 +246,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-page-summary strong { color:var(--text); font-size:24px; line-height:1; }
 .skill-page-summary span { color:var(--text-secondary); font-size:12px; white-space:nowrap; }
 .skill-page-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.skill-page-toolbar-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 .skill-page-tabs { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 .skill-page-tab {
   border:1px solid var(--border-light); background:#fff; color:var(--text-secondary);
@@ -389,6 +390,8 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   .skill-action-panel-body,
   .atomic-capability-intro { grid-template-columns:1fr; }
   .skill-page-search { width:100%; }
+  .skill-page-toolbar-actions { width:100%; justify-content:stretch; }
+  .skill-page-toolbar-actions .btn { flex-shrink:0; }
   .skill-action-row { grid-template-columns:1fr; gap:4px; }
   .skill-action-row span { padding-top:0; }
   .skill-action-actions { justify-content:stretch; }
