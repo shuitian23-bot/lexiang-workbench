@@ -43,7 +43,7 @@
     var b = document.getElementById('cpCollapse'); if (!b) return;
     var c = document.documentElement.classList.contains('landing-collapsed');
     b.innerHTML = c ? CHEV_L : CHEV_R;
-    b.title = c ? '展开浏览区' : '收起浏览区';
+    b.title = c ? '恢复浏览区' : '全屏对话(收起浏览区)';
   }
   var ICON_RESTORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4v6H4"/><path d="M4 10l6-6"/><path d="M14 20v-6h6"/><path d="M20 14l-6 6"/></svg>';
 
@@ -122,8 +122,8 @@
     var active = document.querySelector('.nlinks a.nav-active');
     var label = active && active.textContent ? active.textContent.trim() : '';
     if (label) return label;
-    var map = { shop: '个人及家庭', b: '中小企业', biz: '政教及大企业', default: '首页' };
-    return map[window.__siteType || 'default'] || '首页';
+    var map = { shop: '个人及家庭', b: '中小企业', biz: '政教及大企业', default: '全场景' };
+    return map[window.__siteType || 'default'] || '全场景';
   }
 
   function ensureHomeTab() {
@@ -291,12 +291,12 @@
     var html = document.documentElement;
     if (!html.classList.contains('in-chat')) enterChat();
     if (!html.classList.contains('split-mode')) enterSplit();
-    // 不再自动塞「首页」tab(按反馈去掉) — 回首页走顶部 nav
+    // 不再自动塞「全场景」tab(按反馈去掉) — 回全场景走顶部 nav
 
     var reusable = findReusableTab(type, data, title);
     if (reusable) {
       ensureContentPanelOpen();
-      // 复用时标题变了就改名(如切站后首页 tab 跟随当前子站名)
+      // 复用时标题变了就改名(如切站后全场景 tab 跟随当前子站名)
       if (title && reusable.title !== title) renameTab(reusable.id, title);
       switchTab(reusable.id);
       return reusable.id;
@@ -571,7 +571,7 @@
     container.innerHTML = '';
     var lp = document.getElementById('landingPage');
     if (!lp) {
-      container.innerHTML = '<div class="cp-empty">首页暂时不可用</div>';
+      container.innerHTML = '<div class="cp-empty">全场景暂时不可用</div>';
       return;
     }
     try {
@@ -584,7 +584,7 @@
     container.appendChild(lp);
   };
 
-  // 轻量子站首页(独立组件, 不碰 #landingPage, 每子站独立 tab 并存)
+  // 轻量子站全场景(独立组件, 不碰 #landingPage, 每子站独立 tab 并存)
   RENDERERS.sitehome = function (container, data) {
     data = data || {};
     var BANNERS = {
@@ -1331,11 +1331,7 @@
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>' +
           '<span>换位</span>' +
         '</button>' +
-        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="收起浏览区" aria-label="收起浏览区">' + CHEV_R + '</button>' +
-        '<button type="button" id="cpClose" class="cp-ctrl cp-icon-btn cp-close" title="关闭浏览区" aria-label="关闭浏览区">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
-        '</button>';
-      document.getElementById('cpClose').addEventListener('click', closeContent);
+        '<button type="button" id="cpCollapse" class="cp-ctrl cp-icon-btn" title="全屏对话(收起浏览区)" aria-label="全屏对话">' + CHEV_R + '</button>';
       document.getElementById('cpCollapse').addEventListener('click', function () {
         if (document.documentElement.classList.contains('landing-collapsed')) expandLanding();
         else collapseLanding();
@@ -1529,7 +1525,7 @@
     var heroSend = document.getElementById('heroSend');
     if (heroSend) heroSend.addEventListener('click', function () { if (isPC()) enterChat(); }, true);
 
-    // Logo 回首页：拦截主导航 .logo 的 onclick
+    // Logo 回全场景：拦截主导航 .logo 的 onclick
     var logoEl = document.querySelector('nav .logo');
     if (logoEl) {
       logoEl.addEventListener('click', function (e) {
@@ -1541,7 +1537,7 @@
       }, true);
     }
 
-    // 侧边栏 logo 和 返回首页按钮
+    // 侧边栏 logo 和 返回全场景按钮
     var sbLogo = document.querySelector('.sb-logo');
     if (sbLogo) {
       sbLogo.addEventListener('click', function (e) {

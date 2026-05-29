@@ -1262,3 +1262,7 @@ html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
 .cp-sh-img img{max-width:100%;max-height:100%;object-fit:contain}
 .cp-sh-nm{font-size:13px;color:var(--text,#333);line-height:1.45;height:38px;overflow:hidden;margin-bottom:6px}
 .cp-sh-pr{font-size:16px;font-weight:700;color:#B8252E}
+
+/* 子站首页克隆体(spaSwitchSite 克隆 #landingPage 放入 sitehome tab, 外层 id 改, 用 class 覆盖分屏定位) */
+.landingPage-clone{position:static!important;left:auto!important;right:auto!important;top:auto!important;width:100%!important;height:auto!important;display:block!important;padding-top:0!important;overflow:visible!important;max-width:none!important;opacity:1!important;transform:none!important}
+.landingPage-clone .hero{display:none!important}
