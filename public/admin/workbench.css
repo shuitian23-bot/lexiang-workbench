@@ -297,6 +297,26 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-page-empty-note {
   border:1px dashed var(--border); background:#fff; border-radius:8px; padding:18px; color:var(--text-secondary); font-size:13px;
 }
+.skill-package-action-panel { margin-bottom:14px; }
+.skill-action-panel-card {
+  background:#fff; border:1px solid #c9d8ff; border-radius:8px; padding:16px; box-shadow:0 8px 22px rgba(51,112,255,0.08);
+}
+.skill-action-panel-card.success { border-color:#bde8ce; box-shadow:0 8px 22px rgba(18,161,80,0.08); }
+.skill-action-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
+.skill-action-kicker { color:var(--primary); font-size:12px; font-weight:700; margin-bottom:5px; }
+.skill-action-title { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:16px; font-weight:700; color:var(--text); }
+.skill-action-title span { font-size:12px; color:var(--text-secondary); background:var(--bg); border-radius:5px; padding:3px 7px; font-weight:600; }
+.skill-action-panel-body { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; }
+.skill-action-row { display:grid; grid-template-columns:82px 1fr; gap:10px; align-items:start; color:var(--text-secondary); font-size:13px; line-height:1.55; }
+.skill-action-row span { color:var(--text-tertiary); font-size:12px; padding-top:7px; }
+.skill-action-row strong { color:var(--text); font-weight:500; padding:7px 0; }
+.skill-action-row input,
+.skill-action-row select,
+.skill-action-row textarea {
+  width:100%; border:1px solid var(--border-light); border-radius:7px; padding:8px 10px; color:var(--text); background:#fff; font:inherit; resize:vertical;
+}
+.skill-action-row textarea { min-height:68px; grid-column:auto; }
+.skill-action-actions { grid-column:1 / -1; display:flex; justify-content:flex-end; gap:8px; padding-top:4px; }
 .atomic-capability-intro { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
 .atomic-capability-intro div { background:#fff; border:1px solid var(--border-light); border-radius:8px; padding:14px 16px; }
 .atomic-capability-intro b { display:block; font-size:13px; margin-bottom:6px; color:var(--text); }
@@ -349,6 +369,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   color:var(--text-secondary); cursor:pointer; font-size:22px; line-height:1; display:flex; align-items:center; justify-content:center;
 }
 .agent-skill-modal-close:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+.agent-skill-modal-close.compact { width:28px; height:28px; border-radius:7px; font-size:18px; flex-shrink:0; }
 
 .ai-messages { flex:1; overflow-y:auto; overflow-y:overlay; padding:12px 10px; scrollbar-width:thin; scrollbar-color:rgba(0,0,0,0.1) transparent; }
 .ai-messages::-webkit-scrollbar { width:4px; background:transparent; }

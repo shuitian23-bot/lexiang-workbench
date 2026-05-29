@@ -90,6 +90,100 @@ function closeSkillManagerOverlay() {
   document.body.classList.remove('agent-skill-modal-open');
 }
 
+function openSkillPackageAction(title, status, action) {
+  const panel = document.getElementById('skill-package-action-panel');
+  if (!panel) return;
+  const statusText = {
+    available: '可用',
+    requestable: '可申请',
+    pending: '待审批',
+    disabled: '已禁用',
+    admin: '管理员配置'
+  }[status] || '查看';
+  const categoryText = {
+    available: '使用技能包',
+    requestable: '申请技能包',
+    pending: '查看审批进度',
+    disabled: '查看禁用原因',
+    admin: '查看配置说明'
+  }[status] || '查看详情';
+  const body = {
+    available: `
+      <div class="skill-action-row"><span>使用方式</span><strong>通过右侧 AI 助手自然语言调用</strong></div>
+      <div class="skill-action-row"><span>下一步</span><strong>在底部输入框描述任务目标、时间范围和业务线</strong></div>
+      <div class="skill-action-row"><span>执行控制</span><strong>只读分析可直接执行；写入动作仍需二次确认</strong></div>
+      <div class="skill-action-actions">
+        <button class="btn btn-primary" onclick="aiQuick('使用${title}。请先基于当前页面上下文询问我还缺哪些参数，不要直接执行写入。')">带入 AI 输入框</button>
+      </div>`,
+    requestable: `
+      <div class="skill-action-row"><span>申请人</span><input value="${STATE.user || 'admin'}" readonly></div>
+      <div class="skill-action-row"><span>申请场景</span><textarea placeholder="例如：用于每周活动复盘，需要查看渠道表现和优化建议"></textarea></div>
+      <div class="skill-action-row"><span>使用范围</span><select><option>仅本人使用</option><option>本团队使用</option><option>按业务线授权</option></select></div>
+      <div class="skill-action-actions">
+        <button class="btn btn-secondary" onclick="clearSkillPackageAction()">取消</button>
+        <button class="btn btn-primary" onclick="submitSkillPackageAction('${title}', '申请已生成')">提交申请</button>
+      </div>`,
+    pending: `
+      <div class="skill-action-row"><span>申请状态</span><strong>待审批</strong></div>
+      <div class="skill-action-row"><span>当前节点</span><strong>业务负责人审批</strong></div>
+      <div class="skill-action-row"><span>提交时间</span><strong>2026-05-29 10:20</strong></div>
+      <div class="skill-action-row"><span>预计处理</span><strong>1 个工作日内</strong></div>
+      <div class="skill-action-actions">
+        <button class="btn btn-secondary" onclick="clearSkillPackageAction()">收起</button>
+        <button class="btn btn-primary" onclick="submitSkillPackageAction('${title}', '已提醒审批人')">提醒审批人</button>
+      </div>`,
+    disabled: `
+      <div class="skill-action-row"><span>禁用原因</span><strong>权限策略调整中，暂不开放灰度发布和回滚演练</strong></div>
+      <div class="skill-action-row"><span>影响范围</span><strong>普通运营不可申请或使用，历史任务记录可继续查看</strong></div>
+      <div class="skill-action-row"><span>恢复方式</span><strong>等待平台管理员更新发布权限策略</strong></div>
+      <div class="skill-action-actions">
+        <button class="btn btn-secondary" onclick="clearSkillPackageAction()">收起</button>
+      </div>`,
+    admin: `
+      <div class="skill-action-row"><span>配置内容</span><strong>写入、发布、批量导出等高风险动作的确认与留痕规则</strong></div>
+      <div class="skill-action-row"><span>可见范围</span><strong>普通运营可查看说明；配置权限后续按组织和角色开放</strong></div>
+      <div class="skill-action-row"><span>当前规则</span><strong>L4/L5 二次确认，L6 审批后执行</strong></div>
+      <div class="skill-action-actions">
+        <button class="btn btn-secondary" onclick="clearSkillPackageAction()">收起</button>
+      </div>`
+  }[status] || `<div class="skill-action-row"><span>说明</span><strong>暂无可操作内容</strong></div>`;
+  panel.innerHTML = `
+    <div class="skill-action-panel-card">
+      <div class="skill-action-panel-head">
+        <div>
+          <div class="skill-action-kicker">${categoryText}</div>
+          <div class="skill-action-title">${title}<span>${statusText}</span></div>
+        </div>
+        <button class="agent-skill-modal-close compact" onclick="clearSkillPackageAction()" title="收起">×</button>
+      </div>
+      <div class="skill-action-panel-body">${body}</div>
+    </div>`;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function clearSkillPackageAction() {
+  const panel = document.getElementById('skill-package-action-panel');
+  if (panel) panel.innerHTML = '';
+}
+
+function submitSkillPackageAction(title, message) {
+  const panel = document.getElementById('skill-package-action-panel');
+  if (!panel) return;
+  panel.innerHTML = `
+    <div class="skill-action-panel-card success">
+      <div class="skill-action-panel-head">
+        <div>
+          <div class="skill-action-kicker">操作已记录</div>
+          <div class="skill-action-title">${title}<span>${message}</span></div>
+        </div>
+        <button class="agent-skill-modal-close compact" onclick="clearSkillPackageAction()" title="收起">×</button>
+      </div>
+      <div class="skill-action-panel-body">
+        <div class="skill-action-row"><span>后续处理</span><strong>当前仍停留在技能管理弹层内，可继续查看或申请其他技能包。</strong></div>
+      </div>
+    </div>`;
+}
+
 function renderAgentSkillsManager(options = {}) {
   const isModal = options.mode === 'modal';
   const skills = [
@@ -153,7 +247,7 @@ function renderAgentSkillsManager(options = {}) {
       <div class="agent-skill-card-meta">${s.tags.map(t => `<span class="agent-skill-card-tag">${t}</span>`).join('')}</div>
       <div class="agent-skill-card-foot">
         <span>${s.usage}</span>
-        <button class="agent-skill-card-action" onclick="aiQuick('${s.action === '申请' ? `申请开通${s.title}` : s.action === '使用' ? `使用${s.title}` : `查看${s.title}`}'); ${isModal ? 'closeSkillManagerOverlay();' : ''}">${s.action}</button>
+        <button class="agent-skill-card-action" onclick="openSkillPackageAction('${s.title}', '${s.status}', '${s.action}')">${s.action}</button>
       </div>
     </div>`;
   const atomicCard = item => `
@@ -179,10 +273,10 @@ function renderAgentSkillsManager(options = {}) {
       </div>
     </div>`;
   const headerActions = isModal
-    ? `<button class="btn btn-primary" onclick="aiQuick('我想申请一个新的技能包，请引导我填写申请信息。'); closeSkillManagerOverlay();">申请技能包</button>
+    ? `<button class="btn btn-primary" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
        <button class="agent-skill-modal-close" onclick="closeSkillManagerOverlay()" title="关闭">×</button>`
     : `<button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>
-       <button class="btn btn-primary" onclick="aiQuick('我想申请一个新的技能包，请引导我填写申请信息。')">申请技能包</button>`;
+       <button class="btn btn-primary" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>`;
   return `
     <div class="${isModal ? 'agent-skill-modal-panel' : ''}" role="${isModal ? 'dialog' : 'region'}" aria-label="Skills 管理">
       <div class="page-header ${isModal ? 'agent-skill-modal-head' : ''}">
@@ -212,6 +306,7 @@ function renderAgentSkillsManager(options = {}) {
           <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
         </div>
         <div class="skill-manager-section active" data-skill-view="packages">
+          <div id="skill-package-action-panel" class="skill-package-action-panel"></div>
           <div class="skill-page-grid">
             ${skills.map(card).join('')}
           </div>
