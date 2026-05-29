@@ -19,7 +19,8 @@ function renderPage(pageId) {
 }
 
 function updateSkillCardEmptyState() {
-  const cards = Array.from(document.querySelectorAll('.agent-skill-card'));
+  const activeSection = document.querySelector('.skill-manager-section.active') || document;
+  const cards = Array.from(activeSection.querySelectorAll('.agent-skill-card, .atomic-capability-card'));
   const empty = document.getElementById('skill-page-empty');
   if (!empty) return;
   empty.style.display = cards.some(card => card.style.display !== 'none') ? 'none' : '';
@@ -36,10 +37,33 @@ function filterSkillCards(status, btn) {
 
 function searchSkillCards(keyword) {
   const q = (keyword || '').trim().toLowerCase();
-  document.querySelectorAll('.agent-skill-card').forEach(card => {
+  const activeSection = document.querySelector('.skill-manager-section.active') || document;
+  activeSection.querySelectorAll('.agent-skill-card, .atomic-capability-card').forEach(card => {
     const filterVisible = card.dataset.filterVisible !== '0';
     const textVisible = !q || card.textContent.toLowerCase().includes(q);
     card.style.display = filterVisible && textVisible ? '' : 'none';
+  });
+  updateSkillCardEmptyState();
+}
+
+function switchSkillManagerView(view, btn) {
+  document.querySelectorAll('.skill-layer-tab').forEach(tab => tab.classList.remove('active'));
+  btn?.classList.add('active');
+  document.querySelectorAll('.skill-manager-section').forEach(section => {
+    section.classList.toggle('active', section.dataset.skillView === view);
+  });
+  const statusTabs = document.querySelector('.skill-page-tabs');
+  if (statusTabs) statusTabs.style.display = view === 'atomic' ? 'none' : '';
+  const empty = document.getElementById('skill-page-empty');
+  if (empty) empty.textContent = view === 'atomic' ? '当前筛选下暂无原子能力' : '当前筛选下暂无技能包';
+  const input = document.querySelector('.skill-page-search');
+  if (input) {
+    input.value = '';
+    input.placeholder = view === 'atomic' ? '搜索原子能力、分类、调用方式' : '搜索技能包名称、分类或用途';
+  }
+  document.querySelectorAll('.agent-skill-card, .atomic-capability-card').forEach(card => {
+    card.style.display = '';
+    card.dataset.filterVisible = '1';
   });
   updateSkillCardEmptyState();
 }
@@ -79,6 +103,16 @@ function renderAgentSkillsManager(options = {}) {
     { icon: '🛡️', color: '#f97316', title: '发布风险确认', status: 'admin', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' },
     { icon: '🔎', color: '#0ea5e9', title: '链路巡检', status: 'requestable', badge: '可申请', desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '申请后可用', action: '申请' }
   ];
+  const atomicAbilities = [
+    { id: 'metric.gmv.query', name: '查询 GMV 指标', category: '数据查询', risk: 'L1', status: '启用', invoke: '自然语言 / 技能包编排', input: '时间范围、业务线、渠道', output: 'GMV、订单数、同比环比', packages: ['经营指标解读', '活动复盘报告'] },
+    { id: 'context.page.read', name: '读取当前页面上下文', category: '上下文理解', risk: 'L1', status: '启用', invoke: '进入页面后自动读取', input: '当前菜单、筛选条件、页面指标', output: '页面上下文摘要', packages: ['经营指标解读', '链路巡检'] },
+    { id: 'content.report.generate', name: '生成运营报告草稿', category: '内容生成', risk: 'L2', status: '启用', invoke: '自然语言 / 技能包编排', input: '目标、周期、指标结果', output: '报告结构与文案草稿', packages: ['活动复盘报告', '经营指标解读'] },
+    { id: 'product.config.validate', name: '校验商品配置', category: '商品运营', risk: 'L2', status: '启用', invoke: '技能包编排', input: '商品 ID、推荐位、上下架状态', output: '配置问题与修复建议', packages: ['商品配置助手', '内容发布检查'] },
+    { id: 'product.config.write', name: '写入商品推荐位配置', category: '平台配置', risk: 'L4', status: '受控', invoke: '二次确认后执行', input: '推荐位、商品列表、生效时间', output: '配置变更结果', packages: ['商品配置助手'] },
+    { id: 'cert.user.export', name: '导出认证失败用户', category: '用户/会员', risk: 'L6', status: '审批', invoke: '审批通过后执行', input: '认证状态、时间范围、失败原因', output: '用户清单与失败原因', packages: ['认证失败用户导出'] },
+    { id: 'approval.task.create', name: '创建审批任务', category: '审批流', risk: 'L3', status: '启用', invoke: '高风险动作自动触发', input: '申请人、操作摘要、影响范围', output: '审批单号与审批链路', packages: ['商品配置助手', '发布风险确认'] },
+    { id: 'knowledge.query', name: '查询知识库', category: '知识问答', risk: 'L1', status: '启用', invoke: '自然语言', input: '问题、业务场景、关键词', output: '答案、引用来源、建议追问', packages: ['经营指标解读', '内容发布检查'] }
+  ];
   const statusMeta = {
     all: { label: '全部', count: skills.length },
     available: { label: '可用的', count: skills.filter(s => s.status === 'available').length },
@@ -108,42 +142,76 @@ function renderAgentSkillsManager(options = {}) {
         <button class="agent-skill-card-action" onclick="aiQuick('${s.action === '申请' ? `申请开通${s.title}` : s.action === '使用' ? `使用${s.title}` : `查看${s.title}`}'); ${isModal ? 'closeSkillManagerOverlay();' : ''}">${s.action}</button>
       </div>
     </div>`;
+  const atomicCard = item => `
+    <div class="atomic-capability-card" data-filter-visible="1">
+      <div class="atomic-capability-head">
+        <div>
+          <div class="atomic-capability-name">${item.name}<span>${item.id}</span></div>
+          <div class="atomic-capability-sub">${item.category} · ${item.invoke}</div>
+        </div>
+        <div class="atomic-risk ${item.risk.toLowerCase()}">${item.risk}</div>
+      </div>
+      <div class="atomic-capability-body">
+        <div><b>输入</b><span>${item.input}</span></div>
+        <div><b>输出</b><span>${item.output}</span></div>
+        <div><b>技能包引用</b><span>${item.packages.join(' / ')}</span></div>
+      </div>
+      <div class="atomic-capability-foot">
+        <span class="atomic-status">${item.status}</span>
+        <button class="agent-skill-card-action" onclick="aiQuick('尝试调用原子能力：${item.name}，请根据当前页面上下文说明需要哪些参数。'); ${isModal ? 'closeSkillManagerOverlay();' : ''}">试着调用</button>
+      </div>
+    </div>`;
   const headerActions = isModal
-    ? `<button class="btn btn-primary" onclick="aiQuick('我想申请一个新的运营 Skill，请引导我填写申请信息。'); closeSkillManagerOverlay();">申请 Skill</button>
+    ? `<button class="btn btn-primary" onclick="aiQuick('我想申请一个新的技能包，请引导我填写申请信息。'); closeSkillManagerOverlay();">申请技能包</button>
        <button class="agent-skill-modal-close" onclick="closeSkillManagerOverlay()" title="关闭">×</button>`
     : `<button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>
-       <button class="btn btn-primary" onclick="aiQuick('我想申请一个新的运营 Skill，请引导我填写申请信息。')">申请 Skill</button>`;
+       <button class="btn btn-primary" onclick="aiQuick('我想申请一个新的技能包，请引导我填写申请信息。')">申请技能包</button>`;
   return `
     <div class="${isModal ? 'agent-skill-modal-panel' : ''}" role="${isModal ? 'dialog' : 'region'}" aria-label="Skills 管理">
       <div class="page-header ${isModal ? 'agent-skill-modal-head' : ''}">
         <div>
-          <div class="page-title">Skills 管理</div>
-          <div class="page-desc">查看可用 Skills、提交能力申请，并管理常用运营能力。</div>
+          <div class="page-title">技能管理</div>
+          <div class="page-desc">技能包面向业务使用；原子能力展示底层可调用能力与编排关系。</div>
         </div>
         <div class="agent-skill-page-actions">
           ${headerActions}
         </div>
       </div>
       <div class="skill-page-shell">
+        <div class="skill-layer-tabs">
+          <button class="skill-layer-tab active" onclick="switchSkillManagerView('packages', this)">技能包<span>${skills.length}</span></button>
+          <button class="skill-layer-tab" onclick="switchSkillManagerView('atomic', this)">原子能力<span>${atomicAbilities.length}</span></button>
+        </div>
         <div class="skill-page-summary">
-          <div><strong>${statusMeta.available.count}</strong><span>可用 Skills</span></div>
+          <div><strong>${statusMeta.available.count}</strong><span>可用技能包</span></div>
           <div><strong>${statusMeta.requestable.count}</strong><span>可申请</span></div>
-          <div><strong>${statusMeta.pending.count}</strong><span>待审批</span></div>
-          <div><strong>${statusMeta.disabled.count}</strong><span>禁用</span></div>
+          <div><strong>${atomicAbilities.length}</strong><span>原子能力</span></div>
+          <div><strong>${atomicAbilities.filter(a => ['L4', 'L5', 'L6'].includes(a.risk)).length}</strong><span>高风险能力</span></div>
         </div>
         <div class="skill-page-toolbar">
           <div class="skill-page-tabs">
             ${tabs}
           </div>
-          <input class="skill-page-search" placeholder="搜索 Skill 名称、分类或用途" oninput="searchSkillCards(this.value)">
+          <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
         </div>
-        <div class="skill-page-grid">
-          ${skills.map(card).join('')}
+        <div class="skill-manager-section active" data-skill-view="packages">
+          <div class="skill-page-grid">
+            ${skills.map(card).join('')}
+          </div>
+          <div class="skill-page-empty-note">
+            技能包是给运营、业务和销售使用的低门槛入口。一个技能包可以编排多个原子能力，用户通过右侧 AI 助手自然语言调用。
+          </div>
+        </div>
+        <div class="skill-manager-section" data-skill-view="atomic">
+          <div class="atomic-capability-intro">
+            <div><b>原子能力</b><span>底层最小能力单元，可以被技能包编排，也可以由右侧 AI 助手根据自然语言任务自动调用。</span></div>
+            <div><b>调用路径</b><span>自然语言输入 → 意图识别 → 匹配技能包 → 拆解原子能力 → 权限/风险校验 → 执行或审批。</span></div>
+          </div>
+          <div class="atomic-capability-grid">
+            ${atomicAbilities.map(atomicCard).join('')}
+          </div>
         </div>
         <div class="skill-page-empty" id="skill-page-empty" style="display:none;">当前筛选下暂无 Skill</div>
-        <div class="skill-page-empty-note">
-          普通运营可查看和申请 Skills；管理员/PM 可配置参数、权限和审批规则。创建 Skill 的过程不在此页呈现。
-        </div>
       </div>
     </div>`;
 }

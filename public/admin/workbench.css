@@ -224,6 +224,20 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .ai-goal-card textarea:focus { border-color:var(--primary); box-shadow:0 0 0 2px rgba(51,112,255,0.08); }
 
 .skill-page-shell { display:flex; flex-direction:column; gap:14px; }
+.skill-layer-tabs { display:inline-flex; width:max-content; gap:4px; padding:4px; border:1px solid var(--border-light); border-radius:9px; background:#fff; }
+.skill-layer-tab {
+  border:none; background:transparent; color:var(--text-secondary); border-radius:7px; padding:8px 13px; font-size:13px;
+  cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-weight:500;
+}
+.skill-layer-tab:hover { color:var(--primary); background:var(--primary-light); }
+.skill-layer-tab.active { color:#fff; background:var(--primary); }
+.skill-layer-tab span {
+  min-width:18px; height:18px; padding:0 6px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,0.18); font-size:11px; font-weight:700;
+}
+.skill-layer-tab:not(.active) span { background:var(--bg); color:var(--text-tertiary); }
+.skill-manager-section { display:none; }
+.skill-manager-section.active { display:block; }
 .skill-page-summary { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; }
 .skill-page-summary div {
   background:#fff; border:1px solid var(--border-light); border-radius:8px; padding:14px 16px;
@@ -283,6 +297,29 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-page-empty-note {
   border:1px dashed var(--border); background:#fff; border-radius:8px; padding:18px; color:var(--text-secondary); font-size:13px;
 }
+.atomic-capability-intro { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+.atomic-capability-intro div { background:#fff; border:1px solid var(--border-light); border-radius:8px; padding:14px 16px; }
+.atomic-capability-intro b { display:block; font-size:13px; margin-bottom:6px; color:var(--text); }
+.atomic-capability-intro span { color:var(--text-secondary); font-size:12px; line-height:1.6; }
+.atomic-capability-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.atomic-capability-card {
+  background:#fff; border:1px solid var(--border-light); border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px;
+  transition:border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+}
+.atomic-capability-card:hover { border-color:#cfd8ea; box-shadow:0 8px 20px rgba(15,23,42,0.06); transform:translateY(-1px); }
+.atomic-capability-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+.atomic-capability-name { font-size:15px; font-weight:700; color:var(--text); line-height:1.35; }
+.atomic-capability-name span { display:block; margin-top:4px; font-size:11px; color:var(--text-tertiary); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:500; }
+.atomic-capability-sub { margin-top:6px; color:var(--text-secondary); font-size:12px; }
+.atomic-risk { flex-shrink:0; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; background:#eef4ff; color:#2563eb; }
+.atomic-risk.l4, .atomic-risk.l5 { background:#fff7e6; color:#b77900; }
+.atomic-risk.l6 { background:#fef2f2; color:#dc2626; }
+.atomic-capability-body { display:grid; gap:8px; }
+.atomic-capability-body div { display:grid; grid-template-columns:72px 1fr; gap:10px; align-items:start; }
+.atomic-capability-body b { color:var(--text-tertiary); font-size:12px; font-weight:500; }
+.atomic-capability-body span { color:var(--text-secondary); font-size:12px; line-height:1.55; }
+.atomic-capability-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; }
+.atomic-status { color:#12a150; background:#e8f7ef; border-radius:5px; padding:3px 7px; font-size:11px; font-weight:600; }
 .agent-skill-modal {
   position:fixed; inset:0; z-index:900; display:none; padding:28px;
   background:rgba(15,23,42,0.18); backdrop-filter:blur(2px);
