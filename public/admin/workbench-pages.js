@@ -28,11 +28,36 @@ function updateSkillCardEmptyState() {
 
 function filterSkillCards(status, btn) {
   document.querySelectorAll('.skill-page-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.skill-summary-card').forEach(card => card.classList.remove('active'));
   btn?.classList.add('active');
+  clearSkillPackageAction();
   document.querySelectorAll('.agent-skill-card').forEach(card => {
     card.dataset.filterVisible = status === 'all' || card.dataset.skillStatus === status ? '1' : '0';
   });
   searchSkillCards(document.querySelector('.skill-page-search')?.value || '');
+}
+
+function filterSkillSummary(kind, value, el) {
+  document.querySelectorAll('.skill-summary-card').forEach(card => card.classList.remove('active'));
+  el?.classList.add('active');
+  const input = document.querySelector('.skill-page-search');
+  if (input) input.value = '';
+  if (kind === 'package') {
+    document.querySelectorAll('.skill-page-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.skillFilter === value);
+    });
+    clearSkillPackageAction();
+    document.querySelectorAll('.agent-skill-card').forEach(card => {
+      const filters = value.split(',');
+      card.dataset.filterVisible = value === 'all' || filters.includes(card.dataset.skillStatus) ? '1' : '0';
+    });
+  } else {
+    document.querySelectorAll('.atomic-capability-card').forEach(card => {
+      const risks = value.split(',');
+      card.dataset.filterVisible = value === 'all' || risks.includes(card.dataset.atomicRisk) ? '1' : '0';
+    });
+  }
+  searchSkillCards('');
 }
 
 function searchSkillCards(keyword) {
@@ -52,6 +77,10 @@ function switchSkillManagerView(view, btn) {
   document.querySelectorAll('.skill-manager-section').forEach(section => {
     section.classList.toggle('active', section.dataset.skillView === view);
   });
+  document.querySelectorAll('.skill-summary-group').forEach(group => {
+    group.classList.toggle('active', group.dataset.summaryView === view);
+  });
+  document.querySelectorAll('.skill-summary-card').forEach(card => card.classList.remove('active'));
   document.querySelectorAll('.skill-package-only-action').forEach(action => {
     action.style.display = view === 'atomic' ? 'none' : '';
   });
@@ -68,6 +97,9 @@ function switchSkillManagerView(view, btn) {
   document.querySelectorAll('.agent-skill-card, .atomic-capability-card').forEach(card => {
     card.style.display = '';
     card.dataset.filterVisible = '1';
+  });
+  document.querySelectorAll('.skill-page-tab').forEach((tab, index) => {
+    tab.classList.toggle('active', index === 0);
   });
   updateSkillCardEmptyState();
 }
@@ -258,6 +290,12 @@ function renderAgentSkillsManager(options = {}) {
     disabled: { label: '禁用的', count: skills.filter(s => s.status === 'disabled').length },
     admin: { label: '管理员配置', count: skills.filter(s => s.status === 'admin').length }
   };
+  const atomicSummary = {
+    all: { label: '全部能力', count: atomicAbilities.length, risks: 'all' },
+    low: { label: '低风险', count: atomicAbilities.filter(a => a.risk === 'L1').length, risks: 'L1' },
+    medium: { label: '内容/流程', count: atomicAbilities.filter(a => ['L2', 'L3'].includes(a.risk)).length, risks: 'L2,L3' },
+    high: { label: '高风险能力', count: atomicAbilities.filter(a => ['L4', 'L5', 'L6'].includes(a.risk)).length, risks: 'L4,L5,L6' }
+  };
   const tabs = Object.entries(statusMeta).map(([key, meta], i) =>
     `<button class="skill-page-tab ${i === 0 ? 'active' : ''}" data-skill-filter="${key}" onclick="filterSkillCards('${key}', this)">${meta.label}<span>${meta.count}</span></button>`
   ).join('');
@@ -280,7 +318,7 @@ function renderAgentSkillsManager(options = {}) {
       </div>
     </div>`;
   const atomicCard = item => `
-    <div class="atomic-capability-card" data-filter-visible="1">
+    <div class="atomic-capability-card" data-filter-visible="1" data-atomic-risk="${item.risk}">
       <div class="atomic-capability-head">
         <div>
           <div class="atomic-capability-name">${item.name}<span>${item.id}</span></div>
@@ -320,11 +358,17 @@ function renderAgentSkillsManager(options = {}) {
           <button class="skill-layer-tab active" onclick="switchSkillManagerView('packages', this)">技能包<span>${skills.length}</span></button>
           <button class="skill-layer-tab" onclick="switchSkillManagerView('atomic', this)">Skill 能力<span>${atomicAbilities.length}</span></button>
         </div>
-        <div class="skill-page-summary">
-          <div><strong>${statusMeta.available.count}</strong><span>可用技能包</span></div>
-          <div><strong>${statusMeta.requestable.count}</strong><span>可申请</span></div>
-          <div><strong>${atomicAbilities.length}</strong><span>Skill 能力</span></div>
-          <div><strong>${atomicAbilities.filter(a => ['L4', 'L5', 'L6'].includes(a.risk)).length}</strong><span>高风险能力</span></div>
+        <div class="skill-page-summary skill-summary-group active" data-summary-view="packages">
+          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'available', this)"><strong>${statusMeta.available.count}</strong><span>可用技能包</span></button>
+          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'requestable', this)"><strong>${statusMeta.requestable.count}</strong><span>可申请</span></button>
+          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'pending', this)"><strong>${statusMeta.pending.count}</strong><span>待审批</span></button>
+          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'disabled,admin', this)"><strong>${statusMeta.disabled.count + statusMeta.admin.count}</strong><span>禁用/配置</span></button>
+        </div>
+        <div class="skill-page-summary skill-summary-group" data-summary-view="atomic">
+          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.all.risks}', this)"><strong>${atomicSummary.all.count}</strong><span>${atomicSummary.all.label}</span></button>
+          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.low.risks}', this)"><strong>${atomicSummary.low.count}</strong><span>${atomicSummary.low.label}</span></button>
+          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.medium.risks}', this)"><strong>${atomicSummary.medium.count}</strong><span>${atomicSummary.medium.label}</span></button>
+          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.high.risks}', this)"><strong>${atomicSummary.high.count}</strong><span>${atomicSummary.high.label}</span></button>
         </div>
         <div class="skill-page-toolbar">
           <div class="skill-page-tabs">
