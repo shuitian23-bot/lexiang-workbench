@@ -127,6 +127,11 @@ function closeSkillManagerOverlay() {
 }
 
 function openSkillPackageAction(title, status, action) {
+  if (status === 'available') {
+    aiQuick(`使用${title}。请基于当前页面上下文识别任务目标，并询问我还缺哪些必要参数；涉及写入或发布时必须先二次确认。`);
+    closeSkillManagerOverlay();
+    return;
+  }
   const panel = document.getElementById('skill-package-action-panel');
   if (!panel) return;
   const statusText = {
@@ -137,20 +142,12 @@ function openSkillPackageAction(title, status, action) {
     admin: '管理员配置'
   }[status] || '查看';
   const categoryText = {
-    available: '使用技能包',
     requestable: '申请技能包',
     pending: '查看审批进度',
     disabled: '查看禁用原因',
     admin: '查看配置说明'
   }[status] || '查看详情';
   const body = {
-    available: `
-      <div class="skill-action-row"><span>使用方式</span><strong>通过右侧 AI 助手自然语言调用</strong></div>
-      <div class="skill-action-row"><span>下一步</span><strong>在底部输入框描述任务目标、时间范围和业务线</strong></div>
-      <div class="skill-action-row"><span>执行控制</span><strong>只读分析可直接执行；写入动作仍需二次确认</strong></div>
-      <div class="skill-action-actions">
-        <button class="btn btn-primary" onclick="startSkillPackageInline('${title}')">在本页开始</button>
-      </div>`,
     requestable: `
       <div class="skill-action-row"><span>申请人</span><input value="${STATE.user || 'admin'}" readonly></div>
       <div class="skill-action-row"><span>申请场景</span><textarea placeholder="例如：用于每周活动复盘，需要查看渠道表现和优化建议"></textarea></div>
@@ -218,31 +215,6 @@ function submitSkillPackageAction(title, message) {
         <div class="skill-action-row"><span>后续处理</span><strong>当前仍停留在技能管理弹层内，可继续查看或申请其他技能包。</strong></div>
       </div>
     </div>`;
-}
-
-function startSkillPackageInline(title) {
-  const panel = document.getElementById('skill-package-action-panel');
-  if (!panel) return;
-  panel.innerHTML = `
-    <div class="skill-action-panel-card success">
-      <div class="skill-action-panel-head">
-        <div>
-          <div class="skill-action-kicker">已进入技能包使用准备</div>
-          <div class="skill-action-title">${title}<span>本页闭环</span></div>
-        </div>
-        <button class="agent-skill-modal-close compact" onclick="clearSkillPackageAction()" title="收起">×</button>
-      </div>
-      <div class="skill-action-panel-body">
-        <div class="skill-action-row"><span>当前状态</span><strong>已选择该技能包，后续参数在当前管理弹层内补充。</strong></div>
-        <div class="skill-action-row"><span>所需信息</span><input placeholder="例如：近 7 天、消费业务、官网渠道"></div>
-        <div class="skill-action-row"><span>执行方式</span><strong>只读类任务可直接生成预览；写入类任务会先展示二次确认。</strong></div>
-        <div class="skill-action-actions">
-          <button class="btn btn-secondary" onclick="clearSkillPackageAction()">取消</button>
-          <button class="btn btn-primary" onclick="submitSkillPackageAction('${title}', '已生成任务预览')">生成任务预览</button>
-        </div>
-      </div>
-    </div>`;
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function renderAgentSkillsManager(options = {}) {
