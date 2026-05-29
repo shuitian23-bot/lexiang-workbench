@@ -311,15 +311,24 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .atomic-capability-name { font-size:15px; font-weight:700; color:var(--text); line-height:1.35; }
 .atomic-capability-name span { display:block; margin-top:4px; font-size:11px; color:var(--text-tertiary); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:500; }
 .atomic-capability-sub { margin-top:6px; color:var(--text-secondary); font-size:12px; }
-.atomic-risk { flex-shrink:0; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; background:#eef4ff; color:#2563eb; }
-.atomic-risk.l4, .atomic-risk.l5 { background:#fff7e6; color:#b77900; }
-.atomic-risk.l6 { background:#fef2f2; color:#dc2626; }
+.atomic-risk {
+  flex-shrink:0; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; background:#eef4ff; color:#2563eb;
+  display:flex; align-items:center; gap:5px; line-height:1.2;
+}
+.atomic-risk strong { font-size:11px; font-weight:700; }
+.atomic-risk span { font-size:10px; opacity:.75; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+.atomic-risk.medium { background:#f1f5f9; color:#475569; }
+.atomic-risk.high { background:#fff7e6; color:#b77900; }
+.atomic-risk.critical { background:#fef2f2; color:#dc2626; }
 .atomic-capability-body { display:grid; gap:8px; }
 .atomic-capability-body div { display:grid; grid-template-columns:72px 1fr; gap:10px; align-items:start; }
 .atomic-capability-body b { color:var(--text-tertiary); font-size:12px; font-weight:500; }
 .atomic-capability-body span { color:var(--text-secondary); font-size:12px; line-height:1.55; }
 .atomic-capability-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; }
 .atomic-status { color:#12a150; background:#e8f7ef; border-radius:5px; padding:3px 7px; font-size:11px; font-weight:600; }
+.atomic-status.status-controlled { color:#b77900; background:#fff7e6; }
+.atomic-status.status-approval { color:#2563eb; background:#eef4ff; }
+.atomic-status.status-disabled { color:#64748b; background:#f1f5f9; }
 .agent-skill-modal {
   position:fixed; inset:0; z-index:900; display:none; padding:28px;
   background:rgba(15,23,42,0.18); backdrop-filter:blur(2px);

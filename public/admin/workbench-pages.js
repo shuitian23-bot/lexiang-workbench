@@ -55,11 +55,11 @@ function switchSkillManagerView(view, btn) {
   const statusTabs = document.querySelector('.skill-page-tabs');
   if (statusTabs) statusTabs.style.display = view === 'atomic' ? 'none' : '';
   const empty = document.getElementById('skill-page-empty');
-  if (empty) empty.textContent = view === 'atomic' ? '当前筛选下暂无原子能力' : '当前筛选下暂无技能包';
+  if (empty) empty.textContent = view === 'atomic' ? '当前筛选下暂无 Skill 能力' : '当前筛选下暂无技能包';
   const input = document.querySelector('.skill-page-search');
   if (input) {
     input.value = '';
-    input.placeholder = view === 'atomic' ? '搜索原子能力、分类、调用方式' : '搜索技能包名称、分类或用途';
+    input.placeholder = view === 'atomic' ? '搜索 Skill 能力、分类、调用方式' : '搜索技能包名称、分类或用途';
   }
   document.querySelectorAll('.agent-skill-card, .atomic-capability-card').forEach(card => {
     card.style.display = '';
@@ -104,15 +104,29 @@ function renderAgentSkillsManager(options = {}) {
     { icon: '🔎', color: '#0ea5e9', title: '链路巡检', status: 'requestable', badge: '可申请', desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '申请后可用', action: '申请' }
   ];
   const atomicAbilities = [
-    { id: 'metric.gmv.query', name: '查询 GMV 指标', category: '数据查询', risk: 'L1', status: '启用', invoke: '自然语言 / 技能包编排', input: '时间范围、业务线、渠道', output: 'GMV、订单数、同比环比', packages: ['经营指标解读', '活动复盘报告'] },
-    { id: 'context.page.read', name: '读取当前页面上下文', category: '上下文理解', risk: 'L1', status: '启用', invoke: '进入页面后自动读取', input: '当前菜单、筛选条件、页面指标', output: '页面上下文摘要', packages: ['经营指标解读', '链路巡检'] },
-    { id: 'content.report.generate', name: '生成运营报告草稿', category: '内容生成', risk: 'L2', status: '启用', invoke: '自然语言 / 技能包编排', input: '目标、周期、指标结果', output: '报告结构与文案草稿', packages: ['活动复盘报告', '经营指标解读'] },
-    { id: 'product.config.validate', name: '校验商品配置', category: '商品运营', risk: 'L2', status: '启用', invoke: '技能包编排', input: '商品 ID、推荐位、上下架状态', output: '配置问题与修复建议', packages: ['商品配置助手', '内容发布检查'] },
-    { id: 'product.config.write', name: '写入商品推荐位配置', category: '平台配置', risk: 'L4', status: '受控', invoke: '二次确认后执行', input: '推荐位、商品列表、生效时间', output: '配置变更结果', packages: ['商品配置助手'] },
-    { id: 'cert.user.export', name: '导出认证失败用户', category: '用户/会员', risk: 'L6', status: '审批', invoke: '审批通过后执行', input: '认证状态、时间范围、失败原因', output: '用户清单与失败原因', packages: ['认证失败用户导出'] },
-    { id: 'approval.task.create', name: '创建审批任务', category: '审批流', risk: 'L3', status: '启用', invoke: '高风险动作自动触发', input: '申请人、操作摘要、影响范围', output: '审批单号与审批链路', packages: ['商品配置助手', '发布风险确认'] },
-    { id: 'knowledge.query', name: '查询知识库', category: '知识问答', risk: 'L1', status: '启用', invoke: '自然语言', input: '问题、业务场景、关键词', output: '答案、引用来源、建议追问', packages: ['经营指标解读', '内容发布检查'] }
+    { id: 'metric.gmv.query', name: '查询 GMV 指标', category: '数据查询', risk: 'L1', status: 'enabled', invoke: '自然语言 / 技能包编排', input: '时间范围、业务线、渠道', output: 'GMV、订单数、同比环比', packages: ['经营指标解读', '活动复盘报告'] },
+    { id: 'context.page.read', name: '读取当前页面上下文', category: '上下文理解', risk: 'L1', status: 'enabled', invoke: '进入页面后自动读取', input: '当前菜单、筛选条件、页面指标', output: '页面上下文摘要', packages: ['经营指标解读', '链路巡检'] },
+    { id: 'content.report.generate', name: '生成运营报告草稿', category: '内容生成', risk: 'L2', status: 'enabled', invoke: '自然语言 / 技能包编排', input: '目标、周期、指标结果', output: '报告结构与文案草稿', packages: ['活动复盘报告', '经营指标解读'] },
+    { id: 'product.config.validate', name: '校验商品配置', category: '商品运营', risk: 'L2', status: 'enabled', invoke: '技能包编排', input: '商品 ID、推荐位、上下架状态', output: '配置问题与修复建议', packages: ['商品配置助手', '内容发布检查'] },
+    { id: 'product.config.write', name: '写入商品推荐位配置', category: '平台配置', risk: 'L4', status: 'controlled', invoke: '二次确认后执行', input: '推荐位、商品列表、生效时间', output: '配置变更结果', packages: ['商品配置助手'] },
+    { id: 'cert.user.export', name: '导出认证失败用户', category: '用户/会员', risk: 'L6', status: 'approval', invoke: '审批通过后执行', input: '认证状态、时间范围、失败原因', output: '用户清单与失败原因', packages: ['认证失败用户导出'] },
+    { id: 'approval.task.create', name: '创建审批任务', category: '审批流', risk: 'L3', status: 'enabled', invoke: '高风险动作自动触发', input: '申请人、操作摘要、影响范围', output: '审批单号与审批链路', packages: ['商品配置助手', '发布风险确认'] },
+    { id: 'knowledge.query', name: '查询知识库', category: '知识问答', risk: 'L1', status: 'enabled', invoke: '自然语言', input: '问题、业务场景、关键词', output: '答案、引用来源、建议追问', packages: ['经营指标解读', '内容发布检查'] }
   ];
+  const atomicRiskMeta = {
+    L1: { label: '低风险', desc: '只读查询 / 上下文读取', tone: 'low' },
+    L2: { label: '内容生成', desc: '生成草稿或建议，不直接写入', tone: 'low' },
+    L3: { label: '流程动作', desc: '创建任务、通知或审批单', tone: 'medium' },
+    L4: { label: '受控写入', desc: '影响页面配置，执行前二次确认', tone: 'high' },
+    L5: { label: '发布变更', desc: '影响线上发布或批量生效', tone: 'high' },
+    L6: { label: '高敏审批', desc: '涉及用户数据导出或敏感操作', tone: 'critical' }
+  };
+  const atomicStatusMeta = {
+    enabled: { label: '启用', desc: '当前用户可在技能包或自然语言任务中触发' },
+    controlled: { label: '受控', desc: '可被触发，但执行前必须二次确认并留痕' },
+    approval: { label: '审批', desc: '需要走审批流，审批通过后才执行' },
+    disabled: { label: '停用', desc: '暂不可调用，只保留展示和依赖关系' }
+  };
   const statusMeta = {
     all: { label: '全部', count: skills.length },
     available: { label: '可用的', count: skills.filter(s => s.status === 'available').length },
@@ -149,7 +163,10 @@ function renderAgentSkillsManager(options = {}) {
           <div class="atomic-capability-name">${item.name}<span>${item.id}</span></div>
           <div class="atomic-capability-sub">${item.category} · ${item.invoke}</div>
         </div>
-        <div class="atomic-risk ${item.risk.toLowerCase()}">${item.risk}</div>
+        <div class="atomic-risk ${atomicRiskMeta[item.risk]?.tone || 'low'}" title="${item.risk}：${atomicRiskMeta[item.risk]?.desc || ''}">
+          <strong>${atomicRiskMeta[item.risk]?.label || item.risk}</strong>
+          <span>${item.risk}</span>
+        </div>
       </div>
       <div class="atomic-capability-body">
         <div><b>输入</b><span>${item.input}</span></div>
@@ -157,8 +174,8 @@ function renderAgentSkillsManager(options = {}) {
         <div><b>技能包引用</b><span>${item.packages.join(' / ')}</span></div>
       </div>
       <div class="atomic-capability-foot">
-        <span class="atomic-status">${item.status}</span>
-        <button class="agent-skill-card-action" onclick="aiQuick('尝试调用原子能力：${item.name}，请根据当前页面上下文说明需要哪些参数。'); ${isModal ? 'closeSkillManagerOverlay();' : ''}">试着调用</button>
+        <span class="atomic-status status-${item.status}" title="${atomicStatusMeta[item.status]?.desc || ''}">${atomicStatusMeta[item.status]?.label || item.status}</span>
+        <button class="agent-skill-card-action" title="把该能力带入右侧 AI 输入框，由 AI 说明参数与确认步骤" onclick="aiQuick('试调用 Skill 能力：${item.name}。请先说明适用场景、需要的参数、风险等级和下一步确认方式，不要直接执行写入。'); ${isModal ? 'closeSkillManagerOverlay();' : ''}">试调用</button>
       </div>
     </div>`;
   const headerActions = isModal
@@ -171,7 +188,7 @@ function renderAgentSkillsManager(options = {}) {
       <div class="page-header ${isModal ? 'agent-skill-modal-head' : ''}">
         <div>
           <div class="page-title">技能管理</div>
-          <div class="page-desc">技能包面向业务使用；原子能力展示底层可调用能力与编排关系。</div>
+          <div class="page-desc">技能包面向业务使用；Skill 能力展示底层可调用能力与编排关系。</div>
         </div>
         <div class="agent-skill-page-actions">
           ${headerActions}
@@ -180,12 +197,12 @@ function renderAgentSkillsManager(options = {}) {
       <div class="skill-page-shell">
         <div class="skill-layer-tabs">
           <button class="skill-layer-tab active" onclick="switchSkillManagerView('packages', this)">技能包<span>${skills.length}</span></button>
-          <button class="skill-layer-tab" onclick="switchSkillManagerView('atomic', this)">原子能力<span>${atomicAbilities.length}</span></button>
+          <button class="skill-layer-tab" onclick="switchSkillManagerView('atomic', this)">Skill 能力<span>${atomicAbilities.length}</span></button>
         </div>
         <div class="skill-page-summary">
           <div><strong>${statusMeta.available.count}</strong><span>可用技能包</span></div>
           <div><strong>${statusMeta.requestable.count}</strong><span>可申请</span></div>
-          <div><strong>${atomicAbilities.length}</strong><span>原子能力</span></div>
+          <div><strong>${atomicAbilities.length}</strong><span>Skill 能力</span></div>
           <div><strong>${atomicAbilities.filter(a => ['L4', 'L5', 'L6'].includes(a.risk)).length}</strong><span>高风险能力</span></div>
         </div>
         <div class="skill-page-toolbar">
@@ -199,13 +216,13 @@ function renderAgentSkillsManager(options = {}) {
             ${skills.map(card).join('')}
           </div>
           <div class="skill-page-empty-note">
-            技能包是给运营、业务和销售使用的低门槛入口。一个技能包可以编排多个原子能力，用户通过右侧 AI 助手自然语言调用。
+            技能包是给运营、业务和销售使用的低门槛入口。一个技能包可以编排多个 Skill 能力，用户通过右侧 AI 助手自然语言调用。
           </div>
         </div>
         <div class="skill-manager-section" data-skill-view="atomic">
           <div class="atomic-capability-intro">
-            <div><b>原子能力</b><span>底层最小能力单元，可以被技能包编排，也可以由右侧 AI 助手根据自然语言任务自动调用。</span></div>
-            <div><b>调用路径</b><span>自然语言输入 → 意图识别 → 匹配技能包 → 拆解原子能力 → 权限/风险校验 → 执行或审批。</span></div>
+            <div><b>Skill 能力</b><span>底层最小能力单元，可以被技能包编排，也可以由右侧 AI 助手根据自然语言任务自动调用。</span></div>
+            <div><b>调用路径</b><span>自然语言输入 → 意图识别 → 匹配技能包 → 拆解 Skill 能力 → 权限/风险校验 → 执行或审批。</span></div>
           </div>
           <div class="atomic-capability-grid">
             ${atomicAbilities.map(atomicCard).join('')}
