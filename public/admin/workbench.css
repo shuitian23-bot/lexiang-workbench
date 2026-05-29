@@ -350,15 +350,16 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .atomic-status.status-approval { color:#2563eb; background:#eef4ff; }
 .atomic-status.status-disabled { color:#64748b; background:#f1f5f9; }
 .agent-skill-modal {
-  position:fixed; inset:0; z-index:900; display:none; padding:28px;
+  position:fixed; inset:0; z-index:900; display:none; padding:clamp(12px, 3vh, 28px) clamp(12px, 3vw, 28px);
   background:rgba(15,23,42,0.18); backdrop-filter:blur(2px);
 }
-.agent-skill-modal.open { display:flex; align-items:stretch; justify-content:center; }
+.agent-skill-modal.open { display:flex; align-items:center; justify-content:center; }
 .agent-skill-modal-open { overflow:hidden; }
 .agent-skill-modal-panel {
-  width:min(1280px, 100%); height:100%; overflow:auto; background:var(--bg);
+  width:clamp(880px, calc(100vw - 56px), 1280px); max-width:100%; max-height:calc(100vh - clamp(24px, 6vh, 56px));
+  min-height:min(720px, calc(100vh - clamp(24px, 6vh, 56px))); overflow:auto; background:var(--bg);
   border:1px solid var(--border-light); border-radius:12px; box-shadow:0 24px 80px rgba(15,23,42,0.2);
-  padding:22px 24px;
+  padding:clamp(16px, 2vw, 24px);
 }
 .agent-skill-modal-head {
   background:transparent; border:none; padding:0; margin-bottom:16px;
@@ -370,6 +371,29 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 }
 .agent-skill-modal-close:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
 .agent-skill-modal-close.compact { width:28px; height:28px; border-radius:7px; font-size:18px; flex-shrink:0; }
+
+@media (max-width: 1120px) {
+  .agent-skill-modal.open { align-items:stretch; }
+  .agent-skill-modal-panel { width:100%; min-height:0; max-height:100%; }
+  .skill-page-summary { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .skill-page-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .atomic-capability-grid { grid-template-columns:1fr; }
+}
+
+@media (max-width: 760px) {
+  .agent-skill-modal { padding:0; }
+  .agent-skill-modal-panel { width:100%; height:100%; max-height:none; border-radius:0; border:none; }
+  .agent-skill-modal-head { align-items:flex-start; gap:12px; }
+  .skill-page-summary,
+  .skill-page-grid,
+  .skill-action-panel-body,
+  .atomic-capability-intro { grid-template-columns:1fr; }
+  .skill-page-search { width:100%; }
+  .skill-action-row { grid-template-columns:1fr; gap:4px; }
+  .skill-action-row span { padding-top:0; }
+  .skill-action-actions { justify-content:stretch; }
+  .skill-action-actions .btn { flex:1; justify-content:center; }
+}
 
 .ai-messages { flex:1; overflow-y:auto; overflow-y:overlay; padding:12px 10px; scrollbar-width:thin; scrollbar-color:rgba(0,0,0,0.1) transparent; }
 .ai-messages::-webkit-scrollbar { width:4px; background:transparent; }
