@@ -122,8 +122,8 @@
     var active = document.querySelector('.nlinks a.nav-active');
     var label = active && active.textContent ? active.textContent.trim() : '';
     if (label) return label;
-    var map = { shop: '个人及家庭', b: '中小企业', biz: '政教及大企业', default: '首页' };
-    return map[window.__siteType || 'default'] || '首页';
+    var map = { shop: '个人及家庭', b: '中小企业', biz: '政教及大企业', default: '全场景' };
+    return map[window.__siteType || 'default'] || '全场景';
   }
 
   function ensureHomeTab() {
@@ -291,12 +291,12 @@
     var html = document.documentElement;
     if (!html.classList.contains('in-chat')) enterChat();
     if (!html.classList.contains('split-mode')) enterSplit();
-    // 不再自动塞「首页」tab(按反馈去掉) — 回首页走顶部 nav
+    // 不再自动塞「全场景」tab(按反馈去掉) — 回全场景走顶部 nav
 
     var reusable = findReusableTab(type, data, title);
     if (reusable) {
       ensureContentPanelOpen();
-      // 复用时标题变了就改名(如切站后首页 tab 跟随当前子站名)
+      // 复用时标题变了就改名(如切站后全场景 tab 跟随当前子站名)
       if (title && reusable.title !== title) renameTab(reusable.id, title);
       switchTab(reusable.id);
       return reusable.id;
@@ -571,7 +571,7 @@
     container.innerHTML = '';
     var lp = document.getElementById('landingPage');
     if (!lp) {
-      container.innerHTML = '<div class="cp-empty">首页暂时不可用</div>';
+      container.innerHTML = '<div class="cp-empty">全场景暂时不可用</div>';
       return;
     }
     try {
@@ -584,7 +584,7 @@
     container.appendChild(lp);
   };
 
-  // 轻量子站首页(独立组件, 不碰 #landingPage, 每子站独立 tab 并存)
+  // 轻量子站全场景(独立组件, 不碰 #landingPage, 每子站独立 tab 并存)
   RENDERERS.sitehome = function (container, data) {
     data = data || {};
     var BANNERS = {
@@ -1525,7 +1525,7 @@
     var heroSend = document.getElementById('heroSend');
     if (heroSend) heroSend.addEventListener('click', function () { if (isPC()) enterChat(); }, true);
 
-    // Logo 回首页：拦截主导航 .logo 的 onclick
+    // Logo 回全场景：拦截主导航 .logo 的 onclick
     var logoEl = document.querySelector('nav .logo');
     if (logoEl) {
       logoEl.addEventListener('click', function (e) {
@@ -1537,7 +1537,7 @@
       }, true);
     }
 
-    // 侧边栏 logo 和 返回首页按钮
+    // 侧边栏 logo 和 返回全场景按钮
     var sbLogo = document.querySelector('.sb-logo');
     if (sbLogo) {
       sbLogo.addEventListener('click', function (e) {

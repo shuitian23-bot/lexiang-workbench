@@ -283,7 +283,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .cta h2{font-size:28px;font-weight:700;letter-spacing:-1px;margin-bottom:12px}
 .cta p{font-size:14px;color:var(--text2);margin-bottom:24px}
 .cta .btn{padding:14px 32px;font-size:14px}
-/* 首页/子站内容切换 */
+/* 全场景/子站内容切换 */
 html:not([data-site="default"]) #homeContent{display:none}
 html[data-site="default"] #shopContent{display:none}
 
@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux23">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux24">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1326,16 +1326,16 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 <!-- ══════════ LANDING PAGE ══════════ -->
 <div id="landingPage">
 <nav>
-  <div class="logo" onclick="if(location.pathname!=='/'){location.href='/'}else{location.reload()}" style="cursor:pointer" title="返回首页"><img src="https://p2.lefile.cn/fes/cms/2026/04/15/o91jmkfrd1j7modqdoadmgv6sroz50894755.png" alt="Lenovo 联想"></div>
+  <div class="logo" onclick="if(location.pathname!=='/'){location.href='/'}else{location.reload()}" style="cursor:pointer" title="返回全场景"><img src="https://p2.lefile.cn/fes/cms/2026/04/15/o91jmkfrd1j7modqdoadmgv6sroz50894755.png" alt="Lenovo 联想"></div>
   <div class="nlinks" id="navLinks"></div>
   <script>!function(){
     // 直接从 pathname 计算，不用依赖 __siteType（避免时序问题）
     var _path = location.pathname;
     var _prefixMap = {'/shop-chat':'shop','/b-chat':'b','/biz-chat':'biz'};
-    var _st = 'home'; // 默认首页
+    var _st = 'home'; // 默认全场景
     for(var k in _prefixMap){ if(_path.startsWith(k)){ _st=_prefixMap[k]; break; } }
     var NAV_ITEMS=[
-      {label:'首页',href:'/',key:'home'},
+      {label:'全场景',href:'/',key:'home'},
       {label:'个人及家庭',href:'/shop-chat/',key:'shop'},
       {label:'中小企业',href:'/b-chat/',key:'b'},
       {label:'政教及大企业',href:'/biz-chat/',key:'biz'},
@@ -1405,7 +1405,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   }; window.__renderSiteHero();</script>
 </section></div>
 <div class="wrap">
-<!-- ═══ 方案C首页（仅 data-site="default" 显示） ═══ -->
+<!-- ═══ 方案C全场景（仅 data-site="default" 显示） ═══ -->
 <div id="homeContent">
   <section class="sec fi"><div class="sec-head"><h2>最新动态</h2><a href="#">查看全部 →</a></div>
     <div class="feat">
@@ -1663,7 +1663,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       <div class="sb-footer">
         <button class="back-home-btn" id="backHomeBtn" onclick="goHome()">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          <span id="backHomeLabel">返回首页</span>
+          <span id="backHomeLabel">返回全场景</span>
         </button>
         <button class="sb-theme-btn" id="chatThemeBtn">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -1945,7 +1945,7 @@ const I18N = {
     newConv: '新建对话',
     history: '历史记录',
     noHistory: '暂无历史记录',
-    backHome: '返回首页',
+    backHome: '返回全场景',
     themeToggle: '切换主题',
     webSearch: '联网搜索',
     thinking: '深度思考',
@@ -2115,7 +2115,7 @@ window.addEventListener('popstate', (e) => {
     closeDisplayCanvas();
   }
   if (p === '/' || p === '') {
-    // chat 有消息时不 reset(防 mobile 右滑返回 gesture 误把进行中的 chat 跳回首页), 推回 chat URL
+    // chat 有消息时不 reset(防 mobile 右滑返回 gesture 误把进行中的 chat 跳回全场景), 推回 chat URL
     var _inner = document.getElementById('msgsInner');
     if (_inner && _inner.querySelectorAll('.msg').length > 0) {
       var _back = (window.__chatBase || '/chat') + (typeof convId !== 'undefined' && convId ? '/' + convId : '/');
@@ -3555,7 +3555,7 @@ if(pcarousel) pcarousel.addEventListener('scroll',()=>{
 
 // ── 商城分区 Feed（新品/超值/热门 + 各品类） ──
 var mallProducts = {};
-// S3① 公共商品卡：mall(首页 feed) / dc(displayCanvas AI 推荐) 两 variant
+// S3① 公共商品卡：mall(全场景 feed) / dc(displayCanvas AI 推荐) 两 variant
 // 字段统一：name, description, price, original_price, image_url, sku, id, category
 function _renderUnifiedProductCard(p, variant) {
   variant = variant || 'mall';
@@ -3723,7 +3723,7 @@ function showDisplayCanvas(title, products) {
   body.style.display = 'grid';
   body.style.gap = '12px';
   document.getElementById('dcTitle').textContent = title;
-  // S3① 复用 _renderUnifiedProductCard('dc')，与首页 mall feed 同源
+  // S3① 复用 _renderUnifiedProductCard('dc')，与全场景 mall feed 同源
   body.innerHTML = products.map(function(p){ return _renderUnifiedProductCard(p, 'dc'); }).join('');
   var lp = document.getElementById('landingPage');
   if (lp) { lp.scrollTop = 0; lp.style.overflow = 'hidden'; lp.classList.add('dc-open'); }
@@ -3903,7 +3903,7 @@ async function showProductDetail(sku) {
     body.innerHTML =
       '<div class="pd-page">' +
         '<div class="pd-breadcrumb">' +
-          '<a onclick="closeDisplayCanvas()" style="cursor:pointer">首页</a><span class="sep">/</span>' +
+          '<a onclick="closeDisplayCanvas()" style="cursor:pointer">全场景</a><span class="sep">/</span>' +
           '<a onclick="showCategoryProducts(\'' + escHtml(p.category || '商品').replace(/'/g, "\\'") + '\')" style="cursor:pointer">' + escHtml(p.category || '商品') + '</a><span class="sep">/</span>' +
           '<span style="color:var(--text);font-weight:500">' + escHtml(p.name) + '</span>' +
         '</div>' +
@@ -4421,7 +4421,7 @@ window.toggleCompare = toggleCompare;
 function _renderCmpFab() {
   var existing = document.getElementById('cmpFab');
   var list = window._compareList || [];
-  // default 主页（leaibot.cn 首页）永不显示，避免打扰
+  // default 主页（leaibot.cn 全场景）永不显示，避免打扰
   var siteType = (typeof window.__siteType !== 'undefined') ? window.__siteType : 'default';
   if (siteType === 'default') {
     if (existing) existing.remove();
@@ -5477,10 +5477,10 @@ window.addEventListener('DOMContentLoaded', function(){
   // 检查登录态（_authReady 供 restoreFromUrl 等待）
   window._authReady = fetch('/api/auth/me').then(function(r){return r.json();}).then(function(d){ if(d.user) onLoginSuccess(d.user); }).catch(function(){});
   // 子站路径自动高亮对应导航
-  var _sn={'home':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
-  // 首页直接清除高亮，不再依赖 __siteType
+  var _sn={'home':'全场景','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  // 全场景直接清除高亮，不再依赖 __siteType
   if(location.pathname === '/') {
-    setNavActive('首页');
+    setNavActive('全场景');
   } else if(_sn[window.__siteType]) {
     setNavActive(_sn[window.__siteType]);
   }
@@ -7267,7 +7267,7 @@ window.openServicePlus = openServicePlus;
 //  SPA 切站: 有对话 → 保留 session SPA 切 + landing 重渲; 无对话 → 走原 href 整页
 // ════════════════════════════════════════
 (function(){
-  var LABELS = {'default':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  var LABELS = {'default':'全场景','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
   window.spaSwitchSite = function(newSite, newPath){
     // 同时更新底层 _siteType var(mall 函数读它) + window 镜像
     try { _siteType = newSite; } catch(e){}
@@ -7280,11 +7280,11 @@ window.openServicePlus = openServicePlus;
     document.querySelectorAll('.nlinks a').forEach(function(a){ a.classList.remove('nav-active'); });
     var label = LABELS[newSite];
     if (label) document.querySelectorAll('.nlinks a').forEach(function(a){ if (a.getAttribute('data-nav') === label) a.classList.add('nav-active'); });
-    // 每子站独立首页 tab(克隆本体 landing, 多子站并存+内容完整). 顺序: 先开/切 sitehome tab → 重渲本体 → 等异步好后克隆替换 tab content
+    // 每子站独立全场景 tab(克隆本体 landing, 多子站并存+内容完整). 顺序: 先开/切 sitehome tab → 重渲本体 → 等异步好后克隆替换 tab content
     var _sitehomeTabId = null;
     try {
       if (typeof window.__openContent === 'function' && window.matchMedia && window.matchMedia('(min-width:769px)').matches) {
-        _sitehomeTabId = window.__openContent('sitehome', (label || newSite) + ' 首页', { site: newSite });
+        _sitehomeTabId = window.__openContent('sitehome', (label || newSite) + ' 全场景', { site: newSite });
       }
     } catch(e){}
     // 子站全套 landing 重渲(打本体 #landingPage, 异步 feed 单独等)
@@ -7618,6 +7618,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux23"></script>
+<script src="/split-layout.js?v=20260527-ux24"></script>
 </body>
 </html>
