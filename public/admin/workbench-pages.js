@@ -52,6 +52,10 @@ function switchSkillManagerView(view, btn) {
   document.querySelectorAll('.skill-manager-section').forEach(section => {
     section.classList.toggle('active', section.dataset.skillView === view);
   });
+  document.querySelectorAll('.skill-package-only-action').forEach(action => {
+    action.style.display = view === 'atomic' ? 'none' : '';
+  });
+  if (view === 'atomic') clearSkillPackageAction();
   const statusTabs = document.querySelector('.skill-page-tabs');
   if (statusTabs) statusTabs.style.display = view === 'atomic' ? 'none' : '';
   const empty = document.getElementById('skill-page-empty');
@@ -298,10 +302,10 @@ function renderAgentSkillsManager(options = {}) {
       </div>
     </div>`;
   const headerActions = isModal
-    ? `<button class="btn btn-primary" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
+    ? `<button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
        <button class="agent-skill-modal-close" onclick="closeSkillManagerOverlay()" title="关闭">×</button>`
     : `<button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>
-       <button class="btn btn-primary" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>`;
+       <button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>`;
   return `
     <div class="${isModal ? 'agent-skill-modal-panel' : ''}" role="${isModal ? 'dialog' : 'region'}" aria-label="Skills 管理">
       <div class="page-header ${isModal ? 'agent-skill-modal-head' : ''}">
