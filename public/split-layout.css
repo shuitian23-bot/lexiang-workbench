@@ -1215,7 +1215,7 @@ html.in-chat #splitControls {
 /* ════════ 网页标签竖轴 timeline ① — 右侧打开过的内容 tab 竖向排布, 点击切到那个网页 ════════ */
 .lx-tl-rail{display:none;position:absolute;right:8px;top:60px;flex-direction:column;align-items:flex-end;gap:6px;max-width:150px;z-index:6;pointer-events:none}
 .lx-tl-rail.show{display:flex}
-.lx-tl-tab{pointer-events:auto;display:inline-flex;align-items:center;gap:5px;max-width:150px;background:var(--card,#fff);border:1px solid var(--border,#e5d9ee);border-radius:14px;padding:3px 9px 3px 7px;font-size:11px;color:var(--text2,#888);cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.08);transition:.15s;white-space:nowrap;opacity:.55}
+.lx-tl-tab{pointer-events:auto;display:inline-flex;align-items:center;gap:5px;max-width:150px;background:rgba(255,255,255,.55);border:1px solid rgba(229,217,238,.5);border-radius:14px;padding:3px 9px 3px 7px;font-size:11px;color:var(--text2,#888);cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.06);transition:.15s;white-space:nowrap;opacity:.25;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .lx-tl-rail:hover .lx-tl-tab,.lx-tl-tab.active{opacity:1}
 .lx-tl-tab:hover{border-color:#E3007F66;color:#E3007F;opacity:1}
 .lx-tl-tab.active{background:#FCEFF6;border-color:#E3007F;color:#E3007F;font-weight:700}
@@ -1268,5 +1268,5 @@ html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
 .landingPage-clone .hero{display:none!important}
 
 /* timeline rail 显示时给 #msgsInner 让出右侧空间, 避免 pill 遮 chat 文字 */
-#msgsInner.with-tl-rail{padding-right:160px}
-@media(max-width:768px){#msgsInner.with-tl-rail{padding-right:12px}}
+/* rail 浮在 chat 上方不挤(用透明度+毛玻璃避免遮文字), 撤回 padding-right */
+#msgsInner.with-tl-rail{padding-right:0}
