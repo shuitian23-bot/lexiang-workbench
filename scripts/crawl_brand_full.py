@@ -160,8 +160,8 @@ def main():
     cur = conn.cursor()
     existing = {}
     # 按 source_type 查全部已入库(含 biz.lenovo/case 等), 原 LIKE '%brand.lenovo%' 漏 biz url 致每日重复
-    for row in cur.execute("SELECT id, source_url, length(content) FROM knowledge_docs WHERE source_type='brand_news'"):
-        existing[_norm_url(row[1])] = (row[0], row[2])
+    for row in cur.execute("SELECT id, source_url, length(content), content LIKE '%![](%' FROM knowledge_docs WHERE source_type='brand_news'"):
+        existing[_norm_url(row[1])] = (row[0], row[2], bool(row[3]))
 
     print(f'数据库已有 {len(existing)} 条brand记录\n')
 
@@ -200,9 +200,10 @@ def main():
         nkey = _norm_url(url)
         ex = existing.get(nkey)
         if ex:
-            doc_id, old_len = ex
-            # 只在新内容明显更长时更新
-            if len(content) > old_len * 1.5:
+            doc_id, old_len, old_has_img = ex if len(ex) == 3 else (ex[0], ex[1], False)
+            new_has_img = '![](' in content
+            # 触发更新: 新内容明显更长 或 新带图旧不带图(extract_body 升级后补图)
+            if len(content) > old_len * 1.5 or (new_has_img and not old_has_img):
                 cur.execute("UPDATE knowledge_docs SET content = ?, title = ?, publish_date = COALESCE(?, publish_date) WHERE id = ?",
                             (content, title, r.get('publish_date'), doc_id))
                 update_count += 1
