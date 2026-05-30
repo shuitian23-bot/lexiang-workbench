@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux30">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux31">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7351,7 +7351,8 @@ window.openServicePlus = openServicePlus;
     var inner = document.getElementById('msgsInner');
     var hasMsgs = inner && inner.querySelectorAll('.msg').length > 0;
     var inChat = document.documentElement.classList.contains('in-chat') || document.documentElement.classList.contains('content-open');
-    if (hasMsgs || inChat) {
+    var hasTabs = document.querySelectorAll('#cpTabs .cp-tab-wrap').length > 0;
+    if (hasMsgs || inChat || hasTabs) {
       e.preventDefault();
       window.spaSwitchSite(newSite, href);
     }
@@ -7623,6 +7624,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux30"></script>
+<script src="/split-layout.js?v=20260527-ux31"></script>
 </body>
 </html>
