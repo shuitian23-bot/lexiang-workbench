@@ -221,6 +221,7 @@ function aiOpenPageResultModal(pageId, sourceText) {
   overlay.classList.add('open');
   document.body.classList.add('agent-skill-modal-open');
   aiInitPageResultModal(pageId);
+  return overlay;
 }
 
 function aiInitPageResultModal(pageId) {
@@ -324,7 +325,8 @@ function aiRefreshPageAssistant() {
 
 function aiOpenSkillManagement() {
   if (!STATE.aiOpen) toggleAI(true);
-  switchPage('agent.skills');
+  if (typeof openSkillManagerOverlay === 'function') openSkillManagerOverlay();
+  else aiOpenPageResultModal('agent.skills', '管理技能');
 }
 
 function aiOpenTaskLog() {
@@ -451,14 +453,14 @@ function aiTryLocalCommand(text) {
 
   // 帮我标注
   if (/^(帮我标注|开始标注|上传标注|标注文件)$/.test(lower)) {
-    switchPage('pipeline.task');
-    setTimeout(() => { const el = document.getElementById('task-upload'); if (el) el.click(); }, 300);
-    return '📁 已打开标注页面，请选择要标注的文件';
+    const overlay = aiOpenPageResultModal('pipeline.task', text);
+    setTimeout(() => { const el = overlay?.querySelector('#task-upload'); if (el) el.click(); }, 350);
+    return '📁 已在弹层打开标注页面，请选择要标注的文件';
   }
   // 标注记录
   if (/^(标注记录|标注历史|标注任务)$/.test(lower)) {
-    switchPage('pipeline.task');
-    return '📋 已打开标注记录';
+    aiOpenPageResultModal('pipeline.task', text);
+    return '📋 已在弹层打开标注记录';
   }
   // 导出数据
   if (/^(导出|导出数据|下载|下载数据)$/.test(lower)) {
@@ -466,9 +468,9 @@ function aiTryLocalCommand(text) {
   }
   // 二级分类
   if (/^(二级分类|细分类别|意图分析)$/.test(lower)) {
-    switchPage('pipeline.stats');
-    setTimeout(() => { const el = document.getElementById('stats-upload'); if (el) el.click(); }, 300);
-    return '📊 已打开二级分类分析页面，请上传已标注的文件';
+    const overlay = aiOpenPageResultModal('pipeline.stats', text);
+    setTimeout(() => { const el = overlay?.querySelector('#stats-upload'); if (el) el.click(); }, 350);
+    return '📊 已在弹层打开二级分类分析页面，请上传已标注的文件';
   }
   // 更新看板
   if (/^(更新看板|刷新看板|刷新数据)$/.test(lower)) {
@@ -479,8 +481,8 @@ function aiTryLocalCommand(text) {
   // 启动流水线
   if (/^(启动流水线|开始流水线|开启流水线)$/.test(lower)) {
     if (!isAdmin) return '⚠️ 仅管理员可操作';
-    switchPage('pipeline.monitor');
-    return '🚀 已打开流水线监控页面，请点击启动按钮';
+    aiOpenPageResultModal('pipeline.monitor', text);
+    return '🚀 已在弹层打开流水线监控页面，请点击启动按钮';
   }
   // 总结标注结果
   if (/^(总结|总结标注|总结结果|总结标注结果)$/.test(lower)) {
@@ -774,7 +776,7 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
             const pageId = aiNavMatch[1].trim();
             accumulated = accumulated.replace(/\[NAV:[^\]]+\]/, '');
             if (streamMsgEl) streamMsgEl.innerHTML = renderAiMarkdown(accumulated + (toolsUsed.length ? '\n\n🔧 调用了: ' + toolsUsed.join(', ') : ''));
-            switchPage(pageId);
+            aiOpenPageResultModal(pageId, displayMessage || msgForApi);
           }
           aiAttachReportArtifact(streamMsgEl, displayMessage || msgForApi, accumulated);
         } else if (obj.type === 'error') {
