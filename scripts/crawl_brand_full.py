@@ -15,11 +15,18 @@ def fetch_article_list():
     增量足够日常 cron(几千篇全量太慢25min+ 超时), 全量手动跑。"""
     import os as _os
     max_pages = int(_os.environ.get('CRAWL_BRAND_PAGES', '5'))  # 默认 5 页 ≈ 240 篇/次, _norm_url 去重新增
+    HARD_LIMIT = 500  # 绝对上限(API 异常返循环数据时防死循环, 500 页 = 2.4 万条够全量)
+    DUP_BREAK = 3  # 连续 N 页全是已见 code → 视为 API 循环, 提前 break
     all_items = []
+    seen_codes = set()
+    dup_streak = 0
     page = 1
     while True:
         if max_pages > 0 and page > max_pages:
             print(f'  增量模式: 拉满 {max_pages} 页, 停止 (累计{len(all_items)}). 全量用 CRAWL_BRAND_PAGES=0')
+            break
+        if page > HARD_LIMIT:
+            print(f'  ⚠️ 达硬上限 {HARD_LIMIT} 页 (API 异常?), 停止 (累计{len(all_items)})')
             break
         url = API_URL.format(page=page)
         req = urllib.request.Request(url, headers=HEADERS)
@@ -34,8 +41,19 @@ def fetch_article_list():
         if not items:
             break
 
-        all_items.extend(items)
-        print(f'  API第{page}页: {len(items)}篇 (累计{len(all_items)})')
+        # 检测重复: API 异常时可能循环返历史数据
+        new_items = [it for it in items if it.get('code') and it.get('code') not in seen_codes]
+        if not new_items:
+            dup_streak += 1
+            if dup_streak >= DUP_BREAK:
+                print(f'  连续 {DUP_BREAK} 页全是重复 code, API 似循环, 停止 (累计{len(all_items)})')
+                break
+        else:
+            dup_streak = 0
+        for it in new_items:
+            seen_codes.add(it['code'])
+        all_items.extend(new_items)
+        print(f'  API第{page}页: {len(items)}篇 新{len(new_items)} (累计{len(all_items)})')
         page += 1
         time.sleep(0.3)
 
