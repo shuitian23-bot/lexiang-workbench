@@ -74,6 +74,108 @@ function aiQuick(text) {
   aiSend();
 }
 
+const AI_REPORT_STORAGE_KEY = 'leai_ai_saved_reports';
+const AI_REPORT_ARTIFACTS = {};
+
+function aiShouldCreateReportArtifact(userText, assistantText) {
+  const source = `${userText || ''}\n${assistantText || ''}`;
+  const askedReport = /(报表|报告|日报|周报|月报|复盘|总结)/.test(userText || '');
+  const looksStructured = /(^|\n)#{1,3}\s*|一、|二、|三、|四、|五、|\|.+\|/.test(assistantText || '');
+  return askedReport && looksStructured && (assistantText || '').trim().length > 180;
+}
+
+function aiReportTitle(userText, assistantText) {
+  const firstHeading = (assistantText || '').match(/^#{1,3}\s*(.+)$/m);
+  if (firstHeading) return firstHeading[1].trim().slice(0, 40);
+  if (/日报/.test(userText || '')) return '运营日报';
+  if (/周报/.test(userText || '')) return '运营周报';
+  if (/月报/.test(userText || '')) return '运营月报';
+  return 'AI 生成报表';
+}
+
+function aiAttachReportArtifact(bubbleEl, userText, assistantText) {
+  if (!bubbleEl || !aiShouldCreateReportArtifact(userText, assistantText)) return;
+  const id = `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  AI_REPORT_ARTIFACTS[id] = {
+    id,
+    title: aiReportTitle(userText, assistantText),
+    content: assistantText,
+    source: userText || '',
+    createdAt: new Date().toISOString()
+  };
+  const action = document.createElement('div');
+  action.className = 'ai-report-actions';
+  action.innerHTML = `<button class="ai-report-btn" onclick="aiOpenReportArtifact('${id}')">查看报表</button>`;
+  bubbleEl.appendChild(action);
+}
+
+function aiOpenReportArtifact(id) {
+  const report = AI_REPORT_ARTIFACTS[id];
+  if (!report) return;
+  let overlay = document.getElementById('ai-report-modal');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'ai-report-modal';
+    overlay.className = 'ai-report-modal';
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) aiCloseReportArtifact();
+    });
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div class="ai-report-panel" role="dialog" aria-label="AI 报表详情">
+      <div class="ai-report-head">
+        <div>
+          <div class="ai-report-title">${escapeHtml(report.title).replace(/<br>/g, '')}</div>
+          <div class="ai-report-meta">生成时间 ${new Date(report.createdAt).toLocaleString('zh-CN')}</div>
+        </div>
+        <div class="ai-report-head-actions">
+          <button class="btn btn-secondary" onclick="aiSaveReportArtifact('${id}')">保存</button>
+          <button class="btn btn-primary" onclick="aiDownloadReportArtifact('${id}')">下载</button>
+          <button class="agent-skill-modal-close" onclick="aiCloseReportArtifact()" title="关闭">×</button>
+        </div>
+      </div>
+      <div class="ai-report-body">${renderAiMarkdown(report.content)}</div>
+    </div>`;
+  overlay.classList.add('open');
+  document.body.classList.add('agent-skill-modal-open');
+}
+
+function aiCloseReportArtifact() {
+  const overlay = document.getElementById('ai-report-modal');
+  if (overlay) overlay.classList.remove('open');
+  document.body.classList.remove('agent-skill-modal-open');
+}
+
+function aiSaveReportArtifact(id) {
+  const report = AI_REPORT_ARTIFACTS[id];
+  if (!report) return;
+  const saved = JSON.parse(localStorage.getItem(AI_REPORT_STORAGE_KEY) || '[]');
+  const next = [report, ...saved.filter(item => item.id !== id)].slice(0, 20);
+  localStorage.setItem(AI_REPORT_STORAGE_KEY, JSON.stringify(next));
+  const panel = document.querySelector('.ai-report-head-actions');
+  if (panel && !panel.querySelector('.ai-report-save-tip')) {
+    const tip = document.createElement('span');
+    tip.className = 'ai-report-save-tip';
+    tip.textContent = '已保存';
+    panel.prepend(tip);
+  }
+}
+
+function aiDownloadReportArtifact(id) {
+  const report = AI_REPORT_ARTIFACTS[id];
+  if (!report) return;
+  const blob = new Blob([`# ${report.title}\n\n${report.content}`], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${report.title.replace(/[\\/:*?"<>|]/g, '_')}.md`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function aiCurrentWelcomeHtml() {
   const page = STATE.currentPage;
   if (page === 'dashboard.overview') {
@@ -613,6 +715,7 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
             if (streamMsgEl) streamMsgEl.innerHTML = renderAiMarkdown(accumulated + (toolsUsed.length ? '\n\n🔧 调用了: ' + toolsUsed.join(', ') : ''));
             switchPage(pageId);
           }
+          aiAttachReportArtifact(streamMsgEl, displayMessage || msgForApi, accumulated);
         } else if (obj.type === 'error') {
           ensureMsgEl();
           accumulated += '\n\n⚠️ ' + obj.message;
