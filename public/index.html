@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux33">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux34">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -3669,11 +3669,11 @@ function openSectionAll(sectionKey, title) {
 }
 window.openSectionAll = openSectionAll;
 function loadFeed() {
-  if(typeof _siteType !== 'undefined' && _siteType === 'default') return;
+  if(typeof _siteType !== 'undefined' && _siteType === 'default') return Promise.resolve();
   var siteParam = (typeof _siteType !== 'undefined' && _siteType !== 'default') ? _siteType : 'shop';
   var container = document.getElementById('feedSections');
-  if (!container) return;
-  fetch('/api/site/feed?site=' + encodeURIComponent(siteParam) + '&limit=8').then(function(r){
+  if (!container) return Promise.resolve();
+  return fetch('/api/site/feed?site=' + encodeURIComponent(siteParam) + '&limit=8').then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(json){
@@ -7298,9 +7298,11 @@ window.openServicePlus = openServicePlus;
     try { if (typeof renderSubnav === 'function') renderSubnav(); } catch(e){}
     try { if (typeof renderMallHero === 'function') renderMallHero(); } catch(e){}
     try { if (typeof renderMallFeatures === 'function') renderMallFeatures(); } catch(e){}
-    try { if (typeof loadFeed === 'function') loadFeed(); } catch(e){}
-    // 等本体重渲完(同步立即, feed 异步等 700ms) → 取最新本体克隆替换该 sitehome tab content
-    if (_sitehomeTabId) setTimeout(function(){
+    var _feedPromise = null;
+    try { if (typeof loadFeed === 'function') _feedPromise = loadFeed(); } catch(e){}
+    // 等本体重渲完(同步部分立即, feed 异步 await promise) → 取最新本体克隆替换该 sitehome tab content
+    function _doClone(){
+      if (!_sitehomeTabId) return;
       try {
         var tabEl = document.querySelector('.cp-tab-content[data-tab-id="' + _sitehomeTabId + '"]');
         var lp = document.getElementById('landingPage');
@@ -7314,7 +7316,9 @@ window.openServicePlus = openServicePlus;
         // clone 不带 addEventListener, 给 clone 自身绑卡片点击委托(防"点了没反应")
         try { if (typeof _cardContainerClickHandler === 'function') clone.addEventListener('click', _cardContainerClickHandler); } catch(e){}
       } catch(e){ console.warn('sitehome clone fail', e); }
-    }, 700);
+    }
+    if (_feedPromise && _feedPromise.then) _feedPromise.then(function(){ setTimeout(_doClone, 100); }, function(){ setTimeout(_doClone, 100); });
+    else setTimeout(_doClone, 700);
     // chat 流通知 + 新子站常用问题 chip (用 _csAppend 防 appendBubble escHtml)
     var SITE_QUICK_POOL = {
       'default': ['有什么促销活动？','帮我推荐一款笔记本','以旧换新怎么算？','找附近门店','联想会员怎么注册','旗舰新品有啥','今天能下单明天到么','双 11 哪些机型优惠最大','5000 元怎么选','二手回收价'],
@@ -7622,6 +7626,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux33"></script>
+<script src="/split-layout.js?v=20260527-ux34"></script>
 </body>
 </html>
