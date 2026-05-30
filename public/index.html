@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux32">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux33">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7352,16 +7352,9 @@ window.openServicePlus = openServicePlus;
     if (!newSite) return;
     // 同站点不切
     if (newSite === window.__siteType) return;
-    // 检测当前有无 chat 消息 / 已分屏 / 已 in-chat (任一为真都 SPA 切, 保 tabs)
-    var inner = document.getElementById('msgsInner');
-    var hasMsgs = inner && inner.querySelectorAll('.msg').length > 0;
-    var inChat = document.documentElement.classList.contains('in-chat') || document.documentElement.classList.contains('content-open');
-    var hasTabs = document.querySelectorAll('#cpTabs .cp-tab-wrap').length > 0;
-    if (hasMsgs || inChat || hasTabs) {
-      e.preventDefault();
-      window.spaSwitchSite(newSite, href);
-    }
-    // 都没 → 走原 href 全页跳, 不拦
+    // 永远 SPA 切(spaSwitchSite 内部 openContent 会调 enterChat 初始化), 不再走 href 整页跳; 守卫历史问题(关 tab/in-chat 清掉)反复, 直接全场景 SPA
+    e.preventDefault();
+    window.spaSwitchSite(newSite, href);
   }, true);
 })();
 </script>
@@ -7629,6 +7622,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux32"></script>
+<script src="/split-layout.js?v=20260527-ux33"></script>
 </body>
 </html>
