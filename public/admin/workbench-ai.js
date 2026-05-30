@@ -62,10 +62,167 @@ function restoreAIState() {
   }
 })();
 
-function newAiConversation() {
+const AI_CONVERSATION_STORAGE_KEY = 'leai_ai_conversations';
+
+function aiNewLocalConversationId() {
+  return `aic_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function aiLoadConversations() {
+  try {
+    const list = JSON.parse(localStorage.getItem(AI_CONVERSATION_STORAGE_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+function aiSaveConversations(list) {
+  localStorage.setItem(AI_CONVERSATION_STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
+}
+
+function aiConversationTitle(messages) {
+  const firstUser = (messages || []).find(item => item.role === 'user' && item.text);
+  if (!firstUser) return '新会话';
+  return firstUser.text.replace(/\s+/g, ' ').replace(/^📎\s*/, '').slice(0, 28) || '新会话';
+}
+
+function aiCurrentConversation() {
+  if (!STATE.aiLocalConvId) {
+    STATE.aiLocalConvId = aiNewLocalConversationId();
+    STATE.aiLocalMessages = [];
+  }
+  return {
+    id: STATE.aiLocalConvId,
+    remoteConvId: STATE.aiConvId || null,
+    title: aiConversationTitle(STATE.aiLocalMessages || []),
+    messages: STATE.aiLocalMessages || [],
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function aiPersistCurrentConversation() {
+  const current = aiCurrentConversation();
+  if (!current.messages.length) return;
+  const list = aiLoadConversations().filter(item => item.id !== current.id);
+  aiSaveConversations([current, ...list]);
+}
+
+function aiRecordMessage(role, text) {
+  if (!text) return;
+  if (!STATE.aiLocalConvId) {
+    STATE.aiLocalConvId = aiNewLocalConversationId();
+    STATE.aiLocalMessages = [];
+  }
+  STATE.aiLocalMessages.push({ role, text, at: new Date().toISOString() });
+  aiPersistCurrentConversation();
+}
+
+function aiInitConversationStore() {
+  if (!STATE.aiLocalConvId) {
+    STATE.aiLocalConvId = aiNewLocalConversationId();
+    STATE.aiLocalMessages = [];
+  }
+}
+
+function aiRenderConversationMessages(messages) {
+  const container = document.getElementById('ai-messages');
+  if (!container) return;
+  if (!messages || !messages.length) {
+    container.innerHTML = `<div class="ai-msg assistant"><div class="bubble">${aiCurrentWelcomeHtml()}</div></div>`;
+    return;
+  }
+  container.innerHTML = messages.map(item => {
+    const html = item.role === 'assistant' ? renderAiMarkdown(item.text) : escapeHtml(item.text);
+    return `<div class="ai-msg ${item.role}"><div class="bubble">${html}</div></div>`;
+  }).join('');
+  scrollAiToBottom();
+}
+
+function newAiConversation(skipPersist) {
+  if (!skipPersist) aiPersistCurrentConversation();
   STATE.aiConvId = null;
+  STATE.aiLocalConvId = aiNewLocalConversationId();
+  STATE.aiLocalMessages = [];
   const container = document.getElementById('ai-messages');
   container.innerHTML = `<div class="ai-msg assistant"><div class="bubble">${aiCurrentWelcomeHtml()}</div></div>`;
+}
+
+function aiOpenConversationHistory() {
+  aiPersistCurrentConversation();
+  const list = aiLoadConversations();
+  let overlay = document.getElementById('ai-conversation-modal');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'ai-conversation-modal';
+    overlay.className = 'ai-conversation-modal';
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) aiCloseConversationHistory();
+    });
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div class="ai-conversation-panel" role="dialog" aria-label="AI 历史会话">
+      <div class="ai-conversation-head">
+        <div>
+          <div class="ai-conversation-title">历史会话</div>
+          <div class="ai-conversation-meta">查看、恢复或删除右侧 AI 助手的会话记录</div>
+        </div>
+        <div class="ai-conversation-actions">
+          <button class="btn btn-primary" onclick="newAiConversation(); aiCloseConversationHistory();">新开会话</button>
+          <button class="agent-skill-modal-close" onclick="aiCloseConversationHistory()" title="关闭">×</button>
+        </div>
+      </div>
+      <div class="ai-conversation-body">
+        ${list.length ? list.map(item => aiConversationHistoryItem(item)).join('') : '<div class="ai-conversation-empty">暂无历史会话。开始提问后，这里会自动保存记录。</div>'}
+      </div>
+    </div>`;
+  overlay.classList.add('open');
+  document.body.classList.add('agent-skill-modal-open');
+}
+
+function aiConversationHistoryItem(item) {
+  const messages = item.messages || [];
+  const last = messages[messages.length - 1];
+  const preview = last?.text ? last.text.replace(/\s+/g, ' ').slice(0, 80) : '暂无内容';
+  const isCurrent = item.id === STATE.aiLocalConvId;
+  return `
+    <div class="ai-conversation-item ${isCurrent ? 'active' : ''}">
+      <div class="ai-conversation-item-main">
+        <div class="ai-conversation-item-title">${escapeHtml(item.title || '未命名会话').replace(/<br>/g, '')}</div>
+        <div class="ai-conversation-item-preview">${escapeHtml(preview).replace(/<br>/g, '')}</div>
+        <div class="ai-conversation-item-meta">${new Date(item.updatedAt || Date.now()).toLocaleString('zh-CN')} · ${messages.length} 条消息${isCurrent ? ' · 当前会话' : ''}</div>
+      </div>
+      <div class="ai-conversation-item-actions">
+        <button class="btn btn-secondary" onclick="aiRestoreConversation('${item.id}')">打开</button>
+        <button class="btn btn-secondary danger" onclick="aiDeleteConversation('${item.id}')">删除</button>
+      </div>
+    </div>`;
+}
+
+function aiRestoreConversation(id) {
+  aiPersistCurrentConversation();
+  const item = aiLoadConversations().find(conv => conv.id === id);
+  if (!item) return;
+  STATE.aiLocalConvId = item.id;
+  STATE.aiConvId = item.remoteConvId || null;
+  STATE.aiLocalMessages = item.messages || [];
+  aiRenderConversationMessages(STATE.aiLocalMessages);
+  aiCloseConversationHistory();
+  if (!STATE.aiOpen) toggleAI(true);
+}
+
+function aiDeleteConversation(id) {
+  if (!confirm('确认删除这条会话记录？')) return;
+  aiSaveConversations(aiLoadConversations().filter(item => item.id !== id));
+  if (STATE.aiLocalConvId === id) newAiConversation(true);
+  aiOpenConversationHistory();
+}
+
+function aiCloseConversationHistory() {
+  const overlay = document.getElementById('ai-conversation-modal');
+  if (overlay) overlay.classList.remove('open');
+  document.body.classList.remove('agent-skill-modal-open');
 }
 
 function aiQuick(text) {
@@ -756,6 +913,7 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
 
         if (obj.type === 'start') {
           if (obj.convId) STATE.aiConvId = obj.convId;
+          aiPersistCurrentConversation();
         } else if (obj.type === 'tools') {
           toolsUsed = obj.tools || [];
           // 工具调用中，更新 typing 提示
@@ -779,6 +937,7 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
             aiOpenPageResultModal(pageId, displayMessage || msgForApi);
           }
           aiAttachReportArtifact(streamMsgEl, displayMessage || msgForApi, accumulated);
+          if (streamMsgEl) aiRecordMessage('assistant', accumulated || '（无响应）');
         } else if (obj.type === 'error') {
           ensureMsgEl();
           accumulated += '\n\n⚠️ ' + obj.message;
@@ -828,6 +987,7 @@ function addAiMessage(role, text) {
     div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
   }
   container.appendChild(div);
+  aiRecordMessage(role, text);
   scrollAiToBottom();
 }
 
