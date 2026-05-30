@@ -221,7 +221,7 @@ AI：${aiReply.slice(0, 300)}`;
 }
 
 // Call DashScope OpenAI-compatible API (non-streaming, with tool_calls)
-function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
+function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default', browseTabs = []) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: MODEL, thinking: { type: 'disabled' },
@@ -269,12 +269,12 @@ function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMe
 // 带重试的 callLLM（最多重试1次，间隔2s）
 async function callLLMWithRetry(messages, tools, ragContext, lang = 'zh', userId = null, userMessage = null, siteType = 'default') {
   try {
-    return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType);
+    return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType, browseTabs);
   } catch (e) {
     if (e.message.includes('timeout') || e.message.includes('ECONNRESET') || e.message.includes('ETIMEDOUT')) {
       console.warn('[Agent] API 第一次失败，2s 后重试:', e.message);
       await new Promise(r => setTimeout(r, 2000));
-      return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType);
+      return await callLLM(messages, tools, ragContext, lang, userId, userMessage, siteType, browseTabs);
     }
     throw e;
   }
@@ -410,7 +410,7 @@ async function runAgent(userMessage, convId, sessionId, { webSearch = false, lan
 // 返回 { fullText, toolCalls: null | Array, finishReason }
 // 如果 finish_reason=tool_calls，则 toolCalls 是完整的工具调用数组，fullText=''
 // 如果 finish_reason=stop，则 toolCalls=null，内容已通过 onChunk 实时推送
-function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null, toolChoice = null, siteType = 'default' } = {}) {
+function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thinkingMode = false, onThinking, onThinkEnd, userId = null, userMessage = null, imageUrl = null, audioUrl = null, toolChoice = null, siteType = 'default', browseTabs = [] } = {}) {
   return new Promise((resolve, reject) => {
     // 图片模式用 qwen-vl-plus，音频模式用 qwen-audio-turbo，深度思考模式用 qwq-plus，否则用默认模型
     const hasImage = !!imageUrl;
@@ -709,7 +709,7 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
     const roundToolChoice = rounds === 1 ? forceToolChoice : null;
     const { fullText: streamedText, toolCalls } = await callLLMStream(
       messages, tools, ragContext, onChunk, lang,
-      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl, toolChoice: roundToolChoice, siteType }
+      { thinkingMode, onThinking, onThinkEnd, userId, userMessage, imageUrl: roundImageUrl, audioUrl: roundAudioUrl, toolChoice: roundToolChoice, siteType, browseTabs }
     );
 
     if (toolCalls && toolCalls.length > 0) {
