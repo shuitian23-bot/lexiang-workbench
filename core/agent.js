@@ -280,7 +280,7 @@ async function callLLMWithRetry(messages, tools, ragContext, lang = 'zh', userId
   }
 }
 
-async function runAgent(userMessage, convId, sessionId, { webSearch = false, lang = 'zh', userId = null, siteType = 'default' } = {}) {
+async function runAgent(userMessage, convId, sessionId, { webSearch = false, lang = 'zh', userId = null, siteType = 'default', browseTabs = [] } = {}) {
   // Load or create conversation
   if (!convId) {
     convId = uuidv4();
