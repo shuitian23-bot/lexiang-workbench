@@ -168,7 +168,7 @@ router.post('/', async (req, res) => {
 
 // POST /api/chat/stream — SSE 流式响应
 router.post('/stream', async (req, res) => {
-  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url, product_context, site_type } = req.body;
+  const { message, conv_id, web_search, lang, thinking_mode, image_url, audio_url, product_context, site_type, browse_tabs } = req.body;
   const sessionId = getUid(req);
 
   if (!message || !message.trim()) {
@@ -222,6 +222,7 @@ router.post('/stream', async (req, res) => {
         audioUrl: audio_url || null,
         userId: req.userId || null,
         siteType: site_type || 'default',
+        browseTabs: Array.isArray(browse_tabs) ? browse_tabs.slice(0, 10) : [],
         productContext: product_context || null,
         onStatus: (status) => {
           // S1④ SSE 单路径：frontend_* action → 统一映射表 dispatch
