@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260530-ai-task1">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260530-ai-newpage1">
 </head>
 <body>
 
@@ -181,6 +181,7 @@ async function doLogin() {
     document.getElementById('main-area').style.display = 'flex';
 
     await loadUserContext();
+    applyInitialPageFromUrl();
     renderSidebar();
     restoreSidebarState();
     restoreAIState();
@@ -393,6 +394,14 @@ function switchPage(pageId) {
   }
 }
 
+function applyInitialPageFromUrl() {
+  const page = new URLSearchParams(window.location.search).get('page');
+  if (!page) return;
+  const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
+  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'agent.skills';
+  if (isKnownPage) STATE.currentPage = page;
+}
+
 function findPageGroup(pageId) {
   for (const g of Object.values(MENU_TREE)) {
     if (g.children && g.children[pageId]) return g;
@@ -502,7 +511,7 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/workbench-data-leai.js"></script>
 <script src="/admin/workbench-pages.js?v=20260529-agent-use1"></script>
 <script src="/admin/workbench-geo.js?v=20260525-geo1"></script>
-<script src="/admin/workbench-ai.js?v=20260530-ai-task1"></script>
+<script src="/admin/workbench-ai.js?v=20260530-ai-newpage1"></script>
 <script src="/admin/workbench-data.js"></script>
 <script src="/admin/workbench-employee.js"></script>
 <script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
@@ -523,6 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sidebar').style.display = 'flex';
     document.getElementById('main-area').style.display = 'flex';
     await loadUserContext();
+    applyInitialPageFromUrl();
     renderSidebar();
     restoreSidebarState();
     restoreAIState();

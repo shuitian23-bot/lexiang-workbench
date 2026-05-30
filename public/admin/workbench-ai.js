@@ -324,8 +324,8 @@ function aiAttachTaskActions(bubbleEl, userText, assistantText) {
 function aiRunTaskAction(item) {
   if (!item) return;
   if (item.kind === 'page') {
-    switchPage(item.value);
-    addAiMessage('assistant', `已为你打开 **${getPageLabel(item.value)}**`);
+    aiOpenPageInNewWindow(item.value);
+    addAiMessage('assistant', `已在新页面打开 **${getPageLabel(item.value)}**`);
     return;
   }
   if (item.kind === 'skill') {
@@ -333,6 +333,14 @@ function aiRunTaskAction(item) {
     return;
   }
   aiQuick(item.value);
+}
+
+function aiOpenPageInNewWindow(pageId) {
+  const url = new URL(window.location.href);
+  url.pathname = '/admin/workbench.html';
+  url.searchParams.set('page', pageId);
+  url.hash = '';
+  window.open(url.toString(), '_blank', 'noopener');
 }
 
 function aiSaveReportArtifact(id, trigger) {
