@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux29">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux30">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7306,6 +7306,8 @@ window.openServicePlus = openServicePlus;
         clone.className = (clone.className || '') + ' landingPage-clone';
         clone.style.cssText = 'position:static;left:auto;right:auto;top:auto;width:100%;height:auto;display:block;padding-top:0;overflow:visible;z-index:auto;opacity:1;transform:none';
         tabEl.appendChild(clone);
+        // clone 不带 addEventListener, 给 clone 自身绑卡片点击委托(防"点了没反应")
+        try { if (typeof _cardContainerClickHandler === 'function') clone.addEventListener('click', _cardContainerClickHandler); } catch(e){}
       } catch(e){ console.warn('sitehome clone fail', e); }
     }, 700);
     // chat 流通知 + 新子站常用问题 chip (用 _csAppend 防 appendBubble escHtml)
@@ -7621,6 +7623,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux29"></script>
+<script src="/split-layout.js?v=20260527-ux30"></script>
 </body>
 </html>
