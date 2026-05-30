@@ -176,6 +176,67 @@ function aiDownloadReportArtifact(id) {
   URL.revokeObjectURL(url);
 }
 
+function aiOpenPageResultModal(pageId, sourceText) {
+  const label = getPageLabel(pageId);
+  let bodyHtml = '';
+  try {
+    const renderer = typeof PAGE_RENDERERS !== 'undefined' ? PAGE_RENDERERS[pageId] : null;
+    bodyHtml = renderer ? renderer() : `
+      <div class="empty-state">
+        <div class="icon">📄</div>
+        <div class="title">${escapeHtml(label)}</div>
+        <div>该功能暂未提供可嵌入的页面内容。</div>
+      </div>`;
+  } catch (error) {
+    bodyHtml = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <div class="title">${escapeHtml(label)} 加载失败</div>
+        <div>${escapeHtml(error.message || '请稍后重试')}</div>
+      </div>`;
+  }
+
+  let overlay = document.getElementById('ai-page-result-modal');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'ai-page-result-modal';
+    overlay.className = 'ai-page-result-modal';
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) aiClosePageResultModal();
+    });
+    document.body.appendChild(overlay);
+  }
+  const source = sourceText ? escapeHtml(sourceText).replace(/<br>/g, '').slice(0, 48) : '';
+  overlay.innerHTML = `
+    <div class="ai-page-result-panel" role="dialog" aria-label="${escapeHtml(label)}">
+      <div class="ai-page-result-head">
+        <div>
+          <div class="ai-page-result-title">${escapeHtml(label)}</div>
+          <div class="ai-page-result-meta">AI 助手调用结果${source ? ` · ${source}` : ''}</div>
+        </div>
+        <button class="agent-skill-modal-close" onclick="aiClosePageResultModal()" title="关闭">×</button>
+      </div>
+      <div class="ai-page-result-body">${bodyHtml}</div>
+    </div>`;
+  overlay.classList.add('open');
+  document.body.classList.add('agent-skill-modal-open');
+  aiInitPageResultModal(pageId);
+}
+
+function aiInitPageResultModal(pageId) {
+  if (pageId === 'pipeline.annotate' && typeof initDashboard === 'function') setTimeout(initDashboard, 220);
+  else if (pageId === 'pipeline.monitor' && typeof loadMonitorStatus === 'function') setTimeout(loadMonitorStatus, 120);
+  else if (pageId === 'pipeline.stats' && typeof loadPipelineHistory === 'function') setTimeout(loadPipelineHistory, 120);
+  else if (pageId === 'pipeline.task' && typeof _initTaskPage === 'function') setTimeout(_initTaskPage, 120);
+  else if (pageId === 'pipeline.quality' && typeof qualityRefresh === 'function') setTimeout(qualityRefresh, 220);
+}
+
+function aiClosePageResultModal() {
+  const overlay = document.getElementById('ai-page-result-modal');
+  if (overlay) overlay.classList.remove('open');
+  document.body.classList.remove('agent-skill-modal-open');
+}
+
 function aiCurrentWelcomeHtml() {
   const page = STATE.currentPage;
   if (page === 'dashboard.overview') {
@@ -360,9 +421,9 @@ function aiTryNavigate(text) {
         if (rule.page.startsWith('pipeline.') && !STATE.permissions.includes('*')) {
           return '⚠️ 数据流水线功能仅管理员可用';
         }
-        switchPage(rule.page);
         const label = getPageLabel(rule.page);
-        return `已为你打开 **${label}** 📂`;
+        aiOpenPageResultModal(rule.page, text);
+        return `已在弹层打开 **${label}**`;
       }
     }
   }
