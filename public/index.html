@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux31">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux32">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7285,6 +7285,11 @@ window.openServicePlus = openServicePlus;
     try {
       if (typeof window.__openContent === 'function' && window.matchMedia && window.matchMedia('(min-width:769px)').matches) {
         _sitehomeTabId = window.__openContent('sitehome', (label || newSite) + ' 全场景', { site: newSite });
+        // 立即清掉旧 clone 内容(复用 tab 时旧子站快照会闪一下), 显加载中, 待 700ms 后填新克隆
+        try {
+          var _tabEl0 = document.querySelector('.cp-tab-content[data-tab-id="' + _sitehomeTabId + '"]');
+          if (_tabEl0) _tabEl0.innerHTML = '<div style="padding:80px 20px;text-align:center;color:#999;font-size:14px"><div style="font-size:24px;margin-bottom:12px">⏳</div>正在加载「' + (label || newSite) + '」全场景…</div>';
+        } catch(e){}
       }
     } catch(e){}
     // 子站全套 landing 重渲(打本体 #landingPage, 异步 feed 单独等)
@@ -7624,6 +7629,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux31"></script>
+<script src="/split-layout.js?v=20260527-ux32"></script>
 </body>
 </html>
