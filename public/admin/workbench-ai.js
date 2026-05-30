@@ -262,56 +262,21 @@ function aiAttachReportArtifact(bubbleEl, userText, assistantText) {
   };
   const action = document.createElement('div');
   action.className = 'ai-report-actions';
-  action.innerHTML = `<button class="ai-report-btn" onclick="aiOpenReportArtifact('${id}')">查看报表</button>`;
+  action.innerHTML = `
+    <button class="ai-report-btn secondary" onclick="aiSaveReportArtifact('${id}', this)">保存</button>
+    <button class="ai-report-btn" onclick="aiDownloadReportArtifact('${id}')">下载</button>`;
   bubbleEl.appendChild(action);
 }
 
-function aiOpenReportArtifact(id) {
-  const report = AI_REPORT_ARTIFACTS[id];
-  if (!report) return;
-  let overlay = document.getElementById('ai-report-modal');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'ai-report-modal';
-    overlay.className = 'ai-report-modal';
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay) aiCloseReportArtifact();
-    });
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = `
-    <div class="ai-report-panel" role="dialog" aria-label="AI 报表详情">
-      <div class="ai-report-head">
-        <div>
-          <div class="ai-report-title">${escapeHtml(report.title).replace(/<br>/g, '')}</div>
-          <div class="ai-report-meta">生成时间 ${new Date(report.createdAt).toLocaleString('zh-CN')}</div>
-        </div>
-        <div class="ai-report-head-actions">
-          <button class="btn btn-secondary" onclick="aiSaveReportArtifact('${id}')">保存</button>
-          <button class="btn btn-primary" onclick="aiDownloadReportArtifact('${id}')">下载</button>
-          <button class="agent-skill-modal-close" onclick="aiCloseReportArtifact()" title="关闭">×</button>
-        </div>
-      </div>
-      <div class="ai-report-body">${renderAiMarkdown(report.content)}</div>
-    </div>`;
-  overlay.classList.add('open');
-  document.body.classList.add('agent-skill-modal-open');
-}
-
-function aiCloseReportArtifact() {
-  const overlay = document.getElementById('ai-report-modal');
-  if (overlay) overlay.classList.remove('open');
-  document.body.classList.remove('agent-skill-modal-open');
-}
-
-function aiSaveReportArtifact(id) {
+function aiSaveReportArtifact(id, trigger) {
   const report = AI_REPORT_ARTIFACTS[id];
   if (!report) return;
   const saved = JSON.parse(localStorage.getItem(AI_REPORT_STORAGE_KEY) || '[]');
   const next = [report, ...saved.filter(item => item.id !== id)].slice(0, 20);
   localStorage.setItem(AI_REPORT_STORAGE_KEY, JSON.stringify(next));
-  const panel = document.querySelector('.ai-report-head-actions');
-  if (panel && !panel.querySelector('.ai-report-save-tip')) {
+  const panel = trigger?.closest('.ai-report-actions') || document.querySelector('.ai-report-actions');
+  if (panel) {
+    panel.querySelector('.ai-report-save-tip')?.remove();
     const tip = document.createElement('span');
     tip.className = 'ai-report-save-tip';
     tip.textContent = '已保存';
@@ -331,68 +296,6 @@ function aiDownloadReportArtifact(id) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-}
-
-function aiOpenPageResultModal(pageId, sourceText) {
-  const label = getPageLabel(pageId);
-  let bodyHtml = '';
-  try {
-    const renderer = typeof PAGE_RENDERERS !== 'undefined' ? PAGE_RENDERERS[pageId] : null;
-    bodyHtml = renderer ? renderer() : `
-      <div class="empty-state">
-        <div class="icon">📄</div>
-        <div class="title">${escapeHtml(label)}</div>
-        <div>该功能暂未提供可嵌入的页面内容。</div>
-      </div>`;
-  } catch (error) {
-    bodyHtml = `
-      <div class="empty-state">
-        <div class="icon">⚠️</div>
-        <div class="title">${escapeHtml(label)} 加载失败</div>
-        <div>${escapeHtml(error.message || '请稍后重试')}</div>
-      </div>`;
-  }
-
-  let overlay = document.getElementById('ai-page-result-modal');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'ai-page-result-modal';
-    overlay.className = 'ai-page-result-modal';
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay) aiClosePageResultModal();
-    });
-    document.body.appendChild(overlay);
-  }
-  const source = sourceText ? escapeHtml(sourceText).replace(/<br>/g, '').slice(0, 48) : '';
-  overlay.innerHTML = `
-    <div class="ai-page-result-panel" role="dialog" aria-label="${escapeHtml(label)}">
-      <div class="ai-page-result-head">
-        <div>
-          <div class="ai-page-result-title">${escapeHtml(label)}</div>
-          <div class="ai-page-result-meta">AI 助手调用结果${source ? ` · ${source}` : ''}</div>
-        </div>
-        <button class="agent-skill-modal-close" onclick="aiClosePageResultModal()" title="关闭">×</button>
-      </div>
-      <div class="ai-page-result-body">${bodyHtml}</div>
-    </div>`;
-  overlay.classList.add('open');
-  document.body.classList.add('agent-skill-modal-open');
-  aiInitPageResultModal(pageId);
-  return overlay;
-}
-
-function aiInitPageResultModal(pageId) {
-  if (pageId === 'pipeline.annotate' && typeof initDashboard === 'function') setTimeout(initDashboard, 220);
-  else if (pageId === 'pipeline.monitor' && typeof loadMonitorStatus === 'function') setTimeout(loadMonitorStatus, 120);
-  else if (pageId === 'pipeline.stats' && typeof loadPipelineHistory === 'function') setTimeout(loadPipelineHistory, 120);
-  else if (pageId === 'pipeline.task' && typeof _initTaskPage === 'function') setTimeout(_initTaskPage, 120);
-  else if (pageId === 'pipeline.quality' && typeof qualityRefresh === 'function') setTimeout(qualityRefresh, 220);
-}
-
-function aiClosePageResultModal() {
-  const overlay = document.getElementById('ai-page-result-modal');
-  if (overlay) overlay.classList.remove('open');
-  document.body.classList.remove('agent-skill-modal-open');
 }
 
 function aiCurrentWelcomeHtml() {
@@ -483,7 +386,7 @@ function aiRefreshPageAssistant() {
 function aiOpenSkillManagement() {
   if (!STATE.aiOpen) toggleAI(true);
   if (typeof openSkillManagerOverlay === 'function') openSkillManagerOverlay();
-  else aiOpenPageResultModal('agent.skills', '管理技能');
+  else switchPage('agent.skills');
 }
 
 function aiOpenTaskLog() {
@@ -580,9 +483,9 @@ function aiTryNavigate(text) {
         if (rule.page.startsWith('pipeline.') && !STATE.permissions.includes('*')) {
           return '⚠️ 数据流水线功能仅管理员可用';
         }
+        switchPage(rule.page);
         const label = getPageLabel(rule.page);
-        aiOpenPageResultModal(rule.page, text);
-        return `已在弹层打开 **${label}**`;
+        return `已为你打开 **${label}**`;
       }
     }
   }
@@ -610,14 +513,14 @@ function aiTryLocalCommand(text) {
 
   // 帮我标注
   if (/^(帮我标注|开始标注|上传标注|标注文件)$/.test(lower)) {
-    const overlay = aiOpenPageResultModal('pipeline.task', text);
-    setTimeout(() => { const el = overlay?.querySelector('#task-upload'); if (el) el.click(); }, 350);
-    return '📁 已在弹层打开标注页面，请选择要标注的文件';
+    switchPage('pipeline.task');
+    setTimeout(() => { const el = document.getElementById('task-upload'); if (el) el.click(); }, 350);
+    return '📁 已打开标注页面，请选择要标注的文件';
   }
   // 标注记录
   if (/^(标注记录|标注历史|标注任务)$/.test(lower)) {
-    aiOpenPageResultModal('pipeline.task', text);
-    return '📋 已在弹层打开标注记录';
+    switchPage('pipeline.task');
+    return '📋 已打开标注记录';
   }
   // 导出数据
   if (/^(导出|导出数据|下载|下载数据)$/.test(lower)) {
@@ -625,9 +528,9 @@ function aiTryLocalCommand(text) {
   }
   // 二级分类
   if (/^(二级分类|细分类别|意图分析)$/.test(lower)) {
-    const overlay = aiOpenPageResultModal('pipeline.stats', text);
-    setTimeout(() => { const el = overlay?.querySelector('#stats-upload'); if (el) el.click(); }, 350);
-    return '📊 已在弹层打开二级分类分析页面，请上传已标注的文件';
+    switchPage('pipeline.stats');
+    setTimeout(() => { const el = document.getElementById('stats-upload'); if (el) el.click(); }, 350);
+    return '📊 已打开二级分类分析页面，请上传已标注的文件';
   }
   // 更新看板
   if (/^(更新看板|刷新看板|刷新数据)$/.test(lower)) {
@@ -638,8 +541,8 @@ function aiTryLocalCommand(text) {
   // 启动流水线
   if (/^(启动流水线|开始流水线|开启流水线)$/.test(lower)) {
     if (!isAdmin) return '⚠️ 仅管理员可操作';
-    aiOpenPageResultModal('pipeline.monitor', text);
-    return '🚀 已在弹层打开流水线监控页面，请点击启动按钮';
+    switchPage('pipeline.monitor');
+    return '🚀 已打开流水线监控页面，请点击启动按钮';
   }
   // 总结标注结果
   if (/^(总结|总结标注|总结结果|总结标注结果)$/.test(lower)) {
@@ -934,7 +837,7 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
             const pageId = aiNavMatch[1].trim();
             accumulated = accumulated.replace(/\[NAV:[^\]]+\]/, '');
             if (streamMsgEl) streamMsgEl.innerHTML = renderAiMarkdown(accumulated + (toolsUsed.length ? '\n\n🔧 调用了: ' + toolsUsed.join(', ') : ''));
-            aiOpenPageResultModal(pageId, displayMessage || msgForApi);
+            switchPage(pageId);
           }
           aiAttachReportArtifact(streamMsgEl, displayMessage || msgForApi, accumulated);
           if (streamMsgEl) aiRecordMessage('assistant', accumulated || '（无响应）');
