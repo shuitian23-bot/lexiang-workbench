@@ -58,7 +58,7 @@ function siteContextText(siteType) {
   return map[siteType] || map.default;
 }
 
-function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId = null, userMessage = null, siteType = 'default') {
+function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId = null, userMessage = null, siteType = 'default', browseTabs = []) {
   // L1.5 Persona 前缀注入：激活的 Persona 有 prompt_prefix 则 prepend
   const persona = _promptCache.persona;
   const personaPrefix = (persona && persona.prompt_prefix && persona.prompt_prefix.trim())
@@ -124,6 +124,11 @@ function buildSystemPrompt(ragContext, lang = 'zh', thinkingMode = false, userId
       ? '## Knowledge Base Results (cite sources at the end of your answer)'
       : '## 知识库检索结果（优先参考以下内容回答，回答末尾需列出引用来源链接）';
     prompt += `\n\n---\n${header}\n\n${ragContext}\n---`;
+  }
+  // 用户浏览过的网页标签(content tabs 历史): 作为上下文供 AI 结合用户行为理解+精准推荐
+  if (Array.isArray(browseTabs) && browseTabs.length) {
+    const list = browseTabs.slice(-8).map(t => `· ${t.title || '网页'}${t.sku ? '（SKU ' + t.sku + '）' : ''}`).join('\n');
+    prompt += `\n\n---\n## 用户最近浏览过的网页（结合此理解用户意图，推荐时可优先呼应）\n${list}\n---`;
   }
   return prompt;
 }
@@ -221,7 +226,7 @@ function callLLM(messages, tools, ragContext, lang = 'zh', userId = null, userMe
     const body = JSON.stringify({
       model: MODEL, thinking: { type: 'disabled' },
       messages: [
-        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
+        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType, browseTabs) },
         ...messages
       ],
       tools: tools.length > 0 ? tools.map(t => ({
@@ -449,7 +454,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
       stream: true,
       stream_options: { include_usage: false },
       messages: [
-        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType) },
+        { role: 'system', content: buildSystemPrompt(ragContext, lang, false, userId, userMessage, siteType, browseTabs) },
         ...finalMessages
       ],
     };
@@ -554,7 +559,7 @@ function callLLMStream(messages, tools, ragContext, onChunk, lang = 'zh', { thin
  * @param {function} onChunk  - 每收到一段文字调用
  * @param {function} onDone   - 全部完成后调用，参数 {convId, fullText}
  */
-async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null, productContext = null, siteType = 'default' } = {}) {
+async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, { webSearch = false, lang = 'zh', onSuggestions, onStatus, thinkingMode = false, onThinking, onThinkEnd, userId = null, imageUrl = null, audioUrl = null, productContext = null, siteType = 'default', browseTabs = [] } = {}) {
   if (!convId) {
     convId = uuidv4();
     db.prepare('INSERT INTO conversations (id, session_id) VALUES (?, ?)').run(convId, sessionId || null);

@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux28">
+<link rel="stylesheet" href="/split-layout.css?v=20260527-ux29">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -2471,7 +2471,7 @@ async function callAPI(msg, imageUrl, audioUrl){
   let firstChunk = true;
 
   try {
-    const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled, site_type: window.__siteType || 'default' };
+    const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled, site_type: window.__siteType || 'default', browse_tabs: ((window.__lxTabHist||[]).slice(-8).map(function(t){ return { type:t.type, title:t.title, sku:(t.data&&t.data.sku)||null }; })) };
     if (imageUrl) bodyData.image_url = imageUrl;
     if (audioUrl) bodyData.audio_url = audioUrl;
     let workspaceContext = null;
@@ -3047,7 +3047,7 @@ async function callCompareAPI(msg) {
 
   const selfStream = (async () => {
     try {
-      const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled, site_type: window.__siteType || 'default' };
+      const bodyData = { message: msg, conv_id: convId, web_search: webSearchEnabled, lang: currentLang, thinking_mode: thinkingEnabled, site_type: window.__siteType || 'default', browse_tabs: ((window.__lxTabHist||[]).slice(-8).map(function(t){ return { type:t.type, title:t.title, sku:(t.data&&t.data.sku)||null }; })) };
       const res = await apiFetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -7621,6 +7621,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux28"></script>
+<script src="/split-layout.js?v=20260527-ux29"></script>
 </body>
 </html>
