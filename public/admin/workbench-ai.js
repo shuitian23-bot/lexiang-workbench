@@ -268,6 +268,73 @@ function aiAttachReportArtifact(bubbleEl, userText, assistantText) {
   bubbleEl.appendChild(action);
 }
 
+function aiTaskActionItems(userText, assistantText) {
+  const source = `${userText || ''}\n${assistantText || ''}`.toLowerCase();
+  const items = [];
+  const add = item => {
+    if (!items.some(existing => existing.label === item.label)) items.push(item);
+  };
+
+  if (/query|查询分析|热词|标注|非官网|渠道|转化/.test(source)) {
+    add({ label: '打开 Query 分析', kind: 'page', value: 'pipeline.annotate' });
+  }
+  if (/gmv|订单|销售|交易|转化/.test(source)) {
+    add({ label: '查看 GMV 分析', kind: 'page', value: 'ops.gmv' });
+  }
+  if (/流量|dau|mau|入口|访问|互动/.test(source)) {
+    add({ label: '查看流量分析', kind: 'page', value: 'ops.traffic' });
+  }
+  if (/商品|推荐位|价格|上下架|配置/.test(source)) {
+    add({ label: '打开商品管理', kind: 'prompt', value: '打开商品管理' });
+  }
+  if (/知识库|知识|问答|文档/.test(source)) {
+    add({ label: '打开知识库', kind: 'prompt', value: '打开知识库' });
+  }
+  if (/报表|报告|日报|周报|月报|复盘|总结/.test(source)) {
+    add({ label: '继续生成报表', kind: 'prompt', value: '基于刚才的问题，继续生成一份结构化运营报表。' });
+  } else {
+    add({ label: '生成报表', kind: 'prompt', value: '基于当前页面和刚才的问题，生成一份结构化运营报表。' });
+  }
+  add({ label: '继续追问', kind: 'prompt', value: '基于刚才的回答，继续追问最关键的原因和下一步动作。' });
+  add({ label: '管理技能', kind: 'skill', value: 'skills' });
+  return items.slice(0, 4);
+}
+
+function aiAttachTaskActions(bubbleEl, userText, assistantText) {
+  if (!bubbleEl || bubbleEl.querySelector('.ai-task-actions')) return;
+  const items = aiTaskActionItems(userText, assistantText);
+  if (!items.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'ai-task-actions';
+  wrap.innerHTML = `<div class="ai-task-actions-title">可继续执行</div>`;
+  const row = document.createElement('div');
+  row.className = 'ai-task-actions-row';
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ai-task-btn';
+    btn.textContent = item.label;
+    btn.addEventListener('click', () => aiRunTaskAction(item));
+    row.appendChild(btn);
+  });
+  wrap.appendChild(row);
+  bubbleEl.appendChild(wrap);
+}
+
+function aiRunTaskAction(item) {
+  if (!item) return;
+  if (item.kind === 'page') {
+    switchPage(item.value);
+    addAiMessage('assistant', `已为你打开 **${getPageLabel(item.value)}**`);
+    return;
+  }
+  if (item.kind === 'skill') {
+    aiOpenSkillManagement();
+    return;
+  }
+  aiQuick(item.value);
+}
+
 function aiSaveReportArtifact(id, trigger) {
   const report = AI_REPORT_ARTIFACTS[id];
   if (!report) return;
@@ -840,6 +907,7 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
             switchPage(pageId);
           }
           aiAttachReportArtifact(streamMsgEl, displayMessage || msgForApi, accumulated);
+          aiAttachTaskActions(streamMsgEl, displayMessage || msgForApi, accumulated);
           if (streamMsgEl) aiRecordMessage('assistant', accumulated || '（无响应）');
         } else if (obj.type === 'error') {
           ensureMsgEl();
@@ -886,6 +954,7 @@ function addAiMessage(role, text) {
   div.className = 'ai-msg ' + role;
   if (role === 'assistant') {
     div.innerHTML = `<div class="bubble">${renderAiMarkdown(text)}</div>`;
+    aiAttachTaskActions(div.querySelector('.bubble'), '', text);
   } else {
     div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
   }
