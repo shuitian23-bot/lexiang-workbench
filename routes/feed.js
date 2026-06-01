@@ -16,7 +16,7 @@ const EXCLUDED_CATEGORIES = ['测试分类', '测试父级分类0831', 'ho测试
 
 // 子站维度全局排除关键词
 const SITE_EXCLUDE_KEYWORDS = {
-  shop: ['工作站','ThinkStation','服务器','机架式','ThinkCentre','二手优品','ThinkPad','ThinkBook','天逸','扬天','昭阳','企业购','SMB','SR258','SR258','商用台'],
+  shop: ['工作站','ThinkStation','服务器','机架式','ThinkCentre','二手优品','ThinkPad','ThinkBook','天逸','扬天','昭阳','企业购','SMB','SR258','SR258','商用台','thinkplus','百应','会议平板','智能会议','ThinkVision','ThinkSmart','开天','启天'],
   b:    ['服务器','机架式','拯救者','刃9000K','Legion','YOGA Book','YOGA Pro','Moto','二手优品'],
   biz:  ['二手优品','拯救者','小新','YOGA Book','Moto','POLO','T-Shirt','T恤','礼品','马年限定','企业购','SMB'],
 };
