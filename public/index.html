@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260527-ux34">
+<link rel="stylesheet" href="/split-layout.css?v=20260601-ux35">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -7268,6 +7268,31 @@ window.openServicePlus = openServicePlus;
 // ════════════════════════════════════════
 (function(){
   var LABELS = {'default':'全场景','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  // 进站初始化: 子站 URL 直接刷新时, 自动开当前子站 sitehome tab(让后续切其他子站时多 tab 并存, 不再只剩 1 个)
+  document.addEventListener('DOMContentLoaded', function(){
+    if (!window.__siteType || window.__siteType === 'default') return;
+    if (!window.matchMedia || !window.matchMedia('(min-width:769px)').matches) return;
+    setTimeout(function(){
+      if (typeof window.__openContent !== 'function') return;
+      var lbl = LABELS[window.__siteType] || window.__siteType;
+      var tabId = window.__openContent('sitehome', lbl + ' 全场景', { site: window.__siteType });
+      // 等 loadFeed 等异步完后 clone 本体替换占位
+      setTimeout(function(){
+        try {
+          var tabEl = document.querySelector('.cp-tab-content[data-tab-id="' + tabId + '"]');
+          var lp = document.getElementById('landingPage');
+          if (!tabEl || !lp) return;
+          tabEl.innerHTML = '';
+          var c = lp.cloneNode(true);
+          c.id = 'landingClone-' + window.__siteType;
+          c.className = (c.className || '') + ' landingPage-clone';
+          c.style.cssText = 'position:static;left:auto;right:auto;top:auto;width:100%;height:auto;display:block;padding-top:0;overflow:visible;z-index:auto;opacity:1;transform:none';
+          tabEl.appendChild(c);
+          if (typeof _cardContainerClickHandler === 'function') c.addEventListener('click', _cardContainerClickHandler);
+        } catch(e){}
+      }, 1500);
+    }, 500);
+  });
   window.spaSwitchSite = function(newSite, newPath){
     // 同时更新底层 _siteType var(mall 函数读它) + window 镜像
     try { _siteType = newSite; } catch(e){}
@@ -7626,6 +7651,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260527-ux34"></script>
+<script src="/split-layout.js?v=20260601-ux35"></script>
 </body>
 </html>
