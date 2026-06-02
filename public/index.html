@@ -1531,8 +1531,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     else if (typeof showAIModal === 'function') showAIModal({type:'info', title:'🎁 ' + name, content: html, html: html, rawHtml: true});
   };
 
-  window.__renderSiteLandingExtra = function(){
-    var st = window.__siteType || 'default';
+  window.__renderSiteLandingExtra = function(forceSite){
+    var st = forceSite || window.__siteType || 'default';
     var box = document.getElementById('siteLandingExtra');
     if (!box) return;
     box.className = '';
@@ -7387,7 +7387,7 @@ window.openServicePlus = openServicePlus;
     } catch(e){}
     // 子站全套 landing 重渲(打本体 #landingPage, 异步 feed 单独等)
     try { if (typeof window.__renderSiteHero === 'function') window.__renderSiteHero(); } catch(e){}
-    try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(); } catch(e){}
+    try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(newSite); } catch(e){}
     try { if (typeof renderSubnav === 'function') renderSubnav(); } catch(e){}
     try { if (typeof renderMallHero === 'function') renderMallHero(); } catch(e){}
     try { if (typeof renderMallFeatures === 'function') renderMallFeatures(); } catch(e){}
