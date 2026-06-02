@@ -934,19 +934,23 @@ const PAGE_RENDERERS = {
         </select>
       </div>
       <div class="geo-status-line" id="geo-status">加载中...</div>
+      <div class="geo-context-line" id="geo-context-line">当前口径：加载中...</div>
+      <div class="geo-interface-note" id="geo-overview-gap-note">
+        接口说明：当前外部接口暂不支持多品牌别名聚合、稳定覆盖意图按平台返回、分竞品指标/趋势；缺失部分将显示“待接口提供数据”。
+      </div>
 
       <!-- 对比视角 + 竞品选择器 -->
       <div id="geo-compare-control" style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;color:#6b7280;white-space:nowrap">对比视角</span>
+          <span style="font-size:12px;color:#6b7280;white-space:nowrap">分析模式</span>
           <div id="geo-compare-toggle" style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
-            <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌</button>
-            <button onclick="geoSetCompare('compare')" class="geo-cmp-btn" data-cmp="compare" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">对比</button>
+            <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌表现</button>
+            <button onclick="geoSetCompare('compare')" class="geo-cmp-btn" data-cmp="compare" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">竞品对比</button>
           </div>
         </div>
         <div class="geo-comp-divider" style="width:1px;height:20px;background:#e5e7eb"></div>
         <div id="geo-competitor-picker" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <span style="font-size:12px;color:#6b7280;white-space:nowrap">竞品对比</span>
+          <span id="geo-comp-counter" style="font-size:12px;color:#6b7280;white-space:nowrap">竞品品牌 · 已选 0/5</span>
           <button class="geo-comp-pill" data-brand="hp" onclick="geoToggleCompetitor(this)">惠普</button>
           <button class="geo-comp-pill" data-brand="dell" onclick="geoToggleCompetitor(this)">戴尔</button>
           <button class="geo-comp-pill" data-brand="huawei" onclick="geoToggleCompetitor(this)">华为</button>
@@ -955,9 +959,10 @@ const PAGE_RENDERERS = {
           <button class="geo-comp-pill" data-brand="xiaomi" onclick="geoToggleCompetitor(this)">小米</button>
           <button class="geo-comp-pill" data-brand="acer" onclick="geoToggleCompetitor(this)">宏碁</button>
           <button class="geo-comp-pill" data-brand="honor" onclick="geoToggleCompetitor(this)">荣耀</button>
-          <span style="font-size:10px;color:#9ca3af">最多5个</span>
+          <span id="geo-comp-limit-msg" style="font-size:11px;color:#9ca3af">最多5个</span>
         </div>
       </div>
+      <div class="geo-scope-note" id="geo-scope-note" style="display:none"></div>
 
       <!-- 4 个核心 KPI（可点选） -->
       <div class="geo-kpi-grid cols-4" id="geo-kpi-cards" style="margin-bottom:16px">
@@ -995,8 +1000,9 @@ const PAGE_RENDERERS = {
       <div class="geo-row" id="geo-trend-row" style="margin-bottom:12px">
         <div class="geo-panel" style="flex:2;min-width:0">
           <div style="margin-bottom:8px">
-            <div class="gpnl-title" style="margin:0">可见性趋势</div>
+            <div class="gpnl-title" id="geo-trend-title" style="margin:0">可见性趋势</div>
           </div>
+          <div class="geo-interface-note" id="geo-trend-gap-note" style="display:none"></div>
           <div id="geo-trend-legend" style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280;flex-wrap:wrap"></div>
           <canvas id="geo-trend-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
           <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
@@ -1011,10 +1017,12 @@ const PAGE_RENDERERS = {
       <div class="geo-row">
         <div class="geo-panel">
           <div class="gpnl-title">信源分布图</div>
+          <div class="geo-interface-note">接口说明：官网/乐享品牌词信源口径需服务商按品牌词返回；接口未区分时展示当前接口结果。</div>
           <div id="geo-sites-treemap" style="min-height:260px"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
           <div class="gpnl-title">信源排行榜 Top20</div>
+          <div class="geo-interface-note">接口说明：选择 AI 平台后按平台请求；品牌词口径如接口未返回，则以当前接口结果展示。</div>
           <div class="geo-scroll-wrap" style="max-height:320px">
             <div id="geo-sites-rank"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
           </div>
@@ -1033,6 +1041,7 @@ const PAGE_RENDERERS = {
             <div class="geo-kpi"><div class="gk-val" id="gv-wiki-b-cite">--</div><div class="gk-label">联想wiki-SMB引用次数</div></div>
             <div class="geo-kpi"><div class="gk-val" id="gv-wiki-biz-cite">--</div><div class="gk-label">联想wiki-政企引用次数</div></div>
           </div>
+          <div class="geo-interface-note" id="geo-citation-gap-note">接口缺口：wiki-商城、wiki-消费、wiki-SMB、wiki-政企引用次数如未返回，将显示待接口提供数据。</div>
           <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
@@ -1125,6 +1134,7 @@ const PAGE_RENDERERS = {
 
       <div class="geo-conv-section">
         <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
+        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；访问、登录、注册、购买和乐享下单转化数据接入后替换占位。</div>
         <div class="geo-conv-grid">
           <div class="geo-conv-cell"><div class="gcc-label">访问联想UV</div><div class="gcc-val" id="gc-all-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想域名的用户数</div></div>
           <div class="geo-conv-cell"><div class="gcc-label">登录用户</div><div class="gcc-val" id="gc-all-login">--</div><div class="gcc-def">访问联想的用户中，有Lenovoid登录行为的用户数</div></div>
@@ -1143,6 +1153,7 @@ const PAGE_RENDERERS = {
 
       <div class="geo-conv-section">
         <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
+        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；乐享访问、互动、购买和自主下单数据接入后替换占位。</div>
         <div class="geo-conv-grid">
           <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享UV</div><div class="gcc-val" id="gc-leai-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想乐享的用户</div></div>
           <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val" id="gc-leai-login">--</div><div class="gcc-def">访问联想乐享的用户中，有Lenovoid登录行为的用户数</div></div>
@@ -1163,6 +1174,7 @@ const PAGE_RENDERERS = {
 
       <div class="geo-conv-section">
         <div class="geo-conv-title">GEO看板 · 联想官网（含全部 wiki 页面）</div>
+        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；UV 站点拆分、Top5 页面、销量/销售额拆分接入后替换占位。</div>
         <div class="geo-conv-grid">
           <div class="geo-conv-cell"><div class="gcc-label">访问联想官网UV</div><div class="gcc-val" id="gc-official-uv">--</div><div class="gcc-def">UV需包含全部 wiki 页面数据</div></div>
           <div class="geo-conv-cell"><div class="gcc-label">联想首页UV</div><div class="gcc-val" id="gc-official-home-uv">--</div><div class="gcc-def">按站点拆分的联想首页访问用户数</div></div>

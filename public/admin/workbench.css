@@ -581,6 +581,9 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 .geo-dark .geo-comp-pill { padding:4px 14px; border-radius:16px; font-size:12px; border:1px solid #d1d5db; background:#fff; color:#374151; cursor:pointer; font-weight:500; transition:all 0.15s; user-select:none; }
 .geo-dark .geo-comp-pill:hover { border-color:#6b7280; }
 .geo-dark .geo-status-line { font-size:12px; color:#6b7280; margin-bottom:10px; }
+.geo-dark .geo-context-line { font-size:12px; color:#1f2937; background:#f0f7ff; border:1px solid #dbeafe; border-radius:8px; padding:8px 10px; margin-bottom:12px; line-height:1.5; }
+.geo-dark .geo-scope-note { font-size:12px; color:#6b7280; background:#f9fafb; border:1px dashed #d1d5db; border-radius:8px; padding:8px 10px; margin:-4px 0 14px; line-height:1.5; }
+.geo-dark .geo-interface-note { font-size:11px; color:#8f959e; background:#f9fafb; border:1px dashed #d1d5db; border-radius:8px; padding:8px 10px; margin:8px 0 12px; line-height:1.5; }
 
 .geo-dark .geo-module-title { font-size:13px; font-weight:600; color:#1f2937; margin:18px 0 10px; display:flex; align-items:center; gap:8px; }
 .geo-dark .geo-module-title::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:2px; }
@@ -670,6 +673,9 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 .geo-dark .geo-intent-table td.name { text-align:left; color:#111827; }
 .geo-dark .geo-intent-table .yes { color:#059669; }
 .geo-dark .geo-intent-table .no { color:#9ca3af; }
+.geo-dark .geo-yn-badge { display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:22px; padding:0 8px; border-radius:999px; font-size:11px; font-weight:600; background:#f3f4f6; color:#6b7280; }
+.geo-dark .geo-yn-badge.yes { background:#ecfdf5; color:#059669; }
+.geo-dark .geo-yn-badge.no { background:#f3f4f6; color:#9ca3af; }
 
 /* 转化看板表 */
 .geo-dark .geo-conv-section { background:#ffffff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:12px; }
