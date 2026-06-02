@@ -1658,7 +1658,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     var memberEl = document.getElementById('lxMemberBenefit');
     if (memberEl) memberEl.innerHTML = loggedIn
       ? '<div style="background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><div style="display:flex;align-items:center;gap:16px"><div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px">👤</div><div><div style="font-size:15px;font-weight:700">观同学 · V3 金卡</div><div style="font-size:12px;opacity:.9;margin-top:2px">🪙 乐豆 1280 · 🎫 5 张可用券 · 距 V4 还需 520 成长值</div></div></div><div style="display:flex;gap:8px"><button onclick="openMemberTab()" style="padding:8px 16px;background:#fff;color:#4D144A;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">会员中心</button><button onclick="quickAsk(\'我想领今天的乐豆任务\')" style="padding:8px 16px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">每日任务</button></div></div>'
-      : '<div style="background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px">🎁 加入联想会员 立享 11 项专属权益</div><div style="font-size:12px;opacity:.92">新人礼包 ¥200 · 月度券包 · 生日特权 · 会员价 · 优先发货</div></div><button onclick="quickAsk(\'我要登录联想会员\')" style="padding:10px 22px;background:#fff;color:#4D144A;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">立即登录 / 注册</button></div>';
+      : '<div style="background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px">🎁 加入联想会员 立享 11 项专属权益</div><div style="font-size:12px;opacity:.92">新人礼包 ¥200 · 月度券包 · 生日特权 · 会员价 · 优先发货</div></div><button onclick="showLoginModal()" style="padding:10px 22px;background:#fff;color:#4D144A;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">立即登录 / 注册</button></div>';
     var leadEl = document.getElementById('lxLeadForm');
     if (leadEl) {
       var isBiz = window.__siteType==='biz';
@@ -1678,7 +1678,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }
   }
   render();
-  // 切站时重渲(spaSwitchSite 改 __siteType 后)
+  // 兜底: 登录态可能异步从 session 恢复, 1500ms 后再 render 一次
+  setTimeout(render, 1500);
+  // 切站时重渲(spaSwitchSite 改 __siteType 后) + 登录/退出后也重渲
   window.__lxSitehomeRender = render;
 })();
 </script>
@@ -1941,6 +1943,8 @@ function onLoginSuccess(user){
   updateNavUser(user);
   loadConvList(); // 刷新历史
   if(window._afterLogin){ window._afterLogin(); window._afterLogin = null; }
+  // 登录态变化, 重渲 sitehome 会员模块(未登录→已登录卡)
+  try { if (typeof window.__lxSitehomeRender === 'function') window.__lxSitehomeRender(); } catch(e){}
 }
 
 function checkAnonLimit(){
@@ -4273,7 +4277,7 @@ window.openMemberTab = function(){
   var growth = loggedIn ? 2480 : 0, nextLv = 3000, leDou = loggedIn?1280:0, coupons = loggedIn?5:0, points = loggedIn?860:0;
   var rights = [['🎁','新人礼包','¥200 大礼包',true],['🎂','生日特权','生日双倍乐豆',true],['💰','会员价','专享折扣',true],['🚚','优先发货','优先排单',true],['🎫','月度券包','每月 4 张',true],['📞','专属客服','VIP 通道',level.indexOf('V3')>=0],['🛡','延保 88 折','会员专享',level.indexOf('V3')>=0],['🎮','拯救者 9 折','游戏装备',false],['🎨','YOGA 专享','设计师礼盒',false],['🏨','酒店权益','合作酒店折扣',false],['🍔','生活特权','美团/星巴克券',false]];
   var html = ''
-    + '<div style="background:linear-gradient(135deg,#4a148c,#b8852e);color:#fff;padding:28px 24px;border-radius:14px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:16px;margin-bottom:18px"><div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px">👤</div><div><div style="font-size:18px;font-weight:700">'+name+'</div><div style="font-size:13px;opacity:.9;margin-top:2px">'+level+'</div></div>'+(loggedIn?'':'<button onclick="quickAsk(\'我要登录联想会员\')" style="margin-left:auto;padding:8px 18px;background:#fff;color:#4a148c;border:none;border-radius:8px;font-weight:700;cursor:pointer">立即登录</button>')+'</div>'+(loggedIn?'<div style="margin-bottom:6px;font-size:12px;opacity:.85">距 V4 钻石卡还需 '+(nextLv-growth)+' 成长值</div><div style="background:rgba(255,255,255,.2);height:8px;border-radius:4px;overflow:hidden"><div style="background:linear-gradient(90deg,#ffd700,#fff);height:100%;width:'+Math.round(growth/nextLv*100)+'%"></div></div>':'')+'</div>'
+    + '<div style="background:linear-gradient(135deg,#4a148c,#b8852e);color:#fff;padding:28px 24px;border-radius:14px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:16px;margin-bottom:18px"><div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px">👤</div><div><div style="font-size:18px;font-weight:700">'+name+'</div><div style="font-size:13px;opacity:.9;margin-top:2px">'+level+'</div></div>'+(loggedIn?'':'<button onclick="showLoginModal()" style="margin-left:auto;padding:8px 18px;background:#fff;color:#4a148c;border:none;border-radius:8px;font-weight:700;cursor:pointer">立即登录</button>')+'</div>'+(loggedIn?'<div style="margin-bottom:6px;font-size:12px;opacity:.85">距 V4 钻石卡还需 '+(nextLv-growth)+' 成长值</div><div style="background:rgba(255,255,255,.2);height:8px;border-radius:4px;overflow:hidden"><div style="background:linear-gradient(90deg,#ffd700,#fff);height:100%;width:'+Math.round(growth/nextLv*100)+'%"></div></div>':'')+'</div>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">' + [['🪙','乐豆',leDou,'100 乐豆=1 元'],['🎫','优惠券',coupons,'张可用'],['⭐','消费积分',points,'分'],['📈','成长值',growth,'/'+nextLv]].map(function(a){ return '<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:14px;text-align:center;cursor:pointer"><div style="font-size:22px">'+a[0]+'</div><div style="font-size:22px;font-weight:800;color:#4a148c;margin:4px 0">'+a[2]+'</div><div style="font-size:11px;color:#888">'+a[1]+' · '+a[3]+'</div></div>'; }).join('') + '</div>'
     + (loggedIn?'<div style="background:#fafafa;border-radius:12px;padding:16px;margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:#222;margin-bottom:12px">📅 连续签到 5 天 · 明日加倍</div><div style="display:flex;gap:6px">'+[1,2,3,4,5,6,7].map(function(d){var done=d<=5;return '<div style="flex:1;text-align:center;padding:10px 4px;background:'+(done?'linear-gradient(135deg,#4a148c,#b8852e)':'#fff')+';color:'+(done?'#fff':'#888')+';border-radius:8px;font-size:11px;font-weight:600">第'+d+'天<br>'+(done?'✓':'+'+(d*10)+'乐豆')+'</div>';}).join('')+'</div></div>':'')
     + '<div style="margin-bottom:20px"><div style="font-size:16px;font-weight:700;color:#222;margin-bottom:12px;padding-left:10px;border-left:3px solid #4a148c">11 项会员专属权益</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">' + rights.map(function(r){var unlock=r[3];return '<div style="background:#fff;border:1px solid '+(unlock?'#eee':'#f5f5f5')+';border-radius:10px;padding:12px;text-align:center;opacity:'+(unlock?'1':'.5')+'"><div style="font-size:26px;margin-bottom:4px">'+r[0]+'</div><div style="font-size:12px;font-weight:600;color:#222">'+r[1]+'</div><div style="font-size:10px;color:#888;margin-top:2px">'+(unlock?r[2]:'升 V3 解锁')+'</div></div>';}).join('') + '</div></div>'
@@ -5625,6 +5629,7 @@ async function doLogout(){
   convList = [];
   updateSidebar();
   updateNavUser(null);
+  try { if (typeof window.__lxSitehomeRender === 'function') window.__lxSitehomeRender(); } catch(e){}
 }
 
 function updateNavUser(user){
