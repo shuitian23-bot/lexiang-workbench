@@ -971,28 +971,28 @@ const PAGE_RENDERERS = {
           <div class="gk-val" id="gv-brand-visible">--</div>
           <div class="gk-label">品牌可见度</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
-          <div class="gk-sub gk-brand-sub">竞品可见度 <span id="gv-comp-visible">--</span></div>
+          <div class="gk-sub gk-brand-sub" style="display:none"><span id="gv-comp-visible">--</span></div>
         </div>
         <div class="geo-kpi" data-metric="rec" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中推荐目标品牌/产品的次数占比">?</div>
           <div class="gk-val" id="gv-brand-rec">--</div>
           <div class="gk-label">品牌推荐率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
-          <div class="gk-sub gk-brand-sub">竞品推荐率 <span id="gv-comp-rec">--</span></div>
+          <div class="gk-sub gk-brand-sub" style="display:none"><span id="gv-comp-rec">--</span></div>
         </div>
         <div class="geo-kpi" data-metric="top1" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中目标品牌/产品出现在推荐首位（置顶）的次数占比">?</div>
           <div class="gk-val" id="gv-brand-top1">--</div>
           <div class="gk-label">品牌推荐置顶率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
-          <div class="gk-sub gk-brand-sub">竞品置顶率 <span id="gv-comp-top1">--</span></div>
+          <div class="gk-sub gk-brand-sub" style="display:none"><span id="gv-comp-top1">--</span></div>
         </div>
         <div class="geo-kpi" data-metric="top3" onclick="geoSelectKpi(this)" style="cursor:pointer">
           <div class="gk-tip" title="AI 答案中目标品牌/产品出现在推荐列表前 3 位的次数占比">?</div>
           <div class="gk-val" id="gv-brand-top3">--</div>
           <div class="gk-label">品牌推荐前三率</div>
           <div class="gk-sub gk-compare" style="display:none"></div>
-          <div class="gk-sub gk-brand-sub">竞品前三率 <span id="gv-comp-top3">--</span></div>
+          <div class="gk-sub gk-brand-sub" style="display:none"><span id="gv-comp-top3">--</span></div>
         </div>
       </div>
 
@@ -1017,12 +1017,12 @@ const PAGE_RENDERERS = {
       <div class="geo-row">
         <div class="geo-panel">
           <div class="gpnl-title">信源分布图</div>
-          <div class="geo-interface-note">接口说明：官网/乐享品牌词信源口径需服务商按品牌词返回；接口未区分时展示当前接口结果。</div>
+          <div class="geo-interface-note">接口说明：官网/乐享品牌词信源口径需服务商按品牌词返回；当前接口未明确区分品牌词时，本模块展示的是当前接口结果，不代表官网/乐享专属信源数据。</div>
           <div id="geo-sites-treemap" style="min-height:260px"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
           <div class="gpnl-title">信源排行榜 Top20</div>
-          <div class="geo-interface-note">接口说明：选择 AI 平台后按平台请求；品牌词口径如接口未返回，则以当前接口结果展示。</div>
+          <div class="geo-interface-note">接口说明：选择 AI 平台后按平台请求；品牌词口径如接口未返回，则展示当前接口结果，不代表官网/乐享专属排行。</div>
           <div class="geo-scroll-wrap" style="max-height:320px">
             <div id="geo-sites-rank"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
           </div>
@@ -1041,7 +1041,7 @@ const PAGE_RENDERERS = {
             <div class="geo-kpi"><div class="gk-val" id="gv-wiki-b-cite">--</div><div class="gk-label">联想wiki-SMB引用次数</div></div>
             <div class="geo-kpi"><div class="gk-val" id="gv-wiki-biz-cite">--</div><div class="gk-label">联想wiki-政企引用次数</div></div>
           </div>
-          <div class="geo-interface-note" id="geo-citation-gap-note">接口缺口：wiki-商城、wiki-消费、wiki-SMB、wiki-政企引用次数如未返回，将显示待接口提供数据。</div>
+          <div class="geo-interface-note" id="geo-citation-gap-note">接口缺口：官网/乐享品牌词引用口径、wiki-商城、wiki-消费、wiki-SMB、wiki-政企引用次数需服务商返回；未返回时显示待接口提供数据或当前接口结果。</div>
           <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
         <div class="geo-panel">
@@ -1055,6 +1055,7 @@ const PAGE_RENDERERS = {
       <!-- 各优化平台意图总数 -->
       <div class="geo-panel" style="margin-bottom:12px">
         <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
+        <div class="geo-interface-note">接口说明：稳定覆盖意图及官网/乐享品牌词意图总数需服务商按平台返回；当前为前端基于现有字段推导。</div>
         <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
       </div>
 
