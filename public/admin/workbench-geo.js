@@ -24,9 +24,72 @@ const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', 
 const GEO_COMPETITOR_NAMES = { hp:'惠普', dell:'戴尔', huawei:'华为', apple:'苹果', asus:'华硕', xiaomi:'小米', acer:'宏碁', honor:'荣耀', oppo:'oppo', vivo:'vivo', samsung:'三星' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
 const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
+const GEO_PENDING_TEXT = '待接口提供数据';
 
 function geoFmtDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function geoEscape(v) {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function geoNum(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function geoFmtPct(v) {
+  const n = geoNum(v);
+  return n === null ? GEO_PENDING_TEXT : n.toFixed(2) + '%';
+}
+
+function geoFmtCount(v) {
+  const n = geoNum(v);
+  return n === null ? GEO_PENDING_TEXT : n.toLocaleString();
+}
+
+function geoSetValue(id, value, formatter = geoFmtCount) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = formatter(value);
+  el.textContent = text;
+  el.classList.toggle('is-pending', text === GEO_PENDING_TEXT);
+}
+
+function geoPendingHtml(message = GEO_PENDING_TEXT) {
+  return `<div class="geo-pending"><div class="geo-pending-title">${geoEscape(message)}</div></div>`;
+}
+
+function geoPendingInline(message = GEO_PENDING_TEXT) {
+  return `<span class="geo-pending-inline">${geoEscape(message)}</span>`;
+}
+
+function geoSetSectionPending(ids) {
+  ids.forEach(id => geoSetValue(id, null));
+}
+
+function geoDrawCanvasPending(canvas, message = GEO_PENDING_TEXT) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const width = rect.width || canvas.width || 800;
+  const height = rect.height || canvas.height || 280;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#f9fafb';
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+  ctx.fillStyle = '#8f959e';
+  ctx.font = '13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(message, width / 2, height / 2);
 }
 
 function geoSelectedModels() {
@@ -165,15 +228,17 @@ function geoSetQuestionFromSelect(val) {
 }
 function geoPopulateQuestionsSelect() {
   const sel = document.getElementById('geo-questions-select');
-  if (!sel || !geoState._questionsData) return;
-  const existing = sel.options.length;
-  if (existing > 1) return;
-  geoState._questionsData.forEach(q => {
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">全部意图</option>';
+  (geoState._questionsData || []).forEach(q => {
     const opt = document.createElement('option');
     opt.value = q.question || '';
-    opt.textContent = q.question.length > 40 ? q.question.slice(0,40)+'…' : q.question;
+    const text = q.question || '';
+    opt.textContent = text.length > 40 ? text.slice(0,40)+'...' : text;
     sel.appendChild(opt);
   });
+  if ([...sel.options].some(opt => opt.value === current)) sel.value = current;
 }
 function geoLoadIntentPage() {
   geoLoadQuestions();
@@ -183,7 +248,19 @@ function geoSetStatus(text, isError) {
   const s = document.getElementById('geo-status');
   if (s) { s.textContent = text; s.style.color = isError ? 'var(--red)' : 'var(--text-tertiary)'; }
 }
-function geoFmtPct(v) { return (v == null || v === '' || isNaN(v)) ? '—' : (+v).toFixed(2) + '%'; }
+
+function geoRenderDashboardPending(message = GEO_PENDING_TEXT) {
+  document.querySelectorAll('.geo-kpi[data-metric]').forEach(k => k.classList.remove('highlight'));
+  ['gv-brand-visible','gv-comp-visible','gv-brand-rec','gv-comp-rec','gv-brand-top1','gv-comp-top1','gv-brand-top3','gv-comp-top3','gv-lenovo-cite','gv-wiki-cite','gv-sites-total','gv-q-count'].forEach(id => geoSetValue(id, null));
+  const chart = document.getElementById('geo-trend-chart');
+  if (chart) chart.innerHTML = geoPendingHtml(message);
+  const canvas = document.getElementById('geo-trend-canvas');
+  if (canvas) geoDrawCanvasPending(canvas, message);
+  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = geoPendingHtml(message);
+  });
+}
 
 async function geoLoadData() {
   if (!document.getElementById('gv-brand-visible')) return;
@@ -221,7 +298,7 @@ async function geoLoadData() {
     const wordCloudPromise = geoLoadWordCloud(30);
 
     // 平台分布 + 平台级sites一起完成后渲染
-    Promise.all([platPromise, platSitesPromise]).then(([overviewResults, sitesResults]) => {
+    Promise.all([platPromise, platSitesPromise, citationsPromise]).then(([overviewResults, sitesResults]) => {
       geoState.platData = {};
       geoState.platSitesData = {};
       GEO_PLATFORMS.forEach((p, i) => {
@@ -238,11 +315,15 @@ async function geoLoadData() {
     // sites 和 questions 各自内部已有渲染逻辑，无需额外处理
   } catch (e) {
     geoSetStatus('加载失败：' + e.message, true);
+    geoRenderDashboardPending();
     console.error('GEO API error', e);
   }
 }
 
-function geoClampPct(v) { return (v == null || isNaN(v)) ? null : Math.min(+v, 100); }
+function geoClampPct(v) {
+  const n = geoNum(v);
+  return n === null ? null : Math.min(n, 100);
+}
 
 
 function geoRenderKpis(data) {
@@ -260,7 +341,8 @@ function geoRenderKpis(data) {
 
 function geoRenderTrendChart() {
   const c = document.getElementById('geo-trend-chart'); if (!c) return;
-  const raw = geoState._kpiRaw; if (!raw) return;
+  const raw = geoState._kpiRaw;
+  if (!raw) { c.innerHTML = geoPendingHtml(); return; }
   const items = [
     { label: '品牌可见度', key: 'visible' },
     { label: '品牌推荐率', key: 'rec' },
@@ -270,14 +352,23 @@ function geoRenderTrendChart() {
   const sel = geoState.selectedKpi || 'visible';
   let html = '<div style="display:flex;flex-direction:column;gap:14px;padding:4px 0">';
   items.forEach(item => {
-    const b = raw[item.key].brand || 0;
-    const cv = raw[item.key].comp || 0;
-    const diff = b - cv;
-    const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-    const diffSign = diff > 0 ? '+' : '';
+    const b = geoNum(raw[item.key]?.brand);
+    const cv = geoNum(raw[item.key]?.comp);
     const isActive = item.key === sel;
     const bg = isActive ? '#eff6ff' : '#f9fafb';
     const border = isActive ? '#93c5fd' : '#e5e7eb';
+    if (b === null || cv === null) {
+      html += `<div style="padding:10px 14px;background:${bg};border-radius:8px;border:1px solid ${border};transition:all .15s">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:#374151">${item.label}</span>
+          ${geoPendingInline()}
+        </div>
+      </div>`;
+      return;
+    }
+    const diff = b - cv;
+    const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
+    const diffSign = diff > 0 ? '+' : '';
     html += `<div style="padding:10px 14px;background:${bg};border-radius:8px;border:1px solid ${border};transition:all .15s">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:12px;font-weight:600;color:#374151">${item.label}</span>
@@ -352,30 +443,36 @@ function geoApplyCompare() {
     const labelEl = card.querySelector('.gk-label');
     const brandSubEl = card.querySelector('.gk-brand-sub');
     const compareEl = card.querySelector('.gk-compare');
-    const b = raw[metric].brand;
-    const c = raw[metric].comp;
+    const b = geoNum(raw[metric].brand);
+    const c = geoNum(raw[metric].comp);
 
     if (mode === 'brand') {
-      valEl.textContent = geoFmtPct(b);
+      geoSetValue(ids[0], b, geoFmtPct);
       labelEl.textContent = labels[metric][0];
-      if (brandSubEl) { brandSubEl.style.display = ''; brandSubEl.innerHTML = `${labels[metric][1]} <span>${geoFmtPct(c)}</span>`; }
+      if (brandSubEl) { brandSubEl.style.display = ''; brandSubEl.innerHTML = `${labels[metric][1]} <span class="${c === null ? 'is-pending' : ''}">${geoFmtPct(c)}</span>`; }
       if (compareEl) compareEl.style.display = 'none';
-      card.classList.toggle('highlight', metric === 'visible');
+      card.classList.toggle('highlight', metric === 'visible' && b !== null);
     } else if (mode === 'competitor') {
-      valEl.textContent = geoFmtPct(c);
+      geoSetValue(ids[0], c, geoFmtPct);
       labelEl.textContent = labels[metric][1];
-      if (brandSubEl) { brandSubEl.style.display = ''; brandSubEl.innerHTML = `${labels[metric][0]} <span>${geoFmtPct(b)}</span>`; }
+      if (brandSubEl) { brandSubEl.style.display = ''; brandSubEl.innerHTML = `${labels[metric][0]} <span class="${b === null ? 'is-pending' : ''}">${geoFmtPct(b)}</span>`; }
       if (compareEl) compareEl.style.display = 'none';
       card.classList.remove('highlight');
       if (metric === 'visible') card.style.borderColor = '#f59e0b';
     } else {
       // both mode — show comparison bar
-      valEl.textContent = geoFmtPct(b);
+      geoSetValue(ids[0], b, geoFmtPct);
       labelEl.textContent = labels[metric][0];
       if (brandSubEl) brandSubEl.style.display = 'none';
       if (compareEl) {
         compareEl.style.display = '';
-        const bv = b || 0, cv = c || 0;
+        if (b === null || c === null) {
+          compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
+          card.classList.remove('highlight');
+          if (mode !== 'competitor') card.style.borderColor = '';
+          continue;
+        }
+        const bv = b, cv = c;
         const diff = bv - cv;
         const diffSign = diff > 0 ? '+' : '';
         const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
@@ -396,7 +493,7 @@ function geoApplyCompare() {
           <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
         `;
       }
-      card.classList.toggle('highlight', metric === 'visible');
+      card.classList.toggle('highlight', metric === 'visible' && b !== null && c !== null);
       card.style.borderColor = '';
     }
     // reset border when not competitor mode
@@ -416,29 +513,38 @@ function geoRenderPlatDist() {
   const cit = geoState.citationsData || {};
   const modelCountsMap = {};
   (cit.model_counts || []).forEach(mc => {
-    modelCountsMap[mc.model] = (mc.wiki_citation_count || 0) + (mc.lenovo_citation_count || 0);
+    const wiki = geoNum(mc.wiki_citation_count);
+    const lenovo = geoNum(mc.lenovo_citation_count);
+    if (wiki !== null || lenovo !== null) modelCountsMap[mc.model] = (wiki || 0) + (lenovo || 0);
   });
   const rows = GEO_PLATFORMS.map(p => {
     const d = pd[p];
-    if (!d) return { p, cites: 0, brand: 0, missing: true };
+    if (!d) return { p, cites: null, brand: null, missing: true };
     const bcm = d.brand_coverage_metrics || {};
     let cites = modelCountsMap[p];
     if (cites === undefined) {
       const sites = psd[p] || [];
-      cites = geoCitesFromSites(sites).total;
+      cites = sites.length ? geoCitesFromSites(sites).total : null;
     }
-    return { p, cites, brand: bcm.brand_exposure_rate || 0, missing: false };
+    return { p, cites, brand: geoNum(bcm.brand_exposure_rate), missing: false };
   });
-  const mx = Math.max(...rows.map(r => r.cites), 1);
   c.innerHTML = rows.map(r => {
     if (r.missing) {
-      return `<div class="geo-plat-card"><div class="gpc-name">${geoPlatNames[r.p] || r.p}</div><div style="color:#6b7390;font-size:11px">无数据</div></div>`;
+      return `<div class="geo-plat-card"><div class="gpc-name">${geoPlatNames[r.p] || r.p}</div>${geoPendingInline()}</div>`;
     }
     return `<div class="geo-plat-card">
       <div class="gpc-name">${geoPlatNames[r.p] || r.p}</div>
-      <div class="gpc-row"><span>引用次数</span><span class="gpc-val">${r.cites.toLocaleString()}</span></div>
+      <div class="gpc-row"><span>引用次数</span><span class="gpc-val ${r.cites === null ? 'is-pending' : ''}">${geoFmtCount(r.cites)}</span></div>
     </div>`;
   }).join('');
+}
+
+function geoRenderSitesPending() {
+  ['geo-sites-treemap','geo-sites-rank','geo-link-top50'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = geoPendingHtml();
+  });
+  geoSetSectionPending(['gv-sites-total','gv-lenovo-cite','gv-wiki-cite']);
 }
 
 // ===== GEO 信源分布 (sites API) =====
@@ -463,8 +569,8 @@ async function geoLoadSites() {
     // 全站点（treemap / site rank 用）
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
-    if (json.code !== 200) return;
-    const d = json.data;
+    if (json.code !== 200) { geoRenderSitesPending(); return; }
+    const d = json.data || {};
     const sites = d.sites || [];
     geoRenderTreemap(sites);
     geoRenderSiteRank(sites);
@@ -477,42 +583,42 @@ async function geoLoadSites() {
       if (lj.code === 200 && lj.data?.sites) lenovoSites = lj.data.sites;
     } catch (err) { console.error('lenovo_top50 fetch fail, fallback to client filter', err); }
     geoRenderLinkTop50(lenovoSites);
-    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    set('gv-sites-total', lenovoSites.length.toLocaleString());
+    geoSetValue('gv-sites-total', lenovoSites.length ? lenovoSites.length : null);
     // wiki/lenovo 引用数走 citations 接口（content_ecology_metrics），sites 域名合计不准
     try {
       const citeResp = await fetch('/api/geo-dashboard/citations', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(geoCitationsBody()) });
       const citeJson = await citeResp.json();
       const cem = citeJson.content_ecology_metrics || {};
-      set('gv-wiki-cite', (cem.wiki_citation_count || 0).toLocaleString());
-      set('gv-lenovo-cite', (cem.lenovo_citation_count || 0).toLocaleString());
+      geoSetValue('gv-wiki-cite', cem.wiki_citation_count);
+      geoSetValue('gv-lenovo-cite', cem.lenovo_citation_count);
     } catch (err) {
       console.error('citations API failed', err);
       const cites = geoCitesFromSites(lenovoSites);
-      set('gv-lenovo-cite', cites.official.toLocaleString());
-      set('gv-wiki-cite', cites.wiki.toLocaleString());
+      geoSetValue('gv-lenovo-cite', lenovoSites.length ? cites.official : null);
+      geoSetValue('gv-wiki-cite', lenovoSites.length ? cites.wiki : null);
     }
-  } catch(e) { console.error('geoLoadSites', e); }
+  } catch(e) { geoRenderSitesPending(); console.error('geoLoadSites', e); }
 }
 
 function geoRenderTreemap(sites) {
   const c = document.getElementById('geo-sites-treemap'); if(!c) return;
   const top = sites.slice(0, 20);
-  const totalPct = top.reduce((s,x) => s + x.percentage, 0);
-  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  const totalPct = top.reduce((s,x) => s + (geoNum(x.percentage) || 0), 0);
+  if (!top.length) { c.innerHTML = geoPendingHtml(); return; }
   c.innerHTML = '<div class="geo-treemap">' + top.map((s, i) => {
     const bg = GEO_TREEMAP_COLORS[i % GEO_TREEMAP_COLORS.length];
-    const flex = Math.max(s.percentage / totalPct * 100, 3);
-    return `<div class="gtm-cell" style="flex:${flex};background:${bg};min-width:60px;min-height:50px" title="${s.domain} · ${s.count.toLocaleString()}次 · ${s.percentage}%"><span class="gtm-name">${s.name}</span><span class="gtm-pct">${s.percentage}%</span></div>`;
+    const pct = geoNum(s.percentage) || 0;
+    const flex = Math.max(totalPct ? pct / totalPct * 100 : 3, 3);
+    return `<div class="gtm-cell" style="flex:${flex};background:${bg};min-width:60px;min-height:50px" title="${geoEscape(s.domain)} · ${geoFmtCount(s.count)}次 · ${pct}%"><span class="gtm-name">${geoEscape(s.name)}</span><span class="gtm-pct">${pct}%</span></div>`;
   }).join('') + '</div>';
 }
 
 function geoRenderSiteRank(sites) {
   const c = document.getElementById('geo-sites-rank'); if(!c) return;
   const top = sites.slice(0, 20);
-  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  if (!top.length) { c.innerHTML = geoPendingHtml(); return; }
   c.innerHTML = '<ol class="geo-rank-list">' + top.map(s =>
-    `<li><span class="grl-idx">${s.rank}</span><span class="grl-name" title="${s.domain}">${s.name}</span><span class="grl-count">${s.count.toLocaleString()} · ${s.percentage}%</span></li>`
+    `<li><span class="grl-idx">${s.rank}</span><span class="grl-name" title="${geoEscape(s.domain)}">${geoEscape(s.name)}</span><span class="grl-count">${geoFmtCount(s.count)} · ${geoNum(s.percentage) ?? 0}%</span></li>`
   ).join('') + '</ol>';
 }
 
@@ -520,7 +626,7 @@ function geoRenderSiteRank(sites) {
 function geoRenderLinkTop50(sites) {
   const c = document.getElementById('geo-link-top50'); if (!c) return;
   const top = (sites || []).slice(0, 50).map((s, i) => ({...s, rank: i + 1}));
-  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  if (!top.length) { c.innerHTML = geoPendingHtml(); return; }
   const maxCount = Math.max(...top.map(s => s.count), 1);
   c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
     const barW = Math.max((s.count / maxCount * 100), 2).toFixed(0);
@@ -535,12 +641,12 @@ function geoRenderLinkTop50(sites) {
       <span style="${idxStyle}">${s.rank}</span>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</span>
-          <a href="https://${s.domain}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${s.domain}">${s.domain}</a>
+          <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${geoEscape(s.name)}</span>
+          <a href="https://${geoEscape(s.domain)}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
         </div>
         <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e7eb;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#2563eb' : '#93c5fd'};border-radius:3px"></div></div>
       </div>
-      <span style="${countStyle}">${s.count.toLocaleString()}</span>
+      <span style="${countStyle}">${geoFmtCount(s.count)}</span>
     </li>`;
   }).join('') + '</ol>';
 }
@@ -553,33 +659,47 @@ async function geoLoadQuestions() {
     const body = { project_id: GEO_PROJECT_ID, date: geoResolveDateRange().end_date };
     const resp = await fetch('/api/geo-dashboard/questions', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
-    if (json.code !== 200) return;
-    const qs = json.data.questions || [];
-    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    set('gv-q-count', qs.length);
+    if (json.code !== 200) {
+      geoState._questionsData = [];
+      geoSetValue('gv-q-count', null);
+      geoRenderQuestions([]);
+      geoRenderIntentPlatformSummary([]);
+      geoPopulateQuestionsSelect();
+      return;
+    }
+    const qs = json.data?.questions || [];
+    geoSetValue('gv-q-count', qs.length ? qs.length : null);
     geoRenderQuestions(qs);
     geoRenderIntentPlatformSummary(qs);
     geoPopulateTrendQuestions();
     geoPopulateQuestionsSelect();
-  } catch(e) { console.error('geoLoadQuestions', e); }
+  } catch(e) {
+    geoState._questionsData = [];
+    geoSetValue('gv-q-count', null);
+    geoRenderQuestions([]);
+    geoRenderIntentPlatformSummary([]);
+    geoPopulateQuestionsSelect();
+    console.error('geoLoadQuestions', e);
+  }
 }
 
 function geoRenderQuestions(qs) {
   geoState._questionsData = qs;
   const visibleModels = geoState._visibleIntentModels || null;
   const c = document.getElementById('geo-questions-table'); if(!c) return;
-  if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无意图</div>'; return; }
+  if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
   const fieldKeys = [];
   if (qs[0].models && qs[0].models[0] && qs[0].models[0].fields) qs[0].models[0].fields.forEach(f => fieldKeys.push(f.field));
   const allModels = (qs[0].models || []).map(m => m.model);
   const models = visibleModels ? allModels.filter(m => visibleModels.includes(m)) : allModels;
   geoRenderIntentFilter(allModels, models);
   let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
-  models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${name}<br><span style="font-size:10px;font-weight:400">${GEO_FIELD_LABELS[f] || f}</span></th>`; }); });
+  models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
   html += '</tr></thead><tbody>';
   qs.forEach(q => {
-    html += `<tr><td class="name" title="${q.question}">${q.question.length > 20 ? q.question.slice(0,20)+'…' : q.question}</td>`;
-    models.forEach(m => { const md = (q.models || []).find(x => x.model === m); fieldKeys.forEach(f => { const fd = md && (md.fields || []).find(x => x.field === f); const v = fd ? fd.value : '-'; const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : ''); html += `<td class="${cls}">${v}</td>`; }); });
+    const questionText = q.question || '';
+    html += `<tr><td class="name" title="${geoEscape(questionText)}">${geoEscape(questionText.length > 20 ? questionText.slice(0,20)+'...' : questionText)}</td>`;
+    models.forEach(m => { const md = (q.models || []).find(x => x.model === m); fieldKeys.forEach(f => { const fd = md && (md.fields || []).find(x => x.field === f); const v = fd ? fd.value : '-'; const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : ''); html += `<td class="${cls}">${geoEscape(v)}</td>`; }); });
     html += '</tr>';
   });
   html += '</tbody></table>';
@@ -612,7 +732,7 @@ function geoToggleIntentModel(model) {
 
 function geoRenderIntentPlatformSummary(qs) {
   const c = document.getElementById('geo-intent-platform-summary'); if (!c) return;
-  if (!qs.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">暂无数据</div>'; return; }
+  if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
   const models = (qs[0].models || []).map(m => m.model);
   const totalCount = qs.length;
   const platStats = {};
@@ -663,11 +783,18 @@ async function geoLoadSourcePage(page) {
     const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
     if (json.code !== 200) throw new Error(json.message);
-    const d = json.data; const sites = d.sites || []; const pg = d.pagination || {};
-    if (st) st.textContent = `共 ${(d.total_records||0).toLocaleString()} 个站点 · 第 ${pg.current_page}/${pg.total_pages} 页`;
+    const d = json.data || {}; const sites = d.sites || []; const pg = d.pagination || {};
+    if (!sites.length) {
+      if (st) st.textContent = GEO_PENDING_TEXT;
+      if (c) c.innerHTML = geoPendingHtml();
+      const pager = document.getElementById('geo-source-pager');
+      if (pager) pager.innerHTML = '';
+      return;
+    }
+    if (st) st.textContent = `共 ${(d.total_records||0).toLocaleString()} 个站点 · 第 ${pg.current_page || 1}/${pg.total_pages || 1} 页`;
     if (!c) return;
     c.innerHTML = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="width:50px">排名</th><th style="text-align:left">站点</th><th style="text-align:left">域名</th><th>引用次数</th><th>占比</th></tr></thead><tbody>' +
-      sites.map(s => `<tr><td>${s.rank}</td><td class="name">${s.name}</td><td class="name" style="font-size:11px;color:#6b7280">${s.domain}</td><td>${s.count.toLocaleString()}</td><td>${s.percentage}%</td></tr>`).join('') + '</tbody></table>';
+      sites.map(s => `<tr><td>${s.rank}</td><td class="name">${geoEscape(s.name)}</td><td class="name" style="font-size:11px;color:#6b7280">${geoEscape(s.domain)}</td><td>${geoFmtCount(s.count)}</td><td>${geoNum(s.percentage) ?? 0}%</td></tr>`).join('') + '</tbody></table>';
     const pager = document.getElementById('geo-source-pager');
     if (pager && pg.total_pages > 1) {
       let ph = '';
@@ -676,7 +803,13 @@ async function geoLoadSourcePage(page) {
       if (pg.has_next) ph += `<button onclick="geoLoadSourcePage(${pg.next_page})" style="margin:0 4px;padding:4px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px">下一页</button>`;
       pager.innerHTML = ph;
     } else if (pager) { pager.innerHTML = ''; }
-  } catch(e) { if (st) st.textContent = '加载失败：' + e.message; console.error('geoLoadSourcePage', e); }
+  } catch(e) {
+    if (st) st.textContent = GEO_PENDING_TEXT;
+    if (c) c.innerHTML = geoPendingHtml();
+    const pager = document.getElementById('geo-source-pager');
+    if (pager) pager.innerHTML = '';
+    console.error('geoLoadSourcePage', e);
+  }
 }
 
 // ===== GEO 趋势折线图（真实数据 from 点亮AI） =====
@@ -692,7 +825,11 @@ async function geoLoadTrendChart() {
   try {
     const resp = await fetch('/api/geo-dashboard/summary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const json = await resp.json();
-    if (json.code !== 200 || !json.data) return;
+    if (json.code !== 200 || !json.data) {
+      _trendChartData = null;
+      geoDrawCanvasPending(canvas);
+      return;
+    }
     const d = json.data;
     const xs = d.x_axis || [];
     const dates = xs.map(x => x.label || x.date);
@@ -707,9 +844,14 @@ async function geoLoadTrendChart() {
     });
     // all 字段排第一位，方便颜色与图例对齐
     series.sort((a, b) => (a.field === 'all' ? -1 : b.field === 'all' ? 1 : 0));
+    if (!dates.length || !series.length) {
+      _trendChartData = null;
+      geoDrawCanvasPending(canvas);
+      return;
+    }
     _trendChartData = { dates, series };
     geoDrawTrendCanvas();
-  } catch(e) { console.error('geoLoadTrendChart', e); }
+  } catch(e) { _trendChartData = null; geoDrawCanvasPending(canvas); console.error('geoLoadTrendChart', e); }
 }
 
 function geoPopulateTrendQuestions() {
@@ -726,14 +868,16 @@ function geoPopulateTrendQuestions() {
 
 function geoDrawTrendCanvas() {
   const canvas = document.getElementById('geo-trend-canvas');
-  if (!canvas || !_trendChartData) return;
+  if (!canvas) return;
+  if (!_trendChartData) { geoDrawCanvasPending(canvas); return; }
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
-  const W = rect.width, H = rect.height;
+  const W = rect.width || canvas.width || 800;
+  const H = rect.height || canvas.height || 280;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const pad = { top: 20, right: 20, bottom: 40, left: 45 };
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
@@ -742,7 +886,8 @@ function geoDrawTrendCanvas() {
 
   const dates = _trendChartData.dates || [];
   const series = _trendChartData.series || [];
-  if (!dates.length || !series.length) return;
+  if (!dates.length || !series.length) { geoDrawCanvasPending(canvas); return; }
+  const denom = Math.max(dates.length - 1, 1);
 
   const allVals = series.flatMap(s => s.data);
   const maxV = Math.max(...allVals, 1);
@@ -776,7 +921,7 @@ function geoDrawTrendCanvas() {
   const step = Math.max(1, Math.floor(dates.length / 8));
   dates.forEach((d, i) => {
     if (i % step === 0 || i === dates.length - 1) {
-      const x = pad.left + (i / (dates.length - 1)) * plotW;
+      const x = pad.left + (i / denom) * plotW;
       ctx.fillText(d, x, H - pad.bottom + 18);
     }
   });
@@ -797,7 +942,7 @@ function geoDrawTrendCanvas() {
     ctx.lineJoin = 'round';
     ctx.beginPath();
     s.data.forEach((v, i) => {
-      const x = pad.left + (i / (dates.length - 1)) * plotW;
+      const x = pad.left + (i / denom) * plotW;
       const y = pad.top + plotH - (v - yMin) / yRange * plotH;
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
@@ -805,7 +950,7 @@ function geoDrawTrendCanvas() {
 
     // Draw dots
     s.data.forEach((v, i) => {
-      const x = pad.left + (i / (dates.length - 1)) * plotW;
+      const x = pad.left + (i / denom) * plotW;
       const y = pad.top + plotH - (v - yMin) / yRange * plotH;
       ctx.fillStyle = color;
       ctx.beginPath();
@@ -818,7 +963,7 @@ function geoDrawTrendCanvas() {
   canvas.onmousemove = (e) => {
     const bRect = canvas.getBoundingClientRect();
     const mx = e.clientX - bRect.left;
-    const idx = Math.round((mx - pad.left) / plotW * (dates.length - 1));
+    const idx = Math.round((mx - pad.left) / plotW * denom);
     if (idx < 0 || idx >= dates.length) { document.getElementById('geo-trend-tooltip').style.display = 'none'; return; }
     const tip = document.getElementById('geo-trend-tooltip');
     let html = `<div style="font-weight:600;margin-bottom:4px">${dates[idx]}</div>`;
@@ -847,13 +992,13 @@ async function geoLoadWordCloud(days) {
   try {
     const resp = await fetch('/api/geo-dashboard/word-cloud?days=' + days);
     const json = await resp.json();
-    if (!json.success || !json.data) return;
+    if (!json.success || !json.data) { c.innerHTML = geoPendingHtml(); return; }
     geoRenderWordCloud(json.data, c);
-  } catch(e) { console.error('geoLoadWordCloud', e); c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">加载失败</div>'; }
+  } catch(e) { console.error('geoLoadWordCloud', e); c.innerHTML = geoPendingHtml(); }
 }
 
 function geoRenderWordCloud(words, container) {
-  if (!words.length) { container.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">暂无数据</div>'; return; }
+  if (!words.length) { container.innerHTML = geoPendingHtml(); return; }
   const top = words.slice(0, 80);
   const maxVal = top[0].value;
   const minVal = top[top.length - 1].value;
@@ -890,8 +1035,19 @@ function geoRenderWordCloud(words, container) {
     }
     if (!found) { bestX = Math.random()*(W-charW); bestY = Math.random()*(H-charH); }
     placed.push({x:bestX,y:bestY,w:charW,h:charH});
-    html += `<span style="position:absolute;left:${bestX.toFixed(0)}px;top:${bestY.toFixed(0)}px;font-size:${size.toFixed(0)}px;color:${color};font-weight:${fw};transform:rotate(${rotate}deg);white-space:nowrap;cursor:default;line-height:1.2;transition:opacity .2s" title="${w.name}: ${w.value}">${w.name}</span>`;
+    html += `<span style="position:absolute;left:${bestX.toFixed(0)}px;top:${bestY.toFixed(0)}px;font-size:${size.toFixed(0)}px;color:${color};font-weight:${fw};transform:rotate(${rotate}deg);white-space:nowrap;cursor:default;line-height:1.2;transition:opacity .2s" title="${geoEscape(w.name)}: ${geoFmtCount(w.value)}">${geoEscape(w.name)}</span>`;
   });
   html += '</div>';
   container.innerHTML = html;
+}
+
+const GEO_CONVERSION_VALUE_IDS = [
+  'gc-all-uv','gc-all-login','gc-all-newreg','gc-all-paid','gc-all-ca','gc-all-gmv','gc-all-newpaid','gc-all-newca','gc-all-newgmv','gc-all-leai-user','gc-all-leai-ca','gc-all-leai-gmv',
+  'gc-leai-uv','gc-leai-login','gc-leai-newreg','gc-leai-interact','gc-leai-login-interact','gc-leai-paid','gc-leai-ca','gc-leai-gmv','gc-leai-newpaid','gc-leai-newca','gc-leai-newgmv','gc-leai-order-user','gc-leai-order-ca','gc-leai-order-gmv'
+];
+
+function geoLoadConversionPage() {
+  GEO_CONVERSION_VALUE_IDS.forEach(id => geoSetValue(id, null));
+  const status = document.getElementById('geo-conversion-status');
+  if (status) status.textContent = `${GEO_PENDING_TEXT} · 转化链路接口接入后展示访问、登录、注册、互动和购买数据`;
 }

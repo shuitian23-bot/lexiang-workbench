@@ -615,6 +615,11 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 /* 待开放占位 */
 .geo-dark .geo-placeholder { background:#f9fafb; border:1px dashed #d1d5db; border-radius:10px; padding:28px; text-align:center; color:#9ca3af; font-size:12px; }
 .geo-dark .geo-placeholder .gp-title { color:#6b7280; font-size:13px; margin-bottom:6px; }
+.geo-dark .geo-pending { min-height:96px; display:flex; align-items:center; justify-content:center; padding:24px; border:1px dashed #d1d5db; border-radius:8px; background:#f9fafb; color:#8f959e; text-align:center; }
+.geo-dark .geo-pending-title { font-size:13px; font-weight:600; line-height:1.5; }
+.geo-dark .geo-pending-inline { display:inline-flex; align-items:center; max-width:100%; color:#8f959e; font-size:11px; font-weight:600; white-space:normal; line-height:1.4; }
+.geo-dark .geo-pending-line { margin-top:8px; color:#8f959e; font-size:11px; font-weight:600; line-height:1.5; }
+.geo-dark .is-pending { color:#8f959e !important; font-size:13px !important; font-weight:600 !important; line-height:1.35 !important; white-space:normal !important; }
 
 /* 左右两栏 */
 .geo-dark .geo-row { display:grid; grid-template-columns:1fr 360px; gap:12px; margin-bottom:12px; }
@@ -661,6 +666,24 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 .geo-dark .geo-conv-cell .gcc-label { font-size:11px; color:#6b7280; margin-bottom:6px; }
 .geo-dark .geo-conv-cell .gcc-val { font-size:22px; font-weight:700; color:#111827; }
 .geo-dark .geo-conv-cell .gcc-def { font-size:10px; color:#9ca3af; margin-top:4px; line-height:1.4; }
+
+@media (max-width:1200px) {
+  .geo-dark .geo-row,
+  .geo-dark .geo-row.wide-right { grid-template-columns:1fr; }
+  .geo-dark .geo-conv-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width:760px) {
+  .geo-dark { padding:12px; }
+  .geo-dark .geo-scope-bar { overflow-x:auto; }
+  .geo-dark .geo-scope-tab { white-space:nowrap; padding:10px 14px; }
+  .geo-dark .geo-kpi-grid.cols-2,
+  .geo-dark .geo-kpi-grid.cols-3,
+  .geo-dark .geo-kpi-grid.cols-4,
+  .geo-dark .geo-conv-grid { grid-template-columns:1fr; }
+  .geo-dark .geo-panel { padding:12px; }
+  .geo-dark .geo-filter-row input,
+  .geo-dark .geo-filter-row select { max-width:100%; }
+}
 
 /* ===== Bar Chart (shared) ===== */
 .bar-chart { display:flex; align-items:flex-end; gap:12px; padding:10px 0; }

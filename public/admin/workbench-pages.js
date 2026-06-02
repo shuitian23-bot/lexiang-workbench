@@ -1104,7 +1104,7 @@ const PAGE_RENDERERS = {
       <div><div class="page-title">GEO · 转化看板</div><div class="page-desc">通过 AI 搜索平台入站的访问 / 登录 / 注册 / 购买转化</div></div>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line">AI搜索平台：豆包、元宝、Kimi、DS、千问 &nbsp;|&nbsp; 交易：当日访问，当日购买</div>
+      <div class="geo-status-line" id="geo-conversion-status">待接口提供数据 · AI搜索平台：豆包、元宝、Kimi、DS、千问 · 交易：当日访问，当日购买</div>
 
       <div class="geo-conv-section">
         <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>

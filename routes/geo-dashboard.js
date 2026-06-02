@@ -129,6 +129,14 @@ router.post('/summary', async (req, res) => {
   }
 });
 
+router.post('/conversion', (req, res) => {
+  res.status(501).json({
+    code: 501,
+    message: '待接口提供数据',
+    data: null
+  });
+});
+
 // 趋势折线图
 router.get('/project-chart', async (req, res) => {
   try {

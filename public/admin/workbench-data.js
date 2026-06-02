@@ -1811,6 +1811,9 @@ switchPage = function(pageId) {
   if (pageId === 'dashboard.geoIntent') {
     setTimeout(() => geoLoadIntentPage(), 50);
   }
+  if (pageId === 'dashboard.geoConversion') {
+    setTimeout(() => geoLoadConversionPage(), 50);
+  }
   if (pageId === 'dashboard.geoKnowledge') {
     setTimeout(() => loadKnowledgeStats(), 50);
   }
