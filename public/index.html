@@ -1438,6 +1438,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <!-- Banner 轮播：内容由 JS 按 _siteType 注入 -->
   <div class="mall-hero" id="mallHero"></div>
 
+  <!-- 楼层2: 会员权益(区分登录/未登录态), 全子站显 -->
+  <section id="lxMemberBenefit" class="lx-sh-sec" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
+
   <!-- 子站专属促销模块: shop=秒杀, b=新人专享, 其他不显; 内容 hardcode mock POC -->
   <section id="siteLandingExtra" style="display:none"></section>
   <script>
@@ -1603,13 +1606,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }
   }; window.__renderSiteLandingExtra();</script>
 
-  <!-- ══════════ Sitehome P0 模块(按 PRD v2.3): 会员权益 / 留资(b biz) / 内容(b biz) / 开箱(shop) ══════════ -->
-  <section id="lxMemberBenefit" class="lx-sh-sec" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
-  <section id="lxLeadForm" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
-  <section id="lxUgcUnbox" class="lx-sh-sec lx-sh-shop" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
-  <section id="lxContent" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
-
   <!-- 分区 Feed: 新品/超值/热门/各品类。初始渲染 8 套骨架占位，避免单区骨架后整页跳出 -->
+  <!-- 注: Sitehome P0 模块顺序 Banner→会员→商品分类→留资→内容→开箱(最末): 会员移到 mallHero 后, 留资/内容/开箱在 mallFeatures 后 -->
+
   <div id="feedSections">
     <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
     <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
@@ -1631,6 +1630,11 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 
   <!-- 特色服务：内容由 JS 按 _siteType 注入 -->
   <section class="mall-features" id="mallFeatures"></section>
+
+  <!-- 楼层4-6: 留资(b/biz) → 内容(b/biz) → 开箱(shop, 默认最末) -->
+  <section id="lxLeadForm" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
+  <section id="lxContent" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
+  <section id="lxUgcUnbox" class="lx-sh-sec lx-sh-shop" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
 </div><!-- /shopContent -->
 </div><!-- /wrap -->
 <footer><div class="fgrid">
