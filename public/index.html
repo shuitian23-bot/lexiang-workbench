@@ -155,8 +155,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .nlinks a{text-decoration:none;color:#454545;font-size:15px;opacity:.8;transition:opacity .3s;white-space:nowrap;border-bottom:3px solid transparent}
 .nlinks a:hover{opacity:1}.nlinks a.nav-active{opacity:1;color:#E1251B;font-weight:700;border-bottom-color:#E1251B}
 .nlinks .nav-sep{display:inline-block;width:1px;height:14px;background:#d0d0d0;margin:0 -10px 0 4px;align-self:center}
-.nlinks .nav-extra{font-size:14px;color:#888;opacity:.85;border-bottom:none}
-.nlinks .nav-extra:hover{color:#333;opacity:1}
+.nlinks .nav-extra{font-size:15px;color:#454545;opacity:.8;border-bottom:3px solid transparent}
+.nlinks .nav-extra:hover{color:#454545;opacity:1}
 .nright{display:flex;align-items:center;gap:16px;margin-left:auto;flex-shrink:0}
 .nright a{text-decoration:none;font-size:13px;color:var(--text);opacity:.6;white-space:nowrap;transition:opacity .3s}
 .nright a:hover{opacity:1}
@@ -1310,7 +1310,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260602-ux37">
+<link rel="stylesheet" href="/split-layout.css?v=20260602-ux38">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1335,7 +1335,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     var _st = 'home'; // 默认全场景
     for(var k in _prefixMap){ if(_path.startsWith(k)){ _st=_prefixMap[k]; break; } }
     var NAV_ITEMS=[
-      {label:'全场景',href:'/',key:'home'},
+      {label:'首页',href:'/',key:'home'},
       {label:'个人及家庭',href:'/shop-chat/',key:'shop'},
       {label:'中小企业',href:'/b-chat/',key:'b'},
       {label:'政教及大企业',href:'/biz-chat/',key:'biz'},
@@ -1353,7 +1353,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
       { label:'门店', fn:'openStoresTab' },
       { label:'会员', fn:'openMemberTab' }
     ];
-    html += '<span class="nav-sep"></span>' + QUICK.map(function(q){
+    html += QUICK.map(function(q){
       return '<a href="#" class="nav-extra" onclick="document.querySelectorAll(\'.nlinks a.nav-active\').forEach(function(x){x.classList.remove(\'nav-active\')});'+q.fn+'();return false;">'+q.label+'</a>';
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
@@ -4278,20 +4278,21 @@ window.openMemberTab = function(){
   else if (typeof quickAsk === 'function') quickAsk('查我的会员等级、乐豆余额和专属权益');
 };
 window.openBrandTab = function(){
+  // 极简克制版: 白底 + 顶部品牌色细条 + 黑字, 去鲜艳大色块
   var brands = [
-    ['ThinkPad','商用旗舰 · 小黑传奇','政企 / 商务精英','linear-gradient(135deg,#1a1a1a,#3d3d3d)','💼','X1 / X / T / P / E / L'],
-    ['拯救者 Legion','游戏电竞 · 极致性能','硬核游戏玩家','linear-gradient(135deg,#7a0019,#c00)','🎮','Y9000K / Y7000P / R9000P'],
-    ['小新 Xiaoxin','轻薄全能 · 高性价比','学生 / 日常办公','linear-gradient(135deg,#2563eb,#7c3aed)','✨','Pro 16 / Air 14 / 小新 16'],
-    ['YOGA','高端轻薄 · 创意设计','内容创作者','linear-gradient(135deg,#0f766e,#84cc16)','🪶','Pro 14s / Air 15 / Book 9i'],
-    ['ThinkBook','年轻商务 · 创造本','中小企业 / 职场新人','linear-gradient(135deg,#475569,#0284c7)','📘','14+ / 16+ / Plus Gen6'],
-    ['moto 摩托罗拉','手机 · 折叠先锋','手机用户','linear-gradient(135deg,#1e3a8a,#7c2d12)','📱','razr 60 / Edge / X70 Air'],
-    ['来酷 Lecoo','智能生活 · 给生活来点酷','家庭用户','linear-gradient(135deg,#f97316,#fbbf24)','🏠','Lecoo Air / 智能配件'],
-    ['thinkplus','跨界生产力配件','全场景','linear-gradient(135deg,#0891b2,#06b6d4)','🔌','口红电源 / 键鼠 / 包袋']
+    ['ThinkPad','商用旗舰 · 小黑传奇','政企 / 商务精英','#1a1a1a','💼','X1 / X / T / P / E / L'],
+    ['拯救者 Legion','游戏电竞 · 极致性能','硬核游戏玩家','#B8252E','🎮','Y9000K / Y7000P / R9000P'],
+    ['小新 Xiaoxin','轻薄全能 · 高性价比','学生 / 日常办公','#4D144A','✨','Pro 16 / Air 14 / 小新 16'],
+    ['YOGA','高端轻薄 · 创意设计','内容创作者','#2A2A2A','🪶','Pro 14s / Air 15 / Book 9i'],
+    ['ThinkBook','年轻商务 · 创造本','中小企业 / 职场新人','#475569','📘','14+ / 16+ / Plus Gen6'],
+    ['moto 摩托罗拉','手机 · 折叠先锋','手机用户','#1e3a8a','📱','razr 60 / Edge / X70 Air'],
+    ['来酷 Lecoo','智能生活 · 给生活来点酷','家庭用户','#ea580c','🏠','Lecoo Air / 智能配件'],
+    ['thinkplus','跨界生产力配件','全场景','#0891b2','🔌','口红电源 / 键鼠 / 包袋']
   ];
   var html = ''
-    + '<div style="background:linear-gradient(135deg,#E2231A,#7a0019);color:#fff;padding:36px 28px;border-radius:14px;margin-bottom:22px"><h1 style="font-size:28px;font-weight:800;margin:0 0 8px;color:#fff">Lenovo 品牌矩阵</h1><p style="font-size:14px;opacity:.92;margin:0">8 大品牌 · 全场景全人群 · 服务全球 180+ 国家 2 亿+ 用户</p></div>'
-    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px">' + brands.map(function(b){ return '<div style="border-radius:14px;overflow:hidden;cursor:pointer;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.06)" onmouseover="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 8px 20px rgba(0,0,0,.12)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,.06)\'"><div style="background:'+b[3]+';color:#fff;padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:36px">'+b[4]+'</div><div><div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px">'+b[0]+'</div><div style="font-size:12px;opacity:.9">'+b[1]+'</div></div></div><div style="background:#fff;padding:14px 18px"><div style="font-size:11px;color:#888;margin-bottom:4px">代表机型</div><div style="font-size:12px;color:#333;font-weight:600;margin-bottom:8px">'+b[5]+'</div><div style="font-size:11px;color:#E2231A">→ '+b[2]+'</div></div></div>'; }).join('') + '</div>'
-    + '<div style="background:#fafafa;border-radius:12px;padding:20px"><div style="font-size:14px;font-weight:700;color:#222;margin-bottom:12px">📰 品牌动态</div>' + [['拯救者 Y9000X 2025 上市','顶配 RTX5090, 性能解禁'],['ThinkBook Plus Gen6 Rollable 量产','卷轴屏笔记本'],['YOGA Air 15 Aura 双芯协同','英特尔 + 高通双平台'],['天禧生态发布','AI PC + AI 平板 + AI 手机 + AIoT 四端融合']].map(function(n){ return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:12px"><span style="color:#333;font-weight:600">'+n[0]+'</span><span style="color:#888">'+n[1]+'</span></div>'; }).join('') + '</div>';
+    + '<div style="border-left:4px solid #B8252E;padding:8px 0 8px 16px;margin-bottom:24px"><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;color:#222">Lenovo 品牌矩阵</h1><p style="font-size:13px;color:#666;margin:0">8 大品牌 · 全场景全人群 · 服务全球 180+ 国家 2 亿+ 用户</p></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px">' + brands.map(function(b){ return '<div style="background:#fff;border:1px solid #eee;border-top:3px solid '+b[3]+';border-radius:8px;padding:18px;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor=\'#B8252E\';this.style.borderTopColor=\''+b[3]+'\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,.06)\'" onmouseout="this.style.borderColor=\'#eee\';this.style.borderTopColor=\''+b[3]+'\';this.style.boxShadow=\'\'"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:22px">'+b[4]+'</span><span style="font-size:16px;font-weight:700;color:#222">'+b[0]+'</span></div><div style="font-size:12px;color:#666;line-height:1.5;margin-bottom:10px">'+b[1]+'</div><div style="font-size:11px;color:#999;margin-bottom:3px">代表机型</div><div style="font-size:12px;color:#333;margin-bottom:10px">'+b[5]+'</div><div style="font-size:11px;color:'+b[3]+';font-weight:600">→ '+b[2]+'</div></div>'; }).join('') + '</div>'
+    + '<div style="background:#fafafa;border:1px solid #eee;border-radius:8px;padding:18px"><div style="font-size:14px;font-weight:700;color:#222;margin-bottom:12px">📰 品牌动态</div>' + [['拯救者 Y9000X 2025 上市','顶配 RTX5090, 性能解禁'],['ThinkBook Plus Gen6 Rollable 量产','卷轴屏笔记本'],['YOGA Air 15 Aura 双芯协同','英特尔 + 高通双平台'],['天禧生态发布','AI PC + AI 平板 + AI 手机 + AIoT 四端融合']].map(function(n){ return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:12px"><span style="color:#333;font-weight:600">'+n[0]+'</span><span style="color:#888">'+n[1]+'</span></div>'; }).join('') + '</div>';
   if (typeof window.__openContent === 'function') window.__openContent('info', '🏷 品牌', {html: html, content: html, rawHtml: true});
   else if (typeof quickAsk === 'function') quickAsk('联想旗下都有哪些品牌，分别定位什么人群');
 };
@@ -5536,10 +5537,10 @@ window.addEventListener('DOMContentLoaded', function(){
   // 检查登录态（_authReady 供 restoreFromUrl 等待）
   window._authReady = fetch('/api/auth/me').then(function(r){return r.json();}).then(function(d){ if(d.user) onLoginSuccess(d.user); }).catch(function(){});
   // 子站路径自动高亮对应导航
-  var _sn={'home':'全场景','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  var _sn={'home':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
   // 全场景直接清除高亮，不再依赖 __siteType
   if(location.pathname === '/') {
-    setNavActive('全场景');
+    setNavActive('首页');
   } else if(_sn[window.__siteType]) {
     setNavActive(_sn[window.__siteType]);
   }
@@ -7711,6 +7712,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260602-ux37"></script>
+<script src="/split-layout.js?v=20260602-ux38"></script>
 </body>
 </html>

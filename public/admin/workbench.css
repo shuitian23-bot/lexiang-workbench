@@ -624,9 +624,22 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 /* 左右两栏 */
 .geo-dark .geo-row { display:grid; grid-template-columns:1fr 360px; gap:12px; margin-bottom:12px; }
 .geo-dark .geo-row.wide-right { grid-template-columns:1fr 420px; }
+.geo-dark .geo-row.single { grid-template-columns:1fr; }
 .geo-dark .geo-panel { background:#ffffff; border:1px solid #e5e7eb; border-radius:10px; padding:14px; }
 .geo-dark .geo-panel .gpnl-title { font-size:13px; color:#111827; font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
 .geo-dark .geo-panel .gpnl-title .gpnl-tag { font-size:10px; color:#b45309; background:#fef3c7; padding:2px 8px; border-radius:10px; font-weight:500; }
+
+.geo-dark .geo-compare-summary { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:10px; }
+.geo-dark .geo-compare-head,
+.geo-dark .geo-compare-row { display:grid; grid-template-columns:1fr 88px 88px; gap:8px; align-items:center; padding:8px 10px; font-size:11px; }
+.geo-dark .geo-compare-head { background:#f9fafb; color:#6b7280; font-weight:600; }
+.geo-dark .geo-compare-row { border-top:1px solid #f3f4f6; color:#374151; }
+.geo-dark .geo-compare-row strong { text-align:right; color:#111827; font-size:12px; }
+.geo-dark .geo-compare-note { font-size:11px; color:#6b7280; margin:8px 0; }
+.geo-dark .geo-compare-list { display:grid; gap:8px; }
+.geo-dark .geo-compare-card { display:flex; align-items:center; justify-content:space-between; gap:8px; background:#f9fafb; border:1px dashed #d1d5db; border-radius:8px; padding:10px; }
+.geo-dark .geo-compare-card-name { color:#111827; font-size:12px; font-weight:600; }
+.geo-dark .geo-compare-pending { color:#8f959e; font-size:11px; font-weight:600; }
 
 /* Treemap 信源分布 */
 .geo-dark .geo-treemap { display:flex; flex-wrap:wrap; gap:2px; min-height:260px; background:#f3f4f6; border-radius:6px; padding:2px; }
@@ -666,6 +679,7 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 .geo-dark .geo-conv-cell .gcc-label { font-size:11px; color:#6b7280; margin-bottom:6px; }
 .geo-dark .geo-conv-cell .gcc-val { font-size:22px; font-weight:700; color:#111827; }
 .geo-dark .geo-conv-cell .gcc-def { font-size:10px; color:#9ca3af; margin-top:4px; line-height:1.4; }
+.geo-dark .geo-conv-top-pages .geo-pending { min-height:72px; }
 
 @media (max-width:1200px) {
   .geo-dark .geo-row,

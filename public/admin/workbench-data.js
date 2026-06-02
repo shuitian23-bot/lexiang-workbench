@@ -1799,7 +1799,7 @@ switchPage = function(pageId) {
   if (pageId === 'dashboard.overview') loadOverviewStats();
   // dashboard.query replaced by pipeline.annotate — handled by workbench-pipeline.js
   if (pageId === 'dashboard.geo') {
-    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = [];
+    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = []; geoState.compare = 'brand'; geoState.competitors = []; geoState._intentPlatform = 'all'; geoState._intentVisibilityFilter = 'all';
     setTimeout(() => {
       const qi = document.getElementById('geo-questions'); if (qi) qi.value = '';
       geoLoadData();
