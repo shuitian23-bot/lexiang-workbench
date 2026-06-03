@@ -155,8 +155,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .nlinks a{text-decoration:none;color:#454545;font-size:15px;opacity:.8;transition:opacity .3s;white-space:nowrap;border-bottom:3px solid transparent}
 .nlinks a:hover{opacity:1}.nlinks a.nav-active{opacity:1;color:#E1251B;font-weight:700;border-bottom-color:#E1251B}
 .nlinks .nav-sep{display:inline-block;width:1px;height:14px;background:#d0d0d0;margin:0 -10px 0 4px;align-self:center}
-.nlinks .nav-extra{font-size:14px;color:#888;opacity:.85;border-bottom:none}
-.nlinks .nav-extra:hover{color:#333;opacity:1}
+.nlinks .nav-extra{font-size:15px;color:#454545;opacity:.8;border-bottom:3px solid transparent}
+.nlinks .nav-extra:hover{color:#454545;opacity:1}
 .nright{display:flex;align-items:center;gap:16px;margin-left:auto;flex-shrink:0}
 .nright a{text-decoration:none;font-size:13px;color:var(--text);opacity:.6;white-space:nowrap;transition:opacity .3s}
 .nright a:hover{opacity:1}
@@ -237,7 +237,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);bac
 .feat-main p{font-size:12px;opacity:.78;margin-top:4px}
 .feat-s{border-radius:22px;padding:26px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;cursor:pointer;transition:all .3s}
 .feat-s:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.12)}
-.feat-s:nth-child(2){background-color:#667eea}
+.feat-s:nth-child(2){background-color:#4E1646}
 .feat-s:nth-child(3){background-color:#11998e}
 .feat-s h4{font-size:16px;font-weight:700}
 .feat-s p{font-size:11px;opacity:.75}
@@ -1208,7 +1208,7 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .pd-action-btns .pd-btn-cart{flex:1;min-width:140px;padding:0 18px;height:48px;background:#fff;color:#1F2937;border:1.5px solid #E5E7EB;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s ease;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
 .pd-action-btns .pd-btn-cart:hover{background:#FFF5F5;border-color:#E1251B;color:#B8252E;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
 .pd-action-btns .pd-btn-cart:active{transform:translateY(0)}
-.pd-action-btns .pd-btn-ask{flex:none;padding:0 24px;height:44px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:6px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.pd-action-btns .pd-btn-ask{flex:none;padding:0 24px;height:44px;background:linear-gradient(135deg,#4E1646,#B8252E);border:none;border-radius:6px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .pd-btn-ask:hover{opacity:.88;transform:translateY(-1px)}
 #displayCanvas{position:absolute;top:56px;left:0;right:0;height:calc(100vh - 56px);height:calc(100dvh - 56px);background:#f8f8f8;z-index:90;overflow-y:auto;overscroll-behavior:contain;padding:0 20px 40px}
 #displayCanvas .dc-topbar{display:flex;align-items:center;gap:12px;padding:14px 0;position:sticky;top:0;background:#f8f8f8;z-index:1}
@@ -1304,13 +1304,13 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .pd-specs-tbl td:last-child{color:var(--text,#333)}
 @media(max-width:600px){.pd-detail-main{flex-direction:column}.pd-gallery{width:100%;max-width:none}.pd-hl-grid{grid-template-columns:1fr}}
 /* AI 悬浮入口按钮 */
-.ai-fab{position:fixed;bottom:24px;right:24px;z-index:999;display:inline-flex;align-items:center;gap:6px;padding:12px 20px;border:none;border-radius:999px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(102,126,234,.4);transition:all .25s}
+.ai-fab{position:fixed;bottom:24px;right:24px;z-index:999;display:inline-flex;align-items:center;gap:6px;padding:12px 20px;border:none;border-radius:999px;background:linear-gradient(135deg,#4E1646,#B8252E);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(78,22,70,.22);transition:all .25s}
 .ai-fab:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(102,126,234,.55)}
 .ai-fab:active{transform:translateY(0)}
 html.split-mode.chat-revealed .ai-fab,html.is-chat .ai-fab{display:none}
 @media(max-width:768px){.ai-fab{bottom:16px;right:16px;padding:10px 16px;font-size:13px}}
 </style>
-<link rel="stylesheet" href="/split-layout.css?v=20260602-ux37">
+<link rel="stylesheet" href="/split-layout.css?v=20260602-input-match-b">
 </head>
 <body>
 <script>var _p=location.pathname,_chatPrefixes=['/chat','/shop-chat','/b-chat','/biz-chat'],_siteType='default';
@@ -1318,7 +1318,7 @@ _chatPrefixes.forEach(function(x){if(_p.startsWith(x)){_siteType=x.replace('/','
 // 同步设 --split-left（避免首屏 fallback 50% → 加载完闪到 localStorage 值）— v4 默认 29%
 try{var _sl=JSON.parse(localStorage.getItem('lexiang.splitV4')||localStorage.getItem('lexiang.splitV3')||localStorage.getItem('lexiang.splitV2')||'{}');var _lp=(_sl&&typeof _sl.leftPct==='number')?_sl.leftPct:29;document.documentElement.style.setProperty('--split-left',_lp+'%');if(_sl&&(_sl.v2Layout||_sl.v3Layout||_sl.v4Layout)&&_sl.swapped){document.documentElement.classList.add('layout-swapped');}}catch(e){document.documentElement.style.setProperty('--split-left','29%');}
 // 防御：DOM ready 后强制清 .exit + 残余 chat class（无 conv 时）
-document.addEventListener('DOMContentLoaded',function(){var p=location.pathname;var pre=['/chat','/shop-chat','/b-chat','/biz-chat'];var base=pre.find(function(x){return p.startsWith(x)});if(base){var rest=p.slice(base.length).replace(/^\//,'');if(!rest){var lp=document.getElementById('landingPage');if(lp){lp.classList.remove('exit','dc-open');lp.style.opacity='';lp.style.transform='';lp.style.pointerEvents='';}document.documentElement.classList.remove('is-chat','in-chat','split-mode');}}});
+document.addEventListener('DOMContentLoaded',function(){var p=location.pathname;var pre=['/chat','/shop-chat','/b-chat','/biz-chat'];var base=pre.find(function(x){return p.startsWith(x)});if(base){var rest=p.slice(base.length).replace(/^\//,'');if(!rest&&base==='/chat'){var lp=document.getElementById('landingPage');if(lp){lp.classList.remove('exit','dc-open');lp.style.opacity='';lp.style.transform='';lp.style.pointerEvents='';}document.documentElement.classList.remove('is-chat','in-chat','split-mode');}}});
 if(_siteType==='chat')_siteType='default';
 document.documentElement.dataset.site=_siteType;
 window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+_siteType+'-chat';</script>
@@ -1335,7 +1335,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     var _st = 'home'; // 默认全场景
     for(var k in _prefixMap){ if(_path.startsWith(k)){ _st=_prefixMap[k]; break; } }
     var NAV_ITEMS=[
-      {label:'全场景',href:'/',key:'home'},
+      {label:'首页',href:'/',key:'home'},
       {label:'个人及家庭',href:'/shop-chat/',key:'shop'},
       {label:'中小企业',href:'/b-chat/',key:'b'},
       {label:'政教及大企业',href:'/biz-chat/',key:'biz'},
@@ -1348,12 +1348,11 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     // 全局 quick action(所有子站): 品牌/合作伙伴/服务/门店/会员 -- 点击开对应内容 tab(不是 quickAsk 文字)
     var QUICK = [
       { label:'品牌', fn:'openBrandTab' },
-      { label:'合作伙伴', fn:'openPartnerTab' },
       { label:'服务', fn:'openServiceTab' },
       { label:'门店', fn:'openStoresTab' },
       { label:'会员', fn:'openMemberTab' }
     ];
-    html += '<span class="nav-sep"></span>' + QUICK.map(function(q){
+    html += QUICK.map(function(q){
       return '<a href="#" class="nav-extra" onclick="document.querySelectorAll(\'.nlinks a.nav-active\').forEach(function(x){x.classList.remove(\'nav-active\')});'+q.fn+'();return false;">'+q.label+'</a>';
     }).join('');
     document.getElementById('navLinks').innerHTML=html;
@@ -1437,6 +1436,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 <div id="shopContent">
   <!-- Banner 轮播：内容由 JS 按 _siteType 注入 -->
   <div class="mall-hero" id="mallHero"></div>
+
+  <!-- 楼层2: 会员权益(区分登录/未登录态), 全子站显 -->
+  <section id="lxMemberBenefit" class="lx-sh-sec" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
 
   <!-- 子站专属促销模块: shop=秒杀, b=新人专享, 其他不显; 内容 hardcode mock POC -->
   <section id="siteLandingExtra" style="display:none"></section>
@@ -1528,8 +1530,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     else if (typeof showAIModal === 'function') showAIModal({type:'info', title:'🎁 ' + name, content: html, html: html, rawHtml: true});
   };
 
-  window.__renderSiteLandingExtra = function(){
-    var st = window.__siteType || 'default';
+  window.__renderSiteLandingExtra = function(forceSite){
+    var st = forceSite || window.__siteType || 'default';
     var box = document.getElementById('siteLandingExtra');
     if (!box) return;
     box.className = '';
@@ -1604,6 +1606,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   }; window.__renderSiteLandingExtra();</script>
 
   <!-- 分区 Feed: 新品/超值/热门/各品类。初始渲染 8 套骨架占位，避免单区骨架后整页跳出 -->
+  <!-- 注: Sitehome P0 模块顺序 Banner→会员→商品分类→留资→内容→开箱(最末): 会员移到 mallHero 后, 留资/内容/开箱在 mallFeatures 后 -->
+
   <div id="feedSections">
     <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
     <section class="mall-sec"><div class="mall-sec-head"><div class="mall-sec-titles"><h2 style="height:22px;width:120px;background:var(--card);border-radius:4px"></h2><p style="height:13px;width:200px;background:var(--card);border-radius:4px;margin-top:6px"></p></div></div><div class="mall-sec-skeleton"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
@@ -1625,6 +1629,11 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
 
   <!-- 特色服务：内容由 JS 按 _siteType 注入 -->
   <section class="mall-features" id="mallFeatures"></section>
+
+  <!-- 楼层4-6: 留资(b/biz) → 内容(b/biz) → 开箱(shop, 默认最末) -->
+  <section id="lxLeadForm" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
+  <section id="lxContent" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
+  <section id="lxUgcUnbox" class="lx-sh-sec lx-sh-shop" style="max-width:1280px;margin:24px auto;padding:0 12px"></section>
 </div><!-- /shopContent -->
 </div><!-- /wrap -->
 <footer><div class="fgrid">
@@ -1633,12 +1642,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <div><h5>支持</h5><a>帮助中心</a><a>售后服务</a><a>驱动下载</a></div>
   <div><h5>法律声明</h5><a>隐私政策</a><a>使用条款</a></div>
 </div><div class="fbot">© 2026 联想乐享 版权所有 | ICP备案号: 京ICP备12345678号</div></footer>
-
-<!-- ══════════ Sitehome P0 模块(按 PRD v2.3): 会员权益 / 留资(b biz) / 内容(b biz) / 开箱(shop) ══════════ -->
-<section id="lxMemberBenefit" class="lx-sh-sec" style="max-width:1280px;margin:32px auto;padding:0 24px"></section>
-<section id="lxLeadForm" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:32px auto;padding:0 24px"></section>
-<section id="lxContent" class="lx-sh-sec lx-sh-bbiz" style="max-width:1280px;margin:32px auto;padding:0 24px"></section>
-<section id="lxUgcUnbox" class="lx-sh-sec lx-sh-shop" style="max-width:1280px;margin:32px auto;padding:0 24px"></section>
 <script>
 (function(){
   // 按 data-site 控显: shop 隐 b/biz 模块, b/biz 隐 shop 模块, default 全隐
@@ -1654,7 +1657,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     var memberEl = document.getElementById('lxMemberBenefit');
     if (memberEl) memberEl.innerHTML = loggedIn
       ? '<div style="background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><div style="display:flex;align-items:center;gap:16px"><div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px">👤</div><div><div style="font-size:15px;font-weight:700">观同学 · V3 金卡</div><div style="font-size:12px;opacity:.9;margin-top:2px">🪙 乐豆 1280 · 🎫 5 张可用券 · 距 V4 还需 520 成长值</div></div></div><div style="display:flex;gap:8px"><button onclick="openMemberTab()" style="padding:8px 16px;background:#fff;color:#4D144A;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">会员中心</button><button onclick="quickAsk(\'我想领今天的乐豆任务\')" style="padding:8px 16px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">每日任务</button></div></div>'
-      : '<div style="background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px">🎁 加入联想会员 立享 11 项专属权益</div><div style="font-size:12px;opacity:.92">新人礼包 ¥200 · 月度券包 · 生日特权 · 会员价 · 优先发货</div></div><button onclick="quickAsk(\'我要登录联想会员\')" style="padding:10px 22px;background:#fff;color:#4D144A;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">立即登录 / 注册</button></div>';
+      : '<div style="background:linear-gradient(90deg,#4D144A,#B8252E);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px">🎁 加入联想会员 立享 11 项专属权益</div><div style="font-size:12px;opacity:.92">新人礼包 ¥200 · 月度券包 · 生日特权 · 会员价 · 优先发货</div></div><button onclick="showLoginModal()" style="padding:10px 22px;background:#fff;color:#4D144A;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">立即登录 / 注册</button></div>';
     var leadEl = document.getElementById('lxLeadForm');
     if (leadEl) {
       var isBiz = window.__siteType==='biz';
@@ -1674,7 +1677,9 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     }
   }
   render();
-  // 切站时重渲(spaSwitchSite 改 __siteType 后)
+  // 兜底: 登录态可能异步从 session 恢复, 1500ms 后再 render 一次
+  setTimeout(render, 1500);
+  // 切站时重渲(spaSwitchSite 改 __siteType 后) + 登录/退出后也重渲
   window.__lxSitehomeRender = render;
 })();
 </script>
@@ -1937,6 +1942,8 @@ function onLoginSuccess(user){
   updateNavUser(user);
   loadConvList(); // 刷新历史
   if(window._afterLogin){ window._afterLogin(); window._afterLogin = null; }
+  // 登录态变化, 重渲 sitehome 会员模块(未登录→已登录卡)
+  try { if (typeof window.__lxSitehomeRender === 'function') window.__lxSitehomeRender(); } catch(e){}
 }
 
 function checkAnonLimit(){
@@ -2333,7 +2340,7 @@ async function loadConv(id){
       var act = hasSnap
         ? 'showDisplayCanvas(window._lastConvPanel.title, window._lastConvPanel.products)'
         : "quickAsk('把我们刚才聊过的商品/方案完整展示出来')";
-      pc.innerHTML = '<button onclick="' + act + '" style="padding:8px 18px;border-radius:16px;border:1px solid #6D28D9;background:#fff;color:#6D28D9;font-size:13px;font-weight:600;cursor:pointer">📂 打开商品/方案详情</button>';
+      pc.innerHTML = '<button onclick="' + act + '" style="padding:8px 18px;border-radius:16px;border:1px solid #4E1646;background:#fff;color:#4E1646;font-size:13px;font-weight:600;cursor:pointer">📂 打开商品/方案详情</button>';
       inner2.appendChild(pc);
     }
   }
@@ -3975,7 +3982,7 @@ async function showProductDetail(sku) {
               '<button class="pd-btn-buy" onclick="startBuyFlow(\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'').replace(/'/g, "\\'") + '\')">🎁 一键领取优惠</button>' +
               '<button class="pd-btn-cart" onclick="addToCart(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\',' + (p.price||0) + ',\'' + escHtml(p.image_url||'') + '\')">🛒 加入购物车</button>' +
             '</div>' +
-            '<div style="margin-top:8px"><button onclick="findSimilar(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\')" style="width:100%;padding:10px;background:#fff;border:1px dashed #d1d5db;border-radius:10px;color:#6D28D9;font-size:13px;font-weight:600;cursor:pointer">✨ 找相似</button></div>' +
+            '<div style="margin-top:8px"><button onclick="findSimilar(\'' + escHtml(p.sku||'') + '\',\'' + escHtml(p.name).replace(/'/g, "\\'") + '\')" style="width:100%;padding:10px;background:#fff;border:1px dashed #d1d5db;border-radius:10px;color:#4E1646;font-size:13px;font-weight:600;cursor:pointer">✨ 找相似</button></div>' +
           '</div>' +
         '</div>' +
         // 下半部分：tabs + 详情内容
@@ -4243,7 +4250,7 @@ window.openServiceTab = function(){
   var sceneServices = [['📦','新机开荒','开箱验机+系统初始化+驱动+Office+常用软件','¥159/次'],['🏃','到家上门','工程师上门安装培训','¥99 起'],['🏪','到店服务','门店预约现场处理','免预约费'],['☁','DaaS 设备即服务','设备+服务+资金一体','按需报价']];
   var renderCard = function(s, withPrice){ return '<div style="background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;transition:.2s" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,.1)\';this.style.borderColor=\'#E2231A33\'" onmouseout="this.style.boxShadow=\'\';this.style.borderColor=\'#eee\'"><div style="font-size:28px;margin-bottom:8px">'+s[0]+'</div><div style="font-size:14px;font-weight:700;color:#222;margin-bottom:4px">'+s[1]+'</div><div style="font-size:12px;color:#666;line-height:1.5;margin-bottom:10px;min-height:36px">'+s[2]+'</div>'+(withPrice?'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:#E2231A;font-weight:700">'+s[3]+'</span><button style="padding:4px 10px;font-size:11px;background:#E2231A;color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="alert(\'POC 演示: '+s[1]+' 立即购买\')">立即购买</button></div>':'')+'</div>'; };
   var html = ''
-    + '<div style="background:linear-gradient(135deg,#E2231A,#B8252E);color:#fff;padding:32px 24px;border-radius:14px;margin-bottom:20px"><h1 style="font-size:24px;font-weight:800;margin:0 0 6px;color:#fff">联想官方服务</h1><p style="font-size:13px;opacity:.9;margin:0 0 16px">原厂配件 · 持证工程师 · 全国联保 · 4 万+ 网点</p><div style="display:flex;gap:8px;flex-wrap:wrap"><input placeholder="输入主机编号 SN 查询保修与适配服务" style="flex:1;min-width:240px;padding:10px 14px;border-radius:8px;border:none;font-size:13px"><button style="padding:10px 18px;background:#fff;color:#E2231A;border:none;border-radius:8px;font-weight:700;cursor:pointer">查询</button></div><div style="margin-top:14px;font-size:12px;opacity:.85">客服热线: <b style="color:#fff">400-990-8888</b> · <a href="#" style="color:#fff;text-decoration:underline" onclick="quickAsk(\'联系在线客服\');return false">在线客服</a></div></div>'
+    + '<div style="border-left:4px solid #B8252E;padding:8px 0 8px 16px;margin-bottom:20px"><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;color:#222">联想官方服务</h1><p style="font-size:13px;color:#666;margin:0 0 14px">原厂配件 · 持证工程师 · 全国联保 · 4 万+ 网点</p><div style="background:#fafafa;border:1px solid #eee;border-radius:8px;padding:14px"><div style="display:flex;gap:8px;flex-wrap:wrap"><input placeholder="输入主机编号 SN 查询保修与适配服务" style="flex:1;min-width:240px;padding:10px 14px;border-radius:6px;border:1px solid #ddd;font-size:13px;background:#fff"><button style="padding:10px 22px;background:#B8252E;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer">查询</button></div><div style="margin-top:10px;font-size:12px;color:#666">客服热线: <b style="color:#B8252E">400-990-8888</b> · <a href="#" style="color:#B8252E;text-decoration:underline" onclick="quickAsk(\'联系在线客服\');return false">在线客服</a></div></div></div>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">' + quickEntries.map(function(q){ return '<div style="background:#fafafa;border:1px solid #eee;border-radius:10px;padding:14px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor=\'#E2231A\'" onmouseout="this.style.borderColor=\'#eee\'"><div style="font-size:24px;margin-bottom:4px">'+q[0]+'</div><div style="font-size:13px;font-weight:600;color:#222">'+q[1]+'</div><div style="font-size:11px;color:#888;margin-top:2px">'+q[2]+'</div></div>'; }).join('') + '</div>'
     + ['硬件类服务','软件类服务','场景类服务'].map(function(t,i){ var arr=[hwServices,swServices,sceneServices][i]; return '<div style="margin-bottom:24px"><div style="font-size:16px;font-weight:700;color:#222;margin-bottom:12px;padding-left:10px;border-left:3px solid #E2231A">'+t+'</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">'+arr.map(function(s){return renderCard(s,true);}).join('')+'</div></div>'; }).join('')
     + '<div style="background:#fafafa;border-radius:12px;padding:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center;margin-top:12px">' + [['🏭','原厂配件'],['👷','持证工程师'],['🇨🇳','全国联保 IWS'],['🏬','4 万+ 网点']].map(function(x){return '<div><div style="font-size:24px">'+x[0]+'</div><div style="font-size:12px;color:#555;font-weight:600;margin-top:4px">'+x[1]+'</div></div>';}).join('') + '</div>';
@@ -4269,7 +4276,7 @@ window.openMemberTab = function(){
   var growth = loggedIn ? 2480 : 0, nextLv = 3000, leDou = loggedIn?1280:0, coupons = loggedIn?5:0, points = loggedIn?860:0;
   var rights = [['🎁','新人礼包','¥200 大礼包',true],['🎂','生日特权','生日双倍乐豆',true],['💰','会员价','专享折扣',true],['🚚','优先发货','优先排单',true],['🎫','月度券包','每月 4 张',true],['📞','专属客服','VIP 通道',level.indexOf('V3')>=0],['🛡','延保 88 折','会员专享',level.indexOf('V3')>=0],['🎮','拯救者 9 折','游戏装备',false],['🎨','YOGA 专享','设计师礼盒',false],['🏨','酒店权益','合作酒店折扣',false],['🍔','生活特权','美团/星巴克券',false]];
   var html = ''
-    + '<div style="background:linear-gradient(135deg,#4a148c,#b8852e);color:#fff;padding:28px 24px;border-radius:14px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:16px;margin-bottom:18px"><div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px">👤</div><div><div style="font-size:18px;font-weight:700">'+name+'</div><div style="font-size:13px;opacity:.9;margin-top:2px">'+level+'</div></div>'+(loggedIn?'':'<button onclick="quickAsk(\'我要登录联想会员\')" style="margin-left:auto;padding:8px 18px;background:#fff;color:#4a148c;border:none;border-radius:8px;font-weight:700;cursor:pointer">立即登录</button>')+'</div>'+(loggedIn?'<div style="margin-bottom:6px;font-size:12px;opacity:.85">距 V4 钻石卡还需 '+(nextLv-growth)+' 成长值</div><div style="background:rgba(255,255,255,.2);height:8px;border-radius:4px;overflow:hidden"><div style="background:linear-gradient(90deg,#ffd700,#fff);height:100%;width:'+Math.round(growth/nextLv*100)+'%"></div></div>':'')+'</div>'
+    + '<div style="background:linear-gradient(135deg,#4a148c,#b8852e);color:#fff;padding:28px 24px;border-radius:14px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:16px;margin-bottom:18px"><div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px">👤</div><div><div style="font-size:18px;font-weight:700">'+name+'</div><div style="font-size:13px;opacity:.9;margin-top:2px">'+level+'</div></div>'+(loggedIn?'':'<button onclick="showLoginModal()" style="margin-left:auto;padding:8px 18px;background:#fff;color:#4a148c;border:none;border-radius:8px;font-weight:700;cursor:pointer">立即登录</button>')+'</div>'+(loggedIn?'<div style="margin-bottom:6px;font-size:12px;opacity:.85">距 V4 钻石卡还需 '+(nextLv-growth)+' 成长值</div><div style="background:rgba(255,255,255,.2);height:8px;border-radius:4px;overflow:hidden"><div style="background:linear-gradient(90deg,#ffd700,#fff);height:100%;width:'+Math.round(growth/nextLv*100)+'%"></div></div>':'')+'</div>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">' + [['🪙','乐豆',leDou,'100 乐豆=1 元'],['🎫','优惠券',coupons,'张可用'],['⭐','消费积分',points,'分'],['📈','成长值',growth,'/'+nextLv]].map(function(a){ return '<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:14px;text-align:center;cursor:pointer"><div style="font-size:22px">'+a[0]+'</div><div style="font-size:22px;font-weight:800;color:#4a148c;margin:4px 0">'+a[2]+'</div><div style="font-size:11px;color:#888">'+a[1]+' · '+a[3]+'</div></div>'; }).join('') + '</div>'
     + (loggedIn?'<div style="background:#fafafa;border-radius:12px;padding:16px;margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:#222;margin-bottom:12px">📅 连续签到 5 天 · 明日加倍</div><div style="display:flex;gap:6px">'+[1,2,3,4,5,6,7].map(function(d){var done=d<=5;return '<div style="flex:1;text-align:center;padding:10px 4px;background:'+(done?'linear-gradient(135deg,#4a148c,#b8852e)':'#fff')+';color:'+(done?'#fff':'#888')+';border-radius:8px;font-size:11px;font-weight:600">第'+d+'天<br>'+(done?'✓':'+'+(d*10)+'乐豆')+'</div>';}).join('')+'</div></div>':'')
     + '<div style="margin-bottom:20px"><div style="font-size:16px;font-weight:700;color:#222;margin-bottom:12px;padding-left:10px;border-left:3px solid #4a148c">11 项会员专属权益</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">' + rights.map(function(r){var unlock=r[3];return '<div style="background:#fff;border:1px solid '+(unlock?'#eee':'#f5f5f5')+';border-radius:10px;padding:12px;text-align:center;opacity:'+(unlock?'1':'.5')+'"><div style="font-size:26px;margin-bottom:4px">'+r[0]+'</div><div style="font-size:12px;font-weight:600;color:#222">'+r[1]+'</div><div style="font-size:10px;color:#888;margin-top:2px">'+(unlock?r[2]:'升 V3 解锁')+'</div></div>';}).join('') + '</div></div>'
@@ -4301,7 +4308,7 @@ window.openPartnerTab = function(){
   var channel = [['京东','官方旗舰店'],['天猫','官方旗舰店'],['抖音','直播电商'],['苏宁','线下零售'],['国美','线下零售'],['三大运营商','电信 / 联通 / 移动']];
   var isv = [['WPS','办公套件'],['钉钉','企业协同'],['飞书','协作平台'],['腾讯会议','视频会议'],['Adobe','创意软件'],['麒麟软件','信创 OS'],['统信 UOS','国产 OS'],['顺丰','物流配送']];
   var html = ''
-    + '<div style="background:linear-gradient(135deg,#E2231A,#7a0019);color:#fff;padding:32px 24px;border-radius:14px;margin-bottom:20px"><h1 style="font-size:24px;font-weight:800;margin:0 0 6px;color:#fff">联想生态合作伙伴</h1><p style="font-size:13px;opacity:.92;margin:0">科技赋能中国智能化变革 · 服务全球 180+ 国家</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px">'+[['180+','服务国家'],['20000+','合作伙伴'],['100+','ISV 智能体'],['10000+','商用案例']].map(function(d){return '<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#fff">'+d[0]+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">'+d[1]+'</div></div>';}).join('')+'</div></div>'
+    + '<div style="border-left:4px solid #B8252E;padding:8px 0 8px 16px;margin-bottom:20px"><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;color:#222">联想生态合作伙伴</h1><p style="font-size:13px;color:#666;margin:0 0 16px">科技赋能中国智能化变革 · 服务全球 180+ 国家</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;background:#fafafa;border:1px solid #eee;border-radius:8px;padding:18px 14px">'+[['180+','服务国家'],['20000+','合作伙伴'],['100+','ISV 智能体'],['10000+','商用案例']].map(function(d){return '<div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#B8252E">'+d[0]+'</div><div style="font-size:11px;color:#666;margin-top:2px">'+d[1]+'</div></div>';}).join('')+'</div></div>'
     + '<div style="margin-bottom:24px"><div style="font-size:16px;font-weight:700;color:#222;margin-bottom:12px;padding-left:10px;border-left:3px solid #E2231A">三大生态战略</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' + ecosystems.map(function(e){ return '<div style="background:'+e[3]+';color:#fff;padding:24px;border-radius:12px;min-height:160px;display:flex;flex-direction:column;justify-content:space-between"><div><div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:6px">'+e[0]+'生态</div><div style="font-size:12px;opacity:.9;margin-bottom:10px">'+e[1]+'</div></div><div style="font-size:11px;opacity:.85;line-height:1.5">'+e[2]+'</div></div>'; }).join('') + '</div></div>'
     + [['核心技术联盟', tech],['渠道与零售', channel],['ISV 与生态应用', isv]].map(function(g){ return '<div style="margin-bottom:20px"><div style="font-size:15px;font-weight:700;color:#222;margin-bottom:10px;padding-left:10px;border-left:3px solid #B8252E">'+g[0]+'</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">'+g[1].map(function(p){return '<div style="background:#fff;border:1px solid #eee;border-radius:8px;padding:12px;text-align:center;transition:.15s;cursor:pointer" onmouseover="this.style.borderColor=\'#E2231A\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,.06)\'" onmouseout="this.style.borderColor=\'#eee\';this.style.boxShadow=\'\'"><div style="font-size:14px;font-weight:700;color:#222">'+p[0]+'</div><div style="font-size:11px;color:#888;margin-top:3px">'+p[1]+'</div></div>';}).join('')+'</div></div>'; }).join('')
     + '<div style="background:linear-gradient(90deg,#fff,#fafafa);border:1px dashed #E2231A;border-radius:12px;padding:20px;text-align:center;margin-top:12px"><div style="font-size:16px;font-weight:700;color:#222;margin-bottom:8px">🤝 成为联想合作伙伴</div><div style="font-size:12px;color:#666;margin-bottom:14px">L1 合作伙伴 / L2 服务商 / ISV+SI 共赢</div><button style="padding:10px 24px;background:#E2231A;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer" onclick="quickAsk(\'我想成为联想合作伙伴，请介绍申请流程\')">申请加入 →</button></div>';
@@ -5536,10 +5543,10 @@ window.addEventListener('DOMContentLoaded', function(){
   // 检查登录态（_authReady 供 restoreFromUrl 等待）
   window._authReady = fetch('/api/auth/me').then(function(r){return r.json();}).then(function(d){ if(d.user) onLoginSuccess(d.user); }).catch(function(){});
   // 子站路径自动高亮对应导航
-  var _sn={'home':'全场景','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
+  var _sn={'home':'首页','shop':'个人及家庭','b':'中小企业','biz':'政教及大企业'};
   // 全场景直接清除高亮，不再依赖 __siteType
   if(location.pathname === '/') {
-    setNavActive('全场景');
+    setNavActive('首页');
   } else if(_sn[window.__siteType]) {
     setNavActive(_sn[window.__siteType]);
   }
@@ -5621,6 +5628,7 @@ async function doLogout(){
   convList = [];
   updateSidebar();
   updateNavUser(null);
+  try { if (typeof window.__lxSitehomeRender === 'function') window.__lxSitehomeRender(); } catch(e){}
 }
 
 function updateNavUser(user){
@@ -6045,7 +6053,7 @@ function openBenefitPanel(d) {
       : (w.amount < 0 ? '-¥' + Math.abs(Math.round(w.amount)).toLocaleString() : (w.amount === 0 ? '免息/赠' : '+¥' + w.amount));
     return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #eee">' +
       '<div style="flex:1;padding-right:12px"><div style="font-size:13px;font-weight:600;color:#1a1a1a">' + escHtml(w.label) +
-        (w.pool ? ' <span style="font-size:10px;color:#6D28D9;background:#f3f0ff;padding:1px 6px;border-radius:6px;margin-left:4px">' + escHtml(w.pool) + '池</span>' : '') + '</div>' +
+        (w.pool ? ' <span style="font-size:10px;color:#4E1646;background:#F1EDF4;padding:1px 6px;border-radius:6px;margin-left:4px">' + escHtml(w.pool) + '池</span>' : '') + '</div>' +
         (w.reason ? '<div style="font-size:11px;color:#888;margin-top:3px;line-height:1.5">ⓘ ' + escHtml(w.reason) + '</div>' : '') +
       '</div>' +
       '<div style="font-size:14px;font-weight:700;white-space:nowrap;color:' + amtColor + '">' + amtTxt + '</div>' +
@@ -6054,7 +6062,7 @@ function openBenefitPanel(d) {
   var tcoHtml = tco.length ? '<div style="margin-top:14px;padding:12px;background:#f5f7ff;border-radius:10px">' +
     '<div style="font-size:12px;font-weight:700;color:#4338ca;margin-bottom:8px">🎁 TCO 总拥有成本增值（不降价，提升长期价值）</div>' +
     tco.map(function(t){ return '<div style="font-size:12px;color:#555;padding:3px 0">✓ <b>' + escHtml(t.label) + '</b> · ' + escHtml(t.desc) + '</div>'; }).join('') + '</div>' : '';
-  var auditHtml = audit.length ? '<details style="margin-top:14px"><summary style="font-size:12px;color:#6D28D9;cursor:pointer;font-weight:600">🔎 这些优惠为什么给我？（公平预算池审计）</summary>' +
+  var auditHtml = audit.length ? '<details style="margin-top:14px"><summary style="font-size:12px;color:#4E1646;cursor:pointer;font-weight:600">🔎 这些优惠为什么给我？（公平预算池审计）</summary>' +
     '<div style="margin-top:8px;font-size:11px;color:#666;line-height:1.7">' +
     audit.map(function(a){ return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0"><b>' + escHtml(a.label) + '</b>：' + escHtml(a.note || '') + '<br><span style="color:#999">命中：' + escHtml(a.hit || '') + '</span></div>'; }).join('') +
     '<div style="margin-top:8px;color:#aaa">leaibot 是联想官方商城，标价稳定统一，差异只在可解释的券与权益，不做隐形高低价。</div></div></details>' : '';
@@ -6288,17 +6296,17 @@ window.LxBehavior = (function(){
       b.id = 'lxHintHistoryBadge';
       if (isChip) {
         // chip 模式：横排在 chip 右侧, 不占第 2 行
-        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#6D28D9;cursor:pointer;display:none;align-items:center;gap:4px;flex-shrink:0;align-self:center';
+        b.style.cssText = 'background:var(--bg2,#f1f1f4);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#4E1646;cursor:pointer;display:none;align-items:center;gap:4px;flex-shrink:0;align-self:center';
       } else {
         // legacy 浮窗模式：原 fixed bottom-right
-        b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#6D28D9;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
+        b.style.cssText = 'position:fixed;right:20px;bottom:24px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:24px;padding:6px 12px;font-size:12px;color:#4E1646;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);z-index:299;display:none;align-items:center;gap:6px';
       }
       b.onclick = function(){ openHistoryPanel(); };
       if (mount) mount.appendChild(b); // chip 模式 row 内 append=右侧; legacy body append
     }
-    if (hintHistory.length === 0) { b.style.display = 'none'; return; }
-    b.innerHTML = isChip ? '📜 历史 <b>' + hintHistory.length + '</b>' : '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
-    b.style.display = isChip ? 'inline-flex' : 'inline-flex';
+    // 按反馈隐藏「历史 N」徽标
+    b.style.display = 'none';
+    return;
   }
   function openHistoryPanel(){
     var existing = document.getElementById('lxHintHistoryPanel');
@@ -6678,7 +6686,7 @@ window.LxBehavior = (function(){
         // 显 loading 骨架立即出框
         var loadingId = 'pointer-loading-' + Date.now();
         showHint(loadingId,
-          '<span style="color:#6D28D9;font-size:11px;margin-bottom:4px;display:block">🎯 AI 正在看…</span>' +
+          '<span style="color:#4E1646;font-size:11px;margin-bottom:4px;display:block">🎯 AI 正在看…</span>' +
           '<div style="display:flex;gap:6px;margin-top:6px"><div style="height:10px;flex:1;border-radius:5px;background:linear-gradient(90deg,#f4f4f5 0%,#e4e4e7 50%,#f4f4f5 100%);background-size:200% 100%;animation:lx-skel 1.4s infinite linear"></div></div>' +
           '<div style="height:10px;width:70%;margin-top:6px;border-radius:5px;background:linear-gradient(90deg,#f4f4f5 0%,#e4e4e7 50%,#f4f4f5 100%);background-size:200% 100%;animation:lx-skel 1.4s infinite linear"></div>',
           '', null, { loading: true });
@@ -6702,13 +6710,13 @@ window.LxBehavior = (function(){
             var lastImg = pointerLastImage;
             dualHtml = '<div style="display:flex;gap:6px;margin:6px 0 8px;font-size:10px">' +
               '<div style="flex:1;padding:4px;border:1px solid #e5e7eb;border-radius:6px;text-align:center"><img src="' + escHtml(lastImg) + '" style="width:100%;height:32px;object-fit:contain"><div style="color:#999;margin-top:2px">刚才指过</div></div>' +
-              '<div style="align-self:center;color:#6D28D9;font-weight:700">vs</div>' +
-              '<div style="flex:1;padding:4px;border:1px solid #6D28D9;border-radius:6px;text-align:center"><img src="' + escHtml(nowImg) + '" style="width:100%;height:32px;object-fit:contain"><div style="color:#6D28D9;margin-top:2px">现在</div></div>' +
+              '<div style="align-self:center;color:#4E1646;font-weight:700">vs</div>' +
+              '<div style="flex:1;padding:4px;border:1px solid #4E1646;border-radius:6px;text-align:center"><img src="' + escHtml(nowImg) + '" style="width:100%;height:32px;object-fit:contain"><div style="color:#4E1646;margin-top:2px">现在</div></div>' +
               '</div>';
           }
           // 替换 loading 骨架（同位置 fill 不闪）
           showHint('pointer-' + Date.now(),
-            '<span style="color:#6D28D9;font-size:11px;margin-bottom:4px;display:block">' + icon + '</span>' + dualHtml + escHtml(json.hint),
+            '<span style="color:#4E1646;font-size:11px;margin-bottom:4px;display:block">' + icon + '</span>' + dualHtml + escHtml(json.hint),
             '💬 详细问',
             function(){ if (typeof quickAsk === 'function') quickAsk(json.ask); },
             { replaceId: loadingId });
@@ -7378,7 +7386,7 @@ window.openServicePlus = openServicePlus;
     } catch(e){}
     // 子站全套 landing 重渲(打本体 #landingPage, 异步 feed 单独等)
     try { if (typeof window.__renderSiteHero === 'function') window.__renderSiteHero(); } catch(e){}
-    try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(); } catch(e){}
+    try { if (typeof window.__renderSiteLandingExtra === 'function') window.__renderSiteLandingExtra(newSite); } catch(e){}
     try { if (typeof renderSubnav === 'function') renderSubnav(); } catch(e){}
     try { if (typeof renderMallHero === 'function') renderMallHero(); } catch(e){}
     try { if (typeof renderMallFeatures === 'function') renderMallFeatures(); } catch(e){}
@@ -7711,6 +7719,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260602-ux37"></script>
+<script src="/split-layout.js?v=20260602-input-match-b"></script>
 </body>
 </html>
