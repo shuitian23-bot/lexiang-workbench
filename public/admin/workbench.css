@@ -219,10 +219,11 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .ai-panel-close:hover { background:var(--bg); }
 
 .ai-shortcuts {
-  padding:10px 10px; border-bottom:1px solid var(--border-light); display:flex; flex-wrap:wrap; gap:6px; flex-shrink:0;
+  padding:8px 10px 0; border-top:1px solid var(--border-light); display:flex; flex-wrap:wrap; gap:6px; flex-shrink:0;
+  background:var(--card-bg);
 }
 .ai-shortcut {
-  padding:4px 10px; border:1px solid var(--border-light); border-radius:14px;
+  padding:4px 10px; border:1px solid var(--border-light); border-radius:14px; background:#fff;
   font-size:11px; cursor:pointer; color:var(--text-secondary); transition:all 0.12s; white-space:nowrap;
 }
 .ai-shortcut:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }

@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260602-geo23">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260603-ai-shortcuts-bottom2">
 </head>
 <body>
 
@@ -93,14 +93,6 @@
       <span class="ai-panel-close" onclick="toggleAI()">✕</span>
     </div>
   </div>
-  <div class="ai-shortcuts" id="ai-shortcuts">
-    <span class="ai-shortcut" onclick="aiQuick('今日核心指标')">📊 今日指标</span>
-    <span class="ai-shortcut" onclick="aiQuick('最近7天订单按渠道汇总')">💹 查数据</span>
-    <span class="ai-shortcut" onclick="aiQuick('打开商品管理')">📦 商品管理</span>
-    <span class="ai-shortcut" onclick="aiQuick('打开知识库')">📚 知识库</span>
-    <span class="ai-shortcut" onclick="aiQuick('打开页面管理')">📄 CMS</span>
-    <span class="ai-shortcut" onclick="aiQuick('本周运营建议')">💡 运营建议</span>
-  </div>
   <div class="ai-page-context" id="ai-page-context" style="display:none"></div>
   <div class="ai-messages" id="ai-messages">
     <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手。<br><br>你可以在底部输入框里直接描述要完成的运营任务，例如查数据、生成报告、配置商品或查询知识库。涉及写入或发布时，我会先展示影响范围并等待确认。</div></div>
@@ -108,6 +100,14 @@
   <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
     <span>📎</span><span id="ai-file-name"></span>
     <span style="cursor:pointer;margin-left:auto;color:var(--text-tertiary)" onclick="aiClearFile()">✕</span>
+  </div>
+  <div class="ai-shortcuts" id="ai-shortcuts">
+    <span class="ai-shortcut" onclick="aiQuick('今日核心指标')">📊 今日指标</span>
+    <span class="ai-shortcut" onclick="aiQuick('最近7天订单按渠道汇总')">💹 查数据</span>
+    <span class="ai-shortcut" onclick="aiQuick('打开商品管理')">📦 商品管理</span>
+    <span class="ai-shortcut" onclick="aiQuick('打开知识库')">📚 知识库</span>
+    <span class="ai-shortcut" onclick="aiQuick('打开页面管理')">📄 CMS</span>
+    <span class="ai-shortcut" onclick="aiQuick('本周运营建议')">💡 运营建议</span>
   </div>
   <div class="ai-input-area" id="ai-input-area">
     <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
