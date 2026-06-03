@@ -1348,7 +1348,6 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     // 全局 quick action(所有子站): 品牌/合作伙伴/服务/门店/会员 -- 点击开对应内容 tab(不是 quickAsk 文字)
     var QUICK = [
       { label:'品牌', fn:'openBrandTab' },
-      { label:'合作伙伴', fn:'openPartnerTab' },
       { label:'服务', fn:'openServiceTab' },
       { label:'门店', fn:'openStoresTab' },
       { label:'会员', fn:'openMemberTab' }
@@ -6305,9 +6304,9 @@ window.LxBehavior = (function(){
       b.onclick = function(){ openHistoryPanel(); };
       if (mount) mount.appendChild(b); // chip 模式 row 内 append=右侧; legacy body append
     }
-    if (hintHistory.length === 0) { b.style.display = 'none'; return; }
-    b.innerHTML = isChip ? '📜 历史 <b>' + hintHistory.length + '</b>' : '📜 <b>' + hintHistory.length + '</b> 条 AI 提示';
-    b.style.display = isChip ? 'inline-flex' : 'inline-flex';
+    // 按反馈隐藏「历史 N」徽标
+    b.style.display = 'none';
+    return;
   }
   function openHistoryPanel(){
     var existing = document.getElementById('lxHintHistoryPanel');
