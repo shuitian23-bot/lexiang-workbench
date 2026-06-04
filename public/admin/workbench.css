@@ -497,14 +497,14 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 }
 
 .ai-input-area {
-  padding:12px 10px; border-top:1px solid var(--border-light); display:flex; gap:8px; flex-shrink:0;
+  padding:12px 14px; border-top:1px solid var(--border-light); display:flex; gap:10px; align-items:stretch; flex-shrink:0;
 }
 .ai-input {
   flex:1; padding:8px 12px; border:1px solid var(--border-light); border-radius:8px;
-  font-size:13px; outline:none; resize:none; min-height:36px; max-height:120px; font-family:inherit;
+  font-size:14px; line-height:1.45; outline:none; resize:none; min-height:64px; max-height:160px; font-family:inherit;
 }
 .ai-input:focus { border-color:var(--primary); }
-.ai-send { padding:8px 14px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; flex-shrink:0; }
+.ai-send { min-width:72px; padding:0 18px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; flex-shrink:0; align-self:stretch; }
 .ai-send:hover { background:var(--primary-hover); }
 .ai-send:disabled { opacity:0.4; cursor:not-allowed; }
 

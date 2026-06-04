@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260604-ai-remove-goal1">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260604-ai-input-large1">
 </head>
 <body>
 
@@ -111,7 +111,7 @@
   <div class="ai-input-area" id="ai-input-area">
     <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
     <span style="cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" onclick="document.getElementById('ai-file-input').click()" title="上传文件">📎</span>
-    <textarea class="ai-input" id="ai-input" placeholder="输入指令或查询..." rows="1"></textarea>
+    <textarea class="ai-input" id="ai-input" placeholder="输入指令或查询..." rows="2"></textarea>
     <button class="ai-send" id="ai-send" onclick="aiSend()">发送</button>
   </div>
 </div>
@@ -510,7 +510,7 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/workbench-data-leai.js"></script>
 <script src="/admin/workbench-pages.js?v=20260602-geo23"></script>
 <script src="/admin/workbench-geo.js?v=20260602-geo23"></script>
-<script src="/admin/workbench-ai.js?v=20260604-ai-remove-goal1"></script>
+<script src="/admin/workbench-ai.js?v=20260604-ai-input-large1"></script>
 <script src="/admin/workbench-data.js?v=20260602-geo23"></script>
 <script src="/admin/workbench-employee.js"></script>
 <script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
