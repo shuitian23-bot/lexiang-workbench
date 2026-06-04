@@ -5,7 +5,6 @@ const fs = require('fs');
 
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
 const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
-const RESULT_DIR = path.join(__dirname, '..', 'data', 'pipeline', 'results');
 
 function runPython(script, args, timeout = 300000) {
   return new Promise((resolve, reject) => {
@@ -58,13 +57,9 @@ module.exports = {
   },
   execute: async ({ file_path, enable_llm_fallback = true }, context) => {
     const script = path.join(SKILLS_DIR, 'lexiang-query-classify', 'run_annotation.py');
-    fs.mkdirSync(RESULT_DIR, { recursive: true });
-
-    const inputName = path.basename(file_path, path.extname(file_path));
-    const outputFile = path.join(RESULT_DIR, `标注结果_${inputName}.csv`);
 
     // Step 1: Run annotation (rules + self-check + auto-fix)
-    const stdout = await runPython(script, ['--json', file_path, outputFile]);
+    const stdout = await runPython(script, ['--json', file_path]);
     const result = parseJsonOutput(stdout);
 
     if (!result) {

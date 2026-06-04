@@ -1,7 +1,7 @@
 // ===== 质量分析看板 =====
 // 从 quality.html 提取，适配 workbench 上下文
 
-const PALETTE = ['#3370ff','#34c724','#722ed1','#ff7d00','#e2001a','#8f959e','#00b578','#f59e0b','#ec4899','#14b8a6'];
+const Q_PALETTE = ['#3370ff','#34c724','#722ed1','#ff7d00','#e2001a','#8f959e','#00b578','#f59e0b','#ec4899','#14b8a6'];
 
 let _qualityCharts = {};
 let _qualityDateFrom = '';
@@ -247,18 +247,20 @@ function qualityClearFilter() {
   qualityRefresh();
 }
 
+function _setStyle(id, css) { const el = document.getElementById(id); if (el) el.style.cssText = css; }
+
 function switchFirstTokenMode(mode) {
   _firstTokenMode = mode;
-  document.getElementById('q-ft-tab-think').style.cssText = mode === 'think' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)';
-  document.getElementById('q-ft-tab-nothink').style.cssText = mode === 'nothink' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)';
+  _setStyle('q-ft-tab-think', mode === 'think' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)');
+  _setStyle('q-ft-tab-nothink', mode === 'nothink' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)');
   renderFirstTokenByIntent();
   if (_currentQData) renderQaFirstToken(_currentQData, _currentQDates);
 }
 
 function switchWaitLenMode(mode) {
   _waitLenMode = mode;
-  document.getElementById('q-wait-tab-short').style.cssText = mode === 'short' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)';
-  document.getElementById('q-wait-tab-long').style.cssText = mode === 'long' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)';
+  _setStyle('q-wait-tab-short', mode === 'short' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)');
+  _setStyle('q-wait-tab-long', mode === 'long' ? 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--primary);background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06)' : 'padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)');
   renderAnswerWaitTrend(_currentQData);
 }
 
@@ -269,40 +271,47 @@ function fmtNum(n) {
   return n.toLocaleString();
 }
 
+function _setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
 function qualityRefresh() {
+  if (!document.getElementById('qk-thumbdown-rate')) {
+    setTimeout(qualityRefresh, 150);
+    return;
+  }
   if (!_qualityData) _qualityData = _genMockData();
   const data = _filterData(_qualityData);
   const t1Idx = Math.max(0, data.daily.length - 2);
   const latest = data.daily[t1Idx] || {};
-  document.getElementById('qk-thumbdown-rate').textContent = latest.active_queries ? (latest.thumbdown_count / (latest.active_queries - latest.cs_queries) * 100).toFixed(2) + '%' : '--';
-  document.getElementById('qk-lowsat-rate').textContent = latest.survey_samples ? (latest.low_sat_count / latest.survey_samples * 100).toFixed(2) + '%' : '--';
-  document.getElementById('qk-thumbdown-count').textContent = fmtNum(latest.thumbdown_count || 0);
-  document.getElementById('qk-lowsat-count').textContent = fmtNum(latest.low_sat_count || 0);
-  document.getElementById('qk-cs-thumbdown-rate').textContent = latest.cs_queries ? (latest.cs_thumbdown / latest.cs_queries * 100).toFixed(2) + '%' : '--';
-  document.getElementById('qk-cs-thumbdown-count').textContent = fmtNum(latest.cs_thumbdown || 0);
-  document.getElementById('qk-cs-total').textContent = fmtNum(latest.cs_queries || 0);
-  document.getElementById('qk-cs-transfer-rate').textContent = (latest.cs_transfer_rate || 0) + '%';
-  document.getElementById('qk-first-token-avg').textContent = (latest.first_token_avg || 0) + 'ms';
-  document.getElementById('qk-first-token-p90').textContent = (latest.first_token_p90 || 0) + 'ms';
-  document.getElementById('qk-first-token-p95').textContent = (latest.first_token_p95 || 0) + 'ms';
-  document.getElementById('qk-first-token-p99').textContent = (latest.first_token_p99 || 0) + 'ms';
-  document.getElementById('qk-avg-turns').textContent = latest.avg_turns || '--';
-  document.getElementById('qk-avg-interactions').textContent = latest.avg_interactions || '--';
-  document.getElementById('qk-multi-turn-pct').textContent = (latest.multi_turn_pct || 0) + '%';
-  document.getElementById('qk-single-turn-pct').textContent = (latest.single_turn_pct || 0) + '%';
-  document.getElementById('qk-error-pct').textContent = (latest.error_pct || 0) + '%';
-  document.getElementById('qk-mcp-error').textContent = latest.mcp_error || 0;
-  document.getElementById('qk-interrupt-rate').textContent = (latest.interrupt_rate || 0) + '%';
-  document.getElementById('qk-empty-resp-rate').textContent = (latest.empty_resp_rate || 0) + '%';
-  document.getElementById('qk-osat').textContent = (latest.osat || 0);
-  document.getElementById('qk-nps').textContent = (latest.nps || 0);
-  document.getElementById('qk-net-score').textContent = (latest.net_score || 0);
+  _setText('qk-thumbdown-rate', latest.active_queries ? (latest.thumbdown_count / (latest.active_queries - latest.cs_queries) * 100).toFixed(2) + '%' : '--');
+  _setText('qk-lowsat-rate', latest.survey_samples ? (latest.low_sat_count / latest.survey_samples * 100).toFixed(2) + '%' : '--');
+  _setText('qk-thumbdown-count', fmtNum(latest.thumbdown_count || 0));
+  _setText('qk-lowsat-count', fmtNum(latest.low_sat_count || 0));
+  _setText('qk-cs-thumbdown-rate', latest.cs_queries ? (latest.cs_thumbdown / latest.cs_queries * 100).toFixed(2) + '%' : '--');
+  _setText('qk-cs-thumbdown-count', fmtNum(latest.cs_thumbdown || 0));
+  _setText('qk-cs-total', fmtNum(latest.cs_queries || 0));
+  _setText('qk-cs-transfer-rate', (latest.cs_transfer_rate || 0) + '%');
+  _setText('qk-first-token-avg', (latest.first_token_avg || 0) + 'ms');
+  _setText('qk-first-token-p90', (latest.first_token_p90 || 0) + 'ms');
+  _setText('qk-first-token-p95', (latest.first_token_p95 || 0) + 'ms');
+  _setText('qk-first-token-p99', (latest.first_token_p99 || 0) + 'ms');
+  _setText('qk-avg-turns', latest.avg_turns || '--');
+  _setText('qk-avg-interactions', latest.avg_interactions || '--');
+  _setText('qk-multi-turn-pct', (latest.multi_turn_pct || 0) + '%');
+  _setText('qk-single-turn-pct', (latest.single_turn_pct || 0) + '%');
+  _setText('qk-error-pct', (latest.error_pct || 0) + '%');
+  _setText('qk-mcp-error', latest.mcp_error || 0);
+  _setText('qk-interrupt-rate', (latest.interrupt_rate || 0) + '%');
+  _setText('qk-empty-resp-rate', (latest.empty_resp_rate || 0) + '%');
+  _setText('qk-osat', (latest.osat || 0));
+  _setText('qk-nps', (latest.nps || 0));
+  _setText('qk-net-score', (latest.net_score || 0));
   if (window.echarts) {
     initCharts();
     renderAllCharts(data);
   }
 }
 
+let _qualityResizeBound = false;
 function initCharts() {
   const ids = [
     'qChartSatisfactionTrend', 'qChartRateTrend', 'qChartCsThumbdownTrend',
@@ -318,9 +327,12 @@ function initCharts() {
       _qualityCharts[id] = echarts.init(el);
     }
   });
-  window.addEventListener('resize', () => {
-    Object.values(_qualityCharts).forEach(c => { try { c.resize(); } catch(e) {} });
-  });
+  if (!_qualityResizeBound) {
+    _qualityResizeBound = true;
+    window.addEventListener('resize', () => {
+      Object.values(_qualityCharts).forEach(c => { try { c.resize(); } catch(e) {} });
+    });
+  }
 }
 
 const TH = {
@@ -494,7 +506,7 @@ function renderTurnDepth(data) {
     legend: { bottom: 0, textStyle: { color: '#646a73', fontSize: 10 } },
     series: [{ type: 'pie', radius: ['40%', '68%'], center: ['50%', '46%'], padAngle: 1.5,
       itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
-      data: td.map((t, i) => ({ name: t.label, value: t.count, itemStyle: { color: PALETTE[i % PALETTE.length] } })),
+      data: td.map((t, i) => ({ name: t.label, value: t.count, itemStyle: { color: Q_PALETTE[i % Q_PALETTE.length] } })),
       label: { color: '#646a73', fontSize: 10, formatter: '{b}\n{d}%' },
       emphasis: { label: { fontSize: 12, fontWeight: 700, color: '#1f2329' } }
     }]

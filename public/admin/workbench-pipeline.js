@@ -514,6 +514,7 @@ PAGE_RENDERERS['pipeline.quality'] = () => `
   <div class="ops-card"><h3>NPS 趋势</h3><div id="qChartNpsTrend" style="height:280px"></div></div>
   <div class="ops-card"><h3>净评价值趋势</h3><div id="qChartNetScoreTrend" style="height:280px"></div></div>
 </div>
+<img src=x onerror="setTimeout(function(){if(typeof qualityRefresh==='function')qualityRefresh();},300)">
   `;
 
 // ===== 日期筛选 =====
@@ -1919,7 +1920,7 @@ document.addEventListener('page-change', function(e) {
     else if (pageId === 'pipeline.monitor') setTimeout(loadMonitorStatus, 100);
     else if (pageId === 'pipeline.stats') setTimeout(loadPipelineHistory, 100);
     else if (pageId === 'pipeline.task') setTimeout(_initTaskPage, 100);
-	  else if (pageId === 'pipeline.quality') setTimeout(qualityRefresh, 100);
+	  else if (pageId === 'pipeline.quality') setTimeout(function(){ if(typeof qualityRefresh==='function') qualityRefresh(); }, 100);
   };
 })();
 

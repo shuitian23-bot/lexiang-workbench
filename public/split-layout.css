@@ -347,7 +347,7 @@ html.in-chat #contentPanel {
 
 #splitDivider:hover,
 #splitDivider.dragging {
-  background: #D8D0E8;
+  background: #CBBED2;
 }
 
 /* 扩大可拖拽区域 */
@@ -452,7 +452,7 @@ html.split-dragging embed {
 .cp-tab-wrap:hover,
 .cp-tab-wrap.active {
   background: #F6F4FF;
-  border-color: #D8D0FF;
+  border-color: #CBBED2;
 }
 
 .cp-tab-wrap.home .cp-tab {
@@ -469,12 +469,12 @@ html.split-dragging embed {
   bottom: 0;
   height: 2px;
   border-radius: 999px;
-  background: #6D28D9;
+  background: #4E1646;
 }
 .cp-tab-wrap[draggable="true"] { cursor: grab; }
 .cp-tab-wrap[draggable="true"]:active { cursor: grabbing; }
 .cp-tab-wrap.cp-tab-dragging { opacity: .4; }
-.cp-tab-wrap.cp-tab-dropover { border-color: #6D28D9; box-shadow: -3px 0 0 #6D28D9; }
+.cp-tab-wrap.cp-tab-dropover { border-color: #4E1646; box-shadow: -3px 0 0 #4E1646; }
 
 /* 单个 Tab */
 .cp-tab {
@@ -495,7 +495,7 @@ html.split-dragging embed {
 .cp-tab:hover,
 .cp-tab-wrap.active .cp-tab,
 .cp-tab.active {
-  color: #6D28D9;
+  color: #4E1646;
 }
 
 .cp-tab-wrap.active .cp-tab,
@@ -525,7 +525,7 @@ html.split-dragging embed {
 
 .cp-tab-x:hover {
   background: #ECE7FF;
-  color: #6D28D9;
+  color: #4E1646;
 }
 
 .cp-icon-btn {
@@ -810,7 +810,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
   height: 200px; color: #9CA3AF; font-size: 14px;
 }
 .cpd-spinner {
-  width: 20px; height: 20px; border: 2px solid #E5E7EB; border-top-color: #6D28D9;
+  width: 20px; height: 20px; border: 2px solid #E5E7EB; border-top-color: #4E1646;
   border-radius: 50%; animation: cpd-spin .6s linear infinite;
 }
 @keyframes cpd-spin { to { transform: rotate(360deg); } }
@@ -867,7 +867,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cpd-fit-reason .cpd-fit-txt { flex: 1; }
 .cpd-hl-tag {
   font-size: 12px; padding: 3px 10px; border-radius: 12px;
-  background: #F3F0FF; color: #6D28D9; border: 1px solid #E9E5FF;
+  background: #F1EDF4; color: #4E1646; border: 1px solid #DED6E3;
 }
 .cpd-desc {
   font-size: 13px; color: #6B7280; line-height: 1.6; margin: 0 0 12px;
@@ -918,7 +918,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
   cursor: pointer; transition: all .15s ease;
 }
 .cpd-actions-sub .cpd-compare:hover {
-  border-style: solid; border-color: #6D28D9; color: #6D28D9; background: #F5F3FF;
+  border-style: solid; border-color: #4E1646; color: #4E1646; background: #F1EDF4;
 }
 
 .cpd-specs-section,
@@ -939,7 +939,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cpd-section-title,
 .cpd-specs-title {
   margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #374151;
-  padding-bottom: 8px; border-bottom: 2px solid #6D28D9;
+  padding-bottom: 8px; border-bottom: 2px solid #4E1646;
   display: inline-block;
 }
 .cpd-tu-tags { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -979,7 +979,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cp-store-flag { padding:1px 8px; border-radius:4px; background:#FEE2E2; color:#B83340; font-size:10px; font-weight:600; }
 .cp-store-distance { font-size:12px; color:#9CA3AF; }
 .cp-store-meta { font-size:13px; color:#4B5563; line-height:1.9; }
-.cp-store-meta a { color:#6D28D9; }
+.cp-store-meta a { color:#4E1646; }
 .cp-store-tags { font-size:12px; color:#6B7280; margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .cp-store-tags strong { font-size:12px; color:#374151; }
 .cp-store-tag { padding:3px 9px; border-radius:999px; background:#EEF2FF; color:#4338CA; font-size:11px; }
@@ -1132,7 +1132,7 @@ html.in-chat.content-open .cp-home-content #expandLandingBtn {
 .cp-form select:focus,
 .cp-form textarea:focus {
   outline: none;
-  border-color: #6D28D9;
+  border-color: #4E1646;
 }
 
 .cp-form textarea {
@@ -1185,8 +1185,8 @@ html.in-chat #splitControls {
 }
 
 #splitControls button:hover {
-  border-color: #6D28D9;
-  color: #6D28D9;
+  border-color: #4E1646;
+  color: #4E1646;
 }
 
 #splitControls button svg {
@@ -1270,3 +1270,207 @@ html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
 /* timeline rail 显示时给 #msgsInner 让出右侧空间, 避免 pill 遮 chat 文字 */
 /* rail 浮在 chat 上方不挤(用透明度+毛玻璃避免遮文字), 撤回 padding-right */
 #msgsInner.with-tl-rail{padding-right:0}
+
+/* Lenovo Lexiang Super Agent PC Design — shop-chat refinement */
+@media (min-width: 769px) {
+  html[data-site="shop"].split-mode.in-chat,
+  html[data-site="shop"].split-mode.in-chat body {
+    background: #F8F6FA;
+    color: #201A23;
+    font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Inter, Arial, sans-serif;
+    letter-spacing: 0;
+    overflow: hidden;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #mainNav {
+    height: 56px;
+    background: rgba(255,255,255,.96);
+    border-bottom: 1px solid #DED6E3;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #mainNav .nlinks a {
+    color: #5F5365;
+    font-size: 15px;
+    opacity: 1;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #mainNav .nlinks a.nav-active {
+    color: #B8252E;
+    border-bottom-color: #B8252E;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #mainNav .nright a,
+  html[data-site="shop"].split-mode.in-chat #mainNav #navNickname {
+    color: #5F5365;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #chatApp {
+    --lx-brand-red: #B8252E;
+    --lx-aubergine: #4E1646;
+    --lx-bg: #F8F6FA;
+    --lx-surface: #FFFFFF;
+    --lx-surface-muted: #F1EDF4;
+    --lx-surface-hover: #ECE6F0;
+    --lx-border: #DED6E3;
+    --lx-border-strong: #CBBED2;
+    --lx-text-primary: #201A23;
+    --lx-text-secondary: #5F5365;
+    --lx-text-tertiary: #8A7C91;
+    background: #F8F6FA;
+    border-right: 1px solid #DED6E3;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .chat-topbar {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 12px !important;
+    background: #FFFFFF !important;
+    border-bottom: 1px solid #DED6E3 !important;
+    box-shadow: none !important;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .chat-topbar .menu-btn,
+  html[data-site="shop"].split-mode.in-chat .chat-topbar button {
+    border-radius: 8px !important;
+    border-color: #DED6E3 !important;
+    color: #5F5365 !important;
+    background: #FFFFFF !important;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .chat-topbar .menu-btn:hover,
+  html[data-site="shop"].split-mode.in-chat .chat-topbar button:hover {
+    background: #F1EDF4 !important;
+    color: #4E1646 !important;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .chat-main,
+  html[data-site="shop"].split-mode.in-chat .messages,
+  html[data-site="shop"].split-mode.in-chat #msgs,
+  html[data-site="shop"].split-mode.in-chat #msgsInner {
+    background: #F8F6FA !important;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .welcome,
+  html[data-site="shop"].split-mode.in-chat .wlist {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .wlist { gap: 8px; }
+
+  html[data-site="shop"].split-mode.in-chat .wlist-item {
+    border: 1px solid #DED6E3;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #201A23;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 22px;
+    box-shadow: none;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .wlist-item:hover {
+    border-color: #CBBED2;
+    background: #F1EDF4;
+    color: #4E1646;
+    transform: none;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #landingPage {
+    background: #F8F6FA;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #landingPage .hero-wrap {
+    display: none !important;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #shopContent {
+    display: block;
+    padding: 20px 24px 36px;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #shopContent .wrap {
+    max-width: 1180px;
+    padding: 0;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-hero {
+    margin: 0 0 20px;
+    height: 260px;
+    border-radius: 8px;
+    border: 1px solid #DED6E3;
+    background: #FFFFFF;
+    box-shadow: none;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-hero-overlay h1 {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: 0;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-hero-overlay p {
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-hero-cta {
+    border-radius: 8px;
+    padding: 9px 16px;
+    box-shadow: none;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .flash-sale,
+  html[data-site="shop"].split-mode.in-chat .newcomer-zone,
+  html[data-site="shop"].split-mode.in-chat .mall-belt,
+  html[data-site="shop"].split-mode.in-chat .mall-card,
+  html[data-site="shop"].split-mode.in-chat .mall-feat-icon {
+    border-radius: 8px;
+    border: 1px solid #DED6E3;
+    box-shadow: none;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-card { background: #FFFFFF; }
+
+  html[data-site="shop"].split-mode.in-chat .mall-card:hover {
+    border-color: #CBBED2;
+    box-shadow: 0 6px 18px rgba(32,26,35,.06);
+    transform: translateY(-1px);
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-sec { padding: 22px 0; }
+
+  html[data-site="shop"].split-mode.in-chat .mall-sec-head h2 {
+    color: #201A23;
+    font-size: 18px;
+    line-height: 26px;
+    letter-spacing: 0;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-sec-head p,
+  html[data-site="shop"].split-mode.in-chat .mall-desc,
+  html[data-site="shop"].split-mode.in-chat .mall-feat-item p { color: #5F5365; }
+
+  html[data-site="shop"].split-mode.in-chat .mall-price,
+  html[data-site="shop"].split-mode.in-chat .mall-sec-more { color: #B8252E; }
+
+  html[data-site="shop"].split-mode.in-chat .mall-sec-more {
+    border-radius: 8px;
+    border-color: #DED6E3;
+    background: #FFFFFF;
+  }
+
+  html[data-site="shop"].split-mode.in-chat .mall-sec-more:hover {
+    background: #B8252E;
+    border-color: #B8252E;
+    color: #FFFFFF;
+  }
+
+  html[data-site="shop"].split-mode.in-chat #splitDivider { background: #DED6E3; }
+
+  html[data-site="shop"].split-mode.in-chat #splitDivider:hover,
+  html[data-site="shop"].split-mode.in-chat #splitDivider.dragging { background: #CBBED2; }
+}

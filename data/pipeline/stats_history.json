@@ -1,4 +1,5 @@
 {
+  "version": 1,
   "last_updated": "2026-05-12T13:42:34.623632",
   "records": [
     {
@@ -326,9 +327,7 @@
         "异能者": 93
       },
       "intent_unknown_pct": 0.47,
-      "source_file": "12.29-1.4全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "12.29-1.4全量分布.xlsx"
     },
     {
       "date": "2026-01-01",
@@ -621,9 +620,7 @@
         "打印机": 20
       },
       "intent_unknown_pct": 0.74,
-      "source_file": "26.1.1query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.1query全量分布.xlsx"
     },
     {
       "date": "2026-01-02",
@@ -916,9 +913,7 @@
         "U盘": 12
       },
       "intent_unknown_pct": 0.72,
-      "source_file": "26.1.2query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.2query全量分布.xlsx"
     },
     {
       "date": "2026-01-03",
@@ -1212,9 +1207,7 @@
         "手写笔": 23
       },
       "intent_unknown_pct": 0.71,
-      "source_file": "26.1.3query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.3query全量分布.xlsx"
     },
     {
       "date": "2026-01-04",
@@ -1509,9 +1502,7 @@
         "U盘": 23
       },
       "intent_unknown_pct": 0.89,
-      "source_file": "26.1.4query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.4query全量分布.xlsx"
     },
     {
       "date": "2026-01-05",
@@ -1831,9 +1822,7 @@
         "天逸": 150
       },
       "intent_unknown_pct": 0.29,
-      "source_file": "1.5-1.11全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "1.5-1.11全量分布.xlsx"
     },
     {
       "date": "2026-01-06",
@@ -2129,9 +2118,7 @@
         "问天": 29
       },
       "intent_unknown_pct": 0.28,
-      "source_file": "26.1.6query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.6query全量分布.xlsx"
     },
     {
       "date": "2026-01-07",
@@ -2426,9 +2413,7 @@
         "U盘": 27
       },
       "intent_unknown_pct": 0.21,
-      "source_file": "26.1.7query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.7query全量分布.xlsx"
     },
     {
       "date": "2026-01-08",
@@ -2721,9 +2706,7 @@
         "天逸": 20
       },
       "intent_unknown_pct": 0.34,
-      "source_file": "26.1.8 query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.8 query全量分布.xlsx"
     },
     {
       "date": "2026-01-09",
@@ -3018,9 +3001,7 @@
         "耳机": 21
       },
       "intent_unknown_pct": 0.24,
-      "source_file": "26.1.9query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.9query全量分布.xlsx"
     },
     {
       "date": "2026-01-10",
@@ -3312,9 +3293,7 @@
         "天逸": 23
       },
       "intent_unknown_pct": 0.24,
-      "source_file": "26.1.10query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.10query全量分布.xlsx"
     },
     {
       "date": "2026-01-11",
@@ -3609,9 +3588,7 @@
         "打印机": 21
       },
       "intent_unknown_pct": 0.29,
-      "source_file": "26.1.11query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.11query全量分布.xlsx"
     },
     {
       "date": "2026-01-12",
@@ -3939,9 +3916,7 @@
         "扬天": 106
       },
       "intent_unknown_pct": 0.23,
-      "source_file": "1.12-1.18全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "1.12-1.18全量分布.xlsx"
     },
     {
       "date": "2026-01-13",
@@ -4236,9 +4211,7 @@
         "鼠标": 21
       },
       "intent_unknown_pct": 0.38,
-      "source_file": "26.1.13query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.13query全量分布.xlsx"
     },
     {
       "date": "2026-01-14",
@@ -4535,9 +4508,7 @@
         "耳机": 26
       },
       "intent_unknown_pct": 0.34,
-      "source_file": "26.1.14query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.14query全量分布.xlsx"
     },
     {
       "date": "2026-01-15",
@@ -4832,9 +4803,7 @@
         "耳机": 23
       },
       "intent_unknown_pct": 0.2,
-      "source_file": "26.1.15query 全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.15query 全量分布.xlsx"
     },
     {
       "date": "2026-01-16",
@@ -5130,9 +5099,7 @@
         "手写笔": 14
       },
       "intent_unknown_pct": 0.15,
-      "source_file": "26.1.16query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.16query全量分布.xlsx"
     },
     {
       "date": "2026-01-17",
@@ -5428,9 +5395,7 @@
         "问天": 13
       },
       "intent_unknown_pct": 0.18,
-      "source_file": "26.1.17query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.17query全量分布.xlsx"
     },
     {
       "date": "2026-01-18",
@@ -5737,9 +5702,7 @@
         "昭阳": 10
       },
       "intent_unknown_pct": 0.15,
-      "source_file": "26.1.18query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.18query全量分布.xlsx"
     },
     {
       "date": "2026-01-19",
@@ -6060,9 +6023,7 @@
         "昭阳": 139
       },
       "intent_unknown_pct": 0.21,
-      "source_file": "1.19-1.25全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "1.19-1.25全量分布.xlsx"
     },
     {
       "date": "2026-01-20",
@@ -6363,9 +6324,7 @@
         "鼠标": 20
       },
       "intent_unknown_pct": 0.16,
-      "source_file": "26.1.20query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.20query全量分布.xlsx"
     },
     {
       "date": "2026-01-21",
@@ -6667,9 +6626,7 @@
         "昭阳": 29
       },
       "intent_unknown_pct": 0.32,
-      "source_file": "26.1.21query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.21query全量分布.xlsx"
     },
     {
       "date": "2026-01-22",
@@ -6965,9 +6922,7 @@
         "服务器": 17
       },
       "intent_unknown_pct": 0.3,
-      "source_file": "26.1.22query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.22query全量分布.xlsx"
     },
     {
       "date": "2026-01-23",
@@ -7263,9 +7218,7 @@
         "显示器": 20
       },
       "intent_unknown_pct": 0.13,
-      "source_file": "26.1.23query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.23query全量分布.xlsx"
     },
     {
       "date": "2026-01-24",
@@ -7561,9 +7514,7 @@
         "显示器": 12
       },
       "intent_unknown_pct": 0.17,
-      "source_file": "26.1.24query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.24query全量分布.xlsx"
     },
     {
       "date": "2026-01-25",
@@ -7855,9 +7806,7 @@
         "昭阳": 14
       },
       "intent_unknown_pct": 0.17,
-      "source_file": "26.1.25query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.25query全量分布.xlsx"
     },
     {
       "date": "2026-01-26",
@@ -8178,9 +8127,7 @@
         "显示器": 126
       },
       "intent_unknown_pct": 0.17,
-      "source_file": "1.26-2.1query全量 分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "1.26-2.1query全量 分布.xlsx"
     },
     {
       "date": "2026-01-27",
@@ -8479,9 +8426,7 @@
         "打印机": 19
       },
       "intent_unknown_pct": 0.22,
-      "source_file": "26.1.27query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.27query全量分布.xlsx"
     },
     {
       "date": "2026-01-28",
@@ -8776,9 +8721,7 @@
         "手写笔": 15
       },
       "intent_unknown_pct": 0.12,
-      "source_file": "26.1.28query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.28query全量分布.xlsx"
     },
     {
       "date": "2026-01-29",
@@ -9072,9 +9015,7 @@
         "显示器": 15
       },
       "intent_unknown_pct": 0.14,
-      "source_file": "26.1.29query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.29query全量分布.xlsx"
     },
     {
       "date": "2026-01-30",
@@ -9368,9 +9309,7 @@
         "来酷": 12
       },
       "intent_unknown_pct": 0.13,
-      "source_file": "26.1.30query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.30query全量分布.xlsx"
     },
     {
       "date": "2026-01-31",
@@ -9665,9 +9604,7 @@
         "天逸": 10
       },
       "intent_unknown_pct": 0.17,
-      "source_file": "26.1.31query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.1.31query全量分布.xlsx"
     },
     {
       "date": "2026-02-01",
@@ -9960,9 +9897,7 @@
         "显示器": 10
       },
       "intent_unknown_pct": 0.3,
-      "source_file": "26.2.1query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.1query全量分布.xlsx"
     },
     {
       "date": "2026-02-02",
@@ -10262,9 +10197,7 @@
         "摄像头": 17
       },
       "intent_unknown_pct": 0.29,
-      "source_file": "26.2.2query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.2query全量分布.xlsx"
     },
     {
       "date": "2026-02-03",
@@ -10561,9 +10494,7 @@
         "扬天": 10
       },
       "intent_unknown_pct": 0.27,
-      "source_file": "26.2.3query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.3query全量分布.xlsx"
     },
     {
       "date": "2026-02-04",
@@ -10859,9 +10790,7 @@
         "扬天": 13
       },
       "intent_unknown_pct": 0.2,
-      "source_file": "26.2.4query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.4query全量分布.xlsx"
     },
     {
       "date": "2026-02-05",
@@ -11159,9 +11088,7 @@
         "服务器": 10
       },
       "intent_unknown_pct": 0.6,
-      "source_file": "26.2.5query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.5query全量分布.xlsx"
     },
     {
       "date": "2026-02-06",
@@ -11456,9 +11383,7 @@
         "显示器": 12
       },
       "intent_unknown_pct": 0.2,
-      "source_file": "26.2.6query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.6query全量分布.xlsx"
     },
     {
       "date": "2026-02-07",
@@ -11756,9 +11681,7 @@
         "数据线": 14
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "26.2.7query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.7query全量分布.xlsx"
     },
     {
       "date": "2026-02-08",
@@ -12054,9 +11977,7 @@
         "来酷": 13
       },
       "intent_unknown_pct": 0.07,
-      "source_file": "26.2.8query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.8query全量分布.xlsx"
     },
     {
       "date": "2026-02-09",
@@ -12338,9 +12259,7 @@
         "手写笔": 31
       },
       "intent_unknown_pct": 2.49,
-      "source_file": "2.9-2.15.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "2.9-2.15.xlsx"
     },
     {
       "date": "2026-02-10",
@@ -12649,9 +12568,7 @@
         "扬天": 12
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "26.2.10query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.10query全量分布.xlsx"
     },
     {
       "date": "2026-02-11",
@@ -12954,9 +12871,7 @@
         "昭阳": 10
       },
       "intent_unknown_pct": 0.1,
-      "source_file": "26.2.11query.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.11query.xlsx"
     },
     {
       "date": "2026-02-12",
@@ -13258,9 +13173,7 @@
         "天逸": 16
       },
       "intent_unknown_pct": 0.03,
-      "source_file": "26.2.12query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.12query全量分布.xlsx"
     },
     {
       "date": "2026-02-13",
@@ -13558,9 +13471,7 @@
         "天逸": 8
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "26.2.13query全量分布.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "26.2.13query全量分布.xlsx"
     },
     {
       "date": "2026-02-14",
@@ -13861,9 +13772,7 @@
         "显示器": 9
       },
       "intent_unknown_pct": 0.03,
-      "source_file": "2.14.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "2.14.xlsx"
     },
     {
       "date": "2026-02-15",
@@ -14165,9 +14074,7 @@
         "手写笔": 6
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "2.15.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "2.15.xlsx"
     },
     {
       "date": "2026-02-16",
@@ -14467,9 +14374,7 @@
         "扬天": 2
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "2.16.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "2.16.xlsx"
     },
     {
       "date": "2026-02-17",
@@ -14767,9 +14672,7 @@
         "键盘": 8
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "2.17.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "2.17.xlsx"
     },
     {
       "date": "2026-02-18",
@@ -15065,9 +14968,7 @@
         "服务器": 4
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "20260218.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "20260218.xlsx"
     },
     {
       "date": "2026-02-19",
@@ -15363,9 +15264,7 @@
         "打印机": 7
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "20260219.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "20260219.xlsx"
     },
     {
       "date": "2026-02-20",
@@ -15660,9 +15559,7 @@
         "服务器": 9
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "20260220.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "20260220.xlsx"
     },
     {
       "date": "2026-02-21",
@@ -15957,9 +15854,7 @@
         "手写笔": 8
       },
       "intent_unknown_pct": 0.02,
-      "source_file": "260221.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "260221.xlsx"
     },
     {
       "date": "2026-02-22",
@@ -16254,9 +16149,7 @@
         "服务器": 9
       },
       "intent_unknown_pct": 0.03,
-      "source_file": "0222.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0222.xlsx"
     },
     {
       "date": "2026-02-23",
@@ -16554,9 +16447,7 @@
         "手写笔": 11
       },
       "intent_unknown_pct": 0.03,
-      "source_file": "260223.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "260223.xlsx"
     },
     {
       "date": "2026-02-24",
@@ -16855,9 +16746,7 @@
         "数据线": 15
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "对话260224.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "对话260224.xlsx"
     },
     {
       "date": "2026-02-25",
@@ -17158,9 +17047,7 @@
         "异能者": 15
       },
       "intent_unknown_pct": 0.06,
-      "source_file": "对话数据260225.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "对话数据260225.xlsx"
     },
     {
       "date": "2026-02-26",
@@ -17458,9 +17345,7 @@
         "背包": 15
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0226.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0226.xlsx"
     },
     {
       "date": "2026-02-27",
@@ -17758,9 +17643,7 @@
         "来酷": 15
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0227.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0227.xlsx"
     },
     {
       "date": "2026-02-28",
@@ -18060,9 +17943,7 @@
         "来酷": 33
       },
       "intent_unknown_pct": 0.06,
-      "source_file": "0228.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0228.xlsx"
     },
     {
       "date": "2026-03-01",
@@ -18361,9 +18242,7 @@
         "来酷": 18
       },
       "intent_unknown_pct": 0.17,
-      "source_file": "0301.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0301.xlsx"
     },
     {
       "date": "2026-03-02",
@@ -18661,9 +18540,7 @@
         "天逸": 24
       },
       "intent_unknown_pct": 0.16,
-      "source_file": "0302.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0302.xlsx"
     },
     {
       "date": "2026-03-03",
@@ -18967,9 +18844,7 @@
         "异能者": 14
       },
       "intent_unknown_pct": 0.1,
-      "source_file": "0303.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0303.xlsx"
     },
     {
       "date": "2026-03-04",
@@ -19270,9 +19145,7 @@
         "手写笔": 21
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "0304.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0304.xlsx"
     },
     {
       "date": "2026-03-05",
@@ -19572,9 +19445,7 @@
         "扬天": 13
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "0305.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0305.xlsx"
     },
     {
       "date": "2026-03-06",
@@ -19879,9 +19750,7 @@
         "数据线": 12
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0306.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0306.xlsx"
     },
     {
       "date": "2026-03-07",
@@ -20183,9 +20052,7 @@
         "服务器": 14
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0307.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0307.xlsx"
     },
     {
       "date": "2026-03-08",
@@ -20484,9 +20351,7 @@
         "异能者": 9
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0308.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0308.xlsx"
     },
     {
       "date": "2026-03-09",
@@ -20782,9 +20647,7 @@
         "天逸": 14
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "0309.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0309.xlsx"
     },
     {
       "date": "2026-03-10",
@@ -21093,9 +20956,7 @@
         "异能者": 15
       },
       "intent_unknown_pct": 0.03,
-      "source_file": "0310.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0310.xlsx"
     },
     {
       "date": "2026-03-12",
@@ -21406,9 +21267,7 @@
         "昭阳": 16
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0312.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0312.xlsx"
     },
     {
       "date": "2026-03-13",
@@ -21716,9 +21575,7 @@
         "摄像头": 15
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0313.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0313.xlsx"
     },
     {
       "date": "2026-03-14",
@@ -22028,9 +21885,7 @@
         "摄像头": 14
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "0314.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0314.xlsx"
     },
     {
       "date": "2026-03-15",
@@ -22337,9 +22192,7 @@
         "显示器": 23
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0315.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0315.xlsx"
     },
     {
       "date": "2026-03-16",
@@ -22648,9 +22501,7 @@
         "昭阳": 11
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0316.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0316.xlsx"
     },
     {
       "date": "2026-03-17",
@@ -22972,9 +22823,7 @@
         "扬天": 16
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0317.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0317.xlsx"
     },
     {
       "date": "2026-03-18",
@@ -23282,9 +23131,7 @@
         "异能者": 22
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0318.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0318.xlsx"
     },
     {
       "date": "2026-03-19",
@@ -23592,9 +23439,7 @@
         "手写笔": 28
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0319.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0319.xlsx"
     },
     {
       "date": "2026-03-20",
@@ -23901,9 +23746,7 @@
         "打印机": 33
       },
       "intent_unknown_pct": 0.06,
-      "source_file": "0320.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0320.xlsx"
     },
     {
       "date": "2026-03-21",
@@ -24206,9 +24049,7 @@
         "异能者": 16
       },
       "intent_unknown_pct": 0.1,
-      "source_file": "0321.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0321.xlsx"
     },
     {
       "date": "2026-03-22",
@@ -24519,9 +24360,7 @@
         "数据线": 19
       },
       "intent_unknown_pct": 0.1,
-      "source_file": "0322.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0322.xlsx"
     },
     {
       "date": "2026-03-23",
@@ -24829,9 +24668,7 @@
         "打印机": 27
       },
       "intent_unknown_pct": 0.07,
-      "source_file": "0323.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0323.xlsx"
     },
     {
       "date": "2026-03-24",
@@ -25137,9 +24974,7 @@
         "手写笔": 29
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0324.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0324.xlsx"
     },
     {
       "date": "2026-03-25",
@@ -25444,9 +25279,7 @@
         "手写笔": 18
       },
       "intent_unknown_pct": 0.05,
-      "source_file": "0325.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0325.xlsx"
     },
     {
       "date": "2026-03-26",
@@ -25757,9 +25590,7 @@
         "来酷": 24
       },
       "intent_unknown_pct": 0.01,
-      "source_file": "0326.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0326.xlsx"
     },
     {
       "date": "2026-03-27",
@@ -26065,9 +25896,7 @@
         "打印机": 22
       },
       "intent_unknown_pct": 0.07,
-      "source_file": "0327.xlsb.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0327.xlsb.xlsx"
     },
     {
       "date": "2026-03-28",
@@ -26371,9 +26200,7 @@
         "背包": 12
       },
       "intent_unknown_pct": 0.12,
-      "source_file": "0328.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0328.xlsx"
     },
     {
       "date": "2026-03-29",
@@ -26674,9 +26501,7 @@
         "U盘": 22
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0329.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0329.xlsx"
     },
     {
       "date": "2026-03-30",
@@ -26984,9 +26809,7 @@
         "打印机": 32
       },
       "intent_unknown_pct": 0.12,
-      "source_file": "0330.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0330.xlsx"
     },
     {
       "date": "2026-03-31",
@@ -27292,9 +27115,7 @@
         "手写笔": 28
       },
       "intent_unknown_pct": 0.12,
-      "source_file": "0331.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0331.xlsx"
     },
     {
       "date": "2026-04-01",
@@ -27599,9 +27420,7 @@
         "手写笔": 17
       },
       "intent_unknown_pct": 0.39,
-      "source_file": "0401.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0401.xlsx"
     },
     {
       "date": "2026-04-02",
@@ -27900,9 +27719,7 @@
         "U盘": 24
       },
       "intent_unknown_pct": 0.33,
-      "source_file": "0402.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0402.xlsx"
     },
     {
       "date": "2026-04-03",
@@ -28203,9 +28020,7 @@
         "数据线": 13
       },
       "intent_unknown_pct": 0.28,
-      "source_file": "0403.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0403.xlsx"
     },
     {
       "date": "2026-04-04",
@@ -28508,9 +28323,7 @@
         "扬天": 10
       },
       "intent_unknown_pct": 0.25,
-      "source_file": "0404.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0404.xlsx"
     },
     {
       "date": "2026-04-05",
@@ -28805,9 +28618,7 @@
         "扬天": 12
       },
       "intent_unknown_pct": 0.29,
-      "source_file": "0405.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0405.xlsx"
     },
     {
       "date": "2026-04-06",
@@ -29116,9 +28927,7 @@
         "摄像头": 17
       },
       "intent_unknown_pct": 0.31,
-      "source_file": "0406.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0406.xlsx"
     },
     {
       "date": "2026-04-07",
@@ -29427,9 +29236,7 @@
         "充电宝": 21
       },
       "intent_unknown_pct": 0.2,
-      "source_file": "0407.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0407.xlsx"
     },
     {
       "date": "2026-04-08",
@@ -29732,9 +29539,7 @@
         "扬天": 13
       },
       "intent_unknown_pct": 0.26,
-      "source_file": "0408.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0408.xlsx"
     },
     {
       "date": "2026-04-09",
@@ -30039,9 +29844,7 @@
         "服务器": 14
       },
       "intent_unknown_pct": 0.28,
-      "source_file": "0409.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0409.xlsx"
     },
     {
       "date": "2026-04-10",
@@ -30345,9 +30148,7 @@
         "手写笔": 14
       },
       "intent_unknown_pct": 0.16,
-      "source_file": "0410.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0410.xlsx"
     },
     {
       "date": "2026-04-11",
@@ -30650,9 +30451,7 @@
         "U盘": 10
       },
       "intent_unknown_pct": 0.14,
-      "source_file": "0411.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0411.xlsx"
     },
     {
       "date": "2026-04-12",
@@ -30955,9 +30754,7 @@
         "数据线": 14
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0412.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0412.xlsx"
     },
     {
       "date": "2026-04-13",
@@ -31264,9 +31061,7 @@
         "摄像头": 10
       },
       "intent_unknown_pct": 0.14,
-      "source_file": "0413.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0413.xlsx"
     },
     {
       "date": "2026-04-14",
@@ -31570,9 +31365,7 @@
         "手写笔": 15
       },
       "intent_unknown_pct": 0.13,
-      "source_file": "0414.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0414.xlsx"
     },
     {
       "date": "2026-04-15",
@@ -31878,9 +31671,7 @@
         "手写笔": 9
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0415.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0415.xlsx"
     },
     {
       "date": "2026-04-16",
@@ -32185,9 +31976,7 @@
         "摄像头": 16
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0416.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0416.xlsx"
     },
     {
       "date": "2026-04-17",
@@ -32495,9 +32284,7 @@
         "手写笔": 17
       },
       "intent_unknown_pct": 0.13,
-      "source_file": "0417.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0417.xlsx"
     },
     {
       "date": "2026-04-18",
@@ -32800,9 +32587,7 @@
         "摄像头": 10
       },
       "intent_unknown_pct": 0.17,
-      "source_file": "0418.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0418.xlsx"
     },
     {
       "date": "2026-04-19",
@@ -33104,9 +32889,7 @@
         "来酷": 13
       },
       "intent_unknown_pct": 0.06,
-      "source_file": "0419.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0419.xlsx"
     },
     {
       "date": "2026-04-20",
@@ -33407,9 +33190,7 @@
         "手写笔": 15
       },
       "intent_unknown_pct": 0.1,
-      "source_file": "0420.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0420.xlsx"
     },
     {
       "date": "2026-04-21",
@@ -33715,9 +33496,7 @@
         "打印机": 40
       },
       "intent_unknown_pct": 0.09,
-      "source_file": "0421.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0421.xlsx"
     },
     {
       "date": "2026-04-22",
@@ -34025,9 +33804,7 @@
         "天逸": 33
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0422.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0422.xlsx"
     },
     {
       "date": "2026-04-23",
@@ -34337,9 +34114,7 @@
         "U盘": 26
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0423.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0423.xlsx"
     },
     {
       "date": "2026-04-24",
@@ -34650,9 +34425,7 @@
         "服务器": 23
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0424.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0424.xlsx"
     },
     {
       "date": "2026-04-25",
@@ -34957,9 +34730,7 @@
         "鼠标": 18
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0425.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0425.xlsx"
     },
     {
       "date": "2026-04-26",
@@ -35264,9 +35035,7 @@
         "显示器": 13
       },
       "intent_unknown_pct": 0.06,
-      "source_file": "0426.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0426.xlsx"
     },
     {
       "date": "2026-04-27",
@@ -35573,9 +35342,7 @@
         "键盘": 24
       },
       "intent_unknown_pct": 0.06,
-      "source_file": "0427.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0427.xlsx"
     },
     {
       "date": "2026-04-28",
@@ -35882,9 +35649,7 @@
         "来酷": 28
       },
       "intent_unknown_pct": 0.04,
-      "source_file": "0428.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0428.xlsx"
     },
     {
       "date": "2026-04-29",
@@ -36192,9 +35957,7 @@
         "耳机": 26
       },
       "intent_unknown_pct": 0.07,
-      "source_file": "0429.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0429.xlsx"
     },
     {
       "date": "2026-04-30",
@@ -36500,9 +36263,7 @@
         "鼠标": 22
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0430.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0430.xlsx"
     },
     {
       "date": "2026-05-01",
@@ -36803,9 +36564,7 @@
         "显示器": 22
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0501.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0501.xlsx"
     },
     {
       "date": "2026-05-02",
@@ -37105,9 +36864,7 @@
         "天逸": 23
       },
       "intent_unknown_pct": 0.11,
-      "source_file": "0502.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0502.xlsx"
     },
     {
       "date": "2026-05-03",
@@ -37407,9 +37164,7 @@
         "键盘": 33
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0503.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0503.xlsx"
     },
     {
       "date": "2026-05-04",
@@ -37709,9 +37464,7 @@
         "充电器": 33
       },
       "intent_unknown_pct": 0.09,
-      "source_file": "0504.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0504.xlsx"
     },
     {
       "date": "2026-05-05",
@@ -38012,9 +37765,7 @@
         "鼠标": 30
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0505.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0505.xlsx"
     },
     {
       "date": "2026-05-06",
@@ -38319,9 +38070,7 @@
         "鼠标": 43
       },
       "intent_unknown_pct": 0.14,
-      "source_file": "0506.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0506.xlsx"
     },
     {
       "date": "2026-05-07",
@@ -38627,9 +38376,7 @@
         "天逸": 39
       },
       "intent_unknown_pct": 0.16,
-      "source_file": "0507.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0507.xlsx"
     },
     {
       "date": "2026-05-08",
@@ -38717,24 +38464,6 @@
       "daily_volume": {
         "2026-05-08": 408619
       },
-      "daily_active_passive": {
-        "2026-05-08": {
-          "主动": 4596,
-          "被动": 214889,
-          "口令活动": 189134
-        }
-      },
-      "daily_active_tag": {
-        "2026-05-08": {
-          "门店": 379,
-          "电商": 1693,
-          "服务": 1221,
-          "会员": 696,
-          "咨询": 133,
-          "其他": 329,
-          "多模态": 145
-        }
-      },
       "transfer_rate": {
         "rate": 48.28,
         "numerator": 478,
@@ -38747,9 +38476,9 @@
         "2026-05-08": 48.28
       },
       "channel_dist": {
-        "主动": 4596,
-        "被动": 214889,
-        "口令活动": 189134
+        "主动": 192679,
+        "被动": 214914,
+        "customer_service": 1026
       },
       "turn_distribution": {
         "1轮": 220100,
@@ -38888,101 +38617,46 @@
         ]
       },
       "source_dist": {
-        "APP-顶部横滑": 154093,
-        "企业购-TK商详页内嵌-优惠信息气泡_SMB_PC端": 105865,
-        "会员中心": 64464,
-        "企业购-企业购首页内嵌-优惠信息气泡_SMB_PC端": 30452,
-        "企业购-企业购商详页内嵌-优惠信息气泡_SMB_PC端": 7997,
-        "政企PC端-行业解决方案侧边栏": 2594,
+        "联想APP": 154921,
+        "b.": 144323,
+        "会员中心": 64519,
+        "biz.": 2668,
         "联想wiki": 1784,
-        "联想官网PC端-常规主入口": 753,
-        "联想小程序-服务-更多门店": 556,
-        "联想小程序-我的-服务门店": 371,
-        "联想APP-底导单点进入乐享_APP": 343,
-        "联想商城WAP端-商详页底部bar": 261,
-        "APP-商详页": 258,
-        "联想乐享小程序-立即点击按钮": 146,
-        "消费小程序-服务-更多门店": 135,
-        "APP-搜索结果": 96,
-        "联想小程序-我的-门店": 95,
-        "联想商城WAP端-搜索页搜索发现位": 75,
-        "政企WAP端-商详页侧边栏": 61,
-        "联想商城PC端-商详页右侧悬浮按钮": 55,
-        "消费小程序-我的-门店查询": 48,
-        "会员中心APP/wap端-icon": 44,
+        "联想小程序": 1076,
+        "www.": 778,
+        "m.": 348,
+        "消费小程序": 224,
+        "联想乐享小程序": 146,
+        "shop.": 73,
+        "百度意图品专": 73,
+        "wap.": 60,
         "Z00638989T000": 42,
-        "联想APP-AI搜_搜索结果页_APP端": 41,
-        "联想小程序-服务-寻找附近的联想门店": 40,
-        "联想商城WAP分类-lenovo笔记本_消费_WAP端": 39,
-        "官方社区-侧边栏": 37,
+        "PC端-社区": 37,
         "Z00052525T000": 35,
-        "百度意图品专-主文案_wap端": 34,
-        "消费小程序端-搜索结果页底部bar": 32,
-        "APP-热搜词AI助手": 30,
-        "联想APP分类-lenovo笔记本_消费_APP端": 28,
         "P0000011769M0003": 18,
         "Z00495715T000": 17,
         "P0000011287M0000": 17,
-        "官网-首页Banner": 15,
-        "联想商城WAP端-首页顶导": 12,
-        "联想商城WAP分类-增值服务_消费_WAP端": 11,
-        "百度意图品专-通顶图片_wap端": 11,
+        "shop": 16,
         "Z00049879T003 Z00049879T003": 11,
-        "百度意图品专-通顶图片标题_wap端": 10,
-        "联想官网PC端-搜索结果页": 10,
         "P0000011769M0002": 9,
-        "百度意图品专-图文项2_wap端": 9,
-        "联想商城PC端-首页搜索下拉框热词": 9,
-        "联想商城PC端-首页右侧悬浮按钮": 9,
-        "政企EDM_底部入口_政企_wap端": 8,
-        "联想小程序-顶部横滑": 8,
-        "联想APP分类-配件/办公_消费_APP端": 8,
-        "pc端消费站点-右侧悬浮按钮": 8,
-        "消费-夺笋APP-顶部搜索栏右侧": 8,
-        "联想APP-底导长按进入乐享_APP": 6,
-        "联想APP分类-手机/通信_消费_APP端": 6,
-        "消费小程序-服务-寻找附近的联想门店": 5,
-        "小程序-我的页icon": 5,
-        "联想商城WAP分类-手机/通信_消费_WAP端": 5,
-        "会员中心-活动落地页_乐豆IP活动_wap端": 5,
-        "企业购WAP端-首页侧边栏": 5,
-        "百度意图品专-图文项1_wap端": 4,
+        "夺笋APP": 8,
         "Z00049879T009 Z00049879T009": 4,
-        "联想APP分类-ThinkPad笔记本_SMB_APP端": 4,
-        "消费小程序端-首页搜索框右侧按钮": 4,
-        "APP-新人购": 4,
-        "会员中心WAP端-乐碳圈": 3,
-        "政企PC端-商详页侧边栏": 3,
-        "联想小程序-首页底部bar": 3,
-        "会员中心-会员任务_乐豆商城88乐豆_会员小程序端": 3,
-        "联想小程序-首页弹窗": 3,
-        "百度意图品专-图文项4_wap端": 3,
-        "联想商城WAP分类-全屋智能_消费_WAP端": 3,
-        "企业购PC端-首页搜索框热词": 2,
-        "联想APP-语音唤醒乐享_APP": 2,
         "P0000011331M0027": 2,
-        "pc端-客服对话页入口": 2,
-        "联想商城WAP分类-服务器及存储解决方案_政企_WAP端": 2,
         "P0000011707M0001": 2,
-        "联想APP分类-全屋智能_消费_APP端": 2,
         "P0000011707M0000": 2,
-        "企业购PC端-商详页侧边栏": 2,
-        "政企WAP端-解决方案侧边栏": 2,
-        "消费站点PC端-右侧悬浮按钮": 2,
-        "百度意图品专-图文项3_wap端": 2,
+        "PC端-消费站点": 2,
         "P0000011331M0007": 2,
         "P0000011331M0022": 1,
-        "pc端-首页右侧悬浮按钮": 1,
         "Z00670736T000": 1
       },
       "medium_dist": {
         "APP": 154987,
-        "PC端": 147889,
-        "WAP端": 64718,
+        "PC端": 147798,
+        "WAP端": 64794,
         "社区": 1821,
         "小程序": 1635,
         "未知来源": 163,
-        "官网": 6
+        "官网": 21
       },
       "product_dist": {
         "平板": 52027,
@@ -39311,9 +38985,7 @@
         "耳机": 46
       },
       "intent_unknown_pct": 0.1,
-      "source_file": "0509.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0509.xlsx"
     },
     {
       "date": "2026-05-10",
@@ -39614,9 +39286,7 @@
         "摄像头": 45
       },
       "intent_unknown_pct": 0.08,
-      "source_file": "0510.xlsx",
-      "daily_active_passive": {},
-      "daily_active_tag": {}
+      "source_file": "0510.xlsx"
     }
   ]
 }

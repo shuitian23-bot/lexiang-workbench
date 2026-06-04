@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260520-ops3">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260604-ai-remove-goal1">
 </head>
 <body>
 
@@ -84,11 +84,21 @@
 <div class="ai-panel" id="ai-panel">
   <div class="ai-resize-handle" id="ai-resize-handle"></div>
   <div class="ai-panel-header">
-    <h3>🤖 AI 助手</h3>
-    <div style="display:flex;gap:4px;align-items:center">
-      <span style="cursor:pointer;padding:2px 6px;border-radius:4px;font-size:12px;color:var(--text-tertiary)" onclick="newAiConversation()" title="新建对话">🔄</span>
+    <div class="ai-panel-actions">
+      <button type="button" class="ai-skill-entry" onclick="openSkillManagerOverlay()" title="管理技能">
+        <span>⚙</span><span>管理技能</span>
+      </button>
+      <button type="button" class="ai-header-action" onclick="newAiConversation()" title="新开会话">新会话</button>
+      <button type="button" class="ai-header-action muted" onclick="aiOpenConversationHistory()" title="历史会话">历史</button>
       <span class="ai-panel-close" onclick="toggleAI()">✕</span>
     </div>
+  </div>
+  <div class="ai-messages" id="ai-messages">
+    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手。<br><br>你可以在底部输入框里直接描述要完成的运营任务，例如查数据、生成报告、配置商品或查询知识库。涉及写入或发布时，我会先展示影响范围并等待确认。</div></div>
+  </div>
+  <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
+    <span>📎</span><span id="ai-file-name"></span>
+    <span style="cursor:pointer;margin-left:auto;color:var(--text-tertiary)" onclick="aiClearFile()">✕</span>
   </div>
   <div class="ai-shortcuts" id="ai-shortcuts">
     <span class="ai-shortcut" onclick="aiQuick('今日核心指标')">📊 今日指标</span>
@@ -97,13 +107,6 @@
     <span class="ai-shortcut" onclick="aiQuick('打开知识库')">📚 知识库</span>
     <span class="ai-shortcut" onclick="aiQuick('打开页面管理')">📄 CMS</span>
     <span class="ai-shortcut" onclick="aiQuick('本周运营建议')">💡 运营建议</span>
-  </div>
-  <div class="ai-messages" id="ai-messages">
-    <div class="ai-msg assistant"><div class="bubble">你好！我是乐享 AI 助手 🤖<br><br>我可以帮你：<br>· <b>导航操作</b> — "打开商品管理"、"去知识库"<br>· <b>查数据</b> — 自然语言直接查库，例如：<br>&nbsp;&nbsp;&nbsp;· 最近 7 天订单按渠道汇总<br>&nbsp;&nbsp;&nbsp;· 昨天新增客户数<br>&nbsp;&nbsp;&nbsp;· 知识库里关于退货的 QA 有多少条<br>· <b>生成报告</b> — "本周运营报告"<br>· <b>执行操作</b> — "创建营销任务"<br><br>试试直接说你想去哪、想做什么！</div></div>
-  </div>
-  <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
-    <span>📎</span><span id="ai-file-name"></span>
-    <span style="cursor:pointer;margin-left:auto;color:var(--text-tertiary)" onclick="aiClearFile()">✕</span>
   </div>
   <div class="ai-input-area" id="ai-input-area">
     <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
@@ -177,6 +180,7 @@ async function doLogin() {
     document.getElementById('main-area').style.display = 'flex';
 
     await loadUserContext();
+    applyInitialPageFromUrl();
     renderSidebar();
     restoreSidebarState();
     restoreAIState();
@@ -368,12 +372,16 @@ function switchPage(pageId) {
   }
 
   // Update breadcrumb
-  const groupLabel = findPageGroup(pageId)?.label || pageId.split('.')[0];
+  const groupLabelMap = { agent: 'AI 助手' };
+  const groupLabel = findPageGroup(pageId)?.label || groupLabelMap[pageId.split('.')[0]] || pageId.split('.')[0];
   const pageLabel = getPageLabel(pageId);
   document.getElementById('breadcrumb').innerHTML = `<span>${groupLabel}</span> / <span>${pageLabel}</span>`;
 
   // Render page
   renderPage(pageId);
+  if (typeof aiRefreshPageAssistant === 'function') {
+    aiRefreshPageAssistant();
+  }
 
   // Auto-load data for specific pages
   if (pageId === 'employee.overview') {
@@ -385,6 +393,14 @@ function switchPage(pageId) {
   }
 }
 
+function applyInitialPageFromUrl() {
+  const page = new URLSearchParams(window.location.search).get('page');
+  if (!page) return;
+  const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
+  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'agent.skills';
+  if (isKnownPage) STATE.currentPage = page;
+}
+
 function findPageGroup(pageId) {
   for (const g of Object.values(MENU_TREE)) {
     if (g.children && g.children[pageId]) return g;
@@ -393,6 +409,10 @@ function findPageGroup(pageId) {
 }
 
 function getPageLabel(pageId) {
+  const pageLabelMap = {
+    'agent.skills': 'Skills 管理'
+  };
+  if (pageLabelMap[pageId]) return pageLabelMap[pageId];
   const g = findPageGroup(pageId);
   return g?.children[pageId]?.label || pageId.split('.')[1] || '';
 }
@@ -482,21 +502,21 @@ function switchBehaviorTab(tab, el) {
 
 
 </script>
-<!-- Chart.js for dashboard charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- Chart.js for report charts; async so ops pages are not blocked by the CDN. -->
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <!-- ECharts for quality dashboard -->
-<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="/admin/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260520-ops3"></script>
-<script src="/admin/workbench-geo.js?v=20260508"></script>
-<script src="/admin/workbench-ai.js?v=20260518"></script>
-<script src="/admin/workbench-data.js"></script>
+<script src="/admin/workbench-pages.js?v=20260602-geo23"></script>
+<script src="/admin/workbench-geo.js?v=20260602-geo23"></script>
+<script src="/admin/workbench-ai.js?v=20260604-ai-remove-goal1"></script>
+<script src="/admin/workbench-data.js?v=20260602-geo23"></script>
 <script src="/admin/workbench-employee.js"></script>
-<script src="/admin/workbench-ops.js?v=20260520-ops3"></script>
+<script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
 <script src="/admin/workbench-report.js"></script>
-<script src="/admin/workbench-pipeline.js?v=20260520c"></script>
-  <script src="/admin/workbench-quality.js?v=20260520"></script>
+<script src="/admin/workbench-pipeline.js?v=20260520e"></script>
+  <script src="/admin/workbench-quality.js?v=20260520d"></script>
 <script>
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -511,9 +531,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sidebar').style.display = 'flex';
     document.getElementById('main-area').style.display = 'flex';
     await loadUserContext();
+    applyInitialPageFromUrl();
     renderSidebar();
     restoreSidebarState();
     restoreAIState();
+    aiInitConversationStore();
     _aiInitDragDrop();
     switchPage(STATE.currentPage);
   }).catch(() => {
