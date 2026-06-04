@@ -376,7 +376,7 @@ function aiDownloadReportArtifact(id) {
 function aiCurrentWelcomeHtml() {
   const page = STATE.currentPage;
   if (page === 'dashboard.overview') {
-    return '我会基于当前运营总览的时间范围、核心指标、链路转化、分业务和分平台数据做分析。你也可以填写阶段目标，我会一起评估目标缺口和动作优先级。';
+    return '我会基于当前运营总览的时间范围、核心指标、链路转化、分业务和分平台数据做分析。你可以直接在底部输入框描述目标、问题或要生成的报告。';
   }
   if (page === 'ops.traffic') {
     return '我会基于当前流量分析页的时间范围、DAU/MAU、登录互动、媒体TOP10、端口和业务流量结构回答问题。';
@@ -410,7 +410,7 @@ function aiShortcutItemsForPage(page) {
       { label: 'GMV解读', text: '基于当前GMV分析看板，分析GMV趋势、风险和机会。' },
       { label: '业务贡献', text: '消费、SMB、政企业务谁在拉动GMV，谁拖后腿？' },
       { label: '平台结构', text: '官网和非官网GMV结构是否健康？下一步怎么优化？' },
-      { label: '目标缺口', text: '如果阶段目标是GMV提升10%，当前看板显示最大的缺口在哪里？' }
+      { label: '增长缺口', text: '如果GMV要提升10%，当前看板显示最大的缺口在哪里？' }
     ];
   }
   return [
@@ -435,27 +435,6 @@ function aiRefreshPageAssistant() {
       });
     });
   }
-
-  const bar = document.getElementById('ai-page-context');
-  if (!bar) return;
-  const page = STATE.currentPage;
-  if (page === 'dashboard.overview') {
-    const saved = localStorage.getItem('ai_goal_dashboard_overview') || '';
-    bar.style.display = '';
-    bar.innerHTML = `
-      <div class="ai-goal-card">
-        <div class="ai-goal-head">
-          <span>阶段目标</span>
-          <button type="button" onclick="aiSendGoalAnalysis()">分析</button>
-        </div>
-        <textarea id="ai-stage-goal" rows="2" placeholder="例如：近30天GMV提升10%，互动率不下降">${escapeHtml(saved).replace(/<br>/g, '\n')}</textarea>
-      </div>`;
-    const input = document.getElementById('ai-stage-goal');
-    if (input) input.addEventListener('input', () => localStorage.setItem('ai_goal_dashboard_overview', input.value.trim()));
-  } else {
-    bar.style.display = 'none';
-    bar.innerHTML = '';
-  }
 }
 
 function aiOpenSkillManagement() {
@@ -474,20 +453,7 @@ function aiOpenTaskLog() {
 }
 
 function aiPageGoal() {
-  const el = document.getElementById('ai-stage-goal');
-  return (el?.value || '').trim();
-}
-
-function aiSendGoalAnalysis() {
-  if (!STATE.aiOpen) toggleAI(true);
-  const goal = aiPageGoal();
-  if (!goal) {
-    addAiMessage('assistant', '先填一个阶段目标，比如“近30天GMV提升10%，互动率不下降”。');
-    return;
-  }
-  const input = document.getElementById('ai-input');
-  input.value = `我的阶段目标是：${goal}。请基于当前运营总览看板评估目标达成路径、关键指标缺口、优先动作和需要补充的数据。`;
-  aiSend();
+  return '';
 }
 
 function aiBuildPageContextForMessage() {
