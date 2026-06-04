@@ -501,11 +501,11 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   padding:4px 14px 12px; display:flex; gap:8px; align-items:flex-end; flex-shrink:0;
 }
 .ai-input {
-  order:3; flex:1; padding:8px 12px; border:1px solid var(--border-light); border-radius:8px;
+  order:2; flex:1; padding:8px 12px; border:1px solid var(--border-light); border-radius:8px;
   font-size:14px; line-height:1.45; outline:none; resize:none; min-height:64px; max-height:160px; font-family:inherit;
 }
 .ai-input:focus { border-color:var(--primary); }
-.ai-send { order:2; width:32px; height:32px; min-width:32px; padding:0; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:0; font-weight:600; flex-shrink:0; align-self:flex-end; display:inline-flex; align-items:center; justify-content:center; }
+.ai-send { order:3; width:32px; height:32px; min-width:32px; padding:0; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:0; font-weight:600; flex-shrink:0; align-self:flex-end; display:inline-flex; align-items:center; justify-content:center; }
 .ai-send:hover { background:var(--primary-hover); transform:translateY(-1px); }
 .ai-send:active { transform:translateY(0); }
 .ai-send svg { display:block; }
