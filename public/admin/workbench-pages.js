@@ -996,8 +996,12 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 趋势折线图 + 竞品分品牌数据 -->
-      <div class="geo-row" id="geo-trend-row" style="margin-bottom:12px">
+      <!-- 对比横条卡 + 趋势折线图 -->
+      <div class="geo-row geo-compare-trend-row single" id="geo-trend-row" style="margin-bottom:12px">
+        <div class="geo-panel geo-compare-bars-panel" id="geo-compare-detail-panel" style="display:none">
+          <div class="gpnl-title">品牌 vs 竞品 对比</div>
+          <div id="geo-trend-chart" class="geo-compare-bars-body"><div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div></div>
+        </div>
         <div class="geo-panel" style="flex:2;min-width:0">
           <div style="margin-bottom:8px">
             <div class="gpnl-title" id="geo-trend-title" style="margin:0">可见性趋势</div>
@@ -1006,10 +1010,6 @@ const PAGE_RENDERERS = {
           <div id="geo-trend-legend" style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280;flex-wrap:wrap"></div>
           <canvas id="geo-trend-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
           <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
-        </div>
-        <div class="geo-panel" id="geo-compare-detail-panel" style="flex:1;min-width:280px">
-          <div class="gpnl-title">竞品分品牌数据</div>
-          <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
       </div>
 
@@ -1065,25 +1065,37 @@ const PAGE_RENDERERS = {
   'dashboard.geoSource': () => `
     <div class="page-header">
       <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">各 AI 模型引用的内容发布平台分布及占比</div></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="geo-source-model" onchange="geoLoadSourcePage()" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
+      <div class="geo-source-controls">
+        <select id="geo-source-scope" onchange="geoLoadSourcePage(1)">
+          <option value="all">整体</option>
+          <option value="official">联想官网</option>
+          <option value="leai">联想乐享</option>
+        </select>
+        <select id="geo-source-model" onchange="geoLoadSourcePage(1)">
           <option value="all">全平台</option>
           <option value="doubao">豆包</option>
           <option value="deepseek">DeepSeek</option>
           <option value="yuanbao">元宝</option>
           <option value="kimi">Kimi</option>
         </select>
-        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
+        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)">
+          <option value="10" selected>10条/页</option>
           <option value="20">20条/页</option>
           <option value="50">50条/页</option>
-          <option value="100" selected>100条/页</option>
+          <option value="100">100条/页</option>
         </select>
       </div>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line" id="geo-source-status">加载中...</div>
+      <div class="geo-source-head">
+        <div>
+          <div class="geo-source-title">GEO · 各平台信源分布</div>
+          <div class="geo-source-desc">AI 检索场景下的站点信源分布与占比</div>
+        </div>
+        <div class="geo-source-meta" id="geo-source-status">加载中...</div>
+      </div>
       <div id="geo-source-list"><div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">加载中...</div></div>
-      <div id="geo-source-pager" style="text-align:center;margin-top:12px"></div>
+      <div id="geo-source-pager"></div>
     </div>
   `,
 
@@ -1134,6 +1146,11 @@ const PAGE_RENDERERS = {
       <div class="geo-status-line" id="geo-conversion-status">待接口提供数据 · 数据T+1更新</div>
 
       <div class="geo-conv-section">
+        <div class="geo-conv-title">UV 趋势</div>
+        <div id="gc-uv-trend"><div class="geo-pending"><div class="geo-pending-title">UV 趋势待接口提供数据</div></div></div>
+      </div>
+
+      <div class="geo-conv-section">
         <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
         <div class="geo-interface-note">接口待提供：当前仅展示字段结构；访问、登录、注册、购买和乐享下单转化数据接入后替换占位。</div>
         <div class="geo-conv-grid">
@@ -1174,25 +1191,60 @@ const PAGE_RENDERERS = {
       </div>
 
       <div class="geo-conv-section">
-        <div class="geo-conv-title">GEO看板 · 联想官网（含全部 wiki 页面）</div>
-        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；UV 站点拆分、Top5 页面、销量/销售额拆分接入后替换占位。</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想官网UV</div><div class="gcc-val" id="gc-official-uv">--</div><div class="gcc-def">UV需包含全部 wiki 页面数据</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">联想首页UV</div><div class="gcc-val" id="gc-official-home-uv">--</div><div class="gcc-def">按站点拆分的联想首页访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">联想商城UV</div><div class="gcc-val" id="gc-official-shop-uv">--</div><div class="gcc-def">按站点拆分的联想商城访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">消费业务UV</div><div class="gcc-val" id="gc-official-c-uv">--</div><div class="gcc-def">按站点拆分的消费业务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">SMB业务UV</div><div class="gcc-val" id="gc-official-b-uv">--</div><div class="gcc-def">含企业购业务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">政企业务UV</div><div class="gcc-val" id="gc-official-biz-uv">--</div><div class="gcc-def">按站点拆分的政企业务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">服务UV</div><div class="gcc-val" id="gc-official-service-uv">--</div><div class="gcc-def">按站点拆分的服务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">其他UV</div><div class="gcc-val" id="gc-official-other-uv">--</div><div class="gcc-def">未归入上述站点的访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">消费商品销量</div><div class="gcc-val" id="gc-official-c-ca">--</div><div class="gcc-def">销量按消费商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">SMB商品销量</div><div class="gcc-val" id="gc-official-b-ca">--</div><div class="gcc-def">销量按SMB商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">政企商品销量</div><div class="gcc-val" id="gc-official-biz-ca">--</div><div class="gcc-def">销量按政企商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">消费商品销售额</div><div class="gcc-val" id="gc-official-c-gmv">--</div><div class="gcc-def">销售额按消费商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">SMB商品销售额</div><div class="gcc-val" id="gc-official-b-gmv">--</div><div class="gcc-def">销售额按SMB商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">政企商品销售额</div><div class="gcc-val" id="gc-official-biz-gmv">--</div><div class="gcc-def">销售额按政企商品拆分</div></div>
+        <div class="geo-conv-title">联想官网 · 总数看板</div>
+        <div class="geo-interface-note">接口待提供：UV 站点拆分、Top5 页面、销量/销售额总数及业务拆分接入后替换占位。</div>
+        <div class="geo-official-board">
+          <div class="geo-official-total-card">
+            <div class="gcc-label">总 UV（不含挂奖页面）</div>
+            <div class="gcc-val" id="gc-official-uv">--</div>
+            <div class="gcc-def">按被触点归属统计后的联想官网访问用户数</div>
+          </div>
+          <div class="geo-official-donut-card">
+            <div class="gcc-label">UV 按站点拆分</div>
+            <div class="geo-official-donut">
+              <div class="geo-donut-placeholder">待接口提供数据</div>
+              <div class="geo-donut-list">
+                <span>联想首页 <strong id="gc-official-home-uv">--</strong></span>
+                <span>联想商城 <strong id="gc-official-shop-uv">--</strong></span>
+                <span>消费业务 <strong id="gc-official-c-uv">--</strong></span>
+                <span>SMB业务 <strong id="gc-official-b-uv">--</strong></span>
+                <span>政企业务 <strong id="gc-official-biz-uv">--</strong></span>
+                <span>服务 <strong id="gc-official-service-uv">--</strong></span>
+                <span>其他 <strong id="gc-official-other-uv">--</strong></span>
+              </div>
+            </div>
+          </div>
+          <div class="geo-official-trend-card">
+            <div class="gcc-label">UV 趋势（不含挂奖页面）</div>
+            <div class="geo-pending compact">待接口提供数据</div>
+          </div>
+          <div class="geo-official-top-card">
+            <div class="gcc-label">用户访问 Top5 页面</div>
+            <div class="geo-conv-top-pages" id="gc-official-top-pages"></div>
+          </div>
+          <div class="geo-official-sales-card">
+            <div class="gcc-label">销量概览</div>
+            <div class="gcc-val" id="gc-official-total-ca">--</div>
+            <div class="geo-business-split"><span>消费商品 <strong id="gc-official-c-ca">--</strong></span><span>SMB商品 <strong id="gc-official-b-ca">--</strong></span><span>政企商品 <strong id="gc-official-biz-ca">--</strong></span></div>
+          </div>
+          <div class="geo-official-sales-card">
+            <div class="gcc-label">销售额概览（元）</div>
+            <div class="gcc-val" id="gc-official-total-gmv">--</div>
+            <div class="geo-business-split"><span>消费商品 <strong id="gc-official-c-gmv">--</strong></span><span>SMB商品 <strong id="gc-official-b-gmv">--</strong></span><span>政企商品 <strong id="gc-official-biz-gmv">--</strong></span></div>
+          </div>
         </div>
-        <div class="geo-conv-top-pages" id="gc-official-top-pages" style="margin-top:12px"></div>
+        <div class="geo-business-title">分业务模块</div>
+        <div class="geo-business-modules">
+          ${['消费业务','SMB业务（含企业购）','政企业务'].map((name, idx) => `
+            <div class="geo-business-module">
+              <div class="geo-business-name">${name}</div>
+              <div class="geo-business-line"><span>业务归属 UV</span><strong>待接口提供数据</strong></div>
+              <div class="geo-business-mini-chart">UV 趋势待接口提供数据</div>
+              <div class="geo-business-line"><span>业务 UV Top5 页面</span><strong>待接口提供数据</strong></div>
+              <div class="geo-business-line"><span>业务销量</span><strong>待接口提供数据</strong></div>
+              <div class="geo-business-line"><span>业务销售额（元）</span><strong>待接口提供数据</strong></div>
+            </div>`).join('')}
+        </div>
       </div>
     </div>
   `,
