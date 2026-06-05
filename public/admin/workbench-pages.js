@@ -1393,7 +1393,7 @@ const PAGE_RENDERERS = {
         </div>
         <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('tax')">
           <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-tax">422</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">个人所得税</div>
+          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">个人所得税视频认证</div>
           <div style="font-size:12px; color:var(--text-secondary);">18%</div>
         </div>
         <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('other')">
@@ -1545,7 +1545,7 @@ const PAGE_RENDERERS = {
             <option value="">认证方式 - 全部</option>
             <option value="email">企业邮箱</option>
             <option value="contract">劳动合同</option>
-            <option value="tax">个人所得税</option>
+            <option value="tax">个人所得税视频认证</option>
             <option value="other">其他材料</option>
           </select>
           <button class="btn btn-primary" onclick="loadCertificationTable()" style="padding:8px 24px; font-size:13px;">🔍 搜索</button>
@@ -1608,7 +1608,40 @@ const PAGE_RENDERERS = {
 
     const firstLetter = (cert.applicant_name || '-').charAt(0).toUpperCase();
     const applicantMasked = cert.applicant_name || '-';
-    const methodLabel = cert.method === 'email' ? '企业邮箱' : cert.method === 'contract' ? '劳动合同' : cert.method === 'tax' ? '个人所得税' : '其他材料';
+    const methodLabel = cert.method === 'email' ? '企业邮箱' : cert.method === 'contract' ? '劳动合同' : cert.method === 'tax' ? '个人所得税视频认证' : '其他材料';
+    const isTaxVideo = cert.method === 'tax';
+    const canModifyResult = cert.status === 'rejected' || cert.status === 'pending';
+    const materialCards = isTaxVideo ? `
+                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('${cert.method}', '▶')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
+                    <div style="font-size:34px;">▶</div>
+                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">个税APP任职受雇信息录屏.mp4</div>
+                  </div>
+                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('辅助职位证明', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
+                    <div style="font-size:34px;">📄</div>
+                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">辅助职位证明.jpg</div>
+                  </div>
+                ` : `
+                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('${cert.method}', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
+                    <div style="font-size:34px;">📄</div>
+                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">${cert.method === 'contract' ? '劳动合同.pdf' : '认证材料.pdf'}</div>
+                  </div>
+                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('在职证明', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
+                    <div style="font-size:34px;">📄</div>
+                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">在职证明.jpg</div>
+                  </div>
+                `;
+    const verificationItems = isTaxVideo ? `
+                  <label><input type="checkbox" checked/> 视频页面是否为「任职受雇信息」</label>
+                  <label><input type="checkbox" checked/> 姓名是否匹配</label>
+                  <label><input type="checkbox" checked/> 任职受雇企业名称是否匹配</label>
+                  <label><input type="checkbox" checked/> 任职状态是否有效</label>
+                  <label><input type="checkbox" checked/> 录屏视频是否清晰完整</label>
+                ` : `
+                  <label><input type="checkbox" checked/> 姓名是否匹配</label>
+                  <label><input type="checkbox" checked/> 企业名称是否匹配</label>
+                  <label><input type="checkbox" checked/> 有效期是否符合（六个月内）</label>
+                  <label><input type="checkbox" checked/> 印章是否清晰</label>
+                `;
 
     return `
       <div style="padding:20px;">
@@ -1697,27 +1730,20 @@ const PAGE_RENDERERS = {
               </div>
               <div style="padding:20px;">
                 <div style="color:var(--text-secondary); font-size:12px; margin-bottom:12px;">已上传材料：</div>
-                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px;">
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:40px; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('${cert.method}', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    📄
-                  </div>
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:40px; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('在职证明', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    📄
-                  </div>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px;">
+                  ${materialCards}
                 </div>
+                ${isTaxVideo ? `<div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-bottom:20px;">视频需展示个人所得税 APP「个人中心 - 任职受雇信息」页面，包含姓名、任职受雇公司和任职状态；如需证明具体岗位，可查看辅助职位材料。</div>` : ''}
 
                 <div style="color:var(--text-secondary); font-size:12px; margin-bottom:12px;">验证项：</div>
                 <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-                  <label><input type="checkbox" checked/> 姓名是否匹配</label>
-                  <label><input type="checkbox" checked/> 企业名称是否匹配</label>
-                  <label><input type="checkbox" checked/> 有效期是否符合（六个月内）</label>
-                  <label><input type="checkbox" checked/> 印章是否清晰</label>
+                  ${verificationItems}
                 </div>
               </div>
             </div>
 
             <!-- 状态修改操作 -->
-            <div class="card">
+            ${canModifyResult ? `<div class="card">
               <div class="card-header">
                 <span class="card-title">修改认证结果</span>
                 <span style="font-size:11px; color:var(--text-tertiary);">仅用于客服人工介入，将认证失败的用户改为认证成功</span>
@@ -1737,7 +1763,7 @@ const PAGE_RENDERERS = {
                   <button class="btn btn-secondary" onclick="switchPage('employee.certification')" style="flex:1;">取消</button>
                 </div>
               </div>
-            </div>
+            </div>` : ''}
           </div>
         </div>
       </div>

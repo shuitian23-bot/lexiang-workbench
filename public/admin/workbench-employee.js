@@ -326,6 +326,16 @@ function showEmployeeDetail(account) {
 let currentCertTab = 'rejected';
 let currentCertPage = 1;
 
+function getEmployeeCertMethodLabel(method) {
+  const labels = {
+    email: '企业邮箱',
+    contract: '劳动合同',
+    tax: '个人所得税视频认证',
+    other: '其他材料'
+  };
+  return labels[method] || method || '-';
+}
+
 function switchCertTab(status, btn) {
   currentCertTab = status;
   currentCertPage = 1;
@@ -352,13 +362,14 @@ function loadCertificationTable(page = 1) {
     const allCertifications = [
       // 认证失败（可由客服修改状态）
       { id: 'APP20260415001', applicant: '王五 (user005)', method: 'contract', created_at: '2026-04-15 14:30', status: 'rejected', company: '联想中国', position: '销售经理', fail_reason: 'OCR识别失败，合同信息模糊' },
-      { id: 'APP20260414008', applicant: '赵六 (user006)', method: 'tax', created_at: '2026-04-14 09:15', status: 'rejected', company: '联想集团', position: '运营专员', fail_reason: '个税截图信息不完整' },
+      { id: 'APP20260414008', applicant: '赵六 (user006)', method: 'tax', created_at: '2026-04-14 09:15', status: 'rejected', company: '联想集团', position: '运营专员', fail_reason: '个税 APP 录屏未完整展示任职受雇信息' },
       { id: 'APP20260410001', applicant: '周八 (user007)', method: 'contract', created_at: '2026-04-10 11:00', status: 'rejected', company: '联想集团', position: '人力资源', fail_reason: '合同照片不清晰' },
 
       // 认证成功
       { id: 'APP20260412001', applicant: '张三 (user001)', method: 'email', created_at: '2026-04-12 08:00', status: 'approved', company: '联想集团', position: '产品经理' },
       { id: 'APP20260411002', applicant: '李四 (user002)', method: 'email', created_at: '2026-04-11 14:30', status: 'approved', company: '联想集团', position: '技术总监' },
       { id: 'APP20260409003', applicant: '孙七 (user003)', method: 'contract', created_at: '2026-04-09 10:00', status: 'approved', company: '联想研究院', position: '工程师' },
+      { id: 'APP20260408006', applicant: '沈娴婷 (user009)', method: 'tax', created_at: '2026-04-08 15:20', status: 'approved', company: '无锡拈花湾文化旅游发展有限公司', position: 'AI 产品运营' },
 
       // 已失效
       { id: 'APP20250301001', applicant: '郑十 (user008)', method: 'email', created_at: '2025-03-01 10:20', status: 'expired', company: '联想集团', position: '市场专员' }
@@ -400,7 +411,7 @@ function loadCertificationTable(page = 1) {
         <td style="padding:12px;">${cert.applicant}</td>
         <td style="padding:12px;">
           <span style="display:inline-block; padding:3px 8px; border-radius:3px; background:rgba(16,185,129,0.1); color:#10b981; font-size:11px;">
-            ${cert.method === 'email' ? '企业邮箱' : cert.method === 'contract' ? '劳动合同' : cert.method === 'tax' ? '个人所得税' : '其他'}
+            ${getEmployeeCertMethodLabel(cert.method)}
           </span>
         </td>
         <td style="padding:12px; font-size:12px;">${cert.company || '-'}</td>
@@ -413,7 +424,7 @@ function loadCertificationTable(page = 1) {
         <td style="padding:12px;">
           ${cert.status === 'rejected'
             ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showCertDetailPage(this, '${cert.id}')" style="padding:4px 8px; font-size:12px; background:#10b981; border:none;">修改状态</button>`
-            : `<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); viewCertFromList(this, '${cert.applicant}')" style="padding:4px 8px; font-size:12px;">查看</button>`
+            : `<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); showCertDetailPage(this, '${cert.id}')" style="padding:4px 8px; font-size:12px;">查看</button>`
           }
         </td>
       </tr>
@@ -442,6 +453,8 @@ function showCertDetailPage(btn, certId) {
   try {
     const row = btn.closest('tr');
     const tds = row.querySelectorAll('td');
+    const methodText = tds[3]?.textContent?.trim() || '';
+    const statusText = tds[6]?.textContent?.trim() || '';
 
     // 从表格行提取数据
     const cert = {
@@ -449,14 +462,14 @@ function showCertDetailPage(btn, certId) {
       applicant: tds[2]?.textContent || '-',
       applicant_name: tds[2]?.textContent?.split('(')[0]?.trim() || '-',
       nickname: tds[2]?.textContent?.match(/\((.*?)\)/)?.[1] || '-',
-      method: certId.includes('contract') ? 'contract' : certId.includes('tax') ? 'tax' : 'email',
-      method_label: tds[3]?.textContent?.trim() || '企业邮箱',
+      method: methodText.includes('个人所得税') ? 'tax' : (methodText.includes('劳动合同') ? 'contract' : (methodText.includes('其他') ? 'other' : 'email')),
+      method_label: methodText || '企业邮箱',
       company: tds[4]?.textContent?.trim() || '-',
       created_at: tds[5]?.textContent?.trim() || '-',
-      status: 'rejected',
-      cert_type: '认证失败',
+      status: statusText.includes('认证成功') ? 'approved' : (statusText.includes('已失效') ? 'expired' : 'rejected'),
+      cert_type: statusText.includes('认证成功') ? '认证成功' : (statusText.includes('已失效') ? '已失效' : '认证失败'),
       real_name: tds[2]?.textContent?.split('(')[0]?.trim() || '-',
-      company: '联想（北京）有限公司',
+      company: tds[4]?.textContent?.trim() || '联想（北京）有限公司',
       position: '产品经理',
       lenovo_id: 'L' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0')
     };
@@ -834,7 +847,7 @@ function generateEmployeeData() {
   const firstNames = ['张', '李', '王', '赵', '孙', '周', '吴', '郑', '何', '朱', '陈', '杨', '黄', '刘', '高', '林', '贾', '史', '徐', '唐'];
   const lastNames = ['三', '四', '五', '六', '七', '八', '九', '十', '一', '二'];
   const statuses = ['approved', 'approved', 'approved', 'pending', 'rejected'];
-  const methods = ['企业邮箱', '劳动合同', '个人所得税', '其他材料'];
+  const methods = ['企业邮箱', '劳动合同', '个人所得税视频认证', '其他材料'];
   const methodEnums = ['email', 'contract', 'tax', 'other'];
 
   const positions = ['产品经理', '软件工程师', '市场专员', '销售经理', '运营专员', '人力资源', '财务分析师', '项目经理'];
@@ -882,10 +895,10 @@ function generateEmployeeData() {
       member_level: ['白银会员', '黄金会员', '钻石会员'][Math.floor(Math.random() * 3)],
       activation_status: Math.random() > 0.2 ? '已激活' : '未激活',
       vip_status: Math.random() > 0.7 ? '是' : '否',
-      cert_method: '企业邮箱',
+      cert_method: methods[methodIdx],
       cert_start_date: certDate.toISOString().split('T')[0],
       cert_end_date: new Date(certDate.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      cert_materials: ['劳动合同', '在职证明'],
+      cert_materials: methodEnums[methodIdx] === 'tax' ? ['个税APP任职受雇信息录屏', '辅助职位证明'] : ['劳动合同', '在职证明'],
       cert_verified: status === 'approved' ? '已验证' : '未验证'
     });
   }
@@ -1035,7 +1048,7 @@ async function showCertificationDetail(certId) {
         <div style="border-top:1px solid var(--border); padding-top:16px; margin-bottom:20px;">
           <div style="color:var(--text-secondary); font-size:12px; margin-bottom:8px;">材料认证</div>
           <div style="padding:12px; background:var(--bg); border-radius:4px; margin-bottom:8px;">
-            <div style="margin-bottom:4px;">方式: ${detail.material_method === 'email' ? '企业邮箱认证' : detail.material_method === 'contract' ? '劳动合同' : detail.material_method === 'tax' ? '个人所得税App' : '其他'}</div>
+            <div style="margin-bottom:4px;">方式: ${detail.material_method === 'email' ? '企业邮箱认证' : detail.material_method === 'contract' ? '劳动合同' : detail.material_method === 'tax' ? '个人所得税视频认证' : '其他'}</div>
             <div style="font-size:11px; color:var(--text-secondary);">状态: ${detail.material_status === 'approved' ? '✓ 已通过' : detail.material_status === 'rejected' ? '✗ 已驳回' : '⏳ 待审核'}</div>
           </div>
           ${detail.attachments && detail.attachments.length > 0 ? `
