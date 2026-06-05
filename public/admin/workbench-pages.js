@@ -936,7 +936,7 @@ const PAGE_RENDERERS = {
       <div class="geo-status-line" id="geo-status">加载中...</div>
       <div class="geo-context-line" id="geo-context-line">当前口径：加载中...</div>
       <div class="geo-interface-note" id="geo-overview-gap-note">
-        接口说明：当前外部接口暂不支持多品牌别名聚合、稳定覆盖意图按平台返回、分竞品指标/趋势；缺失部分将显示“待接口提供数据”。
+        接口说明：0605 已支持稳定意图、分竞品可见性趋势、wiki 引用累计和信源 page_size/brands；转化与分竞品推荐类指标未提供时显示“待接口提供数据”。
       </div>
 
       <!-- 对比视角 + 竞品选择器 -->
@@ -996,8 +996,12 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 趋势折线图 + 竞品分品牌数据 -->
-      <div class="geo-row" id="geo-trend-row" style="margin-bottom:12px">
+      <!-- 对比横条卡 + 趋势折线图 -->
+      <div class="geo-row geo-compare-trend-row single" id="geo-trend-row" style="margin-bottom:12px">
+        <div class="geo-panel geo-compare-bars-panel" id="geo-compare-detail-panel" style="display:none">
+          <div class="gpnl-title">品牌 vs 竞品 对比</div>
+          <div id="geo-trend-chart" class="geo-compare-bars-body"><div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div></div>
+        </div>
         <div class="geo-panel" style="flex:2;min-width:0">
           <div style="margin-bottom:8px">
             <div class="gpnl-title" id="geo-trend-title" style="margin:0">可见性趋势</div>
@@ -1006,10 +1010,6 @@ const PAGE_RENDERERS = {
           <div id="geo-trend-legend" style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#6b7280;flex-wrap:wrap"></div>
           <canvas id="geo-trend-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
           <div id="geo-trend-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
-        </div>
-        <div class="geo-panel" id="geo-compare-detail-panel" style="flex:1;min-width:280px">
-          <div class="gpnl-title">竞品分品牌数据</div>
-          <div id="geo-trend-chart" style="padding:8px 0"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
         </div>
       </div>
 
@@ -1065,25 +1065,37 @@ const PAGE_RENDERERS = {
   'dashboard.geoSource': () => `
     <div class="page-header">
       <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">各 AI 模型引用的内容发布平台分布及占比</div></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="geo-source-model" onchange="geoLoadSourcePage()" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
+      <div class="geo-source-controls">
+        <select id="geo-source-scope" onchange="geoLoadSourcePage(1)">
+          <option value="all">整体</option>
+          <option value="official">联想官网</option>
+          <option value="leai">联想乐享</option>
+        </select>
+        <select id="geo-source-model" onchange="geoLoadSourcePage(1)">
           <option value="all">全平台</option>
           <option value="doubao">豆包</option>
           <option value="deepseek">DeepSeek</option>
           <option value="yuanbao">元宝</option>
           <option value="kimi">Kimi</option>
         </select>
-        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)" style="padding:5px 10px;border-radius:14px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
+        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)">
+          <option value="10" selected>10条/页</option>
           <option value="20">20条/页</option>
           <option value="50">50条/页</option>
-          <option value="100" selected>100条/页</option>
+          <option value="100">100条/页</option>
         </select>
       </div>
     </div>
     <div class="geo-dark">
-      <div class="geo-status-line" id="geo-source-status">加载中...</div>
+      <div class="geo-source-head">
+        <div>
+          <div class="geo-source-title">GEO · 各平台信源分布</div>
+          <div class="geo-source-desc">AI 检索场景下的站点信源分布与占比</div>
+        </div>
+        <div class="geo-source-meta" id="geo-source-status">加载中...</div>
+      </div>
       <div id="geo-source-list"><div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">加载中...</div></div>
-      <div id="geo-source-pager" style="text-align:center;margin-top:12px"></div>
+      <div id="geo-source-pager"></div>
     </div>
   `,
 
@@ -1134,6 +1146,11 @@ const PAGE_RENDERERS = {
       <div class="geo-status-line" id="geo-conversion-status">待接口提供数据 · 数据T+1更新</div>
 
       <div class="geo-conv-section">
+        <div class="geo-conv-title">UV 趋势</div>
+        <div id="gc-uv-trend"><div class="geo-pending"><div class="geo-pending-title">UV 趋势待接口提供数据</div></div></div>
+      </div>
+
+      <div class="geo-conv-section">
         <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
         <div class="geo-interface-note">接口待提供：当前仅展示字段结构；访问、登录、注册、购买和乐享下单转化数据接入后替换占位。</div>
         <div class="geo-conv-grid">
@@ -1174,25 +1191,62 @@ const PAGE_RENDERERS = {
       </div>
 
       <div class="geo-conv-section">
-        <div class="geo-conv-title">GEO看板 · 联想官网（含全部 wiki 页面）</div>
-        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；UV 站点拆分、Top5 页面、销量/销售额拆分接入后替换占位。</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想官网UV</div><div class="gcc-val" id="gc-official-uv">--</div><div class="gcc-def">UV需包含全部 wiki 页面数据</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">联想首页UV</div><div class="gcc-val" id="gc-official-home-uv">--</div><div class="gcc-def">按站点拆分的联想首页访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">联想商城UV</div><div class="gcc-val" id="gc-official-shop-uv">--</div><div class="gcc-def">按站点拆分的联想商城访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">消费业务UV</div><div class="gcc-val" id="gc-official-c-uv">--</div><div class="gcc-def">按站点拆分的消费业务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">SMB业务UV</div><div class="gcc-val" id="gc-official-b-uv">--</div><div class="gcc-def">含企业购业务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">政企业务UV</div><div class="gcc-val" id="gc-official-biz-uv">--</div><div class="gcc-def">按站点拆分的政企业务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">服务UV</div><div class="gcc-val" id="gc-official-service-uv">--</div><div class="gcc-def">按站点拆分的服务访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">其他UV</div><div class="gcc-val" id="gc-official-other-uv">--</div><div class="gcc-def">未归入上述站点的访问用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">消费商品销量</div><div class="gcc-val" id="gc-official-c-ca">--</div><div class="gcc-def">销量按消费商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">SMB商品销量</div><div class="gcc-val" id="gc-official-b-ca">--</div><div class="gcc-def">销量按SMB商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">政企商品销量</div><div class="gcc-val" id="gc-official-biz-ca">--</div><div class="gcc-def">销量按政企商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">消费商品销售额</div><div class="gcc-val" id="gc-official-c-gmv">--</div><div class="gcc-def">销售额按消费商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">SMB商品销售额</div><div class="gcc-val" id="gc-official-b-gmv">--</div><div class="gcc-def">销售额按SMB商品拆分</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">政企商品销售额</div><div class="gcc-val" id="gc-official-biz-gmv">--</div><div class="gcc-def">销售额按政企商品拆分</div></div>
+        <div class="geo-conv-title">联想官网 · 总数看板</div>
+        <div class="geo-interface-note">接口待提供：UV 站点拆分、Top5 页面、销量/销售额总数及业务拆分接入后替换占位。</div>
+        <div class="geo-official-board">
+          <div class="geo-official-total-card">
+            <div class="gcc-label">总 UV（不含挂奖页面）</div>
+            <div class="gcc-val" id="gc-official-uv">--</div>
+            <div class="gcc-def">按被触点归属统计后的联想官网访问用户数</div>
+          </div>
+          <div class="geo-official-donut-card">
+            <div class="gcc-label">UV 按站点拆分</div>
+            <div class="geo-official-donut">
+              <div class="geo-donut-placeholder">待接口提供数据</div>
+              <div class="geo-donut-list">
+                <span>联想首页 <strong id="gc-official-home-uv">--</strong></span>
+                <span>联想商城 <strong id="gc-official-shop-uv">--</strong></span>
+                <span>消费业务 <strong id="gc-official-c-uv">--</strong></span>
+                <span>SMB业务 <strong id="gc-official-b-uv">--</strong></span>
+                <span>政企业务 <strong id="gc-official-biz-uv">--</strong></span>
+                <span>服务 <strong id="gc-official-service-uv">--</strong></span>
+                <span>其他 <strong id="gc-official-other-uv">--</strong></span>
+              </div>
+            </div>
+          </div>
+          <div class="geo-official-trend-card">
+            <div class="gcc-label">UV 趋势（不含挂奖页面）</div>
+            <div class="geo-pending compact">待接口提供数据</div>
+          </div>
+          <div class="geo-official-top-card">
+            <div class="gcc-label">用户访问 Top5 页面</div>
+            <div class="geo-conv-top-pages" id="gc-official-top-pages"></div>
+          </div>
+          <div class="geo-official-sales-card">
+            <div class="gcc-label">销量概览</div>
+            <div class="gcc-val" id="gc-official-total-ca">--</div>
+            <div class="geo-business-split"><span>消费商品 <strong id="gc-official-c-ca">--</strong></span><span>SMB商品 <strong id="gc-official-b-ca">--</strong></span><span>政企商品 <strong id="gc-official-biz-ca">--</strong></span></div>
+          </div>
+          <div class="geo-official-sales-card">
+            <div class="gcc-label">销售额概览（元）</div>
+            <div class="gcc-val" id="gc-official-total-gmv">--</div>
+            <div class="geo-business-split"><span>消费商品 <strong id="gc-official-c-gmv">--</strong></span><span>SMB商品 <strong id="gc-official-b-gmv">--</strong></span><span>政企商品 <strong id="gc-official-biz-gmv">--</strong></span></div>
+          </div>
         </div>
-        <div class="geo-conv-top-pages" id="gc-official-top-pages" style="margin-top:12px"></div>
+        <div class="geo-business-title">分业务模块</div>
+        <div class="geo-business-modules">
+          ${['消费业务','SMB业务（含企业购）','政企业务'].map((name, idx) => `
+            <div class="geo-business-module">
+              <div class="geo-business-name">${name}</div>
+              <div class="geo-business-grid">
+                <div><span>业务归属 UV</span><strong>待接口提供数据</strong></div>
+                <div><span>UV 趋势</span><strong>待接口提供数据</strong></div>
+                <div class="wide"><span>业务 UV Top5 页面</span><strong>待接口提供数据</strong></div>
+                <div><span>业务销量</span><strong>待接口提供数据</strong></div>
+                <div><span>业务销售额</span><strong>待接口提供数据</strong></div>
+              </div>
+            </div>`).join('')}
+        </div>
       </div>
     </div>
   `,
@@ -1352,54 +1406,54 @@ const PAGE_RENDERERS = {
     </div>
 
     <!-- KPI 卡片 -->
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;">
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('all')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">在职员工总数</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-total">2,847</div>
-        <div style="font-size:12px; opacity:0.8;">↑ 8% 较上月</div>
+    <div class="kpi-grid employee-kpi-grid">
+      <div class="kpi-card employee-kpi-card" onclick="filterAndNavigate('all')">
+        <div class="kpi-label">在职员工总数</div>
+        <div class="kpi-value" id="kpi-total">2,847</div>
+        <div class="kpi-sub"><span class="up">↑ 8%</span> 较上月</div>
       </div>
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('approved')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">已认证工数</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-approved">2,341</div>
-        <div style="font-size:12px; opacity:0.8;">82.3% 认证率</div>
+      <div class="kpi-card employee-kpi-card success" onclick="filterAndNavigate('approved')">
+        <div class="kpi-label">已认证工数</div>
+        <div class="kpi-value" id="kpi-approved">2,341</div>
+        <div class="kpi-sub">82.3% 认证率</div>
       </div>
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('rejected')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">已驳回工</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-rejected">45</div>
-        <div style="font-size:12px; opacity:0.8;">需重新认证</div>
+      <div class="kpi-card employee-kpi-card warning" onclick="filterAndNavigate('rejected')">
+        <div class="kpi-label">已驳回工</div>
+        <div class="kpi-value" id="kpi-rejected">45</div>
+        <div class="kpi-sub">需重新认证</div>
       </div>
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('pending')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">本月新增</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-pending">187</div>
-        <div style="font-size:12px; opacity:0.8;">↑ 15% 环比</div>
+      <div class="kpi-card employee-kpi-card purple" onclick="filterAndNavigate('pending')">
+        <div class="kpi-label">本月新增</div>
+        <div class="kpi-value" id="kpi-pending">187</div>
+        <div class="kpi-sub"><span class="up">↑ 15%</span> 环比</div>
       </div>
     </div>
 
     <!-- 认证方式分布 -->
-    <div class="card" style="margin-bottom:24px;">
+    <div class="card employee-method-card">
       <div class="card-header">
         <span class="card-title">认证方式分布</span>
       </div>
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:20px;">
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('email')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-email">1,051</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">企业邮箱</div>
-          <div style="font-size:12px; color:var(--text-secondary);">45%</div>
+      <div class="employee-method-grid">
+        <div class="employee-method-tile" onclick="filterByMethod('email')">
+          <div class="employee-method-value" id="method-email">1,051</div>
+          <div class="employee-method-label">企业邮箱</div>
+          <div class="employee-method-sub">45%</div>
         </div>
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('contract')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-contract">703</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">劳动合同</div>
-          <div style="font-size:12px; color:var(--text-secondary);">30%</div>
+        <div class="employee-method-tile success" onclick="filterByMethod('contract')">
+          <div class="employee-method-value" id="method-contract">703</div>
+          <div class="employee-method-label">劳动合同</div>
+          <div class="employee-method-sub">30%</div>
         </div>
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('tax')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-tax">422</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">个人所得税视频认证</div>
-          <div style="font-size:12px; color:var(--text-secondary);">18%</div>
+        <div class="employee-method-tile purple" onclick="filterByMethod('tax')">
+          <div class="employee-method-value" id="method-tax">422</div>
+          <div class="employee-method-label">个人所得税视频认证</div>
+          <div class="employee-method-sub">18%</div>
         </div>
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('other')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-other">165</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">其他材料</div>
-          <div style="font-size:12px; color:var(--text-secondary);">7%</div>
+        <div class="employee-method-tile gray" onclick="filterByMethod('other')">
+          <div class="employee-method-value" id="method-other">165</div>
+          <div class="employee-method-label">其他材料</div>
+          <div class="employee-method-sub">7%</div>
         </div>
       </div>
     </div>
@@ -1408,47 +1462,49 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="emp-ov-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-ov-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-ov-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <select id="emp-ov-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
+        <div class="employee-filter-row">
+          <input type="text" id="emp-ov-search-name" placeholder="姓名..."/>
+          <input type="text" id="emp-ov-search-position" placeholder="岗位信息..."/>
+          <input type="text" id="emp-ov-search-company" placeholder="所属企业..."/>
+          <select id="emp-ov-search-status">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
-          <input type="date" id="emp-ov-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <span style="color:var(--text-secondary); font-size:12px;">至</span>
-          <input type="date" id="emp-ov-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="date" id="emp-ov-date-start" title="认证时间起"/>
+          <span class="filter-separator">至</span>
+          <input type="date" id="emp-ov-date-end" title="认证时间止"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable()">搜索</button>
         </div>
       </div>
-      <table style="width:100%; font-size:12px;">
+      <div class="employee-table-wrap">
+      <table class="employee-data-table">
         <thead>
-          <tr style="border-bottom:1px solid var(--border); background:var(--bg);">
-            <th style="text-align:center; padding:12px; width:40px;"><input type="checkbox"/></th>
-            <th style="text-align:left; padding:12px;">账号</th>
-            <th style="text-align:left; padding:12px;">真实姓名</th>
-            <th style="text-align:left; padding:12px;">LenovoID</th>
-            <th style="text-align:left; padding:12px;">关联手机号</th>
-            <th style="text-align:left; padding:12px;">岗位信息</th>
-            <th style="text-align:left; padding:12px;">所属企业</th>
-            <th style="text-align:left; padding:12px;">职员认证状态</th>
-            <th style="text-align:left; padding:12px;">认证方式</th>
-            <th style="text-align:left; padding:12px;">认证时间</th>
-            <th style="text-align:left; padding:12px;">当前状态</th>
-            <th style="text-align:left; padding:12px;">操作</th>
+          <tr>
+            <th class="check-col"><input type="checkbox"/></th>
+            <th>账号</th>
+            <th>真实姓名</th>
+            <th>LenovoID</th>
+            <th>关联手机号</th>
+            <th>岗位信息</th>
+            <th>所属企业</th>
+            <th>职员认证状态</th>
+            <th>认证方式</th>
+            <th>认证时间</th>
+            <th>当前状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="emp-overview-tbody">
-          <tr><td colspan="13" style="text-align:center; padding:20px;">加载中...</td></tr>
+          <tr><td colspan="13" class="table-empty-cell">加载中...</td></tr>
         </tbody>
       </table>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-        <div style="color:var(--text-secondary); font-size:12px;">
+      </div>
+      <div class="employee-pagination">
+        <div>
           共 <span id="emp-overview-count">0</span> 条记录，当前第 <span id="emp-overview-page">1</span> 页，共 <span id="emp-overview-total-pages">1</span> 页
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="pagination-actions">
           <button id="emp-overview-prev-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable(Math.max(1, parseInt(document.getElementById('emp-overview-page').textContent) - 1))">上一页</button>
           <button id="emp-overview-next-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable(parseInt(document.getElementById('emp-overview-page').textContent) + 1)">下一页</button>
         </div>
@@ -1467,47 +1523,49 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="emp-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <select id="emp-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
+        <div class="employee-filter-row">
+          <input type="text" id="emp-search-name" placeholder="姓名..."/>
+          <input type="text" id="emp-search-position" placeholder="岗位信息..."/>
+          <input type="text" id="emp-search-company" placeholder="所属企业..."/>
+          <select id="emp-search-status">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
-          <input type="date" id="emp-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <span style="color:var(--text-secondary); font-size:12px;">至</span>
-          <input type="date" id="emp-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="date" id="emp-date-start" title="认证时间起"/>
+          <span class="filter-separator">至</span>
+          <input type="date" id="emp-date-end" title="认证时间止"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeList(1)">搜索</button>
         </div>
       </div>
-      <table style="width:100%; font-size:12px;">
+      <div class="employee-table-wrap">
+      <table class="employee-data-table">
         <thead>
-          <tr style="border-bottom:1px solid var(--border); background:var(--bg);">
-            <th style="text-align:center; padding:12px; width:40px;"><input type="checkbox"/></th>
-            <th style="text-align:left; padding:12px;">账号</th>
-            <th style="text-align:left; padding:12px;">真实姓名</th>
-            <th style="text-align:left; padding:12px;">LenovoID</th>
-            <th style="text-align:left; padding:12px;">关联手机号</th>
-            <th style="text-align:left; padding:12px;">岗位信息</th>
-            <th style="text-align:left; padding:12px;">所属企业</th>
-            <th style="text-align:left; padding:12px;">职员认证状态</th>
-            <th style="text-align:left; padding:12px;">认证方式</th>
-            <th style="text-align:left; padding:12px;">认证时间</th>
-            <th style="text-align:left; padding:12px;">当前状态</th>
-            <th style="text-align:left; padding:12px;">操作</th>
+          <tr>
+            <th class="check-col"><input type="checkbox"/></th>
+            <th>账号</th>
+            <th>真实姓名</th>
+            <th>LenovoID</th>
+            <th>关联手机号</th>
+            <th>岗位信息</th>
+            <th>所属企业</th>
+            <th>职员认证状态</th>
+            <th>认证方式</th>
+            <th>认证时间</th>
+            <th>当前状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="emp-list-tbody">
-          <tr><td colspan="13" style="text-align:center; padding:20px;">加载中...</td></tr>
+          <tr><td colspan="13" class="table-empty-cell">加载中...</td></tr>
         </tbody>
       </table>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-        <div style="color:var(--text-secondary); font-size:12px;">
+      </div>
+      <div class="employee-pagination">
+        <div>
           共 <span id="emp-total-count">0</span> 条记录，当前第 <span id="emp-current-page">1</span> 页，共 <span id="emp-total-pages">1</span> 页
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="pagination-actions">
           <button id="emp-prev-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeList(Math.max(1, parseInt(document.getElementById('emp-current-page').textContent) - 1))">上一页</button>
           <button id="emp-next-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeList(parseInt(document.getElementById('emp-current-page').textContent) + 1)">下一页</button>
         </div>
@@ -1518,70 +1576,82 @@ const PAGE_RENDERERS = {
   'employee.certification': () => `
     <div class="page-header">
       <div>
-        <div class="page-title">✓ 认证审核管理</div>
+        <div class="page-title">认证审核管理</div>
         <div class="page-desc">查看认证记录，对认证失败的用户可修改认证结果</div>
       </div>
     </div>
 
     <!-- 标签页 -->
-    <div style="display:flex; gap:0; margin-bottom:0; border-bottom:2px solid var(--border);">
-      <button class="tab-btn" data-status="rejected" onclick="switchCertTab('rejected', this)" style="padding:12px 24px; border:none; background:none; cursor:pointer; border-bottom:3px solid #ef4444; color:var(--text); font-size:14px;" id="tab-rejected">
-        <span>认证失败</span> <span style="color:var(--red);">(156)</span>
+    <div class="employee-cert-tabs">
+      <button class="tab-btn active" data-status="rejected" onclick="switchCertTab('rejected', this)" id="tab-rejected">
+        <span>认证失败</span> <span class="tab-count danger">(60)</span>
       </button>
-      <button class="tab-btn" data-status="approved" onclick="switchCertTab('approved', this)" style="padding:12px 24px; border:none; background:none; color:var(--text-secondary); cursor:pointer; border-bottom:3px solid transparent; font-size:14px;">
-        <span>认证成功</span> <span style="color:var(--green);">(2,341)</span>
+      <button class="tab-btn" data-status="approved" onclick="switchCertTab('approved', this)">
+        <span>认证成功</span> <span class="tab-count success">(645)</span>
       </button>
-      <button class="tab-btn" data-status="expired" onclick="switchCertTab('expired', this)" style="padding:12px 24px; border:none; background:none; color:var(--text-secondary); cursor:pointer; border-bottom:3px solid transparent; font-size:14px;">
-        <span>已失效</span> <span style="color:var(--text-tertiary);">(45)</span>
+      <button class="tab-btn" data-status="pending" onclick="switchCertTab('pending', this)">
+        <span>待审核</span> <span class="tab-count primary">(49)</span>
+      </button>
+      <button class="tab-btn" data-status="expired" onclick="switchCertTab('expired', this)">
+        <span>已失效</span> <span class="tab-count muted">(0)</span>
       </button>
     </div>
 
-    <div class="card" style="border-radius:0; border-top:2px solid var(--red);">
+    <div class="card employee-cert-card">
       <!-- 搜索过滤区 -->
-      <div style="padding:16px 20px; background:rgba(255,0,0,0.02); border-bottom:1px solid var(--border);">
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <input type="text" id="cert-search-no" placeholder="搜索申请编号/座号" style="flex:1; min-width:200px; padding:8px 12px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text); font-size:13px;"/>
-          <select id="cert-search-method" style="padding:8px 12px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text); font-size:13px;">
+      <div class="employee-cert-filter">
+        <div class="employee-cert-filter-grid">
+          <input type="text" id="cert-search-no" placeholder="搜索申请编号"/>
+          <input type="text" id="cert-search-company" placeholder="企业名称..."/>
+          <input type="text" id="cert-search-position" placeholder="岗位名称..."/>
+          <select id="cert-search-method">
             <option value="">认证方式 - 全部</option>
             <option value="email">企业邮箱</option>
             <option value="contract">劳动合同</option>
             <option value="tax">个人所得税视频认证</option>
             <option value="other">其他材料</option>
           </select>
-          <button class="btn btn-primary" onclick="loadCertificationTable()" style="padding:8px 24px; font-size:13px;">🔍 搜索</button>
+          <select id="cert-search-source">
+            <option value="">来源 - 全部</option>
+            <option value="online">线上</option>
+            <option value="offline">线下</option>
+          </select>
+          <button class="btn btn-primary" onclick="loadCertificationTable()">搜索</button>
         </div>
       </div>
 
       <!-- 认证列表表格 -->
-      <table style="width:100%;">
+      <div class="employee-table-wrap">
+      <table class="employee-cert-table">
         <thead>
-          <tr style="border-bottom:1px solid var(--border); background:var(--bg);">
-            <th style="text-align:center; padding:12px; font-size:12px; width:40px;">
-              <input type="checkbox" style="cursor:pointer;"/>
+          <tr>
+            <th class="check-col">
+              <input type="checkbox"/>
             </th>
-            <th style="text-align:left; padding:12px; font-size:12px;">申请编号</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">用户</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">认证方式</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">企业名称</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">认证时间</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">状态</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">操作</th>
+            <th>申请编号</th>
+            <th>用户</th>
+            <th>认证方式</th>
+            <th>企业名称</th>
+            <th>认证时间</th>
+            <th>状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="cert-list-tbody">
-          <tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-tertiary);">加载中...</td></tr>
+          <tr><td colspan="9" class="table-empty-cell">加载中...</td></tr>
         </tbody>
       </table>
+      </div>
 
       <!-- 分页 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-top:1px solid var(--border); font-size:12px;">
-        <div style="color:var(--text-secondary);">
+      <div class="employee-pagination in-card">
+        <div>
           共 <span id="cert-total-count">0</span> 条记录 | 第 <span id="cert-current-page">1</span> 页 / 共 <span id="cert-total-pages">1</span> 页
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="pagination-actions">
           <button class="btn btn-sm btn-secondary" onclick="loadCertificationTable(Math.max(1, parseInt(document.getElementById('cert-current-page').textContent) - 1))">上一页</button>
-          <span style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg);">
-            <input type="number" id="cert-page-input" value="1" style="width:40px; text-align:center; border:none; background:transparent; color:var(--text);" min="1"/>
+          <span class="page-input-wrap">
+            <input type="number" id="cert-page-input" value="1" min="1"/>
           </span>
           <button class="btn btn-sm btn-secondary" onclick="goToCertPage()">跳转</button>
           <button class="btn btn-sm btn-secondary" onclick="loadCertificationTable(parseInt(document.getElementById('cert-current-page').textContent) + 1)">下一页</button>
@@ -1590,11 +1660,11 @@ const PAGE_RENDERERS = {
     </div>
 
     <!-- 审核详情面板 -->
-    <div class="card" style="margin-top:24px;" id="cert-detail-card">
+    <div class="card employee-cert-detail-card" id="cert-detail-card">
       <div class="card-header">
         <span class="card-title">审核详情</span>
       </div>
-      <div style="padding:20px; text-align:center; color:var(--text-secondary); font-size:12px;">
+      <div class="employee-empty-detail">
         点击表格中的行查看详情
       </div>
     </div>
@@ -1612,22 +1682,22 @@ const PAGE_RENDERERS = {
     const isTaxVideo = cert.method === 'tax';
     const canModifyResult = cert.status === 'rejected' || cert.status === 'pending';
     const materialCards = isTaxVideo ? `
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('${cert.method}', '▶')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    <div style="font-size:34px;">▶</div>
-                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">个税APP任职受雇信息录屏.mp4</div>
+                  <div class="employee-material-tile" onclick="showMaterialPreview('${cert.method}', '▶')">
+                    <div class="employee-material-icon">▶</div>
+                    <div class="employee-material-name">个税APP任职受雇信息录屏.mp4</div>
                   </div>
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('辅助职位证明', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    <div style="font-size:34px;">📄</div>
-                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">辅助职位证明.jpg</div>
+                  <div class="employee-material-tile" onclick="showMaterialPreview('辅助职位证明', '📄')">
+                    <div class="employee-material-icon">📄</div>
+                    <div class="employee-material-name">辅助职位证明.jpg</div>
                   </div>
                 ` : `
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('${cert.method}', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    <div style="font-size:34px;">📄</div>
-                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">${cert.method === 'contract' ? '劳动合同.pdf' : '认证材料.pdf'}</div>
+                  <div class="employee-material-tile" onclick="showMaterialPreview('${cert.method}', '📄')">
+                    <div class="employee-material-icon">📄</div>
+                    <div class="employee-material-name">${cert.method === 'contract' ? '劳动合同.pdf' : '认证材料.pdf'}</div>
                   </div>
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('在职证明', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    <div style="font-size:34px;">📄</div>
-                    <div style="font-size:11px; color:var(--text-secondary); text-align:center; padding:0 8px;">在职证明.jpg</div>
+                  <div class="employee-material-tile" onclick="showMaterialPreview('在职证明', '📄')">
+                    <div class="employee-material-icon">📄</div>
+                    <div class="employee-material-name">在职证明.jpg</div>
                   </div>
                 `;
     const verificationItems = isTaxVideo ? `
@@ -1644,50 +1714,50 @@ const PAGE_RENDERERS = {
                 `;
 
     return `
-      <div style="padding:20px;">
-        <button class="btn btn-secondary" onclick="switchPage('employee.certification')" style="margin-bottom:20px;">← 返回列表</button>
+      <div class="employee-detail-page">
+        <button class="btn btn-secondary employee-back-btn" onclick="switchPage('employee.certification')">← 返回列表</button>
 
-        <div style="display:grid; grid-template-columns: 280px 1fr; gap:30px;">
+        <div class="employee-detail-layout">
           <!-- 左侧用户卡片 -->
-          <div class="card" style="height:fit-content; text-align:center;">
-            <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #3370ff, #06b6d4); color:#fff; font-size:40px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+          <div class="card employee-profile-card">
+            <div class="employee-avatar">
               ${firstLetter}
             </div>
-            <div style="font-size:18px; font-weight:600; margin-bottom:4px;">${cert.applicant_name}</div>
-            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">昵称：${cert.nickname || '-'}</div>
-            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">LenovoID：${cert.lenovo_id || '-'}</div>
+            <div class="employee-profile-name">${cert.applicant_name}</div>
+            <div class="employee-profile-meta">昵称：${cert.nickname || '-'}</div>
+            <div class="employee-profile-meta">LenovoID：${cert.lenovo_id || '-'}</div>
 
-            <div style="border-top:1px solid var(--border); padding-top:12px; font-size:12px;">
-              <div style="margin-bottom:8px;">申请时间：${cert.created_at}</div>
-              <div style="margin-bottom:8px;">申请类型：${cert.cert_type || '首次申请'}</div>
-              <div style="margin-top:8px;">
-                <span style="display:inline-block; padding:4px 8px; background:#3370ff08; color:#3370ff; border-radius:3px; font-size:11px;">
-                  ${cert.status === 'approved' ? '✓ 认证成功' : cert.status === 'rejected' ? '✗ 认证失败' : '已失效'}
+            <div class="employee-profile-info">
+              <div>申请时间：${cert.created_at}</div>
+              <div>申请类型：${cert.cert_type || '首次申请'}</div>
+              <div>
+                <span class="status-pill ${cert.status === 'approved' ? 'success' : cert.status === 'rejected' ? 'danger' : 'muted'}">
+                  ${cert.status === 'approved' ? '认证成功' : cert.status === 'rejected' ? '认证失败' : '已失效'}
                 </span>
               </div>
             </div>
           </div>
 
           <!-- 右侧信息区 -->
-          <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="employee-detail-stack">
             <!-- 申请基本信息 -->
             <div class="card">
               <div class="card-header">
                 <span class="card-title">申请基本信息</span>
               </div>
-              <div style="padding:20px;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px;">
+              <div class="employee-detail-section">
+                <div class="employee-info-grid">
                   <div>
-                    <div style="color:var(--text-secondary); margin-bottom:4px;">申请编号</div>
-                    <div style="font-weight:600;">${cert.id}</div>
+                    <div class="employee-field-label">申请编号</div>
+                    <div class="employee-field-value strong">${cert.id}</div>
                   </div>
                   <div>
-                    <div style="color:var(--text-secondary); margin-bottom:4px;">申请类型</div>
-                    <div>${cert.cert_type || '首次申请'}</div>
+                    <div class="employee-field-label">申请类型</div>
+                    <div class="employee-field-value">${cert.cert_type || '首次申请'}</div>
                   </div>
                   <div>
-                    <div style="color:var(--text-secondary); margin-bottom:4px;">认证方式</div>
-                    <div>${methodLabel}</div>
+                    <div class="employee-field-label">认证方式</div>
+                    <div class="employee-field-value">${methodLabel}</div>
                   </div>
                 </div>
               </div>
@@ -1698,27 +1768,27 @@ const PAGE_RENDERERS = {
               <div class="card-header">
                 <span class="card-title">用户信息审核</span>
               </div>
-              <div style="padding:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+              <div class="employee-detail-section">
+                <div class="employee-audit-row">
                   <div>
-                    <div style="font-weight:600;">真实姓名</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${cert.real_name || cert.applicant_name}</div>
+                    <div class="employee-field-value strong">真实姓名</div>
+                    <div class="employee-field-label">${cert.real_name || cert.applicant_name}</div>
                   </div>
-                  <div style="color:#34c724; font-size:14px;">✓ 与实名认证信息一致</div>
+                  <div class="employee-audit-pass">与实名认证信息一致</div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                <div class="employee-audit-row">
                   <div>
-                    <div style="font-weight:600;">企业信息</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${cert.company || '-'}</div>
+                    <div class="employee-field-value strong">企业信息</div>
+                    <div class="employee-field-label">${cert.company || '-'}</div>
                   </div>
-                  <div style="color:#34c724; font-size:14px;">✓ 已核实</div>
+                  <div class="employee-audit-pass">已核实</div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                <div class="employee-audit-row last">
                   <div>
-                    <div style="font-weight:600;">职位信息</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${cert.position || '-'}</div>
+                    <div class="employee-field-value strong">职位信息</div>
+                    <div class="employee-field-label">${cert.position || '-'}</div>
                   </div>
-                  <div style="color:#34c724; font-size:14px;">✓ 已核实</div>
+                  <div class="employee-audit-pass">已核实</div>
                 </div>
               </div>
             </div>
@@ -1728,15 +1798,15 @@ const PAGE_RENDERERS = {
               <div class="card-header">
                 <span class="card-title">认证材料审核</span>
               </div>
-              <div style="padding:20px;">
-                <div style="color:var(--text-secondary); font-size:12px; margin-bottom:12px;">已上传材料：</div>
-                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px;">
+              <div class="employee-detail-section">
+                <div class="employee-field-label">已上传材料：</div>
+                <div class="employee-material-grid">
                   ${materialCards}
                 </div>
-                ${isTaxVideo ? `<div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-bottom:20px;">视频需展示个人所得税 APP「个人中心 - 任职受雇信息」页面，包含姓名、任职受雇公司和任职状态；如需证明具体岗位，可查看辅助职位材料。</div>` : ''}
+                ${isTaxVideo ? `<div class="employee-helper-text">视频需展示个人所得税 APP「个人中心 - 任职受雇信息」页面，包含姓名、任职受雇公司和任职状态；如需证明具体岗位，可查看辅助职位材料。</div>` : ''}
 
-                <div style="color:var(--text-secondary); font-size:12px; margin-bottom:12px;">验证项：</div>
-                <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+                <div class="employee-field-label">验证项：</div>
+                <div class="employee-check-list">
                   ${verificationItems}
                 </div>
               </div>
@@ -1744,23 +1814,23 @@ const PAGE_RENDERERS = {
 
             <!-- 状态修改操作 -->
             ${canModifyResult ? `<div class="card">
-              <div class="card-header">
+              <div class="card-header employee-card-header">
                 <span class="card-title">修改认证结果</span>
-                <span style="font-size:11px; color:var(--text-tertiary);">仅用于客服人工介入，将认证失败的用户改为认证成功</span>
+                <span class="card-note">仅用于客服人工介入，将认证失败的用户改为认证成功</span>
               </div>
-              <div style="padding:20px;">
-                <div style="padding:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; margin-bottom:20px; font-size:12px; color:#b91c1c;">
-                  ⚠️ 此操作将直接变更用户认证状态为"认证成功"，请确认已核实用户身份信息。
+              <div class="employee-detail-section">
+                <div class="employee-alert warning">
+                  此操作将直接变更用户认证状态为「认证成功」，请确认已核实用户身份信息。
                 </div>
 
-                <div style="margin-bottom:20px;">
-                  <label style="display:block; color:var(--text-secondary); font-size:12px; margin-bottom:8px;">操作备注（必填）</label>
-                  <textarea id="cert-review-remark" style="width:100%; height:80px; padding:8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text); font-size:12px;" placeholder="请说明修改原因，如：用户重新提交了清晰的合同照片"></textarea>
+                <div class="employee-form-group">
+                  <label>操作备注（必填）</label>
+                  <textarea id="cert-review-remark" placeholder="请说明修改原因，如：用户重新提交了清晰的合同照片"></textarea>
                 </div>
 
-                <div style="display:flex; gap:8px;">
-                  <button class="btn btn-primary" onclick="submitCertReview('${cert.id}')" style="flex:1; background:#10b981; border:none;">✓ 变更为认证成功</button>
-                  <button class="btn btn-secondary" onclick="switchPage('employee.certification')" style="flex:1;">取消</button>
+                <div class="employee-action-row">
+                  <button class="btn btn-primary employee-review-action" onclick="submitCertReview('${cert.id}')">变更为认证成功</button>
+                  <button class="btn btn-secondary employee-review-action" onclick="switchPage('employee.certification')">取消</button>
                 </div>
               </div>
             </div>` : ''}

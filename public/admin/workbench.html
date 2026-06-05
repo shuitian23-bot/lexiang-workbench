@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-product="leaibot">
 <head>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260604-ai-remove-goal1">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260605-design-global4">
+<link rel="stylesheet" href="/admin/workbench-prd-modules.css?v=20260605-design-global4">
 </head>
 <body>
 
@@ -133,11 +134,17 @@ const STATE = {
 
 // ===== MENU DEFINITION =====
 const MENU_TREE = {
+  employee: {
+    icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
+      'employee.overview': { label: '概览' },
+      'employee.certification': { label: '认证审核' }
+    }
+  },
   dashboard: {
     icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
       'pipeline.annotate': { label: 'Query 分析' },
-	      'pipeline.quality': { label: '质量分析' },
+      'pipeline.quality': { label: '质量分析' },
       'ops.traffic': { label: '流量分析' },
       'ops.gmv': { label: 'GMV 分析' }
     }
@@ -151,10 +158,29 @@ const MENU_TREE = {
       'dashboard.geoKnowledge': { label: '手工上传知识' }
     }
   },
-  employee: {
-    icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
-      'employee.overview': { label: '概览' },
-      'employee.certification': { label: '认证审核' }
+  lead: {
+    icon: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 14l4 4m0 0l-4 4m4-4h-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>', label: '企业客户管理', children: {
+      'lead.dashboard': { label: '线索看板' },
+      'lead.pool': { label: '线索池' }
+    }
+  },
+  search: {
+    icon: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="5.5" stroke="currentColor" stroke-width="1.8"/><path d="M15 15l4.5 4.5M5 20h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>', label: '搜索后台', children: {
+      'search.categories': { label: '分类标签' },
+      'search.filters': { label: '筛选条件' },
+      'search.activity': { label: '活动直达' },
+      'search.express': { label: '直通车' },
+      'search.dictionary': { label: '词典管理' },
+      'search.box': { label: '搜索框管理' }
+    }
+  },
+  risk: {
+    icon: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 4.4-2.8 8-7 10-4.2-2-7-5.6-7-10V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>', label: '风控管理', children: {
+      'risk.overview': { label: '概况' },
+      'risk.strategy': { label: '策略' },
+      'risk.limit': { label: '限购' },
+      'risk.dpl': { label: 'DPL' },
+      'risk.data': { label: '数据查询' }
     }
   },
 };
@@ -219,7 +245,7 @@ async function loadUserContext() {
         STATE.visibleMenus.push('geo');
       }
       // 员工管理默认可见
-      if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
+      ['employee','lead','search','risk'].forEach(k => { if (!STATE.visibleMenus.includes(k)) STATE.visibleMenus.push(k); });
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
@@ -295,7 +321,7 @@ function renderSidebar() {
     html += `<div class="nav-item ${isActive ? 'active' : ''}" data-tip="${group.label}" onclick="toggleGroup('${key}')">
       <span class="ni">${group.icon}</span>
       <span>${group.label}</span>
-      <span class="arrow ${isOpen ? 'open' : ''}">▶</span>
+      <span class="arrow ${isOpen ? 'open' : ''}"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>`;
     html += `<div class="nav-sub ${isOpen ? 'open' : ''}">`;
     for (const [pageId, page] of children) {
@@ -344,8 +370,15 @@ function toggleGroup(key) {
   if (!group) return;
   const sub = group.querySelector('.nav-sub');
   const arrow = group.querySelector('.arrow');
-  sub.classList.toggle('open');
-  arrow.classList.toggle('open');
+  const willOpen = !sub.classList.contains('open');
+  document.querySelectorAll('.sidebar-nav .nav-sub.open').forEach(el => {
+    if (el !== sub) el.classList.remove('open');
+  });
+  document.querySelectorAll('.sidebar-nav .arrow.open').forEach(el => {
+    if (el !== arrow) el.classList.remove('open');
+  });
+  sub.classList.toggle('open', willOpen);
+  arrow.classList.toggle('open', willOpen);
 }
 
 
@@ -508,11 +541,12 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260605-employee-tax1"></script>
-<script src="/admin/workbench-geo.js?v=20260602-geo23"></script>
+<script src="/admin/workbench-pages.js?v=20260605-design-global4"></script>
+<script src="/admin/workbench-prd-modules.js?v=20260605-design-global4"></script>
+<script src="/admin/workbench-geo.js?v=20260605-geo0609"></script>
 <script src="/admin/workbench-ai.js?v=20260604-ai-remove-goal1"></script>
 <script src="/admin/workbench-data.js?v=20260602-geo23"></script>
-<script src="/admin/workbench-employee.js?v=20260605-employee-tax1"></script>
+<script src="/admin/workbench-employee.js?v=20260605-design-global4"></script>
 <script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
 <script src="/admin/workbench-report.js"></script>
 <script src="/admin/workbench-pipeline.js?v=20260520e"></script>
