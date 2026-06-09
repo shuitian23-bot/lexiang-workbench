@@ -17,7 +17,11 @@ from datetime import datetime
 # ===== 配置 =====
 WIKI_DIR = '/var/www/leaibot/wiki'
 DB_PATH = '/opt/projects/lexiang/lexiang.db'
-XLSX_PATH = '/root/downloads/agent_agent_item_profile_base_info_v2_20260319.xlsx'
+XLSX_PATH = os.environ.get('WIKI_XLSX_PATH', '/root/downloads/agent_agent_item_profile_base_info_v2_20260319.xlsx')
+# xlsx 是 2026-03-19 老快照(K70-05 等新 SKU 缺失, 旧价 ¥4599 vs 官网 ¥6299)
+# 设 WIKI_USE_DB=1 强制走 products 表(每日 fetch_real_prices 刷新, 含全部新品)
+if os.environ.get('WIKI_USE_DB', '').strip() in ('1', 'true', 'yes'):
+    XLSX_PATH = '/dev/null/never-exists'
 TODAY = datetime.now().strftime('%Y-%m-%d')
 
 # 受保护文件（不覆盖）

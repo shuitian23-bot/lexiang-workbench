@@ -197,6 +197,7 @@ async function run() {
   await step(10, T, 'wiki页面生成', async () => {
     const out = execSync('python3 /opt/projects/lexiang/scripts/gen_wiki_full.py', {
       timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+      env: { ...process.env, WIKI_USE_DB: '1' },  // 走 DB(每日真价), xlsx 03-19 老快照已不更
     });
     return `知识${pick(out, /新生成知识页:\s*([\d,]+)/)} 商品${pick(out, /新生成商品页:\s*([\d,]+)/)} 总${pick(out, /articles\.json:\s*([\d,]+)/)}`;
   }, 600000);
