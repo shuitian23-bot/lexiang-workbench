@@ -153,7 +153,8 @@ async function run() {
     let priceOut = '';
     try {
       priceOut = execSync('python3 /opt/projects/lexiang/scripts/fetch_real_prices.py', {
-        timeout: 600000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+        timeout: 1800000, encoding: 'utf-8', cwd: '/opt/projects/lexiang', stdio: 'pipe',
+        env: { ...process.env, FETCH_PRICE_FULL: '1' },  // 全量重抓修过期真价(K70 等), 价差>=3% 才更
       });
     } catch (e) { priceOut = '补真价失败'; }
     return `OpenAPI更新${pick(out, /(?:更新|入库|upsert)[^\d]*(\d+)/i)} 补真价${pick(priceOut, /补真价\s*(\d+)/)}`;
