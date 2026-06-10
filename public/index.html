@@ -4914,6 +4914,38 @@
         color: var(--lx-aubergine);
       }
 
+      .lx-bf-list { display: grid; margin-bottom: 10px; }
+      .lx-bf-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 9px 2px; border-bottom: 1px dashed var(--lx-border); }
+      .lx-bf-main { display: grid; gap: 2px; }
+      .lx-bf-main span { font-size: 12px; color: var(--lx-text-tertiary); }
+      .lx-bf-row b { white-space: nowrap; }
+      .lx-bf-row b.minus { color: var(--lx-brand-red); }
+      .lx-bf-row.final { border-bottom: none; border-top: 1px solid var(--lx-aubergine); margin-top: 2px; }
+      .lx-bf-row.final b { color: var(--lx-brand-red); font-size: 17px; }
+      .lx-cmp-wrap { overflow-x: auto; }
+      .lx-cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .lx-cmp-table th, .lx-cmp-table td { border: 1px solid var(--lx-border); padding: 7px 10px; text-align: left; vertical-align: top; }
+      .lx-cmp-table thead th { background: var(--lx-surface-muted); }
+      .lx-cmp-name { font-weight: 600; }
+      .lx-cmp-price { color: var(--lx-brand-red); font-weight: 700; }
+      .lx-cmp-label { color: var(--lx-text-secondary); white-space: nowrap; }
+      .lx-cmp-table tr.diff td { background: var(--lx-surface-hover); }
+      .lx-cmp-table tr.diff td:first-child { box-shadow: inset 3px 0 0 var(--lx-brand-red); }
+      .lx-md .lx-md-h { margin: 10px 0 4px; font-size: 14px; }
+      .lx-md .lx-md-p { margin: 6px 0; font-size: 13px; line-height: 1.7; }
+      .lx-md .lx-md-list { margin: 6px 0 6px 18px; font-size: 13px; line-height: 1.7; }
+      .lx-md-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0; }
+      .lx-md-table th, .lx-md-table td { border: 1px solid var(--lx-border); padding: 6px 8px; text-align: left; }
+      .lx-md-table thead th { background: var(--lx-surface-muted); }
+      .lx-sol-card { border: 1px solid var(--lx-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+      .lx-sol-card p { margin: 4px 0 6px; font-size: 13px; color: var(--lx-text-secondary); }
+      .lx-sol-items { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+      .lx-sol-item { font-size: 12px; color: var(--lx-aubergine); background: var(--lx-surface-muted); border-radius: 5px; padding: 3px 8px; }
+      .lx-p0-suggest { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .lx-p0-suggest-chip { border: 1px solid var(--lx-border); background: #fff; color: var(--lx-aubergine); border-radius: 999px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; }
+      .lx-p0-suggest-chip:hover { background: var(--lx-surface-hover); }
+      .portal-section.lx-nav-flash { outline: 2px solid var(--lx-brand-red); outline-offset: 6px; border-radius: 8px; }
+
       .lx-p1-upload-note {
         display: none;
         margin: 0 14px 8px;
@@ -6998,7 +7030,14 @@
               },
               coupon: () => { if (nonce === state.conversationNonce) openCouponCenter(); },
               member: () => { if (nonce === state.conversationNonce) openMemberCenter(); },
-              tradein: () => { if (nonce === state.conversationNonce) openModal("以旧换新", `<p class="lx-p0-disclaimer">旧机估值、补贴权益和换新推荐已接入联想乐享。可继续发送旧机型号、成色和购买新机目标。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`); },
+              tradein: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                const bodyHtml = payload.content
+                  ? mdLite(payload.content)
+                  : `<p class="lx-p0-disclaimer">旧机估值、补贴权益和换新推荐已接入联想乐享。可继续发送旧机型号、成色和购买新机目标。</p>`;
+                openModal(payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`);
+              },
               lead: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -7007,12 +7046,73 @@
               benefit: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
-                openModal(payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
+                const steps = Array.isArray(payload.waterfall) ? payload.waterfall : [];
+                if (!steps.length) {
+                  openModal(payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
+                  return;
+                }
+                const rows = steps.map((step) => {
+                  const minus = Number(step.amount) < 0;
+                  const amountText = `${minus ? "-" : ""}¥${Math.abs(Math.round(Number(step.amount) || 0)).toLocaleString()}`;
+                  return `<div class="lx-bf-row${step.kind === "base" ? " base" : ""}"><div class="lx-bf-main"><strong>${esc(step.label || "")}</strong>${step.reason ? `<span>${esc(step.reason)}</span>` : ""}</div><b class="${minus ? "minus" : ""}">${amountText}</b></div>`;
+                }).join("");
+                const finalRow = payload.final_price ? `<div class="lx-bf-row final"><div class="lx-bf-main"><strong>预计到手价</strong>${payload.discount_total ? `<span>共可省 ¥${Math.abs(Math.round(payload.discount_total)).toLocaleString()}</span>` : ""}</div><b>¥${Math.round(payload.final_price).toLocaleString()}</b></div>` : "";
+                openModal(payload.title || "AI 权益管家", `<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
               },
               solutions: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
-                openModal(payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`);
+                const list = Array.isArray(payload.solutions) ? payload.solutions : [];
+                if (!list.length) {
+                  openModal(payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`);
+                  return;
+                }
+                const cards = list.map((sol) => {
+                  const items = (sol.products || []).slice(0, 3).map((p) => `<span class="lx-sol-item">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</span>`).join("");
+                  return `<div class="lx-sol-card"><strong>${esc(sol.title || "")}</strong><p>${esc(sol.summary || "")}</p>${items ? `<div class="lx-sol-items">${items}</div>` : ""}${sol.cta_text ? `<div class="lx-p0-actions"><button class="lx-p0-btn" data-quick-ask="${esc(sol.cta_text)}（方案：${esc(sol.title || "")}）">${esc(sol.cta_text)}</button></div>` : ""}</div>`;
+                }).join("");
+                openModal(payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`);
+              },
+              modal: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                if (payload.error) {
+                  openModal(payload.title || "提示", `<p class="lx-p0-disclaimer">${esc(payload.error)}</p>`);
+                  return;
+                }
+                if (payload.type === "compare" && Array.isArray(payload.products) && payload.products.length >= 2) {
+                  openModal(payload.title || "商品参数对比", renderCompareTable(payload.products));
+                  return;
+                }
+                openModal(payload.title || "联想乐享", mdLite(payload.content || ""));
+              },
+              customize: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                const name = payload.product_name || "心仪机型";
+                openModal(`${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`);
+              },
+              nav: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                navigateToPortalSection(payload.target || "home");
+              },
+              thinking: () => {
+                if (nonce !== state.conversationNonce) return;
+                const head = $(".lx-generating-head", ai);
+                if (head) head.innerHTML = `<span class="lx-generating-orb"></span>深度思考中，正在权衡更稳妥的建议...`;
+              },
+              think_end: () => {
+                if (nonce !== state.conversationNonce) return;
+                const head = $(".lx-generating-head", ai);
+                if (head) head.innerHTML = `<span class="lx-generating-orb"></span>思考完成，正在组织回答...`;
+              },
+              suggestions: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                const list = Array.isArray(payload.suggestions) ? payload.suggestions.slice(0, 3) : [];
+                if (!list.length || !hasContent) return;
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
               },
               done: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7035,6 +7135,79 @@
           } finally {
             if (nonce === state.conversationNonce) state.sending = false;
           }
+        }
+
+        function mdLite(text) {
+          const src = String(text || "").replace(/\r/g, "");
+          const lines = src.split("\n");
+          const out = [];
+          let listOpen = false;
+          let tableRows = null;
+          const inline = (value) => esc(value).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>");
+          const flushList = () => { if (listOpen) { out.push("</ul>"); listOpen = false; } };
+          const flushTable = () => {
+            if (!tableRows || !tableRows.length) { tableRows = null; return; }
+            const head = tableRows[0];
+            const body = tableRows.slice(1);
+            out.push(`<table class="lx-md-table"><thead><tr>${head.map((cell) => `<th>${inline(cell)}</th>`).join("")}</tr></thead><tbody>${body.map((row) => `<tr>${row.map((cell) => `<td>${inline(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+            tableRows = null;
+          };
+          lines.forEach((line) => {
+            const trimmed = line.trim();
+            if (/^\|.*\|$/.test(trimmed)) {
+              const cells = trimmed.slice(1, -1).split("|").map((cell) => cell.trim());
+              if (cells.every((cell) => /^:?-{2,}:?$/.test(cell))) return;
+              (tableRows = tableRows || []).push(cells);
+              return;
+            }
+            flushTable();
+            if (!trimmed) { flushList(); return; }
+            if (/^#{1,4}\s+/.test(trimmed)) { flushList(); out.push(`<h4 class="lx-md-h">${inline(trimmed.replace(/^#{1,4}\s+/, ""))}</h4>`); return; }
+            if (/^[-•]\s+/.test(trimmed) || /^\d+[.、]\s+/.test(trimmed)) {
+              if (!listOpen) { out.push('<ul class="lx-md-list">'); listOpen = true; }
+              out.push(`<li>${inline(trimmed.replace(/^[-•]\s+/, "").replace(/^\d+[.、]\s+/, ""))}</li>`);
+              return;
+            }
+            flushList();
+            out.push(`<p class="lx-md-p">${inline(trimmed)}</p>`);
+          });
+          flushList();
+          flushTable();
+          return `<div class="lx-md">${out.join("")}</div>`;
+        }
+
+        function renderCompareTable(products) {
+          const keys = [];
+          const seen = new Set();
+          products.forEach((product) => Object.keys(product.specs || {}).forEach((key) => {
+            if (DETAIL_SPEC_SKIP_KEYS.has(key) || seen.has(key)) return;
+            seen.add(key);
+            keys.push(key);
+          }));
+          const headCells = products.map((product) => `<th><div class="lx-cmp-name">${esc(product.name)}</div><div class="lx-cmp-price">¥${Number(product.price || 0).toLocaleString()}</div></th>`).join("");
+          const bodyRows = keys.slice(0, 18).map((key) => {
+            const values = products.map((product) => String((product.specs || {})[key] ?? "—").trim());
+            const differs = new Set(values).size > 1;
+            return `<tr class="${differs ? "diff" : ""}"><td class="lx-cmp-label">${esc(DETAIL_SPEC_LABELS[key] || key)}</td>${values.map((value) => `<td>${esc(value)}</td>`).join("")}</tr>`;
+          }).join("");
+          return `<div class="lx-cmp-wrap"><table class="lx-cmp-table"><thead><tr><th class="lx-cmp-label">参数</th>${headCells}</tr></thead><tbody>${bodyRows}</tbody></table><p class="lx-p0-disclaimer">浅紫底纹为差异项。参数信息以商品详情页为准。</p></div>`;
+        }
+
+        function navigateToPortalSection(target) {
+          const sectionMap = { featured: "商品推荐", bestsellers: "热门推荐", solutions: "解决方案", news: "新闻中心", cases: "客户案例", cta: "底部导航" };
+          const goHome = document.querySelector('.main-nav [data-page="home"]');
+          if (goHome) goHome.click();
+          setTimeout(() => {
+            const section = sectionMap[target] ? document.querySelector(`.portal-section[aria-label="${sectionMap[target]}"]`) : null;
+            if (section) {
+              section.scrollIntoView({ behavior: "smooth", block: "start" });
+              section.classList.add("lx-nav-flash");
+              setTimeout(() => section.classList.remove("lx-nav-flash"), 2400);
+            } else {
+              document.querySelector(".content, body")?.scrollTo?.({ top: 0, behavior: "smooth" });
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }, 350);
         }
 
         async function readSse(response, handlers) {
