@@ -141,19 +141,111 @@ app.use('/', require('./routes/sitemap'));
 // 子站规则: 把商品归到 shop(个人及家庭)/b(中小企业)/biz(政教大企业)
 function siteWhereClause(site) {
   if (site === 'shop') return ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
-  if (site === 'b') return ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%开天%' OR name LIKE '%企业购%')))`;
-  if (site === 'biz') return ` AND category IN ('服务器','工作站','服务产品')`;
+  // b=中小企业普惠自助: ThinkPad/ThinkBook/扬天/瑞天 + 办公外设(PRD 5.8.7); 昭阳/开天/启天归 biz, 与 core/agent.js 子站提示词口径一致
+  if (site === 'b') return ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%扬天%' OR name LIKE '%瑞天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%扬天%' OR name LIKE '%瑞天%' OR name LIKE '%企业购%')))`;
+  if (site === 'biz') return ` AND (category IN ('服务器','工作站','服务产品') OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%启天%')`;
   return '';
 }
+function parseProductSpecs(specs) {
+  try {
+    return JSON.parse(specs || '{}') || {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeSpuName(name = '') {
+  return String(name)
+    .replace(/[【\[][^】\]]*(张凌赫|同款|拼团活动商品|家用办公|企业购|专业电竞|定制款|补贴|活动|国补)[^】\]]*[】\]]/g, '')
+    .replace(/\b(20\d{2}款|20\d{2}|新品|AI元启|至?尊版|酷睿版|锐龙版|标准版|Ultra版|Pro版|GT版|旗舰版)\b/gi, ' ')
+    .replace(/\b(\d+(\.\d+)?英寸|\d+(\.\d+)?寸|\d+(\.\d+)?[Kk]|[0-9]+Hz)\b/g, ' ')
+    .replace(/\b(\d+GB|\d+G|\d+TB|\d+T|\d+\+\d+G|\d+\+\d+GB|\d+\+\d+T|\d+\+\d+TB|[0-9]+GB\+[0-9]+GB|[0-9]+GB\+[0-9]+TB)\b/gi, ' ')
+    .replace(/\b(Windows\s*11|Android|Office\s*20\d{2}|RTX\s*\d+\w*|R[3579][- ]?\d+\w*|Ultra\s*\d+|i[3579][- ]?\d+\w*|骁龙\s*\w+)\b/gi, ' ')
+    .replace(/(深灰|深空灰|月蚀灰|冰魄白|银色|灰色|黑色|白色|蓝色|紫色|棉花糖白|天青色|月光银|续罗紫|日光映潮|鸽子灰|轻薄)/g, ' ')
+    .replace(/[｜|/（）()，,、:+\-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function getSpuKey(row) {
+  const specs = parseProductSpecs(row?.specs);
+  const candidates = [
+    specs.spu,
+    specs.spuId,
+    specs.spu_id,
+    specs.productSpu,
+    specs.product_spu,
+    specs.productModel,
+    specs.product_model,
+    specs.model,
+    specs.型号,
+    specs.系列,
+    specs.lvl5,
+    specs.lvl4,
+  ].filter(Boolean);
+  const explicit = candidates.find(v => {
+    const value = String(v).trim();
+    return value.length >= 3 && !/^(lenovo|lecoo|moto|手机|笔记本|台式机|服务|配件)$/i.test(value);
+  });
+  if (explicit) return `${row.category || ''}:${String(explicit).trim().toLowerCase()}`;
+  return `${row.category || ''}:${normalizeSpuName(row.name || row.sku || '') || row.sku || row.name || ''}`;
+}
+
+
+function buildPromotionTags(row) {
+  const name = row?.name || '';
+  const desc = row?.description || '';
+  const category = row?.category || '';
+  const text = `${name} ${desc}`;
+  const tags = [];
+  const push = tag => { if (tag && !tags.includes(tag) && tags.length < 2) tags.push(tag); };
+  if (/教育|学生|认证|校园/.test(text)) push('教育特惠');
+  if (/国补|国家补贴|补贴|政府补贴/.test(text)) push('国补优惠');
+  if (/券|优惠券/.test(text)) {
+    const coupon = text.match(/(\d{2,5})\s*元?优惠券/);
+    push(coupon ? `${coupon[1]}优惠券` : '优惠券');
+  }
+  const fullCut = text.match(/满\s*(\d{3,6})\s*减\s*(\d{2,5})/);
+  if (fullCut) push(`满${fullCut[1]}减${fullCut[2]}`);
+  if (/5折|五折|半价/.test(text)) push('5折券');
+  if (/以旧换新|换新/.test(text)) push('以旧换新');
+  if (/拼团/.test(text)) push('拼团优惠');
+  if (/会员/.test(text)) push('会员权益');
+  if (!tags.length && category === '笔记本电脑') push('教育特惠');
+  if (tags.length < 2 && Number(row?.original_price || 0) > Number(row?.price || 0)) push('限时优惠');
+  if (tags.length < 2) push(category === '服务产品' ? '官方服务' : '官方优惠');
+  return tags.slice(0, 2);
+}
+
+function collapseProductsToSpu(rows, limit) {
+  const groups = new Map();
+  for (const row of rows) {
+    const key = getSpuKey(row);
+    const current = groups.get(key);
+    if (!current || Number(row.price || 0) < Number(current.price || 0)) {
+      groups.set(key, row);
+    }
+  }
+  return Array.from(groups.values()).slice(0, limit).map(r => ({
+    ...r,
+    spu_key: getSpuKey(r),
+    promotion_tags: buildPromotionTags(r),
+    image_url: (r.image_url || '').replace(/^http:\/\//, 'https://')
+  }));
+}
+
+
 function classifySite(p) {
   const c = p.category || '', n = p.name || '';
   if (['服务器', '工作站', '服务产品'].includes(c)) return 'biz';
+  if (/昭阳|开天|启天/.test(n)) return 'biz';
   if (['打印机及配件', '显示器', '键鼠相关'].includes(c)) return 'b';
   if (c === '笔记本电脑') {
-    if (/ThinkPad|ThinkBook|昭阳|开天|企业购/.test(n)) return 'b';
+    if (/ThinkPad|ThinkBook|扬天|瑞天|企业购/.test(n)) return 'b';
     if (/小新|YOGA|拯救者|Lecoo|来酷/.test(n)) return 'shop';
   }
-  if (c === '台式机' && /ThinkCentre|开天|企业购/.test(n)) return 'b';
+  if (c === '台式机' && /ThinkCentre|扬天|瑞天|企业购/.test(n)) return 'b';
   if (['手机', '平板电脑', '耳机', '包袋'].includes(c)) return 'shop';
   return '';
 }
@@ -175,9 +267,9 @@ app.get('/api/products', (req, res) => {
       params.push(Math.round(src.price * 0.5), Math.round(src.price * 1.6));
     }
     params.push(src.price || 0, limit);
-    const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
+    const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category, specs
       FROM products WHERE ${simWhere} ORDER BY ABS(price - ?) ASC LIMIT ?`).all(...params);
-    return res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
+    return res.json(collapseProductsToSpu(rows, limit));
   }
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
   let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
@@ -188,17 +280,15 @@ app.get('/api/products', (req, res) => {
   const category = req.query.category;
   if (category) {
     where += ` AND category = ?`;
-  } else if (site === 'shop') {
-    where += ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
-  } else if (site === 'b') {
-    where += ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%开天%' OR name LIKE '%企业购%')))`;
-  } else if (site === 'biz') {
-    where += ` AND category IN ('服务器','工作站','服务产品')`;
+  } else if (site) {
+    // 与 siteWhereClause 单一口径, 避免两处 SQL 各改各的再次分叉
+    where += siteWhereClause(site);
   }
-  const params = category ? [category, limit] : [limit];
-  const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category
+  const queryLimit = Math.min(limit * 6, 100);
+  const params = category ? [category, queryLimit] : [queryLimit];
+  const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category, specs
     FROM products WHERE ${where} ORDER BY RANDOM() LIMIT ?`).all(...params);
-  res.json(rows.map(r => ({ ...r, image_url: (r.image_url || '').replace(/^http:\/\//, 'https://') })));
+  res.json(collapseProductsToSpu(rows, limit));
 });
 
 // 商品详情 API
