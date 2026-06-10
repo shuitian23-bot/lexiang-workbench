@@ -5112,6 +5112,7 @@
             <div class="menu-row active">我的服务</div>
             <div class="menu-row">我的社区</div>
             <div class="menu-row">会员中心</div>
+            <div class="menu-row">优化日志</div>
             <div class="menu-row">退出</div>
           </div>
         </div>
@@ -7719,6 +7720,7 @@
             if (menuRow) {
               const text = menuRow.textContent.trim();
               if (text.includes("退出")) logout();
+              else if (text.includes("优化日志")) window.open("/changelog.html", "_blank");
               else if (!state.user || text.includes("账号")) openLogin();
               else if (text.includes("会员")) openInfo("member");
               else if (text.includes("服务")) openInfo("service");
