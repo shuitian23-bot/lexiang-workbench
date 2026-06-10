@@ -4961,6 +4961,13 @@
       .lx-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lx-tab-close { border: none; background: transparent; color: var(--lx-text-tertiary); cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
       .lx-tab-close:hover { background: var(--lavender-hover); color: var(--lx-brand-red); }
+      .lx-ent-banner { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--lx-border); border-radius: 8px; background: var(--lx-surface-muted); font-size: 13px; }
+      .lx-ent-banner .lx-ent-text { flex: 1; color: var(--lx-text-secondary); }
+      .lx-ent-badge { flex: none; font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--lx-border); color: var(--lx-text-tertiary); background: #fff; }
+      .lx-ent-badge.ok { color: #1F7A4D; border-color: #BFE3D0; background: #F0FAF4; }
+      .lx-ent-badge.pending { color: var(--lx-aubergine); border-color: var(--lx-border); background: var(--lx-surface-hover); }
+      .lx-ent-status { font-size: 14px; margin-bottom: 10px; }
+      .lx-ent-status.ok strong { color: var(--lx-brand-red); }
 
       .lx-p1-upload-note {
         display: none;
@@ -5119,6 +5126,7 @@
             <div class="menu-row active">我的服务</div>
             <div class="menu-row">我的社区</div>
             <div class="menu-row">会员中心</div>
+            <div class="menu-row">企业认证</div>
             <div class="menu-row">优化日志</div>
             <div class="menu-row">退出</div>
           </div>
@@ -7204,6 +7212,66 @@
           }
         }
 
+        // ── 企业账户认证 mock（PRD 5.8.1/5.13.1：认证是企业专享价/对公能力前置，POC 状态机）──
+        const LX_ENT_KEY = "lexiang.enterprise.v1";
+        const LX_ENT_REVIEW_MS = 12000;
+
+        function lxEntState() {
+          try {
+            const raw = JSON.parse(localStorage.getItem(LX_ENT_KEY) || "null");
+            const ent = raw && typeof raw === "object" ? raw : { status: "none" };
+            if (ent.status === "pending" && ent.submittedAt && Date.now() - ent.submittedAt > LX_ENT_REVIEW_MS) {
+              ent.status = "verified";
+              localStorage.setItem(LX_ENT_KEY, JSON.stringify(ent));
+            }
+            return ent;
+          } catch { return { status: "none" }; }
+        }
+
+        function lxSaveEntState(ent) {
+          try { localStorage.setItem(LX_ENT_KEY, JSON.stringify(ent)); } catch {}
+          lxRenderEnterpriseBanner();
+        }
+
+        function openEnterpriseAuth() {
+          const ent = lxEntState();
+          if (ent.status === "verified") {
+            openModal("企业账户已认证", `<div class="lx-ent-status ok"><strong>${esc(ent.company || "贵公司")}</strong> 已通过企业采购负责人认证</div><ul class="lx-md-list"><li>企业专享价与采购补贴已生效</li><li>支持对公付款、增值税专票与企业账期咨询</li><li>专属客服与轻量定制方案通道已开通</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="以企业身份帮我推荐办公采购方案并说明专享权益">看企业专享推荐</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线将对接联想企业购实名核验。</p>`);
+            return;
+          }
+          if (ent.status === "pending") {
+            openModal("企业认证审核中", `<div class="lx-ent-status pending">「${esc(ent.company || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境审核约 10 秒自动完成；正式环境为 1-2 个工作日，结果会在本页面与账号菜单回显。</p>`);
+            return;
+          }
+          openModal("企业采购负责人认证", `
+            <p class="lx-p0-disclaimer">认证后解锁企业专享价、采购补贴、对公付款与专票账期等权益。</p>
+            <input class="lx-p0-field" id="lxEntCompany" placeholder="企业/机构名称（必填）">
+            <input class="lx-p0-field" id="lxEntCode" placeholder="统一社会信用代码（选填）">
+            <input class="lx-p0-field" id="lxEntContact" placeholder="采购负责人姓名和电话">
+            <div class="lx-p0-actions"><button class="lx-p0-btn primary" data-ent-submit>提交认证</button></div>`);
+        }
+
+        function lxRenderEnterpriseBanner() {
+          const isEnt = state.page === "business" || state.page === "enterprise";
+          let banner = document.querySelector(".lx-ent-banner");
+          if (!isEnt) { if (banner) banner.hidden = true; return; }
+          if (!banner) {
+            banner = document.createElement("div");
+            banner.className = "lx-ent-banner";
+            document.querySelector(".category-tabs")?.before(banner);
+          }
+          if (!banner.parentElement) return;
+          banner.hidden = false;
+          const ent = lxEntState();
+          if (ent.status === "verified") {
+            banner.innerHTML = `<span class="lx-ent-badge ok">已认证</span><span class="lx-ent-text"><strong>${esc(ent.company || "企业账户")}</strong> 企业专享价与对公服务已生效</span><button class="lx-p0-btn" type="button" data-open-ent>查看权益</button>`;
+          } else if (ent.status === "pending") {
+            banner.innerHTML = `<span class="lx-ent-badge pending">审核中</span><span class="lx-ent-text">企业认证审核中，通过后自动解锁企业专享价</span><button class="lx-p0-btn" type="button" data-open-ent>查看进度</button>`;
+          } else {
+            banner.innerHTML = `<span class="lx-ent-badge">未认证</span><span class="lx-ent-text">完成企业采购负责人认证，解锁企业专享价、补贴与对公专票账期</span><button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
+          }
+        }
+
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业" };
 
@@ -7697,6 +7765,7 @@
               state.page = page;
               if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
               setTimeout(loadProductsForPage, 0);
+              setTimeout(lxRenderEnterpriseBanner, 0);
             }
 
             const tabHit = event.target.closest("[data-tab-close], [data-tab-id]");
@@ -7813,6 +7882,7 @@
             if (menuRow) {
               const text = menuRow.textContent.trim();
               if (text.includes("退出")) logout();
+              else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优化日志")) window.open("/changelog.html", "_blank");
               else if (!state.user || text.includes("账号")) openLogin();
               else if (text.includes("会员")) openInfo("member");
@@ -7895,6 +7965,30 @@
                 }).then(() => toast("需求已提交，顾问会尽快与您联系")).catch(() => {});
               }
               sendChat(`请整理企业/政企线索并给下一步对接建议。企业：${company || "未填写"}；需求：${need || "未填写"}；联系人：${contact || "未填写"}`);
+            }
+            if (event.target.closest("[data-open-ent]")) openEnterpriseAuth();
+            if (event.target.closest("[data-ent-submit]")) {
+              const company = $("#lxEntCompany")?.value.trim();
+              const code = $("#lxEntCode")?.value.trim();
+              const contact = $("#lxEntContact")?.value.trim();
+              if (!company) { toast("请填写企业/机构名称"); }
+              else {
+                lxSaveEntState({ status: "pending", company, code, contact, submittedAt: Date.now() });
+                closeModal();
+                toast("认证资料已提交，审核中");
+                fetch("/api/leads", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ scenario: "enterprise_auth", site_type: API_SITE[state.page] || "default", company, contact, need: `企业认证申请${code ? "，信用代码：" + code : ""}`, conv_id: state.convId || null })
+                }).catch(() => {});
+                setTimeout(() => {
+                  const ent = lxEntState();
+                  if (ent.status === "verified") {
+                    lxRenderEnterpriseBanner();
+                    toast("企业认证已通过，企业专享权益已生效");
+                  }
+                }, LX_ENT_REVIEW_MS + 500);
+              }
             }
             if (event.target.closest("[data-open-login]")) openLogin();
             if (event.target.closest("[data-send-code]")) sendCode();
