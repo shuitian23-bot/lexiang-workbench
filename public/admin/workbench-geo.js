@@ -91,6 +91,9 @@ function geoSiteLogoHtml(domain = '', name = '') {
   const d = String(domain || '').replace(/^https?:\/\//, '').split('/')[0];
   const fallback = geoEscape(String(name || d || '?').trim().slice(0, 1).toUpperCase() || '?');
   if (!d) return `<span class="geo-site-logo fallback">${fallback}</span>`;
+  if (/lenovo\.(com|com\.cn|cn)$/i.test(d) || d.includes('.lenovo.')) {
+    return `<span class="geo-site-logo"><img src="assets/logo-icon.png" alt=""></span>`;
+  }
   const url = `https://www.google.com/s2/favicons?sz=32&domain_url=https://${encodeURIComponent(d)}`;
   return `<span class="geo-site-logo" data-fallback="${fallback}">
     <img src="${url}" alt="" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent=this.parentElement.dataset.fallback||'?'">

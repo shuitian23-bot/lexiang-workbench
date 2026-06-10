@@ -250,7 +250,7 @@ async function loadEmployeeList(page = 1) {
 
     const tbody = document.getElementById('emp-list-tbody');
     if (!paginatedData || paginatedData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:20px; color:var(--text-tertiary);">暂无员工数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="13" class="table-empty-cell">暂无员工数据</td></tr>';
       document.getElementById('emp-total-count').textContent = '0';
       document.getElementById('emp-current-page').textContent = '1';
       return;
@@ -271,36 +271,36 @@ async function loadEmployeeList(page = 1) {
   } catch (e) {
     console.error('✗ 加载员工列表失败:', e);
     const tbody = document.getElementById('emp-list-tbody');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:20px; color:#ef4444; font-weight:bold;">加载失败: ${e.message || '未知错误'}</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="13" class="table-empty-cell error">加载失败: ${e.message || '未知错误'}</td></tr>`;
   }
 }
 
 // ===== 统一表格行渲染函数 =====
 function renderEmployeeRow(emp) {
-  const statusColor = emp.status === 'approved' ? '#10b981' : emp.status === 'pending' ? '#f59e0b' : '#ef4444';
+  const statusClass = emp.status === 'approved' ? 'success' : emp.status === 'pending' ? 'warning' : 'danger';
   return `
-    <tr style="border-bottom:1px solid var(--border-light); height:44px; cursor:pointer;" onclick="showEmpDetail('${emp.account || ''}')">
-      <td style="text-align:center; padding:12px;"><input type="checkbox"/></td>
-      <td style="padding:12px; font-family:monospace; font-size:12px;">${emp.account || '-'}</td>
-      <td style="padding:12px; font-size:12px;">${emp.real_name || '-'}</td>
-      <td style="padding:12px; font-size:12px;">${emp.lenovo_id || '-'}</td>
-      <td style="padding:12px; font-size:12px;">${emp.phone || '-'}</td>
-      <td style="padding:12px; font-size:12px;">${emp.position || '-'}</td>
-      <td style="padding:12px; font-size:12px;">${emp.company || '-'}</td>
-      <td style="padding:12px;">
-        <span style="display:inline-block; padding:2px 6px; border-radius:3px; background:rgba(16,185,129,0.1); color:#10b981; font-size:11px;">
+    <tr class="employee-table-row" onclick="showEmpDetail('${emp.account || ''}')">
+      <td class="check-col"><input type="checkbox"/></td>
+      <td class="mono-cell">${emp.account || '-'}</td>
+      <td>${emp.real_name || '-'}</td>
+      <td>${emp.lenovo_id || '-'}</td>
+      <td>${emp.phone || '-'}</td>
+      <td>${emp.position || '-'}</td>
+      <td>${emp.company || '-'}</td>
+      <td>
+        <span class="status-pill primary">
           ${emp.dept_status || '-'}
         </span>
       </td>
-      <td style="padding:12px; font-size:12px;">${emp.material_method || '-'}</td>
-      <td style="padding:12px; font-size:12px;">${emp.cert_time || '-'}</td>
-      <td style="padding:12px;">
-        <span style="display:inline-block; padding:2px 6px; border-radius:3px; background:rgba(16,185,129,0.1); color:${statusColor}; font-size:11px;">
+      <td>${emp.material_method || '-'}</td>
+      <td>${emp.cert_time || '-'}</td>
+      <td>
+        <span class="status-pill ${statusClass}">
           ${emp.current_status || '-'}
         </span>
       </td>
-      <td style="padding:12px;">
-        <button class="btn btn-sm btn-secondary" onclick="showEmployeeDetail('${emp.account}')" style="padding:4px 8px; font-size:11px;">查看详情</button>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="showEmployeeDetail('${emp.account}')">查看详情</button>
       </td>
     </tr>
   `;
@@ -330,13 +330,11 @@ function switchCertTab(status, btn) {
   currentCertTab = status;
   currentCertPage = 1;
 
-  // 更新标签页按钮样式
+  // 更新标签页按钮状态，视觉样式交给 CSS，避免内联样式覆盖设计规范。
   document.querySelectorAll('.tab-btn').forEach(b => {
-    b.style.borderBottomColor = 'transparent';
-    b.style.color = 'var(--text-secondary)';
+    b.classList.remove('active');
   });
-  btn.style.borderBottomColor = '#ef4444';
-  btn.style.color = 'var(--text)';
+  btn.classList.add('active');
 
   // 重新加载表格
   loadCertificationTable(1);
@@ -383,37 +381,37 @@ function loadCertificationTable(page = 1) {
     // 渲染表格
     const tbody = document.getElementById('cert-list-tbody');
     if (!paginatedData || paginatedData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-tertiary);">暂无数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="table-empty-cell">暂无数据</td></tr>';
       document.getElementById('cert-total-count').textContent = '0';
       document.getElementById('cert-current-page').textContent = '1';
       document.getElementById('cert-total-pages').textContent = '1';
       return;
     }
 
-    const statusLabels = { approved: '✓ 认证成功', rejected: '✗ 认证失败', expired: '已失效' };
-    const statusColors = { approved: '#10b981', rejected: '#ef4444', expired: '#9ca3af' };
+    const statusLabels = { approved: '认证成功', rejected: '认证失败', pending: '待审核', expired: '已失效' };
+    const statusClasses = { approved: 'success', rejected: 'danger', pending: 'warning', expired: 'muted' };
 
     tbody.innerHTML = paginatedData.map(cert => `
-      <tr style="border-bottom:1px solid var(--border-light); height:44px; cursor:pointer;" onclick="showCertDetail('${cert.id}')">
-        <td style="text-align:center; padding:12px;"><input type="checkbox" style="cursor:pointer;"/></td>
-        <td style="padding:12px; font-family:monospace; font-size:12px;">${cert.id}</td>
-        <td style="padding:12px;">${cert.applicant}</td>
-        <td style="padding:12px;">
-          <span style="display:inline-block; padding:3px 8px; border-radius:3px; background:rgba(16,185,129,0.1); color:#10b981; font-size:11px;">
+      <tr class="employee-table-row" onclick="showCertDetail('${cert.id}')">
+        <td class="check-col"><input type="checkbox"/></td>
+        <td class="mono-cell">${cert.id}</td>
+        <td>${cert.applicant}</td>
+        <td>
+          <span class="status-pill ${cert.method === 'tax' ? 'purple' : cert.method === 'contract' ? 'success' : 'primary'}">
             ${cert.method === 'email' ? '企业邮箱' : cert.method === 'contract' ? '劳动合同' : cert.method === 'tax' ? '个人所得税' : '其他'}
           </span>
         </td>
-        <td style="padding:12px; font-size:12px;">${cert.company || '-'}</td>
-        <td style="padding:12px; font-size:12px;">${cert.created_at}</td>
-        <td style="padding:12px;">
-          <span style="display:inline-block; padding:3px 8px; border-radius:3px; font-size:11px; color:${statusColors[cert.status]};">
+        <td>${cert.company || '-'}</td>
+        <td>${cert.created_at}</td>
+        <td>
+          <span class="status-pill ${statusClasses[cert.status] || 'muted'}">
             ${statusLabels[cert.status] || '-'}
           </span>
         </td>
-        <td style="padding:12px;">
+        <td>
           ${cert.status === 'rejected'
-            ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showCertDetailPage(this, '${cert.id}')" style="padding:4px 8px; font-size:12px; background:#10b981; border:none;">修改状态</button>`
-            : `<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); viewCertFromList(this, '${cert.applicant}')" style="padding:4px 8px; font-size:12px;">查看</button>`
+            ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showCertDetailPage(this, '${cert.id}')">修改状态</button>`
+            : `<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); viewCertFromList(this, '${cert.applicant}')">查看</button>`
           }
         </td>
       </tr>
@@ -680,7 +678,7 @@ function loadEmployeeOverviewTable(page = 1) {
     }
 
     if (!paginatedData || paginatedData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:20px; color:var(--text-tertiary);">暂无员工数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="13" class="table-empty-cell">暂无员工数据</td></tr>';
       document.getElementById('emp-overview-count').textContent = '0';
       document.getElementById('emp-overview-page').textContent = '1';
       document.getElementById('emp-overview-total-pages').textContent = '1';
@@ -704,7 +702,7 @@ function loadEmployeeOverviewTable(page = 1) {
   } catch (e) {
     console.error('✗ 加载员工列表失败:', e);
     const tbody = document.getElementById('emp-overview-tbody');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:20px; color:#ef4444; font-weight:bold;">加载失败: ${e.message || '未知错误'}</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="13" class="table-empty-cell error">加载失败: ${e.message || '未知错误'}</td></tr>`;
   }
 }
 

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-product="leaibot">
 <head>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260605-geo0606">
-<style id="workbench-critical-css">body{margin:0;background:#f5f6f7;color:#1f2329;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;height:100vh;display:flex;overflow:hidden;font-size:14px}*{box-sizing:border-box}#login-screen{position:fixed;inset:0;z-index:9999;background:#fff;display:flex;align-items:center;justify-content:center}.login-card{width:400px;padding:48px 40px}.form-input{width:100%;height:40px;border:1px solid #dee0e3;border-radius:8px;padding:0 12px;font-size:14px}.btn,.login-btn,.ai-header-action,.ai-skill-entry,.ai-send{font-family:inherit;border-radius:8px}.sidebar{width:240px;background:#fff;border-right:1px solid #e5e6eb;display:flex;flex-direction:column}.main{flex:1;min-width:0;display:flex;flex-direction:column}.topbar{height:56px;background:#fff;border-bottom:1px solid #e5e6eb;display:flex;align-items:center;justify-content:space-between;padding:0 20px}.ai-panel{width:20vw;min-width:280px;max-width:60vw;background:#fff;border-left:1px solid #e5e6eb;display:flex;flex-direction:column;height:100vh}.ai-panel-header{padding:12px 16px;border-bottom:1px solid #e5e6eb;display:flex;justify-content:flex-end;flex-shrink:0}.ai-panel-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;width:100%}.ai-messages{flex:1;overflow-y:auto;padding:12px 10px}.ai-msg .bubble{background:#fff;border:1px solid #e5e6eb;border-radius:12px;padding:14px 16px;line-height:1.7}.ai-shortcuts{padding:8px 14px 6px;display:flex;flex-wrap:nowrap;gap:8px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;background:#fff;scrollbar-width:none;-webkit-overflow-scrolling:touch}.ai-shortcuts::-webkit-scrollbar{display:none}.ai-shortcut{padding:4px 10px;border:1px solid #e5e6eb;border-radius:14px;background:#fff;font-size:11px;cursor:pointer;color:#646a73;white-space:nowrap}.ai-input-area{padding:4px 14px 12px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0}.ai-input{order:2;flex:1;padding:8px 12px;border:1px solid #e5e6eb;border-radius:8px;font-size:14px;line-height:1.45;outline:none;resize:none;min-height:64px;max-height:160px;font-family:inherit}.ai-send{order:3;width:32px;height:32px;min-width:32px;padding:0;background:#3370ff;color:#fff;border:none;cursor:pointer;font-size:0;font-weight:600;flex-shrink:0;align-self:flex-end;display:inline-flex;align-items:center;justify-content:center}</style>
+<link rel="stylesheet" href="/admin/workbench.css?v=20260608-home1">
+<link rel="stylesheet" href="/admin/workbench-prd-modules.css?v=20260605-prdrestore1">
 </head>
 <body>
 
@@ -112,8 +112,13 @@
   <div class="ai-input-area" id="ai-input-area">
     <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
     <span style="cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" onclick="document.getElementById('ai-file-input').click()" title="上传文件">📎</span>
-    <textarea class="ai-input" id="ai-input" placeholder="输入指令或查询..." rows="2"></textarea>
-    <button class="ai-send" id="ai-send" onclick="aiSend()" title="发送" aria-label="发送"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 11.5 20 4l-4.8 16-3.5-6.7L4 11.5Zm8.4.9 1.9 3.7 2.7-9-8.8 4.1 4.2 1.2Z" fill="currentColor"/></svg></button>
+    <textarea class="ai-input" id="ai-input" placeholder="输入指令或查询..." rows="1"></textarea>
+    <button class="ai-send" id="ai-send" onclick="aiSend()" aria-label="发送">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+        <path d="M4.5 11.5 19 4.8c.6-.3 1.2.3.9.9l-6.7 14.5c-.3.6-1.1.5-1.3-.1l-1.8-5.2-5.2-1.8c-.6-.2-.7-1-.1-1.3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="m10.3 14.6 3.3-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -126,7 +131,7 @@ const STATE = {
   role: null,
   permissions: [],
   visibleMenus: [],
-  currentPage: 'dashboard.overview',
+  currentPage: 'workbench.home',
   aiOpen: false,
   aiMessages: [],
   aiConvId: null  // Harness 会话ID，复用 conversations 表
@@ -134,11 +139,17 @@ const STATE = {
 
 // ===== MENU DEFINITION =====
 const MENU_TREE = {
+  employee: {
+    icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
+      'employee.overview': { label: '概览' },
+      'employee.certification': { label: '认证审核' }
+    }
+  },
   dashboard: {
     icon: '<img src="assets/icon-dashboard.png" class="menu-icon" style="width:24px;height:24px">', label: '乐享运营', children: {
       'dashboard.overview': { label: '运营总览' },
       'pipeline.annotate': { label: 'Query 分析' },
-	      'pipeline.quality': { label: '质量分析' },
+      'pipeline.quality': { label: '质量分析' },
       'ops.traffic': { label: '流量分析' },
       'ops.gmv': { label: 'GMV 分析' }
     }
@@ -152,10 +163,29 @@ const MENU_TREE = {
       'dashboard.geoKnowledge': { label: '手工上传知识' }
     }
   },
-  employee: {
-    icon: '<img src="assets/icon-employee.png" class="menu-icon" style="width:24px;height:24px">', label: '在职员工管理', children: {
-      'employee.overview': { label: '概览' },
-      'employee.certification': { label: '认证审核' }
+  lead: {
+    icon: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 14l4 4m0 0l-4 4m4-4h-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>', label: '企业客户管理', children: {
+      'lead.dashboard': { label: '线索看板' },
+      'lead.pool': { label: '线索池' }
+    }
+  },
+  search: {
+    icon: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="5.5" stroke="currentColor" stroke-width="1.8"/><path d="M15 15l4.5 4.5M5 20h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>', label: '搜索后台', children: {
+      'search.categories': { label: '分类标签' },
+      'search.filters': { label: '筛选条件' },
+      'search.activity': { label: '活动直达' },
+      'search.express': { label: '直通车' },
+      'search.dictionary': { label: '词典管理' },
+      'search.box': { label: '搜索框管理' }
+    }
+  },
+  risk: {
+    icon: '<svg class="menu-icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 4.4-2.8 8-7 10-4.2-2-7-5.6-7-10V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>', label: '风控管理', children: {
+      'risk.overview': { label: '概况' },
+      'risk.strategy': { label: '策略' },
+      'risk.limit': { label: '限购' },
+      'risk.dpl': { label: 'DPL' },
+      'risk.data': { label: '数据查询' }
     }
   },
 };
@@ -220,7 +250,7 @@ async function loadUserContext() {
         STATE.visibleMenus.push('geo');
       }
       // 员工管理默认可见
-      if (!STATE.visibleMenus.includes('employee')) STATE.visibleMenus.push('employee');
+      ['employee','lead','search','risk'].forEach(k => { if (!STATE.visibleMenus.includes(k)) STATE.visibleMenus.push(k); });
       // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
       STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
     } else {
@@ -258,12 +288,8 @@ async function loadUserContext() {
   }
   document.getElementById('user-role').textContent = STATE.role;
 
-  // 确保默认页面在可见菜单中
-  const firstMenu = STATE.visibleMenus[0];
-  if (firstMenu && MENU_TREE[firstMenu]) {
-    const children = Object.keys(MENU_TREE[firstMenu].children);
-    if (children.length) STATE.currentPage = children[0];
-  }
+  // 默认停留在工作台首页；只有 URL 明确指定 page 时才进入具体业务菜单
+  STATE.currentPage = 'workbench.home';
 }
 
 // ===== SIDEBAR COLLAPSE =====
@@ -296,7 +322,7 @@ function renderSidebar() {
     html += `<div class="nav-item ${isActive ? 'active' : ''}" data-tip="${group.label}" onclick="toggleGroup('${key}')">
       <span class="ni">${group.icon}</span>
       <span>${group.label}</span>
-      <span class="arrow ${isOpen ? 'open' : ''}">▶</span>
+      <span class="arrow ${isOpen ? 'open' : ''}"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>`;
     html += `<div class="nav-sub ${isOpen ? 'open' : ''}">`;
     for (const [pageId, page] of children) {
@@ -345,8 +371,15 @@ function toggleGroup(key) {
   if (!group) return;
   const sub = group.querySelector('.nav-sub');
   const arrow = group.querySelector('.arrow');
-  sub.classList.toggle('open');
-  arrow.classList.toggle('open');
+  const willOpen = !sub.classList.contains('open');
+  document.querySelectorAll('.sidebar-nav .nav-sub.open').forEach(el => {
+    if (el !== sub) el.classList.remove('open');
+  });
+  document.querySelectorAll('.sidebar-nav .arrow.open').forEach(el => {
+    if (el !== arrow) el.classList.remove('open');
+  });
+  sub.classList.toggle('open', willOpen);
+  arrow.classList.toggle('open', willOpen);
 }
 
 
@@ -373,7 +406,7 @@ function switchPage(pageId) {
   }
 
   // Update breadcrumb
-  const groupLabelMap = { agent: 'AI 助手' };
+  const groupLabelMap = { agent: 'AI 助手', workbench: '门户工作台' };
   const groupLabel = findPageGroup(pageId)?.label || groupLabelMap[pageId.split('.')[0]] || pageId.split('.')[0];
   const pageLabel = getPageLabel(pageId);
   document.getElementById('breadcrumb').innerHTML = `<span>${groupLabel}</span> / <span>${pageLabel}</span>`;
@@ -398,7 +431,7 @@ function applyInitialPageFromUrl() {
   const page = new URLSearchParams(window.location.search).get('page');
   if (!page) return;
   const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
-  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'agent.skills';
+  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'agent.skills' || page === 'workbench.home';
   if (isKnownPage) STATE.currentPage = page;
 }
 
@@ -411,7 +444,8 @@ function findPageGroup(pageId) {
 
 function getPageLabel(pageId) {
   const pageLabelMap = {
-    'agent.skills': 'Skills 管理'
+    'agent.skills': 'Skills 管理',
+    'workbench.home': '首页'
   };
   if (pageLabelMap[pageId]) return pageLabelMap[pageId];
   const g = findPageGroup(pageId);
@@ -509,12 +543,13 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260605-geo0606"></script>
-<script src="/admin/workbench-geo.js?v=20260605-geo0606"></script>
-<script src="/admin/workbench-ai.js?v=20260604-ai-send-plane-right1"></script>
+<script src="/admin/workbench-pages.js?v=20260610-prdfb1"></script>
+<script src="/admin/workbench-prd-modules.js?v=20260605-prdrestore1"></script>
+<script src="/admin/workbench-geo.js?v=20260605-geo0610"></script>
+<script src="/admin/workbench-ai.js?v=20260604-ai-remove-goal1"></script>
 <script src="/admin/workbench-data.js?v=20260602-geo23"></script>
-<script src="/admin/workbench-employee.js"></script>
-<script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
+<script src="/admin/workbench-employee.js?v=20260605-design-global4"></script>
+<script src="/admin/workbench-ops.js?v=20260610-prdfb1"></script>
 <script src="/admin/workbench-report.js"></script>
 <script src="/admin/workbench-pipeline.js?v=20260520e"></script>
   <script src="/admin/workbench-quality.js?v=20260520d"></script>

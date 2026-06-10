@@ -379,15 +379,16 @@ const LEAI_DASH_STATE = {
   overviewCustomStart: '',
   overviewCustomEnd: '',
   overviewScenarioMode: 'all',
-  overviewProductMetric: 'views'
+  overviewProductMetric: 'inter'
 };
 
+// 热门商品：浏览量已按业务反馈替换为互动量（互动表×购买表关联，待大数据提供正式数据源）
 const LEAI_PRODUCT_ROWS = [
-  { name: 'ThinkPad X9-14 Aura AI元启版', views: 15847, buyers: 761, cvr: 4.8 },
-  { name: 'YOGA Air 14 Aura AI元启版', views: 13203, buyers: 700, cvr: 5.3 },
-  { name: '拯救者 R7000P 2025 AI元启', views: 11876, buyers: 487, cvr: 4.1 },
-  { name: '联想小新Pro14GT AI元启版', views: 9543, buyers: 305, cvr: 3.2 },
-  { name: 'ThinkPad P14s 2025 AI元启版', views: 7810, buyers: 203, cvr: 2.6 }
+  { name: 'ThinkPad X9-14 Aura AI元启版', inter: 15847, buyers: 761, cvr: 4.8 },
+  { name: 'YOGA Air 14 Aura AI元启版', inter: 13203, buyers: 700, cvr: 5.3 },
+  { name: '拯救者 R7000P 2025 AI元启', inter: 11876, buyers: 487, cvr: 4.1 },
+  { name: '联想小新Pro14GT AI元启版', inter: 9543, buyers: 305, cvr: 3.2 },
+  { name: 'ThinkPad P14s 2025 AI元启版', inter: 7810, buyers: 203, cvr: 2.6 }
 ];
 
 function leaiGetData() {
@@ -470,8 +471,33 @@ function leaiPeriodText(rows) {
   return first === last ? toFull(last) : `${toFull(first)} - ${toFull(last)}`;
 }
 
+// 选期排重数（业务反馈：登录/互动用户显示统计周期内排重数）
+// 1 天 = 当日排重真值；选期覆盖日报近30天窗口 = 日报 M 值（近30天排重真值）；
+// 中间周期日报无原始排重，按 30 天去重率线性折算估算
+function leaiDedupCount(rows, dayKey, monthKey) {
+  const L = leaiGetData();
+  const full = L?.daily || [];
+  const n = rows.length;
+  if (!n) return { value: 0, estimated: false };
+  const daySum = leaiSum(rows, dayKey);
+  if (n === 1) return { value: daySum, estimated: false };
+  const last = rows[n - 1];
+  const idx = full.findIndex(r => r.d === last.d);
+  const win = idx >= 0 ? full.slice(Math.max(0, idx - 29), idx + 1) : rows;
+  const monthDedup = Number(last?.[monthKey]) || 0;
+  if (monthDedup && n >= win.length && rows[0]?.d === win[0]?.d) {
+    return { value: monthDedup, estimated: false };
+  }
+  const winSum = leaiSum(win, dayKey);
+  const factor30 = winSum > 0 && monthDedup > 0 ? Math.min(monthDedup / winSum, 1) : 1;
+  const f = 1 - (1 - factor30) * (n - 1) / 29;
+  return { value: Math.round(daySum * Math.min(Math.max(f, 0), 1)), estimated: true };
+}
+
 function leaiBuildSummary(range, customStart, customEnd) {
   const rows = leaiRows(range, undefined, customStart, customEnd);
+  const loginDedup = leaiDedupCount(rows, 'login', 'loginM');
+  const interDedup = leaiDedupCount(rows, 'inter', 'interM');
   return {
     rows,
     dau: leaiAvg(rows, 'dau'),
@@ -481,6 +507,10 @@ function leaiBuildSummary(range, customStart, customEnd) {
     loginAvg: leaiAvg(rows, 'login'),
     inter: leaiSum(rows, 'inter'),
     interAvg: leaiAvg(rows, 'inter'),
+    loginDedup: loginDedup.value,
+    loginDedupEst: loginDedup.estimated,
+    interDedup: interDedup.value,
+    interDedupEst: interDedup.estimated,
     buy: leaiSum(rows, 'buy'),
     gmv: leaiSum(rows, 'gmv'),
     offGmv: leaiSum(rows, 'offGmv'),
@@ -558,38 +588,94 @@ function leaiSparklineHtml(rows, key, label, fmt, displayValue, subText) {
   </div>`;
 }
 
-function leaiScenarioRows(summary) {
-  const mode = LEAI_DASH_STATE.overviewScenarioMode;
-  const total = mode === 'active' ? summary.login : summary.inter;
-  const weights = mode === 'active'
-    ? [0.16, 0.31, 0.18, 0.09, 0.12, 0.14]
-    : [0.20, 0.27, 0.16, 0.10, 0.13, 0.14];
-  return ['会员', '电商', '服务', '门店', '方案', '咨询'].map((name, i) => ({
-    name,
-    value: Math.round(total * weights[i])
-  }));
+// Query 场景分布：业务反馈改为直接取 Query 分析模块的内容（/api/pipeline/stats/history 一级分类）
+let LEAI_QUERY_STATS_CACHE = null;
+
+async function leaiFetchQueryStats() {
+  if (LEAI_QUERY_STATS_CACHE) return LEAI_QUERY_STATS_CACHE;
+  try {
+    const res = await fetch('/api/pipeline/stats/history');
+    const data = await res.json();
+    LEAI_QUERY_STATS_CACHE = data.records || [];
+  } catch (e) {
+    LEAI_QUERY_STATS_CACHE = [];
+  }
+  return LEAI_QUERY_STATS_CACHE;
 }
 
-function leaiScenarioChartHtml(summary) {
-  const rows = leaiScenarioRows(summary);
-  const max = Math.max(...rows.map(r => r.value), 1);
+function leaiMergeQueryDist(recs, key) {
+  const merged = {};
+  (recs || []).forEach(r => {
+    const dist = r?.[key];
+    if (!dist || typeof dist !== 'object') return;
+    Object.entries(dist).forEach(([k, v]) => {
+      const ck = String(k).trim();
+      if (!ck) return;
+      merged[ck] = (merged[ck] || 0) + (Number(v) || 0);
+    });
+  });
+  return merged;
+}
+
+function leaiScenarioRows(records) {
+  const mode = LEAI_DASH_STATE.overviewScenarioMode;
+  const bounds = leaiDateBounds();
+  const rows = leaiRows(LEAI_DASH_STATE.overviewRange, undefined,
+    LEAI_DASH_STATE.overviewCustomStart || bounds.min, LEAI_DASH_STATE.overviewCustomEnd || bounds.max);
+  const start = leaiRowIso(rows[0]?.d || '');
+  const end = leaiRowIso(rows[rows.length - 1]?.d || '');
+  let recs = (records || []).filter(r => r.date && r.date >= start && r.date <= end);
+  let periodNote = '';
+  if (!recs.length) {
+    recs = (records || []).slice(-30);
+    if (recs.length) periodNote = `Query 数据期 ${recs[0].date} ~ ${recs[recs.length - 1].date}`;
+  }
+  const dist = leaiMergeQueryDist(recs, mode === 'active' ? 'tag_dist_active' : 'tag_dist_all');
+  const data = Object.entries(dist)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({ name, value }));
+  return { data, periodNote };
+}
+
+function leaiScenarioBodyHtml(records) {
+  const { data, periodNote } = leaiScenarioRows(records);
+  if (!data.length) return '<div style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:12px">暂无 Query 分析数据</div>';
+  const max = Math.max(...data.map(r => r.value), 1);
+  const note = periodNote ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:6px">${periodNote}（选期内无 Query 记录，展示最近数据）</div>` : '';
+  return `<div class="dash-bar-chart">
+    ${data.map(r => `<div class="dash-bar-item">
+      <div class="dash-bar-value">${leaiFmtW(r.value)}</div>
+      <div class="dash-bar" style="height:${Math.max(r.value / max * 128, 12)}px"></div>
+      <div class="dash-bar-label">${r.name}</div>
+    </div>`).join('')}
+  </div>${note}`;
+}
+
+function leaiScenarioChartHtml() {
   const pill = mode => `dash-pill ${LEAI_DASH_STATE.overviewScenarioMode === mode ? 'active' : ''}`;
+  const body = LEAI_QUERY_STATS_CACHE
+    ? leaiScenarioBodyHtml(LEAI_QUERY_STATS_CACHE)
+    : '<div style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:12px">加载 Query 分析数据…</div>';
   return `<div class="card">
     <div class="card-header">
       <div class="card-title">Query 场景分布</div>
       <div class="dash-filter-bar">
+        <span style="font-size:11px;color:var(--text-tertiary);margin-right:6px">取自 Query 分析模块</span>
         <button class="${pill('all')}" onclick="leaiSetScenarioMode('all')">整体</button>
         <button class="${pill('active')}" onclick="leaiSetScenarioMode('active')">主动</button>
       </div>
     </div>
-    <div class="dash-bar-chart">
-      ${rows.map(r => `<div class="dash-bar-item">
-        <div class="dash-bar-value">${leaiFmtW(r.value)}</div>
-        <div class="dash-bar" style="height:${Math.max(r.value / max * 128, 12)}px"></div>
-        <div class="dash-bar-label">${r.name}</div>
-      </div>`).join('')}
-    </div>
+    <div id="leai-scenario-body">${body}</div>
   </div>`;
+}
+
+function leaiRenderScenarioCard() {
+  const el = document.getElementById('leai-scenario-body');
+  if (!el) return;
+  leaiFetchQueryStats().then(records => {
+    const target = document.getElementById('leai-scenario-body');
+    if (target) target.innerHTML = leaiScenarioBodyHtml(records);
+  });
 }
 
 function leaiProductTableHtml() {
@@ -598,21 +684,22 @@ function leaiProductTableHtml() {
   const sorted = [...LEAI_PRODUCT_ROWS].sort((a, b) => {
     if (metric === 'buyers') return b.buyers - a.buyers;
     if (metric === 'cvr') return b.cvr - a.cvr;
-    return b.views - a.views;
+    return b.inter - a.inter;
   });
   return `<div class="card">
     <div class="card-header">
       <div class="card-title">热门商品 TOP5</div>
       <div class="dash-filter-bar">
-        <button class="${pill('views')}" onclick="leaiSetProductMetric('views')">浏览</button>
+        <button class="${pill('inter')}" onclick="leaiSetProductMetric('inter')">互动</button>
         <button class="${pill('buyers')}" onclick="leaiSetProductMetric('buyers')">购买</button>
         <button class="${pill('cvr')}" onclick="leaiSetProductMetric('cvr')">转化率</button>
       </div>
     </div>
     <table>
-      <tr><th>商品</th><th>浏览量</th><th>购买人数</th><th>转化率</th></tr>
-      ${sorted.map(p => `<tr><td>${p.name}</td><td>${p.views.toLocaleString()}</td><td>${p.buyers.toLocaleString()}</td><td><span class="badge ${p.cvr >= 4 ? 'status-on' : 'status-warn'}">${p.cvr.toFixed(1)}%</span></td></tr>`).join('')}
+      <tr><th>商品</th><th>互动量</th><th>购买人数</th><th>转化率</th></tr>
+      ${sorted.map(p => `<tr><td>${p.name}</td><td>${p.inter.toLocaleString()}</td><td>${p.buyers.toLocaleString()}</td><td><span class="badge ${p.cvr >= 4 ? 'status-on' : 'status-warn'}">${p.cvr.toFixed(1)}%</span></td></tr>`).join('')}
     </table>
+    <div style="font-size:11px;color:var(--text-tertiary);margin-top:8px">互动量 = 互动表 × 购买表关联计算（日报无此数据，待大数据提供正式数据源）</div>
   </div>`;
 }
 
@@ -677,8 +764,8 @@ function leaiCurrentOverviewAiContext(goal) {
     `- 购买人数累计: ${leaiAiNum(summary.buy)}，客单价约 ${leaiAiMoney(aov)}`,
     '',
     '关键经营链路:',
-    `- 登录用户: ${leaiFmtW(summary.login)}，登录/日活 ${leaiAiPct(summary.login, activeBase)}`,
-    `- 互动用户: ${leaiFmtW(summary.inter)}，互动/登录 ${leaiAiPct(summary.inter, summary.login)}`,
+    `- 登录用户(选期排重${summary.loginDedupEst ? '·估算' : ''}): ${leaiFmtW(summary.loginDedup)}，选期累计 ${leaiFmtW(summary.login)}，登录/日活 ${leaiAiPct(summary.login, activeBase)}`,
+    `- 互动用户(选期排重${summary.interDedupEst ? '·估算' : ''}): ${leaiFmtW(summary.interDedup)}，选期累计 ${leaiFmtW(summary.inter)}，互动/登录 ${leaiAiPct(summary.inter, summary.login)}`,
     `- 购买人数: ${leaiAiNum(summary.buy)}，购买/互动 ${leaiAiPct(summary.buy, summary.inter)}`,
     `- 成交GMV: ${leaiAiMoney(summary.gmv)}，日均 ${leaiAiMoney(leaiAvg(rows, 'gmv'))}`,
     '',
@@ -698,8 +785,8 @@ function leaiCurrentOverviewAiContext(goal) {
     `- GMV: ${leaiAiTrend(rows, 'gmv', leaiFmtY)}`,
     `- GMV高点: ${leaiAiTopDays(rows, 'gmv', leaiFmtY)}`,
     '',
-    '热门商品TOP5:',
-    ...productRows.map(p => `- ${p.name}: 浏览 ${leaiAiNum(p.views)}，购买 ${leaiAiNum(p.buyers)}，转化率 ${p.cvr.toFixed(1)}%`),
+    '热门商品TOP5(浏览量已替换为互动量):',
+    ...productRows.map(p => `- ${p.name}: 互动 ${leaiAiNum(p.inter)}，购买 ${leaiAiNum(p.buyers)}，转化率 ${p.cvr.toFixed(1)}%`),
     '',
     '日序列:',
     ...rows.map(r => `- ${r.d}: DAU ${leaiAiNum(r.dau)}，登录 ${leaiAiNum(r.login)}，互动 ${leaiAiNum(r.inter)}，购买 ${leaiAiNum(r.buy)}，GMV ${leaiAiNum(r.gmv)}`)
@@ -765,6 +852,68 @@ function leaiSetProductMetric(metric) {
 }
 
 const PAGE_RENDERERS = {
+  'workbench.home': () => `
+    <div class="workbench-home">
+      <div class="page-header workbench-home-head">
+        <div>
+          <div class="page-title">门户工作台</div>
+          <div class="page-desc">统一承载运营看板、业务后台、风控审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
+        </div>
+        <div class="workbench-home-actions">
+          <button class="btn btn-secondary" onclick="openSkillManagerOverlay()">管理技能</button>
+        </div>
+      </div>
+
+      <div class="workbench-home-grid">
+        <div class="workbench-home-card">
+          <div class="workbench-home-icon">AI</div>
+          <div class="workbench-home-card-title">全局 AI 助手</div>
+          <div class="workbench-home-card-desc">右侧助手始终独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</div>
+        </div>
+        <div class="workbench-home-card">
+          <div class="workbench-home-icon">OP</div>
+          <div class="workbench-home-card-title">运营分析</div>
+          <div class="workbench-home-card-desc">聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</div>
+        </div>
+        <div class="workbench-home-card">
+          <div class="workbench-home-icon">CRM</div>
+          <div class="workbench-home-card-title">业务后台</div>
+          <div class="workbench-home-card-desc">承接在职员工管理、企业客户线索、搜索配置、风控策略等成熟后台能力。</div>
+        </div>
+        <div class="workbench-home-card">
+          <div class="workbench-home-icon">SK</div>
+          <div class="workbench-home-card-title">技能与权限</div>
+          <div class="workbench-home-card-desc">通过技能包和 Skill 能力管理，把 AI 可执行动作与人员权限、审批和审计边界分开治理。</div>
+        </div>
+      </div>
+
+      <div class="workbench-home-section-grid">
+        <div class="card workbench-home-section">
+          <div class="card-header">
+            <div class="card-title">常用入口</div>
+          </div>
+          <div class="workbench-home-entry-list">
+            <button onclick="switchPage('employee.overview')"><span>在职员工管理</span><small>认证审核、职工数据、认证方式分布</small></button>
+            <button onclick="switchPage('dashboard.overview')"><span>乐享运营</span><small>经营指标、流量质量、GMV 分析</small></button>
+            <button onclick="switchPage('lead.dashboard')"><span>企业客户管理</span><small>线索看板、线索池和分配跟进</small></button>
+            <button onclick="switchPage('search.categories')"><span>搜索后台</span><small>分类标签、筛选、直达和词典管理</small></button>
+            <button onclick="switchPage('risk.overview')"><span>风控管理</span><small>策略、限购、DPL 和数据查询</small></button>
+          </div>
+        </div>
+
+        <div class="card workbench-home-section">
+          <div class="card-header">
+            <div class="card-title">工作方式</div>
+          </div>
+          <div class="workbench-home-flow">
+            <div><b>1</b><span>从左侧菜单进入确定性后台页面，完成固定流程和人工审核。</span></div>
+            <div><b>2</b><span>在右侧 AI 助手输入任务，补充查询、分析、生成和配置类工作。</span></div>
+            <div><b>3</b><span>高影响操作先展示范围和影响，再由用户确认执行并留下任务记录。</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
   'agent.skills': () => renderAgentSkillsManager(),
   'dashboard.overview': () => {
     const L = leaiGetData();
@@ -777,11 +926,13 @@ const PAGE_RENDERERS = {
     const [lc, ls, lg] = leaiBizTradeSummaries(summary.rows);
     const platformTotal = summary.offGmv + summary.nonGmv;
     const activeBase = summary.dau * Math.max(summary.rows.length, 1);
+    const isDay = summary.rows.length === 1;
+    const snapText = isDay ? '当天快照' : '选期均值';
     return `
     <div class="page-header">
       <div>
         <div class="page-title">运营总览</div>
-        <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated}</div>
+        <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated} · 数据源 d_day_leai 日报，指标口径同日报</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         ${leaiOverviewTimeFilterHtml(bounds, customStart, customEnd)}
@@ -793,22 +944,22 @@ const PAGE_RENDERERS = {
       <div class="kpi-card">
         <div class="kpi-label">DAU（日活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.dau)}</div>
-        <div class="kpi-sub">日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
+        <div class="kpi-sub">${isDay ? '当天快照' : '选期日均'} · 日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.wau)}</div>
-        <div class="kpi-sub">${leaiRangeLabel(range)}均值 · ${leaiMetricDelta(summary.rows, 'wau')}</div>
+        <div class="kpi-sub">${snapText} · ${leaiMetricDelta(summary.rows, 'wau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">MAU（月活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.mau)}</div>
-        <div class="kpi-sub">月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
+        <div class="kpi-sub">${snapText} · 月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">GMV</div>
         <div class="kpi-value">${leaiFmtY(summary.gmv)}</div>
-        <div class="kpi-sub">购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
+        <div class="kpi-sub">${isDay ? '当天快照' : '选期累计'} · 购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
       </div>
     </div>
 
@@ -820,13 +971,13 @@ const PAGE_RENDERERS = {
       <div class="dash-funnel-grid">
         <div class="dash-funnel-item">
           <div class="dash-funnel-label">登录用户</div>
-          <div class="dash-funnel-value">${leaiFmtW(summary.login)}</div>
-          <div class="dash-funnel-sub">登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.loginDedup)}</div>
+          <div class="dash-funnel-sub">选期排重${summary.loginDedupEst ? '·估算' : ''} · 登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
         </div>
         <div class="dash-funnel-item">
           <div class="dash-funnel-label">互动用户</div>
-          <div class="dash-funnel-value">${leaiFmtW(summary.inter)}</div>
-          <div class="dash-funnel-sub">互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.interDedup)}</div>
+          <div class="dash-funnel-sub">选期排重${summary.interDedupEst ? '·估算' : ''} · 互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
         </div>
         <div class="dash-funnel-item">
           <div class="dash-funnel-label">购买人数</div>
@@ -851,16 +1002,19 @@ const PAGE_RENDERERS = {
           <div class="kpi-label">消费业务 GMV</div>
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(lc.gmv)}</div>
           <div class="kpi-sub">购买 ${lc.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lc.gmv, summary.gmv)}</div>
+          <div class="kpi-sub">登录口径 ${leaiFmtY(lc.loginGmv)} + 平台回算 ${leaiFmtY(lc.platformGmv)}</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #f59e0b">
           <div class="kpi-label">SMB 业务 GMV</div>
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(ls.gmv)}</div>
           <div class="kpi-sub">购买 ${ls.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(ls.gmv, summary.gmv)}</div>
+          <div class="kpi-sub">登录口径 ${leaiFmtY(ls.loginGmv)} + 平台回算 ${leaiFmtY(ls.platformGmv)}</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #8b5cf6">
           <div class="kpi-label">政企业务 GMV</div>
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(lg.gmv)}</div>
           <div class="kpi-sub">购买 ${lg.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lg.gmv, summary.gmv)}</div>
+          <div class="kpi-sub">登录口径 ${leaiFmtY(lg.loginGmv)} + 平台回算 ${leaiFmtY(lg.platformGmv)}</div>
         </div>
       </div>
     </div>
@@ -891,8 +1045,21 @@ const PAGE_RENDERERS = {
     </div>
 
     <div class="grid-2">
-      ${leaiScenarioChartHtml(summary)}
+      ${leaiScenarioChartHtml()}
       ${leaiProductTableHtml()}
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><div class="card-title">指标口径说明</div><div class="dash-card-note">与 d_day_leai 日报口径一致 · 业务已确认</div></div>
+      <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text-secondary);line-height:2">
+        <li>DAU / WAU / MAU：默认展示最近一天当天快照；选择时间段时按统计周期内均值展示。</li>
+        <li>登录用户 / 互动用户：统计周期内排重数（1 天为当日排重，覆盖近 30 天窗口取日报 M 值，其余周期按 30 天去重率折算估算）。</li>
+        <li>分业务 GMV：登录口径 + 平台交易差额按权重回算，口径同日报指标定义。</li>
+        <li>官网 / 非官网：有单独数据表接大数据汇总，除官网外皆为非官网；GMV 按现有日报口径统计（支付成功订单）。</li>
+        <li>Query 场景分布：直接取自 Query 分析模块一级分类（整体 / 主动）。</li>
+        <li>热门商品 TOP5：浏览量已替换为互动量，由互动表 × 购买表关联计算，待大数据提供正式数据源。</li>
+        <li>媒体来源：待接入日报「流量来源监测」媒体字段，当前按固定权重估算。</li>
+      </ul>
     </div>
   `;},
 
@@ -936,7 +1103,7 @@ const PAGE_RENDERERS = {
       <div class="geo-status-line" id="geo-status">加载中...</div>
       <div class="geo-context-line" id="geo-context-line">当前口径：加载中...</div>
       <div class="geo-interface-note" id="geo-overview-gap-note">
-        接口说明：当前外部接口暂不支持多品牌别名聚合、稳定覆盖意图按平台返回、分竞品指标/趋势；缺失部分将显示“待接口提供数据”。
+        接口说明：0605 已支持稳定意图、分竞品可见性趋势、wiki 引用累计和信源 page_size/brands；转化与分竞品推荐类指标未提供时显示“待接口提供数据”。
       </div>
 
       <!-- 对比视角 + 竞品选择器 -->
@@ -1238,11 +1405,13 @@ const PAGE_RENDERERS = {
           ${['消费业务','SMB业务（含企业购）','政企业务'].map((name, idx) => `
             <div class="geo-business-module">
               <div class="geo-business-name">${name}</div>
-              <div class="geo-business-line"><span>业务归属 UV</span><strong>待接口提供数据</strong></div>
-              <div class="geo-business-mini-chart">UV 趋势待接口提供数据</div>
-              <div class="geo-business-line"><span>业务 UV Top5 页面</span><strong>待接口提供数据</strong></div>
-              <div class="geo-business-line"><span>业务销量</span><strong>待接口提供数据</strong></div>
-              <div class="geo-business-line"><span>业务销售额（元）</span><strong>待接口提供数据</strong></div>
+              <div class="geo-business-grid">
+                <div><span>业务归属 UV</span><strong>待接口提供数据</strong></div>
+                <div><span>UV 趋势</span><strong>待接口提供数据</strong></div>
+                <div class="wide"><span>业务 UV Top5 页面</span><strong>待接口提供数据</strong></div>
+                <div><span>业务销量</span><strong>待接口提供数据</strong></div>
+                <div><span>业务销售额</span><strong>待接口提供数据</strong></div>
+              </div>
             </div>`).join('')}
         </div>
       </div>
@@ -1404,54 +1573,54 @@ const PAGE_RENDERERS = {
     </div>
 
     <!-- KPI 卡片 -->
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;">
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('all')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">在职员工总数</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-total">2,847</div>
-        <div style="font-size:12px; opacity:0.8;">↑ 8% 较上月</div>
+    <div class="kpi-grid employee-kpi-grid">
+      <div class="kpi-card employee-kpi-card" onclick="filterAndNavigate('all')">
+        <div class="kpi-label">在职员工总数</div>
+        <div class="kpi-value" id="kpi-total">2,847</div>
+        <div class="kpi-sub"><span class="up">↑ 8%</span> 较上月</div>
       </div>
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('approved')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">已认证工数</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-approved">2,341</div>
-        <div style="font-size:12px; opacity:0.8;">82.3% 认证率</div>
+      <div class="kpi-card employee-kpi-card success" onclick="filterAndNavigate('approved')">
+        <div class="kpi-label">已认证工数</div>
+        <div class="kpi-value" id="kpi-approved">2,341</div>
+        <div class="kpi-sub">82.3% 认证率</div>
       </div>
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('rejected')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">已驳回工</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-rejected">45</div>
-        <div style="font-size:12px; opacity:0.8;">需重新认证</div>
+      <div class="kpi-card employee-kpi-card warning" onclick="filterAndNavigate('rejected')">
+        <div class="kpi-label">已驳回工</div>
+        <div class="kpi-value" id="kpi-rejected">45</div>
+        <div class="kpi-sub">需重新认证</div>
       </div>
-      <div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; cursor:pointer;" onclick="filterAndNavigate('pending')">
-        <div style="font-size:12px; opacity:0.9; margin-bottom:8px;">本月新增</div>
-        <div style="font-size:32px; font-weight:700; margin-bottom:8px;" id="kpi-pending">187</div>
-        <div style="font-size:12px; opacity:0.8;">↑ 15% 环比</div>
+      <div class="kpi-card employee-kpi-card purple" onclick="filterAndNavigate('pending')">
+        <div class="kpi-label">本月新增</div>
+        <div class="kpi-value" id="kpi-pending">187</div>
+        <div class="kpi-sub"><span class="up">↑ 15%</span> 环比</div>
       </div>
     </div>
 
     <!-- 认证方式分布 -->
-    <div class="card" style="margin-bottom:24px;">
+    <div class="card employee-method-card">
       <div class="card-header">
         <span class="card-title">认证方式分布</span>
       </div>
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:20px;">
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('email')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-email">1,051</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">企业邮箱</div>
-          <div style="font-size:12px; color:var(--text-secondary);">45%</div>
+      <div class="employee-method-grid">
+        <div class="employee-method-tile" onclick="filterByMethod('email')">
+          <div class="employee-method-value" id="method-email">1,051</div>
+          <div class="employee-method-label">企业邮箱</div>
+          <div class="employee-method-sub">45%</div>
         </div>
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('contract')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-contract">703</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">劳动合同</div>
-          <div style="font-size:12px; color:var(--text-secondary);">30%</div>
+        <div class="employee-method-tile success" onclick="filterByMethod('contract')">
+          <div class="employee-method-value" id="method-contract">703</div>
+          <div class="employee-method-label">劳动合同</div>
+          <div class="employee-method-sub">30%</div>
         </div>
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('tax')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-tax">422</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">个人所得税</div>
-          <div style="font-size:12px; color:var(--text-secondary);">18%</div>
+        <div class="employee-method-tile purple" onclick="filterByMethod('tax')">
+          <div class="employee-method-value" id="method-tax">422</div>
+          <div class="employee-method-label">个人所得税视频认证</div>
+          <div class="employee-method-sub">18%</div>
         </div>
-        <div style="padding:20px; background:var(--bg); border-radius:6px; text-align:center; cursor:pointer;" onclick="filterByMethod('other')">
-          <div style="font-size:24px; color:#10b981; font-weight:700; margin-bottom:4px;" id="method-other">165</div>
-          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">其他材料</div>
-          <div style="font-size:12px; color:var(--text-secondary);">7%</div>
+        <div class="employee-method-tile gray" onclick="filterByMethod('other')">
+          <div class="employee-method-value" id="method-other">165</div>
+          <div class="employee-method-label">其他材料</div>
+          <div class="employee-method-sub">7%</div>
         </div>
       </div>
     </div>
@@ -1460,47 +1629,49 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="emp-ov-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-ov-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-ov-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <select id="emp-ov-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
+        <div class="employee-filter-row">
+          <input type="text" id="emp-ov-search-name" placeholder="姓名..."/>
+          <input type="text" id="emp-ov-search-position" placeholder="岗位信息..."/>
+          <input type="text" id="emp-ov-search-company" placeholder="所属企业..."/>
+          <select id="emp-ov-search-status">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
-          <input type="date" id="emp-ov-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <span style="color:var(--text-secondary); font-size:12px;">至</span>
-          <input type="date" id="emp-ov-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="date" id="emp-ov-date-start" title="认证时间起"/>
+          <span class="filter-separator">至</span>
+          <input type="date" id="emp-ov-date-end" title="认证时间止"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable()">搜索</button>
         </div>
       </div>
-      <table style="width:100%; font-size:12px;">
+      <div class="employee-table-wrap">
+      <table class="employee-data-table">
         <thead>
-          <tr style="border-bottom:1px solid var(--border); background:var(--bg);">
-            <th style="text-align:center; padding:12px; width:40px;"><input type="checkbox"/></th>
-            <th style="text-align:left; padding:12px;">账号</th>
-            <th style="text-align:left; padding:12px;">真实姓名</th>
-            <th style="text-align:left; padding:12px;">LenovoID</th>
-            <th style="text-align:left; padding:12px;">关联手机号</th>
-            <th style="text-align:left; padding:12px;">岗位信息</th>
-            <th style="text-align:left; padding:12px;">所属企业</th>
-            <th style="text-align:left; padding:12px;">职员认证状态</th>
-            <th style="text-align:left; padding:12px;">认证方式</th>
-            <th style="text-align:left; padding:12px;">认证时间</th>
-            <th style="text-align:left; padding:12px;">当前状态</th>
-            <th style="text-align:left; padding:12px;">操作</th>
+          <tr>
+            <th class="check-col"><input type="checkbox"/></th>
+            <th>账号</th>
+            <th>真实姓名</th>
+            <th>LenovoID</th>
+            <th>关联手机号</th>
+            <th>岗位信息</th>
+            <th>所属企业</th>
+            <th>职员认证状态</th>
+            <th>认证方式</th>
+            <th>认证时间</th>
+            <th>当前状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="emp-overview-tbody">
-          <tr><td colspan="13" style="text-align:center; padding:20px;">加载中...</td></tr>
+          <tr><td colspan="13" class="table-empty-cell">加载中...</td></tr>
         </tbody>
       </table>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-        <div style="color:var(--text-secondary); font-size:12px;">
+      </div>
+      <div class="employee-pagination">
+        <div>
           共 <span id="emp-overview-count">0</span> 条记录，当前第 <span id="emp-overview-page">1</span> 页，共 <span id="emp-overview-total-pages">1</span> 页
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="pagination-actions">
           <button id="emp-overview-prev-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable(Math.max(1, parseInt(document.getElementById('emp-overview-page').textContent) - 1))">上一页</button>
           <button id="emp-overview-next-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeOverviewTable(parseInt(document.getElementById('emp-overview-page').textContent) + 1)">下一页</button>
         </div>
@@ -1519,47 +1690,49 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="emp-search-name" placeholder="姓名..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-position" placeholder="岗位信息..." style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <input type="text" id="emp-search-company" placeholder="所属企业..." style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <select id="emp-search-status" style="width:120px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);">
+        <div class="employee-filter-row">
+          <input type="text" id="emp-search-name" placeholder="姓名..."/>
+          <input type="text" id="emp-search-position" placeholder="岗位信息..."/>
+          <input type="text" id="emp-search-company" placeholder="所属企业..."/>
+          <select id="emp-search-status">
             <option value="">全部状态</option>
             <option value="approved">认证成功</option>
             <option value="rejected">认证失败</option>
           </select>
-          <input type="date" id="emp-date-start" title="认证时间起" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
-          <span style="color:var(--text-secondary); font-size:12px;">至</span>
-          <input type="date" id="emp-date-end" title="认证时间止" style="width:140px; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text);"/>
+          <input type="date" id="emp-date-start" title="认证时间起"/>
+          <span class="filter-separator">至</span>
+          <input type="date" id="emp-date-end" title="认证时间止"/>
           <button class="btn btn-sm btn-secondary" onclick="loadEmployeeList(1)">搜索</button>
         </div>
       </div>
-      <table style="width:100%; font-size:12px;">
+      <div class="employee-table-wrap">
+      <table class="employee-data-table">
         <thead>
-          <tr style="border-bottom:1px solid var(--border); background:var(--bg);">
-            <th style="text-align:center; padding:12px; width:40px;"><input type="checkbox"/></th>
-            <th style="text-align:left; padding:12px;">账号</th>
-            <th style="text-align:left; padding:12px;">真实姓名</th>
-            <th style="text-align:left; padding:12px;">LenovoID</th>
-            <th style="text-align:left; padding:12px;">关联手机号</th>
-            <th style="text-align:left; padding:12px;">岗位信息</th>
-            <th style="text-align:left; padding:12px;">所属企业</th>
-            <th style="text-align:left; padding:12px;">职员认证状态</th>
-            <th style="text-align:left; padding:12px;">认证方式</th>
-            <th style="text-align:left; padding:12px;">认证时间</th>
-            <th style="text-align:left; padding:12px;">当前状态</th>
-            <th style="text-align:left; padding:12px;">操作</th>
+          <tr>
+            <th class="check-col"><input type="checkbox"/></th>
+            <th>账号</th>
+            <th>真实姓名</th>
+            <th>LenovoID</th>
+            <th>关联手机号</th>
+            <th>岗位信息</th>
+            <th>所属企业</th>
+            <th>职员认证状态</th>
+            <th>认证方式</th>
+            <th>认证时间</th>
+            <th>当前状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="emp-list-tbody">
-          <tr><td colspan="13" style="text-align:center; padding:20px;">加载中...</td></tr>
+          <tr><td colspan="13" class="table-empty-cell">加载中...</td></tr>
         </tbody>
       </table>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-        <div style="color:var(--text-secondary); font-size:12px;">
+      </div>
+      <div class="employee-pagination">
+        <div>
           共 <span id="emp-total-count">0</span> 条记录，当前第 <span id="emp-current-page">1</span> 页，共 <span id="emp-total-pages">1</span> 页
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="pagination-actions">
           <button id="emp-prev-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeList(Math.max(1, parseInt(document.getElementById('emp-current-page').textContent) - 1))">上一页</button>
           <button id="emp-next-btn" class="btn btn-sm btn-secondary" onclick="loadEmployeeList(parseInt(document.getElementById('emp-current-page').textContent) + 1)">下一页</button>
         </div>
@@ -1570,70 +1743,82 @@ const PAGE_RENDERERS = {
   'employee.certification': () => `
     <div class="page-header">
       <div>
-        <div class="page-title">✓ 认证审核管理</div>
+        <div class="page-title">认证审核管理</div>
         <div class="page-desc">查看认证记录，对认证失败的用户可修改认证结果</div>
       </div>
     </div>
 
     <!-- 标签页 -->
-    <div style="display:flex; gap:0; margin-bottom:0; border-bottom:2px solid var(--border);">
-      <button class="tab-btn" data-status="rejected" onclick="switchCertTab('rejected', this)" style="padding:12px 24px; border:none; background:none; cursor:pointer; border-bottom:3px solid #ef4444; color:var(--text); font-size:14px;" id="tab-rejected">
-        <span>认证失败</span> <span style="color:var(--red);">(156)</span>
+    <div class="employee-cert-tabs">
+      <button class="tab-btn active" data-status="rejected" onclick="switchCertTab('rejected', this)" id="tab-rejected">
+        <span>认证失败</span> <span class="tab-count danger">(60)</span>
       </button>
-      <button class="tab-btn" data-status="approved" onclick="switchCertTab('approved', this)" style="padding:12px 24px; border:none; background:none; color:var(--text-secondary); cursor:pointer; border-bottom:3px solid transparent; font-size:14px;">
-        <span>认证成功</span> <span style="color:var(--green);">(2,341)</span>
+      <button class="tab-btn" data-status="approved" onclick="switchCertTab('approved', this)">
+        <span>认证成功</span> <span class="tab-count success">(645)</span>
       </button>
-      <button class="tab-btn" data-status="expired" onclick="switchCertTab('expired', this)" style="padding:12px 24px; border:none; background:none; color:var(--text-secondary); cursor:pointer; border-bottom:3px solid transparent; font-size:14px;">
-        <span>已失效</span> <span style="color:var(--text-tertiary);">(45)</span>
+      <button class="tab-btn" data-status="pending" onclick="switchCertTab('pending', this)">
+        <span>待审核</span> <span class="tab-count primary">(49)</span>
+      </button>
+      <button class="tab-btn" data-status="expired" onclick="switchCertTab('expired', this)">
+        <span>已失效</span> <span class="tab-count muted">(0)</span>
       </button>
     </div>
 
-    <div class="card" style="border-radius:0; border-top:2px solid var(--red);">
+    <div class="card employee-cert-card">
       <!-- 搜索过滤区 -->
-      <div style="padding:16px 20px; background:rgba(255,0,0,0.02); border-bottom:1px solid var(--border);">
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <input type="text" id="cert-search-no" placeholder="搜索申请编号/座号" style="flex:1; min-width:200px; padding:8px 12px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text); font-size:13px;"/>
-          <select id="cert-search-method" style="padding:8px 12px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text); font-size:13px;">
+      <div class="employee-cert-filter">
+        <div class="employee-cert-filter-grid">
+          <input type="text" id="cert-search-no" placeholder="搜索申请编号"/>
+          <input type="text" id="cert-search-company" placeholder="企业名称..."/>
+          <input type="text" id="cert-search-position" placeholder="岗位名称..."/>
+          <select id="cert-search-method">
             <option value="">认证方式 - 全部</option>
             <option value="email">企业邮箱</option>
             <option value="contract">劳动合同</option>
-            <option value="tax">个人所得税</option>
+            <option value="tax">个人所得税视频认证</option>
             <option value="other">其他材料</option>
           </select>
-          <button class="btn btn-primary" onclick="loadCertificationTable()" style="padding:8px 24px; font-size:13px;">🔍 搜索</button>
+          <select id="cert-search-source">
+            <option value="">来源 - 全部</option>
+            <option value="online">线上</option>
+            <option value="offline">线下</option>
+          </select>
+          <button class="btn btn-primary" onclick="loadCertificationTable()">搜索</button>
         </div>
       </div>
 
       <!-- 认证列表表格 -->
-      <table style="width:100%;">
+      <div class="employee-table-wrap">
+      <table class="employee-cert-table">
         <thead>
-          <tr style="border-bottom:1px solid var(--border); background:var(--bg);">
-            <th style="text-align:center; padding:12px; font-size:12px; width:40px;">
-              <input type="checkbox" style="cursor:pointer;"/>
+          <tr>
+            <th class="check-col">
+              <input type="checkbox"/>
             </th>
-            <th style="text-align:left; padding:12px; font-size:12px;">申请编号</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">用户</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">认证方式</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">企业名称</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">认证时间</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">状态</th>
-            <th style="text-align:left; padding:12px; font-size:12px;">操作</th>
+            <th>申请编号</th>
+            <th>用户</th>
+            <th>认证方式</th>
+            <th>企业名称</th>
+            <th>认证时间</th>
+            <th>状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="cert-list-tbody">
-          <tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-tertiary);">加载中...</td></tr>
+          <tr><td colspan="9" class="table-empty-cell">加载中...</td></tr>
         </tbody>
       </table>
+      </div>
 
       <!-- 分页 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-top:1px solid var(--border); font-size:12px;">
-        <div style="color:var(--text-secondary);">
+      <div class="employee-pagination in-card">
+        <div>
           共 <span id="cert-total-count">0</span> 条记录 | 第 <span id="cert-current-page">1</span> 页 / 共 <span id="cert-total-pages">1</span> 页
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="pagination-actions">
           <button class="btn btn-sm btn-secondary" onclick="loadCertificationTable(Math.max(1, parseInt(document.getElementById('cert-current-page').textContent) - 1))">上一页</button>
-          <span style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg);">
-            <input type="number" id="cert-page-input" value="1" style="width:40px; text-align:center; border:none; background:transparent; color:var(--text);" min="1"/>
+          <span class="page-input-wrap">
+            <input type="number" id="cert-page-input" value="1" min="1"/>
           </span>
           <button class="btn btn-sm btn-secondary" onclick="goToCertPage()">跳转</button>
           <button class="btn btn-sm btn-secondary" onclick="loadCertificationTable(parseInt(document.getElementById('cert-current-page').textContent) + 1)">下一页</button>
@@ -1642,11 +1827,11 @@ const PAGE_RENDERERS = {
     </div>
 
     <!-- 审核详情面板 -->
-    <div class="card" style="margin-top:24px;" id="cert-detail-card">
+    <div class="card employee-cert-detail-card" id="cert-detail-card">
       <div class="card-header">
         <span class="card-title">审核详情</span>
       </div>
-      <div style="padding:20px; text-align:center; color:var(--text-secondary); font-size:12px;">
+      <div class="employee-empty-detail">
         点击表格中的行查看详情
       </div>
     </div>
@@ -1660,53 +1845,86 @@ const PAGE_RENDERERS = {
 
     const firstLetter = (cert.applicant_name || '-').charAt(0).toUpperCase();
     const applicantMasked = cert.applicant_name || '-';
-    const methodLabel = cert.method === 'email' ? '企业邮箱' : cert.method === 'contract' ? '劳动合同' : cert.method === 'tax' ? '个人所得税' : '其他材料';
+    const methodLabel = cert.method === 'email' ? '企业邮箱' : cert.method === 'contract' ? '劳动合同' : cert.method === 'tax' ? '个人所得税视频认证' : '其他材料';
+    const isTaxVideo = cert.method === 'tax';
+    const canModifyResult = cert.status === 'rejected' || cert.status === 'pending';
+    const materialCards = isTaxVideo ? `
+                  <div class="employee-material-tile" onclick="showMaterialPreview('${cert.method}', '▶')">
+                    <div class="employee-material-icon">▶</div>
+                    <div class="employee-material-name">个税APP任职受雇信息录屏.mp4</div>
+                  </div>
+                  <div class="employee-material-tile" onclick="showMaterialPreview('辅助职位证明', '📄')">
+                    <div class="employee-material-icon">📄</div>
+                    <div class="employee-material-name">辅助职位证明.jpg</div>
+                  </div>
+                ` : `
+                  <div class="employee-material-tile" onclick="showMaterialPreview('${cert.method}', '📄')">
+                    <div class="employee-material-icon">📄</div>
+                    <div class="employee-material-name">${cert.method === 'contract' ? '劳动合同.pdf' : '认证材料.pdf'}</div>
+                  </div>
+                  <div class="employee-material-tile" onclick="showMaterialPreview('在职证明', '📄')">
+                    <div class="employee-material-icon">📄</div>
+                    <div class="employee-material-name">在职证明.jpg</div>
+                  </div>
+                `;
+    const verificationItems = isTaxVideo ? `
+                  <label><input type="checkbox" checked/> 视频页面是否为「任职受雇信息」</label>
+                  <label><input type="checkbox" checked/> 姓名是否匹配</label>
+                  <label><input type="checkbox" checked/> 任职受雇企业名称是否匹配</label>
+                  <label><input type="checkbox" checked/> 任职状态是否有效</label>
+                  <label><input type="checkbox" checked/> 录屏视频是否清晰完整</label>
+                ` : `
+                  <label><input type="checkbox" checked/> 姓名是否匹配</label>
+                  <label><input type="checkbox" checked/> 企业名称是否匹配</label>
+                  <label><input type="checkbox" checked/> 有效期是否符合（六个月内）</label>
+                  <label><input type="checkbox" checked/> 印章是否清晰</label>
+                `;
 
     return `
-      <div style="padding:20px;">
-        <button class="btn btn-secondary" onclick="switchPage('employee.certification')" style="margin-bottom:20px;">← 返回列表</button>
+      <div class="employee-detail-page">
+        <button class="btn btn-secondary employee-back-btn" onclick="switchPage('employee.certification')">← 返回列表</button>
 
-        <div style="display:grid; grid-template-columns: 280px 1fr; gap:30px;">
+        <div class="employee-detail-layout">
           <!-- 左侧用户卡片 -->
-          <div class="card" style="height:fit-content; text-align:center;">
-            <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #3370ff, #06b6d4); color:#fff; font-size:40px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+          <div class="card employee-profile-card">
+            <div class="employee-avatar">
               ${firstLetter}
             </div>
-            <div style="font-size:18px; font-weight:600; margin-bottom:4px;">${cert.applicant_name}</div>
-            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">昵称：${cert.nickname || '-'}</div>
-            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">LenovoID：${cert.lenovo_id || '-'}</div>
+            <div class="employee-profile-name">${cert.applicant_name}</div>
+            <div class="employee-profile-meta">昵称：${cert.nickname || '-'}</div>
+            <div class="employee-profile-meta">LenovoID：${cert.lenovo_id || '-'}</div>
 
-            <div style="border-top:1px solid var(--border); padding-top:12px; font-size:12px;">
-              <div style="margin-bottom:8px;">申请时间：${cert.created_at}</div>
-              <div style="margin-bottom:8px;">申请类型：${cert.cert_type || '首次申请'}</div>
-              <div style="margin-top:8px;">
-                <span style="display:inline-block; padding:4px 8px; background:#3370ff08; color:#3370ff; border-radius:3px; font-size:11px;">
-                  ${cert.status === 'approved' ? '✓ 认证成功' : cert.status === 'rejected' ? '✗ 认证失败' : '已失效'}
+            <div class="employee-profile-info">
+              <div>申请时间：${cert.created_at}</div>
+              <div>申请类型：${cert.cert_type || '首次申请'}</div>
+              <div>
+                <span class="status-pill ${cert.status === 'approved' ? 'success' : cert.status === 'rejected' ? 'danger' : 'muted'}">
+                  ${cert.status === 'approved' ? '认证成功' : cert.status === 'rejected' ? '认证失败' : '已失效'}
                 </span>
               </div>
             </div>
           </div>
 
           <!-- 右侧信息区 -->
-          <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="employee-detail-stack">
             <!-- 申请基本信息 -->
             <div class="card">
               <div class="card-header">
                 <span class="card-title">申请基本信息</span>
               </div>
-              <div style="padding:20px;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px;">
+              <div class="employee-detail-section">
+                <div class="employee-info-grid">
                   <div>
-                    <div style="color:var(--text-secondary); margin-bottom:4px;">申请编号</div>
-                    <div style="font-weight:600;">${cert.id}</div>
+                    <div class="employee-field-label">申请编号</div>
+                    <div class="employee-field-value strong">${cert.id}</div>
                   </div>
                   <div>
-                    <div style="color:var(--text-secondary); margin-bottom:4px;">申请类型</div>
-                    <div>${cert.cert_type || '首次申请'}</div>
+                    <div class="employee-field-label">申请类型</div>
+                    <div class="employee-field-value">${cert.cert_type || '首次申请'}</div>
                   </div>
                   <div>
-                    <div style="color:var(--text-secondary); margin-bottom:4px;">认证方式</div>
-                    <div>${methodLabel}</div>
+                    <div class="employee-field-label">认证方式</div>
+                    <div class="employee-field-value">${methodLabel}</div>
                   </div>
                 </div>
               </div>
@@ -1717,27 +1935,27 @@ const PAGE_RENDERERS = {
               <div class="card-header">
                 <span class="card-title">用户信息审核</span>
               </div>
-              <div style="padding:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+              <div class="employee-detail-section">
+                <div class="employee-audit-row">
                   <div>
-                    <div style="font-weight:600;">真实姓名</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${cert.real_name || cert.applicant_name}</div>
+                    <div class="employee-field-value strong">真实姓名</div>
+                    <div class="employee-field-label">${cert.real_name || cert.applicant_name}</div>
                   </div>
-                  <div style="color:#34c724; font-size:14px;">✓ 与实名认证信息一致</div>
+                  <div class="employee-audit-pass">与实名认证信息一致</div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                <div class="employee-audit-row">
                   <div>
-                    <div style="font-weight:600;">企业信息</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${cert.company || '-'}</div>
+                    <div class="employee-field-value strong">企业信息</div>
+                    <div class="employee-field-label">${cert.company || '-'}</div>
                   </div>
-                  <div style="color:#34c724; font-size:14px;">✓ 已核实</div>
+                  <div class="employee-audit-pass">已核实</div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                <div class="employee-audit-row last">
                   <div>
-                    <div style="font-weight:600;">职位信息</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${cert.position || '-'}</div>
+                    <div class="employee-field-value strong">职位信息</div>
+                    <div class="employee-field-label">${cert.position || '-'}</div>
                   </div>
-                  <div style="color:#34c724; font-size:14px;">✓ 已核实</div>
+                  <div class="employee-audit-pass">已核实</div>
                 </div>
               </div>
             </div>
@@ -1747,49 +1965,42 @@ const PAGE_RENDERERS = {
               <div class="card-header">
                 <span class="card-title">认证材料审核</span>
               </div>
-              <div style="padding:20px;">
-                <div style="color:var(--text-secondary); font-size:12px; margin-bottom:12px;">已上传材料：</div>
-                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px;">
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:40px; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('${cert.method}', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    📄
-                  </div>
-                  <div style="aspect-ratio:1; background:var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:40px; cursor:pointer; transition:all 0.2s;" onclick="showMaterialPreview('在职证明', '📄')" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">
-                    📄
-                  </div>
+              <div class="employee-detail-section">
+                <div class="employee-field-label">已上传材料：</div>
+                <div class="employee-material-grid">
+                  ${materialCards}
                 </div>
+                ${isTaxVideo ? `<div class="employee-helper-text">视频需展示个人所得税 APP「个人中心 - 任职受雇信息」页面，包含姓名、任职受雇公司和任职状态；如需证明具体岗位，可查看辅助职位材料。</div>` : ''}
 
-                <div style="color:var(--text-secondary); font-size:12px; margin-bottom:12px;">验证项：</div>
-                <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-                  <label><input type="checkbox" checked/> 姓名是否匹配</label>
-                  <label><input type="checkbox" checked/> 企业名称是否匹配</label>
-                  <label><input type="checkbox" checked/> 有效期是否符合（六个月内）</label>
-                  <label><input type="checkbox" checked/> 印章是否清晰</label>
+                <div class="employee-field-label">验证项：</div>
+                <div class="employee-check-list">
+                  ${verificationItems}
                 </div>
               </div>
             </div>
 
             <!-- 状态修改操作 -->
-            <div class="card">
-              <div class="card-header">
+            ${canModifyResult ? `<div class="card">
+              <div class="card-header employee-card-header">
                 <span class="card-title">修改认证结果</span>
-                <span style="font-size:11px; color:var(--text-tertiary);">仅用于客服人工介入，将认证失败的用户改为认证成功</span>
+                <span class="card-note">仅用于客服人工介入，将认证失败的用户改为认证成功</span>
               </div>
-              <div style="padding:20px;">
-                <div style="padding:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; margin-bottom:20px; font-size:12px; color:#b91c1c;">
-                  ⚠️ 此操作将直接变更用户认证状态为"认证成功"，请确认已核实用户身份信息。
+              <div class="employee-detail-section">
+                <div class="employee-alert warning">
+                  此操作将直接变更用户认证状态为「认证成功」，请确认已核实用户身份信息。
                 </div>
 
-                <div style="margin-bottom:20px;">
-                  <label style="display:block; color:var(--text-secondary); font-size:12px; margin-bottom:8px;">操作备注（必填）</label>
-                  <textarea id="cert-review-remark" style="width:100%; height:80px; padding:8px; border:1px solid var(--border); border-radius:4px; background:var(--card-bg); color:var(--text); font-size:12px;" placeholder="请说明修改原因，如：用户重新提交了清晰的合同照片"></textarea>
+                <div class="employee-form-group">
+                  <label>操作备注（必填）</label>
+                  <textarea id="cert-review-remark" placeholder="请说明修改原因，如：用户重新提交了清晰的合同照片"></textarea>
                 </div>
 
-                <div style="display:flex; gap:8px;">
-                  <button class="btn btn-primary" onclick="submitCertReview('${cert.id}')" style="flex:1; background:#10b981; border:none;">✓ 变更为认证成功</button>
-                  <button class="btn btn-secondary" onclick="switchPage('employee.certification')" style="flex:1;">取消</button>
+                <div class="employee-action-row">
+                  <button class="btn btn-primary employee-review-action" onclick="submitCertReview('${cert.id}')">变更为认证成功</button>
+                  <button class="btn btn-secondary employee-review-action" onclick="switchPage('employee.certification')">取消</button>
                 </div>
               </div>
-            </div>
+            </div>` : ''}
           </div>
         </div>
       </div>
@@ -1991,3 +2202,10 @@ const PAGE_RENDERERS = {
 function ovTimeRangeChanged(val) {
   leaiSetOverviewRange(val);
 }
+
+// 运营总览 Query 场景分布：页面渲染后异步取 Query 分析模块数据填充
+const _origSwitchPageOverview = switchPage;
+switchPage = function(pageId) {
+  _origSwitchPageOverview(pageId);
+  if (pageId === 'dashboard.overview') setTimeout(leaiRenderScenarioCard, 50);
+};
