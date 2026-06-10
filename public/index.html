@@ -4945,6 +4945,15 @@
       .lx-p0-suggest-chip { border: 1px solid var(--lx-border); background: #fff; color: var(--lx-aubergine); border-radius: 999px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; }
       .lx-p0-suggest-chip:hover { background: var(--lx-surface-hover); }
       .portal-section.lx-nav-flash { outline: 2px solid var(--lx-brand-red); outline-offset: 6px; border-radius: 8px; }
+      .detail-fit-reason { margin: 10px 0 0; font-size: 13.5px; line-height: 1.7; color: var(--lx-aubergine); background: var(--lx-surface-muted); border-radius: 8px; padding: 9px 12px; }
+      .detail-fit-reason strong { color: var(--lx-brand-red); margin-right: 8px; }
+      .detail-fit-reason .lx-fit-note { margin-left: 8px; font-size: 11.5px; color: var(--lx-text-tertiary); }
+      .lx-sim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .lx-sim-card { border: 1px solid var(--lx-border); border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; }
+      .lx-sim-card:hover { border-color: var(--lx-aubergine); }
+      .lx-sim-card img { width: 100%; height: 84px; object-fit: contain; }
+      .lx-sim-name { font-size: 12.5px; margin: 6px 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lx-sim-price { color: var(--lx-brand-red); font-weight: 700; font-size: 13px; }
 
       .lx-p1-upload-note {
         display: none;
@@ -5717,6 +5726,7 @@
             <div class="detail-info">
               <h2 class="detail-title" data-detail-title>小新AIR13</h2>
               <p class="detail-summary" data-detail-summary>2.5K 120Hz｜轻至1.1kg，适合轻薄办公、学习创作和日常影音使用。</p>
+              <p class="detail-fit-reason" data-detail-reason hidden></p>
               <div class="detail-tags">
                 <span class="detail-tag">AI 智能体验</span>
                 <span class="detail-tag">轻薄便携</span>
@@ -6723,6 +6733,47 @@
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
           ensureDetailCompareButton();
+          ensureDetailSimilarButton();
+          loadFitReason(product);
+        }
+
+        let fitReasonToken = 0;
+        async function loadFitReason(product) {
+          const node = $("[data-detail-reason]");
+          if (!node) return;
+          const token = ++fitReasonToken;
+          node.hidden = true;
+          if (!product?.sku) return;
+          try {
+            const response = await fetch(`/api/products/${encodeURIComponent(product.sku)}/reason`, { cache: "no-store" });
+            const payload = await response.json();
+            if (token !== fitReasonToken || !payload.reason) return;
+            node.innerHTML = `<strong>✨ 适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">AI 生成 · 仅供参考</span>`;
+            node.hidden = false;
+          } catch {}
+        }
+
+        function ensureDetailSimilarButton() {
+          const actions = $(".detail-actions");
+          if (!actions || $(".lx-p0-detail-similar", actions)) return;
+          const btn = document.createElement("button");
+          btn.className = "detail-secondary lx-p0-detail-similar";
+          btn.type = "button";
+          btn.textContent = "找相似";
+          actions.appendChild(btn);
+        }
+
+        async function openSimilarProducts() {
+          const sku = state.currentProduct?.sku;
+          if (!sku) return toast("请先选择商品");
+          try {
+            const response = await fetch(`/api/products?similar=${encodeURIComponent(sku)}&limit=6`, { cache: "no-store" });
+            const items = await response.json();
+            if (!Array.isArray(items) || !items.length) return toast("暂未找到同类相近价位的商品");
+            openModal("相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
+          } catch {
+            toast("相似商品加载失败，请稍后再试");
+          }
         }
 
         function ensureDetailCompareButton() {
@@ -7634,8 +7685,9 @@
             }
 
             if (event.target.closest(".detail-primary")) buyNow();
-            if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare)")) addCart();
+            if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar)")) addCart();
             if (event.target.closest(".lx-p0-detail-compare")) addCompare();
+            if (event.target.closest(".lx-p0-detail-similar")) openSimilarProducts();
 
             const detailTab = event.target.closest("[data-detail-tab]");
             if (detailTab) {
@@ -7683,7 +7735,7 @@
             }
 
             const openSku = event.target.closest("[data-open-product]")?.dataset.openProduct;
-            if (openSku) openProduct(openSku);
+            if (openSku) { closeModal(); openProduct(openSku); }
 
             const buySku = event.target.closest("[data-buy-sku]")?.dataset.buySku;
             if (buySku) buyNow(state.cart.find((item) => item.sku === buySku));
