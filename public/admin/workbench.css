@@ -677,6 +677,54 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   max-height:420px;
   overflow-y:auto;
 }
+.skill-summary-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.skill-summary-head b {
+  margin-bottom:2px;
+}
+.skill-summary-head small {
+  display:block;
+  color:var(--text-tertiary);
+  font-size:11px;
+  line-height:1.4;
+}
+.skill-summary-refresh {
+  width:26px;
+  height:26px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:#fff;
+  color:var(--text-secondary);
+  cursor:pointer;
+  font-size:15px;
+  line-height:1;
+}
+.skill-summary-refresh:hover {
+  color:var(--primary);
+  border-color:var(--primary);
+  background:var(--primary-light);
+}
+.skill-summary-refresh span {
+  display:inline-block;
+  line-height:1;
+}
+.skill-summary-refresh.loading {
+  color:var(--primary);
+}
+.skill-summary-refresh.loading span {
+  animation:skill-summary-spin .7s linear infinite;
+}
+@keyframes skill-summary-spin {
+  to { transform:rotate(360deg); }
+}
 .skill-summary-item {
   padding:10px 0;
   border-top:1px solid var(--border-light);
@@ -3751,6 +3799,41 @@ html[data-product="leaibot"] .skill-chat-user {
 
 html[data-product="leaibot"] .skill-clarify-summary {
   max-height:460px;
+}
+
+html[data-product="leaibot"] .skill-summary-head {
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+
+html[data-product="leaibot"] .skill-summary-head b {
+  margin-bottom:2px;
+  color:var(--text);
+}
+
+html[data-product="leaibot"] .skill-summary-head small {
+  color:var(--text-tertiary);
+}
+
+html[data-product="leaibot"] .skill-summary-refresh {
+  width:26px;
+  height:26px;
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--text-secondary);
+  box-shadow:none;
+}
+
+html[data-product="leaibot"] .skill-summary-refresh:hover {
+  color:var(--primary);
+  border-color:var(--color-primary-border, #b7c8ff);
+  background:var(--primary-light);
 }
 
 html[data-product="leaibot"] .skill-rule-grid.skill-clarify-actions {

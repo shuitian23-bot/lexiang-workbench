@@ -1086,6 +1086,56 @@ function appendSkillClarifyAssistant(message) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+function refreshSkillClarifySummary(btn) {
+  const summary = document.getElementById('skill-clarify-summary-content');
+  const updated = document.getElementById('skill-clarify-summary-updated');
+  const chat = document.getElementById('skill-clarify-chat');
+  if (!summary) return;
+  const userTurns = chat ? Array.from(chat.querySelectorAll('.skill-chat-user')).map(item => item.textContent.trim()).filter(Boolean) : [];
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  btn?.classList.add('loading');
+  btn?.setAttribute('disabled', 'disabled');
+  setTimeout(() => {
+    summary.innerHTML = `
+      <div class="skill-summary-item">
+        <span>基本信息</span>
+        <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0；已基于 ${userTurns.length} 轮自然语言澄清更新。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>触发场景</span>
+        <p>自然语言查询、日报/周报/月报、待审核积压提醒、认证方式失败率异常提醒。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>文件结构</span>
+        <p>生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md；附件材料只作为需求和字段依据。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>输出格式</span>
+        <p>默认先返回 direct_response 文本结论，再返回 display_info 表格明细；允许提供 link_list 脱敏 CSV 下载。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>测试用例方向</span>
+        <p>认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势、异常输入兜底。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>评估重点</span>
+        <p>数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性、定时任务稳定性。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>复杂度</span>
+        <p>medium；只读分析为主，涉及多字段过滤、聚合统计、脱敏导出和异常提醒。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>Phoenix 输出</span>
+        <p>使用 direct_response + display_info + link_list，不触发认证状态修改动作。</p>
+      </div>`;
+    if (updated) updated.textContent = `已刷新 ${time}`;
+    btn?.classList.remove('loading');
+    btn?.removeAttribute('disabled');
+  }, 360);
+}
+
 function saveSkillCreateDraft() {
   const sub = document.querySelector('.skill-workspace-sub');
   const now = new Date();
@@ -1128,24 +1178,24 @@ function fillSkillCreateTemplate(type) {
   const templates = {
     query: {
       name: '查询经营指标',
+      menu: '乐享运营',
       scene: '运营同学用自然语言查询 GMV、订单、转化率等指标，并返回可解释口径。',
       input: '时间范围、业务线、渠道、指标名称',
-      output: '指标数值、同比环比、口径说明、异常提示',
-      risk: 'L1'
+      output: '指标数值、同比环比、口径说明、异常提示'
     },
     generate: {
       name: '生成活动复盘',
+      menu: '乐享运营',
       scene: '基于活动数据和知识库生成结构化复盘草稿，供运营二次确认。',
       input: '活动名称、时间范围、目标指标、数据结果',
-      output: '复盘摘要、亮点、问题、行动建议',
-      risk: 'L2'
+      output: '复盘摘要、亮点、问题、行动建议'
     },
     action: {
       name: '配置商品推荐位',
+      menu: '乐享运营',
       scene: '根据运营策略生成商品推荐位配置草案，高风险动作需审批后执行。',
       input: '商品 ID、推荐位、上线时间、目标人群',
-      output: '配置草案、影响范围、审批单',
-      risk: 'L3'
+      output: '配置草案、影响范围、审批单'
     }
   };
   const t = templates[type];
@@ -1155,10 +1205,10 @@ function fillSkillCreateTemplate(type) {
     if (el) el.value = value;
   };
   set('skill-create-name', t.name);
+  set('skill-create-menu', t.menu);
   set('skill-create-scene', t.scene);
   set('skill-create-input', t.input);
   set('skill-create-output', t.output);
-  set('skill-create-risk', t.risk);
   switchSkillCreateTab('config', document.querySelector('[data-skill-create-tab=config]'));
 }
 
@@ -1227,34 +1277,26 @@ function renderSkillCreatePage() {
           </div>
 
           <div class="skill-create-panel active" data-skill-create-panel="config">
-            <div class="skill-step-banner">当前阶段：先完成 Skill 基础配置，明确名称、分类、风险等级、负责人、适用场景、输入输出和能力边界。</div>
+            <div class="skill-step-banner">当前阶段：先完成 Skill 基础配置，明确必填的 Skill 名称、所属菜单，以及可选的适用场景、输入输出和能力边界。</div>
             <div class="skill-create-form">
               <div class="skill-create-field">
-                <label for="skill-create-name">Skill 名称</label>
-                <input id="skill-create-name" value="职场人群认证数据分析">
+                <label for="skill-create-name">Skill 名称 <span class="field-required">*</span></label>
+                <input id="skill-create-name" value="职场人群认证数据分析" required>
               </div>
               <div class="skill-create-field">
-                <label for="skill-create-category">能力分类</label>
-                <select id="skill-create-category"><option>数据查询</option><option>内容生成</option><option>商品运营</option><option>知识库维护</option></select>
-              </div>
-                <div class="skill-create-field">
-                  <label for="skill-create-risk">风险等级</label>
-                  <select id="skill-create-risk"><option>L2</option><option>L1</option><option>L3</option><option>L4</option></select>
-                </div>
-              <div class="skill-create-field">
-                <label for="skill-create-owner">负责人</label>
-                <input id="skill-create-owner" value="会员运营 PM / 数据负责人">
+                <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
+                <select id="skill-create-menu" required><option>在职员工管理</option><option>乐享运营</option><option>GEO 看板</option><option>企业客户管理</option><option>搜索后台</option><option>风控管理</option></select>
               </div>
               <div class="skill-create-field full">
-                <label for="skill-create-scene">适用场景</label>
+                <label for="skill-create-scene">适用场景 <span class="field-optional">非必填</span></label>
                 <textarea id="skill-create-scene">运营和 PM 通过自然语言查询职场人群认证数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。</textarea>
               </div>
               <div class="skill-create-field">
-                <label for="skill-create-input">输入参数</label>
+                <label for="skill-create-input">输入参数 <span class="field-optional">非必填</span></label>
                 <textarea id="skill-create-input">时间范围、认证方式、认证状态、企业名称、岗位信息、失败原因、输出格式</textarea>
               </div>
               <div class="skill-create-field">
-                <label for="skill-create-output">输出结果</label>
+                <label for="skill-create-output">输出结果 <span class="field-optional">非必填</span></label>
                 <textarea id="skill-create-output">指标摘要、认证方式分布表、失败原因 TopN、趋势判断、可下载 CSV 链接</textarea>
               </div>
             </div>
@@ -1287,38 +1329,46 @@ function renderSkillCreatePage() {
                 <div class="skill-chat-ai">需求澄清已完成。当前 Skill 将支持自然语言查询、定时报告、异常提醒、脱敏导出和只读数据分析。下一步我会基于这些结论生成 Skill 草稿。</div>
               </div>
               <div class="skill-clarify-card skill-clarify-summary">
-                <b>澄清结论</b>
-                <div class="skill-summary-item">
-                  <span>基本信息</span>
-                  <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0</p>
+                <div class="skill-summary-head">
+                  <div>
+                    <b>澄清结论</b>
+                    <small id="skill-clarify-summary-updated">根据当前对话生成</small>
+                  </div>
+                  <button type="button" class="skill-summary-refresh" title="刷新澄清总结" aria-label="刷新澄清总结" onclick="refreshSkillClarifySummary(this)"><span>↻</span></button>
                 </div>
-                <div class="skill-summary-item">
-                  <span>触发场景</span>
-                  <p>自然语言查询、日报/周报/月报、待审核积压和失败率异常提醒。</p>
-                </div>
-                <div class="skill-summary-item">
-                  <span>文件结构</span>
-                  <p>生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md。</p>
-                </div>
-                <div class="skill-summary-item">
-                  <span>输出格式</span>
-                  <p>direct_response 文本结论、display_info 表格明细、link_list 脱敏 CSV 下载。</p>
-                </div>
-                <div class="skill-summary-item">
-                  <span>测试用例方向</span>
-                  <p>认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势。</p>
-                </div>
-                <div class="skill-summary-item">
-                  <span>评估重点</span>
-                  <p>数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性。</p>
-                </div>
-                <div class="skill-summary-item">
-                  <span>复杂度</span>
-                  <p>medium；只读分析为主，涉及多字段过滤、聚合统计和权限校验。</p>
-                </div>
-                <div class="skill-summary-item">
-                  <span>Phoenix 输出</span>
-                  <p>使用 direct_response + display_info + link_list，不触发状态修改动作。</p>
+                <div id="skill-clarify-summary-content">
+                  <div class="skill-summary-item">
+                    <span>基本信息</span>
+                    <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>触发场景</span>
+                    <p>自然语言查询、日报/周报/月报、待审核积压和失败率异常提醒。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>文件结构</span>
+                    <p>生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>输出格式</span>
+                    <p>direct_response 文本结论、display_info 表格明细、link_list 脱敏 CSV 下载。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>测试用例方向</span>
+                    <p>认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>评估重点</span>
+                    <p>数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>复杂度</span>
+                    <p>medium；只读分析为主，涉及多字段过滤、聚合统计和权限校验。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>Phoenix 输出</span>
+                    <p>使用 direct_response + display_info + link_list，不触发状态修改动作。</p>
+                  </div>
                 </div>
               </div>
             </div>
