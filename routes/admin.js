@@ -159,6 +159,13 @@ router.get('/conversations', requireAdmin, (req, res) => {
   res.json(rows);
 });
 
+// GET /api/admin/leads — 留资线索列表（企业采购/政企意向/换新留资）
+router.get('/leads', requireAdmin, (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 100, 500);
+  const rows = db.prepare(`SELECT * FROM leads ORDER BY created_at DESC LIMIT ?`).all(limit);
+  res.json(rows);
+});
+
 // GET /api/admin/conversations/:id — 管理员查看对话详情
 router.get('/conversations/:id', requireAdmin, (req, res) => {
   const convId = req.params.id;

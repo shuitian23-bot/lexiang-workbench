@@ -690,4 +690,21 @@ db.exec(`
   }
 }
 
+// 留资线索落库（PRD 5.8.4/5.13.4：留资是企业线转化核心，此前仅转对话流不持久化）
+db.exec(`
+  CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scenario TEXT DEFAULT '',
+    site_type TEXT DEFAULT '',
+    company TEXT DEFAULT '',
+    contact TEXT DEFAULT '',
+    need TEXT DEFAULT '',
+    conv_id INTEGER,
+    user_id INTEGER,
+    status TEXT DEFAULT 'new',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_leads_created ON leads(created_at);
+`);
+
 module.exports = db;

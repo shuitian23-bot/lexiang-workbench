@@ -422,6 +422,19 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
+// 留资线索落库：前端留资弹窗提交（企业采购/政企意向/换新等场景）
+app.post('/api/leads', (req, res) => {
+  const { scenario, site_type, company, contact, need, conv_id } = req.body || {};
+  if (!company && !contact && !need) return res.status(400).json({ error: 'empty lead' });
+  const clip = (v) => String(v || '').slice(0, 200);
+  const result = db.prepare(`INSERT INTO leads (scenario, site_type, company, contact, need, conv_id, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`).run(
+    clip(scenario), clip(site_type), clip(company), clip(contact), clip(need),
+    Number(conv_id) || null, req.userId || null
+  );
+  res.json({ id: result.lastInsertRowid, ok: true });
+});
+
 // lxHint 形态配置（legacy 旧浮窗 / chip 新情境转化条 / off 关闭）— 改 config/lxhint.json 即时生效，无需重启
 app.get('/api/config/lxhint', (req, res) => {
   let mode = 'chip';

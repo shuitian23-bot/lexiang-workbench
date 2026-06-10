@@ -7368,7 +7368,8 @@
           `);
         }
 
-        function openLeadPanel() {
+        function openLeadPanel(scenario) {
+          state.leadScenario = scenario || (state.page === "enterprise" ? "biz_intent" : "b_purchase");
           const isBiz = state.page === "enterprise";
           openModal(isBiz ? "政企项目意向" : "企业采购咨询", `
             <p class="lx-p0-disclaimer">${isBiz ? "提交行业、规模和交付要求，联想乐享会整理成 BD 对接信息。" : "提交采购品类、台量和到货时间，联想乐享会整理批量报价需求。"}</p>
@@ -7788,6 +7789,19 @@
               const need = $("#lxLeadNeed")?.value.trim();
               const contact = $("#lxLeadContact")?.value.trim();
               closeModal();
+              // 线索落库（不阻塞对话回显，失败静默——对话流仍是兜底记录）
+              if (company || need || contact) {
+                fetch("/api/leads", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    scenario: state.leadScenario || "",
+                    site_type: API_SITE[state.page] || "default",
+                    company, contact, need,
+                    conv_id: state.convId || null
+                  })
+                }).then(() => toast("需求已提交，顾问会尽快与您联系")).catch(() => {});
+              }
               sendChat(`请整理企业/政企线索并给下一步对接建议。企业：${company || "未填写"}；需求：${need || "未填写"}；联系人：${contact || "未填写"}`);
             }
             if (event.target.closest("[data-open-login]")) openLogin();
