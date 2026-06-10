@@ -273,3 +273,41 @@ gunzip -c /opt/backups/lexiang/lexiang_YYYYMMDD_HHMMSS.db.gz > /opt/projects/lex
 sudo chown ubuntu:dev /opt/projects/lexiang/lexiang.db
 sudo pm2 start lexiang
 ```
+
+---
+
+## 联想乐享 PC 端设计规范（必须读取）
+
+维护 `https://leaibot.cn/`、`public/index.html`、`public/assets/` 或任意 PC 端页面样式/交互/中文文案前，必须先读取（本仓库内路径）：
+
+`/opt/projects/lexiang/.codex/skills/lenovo-leai-pc-design/SKILL.md`
+
+并按该 skill 的 workflow 继续读取：
+
+- `references/pc-design-system.md`
+- `references/layout-rules.md`
+- `references/component-patterns.md`
+- `references/interaction-states.md`
+- `references/content-voice.md`
+- `references/real-pc-dialog-reference.md`
+- `references/real-pc-dialog-states.md`
+- `references/asset-inventory.md`
+
+设计与实现必须优先遵循联想乐享超级智能体 PC 端规范。不要新增未在规范内定义的主色、紫色渐变、玻璃拟态、营销页式大背景或不符合 PC 助手工作台定位的组件。
+
+---
+
+## 版本管理与更新日志（强制，所有人 / 所有 AI session 适用）
+
+线上有「更新日志」页面：`https://leaibot.cn/changelog.html`，数据源是 `public/changelog.json`，页面自动渲染、无需重启服务。
+
+**规则：任何上线到 leaibot.cn 的改动（功能、页面、文案、数据、修复），发布后必须在 `public/changelog.json` 追加当日条目——不管改动出自哪个人、哪个 AI 工具/session。代他人补录也算数：如果发现已上线的改动没有记录，先补记再继续自己的工作。**
+
+格式约定：
+
+- `days` 数组按日期倒序（最新的一天在最前）。
+- 当天（北京时间）已存在条目 → 在该天的 `items` 末尾追加，编号由页面自动续接；新的一天 → 新建 `{ "date": "YYYY-MM-DD", "items": [...] }`，编号自动从 1 开始。
+- **描述必须是不懂代码、不懂开发的人能看懂的大白话**：写「用户能感知到什么变了、对他有什么用」，不写文件名、函数名、技术词。仅影响内部运营的改动，句尾注明「（内部功能，不影响购物体验）」。
+- 例：「商品详情页新增『适合你』推荐理由：会根据你聊过的需求，用一句话告诉你这款为什么适合你。」
+- changelog.json 的改动随当次代码提交一起 commit。
+
