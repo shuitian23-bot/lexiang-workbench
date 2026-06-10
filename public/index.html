@@ -4976,6 +4976,11 @@
       .trail-row { padding: 7px 12px; font-size: 12.5px; color: var(--lx-text-secondary); cursor: pointer; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .trail-row:hover { background: var(--lavender-hover); }
       .trail-row.active { color: var(--lx-aubergine); font-weight: 600; }
+      .lx-invoice-note { font-size: 12px; color: var(--lx-text-tertiary); align-self: center; }
+      .lx-addr-row { cursor: pointer; }
+      .lx-addr-form { margin-top: 8px; }
+      .lx-human-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; padding: 8px 12px; border: 1px solid var(--lx-border); border-radius: 8px; background: var(--lx-surface-muted); font-size: 12.5px; color: var(--lx-aubergine); }
+      .lx-p0-message.human { border-left: 3px solid var(--lx-aubergine); }
 
       .lx-p1-upload-note {
         display: none;
@@ -6822,10 +6827,45 @@
 
         function buyNow(product = state.currentProduct) {
           if (!product) return toast("请先选择商品");
-          const order = { ...normalizeProduct(product), orderId: `LX${Date.now()}`, createdAt: new Date().toLocaleString("zh-CN") };
+          openAddressPicker(normalizeProduct(product));
+        }
+
+        // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
+        function lxAddresses() {
+          const list = load("lexiang.addresses.v1");
+          return Array.isArray(list) ? list : [];
+        }
+
+        function openAddressPicker(product) {
+          state.pendingOrderProduct = product;
+          const list = lxAddresses();
+          const rows = list.map((addr, index) => `
+            <div class="lx-p0-row lx-addr-row" data-addr-pick="${index}">
+              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
+              <button class="lx-p0-btn primary" type="button" data-addr-pick="${index}">用这个地址下单</button>
+            </div>`).join("");
+          openModal("确认收货地址", `
+            ${rows || `<p class="lx-p0-disclaimer">还没有收货地址，填写后即可下单。</p>`}
+            <div class="lx-addr-form">
+              <div class="lx-trail-head" style="border-top:none;padding-left:0">${rows ? "或新增地址" : "新增收货地址"}</div>
+              <input class="lx-p0-field" id="lxAddrName" placeholder="收货人姓名">
+              <input class="lx-p0-field" id="lxAddrPhone" placeholder="手机号">
+              <input class="lx-p0-field" id="lxAddrRegion" placeholder="省 / 市 / 区">
+              <input class="lx-p0-field" id="lxAddrDetail" placeholder="详细地址（街道、楼栋、门牌号）">
+              <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-addr-save>保存地址并下单</button></div>
+            </div>
+            <p class="lx-p0-disclaimer">演示环境：订单与地址仅保存在本机浏览器，不会真实发货。</p>`);
+        }
+
+        function lxPlaceOrder(address) {
+          const product = state.pendingOrderProduct;
+          if (!product) return;
+          const order = { ...product, orderId: `LX${Date.now()}`, createdAt: new Date().toLocaleString("zh-CN"), address };
           state.orders.unshift(order);
           save("lexiang.orders.v1", state.orders);
+          state.pendingOrderProduct = null;
           updateBadges();
+          toast("下单成功（演示订单）");
           openOrders();
         }
 
@@ -6851,13 +6891,26 @@
         }
 
         function openOrders() {
+          const invoice = load("lexiang.invoice.v1");
+          const invoiceText = invoice && invoice.title ? `已设置开票抬头：${esc(invoice.title)}` : "未设置开票信息";
           const rows = state.orders.length ? state.orders.map((item) => `
             <div class="lx-p0-row">
               <img src="${esc(item.image_url)}" alt="">
-              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span></div>
+              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span>${item.address ? `<span>收货：${esc(item.address.name || "")} ${esc(item.address.phone || "")} ${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>` : ""}</div>
               <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页“立即购买”可生成演示订单。</p>`;
-          openModal("我的订单", rows);
+          openModal("我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
+        }
+
+        // 发票抬头（PRD 5.0.2 弹窗层场景：开票信息填写与修改）
+        function openInvoiceForm() {
+          const invoice = load("lexiang.invoice.v1");
+          const current = invoice && typeof invoice === "object" && !Array.isArray(invoice) ? invoice : {};
+          openModal("开票信息", `
+            <p class="lx-p0-disclaimer">设置后，后续订单默认按此抬头开票；企业专票需先完成企业认证。</p>
+            <input class="lx-p0-field" id="lxInvTitle" placeholder="发票抬头（个人姓名或企业名称）" value="${esc(current.title || "")}">
+            <input class="lx-p0-field" id="lxInvTax" placeholder="纳税人识别号（企业开票必填）" value="${esc(current.taxNo || "")}">
+            <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-invoice-save>保存开票信息</button></div>`);
         }
 
         function addCompare(product = state.currentProduct) {
@@ -7550,7 +7603,30 @@
           openModal("联想服务", `
             <input class="lx-p0-field" id="lxServiceSn" placeholder="输入主机编号 SN，可选">
             <div class="lx-p1-grid">${services.map((item) => `<div class="lx-p1-card"><strong>${item[0]}</strong><span>${item[1]}</span><button class="lx-p0-btn" style="margin-top:10px" data-service-ask="${esc(item[0])}">咨询</button></div>`).join("")}</div>
+            <div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-human-on>转人工客服</button><span class="lx-invoice-note">消费热线 400-990-8888 · 企业专线 400-990-8866</span></div>
           `);
+        }
+
+        // 转人工服务模式 mock（PRD 5.6：专属客服承接 + 清晰退出入口）
+        function lxSetHumanMode(on) {
+          state.humanMode = !!on;
+          closeModal();
+          const chat = ensureChat();
+          let banner = document.querySelector(".lx-human-banner");
+          if (on) {
+            if (!banner) {
+              banner = document.createElement("div");
+              banner.className = "lx-human-banner";
+              chat?.parentElement?.prepend(banner);
+            }
+            banner.hidden = false;
+            banner.innerHTML = `<span>人工服务中 · 专属客服「小联」为您服务</span><button class="lx-p0-btn" type="button" data-human-off>退出人工</button>`;
+            addMessage("ai human", "您好，我是您的专属客服小联，已为您接入人工服务通道。订单、售后、发票等问题都可以直接发给我。（演示环境：由乐享 AI 以专属客服身份接待）");
+          } else if (banner) {
+            banner.hidden = true;
+            addMessage("ai", "已退出人工服务，继续由联想乐享 AI 为您服务。");
+          }
+          if (chat) chat.scrollTop = chat.scrollHeight;
         }
 
         function openLeadPanel(scenario) {
@@ -8009,6 +8085,39 @@
               }
               sendChat(`请整理企业/政企线索并给下一步对接建议。企业：${company || "未填写"}；需求：${need || "未填写"}；联系人：${contact || "未填写"}`);
             }
+            const addrPick = event.target.closest("[data-addr-pick]");
+            if (addrPick) {
+              const addr = lxAddresses()[Number(addrPick.dataset.addrPick)];
+              if (addr) { closeModal(); lxPlaceOrder(addr); }
+            }
+            if (event.target.closest("[data-addr-save]")) {
+              const name = $("#lxAddrName")?.value.trim();
+              const phone = $("#lxAddrPhone")?.value.trim();
+              const region = $("#lxAddrRegion")?.value.trim();
+              const detail = $("#lxAddrDetail")?.value.trim();
+              if (!name || !phone || !detail) toast("请填写收货人、手机号和详细地址");
+              else {
+                const list = lxAddresses();
+                const addr = { name, phone, region, detail };
+                list.push(addr);
+                save("lexiang.addresses.v1", list);
+                closeModal();
+                lxPlaceOrder(addr);
+              }
+            }
+            if (event.target.closest("[data-open-invoice]")) openInvoiceForm();
+            if (event.target.closest("[data-invoice-save]")) {
+              const title = $("#lxInvTitle")?.value.trim();
+              const taxNo = $("#lxInvTax")?.value.trim();
+              if (!title) toast("请填写发票抬头");
+              else {
+                save("lexiang.invoice.v1", { title, taxNo });
+                closeModal();
+                toast("开票信息已保存");
+              }
+            }
+            if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
+            if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-open-ent]")) openEnterpriseAuth();
             if (event.target.closest("[data-ent-submit]")) {
               const company = $("#lxEntCompany")?.value.trim();
