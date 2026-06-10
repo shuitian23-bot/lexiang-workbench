@@ -1115,6 +1115,8 @@
         color: var(--aubergine);
         font-size: clamp(13px, 0.8vw, 15px);
         white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
       }
 
       .chip.primary {
@@ -5176,11 +5178,11 @@
             <textarea rows="1" placeholder="最近有什么优惠活动？" aria-label="输入问题"></textarea>
             <div class="composer-actions">
               <div class="chip-row">
-                <span class="chip primary">
+                <span class="chip primary" data-mode-chip="think" role="button" tabindex="0" aria-pressed="false" title="开启后回答更审慎，但不展示商品卡片等内容；默认自动模式">
                   <img class="icon" src="/assets/icons/composer-deep-think.svg" alt="" />
                   深度思考(自动)
                 </span>
-                <span class="chip">
+                <span class="chip" data-mode-chip="web" role="button" tabindex="0" aria-pressed="false" title="开启后结合最新网络信息回答">
                   <img class="icon" src="/assets/icons/composer-web-search.svg" alt="" />
                   联网搜索
                 </span>
@@ -6071,6 +6073,25 @@
             option.classList.toggle("is-active", isActive);
             option.setAttribute("aria-pressed", String(isActive));
           });
+          // 首页「快速/思考」选择同步到对话区「深度思考」开关
+          const wantThink = button.textContent.trim() === "思考";
+          const thinkChip = document.querySelector('.composer .chip[data-mode-chip="think"]');
+          if (thinkChip) {
+            thinkChip.classList.toggle("is-active", wantThink);
+            thinkChip.setAttribute("aria-pressed", String(wantThink));
+          }
+        });
+      });
+      document.querySelectorAll('.composer .chip[data-mode-chip]').forEach((chip) => {
+        const toggleChip = () => {
+          const active = chip.classList.toggle("is-active");
+          chip.setAttribute("aria-pressed", String(active));
+        };
+        chip.addEventListener("click", toggleChip);
+        chip.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          toggleChip();
         });
       });
       heroSuggestions.forEach((button) => {
@@ -6917,8 +6938,9 @@
               body: JSON.stringify({
                 message: text,
                 conv_id: state.convId,
-                web_search: $(".composer .chip:not(.primary)")?.classList.contains("is-active") || false,
-                thinking_mode: true,
+                web_search: !!document.querySelector('.composer .chip[data-mode-chip="web"].is-active'),
+                // 深度思考开关：开启时上游模型不支持工具调用（无商品卡/留资等），默认关闭走自动模式
+                thinking_mode: !!document.querySelector('.composer .chip[data-mode-chip="think"].is-active'),
                 site_type: API_SITE[state.page] || "default",
                 image_url: state.pendingImageUrl || undefined,
                 audio_url: state.pendingAudioUrl || undefined
