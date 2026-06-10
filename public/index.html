@@ -4968,6 +4968,14 @@
       .lx-ent-badge.pending { color: var(--lx-aubergine); border-color: var(--lx-border); background: var(--lx-surface-hover); }
       .lx-ent-status { font-size: 14px; margin-bottom: 10px; }
       .lx-ent-status.ok strong { color: var(--lx-brand-red); }
+      .lx-store-perks { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+      .lx-store-perks-label, .lx-store-slots-label { font-size: 12px; color: var(--lx-text-tertiary); margin-right: 2px; }
+      .lx-store-slots { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+      .lx-slot-btn { font-size: 12px; padding: 3px 9px; }
+      .lx-trail-head { padding: 8px 12px 2px; font-size: 11.5px; color: var(--lx-text-tertiary); border-top: 1px solid var(--lx-border); margin-top: 6px; }
+      .trail-row { padding: 7px 12px; font-size: 12.5px; color: var(--lx-text-secondary); cursor: pointer; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .trail-row:hover { background: var(--lavender-hover); }
+      .trail-row.active { color: var(--lx-aubergine); font-weight: 600; }
 
       .lx-p1-upload-note {
         display: none;
@@ -6993,6 +7001,11 @@
             dots.insertBefore(dot, menu);
           });
           menu.innerHTML = history.map((query, index) => `<div class="menu-row${index === history.length - 1 ? " active" : ""}">${esc(query)}</div>`).join("");
+          // 对话脉络：打开过的页面节点，点击重开对应标签并滚回当时对话位置（PRD 6.3）
+          const trail = state.pageTrail || [];
+          if (trail.length) {
+            menu.insertAdjacentHTML("beforeend", `<div class="lx-trail-head">打开过的页面</div>${trail.slice(-8).map((node) => `<div class="trail-row${node.tabId === state.activeTabId ? " active" : ""}" data-trail-tab="${esc(node.tabId)}" data-trail-anchor="${node.anchor ?? ""}">${esc(node.label)}</div>`).join("")}`);
+          }
         }
 
         function resetConversation() {
@@ -7099,9 +7112,20 @@
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const stores = payload.stores || [];
-                if (stores.length) {
-                  openModal(payload.title || "联想体验店", stores.map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${esc(store.tel || "")}</span></div></div>`).join(""));
-                }
+                if (!stores.length) return;
+                const perks = (payload.perks || []).map((perk) => esc(typeof perk === "string" ? perk : perk?.title || "")).filter(Boolean);
+                const perksHtml = perks.length ? `<div class="lx-store-perks"><span class="lx-store-perks-label">到店权益</span>${perks.map((perk) => `<span class="lx-sol-item">${perk}</span>`).join("")}</div>` : "";
+                const rows = stores.slice(0, 6).map((store) => {
+                  const meta = [store.address, store.hours, store.tel || store.phone, store.distance].filter(Boolean).map(esc).join(" · ");
+                  const slots = (store.slots || []).slice(0, 3).map((slot) => {
+                    const label = typeof slot === "string" ? slot : slot?.time || "";
+                    if (!label) return "";
+                    const remain = slot && slot.remain != null ? `（余${slot.remain}）` : "";
+                    return `<button class="lx-p0-btn lx-slot-btn" type="button" data-quick-ask="帮我预约${esc(store.name)} ${esc(label)} 到店体验">${esc(label)}${remain}</button>`;
+                  }).join("");
+                  return `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${meta}</span>${slots ? `<div class="lx-store-slots"><span class="lx-store-slots-label">可约时段</span>${slots}</div>` : ""}</div></div>`;
+                }).join("");
+                openModal(payload.title || "联想体验店", `${perksHtml}${rows}<p class="lx-p0-disclaimer">门店与时段为演示数据，正式预约以门店确认为准。</p>`);
               },
               coupon: () => { if (nonce === state.conversationNonce) openCouponCenter(); },
               member: () => { if (nonce === state.conversationNonce) openMemberCenter(); },
@@ -7305,6 +7329,15 @@
             }
           }
           if (activate) state.activeTabId = tab.id;
+          // 对话脉络节点：记录打开的页面与当时对话锚点（连续重复不重复记）
+          state.pageTrail = state.pageTrail || [];
+          const lastNode = state.pageTrail[state.pageTrail.length - 1];
+          if (!lastNode || lastNode.tabId !== tab.id) {
+            const chatBox = document.querySelector(".lx-p0-messages");
+            state.pageTrail.push({ tabId: tab.id, label: tab.label || "", anchor: chatBox ? chatBox.children.length - 1 : null });
+            if (state.pageTrail.length > 20) state.pageTrail.shift();
+            renderQueryHistory();
+          }
           lxRenderTabbar();
         }
 
@@ -7773,6 +7806,16 @@
               const closeId = event.target.closest("[data-tab-close]")?.dataset.tabClose;
               if (closeId) lxCloseTab(closeId);
               else lxActivateTab(tabHit.dataset.tabId);
+            }
+
+            const trailHit = event.target.closest("[data-trail-tab]");
+            if (trailHit) {
+              lxActivateTab(trailHit.dataset.trailTab);
+              const anchor = Number(trailHit.dataset.trailAnchor);
+              if (Number.isFinite(anchor) && anchor >= 0) {
+                const chatBox = document.querySelector(".lx-p0-messages");
+                chatBox?.children[anchor]?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
             }
 
             const brandFocus = event.target.closest("[data-brand-focus]");
