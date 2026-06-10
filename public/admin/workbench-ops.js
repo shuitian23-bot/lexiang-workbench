@@ -19,10 +19,14 @@ const OPS_STATE = {
 };
 
 const OPS_TRAFFIC_METRICS = {
-  uv: { label: '访问', field: 'uv' },
+  pv: { label: 'PV', field: 'pv' },
+  uv: { label: 'UV', field: 'uv' },
   login: { label: '登录', field: 'login' },
   inter: { label: '互动', field: 'inter' }
 };
+
+// 日报分端口数据暂无 PV 原始值，按日报样本 PV/UV 比例估算（待接入日报 PV 字段）
+const OPS_PV_PER_UV = 1.46;
 
 const OPS_MEDIA_SPLIT = [
   { name: '百度搜索', weight: 22 },
@@ -127,21 +131,25 @@ function opsPortSummary(baseRows, metric) {
   const dates = new Set(baseRows.map(r => r.d));
   return Object.entries(L?.traffic || {}).map(([name, rows]) => {
     const picked = rows.filter(r => dates.has(r.d));
-    return {
+    const uv = leaiSum(picked, 'uv');
+    const stat = {
       name,
-      uv: leaiSum(picked, 'uv'),
+      pv: Math.round(uv * OPS_PV_PER_UV),
+      uv,
       login: leaiSum(picked, 'login'),
       inter: leaiSum(picked, 'inter'),
       buy: leaiSum(picked, 'buy'),
-      gmv: leaiSum(picked, 'gmv'),
-      value: leaiSum(picked, metric)
+      gmv: leaiSum(picked, 'gmv')
     };
+    stat.value = metric === 'pv' ? stat.pv : leaiSum(picked, metric);
+    return stat;
   }).filter(r => r.value > 0).sort((a, b) => b.value - a.value);
 }
 
 function opsMediaSummary(baseRows, metric) {
   const portTotals = opsPortSummary(baseRows, metric);
   const totals = {
+    pv: portTotals.reduce((s, r) => s + r.pv, 0),
     uv: portTotals.reduce((s, r) => s + r.uv, 0),
     login: portTotals.reduce((s, r) => s + r.login, 0),
     inter: portTotals.reduce((s, r) => s + r.inter, 0),
@@ -152,6 +160,7 @@ function opsMediaSummary(baseRows, metric) {
     ? leaiDistributeAmount
     : (total, weights) => weights.map(w => Math.round((Number(total) || 0) * w / weights.reduce((s, v) => s + v, 0)));
   const weights = OPS_MEDIA_SPLIT.map(r => r.weight);
+  const pv = distribute(totals.pv, weights);
   const uv = distribute(totals.uv, weights);
   const login = distribute(totals.login, weights);
   const inter = distribute(totals.inter, weights);
@@ -159,12 +168,13 @@ function opsMediaSummary(baseRows, metric) {
   const gmv = distribute(totals.gmv, weights);
   return OPS_MEDIA_SPLIT.map((r, i) => ({
     name: r.name,
+    pv: pv[i],
     uv: uv[i],
     login: login[i],
     inter: inter[i],
     buy: buy[i],
     gmv: gmv[i],
-    value: ({ uv, login, inter })[metric]?.[i] || uv[i]
+    value: ({ pv, uv, login, inter })[metric]?.[i] || uv[i]
   })).sort((a, b) => b.value - a.value);
 }
 
@@ -242,8 +252,8 @@ function opsCurrentTrafficAiContext(goal) {
     '核心流量指标:',
     `- DAU日均: ${leaiFmtW(summary.dau)} (${opsAiNum(summary.dau)})`,
     `- MAU均值: ${leaiFmtW(summary.mau)} (${opsAiNum(summary.mau)})`,
-    `- 登录用户累计: ${leaiFmtW(summary.login)}，登录/日活 ${opsAiPct(summary.login, activeBase)}`,
-    `- 互动用户累计: ${leaiFmtW(summary.inter)}，互动/登录 ${opsAiPct(summary.inter, summary.login)}`,
+    `- 登录用户(选期排重${summary.loginDedupEst ? '·估算' : ''}): ${leaiFmtW(summary.loginDedup)}，选期累计 ${leaiFmtW(summary.login)}，登录/日活 ${opsAiPct(summary.login, activeBase)}`,
+    `- 互动用户(选期排重${summary.interDedupEst ? '·估算' : ''}): ${leaiFmtW(summary.interDedup)}，选期累计 ${leaiFmtW(summary.inter)}，互动/登录 ${opsAiPct(summary.inter, summary.login)}`,
     '',
     '趋势特征:',
     `- DAU: ${opsAiTrend(rows, 'dau', leaiFmtW)}`,
@@ -252,7 +262,7 @@ function opsCurrentTrafficAiContext(goal) {
     `- MAU: ${opsAiTrend(rows, 'mau', leaiFmtW)}`,
     '',
     '监测媒体TOP10:',
-    ...mediaRows.slice(0, 10).map(r => `- ${r.name}: 访问 ${opsAiNum(r.uv)}，登录 ${opsAiNum(r.login)}，互动 ${opsAiNum(r.inter)}，${metricLabel}占比 ${opsAiPct(r.value, totalMedia)}`),
+    ...mediaRows.slice(0, 10).map(r => `- ${r.name}: PV ${opsAiNum(r.pv)}，UV ${opsAiNum(r.uv)}，登录 ${opsAiNum(r.login)}，互动 ${opsAiNum(r.inter)}，${metricLabel}占比 ${opsAiPct(r.value, totalMedia)}`),
     '',
     '端口贡献:',
     ...portRows.slice(0, 8).map(r => `- ${r.name}: 访问 ${opsAiNum(r.uv)}，登录 ${opsAiNum(r.login)}，互动 ${opsAiNum(r.inter)}，购买 ${opsAiNum(r.buy)}，GMV ${opsAiMoney(r.gmv)}`),
@@ -291,8 +301,8 @@ function opsCurrentGmvAiContext(goal) {
     `- 整体GMV: ${opsAiTrend(rows, 'gmv', leaiFmtY)}`,
     `- 购买人数: ${opsAiTrend(rows, 'buy', opsAiNum)}`,
     '',
-    '分业务GMV:',
-    ...bizTrade.map((r, i) => `- ${bizNames[i]}: GMV ${opsAiMoney(r.gmv)}，购买 ${opsAiNum(r.buy)}，占比 ${opsAiPct(r.gmv, summary.gmv)}`),
+    '分业务GMV(登录口径+平台交易回算，口径同日报):',
+    ...bizTrade.map((r, i) => `- ${bizNames[i]}: GMV ${opsAiMoney(r.gmv)}（登录口径 ${opsAiMoney(r.loginGmv ?? r.gmv)} + 平台回算 ${opsAiMoney(r.platformGmv ?? 0)}），购买 ${opsAiNum(r.buy)}，占比 ${opsAiPct(r.gmv, summary.gmv)}`),
     '',
     '分平台GMV:',
     `- 官网: GMV ${opsAiMoney(summary.offGmv)}，购买 ${opsAiNum(summary.offBuy)}，占比 ${opsAiPct(summary.offGmv, platformTotal)}`,
@@ -326,7 +336,7 @@ Object.assign(PAGE_RENDERERS, {
 
   'ops.traffic': () => `
     <div class="page-header">
-      <div><div class="page-title">流量分析</div><div class="page-desc">核心活跃趋势 · 监测入口 · 分端口 · 分业务</div></div>
+      <div><div class="page-title">流量分析</div><div class="page-desc">核心活跃趋势 · 监测入口 · 分端口 · 分业务 · 默认近30天 · 口径同日报</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         ${opsTimeFilter('traffic-time')}
         <button class="btn btn-sm btn-secondary" onclick="opsAskTraffic('overview')">AI 解读</button>
@@ -336,8 +346,8 @@ Object.assign(PAGE_RENDERERS, {
     <div class="grid-4">
       <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-dau">-</div><div class="ops-kpi-label">DAU（日活）</div><div class="ops-kpi-sub">日均登录 <span id="ops-t-dau-login">-</span></div></div>
       <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-mau">-</div><div class="ops-kpi-label">MAU（月活）</div><div class="ops-kpi-sub">月登录均值 <span id="ops-t-mau-login">-</span></div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-login">-</div><div class="ops-kpi-label">登录用户</div><div class="ops-kpi-sub">选期累计</div></div>
-      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-inter">-</div><div class="ops-kpi-label">互动用户</div><div class="ops-kpi-sub">选期累计</div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-login">-</div><div class="ops-kpi-label">登录用户</div><div class="ops-kpi-sub" id="ops-t-login-sub">选期排重</div></div>
+      <div class="ops-kpi"><div class="ops-kpi-val" id="ops-t-inter">-</div><div class="ops-kpi-label">互动用户</div><div class="ops-kpi-sub" id="ops-t-inter-sub">选期排重</div></div>
     </div>
 
     <div class="ops-section-title">DAU / MAU 趋势</div>
@@ -347,16 +357,17 @@ Object.assign(PAGE_RENDERERS, {
     <div class="grid-2">
       <div class="ops-card">
         <div class="ops-card-head">
-          <h3>TOP10 媒体</h3>
+          <h3>TOP10 媒体排行</h3>
           <div class="dash-filter-bar">${opsTrafficMetricPills()}</div>
         </div>
         <table class="data-table">
-          <thead><tr><th style="text-align:left">媒体</th><th>访问量</th><th>登录</th><th>互动</th><th>占比</th></tr></thead>
+          <thead><tr><th style="text-align:left">媒体</th><th>PV</th><th>UV</th><th>登录</th><th>互动</th><th>占比</th></tr></thead>
           <tbody id="ops-t-media-table"></tbody>
         </table>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:8px">按选中指标在统计周期内降序排行 · PV 按 UV 比例估算 · 媒体来源待接入日报「流量来源监测」字段，当前按固定权重估算</div>
       </div>
       <div class="ops-card">
-        <h3>媒体流量分布</h3>
+        <h3>媒体流量占比分布</h3>
         <div class="chart-wrap"><div id="ops-t-media-chart" class="ops-chart"></div></div>
       </div>
     </div>
@@ -376,7 +387,7 @@ Object.assign(PAGE_RENDERERS, {
 
   'ops.gmv': () => `
     <div class="page-header">
-      <div><div class="page-title">GMV 分析</div><div class="page-desc">整体趋势 · 分业务 · 官网/非官网</div></div>
+      <div><div class="page-title">GMV 分析</div><div class="page-desc">整体趋势 · 分业务 · 官网/非官网 · 业务GMV=登录口径+平台交易回算 · 口径同日报指标定义</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         ${opsTimeFilter('gmv-time')}
         <button class="btn btn-sm btn-secondary" onclick="opsAskGmv('overview')">AI 解读</button>
@@ -407,10 +418,10 @@ Object.assign(PAGE_RENDERERS, {
       <div class="ops-card">
         <div class="ops-card-head">
           <h3>业务贡献明细</h3>
-          <div class="dash-card-note">登录口径 + 平台交易回算</div>
+          <div class="dash-card-note">登录口径 + 平台交易回算 · 口径同日报</div>
         </div>
         <table class="data-table">
-          <thead><tr><th style="text-align:left">业务</th><th>GMV</th><th>购买人数</th><th>占比</th></tr></thead>
+          <thead><tr><th style="text-align:left">业务</th><th>GMV</th><th>登录口径</th><th>平台回算</th><th>购买人数</th><th>占比</th></tr></thead>
           <tbody id="ops-g-biz-table"></tbody>
         </table>
       </div>
@@ -739,10 +750,11 @@ function opsRenderTraffic() {
   })));
 
   const mediaTable = document.getElementById('ops-t-media-table');
+  const totalValue = mediaRows.reduce((s, r) => s + r.value, 0);
   if (mediaTable) {
-    const totalValue = mediaRows.reduce((s, r) => s + r.value, 0);
     mediaTable.innerHTML = mediaRows.slice(0, 10).map(r => `<tr>
       <td style="text-align:left;font-weight:500">${r.name}</td>
+      <td class="${metric === 'pv' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.pv)}</td>
       <td class="${metric === 'uv' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.uv)}</td>
       <td class="${metric === 'login' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.login)}</td>
       <td class="${metric === 'inter' ? 'ops-primary-cell' : ''}">${leaiFmtW(r.inter)}</td>
@@ -751,8 +763,8 @@ function opsRenderTraffic() {
   }
 
   opsChart('ops-t-media-chart', 'bar', mediaRows.slice(0, 10).map(r => r.name), [{
-    label: metricLabel,
-    data: mediaRows.slice(0, 10).map(r => r.value),
+    label: `${metricLabel}占比%`,
+    data: mediaRows.slice(0, 10).map(r => totalValue ? Number((r.value / totalValue * 100).toFixed(1)) : 0),
     backgroundColor: '#2563eb'
   }], { indexAxis: 'y', aspectRatio: 2.2 });
 
@@ -761,8 +773,10 @@ function opsRenderTraffic() {
   if (el('ops-t-mau')) el('ops-t-mau').textContent = leaiFmtW(summary.mau);
   if (el('ops-t-dau-login')) el('ops-t-dau-login').textContent = leaiFmtW(summary.loginAvg);
   if (el('ops-t-mau-login')) el('ops-t-mau-login').textContent = leaiFmtW(summary.loginM);
-  if (el('ops-t-login')) el('ops-t-login').textContent = leaiFmtW(summary.login);
-  if (el('ops-t-inter')) el('ops-t-inter').textContent = leaiFmtW(summary.inter);
+  if (el('ops-t-login')) el('ops-t-login').textContent = leaiFmtW(summary.loginDedup);
+  if (el('ops-t-inter')) el('ops-t-inter').textContent = leaiFmtW(summary.interDedup);
+  if (el('ops-t-login-sub')) el('ops-t-login-sub').textContent = `选期排重${summary.loginDedupEst ? '·估算' : ''} · 累计 ${leaiFmtW(summary.login)}`;
+  if (el('ops-t-inter-sub')) el('ops-t-inter-sub').textContent = `选期排重${summary.interDedupEst ? '·估算' : ''} · 累计 ${leaiFmtW(summary.inter)}`;
 }
 
 function opsRenderGMV() {
@@ -817,6 +831,8 @@ function opsRenderGMV() {
     const rowsHtml = bizNames.map((name, i) => `<tr>
       <td style="text-align:left;font-weight:500"><span class="ops-dot" style="background:${colors[i]}"></span>${name}</td>
       <td>${leaiFmtY(bizGmv[i])}</td>
+      <td>${leaiFmtY(bizTrade[i]?.loginGmv ?? bizGmv[i])}</td>
+      <td>${leaiFmtY(bizTrade[i]?.platformGmv ?? 0)}</td>
       <td>${bizBuy[i].toLocaleString()}</td>
       <td>${leaiFmtPct(bizGmv[i], summary.gmv)}</td>
     </tr>`).join('');

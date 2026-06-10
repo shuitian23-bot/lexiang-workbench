@@ -62,167 +62,10 @@ function restoreAIState() {
   }
 })();
 
-const AI_CONVERSATION_STORAGE_KEY = 'leai_ai_conversations';
-
-function aiNewLocalConversationId() {
-  return `aic_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function aiLoadConversations() {
-  try {
-    const list = JSON.parse(localStorage.getItem(AI_CONVERSATION_STORAGE_KEY) || '[]');
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
-}
-
-function aiSaveConversations(list) {
-  localStorage.setItem(AI_CONVERSATION_STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
-}
-
-function aiConversationTitle(messages) {
-  const firstUser = (messages || []).find(item => item.role === 'user' && item.text);
-  if (!firstUser) return '新会话';
-  return firstUser.text.replace(/\s+/g, ' ').replace(/^📎\s*/, '').slice(0, 28) || '新会话';
-}
-
-function aiCurrentConversation() {
-  if (!STATE.aiLocalConvId) {
-    STATE.aiLocalConvId = aiNewLocalConversationId();
-    STATE.aiLocalMessages = [];
-  }
-  return {
-    id: STATE.aiLocalConvId,
-    remoteConvId: STATE.aiConvId || null,
-    title: aiConversationTitle(STATE.aiLocalMessages || []),
-    messages: STATE.aiLocalMessages || [],
-    updatedAt: new Date().toISOString()
-  };
-}
-
-function aiPersistCurrentConversation() {
-  const current = aiCurrentConversation();
-  if (!current.messages.length) return;
-  const list = aiLoadConversations().filter(item => item.id !== current.id);
-  aiSaveConversations([current, ...list]);
-}
-
-function aiRecordMessage(role, text) {
-  if (!text) return;
-  if (!STATE.aiLocalConvId) {
-    STATE.aiLocalConvId = aiNewLocalConversationId();
-    STATE.aiLocalMessages = [];
-  }
-  STATE.aiLocalMessages.push({ role, text, at: new Date().toISOString() });
-  aiPersistCurrentConversation();
-}
-
-function aiInitConversationStore() {
-  if (!STATE.aiLocalConvId) {
-    STATE.aiLocalConvId = aiNewLocalConversationId();
-    STATE.aiLocalMessages = [];
-  }
-}
-
-function aiRenderConversationMessages(messages) {
-  const container = document.getElementById('ai-messages');
-  if (!container) return;
-  if (!messages || !messages.length) {
-    container.innerHTML = `<div class="ai-msg assistant"><div class="bubble">${aiCurrentWelcomeHtml()}</div></div>`;
-    return;
-  }
-  container.innerHTML = messages.map(item => {
-    const html = item.role === 'assistant' ? renderAiMarkdown(item.text) : escapeHtml(item.text);
-    return `<div class="ai-msg ${item.role}"><div class="bubble">${html}</div></div>`;
-  }).join('');
-  scrollAiToBottom();
-}
-
-function newAiConversation(skipPersist) {
-  if (!skipPersist) aiPersistCurrentConversation();
+function newAiConversation() {
   STATE.aiConvId = null;
-  STATE.aiLocalConvId = aiNewLocalConversationId();
-  STATE.aiLocalMessages = [];
   const container = document.getElementById('ai-messages');
-  container.innerHTML = `<div class="ai-msg assistant"><div class="bubble">${aiCurrentWelcomeHtml()}</div></div>`;
-}
-
-function aiOpenConversationHistory() {
-  aiPersistCurrentConversation();
-  const list = aiLoadConversations();
-  let overlay = document.getElementById('ai-conversation-modal');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'ai-conversation-modal';
-    overlay.className = 'ai-conversation-modal';
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay) aiCloseConversationHistory();
-    });
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = `
-    <div class="ai-conversation-panel" role="dialog" aria-label="AI 历史会话">
-      <div class="ai-conversation-head">
-        <div>
-          <div class="ai-conversation-title">历史会话</div>
-          <div class="ai-conversation-meta">查看、恢复或删除右侧 AI 助手的会话记录</div>
-        </div>
-        <div class="ai-conversation-actions">
-          <button class="btn btn-primary" onclick="newAiConversation(); aiCloseConversationHistory();">新开会话</button>
-          <button class="agent-skill-modal-close" onclick="aiCloseConversationHistory()" title="关闭">×</button>
-        </div>
-      </div>
-      <div class="ai-conversation-body">
-        ${list.length ? list.map(item => aiConversationHistoryItem(item)).join('') : '<div class="ai-conversation-empty">暂无历史会话。开始提问后，这里会自动保存记录。</div>'}
-      </div>
-    </div>`;
-  overlay.classList.add('open');
-  document.body.classList.add('agent-skill-modal-open');
-}
-
-function aiConversationHistoryItem(item) {
-  const messages = item.messages || [];
-  const last = messages[messages.length - 1];
-  const preview = last?.text ? last.text.replace(/\s+/g, ' ').slice(0, 80) : '暂无内容';
-  const isCurrent = item.id === STATE.aiLocalConvId;
-  return `
-    <div class="ai-conversation-item ${isCurrent ? 'active' : ''}">
-      <div class="ai-conversation-item-main">
-        <div class="ai-conversation-item-title">${escapeHtml(item.title || '未命名会话').replace(/<br>/g, '')}</div>
-        <div class="ai-conversation-item-preview">${escapeHtml(preview).replace(/<br>/g, '')}</div>
-        <div class="ai-conversation-item-meta">${new Date(item.updatedAt || Date.now()).toLocaleString('zh-CN')} · ${messages.length} 条消息${isCurrent ? ' · 当前会话' : ''}</div>
-      </div>
-      <div class="ai-conversation-item-actions">
-        <button class="btn btn-secondary" onclick="aiRestoreConversation('${item.id}')">打开</button>
-        <button class="btn btn-secondary danger" onclick="aiDeleteConversation('${item.id}')">删除</button>
-      </div>
-    </div>`;
-}
-
-function aiRestoreConversation(id) {
-  aiPersistCurrentConversation();
-  const item = aiLoadConversations().find(conv => conv.id === id);
-  if (!item) return;
-  STATE.aiLocalConvId = item.id;
-  STATE.aiConvId = item.remoteConvId || null;
-  STATE.aiLocalMessages = item.messages || [];
-  aiRenderConversationMessages(STATE.aiLocalMessages);
-  aiCloseConversationHistory();
-  if (!STATE.aiOpen) toggleAI(true);
-}
-
-function aiDeleteConversation(id) {
-  if (!confirm('确认删除这条会话记录？')) return;
-  aiSaveConversations(aiLoadConversations().filter(item => item.id !== id));
-  if (STATE.aiLocalConvId === id) newAiConversation(true);
-  aiOpenConversationHistory();
-}
-
-function aiCloseConversationHistory() {
-  const overlay = document.getElementById('ai-conversation-modal');
-  if (overlay) overlay.classList.remove('open');
-  document.body.classList.remove('agent-skill-modal-open');
+  container.innerHTML = '<div class="ai-msg assistant"><div class="bubble">新对话已开启。有什么可以帮你的？</div></div>';
 }
 
 function aiQuick(text) {
@@ -231,265 +74,91 @@ function aiQuick(text) {
   aiSend();
 }
 
-const AI_REPORT_STORAGE_KEY = 'leai_ai_saved_reports';
-const AI_REPORT_ARTIFACTS = {};
+const AI_SHORTCUTS_BY_PAGE = {
+  default: [
+    { label: '今日指标', prompt: '今日核心指标' },
+    { label: '查数据', prompt: '最近7天订单按渠道汇总' },
+    { label: '商品管理', prompt: '打开商品管理' },
+    { label: '知识库', prompt: '打开知识库' },
+    { label: '运营建议', prompt: '本周运营建议' }
+  ],
+  portal: [
+    { label: '工作台说明', prompt: '介绍门户工作台的能力边界和基础操作流程' },
+    { label: '技能包管理', prompt: '打开技能包管理' },
+    { label: '权限说明', prompt: '说明菜单权限和技能权限的区别' },
+    { label: '新手引导', prompt: '我第一次使用门户工作台，请给我一个操作路径' }
+  ],
+  employee: [
+    { label: '认证总览', prompt: '总结当前在职员工认证数据和风险点' },
+    { label: '待审核', prompt: '查看待审核认证，并提示优先处理建议' },
+    { label: '失败原因', prompt: '分析最近认证失败原因 TopN' },
+    { label: '认证方式', prompt: '统计企业邮箱、劳动合同、个人所得税和其他材料认证方式占比' },
+    { label: '导出建议', prompt: '说明认证数据导出需要哪些权限和审批' }
+  ],
+  dashboard: [
+    { label: '今日指标', prompt: '今日核心指标' },
+    { label: '查数据', prompt: '最近7天订单按渠道汇总' },
+    { label: 'GMV 分析', prompt: '分析最近7天GMV变化和主要影响因素' },
+    { label: '流量质量', prompt: '分析当前流量质量异常和优化建议' },
+    { label: '运营建议', prompt: '基于当前运营页面给出本周优化建议' }
+  ],
+  pipeline: [
+    { label: 'Query 趋势', prompt: '总结当前 Query 分析页面的核心趋势' },
+    { label: '质量异常', prompt: '分析当前质量分析页面的异常项' },
+    { label: '标注建议', prompt: '根据当前 Query 标注情况给出优化建议' },
+    { label: '导出说明', prompt: '说明当前数据导出范围和注意事项' }
+  ],
+  geo: [
+    { label: 'GEO 看板', prompt: '总结当前 GEO 看板核心表现' },
+    { label: '知识覆盖', prompt: '检查知识库覆盖和缺口' },
+    { label: '手工上传', prompt: '打开手工上传知识并说明上传要求' },
+    { label: '站外建议', prompt: '给出站外搜索优化建议' }
+  ],
+  lead: [
+    { label: '线索看板', prompt: '总结企业客户线索看板关键变化' },
+    { label: '线索池', prompt: '分析当前线索池待跟进情况' },
+    { label: '分配建议', prompt: '根据线索状态给出分配和跟进建议' },
+    { label: '客户风险', prompt: '识别企业客户跟进风险' }
+  ],
+  search: [
+    { label: '分类标签', prompt: '检查搜索分类标签配置是否完整' },
+    { label: '筛选条件', prompt: '分析当前筛选条件配置风险' },
+    { label: '活动直达', prompt: '检查活动直达配置和命中逻辑' },
+    { label: '搜索框', prompt: '分析搜索框配置和用户体验问题' }
+  ],
+  risk: [
+    { label: '策略概览', prompt: '总结当前风控策略和风险点' },
+    { label: '限购检查', prompt: '检查限购规则是否存在配置风险' },
+    { label: 'DPL 查询', prompt: '说明 DPL 查询口径和使用注意事项' },
+    { label: '风险数据', prompt: '分析当前风险数据异常' }
+  ],
+  agent: [
+    { label: '技能包', prompt: '说明当前可用技能包的用途和使用方式' },
+    { label: '权限说明', prompt: '说明使用技能包时需要哪些权限和审批' },
+    { label: '申请技能包', prompt: '我想申请一个技能包，应该怎么做' },
+    { label: '调用说明', prompt: '说明技能包调用前需要确认哪些参数、影响范围和风险' }
+  ]
+};
 
-function aiShouldCreateReportArtifact(userText, assistantText) {
-  const source = `${userText || ''}\n${assistantText || ''}`;
-  const askedReport = /(报表|报告|日报|周报|月报|复盘|总结)/.test(userText || '');
-  const looksStructured = /(^|\n)#{1,3}\s*|一、|二、|三、|四、|五、|\|.+\|/.test(assistantText || '');
-  return askedReport && looksStructured && (assistantText || '').trim().length > 180;
-}
-
-function aiReportTitle(userText, assistantText) {
-  const firstHeading = (assistantText || '').match(/^#{1,3}\s*(.+)$/m);
-  if (firstHeading) return firstHeading[1].trim().slice(0, 40);
-  if (/日报/.test(userText || '')) return '运营日报';
-  if (/周报/.test(userText || '')) return '运营周报';
-  if (/月报/.test(userText || '')) return '运营月报';
-  return 'AI 生成报表';
-}
-
-function aiAttachReportArtifact(bubbleEl, userText, assistantText) {
-  if (!bubbleEl || !aiShouldCreateReportArtifact(userText, assistantText)) return;
-  const id = `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  AI_REPORT_ARTIFACTS[id] = {
-    id,
-    title: aiReportTitle(userText, assistantText),
-    content: assistantText,
-    source: userText || '',
-    createdAt: new Date().toISOString()
-  };
-  const action = document.createElement('div');
-  action.className = 'ai-report-actions';
-  action.innerHTML = `
-    <button class="ai-report-btn secondary" onclick="aiSaveReportArtifact('${id}', this)">保存</button>
-    <button class="ai-report-btn" onclick="aiDownloadReportArtifact('${id}')">下载</button>`;
-  bubbleEl.appendChild(action);
-}
-
-function aiTaskActionItems(userText, assistantText) {
-  const source = `${userText || ''}\n${assistantText || ''}`.toLowerCase();
-  const items = [];
-  const add = item => {
-    if (!items.some(existing => existing.label === item.label)) items.push(item);
-  };
-
-  if (/query|查询分析|热词|标注|非官网|渠道|转化/.test(source)) {
-    add({ label: '打开 Query 分析', kind: 'page', value: 'pipeline.annotate' });
-  }
-  if (/gmv|订单|销售|交易|转化/.test(source)) {
-    add({ label: '查看 GMV 分析', kind: 'page', value: 'ops.gmv' });
-  }
-  if (/流量|dau|mau|入口|访问|互动/.test(source)) {
-    add({ label: '查看流量分析', kind: 'page', value: 'ops.traffic' });
-  }
-  if (/商品|推荐位|价格|上下架|配置/.test(source)) {
-    add({ label: '打开商品管理', kind: 'prompt', value: '打开商品管理' });
-  }
-  if (/知识库|知识|问答|文档/.test(source)) {
-    add({ label: '打开知识库', kind: 'prompt', value: '打开知识库' });
-  }
-  if (/报表|报告|日报|周报|月报|复盘|总结/.test(source)) {
-    add({ label: '继续生成报表', kind: 'prompt', value: '基于刚才的问题，继续生成一份结构化运营报表。' });
-  } else {
-    add({ label: '生成报表', kind: 'prompt', value: '基于当前页面和刚才的问题，生成一份结构化运营报表。' });
-  }
-  add({ label: '继续追问', kind: 'prompt', value: '基于刚才的回答，继续追问最关键的原因和下一步动作。' });
-  add({ label: '管理技能', kind: 'skill', value: 'skills' });
-  return items.slice(0, 4);
-}
-
-function aiAttachTaskActions(bubbleEl, userText, assistantText) {
-  if (!bubbleEl || bubbleEl.querySelector('.ai-task-actions')) return;
-  const items = aiTaskActionItems(userText, assistantText);
-  if (!items.length) return;
-  const wrap = document.createElement('div');
-  wrap.className = 'ai-task-actions';
-  wrap.innerHTML = `<div class="ai-task-actions-title">可继续执行</div>`;
-  const row = document.createElement('div');
-  row.className = 'ai-task-actions-row';
-  items.forEach(item => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'ai-task-btn';
-    btn.textContent = item.label;
-    btn.addEventListener('click', () => aiRunTaskAction(item));
-    row.appendChild(btn);
-  });
-  wrap.appendChild(row);
-  bubbleEl.appendChild(wrap);
-}
-
-function aiRunTaskAction(item) {
-  if (!item) return;
-  if (item.kind === 'page') {
-    aiOpenPageInNewWindow(item.value);
-    addAiMessage('assistant', `已在新页面打开 **${getPageLabel(item.value)}**`);
-    return;
-  }
-  if (item.kind === 'skill') {
-    aiOpenSkillManagement();
-    return;
-  }
-  aiQuick(item.value);
-}
-
-function aiOpenPageInNewWindow(pageId) {
-  const url = new URL(window.location.href);
-  url.pathname = '/admin/workbench.html';
-  url.searchParams.set('page', pageId);
-  url.hash = '';
-  window.open(url.toString(), '_blank', 'noopener');
-}
-
-function aiSaveReportArtifact(id, trigger) {
-  const report = AI_REPORT_ARTIFACTS[id];
-  if (!report) return;
-  const saved = JSON.parse(localStorage.getItem(AI_REPORT_STORAGE_KEY) || '[]');
-  const next = [report, ...saved.filter(item => item.id !== id)].slice(0, 20);
-  localStorage.setItem(AI_REPORT_STORAGE_KEY, JSON.stringify(next));
-  const panel = trigger?.closest('.ai-report-actions') || document.querySelector('.ai-report-actions');
-  if (panel) {
-    panel.querySelector('.ai-report-save-tip')?.remove();
-    const tip = document.createElement('span');
-    tip.className = 'ai-report-save-tip';
-    tip.textContent = '已保存';
-    panel.prepend(tip);
-  }
-}
-
-function aiDownloadReportArtifact(id) {
-  const report = AI_REPORT_ARTIFACTS[id];
-  if (!report) return;
-  const blob = new Blob([`# ${report.title}\n\n${report.content}`], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${report.title.replace(/[\\/:*?"<>|]/g, '_')}.md`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function aiCurrentWelcomeHtml() {
-  const page = STATE.currentPage;
-  if (page === 'dashboard.overview') {
-    return '我会基于当前运营总览的时间范围、核心指标、链路转化、分业务和分平台数据做分析。你可以直接在底部输入框描述目标、问题或要生成的报告。';
-  }
-  if (page === 'ops.traffic') {
-    return '我会基于当前流量分析页的时间范围、DAU/MAU、登录互动、媒体TOP10、端口和业务流量结构回答问题。';
-  }
-  if (page === 'ops.gmv') {
-    return '我会基于当前GMV分析页的时间范围、GMV趋势、购买人数、分业务和官网/非官网结构回答问题。';
-  }
-  return '你好！我是乐享 AI 助手。你可以在底部输入框里描述要完成的运营任务，例如导航、查数据、生成报告、配置商品或查询知识库。';
-}
-
-function aiShortcutItemsForPage(page) {
-  if (page === 'dashboard.overview') {
-    return [
-      { label: '总览解读', text: '基于当前运营总览看板，分析主要趋势、风险和机会。' },
-      { label: '链路瓶颈', text: '基于当前运营总览看板，找出登录、互动、购买、GMV链路中的最大瓶颈。' },
-      { label: '增长动作', text: '基于当前运营总览看板，给出未来两周最优先的运营动作。' },
-      { label: '补数建议', text: '基于当前运营总览看板，指出还缺少哪些数据才能判断问题原因。' }
-    ];
-  }
-  if (page === 'ops.traffic') {
-    return [
-      { label: '入口贡献', text: '当前时间范围内，哪些入口贡献最大？这些入口的登录和互动质量怎么样？' },
-      { label: '媒体TOP10', text: '分析监测媒体TOP10的访问、登录、互动贡献，并给出优化建议。' },
-      { label: '登录转化', text: '当前流量的登录率和互动率是否异常？瓶颈在哪里？' },
-      { label: '端口结构', text: '分端口流量结构有什么变化？APP、WAP、PC分别应该怎么优化？' },
-      { label: '补数建议', text: '流量分析还缺哪些数据，才能判断渠道质量和转化原因？' }
-    ];
-  }
-  if (page === 'ops.gmv') {
-    return [
-      { label: 'GMV解读', text: '基于当前GMV分析看板，分析GMV趋势、风险和机会。' },
-      { label: '业务贡献', text: '消费、SMB、政企业务谁在拉动GMV，谁拖后腿？' },
-      { label: '平台结构', text: '官网和非官网GMV结构是否健康？下一步怎么优化？' },
-      { label: '增长缺口', text: '如果GMV要提升10%，当前看板显示最大的缺口在哪里？' }
-    ];
-  }
-  return [
-    { label: '今日指标', text: '今日核心指标' },
-    { label: '查数据', text: '最近7天订单按渠道汇总' },
-    { label: '商品管理', text: '打开商品管理' },
-    { label: '知识库', text: '打开知识库' },
-    { label: 'CMS', text: '打开页面管理' },
-    { label: '运营建议', text: '本周运营建议' }
-  ];
+function aiGetShortcutGroup(pageId) {
+  const menuTree = typeof MENU_TREE !== 'undefined' ? MENU_TREE : {};
+  const groupKey = Object.entries(menuTree).find(([, group]) => group.children && group.children[pageId])?.[0];
+  if (groupKey === 'dashboard' && pageId?.startsWith('pipeline.')) return 'pipeline';
+  if (groupKey) return groupKey;
+  return pageId?.split('.')[0] || 'default';
 }
 
 function aiRefreshPageAssistant() {
   const shortcuts = document.getElementById('ai-shortcuts');
-  if (shortcuts) {
-    const items = aiShortcutItemsForPage(STATE.currentPage);
-    shortcuts.innerHTML = items.map((item, i) => `<span class="ai-shortcut" data-ai-shortcut="${i}">${escapeHtml(item.label).replace(/<br>/g, '')}</span>`).join('');
-    shortcuts.querySelectorAll('[data-ai-shortcut]').forEach(el => {
-      el.addEventListener('click', () => {
-        const item = items[Number(el.dataset.aiShortcut)];
-        if (item) aiQuick(item.text);
-      });
-    });
-  }
-}
-
-function aiOpenSkillManagement() {
-  if (!STATE.aiOpen) toggleAI(true);
-  if (typeof openSkillManagerOverlay === 'function') openSkillManagerOverlay();
-  else switchPage('agent.skills');
-}
-
-function aiOpenTaskLog() {
-  if (!STATE.aiOpen) toggleAI(true);
-  addAiMessage('assistant', `
-    <strong>任务执行记录</strong><br>
-    后续所有关键任务都会记录：任务名称、状态、执行人、时间、关联 Skill 和执行结果。<br><br>
-    示例：修改首页商品模块 / 待确认 / 张瑞 / 关联 Skill：商品配置。
-  `);
-}
-
-function aiPageGoal() {
-  return '';
-}
-
-function aiBuildPageContextForMessage() {
-  const goal = aiPageGoal();
-  if (STATE.currentPage === 'dashboard.overview' && typeof leaiCurrentOverviewAiContext === 'function') {
-    return leaiCurrentOverviewAiContext(goal);
-  }
-  if (STATE.currentPage === 'ops.traffic' && typeof opsCurrentTrafficAiContext === 'function') {
-    return opsCurrentTrafficAiContext(goal);
-  }
-  if (STATE.currentPage === 'ops.gmv' && typeof opsCurrentGmvAiContext === 'function') {
-    return opsCurrentGmvAiContext(goal);
-  }
-  return '';
-}
-
-function aiHasLeaiOpsContext() {
-  return ['dashboard.overview', 'ops.traffic', 'ops.gmv'].includes(STATE.currentPage);
-}
-
-function aiAttachPageContext(msgForApi, hadFile) {
-  if (hadFile) return msgForApi;
-  const context = aiBuildPageContextForMessage();
-  if (!context) return msgForApi;
-  return `【乐享运营看板上下文】
-以下数据来自当前页面已选择的时间范围和筛选条件，是本轮回答的可信数据源。不要改用通用统计覆盖这些数据；没有提供的数据请明确说缺少，并说明应向业务补充什么。
-
-${context}
-
-【用户问题】
-${msgForApi}
-
-【回答要求】
-1. 只基于上述页面数据和用户问题做分析，不要编造未提供的数据。
-2. 先给结论，再说明关键证据、可能原因、建议动作。
-3. 如果判断原因还需要更多数据，列出需要补充的数据口径和用途。`;
+  if (!shortcuts) return;
+  const pageId = typeof STATE !== 'undefined' ? STATE.currentPage : 'default';
+  const group = aiGetShortcutGroup(pageId);
+  const items = AI_SHORTCUTS_BY_PAGE[group] || AI_SHORTCUTS_BY_PAGE.default;
+  shortcuts.innerHTML = items.map(item => {
+    const label = String(item.label || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const prompt = String(item.prompt || item.label || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<span class="ai-shortcut" onclick="aiQuick('${prompt}')">${label}</span>`;
+  }).join('');
 }
 
 // AI导航指令映射 — 自然语言→页面ID
@@ -526,7 +195,7 @@ function aiTryNavigate(text) {
         }
         switchPage(rule.page);
         const label = getPageLabel(rule.page);
-        return `已为你打开 **${label}**`;
+        return `已为你打开 **${label}** 📂`;
       }
     }
   }
@@ -555,7 +224,7 @@ function aiTryLocalCommand(text) {
   // 帮我标注
   if (/^(帮我标注|开始标注|上传标注|标注文件)$/.test(lower)) {
     switchPage('pipeline.task');
-    setTimeout(() => { const el = document.getElementById('task-upload'); if (el) el.click(); }, 350);
+    setTimeout(() => { const el = document.getElementById('task-upload'); if (el) el.click(); }, 300);
     return '📁 已打开标注页面，请选择要标注的文件';
   }
   // 标注记录
@@ -570,7 +239,7 @@ function aiTryLocalCommand(text) {
   // 二级分类
   if (/^(二级分类|细分类别|意图分析)$/.test(lower)) {
     switchPage('pipeline.stats');
-    setTimeout(() => { const el = document.getElementById('stats-upload'); if (el) el.click(); }, 350);
+    setTimeout(() => { const el = document.getElementById('stats-upload'); if (el) el.click(); }, 300);
     return '📊 已打开二级分类分析页面，请上传已标注的文件';
   }
   // 更新看板
@@ -619,7 +288,7 @@ function aiTryLocalCommand(text) {
   }
   // 日期+分析/分布/统计
   const dateRange = parseDateRange(lower);
-  if (dateRange && /(分析|分布|统计|query|数据)/.test(lower) && !aiHasLeaiOpsContext()) {
+  if (dateRange && /(分析|分布|统计|query|数据)/.test(lower)) {
     const url = `/api/pipeline/stats/summary?from=${dateRange.from}&to=${dateRange.to}`;
     fetch(url, { credentials: 'include' })
       .then(r => r.ok ? r.json() : Promise.reject(r))
@@ -751,7 +420,6 @@ function aiSend() {
   // 构建用户消息（含文件）
   let userMsg = text;
   let msgForApi = text;
-  const hadFile = !!_aiPendingFile;
   if (_aiPendingFile) {
     const fileInfo = '📎 ' + _aiPendingFile.name;
     userMsg = text ? fileInfo + '\n' + text : fileInfo;
@@ -787,13 +455,11 @@ function aiSend() {
   document.getElementById('ai-messages').appendChild(typing);
   scrollAiToBottom();
 
-  msgForApi = aiAttachPageContext(msgForApi, hadFile);
-
   // 流式调用 Harness Chat API
-  streamHarnessChat(msgForApi, typing, userMsg);
+  streamHarnessChat(msgForApi, typing);
 }
 
-async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
+async function streamHarnessChat(msgForApi, typingEl) {
   let streamMsgEl = null;
   let accumulated = '';
   let toolsUsed = [];
@@ -824,7 +490,6 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: msgForApi,
-        displayMessage: displayMessage || msgForApi,
         convId: STATE.aiConvId,
         currentPage: STATE.currentPage,
         stream: true
@@ -857,7 +522,6 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
 
         if (obj.type === 'start') {
           if (obj.convId) STATE.aiConvId = obj.convId;
-          aiPersistCurrentConversation();
         } else if (obj.type === 'tools') {
           toolsUsed = obj.tools || [];
           // 工具调用中，更新 typing 提示
@@ -880,9 +544,6 @@ async function streamHarnessChat(msgForApi, typingEl, displayMessage) {
             if (streamMsgEl) streamMsgEl.innerHTML = renderAiMarkdown(accumulated + (toolsUsed.length ? '\n\n🔧 调用了: ' + toolsUsed.join(', ') : ''));
             switchPage(pageId);
           }
-          aiAttachReportArtifact(streamMsgEl, displayMessage || msgForApi, accumulated);
-          aiAttachTaskActions(streamMsgEl, displayMessage || msgForApi, accumulated);
-          if (streamMsgEl) aiRecordMessage('assistant', accumulated || '（无响应）');
         } else if (obj.type === 'error') {
           ensureMsgEl();
           accumulated += '\n\n⚠️ ' + obj.message;
@@ -928,12 +589,10 @@ function addAiMessage(role, text) {
   div.className = 'ai-msg ' + role;
   if (role === 'assistant') {
     div.innerHTML = `<div class="bubble">${renderAiMarkdown(text)}</div>`;
-    aiAttachTaskActions(div.querySelector('.bubble'), '', text);
   } else {
     div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
   }
   container.appendChild(div);
-  aiRecordMessage(role, text);
   scrollAiToBottom();
 }
 
