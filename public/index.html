@@ -4954,6 +4954,13 @@
       .lx-sim-card img { width: 100%; height: 84px; object-fit: contain; }
       .lx-sim-name { font-size: 12.5px; margin: 6px 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lx-sim-price { color: var(--lx-brand-red); font-weight: 700; font-size: 13px; }
+      .lx-tabbar { position: sticky; top: 0; z-index: 30; display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 16px; background: var(--lavender-bg); border-bottom: 1px solid var(--border); }
+      body[data-page="home"] .lx-tabbar, body[data-page="brand"] .lx-tabbar { display: none; }
+      .lx-tab { display: inline-flex; align-items: center; gap: 6px; max-width: 200px; padding: 4px 6px 4px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-size: 12.5px; color: var(--lx-text-secondary); cursor: pointer; user-select: none; }
+      .lx-tab.is-active { border-color: var(--lx-aubergine); color: var(--lx-aubergine); background: var(--lx-surface-hover); }
+      .lx-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lx-tab-close { border: none; background: transparent; color: var(--lx-text-tertiary); cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
+      .lx-tab-close:hover { background: var(--lavender-hover); color: var(--lx-brand-red); }
 
       .lx-p1-upload-note {
         display: none;
@@ -6493,6 +6500,7 @@
           const cards = $$(".product-card");
           cards.forEach((card, index) => {
             const product = state.products[index];
+            card.hidden = !product;
             if (!product) return;
             card.dataset.sku = product.sku || "";
             const brand = $(".brand-mini", card);
@@ -6723,6 +6731,7 @@
           }
           if (!product) return;
           state.currentProduct = product;
+          if (product.sku) lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku });
           document.querySelector(".content")?.setAttribute("data-view", "detail");
           document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
           const visual = $("[data-detail-visual]")?.parentElement;
@@ -7071,6 +7080,12 @@
                 revealAi();
                 if (payload.title && !ai.textContent.trim()) ai.textContent = payload.title;
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
+                // 所推即所见：AI 推荐同步落右侧「AI 推荐」标签并展开商品墙（PRD 5.2/6.5）
+                if (products.length) {
+                  const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
+                  lxUpsertTab(recoTab);
+                  lxRunTab(recoTab);
+                }
               },
               stores: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7187,6 +7202,75 @@
           } finally {
             if (nonce === state.conversationNonce) state.sending = false;
           }
+        }
+
+        // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
+        const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业" };
+
+        function lxEnsureTabbar() {
+          let bar = document.querySelector(".lx-tabbar");
+          if (!bar) {
+            bar = document.createElement("div");
+            bar.className = "lx-tabbar";
+            bar.hidden = true;
+            document.querySelector(".content")?.prepend(bar);
+          }
+          return bar;
+        }
+
+        function lxRenderTabbar() {
+          const bar = lxEnsureTabbar();
+          const tabs = state.tabs || [];
+          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("");
+          bar.hidden = tabs.length === 0;
+        }
+
+        function lxUpsertTab(tab, activate = true) {
+          state.tabs = state.tabs || [];
+          const idx = state.tabs.findIndex((item) => item.id === tab.id);
+          if (idx >= 0) state.tabs[idx] = { ...state.tabs[idx], ...tab };
+          else {
+            state.tabs.push(tab);
+            if (state.tabs.length > 8) {
+              const evict = state.tabs.findIndex((item) => item.id !== state.activeTabId && item.id !== tab.id);
+              if (evict >= 0) state.tabs.splice(evict, 1);
+            }
+          }
+          if (activate) state.activeTabId = tab.id;
+          lxRenderTabbar();
+        }
+
+        function lxRunTab(tab) {
+          if (!tab) return;
+          if (tab.kind === "site") {
+            routeTo(tab.page);
+          } else if (tab.kind === "detail") {
+            openProduct(tab.sku);
+          } else if (tab.kind === "reco") {
+            state.products = Array.isArray(tab.products) ? tab.products : [];
+            renderProductCards();
+            const content = document.querySelector(".content");
+            content?.setAttribute("data-view", "list");
+            content?.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+
+        function lxActivateTab(id) {
+          const tab = (state.tabs || []).find((item) => item.id === id);
+          if (!tab) return;
+          state.activeTabId = id;
+          lxRenderTabbar();
+          lxRunTab(tab);
+        }
+
+        function lxCloseTab(id) {
+          state.tabs = (state.tabs || []).filter((item) => item.id !== id);
+          if (state.activeTabId === id) {
+            const next = state.tabs[state.tabs.length - 1] || null;
+            state.activeTabId = next ? next.id : null;
+            if (next) lxRunTab(next);
+          }
+          lxRenderTabbar();
         }
 
         function mdLite(text) {
@@ -7611,7 +7695,15 @@
               const page = nav.dataset.page || "home";
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               state.page = page;
+              if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
               setTimeout(loadProductsForPage, 0);
+            }
+
+            const tabHit = event.target.closest("[data-tab-close], [data-tab-id]");
+            if (tabHit) {
+              const closeId = event.target.closest("[data-tab-close]")?.dataset.tabClose;
+              if (closeId) lxCloseTab(closeId);
+              else lxActivateTab(tabHit.dataset.tabId);
             }
 
             const brandFocus = event.target.closest("[data-brand-focus]");
