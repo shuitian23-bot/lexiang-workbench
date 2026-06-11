@@ -474,6 +474,7 @@
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);
+          loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
           lxHintOnDetail(product);
@@ -574,6 +575,44 @@
           }
         }
 
+        // 评价区「乐享总结」：lite 模型流式生成 60 字评价要点，按 sku 缓存
+        let reviewSumToken = 0;
+        async function loadReviewSummary(product) {
+          const title = document.querySelector(".detail-reviews-title");
+          if (!title || !product?.name) return;
+          const token = ++reviewSumToken;
+          document.querySelector("[data-review-sum]")?.remove();
+          state.reviewSumCache = state.reviewSumCache || {};
+          const cached = state.reviewSumCache[product.sku];
+          title.insertAdjacentHTML("afterend", `<p class="lx-review-sum" data-review-sum>${cached ? esc(cached) : "乐享正在为你总结评价要点…"}</p>`);
+          if (cached) return;
+          try {
+            const res = await fetch("/api/chat/quick", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: `用一段60字以内的话总结「${product.name}」这类产品的用户评价要点，格式：大多数用户认为…，少数用户提到…。直接输出总结内容，不要开场白。` }),
+            });
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "", sum = "";
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+              const lines = buf.split("\n");
+              buf = lines.pop();
+              for (const line of lines) {
+                if (!line.startsWith("data:")) continue;
+                try { const d = JSON.parse(line.slice(5)); if (d.text) sum += d.text; } catch {}
+              }
+              if (token !== reviewSumToken) { reader.cancel(); return; }
+              const box = document.querySelector("[data-review-sum]");
+              if (box && sum) box.textContent = `「乐享总结」${sum}`;
+            }
+            if (sum) state.reviewSumCache[product.sku] = `「乐享总结」${sum}`;
+          } catch {}
+        }
+
         let fitReasonToken = 0;
         async function loadFitReason(product) {
           const node = $("[data-detail-reason]");
@@ -655,15 +694,37 @@
             if (isEdu) claimed.push({ label: "国家补贴 15%", reason: "该机型在政府补贴目录内", amount: -Math.round(price * 0.15) });
             if (lxStuState().status === "verified") claimed.push({ label: "教育认证券", reason: "学生/教师认证已通过，自动抵扣", amount: -300 });
             if (state.page === "business" && lxEntState().status === "verified") claimed.push({ label: "企业专享 95 折", reason: "企业认证已通过", amount: -Math.round(price * 0.05) });
-            if (price >= 5000) claimed.push({ label: "官方满 5000-200 券", reason: "已自动领取并使用", amount: -200 });
-            else if (price >= 3000 && !claimed.length) claimed.push({ label: "官方满减券", reason: "已自动领取并使用", amount: -Math.min(300, Math.round(price * 0.05)) });
+            // 通用双券按价位阶梯（对照旧版 couponRate），任何商品都有得领
+            const rate = price >= 10000 ? [500, 300] : price >= 3000 ? [200, 100] : price >= 1000 ? [80, 30] : [15, 10];
+            claimed.push({ label: "商品平台满减券", reason: "联想商城专属，已自动领取", amount: -rate[0] });
+            claimed.push({ label: "联想会员折扣券", reason: "乐享会员专享，已自动使用", amount: -rate[1] });
           }
           const discount = claimed.reduce((sum, c) => sum + c.amount, 0);
           return { claimed, discount, finalPrice: Math.max(0, price + discount) };
         }
 
+        function lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr) {
+          const rows = claimed.map((c) => `<div class="lx-bf-row"><div class="lx-bf-main"><strong><i class="lx-claim-check" style="animation:none;transform:none">✓</i> ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
+          openModal(claimed.length ? `确认订单 · 已领取 ${claimed.length} 项优惠` : "确认订单", `
+            <div class="lx-p0-row" style="align-items:center">
+              <img src="${esc(imgUrl(item.image_url))}" alt="" style="width:64px;height:52px;object-fit:contain;background:#fff;border-radius:6px;flex:none" />
+              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>标价 ¥${Number(item.price || 0).toLocaleString()}</span></div>
+            </div>
+            <div class="lx-bf-list" style="margin:10px 0">${rows || '<p class="lx-p0-disclaimer">该商品暂无可叠加优惠，按标价下单。</p>'}
+              <div class="lx-bf-row final" style="animation:none;opacity:1"><div class="lx-bf-main"><strong>到手价</strong>${discount ? `<span>已为你省 ¥${Math.abs(discount).toLocaleString()}</span>` : ""}</div><b>¥${(finalPrice || item.price).toLocaleString()}</b></div>
+            </div>
+            <div class="lx-p0-row" style="align-items:center">
+              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
+              <button class="lx-p0-btn" type="button" data-occ-addr>修改</button>
+            </div>
+            <button class="lx-p0-btn primary" type="button" data-occ-confirm style="width:100%;margin-top:12px">确认下单</button>
+            <p class="lx-p0-disclaimer">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`);
+        }
+
+        // 一键领优惠：领券过程在乐享对话流里逐项播报（对照旧版 startBuyFlow），全部领完才弹订单确认
         function oneClickBuy(product = state.currentProduct) {
           if (!product) return toast("请先选择商品");
+          if (state._buyFlowRunning) return;
           const item = normalizeProduct(product);
           const { claimed, discount, finalPrice } = lxClaimBenefits(product);
           let addr = lxAddresses()[0];
@@ -673,27 +734,35 @@
           }
           state.pendingOrderProduct = { ...item, benefits: claimed, original_price: item.price, price: finalPrice || item.price };
           state.pendingOrderAddr = addr;
-          const rows = claimed.map((c, i) => `<div class="lx-bf-row lx-claim-row" style="animation-delay:${(i * 0.35).toFixed(2)}s"><div class="lx-bf-main"><strong><i class="lx-claim-check" style="animation-delay:${(i * 0.35 + 0.18).toFixed(2)}s">✓</i> ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
-          openModal("确认订单 · 正在为你领取优惠…", `
-            <div class="lx-p0-row" style="align-items:center">
-              <img src="${esc(imgUrl(item.image_url))}" alt="" style="width:64px;height:52px;object-fit:contain;background:#fff;border-radius:6px;flex:none" />
-              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>标价 ¥${Number(item.price || 0).toLocaleString()}</span></div>
-            </div>
-            <div class="lx-bf-list" style="margin:10px 0">${rows || '<p class="lx-p0-disclaimer">该商品暂无可叠加优惠，按标价下单。</p>'}
-              <div class="lx-bf-row final"><div class="lx-bf-main"><strong>到手价</strong>${discount ? `<span>已为你省 ¥${Math.abs(discount).toLocaleString()}</span>` : ""}</div><b>¥${(finalPrice || item.price).toLocaleString()}</b></div>
-            </div>
-            <div class="lx-p0-row" style="align-items:center">
-              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
-              <button class="lx-p0-btn" type="button" data-occ-addr>修改</button>
-            </div>
-            <button class="lx-p0-btn primary" type="button" data-occ-confirm style="width:100%;margin-top:12px">确认下单</button>
-            <p class="lx-p0-disclaimer">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`);
-          // 领券动画收尾：全部领完后标题落定
-          const settleMs = claimed.length * 350 + 500;
+          if (!claimed.length) return lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
+          state._buyFlowRunning = true;
+          addMessage("user", `我要购买 ${item.name}，帮我领取所有可用优惠`);
+          const card = `
+            <div class="lx-buyflow-card">
+              <div class="lx-bff-head"><strong>正在为你自动领取优惠</strong><span>${esc(item.name)}</span><div class="lx-bff-progress"><i data-bff-bar style="width:0%"></i></div></div>
+              <div class="lx-bff-list" data-bff-list></div>
+            </div>`;
+          const node = addMessage("assistant", `好的！为你自动领取 ${claimed.length} 项专属优惠 👇`, card);
+          const list = node.querySelector("[data-bff-list]");
+          const bar = node.querySelector("[data-bff-bar]");
+          const STEP = 1000;
+          claimed.forEach((c, i) => {
+            setTimeout(() => {
+              list?.insertAdjacentHTML("beforeend", `<div class="lx-bff-item"><div class="lx-bff-info"><strong>${esc(c.label)}</strong><span>-¥${Math.abs(c.amount).toLocaleString()} · ${esc(c.reason)}</span></div><span class="lx-bff-status" data-bff-st="${i}"><i class="lx-bff-spinner"></i>领取中</span></div>`);
+              ensureChat().scrollTop = ensureChat().scrollHeight;
+            }, 300 + i * STEP);
+            setTimeout(() => {
+              const st = node.querySelector(`[data-bff-st="${i}"]`);
+              if (st) { st.innerHTML = "✓ 已领取"; st.classList.add("done"); }
+              if (bar) bar.style.width = `${Math.round(((i + 1) / claimed.length) * 100)}%`;
+            }, 300 + i * STEP + 700);
+          });
           setTimeout(() => {
-            const title = document.querySelector(".lx-p0-modal-mask.show .lx-p0-modal-title");
-            if (title && title.textContent.includes("正在")) title.textContent = `确认订单 · 已领取 ${claimed.length} 项优惠`;
-          }, settleMs);
+            state._buyFlowRunning = false;
+            list?.insertAdjacentHTML("afterend", `<div class="lx-bff-foot">共省 ¥${Math.abs(discount).toLocaleString()}，到手价 <b>¥${(finalPrice || item.price).toLocaleString()}</b></div>`);
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+            lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
+          }, 300 + claimed.length * STEP + 600);
         }
 
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
