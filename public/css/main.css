@@ -5717,6 +5717,12 @@
         object-fit: contain;
       }
 
+      .lx-seckill-media.is-empty::after {
+        content: "产品图";
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
       .lx-seckill-corner {
         position: absolute;
         left: 8px;

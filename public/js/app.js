@@ -1429,10 +1429,13 @@
               }
             ].map((item) => {
               const product = findProduct(item.pattern);
-              const image = imgUrl(product.image_url || "/assets/logos/logo-mark.png");
+              const image = product.image_url ? imgUrl(product.image_url) : "";
+              const imageHtml = image
+                ? `<img src="${esc(image)}" alt="" loading="lazy" onerror="this.remove();this.parentElement.classList.add('is-empty')" />`
+                : "";
               const openAttr = product.sku ? `data-open-product="${esc(product.sku)}"` : `data-quick-ask="我想了解${esc(item.name)}秒杀活动"`;
               return `<article class="lx-seckill-card" ${openAttr} tabindex="0">
-                <div class="lx-seckill-media"><img src="${esc(image)}" alt="${esc(item.name)}" loading="lazy" /><span class="lx-seckill-corner">秒杀</span></div>
+                <div class="lx-seckill-media${image ? "" : " is-empty"}">${imageHtml}<span class="lx-seckill-corner">秒杀</span></div>
                 <div class="lx-seckill-info">
                   <h4>${esc(item.name)}</h4>
                   <p>${esc(item.spec)}</p>
