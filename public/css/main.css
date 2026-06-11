@@ -6225,3 +6225,403 @@ body[data-page="home"] .hero-suggestion-row {
   margin: 0 !important;
   vertical-align: top !important;
 }
+
+/* Product review section - Scheme B */
+.content[data-view="detail"] .lx-review-b {
+  width: 100%;
+  max-width: 980px;
+  margin: 18px auto 0 !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(60, 40, 90, 0.04), 0 16px 48px rgba(60, 40, 90, 0.08);
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, sans-serif;
+}
+
+.content[data-view="detail"] .detail-reviews-header {
+  padding: 28px 36px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-reviews-title {
+  margin: 0;
+  color: #17181a;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-reviews-note {
+  margin: 0 !important;
+  color: #95909e !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.5;
+}
+
+.content[data-view="detail"] .detail-review-ai-banner {
+  position: relative;
+  margin: 20px 36px 0;
+  padding: 22px 28px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #2b0f28 0%, #571641 55%, #7c2058 100%);
+}
+
+.content[data-view="detail"] .detail-review-ai-glow {
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: rgba(240, 140, 190, 0.15);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.content[data-view="detail"] .detail-review-ai-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.content[data-view="detail"] .detail-review-ai-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.content[data-view="detail"] .detail-review-ai-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #f2bfd9;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.content[data-view="detail"] .detail-review-ai-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f2bfd9;
+  animation: lx-review-pulse-dot 2s infinite;
+}
+
+.content[data-view="detail"] .detail-review-ai-note {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+}
+
+.content[data-view="detail"] .detail-review-ai-text {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.content[data-view="detail"] .detail-review-ai-text .highlight {
+  color: #f2bfd9;
+  font-weight: 700;
+}
+
+.content[data-view="detail"] .detail-review-ai-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.content[data-view="detail"] .detail-review-ai-tags span {
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.content[data-view="detail"] .detail-review-rating-wrap {
+  margin: 20px 36px 0;
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.content[data-view="detail"] .detail-review-rating-card {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 20px 28px;
+  border: 1px solid #f5dcde;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fbf1f2, #fef8f8);
+}
+
+.content[data-view="detail"] .detail-review-rating-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.content[data-view="detail"] .detail-review-rating-score strong {
+  color: #c8161e;
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.content[data-view="detail"] .detail-review-rating-score span {
+  color: #a4555e;
+  font-size: 12px;
+}
+
+.content[data-view="detail"] .detail-review-rating-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.content[data-view="detail"] .detail-review-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.content[data-view="detail"] .detail-review-rating-row span {
+  width: 16px;
+  color: #95909e;
+  font-size: 11px;
+  text-align: right;
+}
+
+.content[data-view="detail"] .detail-review-rating-row i {
+  width: 80px;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f7e0e2;
+}
+
+.content[data-view="detail"] .detail-review-rating-row b {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #c8161e;
+}
+
+.content[data-view="detail"] .detail-review-rating-row em {
+  color: #95909e;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.content[data-view="detail"] .detail-review-filter-tags {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.content[data-view="detail"] .detail-review-filter {
+  padding: 10px 18px;
+  border: 1px solid #e9e5f0;
+  border-radius: 12px;
+  background: #f7f5fa;
+  color: #4a4453;
+  font: 600 13px/1.2 "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.content[data-view="detail"] .detail-review-filter:hover,
+.content[data-view="detail"] .detail-review-filter.active {
+  border-color: #c9a3c4;
+  background: #f0e9f6;
+  color: #6d3260;
+}
+
+.content[data-view="detail"] .detail-review-cards-wrap {
+  padding: 20px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-grid {
+  display: flex !important;
+  gap: 14px !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-card {
+  flex: 0 0 290px !important;
+  width: 290px;
+  min-height: 0 !important;
+  padding: 20px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  background: #f7f5fa !important;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-card:hover {
+  background: #fff !important;
+  border-color: #d8c4e0 !important;
+  box-shadow: 0 8px 24px rgba(109, 50, 96, 0.10);
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-card-title {
+  margin: 0;
+  color: #17181a;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-card-content {
+  margin: 0;
+  color: #4a4453;
+  font-size: 13px;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.content[data-view="detail"] .detail-review-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.content[data-view="detail"] .detail-review-card-tags span {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #efe5f5;
+  color: #6d3260;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.content[data-view="detail"] .detail-review-card-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.content[data-view="detail"] .detail-review-card-foot span {
+  color: #b9b4c2;
+  font-size: 11px;
+}
+
+.content[data-view="detail"] .detail-review-like {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #95909e;
+  font: 500 12px/1 "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.content[data-view="detail"] .detail-review-like:hover,
+.content[data-view="detail"] .detail-review-like.liked {
+  color: #c8161e;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-actions {
+  position: static !important;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-arrow {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e0ec !important;
+  border-radius: 50%;
+  background: #fff !important;
+  color: #4a4453 !important;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.content[data-view="detail"] .lx-review-b .detail-review-arrow:hover,
+.content[data-view="detail"] .lx-review-b .detail-review-arrow:focus-visible {
+  border-color: #6d3260 !important;
+  color: #6d3260 !important;
+  transform: none !important;
+  outline: none;
+}
+
+@keyframes lx-review-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.65); }
+}
+
+@media (max-width: 640px) {
+  .content[data-view="detail"] .lx-review-b {
+    border-radius: 16px;
+  }
+
+  .content[data-view="detail"] .detail-reviews-header {
+    padding: 20px 20px 0;
+    flex-wrap: wrap;
+  }
+
+  .content[data-view="detail"] .detail-review-ai-banner,
+  .content[data-view="detail"] .detail-review-rating-wrap {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .content[data-view="detail"] .detail-review-cards-wrap {
+    padding: 20px 20px 28px;
+  }
+
+  .content[data-view="detail"] .lx-review-b .detail-review-card {
+    flex-basis: 260px !important;
+    width: 260px;
+  }
+}

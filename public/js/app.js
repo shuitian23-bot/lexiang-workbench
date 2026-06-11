@@ -413,17 +413,22 @@
         function renderProductReviews(product) {
           const grid = $("[data-detail-review-grid]");
           if (!grid) return;
-          const name = product?.name || "这款商品";
-          const category = product?.category || "联想商品";
-          const description = product?.description || "核心配置";
-          const rows = DETAIL_REVIEW_TEMPLATES.map(([title, body], index) => {
-            let text = body;
-            if (index === 0) text = `${name} 日常使用响应稳定，${description} 覆盖主要使用需求。`;
-            if (index === 3) text = `${category} 的核心配置比较清晰，适合结合预算、用途和服务需求继续比较。`;
-            if (index === 14) text = "联想乐享可以继续查询优惠、门店服务、以旧换新和同类商品对比。";
-            return `<article class="detail-review-card"><strong>${esc(title)}</strong><p>${esc(text)}</p></article>`;
-          });
-          grid.innerHTML = rows.join("");
+          const name = product?.name || "联想YOGA Pro 16 Aura AI元启版 16英寸轻薄创作笔记本电脑";
+          const description = product?.description || "性能配置覆盖日常办公、创作和学习需求";
+          const reviews = [
+            { title: "办公体验顺滑", body: `${name} ${description}，日常使用响应稳定，覆盖主要使用需求。`, tags: ["性能强", "屏幕好"], user: "用户_L***8 · 2025-11-14", likes: 42 },
+            { title: "外观和质感不错", body: "机身做工扎实，屏幕显示细腻，拿到手的质感比预期更稳。轻薄设计出差携带很方便，A面的纹理手感也很好。", tags: ["做工精致", "便携"], user: "用户_S***5 · 2025-11-10", likes: 28 },
+            { title: "服务沟通清楚", body: "下单前通过联想乐享确认配置，客服沟通比较清晰，配送速度很快，开机激活流程顺畅，整体购买体验不错。", tags: ["服务好", "物流快"], user: "用户_W***2 · 2025-11-08", likes: 19 },
+            { title: "续航还有提升空间", body: "重度使用下续航在3-4小时，外接显示器下更短，需要常备电源。但性能表现非常出色，适合插电使用场景。", tags: ["性能强", "续航待改进"], user: "用户_Q***7 · 2025-11-06", likes: 31 },
+            { title: "屏幕效果惊艳", body: "OLED色彩鲜艳，对比度高，做图剪视频非常爽。触控功能配合妙笔使用体验很好，创作类软件运行流畅。", tags: ["屏幕好", "适合创作"], user: "用户_M***3 · 2025-11-03", likes: 56 }
+          ];
+          grid.innerHTML = reviews.map((review) => `
+            <article class="detail-review-card">
+              <strong class="detail-review-card-title">${esc(review.title)}</strong>
+              <p class="detail-review-card-content">${esc(review.body)}</p>
+              <div class="detail-review-card-tags">${review.tags.map((tag) => `<span>${esc(tag)}</span>`).join("")}</div>
+              <div class="detail-review-card-foot"><span>${esc(review.user)}</span><button class="detail-review-like" type="button" aria-label="点赞评价">👍 ${review.likes}</button></div>
+            </article>`).join("");
         }
 
         function updateProductDetailPanels(product) {
@@ -584,13 +589,13 @@
         // 评价区「乐享总结」：lite 模型流式生成 60 字评价要点，按 sku 缓存
         let reviewSumToken = 0;
         async function loadReviewSummary(product) {
-          const title = document.querySelector(".detail-reviews-title");
-          if (!title || !product?.name) return;
+          const box = document.querySelector("[data-review-sum]");
+          if (!box || !product?.name) return;
           const token = ++reviewSumToken;
-          document.querySelector("[data-review-sum]")?.remove();
           state.reviewSumCache = state.reviewSumCache || {};
           const cached = state.reviewSumCache[product.sku];
-          title.insertAdjacentHTML("afterend", `<p class="lx-review-sum" data-review-sum>${cached ? esc(cached) : "乐享正在为你总结评价要点…"}</p>`);
+          const fallback = "大多数用户认为<span class=\"highlight\">屏幕素质高、性能强、做工精致</span>，适合创作办公；少数用户提到机身偏重、续航和风扇噪音仍有提升空间。";
+          box.innerHTML = cached || fallback;
           if (cached) return;
           try {
             const res = await fetch("/api/chat/quick", {
@@ -612,10 +617,9 @@
                 try { const d = JSON.parse(line.slice(5)); if (d.text) sum += d.text; } catch {}
               }
               if (token !== reviewSumToken) { reader.cancel(); return; }
-              const box = document.querySelector("[data-review-sum]");
-              if (box && sum) box.textContent = `「乐享总结」${sum}`;
+              if (box && sum) box.textContent = sum;
             }
-            if (sum) state.reviewSumCache[product.sku] = `「乐享总结」${sum}`;
+            if (sum) state.reviewSumCache[product.sku] = esc(sum).replace(/(屏幕素质高|性能强|做工精致)/g, '<span class="highlight">$1</span>');
           } catch {}
         }
 
@@ -3137,12 +3141,25 @@
               });
             }
 
+            const reviewFilter = event.target.closest(".detail-review-filter");
+            if (reviewFilter) {
+              const wrap = reviewFilter.closest("[data-review-filter-tags]");
+              wrap?.querySelectorAll(".detail-review-filter").forEach((item) => item.classList.toggle("active", item === reviewFilter));
+            }
+
+            const reviewLike = event.target.closest(".detail-review-like");
+            if (reviewLike) {
+              const count = Number((reviewLike.textContent || "").replace(/[^0-9]/g, "")) || 0;
+              reviewLike.textContent = `👍 ${count + 1}`;
+              reviewLike.classList.add("liked");
+            }
+
             const reviewTrack = $("[data-detail-review-grid]");
             if (event.target.closest("[data-review-prev]") && reviewTrack) {
-              reviewTrack.scrollBy({ left: -Math.max(320, reviewTrack.clientWidth * 0.72), behavior: "smooth" });
+              reviewTrack.scrollBy({ left: -320, behavior: "smooth" });
             }
             if (event.target.closest("[data-review-next]") && reviewTrack) {
-              reviewTrack.scrollBy({ left: Math.max(320, reviewTrack.clientWidth * 0.72), behavior: "smooth" });
+              reviewTrack.scrollBy({ left: 320, behavior: "smooth" });
             }
 
             const utility = event.target.closest(".utility-btn");
