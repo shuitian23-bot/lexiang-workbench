@@ -18,6 +18,69 @@ function renderPage(pageId) {
   }
 }
 
+function renderPortalHomePage() {
+  return `
+    <div class="portal-home">
+      <div class="portal-home-hero">
+        <div>
+          <div class="page-title">门户工作台</div>
+          <div class="page-desc">统一承载运营看板、业务后台、风险审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
+        </div>
+        <div class="portal-home-actions">
+          <button class="btn btn-secondary" onclick="openSkillManagerOverlay()">管理技能包</button>
+          <button class="btn btn-primary" onclick="openSkillCreatePage()">创建 Skill</button>
+        </div>
+      </div>
+
+      <div class="portal-home-grid">
+        <div class="portal-home-card">
+          <span>AI</span>
+          <b>全局 AI 助手</b>
+          <p>右侧助手独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</p>
+        </div>
+        <div class="portal-home-card">
+          <span>OP</span>
+          <b>运营分析</b>
+          <p>聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</p>
+        </div>
+        <div class="portal-home-card">
+          <span>PM</span>
+          <b>Skill 创建</b>
+          <p>平台侧和 PM 可从账号入口创建 Skill，并在 Skill Hub 中跟踪提交、审批、启停和发布状态。</p>
+        </div>
+        <div class="portal-home-card">
+          <span>SK</span>
+          <b>技能包管理</b>
+          <p>业务用户通过右上角管理技能查看可用技能包、申请权限，并通过 AI 助手调用。</p>
+        </div>
+      </div>
+
+      <div class="portal-home-layout">
+        <div class="card">
+          <div class="card-header"><div class="card-title">常用入口</div></div>
+          <div class="portal-home-entry-list">
+            <button onclick="switchPage('employee.overview')"><b>在职员工管理</b><span>认证审核、职工数据、认证方式分布</span></button>
+            <button onclick="switchPage('dashboard.overview')"><b>乐享运营</b><span>经营指标、流量质量、GMV 分析</span></button>
+            <button onclick="switchPage('lead.dashboard')"><b>企业客户管理</b><span>线索看板、线索池和分配跟进</span></button>
+            <button onclick="switchPage('search.categories')"><b>搜索后台</b><span>分类标签、筛选、直达和词典管理</span></button>
+            <button onclick="switchPage('risk.overview')"><b>风控管理</b><span>策略、限购、DPL 和数据查询</span></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">基础操作流程</div></div>
+          <div class="portal-home-flow">
+            <div><span>1</span><p>从左侧菜单进入确定性的后台页面，完成固定流程和人工审核。</p></div>
+            <div><span>2</span><p>在右侧 AI 助手输入任务，补充查询、分析、生成和配置类工作。</p></div>
+            <div><span>3</span><p>涉及写入、发布、导出等高影响操作时，先展示影响范围，再确认执行并留下任务记录。</p></div>
+            <div><span>4</span><p>PM 从左下角账号入口进入 Skill Hub 管理提交状态；业务从右上角管理技能使用技能包。</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function updateSkillCardEmptyState() {
   const activeSection = document.querySelector('.skill-manager-section.active') || document;
   const cards = Array.from(activeSection.querySelectorAll('.agent-skill-card, .atomic-capability-card'));
@@ -217,6 +280,78 @@ function submitSkillPackageAction(title, message) {
     </div>`;
 }
 
+const PM_SKILL_HUB_ITEMS = [
+  { name: 'workplace-cert-analysis', platform: 'lexiang', desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'draft', statusText: '草稿', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', updated: '2026-06-10 14:20' },
+  { name: 'low-stock-auto-offline', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '商品运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36' },
+  { name: 'product-knowledge', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '知识问答', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
+  { name: 'voucher-recommend', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '权益推荐', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
+  { name: 'driver-download-guide', platform: 'lexiang', desc: '联想驱动下载指导 Skill，支持驱动查询、版本差异对比和安装说明生成。', version: 'v1.0.0', online: '未发布', status: 'review', statusText: '待审批', category: '服务支持', tags: ['下载', '驱动'], owner: 'service-pm', updated: '2026-06-05 16:45' },
+  { name: 'lenovo-order-detail-query', platform: 'lexiang,aiadmin', desc: '联想商城订单明细查询助手，支持自然语言查询订单状态和售后发货信息。', version: 'v1.0.0', online: '未发布', status: 'approved', statusText: '已审批', category: '订单服务', tags: ['订单'], owner: 'ops-pm', updated: '2026-06-02 17:15' },
+  { name: 'weather-query', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: '未发布', status: 'disabled', statusText: '已禁用', category: '工具服务', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
+];
+
+function getSkillHubRole() {
+  return (typeof STATE !== 'undefined' && STATE.permissions?.includes('*')) ? 'admin' : 'pm';
+}
+
+function skillHubStatusLabel(status) {
+  return {
+    draft: '草稿',
+    review: '待审批',
+    approved: '已审批',
+    published: '已发布',
+    disabled: '已禁用'
+  }[status] || status;
+}
+
+function renderSkillHubActions(item, role) {
+  const pmActions = {
+    draft: ['提交审核', '编辑', '测试', '删除'],
+    review: ['查看', '撤回', '测试'],
+    approved: ['发布', '编辑', '测试'],
+    published: ['禁用', '编辑', '测试'],
+    disabled: ['启用', '编辑', '测试']
+  };
+  const adminActions = {
+    draft: ['查看', '编辑'],
+    review: ['审批', '驳回', '查看', '测试'],
+    approved: ['发布', '禁用', '查看'],
+    published: ['禁用', '查看', '测试'],
+    disabled: ['启用', '查看']
+  };
+  const actions = (role === 'admin' ? adminActions : pmActions)[item.status] || ['查看'];
+  return actions.map(action => {
+    const tone = action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
+    return `<button class="skill-hub-action ${tone}" onclick="handleSkillHubAction('${item.name}', '${action}')">${action}</button>`;
+  }).join('');
+}
+
+function handleSkillHubAction(name, action) {
+  const toast = document.createElement('div');
+  toast.className = 'skill-hub-toast';
+  toast.textContent = `${name}：${action}操作已记录`;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 220);
+  }, 1800);
+}
+
+function filterSkillHub() {
+  const keyword = (document.getElementById('skill-hub-search')?.value || '').trim().toLowerCase();
+  const status = document.getElementById('skill-hub-status')?.value || 'all';
+  const category = document.getElementById('skill-hub-category')?.value || 'all';
+  const tag = document.getElementById('skill-hub-tag')?.value || 'all';
+  document.querySelectorAll('.skill-hub-row').forEach(row => {
+    const matchKeyword = !keyword || row.textContent.toLowerCase().includes(keyword);
+    const matchStatus = status === 'all' || row.dataset.status === status;
+    const matchCategory = category === 'all' || row.dataset.category === category;
+    const matchTag = tag === 'all' || row.dataset.tags.split(',').includes(tag);
+    row.style.display = matchKeyword && matchStatus && matchCategory && matchTag ? '' : 'none';
+  });
+}
+
 function renderAgentSkillsManager(options = {}) {
   const isModal = options.mode === 'modal';
   const skills = [
@@ -313,63 +448,112 @@ function renderAgentSkillsManager(options = {}) {
     </div>`;
   const headerActions = isModal
     ? `<button class="agent-skill-modal-close" onclick="closeSkillManagerOverlay()" title="关闭">×</button>`
-    : `<button class="btn btn-secondary" onclick="switchPage('dashboard.overview')">返回工作台</button>`;
+    : `<button class="btn btn-secondary" onclick="goPortalHome()">返回工作台</button>`;
+  if (isModal) {
+    return `
+      <div class="agent-skill-modal-panel" role="dialog" aria-label="技能包管理">
+        <div class="page-header agent-skill-modal-head">
+          <div>
+            <div class="page-title">技能包管理</div>
+            <div class="page-desc">面向业务使用的技能包入口。业务用户可使用、申请或查看审批进度。</div>
+          </div>
+          <div class="agent-skill-page-actions">${headerActions}</div>
+        </div>
+        <div class="skill-page-shell">
+          <div class="skill-page-summary skill-summary-group active" data-summary-view="packages">
+            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'available', this)"><strong>${statusMeta.available.count}</strong><span>可用技能包</span></button>
+            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'requestable', this)"><strong>${statusMeta.requestable.count}</strong><span>可申请</span></button>
+            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'pending', this)"><strong>${statusMeta.pending.count}</strong><span>待审批</span></button>
+            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'disabled,admin', this)"><strong>${statusMeta.disabled.count + statusMeta.admin.count}</strong><span>禁用/配置</span></button>
+          </div>
+          <div class="skill-page-toolbar">
+            <div class="skill-page-tabs">${tabs}</div>
+            <div class="skill-page-toolbar-actions">
+              <button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
+              <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
+            </div>
+          </div>
+          <div class="skill-manager-section active" data-skill-view="packages">
+            <div id="skill-package-action-panel" class="skill-package-action-panel"></div>
+            <div class="skill-page-grid">${skills.map(card).join('')}</div>
+            <div class="skill-page-empty-note">技能包面向运营、业务和销售使用，一个技能包可以编排多个底层 Skill 能力，并通过右侧 AI 助手自然语言调用。</div>
+          </div>
+          <div class="skill-page-empty" id="skill-page-empty" style="display:none;">当前筛选下暂无技能包</div>
+        </div>
+      </div>`;
+  }
+  const role = getSkillHubRole();
+  const statusOptions = ['draft', 'review', 'approved', 'published', 'disabled']
+    .map(status => `<option value="${status}">${skillHubStatusLabel(status)}</option>`).join('');
+  const categories = [...new Set(PM_SKILL_HUB_ITEMS.map(item => item.category))]
+    .map(category => `<option value="${category}">${category}</option>`).join('');
+  const tags = [...new Set(PM_SKILL_HUB_ITEMS.flatMap(item => item.tags.map(tag => tag.replace(/^\+/, ''))))]
+    .filter(tag => !/^\d+$/.test(tag))
+    .map(tag => `<option value="${tag}">${tag}</option>`).join('');
+  const ownCount = PM_SKILL_HUB_ITEMS.filter(item => item.owner === (STATE.user || 'admin')).length;
+  const reviewCount = PM_SKILL_HUB_ITEMS.filter(item => item.status === 'review').length;
+  const publishedCount = PM_SKILL_HUB_ITEMS.filter(item => item.status === 'published').length;
+  const disabledCount = PM_SKILL_HUB_ITEMS.filter(item => item.status === 'disabled').length;
+  const rows = PM_SKILL_HUB_ITEMS.map(item => `
+    <tr class="skill-hub-row" data-status="${item.status}" data-category="${item.category}" data-tags="${item.tags.map(tag => tag.replace(/^\+/, '')).join(',')}">
+      <td>
+        <div class="skill-hub-name"><span class="skill-hub-doc-icon">▤</span><strong>${item.name}</strong></div>
+      </td>
+      <td>${item.platform}</td>
+      <td><div class="skill-hub-desc">${item.desc}</div></td>
+      <td><span class="skill-hub-version">${item.version}</span></td>
+      <td><span class="skill-hub-online ${item.online === '未发布' ? 'empty' : ''}">${item.online}</span></td>
+      <td><span class="skill-hub-status status-${item.status}">${item.statusText}</span></td>
+      <td><div class="skill-hub-tags">${item.tags.map(tag => `<span>${tag}</span>`).join('')}</div></td>
+      <td>${item.updated}</td>
+      <td><div class="skill-hub-actions">${renderSkillHubActions(item, role)}</div></td>
+    </tr>`).join('');
   return `
-    <div class="${isModal ? 'agent-skill-modal-panel' : ''}" role="${isModal ? 'dialog' : 'region'}" aria-label="Skills 管理">
-      <div class="page-header ${isModal ? 'agent-skill-modal-head' : ''}">
+    <div class="skill-hub-page" role="region" aria-label="Skill Hub">
+      <div class="page-header">
         <div>
-          <div class="page-title">技能管理</div>
-          <div class="page-desc">技能包面向业务使用；Skill 能力展示底层可调用能力与编排关系。</div>
+          <div class="page-title">Skill Hub</div>
+          <div class="page-desc">${role === 'admin' ? '管理员可审批、发布、启用或禁用 Skill；PM 可查看自己提交的 Skill 状态。' : 'PM 查看自己提交的 Skill 状态，并对自己的 Skill 执行提交审核、编辑、测试、启用或禁用。'}</div>
         </div>
         <div class="agent-skill-page-actions">
+          <button class="btn btn-primary" onclick="openSkillCreatePage()">创建 Skill</button>
           ${headerActions}
         </div>
       </div>
-      <div class="skill-page-shell">
-        <div class="skill-layer-tabs">
-          <button class="skill-layer-tab active" onclick="switchSkillManagerView('packages', this)">技能包<span>${skills.length}</span></button>
-          <button class="skill-layer-tab" onclick="switchSkillManagerView('atomic', this)">Skill 能力<span>${atomicAbilities.length}</span></button>
-        </div>
-        <div class="skill-page-summary skill-summary-group active" data-summary-view="packages">
-          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'available', this)"><strong>${statusMeta.available.count}</strong><span>可用技能包</span></button>
-          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'requestable', this)"><strong>${statusMeta.requestable.count}</strong><span>可申请</span></button>
-          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'pending', this)"><strong>${statusMeta.pending.count}</strong><span>待审批</span></button>
-          <button class="skill-summary-card" onclick="filterSkillSummary('package', 'disabled,admin', this)"><strong>${statusMeta.disabled.count + statusMeta.admin.count}</strong><span>禁用/配置</span></button>
-        </div>
-        <div class="skill-page-summary skill-summary-group" data-summary-view="atomic">
-          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.all.risks}', this)"><strong>${atomicSummary.all.count}</strong><span>${atomicSummary.all.label}</span></button>
-          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.low.risks}', this)"><strong>${atomicSummary.low.count}</strong><span>${atomicSummary.low.label}</span></button>
-          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.medium.risks}', this)"><strong>${atomicSummary.medium.count}</strong><span>${atomicSummary.medium.label}</span></button>
-          <button class="skill-summary-card" onclick="filterSkillSummary('atomic', '${atomicSummary.high.risks}', this)"><strong>${atomicSummary.high.count}</strong><span>${atomicSummary.high.label}</span></button>
-        </div>
-        <div class="skill-page-toolbar">
-          <div class="skill-page-tabs">
-            ${tabs}
-          </div>
-          <div class="skill-page-toolbar-actions">
-            <button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
-            <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
-          </div>
-        </div>
-        <div class="skill-manager-section active" data-skill-view="packages">
-          <div id="skill-package-action-panel" class="skill-package-action-panel"></div>
-          <div class="skill-page-grid">
-            ${skills.map(card).join('')}
-          </div>
-          <div class="skill-page-empty-note">
-            技能包是给运营、业务和销售使用的低门槛入口。一个技能包可以编排多个 Skill 能力，用户通过右侧 AI 助手自然语言调用。
-          </div>
-        </div>
-        <div class="skill-manager-section" data-skill-view="atomic">
-          <div class="atomic-capability-intro">
-            <div><b>Skill 能力</b><span>底层最小能力单元，可以被技能包编排，也可以由右侧 AI 助手根据自然语言任务自动调用。</span></div>
-            <div><b>调用路径</b><span>自然语言输入 → 意图识别 → 匹配技能包 → 拆解 Skill 能力 → 权限/风险校验 → 执行或审批。</span></div>
-          </div>
-          <div class="atomic-capability-grid">
-            ${atomicAbilities.map(atomicCard).join('')}
-          </div>
-        </div>
-        <div class="skill-page-empty" id="skill-page-empty" style="display:none;">当前筛选下暂无 Skill</div>
+
+      <div class="skill-hub-summary">
+        <div><strong>${PM_SKILL_HUB_ITEMS.length}</strong><span>全部 Skill</span></div>
+        <div><strong>${ownCount}</strong><span>我的提交</span></div>
+        <div><strong>${reviewCount}</strong><span>待审批</span></div>
+        <div><strong>${publishedCount}</strong><span>已发布</span></div>
+        <div><strong>${disabledCount}</strong><span>已禁用</span></div>
+      </div>
+
+      <div class="skill-hub-toolbar">
+        <input id="skill-hub-search" placeholder="搜索技能名称或描述" oninput="filterSkillHub()">
+        <select id="skill-hub-status" onchange="filterSkillHub()"><option value="all">状态</option>${statusOptions}</select>
+        <select id="skill-hub-category" onchange="filterSkillHub()"><option value="all">分类</option>${categories}</select>
+        <select id="skill-hub-tag" onchange="filterSkillHub()"><option value="all">标签</option>${tags}</select>
+        <button class="btn btn-primary" onclick="filterSkillHub()">搜索</button>
+      </div>
+
+      <div class="skill-hub-table-card">
+        <table class="skill-hub-table">
+          <thead>
+            <tr>
+              <th>名称</th>
+              <th>绑定平台</th>
+              <th>描述</th>
+              <th>版本</th>
+              <th>上线版本</th>
+              <th>状态</th>
+              <th>标签</th>
+              <th>更新时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
       </div>
     </div>`;
 }
@@ -379,16 +563,15 @@ const LEAI_DASH_STATE = {
   overviewCustomStart: '',
   overviewCustomEnd: '',
   overviewScenarioMode: 'all',
-  overviewProductMetric: 'inter'
+  overviewProductMetric: 'views'
 };
 
-// 热门商品：浏览量已按业务反馈替换为互动量（互动表×购买表关联，待大数据提供正式数据源）
 const LEAI_PRODUCT_ROWS = [
-  { name: 'ThinkPad X9-14 Aura AI元启版', inter: 15847, buyers: 761, cvr: 4.8 },
-  { name: 'YOGA Air 14 Aura AI元启版', inter: 13203, buyers: 700, cvr: 5.3 },
-  { name: '拯救者 R7000P 2025 AI元启', inter: 11876, buyers: 487, cvr: 4.1 },
-  { name: '联想小新Pro14GT AI元启版', inter: 9543, buyers: 305, cvr: 3.2 },
-  { name: 'ThinkPad P14s 2025 AI元启版', inter: 7810, buyers: 203, cvr: 2.6 }
+  { name: 'ThinkPad X9-14 Aura AI元启版', views: 15847, buyers: 761, cvr: 4.8 },
+  { name: 'YOGA Air 14 Aura AI元启版', views: 13203, buyers: 700, cvr: 5.3 },
+  { name: '拯救者 R7000P 2025 AI元启', views: 11876, buyers: 487, cvr: 4.1 },
+  { name: '联想小新Pro14GT AI元启版', views: 9543, buyers: 305, cvr: 3.2 },
+  { name: 'ThinkPad P14s 2025 AI元启版', views: 7810, buyers: 203, cvr: 2.6 }
 ];
 
 function leaiGetData() {
@@ -471,33 +654,8 @@ function leaiPeriodText(rows) {
   return first === last ? toFull(last) : `${toFull(first)} - ${toFull(last)}`;
 }
 
-// 选期排重数（业务反馈：登录/互动用户显示统计周期内排重数）
-// 1 天 = 当日排重真值；选期覆盖日报近30天窗口 = 日报 M 值（近30天排重真值）；
-// 中间周期日报无原始排重，按 30 天去重率线性折算估算
-function leaiDedupCount(rows, dayKey, monthKey) {
-  const L = leaiGetData();
-  const full = L?.daily || [];
-  const n = rows.length;
-  if (!n) return { value: 0, estimated: false };
-  const daySum = leaiSum(rows, dayKey);
-  if (n === 1) return { value: daySum, estimated: false };
-  const last = rows[n - 1];
-  const idx = full.findIndex(r => r.d === last.d);
-  const win = idx >= 0 ? full.slice(Math.max(0, idx - 29), idx + 1) : rows;
-  const monthDedup = Number(last?.[monthKey]) || 0;
-  if (monthDedup && n >= win.length && rows[0]?.d === win[0]?.d) {
-    return { value: monthDedup, estimated: false };
-  }
-  const winSum = leaiSum(win, dayKey);
-  const factor30 = winSum > 0 && monthDedup > 0 ? Math.min(monthDedup / winSum, 1) : 1;
-  const f = 1 - (1 - factor30) * (n - 1) / 29;
-  return { value: Math.round(daySum * Math.min(Math.max(f, 0), 1)), estimated: true };
-}
-
 function leaiBuildSummary(range, customStart, customEnd) {
   const rows = leaiRows(range, undefined, customStart, customEnd);
-  const loginDedup = leaiDedupCount(rows, 'login', 'loginM');
-  const interDedup = leaiDedupCount(rows, 'inter', 'interM');
   return {
     rows,
     dau: leaiAvg(rows, 'dau'),
@@ -507,10 +665,6 @@ function leaiBuildSummary(range, customStart, customEnd) {
     loginAvg: leaiAvg(rows, 'login'),
     inter: leaiSum(rows, 'inter'),
     interAvg: leaiAvg(rows, 'inter'),
-    loginDedup: loginDedup.value,
-    loginDedupEst: loginDedup.estimated,
-    interDedup: interDedup.value,
-    interDedupEst: interDedup.estimated,
     buy: leaiSum(rows, 'buy'),
     gmv: leaiSum(rows, 'gmv'),
     offGmv: leaiSum(rows, 'offGmv'),
@@ -588,94 +742,38 @@ function leaiSparklineHtml(rows, key, label, fmt, displayValue, subText) {
   </div>`;
 }
 
-// Query 场景分布：业务反馈改为直接取 Query 分析模块的内容（/api/pipeline/stats/history 一级分类）
-let LEAI_QUERY_STATS_CACHE = null;
-
-async function leaiFetchQueryStats() {
-  if (LEAI_QUERY_STATS_CACHE) return LEAI_QUERY_STATS_CACHE;
-  try {
-    const res = await fetch('/api/pipeline/stats/history');
-    const data = await res.json();
-    LEAI_QUERY_STATS_CACHE = data.records || [];
-  } catch (e) {
-    LEAI_QUERY_STATS_CACHE = [];
-  }
-  return LEAI_QUERY_STATS_CACHE;
-}
-
-function leaiMergeQueryDist(recs, key) {
-  const merged = {};
-  (recs || []).forEach(r => {
-    const dist = r?.[key];
-    if (!dist || typeof dist !== 'object') return;
-    Object.entries(dist).forEach(([k, v]) => {
-      const ck = String(k).trim();
-      if (!ck) return;
-      merged[ck] = (merged[ck] || 0) + (Number(v) || 0);
-    });
-  });
-  return merged;
-}
-
-function leaiScenarioRows(records) {
+function leaiScenarioRows(summary) {
   const mode = LEAI_DASH_STATE.overviewScenarioMode;
-  const bounds = leaiDateBounds();
-  const rows = leaiRows(LEAI_DASH_STATE.overviewRange, undefined,
-    LEAI_DASH_STATE.overviewCustomStart || bounds.min, LEAI_DASH_STATE.overviewCustomEnd || bounds.max);
-  const start = leaiRowIso(rows[0]?.d || '');
-  const end = leaiRowIso(rows[rows.length - 1]?.d || '');
-  let recs = (records || []).filter(r => r.date && r.date >= start && r.date <= end);
-  let periodNote = '';
-  if (!recs.length) {
-    recs = (records || []).slice(-30);
-    if (recs.length) periodNote = `Query 数据期 ${recs[0].date} ~ ${recs[recs.length - 1].date}`;
-  }
-  const dist = leaiMergeQueryDist(recs, mode === 'active' ? 'tag_dist_active' : 'tag_dist_all');
-  const data = Object.entries(dist)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, value]) => ({ name, value }));
-  return { data, periodNote };
+  const total = mode === 'active' ? summary.login : summary.inter;
+  const weights = mode === 'active'
+    ? [0.16, 0.31, 0.18, 0.09, 0.12, 0.14]
+    : [0.20, 0.27, 0.16, 0.10, 0.13, 0.14];
+  return ['会员', '电商', '服务', '门店', '方案', '咨询'].map((name, i) => ({
+    name,
+    value: Math.round(total * weights[i])
+  }));
 }
 
-function leaiScenarioBodyHtml(records) {
-  const { data, periodNote } = leaiScenarioRows(records);
-  if (!data.length) return '<div style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:12px">暂无 Query 分析数据</div>';
-  const max = Math.max(...data.map(r => r.value), 1);
-  const note = periodNote ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:6px">${periodNote}（选期内无 Query 记录，展示最近数据）</div>` : '';
-  return `<div class="dash-bar-chart">
-    ${data.map(r => `<div class="dash-bar-item">
-      <div class="dash-bar-value">${leaiFmtW(r.value)}</div>
-      <div class="dash-bar" style="height:${Math.max(r.value / max * 128, 12)}px"></div>
-      <div class="dash-bar-label">${r.name}</div>
-    </div>`).join('')}
-  </div>${note}`;
-}
-
-function leaiScenarioChartHtml() {
+function leaiScenarioChartHtml(summary) {
+  const rows = leaiScenarioRows(summary);
+  const max = Math.max(...rows.map(r => r.value), 1);
   const pill = mode => `dash-pill ${LEAI_DASH_STATE.overviewScenarioMode === mode ? 'active' : ''}`;
-  const body = LEAI_QUERY_STATS_CACHE
-    ? leaiScenarioBodyHtml(LEAI_QUERY_STATS_CACHE)
-    : '<div style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:12px">加载 Query 分析数据…</div>';
   return `<div class="card">
     <div class="card-header">
       <div class="card-title">Query 场景分布</div>
       <div class="dash-filter-bar">
-        <span style="font-size:11px;color:var(--text-tertiary);margin-right:6px">取自 Query 分析模块</span>
         <button class="${pill('all')}" onclick="leaiSetScenarioMode('all')">整体</button>
         <button class="${pill('active')}" onclick="leaiSetScenarioMode('active')">主动</button>
       </div>
     </div>
-    <div id="leai-scenario-body">${body}</div>
+    <div class="dash-bar-chart">
+      ${rows.map(r => `<div class="dash-bar-item">
+        <div class="dash-bar-value">${leaiFmtW(r.value)}</div>
+        <div class="dash-bar" style="height:${Math.max(r.value / max * 128, 12)}px"></div>
+        <div class="dash-bar-label">${r.name}</div>
+      </div>`).join('')}
+    </div>
   </div>`;
-}
-
-function leaiRenderScenarioCard() {
-  const el = document.getElementById('leai-scenario-body');
-  if (!el) return;
-  leaiFetchQueryStats().then(records => {
-    const target = document.getElementById('leai-scenario-body');
-    if (target) target.innerHTML = leaiScenarioBodyHtml(records);
-  });
 }
 
 function leaiProductTableHtml() {
@@ -684,22 +782,21 @@ function leaiProductTableHtml() {
   const sorted = [...LEAI_PRODUCT_ROWS].sort((a, b) => {
     if (metric === 'buyers') return b.buyers - a.buyers;
     if (metric === 'cvr') return b.cvr - a.cvr;
-    return b.inter - a.inter;
+    return b.views - a.views;
   });
   return `<div class="card">
     <div class="card-header">
       <div class="card-title">热门商品 TOP5</div>
       <div class="dash-filter-bar">
-        <button class="${pill('inter')}" onclick="leaiSetProductMetric('inter')">互动</button>
+        <button class="${pill('views')}" onclick="leaiSetProductMetric('views')">浏览</button>
         <button class="${pill('buyers')}" onclick="leaiSetProductMetric('buyers')">购买</button>
         <button class="${pill('cvr')}" onclick="leaiSetProductMetric('cvr')">转化率</button>
       </div>
     </div>
     <table>
-      <tr><th>商品</th><th>互动量</th><th>购买人数</th><th>转化率</th></tr>
-      ${sorted.map(p => `<tr><td>${p.name}</td><td>${p.inter.toLocaleString()}</td><td>${p.buyers.toLocaleString()}</td><td><span class="badge ${p.cvr >= 4 ? 'status-on' : 'status-warn'}">${p.cvr.toFixed(1)}%</span></td></tr>`).join('')}
+      <tr><th>商品</th><th>浏览量</th><th>购买人数</th><th>转化率</th></tr>
+      ${sorted.map(p => `<tr><td>${p.name}</td><td>${p.views.toLocaleString()}</td><td>${p.buyers.toLocaleString()}</td><td><span class="badge ${p.cvr >= 4 ? 'status-on' : 'status-warn'}">${p.cvr.toFixed(1)}%</span></td></tr>`).join('')}
     </table>
-    <div style="font-size:11px;color:var(--text-tertiary);margin-top:8px">互动量 = 互动表 × 购买表关联计算（日报无此数据，待大数据提供正式数据源）</div>
   </div>`;
 }
 
@@ -764,8 +861,8 @@ function leaiCurrentOverviewAiContext(goal) {
     `- 购买人数累计: ${leaiAiNum(summary.buy)}，客单价约 ${leaiAiMoney(aov)}`,
     '',
     '关键经营链路:',
-    `- 登录用户(选期排重${summary.loginDedupEst ? '·估算' : ''}): ${leaiFmtW(summary.loginDedup)}，选期累计 ${leaiFmtW(summary.login)}，登录/日活 ${leaiAiPct(summary.login, activeBase)}`,
-    `- 互动用户(选期排重${summary.interDedupEst ? '·估算' : ''}): ${leaiFmtW(summary.interDedup)}，选期累计 ${leaiFmtW(summary.inter)}，互动/登录 ${leaiAiPct(summary.inter, summary.login)}`,
+    `- 登录用户: ${leaiFmtW(summary.login)}，登录/日活 ${leaiAiPct(summary.login, activeBase)}`,
+    `- 互动用户: ${leaiFmtW(summary.inter)}，互动/登录 ${leaiAiPct(summary.inter, summary.login)}`,
     `- 购买人数: ${leaiAiNum(summary.buy)}，购买/互动 ${leaiAiPct(summary.buy, summary.inter)}`,
     `- 成交GMV: ${leaiAiMoney(summary.gmv)}，日均 ${leaiAiMoney(leaiAvg(rows, 'gmv'))}`,
     '',
@@ -785,8 +882,8 @@ function leaiCurrentOverviewAiContext(goal) {
     `- GMV: ${leaiAiTrend(rows, 'gmv', leaiFmtY)}`,
     `- GMV高点: ${leaiAiTopDays(rows, 'gmv', leaiFmtY)}`,
     '',
-    '热门商品TOP5(浏览量已替换为互动量):',
-    ...productRows.map(p => `- ${p.name}: 互动 ${leaiAiNum(p.inter)}，购买 ${leaiAiNum(p.buyers)}，转化率 ${p.cvr.toFixed(1)}%`),
+    '热门商品TOP5:',
+    ...productRows.map(p => `- ${p.name}: 浏览 ${leaiAiNum(p.views)}，购买 ${leaiAiNum(p.buyers)}，转化率 ${p.cvr.toFixed(1)}%`),
     '',
     '日序列:',
     ...rows.map(r => `- ${r.d}: DAU ${leaiAiNum(r.dau)}，登录 ${leaiAiNum(r.login)}，互动 ${leaiAiNum(r.inter)}，购买 ${leaiAiNum(r.buy)}，GMV ${leaiAiNum(r.gmv)}`)
@@ -851,70 +948,493 @@ function leaiSetProductMetric(metric) {
   switchPage('dashboard.overview');
 }
 
-const PAGE_RENDERERS = {
-  'workbench.home': () => `
-    <div class="workbench-home">
-      <div class="page-header workbench-home-head">
+function switchSkillCreateTab(tab, btn) {
+  document.querySelectorAll('.skill-create-tab').forEach(item => {
+    item.classList.toggle('active', item.dataset.skillCreateTab === tab);
+  });
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.skill-create-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.skillCreatePanel === tab);
+  });
+}
+
+function goSkillCreateNext(current) {
+  const order = ['config', 'clarify', 'draft', 'verify', 'review'];
+  const next = order[order.indexOf(current) + 1];
+  if (!next) return;
+  const btn = document.querySelector(`.skill-create-tab[data-skill-create-tab="${next}"]`);
+  switchSkillCreateTab(next, btn);
+}
+
+function focusSkillClarifyInput() {
+  switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'));
+  setTimeout(() => document.getElementById('skill-clarify-input')?.focus(), 0);
+}
+
+function submitSkillClarifyMessage() {
+  const input = document.getElementById('skill-clarify-input');
+  const chat = document.getElementById('skill-clarify-chat');
+  const value = input?.value?.trim();
+  if (!input || !chat || !value) return;
+  const userBubble = document.createElement('div');
+  userBubble.className = 'skill-chat-user';
+  userBubble.textContent = value;
+  chat.appendChild(userBubble);
+  input.value = '';
+
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'skill-chat-ai';
+  aiBubble.textContent = '已记录。请继续确认这个需求是否需要固定时间触发、是否允许导出 CSV，以及是否有需要审批的高风险操作。';
+  chat.appendChild(aiBubble);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function appendSkillClarifyAssistant(message) {
+  const chat = document.getElementById('skill-clarify-chat');
+  if (!chat || !message) return;
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'skill-chat-ai';
+  aiBubble.textContent = message;
+  chat.appendChild(aiBubble);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function refreshSkillClarifySummary(btn) {
+  const summary = document.getElementById('skill-clarify-summary-content');
+  const updated = document.getElementById('skill-clarify-summary-updated');
+  const chat = document.getElementById('skill-clarify-chat');
+  if (!summary) return;
+  const userTurns = chat ? Array.from(chat.querySelectorAll('.skill-chat-user')).map(item => item.textContent.trim()).filter(Boolean) : [];
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  btn?.classList.add('loading');
+  btn?.setAttribute('disabled', 'disabled');
+  setTimeout(() => {
+    summary.innerHTML = `
+      <div class="skill-summary-item">
+        <span>基本信息</span>
+        <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0；已基于 ${userTurns.length} 轮自然语言澄清更新。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>触发场景</span>
+        <p>自然语言查询、日报/周报/月报、待审核积压提醒、认证方式失败率异常提醒。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>文件结构</span>
+        <p>生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md；附件材料只作为需求和字段依据。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>输出格式</span>
+        <p>默认先返回 direct_response 文本结论，再返回 display_info 表格明细；允许提供 link_list 脱敏 CSV 下载。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>测试用例方向</span>
+        <p>认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势、异常输入兜底。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>评估重点</span>
+        <p>数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性、定时任务稳定性。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>复杂度</span>
+        <p>medium；只读分析为主，涉及多字段过滤、聚合统计、脱敏导出和异常提醒。</p>
+      </div>
+      <div class="skill-summary-item">
+        <span>Phoenix 输出</span>
+        <p>使用 direct_response + display_info + link_list，不触发认证状态修改动作。</p>
+      </div>`;
+    if (updated) updated.textContent = `已刷新 ${time}`;
+    btn?.classList.remove('loading');
+    btn?.removeAttribute('disabled');
+  }, 360);
+}
+
+function saveSkillCreateDraft() {
+  const sub = document.querySelector('.skill-workspace-sub');
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  if (sub) sub.textContent = `职场人群认证 · 草稿已保存 ${time}`;
+}
+
+function runSkillCreateLocalCheck() {
+  switchSkillCreateTab('verify', document.querySelector('[data-skill-create-tab=verify]'));
+}
+
+function toggleSkillContextItem(btn) {
+  btn?.classList.toggle('selected');
+  syncSkillContextSelection();
+}
+
+function syncSkillContextSelection() {
+  const selected = Array.from(document.querySelectorAll('.skill-context-item.selected')).map(item => {
+    const name = item.querySelector('b')?.textContent?.trim() || '';
+    const code = item.querySelector('span')?.textContent?.trim() || '';
+    return { name, code };
+  }).filter(item => item.name);
+  const count = document.getElementById('skill-selected-count');
+  if (count) count.textContent = `已选 ${selected.length}`;
+  const tags = document.getElementById('skill-selected-tags');
+  if (tags) {
+    tags.innerHTML = selected.length
+      ? selected.map(item => `<span title="${item.code}">${item.name}</span>`).join('')
+      : '<span class="muted">请先从左侧选择能力上下文</span>';
+  }
+  const summary = document.getElementById('skill-context-summary');
+  if (summary) {
+    summary.textContent = selected.length
+      ? `已选择 ${selected.length} 个能力：${selected.map(item => item.name).join('、')}。AI 将基于这些能力继续追问应用场景、边界和输入输出。`
+      : '尚未选择能力上下文。请先从左侧勾选可被 Skill 编排的底层能力。';
+  }
+}
+
+function fillSkillCreateTemplate(type) {
+  const templates = {
+    query: {
+      name: '查询经营指标',
+      menu: '乐享运营',
+      scene: '运营同学用自然语言查询 GMV、订单、转化率等指标，并返回可解释口径。',
+      input: '时间范围、业务线、渠道、指标名称',
+      output: '指标数值、同比环比、口径说明、异常提示'
+    },
+    generate: {
+      name: '生成活动复盘',
+      menu: '乐享运营',
+      scene: '基于活动数据和知识库生成结构化复盘草稿，供运营二次确认。',
+      input: '活动名称、时间范围、目标指标、数据结果',
+      output: '复盘摘要、亮点、问题、行动建议'
+    },
+    action: {
+      name: '配置商品推荐位',
+      menu: '乐享运营',
+      scene: '根据运营策略生成商品推荐位配置草案，高风险动作需审批后执行。',
+      input: '商品 ID、推荐位、上线时间、目标人群',
+      output: '配置草案、影响范围、审批单'
+    }
+  };
+  const t = templates[type];
+  if (!t) return;
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  };
+  set('skill-create-name', t.name);
+  set('skill-create-menu', t.menu);
+  set('skill-create-scene', t.scene);
+  set('skill-create-input', t.input);
+  set('skill-create-output', t.output);
+  switchSkillCreateTab('config', document.querySelector('[data-skill-create-tab=config]'));
+}
+
+function renderSkillCreatePage() {
+  return `
+    <div class="skill-create-page">
+      <div class="page-header">
         <div>
-          <div class="page-title">门户工作台</div>
-          <div class="page-desc">统一承载运营看板、业务后台、风控审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
+          <div class="page-title">Skill 创建</div>
+          <div class="page-desc">从业务场景出发定义 Skill 能力、输入输出、权限风险和审批边界。</div>
         </div>
-        <div class="workbench-home-actions">
-          <button class="btn btn-secondary" onclick="openSkillManagerOverlay()">管理技能</button>
-        </div>
-      </div>
-
-      <div class="workbench-home-grid">
-        <div class="workbench-home-card">
-          <div class="workbench-home-icon">AI</div>
-          <div class="workbench-home-card-title">全局 AI 助手</div>
-          <div class="workbench-home-card-desc">右侧助手始终独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</div>
-        </div>
-        <div class="workbench-home-card">
-          <div class="workbench-home-icon">OP</div>
-          <div class="workbench-home-card-title">运营分析</div>
-          <div class="workbench-home-card-desc">聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</div>
-        </div>
-        <div class="workbench-home-card">
-          <div class="workbench-home-icon">CRM</div>
-          <div class="workbench-home-card-title">业务后台</div>
-          <div class="workbench-home-card-desc">承接在职员工管理、企业客户线索、搜索配置、风控策略等成熟后台能力。</div>
-        </div>
-        <div class="workbench-home-card">
-          <div class="workbench-home-icon">SK</div>
-          <div class="workbench-home-card-title">技能与权限</div>
-          <div class="workbench-home-card-desc">通过技能包和 Skill 能力管理，把 AI 可执行动作与人员权限、审批和审计边界分开治理。</div>
+        <div class="agent-skill-page-actions">
+          <button class="btn btn-secondary" onclick="goPortalHome()">返回工作台</button>
+          <button class="btn btn-secondary" onclick="switchPage('agent.skills')">查看 Skills 管理</button>
         </div>
       </div>
 
-      <div class="workbench-home-section-grid">
-        <div class="card workbench-home-section">
-          <div class="card-header">
-            <div class="card-title">常用入口</div>
+      <div class="skill-create-studio">
+        <aside class="skill-context-pane">
+            <div class="skill-pane-title">能力上下文 <span id="skill-selected-count">已选 4</span></div>
+          <div class="skill-context-list">
+            <button class="skill-context-item selected" onclick="toggleSkillContextItem(this)"><b>商品查询</b><span>product.query</span><em>商品中心</em></button>
+            <button class="skill-context-item selected" onclick="toggleSkillContextItem(this)"><b>库存查询</b><span>inventory.query</span><em>库存中心</em></button>
+            <button class="skill-context-item selected" onclick="toggleSkillContextItem(this)"><b>商品上下架</b><span>product.shelf</span><em>商品中心</em></button>
+            <button class="skill-context-item selected" onclick="toggleSkillContextItem(this)"><b>通知发送</b><span>notify.send</span><em>通知中心</em></button>
           </div>
-          <div class="workbench-home-entry-list">
-            <button onclick="switchPage('employee.overview')"><span>在职员工管理</span><small>认证审核、职工数据、认证方式分布</small></button>
-            <button onclick="switchPage('dashboard.overview')"><span>乐享运营</span><small>经营指标、流量质量、GMV 分析</small></button>
-            <button onclick="switchPage('lead.dashboard')"><span>企业客户管理</span><small>线索看板、线索池和分配跟进</small></button>
-            <button onclick="switchPage('search.categories')"><span>搜索后台</span><small>分类标签、筛选、直达和词典管理</small></button>
-            <button onclick="switchPage('risk.overview')"><span>风控管理</span><small>策略、限购、DPL 和数据查询</small></button>
-          </div>
-        </div>
 
-        <div class="card workbench-home-section">
-          <div class="card-header">
-            <div class="card-title">工作方式</div>
+          <div class="skill-pane-title">推荐能力 <button onclick="alert('已刷新推荐能力')">刷新</button></div>
+          <div class="skill-context-list compact">
+            <button class="skill-context-item" onclick="toggleSkillContextItem(this)"><b>活动商品判断</b><span>activity.judge</span><em>商品中心</em></button>
+            <button class="skill-context-item" onclick="toggleSkillContextItem(this)"><b>商品价格查询</b><span>price.query</span><em>价格中心</em></button>
+            <button class="skill-context-item" onclick="toggleSkillContextItem(this)"><b>标签管理</b><span>tag.manage</span><em>商品中心</em></button>
           </div>
-          <div class="workbench-home-flow">
-            <div><b>1</b><span>从左侧菜单进入确定性后台页面，完成固定流程和人工审核。</span></div>
-            <div><b>2</b><span>在右侧 AI 助手输入任务，补充查询、分析、生成和配置类工作。</span></div>
-            <div><b>3</b><span>高影响操作先展示范围和影响，再由用户确认执行并留下任务记录。</span></div>
+
+          <div class="skill-context-quick">
+            <label>快速加入上下文</label>
+            <input placeholder="输入能力名或业务对象">
+            <div>
+              <button onclick="fillSkillCreateTemplate('query')">库存查询</button>
+              <button onclick="fillSkillCreateTemplate('action')">商品上下架</button>
+            </div>
           </div>
+
+          <div class="skill-context-metrics">
+            <div><b>12</b><span>API</span></div>
+            <div><b>4</b><span>DB 表</span></div>
+            <div><b>5</b><span>Tool</span></div>
+            <div><b>8</b><span>权限点</span></div>
+          </div>
+        </aside>
+
+        <div class="skill-main-stack">
+          <section class="skill-workspace-pane">
+            <div class="skill-workspace-head">
+              <div>
+                <div class="skill-workspace-title">Skill Workspace</div>
+          <div class="skill-workspace-sub">职场人群认证 · 迭代 0 轮 · 基础配置中</div>
+              </div>
+            </div>
+
+          <div class="skill-create-tabs" role="tablist" aria-label="Skill 创建页签">
+            <button type="button" class="skill-create-tab active" data-skill-create-tab="config" onclick="switchSkillCreateTab('config', this)">1. 基础配置</button>
+            <button type="button" class="skill-create-tab" data-skill-create-tab="clarify" onclick="switchSkillCreateTab('clarify', this)">2. 需求澄清</button>
+            <button type="button" class="skill-create-tab" data-skill-create-tab="draft" onclick="switchSkillCreateTab('draft', this)">3. 草稿生成</button>
+            <button type="button" class="skill-create-tab" data-skill-create-tab="verify" onclick="switchSkillCreateTab('verify', this)">4. 评估验证</button>
+            <button type="button" class="skill-create-tab" data-skill-create-tab="review" onclick="switchSkillCreateTab('review', this)">5. 提交审核</button>
+          </div>
+
+          <div class="skill-create-panel active" data-skill-create-panel="config">
+            <div class="skill-step-banner">当前阶段：先完成 Skill 基础配置，明确必填的 Skill 名称、所属菜单，以及可选的适用场景、输入输出和能力边界。</div>
+            <div class="skill-create-form">
+              <div class="skill-create-field">
+                <label for="skill-create-name">Skill 名称 <span class="field-required">*</span></label>
+                <input id="skill-create-name" value="职场人群认证数据分析" required>
+              </div>
+              <div class="skill-create-field">
+                <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
+                <select id="skill-create-menu" required><option>在职员工管理</option><option>乐享运营</option><option>GEO 看板</option><option>企业客户管理</option><option>搜索后台</option><option>风控管理</option></select>
+              </div>
+              <div class="skill-create-field full">
+                <label for="skill-create-scene">适用场景 <span class="field-optional">非必填</span></label>
+                <textarea id="skill-create-scene">运营和 PM 通过自然语言查询职场人群认证数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。</textarea>
+              </div>
+              <div class="skill-create-field">
+                <label for="skill-create-input">输入参数 <span class="field-optional">非必填</span></label>
+                <textarea id="skill-create-input">时间范围、认证方式、认证状态、企业名称、岗位信息、失败原因、输出格式</textarea>
+              </div>
+              <div class="skill-create-field">
+                <label for="skill-create-output">输出结果 <span class="field-optional">非必填</span></label>
+                <textarea id="skill-create-output">指标摘要、认证方式分布表、失败原因 TopN、趋势判断、可下载 CSV 链接</textarea>
+              </div>
+            </div>
+            <div class="skill-create-step-actions">
+              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
+              <button class="btn btn-primary" onclick="goSkillCreateNext('config')">下一步：需求澄清</button>
+            </div>
+          </div>
+
+          <div class="skill-create-panel" data-skill-create-panel="clarify">
+            <div class="skill-step-banner">当前阶段：基于基础配置、左侧能力上下文和附件材料，通过与 AI 对话补齐应用场景、约束条件和执行边界。</div>
+            <div class="skill-clarify-layout">
+              <div class="skill-chat-sim" id="skill-clarify-chat">
+                <div class="skill-chat-context">
+                  <b>我已理解你选择的能力上下文</b>
+                  <div class="skill-ai-tags" id="skill-selected-tags"><span title="product.query">商品查询</span><span title="inventory.query">库存查询</span><span title="product.shelf">商品上下架</span><span title="notify.send">通知发送</span></div>
+                  <p id="skill-context-summary">已选择 4 个能力：商品查询、库存查询、商品上下架、通知发送。AI 将结合基础配置继续追问应用场景、边界和输入输出。</p>
+                </div>
+                <div class="skill-chat-user">根据职场认证 PRD、后台字段说明和测试样例，创建一个帮助 PM 和运营分析认证数据的 Skill。</div>
+                <div class="skill-chat-ai">我已读取基础配置和附件材料。这个 Skill 的核心目标是帮助团队查询职场认证数据、识别认证方式分布、通过率趋势、失败原因和待审核积压。为了更准确地设计这个 Skill，我先确认一个关键点：输出结果需要偏文本总结、表格明细，还是两者都要？</div>
+                <div class="skill-chat-user">两者都要。默认先给文字结论，再给表格。</div>
+                <div class="skill-chat-ai">好的。接下来确认触发场景：除了自然语言查询，例如“最近 7 天个税认证通过率”，是否还需要定时报告或异常提醒？</div>
+                <div class="skill-chat-user">需要。支持日报，也要能发现待审核过多、某种认证方式失败率异常。</div>
+                <div class="skill-chat-ai">明白。再确认权限和边界：这个 Skill 是否只读？是否允许导出明细 CSV？是否可以修改认证状态？</div>
+                <div class="skill-chat-user">只读，可以导出脱敏 CSV，不能修改认证状态。</div>
+                <div class="skill-chat-ai">我会将能力边界记录为：只读查询与分析、默认脱敏、导出需带权限校验、不触发认证状态变更。接下来为了验证 Skill，我建议准备 5 个测试用例：认证方式分布、失败原因 TopN、待审核积压、单企业认证明细、个税认证趋势。是否需要覆盖所有这些场景？</div>
+                <div class="skill-chat-user">需要，5 个都保留。</div>
+                <div class="skill-chat-ai">好的。最后确认交付结构：我会生成 Skill 配置、业务规则说明、测试用例和示例问法。前端展示适配为 direct_response 文本摘要、display_info 表格卡片、link_list 导出链接。这样理解是否准确？</div>
+                <div class="skill-chat-user">准确，可以进入草稿生成。</div>
+                <div class="skill-chat-ai">需求澄清已完成。当前 Skill 将支持自然语言查询、定时报告、异常提醒、脱敏导出和只读数据分析。下一步我会基于这些结论生成 Skill 草稿。</div>
+              </div>
+              <div class="skill-clarify-card skill-clarify-summary">
+                <div class="skill-summary-head">
+                  <div>
+                    <b>澄清结论</b>
+                    <small id="skill-clarify-summary-updated">根据当前对话生成</small>
+                  </div>
+                  <button type="button" class="skill-summary-refresh" title="刷新澄清总结" aria-label="刷新澄清总结" onclick="refreshSkillClarifySummary(this)"><span>↻</span></button>
+                </div>
+                <div id="skill-clarify-summary-content">
+                  <div class="skill-summary-item">
+                    <span>基本信息</span>
+                    <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>触发场景</span>
+                    <p>自然语言查询、日报/周报/月报、待审核积压和失败率异常提醒。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>文件结构</span>
+                    <p>生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>输出格式</span>
+                    <p>direct_response 文本结论、display_info 表格明细、link_list 脱敏 CSV 下载。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>测试用例方向</span>
+                    <p>认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>评估重点</span>
+                    <p>数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>复杂度</span>
+                    <p>medium；只读分析为主，涉及多字段过滤、聚合统计和权限校验。</p>
+                  </div>
+                  <div class="skill-summary-item">
+                    <span>Phoenix 输出</span>
+                    <p>使用 direct_response + display_info + link_list，不触发状态修改动作。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="skill-rule-grid skill-clarify-actions" aria-label="需求澄清辅助动作">
+              <button onclick="appendSkillClarifyAssistant('已根据当前澄清结论生成测试用例方向：认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势。')">生成测试用例</button>
+              <button onclick="appendSkillClarifyAssistant('已检查权限与依赖：当前 Skill 仅做只读分析，导出使用脱敏 CSV，依赖认证记录表、认证方式字段、失败原因字段和组织权限。')">检查权限与依赖</button>
+              <button onclick="appendSkillClarifyAssistant('已完成运行预览：自然语言查询将返回文本摘要、表格明细和脱敏 CSV 链接，不触发认证状态修改。')">运行预览</button>
+              <button onclick="appendSkillClarifyAssistant('已给出优化逻辑：建议补充异常输入处理、失败 case、定时报告频率和待审核积压阈值。')">优化逻辑</button>
+              <button onclick="appendSkillClarifyAssistant('已完成风险评估：主要风险为敏感字段泄露、导出权限不足、统计口径不一致；需默认脱敏并记录导出日志。')">风险评估</button>
+              <button onclick="appendSkillClarifyAssistant('已生成发布建议：先按只读分析能力提交审核，通过后再进入上传发布链路；当前创建流程止于提交审核。')">发布建议</button>
+            </div>
+            <div class="skill-chat-composer">
+              <button type="button" class="skill-chat-attach" aria-label="添加附件" onclick="alert('已添加附件：业务说明文档 / 数据样例')">📎</button>
+              <textarea id="skill-clarify-input" placeholder="继续补充需求，例如：输出字段、使用人群、定时频率、权限边界..."></textarea>
+              <button type="button" aria-label="发送澄清内容" onclick="submitSkillClarifyMessage()">➤</button>
+            </div>
+            <div class="skill-create-step-actions">
+              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
+              <button class="btn btn-secondary" onclick="switchSkillCreateTab('config', document.querySelector('[data-skill-create-tab=config]'))">上一步</button>
+              <button class="btn btn-primary" onclick="goSkillCreateNext('clarify')">下一步：生成 Skill 草稿</button>
+            </div>
+          </div>
+
+          <div class="skill-create-panel" data-skill-create-panel="draft">
+            <div class="skill-code-card">
+              <pre>skill:
+  name: employee_certification_analysis
+  title: 职场人群认证数据分析
+  trigger: natural_language | scheduled_report
+  scope:
+    - 认证记录查询
+    - 认证方式分布
+    - 通过率和失败原因分析
+  boundary:
+    - 只读分析
+    - 不修改用户认证状态
+    - 不导出敏感明文信息
+  outputs:
+    - text_summary
+    - table
+    - csv_link</pre>
+            </div>
+            <div class="skill-create-step-actions">
+              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
+              <button class="btn btn-secondary" onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">上一步</button>
+              <button class="btn btn-primary" onclick="goSkillCreateNext('draft')">下一步：评估验证</button>
+            </div>
+          </div>
+
+          <div class="skill-create-panel" data-skill-create-panel="verify">
+            <div class="skill-eval-head">
+              <div>
+                <b>评估验证</b>
+                <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.80。</p>
+              </div>
+              <button class="btn btn-secondary" onclick="alert('已发起重新评估')">重新评估</button>
+            </div>
+            <div class="skill-score-grid">
+              <div class="skill-score-card"><span>静态评分</span><b>0.734</b><i style="--score:73.4%"></i></div>
+              <div class="skill-score-card"><span>结果评分</span><b>0.700</b><i style="--score:70%"></i></div>
+              <div class="skill-score-card"><span>过程评分</span><b>0.667</b><i style="--score:66.7%"></i></div>
+              <div class="skill-score-card"><span>效率评分</span><b>0.848</b><i style="--score:84.8%"></i></div>
+              <div class="skill-score-card featured"><span>综合评分</span><b>0.718</b><i style="--score:71.8%"></i><em>未达及格线 0.80</em></div>
+            </div>
+            <div class="skill-eval-gate warn">
+              <b>未通过评估</b>
+              <span>系统已根据低分项生成优化建议。请先处理异常兜底、关键节点确认和失败 case，再重新评估。</span>
+            </div>
+            <div class="skill-eval-list">
+              <div><span class="pass">PASS</span><b>基本信息规范</b><em>1.00</em></div>
+              <div><span class="pass">PASS</span><b>流程步骤清晰</b><em>1.00</em></div>
+              <div class="needs-fix"><span class="warn">WARN</span><b>异常处理完善<small>缺少无数据、字段缺失、权限不足时的兜底话术</small></b><em>0.70</em></div>
+              <div class="needs-fix"><span class="warn">WARN</span><b>关键节点确认<small>导出 CSV、定时报告、异常提醒前缺少确认节点</small></b><em>0.50</em></div>
+              <div><span class="pass">PASS</span><b>指令具体明确</b><em>1.00</em></div>
+              <div><span class="pass">PASS</span><b>资源引用有效</b><em>1.00</em></div>
+              <div><span class="pass">PASS</span><b>平台适配合规</b><em>1.00</em></div>
+              <div><span class="pass">PASS</span><b>测试用例充分</b><em>1.00</em></div>
+            </div>
+            <div class="skill-optimization-panel">
+              <div class="skill-optimization-head">
+                <div>
+                  <b>自动优化建议</b>
+                  <span>预计补齐后综合评分可从 0.718 提升到 0.84 左右</span>
+                </div>
+                <button class="btn btn-secondary" onclick="appendSkillClarifyAssistant('已根据评估结果生成优化建议：补异常兜底、补关键确认、补失败 case。')">同步到需求澄清</button>
+              </div>
+              <div class="skill-optimization-list">
+                <div>
+                  <span>1</span>
+                  <b>补齐异常处理规则</b>
+                  <p>增加无数据、字段缺失、接口失败、权限不足时的回复模板，并要求输出可继续追问的下一步。</p>
+                  <button onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">去补齐</button>
+                </div>
+                <div>
+                  <span>2</span>
+                  <b>增加关键节点确认</b>
+                  <p>导出 CSV、开启定时报告、发送异常提醒前，必须先展示范围、对象、频率和影响，再由 PM 确认。</p>
+                  <button onclick="switchSkillCreateTab('draft', document.querySelector('[data-skill-create-tab=draft]'))">去修复草稿</button>
+                </div>
+                <div>
+                  <span>3</span>
+                  <b>补充失败 case</b>
+                  <p>新增权限不足、企业名称为空、个税认证数据缺失、失败原因字段异常等测试样例，覆盖低分 case-2。</p>
+                  <button onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">补用例</button>
+                </div>
+              </div>
+            </div>
+            <div class="skill-case-list">
+              <b>用例对比</b>
+              <div><span>case-1 · 20.9s</span><em>得分 0.80</em></div>
+              <div><span>case-2 · 25.6s</span><em>得分 0.40</em></div>
+              <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
+            </div>
+            <div class="skill-create-step-actions">
+              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
+              <button class="btn btn-secondary" onclick="switchSkillCreateTab('draft', document.querySelector('[data-skill-create-tab=draft]'))">上一步</button>
+              <button class="btn btn-secondary" onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">返回修改</button>
+              <button class="btn btn-primary disabled" disabled>未达标，暂不可提交审核</button>
+            </div>
+          </div>
+
+          <div class="skill-create-panel" data-skill-create-panel="review">
+            <div class="skill-doc-grid">
+              <div class="skill-upload-box">
+                <b>提交审核</b>
+                <p>综合评分达标后提交 PM/平台管理员审核。创建流程到提交审核结束；审核通过后才进入上传或发布，不属于当前创建流程。</p>
+                <button class="btn btn-secondary" onclick="switchSkillCreateTab('verify', document.querySelector('[data-skill-create-tab=verify]'))">返回评估验证</button>
+              </div>
+              <div class="skill-doc-list">
+                <div><span>门槛</span><b>综合评分 ≥ 0.80</b></div>
+                <div><span>状态</span><b>当前未达标，不允许提交审核</b></div>
+                <div><span>动作</span><b>返回需求澄清或草稿生成修复问题</b></div>
+                <div><span>后续</span><b>审核通过后才可上传发布</b></div>
+              </div>
+            </div>
+            <div class="skill-create-step-actions">
+              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
+              <button class="btn btn-secondary" onclick="switchSkillCreateTab('verify', document.querySelector('[data-skill-create-tab=verify]'))">上一步</button>
+              <button class="btn btn-primary disabled" disabled>提交审核</button>
+            </div>
+          </div>
+          </section>
         </div>
       </div>
     </div>
-  `,
+  `;
+}
+
+const PAGE_RENDERERS = {
+  'portal.home': () => renderPortalHomePage(),
   'agent.skills': () => renderAgentSkillsManager(),
+  'agent.skillCreate': () => renderSkillCreatePage(),
   'dashboard.overview': () => {
     const L = leaiGetData();
     if (!L) return '<div class="empty-state"><div class="title">暂无运营数据</div></div>';
@@ -926,13 +1446,11 @@ const PAGE_RENDERERS = {
     const [lc, ls, lg] = leaiBizTradeSummaries(summary.rows);
     const platformTotal = summary.offGmv + summary.nonGmv;
     const activeBase = summary.dau * Math.max(summary.rows.length, 1);
-    const isDay = summary.rows.length === 1;
-    const snapText = isDay ? '当天快照' : '选期均值';
     return `
     <div class="page-header">
       <div>
         <div class="page-title">运营总览</div>
-        <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated} · 数据源 d_day_leai 日报，指标口径同日报</div>
+        <div class="page-desc">乐享全渠道数据 · ${leaiPeriodText(summary.rows)} · 数据更新于 ${L.updated}</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         ${leaiOverviewTimeFilterHtml(bounds, customStart, customEnd)}
@@ -944,22 +1462,22 @@ const PAGE_RENDERERS = {
       <div class="kpi-card">
         <div class="kpi-label">DAU（日活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.dau)}</div>
-        <div class="kpi-sub">${isDay ? '当天快照' : '选期日均'} · 日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
+        <div class="kpi-sub">日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.wau)}</div>
-        <div class="kpi-sub">${snapText} · ${leaiMetricDelta(summary.rows, 'wau')}</div>
+        <div class="kpi-sub">${leaiRangeLabel(range)}均值 · ${leaiMetricDelta(summary.rows, 'wau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">MAU（月活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.mau)}</div>
-        <div class="kpi-sub">${snapText} · 月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
+        <div class="kpi-sub">月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">GMV</div>
         <div class="kpi-value">${leaiFmtY(summary.gmv)}</div>
-        <div class="kpi-sub">${isDay ? '当天快照' : '选期累计'} · 购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
+        <div class="kpi-sub">购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
       </div>
     </div>
 
@@ -971,13 +1489,13 @@ const PAGE_RENDERERS = {
       <div class="dash-funnel-grid">
         <div class="dash-funnel-item">
           <div class="dash-funnel-label">登录用户</div>
-          <div class="dash-funnel-value">${leaiFmtW(summary.loginDedup)}</div>
-          <div class="dash-funnel-sub">选期排重${summary.loginDedupEst ? '·估算' : ''} · 登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.login)}</div>
+          <div class="dash-funnel-sub">登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
         </div>
         <div class="dash-funnel-item">
           <div class="dash-funnel-label">互动用户</div>
-          <div class="dash-funnel-value">${leaiFmtW(summary.interDedup)}</div>
-          <div class="dash-funnel-sub">选期排重${summary.interDedupEst ? '·估算' : ''} · 互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
+          <div class="dash-funnel-value">${leaiFmtW(summary.inter)}</div>
+          <div class="dash-funnel-sub">互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
         </div>
         <div class="dash-funnel-item">
           <div class="dash-funnel-label">购买人数</div>
@@ -1002,19 +1520,16 @@ const PAGE_RENDERERS = {
           <div class="kpi-label">消费业务 GMV</div>
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(lc.gmv)}</div>
           <div class="kpi-sub">购买 ${lc.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lc.gmv, summary.gmv)}</div>
-          <div class="kpi-sub">登录口径 ${leaiFmtY(lc.loginGmv)} + 平台回算 ${leaiFmtY(lc.platformGmv)}</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #f59e0b">
           <div class="kpi-label">SMB 业务 GMV</div>
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(ls.gmv)}</div>
           <div class="kpi-sub">购买 ${ls.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(ls.gmv, summary.gmv)}</div>
-          <div class="kpi-sub">登录口径 ${leaiFmtY(ls.loginGmv)} + 平台回算 ${leaiFmtY(ls.platformGmv)}</div>
         </div>
         <div class="kpi-card" style="border-left:3px solid #8b5cf6">
           <div class="kpi-label">政企业务 GMV</div>
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(lg.gmv)}</div>
           <div class="kpi-sub">购买 ${lg.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lg.gmv, summary.gmv)}</div>
-          <div class="kpi-sub">登录口径 ${leaiFmtY(lg.loginGmv)} + 平台回算 ${leaiFmtY(lg.platformGmv)}</div>
         </div>
       </div>
     </div>
@@ -1045,21 +1560,8 @@ const PAGE_RENDERERS = {
     </div>
 
     <div class="grid-2">
-      ${leaiScenarioChartHtml()}
+      ${leaiScenarioChartHtml(summary)}
       ${leaiProductTableHtml()}
-    </div>
-
-    <div class="card" style="margin-top:16px">
-      <div class="card-header"><div class="card-title">指标口径说明</div><div class="dash-card-note">与 d_day_leai 日报口径一致 · 业务已确认</div></div>
-      <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text-secondary);line-height:2">
-        <li>DAU / WAU / MAU：默认展示最近一天当天快照；选择时间段时按统计周期内均值展示。</li>
-        <li>登录用户 / 互动用户：统计周期内排重数（1 天为当日排重，覆盖近 30 天窗口取日报 M 值，其余周期按 30 天去重率折算估算）。</li>
-        <li>分业务 GMV：登录口径 + 平台交易差额按权重回算，口径同日报指标定义。</li>
-        <li>官网 / 非官网：有单独数据表接大数据汇总，除官网外皆为非官网；GMV 按现有日报口径统计（支付成功订单）。</li>
-        <li>Query 场景分布：直接取自 Query 分析模块一级分类（整体 / 主动）。</li>
-        <li>热门商品 TOP5：浏览量已替换为互动量，由互动表 × 购买表关联计算，待大数据提供正式数据源。</li>
-        <li>媒体来源：待接入日报「流量来源监测」媒体字段，当前按固定权重估算。</li>
-      </ul>
     </div>
   `;},
 
@@ -2202,10 +2704,3 @@ const PAGE_RENDERERS = {
 function ovTimeRangeChanged(val) {
   leaiSetOverviewRange(val);
 }
-
-// 运营总览 Query 场景分布：页面渲染后异步取 Query 分析模块数据填充
-const _origSwitchPageOverview = switchPage;
-switchPage = function(pageId) {
-  _origSwitchPageOverview(pageId);
-  if (pageId === 'dashboard.overview') setTimeout(leaiRenderScenarioCard, 50);
-};

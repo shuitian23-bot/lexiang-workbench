@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="/admin/workbench.css?v=20260608-home1">
+<link rel="stylesheet" href="/admin/workbench.css?v=20260611-skill-fixed-canvas1">
 <link rel="stylesheet" href="/admin/workbench-prd-modules.css?v=20260605-prdrestore1">
 </head>
 <body>
@@ -47,13 +47,23 @@
     <!-- 动态渲染 -->
   </div>
   <div class="sidebar-footer">
-    <div class="user-info">
+    <div class="user-info" onclick="toggleUserMenu(event)">
       <div class="user-avatar" id="user-avatar">A</div>
       <div class="user-meta">
         <div class="user-name" id="user-name">admin</div>
         <div class="user-role" id="user-role">管理员</div>
       </div>
-      <span class="user-logout" onclick="doLogout()" title="退出登录">退出</span>
+      <span class="user-logout" onclick="event.stopPropagation(); doLogout()" title="退出登录">退出</span>
+    </div>
+    <div class="user-menu-popover" id="user-menu-popover" aria-label="账号快捷入口">
+      <button type="button" class="user-menu-item primary" onclick="openSkillCreatePage()">
+        <span class="user-menu-icon">＋</span>
+        <span><b>创建 Skill</b><small>定义新能力、参数和审批规则</small></span>
+      </button>
+      <button type="button" class="user-menu-item" onclick="openSkillManagerFromUserMenu()">
+        <span class="user-menu-icon">⚙</span>
+        <span><b>Skill Hub</b><small>查看提交状态、审批和启停</small></span>
+      </button>
     </div>
   </div>
 </div>
@@ -62,7 +72,7 @@
 <div class="main" id="main-area" style="display:none">
   <div class="topbar">
     <div class="topbar-breadcrumb" id="breadcrumb">
-      <span>数据中心</span> / <span>运营总览</span>
+      <span>门户工作台</span> / <span>首页</span>
     </div>
     <div class="topbar-right">
       <div style="position:relative">
@@ -77,7 +87,45 @@
 
   <!-- Page Content Area -->
   <div class="page-content" id="page-content">
-    <!-- 动态渲染 -->
+    <div class="portal-home portal-home-fallback">
+      <div class="portal-home-hero">
+        <div>
+          <div class="page-title">门户工作台</div>
+          <div class="page-desc">统一承载运营看板、业务后台、风险审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
+        </div>
+        <div class="portal-home-actions">
+          <button class="btn btn-secondary" onclick="openSkillManagerOverlay?.()">管理技能包</button>
+          <button class="btn btn-primary" onclick="openSkillCreatePage?.()">创建 Skill</button>
+        </div>
+      </div>
+      <div class="portal-home-grid">
+        <div class="portal-home-card"><span>AI</span><b>全局 AI 助手</b><p>右侧助手独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</p></div>
+        <div class="portal-home-card"><span>OP</span><b>运营分析</b><p>聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</p></div>
+        <div class="portal-home-card"><span>PM</span><b>Skill 创建</b><p>平台侧和 PM 可从账号入口创建 Skill，并在 Skill Hub 中跟踪提交、审批、启停和发布状态。</p></div>
+        <div class="portal-home-card"><span>SK</span><b>技能包管理</b><p>业务用户通过右上角管理技能查看可用技能包、申请权限，并通过 AI 助手调用。</p></div>
+      </div>
+      <div class="portal-home-layout">
+        <div class="card">
+          <div class="card-header"><div class="card-title">常用入口</div></div>
+          <div class="portal-home-entry-list">
+            <button onclick="switchPage?.('employee.overview')"><b>在职员工管理</b><span>认证审核、职工数据、认证方式分布</span></button>
+            <button onclick="switchPage?.('dashboard.overview')"><b>乐享运营</b><span>经营指标、流量质量、GMV 分析</span></button>
+            <button onclick="switchPage?.('lead.dashboard')"><b>企业客户管理</b><span>线索看板、线索池和分配跟进</span></button>
+            <button onclick="switchPage?.('search.categories')"><b>搜索后台</b><span>分类标签、筛选、直达和词典管理</span></button>
+            <button onclick="switchPage?.('risk.overview')"><b>风控管理</b><span>策略、限购、DPL 和数据查询</span></button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">基础操作流程</div></div>
+          <div class="portal-home-flow">
+            <div><span>1</span><p>从左侧菜单进入确定性的后台页面，完成固定流程和人工审核。</p></div>
+            <div><span>2</span><p>在右侧 AI 助手输入任务，补充查询、分析、生成和配置类工作。</p></div>
+            <div><span>3</span><p>涉及写入、发布、导出等高影响操作时，先展示影响范围，再确认执行并留下任务记录。</p></div>
+            <div><span>4</span><p>PM 从左下角账号入口进入 Skill Hub 管理提交状态；业务从右上角管理技能使用技能包。</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -113,12 +161,7 @@
     <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
     <span style="cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" onclick="document.getElementById('ai-file-input').click()" title="上传文件">📎</span>
     <textarea class="ai-input" id="ai-input" placeholder="输入指令或查询..." rows="1"></textarea>
-    <button class="ai-send" id="ai-send" onclick="aiSend()" aria-label="发送">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
-        <path d="M4.5 11.5 19 4.8c.6-.3 1.2.3.9.9l-6.7 14.5c-.3.6-1.1.5-1.3-.1l-1.8-5.2-5.2-1.8c-.6-.2-.7-1-.1-1.3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="m10.3 14.6 3.3-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </button>
+    <button class="ai-send" id="ai-send" onclick="aiSend()">发送</button>
   </div>
 </div>
 
@@ -131,7 +174,7 @@ const STATE = {
   role: null,
   permissions: [],
   visibleMenus: [],
-  currentPage: 'workbench.home',
+  currentPage: 'portal.home',
   aiOpen: false,
   aiMessages: [],
   aiConvId: null  // Harness 会话ID，复用 conversations 表
@@ -288,8 +331,7 @@ async function loadUserContext() {
   }
   document.getElementById('user-role').textContent = STATE.role;
 
-  // 默认停留在工作台首页；只有 URL 明确指定 page 时才进入具体业务菜单
-  STATE.currentPage = 'workbench.home';
+  // 默认保留门户首页，不自动展开任一业务菜单。
 }
 
 // ===== SIDEBAR COLLAPSE =====
@@ -388,6 +430,7 @@ function toggleGroup(key) {
 // ===== PAGE SWITCH =====
 function switchPage(pageId) {
   STATE.currentPage = pageId;
+  closeUserMenu();
 
   // Dispatch page-change event for plugins to hook into
   document.dispatchEvent(new CustomEvent('page-change', { detail: pageId }));
@@ -403,16 +446,22 @@ function switchPage(pageId) {
     group.querySelectorAll('.nav-sub .nav-item').forEach(el => {
       if (el.textContent.trim() === getPageLabel(pageId)) el.classList.add('active');
     });
+  } else {
+    document.querySelectorAll('.sidebar-nav .nav-sub.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.sidebar-nav .arrow.open').forEach(el => el.classList.remove('open'));
   }
 
   // Update breadcrumb
-  const groupLabelMap = { agent: 'AI 助手', workbench: '门户工作台' };
+  const groupLabelMap = { agent: 'AI 助手', portal: '门户工作台' };
   const groupLabel = findPageGroup(pageId)?.label || groupLabelMap[pageId.split('.')[0]] || pageId.split('.')[0];
   const pageLabel = getPageLabel(pageId);
   document.getElementById('breadcrumb').innerHTML = `<span>${groupLabel}</span> / <span>${pageLabel}</span>`;
 
   // Render page
   renderPage(pageId);
+  if (pageId === 'portal.home' && typeof toggleAI === 'function') {
+    toggleAI(true);
+  }
   if (typeof aiRefreshPageAssistant === 'function') {
     aiRefreshPageAssistant();
   }
@@ -431,7 +480,7 @@ function applyInitialPageFromUrl() {
   const page = new URLSearchParams(window.location.search).get('page');
   if (!page) return;
   const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
-  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'agent.skills' || page === 'workbench.home';
+  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'portal.home' || page === 'agent.skills' || page === 'agent.skillCreate';
   if (isKnownPage) STATE.currentPage = page;
 }
 
@@ -444,13 +493,47 @@ function findPageGroup(pageId) {
 
 function getPageLabel(pageId) {
   const pageLabelMap = {
-    'agent.skills': 'Skills 管理',
-    'workbench.home': '首页'
+    'agent.skills': 'Skill Hub',
+    'agent.skillCreate': 'Skill 创建',
+    'portal.home': '首页'
   };
   if (pageLabelMap[pageId]) return pageLabelMap[pageId];
   const g = findPageGroup(pageId);
   return g?.children[pageId]?.label || pageId.split('.')[1] || '';
 }
+
+function toggleUserMenu(event) {
+  event?.stopPropagation();
+  const menu = document.getElementById('user-menu-popover');
+  if (!menu) return;
+  menu.classList.toggle('open');
+}
+
+function closeUserMenu() {
+  document.getElementById('user-menu-popover')?.classList.remove('open');
+}
+
+function goPortalHome() {
+  closeUserMenu();
+  switchPage('portal.home');
+  if (typeof toggleAI === 'function') toggleAI(true);
+}
+
+function openSkillCreatePage() {
+  closeUserMenu();
+  if (typeof toggleAI === 'function' && STATE.aiOpen) toggleAI(false);
+  switchPage('agent.skillCreate');
+}
+
+function openSkillManagerFromUserMenu() {
+  closeUserMenu();
+  switchPage('agent.skills');
+}
+
+document.addEventListener('click', event => {
+  const footer = document.querySelector('.sidebar-footer');
+  if (footer && !footer.contains(event.target)) closeUserMenu();
+});
 
 
 // ===== 认证材料预览弹窗 =====
@@ -543,13 +626,13 @@ function switchBehaviorTab(tab, el) {
 <script src="/admin/echarts.min.js"></script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="/admin/workbench-data-leai.js"></script>
-<script src="/admin/workbench-pages.js?v=20260610-prdfb1"></script>
+<script src="/admin/workbench-pages.js?v=20260611-home-return1"></script>
 <script src="/admin/workbench-prd-modules.js?v=20260605-prdrestore1"></script>
 <script src="/admin/workbench-geo.js?v=20260605-geo0610"></script>
-<script src="/admin/workbench-ai.js?v=20260604-ai-remove-goal1"></script>
+<script src="/admin/workbench-ai.js?v=20260610-doc-logic1"></script>
 <script src="/admin/workbench-data.js?v=20260602-geo23"></script>
 <script src="/admin/workbench-employee.js?v=20260605-design-global4"></script>
-<script src="/admin/workbench-ops.js?v=20260610-prdfb1"></script>
+<script src="/admin/workbench-ops.js?v=20260525-ai2"></script>
 <script src="/admin/workbench-report.js"></script>
 <script src="/admin/workbench-pipeline.js?v=20260520e"></script>
   <script src="/admin/workbench-quality.js?v=20260520d"></script>
@@ -571,8 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebar();
     restoreSidebarState();
     restoreAIState();
-    aiInitConversationStore();
-    _aiInitDragDrop();
+    if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
+    if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
     switchPage(STATE.currentPage);
   }).catch(() => {
     // Show login screen
