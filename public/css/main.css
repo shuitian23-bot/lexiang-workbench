@@ -6212,3 +6212,16 @@ body[data-page="home"] .hero-suggestion-row {
   width: 100%;
   justify-content: center;
 }
+
+/* Detail long-image stack: remove white seams between images */
+.detail-image-stage {
+  gap: 0 !important;
+  background: transparent !important;
+  line-height: 0 !important;
+}
+
+.detail-image-stage img {
+  display: block !important;
+  margin: 0 !important;
+  vertical-align: top !important;
+}
