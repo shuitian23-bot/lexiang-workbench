@@ -64,7 +64,7 @@
       body {
         margin: 0;
         min-width: 1100px;
-        --assistant-panel-width: clamp(390px, calc((100vw - clamp(36px, 3.2vw, 60px) - clamp(24px, 2.5vw, 48px)) / 3.8), 560px);
+        --assistant-panel-width: clamp(390px, calc((100vw - clamp(36px, 3.2vw, 60px) - clamp(24px, 2.5vw, 48px)) * 0.3), 720px);
         font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
         color: var(--text);
         background: var(--lavender-bg);
@@ -4102,7 +4102,7 @@
 
       body {
         min-width: 1024px;
-        --assistant-panel-width: clamp(312px, calc((100vw - clamp(28px, 3.28vw, 62px) - clamp(19px, 2vw, 38px)) / 3.8), 560px);
+        --assistant-panel-width: clamp(312px, calc((100vw - clamp(28px, 3.28vw, 62px) - clamp(19px, 2vw, 38px)) * 0.3), 720px);
       }
 
       .topbar {
@@ -6337,7 +6337,7 @@
       const panelResizer = document.querySelector(".panel-resizer");
       const clampPanelWidth = (width) => {
         const minWidth = window.innerWidth <= 1280 ? 300 : 312;
-        const maxWidth = Math.min(window.innerWidth * 0.42, window.innerWidth <= 1280 ? 420 : 560);
+        const maxWidth = Math.min(window.innerWidth * 0.42, window.innerWidth <= 1280 ? 420 : 720);
         return Math.round(Math.max(minWidth, Math.min(width, maxWidth)));
       };
       const setPanelWidth = (width) => {
