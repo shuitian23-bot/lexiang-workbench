@@ -5009,6 +5009,10 @@
       .lx-floor-tag { font-size: 11px; color: #fff; background: var(--lx-brand-red); border-radius: 4px; padding: 1px 5px; margin-left: 4px; font-weight: 400; }
       .lx-floor-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; grid-column: 1 / -1; }
       .lx-floor[data-floor-cat] { scroll-margin-top: 56px; }
+      body[data-page="home"][data-state="chat"] .assistant-panel { display: block; }
+      body[data-page="home"][data-state="chat"] .assistant-restore { display: none; }
+      body.lx-auto-fs .assistant-toggle { display: none !important; }
+      .lx-msg-text { white-space: normal; }
 
       .lx-p1-upload-note {
         display: none;
@@ -6539,8 +6543,12 @@
             const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=14`, { cache: "no-store" });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const products = await response.json();
-            state.products = Array.isArray(products) ? products : [];
-            renderProductCards();
+            state.siteProducts = Array.isArray(products) ? products : [];
+            // 「AI 推荐」标签激活中时不覆盖推荐墙，站点货盘仅存底供楼层使用
+            if (state.activeTabId !== "reco") {
+              state.products = state.siteProducts;
+              renderProductCards();
+            }
             if (state.page === "personal") lxRenderSiteFloors();
           } catch (error) {
             toast("商品数据暂时不可用，已保留当前页面展示");
@@ -7198,7 +7206,14 @@
                 const content = payload.text || data || "";
                 if (!content) return;
                 revealAi();
-                ai.textContent += content;
+                if (!ai._textBox || !ai.contains(ai._textBox)) {
+                  ai._textBox = document.createElement("div");
+                  ai._textBox.className = "lx-msg-text";
+                  ai.appendChild(ai._textBox);
+                  ai._raw = "";
+                }
+                ai._raw += content;
+                ai._textBox.textContent = ai._raw;
                 ensureChat().scrollTop = ensureChat().scrollHeight;
               },
               status: (data) => {
@@ -7347,6 +7362,8 @@
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
+                // 流式结束后把整段回复升级为 markdown 渲染（加粗/列表/表格）
+                if (ai._raw && ai._textBox && ai.contains(ai._textBox)) ai._textBox.innerHTML = mdLite(ai._raw);
               }
             });
             if (nonce !== state.conversationNonce) return;
@@ -7428,7 +7445,15 @@
 
         // ── 子站竖向楼层（PRD 5.5/v2.3 楼层化：商品之外的服务/门店/会员/方案内容，对齐 lenovo.com.cn）──
         function lxFloorSection(title, sub, body, cta) {
-          return `<section class="lx-floor"><div class="lx-floor-head"><h3>${esc(title)}</h3>${sub ? `<span>${esc(sub)}</span>` : ""}${cta || ""}</div><div class="lx-floor-body">${body}</div></section>`;
+          return `<section class="lx-floor" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><h3>${esc(title)}</h3>${sub ? `<span>${esc(sub)}</span>` : ""}${cta || ""}</div><div class="lx-floor-body">${body}</div></section>`;
+        }
+
+        // 分类页签与实际楼层保持一致：推荐 + 分类楼层 + 服务楼层，全部可锚点直达
+        function lxSyncCategoryTabs() {
+          const tabsBox = document.querySelector(".category-tabs");
+          if (!tabsBox || !["personal", "business", "enterprise"].includes(state.page)) return;
+          const labels = ["推荐", ...[...document.querySelectorAll("[data-site-floors] [data-floor-cat]")].map((node) => node.dataset.floorCat)];
+          tabsBox.innerHTML = labels.map((label, index) => `<button type="button" class="${index === 0 ? "active" : ""}">${esc(label)}</button>`).join("");
         }
 
         function lxSeckillCountdown() {
@@ -7531,6 +7556,7 @@
               lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
             ].join("");
           }
+          lxSyncCategoryTabs();
         }
 
         setInterval(() => {
@@ -7604,12 +7630,20 @@
           }
         }
 
-        // 自动全屏对话态下，AI 产出可看内容时退出全屏、展开右侧（按需出现）
+        // 自动全屏对话态：进入/退出统一管理（lx-auto-fs 用于隐藏无意义的展开缩放按钮）
+        function lxSetAutoFs(on) {
+          state.autoFs = !!on;
+          document.body.classList.toggle("assistant-fullscreen", !!on);
+          document.body.classList.toggle("lx-auto-fs", !!on);
+        }
+
+        // AI 产出可看内容时退出全屏（含手动全屏）、按需展开右侧；若仍在首页语境则此时才切到个人及家庭
         function lxRevealContent() {
-          if (state.autoFs && document.body.classList.contains("assistant-fullscreen")) {
-            document.body.classList.remove("assistant-fullscreen");
-            state.autoFs = false;
+          if (document.body.classList.contains("assistant-fullscreen")) {
+            if (state.autoFs) lxSetAutoFs(false);
+            else document.body.classList.remove("assistant-fullscreen");
           }
+          if (state.page === "home" || !state.page) routeTo("personal");
         }
 
         function lxActivateTab(id) {
@@ -7986,11 +8020,9 @@
             if (!textarea) return;
             const value = textarea.value;
             if (textarea.closest(".hero-composer")) {
-              // 首页直接提问：进入全屏对话（大白屏），右侧内容按需出现（PRD 5.0：右侧仅在有可看内容时展开）
+              // 首页直接提问：留在首页语境进入全屏对话（大白屏），导航不跳子站；AI 产出内容时才切站展开右侧
               sendChat(value);
-              routeTo("personal");
-              state.autoFs = true;
-              document.body.classList.add("assistant-fullscreen");
+              lxSetAutoFs(true);
             } else {
               sendChat(value);
             }
@@ -8079,8 +8111,9 @@
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               state.page = page;
               if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
-              // 用户主动切站：退出自动全屏对话态
-              if (state.autoFs) { document.body.classList.remove("assistant-fullscreen"); state.autoFs = false; }
+              // 用户主动切导航：退出自动全屏对话态；回首页时还原 portal 展示态
+              if (state.autoFs) lxSetAutoFs(false);
+              if (page === "home") document.body.dataset.state = "default";
               setTimeout(loadProductsForPage, 0);
               setTimeout(lxRenderEnterpriseBanner, 0);
               setTimeout(lxRenderSiteFloors, 0);
@@ -8096,6 +8129,7 @@
             // 分类 tab = 楼层锚点：推荐回到顶部商品墙，其余滚动到对应分类楼层
             const catTab = event.target.closest(".category-tabs button");
             if (catTab) {
+              catTab.parentElement?.querySelectorAll("button").forEach((btn) => btn.classList.toggle("active", btn === catTab));
               const label = catTab.textContent.trim();
               const contentBox = document.querySelector(".content");
               const floor = document.querySelector(`[data-floor-cat="${label}"]`);
