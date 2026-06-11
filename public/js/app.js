@@ -473,6 +473,9 @@
           setText("[data-detail-price]", money(product.price));
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
+          ensureDetailCompareButton();
+          ensureDetailSimilarButton();
+          ensureDetailBenefitButton();
           lxApplyDetailCtaMode(product);
           loadFitReason(product);
           loadSpuVariants(product);
@@ -540,7 +543,7 @@
             const price = $("[data-detail-price]");
             if (price && !price.textContent.includes("参考")) price.insertAdjacentHTML("beforeend", `<span class="lx-edu-hint" style="margin-left:8px">参考价 · 以正式报价为准</span>`);
           } else {
-            if (primary) { primary.textContent = "一键领优惠下单"; delete primary.dataset.bizQuote; }
+            if (primary) { primary.textContent = "立即购买"; delete primary.dataset.bizQuote; }
             if (cart) cart.hidden = false;
             if (benefit) benefit.hidden = false;
             if (quote) quote.hidden = true;
@@ -620,36 +623,6 @@
           openAddressPicker(normalizeProduct(product));
         }
 
-        // 一键领优惠（PRD 转化最短路径）：自动领取该商品全部可用优惠 → 默认地址直接下单，零表单一键完成
-        function lxClaimBenefits(product) {
-          const price = Number(product.price) || 0;
-          const claimed = [];
-          if (price > 0) {
-            const isEdu = (product.promotion_tags || []).includes("教育特惠") || /小新|YOGA|平板|笔记本|台式/.test(product.name || "");
-            if (isEdu) claimed.push({ label: "国家补贴 15%", amount: -Math.round(price * 0.15) });
-            if (lxStuState().status === "verified") claimed.push({ label: "教育认证券", amount: -300 });
-            if (state.page === "business" && lxEntState().status === "verified") claimed.push({ label: "企业专享 95 折", amount: -Math.round(price * 0.05) });
-            if (price >= 3000 && !claimed.length) claimed.push({ label: "官方满减券", amount: -Math.min(300, Math.round(price * 0.05)) });
-            else if (price >= 5000) claimed.push({ label: "官方满 5000-200 券", amount: -200 });
-          }
-          const discount = claimed.reduce((sum, c) => sum + c.amount, 0);
-          return { claimed, discount, finalPrice: Math.max(0, price + discount) };
-        }
-
-        function oneClickBuy(product = state.currentProduct) {
-          if (!product) return toast("请先选择商品");
-          const item = normalizeProduct(product);
-          const { claimed, discount, finalPrice } = lxClaimBenefits(product);
-          let addr = lxAddresses()[0];
-          if (!addr) {
-            addr = { name: "演示用户", phone: "138****0000", region: "演示地址", detail: "可在「我的订单」中修改收货信息" };
-            save("lexiang.addresses.v1", [addr]);
-          }
-          state.pendingOrderProduct = { ...item, benefits: claimed, original_price: item.price, price: finalPrice || item.price };
-          lxPlaceOrder(addr);
-          if (claimed.length) toast(`已自动领取 ${claimed.length} 项优惠，省 ¥${Math.abs(discount).toLocaleString()}，下单成功`);
-        }
-
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
         function lxAddresses() {
           const list = load("lexiang.addresses.v1");
@@ -681,13 +654,12 @@
           const product = state.pendingOrderProduct;
           if (!product) return;
           const order = { ...product, orderId: `LX${Date.now()}`, createdAt: new Date().toLocaleString("zh-CN"), address };
-          if (product.benefits?.length) order.benefitNote = product.benefits.map((b) => `${b.label} ${b.amount > 0 ? "+" : ""}¥${b.amount.toLocaleString()}`).join("、");
           state.orders.unshift(order);
           save("lexiang.orders.v1", state.orders);
           state.pendingOrderProduct = null;
           updateBadges();
           toast("下单成功（演示订单）");
-          if (state.user) openOrders();
+          openOrders();
         }
 
         function normalizeProduct(product) {
@@ -1299,7 +1271,7 @@
             [/企业专享|对公|轻量定制|行业解决方案|信创|大客户/, "lx-floor--activity"],
           ];
           const extraClass = (classMap.find(([pattern]) => pattern.test(title)) || [null, ""])[1];
-          return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><h3>${esc(title)}</h3>${sub ? `<span>${esc(sub)}</span>` : ""}${cta || ""}</div><div class="lx-floor-body">${body}</div></section>`;
+          return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><i class="lx-floor-badge" aria-hidden="true"></i><div class="lx-floor-title"><h3>${esc(title)}</h3>${sub ? `<p>${esc(sub)}</p>` : ""}</div><div class="lx-floor-actions">${cta || ""}</div></div><div class="lx-floor-body">${body}</div></section>`;
         }
 
         // 分类页签与实际楼层保持一致：推荐 + 分类楼层 + 服务楼层，全部可锚点直达
@@ -1429,22 +1401,66 @@
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
-            if (state.seckillCfg === undefined) {
-              try { state.seckillCfg = await (await fetch("/api/config/seckill", { cache: "no-store" })).json(); } catch { state.seckillCfg = { enabled: false, items: [] }; }
-            }
-            const skItems = state.seckillCfg?.enabled && state.seckillCfg.items?.length ? state.seckillCfg.items : null;
-            const seckill = (skItems || (state.products || []).slice(0, 3)).map((p) => {
-              const hasSk = p.seckill_price > 0;
-              const priceHtml = hasSk
-                ? `<div class="lx-sim-price">秒杀价 ¥${Number(p.seckill_price).toLocaleString()} <s class="lx-edu-orig">¥${Number(p.price || 0).toLocaleString()}</s> <span class="lx-floor-tag">秒杀</span></div>`
-                : `<div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div>`;
-              return `<div class="lx-sim-card lx-seckill-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-seckill-info"><div class="lx-sim-name">${esc(p.name)}</div>${priceHtml}<span class="lx-seckill-desc">${esc(p.description || "官方优惠，库存以实际下单页为准")}</span></div></div>`;
+            const findProduct = (pattern) => (state.products || []).find((item) => pattern.test(item.name || "")) || {};
+            const seckill = [
+              {
+                pattern: /小新\s*Pro16|Pro\s*16/i,
+                name: "小新 Pro16 2022 标压锐龙版",
+                spec: "AMD Ryzen R5 5600H / Windows 11 家庭中文版 / 16 英寸",
+                price: "5,279",
+                old: "5,999",
+                sold: 72
+              },
+              {
+                pattern: /小新\s*16|酷睿标压/i,
+                name: "小新16 酷睿标压版",
+                spec: "第13代酷睿标压 i5-13500H / Windows 11 / 16 英寸",
+                price: "4,047",
+                old: "4,599",
+                sold: 86
+              },
+              {
+                pattern: /YOGA\s*Air14s|Air\s*14s/i,
+                name: "YOGA Air14s 2023",
+                spec: "AMD Ryzen 7 7840S / Windows 11 家庭中文版 / 14.5 英寸",
+                price: "7,039",
+                old: "7,999",
+                sold: 58
+              }
+            ].map((item) => {
+              const product = findProduct(item.pattern);
+              const image = imgUrl(product.image_url || "/assets/logos/logo-mark.png");
+              const openAttr = product.sku ? `data-open-product="${esc(product.sku)}"` : `data-quick-ask="我想了解${esc(item.name)}秒杀活动"`;
+              return `<article class="lx-seckill-card" ${openAttr} tabindex="0">
+                <div class="lx-seckill-media"><img src="${esc(image)}" alt="${esc(item.name)}" loading="lazy" /><span class="lx-seckill-corner">秒杀</span></div>
+                <div class="lx-seckill-info">
+                  <h4>${esc(item.name)}</h4>
+                  <p>${esc(item.spec)}</p>
+                  <div class="lx-seckill-price"><strong>¥${esc(item.price)}</strong><s>¥${esc(item.old)}</s></div>
+                  <div class="lx-seckill-progress" aria-label="已抢 ${item.sold}%"><i style="--sold:${item.sold}%"></i></div>
+                  <div class="lx-seckill-foot"><span>已抢 ${item.sold}%</span><button type="button" data-quick-ask="帮我抢购${esc(item.name)}秒杀价">立即抢</button></div>
+                </div>
+              </article>`;
             }).join("");
+            const eduCards = [
+              ["01", "学生认证享专属价", "小学到博士及应届高考生均可认证", "去认证", "我想做学生认证享专属价"],
+              ["02", "算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "算价格", "帮我算下教育优惠+国补叠加后的到手价"],
+              ["03", "以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "估旧机", "我有旧机想以旧换新，怎么估值？"]
+            ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
+            const storeCards = [
+              ["附近门店", ["查门店", "看库存", "约到店服务"], "帮我查附近的联想门店和到店权益"],
+              ["上门服务", ["安装", "清灰", "换电池", "数据迁移"], "联想上门服务都有什么项目？"]
+            ].map(([title, chips, ask]) => `<article class="lx-service-card" data-quick-ask="${esc(ask)}" tabindex="0"><i class="lx-service-icon" aria-hidden="true"></i><div><h4>${esc(title)}</h4><div class="lx-service-chips">${chips.map((chip) => `<span>${esc(chip)}</span>`).join("")}</div></div><b aria-hidden="true">→</b></article>`).join("");
+            const memberCards = [
+              ["1000", "≈ ¥10", "乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？"],
+              ["券", "一键领", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"],
+              ["0", "元试用", "0元试用", "会员专享热门新品试用", "会员 0 元试用有什么新品？"]
+            ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             box.innerHTML = categoryFloors + [
-              lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill || ""}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
-              lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", `<div class="lx-floor-card" data-stu-auth><strong>学生认证享专属价</strong><span>小学到博士及应届高考生均可认证</span></div>` + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？"), `<button class="lx-p0-btn primary" type="button" data-edu-zone>进入教育专区</button>`),
-              lxFloorSection("门店与服务", "线上下单，到店体验", quickCard("附近门店", "查门店、看库存、约到店服务", "帮我查附近的联想门店和到店权益") + quickCard("上门服务", "安装、清灰、换电池、数据迁移", "联想上门服务都有什么项目？"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
-              lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", quickCard("乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？") + quickCard("领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"), `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
+              lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
+              lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", eduCards, `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`),
+              lxFloorSection("门店与服务", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", memberCards, `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
             ].join("");
           } else if (page === "business") {
             const ent = lxEntState();
@@ -2339,8 +2355,7 @@
           try { dayCount = Number(localStorage.getItem(dayKey) || 0); } catch {}
           if (dayCount >= 4) return;
           const bottom = document.querySelector(".assistant-bottom");
-          if (!bottom) return;
-          bottom.querySelector(".lx-hint-bar")?.remove();
+          if (!bottom || bottom.querySelector(".lx-hint-bar")) return;
           state.lxHintCount += 1;
           try { localStorage.setItem(dayKey, String(dayCount + 1)); } catch {}
           bottom.insertAdjacentHTML("afterbegin", `<div class="lx-hint-bar"><span class="lx-hint-text">${esc(text)}</span><button class="lx-p0-btn primary" type="button" data-quick-ask="${esc(ask)}">问一下</button><button class="lx-hint-close" type="button" aria-label="关闭">×</button></div>`);
@@ -2350,12 +2365,10 @@
           setTimeout(() => bar.remove(), 30000);
         }
 
-        // 触发时机①：详情停留 8 秒 → 到手价钩子；22 秒仍在看 → 找相似钩子（替代常驻按钮，预判式出现）
+        // 触发时机①：商品详情停留 8 秒 → 到手价钩子
         let lxHintDetailTimer = null;
-        let lxHintSimilarTimer = null;
         function lxHintOnDetail(product) {
           clearTimeout(lxHintDetailTimer);
-          clearTimeout(lxHintSimilarTimer);
           if (!product?.name) return;
           lxHintDetailTimer = setTimeout(() => {
             if (document.querySelector(".content")?.dataset.view !== "detail") return;
@@ -2363,10 +2376,6 @@
             const hook = tags.includes("教育特惠") ? "这款在教育特惠目录里，叠加国补还能再省" : "这款今天有官方优惠";
             lxShowHint(`${hook}，要不要算个到手价？`, `帮我算${product.name}叠加优惠后的到手价`);
           }, 8000);
-          lxHintSimilarTimer = setTimeout(() => {
-            if (document.querySelector(".content")?.dataset.view !== "detail") return;
-            lxShowHint("看了一会儿了，要不要看看同价位的相似款对比下？", `帮我找几款和${product.name}相似的商品，列出差异`);
-          }, 22000);
         }
 
         // 站点话术体系：快捷入口/全屏欢迎问题/输入框底纹 全部按客群特色差异化（个人/企业诉求不可混用）
@@ -2928,7 +2937,7 @@
             const detailPrimary = event.target.closest(".detail-primary");
             if (detailPrimary) {
               if (detailPrimary.dataset.bizQuote) openLeadPanel("biz_quote");
-              else oneClickBuy();
+              else buyNow();
             }
             if (event.target.closest(".lx-p0-detail-quote")) sendChat(`我想咨询${state.currentProduct?.name || "这款产品"}的采购方案和报价，请帮我对接专属顾问`);
             if (event.target.closest(".lx-p0-detail-wp")) openWhitepaperLib();
@@ -3205,6 +3214,7 @@
         openUploadControls();
         setupSelectionAsk();
         bindEvents();
+        ensureDetailCompareButton();
         updateBadges();
         checkAuth();
         initRoute();
