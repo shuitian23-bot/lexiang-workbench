@@ -6973,7 +6973,7 @@
             const response = await fetch(`/api/products?similar=${encodeURIComponent(sku)}&limit=6`, { cache: "no-store" });
             const items = await response.json();
             if (!Array.isArray(items) || !items.length) return toast("暂未找到同类相近价位的商品");
-            openModal("相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
+            lxOpenInfoTab("similar", "相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
           } catch {
             toast("相似商品加载失败，请稍后再试");
           }
@@ -7059,7 +7059,7 @@
               <button class="lx-p0-btn primary" data-buy-sku="${esc(item.sku)}">立即购买</button>
               <button class="lx-p0-btn" data-remove-cart="${esc(item.sku)}">移除</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">购物车为空。可以在商品详情页点击“加入购物车”。</p>`;
-          openModal("购物车", rows);
+          lxOpenInfoTab("cart", "购物车", rows);
         }
 
         function openOrders() {
@@ -7071,7 +7071,7 @@
               <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span>${item.address ? `<span>收货：${esc(item.address.name || "")} ${esc(item.address.phone || "")} ${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>` : ""}</div>
               <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页“立即购买”可生成演示订单。</p>`;
-          openModal("我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
+          lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
         }
 
         // 发票抬头（PRD 5.0.2 弹窗层场景：开票信息填写与修改）
@@ -7444,7 +7444,8 @@
                 const bodyHtml = payload.content
                   ? mdLite(payload.content)
                   : `<p class="lx-p0-disclaimer">旧机估值、补贴权益和换新推荐已接入联想乐享。可继续发送旧机型号、成色和购买新机目标。</p>`;
-                openModal(payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`);
+                lxRevealContent();
+                lxOpenInfoTab("tradein", payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`);
               },
               lead: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7456,7 +7457,8 @@
                 const payload = parseJson(data);
                 const steps = Array.isArray(payload.waterfall) ? payload.waterfall : [];
                 if (!steps.length) {
-                  openModal(payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
+                  lxRevealContent();
+                  lxOpenInfoTab("benefit", payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
                   return;
                 }
                 const rows = steps.map((step) => {
@@ -7465,27 +7467,30 @@
                   return `<div class="lx-bf-row${step.kind === "base" ? " base" : ""}"><div class="lx-bf-main"><strong>${esc(step.label || "")}</strong>${step.reason ? `<span>${esc(step.reason)}</span>` : ""}</div><b class="${minus ? "minus" : ""}">${amountText}</b></div>`;
                 }).join("");
                 const finalRow = payload.final_price ? `<div class="lx-bf-row final"><div class="lx-bf-main"><strong>预计到手价</strong>${payload.discount_total ? `<span>共可省 ¥${Math.abs(Math.round(payload.discount_total)).toLocaleString()}</span>` : ""}</div><b>¥${Math.round(payload.final_price).toLocaleString()}</b></div>` : "";
-                openModal(payload.title || "AI 权益管家", `<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
+                lxRevealContent();
+                lxOpenInfoTab("benefit", payload.title || "AI 权益管家", `<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
               },
               solutions: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const list = Array.isArray(payload.solutions) ? payload.solutions : [];
                 if (!list.length) {
-                  openModal(payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`);
+                  lxRevealContent();
+                  lxOpenInfoTab("solutions", payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`);
                   return;
                 }
                 const cards = list.map((sol) => {
                   const items = (sol.products || []).slice(0, 3).map((p) => `<span class="lx-sol-item">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</span>`).join("");
                   return `<div class="lx-sol-card"><strong>${esc(sol.title || "")}</strong><p>${esc(sol.summary || "")}</p>${items ? `<div class="lx-sol-items">${items}</div>` : ""}${sol.cta_text ? `<div class="lx-p0-actions"><button class="lx-p0-btn" data-quick-ask="${esc(sol.cta_text)}（方案：${esc(sol.title || "")}）">${esc(sol.cta_text)}</button></div>` : ""}</div>`;
                 }).join("");
-                openModal(payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`);
+                lxRevealContent();
+                lxOpenInfoTab("solutions", payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`);
               },
               modal: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.error) {
-                  openModal(payload.title || "提示", `<p class="lx-p0-disclaimer">${esc(payload.error)}</p>`);
+                  toast(payload.error || "操作未成功，请稍后再试");
                   return;
                 }
                 if (payload.type === "compare" && Array.isArray(payload.products) && payload.products.length >= 2) {
@@ -7494,13 +7499,15 @@
                   lxUpsertCompareTab(payload.products, payload.title || "商品参数对比");
                   return;
                 }
-                openModal(payload.title || "联想乐享", mdLite(payload.content || ""));
+                lxRevealContent();
+                lxOpenInfoTab("ai", payload.title || "联想乐享", mdLite(payload.content || ""));
               },
               customize: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const name = payload.product_name || "心仪机型";
-                openModal(`${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`);
+                lxRevealContent();
+                lxOpenInfoTab("customize", `${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`);
               },
               nav: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -8099,7 +8106,7 @@
             ["驱动下载", "查找官方原厂驱动和系统工具"],
             ["上门服务", "安装、清灰、换电池、数据迁移"]
           ];
-          openModal("联想服务", `
+          lxOpenInfoTab("service", "联想服务", `
             <input class="lx-p0-field" id="lxServiceSn" placeholder="输入主机编号 SN，可选">
             <div class="lx-p1-grid">${services.map((item) => `<div class="lx-p1-card"><strong>${item[0]}</strong><span>${item[1]}</span><button class="lx-p0-btn" style="margin-top:10px" data-service-ask="${esc(item[0])}">咨询</button></div>`).join("")}</div>
             <div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-human-on>转人工客服</button><span class="lx-invoice-note">消费热线 400-990-8888 · 企业专线 400-990-8866</span></div>
@@ -8364,7 +8371,7 @@
             member: "联想会员有哪些权益？帮我整理乐豆、优惠券和等级",
             partner: "介绍联想合作伙伴体系和申请流程"
           };
-          openModal(titleMap[kind] || "联想乐享", `
+          lxOpenInfoTab(`nav-${kind}`, titleMap[kind] || "联想乐享", `
             <p class="lx-p0-disclaimer">该入口已接入联想乐享 AI，可继续生成详细内容和下一步操作。</p>
             <div class="lx-p0-actions">
               <button class="lx-p0-btn primary" data-quick-ask="${esc(promptMap[kind] || "介绍联想乐享")}">问联想乐享</button>
