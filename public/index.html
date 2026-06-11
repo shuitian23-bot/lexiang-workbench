@@ -5088,20 +5088,194 @@
       .lx-site-floors { display: grid; gap: 18px; margin: 26px 0 40px; }
       .lx-site-floors[hidden] { display: none !important; }
       .content[data-view="detail"] .lx-site-floors, .content[data-view="home"] .lx-site-floors, .content[data-view="brand"] .lx-site-floors { display: none; }
-      .lx-floor { border: 1px solid var(--lx-border); border-radius: 12px; background: #fff; padding: 16px 18px; }
-      .lx-floor-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-      .lx-floor-head h3 { font-size: 16px; color: var(--lx-text); }
-      .lx-floor-head span { font-size: 12.5px; color: var(--lx-text-tertiary); flex: 1; }
-      .lx-floor-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-      .lx-floor-card { border: 1px solid var(--lx-border); border-radius: 8px; padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; background: var(--lx-bg, #F8F6FA); }
-      .lx-floor-card:hover { border-color: var(--lx-aubergine); }
-      .lx-floor-card strong { font-size: 13.5px; color: var(--lx-text); }
-      .lx-floor-card span { font-size: 12px; color: var(--lx-text-secondary); }
-      .lx-floor-seckill { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; grid-column: 1 / -1; }
-      .lx-floor-countdown { font-size: 12.5px; color: var(--lx-text-secondary); }
-      .lx-floor-countdown b { color: var(--lx-brand-red); font-variant-numeric: tabular-nums; }
-      .lx-floor-tag { font-size: 11px; color: #fff; background: var(--lx-brand-red); border-radius: 4px; padding: 1px 5px; margin-left: 4px; font-weight: 400; }
-      .lx-floor-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; grid-column: 1 / -1; }
+      .lx-floor {}
+      .lx-floor-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .lx-floor-head h3 {
+        font-size: clamp(18px, 1.15vw, 22px);
+        line-height: 28px;
+        color: var(--lx-text);
+      }
+      .lx-floor-head span {
+        font-size: clamp(13px, 0.82vw, 15px);
+        color: var(--lx-text-tertiary);
+        flex: 1;
+      }
+      .lx-floor-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+      }
+      .lx-floor--activity {
+        padding: clamp(18px, 1.5vw, 26px);
+        border: 1px solid var(--lx-border);
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ffffff 0%, #fbf7ff 48%, #fff7f7 100%);
+      }
+      .lx-floor--activity .lx-floor-head {
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(111, 23, 102, 0.12);
+      }
+      .lx-floor--activity .lx-p0-btn {
+        min-width: 108px;
+        border-color: var(--lx-border);
+        background: #fff;
+        color: var(--lx-aubergine);
+      }
+      .lx-floor-card {
+        min-height: 104px;
+        border: 1px solid var(--lx-border);
+        border-radius: 8px;
+        padding: 16px 18px;
+        cursor: pointer;
+        display: grid;
+        align-content: center;
+        gap: 8px;
+        background: #fff;
+        transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+      }
+      .lx-floor-card:hover {
+        border-color: var(--lx-aubergine);
+        box-shadow: 0 14px 34px rgba(55, 22, 64, 0.08);
+        transform: translateY(-2px);
+      }
+      .lx-floor-card strong {
+        font-size: clamp(16px, 1vw, 20px);
+        line-height: 24px;
+        color: var(--lx-text);
+      }
+      .lx-floor-card span {
+        font-size: clamp(13px, 0.85vw, 16px);
+        line-height: 22px;
+        color: var(--lx-text-secondary);
+      }
+      .lx-floor-seckill {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        grid-column: 1 / -1;
+      }
+      .lx-floor--seckill .lx-floor-body { grid-template-columns: 1fr; }
+      .lx-floor-countdown {
+        min-height: 30px;
+        padding: 0 12px;
+        border: 1px solid var(--lx-border);
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff;
+        font-size: 13px;
+        color: var(--lx-text-secondary);
+      }
+      .lx-floor-countdown b {
+        color: var(--lx-brand-red);
+        font-variant-numeric: tabular-nums;
+      }
+      .lx-floor-tag {
+        font-size: 11px;
+        color: #fff;
+        background: var(--lx-brand-red);
+        border-radius: 4px;
+        padding: 1px 5px;
+        margin-left: 4px;
+        font-weight: 400;
+      }
+      .lx-floor--service .lx-floor-body,
+      .lx-floor--member .lx-floor-body { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .lx-floor--education .lx-floor-body { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+      .lx-floor--member .lx-floor-card,
+      .lx-floor--service .lx-floor-card { background: linear-gradient(135deg, #ffffff 0%, #fbf7ff 100%); }
+      .lx-sim-card.lx-seckill-card {
+        min-height: 168px;
+        padding: 14px 16px;
+        border-color: var(--lx-border);
+        background: #fff;
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        align-items: center;
+        gap: 16px;
+        text-align: left;
+        transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+      }
+      .lx-sim-card.lx-seckill-card:hover {
+        border-color: var(--lx-brand-red);
+        box-shadow: 0 14px 34px rgba(232, 38, 30, 0.08);
+        transform: translateY(-2px);
+      }
+      .lx-sim-card.lx-seckill-card img {
+        width: 112px;
+        height: 112px;
+        object-fit: contain;
+      }
+      .lx-seckill-info {
+        min-width: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .lx-seckill-info .lx-sim-name {
+        margin: 0;
+        font-size: clamp(15px, 0.95vw, 18px);
+        line-height: 24px;
+        font-weight: 700;
+        color: var(--lx-text);
+      }
+      .lx-seckill-info .lx-sim-price {
+        font-size: clamp(18px, 1.15vw, 22px);
+        line-height: 26px;
+        color: var(--lx-brand-red);
+      }
+      .lx-seckill-desc {
+        display: block;
+        color: var(--lx-text-secondary);
+        font-size: clamp(12px, 0.78vw, 14px);
+        line-height: 20px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @media (max-width: 1280px) {
+        .lx-floor-seckill { grid-template-columns: 1fr; }
+        .lx-floor--education .lx-floor-body,
+        .lx-floor--service .lx-floor-body,
+        .lx-floor--member .lx-floor-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      .lx-floor-products { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(16px, 1.25vw, 24px); grid-column: 1 / -1; }
+      .lx-floor-product {
+        min-height: clamp(286px, 31.5vh, 390px);
+        padding: clamp(20px, 2.3vh, 30px) clamp(16px, 1.15vw, 22px) clamp(20px, 2vh, 26px);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: #fff;
+        text-align: center;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+      }
+      .lx-floor-product:hover { border-color: var(--border-strong); box-shadow: 0 16px 36px rgba(55, 22, 64, 0.08); transform: translateY(-3px); }
+      .lx-floor-product:first-child { border-color: var(--border-strong); }
+      .lx-floor-product .product-visual { flex: 0 0 auto; }
+      .lx-floor-product .product-title {
+        min-height: auto;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .lx-floor-product .spec {
+        min-height: auto;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .lx-floor-product .price { margin-top: auto; }
+      @media (max-width: 1280px) { .lx-floor-products { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
       .lx-floor[data-floor-cat] { scroll-margin-top: 56px; }
       body[data-page="home"][data-state="chat"] .assistant-panel { display: block; }
       body[data-page="home"][data-state="chat"] .assistant-restore { display: none; }
@@ -6973,7 +7147,7 @@
             const response = await fetch(`/api/products?similar=${encodeURIComponent(sku)}&limit=6`, { cache: "no-store" });
             const items = await response.json();
             if (!Array.isArray(items) || !items.length) return toast("暂未找到同类相近价位的商品");
-            lxOpenInfoTab("similar", "相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
+            openModal("相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
           } catch {
             toast("相似商品加载失败，请稍后再试");
           }
@@ -7059,7 +7233,7 @@
               <button class="lx-p0-btn primary" data-buy-sku="${esc(item.sku)}">立即购买</button>
               <button class="lx-p0-btn" data-remove-cart="${esc(item.sku)}">移除</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">购物车为空。可以在商品详情页点击“加入购物车”。</p>`;
-          lxOpenInfoTab("cart", "购物车", rows);
+          openModal("购物车", rows);
         }
 
         function openOrders() {
@@ -7071,7 +7245,7 @@
               <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span>${item.address ? `<span>收货：${esc(item.address.name || "")} ${esc(item.address.phone || "")} ${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>` : ""}</div>
               <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页“立即购买”可生成演示订单。</p>`;
-          lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
+          openModal("我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
         }
 
         // 发票抬头（PRD 5.0.2 弹窗层场景：开票信息填写与修改）
@@ -7444,8 +7618,7 @@
                 const bodyHtml = payload.content
                   ? mdLite(payload.content)
                   : `<p class="lx-p0-disclaimer">旧机估值、补贴权益和换新推荐已接入联想乐享。可继续发送旧机型号、成色和购买新机目标。</p>`;
-                lxRevealContent();
-                lxOpenInfoTab("tradein", payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`);
+                openModal(payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`);
               },
               lead: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7457,8 +7630,7 @@
                 const payload = parseJson(data);
                 const steps = Array.isArray(payload.waterfall) ? payload.waterfall : [];
                 if (!steps.length) {
-                  lxRevealContent();
-                  lxOpenInfoTab("benefit", payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
+                  openModal(payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
                   return;
                 }
                 const rows = steps.map((step) => {
@@ -7467,30 +7639,27 @@
                   return `<div class="lx-bf-row${step.kind === "base" ? " base" : ""}"><div class="lx-bf-main"><strong>${esc(step.label || "")}</strong>${step.reason ? `<span>${esc(step.reason)}</span>` : ""}</div><b class="${minus ? "minus" : ""}">${amountText}</b></div>`;
                 }).join("");
                 const finalRow = payload.final_price ? `<div class="lx-bf-row final"><div class="lx-bf-main"><strong>预计到手价</strong>${payload.discount_total ? `<span>共可省 ¥${Math.abs(Math.round(payload.discount_total)).toLocaleString()}</span>` : ""}</div><b>¥${Math.round(payload.final_price).toLocaleString()}</b></div>` : "";
-                lxRevealContent();
-                lxOpenInfoTab("benefit", payload.title || "AI 权益管家", `<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
+                openModal(payload.title || "AI 权益管家", `<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
               },
               solutions: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const list = Array.isArray(payload.solutions) ? payload.solutions : [];
                 if (!list.length) {
-                  lxRevealContent();
-                  lxOpenInfoTab("solutions", payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`);
+                  openModal(payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`);
                   return;
                 }
                 const cards = list.map((sol) => {
                   const items = (sol.products || []).slice(0, 3).map((p) => `<span class="lx-sol-item">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</span>`).join("");
                   return `<div class="lx-sol-card"><strong>${esc(sol.title || "")}</strong><p>${esc(sol.summary || "")}</p>${items ? `<div class="lx-sol-items">${items}</div>` : ""}${sol.cta_text ? `<div class="lx-p0-actions"><button class="lx-p0-btn" data-quick-ask="${esc(sol.cta_text)}（方案：${esc(sol.title || "")}）">${esc(sol.cta_text)}</button></div>` : ""}</div>`;
                 }).join("");
-                lxRevealContent();
-                lxOpenInfoTab("solutions", payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`);
+                openModal(payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`);
               },
               modal: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.error) {
-                  toast(payload.error || "操作未成功，请稍后再试");
+                  openModal(payload.title || "提示", `<p class="lx-p0-disclaimer">${esc(payload.error)}</p>`);
                   return;
                 }
                 if (payload.type === "compare" && Array.isArray(payload.products) && payload.products.length >= 2) {
@@ -7499,15 +7668,13 @@
                   lxUpsertCompareTab(payload.products, payload.title || "商品参数对比");
                   return;
                 }
-                lxRevealContent();
-                lxOpenInfoTab("ai", payload.title || "联想乐享", mdLite(payload.content || ""));
+                openModal(payload.title || "联想乐享", mdLite(payload.content || ""));
               },
               customize: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const name = payload.product_name || "心仪机型";
-                lxRevealContent();
-                lxOpenInfoTab("customize", `${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`);
+                openModal(`${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`);
               },
               nav: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7618,7 +7785,15 @@
 
         // ── 子站竖向楼层（PRD 5.5/v2.3 楼层化：商品之外的服务/门店/会员/方案内容，对齐 lenovo.com.cn）──
         function lxFloorSection(title, sub, body, cta) {
-          return `<section class="lx-floor" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><h3>${esc(title)}</h3>${sub ? `<span>${esc(sub)}</span>` : ""}${cta || ""}</div><div class="lx-floor-body">${body}</div></section>`;
+          const classMap = [
+            [/今日秒杀/, "lx-floor--activity lx-floor--seckill"],
+            [/教育特惠|国补/, "lx-floor--activity lx-floor--education"],
+            [/门店与服务/, "lx-floor--activity lx-floor--service"],
+            [/会员权益/, "lx-floor--activity lx-floor--member"],
+            [/企业专享|对公|轻量定制|行业解决方案|信创|大客户/, "lx-floor--activity"],
+          ];
+          const extraClass = (classMap.find(([pattern]) => pattern.test(title)) || [null, ""])[1];
+          return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><h3>${esc(title)}</h3>${sub ? `<span>${esc(sub)}</span>` : ""}${cta || ""}</div><div class="lx-floor-body">${body}</div></section>`;
         }
 
         // 分类页签与实际楼层保持一致：推荐 + 分类楼层 + 服务楼层，全部可锚点直达
@@ -7690,7 +7865,15 @@
         };
 
         function lxProductMiniCard(product) {
-          return `<div class="lx-sim-card" data-open-product="${esc(product.sku)}"><img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name)}" loading="lazy" /><div class="lx-sim-name">${esc(product.name)}</div><div class="lx-sim-price">¥${Number(product.price || 0).toLocaleString()}</div></div>`;
+          const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
+          const promos = tags.slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("");
+          return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
+            <div class="product-visual"><img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name)}" loading="lazy" /></div>
+            <h3 class="product-title">${esc(product.name || "联想商品")}</h3>
+            <p class="spec">${esc(product.description || product.category || "官方正品｜联想服务")}</p>
+            <div class="product-promos" aria-label="促销标签">${promos}</div>
+            <div class="price">${money(product.price)}<span class="price-from">起</span></div>
+          </div>`;
         }
 
         async function lxRenderCategoryFloors(box) {
@@ -7732,7 +7915,7 @@
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
-            const seckill = (state.products || []).slice(0, 3).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div></div>`).join("");
+            const seckill = (state.products || []).slice(0, 3).map((p) => `<div class="lx-sim-card lx-seckill-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-seckill-info"><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div><span class="lx-seckill-desc">${esc(p.description || "官方优惠，库存以实际下单页为准")}</span></div></div>`).join("");
             box.innerHTML = categoryFloors + [
               lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill || ""}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
               lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", quickCard("学生认证享专属价", "小学到博士及应届高考生均可认证", "学生认证和教育优惠怎么享受？") + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？")),
@@ -8106,7 +8289,7 @@
             ["驱动下载", "查找官方原厂驱动和系统工具"],
             ["上门服务", "安装、清灰、换电池、数据迁移"]
           ];
-          lxOpenInfoTab("service", "联想服务", `
+          openModal("联想服务", `
             <input class="lx-p0-field" id="lxServiceSn" placeholder="输入主机编号 SN，可选">
             <div class="lx-p1-grid">${services.map((item) => `<div class="lx-p1-card"><strong>${item[0]}</strong><span>${item[1]}</span><button class="lx-p0-btn" style="margin-top:10px" data-service-ask="${esc(item[0])}">咨询</button></div>`).join("")}</div>
             <div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-human-on>转人工客服</button><span class="lx-invoice-note">消费热线 400-990-8888 · 企业专线 400-990-8866</span></div>
@@ -8371,7 +8554,7 @@
             member: "联想会员有哪些权益？帮我整理乐豆、优惠券和等级",
             partner: "介绍联想合作伙伴体系和申请流程"
           };
-          lxOpenInfoTab(`nav-${kind}`, titleMap[kind] || "联想乐享", `
+          openModal(titleMap[kind] || "联想乐享", `
             <p class="lx-p0-disclaimer">该入口已接入联想乐享 AI，可继续生成详细内容和下一步操作。</p>
             <div class="lx-p0-actions">
               <button class="lx-p0-btn primary" data-quick-ask="${esc(promptMap[kind] || "介绍联想乐享")}">问联想乐享</button>
