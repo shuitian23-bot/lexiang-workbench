@@ -6023,3 +6023,9 @@
       .detail-actions { align-items: center; }
       .lx-p0-detail-compare, .lx-p0-detail-similar, .lx-p0-detail-benefit, .lx-p0-detail-quote, .lx-p0-detail-wp { font-size: 12px !important; padding: 6px 14px !important; border-color: var(--lx-border) !important; color: var(--lx-text-secondary) !important; }
       .lx-p0-detail-compare:hover, .lx-p0-detail-similar:hover, .lx-p0-detail-benefit:hover, .lx-p0-detail-quote:hover, .lx-p0-detail-wp:hover { border-color: var(--lx-aubergine) !important; color: var(--lx-aubergine) !important; }
+
+      /* SPU 配置选择区：网格对齐，label/price 两行清晰 */
+      .lx-spu-chips { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+      .lx-spu-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; }
+      .lx-spu-chip-label { font-size: 12px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+      .lx-spu-chip-price { font-weight: 700; }
