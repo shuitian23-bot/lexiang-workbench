@@ -8043,17 +8043,68 @@
           const row = document.querySelector(".shortcut-row");
           if (!row) return;
           if (state.humanMode) {
-            if (!row.dataset.origHtml) row.dataset.origHtml = row.innerHTML;
             row.innerHTML = `
               <button class="shortcut lx-cs-exit" type="button" data-human-off>退出人工</button>
               <button class="shortcut" type="button" data-quick-ask="小联，帮我查最近的订单状态和物流">我的订单</button>
               <button class="shortcut" type="button" data-cs-upload>发图片</button>
               <button class="shortcut" type="button" data-quick-ask="给小联的服务打个 5 星好评，服务专业体验好">评价服务</button>
               <button class="shortcut" type="button" data-quick-ask="小联，我整理一份采购需求清单发给你确认">需求清单</button>`;
-          } else if (row.dataset.origHtml) {
-            row.innerHTML = row.dataset.origHtml;
+          } else {
+            lxRenderActionbar();
           }
         }
+
+        // 响应式 actionbar：按面板宽度能放多少放多少，放不下的收进「更多」（对齐旧版测宽溢出方案）
+        const LX_ACTIONBAR_ITEMS = [
+          ["客服", "/assets/icons/shortcut-customer-service.svg"],
+          ["教育特惠", "/assets/icons/shortcut-education-subsidy.svg"],
+          ["以旧换新", "/assets/icons/shortcut-trade-in.svg"],
+          ["乐豆商城", "/assets/icons/sidebar-points-mall.svg"],
+          ["0元试用", "/assets/icons/sidebar-free-trial.svg"],
+          ["私人订制", "/assets/icons/sidebar-custom-service.svg"],
+          ["会员中心", "/assets/icons/sidebar-member-center.svg"],
+          ["拉新返利", "/assets/icons/sidebar-referral-rewards.svg"],
+          ["门店闪送", "/assets/icons/sidebar-store-delivery.svg"],
+        ];
+
+        function lxRenderActionbar() {
+          const row = document.querySelector(".shortcut-row");
+          if (!row || state.humanMode) return;
+          if (!row.clientWidth) return; // 面板隐藏时跳过，可见后由 ResizeObserver 触发重排
+          const btnHtml = ([label, icon]) => `<button class="shortcut" type="button"><img class="icon" src="${icon}" alt="" />${label}</button>`;
+          row.innerHTML = LX_ACTIONBAR_ITEMS.map(btnHtml).join("");
+          row.style.flexWrap = "nowrap";
+          const gap = parseFloat(getComputedStyle(row).columnGap) || 8;
+          const buttons = [...row.children];
+          const widths = buttons.map((node) => node.offsetWidth);
+          const total = widths.reduce((sum, w, i) => sum + w + (i ? gap : 0), 0);
+          let fit = LX_ACTIONBAR_ITEMS.length;
+          if (total > row.clientWidth) {
+            const avail = row.clientWidth - 96; // 「更多」按钮预留
+            let used = 0;
+            fit = 0;
+            for (let i = 0; i < widths.length; i++) {
+              used += widths[i] + (i ? gap : 0);
+              if (used > avail) break;
+              fit = i + 1;
+            }
+            fit = Math.max(1, fit);
+          }
+          const visible = LX_ACTIONBAR_ITEMS.slice(0, fit);
+          const overflow = LX_ACTIONBAR_ITEMS.slice(fit);
+          row.innerHTML = visible.map(btnHtml).join("") + (overflow.length
+            ? `<span class="more-wrap"><button class="shortcut" type="button">更多<img class="icon" src="/assets/icons/arrow-down.svg" alt="" /></button><div class="more-menu" role="menu">${overflow.map(([label, icon]) => `<div class="menu-row"><img class="icon" src="${icon}" alt="" />${label}</div>`).join("")}</div></span>`
+            : "");
+        }
+
+        let lxAbTimer = null;
+        function lxAbReflow() { clearTimeout(lxAbTimer); lxAbTimer = setTimeout(lxRenderActionbar, 120); }
+        window.addEventListener("resize", lxAbReflow);
+        if (window.ResizeObserver) {
+          const abTarget = document.querySelector(".assistant-bottom") || document.querySelector(".assistant-panel");
+          if (abTarget) new ResizeObserver(lxAbReflow).observe(abTarget);
+        }
+        setTimeout(lxRenderActionbar, 50);
 
         function lxSetHumanMode(on) {
           state.humanMode = !!on;
