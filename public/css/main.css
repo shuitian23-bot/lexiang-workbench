@@ -6015,4 +6015,6 @@
 .content[data-view="detail"] .detail-main { border-radius: 8px !important; }
 .content[data-view="detail"] .detail-main { max-width: none !important; }
 .content[data-view="detail"] .detail-main { margin: 0 !important; }
+.content[data-view="detail"] .detail-product-image { height: auto !important; }
+.content[data-view="detail"] .detail-visual { width: auto !important; }
 
