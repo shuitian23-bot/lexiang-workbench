@@ -473,9 +473,6 @@
           setText("[data-detail-price]", money(product.price));
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
-          ensureDetailCompareButton();
-          ensureDetailSimilarButton();
-          ensureDetailBenefitButton();
           lxApplyDetailCtaMode(product);
           loadFitReason(product);
           loadSpuVariants(product);
@@ -543,7 +540,7 @@
             const price = $("[data-detail-price]");
             if (price && !price.textContent.includes("参考")) price.insertAdjacentHTML("beforeend", `<span class="lx-edu-hint" style="margin-left:8px">参考价 · 以正式报价为准</span>`);
           } else {
-            if (primary) { primary.textContent = "立即购买"; delete primary.dataset.bizQuote; }
+            if (primary) { primary.textContent = "一键领优惠下单"; delete primary.dataset.bizQuote; }
             if (cart) cart.hidden = false;
             if (benefit) benefit.hidden = false;
             if (quote) quote.hidden = true;
@@ -623,6 +620,36 @@
           openAddressPicker(normalizeProduct(product));
         }
 
+        // 一键领优惠（PRD 转化最短路径）：自动领取该商品全部可用优惠 → 默认地址直接下单，零表单一键完成
+        function lxClaimBenefits(product) {
+          const price = Number(product.price) || 0;
+          const claimed = [];
+          if (price > 0) {
+            const isEdu = (product.promotion_tags || []).includes("教育特惠") || /小新|YOGA|平板|笔记本|台式/.test(product.name || "");
+            if (isEdu) claimed.push({ label: "国家补贴 15%", amount: -Math.round(price * 0.15) });
+            if (lxStuState().status === "verified") claimed.push({ label: "教育认证券", amount: -300 });
+            if (state.page === "business" && lxEntState().status === "verified") claimed.push({ label: "企业专享 95 折", amount: -Math.round(price * 0.05) });
+            if (price >= 3000 && !claimed.length) claimed.push({ label: "官方满减券", amount: -Math.min(300, Math.round(price * 0.05)) });
+            else if (price >= 5000) claimed.push({ label: "官方满 5000-200 券", amount: -200 });
+          }
+          const discount = claimed.reduce((sum, c) => sum + c.amount, 0);
+          return { claimed, discount, finalPrice: Math.max(0, price + discount) };
+        }
+
+        function oneClickBuy(product = state.currentProduct) {
+          if (!product) return toast("请先选择商品");
+          const item = normalizeProduct(product);
+          const { claimed, discount, finalPrice } = lxClaimBenefits(product);
+          let addr = lxAddresses()[0];
+          if (!addr) {
+            addr = { name: "演示用户", phone: "138****0000", region: "演示地址", detail: "可在「我的订单」中修改收货信息" };
+            save("lexiang.addresses.v1", [addr]);
+          }
+          state.pendingOrderProduct = { ...item, benefits: claimed, original_price: item.price, price: finalPrice || item.price };
+          lxPlaceOrder(addr);
+          if (claimed.length) toast(`已自动领取 ${claimed.length} 项优惠，省 ¥${Math.abs(discount).toLocaleString()}，下单成功`);
+        }
+
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
         function lxAddresses() {
           const list = load("lexiang.addresses.v1");
@@ -654,12 +681,13 @@
           const product = state.pendingOrderProduct;
           if (!product) return;
           const order = { ...product, orderId: `LX${Date.now()}`, createdAt: new Date().toLocaleString("zh-CN"), address };
+          if (product.benefits?.length) order.benefitNote = product.benefits.map((b) => `${b.label} ${b.amount > 0 ? "+" : ""}¥${b.amount.toLocaleString()}`).join("、");
           state.orders.unshift(order);
           save("lexiang.orders.v1", state.orders);
           state.pendingOrderProduct = null;
           updateBadges();
           toast("下单成功（演示订单）");
-          openOrders();
+          if (state.user) openOrders();
         }
 
         function normalizeProduct(product) {
@@ -2311,7 +2339,8 @@
           try { dayCount = Number(localStorage.getItem(dayKey) || 0); } catch {}
           if (dayCount >= 4) return;
           const bottom = document.querySelector(".assistant-bottom");
-          if (!bottom || bottom.querySelector(".lx-hint-bar")) return;
+          if (!bottom) return;
+          bottom.querySelector(".lx-hint-bar")?.remove();
           state.lxHintCount += 1;
           try { localStorage.setItem(dayKey, String(dayCount + 1)); } catch {}
           bottom.insertAdjacentHTML("afterbegin", `<div class="lx-hint-bar"><span class="lx-hint-text">${esc(text)}</span><button class="lx-p0-btn primary" type="button" data-quick-ask="${esc(ask)}">问一下</button><button class="lx-hint-close" type="button" aria-label="关闭">×</button></div>`);
@@ -2321,10 +2350,12 @@
           setTimeout(() => bar.remove(), 30000);
         }
 
-        // 触发时机①：商品详情停留 8 秒 → 到手价钩子
+        // 触发时机①：详情停留 8 秒 → 到手价钩子；22 秒仍在看 → 找相似钩子（替代常驻按钮，预判式出现）
         let lxHintDetailTimer = null;
+        let lxHintSimilarTimer = null;
         function lxHintOnDetail(product) {
           clearTimeout(lxHintDetailTimer);
+          clearTimeout(lxHintSimilarTimer);
           if (!product?.name) return;
           lxHintDetailTimer = setTimeout(() => {
             if (document.querySelector(".content")?.dataset.view !== "detail") return;
@@ -2332,6 +2363,10 @@
             const hook = tags.includes("教育特惠") ? "这款在教育特惠目录里，叠加国补还能再省" : "这款今天有官方优惠";
             lxShowHint(`${hook}，要不要算个到手价？`, `帮我算${product.name}叠加优惠后的到手价`);
           }, 8000);
+          lxHintSimilarTimer = setTimeout(() => {
+            if (document.querySelector(".content")?.dataset.view !== "detail") return;
+            lxShowHint("看了一会儿了，要不要看看同价位的相似款对比下？", `帮我找几款和${product.name}相似的商品，列出差异`);
+          }, 22000);
         }
 
         // 站点话术体系：快捷入口/全屏欢迎问题/输入框底纹 全部按客群特色差异化（个人/企业诉求不可混用）
@@ -2893,7 +2928,7 @@
             const detailPrimary = event.target.closest(".detail-primary");
             if (detailPrimary) {
               if (detailPrimary.dataset.bizQuote) openLeadPanel("biz_quote");
-              else buyNow();
+              else oneClickBuy();
             }
             if (event.target.closest(".lx-p0-detail-quote")) sendChat(`我想咨询${state.currentProduct?.name || "这款产品"}的采购方案和报价，请帮我对接专属顾问`);
             if (event.target.closest(".lx-p0-detail-wp")) openWhitepaperLib();
@@ -3170,7 +3205,6 @@
         openUploadControls();
         setupSelectionAsk();
         bindEvents();
-        ensureDetailCompareButton();
         updateBadges();
         checkAuth();
         initRoute();
