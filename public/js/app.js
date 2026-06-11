@@ -889,6 +889,7 @@
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
           addMessage("user", text);
+          if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
@@ -1554,6 +1555,9 @@
         // AI 文本中的链接转可点卡片：联想商品链接→右侧打开商详，其他链接→新窗口
         function lxLinkHtml(url, label) {
           const cleanLabel = label && !/^https?:/.test(label) ? label : "";
+          if (/lenovo\.com\.cn\/(page\/)?(xs|jyth|edu)/i.test(String(url)) || /教育|学生/.test(String(label || ""))) {
+            return `<button type="button" class="lx-md-prod" data-stu-auth>去学生认证<span class="lx-md-prod-arrow">→</span></button>`;
+          }
           const m = String(url).match(/item\.lenovo\.com\.cn\/product\/(\d+)\.html/);
           if (m) return `<button type="button" class="lx-md-prod" data-open-product="${m[1]}">${cleanLabel || "查看商品详情"}<span class="lx-md-prod-arrow">→</span></button>`;
           return `<a class="lx-md-link" href="${url}" target="_blank" rel="noopener">${cleanLabel || "打开链接"}</a>`;
@@ -2136,6 +2140,10 @@
             }
 
             // 分类 tab = 楼层锚点：推荐回到顶部商品墙，其余滚动到对应分类楼层
+            const catMoreBtn = event.target.closest("[data-cat-more]");
+            if (catMoreBtn) catMoreBtn.parentElement.classList.toggle("open");
+            else document.querySelectorAll(".cat-more-wrap.open").forEach((node) => node.classList.remove("open"));
+
             const catTab = event.target.closest(".category-tabs button:not([data-cat-more])");
             if (catTab) {
               catTab.parentElement?.querySelectorAll("button").forEach((btn) => btn.classList.toggle("active", btn === catTab));
