@@ -948,6 +948,7 @@
           const nonce = state.conversationNonce;
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
+          lxHideSuggest();
           addMessage("user", text);
           if (state.refProduct) ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProduct.name.slice(0, 22))}</div>`);
           setTimeout(() => lxSetRef(null), 100);
@@ -1643,6 +1644,94 @@
             content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
           }
+        }
+
+        // ── 输入实时联想（设计稿：根据输入预测后续，逐级点选补全需求；槽位齐则不出）──
+        const LX_SUGGEST_TREE = {
+          // 槽位1：品类（有购买意图但没说买什么）
+          category: {
+            test: (t) => /买|想要|来一台|推荐|选购|换个|入手/.test(t) && !/电脑|笔记本|游戏本|轻薄本|手机|平板|显示器|耳机|打印|台式|服务器|主机/.test(t),
+            title: "想买点什么？",
+            options: [
+              ["电脑", "拯救者 · ThinkPad · 小新 · YOGA", "我想买一台电脑，"],
+              ["手机", "moto · 折叠屏 · 直板机", "我想买一部手机，"],
+              ["平板电脑", "小新Pad · YOGA Pad · 拯救者", "我想买一台平板电脑，"],
+              ["显示器", "拯救者 · ThinkVision · 来酷", "我想买一台显示器，"],
+            ],
+            replace: true,
+          },
+          // 槽位2：用途（说了电脑类但没说干什么用）
+          usage: {
+            test: (t) => /电脑|笔记本|游戏本|轻薄本|台式/.test(t) && !/游戏|办公|学习|设计|创作|剪辑|编程|送人|网课|建模|学生/.test(t),
+            title: "主要用来做什么？",
+            options: [
+              ["用来玩游戏", "", "用来玩游戏，"],
+              ["用来办公/学习", "", "用来办公和学习，"],
+              ["用来做设计/AI创作", "", "用来做设计和AI创作，"],
+              ["用来送人", "", "用来送人，"],
+            ],
+          },
+          // 槽位3：预算
+          budget: {
+            test: (t) => /电脑|笔记本|游戏本|轻薄本|手机|平板|显示器|台式/.test(t) && /游戏|办公|学习|设计|创作|剪辑|编程|送人|网课|拍照|商务|长辈/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
+            title: "预算大概多少？",
+            options: [
+              ["5000 元以下", "", "预算5000元以下，"],
+              ["5000 ~ 10000 元", "", "预算5000到10000元，"],
+              ["10000 ~ 20000 元", "", "预算10000到20000元，"],
+              ["价格不限", "", "价格不限，"],
+            ],
+          },
+          // 槽位4：便携偏好（仅笔记本语境）
+          portable: {
+            test: (t) => /电脑|笔记本|游戏本|轻薄本/.test(t) && !/台式|显示器/.test(t) && /\d+\s*(元|块|千|万|k|K)|预算|不限/.test(t) && !/轻便|便携|携带|轻薄|外出|配置更重要|性能优先/.test(t),
+            title: "经常带出门吗？",
+            options: [
+              ["平时经常带着外出，最好轻便一些", "", "平时经常带着外出，最好轻便一些。"],
+              ["不常携带，配置更重要", "", "不常携带，配置更重要。"],
+            ],
+          },
+        };
+
+        function lxDetectSuggest(text) {
+          const t = (text || "").trim();
+          if (t.length < 3 || t.length > 80) return null;
+          for (const key of ["category", "usage", "budget", "portable"]) {
+            if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
+          }
+          return null;
+        }
+
+        function lxHideSuggest() {
+          document.querySelector(".lx-suggest-panel")?.remove();
+        }
+
+        let lxSuggestTimer = null;
+        function lxComposerSuggest(ta) {
+          clearTimeout(lxSuggestTimer);
+          lxSuggestTimer = setTimeout(() => {
+            lxHideSuggest();
+            if (document.querySelector(".lx-ref-picker")) return; // @引用优先
+            const hit = lxDetectSuggest(ta.value);
+            if (!hit) return;
+            const composer = ta.closest(".composer");
+            if (!composer) return;
+            composer.style.position = "relative";
+            composer.insertAdjacentHTML("beforeend", `<div class="lx-suggest-panel"><div class="lx-suggest-title">${esc(hit.title)}</div>${hit.options.map((o, i) => `<div class="lx-suggest-item" data-suggest-pick="${i}" data-suggest-key="${hit.key}"><span class="num">${i + 1}.</span><span class="txt">${esc(o[0])}</span>${o[1] ? `<span class="sub">${esc(o[1])}</span>` : ""}</div>`).join("")}</div>`);
+            state._suggestHit = hit;
+          }, 180);
+        }
+
+        function lxApplySuggest(index) {
+          const hit = state._suggestHit;
+          const ta = document.querySelector(".composer textarea");
+          if (!hit || !ta) return;
+          const opt = hit.options[index];
+          if (!opt) return;
+          ta.value = hit.replace ? opt[2] : ta.value.replace(/[，,。\s]*$/, "") + "，" + opt[2].replace(/^，/, "");
+          ta.focus();
+          lxHideSuggest();
+          lxComposerSuggest(ta); // 递归检测下一级，没有则不出
         }
 
         // ── @引用历史对话（PRD 5.1）：输入 @ 弹历史选择器，引用内容随消息注入上下文 ──
@@ -2424,8 +2513,8 @@
           document.addEventListener("input", (event) => {
             const ta = event.target.closest?.(".composer textarea");
             if (!ta) return;
-            if (/@$/.test(ta.value)) lxShowRefPicker();
-            else lxHideRefPicker();
+            if (/@$/.test(ta.value)) { lxShowRefPicker(); lxHideSuggest(); }
+            else { lxHideRefPicker(); lxComposerSuggest(ta); }
           });
 
           document.addEventListener("keydown", (event) => {
@@ -2583,6 +2672,10 @@
               if (floor) floor.scrollIntoView({ behavior: "smooth", block: "start" });
               else contentBox?.scrollTo({ top: 0, behavior: "smooth" });
             }
+
+            const suggestItem = event.target.closest("[data-suggest-pick]");
+            if (suggestItem) { lxApplySuggest(Number(suggestItem.dataset.suggestPick)); return; }
+            if (!event.target.closest(".lx-suggest-panel") && !event.target.closest(".composer textarea")) lxHideSuggest();
 
             const pickBtn = event.target.closest("[data-pick-sku]");
             if (pickBtn) {
