@@ -166,6 +166,36 @@ router.get('/leads', requireAdmin, (req, res) => {
   res.json(rows);
 });
 
+// POST /api/admin/config/:name — 运营配置写入（lxhint / seckill）
+const ALLOWED_CONFIGS = { lxhint: ['mode'], seckill: ['enabled', 'session_hours', 'items', 'note'] };
+router.post('/config/:name', requireAdmin, (req, res) => {
+  const name = req.params.name;
+  if (!ALLOWED_CONFIGS[name]) return res.status(400).json({ error: 'unknown config' });
+  const fs = require('fs');
+  const path = require('path');
+  const file = path.join(__dirname, '..', 'config', name + '.json');
+  try {
+    const incoming = req.body || {};
+    const clean = {};
+    for (const key of ALLOWED_CONFIGS[name]) if (incoming[key] !== undefined) clean[key] = incoming[key];
+    fs.writeFileSync(file, JSON.stringify(clean, null, 2));
+    res.json({ ok: true, config: clean });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/admin/config/:name — 读运营配置
+router.get('/config/:name', requireAdmin, (req, res) => {
+  const name = req.params.name;
+  if (!ALLOWED_CONFIGS[name]) return res.status(400).json({ error: 'unknown config' });
+  try {
+    res.json(JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'config', name + '.json'), 'utf8')));
+  } catch (e) {
+    res.json({});
+  }
+});
+
 // GET /api/admin/conversations/:id — 管理员查看对话详情
 router.get('/conversations/:id', requireAdmin, (req, res) => {
   const convId = req.params.id;

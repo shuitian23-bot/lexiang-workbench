@@ -911,6 +911,7 @@
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
           addMessage("user", text);
+          setTimeout(() => lxSetRef(null), 100);
           if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
@@ -923,7 +924,7 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
-                message: state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份。]\n\n用户问: ${text}` : text,
+                message: (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份。]\n\n用户问: ${text}` : text),
                 conv_id: state.convId,
                 web_search: !!document.querySelector('.composer .chip[data-mode-chip="web"].is-active'),
                 // 深度思考开关：开启时上游模型不支持工具调用（无商品卡/留资等），默认关闭走自动模式
@@ -1604,6 +1605,38 @@
           }
         }
 
+        // ── @引用历史对话（PRD 5.1）：输入 @ 弹历史选择器，引用内容随消息注入上下文 ──
+        function lxRecentMessages(limit = 8) {
+          const nodes = [...document.querySelectorAll(".lx-p0-messages > .lx-p0-message")];
+          return nodes.slice(-16).map((node) => ({
+            who: node.classList.contains("user") ? "我" : "乐享",
+            text: (node.textContent || "").trim().replace(/\s+/g, " ").slice(0, 120),
+          })).filter((m) => m.text.length > 1).slice(-limit);
+        }
+
+        function lxShowRefPicker() {
+          lxHideRefPicker();
+          const composer = document.querySelector(".composer");
+          if (!composer) return;
+          const items = lxRecentMessages();
+          if (!items.length) return;
+          composer.style.position = "relative";
+          composer.insertAdjacentHTML("beforeend", `<div class="lx-ref-picker"><div class="lx-ref-picker-title">选择要引用的对话内容</div>${items.map((m, i) => `<div class="lx-ref-item" data-ref-pick="${i}"><span class="who">${m.who}</span>${esc(m.text)}</div>`).join("")}</div>`);
+          state._refItems = items;
+        }
+
+        function lxHideRefPicker() {
+          document.querySelector(".lx-ref-picker")?.remove();
+        }
+
+        function lxSetRef(text) {
+          state.refMsg = text;
+          document.querySelector(".lx-ref-bar")?.remove();
+          if (!text) return;
+          const bottom = document.querySelector(".assistant-bottom");
+          bottom?.insertAdjacentHTML("afterbegin", `<div class="lx-ref-bar"><span>引用</span><span class="lx-ref-text">${esc(text.slice(0, 60))}</span><button type="button" data-ref-clear aria-label="取消引用">×</button></div>`);
+        }
+
         // 自动全屏对话态：进入/退出统一管理（lx-auto-fs 用于隐藏无意义的展开缩放按钮）
         function lxSetAutoFs(on) {
           state.autoFs = !!on;
@@ -1832,24 +1865,28 @@
         }
 
         function openMemberCenter() {
+          // 会员页 9 模块（移植旧版 c4dcfa2 结构：等级/资产/签到任务/等级表/权益宫格/活动/乐豆商城/测评/快捷入口）
           const logged = !!state.user;
-          lxOpenInfoTab("member", "会员中心", `
-            <div class="lx-p1-strip">
-              <strong>${logged ? "观同学 · V3 金卡" : "注册即得新人礼"}</strong>
-              <div class="lx-p0-disclaimer">乐豆、优惠券、会员价、生日特权、优先发货等权益可继续让联想乐享整理。</div>
+          const name = logged ? (state.user.nickname || state.user.phone || "会员") : "游客";
+          const lv = logged ? 3 : 0;
+          const growth = logged ? 2480 : 0, nextLv = 3000;
+          const hero = `<div class="lx-member-hero">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+              <div style="flex:1"><div style="font-size:18px;font-weight:700">${esc(name)}</div><div style="font-size:13px;opacity:.92">${logged ? "V3 金卡 · 注册 365 天" : "注册即得新人 ¥200 礼包"}</div></div>
+              ${logged ? `<button class="lx-p0-btn" type="button" data-stu-auth style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">学生认证</button><button class="lx-p0-btn" type="button" data-open-ent style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">企业认证</button>` : `<button class="lx-p0-btn" type="button" data-open-login style="background:#fff;color:#4D144A;font-weight:700">立即登录 / 注册</button>`}
             </div>
-            <div class="lx-p1-grid">
-              ${[
-                ["乐豆", "1280", "可抵扣或兑换服务"],
-                ["优惠券", "5 张", "月度券包与新人券"],
-                ["成长值", "1480", "距 V4 还需 520"],
-                ["专属客服", logged ? "已开通" : "登录后开通"]
-              ].map((item) => `<div class="lx-p1-card"><strong>${item[0]}</strong><span>${item[1]} · ${item[2]}</span></div>`).join("")}
-            </div>
-            <div class="lx-p0-actions">
-              <button class="lx-p0-btn primary" data-quick-ask="查我的会员等级、乐豆余额、优惠券和可领取权益">问联想乐享整理权益</button>
-              ${logged ? "" : `<button class="lx-p0-btn" data-open-login>登录 / 注册</button>`}
-            </div>`);
+            ${logged ? `<div style="font-size:12px;opacity:.9">距 V4 钻石卡还需 <b style="color:#ffd700">${nextLv - growth}</b> 成长值</div><div class="bar"><i style="width:${Math.round(growth / nextLv * 100)}%"></i></div>` : `<div style="font-size:12px;opacity:.9">登录后立享 V1 普卡 · 11 项专属权益</div>`}
+          </div>`;
+          const assets = `<div class="lx-member-assets">${[["乐豆", logged ? 1280 : 0, "1000豆=¥10", "乐豆余额和使用规则"], ["优惠券", logged ? 5 : 0, "张可用", "我的优惠券"], ["积分", logged ? 860 : 0, "分", "消费积分规则"], ["成长值", growth, "/" + nextLv, "成长值如何获得"]].map((a) => `<div class="cell" data-quick-ask="${esc(a[3])}"><span>${a[0]}</span><b>${a[1]}</b><span>${a[2]}</span></div>`).join("")}</div>`;
+          const sign = logged ? `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>签到与任务</h3><span>连续签到 5 天 · 明日加倍</span><button class="lx-p0-btn" type="button" data-quick-ask="我的任务中心有哪些任务">全部任务</button></div><div class="lx-sign-row">${[1,2,3,4,5,6,7].map((d) => `<div class="lx-sign-day${d <= 5 ? " done" : ""}">第${d}天<br>${d <= 5 ? "✓" : "+" + d * 10 + "豆"}</div>`).join("")}</div></div>` : "";
+          const tiers = [["V1 普卡", "登录即得", "基础券包 / 新人礼"], ["V2 银卡", "成长值 1000", "5% 会员价 / 生日礼"], ["V3 金卡", "成长值 2500", "延保 88 折 / 月度券包 / VIP 客服"], ["V4 钻石卡", "成长值 5000", "拯救者/YOGA 专享价 / 优先发货"], ["V5 黑卡", "邀请制", "私人定制 / 酒店权益 / 生活特权"]];
+          const tierTable = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>会员等级与权益</h3><button class="lx-p0-btn" type="button" data-quick-ask="会员等级体系和升级规则">规则 FAQ</button></div><table class="lx-tier-table"><thead><tr><th>等级</th><th>升级条件</th><th>核心权益</th></tr></thead><tbody>${tiers.map((t, i) => `<tr${i + 1 === lv ? ' style="background:var(--lx-surface-hover)"' : ""}><td><strong>${t[0]}</strong>${i + 1 === lv ? " ←当前" : ""}</td><td>${t[1]}</td><td>${t[2]}</td></tr>`).join("")}</tbody></table></div>`;
+          const rights = [["新人礼包", "¥200 大礼包", 1], ["生日特权", "双倍乐豆+礼包", 1], ["会员价", "专享折扣", 1], ["月度券包", "每月 4 张", 2], ["优先发货", "VIP 优先排单", 2], ["专属客服", "VIP 通道", 3], ["延保 88 折", "会员专享", 3], ["拯救者 9 折", "游戏装备专享", 4], ["YOGA 专享", "设计师礼盒", 4], ["酒店权益", "合作酒店折扣", 5], ["生活特权", "美团/星巴克券", 5]];
+          const rightsGrid = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>会员权益（${rights.filter((r) => r[2] <= lv).length}/11 已解锁）</h3></div><div class="lx-rights-grid">${rights.map((r) => `<div class="cell${r[2] > lv ? " locked" : ""}" data-quick-ask="会员权益详情：${esc(r[0])}"><strong>${r[0]}</strong><span>${r[1]} · V${r[2]}+</span></div>`).join("")}</div></div>`;
+          const acts = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>会员活动</h3></div><div class="lx-floor-body">${[["会员日", "每月 18 日双倍乐豆"], ["0 元试用", "新品先体验后购买"], ["会员秒杀", "专属低价场次"], ["新品首发", "优先购买资格"]].map((a) => `<div class="lx-floor-card" data-quick-ask="会员活动：${esc(a[0])}详情"><strong>${a[0]}</strong><span>${a[1]}</span></div>`).join("")}</div></div>`;
+          const mall = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>乐豆兑换商城</h3><span>乐豆当钱花</span><button class="lx-p0-btn primary" type="button" data-quick-ask="乐豆商城能兑换什么，帮我推荐">去兑换</button></div><div class="lx-floor-body">${[["鼠标垫", "500 豆"], ["无线鼠标", "2900 豆"], ["延保 1 年", "5000 豆"], ["蓝牙耳机", "9900 豆"]].map((g) => `<div class="lx-floor-card" data-quick-ask="用乐豆兑换${esc(g[0])}"><strong>${g[0]}</strong><span>${g[1]}</span></div>`).join("")}</div></div>`;
+          const quick = `<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-quick-ask="查我的会员等级、乐豆余额、优惠券和可领取权益">让乐享整理我的权益</button><button class="lx-p0-btn" type="button" data-quick-ask="帮我做会员测评，看看我适合冲哪个等级">会员测评</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button></div>`;
+          lxOpenInfoTab("member", "会员中心", hero + assets + sign + tierTable + rightsGrid + acts + mall + quick + `<p class="lx-p0-disclaimer" style="margin-top:10px">会员数据为演示口径，正式上线对接联想会员系统。</p>`);
         }
 
         function openCouponCenter() {
@@ -2283,6 +2320,13 @@
             }
           };
 
+          document.addEventListener("input", (event) => {
+            const ta = event.target.closest?.(".composer textarea");
+            if (!ta) return;
+            if (/@$/.test(ta.value)) lxShowRefPicker();
+            else lxHideRefPicker();
+          });
+
           document.addEventListener("keydown", (event) => {
             if (["Enter", " "].includes(event.key)) {
               const brandFocus = event.target.closest?.("[data-brand-focus]");
@@ -2438,6 +2482,18 @@
               if (floor) floor.scrollIntoView({ behavior: "smooth", block: "start" });
               else contentBox?.scrollTo({ top: 0, behavior: "smooth" });
             }
+
+            const refPick = event.target.closest("[data-ref-pick]");
+            if (refPick) {
+              const item = (state._refItems || [])[Number(refPick.dataset.refPick)];
+              if (item) {
+                lxSetRef(`${item.who}: ${item.text}`);
+                const ta = document.querySelector(".composer textarea");
+                if (ta) { ta.value = ta.value.replace(/@$/, ""); ta.focus(); }
+              }
+              lxHideRefPicker();
+            } else if (!event.target.closest(".lx-ref-picker")) lxHideRefPicker();
+            if (event.target.closest("[data-ref-clear]")) lxSetRef(null);
 
             const trailHit = event.target.closest("[data-trail-tab]");
             if (trailHit) {
