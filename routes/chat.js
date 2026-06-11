@@ -45,6 +45,10 @@ const FRONTEND_DISPATCH = {
   frontend_lead:     (r, _, defer) => defer('lead', { title: r.title || '留下您的联系方式', desc: r.desc || '', fields: r.fields || [], scenario: r.scenario || '' }),
   // AI 权益管家：到手价瀑布即时 send（重内容，跟左侧文字同步出）
   frontend_benefit:  (r, send) => send('benefit', { title: r.title || 'AI 权益管家', product: r.product || {}, waterfall: r.waterfall || [], discount_total: r.discount_total || 0, final_price: r.final_price || 0, final_text: r.final_text || '', tco: r.tco || [], audit: r.audit || [], usage: r.usage || '' }),
+  // 官方货盘推荐（aigc.lenovo.com.cn 真实价格+购买链接，重内容即时 send）
+  frontend_official_products: (r, send) => send('official_products', { title: r.title || '联想官方在售推荐', products: r.products || [] }),
+  // 通用选择框：需要用户在固定选项中选择时（城市/规格/方式），对话内出 quick-reply
+  frontend_choices: (r, send) => send('choices', { title: r.title || '请选择', options: r.options || [], ask_template: r.ask_template || '{choice}' }),
 };
 
 // ── 音频上传配置 ──

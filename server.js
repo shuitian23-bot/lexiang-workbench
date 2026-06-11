@@ -445,6 +445,18 @@ app.get('/api/products/:sku/variants', (req, res) => {
   });
 });
 
+// 联想乐享官方 FAQ 运营位（首屏建议 chips 用真实运营内容，服务端缓存 10 分钟）
+app.get('/api/leai2/faq', async (req, res) => {
+  try {
+    const leai = require('./core/leai_client');
+    const faq = await leai.getFaq();
+    res.set('Cache-Control', 'no-store');
+    res.json({ questions: faq });
+  } catch (err) {
+    res.json({ questions: [], error: err.message });
+  }
+});
+
 // 留资线索落库：前端留资弹窗提交（企业采购/政企意向/换新等场景）
 app.post('/api/leads', (req, res) => {
   const { scenario, site_type, company, contact, need, conv_id } = req.body || {};

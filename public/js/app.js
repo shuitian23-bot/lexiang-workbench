@@ -1014,6 +1014,27 @@
                 const payload = parseJson(data);
                 openLeadPanel(payload.scenario || "");
               },
+              official_products: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                const products = payload.products || [];
+                if (!products.length) return;
+                revealAi();
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-official-url="${esc(p.url)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
+                lxRevealContent();
+                const recoTab = { id: "reco", kind: "reco", label: payload.title || "官方在售推荐", products };
+                lxUpsertTab(recoTab);
+                lxRunTab(recoTab);
+              },
+              choices: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                const options = payload.options || [];
+                if (!options.length) return;
+                revealAi();
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-choices"><div class="lx-choices-title">${esc(payload.title || "请选择")}</div><div class="lx-p0-suggest">${options.map((opt) => `<button class="lx-p0-suggest-chip" type="button" data-choice="${esc(opt)}" data-choice-template="${esc(payload.ask_template || "{choice}")}">${esc(opt)}</button>`).join("")}</div></div>`);
+                ensureChat().scrollTop = ensureChat().scrollHeight;
+              },
               benefit: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -1254,6 +1275,14 @@
         };
 
         function lxProductMiniCard(product) {
+          if (product.official) {
+            return `<div class="lx-floor-product" data-official-url="${esc(product.url)}">
+            <div class="product-visual"><img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" /></div>
+            <h3 class="product-title">${esc(product.name)}<span class="lx-official-tag">官方在售</span></h3>
+            <p class="spec">${esc(product.description || "")}</p>
+            <div class="price">${money(product.price)}${product.variants > 1 ? `<span class="price-from">${product.variants} 款配置</span>` : ""}</div>
+          </div>`;
+          }
           const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
           const promos = tags.slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("");
           return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
@@ -1523,8 +1552,8 @@
               : "";
             pageBox.innerHTML = intro + products.map((p) => `
               <div class="reco-row">
-                <img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" data-open-product="${esc(p.sku)}" />
-                <div class="reco-row-main" data-open-product="${esc(p.sku)}">
+                <img src="${p.official ? esc(p.image_url) : esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" ${p.official ? `data-official-url="${esc(p.url)}"` : `data-open-product="${esc(p.sku)}"`} />
+                <div class="reco-row-main" ${p.official ? `data-official-url="${esc(p.url)}"` : `data-open-product="${esc(p.sku)}"`}>
                   <strong>${esc(p.name)}</strong>
                   <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
                   <div class="reco-row-tags">${(p.promotion_tags || []).slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("")}</div>
@@ -1532,8 +1561,9 @@
                 <div class="reco-row-side">
                   <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
                   <div class="reco-row-actions">
-                    <button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button>
-                    <button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>
+                    ${p.official
+                      ? `<button class="lx-p0-btn primary" type="button" data-official-url="${esc(p.url)}">官方购买</button><button class="lx-p0-btn" type="button" data-quick-ask="帮我在本站找和${esc(p.name)}类似的商品">找同款</button>`
+                      : `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>`}
                   </div>
                 </div>
               </div>`).join("") + compareAll + disclaimer;
@@ -1846,6 +1876,16 @@
           if (abTarget) new ResizeObserver(lxAbReflow).observe(abTarget);
         }
         setTimeout(lxRenderActionbar, 50);
+        // 首屏建议 chips 用官方 FAQ 运营位（每日更新的真实活动/问题）
+        (async () => {
+          try {
+            const res = await fetch("/api/leai2/faq", { cache: "no-store" });
+            const { questions } = await res.json();
+            if (Array.isArray(questions) && questions.length) {
+              document.querySelectorAll(".hero-suggestion").forEach((chip, index) => { if (questions[index]) chip.textContent = questions[index]; });
+            }
+          } catch {}
+        })();
 
         function lxSetHumanMode(on) {
           state.humanMode = !!on;
@@ -2386,6 +2426,16 @@
               const recoTab = (state.tabs || []).find((tab) => tab.id === "reco");
               const product = (recoTab?.products || []).find((p) => p.sku === recoCompare.dataset.recoCompare);
               if (product) addCompare(product);
+            }
+
+            const officialUrl = event.target.closest("[data-official-url]")?.dataset.officialUrl;
+            if (officialUrl) window.open(officialUrl, "_blank", "noopener");
+
+            const choiceBtn = event.target.closest("[data-choice]");
+            if (choiceBtn) {
+              const ask = (choiceBtn.dataset.choiceTemplate || "{choice}").replace("{choice}", choiceBtn.dataset.choice);
+              choiceBtn.closest(".lx-choices")?.querySelectorAll("button").forEach((b) => { b.disabled = true; b.classList.toggle("is-active", b === choiceBtn); });
+              sendChat(ask);
             }
 
             const variantBtn = event.target.closest("[data-variant-sku]");
