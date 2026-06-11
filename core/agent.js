@@ -734,6 +734,13 @@ async function runAgentStream(userMessage, convId, sessionId, onChunk, onDone, {
       continue;
     }
 
+    // 偶发空首轮（无文本也无工具调用，上游模型偶现）：降级 auto 再试一轮，避免用户拿到空回复
+    if (rounds === 1 && (!streamedText || !streamedText.trim())) {
+      console.warn('[Agent] 首轮空响应(无文本无工具), auto 重试一轮');
+      forceToolChoice = null;
+      continue;
+    }
+
     // 无工具调用，已流式推送完毕
     fullText = streamedText;
     break;

@@ -4981,6 +4981,7 @@
       .lx-addr-form { margin-top: 8px; }
       .lx-human-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; padding: 8px 12px; border: 1px solid var(--lx-border); border-radius: 8px; background: var(--lx-surface-muted); font-size: 12.5px; color: var(--lx-aubergine); }
       .lx-p0-message.human { border-left: 3px solid var(--lx-aubergine); }
+      .lx-tabbar[hidden], .lx-ent-banner[hidden], .lx-human-banner[hidden] { display: none !important; }
 
       .lx-p1-upload-note {
         display: none;
@@ -6752,6 +6753,7 @@
           }
           if (!product) return;
           state.currentProduct = product;
+          lxRevealContent();
           if (product.sku) lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku });
           document.querySelector(".content")?.setAttribute("data-view", "detail");
           document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
@@ -7146,6 +7148,12 @@
                 const products = payload.products || [];
                 revealAi();
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
+                if (products.length) {
+                  lxRevealContent();
+                  const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products };
+                  lxUpsertTab(recoTab);
+                  lxRunTab(recoTab);
+                }
               },
               display: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7156,6 +7164,7 @@
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                 // 所推即所见：AI 推荐同步落右侧「AI 推荐」标签并展开商品墙（PRD 5.2/6.5）
                 if (products.length) {
+                  lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
                   lxUpsertTab(recoTab);
                   lxRunTab(recoTab);
@@ -7406,6 +7415,14 @@
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "list");
             content?.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+
+        // 自动全屏对话态下，AI 产出可看内容时退出全屏、展开右侧（按需出现）
+        function lxRevealContent() {
+          if (state.autoFs && document.body.classList.contains("assistant-fullscreen")) {
+            document.body.classList.remove("assistant-fullscreen");
+            state.autoFs = false;
           }
         }
 
@@ -7783,8 +7800,11 @@
             if (!textarea) return;
             const value = textarea.value;
             if (textarea.closest(".hero-composer")) {
+              // 首页直接提问：进入全屏对话（大白屏），右侧内容按需出现（PRD 5.0：右侧仅在有可看内容时展开）
               sendChat(value);
               routeTo("personal");
+              state.autoFs = true;
+              document.body.classList.add("assistant-fullscreen");
             } else {
               sendChat(value);
             }
@@ -7873,6 +7893,8 @@
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               state.page = page;
               if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
+              // 用户主动切站：退出自动全屏对话态
+              if (state.autoFs) { document.body.classList.remove("assistant-fullscreen"); state.autoFs = false; }
               setTimeout(loadProductsForPage, 0);
               setTimeout(lxRenderEnterpriseBanner, 0);
             }
