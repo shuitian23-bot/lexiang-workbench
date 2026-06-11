@@ -6625,3 +6625,40 @@ body[data-page="home"] .hero-suggestion-row {
     width: 260px;
   }
 }
+
+/* Product review Scheme B radius correction */
+.content[data-view="detail"] .detail-reviews-section.lx-review-b {
+  border-radius: 8px !important;
+}
+
+/* Product review Scheme B outer spacing correction */
+.content[data-view="detail"] .detail-reviews-section.lx-review-b {
+  max-width: none !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Home hero center alignment correction */
+body[data-page="home"] .portal-agent {
+  justify-content: center !important;
+}
+
+body[data-page="home"] .agent-copy {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  justify-self: center !important;
+  transform: translateY(clamp(6px, 1vh, 14px)) !important;
+}
+
+body[data-page="home"] .agent-title,
+body[data-page="home"] .agent-summary,
+body[data-page="home"] .hero-composer,
+body[data-page="home"] .hero-suggestion-cloud {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+body[data-page="home"] .hero-suggestion-cloud {
+  transform: none !important;
+}
