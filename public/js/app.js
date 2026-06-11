@@ -455,6 +455,7 @@
           loadProductDetailImages(product);
           ensureDetailCompareButton();
           ensureDetailSimilarButton();
+          ensureDetailBenefitButton();
           loadFitReason(product);
           loadSpuVariants(product);
         }
@@ -514,6 +515,16 @@
           btn.className = "detail-secondary lx-p0-detail-similar";
           btn.type = "button";
           btn.textContent = "找相似";
+          actions.appendChild(btn);
+        }
+
+        function ensureDetailBenefitButton() {
+          const actions = $(".detail-actions");
+          if (!actions || $(".lx-p0-detail-benefit", actions)) return;
+          const btn = document.createElement("button");
+          btn.className = "detail-secondary lx-p0-detail-benefit";
+          btn.type = "button";
+          btn.textContent = "算到手价";
           actions.appendChild(btn);
         }
 
@@ -1295,7 +1306,7 @@
             const seckill = (state.products || []).slice(0, 3).map((p) => `<div class="lx-sim-card lx-seckill-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-seckill-info"><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div><span class="lx-seckill-desc">${esc(p.description || "官方优惠，库存以实际下单页为准")}</span></div></div>`).join("");
             box.innerHTML = categoryFloors + [
               lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill || ""}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
-              lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", quickCard("学生认证享专属价", "小学到博士及应届高考生均可认证", "学生认证和教育优惠怎么享受？") + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？")),
+              lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", `<div class="lx-floor-card" data-stu-auth><strong>学生认证享专属价</strong><span>小学到博士及应届高考生均可认证</span></div>` + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？"), `<button class="lx-p0-btn primary" type="button" data-edu-zone>进入教育专区</button>`),
               lxFloorSection("门店与服务", "线上下单，到店体验", quickCard("附近门店", "查门店、看库存、约到店服务", "帮我查附近的联想门店和到店权益") + quickCard("上门服务", "安装、清灰、换电池、数据迁移", "联想上门服务都有什么项目？"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
               lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", quickCard("乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？") + quickCard("领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"), `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
             ].join("");
@@ -1328,6 +1339,69 @@
             node.textContent = `${h}:${m}:${s}`;
           });
         }, 1000);
+
+        // ── 学生认证 mock（PRD 5.7.2：教育价前置，复用企业认证状态机模式）──
+        const LX_STU_KEY = "lexiang.student.v1";
+        const LX_STU_REVIEW_MS = 12000;
+
+        function lxStuState() {
+          try {
+            const raw = JSON.parse(localStorage.getItem(LX_STU_KEY) || "null");
+            const stu = raw && typeof raw === "object" ? raw : { status: "none" };
+            if (stu.status === "pending" && stu.submittedAt && Date.now() - stu.submittedAt > LX_STU_REVIEW_MS) {
+              stu.status = "verified";
+              localStorage.setItem(LX_STU_KEY, JSON.stringify(stu));
+            }
+            return stu;
+          } catch { return { status: "none" }; }
+        }
+
+        function lxSaveStuState(stu) {
+          try { localStorage.setItem(LX_STU_KEY, JSON.stringify(stu)); } catch {}
+          if (state.activeTabId === "info:edu") openEduZone();
+        }
+
+        function openStudentAuth() {
+          const stu = lxStuState();
+          if (stu.status === "verified") {
+            openModal("学生认证已通过", `<div class="lx-ent-status ok"><strong>${esc(stu.name || "同学")}</strong> 已通过学生身份认证</div><ul class="lx-md-list"><li>教育专享价已生效，可与国家补贴叠加</li><li>部分机型支持 12 期免息与赠原装配件</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-edu-zone>逛教育特惠专区</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线对接学信网核验。</p>`);
+            return;
+          }
+          if (stu.status === "pending") {
+            openModal("学生认证审核中", `<div class="lx-ent-status pending">「${esc(stu.name || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境约 10 秒自动通过；正式环境 1-5 天，结果在教育专区与本弹窗回显。</p>`);
+            return;
+          }
+          openModal("学生身份认证", `
+            <p class="lx-p0-disclaimer">覆盖小学到博士及应届高考生，认证后享教育专享价，可与国补叠加。</p>
+            <input class="lx-p0-field" id="lxStuName" placeholder="姓名（必填）">
+            <input class="lx-p0-field" id="lxStuSchool" placeholder="学校名称">
+            <input class="lx-p0-field" id="lxStuStage" placeholder="学历阶段，如 本科 / 硕士 / 高三应届">
+            <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-stu-submit>提交认证</button></div>`);
+        }
+
+        // 教育特惠专区（右侧信息标签页）：认证状态 + 教育货盘 + 国补叠加 + 算到手价
+        async function openEduZone() {
+          const stu = lxStuState();
+          let pool = [];
+          try {
+            const response = await fetch("/api/products?site=shop&limit=24", { cache: "no-store" });
+            pool = (await response.json()).filter((p) => p.category === "笔记本电脑").slice(0, 8);
+          } catch {}
+          const statusBar = stu.status === "verified"
+            ? `<div class="lx-ent-banner"><span class="lx-ent-badge ok">已认证</span><span class="lx-ent-text"><strong>${esc(stu.name || "同学")}</strong> 教育专享价已生效，下方为认证后价格（演示）</span></div>`
+            : stu.status === "pending"
+              ? `<div class="lx-ent-banner"><span class="lx-ent-badge pending">审核中</span><span class="lx-ent-text">学生认证审核中，通过后自动解锁教育专享价</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
+              : `<div class="lx-ent-banner"><span class="lx-ent-badge">未认证</span><span class="lx-ent-text">学生/教师认证后享教育专享价，并可与国家补贴叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`;
+          const cards = pool.map((p) => {
+            const eduPrice = Math.round(Number(p.price || 0) * 0.95);
+            const priceHtml = stu.status === "verified"
+              ? `<div class="lx-sim-price">教育价 ¥${eduPrice.toLocaleString()} <s class="lx-edu-orig">¥${Number(p.price || 0).toLocaleString()}</s></div>`
+              : `<div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div><span class="lx-edu-hint">认证后享教育价</span>`;
+            return `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div>${priceHtml}</div>`;
+          }).join("");
+          const rules = `<div class="lx-floor" style="margin-top:14px"><div class="lx-floor-head"><h3>国补叠加规则</h3><span>教育价与国家补贴可叠加，逐层计算</span><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我算下教育优惠+国补叠加后的到手价，按学生身份">算到手价</button></div><ul class="lx-md-list"><li>第一层：教育专享价（认证学生/教师）</li><li>第二层：国家补贴 15%（目录内机型）</li><li>第三层：教育认证券与会员券叠加</li></ul><p class="lx-p0-disclaimer">演示口径：教育价按 95 折模拟，实际优惠以商品页与结算页为准。</p></div>`;
+          lxOpenInfoTab("edu", "教育特惠专区", `${statusBar}<div class="lx-sim-grid" style="margin-top:14px">${cards || '<p class="lx-p0-disclaimer">教育货盘加载中，可稍后重试。</p>'}</div>${rules}`);
+        }
 
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业" };
@@ -2149,7 +2223,8 @@
                 lxSetAutoFs(true);
                 return;
               }
-              if (text.includes("教育特惠") || text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
+              if (text.includes("教育特惠")) openEduZone();
+              else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
               else if (text.includes("退出人工") || text.includes("我的订单") || text.includes("发图片") || text.includes("评价服务") || text.includes("需求清单")) { /* 人工模式按钮走 data-* 委托 */ }
               else if (text.includes("客服")) lxShowServiceCard();
@@ -2169,9 +2244,10 @@
             }
 
             if (event.target.closest(".detail-primary")) buyNow();
-            if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar)")) addCart();
+            if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit)")) addCart();
             if (event.target.closest(".lx-p0-detail-compare")) addCompare();
             if (event.target.closest(".lx-p0-detail-similar")) openSimilarProducts();
+            if (event.target.closest(".lx-p0-detail-benefit")) sendChat(`帮我算${state.currentProduct?.name || "这款商品"}叠加教育优惠和国家补贴后的到手价`);
 
             const detailTab = event.target.closest("[data-detail-tab]");
             if (detailTab) {
@@ -2351,6 +2427,30 @@
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
+            if (event.target.closest("[data-stu-auth]")) openStudentAuth();
+            if (event.target.closest("[data-edu-zone]")) { closeModal(); openEduZone(); }
+            if (event.target.closest("[data-stu-submit]")) {
+              const name = $("#lxStuName")?.value.trim();
+              const school = $("#lxStuSchool")?.value.trim();
+              const stage = $("#lxStuStage")?.value.trim();
+              if (!name) toast("请填写姓名");
+              else {
+                lxSaveStuState({ status: "pending", name, school, stage, submittedAt: Date.now() });
+                closeModal();
+                toast("认证资料已提交，审核中");
+                fetch("/api/leads", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ scenario: "student_auth", site_type: "shop", contact: name, need: `学生认证：${school || ""} ${stage || ""}`.trim(), conv_id: state.convId || null })
+                }).catch(() => {});
+                setTimeout(() => {
+                  if (lxStuState().status === "verified") {
+                    toast("学生认证已通过，教育专享价已生效");
+                    if (state.activeTabId === "info:edu") openEduZone();
+                  }
+                }, LX_STU_REVIEW_MS + 500);
+              }
+            }
             if (event.target.closest("[data-open-ent]")) openEnterpriseAuth();
             if (event.target.closest("[data-ent-submit]")) {
               const company = $("#lxEntCompany")?.value.trim();
