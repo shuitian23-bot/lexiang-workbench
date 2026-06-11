@@ -509,9 +509,30 @@
             const range = payload.price_min && payload.price_max && payload.price_min !== payload.price_max
               ? `¥${Number(payload.price_min).toLocaleString()} - ¥${Number(payload.price_max).toLocaleString()}`
               : "";
+            // 标签去重：specs 相同的款（差异在颜色等名称细节）退化为「名称差异词」，保证每款可区分
+            let labels = variants.map((variant) => lxVariantLabel(variant, product.name));
+            if (new Set(labels).size < labels.length) {
+              const split = (s) => String(s || "").split(/[\s｜|/，,（）()]+/).filter(Boolean);
+              const tokenLists = variants.map((v) => split(v.name));
+              const common = tokenLists[0].filter((t) => tokenLists.every((list) => list.includes(t)));
+              labels = variants.map((v, i) => {
+                const diff = tokenLists[i].filter((t) => !common.includes(t)).slice(0, 3).join(" ");
+                return diff || labels[i];
+              });
+              // 二次去重：差异词仍同名（如同名定制款）→ 追加价格；再同 → 序号
+              const seen = {};
+              labels = labels.map((label, i) => {
+                if (labels.indexOf(label) !== i || labels.lastIndexOf(label) !== i) {
+                  const withPrice = `${label} ¥${Number(variants[i].price || 0).toLocaleString()}`;
+                  label = withPrice;
+                }
+                seen[label] = (seen[label] || 0) + 1;
+                return seen[label] > 1 ? `${label}（款${seen[label]}）` : label;
+              });
+            }
             box.innerHTML = `
               <div class="lx-spu-head">本系列共 ${variants.length} 款配置${range ? ` · ${range}` : ""}<button class="lx-p0-btn lx-spu-compare" type="button" data-spu-compare>对比本系列</button></div>
-              <div class="lx-spu-chips">${variants.map((variant) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(lxVariantLabel(variant, product.name))}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
+              <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
             box.hidden = false;
           } catch {}
         }
@@ -652,8 +673,8 @@
           }
           state.pendingOrderProduct = { ...item, benefits: claimed, original_price: item.price, price: finalPrice || item.price };
           state.pendingOrderAddr = addr;
-          const rows = claimed.map((c) => `<div class="lx-bf-row"><div class="lx-bf-main"><strong>✓ ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
-          openModal("确认订单 · 优惠已自动领取", `
+          const rows = claimed.map((c, i) => `<div class="lx-bf-row lx-claim-row" style="animation-delay:${(i * 0.35).toFixed(2)}s"><div class="lx-bf-main"><strong><i class="lx-claim-check" style="animation-delay:${(i * 0.35 + 0.18).toFixed(2)}s">✓</i> ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
+          openModal("确认订单 · 正在为你领取优惠…", `
             <div class="lx-p0-row" style="align-items:center">
               <img src="${esc(imgUrl(item.image_url))}" alt="" style="width:64px;height:52px;object-fit:contain;background:#fff;border-radius:6px;flex:none" />
               <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>标价 ¥${Number(item.price || 0).toLocaleString()}</span></div>
@@ -667,6 +688,12 @@
             </div>
             <button class="lx-p0-btn primary" type="button" data-occ-confirm style="width:100%;margin-top:12px">确认下单</button>
             <p class="lx-p0-disclaimer">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`);
+          // 领券动画收尾：全部领完后标题落定
+          const settleMs = claimed.length * 350 + 500;
+          setTimeout(() => {
+            const title = document.querySelector(".lx-p0-modal-mask.show .lx-p0-modal-title");
+            if (title && title.textContent.includes("正在")) title.textContent = `确认订单 · 已领取 ${claimed.length} 项优惠`;
+          }, settleMs);
         }
 
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）

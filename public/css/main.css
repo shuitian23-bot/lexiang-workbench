@@ -6029,3 +6029,11 @@
       .lx-spu-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; }
       .lx-spu-chip-label { font-size: 12px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
       .lx-spu-chip-price { font-weight: 700; }
+      .lx-spu-chip-label { white-space: normal; word-break: break-word; }
+
+      /* 一键领优惠：领券动画（逐项滑入 + 勾弹入 + 到手价行最后浮现） */
+      .lx-claim-row { opacity: 0; animation: lxClaimIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+      @keyframes lxClaimIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+      .lx-claim-check { display: inline-block; font-style: normal; color: var(--lx-brand-red); transform: scale(0); animation: lxCheckPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+      @keyframes lxCheckPop { to { transform: scale(1); } }
+      .lx-bf-list .lx-bf-row.final { opacity: 0; animation: lxClaimIn 0.5s 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
