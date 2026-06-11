@@ -319,7 +319,8 @@ sudo pm2 start lexiang
 多人 + 多 AI session 共改一个仓库，已发生多次互相覆盖事故（2026-06-11 又一起）。以下规则强制执行：
 
 1. **git 是唯一事实源**：改动完成立即 commit + push，禁止改完不提交长期裸奔在工作区。开工前发现他人有未提交改动 → 先 `git add` + `checkpoint:` 快照提交保护起来，再开自己的工。
-2. **编辑互斥锁**：修改共享热点文件（`public/index.html`、`public/admin/*`、`server.js`、`core/*`）之前，先执行 `scripts/edit-lock.sh claim <你的标识> <文件>`。提示 BLOCKED 说明有人正在改 → 先沟通，不要硬改。完工后 `release`。锁超 2 小时自动过期。
+2. **编辑互斥锁**：修改共享热点文件（`public/index.html`、`public/css/main.css`、`public/js/portal.js`、`public/js/app.js`、`public/admin/*`、`server.js`、`core/*`）之前，先执行 `scripts/edit-lock.sh claim <你的标识> <文件>`。提示 BLOCKED 说明有人正在改 → 先沟通，不要硬改。完工后 `release`。锁超 2 小时自动过期。
+   > 2026-06-11 起前台单文件已拆分：样式在 `public/css/main.css`，首页脚本在 `public/js/portal.js`，应用主逻辑在 `public/js/app.js`，`index.html` 只剩标记结构——改样式/逻辑请去对应文件，冲突面大幅缩小。js/css 已设为协商缓存，改完即生效无需担心浏览器缓存。
 3. **覆盖前乐观锁检查**：任何「整文件覆盖」式写入（cp 部署、脚本生成、AI 重写整文件）之前，必须 diff 当前线上文件与你开始编辑时的基线副本；不一致 = 有人并行改过 → **停止覆盖**，先把对方改动 checkpoint 入库，重新取基线把自己的改动重放上去，再部署。
 4. **AI session 标准编辑循环**：取基线（cp 现场文件 → 工作副本）→ 编辑工作副本 → 部署前 diff 基线 vs 现场（变了回到上一步）→ 覆盖部署 → 立即 commit + push → release 锁。
 5. **领域分工**：前台 `public/index.html` 与后台 `public/admin/*` 尽量不跨域同时开工；需要跨域改动先在群里说一声。

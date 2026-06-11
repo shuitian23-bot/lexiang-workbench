@@ -98,7 +98,8 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '7d',
   etag: true,
   setHeaders: function(res, filePath) {
-    if (filePath.endsWith('.html')) {
+    // html/js/css 一律协商缓存（ETag 304），避免拆分后 js/css 被 7d 强缓存导致改动不生效
+    if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     }
   }
