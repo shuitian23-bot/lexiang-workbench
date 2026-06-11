@@ -5007,6 +5007,8 @@
       .lx-floor-countdown { font-size: 12.5px; color: var(--lx-text-secondary); }
       .lx-floor-countdown b { color: var(--lx-brand-red); font-variant-numeric: tabular-nums; }
       .lx-floor-tag { font-size: 11px; color: #fff; background: var(--lx-brand-red); border-radius: 4px; padding: 1px 5px; margin-left: 4px; font-weight: 400; }
+      .lx-floor-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; grid-column: 1 / -1; }
+      .lx-floor[data-floor-cat] { scroll-margin-top: 56px; }
 
       .lx-p1-upload-note {
         display: none;
@@ -7436,7 +7438,60 @@
           return end.getTime();
         }
 
-        function lxRenderSiteFloors() {
+        // 站内商品分类竖向楼层：分类 tab 即锚点，每个分类一层（PRD v2.3 楼层化，对齐 lenovo.com.cn）
+        const LX_CATEGORY_MATCHERS = {
+          personal: [
+            ["小新", (p) => /小新/.test(p.name)],
+            ["拯救者", (p) => /拯救者|Legion/i.test(p.name)],
+            ["YOGA", (p) => /YOGA/i.test(p.name)],
+            ["ThinkPad", (p) => /ThinkPad|ThinkBook/i.test(p.name)],
+            ["手机", (p) => p.category === "手机" || /moto/i.test(p.name)],
+            ["配件", (p) => ["耳机", "包袋", "键鼠相关", "显示器", "平板电脑"].includes(p.category)],
+          ],
+          business: [
+            ["ThinkCentre", (p) => /ThinkCentre/i.test(p.name)],
+            ["ThinkBook", (p) => /ThinkBook/i.test(p.name)],
+            ["ThinkPad", (p) => /ThinkPad/i.test(p.name)],
+            ["商用台式机", (p) => p.category === "台式机" || /扬天|瑞天/.test(p.name)],
+            ["显示器", (p) => p.category === "显示器"],
+            ["服务", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
+          ],
+          enterprise: [
+            ["政教采购", (p) => /信创|开天|启天|昭阳/.test(p.name)],
+            ["大企业", (p) => /ThinkStation|ThinkSystem/i.test(p.name)],
+            ["工作站", (p) => p.category === "工作站"],
+            ["服务器", (p) => p.category === "服务器"],
+            ["安全服务", (p) => p.category === "服务产品"],
+          ],
+        };
+
+        function lxProductMiniCard(product) {
+          return `<div class="lx-sim-card" data-open-product="${esc(product.sku)}"><img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name)}" loading="lazy" /><div class="lx-sim-name">${esc(product.name)}</div><div class="lx-sim-price">¥${Number(product.price || 0).toLocaleString()}</div></div>`;
+        }
+
+        async function lxRenderCategoryFloors(box) {
+          const page = state.page;
+          const matchers = LX_CATEGORY_MATCHERS[page];
+          if (!matchers) return "";
+          const site = API_SITE[page] || "shop";
+          if (!state.floorProducts || state.floorProductsSite !== site) {
+            try {
+              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=48`, { cache: "no-store" });
+              state.floorProducts = await response.json();
+              state.floorProductsSite = site;
+            } catch { state.floorProducts = []; }
+          }
+          const pool = Array.isArray(state.floorProducts) ? state.floorProducts : [];
+          const used = new Set();
+          return matchers.map(([label, match]) => {
+            const items = pool.filter((p) => !used.has(p.sku) && match(p)).slice(0, 5);
+            items.forEach((p) => used.add(p.sku));
+            if (!items.length) return "";
+            return `<section class="lx-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
+        async function lxRenderSiteFloors() {
           const grid = document.querySelector(".product-grid");
           if (!grid) return;
           let box = document.querySelector("[data-site-floors]");
@@ -7449,10 +7504,12 @@
           const page = state.page;
           if (!["personal", "business", "enterprise"].includes(page)) { box.hidden = true; return; }
           box.hidden = false;
+          const categoryFloors = await lxRenderCategoryFloors(box);
+          if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
             const seckill = (state.products || []).slice(0, 3).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div></div>`).join("");
-            box.innerHTML = [
+            box.innerHTML = categoryFloors + [
               lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill || ""}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
               lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", quickCard("学生认证享专属价", "小学到博士及应届高考生均可认证", "学生认证和教育优惠怎么享受？") + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？")),
               lxFloorSection("门店与服务", "线上下单，到店体验", quickCard("附近门店", "查门店、看库存、约到店服务", "帮我查附近的联想门店和到店权益") + quickCard("上门服务", "安装、清灰、换电池、数据迁移", "联想上门服务都有什么项目？"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
@@ -7461,14 +7518,14 @@
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
-            box.innerHTML = [
+            box.innerHTML = categoryFloors + [
               lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
               lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
               lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
               lxFloorSection("门店与服务", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
             ].join("");
           } else {
-            box.innerHTML = [
+            box.innerHTML = categoryFloors + [
               lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", ["智慧教育", "数字政府", "智慧医疗", "智能制造", "智慧金融", "智能基础设施"].map((industry) => quickCard(industry, "方案 · 案例 · 选型指南", `介绍${industry}整体解决方案和成功案例`)).join("")),
               lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", quickCard("信创整机", "开天/启天系列，麒麟/统信适配", "信创合规的电脑怎么选？") + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？")),
               lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
@@ -8034,6 +8091,16 @@
               const closeId = event.target.closest("[data-tab-close]")?.dataset.tabClose;
               if (closeId) lxCloseTab(closeId);
               else lxActivateTab(tabHit.dataset.tabId);
+            }
+
+            // 分类 tab = 楼层锚点：推荐回到顶部商品墙，其余滚动到对应分类楼层
+            const catTab = event.target.closest(".category-tabs button");
+            if (catTab) {
+              const label = catTab.textContent.trim();
+              const contentBox = document.querySelector(".content");
+              const floor = document.querySelector(`[data-floor-cat="${label}"]`);
+              if (floor) floor.scrollIntoView({ behavior: "smooth", block: "start" });
+              else contentBox?.scrollTo({ top: 0, behavior: "smooth" });
             }
 
             const trailHit = event.target.closest("[data-trail-tab]");
