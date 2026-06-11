@@ -5234,7 +5234,8 @@
         .lx-floor--service .lx-floor-body,
         .lx-floor--member .lx-floor-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
-      .lx-floor-products { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(16px, 1.25vw, 24px); grid-column: 1 / -1; }
+      .lx-floor-products { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: clamp(13px, 1vw, 19px); grid-column: 1 / -1; }
+      @media (min-width: 1680px) { .lx-floor-products { grid-template-columns: repeat(5, minmax(150px, 1fr)); } }
       .lx-floor-product {
         min-height: clamp(286px, 31.5vh, 390px);
         padding: clamp(20px, 2.3vh, 30px) clamp(16px, 1.15vw, 22px) clamp(20px, 2vh, 26px);
@@ -5264,7 +5265,7 @@
         text-overflow: ellipsis;
       }
       .lx-floor-product .price { margin-top: auto; }
-      @media (max-width: 1280px) { .lx-floor-products { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+      @media (max-width: 1280px) { .lx-floor-products { grid-template-columns: repeat(3, minmax(150px, 1fr)); } }
       .lx-floor[data-floor-cat] { scroll-margin-top: 56px; }
       body[data-page="home"][data-state="chat"] .assistant-panel { display: block; }
       body[data-page="home"][data-state="chat"] .assistant-restore { display: none; }
