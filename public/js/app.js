@@ -1315,6 +1315,15 @@
           return end.getTime();
         }
 
+        function lxFormatCountdown(target) {
+          let remain = Number(target) - Date.now();
+          if (remain <= 0) remain = Number(lxSeckillCountdown()) - Date.now();
+          const h = String(Math.floor(remain / 3600000)).padStart(2, "0");
+          const m = String(Math.floor((remain % 3600000) / 60000)).padStart(2, "0");
+          const s = String(Math.floor((remain % 60000) / 1000)).padStart(2, "0");
+          return `${h}:${m}:${s}`;
+        }
+
         // 站内商品分类竖向楼层：分类 tab 即锚点，每个分类一层（PRD v2.3 楼层化，对齐 lenovo.com.cn）
         const LX_CATEGORY_MATCHERS = {
           personal: [
@@ -1397,7 +1406,7 @@
           const page = state.page;
           if (!["personal", "business", "enterprise"].includes(page)) { box.hidden = true; return; }
           box.hidden = false;
-          const categoryFloors = await lxRenderCategoryFloors(box);
+          const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box);
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
@@ -1459,8 +1468,9 @@
               ["券", "一键领", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"],
               ["0", "元试用", "0元试用", "会员专享热门新品试用", "会员 0 元试用有什么新品？"]
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
+            const seckillEnd = lxSeckillCountdown();
             box.innerHTML = categoryFloors + [
-              lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
+              lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${seckillEnd}">${lxFormatCountdown(seckillEnd)}</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
               lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", eduCards, `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`),
               lxFloorSection("门店与服务", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
               lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", memberCards, `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
