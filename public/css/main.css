@@ -6013,4 +6013,6 @@
 .content[data-view="detail"] .detail-thumbs { display: none !important; }
 .content[data-view="detail"] .detail-visual { background: transparent !important; }
 .content[data-view="detail"] .detail-main { border-radius: 8px !important; }
+.content[data-view="detail"] .detail-main { max-width: none !important; }
+.content[data-view="detail"] .detail-main { margin: 0 !important; }
 
