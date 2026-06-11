@@ -5476,3 +5476,8 @@
       .lx-suggest-item .num { color: var(--lx-aubergine); font-weight: 600; font-size: 12px; flex: none; }
       .lx-suggest-item .txt { color: var(--lx-text); }
       .lx-suggest-item .sub { font-size: 11px; color: var(--lx-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      /* 商详 CTA 分层：主行=购买/加购大按钮；辅助行=小号 ghost，降低视觉密度 */
+      .detail-actions { align-items: center; }
+      .lx-p0-detail-compare, .lx-p0-detail-similar, .lx-p0-detail-benefit, .lx-p0-detail-quote, .lx-p0-detail-wp { font-size: 12px !important; padding: 6px 14px !important; border-color: var(--lx-border) !important; color: var(--lx-text-secondary) !important; }
+      .lx-p0-detail-compare:hover, .lx-p0-detail-similar:hover, .lx-p0-detail-benefit:hover, .lx-p0-detail-quote:hover, .lx-p0-detail-wp:hover { border-color: var(--lx-aubergine) !important; color: var(--lx-aubergine) !important; }

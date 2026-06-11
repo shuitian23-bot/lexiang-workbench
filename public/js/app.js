@@ -543,7 +543,7 @@
             const price = $("[data-detail-price]");
             if (price && !price.textContent.includes("参考")) price.insertAdjacentHTML("beforeend", `<span class="lx-edu-hint" style="margin-left:8px">参考价 · 以正式报价为准</span>`);
           } else {
-            if (primary) { primary.textContent = "一键领优惠"; delete primary.dataset.bizQuote; }
+            if (primary) { primary.textContent = "立即购买"; delete primary.dataset.bizQuote; }
             if (cart) cart.hidden = false;
             if (benefit) benefit.hidden = false;
             if (quote) quote.hidden = true;
@@ -1108,17 +1108,14 @@
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const steps = Array.isArray(payload.waterfall) ? payload.waterfall : [];
-                if (!steps.length) {
-                  openModal(payload.title || "AI 权益管家", `<p class="lx-p0-disclaimer">${esc(payload.final_text || "已整理可用权益，可继续让联想乐享核算到手价。")}</p>`);
-                  return;
-                }
+                if (!steps.length) return; // 无明细时对话文本已足够，不再重复弹层
                 const rows = steps.map((step) => {
                   const minus = Number(step.amount) < 0;
                   const amountText = `${minus ? "-" : ""}¥${Math.abs(Math.round(Number(step.amount) || 0)).toLocaleString()}`;
                   return `<div class="lx-bf-row${step.kind === "base" ? " base" : ""}"><div class="lx-bf-main"><strong>${esc(step.label || "")}</strong>${step.reason ? `<span>${esc(step.reason)}</span>` : ""}</div><b class="${minus ? "minus" : ""}">${amountText}</b></div>`;
                 }).join("");
                 const finalRow = payload.final_price ? `<div class="lx-bf-row final"><div class="lx-bf-main"><strong>预计到手价</strong>${payload.discount_total ? `<span>共可省 ¥${Math.abs(Math.round(payload.discount_total)).toLocaleString()}</span>` : ""}</div><b>¥${Math.round(payload.final_price).toLocaleString()}</b></div>` : "";
-                openModal(payload.title || "AI 权益管家", `<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
+                lxOpenInfoTab("benefit", "到手价明细", `${payload.title ? `<p class="lx-md-p" style="font-size:13px">${esc(payload.title)}</p>` : ""}<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`);
               },
               solutions: (data) => {
                 if (nonce !== state.conversationNonce) return;
