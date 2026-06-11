@@ -4991,6 +4991,22 @@
       .lx-spu-chip.is-active { border-color: var(--lx-brand-red); background: var(--lx-surface-hover); }
       .lx-spu-chip-label { font-size: 12.5px; color: var(--lx-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lx-spu-chip-price { font-size: 12.5px; color: var(--lx-brand-red); font-weight: 700; }
+      .lx-site-floors { display: grid; gap: 18px; margin: 26px 0 40px; }
+      .lx-site-floors[hidden] { display: none !important; }
+      .content[data-view="detail"] .lx-site-floors, .content[data-view="home"] .lx-site-floors, .content[data-view="brand"] .lx-site-floors { display: none; }
+      .lx-floor { border: 1px solid var(--lx-border); border-radius: 12px; background: #fff; padding: 16px 18px; }
+      .lx-floor-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+      .lx-floor-head h3 { font-size: 16px; color: var(--lx-text); }
+      .lx-floor-head span { font-size: 12.5px; color: var(--lx-text-tertiary); flex: 1; }
+      .lx-floor-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+      .lx-floor-card { border: 1px solid var(--lx-border); border-radius: 8px; padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; background: var(--lx-bg, #F8F6FA); }
+      .lx-floor-card:hover { border-color: var(--lx-aubergine); }
+      .lx-floor-card strong { font-size: 13.5px; color: var(--lx-text); }
+      .lx-floor-card span { font-size: 12px; color: var(--lx-text-secondary); }
+      .lx-floor-seckill { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; grid-column: 1 / -1; }
+      .lx-floor-countdown { font-size: 12.5px; color: var(--lx-text-secondary); }
+      .lx-floor-countdown b { color: var(--lx-brand-red); font-variant-numeric: tabular-nums; }
+      .lx-floor-tag { font-size: 11px; color: #fff; background: var(--lx-brand-red); border-radius: 4px; padding: 1px 5px; margin-left: 4px; font-weight: 400; }
 
       .lx-p1-upload-note {
         display: none;
@@ -6523,6 +6539,7 @@
             const products = await response.json();
             state.products = Array.isArray(products) ? products : [];
             renderProductCards();
+            if (state.page === "personal") lxRenderSiteFloors();
           } catch (error) {
             toast("商品数据暂时不可用，已保留当前页面展示");
           }
@@ -7407,6 +7424,69 @@
           }
         }
 
+        // ── 子站竖向楼层（PRD 5.5/v2.3 楼层化：商品之外的服务/门店/会员/方案内容，对齐 lenovo.com.cn）──
+        function lxFloorSection(title, sub, body, cta) {
+          return `<section class="lx-floor"><div class="lx-floor-head"><h3>${esc(title)}</h3>${sub ? `<span>${esc(sub)}</span>` : ""}${cta || ""}</div><div class="lx-floor-body">${body}</div></section>`;
+        }
+
+        function lxSeckillCountdown() {
+          const now = new Date();
+          const end = new Date(now);
+          end.setHours(now.getHours() + (2 - (now.getHours() % 2)), 0, 0, 0);
+          return end.getTime();
+        }
+
+        function lxRenderSiteFloors() {
+          const grid = document.querySelector(".product-grid");
+          if (!grid) return;
+          let box = document.querySelector("[data-site-floors]");
+          if (!box) {
+            box = document.createElement("div");
+            box.className = "lx-site-floors";
+            box.setAttribute("data-site-floors", "");
+            grid.after(box);
+          }
+          const page = state.page;
+          if (!["personal", "business", "enterprise"].includes(page)) { box.hidden = true; return; }
+          box.hidden = false;
+          const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
+          if (page === "personal") {
+            const seckill = (state.products || []).slice(0, 3).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div></div>`).join("");
+            box.innerHTML = [
+              lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill || ""}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
+              lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", quickCard("学生认证享专属价", "小学到博士及应届高考生均可认证", "学生认证和教育优惠怎么享受？") + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？")),
+              lxFloorSection("门店与服务", "线上下单，到店体验", quickCard("附近门店", "查门店、看库存、约到店服务", "帮我查附近的联想门店和到店权益") + quickCard("上门服务", "安装、清灰、换电池、数据迁移", "联想上门服务都有什么项目？"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", quickCard("乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？") + quickCard("领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"), `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
+            ].join("");
+          } else if (page === "business") {
+            const ent = lxEntState();
+            const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
+            box.innerHTML = [
+              lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
+              lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
+              lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              lxFloorSection("门店与服务", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+            ].join("");
+          } else {
+            box.innerHTML = [
+              lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", ["智慧教育", "数字政府", "智慧医疗", "智能制造", "智慧金融", "智能基础设施"].map((industry) => quickCard(industry, "方案 · 案例 · 选型指南", `介绍${industry}整体解决方案和成功案例`)).join("")),
+              lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", quickCard("信创整机", "开天/启天系列，麒麟/统信适配", "信创合规的电脑怎么选？") + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？")),
+              lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
+            ].join("");
+          }
+        }
+
+        setInterval(() => {
+          document.querySelectorAll("[data-lx-countdown]").forEach((node) => {
+            let remain = Number(node.dataset.lxCountdown) - Date.now();
+            if (remain <= 0) { node.dataset.lxCountdown = String(lxSeckillCountdown()); remain = Number(node.dataset.lxCountdown) - Date.now(); }
+            const h = String(Math.floor(remain / 3600000)).padStart(2, "0");
+            const m = String(Math.floor((remain % 3600000) / 60000)).padStart(2, "0");
+            const s = String(Math.floor((remain % 60000) / 1000)).padStart(2, "0");
+            node.textContent = `${h}:${m}:${s}`;
+          });
+        }, 1000);
+
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业" };
 
@@ -7946,6 +8026,7 @@
               if (state.autoFs) { document.body.classList.remove("assistant-fullscreen"); state.autoFs = false; }
               setTimeout(loadProductsForPage, 0);
               setTimeout(lxRenderEnterpriseBanner, 0);
+              setTimeout(lxRenderSiteFloors, 0);
             }
 
             const tabHit = event.target.closest("[data-tab-close], [data-tab-id]");
@@ -8195,6 +8276,11 @@
                 toast("开票信息已保存");
               }
             }
+            const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
+            if (floorAction === "stores") openStoresPanel();
+            else if (floorAction === "member") openMemberCenter();
+            else if (floorAction === "coupon") openCouponCenter();
+            else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-open-ent]")) openEnterpriseAuth();
