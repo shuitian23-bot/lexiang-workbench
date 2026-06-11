@@ -532,7 +532,7 @@
               });
             }
             box.innerHTML = `
-              <div class="lx-spu-head">本系列共 ${variants.length} 款配置${range ? ` · ${range}` : ""}<button class="lx-p0-btn lx-spu-compare" type="button" data-spu-compare>对比本系列</button></div>
+              <div class="lx-spu-head"><span>本系列共 ${variants.length} 款配置${range ? ` · <b>${range}</b>` : ""}</span><button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button></div>
               <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
             box.hidden = false;
           } catch {}
@@ -624,7 +624,7 @@
             const response = await fetch(`/api/products/${encodeURIComponent(product.sku)}/reason`, { cache: "no-store" });
             const payload = await response.json();
             if (token !== fitReasonToken || !payload.reason) return;
-            node.innerHTML = `<strong>✨ 适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">AI 生成 · 仅供参考</span>`;
+            node.innerHTML = `<span class="lx-fit-icon" aria-hidden="true">✨</span><span class="lx-fit-text"><strong>适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">AI 生成 · 仅供参考</span></span>`;
             node.hidden = false;
           } catch {}
         }
