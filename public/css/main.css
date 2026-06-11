@@ -6017,4 +6017,5 @@
 .content[data-view="detail"] .detail-main { margin: 0 !important; }
 .content[data-view="detail"] .detail-product-image { height: auto !important; }
 .content[data-view="detail"] .detail-visual { width: auto !important; }
+.content[data-view="detail"] .detail-visual { max-width: none !important; }
 
