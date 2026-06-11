@@ -1268,8 +1268,16 @@
         height: clamp(70px, 8.4vh, 104px);
         display: flex;
         align-items: center;
-        gap: clamp(36px, 3.65vw, 70px);
+        gap: clamp(20px, 2.4vw, 52px);
         padding-left: clamp(26px, 2.2vw, 42px);
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: thin;
+      }
+
+      .category-tabs button {
+        white-space: nowrap;
+        flex: none;
       }
 
       .category-tabs button {
@@ -3445,6 +3453,7 @@
 
       .detail-actions {
         display: flex;
+        flex-wrap: wrap;
         gap: 12px;
         margin-bottom: 25px;
       }
@@ -3452,9 +3461,11 @@
       .detail-primary,
       .detail-secondary {
         height: 42px;
-        padding: 0 26px;
+        padding: 0 clamp(14px, 1.4vw, 26px);
         border-radius: 999px;
-        font-size: 16px;
+        font-size: clamp(13px, 0.95vw, 16px);
+        white-space: nowrap;
+        flex: none;
       }
 
       .detail-primary {
