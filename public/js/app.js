@@ -1549,7 +1549,7 @@
           const page = state.page;
           if (!["personal", "business", "enterprise"].includes(page)) { box.hidden = true; return; }
           box.hidden = false;
-          const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box);
+          const categoryFloors = await lxRenderCategoryFloors(box);
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
