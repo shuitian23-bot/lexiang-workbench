@@ -1714,8 +1714,9 @@
             if (document.querySelector(".lx-ref-picker")) return; // @引用优先
             const hit = lxDetectSuggest(ta.value);
             if (!hit) return;
-            const composer = ta.closest(".composer");
+            const composer = ta.closest(".composer, .hero-composer");
             if (!composer) return;
+            state._suggestTa = ta;
             composer.style.position = "relative";
             composer.insertAdjacentHTML("beforeend", `<div class="lx-suggest-panel"><div class="lx-suggest-title">${esc(hit.title)}</div>${hit.options.map((o, i) => `<div class="lx-suggest-item" data-suggest-pick="${i}" data-suggest-key="${hit.key}"><span class="num">${i + 1}.</span><span class="txt">${esc(o[0])}</span>${o[1] ? `<span class="sub">${esc(o[1])}</span>` : ""}</div>`).join("")}</div>`);
             state._suggestHit = hit;
@@ -1724,7 +1725,7 @@
 
         function lxApplySuggest(index) {
           const hit = state._suggestHit;
-          const ta = document.querySelector(".composer textarea");
+          const ta = state._suggestTa || document.querySelector(".composer textarea");
           if (!hit || !ta) return;
           const opt = hit.options[index];
           if (!opt) return;
@@ -2511,10 +2512,11 @@
           });
 
           document.addEventListener("input", (event) => {
-            const ta = event.target.closest?.(".composer textarea");
+            const ta = event.target.closest?.(".composer textarea, .hero-composer textarea");
             if (!ta) return;
-            if (/@$/.test(ta.value)) { lxShowRefPicker(); lxHideSuggest(); }
-            else { lxHideRefPicker(); lxComposerSuggest(ta); }
+            const isHero = !!ta.closest(".hero-composer");
+            if (!isHero && /@$/.test(ta.value)) { lxShowRefPicker(); lxHideSuggest(); }
+            else { if (!isHero) lxHideRefPicker(); lxComposerSuggest(ta); }
           });
 
           document.addEventListener("keydown", (event) => {
@@ -2675,7 +2677,7 @@
 
             const suggestItem = event.target.closest("[data-suggest-pick]");
             if (suggestItem) { lxApplySuggest(Number(suggestItem.dataset.suggestPick)); return; }
-            if (!event.target.closest(".lx-suggest-panel") && !event.target.closest(".composer textarea")) lxHideSuggest();
+            if (!event.target.closest(".lx-suggest-panel") && !event.target.closest(".composer textarea") && !event.target.closest(".hero-composer textarea")) lxHideSuggest();
 
             const pickBtn = event.target.closest("[data-pick-sku]");
             if (pickBtn) {
