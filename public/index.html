@@ -7,7 +7,7 @@
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>联想乐享AI - 联想官方AI购物助手</title>
+<title>乐享+ - 联想官方AI购物助手</title>
 <script>
 // BUILD 标记（仅记录，不再强制 redirect 加 ?_v=）
 // HTML 已 no-cache + ETag 关，浏览器正常拿全新；早期为绕 disk cache 的 redirect 已废弃
@@ -22,8 +22,8 @@ try {
   }
 } catch(e){}
 </script>
-<meta name="description" content="联想乐享AI官方购物助手，智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
-<meta property="og:title" content="联想乐享AI - 联想官方AI购物助手">
+<meta name="description" content="乐享+官方购物助手，智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
+<meta property="og:title" content="乐享+ - 联想官方AI购物助手">
 <meta property="og:description" content="智能导购、商品对比、优惠查询、企业方案，让购买联想产品更简单高效。">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://leaibot.cn/favicon.svg">
@@ -117,7 +117,7 @@ o=o||{};var s=o.size||20,c=o.color||'currentColor';var svg=_ic[e];if(!svg)return
 *{margin:0;padding:0;box-sizing:border-box}
 /* ════ LIGHT ════ */
 :root,[data-theme="light"]{
-  /* === 联想乐享 PC UI 规范 v1.0 token === */
+  /* === 乐享+ PC UI 规范 v1.0 token === */
   --bg:#F7F5FB;--bg-chat:#ffffff;
   --text:#252525;--text2:#454545;--text3:#606060;--text-placeholder:#979797;
   --border:#E2DDEB;--card:#FCFAFF;--card2:#fff;
@@ -1139,21 +1139,25 @@ html[data-site="biz"] .subnav-extra{display:flex}
 .mall-sec-skeleton{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .mall-sec-skeleton .skel{height:240px;border-radius:10px;background:linear-gradient(90deg,var(--card) 0%,var(--border) 50%,var(--card) 100%);background-size:200% 100%;animation:skelpulse 1.4s ease-in-out infinite}
 @keyframes skelpulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.mall-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.mall-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .25s;background:var(--card)}
+.mall-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.mall-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .25s;background:var(--card);display:flex;flex-direction:column;min-height:330px}
 .mall-card:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-3px)}
-.mall-img{height:160px;background:#fff;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;overflow:hidden}
+.mall-img{height:185px;background:#fff;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;overflow:hidden;flex:0 0 auto}
 .mall-img img{width:100%;height:100%;object-fit:contain}
-.mall-info{padding:12px 14px 14px}
-.mall-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mall-desc{font-size:11px;color:var(--text2);margin-bottom:8px}
-.mall-price{font-size:17px;font-weight:800;color:var(--accent)}
+.mall-info{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.mall-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mall-desc{font-size:12px;color:var(--text2);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-promos{display:flex;align-items:center;justify-content:center;gap:8px;min-height:26px;margin-top:auto;flex-wrap:wrap}
+.product-promo{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border:1px solid #ef8f9b;border-radius:4px;color:#e23644;background:#fff;font-size:12px;line-height:1;white-space:nowrap}
+.mall-price{font-size:18px;font-weight:800;color:#ff2f2f;text-align:center;margin-top:2px}
+.mall-price-suffix{font-size:12px;margin-left:2px;font-weight:600;color:#ff2f2f}
 .mall-original{font-size:11px;color:#999;text-decoration:line-through;font-weight:400;margin-left:4px}
 .mall-features{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding:32px 0 40px;border-top:1px solid var(--border)}
 .mall-feat-item{text-align:center}
 .mall-feat-icon{width:56px;height:56px;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;border:1px solid var(--border)}
 .mall-feat-item h3{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)}
 .mall-feat-item p{font-size:12px;color:var(--text2);line-height:1.6}
+@media(max-width:1280px){.mall-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:900px){.mall-grid{grid-template-columns:repeat(2,1fr)}.mall-features{grid-template-columns:1fr;gap:20px}.wrap{padding:0 16px}}
 @media(max-width:600px){.mall-hero{height:200px}.mall-grid{grid-template-columns:repeat(2,1fr)}}
 
@@ -1372,14 +1376,14 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   </div>
 </nav>
 <div class="hero-wrap"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div><div class="blob blob4"></div><section class="hero">
-  <h1 id="heroTitle">你好，我是联想乐享</h1>
+  <h1 id="heroTitle">你好，我是乐享+</h1>
   <p id="heroSubtitle" style="display:none"></p>
   <div class="search"><input type="text" placeholder="最近有什么促销活动？" id="heroInput" autocomplete="off"><button class="send-btn" id="heroSend" aria-label="发送"><svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></button></div>
   <div class="tags" id="heroTags"></div>
   <div class="qpills" id="qpills" style="margin-top:18px"></div>
   <script>window.__renderSiteHero = function(){
     var SITE_HERO = {
-      'default': { title:'你好，我是联想乐享', sub:'联想乐享 · 个人/家庭/企业全场景咨询',
+      'default': { title:'你好，我是乐享+', sub:'乐享+ · 个人/家庭/企业全场景咨询',
         tags:[['商品导购','我想买一台笔记本电脑，能帮我推荐吗？'],['解决方案','联想有哪些适合企业的解决方案？'],['门店查询','__store__'],['我的权益','我购买的联想产品质保和售后怎么查？'],['预约服务','我想预约联想服务，请问如何预约？']],
         chips:['最近有什么促销活动？','办公用5000元左右怎么选？','Y7000P和R7000P选哪个？','帮我推荐一款ThinkPad','小新Pro 14值得买吗？','拯救者系列有哪些旗舰机型？','联想会员有哪些专属权益？','想买游戏本，预算8000怎么选？'] },
       'shop':    { title:'你好，乐享个人 / 家庭购', sub:'游戏本 / 轻薄本 / 一体机 · 学生认证 + 会员折扣 + 12 期免息',
@@ -1641,7 +1645,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
   <div><h5>产品服务</h5><a>PC产品</a><a>显示设备</a><a>配件周边</a></div>
   <div><h5>支持</h5><a>帮助中心</a><a>售后服务</a><a>驱动下载</a></div>
   <div><h5>法律声明</h5><a>隐私政策</a><a>使用条款</a></div>
-</div><div class="fbot">© 2026 联想乐享 版权所有 | ICP备案号: 京ICP备12345678号</div></footer>
+</div><div class="fbot">© 2026 乐享+ 版权所有 | ICP备案号: 京ICP备12345678号</div></footer>
 <script>
 (function(){
   // 按 data-site 控显: shop 隐 b/biz 模块, b/biz 隐 shop 模块, default 全隐
@@ -1699,7 +1703,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
             <circle cx="22" cy="22" r="22" fill="#E12521"/>
             <text x="22" y="29" text-anchor="middle" fill="white" font-size="20" font-weight="700" font-family="Arial,sans-serif">L</text>
           </svg>
-          联想乐享
+          乐享+
         </div>
         <button class="new-btn" id="newConvBtn" onclick="openChatFresh()">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1738,8 +1742,8 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
     <div class="msgs-wrap" id="msgsWrap">
       <div id="msgsInner">
         <div class="welcome" id="welcomeScreen">
-          <h2>你好，我是<span class="grad">联想乐享</span></h2>
-          <p>联想乐享，随时为你解答产品、优惠、解决方案相关问题</p>
+          <h2>你好，我是<span class="grad">乐享+</span></h2>
+          <p>乐享+，随时为你解答产品、优惠、解决方案相关问题</p>
           <div class="wgrid">
             <div class="wcard" onclick="quickAsk('帮我推荐学生用的小新本，再看下能用的优惠券')"><strong>多任务并行</strong>推荐机型 + 查优惠券（一句话两件事）</div>
             <div class="wcard" onclick="quickAsk('我想定制一台 ThinkPad X1 Carbon，给我女朋友刻字「Forever Yours」')"><strong>CTO 定制</strong>选配置 + 刻字 + 礼盒</div>
@@ -1801,7 +1805,7 @@ window.__siteType=_siteType;window.__chatBase=_siteType==='default'?'/chat':'/'+
           </div>
         </div>
       </div>
-      <div class="input-hint">内容由联想乐享AI生成，仅供参考</div>
+      <div class="input-hint">内容由乐享+生成，仅供参考</div>
     </div>
   </div>
   <div class="preview-panel" id="previewPanel">
@@ -1993,7 +1997,7 @@ const I18N = {
   zh: {
     title: '',
     placeholder: '向乐享提问…',
-    hint: '内容由联想乐享AI生成，仅供参考',
+    hint: '内容由乐享+生成，仅供参考',
     newConv: '新建对话',
     history: '历史记录',
     noHistory: '暂无历史记录',
@@ -2004,7 +2008,7 @@ const I18N = {
     share: '分享',
     shareSuccess: '链接已复制！',
     welcomeTitle: '有什么我能帮你的吗？',
-    welcomeSub: '联想乐享，随时为你解答产品、优惠、商品对比相关问题',
+    welcomeSub: '乐享+，随时为你解答产品、优惠、商品对比相关问题',
     wCards: [
       ['帮我选购商品','帮我选购商品'],
       ['有哪些优惠商品？','有哪些优惠商品？'],
@@ -2014,7 +2018,7 @@ const I18N = {
     ],
     siteWelcome: {
       'shop': {
-        title: '联想乐享 · 个人/家庭',
+        title: '乐享+ · 个人/家庭',
         sub: '随时为你解答产品、优惠、商品对比相关问题',
         cards: [['帮我选购商品','帮我选购商品'],['有哪些优惠商品？','有哪些优惠商品？'],['商品参数性能对比','商品参数性能对比'],['我要查找订单','我要查找订单'],['我要预约维修','我要预约维修']]
       },
@@ -3621,6 +3625,30 @@ function _renderUnifiedProductCard(p, variant) {
   var prodKey = p.sku || p.SKU || String(p.id || '');
   var disclosed = isPriceDisclosed(price);
   var hasOrig = disclosed && isPriceDisclosed(origPrice) && Number(origPrice) > Number(price);
+  function buildProductPromos(item) {
+    var src = []
+      .concat(item.promos || [])
+      .concat(item.promo_tags || [])
+      .concat(item.tags || [])
+      .concat(item.coupon_tags || []);
+    var clean = [];
+    src.forEach(function(t){
+      t = String(t || '').replace(/^huanxin-/, '').trim();
+      if (t && clean.indexOf(t) < 0) clean.push(t);
+    });
+    var text = rawName + ' ' + desc;
+    if (!clean.length) {
+      if (/教育|学生|校园|小新|ThinkBook|ThinkPad|YOGA/i.test(text)) clean.push('教育特惠');
+      if (/国补|补贴|政府|政教|拯救者|YOGA|小新/i.test(text)) clean.push('国补优惠');
+      if (/券|优惠|减|满/i.test(text)) clean.push('官方优惠');
+      if (/换新|以旧|延保|质保|服务/i.test(text)) clean.push('以旧换新');
+    }
+    if (clean.length < 2) clean.push(clean.indexOf('官方优惠') < 0 ? '官方优惠' : '限时优惠');
+    return clean.slice(0, 2);
+  }
+  var promoHtml = buildProductPromos(p).map(function(t){
+    return '<span class="product-promo">' + escHtml(t) + '</span>';
+  }).join('');
   if (variant === 'mall' && p.sku) {
     mallProducts[p.sku] = {
       name: rawName, slogan: desc, price: disclosed ? formatPrice(price) : '暂未公布',
@@ -3646,7 +3674,7 @@ function _renderUnifiedProductCard(p, variant) {
   var priceCls = variant === 'dc' ? 'dc-card-price' : 'mall-price';
   var origCls  = variant === 'dc' ? 'dc-orig'       : 'mall-original';
   var priceHtml = '<div class="' + priceCls + '">' +
-    (disclosed ? formatPrice(price) : '暂未公布') +
+    (disclosed ? formatPrice(price) + (variant === 'mall' ? '<span class="mall-price-suffix">起</span>' : '') : '暂未公布') +
     (hasOrig ? '<span class="' + origCls + '">' + formatPrice(origPrice) + '</span>' : '') +
     '</div>';
 
@@ -3674,6 +3702,7 @@ function _renderUnifiedProductCard(p, variant) {
     '<div class="mall-info">' +
       '<div class="mall-name">' + name + '</div>' +
       '<div class="mall-desc">' + escHtml(desc.substring(0, 40)) + '</div>' +
+      (promoHtml ? '<div class="product-promos">' + promoHtml + '</div>' : '') +
       priceHtml +
     '</div>' +
     hoverActions +
@@ -5134,7 +5163,7 @@ function _buildHbStep1() {
     <div class="hb-card-head">
       <div class="hb-ico">${__leaiIcon('🧧',{size:24})}</div>
       <div class="hb-info">
-        <div class="hb-title">联想乐享消费红包</div>
+        <div class="hb-title">乐享+消费红包</div>
         <div class="hb-sub">限时活动 · 购平板立减¥100</div>
       </div>
     </div>
@@ -6567,7 +6596,7 @@ window.LxBehavior = (function(){
             '<button onclick="document.getElementById(\'lxNewbieGift\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer">×</button>' +
             '<div style="font-size:44px">🎁</div>' +
             '<div style="font-size:20px;font-weight:800;margin:8px 0 4px;color:#B8252E">新人专享礼包</div>' +
-            '<div style="font-size:13px;color:#666;margin-bottom:16px">首次光临联想乐享，送你这些 ↓</div>' +
+            '<div style="font-size:13px;color:#666;margin-bottom:16px">首次光临乐享+，送你这些 ↓</div>' +
             '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;font-size:13px;text-align:left">' +
               '<div style="background:#fff5f5;border:1px dashed #4D144A;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between"><span>🎫 ¥300 新人无门槛券</span><b style="color:#B8252E">已放入账户</b></div>' +
               '<div style="background:#fff5f5;border:1px dashed #4D144A;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between"><span>📅 12 期免息（部分机型）</span><b style="color:#B8252E">已激活</b></div>' +
@@ -6652,9 +6681,9 @@ window.LxBehavior = (function(){
         '📤 分享',
         function(){
           if (navigator.share) {
-            navigator.share({ title: '联想乐享 AI 推荐', text: text + '...', url: location.href }).catch(function(){});
+            navigator.share({ title: '乐享+ AI 推荐', text: text + '...', url: location.href }).catch(function(){});
           } else {
-            navigator.clipboard.writeText(text + '... 来自联想乐享 ' + location.href);
+            navigator.clipboard.writeText(text + '... 来自乐享+ ' + location.href);
             window.LxStatus && window.LxStatus.toast('链接已复制，去微信粘贴吧', { type: 'success' });
           }
         });
@@ -7763,6 +7792,6 @@ window.openServicePlus = openServicePlus;
   }
 })();
 </script>
-<script src="/split-layout.js?v=20260602-input-match-b"></script>
+<script src="/split-layout.js?v=20260611-hide-return"></script>
 </body>
 </html>

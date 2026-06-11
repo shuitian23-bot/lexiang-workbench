@@ -591,7 +591,7 @@
       shop:    { t:'个人及家庭', s:'小新 / 拯救者 / YOGA · 高性价比之选', bg:'linear-gradient(120deg,#7b2ff7,#4D144A)' },
       b:       { t:'中小企业',   s:'ThinkPad / ThinkBook · 5 年质保 + 批采返点 + 工程师上门', bg:'linear-gradient(120deg,#1e4d8c,#0a2a5e)' },
       biz:     { t:'政教及大企业', s:'信创合规 + 等保 2.0 + 国密 · 端到数据中心一站交付', bg:'linear-gradient(120deg,#a01e2e,#5e0a14)' },
-      'default': { t:'联想乐享', s:'全场景智能导购 · 随时为你解答产品/优惠/方案', bg:'linear-gradient(120deg,#4D144A,#B8252E)' }
+      'default': { t:'乐享+', s:'全场景智能导购 · 随时为你解答产品/优惠/方案', bg:'linear-gradient(120deg,#4D144A,#B8252E)' }
     };
     var b = BANNERS[data.site] || BANNERS['default'];
     container.innerHTML = '<div class="cp-sh-banner" style="background:' + b.bg + '"><h1>' + escH(b.t) + '</h1><p>' + escH(b.s) + '</p></div>' +
@@ -1655,5 +1655,35 @@
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
+  }
+})();
+
+
+// Hide product-detail back-to-list button requested by UI spec.
+(function hideProductDetailReturnButton(){
+  function apply(root){
+    var scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll('button,a').forEach(function(el){
+      var text = (el.textContent || '').replace(/\s+/g, '').trim();
+      if (text === '←返回商品列表' || text === '返回商品列表') {
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+        el.setAttribute('tabindex', '-1');
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ apply(document); });
+  } else {
+    apply(document);
+  }
+  if (window.MutationObserver) {
+    new MutationObserver(function(records){
+      records.forEach(function(record){
+        Array.prototype.forEach.call(record.addedNodes || [], function(node){
+          if (node.nodeType === 1) apply(node);
+        });
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
   }
 })();
