@@ -6020,3 +6020,23 @@
 .content[data-view="detail"] .detail-visual { max-width: none !important; }
 .content[data-view="detail"] .detail-main { overflow: visible !important; }
 .content[data-view="detail"] .detail-gallery { position: sticky !important; top: 16px; align-self: start; min-height: calc(100vh - 32px); }
+.content[data-view="detail"] .lx-spu-chip-label { font-weight: 400 !important; }
+.content[data-view="detail"] .lx-spu-chip-price { font-weight: 400 !important; }
+.lx-tabbar { border-bottom: 0 !important; }
+
+
+body[data-page="home"] .hero-suggestion-cloud {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(36px, auto);
+  gap: 10px 14px !important;
+  max-height: 82px;
+  overflow: hidden;
+}
+body[data-page="home"] .hero-suggestion {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
