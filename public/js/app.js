@@ -1557,7 +1557,7 @@
             const seckill = [
               {
                 pattern: /小新\s*Pro16|Pro\s*16/i,
-                name: "小新 Pro16 2022 标压锐龙版",
+                name: "联想 小新 Pro16 2022 标压锐龙版 16英寸轻薄笔记本",
                 spec: "AMD Ryzen R5 5600H / Windows 11 家庭中文版 / 16 英寸",
                 price: "5,279",
                 old: "5,999",
@@ -1565,7 +1565,7 @@
               },
               {
                 pattern: /小新\s*16|酷睿标压/i,
-                name: "小新16 酷睿标压版",
+                name: "联想小新16 酷睿标压版 16英寸轻薄笔记本电脑",
                 spec: "第13代酷睿标压 i5-13500H / Windows 11 / 16 英寸",
                 price: "4,047",
                 old: "4,599",
@@ -1573,7 +1573,7 @@
               },
               {
                 pattern: /YOGA\s*Air14s|Air\s*14s/i,
-                name: "YOGA Air14s 2023",
+                name: "联想YOGA Air14s 2023款 14.5英寸轻薄笔记本",
                 spec: "AMD Ryzen 7 7840S / Windows 11 家庭中文版 / 14.5 英寸",
                 price: "7,039",
                 old: "7,999",
@@ -1581,13 +1581,11 @@
               }
             ].map((item) => {
               const product = findProduct(item.pattern);
-              const image = product.image_url ? imgUrl(product.image_url) : "";
-              const imageHtml = image
-                ? `<img src="${esc(image)}" alt="" loading="lazy" onerror="this.remove();this.parentElement.classList.add('is-empty')" />`
-                : "";
+              const image = "";
+              const imageHtml = "";
               const openAttr = product.sku ? `data-open-product="${esc(product.sku)}"` : `data-quick-ask="我想了解${esc(item.name)}秒杀活动"`;
               return `<article class="lx-seckill-card" ${openAttr} tabindex="0">
-                <div class="lx-seckill-media${image ? "" : " is-empty"}">${imageHtml}<span class="lx-seckill-corner">秒杀</span></div>
+                <div class="lx-seckill-media is-empty">${imageHtml}</div>
                 <div class="lx-seckill-info">
                   <h4>${esc(item.name)}</h4>
                   <p>${esc(item.spec)}</p>
@@ -1608,8 +1606,7 @@
             ].map(([title, chips, ask]) => `<article class="lx-service-card" data-quick-ask="${esc(ask)}" tabindex="0"><i class="lx-service-icon" aria-hidden="true"></i><div><h4>${esc(title)}</h4><div class="lx-service-chips">${chips.map((chip) => `<span>${esc(chip)}</span>`).join("")}</div></div><b aria-hidden="true">→</b></article>`).join("");
             const memberCards = [
               ["1000", "≈ ¥10", "乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？"],
-              ["券", "一键领", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"],
-              ["0", "元试用", "0元试用", "会员专享热门新品试用", "会员 0 元试用有什么新品？"]
+              ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             const seckillEnd = lxSeckillCountdown();
             box.innerHTML = categoryFloors + [
