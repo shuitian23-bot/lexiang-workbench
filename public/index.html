@@ -1270,15 +1270,35 @@
         align-items: center;
         gap: clamp(20px, 2.4vw, 52px);
         padding-left: clamp(26px, 2.2vw, 42px);
-        overflow-x: auto;
+        overflow: hidden;
         flex-wrap: nowrap;
-        scrollbar-width: thin;
       }
 
       .category-tabs button {
         white-space: nowrap;
         flex: none;
       }
+
+      .cat-more-wrap { position: relative; flex: none; }
+      .cat-more-wrap::after { content: ""; position: absolute; left: -10px; right: -10px; top: 100%; height: 14px; }
+      .cat-more-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 40;
+        min-width: 168px;
+        display: none;
+        flex-direction: column;
+        background: #fff;
+        border: 1px solid var(--lx-border);
+        border-radius: 10px;
+        box-shadow: 0 10px 28px rgba(46, 26, 52, 0.12);
+        padding: 6px;
+      }
+      .cat-more-wrap:hover .cat-more-menu, .cat-more-menu:hover { display: flex; }
+      .cat-more-menu button { height: auto !important; padding: 9px 12px; text-align: left; font-size: 14px !important; border-radius: 6px; }
+      .cat-more-menu button:hover { background: var(--lavender-hover); }
+      .cat-more-menu button::after { display: none !important; }
 
       .category-tabs button {
         position: relative;
@@ -1515,6 +1535,15 @@
         display: none !important;
       }
       .content[data-view="compare"] .compare-page { display: block; }
+      .info-page { display: none; padding: 4px 2px 40px; max-width: 880px; }
+      .content[data-view="info"] .hero,
+      .content[data-view="info"] .category-tabs,
+      .content[data-view="info"] .product-grid,
+      .content[data-view="info"] .product-detail,
+      .content[data-view="info"] .lx-site-floors {
+        display: none !important;
+      }
+      .content[data-view="info"] .info-page { display: block; }
       .lx-cmp-manage { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
       .lx-cmp-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; border: 1px solid var(--lx-border); border-radius: 999px; padding: 4px 6px 4px 12px; background: #fff; color: var(--lx-text-secondary); }
       .lx-cmp-chip button { border: none; background: transparent; cursor: pointer; color: var(--lx-text-tertiary); font-size: 14px; padding: 0 4px; }
@@ -7084,6 +7113,23 @@
           lxUpsertCompareTab(null, null, true);
         }
 
+        // 浏览型内容（门店/会员/领券等）统一右侧信息标签页承载，弹窗只留表单与确认（PRD 5.0 载体分工）
+        function lxEnsureInfoPage() {
+          let pageBox = document.querySelector(".info-page");
+          if (!pageBox) {
+            pageBox = document.createElement("div");
+            pageBox.className = "info-page";
+            document.querySelector(".content")?.appendChild(pageBox);
+          }
+          return pageBox;
+        }
+
+        function lxOpenInfoTab(key, label, html) {
+          const tab = { id: `info:${key}`, kind: "info", label, html };
+          lxUpsertTab(tab);
+          lxRunTab(tab);
+        }
+
         function lxEnsureComparePage() {
           let pageBox = document.querySelector(".compare-page");
           if (!pageBox) {
@@ -7387,10 +7433,11 @@
                   }).join("");
                   return `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${meta}</span>${slots ? `<div class="lx-store-slots"><span class="lx-store-slots-label">可约时段</span>${slots}</div>` : ""}</div></div>`;
                 }).join("");
-                openModal(payload.title || "联想体验店", `${perksHtml}${rows}<p class="lx-p0-disclaimer">门店与时段为演示数据，正式预约以门店确认为准。</p>`);
+                lxRevealContent();
+                lxOpenInfoTab("stores", payload.title || "联想体验店", `${perksHtml}${rows}<p class="lx-p0-disclaimer">门店与时段为演示数据，正式预约以门店确认为准。</p>`);
               },
-              coupon: () => { if (nonce === state.conversationNonce) openCouponCenter(); },
-              member: () => { if (nonce === state.conversationNonce) openMemberCenter(); },
+              coupon: () => { if (nonce === state.conversationNonce) { lxRevealContent(); openCouponCenter(); } },
+              member: () => { if (nonce === state.conversationNonce) { lxRevealContent(); openMemberCenter(); } },
               tradein: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -7568,11 +7615,37 @@
         }
 
         // 分类页签与实际楼层保持一致：推荐 + 分类楼层 + 服务楼层，全部可锚点直达
+        // PC 端不横滑：测宽放不下的页签收进「更多 ▾」悬停菜单（与 actionbar 同方案）
         function lxSyncCategoryTabs() {
           const tabsBox = document.querySelector(".category-tabs");
           if (!tabsBox || !["personal", "business", "enterprise"].includes(state.page)) return;
+          if (!tabsBox.clientWidth) return;
           const labels = ["推荐", ...[...document.querySelectorAll("[data-site-floors] [data-floor-cat]")].map((node) => node.dataset.floorCat)];
-          tabsBox.innerHTML = labels.map((label, index) => `<button type="button" class="${index === 0 ? "active" : ""}">${esc(label)}</button>`).join("");
+          const activeLabel = tabsBox.querySelector("button.active:not([data-cat-more])")?.textContent.trim();
+          const btnHtml = (label) => `<button type="button" class="${label === (activeLabel || "推荐") ? "active" : ""}">${esc(label)}</button>`;
+          tabsBox.innerHTML = labels.map(btnHtml).join("");
+          const gap = parseFloat(getComputedStyle(tabsBox).columnGap) || 36;
+          const padLeft = parseFloat(getComputedStyle(tabsBox).paddingLeft) || 30;
+          const buttons = [...tabsBox.children];
+          const widths = buttons.map((node) => node.offsetWidth);
+          const total = widths.reduce((sum, w, i) => sum + w + (i ? gap : 0), 0);
+          let fit = labels.length;
+          if (total > tabsBox.clientWidth - padLeft) {
+            const avail = tabsBox.clientWidth - padLeft - 96 - gap;
+            let used = 0;
+            fit = 0;
+            for (let i = 0; i < widths.length; i++) {
+              used += widths[i] + (i ? gap : 0);
+              if (used > avail) break;
+              fit = i + 1;
+            }
+            fit = Math.max(1, fit);
+          }
+          const visible = labels.slice(0, fit);
+          const overflow = labels.slice(fit);
+          tabsBox.innerHTML = visible.map(btnHtml).join("") + (overflow.length
+            ? `<span class="cat-more-wrap"><button type="button" data-cat-more>更多 ▾</button><div class="cat-more-menu">${overflow.map((label) => `<button type="button">${esc(label)}</button>`).join("")}</div></span>`
+            : "");
         }
 
         function lxSeckillCountdown() {
@@ -7750,6 +7823,12 @@
             lxRenderComparePage(tab);
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "compare");
+            content?.scrollTo({ top: 0, behavior: "smooth" });
+          } else if (tab.kind === "info") {
+            const pageBox = lxEnsureInfoPage();
+            pageBox.innerHTML = `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>${tab.html || ""}`;
+            const content = document.querySelector(".content");
+            content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
           }
         }
@@ -7954,7 +8033,7 @@
 
         function openMemberCenter() {
           const logged = !!state.user;
-          openModal("会员中心", `
+          lxOpenInfoTab("member", "会员中心", `
             <div class="lx-p1-strip">
               <strong>${logged ? "观同学 · V3 金卡" : "注册即得新人礼"}</strong>
               <div class="lx-p0-disclaimer">乐豆、优惠券、会员价、生日特权、优先发货等权益可继续让联想乐享整理。</div>
@@ -7980,7 +8059,7 @@
             { name: "会员新人券", desc: "注册登录后自动进入券包", value: "¥200" },
             { name: "12 期免息", desc: "以结算页显示为准", value: "免息" }
           ];
-          openModal("优惠与活动", `
+          lxOpenInfoTab("coupon", "优惠与活动", `
             <div class="lx-p1-grid">
               ${defaults.map((item) => `<div class="lx-p1-card"><strong>${item.name}</strong><span>${item.value} · ${item.desc}</span><button class="lx-p0-btn" style="margin-top:10px" data-claim-coupon="${esc(item.name)}">领取/咨询</button></div>`).join("")}
             </div>
@@ -7990,13 +8069,13 @@
         }
 
         async function openStoresPanel(address = "北京海淀") {
-          openModal("附近门店", `<p class="lx-p0-disclaimer">正在查询 ${esc(address)} 附近联想门店...</p>`);
+          lxOpenInfoTab("stores", "附近门店", `<p class="lx-p0-disclaimer">正在查询 ${esc(address)} 附近联想门店...</p>`);
           try {
             const geo = await fetch(`/api/stores/geocode?address=${encodeURIComponent(address)}`).then((r) => r.json());
             if (!geo.lat || !geo.lng) throw new Error(geo.error || "无法定位");
             const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(geo.lat)}&lng=${encodeURIComponent(geo.lng)}`).then((r) => r.json());
             const stores = data.stores || [];
-            openModal("附近门店", stores.length ? `
+            lxOpenInfoTab("stores", "附近门店", stores.length ? `
               <div class="lx-p1-strip"><strong>${esc(geo.name || address)}</strong><div class="lx-p0-disclaimer">可继续预约到店、咨询库存、门店闪送和工程师服务。</div></div>
               ${stores.slice(0, 6).map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${store.dist ? Math.round(store.dist / 100) / 10 + "km" : ""} · ${esc(store.tel || "暂无电话")}</span></div><button class="lx-p0-btn" data-quick-ask="预约${esc(store.name)}到店服务">预约</button></div>`).join("")}
             ` : `<p class="lx-p0-disclaimer">暂未查到附近门店，可以换一个地址再试。</p>`);
@@ -8006,7 +8085,7 @@
               ["联想北京望京服务网点", "朝阳区望京商圈", "维修预约 / 延保服务"],
               ["联想官方在线服务", "线上客服", "库存咨询 / 订单售后"]
             ];
-            openModal("附近门店", `
+            lxOpenInfoTab("stores", "附近门店", `
               <p class="lx-p0-disclaimer">门店接口暂时不可用，先展示常用服务入口。可继续让联想乐享按城市/区县查询。</p>
               ${fallback.map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${store[0]}</strong><span>${store[1]} · ${store[2]}</span></div><button class="lx-p0-btn" data-quick-ask="帮我预约${store[0]}，并确认营业时间和可用服务">预约</button></div>`).join("")}
               <div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我找附近联想体验店和服务网点">问联想乐享</button></div>`);
@@ -8115,7 +8194,7 @@
         }
 
         let lxAbTimer = null;
-        function lxAbReflow() { clearTimeout(lxAbTimer); lxAbTimer = setTimeout(lxRenderActionbar, 120); }
+        function lxAbReflow() { clearTimeout(lxAbTimer); lxAbTimer = setTimeout(() => { lxRenderActionbar(); lxSyncCategoryTabs(); }, 120); }
         window.addEventListener("resize", lxAbReflow);
         if (window.ResizeObserver) {
           const abTarget = document.querySelector(".assistant-bottom") || document.querySelector(".assistant-panel");
@@ -8416,7 +8495,7 @@
             }
 
             // 分类 tab = 楼层锚点：推荐回到顶部商品墙，其余滚动到对应分类楼层
-            const catTab = event.target.closest(".category-tabs button");
+            const catTab = event.target.closest(".category-tabs button:not([data-cat-more])");
             if (catTab) {
               catTab.parentElement?.querySelectorAll("button").forEach((btn) => btn.classList.toggle("active", btn === catTab));
               const label = catTab.textContent.trim();
