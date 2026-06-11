@@ -6010,4 +6010,7 @@
 .content[data-view="detail"] .detail-service strong { color: #17181A; font-size: 13px; font-weight: 700; }
 .content[data-view="detail"] .detail-service span { color: #95909E; font-size: 11px; line-height: 1.4; }
 @media (max-width: 1280px) { .content[data-view="detail"] .detail-main { grid-template-columns: 1fr; max-width: 720px; } .content[data-view="detail"] .detail-gallery { min-height: 300px; padding: 32px 24px; } .content[data-view="detail"] .detail-info { padding: 28px 24px; } }
+.content[data-view="detail"] .detail-thumbs { display: none !important; }
+.content[data-view="detail"] .detail-visual { background: transparent !important; }
+.content[data-view="detail"] .detail-main { border-radius: 8px !important; }
 
