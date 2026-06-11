@@ -470,7 +470,13 @@
           const setText = (sel, text) => { const node = $(sel); if (node) node.textContent = text; };
           setText("[data-detail-title]", product.name || "联想商品");
           setText("[data-detail-summary]", product.description || "联想官方商品，支持继续向联想乐享 AI 助手咨询选型、优惠和对比。");
-          setText("[data-detail-price]", money(product.price));
+          const priceNode = $("[data-detail-price]");
+          if (priceNode) {
+            const currentPrice = money(product.price);
+            const rawPrice = Number(product.price || 0);
+            const oldPrice = rawPrice ? `¥${Math.round(rawPrice + 400).toLocaleString()}` : "¥7,299";
+            priceNode.innerHTML = `<span class="detail-price-main">${esc(currentPrice)}</span><span class="detail-price-side"><s>${esc(oldPrice)}</s><b>省 ¥400</b></span>`;
+          }
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);

@@ -5993,8 +5993,11 @@
 .content[data-view="detail"] .lx-spu-chip-price { flex: none; color: #C8161E; font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .content[data-view="detail"] .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
 .content[data-view="detail"] .detail-tag { height: 35px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid #E5E0EC; border-radius: 999px; background: #F4F2F8; color: #4A4453; font-size: 12px; font-weight: 600; }
-.content[data-view="detail"] .detail-price { margin: 0; padding-top: 26px; border-top: 1px solid #F0EDF5; color: #C8161E; font-size: 40px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -1.5px; line-height: 1; }
-.content[data-view="detail"] .detail-price::after { content: "  ¥7,299  省 ¥400"; margin-left: 12px; color: #B9B4C2; font-size: 13px; font-weight: 400; letter-spacing: 0; text-decoration: line-through; vertical-align: 18px; }
+.content[data-view="detail"] .detail-price { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0; padding-top: 26px; border-top: 1px solid #F0EDF5; color: #C8161E; font-size: 40px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -1.5px; line-height: 1; }
+.content[data-view="detail"] .detail-price-main { color: #C8161E; font-size: 40px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -1.5px; line-height: 1; }
+.content[data-view="detail"] .detail-price-side { display: flex; flex-direction: column; gap: 5px; letter-spacing: 0; line-height: 1.2; }
+.content[data-view="detail"] .detail-price-side s { color: #B9B4C2; font-size: 13px; font-weight: 400; text-decoration: line-through; }
+.content[data-view="detail"] .detail-price-side b { width: fit-content; padding: 3px 9px; border-radius: 999px; background: #FBEFF0; color: #C8161E; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .content[data-view="detail"] .detail-actions { display: flex; flex-wrap: nowrap; gap: 12px; margin: 0; align-items: center; }
 .content[data-view="detail"] .detail-primary, .content[data-view="detail"] .detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit):not(.lx-p0-detail-quote):not(.lx-p0-detail-wp) { height: 52px; border-radius: 14px; font-size: 15px; font-family: inherit; white-space: nowrap; }
 .content[data-view="detail"] .detail-primary { flex: 1; border: 0; background: linear-gradient(135deg,#7C2058,#571641); color: #fff; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 6px 18px rgba(87,22,65,0.28); }
