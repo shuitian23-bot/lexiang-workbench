@@ -226,7 +226,12 @@
               const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
               promos.innerHTML = tags.slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("");
             }
-            if (price) price.innerHTML = `${money(product.price)}<span class="price-from">起</span>`;
+            if (price) {
+              const entOk = state.page === "business" && lxEntState().status === "verified" && Number(product.price) > 0;
+              price.innerHTML = entOk
+                ? `${money(Math.round(product.price * 0.95))}<span class="price-from">企业价</span><s class="lx-edu-orig">${money(product.price)}</s>`
+                : `${money(product.price)}<span class="price-from">起</span>`;
+            }
             if (visual) visual.innerHTML = `<img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" />`;
           });
         }
@@ -1375,9 +1380,9 @@
             ].join("");
           } else {
             box.innerHTML = categoryFloors + [
-              lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", ["智慧教育", "数字政府", "智慧医疗", "智能制造", "智慧金融", "智能基础设施"].map((industry) => quickCard(industry, "方案 · 案例 · 选型指南", `介绍${industry}整体解决方案和成功案例`)).join("")),
-              lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", quickCard("信创整机", "开天/启天系列，麒麟/统信适配", "信创合规的电脑怎么选？") + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？")),
-              lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
+              lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
+              lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
+              lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
             ].join("");
           }
           lxSyncCategoryTabs();
@@ -1455,6 +1460,67 @@
           }).join("");
           const rules = `<div class="lx-floor" style="margin-top:14px"><div class="lx-floor-head"><h3>国补叠加规则</h3><span>教育价与国家补贴可叠加，逐层计算</span><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我算下教育优惠+国补叠加后的到手价，按学生身份">算到手价</button></div><ul class="lx-md-list"><li>第一层：教育专享价（认证学生/教师）</li><li>第二层：国家补贴 15%（目录内机型）</li><li>第三层：教育认证券与会员券叠加</li></ul><p class="lx-p0-disclaimer">演示口径：教育价按 95 折模拟，实际优惠以商品页与结算页为准。</p></div>`;
           lxOpenInfoTab("edu", "教育特惠专区", `${statusBar}<div class="lx-sim-grid" style="margin-top:14px">${cards || '<p class="lx-p0-disclaimer">教育货盘加载中，可稍后重试。</p>'}</div>${rules}`);
+        }
+
+        // ── 迭代二：biz 内容页体系（PRD 5.13.2/3/6/8）──
+        const LX_SOLUTIONS = {
+          "智慧教育": { icon: "🎓", overview: "覆盖智慧教室、电子教学、校园信创替代的一体化方案，从终端到云端统一交付。", features: ["智慧教室终端（教学一体机/师生 PC）统一部署", "教学资源云平台与本地缓存加速", "校园信创替代：开天系列+国产 OS 适配", "设备资产统一管理与远程运维"], advantages: ["教育行业 Top 客户覆盖率领先", "信创目录全适配，政采流程成熟", "全国 2400+ 服务网点护航开学季"], gains: "某省属高校 8000 终端信创替代项目：交付周期缩短 40%，三年运维成本下降 30%。", cases: ["某省属重点高校 8000 台信创替代", "某市教育局智慧教室全覆盖工程"] },
+          "数字政府": { icon: "🏛️", overview: "面向政务办公与政务服务的安全可信终端与基础设施方案，满足等保与国产化要求。", features: ["政务办公信创 PC/打印外设整体配套", "等保 2.0 三级安全基线预置", "政务云资源池与超融合基础设施", "全生命周期资产管理（DaaS）"], advantages: ["政采框架入围+央采中标资质齐全", "开天系列通过主流国产 OS/CPU 兼容认证", "专属客户经理 1 对 1 长期服务"], gains: "某省级机关 1.2 万台政务终端国产化替代：单台综合成本下降 18%。", cases: ["某省级机关万台信创替代", "某市政务服务中心智能窗口改造"] },
+          "智慧医疗": { icon: "🏥", overview: "医院信息化终端、影像工作站与边缘算力方案，保障 7×24 不间断业务。", features: ["医护工作站/移动查房终端", "影像后处理高性能工作站", "院内边缘计算与数据安全网关", "7×24 快速响应运维服务包"], advantages: ["医疗行业定制机型（抗菌外壳/静音）", "与主流 HIS/PACS 厂商完成适配", "闪修与备机服务降低停机风险"], gains: "某三甲医院全院终端升级：门诊系统响应速度提升 35%，故障率下降一半。", cases: ["某三甲医院全院 3000 终端升级", "某区域影像中心 GPU 工作站集群"] },
+          "智能制造": { icon: "🏭", overview: "工厂产线工控终端、边缘 AI 质检与数字孪生算力底座，助力制造数字化。", features: ["产线工控机与工业平板", "边缘 AI 质检一体机（GPU 推理）", "数字孪生/仿真高性能工作站", "车间级设备统一管理平台"], advantages: ["联想自有工厂最佳实践复制", "宽温抗尘工业级硬件", "ThinkStation 专业认证覆盖主流工业软件"], gains: "某汽配厂边缘质检方案：漏检率下降 60%，单线人力成本省 25%。", cases: ["某汽配集团 12 条产线 AI 质检", "某家电企业数字孪生仿真平台"] },
+          "智慧金融": { icon: "🏦", overview: "网点智能化与金融信创双轨方案，兼顾体验升级与合规替代。", features: ["智能网点终端（柜面/自助/营销大屏）", "金融信创 PC 与外设整体替代", "国密合规加密终端", "双机房高可用基础设施"], advantages: ["国密 TCM/SM 系列算法机型齐备", "金融行业等保与密评经验丰富", "总分支多级交付与驻场服务"], gains: "某股份制银行 300 网点终端信创替代：业务切换零中断。", cases: ["某股份制银行 300 网点替代", "某券商核心机房超融合改造"] },
+          "智能基础设施": { icon: "🖥️", overview: "服务器、存储与超融合算力底座，支撑 AI 训练推理与企业核心业务。", features: ["问天/ThinkSystem 服务器全栈", "DE/DM 系列企业级存储", "超融合与私有云一体化交付", "AI 算力集群（训练/推理）规划部署"], advantages: ["x86 服务器全球前三供应链", "液冷技术降 PUE 至 1.1 以下", "从规划到运维全栈交付能力"], gains: "某互联网企业 AI 推理集群：算力成本下降 22%，交付周期 5 周。", cases: ["某互联网企业千卡推理集群", "某能源集团两地三中心存储"] },
+        };
+
+        const LX_WHITEPAPERS = [
+          ["信创 PC 选型指南（2026 版）", "覆盖开天/昭阳全系，含国产 OS/CPU 兼容矩阵"],
+          ["智慧教育解决方案白皮书", "智慧教室+信创替代完整方案与案例"],
+          ["政务信创替代实施手册", "等保 2.0 基线、政采流程与迁移路线图"],
+          ["金融行业国密合规指南", "TCM/SM 算法机型与密评要点"],
+          ["智能制造边缘 AI 白皮书", "产线质检与数字孪生算力规划"],
+          ["企业级服务器选型手册", "问天/ThinkSystem 全栈配置指南"],
+        ];
+
+        function openSolutionCenter(industry) {
+          if (industry && LX_SOLUTIONS[industry]) {
+            const s = LX_SOLUTIONS[industry];
+            const section = (title, body) => `<div class="lx-floor" style="margin-top:12px"><div class="lx-floor-head"><h3>${title}</h3></div>${body}</div>`;
+            const html = `
+              <button class="lx-p0-btn" type="button" data-solution-center style="margin-bottom:12px">← 返回方案中心</button>
+              <p class="lx-md-p" style="font-size:14px">${esc(s.overview)}</p>
+              ${section("方案功能", `<ul class="lx-md-list">${s.features.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`)}
+              ${section("方案优势", `<ul class="lx-md-list">${s.advantages.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>`)}
+              ${section("客户收益", `<p class="lx-md-p">${esc(s.gains)}</p>`)}
+              ${section("成功案例", s.cases.map((c) => `<div class="lx-floor-card" data-quick-ask="详细介绍这个案例：${esc(c)}"><strong>${esc(c)}</strong><span>点击让乐享详细介绍</span></div>`).join(""))}
+              <div class="lx-p0-actions" style="margin-top:14px">
+                <button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交合作意向</button>
+                <button class="lx-p0-btn" type="button" data-whitepaper>下载相关白皮书</button>
+                <button class="lx-p0-btn" type="button" data-quick-ask="按${esc(industry)}方案给我推荐具体产品配置">让乐享推荐配置</button>
+              </div>`;
+            lxOpenInfoTab("solution", `${industry}解决方案`, html);
+            return;
+          }
+          const cards = Object.entries(LX_SOLUTIONS).map(([name, s]) => `<div class="lx-floor-card" data-solution="${esc(name)}"><strong>${s.icon} ${esc(name)}</strong><span>${esc(s.overview.slice(0, 38))}…</span></div>`).join("");
+          lxOpenInfoTab("solution", "行业解决方案中心", `<div class="lx-floor-body">${cards}</div><p class="lx-p0-disclaimer">六大行业整体方案，点击查看「概述/功能/优势/收益」与同行案例。</p>`);
+        }
+
+        async function openXinchuangZone() {
+          let pool = [];
+          try {
+            const res = await fetch("/api/products?site=biz&limit=30", { cache: "no-store" });
+            pool = (await res.json()).filter((p) => /开天|昭阳|启天|问天|ThinkStation/i.test(p.name) || ["服务器", "工作站"].includes(p.category)).slice(0, 8);
+          } catch {}
+          const badges = ["政采框架入围", "央采中标", "等保 2.0 适配", "国密 TCM/SM", "麒麟/统信认证", "海光/鲲鹏/飞腾适配"].map((b) => `<span class="lx-sol-item">${b}</span>`).join("");
+          const cards = pool.map(lxProductMiniCard).join("");
+          lxOpenInfoTab("xinchuang", "信创合规专区", `
+            <div class="lx-cmp-manage" style="margin-bottom:14px">${badges}</div>
+            <div class="lx-sim-grid">${cards || '<p class="lx-p0-disclaimer">货盘加载中</p>'}</div>
+            <div class="lx-floor" style="margin-top:14px"><div class="lx-floor-head"><h3>选型支持</h3></div><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-whitepaper>下载信创选型指南</button><button class="lx-p0-btn" type="button" data-quick-ask="满足等保和国密要求的机型怎么选？">问等保国密选型</button><button class="lx-p0-btn" type="button" data-quick-ask="参与政采招投标需要什么资质支持？">问招投标支持</button></div></div>`);
+        }
+
+        function openWhitepaperLib() {
+          const rows = LX_WHITEPAPERS.map(([name, desc]) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(name)}</strong><span>${esc(desc)}</span></div><button class="lx-p0-btn primary" type="button" data-wp-download="${esc(name)}">下载</button></div>`).join("");
+          lxOpenInfoTab("whitepaper", "白皮书资料库", `${rows}<p class="lx-p0-disclaimer">下载需留下联系方式，资料将发送至您的邮箱/手机（演示环境）。</p>`);
         }
 
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
@@ -2558,6 +2624,14 @@
               const product = (recoTab?.products || []).find((p) => p.sku === recoCompare.dataset.recoCompare);
               if (product) addCompare(product);
             }
+
+            const solBtn = event.target.closest("[data-solution]");
+            if (solBtn) openSolutionCenter(solBtn.dataset.solution);
+            else if (event.target.closest("[data-solution-center]")) openSolutionCenter();
+            if (event.target.closest("[data-xinchuang]")) openXinchuangZone();
+            if (event.target.closest("[data-whitepaper]")) openWhitepaperLib();
+            const wpDownload = event.target.closest("[data-wp-download]")?.dataset.wpDownload;
+            if (wpDownload) { state.leadScenario = "whitepaper:" + wpDownload; openLeadPanel("whitepaper:" + wpDownload); }
 
             const officialUrl = event.target.closest("[data-official-url]")?.dataset.officialUrl;
             if (officialUrl) window.open(officialUrl, "_blank", "noopener");
