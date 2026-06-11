@@ -1474,6 +1474,34 @@
         display: none;
       }
 
+      .reco-page { display: none; padding: 4px 2px 40px; }
+      .content[data-view="reco"] .hero,
+      .content[data-view="reco"] .category-tabs,
+      .content[data-view="reco"] .product-grid,
+      .content[data-view="reco"] .product-detail,
+      .content[data-view="reco"] .lx-site-floors {
+        display: none !important;
+      }
+      .content[data-view="reco"] .reco-page { display: block; }
+      .reco-head { margin-bottom: 16px; }
+      .reco-head h2 { font-size: 20px; margin-bottom: 4px; }
+      .reco-head span { font-size: 13px; color: var(--lx-text-tertiary); }
+      .reco-row { display: flex; align-items: center; gap: 18px; padding: 16px; border: 1px solid var(--lx-border); border-radius: 12px; background: #fff; margin-bottom: 12px; }
+      .reco-row img { width: 150px; height: 110px; object-fit: contain; flex: none; cursor: pointer; }
+      .reco-row-main { flex: 1; min-width: 0; display: grid; gap: 6px; cursor: pointer; }
+      .reco-row-main strong { font-size: 15.5px; }
+      .reco-row-desc { font-size: 13px; color: var(--lx-text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .reco-row-tags { display: flex; gap: 6px; }
+      .reco-row-side { flex: none; text-align: right; display: grid; gap: 8px; justify-items: end; }
+      .reco-row-price { color: var(--lx-brand-red); font-size: 19px; font-weight: 700; }
+      .reco-row-actions { display: flex; gap: 8px; }
+      .reco-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+      .lx-cs-card .lx-cs-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px dashed var(--lx-border); }
+      .lx-cs-card .lx-cs-row b { color: var(--lx-aubergine); }
+      .lx-cs-human-card { display: flex; gap: 10px; align-items: flex-start; }
+      .lx-cs-avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--lx-aubergine); color: #fff; display: grid; place-items: center; font-size: 15px; }
+      .shortcut.lx-cs-exit { color: var(--lx-brand-red); border-color: var(--lx-brand-red); }
+
       .product-detail {
         display: none;
         padding-bottom: 29px;
@@ -7181,7 +7209,8 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                message: text,
+                // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
+                message: state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份。]\n\n用户问: ${text}` : text,
                 conv_id: state.convId,
                 web_search: !!document.querySelector('.composer .chip[data-mode-chip="web"].is-active'),
                 // 深度思考开关：开启时上游模型不支持工具调用（无商品卡/留资等），默认关闭走自动模式
@@ -7231,7 +7260,10 @@
                 const products = payload.products || [];
                 revealAi();
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
-                if (products.length) {
+                if (products.length === 1 && products[0].sku) {
+                  lxRevealContent();
+                  openProduct(products[0].sku);
+                } else if (products.length) {
                   lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products };
                   lxUpsertTab(recoTab);
@@ -7245,8 +7277,11 @@
                 revealAi();
                 if (payload.title && !ai.textContent.trim()) ai.textContent = payload.title;
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
-                // 所推即所见：AI 推荐同步落右侧「AI 推荐」标签并展开商品墙（PRD 5.2/6.5）
-                if (products.length) {
+                // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
+                if (products.length === 1 && products[0].sku) {
+                  lxRevealContent();
+                  openProduct(products[0].sku);
+                } else if (products.length) {
                   lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
                   lxUpsertTab(recoTab);
@@ -7622,10 +7657,10 @@
           } else if (tab.kind === "detail") {
             openProduct(tab.sku);
           } else if (tab.kind === "reco") {
-            state.products = Array.isArray(tab.products) ? tab.products : [];
-            renderProductCards();
+            // 推荐结果专属视图：只展示推荐款，不混入站点货架（最短路径）
+            lxRenderRecoPage(tab);
             const content = document.querySelector(".content");
-            content?.setAttribute("data-view", "list");
+            content?.setAttribute("data-view", "reco");
             content?.scrollTo({ top: 0, behavior: "smooth" });
           }
         }
@@ -7652,6 +7687,47 @@
           state.activeTabId = id;
           lxRenderTabbar();
           lxRunTab(tab);
+        }
+
+        // 推荐结果页：按数量分形态——2-6 款决策型大卡列表（信息足、可对比可加购），7+ 款紧凑网格快速浏览
+        function lxEnsureRecoPage() {
+          let pageBox = document.querySelector(".reco-page");
+          if (!pageBox) {
+            pageBox = document.createElement("div");
+            pageBox.className = "reco-page";
+            document.querySelector(".content")?.appendChild(pageBox);
+          }
+          return pageBox;
+        }
+
+        function lxRenderRecoPage(tab) {
+          const pageBox = lxEnsureRecoPage();
+          const products = Array.isArray(tab.products) ? tab.products : [];
+          const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>根据你的需求挑出 ${products.length} 款，可继续追问缩小范围</span></div>`;
+          const disclaimer = `<p class="lx-p0-disclaimer">推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。</p>`;
+          if (products.length <= 6) {
+            const compareAll = products.length >= 2
+              ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我对比${esc(products.map((p) => p.name).slice(0, 4).join("、"))}，给出参数对比表">对比这 ${Math.min(products.length, 4)} 款</button></div>`
+              : "";
+            pageBox.innerHTML = intro + products.map((p) => `
+              <div class="reco-row">
+                <img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" data-open-product="${esc(p.sku)}" />
+                <div class="reco-row-main" data-open-product="${esc(p.sku)}">
+                  <strong>${esc(p.name)}</strong>
+                  <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
+                  <div class="reco-row-tags">${(p.promotion_tags || []).slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("")}</div>
+                </div>
+                <div class="reco-row-side">
+                  <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
+                  <div class="reco-row-actions">
+                    <button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button>
+                    <button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>
+                  </div>
+                </div>
+              </div>`).join("") + compareAll + disclaimer;
+          } else {
+            pageBox.innerHTML = intro + `<div class="reco-grid">${products.map(lxProductMiniCard).join("")}</div>` + disclaimer;
+          }
         }
 
         function lxCloseTab(id) {
@@ -7844,25 +7920,68 @@
           `);
         }
 
-        // 转人工服务模式 mock（PRD 5.6：专属客服承接 + 清晰退出入口）
+        // 客服与转人工（对齐旧版：客服信息卡按客群差异化通道；人工模式下快捷菜单整体切换为客服操作，PRD 5.6）
+        const LX_CS_BY_SITE = {
+          default: { tel: "400-990-8888", label: "联想官方客服", queue: "综合" },
+          shop: { tel: "400-990-8888 转 1", label: "个人/家庭购客服", queue: "消费" },
+          b: { tel: "400-990-8888 转 2", label: "中小企业购客服", queue: "SMB" },
+          biz: { tel: "400-990-8888 转 3", label: "政教/大企业客服", queue: "大客户" },
+        };
+
+        function lxCsConfig() {
+          return LX_CS_BY_SITE[API_SITE[state.page] || "default"] || LX_CS_BY_SITE.default;
+        }
+
+        function lxShowServiceCard() {
+          const chat = ensureChat();
+          if (!chat) return;
+          const cs = lxCsConfig();
+          chat.insertAdjacentHTML("beforeend", `
+            <div class="lx-p0-message ai lx-cs-card">
+              <div class="lx-cs-row"><span>客服热线</span><b>${esc(cs.tel)}</b></div>
+              <div class="lx-cs-row"><span>服务时间</span><b>每天 9:00 - 21:00</b></div>
+              <div class="lx-cs-row"><span>服务通道</span><b>${esc(cs.label)}</b></div>
+              <div class="lx-p0-actions">
+                <button class="lx-p0-btn primary" type="button" data-human-on>进入人工应答</button>
+                <button class="lx-p0-btn" type="button" data-quick-ask="帮我查保修、维修进度和驱动下载">保修与维修</button>
+              </div>
+            </div>`);
+          chat.scrollTop = chat.scrollHeight;
+        }
+
+        function lxRenderShortcutRow() {
+          const row = document.querySelector(".shortcut-row");
+          if (!row) return;
+          if (state.humanMode) {
+            if (!row.dataset.origHtml) row.dataset.origHtml = row.innerHTML;
+            row.innerHTML = `
+              <button class="shortcut lx-cs-exit" type="button" data-human-off>退出人工</button>
+              <button class="shortcut" type="button" data-quick-ask="小联，帮我查最近的订单状态和物流">我的订单</button>
+              <button class="shortcut" type="button" data-cs-upload>发图片</button>
+              <button class="shortcut" type="button" data-quick-ask="给小联的服务打个 5 星好评，服务专业体验好">评价服务</button>
+              <button class="shortcut" type="button" data-quick-ask="小联，我整理一份采购需求清单发给你确认">需求清单</button>`;
+          } else if (row.dataset.origHtml) {
+            row.innerHTML = row.dataset.origHtml;
+          }
+        }
+
         function lxSetHumanMode(on) {
           state.humanMode = !!on;
           closeModal();
           const chat = ensureChat();
-          let banner = document.querySelector(".lx-human-banner");
+          const cs = lxCsConfig();
+          const composerTa = $(".composer textarea");
           if (on) {
-            if (!banner) {
-              banner = document.createElement("div");
-              banner.className = "lx-human-banner";
-              chat?.parentElement?.prepend(banner);
+            chat?.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai lx-cs-human-card"><span class="lx-cs-avatar">联</span><span><b>专属客服小联</b> 已为您接入 <b>${esc(cs.queue)}</b> 队列，下方快捷菜单已切换为人工服务。订单、售后、发票问题可直接发我。（演示：由乐享 AI 以专属客服身份接待）</span></div>`);
+            if (composerTa) {
+              if (!composerTa.dataset.origPh) composerTa.dataset.origPh = composerTa.placeholder;
+              composerTa.placeholder = "向专属客服小联提问...";
             }
-            banner.hidden = false;
-            banner.innerHTML = `<span>人工服务中 · 专属客服「小联」为您服务</span><button class="lx-p0-btn" type="button" data-human-off>退出人工</button>`;
-            addMessage("ai human", "您好，我是您的专属客服小联，已为您接入人工服务通道。订单、售后、发票等问题都可以直接发给我。（演示环境：由乐享 AI 以专属客服身份接待）");
-          } else if (banner) {
-            banner.hidden = true;
-            addMessage("ai", "已退出人工服务，继续由联想乐享 AI 为您服务。");
+          } else {
+            chat?.insertAdjacentHTML("beforeend", `<div class="lx-p0-disclaimer">已退出人工服务，继续由联想乐享 AI 为您服务。</div>`);
+            if (composerTa?.dataset.origPh) composerTa.placeholder = composerTa.dataset.origPh;
           }
+          lxRenderShortcutRow();
           if (chat) chat.scrollTop = chat.scrollHeight;
         }
 
@@ -8196,14 +8315,15 @@
               if (quick.classList.contains("hero-suggestion")) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                routeTo("personal");
-                body.dataset.state = "chat";
+                // 首页推荐 chip：同样进入全屏对话，AI 出内容才展开右侧
                 sendChat(text);
+                lxSetAutoFs(true);
                 return;
               }
               if (text.includes("教育特惠") || text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
-              else if (text.includes("客服")) openServicePanel();
+              else if (text.includes("退出人工") || text.includes("我的订单") || text.includes("发图片") || text.includes("评价服务") || text.includes("需求清单")) { /* 人工模式按钮走 data-* 委托 */ }
+              else if (text.includes("客服")) lxShowServiceCard();
               else if (text.includes("门店")) openStoresPanel();
               else if (text.includes("会员")) openMemberCenter();
               else if (text.includes("私人订制") || text.includes("定制")) sendChat("我想私人订制一台联想电脑，先按用途给我配置方案");
@@ -8338,6 +8458,13 @@
               }
               sendChat(`请整理企业/政企线索并给下一步对接建议。企业：${company || "未填写"}；需求：${need || "未填写"}；联系人：${contact || "未填写"}`);
             }
+            const recoCompare = event.target.closest("[data-reco-compare]");
+            if (recoCompare) {
+              const recoTab = (state.tabs || []).find((tab) => tab.id === "reco");
+              const product = (recoTab?.products || []).find((p) => p.sku === recoCompare.dataset.recoCompare);
+              if (product) addCompare(product);
+            }
+
             const variantBtn = event.target.closest("[data-variant-sku]");
             if (variantBtn) openProduct(variantBtn.dataset.variantSku, { noTab: true });
             if (event.target.closest("[data-spu-compare]")) {
@@ -8384,6 +8511,7 @@
             else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
+            if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
             if (event.target.closest("[data-open-ent]")) openEnterpriseAuth();
             if (event.target.closest("[data-ent-submit]")) {
               const company = $("#lxEntCompany")?.value.trim();
