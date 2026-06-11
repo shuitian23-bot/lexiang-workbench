@@ -1908,6 +1908,45 @@
           if (abTarget) new ResizeObserver(lxAbReflow).observe(abTarget);
         }
         setTimeout(lxRenderActionbar, 50);
+        setTimeout(lxRenderQuickList, 0);
+        // 站点话术体系：快捷入口/全屏欢迎问题/输入框底纹 全部按客群特色差异化（个人/企业诉求不可混用）
+        const LX_SITE_PROMPTS = {
+          home: {
+            quick: ["我要找商品", "我要找优惠和活动", "我要查保修和售后", "我要找附近门店", "我要企业批量采购", "我要问国补和教育优惠"],
+            welcome: ["想买游戏本，预算8000怎么选？", "日常办公用，5000内电脑怎么选？", "我都有哪些会员权益？", "公司采购电脑有什么补贴？"],
+            placeholder: "最近有什么优惠活动？",
+          },
+          personal: {
+            quick: ["我要找商品", "我要找优惠和活动", "我要问国补和教育优惠", "我要以旧换新", "我要查保修和售后", "我要找附近门店"],
+            welcome: ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？"],
+            placeholder: "最近有什么优惠活动？",
+          },
+          business: {
+            quick: ["我要企业批量采购", "我要企业认证享专享价", "我要对公开票和账期", "我要找商用电脑", "我要查售后和上门服务"],
+            welcome: ["公司采购50台办公本，怎么拿企业价？", "ThinkBook和ThinkPad办公怎么选？", "企业购能开专票、走账期吗？", "中小企业有什么采购补贴？"],
+            placeholder: "公司要配办公电脑，帮我推荐",
+          },
+          enterprise: {
+            quick: ["我要看行业解决方案", "我要信创合规产品", "我要批量采购报价", "我要对接专属客户经理", "我要查售后服务"],
+            welcome: ["信创服务器怎么选型？", "智慧教育解决方案有哪些案例？", "参与政采招投标需要什么资质？", "工作站和服务器怎么搭配？"],
+            placeholder: "我们单位要采购信创设备，帮我推荐",
+          },
+        };
+
+        function lxRenderQuickList() {
+          const cfg = LX_SITE_PROMPTS[state.page] || LX_SITE_PROMPTS.home;
+          const list = document.querySelector(".quick-list");
+          if (list) {
+            list.innerHTML = cfg.quick.map((text, index) => `<button class="quick-item" type="button"${index === 0 ? " data-start-chat" : ""}><span>${esc(text)}</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>`).join("");
+          }
+          // 全屏欢迎四问
+          const prompts = document.querySelectorAll(".fullscreen-prompt span");
+          prompts.forEach((node, index) => { if (cfg.welcome[index]) node.textContent = cfg.welcome[index]; });
+          // 输入框底纹（人工客服模式下不动）
+          const ta = document.querySelector(".composer textarea");
+          if (ta && !state.humanMode) { ta.placeholder = cfg.placeholder; ta.dataset.origPh = cfg.placeholder; }
+        }
+
         // 首屏建议 chips 用官方 FAQ 运营位（每日更新的真实活动/问题）
         (async () => {
           try {
@@ -2201,6 +2240,7 @@
               if (page === "home") document.body.dataset.state = "default";
               setTimeout(loadProductsForPage, 0);
               setTimeout(() => lxEntInviteInChat(page), 400);
+              lxRenderQuickList();
               setTimeout(lxRenderSiteFloors, 0);
             }
 
@@ -2304,6 +2344,10 @@
                 return;
               }
               if (text.includes("教育特惠")) openEduZone();
+              else if (text.includes("国补")) sendChat(text);
+              else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
+              else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
+              else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
               else if (text.includes("退出人工") || text.includes("我的订单") || text.includes("发图片") || text.includes("评价服务") || text.includes("需求清单")) { /* 人工模式按钮走 data-* 委托 */ }
