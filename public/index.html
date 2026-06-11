@@ -2020,8 +2020,12 @@
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        background: #111;
+        background: var(--lx-brand-red, #B8252E);
         color: #fff;
+      }
+
+      .hero-send-btn:hover {
+        background: var(--lx-aubergine, #4E1646);
       }
 
       .hero-send-btn .icon {
@@ -8278,16 +8282,26 @@
         }
 
         function bindEvents() {
+          // 空输入直接发送时，采用底纹里的示例问题（「例如：」后的内容）
+          const placeholderQuery = (placeholder) => {
+            const raw = String(placeholder || "").trim();
+            const m = raw.match(/例如[：:]\s*(.+)$/);
+            return (m ? m[1] : raw).trim();
+          };
+
           const submitComposer = (textarea) => {
             if (!textarea) return;
-            const value = textarea.value;
+            let value = textarea.value.trim();
             if (textarea.closest(".hero-composer")) {
-              // 首页直接提问：留在首页语境进入全屏对话（大白屏），导航不跳子站；AI 产出内容时才切站展开右侧
-              // 空输入/发送中不进全屏（否则首页+全屏类=白屏）
-              if (!value.trim() || state.sending) { textarea.focus(); return; }
+              // 首页直接提问：留在首页语境进入全屏对话，AI 产出内容时才切站展开右侧
+              if (!value) value = placeholderQuery(textarea.placeholder);
+              if (!value || state.sending) { textarea.focus(); return; }
               sendChat(value);
               lxSetAutoFs(true);
             } else {
+              // 人工模式的占位符是提示语不是问题，空输入不代发
+              if (!value && !state.humanMode) value = placeholderQuery(textarea.placeholder);
+              if (!value) { textarea.focus(); return; }
               sendChat(value);
             }
           };
