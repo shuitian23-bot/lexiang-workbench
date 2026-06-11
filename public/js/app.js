@@ -476,6 +476,7 @@
           ensureDetailCompareButton();
           ensureDetailSimilarButton();
           ensureDetailBenefitButton();
+          lxApplyDetailCtaMode(product);
           loadFitReason(product);
           loadSpuVariants(product);
           lxHintOnDetail(product);
@@ -511,6 +512,43 @@
               <div class="lx-spu-chips">${variants.map((variant) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(lxVariantLabel(variant))}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
             box.hidden = false;
           } catch {}
+        }
+
+        // biz 政企商品（服务器/工作站/方案型）不可直购：CTA 切换为咨询留资式（对齐 biz.lenovo.com.cn）
+        function lxIsBizProduct(product) {
+          return ["服务器", "工作站", "服务产品"].includes(product?.category) || /开天|昭阳|启天|问天|ThinkStation|ThinkSystem/i.test(product?.name || "");
+        }
+
+        function lxApplyDetailCtaMode(product) {
+          const actions = $(".detail-actions");
+          if (!actions) return;
+          const biz = lxIsBizProduct(product);
+          const primary = $(".detail-primary", actions);
+          const cart = [...actions.querySelectorAll(".detail-secondary")].find((b) => ![...b.classList].some((c) => c.startsWith("lx-p0-detail")));
+          const benefit = $(".lx-p0-detail-benefit", actions);
+          let quote = $(".lx-p0-detail-quote", actions);
+          let wp = $(".lx-p0-detail-wp", actions);
+          if (biz) {
+            if (primary) { primary.textContent = "获取报价方案"; primary.dataset.bizQuote = "1"; }
+            if (cart) cart.hidden = true;
+            if (benefit) benefit.hidden = true;
+            if (!quote) {
+              quote = document.createElement("button");
+              quote.className = "detail-secondary lx-p0-detail-quote"; quote.type = "button"; quote.textContent = "在线咨询顾问";
+              actions.appendChild(quote);
+              wp = document.createElement("button");
+              wp.className = "detail-secondary lx-p0-detail-wp"; wp.type = "button"; wp.textContent = "下载白皮书";
+              actions.appendChild(wp);
+            } else { quote.hidden = false; if (wp) wp.hidden = false; }
+            const price = $("[data-detail-price]");
+            if (price && !price.textContent.includes("参考")) price.insertAdjacentHTML("beforeend", `<span class="lx-edu-hint" style="margin-left:8px">参考价 · 以正式报价为准</span>`);
+          } else {
+            if (primary) { primary.textContent = "一键领优惠"; delete primary.dataset.bizQuote; }
+            if (cart) cart.hidden = false;
+            if (benefit) benefit.hidden = false;
+            if (quote) quote.hidden = true;
+            if (wp) wp.hidden = true;
+          }
         }
 
         let fitReasonToken = 0;
@@ -2601,8 +2639,14 @@
               openProduct(card.dataset.sku);
             }
 
-            if (event.target.closest(".detail-primary")) buyNow();
-            if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit)")) addCart();
+            const detailPrimary = event.target.closest(".detail-primary");
+            if (detailPrimary) {
+              if (detailPrimary.dataset.bizQuote) openLeadPanel("biz_quote");
+              else buyNow();
+            }
+            if (event.target.closest(".lx-p0-detail-quote")) sendChat(`我想咨询${state.currentProduct?.name || "这款产品"}的采购方案和报价，请帮我对接专属顾问`);
+            if (event.target.closest(".lx-p0-detail-wp")) openWhitepaperLib();
+            if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit):not(.lx-p0-detail-quote):not(.lx-p0-detail-wp)")) addCart();
             if (event.target.closest(".lx-p0-detail-compare")) addCompare();
             if (event.target.closest(".lx-p0-detail-similar")) openSimilarProducts();
             if (event.target.closest(".lx-p0-detail-benefit")) sendChat(`帮我算${state.currentProduct?.name || "这款商品"}叠加教育优惠和国家补贴后的到手价`);
