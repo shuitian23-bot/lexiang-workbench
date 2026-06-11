@@ -254,6 +254,18 @@ router.post('/stream', async (req, res) => {
   } catch (err) {
     clearTimeout(doneTimer);
     console.error('[ChatStream]', err);
+    // 自研引擎故障 → 官方乐享 AI 兜底应答（双引擎可靠性）
+    try {
+      const leai = require('../core/leai_client');
+      const r = await leai.qa(message.trim(), { timeoutMs: 40000 });
+      if (r.text) {
+        send('chunk', { text: r.text + '\n\n（本回答由联想乐享官方 AI 提供）' });
+        send('done', { convId: conv_id || null });
+        return res.end();
+      }
+    } catch (fallbackErr) {
+      console.error('[ChatStream] 官方兜底也失败:', fallbackErr.message);
+    }
     send('error', { message: err.message || 'Internal error' });
     res.end();
   }

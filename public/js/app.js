@@ -262,14 +262,29 @@
           ];
         }
 
-        function showHoverPrompts(product) {
+        async function showHoverPrompts(product) {
           const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
           if (!bottom || !list) return;
+          const key = String(product?.sku || "");
           list.innerHTML = getHoverPromptQuestions(product).map((text) => (
             `<button class="hover-prompt-chip" type="button" data-hover-prompt="${esc(text)}">${esc(text)}</button>`
           )).join("");
           bottom.classList.add("has-hover-prompts");
+          // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
+          if (!key) return;
+          state.reasonCache = state.reasonCache || {};
+          let reason = state.reasonCache[key];
+          if (reason === undefined) {
+            try {
+              const res = await fetch(`/api/products/${encodeURIComponent(key)}/reason`, { cache: "no-store" });
+              reason = (await res.json()).reason || "";
+            } catch { reason = ""; }
+            state.reasonCache[key] = reason;
+          }
+          if (reason && state.hoverPromptSku === key && bottom.classList.contains("has-hover-prompts")) {
+            list.insertAdjacentHTML("afterbegin", `<span class="hover-prompt-hook">✨ ${esc(reason)}</span>`);
+          }
         }
 
         function hideHoverPrompts() {
@@ -294,7 +309,7 @@
             if (state.hoverPromptSku !== key) return;
             showHoverPrompts(product);
             state.hoverPromptTimer = null;
-          }, 10000);
+          }, 2500);
         }
 
         const DETAIL_SPEC_SKIP_KEYS = new Set([
@@ -458,6 +473,7 @@
           ensureDetailBenefitButton();
           loadFitReason(product);
           loadSpuVariants(product);
+          lxHintOnDetail(product);
         }
 
         // SPU 体系：详情页展示同系列全部配置（SKU 选择器 + 价格区间 + 系列内对比）
@@ -657,6 +673,7 @@
           // 收口到右侧「对比」标签：不打断当前浏览，仅更新标签与数量
           lxUpsertCompareTab(null, null, false);
           toast(`已加入对比（${state.compare.length}），点右侧「对比」标签查看`);
+          if (state.compare.length === 2) lxShowHint("已选 2 件商品，差异点我可以一眼帮你标出来", `帮我对比${state.compare.map((p) => p.name).join("和")}，给出对比表`);
         }
 
         // 对比统一收口：所有对比（手动清单 / SPU 系列 / AI 触发）都落右侧「对比」标签页，不再弹窗
@@ -1909,6 +1926,44 @@
         }
         setTimeout(lxRenderActionbar, 50);
         setTimeout(lxRenderQuickList, 0);
+        // ── lxHint 情境转化条（移植旧版 chip 形态，config/lxhint.json 开关，PRD 5.7.5 情境化转化提示）──
+        state.lxHintMode = "chip";
+        fetch("/api/config/lxhint", { cache: "no-store" }).then((r) => r.json()).then((d) => {
+          if (["legacy", "chip", "off"].includes(d.mode)) state.lxHintMode = d.mode;
+        }).catch(() => {});
+
+        function lxShowHint(text, ask) {
+          if (state.lxHintMode === "off") return;
+          state.lxHintCount = state.lxHintCount || 0;
+          if (state.lxHintCount >= 2) return; // 每次会话最多 2 条，克制不打扰
+          let dayCount = 0;
+          const dayKey = `lexiang.lxhint.${new Date().toDateString()}`;
+          try { dayCount = Number(localStorage.getItem(dayKey) || 0); } catch {}
+          if (dayCount >= 4) return;
+          const bottom = document.querySelector(".assistant-bottom");
+          if (!bottom || bottom.querySelector(".lx-hint-bar")) return;
+          state.lxHintCount += 1;
+          try { localStorage.setItem(dayKey, String(dayCount + 1)); } catch {}
+          bottom.insertAdjacentHTML("afterbegin", `<div class="lx-hint-bar"><span class="lx-hint-text">${esc(text)}</span><button class="lx-p0-btn primary" type="button" data-quick-ask="${esc(ask)}">问一下</button><button class="lx-hint-close" type="button" aria-label="关闭">×</button></div>`);
+          const bar = bottom.querySelector(".lx-hint-bar");
+          bar.querySelector(".lx-hint-close").addEventListener("click", () => bar.remove());
+          bar.querySelector("[data-quick-ask]").addEventListener("click", () => setTimeout(() => bar.remove(), 100));
+          setTimeout(() => bar.remove(), 30000);
+        }
+
+        // 触发时机①：商品详情停留 8 秒 → 到手价钩子
+        let lxHintDetailTimer = null;
+        function lxHintOnDetail(product) {
+          clearTimeout(lxHintDetailTimer);
+          if (!product?.name) return;
+          lxHintDetailTimer = setTimeout(() => {
+            if (document.querySelector(".content")?.dataset.view !== "detail") return;
+            const tags = product.promotion_tags || [];
+            const hook = tags.includes("教育特惠") ? "这款在教育特惠目录里，叠加国补还能再省" : "这款今天有官方优惠";
+            lxShowHint(`${hook}，要不要算个到手价？`, `帮我算${product.name}叠加优惠后的到手价`);
+          }, 8000);
+        }
+
         // 站点话术体系：快捷入口/全屏欢迎问题/输入框底纹 全部按客群特色差异化（个人/企业诉求不可混用）
         const LX_SITE_PROMPTS = {
           home: {
