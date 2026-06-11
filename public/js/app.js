@@ -1035,6 +1035,11 @@
                 ai.insertAdjacentHTML("beforeend", `<div class="lx-choices"><div class="lx-choices-title">${esc(payload.title || "请选择")}</div><div class="lx-p0-suggest">${options.map((opt) => `<button class="lx-p0-suggest-chip" type="button" data-choice="${esc(opt)}" data-choice-template="${esc(payload.ask_template || "{choice}")}">${esc(opt)}</button>`).join("")}</div></div>`);
                 ensureChat().scrollTop = ensureChat().scrollHeight;
               },
+              control: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const payload = parseJson(data);
+                lxExecControl(payload.op, payload.target);
+              },
               benefit: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -1173,24 +1178,26 @@
         }
 
         function lxRenderEnterpriseBanner() {
-          const isEnt = state.page === "business" || state.page === "enterprise";
-          let banner = document.querySelector(".lx-ent-banner");
-          if (!isEnt) { if (banner) banner.hidden = true; return; }
-          if (!banner) {
-            banner = document.createElement("div");
-            banner.className = "lx-ent-banner";
-            document.querySelector(".category-tabs")?.before(banner);
-          }
-          if (!banner.parentElement) return;
-          banner.hidden = false;
+          // 页面横幅已废弃：认证邀请改在乐享对话内完成（右侧只是对话的辅助呈现）
+          const banner = document.querySelector(".lx-ent-banner");
+          if (banner) banner.hidden = true;
+        }
+
+        // 进入 b/biz 站时，乐享在对话内主动提示企业认证（预判用户诉求；每站每天最多一次）
+        function lxEntInviteInChat(page) {
+          if (page !== "business" && page !== "enterprise") return;
           const ent = lxEntState();
-          if (ent.status === "verified") {
-            banner.innerHTML = `<span class="lx-ent-badge ok">已认证</span><span class="lx-ent-text"><strong>${esc(ent.company || "企业账户")}</strong> 企业专享价与对公服务已生效</span><button class="lx-p0-btn" type="button" data-open-ent>查看权益</button>`;
-          } else if (ent.status === "pending") {
-            banner.innerHTML = `<span class="lx-ent-badge pending">审核中</span><span class="lx-ent-text">企业认证审核中，通过后自动解锁企业专享价</span><button class="lx-p0-btn" type="button" data-open-ent>查看进度</button>`;
-          } else {
-            banner.innerHTML = `<span class="lx-ent-badge">未认证</span><span class="lx-ent-text">完成企业采购负责人认证，解锁企业专享价、补贴与对公专票账期</span><button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
-          }
+          if (ent.status === "verified") return;
+          const key = `lexiang.entInvite.${page}.${new Date().toDateString()}`;
+          try { if (localStorage.getItem(key)) return; localStorage.setItem(key, "1"); } catch {}
+          const chat = ensureChat();
+          if (!chat) return;
+          const siteName = page === "business" ? "中小企业" : "政教及大企业";
+          const tip = ent.status === "pending"
+            ? `您的企业认证正在审核中，通过后我会第一时间为您切换企业专享价。<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-ent>查看进度</button></div>`
+            : `我注意到您在浏览${siteName}专区。完成企业采购负责人认证后，我可以直接帮您按企业专享价、采购补贴和对公专票口径来推荐和报价。<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button><button class="lx-p0-btn" type="button" data-quick-ask="先不认证，给我介绍一下企业采购有哪些权益">先了解权益</button></div>`;
+          chat.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai">${tip}</div>`);
+          chat.scrollTop = chat.scrollHeight;
         }
 
         // ── 子站竖向楼层（PRD 5.5/v2.3 楼层化：商品之外的服务/门店/会员/方案内容，对齐 lenovo.com.cn）──
@@ -1451,7 +1458,7 @@
           const bar = lxEnsureTabbar();
           const tabs = state.tabs || [];
           bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("");
-          bar.hidden = tabs.length === 0;
+          bar.hidden = tabs.length <= 1; // 单标签无切换意义，隐藏（用户反馈）
         }
 
         function lxUpsertTab(tab, activate = true) {
@@ -1511,6 +1518,31 @@
           if (on) document.body.dataset.state = "chat";
           document.body.classList.toggle("assistant-fullscreen", !!on);
           document.body.classList.toggle("lx-auto-fs", !!on);
+        }
+
+        // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
+        function lxExecControl(op, target) {
+          const siteMap = { shop: "personal", b: "business", biz: "enterprise" };
+          const ops = {
+            close_all_tabs: () => { state.tabs = []; state.activeTabId = null; state.pageTrail = []; lxRenderTabbar(); document.querySelector(".content")?.setAttribute("data-view", "list"); toast("已关闭所有页面"); },
+            close_tab: () => {
+              const tab = (state.tabs || []).find((t) => target && (t.label || "").includes(target));
+              if (tab) { lxCloseTab(tab.id); toast(`已关闭「${tab.label}」`); } else toast("没有找到对应的页面标签");
+            },
+            go_home: () => document.querySelector('.main-nav [data-page="home"]')?.click(),
+            switch_site: () => routeTo(siteMap[target] || "personal"),
+            open_member: () => openMemberCenter(),
+            open_coupon: () => openCouponCenter(),
+            open_orders: () => openOrders(),
+            open_cart: () => openCart(),
+            open_stores: () => openStoresPanel(),
+            open_edu_zone: () => openEduZone(),
+            open_compare: () => openCompare(),
+            start_student_auth: () => openStudentAuth(),
+            start_enterprise_auth: () => openEnterpriseAuth(),
+            clear_compare: () => { state.compare = []; save("lexiang.compare.v1", []); lxUpsertCompareTab(null, null, state.activeTabId === "compare"); toast("对比清单已清空"); },
+          };
+          (ops[op] || (() => toast("暂不支持该页面操作")))();
         }
 
         // AI 产出可看内容时退出全屏（含手动全屏）、按需展开右侧；若仍在首页语境则此时才切到个人及家庭
@@ -2168,7 +2200,7 @@
               if (state.autoFs) lxSetAutoFs(false);
               if (page === "home") document.body.dataset.state = "default";
               setTimeout(loadProductsForPage, 0);
-              setTimeout(lxRenderEnterpriseBanner, 0);
+              setTimeout(() => lxEntInviteInChat(page), 400);
               setTimeout(lxRenderSiteFloors, 0);
             }
 

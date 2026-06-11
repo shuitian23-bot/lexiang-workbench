@@ -49,6 +49,8 @@ const FRONTEND_DISPATCH = {
   frontend_official_products: (r, send) => send('official_products', { title: r.title || '联想官方在售推荐', products: r.products || [] }),
   // 通用选择框：需要用户在固定选项中选择时（城市/规格/方式），对话内出 quick-reply
   frontend_choices: (r, send) => send('choices', { title: r.title || '请选择', options: r.options || [], ask_template: r.ask_template || '{choice}' }),
+  // 页面操作执行器：关标签/切站/打开功能/发起认证，立即执行不延迟
+  frontend_control: (r, send) => send('control', { op: r.op || '', target: r.target || '' }),
 };
 
 // ── 音频上传配置 ──
