@@ -125,7 +125,6 @@
       <a class="back-home" href="/">返回首页</a>
     </div>
     <h1>网站更新记录</h1>
-    <p class="page-desc" id="pageNote">这里记录联想乐享每天的功能更新与体验改进。</p>
     <div id="logList"><p class="empty">正在加载更新记录…</p></div>
     <p class="foot-note">联想乐享团队维护 · 更新内容以实际页面为准</p>
   </div>
@@ -145,7 +144,6 @@
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
       var box = document.getElementById('logList');
-      if (data.note) document.getElementById('pageNote').textContent = data.note;
       var days = (data.days || []).slice().sort(function (a, b) {
         return a.date < b.date ? 1 : -1;
       });
