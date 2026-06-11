@@ -422,6 +422,28 @@ app.get('/admin/*path', (req, res) => {
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
 });
+// SPU 变体：同一 SPU 下全部在售 SKU（详情页配置选择器/价格区间/SPU 内对比用）
+app.get('/api/products/:sku/variants', (req, res) => {
+  const src = db.prepare(`SELECT * FROM products WHERE sku = ?`).get(req.params.sku);
+  if (!src) return res.status(404).json({ error: 'not found' });
+  const key = getSpuKey(src);
+  const candidates = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category, specs
+    FROM products WHERE status = 'active' AND category = ?`).all(src.category || '');
+  const variants = candidates
+    .filter((row) => getSpuKey(row) === key)
+    .sort((a, b) => Number(a.price || 0) - Number(b.price || 0))
+    .slice(0, 12)
+    .map((row) => ({ ...row, specs: parseProductSpecs(row.specs), image_url: (row.image_url || '').replace(/^http:\/\//, 'https://') }));
+  const prices = variants.map((v) => Number(v.price || 0)).filter((p) => p > 0);
+  res.json({
+    spu_key: key,
+    count: variants.length,
+    price_min: prices.length ? Math.min(...prices) : null,
+    price_max: prices.length ? Math.max(...prices) : null,
+    variants,
+  });
+});
+
 // 留资线索落库：前端留资弹窗提交（企业采购/政企意向/换新等场景）
 app.post('/api/leads', (req, res) => {
   const { scenario, site_type, company, contact, need, conv_id } = req.body || {};

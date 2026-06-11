@@ -4981,7 +4981,16 @@
       .lx-addr-form { margin-top: 8px; }
       .lx-human-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; padding: 8px 12px; border: 1px solid var(--lx-border); border-radius: 8px; background: var(--lx-surface-muted); font-size: 12.5px; color: var(--lx-aubergine); }
       .lx-p0-message.human { border-left: 3px solid var(--lx-aubergine); }
-      .lx-tabbar[hidden], .lx-ent-banner[hidden], .lx-human-banner[hidden] { display: none !important; }
+      .lx-tabbar[hidden], .lx-ent-banner[hidden], .lx-human-banner[hidden], .detail-variants[hidden] { display: none !important; }
+      .detail-variants { margin: 12px 0 0; }
+      .lx-spu-head { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--lx-text-secondary); margin-bottom: 8px; }
+      .lx-spu-compare { font-size: 12px; padding: 3px 10px; }
+      .lx-spu-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .lx-spu-chip { display: grid; gap: 2px; text-align: left; padding: 7px 12px; border: 1px solid var(--lx-border); border-radius: 8px; background: #fff; cursor: pointer; max-width: 240px; }
+      .lx-spu-chip:hover { border-color: var(--lx-aubergine); }
+      .lx-spu-chip.is-active { border-color: var(--lx-brand-red); background: var(--lx-surface-hover); }
+      .lx-spu-chip-label { font-size: 12.5px; color: var(--lx-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lx-spu-chip-price { font-size: 12.5px; color: var(--lx-brand-red); font-weight: 700; }
 
       .lx-p1-upload-note {
         display: none;
@@ -5757,6 +5766,7 @@
               <h2 class="detail-title" data-detail-title>小新AIR13</h2>
               <p class="detail-summary" data-detail-summary>2.5K 120Hz｜轻至1.1kg，适合轻薄办公、学习创作和日常影音使用。</p>
               <p class="detail-fit-reason" data-detail-reason hidden></p>
+              <div class="detail-variants" data-detail-variants hidden></div>
               <div class="detail-tags">
                 <span class="detail-tag">AI 智能体验</span>
                 <span class="detail-tag">轻薄便携</span>
@@ -6743,7 +6753,7 @@
           }
         }
 
-        async function openProduct(productOrSku) {
+        async function openProduct(productOrSku, opts = {}) {
           let product = typeof productOrSku === "object" ? productOrSku : state.products.find((item) => item.sku === productOrSku);
           if (typeof productOrSku === "string") {
             try {
@@ -6754,7 +6764,13 @@
           if (!product) return;
           state.currentProduct = product;
           lxRevealContent();
-          if (product.sku) lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku });
+          if (product.sku && opts.noTab) {
+            // SPU 内切换配置：复用当前详情标签，不新开
+            const active = (state.tabs || []).find((tab) => tab.id === state.activeTabId && tab.kind === "detail");
+            if (active) { active.sku = product.sku; active.label = product.name || active.label; lxRenderTabbar(); }
+          } else if (product.sku) {
+            lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku });
+          }
           document.querySelector(".content")?.setAttribute("data-view", "detail");
           document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
           const visual = $("[data-detail-visual]")?.parentElement;
@@ -6768,6 +6784,39 @@
           ensureDetailCompareButton();
           ensureDetailSimilarButton();
           loadFitReason(product);
+          loadSpuVariants(product);
+        }
+
+        // SPU 体系：详情页展示同系列全部配置（SKU 选择器 + 价格区间 + 系列内对比）
+        let spuToken = 0;
+        function lxVariantLabel(variant) {
+          const specs = variant.specs || {};
+          const parts = [specs.cpu, specs.ram || specs.memory, specs.storage || specs.disk].filter(Boolean).map((part) => String(part).slice(0, 18));
+          return parts.length ? parts.join(" / ") : `¥${Number(variant.price || 0).toLocaleString()} 版本`;
+        }
+
+        async function loadSpuVariants(product) {
+          const box = $("[data-detail-variants]");
+          if (!box) return;
+          const token = ++spuToken;
+          box.hidden = true;
+          state.spuVariants = [];
+          if (!product?.sku) return;
+          try {
+            const response = await fetch(`/api/products/${encodeURIComponent(product.sku)}/variants`, { cache: "no-store" });
+            const payload = await response.json();
+            if (token !== spuToken) return;
+            const variants = payload.variants || [];
+            if (variants.length < 2) return;
+            state.spuVariants = variants;
+            const range = payload.price_min && payload.price_max && payload.price_min !== payload.price_max
+              ? `¥${Number(payload.price_min).toLocaleString()} - ¥${Number(payload.price_max).toLocaleString()}`
+              : "";
+            box.innerHTML = `
+              <div class="lx-spu-head">本系列共 ${variants.length} 款配置${range ? ` · ${range}` : ""}<button class="lx-p0-btn lx-spu-compare" type="button" data-spu-compare>对比本系列</button></div>
+              <div class="lx-spu-chips">${variants.map((variant) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(lxVariantLabel(variant))}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
+            box.hidden = false;
+          } catch {}
         }
 
         let fitReasonToken = 0;
@@ -8107,6 +8156,14 @@
               }
               sendChat(`请整理企业/政企线索并给下一步对接建议。企业：${company || "未填写"}；需求：${need || "未填写"}；联系人：${contact || "未填写"}`);
             }
+            const variantBtn = event.target.closest("[data-variant-sku]");
+            if (variantBtn) openProduct(variantBtn.dataset.variantSku, { noTab: true });
+            if (event.target.closest("[data-spu-compare]")) {
+              const variants = (state.spuVariants || []).slice(0, 4);
+              if (variants.length >= 2) openModal("本系列配置对比", renderCompareTable(variants));
+              else toast("本系列暂无可对比的其他配置");
+            }
+
             const addrPick = event.target.closest("[data-addr-pick]");
             if (addrPick) {
               const addr = lxAddresses()[Number(addrPick.dataset.addrPick)];
