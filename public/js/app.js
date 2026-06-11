@@ -1362,7 +1362,17 @@
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
-            const seckill = (state.products || []).slice(0, 3).map((p) => `<div class="lx-sim-card lx-seckill-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-seckill-info"><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div><span class="lx-seckill-desc">${esc(p.description || "官方优惠，库存以实际下单页为准")}</span></div></div>`).join("");
+            if (state.seckillCfg === undefined) {
+              try { state.seckillCfg = await (await fetch("/api/config/seckill", { cache: "no-store" })).json(); } catch { state.seckillCfg = { enabled: false, items: [] }; }
+            }
+            const skItems = state.seckillCfg?.enabled && state.seckillCfg.items?.length ? state.seckillCfg.items : null;
+            const seckill = (skItems || (state.products || []).slice(0, 3)).map((p) => {
+              const hasSk = p.seckill_price > 0;
+              const priceHtml = hasSk
+                ? `<div class="lx-sim-price">秒杀价 ¥${Number(p.seckill_price).toLocaleString()} <s class="lx-edu-orig">¥${Number(p.price || 0).toLocaleString()}</s> <span class="lx-floor-tag">秒杀</span></div>`
+                : `<div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()} <span class="lx-floor-tag">限时</span></div>`;
+              return `<div class="lx-sim-card lx-seckill-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-seckill-info"><div class="lx-sim-name">${esc(p.name)}</div>${priceHtml}<span class="lx-seckill-desc">${esc(p.description || "官方优惠，库存以实际下单页为准")}</span></div></div>`;
+            }).join("");
             box.innerHTML = categoryFloors + [
               lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill || ""}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${lxSeckillCountdown()}">--:--:--</b></span><button class="lx-p0-btn" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
               lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", `<div class="lx-floor-card" data-stu-auth><strong>学生认证享专属价</strong><span>小学到博士及应届高考生均可认证</span></div>` + quickCard("算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "帮我算下教育优惠+国补叠加后的到手价") + quickCard("以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "我有旧机想以旧换新，怎么估值？"), `<button class="lx-p0-btn primary" type="button" data-edu-zone>进入教育专区</button>`),
@@ -2213,7 +2223,7 @@
           if (!pop) {
             pop = document.createElement("div");
             pop.className = "lx-p1-select-pop";
-            pop.innerHTML = `<button type="button" data-hl-ask>问乐享</button><button type="button" data-hl-bring>带入对话</button>`;
+            pop.innerHTML = `<div class="lx-hl-btns"><button type="button" data-hl-ask>问乐享</button><button type="button" data-hl-bring>带入对话</button></div><div class="lx-hl-answer" hidden></div>`;
             document.body.appendChild(pop);
           }
           document.addEventListener("mouseup", () => {
@@ -2338,6 +2348,48 @@
               openLeadPanel();
             }
             if (event.target.closest("[data-hl-ask]")) {
+              // 划词就地秒回（PRD 6.2）：浮窗内轻量快答，不打断浏览；可再深入聊
+              const pop = $(".lx-p1-select-pop");
+              const box = $(".lx-hl-answer", pop);
+              const selected = state.selectedText;
+              if (box) {
+                box.hidden = false;
+                box.innerHTML = `<span class="lx-hl-loading">乐享秒答中...</span>`;
+                (async () => {
+                  try {
+                    const res = await fetch("/api/chat/quick", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ message: `用一两句话解释这段内容（结合联想产品场景）：${selected}` }),
+                    });
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buf = "", answer = "";
+                    box.innerHTML = `<p class="lx-hl-text"></p>`;
+                    const textNode = box.querySelector(".lx-hl-text");
+                    while (true) {
+                      const { done, value } = await reader.read();
+                      if (done) break;
+                      buf += decoder.decode(value, { stream: true });
+                      const lines = buf.split("\n");
+                      buf = lines.pop();
+                      for (const line of lines) {
+                        if (!line.startsWith("data:")) continue;
+                        try {
+                          const d = JSON.parse(line.slice(5));
+                          if (d.text) { answer += d.text; textNode.textContent = answer; }
+                        } catch {}
+                      }
+                      if (!pop.classList.contains("show")) { reader.cancel(); return; }
+                    }
+                    box.insertAdjacentHTML("beforeend", `<button class="lx-p0-btn" type="button" data-hl-deep>${answer ? "深入聊聊" : "问乐享详细说"}</button>`);
+                  } catch {
+                    box.innerHTML = `<button class="lx-p0-btn" type="button" data-hl-deep>问乐享详细说</button>`;
+                  }
+                })();
+              }
+            }
+            if (event.target.closest("[data-hl-deep]")) {
               $(".lx-p1-select-pop")?.classList.remove("show");
               sendChat(`请解释这段内容，并结合联想产品/服务给我建议：${state.selectedText}`);
             }
@@ -2520,9 +2572,14 @@
             if (utility?.getAttribute("aria-label") === "订单") openOrders();
             if (utility?.getAttribute("aria-label") === "账号" && !state.user) openLogin();
 
+            const accountBtn = event.target.closest(".account-wrap > .utility-btn");
+            if (accountBtn) accountBtn.parentElement.classList.toggle("open");
+            else if (!event.target.closest(".account-menu")) document.querySelector(".account-wrap.open")?.classList.remove("open");
+
             const menuRow = event.target.closest(".account-menu .menu-row");
             if (menuRow) {
               const text = menuRow.textContent.trim();
+              menuRow.closest(".account-wrap")?.classList.remove("open");
               if (text.includes("退出")) logout();
               else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优化日志")) window.open("/changelog.html", "_blank");

@@ -445,6 +445,23 @@ app.get('/api/products/:sku/variants', (req, res) => {
   });
 });
 
+// 秒杀运营配置（config/seckill.json 运营可改，即时生效）：返回带商品详情的秒杀位
+app.get('/api/config/seckill', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const cfg = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'config/seckill.json'), 'utf8'));
+    if (!cfg.enabled) return res.json({ enabled: false, items: [] });
+    const items = (cfg.items || []).map((it) => {
+      const row = db.prepare(`SELECT sku, name, price, image_url, description FROM products WHERE sku = ? AND status = 'active'`).get(it.sku);
+      if (!row) return null;
+      return { ...row, image_url: (row.image_url || '').replace(/^http:\/\//, 'https://'), seckill_price: Number(it.seckill_price) || Math.round(row.price * 0.9) };
+    }).filter(Boolean);
+    res.json({ enabled: true, session_hours: Number(cfg.session_hours) || 2, items });
+  } catch (e) {
+    res.json({ enabled: false, items: [], error: e.message });
+  }
+});
+
 // 联想乐享官方 FAQ 运营位（首屏建议 chips 用真实运营内容，服务端缓存 10 分钟）
 app.get('/api/leai2/faq', async (req, res) => {
   try {

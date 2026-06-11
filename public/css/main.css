@@ -207,6 +207,7 @@
 
       .account-wrap:hover .account-menu,
       .account-wrap .account-menu:hover,
+      .account-wrap.open .account-menu,
       body[data-demo="hover"] .account-menu {
         display: block;
       }
@@ -4616,8 +4617,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        max-height: calc(100vh - 356px);
-        min-height: 180px;
+        height: calc(100vh - 356px);
         overflow-y: auto;
         padding: 4px 14px 12px;
         scrollbar-width: none;
@@ -5418,3 +5418,10 @@
       .lx-hint-close { border: none; background: transparent; color: var(--lx-text-tertiary); cursor: pointer; font-size: 15px; padding: 0 4px; }
       .lx-hint-close:hover { color: var(--lx-brand-red); }
       .hover-prompt-hook { display: block; width: 100%; font-size: 12px; color: var(--lx-aubergine); padding: 2px 0 6px; }
+
+      .lx-p0-messages > :first-child { margin-top: auto; }
+
+      .lx-p1-select-pop .lx-hl-btns { display: flex; gap: 6px; }
+      .lx-hl-answer { max-width: 280px; margin-top: 8px; padding: 8px 10px; background: var(--lx-surface-muted); border-radius: 8px; font-size: 12.5px; line-height: 1.6; color: var(--lx-text); }
+      .lx-hl-answer p { margin-bottom: 6px; }
+      .lx-hl-loading { color: var(--lx-text-tertiary); }

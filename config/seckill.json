@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "session_hours": 2,
+  "note": "运营配置：enabled 开关；items 配 sku+秒杀价；session_hours 每场时长(小时)，改完即时生效",
+  "items": [
+    {
+      "sku": "1024586",
+      "seckill_price": 5279
+    },
+    {
+      "sku": "1029566",
+      "seckill_price": 4047
+    },
+    {
+      "sku": "1030690",
+      "seckill_price": 7039
+    }
+  ]
+}
