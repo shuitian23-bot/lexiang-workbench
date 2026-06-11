@@ -949,6 +949,7 @@
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
           addMessage("user", text);
+          if (state.refProduct) ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProduct.name.slice(0, 22))}</div>`);
           setTimeout(() => lxSetRef(null), 100);
           if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
           state.queryHistory.push(text);
@@ -968,6 +969,7 @@
                 // 深度思考开关：开启时上游模型不支持工具调用（无商品卡/留资等），默认关闭走自动模式
                 thinking_mode: !!document.querySelector('.composer .chip[data-mode-chip="think"].is-active'),
                 site_type: API_SITE[state.page] || "default",
+                product_context: state.refProduct || undefined,
                 image_url: state.pendingImageUrl || undefined,
                 audio_url: state.pendingAudioUrl || undefined
               })
@@ -1667,8 +1669,44 @@
           document.querySelector(".lx-ref-picker")?.remove();
         }
 
+        // ── 商品引用（设计稿：hover 勾选 / 拖拽到对话框 → 引用商品，针对性提问）──
+        const LX_PICK_CARD_SEL = ".product-card, .lx-sim-card, .lx-floor-product, .lx-p0-product-mini, .reco-row";
+
+        function lxCardSku(card) {
+          return card?.dataset.sku || card?.dataset.openProduct || card?.querySelector("[data-open-product]")?.dataset.openProduct || "";
+        }
+
+        async function lxSetProductRef(sku) {
+          if (!sku) return;
+          let product = (state.products || []).find((p) => p.sku === sku) || (state.floorProducts || []).find((p) => p.sku === sku);
+          if (!product) {
+            try { product = await (await fetch(`/api/products/${encodeURIComponent(sku)}`, { cache: "no-store" })).json(); } catch {}
+          }
+          if (!product?.name) return toast("商品信息获取失败");
+          state.refProduct = { sku: product.sku, name: product.name, price: product.price, image_url: product.image_url, description: (product.description || "").slice(0, 120) };
+          state.refMsg = null;
+          document.querySelector(".lx-ref-bar")?.remove();
+          document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
+          document.querySelector(`.lx-pick-btn[data-pick-sku="${CSS.escape(sku)}"]`)?.classList.add("picked");
+          const bottom = document.querySelector(".assistant-bottom");
+          bottom?.insertAdjacentHTML("afterbegin", `<div class="lx-ref-bar lx-ref-product"><img src="${esc(imgUrl(product.image_url))}" alt="" /><span class="lx-ref-text"><strong>${esc(product.name.slice(0, 26))}</strong> ¥${Number(product.price || 0).toLocaleString()}</span><button type="button" data-ref-clear aria-label="取消引用">×</button></div>`);
+          document.querySelector(".composer textarea")?.focus();
+          toast("已引用商品，直接提问即可");
+        }
+
+        function lxEnsurePickBtn(card) {
+          if (!card || card.querySelector(":scope > .lx-pick-btn")) return;
+          const sku = lxCardSku(card);
+          if (!sku) return;
+          if (getComputedStyle(card).position === "static") card.style.position = "relative";
+          card.insertAdjacentHTML("beforeend", `<button class="lx-pick-btn${state.refProduct?.sku === sku ? " picked" : ""}" type="button" data-pick-sku="${esc(sku)}" title="引用这个商品提问" aria-label="引用商品">✓</button>`);
+          card.draggable = true;
+        }
+
         function lxSetRef(text) {
           state.refMsg = text;
+          state.refProduct = null;
+          document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
           document.querySelector(".lx-ref-bar")?.remove();
           if (!text) return;
           const bottom = document.querySelector(".assistant-bottom");
@@ -2363,6 +2401,26 @@
             }
           };
 
+          // 卡片 hover 注入勾选按钮 + 开启拖拽
+          document.addEventListener("mouseover", (event) => {
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
+            if (card) lxEnsurePickBtn(card);
+          });
+          document.addEventListener("dragstart", (event) => {
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
+            const sku = lxCardSku(card);
+            if (sku) { event.dataTransfer.setData("text/plain", "lxsku:" + sku); event.dataTransfer.effectAllowed = "copy"; }
+          });
+          const panel = document.querySelector(".assistant-panel");
+          panel?.addEventListener("dragover", (event) => { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; panel.classList.add("lx-drop-hint"); });
+          panel?.addEventListener("dragleave", () => panel.classList.remove("lx-drop-hint"));
+          panel?.addEventListener("drop", (event) => {
+            event.preventDefault();
+            panel.classList.remove("lx-drop-hint");
+            const data = event.dataTransfer.getData("text/plain") || "";
+            if (data.startsWith("lxsku:")) lxSetProductRef(data.slice(6));
+          });
+
           document.addEventListener("input", (event) => {
             const ta = event.target.closest?.(".composer textarea");
             if (!ta) return;
@@ -2524,6 +2582,13 @@
               const floor = document.querySelector(`[data-floor-cat="${label}"]`);
               if (floor) floor.scrollIntoView({ behavior: "smooth", block: "start" });
               else contentBox?.scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            const pickBtn = event.target.closest("[data-pick-sku]");
+            if (pickBtn) {
+              event.stopPropagation();
+              lxSetProductRef(pickBtn.dataset.pickSku);
+              return;
             }
 
             const refPick = event.target.closest("[data-ref-pick]");
