@@ -7742,6 +7742,8 @@
         // 自动全屏对话态：进入/退出统一管理（lx-auto-fs 用于隐藏无意义的展开缩放按钮）
         function lxSetAutoFs(on) {
           state.autoFs = !!on;
+          // 兜底：全屏对话必须处于 chat 态，否则首页下面板被隐藏会白屏
+          if (on) document.body.dataset.state = "chat";
           document.body.classList.toggle("assistant-fullscreen", !!on);
           document.body.classList.toggle("lx-auto-fs", !!on);
         }
@@ -8281,6 +8283,8 @@
             const value = textarea.value;
             if (textarea.closest(".hero-composer")) {
               // 首页直接提问：留在首页语境进入全屏对话（大白屏），导航不跳子站；AI 产出内容时才切站展开右侧
+              // 空输入/发送中不进全屏（否则首页+全屏类=白屏）
+              if (!value.trim() || state.sending) { textarea.focus(); return; }
               sendChat(value);
               lxSetAutoFs(true);
             } else {
