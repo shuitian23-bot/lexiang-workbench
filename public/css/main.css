@@ -180,10 +180,10 @@
       }
 
       .account-wrap::after {
-        left: -10px;
-        right: -10px;
-        top: 30px;
-        height: 18px;
+        left: -128px;
+        right: -14px;
+        top: 28px;
+        height: 26px;
       }
 
       .account-menu,
@@ -206,6 +206,7 @@
       }
 
       .account-wrap:hover .account-menu,
+      .account-wrap:focus-within .account-menu,
       .account-wrap .account-menu:hover,
       .account-wrap.open .account-menu,
       body[data-demo="hover"] .account-menu {
