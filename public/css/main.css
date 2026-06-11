@@ -6018,4 +6018,5 @@
 .content[data-view="detail"] .detail-product-image { height: auto !important; }
 .content[data-view="detail"] .detail-visual { width: auto !important; }
 .content[data-view="detail"] .detail-visual { max-width: none !important; }
-
+.content[data-view="detail"] .detail-main { overflow: visible !important; }
+.content[data-view="detail"] .detail-gallery { position: sticky !important; top: 16px; align-self: start; min-height: calc(100vh - 32px); }
