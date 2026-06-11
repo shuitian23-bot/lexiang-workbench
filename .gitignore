@@ -41,3 +41,12 @@ public/biz-chat/
 
 .claude/settings.local.json
 .locks/
+
+# AI session 本地目录与运行时产物（不入库）
+.claude/
+.codex/
+backups/
+data/
+server.out
+*.tmp
+public/wiki-index.html.tmp
