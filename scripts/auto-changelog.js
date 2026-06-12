@@ -83,7 +83,13 @@ function authorToName(commit) {
       if (!text || /^SKIP/i.test(text) || text.length < 10) continue;
       const who = authorToName(p.c);
       let tokenNote = '';
-      if (who === '白羽') {
+      // 优先取 commit message 自带的 [tokens:N]（观侧/任何人均可标注）
+      const fullMsg = sh(`git log -1 --format=%B ${p.c}`);
+      const tagged = fullMsg.match(/\[tokens?:\s*(\d+)\s*\]/i);
+      if (tagged) {
+        const n = Number(tagged[1]);
+        tokenNote = n >= 10000 ? `（约${(n / 10000).toFixed(1).replace(/\.0$/, '')}万 token）` : `（约${n} token）`;
+      } else if (who === '白羽') {
         try {
           const prevTs = sh(`git log -1 --format=%aI ${p.c}^`);
           const curTs = sh(`git log -1 --format=%aI ${p.c}`);

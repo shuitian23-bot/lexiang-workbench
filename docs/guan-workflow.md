@@ -17,7 +17,7 @@ git add -A && git commit -m "fix: 描述" && git push origin main
 ```
 
 把这段话术贴给你的 AI（codex/claude）即可：
-> 「本项目是 git 仓库，开工先 `git pull origin main`，改完必须 `git add -A && git commit && git push origin main`，不要用任何方式直接上传/覆盖服务器文件。改样式去 public/css/main.css，改逻辑去 public/js/app.js，改完在 public/changelog.json 当天条目里用大白话补一条并署名——观。」
+> 「本项目是 git 仓库，开工先 `git pull origin main`，改完必须 `git add -A && git commit && git push origin main`，不要用任何方式直接上传/覆盖服务器文件。改样式去 public/css/main.css，改逻辑去 public/js/app.js，改完在 public/changelog.json 当天条目里用大白话补一条并署名——观（约X万 token）。**commit message 末尾必须附上本次会话消耗的 token 数，格式 `[tokens:12345]`**（从你自己的会话统计里取，codex 用 /status 查），服务器会自动把它写进更新日志。」
 
 ## 如果一定要直接在服务器上改
 
