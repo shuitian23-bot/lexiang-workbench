@@ -3599,6 +3599,25 @@
     }
   }
   function wide() { return window.innerWidth >= 1280; }
+  function finishMotionClass(name, delay = 520) {
+    window.setTimeout(() => document.body.classList.remove(name), reduceMotion ? 0 : delay);
+  }
+  function enterFullscreen() {
+    document.body.classList.remove("lxfd-exiting");
+    document.body.classList.add("lxfd-entering");
+    setFullscreen(true);
+    finishMotionClass("lxfd-entering", 560);
+  }
+  function exitFullscreen() {
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) return;
+    document.body.classList.remove("lxfd-entering");
+    document.body.classList.add("lxfd-exiting");
+    window.setTimeout(() => {
+      setFullscreen(false);
+      document.body.classList.remove("lxfd-exiting");
+      document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    }, reduceMotion ? 0 : 430);
+  }
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
@@ -3795,6 +3814,7 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) openRail(false); } });
   railFab?.addEventListener("click", () => openRail(true));
   $("#lxfdRailClose")?.addEventListener("click", () => openRail(false));
+  $(".lxfd-actions .lxfd-ic")?.addEventListener("click", (e) => { e.preventDefault(); exitFullscreen(); });
   scrim?.addEventListener("click", () => openRail(false));
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
@@ -3812,6 +3832,14 @@
   syncSend();
 
   document.addEventListener("click", (e) => {
+    const fsToggle = e.target.closest(".assistant-toggle");
+    if (fsToggle) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      enterFullscreen();
+      return;
+    }
     const heroChip = e.target.closest(".hero-suggestion");
     const fullPrompt = e.target.closest(".fullscreen-prompt");
     if (heroChip || fullPrompt) {
