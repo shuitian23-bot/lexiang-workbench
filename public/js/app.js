@@ -2849,8 +2849,12 @@
               // 首页直接提问：留在首页语境进入全屏对话，AI 产出内容时才切站展开右侧
               if (!value) value = placeholderQuery(textarea.placeholder);
               if (!value || state.sending) { textarea.focus(); return; }
-              sendChat(value);
-              lxSetAutoFs(true);
+              if (typeof window.lxfdSubmit === "function") {
+                window.lxfdSubmit(value);
+              } else {
+                sendChat(value);
+                lxSetAutoFs(true);
+              }
             } else {
               // 人工模式的占位符是提示语不是问题，空输入不代发
               if (!value && !state.humanMode) value = placeholderQuery(textarea.placeholder);
@@ -3580,6 +3584,9 @@
     if (turnList) turnList.innerHTML = turns.map(t => `<button type="button" class="${t.id === activeId ? "active" : ""}" data-target="${escapeAttr(t.id)}" title="${escapeAttr(t.text)}">${escapeHtml(shortText(t.text, 18))}</button>`).join("");
   }
   function resetConversation(collapseRail) {
+    state.conversationNonce += 1;
+    state.convId = null;
+    state.sending = false;
     if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
     turns = [];
     renderTurnIndex("");
@@ -3589,9 +3596,25 @@
     if (collapseRail && !wide()) openRail(false);
     ta?.focus();
   }
-  function submit(text) {
+  function renderLxfdProducts(products) {
+    if (!Array.isArray(products) || !products.length) return "";
+    return `<div class="lxfd-products">${products.slice(0, 4).map((product) => `
+      <button class="lxfd-product-mini" type="button" data-open-product="${escapeAttr(product.sku || "")}">
+        <img src="${escapeAttr(imgUrl(product.image_url))}" alt="">
+        <span><strong>${escapeHtml(product.name || "联想商品")}</strong><em>${escapeHtml(money(product.price))}</em></span>
+      </button>`).join("")}</div>`;
+  }
+
+  function appendLxfdSuggestions(ai, suggestions) {
+    const list = Array.isArray(suggestions) ? suggestions.slice(0, 3) : [];
+    if (!list.length) return;
+    ai.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
+    $$(".lxfd-followups button", ai).forEach(btn => btn.addEventListener("click", () => submit(btn.textContent)));
+  }
+
+  async function submit(text) {
     const value = String(text || "").trim();
-    if (!value) return;
+    if (!value || state.sending) return;
     setFullscreen(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
@@ -3610,12 +3633,109 @@
     ai.innerHTML = '<div class="lxfd-ai-body"><span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;检索知识库…</span></div>';
     thread?.appendChild(ai);
     ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
-    window.setTimeout(() => {
-      const body = ai.querySelector(".lxfd-ai-body");
-      if (body) body.innerHTML = answer;
+    const body = ai.querySelector(".lxfd-ai-body");
+    const nonce = state.conversationNonce;
+    state.sending = true;
+    let hasContent = false;
+    const revealAi = () => {
+      if (hasContent) return;
+      hasContent = true;
+      if (body) body.innerHTML = "";
+      ai._raw = "";
+    };
+    try {
+      const response = await fetch("/api/chat/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: value,
+          conv_id: state.convId,
+          web_search: !!document.querySelector(".lxfd-toggle:not(.on)[aria-pressed='true']") || !!document.querySelector(".lxfd-toggle:nth-child(2).on"),
+          thinking_mode: !!document.querySelector(".lxfd-toggle.on"),
+          site_type: API_SITE[state.page] || "default"
+        })
+      });
+      if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
+      await readSse(response, {
+        chunk: (data) => {
+          if (nonce !== state.conversationNonce) return;
+          const payload = parseJson(data);
+          const content = payload.text || data || "";
+          if (!content) return;
+          revealAi();
+          ai._raw += content;
+          if (body) body.textContent = ai._raw;
+          thread.scrollTop = thread.scrollHeight;
+        },
+        status: (data) => {
+          if (nonce !== state.conversationNonce) return;
+          const payload = parseJson(data);
+          if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
+          if (payload.text && !hasContent && body) {
+            body.innerHTML = `<span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;${escapeHtml(payload.text)}</span>`;
+          }
+        },
+        products: (data) => {
+          if (nonce !== state.conversationNonce) return;
+          const payload = parseJson(data);
+          const products = payload.products || [];
+          if (!products.length) return;
+          revealAi();
+          body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
+          if (products.length === 1 && products[0].sku) {
+            lxRevealContent();
+            openProduct(products[0].sku);
+          } else {
+            lxRevealContent();
+            const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
+            lxUpsertTab(recoTab);
+            lxRunTab(recoTab);
+          }
+        },
+        display: (data) => {
+          if (nonce !== state.conversationNonce) return;
+          const payload = parseJson(data);
+          const products = payload.products || payload.items || [];
+          revealAi();
+          if (payload.title && body && !body.textContent.trim()) body.textContent = payload.title;
+          body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
+          if (products.length === 1 && products[0].sku) {
+            lxRevealContent();
+            openProduct(products[0].sku);
+          } else if (products.length) {
+            lxRevealContent();
+            const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
+            lxUpsertTab(recoTab);
+            lxRunTab(recoTab);
+          }
+        },
+        suggestions: (data) => {
+          if (nonce !== state.conversationNonce) return;
+          const payload = parseJson(data);
+          appendLxfdSuggestions(ai, payload.suggestions || []);
+        },
+        done: (data) => {
+          if (nonce !== state.conversationNonce) return;
+          const payload = parseJson(data);
+          if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
+          if (ai._raw && body) body.innerHTML = mdLite(ai._raw);
+        }
+      });
+      if (nonce !== state.conversationNonce) return;
+      if (!hasContent) {
+        revealAi();
+        if (body) body.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
+      }
+      body?.insertAdjacentHTML("beforeend", `<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>`);
+      if (!ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, ["可以推荐适合学生的笔记本吗？", "怎么查询我的产品保修状态？", "现在有哪些可以叠加的优惠政策？"]);
+    } catch (error) {
+      if (nonce !== state.conversationNonce) return;
+      revealAi();
+      if (body) body.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
+    } finally {
+      if (nonce === state.conversationNonce) state.sending = false;
       ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
-      $$(".lxfd-followups button", ai).forEach(btn => btn.addEventListener("click", () => submit(btn.textContent)));
-    }, 1100);
+    }
   }
 
   window.lxfdSubmit = submit;
