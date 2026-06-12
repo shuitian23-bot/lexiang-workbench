@@ -1145,22 +1145,42 @@ function leaiBizTradeSummaries(rows) {
     { key: 'smb', label: 'SMB 业务', source: L?.smb || [], color: '#f59e0b' },
     { key: 'gov', label: '政企业务', source: L?.gov || [], color: '#8b5cf6' }
   ];
-  const loginRows = meta.map(m => ({ ...m, ...leaiBizSummary(rows, m.source) }));
-  const loginGmvTotal = loginRows.reduce((s, r) => s + r.gmv, 0);
-  const loginBuyTotal = loginRows.reduce((s, r) => s + r.buy, 0);
-  const extraGmv = Math.max(0, leaiSum(rows, 'gmv') - loginGmvTotal);
-  const extraBuy = Math.max(0, leaiSum(rows, 'buy') - loginBuyTotal);
-  const gmvAdds = leaiDistributeAmount(extraGmv, loginRows.map(r => r.gmv));
-  const buyAdds = leaiDistributeAmount(extraBuy, loginRows.map(r => r.buy));
-  return loginRows.map((r, i) => ({
-    ...r,
-    loginGmv: r.gmv,
-    loginBuy: r.buy,
-    platformGmv: gmvAdds[i],
-    platformBuy: buyAdds[i],
-    gmv: r.gmv + gmvAdds[i],
-    buy: r.buy + buyAdds[i]
+  // 逐日：业务登录口径 + 当日平台差额按权重回算 → 当日官网/非官网按业务回算GMV权重分摊
+  const acc = meta.map(m => ({
+    ...m, login: 0, inter: 0,
+    loginGmv: 0, loginBuy: 0, platformGmv: 0, platformBuy: 0,
+    gmv: 0, buy: 0, offGmv: 0, nonGmv: 0, offBuy: 0, nonBuy: 0
   }));
+  rows.forEach(day => {
+    const bizDay = meta.map(m => (m.source || []).find(r => r.d === day.d) || {});
+    const loginGmvs = bizDay.map(b => Number(b.gmv) || 0);
+    const loginBuys = bizDay.map(b => Number(b.buy) || 0);
+    const extraGmv = Math.max(0, (Number(day.gmv) || 0) - loginGmvs.reduce((s, v) => s + v, 0));
+    const extraBuy = Math.max(0, (Number(day.buy) || 0) - loginBuys.reduce((s, v) => s + v, 0));
+    const gmvAdds = leaiDistributeAmount(extraGmv, loginGmvs);
+    const buyAdds = leaiDistributeAmount(extraBuy, loginBuys);
+    const calGmvs = loginGmvs.map((v, i) => v + gmvAdds[i]);
+    const calBuys = loginBuys.map((v, i) => v + buyAdds[i]);
+    const offGmvs = leaiDistributeAmount(Number(day.offGmv) || 0, calGmvs);
+    const offBuys = leaiDistributeAmount(Number(day.offBuy) || 0, calBuys);
+    acc.forEach((a, i) => {
+      a.login += Number(bizDay[i].login) || 0;
+      a.inter += Number(bizDay[i].inter) || 0;
+      a.loginGmv += loginGmvs[i];
+      a.loginBuy += loginBuys[i];
+      a.platformGmv += gmvAdds[i];
+      a.platformBuy += buyAdds[i];
+      a.gmv += calGmvs[i];
+      a.buy += calBuys[i];
+      a.offGmv += Math.min(offGmvs[i], calGmvs[i]);
+      a.offBuy += Math.min(offBuys[i], calBuys[i]);
+    });
+  });
+  acc.forEach(a => {
+    a.nonGmv = Math.max(0, a.gmv - a.offGmv);
+    a.nonBuy = Math.max(0, a.buy - a.offBuy);
+  });
+  return acc;
 }
 
 function leaiMetricDelta(rows, key) {
@@ -1309,10 +1329,10 @@ function leaiCurrentOverviewAiContext(goal) {
     `- 购买人数: ${leaiAiNum(summary.buy)}，购买/互动 ${leaiAiPct(summary.buy, summary.inter)}`,
     `- 成交GMV: ${leaiAiMoney(summary.gmv)}，日均 ${leaiAiMoney(leaiAvg(rows, 'gmv'))}`,
     '',
-    '分业务交易:',
-    `- 消费业务: GMV ${leaiAiMoney(consumer.gmv)}，购买 ${leaiAiNum(consumer.buy)}，GMV占比 ${leaiAiPct(consumer.gmv, summary.gmv)}`,
-    `- SMB业务: GMV ${leaiAiMoney(smb.gmv)}，购买 ${leaiAiNum(smb.buy)}，GMV占比 ${leaiAiPct(smb.gmv, summary.gmv)}`,
-    `- 政企业务: GMV ${leaiAiMoney(gov.gmv)}，购买 ${leaiAiNum(gov.buy)}，GMV占比 ${leaiAiPct(gov.gmv, summary.gmv)}`,
+    '分业务交易(官网/非官网按业务回算GMV权重分摊):',
+    ...[consumer, smb, gov].map(b =>
+      `- ${b.label}: GMV ${leaiAiMoney(b.gmv)}，购买 ${leaiAiNum(b.buy)}，GMV占比 ${leaiAiPct(b.gmv, summary.gmv)}；官网 ${leaiAiMoney(b.offGmv)}(${leaiAiPct(b.offGmv, b.offGmv + b.nonGmv)})，非官网 ${leaiAiMoney(b.nonGmv)}(${leaiAiPct(b.nonGmv, b.offGmv + b.nonGmv)})`
+    ),
     '',
     '分平台交易:',
     `- 官网: GMV ${leaiAiMoney(summary.offGmv)}，购买 ${leaiAiNum(summary.offBuy)}，占比 ${leaiAiPct(summary.offGmv, platformTotal)}`,
@@ -2002,30 +2022,6 @@ const PAGE_RENDERERS = {
     </div>
 
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header">
-        <div class="card-title">交易指标 · 分业务</div>
-        <div class="dash-card-note">登录口径 + 平台交易回算</div>
-      </div>
-      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
-        <div class="kpi-card" style="border-left:3px solid #2563eb">
-          <div class="kpi-label">消费业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${leaiFmtY(lc.gmv)}</div>
-          <div class="kpi-sub">购买 ${lc.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lc.gmv, summary.gmv)}</div>
-        </div>
-        <div class="kpi-card" style="border-left:3px solid #f59e0b">
-          <div class="kpi-label">SMB 业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${leaiFmtY(ls.gmv)}</div>
-          <div class="kpi-sub">购买 ${ls.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(ls.gmv, summary.gmv)}</div>
-        </div>
-        <div class="kpi-card" style="border-left:3px solid #8b5cf6">
-          <div class="kpi-label">政企业务 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${leaiFmtY(lg.gmv)}</div>
-          <div class="kpi-sub">购买 ${lg.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(lg.gmv, summary.gmv)}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:16px">
       <div class="card-header"><div class="card-title">交易指标 · 分平台</div></div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0">
         <div class="kpi-card" style="border-left:3px solid #2563eb">
@@ -2038,6 +2034,35 @@ const PAGE_RENDERERS = {
           <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.nonGmv)}</div>
           <div class="kpi-sub">占比 ${leaiFmtPct(summary.nonGmv, platformTotal)} · 购买 ${summary.nonBuy.toLocaleString()}人</div>
         </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-title">交易指标 · 分业务</div>
+        <div class="dash-card-note">登录口径 + 平台交易回算 · 官网/非官网按业务回算GMV权重分摊</div>
+      </div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+        ${[lc, ls, lg].map(b => {
+          const bizPlatTotal = b.offGmv + b.nonGmv;
+          return `<div class="kpi-card" style="border-left:3px solid ${b.color}">
+          <div class="kpi-label">${b.label} GMV</div>
+          <div class="kpi-value" style="font-size:20px">${leaiFmtY(b.gmv)}</div>
+          <div class="kpi-sub">购买 ${b.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(b.gmv, summary.gmv)}</div>
+          <div style="display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px dashed #e5e7eb">
+            <div style="flex:1">
+              <div style="font-size:11px;color:#6b7280">官网</div>
+              <div style="font-size:13px;font-weight:600;color:#2563eb">${leaiFmtY(b.offGmv)}</div>
+              <div style="font-size:11px;color:#9ca3af">占比 ${leaiFmtPct(b.offGmv, bizPlatTotal)} · ${b.offBuy.toLocaleString()}人</div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:11px;color:#6b7280">非官网</div>
+              <div style="font-size:13px;font-weight:600;color:#64748b">${leaiFmtY(b.nonGmv)}</div>
+              <div style="font-size:11px;color:#9ca3af">占比 ${leaiFmtPct(b.nonGmv, bizPlatTotal)} · ${b.nonBuy.toLocaleString()}人</div>
+            </div>
+          </div>
+        </div>`;
+        }).join('')}
       </div>
     </div>
 
