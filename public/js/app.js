@@ -13,6 +13,14 @@
         };
         const API_SITE = { personal: "shop", business: "b", enterprise: "biz", home: "default" };
         const PATH_BY_PAGE = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
+        function hardNavigatePage(page) {
+          const path = PATH_BY_PAGE[page || "home"] || "/";
+          if (path === "/" && location.pathname === "/") {
+            location.reload();
+            return;
+          }
+          location.assign(path);
+        }
         const state = {
           page: SITE_BY_PATH[location.pathname] || "home",
           convId: null,
@@ -2804,6 +2812,10 @@
           }
           document.addEventListener("mouseup", () => {
             setTimeout(() => {
+              if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) {
+                pop.classList.remove("show");
+                return;
+              }
               const text = String(getSelection()?.toString() || "").trim();
               if (text.length < 2) return pop.classList.remove("show");
               state.selectedText = text.slice(0, 500);
@@ -2851,6 +2863,8 @@
               if (!value || state.sending) { textarea.focus(); return; }
               if (typeof window.lxfdSubmit === "function") {
                 window.lxfdSubmit(value);
+                textarea.value = "";
+                textarea.dispatchEvent(new Event("input", { bubbles: true }));
               } else {
                 sendChat(value);
                 lxSetAutoFs(true);
@@ -3013,6 +3027,12 @@
             const nav = event.target.closest(".main-nav [data-page]");
             if (nav) {
               const page = nav.dataset.page || "home";
+              if (event.isTrusted) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                hardNavigatePage(page);
+                return;
+              }
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               state.page = page;
               if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
@@ -3522,6 +3542,7 @@
   let turns = [];
   let helloIndex = 0;
   const chatState = { convId: null, sending: false, conversationNonce: 0 };
+  const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
   const helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
   const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
   const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
@@ -3807,8 +3828,10 @@
     e.preventDefault();
     $$("#lxfdNavSheet a").forEach(x => x.classList.remove("active"));
     a.classList.add("active");
-    document.querySelector(`.main-nav [data-page="${a.dataset.page}"]`)?.click();
     setNav(false);
+    const path = navPaths[a.dataset.page] || "/";
+    if (path === "/" && location.pathname === "/") location.reload();
+    else location.assign(path);
   }));
   document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) openRail(false); } });

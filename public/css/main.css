@@ -7023,3 +7023,11 @@ body.lxfd-exiting .lxfd{display:block!important;transform-origin:18px 78px;anima
   transform:translateY(-1px)!important;
 }
 .assistant-panel > .assistant-toggle .icon{width:22px!important;height:22px!important}
+
+/* Input text size refinement */
+.composer textarea{
+  font-size:17px!important;
+}
+.hero-composer textarea{
+  font-size:15px!important;
+}
