@@ -2330,7 +2330,8 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 /* 转化看板表 */
 .geo-dark .geo-conv-section { background:#ffffff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:12px; }
 .geo-dark .geo-conv-title { font-size:13px; font-weight:600; color:#111827; margin-bottom:12px; }
-.geo-dark .geo-conv-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+/* 3 列：按 2.0 行布局分组（UV/登录/新注册｜付费/CA/GMV｜新付费×3｜乐享×3） */
+.geo-dark .geo-conv-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .geo-dark .geo-conv-cell { background:#f9fafb; border-radius:8px; padding:14px; }
 .geo-dark .geo-conv-cell .gcc-label { font-size:11px; color:#6b7280; margin-bottom:6px; }
 .geo-dark .geo-conv-cell .gcc-val { font-size:22px; font-weight:700; color:#111827; }

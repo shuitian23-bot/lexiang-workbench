@@ -628,23 +628,30 @@ function geoRenderCompareBars() {
   });
   const nums = rows.map(r => geoNum(r.value)).filter(v => v !== null);
   const max = Math.max(...nums, 1);
-  const diff = rows.length > 1 && geoNum(rows[1].value) !== null && geoNum(rows[0].value) !== null
-    ? rows[0].value - rows[1].value
-    : null;
-  const diffText = diff === null ? GEO_PENDING_TEXT : `${diff > 0 ? '+' : ''}${geoFmtCount(diff)}`;
+  const brandNum = geoNum(rows[0].value);
   return `<div class="geo-compare-bars">
     <div class="geo-compare-bars-head">
       <span>${geoEscape(meta.label)}${isVisibility ? `（${meta.source}）` : ''}</span>
-      <strong class="${diff === null ? 'is-pending' : (diff < 0 ? 'neg' : 'pos')}">${diffText}</strong>
+      <strong style="font-weight:500;color:#9ca3af;font-size:10px">差值 = 品牌 − 该竞品</strong>
     </div>
     <div class="geo-compare-bars-list">
       ${rows.map(r => {
         const n = geoNum(r.value);
         const width = n === null ? 0 : Math.max(n / max * 100, 4);
+        // 每个竞品分别计算与品牌的差值
+        let diffHtml = '';
+        if (r.type === 'brand') {
+          diffHtml = '<em style="font-style:normal;font-size:10px;color:#9ca3af;margin-left:6px">基准</em>';
+        } else {
+          const diff = brandNum !== null && n !== null ? brandNum - n : null;
+          diffHtml = diff === null
+            ? `<em style="font-style:normal;font-size:10px;color:#9ca3af;margin-left:6px">${GEO_PENDING_TEXT}</em>`
+            : `<em style="font-style:normal;font-size:10px;font-weight:600;margin-left:6px;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${diff.toFixed(2)}pp</em>`;
+        }
         return `<div class="geo-compare-bar">
           <span class="geo-compare-bar-name">${geoEscape(r.name)}</span>
           <span class="geo-compare-track"><i style="width:${width}%;background:${r.color}"></i></span>
-          <strong class="${n === null ? 'is-pending' : ''}">${n === null ? GEO_PENDING_TEXT : geoFmtCount(n)}</strong>
+          <strong class="${n === null ? 'is-pending' : ''}">${n === null ? GEO_PENDING_TEXT : geoFmtCount(n)}</strong>${diffHtml}
         </div>`;
       }).join('')}
     </div>
@@ -741,34 +748,45 @@ function geoApplyCompare() {
       if (brandSubEl) brandSubEl.style.display = 'none';
       if (compareEl) {
         compareEl.style.display = '';
-        if (!hasCompetitors || b === null || c === null) {
+        if (!hasCompetitors || b === null) {
           compareEl.innerHTML = `<div class="geo-pending-line">${!hasCompetitors ? '请选择竞品' : GEO_PENDING_TEXT}</div>`;
           card.classList.remove('highlight');
           card.style.borderColor = '';
           continue;
         }
-        const bv = b, cv = c;
-        const diff = bv - cv;
-        const diffSign = diff > 0 ? '+' : '';
-        const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-        const maxV = Math.max(bv, cv, 1);
-        compareEl.innerHTML = `
-          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>品牌</span><span>${geoFmtPct(b)}</span></div>
-              <div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#2563eb;border-radius:3px"></div></div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>竞品综合</span><span>${geoFmtPct(c)}</span></div>
-              <div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#f59e0b;border-radius:3px"></div></div>
-            </div>
-          </div>
-          <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
-        `;
+        // 多品对比：每个竞品分别计算与品牌的差值（可见度有分竞品数据，其余指标分竞品接口未提供时回退竞品综合）
+        const compNames = geoSelectedCompetitors();
+        const compSeries = geoState._competitorTrendSeries || [];
+        const perCompRows = compNames.map(name => {
+          let v = null;
+          if (metric === 'visible') {
+            const s = compSeries.find(x => x.brand === name || x.field_name === name || x.field === `competitor:${name}`);
+            v = geoLatestSeriesValue(s);
+          }
+          const diff = v === null ? null : b - v;
+          return { name, v, diff };
+        });
+        const hasPerComp = perCompRows.some(r => r.v !== null);
+        const rowHtml = (label, val, diff) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#6b7280;margin-top:3px;gap:6px">
+            <span style="white-space:nowrap">${geoEscape(label)}</span>
+            <span style="display:flex;gap:6px;align-items:center">
+              <span>${val === null ? GEO_PENDING_TEXT : geoFmtPct(val)}</span>
+              ${diff === undefined ? '' : (diff === null
+                ? `<em style="font-style:normal;color:#9ca3af">--</em>`
+                : `<em style="font-style:normal;font-weight:600;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${diff.toFixed(2)}pp</em>`)}
+            </span>
+          </div>`;
+        let html = rowHtml(geoState.scope === 'all' ? '联想品牌' : geoBrandLabel(), b, undefined);
+        if (hasPerComp) {
+          html += perCompRows.map(r => rowHtml(r.name, r.v, r.diff)).join('');
+        } else {
+          html += rowHtml('竞品综合', c, c === null ? null : b - c);
+          html += `<div style="font-size:10px;color:#9ca3af;margin-top:3px">分竞品数据${GEO_PENDING_TEXT}</div>`;
+        }
+        compareEl.innerHTML = html;
       }
-      card.classList.toggle('highlight', metric === geoState.selectedKpi && b !== null && c !== null);
+      card.classList.toggle('highlight', metric === geoState.selectedKpi && b !== null);
       card.style.borderColor = '';
     }
     card.style.borderColor = '';
@@ -1084,35 +1102,52 @@ function geoRenderQuestions(qs) {
 
 function geoRenderIntentFilter(allModels, activeModels) {
   const c = document.getElementById('geo-intent-plat-filter'); if (!c) return;
+  const sel = geoState._intentPlatforms || [];
   const buttons = [{ key:'all', label:'全平台', color:'#2563eb' }].concat(allModels.map(m => ({ key:m, label:geoPlatNames[m] || m, color:geoPlatColors[m] || '#6b7280' })));
   c.innerHTML = buttons.map(item => {
-    const active = item.key === 'all' ? activeModels.length === allModels.length : activeModels.length === 1 && activeModels.includes(item.key);
-    return `<button onclick="geoSetIntentModel('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? item.color : '#d1d5db'};background:${active ? item.color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
+    const active = item.key === 'all' ? !sel.length : sel.includes(item.key);
+    return `<button onclick="geoToggleIntentModel('${item.key}')" title="可多选" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? item.color : '#d1d5db'};background:${active ? item.color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
   }).join('');
 }
 
 function geoRenderIntentVisibilityFilter() {
   const c = document.getElementById('geo-intent-visibility-filter'); if (!c) return;
-  const current = geoState._intentVisibilityFilter || 'all';
+  const sel = geoState._intentVisibilityFilters || [];
   c.innerHTML = GEO_INTENT_FILTERS.map(item => {
-    const active = item.key === current;
-    return `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#2563eb' : '#d1d5db'};background:${active ? '#2563eb' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
+    const active = item.key === 'all' ? !sel.length : sel.includes(item.key);
+    return `<button onclick="geoToggleIntentVisibilityFilter('${item.key}')" title="可多选，多选时需同时满足" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#2563eb' : '#d1d5db'};background:${active ? '#2563eb' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
   }).join('');
 }
 
-function geoSetIntentModel(model) {
-  geoState._intentPlatform = model || 'all';
-  geoRenderQuestions(geoState._questionsData || []);
-}
-
-function geoSetIntentVisibilityFilter(filter) {
-  geoState._intentVisibilityFilter = filter || 'all';
-  geoRenderQuestions(geoState._questionsData || []);
-}
-
+// 平台筛选多选：点选 toggle；全平台=清空；全选中=等价全平台
 function geoToggleIntentModel(model) {
-  geoSetIntentModel(model);
+  if (!model || model === 'all') {
+    geoState._intentPlatforms = [];
+  } else {
+    const sel = geoState._intentPlatforms || (geoState._intentPlatforms = []);
+    const i = sel.indexOf(model);
+    if (i >= 0) sel.splice(i, 1); else sel.push(model);
+    const allModels = (((geoState._questionsData || [])[0] || {}).models || []).map(m => m.model);
+    if (allModels.length && sel.length >= allModels.length) geoState._intentPlatforms = [];
+  }
+  geoRenderQuestions(geoState._questionsData || []);
 }
+
+// 可见性筛选多选：点选 toggle；全部展示=清空
+function geoToggleIntentVisibilityFilter(filter) {
+  if (!filter || filter === 'all') {
+    geoState._intentVisibilityFilters = [];
+  } else {
+    const sel = geoState._intentVisibilityFilters || (geoState._intentVisibilityFilters = []);
+    const i = sel.indexOf(filter);
+    if (i >= 0) sel.splice(i, 1); else sel.push(filter);
+  }
+  geoRenderQuestions(geoState._questionsData || []);
+}
+
+// 旧接口兼容
+function geoSetIntentModel(model) { geoToggleIntentModel(model); }
+function geoSetIntentVisibilityFilter(filter) { geoToggleIntentVisibilityFilter(filter); }
 
 function geoRenderIntentPlatformSummary(qs) {
   const c = document.getElementById('geo-intent-platform-summary'); if (!c) return;
@@ -1252,14 +1287,15 @@ let _trendChartData = null;
 
 function geoFilterTrendSeries(series) {
   const fieldLabels = {
-    all: '整体可见性',
+    all: '联想品牌可见性',
     brand_composite_exposure_rate: '联想官网可见性',
     brand_precise_exposure_rate: '联想乐享可见性',
     competitor_exposure_rate: '竞品可见性'
   };
+  // 2.0：品牌模式趋势仅展示当前 scope 自身品牌线，不混入乐享/官网/竞品综合；对比模式由调用方追加各竞品线
   let wanted;
   if (geoState.scope === 'all') {
-    wanted = new Set(['all', 'brand_composite_exposure_rate', 'brand_precise_exposure_rate', 'competitor_exposure_rate']);
+    wanted = new Set(['all']);
   } else if (geoState.scope === 'official') {
     wanted = new Set(['brand_composite_exposure_rate']);
   } else {
@@ -1553,7 +1589,7 @@ function geoRenderWordCloud(words, container) {
 const GEO_CONVERSION_VALUE_IDS = [
   'gc-all-uv','gc-all-login','gc-all-newreg','gc-all-paid','gc-all-ca','gc-all-gmv','gc-all-newpaid','gc-all-newca','gc-all-newgmv','gc-all-leai-user','gc-all-leai-ca','gc-all-leai-gmv',
   'gc-leai-uv','gc-leai-login','gc-leai-newreg','gc-leai-interact','gc-leai-login-interact','gc-leai-paid','gc-leai-ca','gc-leai-gmv','gc-leai-newpaid','gc-leai-newca','gc-leai-newgmv','gc-leai-order-user','gc-leai-order-ca','gc-leai-order-gmv',
-  'gc-official-uv','gc-official-home-uv','gc-official-shop-uv','gc-official-c-uv','gc-official-b-uv','gc-official-biz-uv','gc-official-service-uv','gc-official-other-uv','gc-official-total-ca','gc-official-total-gmv','gc-official-c-ca','gc-official-b-ca','gc-official-biz-ca','gc-official-c-gmv','gc-official-b-gmv','gc-official-biz-gmv'
+  'gc-official-uv','gc-official-home-uv','gc-official-shop-uv','gc-official-c-uv','gc-official-b-uv','gc-official-biz-uv','gc-official-service-uv','gc-official-forum-uv','gc-official-store-uv','gc-official-leai-uv','gc-official-other-uv','gc-official-total-ca','gc-official-total-gmv','gc-official-c-ca','gc-official-b-ca','gc-official-biz-ca','gc-official-c-gmv','gc-official-b-gmv','gc-official-biz-gmv'
 ];
 
 const GEO_CONVERSION_SPLIT_IDS = [
