@@ -6662,3 +6662,17 @@ body[data-page="home"] .hero-suggestion-cloud {
 body[data-page="home"] .hero-suggestion-cloud {
   transform: none !important;
 }
+
+      /* 全屏对话：消息区自适应高度、整体贴近底部输入区，消除顶部大空白 */
+      body.assistant-fullscreen .chat-state {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        min-height: calc(100vh - 320px);
+        box-sizing: border-box;
+      }
+      body.assistant-fullscreen .lx-p0-messages {
+        height: auto;
+        max-height: calc(100vh - 360px);
+      }
+      body.assistant-fullscreen .lx-p0-messages > :first-child { margin-top: 0; }

@@ -2452,30 +2452,64 @@
         }
 
         // 响应式 actionbar：按面板宽度能放多少放多少，放不下的收进「更多」（对齐旧版测宽溢出方案）
-        const LX_ACTIONBAR_ITEMS = [
-          ["客服", "/assets/icons/shortcut-customer-service.svg"],
-          ["教育特惠", "/assets/icons/shortcut-education-subsidy.svg"],
-          ["以旧换新", "/assets/icons/shortcut-trade-in.svg"],
-          ["乐豆商城", "/assets/icons/sidebar-points-mall.svg"],
-          ["0元试用", "/assets/icons/sidebar-free-trial.svg"],
-          ["私人订制", "/assets/icons/sidebar-custom-service.svg"],
-          ["会员中心", "/assets/icons/sidebar-member-center.svg"],
-          ["拉新返利", "/assets/icons/sidebar-referral-rewards.svg"],
-          ["门店闪送", "/assets/icons/sidebar-store-delivery.svg"],
-        ];
+        // actionbar 按站点差异化：首页=跨客群通用技能；子站=各自客群的高频功能
+        const LX_ACTIONBAR_BY_PAGE = {
+          home: [
+            ["客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["我的订单", "/assets/icons/sidebar-points-mall.svg"],
+            ["附近门店", "/assets/icons/sidebar-store-delivery.svg"],
+            ["会员中心", "/assets/icons/sidebar-member-center.svg"],
+            ["以旧换新", "/assets/icons/shortcut-trade-in.svg"],
+            ["企业采购", "/assets/icons/sidebar-custom-service.svg"],
+          ],
+          personal: [
+            ["客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["教育特惠", "/assets/icons/shortcut-education-subsidy.svg"],
+            ["以旧换新", "/assets/icons/shortcut-trade-in.svg"],
+            ["乐豆商城", "/assets/icons/sidebar-points-mall.svg"],
+            ["0元试用", "/assets/icons/sidebar-free-trial.svg"],
+            ["私人订制", "/assets/icons/sidebar-custom-service.svg"],
+            ["会员中心", "/assets/icons/sidebar-member-center.svg"],
+            ["拉新返利", "/assets/icons/sidebar-referral-rewards.svg"],
+            ["门店闪送", "/assets/icons/sidebar-store-delivery.svg"],
+          ],
+          business: [
+            ["客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["企业认证", "/assets/icons/sidebar-custom-service.svg"],
+            ["批量询价", "/assets/icons/sidebar-points-mall.svg"],
+            ["对公开票", "/assets/icons/sidebar-free-trial.svg"],
+            ["上门售后", "/assets/icons/shortcut-trade-in.svg"],
+            ["会员中心", "/assets/icons/sidebar-member-center.svg"],
+          ],
+          enterprise: [
+            ["客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["方案中心", "/assets/icons/sidebar-custom-service.svg"],
+            ["信创专区", "/assets/icons/sidebar-free-trial.svg"],
+            ["白皮书", "/assets/icons/sidebar-points-mall.svg"],
+            ["批量报价", "/assets/icons/shortcut-education-subsidy.svg"],
+            ["客户经理", "/assets/icons/sidebar-member-center.svg"],
+          ],
+          brand: [
+            ["客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["附近门店", "/assets/icons/sidebar-store-delivery.svg"],
+            ["会员中心", "/assets/icons/sidebar-member-center.svg"],
+            ["我的订单", "/assets/icons/sidebar-points-mall.svg"],
+          ],
+        };
+        const lxActionbarItems = () => LX_ACTIONBAR_BY_PAGE[state.page] || LX_ACTIONBAR_BY_PAGE.home;
 
         function lxRenderActionbar() {
           const row = document.querySelector(".shortcut-row");
           if (!row || state.humanMode) return;
           if (!row.clientWidth) return; // 面板隐藏时跳过，可见后由 ResizeObserver 触发重排
           const btnHtml = ([label, icon]) => `<button class="shortcut" type="button"><img class="icon" src="${icon}" alt="" />${label}</button>`;
-          row.innerHTML = LX_ACTIONBAR_ITEMS.map(btnHtml).join("");
+          row.innerHTML = lxActionbarItems().map(btnHtml).join("");
           row.style.flexWrap = "nowrap";
           const gap = parseFloat(getComputedStyle(row).columnGap) || 8;
           const buttons = [...row.children];
           const widths = buttons.map((node) => node.offsetWidth);
           const total = widths.reduce((sum, w, i) => sum + w + (i ? gap : 0), 0);
-          let fit = LX_ACTIONBAR_ITEMS.length;
+          let fit = lxActionbarItems().length;
           if (total > row.clientWidth) {
             const avail = row.clientWidth - 96; // 「更多」按钮预留
             let used = 0;
@@ -2487,8 +2521,8 @@
             }
             fit = Math.max(1, fit);
           }
-          const visible = LX_ACTIONBAR_ITEMS.slice(0, fit);
-          const overflow = LX_ACTIONBAR_ITEMS.slice(fit);
+          const visible = lxActionbarItems().slice(0, fit);
+          const overflow = lxActionbarItems().slice(fit);
           row.innerHTML = visible.map(btnHtml).join("") + (overflow.length
             ? `<span class="more-wrap"><button class="shortcut" type="button">更多<img class="icon" src="/assets/icons/arrow-down.svg" alt="" /></button><div class="more-menu" role="menu">${overflow.map(([label, icon]) => `<div class="menu-row"><img class="icon" src="${icon}" alt="" />${label}</div>`).join("")}</div></span>`
             : "");
@@ -2955,6 +2989,7 @@
               setTimeout(loadProductsForPage, 0);
               setTimeout(() => lxEntInviteInChat(page), 400);
               lxRenderQuickList();
+              lxRenderActionbar();
               setTimeout(lxRenderSiteFloors, 0);
             }
 
@@ -3087,7 +3122,13 @@
               else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
-              else if (text.includes("退出人工") || text.includes("我的订单") || text.includes("发图片") || text.includes("评价服务") || text.includes("需求清单")) { /* 人工模式按钮走 data-* 委托 */ }
+              else if (state.humanMode && (text.includes("退出人工") || text.includes("我的订单") || text.includes("发图片") || text.includes("评价服务") || text.includes("需求清单"))) { /* 人工模式按钮走 data-* 委托 */ }
+              else if (text.includes("我的订单")) openOrders();
+              else if (text.includes("白皮书")) openWhitepaperLib();
+              else if (text.includes("方案中心")) openSolutionCenter();
+              else if (text.includes("信创专区")) openXinchuangZone();
+              else if (text.includes("企业采购")) sendChat("我要企业批量采购，介绍下企业购的价格和流程");
+              else if (text.includes("上门售后")) sendChat("企业设备的上门售后服务怎么约？");
               else if (text.includes("客服")) lxShowServiceCard();
               else if (text.includes("门店")) openStoresPanel();
               else if (text.includes("会员")) openMemberCenter();
