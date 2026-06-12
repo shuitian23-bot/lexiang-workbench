@@ -3484,3 +3484,200 @@
         initRoute();
         window.addEventListener("popstate", initRoute);
       })();
+
+// Lexiang fullscreen dialog replacement behavior
+(function(){
+  "use strict";
+  if (window.__lxfdInstalled) return;
+  window.__lxfdInstalled = true;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const root = $(".lxfd");
+  if (!root) return;
+
+  const navCluster = $("#lxfdNavCluster");
+  const convoPill = $("#lxfdConvoPill");
+  const convoName = $("#lxfdConvoName");
+  const rail = $("#lxfdRail");
+  const railFab = $("#lxfdRailFab");
+  const railNewFab = $("#lxfdRailNewFab");
+  const scrim = $("#lxfdScrim");
+  const stage = $("#lxfdStage");
+  const welcome = $("#lxfdWelcome");
+  const thread = $("#lxfdThread");
+  const ta = $("#lxfdTa");
+  const send = $("#lxfdSend");
+  const chips = $("#lxfdChips");
+  const quick = $("#lxfdQuick");
+  const turnIndex = $("#lxfdTurnIndex");
+  const turnDots = $("#lxfdTurnDots");
+  const turnList = $("#lxfdTurnList");
+  const helloTitle = $("#lxfdHelloTitle");
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let hoverTimer = null;
+  let turns = [];
+  let helloIndex = 0;
+  const helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
+  const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
+  const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
+  const arrow = '<span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  const answer = '<p>我是联想官方AI助手，主要可以帮您完成以下事情：</p>'
+    + '<h4>产品选购</h4><ul><li>推荐最适合的联想产品&lt;笔记本、台式机、平板、手机、配件等&gt;</li><li>产品参数对比、性价比分析</li></ul>'
+    + '<h4>优惠查询</h4><ul><li>最新优惠政策:国补、教育优惠、企业补贴、学生价等</li><li>计算到手价、叠加各种优惠</li><li>推荐最适合您身份的优惠券</li></ul>'
+    + '<h4>服务支持</h4><ul><li>查询保修状态、推荐延保方案</li><li>售后流程:退换货、维修、清洁保养、以旧换新估价</li><li>服务站地址和技术支持联系方式</li></ul>'
+    + '<h4>订单辅助</h4><ul><li>处理订单、发货物流、发票等</li><li>会员权益、乐豆积分的使用</li></ul>'
+    + '<p>有什么具体需求，随时可以和我说~</p>'
+    + '<div class="lxfd-followups"><button type="button">可以推荐适合学生的笔记本吗？</button><button type="button">怎么查询我的产品保修状态？</button><button type="button">现在有哪些可以叠加的优惠政策？</button></div>'
+    + '<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>';
+
+  chips.innerHTML = questions.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+  quick.innerHTML = quicks.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
+
+  function escapeHtml(text) { return String(text).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])); }
+  function escapeAttr(text) { return escapeHtml(text).replace(/`/g, "&#96;"); }
+  function shortText(text, max) { return text.length > max ? text.slice(0, max) + "…" : text; }
+  function wide() { return window.innerWidth >= 1280; }
+  function setFullscreen(on) {
+    document.body.classList.toggle("assistant-fullscreen", !!on);
+    document.body.classList.toggle("lx-auto-fs", !!on);
+    if (on) document.body.dataset.state = "chat";
+    if (on) requestAnimationFrame(() => { openRail(wide()); fit(); syncSend(); ta?.focus(); });
+  }
+  function setNav(open) {
+    navCluster?.classList.toggle("open", open);
+    convoPill?.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  function openRail(open) {
+    rail?.classList.toggle("open", open);
+    railFab?.classList.toggle("hide", open);
+    railNewFab?.classList.toggle("hide", open);
+    stage?.classList.toggle("shift", open && wide());
+    scrim?.classList.remove("show");
+  }
+  function fit() {
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 148) + "px";
+  }
+  function syncSend() { send?.classList.toggle("idle", !ta?.value.trim()); }
+  function setRotatingTitle(word) { if (helloTitle) helloTitle.innerHTML = `<span>联想乐享帮你</span><span class="rotating-word">${escapeHtml(word)}</span>`; }
+  function rotateTitleWord() {
+    if (!helloTitle || welcome.style.display === "none") return;
+    const word = helloTitle.querySelector(".rotating-word");
+    if (!word) { setRotatingTitle(helloWords[helloIndex]); return; }
+    word.classList.add("out");
+    window.setTimeout(() => {
+      helloIndex = (helloIndex + 1) % helloWords.length;
+      word.textContent = helloWords[helloIndex];
+      word.classList.remove("out");
+      word.classList.add("in");
+      requestAnimationFrame(() => word.classList.remove("in"));
+    }, reduceMotion ? 0 : 340);
+  }
+  function renderTurnIndex(activeId) {
+    turnIndex?.classList.toggle("show", turns.length > 0);
+    if (turnDots) turnDots.innerHTML = turns.map(t => `<i class="${t.id === activeId ? "active" : ""}"></i>`).join("");
+    if (turnList) turnList.innerHTML = turns.map(t => `<button type="button" class="${t.id === activeId ? "active" : ""}" data-target="${escapeAttr(t.id)}" title="${escapeAttr(t.text)}">${escapeHtml(shortText(t.text, 18))}</button>`).join("");
+  }
+  function resetConversation(collapseRail) {
+    if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
+    turns = [];
+    renderTurnIndex("");
+    if (welcome) welcome.style.display = "flex";
+    if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
+    if (ta) { ta.value = ""; fit(); syncSend(); }
+    if (collapseRail && !wide()) openRail(false);
+    ta?.focus();
+  }
+  function submit(text) {
+    const value = String(text || "").trim();
+    if (!value) return;
+    setFullscreen(true);
+    if (welcome) welcome.style.display = "none";
+    thread?.classList.add("show");
+    if (convoName) { convoName.textContent = shortText(value, 15); convoName.title = value; }
+    const turnId = "turn-" + Date.now() + "-" + turns.length;
+    const user = document.createElement("div");
+    user.className = "lxfd-msg-user";
+    user.id = turnId;
+    user.textContent = value;
+    thread?.appendChild(user);
+    turns.push({ id: turnId, text: value });
+    renderTurnIndex(turnId);
+    if (ta) { ta.value = ""; fit(); syncSend(); }
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai";
+    ai.innerHTML = '<div class="lxfd-ai-body"><span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;检索知识库…</span></div>';
+    thread?.appendChild(ai);
+    ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+    window.setTimeout(() => {
+      const body = ai.querySelector(".lxfd-ai-body");
+      if (body) body.innerHTML = answer;
+      ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      $$(".lxfd-followups button", ai).forEach(btn => btn.addEventListener("click", () => submit(btn.textContent)));
+    }, 1100);
+  }
+
+  window.lxfdSubmit = submit;
+  window.lxfdReset = resetConversation;
+
+  convoPill?.addEventListener("click", () => setNav(!navCluster.classList.contains("open")));
+  navCluster?.addEventListener("mouseenter", () => { clearTimeout(hoverTimer); setNav(true); });
+  navCluster?.addEventListener("mouseleave", () => { hoverTimer = setTimeout(() => setNav(false), 260); });
+  $$("#lxfdNavSheet a").forEach(a => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    $$("#lxfdNavSheet a").forEach(x => x.classList.remove("active"));
+    a.classList.add("active");
+    document.querySelector(`.main-nav [data-page="${a.dataset.page}"]`)?.click();
+    setNav(false);
+  }));
+  document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) openRail(false); } });
+  railFab?.addEventListener("click", () => openRail(true));
+  $("#lxfdRailClose")?.addEventListener("click", () => openRail(false));
+  scrim?.addEventListener("click", () => openRail(false));
+  $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
+  railNewFab?.addEventListener("click", () => resetConversation(false));
+  $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); $$("#lxfdHist a").forEach(x => x.classList.remove("active")); a.classList.add("active"); });
+  $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); }));
+  ta?.addEventListener("input", () => { fit(); syncSend(); });
+  ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
+  $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
+  chips?.addEventListener("click", (e) => { const b = e.target.closest(".lxfd-chip-q"); if (b) submit(b.dataset.q || b.textContent); });
+  quick?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) submit(b.textContent); });
+  turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
+  window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) openRail(wide()); });
+
+  setTimeout(() => { setRotatingTitle(helloWords[helloIndex]); if (!reduceMotion) setInterval(rotateTitleWord, 2000); }, reduceMotion ? 0 : 2000);
+  syncSend();
+
+  document.addEventListener("click", (e) => {
+    const heroChip = e.target.closest(".hero-suggestion");
+    const fullPrompt = e.target.closest(".fullscreen-prompt");
+    if (heroChip || fullPrompt) {
+      const text = (heroChip || fullPrompt).textContent.trim();
+      if (text) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); submit(text); }
+    }
+  }, true);
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest?.(".hero-composer");
+    if (!form) return;
+    const txt = form.querySelector("textarea")?.value.trim() || form.querySelector("textarea")?.placeholder || "最近有什么优惠活动？";
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); submit(txt);
+  }, true);
+
+  const observer = new MutationObserver(() => {
+    if (document.body.classList.contains("assistant-fullscreen")) requestAnimationFrame(() => { openRail(wide()); fit(); syncSend(); });
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+})();
+
+// Test hook: open fullscreen dialog with ?lxfd=1 without affecting normal entry.
+(function(){
+  try {
+    if (new URLSearchParams(location.search).has("lxfd")) {
+      document.body.classList.add("assistant-fullscreen", "lx-auto-fs");
+      document.body.dataset.state = "chat";
+    }
+  } catch {}
+})();

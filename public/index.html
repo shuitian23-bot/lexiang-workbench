@@ -750,6 +750,52 @@
       </section>
     </main>
 
+
+
+    <div class="lxfd" aria-label="联想乐享全屏对话">
+      <header class="lxfd-topbar">
+        <div class="lxfd-logo-pill anim-fade" aria-label="联想乐享">
+          <img class="lxfd-logo-full" src="/assets/logos/logo-full-red.png" alt="联想乐享" />
+        </div>
+        <nav class="lxfd-nav-cluster anim-fade" id="lxfdNavCluster" aria-label="全屏导航">
+          <button class="lxfd-convo-pill lxfd-glass" id="lxfdConvoPill" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="lxfdNavSheet" aria-haspopup="true">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="lxfd-convo-name" id="lxfdConvoName" title="新对话">新对话</span>
+            <span class="lxfd-expand-btn" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5.5 8.5 12 15l6.5-6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <div class="lxfd-nav-sheet lxfd-glass" id="lxfdNavSheet" role="menu">
+            <a href="#" role="menuitem" data-page="home">首页</a>
+            <a href="#" role="menuitem" data-page="personal">个人及家庭</a>
+            <a href="#" role="menuitem" data-page="business">中小企业</a>
+            <a href="#" role="menuitem" data-page="enterprise">政教及大企业</a>
+            <a href="#" role="menuitem" data-page="brand">品牌</a>
+          </div>
+        </nav>
+        <div class="lxfd-actions lxfd-glass anim-fade" aria-label="快捷入口">
+          <button class="lxfd-ic" type="button" aria-label="收起"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M14.5 8.5 11 12l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 4.5v15" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="lxfd-ic" type="button" aria-label="购物车，2 件商品"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.4 12.3a1 1 0 0 0 1 .8h8.5a1 1 0 0 0 1-.8L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.2" cy="20" r="1.45" fill="currentColor"/><circle cx="17.8" cy="20" r="1.45" fill="currentColor"/></svg><span class="lxfd-badge">2</span></button>
+          <button class="lxfd-ic" type="button" aria-label="消息，2 条未读"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="lxfd-badge">2</span></button>
+          <span class="lxfd-divider" aria-hidden="true"></span>
+          <button class="lxfd-avatar" type="button" aria-label="个人中心">乐</button>
+        </div>
+      </header>
+      <button class="lxfd-rail-fab lxfd-glass hide" id="lxfdRailFab" type="button" aria-label="展开侧栏"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 4.5v15" stroke="currentColor" stroke-width="1.8"/></svg></button>
+      <button class="lxfd-rail-new-fab lxfd-glass hide" id="lxfdRailNewFab" type="button" aria-label="新建对话"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg></button>
+      <aside class="lxfd-rail lxfd-glass open" id="lxfdRail" aria-label="对话与历史">
+        <div class="lxfd-rail-head"><button class="lxfd-new-chat" id="lxfdNewChat" type="button"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>新建对话</button><button class="lxfd-rail-toggle" id="lxfdRailClose" type="button" aria-label="收起侧栏"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 4.5v15" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+        <h3>历史记录</h3>
+        <nav class="lxfd-hist" id="lxfdHist"><a href="#" title="帮我推荐一款商品">帮我推荐一款商品</a><a href="#" title="帮我推荐一款商品帮我推荐一款商品">帮我推荐一款商品帮我推荐一款商品</a><a href="#" title="帮我推荐一款商品">帮我推荐一款商品</a><a href="#" title="你家笔记本最好的新款给推荐一款">你家笔记本最好的新款给推荐一款…</a></nav>
+        <div class="lxfd-rail-foot"><strong>乐豆商城</strong> · 积分可抵现，会员日翻倍，详情见会员中心。</div>
+      </aside>
+      <div class="lxfd-scrim" id="lxfdScrim"></div>
+      <aside class="lxfd-turn-index" id="lxfdTurnIndex" aria-label="对话轮次索引"><div class="lxfd-turn-dots" id="lxfdTurnDots" aria-hidden="true"></div><div class="lxfd-turn-panel lxfd-glass"><h4>对话问题</h4><div class="lxfd-turn-list" id="lxfdTurnList"></div></div></aside>
+      <main class="lxfd-stage shift" id="lxfdStage">
+        <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle">你好，我是联想乐享</h1><div class="lxfd-chips" id="lxfdChips"></div></section>
+        <section class="lxfd-thread" id="lxfdThread" aria-live="polite"></section>
+        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="最近有什么优惠活动？" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="/assets/icons/composer-deep-think.svg" alt="" />深度思考</button><button type="button" class="lxfd-toggle" aria-pressed="false"><img src="/assets/icons/composer-web-search.svg" alt="" />联网搜索</button></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="/assets/icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 19V6M6 11.2 12 5.2l6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></form><p class="lxfd-footnote">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p></div>
+      </main>
+    </div>
+
     <script src="/js/portal.js"></script>
     <script src="/js/app.js"></script>
   </body>
