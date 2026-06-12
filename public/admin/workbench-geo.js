@@ -638,7 +638,7 @@ function geoRenderCompareBars() {
       ${rows.map(r => {
         const n = geoNum(r.value);
         const width = n === null ? 0 : Math.max(n / max * 100, 4);
-        // 每个竞品分别计算与品牌的差值
+        // 每个竞品分别计算与品牌的差值（量纲同数值列：可见性为覆盖意图数）
         let diffHtml = '';
         if (r.type === 'brand') {
           diffHtml = '<em style="font-style:normal;font-size:10px;color:#9ca3af;margin-left:6px">基准</em>';
@@ -646,7 +646,7 @@ function geoRenderCompareBars() {
           const diff = brandNum !== null && n !== null ? brandNum - n : null;
           diffHtml = diff === null
             ? `<em style="font-style:normal;font-size:10px;color:#9ca3af;margin-left:6px">${GEO_PENDING_TEXT}</em>`
-            : `<em style="font-style:normal;font-size:10px;font-weight:600;margin-left:6px;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${diff.toFixed(2)}pp</em>`;
+            : `<em style="font-style:normal;font-size:10px;font-weight:600;margin-left:6px;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${geoFmtCount(diff)}</em>`;
         }
         return `<div class="geo-compare-bar">
           <span class="geo-compare-bar-name">${geoEscape(r.name)}</span>
@@ -754,34 +754,42 @@ function geoApplyCompare() {
           card.style.borderColor = '';
           continue;
         }
-        // 多品对比：每个竞品分别计算与品牌的差值（可见度有分竞品数据，其余指标分竞品接口未提供时回退竞品综合）
+        // 多品对比：每个竞品分别计算与品牌的差值。
+        // 可见度：分竞品数据来自 competitor-trends（覆盖意图数），品牌基线取趋势近值保持同量纲；
+        // 推荐率/置顶率/前三率：分竞品接口未提供，回退展示竞品综合（百分比）。
         const compNames = geoSelectedCompetitors();
         const compSeries = geoState._competitorTrendSeries || [];
-        const perCompRows = compNames.map(name => {
-          let v = null;
-          if (metric === 'visible') {
+        let perCompRows = [];
+        let brandBaseline = null;
+        if (metric === 'visible') {
+          const brandSeries = (_trendChartData?.series || []).find(s =>
+            s.field === (geoState.scope === 'all' ? 'all' : geoTrendField()));
+          brandBaseline = geoLatestSeriesValue(brandSeries);
+          perCompRows = compNames.map(name => {
             const s = compSeries.find(x => x.brand === name || x.field_name === name || x.field === `competitor:${name}`);
-            v = geoLatestSeriesValue(s);
-          }
-          const diff = v === null ? null : b - v;
-          return { name, v, diff };
-        });
+            const v = geoLatestSeriesValue(s);
+            return { name, v, diff: brandBaseline !== null && v !== null ? brandBaseline - v : null };
+          });
+        }
         const hasPerComp = perCompRows.some(r => r.v !== null);
-        const rowHtml = (label, val, diff) => `
+        const rowHtml = (label, val, diff, fmt) => `
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#6b7280;margin-top:3px;gap:6px">
             <span style="white-space:nowrap">${geoEscape(label)}</span>
             <span style="display:flex;gap:6px;align-items:center">
-              <span>${val === null ? GEO_PENDING_TEXT : geoFmtPct(val)}</span>
+              <span>${val === null ? GEO_PENDING_TEXT : fmt(val)}</span>
               ${diff === undefined ? '' : (diff === null
                 ? `<em style="font-style:normal;color:#9ca3af">--</em>`
-                : `<em style="font-style:normal;font-weight:600;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${diff.toFixed(2)}pp</em>`)}
+                : `<em style="font-style:normal;font-weight:600;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${fmt(diff)}</em>`)}
             </span>
           </div>`;
-        let html = rowHtml(geoState.scope === 'all' ? '联想品牌' : geoBrandLabel(), b, undefined);
+        const brandName = geoState.scope === 'all' ? '联想品牌' : geoBrandLabel();
+        let html;
         if (hasPerComp) {
-          html += perCompRows.map(r => rowHtml(r.name, r.v, r.diff)).join('');
+          html = rowHtml(`${brandName}（近值）`, brandBaseline, undefined, geoFmtCount);
+          html += perCompRows.map(r => rowHtml(r.name, r.v, r.diff, geoFmtCount)).join('');
         } else {
-          html += rowHtml('竞品综合', c, c === null ? null : b - c);
+          html = rowHtml(brandName, b, undefined, geoFmtPct);
+          html += rowHtml('竞品综合', c, c === null || b === null ? null : b - c, geoFmtPct);
           html += `<div style="font-size:10px;color:#9ca3af;margin-top:3px">分竞品数据${GEO_PENDING_TEXT}</div>`;
         }
         compareEl.innerHTML = html;
@@ -1379,7 +1387,8 @@ async function geoLoadTrendChart(loadSeq) {
     }
     _trendChartData = { dates, series: scopedSeries };
     geoDrawTrendCanvas();
-    geoRenderCompareDetail();
+    // 竞品趋势序列晚于 overview 到达时，重刷 KPI 卡的分竞品差值
+    if (geoState._kpiRaw) geoApplyCompare(); else geoRenderCompareDetail();
   } catch(e) {
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     _trendChartData = null;
