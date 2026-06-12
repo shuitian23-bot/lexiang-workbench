@@ -3623,11 +3623,33 @@
   function finishMotionClass(name, delay = 520) {
     window.setTimeout(() => document.body.classList.remove(name), reduceMotion ? 0 : delay);
   }
+  function createPanelStretchLayer() {
+    const source = document.querySelector(".assistant-panel");
+    if (!source || reduceMotion) return null;
+    const rect = source.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel";
+    layer.setAttribute("aria-hidden", "true");
+    layer.style.left = `${rect.left}px`;
+    layer.style.top = `${rect.top}px`;
+    layer.style.width = `${rect.width}px`;
+    layer.style.height = `${rect.height}px`;
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    requestAnimationFrame(() => layer.classList.add("run"));
+    return layer;
+  }
   function enterFullscreen() {
+    const motionLayer = createPanelStretchLayer();
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.add("lxfd-entering");
     setFullscreen(true);
-    finishMotionClass("lxfd-entering", 560);
+    window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
+    finishMotionClass("lxfd-entering", 760);
   }
   function exitFullscreen() {
     if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) return;
