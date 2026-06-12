@@ -1480,7 +1480,17 @@
           state._entCongrats = true;
           toast("企业认证已通过");
           addMessage("assistant", `好消息：「${ent.company || "贵公司"}」的企业采购负责人认证已通过！已为你解锁企业专享价（商品价签即刻生效）、采购补贴、对公专票与账期通道。`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="按企业专享价帮我重新推荐刚才在看的办公电脑">按企业价重看推荐</button><button class="lx-p0-btn" type="button" data-quick-ask="企业专享权益都有哪些，怎么用">看全部企业权益</button></div>`);
-          if (state.page === "business") setTimeout(() => { try { lxRunTab(state.tabs.find((t) => t.active)); } catch {} }, 200);
+          if (state.page === "business") setTimeout(() => { try { lxRunTab(state.tabs.find((t) => t.id === state.activeTabId) || state.tabs[0]); } catch {} }, 200);
+        }
+
+        // pending 状态主动盯审核结果：到点即播报，不等用户下次操作
+        let lxEntWatcher = null;
+        function lxWatchEntPending() {
+          clearInterval(lxEntWatcher);
+          lxEntWatcher = setInterval(() => {
+            const ent = lxEntState(); // 惰性检测内含 verified 转变与播报
+            if (ent.status !== "pending") clearInterval(lxEntWatcher);
+          }, 2500);
         }
 
         function lxSaveEntState(ent) {
@@ -2688,6 +2698,7 @@
         }
         setTimeout(lxRenderActionbar, 50);
         setTimeout(lxRenderQuickList, 0);
+        setTimeout(() => { if (lxEntState().status === "pending") lxWatchEntPending(); }, 1500);
         // ── lxHint 情境转化条（移植旧版 chip 形态，config/lxhint.json 开关，PRD 5.7.5 情境化转化提示）──
         state.lxHintMode = "chip";
         fetch("/api/config/lxhint", { cache: "no-store" }).then((r) => r.json()).then((d) => {
@@ -3443,7 +3454,7 @@
             const cmpBuy = event.target.closest("[data-cmp-buy]")?.dataset.cmpBuy;
             if (cmpBuy) {
               const product = (state._comparePageItems || []).find((item) => item.sku === cmpBuy);
-              if (product) buyNow(product);
+              if (product) oneClickBuy(product);
             }
             const cmpCart = event.target.closest("[data-cmp-cart]")?.dataset.cmpCart;
             if (cmpCart) {
@@ -3604,7 +3615,7 @@
               if (!company) { toast("请填写企业/机构名称"); }
               else {
                 lxSaveEntState({ status: "pending", company, code, contact, submittedAt: Date.now() });
-                setTimeout(() => lxEntState(), LX_ENT_REVIEW_MS + 1000); // 审核到点主动唤醒播报，不等用户下次操作
+                lxWatchEntPending();
                 closeModal();
                 toast("认证资料已提交，审核中");
                 fetch("/api/leads", {
