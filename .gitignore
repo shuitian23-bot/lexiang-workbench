@@ -42,11 +42,16 @@ public/biz-chat/
 .claude/settings.local.json
 .locks/
 
-# AI session 本地目录与运行时产物（不入库）
-.claude/
+# AI session 本地目录与运行时产物（不入库）；.claude/skills 是团队共享 skill，入库
+.claude/*
+!.claude/skills/
 .codex/
 backups/
 data/
 server.out
 *.tmp
 public/wiki-index.html.tmp
+
+# macOS AppleDouble 垃圾
+._*
+**/._*
