@@ -28,7 +28,7 @@ const GEO_SCOPE_CONFIG = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatform:'all', _intentVisibilityFilter:'all' };
+const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatforms:[], _intentVisibilityFilters:[] };
 const geoConversionState = { period:'30d', startDate:null, endDate:null };
 const geoSourceState = { scope:'all', platform:'all', page:1, pageSize:10 };
 
@@ -348,8 +348,8 @@ function geoSetScope(el) {
   el.classList.add('active');
   geoState.scope = el.dataset.scope;
   geoState.questions = [];
-  geoState._intentPlatform = 'all';
-  geoState._intentVisibilityFilter = 'all';
+  geoState._intentPlatforms = [];
+  geoState._intentVisibilityFilters = [];
   geoResetPlatformPills();
   geoSyncScopeUi();
   geoLoadData();
@@ -1003,9 +1003,10 @@ function geoFilterQuestionsByScope(qs, models) {
 }
 
 function geoFilterQuestionsByVisibility(qs, models) {
-  const filter = geoState._intentVisibilityFilter || 'all';
-  if (filter === 'all') return qs || [];
-  return (qs || []).filter(q => geoQuestionHasVisibility(q, filter, models));
+  const filters = geoState._intentVisibilityFilters || [];
+  if (!filters.length) return qs || [];
+  // 多选=同时满足所有选中的可见性条件
+  return (qs || []).filter(q => filters.every(f => geoQuestionHasVisibility(q, f, models)));
 }
 
 function geoQuestionsForOverviewSelect() {
@@ -1053,9 +1054,8 @@ function geoRenderQuestions(qs) {
   const c = document.getElementById('geo-questions-table'); if(!c) return;
   if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
   const allModels = (qs[0].models || []).map(m => m.model);
-  const models = geoState._intentPlatform && geoState._intentPlatform !== 'all'
-    ? allModels.filter(m => m === geoState._intentPlatform)
-    : allModels;
+  const selPlats = geoState._intentPlatforms || [];
+  const models = selPlats.length ? allModels.filter(m => selPlats.includes(m)) : allModels;
   geoRenderIntentFilter(allModels, models);
   geoRenderIntentVisibilityFilter();
   const scoped = geoFilterQuestionsByScope(qs, models);
