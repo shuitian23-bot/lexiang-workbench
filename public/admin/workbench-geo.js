@@ -91,9 +91,6 @@ function geoSiteLogoHtml(domain = '', name = '') {
   const d = String(domain || '').replace(/^https?:\/\//, '').split('/')[0];
   const fallback = geoEscape(String(name || d || '?').trim().slice(0, 1).toUpperCase() || '?');
   if (!d) return `<span class="geo-site-logo fallback">${fallback}</span>`;
-  if (/lenovo\.(com|com\.cn|cn)$/i.test(d) || d.includes('.lenovo.')) {
-    return `<span class="geo-site-logo"><img src="assets/logo-icon.png" alt=""></span>`;
-  }
   const url = `https://www.google.com/s2/favicons?sz=32&domain_url=https://${encodeURIComponent(d)}`;
   return `<span class="geo-site-logo" data-fallback="${fallback}">
     <img src="${url}" alt="" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent=this.parentElement.dataset.fallback||'?'">
@@ -566,23 +563,10 @@ function geoRenderTrendChart() {
   geoRenderCompareDetail();
 }
 
+// 独立「品牌 vs 竞品 对比」面板已删（与 KPI 卡分竞品差值重复），趋势行恒为单栏
 function geoRenderCompareDetail() {
-  const c = document.getElementById('geo-trend-chart');
-  const panel = document.getElementById('geo-compare-detail-panel');
   const row = document.getElementById('geo-trend-row');
-  const showCompare = geoState.scope !== 'leai' && geoState.compare === 'compare';
-  if (panel) panel.style.display = showCompare ? '' : 'none';
-  if (row) row.classList.toggle('single', !showCompare);
-  if (!c) return;
-  if (!showCompare) {
-    c.innerHTML = '';
-    return;
-  }
-  if (!geoState.competitors.length) {
-    c.innerHTML = geoPendingHtml('请选择最多5个竞品');
-    return;
-  }
-  c.innerHTML = geoRenderCompareBars();
+  if (row) row.classList.add('single');
 }
 
 function geoCompetitorColorByName(name) {
@@ -593,70 +577,6 @@ function geoCompetitorColorByName(name) {
 function geoLatestSeriesValue(series) {
   const values = (series?.data || []).filter(v => geoNum(v) !== null);
   return values.length ? geoNum(values[values.length - 1]) : null;
-}
-
-function geoRenderCompareBars() {
-  const metric = geoState.selectedKpi || 'visible';
-  const metaMap = {
-    visible: { label:'品牌可见度', brandLabel:'联想品牌', source:'趋势最近值' },
-    rec: { label:'品牌推荐率' },
-    top1: { label:'品牌推荐置顶率' },
-    top3: { label:'品牌推荐前三率' }
-  };
-  const meta = metaMap[metric] || metaMap.visible;
-  const isVisibility = metric === 'visible';
-  const brandSeries = (_trendChartData?.series || []).find(s =>
-    s.field === (geoState.scope === 'all' ? 'all' : geoTrendField()) ||
-    (geoState.scope === 'all' && s.field === 'brand_composite_exposure_rate')
-  );
-  const brandValue = isVisibility ? geoLatestSeriesValue(brandSeries) : geoNum(geoState._kpiRaw?.[metric]?.brand);
-  const rows = [{
-    name: geoState.scope === 'all' ? '联想品牌' : geoBrandLabel(),
-    value: brandValue,
-    color: '#2563eb',
-    type: 'brand'
-  }];
-  const compSeries = isVisibility ? (geoState._competitorTrendSeries || []) : [];
-  geoSelectedCompetitors().forEach(name => {
-    const series = compSeries.find(s => s.field_name === name || s.brand === name || s.field === name);
-    rows.push({
-      name,
-      value: isVisibility ? geoLatestSeriesValue(series) : null,
-      color: geoCompetitorColorByName(name),
-      type: 'competitor'
-    });
-  });
-  const nums = rows.map(r => geoNum(r.value)).filter(v => v !== null);
-  const max = Math.max(...nums, 1);
-  const brandNum = geoNum(rows[0].value);
-  return `<div class="geo-compare-bars">
-    <div class="geo-compare-bars-head">
-      <span>${geoEscape(meta.label)}${isVisibility ? `（${meta.source}）` : ''}</span>
-      <strong style="font-weight:500;color:#9ca3af;font-size:10px">差值 = 品牌 − 该竞品</strong>
-    </div>
-    <div class="geo-compare-bars-list">
-      ${rows.map(r => {
-        const n = geoNum(r.value);
-        const width = n === null ? 0 : Math.max(n / max * 100, 4);
-        // 每个竞品分别计算与品牌的差值（量纲同数值列：可见性为覆盖意图数）
-        let diffHtml = '';
-        if (r.type === 'brand') {
-          diffHtml = '<em style="font-style:normal;font-size:10px;color:#9ca3af;margin-left:6px">基准</em>';
-        } else {
-          const diff = brandNum !== null && n !== null ? brandNum - n : null;
-          diffHtml = diff === null
-            ? `<em style="font-style:normal;font-size:10px;color:#9ca3af;margin-left:6px">${GEO_PENDING_TEXT}</em>`
-            : `<em style="font-style:normal;font-size:10px;font-weight:600;margin-left:6px;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${geoFmtCount(diff)}</em>`;
-        }
-        return `<div class="geo-compare-bar">
-          <span class="geo-compare-bar-name">${geoEscape(r.name)}</span>
-          <span class="geo-compare-track"><i style="width:${width}%;background:${r.color}"></i></span>
-          <strong class="${n === null ? 'is-pending' : ''}">${n === null ? GEO_PENDING_TEXT : geoFmtCount(n)}</strong>${diffHtml}
-        </div>`;
-      }).join('')}
-    </div>
-    ${isVisibility ? '' : `<div class="geo-compare-note">${GEO_PENDING_TEXT}：分竞品${geoEscape(meta.label.replace('品牌', ''))}接口未提供</div>`}
-  </div>`;
 }
 
 function geoSelectKpi(el) {
@@ -784,13 +704,17 @@ function geoApplyCompare() {
           </div>`;
         const brandName = geoState.scope === 'all' ? '联想品牌' : geoBrandLabel();
         let html;
-        if (hasPerComp) {
+        if (metric === 'visible' && hasPerComp) {
           html = rowHtml(`${brandName}（近值）`, brandBaseline, undefined, geoFmtCount);
           html += perCompRows.map(r => rowHtml(r.name, r.v, r.diff, geoFmtCount)).join('');
-        } else {
+        } else if (metric === 'visible') {
           html = rowHtml(brandName, b, undefined, geoFmtPct);
           html += rowHtml('竞品综合', c, c === null || b === null ? null : b - c, geoFmtPct);
-          html += `<div style="font-size:10px;color:#9ca3af;margin-top:3px">分竞品数据${GEO_PENDING_TEXT}</div>`;
+        } else {
+          // 推荐率/置顶率/前三率：逐竞品列出，分竞品数值服务商接口未提供时显示占位
+          html = rowHtml(brandName, b, undefined, geoFmtPct);
+          html += rowHtml('竞品综合', c, c === null || b === null ? null : b - c, geoFmtPct);
+          html += compNames.map(name => rowHtml(name, null, null, geoFmtPct)).join('');
         }
         compareEl.innerHTML = html;
       }
@@ -1088,15 +1012,18 @@ function geoRenderQuestions(qs) {
   const rows = geoFilterQuestionsByVisibility(scoped, models);
   geoSetValue('gv-q-count', rows.length ? rows.length : null);
   if (!rows.length) { c.innerHTML = geoPendingHtml(); return; }
+  // 列与可见性筛选联动：选了可见性条件只展示对应列，未选展示全部 4 列
+  const selVis = geoState._intentVisibilityFilters || [];
+  const fieldKeys = selVis.length ? GEO_INTENT_FIELD_KEYS.filter(k => selVis.includes(k)) : GEO_INTENT_FIELD_KEYS;
   let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
-  models.forEach(m => { const name = geoPlatNames[m] || m; GEO_INTENT_FIELD_KEYS.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
+  models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
   html += '</tr></thead><tbody>';
   rows.forEach(q => {
     const questionText = q.question || '';
     html += `<tr><td class="name" title="${geoEscape(questionText)}">${geoEscape(questionText.length > 20 ? questionText.slice(0,20)+'...' : questionText)}</td>`;
     models.forEach(m => {
       const md = (q.models || []).find(x => x.model === m);
-      GEO_INTENT_FIELD_KEYS.forEach(f => {
+      fieldKeys.forEach(f => {
         const v = geoIntentDerivedValue(md, f);
         const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : '');
         html += `<td class="${cls}"><span class="geo-yn-badge ${cls}">${geoEscape(v)}</span></td>`;

@@ -2181,12 +2181,8 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 对比横条卡 + 趋势折线图 -->
+      <!-- 趋势折线图（对比数据并入上方 KPI 卡，独立对比面板已删） -->
       <div class="geo-row geo-compare-trend-row single" id="geo-trend-row" style="margin-bottom:12px">
-        <div class="geo-panel geo-compare-bars-panel" id="geo-compare-detail-panel" style="display:none">
-          <div class="gpnl-title">品牌 vs 竞品 对比</div>
-          <div id="geo-trend-chart" class="geo-compare-bars-body"><div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div></div>
-        </div>
         <div class="geo-panel" style="flex:2;min-width:0">
           <div style="margin-bottom:8px">
             <div class="gpnl-title" id="geo-trend-title" style="margin:0">可见性趋势</div>
