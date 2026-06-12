@@ -6679,3 +6679,14 @@ body[data-page="home"] .hero-suggestion-cloud {
       body.assistant-fullscreen[data-state="chat"] .chat-state {
         padding-bottom: 24px;
       }
+
+      /* 分类页签吸顶：列表滚动时页签条留在内容区顶部 */
+      .category-tabs { position: sticky; top: 0; z-index: 30; background: #fff; box-shadow: 0 6px 14px -10px rgba(46,26,52,0.18); }
+      /* 详情底部跟随购买条 */
+      .lx-buybar { position: sticky; bottom: 0; z-index: 30; display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px 16px; background: #fff; border: 1px solid var(--lx-border); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 22px rgba(46,26,52,0.12); }
+      .lx-buybar[hidden] { display: none; }
+      .lx-buybar img { width: 46px; height: 38px; object-fit: contain; flex: none; }
+      .lx-buybar-info { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 12px; }
+      .lx-buybar-info strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lx-buybar-info b { color: var(--lx-brand-red); font-size: 16px; flex: none; }
+      .lx-buybar .detail-primary, .lx-buybar .detail-secondary { flex: none; width: auto; padding: 9px 22px; font-size: 13.5px; }

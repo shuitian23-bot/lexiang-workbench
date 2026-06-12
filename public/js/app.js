@@ -485,6 +485,7 @@
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);
+          lxEnsureBuybar(product);
           loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
@@ -552,6 +553,30 @@
         // biz 政企商品（服务器/工作站/方案型）不可直购：CTA 切换为咨询留资式（对齐 biz.lenovo.com.cn）
         function lxIsBizProduct(product) {
           return ["服务器", "工作站", "服务产品"].includes(product?.category) || /开天|昭阳|启天|问天|ThinkStation|ThinkSystem/i.test(product?.name || "");
+        }
+
+        // 详情页底部跟随购买条：主按钮区滚出视野后吸底显示，购买永远够得着
+        let lxBuybarObserver = null;
+        function lxEnsureBuybar(product) {
+          const host = document.querySelector(".product-detail");
+          const actions = document.querySelector(".detail-actions");
+          if (!host || !actions) return;
+          document.querySelector(".lx-buybar")?.remove();
+          const biz = lxIsBizProduct(product);
+          host.insertAdjacentHTML("beforeend", `
+            <div class="lx-buybar" hidden>
+              <img src="${esc(imgUrl(product.image_url))}" alt="" />
+              <div class="lx-buybar-info"><strong>${esc((product.name || "").slice(0, 30))}</strong><b>¥${Number(product.price || 0).toLocaleString()}</b></div>
+              <button class="detail-primary" type="button"${biz ? ' data-biz-quote="1"' : ""}>${biz ? "获取报价方案" : "一键领优惠下单"}</button>
+              ${biz ? "" : `<button class="detail-secondary" type="button">加入购物车</button>`}
+            </div>`);
+          const bar = host.querySelector(".lx-buybar");
+          if (bar && biz) bar.querySelector(".detail-primary").dataset.bizQuote = "1";
+          lxBuybarObserver?.disconnect();
+          lxBuybarObserver = new IntersectionObserver(([entry]) => {
+            if (bar) bar.hidden = entry.isIntersecting;
+          }, { root: document.querySelector(".content"), threshold: 0 });
+          lxBuybarObserver.observe(actions);
         }
 
         function lxApplyDetailCtaMode(product) {
