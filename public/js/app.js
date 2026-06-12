@@ -3675,9 +3675,14 @@
 // Test hook: open fullscreen dialog with ?lxfd=1 without affecting normal entry.
 (function(){
   try {
-    if (new URLSearchParams(location.search).has("lxfd")) {
+    if (!new URLSearchParams(location.search).has("lxfd")) return;
+    const forceFullscreen = () => {
       document.body.classList.add("assistant-fullscreen", "lx-auto-fs");
       document.body.dataset.state = "chat";
-    }
+      document.getElementById("lxfdStage")?.classList.toggle("shift", window.innerWidth >= 1280);
+      document.getElementById("lxfdRail")?.classList.toggle("open", window.innerWidth >= 1280);
+    };
+    forceFullscreen();
+    [50, 300, 1000, 2000].forEach((delay) => window.setTimeout(forceFullscreen, delay));
   } catch {}
 })();

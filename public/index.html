@@ -796,7 +796,26 @@
       </main>
     </div>
 
+    <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd");</script>
     <script src="/js/portal.js"></script>
     <script src="/js/app.js"></script>
+    <script>
+      (function(){
+        try {
+          if (!window.__LXFD_FORCE && !new URLSearchParams(location.search).has("lxfd")) return;
+          var force = function(){
+            document.body.classList.add("assistant-fullscreen", "lx-auto-fs");
+            document.body.dataset.state = "chat";
+            var stage = document.getElementById("lxfdStage");
+            var rail = document.getElementById("lxfdRail");
+            var wide = window.innerWidth >= 1280;
+            if (stage) stage.classList.toggle("shift", wide);
+            if (rail) rail.classList.toggle("open", wide);
+          };
+          force();
+          [50, 300, 1000, 2000].forEach(function(delay){ window.setTimeout(force, delay); });
+        } catch (err) {}
+      })();
+    </script>
   </body>
 </html>
