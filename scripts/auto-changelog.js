@@ -81,7 +81,17 @@ function authorToName(commit) {
       const stat = sh(`git show --stat --format= ${p.c} | head -8`);
       const text = await llm(`提交说明: ${p.msg}\n改动文件: ${p.files.slice(0, 6).join(', ')}\n变更统计:\n${stat}`);
       if (!text || /^SKIP/i.test(text) || text.length < 10) continue;
-      const entry = `${text.replace(/。$/, '')}。——${authorToName(p.c)}`;
+      const who = authorToName(p.c);
+      let tokenNote = '';
+      if (who === '白羽') {
+        try {
+          const prevTs = sh(`git log -1 --format=%aI ${p.c}^`);
+          const curTs = sh(`git log -1 --format=%aI ${p.c}`);
+          const n = Number(sh(`node ${path.join(REPO, 'scripts/token-stats.js')} "${prevTs}" "${curTs}"`));
+          if (n > 500) tokenNote = `（约${(n / 10000).toFixed(1).replace(/\.0$/, '')}万 token）`;
+        } catch {}
+      }
+      const entry = `${text.replace(/。$/, '')}。——${who}${tokenNote}`;
       if (!d.days[0].items.some((it) => it.slice(0, 20) === entry.slice(0, 20))) {
         d.days[0].items.push(entry);
         added++;
