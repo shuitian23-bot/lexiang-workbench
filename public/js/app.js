@@ -15,7 +15,9 @@
         const PATH_BY_PAGE = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
         function hardNavigatePage(page) {
           const path = PATH_BY_PAGE[page || "home"] || "/";
-          if (path === "/" && location.pathname === "/") {
+          const currentPath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
+          const targetPath = path.endsWith("/") ? path : `${path}/`;
+          if (currentPath === targetPath) {
             location.reload();
             return;
           }
@@ -502,15 +504,68 @@
 
         // SPU 体系：详情页展示同系列全部配置（SKU 选择器 + 价格区间 + 系列内对比）
         let spuToken = 0;
-        function lxVariantLabel(variant, baseName) {
-          const specs = variant.specs || {};
+        function lxParseSpecs(raw) {
+          if (!raw) return {};
+          if (typeof raw === "object") return raw;
+          try {
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === "object" ? parsed : {};
+          } catch {
+            return {};
+          }
+        }
+        function lxCleanConfigPart(value) {
+          return String(value || "")
+            .replace(/¥\s*[\d,]+/g, "")
+            .replace(/版本|款|商品|笔记本电脑|笔记本|手机|平板|联想|Lenovo/gi, "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 34);
+        }
+        function lxExtractConfigFromText(text) {
+          const source = String(text || "").replace(/\u00a0/g, " ");
+          const parts = {};
+          const phoneCombo = source.match(/(\d{1,3})\s*(?:GB|G)?\s*[+＋]\s*(\d{2,4})\s*(?:GB|G)?/i);
+          if (phoneCombo) {
+            parts.memory = `${phoneCombo[1]}GB`;
+            parts.storage = `${phoneCombo[2]}GB`;
+          }
+          const cpu = source.match(/(Ultra\s*\d(?:\s+\d{3,4}[A-Z]*)?(?:\s*Plus)?|i[3579][- ]?\d{4,5}[A-Z]{0,3}|(?:AMD\s*)?锐龙\s*\d\s*[A-Z0-9 ]*|Ryzen\s*[3579]\s*\d{4}[A-Z]{0,4}|骁龙\s*\d+\s*(?:Gen\s*\d|Elite)?|天玑\s*\d+)/i);
+          if (cpu) parts.cpu = cpu[1];
+          if (!parts.memory) {
+            const memory = source.match(/(\d{1,3}\s*(?:GB|G)(?:\s*[（(][^)）]+[)）])?\s*(?:DDR[45]|LPDDR5X?)?)/i);
+            if (memory) parts.memory = memory[1];
+          }
+          if (!parts.storage) {
+            const storageSource = parts.memory ? source.replace(parts.memory, " ") : source;
+            const storage = storageSource.match(/(\d+(?:\.\d+)?\s*(?:TB|T|GB|G)\s*(?:SSD|固态硬盘)?)/i);
+            if (storage) parts.storage = storage[1];
+          }
+          const gpu = source.match(/((?:RTX|GTX)\s*\d{3,4}(?:\s*\d{1,2}G(?:B)?)?|集成显卡|独显)/i);
+          if (gpu) parts.gpu = gpu[1];
+          const colorTokens = source.split(/[\s｜|/，,（）()]+/).filter(Boolean);
+          const color = [...colorTokens].reverse().find((token) =>
+            /(?:黑|白|灰|蓝|青|绿|银|金|紫|红|粉|橙)$/.test(token) &&
+            !/联想|moto|YOGA|ThinkPad|拯救者|小新|版本|英寸|电脑|手机|平板|游戏本|轻薄/.test(token)
+          );
+          if (color) parts.color = color;
+          return parts;
+        }
+        function lxVariantLabel(variant, baseName, index = 0) {
+          const specs = lxParseSpecs(variant.specs);
+          const textConfig = lxExtractConfigFromText(`${variant.name || ""} / ${variant.description || ""}`);
           const pick = (...keys) => keys.map((k) => specs[k]).find(Boolean);
-          const parts = [pick("cpu", "处理器"), pick("ram", "memory", "内存"), pick("storage", "disk", "硬盘", "存储")].filter(Boolean).map((part) => String(part).slice(0, 16));
-          if (parts.length) return parts.join(" / ");
-          // specs 缺失时用「名称差异词」区分（颜色/代数/配置），比「¥xx 版本」有意义
-          const baseTokens = new Set(String(baseName || "").split(/[\s｜|/，,（）()]+/));
-          const diff = String(variant.name || "").split(/[\s｜|/，,（）()]+/).filter((t) => t && !baseTokens.has(t)).slice(0, 3).join(" ");
-          return diff || `¥${Number(variant.price || 0).toLocaleString()} 版本`;
+          const config = {
+            cpu: pick("cpu", "processor", "处理器") || textConfig.cpu,
+            memory: pick("ram", "memory", "内存") || textConfig.memory,
+            storage: pick("storage", "disk", "硬盘", "存储") || textConfig.storage,
+            gpu: pick("gpu", "graphics", "显卡") || textConfig.gpu,
+            color: pick("color", "colour", "颜色") || textConfig.color
+          };
+          const parts = [config.cpu, config.memory, config.storage, config.gpu, config.color]
+            .map(lxCleanConfigPart)
+            .filter(Boolean);
+          return parts.length ? parts.join(" / ") : `配置 ${String(index + 1).padStart(2, "0")}`;
         }
 
         async function loadSpuVariants(product) {
@@ -530,25 +585,13 @@
             const range = payload.price_min && payload.price_max && payload.price_min !== payload.price_max
               ? `¥${Number(payload.price_min).toLocaleString()} - ¥${Number(payload.price_max).toLocaleString()}`
               : "";
-            // 标签去重：specs 相同的款（差异在颜色等名称细节）退化为「名称差异词」，保证每款可区分
-            let labels = variants.map((variant) => lxVariantLabel(variant, product.name));
+            // 标签只能展示标准规格：处理器 + 内存 + 硬盘 + 显卡 + 颜色；禁止落回商品名/价格版本。
+            let labels = variants.map((variant, i) => lxVariantLabel(variant, product.name, i));
             if (new Set(labels).size < labels.length) {
-              const split = (s) => String(s || "").split(/[\s｜|/，,（）()]+/).filter(Boolean);
-              const tokenLists = variants.map((v) => split(v.name));
-              const common = tokenLists[0].filter((t) => tokenLists.every((list) => list.includes(t)));
-              labels = variants.map((v, i) => {
-                const diff = tokenLists[i].filter((t) => !common.includes(t)).slice(0, 3).join(" ");
-                return diff || labels[i];
-              });
-              // 二次去重：差异词仍同名（如同名定制款）→ 追加价格；再同 → 序号
               const seen = {};
               labels = labels.map((label, i) => {
-                if (labels.indexOf(label) !== i || labels.lastIndexOf(label) !== i) {
-                  const withPrice = `${label} ¥${Number(variants[i].price || 0).toLocaleString()}`;
-                  label = withPrice;
-                }
                 seen[label] = (seen[label] || 0) + 1;
-                return seen[label] > 1 ? `${label}（款${seen[label]}）` : label;
+                return seen[label] > 1 ? `${label} / 配置 ${String(i + 1).padStart(2, "0")}` : label;
               });
             }
             box.innerHTML = `
@@ -3885,7 +3928,9 @@
     a.classList.add("active");
     setNav(false);
     const path = navPaths[a.dataset.page] || "/";
-    if (path === "/" && location.pathname === "/") location.reload();
+    const currentPath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
+    const targetPath = path.endsWith("/") ? path : `${path}/`;
+    if (currentPath === targetPath) location.reload();
     else location.assign(path);
   }));
   document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
