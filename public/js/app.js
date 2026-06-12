@@ -3643,9 +3643,37 @@
     requestAnimationFrame(() => layer.classList.add("run"));
     return layer;
   }
+  function getSplitPanelRect() {
+    const wasFullscreen = document.body.classList.contains("assistant-fullscreen");
+    if (wasFullscreen) setFullscreen(false);
+    const source = document.querySelector(".assistant-panel");
+    const rect = source?.getBoundingClientRect();
+    if (wasFullscreen) setFullscreen(true);
+    if (!rect || !rect.width || !rect.height) return null;
+    return rect;
+  }
+  function createFullscreenShrinkLayer(targetRect) {
+    const source = document.querySelector(".lxfd");
+    if (!source || !targetRect || reduceMotion) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel lxfd-motion-panel-exit";
+    layer.setAttribute("aria-hidden", "true");
+    layer.style.setProperty("--lxfd-target-left", `${targetRect.left}px`);
+    layer.style.setProperty("--lxfd-target-top", `${targetRect.top}px`);
+    layer.style.setProperty("--lxfd-target-width", `${targetRect.width}px`);
+    layer.style.setProperty("--lxfd-target-height", `${targetRect.height}px`);
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    requestAnimationFrame(() => layer.classList.add("run"));
+    return layer;
+  }
   function enterFullscreen() {
     const motionLayer = createPanelStretchLayer();
     document.body.classList.remove("lxfd-exiting");
+    document.body.classList.remove("lxfd-split-returning");
     document.body.classList.add("lxfd-entering");
     setFullscreen(true);
     window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
@@ -3653,13 +3681,18 @@
   }
   function exitFullscreen() {
     if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) return;
+    const targetRect = getSplitPanelRect();
+    const motionLayer = createFullscreenShrinkLayer(targetRect);
     document.body.classList.remove("lxfd-entering");
     document.body.classList.add("lxfd-exiting");
+    setFullscreen(false);
+    document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
     window.setTimeout(() => {
-      setFullscreen(false);
       document.body.classList.remove("lxfd-exiting");
-      document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
-    }, reduceMotion ? 0 : 430);
+      document.body.classList.remove("lxfd-split-returning");
+      motionLayer?.remove();
+    }, reduceMotion ? 0 : 760);
   }
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
