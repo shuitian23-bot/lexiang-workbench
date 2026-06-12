@@ -6663,16 +6663,19 @@ body[data-page="home"] .hero-suggestion-cloud {
   transform: none !important;
 }
 
-      /* 全屏对话：消息区自适应高度、整体贴近底部输入区，消除顶部大空白 */
-      body.assistant-fullscreen .chat-state {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        min-height: calc(100vh - 320px);
-        box-sizing: border-box;
-      }
+      /* 全屏对话（ChatGPT 形态）：输入区跟随内容流——内容少时整体在上半部无大空白，
+         内容多时消息区限高滚动、输入区自然行至底部 */
       body.assistant-fullscreen .lx-p0-messages {
         height: auto;
-        max-height: calc(100vh - 360px);
+        max-height: calc(100vh - 390px);
       }
       body.assistant-fullscreen .lx-p0-messages > :first-child { margin-top: 0; }
+      body.assistant-fullscreen[data-state="chat"] .assistant-bottom {
+        position: static;
+        transform: none;
+        margin: 18px auto 0;
+        bottom: auto;
+      }
+      body.assistant-fullscreen[data-state="chat"] .chat-state {
+        padding-bottom: 24px;
+      }
