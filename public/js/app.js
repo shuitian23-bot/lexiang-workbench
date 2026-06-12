@@ -1036,10 +1036,7 @@
           const chatState = $(".chat-state");
           if (!chatState || $(".lx-p0-messages", chatState)) return $(".lx-p0-messages", chatState);
           chatState.innerHTML = `
-            <div class="lx-p0-messages" aria-live="polite">
-              <div class="lx-p0-message ai">你好，我是联想乐享。可以帮你找商品、查优惠、做对比、看订单和预约服务。</div>
-              <div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>
-            </div>`;
+            <div class="lx-p0-messages" aria-live="polite"></div>`;
           return $(".lx-p0-messages", chatState);
         }
 
@@ -1322,7 +1319,14 @@
                   lxUpsertCompareTab(payload.products, payload.title || "商品参数对比");
                   return;
                 }
-                openModal(payload.title || "联想乐享", mdLite(payload.content || ""));
+                const content = payload.content || "";
+                // 载体分工：浏览型长内容（直播单/活动详情/价目表等）右侧分屏展示，弹窗只留短提示
+                if (content.length > 220 || /\n\s*[-|#]|\|.*\|/.test(content)) {
+                  lxRevealContent();
+                  lxOpenInfoTab("info", payload.title || "详细信息", mdLite(content));
+                } else {
+                  openModal(payload.title || "联想乐享", mdLite(content));
+                }
               },
               customize: (data) => {
                 if (nonce !== state.conversationNonce) return;

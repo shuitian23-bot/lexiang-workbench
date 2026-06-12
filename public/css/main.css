@@ -5435,7 +5435,7 @@
       .lx-hint-close:hover { color: var(--lx-brand-red); }
       .hover-prompt-hook { display: block; width: 100%; font-size: 12px; color: var(--lx-aubergine); padding: 2px 0 6px; }
 
-      .lx-p0-messages > :first-child { margin-top: auto; }
+      /* 经典聊天布局：内容置顶；输入区钉底由各模式自身定位保证 */
 
       .lx-p1-select-pop .lx-hl-btns { display: flex; gap: 6px; }
       .lx-hl-answer { max-width: 280px; margin-top: 8px; padding: 8px 10px; background: var(--lx-surface-muted); border-radius: 8px; font-size: 12.5px; line-height: 1.6; color: var(--lx-text); }
@@ -6663,22 +6663,12 @@ body[data-page="home"] .hero-suggestion-cloud {
   transform: none !important;
 }
 
-      /* 全屏对话（ChatGPT 形态）：输入区跟随内容流——内容少时整体在上半部无大空白，
-         内容多时消息区限高滚动、输入区自然行至底部 */
+      /* 全屏对话（经典聊天布局）：消息从顶部开始、输入区钉底 */
       body.assistant-fullscreen .lx-p0-messages {
         height: auto;
         max-height: calc(100vh - 390px);
       }
       body.assistant-fullscreen .lx-p0-messages > :first-child { margin-top: 0; }
-      body.assistant-fullscreen[data-state="chat"] .assistant-bottom {
-        position: static;
-        transform: none;
-        margin: 18px auto 0;
-        bottom: auto;
-      }
-      body.assistant-fullscreen[data-state="chat"] .chat-state {
-        padding-bottom: 24px;
-      }
 
       /* 分类页签吸顶：列表滚动时页签条留在内容区顶部 */
       .category-tabs { position: sticky; top: 0; z-index: 30; background: #fff; box-shadow: 0 6px 14px -10px rgba(46,26,52,0.18); }
