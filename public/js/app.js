@@ -1560,7 +1560,8 @@
           const tabsBox = document.querySelector(".category-tabs");
           if (!tabsBox || !["personal", "business", "enterprise"].includes(state.page)) return;
           if (!tabsBox.clientWidth) return;
-          const labels = ["推荐", ...[...document.querySelectorAll("[data-site-floors] [data-floor-cat]")].map((node) => node.dataset.floorCat)];
+          const catLabels = new Set((LX_CATEGORY_MATCHERS[state.page] || []).map((m) => m.label || m[0]));
+          const labels = ["推荐", ...[...document.querySelectorAll("[data-site-floors] [data-floor-cat]")].map((node) => node.dataset.floorCat).filter((l) => !catLabels.has(l))];
           const activeLabel = tabsBox.querySelector("button.active:not([data-cat-more])")?.textContent.trim();
           const btnHtml = (label) => `<button type="button" class="${label === (activeLabel || "推荐") ? "active" : ""}">${esc(label)}</button>`;
           tabsBox.innerHTML = labels.map(btnHtml).join("");
@@ -1686,7 +1687,7 @@
           const page = state.page;
           if (!["personal", "business", "enterprise"].includes(page)) { box.hidden = true; return; }
           box.hidden = false;
-          const categoryFloors = await lxRenderCategoryFloors(box);
+          const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box);
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (page === "personal") {
