@@ -3521,6 +3521,7 @@
   let hoverTimer = null;
   let turns = [];
   let helloIndex = 0;
+  const chatState = { convId: null, sending: false, conversationNonce: 0 };
   const helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
   const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
   const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
@@ -3540,6 +3541,63 @@
   function escapeHtml(text) { return String(text).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])); }
   function escapeAttr(text) { return escapeHtml(text).replace(/`/g, "&#96;"); }
   function shortText(text, max) { return text.length > max ? text.slice(0, max) + "…" : text; }
+  function parseJson(data) {
+    try { return JSON.parse(data); } catch (_) { return {}; }
+  }
+  function money(value) {
+    const n = Number(value || 0);
+    return n ? "¥" + n.toLocaleString("zh-CN") : "咨询价";
+  }
+  function imgUrl(src) {
+    const value = String(src || "").trim();
+    if (!value) return "/assets/product-placeholder.svg";
+    return value.startsWith("http") || value.startsWith("/") ? value : "/" + value;
+  }
+  function mdLite(text) {
+    let html = escapeHtml(text || "");
+    html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/(?:^|\n)####?\s*(.+)/g, "\n<h4>$1</h4>");
+    html = html.replace(/(?:^|\n)-\s+(.+)/g, "\n<ul><li>$1</li></ul>");
+    html = html.replace(/<\/ul>\s*<ul>/g, "");
+    return html.split(/\n{2,}/).map((block) => {
+      const clean = block.trim();
+      if (!clean) return "";
+      if (/^<(h4|ul)/.test(clean)) return clean;
+      return `<p>${clean.replace(/\n/g, "<br>")}</p>`;
+    }).join("");
+  }
+  async function readSse(response, handlers) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split(/\n\n/);
+      buffer = blocks.pop() || "";
+      blocks.forEach((block) => {
+        let event = "message";
+        const data = [];
+        block.split(/\n/).forEach((line) => {
+          if (line.startsWith("event:")) event = line.slice(6).trim();
+          if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+        });
+        const payload = data.join("\n");
+        if (payload && handlers[event]) handlers[event](payload);
+      });
+    }
+    if (buffer.trim()) {
+      let event = "message";
+      const data = [];
+      buffer.split(/\n/).forEach((line) => {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+      });
+      const payload = data.join("\n");
+      if (payload && handlers[event]) handlers[event](payload);
+    }
+  }
   function wide() { return window.innerWidth >= 1280; }
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
@@ -3584,9 +3642,9 @@
     if (turnList) turnList.innerHTML = turns.map(t => `<button type="button" class="${t.id === activeId ? "active" : ""}" data-target="${escapeAttr(t.id)}" title="${escapeAttr(t.text)}">${escapeHtml(shortText(t.text, 18))}</button>`).join("");
   }
   function resetConversation(collapseRail) {
-    state.conversationNonce += 1;
-    state.convId = null;
-    state.sending = false;
+    chatState.conversationNonce += 1;
+    chatState.convId = null;
+    chatState.sending = false;
     if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
     turns = [];
     renderTurnIndex("");
@@ -3614,7 +3672,7 @@
 
   async function submit(text) {
     const value = String(text || "").trim();
-    if (!value || state.sending) return;
+    if (!value || chatState.sending) return;
     setFullscreen(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
@@ -3634,8 +3692,8 @@
     thread?.appendChild(ai);
     ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
     const body = ai.querySelector(".lxfd-ai-body");
-    const nonce = state.conversationNonce;
-    state.sending = true;
+    const nonce = chatState.conversationNonce;
+    chatState.sending = true;
     let hasContent = false;
     const revealAi = () => {
       if (hasContent) return;
@@ -3649,16 +3707,16 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: value,
-          conv_id: state.convId,
-          web_search: !!document.querySelector(".lxfd-toggle:not(.on)[aria-pressed='true']") || !!document.querySelector(".lxfd-toggle:nth-child(2).on"),
-          thinking_mode: !!document.querySelector(".lxfd-toggle.on"),
-          site_type: API_SITE[state.page] || "default"
+          conv_id: chatState.convId,
+          web_search: !!document.querySelector(".lxfd-toggle:nth-child(2).on"),
+          thinking_mode: !!document.querySelector(".lxfd-toggle:first-child.on"),
+          site_type: "shop"
         })
       });
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
       await readSse(response, {
         chunk: (data) => {
-          if (nonce !== state.conversationNonce) return;
+          if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           const content = payload.text || data || "";
           if (!content) return;
@@ -3668,60 +3726,42 @@
           thread.scrollTop = thread.scrollHeight;
         },
         status: (data) => {
-          if (nonce !== state.conversationNonce) return;
+          if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
-          if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
+          if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
           if (payload.text && !hasContent && body) {
             body.innerHTML = `<span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;${escapeHtml(payload.text)}</span>`;
           }
         },
         products: (data) => {
-          if (nonce !== state.conversationNonce) return;
+          if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           const products = payload.products || [];
           if (!products.length) return;
           revealAi();
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
-          if (products.length === 1 && products[0].sku) {
-            lxRevealContent();
-            openProduct(products[0].sku);
-          } else {
-            lxRevealContent();
-            const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
-            lxUpsertTab(recoTab);
-            lxRunTab(recoTab);
-          }
         },
         display: (data) => {
-          if (nonce !== state.conversationNonce) return;
+          if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           const products = payload.products || payload.items || [];
           revealAi();
           if (payload.title && body && !body.textContent.trim()) body.textContent = payload.title;
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
-          if (products.length === 1 && products[0].sku) {
-            lxRevealContent();
-            openProduct(products[0].sku);
-          } else if (products.length) {
-            lxRevealContent();
-            const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
-            lxUpsertTab(recoTab);
-            lxRunTab(recoTab);
-          }
         },
         suggestions: (data) => {
-          if (nonce !== state.conversationNonce) return;
+          if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           appendLxfdSuggestions(ai, payload.suggestions || []);
         },
         done: (data) => {
-          if (nonce !== state.conversationNonce) return;
+          if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
-          if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
+          if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
           if (ai._raw && body) body.innerHTML = mdLite(ai._raw);
         }
       });
-      if (nonce !== state.conversationNonce) return;
+      if (nonce !== chatState.conversationNonce) return;
       if (!hasContent) {
         revealAi();
         if (body) body.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
@@ -3729,11 +3769,11 @@
       body?.insertAdjacentHTML("beforeend", `<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>`);
       if (!ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, ["可以推荐适合学生的笔记本吗？", "怎么查询我的产品保修状态？", "现在有哪些可以叠加的优惠政策？"]);
     } catch (error) {
-      if (nonce !== state.conversationNonce) return;
+      if (nonce !== chatState.conversationNonce) return;
       revealAi();
       if (body) body.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
     } finally {
-      if (nonce === state.conversationNonce) state.sending = false;
+      if (nonce === chatState.conversationNonce) chatState.sending = false;
       ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
     }
   }
