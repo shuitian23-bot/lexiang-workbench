@@ -1799,7 +1799,7 @@ switchPage = function(pageId) {
   if (pageId === 'dashboard.overview') loadOverviewStats();
   // dashboard.query replaced by pipeline.annotate — handled by workbench-pipeline.js
   if (pageId === 'dashboard.geo') {
-    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = []; geoState.compare = 'brand'; geoState.competitors = []; geoState._intentPlatform = 'all'; geoState._intentVisibilityFilter = 'all';
+    geoState.scope = 'all'; geoState.platform = 'all'; geoState.period = '30d'; geoState.startDate = null; geoState.endDate = null; geoState.questions = [];
     setTimeout(() => {
       const qi = document.getElementById('geo-questions'); if (qi) qi.value = '';
       geoLoadData();
@@ -1810,9 +1810,6 @@ switchPage = function(pageId) {
   }
   if (pageId === 'dashboard.geoIntent') {
     setTimeout(() => geoLoadIntentPage(), 50);
-  }
-  if (pageId === 'dashboard.geoConversion') {
-    setTimeout(() => geoLoadConversionPage(), 50);
   }
   if (pageId === 'dashboard.geoKnowledge') {
     setTimeout(() => loadKnowledgeStats(), 50);
@@ -1882,15 +1879,11 @@ document.getElementById('global-search').addEventListener('blur', function() {
 
 // ===== DARK MODE =====
 function toggleDarkMode() {
-  const isDark = document.body.classList.toggle('dark-mode');
-  localStorage.setItem('lexiang_dark', isDark ? '1' : '0');
-  document.getElementById('dark-mode-btn').textContent = isDark ? '☀️' : '🌙';
+  document.body.classList.remove('dark-mode');
+  localStorage.removeItem('lexiang_dark');
 }
-// 恢复深色模式状态
-if (localStorage.getItem('lexiang_dark') === '1') {
-  document.body.classList.add('dark-mode');
-  document.getElementById('dark-mode-btn').textContent = '☀️';
-}
+localStorage.removeItem('lexiang_dark');
+document.body.classList.remove('dark-mode');
 
 // ===== 外部数据集成 =====
 const LENOVO_PROVINCE_MAP = {"010":"北京市","020":"上海市","030":"天津市","040":"内蒙古","050":"山西省","060":"河北省","070":"辽宁省","080":"吉林省","090":"黑龙江省","100":"江苏省","110":"安徽省","120":"山东省","130":"浙江省","140":"江西省","150":"福建省","160":"湖南省","170":"湖北省","180":"河南省","190":"广东省","200":"海南省","210":"广西","220":"贵州省","230":"四川省","240":"云南省","250":"陕西省","260":"甘肃省","270":"宁夏","280":"青海省","290":"新疆","300":"西藏","320":"重庆市"};

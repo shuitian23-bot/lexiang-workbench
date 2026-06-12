@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>联想乐享知识库 · 产品百科全览</title>
+<meta name="description" content="联想乐享产品知识库，收录ThinkPad、ThinkBook、联想电脑使用指南、常见问题解答、软件配置教程，由AI结构化优化，支持搜索引擎与AI直接引用。">
+<meta name="keywords" content="联想知识库,ThinkPad使用教程,联想电脑常见问题,乐享WIKI,Lenovo产品百科">
+<link rel="canonical" href="https://www.lenovo.com.cn/wiki/">
+<meta property="og:title" content="联想乐享知识库 · 产品百科全览">
+<meta property="og:description" content="联想乐享产品知识库，收录ThinkPad、ThinkBook使用指南、常见问题、软件配置教程。">
+<meta property="og:url" content="https://www.lenovo.com.cn/wiki/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "联想乐享知识库",
+  "description": "联想乐享产品知识库，收录ThinkPad、ThinkBook使用指南、常见问题、软件配置教程，由AI结构化优化。",
+  "url": "https://www.lenovo.com.cn/wiki/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "联想乐享",
+    "url": "https://www.lenovo.com.cn/wiki/"
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type":"ListItem","position":1,"name":"联想乐享知识库","item":"https://www.lenovo.com.cn/wiki/"}
+    ]
+  }
+}
+</script>
+<link rel="stylesheet" href="/wiki/wiki.css?v=4">
+<!-- iRadar DAAM SDK -->
+<script>
+var _isWap = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+var _trackDataType = 'web';
+var CONFIGS = _isWap
+  ? {"club_wap_fid":888,"wap_child_id":"wap_common"}
+  : {"club_pc_fid":888,"pc_child_id":"pc_common"};
+var _trackData = _trackData || [];
+var _la_lenovo_website = 10000001;
+</script>
+<script src="/wiki/la.min.js"></script>
+<!-- 神策 Sensors SDK -->
+<script src="/wiki/sensorsdata.min.js"></script>
+<script>
+(function(){
+  var sensors = window.sensorsDataAnalytic201505;
+  if (!sensors) return;
+  sensors.init({
+    server_url: 'https://eccollect.lenovo.com/sa?project=production',
+    project: 'production',
+    heatmap: { clickmap: 'default', scroll_notice_map: 'default' },
+    is_track_single_page: true,
+    show_log: false
+  });
+  sensors.quick('autoTrack');
+})();
+</script>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="topbar">
+  <a class="logo" href="/wiki/"><span>乐享</span>WIKI</a>
+  <nav>
+    <a href="/wiki/brand_news/" onclick="filterCat('brand_news');return false;">品牌/新闻</a>
+    <a href="/wiki/notebook/" onclick="filterCat('notebook');return false;">笔记本</a>
+    <a href="/wiki/desktop/" onclick="filterCat('desktop');return false;">台式机</a>
+    <a href="/wiki/monitor/" onclick="filterCat('monitor');return false;">显示器</a>
+    <a href="/wiki/tablet_phone/" onclick="filterCat('tablet_phone');return false;">平板/手机</a>
+    <a href="/wiki/accessory/" onclick="filterCat('accessory');return false;">配件/办公</a>
+    <a href="/wiki/smart_device/" onclick="filterCat('smart_device');return false;">智能设备</a>
+    <a href="/wiki/server/" onclick="filterCat('server');return false;">服务器</a>
+    <a href="/wiki/workstation/" onclick="filterCat('workstation');return false;">工作站</a>
+    <a href="/wiki/solution/" onclick="filterCat('solution');return false;">解决方案</a>
+    <a href="/wiki/service/" onclick="filterCat('service');return false;">服务产品</a>
+    <a href="/wiki/knowledge/" onclick="filterCat('knowledge');return false;">技术支持</a>
+    </nav>
+  <div class="badge">持续更新</div>
+</div>
+
+<!-- 面包屑 -->
+<div class="bc">
+  <a href="/wiki/">联想乐享知识库</a> ›
+  <span>全部文章</span>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <h1>联想<em>乐享</em>知识库</h1>
+      <p>收录联想全系产品规格、使用指南与常见问题解答，内容持续更新，支持搜索直接引用。</p>
+      <div class="hero-search">
+        <input type="text" placeholder="搜索产品型号、功能、问题…" aria-label="搜索知识库">
+        <button>搜索</button>
+      </div>
+      <div class="hero-stats">
+        <div><strong id="stat-total">44,563</strong>篇文章</div>
+        <div><strong>12</strong>大分类</div>
+        <div><strong>每日</strong>更新</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 分类标签栏 -->
+<div class="cats">
+  <div class="cats-inner">
+    <button class="cat-btn active" data-cat="all">全部</button>
+    <button class="cat-btn" data-cat="brand_news">品牌/新闻</button>
+    <button class="cat-btn" data-cat="notebook">笔记本</button>
+    <button class="cat-btn" data-cat="desktop">台式机</button>
+    <button class="cat-btn" data-cat="monitor">显示器</button>
+    <button class="cat-btn" data-cat="tablet_phone">平板/手机</button>
+    <button class="cat-btn" data-cat="accessory">配件/办公</button>
+    <button class="cat-btn" data-cat="smart_device">智能设备</button>
+    <button class="cat-btn" data-cat="server">服务器</button>
+    <button class="cat-btn" data-cat="workstation">工作站</button>
+    <button class="cat-btn" data-cat="solution">解决方案</button>
+    <button class="cat-btn" data-cat="service">服务产品</button>
+    <button class="cat-btn" data-cat="knowledge">技术支持</button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+
+<!-- 主内容 -->
+<div class="main">
+
+  <!-- 左侧导航 -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h3>分类</h3>
+      <a class="sidebar-link active" href="#" onclick="filterCat('all');return false;">全部 <span class="sidebar-count" id="cnt-all">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('brand_news');return false;">品牌/新闻 <span class="sidebar-count" id="cnt-brand_news">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('notebook');return false;">笔记本 <span class="sidebar-count" id="cnt-notebook">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('desktop');return false;">台式机 <span class="sidebar-count" id="cnt-desktop">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('monitor');return false;">显示器 <span class="sidebar-count" id="cnt-monitor">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('tablet_phone');return false;">平板/手机 <span class="sidebar-count" id="cnt-tablet_phone">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('accessory');return false;">配件/办公 <span class="sidebar-count" id="cnt-accessory">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('smart_device');return false;">智能设备 <span class="sidebar-count" id="cnt-smart_device">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('server');return false;">服务器 <span class="sidebar-count" id="cnt-server">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('workstation');return false;">工作站 <span class="sidebar-count" id="cnt-workstation">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('solution');return false;">解决方案 <span class="sidebar-count" id="cnt-solution">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('service');return false;">服务产品 <span class="sidebar-count" id="cnt-service">-</span></a>
+      <a class="sidebar-link" href="#" onclick="filterCat('knowledge');return false;">技术支持 <span class="sidebar-count" id="cnt-knowledge">-</span></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+    <div class="sidebar-section">
+      <h3>热门文章</h3>
+      <a class="sidebar-link" href="/wiki/article-321537.html">DisplayPort 外接设备无声音解决方法</a>
+      <a class="sidebar-link" href="/wiki/article-206522.html">拯救者独显驱动更新后黑屏处理</a>
+      <a class="sidebar-link" href="/wiki/article-145838.html">显卡驱动卸载详细教程</a>
+      <a class="sidebar-link" href="/wiki/article-118970.html">英雄联盟游戏卡顿设置指南</a>
+      <a class="sidebar-link" href="/wiki/article-117359.html">双显卡机型驱动安装方法</a>
+    </div>
+    <div class="sidebar-section">
+      <h3>服务支持</h3>
+      <a class="sidebar-link" href="https://leai.lenovo.com.cn/" target="_blank">乐享主页</a>
+    </div>
+  </aside>
+
+  <!-- 文章列表 -->
+  <div class="content">
+    <div class="content-header">
+      <h2 id="content-title">全部文章</h2>
+      <div class="total" id="content-total">加载中…</div>
+    </div>
+
+    <div class="grid" id="article-grid">
+      <article class="card">
+        <a href="/wiki/product-1055891.html" title="WR3220 G2/4314/2*32G/2*4T/730-2G/四口千兆/2*800W">
+          <div class="card-tag">服务器</div>
+          <h3>WR3220 G2/4314/2*32G/2*4T/730-2G/四口千兆/2*800W</h3>
+          <p>WR3220 G2/4314/2*32G/2*4T/730-2G/四口千兆/2*800W</p>
+          <span class="card-price">¥36,500</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055848.html" title="图形工作站P3 Gen2/Ultra 9 285K/128G /1T M.2/4T SATA/32G独显/1100W/3年服务">
+          <div class="card-tag">工作站</div>
+          <h3>图形工作站P3 Gen2/Ultra 9 285K/128G /1T M.2/4T SATA/32G独显/1100W/3年服务</h3>
+          <p>ThinkStation P3 工作站为入门级工作站设立标杆，让工作站效能触手可及。它搭载 Intel Core14代 处理器，配备整合式神经处理单元（NPU），结合 NVIDIA RTX Ada Generation 显卡，提供卓越的 A</p>
+          <span class="card-price">¥67,099</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055799.html" title="联想（Lenovo）ST58 V3 塔式服务器主机丨6315P/32G/2*2T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机丨6315P/32G/2*2T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机丨6315P/32G/2*2T/300W</p>
+          <span class="card-price">¥25,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055797.html" title="联想（Lenovo）ST58 V3 塔式服务器主机| 6315P/32G/256GSSD+2*4T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机| 6315P/32G/256GSSD+2*4T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机| 6315P/32G/256GSSD+2*4T/300W</p>
+          <span class="card-price">¥25,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055793.html" title="联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/16G/2T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/16G/2T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/16G/2T/300W</p>
+          <span class="card-price">¥19,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055789.html" title="联想（Lenovo）ST58 V3 塔式服务器主机|6325P/32G/256GSSD+2*4T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机|6325P/32G/256GSSD+2*4T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机|6325P/32G/256GSSD+2*4T/300W</p>
+          <span class="card-price">¥26,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055787.html" title="联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/32G/512GSSD+2*4T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/32G/512GSSD+2*4T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/32G/512GSSD+2*4T/300W</p>
+          <span class="card-price">¥26,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055786.html" title="联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W</p>
+          <span class="card-price">¥19,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055785.html" title="联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W</p>
+          <span class="card-price">¥25,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055784.html" title="联想（Lenovo）ST58 V3 塔式服务器主机|6333P/32G/256GSSD+2*4T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机|6333P/32G/256GSSD+2*4T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机|6333P/32G/256GSSD+2*4T/300W</p>
+          <span class="card-price">¥26,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055782.html" title="联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/32G/512GSSD+2*4T/300W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/32G/512GSSD+2*4T/300W</h3>
+          <p>联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/32G/512GSSD+2*4T/300W</p>
+          <span class="card-price">¥26,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055780.html" title="联想（Lenovo）WR3220 G2数据库2U存储服务器主机2*4510/64G/2*480G+3*8T SATA/3S610-8i/2*800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）WR3220 G2数据库2U存储服务器主机2*4510/64G/2*480G+3*8T SATA/3S610-8i/2*800W</h3>
+          <p>联想（Lenovo）WR3220 G2数据库2U存储服务器主机2*4510/64G/2*480G+3*8T SATA/3S610-8i/2*800W</p>
+          <span class="card-price">¥75,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055779.html" title="联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机1颗银牌4510 / 32G/8T/3S610-8i /800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机1颗银牌4510 / 32G/8T/3S610-8i /800W</h3>
+          <p>联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机1颗银牌4510 / 32G/8T/3S610-8i /800W</p>
+          <span class="card-price">¥36,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055778.html" title="联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机 4510/2*32G/4*960G/3S610-8i/800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机 4510/2*32G/4*960G/3S610-8i/800W</h3>
+          <p>联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机 4510/2*32G/4*960G/3S610-8i/800W</p>
+          <span class="card-price">¥59,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055776.html" title="联想问天WR3220 G3 2U机架服务器 银牌4510/32G/2*2T企业级/800W/板载RAID1">
+          <div class="card-tag">服务器</div>
+          <h3>联想问天WR3220 G3 2U机架服务器 银牌4510/32G/2*2T企业级/800W/板载RAID1</h3>
+          <p>联想问天WR3220 G3 2U机架服务器 银牌4510/32G/2*2T企业级/800W/板载RAID1</p>
+          <span class="card-price">¥36,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055775.html" title="联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*2T/800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*2T/800W</h3>
+          <p>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*2T/800W</p>
+          <span class="card-price">¥25,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055774.html" title="联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*480G+2*4T/800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*480G+2*4T/800W</h3>
+          <p>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*480G+2*4T/800W</p>
+          <span class="card-price">¥35,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055771.html" title="联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*480G+2*4T/800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*480G+2*4T/800W</h3>
+          <p>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*480G+2*4T/800W</p>
+          <span class="card-price">¥34,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055769.html" title="联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*2T/800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*2T/800W</h3>
+          <p>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*2T/800W</p>
+          <span class="card-price">¥25,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055768.html" title="联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/16G/2T/800W">
+          <div class="card-tag">服务器</div>
+          <h3>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/16G/2T/800W</h3>
+          <p>联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/16G/2T/800W</p>
+          <span class="card-price">¥19,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055735.html" title="联想来酷AI MINI PRO高性能主机迷你台式机电脑 OpenClaw一键部署">
+          <div class="card-tag">台式机</div>
+          <h3>联想来酷AI MINI PRO高性能主机迷你台式机电脑 OpenClaw一键部署</h3>
+          <p>英特尔酷睿Ultra5 228V/32G+1TB/双2.5GbE有线接口+WI-FI6无线网卡/Windows 11 家庭中文版</p>
+          <span class="card-price">¥4,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1055163.html" title="【企业购】联想ThinkPad X1 2in1 Aura 2026 酷睿Ultra 7 超能本 00CD">
+          <div class="card-tag">笔记本</div>
+          <h3>【企业购】联想ThinkPad X1 2in1 Aura 2026 酷睿Ultra 7 超能本 00CD</h3>
+          <p>英特尔Ultra7 355/Windows 11家庭中文版/32GB/1TB PCIe-NVMe 固态硬盘/集成显卡/14英寸2.8K 广视角 OLED背光触控显示屏（500尼特 ）120Hz</p>
+          <span class="card-price">¥22,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1054445.html" title="联想YOGA Pro 16 Aura AI元启版 16英寸轻薄创作笔记本电脑 雷霆灰">
+          <div class="card-tag">笔记本</div>
+          <h3>联想YOGA Pro 16 Aura AI元启版 16英寸轻薄创作笔记本电脑 雷霆灰</h3>
+          <p>英特尔®酷睿™Ultra 9 386H丨Windows 11 家庭中文版丨office 2024丨16英寸丨64GB丨2TB SSD丨RTX5070丨触控双层串联OLED丨全域妙写数位板+灵感妙笔丨雷霆灰</p>
+          <span class="card-price">¥32,999</span>
+        </a>
+      </article>
+      <article class="card">
+        <a href="/wiki/product-1053892.html" title="YOGA Air 14 Aura 14英寸轻薄笔记本电脑 霁空蓝">
+          <div class="card-tag">笔记本</div>
+          <h3>YOGA Air 14 Aura 14英寸轻薄笔记本电脑 霁空蓝</h3>
+          <p>英特尔® 酷睿™ Ultra 7 258V丨Windows 11 家庭中文版丨office 2024丨14英寸丨32GB丨1TB SSD丨集成显卡丨触控丨霁空蓝</p>
+          <span class="card-price">¥9,999</span>
+        </a>
+      </article>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination" id="pagination" aria-label="分页导航"><nav class="seo-cat-nav"><a href="/wiki/" class="page-first">首页</a> <a href="/wiki/brand_news/">品牌/新闻</a> <a href="/wiki/notebook/">笔记本</a> <a href="/wiki/desktop/">台式机</a> <a href="/wiki/monitor/">显示器</a> <a href="/wiki/tablet_phone/">平板/手机</a> <a href="/wiki/accessory/">配件/办公</a> <a href="/wiki/smart_device/">智能设备</a> <a href="/wiki/server/">服务器</a> <a href="/wiki/workstation/">工作站</a> <a href="/wiki/solution/">解决方案</a> <a href="/wiki/service/">服务产品</a> <a href="/wiki/knowledge/">技术支持</a></nav></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <strong>联想乐享知识库</strong> · 内容由联想乐享提供 · 2026<br>
+  内容持续更新，如有错误请反馈
+  <div class="beian" style="margin-top:12px;font-size:12px;color:#999;line-height:1.8;">
+    版权所有：1998-2026 联想集团 |
+    <a href="https://shop.lenovo.com.cn/investor/html/legal.html" target="_blank" rel="nofollow noopener" style="color:#999;">法律公告</a> |
+    <a href="https://www.lenovo.com.cn/statement/privacy.html" target="_blank" rel="nofollow noopener" style="color:#999;">隐私权政策</a> |
+    <a href="https://www.lenovo.com.cn/public/security/security.html" target="_blank" rel="nofollow noopener" style="color:#999;">产品安全</a><br>
+    <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener" style="color:#999;">京ICP备11035381-2</a> |
+    京公网安备110108007970号 |
+    <a href="https://p2.lefile.cn/product/adminweb/2019/07/09/4e555443-93b5-46d5-984f-7d5b06ea2967.jpg" target="_blank" rel="nofollow noopener" style="color:#999;">营业执照:91110108700000458B</a> |
+    <a href="https://p2.lefile.cn/fes/cms/2021/06/28/kfqkr0wi9cgsbuubsnbwihci0rg4ft786379.jpg" target="_blank" rel="nofollow noopener" style="color:#999;">增值电信业务许可证 合字B2-20210143</a>
+  </div>
+</footer>
+
+<script>
+const INLINE_PAGE1 = {"cat":"all","page":1,"total":44563,"total_pages":1857,"items":[{"slug":"product-1055891.html","title":"WR3220 G2/4314/2*32G/2*4T/730-2G/四口千兆/2*800W","desc":"WR3220 G2/4314/2*32G/2*4T/730-2G/四口千兆/2*800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":36500,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055891.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055848.html","title":"图形工作站P3 Gen2/Ultra 9 285K/128G /1T M.2/4T SATA/32G独显/1100W/3年服务","desc":"ThinkStation P3 工作站为入门级工作站设立标杆，让工作站效能触手可及。它搭载 Intel Core14代 处理器，配备整合式神经处理单元（NPU），结合 NVIDIA RTX Ada Generation 显卡，提供卓越的 AI 加速图形处理能力，适用于 CAD、产品设计、动画制...","cat":"workstation","brand_key":"thinkstation","emoji":"💻","type":"product","price":67099,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055848.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055799.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机丨6315P/32G/2*2T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机丨6315P/32G/2*2T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":25999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055799.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055797.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机| 6315P/32G/256GSSD+2*4T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机| 6315P/32G/256GSSD+2*4T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":25999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055797.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055793.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/16G/2T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/16G/2T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":19999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055793.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055789.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机|6325P/32G/256GSSD+2*4T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机|6325P/32G/256GSSD+2*4T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":26999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055789.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055787.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/32G/512GSSD+2*4T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机丨6325P/32G/512GSSD+2*4T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":26999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055787.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055786.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":19999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055786.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055785.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/16G/2T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":25999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055785.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055784.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机|6333P/32G/256GSSD+2*4T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机|6333P/32G/256GSSD+2*4T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":26999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055784.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055782.html","title":"联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/32G/512GSSD+2*4T/300W","desc":"联想（Lenovo）ST58 V3 塔式服务器主机丨6333P/32G/512GSSD+2*4T/300W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":26999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055782.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055780.html","title":"联想（Lenovo）WR3220 G2数据库2U存储服务器主机2*4510/64G/2*480G+3*8T SATA/3S610-8i/2*800W","desc":"联想（Lenovo）WR3220 G2数据库2U存储服务器主机2*4510/64G/2*480G+3*8T SATA/3S610-8i/2*800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":75999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055780.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055779.html","title":"联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机1颗银牌4510 / 32G/8T/3S610-8i /800W","desc":"联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机1颗银牌4510 / 32G/8T/3S610-8i /800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":36999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055779.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055778.html","title":"联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机 4510/2*32G/4*960G/3S610-8i/800W","desc":"联想（Lenovo）WR3220 G2数据库2U存储服务器国产主机 4510/2*32G/4*960G/3S610-8i/800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":59999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055778.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055776.html","title":"联想问天WR3220 G3 2U机架服务器 银牌4510/32G/2*2T企业级/800W/板载RAID1","desc":"联想问天WR3220 G3 2U机架服务器 银牌4510/32G/2*2T企业级/800W/板载RAID1","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":36999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055776.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055775.html","title":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*2T/800W","desc":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*2T/800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":25999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055775.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055774.html","title":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*480G+2*4T/800W","desc":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6333P/32G/2*480G+2*4T/800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":35999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055774.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055771.html","title":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*480G+2*4T/800W","desc":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*480G+2*4T/800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":34999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055771.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055769.html","title":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*2T/800W","desc":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/32G/2*2T/800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":25999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055769.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055768.html","title":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/16G/2T/800W","desc":"联想（Lenovo）SR258 V3 1U机架式服务器主机丨6325P/16G/2T/800W","cat":"server","brand_key":"lenovo","emoji":"💻","type":"product","price":19999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055768.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1055735.html","title":"联想来酷AI MINI PRO高性能主机迷你台式机电脑 OpenClaw一键部署","desc":"英特尔酷睿Ultra5 228V/32G+1TB/双2.5GbE有线接口+WI-FI6无线网卡/Windows 11 家庭中文版","cat":"desktop","brand_key":"lecoo","emoji":"💻","type":"product","price":4999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://item.lenovo.com.cn/product/1055735.html"},{"slug":"product-1055163.html","title":"【企业购】联想ThinkPad X1 2in1 Aura 2026 酷睿Ultra 7 超能本 00CD","desc":"英特尔Ultra7 355/Windows 11家庭中文版/32GB/1TB PCIe-NVMe 固态硬盘/集成显卡/14英寸2.8K 广视角 OLED背光触控显示屏（500尼特 ）120Hz","cat":"notebook","brand_key":"thinkpad","emoji":"💻","type":"product","price":22999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://b.lenovo.com.cn/product/1055163.html?pmf_group=zwtg&pmf_medium=bdais-ty&pmf_source=Z00679299T000"},{"slug":"product-1054445.html","title":"联想YOGA Pro 16 Aura AI元启版 16英寸轻薄创作笔记本电脑 雷霆灰","desc":"英特尔®酷睿™Ultra 9 386H丨Windows 11 家庭中文版丨office 2024丨16英寸丨64GB丨2TB SSD丨RTX5070丨触控双层串联OLED丨全域妙写数位板+灵感妙笔丨雷霆灰","cat":"notebook","brand_key":"yoga","emoji":"💻","type":"product","price":32999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://item.lenovo.com.cn/product/1054445.html"},{"slug":"product-1053892.html","title":"YOGA Air 14 Aura 14英寸轻薄笔记本电脑 霁空蓝","desc":"英特尔® 酷睿™ Ultra 7 258V丨Windows 11 家庭中文版丨office 2024丨14英寸丨32GB丨1TB SSD丨集成显卡丨触控丨霁空蓝","cat":"notebook","brand_key":"yoga","emoji":"💻","type":"product","price":9999,"is_stock":1,"ts":"2026-06-08 20:09:53","bu":"","url":"https://item.lenovo.com.cn/product/1053892.html"}]};
+// ── 状态 ──────────────────────────────────────────────
+let ARTICLES = [];
+let filtered = [];
+let currentCat = 'all';
+let currentPage = 1;
+const PAGE_SIZE = 24;
+
+// 分类元数据
+const CAT_META = {
+  notebook:     { label: '笔记本',       bg: 'linear-gradient(135deg,#e8f0fb 0%,#c5d8f5 100%)', tagStyle: 'background:#dbeafe;color:#1d4ed8' },
+  desktop:      { label: '台式机',       bg: 'linear-gradient(135deg,#f0f4ff 0%,#dce4fd 100%)', tagStyle: 'background:#e0e7ff;color:#3730a3' },
+  monitor:      { label: '显示器',       bg: 'linear-gradient(135deg,#f9f0ff 0%,#efdbff 100%)', tagStyle: 'background:#ede9fe;color:#5b21b6' },
+  tablet_phone: { label: '平板/手机',    bg: 'linear-gradient(135deg,#fff0f6 0%,#ffd6e7 100%)', tagStyle: 'background:#fce7f3;color:#9d174d' },
+  accessory:    { label: '配件/办公',    bg: 'linear-gradient(135deg,#f0fdf4 0%,#bbf7d0 100%)', tagStyle: 'background:#dcfce7;color:#166534' },
+  smart_device: { label: '智能设备',     bg: 'linear-gradient(135deg,#fff7e6 0%,#ffe7ba 100%)', tagStyle: 'background:#fef3c7;color:#92400e' },
+  server:       { label: '服务器', bg: 'linear-gradient(135deg,#f0f9ff 0%,#bae6fd 100%)', tagStyle: 'background:#e0f2fe;color:#075985' },
+  workstation:  { label: '工作站', bg: 'linear-gradient(135deg,#f0f9ff 0%,#bae6fd 100%)', tagStyle: 'background:#e0f2fe;color:#075985' },
+  solution:     { label: '解决方案',     bg: 'linear-gradient(135deg,#faf5ff 0%,#e9d5ff 100%)', tagStyle: 'background:#f3e8ff;color:#7c3aed' },
+  service:      { label: '服务产品',     bg: 'linear-gradient(135deg,#fffbeb 0%,#fde68a 100%)', tagStyle: 'background:#fef9c3;color:#854d0e' },
+  knowledge:    { label: '技术支持',     bg: 'linear-gradient(135deg,#e6fffb 0%,#b5f5ec 100%)', tagStyle: 'background:#d1fae5;color:#065f46' },
+};
+const DEFAULT_META = { label: '联想', bg: 'linear-gradient(135deg,#e8f0fb 0%,#c5d8f5 100%)', tagStyle: 'background:#dbeafe;color:#1d4ed8' };
+
+// ── 配置 ──────────────────────────────────────────────
+const CAT_TITLES = { all:'全部文章', brand_news:'品牌/新闻', notebook:'笔记本', desktop:'台式机', monitor:'显示器', tablet_phone:'平板/手机', accessory:'配件/办公', smart_device:'智能设备', server:'服务器', workstation:'工作站', solution:'解决方案', service:'服务产品', knowledge:'技术支持' };
+const COUNTS = { all:44563, brand_news:895, notebook:6822, desktop:2029, monitor:574, tablet_phone:1505, accessory:8507, smart_device:131, server:1435, workstation:2426, solution:134, service:883, knowledge:19222, 'biz-case':0, 'biz-industry':0, 'biz-solution':0, 'biz-activity':0, 'biz-brand':0, 'biz-other':0 };
+// 各分类用预生成的分页文件
+const PAGED_CATS = ['brand_news','notebook','desktop','monitor','tablet_phone','accessory','smart_device','server','workstation','solution','service','knowledge','biz-case','biz-industry','biz-solution','biz-activity','biz-brand','biz-other'];
+
+// 页面数据缓存：key = "cat-p{n}"
+const pageCache = {};
+
+// ── URL 状态管理（真实路径，无hash）─────────────────────
+// 检测当前站点base: /wiki/ 或 /wiki-c/ 或 /wiki-b/ 或 /wiki-biz/
+const SITE_BASE = (function(){
+  const m = location.pathname.match(/^\/(wiki(?:-[a-z]+)?)\//);
+  return m ? '/' + m[1] + '/' : '/wiki/';
+})();
+
+function pushState(cat, page, q) {
+  let url;
+  if (q) {
+    url = SITE_BASE + '?q=' + encodeURIComponent(q);
+  } else if (cat && cat !== 'all') {
+    url = page > 1 ? SITE_BASE + cat + '/page/' + page + '.html' : SITE_BASE + cat + '/';
+  } else if (page > 1) {
+    url = SITE_BASE + '?page=' + page;
+  } else {
+    url = SITE_BASE;
+  }
+  history.replaceState({cat, page, q}, '', url);
+}
+
+function readState() {
+  // 优先从URL路径解析: /wiki/notebook/ 或 /wiki/notebook/page/2.html
+  const path = location.pathname;
+  const base = SITE_BASE;
+  const rel = path.startsWith(base) ? path.slice(base.length) : '';
+  // /wiki/notebook/ → cat=notebook
+  const catMatch = rel.match(/^([a-z_-]+)\/$/);
+  if (catMatch && (PAGED_CATS.includes(catMatch[1]) || catMatch[1] in COUNTS)) {
+    return { cat: catMatch[1], page: 1, q: '' };
+  }
+  // /wiki/notebook/page/3.html → cat=notebook, page=3
+  const pageMatch = rel.match(/^([a-z_-]+)\/page\/(\d+)\.html$/);
+  if (pageMatch) {
+    return { cat: pageMatch[1], page: parseInt(pageMatch[2]), q: '' };
+  }
+  // fallback: 查询参数
+  const params = new URLSearchParams(location.search);
+  // 兼容旧hash
+  const hashParams = new URLSearchParams(location.hash.slice(1));
+  return {
+    cat: params.get('cat') || hashParams.get('cat') || 'all',
+    page: parseInt(params.get('page') || hashParams.get('page')) || 1,
+    q: params.get('q') || hashParams.get('q') || '',
+  };
+}
+
+// ── 启动：直接用内联数据渲染首屏 ────────────────────────
+(function(){
+    const data = INLINE_PAGE1;
+    const arr = data.items;
+    if (data.total) COUNTS['all'] = data.total;
+    pageCache['all-p1'] = arr;
+    updateCounts();
+    const state = readState();
+    if (state.q) {
+      document.querySelector('.hero-search input').value = state.q;
+      doSearch();
+    } else {
+      loadPage(state.cat, state.page);
+    }
+    // 首页加载完后，后台静默预取各分类第一页
+    setTimeout(() => {
+      PAGED_CATS.forEach(cat => {
+        fetch(`${SITE_BASE}pages/${cat}-p1.json?v=5`)
+          .then(r => r.json())
+          .then(d => {
+            const items = Array.isArray(d) ? d : d.items;
+            if (!Array.isArray(d) && d.total) COUNTS[cat] = d.total;
+            pageCache[`${cat}-p1`] = items;
+          }).catch(() => {});
+      });
+    }, 800);
+})();
+
+// ── 核心：按分类+页码加载 ─────────────────────────────
+function loadPage(cat, page, cb) {
+  currentCat = cat;
+  currentPage = page;
+  if (cat !== 'search') pushState(cat, page, '');
+
+  // 更新按钮状态
+  document.querySelectorAll('.cat-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cat === cat));
+  // 更新侧边栏高亮
+  document.querySelectorAll('.sidebar-link[onclick]').forEach(a => {
+    const m = a.getAttribute('onclick').match(/filterCat\('(\w+)'\)/);
+    if (m) a.classList.toggle('active', m[1] === cat);
+  });
+  document.getElementById('content-title').textContent = CAT_TITLES[cat] || '全部文章';
+
+  const cacheKey = `${cat}-p${page}`;
+
+  if (pageCache[cacheKey]) {
+    renderPage(pageCache[cacheKey]);
+    return;
+  }
+
+  // 半透明遮罩保留当前内容，避免闪白
+  const grid = document.getElementById('article-grid');
+  grid.style.opacity = '0.4';
+  grid.style.pointerEvents = 'none';
+
+  fetch(`${SITE_BASE}pages/${cat}-p${page}.json?v=5`)
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      // 兼容旧格式（直接是数组）和新格式（{total, items:[]}）
+      const items = Array.isArray(data) ? data : data.items;
+      if (!Array.isArray(data) && data.total) COUNTS[cat] = data.total;
+      pageCache[cacheKey] = items;
+      if (currentCat === cat && currentPage === page) {
+        renderPage(items);
+        if (cb) cb();
+      }
+    })
+    .catch(e => {
+      console.error('loadPage fetch error:', e);
+      const g = document.getElementById('article-grid');
+      g.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#c00">加载失败，请重试</div>';
+      g.style.opacity = '1';
+      g.style.pointerEvents = '';
+    });
+}
+
+function filterCat(cat) { loadPage(cat, 1); }
+
+// ── 搜索（搜索时先加载完整分类数据）────────────────
+document.querySelector('.hero-search button').addEventListener('click', doSearch);
+document.querySelector('.hero-search input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+let searchPool = null;
+let searchCat = null;
+
+// 全量slim数据缓存（一次加载，后续搜索直接用）
+let slimPool = null;
+
+function doSearch() {
+  const q = document.querySelector('.hero-search input').value.trim().toLowerCase();
+  if (!q) { pushState('all', 1, ''); loadPage(currentCat === 'search' ? 'all' : currentCat, 1); return; }
+
+  // 立即设置search状态，阻止正在进行的loadPage回调覆盖内容
+  currentCat = 'search';
+  currentPage = 1;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+
+  const doFilter = (pool) => {
+    const terms = q.split(/\s+/).filter(Boolean);
+    const result = pool.filter(a => {
+      const hay = ((a.title||'')+' '+(a.desc||'')+' '+(a.sku||'')+' '+(a.cat||'')).toLowerCase();
+      return terms.every(t => hay.includes(t));
+    });
+    // 有真价品优先(占位价/无价沉后)
+    const _hp = p => !!p && p<999999 && p!==99999 && p!==888888;
+    result.sort((a,b)=> (_hp(b.price)?1:0) - (_hp(a.price)?1:0));
+    currentPage = 1;
+    pushState('search', 1, q);
+    document.getElementById('content-title').textContent = `搜索：${q}（${result.length} 条）`;
+    for (let p = 1; p <= Math.ceil(result.length/PAGE_SIZE); p++)
+      pageCache[`search-p${p}`] = result.slice((p-1)*PAGE_SIZE, p*PAGE_SIZE);
+    pageCache['search-total'] = result.length;
+    currentCat = 'search';
+    renderPage(pageCache['search-p1'] || []);
+  };
+
+  // 统一用全量slim搜索（38871条，已缓存后无需重复fetch）
+  if (slimPool) {
+    doFilter(slimPool);
+  } else {
+    document.getElementById('content-total').textContent = '搜索中…';
+    document.getElementById('article-grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:#999;font-size:14px">⏳ 搜索中…</div>';
+    fetch('/wiki/articles-slim.json?v=1780973162').then(r=>r.json()).then(pool => {
+      slimPool = pool;
+      doFilter(pool);
+    }).catch(()=>doFilter([]));
+  }
+}
+
+// ── 渲染当前页数据 ────────────────────────────────────
+function renderPage(items) {
+  const total = currentCat === 'search'
+    ? (pageCache['search-total'] || 0)
+    : (COUNTS[currentCat] || items.length);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  document.getElementById('content-total').textContent =
+    `共 ${total.toLocaleString()} 篇 · 第 ${currentPage} / ${totalPages} 页`;
+
+  const grid = document.getElementById('article-grid');
+  grid.innerHTML = items.length
+    ? items.map(cardHTML).join('')
+    : '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:#999">没有找到相关文章</div>';
+  grid.style.opacity = '1';
+  grid.style.pointerEvents = '';
+
+  renderPagination(totalPages);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 兼容旧调用
+function render() { renderPage([]); }
+
+function cardHTML(a) {
+  const m = CAT_META[a.cat] || DEFAULT_META;
+  const emoji = a.emoji || (a.type === 'knowledge' ? '📖' : '💻');
+  const tag = CAT_META[a.cat] ? CAT_META[a.cat].label : (a.cat || '联想');
+  const dateStr = a.ts ? a.ts.slice(0,10) : '';
+  // product-doc-XXX 是知识库商品文档(无价格), 不走 product 模板, 当文档渲染
+  const isKbDoc = (a.slug||'').startsWith('product-doc-');
+  const meta = (a.type === 'product' && !isKbDoc)
+    ? `${tag} <span class="dot"></span> ${(!a.price||a.price>=999999||a.price===99999||a.price===888888)?"暂未公布":"¥"+Number(a.price).toLocaleString()} <span class="new-badge">商品</span>`
+    : (isKbDoc
+        ? `${tag} <span class="dot"></span> ${dateStr} <span class="new-badge">产品文档</span>`
+        : `${tag} <span class="dot"></span> ${dateStr}`);
+  return `<a class="card" href="/wiki/${a.slug}">
+    <div class="card-cover" style="background:${m.bg}">
+      ${emoji}
+      <span class="cat-tag" style="${m.tagStyle}">${tag}</span>
+    </div>
+    <div class="card-body">
+      <div class="card-title">${esc(a.title)}</div>
+      <div class="card-desc">${esc((a.desc||'').slice(0,100))}</div>
+      <div class="card-meta">${meta}</div>
+    </div>
+  </a>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── 分页 ─────────────────────────────────────────────
+function renderPagination(totalPages) {
+  const p = document.getElementById('pagination');
+  if (totalPages <= 1) { p.innerHTML = ''; return; }
+
+  let btns = [];
+  const addBtn = (n, label, active, disabled) => {
+    btns.push(`<button class="page-btn${active?' active':''}${disabled?' ellipsis':''}"
+      ${disabled?'disabled':''} onclick="goPage(${n})">${label}</button>`);
+  };
+
+  addBtn(currentPage-1, '‹ 上一页', false, currentPage===1);
+
+  // 页码省略逻辑
+  const pages = [];
+  if (totalPages <= 9) {
+    for (let i=1; i<=totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage > 4) pages.push('…');
+    for (let i=Math.max(2,currentPage-2); i<=Math.min(totalPages-1,currentPage+2); i++) pages.push(i);
+    if (currentPage < totalPages-3) pages.push('…');
+    pages.push(totalPages);
+  }
+
+  pages.forEach(n => {
+    if (n === '…') {
+      btns.push('<button class="page-btn ellipsis" disabled>…</button>');
+    } else {
+      addBtn(n, n, n===currentPage, false);
+    }
+  });
+
+  addBtn(currentPage+1, '下一页 ›', false, currentPage===totalPages);
+  // 页码跳转输入框
+  btns.push(`<span class="page-jump" style="display:inline-flex;align-items:center;gap:4px;margin-left:12px;font-size:13px;color:#666;">
+    跳至 <input type="number" min="1" max="${totalPages}" value="${currentPage}"
+      style="width:52px;padding:4px 6px;border:1px solid #d0d5dd;border-radius:6px;text-align:center;font-size:13px;"
+      onkeydown="if(event.key==='Enter'){goPage(+this.value)}"
+      aria-label="跳转页码"> / ${totalPages} 页
+    <button onclick="goPage(+this.previousElementSibling.previousElementSibling.value)"
+      style="padding:4px 10px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;">GO</button>
+  </span>`);
+  p.innerHTML = btns.join('');
+}
+
+function goPage(n) {
+  const total = currentCat === 'search' ? (pageCache['search-total']||0) : (COUNTS[currentCat]||0);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (n < 1 || n > totalPages) return;
+  if (currentCat === 'search') {
+    currentPage = n;
+    const q = document.querySelector('.hero-search input').value.trim().toLowerCase();
+    pushState('search', n, q);
+    renderPage(pageCache[`search-p${n}`] || []);
+  } else {
+    loadPage(currentCat, n);
+  }
+}
+
+// ── 更新侧边栏计数（用已知精确数值，不依赖运行时统计）
+function updateCounts() {
+  Object.entries(COUNTS).forEach(([key, n]) => {
+    const el = document.getElementById('cnt-' + key);
+    if (el) el.textContent = n.toLocaleString();
+  });
+  const total = document.getElementById('stat-total');
+  if (total) total.textContent = COUNTS.all.toLocaleString();
+}
+
+// 分类按钮点击（顶部标签栏）
+document.querySelectorAll('.cat-btn[data-cat]').forEach(btn => {
+  btn.addEventListener('click', () => filterCat(btn.dataset.cat));
+});
+
+// 读取URL参数 ?cat=xxx，自动切换分类
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get('cat');
+  if (cat && cat !== 'all') {
+    // 等首页数据加载完再切分类（article-grid有实际内容时）
+    const timer = setInterval(() => {
+      const grid = document.getElementById('article-grid');
+      if (grid && grid.children.length > 0 && !grid.children[0].textContent.includes('加载中')) {
+        clearInterval(timer);
+        filterCat(cat);
+      }
+    }, 100);
+    // 最多等5秒
+    setTimeout(() => clearInterval(timer), 5000);
+  }
+})();
+</script>
+
+
+<script>/*pageshow-bfcache-fix*/window.addEventListener('pageshow',function(e){if(e.persisted)location.reload();});</script>
+</body>
+</html>

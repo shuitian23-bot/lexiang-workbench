@@ -1474,3 +1474,156 @@ html.split-mode:not(.content-open) #splitControls #cpClose{display:none}
   html[data-site="shop"].split-mode.in-chat #splitDivider:hover,
   html[data-site="shop"].split-mode.in-chat #splitDivider.dragging { background: #CBBED2; }
 }
+
+
+/* Lenovo LeAI PC Design — fullscreen dialog alignment
+   landing-collapsed is the PC fullscreen assistant state. Keep the stage full
+   width, center the empty-state block dynamically, and let the history drawer
+   participate in layout so it pushes content instead of covering it. */
+@media (min-width: 769px) {
+  html.split-mode.in-chat.landing-collapsed,
+  html.split-mode.in-chat.landing-collapsed body {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: #F8F6FA;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #chatApp {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: 12px 16px 16px !important;
+    box-sizing: border-box;
+    background: #F8F6FA;
+    gap: 12px;
+  }
+
+  html.split-mode.in-chat.landing-collapsed .chat-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: 1px solid #E8E1EC;
+    border-radius: 8px;
+    background: #FFFFFF;
+    overflow: hidden;
+    box-shadow: none;
+  }
+
+  html.split-mode.in-chat.landing-collapsed .chat-topbar {
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 0 26px !important;
+    background: #FFFFFF !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html.split-mode.in-chat.landing-collapsed .msgs-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #FFFFFF;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #msgsInner:has(#welcomeScreen) {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 0 clamp(28px, 4vw, 72px);
+    box-sizing: border-box;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #welcomeScreen {
+    width: min(760px, 100%);
+    padding: 0;
+    text-align: center;
+    transform: translateY(clamp(-86px, -7vh, -44px));
+  }
+
+  html.split-mode.in-chat.landing-collapsed #welcomeScreen h2 {
+    margin: 0 0 12px;
+    font-size: clamp(38px, 3.2vw, 58px);
+    line-height: 1.12;
+    letter-spacing: 0;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #welcomeScreen p {
+    margin: 0 0 clamp(38px, 5vh, 64px);
+    font-size: clamp(16px, 1.15vw, 20px);
+    line-height: 1.5;
+    color: #6F6474;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #welcomeScreen .wlist {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px 20px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #welcomeScreen .wlist-item {
+    flex: 0 1 260px;
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid #DED6E8;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #FFF7FC 0%, #F6F7FF 100%);
+    color: #201A23;
+    font-size: clamp(12px, 1vw, 14px);
+    line-height: 1.35;
+    box-shadow: 0 10px 28px rgba(32, 26, 35, .05);
+  }
+
+  html.split-mode.in-chat.landing-collapsed .input-bar {
+    width: min(920px, calc(100% - 48px));
+    margin: 0 auto;
+    border: 0;
+    background: transparent;
+    padding: 0 0 12px;
+  }
+
+  html.split-mode.in-chat.landing-collapsed .ta-wrap {
+    border-radius: 8px;
+    border: 1px solid #9B1B4A;
+    min-height: 92px;
+  }
+
+  html.split-mode.in-chat.landing-collapsed .sb-overlay.active {
+    position: relative;
+    inset: auto;
+    display: block;
+    flex: 0 0 clamp(320px, 22vw, 408px);
+    width: clamp(320px, 22vw, 408px);
+    height: 100%;
+    padding: 0;
+    opacity: 1;
+    pointer-events: auto;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  html.split-mode.in-chat.landing-collapsed .sb-overlay.active .sidebar {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    border: 1px solid #E8E1EC;
+    border-radius: 8px;
+    box-shadow: 18px 0 40px rgba(32, 26, 35, .06);
+    transform: none;
+  }
+
+  html.split-mode.in-chat.landing-collapsed #chatApp:has(.sb-overlay.active) .chat-main {
+    width: auto;
+  }
+}

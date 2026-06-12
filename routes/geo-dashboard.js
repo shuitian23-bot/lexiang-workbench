@@ -64,13 +64,17 @@ const EXT_HEADERS = {
   'Content-Type': 'application/json'
 };
 
+function proxyExternalPost(endpoint, body) {
+  return fetchJSON(`${EXT_BASE}/${endpoint}`, {
+    method: 'POST',
+    headers: EXT_HEADERS,
+    body: JSON.stringify(body)
+  });
+}
+
 router.post('/overview', async (req, res) => {
   try {
-    const data = await fetchJSON(`${EXT_BASE}/overview`, {
-      method: 'POST',
-      headers: EXT_HEADERS,
-      body: JSON.stringify(req.body)
-    });
+    const data = await proxyExternalPost('overview', req.body);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -79,11 +83,7 @@ router.post('/overview', async (req, res) => {
 
 router.post('/questions', async (req, res) => {
   try {
-    const data = await fetchJSON(`${EXT_BASE}/questions`, {
-      method: 'POST',
-      headers: EXT_HEADERS,
-      body: JSON.stringify(req.body)
-    });
+    const data = await proxyExternalPost('questions', req.body);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -92,11 +92,7 @@ router.post('/questions', async (req, res) => {
 
 router.post("/citations", async (req, res) => {
   try {
-    const data = await fetchJSON(`${EXT_BASE}/citations`, {
-      method: "POST",
-      headers: EXT_HEADERS,
-      body: JSON.stringify(req.body)
-    });
+    const data = await proxyExternalPost('citations', req.body);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -105,11 +101,7 @@ router.post("/citations", async (req, res) => {
 
 router.post('/sites', async (req, res) => {
   try {
-    const data = await fetchJSON(`${EXT_BASE}/sites`, {
-      method: 'POST',
-      headers: EXT_HEADERS,
-      body: JSON.stringify(req.body)
-    });
+    const data = await proxyExternalPost('sites', req.body);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -118,11 +110,34 @@ router.post('/sites', async (req, res) => {
 
 router.post('/summary', async (req, res) => {
   try {
-    const data = await fetchJSON(`${EXT_BASE}/summary`, {
-      method: 'POST',
-      headers: EXT_HEADERS,
-      body: JSON.stringify(req.body)
-    });
+    const data = await proxyExternalPost('summary', req.body);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/stable-intents', async (req, res) => {
+  try {
+    const data = await proxyExternalPost('stable-intents', req.body);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/competitor-trends', async (req, res) => {
+  try {
+    const data = await proxyExternalPost('competitor-trends', req.body);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/wiki-history', async (req, res) => {
+  try {
+    const data = await proxyExternalPost('wiki-history', req.body);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
