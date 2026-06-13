@@ -6436,9 +6436,19 @@ body[data-page="home"] .hero-suggestion-row {
   flex: 1;
   min-width: 200px;
   display: flex;
-  align-content: flex-start;
+  align-items: center;
+  align-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 10px 12px;
+  padding: 4px 6px;
+}
+
+.content[data-view="detail"] .detail-review-filter-lead {
+  width: 100%;
+  margin-bottom: 2px;
+  color: #95909e;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .content[data-view="detail"] .detail-review-filter {
