@@ -3306,13 +3306,12 @@
 
             const quick = event.target.closest(".quick-item, .hero-suggestion, .shortcut, .more-menu .menu-row");
             if (quick && !event.target.closest(".more-wrap > button")) {
-              const text = quick.textContent.trim();
-              if (quick.classList.contains("hero-suggestion")) {
+              const text = (quick.querySelector("span")?.textContent || quick.textContent).trim();
+              if (quick.classList.contains("hero-suggestion") || quick.classList.contains("fullscreen-prompt") || quick.classList.contains("lxfd-chip-q")) {
                 event.preventDefault();
+                event.stopPropagation();
                 event.stopImmediatePropagation();
-                // 首页推荐 chip：同样进入全屏对话，AI 出内容才展开右侧
-                sendChat(text);
-                lxSetAutoFs(true);
+                if (text && typeof window.lxfdSubmit === "function") window.lxfdSubmit(text);
                 return;
               }
               if (text.includes("教育特惠")) openEduZone();
@@ -4054,8 +4053,20 @@
   ta?.addEventListener("input", () => { fit(); syncSend(); });
   ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
   $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
-  chips?.addEventListener("click", (e) => { const b = e.target.closest(".lxfd-chip-q"); if (b) submit(b.dataset.q || b.textContent); });
-  quick?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) submit(b.textContent); });
+  chips?.addEventListener("click", (e) => {
+    const b = e.target.closest(".lxfd-chip-q");
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    submit(b.dataset.q || b.textContent);
+  });
+  quick?.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    submit(b.textContent);
+  });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) openRail(wide()); });
 
@@ -4074,7 +4085,8 @@
     const heroChip = e.target.closest(".hero-suggestion");
     const fullPrompt = e.target.closest(".fullscreen-prompt");
     if (heroChip || fullPrompt) {
-      const text = (heroChip || fullPrompt).textContent.trim();
+      const target = heroChip || fullPrompt;
+      const text = (target.querySelector("span")?.textContent || target.textContent).trim();
       if (text) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); submit(text); }
     }
   }, true);
