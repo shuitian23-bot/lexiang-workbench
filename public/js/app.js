@@ -43,6 +43,7 @@
           conversationNonce: 0,
           detailImageToken: "",
           hoverPromptTimer: null,
+          hoverPromptAutoCloseTimer: null,
           hoverPromptSku: ""
         };
 
@@ -327,6 +328,7 @@
           const key = String(product?.sku || "");
           list.innerHTML = renderHoverPromptPop(product);
           bottom.classList.add("has-hover-prompts");
+          scheduleHoverPromptAutoClose();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
           state.reasonCache = state.reasonCache || {};
@@ -344,14 +346,29 @@
         }
 
         function hideHoverPrompts() {
+          clearHoverPromptAutoCloseTimer();
           $(".assistant-bottom")?.classList.remove("has-hover-prompts");
           const list = $("[data-hover-prompt-list]");
           if (list) list.innerHTML = "";
         }
 
+        function clearHoverPromptAutoCloseTimer() {
+          if (state.hoverPromptAutoCloseTimer) window.clearTimeout(state.hoverPromptAutoCloseTimer);
+          state.hoverPromptAutoCloseTimer = null;
+        }
+
+        function scheduleHoverPromptAutoClose() {
+          clearHoverPromptAutoCloseTimer();
+          state.hoverPromptAutoCloseTimer = window.setTimeout(() => {
+            hideHoverPrompts();
+            state.hoverPromptSku = "";
+          }, 4000);
+        }
+
         function clearHoverPromptTimer() {
           if (state.hoverPromptTimer) window.clearTimeout(state.hoverPromptTimer);
           state.hoverPromptTimer = null;
+          clearHoverPromptAutoCloseTimer();
           state.hoverPromptSku = "";
         }
 
@@ -365,7 +382,7 @@
             if (state.hoverPromptSku !== key) return;
             showHoverPrompts(product);
             state.hoverPromptTimer = null;
-          }, 2500);
+          }, 6000);
         }
 
         const DETAIL_SPEC_SKIP_KEYS = new Set([
