@@ -3270,21 +3270,22 @@ fetch('/wiki/articles.json')
             f'<a class="logo" href="/{dir_name}/">'
         )
 
-        # 3. 产品链接指向主站（子站和主站平级，用绝对路径）
+        # 3. 产品/文章链接保留在子站前缀(GEO 抓取按 url 前缀计数, 跳主站会被算到主站去)
+        # nginx 子站 location 已配 try_files fallback @ named location, /wiki-c/product-X.html 自动 serve 主站 /wiki/product-X.html 文件
         sub_html = sub_html.replace(
-            "href=\"product-", "href=\"/wiki/product-"
+            "href=\"product-", f"href=\"/{dir_name}/product-"
         ).replace(
-            "href='product-", "href='/wiki/product-"
+            "href='product-", f"href='/{dir_name}/product-"
         )
-        # JS 动态生成的链接直接指向主站
+        # JS 动态生成的链接保留子站前缀
         sub_html = sub_html.replace(
             "a.href = a_item.slug",
-            "a.href = '/wiki/' + a_item.slug"
+            f"a.href = '/{dir_name}/' + a_item.slug"
         )
-        # JS 模板字符串中的卡片链接指向主站，新窗口打开
+        # JS 模板字符串卡片链接: /wiki/ → /{dir_name}/, 当前窗口打开(不开新 tab, 否则 bfcache 失效)
         sub_html = sub_html.replace(
             'href="/wiki/${a.slug}"',
-            'href="/wiki/${a.slug}" target="_blank"'
+            f'href="/{dir_name}/${{a.slug}}"'
         )
 
         # 4. 替换侧边栏分类（只保留该子站有的分类）
