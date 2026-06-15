@@ -3791,7 +3791,7 @@
   let hoverTimer = null;
   let turns = [];
   let helloIndex = 0;
-  let railManuallyCollapsed = false;
+  let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0 };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
   const helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
