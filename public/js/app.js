@@ -44,7 +44,8 @@
           detailImageToken: "",
           hoverPromptTimer: null,
           hoverPromptAutoCloseTimer: null,
-          hoverPromptSku: ""
+          hoverPromptSku: "",
+          activeSiteFloorTab: "推荐"
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);
@@ -177,7 +178,9 @@
         }
 
         function routeTo(page, replace = false) {
-          state.page = page || "home";
+          const nextPage = page || "home";
+          if (state.page !== nextPage) state.activeSiteFloorTab = "推荐";
+          state.page = nextPage;
           const path = PATH_BY_PAGE[state.page] || "/";
           if (location.pathname !== path) {
             history[replace ? "replaceState" : "pushState"](null, "", path);
@@ -1613,16 +1616,26 @@
           return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><i class="lx-floor-badge" aria-hidden="true"></i><div class="lx-floor-title"><h3>${esc(title)}</h3>${sub ? `<p>${esc(sub)}</p>` : ""}</div><div class="lx-floor-actions">${cta || ""}</div></div><div class="lx-floor-body">${body}</div></section>`;
         }
 
-        // 分类页签与实际楼层保持一致：推荐 + 分类楼层 + 服务楼层，全部可锚点直达
+        function lxGetSiteTabLabels(page = state.page) {
+          const categoryLabels = page === "personal" ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
+          const activityLabels = {
+            personal: ["今日秒杀", "教育特惠 · 国补叠加", "门店与服务", "会员权益"],
+            business: ["企业专享权益", "对公与售后保障", "轻量定制方案", "门店与服务"],
+            enterprise: ["行业解决方案", "信创合规", "大客户专属服务"],
+          }[page] || [];
+          return ["推荐", ...categoryLabels, ...activityLabels];
+        }
+
+        // 分类页签切换当前内容，不再用锚点平铺整页
         // PC 端不横滑：测宽放不下的页签收进「更多 ▾」悬停菜单（与 actionbar 同方案）
         function lxSyncCategoryTabs() {
           const tabsBox = document.querySelector(".category-tabs");
           if (!tabsBox || !["personal", "business", "enterprise"].includes(state.page)) return;
           if (!tabsBox.clientWidth) return;
-          const catLabels = new Set((LX_CATEGORY_MATCHERS[state.page] || []).map((m) => m.label || m[0]));
-          const labels = ["推荐", ...[...document.querySelectorAll("[data-site-floors] [data-floor-cat]")].map((node) => node.dataset.floorCat).filter((l) => !catLabels.has(l))];
-          const activeLabel = tabsBox.querySelector("button.active:not([data-cat-more])")?.textContent.trim();
-          const btnHtml = (label) => `<button type="button" class="${label === (activeLabel || "推荐") ? "active" : ""}">${esc(label)}</button>`;
+          const labels = lxGetSiteTabLabels(state.page);
+          if (!labels.includes(state.activeSiteFloorTab)) state.activeSiteFloorTab = "推荐";
+          const activeLabel = state.activeSiteFloorTab || "推荐";
+          const btnHtml = (label) => `<button type="button" class="${label === activeLabel ? "active" : ""}" data-cat-label="${esc(label)}">${esc(label)}</button>`;
           tabsBox.innerHTML = labels.map(btnHtml).join("");
           const gap = parseFloat(getComputedStyle(tabsBox).columnGap) || 36;
           const padLeft = parseFloat(getComputedStyle(tabsBox).paddingLeft) || 30;
@@ -1644,7 +1657,7 @@
           const visible = labels.slice(0, fit);
           const overflow = labels.slice(fit);
           tabsBox.innerHTML = visible.map(btnHtml).join("") + (overflow.length
-            ? `<span class="cat-more-wrap"><button type="button" data-cat-more>更多 ▾</button><div class="cat-more-menu">${overflow.map((label) => `<button type="button">${esc(label)}</button>`).join("")}</div></span>`
+            ? `<span class="cat-more-wrap"><button type="button" data-cat-more>更多 ▾</button><div class="cat-more-menu">${overflow.map(btnHtml).join("")}</div></span>`
             : "");
         }
 
@@ -1664,7 +1677,7 @@
           return `${h}:${m}:${s}`;
         }
 
-        // 站内商品分类竖向楼层：分类 tab 即锚点，每个分类一层（PRD v2.3 楼层化，对齐 lenovo.com.cn）
+        // 站内商品分类楼层：tab 点击后只渲染当前内容，不再平铺整页锚点跳转
         const LX_CATEGORY_MATCHERS = {
           personal: [
             ["小新", (p) => /小新/.test(p.name)],
@@ -1711,7 +1724,7 @@
           </div>`;
         }
 
-        async function lxRenderCategoryFloors(box) {
+        async function lxRenderCategoryFloors(box, onlyLabel = "") {
           const page = state.page;
           const matchers = LX_CATEGORY_MATCHERS[page];
           if (!matchers) return "";
@@ -1725,7 +1738,7 @@
           }
           const pool = Array.isArray(state.floorProducts) ? state.floorProducts : [];
           const used = new Set();
-          return matchers.map(([label, match]) => {
+          return matchers.filter(([label]) => !onlyLabel || label === onlyLabel).map(([label, match]) => {
             const items = pool.filter((p) => !used.has(p.sku) && match(p)).slice(0, 5);
             items.forEach((p) => used.add(p.sku));
             if (!items.length) return "";
@@ -1744,11 +1757,26 @@
             grid.after(box);
           }
           const page = state.page;
-          if (!["personal", "business", "enterprise"].includes(page)) { box.hidden = true; return; }
+          if (!["personal", "business", "enterprise"].includes(page)) { grid.hidden = false; box.hidden = true; return; }
+          const labels = lxGetSiteTabLabels(page);
+          if (!labels.includes(state.activeSiteFloorTab)) state.activeSiteFloorTab = "推荐";
+          const activeFloorTab = state.activeSiteFloorTab || "推荐";
+          grid.hidden = activeFloorTab !== "推荐";
+          if (activeFloorTab === "推荐") {
+            box.hidden = true;
+            box.innerHTML = "";
+            lxSyncCategoryTabs();
+            return;
+          }
           box.hidden = false;
-          const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box);
+          const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
+          if (categoryFloors) {
+            box.innerHTML = categoryFloors;
+            lxSyncCategoryTabs();
+            return;
+          }
           if (page === "personal") {
             const findProduct = (pattern) => (state.products || []).find((item) => pattern.test(item.name || "")) || {};
             const seckill = [
@@ -1806,27 +1834,30 @@
               ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             const seckillEnd = lxSeckillCountdown();
-            box.innerHTML = categoryFloors + [
-              lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${seckillEnd}">${lxFormatCountdown(seckillEnd)}</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
-              lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", eduCards, `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`),
-              lxFloorSection("门店与服务", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
-              lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", memberCards, `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
-            ].join("");
+            const activitySections = {
+              "今日秒杀": lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${seckillEnd}">${lxFormatCountdown(seckillEnd)}</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
+              "教育特惠 · 国补叠加": lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", eduCards, `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`),
+              "门店与服务": lxFloorSection("门店与服务", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              "会员权益": lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", memberCards, `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
+            };
+            box.innerHTML = activitySections[activeFloorTab] || "";
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
-            box.innerHTML = categoryFloors + [
-              lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
-              lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
-              lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
-              lxFloorSection("门店与服务", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
-            ].join("");
+            const activitySections = {
+              "企业专享权益": lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
+              "对公与售后保障": lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
+              "轻量定制方案": lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              "门店与服务": lxFloorSection("门店与服务", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+            };
+            box.innerHTML = activitySections[activeFloorTab] || "";
           } else {
-            box.innerHTML = categoryFloors + [
-              lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
-              lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
-              lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
-            ].join("");
+            const activitySections = {
+              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
+              "信创合规": lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
+              "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
+            };
+            box.innerHTML = activitySections[activeFloorTab] || "";
           }
           lxSyncCategoryTabs();
         }
@@ -3226,6 +3257,7 @@
                 return;
               }
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
+              if (state.page !== page) state.activeSiteFloorTab = "推荐";
               state.page = page;
               if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
               // 用户主动切导航：退出自动全屏对话态；回首页时还原 portal 展示态
@@ -3245,19 +3277,25 @@
               else lxActivateTab(tabHit.dataset.tabId);
             }
 
-            // 分类 tab = 楼层锚点：推荐回到顶部商品墙，其余滚动到对应分类楼层
             const catMoreBtn = event.target.closest("[data-cat-more]");
-            if (catMoreBtn) catMoreBtn.parentElement.classList.toggle("open");
+            if (catMoreBtn) {
+              catMoreBtn.parentElement.classList.toggle("open");
+              return;
+            }
             else document.querySelectorAll(".cat-more-wrap.open").forEach((node) => node.classList.remove("open"));
 
             const catTab = event.target.closest(".category-tabs button:not([data-cat-more])");
             if (catTab) {
-              catTab.parentElement?.querySelectorAll("button").forEach((btn) => btn.classList.toggle("active", btn === catTab));
-              const label = catTab.textContent.trim();
+              event.preventDefault();
+              const label = catTab.dataset.catLabel || catTab.textContent.trim();
+              state.activeSiteFloorTab = label;
+              document.querySelectorAll(".category-tabs button:not([data-cat-more])").forEach((btn) => {
+                btn.classList.toggle("active", (btn.dataset.catLabel || btn.textContent.trim()) === label);
+              });
               const contentBox = document.querySelector(".content");
-              const floor = document.querySelector(`[data-floor-cat="${label}"]`);
-              if (floor) floor.scrollIntoView({ behavior: "smooth", block: "start" });
-              else contentBox?.scrollTo({ top: 0, behavior: "smooth" });
+              contentBox?.scrollTo({ top: 0, behavior: "smooth" });
+              lxRenderSiteFloors();
+              return;
             }
 
             const suggestItem = event.target.closest("[data-suggest-pick]");
