@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>联想乐享 · 全屏对话</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/fullscreen-chat.css" />
+</head>
+<body>
+
+  <!-- 顶部导航栏 -->
+  <header class="fs-topbar">
+    <button class="fs-back-btn" type="button" id="fs-back-btn" aria-label="返回">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M11 4L6 9l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      返回
+    </button>
+    <div class="fs-logo">
+      <img src="/assets/logos/logo-full.svg" alt="联想乐享" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+      <span class="fs-logo-text" style="display:none">联想乐享</span>
+    </div>
+    <button class="fs-new-btn" type="button" id="fs-new-btn" aria-label="新建对话">
+      新建对话
+    </button>
+  </header>
+
+  <!-- 对话流区域 -->
+  <main class="fs-chat-area" id="fs-chat-area">
+    <!-- 欢迎词（有消息后隐藏） -->
+    <div class="fs-welcome" id="fs-welcome">
+      <div class="fs-welcome-logo">
+        <img src="/assets/logos/logo-mark.png" alt="" />
+      </div>
+      <h1 class="fs-welcome-title">联想乐享 AI 助手</h1>
+      <p class="fs-welcome-sub">我可以帮你选购联想商品、查询优惠、解答售后问题</p>
+    </div>
+    <!-- 消息列表 -->
+    <div id="fs-chat-list" class="fs-chat-list" role="log" aria-live="polite" aria-label="对话内容"></div>
+  </main>
+
+  <!-- 底部输入区 -->
+  <footer class="fs-composer" id="fs-composer">
+    <!-- 快捷入口行 -->
+    <div class="fs-actionbar" id="fs-actionbar" role="toolbar" aria-label="快捷功能"></div>
+    <!-- 输入行 -->
+    <div class="fs-input-row">
+      <textarea
+        id="fs-textarea"
+        class="fs-textarea"
+        placeholder="向联想乐享 AI 助手提问..."
+        rows="1"
+        maxlength="2000"
+        aria-label="输入消息"
+      ></textarea>
+      <button class="fs-send-btn" id="fs-send-btn" type="button" aria-label="发送" disabled>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M3 10h14M10 4l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <p class="fs-footer-note">内容由 AI 生成，仅供参考</p>
+  </footer>
+
+  <script src="/js/fullscreen-chat.js"></script>
+</body>
+</html>
