@@ -7363,29 +7363,34 @@ body[data-page="home"] .portal-footer .footer-col:nth-child(3) .footer-link-colu
   }
 }
 
-/* 2026-06-15: 首页标题默认即居中；旋转词按当前文案宽度自适应并与静态标题同线 */
+/* 2026-06-15: 首页标题默认即居中；静态标题与旋转词按同一中线对齐 */
 body[data-page="home"] .agent-title {
-  display: block !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .08em;
   width: min(100%, var(--home-composer-width)) !important;
   max-width: var(--home-composer-width) !important;
   margin-left: auto !important;
   margin-right: auto !important;
+  line-height: 1 !important;
   text-align: center;
   white-space: nowrap;
 }
 
 body[data-page="home"] .agent-title .title-static,
 body[data-page="home"] .agent-title .rotating-title {
-  display: inline-block;
-  line-height: inherit;
-  vertical-align: baseline;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
 }
 
 body[data-page="home"] .agent-title .rotating-title {
+  position: relative;
   width: var(--rotating-title-width, 3em) !important;
   min-width: 0 !important;
-  height: 1.04em;
-  margin-left: .08em !important;
+  height: 1em !important;
+  margin-left: 0 !important;
   overflow: hidden !important;
   color: #4d144a;
   text-align: left;
@@ -7393,7 +7398,7 @@ body[data-page="home"] .agent-title .rotating-title {
 
 body[data-page="home"] .agent-title .rotating-title .word {
   width: auto !important;
-  line-height: inherit;
+  line-height: 1 !important;
   text-align: left;
   white-space: nowrap;
 }
@@ -7404,10 +7409,20 @@ body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word {
 
 body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word.is-active,
 body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word:first-child {
-  display: inline-block !important;
+  display: inline-flex !important;
+  align-items: center !important;
   opacity: 1 !important;
   transform: none !important;
   color: #4d144a;
+}
+
+body[data-page="home"] .agent-title .rotating-title.is-ready .word {
+  top: 50% !important;
+  transform: translateY(calc(-50% + .72em)) !important;
+}
+
+body[data-page="home"] .agent-title .rotating-title.is-ready .word.is-active {
+  transform: translateY(-50%) !important;
 }
 
 body[data-page="home"] .hero-composer-bar {
