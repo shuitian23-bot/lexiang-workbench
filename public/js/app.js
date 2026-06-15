@@ -269,7 +269,8 @@
             sku,
             name: $(".product-title", card)?.textContent?.trim() || "这款联想商品",
             description: $(".spec", card)?.textContent?.trim() || "联想官方商品",
-            category: $(".brand-mini", card)?.textContent?.trim() || "联想商品"
+            category: $(".brand-mini", card)?.textContent?.trim() || "联想商品",
+            image_url: $(".product-visual img", card)?.getAttribute("src") || ""
           };
         }
 
@@ -306,11 +307,13 @@
             ? esc(reason).replace(/配置拉满/g, "<b>配置拉满</b>")
             : "这款拯救者<b>配置拉满</b>，打游戏、剪视频、跑 AI 都流畅，硬核玩家用着超爽。";
           const questions = getHoverPromptQuestions(product);
+          const image = product?.image_url ? imgUrl(product.image_url) : "";
+          const thumb = image ? `<img src="${esc(image)}" alt="${esc(name)}" loading="lazy" />` : "<i></i>";
           return `
             <div class="pop"><div class="box">
               <button class="pop-close hover-prompt-close" type="button" aria-label="关闭商品推荐问题">✕</button>
               <div class="ctx">
-                <div class="thumb"><i></i></div>
+                <div class="thumb">${thumb}</div>
                 <div class="ci"><div class="nm">${esc(name)}</div><div class="pr">${esc(price)} 起</div></div>
                 <span class="badge">${hoverSparkSvg(11)}你在看</span>
               </div>
