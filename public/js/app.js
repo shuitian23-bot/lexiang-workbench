@@ -272,7 +272,6 @@
         function getHoverPromptQuestions(product) {
           const name = (product?.name || "这款联想商品").replace(/\s+/g, " ").trim();
           const category = product?.category || "联想商品";
-          const compactName = name.length > 18 ? `${name.slice(0, 18)}...` : name;
           let series = category;
           if (/小新/.test(name)) series = "小新";
           else if (/拯救者|LEGION/i.test(name)) series = "拯救者";
@@ -280,6 +279,10 @@
           else if (/ThinkBook/i.test(name)) series = "ThinkBook";
           else if (/YOGA/i.test(name)) series = "YOGA";
           else if (/moto/i.test(name)) series = "moto";
+          if (/R9000P/i.test(name) || /拯救者|LEGION/i.test(name)) {
+            return ["拯救者该如何选择？", "R9000P 2025 值得买吗？", "R9000P 2025 详细解读"];
+          }
+          const compactName = name.replace(/^联想\s*/i, "").slice(0, 12);
           return [
             `${series}该如何选择？`,
             `${compactName}值得买吗？`,
@@ -287,14 +290,42 @@
           ];
         }
 
+        function hoverSparkSvg(size) {
+          return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3Z"/></svg>`;
+        }
+
+        function renderHoverPromptPop(product, reason = "") {
+          const name = (product?.name || "联想拯救者 R9000P 2025 AI元启版").replace(/\s+/g, " ").trim();
+          const priceValue = Number(product?.price || product?.sale_price || 14999);
+          const price = Number.isFinite(priceValue) && priceValue > 0 ? `¥${priceValue.toLocaleString("zh-CN")}` : "¥14,999";
+          const summary = reason
+            ? esc(reason).replace(/配置拉满/g, "<b>配置拉满</b>")
+            : "这款拯救者<b>配置拉满</b>，打游戏、剪视频、跑 AI 都流畅，硬核玩家用着超爽。";
+          const questions = getHoverPromptQuestions(product);
+          return `
+            <div class="pop"><div class="box">
+              <button class="pop-close hover-prompt-close" type="button" aria-label="关闭商品推荐问题">✕</button>
+              <div class="ctx">
+                <div class="thumb"><i></i></div>
+                <div class="ci"><div class="nm">${esc(name)}</div><div class="pr">${esc(price)} 起</div></div>
+                <span class="badge">${hoverSparkSvg(11)}你在看</span>
+              </div>
+              <div class="body">
+                <div class="sum">${summary}</div>
+                <div class="divider"><span>乐享建议你问问</span></div>
+                <div class="acts">
+                  ${questions.map((text) => `<button class="act" type="button" data-hover-prompt="${esc(text)}"><span class="ic">${hoverSparkSvg(13)}</span><span>${esc(text)}</span><span class="ar">›</span></button>`).join("")}
+                </div>
+              </div>
+            </div></div>`;
+        }
+
         async function showHoverPrompts(product) {
           const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
           if (!bottom || !list) return;
           const key = String(product?.sku || "");
-          list.innerHTML = getHoverPromptQuestions(product).map((text) => (
-            `<button class="hover-prompt-chip" type="button" data-hover-prompt="${esc(text)}">${esc(text)}</button>`
-          )).join("");
+          list.innerHTML = renderHoverPromptPop(product);
           bottom.classList.add("has-hover-prompts");
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
@@ -308,7 +339,7 @@
             state.reasonCache[key] = reason;
           }
           if (reason && state.hoverPromptSku === key && bottom.classList.contains("has-hover-prompts")) {
-            list.insertAdjacentHTML("afterbegin", `<span class="hover-prompt-hook">✨ ${esc(reason)}</span>`);
+            list.innerHTML = renderHoverPromptPop(product, reason);
           }
         }
 

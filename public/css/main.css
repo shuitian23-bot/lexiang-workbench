@@ -891,16 +891,12 @@
       .hover-prompt-panel {
         position: relative;
         display: none;
-        gap: 10px;
         margin-bottom: 14px;
-        padding-top: 12px;
-        padding-right: 38px;
-        background: #ffffff;
+        background: transparent;
       }
 
       .assistant-bottom.has-hover-prompts .hover-prompt-panel {
-        display: grid;
-        justify-items: start;
+        display: block;
       }
 
       .assistant-bottom.has-hover-prompts .shortcut-row {
@@ -908,57 +904,201 @@
       }
 
       .hover-prompt-list {
-        display: grid;
-        gap: 10px;
-        justify-items: start;
+        display: block;
       }
 
-      .hover-prompt-close {
+      .hover-prompt-panel > .hover-prompt-close {
+        display: none;
+      }
+
+      .pop {
+        position: relative;
+        z-index: 20;
+      }
+
+      .pop .box {
+        background: linear-gradient(165deg, #fff, #FBF6FC);
+        border: 1px solid #EBDEEF;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 16px 44px rgba(91, 20, 82, .20);
+        position: relative;
+      }
+
+      .pop-close {
         position: absolute;
-        top: -8px;
-        right: 8px;
-        width: 11px;
-        height: 11px;
-        display: inline-grid;
-        place-items: center;
-        border: 0;
-        border-radius: 50%;
-        background: #ddd6e6;
-        color: #fff;
-        font-size: 11px;
-        line-height: 1;
-        font-weight: 500;
+        top: 10px;
+        right: 10px;
+        width: 22px;
+        height: 22px;
+        border: none;
         cursor: pointer;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .18);
+        color: #fff;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3;
       }
 
-      .hover-prompt-close:hover {
-        background: var(--border-strong);
+      .pop-close:hover {
+        background: rgba(255, 255, 255, .32);
       }
 
-      .hover-prompt-chip {
-        min-height: 34px;
-        max-width: min(100%, 520px);
+      .pop .ctx {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 12px 40px 12px 14px;
+        background: linear-gradient(120deg, #2B0F28, #5b1452);
+        position: relative;
+      }
+
+      .pop .ctx .thumb {
+        width: 42px;
+        height: 42px;
+        border-radius: 9px;
+        flex-shrink: 0;
+        background: radial-gradient(120% 90% at 50% 0, #3a2c48, #16101e);
+        border: 1px solid #ffffff22;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+
+      .pop .ctx .thumb i {
+        display: block;
+        width: 72%;
+        height: 22px;
+        border-radius: 3px 3px 0 0;
+        border: 1px solid #ffffff26;
+        border-bottom: none;
+        background: linear-gradient(150deg, #c0392b55, #5b145288);
+      }
+
+      .pop .ctx .ci {
+        min-width: 0;
+      }
+
+      .pop .ctx .ci .nm {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pop .ctx .ci .pr {
+        font-size: 12px;
+        color: #F2BFD9;
+        font-weight: 700;
+        margin-top: 3px;
+      }
+
+      .pop .ctx .badge {
+        margin-left: auto;
+        flex-shrink: 0;
         display: inline-flex;
         align-items: center;
-        padding: 0 16px;
-        border: 1px solid #ded6e8;
+        gap: 5px;
+        font-size: 10.5px;
+        font-weight: 800;
+        color: #fff;
+        background: rgba(255, 255, 255, .16);
+        border: 1px solid rgba(255, 255, 255, .22);
+        padding: 4px 9px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.82);
-        color: var(--aubergine);
-        font-size: clamp(12px, 1vw, 13px);
-        line-height: 1.35;
-        text-align: left;
-        box-shadow: 0 8px 22px rgba(78, 22, 70, 0.04);
-        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
-        cursor: pointer;
       }
 
-      .hover-prompt-chip:hover,
-      .hover-prompt-chip:focus-visible {
-        outline: none;
-        transform: translateY(-2px);
-        border-color: var(--aubergine);
+      .pop .body {
+        padding: 14px 15px 15px;
+      }
+
+      .pop .sum {
+        font-size: 13px;
+        line-height: 1.7;
+        color: #2E2738;
+      }
+
+      .pop .sum b {
+        color: #C8161E;
+        font-weight: 700;
+      }
+
+      .pop .divider {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 13px 0 11px;
+      }
+
+      .pop .divider span {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #A99FB4;
+        letter-spacing: .5px;
+      }
+
+      .pop .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #ECE3F0;
+      }
+
+      .pop .acts {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .pop .act {
+        appearance: none;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: normal;
+        color: #3C3646;
+        text-align: left;
+        border: 1px solid #ECE4F0;
         background: #fff;
+        transition: .15s;
+      }
+
+      .pop .act .ic {
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+        border-radius: 7px;
+        background: #F0E9F6;
+        color: #5b1452;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pop .act .ar {
+        margin-left: auto;
+        color: #C5BBCF;
+      }
+
+      .pop .act:hover {
+        border-color: #5b1452;
+        background: #F4F2F8;
+      }
+
+      .pop .act:hover .ar {
+        color: #5b1452;
       }
 
       .shortcut-row {
@@ -5433,8 +5573,6 @@
       .lx-hint-bar .lx-p0-btn { font-size: 12px; padding: 4px 12px; flex: none; }
       .lx-hint-close { border: none; background: transparent; color: var(--lx-text-tertiary); cursor: pointer; font-size: 15px; padding: 0 4px; }
       .lx-hint-close:hover { color: var(--lx-brand-red); }
-      .hover-prompt-hook { display: block; width: 100%; font-size: 12px; color: var(--lx-aubergine); padding: 2px 0 6px; }
-
       /* 经典聊天布局：内容置顶；输入区钉底由各模式自身定位保证 */
 
       .lx-p1-select-pop .lx-hl-btns { display: flex; gap: 6px; }
