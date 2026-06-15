@@ -3691,6 +3691,7 @@
   let hoverTimer = null;
   let turns = [];
   let helloIndex = 0;
+  let railManuallyCollapsed = false;
   const chatState = { convId: null, sending: false, conversationNonce: 0 };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
   const helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
@@ -3848,7 +3849,7 @@
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
     if (on) document.body.dataset.state = "chat";
-    if (on) requestAnimationFrame(() => { openRail(wide()); fit(); syncSend(); ta?.focus(); });
+    if (on) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
   }
   function setNav(open) {
     navCluster?.classList.toggle("open", open);
@@ -3860,6 +3861,13 @@
     railNewFab?.classList.toggle("hide", open);
     stage?.classList.toggle("shift", open && wide());
     scrim?.classList.remove("show");
+  }
+  function setRailManual(open) {
+    railManuallyCollapsed = !open;
+    openRail(open);
+  }
+  function syncRailForViewport() {
+    openRail(wide() && !railManuallyCollapsed);
   }
   function fit() {
     if (!ta) return;
@@ -4041,11 +4049,11 @@
     else location.assign(path);
   }));
   document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) openRail(false); } });
-  railFab?.addEventListener("click", () => openRail(true));
-  $("#lxfdRailClose")?.addEventListener("click", () => openRail(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) setRailManual(false); } });
+  railFab?.addEventListener("click", () => setRailManual(true));
+  $("#lxfdRailClose")?.addEventListener("click", () => setRailManual(false));
   $(".lxfd-actions .lxfd-ic")?.addEventListener("click", (e) => { e.preventDefault(); exitFullscreen(); });
-  scrim?.addEventListener("click", () => openRail(false));
+  scrim?.addEventListener("click", () => setRailManual(false));
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
   $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); $$("#lxfdHist a").forEach(x => x.classList.remove("active")); a.classList.add("active"); });
@@ -4068,7 +4076,7 @@
     submit(b.textContent);
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
-  window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) openRail(wide()); });
+  window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
 
   setTimeout(() => { setRotatingTitle(helloWords[helloIndex]); if (!reduceMotion) setInterval(rotateTitleWord, 2000); }, reduceMotion ? 0 : 2000);
   syncSend();
@@ -4098,7 +4106,7 @@
   }, true);
 
   const observer = new MutationObserver(() => {
-    if (document.body.classList.contains("assistant-fullscreen")) requestAnimationFrame(() => { openRail(wide()); fit(); syncSend(); });
+    if (document.body.classList.contains("assistant-fullscreen")) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); });
   });
   observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
 })();
