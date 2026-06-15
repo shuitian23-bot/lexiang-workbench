@@ -7403,6 +7403,10 @@ body[data-page="home"] .agent-title .rotating-title .word {
   white-space: nowrap;
 }
 
+body[data-page="home"] .agent-title .rotating-title:not(.is-ready) {
+  width: 3em !important;
+}
+
 body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word {
   display: none !important;
 }
