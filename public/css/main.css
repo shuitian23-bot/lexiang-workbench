@@ -1796,13 +1796,12 @@
       .agent-title .rotating-title {
         display: inline-block;
         position: relative;
-        width: var(--rotating-title-width, 3em);
-        min-width: 3em;
+        width: var(--rotating-title-width, auto);
         height: 1.08em;
         margin-left: 0.12em;
         overflow: hidden;
         transition: width 320ms ease;
-        vertical-align: baseline;
+        vertical-align: top;
       }
 
       .agent-title .rotating-title .word {
@@ -1814,11 +1813,6 @@
       }
 
       .agent-title .rotating-title .word:first-child {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .agent-title .rotating-title .word.is-active {
         opacity: 1;
         transform: translateY(0);
       }
