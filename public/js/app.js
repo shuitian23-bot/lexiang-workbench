@@ -347,9 +347,20 @@
 
         function hideHoverPrompts() {
           clearHoverPromptAutoCloseTimer();
-          $(".assistant-bottom")?.classList.remove("has-hover-prompts");
+          const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
-          if (list) list.innerHTML = "";
+          const pop = list?.querySelector(".pop");
+          if (!bottom || !list) return;
+          if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+            bottom.classList.remove("has-hover-prompts");
+            list.innerHTML = "";
+            return;
+          }
+          pop.classList.add("is-closing");
+          window.setTimeout(() => {
+            bottom.classList.remove("has-hover-prompts");
+            list.innerHTML = "";
+          }, 240);
         }
 
         function clearHoverPromptAutoCloseTimer() {
@@ -362,7 +373,7 @@
           state.hoverPromptAutoCloseTimer = window.setTimeout(() => {
             hideHoverPrompts();
             state.hoverPromptSku = "";
-          }, 4000);
+          }, 8000);
         }
 
         function clearHoverPromptTimer() {
