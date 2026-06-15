@@ -6868,7 +6868,8 @@ body[data-page="home"] .hero-suggestion-cloud {
       body.assistant-fullscreen .lx-p0-messages > :first-child { margin-top: 0; }
 
       /* 分类页签吸顶：列表滚动时页签条留在内容区顶部 */
-      .category-tabs { position: sticky; top: 0; z-index: 30; background: #fff; box-shadow: 0 6px 14px -10px rgba(46,26,52,0.18); }
+      .category-tabs { position: sticky; top: 0; z-index: 30; background: transparent; box-shadow: none; transition: background-color .18s ease, box-shadow .18s ease; }
+      .category-tabs.is-stuck { background: #fff; box-shadow: 0 6px 14px -10px rgba(46,26,52,0.18); }
       /* 详情底部跟随购买条 */
       .lx-buybar { position: sticky; bottom: 0; z-index: 30; display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px 16px; background: #fff; border: 1px solid var(--lx-border); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 22px rgba(46,26,52,0.12); }
       .lx-buybar[hidden] { display: none; }

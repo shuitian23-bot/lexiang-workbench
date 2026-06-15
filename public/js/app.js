@@ -1863,7 +1863,20 @@
             box.innerHTML = activitySections[activeFloorTab] || "";
           }
           lxSyncCategoryTabs();
+          requestAnimationFrame(lxSyncCategoryTabsStuck);
         }
+
+        function lxSyncCategoryTabsStuck() {
+          const tabsBox = document.querySelector(".category-tabs");
+          const content = document.querySelector(".content");
+          if (!tabsBox || !content || !["personal", "business", "enterprise"].includes(state.page)) return;
+          const hero = document.querySelector(".hero");
+          const threshold = Math.max(0, (hero?.offsetHeight || 0) - 2);
+          tabsBox.classList.toggle("is-stuck", content.scrollTop >= threshold);
+        }
+
+        document.querySelector(".content")?.addEventListener("scroll", lxSyncCategoryTabsStuck, { passive: true });
+        window.addEventListener("resize", lxSyncCategoryTabsStuck);
 
         setInterval(() => {
           document.querySelectorAll("[data-lx-countdown]").forEach((node) => {
