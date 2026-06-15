@@ -150,8 +150,8 @@
           rotatingTitle.style.setProperty("--rotating-title-width", `${activeWord.getBoundingClientRect().width}px`);
         };
 
-        rotatingTitle.classList.add("is-ready");
         updateWord();
+        rotatingTitle.classList.add("is-ready");
         window.addEventListener("resize", updateWord);
 
         if (reduceMotion || words.length < 2) return;

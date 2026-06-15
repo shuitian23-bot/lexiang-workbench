@@ -7363,32 +7363,32 @@ body[data-page="home"] .portal-footer .footer-col:nth-child(3) .footer-link-colu
   }
 }
 
-/* 2026-06-15: 首页标题默认展示“找商品”，旋转词按当前文案自适应宽度，并相对输入框居中 */
+/* 2026-06-15: 首页标题默认即居中；旋转词按当前文案宽度自适应并与静态标题同线 */
 body[data-page="home"] .agent-title {
-  display: flex !important;
-  align-items: baseline;
-  justify-content: center;
-  gap: .08em;
+  display: block !important;
   width: min(100%, var(--home-composer-width)) !important;
   max-width: var(--home-composer-width) !important;
   margin-left: auto !important;
   margin-right: auto !important;
   text-align: center;
+  white-space: nowrap;
 }
 
 body[data-page="home"] .agent-title .title-static,
 body[data-page="home"] .agent-title .rotating-title {
+  display: inline-block;
   line-height: inherit;
+  vertical-align: baseline;
 }
 
 body[data-page="home"] .agent-title .rotating-title {
-  width: var(--rotating-title-width, auto) !important;
+  width: var(--rotating-title-width, 3em) !important;
   min-width: 0 !important;
-  margin-left: 0 !important;
-  overflow: visible !important;
+  height: 1.04em;
+  margin-left: .08em !important;
+  overflow: hidden !important;
   color: #4d144a;
   text-align: left;
-  vertical-align: baseline;
 }
 
 body[data-page="home"] .agent-title .rotating-title .word {
@@ -7396,6 +7396,10 @@ body[data-page="home"] .agent-title .rotating-title .word {
   line-height: inherit;
   text-align: left;
   white-space: nowrap;
+}
+
+body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word {
+  display: none !important;
 }
 
 body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word.is-active,
