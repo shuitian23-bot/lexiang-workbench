@@ -168,13 +168,13 @@ function rptRenderOverview() {
   rptDestroy();
   const D = REPORT_DATA, dates = D.dates;
   rptChart('rpt-uv-chart', 'bar', dates, [
-    { label: 'UV', data: D.daily.map(r => r.uv), backgroundColor: 'rgba(39,174,96,0.7)' },
-    { label: '会话', data: D.daily.map(r => r.sess), type: 'line', borderColor: '#0f3460', tension: 0.3, fill: false }
+    { label: 'UV', data: D.daily.map(r => r.uv), backgroundColor: 'rgba(111,164,122,0.72)' },
+    { label: '会话', data: D.daily.map(r => r.sess), type: 'line', borderColor: '#3f78c5', tension: 0.3, fill: false }
   ]);
   rptChart('rpt-anomaly-chart', 'bar', dates, [
-    { label: '终止', data: D.daily.map(r => r.abort), backgroundColor: 'rgba(233,69,96,0.75)' },
-    { label: '重试', data: D.daily.map(r => r.retry), backgroundColor: 'rgba(243,156,18,0.75)' },
-    { label: '空回复', data: D.daily.map(r => r.empty), backgroundColor: 'rgba(83,52,131,0.75)' }
+    { label: '终止', data: D.daily.map(r => r.abort), backgroundColor: 'rgba(200,74,74,0.76)' },
+    { label: '重试', data: D.daily.map(r => r.retry), backgroundColor: 'rgba(185,130,54,0.76)' },
+    { label: '空回复', data: D.daily.map(r => r.empty), backgroundColor: 'rgba(154,136,181,0.76)' }
   ], { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } });
 }
 
@@ -182,47 +182,47 @@ function rptRenderDetail() {
   rptDestroy();
   const D = REPORT_DATA, dates = D.dates;
   rptChart('rpt-valid-chart', 'bar', dates, [
-    { label: '有效交互', data: D.daily.map(r => r.valid), backgroundColor: 'rgba(15,52,96,0.7)', yAxisID: 'y' },
-    { label: 'COT%', data: D.daily.map(r => r.cot), type: 'line', borderColor: '#f39c12', tension: 0.3, yAxisID: 'y1' }
+    { label: '有效交互', data: D.daily.map(r => r.valid), backgroundColor: 'rgba(63,120,197,0.72)', yAxisID: 'y' },
+    { label: 'COT%', data: D.daily.map(r => r.cot), type: 'line', borderColor: '#c89532', tension: 0.3, yAxisID: 'y1' }
   ], { scales: { y: { beginAtZero: true }, y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } } } });
 
   rptChart('rpt-dur-chart', 'bar', dates, [
-    { label: 'P90(s)', data: D.daily.map(r => r.p90), backgroundColor: D.daily.map(r => r.p90 >= 60 ? 'rgba(231,76,60,0.8)' : r.p90 > 15 ? 'rgba(243,156,18,0.8)' : 'rgba(39,174,96,0.8)') }
+    { label: 'P90(s)', data: D.daily.map(r => r.p90), backgroundColor: D.daily.map(r => r.p90 >= 60 ? 'rgba(200,74,74,0.82)' : r.p90 > 15 ? 'rgba(185,130,54,0.82)' : 'rgba(95,151,109,0.82)') }
   ]);
 
   rptChart('rpt-turn-chart', 'doughnut', D.sessionTurns.map(t => t.label), [
-    { data: D.sessionTurns.map(t => t.val), backgroundColor: ['#0f3460','#16213e','#533483','#e94560','#f39c12','#27ae60'] }
+    { data: D.sessionTurns.map(t => t.val), backgroundColor: ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#b45f86'] }
   ]);
 
   const hours = Array.from({ length: 24 }, (_, i) => i + ':00');
   rptChart('rpt-hourly-chart', 'bar', hours, [
-    { label: '交互', data: D.hourly, backgroundColor: D.hourly.map((_, i) => (i === 14 || i === 15) ? 'rgba(233,69,96,0.85)' : 'rgba(15,52,96,0.6)') }
+    { label: '交互', data: D.hourly, backgroundColor: D.hourly.map((_, i) => (i === 14 || i === 15) ? 'rgba(185,130,54,0.82)' : 'rgba(63,120,197,0.64)') }
   ]);
 
   rptChart('rpt-tag-chart', 'doughnut', D.scenarios.map(s => s.tag), [
-    { data: D.scenarios.map(s => s.count), backgroundColor: ['#0f3460','#e94560','#16213e','#1a1a2e','#533483','#065a82'] }
+    { data: D.scenarios.map(s => s.count), backgroundColor: ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#6f879e'] }
   ]);
 
   rptChart('rpt-tag3-chart', 'bar', D.tag3.map(t => t.name), [
-    { label: '交互次数', data: D.tag3.map(t => t.count), backgroundColor: 'rgba(15,52,96,0.75)' }
+    { label: '交互次数', data: D.tag3.map(t => t.count), backgroundColor: 'rgba(63,120,197,0.76)' }
   ], { indexAxis: 'y', scales: { x: { beginAtZero: true }, y: { ticks: { font: { size: 10 } } } } });
 
   rptChart('rpt-durdist-chart', 'doughnut', D.performance.durDist.map(d => d.label), [
-    { data: D.performance.durDist.map(d => d.val), backgroundColor: ['#27ae60','#f39c12','#e67e22','#e74c3c','#c0392b'] }
+    { data: D.performance.durDist.map(d => d.val), backgroundColor: ['#4f9b62','#c89532','#c47f24','#d24a4a','#a94444'] }
   ]);
 
   const rl = document.getElementById('rpt-replylen');
-  if (rl) rl.innerHTML = D.performance.replyLen.map(r => `<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:2px"><span>${r.label}</span><span>${r.val.toLocaleString()} (${r.pct}%)</span></div><div style="background:#f0f2f5;border-radius:3px;height:8px;overflow:hidden"><div style="height:100%;border-radius:3px;background:#0f3460;width:${(r.pct / 56.9 * 100).toFixed(1)}%"></div></div></div>`).join('');
+  if (rl) rl.innerHTML = D.performance.replyLen.map(r => `<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:2px"><span>${r.label}</span><span>${r.val.toLocaleString()} (${r.pct}%)</span></div><div style="background:#f0f2f5;border-radius:3px;height:8px;overflow:hidden"><div style="height:100%;border-radius:3px;background:#3f78c5;width:${(r.pct / 56.9 * 100).toFixed(1)}%"></div></div></div>`).join('');
 
   const cb = document.getElementById('rpt-channel-bars');
-  if (cb) cb.innerHTML = D.channels.map(c => `<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:2px"><span>${c.name}</span><span>${c.count.toLocaleString()} (${c.pct}%)</span></div><div style="background:#f0f2f5;border-radius:3px;height:8px;overflow:hidden"><div style="height:100%;border-radius:3px;background:#0f3460;width:${(c.pct / 84.2 * 100).toFixed(1)}%"></div></div></div>`).join('');
+  if (cb) cb.innerHTML = D.channels.map(c => `<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:2px"><span>${c.name}</span><span>${c.count.toLocaleString()} (${c.pct}%)</span></div><div style="background:#f0f2f5;border-radius:3px;height:8px;overflow:hidden"><div style="height:100%;border-radius:3px;background:#3f78c5;width:${(c.pct / 84.2 * 100).toFixed(1)}%"></div></div></div>`).join('');
 }
 
 function rptRenderQuality() {
   rptDestroy();
   rptChart('rpt-rating-chart', 'bar', REPORT_DATA.dates, [
-    { label: '差评', data: REPORT_DATA.daily.map(r => r.bad), backgroundColor: 'rgba(231,76,60,0.8)' },
-    { label: '好评', data: REPORT_DATA.daily.map(r => r.good), backgroundColor: 'rgba(39,174,96,0.8)' }
+    { label: '差评', data: REPORT_DATA.daily.map(r => r.bad), backgroundColor: 'rgba(200,74,74,0.82)' },
+    { label: '好评', data: REPORT_DATA.daily.map(r => r.good), backgroundColor: 'rgba(95,151,109,0.82)' }
   ]);
 }
 

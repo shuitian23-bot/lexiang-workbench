@@ -2330,8 +2330,7 @@ tr:hover td { background:rgba(51,112,255,0.02); }
 /* 转化看板表 */
 .geo-dark .geo-conv-section { background:#ffffff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:12px; }
 .geo-dark .geo-conv-title { font-size:13px; font-weight:600; color:#111827; margin-bottom:12px; }
-/* 3 列：按 2.0 行布局分组（UV/登录/新注册｜付费/CA/GMV｜新付费×3｜乐享×3） */
-.geo-dark .geo-conv-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.geo-dark .geo-conv-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
 .geo-dark .geo-conv-cell { background:#f9fafb; border-radius:8px; padding:14px; }
 .geo-dark .geo-conv-cell .gcc-label { font-size:11px; color:#6b7280; margin-bottom:6px; }
 .geo-dark .geo-conv-cell .gcc-val { font-size:22px; font-weight:700; color:#111827; }
@@ -2647,7 +2646,7 @@ select.pb-prop-input { background:#fff; }
   --control-height-md:36px;
   --row-height-compact:40px;
   --sidebar-width:168px;
-  --ai-panel-width:334px;
+  --ai-panel-width:380px;
   --content-max:1440px;
 }
 
@@ -3688,7 +3687,10 @@ html[data-product="leaibot"] .ai-send {
 }
 
 html[data-product="leaibot"] body {
-  background:#f5f6f8;
+  background:
+    radial-gradient(circle at 18% -8%, rgba(51,112,255,.055), transparent 34%),
+    radial-gradient(circle at 88% 2%, rgba(22,163,74,.035), transparent 28%),
+    linear-gradient(180deg,#f8f9fb 0%,#f5f6f8 42%,#f1f3f6 100%);
   color:var(--text);
   font-size:14px;
 }
@@ -3699,7 +3701,9 @@ html[data-product="leaibot"] .main {
 
 html[data-product="leaibot"] .page-content {
   padding:20px 24px 28px;
-  background:transparent;
+  background:
+    linear-gradient(105deg, rgba(51,112,255,.032) 0%, rgba(63,158,173,.024) 48%, rgba(144,112,195,.020) 100%) top left / 100% 220px no-repeat,
+    linear-gradient(180deg, #f8f9fb 0%, #f5f6f8 46%, #f1f3f6 100%);
 }
 
 html[data-product="leaibot"] .page-content::-webkit-scrollbar,
@@ -3969,6 +3973,243 @@ html[data-product="leaibot"] .portal-home-entry-list button:hover {
   border-color:var(--color-primary-border);
 }
 
+/* ===== Portal home v2 ===== */
+html[data-product="leaibot"] .portal-home-v2 {
+  gap:16px;
+}
+
+html[data-product="leaibot"] .portal-home-command {
+  display:grid;
+  grid-template-columns:minmax(320px,0.9fr) minmax(420px,1.1fr);
+  gap:16px;
+  align-items:stretch;
+}
+
+html[data-product="leaibot"] .portal-home-command-copy,
+html[data-product="leaibot"] .portal-home-gradient-panel {
+  border:1px solid var(--border-light);
+  border-radius:12px;
+  background:#fff;
+  box-shadow:var(--shadow);
+}
+
+html[data-product="leaibot"] .portal-home-command-copy {
+  min-height:216px;
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+html[data-product="leaibot"] .portal-home-kicker {
+  width:max-content;
+  max-width:100%;
+  margin-bottom:10px;
+  padding:5px 9px;
+  border:1px solid rgba(51,112,255,.16);
+  border-radius:8px;
+  background:rgba(51,112,255,.06);
+  color:var(--primary);
+  font-size:11px;
+  line-height:1;
+  font-weight:700;
+  letter-spacing:0;
+}
+
+html[data-product="leaibot"] .portal-home-v2 .page-title {
+  margin-bottom:8px;
+  font-size:22px;
+}
+
+html[data-product="leaibot"] .portal-home-v2 .page-desc {
+  max-width:520px;
+}
+
+html[data-product="leaibot"] .portal-home-v2 .portal-home-actions {
+  margin-top:22px;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-panel {
+  position:relative;
+  overflow:hidden;
+  padding:18px;
+  background:
+    linear-gradient(135deg,rgba(51,112,255,.085) 0%,rgba(63,158,173,.07) 42%,rgba(94,92,230,.06) 68%,rgba(144,112,195,.08) 100%),
+    #fff;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-panel::before {
+  content:"";
+  position:absolute;
+  inset:18px 18px auto auto;
+  width:42%;
+  height:44px;
+  border-radius:12px;
+  background:linear-gradient(90deg,rgba(51,112,255,.10),rgba(63,158,173,.08),rgba(255,255,255,0));
+  transform:skewX(-14deg);
+  pointer-events:none;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-head {
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-head span {
+  color:var(--text-secondary);
+  font-size:12px;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-head b {
+  color:var(--text);
+  font-size:16px;
+  line-height:1.3;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-map {
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:1.14fr 1fr;
+  grid-auto-rows:minmax(76px,1fr);
+  gap:12px;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-map button {
+  min-width:0;
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  grid-template-areas:"icon title" "icon desc";
+  column-gap:12px;
+  align-items:center;
+  padding:14px;
+  border:1px solid rgba(51,112,255,.13);
+  border-radius:12px;
+  background:rgba(255,255,255,.72);
+  box-shadow:0 8px 20px rgba(51,112,255,.055);
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+  transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-map button:hover {
+  transform:translateY(-1px);
+  border-color:rgba(51,112,255,.34);
+  background:#fff;
+  box-shadow:0 12px 28px rgba(51,112,255,.12);
+}
+
+html[data-product="leaibot"] .portal-home-gradient-map span {
+  grid-area:icon;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,rgba(51,112,255,.16),rgba(63,158,173,.12));
+  color:var(--primary);
+  font-size:12px;
+  font-weight:800;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-map b {
+  grid-area:title;
+  min-width:0;
+  font-size:14px;
+  line-height:1.3;
+}
+
+html[data-product="leaibot"] .portal-home-gradient-map small {
+  grid-area:desc;
+  min-width:0;
+  margin-top:3px;
+  color:var(--text-tertiary);
+  font-size:12px;
+  line-height:1.35;
+}
+
+html[data-product="leaibot"] .portal-home-spotlight .portal-home-card {
+  appearance:none;
+  width:100%;
+  text-align:left;
+  cursor:pointer;
+  transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+html[data-product="leaibot"] .portal-home-spotlight .portal-home-card:nth-child(1) {
+  background:linear-gradient(135deg,rgba(51,112,255,.07),#fff 72%);
+}
+
+html[data-product="leaibot"] .portal-home-spotlight .portal-home-card:nth-child(2) {
+  background:linear-gradient(135deg,rgba(63,158,173,.07),#fff 72%);
+}
+
+html[data-product="leaibot"] .portal-home-spotlight .portal-home-card:nth-child(3) {
+  background:linear-gradient(135deg,rgba(94,92,230,.065),#fff 72%);
+}
+
+html[data-product="leaibot"] .portal-home-spotlight .portal-home-card:nth-child(4) {
+  background:linear-gradient(135deg,rgba(144,112,195,.07),#fff 72%);
+}
+
+html[data-product="leaibot"] .portal-home-spotlight .portal-home-card:hover,
+html[data-product="leaibot"] .portal-home-command-copy:hover,
+html[data-product="leaibot"] .portal-home-gradient-panel:hover,
+html[data-product="leaibot"] .portal-home-entry-card:hover,
+html[data-product="leaibot"] .portal-home-flow-card:hover {
+  transform:translateY(-1px);
+  border-color:var(--color-primary-border);
+  box-shadow:var(--shadow-md);
+}
+
+html[data-product="leaibot"] .portal-home-workgrid {
+  grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);
+}
+
+html[data-product="leaibot"] .portal-home-entry-card,
+html[data-product="leaibot"] .portal-home-flow-card {
+  transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+html[data-product="leaibot"] .portal-home-entry-list button {
+  display:grid;
+  grid-template-columns:36px minmax(112px,.36fr) minmax(0,1fr);
+}
+
+html[data-product="leaibot"] .portal-home-entry-list i {
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid var(--border-light);
+  color:var(--text-tertiary);
+  font-style:normal;
+  font-size:11px;
+  font-weight:700;
+}
+
+html[data-product="leaibot"] .portal-home-entry-list button:hover i {
+  border-color:var(--color-primary-border);
+  color:var(--primary);
+  background:rgba(51,112,255,.06);
+}
+
+html[data-product="leaibot"] .portal-home-entry-list button:hover,
+html[data-product="leaibot"] .portal-home-flow div:hover {
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(31,35,41,.06);
+}
+
 html[data-product="leaibot"] .kpi-card,
 html[data-product="leaibot"] .ops-kpi,
 html[data-product="leaibot"] .rpt-kpi,
@@ -4079,8 +4320,8 @@ html[data-product="leaibot"] .skill-eval-list span.warn {
 }
 
 html[data-product="leaibot"] .ai-panel.open {
-  width:334px;
-  min-width:334px;
+  width:380px;
+  min-width:380px;
   background:#fff;
 }
 
@@ -4565,8 +4806,16 @@ html[data-product="leaibot"] .skill-code-card {
 }
 
 @media (max-width:1500px) {
+  html[data-product="leaibot"] .portal-home-command {
+    grid-template-columns:minmax(0,1fr);
+  }
+
   html[data-product="leaibot"] .portal-home-grid {
     grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-product="leaibot"] .portal-home-workgrid {
+    grid-template-columns:minmax(0,1fr);
   }
 
   html[data-product="leaibot"] .skill-create-studio {
@@ -5034,237 +5283,129 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
   .account-hub-close { right:0; top:-42px; }
 }
 
-/* ===== UI Skill pass 20260612: light enterprise workbench polish ===== */
-html[data-product="leaibot"] {
-  --shadow:0 1px 2px rgba(15,23,42,.035);
-  --shadow-md:0 1px 2px rgba(15,23,42,.035), 0 6px 14px rgba(15,23,42,.055);
+/* ===== Portal 0615 adjustments ===== */
+html[data-product="leaibot"] .portal-home-command.portal-home-command-solo {
+  grid-template-columns:minmax(0, 1fr);
 }
 
-html[data-product="leaibot"] .page-content {
-  background:#f5f6f8;
+html[data-product="leaibot"] .portal-home-command.portal-home-command-solo .portal-home-command-copy {
+  min-height:210px;
 }
 
-html[data-product="leaibot"] .page-content > .portal-home,
-html[data-product="leaibot"] .page-content > .skill-create-page,
-html[data-product="leaibot"] .page-content > .skill-hub-page,
-html[data-product="leaibot"] .page-content > .permission-hub-page {
-  max-width:1440px;
+html[data-product="leaibot"] .portal-home-command.portal-home-command-solo .page-desc {
+  max-width:680px;
 }
 
-html[data-product="leaibot"] .btn,
-html[data-product="leaibot"] button.btn,
-html[data-product="leaibot"] .skill-hub-action,
-html[data-product="leaibot"] .skill-context-quick button,
-html[data-product="leaibot"] .skill-rule-grid button {
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  gap:6px;
-  white-space:nowrap;
-  line-height:1;
-  vertical-align:middle;
+html[data-product="leaibot"] .ai-doc-flow {
+  gap:12px;
 }
 
-html[data-product="leaibot"] .card,
-html[data-product="leaibot"] .portal-home-card,
-html[data-product="leaibot"] .skill-context-pane,
-html[data-product="leaibot"] .skill-workspace-pane,
-html[data-product="leaibot"] .skill-hub-table-card,
-html[data-product="leaibot"] .skill-hub-toolbar,
-html[data-product="leaibot"] .skill-hub-summary div,
-html[data-product="leaibot"] .permission-hub-card {
-  border:1px solid #e7eaee;
-  border-radius:12px;
+html[data-product="leaibot"] .ai-doc-message {
+  padding:13px 14px;
+  border:1px solid var(--border-light);
+  border-radius:10px;
   background:#fff;
-  box-shadow:var(--shadow);
+  color:var(--text-secondary);
+  font-size:13px;
+  line-height:1.7;
 }
 
-html[data-product="leaibot"] .card:hover,
-html[data-product="leaibot"] .portal-home-card:hover,
-html[data-product="leaibot"] .skill-context-item:hover,
-html[data-product="leaibot"] .account-hub-card:hover {
+html[data-product="leaibot"] .ai-doc-message p {
+  margin:0;
+}
+
+html[data-product="leaibot"] .ai-doc-message p + p {
+  margin-top:8px;
+}
+
+html[data-product="leaibot"] .ai-doc-prompt-group {
+  display:grid;
+  gap:10px;
+}
+
+html[data-product="leaibot"] .ai-doc-prompt {
+  width:100%;
+  min-height:58px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid var(--border-light);
+  border-radius:10px;
+  background:#fff;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease;
+}
+
+html[data-product="leaibot"] .ai-doc-prompt:hover {
+  border-color:rgba(51,112,255,.36);
+  background:rgba(51,112,255,.04);
+  box-shadow:0 1px 2px rgba(15,23,42,.035), 0 6px 14px rgba(15,23,42,.055);
   transform:translateY(-1px);
-  border-color:#cbd1d8;
-  box-shadow:var(--shadow-md);
 }
 
-html[data-product="leaibot"] .portal-home-hero {
-  background:transparent;
-  border:0;
-  box-shadow:none;
-  padding:0;
+html[data-product="leaibot"] .ai-doc-prompt span,
+html[data-product="leaibot"] .agent-skill-card-icon {
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:9px;
+  background:rgba(51,112,255,.08);
+  color:var(--primary);
 }
 
-html[data-product="leaibot"] .portal-home-actions .btn,
-html[data-product="leaibot"] .agent-skill-page-actions .btn {
-  min-width:96px;
-  height:36px;
+html[data-product="leaibot"] .ai-doc-prompt b {
+  min-width:0;
+  color:var(--text);
+  font-size:13px;
+  font-weight:500;
+  line-height:1.35;
 }
 
-html[data-product="leaibot"] .skill-create-page {
-  max-width:1360px;
+html[data-product="leaibot"] .agent-skill-card-icon svg {
+  width:18px;
+  height:18px;
 }
 
-html[data-product="leaibot"] .skill-create-studio {
-  grid-template-columns:300px minmax(760px,1fr);
-  height:calc(100vh - 172px);
-  min-height:620px;
-  max-height:calc(100vh - 172px);
-  align-items:stretch;
-}
-
-html[data-product="leaibot"] .skill-context-pane,
-html[data-product="leaibot"] .skill-workspace-pane {
-  overflow:hidden;
-}
-
-html[data-product="leaibot"] .skill-context-pane {
-  overflow-y:auto;
-}
-
-html[data-product="leaibot"] .skill-workspace-pane {
-  padding:18px;
-}
-
-html[data-product="leaibot"] .skill-create-tabs {
-  height:44px;
+html[data-product="leaibot"] .agent-skill-card-head {
   align-items:center;
 }
 
-html[data-product="leaibot"] .skill-create-panel.active {
-  padding:0 4px 0 0;
+html[data-product="leaibot"] .agent-skill-card-main {
+  min-width:0;
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 
-html[data-product="leaibot"] .skill-create-form {
-  gap:16px 18px;
+html[data-product="leaibot"] .agent-skill-card-title {
+  min-width:0;
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:nowrap;
 }
 
-html[data-product="leaibot"] .skill-create-field textarea {
-  min-height:88px;
+html[data-product="leaibot"] .agent-skill-card-name {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
-html[data-product="leaibot"] .skill-create-step-actions {
-  min-height:64px;
-  padding:12px 0 0;
-  margin-top:auto;
-  border-top:1px solid #e7eaee;
-  background:linear-gradient(180deg, rgba(255,255,255,.92), #fff 30%);
+html[data-product="leaibot"] .agent-skill-card-badge {
+  flex:0 0 auto;
 }
 
-html[data-product="leaibot"] .skill-create-step-actions .btn,
-html[data-product="leaibot"] .skill-draft-save {
-  height:36px;
-  min-height:36px;
-  padding:0 16px;
-}
-
-html[data-product="leaibot"] .skill-clarify-layout {
-  grid-template-columns:minmax(0,1fr) 320px;
-}
-
-html[data-product="leaibot"] .skill-chat-sim {
-  border:1px solid #e7eaee;
-  background:#f8fafc;
-  box-shadow:none;
-}
-
-html[data-product="leaibot"] .skill-rule-grid.skill-clarify-actions,
-html[data-product="leaibot"] .skill-chat-composer {
-  border:0;
-  background:transparent;
-  box-shadow:none;
-}
-
-html[data-product="leaibot"] .skill-chat-composer {
-  display:grid;
-  grid-template-columns:42px minmax(0,1fr) 42px;
-  align-items:end;
-  gap:8px;
-}
-
-html[data-product="leaibot"] .skill-summary-refresh {
-  width:28px;
-  height:28px;
-  min-height:28px;
-}
-
-html[data-product="leaibot"] .skill-summary-refresh.loading {
-  animation:none;
-}
-
-html[data-product="leaibot"] .skill-summary-refresh.loading span {
+html[data-product="leaibot"] .agent-skill-card-more {
+  height:34px;
   display:inline-flex;
-  animation:skill-summary-spin .7s linear infinite;
-}
-
-html[data-product="leaibot"] .skill-hub-summary div::before {
-  height:2px;
-  opacity:.9;
-}
-
-html[data-product="leaibot"] .skill-hub-table th,
-html[data-product="leaibot"] .skill-hub-table td {
-  text-align:left;
-}
-
-html[data-product="leaibot"] .skill-hub-actions {
-  gap:6px;
-}
-
-html[data-product="leaibot"] .skill-hub-action {
-  min-height:26px;
-  padding:0 8px;
-  border-radius:6px;
-}
-
-html[data-product="leaibot"] .skill-hub-confirm-panel,
-html[data-product="leaibot"] .skill-hub-detail-panel,
-html[data-product="leaibot"] .skill-hub-eval-panel {
-  border:1px solid #e7eaee;
-  border-radius:14px;
-  box-shadow:0 18px 45px rgba(15,23,42,.16);
-}
-
-html[data-product="leaibot"] .account-hub-popover {
-  left:var(--sidebar-width);
-  right:var(--ai-panel-width);
-  top:48px;
-  padding:0 48px;
-  background:rgba(245,246,248,.62);
-  backdrop-filter:blur(5px);
-}
-
-html[data-product="leaibot"] .account-hub-panel {
-  width:min(1120px, calc(100% - 64px));
-  justify-content:center;
-  align-items:stretch;
-}
-
-html[data-product="leaibot"] .account-hub-card {
-  min-height:160px;
-  border:1px solid #e7eaee;
-  border-radius:14px;
-  box-shadow:var(--shadow-md);
-}
-
-html[data-product="leaibot"] .account-hub-close {
-  top:2px;
-  right:-34px;
-  width:28px;
-  height:28px;
-  border-radius:8px;
-}
-
-html[data-product="leaibot"] .account-hub-close:hover {
-  background:#f1f3f5;
-  color:var(--text);
-}
-
-@media (max-height:820px) {
-  html[data-product="leaibot"] .skill-create-studio {
-    height:calc(100vh - 150px);
-    min-height:540px;
-    max-height:calc(100vh - 150px);
-  }
+  align-items:center;
 }

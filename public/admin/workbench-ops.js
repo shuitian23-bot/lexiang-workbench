@@ -18,6 +18,17 @@ const OPS_STATE = {
   gmvTrendScope: 'all'
 };
 
+const OPS_CHART_COLORS = {
+  blue: '#3f78c5',
+  teal: '#3f9ead',
+  green: '#58a86a',
+  amber: '#c89532',
+  purple: '#9070c3',
+  rose: '#b45f86',
+  gray: '#6f879e',
+  dark: '#4f6578'
+};
+
 const OPS_TRAFFIC_METRICS = {
   pv: { label: 'PV', field: 'pv' },
   uv: { label: 'UV', field: 'uv' },
@@ -339,7 +350,7 @@ Object.assign(PAGE_RENDERERS, {
       <div><div class="page-title">流量分析</div><div class="page-desc">核心活跃趋势 · 监测入口 · 分端口 · 分业务 · 默认近30天 · 口径同日报</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         ${opsTimeFilter('traffic-time')}
-        <button class="btn btn-sm btn-secondary" onclick="opsAskTraffic('overview')">AI 解读</button>
+        <button class="btn btn-sm btn-secondary ai-insight-btn" onclick="opsAskTraffic('overview')">AI 解读</button>
       </div>
     </div>
     <div class="ops-section-title">核心流量指标</div>
@@ -390,7 +401,7 @@ Object.assign(PAGE_RENDERERS, {
       <div><div class="page-title">GMV 分析</div><div class="page-desc">整体趋势 · 分业务 · 官网/非官网 · 业务GMV=登录口径+平台交易回算 · 口径同日报指标定义</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         ${opsTimeFilter('gmv-time')}
-        <button class="btn btn-sm btn-secondary" onclick="opsAskGmv('overview')">AI 解读</button>
+        <button class="btn btn-sm btn-secondary ai-insight-btn" onclick="opsAskGmv('overview')">AI 解读</button>
       </div>
     </div>
     <div class="ops-section-title">GMV 核心指标</div>
@@ -500,7 +511,7 @@ Object.assign(PAGE_RENDERERS, {
       <div class="ops-kpi"><div class="ops-kpi-val" id="ops-q-total">-</div><div class="ops-kpi-label">总Query数</div></div>
       <div class="ops-kpi"><div class="ops-kpi-val" id="ops-q-consumer">-</div><div class="ops-kpi-label">消费业务Query</div></div>
       <div class="ops-kpi"><div class="ops-kpi-val" id="ops-q-smb">-</div><div class="ops-kpi-label">SMB业务Query</div></div>
-      <div class="ops-kpi" style="border-color:#8b5cf6"><div class="ops-kpi-val" style="color:#8b5cf6" id="ops-q-gov">-</div><div class="ops-kpi-label">政企业务Query</div></div>
+      <div class="ops-kpi" style="border-color:${OPS_CHART_COLORS.purple}"><div class="ops-kpi-val" style="color:${OPS_CHART_COLORS.purple}" id="ops-q-gov">-</div><div class="ops-kpi-label">政企业务Query</div></div>
     </div>
 
     <div class="ops-section-title">🏛️ 政企 Query 深度分析</div>
@@ -663,7 +674,7 @@ function opsChart(id, type, labels, datasets, opts) {
     const horizontal = opts?.indexAxis === 'y';
     const hasSecondAxis = datasets.some(d => d.yAxisID === 'y1');
     option = {
-      color: palette.length ? palette : ['#2563eb', '#10b981', '#8b5cf6', '#f59e0b'],
+      color: palette.length ? palette : [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.green, OPS_CHART_COLORS.purple, OPS_CHART_COLORS.amber],
       tooltip: { trigger: 'axis' },
       legend: { top: 0, textStyle: { fontSize: 11, color: '#6b7280' } },
       grid: { left: horizontal ? 92 : 46, right: hasSecondAxis ? 46 : 18, top: 36, bottom: 28, containLabel: true },
@@ -708,15 +719,15 @@ function opsRenderTraffic() {
   const metric = OPS_STATE.trafficMetric;
   const metricField = OPS_TRAFFIC_METRICS[metric]?.field || 'uv';
   const metricLabel = OPS_TRAFFIC_METRICS[metric]?.label || '访问';
-  const portColors = ['#0f3460','#2563eb','#7c3aed','#06b6d4','#f59e0b','#10b981','#e94560','#94a3b8'];
+  const portColors = [OPS_CHART_COLORS.dark, OPS_CHART_COLORS.blue, OPS_CHART_COLORS.purple, OPS_CHART_COLORS.teal, OPS_CHART_COLORS.amber, OPS_CHART_COLORS.green, OPS_CHART_COLORS.rose, OPS_CHART_COLORS.gray];
   const portRows = opsPortSummary(rows, metricField);
   const mediaRows = opsMediaSummary(rows, metricField);
   const topPortRows = portRows.slice(0, 8);
 
   opsChart('ops-t-user-trend', 'line', days, [
-    { label: 'DAU', data: rows.map(r => r.dau), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.3, yAxisID: 'y' },
-    { label: '登录', data: rows.map(r => r.login), borderColor: '#10b981', tension: 0.3, fill: false, yAxisID: 'y' },
-    { label: 'MAU', data: rows.map(r => r.mau), borderColor: '#7c3aed', tension: 0.3, fill: false, yAxisID: 'y1' }
+    { label: 'DAU', data: rows.map(r => r.dau), borderColor: OPS_CHART_COLORS.blue, backgroundColor: 'rgba(63,120,197,0.10)', fill: true, tension: 0.3, yAxisID: 'y' },
+    { label: '登录', data: rows.map(r => r.login), borderColor: OPS_CHART_COLORS.green, tension: 0.3, fill: false, yAxisID: 'y' },
+    { label: 'MAU', data: rows.map(r => r.mau), borderColor: OPS_CHART_COLORS.purple, tension: 0.3, fill: false, yAxisID: 'y1' }
   ], {
     scales: {
       x: { ticks: { font: { size: 10 } } },
@@ -741,12 +752,12 @@ function opsRenderTraffic() {
   const bizField = metric === 'inter' ? 'inter' : 'login';
   const bizMetric = bizPicked.map(b => leaiSum(b, bizField));
   opsChart('ops-t-biz-chart', 'doughnut', bizNames, [{
-    data: bizMetric, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+    data: bizMetric, backgroundColor: [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.amber, OPS_CHART_COLORS.purple]
   }]);
 
   opsChart('ops-t-biz-trend', 'line', days, bizNames.map((b,i) => ({
     label: `${b}${bizField === 'inter' ? '互动' : '登录'}`, data: opsSeriesForDates(bizData[i], rows, bizField),
-    borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
+    borderColor: [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.amber, OPS_CHART_COLORS.purple][i], tension: 0.3, fill: false
   })));
 
   const mediaTable = document.getElementById('ops-t-media-table');
@@ -765,7 +776,7 @@ function opsRenderTraffic() {
   opsChart('ops-t-media-chart', 'bar', mediaRows.slice(0, 10).map(r => r.name), [{
     label: `${metricLabel}占比%`,
     data: mediaRows.slice(0, 10).map(r => totalValue ? Number((r.value / totalValue * 100).toFixed(1)) : 0),
-    backgroundColor: '#2563eb'
+    backgroundColor: OPS_CHART_COLORS.blue
   }], { indexAxis: 'y', aspectRatio: 2.2 });
 
   const el = id => document.getElementById(id);
@@ -809,10 +820,10 @@ function opsRenderGMV() {
     if (btn) btn.classList.toggle('active', OPS_STATE.gmvTrendScope === scope);
   });
 
-  const colors = ['#2563eb','#f59e0b','#8b5cf6'];
+  const colors = [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.amber, OPS_CHART_COLORS.purple];
   let trendSets;
   if (OPS_STATE.gmvTrendScope === 'all') {
-    trendSets = [{ label: '整体GMV', data: rows.map(r => r.gmv), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.10)', fill: true, tension: 0.3 }];
+    trendSets = [{ label: '整体GMV', data: rows.map(r => r.gmv), borderColor: OPS_CHART_COLORS.blue, backgroundColor: 'rgba(63,120,197,0.12)', fill: true, tension: 0.3 }];
   } else {
     const idx = bizKeys.indexOf(OPS_STATE.gmvTrendScope);
     trendSets = [{ label: bizNames[idx] + 'GMV', data: rows.map(r => {
@@ -840,12 +851,12 @@ function opsRenderGMV() {
   }
 
   opsChart('ops-g-platform-chart', 'doughnut', ['官网','非官网'], [{
-    data: [summary.offGmv, summary.nonGmv], backgroundColor: ['#2563eb','#94a3b8']
+    data: [summary.offGmv, summary.nonGmv], backgroundColor: [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.gray]
   }]);
 
   opsChart('ops-g-platform-trend', 'line', days, [
-    { label: '官网', data: rows.map(r => r.offGmv), borderColor: '#2563eb', tension: 0.3, fill: false },
-    { label: '非官网', data: rows.map(r => r.nonGmv), borderColor: '#94a3b8', tension: 0.3, fill: false }
+    { label: '官网', data: rows.map(r => r.offGmv), borderColor: OPS_CHART_COLORS.blue, tension: 0.3, fill: false },
+    { label: '非官网', data: rows.map(r => r.nonGmv), borderColor: OPS_CHART_COLORS.gray, tension: 0.3, fill: false }
   ]);
 }
 
@@ -860,19 +871,19 @@ function opsRenderQueryBiz() {
   // 用互动用户数作为Query量近似
   opsChart('ops-q-biz-trend', 'line', days, bizNames.map((b,i) => ({
     label: b, data: bizData[i].map(r => r.inter),
-    borderColor: ['#2563eb','#f59e0b','#8b5cf6'][i], tension: 0.3, fill: false
+    borderColor: [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.amber, OPS_CHART_COLORS.purple][i], tension: 0.3, fill: false
   })));
 
   const latestInter = bizData.map(b => b[b.length-1]?.inter || 0);
   opsChart('ops-q-biz-pie', 'doughnut', bizNames, [{
-    data: latestInter, backgroundColor: ['#2563eb','#f59e0b','#8b5cf6']
+    data: latestInter, backgroundColor: [OPS_CHART_COLORS.blue, OPS_CHART_COLORS.amber, OPS_CHART_COLORS.purple]
   }]);
 
   // 政企子场景 — 暂无子场景分类数据，用互动数展示
   const govSubs = ['产品咨询','采购/报价','售后支持','批量定制','政策/补贴','其他'];
   opsChart('ops-q-gov-sub', 'bar', govSubs, [{
     label: '互动数(占位)', data: [15, 10, 8, 4, 2, 1],
-    backgroundColor: '#8b5cf6'
+    backgroundColor: OPS_CHART_COLORS.purple
   }], { indexAxis: 'y' });
 
   // 填充KPI

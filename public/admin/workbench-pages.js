@@ -20,54 +20,58 @@ function renderPage(pageId) {
 
 function renderPortalHomePage() {
   return `
-    <div class="portal-home">
-      <div class="portal-home-hero">
-        <div>
+    <div class="portal-home portal-home-v2">
+      <section class="portal-home-command portal-home-command-solo">
+        <div class="portal-home-command-copy">
+          <div class="portal-home-kicker">LEAIBOT WORKBENCH</div>
           <div class="page-title">门户工作台</div>
           <div class="page-desc">统一承载运营看板、业务后台、风险审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
+          <div class="portal-home-actions">
+            <button class="btn btn-secondary" onclick="openSkillManagerOverlay()">管理技能包</button>
+            <button class="btn btn-primary" onclick="openSkillCreatePage()">创建 Skill</button>
+          </div>
         </div>
-        <div class="portal-home-actions">
-          <button class="btn btn-secondary" onclick="openSkillManagerOverlay()">管理技能包</button>
-          <button class="btn btn-primary" onclick="openSkillCreatePage()">创建 Skill</button>
-        </div>
-      </div>
+      </section>
 
-      <div class="portal-home-grid">
-        <div class="portal-home-card">
+      <div class="portal-home-grid portal-home-spotlight">
+        <button class="portal-home-card" onclick="toggleAI(true)">
           <span>AI</span>
           <b>全局 AI 助手</b>
           <p>右侧助手独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</p>
-        </div>
-        <div class="portal-home-card">
+        </button>
+        <button class="portal-home-card" onclick="switchPage('dashboard.overview')">
           <span>OP</span>
           <b>运营分析</b>
           <p>聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</p>
-        </div>
-        <div class="portal-home-card">
+        </button>
+        <button class="portal-home-card" onclick="openSkillCreatePage()">
           <span>PM</span>
           <b>Skill 创建</b>
           <p>平台侧和 PM 可从账号入口创建 Skill，并在 Skill Hub 中跟踪提交、审批、启停和发布状态。</p>
-        </div>
-        <div class="portal-home-card">
+        </button>
+        <button class="portal-home-card" onclick="openSkillManagerOverlay()">
           <span>SK</span>
           <b>技能包管理</b>
           <p>业务用户通过右上角管理技能查看可用技能包、申请权限，并通过 AI 助手调用。</p>
-        </div>
+        </button>
       </div>
 
-      <div class="portal-home-layout">
-        <div class="card">
-          <div class="card-header"><div class="card-title">常用入口</div></div>
+      <div class="portal-home-layout portal-home-workgrid">
+        <div class="card portal-home-entry-card">
+          <div class="card-header">
+            <div class="card-title">常用入口</div>
+            <button class="btn btn-secondary btn-sm" onclick="switchPage('dashboard.overview')">进入运营总览</button>
+          </div>
           <div class="portal-home-entry-list">
-            <button onclick="switchPage('employee.overview')"><b>在职员工管理</b><span>认证审核、职工数据、认证方式分布</span></button>
-            <button onclick="switchPage('dashboard.overview')"><b>乐享运营</b><span>经营指标、流量质量、GMV 分析</span></button>
-            <button onclick="switchPage('lead.dashboard')"><b>企业客户管理</b><span>线索看板、线索池和分配跟进</span></button>
-            <button onclick="switchPage('search.categories')"><b>搜索后台</b><span>分类标签、筛选、直达和词典管理</span></button>
-            <button onclick="switchPage('risk.overview')"><b>风控管理</b><span>策略、限购、DPL 和数据查询</span></button>
+            <button onclick="switchPage('employee.overview')"><i>01</i><b>在职员工管理</b><span>认证审核、职工数据、认证方式分布</span></button>
+            <button onclick="switchPage('dashboard.overview')"><i>02</i><b>乐享运营</b><span>经营指标、流量质量、GMV 分析</span></button>
+            <button onclick="switchPage('lead.dashboard')"><i>03</i><b>企业客户管理</b><span>线索看板、线索池和分配跟进</span></button>
+            <button onclick="switchPage('search.categories')"><i>04</i><b>搜索后台</b><span>分类标签、筛选、直达和词典管理</span></button>
+            <button onclick="switchPage('risk.overview')"><i>05</i><b>风控管理</b><span>策略、限购、DPL 和数据查询</span></button>
           </div>
         </div>
 
-        <div class="card">
+        <div class="card portal-home-flow-card">
           <div class="card-header"><div class="card-title">基础操作流程</div></div>
           <div class="portal-home-flow">
             <div><span>1</span><p>从左侧菜单进入确定性的后台页面，完成固定流程和人工审核。</p></div>
@@ -798,16 +802,28 @@ function filterSkillHub() {
 function renderAgentSkillsManager(options = {}) {
   const isModal = options.mode === 'modal';
   const skills = [
-    { icon: '📊', color: '#3370ff', title: '经营指标解读', status: 'available', badge: '可用', desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用', action: '使用' },
-    { icon: '📦', color: '#ff8f1f', title: '商品配置助手', status: 'available', badge: '可用', desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用', action: '使用' },
-    { icon: '📄', color: '#10b981', title: '内容发布检查', status: 'available', badge: '可用', desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用', action: '使用' },
-    { icon: '🎯', color: '#7c3aed', title: '活动复盘报告', status: 'requestable', badge: '可申请', desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '申请后可用', action: '申请' },
-    { icon: '👥', color: '#14b8a6', title: '会员分层洞察', status: 'requestable', badge: '可申请', desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '申请后可用', action: '申请' },
-    { icon: '🧾', color: '#6366f1', title: '认证失败用户导出', status: 'pending', badge: '待审批', desc: '导出认证失败用户和失败原因，用于客服回访和运营复盘。', tags: ['用户/会员', '数据导出'], usage: '申请已提交', action: '查看进度' },
-    { icon: '🧪', color: '#94a3b8', title: '灰度发布助手', status: 'disabled', badge: '已禁用', desc: '用于灰度发布和回滚演练，当前因权限策略调整暂不可用。', tags: ['平台配置', '发布'], usage: '管理员已停用', action: '查看原因' },
-    { icon: '🛡️', color: '#f97316', title: '发布风险确认', status: 'admin', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' },
-    { icon: '🔎', color: '#0ea5e9', title: '链路巡检', status: 'requestable', badge: '可申请', desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '申请后可用', action: '申请' }
+    { icon: 'metrics', title: '经营指标解读', status: 'available', badge: '可用', desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用', action: '使用' },
+    { icon: 'product', title: '商品配置助手', status: 'available', badge: '可用', desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用', action: '使用' },
+    { icon: 'content', title: '内容发布检查', status: 'available', badge: '可用', desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用', action: '使用' },
+    { icon: 'review', title: '活动复盘报告', status: 'requestable', badge: '可申请', desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '申请后可用', action: '申请' },
+    { icon: 'member', title: '会员分层洞察', status: 'requestable', badge: '可申请', desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '申请后可用', action: '申请' },
+    { icon: 'export', title: '认证失败用户导出', status: 'pending', badge: '待审批', desc: '导出认证失败用户和失败原因，用于客服回访和运营复盘。', tags: ['用户/会员', '数据导出'], usage: '申请已提交', action: '查看进度' },
+    { icon: 'release', title: '灰度发布助手', status: 'disabled', badge: '已禁用', desc: '用于灰度发布和回滚演练，当前因权限策略调整暂不可用。', tags: ['平台配置', '发布'], usage: '管理员已停用', action: '查看原因' },
+    { icon: 'risk', title: '发布风险确认', status: 'admin', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' },
+    { icon: 'inspect', title: '链路巡检', status: 'requestable', badge: '可申请', desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '申请后可用', action: '申请' }
   ];
+  const skillIconSvg = paths => `<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+  const skillIcons = {
+    metrics: skillIconSvg('<path d="M4 15.8V9.4"/><path d="M10 15.8V4.2"/><path d="M16 15.8v-8"/><path d="M3.4 16.2h13.2"/>'),
+    product: skillIconSvg('<path d="M10 3.2 16 6.5v7L10 16.8 4 13.5v-7l6-3.3Z"/><path d="m4.4 6.7 5.6 3.1 5.6-3.1"/><path d="M10 9.8v6.6"/>'),
+    content: skillIconSvg('<path d="M5.2 3.2h6l3.6 3.6v10H5.2z"/><path d="M11.2 3.2v3.6h3.6"/><path d="m7.5 12 1.5 1.5 3.5-4"/>'),
+    review: skillIconSvg('<circle cx="10" cy="10" r="6.2"/><circle cx="10" cy="10" r="2.6"/><path d="M10 3.8V2.6M10 17.4v-1.2M16.2 10h1.2M2.6 10h1.2"/>'),
+    member: skillIconSvg('<path d="M8 9a2.6 2.6 0 1 0 0-5.2A2.6 2.6 0 0 0 8 9Z"/><path d="M3.6 16c.4-2.5 2-3.8 4.4-3.8s4 1.3 4.4 3.8"/><path d="M13.4 8.6a2.1 2.1 0 1 0 0-4.2"/><path d="M13.8 12.1c1.7.3 2.8 1.5 3.1 3.5"/>'),
+    export: skillIconSvg('<path d="M5.5 3.2h6l3 3v10.6h-9z"/><path d="M11.5 3.2v3h3"/><path d="M10 8.7v5"/><path d="m7.9 11.7 2.1 2.1 2.1-2.1"/><path d="M7.5 16h5"/>'),
+    release: skillIconSvg('<path d="M5.5 4.5h9v5.2a4.5 4.5 0 0 1-9 0z"/><path d="M7.7 4.5V2.8M12.3 4.5V2.8"/><path d="M8 12.2c1.4.8 2.7.8 4 0"/>'),
+    risk: skillIconSvg('<path d="M10 2.8 15.8 5v4.2c0 3.6-2.2 6.5-5.8 8-3.6-1.5-5.8-4.4-5.8-8V5L10 2.8Z"/><path d="M10 6.8v4.2"/><path d="M10 14h.01"/>'),
+    inspect: skillIconSvg('<path d="M8.8 13.6a4.8 4.8 0 1 0 0-9.6 4.8 4.8 0 0 0 0 9.6Z"/><path d="m12.4 12.4 3.7 3.7"/><path d="M6.5 8.8h4.6M8.8 6.5v4.6"/>')
+  };
   const atomicAbilities = [
     { id: 'metric.gmv.query', name: '查询 GMV 指标', category: '数据查询', risk: 'L1', status: 'enabled', invoke: '自然语言 / 技能包编排', input: '时间范围、业务线、渠道', output: 'GMV、订单数、同比环比', packages: ['经营指标解读', '活动复盘报告'] },
     { id: 'context.page.read', name: '读取当前页面上下文', category: '上下文理解', risk: 'L1', status: 'enabled', invoke: '进入页面后自动读取', input: '当前菜单、筛选条件、页面指标', output: '页面上下文摘要', packages: ['经营指标解读', '链路巡检'] },
@@ -852,10 +868,11 @@ function renderAgentSkillsManager(options = {}) {
   const card = s => `
     <div class="agent-skill-card" data-skill-status="${s.status}">
       <div class="agent-skill-card-head">
-        <div style="display:flex;gap:12px;min-width:0">
-          <div class="agent-skill-card-icon" style="background:${s.color}">${s.icon}</div>
-          <div>
-            <div class="agent-skill-card-title">${s.title}<span class="agent-skill-card-badge status-${s.status}">${s.badge}</span></div>
+        <div class="agent-skill-card-main">
+          <div class="agent-skill-card-icon">${skillIcons[s.icon] || skillIcons.metrics}</div>
+          <div class="agent-skill-card-title">
+            <span class="agent-skill-card-name">${s.title}</span>
+            <span class="agent-skill-card-badge status-${s.status}">${s.badge}</span>
           </div>
         </div>
         <span class="agent-skill-card-more">···</span>
@@ -1090,6 +1107,16 @@ function leaiFmtPct(part, total) {
   return total ? (part / total * 100).toFixed(1) + '%' : '-';
 }
 
+function leaiPctValue(part, total) {
+  if (!total) return 0;
+  return Math.max(0, Math.min(100, part / total * 100));
+}
+
+function leaiPctWidth(part, total, min = 4) {
+  const v = leaiPctValue(part, total);
+  return v ? Math.max(v, min).toFixed(1) : 0;
+}
+
 function leaiPeriodText(rows) {
   const first = rows[0]?.d || '';
   const last = rows[rows.length - 1]?.d || '';
@@ -1145,42 +1172,22 @@ function leaiBizTradeSummaries(rows) {
     { key: 'smb', label: 'SMB 业务', source: L?.smb || [], color: '#f59e0b' },
     { key: 'gov', label: '政企业务', source: L?.gov || [], color: '#8b5cf6' }
   ];
-  // 逐日：业务登录口径 + 当日平台差额按权重回算 → 当日官网/非官网按业务回算GMV权重分摊
-  const acc = meta.map(m => ({
-    ...m, login: 0, inter: 0,
-    loginGmv: 0, loginBuy: 0, platformGmv: 0, platformBuy: 0,
-    gmv: 0, buy: 0, offGmv: 0, nonGmv: 0, offBuy: 0, nonBuy: 0
+  const loginRows = meta.map(m => ({ ...m, ...leaiBizSummary(rows, m.source) }));
+  const loginGmvTotal = loginRows.reduce((s, r) => s + r.gmv, 0);
+  const loginBuyTotal = loginRows.reduce((s, r) => s + r.buy, 0);
+  const extraGmv = Math.max(0, leaiSum(rows, 'gmv') - loginGmvTotal);
+  const extraBuy = Math.max(0, leaiSum(rows, 'buy') - loginBuyTotal);
+  const gmvAdds = leaiDistributeAmount(extraGmv, loginRows.map(r => r.gmv));
+  const buyAdds = leaiDistributeAmount(extraBuy, loginRows.map(r => r.buy));
+  return loginRows.map((r, i) => ({
+    ...r,
+    loginGmv: r.gmv,
+    loginBuy: r.buy,
+    platformGmv: gmvAdds[i],
+    platformBuy: buyAdds[i],
+    gmv: r.gmv + gmvAdds[i],
+    buy: r.buy + buyAdds[i]
   }));
-  rows.forEach(day => {
-    const bizDay = meta.map(m => (m.source || []).find(r => r.d === day.d) || {});
-    const loginGmvs = bizDay.map(b => Number(b.gmv) || 0);
-    const loginBuys = bizDay.map(b => Number(b.buy) || 0);
-    const extraGmv = Math.max(0, (Number(day.gmv) || 0) - loginGmvs.reduce((s, v) => s + v, 0));
-    const extraBuy = Math.max(0, (Number(day.buy) || 0) - loginBuys.reduce((s, v) => s + v, 0));
-    const gmvAdds = leaiDistributeAmount(extraGmv, loginGmvs);
-    const buyAdds = leaiDistributeAmount(extraBuy, loginBuys);
-    const calGmvs = loginGmvs.map((v, i) => v + gmvAdds[i]);
-    const calBuys = loginBuys.map((v, i) => v + buyAdds[i]);
-    const offGmvs = leaiDistributeAmount(Number(day.offGmv) || 0, calGmvs);
-    const offBuys = leaiDistributeAmount(Number(day.offBuy) || 0, calBuys);
-    acc.forEach((a, i) => {
-      a.login += Number(bizDay[i].login) || 0;
-      a.inter += Number(bizDay[i].inter) || 0;
-      a.loginGmv += loginGmvs[i];
-      a.loginBuy += loginBuys[i];
-      a.platformGmv += gmvAdds[i];
-      a.platformBuy += buyAdds[i];
-      a.gmv += calGmvs[i];
-      a.buy += calBuys[i];
-      a.offGmv += Math.min(offGmvs[i], calGmvs[i]);
-      a.offBuy += Math.min(offBuys[i], calBuys[i]);
-    });
-  });
-  acc.forEach(a => {
-    a.nonGmv = Math.max(0, a.gmv - a.offGmv);
-    a.nonBuy = Math.max(0, a.buy - a.offBuy);
-  });
-  return acc;
 }
 
 function leaiMetricDelta(rows, key) {
@@ -1202,6 +1209,53 @@ function leaiSparklineHtml(rows, key, label, fmt, displayValue, subText) {
       ${vals.map((v, i) => `<span title="${rows[i]?.d || ''} ${fmt(v)}" style="height:${Math.max(v / max * 100, 4)}%"></span>`).join('')}
     </div>
     <div class="dash-spark-sub">${subText || leaiMetricDelta(rows, key)}</div>
+  </div>`;
+}
+
+function leaiTrendDelta(rows, key) {
+  if (rows.length < 2) return { text: '单日', tone: 'flat' };
+  const first = Number(rows[0]?.[key]) || 0;
+  const last = Number(rows[rows.length - 1]?.[key]) || 0;
+  if (!first) return { text: '持平', tone: 'flat' };
+  const pct = (last - first) / first * 100;
+  return {
+    text: `${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%`,
+    tone: pct >= 0 ? 'up' : 'down'
+  };
+}
+
+function leaiLineTrendHtml(rows, key, label, fmt, displayValue, subText, color = '#3f78c5') {
+  const vals = rows.map(r => Number(r?.[key]) || 0);
+  const value = displayValue == null ? (vals[vals.length - 1] || 0) : displayValue;
+  const min = Math.min(...vals, 0);
+  const max = Math.max(...vals, 1);
+  const range = Math.max(max - min, 1);
+  const width = 260;
+  const height = 82;
+  const padX = 10;
+  const padY = 10;
+  const points = vals.map((v, i) => {
+    const x = vals.length <= 1 ? width / 2 : padX + (width - padX * 2) * i / (vals.length - 1);
+    const y = height - padY - ((v - min) / range) * (height - padY * 2);
+    return { x, y, v, d: rows[i]?.d || '' };
+  });
+  const pointStr = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const first = points[0] || { x: padX, y: height - padY };
+  const last = points[points.length - 1] || { x: width - padX, y: height - padY };
+  const areaD = `M ${first.x.toFixed(1)} ${(height - padY).toFixed(1)} L ${pointStr} L ${last.x.toFixed(1)} ${(height - padY).toFixed(1)} Z`;
+  const delta = leaiTrendDelta(rows, key);
+  return `<div class="overview-line-card" data-metric="${key}" style="--trend-color:${color}">
+    <div class="overview-line-head">
+      <span>${label}</span>
+      <em class="overview-line-delta is-${delta.tone}">${delta.text}</em>
+    </div>
+    <div class="overview-line-value">${fmt(value)}</div>
+    <svg class="overview-line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="${label} 趋势">
+      <path class="overview-line-area" d="${areaD}"></path>
+      <polyline class="overview-line-stroke" points="${pointStr}"></polyline>
+      <circle class="overview-line-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3.5"></circle>
+    </svg>
+    <div class="overview-line-sub">${subText || leaiMetricDelta(rows, key)}</div>
   </div>`;
 }
 
@@ -1329,10 +1383,10 @@ function leaiCurrentOverviewAiContext(goal) {
     `- 购买人数: ${leaiAiNum(summary.buy)}，购买/互动 ${leaiAiPct(summary.buy, summary.inter)}`,
     `- 成交GMV: ${leaiAiMoney(summary.gmv)}，日均 ${leaiAiMoney(leaiAvg(rows, 'gmv'))}`,
     '',
-    '分业务交易(官网/非官网按业务回算GMV权重分摊):',
-    ...[consumer, smb, gov].map(b =>
-      `- ${b.label}: GMV ${leaiAiMoney(b.gmv)}，购买 ${leaiAiNum(b.buy)}，GMV占比 ${leaiAiPct(b.gmv, summary.gmv)}；官网 ${leaiAiMoney(b.offGmv)}(${leaiAiPct(b.offGmv, b.offGmv + b.nonGmv)})，非官网 ${leaiAiMoney(b.nonGmv)}(${leaiAiPct(b.nonGmv, b.offGmv + b.nonGmv)})`
-    ),
+    '分业务交易:',
+    `- 消费业务: GMV ${leaiAiMoney(consumer.gmv)}，购买 ${leaiAiNum(consumer.buy)}，GMV占比 ${leaiAiPct(consumer.gmv, summary.gmv)}`,
+    `- SMB业务: GMV ${leaiAiMoney(smb.gmv)}，购买 ${leaiAiNum(smb.buy)}，GMV占比 ${leaiAiPct(smb.gmv, summary.gmv)}`,
+    `- 政企业务: GMV ${leaiAiMoney(gov.gmv)}，购买 ${leaiAiNum(gov.buy)}，GMV占比 ${leaiAiPct(gov.gmv, summary.gmv)}`,
     '',
     '分平台交易:',
     `- 官网: GMV ${leaiAiMoney(summary.offGmv)}，购买 ${leaiAiNum(summary.offBuy)}，占比 ${leaiAiPct(summary.offGmv, platformTotal)}`,
@@ -1954,9 +2008,14 @@ const PAGE_RENDERERS = {
     const customStart = LEAI_DASH_STATE.overviewCustomStart || bounds.min;
     const customEnd = LEAI_DASH_STATE.overviewCustomEnd || bounds.max;
     const summary = leaiBuildSummary(range, customStart, customEnd);
+    const trendRows = leaiRows('14d');
     const [lc, ls, lg] = leaiBizTradeSummaries(summary.rows);
     const platformTotal = summary.offGmv + summary.nonGmv;
     const activeBase = summary.dau * Math.max(summary.rows.length, 1);
+    const bizBuyTotal = lc.buy + ls.buy + lg.buy;
+    const avgOrder = summary.buy ? Math.round(summary.gmv / summary.buy) : 0;
+    const offAvgOrder = summary.offBuy ? Math.round(summary.offGmv / summary.offBuy) : 0;
+    const nonAvgOrder = summary.nonBuy ? Math.round(summary.nonGmv / summary.nonBuy) : 0;
     return `
     <div class="page-header">
       <div>
@@ -1965,7 +2024,7 @@ const PAGE_RENDERERS = {
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         ${leaiOverviewTimeFilterHtml(bounds, customStart, customEnd)}
-        <button class="btn btn-sm btn-secondary" onclick="leaiAskOverview('overview')">AI 解读</button>
+        <button class="btn btn-sm btn-secondary ai-insight-btn" onclick="leaiAskOverview('overview')">AI 解读</button>
       </div>
     </div>
 
@@ -1992,86 +2051,121 @@ const PAGE_RENDERERS = {
       </div>
     </div>
 
-    <div class="card dash-funnel-card">
-      <div class="card-header">
-        <div class="card-title">关键经营链路</div>
-        <button class="btn btn-sm btn-secondary" onclick="leaiAskOverview('funnel')">问 AI</button>
+    <div class="overview-insight-stack overview-insight-demo">
+      <div class="card overview-chain-board">
+        <div class="overview-board-head">
+          <div class="overview-title-group">
+            <div class="card-title">关键经营链路</div>
+            <span class="overview-soft-tag">转化漏斗</span>
+          </div>
+          <div class="overview-board-actions">
+            <span class="overview-flow-hint">登录 → 互动 → 购买 → 成交</span>
+            <button class="btn btn-sm btn-secondary ai-insight-btn compact" onclick="leaiAskOverview('funnel')">问 AI</button>
+          </div>
+        </div>
+        <div class="overview-chain-flow">
+          <div class="overview-chain-step" style="--chain-color:#3f78c5">
+            <div class="overview-step-top"><span>01</span><b>登录用户</b></div>
+            <div class="overview-step-label">当日登录</div>
+            <div class="overview-step-value">${leaiFmtW(summary.login)}</div>
+            <div class="overview-step-meta">登录率 ${leaiFmtPct(summary.login, activeBase)}</div>
+          </div>
+          <div class="overview-chain-connector" style="--connector-color:#3f78c5">
+            <i></i><span>${leaiFmtPct(summary.inter, summary.login)}</span><em>互动转化</em>
+          </div>
+          <div class="overview-chain-step" style="--chain-color:#3f78c5">
+            <div class="overview-step-top"><span>02</span><b>互动用户</b></div>
+            <div class="overview-step-label">产生有效互动</div>
+            <div class="overview-step-value">${leaiFmtW(summary.inter)}</div>
+            <div class="overview-step-meta">较登录漏出 ${leaiFmtPct(summary.login - summary.inter, summary.login)}</div>
+          </div>
+          <div class="overview-chain-connector is-warn" style="--connector-color:#d97706">
+            <i></i><span>${leaiFmtPct(summary.buy, summary.inter)}</span><em>购买转化</em>
+          </div>
+          <div class="overview-chain-step" style="--chain-color:#3f78c5">
+            <div class="overview-step-top"><span>03</span><b>购买人数</b></div>
+            <div class="overview-step-label">完成下单</div>
+            <div class="overview-step-value">${summary.buy.toLocaleString()}人</div>
+            <div class="overview-step-meta">转化瓶颈 · 重点关注</div>
+          </div>
+          <div class="overview-chain-connector" style="--connector-color:#3f78c5">
+            <i></i><span>¥${avgOrder.toLocaleString()}</span><em>客单价</em>
+          </div>
+          <div class="overview-chain-step is-result" style="--chain-color:#3f78c5">
+            <div class="overview-step-top"><span>04</span><b>成交 GMV</b></div>
+            <div class="overview-step-label">当日成交额</div>
+            <div class="overview-step-value">${leaiFmtY(summary.gmv)}</div>
+            <div class="overview-step-meta">日均 ${leaiFmtY(leaiAvg(summary.rows, 'gmv'))}</div>
+          </div>
+        </div>
       </div>
-      <div class="dash-funnel-grid">
-        <div class="dash-funnel-item">
-          <div class="dash-funnel-label">登录用户</div>
-          <div class="dash-funnel-value">${leaiFmtW(summary.login)}</div>
-          <div class="dash-funnel-sub">登录 / 日活 ${leaiFmtPct(summary.login, activeBase)}</div>
-        </div>
-        <div class="dash-funnel-item">
-          <div class="dash-funnel-label">互动用户</div>
-          <div class="dash-funnel-value">${leaiFmtW(summary.inter)}</div>
-          <div class="dash-funnel-sub">互动 / 登录 ${leaiFmtPct(summary.inter, summary.login)}</div>
-        </div>
-        <div class="dash-funnel-item">
-          <div class="dash-funnel-label">购买人数</div>
-          <div class="dash-funnel-value">${summary.buy.toLocaleString()}</div>
-          <div class="dash-funnel-sub">购买 / 互动 ${leaiFmtPct(summary.buy, summary.inter)}</div>
-        </div>
-        <div class="dash-funnel-item">
-          <div class="dash-funnel-label">成交 GMV</div>
-          <div class="dash-funnel-value">${leaiFmtY(summary.gmv)}</div>
-          <div class="dash-funnel-sub">日均 ${leaiFmtY(leaiAvg(summary.rows, 'gmv'))}</div>
-        </div>
-      </div>
-    </div>
 
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><div class="card-title">交易指标 · 分平台</div></div>
-      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0">
-        <div class="kpi-card" style="border-left:3px solid #2563eb">
-          <div class="kpi-label">官网 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.offGmv)}</div>
-          <div class="kpi-sub">占比 ${leaiFmtPct(summary.offGmv, platformTotal)} · 购买 ${summary.offBuy.toLocaleString()}人</div>
+      <div class="card overview-structure-card">
+        <div class="overview-board-head">
+          <div class="overview-title-group">
+            <div class="card-title">GMV 结构拆解</div>
+            <span class="overview-soft-tag">${leaiFmtY(summary.gmv)}</span>
+          </div>
+          <div class="dash-card-note">登录口径 + 平台交易回算</div>
         </div>
-        <div class="kpi-card" style="border-left:3px solid #94a3b8">
-          <div class="kpi-label">非官网 GMV</div>
-          <div class="kpi-value" style="font-size:20px">${leaiFmtY(summary.nonGmv)}</div>
-          <div class="kpi-sub">占比 ${leaiFmtPct(summary.nonGmv, platformTotal)} · 购买 ${summary.nonBuy.toLocaleString()}人</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header">
-        <div class="card-title">交易指标 · 分业务</div>
-        <div class="dash-card-note">登录口径 + 平台交易回算 · 官网/非官网按业务回算GMV权重分摊</div>
-      </div>
-      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
-        ${[lc, ls, lg].map(b => {
-          const bizPlatTotal = b.offGmv + b.nonGmv;
-          return `<div class="kpi-card" style="border-left:3px solid ${b.color}">
-          <div class="kpi-label">${b.label} GMV</div>
-          <div class="kpi-value" style="font-size:20px">${leaiFmtY(b.gmv)}</div>
-          <div class="kpi-sub">购买 ${b.buy.toLocaleString()}人 · 占比 ${leaiFmtPct(b.gmv, summary.gmv)}</div>
-          <div style="display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px dashed #e5e7eb">
-            <div style="flex:1">
-              <div style="font-size:11px;color:#6b7280">官网</div>
-              <div style="font-size:13px;font-weight:600;color:#2563eb">${leaiFmtY(b.offGmv)}</div>
-              <div style="font-size:11px;color:#9ca3af">占比 ${leaiFmtPct(b.offGmv, bizPlatTotal)} · ${b.offBuy.toLocaleString()}人</div>
+        <div class="overview-structure-grid">
+          <div class="overview-breakdown-pane">
+            <div class="overview-pane-title">
+              <span>分业务</span>
+              <b>合计 ${leaiFmtY(summary.gmv)} · ${bizBuyTotal.toLocaleString()}人</b>
             </div>
-            <div style="flex:1">
-              <div style="font-size:11px;color:#6b7280">非官网</div>
-              <div style="font-size:13px;font-weight:600;color:#64748b">${leaiFmtY(b.nonGmv)}</div>
-              <div style="font-size:11px;color:#9ca3af">占比 ${leaiFmtPct(b.nonGmv, bizPlatTotal)} · ${b.nonBuy.toLocaleString()}人</div>
+            <div class="overview-breakdown-row" style="--row-color:#3f78c5;--row-progress:${leaiPctWidth(lc.gmv, summary.gmv)}%">
+              <div class="overview-row-main"><span>消费业务</span><b>${leaiFmtY(lc.gmv)}</b></div>
+              <div class="overview-row-meta">购买 ${lc.buy.toLocaleString()} 人 <strong>${leaiFmtPct(lc.gmv, summary.gmv)}</strong></div>
+              <div class="overview-row-track"><span></span></div>
+            </div>
+            <div class="overview-breakdown-row" style="--row-color:#5b8def;--row-progress:${leaiPctWidth(ls.gmv, summary.gmv)}%">
+              <div class="overview-row-main"><span>SMB 业务</span><b>${leaiFmtY(ls.gmv)}</b></div>
+              <div class="overview-row-meta">购买 ${ls.buy.toLocaleString()} 人 <strong>${leaiFmtPct(ls.gmv, summary.gmv)}</strong></div>
+              <div class="overview-row-track"><span></span></div>
+            </div>
+            <div class="overview-breakdown-row" style="--row-color:#9bbcff;--row-progress:${leaiPctWidth(lg.gmv, summary.gmv)}%">
+              <div class="overview-row-main"><span>政企业务</span><b>${leaiFmtY(lg.gmv)}</b></div>
+              <div class="overview-row-meta">购买 ${lg.buy.toLocaleString()} 人 <strong>${leaiFmtPct(lg.gmv, summary.gmv)}</strong></div>
+              <div class="overview-row-track"><span></span></div>
             </div>
           </div>
-        </div>`;
-        }).join('')}
+          <div class="overview-breakdown-pane overview-platform-pane">
+            <div class="overview-pane-title">
+              <span>分平台</span>
+              <b>官网占比 ${leaiFmtPct(summary.offGmv, platformTotal)}</b>
+            </div>
+            <div class="overview-breakdown-row" style="--row-color:#58a86a;--row-progress:${leaiPctWidth(summary.nonGmv, platformTotal)}%">
+              <div class="overview-row-main"><span>非官网</span><b>${leaiFmtY(summary.nonGmv)}</b></div>
+              <div class="overview-row-meta">购买 ${summary.nonBuy.toLocaleString()} 人 <strong>${leaiFmtPct(summary.nonGmv, platformTotal)}</strong></div>
+              <div class="overview-row-track"><span></span></div>
+            </div>
+            <div class="overview-breakdown-row" style="--row-color:#6ac69a;--row-progress:${leaiPctWidth(summary.offGmv, platformTotal)}%">
+              <div class="overview-row-main"><span>官网</span><b>${leaiFmtY(summary.offGmv)}</b></div>
+              <div class="overview-row-meta">购买 ${summary.offBuy.toLocaleString()} 人 <strong>${leaiFmtPct(summary.offGmv, platformTotal)}</strong></div>
+              <div class="overview-row-track"><span></span></div>
+            </div>
+            <div class="overview-price-compare">
+              <span>客单价对比</span>
+              <b>官网 ¥${offAvgOrder.toLocaleString()} · 非官网 ¥${nonAvgOrder.toLocaleString()}</b>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><div class="card-title">核心趋势速览</div></div>
-      <div class="dash-spark-grid">
-        ${leaiSparklineHtml(summary.rows, 'dau', 'DAU', leaiFmtW, summary.dau, `${leaiRangeLabel(range)}日均 · ${leaiMetricDelta(summary.rows, 'dau')}`)}
-        ${leaiSparklineHtml(summary.rows, 'inter', '互动用户', leaiFmtW, summary.inter, `${leaiRangeLabel(range)}累计 · ${leaiMetricDelta(summary.rows, 'inter')}`)}
-        ${leaiSparklineHtml(summary.rows, 'gmv', 'GMV', leaiFmtY, summary.gmv, `${leaiRangeLabel(range)}累计 · ${leaiMetricDelta(summary.rows, 'gmv')}`)}
+      <div class="card overview-trend-card">
+        <div class="overview-board-head">
+          <div class="overview-title-group">
+            <div class="card-title">核心趋势速览</div>
+            <span class="overview-soft-tag">近14天</span>
+          </div>
+          <div class="dash-card-note">环比对比上一周期</div>
+        </div>
+        <div class="overview-line-grid">
+          ${leaiLineTrendHtml(trendRows, 'dau', 'DAU', leaiFmtW, summary.dau, `近14天日均 ${leaiFmtW(leaiAvg(trendRows, 'dau'))} · ${leaiMetricDelta(trendRows, 'dau')}`, '#3f78c5')}
+          ${leaiLineTrendHtml(trendRows, 'inter', '互动用户', leaiFmtW, summary.inter, `近14天累计 · ${leaiMetricDelta(trendRows, 'inter')}`, '#7c5cff')}
+          ${leaiLineTrendHtml(trendRows, 'gmv', 'GMV', leaiFmtY, summary.gmv, `近14天累计 · ${leaiMetricDelta(trendRows, 'gmv')}`, '#58a86a')}
+        </div>
       </div>
     </div>
 
@@ -2181,8 +2275,12 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 趋势折线图（对比数据并入上方 KPI 卡，独立对比面板已删） -->
+      <!-- 对比横条卡 + 趋势折线图 -->
       <div class="geo-row geo-compare-trend-row single" id="geo-trend-row" style="margin-bottom:12px">
+        <div class="geo-panel geo-compare-bars-panel" id="geo-compare-detail-panel" style="display:none">
+          <div class="gpnl-title">品牌 vs 竞品 对比</div>
+          <div id="geo-trend-chart" class="geo-compare-bars-body"><div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div></div>
+        </div>
         <div class="geo-panel" style="flex:2;min-width:0">
           <div style="margin-bottom:8px">
             <div class="gpnl-title" id="geo-trend-title" style="margin:0">可见性趋势</div>
@@ -2351,6 +2449,27 @@ const PAGE_RENDERERS = {
       </div>
 
       <div class="geo-conv-section">
+        <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
+        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；乐享访问、互动、购买和自主下单数据接入后替换占位。</div>
+        <div class="geo-conv-grid">
+          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享UV</div><div class="gcc-val" id="gc-leai-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想乐享的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val" id="gc-leai-login">--</div><div class="gcc-def">访问联想乐享的用户中，有Lenovoid登录行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val" id="gc-leai-newreg">--</div><div class="gcc-def">访问联想乐享的登录用户中，是新注册的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">互动用户数</div><div class="gcc-val" id="gc-leai-interact">--</div><div class="gcc-def">访问联想乐享的用户中，至少有1次会话的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">登录状态下互动人数</div><div class="gcc-val" id="gc-leai-login-interact">--</div><div class="gcc-def">互动用户中，是有登录状态的互动用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">付费用户数</div><div class="gcc-val" id="gc-leai-paid">--</div><div class="gcc-def">访问联想乐享后，在站内发生了购买行为的用户数</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-leai-ca">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-leai-gmv">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-leai-newpaid">--</div><div class="gcc-def">访问联想乐享后发生购买的用户中，首次购买的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-leai-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-leai-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-leai-order-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-leai-order-ca">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的销量</div></div>
+          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-leai-order-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的交易额</div></div>
+        </div>
+      </div>
+
+      <div class="geo-conv-section">
         <div class="geo-conv-title">联想官网 · 总数看板</div>
         <div class="geo-interface-note">接口待提供：UV 站点拆分、Top5 页面、销量/销售额总数及业务拆分接入后替换占位。</div>
         <div class="geo-official-board">
@@ -2360,19 +2479,16 @@ const PAGE_RENDERERS = {
             <div class="gcc-def">按被触点归属统计后的联想官网访问用户数</div>
           </div>
           <div class="geo-official-donut-card">
-            <div class="gcc-label">UV 按站点拆分（10 站点）</div>
+            <div class="gcc-label">UV 按站点拆分</div>
             <div class="geo-official-donut">
               <div class="geo-donut-placeholder">待接口提供数据</div>
               <div class="geo-donut-list">
                 <span>联想首页 <strong id="gc-official-home-uv">--</strong></span>
                 <span>联想商城 <strong id="gc-official-shop-uv">--</strong></span>
                 <span>消费业务 <strong id="gc-official-c-uv">--</strong></span>
-                <span>SMB业务（含企业购） <strong id="gc-official-b-uv">--</strong></span>
+                <span>SMB业务 <strong id="gc-official-b-uv">--</strong></span>
                 <span>政企业务 <strong id="gc-official-biz-uv">--</strong></span>
                 <span>服务 <strong id="gc-official-service-uv">--</strong></span>
-                <span>联想论坛 <strong id="gc-official-forum-uv">--</strong></span>
-                <span>联想门店 <strong id="gc-official-store-uv">--</strong></span>
-                <span>联想乐享 <strong id="gc-official-leai-uv">--</strong></span>
                 <span>其他 <strong id="gc-official-other-uv">--</strong></span>
               </div>
             </div>
@@ -2409,28 +2525,6 @@ const PAGE_RENDERERS = {
                 <div><span>业务销售额</span><strong>待接口提供数据</strong></div>
               </div>
             </div>`).join('')}
-        </div>
-      </div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
-        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；乐享访问、互动、购买和自主下单数据接入后替换占位。</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享UV</div><div class="gcc-val" id="gc-leai-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想乐享的用户</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val" id="gc-leai-login">--</div><div class="gcc-def">访问联想乐享的用户中，有Lenovoid登录行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val" id="gc-leai-newreg">--</div><div class="gcc-def">访问联想乐享的登录用户中，是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">互动用户数</div><div class="gcc-val" id="gc-leai-interact">--</div><div class="gcc-def">访问联想乐享的用户中，至少有1次会话的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录状态下互动人数</div><div class="gcc-val" id="gc-leai-login-interact">--</div><div class="gcc-def">互动用户中，是有登录状态的互动用户数</div></div>
-          <div class="geo-conv-cell" style="visibility:hidden" aria-hidden="true"></div>
-          <div class="geo-conv-cell"><div class="gcc-label">付费用户数</div><div class="gcc-val" id="gc-leai-paid">--</div><div class="gcc-def">访问联想乐享后，在站内发生了购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-leai-ca">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-leai-gmv">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-leai-newpaid">--</div><div class="gcc-def">访问联想乐享后发生购买的用户中，首次购买的用户</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-leai-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-leai-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-leai-order-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-leai-order-ca">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-leai-order-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的交易额</div></div>
         </div>
       </div>
     </div>
@@ -2618,28 +2712,29 @@ const PAGE_RENDERERS = {
     <div class="card employee-method-card">
       <div class="card-header">
         <span class="card-title">认证方式分布</span>
+        <span class="employee-method-hint">点击筛选下方员工列表</span>
       </div>
       <div class="employee-method-grid">
-        <div class="employee-method-tile" onclick="filterByMethod('email')">
+        <button type="button" class="employee-method-tile" data-method="email" aria-pressed="false" onclick="filterByMethod('email')">
           <div class="employee-method-value" id="method-email">1,051</div>
           <div class="employee-method-label">企业邮箱</div>
           <div class="employee-method-sub">45%</div>
-        </div>
-        <div class="employee-method-tile success" onclick="filterByMethod('contract')">
+        </button>
+        <button type="button" class="employee-method-tile success" data-method="contract" aria-pressed="false" onclick="filterByMethod('contract')">
           <div class="employee-method-value" id="method-contract">703</div>
           <div class="employee-method-label">劳动合同</div>
           <div class="employee-method-sub">30%</div>
-        </div>
-        <div class="employee-method-tile purple" onclick="filterByMethod('tax')">
+        </button>
+        <button type="button" class="employee-method-tile purple" data-method="tax" aria-pressed="false" onclick="filterByMethod('tax')">
           <div class="employee-method-value" id="method-tax">422</div>
           <div class="employee-method-label">个人所得税视频认证</div>
           <div class="employee-method-sub">18%</div>
-        </div>
-        <div class="employee-method-tile gray" onclick="filterByMethod('other')">
+        </button>
+        <button type="button" class="employee-method-tile gray" data-method="other" aria-pressed="false" onclick="filterByMethod('other')">
           <div class="employee-method-value" id="method-other">165</div>
           <div class="employee-method-label">其他材料</div>
           <div class="employee-method-sub">7%</div>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -2647,6 +2742,7 @@ const PAGE_RENDERERS = {
     <div class="card">
       <div class="card-header">
         <span class="card-title">在职员工列表</span>
+        <span class="employee-active-filter" id="employee-method-filter-status" style="display:none"></span>
         <div class="employee-filter-row">
           <input type="text" id="emp-ov-search-name" placeholder="姓名..."/>
           <input type="text" id="emp-ov-search-position" placeholder="岗位信息..."/>

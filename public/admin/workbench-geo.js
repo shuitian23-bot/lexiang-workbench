@@ -28,7 +28,7 @@ const GEO_SCOPE_CONFIG = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatforms:[], _intentVisibilityFilters:[] };
+const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatform:'all', _intentVisibilityFilter:'all' };
 const geoConversionState = { period:'30d', startDate:null, endDate:null };
 const geoSourceState = { scope:'all', platform:'all', page:1, pageSize:10 };
 
@@ -41,10 +41,10 @@ function geoResolveDateRange() {
   const start = new Date(end.getTime() - (days - 1) * 86400000);
   return { start_date: geoFmtDate(start), end_date: geoFmtDate(end) };
 }
-const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', apple:'#555555', asus:'#00529b', xiaomi:'#ff6900', acer:'#83b81a', honor:'#d4003c' };
+const GEO_COMPETITOR_COLORS = { hp:'#3f78c5', dell:'#3f9ead', huawei:'#9070c3', apple:'#4f6578', asus:'#78a9e6', xiaomi:'#c89532', acer:'#58a86a', honor:'#b45f86' };
 const GEO_COMPETITOR_NAMES = { hp:'惠普', dell:'戴尔', huawei:'华为', apple:'苹果', asus:'华硕', xiaomi:'小米', acer:'宏碁', honor:'荣耀', oppo:'oppo', vivo:'vivo', samsung:'三星' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
-const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
+const geoPlatColors = { doubao:'#3f78c5', deepseek:'#3f9ead', yuanbao:'#58a86a', kimi:'#c89532' };
 const GEO_PENDING_TEXT = '待接口提供数据';
 
 function geoFmtDate(d) {
@@ -91,6 +91,9 @@ function geoSiteLogoHtml(domain = '', name = '') {
   const d = String(domain || '').replace(/^https?:\/\//, '').split('/')[0];
   const fallback = geoEscape(String(name || d || '?').trim().slice(0, 1).toUpperCase() || '?');
   if (!d) return `<span class="geo-site-logo fallback">${fallback}</span>`;
+  if (/lenovo\.(com|com\.cn|cn)$/i.test(d) || d.includes('.lenovo.')) {
+    return `<span class="geo-site-logo"><img src="assets/logo-icon.png" alt=""></span>`;
+  }
   const url = `https://www.google.com/s2/favicons?sz=32&domain_url=https://${encodeURIComponent(d)}`;
   return `<span class="geo-site-logo" data-fallback="${fallback}">
     <img src="${url}" alt="" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent=this.parentElement.dataset.fallback||'?'">
@@ -163,7 +166,7 @@ function geoDrawCanvasPending(canvas, message = GEO_PENDING_TEXT) {
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#f9fafb';
   ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = '#e5e7eb';
+  ctx.strokeStyle = '#e5e8ec';
   ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
   ctx.fillStyle = '#8f959e';
   ctx.font = '13px sans-serif';
@@ -320,7 +323,7 @@ function geoSyncScopeUi() {
   }
   document.querySelectorAll('.geo-cmp-btn').forEach(b => {
     const active = b.dataset.cmp === geoState.compare;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
   const compareControl = document.getElementById('geo-compare-control');
@@ -345,8 +348,8 @@ function geoSetScope(el) {
   el.classList.add('active');
   geoState.scope = el.dataset.scope;
   geoState.questions = [];
-  geoState._intentPlatforms = [];
-  geoState._intentVisibilityFilters = [];
+  geoState._intentPlatform = 'all';
+  geoState._intentVisibilityFilter = 'all';
   geoResetPlatformPills();
   geoSyncScopeUi();
   geoLoadData();
@@ -381,7 +384,7 @@ function geoQuickPeriod(period) {
   if (endEl && !endEl.value) endEl.value = geoState.endDate;
   document.querySelectorAll('.geo-period-btn').forEach(b => {
     const active = b.dataset.period === period;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
   geoLoadData();
@@ -563,10 +566,23 @@ function geoRenderTrendChart() {
   geoRenderCompareDetail();
 }
 
-// 独立「品牌 vs 竞品 对比」面板已删（与 KPI 卡分竞品差值重复），趋势行恒为单栏
 function geoRenderCompareDetail() {
+  const c = document.getElementById('geo-trend-chart');
+  const panel = document.getElementById('geo-compare-detail-panel');
   const row = document.getElementById('geo-trend-row');
-  if (row) row.classList.add('single');
+  const showCompare = geoState.scope !== 'leai' && geoState.compare === 'compare';
+  if (panel) panel.style.display = showCompare ? '' : 'none';
+  if (row) row.classList.toggle('single', !showCompare);
+  if (!c) return;
+  if (!showCompare) {
+    c.innerHTML = '';
+    return;
+  }
+  if (!geoState.competitors.length) {
+    c.innerHTML = geoPendingHtml('请选择最多5个竞品');
+    return;
+  }
+  c.innerHTML = geoRenderCompareBars();
 }
 
 function geoCompetitorColorByName(name) {
@@ -577,6 +593,63 @@ function geoCompetitorColorByName(name) {
 function geoLatestSeriesValue(series) {
   const values = (series?.data || []).filter(v => geoNum(v) !== null);
   return values.length ? geoNum(values[values.length - 1]) : null;
+}
+
+function geoRenderCompareBars() {
+  const metric = geoState.selectedKpi || 'visible';
+  const metaMap = {
+    visible: { label:'品牌可见度', brandLabel:'联想品牌', source:'趋势最近值' },
+    rec: { label:'品牌推荐率' },
+    top1: { label:'品牌推荐置顶率' },
+    top3: { label:'品牌推荐前三率' }
+  };
+  const meta = metaMap[metric] || metaMap.visible;
+  const isVisibility = metric === 'visible';
+  const brandSeries = (_trendChartData?.series || []).find(s =>
+    s.field === (geoState.scope === 'all' ? 'all' : geoTrendField()) ||
+    (geoState.scope === 'all' && s.field === 'brand_composite_exposure_rate')
+  );
+  const brandValue = isVisibility ? geoLatestSeriesValue(brandSeries) : geoNum(geoState._kpiRaw?.[metric]?.brand);
+  const rows = [{
+    name: geoState.scope === 'all' ? '联想品牌' : geoBrandLabel(),
+    value: brandValue,
+    color: '#3f78c5',
+    type: 'brand'
+  }];
+  const compSeries = isVisibility ? (geoState._competitorTrendSeries || []) : [];
+  geoSelectedCompetitors().forEach(name => {
+    const series = compSeries.find(s => s.field_name === name || s.brand === name || s.field === name);
+    rows.push({
+      name,
+      value: isVisibility ? geoLatestSeriesValue(series) : null,
+      color: geoCompetitorColorByName(name),
+      type: 'competitor'
+    });
+  });
+  const nums = rows.map(r => geoNum(r.value)).filter(v => v !== null);
+  const max = Math.max(...nums, 1);
+  const diff = rows.length > 1 && geoNum(rows[1].value) !== null && geoNum(rows[0].value) !== null
+    ? rows[0].value - rows[1].value
+    : null;
+  const diffText = diff === null ? GEO_PENDING_TEXT : `${diff > 0 ? '+' : ''}${geoFmtCount(diff)}`;
+  return `<div class="geo-compare-bars">
+    <div class="geo-compare-bars-head">
+      <span>${geoEscape(meta.label)}${isVisibility ? `（${meta.source}）` : ''}</span>
+      <strong class="${diff === null ? 'is-pending' : (diff < 0 ? 'neg' : 'pos')}">${diffText}</strong>
+    </div>
+    <div class="geo-compare-bars-list">
+      ${rows.map(r => {
+        const n = geoNum(r.value);
+        const width = n === null ? 0 : Math.max(n / max * 100, 4);
+        return `<div class="geo-compare-bar">
+          <span class="geo-compare-bar-name">${geoEscape(r.name)}</span>
+          <span class="geo-compare-track"><i style="width:${width}%;background:${r.color}"></i></span>
+          <strong class="${n === null ? 'is-pending' : ''}">${n === null ? GEO_PENDING_TEXT : geoFmtCount(n)}</strong>
+        </div>`;
+      }).join('')}
+    </div>
+    ${isVisibility ? '' : `<div class="geo-compare-note">${GEO_PENDING_TEXT}：分竞品${geoEscape(meta.label.replace('品牌', ''))}接口未提供</div>`}
+  </div>`;
 }
 
 function geoSelectKpi(el) {
@@ -668,57 +741,34 @@ function geoApplyCompare() {
       if (brandSubEl) brandSubEl.style.display = 'none';
       if (compareEl) {
         compareEl.style.display = '';
-        if (!hasCompetitors || b === null) {
+        if (!hasCompetitors || b === null || c === null) {
           compareEl.innerHTML = `<div class="geo-pending-line">${!hasCompetitors ? '请选择竞品' : GEO_PENDING_TEXT}</div>`;
           card.classList.remove('highlight');
           card.style.borderColor = '';
           continue;
         }
-        // 多品对比：每个竞品分别计算与品牌的差值。
-        // 可见度：分竞品数据来自 competitor-trends（覆盖意图数），品牌基线取趋势近值保持同量纲；
-        // 推荐率/置顶率/前三率：分竞品接口未提供，回退展示竞品综合（百分比）。
-        const compNames = geoSelectedCompetitors();
-        const compSeries = geoState._competitorTrendSeries || [];
-        let perCompRows = [];
-        let brandBaseline = null;
-        if (metric === 'visible') {
-          const brandSeries = (_trendChartData?.series || []).find(s =>
-            s.field === (geoState.scope === 'all' ? 'all' : geoTrendField()));
-          brandBaseline = geoLatestSeriesValue(brandSeries);
-          perCompRows = compNames.map(name => {
-            const s = compSeries.find(x => x.brand === name || x.field_name === name || x.field === `competitor:${name}`);
-            const v = geoLatestSeriesValue(s);
-            return { name, v, diff: brandBaseline !== null && v !== null ? brandBaseline - v : null };
-          });
-        }
-        const hasPerComp = perCompRows.some(r => r.v !== null);
-        const rowHtml = (label, val, diff, fmt) => `
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#6b7280;margin-top:3px;gap:6px">
-            <span style="white-space:nowrap">${geoEscape(label)}</span>
-            <span style="display:flex;gap:6px;align-items:center">
-              <span>${val === null ? GEO_PENDING_TEXT : fmt(val)}</span>
-              ${diff === undefined ? '' : (diff === null
-                ? `<em style="font-style:normal;color:#9ca3af">--</em>`
-                : `<em style="font-style:normal;font-weight:600;color:${diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280'}">${diff > 0 ? '+' : ''}${fmt(diff)}</em>`)}
-            </span>
-          </div>`;
-        const brandName = geoState.scope === 'all' ? '联想品牌' : geoBrandLabel();
-        let html;
-        if (metric === 'visible' && hasPerComp) {
-          html = rowHtml(`${brandName}（近值）`, brandBaseline, undefined, geoFmtCount);
-          html += perCompRows.map(r => rowHtml(r.name, r.v, r.diff, geoFmtCount)).join('');
-        } else if (metric === 'visible') {
-          html = rowHtml(brandName, b, undefined, geoFmtPct);
-          html += rowHtml('竞品综合', c, c === null || b === null ? null : b - c, geoFmtPct);
-        } else {
-          // 推荐率/置顶率/前三率：逐竞品列出，分竞品数值服务商接口未提供时显示占位
-          html = rowHtml(brandName, b, undefined, geoFmtPct);
-          html += rowHtml('竞品综合', c, c === null || b === null ? null : b - c, geoFmtPct);
-          html += compNames.map(name => rowHtml(name, null, null, geoFmtPct)).join('');
-        }
-        compareEl.innerHTML = html;
+        const bv = b, cv = c;
+        const diff = bv - cv;
+        const diffSign = diff > 0 ? '+' : '';
+        const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
+        const maxV = Math.max(bv, cv, 1);
+        compareEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>品牌</span><span>${geoFmtPct(b)}</span></div>
+              <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#3f78c5;border-radius:3px"></div></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>竞品综合</span><span>${geoFmtPct(c)}</span></div>
+              <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#c89532;border-radius:3px"></div></div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
+        `;
       }
-      card.classList.toggle('highlight', metric === geoState.selectedKpi && b !== null);
+      card.classList.toggle('highlight', metric === geoState.selectedKpi && b !== null && c !== null);
       card.style.borderColor = '';
     }
     card.style.borderColor = '';
@@ -781,7 +831,7 @@ function geoRenderSitesPending() {
 }
 
 // ===== GEO 信源分布 (sites API) =====
-const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#4f46e5','#15803d','#b45309','#9333ea','#0e7490','#be123c','#6366f1','#047857','#ea580c'];
+const GEO_TREEMAP_COLORS = ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#b45f86','#6f879e','#4f6578','#78a9e6','#6fc2cf','#78c487','#e0b75b','#b795df','#d383a8','#9bb0c5','#7f96aa'];
 
 function geoCitesFromSites(sites) {
   const lenovo = sites.filter(s => s.domain && s.domain.includes('lenovo'));
@@ -877,7 +927,7 @@ function geoRenderLinkTop50(sites) {
     const barW = Math.max((s.count / maxCount * 100), 2).toFixed(0);
     const isTop3 = s.rank <= 3;
     const idxStyle = isTop3
-      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#2563eb;border-radius:50%;flex-shrink:0'
+      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#3f78c5;border-radius:50%;flex-shrink:0'
       : 'min-width:28px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0';
     const countStyle = isTop3
       ? 'font-size:14px;font-weight:700;color:#1d4ed8;white-space:nowrap;min-width:90px;text-align:right'
@@ -888,9 +938,9 @@ function geoRenderLinkTop50(sites) {
         <div style="display:flex;align-items:center;gap:6px">
           ${geoSiteLogoHtml(s.domain, geoSiteName(s))}
           <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${geoEscape(geoSiteName(s))}</span>
-          <a href="https://${geoEscape(s.domain)}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
+          <a href="https://${geoEscape(s.domain)}" target="_blank" rel="noopener" style="font-size:11px;color:#3f78c5;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
         </div>
-        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e7eb;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#2563eb' : '#93c5fd'};border-radius:3px"></div></div>
+        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e8ec;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#3f78c5' : '#9fc4ea'};border-radius:3px"></div></div>
       </div>
       <span style="${countStyle}">${geoFmtCount(s.count)}</span>
     </li>`;
@@ -953,10 +1003,9 @@ function geoFilterQuestionsByScope(qs, models) {
 }
 
 function geoFilterQuestionsByVisibility(qs, models) {
-  const filters = geoState._intentVisibilityFilters || [];
-  if (!filters.length) return qs || [];
-  // 多选=同时满足所有选中的可见性条件
-  return (qs || []).filter(q => filters.every(f => geoQuestionHasVisibility(q, f, models)));
+  const filter = geoState._intentVisibilityFilter || 'all';
+  if (filter === 'all') return qs || [];
+  return (qs || []).filter(q => geoQuestionHasVisibility(q, filter, models));
 }
 
 function geoQuestionsForOverviewSelect() {
@@ -1004,26 +1053,24 @@ function geoRenderQuestions(qs) {
   const c = document.getElementById('geo-questions-table'); if(!c) return;
   if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
   const allModels = (qs[0].models || []).map(m => m.model);
-  const selPlats = geoState._intentPlatforms || [];
-  const models = selPlats.length ? allModels.filter(m => selPlats.includes(m)) : allModels;
+  const models = geoState._intentPlatform && geoState._intentPlatform !== 'all'
+    ? allModels.filter(m => m === geoState._intentPlatform)
+    : allModels;
   geoRenderIntentFilter(allModels, models);
   geoRenderIntentVisibilityFilter();
   const scoped = geoFilterQuestionsByScope(qs, models);
   const rows = geoFilterQuestionsByVisibility(scoped, models);
   geoSetValue('gv-q-count', rows.length ? rows.length : null);
   if (!rows.length) { c.innerHTML = geoPendingHtml(); return; }
-  // 列与可见性筛选联动：选了可见性条件只展示对应列，未选展示全部 4 列
-  const selVis = geoState._intentVisibilityFilters || [];
-  const fieldKeys = selVis.length ? GEO_INTENT_FIELD_KEYS.filter(k => selVis.includes(k)) : GEO_INTENT_FIELD_KEYS;
   let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
-  models.forEach(m => { const name = geoPlatNames[m] || m; fieldKeys.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
+  models.forEach(m => { const name = geoPlatNames[m] || m; GEO_INTENT_FIELD_KEYS.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
   html += '</tr></thead><tbody>';
   rows.forEach(q => {
     const questionText = q.question || '';
     html += `<tr><td class="name" title="${geoEscape(questionText)}">${geoEscape(questionText.length > 20 ? questionText.slice(0,20)+'...' : questionText)}</td>`;
     models.forEach(m => {
       const md = (q.models || []).find(x => x.model === m);
-      fieldKeys.forEach(f => {
+      GEO_INTENT_FIELD_KEYS.forEach(f => {
         const v = geoIntentDerivedValue(md, f);
         const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : '');
         html += `<td class="${cls}"><span class="geo-yn-badge ${cls}">${geoEscape(v)}</span></td>`;
@@ -1037,52 +1084,35 @@ function geoRenderQuestions(qs) {
 
 function geoRenderIntentFilter(allModels, activeModels) {
   const c = document.getElementById('geo-intent-plat-filter'); if (!c) return;
-  const sel = geoState._intentPlatforms || [];
-  const buttons = [{ key:'all', label:'全平台', color:'#2563eb' }].concat(allModels.map(m => ({ key:m, label:geoPlatNames[m] || m, color:geoPlatColors[m] || '#6b7280' })));
+  const buttons = [{ key:'all', label:'全平台', color:'#3f78c5' }].concat(allModels.map(m => ({ key:m, label:geoPlatNames[m] || m, color:geoPlatColors[m] || '#6b7280' })));
   c.innerHTML = buttons.map(item => {
-    const active = item.key === 'all' ? !sel.length : sel.includes(item.key);
-    return `<button onclick="geoToggleIntentModel('${item.key}')" title="可多选" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? item.color : '#d1d5db'};background:${active ? item.color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
+    const active = item.key === 'all' ? activeModels.length === allModels.length : activeModels.length === 1 && activeModels.includes(item.key);
+    return `<button onclick="geoSetIntentModel('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? item.color : '#d1d5db'};background:${active ? item.color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
   }).join('');
 }
 
 function geoRenderIntentVisibilityFilter() {
   const c = document.getElementById('geo-intent-visibility-filter'); if (!c) return;
-  const sel = geoState._intentVisibilityFilters || [];
+  const current = geoState._intentVisibilityFilter || 'all';
   c.innerHTML = GEO_INTENT_FILTERS.map(item => {
-    const active = item.key === 'all' ? !sel.length : sel.includes(item.key);
-    return `<button onclick="geoToggleIntentVisibilityFilter('${item.key}')" title="可多选，多选时需同时满足" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#2563eb' : '#d1d5db'};background:${active ? '#2563eb' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
+    const active = item.key === current;
+    return `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#3f78c5' : '#d1d5db'};background:${active ? '#3f78c5' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
   }).join('');
 }
 
-// 平台筛选多选：点选 toggle；全平台=清空；全选中=等价全平台
+function geoSetIntentModel(model) {
+  geoState._intentPlatform = model || 'all';
+  geoRenderQuestions(geoState._questionsData || []);
+}
+
+function geoSetIntentVisibilityFilter(filter) {
+  geoState._intentVisibilityFilter = filter || 'all';
+  geoRenderQuestions(geoState._questionsData || []);
+}
+
 function geoToggleIntentModel(model) {
-  if (!model || model === 'all') {
-    geoState._intentPlatforms = [];
-  } else {
-    const sel = geoState._intentPlatforms || (geoState._intentPlatforms = []);
-    const i = sel.indexOf(model);
-    if (i >= 0) sel.splice(i, 1); else sel.push(model);
-    const allModels = (((geoState._questionsData || [])[0] || {}).models || []).map(m => m.model);
-    if (allModels.length && sel.length >= allModels.length) geoState._intentPlatforms = [];
-  }
-  geoRenderQuestions(geoState._questionsData || []);
+  geoSetIntentModel(model);
 }
-
-// 可见性筛选多选：点选 toggle；全部展示=清空
-function geoToggleIntentVisibilityFilter(filter) {
-  if (!filter || filter === 'all') {
-    geoState._intentVisibilityFilters = [];
-  } else {
-    const sel = geoState._intentVisibilityFilters || (geoState._intentVisibilityFilters = []);
-    const i = sel.indexOf(filter);
-    if (i >= 0) sel.splice(i, 1); else sel.push(filter);
-  }
-  geoRenderQuestions(geoState._questionsData || []);
-}
-
-// 旧接口兼容
-function geoSetIntentModel(model) { geoToggleIntentModel(model); }
-function geoSetIntentVisibilityFilter(filter) { geoToggleIntentVisibilityFilter(filter); }
 
 function geoRenderIntentPlatformSummary(qs) {
   const c = document.getElementById('geo-intent-platform-summary'); if (!c) return;
@@ -1101,7 +1131,7 @@ function geoRenderIntentPlatformSummary(qs) {
     const name = geoPlatNames[m] || m;
     const color = geoPlatColors[m] || '#6b7280';
     const count = platStats[m] || 0;
-    html += `<div style="flex:1;min-width:140px;padding:16px;background:#fff;border-radius:10px;text-align:center;border:1px solid #e5e7eb">
+    html += `<div style="flex:1;min-width:140px;padding:16px;background:#fff;border-radius:10px;text-align:center;border:1px solid #e5e8ec">
       <div style="font-size:28px;font-weight:700;color:${color}">${count}</div>
       <div style="font-size:12px;color:#6b7280;margin-top:4px">${name} 覆盖意图数</div>
     </div>`;
@@ -1113,7 +1143,14 @@ function geoRenderIntentPlatformSummary(qs) {
 // ===== GEO 知识库 tab 切换 =====
 function switchKbTab(tab, el) {
   ['upload','qa','docs','qalist'].forEach(t => { const d = document.getElementById('kb-tab-' + t); if (d) d.style.display = t === tab ? '' : 'none'; });
-  if (el) { el.parentElement.querySelectorAll('.tab-item').forEach(t => { t.style.borderBottomColor = 'transparent'; t.style.color = 'var(--text-tertiary)'; }); el.style.borderBottomColor = 'var(--primary)'; el.style.color = 'var(--primary)'; }
+  if (el) {
+    el.parentElement.querySelectorAll('.tab-item').forEach(t => {
+      t.classList.remove('active');
+      t.style.borderBottomColor = '';
+      t.style.color = '';
+    });
+    el.classList.add('active');
+  }
   if (tab === 'docs') loadKnowledgeDocs();
   if (tab === 'qalist') loadKnowledgeQA();
 }
@@ -1201,7 +1238,7 @@ async function geoLoadSourcePage(page) {
           <td class="name"><span class="geo-source-site">${geoSiteLogoHtml(s.domain, name)}<span>${geoEscape(name)}</span></span></td>
           <td class="domain">${geoEscape(s.domain || '-')}</td>
           <td><div class="geo-source-count"><strong>${geoFmtCount(count)}</strong><span><i style="width:${barW}%"></i></span></div></td>
-          <td><div class="geo-source-pct"><span>${geoFmtPct(pct)}</span><i style="background:conic-gradient(#2563eb ${Math.max(Math.min(pct || 0, 100), 0)}%, #e2e8f0 0)"></i></div></td>
+          <td><div class="geo-source-pct"><span>${geoFmtPct(pct)}</span><i style="background:conic-gradient(#3f78c5 ${Math.max(Math.min(pct || 0, 100), 0)}%, #e2e8f0 0)"></i></div></td>
         </tr>`;
       }).join('')}</tbody></table>`;
     const pager = document.getElementById('geo-source-pager');
@@ -1222,15 +1259,14 @@ let _trendChartData = null;
 
 function geoFilterTrendSeries(series) {
   const fieldLabels = {
-    all: '联想品牌可见性',
+    all: '整体可见性',
     brand_composite_exposure_rate: '联想官网可见性',
     brand_precise_exposure_rate: '联想乐享可见性',
     competitor_exposure_rate: '竞品可见性'
   };
-  // 2.0：品牌模式趋势仅展示当前 scope 自身品牌线，不混入乐享/官网/竞品综合；对比模式由调用方追加各竞品线
   let wanted;
   if (geoState.scope === 'all') {
-    wanted = new Set(['all']);
+    wanted = new Set(['all', 'brand_composite_exposure_rate', 'brand_precise_exposure_rate', 'competitor_exposure_rate']);
   } else if (geoState.scope === 'official') {
     wanted = new Set(['brand_composite_exposure_rate']);
   } else {
@@ -1314,8 +1350,7 @@ async function geoLoadTrendChart(loadSeq) {
     }
     _trendChartData = { dates, series: scopedSeries };
     geoDrawTrendCanvas();
-    // 竞品趋势序列晚于 overview 到达时，重刷 KPI 卡的分竞品差值
-    if (geoState._kpiRaw) geoApplyCompare(); else geoRenderCompareDetail();
+    geoRenderCompareDetail();
   } catch(e) {
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     _trendChartData = null;
@@ -1369,7 +1404,7 @@ function geoDrawTrendCanvas() {
   const yRange = yMax - yMin || 1;
 
   // Y axis gridlines
-  ctx.strokeStyle = '#e5e7eb';
+  ctx.strokeStyle = '#e5e8ec';
   ctx.lineWidth = 0.5;
   ctx.fillStyle = '#9ca3af';
   ctx.font = '10px sans-serif';
@@ -1398,12 +1433,12 @@ function geoDrawTrendCanvas() {
 
   // Draw lines
   const fieldColor = {
-    all: '#9333ea',
-    brand_composite_exposure_rate: '#2563eb',
-    brand_precise_exposure_rate: '#10b981',
-    competitor_exposure_rate: '#f59e0b',
+    all: '#9070c3',
+    brand_composite_exposure_rate: '#3f78c5',
+    brand_precise_exposure_rate: '#58a86a',
+    competitor_exposure_rate: '#c89532',
   };
-  const fallback = ['#2563eb', '#10b981', '#6b7280', '#9333ea', '#f59e0b', '#0ea5e9', '#ef4444'];
+  const fallback = ['#3f78c5', '#58a86a', '#6f879e', '#9070c3'];
   const colors = series.map((s, si) => s.color || fieldColor[s.field] || fallback[si] || '#6b7280');
   geoRenderTrendLegend(series, colors);
   series.forEach((s, si) => {
@@ -1465,7 +1500,7 @@ async function geoLoadWordCloud(days) {
   days = days || 30;
   document.querySelectorAll('.geo-wc-btn').forEach(b => {
     const active = +b.dataset.days === days;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
   const c = document.getElementById('geo-word-cloud');
@@ -1484,7 +1519,7 @@ function geoRenderWordCloud(words, container) {
   const maxVal = top[0].value;
   const minVal = top[top.length - 1].value;
   const range = maxVal - minVal || 1;
-  const colors = ['#1e40af','#2563eb','#3b82f6','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#be185d','#4f46e5','#0d9488','#b45309'];
+  const colors = ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#b45f86','#6f879e','#4f6578','#78a9e6','#6fc2cf','#78c487','#e0b75b'];
   const W = container.clientWidth || 700;
   const H = 320;
   const cx = W / 2, cy = H / 2;
@@ -1525,7 +1560,7 @@ function geoRenderWordCloud(words, container) {
 const GEO_CONVERSION_VALUE_IDS = [
   'gc-all-uv','gc-all-login','gc-all-newreg','gc-all-paid','gc-all-ca','gc-all-gmv','gc-all-newpaid','gc-all-newca','gc-all-newgmv','gc-all-leai-user','gc-all-leai-ca','gc-all-leai-gmv',
   'gc-leai-uv','gc-leai-login','gc-leai-newreg','gc-leai-interact','gc-leai-login-interact','gc-leai-paid','gc-leai-ca','gc-leai-gmv','gc-leai-newpaid','gc-leai-newca','gc-leai-newgmv','gc-leai-order-user','gc-leai-order-ca','gc-leai-order-gmv',
-  'gc-official-uv','gc-official-home-uv','gc-official-shop-uv','gc-official-c-uv','gc-official-b-uv','gc-official-biz-uv','gc-official-service-uv','gc-official-forum-uv','gc-official-store-uv','gc-official-leai-uv','gc-official-other-uv','gc-official-total-ca','gc-official-total-gmv','gc-official-c-ca','gc-official-b-ca','gc-official-biz-ca','gc-official-c-gmv','gc-official-b-gmv','gc-official-biz-gmv'
+  'gc-official-uv','gc-official-home-uv','gc-official-shop-uv','gc-official-c-uv','gc-official-b-uv','gc-official-biz-uv','gc-official-service-uv','gc-official-other-uv','gc-official-total-ca','gc-official-total-gmv','gc-official-c-ca','gc-official-b-ca','gc-official-biz-ca','gc-official-c-gmv','gc-official-b-gmv','gc-official-biz-gmv'
 ];
 
 const GEO_CONVERSION_SPLIT_IDS = [
@@ -1554,7 +1589,7 @@ function geoInitConversionDatePicker() {
 function geoSyncConversionPeriodButtons() {
   document.querySelectorAll('.geo-conv-period-btn').forEach(b => {
     const active = geoConversionState.period && b.dataset.period === geoConversionState.period;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
 }
