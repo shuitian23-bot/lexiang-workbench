@@ -7365,8 +7365,9 @@ body[data-page="home"] .portal-footer .footer-col:nth-child(3) .footer-link-colu
 
 /* 2026-06-15: 首页标题默认展示“找商品”，并移除标题下方说明文案 */
 body[data-page="home"] .agent-title .rotating-title {
-  width: var(--rotating-title-width, 2.6em) !important;
-  min-width: 2.6em;
+  width: max-content !important;
+  min-width: 3.35em;
+  overflow: visible !important;
   color: #4d144a;
 }
 
