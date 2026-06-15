@@ -7361,3 +7361,22 @@ body[data-page="home"] .portal-footer .footer-col:nth-child(3) .footer-link-colu
     min-width: 980px;
   }
 }
+
+/* 2026-06-15: 首页标题默认展示“找商品”，并移除标题下方说明文案 */
+body[data-page="home"] .agent-title .rotating-title {
+  width: var(--rotating-title-width, 2.6em) !important;
+  min-width: 2.6em;
+  color: #4d144a;
+}
+
+body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word.is-active,
+body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word:first-child {
+  display: inline-block !important;
+  opacity: 1 !important;
+  transform: none !important;
+  color: #4d144a;
+}
+
+body[data-page="home"] .agent-summary {
+  display: none !important;
+}
