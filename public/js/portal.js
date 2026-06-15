@@ -138,16 +138,23 @@
       const setupRotatingTitle = () => {
         if (!rotatingTitle) return;
         const words = Array.from(rotatingTitle.querySelectorAll(".word"));
-        if (!words.length) return;
+        const defaultWord = rotatingTitle.dataset.default || "找商品";
+        if (!words.length) {
+          rotatingTitle.textContent = defaultWord;
+          rotatingTitle.style.setProperty("--rotating-title-width", "3em");
+          rotatingTitle.classList.add("is-ready");
+          return;
+        }
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        let activeIndex = 0;
+        let activeIndex = Math.max(0, words.findIndex((word) => word.classList.contains("is-active") || word.textContent.trim() === defaultWord));
 
         const updateWord = () => {
           words.forEach((word, index) => {
             word.classList.toggle("is-active", index === activeIndex);
           });
           const activeWord = words[activeIndex];
-          rotatingTitle.style.setProperty("--rotating-title-width", `${activeWord.getBoundingClientRect().width}px`);
+          const activeWidth = activeWord.getBoundingClientRect().width || activeWord.textContent.trim().length * parseFloat(getComputedStyle(activeWord).fontSize || "48");
+          rotatingTitle.style.setProperty("--rotating-title-width", `${activeWidth}px`);
         };
 
         updateWord();
