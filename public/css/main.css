@@ -7131,3 +7131,46 @@ body.lxfd-split-returning .shell{
       .lx-reco-specs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
       .lx-reco-spec { font-size: 11px; color: var(--lx-text-secondary); background: var(--lx-surface-muted); border-radius: 5px; padding: 2px 7px; }
       .lx-reco-why { margin-top: 4px; font-size: 11.5px; color: var(--lx-aubergine); }
+
+/* 首页底部导航：小屏浏览器仍保持官网式横向多列布局 */
+body[data-page="home"] .portal-footer {
+  overflow-x: auto;
+}
+
+body[data-page="home"] .portal-footer .footer-grid {
+  grid-template-columns:
+    minmax(112px, .82fr)
+    minmax(112px, .82fr)
+    minmax(300px, 1.55fr)
+    minmax(500px, 2.25fr) !important;
+  align-items: start;
+  min-width: 1060px;
+  max-width: 1500px;
+  gap: clamp(30px, 3.4vw, 70px);
+}
+
+body[data-page="home"] .portal-footer .footer-link-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+body[data-page="home"] .portal-footer .footer-col:nth-child(3) .footer-link-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 1500px) {
+  body[data-page="home"] .portal-footer {
+    padding-left: clamp(56px, 10vw, 120px);
+    padding-right: clamp(56px, 10vw, 120px);
+  }
+}
+
+@media (max-width: 900px) {
+  body[data-page="home"] .portal-footer {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  body[data-page="home"] .portal-footer .footer-grid {
+    min-width: 980px;
+  }
+}
