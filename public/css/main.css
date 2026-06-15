@@ -2104,7 +2104,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        margin-top: 10px;
+        margin-top: 16px;
       }
 
       .hero-chip-row {
@@ -7363,26 +7363,37 @@ body[data-page="home"] .portal-footer .footer-col:nth-child(3) .footer-link-colu
   }
 }
 
-/* 2026-06-15: 首页标题默认展示“找商品”，旋转词按字数自适应宽度，标题整组居中 */
+/* 2026-06-15: 首页标题默认展示“找商品”，旋转词按当前文案自适应宽度，并相对输入框居中 */
 body[data-page="home"] .agent-title {
   display: flex !important;
   align-items: baseline;
   justify-content: center;
-  gap: .12em;
+  gap: .08em;
+  width: min(100%, var(--home-composer-width)) !important;
+  max-width: var(--home-composer-width) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   text-align: center;
 }
 
+body[data-page="home"] .agent-title .title-static,
 body[data-page="home"] .agent-title .rotating-title {
-  width: auto !important;
+  line-height: inherit;
+}
+
+body[data-page="home"] .agent-title .rotating-title {
+  width: var(--rotating-title-width, auto) !important;
   min-width: 0 !important;
   margin-left: 0 !important;
   overflow: visible !important;
   color: #4d144a;
   text-align: left;
+  vertical-align: baseline;
 }
 
 body[data-page="home"] .agent-title .rotating-title .word {
   width: auto !important;
+  line-height: inherit;
   text-align: left;
   white-space: nowrap;
 }
@@ -7393,6 +7404,10 @@ body[data-page="home"] .agent-title .rotating-title:not(.is-ready) .word:first-c
   opacity: 1 !important;
   transform: none !important;
   color: #4d144a;
+}
+
+body[data-page="home"] .hero-composer-bar {
+  margin-top: 16px !important;
 }
 
 body[data-page="home"] .agent-summary {
