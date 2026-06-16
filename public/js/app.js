@@ -3939,9 +3939,16 @@
   }
 
   // ── 能力 A：从主面板导入已有对话 ─────────────────────────────────────────
-  function lxfdImportFromMain() {
+  function lxfdMainGenerating() {
+    // 主面板是否仍在流式生成（state.sending 或最后一条 AI 消息里还挂着生成骨架）
+    return !!((window.__lxState && window.__lxState.sending) ||
+      document.querySelector(".lx-p0-messages > .lx-p0-message.ai .lx-generating"));
+  }
+  function lxfdDoImport() {
     const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
     if (!msgs.length) return false;
+    thread.innerHTML = "";
+    turns = [];
     msgs.forEach(function(el) {
       const isUser = el.classList.contains("user");
       if (isUser) {
@@ -3964,6 +3971,27 @@
     lxfdPersistCurrent();
     lxfdRenderHist();
     return true;
+  }
+  function lxfdImportFromMain() {
+    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    if (!msgs.length) return false;
+    if (lxfdMainGenerating()) {
+      // 主面板还在生成回答：流式更新只发给主面板，克隆出来的是静态快照不会自更新，
+      // 所以先挂"载入中"，轮询等主面板生成完，再克隆完整对话进来（修复中途进全屏卡在加载骨架）。
+      if (welcome) welcome.style.display = "none";
+      thread.classList.add("show");
+      thread.innerHTML = '<div class="lxfd-msg-ai"><div class="lxfd-ai-body"><span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;正在载入对话…</span></div></div>';
+      let tries = 0;
+      const iv = setInterval(function() {
+        tries++;
+        if (!lxfdMainGenerating() || tries > 150) { // 60s 上限兜底
+          clearInterval(iv);
+          lxfdDoImport();
+        }
+      }, 400);
+      return true;
+    }
+    return lxfdDoImport();
   }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
