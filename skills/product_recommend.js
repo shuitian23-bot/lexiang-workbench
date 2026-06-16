@@ -324,9 +324,16 @@ module.exports = {
       let ovSql = `SELECT name, sku, price, image_url, specs, category FROM products WHERE status = 'active'` + EXCLUDE_TEST_OV;
       const ovParams = [];
       ovSql += excludeSecondHandOV;
-      // 按系列过滤（用 explicitBrands）
-      ovSql = addBrandFilter(ovSql, ovParams, explicitBrands, 'include');
-      ovSql += ` ORDER BY price ASC LIMIT 200`;
+      // 概览要跨品类（平板/台式/配件都要出）。用「名称含系列词」宽口径 OR 匹配，
+      // 不走 addBrandFilter——它附带 specs.lvl1/2/3 的 AND 约束，会把平板/台式/配件滤掉，导致只剩笔记本。
+      const ovTokens = [];
+      for (const b of explicitBrands) ovTokens.push(...(BRAND_SQL[b] || [b]));
+      if (ovTokens.length) {
+        ovSql += ' AND (' + ovTokens.map(() => 'LOWER(name) LIKE LOWER(?)').join(' OR ') + ')';
+        ovTokens.forEach((t) => ovParams.push('%' + t + '%'));
+      }
+      // LIMIT 拉到全系总量之上，避免 price ASC 把贵的台式/工作站截掉，保证每个品类都有货可分组
+      ovSql += ` ORDER BY price ASC LIMIT 500`;
 
       const ovRows = db.prepare(ovSql).all(...ovParams);
 
