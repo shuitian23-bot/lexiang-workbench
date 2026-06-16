@@ -1,4 +1,4 @@
 {
-  "mode": "chip",
+  "mode": "off",
   "_note": "lxHint 形态开关。legacy=旧浮窗 / chip=新情境转化条 / off=关闭。改完即时生效，无需重启。"
 }
