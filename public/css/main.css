@@ -103,7 +103,7 @@
         justify-self: center;
         justify-content: center;
         gap: clamp(24px, 2.25vw, 43px);
-        transform: translateX(-10px);
+        transform: translateX(-20px);
       }
 
       .main-nav button {
