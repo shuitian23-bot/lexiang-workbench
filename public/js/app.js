@@ -3842,7 +3842,7 @@
   let turns = [];
   let helloIndex = 0;
   let railManuallyCollapsed = true;
-  const chatState = { convId: null, sending: false, conversationNonce: 0 };
+  const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
   let helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
   const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
@@ -3902,6 +3902,69 @@
   }
   lxfdApplySite();
   function shortText(text, max) { return text.length > max ? text.slice(0, max) + "…" : text; }
+
+  // ── 能力 B：localStorage 多会话历史 ──────────────────────────────────────
+  function lxfdLoadStore() { try { return JSON.parse(localStorage.getItem("lexiang.lxfd.convs.v1") || "[]"); } catch (_) { return []; } }
+  function lxfdSaveStore(a) { try { localStorage.setItem("lexiang.lxfd.convs.v1", JSON.stringify(a.slice(0, 20))); } catch (_) {} }
+  function lxfdNewLocalConv() { chatState.localId = "lc" + Date.now() + Math.random().toString(36).slice(2, 6); }
+  function lxfdPersistCurrent() {
+    if (!thread || !thread.children.length) return;
+    if (!chatState.localId) lxfdNewLocalConv();
+    const firstUser = thread.querySelector(".lxfd-msg-user");
+    const title = (firstUser ? firstUser.textContent : "新对话").trim().slice(0, 24) || "新对话";
+    const store = lxfdLoadStore().filter(c => c.id !== chatState.localId);
+    store.unshift({ id: chatState.localId, title, convId: chatState.convId || null, threadHtml: thread.innerHTML, ts: Date.now() });
+    lxfdSaveStore(store);
+  }
+  function lxfdRenderHist() {
+    const store = lxfdLoadStore();
+    const hist = $("#lxfdHist");
+    if (!hist) return;
+    if (!store.length) { hist.innerHTML = '<div class="lxfd-hist-empty" style="padding:12px;color:#9a93a6;font-size:12px;">还没有历史对话</div>'; return; }
+    hist.innerHTML = store.map(c => '<a href="#" data-conv="' + escapeAttr(c.id) + '" class="' + (c.id === chatState.localId ? "active" : "") + '" title="' + escapeAttr(c.title) + '">' + escapeHtml(c.title) + '</a>').join("");
+  }
+  function lxfdLoadConv(id) {
+    const c = lxfdLoadStore().find(x => x.id === id);
+    if (!c) return;
+    lxfdPersistCurrent();
+    chatState.localId = c.id;
+    chatState.convId = c.convId || null;
+    chatState.conversationNonce += 1;
+    if (thread) { thread.innerHTML = c.threadHtml; thread.classList.add("show"); }
+    if (welcome) welcome.style.display = "none";
+    if (convoName) { convoName.textContent = shortText(c.title, 15); convoName.title = c.title; }
+    turns = [];
+    renderTurnIndex("");
+    lxfdRenderHist();
+  }
+
+  // ── 能力 A：从主面板导入已有对话 ─────────────────────────────────────────
+  function lxfdImportFromMain() {
+    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    if (!msgs.length) return false;
+    msgs.forEach(function(el) {
+      const isUser = el.classList.contains("user");
+      if (isUser) {
+        const text = el.textContent.trim();
+        const turnId = "turn-" + Date.now() + "-" + turns.length;
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-user" id="' + turnId + '">' + escapeHtml(text) + '</div>');
+        turns.push({ id: turnId, text: text });
+      } else {
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + el.innerHTML + '</div></div>');
+      }
+    });
+    renderTurnIndex("");
+    chatState.convId = (window.__lxState && window.__lxState.convId) || null;
+    if (welcome) welcome.style.display = "none";
+    thread.classList.add("show");
+    const lastUser = thread.querySelector(".lxfd-msg-user:last-of-type");
+    const titleText = lastUser ? lastUser.textContent.trim() : "导入的对话";
+    if (convoName) { convoName.textContent = shortText(titleText, 15); convoName.title = titleText; }
+    lxfdNewLocalConv();
+    lxfdPersistCurrent();
+    lxfdRenderHist();
+    return true;
+  }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
   }
@@ -4012,6 +4075,7 @@
   }
   function enterFullscreen() {
     lxfdApplySite();
+    if (thread && !thread.children.length) lxfdImportFromMain();
     const motionLayer = createPanelStretchLayer();
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.remove("lxfd-split-returning");
@@ -4085,8 +4149,10 @@
     if (turnList) turnList.innerHTML = turns.map(t => `<button type="button" class="${t.id === activeId ? "active" : ""}" data-target="${escapeAttr(t.id)}" title="${escapeAttr(t.text)}">${escapeHtml(shortText(t.text, 18))}</button>`).join("");
   }
   function resetConversation(collapseRail) {
+    lxfdPersistCurrent();
     chatState.conversationNonce += 1;
     chatState.convId = null;
+    chatState.localId = null;
     chatState.sending = false;
     if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
     turns = [];
@@ -4096,6 +4162,7 @@
     if (ta) { ta.value = ""; fit(); syncSend(); }
     if (collapseRail && !wide()) openRail(false);
     ta?.focus();
+    lxfdRenderHist();
   }
   function renderLxfdProducts(products) {
     if (!Array.isArray(products) || !products.length) return "";
@@ -4207,6 +4274,8 @@
           const payload = parseJson(data);
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
           if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
+          lxfdPersistCurrent();
+          lxfdRenderHist();
         }
       });
       if (nonce !== chatState.conversationNonce) return;
@@ -4251,7 +4320,7 @@
   scrim?.addEventListener("click", () => setRailManual(false));
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
-  $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); $$("#lxfdHist a").forEach(x => x.classList.remove("active")); a.classList.add("active"); });
+  $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); const id = a.dataset.conv; if (id) lxfdLoadConv(id); });
   $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); }));
   ta?.addEventListener("input", () => { fit(); syncSend(); });
   ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
@@ -4275,6 +4344,7 @@
 
   setTimeout(() => { setRotatingTitle(helloWords[helloIndex]); if (!reduceMotion) setInterval(rotateTitleWord, 2000); }, reduceMotion ? 0 : 2000);
   syncSend();
+  lxfdRenderHist();
 
   document.addEventListener("click", (e) => {
     const fsToggle = e.target.closest(".assistant-toggle");
