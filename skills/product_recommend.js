@@ -248,11 +248,15 @@ module.exports = {
         type: 'string',
         enum: ['default', 'shop', 'b', 'biz'],
         description: '当前业务入口：shop=个人及家庭，b=中小企业，biz=政教及大企业。一般由系统传入，不需要用户填写。'
+      },
+      overview: {
+        type: 'boolean',
+        description: '当用户想了解某个系列/品牌都有哪些产品（如「介绍下拯救者」「小新都有什么」「YOGA 系列有哪些」）时设为 true：会跨品类展示该系列下笔记本、平板、台式机、显示器、配件等全部品类，而不是只推一台笔记本。普通「推荐一台/带预算选购」不要设。'
       }
     },
     required: ['use_case']
   },
-  execute: async ({ use_case, budget, preference, site_type }, context = {}) => {
+  execute: async ({ use_case, budget, preference, site_type, overview }, context = {}) => {
     const siteType = normalizeSiteType(site_type || context.siteType);
     const originalText = String(context.userMessage || [use_case, budget, preference].filter(Boolean).join(' '));
     const useLower = (use_case || '').toLowerCase();
@@ -291,6 +295,93 @@ module.exports = {
         else if (siteType === 'b') { brandFilters.push('thinkbook'); brandFilters.push('thinkpad'); }
       }
     }
+
+    // ── 系列全品类概览分支 ──────────────────────────────────────────────────────
+    const SERIES_CN_NAME = {
+      legion: '拯救者', xiaoxin: '小新', yoga: 'YOGA', thinkpad: 'ThinkPad',
+      thinkbook: 'ThinkBook', ideapad: 'IdeaPad', moto: 'moto',
+      tianyi: '天逸', lecoo: '来酷', thinkcentre: 'ThinkCentre',
+      thinkstation: 'ThinkStation', zhaoyang: '昭阳', kaitian: '开天',
+      qitian: '启天', yangtian: '扬天', ruitian: '瑞天'
+    };
+    const CATEGORY_ORDER = [
+      '笔记本电脑', '平板电脑', '台式机', '一体机', '工作站', '显示器',
+      '手机', '耳机', '键鼠', '外设', '电脑外设与配件', '包', '箱包'
+    ];
+    const NOISE_CATEGORIES = new Set(['服务产品']);
+
+    const overviewIntent = /介绍|了解|有哪些|都有(什么|啥)|全系|整个系列|系列.*(有|都)|有什么(产品|机型|型号)/.test(originalText);
+    const enterOverview = (overview === true || overviewIntent) && explicitBrands.length > 0 && !budget;
+
+    if (enterOverview) {
+      const seriesKey = explicitBrands[0];
+      const seriesCN = SERIES_CN_NAME[seriesKey] || seriesKey;
+      const EXCLUDE_TEST_OV = ` AND name NOT LIKE '%测试%' AND name NOT LIKE '%请勿下单%' AND name NOT LIKE '%勿拍%' AND name NOT LIKE '%不发货%'`;
+      const excludeSecondHandOV = !hasSecondHandIntent(originalText)
+        ? ` AND name NOT LIKE '%二手%' AND name NOT LIKE '%官翻%' AND name NOT LIKE '%翻新%'`
+        : '';
+      // 跨品类查询，去掉 category=? 限制，但带上 category 字段
+      let ovSql = `SELECT name, sku, price, image_url, specs, category FROM products WHERE status = 'active'` + EXCLUDE_TEST_OV;
+      const ovParams = [];
+      ovSql += excludeSecondHandOV;
+      // 按系列过滤（用 explicitBrands）
+      ovSql = addBrandFilter(ovSql, ovParams, explicitBrands, 'include');
+      ovSql += ` ORDER BY price ASC LIMIT 200`;
+
+      const ovRows = db.prepare(ovSql).all(...ovParams);
+
+      // 按 category 分组，每组 name 去重取前 4 款
+      const grouped = {};
+      for (const row of ovRows) {
+        const cat = row.category || '其它';
+        if (NOISE_CATEGORIES.has(cat)) continue;
+        if (!grouped[cat]) grouped[cat] = { seenNames: new Set(), items: [] };
+        const nameKey = String(row.name || '').replace(/\s+/g, '').toLowerCase();
+        if (grouped[cat].seenNames.has(nameKey)) continue;
+        grouped[cat].seenNames.add(nameKey);
+        if (grouped[cat].items.length < 4) {
+          let specs = {};
+          try { specs = JSON.parse(row.specs || '{}'); } catch {}
+          grouped[cat].items.push({
+            name: row.name,
+            sku: row.sku,
+            price: row.price,
+            image_url: row.image_url || '',
+            brand: specs.brand || '',
+            series: specs.lvl3 || '',
+            description: specs.lvl3 || cat,
+            url: specs.url || specs.pcDetailUrl || `https://item.lenovo.com.cn/product/${row.sku}.html`,
+            category: cat
+          });
+        }
+      }
+
+      // 品类排序：先按 CATEGORY_ORDER 固定顺序，剩余品类末尾追加
+      const catKeys = Object.keys(grouped);
+      const orderedCats = [
+        ...CATEGORY_ORDER.filter(c => catKeys.includes(c)),
+        ...catKeys.filter(c => !CATEGORY_ORDER.includes(c))
+      ];
+
+      // flat products，每品类最多 4 款，总上限 24
+      const ovProducts = [];
+      for (const cat of orderedCats) {
+        if (ovProducts.length >= 24) break;
+        const items = grouped[cat].items.slice(0, Math.min(4, 24 - ovProducts.length));
+        ovProducts.push(...items);
+      }
+
+      return {
+        action: 'frontend_display',
+        title: `${seriesCN} · 全系产品`,
+        products: ovProducts,
+        total_active: ovRows.length,
+        grouped: true,
+        query: { use_case, budget: null, preference, site_type: siteType, overview: true },
+        note: `以上为「${seriesCN}」系列在售商品全品类概览，涵盖笔记本、平板、台式机、显示器等各品类，每类最多展示 4 款代表性产品，点击任意商品可查看详情。`
+      };
+    }
+    // ── 概览分支结束 ─────────────────────────────────────────────────────────────
 
     const budgetRange = parseBudgetRange(budget);
     const { minPrice, maxPrice } = budgetRange;

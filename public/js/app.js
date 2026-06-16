@@ -1356,7 +1356,7 @@
                   openProduct(products[0].sku);
                 } else if (products.length) {
                   lxRevealContent();
-                  const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products };
+                  const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products, grouped: payload.grouped };
                   lxUpsertTab(recoTab);
                   lxRunTab(recoTab);
                 }
@@ -2400,8 +2400,32 @@
         function lxRenderRecoPage(tab) {
           const pageBox = lxEnsureRecoPage();
           const products = Array.isArray(tab.products) ? tab.products : [];
-          const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>根据你的需求挑出 ${products.length} 款，可继续追问缩小范围</span></div>`;
           const disclaimer = `<p class="lx-p0-disclaimer">推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。</p>`;
+
+          // 系列全品类概览模式：按 category 分组渲染货架
+          const isGrouped = !!tab.grouped && products.some(p => p && p.category);
+          if (isGrouped) {
+            const intro = `<div class="reco-head"><h2>${esc(tab.label || "全系产品")}</h2><span>这个系列覆盖这些品类，按品类帮你理好了，点任意一款看详情</span></div>`;
+            // 按先见顺序分组（保持后端排好的品类顺序）
+            const catOrder = [];
+            const catMap = {};
+            for (const p of products) {
+              const cat = (p && p.category) || "其它";
+              if (!catMap[cat]) { catMap[cat] = []; catOrder.push(cat); }
+              catMap[cat].push(p);
+            }
+            const floors = catOrder.map(cat => {
+              const items = catMap[cat];
+              return `<section class="lx-floor" data-floor-cat="${esc(cat)}">` +
+                `<div class="lx-floor-head"><h3>${esc(cat)}</h3><span>${items.length} 款</span></div>` +
+                `<div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div>` +
+                `</section>`;
+            }).join("");
+            pageBox.innerHTML = intro + floors + disclaimer;
+            return;
+          }
+
+          const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>根据你的需求挑出 ${products.length} 款，可继续追问缩小范围</span></div>`;
           if (products.length <= 6) {
             const compareAll = products.length >= 2
               ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, 4).map((p) => p.sku).join(","))}">对比这 ${Math.min(products.length, 4)} 款</button></div>`
