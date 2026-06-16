@@ -5411,7 +5411,10 @@
       .detail-reviews-note { font-size: 12px; font-weight: 400; color: var(--lx-text-tertiary); margin-left: 10px; }
 
       .lx-hint-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px 12px; border: 1px solid var(--lx-border); border-left: 3px solid var(--lx-brand-red); border-radius: 8px; background: var(--lx-surface-muted); font-size: 12.5px; }
-      .lx-hint-text { flex: 1; color: var(--lx-text-secondary); }
+      .lx-hint-text { flex: 1; display: flex; align-items: center; gap: 4px; color: var(--lx-text-secondary); border: none; background: transparent; text-align: left; font: inherit; padding: 0; cursor: pointer; transition: color 140ms ease; }
+      .lx-hint-text:hover { color: var(--lx-brand-red); }
+      .lx-hint-go { color: var(--lx-brand-red); font-weight: 700; opacity: 0; transform: translateX(-2px); transition: opacity 140ms ease, transform 140ms ease; }
+      .lx-hint-text:hover .lx-hint-go { opacity: 1; transform: translateX(0); }
       .lx-hint-bar .lx-p0-btn { font-size: 12px; padding: 4px 12px; flex: none; }
       .lx-hint-close { border: none; background: transparent; color: var(--lx-text-tertiary); cursor: pointer; font-size: 15px; padding: 0 4px; }
       .lx-hint-close:hover { color: var(--lx-brand-red); }

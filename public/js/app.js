@@ -2827,9 +2827,10 @@
           bottom.querySelector(".lx-hint-bar")?.remove();
           state.lxHintCount += 1;
           try { localStorage.setItem(dayKey, String(dayCount + 1)); } catch {}
-          bottom.insertAdjacentHTML("afterbegin", `<div class="lx-hint-bar"><span class="lx-hint-text">${esc(text)}</span><button class="lx-p0-btn primary" type="button" data-quick-ask="${esc(ask)}">问一下</button><button class="lx-hint-close" type="button" aria-label="关闭">×</button></div>`);
+          // 整条即转化入口：去掉独立「问一下」按钮，点提示文案本身就发起提问（data-quick-ask 走 3589 行委托发送）
+          bottom.insertAdjacentHTML("afterbegin", `<div class="lx-hint-bar"><button class="lx-hint-text" type="button" data-quick-ask="${esc(ask)}">${esc(text)}<span class="lx-hint-go" aria-hidden="true">›</span></button><button class="lx-hint-close" type="button" aria-label="关闭">×</button></div>`);
           const bar = bottom.querySelector(".lx-hint-bar");
-          bar.querySelector(".lx-hint-close").addEventListener("click", () => bar.remove());
+          bar.querySelector(".lx-hint-close").addEventListener("click", (e) => { e.stopPropagation(); bar.remove(); });
           bar.querySelector("[data-quick-ask]").addEventListener("click", () => setTimeout(() => bar.remove(), 100));
           setTimeout(() => bar.remove(), 30000);
         }

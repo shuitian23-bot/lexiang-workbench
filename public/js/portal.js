@@ -146,11 +146,16 @@
             word.classList.toggle("is-active", index === activeIndex);
           });
           const activeWord = words[activeIndex];
-          rotatingTitle.style.setProperty("--rotating-title-width", `${activeWord.getBoundingClientRect().width}px`);
+          const w = activeWord.getBoundingClientRect().width;
+          // 首屏未完成布局/字体未加载时宽度为 0，写 0px 会被 overflow:hidden 把首词裁没→标题空白几秒；保留默认 3em 让首词立即显示
+          if (w > 0) rotatingTitle.style.setProperty("--rotating-title-width", `${w}px`);
         };
 
         updateWord();
         rotatingTitle.classList.add("is-ready");
+        // 布局/字体就绪后再量一次，确保首词立刻正确显示而非等到下一次 2s 轮播才出现
+        requestAnimationFrame(updateWord);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateWord);
         window.addEventListener("resize", updateWord);
 
         if (reduceMotion || words.length < 2) return;
