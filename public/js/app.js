@@ -3975,23 +3975,32 @@
   function lxfdImportFromMain() {
     const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
     if (!msgs.length) return false;
-    if (lxfdMainGenerating()) {
-      // 主面板还在生成回答：流式更新只发给主面板，克隆出来的是静态快照不会自更新，
-      // 所以先挂"载入中"，轮询等主面板生成完，再克隆完整对话进来（修复中途进全屏卡在加载骨架）。
-      if (welcome) welcome.style.display = "none";
-      thread.classList.add("show");
-      thread.innerHTML = '<div class="lxfd-msg-ai"><div class="lxfd-ai-body"><span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;正在载入对话…</span></div></div>';
-      let tries = 0;
-      const iv = setInterval(function() {
-        tries++;
-        if (!lxfdMainGenerating() || tries > 150) { // 60s 上限兜底
-          clearInterval(iv);
-          lxfdDoImport();
-        }
-      }, 400);
-      return true;
+    const generating = lxfdMainGenerating();
+    // 先把当前所有消息（含那条还在生成、内容只有一半的 AI）原样克隆过来——带一半过来
+    lxfdDoImport();
+    if (generating) {
+      // 主面板仍在流式输出：实时把最后一条 AI 消息镜像到全屏，主面板每蹦一段、全屏跟着更新，
+      // 直到生成结束——边进边继续往外输出，不再干等（流式 SSE 只发给主面板 DOM，这里做镜像）。
+      const aiNodes = Array.prototype.slice.call(document.querySelectorAll(".lx-p0-messages > .lx-p0-message.ai"));
+      const mainAi = aiNodes[aiNodes.length - 1];
+      const fsBodies = thread.querySelectorAll(".lxfd-msg-ai .lxfd-ai-body");
+      const fsAiBody = fsBodies[fsBodies.length - 1];
+      if (mainAi && fsAiBody) {
+        let tries = 0;
+        const iv = setInterval(function() {
+          tries++;
+          fsAiBody.innerHTML = mainAi.innerHTML;          // 镜像最新流式内容
+          thread.scrollTop = thread.scrollHeight;
+          if (!lxfdMainGenerating() || tries > 400) {     // 60s 上限兜底
+            clearInterval(iv);
+            fsAiBody.innerHTML = mainAi.innerHTML;          // 收尾再同步最终一帧
+            lxfdPersistCurrent();
+            lxfdRenderHist();
+          }
+        }, 150);
+      }
     }
-    return lxfdDoImport();
+    return true;
   }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
