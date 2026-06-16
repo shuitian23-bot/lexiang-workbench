@@ -47,6 +47,7 @@
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐"
         };
+        window.__lxState = state;
 
         const $ = (sel, root = document) => root.querySelector(sel);
         const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -2884,28 +2885,39 @@
             quick: ["我要找商品", "我要找优惠和活动", "我要查保修和售后", "我要找附近门店", "我要企业批量采购", "我要问国补和教育优惠"],
             welcome: ["想买游戏本，预算8000怎么选？", "日常办公用，5000内电脑怎么选？", "我都有哪些会员权益？", "公司采购电脑有什么补贴？"],
             placeholder: "最近有什么优惠活动？",
+            actionbar: ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心"],
+            hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
           },
           personal: {
             quick: ["我要找商品", "我要找优惠和活动", "我要问国补和教育优惠", "我要以旧换新", "我要查保修和售后", "我要找附近门店"],
             welcome: ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？"],
             placeholder: "最近有什么优惠活动？",
+            actionbar: ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心"],
+            hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
           },
           business: {
             quick: ["我要企业批量采购", "我要企业认证享专享价", "我要对公开票和账期", "我要找商用电脑", "我要查售后和上门服务"],
             welcome: ["公司采购50台办公本，怎么拿企业价？", "ThinkBook和ThinkPad办公怎么选？", "企业购能开专票、走账期吗？", "中小企业有什么采购补贴？"],
             placeholder: "公司要配办公电脑，帮我推荐",
+            actionbar: ["企业认证", "对公开票", "账期申请", "批量采购", "上门服务", "专属客服"],
+            hello: ["企业采购", "专享价", "对公开票", "商用电脑", "上门服务"],
           },
           enterprise: {
             quick: ["我要看行业解决方案", "我要信创合规产品", "我要批量采购报价", "我要对接专属客户经理", "我要查售后服务"],
             welcome: ["信创服务器怎么选型？", "智慧教育解决方案有哪些案例？", "参与政采招投标需要什么资质？", "工作站和服务器怎么搭配？"],
             placeholder: "我们单位要采购信创设备，帮我推荐",
+            actionbar: ["信创合规", "解决方案", "招投标支持", "批量报价", "客户经理", "售后服务"],
+            hello: ["信创选型", "行业方案", "招投标", "批量报价", "专属经理"],
           },
           brand: {
             quick: ["介绍联想品牌故事", "联想有哪些产品线品牌", "联想的全球实力和地位", "联想在 AI PC 上的布局", "联想的服务保障体系", "联想的 ESG 和社会责任"],
             welcome: ["ThinkPad、小新、拯救者是什么关系？", "联想和其他品牌比优势在哪？", "联想的售后服务靠谱吗？", "联想为什么能做到全球 PC 第一？"],
             placeholder: "想了解联想品牌的什么？",
+            actionbar: ["品牌故事", "产品矩阵", "全球实力", "AI PC布局", "服务保障", "ESG责任"],
+            hello: ["品牌故事", "产品矩阵", "全球第一", "AI PC", "服务保障"],
           },
         };
+        window.__lxSitePrompts = LX_SITE_PROMPTS;
 
         function lxRenderQuickList() {
           const cfg = LX_SITE_PROMPTS[state.page] || LX_SITE_PROMPTS.home;
@@ -3832,7 +3844,7 @@
   let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0 };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
-  const helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
+  let helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
   const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
   const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
   const arrow = '<span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
@@ -3845,11 +3857,50 @@
     + '<div class="lxfd-followups"><button type="button">可以推荐适合学生的笔记本吗？</button><button type="button">怎么查询我的产品保修状态？</button><button type="button">现在有哪些可以叠加的优惠政策？</button></div>'
     + '<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>';
 
-  chips.innerHTML = questions.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
-  quick.innerHTML = quicks.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
-
   function escapeHtml(text) { return String(text).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])); }
   function escapeAttr(text) { return escapeHtml(text).replace(/`/g, "&#96;"); }
+  function lxfdDetectPage() {
+    const path = location.pathname;
+    for (const [page, p] of Object.entries(navPaths)) {
+      if (path === p || path === p.replace(/\/$/, "") || path.startsWith(p === "/" ? "/_" : p)) {
+        if (p !== "/" || path === "/") return page;
+      }
+    }
+    // 精确匹配
+    for (const [page, p] of Object.entries(navPaths)) {
+      const normalized = p.endsWith("/") ? p : p + "/";
+      const pathNorm = path.endsWith("/") ? path : path + "/";
+      if (pathNorm === normalized) return page;
+    }
+    return "home";
+  }
+  function lxfdApplySite() {
+    const prompts = window.__lxSitePrompts;
+    if (!prompts) {
+      // 兜底：用写死默认值渲染
+      if (chips) chips.innerHTML = questions.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+      if (quick) quick.innerHTML = quicks.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
+      return;
+    }
+    const page = (window.__lxState && window.__lxState.page) || lxfdDetectPage();
+    const cfg = prompts[page] || prompts.home;
+    if (!cfg) return;
+    // 欢迎 chips
+    const welcomeList = cfg.welcome || questions;
+    if (chips) chips.innerHTML = welcomeList.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+    // 底部 actionbar
+    const actionbarList = cfg.actionbar || quicks;
+    if (quick) quick.innerHTML = actionbarList.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
+    // 滚动标题词
+    if (cfg.hello && cfg.hello.length) {
+      helloWords = cfg.hello;
+      helloIndex = 0;
+      setRotatingTitle(helloWords[0]);
+    }
+    // 输入框 placeholder
+    if (ta && cfg.placeholder) ta.placeholder = cfg.placeholder;
+  }
+  lxfdApplySite();
   function shortText(text, max) { return text.length > max ? text.slice(0, max) + "…" : text; }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
@@ -3960,6 +4011,7 @@
     return layer;
   }
   function enterFullscreen() {
+    lxfdApplySite();
     const motionLayer = createPanelStretchLayer();
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.remove("lxfd-split-returning");
@@ -4089,7 +4141,10 @@
     const revealAi = () => {
       if (hasContent) return;
       hasContent = true;
-      if (body) body.innerHTML = "";
+      body?.querySelector(".lxfd-typing")?.remove();
+      ai._textBox = document.createElement("div");
+      ai._textBox.className = "lxfd-ai-text";
+      if (body) body.insertBefore(ai._textBox, body.firstChild);
       ai._raw = "";
     };
     try {
@@ -4113,7 +4168,7 @@
           if (!content) return;
           revealAi();
           ai._raw += content;
-          if (body) body.textContent = ai._raw;
+          if (ai._textBox) ai._textBox.textContent = ai._raw;
           thread.scrollTop = thread.scrollHeight;
         },
         status: (data) => {
@@ -4121,7 +4176,9 @@
           const payload = parseJson(data);
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
           if (payload.text && !hasContent && body) {
-            body.innerHTML = `<span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;${escapeHtml(payload.text)}</span>`;
+            let typing = body.querySelector(".lxfd-typing");
+            if (!typing) { body.insertAdjacentHTML("afterbegin", '<span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;</span>'); typing = body.querySelector(".lxfd-typing"); }
+            if (typing) typing.innerHTML = `<i></i><i></i><i></i>&nbsp;${escapeHtml(payload.text)}`;
           }
         },
         products: (data) => {
@@ -4137,7 +4194,7 @@
           const payload = parseJson(data);
           const products = payload.products || payload.items || [];
           revealAi();
-          if (payload.title && body && !body.textContent.trim()) body.textContent = payload.title;
+          if (payload.title && ai._textBox && !ai._textBox.textContent.trim()) ai._textBox.textContent = payload.title;
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
         },
         suggestions: (data) => {
@@ -4149,20 +4206,20 @@
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
-          if (ai._raw && body) body.innerHTML = mdLite(ai._raw);
+          if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
         }
       });
       if (nonce !== chatState.conversationNonce) return;
       if (!hasContent) {
         revealAi();
-        if (body) body.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
+        if (ai._textBox) ai._textBox.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
       }
       body?.insertAdjacentHTML("beforeend", `<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>`);
       if (!ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, ["可以推荐适合学生的笔记本吗？", "怎么查询我的产品保修状态？", "现在有哪些可以叠加的优惠政策？"]);
     } catch (error) {
       if (nonce !== chatState.conversationNonce) return;
       revealAi();
-      if (body) body.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
+      if (ai._textBox) ai._textBox.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
     } finally {
       if (nonce === chatState.conversationNonce) chatState.sending = false;
       ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
