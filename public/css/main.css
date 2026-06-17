@@ -7688,3 +7688,8 @@ body[data-page="home"] .agent-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr))!important;
   }
 }
+
+/* Hide the pending label on attached product cards while keeping the attachment behavior. */
+.att-pending{
+  display:none!important;
+}
