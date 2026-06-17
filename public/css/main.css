@@ -7664,3 +7664,27 @@ body[data-page="home"] .agent-summary {
 .lx-site-floors .lx-floor:not(.lx-floor--activity) .lx-floor-head > .lx-p0-btn{
   display:none!important;
 }
+
+/* Product floors: adapt each row from 4 to 6 cards as the browser gets wider. */
+.lx-floor-products,
+.lx-personal-rec-floor .lx-floor-products{
+  grid-template-columns: repeat(4, minmax(0, 1fr))!important;
+}
+@media (min-width: 1680px){
+  .lx-floor-products,
+  .lx-personal-rec-floor .lx-floor-products{
+    grid-template-columns: repeat(5, minmax(0, 1fr))!important;
+  }
+}
+@media (min-width: 2240px){
+  .lx-floor-products,
+  .lx-personal-rec-floor .lx-floor-products{
+    grid-template-columns: repeat(6, minmax(0, 1fr))!important;
+  }
+}
+@media (max-width: 900px){
+  .lx-floor-products,
+  .lx-personal-rec-floor .lx-floor-products{
+    grid-template-columns: repeat(2, minmax(0, 1fr))!important;
+  }
+}
