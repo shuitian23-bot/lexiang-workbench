@@ -7541,3 +7541,82 @@ body[data-page="home"] .agent-summary {
 
 
 
+
+
+/* Final fix: product pending composer grows upward and keeps action row visible */
+.assistant-panel .assistant-bottom:has(.composer.has){
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-end!important;
+  min-height:236px!important;
+  overflow:visible!important;
+}
+.assistant-panel .assistant-bottom:has(.composer.has) .shortcut-row{
+  flex:0 0 auto!important;
+}
+.assistant-panel .assistant-bottom .composer.has{
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:188px!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding:14px 14px 13px!important;
+  gap:0!important;
+}
+.assistant-panel .assistant-bottom .composer.has > .attach{
+  order:0!important;
+  flex:0 0 auto!important;
+  display:block!important;
+  margin:0 0 14px!important;
+}
+.assistant-panel .assistant-bottom .composer.has > textarea{
+  order:1!important;
+  flex:1 1 auto!important;
+  display:block!important;
+  min-height:52px!important;
+  height:auto!important;
+  max-height:118px!important;
+  margin:0 0 12px!important;
+  overflow-y:auto!important;
+  line-height:24px!important;
+}
+.assistant-panel .assistant-bottom .composer.has > .composer-actions{
+  order:2!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  min-height:36px!important;
+  margin:0!important;
+  gap:10px!important;
+  overflow:visible!important;
+}
+.assistant-panel .assistant-bottom .composer.has .chip-row{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  max-width:calc(100% - 90px)!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  overflow:hidden!important;
+}
+.assistant-panel .assistant-bottom .composer.has .chip{
+  flex:0 1 auto!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+.assistant-panel .assistant-bottom .composer.has .send-group{
+  flex:0 0 auto!important;
+  margin-left:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+.assistant-panel .assistant-bottom .composer.has .image-btn,
+.assistant-panel .assistant-bottom .composer.has .send-btn{
+  flex:0 0 auto!important;
+}
+
