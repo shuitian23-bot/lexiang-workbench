@@ -18,13 +18,14 @@
       html.lx-root-lxfd-prepaint .lxfd .anim-rise,
       html.lx-root-lxfd-prepaint .lxfd .anim-fade{opacity:1!important;animation:none!important;transform:none!important}
       html.lx-root-lxfd-prepaint .lxfd-actions .lxfd-ic:first-child{display:none!important}
-      html.lx-root-lxfd-prepaint .lxfd-rail:not(.open){transform:translate3d(calc(-100% - 26px),0,0)!important}
-      html.lx-root-lxfd-prepaint .lxfd-rail.open{transform:translate3d(0,0,0)!important}
-      html.lx-root-lxfd-prepaint .lxfd-rail-fab:not(.hide),
-      html.lx-root-lxfd-prepaint .lxfd-rail-new-fab:not(.hide){opacity:1!important;visibility:visible!important;transform:none!important}
-      html.lx-root-lxfd-prepaint .lxfd-rail-fab.hide,
-      html.lx-root-lxfd-prepaint .lxfd-rail-new-fab.hide{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
-      html.lx-root-lxfd-prepaint .lxfd-stage{padding-left:40px!important}
+      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail{transform:translate3d(calc(-100% - 26px),0,0)!important}
+      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail.open{transform:translate3d(0,0,0)!important}
+      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-fab,
+      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-new-fab{opacity:1!important;visibility:visible!important;transform:none!important}
+      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail-fab,
+      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail-new-fab{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
+      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-stage{padding-left:40px!important}
+      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-stage.shift{padding-left:316px!important}
       html.lx-root-lxfd-prepaint .lxfd-chips{width:min(100%,700px);grid-template-columns:repeat(6,minmax(0,1fr));gap:10px 12px;margin:36px auto 0}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(1){grid-column:1/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(2){grid-column:3/span 2}
@@ -32,7 +33,7 @@
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(4){grid-column:2/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(5){grid-column:4/span 2}
     </style>
-    <link rel="stylesheet" href="/css/main.css?v=202606171555">
+    <link rel="stylesheet" href="/css/main.css?v=202606171615">
   </head>
   <body data-state="default">
     <script>
@@ -830,7 +831,7 @@
 
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd") || location.pathname.replace(/\/+$|^$/, "/") === "/";</script>
     <script src="/js/portal.js?v=202606161600"></script>
-    <script src="/js/app.js?v=202606171605"></script>
+    <script src="/js/app.js?v=202606171615"></script>
     <script>
       (function(){
         try {

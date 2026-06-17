@@ -4173,6 +4173,7 @@
   }
   function setRailManual(open) {
     railManuallyCollapsed = !open;
+    document.body.classList.toggle("lxfd-rail-user-open", !!open);
     openRail(open);
   }
   function syncRailForViewport() {
