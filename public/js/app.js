@@ -3301,6 +3301,26 @@
               aiMsg.insertAdjacentHTML("beforeend", `<button class="lx-msg-copy" type="button" title="复制回答" aria-label="复制回答">⧉</button>`);
             }
           });
+          const topMainNav = document.querySelector(".main-nav");
+          let topMainNavTimer = null;
+          const setTopMainNav = (open) => {
+            if (!topMainNav) return;
+            topMainNav.classList.toggle("open", !!open);
+            topMainNav.setAttribute("aria-expanded", open ? "true" : "false");
+          };
+          topMainNav?.setAttribute("aria-expanded", "false");
+          topMainNav?.addEventListener("mouseenter", () => { clearTimeout(topMainNavTimer); setTopMainNav(true); });
+          topMainNav?.addEventListener("mouseleave", () => { clearTimeout(topMainNavTimer); topMainNavTimer = setTimeout(() => setTopMainNav(false), 260); });
+          topMainNav?.addEventListener("click", (event) => {
+            if (event.target.closest("button")) return;
+            event.preventDefault();
+            setTopMainNav(!topMainNav.classList.contains("open"));
+          });
+          document.addEventListener("pointerdown", (event) => {
+            if (!event.target.closest?.(".main-nav")) setTopMainNav(false);
+          });
+          document.addEventListener("keydown", (event) => { if (event.key === "Escape") setTopMainNav(false); });
+
           document.addEventListener("pointerdown", (event) => {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || event.target.closest("button, a, input, textarea, select, .lx-pick-btn")) return;
