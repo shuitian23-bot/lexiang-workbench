@@ -1522,6 +1522,7 @@ function geoEnumerateDates(start, end) {
 async function geoLoadPageRefTrend(loadSeq) {
   const grid = document.getElementById('geo-page-ref-grid');
   if (!grid) return;
+  _pageRefTrendData = null;
   geoRenderPageRefGrid();
   const { start_date, end_date } = geoResolveDateRange();
   const dates = geoEnumerateDates(start_date, end_date);
@@ -1592,6 +1593,21 @@ function geoRenderPageRefGrid() {
   const dates = _pageRefTrendData?.dates || [];
   const seriesMap = Object.fromEntries((_pageRefTrendData?.series || []).map(s => [s.field, s]));
   const visibleFields = GEO_PAGE_REF_FIELDS.filter(f => GEO_PAGE_REF_VISIBLE.has(f.field));
+  // 顶部 loading/range 提示
+  const headerId = 'geo-page-ref-header';
+  let header = document.getElementById(headerId);
+  if (!header) {
+    header = document.createElement('div');
+    header.id = headerId;
+    header.style.cssText = 'font-size:11px;color:#6b7280;margin-bottom:8px';
+    grid.parentNode.insertBefore(header, grid);
+  }
+  if (!_pageRefTrendData) {
+    const dr = geoResolveDateRange();
+    header.innerHTML = `<span style="color:#3f78c5">⏳ 拉取 ${dr.start_date} ~ ${dr.end_date} 数据中…（${geoEnumerateDates(dr.start_date, dr.end_date).length * 2 + 1} 次外部接口，约 3-6 秒）</span>`;
+  } else {
+    header.innerHTML = `<span>数据范围：${dates[0]} ~ ${dates[dates.length-1]}（共 ${dates.length} 天，每日新增）</span>`;
+  }
   grid.innerHTML = visibleFields.map(f => {
     const s = seriesMap[f.field];
     const total = s ? s.data.reduce((a,b)=>a+(b||0),0) : 0;
