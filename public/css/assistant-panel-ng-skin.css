@@ -946,3 +946,48 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   opacity:1!important;
   filter:brightness(0) invert(1)!important;
 }
+
+/* Restore the soft clipped color gradient behind the split assistant toolbar. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  background:
+    radial-gradient(120% 130px at 18% 0%, rgba(255,138,92,.16) 0%, rgba(255,138,92,.08) 34%, transparent 70%),
+    radial-gradient(120% 150px at 92% 0%, rgba(146,86,214,.16) 0%, rgba(146,86,214,.08) 36%, transparent 72%),
+    #fff!important;
+  background-clip:border-box!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel::before{
+  display:none!important;
+}
+
+/* Remove the white fill from the split switch button. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn{
+  background:transparent!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn:hover{
+  background:rgba(240,234,248,.55)!important;
+}
+
+/* Remove hover background fill from split assistant top icon buttons. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-btn:hover,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-btn:focus-visible{
+  background:transparent!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn:hover,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn:focus-visible{
+  background:transparent!important;
+}
+
+/* Reduce split composer send button by 25% and set unavailable opacity to 60%. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn{
+  width:29px!important;
+  height:29px!important;
+  flex:0 0 29px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn .icon{
+  width:14px!important;
+  height:14px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer:not(.has) textarea:placeholder-shown ~ .composer-actions .send-btn,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn:disabled{
+  opacity:.6!important;
+}
