@@ -7637,3 +7637,22 @@ body[data-page="home"] .agent-summary {
   flex:0 0 auto!important;
 }
 
+
+
+/* Split assistant shortcut row white backing */
+.assistant-panel .assistant-bottom .shortcut-row{
+  position:relative;
+  z-index:2;
+  margin:0 0 8px;
+  padding:8px 0 7px;
+  background:#fff;
+  border-radius:12px 12px 0 0;
+}
+.assistant-panel .assistant-bottom .shortcut-row::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0 -6px -8px;
+  background:#fff;
+  border-radius:14px 14px 0 0;
+}

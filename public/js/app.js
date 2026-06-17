@@ -1728,6 +1728,85 @@
           </div>`;
         }
 
+
+        const LX_PERSONAL_RECOMMEND_FLOORS = [
+          ["笔记本", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return (p.category === "笔记本电脑" || /小新|拯救者|Legion|YOGA|ThinkPad|ThinkBook|笔记本|轻薄本|游戏本|AI元启/i.test(text)) && !/手机|moto|平板|Pad|显示器|服务|保修|保护套|鼠标|键盘|包|耳机/.test(text);
+          }],
+          ["台式机/显示器", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "台式机" || p.category === "显示器" || /台式|主机|一体机|显示器|ThinkCentre|扬天|启天|拯救者刃|来酷显示器/i.test(text);
+          }],
+          ["平板", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "平板电脑" || /平板|小新Pad|YOGA Tab|Lenovo Tab|Pad Pro|Pad Plus/i.test(text);
+          }],
+          ["手机", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "手机" || /moto|razr|手机|折叠屏/i.test(text);
+          }],
+          ["智能生活", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /耳机|音箱|手表|手环|投影|智能|LePods|蓝牙|摄像头|扫地|门锁|路由/i.test(text);
+          }],
+          ["配件/办公", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /鼠标|键盘|扩展坞|保护套|背包|包|打印机|办公|支架|电源|适配器|硬盘|U盘|充电器|鼠标垫/i.test(text);
+          }],
+          ["全屋智能", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /全屋|智能家居|门锁|摄像头|路由器|扫地|照明|家居|IoT/i.test(text);
+          }],
+          ["服务升级", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "服务产品" || /保修|延保|上门|服务|升级|换新|Care|清灰|安装|保障|会员/i.test(text);
+          }],
+        ];
+
+        async function lxEnsureFloorProducts(site, limit = 96) {
+          if (!state.floorProducts || state.floorProductsSite !== site || state.floorProductsLimit !== limit) {
+            try {
+              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store" });
+              state.floorProducts = await response.json();
+              state.floorProductsSite = site;
+              state.floorProductsLimit = limit;
+            } catch {
+              state.floorProducts = [];
+              state.floorProductsLimit = limit;
+            }
+          }
+          return Array.isArray(state.floorProducts) ? state.floorProducts : [];
+        }
+
+        function lxProductKey(product) {
+          return product?.sku || product?.url || product?.name || Math.random().toString(36);
+        }
+
+        function lxPickFloorProducts(pool, match, used, count = 8) {
+          const picked = [];
+          const add = (product, markUsed = true) => {
+            if (!product || picked.includes(product)) return;
+            picked.push(product);
+            if (markUsed) used.add(lxProductKey(product));
+          };
+          pool.filter((p) => match(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
+          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
+          if (picked.length < count) pool.filter((p) => !picked.includes(p)).forEach((p) => { if (picked.length < count) add(p, false); });
+          return picked.slice(0, count);
+        }
+
+        async function lxRenderPersonalRecommendFloors() {
+          const site = API_SITE.personal || "shop";
+          const pool = await lxEnsureFloorProducts(site, 96);
+          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const used = new Set();
+          return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
+            const items = lxPickFloorProducts(source, match, used, 8);
+            return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
           const page = state.page;
           const matchers = LX_CATEGORY_MATCHERS[page];
@@ -1767,11 +1846,23 @@
           const activeFloorTab = state.activeSiteFloorTab || "推荐";
           grid.hidden = activeFloorTab !== "推荐";
           if (activeFloorTab === "推荐") {
+            if (page === "personal") {
+              grid.hidden = true;
+              box.hidden = false;
+              box.classList.add("lx-personal-rec-floors");
+              box.innerHTML = await lxRenderPersonalRecommendFloors();
+              if (state.page !== page) return;
+              lxSyncCategoryTabs();
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              return;
+            }
+            box.classList.remove("lx-personal-rec-floors");
             box.hidden = true;
             box.innerHTML = "";
             lxSyncCategoryTabs();
             return;
           }
+          box.classList.remove("lx-personal-rec-floors");
           box.hidden = false;
           const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
