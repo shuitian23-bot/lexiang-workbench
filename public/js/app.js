@@ -4312,12 +4312,61 @@
   }
   function runMotionPanel(layer) {
     if (!layer) return;
-    if (forceFullscreenMotion) {
-      layer.getBoundingClientRect();
-      requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("run")));
-    } else {
-      requestAnimationFrame(() => layer.classList.add("run"));
+    const runCssMotion = () => {
+      if (forceFullscreenMotion) {
+        layer.getBoundingClientRect();
+        requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("run")));
+      } else {
+        requestAnimationFrame(() => layer.classList.add("run"));
+      }
+    };
+    // Windows 11 + Chromium 149 may skip the left/top/size transition when the
+    // fullscreen layer is inserted and the body class changes in the same frame.
+    // Drive that environment with WAAPI, while leaving the existing CSS path
+    // untouched for systems where the original animation already works.
+    if (!forceFullscreenMotion || typeof layer.animate !== "function") {
+      runCssMotion();
+      return;
     }
+    const isExit = layer.classList.contains("lxfd-motion-panel-exit");
+    const ease = "cubic-bezier(.22,.61,.36,1)";
+    const start = layer.getBoundingClientRect();
+    const toPx = (value, fallback) => {
+      const n = parseFloat(String(value || ""));
+      return Number.isFinite(n) ? n : fallback;
+    };
+    const target = isExit
+      ? {
+          left: toPx(layer.style.getPropertyValue("--lxfd-target-left"), start.left),
+          top: toPx(layer.style.getPropertyValue("--lxfd-target-top"), start.top),
+          width: toPx(layer.style.getPropertyValue("--lxfd-target-width"), start.width),
+          height: toPx(layer.style.getPropertyValue("--lxfd-target-height"), start.height),
+          radius: 8,
+          opacity: 0,
+        }
+      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight, radius: 0, opacity: 0 };
+    const first = {
+      left: `${start.left}px`,
+      top: `${start.top}px`,
+      width: `${start.width}px`,
+      height: `${start.height}px`,
+      borderRadius: isExit ? "0px" : "8px",
+      opacity: "1",
+    };
+    const hold = { ...first, offset: isExit ? 0.72 : 0.67 };
+    const last = {
+      left: `${target.left}px`,
+      top: `${target.top}px`,
+      width: `${target.width}px`,
+      height: `${target.height}px`,
+      borderRadius: `${target.radius}px`,
+      opacity: `${target.opacity}`,
+    };
+    const anim = layer.animate([first, hold, last], { duration: 720, easing: ease, fill: "forwards" });
+    anim.addEventListener("finish", () => {
+      Object.assign(layer.style, last);
+      layer.classList.add("run");
+    }, { once: true });
   }
   function createPanelStretchLayer() {
     const source = document.querySelector(".assistant-panel");
