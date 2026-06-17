@@ -7277,6 +7277,12 @@ body.lxfd-split-returning .shell{
   body.lxfd-entering .lxfd,
   body.lxfd-exiting .lxfd{animation:none!important;opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important}
 }
+@media(prefers-reduced-motion:reduce){
+  body.lxfd-force-motion .lxfd-motion-panel{display:block!important}
+  body.lxfd-force-motion.lxfd-entering .lxfd{animation:lxfd-dialog-fade-in .34s ease .42s forwards!important;opacity:0!important;filter:blur(8px)!important}
+  body.lxfd-force-motion.lxfd-exiting .lxfd{animation:none!important;opacity:0!important;filter:none!important;transform:none!important;clip-path:none!important}
+}
+
 .assistant-panel > .assistant-toggle{
   width:26px!important;
   height:26px!important;

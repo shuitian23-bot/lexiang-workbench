@@ -3837,7 +3837,14 @@
   const turnDots = $("#lxfdTurnDots");
   const turnList = $("#lxfdTurnList");
   const helloTitle = $("#lxfdHelloTitle");
-  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isWindowsRuntime = (() => {
+    const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+    const ua = navigator.userAgent || "";
+    return /Win/i.test(platform) || /Windows/i.test(ua);
+  })();
+  const forceFullscreenMotion = isWindowsRuntime;
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches && !forceFullscreenMotion;
+  document.body.classList.toggle("lxfd-force-motion", forceFullscreenMotion);
   let hoverTimer = null;
   let turns = [];
   let helloIndex = 0;
@@ -4063,6 +4070,15 @@
   function finishMotionClass(name, delay = 520) {
     window.setTimeout(() => document.body.classList.remove(name), reduceMotion ? 0 : delay);
   }
+  function runMotionPanel(layer) {
+    if (!layer) return;
+    if (forceFullscreenMotion) {
+      layer.getBoundingClientRect();
+      requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("run")));
+    } else {
+      requestAnimationFrame(() => layer.classList.add("run"));
+    }
+  }
   function createPanelStretchLayer() {
     const source = document.querySelector(".assistant-panel");
     if (!source || reduceMotion) return null;
@@ -4080,7 +4096,7 @@
     clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
     layer.appendChild(clone);
     document.body.appendChild(layer);
-    requestAnimationFrame(() => layer.classList.add("run"));
+    runMotionPanel(layer);
     return layer;
   }
   function getSplitPanelRect() {
@@ -4107,7 +4123,7 @@
     clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
     layer.appendChild(clone);
     document.body.appendChild(layer);
-    requestAnimationFrame(() => layer.classList.add("run"));
+    runMotionPanel(layer);
     return layer;
   }
   function enterFullscreen() {
