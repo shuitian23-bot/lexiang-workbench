@@ -595,3 +595,123 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   height:14px!important;
 }
 
+/* Bottom composer polish fixes: menu layer, spacing, attached state, hover prompt position. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  overflow:visible!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom{
+  bottom:0!important;
+  overflow:visible!important;
+  z-index:20!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut-row{
+  position:relative!important;
+  z-index:45!important;
+  display:flex!important;
+  background:#fff!important;
+  padding:7px 0 7px!important;
+  border-radius:12px 12px 0 0!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut-row::before{
+  content:""!important;
+  position:absolute!important;
+  z-index:-1!important;
+  inset:0 -8px -8px!important;
+  background:#fff!important;
+  border-radius:14px 14px 0 0!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap{
+  position:relative!important;
+  z-index:120!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-menu{
+  left:auto!important;
+  right:0!important;
+  z-index:140!important;
+  background:#fff!important;
+  box-shadow:0 18px 48px rgba(38,22,48,.16)!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer{
+  border-width:1px!important;
+  border-style:solid!important;
+  border-color:transparent!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom:has(.composer.has){
+  min-height:206px!important;
+  bottom:0!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has{
+  min-height:172px!important;
+  max-height:calc(100vh - 190px)!important;
+  padding:11px 12px 10px!important;
+  border-width:1px!important;
+  border-radius:14px!important;
+  gap:0!important;
+  overflow:hidden!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has > .attach{
+  margin:0 0 10px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has .att-wrap{
+  padding:7px 8px!important;
+  border-radius:10px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has .att-thumb{
+  width:34px!important;
+  height:34px!important;
+  flex-basis:34px!important;
+  border-radius:7px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has .att-name{
+  font-size:11px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has .att-meta{
+  font-size:9.5px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has .att-x{
+  width:18px!important;
+  height:18px!important;
+  flex-basis:18px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has > textarea{
+  min-height:36px!important;
+  max-height:64px!important;
+  margin:0 0 8px!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has > .composer-actions{
+  min-height:32px!important;
+  gap:8px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .hover-prompt-panel{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:124px!important;
+  z-index:110!important;
+  margin:0!important;
+  display:none;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom.has-hover-prompts .hover-prompt-panel{
+  display:block!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom.has-hover-prompts .shortcut-row{
+  display:flex!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .hover-prompt-panel .pop{
+  width:100%!important;
+  max-width:100%!important;
+  position:relative!important;
+  z-index:111!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .hover-prompt-panel .box{
+  border-radius:14px!important;
+  box-shadow:0 16px 44px rgba(91,20,82,.20)!important;
+}
+
+/* Keep split assistant floating menus above the adjacent content column. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  z-index:30!important;
+}
+
