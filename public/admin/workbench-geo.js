@@ -516,6 +516,7 @@ async function geoLoadData() {
     const questionsPromise = geoLoadQuestions(loadSeq);
     const stableIntentsPromise = geoLoadStableIntents(loadSeq);
     const trendChartPromise = geoLoadTrendChart(loadSeq);
+    const pageRefTrendPromise = geoLoadPageRefTrend(loadSeq);
     const wordCloudPromise = geoLoadWordCloud(30);
 
     // 平台分布 + 平台级sites一起完成后渲染
@@ -1493,6 +1494,194 @@ function geoRenderTrendLegend(series, colors) {
     return;
   }
   legend.innerHTML = series.map((s, i) => `<span><span style="display:inline-block;width:20px;height:3px;background:${colors[i] || '#6b7280'};border-radius:2px;vertical-align:middle;margin-right:4px"></span>${geoEscape(s.field_name || s.field)}</span>`).join('');
+}
+
+// ===== 6 页面引用趋势图（联想链接 + 联想 wiki + wiki-商城/消费/SMB/政企） =====
+let _pageRefTrendData = null;
+const GEO_PAGE_REF_FIELDS = [
+  { field: 'link',     name: '联想链接',     color: '#2563eb' },
+  { field: 'wiki',     name: '联想 wiki',     color: '#9333ea' },
+  { field: 'shop',     name: 'wiki-商城',     color: '#f59e0b' },
+  { field: 'consumer', name: 'wiki-消费',     color: '#10b981' },
+  { field: 'smb',      name: 'wiki-SMB',      color: '#06b6d4' },
+  { field: 'biz',      name: 'wiki-政企',     color: '#ef4444' },
+];
+const GEO_PAGE_REF_VISIBLE = new Set(GEO_PAGE_REF_FIELDS.map(f => f.field));
+
+function geoEnumerateDates(start, end) {
+  const out = [];
+  const cur = new Date(start);
+  const stop = new Date(end);
+  while (cur <= stop) {
+    out.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+
+async function geoLoadPageRefTrend(loadSeq) {
+  const canvas = document.getElementById('geo-page-ref-canvas');
+  if (!canvas) return;
+  const { start_date, end_date } = geoResolveDateRange();
+  const dates = geoEnumerateDates(start_date, end_date);
+  if (!dates.length) { _pageRefTrendData = null; geoDrawCanvasPending(canvas); return; }
+  // 累计基线：起始日前一天，用于差分得起始日当日新增
+  const prev = new Date(dates[0]); prev.setDate(prev.getDate() - 1);
+  const baseDate = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`;
+  const allDates = [baseDate, ...dates];
+  try {
+    // wiki-history 拿累计（含基线）
+    const wikiHistResp = await Promise.allSettled(allDates.map(d => geoPost('wiki-history', { date: d })));
+    if (loadSeq && loadSeq !== geoState._loadSeq) return;
+    const cumWiki = wikiHistResp.map(r => (r.status === 'fulfilled' && r.value.code === 200) ? r.value.data : null);
+    // citations 单日拿联想链接
+    const citResp = await Promise.allSettled(dates.map(d =>
+      geoPost('citations', { project_id: GEO_PROJECT_ID, start_date: d, end_date: d })
+    ));
+    if (loadSeq && loadSeq !== geoState._loadSeq) return;
+    const linkDaily = citResp.map(r => {
+      if (r.status !== 'fulfilled') return null;
+      const m = r.value.content_ecology_metrics || {};
+      return Number(m.lenovo_citation_count ?? 0);
+    });
+    // 差分 wiki-history → 5 条线
+    const pick = (row, key) => row ? Number(row[key] ?? 0) : 0;
+    const dailyWiki = dates.map((_, i) => pick(cumWiki[i+1], 'lenovo_wiki_citation_count') - pick(cumWiki[i], 'lenovo_wiki_citation_count'));
+    const dailyShop = dates.map((_, i) => pick(cumWiki[i+1], 'shop_wiki_citation_count') - pick(cumWiki[i], 'shop_wiki_citation_count'));
+    const dailyCons = dates.map((_, i) => pick(cumWiki[i+1], 'consumer_wiki_citation_count') - pick(cumWiki[i], 'consumer_wiki_citation_count'));
+    const dailySmb  = dates.map((_, i) => pick(cumWiki[i+1], 'smb_wiki_citation_count') - pick(cumWiki[i], 'smb_wiki_citation_count'));
+    const dailyBiz  = dates.map((_, i) => pick(cumWiki[i+1], 'biz_wiki_citation_count') - pick(cumWiki[i], 'biz_wiki_citation_count'));
+    const series = [
+      { field: 'link',     name: '联想链接', data: linkDaily.map(v => Math.max(0, v)) },
+      { field: 'wiki',     name: '联想 wiki', data: dailyWiki.map(v => Math.max(0, v)) },
+      { field: 'shop',     name: 'wiki-商城', data: dailyShop.map(v => Math.max(0, v)) },
+      { field: 'consumer', name: 'wiki-消费', data: dailyCons.map(v => Math.max(0, v)) },
+      { field: 'smb',      name: 'wiki-SMB',  data: dailySmb.map(v => Math.max(0, v)) },
+      { field: 'biz',      name: 'wiki-政企', data: dailyBiz.map(v => Math.max(0, v)) },
+    ];
+    _pageRefTrendData = { dates, series };
+    geoDrawPageRefCanvas();
+  } catch (e) {
+    console.error('geoLoadPageRefTrend', e);
+    _pageRefTrendData = null;
+    geoDrawCanvasPending(canvas);
+  }
+}
+
+function geoTogglePageRefField(field) {
+  if (GEO_PAGE_REF_VISIBLE.has(field)) GEO_PAGE_REF_VISIBLE.delete(field);
+  else GEO_PAGE_REF_VISIBLE.add(field);
+  if (!GEO_PAGE_REF_VISIBLE.size) GEO_PAGE_REF_FIELDS.forEach(f => GEO_PAGE_REF_VISIBLE.add(f.field));
+  geoDrawPageRefCanvas();
+}
+
+function geoRenderPageRefLegend() {
+  const legend = document.getElementById('geo-page-ref-legend');
+  if (!legend) return;
+  legend.innerHTML = GEO_PAGE_REF_FIELDS.map(f => {
+    const active = GEO_PAGE_REF_VISIBLE.has(f.field);
+    return `<span onclick="geoTogglePageRefField('${f.field}')" style="cursor:pointer;opacity:${active ? 1 : 0.35};user-select:none"><span style="display:inline-block;width:20px;height:3px;background:${f.color};border-radius:2px;vertical-align:middle;margin-right:4px"></span>${f.name}</span>`;
+  }).join('');
+}
+
+function geoDrawPageRefCanvas() {
+  const canvas = document.getElementById('geo-page-ref-canvas');
+  if (!canvas) return;
+  geoRenderPageRefLegend();
+  if (!_pageRefTrendData) { geoDrawCanvasPending(canvas); return; }
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const W = rect.width || canvas.width || 800;
+  const H = rect.height || canvas.height || 280;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const pad = { top: 20, right: 20, bottom: 40, left: 55 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+  ctx.clearRect(0, 0, W, H);
+
+  const dates = _pageRefTrendData.dates || [];
+  const allSeries = _pageRefTrendData.series || [];
+  const series = allSeries.filter(s => GEO_PAGE_REF_VISIBLE.has(s.field));
+  if (!dates.length || !series.length) { geoDrawCanvasPending(canvas, '请选择口径'); return; }
+  const denom = Math.max(dates.length - 1, 1);
+
+  const allVals = series.flatMap(s => s.data);
+  const maxV = Math.max(...allVals, 1);
+  const yMin = 0;
+  const yMax = maxV * 1.15 || 1;
+  const yRange = yMax - yMin || 1;
+
+  ctx.strokeStyle = '#e5e8ec';
+  ctx.lineWidth = 0.5;
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  const ySteps = 5;
+  for (let i = 0; i <= ySteps; i++) {
+    const v = yMin + (yRange / ySteps) * i;
+    const y = pad.top + plotH - (v - yMin) / yRange * plotH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+    ctx.fillText(Math.round(v).toLocaleString(), pad.left - 6, y + 3);
+  }
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9ca3af';
+  const step = Math.max(1, Math.floor(dates.length / 8));
+  dates.forEach((d, i) => {
+    if (i % step === 0 || i === dates.length - 1) {
+      const x = pad.left + (i / denom) * plotW;
+      const label = d.slice(5);
+      ctx.fillText(label, x, H - pad.bottom + 18);
+    }
+  });
+
+  const colorMap = Object.fromEntries(GEO_PAGE_REF_FIELDS.map(f => [f.field, f.color]));
+  series.forEach(s => {
+    const color = colorMap[s.field] || '#6b7280';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.data.forEach((v, i) => {
+      const x = pad.left + (i / denom) * plotW;
+      const y = pad.top + plotH - (v - yMin) / yRange * plotH;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    s.data.forEach((v, i) => {
+      const x = pad.left + (i / denom) * plotW;
+      const y = pad.top + plotH - (v - yMin) / yRange * plotH;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+
+  canvas.onmousemove = (e) => {
+    const bRect = canvas.getBoundingClientRect();
+    const mx = e.clientX - bRect.left;
+    const idx = Math.round((mx - pad.left) / plotW * denom);
+    const tip = document.getElementById('geo-page-ref-tooltip');
+    if (!tip) return;
+    if (idx < 0 || idx >= dates.length) { tip.style.display = 'none'; return; }
+    let html = `<div style="font-weight:600;margin-bottom:4px">${dates[idx]}</div>`;
+    series.forEach(s => {
+      const c = colorMap[s.field] || '#6b7280';
+      html += `<div><span style="color:${c}">●</span> ${s.name}: ${(s.data[idx]||0).toLocaleString()}</div>`;
+    });
+    tip.innerHTML = html;
+    tip.style.display = 'block';
+    tip.style.left = (e.pageX + 12) + 'px';
+    tip.style.top = (e.pageY - 10) + 'px';
+  };
+  canvas.onmouseleave = () => { const tip = document.getElementById('geo-page-ref-tooltip'); if (tip) tip.style.display = 'none'; };
 }
 
 // ===== GEO 词云 =====
