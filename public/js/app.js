@@ -59,7 +59,7 @@
           return Number.isFinite(n) && n > 0 ? `¥ ${n.toLocaleString("zh-CN")}` : "咨询报价";
         };
         const imgUrl = (url) => {
-          if (!url) return "/assets/logos/logo-mark.png";
+          if (!url) return "/assets/product-placeholder.svg";
           const value = String(url).trim().replace(/^http:\/\//, "https://");
           if (/^https?:\/\//i.test(value) || value.startsWith("data:") || value.startsWith("blob:")) return value;
           if (value.startsWith("./assets/")) return value.replace("./assets/", "/assets/");
