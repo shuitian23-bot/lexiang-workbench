@@ -1081,3 +1081,16 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn{
   font-weight:400!important;
 }
+
+/* Tighten the vertical gap between the split More menu and the More button. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-menu{
+  bottom:34px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap::after{
+  bottom:24px!important;
+  height:10px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-menu::before{
+  bottom:-12px!important;
+  height:14px!important;
+}
