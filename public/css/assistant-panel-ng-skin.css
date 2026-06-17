@@ -735,3 +735,58 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   box-shadow:none!important;
 }
 
+
+/* Move split assistant More menu into the right-side hover zone and keep the hover path connected. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap{
+  position:relative!important;
+  z-index:220!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap::after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:139!important;
+  left:-10px!important;
+  right:-98px!important;
+  bottom:30px!important;
+  height:28px!important;
+  background:transparent!important;
+  pointer-events:auto!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-menu{
+  left:0!important;
+  right:auto!important;
+  bottom:46px!important;
+  transform:translateX(58px)!important;
+  z-index:240!important;
+  background:#fff!important;
+  box-shadow:0 18px 48px rgba(38,22,48,.16)!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-menu::before{
+  content:""!important;
+  position:absolute!important;
+  left:-22px!important;
+  right:-18px!important;
+  bottom:-30px!important;
+  height:32px!important;
+  background:transparent!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap:hover .more-menu,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap .more-menu:hover{
+  display:block!important;
+}
+
+/* Strengthen the split More menu hover bridge so the cursor can slide into the right-shifted menu. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap::after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:139!important;
+  left:-12px!important;
+  right:auto!important;
+  bottom:0!important;
+  width:260px!important;
+  height:280px!important;
+  background:transparent!important;
+  pointer-events:auto!important;
+}
