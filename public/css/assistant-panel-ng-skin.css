@@ -1076,3 +1076,8 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom.has-hover-prompts .shortcut-row{
   display:none!important;
 }
+
+/* Use regular weight for the switch label text. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn{
+  font-weight:400!important;
+}

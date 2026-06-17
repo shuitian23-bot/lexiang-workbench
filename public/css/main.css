@@ -7656,3 +7656,11 @@ body[data-page="home"] .agent-summary {
   background:#fff;
   border-radius:14px 14px 0 0;
 }
+
+/* Hide the per-floor helper copy and recommendation button in product floors. */
+.lx-site-floors .lx-personal-rec-floor .lx-floor-head > span,
+.lx-site-floors .lx-personal-rec-floor .lx-floor-head > .lx-p0-btn,
+.lx-site-floors .lx-floor:not(.lx-floor--activity) .lx-floor-head > span,
+.lx-site-floors .lx-floor:not(.lx-floor--activity) .lx-floor-head > .lx-p0-btn{
+  display:none!important;
+}
