@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>联想乐享 PC 端对话导购首页</title>
+    <script>
+      (function(){
+        var path = location.pathname.replace(/\/+$|^$/, "/");
+        if (path === "/") document.documentElement.classList.add("lx-root-home-prepaint");
+      })();
+    </script>
+    <style>
+      html.lx-root-home-prepaint body{background:#fff;--home-content-padding:clamp(28px,3vw,58px)}
+      html.lx-root-home-prepaint .shell{grid-template-columns:minmax(0,1fr);column-gap:0;min-height:calc(100vh - clamp(76px,7.2vh,108px));padding:0}
+      html.lx-root-home-prepaint .assistant-panel,
+      html.lx-root-home-prepaint .assistant-restore{display:none!important}
+      html.lx-root-home-prepaint .content{grid-column:1;grid-row:1;background:#fff;border:0;border-radius:0;padding:var(--home-content-padding)}
+    </style>
     <link rel="stylesheet" href="/css/main.css?v=202606161230">
   </head>
   <body data-state="default">
@@ -798,6 +811,7 @@
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd");</script>
     <script src="/js/portal.js?v=202606161600"></script>
     <script src="/js/app.js?v=202606171100"></script>
+    <script>document.documentElement.classList.remove("lx-root-home-prepaint");</script>
     <script>
       (function(){
         try {
