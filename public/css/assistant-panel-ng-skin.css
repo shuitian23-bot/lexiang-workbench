@@ -1071,3 +1071,8 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .new-chat-button{
   margin-right:-2px!important;
 }
+
+/* Hide shortcut tags while the hover-prompt prediction layer is visible. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom.has-hover-prompts .shortcut-row{
+  display:none!important;
+}
