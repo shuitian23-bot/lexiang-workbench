@@ -7729,3 +7729,19 @@ body:not(.assistant-fullscreen):not(.lx-auto-fs)[data-page="home"] .topbar .main
 .composer.has .image-btn{flex:0 0 auto!important}
 .assistant-bottom .composer.has{margin-bottom:0!important}
 
+
+
+/* Match fullscreen nav tab width in split-page collapsed/expanded states */
+body:not(.assistant-fullscreen):not(.lx-auto-fs) .main-nav:not(.open){
+  width:88px!important;
+  min-width:88px!important;
+  max-width:88px!important;
+  flex:0 0 88px!important;
+}
+body:not(.assistant-fullscreen):not(.lx-auto-fs) .main-nav.open{
+  width:max-content!important;
+  min-width:max-content!important;
+  max-width:calc(100vw - 360px)!important;
+  flex:0 0 auto!important;
+}
+
