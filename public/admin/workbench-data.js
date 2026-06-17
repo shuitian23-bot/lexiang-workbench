@@ -1005,8 +1005,17 @@ function pbPreview() {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${_pb.page.title} - 预览</title>
     <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#333}</style></head>
     <body>${body}</body></html>`;
+  if (typeof workspaceOpenHtmlPreviewTab === 'function') {
+    workspaceOpenHtmlPreviewTab({
+      title: `${_pb.page.title || '页面'}预览`,
+      sourcePageLabel: '页面构建',
+      groupLabel: '页面管理',
+      html
+    });
+    return;
+  }
   const blob = new Blob([html], {type:'text/html'});
-  window.open(URL.createObjectURL(blob), '_blank');
+  location.href = URL.createObjectURL(blob);
 }
 
 function pbTogglePreviewMode() {
@@ -1707,7 +1716,7 @@ async function loadAftersale() {
     el.innerHTML = articles.map(a => `<div style="padding:10px 0;border-bottom:1px solid var(--border-light);display:flex;gap:12px;align-items:flex-start">
       ${a.cover_img ? `<img src="${a.cover_img}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'">` : ''}
       <div style="flex:1;min-width:0">
-        <a href="https://newsupport.lenovo.com.cn/doc/${a.doc_code}" target="_blank" style="font-size:13px;font-weight:500;color:var(--text);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.title || '无标题'}</a>
+        <a href="https://newsupport.lenovo.com.cn/doc/${a.doc_code}" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="售后文章" data-workspace-title="${workspaceEscapeHtml(a.title || '无标题')}" style="font-size:13px;font-weight:500;color:var(--text);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.title || '无标题'}</a>
         <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.description || ''}</div>
         <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${a.line_category_name || ''} · ${(a.create_time || '').slice(0, 10)}</div>
       </div>
@@ -1746,7 +1755,7 @@ async function loadOrders() {
     const res = await fetch('/api/lenovo/user/order/list');
     const data = await res.json();
     if (data.error && data.error.includes('Cookie')) {
-      authEl.innerHTML = `<div class="demo-banner" style="border-color:var(--orange);background:var(--orange-light)"><span class="demo-icon">🔐</span> 需要联想Passport Cookie才能查看真实订单。请在系统设置中配置 LENOVO_PASSPORT_COOKIE 环境变量，或<a href="https://reg.lenovo.com.cn/auth/v1/login" target="_blank">登录联想账号</a>后获取Cookie。</div>`;
+      authEl.innerHTML = `<div class="demo-banner" style="border-color:var(--orange);background:var(--orange-light)"><span class="demo-icon">🔐</span> 需要联想Passport Cookie才能查看真实订单。请在系统设置中配置 LENOVO_PASSPORT_COOKIE 环境变量，或<a href="https://reg.lenovo.com.cn/auth/v1/login" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="订单认证" data-workspace-title="联想账号登录">登录联想账号</a>后获取Cookie。</div>`;
       contentEl.innerHTML = `<div class="kpi-grid">
         <div class="kpi-card"><div class="kpi-label">数据来源</div><div class="kpi-value" style="font-size:16px">i.lenovo.com.cn</div></div>
         <div class="kpi-card"><div class="kpi-label">API端点</div><div class="kpi-value" style="font-size:14px">/api/order/list</div></div>
@@ -1878,12 +1887,34 @@ document.getElementById('global-search').addEventListener('blur', function() {
 });
 
 // ===== DARK MODE =====
-function toggleDarkMode() {
-  document.body.classList.remove('dark-mode');
-  localStorage.removeItem('lexiang_dark');
+function applyThemeMode(isDark) {
+  document.body.classList.toggle('dark-mode', !!isDark);
+  document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+  const btn = document.getElementById('dark-mode-btn');
+  if (btn) {
+    btn.classList.toggle('active', !!isDark);
+    btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    btn.setAttribute('title', isDark ? '切换亮色模式' : '切换深色模式');
+    btn.setAttribute('aria-label', isDark ? '切换亮色模式' : '切换深色模式');
+  }
+  setTimeout(() => {
+    if (window.echarts) {
+      document.querySelectorAll('[_echarts_instance_]').forEach(dom => {
+        const chart = echarts.getInstanceByDom(dom);
+        if (chart) chart.resize();
+      });
+    }
+    document.dispatchEvent(new CustomEvent('theme-change', { detail: { dark: !!isDark } }));
+  }, 80);
 }
-localStorage.removeItem('lexiang_dark');
-document.body.classList.remove('dark-mode');
+
+function toggleDarkMode(forceState) {
+  const next = typeof forceState === 'boolean' ? forceState : !document.body.classList.contains('dark-mode');
+  localStorage.setItem('lexiang_dark', next ? '1' : '0');
+  applyThemeMode(next);
+}
+
+applyThemeMode(localStorage.getItem('lexiang_dark') === '1');
 
 // ===== 外部数据集成 =====
 const LENOVO_PROVINCE_MAP = {"010":"北京市","020":"上海市","030":"天津市","040":"内蒙古","050":"山西省","060":"河北省","070":"辽宁省","080":"吉林省","090":"黑龙江省","100":"江苏省","110":"安徽省","120":"山东省","130":"浙江省","140":"江西省","150":"福建省","160":"湖南省","170":"湖北省","180":"河南省","190":"广东省","200":"海南省","210":"广西","220":"贵州省","230":"四川省","240":"云南省","250":"陕西省","260":"甘肃省","270":"宁夏","280":"青海省","290":"新疆","300":"西藏","320":"重庆市"};
@@ -1935,10 +1966,10 @@ async function loadLenovoBigscreen() {
 
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:16px">
-        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">昨日付款金额</div><div style="font-size:28px;font-weight:700;color:var(--red)">${(yesTotal/10000).toFixed(1)}<span style="font-size:14px;color:var(--text-tertiary);font-weight:normal"> 万元</span></div><div style="font-size:12px;color:var(--text-tertiary)">昨日数据</div></div>
-        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">今日至今</div><div style="font-size:28px;font-weight:700;color:#1890ff">${(todayTotal/10000).toFixed(1)}<span style="font-size:14px;color:var(--text-tertiary);font-weight:normal"> 万元</span></div><div style="font-size:12px;color:var(--text-tertiary)">占昨日 ${yesTotal?((todayTotal/yesTotal*100).toFixed(1)):'-'}%</div></div>
-        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">覆盖省份</div><div style="font-size:28px;font-weight:700;color:#722ed1">${provinces.length}</div><div style="font-size:12px;color:var(--text-tertiary)">最高: ${provinces[0]?provinces[0].name+' ¥'+(provinces[0].metricSum/10000).toFixed(1)+'万':'-'}</div></div>
-        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">覆盖城市</div><div style="font-size:28px;font-weight:700;color:#13c2c2">${cities.length}</div><div style="font-size:12px;color:var(--text-tertiary)">最高: ${cities[0]?cities[0].city+' ¥'+(cities[0].metricSum/10000).toFixed(1)+'万':'-'}</div></div>
+        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">昨日付款金额</div><div style="font-size:28px;font-weight:700;color:var(--chart-7,#6f879e)">${(yesTotal/10000).toFixed(1)}<span style="font-size:14px;color:var(--text-tertiary);font-weight:normal"> 万元</span></div><div style="font-size:12px;color:var(--text-tertiary)">昨日数据</div></div>
+        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">今日至今</div><div style="font-size:28px;font-weight:700;color:var(--chart-1,#3f78c5)">${(todayTotal/10000).toFixed(1)}<span style="font-size:14px;color:var(--text-tertiary);font-weight:normal"> 万元</span></div><div style="font-size:12px;color:var(--text-tertiary)">占昨日 ${yesTotal?((todayTotal/yesTotal*100).toFixed(1)):'-'}%</div></div>
+        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">覆盖省份</div><div style="font-size:28px;font-weight:700;color:var(--chart-5,#9070c3)">${provinces.length}</div><div style="font-size:12px;color:var(--text-tertiary)">最高: ${provinces[0]?provinces[0].name+' ¥'+(provinces[0].metricSum/10000).toFixed(1)+'万':'-'}</div></div>
+        <div class="card"><div style="font-size:13px;color:var(--text-tertiary)">覆盖城市</div><div style="font-size:28px;font-weight:700;color:var(--chart-2,#3f9ead)">${cities.length}</div><div style="font-size:12px;color:var(--text-tertiary)">最高: ${cities[0]?cities[0].city+' ¥'+(cities[0].metricSum/10000).toFixed(1)+'万':'-'}</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
         <div class="card"><div class="card-header"><div class="card-title">昨日各渠道付款金额</div></div>
@@ -1946,10 +1977,10 @@ async function loadLenovoBigscreen() {
             <div style="margin-bottom:12px">
               <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
                 <span style="font-weight:500">${c.channelName}</span>
-                <span style="color:var(--red);font-weight:600">¥${(c.total/10000).toFixed(1)}万</span>
+                <span style="color:var(--chart-1,#3f78c5);font-weight:600">¥${(c.total/10000).toFixed(1)}万</span>
               </div>
               <div style="height:10px;background:#f0f0f0;border-radius:5px;overflow:hidden">
-                <div style="width:${yesTotal?(c.total/yesTotal*100):0}%;height:100%;background:linear-gradient(90deg,#ff4d4f,#ff7a45)"></div>
+                <div style="width:${yesTotal?(c.total/yesTotal*100):0}%;height:100%;background:linear-gradient(90deg,#3f78c5,#3f9ead)"></div>
               </div>
             </div>`).join('')}
         </div>
@@ -1958,9 +1989,9 @@ async function loadLenovoBigscreen() {
             <thead><tr style="border-bottom:1px solid var(--border-light)"><th style="text-align:left;padding:8px">排名</th><th style="text-align:left;padding:8px">省份</th><th style="text-align:left;padding:8px">金额</th><th style="text-align:left;padding:8px">占比</th></tr></thead>
             <tbody>${provinces.slice(0,10).map((p,i)=>`
               <tr style="border-bottom:1px solid var(--border-light)">
-                <td style="padding:8px;font-weight:600;color:#faad14">#${i+1}</td>
+                <td style="padding:8px;font-weight:600;color:var(--chart-4,#c89532)">#${i+1}</td>
                 <td style="padding:8px">${p.name}</td>
-                <td style="padding:8px;font-weight:600;color:var(--red)">¥${(p.metricSum/10000).toFixed(1)}万</td>
+                <td style="padding:8px;font-weight:600;color:var(--chart-1,#3f78c5)">¥${(p.metricSum/10000).toFixed(1)}万</td>
                 <td style="padding:8px">${(p.metricSum/provinceTotal*100).toFixed(1)}%</td>
               </tr>`).join('')}</tbody>
           </table>
@@ -1973,7 +2004,7 @@ async function loadLenovoBigscreen() {
             <div style="border:1px solid var(--border-light);border-radius:6px;padding:10px;background:linear-gradient(135deg,#fff,#fafafa)">
               <div style="display:flex;justify-content:space-between;align-items:center">
                 <span style="font-size:11px;color:var(--text-tertiary)">#${i+1}</span>
-                <span style="font-size:12px;color:var(--red);font-weight:600">¥${(c.metricSum/10000).toFixed(1)}万</span>
+                <span style="font-size:12px;color:var(--chart-1,#3f78c5);font-weight:600">¥${(c.metricSum/10000).toFixed(1)}万</span>
               </div>
               <div style="font-weight:600;margin-top:4px">${c.city}</div>
             </div>`).join('')}
@@ -1986,15 +2017,15 @@ async function loadLenovoBigscreen() {
             ${Array.from({length:24},(_,h)=>`
               <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%">
                 <div style="display:flex;align-items:flex-end;gap:1px;height:150px;width:100%;justify-content:center">
-                  <div style="height:${yesHourly[h]/hourMax*150}px;width:45%;background:#8c8c8c;min-height:1px" title="昨日 ${h}点: ¥${(yesHourly[h]/10000).toFixed(1)}万"></div>
-                  <div style="height:${todayHourly[h]/hourMax*150}px;width:45%;background:#ff4d4f;min-height:1px" title="今日 ${h}点: ¥${(todayHourly[h]/10000).toFixed(1)}万"></div>
+                  <div style="height:${yesHourly[h]/hourMax*150}px;width:45%;background:var(--chart-7,#6f879e);min-height:1px" title="昨日 ${h}点: ¥${(yesHourly[h]/10000).toFixed(1)}万"></div>
+                  <div style="height:${todayHourly[h]/hourMax*150}px;width:45%;background:var(--chart-1,#3f78c5);min-height:1px" title="今日 ${h}点: ¥${(todayHourly[h]/10000).toFixed(1)}万"></div>
                 </div>
                 <div style="font-size:9px;color:var(--text-tertiary)">${h}</div>
               </div>`).join('')}
           </div>
           <div style="display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px">
-            <div><span style="display:inline-block;width:12px;height:12px;background:#8c8c8c;vertical-align:middle;margin-right:4px"></span>昨日 ¥${(yesTotal/10000).toFixed(1)}万</div>
-            <div><span style="display:inline-block;width:12px;height:12px;background:#ff4d4f;vertical-align:middle;margin-right:4px"></span>今日 ¥${(todayTotal/10000).toFixed(1)}万</div>
+            <div><span style="display:inline-block;width:12px;height:12px;background:var(--chart-7,#6f879e);vertical-align:middle;margin-right:4px"></span>昨日 ¥${(yesTotal/10000).toFixed(1)}万</div>
+            <div><span style="display:inline-block;width:12px;height:12px;background:var(--chart-1,#3f78c5);vertical-align:middle;margin-right:4px"></span>今日 ¥${(todayTotal/10000).toFixed(1)}万</div>
           </div>
         </div>
       </div>`;

@@ -629,6 +629,7 @@ function loadEmployeeOverview() {
 
 function loadEmployeeOverviewTable(page = 1) {
   try {
+    updateEmployeeMethodFilterUI();
     const nameFilter = document.getElementById('emp-ov-search-name')?.value || '';
     const positionFilter = (document.getElementById('emp-ov-search-position')?.value || '').toLowerCase();
     const companyFilter = (document.getElementById('emp-ov-search-company')?.value || '').toLowerCase();
@@ -682,6 +683,7 @@ function loadEmployeeOverviewTable(page = 1) {
       document.getElementById('emp-overview-count').textContent = '0';
       document.getElementById('emp-overview-page').textContent = '1';
       document.getElementById('emp-overview-total-pages').textContent = '1';
+      updateEmployeeMethodFilterUI();
       return;
     }
 
@@ -697,6 +699,7 @@ function loadEmployeeOverviewTable(page = 1) {
     const nextBtn = document.getElementById('emp-overview-next-btn');
     if (prevBtn) prevBtn.disabled = page <= 1;
     if (nextBtn) nextBtn.disabled = page >= totalPages;
+    updateEmployeeMethodFilterUI(filtered.length);
 
     console.log('✓ 员工列表加载完成 (第', page, '页，共', totalPages, '页)');
   } catch (e) {
@@ -824,6 +827,7 @@ function filterAndNavigate(status) {
   if (statusInput) statusInput.value = statusMap[status] || '';
   if (dateStartInput) dateStartInput.value = '';
   if (dateEndInput) dateEndInput.value = '';
+  updateEmployeeMethodFilterUI();
   loadEmployeeOverviewTable();
 }
 
@@ -891,10 +895,43 @@ function generateEmployeeData() {
   return employees;
 }
 
+function updateEmployeeMethodFilterUI(count) {
+  const methodLabels = {
+    email: '企业邮箱',
+    contract: '劳动合同',
+    tax: '个人所得税视频认证',
+    other: '其他材料'
+  };
+  const activeMethod = DASHBOARD_STATE.currentMethod;
+  document.querySelectorAll('.employee-method-card .employee-method-tile').forEach(tile => {
+    const isActive = tile.dataset.method === activeMethod;
+    tile.classList.toggle('is-selected', isActive);
+    tile.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+
+  const status = document.getElementById('employee-method-filter-status');
+  if (!status) return;
+  if (!activeMethod) {
+    status.style.display = 'none';
+    status.innerHTML = '';
+    return;
+  }
+  const countText = Number.isFinite(count) ? ` · ${count.toLocaleString()} 条` : '';
+  status.style.display = 'inline-flex';
+  status.innerHTML = `当前筛选: <strong>${methodLabels[activeMethod] || activeMethod}</strong>${countText}<button type="button" onclick="clearEmployeeMethodFilter()" aria-label="清除认证方式筛选">清除</button>`;
+}
+
+function clearEmployeeMethodFilter() {
+  DASHBOARD_STATE.currentMethod = null;
+  updateEmployeeMethodFilterUI();
+  loadEmployeeOverviewTable(1);
+}
+
 function filterByMethod(method) {
   // 按认证方式筛选（在看板页面内过滤）
   try {
-    DASHBOARD_STATE.currentMethod = method;
+    DASHBOARD_STATE.currentMethod = DASHBOARD_STATE.currentMethod === method ? null : method;
+    updateEmployeeMethodFilterUI();
     loadEmployeeOverviewTable(1);
   } catch (e) {
     console.error('✗ 按方式筛选失败:', e);

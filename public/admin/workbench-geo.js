@@ -41,10 +41,10 @@ function geoResolveDateRange() {
   const start = new Date(end.getTime() - (days - 1) * 86400000);
   return { start_date: geoFmtDate(start), end_date: geoFmtDate(end) };
 }
-const GEO_COMPETITOR_COLORS = { hp:'#0096d6', dell:'#007db8', huawei:'#cf0a2c', apple:'#555555', asus:'#00529b', xiaomi:'#ff6900', acer:'#83b81a', honor:'#d4003c' };
+const GEO_COMPETITOR_COLORS = { hp:'#3f78c5', dell:'#3f9ead', huawei:'#9070c3', apple:'#4f6578', asus:'#78a9e6', xiaomi:'#c89532', acer:'#58a86a', honor:'#b45f86' };
 const GEO_COMPETITOR_NAMES = { hp:'惠普', dell:'戴尔', huawei:'华为', apple:'苹果', asus:'华硕', xiaomi:'小米', acer:'宏碁', honor:'荣耀', oppo:'oppo', vivo:'vivo', samsung:'三星' };
 const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
-const geoPlatColors = { doubao:'#6366f1', deepseek:'#3b82f6', yuanbao:'#10b981', kimi:'#f59e0b' };
+const geoPlatColors = { doubao:'#3f78c5', deepseek:'#3f9ead', yuanbao:'#58a86a', kimi:'#c89532' };
 const GEO_PENDING_TEXT = '待接口提供数据';
 
 function geoFmtDate(d) {
@@ -166,7 +166,7 @@ function geoDrawCanvasPending(canvas, message = GEO_PENDING_TEXT) {
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#f9fafb';
   ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = '#e5e7eb';
+  ctx.strokeStyle = '#e5e8ec';
   ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
   ctx.fillStyle = '#8f959e';
   ctx.font = '13px sans-serif';
@@ -323,7 +323,7 @@ function geoSyncScopeUi() {
   }
   document.querySelectorAll('.geo-cmp-btn').forEach(b => {
     const active = b.dataset.cmp === geoState.compare;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
   const compareControl = document.getElementById('geo-compare-control');
@@ -384,7 +384,7 @@ function geoQuickPeriod(period) {
   if (endEl && !endEl.value) endEl.value = geoState.endDate;
   document.querySelectorAll('.geo-period-btn').forEach(b => {
     const active = b.dataset.period === period;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
   geoLoadData();
@@ -613,7 +613,7 @@ function geoRenderCompareBars() {
   const rows = [{
     name: geoState.scope === 'all' ? '联想品牌' : geoBrandLabel(),
     value: brandValue,
-    color: '#2563eb',
+    color: '#3f78c5',
     type: 'brand'
   }];
   const compSeries = isVisibility ? (geoState._competitorTrendSeries || []) : [];
@@ -756,13 +756,13 @@ function geoApplyCompare() {
           <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
             <div style="flex:1">
               <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>品牌</span><span>${geoFmtPct(b)}</span></div>
-              <div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#2563eb;border-radius:3px"></div></div>
+              <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#3f78c5;border-radius:3px"></div></div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
             <div style="flex:1">
               <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>竞品综合</span><span>${geoFmtPct(c)}</span></div>
-              <div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#f59e0b;border-radius:3px"></div></div>
+              <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#c89532;border-radius:3px"></div></div>
             </div>
           </div>
           <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
@@ -831,7 +831,7 @@ function geoRenderSitesPending() {
 }
 
 // ===== GEO 信源分布 (sites API) =====
-const GEO_TREEMAP_COLORS = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#4f46e5','#15803d','#b45309','#9333ea','#0e7490','#be123c','#6366f1','#047857','#ea580c'];
+const GEO_TREEMAP_COLORS = ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#b45f86','#6f879e','#4f6578','#78a9e6','#6fc2cf','#78c487','#e0b75b','#b795df','#d383a8','#9bb0c5','#7f96aa'];
 
 function geoCitesFromSites(sites) {
   const lenovo = sites.filter(s => s.domain && s.domain.includes('lenovo'));
@@ -927,7 +927,7 @@ function geoRenderLinkTop50(sites) {
     const barW = Math.max((s.count / maxCount * 100), 2).toFixed(0);
     const isTop3 = s.rank <= 3;
     const idxStyle = isTop3
-      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#2563eb;border-radius:50%;flex-shrink:0'
+      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#3f78c5;border-radius:50%;flex-shrink:0'
       : 'min-width:28px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0';
     const countStyle = isTop3
       ? 'font-size:14px;font-weight:700;color:#1d4ed8;white-space:nowrap;min-width:90px;text-align:right'
@@ -938,9 +938,9 @@ function geoRenderLinkTop50(sites) {
         <div style="display:flex;align-items:center;gap:6px">
           ${geoSiteLogoHtml(s.domain, geoSiteName(s))}
           <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${geoEscape(geoSiteName(s))}</span>
-          <a href="https://${geoEscape(s.domain)}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
+          <a href="https://${geoEscape(s.domain)}" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="GEO 引用链接" data-workspace-title="${geoEscape(geoSiteName(s))}" style="font-size:11px;color:#3f78c5;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
         </div>
-        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e7eb;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#2563eb' : '#93c5fd'};border-radius:3px"></div></div>
+        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e8ec;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#3f78c5' : '#9fc4ea'};border-radius:3px"></div></div>
       </div>
       <span style="${countStyle}">${geoFmtCount(s.count)}</span>
     </li>`;
@@ -1084,7 +1084,7 @@ function geoRenderQuestions(qs) {
 
 function geoRenderIntentFilter(allModels, activeModels) {
   const c = document.getElementById('geo-intent-plat-filter'); if (!c) return;
-  const buttons = [{ key:'all', label:'全平台', color:'#2563eb' }].concat(allModels.map(m => ({ key:m, label:geoPlatNames[m] || m, color:geoPlatColors[m] || '#6b7280' })));
+  const buttons = [{ key:'all', label:'全平台', color:'#3f78c5' }].concat(allModels.map(m => ({ key:m, label:geoPlatNames[m] || m, color:geoPlatColors[m] || '#6b7280' })));
   c.innerHTML = buttons.map(item => {
     const active = item.key === 'all' ? activeModels.length === allModels.length : activeModels.length === 1 && activeModels.includes(item.key);
     return `<button onclick="geoSetIntentModel('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? item.color : '#d1d5db'};background:${active ? item.color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
@@ -1096,7 +1096,7 @@ function geoRenderIntentVisibilityFilter() {
   const current = geoState._intentVisibilityFilter || 'all';
   c.innerHTML = GEO_INTENT_FILTERS.map(item => {
     const active = item.key === current;
-    return `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#2563eb' : '#d1d5db'};background:${active ? '#2563eb' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
+    return `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#3f78c5' : '#d1d5db'};background:${active ? '#3f78c5' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
   }).join('');
 }
 
@@ -1131,7 +1131,7 @@ function geoRenderIntentPlatformSummary(qs) {
     const name = geoPlatNames[m] || m;
     const color = geoPlatColors[m] || '#6b7280';
     const count = platStats[m] || 0;
-    html += `<div style="flex:1;min-width:140px;padding:16px;background:#fff;border-radius:10px;text-align:center;border:1px solid #e5e7eb">
+    html += `<div style="flex:1;min-width:140px;padding:16px;background:#fff;border-radius:10px;text-align:center;border:1px solid #e5e8ec">
       <div style="font-size:28px;font-weight:700;color:${color}">${count}</div>
       <div style="font-size:12px;color:#6b7280;margin-top:4px">${name} 覆盖意图数</div>
     </div>`;
@@ -1143,7 +1143,14 @@ function geoRenderIntentPlatformSummary(qs) {
 // ===== GEO 知识库 tab 切换 =====
 function switchKbTab(tab, el) {
   ['upload','qa','docs','qalist'].forEach(t => { const d = document.getElementById('kb-tab-' + t); if (d) d.style.display = t === tab ? '' : 'none'; });
-  if (el) { el.parentElement.querySelectorAll('.tab-item').forEach(t => { t.style.borderBottomColor = 'transparent'; t.style.color = 'var(--text-tertiary)'; }); el.style.borderBottomColor = 'var(--primary)'; el.style.color = 'var(--primary)'; }
+  if (el) {
+    el.parentElement.querySelectorAll('.tab-item').forEach(t => {
+      t.classList.remove('active');
+      t.style.borderBottomColor = '';
+      t.style.color = '';
+    });
+    el.classList.add('active');
+  }
   if (tab === 'docs') loadKnowledgeDocs();
   if (tab === 'qalist') loadKnowledgeQA();
 }
@@ -1231,7 +1238,7 @@ async function geoLoadSourcePage(page) {
           <td class="name"><span class="geo-source-site">${geoSiteLogoHtml(s.domain, name)}<span>${geoEscape(name)}</span></span></td>
           <td class="domain">${geoEscape(s.domain || '-')}</td>
           <td><div class="geo-source-count"><strong>${geoFmtCount(count)}</strong><span><i style="width:${barW}%"></i></span></div></td>
-          <td><div class="geo-source-pct"><span>${geoFmtPct(pct)}</span><i style="background:conic-gradient(#2563eb ${Math.max(Math.min(pct || 0, 100), 0)}%, #e2e8f0 0)"></i></div></td>
+          <td><div class="geo-source-pct"><span>${geoFmtPct(pct)}</span><i style="background:conic-gradient(#3f78c5 ${Math.max(Math.min(pct || 0, 100), 0)}%, #e2e8f0 0)"></i></div></td>
         </tr>`;
       }).join('')}</tbody></table>`;
     const pager = document.getElementById('geo-source-pager');
@@ -1397,7 +1404,7 @@ function geoDrawTrendCanvas() {
   const yRange = yMax - yMin || 1;
 
   // Y axis gridlines
-  ctx.strokeStyle = '#e5e7eb';
+  ctx.strokeStyle = '#e5e8ec';
   ctx.lineWidth = 0.5;
   ctx.fillStyle = '#9ca3af';
   ctx.font = '10px sans-serif';
@@ -1426,12 +1433,12 @@ function geoDrawTrendCanvas() {
 
   // Draw lines
   const fieldColor = {
-    all: '#9333ea',
-    brand_composite_exposure_rate: '#2563eb',
-    brand_precise_exposure_rate: '#10b981',
-    competitor_exposure_rate: '#f59e0b',
+    all: '#9070c3',
+    brand_composite_exposure_rate: '#3f78c5',
+    brand_precise_exposure_rate: '#58a86a',
+    competitor_exposure_rate: '#c89532',
   };
-  const fallback = ['#2563eb', '#10b981', '#6b7280', '#9333ea', '#f59e0b', '#0ea5e9', '#ef4444'];
+  const fallback = ['#3f78c5', '#58a86a', '#6f879e', '#9070c3'];
   const colors = series.map((s, si) => s.color || fieldColor[s.field] || fallback[si] || '#6b7280');
   geoRenderTrendLegend(series, colors);
   series.forEach((s, si) => {
@@ -1493,7 +1500,7 @@ async function geoLoadWordCloud(days) {
   days = days || 30;
   document.querySelectorAll('.geo-wc-btn').forEach(b => {
     const active = +b.dataset.days === days;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
   const c = document.getElementById('geo-word-cloud');
@@ -1512,7 +1519,7 @@ function geoRenderWordCloud(words, container) {
   const maxVal = top[0].value;
   const minVal = top[top.length - 1].value;
   const range = maxVal - minVal || 1;
-  const colors = ['#1e40af','#2563eb','#3b82f6','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#be185d','#4f46e5','#0d9488','#b45309'];
+  const colors = ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#b45f86','#6f879e','#4f6578','#78a9e6','#6fc2cf','#78c487','#e0b75b'];
   const W = container.clientWidth || 700;
   const H = 320;
   const cx = W / 2, cy = H / 2;
@@ -1582,7 +1589,7 @@ function geoInitConversionDatePicker() {
 function geoSyncConversionPeriodButtons() {
   document.querySelectorAll('.geo-conv-period-btn').forEach(b => {
     const active = geoConversionState.period && b.dataset.period === geoConversionState.period;
-    b.style.background = active ? '#2563eb' : '#fff';
+    b.style.background = active ? '#3f78c5' : '#fff';
     b.style.color = active ? '#fff' : '#374151';
   });
 }
