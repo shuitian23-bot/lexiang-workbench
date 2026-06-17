@@ -5977,11 +5977,13 @@ html[data-product="leaibot"] .ai-thread-context {
   font-size: 11px !important;
 }
 
-html[data-product="leaibot"] .ai-structured-msg .bubble {
+html[data-product="leaibot"] .ai-structured-msg .bubble,
+html[data-product="leaibot"] .ai-msg.assistant.ai-structured-msg .bubble {
   padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 html[data-product="leaibot"] .ai-answer-card {
@@ -6616,7 +6618,7 @@ html[data-product="leaibot"] .page-content .ops-custom-range::before {
   height: 10px !important;
   border-left: 1px solid rgba(51,112,255,.20) !important;
   border-top: 1px solid rgba(51,112,255,.20) !important;
-  background: #fff !important;
+  background: inherit !important;
   transform: rotate(45deg) !important;
 }
 
@@ -6654,10 +6656,10 @@ html[data-product="leaibot"] .page-content :is(input[type="date"], input[type="d
   border-radius: 6px !important;
   opacity: .72 !important;
   cursor: pointer !important;
+  transition: opacity .18s ease !important;
 }
 
 html[data-product="leaibot"] .page-content :is(input[type="date"], input[type="datetime-local"], .ops-date-input, .geo-conv-date-input)::-webkit-calendar-picker-indicator:hover {
-  background: rgba(51,112,255,.08) !important;
   opacity: 1 !important;
 }
 
@@ -7472,12 +7474,1455 @@ html[data-product="leaibot"] body.dark-mode .agent-skill-card-icon {
 /* ===== Main workspace subtle wash ===== */
 html[data-product="leaibot"] body:not(.dark-mode) .page-content {
   background:
-    linear-gradient(105deg, rgba(51,112,255,.032) 0%, rgba(63,158,173,.024) 48%, rgba(144,112,195,.020) 100%) top left / 100% 220px no-repeat,
+    radial-gradient(ellipse at 18% 0%, rgba(51,112,255,.028) 0%, rgba(51,112,255,.016) 30%, rgba(51,112,255,0) 66%),
+    radial-gradient(ellipse at 74% 0%, rgba(63,158,173,.022) 0%, rgba(63,158,173,.012) 28%, rgba(63,158,173,0) 64%),
+    linear-gradient(105deg, rgba(51,112,255,.014) 0%, rgba(63,158,173,.010) 46%, rgba(144,112,195,.008) 100%),
     linear-gradient(180deg, #f8f9fb 0%, var(--color-canvas, #f5f6f8) 46%, #f1f3f6 100%) !important;
 }
 
 html[data-product="leaibot"] body.dark-mode .page-content {
   background:
-    linear-gradient(105deg, rgba(122,162,255,.085) 0%, rgba(63,158,173,.055) 48%, rgba(167,139,250,.055) 100%) top left / 100% 220px no-repeat,
+    radial-gradient(ellipse at 18% 0%, rgba(122,162,255,.090) 0%, rgba(122,162,255,.050) 30%, rgba(122,162,255,0) 66%),
+    radial-gradient(ellipse at 74% 0%, rgba(63,158,173,.060) 0%, rgba(63,158,173,.036) 28%, rgba(63,158,173,0) 64%),
+    linear-gradient(105deg, rgba(122,162,255,.036) 0%, rgba(63,158,173,.026) 48%, rgba(167,139,250,.022) 100%),
     linear-gradient(180deg, #1b1e24 0%, var(--color-bg, #171a20) 48%, #15171d 100%) !important;
+}
+
+/* ===== AI temporary report tabs ===== */
+html[data-product="leaibot"] .workspace-tabs {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 16px !important;
+  min-height: 54px !important;
+  padding: 0 clamp(16px, 1.2vw, 24px) !important;
+  border-bottom: 1px solid rgba(221,225,230,.72) !important;
+  background: rgba(255,255,255,.86) !important;
+  box-shadow: 0 1px 0 rgba(15,23,42,.02) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+html[data-product="leaibot"] .workspace-tabs[hidden] { display: none !important; }
+
+html[data-product="leaibot"] .workspace-tab {
+  position: relative !important;
+  min-width: 0 !important;
+  height: 54px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 6px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: color .18s ease, transform .18s ease !important;
+}
+
+html[data-product="leaibot"] .workspace-tab:hover,
+html[data-product="leaibot"] .workspace-tab.active {
+  color: var(--color-text, #1d2129) !important;
+}
+
+html[data-product="leaibot"] .workspace-tab.active {
+  font-weight: 700 !important;
+}
+
+html[data-product="leaibot"] .workspace-tab.active::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 3px !important;
+  border-radius: 3px 3px 0 0 !important;
+  background: var(--color-primary, #3370ff) !important;
+  transform-origin: left center !important;
+  animation: workspaceTabIn .22s ease both !important;
+}
+
+@keyframes workspaceTabIn {
+  from { transform: scaleX(.72); opacity: .4; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+html[data-product="leaibot"] .workspace-tab-base {
+  padding-left: 0 !important;
+  padding-right: 20px !important;
+  color: var(--color-text-tertiary, #86909c) !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-spark {
+  color: var(--color-primary, #3370ff) !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-title {
+  max-width: min(280px, 28vw) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-saved {
+  height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 7px !important;
+  border-radius: 999px !important;
+  background: rgba(52,199,36,.09) !important;
+  color: #2f9f45 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-close {
+  width: 20px !important;
+  height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  color: var(--color-text-tertiary, #86909c) !important;
+  font-size: 20px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-close:hover {
+  background: rgba(31,35,41,.06) !important;
+  color: var(--color-text, #1d2129) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-page {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header {
+  margin-bottom: 0 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  padding: 20px 22px !important;
+  border: 1px solid rgba(190,207,244,.62) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(105deg, rgba(51,112,255,.072) 0%, rgba(63,158,173,.052) 48%, rgba(144,112,195,.044) 100%),
+    #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.035) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-kicker {
+  display: inline-flex !important;
+  margin-bottom: 8px !important;
+  color: var(--color-primary, #3370ff) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero h2 {
+  margin: 0 0 8px !important;
+  font-size: 24px !important;
+  line-height: 1.25 !important;
+  color: var(--color-text, #1d2129) !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero p {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  flex: 0 0 240px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-meta span {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 26px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.72) !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  font-size: 12px !important;
+  box-shadow: inset 0 0 0 1px rgba(221,225,230,.72) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-grid {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: start !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline,
+html[data-product="leaibot"] .workspace-report-body {
+  border: 1px solid rgba(221,225,230,.72) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.025) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline {
+  position: sticky !important;
+  top: 0 !important;
+  display: grid !important;
+  gap: 10px !important;
+  padding: 16px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline b,
+html[data-product="leaibot"] .workspace-report-summary b {
+  color: var(--color-text, #1d2129) !important;
+  font-size: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline span {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  min-height: 32px !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  font-size: 13px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline i {
+  width: 28px !important;
+  height: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  background: rgba(51,112,255,.08) !important;
+  color: var(--color-primary, #3370ff) !important;
+  font-style: normal !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-body {
+  padding: 18px 20px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary {
+  display: grid !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+  padding: 14px !important;
+  border: 1px solid rgba(190,207,244,.62) !important;
+  border-radius: 8px !important;
+  background: rgba(51,112,255,.035) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary p {
+  margin: 0 !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  line-height: 1.65 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-markdown {
+  color: var(--color-text, #1d2129) !important;
+  font-size: 14px !important;
+  line-height: 1.82 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-markdown h3 {
+  margin: 18px 0 8px !important;
+  font-size: 16px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-markdown table {
+  width: 100% !important;
+  margin: 12px 0 !important;
+  border-collapse: collapse !important;
+}
+
+html[data-product="leaibot"] .workspace-report-markdown th,
+html[data-product="leaibot"] .workspace-report-markdown td {
+  padding: 8px 10px !important;
+  border-bottom: 1px solid rgba(221,225,230,.72) !important;
+  text-align: left !important;
+}
+
+html[data-product="leaibot"] .ai-result-card {
+  margin-top: 10px !important;
+  padding: 12px !important;
+  border: 1px solid rgba(190,207,244,.72) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(135deg, rgba(51,112,255,.06), rgba(255,255,255,.96)),
+    #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.035) !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-head {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+html[data-product="leaibot"] .ai-result-icon {
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  background: rgba(51,112,255,.1) !important;
+  color: var(--color-primary, #3370ff) !important;
+  flex: 0 0 auto !important;
+}
+
+html[data-product="leaibot"] .ai-result-card b {
+  display: block !important;
+  color: var(--color-text, #1d2129) !important;
+  font-size: 13px !important;
+}
+
+html[data-product="leaibot"] .ai-result-card em {
+  display: block !important;
+  margin-top: 2px !important;
+  color: var(--color-text-tertiary, #86909c) !important;
+  font-size: 11px !important;
+  font-style: normal !important;
+}
+
+html[data-product="leaibot"] .ai-result-card p {
+  margin: 10px 0 11px !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  font-size: 12.5px !important;
+  line-height: 1.6 !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-foot {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+html[data-product="leaibot"] .ai-result-tags {
+  flex: 1 !important;
+  display: flex !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+html[data-product="leaibot"] .ai-result-tags span {
+  max-width: 76px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 2px 7px !important;
+  border-radius: 999px !important;
+  background: rgba(31,35,41,.045) !important;
+  color: var(--color-text-tertiary, #86909c) !important;
+  font-size: 11px !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-foot button {
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--color-primary, #3370ff) !important;
+  border-radius: 6px !important;
+  background: var(--color-primary, #3370ff) !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-foot button.secondary {
+  background: #fff !important;
+  color: var(--color-primary, #3370ff) !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-foot button:disabled {
+  opacity: .68 !important;
+  cursor: default !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-tabs {
+  border-bottom-color: rgba(58,63,75,.82) !important;
+  background: rgba(37,39,45,.88) !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-tab,
+html[data-product="leaibot"] body.dark-mode .workspace-tab-base {
+  color: #9aa3b2 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-tab.active,
+html[data-product="leaibot"] body.dark-mode .workspace-tab:hover {
+  color: #eef2f8 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-hero,.workspace-report-outline,.workspace-report-body,.ai-result-card) {
+  border-color: rgba(85,98,124,.72) !important;
+  background:
+    linear-gradient(135deg, rgba(95,143,255,.08), rgba(36,39,48,.96)),
+    #25272d !important;
+}
+
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-hero h2,.workspace-report-outline b,.workspace-report-summary b,.workspace-report-markdown,.ai-result-card b) {
+  color: #eef2f8 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-hero p,.workspace-report-outline span,.workspace-report-summary p,.ai-result-card p) {
+  color: #b7c0cf !important;
+}
+
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-meta span,.workspace-report-summary,.ai-result-tags span) {
+  border-color: rgba(85,98,124,.72) !important;
+  background: rgba(255,255,255,.055) !important;
+}
+
+@media (max-width: 1080px) {
+  html[data-product="leaibot"] .workspace-report-hero {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+  html[data-product="leaibot"] .workspace-report-meta {
+    justify-content: flex-start !important;
+    flex-basis: auto !important;
+  }
+  html[data-product="leaibot"] .workspace-report-grid {
+    grid-template-columns: 1fr !important;
+  }
+  html[data-product="leaibot"] .workspace-report-outline {
+    position: static !important;
+  }
+}
+
+/* ===== AI report tab refinement: denser shell, calmer reading page, roomier AI cards ===== */
+html[data-product="leaibot"] .workspace-tabs {
+  min-height: 50px !important;
+  padding: 0 clamp(18px, 1.35vw, 26px) !important;
+  gap: 20px !important;
+  background: rgba(255,255,255,.94) !important;
+}
+
+html[data-product="leaibot"] .workspace-tab {
+  height: 50px !important;
+  font-size: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-title {
+  max-width: min(220px, 24vw) !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-close {
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  color: var(--color-text-tertiary, #86909c) !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+}
+
+html[data-product="leaibot"] .workspace-tab-close:hover {
+  background: rgba(31,35,41,.06) !important;
+  color: var(--color-text, #1d2129) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-page {
+  max-width: 1360px !important;
+  margin: 0 auto !important;
+  gap: 18px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header {
+  min-height: auto !important;
+  padding: 2px 2px 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header .page-title {
+  font-size: 19px !important;
+  line-height: 1.4 !important;
+  font-weight: 700 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header .page-desc {
+  margin-top: 4px !important;
+  color: var(--color-text-secondary, #86909c) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-actions .btn {
+  height: 34px !important;
+  padding: 0 13px !important;
+  border-radius: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero {
+  min-height: 148px !important;
+  align-items: center !important;
+  padding: 24px 26px !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 88% 16%, rgba(51,112,255,.09), transparent 28%),
+    linear-gradient(105deg, rgba(51,112,255,.062) 0%, rgba(63,158,173,.040) 48%, rgba(144,112,195,.035) 100%),
+    #fff !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero h2 {
+  font-size: 26px !important;
+  margin-bottom: 10px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero p {
+  max-width: 860px !important;
+  font-size: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-meta {
+  flex: 0 0 260px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics > div {
+  min-height: 78px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 16px 18px !important;
+  border: 1px solid rgba(221,225,230,.72) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.025) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics span {
+  color: var(--color-text-tertiary, #86909c) !important;
+  font-size: 12px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics b {
+  color: var(--color-text, #1d2129) !important;
+  font-size: 20px !important;
+  line-height: 1.1 !important;
+  font-weight: 800 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-grid {
+  grid-template-columns: 220px minmax(0, 1fr) !important;
+  gap: 16px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline {
+  top: 12px !important;
+  padding: 18px 16px !important;
+  gap: 12px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline span {
+  align-items: flex-start !important;
+  line-height: 1.45 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-body {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary,
+html[data-product="leaibot"] .workspace-report-section {
+  border: 1px solid rgba(221,225,230,.72) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.025) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary {
+  padding: 18px 20px !important;
+  margin-bottom: 14px !important;
+  border-color: rgba(190,207,244,.72) !important;
+  background: linear-gradient(135deg, rgba(51,112,255,.035), rgba(255,255,255,.98)) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary p {
+  position: relative !important;
+  padding-left: 14px !important;
+  font-size: 13.5px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary p::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: .78em !important;
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  background: var(--color-primary, #3370ff) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-sections {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section {
+  overflow: hidden !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-head {
+  min-height: 52px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 0 20px !important;
+  border-bottom: 1px solid rgba(231,234,238,.72) !important;
+  background: linear-gradient(180deg, #fff 0%, #fafbfc 100%) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-head span {
+  width: 30px !important;
+  height: 26px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 7px !important;
+  background: rgba(51,112,255,.08) !important;
+  color: var(--color-primary, #3370ff) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-head h3 {
+  margin: 0 !important;
+  color: var(--color-text, #1d2129) !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-body {
+  padding: 18px 20px 20px !important;
+  color: var(--color-text-secondary, #4e5969) !important;
+  font-size: 14px !important;
+  line-height: 1.8 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-body p {
+  margin: 0 0 10px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-body ul {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  gap: 10px !important;
+  list-style: none !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-body li {
+  position: relative !important;
+  padding-left: 16px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-body li::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: .78em !important;
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  background: rgba(51,112,255,.62) !important;
+}
+
+html[data-product="leaibot"] .ai-answer-card {
+  padding: 16px !important;
+  border-radius: 10px !important;
+  border-color: rgba(190,207,244,.72) !important;
+  background:
+    linear-gradient(180deg, #fff 0%, #fbfdff 100%) !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.035), 0 8px 20px rgba(15,23,42,.045) !important;
+}
+
+html[data-product="leaibot"] .ai-answer-card p {
+  margin: 0 0 14px !important;
+  color: var(--color-text, #1d2129) !important;
+  font-size: 13px !important;
+  line-height: 1.72 !important;
+}
+
+html[data-product="leaibot"] .ai-funnel-mini {
+  gap: 10px !important;
+  margin: 14px 0 !important;
+  padding: 12px !important;
+  border-radius: 9px !important;
+  background: rgba(245,247,250,.78) !important;
+}
+
+html[data-product="leaibot"] .ai-funnel-row {
+  grid-template-columns: 68px minmax(0, 1fr) 54px !important;
+  gap: 10px !important;
+  font-size: 12px !important;
+}
+
+html[data-product="leaibot"] .ai-funnel-row i {
+  height: 9px !important;
+}
+
+html[data-product="leaibot"] .ai-baseline-note {
+  margin-top: 12px !important;
+  padding: 11px 12px !important;
+  border-radius: 9px !important;
+  font-size: 12.5px !important;
+}
+
+html[data-product="leaibot"] .ai-answer-actions {
+  gap: 9px !important;
+  margin-top: 14px !important;
+}
+
+html[data-product="leaibot"] .ai-answer-actions button {
+  min-height: 32px !important;
+  padding: 0 14px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+}
+
+html[data-product="leaibot"] .ai-result-card {
+  margin-top: 12px !important;
+  padding: 14px !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, #fff 0%, #fbfdff 100%) !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.035), 0 8px 20px rgba(15,23,42,.04) !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-head {
+  align-items: flex-start !important;
+  gap: 11px !important;
+}
+
+html[data-product="leaibot"] .ai-result-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+}
+
+html[data-product="leaibot"] .ai-result-card b {
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
+}
+
+html[data-product="leaibot"] .ai-result-card em {
+  margin-top: 4px !important;
+}
+
+html[data-product="leaibot"] .ai-result-card p {
+  margin: 12px 0 13px !important;
+  font-size: 12.8px !important;
+  line-height: 1.72 !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-foot {
+  align-items: flex-start !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+html[data-product="leaibot"] .ai-result-tags {
+  flex-basis: 100% !important;
+  order: 1 !important;
+}
+
+html[data-product="leaibot"] .ai-result-card-foot button {
+  order: 2 !important;
+  min-height: 30px !important;
+  padding: 0 12px !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-report-metrics > div,
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-summary,.workspace-report-section,.ai-answer-card,.ai-result-card) {
+  border-color: rgba(85,98,124,.72) !important;
+  background:
+    linear-gradient(135deg, rgba(95,143,255,.055), rgba(36,39,48,.97)),
+    #25272d !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-report-section-head {
+  border-bottom-color: rgba(85,98,124,.58) !important;
+  background: rgba(255,255,255,.035) !important;
+}
+
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-metrics b,.workspace-report-section-head h3,.ai-answer-card p) {
+  color: #eef2f8 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode :is(.workspace-report-section-body,.workspace-report-metrics span) {
+  color: #b7c0cf !important;
+}
+
+/* ===== AI report tab final alignment: adaptive slot, normal page type scale, soft divider wash ===== */
+html[data-product="leaibot"] body:not(.dark-mode) .page-content {
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(51,112,255,.028) 0%, rgba(51,112,255,.016) 30%, rgba(51,112,255,0) 66%),
+    radial-gradient(ellipse at 74% 0%, rgba(63,158,173,.022) 0%, rgba(63,158,173,.012) 28%, rgba(63,158,173,0) 64%),
+    linear-gradient(105deg, rgba(51,112,255,.014) 0%, rgba(63,158,173,.010) 46%, rgba(144,112,195,.008) 100%),
+    linear-gradient(180deg, #f8f9fb 0%, var(--color-canvas, #f5f6f8) 52%, #f1f3f6 100%) !important;
+}
+
+html[data-product="leaibot"] .page-content > * {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-page {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  gap: 16px !important;
+  color: var(--color-text, #1f2329) !important;
+  font-size: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header {
+  padding: 0 !important;
+  margin-bottom: -2px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header .page-title {
+  font-size: 19px !important;
+  line-height: 1.4 !important;
+  font-weight: 700 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-header .page-desc {
+  margin-top: 4px !important;
+  color: var(--color-text-secondary, #86909c) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero {
+  position: relative !important;
+  min-height: 92px !important;
+  align-items: center !important;
+  padding: 18px 22px !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.70) 0%, rgba(255,255,255,.38) 42%, rgba(255,255,255,.82) 100%),
+    radial-gradient(circle at 10% 0%, rgba(51,112,255,.052) 0%, rgba(51,112,255,0) 34%),
+    linear-gradient(105deg, rgba(51,112,255,.040) 0%, rgba(63,158,173,.026) 48%, rgba(144,112,195,.022) 100%),
+    #fff !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 34px !important;
+  pointer-events: none !important;
+  background: linear-gradient(180deg, rgba(51,112,255,.035), rgba(255,255,255,0)) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background: radial-gradient(ellipse at 28% 0%, rgba(51,112,255,.045), rgba(51,112,255,0) 58%) !important;
+}
+
+html[data-product="leaibot"] .workspace-report-kicker {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero h2 {
+  font-size: 18px !important;
+  line-height: 1.4 !important;
+  margin: 8px 0 6px !important;
+  font-weight: 700 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-hero p {
+  max-width: 880px !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  margin-top: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-meta {
+  flex: 0 1 260px !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-meta span {
+  min-height: 24px !important;
+  padding: 3px 9px !important;
+  font-size: 12px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+  gap: 12px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics > div {
+  min-height: 70px !important;
+  gap: 6px !important;
+  padding: 14px 16px !important;
+  border-radius: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-metrics b {
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-grid {
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline {
+  padding: 16px !important;
+  border-radius: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline b,
+html[data-product="leaibot"] .workspace-report-summary b,
+html[data-product="leaibot"] .workspace-report-section-head h3 {
+  font-size: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-outline span,
+html[data-product="leaibot"] .workspace-report-summary p,
+html[data-product="leaibot"] .workspace-report-section-body {
+  font-size: 13px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary,
+html[data-product="leaibot"] .workspace-report-section {
+  border-radius: 8px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary {
+  padding: 16px 18px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-summary p {
+  line-height: 1.72 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-head {
+  min-height: 48px !important;
+  padding: 0 18px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-head span {
+  width: 28px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-head h3 {
+  line-height: 1.4 !important;
+}
+
+html[data-product="leaibot"] .workspace-report-section-body {
+  padding: 16px 18px 18px !important;
+  line-height: 1.76 !important;
+}
+
+@media (max-width: 1280px) {
+  html[data-product="leaibot"] .workspace-report-hero {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  html[data-product="leaibot"] .workspace-report-meta {
+    flex-basis: auto !important;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  html[data-product="leaibot"] .workspace-report-grid,
+  html[data-product="leaibot"] .workspace-report-metrics {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== AI insight card template: match design draft proportions ===== */
+html[data-product="leaibot"] .ai-answer-card.ai-insight-card {
+  padding: 14px !important;
+  border: 1px solid rgba(236,237,240,.96) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 8px 30px rgba(16,24,40,.08) !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-thread-context {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 0 14px !important;
+  padding: 5px 10px !important;
+  border-radius: 999px !important;
+  background: #f4f5f7 !important;
+  color: #8b93a1 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  font-weight: 400 !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-panel {
+  min-height: 108px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 16px 18px !important;
+  border: 1px solid #eceef2 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #374151 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-bottleneck-panel {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-main {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 6px !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-main span {
+  color: #4b5563 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-metric {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-main strong {
+  color: #e8590c !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-main em {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-main em b {
+  color: #ea580c !important;
+  font-weight: 600 !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-side {
+  flex: 0 0 96px !important;
+  display: grid !important;
+  gap: 2px !important;
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+  padding-top: 2px !important;
+}
+
+html[data-product="leaibot"] .ai-bottleneck-side b {
+  color: #9a3412 !important;
+  font-weight: 600 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-insight-copy {
+  margin: 16px 0 10px !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  line-height: 1.75 !important;
+  letter-spacing: 0 !important;
+  font-weight: 400 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-copy strong {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-copy strong.is-positive {
+  color: #13a05f !important;
+}
+
+html[data-product="leaibot"] .ai-flow-triplet {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, .94fr) !important;
+  align-items: center !important;
+  gap: 0 !important;
+  margin: 0 0 16px !important;
+}
+
+html[data-product="leaibot"] .ai-flow-node {
+  min-width: 0 !important;
+  min-height: 70px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 4px !important;
+  padding: 10px 6px !important;
+  border: 1px solid #e1ebfd !important;
+  border-radius: 9px !important;
+  background: #f6f8ff !important;
+  text-align: center !important;
+}
+
+html[data-product="leaibot"] .ai-flow-node span {
+  color: #717b8d !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  font-weight: 400 !important;
+}
+
+html[data-product="leaibot"] .ai-flow-node strong {
+  color: #101828 !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+html[data-product="leaibot"] .ai-flow-node.is-risk {
+  border-color: #f9e3d2 !important;
+  background: #fff8f3 !important;
+}
+
+html[data-product="leaibot"] .ai-flow-node.is-risk span,
+html[data-product="leaibot"] .ai-flow-node.is-risk strong {
+  color: #ea580c !important;
+}
+
+html[data-product="leaibot"] .ai-flow-bridge {
+  display: grid !important;
+  place-items: center !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+html[data-product="leaibot"] .ai-flow-bridge b {
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+}
+
+html[data-product="leaibot"] .ai-flow-bridge i {
+  font-style: normal !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+}
+
+html[data-product="leaibot"] .ai-flow-bridge.is-positive {
+  color: #13a05f !important;
+}
+
+html[data-product="leaibot"] .ai-flow-bridge.is-risk {
+  color: #f05a12 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-answer-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .9fr) minmax(0, .9fr) !important;
+  gap: 8px !important;
+  margin-top: 0 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-answer-actions button {
+  min-height: 40px !important;
+  padding: 0 12px !important;
+  border-radius: 9px !important;
+  border: 1px solid #e3e5e9 !important;
+  background: #fff !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-answer-actions button.primary {
+  border-color: transparent !important;
+  background: #2563eb !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .ai-structured-msg .ai-reply-footer {
+  margin-top: 16px !important;
+  padding: 11px 4px 0 !important;
+  border-top: 1px solid #f1f2f4 !important;
+  background: #fff !important;
+}
+
+html[data-product="leaibot"] .ai-structured-msg .ai-source-chip {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  padding: 0 11px !important;
+  color: #5f6775 !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  background: #f3f4f6 !important;
+  font-weight: 400 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .ai-structured-msg .ai-reply-footer button {
+  width: 28px !important;
+  height: 28px !important;
+  color: #b0b5bd !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-answer-actions button:hover {
+  border-color: #d5d9df !important;
+  background: #fbfcfd !important;
+}
+
+html[data-product="leaibot"] .ai-insight-card .ai-answer-actions button.primary:hover {
+  background: #1d4ed8 !important;
+  border-color: transparent !important;
+}
+
+
+html[data-product="leaibot"] .ai-structured-msg .ai-reply-footer button:hover {
+  color: #97a0ac !important;
+  background: transparent !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-answer-card.ai-insight-card {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-thread-context {
+  background: rgba(255,255,255,.04) !important;
+  color: #9aa5b5 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-panel {
+  background: #25272d !important;
+  border-color: rgba(85,98,124,.58) !important;
+  color: #d6dceb !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-main span,
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-main em,
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-side {
+  color: #aeb8c8 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-main strong {
+  color: #ff934d !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-main em b,
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-bottleneck-side b {
+  color: #ff934d !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-insight-copy {
+  color: #c7cfdb !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-insight-copy strong {
+  color: #eef2f8 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-insight-copy strong.is-positive {
+  color: #4fd18b !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-answer-actions button {
+  border-color: rgba(85,98,124,.72) !important;
+  background: #25272d !important;
+  color: #d5dbe7 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-answer-actions button.primary {
+  border-color: transparent !important;
+  background: #3d74ff !important;
+  color: #fff !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-answer-actions button:hover {
+  border-color: rgba(104,120,149,.86) !important;
+  background: #2a2d34 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-insight-card .ai-answer-actions button.primary:hover {
+  border-color: transparent !important;
+  background: #4d82ff !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-structured-msg .ai-reply-footer {
+  border-top-color: rgba(85,98,124,.48) !important;
+  background: transparent !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-structured-msg .ai-source-chip {
+  color: #aeb8c8 !important;
+  background: #2b2f36 !important;
+  border-color: transparent !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-structured-msg .ai-reply-footer button {
+  color: #96a1b1 !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .ai-structured-msg .ai-reply-footer button:hover {
+  color: #d8deea !important;
+  background: transparent !important;
+}
+
+@media (max-width: 420px) {
+  html[data-product="leaibot"] .ai-flow-triplet {
+    grid-template-columns: 1fr !important;
+  }
+
+  html[data-product="leaibot"] .ai-flow-bridge {
+    grid-template-columns: auto auto !important;
+    justify-content: center !important;
+  }
+
+  html[data-product="leaibot"] .ai-insight-card .ai-answer-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+html[data-product="leaibot"] .workspace-link-panel {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 10px 12px !important;
+  align-items: center !important;
+  margin-bottom: 16px !important;
+  padding: 14px !important;
+  border: 1px solid rgba(190,207,244,.72) !important;
+  border-radius: 8px !important;
+  background: rgba(51,112,255,.035) !important;
+}
+
+html[data-product="leaibot"] .workspace-link-panel b {
+  grid-column: 1 / -1 !important;
+  color: var(--color-text, #1d2129) !important;
+  font-size: 14px !important;
+}
+
+html[data-product="leaibot"] .workspace-link-panel code {
+  min-width: 0 !important;
+  padding: 9px 10px !important;
+  border-radius: 7px !important;
+  background: rgba(255,255,255,.82) !important;
+  color: #2f5ac7 !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html[data-product="leaibot"] .workspace-preview-shell {
+  height: min(760px, calc(100vh - 310px)) !important;
+  min-height: 420px !important;
+  border: 1px solid rgba(221,225,230,.9) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  background: #fff !important;
+}
+
+html[data-product="leaibot"] .workspace-preview-shell iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  background: #fff !important;
+  display: block !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-link-panel,
+html[data-product="leaibot"] body.dark-mode .workspace-preview-shell {
+  border-color: rgba(85,98,124,.72) !important;
+  background: rgba(255,255,255,.04) !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .workspace-link-panel code {
+  background: rgba(255,255,255,.06) !important;
+  color: #9fbeff !important;
 }

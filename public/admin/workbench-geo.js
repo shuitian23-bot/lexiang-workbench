@@ -938,7 +938,7 @@ function geoRenderLinkTop50(sites) {
         <div style="display:flex;align-items:center;gap:6px">
           ${geoSiteLogoHtml(s.domain, geoSiteName(s))}
           <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${geoEscape(geoSiteName(s))}</span>
-          <a href="https://${geoEscape(s.domain)}" target="_blank" rel="noopener" style="font-size:11px;color:#3f78c5;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
+          <a href="https://${geoEscape(s.domain)}" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="GEO 引用链接" data-workspace-title="${geoEscape(geoSiteName(s))}" style="font-size:11px;color:#3f78c5;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
         </div>
         <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e8ec;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#3f78c5' : '#9fc4ea'};border-radius:3px"></div></div>
       </div>

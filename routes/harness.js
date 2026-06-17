@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const https = require('https');
 const db = require('../db/schema');
 const registry = require('../core/skill-registry');
 const { buildContextMessages } = require('../core/compressor');
+const { callArkChat, callArkChatStream, getArkRuntimeInfo, hasArkConfig, missingKeyMessage } = require('../core/ark_client');
 const { v4: uuidv4 } = require('uuid');
-
-const API_KEY = process.env.DASHSCOPE_API_KEY;
-const MODEL = 'doubao-seed-2.0-lite';
 
 // 鉴权中间件：需要 admin 登录
 function requireAdmin(req, res, next) {
@@ -147,8 +144,7 @@ router.post('/sse/say', requireAdmin, async (req, res) => {
 
     const permissions = getUserPermissions(adminId);
     const skills = registry.getToolsForRole(permissions);
-    const hasPageContext = message.includes('【乐享运营看板上下文】');
-    const llmTools = hasPageContext ? [] : [
+    const llmTools = [
       { type: 'function', function: { name: 'query_stats', description: '查询运营统计数据', parameters: { type: 'object', properties: { type: { type: 'string', default: 'overview' } } } } },
       ...skills.map(s => ({ type: 'function', function: { name: s.name, description: s.description || s.name, parameters: s.input_schema || { type: 'object', properties: {} } } }))
     ];
@@ -378,91 +374,12 @@ router.put('/user-roles/:userId', requireAdmin, (req, res) => {
 
 // LLM 调用封装
 function callLLM(messages, tools, maxTokens = 1024) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      model: MODEL, thinking: { type: 'disabled' },
-      messages,
-      max_tokens: maxTokens,
-      temperature: 0.3,
-      ...(tools && tools.length ? { tools, tool_choice: 'auto' } : {})
-    });
-
-    const req = https.request({
-      hostname: 'ark.cn-beijing.volces.com',
-      path: '/api/coding/v3/chat/completions',
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body)
-      }
-    }, (res) => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => {
-        try {
-          const j = JSON.parse(data);
-          if (j.error) return reject(new Error(j.error.message || JSON.stringify(j.error)));
-          resolve(j.choices?.[0]?.message || {});
-        } catch (e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.setTimeout(30000, () => { req.destroy(); reject(new Error('LLM timeout')); });
-    req.write(body);
-    req.end();
-  });
+  return callArkChat(messages, tools, { maxTokens });
 }
 
 // 流式调用：onDelta(chunkText) 每收到一段文本就回调，结束后 resolve 完整文本
 function callLLMStream(messages, onDelta, maxTokens = 1024) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      model: MODEL, thinking: { type: 'disabled' },
-      messages,
-      max_tokens: maxTokens,
-      temperature: 0.3,
-      stream: true
-    });
-
-    const req = https.request({
-      hostname: 'ark.cn-beijing.volces.com',
-      path: '/api/coding/v3/chat/completions',
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body)
-      }
-    }, (res) => {
-      let buffer = '';
-      let full = '';
-      res.on('data', chunk => {
-        buffer += chunk.toString();
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith('data:')) continue;
-          const payload = trimmed.slice(5).trim();
-          if (!payload || payload === '[DONE]') continue;
-          try {
-            const j = JSON.parse(payload);
-            const delta = j.choices?.[0]?.delta?.content || '';
-            if (delta) {
-              full += delta;
-              try { onDelta(delta); } catch {}
-            }
-          } catch {}
-        }
-      });
-      res.on('end', () => resolve(full));
-    });
-    req.on('error', reject);
-    req.setTimeout(60000, () => { req.destroy(); reject(new Error('LLM stream timeout')); });
-    req.write(body);
-    req.end();
-  });
+  return callArkChatStream(messages, onDelta, { maxTokens });
 }
 
 // 构建工作台系统 prompt
@@ -481,16 +398,6 @@ ${skillList}
 内置操作（不需要 Skill）：
 - 查询运营指标 → 调用 query_stats
 - 生成报告/分析 → 直接用你的知识回答
-
-## 当前页面数据上下文
-
-如果用户消息中包含「【乐享运营看板上下文】」，其中的数据来自前端当前看板已渲染的指标、时间筛选和页面状态，等同于本轮已经查询到的工具结果。
-
-处理这类消息时：
-- 优先使用「乐享运营看板上下文」里的数据回答，不要再调用 query_stats 覆盖它
-- 分析必须围绕当前页面、当前时间范围和用户目标展开
-- 不要编造上下文里没有的数据；缺数据时明确说明缺少的字段、口径和建议由哪个业务侧补充
-- 回答要给运营可执行动作，而不是只复述指标
 
 ## 回复格式规范
 
@@ -524,7 +431,6 @@ ${skillList}
 | 搜知识/查文档 | knowledge_search | 不能编造文档链接 |
 | 导出/下载 | data_export | 不能只打印数据 |
 | 查统计/查运营数据 | query_stats | 不能编数字 |
-| 消息已包含「乐享运营看板上下文」 | 不需要工具，直接基于上下文分析 | 不能忽略当前页面数据 |
 
 ### 绝对禁止：
 1. **禁止编造数据** — 你没有通过工具查询就没有数据，不能根据上下文旧信息或训练知识编造
@@ -547,7 +453,7 @@ ${skillList}
 4. 如果没有合适的后续操作，就**不要**列建议，直接结束回答。宁可不建议也不要乱承诺。
 
 ## 规则
-1. 涉及具体数据 → 必须 tool_call，不能凭记忆；但用户消息已包含「乐享运营看板上下文」时，直接基于该上下文分析
+1. 涉及具体数据 → 必须 tool_call，不能凭记忆
 2. 涉及写操作 → 必须 tool_call，不能伪装
 3. 回答简洁有力，用结构化格式
 4. 始终用中文回答`;
@@ -555,15 +461,14 @@ ${skillList}
 
 // POST /api/harness/chat — 工作台 AI 助手（复用 Harness 会话架构）
 router.post('/chat', requireAdmin, async (req, res) => {
-  const { message, displayMessage, convId: clientConvId, currentPage = 'dashboard.overview', stream } = req.body;
+  const { message, convId: clientConvId, currentPage = 'dashboard.overview', stream } = req.body;
   if (!message) return res.status(400).json({ error: 'message required' });
-  const messageForHistory = String(displayMessage || message);
 
   // ===== 流式分支 =====
   if (stream) {
-    if (!API_KEY) {
+    if (!hasArkConfig()) {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
-      res.write(`data: ${JSON.stringify({ type: 'error', message: '未配置 DASHSCOPE_API_KEY' })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: missingKeyMessage() })}\n\n`);
       return res.end();
     }
 
@@ -589,12 +494,11 @@ router.post('/chat', requireAdmin, async (req, res) => {
       const exists = db.prepare('SELECT id FROM conversations WHERE id = ?').get(convId);
       if (!exists) db.prepare('INSERT INTO conversations (id, session_id, title) VALUES (?, ?, ?)').run(convId, sessionId, 'AI工作台对话');
     }
-    send({ type: 'start', convId });
+    send({ type: 'start', convId, runtime: getArkRuntimeInfo() });
 
     const permissions = getUserPermissions(adminId);
     const skills = registry.getToolsForRole(permissions);
-    const hasPageContext = message.includes('【乐享运营看板上下文】');
-    const llmTools = hasPageContext ? [] : [
+    const llmTools = [
       { type: 'function', function: { name: 'query_stats', description: '查询运营统计数据', parameters: { type: 'object', properties: { type: { type: 'string', default: 'overview' } } } } },
       ...skills.map(s => ({ type: 'function', function: { name: s.name, description: s.description || s.name, parameters: s.input_schema || { type: 'object', properties: {} } } }))
     ];
@@ -602,7 +506,7 @@ router.post('/chat', requireAdmin, async (req, res) => {
 
     try {
       const { messages: historyMessages } = await buildContextMessages(convId, 'zh');
-      db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', messageForHistory);
+      db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', message);
       const contextMsgs = historyMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 
       // 第一轮非流式：判定是否有 tool_call
@@ -666,8 +570,8 @@ router.post('/chat', requireAdmin, async (req, res) => {
   }
   // ===== 非流式分支（保留原逻辑） =====
 
-  if (!API_KEY) {
-    return res.json({ reply: '未配置 DASHSCOPE_API_KEY，AI 助手不可用' });
+  if (!hasArkConfig()) {
+    return res.json({ reply: missingKeyMessage() });
   }
 
   const adminId = req.session.admin.id;
@@ -694,9 +598,8 @@ router.post('/chat', requireAdmin, async (req, res) => {
 
   const permissions = getUserPermissions(adminId);
   const skills = registry.getToolsForRole(permissions);
-  const hasPageContext = message.includes('【乐享运营看板上下文】');
 
-  const llmTools = hasPageContext ? [] : [
+  const llmTools = [
     {
       type: 'function',
       function: {
@@ -722,7 +625,7 @@ router.post('/chat', requireAdmin, async (req, res) => {
     const { messages: historyMessages } = await buildContextMessages(convId, 'zh');
 
     // 保存本轮 user 消息到 DB
-    db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', messageForHistory);
+    db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', message);
 
     const contextMsgs = historyMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 

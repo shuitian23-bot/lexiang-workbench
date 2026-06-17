@@ -280,36 +280,98 @@ const AI_REPORT_ARTIFACTS = {};
 
 function aiShouldCreateReportArtifact(userText, assistantText) {
   const source = `${userText || ''}\n${assistantText || ''}`;
-  const askedReport = /(报表|报告|日报|周报|月报|复盘|总结)/.test(userText || '');
+  const askedReport = /(报表|报告|日报|周报|月报|复盘|总结|解读|分析|洞察|原因|方案|数据)/.test(source);
   const looksStructured = /(^|\n)#{1,3}\s*|一、|二、|三、|四、|五、|\|.+\|/.test(assistantText || '');
   return askedReport && looksStructured && (assistantText || '').trim().length > 180;
 }
 
 function aiReportTitle(userText, assistantText) {
+  const userTopic = (userText || '')
+    .replace(/\n+/g, ' ')
+    .replace(/^📎\s*\S+\s*/, '')
+    .replace(/^(帮我|请|基于当前页面|基于刚才的问题|继续)?(生成|写一份|输出|查看|分析|解读|总结)?/g, '')
+    .replace(/[。！？!?.，,]\s*$/g, '')
+    .trim();
+  if (userTopic && userTopic.length <= 28 && !/^(报表|报告|日报|周报|月报|复盘|总结)$/.test(userTopic)) return userTopic;
   const firstHeading = (assistantText || '').match(/^#{1,3}\s*(.+)$/m);
-  if (firstHeading) return firstHeading[1].trim().slice(0, 40);
+  if (firstHeading) return firstHeading[1].trim().replace(/^AI\s*报告\s*[·:：-]\s*/, '').slice(0, 40);
   if (/日报/.test(userText || '')) return '运营日报';
   if (/周报/.test(userText || '')) return '运营周报';
   if (/月报/.test(userText || '')) return '运营月报';
+  if (/解读|分析|洞察|原因/.test(userText || '')) return `${getPageLabel(STATE.currentPage) || '页面'}解读报告`;
   return 'AI 生成报表';
+}
+
+function aiPlainText(text) {
+  return String(text || '').replace(/[#>*`|]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function aiReportSummary(assistantText) {
+  const lines = String(assistantText || '').split('\n').map(line => line.trim()).filter(Boolean);
+  const bullet = lines.find(line => /^[-•]\s+/.test(line));
+  const conclusion = lines.find(line => /(结论|核心|整体|建议|风险)/.test(line) && line.length > 8);
+  const fallback = lines.find(line => line.length > 16);
+  return aiPlainText((bullet || conclusion || fallback || '已生成一份结构化 AI 报告，可展开到中间内容槽查看完整内容。').replace(/^[-•]\s+/, '')).slice(0, 96);
+}
+
+function aiReportChips(userText, assistantText) {
+  const source = `${userText || ''}\n${assistantText || ''}`;
+  const chips = [];
+  const add = label => { if (!chips.includes(label)) chips.push(label); };
+  if (/GMV|订单|交易|购买/.test(source)) add('GMV');
+  if (/流量|DAU|WAU|MAU|入口/.test(source)) add('流量');
+  if (/认证|员工|个税|企业邮箱|劳动合同/.test(source)) add('认证');
+  if (/转化|漏斗|下单/.test(source)) add('转化');
+  if (/Query|搜索|知识库/.test(source)) add('Query');
+  if (/风险|异常|预警|DPL|限购/.test(source)) add('风险');
+  add(getPageLabel(STATE.currentPage) || '当前页面');
+  return chips.slice(0, 4);
 }
 
 function aiAttachReportArtifact(bubbleEl, userText, assistantText) {
   if (!bubbleEl || !aiShouldCreateReportArtifact(userText, assistantText)) return;
+  if (bubbleEl.querySelector('.ai-result-card')) return;
   const id = `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const sourceGroup = typeof findPageGroup === 'function' ? findPageGroup(STATE.currentPage) : null;
   AI_REPORT_ARTIFACTS[id] = {
     id,
     title: aiReportTitle(userText, assistantText),
     content: assistantText,
     source: userText || '',
+    summary: aiReportSummary(assistantText),
+    chips: aiReportChips(userText, assistantText),
+    sourcePage: STATE.currentPage,
+    sourcePageLabel: getPageLabel(STATE.currentPage),
+    groupLabel: sourceGroup?.label || 'AI 报告',
     createdAt: new Date().toISOString()
   };
-  const action = document.createElement('div');
-  action.className = 'ai-report-actions';
-  action.innerHTML = `
-    <button class="ai-report-btn secondary" onclick="aiSaveReportArtifact('${id}', this)">保存</button>
-    <button class="ai-report-btn" onclick="aiDownloadReportArtifact('${id}')">下载</button>`;
-  bubbleEl.appendChild(action);
+  const card = document.createElement('div');
+  card.className = 'ai-result-card';
+  card.innerHTML = aiReportCardHtml(id);
+  bubbleEl.appendChild(card);
+}
+
+function aiReportCardHtml(id) {
+  const report = AI_REPORT_ARTIFACTS[id];
+  if (!report) return '';
+  const displayTitle = `${report.sourcePageLabel || getPageLabel(STATE.currentPage) || '当前页面'} · ${report.title || '数据解读报告'}`;
+  const chips = (report.chips || []).slice(0, 3).map(chip => `<span>${escapeHtml(chip).replace(/<br>/g, '')}</span>`).join('');
+  return `
+    <div class="ai-result-card-head">
+      <span class="ai-result-icon" aria-hidden="true">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h5l3 3v11H6z"/><path d="M11 3v3h3M8 10h4M8 13h5"/></svg>
+      </span>
+      <div>
+        <b>${escapeHtml(displayTitle).replace(/<br>/g, '')}</b>
+        <em>可展开为临时页签，多开对比</em>
+      </div>
+    </div>
+    <p>${escapeHtml(report.summary).replace(/<br>/g, '')}</p>
+    <div class="ai-result-card-foot">
+      <span class="ai-result-tags">${chips}</span>
+      <button type="button" class="secondary" onclick="aiSaveReportArtifact('${id}', this)">保存</button>
+      <button type="button" onclick="aiOpenReportArtifact('${id}')">展开报告</button>
+    </div>`;
 }
 
 function aiTaskActionItems(userText, assistantText) {
@@ -320,13 +382,13 @@ function aiTaskActionItems(userText, assistantText) {
   };
 
   if (/query|查询分析|热词|标注|非官网|渠道|转化/.test(source)) {
-    add({ label: '打开 Query 分析', kind: 'page', value: 'pipeline.annotate' });
+    add({ label: '展开 Query 报告', kind: 'report', value: 'pipeline.annotate' });
   }
   if (/gmv|订单|销售|交易|转化/.test(source)) {
-    add({ label: '查看 GMV 分析', kind: 'page', value: 'ops.gmv' });
+    add({ label: '展开 GMV 报告', kind: 'report', value: 'ops.gmv' });
   }
   if (/流量|dau|mau|入口|访问|互动/.test(source)) {
-    add({ label: '查看流量分析', kind: 'page', value: 'ops.traffic' });
+    add({ label: '展开流量报告', kind: 'report', value: 'ops.traffic' });
   }
   if (/商品|推荐位|价格|上下架|配置/.test(source)) {
     add({ label: '打开商品管理', kind: 'prompt', value: '打开商品管理' });
@@ -367,9 +429,8 @@ function aiAttachTaskActions(bubbleEl, userText, assistantText) {
 
 function aiRunTaskAction(item) {
   if (!item) return;
-  if (item.kind === 'page') {
-    aiOpenPageInNewWindow(item.value);
-    addAiMessage('assistant', `已在新页面打开 **${getPageLabel(item.value)}**`);
+  if (item.kind === 'report') {
+    aiOpenActionReport(item.value);
     return;
   }
   if (item.kind === 'skill') {
@@ -379,28 +440,23 @@ function aiRunTaskAction(item) {
   aiQuick(item.value);
 }
 
-function aiOpenPageInNewWindow(pageId) {
-  const url = new URL(window.location.href);
-  url.pathname = '/admin/workbench.html';
-  url.searchParams.set('page', pageId);
-  url.hash = '';
-  window.open(url.toString(), '_blank', 'noopener');
-}
-
 function aiSaveReportArtifact(id, trigger) {
   const report = AI_REPORT_ARTIFACTS[id];
   if (!report) return;
   const saved = JSON.parse(localStorage.getItem(AI_REPORT_STORAGE_KEY) || '[]');
   const next = [report, ...saved.filter(item => item.id !== id)].slice(0, 20);
   localStorage.setItem(AI_REPORT_STORAGE_KEY, JSON.stringify(next));
-  const panel = trigger?.closest('.ai-report-actions') || document.querySelector('.ai-report-actions');
-  if (panel) {
-    panel.querySelector('.ai-report-save-tip')?.remove();
-    const tip = document.createElement('span');
-    tip.className = 'ai-report-save-tip';
-    tip.textContent = '已保存';
-    panel.prepend(tip);
+  if (trigger) {
+    trigger.textContent = '已保存';
+    trigger.disabled = true;
   }
+  if (typeof workspaceSaveTempTab === 'function' && STATE.tempTabs?.some(item => item.id === id)) workspaceSaveTempTab(id);
+}
+
+function aiOpenReportArtifact(id) {
+  const report = AI_REPORT_ARTIFACTS[id];
+  if (!report || typeof workspaceOpenTempTab !== 'function') return;
+  workspaceOpenTempTab(report);
 }
 
 function aiDownloadReportArtifact(id) {
@@ -415,6 +471,14 @@ function aiDownloadReportArtifact(id) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+function aiOpenMarkdownLink(event, linkEl) {
+  if (typeof workspaceOpenExternalLink === 'function') {
+    return workspaceOpenExternalLink(event, linkEl);
+  }
+  event?.preventDefault();
+  return false;
 }
 
 function aiCurrentWelcomeHtml() {
@@ -761,28 +825,327 @@ function aiAddHtmlMessage(role, html, extraClass = '') {
 
 function aiOverviewStructuredReplyHtml() {
   return `
-    <div class="ai-thread-context"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg>已引用:运营总览 · 最近 1 天</div>
-    <div class="ai-answer-card">
-      <p><strong>结论:</strong>购买转化 0.7% 的主要瓶颈集中在<strong>互动 → 下单</strong>这一跳。今日 8.2 万互动用户中只有 575 人下单,转化 0.7%,而登录 → 互动转化(48.4%)是健康的。</p>
-      <div class="ai-funnel-mini">
-        <div class="ai-funnel-row"><span>登录用户</span><i><b style="width:100%"></b></i><em>17.0万</em></div>
-        <div class="ai-funnel-row"><span>互动用户</span><i><b style="width:48%"></b></i><em>8.2万</em></div>
-        <div class="ai-funnel-row is-bottleneck"><span>购买人数</span><i><b style="width:7%"></b></i><em>575</em></div>
+    <div class="ai-answer-card ai-insight-card">
+      <div class="ai-thread-context"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg>已引用 · 运营总览 · 最近 1 天</div>
+      <div class="ai-bottleneck-panel">
+        <div class="ai-bottleneck-main">
+          <span>瓶颈环节 · 互动 → 下单</span>
+          <div class="ai-bottleneck-metric">
+            <strong>0.7%</strong>
+            <em><b>下降</b> 较 7 日基线 1.1%</em>
+          </div>
+        </div>
+        <div class="ai-bottleneck-side">
+          <span>互动 8.2万</span>
+          <span>下单 <b>575人</b></span>
+        </div>
       </div>
-      <div class="ai-baseline-note">近 7 日基线为 <strong>1.1%</strong>,今日偏低主要来自<strong>消费业务</strong>;互动量增长 12% 但下单量持平,新增流量未被承接。</div>
+      <p class="ai-insight-copy">登录到互动 <strong class="is-positive">48.4%</strong> 健康，问题出在互动后的承接。互动量增长 12% 但下单持平，<strong>新增流量未被承接</strong>，今日偏低主要来自<strong>消费业务</strong>。</p>
       <div class="ai-answer-actions">
-        <button type="button" class="primary" onclick="aiQuick('生成针对消费业务的优化建议')">生成优化建议</button>
-        <button type="button" onclick="aiQuick('查看互动明细')">查看互动明细</button>
+        <button type="button" class="primary" onclick="aiOpenDemoOverviewReport()"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 5.5h11"/><path d="M4.5 10h8.5"/><path d="M4.5 14.5h6.5"/><path d="M14 12.5 16.5 15 14 17.5"/></svg>展开报告</button>
+        <button type="button" onclick="aiQuick('查看互动明细')">查看明细</button>
+        <button type="button" onclick="aiQuick('生成针对消费业务的优化建议')">优化建议</button>
+      </div>
+      <div class="ai-reply-footer">
+        <span class="ai-source-chip">转化漏斗</span>
+        <span class="ai-source-chip">转化基线</span>
+        <span class="spacer"></span>
+        <button type="button" title="复制" aria-label="复制"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="9" height="9" rx="2"/><path d="M4 13V5a2 2 0 0 1 2-2h8"/></svg></button>
+        <button type="button" title="点赞" aria-label="点赞"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 17H4.2A1.2 1.2 0 0 1 3 15.8V9.5a1.2 1.2 0 0 1 1.2-1.2h2.3M6.5 17h7.2a1.6 1.6 0 0 0 1.6-1.3l1-5.1A1.7 1.7 0 0 0 14.6 8.5h-3.1l.5-3.1A2 2 0 0 0 10 3L6.5 8.5V17z"/></svg></button>
+        <button type="button" title="重新生成" aria-label="重新生成"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a6 6 0 1 1-1.8-4.3"/><path d="M16 4.5V8h-3.5"/></svg></button>
       </div>
     </div>
-    <div class="ai-reply-footer">
-      <span class="ai-source-chip">转化漏斗</span>
-      <span class="ai-source-chip">转化基线</span>
-      <span class="spacer"></span>
-      <button type="button" title="复制" aria-label="复制"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="9" height="9" rx="2"/><path d="M4 13V5a2 2 0 0 1 2-2h8"/></svg></button>
-      <button type="button" title="点赞" aria-label="点赞"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 17H4.2A1.2 1.2 0 0 1 3 15.8V9.5a1.2 1.2 0 0 1 1.2-1.2h2.3M6.5 17h7.2a1.6 1.6 0 0 0 1.6-1.3l1-5.1A1.7 1.7 0 0 0 14.6 8.5h-3.1l.5-3.1A2 2 0 0 0 10 3L6.5 8.5V17z"/></svg></button>
-      <button type="button" title="重新生成" aria-label="重新生成"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a6 6 0 1 1-1.8-4.3"/><path d="M16 4.5V8h-3.5"/></svg></button>
-    </div>`;
+    `;
+}
+
+function aiOpenDemoOverviewReport() {
+  const content = `# 运营总览 · 购买转化原因分析
+
+## 核心结论
+- 购买转化 0.7% 的主要瓶颈集中在互动到下单环节。
+- 登录到互动转化 48.4% 相对健康，新增流量没有被有效承接到购买。
+- 今日 GMV 174.3 万，消费业务贡献 142.4 万，占比 81.7%，是优先排查对象。
+
+## 关键证据
+- 登录用户 17.0 万，互动用户 8.2 万，购买人数 575 人。
+- 近 7 日购买转化基线约 1.1%，今日低于基线。
+- 互动量增长 12%，但下单量基本持平，说明商品、权益或下单路径承接不足。
+
+## 建议动作
+- 优先检查消费业务入口商品承接、优惠展示和下单链路异常。
+- 将非官网渠道与官网渠道拆开对比，确认是否为渠道质量或落地页差异导致。
+- 补充互动明细、商品点击、加购和支付失败数据后再定位根因。`;
+  const id = `air_demo_${Date.now()}`;
+  const sourceGroup = typeof findPageGroup === 'function' ? findPageGroup(STATE.currentPage) : null;
+  AI_REPORT_ARTIFACTS[id] = {
+    id,
+    title: '购买转化原因分析',
+    content,
+    source: '购买转化原因分析',
+    summary: '互动到下单是当前主要瓶颈，消费业务贡献高但承接不足，需要优先排查商品、权益和下单链路。',
+    chips: ['转化', 'GMV', '运营总览'],
+    sourcePage: STATE.currentPage,
+    sourcePageLabel: getPageLabel(STATE.currentPage),
+    groupLabel: sourceGroup?.label || '乐享运营',
+    createdAt: new Date().toISOString()
+  };
+  aiOpenReportArtifact(id);
+}
+
+const AI_DATA_MOCK_SCENARIOS = [
+  {
+    key: 'employee-cert',
+    match: /(认证|个税|员工|在职|企业邮箱|劳动合同|审核|职场)/i,
+    title: '职工认证数据分析',
+    sourcePage: 'employee.overview',
+    sourcePageLabel: '在职员工管理',
+    groupLabel: '在职员工管理',
+    chips: ['认证', '员工', '近7天'],
+    primaryLabel: '待审核积压',
+    primaryValue: '128',
+    primaryDelta: '较昨日增加 18',
+    side: ['通过率 86.4%', '个税失败 31'],
+    summary: '近 7 天认证通过率稳定，但个税认证失败和待审核积压同步上升，需要优先处理材料缺失与企业名称不匹配。',
+    actions: ['优先处理个税认证待审核队列', '补充企业名称不匹配的拦截提示', '导出失败原因明细给客服回访'],
+    content: `# 职工认证数据分析
+
+## 核心结论
+- 近 7 天认证通过率为 86.4%，整体稳定，但待审核积压达到 128 单，较昨日增加 18 单。
+- 个税认证失败 31 单，占失败样本的 42%，主要集中在任职受雇企业名称不匹配和录屏缺少关键页面。
+- 企业邮箱认证通过率最高，为 94.8%，劳动合同认证平均处理时长最长，为 19.6 小时。
+
+## 关键证据
+- 企业邮箱认证 412 单，通过 391 单，通过率 94.8%。
+- 劳动合同认证 226 单，通过 181 单，通过率 80.1%，平均处理时长 19.6 小时。
+- 个人所得税认证 168 单，通过 121 单，通过率 72.0%，失败原因以企业名称不匹配和录屏不完整为主。
+
+## 建议动作
+- 将个税认证失败原因拆为企业名称不匹配、任职信息缺失、录屏不完整三类，便于客服回访。
+- 对待审核超过 24 小时的材料建立优先队列，先处理企业客户批量提交用户。
+- 在提交页增加示例图和必录字段提示，减少重复驳回。`
+  },
+  {
+    key: 'order-channel',
+    match: /(订单|渠道|gmv|交易|销售|付款|转化|下单|购买)/i,
+    title: '订单渠道汇总分析',
+    sourcePage: 'ops.gmv',
+    sourcePageLabel: 'GMV 分析',
+    groupLabel: '乐享运营',
+    chips: ['GMV', '订单', '渠道'],
+    primaryLabel: 'GMV',
+    primaryValue: '174.3万',
+    primaryDelta: '环比增加 6.8%',
+    side: ['订单 1,286', '转化 0.7%'],
+    summary: 'GMV 环比上升但购买转化偏低，官网渠道贡献稳定，非官网渠道带来访问增长但下单承接不足。',
+    actions: ['拆分官网与非官网渠道落地页', '检查消费业务商品承接和权益展示', '补充加购与支付失败数据'],
+    content: `# 订单渠道汇总分析
+
+## 核心结论
+- 今日 GMV 174.3 万，环比增加 6.8%，订单数 1,286 单。
+- 官网渠道贡献 62.5% GMV，非官网渠道访问增长 15.2%，但购买转化只有 0.7%。
+- 消费业务贡献 142.4 万，占比 81.7%，是本轮增长和风险的共同来源。
+
+## 关键证据
+- 官网渠道 GMV 108.9 万，订单 746 单，客单价 1,460 元。
+- 非官网渠道 GMV 65.4 万，订单 540 单，访问增长但下单率低于 7 日基线。
+- 互动用户 8.2 万，购买人数 575 人，互动到下单环节损耗最大。
+
+## 建议动作
+- 将非官网渠道按媒体、活动页、商品页拆开看承接效率。
+- 对消费业务重点商品检查价格、优惠、库存和支付失败链路。
+- 补充加购率、支付失败率、优惠券领取率，定位低转化原因。`
+  },
+  {
+    key: 'traffic-data',
+    match: /(流量|dau|wau|mau|入口|访问|互动|曝光|点击)/i,
+    title: '流量访问数据分析',
+    sourcePage: 'ops.traffic',
+    sourcePageLabel: '流量分析',
+    groupLabel: '乐享运营',
+    chips: ['流量', '入口', '转化'],
+    primaryLabel: '访问用户',
+    primaryValue: '17.0万',
+    primaryDelta: '较 7 日均值增加 12.4%',
+    side: ['互动 8.2万', '购买 575人'],
+    summary: '今日访问和互动同步增长，但互动后的购买承接偏弱，新增流量主要来自活动入口和非官网渠道。',
+    actions: ['拆分活动入口与自然访问来源', '检查高访问低互动页面的承接内容', '联动 GMV 报告定位下单损耗'],
+    content: `# 流量访问数据分析
+
+## 核心结论
+- 今日访问用户 17.0 万，较 7 日均值增加 12.4%，流量规模明显上升。
+- 互动用户 8.2 万，登录到互动转化 48.4%，入口吸引力相对稳定。
+- 购买人数 575 人，互动到购买转化偏低，说明新增流量没有被后续商品和权益充分承接。
+
+## 关键证据
+- 活动入口访问 5.6 万，占总访问 32.9%，是今日增长主来源。
+- 非官网渠道访问增长 15.2%，但购买转化只有 0.7%，低于官网渠道。
+- 商品详情页停留时长下降 9.8%，优惠曝光点击率低于近 7 日均值。
+
+## 建议动作
+- 将活动入口、官网入口、非官网入口拆开观察互动率和购买率。
+- 对高访问低互动页面补充商品、权益和活动规则说明。
+- 联动 GMV 与订单渠道报告，优先排查非官网渠道的落地页和下单链路。`
+  },
+  {
+    key: 'risk-data',
+    match: /(风控|风险|异常|限购|dpl|黑名单|拦截|预警)/i,
+    title: '风控异常数据分析',
+    sourcePage: 'risk.data',
+    sourcePageLabel: '风控数据查询',
+    groupLabel: '风控管理',
+    chips: ['风控', '异常', '近24小时'],
+    primaryLabel: '异常订单',
+    primaryValue: '46',
+    primaryDelta: '较昨日增加 12',
+    side: ['拦截 31', '待复核 15'],
+    summary: '近 24 小时异常订单小幅上升，集中在同设备多账号和高频下单，建议先复核限购策略和企业客户白名单。',
+    actions: ['复核同设备多账号规则阈值', '确认企业客户白名单是否误伤', '导出待复核订单给风控同学'],
+    content: `# 风控异常数据分析
+
+## 核心结论
+- 近 24 小时异常订单 46 单，较昨日增加 12 单。
+- 已自动拦截 31 单，仍有 15 单待人工复核。
+- 异常主要集中在同设备多账号、高频下单和疑似 DPL 命中三类。
+
+## 关键证据
+- 同设备多账号 18 单，占异常订单 39.1%。
+- 高频下单 14 单，主要集中在 10:00-12:00 的活动流量峰值。
+- 疑似 DPL 命中 9 单，其中 3 单来自企业客户白名单边界，需要人工确认。
+
+## 建议动作
+- 将同设备多账号阈值按活动期和非活动期分开配置。
+- 对企业客户白名单增加订单来源与企业认证状态校验。
+- 待复核订单先按金额和命中规则数量排序处理。`
+  },
+  {
+    key: 'query-quality',
+    match: /(query|查询|搜索|热词|知识库|无答案|质量|满意度|问答)/i,
+    title: 'Query 质量数据分析',
+    sourcePage: 'pipeline.annotate',
+    sourcePageLabel: 'Query 分析',
+    groupLabel: '乐享运营',
+    chips: ['Query', '质量', '知识库'],
+    primaryLabel: '无答案率',
+    primaryValue: '8.6%',
+    primaryDelta: '较 7 日均值增加 1.9pct',
+    side: ['总 Query 12,840', '差评 92'],
+    summary: 'Query 总量稳定，但无答案率和差评样本上升，问题集中在活动政策、驱动下载和企业采购报价三个知识缺口。',
+    actions: ['补充活动政策和驱动下载知识', '复核企业采购报价类兜底话术', '把差评 Query 加入标注队列'],
+    content: `# Query 质量数据分析
+
+## 核心结论
+- 近 7 天总 Query 12,840 条，无答案率 8.6%，较 7 日均值增加 1.9 个百分点。
+- 差评样本 92 条，主要集中在活动政策、驱动下载和企业采购报价。
+- 知识库命中率下降到 76.2%，说明近期业务活动内容和服务类知识更新不足。
+
+## 关键证据
+- 活动政策相关 Query 2,410 条，无答案率 12.4%。
+- 驱动下载相关 Query 1,186 条，差评 27 条，用户常问机型兼容和安装步骤。
+- 企业采购报价相关 Query 864 条，转人工率 18.1%，高于平均 9.7%。
+
+## 建议动作
+- 优先补充活动政策 FAQ、驱动下载步骤和企业采购报价边界说明。
+- 将差评 Query 加入标注队列，拆分为知识缺失、意图识别错误、回答不完整三类。
+- 对企业采购报价场景增加转人工前的信息收集表单。`
+  }
+];
+
+function aiDataMockScenarioForText(text) {
+  const source = String(text || '').trim();
+  if (!source) return null;
+  if (!/^(演示|示例|mock|demo|模拟)\s*/i.test(source)) return null;
+  if (/^(打开|进入|跳转|切换|导出|下载|删除|保存|提交|发布)/.test(source)) return null;
+  if (!/(查|查询|看|统计|汇总|分析|趋势|数据|报表|报告|原因)/i.test(source)) return null;
+  return AI_DATA_MOCK_SCENARIOS.find(item => item.match.test(source)) || null;
+}
+
+function aiDataMockScenarioForPage(pageId) {
+  return AI_DATA_MOCK_SCENARIOS.find(item => item.sourcePage === pageId) || null;
+}
+
+function aiCreateMockReportArtifact(scenario) {
+  const id = `air_mock_${scenario.key}_${Date.now()}`;
+  AI_REPORT_ARTIFACTS[id] = {
+    id,
+    title: scenario.title,
+    content: scenario.content,
+    source: scenario.title,
+    summary: scenario.summary,
+    chips: scenario.chips,
+    sourcePage: scenario.sourcePage || STATE.currentPage,
+    sourcePageLabel: scenario.sourcePageLabel || getPageLabel(STATE.currentPage),
+    groupLabel: scenario.groupLabel || 'AI 报告',
+    createdAt: new Date().toISOString()
+  };
+  return id;
+}
+
+function aiOpenActionReport(pageId) {
+  const scenario = aiDataMockScenarioForPage(pageId);
+  if (scenario) {
+    const reportId = aiCreateMockReportArtifact(scenario);
+    aiOpenReportArtifact(reportId);
+    return;
+  }
+  const sourceGroup = typeof findPageGroup === 'function' ? findPageGroup(pageId) : null;
+  const pageLabel = getPageLabel(pageId) || '数据分析';
+  const id = `air_action_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  AI_REPORT_ARTIFACTS[id] = {
+    id,
+    title: `${pageLabel}报告`,
+    content: `# ${pageLabel}报告
+
+## 核心结论
+- 已将该继续执行动作收敛为报告展开，不再跳转或打开新页面。
+- 当前可在中间工作区以临时页签方式阅读、保存和下载。
+
+## 建议动作
+- 补充该页面的指标口径、筛选条件和异常样本。
+- 需要接真实数据时，将这里的 mock 内容替换为接口返回的结构化报告。`,
+    source: pageLabel,
+    summary: `已按“展开报告”的方式打开 ${pageLabel}，不会再跳转到新页面。`,
+    chips: ['继续执行', '报告', pageLabel],
+    sourcePage: pageId || STATE.currentPage,
+    sourcePageLabel: pageLabel,
+    groupLabel: sourceGroup?.label || 'AI 报告',
+    createdAt: new Date().toISOString()
+  };
+  aiOpenReportArtifact(id);
+}
+
+function aiMockDataScenarioHtml(scenario, reportId) {
+  const side = (scenario.side || []).map(item => `<span>${escapeHtml(item).replace(/<br>/g, '')}</span>`).join('');
+  const actions = (scenario.actions || []).slice(0, 3).map(item => `<li>${escapeHtml(item).replace(/<br>/g, '')}</li>`).join('');
+  return `
+    <div class="ai-answer-card ai-insight-card">
+      <div class="ai-thread-context"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg>已引用 · 示例数据 · ${escapeHtml(scenario.sourcePageLabel).replace(/<br>/g, '')}</div>
+      <div class="ai-bottleneck-panel">
+        <div class="ai-bottleneck-main">
+          <span>${escapeHtml(scenario.primaryLabel).replace(/<br>/g, '')}</span>
+          <div class="ai-bottleneck-metric">
+            <strong>${escapeHtml(scenario.primaryValue).replace(/<br>/g, '')}</strong>
+            <em>${escapeHtml(scenario.primaryDelta).replace(/<br>/g, '')}</em>
+          </div>
+        </div>
+        <div class="ai-bottleneck-side">${side}</div>
+      </div>
+      <p class="ai-insight-copy">${escapeHtml(scenario.summary).replace(/<br>/g, '')}</p>
+      <ul class="ai-mock-action-list">${actions}</ul>
+      <div class="ai-answer-actions">
+        <button type="button" class="primary" onclick="aiOpenReportArtifact('${reportId}')"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 5.5h11"/><path d="M4.5 10h8.5"/><path d="M4.5 14.5h6.5"/><path d="M14 12.5 16.5 15 14 17.5"/></svg>展开报告</button>
+        <button type="button" onclick="aiQuick('基于刚才的数据继续拆分原因')">拆分原因</button>
+        <button type="button" onclick="aiQuick('把刚才的数据输出为行动清单')">行动清单</button>
+      </div>
+    </div>
+    <div class="ai-result-card">${aiReportCardHtml(reportId)}</div>`;
+}
+
+function aiTryDataMockScenario(text) {
+  const scenario = aiDataMockScenarioForText(text);
+  if (!scenario) return false;
+  const reportId = aiCreateMockReportArtifact(scenario);
+  aiAddHtmlMessage('assistant', aiMockDataScenarioHtml(scenario, reportId), 'ai-structured-msg');
+  return true;
 }
 
 function aiAddDemoTyping() {
@@ -796,6 +1159,7 @@ function aiAddDemoTyping() {
 
 function aiTryOverviewDemo(text) {
   if (!['dashboard.overview', 'ops.gmv', 'ops.traffic'].includes(STATE.currentPage)) return false;
+  if (!/^(演示|示例|mock|demo|模拟)\s*/i.test(String(text || '').trim())) return false;
   if (/(承接方案|消费业务.*方案|写一份|优化建议)/.test(text)) {
     aiSetFollowupChips();
     aiAddDemoTyping();
@@ -1214,6 +1578,11 @@ function aiSend() {
   aiClearFile();
   _aiSetComposerSending(true);
 
+  if (aiTryDataMockScenario(text)) {
+    _aiSetComposerSending(false);
+    return;
+  }
+
   // 先尝试本地命令（热重载、标注等）
   const localResult = aiTryLocalCommand(text);
   if (localResult) {
@@ -1381,6 +1750,7 @@ function addAiMessage(role, text) {
   div.className = 'ai-msg ' + role;
   if (role === 'assistant') {
     div.innerHTML = `<div class="bubble">${renderAiMarkdown(text)}</div>`;
+    aiAttachReportArtifact(div.querySelector('.bubble'), '', text);
     aiAttachTaskActions(div.querySelector('.bubble'), '', text);
   } else {
     div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
@@ -1421,7 +1791,10 @@ function renderAiMarkdown(text) {
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
 
   // 链接 [text](url)
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+    const safeUrl = String(url || '').replace(/"/g, '&quot;');
+    return `<a href="${safeUrl}" onclick="return aiOpenMarkdownLink(event,this)">${label}</a>`;
+  });
 
   // 分隔线
   s = s.replace(/^---$/gm, '<hr>');

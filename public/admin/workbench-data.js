@@ -1005,8 +1005,17 @@ function pbPreview() {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${_pb.page.title} - 预览</title>
     <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#333}</style></head>
     <body>${body}</body></html>`;
+  if (typeof workspaceOpenHtmlPreviewTab === 'function') {
+    workspaceOpenHtmlPreviewTab({
+      title: `${_pb.page.title || '页面'}预览`,
+      sourcePageLabel: '页面构建',
+      groupLabel: '页面管理',
+      html
+    });
+    return;
+  }
   const blob = new Blob([html], {type:'text/html'});
-  window.open(URL.createObjectURL(blob), '_blank');
+  location.href = URL.createObjectURL(blob);
 }
 
 function pbTogglePreviewMode() {
@@ -1707,7 +1716,7 @@ async function loadAftersale() {
     el.innerHTML = articles.map(a => `<div style="padding:10px 0;border-bottom:1px solid var(--border-light);display:flex;gap:12px;align-items:flex-start">
       ${a.cover_img ? `<img src="${a.cover_img}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'">` : ''}
       <div style="flex:1;min-width:0">
-        <a href="https://newsupport.lenovo.com.cn/doc/${a.doc_code}" target="_blank" style="font-size:13px;font-weight:500;color:var(--text);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.title || '无标题'}</a>
+        <a href="https://newsupport.lenovo.com.cn/doc/${a.doc_code}" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="售后文章" data-workspace-title="${workspaceEscapeHtml(a.title || '无标题')}" style="font-size:13px;font-weight:500;color:var(--text);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.title || '无标题'}</a>
         <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.description || ''}</div>
         <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${a.line_category_name || ''} · ${(a.create_time || '').slice(0, 10)}</div>
       </div>
@@ -1746,7 +1755,7 @@ async function loadOrders() {
     const res = await fetch('/api/lenovo/user/order/list');
     const data = await res.json();
     if (data.error && data.error.includes('Cookie')) {
-      authEl.innerHTML = `<div class="demo-banner" style="border-color:var(--orange);background:var(--orange-light)"><span class="demo-icon">🔐</span> 需要联想Passport Cookie才能查看真实订单。请在系统设置中配置 LENOVO_PASSPORT_COOKIE 环境变量，或<a href="https://reg.lenovo.com.cn/auth/v1/login" target="_blank">登录联想账号</a>后获取Cookie。</div>`;
+      authEl.innerHTML = `<div class="demo-banner" style="border-color:var(--orange);background:var(--orange-light)"><span class="demo-icon">🔐</span> 需要联想Passport Cookie才能查看真实订单。请在系统设置中配置 LENOVO_PASSPORT_COOKIE 环境变量，或<a href="https://reg.lenovo.com.cn/auth/v1/login" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="订单认证" data-workspace-title="联想账号登录">登录联想账号</a>后获取Cookie。</div>`;
       contentEl.innerHTML = `<div class="kpi-grid">
         <div class="kpi-card"><div class="kpi-label">数据来源</div><div class="kpi-value" style="font-size:16px">i.lenovo.com.cn</div></div>
         <div class="kpi-card"><div class="kpi-label">API端点</div><div class="kpi-value" style="font-size:14px">/api/order/list</div></div>

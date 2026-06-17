@@ -3702,7 +3702,9 @@ html[data-product="leaibot"] .main {
 html[data-product="leaibot"] .page-content {
   padding:20px 24px 28px;
   background:
-    linear-gradient(105deg, rgba(51,112,255,.032) 0%, rgba(63,158,173,.024) 48%, rgba(144,112,195,.020) 100%) top left / 100% 220px no-repeat,
+    radial-gradient(ellipse at 18% 0%, rgba(51,112,255,.028) 0%, rgba(51,112,255,.016) 30%, rgba(51,112,255,0) 66%),
+    radial-gradient(ellipse at 74% 0%, rgba(63,158,173,.022) 0%, rgba(63,158,173,.012) 28%, rgba(63,158,173,0) 64%),
+    linear-gradient(105deg, rgba(51,112,255,.014) 0%, rgba(63,158,173,.010) 46%, rgba(144,112,195,.008) 100%),
     linear-gradient(180deg, #f8f9fb 0%, #f5f6f8 46%, #f1f3f6 100%);
 }
 
