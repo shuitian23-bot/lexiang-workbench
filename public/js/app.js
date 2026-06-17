@@ -263,7 +263,7 @@
 
         function getProductFromCard(card) {
           if (!card) return null;
-          const sku = card.dataset.sku || "";
+          const sku = card.dataset.sku || card.dataset.openProduct || card.querySelector("[data-open-product]")?.dataset.openProduct || "";
           const product = sku ? state.products.find((item) => String(item.sku || "") === String(sku)) : null;
           if (product) return product;
           return {
@@ -3452,13 +3452,13 @@
           }, true);
 
           document.addEventListener("mouseover", (event) => {
-            const card = event.target.closest?.(".product-card");
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || card.contains(event.relatedTarget)) return;
             startHoverPromptTimer(card);
           });
 
           document.addEventListener("mouseout", (event) => {
-            const card = event.target.closest?.(".product-card");
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || card.contains(event.relatedTarget)) return;
             clearHoverPromptTimer();
           });
