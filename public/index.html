@@ -17,9 +17,12 @@
       html.lx-root-lxfd-prepaint .lxfd{display:block!important}
       html.lx-root-lxfd-prepaint .lxfd .anim-rise,
       html.lx-root-lxfd-prepaint .lxfd .anim-fade{opacity:1!important;animation:none!important;transform:none!important}
-      html.lx-root-lxfd-prepaint .lxfd-rail{transform:translate3d(calc(-100% - 26px),0,0)!important}
-      html.lx-root-lxfd-prepaint .lxfd-rail-fab,
-      html.lx-root-lxfd-prepaint .lxfd-rail-new-fab{opacity:1!important;visibility:visible!important;transform:none!important}
+      html.lx-root-lxfd-prepaint .lxfd-rail:not(.open){transform:translate3d(calc(-100% - 26px),0,0)!important}
+      html.lx-root-lxfd-prepaint .lxfd-rail.open{transform:translate3d(0,0,0)!important}
+      html.lx-root-lxfd-prepaint .lxfd-rail-fab:not(.hide),
+      html.lx-root-lxfd-prepaint .lxfd-rail-new-fab:not(.hide){opacity:1!important;visibility:visible!important;transform:none!important}
+      html.lx-root-lxfd-prepaint .lxfd-rail-fab.hide,
+      html.lx-root-lxfd-prepaint .lxfd-rail-new-fab.hide{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
       html.lx-root-lxfd-prepaint .lxfd-stage{padding-left:40px!important}
       html.lx-root-lxfd-prepaint .lxfd-chips{width:min(100%,700px);grid-template-columns:repeat(6,minmax(0,1fr));gap:10px 12px;margin:36px auto 0}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(1){grid-column:1/span 2}
