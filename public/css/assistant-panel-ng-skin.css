@@ -715,3 +715,23 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   z-index:30!important;
 }
 
+/* Pin split composer to the same bottom position in default and chat states. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom{
+  position:absolute!important;
+  left:20px!important;
+  right:20px!important;
+  bottom:10px!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom:has(.composer.has){
+  bottom:10px!important;
+}
+
+/* Remove split assistant panel outer corner shadow. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  box-shadow:none!important;
+}
+
