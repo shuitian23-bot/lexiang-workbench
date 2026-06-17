@@ -305,6 +305,14 @@ router.post('/docs', async (req, res) => {
     approved_doc_id: approvedDocId,
     action
   });
+  // 异步生成 wiki 静态页(approved 才生成, pending/rejected 不发布), 不阻塞响应
+  if (reviewStatus === 'approved' && approvedDocId) {
+    const { spawn } = require('child_process');
+    const child = spawn('python3', ['/opt/projects/lexiang/scripts/gen_single_article.py', String(approvedDocId)], {
+      detached: true, stdio: 'ignore', cwd: '/opt/projects/lexiang'
+    });
+    child.unref();
+  }
 });
 
 router.get('/docs', (req, res) => {
