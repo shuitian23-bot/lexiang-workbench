@@ -4133,6 +4133,7 @@
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.remove("lxfd-split-returning");
     document.body.classList.add("lxfd-entering");
+    document.body.classList.add("lxfd-split-entered");
     setFullscreen(true);
     window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
     finishMotionClass("lxfd-entering", 760);
@@ -4155,6 +4156,7 @@
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
+    if (!on) document.body.classList.remove("lxfd-split-entered");
     if (on) document.body.dataset.state = "chat";
     if (on) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
   }
