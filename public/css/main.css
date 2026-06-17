@@ -7523,3 +7523,17 @@ body[data-page="home"] .agent-summary {
 @keyframes sendpulse{0%,100%{box-shadow:0 4px 14px rgba(200,22,30,.34)}50%{box-shadow:0 4px 22px rgba(200,22,30,.55)}}
 @media (prefers-reduced-motion:reduce){.ghost,.assistant-panel.dragging,.assistant-panel.armed,.glowlayer,.att-enter,.composer.has .send-btn.pulse{animation:none!important}}
 
+
+
+/* Keep dragged product pending card inside the real composer */
+.composer{overflow:visible}
+.composer.has .attach{min-width:0;max-width:100%;overflow:visible}
+.composer.has .att-wrap{width:100%;max-width:100%;min-width:0;overflow:visible}
+.composer.has .att-card{width:100%;min-width:0;max-width:100%;overflow:hidden}
+.composer.has .att-thumb{flex:0 0 42px}
+.composer.has .att-info{min-width:0;flex:1 1 auto;overflow:hidden}
+.composer.has .att-name{display:block;max-width:100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.composer.has .att-meta{max-width:100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.composer.has .att-meta span:not(.pr){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.composer.has .att-x{flex:0 0 22px}
+
