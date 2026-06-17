@@ -4706,17 +4706,23 @@
     if (Number.isFinite(saved) && saved > 0) applyWidth(saved);
   } catch {}
   document.addEventListener('pointerdown', (event) => {
-    const handle = event.target.closest?.('.panel-resizer');
-    if (!handle || document.body.classList.contains('assistant-fullscreen')) return;
+    let handle = event.target.closest?.('.panel-resizer');
+    if (document.body.classList.contains('assistant-fullscreen')) return;
     const panel = document.querySelector('.assistant-panel');
     if (!panel) return;
+    const panelRect = panel.getBoundingClientRect();
+    const isRight = document.body.classList.contains('assistant-right');
+    const nearEdge = isRight
+      ? Math.abs(event.clientX - panelRect.left) <= 14
+      : Math.abs(event.clientX - panelRect.right) <= 14;
+    if (!handle && !nearEdge) return;
+    handle = handle || document.querySelector('.panel-resizer');
     event.preventDefault();
     event.stopPropagation();
     const startX = event.clientX;
-    const startWidth = panel.getBoundingClientRect().width;
-    const isRight = document.body.classList.contains('assistant-right');
+    const startWidth = panelRect.width;
     document.body.classList.add('is-resizing');
-    handle.setPointerCapture?.(event.pointerId);
+    handle?.setPointerCapture?.(event.pointerId);
     const onMove = (moveEvent) => {
       const delta = moveEvent.clientX - startX;
       applyWidth(startWidth + (isRight ? -delta : delta));

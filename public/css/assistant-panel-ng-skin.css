@@ -524,3 +524,74 @@ body.is-resizing:is([data-page="personal"],[data-page="business"],[data-page="en
   box-shadow:0 0 0 5px rgba(91,20,82,.035)!important;
 }
 
+/* Compact split-panel composer area by 20%. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom{
+  padding-top:13px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut-row{
+  gap:6px!important;
+  margin:0 0 10px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut{
+  height:27px!important;
+  min-height:27px!important;
+  padding:0 10px!important;
+  gap:5px!important;
+  border-radius:9px!important;
+  font-size:10.5px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut .icon{
+  width:11px!important;
+  height:11px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer{
+  border-radius:14px!important;
+  padding:11px 12px 10px!important;
+  gap:9px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer:not(.has){
+  min-height:114px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer textarea{
+  min-height:21px!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer-actions{
+  min-height:32px!important;
+  gap:8px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .chip-row{
+  gap:8px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .chip{
+  height:26px!important;
+  min-height:26px!important;
+  padding:0 10px!important;
+  gap:5px!important;
+  border-radius:7px!important;
+  font-size:11px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .chip .icon{
+  width:12px!important;
+  height:12px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .image-btn{
+  width:30px!important;
+  height:30px!important;
+  border-radius:9px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .image-btn .icon{
+  width:15px!important;
+  height:15px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn{
+  width:32px!important;
+  height:32px!important;
+  flex-basis:32px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn .icon{
+  width:14px!important;
+  height:14px!important;
+}
+
