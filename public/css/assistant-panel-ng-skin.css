@@ -207,6 +207,9 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   filter:brightness(0) saturate(100%) invert(16%) sepia(36%) saturate(1966%) hue-rotate(272deg) brightness(86%) contrast(92%);
 }
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom{
+  left:20px!important;
+  right:20px!important;
+  bottom:20px!important;
   margin-top:auto;
   padding-top:16px;
 }
