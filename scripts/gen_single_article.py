@@ -26,6 +26,8 @@ def main():
         slug, cat, page_html = gwf.gen_know_html(_id, title or '', source_url or '', content or '')
     except Exception as e:
         print(f'gen 失败: {e}'); sys.exit(3)
+    # 清模板占位符(主流程在"文章内链后处理"阶段替换, 单文档生成跳过那步, 这里直接清空)
+    page_html = page_html.replace('{related_html}', '').replace('{prev_next_html}', '')
     out = os.path.join(WIKI_DIR, slug)
     with open(out, 'w', encoding='utf-8') as f:
         f.write(page_html)
