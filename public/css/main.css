@@ -7692,3 +7692,40 @@ body:not(.assistant-fullscreen):not(.lx-auto-fs) .shell{padding-top:86px!importa
 body:not(.assistant-fullscreen):not(.lx-auto-fs)[data-page="home"] .topbar .main-nav{display:none!important}
 @media(max-width:1100px){body:not(.assistant-fullscreen):not(.lx-auto-fs) .main-nav.open button{padding:0 12px!important;font-size:13px!important}}
 
+
+
+/* Composer grows correctly when product pending card is docked */
+.composer.has{
+  min-height:auto!important;
+  max-height:none!important;
+  height:auto!important;
+  grid-template-rows:auto minmax(44px,auto) auto!important;
+  align-content:start!important;
+  overflow:visible!important;
+  gap:11px!important;
+}
+.composer.has textarea{
+  grid-row:2!important;
+  min-height:48px!important;
+  max-height:118px!important;
+  overflow-y:auto!important;
+  align-self:start!important;
+}
+.composer.has .composer-actions{
+  grid-row:3!important;
+  min-height:36px!important;
+  align-self:end!important;
+  flex-wrap:nowrap!important;
+}
+.composer.has .chip-row,
+.composer.has .send-group{
+  flex:0 0 auto!important;
+  min-width:0!important;
+}
+.composer.has .chip-row{max-width:calc(100% - 92px)!important;overflow:hidden!important}
+.composer.has .chip{flex:0 1 auto!important;min-width:0!important}
+.composer.has .send-group{margin-left:auto!important}
+.composer.has .send-btn,
+.composer.has .image-btn{flex:0 0 auto!important}
+.assistant-bottom .composer.has{margin-bottom:0!important}
+
