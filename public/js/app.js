@@ -2299,22 +2299,90 @@
           return card?.dataset.sku || card?.dataset.openProduct || card?.querySelector("[data-open-product]")?.dataset.openProduct || "";
         }
 
-        async function lxSetProductRef(sku) {
+        function lxProductRefPayload(product, card) {
+          const title = product?.name || card?.querySelector(".product-title, .name, h3, strong")?.textContent?.trim() || "联想商品";
+          const rawPrice = product?.price ? `¥${Number(product.price || 0).toLocaleString()}` : (card?.querySelector(".price, .pc-price")?.textContent || "").trim();
+          const spec = (product?.description || card?.querySelector(".spec, .pc-spec")?.textContent || "").trim().replace(/\s+/g, " ");
+          const img = product?.image_url ? imgUrl(product.image_url) : (card?.querySelector(".product-visual img, img")?.getAttribute("src") || card?.querySelector(".product-visual img, img")?.src || "/assets/product-placeholder.svg");
+          return {
+            sku: product?.sku || lxCardSku(card),
+            name: title,
+            price: rawPrice,
+            spec,
+            img: imgUrl(img),
+            description: spec.slice(0, 120),
+          };
+        }
+
+        function lxEnsureAttach(composer) {
+          if (!composer) return null;
+          let attach = composer.querySelector(":scope > .attach");
+          if (!attach) {
+            attach = document.createElement("div");
+            attach.className = "attach";
+            composer.insertBefore(attach, composer.firstChild);
+          }
+          return attach;
+        }
+
+        function lxClearProductRef() {
+          const composer = document.querySelector(".composer");
+          const ta = composer?.querySelector("textarea");
+          const send = composer?.querySelector(".send-btn");
+          composer?.querySelector(":scope > .attach")?.replaceChildren();
+          composer?.classList.remove("has");
+          send?.classList.remove("pulse");
+          if (ta?.dataset.originPlaceholder) ta.placeholder = ta.dataset.originPlaceholder;
+          state.refProduct = null;
+          state.refMsg = null;
+          document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
+          document.querySelector(".lx-ref-bar")?.remove();
+        }
+
+        function lxDockProductRef(data, opts = {}) {
+          const composer = document.querySelector(".composer");
+          const ta = composer?.querySelector("textarea");
+          const send = composer?.querySelector(".send-btn");
+          const attach = lxEnsureAttach(composer);
+          if (!composer || !attach || !data?.name) return;
+          if (ta && !ta.dataset.originPlaceholder) ta.dataset.originPlaceholder = ta.placeholder || "最近有什么优惠活动？";
+          const price = data.price || "";
+          const spec = data.spec || "";
+          attach.innerHTML = `<div class="att-wrap att-enter"><span class="att-pending">待发送</span>
+    <div class="att-card"><div class="att-thumb"><img src="${esc(data.img || "/assets/product-placeholder.svg")}" alt="" /></div>
+      <div class="att-info"><div class="att-name">${esc(data.name)}</div>
+        <div class="att-meta"><span class="pr">${esc(price)}</span><span>· ${esc(spec)}</span></div></div>
+      <button class="att-x" type="button" aria-label="移除引用商品">✕</button></div></div>`;
+          composer.classList.add("has");
+          if (ta) {
+            ta.placeholder = "想了解这款商品的什么？比如优惠、对比、是否适合我…";
+            ta.focus();
+          }
+          send?.classList.add("pulse");
+          attach.querySelector(".att-x")?.addEventListener("click", lxClearProductRef, { once: true });
+          document.querySelector(".lx-ref-bar")?.remove();
+          state.refProduct = {
+            sku: data.sku,
+            name: data.name,
+            price: price,
+            image_url: data.img,
+            description: (data.description || spec || "").slice(0, 120),
+          };
+          state.refMsg = null;
+          if (data.sku) document.querySelector(`.lx-pick-btn[data-pick-sku="${CSS.escape(data.sku)}"]`)?.classList.add("picked");
+          if (opts.toast !== false) toast("已引用商品，直接提问即可");
+        }
+
+        async function lxSetProductRef(sku, card) {
           if (!sku) return;
           let product = (state.products || []).find((p) => p.sku === sku) || (state.floorProducts || []).find((p) => p.sku === sku);
           if (!product) {
             try { product = await (await fetch(`/api/products/${encodeURIComponent(sku)}`, { cache: "no-store" })).json(); } catch {}
           }
-          if (!product?.name) return toast("商品信息获取失败");
-          state.refProduct = { sku: product.sku, name: product.name, price: product.price, image_url: product.image_url, description: (product.description || "").slice(0, 120) };
-          state.refMsg = null;
-          document.querySelector(".lx-ref-bar")?.remove();
-          document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
-          document.querySelector(`.lx-pick-btn[data-pick-sku="${CSS.escape(sku)}"]`)?.classList.add("picked");
-          const bottom = document.querySelector(".assistant-bottom");
-          bottom?.insertAdjacentHTML("afterbegin", `<div class="lx-ref-bar lx-ref-product"><img src="${esc(imgUrl(product.image_url))}" alt="" /><span class="lx-ref-text"><strong>${esc(product.name.slice(0, 26))}</strong> ¥${Number(product.price || 0).toLocaleString()}</span><button type="button" data-ref-clear aria-label="取消引用">×</button></div>`);
-          document.querySelector(".composer textarea")?.focus();
-          toast("已引用商品，直接提问即可");
+          const payload = lxProductRefPayload(product, card || document.querySelector(`[data-sku="${CSS.escape(sku)}"], [data-open-product="${CSS.escape(sku)}"]`));
+          if (!payload?.name) return toast("商品信息获取失败");
+          lxClearProductRef();
+          lxDockProductRef(payload);
         }
 
         function lxEnsurePickBtn(card) {
@@ -2327,13 +2395,88 @@
         }
 
         function lxSetRef(text) {
+          if (!text) { lxClearProductRef(); return; }
           state.refMsg = text;
           state.refProduct = null;
           document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
+          document.querySelector(".composer")?.classList.remove("has");
+          document.querySelector(".composer .attach")?.replaceChildren();
+          document.querySelector(".send-btn")?.classList.remove("pulse");
           document.querySelector(".lx-ref-bar")?.remove();
-          if (!text) return;
           const bottom = document.querySelector(".assistant-bottom");
           bottom?.insertAdjacentHTML("afterbegin", `<div class="lx-ref-bar"><span>引用</span><span class="lx-ref-text">${esc(text.slice(0, 60))}</span><button type="button" data-ref-clear aria-label="取消引用">×</button></div>`);
+        }
+
+
+        let lxProductDrag = null;
+        const lxPointInside = (el, x, y) => {
+          const r = el.getBoundingClientRect();
+          return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+        };
+        function lxCardDragData(card) {
+          const sku = lxCardSku(card);
+          const product = (state.products || []).find((p) => p.sku === sku) || (state.floorProducts || []).find((p) => p.sku === sku);
+          return lxProductRefPayload(product, card);
+        }
+        function lxGhostHtml(d) {
+          return `<div class="pc-img"><img src="${esc(d.img || "/assets/product-placeholder.svg")}" alt="" /></div>
+      <div class="pc-b"><div class="pc-name">${esc(d.name || "联想商品")}</div>
+      <div class="pc-spec">${esc(d.spec || "")}</div><div class="pc-price">${esc(d.price || "")}</div></div>`;
+        }
+        function lxEnsureGlowLayer(panel) {
+          if (!panel || panel.querySelector(":scope > .glowlayer")) return;
+          panel.insertAdjacentHTML("beforeend", '<div class="glowlayer" aria-hidden="true"></div>');
+        }
+        function lxCancelProductPointerDrag() {
+          if (!lxProductDrag) return;
+          lxProductDrag.ghost?.remove();
+          lxProductDrag.card?.classList.remove("grabbing");
+          lxProductDrag.panel?.classList.remove("dragging", "armed");
+          document.removeEventListener("pointermove", lxOnProductPointerMove, true);
+          document.removeEventListener("pointerup", lxOnProductPointerUp, true);
+          document.removeEventListener("pointercancel", lxCancelProductPointerDrag, true);
+          lxProductDrag = null;
+        }
+        function lxOnProductPointerMove(event) {
+          if (!lxProductDrag) return;
+          lxProductDrag.ghost.style.left = (event.clientX - lxProductDrag.offX) + "px";
+          lxProductDrag.ghost.style.top = (event.clientY - lxProductDrag.offY) + "px";
+          lxProductDrag.panel.classList.toggle("armed", lxPointInside(lxProductDrag.panel, event.clientX, event.clientY));
+        }
+        function lxOnProductPointerUp(event) {
+          if (!lxProductDrag) return;
+          const over = lxPointInside(lxProductDrag.panel, event.clientX, event.clientY);
+          const data = lxProductDrag.d;
+          const panel = lxProductDrag.panel;
+          lxCancelProductPointerDrag();
+          panel?.classList.remove("armed");
+          if (over) {
+            lxClearProductRef();
+            lxDockProductRef(data);
+          }
+        }
+        function lxStartProductPointerDrag(card, event) {
+          const panel = document.querySelector(".assistant-panel");
+          const composer = document.querySelector(".composer");
+          if (!panel || !composer || !card || event.button !== 0) return;
+          const d = lxCardDragData(card);
+          if (!d?.name) return;
+          event.preventDefault();
+          event.stopPropagation();
+          const rect = card.getBoundingClientRect();
+          const ghost = document.createElement("div");
+          ghost.className = "ghost";
+          ghost.innerHTML = lxGhostHtml(d);
+          ghost.style.left = rect.left + "px";
+          ghost.style.top = rect.top + "px";
+          document.body.appendChild(ghost);
+          lxEnsureGlowLayer(panel);
+          card.classList.add("grabbing");
+          panel.classList.add("dragging");
+          lxProductDrag = { ghost, offX: event.clientX - rect.left, offY: event.clientY - rect.top, card, d, panel };
+          document.addEventListener("pointermove", lxOnProductPointerMove, true);
+          document.addEventListener("pointerup", lxOnProductPointerUp, true);
+          document.addEventListener("pointercancel", lxCancelProductPointerDrag, true);
         }
 
         // 自动全屏对话态：进入/退出统一管理（lx-auto-fs 用于隐藏无意义的展开缩放按钮）
@@ -3158,7 +3301,13 @@
               aiMsg.insertAdjacentHTML("beforeend", `<button class="lx-msg-copy" type="button" title="复制回答" aria-label="复制回答">⧉</button>`);
             }
           });
+          document.addEventListener("pointerdown", (event) => {
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
+            if (!card || event.target.closest("button, a, input, textarea, select, .lx-pick-btn")) return;
+            lxStartProductPointerDrag(card, event);
+          }, true);
           document.addEventListener("dragstart", (event) => {
+            if (lxProductDrag) { event.preventDefault(); return; }
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             const sku = lxCardSku(card);
             if (sku) { event.dataTransfer.setData("text/plain", "lxsku:" + sku); event.dataTransfer.effectAllowed = "copy"; }
@@ -3358,7 +3507,7 @@
             const pickBtn = event.target.closest("[data-pick-sku]");
             if (pickBtn) {
               event.stopPropagation();
-              lxSetProductRef(pickBtn.dataset.pickSku);
+              lxSetProductRef(pickBtn.dataset.pickSku, pickBtn.closest(LX_PICK_CARD_SEL));
               return;
             }
 
