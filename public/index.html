@@ -22,10 +22,22 @@
       html.lx-root-home-prepaint .content>.product-detail,
       html.lx-root-home-prepaint .content>.lx-site-floors{display:none!important}
       html.lx-root-home-prepaint .content>.portal-home{display:block!important}
+      html.lx-root-home-prepaint .portal-section{margin-bottom:clamp(46px,5vw,86px);opacity:1!important;transform:none!important;transition:none!important}
+      html.lx-root-home-prepaint .portal-agent{width:calc(100% + (var(--home-content-padding) * 2));min-height:clamp(540px,calc(100vh - clamp(76px,7.2vh,108px) - 385px),780px);margin:calc(var(--home-content-padding) * -1) calc(var(--home-content-padding) * -1) clamp(18px,2vw,30px);display:flex;align-items:center;justify-content:center;border-radius:0;background:#f8f8fb;color:#101010}
+      html.lx-root-home-prepaint .portal-agent::before{display:none!important}
+      html.lx-root-home-prepaint .portal-agent .hero-reveal{opacity:1!important;transform:none!important;transition:none!important}
+      html.lx-root-home-prepaint .agent-copy{display:grid;justify-items:center;width:min(100%,clamp(680px,44vw,900px));max-width:clamp(680px,44vw,900px);margin-left:auto;margin-right:auto;transform:none!important}
+      html.lx-root-home-prepaint .agent-title{color:#17121c;background:linear-gradient(175deg,#1a141f 30%,#52294e 90%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+      html.lx-root-home-prepaint .portal-bg-container{opacity:.5}
     </style>
     <link rel="stylesheet" href="/css/main.css?v=202606161230">
   </head>
   <body data-state="default">
+    <script>
+      if (document.documentElement.classList.contains("lx-root-home-prepaint")) {
+        document.body.dataset.page = "home";
+      }
+    </script>
     <header class="topbar">
       <a class="brand" href="#" aria-label="联想乐享首页">
         <img src="/assets/logos/logo-full-red.png" alt="联想乐享" />
@@ -817,7 +829,6 @@
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd");</script>
     <script src="/js/portal.js?v=202606161600"></script>
     <script src="/js/app.js?v=202606171100"></script>
-    <script>document.documentElement.classList.remove("lx-root-home-prepaint");</script>
     <script>
       (function(){
         try {
