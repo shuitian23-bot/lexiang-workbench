@@ -991,3 +991,41 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn:disabled{
   opacity:.6!important;
 }
+
+/* Ensure the empty/unavailable send button keeps the reduced size. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer:not(.has) textarea:placeholder-shown ~ .composer-actions .send-btn,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn:disabled,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn{
+  width:29px!important;
+  height:29px!important;
+  flex:0 0 29px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer:not(.has) textarea:placeholder-shown ~ .composer-actions .send-btn .icon,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn .icon{
+  width:14px!important;
+  height:14px!important;
+}
+
+/* Reduce the first two toolbar icons and the switch control by 25%. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-row{
+  gap:3px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-btn:not(.assistant-toggle){
+  width:27px!important;
+  height:27px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-btn:not(.assistant-toggle) .icon{
+  width:14px!important;
+  height:14px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn{
+  height:27px!important;
+  padding:0 10px!important;
+  gap:5px!important;
+  border-radius:14px!important;
+  font-size:12px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn .icon{
+  width:14px!important;
+  height:14px!important;
+}
