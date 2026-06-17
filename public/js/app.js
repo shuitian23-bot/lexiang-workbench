@@ -4686,3 +4686,50 @@
     [50, 300, 1000, 2000].forEach((delay) => window.setTimeout(forceFullscreen, delay));
   } catch {}
 })();
+
+// Split assistant panel width drag handle. Kept isolated from existing interactions.
+(function(){
+  if (window.__lxAssistantPanelResizeBound) return;
+  window.__lxAssistantPanelResizeBound = true;
+  const MIN_WIDTH = 312;
+  const MAX_WIDTH = 720;
+  const STORAGE_KEY = 'lxAssistantPanelWidth';
+  const clamp = (value) => Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.round(value)));
+  const applyWidth = (value) => {
+    const width = clamp(value);
+    document.body.style.setProperty('--assistant-panel-width', width + 'px');
+    try { localStorage.setItem(STORAGE_KEY, String(width)); } catch {}
+    return width;
+  };
+  try {
+    const saved = Number(localStorage.getItem(STORAGE_KEY));
+    if (Number.isFinite(saved) && saved > 0) applyWidth(saved);
+  } catch {}
+  document.addEventListener('pointerdown', (event) => {
+    const handle = event.target.closest?.('.panel-resizer');
+    if (!handle || document.body.classList.contains('assistant-fullscreen')) return;
+    const panel = document.querySelector('.assistant-panel');
+    if (!panel) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const startX = event.clientX;
+    const startWidth = panel.getBoundingClientRect().width;
+    const isRight = document.body.classList.contains('assistant-right');
+    document.body.classList.add('is-resizing');
+    handle.setPointerCapture?.(event.pointerId);
+    const onMove = (moveEvent) => {
+      const delta = moveEvent.clientX - startX;
+      applyWidth(startWidth + (isRight ? -delta : delta));
+    };
+    const onUp = () => {
+      document.body.classList.remove('is-resizing');
+      document.removeEventListener('pointermove', onMove, true);
+      document.removeEventListener('pointerup', onUp, true);
+      document.removeEventListener('pointercancel', onUp, true);
+    };
+    document.addEventListener('pointermove', onMove, true);
+    document.addEventListener('pointerup', onUp, true);
+    document.addEventListener('pointercancel', onUp, true);
+  }, true);
+})();
+
