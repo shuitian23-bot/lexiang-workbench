@@ -917,3 +917,32 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   opacity:.42!important;
   box-shadow:none!important;
 }
+
+/* Match the previous clean top control strip: no glow tint behind icons, keep history SVG fill untouched. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel::before{
+  display:none!important;
+  background:none!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .history-button .icon{
+  filter:none!important;
+}
+
+/* Keep the split composer send button visually active like the reference, even when the textarea is empty. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer:not(.has) textarea:placeholder-shown ~ .composer-actions .send-btn,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn{
+  width:38px!important;
+  height:38px!important;
+  flex:0 0 38px!important;
+  border-radius:50%!important;
+  background:linear-gradient(135deg,#8f1f45 0%,#5b1452 100%)!important;
+  color:#fff!important;
+  opacity:1!important;
+  box-shadow:0 8px 18px rgba(91,20,82,.26), inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer:not(.has) textarea:placeholder-shown ~ .composer-actions .send-btn .icon,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .send-btn .icon{
+  width:18px!important;
+  height:18px!important;
+  opacity:1!important;
+  filter:brightness(0) invert(1)!important;
+}
