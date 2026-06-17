@@ -1029,3 +1029,45 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   width:14px!important;
   height:14px!important;
 }
+
+/* Normalize visual spacing between the top toolbar icons and the switch pill. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-row{
+  gap:12px!important;
+  align-items:center!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .history-wrap{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:27px!important;
+  height:27px!important;
+  flex:0 0 27px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .history-wrap .tool-btn{
+  width:27px!important;
+  height:27px!important;
+  flex:0 0 27px!important;
+}
+
+/* Only the More button area should trigger the More menu; keep a narrow slide path after it opens. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap::after{
+  left:50%!important;
+  right:auto!important;
+  bottom:28px!important;
+  width:166px!important;
+  height:24px!important;
+  transform:translateX(-50%)!important;
+  pointer-events:none!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-wrap:hover::after{
+  pointer-events:auto!important;
+}
+
+/* Reduce visual spacing between the top toolbar controls by one third. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-row{
+  gap:8px!important;
+}
+
+/* Tighten only the gap between new-chat and history icons by another quarter. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .new-chat-button{
+  margin-right:-2px!important;
+}
