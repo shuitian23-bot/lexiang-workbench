@@ -1520,11 +1520,12 @@ function geoEnumerateDates(start, end) {
 }
 
 async function geoLoadPageRefTrend(loadSeq) {
-  const canvas = document.getElementById('geo-page-ref-canvas');
-  if (!canvas) return;
+  const grid = document.getElementById('geo-page-ref-grid');
+  if (!grid) return;
+  geoRenderPageRefGrid();
   const { start_date, end_date } = geoResolveDateRange();
   const dates = geoEnumerateDates(start_date, end_date);
-  if (!dates.length) { _pageRefTrendData = null; geoDrawCanvasPending(canvas); return; }
+  if (!dates.length) { _pageRefTrendData = null; geoRenderPageRefGrid(); return; }
   // 累计基线：起始日前一天，用于差分得起始日当日新增
   const prev = new Date(dates[0]); prev.setDate(prev.getDate() - 1);
   const baseDate = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`;
@@ -1560,11 +1561,11 @@ async function geoLoadPageRefTrend(loadSeq) {
       { field: 'biz',      name: 'wiki-政企', data: dailyBiz.map(v => Math.max(0, v)) },
     ];
     _pageRefTrendData = { dates, series };
-    geoDrawPageRefCanvas();
+    geoRenderPageRefGrid();
   } catch (e) {
     console.error('geoLoadPageRefTrend', e);
     _pageRefTrendData = null;
-    geoDrawCanvasPending(canvas);
+    geoRenderPageRefGrid();
   }
 }
 
@@ -1572,7 +1573,7 @@ function geoTogglePageRefField(field) {
   if (GEO_PAGE_REF_VISIBLE.has(field)) GEO_PAGE_REF_VISIBLE.delete(field);
   else GEO_PAGE_REF_VISIBLE.add(field);
   if (!GEO_PAGE_REF_VISIBLE.size) GEO_PAGE_REF_FIELDS.forEach(f => GEO_PAGE_REF_VISIBLE.add(f.field));
-  geoDrawPageRefCanvas();
+  geoRenderPageRefGrid();
 }
 
 function geoRenderPageRefLegend() {
@@ -1580,88 +1581,114 @@ function geoRenderPageRefLegend() {
   if (!legend) return;
   legend.innerHTML = GEO_PAGE_REF_FIELDS.map(f => {
     const active = GEO_PAGE_REF_VISIBLE.has(f.field);
-    return `<span onclick="geoTogglePageRefField('${f.field}')" style="cursor:pointer;opacity:${active ? 1 : 0.35};user-select:none"><span style="display:inline-block;width:20px;height:3px;background:${f.color};border-radius:2px;vertical-align:middle;margin-right:4px"></span>${f.name}</span>`;
+    return `<span onclick="geoTogglePageRefField('${f.field}')" style="cursor:pointer;opacity:${active ? 1 : 0.35};user-select:none;padding:2px 6px;border-radius:4px"><input type="checkbox" ${active ? 'checked' : ''} style="vertical-align:middle;margin-right:4px;pointer-events:none"><span style="display:inline-block;width:14px;height:3px;background:${f.color};border-radius:2px;vertical-align:middle;margin:0 4px"></span>${f.name}</span>`;
   }).join('');
 }
 
-function geoDrawPageRefCanvas() {
-  const canvas = document.getElementById('geo-page-ref-canvas');
-  if (!canvas) return;
+function geoRenderPageRefGrid() {
   geoRenderPageRefLegend();
-  if (!_pageRefTrendData) { geoDrawCanvasPending(canvas); return; }
+  const grid = document.getElementById('geo-page-ref-grid');
+  if (!grid) return;
+  const dates = _pageRefTrendData?.dates || [];
+  const seriesMap = Object.fromEntries((_pageRefTrendData?.series || []).map(s => [s.field, s]));
+  const visibleFields = GEO_PAGE_REF_FIELDS.filter(f => GEO_PAGE_REF_VISIBLE.has(f.field));
+  grid.innerHTML = visibleFields.map(f => {
+    const s = seriesMap[f.field];
+    const total = s ? s.data.reduce((a,b)=>a+(b||0),0) : 0;
+    const last = s ? (s.data[s.data.length-1] || 0) : 0;
+    return `<div class="geo-page-ref-card" data-field="${f.field}" style="border:1px solid #e5e8ec;border-radius:8px;padding:10px;background:#fff;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1f2937">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${f.color}"></span>${f.name}
+        </div>
+        <div style="font-size:11px;color:#6b7280">合计 <b style="color:${f.color}">${total.toLocaleString()}</b></div>
+      </div>
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">末日 ${last.toLocaleString()} · ${dates[0] || '--'} ~ ${dates[dates.length-1] || '--'}</div>
+      <canvas data-field="${f.field}" class="geo-page-ref-canvas" width="320" height="120" style="width:100%;height:120px;cursor:crosshair"></canvas>
+    </div>`;
+  }).join('') || '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center;grid-column:1/-1">已隐藏全部指标，请勾选至少一项</div>';
+  requestAnimationFrame(() => {
+    grid.querySelectorAll('canvas.geo-page-ref-canvas').forEach(c => geoDrawPageRefMini(c, c.dataset.field));
+  });
+}
+
+function geoDrawPageRefMini(canvas, field) {
+  if (!canvas) return;
+  const f = GEO_PAGE_REF_FIELDS.find(x => x.field === field);
+  if (!f) return;
+  const s = _pageRefTrendData?.series?.find(x => x.field === field);
+  const dates = _pageRefTrendData?.dates || [];
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  const W = rect.width || canvas.width || 800;
-  const H = rect.height || canvas.height || 280;
+  const W = rect.width || 320;
+  const H = rect.height || 120;
   canvas.width = W * dpr;
   canvas.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const pad = { top: 20, right: 20, bottom: 40, left: 55 };
+  ctx.clearRect(0, 0, W, H);
+  const pad = { top: 8, right: 8, bottom: 20, left: 36 };
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
-  ctx.clearRect(0, 0, W, H);
+  if (!s || !dates.length) {
+    ctx.fillStyle = '#f9fafb';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('加载中...', W/2, H/2);
+    return;
+  }
+  const data = s.data;
+  const denom = Math.max(data.length - 1, 1);
+  const maxV = Math.max(...data, 1);
+  const yMax = maxV * 1.2 || 1;
 
-  const dates = _pageRefTrendData.dates || [];
-  const allSeries = _pageRefTrendData.series || [];
-  const series = allSeries.filter(s => GEO_PAGE_REF_VISIBLE.has(s.field));
-  if (!dates.length || !series.length) { geoDrawCanvasPending(canvas, '请选择口径'); return; }
-  const denom = Math.max(dates.length - 1, 1);
-
-  const allVals = series.flatMap(s => s.data);
-  const maxV = Math.max(...allVals, 1);
-  const yMin = 0;
-  const yMax = maxV * 1.15 || 1;
-  const yRange = yMax - yMin || 1;
-
-  ctx.strokeStyle = '#e5e8ec';
+  ctx.strokeStyle = '#eef0f3';
   ctx.lineWidth = 0.5;
   ctx.fillStyle = '#9ca3af';
-  ctx.font = '10px sans-serif';
+  ctx.font = '9px sans-serif';
   ctx.textAlign = 'right';
-  const ySteps = 5;
-  for (let i = 0; i <= ySteps; i++) {
-    const v = yMin + (yRange / ySteps) * i;
-    const y = pad.top + plotH - (v - yMin) / yRange * plotH;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(W - pad.right, y);
-    ctx.stroke();
-    ctx.fillText(Math.round(v).toLocaleString(), pad.left - 6, y + 3);
+  for (let i = 0; i <= 3; i++) {
+    const v = (yMax / 3) * i;
+    const y = pad.top + plotH - v / yMax * plotH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.fillText(Math.round(v).toLocaleString(), pad.left - 4, y + 3);
   }
-
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#9ca3af';
-  const step = Math.max(1, Math.floor(dates.length / 8));
+  const step = Math.max(1, Math.floor(dates.length / 4));
   dates.forEach((d, i) => {
     if (i % step === 0 || i === dates.length - 1) {
       const x = pad.left + (i / denom) * plotW;
-      const label = d.slice(5);
-      ctx.fillText(label, x, H - pad.bottom + 18);
+      ctx.fillText(d.slice(5), x, H - pad.bottom + 12);
     }
   });
 
-  const colorMap = Object.fromEntries(GEO_PAGE_REF_FIELDS.map(f => [f.field, f.color]));
-  series.forEach(s => {
-    const color = colorMap[s.field] || '#6b7280';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
+  ctx.strokeStyle = f.color;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = pad.left + (i / denom) * plotW;
+    const y = pad.top + plotH - v / yMax * plotH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  // 面积
+  ctx.lineTo(pad.left + plotW, pad.top + plotH);
+  ctx.lineTo(pad.left, pad.top + plotH);
+  ctx.closePath();
+  ctx.fillStyle = f.color + '22';
+  ctx.fill();
+  // 点
+  data.forEach((v, i) => {
+    const x = pad.left + (i / denom) * plotW;
+    const y = pad.top + plotH - v / yMax * plotH;
+    ctx.fillStyle = f.color;
     ctx.beginPath();
-    s.data.forEach((v, i) => {
-      const x = pad.left + (i / denom) * plotW;
-      const y = pad.top + plotH - (v - yMin) / yRange * plotH;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-    s.data.forEach((v, i) => {
-      const x = pad.left + (i / denom) * plotW;
-      const y = pad.top + plotH - (v - yMin) / yRange * plotH;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.fill();
   });
 
   canvas.onmousemove = (e) => {
@@ -1671,12 +1698,7 @@ function geoDrawPageRefCanvas() {
     const tip = document.getElementById('geo-page-ref-tooltip');
     if (!tip) return;
     if (idx < 0 || idx >= dates.length) { tip.style.display = 'none'; return; }
-    let html = `<div style="font-weight:600;margin-bottom:4px">${dates[idx]}</div>`;
-    series.forEach(s => {
-      const c = colorMap[s.field] || '#6b7280';
-      html += `<div><span style="color:${c}">●</span> ${s.name}: ${(s.data[idx]||0).toLocaleString()}</div>`;
-    });
-    tip.innerHTML = html;
+    tip.innerHTML = `<div style="font-weight:600;margin-bottom:4px">${dates[idx]}</div><div><span style="color:${f.color}">●</span> ${f.name}: ${(data[idx]||0).toLocaleString()}</div>`;
     tip.style.display = 'block';
     tip.style.left = (e.pageX + 12) + 'px';
     tip.style.top = (e.pageY - 10) + 'px';

@@ -2331,11 +2331,11 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 6 页面 AI 引用趋势图（联想链接 + wiki + 4 子类） -->
+      <!-- 6 页面 AI 引用趋势（每指标一图，可勾选显隐） -->
       <div class="geo-panel" style="margin-bottom:12px">
         <div class="gpnl-title">6 页面 AI 引用趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 联想链接 / 联想 wiki / wiki-商城 / wiki-消费 / wiki-SMB / wiki-政企 · 每日新增 · 点击图例切换显示</span></div>
-        <div id="geo-page-ref-legend" style="display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:11px;color:#374151;flex-wrap:wrap"></div>
-        <canvas id="geo-page-ref-canvas" width="800" height="280" style="width:100%;height:280px;cursor:crosshair"></canvas>
+        <div id="geo-page-ref-legend" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;font-size:11px;color:#374151;flex-wrap:wrap"></div>
+        <div id="geo-page-ref-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px"></div>
         <div id="geo-page-ref-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
       </div>
 
