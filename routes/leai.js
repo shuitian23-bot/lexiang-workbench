@@ -316,4 +316,47 @@ router.post('/followups', (req, res) => {
   }
 });
 
+// POST /api/leai/compare-advice — 火山 lite 对比推荐（非流式）
+router.post('/compare-advice', (req, res) => {
+  const { products, q } = req.body || {};
+  if (!Array.isArray(products) || products.length < 2) return res.json({ pick: '', reason: '' });
+  const sys = '你是导购，从这几款里结合用户需求推荐最合适的一款，输出JSON {"pick":"商品名","reason":"≤40字理由"}。只返回JSON。';
+  const summary = products.map(p => `${p.name || ''}（¥${p.price || ''}，${p.cpu || ''}，${p.ram || p.memory || ''}）`).join('；');
+  const userContent = `商品：${summary}\n用户需求：${String(q || '').slice(0, 200)}`;
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role: 'system', content: sys }, { role: 'user', content: userContent }],
+    max_tokens: 200, temperature: 0.3, stream: false, thinking: { type: 'disabled' }
+  });
+  try {
+    const ar = https.request({
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (r) => {
+      let buf = '';
+      r.on('data', chunk => { buf += chunk.toString(); });
+      r.on('end', () => {
+        try {
+          const j = JSON.parse(buf);
+          const raw = (j.choices?.[0]?.message?.content || '').trim();
+          const m = raw.match(/\{[\s\S]*\}/);
+          const obj = m ? JSON.parse(m[0]) : {};
+          res.json({ pick: String(obj.pick || ''), reason: String(obj.reason || '') });
+        } catch (_) { res.json({ pick: '', reason: '' }); }
+      });
+      r.on('error', () => { try { res.json({ pick: '', reason: '' }); } catch (_) {} });
+    });
+    ar.on('error', () => { try { res.json({ pick: '', reason: '' }); } catch (_) {} });
+    ar.setTimeout(12000, () => { ar.destroy(); try { res.json({ pick: '', reason: '' }); } catch (_) {} });
+    ar.write(body);
+    ar.end();
+  } catch (_) { res.json({ pick: '', reason: '' }); }
+});
+
 module.exports = router;
