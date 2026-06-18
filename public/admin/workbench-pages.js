@@ -193,6 +193,83 @@ function closeSkillManagerOverlay() {
   document.body.classList.remove('agent-skill-modal-open');
 }
 
+function skillActionEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+}
+
+function getRequestableSkillPackages() {
+  return Array.from(document.querySelectorAll('.agent-skill-card[data-skill-status="requestable"]')).map(card => ({
+    title: card.querySelector('.agent-skill-card-name')?.textContent.trim() || '',
+    desc: card.querySelector('.agent-skill-card-desc')?.textContent.trim() || '',
+    tags: Array.from(card.querySelectorAll('.agent-skill-card-tag')).map(tag => tag.textContent.trim()).filter(Boolean)
+  })).filter(item => item.title);
+}
+
+function renderSkillPackageApplyBody(selectedTitle) {
+  const packages = getRequestableSkillPackages();
+  const preselected = selectedTitle && selectedTitle !== '新技能包申请' ? selectedTitle : '';
+  const options = packages.map(item => {
+    const checked = item.title === preselected ? 'checked' : '';
+    return `
+      <label class="skill-apply-option">
+        <input type="checkbox" value="${skillActionEscape(item.title)}" ${checked} onchange="updateSkillPackageApplySelection()">
+        <span class="skill-apply-check"></span>
+        <span class="skill-apply-option-main">
+          <b>${skillActionEscape(item.title)}</b>
+          <small>${skillActionEscape(item.desc)}</small>
+          <em>${item.tags.map(tag => skillActionEscape(tag)).join(' / ')}</em>
+        </span>
+      </label>`;
+  }).join('');
+  return `
+    <div class="skill-apply-form">
+      <div class="skill-apply-fields">
+        <div class="skill-action-row"><span>申请人</span><input value="${STATE.user || 'admin'}" readonly></div>
+        <div class="skill-action-row"><span>申请场景</span><textarea placeholder="例如：用于每周活动复盘，需要查看渠道表现和优化建议"></textarea></div>
+      </div>
+      <div class="skill-apply-pick">
+        <div class="skill-apply-pick-head">
+          <div>
+            <b>选择申请权限</b>
+            <span id="skill-apply-selected-count">请选择需要开通的技能包</span>
+          </div>
+          <div class="skill-apply-batch">
+            <button class="btn btn-secondary btn-sm" onclick="selectSkillPackageApplyOptions(true)">全选</button>
+            <button class="btn btn-secondary btn-sm" onclick="selectSkillPackageApplyOptions(false)">清空</button>
+          </div>
+        </div>
+        <div class="skill-apply-options">${options}</div>
+      </div>
+      <div class="skill-action-actions skill-apply-footer">
+        <button class="btn btn-secondary" onclick="clearSkillPackageAction()">取消</button>
+        <button class="btn btn-primary" data-skill-apply-submit onclick="submitSkillPackageAction('${skillActionEscape(selectedTitle)}', '申请已生成')">提交申请</button>
+      </div>
+    </div>`;
+}
+
+function updateSkillPackageApplySelection() {
+  const panel = document.getElementById('skill-package-action-panel');
+  if (!panel) return;
+  const checked = Array.from(panel.querySelectorAll('.skill-apply-option input:checked')).map(input => input.value);
+  const count = panel.querySelector('#skill-apply-selected-count');
+  if (count) count.textContent = checked.length ? `已选择 ${checked.length} 个：${checked.join('、')}` : '请选择需要开通的技能包';
+  const submit = panel.querySelector('[data-skill-apply-submit]');
+  if (submit) submit.disabled = checked.length === 0;
+}
+
+function selectSkillPackageApplyOptions(checked) {
+  const panel = document.getElementById('skill-package-action-panel');
+  if (!panel) return;
+  panel.querySelectorAll('.skill-apply-option input').forEach(input => { input.checked = checked; });
+  updateSkillPackageApplySelection();
+}
+
 function openSkillPackageAction(title, status, action) {
   if (status === 'available') {
     aiQuick(`使用${title}。请基于当前页面上下文识别任务目标，并询问我还缺哪些必要参数；涉及写入或发布时必须先二次确认。`);
@@ -215,13 +292,7 @@ function openSkillPackageAction(title, status, action) {
     admin: '查看配置说明'
   }[status] || '查看详情';
   const body = {
-    requestable: `
-      <div class="skill-action-row"><span>申请人</span><input value="${STATE.user || 'admin'}" readonly></div>
-      <div class="skill-action-row"><span>申请场景</span><textarea placeholder="例如：用于每周活动复盘，需要查看渠道表现和优化建议"></textarea></div>
-      <div class="skill-action-actions">
-        <button class="btn btn-secondary" onclick="clearSkillPackageAction()">取消</button>
-        <button class="btn btn-primary" onclick="submitSkillPackageAction('${title}', '申请已生成')">提交申请</button>
-      </div>`,
+    requestable: renderSkillPackageApplyBody(title),
     pending: `
       <div class="skill-action-row"><span>申请状态</span><strong>待审批</strong></div>
       <div class="skill-action-row"><span>当前节点</span><strong>业务负责人审批</strong></div>
@@ -255,8 +326,9 @@ function openSkillPackageAction(title, status, action) {
         </div>
         <button class="agent-skill-modal-close compact" onclick="clearSkillPackageAction()" title="收起">×</button>
       </div>
-      <div class="skill-action-panel-body">${body}</div>
+      <div class="skill-action-panel-body ${status === 'requestable' ? 'apply-body' : ''}">${body}</div>
     </div>`;
+  if (status === 'requestable') updateSkillPackageApplySelection();
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -268,20 +340,25 @@ function clearSkillPackageAction() {
 function submitSkillPackageAction(title, message) {
   const panel = document.getElementById('skill-package-action-panel');
   if (!panel) return;
+  const selected = Array.from(panel.querySelectorAll('.skill-apply-option input:checked')).map(input => input.value);
+  const appliedTitle = selected.length ? `${selected.length} 个技能包` : title;
+  const appliedText = selected.length ? selected.join('、') : title;
   panel.innerHTML = `
     <div class="skill-action-panel-card success">
       <div class="skill-action-panel-head">
         <div>
           <div class="skill-action-kicker">操作已记录</div>
-          <div class="skill-action-title">${title}<span>${message}</span></div>
+          <div class="skill-action-title">${skillActionEscape(appliedTitle)}<span>${message}</span></div>
         </div>
         <button class="agent-skill-modal-close compact" onclick="clearSkillPackageAction()" title="收起">×</button>
       </div>
       <div class="skill-action-panel-body">
+        <div class="skill-action-row"><span>申请权限</span><strong>${skillActionEscape(appliedText)}</strong></div>
         <div class="skill-action-row"><span>后续处理</span><strong>当前仍停留在技能管理弹层内，可继续查看或申请其他技能包。</strong></div>
       </div>
     </div>`;
 }
+
 
 const PM_SKILL_HUB_ITEMS = [
   { name: 'workplace-cert-analysis', platform: 'lexiang', desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'draft', statusText: '草稿', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', updated: '2026-06-10 14:20' },

@@ -1899,6 +1899,36 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-action-title { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:16px; font-weight:700; color:var(--text); }
 .skill-action-title span { font-size:12px; color:var(--text-secondary); background:var(--bg); border-radius:5px; padding:3px 7px; font-weight:600; }
 .skill-action-panel-body { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; }
+.skill-action-panel-body.apply-body { display:block; }
+.skill-apply-form { display:flex; flex-direction:column; gap:16px; }
+.skill-apply-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.skill-apply-pick {
+  border:1px solid var(--border-light); border-radius:8px; background:#f8fbff; padding:14px;
+}
+.skill-apply-pick-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.skill-apply-pick-head b { display:block; color:var(--text); font-size:14px; margin-bottom:3px; }
+.skill-apply-pick-head span { color:var(--text-secondary); font-size:12px; line-height:1.5; }
+.skill-apply-batch { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.skill-apply-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.skill-apply-option {
+  position:relative; min-height:116px; display:grid; grid-template-columns:22px 1fr; gap:10px; align-items:flex-start;
+  border:1px solid #dfe6f3; border-radius:8px; background:#fff; padding:13px; cursor:pointer;
+  transition:border-color .12s, box-shadow .12s, background .12s, transform .12s;
+}
+.skill-apply-option:hover { border-color:#b8c8ea; box-shadow:0 8px 18px rgba(15,23,42,0.06); transform:translateY(-1px); }
+.skill-apply-option:has(input:checked) { border-color:var(--primary); background:var(--primary-light); box-shadow:0 0 0 1px rgba(51,112,255,0.14) inset; }
+.skill-apply-option input { position:absolute; opacity:0; pointer-events:none; }
+.skill-apply-check {
+  width:18px; height:18px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; margin-top:1px;
+  display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0;
+}
+.skill-apply-option:has(input:checked) .skill-apply-check { border-color:var(--primary); background:var(--primary); }
+.skill-apply-option:has(input:checked) .skill-apply-check::after { content:""; width:8px; height:5px; border-left:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(-45deg) translateY(-1px); }
+.skill-apply-option-main { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.skill-apply-option-main b { color:var(--text); font-size:14px; line-height:1.35; }
+.skill-apply-option-main small { color:var(--text-secondary); font-size:12px; line-height:1.55; }
+.skill-apply-option-main em { color:var(--primary); font-style:normal; font-size:12px; line-height:1.35; }
+.skill-apply-footer { padding-top:0; }
 .skill-action-row { display:grid; grid-template-columns:82px 1fr; gap:10px; align-items:start; color:var(--text-secondary); font-size:13px; line-height:1.55; }
 .skill-action-row span { color:var(--text-tertiary); font-size:12px; padding-top:7px; }
 .skill-action-row strong { color:var(--text); font-weight:500; padding:7px 0; }
@@ -1969,6 +1999,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   .agent-skill-modal-panel { width:100%; min-height:0; max-height:100%; }
   .skill-page-summary { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .skill-page-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .skill-apply-options { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .atomic-capability-grid { grid-template-columns:1fr; }
 }
 
@@ -1979,7 +2010,12 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   .skill-page-summary,
   .skill-page-grid,
   .skill-action-panel-body,
+  .skill-apply-fields,
+  .skill-apply-options,
   .atomic-capability-intro { grid-template-columns:1fr; }
+  .skill-apply-pick-head { align-items:flex-start; flex-direction:column; }
+  .skill-apply-batch { width:100%; }
+  .skill-apply-batch .btn { flex:1; }
   .skill-page-search { width:100%; }
   .skill-page-toolbar-actions { width:100%; justify-content:stretch; }
   .skill-page-toolbar-actions .btn { flex-shrink:0; }
