@@ -1931,10 +1931,53 @@
         async function lxRenderBusinessRecommendFloors() {
           const site = API_SITE.business || "b";
           const pool = await lxEnsureFloorProducts(site, 120);
-          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
-          const used = new Set();
-          return LX_BUSINESS_RECOMMEND_FLOORS.map(([label, match]) => {
-            const items = lxPickFloorProducts(source, match, used, 8);
+          let feedSections = [];
+          try {
+            const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store" });
+            const feed = await response.json();
+            feedSections = Array.isArray(feed.sections) ? feed.sections : [];
+          } catch {}
+
+          const sectionByKey = Object.fromEntries(feedSections.map((section) => [section.key, Array.isArray(section.products) ? section.products : []]));
+          const allFeedProducts = feedSections.flatMap((section) => Array.isArray(section.products) ? section.products : []);
+          const basePool = [...allFeedProducts, ...pool, ...(Array.isArray(state.products) ? state.products : [])];
+          const uniq = (items) => {
+            const seen = new Set();
+            return items.filter((item) => {
+              const key = lxProductKey(item);
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+          };
+          const matching = (match, source = basePool) => uniq(source.filter(match)).slice(0, 8);
+          const serviceProducts = sectionByKey.service || [];
+          const desktopProducts = uniq([...(sectionByKey.smb || []), ...(sectionByKey.tianyi || []), ...basePool]).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "台式机" || /ThinkCentre|扬天|瑞天|天逸|商用台式|台式机|主机|一体机/i.test(text);
+          });
+          const accessoryProducts = uniq(basePool).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架/i.test(text);
+          });
+          const serviceStorageProducts = uniq([...serviceProducts, ...basePool]).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品|云智|流量|部署/i.test(text);
+          });
+          const floorItems = {
+            "ThinkPad": uniq([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))]).slice(0, 8),
+            "ThinkBook": uniq([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))]).slice(0, 8),
+            "Thinkplus": accessoryProducts.slice(0, 8),
+            "ThinkCentre": uniq([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts]).slice(0, 8),
+            "扬天&瑞天": uniq([...(sectionByKey.tianyi || []), ...desktopProducts]).slice(0, 8),
+            "配件&外设": accessoryProducts.slice(0, 8),
+            "服务存储": serviceStorageProducts.slice(0, 8),
+            "企业服务": uniq([...serviceProducts, ...serviceStorageProducts]).slice(0, 8),
+          };
+
+          return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
+            let items = floorItems[label] || [];
+            if (!items.length) items = uniq([...(sectionByKey.smb || []), ...(sectionByKey.hot || []), ...basePool]).slice(0, 8);
             return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
