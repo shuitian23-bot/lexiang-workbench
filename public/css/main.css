@@ -7352,7 +7352,7 @@ body.lxfd-split-returning .shell{
 
 /* Input text size refinement */
 .composer textarea{
-  font-size:14px!important;
+  font-size:15px!important;
 }
 .hero-composer textarea{
   font-size:15px!important;
@@ -7999,4 +7999,11 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] > .brand-page {
 
 body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
   display: block !important;
+}
+
+/* Composer input requested one step larger. */
+.assistant-panel .assistant-bottom .composer textarea,
+.assistant-panel .composer textarea {
+  font-size: 15px !important;
+  line-height: 22px !important;
 }
