@@ -1378,6 +1378,15 @@
                   lxRunTab(recoTab);
                 }
               },
+              clicks: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const list = (parseJson(data).clicks) || [];
+                if (!list.length) return;
+                revealAi();
+                ai.insertAdjacentHTML("beforeend", '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
+                  `<button type="button" class="leai-click-btn" data-leai-url="${esc(c.link_url || "")}" data-leai-cb="${esc(c.callback_data || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${esc(c.display_text)}</button>`
+                ).join("") + "</div>");
+              },
               display: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -4212,20 +4221,6 @@
     }
     return "home";
   }
-  // 官方 FAQ 热门问题：拉 /api/leai/faq 替换欢迎 chips，与官方乐享一致
-  let _lxfdFaqCache = null;
-  function lxfdRenderChips(list) {
-    if (chips && Array.isArray(list) && list.length) {
-      chips.innerHTML = list.slice(0, 6).map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
-    }
-  }
-  function lxfdApplyFaqChips() {
-    if (_lxfdFaqCache) { lxfdRenderChips(_lxfdFaqCache); return; }
-    fetch("/api/leai/faq", { cache: "no-store" }).then((r) => r.json()).then((d) => {
-      const list = (d && d.data) || [];
-      if (list.length) { _lxfdFaqCache = list; lxfdRenderChips(list); }
-    }).catch(() => {});
-  }
   function lxfdApplySite() {
     const prompts = window.__lxSitePrompts;
     if (!prompts) {
@@ -4240,7 +4235,6 @@
     // 欢迎 chips
     const welcomeList = cfg.welcome || questions;
     if (chips) chips.innerHTML = welcomeList.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
-    lxfdApplyFaqChips(); // 异步拉官方 FAQ 替换为真实热门问题
     // 底部 actionbar
     const actionbarList = cfg.actionbar || quicks;
     if (quick) quick.innerHTML = actionbarList.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
@@ -4749,6 +4743,15 @@
             turnGrouped = !!payload.grouped;
           }
         },
+        clicks: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const list = (parseJson(data).clicks) || [];
+          if (!list.length || !body) return;
+          revealAi();
+          body.insertAdjacentHTML("beforeend", '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
+            `<button type="button" class="leai-click-btn" data-leai-url="${escapeAttr(c.link_url || "")}" data-leai-cb="${escapeAttr(c.callback_data || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${escapeHtml(c.display_text)}</button>`
+          ).join("") + "</div>");
+        },
         suggestions: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
@@ -4862,6 +4865,17 @@
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
+
+  // 官方动作按钮（转人工/在线客服等）点击：有链接开新窗口，否则把 callback_data 当问题继续问
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-leai-url], [data-leai-cb]");
+    if (!btn) return;
+    e.preventDefault();
+    const url = btn.getAttribute("data-leai-url");
+    const cb = btn.getAttribute("data-leai-cb");
+    if (url) { window.open(url, "_blank", "noopener"); return; }
+    if (cb && typeof window.lxfdSubmit === "function" && document.body.classList.contains("assistant-fullscreen")) window.lxfdSubmit(cb);
+  });
 
   setTimeout(() => { setRotatingTitle(helloWords[helloIndex]); if (!reduceMotion) setInterval(rotateTitleWord, 2000); }, reduceMotion ? 0 : 2000);
   syncSend();
