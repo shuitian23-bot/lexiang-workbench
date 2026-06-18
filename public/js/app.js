@@ -4196,6 +4196,18 @@
   const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
   const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
   const arrow = '<span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  // actionbar 按钮 label → 有意义的 query 示例（避免直接发 label 体验差）
+  const LXFD_ACTION_Q = {
+    "商品导购": "帮我推荐一款适合我的笔记本电脑",
+    "解决方案": "我想了解适合企业的行业解决方案",
+    "门店查询": "帮我查询附近的联想门店",
+    "职场认证": "职场人群认证怎么做，能享哪些专属优惠？",
+    "服务预约": "我想预约售后维修或上门服务",
+    "我的订单": "帮我查最近的订单状态和物流",
+    "售后服务": "我的设备保修和售后服务怎么办理？",
+    "评价服务": "给本次客服服务打个五星好评",
+    "需求清单": "我整理一份采购需求清单发你确认",
+  };
   const answer = '<p>我是联想官方AI助手，主要可以帮您完成以下事情：</p>'
     + '<h4>产品选购</h4><ul><li>推荐最适合的联想产品&lt;笔记本、台式机、平板、手机、配件等&gt;</li><li>产品参数对比、性价比分析</li></ul>'
     + '<h4>优惠查询</h4><ul><li>最新优惠政策:国补、教育优惠、企业补贴、学生价等</li><li>计算到手价、叠加各种优惠</li><li>推荐最适合您身份的优惠券</li></ul>'
@@ -4887,7 +4899,7 @@
     e.preventDefault();
     e.stopPropagation();
     if (b.textContent.trim() === "退出人工") { lxfdExitHuman(); return; }
-    submit(b.textContent);
+    submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });

@@ -115,72 +115,107 @@ router.post('/stream', async (req, res) => {
       upstream = await callQa(auth.token, sessionId);
     }
 
-    // 回传 sessionId，前端存为 conv_id 续接
-    res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
-
     if (!upstream.ok || !upstream.body) {
       throw new Error('upstream http ' + upstream.status);
     }
 
-    const reader = upstream.body.getReader();
-    const decoder = new TextDecoder();
+    // 读流翻译 + session 失效("参数有误")自动重试一次
     let buf = '';
     let lastLen = 0;
     let sentProducts = false;
     let sentClicks = false;
+    let retried = false;
 
+    // 首次进入前先回传当前 sessionId（重试时在重试分支里更新并重发）
+    res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
+
+    // eslint-disable-next-line no-constant-condition
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop(); // 保留不完整行
+      let needRetry = false;
+      const reader = upstream.body.getReader();
+      const decoder = new TextDecoder();
 
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        let d;
-        try { d = JSON.parse(line.slice(5)); } catch { continue; }
-        const r = d.response || {};
+      streamLoop: while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop(); // 保留不完整行
 
-        // 思考/调用过程（官方 thinking_trace：分析意图 / 调用 skill / 查知识库）→ 翻成 status 让前端展示
-        // 只在正文还没开始流式时展示（正文一来就被覆盖，符合"思考中→出答案"的官方体验）
-        if (!lastLen && d.thinking_trace && Array.isArray(d.thinking_trace.trace) && d.thinking_trace.trace.length) {
-          const steps = d.thinking_trace.trace;
-          const last = steps[steps.length - 1];
-          const tip = last && last.thinking ? String(last.thinking).slice(0, 60) : '';
-          if (tip) res.write('event: status\ndata:' + JSON.stringify({ text: tip }) + '\n\n');
-        }
+        for (const line of lines) {
+          if (!line.startsWith('data:')) continue;
+          let d;
+          try { d = JSON.parse(line.slice(5)); } catch { continue; }
+          const r = d.response || {};
 
-        // 文本增量（官方是全量累积，必须切 delta）
-        if (typeof r.response_text === 'string' && r.response_text.length > lastLen) {
-          const delta = r.response_text.slice(lastLen);
-          lastLen = r.response_text.length;
-          res.write('event: chunk\ndata:' + JSON.stringify({ text: delta }) + '\n\n');
-        }
-
-        // 商品（只发一次）
-        if (!sentProducts && Array.isArray(r.product_list) && r.product_list.length) {
-          const products = mapProductList(r.product_list, 6);
-          if (products.length) {
-            sentProducts = true;
-            res.write('event: display\ndata:' + JSON.stringify({ products, title: '为你推荐' }) + '\n\n');
+          // session 失效检测：正文未开始 + response_text 是"参数有误" → 丢弃并重试
+          if (!retried && lastLen === 0 && typeof r.response_text === 'string') {
+            const trimmed = r.response_text.replace(/\s/g, '');
+            if (trimmed === '参数有误' || trimmed.startsWith('参数有误')) {
+              needRetry = true;
+              break streamLoop;
+            }
           }
-        }
 
-        // 官方动作按钮 click_list（转人工 human_access / 在线客服等）→ 翻成 clicks 事件，前端渲染成按钮
-        if (!sentClicks && Array.isArray(r.click_list) && r.click_list.length) {
-          const clicks = r.click_list.map((c) => ({
-            event_type: c.event_type || '',
-            display_text: c.display_text || '',
-            link_url: c.link_url || '',
-            callback_data: c.callback_data || '',
-          })).filter((c) => c.display_text);
-          if (clicks.length) {
-            sentClicks = true;
-            res.write('event: clicks\ndata:' + JSON.stringify({ clicks }) + '\n\n');
+          // 思考/调用过程（官方 thinking_trace：分析意图 / 调用 skill / 查知识库）→ 翻成 status 让前端展示
+          // 只在正文还没开始流式时展示（正文一来就被覆盖，符合"思考中→出答案"的官方体验）
+          if (!lastLen && d.thinking_trace && Array.isArray(d.thinking_trace.trace) && d.thinking_trace.trace.length) {
+            const steps = d.thinking_trace.trace;
+            const last = steps[steps.length - 1];
+            const tip = last && last.thinking ? String(last.thinking).slice(0, 60) : '';
+            if (tip) res.write('event: status\ndata:' + JSON.stringify({ text: tip }) + '\n\n');
+          }
+
+          // 文本增量（官方是全量累积，必须切 delta）
+          if (typeof r.response_text === 'string' && r.response_text.length > lastLen) {
+            const delta = r.response_text.slice(lastLen);
+            lastLen = r.response_text.length;
+            res.write('event: chunk\ndata:' + JSON.stringify({ text: delta }) + '\n\n');
+          }
+
+          // 商品（只发一次）
+          if (!sentProducts && Array.isArray(r.product_list) && r.product_list.length) {
+            const products = mapProductList(r.product_list, 6);
+            if (products.length) {
+              sentProducts = true;
+              res.write('event: display\ndata:' + JSON.stringify({ products, title: '为你推荐' }) + '\n\n');
+            }
+          }
+
+          // 官方动作按钮 click_list（转人工 human_access / 在线客服等）→ 翻成 clicks 事件，前端渲染成按钮
+          if (!sentClicks && Array.isArray(r.click_list) && r.click_list.length) {
+            const clicks = r.click_list.map((c) => ({
+              event_type: c.event_type || '',
+              display_text: c.display_text || '',
+              link_url: c.link_url || '',
+              callback_data: c.callback_data || '',
+            })).filter((c) => c.display_text);
+            if (clicks.length) {
+              sentClicks = true;
+              res.write('event: clicks\ndata:' + JSON.stringify({ clicks }) + '\n\n');
+            }
           }
         }
       }
+
+      if (needRetry && !retried) {
+        retried = true;
+        // session 失效：重新鉴权，拿全新 sessionId（忽略 bodySessionId）
+        auth = await getAuth(true);
+        sessionId = auth.sessionId;
+        // 重置流状态
+        buf = '';
+        lastLen = 0;
+        sentProducts = false;
+        sentClicks = false;
+        // 回传新 sessionId 让前端更新 conv_id
+        res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
+        upstream = await callQa(auth.token, sessionId);
+        if (!upstream.ok || !upstream.body) throw new Error('upstream http ' + upstream.status + ' (retry)');
+        continue; // 重新走流式循环
+      }
+
+      break; // 正常结束
     }
 
     res.write('event: done\ndata:' + JSON.stringify({ conv_id: sessionId }) + '\n\n');
