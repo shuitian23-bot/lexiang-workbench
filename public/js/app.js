@@ -4535,6 +4535,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   let hoverTimer = null;
   let turns = [];
   let helloIndex = 0;
+  let helloAnimating = false;
   let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
@@ -5049,10 +5050,43 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   }
   function syncSend() { send?.classList.toggle("idle", !ta?.value.trim()); }
   function setRotatingTitle(word) { if (helloTitle) helloTitle.innerHTML = `<span>联想乐享帮你</span><span class="rotating-word">${escapeHtml(word)}</span>`; }
+  async function rotateTitleWordForWindows(word) {
+    if (helloAnimating || !word || typeof word.animate !== "function") return;
+    helloAnimating = true;
+    const ease = "cubic-bezier(.22,.61,.36,1)";
+    try {
+      word.style.willChange = "opacity, transform, filter";
+      await word.animate([
+        { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" },
+        { opacity: 0, transform: "translate3d(0,-18px,0)", filter: "blur(5px)" }
+      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      helloIndex = (helloIndex + 1) % helloWords.length;
+      word.textContent = helloWords[helloIndex];
+      await word.animate([
+        { opacity: 0, transform: "translate3d(0,18px,0)", filter: "blur(5px)" },
+        { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" }
+      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      word.style.opacity = "";
+      word.style.transform = "";
+      word.style.filter = "";
+      word.style.willChange = "";
+    } catch (_) {
+      word.style.opacity = "";
+      word.style.transform = "";
+      word.style.filter = "";
+      word.style.willChange = "";
+    } finally {
+      helloAnimating = false;
+    }
+  }
   function rotateTitleWord() {
     if (!helloTitle || welcome.style.display === "none") return;
     const word = helloTitle.querySelector(".rotating-word");
     if (!word) { setRotatingTitle(helloWords[helloIndex]); return; }
+    if (forceFullscreenMotion && typeof word.animate === "function") {
+      rotateTitleWordForWindows(word);
+      return;
+    }
     word.classList.add("out");
     window.setTimeout(() => {
       helloIndex = (helloIndex + 1) % helloWords.length;
