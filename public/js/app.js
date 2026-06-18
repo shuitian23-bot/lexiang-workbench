@@ -49,6 +49,42 @@
         };
         window.__lxState = state;
 
+        // ── 双对话桥接接口（lxfd IIFE ↔ 主面板 IIFE 跨作用域通信） ────────────
+        window.__lxBridge = {
+          // 把 lxfd 收集的消息写进主面板对话列表
+          importConversation: function(messages, convId) {
+            const list = ensureChat();
+            list.innerHTML = "";
+            messages.forEach(function(m) {
+              addMessage(m.role, m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
+            });
+            if (convId) state.convId = convId;
+          },
+          // 退全屏 + 右侧显示商品/页面
+          revealProducts: function(products, opts) {
+            lxRevealContent();
+            if (products && products.length === 1 && products[0] && products[0].sku) {
+              openProduct(products[0].sku);
+              return;
+            }
+            if (products && products.length) {
+              const recoTab = {
+                id: "reco",
+                kind: "reco",
+                label: (opts && opts.title) || "AI 推荐",
+                products: products,
+                grouped: !!(opts && opts.grouped)
+              };
+              lxUpsertTab(recoTab);
+              lxRunTab(recoTab);
+            }
+          },
+          // 退出全屏（带动画）
+          exitFullscreen: function() { lxSetAutoFs(false); },
+          // 当前是否有右侧 tab
+          hasTabs: function() { return !!(state.tabs && state.tabs.length > 0); }
+        };
+
         const $ = (sel, root = document) => root.querySelector(sel);
         const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
         const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({
@@ -263,7 +299,7 @@
 
         function getProductFromCard(card) {
           if (!card) return null;
-          const sku = card.dataset.sku || "";
+          const sku = card.dataset.sku || card.dataset.openProduct || card.querySelector("[data-open-product]")?.dataset.openProduct || "";
           const product = sku ? state.products.find((item) => String(item.sku || "") === String(sku)) : null;
           if (product) return product;
           return {
@@ -1242,7 +1278,17 @@
           }
           updateUploadNote();
           renderQueryHistory();
-          toast("已新建对话");
+          // 若分屏态新建对话，回全屏欢迎页
+          if (!document.body.classList.contains("assistant-fullscreen") &&
+              typeof window.__lxfdNewFullscreen === "function") {
+            state.tabs = [];
+            state.activeTabId = null;
+            lxRenderTabbar();
+            document.querySelector(".content")?.setAttribute("data-view", "list");
+            window.__lxfdNewFullscreen();
+          } else {
+            toast("已新建对话");
+          }
         }
 
         async function sendChat(message) {
@@ -1728,6 +1774,85 @@
           </div>`;
         }
 
+
+        const LX_PERSONAL_RECOMMEND_FLOORS = [
+          ["笔记本", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return (p.category === "笔记本电脑" || /小新|拯救者|Legion|YOGA|ThinkPad|ThinkBook|笔记本|轻薄本|游戏本|AI元启/i.test(text)) && !/手机|moto|平板|Pad|显示器|服务|保修|保护套|鼠标|键盘|包|耳机/.test(text);
+          }],
+          ["台式机/显示器", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "台式机" || p.category === "显示器" || /台式|主机|一体机|显示器|ThinkCentre|扬天|启天|拯救者刃|来酷显示器/i.test(text);
+          }],
+          ["平板", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "平板电脑" || /平板|小新Pad|YOGA Tab|Lenovo Tab|Pad Pro|Pad Plus/i.test(text);
+          }],
+          ["手机", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "手机" || /moto|razr|手机|折叠屏/i.test(text);
+          }],
+          ["智能生活", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /耳机|音箱|手表|手环|投影|智能|LePods|蓝牙|摄像头|扫地|门锁|路由/i.test(text);
+          }],
+          ["配件/办公", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /鼠标|键盘|扩展坞|保护套|背包|包|打印机|办公|支架|电源|适配器|硬盘|U盘|充电器|鼠标垫/i.test(text);
+          }],
+          ["全屋智能", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /全屋|智能家居|门锁|摄像头|路由器|扫地|照明|家居|IoT/i.test(text);
+          }],
+          ["服务升级", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "服务产品" || /保修|延保|上门|服务|升级|换新|Care|清灰|安装|保障|会员/i.test(text);
+          }],
+        ];
+
+        async function lxEnsureFloorProducts(site, limit = 96) {
+          if (!state.floorProducts || state.floorProductsSite !== site || state.floorProductsLimit !== limit) {
+            try {
+              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store" });
+              state.floorProducts = await response.json();
+              state.floorProductsSite = site;
+              state.floorProductsLimit = limit;
+            } catch {
+              state.floorProducts = [];
+              state.floorProductsLimit = limit;
+            }
+          }
+          return Array.isArray(state.floorProducts) ? state.floorProducts : [];
+        }
+
+        function lxProductKey(product) {
+          return product?.sku || product?.url || product?.name || Math.random().toString(36);
+        }
+
+        function lxPickFloorProducts(pool, match, used, count = 8) {
+          const picked = [];
+          const add = (product, markUsed = true) => {
+            if (!product || picked.includes(product)) return;
+            picked.push(product);
+            if (markUsed) used.add(lxProductKey(product));
+          };
+          pool.filter((p) => match(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
+          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
+          if (picked.length < count) pool.filter((p) => !picked.includes(p)).forEach((p) => { if (picked.length < count) add(p, false); });
+          return picked.slice(0, count);
+        }
+
+        async function lxRenderPersonalRecommendFloors() {
+          const site = API_SITE.personal || "shop";
+          const pool = await lxEnsureFloorProducts(site, 96);
+          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const used = new Set();
+          return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
+            const items = lxPickFloorProducts(source, match, used, 8);
+            return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
           const page = state.page;
           const matchers = LX_CATEGORY_MATCHERS[page];
@@ -1767,11 +1892,23 @@
           const activeFloorTab = state.activeSiteFloorTab || "推荐";
           grid.hidden = activeFloorTab !== "推荐";
           if (activeFloorTab === "推荐") {
+            if (page === "personal") {
+              grid.hidden = true;
+              box.hidden = false;
+              box.classList.add("lx-personal-rec-floors");
+              box.innerHTML = await lxRenderPersonalRecommendFloors();
+              if (state.page !== page) return;
+              lxSyncCategoryTabs();
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              return;
+            }
+            box.classList.remove("lx-personal-rec-floors");
             box.hidden = true;
             box.innerHTML = "";
             lxSyncCategoryTabs();
             return;
           }
+          box.classList.remove("lx-personal-rec-floors");
           box.hidden = false;
           const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
@@ -2299,22 +2436,90 @@
           return card?.dataset.sku || card?.dataset.openProduct || card?.querySelector("[data-open-product]")?.dataset.openProduct || "";
         }
 
-        async function lxSetProductRef(sku) {
+        function lxProductRefPayload(product, card) {
+          const title = product?.name || card?.querySelector(".product-title, .name, h3, strong")?.textContent?.trim() || "联想商品";
+          const rawPrice = product?.price ? `¥${Number(product.price || 0).toLocaleString()}` : (card?.querySelector(".price, .pc-price")?.textContent || "").trim();
+          const spec = (product?.description || card?.querySelector(".spec, .pc-spec")?.textContent || "").trim().replace(/\s+/g, " ");
+          const img = product?.image_url ? imgUrl(product.image_url) : (card?.querySelector(".product-visual img, img")?.getAttribute("src") || card?.querySelector(".product-visual img, img")?.src || "/assets/product-placeholder.svg");
+          return {
+            sku: product?.sku || lxCardSku(card),
+            name: title,
+            price: rawPrice,
+            spec,
+            img: imgUrl(img),
+            description: spec.slice(0, 120),
+          };
+        }
+
+        function lxEnsureAttach(composer) {
+          if (!composer) return null;
+          let attach = composer.querySelector(":scope > .attach");
+          if (!attach) {
+            attach = document.createElement("div");
+            attach.className = "attach";
+            composer.insertBefore(attach, composer.firstChild);
+          }
+          return attach;
+        }
+
+        function lxClearProductRef() {
+          const composer = document.querySelector(".composer");
+          const ta = composer?.querySelector("textarea");
+          const send = composer?.querySelector(".send-btn");
+          composer?.querySelector(":scope > .attach")?.replaceChildren();
+          composer?.classList.remove("has");
+          send?.classList.remove("pulse");
+          if (ta?.dataset.originPlaceholder) ta.placeholder = ta.dataset.originPlaceholder;
+          state.refProduct = null;
+          state.refMsg = null;
+          document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
+          document.querySelector(".lx-ref-bar")?.remove();
+        }
+
+        function lxDockProductRef(data, opts = {}) {
+          const composer = document.querySelector(".composer");
+          const ta = composer?.querySelector("textarea");
+          const send = composer?.querySelector(".send-btn");
+          const attach = lxEnsureAttach(composer);
+          if (!composer || !attach || !data?.name) return;
+          if (ta && !ta.dataset.originPlaceholder) ta.dataset.originPlaceholder = ta.placeholder || "最近有什么优惠活动？";
+          const price = data.price || "";
+          const spec = data.spec || "";
+          attach.innerHTML = `<div class="att-wrap att-enter"><span class="att-pending">待发送</span>
+    <div class="att-card"><div class="att-thumb"><img src="${esc(data.img || "/assets/product-placeholder.svg")}" alt="" /></div>
+      <div class="att-info"><div class="att-name">${esc(data.name)}</div>
+        <div class="att-meta"><span class="pr">${esc(price)}</span><span>· ${esc(spec)}</span></div></div>
+      <button class="att-x" type="button" aria-label="移除引用商品">✕</button></div></div>`;
+          composer.classList.add("has");
+          if (ta) {
+            ta.placeholder = "想了解这款商品的什么？比如优惠、对比、是否适合我…";
+            ta.focus();
+          }
+          send?.classList.add("pulse");
+          attach.querySelector(".att-x")?.addEventListener("click", lxClearProductRef, { once: true });
+          document.querySelector(".lx-ref-bar")?.remove();
+          state.refProduct = {
+            sku: data.sku,
+            name: data.name,
+            price: price,
+            image_url: data.img,
+            description: (data.description || spec || "").slice(0, 120),
+          };
+          state.refMsg = null;
+          if (data.sku) document.querySelector(`.lx-pick-btn[data-pick-sku="${CSS.escape(data.sku)}"]`)?.classList.add("picked");
+          if (opts.toast !== false) toast("已引用商品，直接提问即可");
+        }
+
+        async function lxSetProductRef(sku, card) {
           if (!sku) return;
           let product = (state.products || []).find((p) => p.sku === sku) || (state.floorProducts || []).find((p) => p.sku === sku);
           if (!product) {
             try { product = await (await fetch(`/api/products/${encodeURIComponent(sku)}`, { cache: "no-store" })).json(); } catch {}
           }
-          if (!product?.name) return toast("商品信息获取失败");
-          state.refProduct = { sku: product.sku, name: product.name, price: product.price, image_url: product.image_url, description: (product.description || "").slice(0, 120) };
-          state.refMsg = null;
-          document.querySelector(".lx-ref-bar")?.remove();
-          document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
-          document.querySelector(`.lx-pick-btn[data-pick-sku="${CSS.escape(sku)}"]`)?.classList.add("picked");
-          const bottom = document.querySelector(".assistant-bottom");
-          bottom?.insertAdjacentHTML("afterbegin", `<div class="lx-ref-bar lx-ref-product"><img src="${esc(imgUrl(product.image_url))}" alt="" /><span class="lx-ref-text"><strong>${esc(product.name.slice(0, 26))}</strong> ¥${Number(product.price || 0).toLocaleString()}</span><button type="button" data-ref-clear aria-label="取消引用">×</button></div>`);
-          document.querySelector(".composer textarea")?.focus();
-          toast("已引用商品，直接提问即可");
+          const payload = lxProductRefPayload(product, card || document.querySelector(`[data-sku="${CSS.escape(sku)}"], [data-open-product="${CSS.escape(sku)}"]`));
+          if (!payload?.name) return toast("商品信息获取失败");
+          lxClearProductRef();
+          lxDockProductRef(payload);
         }
 
         function lxEnsurePickBtn(card) {
@@ -2327,13 +2532,112 @@
         }
 
         function lxSetRef(text) {
+          if (!text) { lxClearProductRef(); return; }
           state.refMsg = text;
           state.refProduct = null;
           document.querySelectorAll(".lx-pick-btn.picked").forEach((b) => b.classList.remove("picked"));
+          document.querySelector(".composer")?.classList.remove("has");
+          document.querySelector(".composer .attach")?.replaceChildren();
+          document.querySelector(".send-btn")?.classList.remove("pulse");
           document.querySelector(".lx-ref-bar")?.remove();
-          if (!text) return;
           const bottom = document.querySelector(".assistant-bottom");
           bottom?.insertAdjacentHTML("afterbegin", `<div class="lx-ref-bar"><span>引用</span><span class="lx-ref-text">${esc(text.slice(0, 60))}</span><button type="button" data-ref-clear aria-label="取消引用">×</button></div>`);
+        }
+
+
+        let lxProductDrag = null;
+        let lxProductDragPending = null;
+        let lxSuppressProductClick = false;
+        const LX_PRODUCT_DRAG_THRESHOLD = 6;
+        const lxPointInside = (el, x, y) => {
+          const r = el.getBoundingClientRect();
+          return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+        };
+        function lxCardDragData(card) {
+          const sku = lxCardSku(card);
+          const product = (state.products || []).find((p) => p.sku === sku) || (state.floorProducts || []).find((p) => p.sku === sku);
+          return lxProductRefPayload(product, card);
+        }
+        function lxGhostHtml(d) {
+          return `<div class="pc-img"><img src="${esc(d.img || "/assets/product-placeholder.svg")}" alt="" /></div>
+      <div class="pc-b"><div class="pc-name">${esc(d.name || "联想商品")}</div>
+      <div class="pc-spec">${esc(d.spec || "")}</div><div class="pc-price">${esc(d.price || "")}</div></div>`;
+        }
+        function lxEnsureGlowLayer(panel) {
+          if (!panel || panel.querySelector(":scope > .glowlayer")) return;
+          panel.insertAdjacentHTML("beforeend", '<div class="glowlayer" aria-hidden="true"></div>');
+        }
+        function lxCancelProductPointerPending() {
+          if (!lxProductDragPending) return;
+          document.removeEventListener("pointermove", lxOnProductPointerPendingMove, true);
+          document.removeEventListener("pointerup", lxCancelProductPointerPending, true);
+          document.removeEventListener("pointercancel", lxCancelProductPointerPending, true);
+          lxProductDragPending = null;
+        }
+        function lxCancelProductPointerDrag() {
+          if (!lxProductDrag) return;
+          lxProductDrag.ghost?.remove();
+          lxProductDrag.card?.classList.remove("grabbing");
+          lxProductDrag.panel?.classList.remove("dragging", "armed");
+          document.removeEventListener("pointermove", lxOnProductPointerMove, true);
+          document.removeEventListener("pointerup", lxOnProductPointerUp, true);
+          document.removeEventListener("pointercancel", lxCancelProductPointerDrag, true);
+          lxProductDrag = null;
+        }
+        function lxOnProductPointerPendingMove(event) {
+          if (!lxProductDragPending) return;
+          const pending = lxProductDragPending;
+          const dx = event.clientX - pending.clientX;
+          const dy = event.clientY - pending.clientY;
+          if (Math.hypot(dx, dy) < LX_PRODUCT_DRAG_THRESHOLD) return;
+          event.preventDefault();
+          event.stopPropagation();
+          lxCancelProductPointerPending();
+          lxStartProductPointerDrag(pending.card, event, pending);
+          lxOnProductPointerMove(event);
+        }
+        function lxOnProductPointerMove(event) {
+          if (!lxProductDrag) return;
+          lxProductDrag.ghost.style.left = (event.clientX - lxProductDrag.offX) + "px";
+          lxProductDrag.ghost.style.top = (event.clientY - lxProductDrag.offY) + "px";
+          lxProductDrag.panel.classList.toggle("armed", lxPointInside(lxProductDrag.panel, event.clientX, event.clientY));
+        }
+        function lxOnProductPointerUp(event) {
+          if (!lxProductDrag) return;
+          const over = lxPointInside(lxProductDrag.panel, event.clientX, event.clientY);
+          const data = lxProductDrag.d;
+          const panel = lxProductDrag.panel;
+          lxSuppressProductClick = true;
+          setTimeout(() => { lxSuppressProductClick = false; }, 0);
+          lxCancelProductPointerDrag();
+          panel?.classList.remove("armed");
+          if (over) {
+            lxClearProductRef();
+            lxDockProductRef(data);
+          }
+        }
+        function lxStartProductPointerDrag(card, event, origin = event) {
+          const panel = document.querySelector(".assistant-panel");
+          const composer = document.querySelector(".composer");
+          if (!panel || !composer || !card || (event.button !== 0 && event.buttons !== 1)) return;
+          const d = lxCardDragData(card);
+          if (!d?.name) return;
+          event.preventDefault();
+          event.stopPropagation();
+          const rect = card.getBoundingClientRect();
+          const ghost = document.createElement("div");
+          ghost.className = "ghost";
+          ghost.innerHTML = lxGhostHtml(d);
+          ghost.style.left = rect.left + "px";
+          ghost.style.top = rect.top + "px";
+          document.body.appendChild(ghost);
+          lxEnsureGlowLayer(panel);
+          card.classList.add("grabbing");
+          panel.classList.add("dragging");
+          lxProductDrag = { ghost, offX: origin.clientX - rect.left, offY: origin.clientY - rect.top, card, d, panel };
+          document.addEventListener("pointermove", lxOnProductPointerMove, true);
+          document.addEventListener("pointerup", lxOnProductPointerUp, true);
+          document.addEventListener("pointercancel", lxCancelProductPointerDrag, true);
         }
 
         // 自动全屏对话态：进入/退出统一管理（lx-auto-fs 用于隐藏无意义的展开缩放按钮）
@@ -2467,6 +2771,12 @@
             if (next) lxRunTab(next);
           }
           lxRenderTabbar();
+          // 关掉最后一个 tab 且当前在分屏 → 回全屏并带入对话
+          if ((state.tabs || []).length === 0 &&
+              !document.body.classList.contains("assistant-fullscreen") &&
+              typeof window.__lxfdEnterFromSplit === "function") {
+            window.__lxfdEnterFromSplit();
+          }
         }
 
         // AI 文本中的链接转可点卡片：联想商品链接→右侧打开商详，其他链接→新窗口
@@ -2883,7 +3193,7 @@
         const LX_SITE_PROMPTS = {
           home: {
             quick: ["我要找商品", "我要找优惠和活动", "我要查保修和售后", "我要找附近门店", "我要企业批量采购", "我要问国补和教育优惠"],
-            welcome: ["想买游戏本，预算8000怎么选？", "日常办公用，5000内电脑怎么选？", "我都有哪些会员权益？", "公司采购电脑有什么补贴？"],
+            welcome: ["想买游戏本，预算8000怎么选？", "日常办公用，5000内电脑怎么选？", "我都有哪些会员权益？", "公司采购电脑有什么补贴？", "哪里有卖ThinkPad笔记本电脑门店"],
             placeholder: "最近有什么优惠活动？",
             actionbar: ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心"],
             hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
@@ -2923,7 +3233,7 @@
           const cfg = LX_SITE_PROMPTS[state.page] || LX_SITE_PROMPTS.home;
           const list = document.querySelector(".quick-list");
           if (list) {
-            list.innerHTML = cfg.quick.map((text, index) => `<button class="quick-item" type="button"${index === 0 ? " data-start-chat" : ""}><span>${esc(text)}</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>`).join("");
+            list.innerHTML = cfg.quick.slice(0, 5).map((text, index) => `<button class="quick-item" type="button"${index === 0 ? " data-start-chat" : ""}><span>${esc(text)}</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>`).join("");
           }
           // 全屏欢迎四问
           const prompts = document.querySelectorAll(".fullscreen-prompt span");
@@ -3158,7 +3468,17 @@
               aiMsg.insertAdjacentHTML("beforeend", `<button class="lx-msg-copy" type="button" title="复制回答" aria-label="复制回答">⧉</button>`);
             }
           });
+          document.addEventListener("pointerdown", (event) => {
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
+            if (!card || event.target.closest("button, a, input, textarea, select, .lx-pick-btn") || event.button !== 0) return;
+            lxCancelProductPointerPending();
+            lxProductDragPending = { card, clientX: event.clientX, clientY: event.clientY, button: event.button };
+            document.addEventListener("pointermove", lxOnProductPointerPendingMove, true);
+            document.addEventListener("pointerup", lxCancelProductPointerPending, true);
+            document.addEventListener("pointercancel", lxCancelProductPointerPending, true);
+          }, true);
           document.addEventListener("dragstart", (event) => {
+            if (lxProductDrag) { event.preventDefault(); return; }
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             const sku = lxCardSku(card);
             if (sku) { event.dataTransfer.setData("text/plain", "lxsku:" + sku); event.dataTransfer.effectAllowed = "copy"; }
@@ -3212,13 +3532,13 @@
           }, true);
 
           document.addEventListener("mouseover", (event) => {
-            const card = event.target.closest?.(".product-card");
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || card.contains(event.relatedTarget)) return;
             startHoverPromptTimer(card);
           });
 
           document.addEventListener("mouseout", (event) => {
-            const card = event.target.closest?.(".product-card");
+            const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || card.contains(event.relatedTarget)) return;
             clearHoverPromptTimer();
           });
@@ -3358,7 +3678,7 @@
             const pickBtn = event.target.closest("[data-pick-sku]");
             if (pickBtn) {
               event.stopPropagation();
-              lxSetProductRef(pickBtn.dataset.pickSku);
+              lxSetProductRef(pickBtn.dataset.pickSku, pickBtn.closest(LX_PICK_CARD_SEL));
               return;
             }
 
@@ -3485,13 +3805,16 @@
               else if (text) sendChat(text);
             }
 
-            const card = event.target.closest(".product-card");
-            if (card?.dataset.sku) {
+            const card = event.target.closest(".product-card, .lx-floor-product");
+            const cardSku = card?.dataset.sku || card?.dataset.openProduct;
+            if (cardSku) {
               event.preventDefault();
               event.stopImmediatePropagation();
+              if (lxSuppressProductClick) return;
               clearHoverPromptTimer();
               hideHoverPrompts();
-              openProduct(card.dataset.sku);
+              openProduct(cardSku);
+              return;
             }
 
             const detailPrimary = event.target.closest(".detail-primary");
@@ -3584,7 +3907,13 @@
             }
 
             const openSku = event.target.closest("[data-open-product]")?.dataset.openProduct;
-            if (openSku) { closeModal(); openProduct(openSku); }
+            if (openSku) {
+              event.preventDefault();
+              event.stopPropagation();
+              closeModal();
+              openProduct(openSku);
+              return;
+            }
 
             const buySku = event.target.closest("[data-buy-sku]")?.dataset.buySku;
             if (buySku) buyNow(state.cart.find((item) => item.sku === buySku));
@@ -4009,6 +4338,21 @@
     }
     return true;
   }
+  // ── 能力 C：把 lxfd 当前对话导出到主面板 ──────────────────────────────────
+  function lxfdExportToMain() {
+    if (!thread || !window.__lxBridge) return;
+    const messages = [];
+    thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai").forEach(function(el) {
+      if (el.classList.contains("lxfd-msg-user")) {
+        messages.push({ role: "user", text: el.textContent.trim(), html: "" });
+      } else {
+        const body = el.querySelector(".lxfd-ai-body");
+        messages.push({ role: "ai", text: "", html: body ? body.innerHTML : el.innerHTML });
+      }
+    });
+    if (!messages.length) return;
+    window.__lxBridge.importConversation(messages, chatState.convId);
+  }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
   }
@@ -4072,12 +4416,61 @@
   }
   function runMotionPanel(layer) {
     if (!layer) return;
-    if (forceFullscreenMotion) {
-      layer.getBoundingClientRect();
-      requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("run")));
-    } else {
-      requestAnimationFrame(() => layer.classList.add("run"));
+    const runCssMotion = () => {
+      if (forceFullscreenMotion) {
+        layer.getBoundingClientRect();
+        requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("run")));
+      } else {
+        requestAnimationFrame(() => layer.classList.add("run"));
+      }
+    };
+    // Windows 11 + Chromium 149 may skip the left/top/size transition when the
+    // fullscreen layer is inserted and the body class changes in the same frame.
+    // Drive that environment with WAAPI, while leaving the existing CSS path
+    // untouched for systems where the original animation already works.
+    if (!forceFullscreenMotion || typeof layer.animate !== "function") {
+      runCssMotion();
+      return;
     }
+    const isExit = layer.classList.contains("lxfd-motion-panel-exit");
+    const ease = "cubic-bezier(.22,.61,.36,1)";
+    const start = layer.getBoundingClientRect();
+    const toPx = (value, fallback) => {
+      const n = parseFloat(String(value || ""));
+      return Number.isFinite(n) ? n : fallback;
+    };
+    const target = isExit
+      ? {
+          left: toPx(layer.style.getPropertyValue("--lxfd-target-left"), start.left),
+          top: toPx(layer.style.getPropertyValue("--lxfd-target-top"), start.top),
+          width: toPx(layer.style.getPropertyValue("--lxfd-target-width"), start.width),
+          height: toPx(layer.style.getPropertyValue("--lxfd-target-height"), start.height),
+          radius: 8,
+          opacity: 0,
+        }
+      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight, radius: 0, opacity: 0 };
+    const first = {
+      left: `${start.left}px`,
+      top: `${start.top}px`,
+      width: `${start.width}px`,
+      height: `${start.height}px`,
+      borderRadius: isExit ? "0px" : "8px",
+      opacity: "1",
+    };
+    const hold = { ...first, offset: isExit ? 0.72 : 0.67 };
+    const last = {
+      left: `${target.left}px`,
+      top: `${target.top}px`,
+      width: `${target.width}px`,
+      height: `${target.height}px`,
+      borderRadius: `${target.radius}px`,
+      opacity: `${target.opacity}`,
+    };
+    const anim = layer.animate([first, hold, last], { duration: 720, easing: ease, fill: "forwards" });
+    anim.addEventListener("finish", () => {
+      Object.assign(layer.style, last);
+      layer.classList.add("run");
+    }, { once: true });
   }
   function createPanelStretchLayer() {
     const source = document.querySelector(".assistant-panel");
@@ -4133,6 +4526,7 @@
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.remove("lxfd-split-returning");
     document.body.classList.add("lxfd-entering");
+    document.body.classList.add("lxfd-split-entered");
     setFullscreen(true);
     window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
     finishMotionClass("lxfd-entering", 760);
@@ -4155,6 +4549,7 @@
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
+    if (!on) document.body.classList.remove("lxfd-split-entered");
     if (on) document.body.dataset.state = "chat";
     if (on) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
   }
@@ -4171,6 +4566,7 @@
   }
   function setRailManual(open) {
     railManuallyCollapsed = !open;
+    document.body.classList.toggle("lxfd-rail-user-open", !!open);
     openRail(open);
   }
   function syncRailForViewport() {
@@ -4236,6 +4632,10 @@
   async function submit(text) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
+    // 本轮桥接状态（全屏→分屏）
+    let turnProducts = null;
+    let turnTitle = "";
+    let turnGrouped = false;
     setFullscreen(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
@@ -4308,6 +4708,8 @@
           if (!products.length) return;
           revealAi();
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
+          // 记录本轮商品以便 done 时桥接到主面板
+          turnProducts = products;
         },
         display: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -4316,6 +4718,12 @@
           revealAi();
           if (payload.title && ai._textBox && !ai._textBox.textContent.trim()) ai._textBox.textContent = payload.title;
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
+          // 记录本轮商品及展示元信息以便 done 时桥接到主面板
+          if (products.length) {
+            turnProducts = products;
+            turnTitle = payload.title || "";
+            turnGrouped = !!payload.grouped;
+          }
         },
         suggestions: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -4329,6 +4737,16 @@
           if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
           lxfdPersistCurrent();
           lxfdRenderHist();
+          // 全屏→分屏桥接：本轮有商品且当前仍处于全屏态 → 搬对话到主面板+退全屏+右侧展示
+          if (turnProducts && turnProducts.length &&
+              document.body.classList.contains("assistant-fullscreen") &&
+              window.__lxBridge) {
+            lxfdExportToMain();
+            window.__lxBridge.exitFullscreen();
+            window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+            // 清空 lxfd thread，下次回全屏会从主面板重新 import
+            if (thread) thread.innerHTML = "";
+          }
         }
       });
       if (nonce !== chatState.conversationNonce) return;
@@ -4350,6 +4768,16 @@
 
   window.lxfdSubmit = submit;
   window.lxfdReset = resetConversation;
+  // 分屏→全屏回退：关空右侧 tab 时带入主面板对话回全屏
+  window.__lxfdEnterFromSplit = function() {
+    if (thread) thread.innerHTML = "";
+    enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
+  };
+  // 新建对话回全屏欢迎态
+  window.__lxfdNewFullscreen = function() {
+    resetConversation(true);
+    enterFullscreen();
+  };
 
   convoPill?.addEventListener("click", () => setNav(!navCluster.classList.contains("open")));
   navCluster?.addEventListener("mouseenter", () => { clearTimeout(hoverTimer); setNav(true); });
@@ -4443,3 +4871,56 @@
     [50, 300, 1000, 2000].forEach((delay) => window.setTimeout(forceFullscreen, delay));
   } catch {}
 })();
+
+// Split assistant panel width drag handle. Kept isolated from existing interactions.
+(function(){
+  if (window.__lxAssistantPanelResizeBound) return;
+  window.__lxAssistantPanelResizeBound = true;
+  const MIN_WIDTH = 312;
+  const MAX_WIDTH = 720;
+  const STORAGE_KEY = 'lxAssistantPanelWidth';
+  const clamp = (value) => Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.round(value)));
+  const applyWidth = (value) => {
+    const width = clamp(value);
+    document.body.style.setProperty('--assistant-panel-width', width + 'px');
+    try { localStorage.setItem(STORAGE_KEY, String(width)); } catch {}
+    return width;
+  };
+  try {
+    const saved = Number(localStorage.getItem(STORAGE_KEY));
+    if (Number.isFinite(saved) && saved > 0) applyWidth(saved);
+  } catch {}
+  document.addEventListener('pointerdown', (event) => {
+    let handle = event.target.closest?.('.panel-resizer');
+    if (document.body.classList.contains('assistant-fullscreen')) return;
+    const panel = document.querySelector('.assistant-panel');
+    if (!panel) return;
+    const panelRect = panel.getBoundingClientRect();
+    const isRight = document.body.classList.contains('assistant-right');
+    const nearEdge = isRight
+      ? Math.abs(event.clientX - panelRect.left) <= 14
+      : Math.abs(event.clientX - panelRect.right) <= 14;
+    if (!handle && !nearEdge) return;
+    handle = handle || document.querySelector('.panel-resizer');
+    event.preventDefault();
+    event.stopPropagation();
+    const startX = event.clientX;
+    const startWidth = panelRect.width;
+    document.body.classList.add('is-resizing');
+    handle?.setPointerCapture?.(event.pointerId);
+    const onMove = (moveEvent) => {
+      const delta = moveEvent.clientX - startX;
+      applyWidth(startWidth + (isRight ? -delta : delta));
+    };
+    const onUp = () => {
+      document.body.classList.remove('is-resizing');
+      document.removeEventListener('pointermove', onMove, true);
+      document.removeEventListener('pointerup', onUp, true);
+      document.removeEventListener('pointercancel', onUp, true);
+    };
+    document.addEventListener('pointermove', onMove, true);
+    document.addEventListener('pointerup', onUp, true);
+    document.addEventListener('pointercancel', onUp, true);
+  }, true);
+})();
+
