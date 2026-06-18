@@ -2432,22 +2432,6 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 6 页面 AI 引用趋势（每指标一图，可勾选显隐 + 切排数 + 拖宽） -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">6 页面 AI 引用趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 联想链接 / 联想 wiki / wiki-商城 / wiki-消费 / wiki-SMB / wiki-政企 · 每日新增 · 点击图例切换显示</span></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-          <div id="geo-page-ref-legend" style="display:flex;align-items:center;gap:14px;font-size:11px;color:#374151;flex-wrap:wrap"></div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6b7280">
-            <span>每排</span>
-            <button type="button" class="geo-prc-cols-btn" data-cols="1" onclick="geoSetPageRefCols(1)" style="padding:3px 10px;border-radius:12px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-size:11px">1</button>
-            <button type="button" class="geo-prc-cols-btn" data-cols="2" onclick="geoSetPageRefCols(2)" style="padding:3px 10px;border-radius:12px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-size:11px">2</button>
-            <button type="button" class="geo-prc-cols-btn active" data-cols="3" onclick="geoSetPageRefCols(3)" style="padding:3px 10px;border-radius:12px;border:1px solid #3f78c5;background:#3f78c5;color:#fff;cursor:pointer;font-size:11px">3</button>
-          </div>
-        </div>
-        <div id="geo-page-ref-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%"></div>
-        <div id="geo-page-ref-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
-      </div>
-
       <!-- 各优化平台意图总数 -->
       <div class="geo-panel" style="margin-bottom:12px">
         <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
