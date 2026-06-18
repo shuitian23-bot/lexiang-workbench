@@ -25,6 +25,7 @@
         <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
       </table>
     </div>`;
+  const leadShell = html => `<div class="prd-lead-0615">${html}</div>`;
 
   window.switchLeadDashboardTab = function (tab, el) {
     const root = (el && el.closest('.page-content')) || document;
@@ -37,7 +38,7 @@
   };
 
   function renderLeadDashboard() {
-    return `
+    return leadShell(`
       ${pageHead('线索看板', '按整体看板、线索质量、销售团队漏斗查看线索经营状态',
         '<button class="btn btn-secondary">导出看板</button><button class="btn btn-primary">查看分配明细</button>')}
       ${filterCard(`
@@ -125,11 +126,11 @@
             ['华南 IS', 'liuyt8', '49.6%', '41.5%', '24.6%', '3.4%', '<a>查看团队</a>']
           ], 920)}
         </div>
-      </div>`;
+      </div>`);
   }
 
   function renderLeadPool() {
-    return `
+    return leadShell(`
       ${pageHead('线索池', '线索列表管理、分配、触达、反馈线索和转商机',
         '<button class="btn btn-secondary">明文导出审批</button><button class="btn btn-secondary">批量触达</button><button class="btn btn-primary">分配线索</button>')}
       <div class="kpi-grid">
@@ -155,7 +156,7 @@
           ['ONE20260605002', '赵九', 'L36099188', '北京中嘉和信通信技术有限公司', '73', badge('待分配', 'orange'), badge('未接收', 'gray'), '-', '<a>详情</a><a>分配</a>'],
           ['ONE20260605003', '周五', 'L61356183', '深圳汽车科技有限公司', '68', badge('已分配', 'success'), badge('已接收', 'primary'), 'xuhq5', '<a>详情</a><a>反馈线索</a><a>转商机</a>']
         ], 1180)}
-      </div>`;
+      </div>`);
   }
 
   const searchRows = {
@@ -223,8 +224,6 @@
   }
 
   Object.assign(PAGE_RENDERERS, {
-    'lead.dashboard': renderLeadDashboard,
-    'lead.pool': renderLeadPool,
     'search.categories': () => renderSearchPage('categories', '分类标签', '维护产品介绍与产品销售分类树、叶子节点、排序、发布状态和绑定关系', ['分类名称', '分类编码', '叶子节点', '排序', '发布状态', '操作人', '更新时间', '操作']),
     'search.filters': () => renderSearchPage('filters', '筛选条件', '维护筛选标签、参数名称、显示值和对应值，支撑前台筛选联动', ['标签名称', '筛选类型', '参数名称', '适用设备', '参数值数量', '示例值', '操作']),
     'search.activity': () => renderSearchPage('activity', '活动直达', '配置关键词命中后的 URL 直达、活动卡片、通栏和子模块', ['活动名称', '关键词', '状态', '形态', '终端', '有效期', '操作']),

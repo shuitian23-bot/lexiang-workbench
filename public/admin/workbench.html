@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
 <link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
-<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260617-style0616-1">
+<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260618-lead0615style1">
 <script>
   window.LEAIBOT_PREVIEW_MODE = /[?&](demo|preview)=1\b/.test(location.search) || location.protocol === 'file:';
   if (window.LEAIBOT_PREVIEW_MODE) {
@@ -306,7 +306,8 @@ const MENU_TREE = {
   lead: {
     icon: menuIcon('<path d="M4 5.2h8.2M4 9.8h5.8M4 14.4h5"/><path d="M12.2 13.6h4.6M14.8 11l2.6 2.6-2.6 2.6"/>'), label: '企业客户管理', children: {
       'lead.dashboard': { label: '线索看板' },
-      'lead.pool': { label: '线索池' }
+      'lead.pool': { label: '线索池' },
+      'lead.score': { label: '打分模型' }
     }
   },
   search: {
@@ -1156,9 +1157,10 @@ function switchBehaviorTab(tab, el) {
 })();
 </script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
-<script src="workbench-data-leai.js?v=20260617-data1"></script>
+<script src="workbench-data-leai.js"></script>
 <script src="workbench-pages.js?v=20260611-component-fix1"></script>
-<script src="workbench-prd-modules.js?v=20260605-prdrestore1"></script>
+<script src="workbench-lead.js?v=20260618-lead0615style1"></script>
+<script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
 <script src="workbench-geo.js?v=20260617-report-openall1"></script>
 <script src="workbench-ai.js?v=20260617-volc-agent1"></script>
 <script src="workbench-data.js?v=20260617-report-openall1"></script>

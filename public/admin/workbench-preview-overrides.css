@@ -8926,3 +8926,77 @@ html[data-product="leaibot"] body.dark-mode .workspace-link-panel code {
   background: rgba(255,255,255,.06) !important;
   color: #9fbeff !important;
 }
+
+/* Scoped 0615 Enterprise Customer Management pages. */
+html[data-product="leaibot"] body:not(.dark-mode) .page-content:has(> .lead-0615-page) {
+  background:
+    linear-gradient(105deg, rgba(51,112,255,.032) 0%, rgba(63,158,173,.024) 48%, rgba(144,112,195,.020) 100%) top left / 100% 220px no-repeat,
+    linear-gradient(180deg, #f8f9fb 0%, var(--color-canvas, #f5f6f8) 46%, #f1f3f6 100%) !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .page-content:has(> .lead-0615-page) {
+  background:
+    linear-gradient(105deg, rgba(122,162,255,.085) 0%, rgba(63,158,173,.055) 48%, rgba(167,139,250,.055) 100%) top left / 100% 220px no-repeat,
+    linear-gradient(180deg, #1b1e24 0%, var(--color-bg, #171a20) 48%, #15171d 100%) !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .card,
+html[data-product="leaibot"] .lead-0615-page .lead-filter {
+  border: 1px solid var(--border-light, #e5e6eb) !important;
+  border-radius: 12px !important;
+  background: var(--card-bg, #fff) !important;
+  box-shadow: var(--shadow, 0 1px 2px rgba(0,0,0,.06)) !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .card:hover,
+html[data-product="leaibot"] .lead-0615-page .lead-filter:hover {
+  border-color: var(--border-light, #e5e6eb) !important;
+  box-shadow: var(--shadow, 0 1px 2px rgba(0,0,0,.06)) !important;
+  transform: none !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-stat,
+html[data-product="leaibot"] .lead-0615-page .lead-kpi {
+  min-height: auto !important;
+  border-radius: 12px !important;
+  padding: 15px 18px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.035) !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-stat::before,
+html[data-product="leaibot"] .lead-0615-page .lead-kpi::before {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-stat:hover,
+html[data-product="leaibot"] .lead-0615-page .lead-kpi:hover {
+  box-shadow: 0 8px 22px rgba(15,23,42,.07) !important;
+  transform: none !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-filter {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 14px !important;
+  flex-wrap: wrap !important;
+  overflow: visible !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-table thead th,
+html[data-product="leaibot"] .lead-0615-page .lead-src-table th {
+  background: var(--bg, #f5f6f7) !important;
+  color: var(--text-secondary, #646a73) !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-table tbody td,
+html[data-product="leaibot"] .lead-0615-page .lead-src-table td {
+  color: var(--text, #1f2329) !important;
+  background: transparent !important;
+}
+
+html[data-product="leaibot"] .lead-0615-page .lead-table tbody tr:hover td,
+html[data-product="leaibot"] .lead-0615-page .lead-src-table tbody tr:hover td {
+  background: var(--primary-light, rgba(51,112,255,.08)) !important;
+}
