@@ -2500,6 +2500,9 @@
 
 
         let lxProductDrag = null;
+        let lxProductDragPending = null;
+        let lxSuppressProductClick = false;
+        const LX_PRODUCT_DRAG_THRESHOLD = 6;
         const lxPointInside = (el, x, y) => {
           const r = el.getBoundingClientRect();
           return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
@@ -2518,6 +2521,13 @@
           if (!panel || panel.querySelector(":scope > .glowlayer")) return;
           panel.insertAdjacentHTML("beforeend", '<div class="glowlayer" aria-hidden="true"></div>');
         }
+        function lxCancelProductPointerPending() {
+          if (!lxProductDragPending) return;
+          document.removeEventListener("pointermove", lxOnProductPointerPendingMove, true);
+          document.removeEventListener("pointerup", lxCancelProductPointerPending, true);
+          document.removeEventListener("pointercancel", lxCancelProductPointerPending, true);
+          lxProductDragPending = null;
+        }
         function lxCancelProductPointerDrag() {
           if (!lxProductDrag) return;
           lxProductDrag.ghost?.remove();
@@ -2527,6 +2537,18 @@
           document.removeEventListener("pointerup", lxOnProductPointerUp, true);
           document.removeEventListener("pointercancel", lxCancelProductPointerDrag, true);
           lxProductDrag = null;
+        }
+        function lxOnProductPointerPendingMove(event) {
+          if (!lxProductDragPending) return;
+          const pending = lxProductDragPending;
+          const dx = event.clientX - pending.clientX;
+          const dy = event.clientY - pending.clientY;
+          if (Math.hypot(dx, dy) < LX_PRODUCT_DRAG_THRESHOLD) return;
+          event.preventDefault();
+          event.stopPropagation();
+          lxCancelProductPointerPending();
+          lxStartProductPointerDrag(pending.card, event, pending);
+          lxOnProductPointerMove(event);
         }
         function lxOnProductPointerMove(event) {
           if (!lxProductDrag) return;
@@ -2539,6 +2561,8 @@
           const over = lxPointInside(lxProductDrag.panel, event.clientX, event.clientY);
           const data = lxProductDrag.d;
           const panel = lxProductDrag.panel;
+          lxSuppressProductClick = true;
+          setTimeout(() => { lxSuppressProductClick = false; }, 0);
           lxCancelProductPointerDrag();
           panel?.classList.remove("armed");
           if (over) {
@@ -2546,10 +2570,10 @@
             lxDockProductRef(data);
           }
         }
-        function lxStartProductPointerDrag(card, event) {
+        function lxStartProductPointerDrag(card, event, origin = event) {
           const panel = document.querySelector(".assistant-panel");
           const composer = document.querySelector(".composer");
-          if (!panel || !composer || !card || event.button !== 0) return;
+          if (!panel || !composer || !card || (event.button !== 0 && event.buttons !== 1)) return;
           const d = lxCardDragData(card);
           if (!d?.name) return;
           event.preventDefault();
@@ -2564,7 +2588,7 @@
           lxEnsureGlowLayer(panel);
           card.classList.add("grabbing");
           panel.classList.add("dragging");
-          lxProductDrag = { ghost, offX: event.clientX - rect.left, offY: event.clientY - rect.top, card, d, panel };
+          lxProductDrag = { ghost, offX: origin.clientX - rect.left, offY: origin.clientY - rect.top, card, d, panel };
           document.addEventListener("pointermove", lxOnProductPointerMove, true);
           document.addEventListener("pointerup", lxOnProductPointerUp, true);
           document.addEventListener("pointercancel", lxCancelProductPointerDrag, true);
@@ -3394,8 +3418,12 @@
           });
           document.addEventListener("pointerdown", (event) => {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
-            if (!card || event.target.closest("button, a, input, textarea, select, .lx-pick-btn")) return;
-            lxStartProductPointerDrag(card, event);
+            if (!card || event.target.closest("button, a, input, textarea, select, .lx-pick-btn") || event.button !== 0) return;
+            lxCancelProductPointerPending();
+            lxProductDragPending = { card, clientX: event.clientX, clientY: event.clientY, button: event.button };
+            document.addEventListener("pointermove", lxOnProductPointerPendingMove, true);
+            document.addEventListener("pointerup", lxCancelProductPointerPending, true);
+            document.addEventListener("pointercancel", lxCancelProductPointerPending, true);
           }, true);
           document.addEventListener("dragstart", (event) => {
             if (lxProductDrag) { event.preventDefault(); return; }
@@ -3729,6 +3757,7 @@
             if (card?.dataset.sku) {
               event.preventDefault();
               event.stopImmediatePropagation();
+              if (lxSuppressProductClick) return;
               clearHoverPromptTimer();
               hideHoverPrompts();
               openProduct(card.dataset.sku);
