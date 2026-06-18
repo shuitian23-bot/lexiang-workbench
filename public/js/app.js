@@ -1850,6 +1850,41 @@
           }],
         ];
 
+        const LX_BUSINESS_RECOMMEND_FLOORS = [
+          ["ThinkPad", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /ThinkPad/i.test(text);
+          }],
+          ["ThinkBook", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /ThinkBook/i.test(text);
+          }],
+          ["Thinkplus", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /Thinkplus|ThinkPlus|thinkplus|think\+|会议|耳机|口红电源|扩展坞|随身充|蓝牙|无线/i.test(text);
+          }],
+          ["ThinkCentre", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /ThinkCentre/i.test(text);
+          }],
+          ["扬天&瑞天", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return !/ThinkCentre/i.test(text) && (p.category === "台式机" || /扬天|瑞天|YangTian|启天|商用台式|台式机|主机|一体机/i.test(text));
+          }],
+          ["配件&外设", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|显示器|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架/i.test(text);
+          }],
+          ["服务存储", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|硬盘|SSD|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品/i.test(text);
+          }],
+          ["企业服务", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /企业服务|企业IT|部署|运维|对公|专票|账期|企业认证|批量|采购|定制|方案|DaaS|白皮书|服务包|售后保障|上门服务/i.test(text);
+          }],
+        ];
+
         async function lxEnsureFloorProducts(site, limit = 96) {
           if (!state.floorProducts || state.floorProductsSite !== site || state.floorProductsLimit !== limit) {
             try {
@@ -1890,6 +1925,17 @@
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, 8);
             return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
+        async function lxRenderBusinessRecommendFloors() {
+          const site = API_SITE.business || "b";
+          const pool = await lxEnsureFloorProducts(site, 120);
+          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const used = new Set();
+          return LX_BUSINESS_RECOMMEND_FLOORS.map(([label, match]) => {
+            const items = lxPickFloorProducts(source, match, used, 8);
+            return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
 
@@ -1947,8 +1993,19 @@
               grid.hidden = true;
               box.hidden = false;
               box.classList.add("lx-personal-rec-floors");
-              box.classList.remove("lx-enterprise-rec-floors");
+              box.classList.remove("lx-business-rec-floors", "lx-enterprise-rec-floors");
               box.innerHTML = await lxRenderPersonalRecommendFloors();
+              if (state.page !== page) return;
+              lxSyncCategoryTabs();
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              return;
+            }
+            if (page === "business") {
+              grid.hidden = true;
+              box.hidden = false;
+              box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
+              box.classList.add("lx-business-rec-floors");
+              box.innerHTML = await lxRenderBusinessRecommendFloors();
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
@@ -1957,7 +2014,7 @@
             if (page === "enterprise") {
               grid.hidden = true;
               box.hidden = false;
-              box.classList.remove("lx-personal-rec-floors");
+              box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors");
               box.classList.add("lx-enterprise-rec-floors");
               box.innerHTML = await lxRenderEnterpriseRecommendFloors();
               if (state.page !== page) return;
@@ -1965,13 +2022,13 @@
               requestAnimationFrame(lxSyncCategoryTabsStuck);
               return;
             }
-            box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
+            box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
             box.hidden = true;
             box.innerHTML = "";
             lxSyncCategoryTabs();
             return;
           }
-          box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
+          box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
           box.hidden = false;
           const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
