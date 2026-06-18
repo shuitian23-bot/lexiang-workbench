@@ -127,6 +127,7 @@ router.post('/stream', async (req, res) => {
     let buf = '';
     let lastLen = 0;
     let sentProducts = false;
+    let sentClicks = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -163,6 +164,20 @@ router.post('/stream', async (req, res) => {
           if (products.length) {
             sentProducts = true;
             res.write('event: display\ndata:' + JSON.stringify({ products, title: '为你推荐' }) + '\n\n');
+          }
+        }
+
+        // 官方动作按钮 click_list（转人工 human_access / 在线客服等）→ 翻成 clicks 事件，前端渲染成按钮
+        if (!sentClicks && Array.isArray(r.click_list) && r.click_list.length) {
+          const clicks = r.click_list.map((c) => ({
+            event_type: c.event_type || '',
+            display_text: c.display_text || '',
+            link_url: c.link_url || '',
+            callback_data: c.callback_data || '',
+          })).filter((c) => c.display_text);
+          if (clicks.length) {
+            sentClicks = true;
+            res.write('event: clicks\ndata:' + JSON.stringify({ clicks }) + '\n\n');
           }
         }
       }
