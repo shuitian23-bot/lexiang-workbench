@@ -2500,8 +2500,12 @@ html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn svg {
   height: 13px;
 }
 
-html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-arrow {
+html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-collapse-glyph {
   display: block !important;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 500;
+  transform: translateY(-1px);
 }
 
 html[data-product="leaibot"] body.dark-mode .logo-icon-img,
