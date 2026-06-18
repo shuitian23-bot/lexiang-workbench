@@ -631,20 +631,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);
           lxEnsureBuybar(product);
-          // 官方商品：在 detail-actions 区追加「去联想官网购买」次要入口，保留官方链接
           document.querySelector(".lx-detail-official-link")?.remove();
-          if (product.official && product.url) {
-            const actions = document.querySelector(".detail-actions");
-            if (actions) {
-              const link = document.createElement("a");
-              link.className = "detail-secondary lx-detail-official-link";
-              link.href = product.url + (product.url.includes("?") ? "&" : "?") + "utm_source=leaibot&utm_medium=lexiang_poc";
-              link.target = "_blank";
-              link.rel = "noopener";
-              link.textContent = "去联想官网购买";
-              actions.appendChild(link);
-            }
-          }
           loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
@@ -1345,11 +1332,13 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           renderQueryHistory();
           const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
           state.sending = true;
+          state._fallbackFired = false;
           try {
-            // 多模态路由：有图/语音时走火山 /api/chat/stream（支持 VL 视觉），否则走官方 /api/leai/stream
+            // 多模态路由：有图/语音或开联网搜索时走火山 /api/chat/stream，否则走官方 /api/leai/stream
             const hasMedia = !!(state.pendingImageUrl || state.pendingAudioUrl);
+            const useHuoshan = hasMedia || !!window.__lxWebSearch;
             const builtMsg = (state.refProduct ? `[用户正在咨询商品: ${state.refProduct.name}${state.refProduct.sku ? ` (SKU:${state.refProduct.sku})` : ""}]\n\n` : "") + (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text);
-            const response = hasMedia
+            const response = useHuoshan
               ? await fetch("/api/chat/stream", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -1357,6 +1346,8 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
                     message: builtMsg,
                     image_url: state.pendingImageUrl || undefined,
                     audio_url: state.pendingAudioUrl || undefined,
+                    web_search: !!window.__lxWebSearch,
+                    thinking_mode: !!window.__lxThinking,
                     conv_id: state.convId || undefined
                   })
                 })
@@ -1379,7 +1370,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
               ai.textContent = "";
               hasContent = true;
             };
-            await readSse(response, {
+            const handlers = {
               chunk: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -1627,8 +1618,26 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
                       if (qs.length) ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                     }).catch(() => {});
                 }
+              },
+              fallback: async () => {
+                if (nonce !== state.conversationNonce) return;
+                if (state._fallbackFired) return;
+                state._fallbackFired = true;
+                try {
+                  const huoRes = await fetch('/api/chat/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: builtMsg, conv_id: state.convId || undefined })
+                  });
+                  if (!huoRes.ok || !huoRes.body) throw new Error('fallback upstream ' + huoRes.status);
+                  await readSse(huoRes, handlers);
+                } catch (_e) {
+                  revealAi();
+                  if (ai._textBox) ai._textBox.textContent = '当前服务暂时不可用，请稍后再试。';
+                }
               }
-            });
+            };
+            await readSse(response, handlers);
             if (nonce !== state.conversationNonce) return;
             if (!hasContent) revealAi();
             if (!ai.textContent.trim() && !$(".lx-p0-products", ai)) ai.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
@@ -1862,11 +1871,12 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
 
         function lxProductMiniCard(product) {
           if (product.official) {
-            return `<div class="lx-floor-product" data-official-url="${esc(product.url)}">
+            return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
             <div class="product-visual"><img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" /></div>
             <h3 class="product-title">${esc(product.name)}<span class="lx-official-tag">官方在售</span></h3>
             <p class="spec">${esc(product.description || "")}</p>
             <div class="price">${money(product.price)}${product.variants > 1 ? `<span class="price-from">${product.variants} 款配置</span>` : ""}</div>
+            <button class="lx-p0-btn primary" type="button" data-open-product="${esc(product.sku)}" style="margin-top:8px;width:100%">立即购买</button>
           </div>`;
           }
           const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
@@ -3051,7 +3061,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
                   <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
                   <div class="reco-row-actions">
                     ${p.official
-                      ? `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><a class="lx-p0-btn" href="${esc(p.url)}?utm_source=leaibot&utm_medium=lexiang_poc" target="_blank" rel="noopener">去官网</a>`
+                      ? `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">立即购买</button>`
                       : `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>`}
                   </div>
                 </div>
@@ -4536,6 +4546,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   let turns = [];
   let helloIndex = 0;
   let helloAnimating = false;
+  let helloTimer = null;
   let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
@@ -5096,6 +5107,20 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
       requestAnimationFrame(() => word.classList.remove("in"));
     }, reduceMotion ? 0 : 340);
   }
+  function startRotatingTitle() {
+    setRotatingTitle(helloWords[helloIndex]);
+    if (reduceMotion) return;
+    if (helloTimer) window.clearTimeout(helloTimer);
+    if (!forceFullscreenMotion) {
+      helloTimer = window.setInterval(rotateTitleWord, 2000);
+      return;
+    }
+    const tick = () => {
+      rotateTitleWord();
+      helloTimer = window.setTimeout(tick, 2000);
+    };
+    helloTimer = window.setTimeout(tick, 2000);
+  }
   function renderTurnIndex(activeId) {
     turnIndex?.classList.toggle("show", turns.length > 0);
     if (turnDots) turnDots.innerHTML = turns.map(t => `<i class="${t.id === activeId ? "active" : ""}"></i>`).join("");
@@ -5194,21 +5219,39 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
       ai._raw = "";
     };
     try {
+      chatState._fallbackFired = false;
       const sendMsg = chatState.human
         ? ('[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ' + value)
         : value;
-      const response = await fetch("/api/leai/stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: sendMsg,
-          sessionId: chatState.convId || undefined,
-          enableThinking: !!window.__lxThinking,
-          ...(window.__lxGeo || {})
-        })
-      });
+      const lxfdImgUrl = window.__lxfdPendingImage || undefined;
+      window.__lxfdPendingImage = null;
+      const imgTipEl = document.querySelector('.lxfd-img-tip');
+      if (imgTipEl) imgTipEl.remove();
+      const lxfdUseHuoshan = !!lxfdImgUrl || !!window.__lxWebSearch;
+      const response = lxfdUseHuoshan
+        ? await fetch("/api/chat/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: sendMsg,
+              image_url: lxfdImgUrl,
+              web_search: !!window.__lxWebSearch,
+              thinking_mode: !!window.__lxThinking,
+              conv_id: chatState.convId || undefined
+            })
+          })
+        : await fetch("/api/leai/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: sendMsg,
+              sessionId: chatState.convId || undefined,
+              enableThinking: !!window.__lxThinking,
+              ...(window.__lxGeo || {})
+            })
+          });
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
-      await readSse(response, {
+      const lxfdHandlers = {
         chunk: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
@@ -5308,8 +5351,26 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
               if (thread) thread.innerHTML = "";
             });
           }
+        },
+        fallback: async () => {
+          if (nonce !== chatState.conversationNonce) return;
+          if (chatState._fallbackFired) return;
+          chatState._fallbackFired = true;
+          try {
+            const huoRes = await fetch('/api/chat/stream', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: sendMsg, conv_id: chatState.convId || undefined })
+            });
+            if (!huoRes.ok || !huoRes.body) throw new Error('fallback upstream ' + huoRes.status);
+            await readSse(huoRes, lxfdHandlers);
+          } catch (_e) {
+            revealAi();
+            if (ai._textBox) ai._textBox.textContent = '当前服务暂时不可用，请稍后再试。';
+          }
         }
-      });
+      };
+      await readSse(response, lxfdHandlers);
       if (nonce !== chatState.conversationNonce) return;
       if (!hasContent) {
         revealAi();
@@ -5380,7 +5441,50 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
   $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); const id = a.dataset.conv; if (id) lxfdLoadConv(id); });
-  $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; }));
+  $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; if (btn.textContent.includes("联网")) window.__lxWebSearch = on; }));
+  // lxfd 图片上传
+  const lxfdImgBtn = document.querySelector('.lxfd-img-btn');
+  if (lxfdImgBtn) {
+    const lxfdFileInput = document.createElement('input');
+    lxfdFileInput.type = 'file';
+    lxfdFileInput.accept = 'image/*';
+    lxfdFileInput.style.display = 'none';
+    lxfdFileInput.id = 'lxfdFileInput';
+    document.body.appendChild(lxfdFileInput);
+    lxfdImgBtn.addEventListener('click', () => lxfdFileInput.click());
+    lxfdFileInput.addEventListener('change', async () => {
+      const file = lxfdFileInput.files && lxfdFileInput.files[0];
+      if (!file) return;
+      lxfdFileInput.value = '';
+      try {
+        lxfdImgBtn.disabled = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/chat/upload-image', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data && data.url) {
+          window.__lxfdPendingImage = data.url;
+          const dock = document.querySelector('.lxfd-dock');
+          let imgTip = dock && dock.querySelector('.lxfd-img-tip');
+          if (!imgTip && dock) {
+            imgTip = document.createElement('div');
+            imgTip.className = 'lxfd-img-tip';
+            imgTip.style.cssText = 'font-size:12px;color:#888;padding:4px 12px;display:flex;align-items:center;gap:6px';
+            dock.insertBefore(imgTip, dock.querySelector('.lxfd-composer'));
+          }
+          if (imgTip) {
+            imgTip.innerHTML = '<span>已添加图片</span><button type="button" style="border:none;background:none;cursor:pointer;color:#c8161e;font-size:12px" id="lxfdImgClear">×</button>';
+            const clearBtn = imgTip.querySelector('#lxfdImgClear');
+            if (clearBtn) clearBtn.addEventListener('click', () => { window.__lxfdPendingImage = null; imgTip.remove(); });
+          }
+        }
+      } catch (_e) {
+        // 上传失败静默处理
+      } finally {
+        lxfdImgBtn.disabled = false;
+      }
+    });
+  }
   ta?.addEventListener("input", () => { fit(); syncSend(); });
   ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
   $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
@@ -5422,7 +5526,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
     if (cb && typeof window.lxfdSubmit === "function" && document.body.classList.contains("assistant-fullscreen")) window.lxfdSubmit(cb);
   });
 
-  setTimeout(() => { setRotatingTitle(helloWords[helloIndex]); if (!reduceMotion) setInterval(rotateTitleWord, 2000); }, reduceMotion ? 0 : 2000);
+  setTimeout(startRotatingTitle, reduceMotion ? 0 : 2000);
   syncSend();
   lxfdRenderHist();
 

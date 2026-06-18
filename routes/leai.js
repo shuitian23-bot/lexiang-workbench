@@ -164,6 +164,18 @@ router.post('/stream', async (req, res) => {
             }
           }
 
+          // 限流检测：正文还没开始 + response_text 含「访问用户过多」或「稍后再试」→ 发 fallback（重试无用）
+          if (lastLen === 0 && typeof r.response_text === 'string') {
+            const txt = r.response_text;
+            if (txt.includes('访问用户过多') || txt.includes('稍后再试')) {
+              res.write('event: fallback\ndata:' + JSON.stringify({}) + '\n\n');
+              res.write('event: done\ndata:' + JSON.stringify({ conv_id: null }) + '\n\n');
+              res.end();
+              clearTimeout(timer);
+              return;
+            }
+          }
+
           // 思考/调用过程（官方 thinking_trace：分析意图 / 调用 skill / 查知识库）→ 翻成 status 让前端展示
           // 只在正文还没开始流式时展示（正文一来就被覆盖，符合"思考中→出答案"的官方体验）
           if (!lastLen && d.thinking_trace && Array.isArray(d.thinking_trace.trace) && d.thinking_trace.trace.length) {
@@ -243,7 +255,7 @@ router.post('/stream', async (req, res) => {
   } catch (err) {
     if (err.name !== 'AbortError') {
       console.error('[leai/stream] error:', err && err.message, err && err.name);
-      res.write('event: chunk\ndata:' + JSON.stringify({ text: '当前服务暂时不可用，请稍后再试。' }) + '\n\n');
+      res.write('event: fallback\ndata:' + JSON.stringify({}) + '\n\n');
     }
     res.write('event: done\ndata:' + JSON.stringify({ conv_id: null }) + '\n\n');
     res.end();
