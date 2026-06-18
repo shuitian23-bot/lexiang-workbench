@@ -4785,14 +4785,19 @@
     window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
     finishMotionClass("lxfd-entering", 760);
   }
-  function exitFullscreen() {
-    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) return;
+  function exitFullscreen(afterExit) {
+    const onAfterExit = typeof afterExit === "function" ? afterExit : null;
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) {
+      onAfterExit?.();
+      return;
+    }
     const targetRect = getSplitPanelRect();
     const motionLayer = createFullscreenShrinkLayer(targetRect);
     document.body.classList.remove("lxfd-entering");
     document.body.classList.add("lxfd-exiting");
     setFullscreen(false);
     document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    if (onAfterExit) requestAnimationFrame(onAfterExit);
     window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
     window.setTimeout(() => {
       document.body.classList.remove("lxfd-exiting");
@@ -4800,6 +4805,7 @@
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
   }
+  window.__lxfdExitWithReveal = (afterExit) => exitFullscreen(afterExit);
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
@@ -5026,10 +5032,11 @@
               document.body.classList.contains("assistant-fullscreen") &&
               window.__lxBridge) {
             lxfdExportToMain();
-            window.__lxBridge.exitFullscreen();
-            window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
-            // 清空 lxfd thread，下次回全屏会从主面板重新 import
-            if (thread) thread.innerHTML = "";
+            exitFullscreen(() => {
+              window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+              // 清空 lxfd thread，下次回全屏会从主面板重新 import
+              if (thread) thread.innerHTML = "";
+            });
           }
         }
       });
@@ -5244,4 +5251,3 @@
     document.addEventListener('pointercancel', onUp, true);
   }, true);
 })();
-
