@@ -1468,6 +1468,15 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
               },
               coupon: () => { if (nonce === state.conversationNonce) { lxRevealContent(); openCouponCenter(); } },
               member: () => { if (nonce === state.conversationNonce) { lxRevealContent(); openMemberCenter(); } },
+              action: (data) => {
+                if (nonce !== state.conversationNonce) return;
+                const { op } = parseJson(data) || {};
+                lxRevealContent();
+                if (op === 'member') openMemberCenter();
+                else if (op === 'coupon') openCouponCenter();
+                else if (op === 'solution') openSolutionCenter();
+                else if (op === 'edu') openEduZone();
+              },
               tradein: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
@@ -4446,6 +4455,12 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
         window.openServicePanel = openServicePanel;
         window.openLeadPanel = openLeadPanel;
         window.__lxSetHuman = lxSetHumanMode;
+        window.__lxOpenFeature = function(op) {
+          if (op === 'member') openMemberCenter();
+          else if (op === 'coupon') openCouponCenter();
+          else if (op === 'solution') openSolutionCenter();
+          else if (op === 'edu') openEduZone();
+        };
 
         openUploadControls();
         setupSelectionAsk();
@@ -4788,8 +4803,44 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           height: toPx(layer.style.getPropertyValue("--lxfd-target-height"), start.height),
           radius: 8,
           opacity: 0,
-        }
+      }
       : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight, radius: 0, opacity: 0 };
+    if (isExit) {
+      const scaleX = target.width > 0 && start.width > 0 ? target.width / start.width : 1;
+      const scaleY = target.height > 0 && start.height > 0 ? target.height / start.height : 1;
+      const moveX = target.left - start.left;
+      const moveY = target.top - start.top;
+      layer.style.transformOrigin = "top left";
+      layer.style.backfaceVisibility = "hidden";
+      layer.style.transform = "translate3d(0,0,0) scale(1,1)";
+      const first = {
+        transform: "translate3d(0,0,0) scale(1,1)",
+        borderRadius: "0px",
+        opacity: "1",
+      };
+      const last = {
+        transform: `translate3d(${moveX}px,${moveY}px,0) scale(${scaleX},${scaleY})`,
+        borderRadius: `${target.radius}px`,
+        opacity: `${target.opacity}`,
+      };
+      const anim = layer.animate([
+        first,
+        { ...first, offset: 0.08 },
+        { ...last, opacity: "1", offset: 0.72 },
+        last
+      ], { duration: 720, easing: ease, fill: "forwards" });
+      anim.addEventListener("finish", () => {
+        layer.style.left = `${target.left}px`;
+        layer.style.top = `${target.top}px`;
+        layer.style.width = `${target.width}px`;
+        layer.style.height = `${target.height}px`;
+        layer.style.borderRadius = `${target.radius}px`;
+        layer.style.opacity = `${target.opacity}`;
+        layer.style.transform = "translate3d(0,0,0) scale(1,1)";
+        layer.classList.add("run");
+      }, { once: true });
+      return;
+    }
     const first = {
       left: `${start.left}px`,
       top: `${start.top}px`,
@@ -5051,6 +5102,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
     let turnProducts = null;
     let turnTitle = "";
     let turnGrouped = false;
+    let turnAction = null; // 本轮意图操作（action 事件带来的 op）
     setFullscreen(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
@@ -5156,6 +5208,11 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           const payload = parseJson(data);
           appendLxfdSuggestions(ai, payload.suggestions || []);
         },
+        action: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const { op } = parseJson(data) || {};
+          if (op) turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
+        },
         done: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
@@ -5163,14 +5220,21 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
           lxfdPersistCurrent();
           lxfdRenderHist();
+          const isFullscreen = document.body.classList.contains("assistant-fullscreen");
           // 全屏→分屏桥接：本轮有商品且当前仍处于全屏态 → 搬对话到主面板+退全屏+右侧展示
-          if (turnProducts && turnProducts.length &&
-              document.body.classList.contains("assistant-fullscreen") &&
-              window.__lxBridge) {
+          if (turnProducts && turnProducts.length && isFullscreen && window.__lxBridge) {
             lxfdExportToMain();
             exitFullscreenWithReveal(() => {
               window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+              if (turnAction && typeof window.__lxOpenFeature === 'function') window.__lxOpenFeature(turnAction);
               // 清空 lxfd thread，下次回全屏会从主面板重新 import
+              if (thread) thread.innerHTML = "";
+            });
+          } else if (turnAction && isFullscreen && window.__lxBridge) {
+            // 本轮只有意图无商品：同样桥接退全屏，再开功能标签
+            lxfdExportToMain();
+            exitFullscreenWithReveal(() => {
+              if (typeof window.__lxOpenFeature === 'function') window.__lxOpenFeature(turnAction);
               if (thread) thread.innerHTML = "";
             });
           }
