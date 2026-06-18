@@ -323,6 +323,7 @@
           });
           // 首页「快速/思考」选择同步到对话区「深度思考」开关
           const wantThink = button.textContent.trim() === "思考";
+          window.__lxThinking = wantThink;
           const thinkChip = document.querySelector('.composer .chip[data-mode-chip="think"]');
           if (thinkChip) {
             thinkChip.classList.toggle("is-active", wantThink);
@@ -334,6 +335,7 @@
         const toggleChip = () => {
           const active = chip.classList.toggle("is-active");
           chip.setAttribute("aria-pressed", String(active));
+          if (chip.dataset.modeChip === "think") window.__lxThinking = active;
         };
         chip.addEventListener("click", toggleChip);
         chip.addEventListener("keydown", (event) => {
