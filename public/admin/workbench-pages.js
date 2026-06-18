@@ -211,6 +211,37 @@ function getRequestableSkillPackages() {
   })).filter(item => item.title);
 }
 
+const SKILL_APPLY_BUSINESS_APPROVERS = [
+  {
+    group: '线上数据权限',
+    items: ['zhangjq4（消费业务 to C）', 'huangjq5（商用业务 to B/b）']
+  },
+  {
+    group: '产品/IT',
+    items: ['zhangxy43（to C 相关）', 'zhangrui32（to B/b 相关）']
+  }
+];
+
+function renderSkillApplyBusinessApprover() {
+  const groups = SKILL_APPLY_BUSINESS_APPROVERS.map(group => `
+    <div class="skill-apply-approver-group">${skillActionEscape(group.group)}</div>
+    ${group.items.map(item => `
+      <button type="button" class="skill-apply-approver-option" data-approver="${skillActionEscape(item)}" onclick="selectSkillApplyBusinessApprover('${skillActionEscape(item)}')">
+        <span>${skillActionEscape(item)}</span>
+      </button>
+    `).join('')}
+  `).join('');
+  return `
+    <div class="skill-apply-approver" data-skill-approver>
+      <input type="hidden" id="skill-apply-business-approver" value="">
+      <button type="button" class="skill-apply-approver-trigger is-placeholder" onclick="toggleSkillApplyBusinessApprover(event)" aria-expanded="false">
+        <span data-approver-label>请根据申请人团队与申请业务选择对应审批人</span>
+        <i aria-hidden="true"></i>
+      </button>
+      <div class="skill-apply-approver-menu" role="listbox">${groups}</div>
+    </div>`;
+}
+
 function renderSkillPackageApplyBody(selectedTitle) {
   const packages = getRequestableSkillPackages();
   const preselected = selectedTitle && selectedTitle !== '新技能包申请' ? selectedTitle : '';
@@ -241,17 +272,7 @@ function renderSkillPackageApplyBody(selectedTitle) {
         <div class="skill-apply-fields">
           <div class="skill-action-row"><span>直线经理</span><input value="sunll1" readonly aria-readonly="true"></div>
           <div class="skill-action-row"><span>系统审批人</span><input value="sunzh4" readonly aria-readonly="true"></div>
-          <div class="skill-action-row wide"><span>业务审批人</span><select id="skill-apply-business-approver" onchange="updateSkillPackageApplySelection()">
-            <option value="">请根据申请人团队与申请业务选择对应审批人</option>
-            <optgroup label="-线上数据权限-">
-              <option value="zhangjq4（消费业务 to C）">zhangjq4（消费业务 to C）</option>
-              <option value="huangjq5（商用业务 to B/b）">huangjq5（商用业务 to B/b）</option>
-            </optgroup>
-            <optgroup label="-产品/IT-">
-              <option value="zhangxy43（to C 相关）">zhangxy43（to C 相关）</option>
-              <option value="zhangrui32（to B/b 相关）">zhangrui32（to B/b 相关）</option>
-            </optgroup>
-          </select></div>
+          <div class="skill-action-row wide"><span>业务审批人</span>${renderSkillApplyBusinessApprover()}</div>
           <div class="skill-action-note wide">注：申请订单等明文导出，需业务负责人和官网运营负责人邮件先审批。</div>
         </div>
       </div>
@@ -273,6 +294,46 @@ function renderSkillPackageApplyBody(selectedTitle) {
         <button class="btn btn-primary" data-skill-apply-submit onclick="submitSkillPackageAction('${skillActionEscape(selectedTitle)}', '申请已生成')">提交申请</button>
       </div>
     </div>`;
+}
+
+function closeSkillApplyBusinessApprover() {
+  document.querySelectorAll('[data-skill-approver].open').forEach(dropdown => {
+    dropdown.classList.remove('open');
+    dropdown.querySelector('.skill-apply-approver-trigger')?.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function toggleSkillApplyBusinessApprover(event) {
+  event?.stopPropagation();
+  if (!window.__skillApplyApproverOutsideBound) {
+    document.addEventListener('click', event => {
+      if (!event.target.closest('[data-skill-approver]')) closeSkillApplyBusinessApprover();
+    });
+    window.__skillApplyApproverOutsideBound = true;
+  }
+  const dropdown = event?.currentTarget?.closest('[data-skill-approver]');
+  if (!dropdown) return;
+  const shouldOpen = !dropdown.classList.contains('open');
+  closeSkillApplyBusinessApprover();
+  dropdown.classList.toggle('open', shouldOpen);
+  dropdown.querySelector('.skill-apply-approver-trigger')?.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+}
+
+function selectSkillApplyBusinessApprover(value) {
+  const panel = document.getElementById('skill-package-action-panel');
+  const dropdown = panel?.querySelector('[data-skill-approver]');
+  if (!dropdown) return;
+  const input = dropdown.querySelector('#skill-apply-business-approver');
+  const label = dropdown.querySelector('[data-approver-label]');
+  const trigger = dropdown.querySelector('.skill-apply-approver-trigger');
+  if (input) input.value = value;
+  if (label) label.textContent = value;
+  trigger?.classList.remove('is-placeholder');
+  dropdown.querySelectorAll('.skill-apply-approver-option').forEach(option => {
+    option.classList.toggle('is-selected', option.dataset.approver === value);
+  });
+  closeSkillApplyBusinessApprover();
+  updateSkillPackageApplySelection();
 }
 
 function updateSkillPackageApplySelection() {

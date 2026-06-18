@@ -2462,7 +2462,7 @@ html[data-product="leaibot"] .sidebar.collapsed .logo-icon-img {
 
 html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn {
   position: absolute;
-  top: 16px;
+  top: 44px;
   right: -12px;
   z-index: 12;
   width: 24px;
@@ -2477,6 +2477,22 @@ html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn {
 html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn svg {
   width: 13px;
   height: 13px;
+}
+
+html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-arrow-left {
+  display: block !important;
+}
+
+html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-arrow-right {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn .sidebar-arrow-left {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn .sidebar-arrow-right {
+  display: block !important;
 }
 
 html[data-product="leaibot"] body.dark-mode .logo-icon-img,
