@@ -554,7 +554,7 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 }
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer textarea{
   min-height:21px!important;
-  font-size:12px!important;
+  font-size:15px!important;
   line-height:1.5!important;
 }
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer-actions{
@@ -1093,4 +1093,9 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .more-menu::before{
   bottom:-12px!important;
   height:14px!important;
+}
+
+/* Shortcut row label requested one step larger. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut-row .shortcut {
+  font-size: 13px !important;
 }
