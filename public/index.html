@@ -33,7 +33,7 @@
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(4){grid-column:2/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(5){grid-column:4/span 2}
     </style>
-    <link rel="stylesheet" href="/css/main.css?v=202606181700">
+    <link rel="stylesheet" href="/css/main.css?v=202606182600">
     <link rel="stylesheet" href="/css/assistant-panel-ng-skin.css?v=202606180202">
   </head>
   <body data-state="default">
@@ -810,7 +810,17 @@
           <button class="lxfd-ic" type="button" aria-label="购物车，2 件商品"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.4 12.3a1 1 0 0 0 1 .8h8.5a1 1 0 0 0 1-.8L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.2" cy="20" r="1.45" fill="currentColor"/><circle cx="17.8" cy="20" r="1.45" fill="currentColor"/></svg><span class="lxfd-badge">2</span></button>
           <button class="lxfd-ic" type="button" aria-label="消息，2 条未读"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="lxfd-badge">2</span></button>
           <span class="lxfd-divider" aria-hidden="true"></span>
-          <button class="lxfd-avatar" type="button" aria-label="个人中心">乐</button>
+          <div class="lxfd-account-wrap">
+            <button class="lxfd-avatar" type="button" aria-label="个人中心">乐</button>
+            <div class="account-menu lxfd-account-menu" role="menu">
+              <div class="menu-row">我的账号</div>
+              <div class="menu-row active">我的服务</div>
+              <div class="menu-row">会员中心</div>
+              <div class="menu-row">企业认证</div>
+              <div class="menu-row">优化日志</div>
+              <div class="menu-row">退出</div>
+            </div>
+          </div>
         </div>
       </header>
       <button class="lxfd-rail-fab lxfd-glass hide" id="lxfdRailFab" type="button" aria-label="展开侧栏"><img class="icon" src="/assets/icons/sidebar-history.svg?v=202606180152" alt="" /></button>
