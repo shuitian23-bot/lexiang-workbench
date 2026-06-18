@@ -2047,8 +2047,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             if (markUsed) used.add(lxProductKey(product));
           };
           pool.filter((p) => match(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
-          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p, false); });
-          if (picked.length < count) pool.filter((p) => !picked.includes(p)).forEach((p) => { if (picked.length < count) add(p, false); });
+          // 只展示真正匹配该系列的商品，不再拿别的品类(moto/think/小新…)凑满网格，宁可少几个
           return picked.slice(0, count);
         }
 
@@ -2074,11 +2073,8 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
         }
 
         function lxFillFloorProducts(items, fallback, count) {
-          const merged = lxUniqProducts([...(items || []), ...(fallback || [])]);
-          if (!merged.length) return [];
-          const output = merged.slice(0, count);
-          for (let i = 0; output.length < count && i < merged.length; i++) output.push(merged[i]);
-          return output.slice(0, count);
+          // 只用本类商品，不拿 fallback 跨品类凑满网格（fallback 入参保留兼容，已不使用）
+          return lxUniqProducts(items || []).slice(0, count);
         }
 
         function lxRetryEmptyRecommendFloors(page, box) {
@@ -2102,6 +2098,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           const floorCount = lxFloorProductCount();
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, floorCount);
+            if (!items.length) return "";  // 该系列没货就不显示空楼层
             return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
@@ -2159,8 +2156,8 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           };
 
           return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
-            let items = floorItems[label] || [];
-            if (!items.length) items = lxFillFloorProducts([...(sectionByKey.smb || []), ...(sectionByKey.hot || [])], basePool, floorCount);
+            const items = floorItems[label] || [];
+            if (!items.length) return "";  // 该类没货就不显示空楼层，不跨品类凑
             return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
@@ -2174,6 +2171,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           const floorCount = lxFloorProductCount();
           return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, floorCount);
+            if (!items.length) return "";  // 该类没货就不显示空楼层
             return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
