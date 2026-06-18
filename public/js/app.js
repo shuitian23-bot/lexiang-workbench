@@ -1346,17 +1346,31 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
           state.sending = true;
           try {
-            const response = await fetch("/api/leai/stream", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
-                message: (state.refProduct ? `[用户正在咨询商品: ${state.refProduct.name}${state.refProduct.sku ? ` (SKU:${state.refProduct.sku})` : ""}]\n\n` : "") + (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
-                sessionId: state.convId || undefined,
-                enableThinking: !!window.__lxThinking,
-                ...(window.__lxGeo || {})
-              })
-            });
+            // 多模态路由：有图/语音时走火山 /api/chat/stream（支持 VL 视觉），否则走官方 /api/leai/stream
+            const hasMedia = !!(state.pendingImageUrl || state.pendingAudioUrl);
+            const builtMsg = (state.refProduct ? `[用户正在咨询商品: ${state.refProduct.name}${state.refProduct.sku ? ` (SKU:${state.refProduct.sku})` : ""}]\n\n` : "") + (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text);
+            const response = hasMedia
+              ? await fetch("/api/chat/stream", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    message: builtMsg,
+                    image_url: state.pendingImageUrl || undefined,
+                    audio_url: state.pendingAudioUrl || undefined,
+                    conv_id: state.convId || undefined
+                  })
+                })
+              : await fetch("/api/leai/stream", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
+                    message: builtMsg,
+                    sessionId: state.convId || undefined,
+                    enableThinking: !!window.__lxThinking,
+                    ...(window.__lxGeo || {})
+                  })
+                });
             if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
             let hasContent = false;
             const revealAi = () => {
@@ -1602,6 +1616,17 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 // 流式结束后把整段回复升级为 markdown 渲染（加粗/列表/表格）
                 if (ai._raw && ai._textBox && ai.contains(ai._textBox)) ai._textBox.innerHTML = mdLite(ai._raw);
+                // 追问 chips：异步生成，不阻塞主流程
+                const _q = state.lastUserText || "";
+                const _a = (ai._raw || "").slice(0, 300);
+                if (_q && _a) {
+                  fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _q, a: _a }) })
+                    .then(r => r.json()).then(d => {
+                      if (nonce !== state.conversationNonce) return;
+                      const qs = Array.isArray(d && d.questions) ? d.questions.filter(Boolean).slice(0, 3) : [];
+                      if (qs.length) ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                    }).catch(() => {});
+                }
               }
             });
             if (nonce !== state.conversationNonce) return;
@@ -4510,6 +4535,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   let hoverTimer = null;
   let turns = [];
   let helloIndex = 0;
+  let helloAnimating = false;
   let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
@@ -5024,10 +5050,43 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   }
   function syncSend() { send?.classList.toggle("idle", !ta?.value.trim()); }
   function setRotatingTitle(word) { if (helloTitle) helloTitle.innerHTML = `<span>联想乐享帮你</span><span class="rotating-word">${escapeHtml(word)}</span>`; }
+  async function rotateTitleWordForWindows(word) {
+    if (helloAnimating || !word || typeof word.animate !== "function") return;
+    helloAnimating = true;
+    const ease = "cubic-bezier(.22,.61,.36,1)";
+    try {
+      word.style.willChange = "opacity, transform, filter";
+      await word.animate([
+        { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" },
+        { opacity: 0, transform: "translate3d(0,-18px,0)", filter: "blur(5px)" }
+      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      helloIndex = (helloIndex + 1) % helloWords.length;
+      word.textContent = helloWords[helloIndex];
+      await word.animate([
+        { opacity: 0, transform: "translate3d(0,18px,0)", filter: "blur(5px)" },
+        { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" }
+      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      word.style.opacity = "";
+      word.style.transform = "";
+      word.style.filter = "";
+      word.style.willChange = "";
+    } catch (_) {
+      word.style.opacity = "";
+      word.style.transform = "";
+      word.style.filter = "";
+      word.style.willChange = "";
+    } finally {
+      helloAnimating = false;
+    }
+  }
   function rotateTitleWord() {
     if (!helloTitle || welcome.style.display === "none") return;
     const word = helloTitle.querySelector(".rotating-word");
     if (!word) { setRotatingTitle(helloWords[helloIndex]); return; }
+    if (forceFullscreenMotion && typeof word.animate === "function") {
+      rotateTitleWordForWindows(word);
+      return;
+    }
     word.classList.add("out");
     window.setTimeout(() => {
       helloIndex = (helloIndex + 1) % helloWords.length;
@@ -5220,6 +5279,17 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
           lxfdPersistCurrent();
           lxfdRenderHist();
+          // 追问 chips：异步生成，不阻塞桥接逻辑
+          const _lxfdQ = value;
+          const _lxfdA = (ai._raw || "").slice(0, 300);
+          if (_lxfdQ && _lxfdA) {
+            fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _lxfdQ, a: _lxfdA }) })
+              .then(r => r.json()).then(d => {
+                if (nonce !== chatState.conversationNonce) return;
+                const qs = Array.isArray(d && d.questions) ? d.questions.filter(Boolean).slice(0, 3) : [];
+                if (qs.length && !ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, qs);
+              }).catch(() => {});
+          }
           const isFullscreen = document.body.classList.contains("assistant-fullscreen");
           // 全屏→分屏桥接：本轮有商品且当前仍处于全屏态 → 搬对话到主面板+退全屏+右侧展示
           if (turnProducts && turnProducts.length && isFullscreen && window.__lxBridge) {
@@ -5246,6 +5316,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
         if (ai._textBox) ai._textBox.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
       }
       body?.insertAdjacentHTML("beforeend", `<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>`);
+      // 追问 chips 由 done handler 异步填充；若后端超时未返回则保留默认
       if (!ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, ["可以推荐适合学生的笔记本吗？", "怎么查询我的产品保修状态？", "现在有哪些可以叠加的优惠政策？"]);
     } catch (error) {
       if (nonce !== chatState.conversationNonce) return;
