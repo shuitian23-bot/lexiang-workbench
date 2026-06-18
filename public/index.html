@@ -8,6 +8,9 @@
       (function(){
         var path = location.pathname.replace(/\/+$|^$/, "/");
         if (path === "/") document.documentElement.classList.add("lx-root-lxfd-prepaint");
+        if (["/shop-chat/", "/b-chat/", "/biz-chat/", "/brand/"].indexOf(path) >= 0) {
+          document.documentElement.classList.add("lx-route-prepaint");
+        }
       })();
     </script>
     <style>
@@ -32,6 +35,10 @@
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(3){grid-column:5/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(4){grid-column:2/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(5){grid-column:4/span 2}
+      html.lx-route-prepaint body{background:#fbf8fc}
+      html.lx-route-prepaint body>.topbar,
+      html.lx-route-prepaint body>.shell,
+      html.lx-route-prepaint body>.lxfd{visibility:hidden!important}
     </style>
     <link rel="stylesheet" href="/css/main.css?v=202606182600">
     <link rel="stylesheet" href="/css/assistant-panel-ng-skin.css?v=202606180202">
@@ -842,7 +849,7 @@
 
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd") || location.pathname.replace(/\/+$|^$/, "/") === "/";</script>
     <script src="/js/portal.js?v=202606161600"></script>
-    <script src="/js/app.js?v=202606182014"></script>
+    <script src="/js/app.js?v=202606182036"></script>
     <script>
       (function(){
         try {

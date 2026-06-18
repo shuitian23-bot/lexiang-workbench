@@ -240,6 +240,7 @@
         function initRoute() {
           const page = SITE_BY_PATH[location.pathname] || "home";
           routeTo(page, true);
+          document.documentElement.classList.remove("lx-route-prepaint");
         }
 
         async function loadProductsForPage() {
@@ -1676,7 +1677,7 @@
         }
 
         function lxGetSiteTabLabels(page = state.page) {
-          const categoryLabels = (page === "personal" || page === "enterprise") ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
+          const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
             personal: ["今日秒杀", "教育特惠 · 国补叠加", "门店与服务", "会员权益"],
             business: ["企业专享权益", "对公与售后保障", "轻量定制方案", "门店与服务"],
