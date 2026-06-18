@@ -524,9 +524,9 @@ function renderSkillHubActions(item, role) {
     disabled: ['启用', '查看'],
     rejected: ['查看', '编辑']
   };
-  const actions = ['应用', ...((role === 'admin' ? adminActions : pmActions)[item.status] || ['查看'])];
+  const actions = [...((role === 'admin' ? adminActions : pmActions)[item.status] || ['查看']), '应用'];
   return actions.map(action => {
-    const tone = action === '删除' || action === '驳回' ? 'danger' : action === '应用' || action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
+    const tone = action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
     return `<button class="skill-hub-action ${tone}" onclick="handleSkillHubAction('${item.name}', '${action}')">${action}</button>`;
   }).join('');
 }
@@ -586,33 +586,74 @@ function applySkillHubItem(name) {
     'weather-query': '查询北京今日天气并给出活动运营提醒'
   };
   const query = queryMap[item.name] || `调用 ${item.name} 并返回执行结果`;
+  const outputMap = {
+    'workplace-cert-analysis': [
+      '认证通过率：近 7 天 86.4%，较上周期 +3.2%。',
+      '失败原因 Top3：企业名称不一致、手机号缺失、认证方式不匹配。',
+      '待审核积压：42 条，其中 18 条超过 24 小时，建议优先处理。'
+    ],
+    'low-stock-auto-offline': [
+      '发现 6 个低库存商品，其中 2 个命中活动排除条件，不建议自动下架。',
+      '建议下架商品 4 个，需运营确认影响范围后执行。',
+      '已生成商品 ID、库存、近 7 日销量和风险说明。'
+    ],
+    'product-knowledge': [
+      'X1 Carbon 更适合轻薄商务和长续航场景。',
+      'X1 Nano 更适合极致便携场景。',
+      '已输出 CPU、重量、屏幕、接口和适用人群差异。'
+    ],
+    'voucher-recommend': [
+      '识别为会员充值权益推荐场景。',
+      '推荐优先展示高频消费券包和会员续费权益。',
+      '已生成 3 个推荐卡片文案和排序理由。'
+    ],
+    'driver-download-guide': [
+      '已识别机型 ThinkPad T14。',
+      '建议先安装芯片组、电源管理和显卡驱动。',
+      '输出下载路径、版本差异和安装顺序。'
+    ],
+    'lenovo-order-detail-query': [
+      '已识别订单查询意图。',
+      '输出订单状态、发货节点、售后进度和下一步处理建议。',
+      '涉及隐私字段时仅展示脱敏结果。'
+    ],
+    'weather-query': [
+      '北京今日多云，适合常规线下活动。',
+      '午后体感温度偏高，建议活动页提示补水和防晒。',
+      '无强降雨风险，暂无延期建议。'
+    ]
+  };
+  const output = outputMap[item.name] || [
+    `${item.category} 结果已生成，可用于当前运营判断。`,
+    '涉及写入、发布或导出时，需要先展示影响范围并等待确认。',
+    '可继续追问“展开明细”或“生成报告”。'
+  ];
   const canExecute = ['approved', 'published'].includes(item.status);
   const statusNote = canExecute
-    ? `当前状态为「${item.statusText}」，可以在授权范围内调用。`
-    : `当前状态为「${item.statusText}」，本次按 Skill Hub 预览方式生成模拟调用结果。`;
+    ? `当前状态为「${item.statusText}」，本次作为 Skill Hub 测试调用，不改变线上配置。`
+    : `当前状态为「${item.statusText}」，本次按 Skill Hub 测试模式生成模拟 output。`;
   const result = [
-    `### Skill 调用结果 · ${item.name}`,
+    `### Skill Hub · 测试调用结果`,
     '',
-    `**调用指令**：${query}`,
+    `**自然语言调用**：${query}`,
+    `**调用 Skill**：${item.name}`,
     `**版本**：${item.online && item.online !== '未发布' ? item.online : item.version}`,
     `**状态**：${statusNote}`,
     '',
-    '**结果摘要**：',
+    '**识别结果**：',
     `- 已识别业务场景：${item.category}`,
     `- 已加载标签：${item.tags.join(' / ')}`,
-    `- 已基于 Skill 描述执行：${item.desc}`,
+    `- 已按 Skill 描述执行：${item.desc}`,
     '',
-    '**输出**：',
-    `1. ${item.category} 结果已生成，可用于当前运营判断。`,
-    `2. 涉及写入、发布或导出时，需要先展示影响范围并等待确认。`,
-    `3. 可继续追问“展开明细”或“生成报告”。`
+    '**output 结果**：',
+    ...output.map((line, index) => `${index + 1}. ${line}`)
   ].join('\n');
 
   if (typeof addAiMessage === 'function') {
-    addAiMessage('user', `应用 Skill：${item.name}\n${query}`);
+    addAiMessage('user', `请用自然语言调用 Skill「${item.name}」：${query}`);
     addAiMessage('assistant', result);
   } else if (typeof aiQuick === 'function') {
-    aiQuick(`应用 Skill：${item.name}。${query}`);
+    aiQuick(`请用自然语言调用 Skill「${item.name}」：${query}`);
   }
   skillHubToast(`${item.name}：已在右侧 Agent 展示调用结果`);
 }
