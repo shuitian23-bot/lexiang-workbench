@@ -1889,12 +1889,16 @@
         async function lxEnsureFloorProducts(site, limit = 96) {
           if (!state.floorProducts || state.floorProductsSite !== site || state.floorProductsLimit !== limit) {
             try {
-              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store" });
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), 8000);
+              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store", signal: controller.signal });
+              clearTimeout(timer);
               state.floorProducts = await response.json();
               state.floorProductsSite = site;
               state.floorProductsLimit = limit;
             } catch {
-              state.floorProducts = [];
+              state.floorProducts = Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []);
+              state.floorProductsSite = site;
               state.floorProductsLimit = limit;
             }
           }
@@ -1947,6 +1951,18 @@
           return output.slice(0, count);
         }
 
+        function lxRetryEmptyRecommendFloors(page, box) {
+          if (!box || box.querySelector(".lx-floor-product")) return;
+          const key = `${page}:${lxFloorProductCount()}`;
+          state._floorRetry = state._floorRetry || {};
+          const tried = state._floorRetry[key] || 0;
+          if (tried >= 2) return;
+          state._floorRetry[key] = tried + 1;
+          setTimeout(() => {
+            if (state.page === page && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
+          }, tried ? 5000 : 1500);
+        }
+
         async function lxRenderPersonalRecommendFloors() {
           const site = API_SITE.personal || "shop";
           const pool = await lxEnsureFloorProducts(site, 96);
@@ -1965,7 +1981,7 @@
           let feedSections = [];
           try {
             const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 2500);
+            const timer = setTimeout(() => controller.abort(), 5000);
             const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store", signal: controller.signal });
             clearTimeout(timer);
             const feed = await response.json();
@@ -2074,6 +2090,7 @@
               box.classList.add("lx-personal-rec-floors");
               box.classList.remove("lx-business-rec-floors", "lx-enterprise-rec-floors");
               box.innerHTML = await lxRenderPersonalRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
@@ -2085,6 +2102,7 @@
               box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
               box.classList.add("lx-business-rec-floors");
               box.innerHTML = await lxRenderBusinessRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
@@ -2096,6 +2114,7 @@
               box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors");
               box.classList.add("lx-enterprise-rec-floors");
               box.innerHTML = await lxRenderEnterpriseRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);

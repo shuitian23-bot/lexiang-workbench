@@ -1027,6 +1027,14 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   padding:14px;
   margin:2px 0 14px;
 }
+.skill-optimization-panel.needs-tune {
+  border-color:rgba(255,143,31,0.28);
+  background:linear-gradient(180deg, rgba(255,143,31,0.08), rgba(255,255,255,0.9));
+}
+.skill-optimization-panel.tuned {
+  border-color:rgba(52,199,36,0.26);
+  background:linear-gradient(180deg, rgba(52,199,36,0.08), rgba(255,255,255,0.9));
+}
 .skill-optimization-head {
   display:flex;
   align-items:flex-start;
@@ -1047,6 +1055,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-optimization-head .btn {
   padding:7px 10px;
   font-size:12px;
+  white-space:nowrap;
 }
 .skill-optimization-list {
   display:grid;
@@ -1101,6 +1110,13 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 }
 .skill-optimization-list button:hover {
   background:var(--primary-light);
+}
+.skill-optimization-panel.needs-tune .skill-optimization-list button {
+  border-color:rgba(255,143,31,0.28);
+  color:var(--orange);
+}
+.skill-optimization-panel.needs-tune .skill-optimization-list button:hover {
+  background:rgba(255,143,31,0.08);
 }
 .skill-case-list {
   display:flex;

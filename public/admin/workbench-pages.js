@@ -1675,6 +1675,88 @@ function goSkillCreateNext(current) {
   switchSkillCreateTab(next, btn);
 }
 
+function startSkillCreateAiTune() {
+  const btn = document.getElementById('skill-ai-tune-btn');
+  if (btn?.dataset.done === '1') {
+    toggleAI?.(true);
+    return;
+  }
+  btn?.setAttribute('disabled', 'disabled');
+  btn?.classList.add('loading');
+  if (btn) btn.textContent = 'AI 微调中...';
+
+  if (typeof toggleAI === 'function') toggleAI(true);
+  if (typeof aiHideEmptyState === 'function') aiHideEmptyState();
+  if (typeof addAiMessage === 'function') {
+    addAiMessage('user', '请针对 Skill 创建评估验证中的低分项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。');
+    addAiMessage('assistant', [
+      '已定位 2 个低分项，并完成 Skill 微调：',
+      '',
+      '- 将认证数据查询流程拆成「参数确认 → 数据读取 → 异常兜底 → 结果生成 → 高风险动作确认」。',
+      '- 补充导出 CSV、定时报告、异常提醒前的确认节点，明确范围、对象、频率和影响。',
+      '- 更新测试用例，覆盖权限不足、企业名称为空、认证数据缺失、失败原因字段异常。',
+      '',
+      '我会把新的评估结果同步回左侧评估验证页。'
+    ].join('\n'));
+  }
+
+  setTimeout(() => {
+    const scoreGrid = document.getElementById('skill-create-eval-scores');
+    if (scoreGrid) {
+      scoreGrid.innerHTML = `
+        <div class="skill-score-card"><span>静态评分</span><b>0.872</b><i style="--score:87.2%"></i></div>
+        <div class="skill-score-card"><span>结果评分</span><b>0.846</b><i style="--score:84.6%"></i></div>
+        <div class="skill-score-card"><span>过程评分</span><b>0.831</b><i style="--score:83.1%"></i></div>
+        <div class="skill-score-card"><span>效率评分</span><b>0.888</b><i style="--score:88.8%"></i></div>
+        <div class="skill-score-card featured pass"><span>综合评分</span><b>0.859</b><i style="--score:85.9%"></i><em>已达及格线 0.80</em></div>`;
+    }
+    const gate = document.getElementById('skill-create-eval-gate');
+    if (gate) {
+      gate.className = 'skill-eval-gate pass';
+      gate.innerHTML = '<b>评估通过</b><span>AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。</span>';
+    }
+    const list = document.getElementById('skill-create-eval-list');
+    if (list) {
+      list.innerHTML = `
+        <div><span class="pass">PASS</span><b>基本信息规范</b><em>1.00</em></div>
+        <div><span class="pass">PASS</span><b>流程步骤清晰<small>AI 已补充分步执行顺序、参数确认和结果交付路径</small></b><em>0.92</em></div>
+        <div><span class="pass">PASS</span><b>异常处理完善<small>已覆盖无数据、字段缺失、权限不足时的兜底话术</small></b><em>0.90</em></div>
+        <div><span class="pass">PASS</span><b>关键节点确认<small>导出 CSV、定时报告、异常提醒前均有确认节点</small></b><em>0.86</em></div>
+        <div><span class="pass">PASS</span><b>指令具体明确</b><em>1.00</em></div>
+        <div><span class="pass">PASS</span><b>资源引用有效</b><em>1.00</em></div>
+        <div><span class="pass">PASS</span><b>平台适配合规</b><em>1.00</em></div>
+        <div><span class="pass">PASS</span><b>测试用例充分</b><em>1.00</em></div>`;
+    }
+    const optimization = document.getElementById('skill-create-optimization-panel');
+    if (optimization) {
+      optimization.classList.add('tuned');
+      optimization.innerHTML = `
+        <div class="skill-optimization-head">
+          <div>
+            <b>AI 微调完成</b>
+            <span>低分项已修复，评分结果已刷新。核心风险已补齐，可提交审核。</span>
+          </div>
+          <button class="btn btn-secondary" onclick="appendSkillClarifyAssistant('AI 微调已完成：流程步骤、关键确认节点和失败 case 已补齐；可进入提交审核。')">同步到需求澄清</button>
+        </div>
+        <div class="skill-optimization-list">
+          <div><span>1</span><b>流程步骤已拆清</b><p>补充参数确认、查询执行、异常兜底、结果生成、导出确认五段流程。</p><button onclick="switchSkillCreateTab('draft', document.querySelector('[data-skill-create-tab=draft]'))">查看草稿</button></div>
+          <div><span>2</span><b>关键节点已补齐</b><p>导出 CSV、开启定时报告、发送异常提醒前，都会先展示范围和影响。</p><button onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">查看澄清</button></div>
+          <div><span>3</span><b>测试样例已更新</b><p>新增权限不足、企业名称为空、认证数据缺失、失败原因字段异常等样例。</p><button onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">查看用例</button></div>
+        </div>`;
+    }
+    const next = document.getElementById('skill-create-next-review-btn');
+    next?.removeAttribute('disabled');
+    next?.classList.remove('disabled');
+    if (btn) {
+      btn.dataset.done = '1';
+      btn.textContent = 'AI 微调完成';
+      btn.classList.remove('loading');
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-secondary');
+    }
+  }, 900);
+}
+
 function validateSkillCreateConfig() {
   const required = [
     { id: 'skill-create-name', label: 'Skill 名称（英文）' },
@@ -2077,53 +2159,53 @@ function renderSkillCreatePage() {
               </div>
               <button class="btn btn-secondary" onclick="alert('已发起重新评估')">重新评估</button>
             </div>
-            <div class="skill-score-grid">
+            <div class="skill-score-grid" id="skill-create-eval-scores">
               <div class="skill-score-card"><span>静态评分</span><b>0.872</b><i style="--score:87.2%"></i></div>
-              <div class="skill-score-card"><span>结果评分</span><b>0.846</b><i style="--score:84.6%"></i></div>
-              <div class="skill-score-card"><span>过程评分</span><b>0.831</b><i style="--score:83.1%"></i></div>
-              <div class="skill-score-card"><span>效率评分</span><b>0.888</b><i style="--score:88.8%"></i></div>
-              <div class="skill-score-card featured pass"><span>综合评分</span><b>0.859</b><i style="--score:85.9%"></i><em>已达及格线 0.80</em></div>
+              <div class="skill-score-card"><span>结果评分</span><b>0.804</b><i style="--score:80.4%"></i></div>
+              <div class="skill-score-card"><span>过程评分</span><b>0.742</b><i style="--score:74.2%"></i></div>
+              <div class="skill-score-card"><span>效率评分</span><b>0.831</b><i style="--score:83.1%"></i></div>
+              <div class="skill-score-card featured"><span>综合评分</span><b>0.782</b><i style="--score:78.2%"></i><em>未达及格线 0.80</em></div>
             </div>
-            <div class="skill-eval-gate pass">
-              <b>评估通过</b>
-              <span>综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。</span>
+            <div class="skill-eval-gate warn" id="skill-create-eval-gate">
+              <b>存在低分项</b>
+              <span>综合评分 0.782，暂未达到提交审核门槛。建议先由 AI 助手微调流程步骤和关键确认节点，再刷新评估结果。</span>
             </div>
-            <div class="skill-eval-list">
+            <div class="skill-eval-list" id="skill-create-eval-list">
               <div><span class="pass">PASS</span><b>基本信息规范</b><em>1.00</em></div>
-              <div><span class="pass">PASS</span><b>流程步骤清晰</b><em>1.00</em></div>
+              <div class="needs-fix"><span class="warn">FIX</span><b>流程步骤清晰<small>缺少参数确认、异常兜底和结果交付的分步描述</small></b><em>0.72</em></div>
               <div><span class="pass">PASS</span><b>异常处理完善<small>已覆盖无数据、字段缺失、权限不足时的兜底话术</small></b><em>0.90</em></div>
-              <div><span class="pass">PASS</span><b>关键节点确认<small>导出 CSV、定时报告、异常提醒前均有确认节点</small></b><em>0.86</em></div>
+              <div class="needs-fix"><span class="warn">FIX</span><b>关键节点确认<small>导出 CSV、定时报告和异常提醒前的确认范围不够明确</small></b><em>0.74</em></div>
               <div><span class="pass">PASS</span><b>指令具体明确</b><em>1.00</em></div>
               <div><span class="pass">PASS</span><b>资源引用有效</b><em>1.00</em></div>
               <div><span class="pass">PASS</span><b>平台适配合规</b><em>1.00</em></div>
               <div><span class="pass">PASS</span><b>测试用例充分</b><em>1.00</em></div>
             </div>
-            <div class="skill-optimization-panel">
+            <div class="skill-optimization-panel needs-tune" id="skill-create-optimization-panel">
               <div class="skill-optimization-head">
                 <div>
-                  <b>评估结论</b>
-                  <span>核心风险已补齐，可提交审核。后续优化可继续补充更多真实失败样例。</span>
+                  <b>AI 可微调低分项</b>
+                  <span>检测到 2 个低分项：流程步骤清晰、关键节点确认。可唤起右侧 AI 助手调整 Skill 草稿并刷新评分结果。</span>
                 </div>
-                <button class="btn btn-secondary" onclick="appendSkillClarifyAssistant('评估已通过：异常兜底、关键确认和失败 case 已补齐；可进入提交审核。')">同步到需求澄清</button>
+                <button id="skill-ai-tune-btn" class="btn btn-primary" onclick="startSkillCreateAiTune()">AI 微调</button>
               </div>
               <div class="skill-optimization-list">
                 <div>
                   <span>1</span>
-                  <b>异常处理规则已补齐</b>
-                  <p>已增加无数据、字段缺失、接口失败、权限不足时的回复模板，并要求输出可继续追问的下一步。</p>
-                  <button onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">查看澄清</button>
+                  <b>补齐流程步骤</b>
+                  <p>需要把查询、分析、异常兜底、结果输出和确认动作拆成可执行步骤。</p>
+                  <button onclick="startSkillCreateAiTune()">让 AI 处理</button>
                 </div>
                 <div>
                   <span>2</span>
-                  <b>关键节点确认已配置</b>
-                  <p>导出 CSV、开启定时报告、发送异常提醒前，都会先展示范围、对象、频率和影响，再由 PM 确认。</p>
-                  <button onclick="switchSkillCreateTab('draft', document.querySelector('[data-skill-create-tab=draft]'))">查看草稿</button>
+                  <b>明确确认节点</b>
+                  <p>导出 CSV、定时报告、异常提醒前，需要展示范围、对象、频率和影响。</p>
+                  <button onclick="startSkillCreateAiTune()">让 AI 处理</button>
                 </div>
                 <div>
                   <span>3</span>
-                  <b>失败 case 已覆盖</b>
-                  <p>已新增权限不足、企业名称为空、个税认证数据缺失、失败原因字段异常等测试样例。</p>
-                  <button onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">查看用例</button>
+                  <b>刷新评分结果</b>
+                  <p>AI 完成草稿微调后，自动回写评估列表、综合评分和提交审核门槛状态。</p>
+                  <button onclick="startSkillCreateAiTune()">开始微调</button>
                 </div>
               </div>
             </div>
@@ -2137,7 +2219,7 @@ function renderSkillCreatePage() {
               <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
               <button class="btn btn-secondary" onclick="switchSkillCreateTab('draft', document.querySelector('[data-skill-create-tab=draft]'))">上一步</button>
               <button class="btn btn-secondary" onclick="switchSkillCreateTab('clarify', document.querySelector('[data-skill-create-tab=clarify]'))">返回修改</button>
-              <button class="btn btn-primary" onclick="goSkillCreateNext('verify')">下一步：提交审核</button>
+              <button id="skill-create-next-review-btn" class="btn btn-primary disabled" disabled onclick="goSkillCreateNext('verify')">下一步：提交审核</button>
             </div>
           </div>
 
