@@ -5494,6 +5494,22 @@
       body[data-page="home"][data-state="chat"] .assistant-panel { display: block; }
       body[data-page="home"][data-state="chat"] .assistant-restore { display: none; }
       body.lx-auto-fs .assistant-toggle { display: none !important; }
+
+      /* 首页原地分屏：AI 产出商品时不跳 /shop-chat/，在 / 展开两栏 */
+      body.lx-home-split[data-page="home"] .shell,
+      body.lx-home-split[data-page="home"].assistant-right .shell {
+        grid-template-columns: var(--assistant-panel-width) minmax(0, 1fr);
+        column-gap: clamp(24px, 2.5vw, 48px);
+      }
+      body.lx-home-split[data-page="home"] .assistant-panel {
+        display: block;
+      }
+      body.lx-home-split[data-page="home"] .assistant-restore {
+        display: none;
+      }
+      body.lx-home-split[data-page="home"] .content {
+        grid-column: 2;
+      }
       .lx-msg-text { white-space: normal; }
 
       .lx-p1-upload-note {

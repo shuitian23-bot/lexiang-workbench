@@ -40,7 +40,8 @@
   // ── 通用 helper ──
   function dispStatus(l, role) {
     if (role === 'leader' && l.assignLevel === 1) return l.status === '已退回' ? '已退回' : '';
-    if (!l.quality) return l.assignStatus === '已分配' ? '跟进中' : '';
+    // 已分配但无质量：仅到 Sales（level≥2）才视为跟进中；仅推送到 Leader（level1）线索状态为空(-)
+    if (!l.quality) return (l.assignStatus === '已分配' && l.assignLevel >= 2) ? '跟进中' : '';
     return l.status;
   }
   function dispAssign(l, role) {
@@ -75,6 +76,15 @@
   function uid() { return 'OID-' + String(Date.now()).slice(-5) + String(++_uid).padStart(3, '0'); }
   let _leadNoSeq = 100200;
   function genLeadNo() { return 'XS' + (++_leadNoSeq); }
+  let _rowSeq = 0;
+  function genRowId() { return 'row-' + (++_rowSeq); }
+  // 当前操作人 itcode（按角色）
+  const OPS_ITCODE = 'yunying2';
+  function currentItcode() { return LEAD.role === 'ops' ? OPS_ITCODE : LEAD.role === 'leader' ? LEADER_ITCODE : SALES_ITCODE; }
+  // 统一写入跟进记录日志：操作人 itcode / 变更内容 / 时间（可选状态变更、关联编号）
+  function pushLog(lead, type, content, extra) {
+    lead.followLogs.push(Object.assign({ type, op: currentItcode(), note: content, time: new Date(), sc: null }, extra || {}));
+  }
   function esc(v) { const s = String(v == null ? '' : v); return s.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
 
   const NAMES = ['张伟', '李娜', '王芳', '刘强', '陈明', '杨红', '赵磊', '周晓', '吴静', '孙鹏', '马超', '胡敏', '郑浩', '朱艳', '高峰', '林雪', '何涛', '罗琳', '徐峰', '曾丽'];
@@ -85,7 +95,9 @@
     const base = new Date(2026, 2, 1);
     const ca = new Date(base.getTime() + i * 86400000);
     const quality = level > 0 ? QS[i % QS.length] : '';
-    const status = quality ? QSM[quality] : '';
+    let status = quality ? QSM[quality] : '';
+    // “匹配历史线索状态”不作为展示值，解析为历史状态（已接收/已退回/跟进中）
+    if (status === '匹配历史线索状态') status = ['已接收', '已退回', '跟进中'][i % 3];
     const salesPeople = SPS.filter(s => s.role === 'sales');
     const owner = level === 1 ? LEADER_ITCODE : level === 2 ? salesPeople[i % salesPeople.length].itcode : '';
     const leaderItcode = level >= 1 ? LEADER_ITCODE : '';
@@ -97,7 +109,7 @@
     const sqlAmt = fol ? parseFloat((20 + i * 7.3).toFixed(2)) : 0;
     const leadNo = level > 0 ? 'XS' + String(100001 + i) : '';                   // 线索编号：已分配后生成
     return {
-      oneId: uid(), leadNo, lenovoId: i % 3 === 0 ? `LD${100000 + i * 7}` : '',
+      rowId: genRowId(), oneId: uid(), leadNo, lenovoId: i % 3 === 0 ? `LD${100000 + i * 7}` : '',
       name: NAMES[i], company: CORPS[i],
       phone: `138${String(10000000 + i * 1357913).slice(0, 8)}`,
       grade: GRADES[i % 3], product: PRODS[i % 5],
@@ -105,6 +117,7 @@
       source: LEAD_SOURCES[i % LEAD_SOURCES.length], source2: LEAD_SOURCES2[i % LEAD_SOURCES2.length],
       productAmounts: fol ? [{ product: FOLLOW_PRODS[i % FOLLOW_PRODS.length], amount: parseFloat((20 + i * 7.3).toFixed(2)) }] : [],
       assignLevel: level, assignStatus, leaderItcode,
+      assignedBy: level === 1 ? OPS_ITCODE : level === 2 ? LEADER_ITCODE : '',
       owner, createdAt: ca, pushAt, assignedAt: aa, feedbackAt: fa, convertedAt: null,
       scoreLogs: [], followLogs: [],
     };
@@ -226,7 +239,7 @@
     if (LEAD.fLenovo.trim()) list = list.filter(l => eq(l.lenovoId, LEAD.fLenovo)); // Lenovo ID 精准
     if (LEAD.fPhone.trim()) list = list.filter(l => eq(l.phone, LEAD.fPhone));      // 手机号 精准
     if (LEAD.fCompany.trim()) list = list.filter(l => (l.company || '').includes(LEAD.fCompany.trim())); // 公司名称 模糊
-    if (LEAD.fs.length) list = list.filter(l => LEAD.fs.includes(l.status));         // 线索状态
+    if (LEAD.fs.length) list = list.filter(l => LEAD.fs.includes(l.status) || (LEAD.fs.includes('__none__') && !l.status)); // 线索状态（含"无"=状态为空）
     if (LEAD.fown.trim()) list = list.filter(l => (l.owner || '').toLowerCase().includes(LEAD.fown.trim().toLowerCase())); // 所属IS 模糊
     if (LEAD.fdTeam && LEAD.fdTeam !== 'all') {                                      // 销售团队（仅运营）
       const codes = SPS.filter(s => s.team === LEAD.fdTeam).map(s => s.itcode);
@@ -259,6 +272,14 @@
     return null;
   }
   function kbTeamSel() { const rt = roleTeam(); if (rt && rt.length) return rt; const t = LEAD.kbFilters.team; return (!t || !t.length) ? ['chengdu', 'beijing'] : t; }
+  // 团队漏斗：销售个人(itcode) / 线索来源 筛选 → 数据按比例缩放（demo）
+  function teamRatio() {
+    let r = 1; const person = LEAD.kbFilters.person, source = LEAD.kbFilters.source;
+    if (person && person.length) r *= Math.min(0.5 * person.length, 1);
+    if (source && source.length) r *= Math.min(source.length / KB_SOURCE_KEYS.length, 1);
+    return r;
+  }
+  const _isAmtIdx = i => [3, 8, 11, 14].includes(i);
   function kbFunnelCur() {
     const p = LEAD.kbFilters.period, selSrc = LEAD.kbFilters.source;
     const teamSel = kbTeamSel(), person = LEAD.kbFilters.person, product = LEAD.kbFilters.product;
@@ -288,9 +309,11 @@
   ];
   function kbTeamTableData() {
     const p = LEAD.kbFilters.period, cd = KB_TEAM_RAW[p].chengdu, bj = KB_TEAM_RAW[p].beijing;
+    const r = teamRatio();
+    const sc = (arr, i) => _isAmtIdx(i) ? +(arr[i] * r).toFixed(2) : Math.round(arr[i] * r);
     return KB_TEAM_METRICS.map((m, i) => {
-      const cdVal = i === 5 ? cd[1] - cd[2] - cd[4] : cd[i];
-      const bjVal = i === 5 ? bj[1] - bj[2] - bj[4] : bj[i];
+      const cdVal = i === 5 ? sc(cd, 1) - sc(cd, 2) - sc(cd, 4) : sc(cd, i);
+      const bjVal = i === 5 ? sc(bj, 1) - sc(bj, 2) - sc(bj, 4) : sc(bj, i);
       return { metric: m.label, note: m.note, isCalc: !!m.isCalc, chengdu: cdVal, beijing: bjVal, total: +((cdVal + bjVal).toFixed(2)) };
     });
   }
@@ -307,13 +330,11 @@
   // ===================== 渲染：线索看板 =====================
   function renderDashboard() {
     return `
-      <div class="lead-0615-page lead-dashboard-page">
       <div class="page-header">
         <div><div class="page-title">线索看板</div><div class="page-desc">企业客户管理 · 漏斗转化、线索质量与销售团队业绩</div></div>
         ${roleSwitchHtml()}
       </div>
-      <div id="lead-kb"></div>
-      </div>`;
+      <div id="lead-kb"></div>`;
   }
   function roleSwitchHtml() {
     const opt = (v, t) => `<button class="lead-seg-btn ${LEAD.role === v ? 'active' : ''}" onclick="leadSetRole('${v}')">${t}</button>`;
@@ -357,9 +378,21 @@
         html += msHtml('person', PERSON_OPTS.map(p => ({ label: p, value: p })), LEAD.kbFilters.person, '销售个人');
         html += msHtml('product', PRODUCT_OPTS.map(p => ({ label: p, value: p })), LEAD.kbFilters.product, '产品组');
         html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
+      } else if (LEAD.kbTab === 'team') {
+        // 销售团队漏斗：增加 销售itcode（个人）+ 线索来源 筛选
+        html += msHtml('person', PERSON_OPTS.map(p => ({ label: p, value: p })), LEAD.kbFilters.person, '销售itcode');
+        html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
       }
+    } else if (LEAD.role === 'leader') {
+      // Leader：销售itcode + 线索来源 筛选（数据锁定本团队）
+      html += msHtml('person', PERSON_OPTS.map(p => ({ label: p, value: p })), LEAD.kbFilters.person, '销售itcode');
+      html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
+      html += `<span class="lead-fl" style="color:var(--text-tertiary)">数据范围：Leader 团队（北京IS）</span>`;
     } else {
-      html += `<span class="lead-fl" style="color:var(--text-tertiary)">数据范围：${LEAD.role === 'leader' ? 'Leader 团队（北京IS）' : '本人（北京IS）'}</span>`;
+      // Sales：销售itcode 默认本人（只读）+ 线索来源 筛选
+      html += `<span class="lead-ro-box">销售itcode：${SALES_ITCODE}（本人）</span>`;
+      html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
+      html += `<span class="lead-fl" style="color:var(--text-tertiary)">数据范围：本人（北京IS）</span>`;
     }
     if (LEAD.kbTab === 'funnel') html += `<button class="btn btn-sm btn-secondary" onclick="leadExportFunnel()">⬇ 导出数据</button>`;
     html += `</div>`;
@@ -405,11 +438,6 @@
       return `<div class="lead-kpi"><div class="lead-kpi-label">${c.label}</div><div class="lead-kpi-code">${c.code}</div><div class="lead-kpi-value">${v}</div>${trend}</div>`;
     }).join('');
     return `
-      <div class="lead-infobar">
-        <span>线索总量 <strong>${kbFmt(d.iql)}</strong></span>
-        <span>待分配 <strong style="color:var(--red)">${kbFmt(Math.round(d.iql * 0.18))}</strong></span>
-        <span>已分配 <strong style="color:var(--green)">${kbFmt(Math.round(d.iql * 0.82))}</strong></span>
-      </div>
       <div class="card"><div class="card-header"><div class="card-title">漏斗转化总览</div>
         <div style="display:flex;gap:8px"><span class="badge badge-blue">IQL→MQL ${cmql}</span><span class="badge badge-blue">MQL→SQL ${csql}</span><span class="badge badge-blue">SQL→OPP ${copp}</span></div></div>
         <div id="lead-funnel-chart" style="height:280px"></div></div>
@@ -428,7 +456,7 @@
   function panelTeam() {
     const showCD = kbTeamSel().includes('chengdu'), showBJ = kbTeamSel().includes('beijing'), showTotal = kbTeamSel().length > 1;
     const data = kbTeamTableData();
-    const maint = LEAD.role !== 'ops' ? `<div style="margin-left:auto;display:flex;gap:8px">
+    const maint = LEAD.role === 'leader' ? `<div style="margin-left:auto;display:flex;gap:8px">
         <button class="btn btn-sm btn-secondary" onclick="leadOpenDataLogs()">操作日志${LEAD.dataEditLogs.length ? `<span class="lead-badge-num">${LEAD.dataEditLogs.length}</span>` : ''}</button>
         <button class="btn btn-sm btn-primary" onclick="leadOpenDataEdit()">数据维护</button></div>` : '';
     const rows = data.map(r => `<tr>
@@ -475,8 +503,8 @@
   }
   function drawTeam() {
     const c = ec('lead-team-chart'); if (!c) return;
-    const p = LEAD.kbFilters.period, sel = kbTeamSel();
-    const pick = i => sel.reduce((s, tm) => s + KB_TEAM_RAW[p][tm][i], 0);
+    const p = LEAD.kbFilters.period, sel = kbTeamSel(), r = teamRatio();
+    const pick = i => { const sum = sel.reduce((s, tm) => s + KB_TEAM_RAW[p][tm][i], 0) * r; return _isAmtIdx(i) ? +sum.toFixed(1) : Math.round(sum); };
     const iql = pick(0), mql = pick(1), sql = pick(2), sqlAmt = pick(3), oppCnt = pick(6), oppAmt = pick(8), actCnt = pick(9), actAmt = pick(11);
     const tot = iql || 1, f2 = n => n.toLocaleString('zh-CN'), fA = n => '¥' + n.toFixed(1) + '万';
     c.setOption({
@@ -533,7 +561,6 @@
   // ===================== 渲染：线索池 =====================
   function renderPool() {
     return `
-      <div class="lead-0615-page lead-pool-page">
       <div class="page-header">
         <div><div class="page-title">线索池</div><div class="page-desc">企业客户管理 · 线索分配、跟进、触达与转商机</div></div>
         ${roleSwitchHtml()}
@@ -542,8 +569,7 @@
       <div id="lead-pool-toolbar"></div>
       ${poolFilterHtml()}
       <div id="lead-pool-alloc"></div>
-      <div id="lead-pool-table"></div>
-      </div>`;
+      <div id="lead-pool-table"></div>`;
   }
   function poolStatsHtml() {
     // 2.1 运营/Leader/Sales 统一 6 张；计数基于筛选栏联动结果（poolBase）
@@ -563,7 +589,8 @@
     let btns = '';
     if (LEAD.role !== 'sales') btns += `<button class="btn btn-sm btn-secondary" onclick="leadMockImport()">📥 导入线索</button>`;
     if (LEAD.role === 'ops') btns += `<button class="btn btn-sm btn-secondary" onclick="leadOpenTouch()">触达</button><button class="btn btn-sm btn-secondary" onclick="leadOpenAssign()">分配</button>`;
-    else btns += `<button class="btn btn-sm btn-secondary" onclick="leadOpenAssign()">分配</button>`;
+    else if (LEAD.role === 'leader') btns += `<button class="btn btn-sm btn-secondary" onclick="leadOpenAssign()">分配</button>`;
+    // sales：无分配功能
     const tip = LEAD.sel.size > 0 ? `<span style="font-size:13px;color:var(--primary);font-weight:500;margin-left:4px">已选 ${LEAD.sel.size} 条</span>` : '';
     // 2.2 导出：脱敏导出直接下载；明文导出（含手机号等）走审批
     return `<div class="lead-toolbar">${btns}${tip}
@@ -585,7 +612,7 @@
     { k: 'last90', t: '近90天', fn: () => { const n = new Date(), s = new Date(); s.setDate(n.getDate() - 89); return [s, n]; } },
   ];
   const fmtDate = d => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
-  const STATUS_FILTER_OPTS = [{ value: '已接收', label: '已接收' }, { value: '跟进中', label: '跟进中' }, { value: '已退回', label: '已退回' }];
+  const STATUS_FILTER_OPTS = [{ value: '已接收', label: '已接收' }, { value: '跟进中', label: '跟进中' }, { value: '已退回', label: '已退回' }, { value: '__none__', label: '无' }];
   const GRADE_OPTS = GRADES.map(g => ({ value: g, label: g }));
   const SOURCE_OPTS = LEAD_SOURCES.map(s => ({ value: s, label: s }));
   const POOL_MS_OPTS = { fs: STATUS_FILTER_OPTS, fdGrade: GRADE_OPTS, fSource: SOURCE_OPTS };
@@ -637,10 +664,11 @@
     if (LEAD.page > totalPages) LEAD.page = totalPages;
     if (LEAD.page < 1) LEAD.page = 1;
     const pageRows = rows.slice((LEAD.page - 1) * pageSize, LEAD.page * pageSize);
-    const allChk = pageRows.length > 0 && pageRows.every(l => LEAD.sel.has(l.oneId));
+    const selectable = pageRows.filter(canSelect);
+    const allChk = selectable.length > 0 && selectable.every(l => LEAD.sel.has(l.rowId));
     const sortable = (k, t) => `<th class="lead-sort" onclick="leadSort('${k}')">${t}<span class="lead-si ${LEAD.sk === k ? 'on' : ''}">${LEAD.sk === k ? (LEAD.sd === 'asc' ? '▲' : '▼') : '↕'}</span></th>`;
     const head = `<tr><th style="width:40px"><input type="checkbox" ${allChk ? 'checked' : ''} onchange="leadToggleAll(this)"/></th>
-      <th style="min-width:${isSL ? 230 : 96}px">操作</th>
+      <th style="min-width:${isSL ? 230 : 96}px;text-align:left">操作</th>
       ${sortable('oneId', 'ONE ID')}<th>Lenovo ID</th><th>线索编号</th>${sortable('name', '姓名')}${sortable('company', '客户名称')}
       <th>手机号</th><th>客户分级</th><th>线索状态</th><th>分配状态</th><th>线索一级来源</th><th>线索二级来源</th><th>Leads质量</th><th>所属IS</th>
       ${sortable('createdAt', '创建时间')}${sortable('pushAt', '推送销售时间')}${sortable('assignedAt', '分配时间')}${sortable('feedbackAt', '反馈时间')}${sortable('convertedAt', '转商机时间')}</tr>`;
@@ -649,19 +677,23 @@
     else body = pageRows.map(l => {
       const ds = dispStatus(l, LEAD.role);
       // 3.2 已退回线索：Leader/Sales 只能查看不能操作（隐藏反馈/转商机），由运营重新分配
-      const readonly = l.status === '已退回';
+      // 已退回且被运营重新分配的旧线索：锁定，状态不可变更、不可再分配
+      const locked = !!l.reassigned;
+      const readonly = l.status === '已退回' || locked;
+      // 已退回线索仅运营可重新分配：leader/sales 不可勾选分配
+      const noAssign = locked || (l.status === '已退回' && LEAD.role !== 'ops');
       const opCell = `<td style="white-space:nowrap;text-align:left">
-        <button class="btn btn-sm btn-secondary" onclick="leadShowDetail('${l.oneId}')">查看详情</button>
-        ${(isSL && l.status && !readonly) ? `<button class="btn btn-sm btn-secondary" onclick="leadOpenFollow('${l.oneId}')">反馈线索</button>` : ''}
-        ${(isSL && ['已接收', '跟进中'].includes(ds) && !readonly) ? `<button class="btn btn-sm btn-primary" onclick="leadOpenConvert('${l.oneId}')">转商机</button>` : ''}</td>`;
-      return `<tr class="${LEAD.sel.has(l.oneId) ? 'sel' : ''}">
-        <td><input type="checkbox" ${LEAD.sel.has(l.oneId) ? 'checked' : ''} onchange="leadToggleRow('${l.oneId}')"/></td>
+        <button class="btn btn-sm btn-secondary" onclick="leadShowDetail('${l.rowId}')">查看详情</button>
+        ${(isSL && l.status && !readonly) ? `<button class="btn btn-sm btn-secondary" onclick="leadOpenFollow('${l.rowId}')">反馈线索</button>` : ''}
+        ${(isSL && ['已接收', '跟进中'].includes(ds) && !readonly) ? `<button class="btn btn-sm btn-primary" onclick="leadOpenConvert('${l.rowId}')">转商机</button>` : ''}</td>`;
+      return `<tr class="${LEAD.sel.has(l.rowId) ? 'sel' : ''}">
+        <td><input type="checkbox" ${LEAD.sel.has(l.rowId) ? 'checked' : ''} ${noAssign ? `disabled title="${locked ? '已重新分配，锁定' : '已退回线索仅运营可重新分配'}"` : ''} onchange="leadToggleRow('${l.rowId}')"/></td>
         ${opCell}
         <td>${l.oneId}</td>
         <td>${l.lenovoId || '-'}</td>
         <td>${l.leadNo || '-'}</td><td>${esc(l.name)}</td><td>${esc(l.company)}</td><td>${maskPhone(l.phone)}</td><td>${l.grade}</td>
         <td>${ds && ds !== '待接收' ? leadTag(ds) : '<span style="color:var(--text-tertiary)">-</span>'}</td>
-        <td>${dispAssign(l, LEAD.role) === '已分配' ? '<span class="badge badge-blue">已分配</span>' : '<span class="badge badge-orange">待分配</span>'}</td>
+        <td>${locked ? '<span class="badge">已重新分配</span>' : dispAssign(l, LEAD.role) === '已分配' ? '<span class="badge badge-blue">已分配</span>' : '<span class="badge badge-orange">待分配</span>'}</td>
         <td>${l.source || '-'}</td><td>${l.source2 || '-'}</td>
         <td>${l.quality ? `<span class="badge badge-blue" style="font-size:11px">${l.quality}</span>` : '-'}</td>
         <td>${l.owner || '-'}</td><td>${fmt(l.createdAt)}</td><td>${fmt(l.pushAt)}</td><td>${fmt(l.assignedAt)}</td><td>${fmt(l.feedbackAt)}</td><td>${fmt(l.convertedAt)}</td></tr>`;
@@ -692,7 +724,9 @@
     else if (document.getElementById('lead-pool-stats')) { host.innerHTML = renderPool(); poolRefresh(); }
     else if (document.getElementById('lead-score-stats')) { host.innerHTML = renderScore(); scoreRefresh(); }
   }
-  function findLead(id) { return LEAD.leads.find(l => l.oneId === id); }
+  function findLead(id) { return LEAD.leads.find(l => l.rowId === id); }
+  // 可勾选（用于分配）：已重新分配锁定的旧线索、以及非运营下的已退回线索不可选
+  function canSelect(l) { return !l.reassigned && !(l.status === '已退回' && LEAD.role !== 'ops'); }
   function toast(msg, type) {
     let box = document.getElementById('lead-toast');
     if (!box) { box = document.createElement('div'); box.id = 'lead-toast'; box.className = 'lead-toast-box'; document.body.appendChild(box); }
@@ -776,7 +810,7 @@
     LEAD.page = 1; rerenderCurrent();
   };
   window.leadSort = function (k) { if (LEAD.sk === k) LEAD.sd = LEAD.sd === 'asc' ? 'desc' : 'asc'; else { LEAD.sk = k; LEAD.sd = 'asc'; } poolRefresh(); };
-  window.leadToggleAll = function (cb) { poolRows().forEach(l => cb.checked ? LEAD.sel.add(l.oneId) : LEAD.sel.delete(l.oneId)); poolRefresh(); };
+  window.leadToggleAll = function (cb) { poolRows().filter(canSelect).forEach(l => cb.checked ? LEAD.sel.add(l.rowId) : LEAD.sel.delete(l.rowId)); poolRefresh(); };
   window.leadToggleRow = function (id) { LEAD.sel.has(id) ? LEAD.sel.delete(id) : LEAD.sel.add(id); poolRefresh(); };
   window.leadGotoAssign = function () { switchPage('lead.pool'); setTimeout(() => { LEAD.sf = 'as'; poolRefresh(); }, 60); };
 
@@ -820,7 +854,7 @@
     if (!name) return toast('请输入姓名', 'warn');
     if (!/^1\d{10}$/.test(phone)) return toast('请输入11位有效手机号', 'warn');
     if (!company) return toast('请输入客户名称', 'warn');
-    LEAD.leads.unshift({ oneId: uid(), leadNo: '', lenovoId: val('nf-lenovo'), name, phone, company, grade: val('nf-grade'), product: val('nf-product'), status: '', quality: '', score: 0, sqlAmt: 0, source: '官网传递', source2: '', assignStatus: '待分配', owner: '', assignLevel: 0, leaderItcode: '', createdAt: new Date(), pushAt: null, assignedAt: null, feedbackAt: null, convertedAt: null, productAmounts: [], scoreLogs: [], followLogs: [] });
+    LEAD.leads.unshift({ rowId: genRowId(), oneId: uid(), leadNo: '', lenovoId: val('nf-lenovo'), name, phone, company, grade: val('nf-grade'), product: val('nf-product'), status: '', quality: '', score: 0, sqlAmt: 0, source: '官网传递', source2: '', assignStatus: '待分配', owner: '', assignLevel: 0, leaderItcode: '', createdAt: new Date(), pushAt: null, assignedAt: null, feedbackAt: null, convertedAt: null, productAmounts: [], scoreLogs: [], followLogs: [] });
     leadCloseModal(); poolRefresh(); toast('新增成功，状态：待分配');
   };
   window.leadMockImport = function () {
@@ -840,28 +874,53 @@
   window.leadConfirmAssign = function () {
     const sp = val('af-sp'); if (!sp) return toast('请选择销售人员', 'warn');
     const assignee = SPS.find(s => s.itcode === sp), now = new Date();
-    LEAD.leads.filter(l => LEAD.sel.has(l.oneId)).forEach(l => {
-      const wasReturned = l.status === '已退回';
-      l.owner = sp;
-      if (LEAD.role === 'ops') {
-        // 运营→Leader：推送销售时间
-        if (assignee && assignee.role === 'leader') { l.assignLevel = 1; l.leaderItcode = assignee.itcode; l.pushAt = now; }
-        else { l.assignLevel = 2; l.leaderItcode = l.leaderItcode || ''; l.pushAt = l.pushAt || now; l.assignedAt = now; }
-        l.assignStatus = '已分配';
+    const pathTxt = LEAD.role === 'ops' ? '运营→Leader' : 'Leader→Sales';
+    const isLeader = assignee && assignee.role === 'leader';
+    const selected = LEAD.leads.filter(l => LEAD.sel.has(l.rowId) && canSelect(l));
+    let newCount = 0;
+    selected.forEach(l => {
+      if (l.status === '已退回') {
+        // 退回后由运营重新分配：原线索保留并锁定，生成一条新线索（同 ONE ID，新线索编号，状态为-，已分配）
+        const oldNo = l.leadNo;
+        const newLead = Object.assign({}, l, {
+          rowId: genRowId(), leadNo: genLeadNo(),
+          status: '', quality: '', sqlAmt: 0, productAmounts: [],
+          owner: sp, assignStatus: '已分配',
+          assignLevel: isLeader ? 1 : 2,
+          leaderItcode: isLeader ? assignee.itcode : (l.leaderItcode || ''),
+          pushAt: isLeader ? now : (l.pushAt || now),
+          assignedAt: isLeader ? null : now,
+          assignedBy: currentItcode(),
+          feedbackAt: null, convertedAt: null, reassigned: false,
+          relatedFromLeadNo: oldNo || '', relatedFromOneId: l.oneId,
+          followLogs: [],
+        });
+        pushLog(newLead, 'reassign', `退回线索重新分配生成（${pathTxt}）：跟进IS ${sp}；新线索编号 ${newLead.leadNo} 关联旧线索编号 ${oldNo || '-'}`, { oldLeadNo: oldNo || '', newLeadNo: newLead.leadNo });
+        // 锁定旧线索：不可再变更/分配
+        l.reassigned = true;
+        pushLog(l, 'reassign', `线索退回后由运营重新分配，生成新线索编号 ${newLead.leadNo}（本线索锁定，不可再变更/分配）`, { oldLeadNo: oldNo || '', newLeadNo: newLead.leadNo });
+        LEAD.leads.unshift(newLead);
+        newCount++;
       } else {
-        // Leader→Sales：分配时间（二次分配更新）
-        l.assignLevel = 2; l.assignStatus = '已分配'; l.assignedAt = now;
+        // 正常分配（首次 / Leader→Sales）
+        l.owner = sp;
+        if (LEAD.role === 'ops') {
+          if (isLeader) { l.assignLevel = 1; l.leaderItcode = assignee.itcode; l.pushAt = now; }
+          else { l.assignLevel = 2; l.leaderItcode = l.leaderItcode || ''; l.pushAt = l.pushAt || now; l.assignedAt = now; }
+          l.assignStatus = '已分配';
+        } else { l.assignLevel = 2; l.assignStatus = '已分配'; l.assignedAt = now; }
+        l.assignedBy = currentItcode();
+        if (!l.leadNo) l.leadNo = genLeadNo();
+        pushLog(l, 'assign', `分配（${pathTxt}）：跟进IS ${sp}；线索编号 ${l.leadNo}`);
       }
-      // 线索编号：首次分配生成；退回后重新分配生成新编号
-      if (!l.leadNo || wasReturned) l.leadNo = genLeadNo();
     });
-    leadCloseModal(); LEAD.sel = new Set(); poolRefresh(); toast(`已分配给 ${assignee ? assignee.name : sp}`);
+    leadCloseModal(); LEAD.sel = new Set(); poolRefresh(); toast(`已分配给 ${assignee ? assignee.name : sp}${newCount ? `（${newCount} 条退回线索已生成新线索）` : ''}`);
   };
 
   // 触达
   let TCHT = [];
   window.leadOpenTouch = function (id) {
-    TCHT = id ? [findLead(id)] : LEAD.leads.filter(l => LEAD.sel.has(l.oneId));
+    TCHT = id ? [findLead(id)] : LEAD.leads.filter(l => LEAD.sel.has(l.rowId));
     if (!TCHT.length) return toast('请先勾选线索', 'warn');
     const objTip = TCHT.length === 1 ? `${esc(TCHT[0].name)} · ${esc(TCHT[0].company)}` : `<span style="color:var(--primary);font-weight:600">已选 ${TCHT.length} 条线索（批量触达）</span>`;
     openModal('触达记录', `
@@ -873,8 +932,8 @@
   };
   window.leadConfirmTouch = function () {
     const method = val('tch-method'); if (!method) return toast('请选择触达方式', 'warn');
-    const now = new Date(), note = `[触达] 方式：${method}，结果：${val('tch-result') || '—'}，备注：${val('tch-note') || '—'}`;
-    TCHT.forEach(l => l.followLogs.push({ note, op: '运营-当前用户', time: now, sc: null }));
+    const content = `触达：方式=${method}，结果=${val('tch-result') || '—'}，备注=${val('tch-note') || '—'}`;
+    TCHT.forEach(l => pushLog(l, 'touch', content));
     const n = TCHT.length; leadCloseModal(); LEAD.sel = new Set(); poolRefresh(); toast(`触达记录已保存，共 ${n} 条线索`);
   };
 
@@ -916,12 +975,17 @@
       if (!ok) return toast('选择有效质量时，至少填写一条产品类别和SQL金额', 'warn');
     }
     const now = new Date(), prev = FT.status;
-    FT.quality = ff.quality; FT.status = QSM[ff.quality] || FT.status;
+    FT.quality = ff.quality;
+    let mapped = QSM[ff.quality] || FT.status;
+    // “匹配历史线索状态”→ 取反馈重复派发前的历史状态（已接收/已退回/跟进中）
+    if (mapped === '匹配历史线索状态') mapped = (prev && ['已接收', '已退回', '跟进中'].includes(prev)) ? prev : '跟进中';
+    FT.status = mapped;
     if (!FT.feedbackAt) FT.feedbackAt = now;
     if (FT.status === '已退回') FT.assignStatus = '待分配';
     const valid = ff.productAmounts.filter(r => r.product && String(r.amount).trim() !== '');
     if (valid.length) { FT.productAmounts = valid.map(r => ({ product: r.product, amount: parseFloat(r.amount) || 0 })); FT.sqlAmt = FT.productAmounts.reduce((s, r) => s + r.amount, 0); }
-    FT.followLogs.push({ note: ff.note, op: 'Sales-当前用户', time: now, sc: FT.status !== prev ? FT.status : null });
+    const changed = FT.status !== prev;
+    pushLog(FT, 'feedback', `反馈线索：Leads质量=${ff.quality}；线索状态 ${prev || '-'} → ${FT.status}${ff.note ? '；备注：' + ff.note : ''}`, { sc: changed ? FT.status : null });
     leadCloseModal(); LEAD.sel = new Set(); rerenderCurrent(); toast('跟进记录已保存');
   };
 
@@ -954,8 +1018,10 @@
     if (!val('cvt-ca')) return toast('请输入商机CA', 'warn');
     if (!val('cvt-amount')) return toast('请输入商机金额', 'warn');
     if (!val('cvt-stage')) return toast('请选择商机阶段', 'warn');
-    CVT.status = '已转商机'; CVT.convertedAt = new Date();
+    // 转商机不变更线索状态，仅记录转商机时间与一条日志
+    CVT.convertedAt = new Date();
     CVT.sqlAmt = val('cvt-amount') ? parseFloat(val('cvt-amount')) : CVT.sqlAmt; CVT.product = val('cvt-product') || CVT.product;
+    pushLog(CVT, 'convert', `转商机：产品组=${val('cvt-product')}，商机CA=${val('cvt-ca')}，金额=${val('cvt-amount')}万，阶段=${val('cvt-stage')}`);
     leadCloseModal(); LEAD.sel = new Set(); rerenderCurrent(); toast('已转商机，商机系统同步创建记录');
   };
 
@@ -1011,6 +1077,7 @@
                 ${fld('姓名', esc(d.name))}${fld('客户名称', esc(d.company))}${fld('手机号', maskPhone(d.phone))}
                 ${fld('客户分级', d.grade)}${fld('产品组', d.product)}${fld('所属IS', d.owner)}
                 ${fld('线索一级来源', d.source)}${fld('线索二级来源', d.source2)}${fld('线索分', d.score)}
+                ${d.relatedFromLeadNo ? fld('关联旧线索编号', d.relatedFromLeadNo) : ''}
               </div></div>
             </div>
             <div class="card"><div class="card-header"><span class="card-title">线索状态 &amp; 商机</span></div>
@@ -1034,18 +1101,18 @@
 
   // 分配明细：内联面板（不用抽屉），随筛选联动
   function allocPanelHtml() {
-    const list = poolBase().filter(l => l.owner);
-    const rows = list.length ? list.map(l => `<tr><td style="text-align:left;font-family:monospace;font-size:12px;color:var(--primary)">${l.oneId}</td><td style="text-align:left">${esc(l.name)}</td><td style="text-align:left">${l.lenovoId || '-'}</td><td style="text-align:right">${l.score}</td><td style="text-align:left">${fmt(l.assignedAt)}</td><td style="text-align:left">${l.owner}</td></tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--text-tertiary);padding:30px">暂无分配记录</td></tr>`;
+    const list = poolBase().filter(l => dispAssign(l, LEAD.role) === '已分配');
+    const rows = list.length ? list.map(l => `<tr><td style="text-align:left">${l.oneId}</td><td style="text-align:left">${l.lenovoId || '-'}</td><td style="text-align:left">${l.leadNo || '-'}</td><td style="text-align:left">${esc(l.name)}</td><td style="text-align:left">${fmt(l.assignedAt)}</td><td style="text-align:left">${l.assignedBy || '-'}</td><td style="text-align:left">${l.owner || '-'}</td></tr>`).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:30px">暂无分配记录</td></tr>`;
     return `<div class="card" style="padding:0;margin-bottom:14px">
       <div class="card-header" style="padding:13px 18px"><div class="card-title">分配明细</div>
         <span style="font-size:13px;color:var(--text-tertiary)">共 ${list.length} 条已分配 · 随筛选联动 · <span class="lead-link" style="text-decoration:none" onclick="leadStatClick('as')">收起 ✕</span></span></div>
-      <div style="overflow:auto"><table class="lead-src-table"><thead><tr><th style="text-align:left">ONE ID</th><th style="text-align:left">姓名</th><th style="text-align:left">Lenovo ID</th><th style="text-align:right">线索分</th><th style="text-align:left">分配时间</th><th style="text-align:left">分配给（itcode）</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+      <div style="overflow:auto"><table class="lead-src-table"><thead><tr><th style="text-align:left">ONE ID</th><th style="text-align:left">Lenovo ID</th><th style="text-align:left">线索编号</th><th style="text-align:left">姓名</th><th style="text-align:left">分配时间</th><th style="text-align:left">分配人</th><th style="text-align:left">所属IS</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }
 
   // 数据维护
   let DEF = {};
   window.leadOpenDataEdit = function () {
-    DEF = { team: 'beijing', from: '', to: '', metrics: [], values: {} };
+    DEF = { team: 'beijing', day: '', metrics: [], values: {} };
     renderDataEditModal();
   };
   function renderDataEditModal() {
@@ -1053,7 +1120,7 @@
     const valInputs = DEF.metrics.length ? `<div style="border-top:1px solid var(--border-light);margin-top:10px;padding-top:10px">${DE_METRICS.filter(m => DEF.metrics.includes(m.key)).map(m => `<div class="lead-pa-row"><span style="width:110px;font-size:13px;color:var(--text-secondary)">${m.label}${m.unit ? '(' + m.unit + ')' : ''}</span><input class="lead-inp" type="number" placeholder="增量" value="${DEF.values[m.key] || ''}" oninput="leadDEVal('${m.key}',this.value)"></div>`).join('')}</div>` : '';
     openModal('数据维护', `
       ${field('销售团队', `<label class="lead-ck"><input type="radio" name="de-team" ${DEF.team === 'chengdu' ? 'checked' : ''} onchange="leadDESet('team','chengdu')">成都IS</label> <label class="lead-ck"><input type="radio" name="de-team" ${DEF.team === 'beijing' ? 'checked' : ''} onchange="leadDESet('team','beijing')">北京IS</label>`)}
-      ${field('时间区间', `<input type="date" class="lead-inp" style="width:160px" value="${DEF.from}" onchange="leadDESet('from',this.value)"> 至 <input type="date" class="lead-inp" style="width:160px" value="${DEF.to}" onchange="leadDESet('to',this.value)">`)}
+      ${field('日期', `<input type="date" class="lead-inp" style="width:180px" value="${DEF.day}" onchange="leadDESet('day',this.value)">`)}
       ${field('维护指标', `<div style="display:flex;flex-wrap:wrap;gap:4px">${metricChecks}</div>`)}
       ${valInputs}`,
       `<button class="btn btn-sm btn-secondary" onclick="leadCloseModal()">取消</button><button class="btn btn-sm btn-primary" onclick="leadConfirmDataEdit()">保存</button>`, 560);
@@ -1063,10 +1130,9 @@
   window.leadDEVal = function (k, v) { DEF.values[k] = v; };
   window.leadConfirmDataEdit = function () {
     if (!DEF.team) return toast('请选择销售团队', 'warn');
-    if (!DEF.from || !DEF.to) return toast('请选择时间区间', 'warn');
+    if (!DEF.day) return toast('请选择日期', 'warn');
     if (!DEF.metrics.length) return toast('请选择至少一个维护指标', 'warn');
-    const days = (new Date(DEF.to) - new Date(DEF.from)) / 86400000, periodKey = kbDaysToKey(days);
-    if (!KB_TEAM_RAW[periodKey]) return toast('所选时间区间暂不支持', 'warn');
+    const periodKey = 'day';
     const teamLabel = DEF.team === 'beijing' ? '北京IS' : '成都IS';
     const opSP = SPS.find(s => s.itcode === (LEAD.role === 'leader' ? LEADER_ITCODE : SALES_ITCODE));
     const operator = opSP ? `${opSP.name}（${opSP.itcode}）` : LEAD.role;
@@ -1080,7 +1146,7 @@
       }
     });
     if (!changed.length) return toast('请填写至少一个非零增量值', 'warn');
-    LEAD.dataEditLogs.unshift({ time: new Date().toLocaleString('zh-CN', { hour12: false }), operator, team: teamLabel, period: `${DEF.from} ~ ${DEF.to}`, items: changed });
+    LEAD.dataEditLogs.unshift({ time: new Date().toLocaleString('zh-CN', { hour12: false }), operator, team: teamLabel, period: DEF.day, items: changed });
     localStorage.setItem(DE_LOGS_KEY, JSON.stringify(LEAD.dataEditLogs));
     LEAD.kbFilters.period = periodKey;
     leadCloseModal(); renderKbBody(); toast('数据已更新，图表已刷新');
@@ -1097,7 +1163,7 @@
 
   // 导出（plain=true 为明文手机号，需走审批）
   function doExportCsv(plain) {
-    const list = LEAD.sel.size > 0 ? LEAD.leads.filter(l => LEAD.sel.has(l.oneId)) : poolRows();
+    const list = LEAD.sel.size > 0 ? LEAD.leads.filter(l => LEAD.sel.has(l.rowId)) : poolRows();
     if (!list.length) { toast('暂无可导出数据', 'warn'); return false; }
     const headers = ['ONE ID', '线索编号', 'Lenovo ID', '姓名', '客户名称', '手机号', '客户分级', '产品组', '线索状态', 'Leads质量', '线索分', 'SQL金额(万)', '所属IS', '线索一级来源', '线索二级来源', '创建时间', '推送销售时间', '分配时间', '反馈时间', '转商机时间'];
     const escc = v => { const s = String(v == null ? '' : v); return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g, '""') + '"' : s; };
@@ -1150,7 +1216,7 @@
   }
 
   // ===================== 线索打分（打分模型） =====================
-  const SR_KEY = 'clue_score_rules';
+  const SR_KEY = 'clue_score_rules_v4';
   const ATTR_FIELDS = [
     { key: 'isNewProspect', label: '是否为新潜客', options: ['是', '否'] },
     { key: 'ageRange', label: '年龄', options: ['24岁以下', '24-35岁', '35岁-60岁', '60岁以上'] },
@@ -1162,31 +1228,48 @@
     { key: 'budgetCA', label: '预算（CA）', options: ['1-5台', '5-10台', '10台以上'] },
   ];
   const BEHAVIOR_FIELDS = [
-    { key: 'pageView', label: '浏览页面', target: 'select', opts: ['企业购首页', '商品详情页', '活动页', '留资页', '自定义URL'] },
-    { key: 'search', label: '搜索' }, { key: 'consultOnline', label: '在线咨询' },
-    { key: 'phoneDuration', label: '电话沟通时长', target: 'select', opts: ['小于30s', '大于30s'] },
-    { key: 'addCart', label: '加购' }, { key: 'submitUnpaid', label: '提交未支付' }, { key: 'leaveContact', label: '留资' },
-    { key: 'signUpActivity', label: '报名参与指定活动', target: 'input', ph: '活动 ID/名称' },
-    { key: 'historyCategory', label: '历史采购品类', target: 'select', opts: ['主机', '选件', '服务'] },
-    { key: 'companyRegistIncomplete', label: '企业注册未完成' }, { key: 'clickPush', label: '点击短信/push/站内信' }, { key: 'receiveCoupon', label: '领取优惠券' },
-    { key: 'notLogin', label: '未登录时长', target: 'select', opts: ['30天内', '180天内', '365天内'] },
-    { key: 'notBrowse', label: '未浏览时长', target: 'select', opts: ['30天内', '180天内', '365天内'] },
+    { key: 'consultCount', label: '在线咨询次数', target: 'select', opts: ['1次', '2-3次', '4-7次', '7次以上'], noCount: true },
+    { key: 'phoneDuration', label: '电话沟通时长', target: 'select', opts: ['小于30s', '大于30s'], noCount: true },
+    { key: 'addCart', label: '加购', target: 'select', opts: ['是', '否'], noCount: true },
+    { key: 'submitUnpaid', label: '提交未支付', target: 'select', opts: ['是', '否'], noCount: true },
+    { key: 'leaveContact', label: '留资', target: 'select', opts: ['是', '否'], noCount: true },
+    { key: 'signUpActivity', label: '报名参与指定活动', target: 'select', opts: ['是', '否'], noCount: true },
+    { key: 'historyCategory', label: '历史采购过品类', target: 'select', opts: ['主机', '选件', '服务'], noCount: true },
+    { key: 'companyRegistIncomplete', label: '企业注册未完成', target: 'select', opts: ['是'], noCount: true },
+    { key: 'pageView', label: '页面浏览', sub: ['企业购', '惠采', '活动页', '留资页面', '自定义页面'], url: true, countMode: 'visit' },
+    { key: 'productDetail', label: '商详页浏览', code: true, countMode: 'dwell' },
+    { key: 'search', label: '搜索', sub: ['搜索页面'], url: true, countMode: 'search' },
+    { key: 'touch', label: '触达', sub: ['点击短信', '点击push', '点击站内信'], countMode: 'click' },
+    { key: 'coupon', label: '领取', sub: ['领取优惠券'], countMode: 'receive' },
+    { key: 'login', label: '登录', countMode: 'login' },
+    { key: 'noOpportunity', label: '销售经理确认无商机/无经营必要' },
   ];
   const ATTR_OPS = [{ value: 'eq', label: '等于' }, { value: 'ne', label: '不等于' }];
   const COUNT_OPS = [{ value: 'eq', label: '=' }, { value: 'gte', label: '≥' }, { value: 'lte', label: '≤' }];
   const attrField = k => ATTR_FIELDS.find(f => f.key === k) || ATTR_FIELDS[0];
   const behField = k => BEHAVIOR_FIELDS.find(f => f.key === k) || BEHAVIOR_FIELDS[0];
-  const srReqTarget = k => !!behField(k).target;
+  const srReqTarget = k => { const f = behField(k); return !!(f.url || f.code); }; // 需填 url/编码
   const DEFAULT_RULES = [
-    { name: '潜客 + 浏览商品', kind: 'add', score: 10, cap: 3, enabled: true, attrLogic: 'and', attrConditions: [{ field: 'isNewProspect', op: 'eq', value: '是' }], groupLogic: 'and', behaviorConditions: [{ dateRange: null, verb: 'did', behavior: 'pageView', target: '商品详情页', countOp: 'gte', count: 1 }] },
-    { name: '长期未登录', kind: 'sub', score: 5, cap: 1, enabled: true, attrLogic: 'and', attrConditions: [], groupLogic: 'and', behaviorConditions: [{ dateRange: null, verb: 'did', behavior: 'notLogin', target: '180天内', countOp: 'eq', count: 1 }] },
+    { name: '潜客 + 浏览商品详情', kind: 'add', score: 10, cap: 3, enabled: true, attrLogic: 'and', attrConditions: [{ field: 'isNewProspect', op: 'eq', value: '是' }], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', verb: 'did', behavior: 'productDetail', sub: '', target: '10001234', count: '30', device: 'PC端' }] },
+    { name: '长期未登录', kind: 'sub', score: 5, cap: 1, enabled: true, attrLogic: 'and', attrConditions: [], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', verb: 'not', behavior: 'login', sub: '', target: '', count: '180', device: 'PC端' }] },
   ];
   LEAD.scoreRules = ((JSON.parse(localStorage.getItem(SR_KEY) || 'null')) || DEFAULT_RULES).map((r, i) => Object.assign({ id: 'SR-' + (Date.now() + i), createdAt: Date.now() + i }, r));
   LEAD.srf = null; LEAD.srEditId = null;
   function saveScoreRules() { localStorage.setItem(SR_KEY, JSON.stringify(LEAD.scoreRules)); }
   function makeAttrCond() { return { field: ATTR_FIELDS[0].key, op: 'eq', value: ATTR_FIELDS[0].options[0] }; }
-  function makeBehCond() { return { dateRange: null, verb: 'did', behavior: 'pageView', target: '商品详情页', countOp: 'eq', count: 1 }; }
-  function blankRuleForm() { return { name: '', kind: 'add', score: '', cap: '', attrLogic: 'and', attrConditions: [makeAttrCond()], groupLogic: 'and', behaviorConditions: [makeBehCond()] }; }
+  function makeBehCond() { const b = BEHAVIOR_FIELDS[0]; return { dayFrom: '', dayTo: '', verb: 'did', behavior: b.key, sub: b.sub ? b.sub[0] : (b.opts ? b.opts[0] : ''), target: '', count: '', device: 'PC端' }; }
+  // 计数动作词
+  const COUNT_WORD = { visit: '每访问', search: '每搜索', click: '每点击', receive: '每领取' };
+  // 条件「计数/天数」可读文案
+  function condCountText(c) {
+    const bf = behField(c.behavior);
+    if (bf.noCount || bf.key === 'noOpportunity') return '';
+    if (bf.key === 'login') return ` 距离最近一次登录 ${c.count || 'N'} 天内`;
+    if (c.verb === 'not') return bf.key === 'pageView' ? ` 距离最近一次浏览 ${c.count || 'N'} 天内` : ''; // 未做过：仅页面浏览展示天数，其余不展示
+    if (bf.countMode === 'dwell') return ` ${c.device || 'PC端'}每 ${c.count || 'N'}s`;
+    return ` ${COUNT_WORD[bf.countMode] || '每发生'} ${c.count || 'N'} 次`;
+  }
+  function blankRuleForm() { return { name: '', kind: 'add', score: '', cap: '', attrLogic: 'and', attrConditions: [makeAttrCond()], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [makeBehCond()] }; }
 
   function renderCondText(rule) {
     const opT = o => o === 'ne' ? '≠' : '=';
@@ -1198,10 +1281,13 @@
     }
     if (rule.behaviorConditions && rule.behaviorConditions.length) {
       const bp = rule.behaviorConditions.map(c => {
-        const dt = c.dateRange && c.dateRange[0] ? `${c.dateRange[0]} 至 ${c.dateRange[1] || c.dateRange[0]} 内 ` : '';
+        const bf = behField(c.behavior);
+        const dayT = (c.dayFrom || c.dayTo) ? `${c.dayFrom || ''}~${c.dayTo || ''} ` : '';
+        const verbT = c.verb === 'not' ? '未做过 ' : '做过 ';
+        const subT = c.sub ? c.sub : '';
         const tg = c.target ? `"${c.target}"` : '';
-        return `${dt}${behField(c.behavior).label}${tg} 次数 ${cntT(c.countOp)} ${c.count} 次`;
-      }).join(' 且 ');
+        return `${dayT}${verbT}${bf.label}${subT ? '·' + subT : ''}${tg}${condCountText(c)}`;
+      }).join(rule.behaviorLogic === 'or' ? ' 或 ' : ' 且 ');
       parts.push(`(${bp})`);
     }
     if (!parts.length) return '—';
@@ -1210,18 +1296,17 @@
 
   // 渲染：线索打分页
   function renderScore() {
-    const header = `<div class="lead-0615-page lead-score-page"><div class="page-header">
+    const header = `<div class="page-header">
         <div><div class="page-title">打分模型</div><div class="page-desc">企业客户管理 · 线索打分规则配置（加分 / 减分规则；停用规则不计入满分）</div></div>
       </div>`;
     if (LEAD.role !== 'ops') {
-      return header + `<div class="empty-state"><div class="title">仅运营可查看与操作</div><div>打分模型配置权限仅对运营开放。</div></div></div>`;
+      return header + `<div class="empty-state"><div class="title">仅运营可查看与操作</div><div>打分模型配置权限仅对运营开放。</div></div>`;
     }
     return header + `
       <div id="lead-score-stats"></div>
       <div id="lead-score-toolbar"></div>
       <div id="lead-score-add"></div>
-      <div id="lead-score-sub"></div>
-      </div>`;
+      <div id="lead-score-sub"></div>`;
   }
   function scoreStatsHtml() {
     const rules = LEAD.scoreRules;
@@ -1288,27 +1373,42 @@
       <button class="lead-abtn dan" ${(f.attrConditions.length === 1 && f.behaviorConditions.length === 0) ? 'disabled' : ''} onclick="leadSRAttrDel(${i})">×</button></div>`).join('');
     const behRows = f.behaviorConditions.map((c, i) => {
       const bf = behField(c.behavior);
-      let targetCtl = '';
-      if (bf.target === 'select') targetCtl = `<select class="lead-inp" style="flex:1" onchange="leadSRBeh(${i},'target',this.value)"><option value="">请选择</option>${bf.opts.map(o => `<option ${c.target === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
-      else if (bf.target === 'input') targetCtl = `<input class="lead-inp" style="flex:1" placeholder="${bf.ph || ''}" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">`;
-      const d0 = c.dateRange && c.dateRange[0] ? c.dateRange[0] : '';
-      const d1 = c.dateRange && c.dateRange[1] ? c.dateRange[1] : '';
+      const hasVerb = !(bf.noCount || bf.key === 'noOpportunity'); // 是否有计数控件
+      // 做过/未做过 下拉（所有行为都展示）
+      const verbCtl = `<select class="lead-inp" style="width:96px;flex:none" onchange="leadSRBeh(${i},'verb',this.value)"><option value="did" ${c.verb !== 'not' ? 'selected' : ''}>做过</option><option value="not" ${c.verb === 'not' ? 'selected' : ''}>未做过</option></select>`;
+      // 行为
+      const behSel = `<select class="lead-inp" style="min-width:170px" onchange="leadSRBehField(${i},this.value)">${BEHAVIOR_FIELDS.map(b => `<option value="${b.key}" ${c.behavior === b.key ? 'selected' : ''}>${b.label}</option>`).join('')}</select>`;
+      // 子选项：noCount 用 opts 绑 target（未做过时不展示取值条件）；页面类用 sub 绑 sub
+      let subCtl = '';
+      if (bf.noCount && bf.opts) subCtl = (c.verb === 'not') ? '' : `<select class="lead-inp" style="min-width:120px" onchange="leadSRBeh(${i},'target',this.value)"><option value="">请选择</option>${bf.opts.map(o => `<option ${c.target === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+      else if (bf.sub) subCtl = `<select class="lead-inp" style="min-width:120px" onchange="leadSRBeh(${i},'sub',this.value)">${bf.sub.map(o => `<option ${c.sub === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+      // url / 商品编码 输入（加长）
+      let inputCtl = '';
+      if (bf.url) inputCtl = `<input class="lead-inp" style="flex:1;min-width:280px" placeholder="请输入url" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">`;
+      else if (bf.code) inputCtl = `<input class="lead-inp" style="flex:1;min-width:320px" placeholder="请输入商品编码，多个用英文,隔开" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">`;
+      // 日期区间（每条行为条件）
+      const dayCtl = `<input type="date" class="lead-inp" style="width:140px;flex:none" value="${c.dayFrom || ''}" onchange="leadSRBeh(${i},'dayFrom',this.value)"><span style="color:var(--text-tertiary);font-size:12px">至</span><input type="date" class="lead-inp" style="width:140px;flex:none" value="${c.dayTo || ''}" onchange="leadSRBeh(${i},'dayTo',this.value)">`;
+      // 计数/天数 控件（登录恒为天数；未做过仅页面浏览展示天数，其余不展示）
+      const cntInput = (key, val, ph) => `<input class="lead-inp" type="number" min="1" style="width:90px;flex:none" placeholder="${ph || 'N'}" value="${val}" oninput="leadSRBeh(${i},'${key}',this.value)">`;
+      let countCtl = '';
+      if (hasVerb) {
+        if (bf.key === 'login') {
+          countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">距离最近一次登录</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">天内</span></div>`;
+        } else if (c.verb === 'not') {
+          if (bf.key === 'pageView') countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">距离最近一次浏览</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">天内</span></div>`;
+          // 其余行为：未做过不展示计数筛选
+        } else if (bf.countMode === 'dwell') {
+          countCtl = `<div class="lead-pa-row" style="margin-left:0"><select class="lead-inp" style="width:auto;min-width:96px" onchange="leadSRBeh(${i},'device',this.value)"><option ${c.device !== 'WAP端' ? 'selected' : ''}>PC端</option><option ${c.device === 'WAP端' ? 'selected' : ''}>WAP端</option></select><span style="font-size:13px;color:var(--text-secondary)">每</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">s</span></div>`;
+        } else {
+          countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">${COUNT_WORD[bf.countMode] || '每发生'}</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">次</span></div>`;
+        }
+      }
       return `<div class="lead-beh-row">
         <div class="lead-pa-row">
-          <input type="date" class="lead-inp" style="flex:1" value="${d0}" onchange="leadSRBehDate(${i},0,this.value)">
-          <span style="color:var(--text-tertiary);font-size:12px">至</span>
-          <input type="date" class="lead-inp" style="flex:1" value="${d1}" onchange="leadSRBehDate(${i},1,this.value)">
-          <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">做过</span>
-          <select class="lead-inp" style="flex:1.2" onchange="leadSRBehField(${i},this.value)">${BEHAVIOR_FIELDS.map(b => `<option value="${b.key}" ${c.behavior === b.key ? 'selected' : ''}>${b.label}</option>`).join('')}</select>
-          ${targetCtl}
+          ${dayCtl}${verbCtl}${behSel}${subCtl}${inputCtl}
           <button class="lead-abtn dan" ${(f.behaviorConditions.length === 1 && f.attrConditions.length === 0) ? 'disabled' : ''} onclick="leadSRBehDel(${i})">×</button>
         </div>
-        <div class="lead-pa-row" style="margin-left:0">
-          <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">总次数</span>
-          <select class="lead-inp" style="width:80px;flex:none" onchange="leadSRBeh(${i},'countOp',this.value)">${COUNT_OPS.map(o => `<option value="${o.value}" ${c.countOp === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}</select>
-          <input class="lead-inp" type="number" min="1" style="width:120px;flex:none" value="${c.count}" oninput="leadSRBeh(${i},'count',this.value)">
-          <span style="font-size:13px;color:var(--text-secondary)">次</span>
-        </div></div>`;
+        ${countCtl}</div>`;
     }).join('');
     const body = `
       <div style="display:flex;gap:12px">
@@ -1325,7 +1425,7 @@
       </div>
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0"><span style="font-size:12px;color:var(--text-secondary)">属性组与行为组之间</span>${srSeg(f.groupLogic, 'groupLogic')}</div>
       <div class="lead-cond-group">
-        <div class="lead-cond-head"><span>用户行为</span><button class="btn btn-sm btn-secondary" style="margin-left:auto" onclick="leadSRBehAdd()">+ 添加</button></div>
+        <div class="lead-cond-head"><span>用户行为</span>${f.behaviorConditions.length > 1 ? `<span style="font-weight:400;color:var(--text-secondary);font-size:12px">组内</span>${srSeg(f.behaviorLogic, 'behaviorLogic')}` : ''}<button type="button" class="btn btn-sm btn-secondary" style="margin-left:auto" onclick="leadSRBehAdd()">+ 添加</button></div>
         ${behRows || '<div style="font-size:12px;color:var(--text-tertiary);padding:4px 0">暂无行为条件</div>'}
       </div>`;
     openModal(LEAD.srEditId ? '编辑规则' : '新增规则', body, `<button class="btn btn-sm btn-secondary" onclick="leadSRReset()">重置</button><button class="btn btn-sm btn-primary" onclick="leadScoreConfirm()">确认</button>`, 720);
@@ -1336,8 +1436,13 @@
   window.leadSRAttrField = function (i, v) { const c = LEAD.srf.attrConditions[i]; c.field = v; c.value = attrField(v).options[0]; renderRuleModal(); };
   window.leadSRAttrAdd = function () { LEAD.srf.attrConditions.push(makeAttrCond()); renderRuleModal(); };
   window.leadSRAttrDel = function (i) { LEAD.srf.attrConditions.splice(i, 1); renderRuleModal(); };
-  window.leadSRBeh = function (i, k, v) { LEAD.srf.behaviorConditions[i][k] = v; };
-  window.leadSRBehField = function (i, v) { const c = LEAD.srf.behaviorConditions[i]; c.behavior = v; c.target = ''; renderRuleModal(); };
+  window.leadSRBeh = function (i, k, v) { LEAD.srf.behaviorConditions[i][k] = v; if (k === 'verb') renderRuleModal(); };
+  window.leadSRBehField = function (i, v) {
+    const c = LEAD.srf.behaviorConditions[i], bf = behField(v);
+    c.behavior = v; c.target = ''; c.count = ''; c.device = 'PC端';
+    c.sub = bf.sub ? bf.sub[0] : (bf.opts ? bf.opts[0] : '');
+    renderRuleModal();
+  };
   window.leadSRBehDate = function (i, idx, v) { const c = LEAD.srf.behaviorConditions[i]; let dr = c.dateRange ? c.dateRange.slice() : ['', '']; dr[idx] = v; c.dateRange = (dr[0] || dr[1]) ? dr : null; };
   window.leadSRBehAdd = function () { LEAD.srf.behaviorConditions.push(makeBehCond()); renderRuleModal(); };
   window.leadSRBehDel = function (i) { LEAD.srf.behaviorConditions.splice(i, 1); renderRuleModal(); };
@@ -1351,10 +1456,21 @@
     if (!Number.isInteger(cap) || cap < 1) return toast('累计次数上限需为 ≥1 的整数', 'warn');
     if (f.attrConditions.length === 0 && f.behaviorConditions.length === 0) return toast('至少添加 1 条属性或行为条件', 'warn');
     for (const c of f.behaviorConditions) {
-      if (srReqTarget(c.behavior) && !c.target) return toast(`行为「${behField(c.behavior).label}」需选择/填写对象`, 'warn');
-      const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast('行为总次数需为 ≥1 的整数', 'warn');
+      const bf = behField(c.behavior);
+      if ((bf.url || bf.code) && !c.target) return toast(`行为「${bf.label}」需填写${bf.code ? '商品编码' : 'URL'}`, 'warn');
+      if (bf.noCount || bf.key === 'noOpportunity') continue;
+      if (bf.key === 'login') {
+        const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast('登录请填写天数（≥1 整数）', 'warn');
+      } else if (c.verb === 'not') {
+        if (bf.key === 'pageView') { const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast('页面浏览（未做过）请填写天数（≥1 整数）', 'warn'); }
+        // 其余行为未做过不需计数
+      } else if (bf.countMode === 'dwell') {
+        if (!(Number(c.count) >= 1)) return toast('请填写商详页停留时长(秒)', 'warn');
+      } else {
+        const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast(`行为「${bf.label}」请填写次数（≥1 整数）`, 'warn');
+      }
     }
-    const payload = { name: f.name.trim(), kind: f.kind, score, cap, attrLogic: f.attrLogic, attrConditions: f.attrConditions.map(c => ({ ...c })), groupLogic: f.groupLogic, behaviorConditions: f.behaviorConditions.map(c => ({ ...c, count: Number(c.count) })) };
+    const payload = { name: f.name.trim(), kind: f.kind, score, cap, attrLogic: f.attrLogic, attrConditions: f.attrConditions.map(c => ({ ...c })), groupLogic: f.groupLogic, behaviorConditions: f.behaviorConditions.map(c => ({ ...c })) };
     if (LEAD.srEditId) {
       const idx = LEAD.scoreRules.findIndex(r => r.id === LEAD.srEditId);
       if (idx >= 0) LEAD.scoreRules[idx] = Object.assign({}, LEAD.scoreRules[idx], payload);
@@ -1392,6 +1508,7 @@
     .lead-pill:hover{border-color:var(--primary);color:var(--primary)}
     .lead-pill.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:500}
     .lead-date{width:148px}
+    .lead-ro-box{height:36px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--text)}
     .lead-pill-tag{font-size:12px;color:var(--text-tertiary);padding:0 8px;height:24px;line-height:24px;border-radius:var(--radius);border:1px dashed var(--border)}
     .lead-pill-tag.on{color:var(--primary);border-color:var(--primary);border-style:solid;background:var(--primary-light)}
     .lead-fl{font-size:13px;color:var(--text-secondary);white-space:nowrap}
@@ -1437,6 +1554,12 @@
     .lead-table thead th{position:sticky;top:0;z-index:2;background:var(--bg);padding:0 12px;height:40px;text-align:left;font-weight:500;color:var(--text-secondary);font-size:12px;border-bottom:1px solid var(--border)}
     .lead-table tbody td{padding:0 12px;height:44px;border-bottom:1px solid var(--border-light);color:var(--text);text-align:left;font-weight:400}
     .lead-table tbody td .badge{font-weight:400}
+    /* 操作列按钮统一高度/对齐：查看详情/反馈线索/转商机 等高，均带可见边框 */
+    .lead-table td .btn{height:28px;min-height:28px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;border-width:1px;border-style:solid;box-sizing:border-box}
+    .lead-table td .btn-secondary{border-color:var(--border);background:var(--card-bg);color:var(--text)}
+    .lead-table td .btn-secondary:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+    .lead-table td .btn-primary{border-color:var(--primary)}
+    .lead-table td .btn + .btn{margin-left:6px}
     .lead-table tbody tr:hover td{background:var(--primary-light)}
     .lead-table tbody tr.sel td{background:var(--primary-light)}
     .lead-sort{cursor:pointer}.lead-sort:hover{color:var(--primary)}
@@ -1461,7 +1584,9 @@
     textarea.lead-inp{height:auto;padding:8px 10px;resize:vertical}
     .lead-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
     .lead-inp:disabled{background:var(--bg);color:var(--text-tertiary)}
-    .lead-pa-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .lead-pa-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+    .lead-beh-row .lead-inp{box-sizing:border-box}
+    .lead-beh-row select.lead-inp{width:auto}
     /* 线索打分：条件构建器 + 表行置灰 */
     .lead-cond-group{border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)}
     .lead-cond-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text)}
