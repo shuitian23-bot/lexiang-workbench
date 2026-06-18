@@ -17,6 +17,7 @@ registry.load();
 const app = express();
 app.set('trust proxy', 1);
 app.set('etag', false);  // 全局禁 ETag，防 304 命中旧 SPA 缓存
+app.use(require('compression')());  // gzip 压缩 JS/CSS/HTML（app.js 337KB→~75KB，慢网提速）
 const PORT = parseInt(process.env.PORT) || 3001;
 
 app.use(express.json({
