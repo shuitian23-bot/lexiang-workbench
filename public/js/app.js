@@ -1964,7 +1964,10 @@
           const pool = await lxEnsureFloorProducts(site, 120);
           let feedSections = [];
           try {
-            const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store" });
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2500);
+            const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store", signal: controller.signal });
+            clearTimeout(timer);
             const feed = await response.json();
             feedSections = Array.isArray(feed.sections) ? feed.sections : [];
           } catch {}
