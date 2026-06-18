@@ -62,6 +62,11 @@
           },
           // 退全屏 + 右侧显示商品/页面
           revealProducts: function(products, opts) {
+            // 若当前在首页（URL=/），原地展开分屏而不跳 /shop-chat/
+            if (state.page === "home" || !state.page || document.body.dataset.page === "home") {
+              document.body.classList.add("lx-home-split");
+              document.body.dataset.state = "chat";
+            }
             lxRevealContent();
             if (products && products.length === 1 && products[0] && products[0].sku) {
               openProduct(products[0].sku);
@@ -2680,6 +2685,8 @@
             if (state.autoFs) lxSetAutoFs(false);
             else document.body.classList.remove("assistant-fullscreen");
           }
+          // 若已进入首页原地分屏模式，布局已就位，跳过 routeTo 避免 URL 变化
+          if (document.body.classList.contains("lx-home-split")) return;
           if (state.page === "home" || !state.page) routeTo("personal");
         }
 
@@ -4771,10 +4778,22 @@
   // 分屏→全屏回退：关空右侧 tab 时带入主面板对话回全屏
   window.__lxfdEnterFromSplit = function() {
     if (thread) thread.innerHTML = "";
+    // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
+    document.body.classList.remove("lx-home-split");
+    if (document.body.dataset.page === "home") {
+      const content = document.querySelector(".content");
+      if (content) content.setAttribute("data-view", "home");
+    }
     enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
   };
   // 新建对话回全屏欢迎态
   window.__lxfdNewFullscreen = function() {
+    // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
+    document.body.classList.remove("lx-home-split");
+    if (document.body.dataset.page === "home") {
+      const content = document.querySelector(".content");
+      if (content) content.setAttribute("data-view", "home");
+    }
     resetConversation(true);
     enterFullscreen();
   };
