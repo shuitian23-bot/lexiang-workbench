@@ -62,9 +62,14 @@
           },
           // 退全屏 + 右侧显示商品/页面
           revealProducts: function(products, opts) {
-            // 若当前在首页（URL=/），原地展开分屏而不跳 /shop-chat/
+            // 若当前在首页（URL=/），原地展开分屏而不跳 /shop-chat/。
+            // 复用 /shop-chat/ 那套已在所有人缓存里的成熟分屏布局：把 data-page 切到 personal（仅改 CSS 布局，
+            // 不 pushState、不改 URL、不点导航——顶部仍高亮"首页"、网址仍是 /）。免疫 main.css 新规则的缓存问题。
             if (state.page === "home" || !state.page || document.body.dataset.page === "home") {
+              // 移除首页预绘制类：它用 !important 把整个 .shell 藏死（仅为开屏直接显示全屏对话），不移除分屏永远撑不开
+              document.documentElement.classList.remove("lx-root-lxfd-prepaint");
               document.body.classList.add("lx-home-split");
+              document.body.dataset.page = "personal";
               document.body.dataset.state = "chat";
             }
             lxRevealContent();
@@ -4779,21 +4784,25 @@
   window.__lxfdEnterFromSplit = function() {
     if (thread) thread.innerHTML = "";
     // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
-    document.body.classList.remove("lx-home-split");
-    if (document.body.dataset.page === "home") {
-      const content = document.querySelector(".content");
-      if (content) content.setAttribute("data-view", "home");
+    // 还原首页：从 personal 布局切回 home + 复原首页内容视图（与 revealProducts 的 data-page=personal 对应）
+    if (document.body.classList.contains("lx-home-split")) {
+      document.body.dataset.page = "home";
+      const _c = document.querySelector(".content");
+      if (_c) _c.setAttribute("data-view", "home");
     }
+    document.body.classList.remove("lx-home-split");
     enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
   };
   // 新建对话回全屏欢迎态
   window.__lxfdNewFullscreen = function() {
     // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
-    document.body.classList.remove("lx-home-split");
-    if (document.body.dataset.page === "home") {
-      const content = document.querySelector(".content");
-      if (content) content.setAttribute("data-view", "home");
+    // 还原首页：从 personal 布局切回 home + 复原首页内容视图（与 revealProducts 的 data-page=personal 对应）
+    if (document.body.classList.contains("lx-home-split")) {
+      document.body.dataset.page = "home";
+      const _c = document.querySelector(".content");
+      if (_c) _c.setAttribute("data-view", "home");
     }
+    document.body.classList.remove("lx-home-split");
     resetConversation(true);
     enterFullscreen();
   };
