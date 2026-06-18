@@ -1889,6 +1889,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   background:#fff;
 }
 .skill-package-action-panel { margin-bottom:14px; }
+.skill-package-action-panel:not(:empty) { margin-top:14px; clear:both; }
 .skill-action-panel-card {
   background:#fff; border:1px solid #c9d8ff; border-radius:8px; padding:16px; box-shadow:0 8px 22px rgba(51,112,255,0.08);
 }
