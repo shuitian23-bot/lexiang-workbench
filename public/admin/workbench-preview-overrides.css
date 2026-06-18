@@ -119,10 +119,12 @@ html[data-product="leaibot"] .nav-item.active .menu-icon {
 /* Shell rhythm */
 html[data-product="leaibot"] .sidebar {
   border-right-color: var(--color-border);
+  position: relative;
 }
 
 html[data-product="leaibot"] .sidebar-header {
   min-height: 48px;
+  overflow: visible;
 }
 
 html[data-product="leaibot"] .sidebar-header .logo-full {
@@ -2442,6 +2444,25 @@ html[data-product="leaibot"] .sidebar-collapse-btn svg {
   stroke-width: 1.65;
 }
 
+html[data-product="leaibot"] .sidebar:not(.collapsed) .sidebar-collapse-btn {
+  position: absolute;
+  top: 44px;
+  right: -12px;
+  z-index: 12;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin-left: 0;
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, .10);
+}
+
+html[data-product="leaibot"] .sidebar:not(.collapsed) .sidebar-collapse-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
 html[data-product="leaibot"] .sidebar.collapsed .sidebar-header {
   min-height: 56px;
   padding: 8px 0;
@@ -2479,19 +2500,7 @@ html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn svg {
   height: 13px;
 }
 
-html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-arrow-left {
-  display: block !important;
-}
-
-html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-arrow-right {
-  display: none !important;
-}
-
-html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn .sidebar-arrow-left {
-  display: none !important;
-}
-
-html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn .sidebar-arrow-right {
+html[data-product="leaibot"] .sidebar-collapse-btn .sidebar-arrow {
   display: block !important;
 }
 

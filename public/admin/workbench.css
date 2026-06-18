@@ -94,9 +94,7 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,'PingF
   transition:all 0.15s; flex-shrink:0; padding:0;
 }
 .sidebar-collapse-btn:hover { background:var(--bg); color:var(--text); }
-.sidebar-collapse-btn .sidebar-arrow-right { display:none; }
-.sidebar.collapsed .sidebar-collapse-btn .sidebar-arrow-left { display:none; }
-.sidebar.collapsed .sidebar-collapse-btn .sidebar-arrow-right { display:block; }
+.sidebar-collapse-btn .sidebar-arrow { display:block; }
 
 /* Sidebar collapsed state */
 .sidebar.collapsed { width:56px; }
