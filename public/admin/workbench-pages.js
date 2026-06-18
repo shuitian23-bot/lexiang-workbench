@@ -1085,7 +1085,6 @@ function renderAgentSkillsManager(options = {}) {
           <div class="skill-page-toolbar">
             <div class="skill-page-tabs">${tabs}</div>
             <div class="skill-page-toolbar-actions">
-              <button class="btn btn-primary skill-package-only-action" onclick="openSkillPackageAction('新技能包申请', 'requestable', '申请')">申请技能包</button>
               <input class="skill-page-search" placeholder="搜索技能包名称、分类或用途" oninput="searchSkillCards(this.value)">
             </div>
           </div>
