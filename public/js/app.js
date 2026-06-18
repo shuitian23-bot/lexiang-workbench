@@ -49,6 +49,42 @@
         };
         window.__lxState = state;
 
+        // ── 双对话桥接接口（lxfd IIFE ↔ 主面板 IIFE 跨作用域通信） ────────────
+        window.__lxBridge = {
+          // 把 lxfd 收集的消息写进主面板对话列表
+          importConversation: function(messages, convId) {
+            const list = ensureChat();
+            list.innerHTML = "";
+            messages.forEach(function(m) {
+              addMessage(m.role, m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
+            });
+            if (convId) state.convId = convId;
+          },
+          // 退全屏 + 右侧显示商品/页面
+          revealProducts: function(products, opts) {
+            lxRevealContent();
+            if (products && products.length === 1 && products[0] && products[0].sku) {
+              openProduct(products[0].sku);
+              return;
+            }
+            if (products && products.length) {
+              const recoTab = {
+                id: "reco",
+                kind: "reco",
+                label: (opts && opts.title) || "AI 推荐",
+                products: products,
+                grouped: !!(opts && opts.grouped)
+              };
+              lxUpsertTab(recoTab);
+              lxRunTab(recoTab);
+            }
+          },
+          // 退出全屏（带动画）
+          exitFullscreen: function() { lxSetAutoFs(false); },
+          // 当前是否有右侧 tab
+          hasTabs: function() { return !!(state.tabs && state.tabs.length > 0); }
+        };
+
         const $ = (sel, root = document) => root.querySelector(sel);
         const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
         const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({
@@ -1242,7 +1278,17 @@
           }
           updateUploadNote();
           renderQueryHistory();
-          toast("已新建对话");
+          // 若分屏态新建对话，回全屏欢迎页
+          if (!document.body.classList.contains("assistant-fullscreen") &&
+              typeof window.__lxfdNewFullscreen === "function") {
+            state.tabs = [];
+            state.activeTabId = null;
+            lxRenderTabbar();
+            document.querySelector(".content")?.setAttribute("data-view", "list");
+            window.__lxfdNewFullscreen();
+          } else {
+            toast("已新建对话");
+          }
         }
 
         async function sendChat(message) {
@@ -2725,6 +2771,12 @@
             if (next) lxRunTab(next);
           }
           lxRenderTabbar();
+          // 关掉最后一个 tab 且当前在分屏 → 回全屏并带入对话
+          if ((state.tabs || []).length === 0 &&
+              !document.body.classList.contains("assistant-fullscreen") &&
+              typeof window.__lxfdEnterFromSplit === "function") {
+            window.__lxfdEnterFromSplit();
+          }
         }
 
         // AI 文本中的链接转可点卡片：联想商品链接→右侧打开商详，其他链接→新窗口
@@ -4286,6 +4338,21 @@
     }
     return true;
   }
+  // ── 能力 C：把 lxfd 当前对话导出到主面板 ──────────────────────────────────
+  function lxfdExportToMain() {
+    if (!thread || !window.__lxBridge) return;
+    const messages = [];
+    thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai").forEach(function(el) {
+      if (el.classList.contains("lxfd-msg-user")) {
+        messages.push({ role: "user", text: el.textContent.trim(), html: "" });
+      } else {
+        const body = el.querySelector(".lxfd-ai-body");
+        messages.push({ role: "ai", text: "", html: body ? body.innerHTML : el.innerHTML });
+      }
+    });
+    if (!messages.length) return;
+    window.__lxBridge.importConversation(messages, chatState.convId);
+  }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
   }
@@ -4565,6 +4632,10 @@
   async function submit(text) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
+    // 本轮桥接状态（全屏→分屏）
+    let turnProducts = null;
+    let turnTitle = "";
+    let turnGrouped = false;
     setFullscreen(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
@@ -4637,6 +4708,8 @@
           if (!products.length) return;
           revealAi();
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
+          // 记录本轮商品以便 done 时桥接到主面板
+          turnProducts = products;
         },
         display: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -4645,6 +4718,12 @@
           revealAi();
           if (payload.title && ai._textBox && !ai._textBox.textContent.trim()) ai._textBox.textContent = payload.title;
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
+          // 记录本轮商品及展示元信息以便 done 时桥接到主面板
+          if (products.length) {
+            turnProducts = products;
+            turnTitle = payload.title || "";
+            turnGrouped = !!payload.grouped;
+          }
         },
         suggestions: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -4658,6 +4737,16 @@
           if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
           lxfdPersistCurrent();
           lxfdRenderHist();
+          // 全屏→分屏桥接：本轮有商品且当前仍处于全屏态 → 搬对话到主面板+退全屏+右侧展示
+          if (turnProducts && turnProducts.length &&
+              document.body.classList.contains("assistant-fullscreen") &&
+              window.__lxBridge) {
+            lxfdExportToMain();
+            window.__lxBridge.exitFullscreen();
+            window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+            // 清空 lxfd thread，下次回全屏会从主面板重新 import
+            if (thread) thread.innerHTML = "";
+          }
         }
       });
       if (nonce !== chatState.conversationNonce) return;
@@ -4679,6 +4768,16 @@
 
   window.lxfdSubmit = submit;
   window.lxfdReset = resetConversation;
+  // 分屏→全屏回退：关空右侧 tab 时带入主面板对话回全屏
+  window.__lxfdEnterFromSplit = function() {
+    if (thread) thread.innerHTML = "";
+    enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
+  };
+  // 新建对话回全屏欢迎态
+  window.__lxfdNewFullscreen = function() {
+    resetConversation(true);
+    enterFullscreen();
+  };
 
   convoPill?.addEventListener("click", () => setNav(!navCluster.classList.contains("open")));
   navCluster?.addEventListener("mouseenter", () => { clearTimeout(hoverTimer); setNav(true); });
