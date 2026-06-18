@@ -205,6 +205,39 @@
         display: none;
       }
 
+      .lx-tab-menu {
+        position: fixed;
+        z-index: 200;
+        min-width: 130px;
+        padding: 6px 4px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+
+      .lx-tab-menu-item {
+        height: 36px;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #2d2931;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .lx-tab-menu-item:hover {
+        background: var(--lavender-hover, #f3f0f5);
+      }
+
+      .lx-tab-menu-item.is-disabled {
+        color: #aaa;
+        cursor: default;
+        pointer-events: none;
+      }
+
       .account-wrap:hover .account-menu,
       .account-wrap:focus-within .account-menu,
       .account-wrap .account-menu:hover,

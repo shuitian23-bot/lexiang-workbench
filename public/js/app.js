@@ -1351,7 +1351,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
-                message: (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
+                message: (state.refProduct ? `[用户正在咨询商品: ${state.refProduct.name}${state.refProduct.sku ? ` (SKU:${state.refProduct.sku})` : ""}]\n\n` : "") + (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
                 sessionId: state.convId || undefined,
                 ...(window.__lxGeo || {})
               })
@@ -3041,6 +3041,56 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             window.__lxfdEnterFromSplit();
           }
         }
+
+        // ── 标签栏右键菜单 ──
+        let _lxTabMenu = null;
+        function lxShowTabMenu(x, y, tabId) {
+          lxHideTabMenu();
+          const tabs = state.tabs || [];
+          const menu = document.createElement("div");
+          menu.className = "lx-tab-menu";
+          menu.style.left = x + "px";
+          menu.style.top = y + "px";
+          const items = [
+            { label: "关闭此标签", action: () => lxCloseTab(tabId) },
+            { label: "关闭其他标签", action: () => {
+                state.tabs = (state.tabs || []).filter((t) => t.id === tabId);
+                state.activeTabId = tabId;
+                lxRenderTabbar();
+                lxActivateTab(tabId);
+              }, disabled: tabs.length < 2 },
+            { label: "关闭全部标签", action: () => {
+                state.tabs = []; state.activeTabId = null; state.pageTrail = [];
+                lxRenderTabbar();
+                document.querySelector(".content")?.setAttribute("data-view", "list");
+                if (!document.body.classList.contains("assistant-fullscreen") &&
+                    typeof window.__lxfdEnterFromSplit === "function") {
+                  window.__lxfdEnterFromSplit();
+                }
+              } },
+          ];
+          items.forEach(({ label, action, disabled }) => {
+            const item = document.createElement("div");
+            item.className = "lx-tab-menu-item" + (disabled ? " is-disabled" : "");
+            item.textContent = label;
+            if (!disabled) item.addEventListener("click", () => { lxHideTabMenu(); action(); });
+            menu.appendChild(item);
+          });
+          document.body.appendChild(menu);
+          _lxTabMenu = menu;
+        }
+        function lxHideTabMenu() {
+          if (_lxTabMenu) { _lxTabMenu.remove(); _lxTabMenu = null; }
+        }
+        document.addEventListener("contextmenu", (e) => {
+          const tab = e.target.closest(".lx-tab");
+          if (!tab) { lxHideTabMenu(); return; }
+          e.preventDefault();
+          lxShowTabMenu(e.clientX, e.clientY, tab.dataset.tabId);
+        });
+        document.addEventListener("click", () => lxHideTabMenu(), true);
+        document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") lxHideTabMenu(); });
+        document.addEventListener("scroll", () => lxHideTabMenu(), true);
 
         // AI 文本中的链接转可点卡片：联想商品链接→右侧打开商详，其他链接→新窗口
         function lxLinkHtml(url, label) {
