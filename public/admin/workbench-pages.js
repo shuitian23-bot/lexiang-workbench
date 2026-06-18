@@ -218,7 +218,6 @@ function openSkillPackageAction(title, status, action) {
     requestable: `
       <div class="skill-action-row"><span>申请人</span><input value="${STATE.user || 'admin'}" readonly></div>
       <div class="skill-action-row"><span>申请场景</span><textarea placeholder="例如：用于每周活动复盘，需要查看渠道表现和优化建议"></textarea></div>
-      <div class="skill-action-row"><span>使用范围</span><select><option>仅本人使用</option><option>本团队使用</option><option>按业务线授权</option></select></div>
       <div class="skill-action-actions">
         <button class="btn btn-secondary" onclick="clearSkillPackageAction()">取消</button>
         <button class="btn btn-primary" onclick="submitSkillPackageAction('${title}', '申请已生成')">提交申请</button>
