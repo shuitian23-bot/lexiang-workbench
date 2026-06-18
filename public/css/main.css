@@ -7945,3 +7945,10 @@ body:not(.assistant-fullscreen) .content:has(.product-grid) > .hero::after {
   content: none !important;
   display: none !important;
 }
+
+/* Mall sticky tabs: remove the top spacer only after the tab bar sticks 2026-06-18 */
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .category-tabs.is-stuck,
+body:not(.assistant-fullscreen) .content:has(.product-grid) > .category-tabs.is-stuck {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
