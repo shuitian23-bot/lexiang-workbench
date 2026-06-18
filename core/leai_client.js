@@ -8,10 +8,14 @@ const AUTH_TTL = 20 * 60 * 1000;
 
 async function getAuth(force = false) {
   if (!force && _auth && Date.now() - _auth.at < AUTH_TTL) return _auth;
-  const res = await fetch(`${BASE}/api/user/auth?device=1`, { signal: AbortSignal.timeout(8000) });
+  // 有登录态 passport（.env LEAI_PASSPORT）→ 换认证 token（guest:false，会话持久不2轮过期）；
+  // 无/过期则官方返回 guest token，自动降级，不报错。
+  const headers = { Origin: 'https://leai.lenovo.com.cn', Referer: 'https://leai.lenovo.com.cn/' };
+  if (process.env.LEAI_PASSPORT) headers.Cookie = `cerpreg-passport=${process.env.LEAI_PASSPORT}`;
+  const res = await fetch(`${BASE}/api/user/auth?${Date.now()}&device=1`, { headers, signal: AbortSignal.timeout(8000) });
   const json = await res.json();
   if (json.rc !== 0 || !json.data?.token) throw new Error('leai auth failed: ' + (json.rm || res.status));
-  _auth = { token: json.data.token, sessionId: json.data.sessionId, at: Date.now() };
+  _auth = { token: json.data.token, sessionId: json.data.sessionId, guest: json.data.guest, at: Date.now() };
   return _auth;
 }
 
