@@ -5424,7 +5424,8 @@
         .lx-floor--member .lx-floor-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       .lx-floor-products { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: clamp(13px, 1vw, 19px); grid-column: 1 / -1; }
-      @media (min-width: 1680px) { .lx-floor-products { grid-template-columns: repeat(5, minmax(150px, 1fr)); } }
+      @media (min-width: 1720px) { .lx-floor-products { grid-template-columns: repeat(5, minmax(150px, 1fr)); } }
+      @media (min-width: 1920px) { .lx-floor-products { grid-template-columns: repeat(6, minmax(150px, 1fr)); } }
       .lx-floor-product {
         min-height: 0;
         height: auto;
@@ -7690,13 +7691,13 @@ body[data-page="home"] .agent-summary {
 .lx-personal-rec-floor .lx-floor-products{
   grid-template-columns: repeat(4, minmax(0, 1fr))!important;
 }
-@media (min-width: 1680px){
+@media (min-width: 1720px){
   .lx-floor-products,
   .lx-personal-rec-floor .lx-floor-products{
     grid-template-columns: repeat(5, minmax(0, 1fr))!important;
   }
 }
-@media (min-width: 2240px){
+@media (min-width: 1920px){
   .lx-floor-products,
   .lx-personal-rec-floor .lx-floor-products{
     grid-template-columns: repeat(6, minmax(0, 1fr))!important;
@@ -7792,8 +7793,8 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products,
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 16px !important; }
-@media (min-width: 1440px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
-@media (min-width: 1720px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
+@media (min-width: 1720px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
+@media (min-width: 1920px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
 
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product,
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card {
@@ -7903,8 +7904,8 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products,
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 16px !important; }
-@media (min-width: 1440px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
-@media (min-width: 1720px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
+@media (min-width: 1720px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
+@media (min-width: 1920px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
 
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product,
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card {

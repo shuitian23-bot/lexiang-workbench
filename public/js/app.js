@@ -1918,13 +1918,43 @@
           return picked.slice(0, count);
         }
 
+        function lxFloorColumnCount() {
+          const width = window.innerWidth || document.documentElement.clientWidth || 0;
+          if (width >= 1920) return 6;
+          if (width >= 1720) return 5;
+          return 4;
+        }
+
+        function lxFloorProductCount() {
+          return lxFloorColumnCount() * 2;
+        }
+
+        function lxUniqProducts(items) {
+          const seen = new Set();
+          return (items || []).filter((item) => {
+            const key = lxProductKey(item);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        }
+
+        function lxFillFloorProducts(items, fallback, count) {
+          const merged = lxUniqProducts([...(items || []), ...(fallback || [])]);
+          if (!merged.length) return [];
+          const output = merged.slice(0, count);
+          for (let i = 0; output.length < count && i < merged.length; i++) output.push(merged[i]);
+          return output.slice(0, count);
+        }
+
         async function lxRenderPersonalRecommendFloors() {
           const site = API_SITE.personal || "shop";
           const pool = await lxEnsureFloorProducts(site, 96);
           const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
           const used = new Set();
+          const floorCount = lxFloorProductCount();
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
-            const items = lxPickFloorProducts(source, match, used, 8);
+            const items = lxPickFloorProducts(source, match, used, floorCount);
             return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
@@ -1951,7 +1981,8 @@
               return true;
             });
           };
-          const matching = (match, source = basePool) => uniq(source.filter(match)).slice(0, 8);
+          const floorCount = lxFloorProductCount();
+          const matching = (match, source = basePool) => uniq(source.filter(match)).slice(0, floorCount);
           const serviceProducts = sectionByKey.service || [];
           const desktopProducts = uniq([...(sectionByKey.smb || []), ...(sectionByKey.tianyi || []), ...basePool]).filter((p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -1966,19 +1997,19 @@
             return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品|云智|流量|部署/i.test(text);
           });
           const floorItems = {
-            "ThinkPad": uniq([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))]).slice(0, 8),
-            "ThinkBook": uniq([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))]).slice(0, 8),
-            "Thinkplus": accessoryProducts.slice(0, 8),
-            "ThinkCentre": uniq([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts]).slice(0, 8),
-            "扬天&瑞天": uniq([...(sectionByKey.tianyi || []), ...desktopProducts]).slice(0, 8),
-            "配件&外设": accessoryProducts.slice(0, 8),
-            "服务存储": serviceStorageProducts.slice(0, 8),
-            "企业服务": uniq([...serviceProducts, ...serviceStorageProducts]).slice(0, 8),
+            "ThinkPad": lxFillFloorProducts([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, floorCount),
+            "ThinkBook": lxFillFloorProducts([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, floorCount),
+            "Thinkplus": lxFillFloorProducts(accessoryProducts, basePool, floorCount),
+            "ThinkCentre": lxFillFloorProducts([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts], basePool, floorCount),
+            "扬天&瑞天": lxFillFloorProducts([...(sectionByKey.tianyi || []), ...desktopProducts], basePool, floorCount),
+            "配件&外设": lxFillFloorProducts(accessoryProducts, basePool, floorCount),
+            "服务存储": lxFillFloorProducts(serviceStorageProducts, basePool, floorCount),
+            "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, floorCount),
           };
 
           return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
             let items = floorItems[label] || [];
-            if (!items.length) items = uniq([...(sectionByKey.smb || []), ...(sectionByKey.hot || []), ...basePool]).slice(0, 8);
+            if (!items.length) items = lxFillFloorProducts([...(sectionByKey.smb || []), ...(sectionByKey.hot || [])], basePool, floorCount);
             return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
@@ -1988,8 +2019,9 @@
           const pool = await lxEnsureFloorProducts(site, 120);
           const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
           const used = new Set();
+          const floorCount = lxFloorProductCount();
           return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
-            const items = lxPickFloorProducts(source, match, used, 8);
+            const items = lxPickFloorProducts(source, match, used, floorCount);
             return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
@@ -2179,6 +2211,17 @@
 
         document.querySelector(".content")?.addEventListener("scroll", lxSyncCategoryTabsStuck, { passive: true });
         window.addEventListener("resize", lxSyncCategoryTabsStuck);
+        let lxLastFloorProductCount = lxFloorProductCount();
+        let lxFloorResizeTimer = null;
+        window.addEventListener("resize", () => {
+          const nextCount = lxFloorProductCount();
+          if (nextCount === lxLastFloorProductCount) return;
+          lxLastFloorProductCount = nextCount;
+          clearTimeout(lxFloorResizeTimer);
+          lxFloorResizeTimer = setTimeout(() => {
+            if (["personal", "business", "enterprise"].includes(state.page) && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
+          }, 120);
+        });
 
         setInterval(() => {
           document.querySelectorAll("[data-lx-countdown]").forEach((node) => {

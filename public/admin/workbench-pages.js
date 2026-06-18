@@ -1016,10 +1016,7 @@ function renderAgentSkillsManager(options = {}) {
   const statusMeta = {
     all: { label: '全部', count: skills.length },
     available: { label: '可用的', count: skills.filter(s => s.status === 'available').length },
-    requestable: { label: '可申请的', count: skills.filter(s => s.status === 'requestable').length },
-    pending: { label: '待审批', count: skills.filter(s => s.status === 'pending').length },
-    disabled: { label: '禁用的', count: skills.filter(s => s.status === 'disabled').length },
-    admin: { label: '管理员配置', count: skills.filter(s => s.status === 'admin').length }
+    disabled: { label: '禁用的', count: skills.filter(s => s.status === 'disabled').length }
   };
   const atomicSummary = {
     all: { label: '全部能力', count: atomicAbilities.length, risks: 'all' },
@@ -1085,12 +1082,6 @@ function renderAgentSkillsManager(options = {}) {
           <div class="agent-skill-page-actions">${headerActions}</div>
         </div>
         <div class="skill-page-shell">
-          <div class="skill-page-summary skill-summary-group active" data-summary-view="packages">
-            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'available', this)"><strong>${statusMeta.available.count}</strong><span>可用技能包</span></button>
-            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'requestable', this)"><strong>${statusMeta.requestable.count}</strong><span>可申请</span></button>
-            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'pending', this)"><strong>${statusMeta.pending.count}</strong><span>待审批</span></button>
-            <button class="skill-summary-card" onclick="filterSkillSummary('package', 'disabled,admin', this)"><strong>${statusMeta.disabled.count + statusMeta.admin.count}</strong><span>禁用/配置</span></button>
-          </div>
           <div class="skill-page-toolbar">
             <div class="skill-page-tabs">${tabs}</div>
             <div class="skill-page-toolbar-actions">
