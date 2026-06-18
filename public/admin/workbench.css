@@ -276,7 +276,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   cursor:pointer; font-family:inherit;
 }
 .ai-edge-collapse:hover { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
-.ai-edge-collapse span { display:block; font-size:18px; line-height:1; font-weight:500; transform:translateY(-1px); }
+.ai-edge-collapse svg { width:15px; height:15px; display:block; }
 .ai-panel-header {
   padding:12px 16px; border-bottom:1px solid var(--border-light);
   display:flex; align-items:center; justify-content:flex-end; flex-shrink:0;

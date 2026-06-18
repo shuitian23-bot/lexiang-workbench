@@ -7095,12 +7095,11 @@ html[data-product="leaibot"] .ai-edge-collapse:hover {
   color: var(--color-primary) !important;
 }
 
-html[data-product="leaibot"] .ai-edge-collapse span {
+html[data-product="leaibot"] .ai-edge-collapse svg {
   display: block !important;
-  font-size: 18px !important;
-  line-height: 1 !important;
-  font-weight: 500 !important;
-  transform: translateY(-1px) !important;
+  width: 15px !important;
+  height: 15px !important;
+  stroke-width: 1.6 !important;
 }
 
 html[data-product="leaibot"] .page-content > .page-header {

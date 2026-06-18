@@ -6,11 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="workbench.css?v=20260618-ai-edge-collapse3">
+<link rel="stylesheet" href="workbench.css?v=20260618-ai-edge-collapse-icon1">
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
 <link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
-<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260618-ai-edge-collapse3">
+<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260618-ai-edge-collapse-icon1">
 <script>
   window.LEAIBOT_PREVIEW_MODE = /[?&](demo|preview)=1\b/.test(location.search) || location.protocol === 'file:';
   if (window.LEAIBOT_PREVIEW_MODE) {
@@ -166,7 +166,11 @@
 <div class="ai-panel" id="ai-panel">
   <div class="ai-resize-handle" id="ai-resize-handle"></div>
   <button type="button" class="ai-edge-collapse" onclick="toggleAI()" title="收起 AI 助手" aria-label="收起 AI 助手">
-    <span aria-hidden="true">&rsaquo;</span>
+    <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2.8" y="3.5" width="14.4" height="13" rx="2.4"/>
+      <line x1="12" y1="3.5" x2="12" y2="16.5"/>
+      <path d="M8.2 8 6.1 10l2.1 2"/>
+    </svg>
   </button>
   <div class="ai-panel-header">
     <div class="ai-panel-title">
