@@ -70,7 +70,7 @@ router.post('/chat', async (req, res) => {
 
 // POST /api/leai/stream — 翻译官方 SSE 为前端 chunk/status/display/done 格式
 router.post('/stream', async (req, res) => {
-  const { message, sessionId: bodySessionId, lng, lat } = req.body;
+  const { message, sessionId: bodySessionId, lng, lat, enableThinking } = req.body;
   if (!message) return res.status(400).json({ error: '缺少 message 参数' });
 
   // 门店查询官方需定位，否则卡在 get_position 等死。前端传真实经纬度则用，否则默认北京(演示)。
@@ -109,6 +109,7 @@ router.post('/stream', async (req, res) => {
         timestamp: Date.now(),
         questionType: '1',
         extendParams,
+        enableThinking: !!enableThinking,
       }),
       signal: controller.signal,
     });

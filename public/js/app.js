@@ -1353,6 +1353,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
                 // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
                 message: (state.refProduct ? `[用户正在咨询商品: ${state.refProduct.name}${state.refProduct.sku ? ` (SKU:${state.refProduct.sku})` : ""}]\n\n` : "") + (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
                 sessionId: state.convId || undefined,
+                enableThinking: !!window.__lxThinking,
                 ...(window.__lxGeo || {})
               })
             });
@@ -5091,6 +5092,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
         body: JSON.stringify({
           message: sendMsg,
           sessionId: chatState.convId || undefined,
+          enableThinking: !!window.__lxThinking,
           ...(window.__lxGeo || {})
         })
       });
@@ -5243,7 +5245,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
   $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); const id = a.dataset.conv; if (id) lxfdLoadConv(id); });
-  $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); }));
+  $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; }));
   ta?.addEventListener("input", () => { fit(); syncSend(); });
   ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
   $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
