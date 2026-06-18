@@ -2899,7 +2899,6 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           }
           const payload = lxProductRefPayload(product, card || document.querySelector(`[data-sku="${CSS.escape(sku)}"], [data-open-product="${CSS.escape(sku)}"]`));
           if (!payload?.name) return toast("商品信息获取失败");
-          lxClearProductRef();
           lxDockProductRef(payload);
         }
 
@@ -2993,7 +2992,6 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           lxCancelProductPointerDrag();
           panel?.classList.remove("armed");
           if (over) {
-            lxClearProductRef();
             lxDockProductRef(data);
           }
         }
