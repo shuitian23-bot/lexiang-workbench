@@ -85,23 +85,20 @@ router.post('/stream', async (req, res) => {
   const timer = setTimeout(() => controller.abort(), 45000);
 
   try {
-    const auth = await getAuth();
-    const sessionId = bodySessionId || auth.sessionId;
+    let auth = await getAuth();
+    let sessionId = bodySessionId || auth.sessionId;
 
-    // 先回传 sessionId，前端存为 conv_id 续接
-    res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
-
-    const upstream = await fetch(`${AIGC_BASE}/api/chat/qa`, {
+    const callQa = (token, sid) => fetch(`${AIGC_BASE}/api/chat/qa`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'text/event-stream',
-        'Authorization': `Bearer ${auth.token}`,
+        'Authorization': `Bearer ${token}`,
         ...HEADERS,
       },
       body: JSON.stringify({
         input: message,
-        sessionId,
+        sessionId: sid,
         entrySource: 'pc',
         timestamp: Date.now(),
         questionType: '1',
@@ -109,6 +106,17 @@ router.post('/stream', async (req, res) => {
       }),
       signal: controller.signal,
     });
+
+    let upstream = await callQa(auth.token, sessionId);
+    // 缓存的 guest token 可能比 20min 缓存先过期 → 401/403 时强制重新鉴权并重试一次
+    if (upstream.status === 401 || upstream.status === 403) {
+      auth = await getAuth(true);
+      sessionId = bodySessionId || auth.sessionId;
+      upstream = await callQa(auth.token, sessionId);
+    }
+
+    // 回传 sessionId，前端存为 conv_id 续接
+    res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
 
     if (!upstream.ok || !upstream.body) {
       throw new Error('upstream http ' + upstream.status);
@@ -155,6 +163,7 @@ router.post('/stream', async (req, res) => {
     res.end();
   } catch (err) {
     if (err.name !== 'AbortError') {
+      console.error('[leai/stream] error:', err && err.message, err && err.name);
       res.write('event: chunk\ndata:' + JSON.stringify({ text: '当前服务暂时不可用，请稍后再试。' }) + '\n\n');
     }
     res.write('event: done\ndata:' + JSON.stringify({ conv_id: null }) + '\n\n');
