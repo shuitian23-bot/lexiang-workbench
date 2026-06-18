@@ -252,4 +252,56 @@ router.post('/stream', async (req, res) => {
   }
 });
 
+// POST /api/leai/followups — 火山 lite 生成追问 chips（非流式）
+const https = require('https');
+router.post('/followups', (req, res) => {
+  const q = String((req.body && req.body.q) || '').trim().slice(0, 300);
+  const a = String((req.body && req.body.a) || '').trim().slice(0, 300);
+  if (!q) return res.json({ rc: 0, questions: [] });
+
+  const sys = '基于问答生成3个用户可能接着问的简短追问，每个≤15字、口语化、不重复原问题。只返回JSON数组如["问题1","问题2","问题3"]，不要其它文字。';
+  const userContent = `问:${q}\n答:${a}`;
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role: 'system', content: sys }, { role: 'user', content: userContent }],
+    max_tokens: 200, temperature: 0.7, stream: false, thinking: { type: 'disabled' }
+  });
+
+  try {
+    const ar = https.request({
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (r) => {
+      let buf = '';
+      r.on('data', chunk => { buf += chunk.toString(); });
+      r.on('end', () => {
+        try {
+          const j = JSON.parse(buf);
+          const raw = j.choices?.[0]?.message?.content || '';
+          // 容错：找 JSON 数组
+          const m = raw.match(/\[[\s\S]*\]/);
+          const arr = m ? JSON.parse(m[0]) : [];
+          const questions = Array.isArray(arr) ? arr.slice(0, 3).map(String) : [];
+          res.json({ rc: 0, questions });
+        } catch (_) {
+          res.json({ rc: 0, questions: [] });
+        }
+      });
+      r.on('error', () => res.json({ rc: 0, questions: [] }));
+    });
+    ar.on('error', () => { try { res.json({ rc: 0, questions: [] }); } catch (_) {} });
+    ar.setTimeout(10000, () => { ar.destroy(); try { res.json({ rc: 0, questions: [] }); } catch (_) {} });
+    ar.write(body);
+    ar.end();
+  } catch (_) {
+    res.json({ rc: 0, questions: [] });
+  }
+});
+
 module.exports = router;
