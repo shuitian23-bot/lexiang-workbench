@@ -39,6 +39,11 @@
       html.lx-route-prepaint body>.topbar,
       html.lx-route-prepaint body>.shell,
       html.lx-route-prepaint body>.lxfd{visibility:hidden!important}
+      .lx-route-loading{display:none}
+      html.lx-route-prepaint .lx-route-loading{display:flex;position:fixed;inset:0;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#fbf8fc}
+      .lx-route-loading .lx-rl-spin{width:34px;height:34px;border:3px solid #ead9f5;border-top-color:#7a1f6e;border-radius:50%;animation:lxRlSpin .8s linear infinite}
+      .lx-route-loading .lx-rl-txt{color:#9a8aa8;font-size:14px;letter-spacing:.04em}
+      @keyframes lxRlSpin{to{transform:rotate(360deg)}}
     </style>
     <link rel="stylesheet" href="/css/main.css?v=202606183420">
     <link rel="stylesheet" href="/css/assistant-panel-ng-skin.css?v=202606182146">
@@ -50,6 +55,7 @@
         document.body.dataset.state = "chat";
       }
     </script>
+    <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
     <header class="topbar">
       <a class="brand" href="#" aria-label="联想乐享首页">
         <img src="/assets/logos/logo-full-red.png" alt="联想乐享" />
@@ -849,7 +855,7 @@
 
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd") || location.pathname.replace(/\/+$|^$/, "/") === "/";</script>
     <script src="/js/portal.js?v=202606183100"></script>
-    <script src="/js/app.js?v=202606183500"></script>
+    <script src="/js/app.js?v=202606183600"></script>
     <script>
       (function(){
         try {
