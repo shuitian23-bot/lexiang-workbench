@@ -1890,7 +1890,7 @@
           if (!state.floorProducts || state.floorProductsSite !== site || state.floorProductsLimit !== limit) {
             try {
               const controller = new AbortController();
-              const timer = setTimeout(() => controller.abort(), 8000);
+              const timer = setTimeout(() => controller.abort(), 15000);
               const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store", signal: controller.signal });
               clearTimeout(timer);
               state.floorProducts = await response.json();
@@ -1966,7 +1966,8 @@
         async function lxRenderPersonalRecommendFloors() {
           const site = API_SITE.personal || "shop";
           const pool = await lxEnsureFloorProducts(site, 96);
-          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const source = pool.length ? pool : (Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []));
+          if (!source.length) return "";
           const used = new Set();
           const floorCount = lxFloorProductCount();
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
@@ -1981,7 +1982,7 @@
           let feedSections = [];
           try {
             const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 5000);
+            const timer = setTimeout(() => controller.abort(), 10000);
             const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store", signal: controller.signal });
             clearTimeout(timer);
             const feed = await response.json();
@@ -1990,7 +1991,8 @@
 
           const sectionByKey = Object.fromEntries(feedSections.map((section) => [section.key, Array.isArray(section.products) ? section.products : []]));
           const allFeedProducts = feedSections.flatMap((section) => Array.isArray(section.products) ? section.products : []);
-          const basePool = [...allFeedProducts, ...pool, ...(Array.isArray(state.products) ? state.products : [])];
+          const basePool = [...allFeedProducts, ...pool, ...(Array.isArray(state.siteProducts) ? state.siteProducts : []), ...(Array.isArray(state.products) ? state.products : [])];
+          if (!basePool.length) return "";
           const uniq = (items) => {
             const seen = new Set();
             return items.filter((item) => {
@@ -2036,7 +2038,8 @@
         async function lxRenderEnterpriseRecommendFloors() {
           const site = API_SITE.enterprise || "biz";
           const pool = await lxEnsureFloorProducts(site, 120);
-          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const source = pool.length ? pool : (Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []));
+          if (!source.length) return "";
           const used = new Set();
           const floorCount = lxFloorProductCount();
           return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
