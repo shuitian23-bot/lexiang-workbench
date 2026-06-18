@@ -225,6 +225,19 @@ router.post('/stream', async (req, res) => {
       break; // 正常结束
     }
 
+    // 意图检测：在 done 前发 action 事件（正文已流完再开功能标签，体验顺）
+    // 保守匹配：宁可少触发，不误伤商品问题
+    const intentPatterns = [
+      { op: 'member',   re: /我的?会员|会员权益|会员中心|我的积分|乐豆|我的权益/ },
+      { op: 'coupon',   re: /优惠券|领券|我的券|有什么券|卡券/ },
+      { op: 'solution', re: /解决方案|行业方案|(企业|政教|金融|教育|医疗|制造).{0,4}方案/ },
+      { op: 'edu',      re: /教育优惠|学生优惠|校园优惠|教育特惠|学生认证|教育商店/ },
+    ];
+    const matchedIntent = intentPatterns.find(({ re }) => re.test(message));
+    if (matchedIntent) {
+      res.write('event: action\ndata:' + JSON.stringify({ op: matchedIntent.op }) + '\n\n');
+    }
+
     res.write('event: done\ndata:' + JSON.stringify({ conv_id: sessionId }) + '\n\n');
     res.end();
   } catch (err) {
