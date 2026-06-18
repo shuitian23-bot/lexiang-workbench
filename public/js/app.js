@@ -2853,17 +2853,26 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             return;
           }
           if (ta && !ta.dataset.originPlaceholder) ta.dataset.originPlaceholder = ta.placeholder || "最近有什么优惠活动？";
-          const chipsHtml = state.refProducts.map((p, i) => {
-            const img = p.image_url || "/assets/product-placeholder.svg";
-            return `<span class="lx-ref-chip-mini" data-ref-chip-idx="${i}" style="display:inline-flex;align-items:center;gap:4px;background:#f5f0ff;border:1px solid #d6c8ff;border-radius:8px;padding:3px 6px;margin:2px;cursor:default;">
-              <img src="${esc(img)}" alt="" style="width:28px;height:28px;object-fit:contain;border-radius:4px;flex-shrink:0;">
-              <button type="button" data-ref-remove-idx="${i}" aria-label="移除" style="width:16px;height:16px;border:none;background:none;cursor:pointer;color:#888;font-size:14px;line-height:1;padding:0;flex-shrink:0;">×</button>
-            </span>`;
-          }).join("");
+          const single = state.refProducts.length === 1;
+          let chipsHtml;
+          if (single) {
+            // 单个商品：保持原来的文字条样式（引用：名字 ×）
+            const p = state.refProducts[0];
+            chipsHtml = `<span class="lx-ref-chip" data-ref-chip-idx="0" style="display:inline-flex;align-items:center;gap:6px;background:#f5f0ff;border:1px solid #d6c8ff;border-radius:8px;padding:4px 9px;margin:2px;font-size:13px;color:#5b4a8a;cursor:default;">引用：${esc(String(p.name || "").slice(0, 22))}<button type="button" data-ref-remove-idx="0" aria-label="移除" style="width:16px;height:16px;border:none;background:none;cursor:pointer;color:#888;font-size:14px;line-height:1;padding:0;flex-shrink:0;">×</button></span>`;
+          } else {
+            // 2 个及以上：一排小图
+            chipsHtml = state.refProducts.map((p, i) => {
+              const img = p.image_url || "/assets/product-placeholder.svg";
+              return `<span class="lx-ref-chip-mini" data-ref-chip-idx="${i}" style="display:inline-flex;align-items:center;gap:4px;background:#f5f0ff;border:1px solid #d6c8ff;border-radius:8px;padding:3px 6px;margin:2px;cursor:default;">
+                <img src="${esc(img)}" alt="" style="width:28px;height:28px;object-fit:contain;border-radius:4px;flex-shrink:0;">
+                <button type="button" data-ref-remove-idx="${i}" aria-label="移除" style="width:16px;height:16px;border:none;background:none;cursor:pointer;color:#888;font-size:14px;line-height:1;padding:0;flex-shrink:0;">×</button>
+              </span>`;
+            }).join("");
+          }
           attach.innerHTML = `<div class="lx-ref-chips" style="display:flex;flex-wrap:wrap;align-items:center;padding:4px 0;">${chipsHtml}</div>`;
           composer?.classList.add("has");
           send?.classList.add("pulse");
-          if (ta) ta.placeholder = "想了解这几款商品的什么？比如优惠、对比、是否适合我…";
+          if (ta) ta.placeholder = single ? "想了解这款商品的什么？比如优惠、对比、是否适合我…" : "想了解这几款商品的什么？比如优惠、对比、是否适合我…";
           // × 按钮事件
           attach.querySelectorAll("[data-ref-remove-idx]").forEach(btn => {
             btn.addEventListener("click", (e) => {
