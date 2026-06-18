@@ -1578,13 +1578,13 @@ function geoTogglePageRefField(field) {
 }
 
 let _pageRefCols = 3;
-function geoSetPageRefCols(n) {
+window.geoSetPageRefCols = function(n) {
   _pageRefCols = n;
   const grid = document.getElementById('geo-page-ref-grid');
   if (grid) {
     grid.style.gridTemplateColumns = `repeat(${n},minmax(0,1fr))`;
+    grid.style.width = '100%';
     grid.style.maxWidth = '100%';
-    grid.style.width = '';
   }
   document.querySelectorAll('.geo-prc-cols-btn').forEach(b => {
     const active = +b.dataset.cols === n;
@@ -1596,28 +1596,14 @@ function geoSetPageRefCols(n) {
   requestAnimationFrame(() => {
     document.querySelectorAll('canvas.geo-page-ref-canvas').forEach(c => geoDrawPageRefMini(c, c.dataset.field));
   });
-}
+};
 
+// 浏览器窗口大小变化时重绘 canvas（不改列数，列数由 chip 控制）
 function geoBindPageRefDragResize() {
   const grid = document.getElementById('geo-page-ref-grid');
   if (!grid || grid._dragBound) return;
   grid._dragBound = true;
   const ro = new ResizeObserver(() => {
-    const w = grid.getBoundingClientRect().width;
-    // 按拖动宽度自动决定列数：>900 三列 / 600-900 两列 / <600 一列
-    let cols = 3;
-    if (w < 600) cols = 1;
-    else if (w < 900) cols = 2;
-    if (cols !== _pageRefCols) {
-      _pageRefCols = cols;
-      document.querySelectorAll('.geo-prc-cols-btn').forEach(b => {
-        const active = +b.dataset.cols === cols;
-        b.style.background = active ? '#3f78c5' : '#fff';
-        b.style.color = active ? '#fff' : '#374151';
-        b.style.borderColor = active ? '#3f78c5' : '#d1d5db';
-      });
-      grid.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
-    }
     requestAnimationFrame(() => {
       document.querySelectorAll('canvas.geo-page-ref-canvas').forEach(c => geoDrawPageRefMini(c, c.dataset.field));
     });

@@ -2341,10 +2341,9 @@ const PAGE_RENDERERS = {
             <button type="button" class="geo-prc-cols-btn" data-cols="1" onclick="geoSetPageRefCols(1)" style="padding:3px 10px;border-radius:12px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-size:11px">1</button>
             <button type="button" class="geo-prc-cols-btn" data-cols="2" onclick="geoSetPageRefCols(2)" style="padding:3px 10px;border-radius:12px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-size:11px">2</button>
             <button type="button" class="geo-prc-cols-btn active" data-cols="3" onclick="geoSetPageRefCols(3)" style="padding:3px 10px;border-radius:12px;border:1px solid #3f78c5;background:#3f78c5;color:#fff;cursor:pointer;font-size:11px">3</button>
-            <span style="color:#9ca3af;margin-left:6px">· 或拖右下角</span>
           </div>
         </div>
-        <div id="geo-page-ref-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;resize:horizontal;overflow:hidden;max-width:100%;min-width:280px"></div>
+        <div id="geo-page-ref-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%"></div>
         <div id="geo-page-ref-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:100;line-height:1.6"></div>
       </div>
 
