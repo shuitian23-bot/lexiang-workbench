@@ -1817,37 +1817,33 @@
 
 
         const LX_PERSONAL_RECOMMEND_FLOORS = [
-          ["笔记本", (p) => {
+          ["拯救者", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return (p.category === "笔记本电脑" || /小新|拯救者|Legion|YOGA|ThinkPad|ThinkBook|笔记本|轻薄本|游戏本|AI元启/i.test(text)) && !/手机|moto|平板|Pad|显示器|服务|保修|保护套|鼠标|键盘|包|耳机/.test(text);
+            return /拯救者|Legion/i.test(text);
           }],
-          ["台式机/显示器", (p) => {
+          ["YOGA", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "台式机" || p.category === "显示器" || /台式|主机|一体机|显示器|ThinkCentre|扬天|启天|拯救者刃|来酷显示器/i.test(text);
+            return /YOGA/i.test(text);
           }],
-          ["平板", (p) => {
+          ["小新", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "平板电脑" || /平板|小新Pad|YOGA Tab|Lenovo Tab|Pad Pro|Pad Plus/i.test(text);
+            return /小新|XIAOXIN/i.test(text);
           }],
-          ["手机", (p) => {
+          ["IdeaPad", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "手机" || /moto|razr|手机|折叠屏/i.test(text);
+            return /IdeaPad|ideapad/i.test(text);
           }],
-          ["智能生活", (p) => {
+          ["ThinkPad", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /耳机|音箱|手表|手环|投影|智能|LePods|蓝牙|摄像头|扫地|门锁|路由/i.test(text);
+            return /ThinkPad/i.test(text);
           }],
-          ["配件/办公", (p) => {
+          ["ThinkPlus", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /鼠标|键盘|扩展坞|保护套|背包|包|打印机|办公|支架|电源|适配器|硬盘|U盘|充电器|鼠标垫/i.test(text);
+            return /ThinkPlus|Thinkplus|thinkplus|think\+|口红电源|扩展坞|会议|耳机|蓝牙|随身充/i.test(text);
           }],
-          ["全屋智能", (p) => {
+          ["moto", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /全屋|智能家居|门锁|摄像头|路由器|扫地|照明|家居|IoT/i.test(text);
-          }],
-          ["服务升级", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "服务产品" || /保修|延保|上门|服务|升级|换新|Care|清灰|安装|保障|会员/i.test(text);
+            return p.category === "手机" || /moto|motorola|razr|edge|手机|折叠屏/i.test(text);
           }],
         ];
 
