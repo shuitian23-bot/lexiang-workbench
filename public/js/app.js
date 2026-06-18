@@ -1384,7 +1384,7 @@
                 if (!list.length) return;
                 revealAi();
                 ai.insertAdjacentHTML("beforeend", '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
-                  `<button type="button" class="leai-click-btn" data-leai-url="${esc(c.link_url || "")}" data-leai-cb="${esc(c.callback_data || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${esc(c.display_text)}</button>`
+                  `<button type="button" class="leai-click-btn" data-leai-url="${esc(c.link_url || "")}" data-leai-cb="${esc(c.callback_data || "")}" data-leai-event="${esc(c.event_type || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${esc(c.display_text)}</button>`
                 ).join("") + "</div>");
               },
               display: (data) => {
@@ -4139,6 +4139,7 @@
         window.openStoresPanel = openStoresPanel;
         window.openServicePanel = openServicePanel;
         window.openLeadPanel = openLeadPanel;
+        window.__lxSetHuman = lxSetHumanMode;
 
         openUploadControls();
         setupSelectionAsk();
@@ -4618,18 +4619,39 @@
     if (turnDots) turnDots.innerHTML = turns.map(t => `<i class="${t.id === activeId ? "active" : ""}"></i>`).join("");
     if (turnList) turnList.innerHTML = turns.map(t => `<button type="button" class="${t.id === activeId ? "active" : ""}" data-target="${escapeAttr(t.id)}" title="${escapeAttr(t.text)}">${escapeHtml(shortText(t.text, 18))}</button>`).join("");
   }
+  function lxfdEnterHuman() {
+    chatState.human = true;
+    if (thread) {
+      thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body"><b>专属客服小联</b> 已为您接入人工服务，下方已切换为客服快捷入口。订单、售后、发票问题可直接发我。（演示：由乐享 AI 以专属客服身份接待）</div></div>');
+      thread.scrollTop = thread.scrollHeight;
+    }
+    if (quick) quick.innerHTML = ["退出人工", "我的订单", "售后服务", "评价服务", "需求清单"].map(t => '<button type="button">' + escapeHtml(t) + '</button>').join("");
+    if (ta) { if (!ta.dataset.origPh) ta.dataset.origPh = ta.placeholder; ta.placeholder = "向专属客服小联提问..."; }
+  }
+
+  function lxfdExitHuman() {
+    chatState.human = false;
+    if (thread) {
+      thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">已退出人工服务，继续由联想乐享 AI 为您服务。</div></div>');
+      thread.scrollTop = thread.scrollHeight;
+    }
+    lxfdApplySite();
+    if (ta && ta.dataset.origPh) ta.placeholder = ta.dataset.origPh;
+  }
+
   function resetConversation(collapseRail) {
     lxfdPersistCurrent();
     chatState.conversationNonce += 1;
     chatState.convId = null;
     chatState.localId = null;
     chatState.sending = false;
+    chatState.human = false;
     if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
     turns = [];
     renderTurnIndex("");
     if (welcome) welcome.style.display = "flex";
     if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
-    if (ta) { ta.value = ""; fit(); syncSend(); }
+    if (ta) { if (ta.dataset.origPh) ta.placeholder = ta.dataset.origPh; ta.value = ""; fit(); syncSend(); }
     if (collapseRail && !wide()) openRail(false);
     ta?.focus();
     lxfdRenderHist();
@@ -4689,11 +4711,14 @@
       ai._raw = "";
     };
     try {
+      const sendMsg = chatState.human
+        ? ('[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ' + value)
+        : value;
       const response = await fetch("/api/leai/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: value,
+          message: sendMsg,
           sessionId: chatState.convId || undefined
         })
       });
@@ -4749,7 +4774,7 @@
           if (!list.length || !body) return;
           revealAi();
           body.insertAdjacentHTML("beforeend", '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
-            `<button type="button" class="leai-click-btn" data-leai-url="${escapeAttr(c.link_url || "")}" data-leai-cb="${escapeAttr(c.callback_data || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${escapeHtml(c.display_text)}</button>`
+            `<button type="button" class="leai-click-btn" data-leai-url="${escapeAttr(c.link_url || "")}" data-leai-cb="${escapeAttr(c.callback_data || "")}" data-leai-event="${escapeAttr(c.event_type || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${escapeHtml(c.display_text)}</button>`
           ).join("") + "</div>");
         },
         suggestions: (data) => {
@@ -4861,16 +4886,26 @@
     if (!b) return;
     e.preventDefault();
     e.stopPropagation();
+    if (b.textContent.trim() === "退出人工") { lxfdExitHuman(); return; }
     submit(b.textContent);
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
 
-  // 官方动作按钮（转人工/在线客服等）点击：有链接开新窗口，否则把 callback_data 当问题继续问
+  // 官方动作按钮（转人工/在线客服等）点击：human_access→进客服模式，有链接开新窗口，否则把 callback_data 当问题继续问
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-leai-url], [data-leai-cb]");
     if (!btn) return;
     e.preventDefault();
+    const ev = btn.getAttribute("data-leai-event");
+    if (ev === "human_access") {
+      if (document.body.classList.contains("assistant-fullscreen")) {
+        lxfdEnterHuman();
+      } else if (typeof window.__lxSetHuman === "function") {
+        window.__lxSetHuman(true);
+      }
+      return;
+    }
     const url = btn.getAttribute("data-leai-url");
     const cb = btn.getAttribute("data-leai-cb");
     if (url) { window.open(url, "_blank", "noopener"); return; }
