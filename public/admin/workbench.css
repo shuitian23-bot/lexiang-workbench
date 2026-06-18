@@ -1901,6 +1901,8 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-action-panel-body { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; }
 .skill-action-panel-body.apply-body { display:block; }
 .skill-apply-form { display:flex; flex-direction:column; gap:16px; }
+.skill-apply-section { display:flex; flex-direction:column; gap:10px; }
+.skill-apply-section-title { color:var(--text); font-size:14px; font-weight:700; }
 .skill-apply-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
 .skill-apply-pick {
   border:1px solid var(--border-light); border-radius:8px; background:#f8fbff; padding:14px;
@@ -2023,6 +2025,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   .skill-page-toolbar-actions .btn { flex-shrink:0; }
   .skill-action-row { grid-template-columns:1fr; gap:4px; }
   .skill-action-row span { padding-top:0; }
+  .skill-action-note { padding-left:0; margin-top:-4px; }
   .skill-action-actions { justify-content:stretch; }
   .skill-action-actions .btn { flex:1; justify-content:center; }
 }

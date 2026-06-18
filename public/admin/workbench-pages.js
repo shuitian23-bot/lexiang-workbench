@@ -229,10 +229,31 @@ function renderSkillPackageApplyBody(selectedTitle) {
   }).join('');
   return `
     <div class="skill-apply-form">
-      <div class="skill-apply-fields">
-        <div class="skill-action-row"><span>申请人</span><input value="${skillActionEscape(STATE.user || 'admin')}" readonly aria-readonly="true"></div>
-        <div class="skill-action-row"><span>直线经理</span><input value="sunll1" readonly aria-readonly="true"></div>
-        <div class="skill-action-row wide"><span>描述</span><textarea placeholder="请详细描述您的业务需求，例如：需要活动复盘报告、会员洞察或链路巡检能力。"></textarea></div>
+      <div class="skill-apply-section">
+        <div class="skill-apply-section-title">申请信息</div>
+        <div class="skill-apply-fields">
+          <div class="skill-action-row"><span>申请人</span><input value="${skillActionEscape(STATE.user || 'admin')}" readonly aria-readonly="true"></div>
+          <div class="skill-action-row wide"><span>描述</span><textarea placeholder="请详细描述您的业务需求，例如：需要活动复盘报告、会员洞察或链路巡检能力。"></textarea></div>
+        </div>
+      </div>
+      <div class="skill-apply-section">
+        <div class="skill-apply-section-title">审批人</div>
+        <div class="skill-apply-fields">
+          <div class="skill-action-row"><span>直线经理</span><input value="sunll1" readonly aria-readonly="true"></div>
+          <div class="skill-action-row"><span>系统审批人</span><input value="sunzh4" readonly aria-readonly="true"></div>
+          <div class="skill-action-row wide"><span>业务审批人</span><select id="skill-apply-business-approver" onchange="updateSkillPackageApplySelection()">
+            <option value="">请根据申请人团队与申请业务选择对应审批人</option>
+            <optgroup label="-线上数据权限-">
+              <option value="zhangjq4（消费业务 to C）">zhangjq4（消费业务 to C）</option>
+              <option value="huangjq5（商用业务 to B/b）">huangjq5（商用业务 to B/b）</option>
+            </optgroup>
+            <optgroup label="-产品/IT-">
+              <option value="zhangxy43（to C 相关）">zhangxy43（to C 相关）</option>
+              <option value="zhangrui32（to B/b 相关）">zhangrui32（to B/b 相关）</option>
+            </optgroup>
+          </select></div>
+          <div class="skill-action-note wide">注：申请订单等明文导出，需业务负责人和官网运营负责人邮件先审批。</div>
+        </div>
       </div>
       <div class="skill-apply-pick">
         <div class="skill-apply-pick-head">
@@ -258,10 +279,11 @@ function updateSkillPackageApplySelection() {
   const panel = document.getElementById('skill-package-action-panel');
   if (!panel) return;
   const checked = Array.from(panel.querySelectorAll('.skill-apply-option input:checked')).map(input => input.value);
+  const businessApprover = panel.querySelector('#skill-apply-business-approver')?.value || '';
   const count = panel.querySelector('#skill-apply-selected-count');
   if (count) count.textContent = checked.length ? `已选择 ${checked.length} 个：${checked.join('、')}` : '请选择需要开通的技能包';
   const submit = panel.querySelector('[data-skill-apply-submit]');
-  if (submit) submit.disabled = checked.length === 0;
+  if (submit) submit.disabled = checked.length === 0 || !businessApprover;
 }
 
 function selectSkillPackageApplyOptions(checked) {
@@ -342,6 +364,7 @@ function submitSkillPackageAction(title, message) {
   const panel = document.getElementById('skill-package-action-panel');
   if (!panel) return;
   const selected = Array.from(panel.querySelectorAll('.skill-apply-option input:checked')).map(input => input.value);
+  const businessApprover = panel.querySelector('#skill-apply-business-approver')?.value || '未选择';
   const appliedTitle = selected.length ? `${selected.length} 个技能包` : title;
   const appliedText = selected.length ? selected.join('、') : title;
   panel.innerHTML = `
@@ -355,11 +378,12 @@ function submitSkillPackageAction(title, message) {
       </div>
       <div class="skill-action-panel-body">
         <div class="skill-action-row"><span>申请权限</span><strong>${skillActionEscape(appliedText)}</strong></div>
+        <div class="skill-action-row"><span>业务审批人</span><strong>${skillActionEscape(businessApprover)}</strong></div>
+        <div class="skill-action-row"><span>系统审批人</span><strong>sunzh4</strong></div>
         <div class="skill-action-row"><span>后续处理</span><strong>当前仍停留在技能管理弹层内，可继续查看或申请其他技能包。</strong></div>
       </div>
     </div>`;
 }
-
 
 const PM_SKILL_HUB_ITEMS = [
   { name: 'workplace-cert-analysis', platform: 'lexiang', desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'draft', statusText: '草稿', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', updated: '2026-06-10 14:20' },
