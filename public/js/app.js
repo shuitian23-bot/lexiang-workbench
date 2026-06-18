@@ -4663,7 +4663,8 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
-  let helloWords = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
+  const LXFD_DEFAULT_HELLO_WORDS = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
+  let helloWords = LXFD_DEFAULT_HELLO_WORDS.slice();
   const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
   const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
   const arrow = '<span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
@@ -4722,12 +4723,9 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
     // 底部 actionbar
     const actionbarList = cfg.actionbar || quicks;
     if (quick) quick.innerHTML = actionbarList.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
-    // 滚动标题词
-    if (cfg.hello && cfg.hello.length) {
-      helloWords = cfg.hello;
-      helloIndex = 0;
-      setRotatingTitle(helloWords[0]);
-    }
+    // 滚动标题词固定使用默认词组，不随频道话术重新读取。
+    helloWords = LXFD_DEFAULT_HELLO_WORDS.slice();
+    helloIndex = helloIndex % helloWords.length;
     // 输入框 placeholder
     if (ta && cfg.placeholder) ta.placeholder = cfg.placeholder;
   }
