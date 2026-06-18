@@ -1827,7 +1827,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
 
         function lxProductMiniCard(product) {
           if (product.official) {
-            return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
+            return `<div class="lx-floor-product" data-official-url="${esc(product.url)}">
             <div class="product-visual"><img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" /></div>
             <h3 class="product-title">${esc(product.name)}<span class="lx-official-tag">官方在售</span></h3>
             <p class="spec">${esc(product.description || "")}</p>
@@ -4809,6 +4809,28 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
     runMotionPanel(layer);
     return layer;
   }
+  function createFullscreenExitLayer() {
+    const source = document.querySelector(".lxfd");
+    if (!source || reduceMotion) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel lxfd-motion-panel-exit";
+    layer.setAttribute("aria-hidden", "true");
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    return layer;
+  }
+  function setFullscreenExitLayerTarget(layer, targetRect) {
+    if (!layer || !targetRect || !targetRect.width || !targetRect.height) return false;
+    layer.style.setProperty("--lxfd-target-left", `${targetRect.left}px`);
+    layer.style.setProperty("--lxfd-target-top", `${targetRect.top}px`);
+    layer.style.setProperty("--lxfd-target-width", `${targetRect.width}px`);
+    layer.style.setProperty("--lxfd-target-height", `${targetRect.height}px`);
+    runMotionPanel(layer);
+    return true;
+  }
   function enterFullscreen() {
     lxfdApplySite();
     if (thread && !thread.children.length) lxfdImportFromMain();
@@ -4832,6 +4854,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
     document.body.classList.remove("lxfd-entering");
     document.body.classList.add("lxfd-exiting");
     setFullscreen(false);
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
     document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
     if (onAfterExit) requestAnimationFrame(onAfterExit);
     window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
@@ -4841,7 +4864,31 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
   }
-  window.__lxfdExitWithReveal = (afterExit) => exitFullscreen(afterExit);
+  function exitFullscreenWithReveal(afterReveal) {
+    const onAfterReveal = typeof afterReveal === "function" ? afterReveal : null;
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) {
+      onAfterReveal?.();
+      return;
+    }
+    const motionLayer = createFullscreenExitLayer();
+    document.body.classList.remove("lxfd-entering");
+    document.body.classList.add("lxfd-exiting");
+    setFullscreen(false);
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
+    document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    onAfterReveal?.();
+    requestAnimationFrame(() => {
+      const rect = document.querySelector(".assistant-panel")?.getBoundingClientRect();
+      if (!setFullscreenExitLayerTarget(motionLayer, rect)) motionLayer?.remove();
+    });
+    window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
+    window.setTimeout(() => {
+      document.body.classList.remove("lxfd-exiting");
+      document.body.classList.remove("lxfd-split-returning");
+      motionLayer?.remove();
+    }, reduceMotion ? 0 : 760);
+  }
+  window.__lxfdExitWithReveal = exitFullscreenWithReveal;
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
@@ -5069,7 +5116,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
               document.body.classList.contains("assistant-fullscreen") &&
               window.__lxBridge) {
             lxfdExportToMain();
-            exitFullscreen(() => {
+            exitFullscreenWithReveal(() => {
               window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
               // 清空 lxfd thread，下次回全屏会从主面板重新 import
               if (thread) thread.innerHTML = "";
