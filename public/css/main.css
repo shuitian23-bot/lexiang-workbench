@@ -81,7 +81,7 @@
         align-items: center;
         padding: 0 clamp(22px, 2vw, 38px);
         background: #fff;
-        border-top: 4px solid #f3f3f3;
+        border-top: 0;
       }
 
       .brand img {
@@ -8027,6 +8027,14 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-grid,
 body:not(.assistant-fullscreen) .content[data-view="detail"] > .lx-site-floors,
 body:not(.assistant-fullscreen) .content[data-view="detail"] > .portal-home,
 body:not(.assistant-fullscreen) .content[data-view="detail"] > .brand-page {
+  display: none !important;
+}
+
+/* Brand channel owns the right content area; hide shared commerce chrome. */
+body[data-page="brand"] .content > .hero,
+body[data-page="brand"] .content > .category-tabs,
+body[data-page="brand"] .content > .product-grid,
+body[data-page="brand"] .content > .lx-site-floors {
   display: none !important;
 }
 

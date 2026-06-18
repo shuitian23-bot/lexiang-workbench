@@ -336,6 +336,7 @@
           const active = chip.classList.toggle("is-active");
           chip.setAttribute("aria-pressed", String(active));
           if (chip.dataset.modeChip === "think") window.__lxThinking = active;
+          if (chip.dataset.modeChip === "web") window.__lxWebSearch = active;
         };
         chip.addEventListener("click", toggleChip);
         chip.addEventListener("keydown", (event) => {
