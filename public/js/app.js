@@ -4359,7 +4359,17 @@
         messages.push({ role: "user", text: el.textContent.trim(), html: "" });
       } else {
         const body = el.querySelector(".lxfd-ai-body");
-        messages.push({ role: "ai", text: "", html: body ? body.innerHTML : el.innerHTML });
+        let html;
+        if (body) {
+          // 剥掉 lxfd 专属的商品卡/追问/免责（它们样式限定在 .assistant-fullscreen，搬出全屏后图片会失去约束变巨图）；
+          // 商品已在右侧 reco 页正常展示，左侧对话只保留文字答案
+          const clone = body.cloneNode(true);
+          clone.querySelectorAll(".lxfd-products, .lxfd-followups, .lxfd-disclaimer").forEach(function(n) { n.remove(); });
+          html = clone.innerHTML;
+        } else {
+          html = el.innerHTML;
+        }
+        messages.push({ role: "ai", text: "", html: html });
       }
     });
     if (!messages.length) return;
