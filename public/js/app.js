@@ -1319,23 +1319,13 @@
           const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
           state.sending = true;
           try {
-            const response = await fetch("/api/chat/stream", {
+            const response = await fetch("/api/leai/stream", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
                 message: (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
-                conv_id: state.convId,
-                web_search: !!document.querySelector('.composer .chip[data-mode-chip="web"].is-active'),
-                // 深度思考开关：开启时上游模型不支持工具调用（无商品卡/留资等），默认关闭走自动模式
-                thinking_mode: !!document.querySelector('.composer .chip[data-mode-chip="think"].is-active'),
-                site_type: API_SITE[state.page] || "default",
-                product_context: state.refProduct || undefined,
-                browse_tabs: state.tabs.slice(-8).map((t) => ({ title: t.label, sku: t.kind === "detail" ? t.sku : undefined })).concat(
-                  document.querySelector(".content")?.dataset.view === "detail" && state.currentProduct ? [{ title: `正在看商品详情: ${state.currentProduct.name}`, sku: state.currentProduct.sku }] : []
-                ),
-                image_url: state.pendingImageUrl || undefined,
-                audio_url: state.pendingAudioUrl || undefined
+                sessionId: state.convId || undefined
               })
             });
             if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
@@ -4690,15 +4680,12 @@
       ai._raw = "";
     };
     try {
-      const response = await fetch("/api/chat/stream", {
+      const response = await fetch("/api/leai/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: value,
-          conv_id: chatState.convId,
-          web_search: !!document.querySelector(".lxfd-toggle:nth-child(2).on"),
-          thinking_mode: !!document.querySelector(".lxfd-toggle:first-child.on"),
-          site_type: "shop"
+          sessionId: chatState.convId || undefined
         })
       });
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
