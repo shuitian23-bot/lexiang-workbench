@@ -230,8 +230,9 @@ function renderSkillPackageApplyBody(selectedTitle) {
   return `
     <div class="skill-apply-form">
       <div class="skill-apply-fields">
-        <div class="skill-action-row"><span>申请人</span><input value="${STATE.user || 'admin'}" readonly></div>
-        <div class="skill-action-row"><span>申请场景</span><textarea placeholder="例如：用于每周活动复盘，需要查看渠道表现和优化建议"></textarea></div>
+        <div class="skill-action-row"><span>申请人</span><input value="${skillActionEscape(STATE.user || 'admin')}" readonly aria-readonly="true"></div>
+        <div class="skill-action-row"><span>直线经理</span><input value="sunll1" readonly aria-readonly="true"></div>
+        <div class="skill-action-row wide"><span>描述</span><textarea placeholder="请详细描述您的业务需求，例如：需要活动复盘报告、会员洞察或链路巡检能力。"></textarea></div>
       </div>
       <div class="skill-apply-pick">
         <div class="skill-apply-pick-head">

@@ -1930,6 +1930,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-apply-option-main em { color:var(--primary); font-style:normal; font-size:12px; line-height:1.35; }
 .skill-apply-footer { padding-top:0; }
 .skill-action-row { display:grid; grid-template-columns:82px 1fr; gap:10px; align-items:start; color:var(--text-secondary); font-size:13px; line-height:1.55; }
+.skill-action-row.wide { grid-column:1 / -1; }
 .skill-action-row span { color:var(--text-tertiary); font-size:12px; padding-top:7px; }
 .skill-action-row strong { color:var(--text); font-weight:500; padding:7px 0; }
 .skill-action-row input,
@@ -1937,6 +1938,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-action-row textarea {
   width:100%; border:1px solid var(--border-light); border-radius:7px; padding:8px 10px; color:var(--text); background:#fff; font:inherit; resize:vertical;
 }
+.skill-action-row input[readonly] { background:#f8fafc; color:var(--text-secondary); cursor:not-allowed; }
 .skill-action-row textarea { min-height:68px; grid-column:auto; }
 .skill-action-actions { grid-column:1 / -1; display:flex; justify-content:flex-end; gap:8px; padding-top:4px; }
 .atomic-capability-intro { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
