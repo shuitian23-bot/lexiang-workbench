@@ -910,17 +910,19 @@ function updateSkillHubReviewStatus(name, nextStatus) {
 }
 
 function submitSkillCreateReview() {
+  const currentSkillName = (document.getElementById('skill-create-name')?.value || 'employee_certification_analysis').trim();
   if (window.__skillCreateReviewSubmitted) {
-    handleSkillHubAction('workplace-cert-analysis', '已在审核中，可前往 Skill Hub 查看');
+    handleSkillHubAction(window.__skillCreateSubmittedName || currentSkillName, '已在审核中，可前往 Skill Hub 查看');
     return;
   }
-  const skillName = (document.getElementById('skill-create-name')?.value || '职场人群认证数据分析').trim();
+  const skillName = currentSkillName;
+  const skillCnName = (document.getElementById('skill-create-cn-name')?.value || '职场人群认证数据分析').trim();
   const menuName = document.getElementById('skill-create-menu')?.value || '在职员工管理';
-  const existing = PM_SKILL_HUB_ITEMS.find(item => item.name === 'workplace-cert-analysis');
+  const existing = PM_SKILL_HUB_ITEMS.find(item => item.name === skillName || item.name === 'workplace-cert-analysis');
   const submitted = {
-    name: 'workplace-cert-analysis',
+    name: skillName,
     platform: 'lexiang',
-    desc: `${skillName} Skill，归属${menuName}，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。`,
+    desc: `${skillCnName} Skill，归属${menuName}，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。`,
     version: 'v1.0.0',
     online: '未发布',
     status: 'review',
@@ -936,6 +938,7 @@ function submitSkillCreateReview() {
     PM_SKILL_HUB_ITEMS.unshift(submitted);
   }
   window.__skillCreateReviewSubmitted = true;
+  window.__skillCreateSubmittedName = submitted.name;
   const submitBtn = document.getElementById('skill-create-submit-review-btn');
   if (submitBtn) {
     submitBtn.textContent = '已提交审核';
@@ -1638,11 +1641,32 @@ function switchSkillCreateTab(tab, btn) {
 }
 
 function goSkillCreateNext(current) {
+  if (current === 'config' && !validateSkillCreateConfig()) return;
   const order = ['config', 'clarify', 'draft', 'verify', 'review'];
   const next = order[order.indexOf(current) + 1];
   if (!next) return;
   const btn = document.querySelector(`.skill-create-tab[data-skill-create-tab="${next}"]`);
   switchSkillCreateTab(next, btn);
+}
+
+function validateSkillCreateConfig() {
+  const required = [
+    { id: 'skill-create-name', label: 'Skill 名称（英文）' },
+    { id: 'skill-create-cn-name', label: '中文命名' },
+    { id: 'skill-create-menu', label: '菜单' }
+  ];
+  const missing = required.find(item => !document.getElementById(item.id)?.value?.trim());
+  if (!missing) return true;
+  const el = document.getElementById(missing.id);
+  el?.focus();
+  el?.classList.add('field-invalid');
+  setTimeout(() => el?.classList.remove('field-invalid'), 1200);
+  if (typeof skillHubToast === 'function') {
+    skillHubToast(`请先填写${missing.label}`);
+  } else {
+    alert(`请先填写${missing.label}`);
+  }
+  return false;
 }
 
 function focusSkillClarifyInput() {
@@ -1692,7 +1716,7 @@ function refreshSkillClarifySummary(btn) {
     summary.innerHTML = `
       <div class="skill-summary-item">
         <span>基本信息</span>
-        <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0；已基于 ${userTurns.length} 轮自然语言澄清更新。</p>
+        <p>name: employee_certification_analysis；中文命名：职场人群认证数据分析；版本：1.0.0；已基于 ${userTurns.length} 轮自然语言澄清更新。</p>
       </div>
       <div class="skill-summary-item">
         <span>触发场景</span>
@@ -1769,21 +1793,24 @@ function syncSkillContextSelection() {
 function fillSkillCreateTemplate(type) {
   const templates = {
     query: {
-      name: '查询经营指标',
+      name: 'operation_metric_query',
+      cnName: '查询经营指标',
       menu: '乐享运营',
       scene: '运营同学用自然语言查询 GMV、订单、转化率等指标，并返回可解释口径。',
       input: '时间范围、业务线、渠道、指标名称',
       output: '指标数值、同比环比、口径说明、异常提示'
     },
     generate: {
-      name: '生成活动复盘',
+      name: 'campaign_review_report',
+      cnName: '生成活动复盘',
       menu: '乐享运营',
       scene: '基于活动数据和知识库生成结构化复盘草稿，供运营二次确认。',
       input: '活动名称、时间范围、目标指标、数据结果',
       output: '复盘摘要、亮点、问题、行动建议'
     },
     action: {
-      name: '配置商品推荐位',
+      name: 'product_recommendation_config',
+      cnName: '配置商品推荐位',
       menu: '乐享运营',
       scene: '根据运营策略生成商品推荐位配置草案，高风险动作需审批后执行。',
       input: '商品 ID、推荐位、上线时间、目标人群',
@@ -1797,6 +1824,7 @@ function fillSkillCreateTemplate(type) {
     if (el) el.value = value;
   };
   set('skill-create-name', t.name);
+  set('skill-create-cn-name', t.cnName);
   set('skill-create-menu', t.menu);
   set('skill-create-scene', t.scene);
   set('skill-create-input', t.input);
@@ -1870,11 +1898,15 @@ function renderSkillCreatePage() {
           </div>
 
           <div class="skill-create-panel active" data-skill-create-panel="config">
-            <div class="skill-step-banner">当前阶段：先完成 Skill 基础配置，明确必填的 Skill 名称、所属菜单，以及可选的适用场景、输入输出和能力边界。</div>
+            <div class="skill-step-banner">当前阶段：先完成 Skill 基础配置，明确必填的英文 Skill 名称、中文命名、所属菜单，以及可选的适用场景、输入输出和能力边界。</div>
             <div class="skill-create-form">
               <div class="skill-create-field">
-                <label for="skill-create-name">Skill 名称 <span class="field-required">*</span></label>
-                <input id="skill-create-name" value="职场人群认证数据分析" required>
+                <label for="skill-create-name">Skill 名称（英文） <span class="field-required">*</span></label>
+                <input id="skill-create-name" value="employee_certification_analysis" required>
+              </div>
+              <div class="skill-create-field">
+                <label for="skill-create-cn-name">中文命名 <span class="field-required">*</span></label>
+                <input id="skill-create-cn-name" value="职场人群认证数据分析" required>
               </div>
               <div class="skill-create-field">
                 <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>

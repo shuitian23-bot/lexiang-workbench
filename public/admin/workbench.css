@@ -904,6 +904,12 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   border-color:var(--primary);
   box-shadow:0 0 0 3px rgba(51,112,255,0.08);
 }
+.skill-create-field input.field-invalid,
+.skill-create-field select.field-invalid,
+.skill-create-field textarea.field-invalid {
+  border-color:#ef4444;
+  box-shadow:0 0 0 3px rgba(239,68,68,0.12);
+}
 .btn.disabled,
 .btn:disabled {
   opacity:.48;
