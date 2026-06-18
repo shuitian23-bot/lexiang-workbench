@@ -1877,7 +1877,7 @@
             if (markUsed) used.add(lxProductKey(product));
           };
           pool.filter((p) => match(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
-          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
+          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p, false); });
           if (picked.length < count) pool.filter((p) => !picked.includes(p)).forEach((p) => { if (picked.length < count) add(p, false); });
           return picked.slice(0, count);
         }
@@ -1890,6 +1890,17 @@
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, 8);
             return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
+        async function lxRenderEnterpriseRecommendFloors() {
+          const site = API_SITE.enterprise || "biz";
+          const pool = await lxEnsureFloorProducts(site, 120);
+          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const used = new Set();
+          return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
+            const items = lxPickFloorProducts(source, match, used, 8);
+            return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
 
@@ -1936,19 +1947,31 @@
               grid.hidden = true;
               box.hidden = false;
               box.classList.add("lx-personal-rec-floors");
+              box.classList.remove("lx-enterprise-rec-floors");
               box.innerHTML = await lxRenderPersonalRecommendFloors();
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
               return;
             }
-            box.classList.remove("lx-personal-rec-floors");
+            if (page === "enterprise") {
+              grid.hidden = true;
+              box.hidden = false;
+              box.classList.remove("lx-personal-rec-floors");
+              box.classList.add("lx-enterprise-rec-floors");
+              box.innerHTML = await lxRenderEnterpriseRecommendFloors();
+              if (state.page !== page) return;
+              lxSyncCategoryTabs();
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              return;
+            }
+            box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
             box.hidden = true;
             box.innerHTML = "";
             lxSyncCategoryTabs();
             return;
           }
-          box.classList.remove("lx-personal-rec-floors");
+          box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
           box.hidden = false;
           const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
