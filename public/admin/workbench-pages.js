@@ -52,7 +52,7 @@ function renderPortalHomePage() {
         <button class="portal-home-card" onclick="openSkillManagerOverlay()">
           <span>SK</span>
           <b>技能包管理</b>
-          <p>业务用户通过右上角管理技能查看可用技能包、申请权限，并通过 AI 助手调用。</p>
+          <p>业务用户通过右上角管理技能查看并启停技能包，通过 AI 助手调用已开启能力。</p>
         </button>
       </div>
 
@@ -101,6 +101,40 @@ function filterSkillCards(status, btn) {
   document.querySelectorAll('.agent-skill-card').forEach(card => {
     card.dataset.filterVisible = status === 'all' || card.dataset.skillStatus === status ? '1' : '0';
   });
+  searchSkillCards(document.querySelector('.skill-page-search')?.value || '');
+}
+
+function refreshSkillPackageTabCounts() {
+  const cards = Array.from(document.querySelectorAll('.agent-skill-card'));
+  const counts = {
+    all: cards.length,
+    enabled: cards.filter(card => card.dataset.skillStatus === 'enabled').length,
+    disabled: cards.filter(card => card.dataset.skillStatus === 'disabled').length
+  };
+  document.querySelectorAll('.skill-page-tab').forEach(tab => {
+    const count = tab.querySelector('span');
+    if (count && counts[tab.dataset.skillFilter] !== undefined) count.textContent = counts[tab.dataset.skillFilter];
+  });
+}
+
+function toggleSkillPackageSwitch(btn, title) {
+  const card = btn?.closest('.agent-skill-card');
+  if (!card) return;
+  const shouldEnable = !btn.classList.contains('is-on');
+  card.dataset.skillStatus = shouldEnable ? 'enabled' : 'disabled';
+  btn.classList.toggle('is-on', shouldEnable);
+  btn.setAttribute('aria-pressed', shouldEnable ? 'true' : 'false');
+  btn.setAttribute('aria-label', `${title}${shouldEnable ? '已开启' : '已关闭'}`);
+  const label = btn.querySelector('em');
+  if (label) label.textContent = shouldEnable ? '开' : '关';
+  const badge = card.querySelector('.agent-skill-card-badge');
+  if (badge) {
+    badge.className = `agent-skill-card-badge status-${shouldEnable ? 'enabled' : 'disabled'}`;
+    badge.textContent = shouldEnable ? '已开启' : '已关闭';
+  }
+  refreshSkillPackageTabCounts();
+  const activeFilter = document.querySelector('.skill-page-tab.active')?.dataset.skillFilter || 'all';
+  card.dataset.filterVisible = activeFilter === 'all' || card.dataset.skillStatus === activeFilter ? '1' : '0';
   searchSkillCards(document.querySelector('.skill-page-search')?.value || '');
 }
 
@@ -967,15 +1001,15 @@ function filterSkillHub() {
 function renderAgentSkillsManager(options = {}) {
   const isModal = options.mode === 'modal';
   const skills = [
-    { icon: 'metrics', title: '经营指标解读', status: 'available', badge: '可用', desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用', action: '使用' },
-    { icon: 'product', title: '商品配置助手', status: 'available', badge: '可用', desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用', action: '使用' },
-    { icon: 'content', title: '内容发布检查', status: 'available', badge: '可用', desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用', action: '使用' },
-    { icon: 'review', title: '活动复盘报告', status: 'requestable', badge: '可申请', desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '申请后可用', action: '申请' },
-    { icon: 'member', title: '会员分层洞察', status: 'requestable', badge: '可申请', desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '申请后可用', action: '申请' },
-    { icon: 'export', title: '认证失败用户导出', status: 'pending', badge: '待审批', desc: '导出认证失败用户和失败原因，用于客服回访和运营复盘。', tags: ['用户/会员', '数据导出'], usage: '申请已提交', action: '查看进度' },
-    { icon: 'release', title: '灰度发布助手', status: 'disabled', badge: '已禁用', desc: '用于灰度发布和回滚演练，当前因权限策略调整暂不可用。', tags: ['平台配置', '发布'], usage: '管理员已停用', action: '查看原因' },
-    { icon: 'risk', title: '发布风险确认', status: 'admin', badge: '管理员配置', desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '管理员可配置', action: '查看' },
-    { icon: 'inspect', title: '链路巡检', status: 'requestable', badge: '可申请', desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '申请后可用', action: '申请' }
+    { icon: 'metrics', title: '经营指标解读', enabled: true, desc: '读取当前看板上下文，输出指标结论、异常证据、原因推测和下一步运营动作。', tags: ['数据分析', '运营总览'], usage: '2.1k 次使用' },
+    { icon: 'product', title: '商品配置助手', enabled: true, desc: '协助检查商品卡片、推荐位、价格和上下架配置，写入前必须二次确认。', tags: ['商品运营', '配置'], usage: '860 次使用' },
+    { icon: 'content', title: '内容发布检查', enabled: true, desc: '检查 CMS 内容、活动页文案、跳转链接和发布前风险项。', tags: ['内容运营', '质量巡检'], usage: '748 次使用' },
+    { icon: 'review', title: '活动复盘报告', enabled: false, desc: '基于活动周期数据生成复盘框架，包含目标达成、渠道表现和优化建议。', tags: ['活动运营', '报告'], usage: '未开启' },
+    { icon: 'member', title: '会员分层洞察', enabled: false, desc: '分析会员分层、权益使用和认证转化表现，辅助制定运营策略。', tags: ['用户/会员', '分析'], usage: '未开启' },
+    { icon: 'export', title: '认证失败用户导出', enabled: false, desc: '导出认证失败用户和失败原因，用于客服回访和运营复盘。', tags: ['用户/会员', '数据导出'], usage: '未开启' },
+    { icon: 'release', title: '灰度发布助手', enabled: false, desc: '用于灰度发布和回滚演练，当前因权限策略调整暂不可用。', tags: ['平台配置', '发布'], usage: '未开启' },
+    { icon: 'risk', title: '发布风险确认', enabled: false, desc: '对写入、发布、批量导出等高风险操作进行确认和留痕。', tags: ['平台配置', '权限'], usage: '未开启' },
+    { icon: 'inspect', title: '链路巡检', enabled: false, desc: '巡检页面链接、接口响应、埋点和数据缺失，输出异常清单。', tags: ['质量巡检', '平台操作'], usage: '未开启' }
   ];
   const skillIconSvg = paths => `<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
   const skillIcons = {
@@ -1015,8 +1049,8 @@ function renderAgentSkillsManager(options = {}) {
   };
   const statusMeta = {
     all: { label: '全部', count: skills.length },
-    available: { label: '可用的', count: skills.filter(s => s.status === 'available').length },
-    disabled: { label: '禁用的', count: skills.filter(s => s.status === 'disabled').length }
+    enabled: { label: '已开启', count: skills.filter(s => s.enabled).length },
+    disabled: { label: '已关闭', count: skills.filter(s => !s.enabled).length }
   };
   const atomicSummary = {
     all: { label: '全部能力', count: atomicAbilities.length, risks: 'all' },
@@ -1028,13 +1062,13 @@ function renderAgentSkillsManager(options = {}) {
     `<button class="skill-page-tab ${i === 0 ? 'active' : ''}" data-skill-filter="${key}" onclick="filterSkillCards('${key}', this)">${meta.label}<span>${meta.count}</span></button>`
   ).join('');
   const card = s => `
-    <div class="agent-skill-card" data-skill-status="${s.status}">
+    <div class="agent-skill-card" data-skill-status="${s.enabled ? 'enabled' : 'disabled'}">
       <div class="agent-skill-card-head">
         <div class="agent-skill-card-main">
           <div class="agent-skill-card-icon">${skillIcons[s.icon] || skillIcons.metrics}</div>
           <div class="agent-skill-card-title">
             <span class="agent-skill-card-name">${s.title}</span>
-            <span class="agent-skill-card-badge status-${s.status}">${s.badge}</span>
+            <span class="agent-skill-card-badge status-${s.enabled ? 'enabled' : 'disabled'}">${s.enabled ? '已开启' : '已关闭'}</span>
           </div>
         </div>
         <span class="agent-skill-card-more">···</span>
@@ -1043,7 +1077,9 @@ function renderAgentSkillsManager(options = {}) {
       <div class="agent-skill-card-meta">${s.tags.map(t => `<span class="agent-skill-card-tag">${t}</span>`).join('')}</div>
       <div class="agent-skill-card-foot">
         <span>${s.usage}</span>
-        <button class="agent-skill-card-action" onclick="openSkillPackageAction('${s.title}', '${s.status}', '${s.action}')">${s.action}</button>
+        <button type="button" class="skill-package-switch ${s.enabled ? 'is-on' : ''}" aria-pressed="${s.enabled ? 'true' : 'false'}" aria-label="${s.title}${s.enabled ? '已开启' : '已关闭'}" onclick="toggleSkillPackageSwitch(this, '${s.title}')">
+          <span></span><em>${s.enabled ? '开' : '关'}</em>
+        </button>
       </div>
     </div>`;
   const atomicCard = item => `
@@ -1077,7 +1113,7 @@ function renderAgentSkillsManager(options = {}) {
         <div class="page-header agent-skill-modal-head">
           <div>
             <div class="page-title">技能包管理</div>
-            <div class="page-desc">面向业务使用的技能包入口。业务用户可使用、申请或查看审批进度。</div>
+            <div class="page-desc">面向业务使用的技能包入口。业务用户可查看并启停技能包。</div>
           </div>
           <div class="agent-skill-page-actions">${headerActions}</div>
         </div>
@@ -1091,7 +1127,7 @@ function renderAgentSkillsManager(options = {}) {
           <div class="skill-manager-section active" data-skill-view="packages">
             <div id="skill-package-action-panel" class="skill-package-action-panel"></div>
             <div class="skill-page-grid">${skills.map(card).join('')}</div>
-            <div class="skill-page-empty-note">技能包面向运营、业务和销售使用，一个技能包可以编排多个底层 Skill 能力，并通过右侧 AI 助手自然语言调用。</div>
+            <div class="skill-page-empty-note">技能包面向运营、业务和销售使用。开启后可在右侧 AI 助手中通过自然语言调用，关闭后不再参与任务匹配。</div>
           </div>
           <div class="skill-page-empty" id="skill-page-empty" style="display:none;">当前筛选下暂无技能包</div>
         </div>
@@ -2156,7 +2192,7 @@ function renderAgentPermissionManager() {
         <span>SKILL</span>
         <b>Skill 权限</b>
         <p>控制业务用户是否可以在右侧 Agent 中调用技能包，PM 可查看自己提交的 Skill 状态。</p>
-        <div><em>可调用</em><em>可申请</em><em>待审批</em><em>已禁用</em></div>
+        <div><em>可调用</em><em>已开启</em><em>已关闭</em><em>启停留痕</em></div>
       </section>
       <section class="permission-hub-card">
         <span>ROLE</span>
@@ -2172,7 +2208,7 @@ function renderAgentPermissionManager() {
         <tbody>
           <tr><td>创建 Skill</td><td>PM / 平台侧</td><td>创建、保存草稿、提交审核</td><td>提交后由管理员审批</td><td><span class="badge green">启用</span></td></tr>
           <tr><td>Skill Hub</td><td>PM / 管理员</td><td>查看状态、测试、审批、发布、启停</td><td>发布和禁用需确认</td><td><span class="badge green">启用</span></td></tr>
-          <tr><td>管理技能包</td><td>业务用户</td><td>查看可用技能包、申请权限、调用说明</td><td>申请后审批</td><td><span class="badge blue">业务入口</span></td></tr>
+          <tr><td>管理技能包</td><td>业务用户</td><td>查看可用技能包、启停状态、调用说明</td><td>高风险启停需留痕</td><td><span class="badge blue">业务入口</span></td></tr>
         </tbody>
       </table>
     </div>

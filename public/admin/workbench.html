@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="workbench.css?v=20260618-skill-manager-clean2">
+<link rel="stylesheet" href="workbench.css?v=20260618-skill-manager-switch1">
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
 <link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
@@ -132,7 +132,7 @@
         <button class="portal-home-card" onclick="toggleAI?.(true)"><span>AI</span><b>全局 AI 助手</b><p>右侧助手独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</p></button>
         <button class="portal-home-card" onclick="switchPage?.('dashboard.overview')"><span>OP</span><b>运营分析</b><p>聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</p></button>
         <button class="portal-home-card" onclick="openSkillCreatePage?.()"><span>PM</span><b>Skill 创建</b><p>平台侧和 PM 可从账号入口创建 Skill，并在 Skill Hub 中跟踪提交、审批、启停和发布状态。</p></button>
-        <button class="portal-home-card" onclick="openSkillManagerOverlay?.()"><span>SK</span><b>技能包管理</b><p>业务用户通过右上角管理技能查看可用技能包、申请权限，并通过 AI 助手调用。</p></button>
+        <button class="portal-home-card" onclick="openSkillManagerOverlay?.()"><span>SK</span><b>技能包管理</b><p>业务用户通过右上角管理技能查看并启停技能包，通过 AI 助手调用已开启能力。</p></button>
       </div>
       <div class="portal-home-layout portal-home-workgrid">
         <div class="card portal-home-entry-card">
@@ -1177,7 +1177,7 @@ function switchBehaviorTab(tab, el) {
 </script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="workbench-data-leai.js"></script>
-<script src="workbench-pages.js?v=20260618-skill-manager-clean2"></script>
+<script src="workbench-pages.js?v=20260618-skill-manager-switch1"></script>
 <script src="workbench-lead.js?v=20260618-wangxt8-lead1"></script>
 <script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
 <script src="workbench-geo.js?v=20260617-report-openall1"></script>
