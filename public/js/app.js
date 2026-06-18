@@ -1346,6 +1346,12 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           } else if (state.refProduct) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProduct.name.slice(0, 22))}</div>`);
           }
+          // 引用 ≥2 个商品 + 对比意图 → 直接用引用的这几款出结构化对比表（不依赖官方返回商品）
+          const _cmpRefs = (Array.isArray(state.refProducts) ? state.refProducts : []).slice(0, 5);
+          if (_cmpRefs.length >= 2 && /对比|比较|哪个好|哪个更|哪个值|怎么选(?!购)|差别|区别|谁更好|选哪/.test(text)) {
+            lxRevealContent();
+            lxUpsertCompareTab(_cmpRefs, "商品对比");
+          }
           setTimeout(() => lxSetRef(null), 100);
           if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
           state.queryHistory.push(text);
