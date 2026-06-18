@@ -298,7 +298,7 @@
               visual.innerHTML = `<img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" />`;
               // 角标显示子品牌（小新/拯救者/YOGA…），大品类一眼能看出没必要标
               const sub = (String(product.name || "").match(/小新|拯救者|YOGA|ThinkPad|ThinkBook|ThinkStation|ThinkVision|thinkplus|moto|来酷|Lecoo|天逸|扬天|开天|昭阳|启天|问天|GeekPro|LEGION/i) || [])[0];
-              if (sub) visual.insertAdjacentHTML("afterbegin", `<span class="lx-cat-badge">${esc(/legion/i.test(sub) ? "拯救者" : /lecoo/i.test(sub) ? "来酷" : sub)}</span>`);
+              if (sub && state.page !== "business") visual.insertAdjacentHTML("afterbegin", `<span class="lx-cat-badge">${esc(/legion/i.test(sub) ? "拯救者" : /lecoo/i.test(sub) ? "来酷" : sub)}</span>`);
               // 社会证明（sku 稳定伪随机，不闪烁）
               const seed = String(product.sku || "").split("").reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) % 9973, 7);
               const social = [`本周 ${120 + (seed % 880)} 人看过`, `仅剩 ${3 + (seed % 9)} 台`, `今日 ${5 + (seed % 40)} 人加购`][seed % 3];
@@ -1861,7 +1861,7 @@
           }],
           ["Thinkplus", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /Thinkplus|ThinkPlus|thinkplus|think\+|会议|耳机|口红电源|扩展坞|随身充|蓝牙|无线/i.test(text);
+            return /Thinkplus|ThinkPlus|thinkplus|think\+|会议|耳机|口红电源|扩展坞|随身充|蓝牙/i.test(text);
           }],
           ["ThinkCentre", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -1958,7 +1958,7 @@
           });
           const accessoryProducts = uniq(basePool).filter((p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架/i.test(text);
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架|会议屏/i.test(text);
           });
           const serviceStorageProducts = uniq([...serviceProducts, ...basePool]).filter((p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
