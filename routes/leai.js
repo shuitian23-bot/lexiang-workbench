@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAuth, mapProductList } = require('../core/leai_client');
+const { getAuth, getFaq, mapProductList } = require('../core/leai_client');
 
 const AIGC_BASE = 'https://aigc.lenovo.com.cn/v3';
 const HEADERS = {
@@ -22,11 +22,11 @@ router.get('/auth', async (req, res) => {
 // GET /api/leai/faq — FAQ热门问题
 router.get('/faq', async (req, res) => {
   try {
-    const resp = await fetch(`${AIGC_BASE}/api/chat/faq`, { headers: HEADERS });
-    const data = await resp.json();
-    res.json(data);
+    // 用带 token 的 getFaq（官方 faq 需 Authorization，否则 data 为 null）
+    const data = await getFaq();
+    res.json({ rc: 0, data: Array.isArray(data) ? data : [] });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, data: [] });
   }
 });
 
