@@ -22,9 +22,11 @@ function aiSetPanelWidth(width) {
   const atMax = nextW >= maxW - 1;
   if (sidebar && atMax && !sidebar.classList.contains('collapsed')) {
     sidebar.classList.add('collapsed');
+    if (typeof updateSidebarCollapseControl === 'function') updateSidebarCollapseControl();
     aiPanelAutoCollapsedSidebar = true;
   } else if (sidebar && !atMax && aiPanelAutoCollapsedSidebar) {
     sidebar.classList.remove('collapsed');
+    if (typeof updateSidebarCollapseControl === 'function') updateSidebarCollapseControl();
     aiPanelAutoCollapsedSidebar = false;
   }
   document.body.classList.toggle('ai-squeeze', atMax);
@@ -45,7 +47,10 @@ function toggleAI(forceState) {
     panel.style.removeProperty('--ai-panel-width');
     document.body.classList.remove('ai-squeeze');
     const sb = document.getElementById('sidebar');
-    if (sb && aiPanelAutoCollapsedSidebar) sb.classList.remove('collapsed');
+    if (sb && aiPanelAutoCollapsedSidebar) {
+      sb.classList.remove('collapsed');
+      if (typeof updateSidebarCollapseControl === 'function') updateSidebarCollapseControl();
+    }
     aiPanelAutoCollapsedSidebar = false;
   }
   const btn = document.getElementById('ai-toggle-btn');
