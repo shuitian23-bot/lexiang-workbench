@@ -1,3 +1,13 @@
+// 真实浏览器定位：非阻塞，只请求一次，结果写到 window.__lxGeo 供两个 IIFE 共用
+if (!window.__lxGeoRequested && navigator.geolocation) {
+  window.__lxGeoRequested = true;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { window.__lxGeo = { lng: pos.coords.longitude, lat: pos.coords.latitude }; },
+    () => { /* 拒绝/失败：不设 __lxGeo，后端默认北京 */ },
+    { timeout: 8000, maximumAge: 300000 }
+  );
+}
+
       (() => {
         "use strict";
 
@@ -240,6 +250,7 @@
         function initRoute() {
           const page = SITE_BY_PATH[location.pathname] || "home";
           routeTo(page, true);
+          document.documentElement.classList.remove("lx-route-prepaint");
         }
 
         async function loadProductsForPage() {
@@ -256,7 +267,7 @@
               state.products = state.siteProducts;
               renderProductCards();
             }
-            if (state.page === "personal") lxRenderSiteFloors();
+            if (["personal", "business", "enterprise"].includes(state.page)) lxRenderSiteFloors();
           } catch (error) {
             toast("商品数据暂时不可用，已保留当前页面展示");
           }
@@ -298,7 +309,7 @@
               visual.innerHTML = `<img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" />`;
               // 角标显示子品牌（小新/拯救者/YOGA…），大品类一眼能看出没必要标
               const sub = (String(product.name || "").match(/小新|拯救者|YOGA|ThinkPad|ThinkBook|ThinkStation|ThinkVision|thinkplus|moto|来酷|Lecoo|天逸|扬天|开天|昭阳|启天|问天|GeekPro|LEGION/i) || [])[0];
-              if (sub) visual.insertAdjacentHTML("afterbegin", `<span class="lx-cat-badge">${esc(/legion/i.test(sub) ? "拯救者" : /lecoo/i.test(sub) ? "来酷" : sub)}</span>`);
+              if (sub && state.page !== "business") visual.insertAdjacentHTML("afterbegin", `<span class="lx-cat-badge">${esc(/legion/i.test(sub) ? "拯救者" : /lecoo/i.test(sub) ? "来酷" : sub)}</span>`);
               // 社会证明（sku 稳定伪随机，不闪烁）
               const seed = String(product.sku || "").split("").reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) % 9973, 7);
               const social = [`本周 ${120 + (seed % 880)} 人看过`, `仅剩 ${3 + (seed % 9)} 台`, `今日 ${5 + (seed % 40)} 人加购`][seed % 3];
@@ -589,6 +600,8 @@
               const response = await fetch(`/api/products/${encodeURIComponent(productOrSku)}`, { cache: "no-store" });
               if (response.ok) product = await response.json();
             } catch {}
+            // 官方商品 sku 在自有库 404：兜底查 officialProducts 缓存
+            if (!product) product = (state.officialProducts || {})[productOrSku] || null;
           }
           if (!product) return toast("未找到该商品，可能已下架或仅官网在售");
           state.currentProduct = product;
@@ -603,7 +616,7 @@
           document.querySelector(".content")?.setAttribute("data-view", "detail");
           document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
           const visual = $("[data-detail-visual]")?.parentElement;
-          if (visual) visual.innerHTML = `<img class="detail-product-image" src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" data-detail-visual />`;
+          if (visual) visual.innerHTML = `<img class="detail-product-image" src="${esc(product.official ? (product.image_url || "") : imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" data-detail-visual />`;
           const setText = (sel, text) => { const node = $(sel); if (node) node.textContent = text; };
           setText("[data-detail-title]", product.name || "联想商品");
           setText("[data-detail-summary]", product.description || "联想官方商品，支持继续向联想乐享 AI 助手咨询选型、优惠和对比。");
@@ -618,6 +631,20 @@
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);
           lxEnsureBuybar(product);
+          // 官方商品：在 detail-actions 区追加「去联想官网购买」次要入口，保留官方链接
+          document.querySelector(".lx-detail-official-link")?.remove();
+          if (product.official && product.url) {
+            const actions = document.querySelector(".detail-actions");
+            if (actions) {
+              const link = document.createElement("a");
+              link.className = "detail-secondary lx-detail-official-link";
+              link.href = product.url + (product.url.includes("?") ? "&" : "?") + "utm_source=leaibot&utm_medium=lexiang_poc";
+              link.target = "_blank";
+              link.rel = "noopener";
+              link.textContent = "去联想官网购买";
+              actions.appendChild(link);
+            }
+          }
           loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
@@ -1325,7 +1352,8 @@
               body: JSON.stringify({
                 // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
                 message: (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
-                sessionId: state.convId || undefined
+                sessionId: state.convId || undefined,
+                ...(window.__lxGeo || {})
               })
             });
             if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
@@ -1370,7 +1398,7 @@
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                 if (products.length === 1 && products[0].sku) {
                   lxRevealContent();
-                  openProduct(products[0].sku);
+                  openProduct(products[0]);
                 } else if (products.length) {
                   lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products };
@@ -1409,7 +1437,7 @@
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   lxRevealContent();
-                  openProduct(products[0].sku);
+                  openProduct(products[0]);
                 } else if (products.length) {
                   lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products, grouped: payload.grouped };
@@ -1458,7 +1486,10 @@
                 const products = payload.products || [];
                 if (!products.length) return;
                 revealAi();
-                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-official-url="${esc(p.url)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
+                // 官方商品缓存到 state，供点击时按 sku 取对象传给 openProduct
+                state.officialProducts = state.officialProducts || {};
+                products.forEach((p) => { if (p.sku) state.officialProducts[p.sku] = p; });
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-open-product="${esc(p.sku)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
                 lxRevealContent();
                 const recoTab = { id: "reco", kind: "reco", label: payload.title || "官方在售推荐", products };
                 lxUpsertTab(recoTab);
@@ -1676,7 +1707,7 @@
         }
 
         function lxGetSiteTabLabels(page = state.page) {
-          const categoryLabels = page === "personal" ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
+          const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
             personal: ["今日秒杀", "教育特惠 · 国补叠加", "门店与服务", "会员权益"],
             business: ["企业专享权益", "对公与售后保障", "轻量定制方案", "门店与服务"],
@@ -1755,11 +1786,42 @@
             ["服务", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
           ],
           enterprise: [
-            ["政教采购", (p) => /信创|开天|启天|昭阳/.test(p.name)],
-            ["大企业", (p) => /ThinkStation|ThinkSystem/i.test(p.name)],
-            ["工作站", (p) => p.category === "工作站"],
-            ["服务器", (p) => p.category === "服务器"],
-            ["安全服务", (p) => p.category === "服务产品"],
+            ["笔记本", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return (p.category === "笔记本电脑" || /笔记本|昭阳|开天|ThinkPad|ThinkBook|移动工作站|AI\s*PC/i.test(text)) && !/服务|保修|存储|服务器|工作站|台式|主机|ThinkCentre/i.test(text);
+            }],
+            ["台式机", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return !/ThinkCentre/i.test(text) && (p.category === "台式机" || /台式机|商用台式|启天|开天|主机|一体机/i.test(text));
+            }],
+            ["ThinkCentre", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /ThinkCentre/i.test(text);
+            }],
+            ["联想问天", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /问天|Wentian|联想问天/i.test(text);
+            }],
+            ["工作站", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return p.category === "工作站" || /工作站|ThinkStation/i.test(text);
+            }],
+            ["存储", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return p.category === "存储" || /存储|Storage|DE\d+|ThinkSystem.*DM|磁盘阵列|全闪|混闪|SAN|NAS/i.test(text);
+            }],
+            ["数据网络", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /数据网络|网络|交换机|路由|网关|ThinkSystem.*NE|Fabric|以太网|光纤/i.test(text);
+            }],
+            ["软件超融合", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /软件|超融合|虚拟化|云平台|HCI|Lenovo xCloud|xCloud|云智|超融合一体机/i.test(text);
+            }],
+            ["异构智算", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /异构|智算|AI服务器|AI\s*服务器|GPU|算力|训推|推理|深度学习|ThinkSystem.*GPU/i.test(text);
+            }],
           ],
         };
 
@@ -1785,49 +1847,84 @@
 
 
         const LX_PERSONAL_RECOMMEND_FLOORS = [
-          ["笔记本", (p) => {
+          ["拯救者", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return (p.category === "笔记本电脑" || /小新|拯救者|Legion|YOGA|ThinkPad|ThinkBook|笔记本|轻薄本|游戏本|AI元启/i.test(text)) && !/手机|moto|平板|Pad|显示器|服务|保修|保护套|鼠标|键盘|包|耳机/.test(text);
+            return /拯救者|Legion/i.test(text);
           }],
-          ["台式机/显示器", (p) => {
+          ["YOGA", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "台式机" || p.category === "显示器" || /台式|主机|一体机|显示器|ThinkCentre|扬天|启天|拯救者刃|来酷显示器/i.test(text);
+            return /YOGA/i.test(text);
           }],
-          ["平板", (p) => {
+          ["小新", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "平板电脑" || /平板|小新Pad|YOGA Tab|Lenovo Tab|Pad Pro|Pad Plus/i.test(text);
+            return /小新|XIAOXIN/i.test(text);
           }],
-          ["手机", (p) => {
+          ["IdeaPad", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "手机" || /moto|razr|手机|折叠屏/i.test(text);
+            return /IdeaPad|ideapad/i.test(text);
           }],
-          ["智能生活", (p) => {
+          ["ThinkPad", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /耳机|音箱|手表|手环|投影|智能|LePods|蓝牙|摄像头|扫地|门锁|路由/i.test(text);
+            return /ThinkPad/i.test(text);
           }],
-          ["配件/办公", (p) => {
+          ["ThinkPlus", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /鼠标|键盘|扩展坞|保护套|背包|包|打印机|办公|支架|电源|适配器|硬盘|U盘|充电器|鼠标垫/i.test(text);
+            return /ThinkPlus|Thinkplus|thinkplus|think\+|口红电源|扩展坞|会议|耳机|蓝牙|随身充/i.test(text);
           }],
-          ["全屋智能", (p) => {
+          ["moto", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /全屋|智能家居|门锁|摄像头|路由器|扫地|照明|家居|IoT/i.test(text);
+            return p.category === "手机" || /moto|motorola|razr|edge|手机|折叠屏/i.test(text);
           }],
-          ["服务升级", (p) => {
+        ];
+
+        const LX_BUSINESS_RECOMMEND_FLOORS = [
+          ["ThinkPad", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "服务产品" || /保修|延保|上门|服务|升级|换新|Care|清灰|安装|保障|会员/i.test(text);
+            return /ThinkPad/i.test(text);
+          }],
+          ["ThinkBook", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /ThinkBook/i.test(text);
+          }],
+          ["Thinkplus", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /Thinkplus|ThinkPlus|thinkplus|think\+|会议|耳机|口红电源|扩展坞|随身充|蓝牙/i.test(text);
+          }],
+          ["ThinkCentre", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /ThinkCentre/i.test(text);
+          }],
+          ["扬天&瑞天", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return !/ThinkCentre/i.test(text) && (p.category === "台式机" || /扬天|瑞天|YangTian|启天|商用台式|台式机|主机|一体机/i.test(text));
+          }],
+          ["配件&外设", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|显示器|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架/i.test(text);
+          }],
+          ["服务存储", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|硬盘|SSD|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品/i.test(text);
+          }],
+          ["企业服务", (p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /企业服务|企业IT|部署|运维|对公|专票|账期|企业认证|批量|采购|定制|方案|DaaS|白皮书|服务包|售后保障|上门服务/i.test(text);
           }],
         ];
 
         async function lxEnsureFloorProducts(site, limit = 96) {
           if (!state.floorProducts || state.floorProductsSite !== site || state.floorProductsLimit !== limit) {
             try {
-              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store" });
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), 15000);
+              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=${limit}`, { cache: "no-store", signal: controller.signal });
+              clearTimeout(timer);
               state.floorProducts = await response.json();
               state.floorProductsSite = site;
               state.floorProductsLimit = limit;
             } catch {
-              state.floorProducts = [];
+              state.floorProducts = Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []);
+              state.floorProductsSite = site;
               state.floorProductsLimit = limit;
             }
           }
@@ -1846,19 +1943,134 @@
             if (markUsed) used.add(lxProductKey(product));
           };
           pool.filter((p) => match(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
-          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p); });
+          pool.filter((p) => !picked.includes(p) && !used.has(lxProductKey(p))).forEach((p) => { if (picked.length < count) add(p, false); });
           if (picked.length < count) pool.filter((p) => !picked.includes(p)).forEach((p) => { if (picked.length < count) add(p, false); });
           return picked.slice(0, count);
+        }
+
+        function lxFloorColumnCount() {
+          const width = window.innerWidth || document.documentElement.clientWidth || 0;
+          if (width >= 1920) return 6;
+          if (width >= 1720) return 5;
+          return 4;
+        }
+
+        function lxFloorProductCount() {
+          return lxFloorColumnCount() * 2;
+        }
+
+        function lxUniqProducts(items) {
+          const seen = new Set();
+          return (items || []).filter((item) => {
+            const key = lxProductKey(item);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        }
+
+        function lxFillFloorProducts(items, fallback, count) {
+          const merged = lxUniqProducts([...(items || []), ...(fallback || [])]);
+          if (!merged.length) return [];
+          const output = merged.slice(0, count);
+          for (let i = 0; output.length < count && i < merged.length; i++) output.push(merged[i]);
+          return output.slice(0, count);
+        }
+
+        function lxRetryEmptyRecommendFloors(page, box) {
+          if (!box || box.querySelector(".lx-floor-product")) return;
+          const key = `${page}:${lxFloorProductCount()}`;
+          state._floorRetry = state._floorRetry || {};
+          const tried = state._floorRetry[key] || 0;
+          if (tried >= 2) return;
+          state._floorRetry[key] = tried + 1;
+          setTimeout(() => {
+            if (state.page === page && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
+          }, tried ? 5000 : 1500);
         }
 
         async function lxRenderPersonalRecommendFloors() {
           const site = API_SITE.personal || "shop";
           const pool = await lxEnsureFloorProducts(site, 96);
-          const source = pool.length ? pool : (Array.isArray(state.products) ? state.products : []);
+          const source = pool.length ? pool : (Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []));
+          if (!source.length) return "";
           const used = new Set();
+          const floorCount = lxFloorProductCount();
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
-            const items = lxPickFloorProducts(source, match, used, 8);
+            const items = lxPickFloorProducts(source, match, used, floorCount);
             return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
+        async function lxRenderBusinessRecommendFloors() {
+          const site = API_SITE.business || "b";
+          const pool = await lxEnsureFloorProducts(site, 120);
+          let feedSections = [];
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store", signal: controller.signal });
+            clearTimeout(timer);
+            const feed = await response.json();
+            feedSections = Array.isArray(feed.sections) ? feed.sections : [];
+          } catch {}
+
+          const sectionByKey = Object.fromEntries(feedSections.map((section) => [section.key, Array.isArray(section.products) ? section.products : []]));
+          const allFeedProducts = feedSections.flatMap((section) => Array.isArray(section.products) ? section.products : []);
+          const basePool = [...allFeedProducts, ...pool, ...(Array.isArray(state.siteProducts) ? state.siteProducts : []), ...(Array.isArray(state.products) ? state.products : [])];
+          if (!basePool.length) return "";
+          const uniq = (items) => {
+            const seen = new Set();
+            return items.filter((item) => {
+              const key = lxProductKey(item);
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+          };
+          const floorCount = lxFloorProductCount();
+          const matching = (match, source = basePool) => uniq(source.filter(match)).slice(0, floorCount);
+          const serviceProducts = sectionByKey.service || [];
+          const desktopProducts = uniq([...(sectionByKey.smb || []), ...(sectionByKey.tianyi || []), ...basePool]).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "台式机" || /ThinkCentre|扬天|瑞天|天逸|商用台式|台式机|主机|一体机/i.test(text);
+          });
+          const accessoryProducts = uniq(basePool).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架|会议屏/i.test(text);
+          });
+          const serviceStorageProducts = uniq([...serviceProducts, ...basePool]).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品|云智|流量|部署/i.test(text);
+          });
+          const floorItems = {
+            "ThinkPad": lxFillFloorProducts([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, floorCount),
+            "ThinkBook": lxFillFloorProducts([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, floorCount),
+            "Thinkplus": lxFillFloorProducts(accessoryProducts, basePool, floorCount),
+            "ThinkCentre": lxFillFloorProducts([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts], basePool, floorCount),
+            "扬天&瑞天": lxFillFloorProducts([...(sectionByKey.tianyi || []), ...desktopProducts], basePool, floorCount),
+            "配件&外设": lxFillFloorProducts(accessoryProducts, basePool, floorCount),
+            "服务存储": lxFillFloorProducts(serviceStorageProducts, basePool, floorCount),
+            "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, floorCount),
+          };
+
+          return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
+            let items = floorItems[label] || [];
+            if (!items.length) items = lxFillFloorProducts([...(sectionByKey.smb || []), ...(sectionByKey.hot || [])], basePool, floorCount);
+            return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+          }).join("");
+        }
+
+        async function lxRenderEnterpriseRecommendFloors() {
+          const site = API_SITE.enterprise || "biz";
+          const pool = await lxEnsureFloorProducts(site, 120);
+          const source = pool.length ? pool : (Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []));
+          if (!source.length) return "";
+          const used = new Set();
+          const floorCount = lxFloorProductCount();
+          return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
+            const items = lxPickFloorProducts(source, match, used, floorCount);
+            return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
           }).join("");
         }
 
@@ -1905,19 +2117,45 @@
               grid.hidden = true;
               box.hidden = false;
               box.classList.add("lx-personal-rec-floors");
+              box.classList.remove("lx-business-rec-floors", "lx-enterprise-rec-floors");
               box.innerHTML = await lxRenderPersonalRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
               return;
             }
-            box.classList.remove("lx-personal-rec-floors");
+            if (page === "business") {
+              grid.hidden = true;
+              box.hidden = false;
+              box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
+              box.classList.add("lx-business-rec-floors");
+              box.innerHTML = await lxRenderBusinessRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
+              if (state.page !== page) return;
+              lxSyncCategoryTabs();
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              return;
+            }
+            if (page === "enterprise") {
+              grid.hidden = true;
+              box.hidden = false;
+              box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors");
+              box.classList.add("lx-enterprise-rec-floors");
+              box.innerHTML = await lxRenderEnterpriseRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
+              if (state.page !== page) return;
+              lxSyncCategoryTabs();
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              return;
+            }
+            box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
             box.hidden = true;
             box.innerHTML = "";
             lxSyncCategoryTabs();
             return;
           }
-          box.classList.remove("lx-personal-rec-floors");
+          box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
           box.hidden = false;
           const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
@@ -2024,6 +2262,17 @@
 
         document.querySelector(".content")?.addEventListener("scroll", lxSyncCategoryTabsStuck, { passive: true });
         window.addEventListener("resize", lxSyncCategoryTabsStuck);
+        let lxLastFloorProductCount = lxFloorProductCount();
+        let lxFloorResizeTimer = null;
+        window.addEventListener("resize", () => {
+          const nextCount = lxFloorProductCount();
+          if (nextCount === lxLastFloorProductCount) return;
+          lxLastFloorProductCount = nextCount;
+          clearTimeout(lxFloorResizeTimer);
+          lxFloorResizeTimer = setTimeout(() => {
+            if (["personal", "business", "enterprise"].includes(state.page) && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
+          }, 120);
+        });
 
         setInterval(() => {
           document.querySelectorAll("[data-lx-countdown]").forEach((node) => {
@@ -2717,6 +2966,9 @@
           const pageBox = lxEnsureRecoPage();
           const products = Array.isArray(tab.products) ? tab.products : [];
           const disclaimer = `<p class="lx-p0-disclaimer">推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。</p>`;
+          // 官方商品存入缓存，供 data-open-product 点击时取对象（避免 sku fetch 404）
+          state.officialProducts = state.officialProducts || {};
+          products.forEach((p) => { if (p && p.official && p.sku) state.officialProducts[p.sku] = p; });
 
           // 系列全品类概览模式：按 category 分组渲染货架
           const isGrouped = !!tab.grouped && products.some(p => p && p.category);
@@ -2748,8 +3000,8 @@
               : "";
             pageBox.innerHTML = intro + products.map((p) => `
               <div class="reco-row">
-                <img src="${p.official ? esc(p.image_url) : esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" ${p.official ? `data-official-url="${esc(p.url)}"` : `data-open-product="${esc(p.sku)}"`} />
-                <div class="reco-row-main" ${p.official ? `data-official-url="${esc(p.url)}"` : `data-open-product="${esc(p.sku)}"`}>
+                <img src="${p.official ? esc(p.image_url) : esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" data-open-product="${esc(p.sku)}" />
+                <div class="reco-row-main" data-open-product="${esc(p.sku)}">
                   <strong>${esc(p.name)}</strong>
                   <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
                   <div class="reco-row-tags">${(p.promotion_tags || []).slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("")}</div>
@@ -2764,7 +3016,7 @@
                   <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
                   <div class="reco-row-actions">
                     ${p.official
-                      ? `<button class="lx-p0-btn primary" type="button" data-official-url="${esc(p.url)}">官方购买</button><button class="lx-p0-btn" type="button" data-quick-ask="帮我在本站找和${esc(p.name)}类似的商品">找同款</button>`
+                      ? `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><a class="lx-p0-btn" href="${esc(p.url)}?utm_source=leaibot&utm_medium=lexiang_poc" target="_blank" rel="noopener">去官网</a>`
                       : `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>`}
                   </div>
                 </div>
@@ -3824,7 +4076,8 @@
               if (lxSuppressProductClick) return;
               clearHoverPromptTimer();
               hideHoverPrompts();
-              openProduct(cardSku);
+              const cardOfficialObj = (state.officialProducts || {})[cardSku];
+              openProduct(cardOfficialObj || cardSku);
               return;
             }
 
@@ -3922,7 +4175,9 @@
               event.preventDefault();
               event.stopPropagation();
               closeModal();
-              openProduct(openSku);
+              // 官方商品对象优先（避免 fetch 官方 sku 404），其次走普通路径
+              const officialObj = (state.officialProducts || {})[openSku];
+              openProduct(officialObj || openSku);
               return;
             }
 
@@ -4554,6 +4809,28 @@
     runMotionPanel(layer);
     return layer;
   }
+  function createFullscreenExitLayer() {
+    const source = document.querySelector(".lxfd");
+    if (!source || reduceMotion) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel lxfd-motion-panel-exit";
+    layer.setAttribute("aria-hidden", "true");
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    return layer;
+  }
+  function setFullscreenExitLayerTarget(layer, targetRect) {
+    if (!layer || !targetRect || !targetRect.width || !targetRect.height) return false;
+    layer.style.setProperty("--lxfd-target-left", `${targetRect.left}px`);
+    layer.style.setProperty("--lxfd-target-top", `${targetRect.top}px`);
+    layer.style.setProperty("--lxfd-target-width", `${targetRect.width}px`);
+    layer.style.setProperty("--lxfd-target-height", `${targetRect.height}px`);
+    runMotionPanel(layer);
+    return true;
+  }
   function enterFullscreen() {
     lxfdApplySite();
     if (thread && !thread.children.length) lxfdImportFromMain();
@@ -4566,14 +4843,20 @@
     window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
     finishMotionClass("lxfd-entering", 760);
   }
-  function exitFullscreen() {
-    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) return;
+  function exitFullscreen(afterExit) {
+    const onAfterExit = typeof afterExit === "function" ? afterExit : null;
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) {
+      onAfterExit?.();
+      return;
+    }
     const targetRect = getSplitPanelRect();
     const motionLayer = createFullscreenShrinkLayer(targetRect);
     document.body.classList.remove("lxfd-entering");
     document.body.classList.add("lxfd-exiting");
     setFullscreen(false);
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
     document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    if (onAfterExit) requestAnimationFrame(onAfterExit);
     window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
     window.setTimeout(() => {
       document.body.classList.remove("lxfd-exiting");
@@ -4581,6 +4864,31 @@
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
   }
+  function exitFullscreenWithReveal(afterReveal) {
+    const onAfterReveal = typeof afterReveal === "function" ? afterReveal : null;
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) {
+      onAfterReveal?.();
+      return;
+    }
+    const motionLayer = createFullscreenExitLayer();
+    document.body.classList.remove("lxfd-entering");
+    document.body.classList.add("lxfd-exiting");
+    setFullscreen(false);
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
+    document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    onAfterReveal?.();
+    requestAnimationFrame(() => {
+      const rect = document.querySelector(".assistant-panel")?.getBoundingClientRect();
+      if (!setFullscreenExitLayerTarget(motionLayer, rect)) motionLayer?.remove();
+    });
+    window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
+    window.setTimeout(() => {
+      document.body.classList.remove("lxfd-exiting");
+      document.body.classList.remove("lxfd-split-returning");
+      motionLayer?.remove();
+    }, reduceMotion ? 0 : 760);
+  }
+  window.__lxfdExitWithReveal = exitFullscreenWithReveal;
   function setFullscreen(on) {
     document.body.classList.toggle("assistant-fullscreen", !!on);
     document.body.classList.toggle("lx-auto-fs", !!on);
@@ -4732,7 +5040,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: sendMsg,
-          sessionId: chatState.convId || undefined
+          sessionId: chatState.convId || undefined,
+          ...(window.__lxGeo || {})
         })
       });
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
@@ -4807,10 +5116,11 @@
               document.body.classList.contains("assistant-fullscreen") &&
               window.__lxBridge) {
             lxfdExportToMain();
-            window.__lxBridge.exitFullscreen();
-            window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
-            // 清空 lxfd thread，下次回全屏会从主面板重新 import
-            if (thread) thread.innerHTML = "";
+            exitFullscreenWithReveal(() => {
+              window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+              // 清空 lxfd thread，下次回全屏会从主面板重新 import
+              if (thread) thread.innerHTML = "";
+            });
           }
         }
       });
@@ -5025,4 +5335,3 @@
     document.addEventListener('pointercancel', onUp, true);
   }, true);
 })();
-
