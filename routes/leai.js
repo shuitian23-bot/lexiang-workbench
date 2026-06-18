@@ -141,6 +141,15 @@ router.post('/stream', async (req, res) => {
         try { d = JSON.parse(line.slice(5)); } catch { continue; }
         const r = d.response || {};
 
+        // 思考/调用过程（官方 thinking_trace：分析意图 / 调用 skill / 查知识库）→ 翻成 status 让前端展示
+        // 只在正文还没开始流式时展示（正文一来就被覆盖，符合"思考中→出答案"的官方体验）
+        if (!lastLen && d.thinking_trace && Array.isArray(d.thinking_trace.trace) && d.thinking_trace.trace.length) {
+          const steps = d.thinking_trace.trace;
+          const last = steps[steps.length - 1];
+          const tip = last && last.thinking ? String(last.thinking).slice(0, 60) : '';
+          if (tip) res.write('event: status\ndata:' + JSON.stringify({ text: tip }) + '\n\n');
+        }
+
         // 文本增量（官方是全量累积，必须切 delta）
         if (typeof r.response_text === 'string' && r.response_text.length > lastLen) {
           const delta = r.response_text.slice(lastLen);
