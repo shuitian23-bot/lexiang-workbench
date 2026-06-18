@@ -4212,20 +4212,6 @@
     }
     return "home";
   }
-  // 官方 FAQ 热门问题：拉 /api/leai/faq 替换欢迎 chips，与官方乐享一致
-  let _lxfdFaqCache = null;
-  function lxfdRenderChips(list) {
-    if (chips && Array.isArray(list) && list.length) {
-      chips.innerHTML = list.slice(0, 6).map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
-    }
-  }
-  function lxfdApplyFaqChips() {
-    if (_lxfdFaqCache) { lxfdRenderChips(_lxfdFaqCache); return; }
-    fetch("/api/leai/faq", { cache: "no-store" }).then((r) => r.json()).then((d) => {
-      const list = (d && d.data) || [];
-      if (list.length) { _lxfdFaqCache = list; lxfdRenderChips(list); }
-    }).catch(() => {});
-  }
   function lxfdApplySite() {
     const prompts = window.__lxSitePrompts;
     if (!prompts) {
@@ -4240,7 +4226,6 @@
     // 欢迎 chips
     const welcomeList = cfg.welcome || questions;
     if (chips) chips.innerHTML = welcomeList.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
-    lxfdApplyFaqChips(); // 异步拉官方 FAQ 替换为真实热门问题
     // 底部 actionbar
     const actionbarList = cfg.actionbar || quicks;
     if (quick) quick.innerHTML = actionbarList.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
