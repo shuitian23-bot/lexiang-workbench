@@ -524,14 +524,18 @@ function renderSkillHubActions(item, role) {
     disabled: ['启用', '查看'],
     rejected: ['查看', '编辑']
   };
-  const actions = (role === 'admin' ? adminActions : pmActions)[item.status] || ['查看'];
+  const actions = ['应用', ...((role === 'admin' ? adminActions : pmActions)[item.status] || ['查看'])];
   return actions.map(action => {
-    const tone = action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
+    const tone = action === '删除' || action === '驳回' ? 'danger' : action === '应用' || action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
     return `<button class="skill-hub-action ${tone}" onclick="handleSkillHubAction('${item.name}', '${action}')">${action}</button>`;
   }).join('');
 }
 
 function handleSkillHubAction(name, action) {
+  if (action === '应用') {
+    applySkillHubItem(name);
+    return;
+  }
   if (action === '查看') {
     openSkillHubDetail(name);
     return;
@@ -561,6 +565,56 @@ function handleSkillHubAction(name, action) {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 220);
   }, 1800);
+}
+
+function applySkillHubItem(name) {
+  const item = getSkillHubItem(name);
+  if (!item) {
+    skillHubToast(`${name}：未找到 Skill 信息`);
+    return;
+  }
+  if (typeof toggleAI === 'function') toggleAI(true);
+  if (typeof aiHideEmptyState === 'function') aiHideEmptyState();
+
+  const queryMap = {
+    'workplace-cert-analysis': '查询近 7 天职场认证通过率、失败原因 Top3 和待审核积压',
+    'low-stock-auto-offline': '检查低库存商品并输出可下架建议',
+    'product-knowledge': '查询 ThinkPad X1 Carbon 与 X1 Nano 的配置差异',
+    'voucher-recommend': '为会员充值场景推荐合适券包权益',
+    'driver-download-guide': '查询 ThinkPad T14 驱动下载和安装说明',
+    'lenovo-order-detail-query': '查询订单状态、售后进度和发货信息',
+    'weather-query': '查询北京今日天气并给出活动运营提醒'
+  };
+  const query = queryMap[item.name] || `调用 ${item.name} 并返回执行结果`;
+  const canExecute = ['approved', 'published'].includes(item.status);
+  const statusNote = canExecute
+    ? `当前状态为「${item.statusText}」，可以在授权范围内调用。`
+    : `当前状态为「${item.statusText}」，本次按 Skill Hub 预览方式生成模拟调用结果。`;
+  const result = [
+    `### Skill 调用结果 · ${item.name}`,
+    '',
+    `**调用指令**：${query}`,
+    `**版本**：${item.online && item.online !== '未发布' ? item.online : item.version}`,
+    `**状态**：${statusNote}`,
+    '',
+    '**结果摘要**：',
+    `- 已识别业务场景：${item.category}`,
+    `- 已加载标签：${item.tags.join(' / ')}`,
+    `- 已基于 Skill 描述执行：${item.desc}`,
+    '',
+    '**输出**：',
+    `1. ${item.category} 结果已生成，可用于当前运营判断。`,
+    `2. 涉及写入、发布或导出时，需要先展示影响范围并等待确认。`,
+    `3. 可继续追问“展开明细”或“生成报告”。`
+  ].join('\n');
+
+  if (typeof addAiMessage === 'function') {
+    addAiMessage('user', `应用 Skill：${item.name}\n${query}`);
+    addAiMessage('assistant', result);
+  } else if (typeof aiQuick === 'function') {
+    aiQuick(`应用 Skill：${item.name}。${query}`);
+  }
+  skillHubToast(`${item.name}：已在右侧 Agent 展示调用结果`);
 }
 
 function skillHubToast(message) {
