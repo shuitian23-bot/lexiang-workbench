@@ -7050,6 +7050,9 @@ html[data-product="leaibot"] .ai-panel.open {
   min-width: var(--ai-panel-width) !important;
   max-width: min(var(--ai-panel-max-width), calc(100vw - 320px)) !important;
   flex: 0 0 auto !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 80 !important;
 }
 
 html[data-product="leaibot"] .ai-panel.resizing {
@@ -7070,7 +7073,7 @@ html[data-product="leaibot"] .ai-edge-collapse {
   position: absolute !important;
   left: -12px !important;
   top: 72px !important;
-  z-index: 32 !important;
+  z-index: 120 !important;
   width: 24px !important;
   height: 24px !important;
   min-width: 24px !important;
