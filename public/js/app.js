@@ -3753,14 +3753,16 @@
               else if (text) sendChat(text);
             }
 
-            const card = event.target.closest(".product-card");
-            if (card?.dataset.sku) {
+            const card = event.target.closest(".product-card, .lx-floor-product");
+            const cardSku = card?.dataset.sku || card?.dataset.openProduct;
+            if (cardSku) {
               event.preventDefault();
               event.stopImmediatePropagation();
               if (lxSuppressProductClick) return;
               clearHoverPromptTimer();
               hideHoverPrompts();
-              openProduct(card.dataset.sku);
+              openProduct(cardSku);
+              return;
             }
 
             const detailPrimary = event.target.closest(".detail-primary");
@@ -3853,7 +3855,13 @@
             }
 
             const openSku = event.target.closest("[data-open-product]")?.dataset.openProduct;
-            if (openSku) { closeModal(); openProduct(openSku); }
+            if (openSku) {
+              event.preventDefault();
+              event.stopPropagation();
+              closeModal();
+              openProduct(openSku);
+              return;
+            }
 
             const buySku = event.target.closest("[data-buy-sku]")?.dataset.buySku;
             if (buySku) buyNow(state.cart.find((item) => item.sku === buySku));
