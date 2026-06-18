@@ -7914,3 +7914,34 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .price .price-from,
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .price small,
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .price .price-from { margin-left: 2px; font-size: 11px !important; font-weight: 600; color: var(--text-soft) !important; }
+
+/* Shop shell gap tune: halve assistant/content middle spacing 2026-06-18 */
+body:not(.assistant-fullscreen) .shell:has(.content .lx-site-floors),
+body:not(.assistant-fullscreen) .shell:has(.content .product-grid) {
+  column-gap: clamp(9.5px, 1vw, 19px) !important;
+}
+@media (max-width: 1180px) {
+  body:not(.assistant-fullscreen) .shell:has(.content .lx-site-floors),
+  body:not(.assistant-fullscreen) .shell:has(.content .product-grid) {
+    column-gap: 9px !important;
+  }
+}
+
+/* Mall tabs: remove hover underline, keep active underline 2026-06-18 */
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .category-tabs button:not(.active):hover::after,
+body:not(.assistant-fullscreen) .content:has(.product-grid) > .category-tabs button:not(.active):hover::after,
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .category-tabs .cat-more-btn:not(.active):hover::after,
+body:not(.assistant-fullscreen) .content:has(.product-grid) > .category-tabs .cat-more-btn:not(.active):hover::after {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Mall hero: hide ambassador decorative tag 2026-06-18 */
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .hero::after,
+body:not(.assistant-fullscreen) .content:has(.product-grid) > .hero::after {
+  content: none !important;
+  display: none !important;
+}
