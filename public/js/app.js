@@ -4536,6 +4536,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
   let turns = [];
   let helloIndex = 0;
   let helloAnimating = false;
+  let helloTimer = null;
   let railManuallyCollapsed = true;
   const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
   const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
@@ -5096,6 +5097,20 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
       requestAnimationFrame(() => word.classList.remove("in"));
     }, reduceMotion ? 0 : 340);
   }
+  function startRotatingTitle() {
+    setRotatingTitle(helloWords[helloIndex]);
+    if (reduceMotion) return;
+    if (helloTimer) window.clearTimeout(helloTimer);
+    if (!forceFullscreenMotion) {
+      helloTimer = window.setInterval(rotateTitleWord, 2000);
+      return;
+    }
+    const tick = () => {
+      rotateTitleWord();
+      helloTimer = window.setTimeout(tick, 2000);
+    };
+    helloTimer = window.setTimeout(tick, 2000);
+  }
   function renderTurnIndex(activeId) {
     turnIndex?.classList.toggle("show", turns.length > 0);
     if (turnDots) turnDots.innerHTML = turns.map(t => `<i class="${t.id === activeId ? "active" : ""}"></i>`).join("");
@@ -5422,7 +5437,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
     if (cb && typeof window.lxfdSubmit === "function" && document.body.classList.contains("assistant-fullscreen")) window.lxfdSubmit(cb);
   });
 
-  setTimeout(() => { setRotatingTitle(helloWords[helloIndex]); if (!reduceMotion) setInterval(rotateTitleWord, 2000); }, reduceMotion ? 0 : 2000);
+  setTimeout(startRotatingTitle, reduceMotion ? 0 : 2000);
   syncSend();
   lxfdRenderHist();
 
