@@ -3197,14 +3197,14 @@
             quick: ["我要找商品", "我要找优惠和活动", "我要查保修和售后", "我要找附近门店", "我要企业批量采购", "我要问国补和教育优惠"],
             welcome: ["想买游戏本，预算8000怎么选？", "日常办公用，5000内电脑怎么选？", "我都有哪些会员权益？", "公司采购电脑有什么补贴？", "哪里有卖ThinkPad笔记本电脑门店"],
             placeholder: "最近有什么优惠活动？",
-            actionbar: ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心"],
+            actionbar: ["商品导购", "解决方案", "门店查询", "职场认证", "服务预约"],
             hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
           },
           personal: {
             quick: ["我要找商品", "我要找优惠和活动", "我要问国补和教育优惠", "我要以旧换新", "我要查保修和售后", "我要找附近门店"],
             welcome: ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"],
             placeholder: "最近有什么优惠活动？",
-            actionbar: ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心"],
+            actionbar: ["商品导购", "解决方案", "门店查询", "职场认证", "服务预约"],
             hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
           },
           business: {
@@ -4212,6 +4212,20 @@
     }
     return "home";
   }
+  // 官方 FAQ 热门问题：拉 /api/leai/faq 替换欢迎 chips，与官方乐享一致
+  let _lxfdFaqCache = null;
+  function lxfdRenderChips(list) {
+    if (chips && Array.isArray(list) && list.length) {
+      chips.innerHTML = list.slice(0, 6).map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+    }
+  }
+  function lxfdApplyFaqChips() {
+    if (_lxfdFaqCache) { lxfdRenderChips(_lxfdFaqCache); return; }
+    fetch("/api/leai/faq", { cache: "no-store" }).then((r) => r.json()).then((d) => {
+      const list = (d && d.data) || [];
+      if (list.length) { _lxfdFaqCache = list; lxfdRenderChips(list); }
+    }).catch(() => {});
+  }
   function lxfdApplySite() {
     const prompts = window.__lxSitePrompts;
     if (!prompts) {
@@ -4226,6 +4240,7 @@
     // 欢迎 chips
     const welcomeList = cfg.welcome || questions;
     if (chips) chips.innerHTML = welcomeList.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+    lxfdApplyFaqChips(); // 异步拉官方 FAQ 替换为真实热门问题
     // 底部 actionbar
     const actionbarList = cfg.actionbar || quicks;
     if (quick) quick.innerHTML = actionbarList.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
