@@ -7072,7 +7072,7 @@ html[data-product="leaibot"] .ai-resize-handle.active {
 html[data-product="leaibot"] .ai-edge-collapse {
   position: absolute !important;
   left: -12px !important;
-  top: 72px !important;
+  top: 24px !important;
   z-index: 120 !important;
   width: 24px !important;
   height: 24px !important;
@@ -7085,7 +7085,7 @@ html[data-product="leaibot"] .ai-edge-collapse {
   border-radius: 999px !important;
   background: var(--color-surface) !important;
   color: var(--color-text-secondary) !important;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, .10) !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, .08) !important;
   cursor: pointer !important;
 }
 
