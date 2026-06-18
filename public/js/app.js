@@ -1,3 +1,13 @@
+// 真实浏览器定位：非阻塞，只请求一次，结果写到 window.__lxGeo 供两个 IIFE 共用
+if (!window.__lxGeoRequested && navigator.geolocation) {
+  window.__lxGeoRequested = true;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { window.__lxGeo = { lng: pos.coords.longitude, lat: pos.coords.latitude }; },
+    () => { /* 拒绝/失败：不设 __lxGeo，后端默认北京 */ },
+    { timeout: 8000, maximumAge: 300000 }
+  );
+}
+
       (() => {
         "use strict";
 
@@ -590,6 +600,8 @@
               const response = await fetch(`/api/products/${encodeURIComponent(productOrSku)}`, { cache: "no-store" });
               if (response.ok) product = await response.json();
             } catch {}
+            // 官方商品 sku 在自有库 404：兜底查 officialProducts 缓存
+            if (!product) product = (state.officialProducts || {})[productOrSku] || null;
           }
           if (!product) return toast("未找到该商品，可能已下架或仅官网在售");
           state.currentProduct = product;
@@ -604,7 +616,7 @@
           document.querySelector(".content")?.setAttribute("data-view", "detail");
           document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
           const visual = $("[data-detail-visual]")?.parentElement;
-          if (visual) visual.innerHTML = `<img class="detail-product-image" src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" data-detail-visual />`;
+          if (visual) visual.innerHTML = `<img class="detail-product-image" src="${esc(product.official ? (product.image_url || "") : imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" data-detail-visual />`;
           const setText = (sel, text) => { const node = $(sel); if (node) node.textContent = text; };
           setText("[data-detail-title]", product.name || "联想商品");
           setText("[data-detail-summary]", product.description || "联想官方商品，支持继续向联想乐享 AI 助手咨询选型、优惠和对比。");
@@ -619,6 +631,20 @@
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);
           lxEnsureBuybar(product);
+          // 官方商品：在 detail-actions 区追加「去联想官网购买」次要入口，保留官方链接
+          document.querySelector(".lx-detail-official-link")?.remove();
+          if (product.official && product.url) {
+            const actions = document.querySelector(".detail-actions");
+            if (actions) {
+              const link = document.createElement("a");
+              link.className = "detail-secondary lx-detail-official-link";
+              link.href = product.url + (product.url.includes("?") ? "&" : "?") + "utm_source=leaibot&utm_medium=lexiang_poc";
+              link.target = "_blank";
+              link.rel = "noopener";
+              link.textContent = "去联想官网购买";
+              actions.appendChild(link);
+            }
+          }
           loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
@@ -1326,7 +1352,8 @@
               body: JSON.stringify({
                 // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
                 message: (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text),
-                sessionId: state.convId || undefined
+                sessionId: state.convId || undefined,
+                ...(window.__lxGeo || {})
               })
             });
             if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
@@ -1371,7 +1398,7 @@
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                 if (products.length === 1 && products[0].sku) {
                   lxRevealContent();
-                  openProduct(products[0].sku);
+                  openProduct(products[0]);
                 } else if (products.length) {
                   lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products };
@@ -1410,7 +1437,7 @@
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   lxRevealContent();
-                  openProduct(products[0].sku);
+                  openProduct(products[0]);
                 } else if (products.length) {
                   lxRevealContent();
                   const recoTab = { id: "reco", kind: "reco", label: payload.title || "AI 推荐", products, grouped: payload.grouped };
@@ -1459,7 +1486,10 @@
                 const products = payload.products || [];
                 if (!products.length) return;
                 revealAi();
-                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-official-url="${esc(p.url)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
+                // 官方商品缓存到 state，供点击时按 sku 取对象传给 openProduct
+                state.officialProducts = state.officialProducts || {};
+                products.forEach((p) => { if (p.sku) state.officialProducts[p.sku] = p; });
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-open-product="${esc(p.sku)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
                 lxRevealContent();
                 const recoTab = { id: "reco", kind: "reco", label: payload.title || "官方在售推荐", products };
                 lxUpsertTab(recoTab);
@@ -1797,7 +1827,7 @@
 
         function lxProductMiniCard(product) {
           if (product.official) {
-            return `<div class="lx-floor-product" data-official-url="${esc(product.url)}">
+            return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
             <div class="product-visual"><img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" /></div>
             <h3 class="product-title">${esc(product.name)}<span class="lx-official-tag">官方在售</span></h3>
             <p class="spec">${esc(product.description || "")}</p>
@@ -2936,6 +2966,9 @@
           const pageBox = lxEnsureRecoPage();
           const products = Array.isArray(tab.products) ? tab.products : [];
           const disclaimer = `<p class="lx-p0-disclaimer">推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。</p>`;
+          // 官方商品存入缓存，供 data-open-product 点击时取对象（避免 sku fetch 404）
+          state.officialProducts = state.officialProducts || {};
+          products.forEach((p) => { if (p && p.official && p.sku) state.officialProducts[p.sku] = p; });
 
           // 系列全品类概览模式：按 category 分组渲染货架
           const isGrouped = !!tab.grouped && products.some(p => p && p.category);
@@ -2967,8 +3000,8 @@
               : "";
             pageBox.innerHTML = intro + products.map((p) => `
               <div class="reco-row">
-                <img src="${p.official ? esc(p.image_url) : esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" ${p.official ? `data-official-url="${esc(p.url)}"` : `data-open-product="${esc(p.sku)}"`} />
-                <div class="reco-row-main" ${p.official ? `data-official-url="${esc(p.url)}"` : `data-open-product="${esc(p.sku)}"`}>
+                <img src="${p.official ? esc(p.image_url) : esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" data-open-product="${esc(p.sku)}" />
+                <div class="reco-row-main" data-open-product="${esc(p.sku)}">
                   <strong>${esc(p.name)}</strong>
                   <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
                   <div class="reco-row-tags">${(p.promotion_tags || []).slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("")}</div>
@@ -2983,7 +3016,7 @@
                   <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
                   <div class="reco-row-actions">
                     ${p.official
-                      ? `<button class="lx-p0-btn primary" type="button" data-official-url="${esc(p.url)}">官方购买</button><button class="lx-p0-btn" type="button" data-quick-ask="帮我在本站找和${esc(p.name)}类似的商品">找同款</button>`
+                      ? `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><a class="lx-p0-btn" href="${esc(p.url)}?utm_source=leaibot&utm_medium=lexiang_poc" target="_blank" rel="noopener">去官网</a>`
                       : `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>`}
                   </div>
                 </div>
@@ -4043,7 +4076,8 @@
               if (lxSuppressProductClick) return;
               clearHoverPromptTimer();
               hideHoverPrompts();
-              openProduct(cardSku);
+              const cardOfficialObj = (state.officialProducts || {})[cardSku];
+              openProduct(cardOfficialObj || cardSku);
               return;
             }
 
@@ -4141,7 +4175,9 @@
               event.preventDefault();
               event.stopPropagation();
               closeModal();
-              openProduct(openSku);
+              // 官方商品对象优先（避免 fetch 官方 sku 404），其次走普通路径
+              const officialObj = (state.officialProducts || {})[openSku];
+              openProduct(officialObj || openSku);
               return;
             }
 
@@ -4957,7 +4993,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: sendMsg,
-          sessionId: chatState.convId || undefined
+          sessionId: chatState.convId || undefined,
+          ...(window.__lxGeo || {})
         })
       });
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
