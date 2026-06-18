@@ -7693,3 +7693,113 @@ body[data-page="home"] .agent-summary {
 .att-pending{
   display:none!important;
 }
+
+/* Mall right-content skin: 2026-06-18 scoped CSS-only override for shop/b/biz pages */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content {
+  --brand-red: #e1251b;
+  --price-red: #ff2b2b;
+  --aubergine: #5b1452;
+  --lavender-weak: #f6f1f8;
+  --lavender-hover: #f0eaf8;
+  --grad-brand: linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);
+  --border: #e6dfea;
+  --border-strong: #d8c8dd;
+  --text: #101010;
+  --text-soft: #5f5a64;
+  --text-muted: #9a929f;
+  --sh-1: 0 1px 2px rgba(40,22,50,.05),0 2px 8px rgba(40,22,50,.05);
+  --sh-2: 0 1px 2px rgba(40,22,50,.05),0 8px 24px rgba(40,22,50,.10);
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --ease-spring: cubic-bezier(.34,1.4,.4,1);
+  position: relative;
+  border-radius: 20px;
+  padding: 18px !important;
+  background: #fff !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--sh-1) !important;
+  box-sizing: border-box;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero {
+  position: relative;
+  height: 212px !important;
+  min-height: 212px;
+  border-radius: 16px !important;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0 44px !important;
+  color: #fff;
+  background: linear-gradient(102deg,#1c1630,#332552 42%,#5b3f82 76%,#a98fc8) !important;
+  box-sizing: border-box;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero .hero-slides { position: absolute; inset: 0; transition: transform .8s var(--ease); }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero:hover .hero-slides { transform: scale(1.04); }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero .hero-slide { object-fit: cover; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(118deg,rgba(255,255,255,.06) 0 14px,rgba(255,255,255,.015) 14px 30px), linear-gradient(90deg,rgba(20,12,42,.52),rgba(35,20,62,.18) 50%,rgba(255,255,255,.02) 100%);
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero::after {
+  content: "品牌大使 · 张凌赫"; position: absolute; right: 18px; bottom: 13px; z-index: 2;
+  font: 600 11px ui-monospace,monospace; letter-spacing: 2px; color: rgba(255,255,255,.5); pointer-events: none; background: transparent;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero .hero-copy { position: relative; z-index: 2; padding: 0 !important; color: #fff; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero .hero-kicker { margin: 0 0 11px; font-size: 13px; line-height: 1.45; font-weight: 700; letter-spacing: 1px; opacity: .92; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero .hero-title { margin: 0 0 18px; font-size: 33px; line-height: 1.16; font-weight: 800; letter-spacing: 3px; text-shadow: 0 2px 18px rgba(0,0,0,.25); }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .hero .hero-btn { height: 40px; padding: 0 26px; border-radius: 999px; background: #fff; color: #151116; font-size: 15px; font-weight: 600; }
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs {
+  display: flex; align-items: center; gap: 6px !important; height: auto !important; margin: 18px 2px 8px !important; padding: 0 !important; border-bottom: 1px solid var(--border); overflow: visible;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs button,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs .cat-more-btn {
+  position: relative; height: 46px !important; padding: 0 18px !important; border: 0; background: transparent !important; color: var(--text-soft); font-size: 15px !important; font-weight: 600; white-space: nowrap; transition: color .18s;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs button:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs .cat-more-btn:hover { color: var(--text); }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs button.active,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs .cat-more-btn.active { color: var(--aubergine); font-weight: 700; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs button.active::after,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .category-tabs .cat-more-btn.active::after { content: ""; position: absolute; left: 18px; right: 18px; bottom: -1px; width: auto; height: 2.5px; border-radius: 3px; background: var(--grad-brand); }
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-site-floors { display: grid; gap: 32px; margin: 20px 2px 40px !important; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor { display: block; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-head { display: flex; align-items: flex-end; justify-content: space-between; margin: 0 2px 16px !important; gap: 11px; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-head h3 { margin: 0; font-size: 21px !important; line-height: 1.25; font-weight: 800; color: #1a1320; letter-spacing: .5px; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-head span,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-head .lx-p0-btn { display: none !important; }
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 16px !important; }
+@media (min-width: 1440px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
+@media (min-width: 1720px) { body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products, body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card {
+  position: relative; min-height: 0 !important; height: auto !important; padding: 0 !important; border: 1px solid var(--border) !important; border-radius: 15px !important; overflow: hidden; background: #fff !important; text-align: left; cursor: pointer; display: flex; flex-direction: column; transition: box-shadow .24s var(--ease), transform .24s var(--ease), border-color .24s;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card:hover { transform: translateY(-5px) !important; box-shadow: 0 18px 40px rgba(91,20,82,.14) !important; border-color: var(--border-strong) !important; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product:first-child,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card:first-child { border-color: var(--border) !important; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-visual,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-visual { position: relative; width: 100%; height: 155px !important; min-height: 155px; max-height: 155px !important; flex: 0 0 155px !important; padding-top: 6px; margin: 0 !important; display: flex; align-items: flex-start; justify-content: center; background: #fff !important; overflow: hidden; box-sizing: border-box; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-visual img,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-visual img { width: auto !important; max-width: 149px !important; height: 149px !important; max-height: 149px !important; object-fit: contain; display: block; transition: transform .55s var(--ease); }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product:hover .product-visual img,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card:hover .product-visual img { transform: scale(1.06) !important; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-title,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-title { margin: 0; padding: 13px 14px 0; min-height: 0 !important; font-size: 14.5px !important; line-height: 1.4 !important; font-weight: 700; color: #17121c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .spec,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .spec { margin: 5px 0 10px !important; padding: 0 14px; min-height: 0 !important; font-size: 12px !important; line-height: 1.45; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-promos,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-promos { display: flex; justify-content: flex-start; gap: 6px; min-height: 20px; margin: 0 14px 11px !important; overflow: hidden; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-promo,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-promo { height: 20px; max-width: none; padding: 0 7px; border: 1px solid #f0c9cf; border-radius: 5px; background: #fff; color: #bb1836; font-size: 10.5px; line-height: 1; display: inline-flex; align-items: center; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .price,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .price { margin: auto 14px 14px !important; font-size: 18px !important; line-height: 1.25; font-weight: 800; color: var(--price-red) !important; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .price small,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .price .price-from,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .price small,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-card .price .price-from { margin-left: 2px; font-size: 11px !important; font-weight: 600; color: var(--text-soft) !important; }
