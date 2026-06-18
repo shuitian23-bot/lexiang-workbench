@@ -256,7 +256,7 @@
               state.products = state.siteProducts;
               renderProductCards();
             }
-            if (state.page === "personal") lxRenderSiteFloors();
+            if (["personal", "business", "enterprise"].includes(state.page)) lxRenderSiteFloors();
           } catch (error) {
             toast("商品数据暂时不可用，已保留当前页面展示");
           }
@@ -1755,11 +1755,42 @@
             ["服务", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
           ],
           enterprise: [
-            ["政教采购", (p) => /信创|开天|启天|昭阳/.test(p.name)],
-            ["大企业", (p) => /ThinkStation|ThinkSystem/i.test(p.name)],
-            ["工作站", (p) => p.category === "工作站"],
-            ["服务器", (p) => p.category === "服务器"],
-            ["安全服务", (p) => p.category === "服务产品"],
+            ["笔记本", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return (p.category === "笔记本电脑" || /笔记本|昭阳|开天|ThinkPad|ThinkBook|移动工作站|AI\s*PC/i.test(text)) && !/服务|保修|存储|服务器|工作站|台式|主机|ThinkCentre/i.test(text);
+            }],
+            ["台式机", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return !/ThinkCentre/i.test(text) && (p.category === "台式机" || /台式机|商用台式|启天|开天|主机|一体机/i.test(text));
+            }],
+            ["ThinkCentre", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /ThinkCentre/i.test(text);
+            }],
+            ["联想问天", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /问天|Wentian|联想问天/i.test(text);
+            }],
+            ["工作站", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return p.category === "工作站" || /工作站|ThinkStation/i.test(text);
+            }],
+            ["存储", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return p.category === "存储" || /存储|Storage|DE\d+|ThinkSystem.*DM|磁盘阵列|全闪|混闪|SAN|NAS/i.test(text);
+            }],
+            ["数据网络", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /数据网络|网络|交换机|路由|网关|ThinkSystem.*NE|Fabric|以太网|光纤/i.test(text);
+            }],
+            ["软件超融合", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /软件|超融合|虚拟化|云平台|HCI|Lenovo xCloud|xCloud|云智|超融合一体机/i.test(text);
+            }],
+            ["异构智算", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /异构|智算|AI服务器|AI\s*服务器|GPU|算力|训推|推理|深度学习|ThinkSystem.*GPU/i.test(text);
+            }],
           ],
         };
 
