@@ -2802,7 +2802,7 @@
         }
 
         function mdLite(text) {
-          const src = String(text || "").replace(/\r/g, "");
+          const src = String(text || "").replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ");
           const lines = src.split("\n");
           const out = [];
           let listOpen = false;
@@ -4400,7 +4400,8 @@
     return value.startsWith("http") || value.startsWith("/") ? value : "/" + value;
   }
   function mdLite(text) {
-    let html = escapeHtml(text || "");
+    const src = String(text || "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ");
+    let html = escapeHtml(src);
     html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     html = html.replace(/(?:^|\n)####?\s*(.+)/g, "\n<h4>$1</h4>");
     html = html.replace(/(?:^|\n)-\s+(.+)/g, "\n<ul><li>$1</li></ul>");
