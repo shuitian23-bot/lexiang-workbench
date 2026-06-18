@@ -7070,36 +7070,7 @@ html[data-product="leaibot"] .ai-resize-handle.active {
 }
 
 html[data-product="leaibot"] .ai-edge-collapse {
-  position: absolute !important;
-  left: -12px !important;
-  top: 24px !important;
-  z-index: 120 !important;
-  width: 24px !important;
-  height: 24px !important;
-  min-width: 24px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: 1px solid var(--color-border-subtle) !important;
-  border-radius: 999px !important;
-  background: var(--color-surface) !important;
-  color: var(--color-text-secondary) !important;
-  box-shadow: 0 4px 10px rgba(15, 23, 42, .08) !important;
-  cursor: pointer !important;
-}
-
-html[data-product="leaibot"] .ai-edge-collapse:hover {
-  border-color: var(--color-primary-border) !important;
-  background: var(--color-primary-subtle) !important;
-  color: var(--color-primary) !important;
-}
-
-html[data-product="leaibot"] .ai-edge-collapse svg {
-  display: block !important;
-  width: 15px !important;
-  height: 15px !important;
-  stroke-width: 1.6 !important;
+  display: none !important;
 }
 
 html[data-product="leaibot"] .page-content > .page-header {
