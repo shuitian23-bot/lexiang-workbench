@@ -7965,3 +7965,17 @@ body:not(.assistant-fullscreen) .content:has(.product-grid) {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
+/* Detail page isolation: product click opens an independent detail page, not inside active mall tab 2026-06-18 */
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .hero,
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .category-tabs,
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-grid,
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .lx-site-floors,
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .portal-home,
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .brand-page {
+  display: none !important;
+}
+
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
+  display: block !important;
+}
