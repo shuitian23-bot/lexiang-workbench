@@ -274,6 +274,28 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           }
         }
 
+        // 子品牌（系列）识别——做角标用；LEGION→拯救者、Lecoo→来酷
+        const LX_SUBBRAND_RE = /小新|拯救者|YOGA|ThinkPad|ThinkBook|ThinkStation|ThinkVision|thinkplus|moto|来酷|Lecoo|天逸|扬天|开天|昭阳|启天|问天|GeekPro|LEGION/i;
+        function lxSubBrand(name) {
+          const m = String(name || "").match(LX_SUBBRAND_RE);
+          if (!m) return "";
+          const s = m[0];
+          return /legion/i.test(s) ? "拯救者" : /lecoo/i.test(s) ? "来酷" : s;
+        }
+        // 清洗成干净 SPU 名：去营销词(【xx同款】【定制款】企业购)、品牌(联想/Lenovo)、子品牌(已用角标展示)
+        function cleanSpuName(name) {
+          const orig = String(name || "").trim();
+          let s = orig;
+          s = s.replace(/【[^】]*】/g, "");                              // 【定制款】【张凌赫同款】
+          s = s.replace(/联想\s*[（(]\s*Lenovo\s*[)）]/gi, "");           // 联想(Lenovo)
+          s = s.replace(/[（(]\s*Lenovo\s*[)）]/gi, "");                  // (Lenovo)
+          s = s.replace(/\bLenovo\b/gi, "").replace(/联想/g, "");        // Lenovo / 联想
+          s = s.replace(LX_SUBBRAND_RE, "");                             // 子品牌(角标已展示)
+          s = s.replace(/企业购|官方旗舰店?|官方直营|官方授权/g, "");      // 无用词
+          s = s.replace(/\s{2,}/g, " ").replace(/^[·、,，\-—\s]+/, "").trim();
+          return s || orig;  // 清空兜底回原名
+        }
+
         function renderProductCards() {
           const cards = $$(".product-card");
           cards.forEach((card, index) => {
@@ -294,7 +316,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
               price?.before(promos);
             }
             if (brand) brand.textContent = product.category || "联想";
-            if (title) title.textContent = product.name || "联想商品";
+            if (title) title.textContent = cleanSpuName(product.name) || "联想商品";
             if (spec) spec.textContent = product.description || product.category || "官方正品｜联想服务";
             if (promos) {
               const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
@@ -1904,10 +1926,13 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
         };
 
         function lxProductMiniCard(product) {
+          const _sub = lxSubBrand(product.name);
+          const _badge = `<span class="lx-cat-badge">${esc(_sub || "其他")}</span>`;
+          const _clean = cleanSpuName(product.name) || "联想商品";
           if (product.official) {
             return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
-            <div class="product-visual"><img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" /></div>
-            <h3 class="product-title">${esc(product.name)}<span class="lx-official-tag">官方在售</span></h3>
+            <div class="product-visual">${_badge}<img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" /></div>
+            <h3 class="product-title">${esc(_clean)}<span class="lx-official-tag">官方在售</span></h3>
             <p class="spec">${esc(product.description || "")}</p>
             <div class="price">${money(product.price)}${product.variants > 1 ? `<span class="price-from">${product.variants} 款配置</span>` : ""}</div>
             <button class="lx-p0-btn primary" type="button" data-open-product="${esc(product.sku)}" style="margin-top:8px;width:100%">立即购买</button>
@@ -1916,8 +1941,8 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
           const promos = tags.slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("");
           return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
-            <div class="product-visual"><img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name)}" loading="lazy" /></div>
-            <h3 class="product-title">${esc(product.name || "联想商品")}</h3>
+            <div class="product-visual">${_badge}<img src="${esc(imgUrl(product.image_url))}" alt="${esc(product.name)}" loading="lazy" /></div>
+            <h3 class="product-title">${esc(_clean)}</h3>
             <p class="spec">${esc(product.description || product.category || "官方正品｜联想服务")}</p>
             <div class="product-promos" aria-label="促销标签">${promos}</div>
             <div class="price">${money(product.price)}<span class="price-from">起</span></div>
