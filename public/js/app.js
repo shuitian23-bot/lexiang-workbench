@@ -3503,6 +3503,8 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             }
             const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`).then((r) => r.json());
             const stores = data.stores || [];
+            // 接口报错或无结果 → 抛到 catch 走备用门店，别给死「暂未查到」（如百度 key IP 校验失败）
+            if (!stores.length) throw new Error(data.error || "附近暂无门店");
             lxOpenInfoTab("stores", "附近门店", stores.length ? `
               <div class="lx-p1-strip"><strong>${esc(label)}</strong><div class="lx-p0-disclaimer">可继续预约到店、咨询库存、门店闪送和工程师服务。</div></div>
               ${stores.slice(0, 6).map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${store.dist ? Math.round(store.dist / 100) / 10 + "km" : ""} · ${esc(store.tel || "暂无电话")}</span></div><button class="lx-p0-btn" data-quick-ask="预约${esc(store.name)}到店服务">预约</button></div>`).join("")}
