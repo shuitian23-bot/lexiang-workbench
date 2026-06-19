@@ -1533,6 +1533,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
                 else if (op === 'coupon') openCouponCenter();
                 else if (op === 'solution') openSolutionCenter();
                 else if (op === 'edu') openEduZone();
+                else if (op === 'stores') openStoresPanel();
               },
               tradein: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -3474,15 +3475,36 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             </div>`);
         }
 
+        // 取浏览器真实定位（没有就现场请求一次，弹授权框）；失败返回 null
+        function lxRequestGeo(timeoutMs = 8000) {
+          if (window.__lxGeo && window.__lxGeo.lat) return Promise.resolve(window.__lxGeo);
+          if (!navigator.geolocation) return Promise.resolve(null);
+          return new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => { window.__lxGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude }; resolve(window.__lxGeo); },
+              () => resolve(null),
+              { timeout: timeoutMs, maximumAge: 600000 }
+            );
+          });
+        }
+
         async function openStoresPanel(address = "北京海淀") {
-          lxOpenInfoTab("stores", "附近门店", `<p class="lx-p0-disclaimer">正在查询 ${esc(address)} 附近联想门店...</p>`);
+          lxOpenInfoTab("stores", "附近门店", `<p class="lx-p0-disclaimer">正在获取你的位置、查询附近联想门店...</p>`);
           try {
-            const geo = await fetch(`/api/stores/geocode?address=${encodeURIComponent(address)}`).then((r) => r.json());
-            if (!geo.lat || !geo.lng) throw new Error(geo.error || "无法定位");
-            const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(geo.lat)}&lng=${encodeURIComponent(geo.lng)}`).then((r) => r.json());
+            // 优先浏览器真实定位（弹授权）；拒绝/不支持再按默认地址 geocode
+            const me = await lxRequestGeo();
+            let lat, lng, label;
+            if (me && me.lat && me.lng) {
+              lat = me.lat; lng = me.lng; label = "你当前位置附近";
+            } else {
+              const geo = await fetch(`/api/stores/geocode?address=${encodeURIComponent(address)}`).then((r) => r.json());
+              if (!geo.lat || !geo.lng) throw new Error(geo.error || "无法定位");
+              lat = geo.lat; lng = geo.lng; label = geo.name || address;
+            }
+            const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`).then((r) => r.json());
             const stores = data.stores || [];
             lxOpenInfoTab("stores", "附近门店", stores.length ? `
-              <div class="lx-p1-strip"><strong>${esc(geo.name || address)}</strong><div class="lx-p0-disclaimer">可继续预约到店、咨询库存、门店闪送和工程师服务。</div></div>
+              <div class="lx-p1-strip"><strong>${esc(label)}</strong><div class="lx-p0-disclaimer">可继续预约到店、咨询库存、门店闪送和工程师服务。</div></div>
               ${stores.slice(0, 6).map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${store.dist ? Math.round(store.dist / 100) / 10 + "km" : ""} · ${esc(store.tel || "暂无电话")}</span></div><button class="lx-p0-btn" data-quick-ask="预约${esc(store.name)}到店服务">预约</button></div>`).join("")}
             ` : `<p class="lx-p0-disclaimer">暂未查到附近门店，可以换一个地址再试。</p>`);
           } catch (error) {
@@ -4651,6 +4673,7 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           else if (op === 'coupon') openCouponCenter();
           else if (op === 'solution') openSolutionCenter();
           else if (op === 'edu') openEduZone();
+          else if (op === 'stores') openStoresPanel();
         };
 
         openUploadControls();
