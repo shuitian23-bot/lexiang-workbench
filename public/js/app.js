@@ -5524,6 +5524,13 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             // 本轮只有意图无商品：同样桥接退全屏，再开功能标签
             lxfdExportToMain();
             exitFullscreenWithReveal(() => {
+              // 首页布局设置（和商品桥接一致）：不做这步 .shell 仍 display:none → 功能标签渲染了但主面板隐藏=空白
+              if (document.body.dataset.page === "home" || !document.body.dataset.page) {
+                document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+                document.body.classList.add("lx-home-split");
+                document.body.dataset.page = "personal";
+                document.body.dataset.state = "chat";
+              }
               if (typeof window.__lxOpenFeature === 'function') window.__lxOpenFeature(turnAction);
               if (thread) thread.innerHTML = "";
             });
