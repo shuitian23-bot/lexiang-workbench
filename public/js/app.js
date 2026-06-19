@@ -3326,11 +3326,11 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           const s = str.toLowerCase();
           let base = 0;
           if (/ultra\s*9/.test(s)) base = 90;
-          else if (/锐龙\s*9|ryzen\s*9/.test(s)) base = 86;
+          else if (/锐龙\s*9|ryzen\s*9|\br9\b/.test(s)) base = 86;
           else if (/ultra\s*7/.test(s)) base = 70;
-          else if (/锐龙\s*7|ryzen\s*7/.test(s)) base = 66;
+          else if (/锐龙\s*7|ryzen\s*7|\br7\b/.test(s)) base = 66;
           else if (/ultra\s*5/.test(s)) base = 50;
-          else if (/锐龙\s*5|ryzen\s*5/.test(s)) base = 46;
+          else if (/锐龙\s*5|ryzen\s*5|\br5\b/.test(s)) base = 46;
           else if (/i9/.test(s)) base = 88;
           else if (/i7/.test(s)) base = 72;
           else if (/i5/.test(s)) base = 52;
