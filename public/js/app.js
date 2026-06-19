@@ -3488,6 +3488,17 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
           });
         }
 
+        // 门店导航：右侧开地图标签页（百度静态图走服务器代理）+ 「在百度地图打开」做真实导航
+        function openStoreMap(latlng, name, addr) {
+          const [lat, lng] = String(latlng || "").split(",");
+          if (!lat || !lng) return;
+          lxRevealContent();
+          lxOpenInfoTab("storemap", "门店导航", `
+            <img src="/api/stores/staticmap?lng=${encodeURIComponent(lng)}&lat=${encodeURIComponent(lat)}" alt="门店地图" style="width:100%;border-radius:10px;display:block;border:1px solid var(--border)" loading="lazy" />
+            <div class="lx-p1-strip" style="margin-top:12px"><strong>${esc(name || "门店位置")}</strong><div class="lx-p0-disclaimer">${esc(addr || "")}</div></div>
+            <div class="lx-p0-actions"><a class="lx-p0-btn primary" href="https://api.map.baidu.com/marker?location=${encodeURIComponent(lat + "," + lng)}&title=${encodeURIComponent(name || "联想门店")}&content=${encodeURIComponent(addr || "")}&output=html&coord_type=bd09ll&src=lexiang" target="_blank" rel="noopener">在百度地图打开 / 导航</a></div>`);
+        }
+
         async function openStoresPanel(address = "北京海淀") {
           lxOpenInfoTab("stores", "附近门店", `<p class="lx-p0-disclaimer">正在获取你的位置、查询附近联想门店...</p>`);
           try {
@@ -3507,7 +3518,10 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             if (!stores.length) throw new Error(data.error || "附近暂无门店");
             lxOpenInfoTab("stores", "附近门店", stores.length ? `
               <div class="lx-p1-strip"><strong>${esc(label)}</strong><div class="lx-p0-disclaimer">可继续预约到店、咨询库存、门店闪送和工程师服务。</div></div>
-              ${stores.slice(0, 6).map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${store.dist ? Math.round(store.dist / 100) / 10 + "km" : ""} · ${esc(store.tel || "暂无电话")}</span></div><button class="lx-p0-btn" data-quick-ask="预约${esc(store.name)}到店服务">预约</button></div>`).join("")}
+              ${stores.slice(0, 6).map((store) => {
+                const nav = (store.lat && store.lng) ? `<button class="lx-p0-btn" data-store-nav="${esc(store.lat + "," + store.lng)}" data-store-name="${esc(store.name)}" data-store-addr="${esc(store.address || "")}">导航</button>` : "";
+                return `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${store.dist ? Math.round(store.dist / 100) / 10 + "km" : ""} · ${esc(store.tel || "暂无电话")}</span></div>${nav}<button class="lx-p0-btn" data-quick-ask="预约${esc(store.name)}到店服务">预约</button></div>`;
+              }).join("")}
             ` : `<p class="lx-p0-disclaimer">暂未查到附近门店，可以换一个地址再试。</p>`);
           } catch (error) {
             const fallback = [
@@ -4198,6 +4212,9 @@ if (!window.__lxGeoRequested && navigator.geolocation) {
             const suggestItem = event.target.closest("[data-suggest-pick]");
             if (suggestItem) { lxApplySuggest(Number(suggestItem.dataset.suggestPick)); return; }
             if (!event.target.closest(".lx-suggest-panel") && !event.target.closest(".composer textarea") && !event.target.closest(".hero-composer textarea")) lxHideSuggest();
+
+            const navBtn = event.target.closest("[data-store-nav]");
+            if (navBtn) { event.stopPropagation(); openStoreMap(navBtn.dataset.storeNav, navBtn.dataset.storeName, navBtn.dataset.storeAddr); return; }
 
             const pickBtn = event.target.closest("[data-pick-sku]");
             if (pickBtn) {

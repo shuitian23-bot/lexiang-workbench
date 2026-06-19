@@ -105,4 +105,17 @@ router.get('/geocode', async (req, res) => {
   }
 });
 
+// GET /api/stores/staticmap?lng=&lat= → 代理百度静态图（服务器 IP 已白名单；浏览器直连会 IP 校验失败）
+router.get('/staticmap', (req, res) => {
+  const { lng, lat } = req.query;
+  const AK = process.env.BAIDU_MAP_KEY;
+  if (!lng || !lat || !AK) return res.status(400).end();
+  const url = `https://api.map.baidu.com/staticimage/v2?ak=${AK}&center=${lng},${lat}&zoom=16&width=720&height=400&coordtype=bd09ll&markers=${lng},${lat}&markerStyles=l,,0xE4291C`;
+  https.get(url, (r) => {
+    res.set('Content-Type', r.headers['content-type'] || 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400');
+    r.pipe(res);
+  }).on('error', () => res.status(502).end());
+});
+
 module.exports = router;
