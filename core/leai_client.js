@@ -15,7 +15,15 @@ async function getAuth(force = false) {
   const res = await fetch(`${BASE}/api/user/auth?${Date.now()}&device=1`, { headers, signal: AbortSignal.timeout(8000) });
   const json = await res.json();
   if (json.rc !== 0 || !json.data?.token) throw new Error('leai auth failed: ' + (json.rm || res.status));
-  _auth = { token: json.data.token, sessionId: json.data.sessionId, guest: json.data.guest, at: Date.now() };
+  _auth = {
+    token: json.data.token,
+    sessionId: json.data.sessionId,
+    guest: json.data.guest,
+    memberLevel: json.data.memberLevel || '',
+    memberLevelCode: json.data.memberLevelCode || '',
+    loginName: json.data.loginName || '',
+    at: Date.now(),
+  };
   return _auth;
 }
 
