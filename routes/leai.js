@@ -360,4 +360,19 @@ router.post('/compare-advice', (req, res) => {
   } catch (_) { res.json({ pick: '', reason: '' }); }
 });
 
+// GET /api/leai/member — 透传官方登录态会员信息（guest/memberLevel/loginName）
+router.get('/member', async (req, res) => {
+  try {
+    const a = await getAuth();
+    res.json({
+      guest: !!a.guest,
+      memberLevel: a.memberLevel || '',
+      memberLevelCode: a.memberLevelCode || '',
+      loginName: a.loginName || '',
+    });
+  } catch (_) {
+    res.json({ guest: true });
+  }
+});
+
 module.exports = router;
