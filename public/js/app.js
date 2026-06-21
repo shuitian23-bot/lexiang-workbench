@@ -1894,9 +1894,12 @@ if (!window.__lxMemberFetched) {
             ["小新", (p) => /小新/.test(p.name)],
             ["拯救者", (p) => /拯救者|Legion/i.test(p.name)],
             ["YOGA", (p) => /YOGA/i.test(p.name)],
-            ["ThinkPad", (p) => /ThinkPad|ThinkBook/i.test(p.name)],
+            ["ThinkPad", (p) => /ThinkPad/i.test(p.name)],
+            ["ThinkBook", (p) => /ThinkBook/i.test(p.name)],
+            ["IdeaPad", (p) => /IdeaPad/i.test(p.name)],
             ["手机", (p) => p.category === "手机" || /moto/i.test(p.name)],
-            ["配件", (p) => ["耳机", "包袋", "键鼠相关", "显示器", "平板电脑"].includes(p.category)],
+            ["平板", (p) => p.category === "平板电脑"],
+            ["配件", (p) => ["耳机", "包袋", "键鼠相关", "显示器"].includes(p.category)],
           ],
           business: [
             ["ThinkCentre", (p) => /ThinkCentre/i.test(p.name)],
@@ -2365,7 +2368,7 @@ if (!window.__lxMemberFetched) {
             const gbProductGrid = `<div class="lx-floor-products">${gbProductPool.slice(0, 6).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>`;
             const guobuSection = lxFloorSection("国补",
               "国家以旧换新 · 最高补贴 20%",
-              gbCityBar + gbSteps + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking + `<h4 class="lx-gb-sub-title">参与国补商品</h4>` + gbProductGrid,
+              gbCityBar + `<div class="lx-ia-cards-row">${gbSteps}</div>` + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking + `<h4 class="lx-gb-sub-title">参与国补商品</h4>` + gbProductGrid,
               `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我找参与国补的联想笔记本">找国补商品</button>`
             );
 
@@ -2394,7 +2397,7 @@ if (!window.__lxMemberFetched) {
             const eduProductGrid = `<div class="lx-floor-products">${(state.products || []).filter((p) => /小新|YOGA|平板|轻薄/.test(p.name || "")).slice(0, 4).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="padding:16px 0">货盘加载中（POC 演示）</div>`}</div>`;
             const eduSection = lxFloorSection("教育特惠",
               isEduVerified ? "教育专享价已生效 · 国补可叠加" : "学生教师专属价 · 认证即享",
-              eduAuthBanner + eduRightsCards + `<h4 class="lx-gb-sub-title">教育友好商品</h4>` + eduProductGrid,
+              eduAuthBanner + `<div class="lx-ia-cards-row">${eduRightsCards}</div>` + `<h4 class="lx-gb-sub-title">教育友好商品</h4>` + eduProductGrid,
               `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`
             );
 
@@ -2426,9 +2429,11 @@ if (!window.__lxMemberFetched) {
             // 私人定制楼层
             const customSection = lxFloorSection("私人定制",
               "外观喷绘 · 刻字 · 高配升级",
+              `<div class="lx-ia-cards-row">${
               quickCard("外观定制", "笔记本喷绘、刻字、配色方案", "我想做联想笔记本的外观喷绘和刻字定制") +
               quickCard("高配定制", "升级CPU/内存/存储，真CTO机型", "帮我做高配CTO定制，说下能升级哪些硬件") +
-              quickCard("定制活动", "当前定制优惠与档期", "联想私人定制现在有什么优惠活动？"),
+              quickCard("定制活动", "当前定制优惠与档期", "联想私人定制现在有什么优惠活动？")
+              }</div>`,
               `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我做私人定制方案">发起定制方案</button>`
             );
 
@@ -2441,8 +2446,10 @@ if (!window.__lxMemberFetched) {
               quickCard("活动规则", "以旧换新活动规则与常见问题", "以旧换新的活动规则和常见问题") +
               `<h4 class="lx-gb-sub-title">旧机估价（SN 序列号）</h4>` + tradeInSn +
               `<h4 class="lx-gb-sub-title">选择回收品类</h4>` + tradeInChips +
+              `<div class="lx-ia-cards-row">${
               quickCard("国补叠加", "以旧换新可叠加国家补贴", "以旧换新怎么叠加国补？") +
-              quickCard("保值焕新", "提前锁定未来回收价", "保值焕新计划是什么，怎么参与？"),
+              quickCard("保值焕新", "提前锁定未来回收价", "保值焕新计划是什么，怎么参与？")
+              }</div>`,
               `<button class="lx-p0-btn primary" type="button" data-quick-ask="我想以旧换新，帮我评估旧机价值和叠加方案">以旧换新估价</button>`
             );
 
@@ -2457,11 +2464,13 @@ if (!window.__lxMemberFetched) {
             // 种草楼层
             const discoverSection = lxFloorSection("种草",
               "评测 · 社区 · 活动 · 积分 · 反馈",
+              `<div class="lx-ia-cards-row">${
               quickCard("新机评测", "最新联想机型深度评测", "看看最新的联想新机评测") +
               quickCard("品牌社区", "用户晒单 · 经验交流", "联想品牌社区有哪些热帖？") +
               quickCard("热门活动", "当前进行中的用户活动", "现在有哪些用户互动活动可以参加？") +
               quickCard("积分乐园", "签到赢积分，积分换好礼", "积分乐园怎么玩，能换什么？") +
-              quickCard("产品反馈", "我有产品使用建议", "我想提交联想产品的使用反馈"),
+              quickCard("产品反馈", "我有产品使用建议", "我想提交联想产品的使用反馈")
+              }</div>`,
               `<button class="lx-p0-btn" type="button" data-quick-ask="给我推荐几篇最近热门的联想机评">看热门评测</button>`
             );
 
