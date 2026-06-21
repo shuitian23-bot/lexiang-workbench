@@ -1813,9 +1813,14 @@ if (!window.__lxMemberFetched) {
         function lxFloorSection(title, sub, body, cta) {
           const classMap = [
             [/今日秒杀/, "lx-floor--activity lx-floor--seckill"],
-            [/教育特惠|国补/, "lx-floor--activity lx-floor--education"],
+            [/教育特惠/, "lx-floor--activity lx-floor--education"],
+            [/^国补$/, "lx-floor--activity lx-floor--guobu"],
+            [/^会员$/, "lx-floor--activity lx-floor--member-floor"],
             [/门店|服务/, "lx-floor--activity lx-floor--service"],
             [/会员权益/, "lx-floor--activity lx-floor--member"],
+            [/私人定制/, "lx-floor--activity lx-floor--custom"],
+            [/以旧换新/, "lx-floor--activity lx-floor--tradein"],
+            [/^种草$/, "lx-floor--activity lx-floor--discover"],
             [/企业专享|对公|轻量定制|行业解决方案|信创|大客户/, "lx-floor--activity"],
           ];
           const extraClass = (classMap.find(([pattern]) => pattern.test(title)) || [null, ""])[1];
@@ -1825,7 +1830,7 @@ if (!window.__lxMemberFetched) {
         function lxGetSiteTabLabels(page = state.page) {
           const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
-            personal: ["今日秒杀", "教育特惠 · 国补叠加", "门店", "服务", "会员权益"],
+            personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "种草", "服务", "门店"],
             business: ["企业专享权益", "对公与售后保障", "轻量定制方案", "门店", "服务"],
             enterprise: ["行业解决方案", "信创合规", "大客户专属服务"],
           }[page] || [];
@@ -2343,14 +2348,158 @@ if (!window.__lxMemberFetched) {
               ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             const seckillEnd = lxSeckillCountdown();
+            // 国补楼层：LBS 定位 + 步骤卡 + 叠加入口 + 商品
+            const gbCityBar = `<div class="lx-gb-city-bar"><span class="lx-gb-city-label">当前城市：</span><span class="lx-gb-city-name" data-gb-city>正在定位你所在城市…</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我切换国补城市">切换城市</button></div>`;
+            const gbSteps = [
+              ["01", "确认资格", "北京/上海等参与城市用户，需有有效身份证", "查资格", "我怎么确认是否有国补购机资格？"],
+              ["02", "平台领券", "登录联想商城，在国补专区领取补贴券", "去领券", "怎么在联想商城领取国补券？"],
+              ["03", "下单核销", "选购参与国补商品，结算时自动核销补贴", "去购买", "国补下单核销的完整流程是什么？"]
+            ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
+            const gbStacking = `<div class="lx-gb-stack-row">${[
+              ["教育特惠叠加", "学生/教师可叠加教育价", "国补和教育特惠能叠加吗？"],
+              ["以旧换新叠加", "旧机折价抵扣再叠国补", "国补和以旧换新怎么叠加？"],
+              ["私人定制叠加", "定制机型参与国补", "定制机可以享受国补吗？"],
+              ["保值焕新叠加", "保值焕新入门门槛更低", "保值焕新和国补可以同时享受吗？"]
+            ].map(([t, d, a]) => `<div class="lx-floor-card" data-quick-ask="${esc(a)}"><strong>${esc(t)}</strong><span>${esc(d)}</span></div>`).join("")}</div>`;
+            const gbProductsPlaceholder = `<div class="lx-gb-products-placeholder lx-floor-products"><div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">参与国补商品加载中（POC 演示，从货盘异步取）</div></div>`;
+            const guobuSection = lxFloorSection("国补",
+              "国家以旧换新 · 最高补贴 20%",
+              gbCityBar + gbSteps + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking + `<h4 class="lx-gb-sub-title">参与国补商品</h4>` + gbProductsPlaceholder,
+              `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我找参与国补的联想笔记本">找国补商品</button>`
+            );
+
+            // 教育特惠楼层：读学生认证态
+            const stuState = lxStuState();
+            const isEduVerified = stuState.status === "verified";
+            const eduVerifiedDate = isEduVerified && stuState.submittedAt
+              ? new Date(stuState.submittedAt + 365 * 86400000).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
+              : "2027年6月21日";
+            const eduAuthBanner = isEduVerified
+              ? `<div class="lx-edu-verified-banner"><span class="lx-edu-badge ok">已认证</span><span>认证有效期至 ${esc(eduVerifiedDate)}，教育专享价已生效</span></div>`
+              : (stuState.status === "pending"
+                ? `<div class="lx-edu-verified-banner pending"><span class="lx-edu-badge pending">审核中</span><span>认证资料已提交，审核通过后自动解锁教育专享价（演示约 12 秒）</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
+                : `<div class="lx-edu-verified-banner unverified"><span class="lx-edu-badge">未认证</span><span>学生/教师认证后享教育专享价，可与国补叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`);
+            const eduRightsCards = isEduVerified
+              ? [
+                  ["可领权益", "当月教育专属券未领取", "帮我领取教育专属优惠券"],
+                  ["国补叠加", "认证后可与国补同时享用", "教育价和国补怎么叠加计算？"],
+                  ["12期免息", "部分机型支持12期免息", "哪些机型支持教育+12期免息？"]
+                ].map(([t, d, a]) => quickCard(t, d, a)).join("")
+              : [
+                  ["教育专享价", "小新/YOGA/平板均有教育专区", "教育专享价比普通价优惠多少？"],
+                  ["国补叠加", "认证后教育价可叠加国家补贴", "国补和教育特惠能叠加吗？"],
+                  ["12期免息", "学生用户专属分期政策", "教育用户如何申请12期免息？"]
+                ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            const eduProductGrid = `<div class="lx-floor-products">${(state.products || []).filter((p) => /小新|YOGA|平板|轻薄/.test(p.name || "")).slice(0, 4).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="padding:16px 0">货盘加载中（POC 演示）</div>`}</div>`;
+            const eduSection = lxFloorSection("教育特惠",
+              isEduVerified ? "教育专享价已生效 · 国补可叠加" : "学生教师专属价 · 认证即享",
+              eduAuthBanner + eduRightsCards + `<h4 class="lx-gb-sub-title">教育友好商品</h4>` + eduProductGrid,
+              `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`
+            );
+
+            // 会员楼层（精简版，会员中心主入口在 openMemberCenter）
+            const mbr = window.__lxMember;
+            const mbrLogged = mbr && mbr.guest === false;
+            const mbrName = mbrLogged ? (mbr.loginName ? String(mbr.loginName).replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "会员") : "游客";
+            const mbrLevelName = mbrLogged ? (mbr.memberLevel || "金钻会员") : "游客";
+            const mbrHeroCard = `<div class="lx-member-hero-card">${mbrLogged
+              ? `<div class="lx-mhc-left"><div class="lx-mhc-name">${esc(mbrName)}</div><div class="lx-mhc-level">${esc(mbrLevelName)}</div><div class="lx-mhc-bar"><i style="width:100%"></i></div><div class="lx-mhc-tip">顶级权益已全部解锁</div></div>`
+              : `<div class="lx-mhc-left"><div class="lx-mhc-name">登录享会员价</div><div class="lx-mhc-tip">V1 起步，11 项专属权益</div></div>`
+            }<div class="lx-mhc-right"><button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button></div></div>`;
+            const mbrLedou = `<div class="lx-floor-card lx-mhc-bean-card" data-quick-ask="我的乐豆余额和兑换规则"><strong>乐豆余额</strong><span>${mbrLogged ? "— (对话查询)" : "1,000 豆 ≈ ¥10"}</span><div class="lx-mhc-bean-acts"><button class="lx-p0-btn" type="button" data-quick-ask="乐豆商城能兑换什么">去兑换</button><button class="lx-p0-btn" type="button" data-quick-ask="乐豆使用规则">规则</button></div></div>`;
+            const mbrRights = [
+              ["会员价", "全场专享折扣", "会员专享价怎么用？"],
+              ["乐豆抵现", "1000豆抵¥10", "乐豆怎么抵扣现金？"],
+              ["月度券包", "每月4张专属券", "会员月度券包包含什么？"],
+              ["0元试用", "新品先体验", "0元试用怎么参与？"],
+              ["会员日", "每月18日双倍豆", "会员日有什么活动？"],
+              ["专属客服", "VIP通道", "会员专属客服怎么联系？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            const mbrTasks = `<div class="lx-floor-card" data-quick-ask="我的任务中心有哪些可以完成的任务"><strong>今日任务</strong><span>签到 +10豆 · 浏览商品 +5豆 · 分享 +20豆</span></div>`;
+            const memberFloorSection = lxFloorSection("会员",
+              "等级成长 · 乐豆 · 权益 · 任务",
+              mbrHeroCard + mbrLedou + `<h4 class="lx-gb-sub-title">核心权益</h4><div class="lx-mhc-rights-grid">${mbrRights}</div>` + `<h4 class="lx-gb-sub-title">任务与活动</h4>` + mbrTasks + quickCard("会员测评", "看看适合冲哪个等级", "帮我做会员测评，看看我适合冲哪个等级") + `<p class="lx-p0-disclaimer" style="margin-top:12px">会员数据为演示口径，正式上线对接联想会员系统。</p>`,
+              `<button class="lx-p0-btn primary" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`
+            );
+
+            // 私人定制楼层
+            const customSection = lxFloorSection("私人定制",
+              "外观喷绘 · 刻字 · 高配升级",
+              quickCard("外观定制", "笔记本喷绘、刻字、配色方案", "我想做联想笔记本的外观喷绘和刻字定制") +
+              quickCard("高配定制", "升级CPU/内存/存储，真CTO机型", "帮我做高配CTO定制，说下能升级哪些硬件") +
+              quickCard("定制活动", "当前定制优惠与档期", "联想私人定制现在有什么优惠活动？"),
+              `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我做私人定制方案">发起定制方案</button>`
+            );
+
+            // 以旧换新楼层
+            const tradeInCats = ["笔记本", "台式机", "平板", "手机", "显示器"];
+            const tradeInChips = `<div class="lx-tradein-chips">${tradeInCats.map((c) => `<button class="lx-tradein-chip" type="button" data-quick-ask="我想回收${esc(c)}，帮我估个价">${esc(c)}</button>`).join("")}</div>`;
+            const tradeInSn = `<div class="lx-tradein-sn-row"><input class="lx-p0-field lx-tradein-sn-input" id="lxTradeInSn" placeholder="输入旧机 SN 序列号（演示，不提交）" readonly><button class="lx-p0-btn primary" type="button" data-quick-ask="我有旧机想以旧换新，怎么估值并叠加补贴">估价</button></div><div class="lx-tradein-sn-hint">如何查 SN：<button class="lx-p0-btn" type="button" style="padding:0 8px;min-height:24px;font-size:12px" data-quick-ask="怎么查联想电脑的SN序列号">问乐享</button></div>`;
+            const tradeInSection = lxFloorSection("以旧换新",
+              "旧机抵扣 · 叠加国补 · 保值焕新",
+              quickCard("活动规则", "以旧换新活动规则与常见问题", "以旧换新的活动规则和常见问题") +
+              `<h4 class="lx-gb-sub-title">旧机估价（SN 序列号）</h4>` + tradeInSn +
+              `<h4 class="lx-gb-sub-title">选择回收品类</h4>` + tradeInChips +
+              quickCard("国补叠加", "以旧换新可叠加国家补贴", "以旧换新怎么叠加国补？") +
+              quickCard("保值焕新", "提前锁定未来回收价", "保值焕新计划是什么，怎么参与？"),
+              `<button class="lx-p0-btn primary" type="button" data-quick-ask="我想以旧换新，帮我评估旧机价值和叠加方案">以旧换新估价</button>`
+            );
+
+            // 今日秒杀楼层（保留现有内容，新增场次 chip）
+            const seckillSceneChips = `<div class="lx-seckill-scenes">${[["10点场","帮我看看10点秒杀场有什么"],["14点场","帮我看看14点秒杀场有什么"],["20点场","帮我看看20点秒杀场有什么"]].map(([label,ask]) => `<button class="lx-seckill-scene-chip" type="button" data-quick-ask="${esc(ask)}">${esc(label)}</button>`).join("")}</div>`;
+            const seckillSection = lxFloorSection("今日秒杀",
+              "限时优惠，先到先得",
+              seckillSceneChips + `<div class="lx-floor-seckill">${seckill}</div>`,
+              `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${seckillEnd}">${lxFormatCountdown(seckillEnd)}</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`
+            );
+
+            // 种草楼层
+            const discoverSection = lxFloorSection("种草",
+              "评测 · 社区 · 活动 · 积分 · 反馈",
+              quickCard("新机评测", "最新联想机型深度评测", "看看最新的联想新机评测") +
+              quickCard("品牌社区", "用户晒单 · 经验交流", "联想品牌社区有哪些热帖？") +
+              quickCard("热门活动", "当前进行中的用户活动", "现在有哪些用户互动活动可以参加？") +
+              quickCard("积分乐园", "签到赢积分，积分换好礼", "积分乐园怎么玩，能换什么？") +
+              quickCard("产品反馈", "我有产品使用建议", "我想提交联想产品的使用反馈"),
+              `<button class="lx-p0-btn" type="button" data-quick-ask="给我推荐几篇最近热门的联想机评">看热门评测</button>`
+            );
+
             const activitySections = {
-              "今日秒杀": lxFloorSection("今日秒杀", "限时优惠，先到先得", `<div class="lx-floor-seckill">${seckill}</div>`, `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${seckillEnd}">${lxFormatCountdown(seckillEnd)}</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`),
-              "教育特惠 · 国补叠加": lxFloorSection("教育特惠 · 国补叠加", "学生教师专属价，国补可叠加", eduCards, `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`),
-              "门店": lxFloorSection("门店", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              "国补": guobuSection,
+              "教育特惠": eduSection,
+              "会员": memberFloorSection,
+              "私人定制": customSection,
+              "以旧换新": tradeInSection,
+              "今日秒杀": seckillSection,
+              "种草": discoverSection,
               "服务": lxFloorSection("服务", "官方售后与上门支持", serviceCards, `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
-              "会员权益": lxFloorSection("会员权益", "乐豆抵现 · 会员券 · 0元试用", memberCards, `<button class="lx-p0-btn" type="button" data-floor-action="member">会员中心</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button>`),
+              "门店": lxFloorSection("门店", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
+            // 国补城市异步填充（进 tab 后 geo 定位，回填城市名）
+            if (activeFloorTab === "国补") {
+              lxRequestGeo().then((coord) => {
+                if (state.page !== "personal" || state.activeSiteFloorTab !== "国补") return;
+                const cityEl = box.querySelector("[data-gb-city]");
+                if (!cityEl) return;
+                if (!coord) { cityEl.textContent = "北京"; return; }
+                fetch(`/api/stores/nearby?lat=${coord.lat}&lng=${coord.lng}&limit=1`)
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (state.page !== "personal" || state.activeSiteFloorTab !== "国补") return;
+                    const el = box.querySelector("[data-gb-city]");
+                    if (!el) return;
+                    const addr = (data.stores?.[0] || data[0])?.address || "";
+                    const city = addr.match(/^(.{2,4}[市省区])/)?.[1] || "北京";
+                    el.textContent = city;
+                  })
+                  .catch(() => {
+                    if (state.page !== "personal" || state.activeSiteFloorTab !== "国补") return;
+                    const el = box.querySelector("[data-gb-city]");
+                    if (el) el.textContent = "北京";
+                  });
+              }).catch(() => {});
+            }
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;

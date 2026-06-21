@@ -8246,3 +8246,236 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
 .lx-wpa-legal p:last-child {
   margin-bottom: 0;
 }
+
+/* ── personal 活动楼层扩展皮肤（PRD 2026-06） ── */
+
+/* 国补楼层 */
+.lx-site-floors > .lx-floor--guobu {
+  background: linear-gradient(135deg, #f5f0fb 0%, #ffffff 100%);
+  border-color: #ddd0ec;
+}
+.lx-floor--guobu .lx-floor-title h3 { color: #4a1060; }
+
+/* 城市条 */
+.lx-gb-city-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  background: #ede6f5;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #4a1060;
+  grid-column: 1 / -1;
+}
+.lx-gb-city-label { color: #7e7889; }
+.lx-gb-city-name { font-weight: 700; }
+.lx-gb-city-bar .lx-p0-btn { margin-left: auto; min-height: 28px; padding: 0 14px; font-size: 12px; }
+
+/* 国补 & 教育 子标题 */
+.lx-gb-sub-title {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6d3260;
+  grid-column: 1 / -1;
+}
+
+/* 国补叠加行（4列 quickCard 行） */
+.lx-gb-stack-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  grid-column: 1 / -1;
+}
+
+/* 国补商品占位 */
+.lx-gb-products-placeholder {
+  grid-column: 1 / -1;
+  min-height: 60px;
+  border: 1px dashed #d0c4e0;
+  border-radius: 10px;
+  background: #faf7fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 教育特惠楼层 */
+.lx-site-floors > .lx-floor--education {
+  background: linear-gradient(135deg, #f8f4fb 0%, #ffffff 100%);
+  border-color: #e9dff2;
+}
+/* 取消旧的 ::after 国补badge（新楼层分开了） */
+.lx-floor--education .lx-floor-title::after { content: "认证即享"; }
+
+/* 教育认证状态条 */
+.lx-edu-verified-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  grid-column: 1 / -1;
+  background: #edf7ee;
+  color: #2a6b30;
+}
+.lx-edu-verified-banner.pending { background: #fff8e6; color: #7a5a00; }
+.lx-edu-verified-banner.unverified { background: #f5f0fb; color: #4a1060; }
+.lx-edu-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #4a9e52;
+  color: #fff;
+  white-space: nowrap;
+}
+.lx-edu-badge.pending { background: #e8a820; }
+.lx-edu-badge:not(.ok):not(.pending) { background: #9d76b8; }
+
+/* 会员楼层（精简版 tab 内）*/
+.lx-site-floors > .lx-floor--member-floor {
+  background: linear-gradient(120deg, #2b0f28 0%, #571641 55%, #7c2058 100%);
+  border: 0;
+  color: #fff;
+}
+.lx-floor--member-floor .lx-floor-title h3 { color: #fff; }
+.lx-floor--member-floor .lx-floor-title p { color: rgba(243,214,232,0.75); }
+.lx-floor--member-floor .lx-p0-btn {
+  color: #fff;
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.30);
+}
+.lx-floor--member-floor .lx-p0-btn.primary {
+  color: #6b1b4d;
+  background: #fff;
+  border-color: #fff;
+}
+/* 会员英雄卡 */
+.lx-member-hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.14);
+  grid-column: 1 / -1;
+}
+.lx-mhc-left { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.lx-mhc-name { font-size: 16px; font-weight: 700; color: #fff; }
+.lx-mhc-level { font-size: 12px; color: rgba(243,214,232,0.85); background: rgba(255,255,255,0.14); display: inline-block; padding: 2px 10px; border-radius: 999px; width: fit-content; }
+.lx-mhc-tip { font-size: 12px; color: rgba(243,214,232,0.70); margin-top: 2px; }
+.lx-mhc-bar { height: 4px; border-radius: 999px; background: rgba(255,255,255,0.18); overflow: hidden; margin-top: 4px; }
+.lx-mhc-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f2bfd9, #e88fc0); }
+.lx-mhc-right { flex: 0 0 auto; }
+/* 乐豆卡 */
+.lx-mhc-bean-card {
+  background: rgba(255,255,255,0.10) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: #fff;
+  grid-column: 1 / -1;
+}
+.lx-mhc-bean-card strong { color: #f2bfd9 !important; }
+.lx-mhc-bean-card span { color: rgba(243,214,232,0.75) !important; }
+.lx-mhc-bean-acts { display: flex; gap: 8px; margin-top: 8px; }
+.lx-mhc-bean-acts .lx-p0-btn { min-height: 28px; padding: 0 14px; font-size: 12px; color: #fff; background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); }
+/* 权益宫格 */
+.lx-mhc-rights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+.lx-mhc-rights-grid .lx-floor-card {
+  background: rgba(255,255,255,0.09) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+}
+.lx-mhc-rights-grid .lx-floor-card strong { color: #fff !important; }
+.lx-mhc-rights-grid .lx-floor-card span { color: rgba(243,214,232,0.7) !important; }
+
+/* 私人定制楼层 */
+.lx-site-floors > .lx-floor--custom {
+  background: linear-gradient(135deg, #f3eff8 0%, #ffffff 100%);
+  border-color: #dcd0ec;
+}
+
+/* 以旧换新楼层 */
+.lx-site-floors > .lx-floor--tradein {
+  background: linear-gradient(135deg, #f7f0f5 0%, #ffffff 100%);
+  border-color: #e6d8e8;
+}
+/* 以旧换新：SN估价行 */
+.lx-tradein-sn-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 6px;
+  grid-column: 1 / -1;
+}
+.lx-tradein-sn-input { flex: 1; min-width: 0; }
+.lx-tradein-sn-hint { font-size: 12px; color: #95909e; grid-column: 1 / -1; margin-bottom: 4px; }
+/* 以旧换新：品类 chip 行 */
+.lx-tradein-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+.lx-tradein-chip {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid #d8c4e0;
+  background: #fff;
+  color: #6d3260;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms, border-color 140ms;
+}
+.lx-tradein-chip:hover {
+  background: #ede6f5;
+  border-color: #b88ac4;
+}
+
+/* 秒杀场次 chip */
+.lx-seckill-scenes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  grid-column: 1 / -1;
+}
+.lx-seckill-scene-chip {
+  padding: 5px 16px;
+  border-radius: 999px;
+  border: 1px solid #f5b6b9;
+  background: #fff5f5;
+  color: #c8161e;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms;
+}
+.lx-seckill-scene-chip:hover { background: #ffe0e1; }
+
+/* 种草楼层 */
+.lx-site-floors > .lx-floor--discover {
+  background: linear-gradient(135deg, #f3f7fb 0%, #ffffff 100%);
+  border-color: #d4dded;
+}
+
+@media (max-width: 1200px) {
+  .lx-gb-stack-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lx-mhc-rights-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .lx-gb-stack-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
