@@ -2361,10 +2361,11 @@ if (!window.__lxMemberFetched) {
               ["私人定制叠加", "定制机型参与国补", "定制机可以享受国补吗？"],
               ["保值焕新叠加", "保值焕新入门门槛更低", "保值焕新和国补可以同时享受吗？"]
             ].map(([t, d, a]) => `<div class="lx-floor-card" data-quick-ask="${esc(a)}"><strong>${esc(t)}</strong><span>${esc(d)}</span></div>`).join("")}</div>`;
-            const gbProductsPlaceholder = `<div class="lx-gb-products-placeholder lx-floor-products"><div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">参与国补商品加载中（POC 演示，从货盘异步取）</div></div>`;
+            const gbProductPool = (state.products || []).filter((p) => /小新|YOGA|ThinkPad|ThinkBook|拯救者|LEGION|GeekPro|轻薄|昭阳|台式|天逸|扬天|开天|启天|平板|Tab|moto|ThinkVision|显示器/.test(p.name || ""));
+            const gbProductGrid = `<div class="lx-floor-products">${gbProductPool.slice(0, 6).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>`;
             const guobuSection = lxFloorSection("国补",
               "国家以旧换新 · 最高补贴 20%",
-              gbCityBar + gbSteps + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking + `<h4 class="lx-gb-sub-title">参与国补商品</h4>` + gbProductsPlaceholder,
+              gbCityBar + gbSteps + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking + `<h4 class="lx-gb-sub-title">参与国补商品</h4>` + gbProductGrid,
               `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我找参与国补的联想笔记本">找国补商品</button>`
             );
 
