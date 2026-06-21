@@ -245,6 +245,7 @@ router.post('/stream', async (req, res) => {
       { op: 'solution', re: /解决方案|行业方案|(企业|政教|金融|教育|医疗|制造).{0,4}方案/ },
       { op: 'edu',      re: /教育优惠|学生优惠|校园优惠|教育特惠|学生认证|教育商店/ },
       { op: 'stores',   re: /门店|实体店|线下店|体验店|专卖店|服务网点|服务中心|到店|附近.{0,4}店/ },
+      { op: 'auth',     re: /职场.{0,2}认证|职场人群|在职.{0,2}认证|工牌认证|职场身份|员工认证/ },
     ];
     const matchedIntent = intentPatterns.find(({ re }) => re.test(message));
     if (matchedIntent) {

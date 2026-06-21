@@ -1545,6 +1545,10 @@ if (!window.__lxMemberFetched) {
                 else if (op === 'solution') openSolutionCenter();
                 else if (op === 'edu') openEduZone();
                 else if (op === 'stores') openStoresPanel();
+                else if (op === 'auth') {
+                  // 职场认证：往当前 AI 气泡末尾插入触发按钮
+                  ai.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
+                }
               },
               tradein: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -2441,6 +2445,164 @@ if (!window.__lxMemberFetched) {
             <input class="lx-p0-field" id="lxStuSchool" placeholder="学校名称">
             <input class="lx-p0-field" id="lxStuStage" placeholder="学历阶段，如 本科 / 硕士 / 高三应届">
             <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-stu-submit>提交认证</button></div>`);
+        }
+
+        // ── 职场认证 demo 向导（4步 modal）────────────────────────────────────────
+        function openWorkplaceAuth() {
+          let wpaStep = 1; // 当前步
+          const wpaData = { type: '企业职工认证', name: '', idcard: '', phone: '13800138000', code: '', agree: false, company: '联想（北京）有限公司', industry: '', position: '', proofMethod: 'email', corpEmail: '' };
+          let wpaCountdown = 0;
+          let wpaTimer = null;
+
+          function wpaStepHtml() {
+            const steps = ['认证类型', '实名认证', '在职认证', '材料提交'];
+            const progressHtml = '<div class="lx-wpa-steps">' + steps.map((label, i) => {
+              const n = i + 1;
+              const cls = n < wpaStep ? 'done' : (n === wpaStep ? 'active' : '');
+              return '<div class="lx-wpa-step ' + cls + '">' +
+                '<div class="lx-wpa-dot">' + (n < wpaStep ? '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : n) + '</div>' +
+                '<span>' + label + '</span>' +
+                (n < steps.length ? '<div class="lx-wpa-line' + (n < wpaStep ? ' done' : '') + '"></div>' : '') +
+                '</div>';
+            }).join('') + '</div>';
+
+            let body = '';
+            if (wpaStep === 1) {
+              body = '<div class="lx-wpa-section"><h4>选择认证类型</h4>' +
+                '<label class="lx-wpa-radio selected"><input type="radio" name="wpa_type" value="企业职工认证" checked> ' +
+                '<div class="lx-wpa-radio-body"><strong>企业职工认证</strong><span>可获得专属购机优惠及额外权益奖励 · 适用于企业在职员工</span></div></label>' +
+                '</div>' +
+                '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-wpa-next>下一步</button></div>';
+            } else if (wpaStep === 2) {
+              body = '<div class="lx-wpa-section"><h4>实名认证</h4>' +
+                '<input class="lx-p0-field" id="wpaName" placeholder="姓名（必填）" value="' + esc(wpaData.name) + '">' +
+                '<input class="lx-p0-field" id="wpaIdcard" placeholder="身份证号（必填）" value="' + esc(wpaData.idcard) + '">' +
+                '<input class="lx-p0-field" id="wpaPhone" placeholder="手机号（必填）" value="' + esc(wpaData.phone) + '">' +
+                '<div class="lx-wpa-code-row"><input class="lx-p0-field lx-wpa-code-input" id="wpaCode" placeholder="验证码（必填）" value="' + esc(wpaData.code) + '">' +
+                '<button class="lx-p0-btn lx-wpa-send-code" type="button" id="wpaSendCode">' + (wpaCountdown > 0 ? wpaCountdown + 's 后重发' : '获取验证码') + '</button></div>' +
+                '<label class="lx-wpa-agree"><input type="checkbox" id="wpaAgree"' + (wpaData.agree ? ' checked' : '') + '> 我同意<a href="#" onclick="return false">《实名认证协议》</a></label>' +
+                '</div>' +
+                '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-wpa-back>返回</button><button class="lx-p0-btn primary" type="button" data-wpa-next>下一步</button></div>';
+            } else if (wpaStep === 3) {
+              const industries = ['互联网/科技', '金融/银行', '制造业', '医疗/卫生', '教育/科研', '政府/事业', '零售/贸易', '其他'];
+              body = '<div class="lx-wpa-section"><h4>企业在职认证</h4>' +
+                '<input class="lx-p0-field" id="wpaCompany" placeholder="企业名称（必填）" value="' + esc(wpaData.company) + '">' +
+                '<select class="lx-p0-field lx-wpa-select" id="wpaIndustry"><option value="">请选择行业（必填）</option>' +
+                industries.map(ind => '<option value="' + esc(ind) + '"' + (wpaData.industry === ind ? ' selected' : '') + '>' + esc(ind) + '</option>').join('') +
+                '</select>' +
+                '<input class="lx-p0-field" id="wpaPosition" placeholder="职务（必填）" value="' + esc(wpaData.position) + '">' +
+                '</div>' +
+                '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-wpa-back>返回</button><button class="lx-p0-btn primary" type="button" data-wpa-next>下一步</button></div>';
+            } else if (wpaStep === 4) {
+              body = '<div class="lx-wpa-section"><h4>在职证明方式</h4>' +
+                '<label class="lx-wpa-radio' + (wpaData.proofMethod === 'email' ? ' selected' : '') + '"><input type="radio" name="wpa_proof" value="email"' + (wpaData.proofMethod === 'email' ? ' checked' : '') + '> <div class="lx-wpa-radio-body"><strong>企业邮箱认证（推荐）</strong></div></label>' +
+                '<label class="lx-wpa-radio' + (wpaData.proofMethod === 'contract' ? ' selected' : '') + '"><input type="radio" name="wpa_proof" value="contract"' + (wpaData.proofMethod === 'contract' ? ' checked' : '') + '> <div class="lx-wpa-radio-body"><strong>劳动合同或在职证明</strong></div></label>' +
+                '<label class="lx-wpa-radio' + (wpaData.proofMethod === 'other' ? ' selected' : '') + '"><input type="radio" name="wpa_proof" value="other"' + (wpaData.proofMethod === 'other' ? ' checked' : '') + '> <div class="lx-wpa-radio-body"><strong>其他材料认证</strong></div></label>' +
+                (wpaData.proofMethod === 'email' ? '<div class="lx-wpa-email-row"><span class="lx-wpa-email-label">企业邮箱</span><div class="lx-wpa-email-input-wrap"><input class="lx-p0-field lx-wpa-email-prefix" id="wpaEmailPrefix" placeholder="邮箱前缀" value="' + esc(wpaData.corpEmail) + '"><span class="lx-wpa-email-suffix">@lenovo.com</span></div></div>' : '') +
+                '<div class="lx-wpa-legal"><p>1. 提交信息仅用于身份验证</p><p>2. 材料审核后自动删除</p><p>3. 提交虚假信息将承担相应法律责任</p></div>' +
+                '</div>' +
+                '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-wpa-back>返回</button><button class="lx-p0-btn primary lx-wpa-submit-btn" type="button" data-wpa-submit>提交认证</button></div>';
+            }
+            return progressHtml + body;
+          }
+
+          function wpaRender() {
+            openModal('职场身份认证 · 获取更多权益', wpaStepHtml());
+            // 绑定倒计时按钮（如果在第2步且有倒计时需要恢复）
+            if (wpaStep === 2 && wpaCountdown > 0) {
+              const btn = document.getElementById('wpaSendCode');
+              if (btn) { btn.disabled = true; btn.textContent = wpaCountdown + 's 后重发'; }
+            }
+          }
+
+          // 全局代理：wpa-* 按钮委托挂到 modal mask（捕获阶段，在 bindEvents 之前拦截）
+          function wpaHandleClick(e) {
+            // 发送验证码
+            if (e.target.closest('#wpaSendCode') && wpaCountdown === 0) {
+              wpaCountdown = 60;
+              const btn = e.target.closest('#wpaSendCode');
+              btn.disabled = true;
+              btn.textContent = wpaCountdown + 's 后重发';
+              wpaTimer = setInterval(() => {
+                wpaCountdown--;
+                const b = document.getElementById('wpaSendCode');
+                if (b) { b.textContent = wpaCountdown > 0 ? wpaCountdown + 's 后重发' : '获取验证码'; b.disabled = wpaCountdown > 0; }
+                if (wpaCountdown <= 0) { clearInterval(wpaTimer); wpaTimer = null; }
+              }, 1000);
+              return;
+            }
+            // 单选高亮
+            const radio = e.target.closest('.lx-wpa-radio input[type="radio"]');
+            if (radio) {
+              const radios = document.querySelectorAll('.lx-wpa-radio');
+              radios.forEach(r => r.classList.remove('selected'));
+              radio.closest('.lx-wpa-radio').classList.add('selected');
+              if (radio.name === 'wpa_proof') {
+                wpaData.proofMethod = radio.value;
+                wpaRender();
+              }
+              return;
+            }
+            // 上一步
+            if (e.target.closest('[data-wpa-back]')) {
+              wpaCollect();
+              wpaStep--;
+              wpaRender();
+              return;
+            }
+            // 下一步
+            if (e.target.closest('[data-wpa-next]')) {
+              wpaCollect();
+              if (!wpaValidate()) return;
+              wpaStep++;
+              wpaRender();
+              return;
+            }
+            // 提交
+            if (e.target.closest('[data-wpa-submit]')) {
+              wpaCollect();
+              clearInterval(wpaTimer);
+              const mask = document.querySelector('.lx-p0-modal-mask');
+              if (mask) mask.removeEventListener('click', wpaHandleClick, true);
+              closeModal();
+              toast('认证材料已提交，审核通过后专属权益自动到账（演示）');
+            }
+          }
+
+          function wpaCollect() {
+            if (wpaStep === 2) {
+              wpaData.name = (document.getElementById('wpaName')?.value || '').trim();
+              wpaData.idcard = (document.getElementById('wpaIdcard')?.value || '').trim();
+              wpaData.phone = (document.getElementById('wpaPhone')?.value || '').trim();
+              wpaData.code = (document.getElementById('wpaCode')?.value || '').trim();
+              wpaData.agree = document.getElementById('wpaAgree')?.checked || false;
+            } else if (wpaStep === 3) {
+              wpaData.company = (document.getElementById('wpaCompany')?.value || '').trim();
+              wpaData.industry = (document.getElementById('wpaIndustry')?.value || '').trim();
+              wpaData.position = (document.getElementById('wpaPosition')?.value || '').trim();
+            } else if (wpaStep === 4) {
+              wpaData.corpEmail = (document.getElementById('wpaEmailPrefix')?.value || '').trim();
+            }
+          }
+
+          function wpaValidate() {
+            if (wpaStep === 2) {
+              if (!wpaData.name) { toast('请填写姓名'); return false; }
+              if (!wpaData.idcard) { toast('请填写身份证号'); return false; }
+              if (!wpaData.phone) { toast('请填写手机号'); return false; }
+              if (!wpaData.agree) { toast('请勾选实名认证协议'); return false; }
+            } else if (wpaStep === 3) {
+              if (!wpaData.company) { toast('请填写企业名称'); return false; }
+              if (!wpaData.industry) { toast('请选择行业'); return false; }
+              if (!wpaData.position) { toast('请填写职务'); return false; }
+            }
+            return true;
+          }
+
+          wpaRender();
+          // 把 wpaHandleClick 挂到 modal mask（捕获）
+          const mask = document.querySelector('.lx-p0-modal-mask');
+          if (mask) mask.addEventListener('click', wpaHandleClick, true);
         }
 
         // 教育特惠专区（右侧信息标签页）：认证状态 + 教育货盘 + 国补叠加 + 算到手价
@@ -4737,6 +4899,7 @@ if (!window.__lxMemberFetched) {
                 }, LX_ENT_REVIEW_MS + 500);
               }
             }
+            if (event.target.closest("[data-open-wpa]")) openWorkplaceAuth();
             if (event.target.closest("[data-open-login]")) openLogin();
             if (event.target.closest("[data-send-code]")) sendCode();
             if (event.target.closest("[data-login-submit]")) login();
@@ -4752,6 +4915,7 @@ if (!window.__lxMemberFetched) {
         window.openStoresPanel = openStoresPanel;
         window.openServicePanel = openServicePanel;
         window.openLeadPanel = openLeadPanel;
+        window.openWorkplaceAuth = openWorkplaceAuth;
         window.__lxSetHuman = lxSetHumanMode;
         window.__lxOpenFeature = function(op) {
           if (op === 'member') openMemberCenter();
@@ -5394,7 +5558,7 @@ if (!window.__lxMemberFetched) {
       thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body"><b>专属客服小联</b> 已为您接入人工服务，下方已切换为客服快捷入口。订单、售后、发票问题可直接发我。（演示：由乐享 AI 以专属客服身份接待）</div></div>');
       thread.scrollTop = thread.scrollHeight;
     }
-    if (quick) quick.innerHTML = ["退出人工", "我的订单", "售后服务", "评价服务", "需求清单"].map(t => '<button type="button">' + escapeHtml(t) + '</button>').join("");
+    if (quick) { quick.innerHTML = ["退出人工", "我的订单", "售后服务", "评价服务", "需求清单"].map(t => '<button type="button">' + escapeHtml(t) + '</button>').join(""); quick.style.display = ""; }
     if (ta) { if (!ta.dataset.origPh) ta.dataset.origPh = ta.placeholder; ta.placeholder = "向专属客服小联提问..."; }
   }
 
@@ -5405,6 +5569,8 @@ if (!window.__lxMemberFetched) {
       thread.scrollTop = thread.scrollHeight;
     }
     lxfdApplySite();
+    // 退出客服后若仍在聊天态则继续隐藏 actionbar
+    if (chatState.started && quick) quick.style.display = "none";
     if (ta && ta.dataset.origPh) ta.placeholder = ta.dataset.origPh;
   }
 
@@ -5415,6 +5581,7 @@ if (!window.__lxMemberFetched) {
     chatState.localId = null;
     chatState.sending = false;
     chatState.human = false;
+    chatState.started = false; // 新建对话回到欢迎态，恢复 actionbar
     if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
     turns = [];
     renderTurnIndex("");
@@ -5422,6 +5589,8 @@ if (!window.__lxMemberFetched) {
     if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
     if (ta) { if (ta.dataset.origPh) ta.placeholder = ta.dataset.origPh; ta.value = ""; fit(); syncSend(); }
     if (collapseRail && !wide()) openRail(false);
+    // 恢复 actionbar（lxfdApplySite 会重渲内容）
+    if (quick) { quick.style.display = ""; lxfdApplySite(); }
     ta?.focus();
     lxfdRenderHist();
   }
@@ -5449,6 +5618,11 @@ if (!window.__lxMemberFetched) {
     let turnTitle = "";
     let turnGrouped = false;
     let turnAction = null; // 本轮意图操作（action 事件带来的 op）
+    // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
+    if (!chatState.started && !chatState.human) {
+      chatState.started = true;
+      if (quick) quick.style.display = "none";
+    }
     setFullscreen(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
@@ -5575,7 +5749,13 @@ if (!window.__lxMemberFetched) {
         action: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const { op } = parseJson(data) || {};
-          if (op) turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
+          if (op === 'auth') {
+            // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
+            const body = ai.querySelector('.lxfd-ai-body');
+            if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
+          } else if (op) {
+            turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
+          }
         },
         done: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -5774,6 +5954,13 @@ if (!window.__lxMemberFetched) {
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
+
+  // 职场认证按钮（lxfd 内的 data-open-wpa 委托）
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-open-wpa]")) {
+      if (typeof window.openWorkplaceAuth === "function") window.openWorkplaceAuth();
+    }
+  });
 
   // 官方动作按钮（转人工/在线客服等）点击：human_access→进客服模式，有链接开新窗口，否则把 callback_data 当问题继续问
   document.addEventListener("click", (e) => {
