@@ -254,7 +254,7 @@ function classifySite(p) {
 
 // 精选产品列表（landing page 用，按子站分类过滤）
 app.get('/api/products', (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 8, 20);
+  const limit = Math.min(Number(req.query.limit) || 8, 96);
   // 找相似：按源 sku 同 category 同价位带(±50%)拉，排除源
   const similar = req.query.similar;
   if (similar) {
@@ -286,10 +286,26 @@ app.get('/api/products', (req, res) => {
     // 与 siteWhereClause 单一口径, 避免两处 SQL 各改各的再次分叉
     where += siteWhereClause(site);
   }
-  const queryLimit = Math.min(limit * 6, 100);
+  // 非整机周边排除关键词（只对 site 子站货盘生效，category 精确查询不施加）
+  const PERIPHERAL_KEYWORDS = [
+    '二手优品','二手','延保','只换不修','保值换新','保值焕新',
+    '彩膜','键盘膜','屏幕膜','钢化膜','保护壳','保护夹',
+    '适配器','电源线','双肩包','背包','斜挎','行李箱',
+    '鼠标','键盘','耳机','散热器','散热','支架','增高',
+    '水杯','T-Shirt','T恤','卫衣','羽绒','马甲','自行车',
+    '游戏手柄','手柄','底座','随身WIFI','移动电源','充电',
+    '剃须刀','眼镜','拆机','兑换卡','服务包','延保服务','Care',
+    '测试品','感谢函',
+  ];
+  if (site && !category) {
+    for (const kw of PERIPHERAL_KEYWORDS) {
+      where += ` AND name NOT LIKE '%${kw}%'`;
+    }
+  }
+  const queryLimit = Math.min(limit * 6, 600);
   const params = category ? [category, queryLimit] : [queryLimit];
   const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category, specs
-    FROM products WHERE ${where} ORDER BY RANDOM() LIMIT ?`).all(...params);
+    FROM products WHERE ${where} ORDER BY sort_order ASC, price DESC LIMIT ?`).all(...params);
   res.json(collapseProductsToSpu(rows, limit));
 });
 
