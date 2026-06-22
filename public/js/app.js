@@ -2102,57 +2102,14 @@ if (!window.__lxMemberFetched) {
         }
 
         // 楼层带「查看更多」：前 visibleCount 直出，余下折叠（默认隐藏），点按钮展开
-        // 楼层：全部商品渲进一个网格，渲染后由 lxClampFloors 按「实际列数×2」夹成两排、超出折叠。
-        // 不在这里按 JS 猜的列数切——分屏/全屏态下 CSS 列数(3)≠JS按窗宽猜的列数(6)，会多出 3-4 排。
         function lxFloorWithMore(label, items, visibleCount, askLabel = label) {
-          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}" data-floor-collapsible><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
-        }
-
-        // 按渲染后的真实列数把楼层夹成两排：第 2*cols 个之后的商品隐藏，补「查看更多 N 款」按钮。
-        // 列数从 DOM 计算（getComputedStyle 网格列数），与 CSS 真实渲染一致，不依赖 JS 猜窗宽。
-        function lxClampFloors(root) {
-          const scope = root || document;
-          scope.querySelectorAll("[data-floor-collapsible]").forEach((sec) => {
-            if (sec.dataset.expanded === "1") return; // 用户已展开的不再夹
-            const grid = sec.querySelector(".lx-floor-products");
-            if (!grid) return;
-            const cards = [...grid.querySelectorAll(".lx-floor-product")];
-            const colStr = getComputedStyle(grid).gridTemplateColumns || "";
-            const cols = Math.max(1, colStr.split(" ").filter(Boolean).length);
-            const keep = cols * 2; // 默认两排
-            sec.querySelector("[data-floor-more]")?.remove();
-            const hiddenCount = Math.max(0, cards.length - keep);
-            cards.forEach((c, i) => { c.hidden = i >= keep; });
-            if (hiddenCount > 0) {
-              const btn = document.createElement("button");
-              btn.className = "lx-floor-more-btn";
-              btn.type = "button";
-              btn.setAttribute("data-floor-more", "");
-              btn.innerHTML = `查看更多 ${hiddenCount} 款<i aria-hidden="true">▾</i>`;
-              grid.after(btn);
-            }
-          });
-        }
-
-        // 用 ResizeObserver 盯楼层网格宽度变化（分屏/全屏切换、路由切换、缩放都会改列数）→ 重新夹两排。
-        // RAF 一次性夹有时机问题（全屏 class 还没让 grid 重排到真实列数），ResizeObserver 在每次实际重排后都补夹，彻底解决。
-        let lxFloorRO = null;
-        let lxFloorROTimer = null;
-        function lxObserveFloors(box) {
-          if (!box) return;
-          if (!lxFloorRO) {
-            lxFloorRO = new ResizeObserver(() => {
-              clearTimeout(lxFloorROTimer);
-              lxFloorROTimer = setTimeout(() => {
-                const b = document.querySelector("[data-site-floors]");
-                if (b) lxClampFloors(b);
-              }, 60);
-            });
-          }
-          lxFloorRO.disconnect();
-          // 观察每个楼层网格本身（其单元格宽度随列数变化）+ box 整体
-          lxFloorRO.observe(box);
-          box.querySelectorAll(".lx-floor-products").forEach((g) => lxFloorRO.observe(g));
+          const visible = items.slice(0, visibleCount);
+          const hidden = items.slice(visibleCount);
+          const moreHtml = hidden.length
+            ? `<div class="lx-floor-products lx-floor-more" hidden>${hidden.map(lxProductMiniCard).join("")}</div>`
+              + `<button class="lx-floor-more-btn" type="button" data-floor-more>查看更多 ${hidden.length} 款<i aria-hidden="true">▾</i></button>`
+            : "";
+          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${visible.map(lxProductMiniCard).join("")}</div>${moreHtml}</section>`;
         }
 
         async function lxRenderPersonalRecommendFloors() {
@@ -2294,8 +2251,7 @@ if (!window.__lxMemberFetched) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(() => { lxClampFloors(box); lxSyncCategoryTabsStuck(); });
-              lxObserveFloors(box); // 盯网格宽度变化,分屏/全屏切到3列时自动重夹
+              requestAnimationFrame(lxSyncCategoryTabsStuck);
               return;
             }
             if (page === "business") {
@@ -2336,8 +2292,6 @@ if (!window.__lxMemberFetched) {
           if (categoryFloors) {
             box.innerHTML = categoryFloors;
             lxSyncCategoryTabs();
-            requestAnimationFrame(() => lxClampFloors(box));
-            lxObserveFloors(box);
             return;
           }
           if (page === "personal") {
@@ -2596,11 +2550,12 @@ if (!window.__lxMemberFetched) {
         let lxLastFloorProductCount = lxFloorProductCount();
         let lxFloorResizeTimer = null;
         window.addEventListener("resize", () => {
+          const nextCount = lxFloorProductCount();
+          if (nextCount === lxLastFloorProductCount) return;
+          lxLastFloorProductCount = nextCount;
           clearTimeout(lxFloorResizeTimer);
-          // 列数变了就重新夹（夹断按真实列数，分屏/全屏切换也覆盖；不依赖 JS 猜的 lxFloorProductCount）
           lxFloorResizeTimer = setTimeout(() => {
-            const box = document.querySelector("[data-site-floors]");
-            if (box) lxClampFloors(box);
+            if (["personal", "business", "enterprise"].includes(state.page) && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
           }, 120);
         });
 
@@ -3443,9 +3398,6 @@ if (!window.__lxMemberFetched) {
           if (on) document.body.dataset.state = "chat";
           document.body.classList.toggle("assistant-fullscreen", !!on);
           document.body.classList.toggle("lx-auto-fs", !!on);
-          // 分屏/全屏切换会改变楼层网格列数 → 重新按真实列数夹两排
-          const floorBox = document.querySelector("[data-site-floors]");
-          if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
@@ -5053,19 +5005,11 @@ if (!window.__lxMemberFetched) {
             }
             const moreBtn = event.target.closest("[data-floor-more]");
             if (moreBtn) {
-              const sec = moreBtn.closest("[data-floor-collapsible]");
-              const grid = sec?.querySelector(".lx-floor-products");
-              if (sec && grid) {
-                const cards = [...grid.querySelectorAll(".lx-floor-product")];
-                const collapsed = cards.some((c) => c.hidden);
-                if (collapsed) {
-                  cards.forEach((c) => { c.hidden = false; });
-                  sec.dataset.expanded = "1";
-                  moreBtn.innerHTML = `收起<i aria-hidden="true">▴</i>`;
-                } else {
-                  sec.dataset.expanded = "";
-                  lxClampFloors(sec.parentElement || document); // 重新夹回两排
-                }
+              const more = moreBtn.parentElement?.querySelector(".lx-floor-more");
+              if (more) {
+                const show = more.hidden;
+                more.hidden = !show;
+                moreBtn.innerHTML = show ? `收起<i aria-hidden="true">▴</i>` : `查看更多 ${more.children.length} 款<i aria-hidden="true">▾</i>`;
               }
             }
             const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
@@ -5151,8 +5095,6 @@ if (!window.__lxMemberFetched) {
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
         };
-        // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
-        window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
 
         openUploadControls();
         setupSelectionAsk();
@@ -5992,12 +5934,6 @@ if (!window.__lxMemberFetched) {
             turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
           }
         },
-        control: (data) => {
-          if (nonce !== chatState.conversationNonce) return;
-          const payload = parseJson(data) || {};
-          // 页面操作（关标签/回首页/开订单等）：桥接到主面板执行
-          if (payload.op && typeof window.__lxExecControl === 'function') window.__lxExecControl(payload.op, payload.target);
-        },
         done: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
@@ -6224,10 +6160,12 @@ if (!window.__lxMemberFetched) {
     const render = (key, animate) => {
       if (!data[key]) key = "new";
       if (animate) grid.classList.add("is-switching");
+      else grid.classList.add("is-loading");
       window.setTimeout(() => {
         grid.innerHTML = data[key].map(card).join("");
+        grid.classList.remove("is-loading");
         grid.classList.remove("is-switching");
-      }, animate ? 120 : 0);
+      }, animate ? 120 : 180);
     };
     tabs.forEach((tab) => tab.addEventListener("click", () => {
       if (tab.classList.contains("is-active")) return;

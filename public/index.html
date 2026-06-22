@@ -45,7 +45,7 @@
       .lx-route-loading .lx-rl-txt{color:#9a8aa8;font-size:14px;letter-spacing:.04em}
       @keyframes lxRlSpin{to{transform:rotate(360deg)}}
     </style>
-    <link rel="stylesheet" href="/css/main.css?v=202606221555">
+    <link rel="stylesheet" href="/css/main.css?v=202606221610">
     <link rel="stylesheet" href="/css/assistant-panel-ng-skin.css?v=202606182146">
   </head>
   <body data-state="default">
@@ -847,7 +847,7 @@
       <div class="lxfd-scrim" id="lxfdScrim"></div>
       <aside class="lxfd-turn-index" id="lxfdTurnIndex" aria-label="对话轮次索引"><div class="lxfd-turn-dots" id="lxfdTurnDots" aria-hidden="true"></div><div class="lxfd-turn-panel lxfd-glass"><h4>对话问题</h4><div class="lxfd-turn-list" id="lxfdTurnList"></div></div></aside>
       <main class="lxfd-stage shift lxfd-gallery-home" id="lxfdStage">
-        <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle">你好，我是联想乐享</h1><div class="lxfd-chips" id="lxfdChips"></div></section>
+        <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle"><span>联想乐享帮你</span><span class="rotating-word">找商品</span></h1><div class="lxfd-chips" id="lxfdChips"></div></section>
         <section class="lxfd-thread" id="lxfdThread" aria-live="polite"></section>
         <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="最近有什么优惠活动？" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle" aria-pressed="false"><img src="/assets/icons/composer-deep-think.svg" alt="" />深度思考</button><button type="button" class="lxfd-toggle" aria-pressed="false"><img src="/assets/icons/composer-web-search.svg" alt="" />联网搜索</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="/assets/icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 19V6M6 11.2 12 5.2l6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></form><p class="lxfd-footnote">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p></div>
         <section class="lxfd-home-gallery" aria-label="首页内容推荐">
@@ -858,14 +858,18 @@
             <button class="gallery-tab" type="button" data-gallery-tab="case">案例</button>
             <span class="gallery-ink" id="lxfdGalleryInk" aria-hidden="true"></span>
           </div>
-          <div class="gallery-grid" id="lxfdGalleryGrid"></div>
+          <div class="gallery-grid is-loading" id="lxfdGalleryGrid">
+            <article class="gallery-card gallery-card-skeleton"><div class="gallery-shot"></div><div class="gallery-meta"><span></span><strong></strong><em></em></div></article>
+            <article class="gallery-card gallery-card-skeleton"><div class="gallery-shot"></div><div class="gallery-meta"><span></span><strong></strong><em></em></div></article>
+            <article class="gallery-card gallery-card-skeleton"><div class="gallery-shot"></div><div class="gallery-meta"><span></span><strong></strong><em></em></div></article>
+          </div>
         </section>
       </main>
     </div>
 
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd") || location.pathname.replace(/\/+$|^$/, "/") === "/";</script>
     <script src="/js/portal.js?v=202606183100"></script>
-    <script src="/js/app.js?v=202606221730"></script>
+    <script src="/js/app.js?v=202606221610"></script>
     <script>
       (function(){
         try {

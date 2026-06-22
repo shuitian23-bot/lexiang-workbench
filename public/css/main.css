@@ -8522,6 +8522,8 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-chips{ display:non
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-dock{ position:relative; bottom:auto; width:min(100%,1012px); max-width:1012px; margin:clamp(26px,3.4vh,42px) auto 0; padding-top:0; transform:none; z-index:3; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-quick,
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-footnote{ display:none; }
+.lxfd-stage.lxfd-gallery-home .lxfd-quick,
+.lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-footnote{ display:none!important; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-composer{ width:100%; margin:0 auto; padding:18px 14px 10px 14px; border-radius:18px; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-composer textarea{ min-height:35px; font-size:16px; transform:translateY(3px); }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-comp-actions{ display:flex; align-items:center; justify-content:flex-start; gap:10px; margin-top:8px; }
@@ -8548,8 +8550,22 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-comp-right{ flex:0
 .lxfd-home-gallery .gallery-ink{ position:absolute; bottom:-1px; left:0; width:0; height:3px; border-radius:3px; background:var(--grad-brand); transition:left .32s var(--ease-spring),width .32s var(--ease-spring); }
 .lxfd-home-gallery .gallery-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin-top:16px; transition:opacity .2s var(--ease),transform .2s var(--ease); }
 .lxfd-home-gallery .gallery-grid.is-switching{ opacity:0; transform:translateY(8px); }
-.lxfd-home-gallery .gallery-card{ overflow:hidden; border:1px solid var(--border); border-radius:18px; background:#fff; box-shadow:var(--sh-1); cursor:pointer; transform:translateY(0); transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease); }
+.lxfd-home-gallery .gallery-card{ overflow:hidden; border:1px solid var(--border); border-radius:18px; background:#fff; box-shadow:var(--sh-1); cursor:pointer; transform:translateY(0); animation:lxfd-gallery-card-in .46s var(--ease) both; transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease); }
+.lxfd-home-gallery .gallery-card:nth-child(2){ animation-delay:.06s; }
+.lxfd-home-gallery .gallery-card:nth-child(3){ animation-delay:.12s; }
 .lxfd-home-gallery .gallery-card:hover{ transform:translateY(-6px); border-color:rgba(91,20,82,.22); box-shadow:0 18px 42px rgba(40,22,50,.14); }
+.lxfd-home-gallery .gallery-card-skeleton{ pointer-events:none; cursor:default; }
+.lxfd-home-gallery .gallery-card-skeleton .gallery-shot,
+.lxfd-home-gallery .gallery-card-skeleton .gallery-meta span,
+.lxfd-home-gallery .gallery-card-skeleton .gallery-meta strong,
+.lxfd-home-gallery .gallery-card-skeleton .gallery-meta em{ position:relative; overflow:hidden; background:linear-gradient(90deg,#f3eef6 0%,#fff 42%,#f3eef6 84%); background-size:220% 100%; animation:lxfd-gallery-shimmer 1.08s linear infinite; }
+.lxfd-home-gallery .gallery-card-skeleton .gallery-shot{ height:clamp(138px,17vh,162px); }
+.lxfd-home-gallery .gallery-card-skeleton .gallery-shot::before{ display:none; }
+.lxfd-home-gallery .gallery-card-skeleton .gallery-meta span{ width:64px; height:23px; border-radius:6px; display:block; }
+.lxfd-home-gallery .gallery-card-skeleton .gallery-meta strong{ width:78%; height:19px; border-radius:5px; display:block; }
+.lxfd-home-gallery .gallery-card-skeleton .gallery-meta em{ width:92%; height:16px; border-radius:5px; display:block; }
+@keyframes lxfd-gallery-shimmer{ to{ background-position:-220% 0; } }
+@keyframes lxfd-gallery-card-in{ from{ opacity:0; transform:translateY(14px) scale(.985); filter:blur(4px); } to{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
 .lxfd-home-gallery .gallery-shot{ position:relative; height:clamp(138px,17vh,162px); overflow:hidden; background:linear-gradient(135deg,#2e2147 0%,#4c2864 62%,#743246 100%); transition:filter .22s var(--ease); }
 .lxfd-home-gallery .gallery-shot.has-image{ background:#fff; }
 .lxfd-home-gallery .gallery-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
