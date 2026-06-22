@@ -8647,3 +8647,10 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
     --lxfd-gallery-shell:clamp(520px,calc(68.75vw - 150px),920px);
   }
 }
+
+/* 子品牌楼层网格列数按【容器实际宽度】自适应（auto-fill），不按窗宽死定。
+   原 @media 按窗宽锁 5/6 列 + !important：左侧对话面板占位把楼层挤窄后，窄容器里还强行 6 列 →
+   卡片溢出换行成 3-4 排。改 auto-fill 让窄容器自动少列，JS lxClampFloors 读真实列数才能准确夹两排。 */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]) .lx-personal-rec-floor .lx-floor-products {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+}
