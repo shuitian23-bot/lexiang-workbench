@@ -815,6 +815,8 @@ if (!window.__lxMemberFetched) {
             if (primary) { primary.textContent = "获取报价方案"; primary.dataset.bizQuote = "1"; }
             if (cart) cart.hidden = true;
             if (benefit) benefit.hidden = true;
+            const similar = $(".lx-p0-detail-similar", actions);
+            if (similar) similar.hidden = true;
             if (!quote) {
               quote = document.createElement("button");
               quote.className = "detail-secondary lx-p0-detail-quote"; quote.type = "button"; quote.textContent = "在线咨询顾问";
@@ -831,6 +833,9 @@ if (!window.__lxMemberFetched) {
             if (benefit) benefit.hidden = false;
             if (quote) quote.hidden = true;
             if (wp) wp.hidden = true;
+            ensureDetailSimilarButton();
+            const similar = $(".lx-p0-detail-similar", actions);
+            if (similar) similar.hidden = false;
           }
         }
 
@@ -1105,9 +1110,46 @@ if (!window.__lxMemberFetched) {
               <img src="${esc(item.image_url)}" alt="">
               <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span>${item.address ? `<span>收货：${esc(item.address.name || "")} ${esc(item.address.phone || "")} ${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>` : ""}</div>
               <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
+              <button class="lx-p0-btn" data-order-detail="${esc(item.orderId)}">订单详情</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页「一键领优惠下单」即可生成演示订单。</p>`;
           lxRevealContent();
           lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
+        }
+
+        function openOrderDetail(orderId) {
+          const item = (state.orders || []).find((o) => o.orderId === orderId);
+          if (!item) return toast("找不到该订单");
+          const benefitLine = item.benefitNote ? `<div class="lx-p0-row-main" style="padding:6px 0"><span style="color:var(--lx-accent,#c41230)">已用优惠：${esc(item.benefitNote)}</span></div>` : "";
+          const html = `
+            <div class="lx-p0-row">
+              <img src="${esc(item.image_url)}" alt="">
+              <div class="lx-p0-row-main">
+                <strong>${esc(item.name)}</strong>
+                <span>${esc(item.category || "")}</span>
+                <span>单价 ${money(item.price)}</span>
+              </div>
+            </div>
+            <div class="lx-p0-row-main" style="padding:8px 0">
+              <span>订单号：${esc(item.orderId)}</span>
+              <span>下单时间：${esc(item.createdAt)}</span>
+            </div>
+            ${item.address ? `<div class="lx-p0-row-main" style="padding:4px 0">
+              <span>收货人：${esc(item.address.name || "")} ${esc(item.address.phone || "")}</span>
+              <span>地址：${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>
+            </div>` : ""}
+            <div class="lx-p0-row-main" style="padding:4px 0">
+              <span>实付金额：<strong>${money(item.price)}</strong></span>
+            </div>
+            ${benefitLine}
+            <div class="lx-p0-row-main" style="padding:8px 0">
+              <span>物流状态：<strong>已下单 → 备货中 → 待发货</strong></span>
+            </div>
+            <div class="lx-p0-actions">
+              <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
+              <button class="lx-p0-btn" data-buy-sku="${esc(item.sku || "")}">再次购买</button>
+            </div>
+            <p class="lx-p0-disclaimer">物流状态为演示数据，正式上线对接真实物流接口。</p>`;
+          lxOpenInfoTab("order-detail", "订单详情", html);
         }
 
         // 发票抬头（PRD 5.0.2 弹窗层场景：开票信息填写与修改）
@@ -5015,6 +5057,8 @@ if (!window.__lxMemberFetched) {
               closeModal();
               sendChat(`请帮我对比这几款商品：${state.compare.map((item) => item.name).join("、")}`);
             }
+            const orderDetailBtn = event.target.closest("[data-order-detail]");
+            if (orderDetailBtn) { openOrderDetail(orderDetailBtn.dataset.orderDetail); return; }
             const askOrder = event.target.closest("[data-ask-order]")?.dataset.askOrder;
             if (askOrder) {
               closeModal();
@@ -5378,6 +5422,7 @@ if (!window.__lxMemberFetched) {
     chatState.conversationNonce += 1;
     if (thread) { thread.innerHTML = c.threadHtml; thread.classList.add("show"); }
     if (welcome) welcome.style.display = "none";
+    lxfdSetGalleryChatting(true);
     if (convoName) { convoName.textContent = shortText(c.title, 15); convoName.title = c.title; }
     turns = [];
     renderTurnIndex("");
