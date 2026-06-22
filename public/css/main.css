@@ -8592,3 +8592,17 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-comp-r
   .lxfd-home-gallery .gallery-shot{ height:128px; }
   .lxfd-home-gallery .gallery-meta{ gap:5px; padding:11px 14px 12px; }
 }
+
+@media (min-width:1280px) and (max-width:2200px){
+  body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-dock{
+    width:min(80%,810px);
+    max-width:810px;
+  }
+  body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-home-gallery{
+    box-sizing:border-box;
+    width:min(80%,1078px);
+    max-width:1078px;
+    padding-left:67px;
+    padding-right:67px;
+  }
+}

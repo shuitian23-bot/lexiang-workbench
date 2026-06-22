@@ -2102,14 +2102,36 @@ if (!window.__lxMemberFetched) {
         }
 
         // 楼层带「查看更多」：前 visibleCount 直出，余下折叠（默认隐藏），点按钮展开
+        // 楼层：全部商品渲进一个网格，渲染后由 lxClampFloors 按「实际列数×2」夹成两排、超出折叠。
+        // 不在这里按 JS 猜的列数切——分屏/全屏态下 CSS 列数(3)≠JS按窗宽猜的列数(6)，会多出 3-4 排。
         function lxFloorWithMore(label, items, visibleCount, askLabel = label) {
-          const visible = items.slice(0, visibleCount);
-          const hidden = items.slice(visibleCount);
-          const moreHtml = hidden.length
-            ? `<div class="lx-floor-products lx-floor-more" hidden>${hidden.map(lxProductMiniCard).join("")}</div>`
-              + `<button class="lx-floor-more-btn" type="button" data-floor-more>查看更多 ${hidden.length} 款<i aria-hidden="true">▾</i></button>`
-            : "";
-          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${visible.map(lxProductMiniCard).join("")}</div>${moreHtml}</section>`;
+          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}" data-floor-collapsible><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+        }
+
+        // 按渲染后的真实列数把楼层夹成两排：第 2*cols 个之后的商品隐藏，补「查看更多 N 款」按钮。
+        // 列数从 DOM 计算（getComputedStyle 网格列数），与 CSS 真实渲染一致，不依赖 JS 猜窗宽。
+        function lxClampFloors(root) {
+          const scope = root || document;
+          scope.querySelectorAll("[data-floor-collapsible]").forEach((sec) => {
+            if (sec.dataset.expanded === "1") return; // 用户已展开的不再夹
+            const grid = sec.querySelector(".lx-floor-products");
+            if (!grid) return;
+            const cards = [...grid.querySelectorAll(".lx-floor-product")];
+            const colStr = getComputedStyle(grid).gridTemplateColumns || "";
+            const cols = Math.max(1, colStr.split(" ").filter(Boolean).length);
+            const keep = cols * 2; // 默认两排
+            sec.querySelector("[data-floor-more]")?.remove();
+            const hiddenCount = Math.max(0, cards.length - keep);
+            cards.forEach((c, i) => { c.hidden = i >= keep; });
+            if (hiddenCount > 0) {
+              const btn = document.createElement("button");
+              btn.className = "lx-floor-more-btn";
+              btn.type = "button";
+              btn.setAttribute("data-floor-more", "");
+              btn.innerHTML = `查看更多 ${hiddenCount} 款<i aria-hidden="true">▾</i>`;
+              grid.after(btn);
+            }
+          });
         }
 
         async function lxRenderPersonalRecommendFloors() {
@@ -2251,7 +2273,7 @@ if (!window.__lxMemberFetched) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampFloors(box); lxSyncCategoryTabsStuck(); });
               return;
             }
             if (page === "business") {
@@ -2292,6 +2314,7 @@ if (!window.__lxMemberFetched) {
           if (categoryFloors) {
             box.innerHTML = categoryFloors;
             lxSyncCategoryTabs();
+            requestAnimationFrame(() => lxClampFloors(box));
             return;
           }
           if (page === "personal") {
@@ -2550,12 +2573,11 @@ if (!window.__lxMemberFetched) {
         let lxLastFloorProductCount = lxFloorProductCount();
         let lxFloorResizeTimer = null;
         window.addEventListener("resize", () => {
-          const nextCount = lxFloorProductCount();
-          if (nextCount === lxLastFloorProductCount) return;
-          lxLastFloorProductCount = nextCount;
           clearTimeout(lxFloorResizeTimer);
+          // 列数变了就重新夹（夹断按真实列数，分屏/全屏切换也覆盖；不依赖 JS 猜的 lxFloorProductCount）
           lxFloorResizeTimer = setTimeout(() => {
-            if (["personal", "business", "enterprise"].includes(state.page) && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
+            const box = document.querySelector("[data-site-floors]");
+            if (box) lxClampFloors(box);
           }, 120);
         });
 
@@ -3398,6 +3420,9 @@ if (!window.__lxMemberFetched) {
           if (on) document.body.dataset.state = "chat";
           document.body.classList.toggle("assistant-fullscreen", !!on);
           document.body.classList.toggle("lx-auto-fs", !!on);
+          // 分屏/全屏切换会改变楼层网格列数 → 重新按真实列数夹两排
+          const floorBox = document.querySelector("[data-site-floors]");
+          if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
@@ -5005,11 +5030,19 @@ if (!window.__lxMemberFetched) {
             }
             const moreBtn = event.target.closest("[data-floor-more]");
             if (moreBtn) {
-              const more = moreBtn.parentElement?.querySelector(".lx-floor-more");
-              if (more) {
-                const show = more.hidden;
-                more.hidden = !show;
-                moreBtn.innerHTML = show ? `收起<i aria-hidden="true">▴</i>` : `查看更多 ${more.children.length} 款<i aria-hidden="true">▾</i>`;
+              const sec = moreBtn.closest("[data-floor-collapsible]");
+              const grid = sec?.querySelector(".lx-floor-products");
+              if (sec && grid) {
+                const cards = [...grid.querySelectorAll(".lx-floor-product")];
+                const collapsed = cards.some((c) => c.hidden);
+                if (collapsed) {
+                  cards.forEach((c) => { c.hidden = false; });
+                  sec.dataset.expanded = "1";
+                  moreBtn.innerHTML = `收起<i aria-hidden="true">▴</i>`;
+                } else {
+                  sec.dataset.expanded = "";
+                  lxClampFloors(sec.parentElement || document); // 重新夹回两排
+                }
               }
             }
             const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
