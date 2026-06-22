@@ -170,7 +170,27 @@ function normalizeSpuName(name = '') {
     .toLowerCase();
 }
 
+// 从商品名提取「子品牌+系列型号」作为 SPU 标识（最贴近用户认知的折叠粒度：
+// 同系列不同年款/配置/颜色 折叠成一款，如 拯救者R9000P 的碳晶黑/冰魄白/2025/2026 → 拯救者R9000P）
+function seriesKeyFromName(name = '') {
+  const n = String(name || '');
+  // 整机才折叠系列；配件/服务/固态硬盘等不走系列折叠（名字里有这些词的跳过）
+  if (/固态硬盘|SSD|适配器|电源|双肩包|背包|鼠标|键盘|耳机|散热|支架|延保|保值|换新|膜|保护|底座|手柄|水杯|卫衣|马甲|自行车|眼镜|配件|服务/i.test(n)) return null;
+  let m = n.match(/(拯救者|legion)\s*([RYry])\s?(\d{4,5})([a-zA-Z]{0,2})/i);
+  if (m) return '拯救者' + m[2].toUpperCase() + m[3] + (m[4] || '').toUpperCase();
+  m = n.match(/小新\s*(pro|air|x)?\s*(\d{2})/i);
+  if (m) return '小新' + (m[1] || '').toLowerCase() + m[2];
+  m = n.match(/yoga\s*(air|pro|book|duet|x)?\s*(\d{2}[a-z]?)/i);
+  if (m) return 'yoga' + (m[1] || '').toLowerCase() + m[2];
+  m = n.match(/(thinkpad|thinkbook|ideapad)\s*([a-z]?\d{1,3}[a-z\d]*)/i);
+  if (m) return m[1].toLowerCase() + (m[2] || '').toLowerCase();
+  return null;
+}
+
 function getSpuKey(row) {
+  // 优先按商品名的系列型号折叠（同系列不同色/年款/配置归一）
+  const sk = seriesKeyFromName(row?.name);
+  if (sk) return `${row.category || ''}:series:${sk.toLowerCase()}`;
   const specs = parseProductSpecs(row?.specs);
   const candidates = [
     specs.spu,
