@@ -1911,19 +1911,19 @@ if (!window.__lxMemberFetched) {
           enterprise: [
             ["笔记本", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return (p.category === "笔记本电脑" || /笔记本|昭阳|开天|ThinkPad|ThinkBook|AI\s*PC/i.test(text)) && !/服务|保修|存储|服务器|工作站|移动工作站|台式|主机|ThinkCentre|智能设备|外设|配件/i.test(text);
+              return p.category !== "服务产品" && (p.category === "笔记本电脑" || /笔记本|昭阳|开天|ThinkPad|ThinkBook|AI\s*PC/i.test(text)) && !/服务|保修|存储|服务器|工作站|移动工作站|台式|主机|ThinkCentre|智能设备|外设|配件/i.test(text);
             }],
             ["台式机", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return (p.category === "台式机" || /台式机|商用台式|启天|开天.*台式|ThinkCentre|一体机/i.test(text)) && !/服务器|存储|工作站|移动工作站|ThinkStation|ThinkSystem|问天|Wentian|机架|塔式服务器|ST\d+|SR\d+|WR\d+|DE\d+/i.test(text);
+              return p.category !== "服务产品" && (p.category === "台式机" || /台式机|商用台式|启天|开天.*台式|ThinkCentre|一体机/i.test(text)) && !/服务器|存储|工作站|移动工作站|ThinkStation|ThinkSystem|问天|Wentian|机架|塔式服务器|ST\d+|SR\d+|WR\d+|DE\d+/i.test(text);
             }],
             ["工作站", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return p.category === "工作站" || /工作站|移动工作站|ThinkStation/i.test(text);
+              return p.category !== "服务产品" && (p.category === "工作站" || /工作站|移动工作站|ThinkStation/i.test(text));
             }],
             ["智能设备", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return /智能设备|智慧屏|会议平板|ThinkSmart|AI一体机|边缘智能|工控|工业平板|智能终端|ThinkVision|显示器|打印机/i.test(text) || ["显示器", "打印机及配件"].includes(p.category);
+              return p.category !== "服务产品" && (/智能设备|智慧屏|会议平板|ThinkSmart|AI一体机|边缘智能|工控|工业平板|智能终端|ThinkVision|显示器|打印机/i.test(text) || ["显示器", "打印机及配件"].includes(p.category));
             }],
             ["存储", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -1935,7 +1935,7 @@ if (!window.__lxMemberFetched) {
             }],
             ["软件超融合", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return /软件|超融合|虚拟化|云平台|HCI|Lenovo xCloud|xCloud|云智|超融合一体机/i.test(text);
+              return !/数据恢复|硬件恢复|开盘|拷贝/i.test(text) && /软件|超融合|虚拟化|云平台|HCI|Lenovo xCloud|xCloud|云智|超融合一体机|Open Claw|远程部署|Skill配置|聊天应用配置/i.test(text);
             }],
             ["异构智算", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -1943,7 +1943,7 @@ if (!window.__lxMemberFetched) {
             }],
             ["外设系列", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return ["键鼠相关", "包袋", "配件", "耳机"].includes(p.category) || /外设|配件|鼠标|键盘|键鼠|扩展坞|电源|适配器|背包|包|耳机|支架|线缆|摄像头/i.test(text);
+              return p.category !== "服务产品" && !/上门安装服务|扩容方案|新机开荒|数据恢复|任性造|部署服务/i.test(text) && (["键鼠相关", "包袋", "配件", "耳机"].includes(p.category) || /外设|配件|鼠标|键盘|键鼠|扩展坞|电源|适配器|背包|包|耳机|支架|线缆|摄像头|RAID阵列卡|专用电源/i.test(text));
             }],
           ],
         };
