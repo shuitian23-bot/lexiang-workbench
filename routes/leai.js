@@ -378,6 +378,66 @@ router.post('/compare-advice', (req, res) => {
   } catch (_) { res.json({ pick: '', reason: '' }); }
 });
 
+// POST /api/leai/intent — 火山 lite 意图路由（control vs chat）
+router.post('/intent', (req, res) => {
+  const { message } = req.body || {};
+  const fallback = { type: 'chat', op: '', target: '' };
+  if (!message) return res.json(fallback);
+  const sys = `你是联想乐享 PC 助手的意图路由器。分析用户输入，判断是"页面操作指令"还是"问答/咨询"，严格按以下 JSON 格式返回，不输出任何其他文字：
+{"type":"control","op":"<操作码>","target":"<目标或空字符串>"}
+或
+{"type":"chat","op":"","target":""}
+
+操作码枚举（从以下选一个，不能自造）：
+close_all_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen
+
+判断规则：
+1. 只有用户明确要求"操作界面/页面/标签/全屏"时才返回 type=control，选最贴切的 op。
+2. 商品咨询、推荐、参数、价格、政策、闲聊、比较等一律 type=chat（op和target留空字符串）。
+3. "打开/帮我看/看下 XX 商品""帮我打开拯救者Y9000P" → op=open_product，target填商品名/型号。
+4. "全屏/放大/沉浸/专注模式" → op=enter_fullscreen；"退出全屏/缩小/分屏/恢复窗口" → op=exit_fullscreen。
+5. "关所有标签/关掉所有页面/清空标签" → op=close_all_tabs。
+6. "回首页/去首页" → op=go_home；"打开购物车" → op=open_cart；"看我的订单" → op=open_orders。
+7. 拿不准的一律判 type=chat（宁可走问答，不误触发操作）。`;
+  const body = JSON.stringify({
+    model: 'doubao-seed-2.0-lite',
+    messages: [{ role: 'system', content: sys }, { role: 'user', content: String(message).slice(0, 500) }],
+    max_tokens: 100, temperature: 0, stream: false, thinking: { type: 'disabled' }
+  });
+  try {
+    const ar = https.request({
+      hostname: 'ark.cn-beijing.volces.com',
+      path: '/api/coding/v3/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.DASHSCOPE_API_KEY,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (r) => {
+      let buf = '';
+      r.on('data', chunk => { buf += chunk.toString(); });
+      r.on('end', () => {
+        try {
+          const j = JSON.parse(buf);
+          const raw = (j.choices?.[0]?.message?.content || '').trim();
+          const m = raw.match(/\{[\s\S]*?\}/);
+          const obj = m ? JSON.parse(m[0]) : {};
+          const type = obj.type === 'control' ? 'control' : 'chat';
+          const op = String(obj.op || '');
+          const target = String(obj.target || '');
+          res.json({ type, op, target });
+        } catch (_) { try { res.json(fallback); } catch (__) {} }
+      });
+      r.on('error', () => { try { res.json(fallback); } catch (_) {} });
+    });
+    ar.on('error', () => { try { res.json(fallback); } catch (_) {} });
+    ar.setTimeout(6000, () => { ar.destroy(); try { res.json(fallback); } catch (_) {} });
+    ar.write(body);
+    ar.end();
+  } catch (_) { res.json(fallback); }
+});
+
 // GET /api/leai/member — 透传官方登录态会员信息（guest/memberLevel/loginName）
 router.get('/member', async (req, res) => {
   try {
