@@ -114,7 +114,9 @@ if (!window.__lxMemberFetched) {
           // 退出全屏（带动画）
           exitFullscreen: function() { lxSetAutoFs(false); },
           // 当前是否有右侧 tab
-          hasTabs: function() { return !!(state.tabs && state.tabs.length > 0); }
+          hasTabs: function() { return !!(state.tabs && state.tabs.length > 0); },
+          // 让 lxfd IIFE 调主面板 lxExecControl（跨 IIFE 桥）
+          execControl: function(op, target) { lxExecControl(op, target); }
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);
@@ -1390,10 +1392,52 @@ if (!window.__lxMemberFetched) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端 ──────────────
+          const _localCtrl = (function(_t) {
+            if (/^\s*(关闭?|清空)(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)\s*$/i.test(_t) || /(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)/.test(_t)) return { op: "close_all_tabs", msg: "好的，已为你关闭所有页面标签。" };
+            if (/^\s*(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?\s*$|^\s*(放大|沉浸|专注)(模式|对话|查看)?\s*$/.test(_t)) return { op: "enter_fullscreen", msg: "好的，已切换到全屏对话模式。" };
+            if (/^\s*(退出|关闭|取消|结束)(全屏|沉浸|专注)|^\s*(分屏|窗口|恢复|缩小)(模式)?\s*$/.test(_t)) return { op: "exit_fullscreen", msg: "好的，已退出全屏模式。" };
+            if (/^\s*(回|返回|去|到)(首页|主页)\s*$/.test(_t)) return { op: "go_home", msg: "好的，已为你回到首页。" };
+            if (/^\s*(打开|查看|看看?)(我的)?购物车\s*$/.test(_t)) return { op: "open_cart", msg: "好的，已为你打开购物车。" };
+            if (/^\s*(打开|查看|看看?)(我的)?订单(列表|页面|中心)?\s*$/.test(_t)) return { op: "open_orders", msg: "好的，已为你打开订单页面。" };
+            return null;
+          })(text);
+          if (_localCtrl) {
+            lxExecControl(_localCtrl.op, "");
+            addMessage("ai", _localCtrl.msg);
+            // state.sending 此时仍为 false（还没设置），直接 return 即可
+            return;
+          }
+          // ── 本地快路径结束 ───────────────────────────────────────────────
           const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
           state.sending = true;
           state._fallbackFired = false;
           try {
+            // ── 远程意图路由（非多模态、无媒体附件时先问后端意图，3秒超时降级）──
+            if (!state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch) {
+              let _intentResult = null;
+              try {
+                const _intentAbort = new AbortController();
+                const _intentTimer = setTimeout(() => _intentAbort.abort(), 3000);
+                const _intentRes = await fetch("/api/leai/intent", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ message: text }),
+                  signal: _intentAbort.signal
+                });
+                clearTimeout(_intentTimer);
+                if (_intentRes.ok) _intentResult = await _intentRes.json();
+              } catch (_intentErr) { /* 超时/失败 → 降级 chat */ }
+              if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
+                ai.remove(); // 移除 loading 气泡
+                const _opNames = { close_all_tabs: "关闭了所有页面标签", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式" };
+                addMessage("ai", `好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
+                lxExecControl(_intentResult.op, _intentResult.target || "");
+                state.sending = false;
+                return;
+              }
+            }
+            // ── 远程意图路由结束 ─────────────────────────────────────────────
             // 多模态路由：有图/语音或开联网搜索时走火山 /api/chat/stream，否则走官方 /api/leai/stream
             const hasMedia = !!(state.pendingImageUrl || state.pendingAudioUrl);
             const useHuoshan = hasMedia || !!window.__lxWebSearch;
