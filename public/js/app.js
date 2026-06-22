@@ -1723,6 +1723,7 @@ if (!window.__lxMemberFetched) {
             ai.className = "lx-p0-message ai";
             ai.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
           } finally {
+            clearTimeout(state._sendTimeout);
             if (nonce === state.conversationNonce) state.sending = false;
           }
         }
@@ -5847,6 +5848,82 @@ if (!window.__lxMemberFetched) {
     turns.push({ id: turnId, text: value });
     renderTurnIndex(turnId);
     if (ta) { ta.value = ""; fit(); syncSend(); }
+
+    // ── lxfd 意图路由分流 ──────────────────────────────────────────────
+    // 1. 本地快路径
+    const _lxfdLocalCtrl = (function() {
+      const _t = value;
+      if (/关闭?(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)|清空(标签|页面|分页|页签)|(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)?/.test(_t)) return { op: "close_all_tabs", target: "", msg: "好的，已为你关闭所有页面标签。" };
+      if (/^(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
+      if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|恢复|缩小)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
+      if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
+      if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
+      if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
+      return null;
+    })();
+    if (_lxfdLocalCtrl) {
+      const _lxfdCtrlAi = document.createElement("div");
+      _lxfdCtrlAi.className = "lxfd-msg-ai";
+      const _lxfdCtrlBody = document.createElement("div");
+      _lxfdCtrlBody.className = "lxfd-ai-body";
+      const _lxfdCtrlText = document.createElement("div");
+      _lxfdCtrlText.className = "lxfd-ai-text";
+      _lxfdCtrlText.textContent = _lxfdLocalCtrl.msg;
+      _lxfdCtrlBody.appendChild(_lxfdCtrlText);
+      _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
+      thread?.appendChild(_lxfdCtrlAi);
+      _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      // 执行操作：通过 __lxExecControl 桥（全屏态 lxExecControl 不在此作用域）
+      const _execOp = _lxfdLocalCtrl.op;
+      const _execTarget = _lxfdLocalCtrl.target;
+      if (_execOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
+      else if (_execOp === "exit_fullscreen") {
+        if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
+      } else if (typeof window.__lxBridge?.execControl === "function") {
+        window.__lxBridge.execControl(_execOp, _execTarget);
+      }
+      return;
+    }
+
+    // 2. 远程意图路由器
+    let _lxfdIntentResult = null;
+    try {
+      const _lxfdIntentAbort = new AbortController();
+      const _lxfdIntentTimer = setTimeout(() => _lxfdIntentAbort.abort(), 3000);
+      const _lxfdIntentRes = await fetch("/api/leai/intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: value }),
+        signal: _lxfdIntentAbort.signal
+      });
+      clearTimeout(_lxfdIntentTimer);
+      if (_lxfdIntentRes.ok) _lxfdIntentResult = await _lxfdIntentRes.json();
+    } catch (_lxfdIntentErr) { /* 超时/失败 → 降级 chat */ }
+    if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
+      const _lxfdCtrlAi = document.createElement("div");
+      _lxfdCtrlAi.className = "lxfd-msg-ai";
+      const _lxfdCtrlBody = document.createElement("div");
+      _lxfdCtrlBody.className = "lxfd-ai-body";
+      const _lxfdCtrlText = document.createElement("div");
+      _lxfdCtrlText.className = "lxfd-ai-text";
+      const _lxfdOpNames = { close_all_tabs: "关闭了所有页面标签", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_lxfdIntentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式（当前已在全屏）", exit_fullscreen: "退出了全屏模式" };
+      _lxfdCtrlText.textContent = `好的，已为你${_lxfdOpNames[_lxfdIntentResult.op] || "执行了操作"}。`;
+      _lxfdCtrlBody.appendChild(_lxfdCtrlText);
+      _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
+      thread?.appendChild(_lxfdCtrlAi);
+      _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      const _lxfdExecOp = _lxfdIntentResult.op;
+      const _lxfdExecTarget = _lxfdIntentResult.target || "";
+      if (_lxfdExecOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
+      else if (_lxfdExecOp === "exit_fullscreen") {
+        if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
+      } else if (typeof window.__lxBridge?.execControl === "function") {
+        window.__lxBridge.execControl(_lxfdExecOp, _lxfdExecTarget);
+      }
+      return;
+    }
+    // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
+
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
     ai.innerHTML = '<div class="lxfd-ai-body"><span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;检索知识库…</span></div>';
@@ -5865,6 +5942,14 @@ if (!window.__lxMemberFetched) {
       if (body) body.insertBefore(ai._textBox, body.firstChild);
       ai._raw = "";
     };
+    // lxfd 前端兜底超时：50秒后强制解锁
+    const _lxfdSendTimeout = setTimeout(() => {
+      if (chatState.sending && chatState.conversationNonce === nonce) {
+        chatState.sending = false;
+        revealAi();
+        if (ai._textBox) ai._textBox.textContent = "响应超时，请重试。";
+      }
+    }, 50000);
     try {
       chatState._fallbackFired = false;
       const sendMsg = chatState.human
@@ -6044,6 +6129,7 @@ if (!window.__lxMemberFetched) {
       revealAi();
       if (ai._textBox) ai._textBox.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
     } finally {
+      clearTimeout(_lxfdSendTimeout);
       if (nonce === chatState.conversationNonce) chatState.sending = false;
       ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
     }
@@ -6194,13 +6280,18 @@ if (!window.__lxMemberFetched) {
     };
     const render = (key, animate) => {
       if (!data[key]) key = "new";
-      if (animate) grid.classList.add("is-switching");
-      else grid.classList.add("is-loading");
+      if (!animate) {
+        grid.innerHTML = data[key].map(card).join("");
+        grid.classList.remove("is-loading");
+        grid.classList.remove("is-switching");
+        return;
+      }
+      grid.classList.add("is-switching");
       window.setTimeout(() => {
         grid.innerHTML = data[key].map(card).join("");
         grid.classList.remove("is-loading");
         grid.classList.remove("is-switching");
-      }, animate ? 120 : 180);
+      }, 120);
     };
     tabs.forEach((tab) => tab.addEventListener("click", () => {
       if (tab.classList.contains("is-active")) return;
