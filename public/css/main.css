@@ -5544,7 +5544,7 @@
       .lx-personal-rec-floor .lx-floor-products {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       }
-      .lx-personal-rec-floor .lx-floor-product:nth-child(n+9) { display: none; }
+      /* nth-child(n+9) 死砍已移除,改由 JS lxClampFloors 按真实列数夹两排+[hidden] */
       @media (max-width: 900px) {
         .lx-personal-rec-floor .lx-floor-products { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
       }
@@ -8662,3 +8662,8 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]) .lx-personal-rec-floor .lx-floor-products {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
 }
+
+/* 楼层卡片 [hidden] 必须真隐藏：上面的 .lx-floor-product{display:flex} 高特异性规则会覆盖
+   [hidden] 默认的 display:none,导致 lxClampFloors 标了 hidden 的卡片仍显示→楼层撑成多排。
+   文件末尾 + !important 强制隐藏。 */
+.lx-floor-product[hidden] { display: none !important; }
