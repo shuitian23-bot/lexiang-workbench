@@ -2134,6 +2134,27 @@ if (!window.__lxMemberFetched) {
           });
         }
 
+        // 用 ResizeObserver 盯楼层网格宽度变化（分屏/全屏切换、路由切换、缩放都会改列数）→ 重新夹两排。
+        // RAF 一次性夹有时机问题（全屏 class 还没让 grid 重排到真实列数），ResizeObserver 在每次实际重排后都补夹，彻底解决。
+        let lxFloorRO = null;
+        let lxFloorROTimer = null;
+        function lxObserveFloors(box) {
+          if (!box) return;
+          if (!lxFloorRO) {
+            lxFloorRO = new ResizeObserver(() => {
+              clearTimeout(lxFloorROTimer);
+              lxFloorROTimer = setTimeout(() => {
+                const b = document.querySelector("[data-site-floors]");
+                if (b) lxClampFloors(b);
+              }, 60);
+            });
+          }
+          lxFloorRO.disconnect();
+          // 观察每个楼层网格本身（其单元格宽度随列数变化）+ box 整体
+          lxFloorRO.observe(box);
+          box.querySelectorAll(".lx-floor-products").forEach((g) => lxFloorRO.observe(g));
+        }
+
         async function lxRenderPersonalRecommendFloors() {
           const site = API_SITE.personal || "shop";
           const pool = await lxEnsureFloorProducts(site, 96);
@@ -2274,6 +2295,7 @@ if (!window.__lxMemberFetched) {
               if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(() => { lxClampFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box); // 盯网格宽度变化,分屏/全屏切到3列时自动重夹
               return;
             }
             if (page === "business") {
@@ -2315,6 +2337,7 @@ if (!window.__lxMemberFetched) {
             box.innerHTML = categoryFloors;
             lxSyncCategoryTabs();
             requestAnimationFrame(() => lxClampFloors(box));
+            lxObserveFloors(box);
             return;
           }
           if (page === "personal") {
