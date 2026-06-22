@@ -8614,6 +8614,10 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-compos
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-composer textarea{ min-height:30px!important; font-size:16px!important; transform:none!important; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-comp-actions{ justify-content:space-between!important; gap:14px!important; margin-top:10px!important; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-comp-right{ margin-left:auto!important; }
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-scope-more{ display:inline-flex; }
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-scope-actions > .lxfd-scope-chip:nth-child(n+4){ display:none; }
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-scope-menu .lxfd-scope-chip:nth-child(-n+2){ display:none; }
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-scope-menu .lxfd-scope-chip:nth-child(n+3){ display:flex; }
 
 @media (max-height:860px){
   body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home{ padding-top:72px; }
