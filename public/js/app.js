@@ -5378,6 +5378,7 @@ if (!window.__lxMemberFetched) {
     chatState.conversationNonce += 1;
     if (thread) { thread.innerHTML = c.threadHtml; thread.classList.add("show"); }
     if (welcome) welcome.style.display = "none";
+    lxfdSetGalleryChatting(true);
     if (convoName) { convoName.textContent = shortText(c.title, 15); convoName.title = c.title; }
     turns = [];
     renderTurnIndex("");
