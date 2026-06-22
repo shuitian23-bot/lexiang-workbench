@@ -1911,23 +1911,19 @@ if (!window.__lxMemberFetched) {
           enterprise: [
             ["笔记本", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return (p.category === "笔记本电脑" || /笔记本|昭阳|开天|ThinkPad|ThinkBook|移动工作站|AI\s*PC/i.test(text)) && !/服务|保修|存储|服务器|工作站|台式|主机|ThinkCentre/i.test(text);
+              return (p.category === "笔记本电脑" || /笔记本|昭阳|开天|ThinkPad|ThinkBook|AI\s*PC/i.test(text)) && !/服务|保修|存储|服务器|工作站|移动工作站|台式|主机|ThinkCentre|智能设备|外设|配件/i.test(text);
             }],
             ["台式机", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return !/ThinkCentre/i.test(text) && (p.category === "台式机" || /台式机|商用台式|启天|开天|主机|一体机/i.test(text));
-            }],
-            ["ThinkCentre", (p) => {
-              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return /ThinkCentre/i.test(text);
-            }],
-            ["联想问天", (p) => {
-              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return /问天|Wentian|联想问天/i.test(text);
+              return (p.category === "台式机" || /台式机|商用台式|启天|开天.*台式|ThinkCentre|一体机/i.test(text)) && !/服务器|存储|工作站|移动工作站|ThinkStation|ThinkSystem|问天|Wentian|机架|塔式服务器|ST\d+|SR\d+|WR\d+|DE\d+/i.test(text);
             }],
             ["工作站", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return p.category === "工作站" || /工作站|ThinkStation/i.test(text);
+              return p.category === "工作站" || /工作站|移动工作站|ThinkStation/i.test(text);
+            }],
+            ["智能设备", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return /智能设备|智慧屏|会议平板|ThinkSmart|AI一体机|边缘智能|工控|工业平板|智能终端|ThinkVision|显示器|打印机/i.test(text) || ["显示器", "打印机及配件"].includes(p.category);
             }],
             ["存储", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -1943,7 +1939,11 @@ if (!window.__lxMemberFetched) {
             }],
             ["异构智算", (p) => {
               const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-              return /异构|智算|AI服务器|AI\s*服务器|GPU|算力|训推|推理|深度学习|ThinkSystem.*GPU/i.test(text);
+              return /异构|智算|服务器|塔式服务器|机架|ThinkSystem|问天|Wentian|AI服务器|AI\s*服务器|GPU|算力|训推|推理|深度学习|ST\d+|SR\d+|WR\d+/i.test(text);
+            }],
+            ["外设系列", (p) => {
+              const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+              return ["键鼠相关", "包袋", "配件", "耳机"].includes(p.category) || /外设|配件|鼠标|键盘|键鼠|扩展坞|电源|适配器|背包|包|耳机|支架|线缆|摄像头/i.test(text);
             }],
           ],
         };
