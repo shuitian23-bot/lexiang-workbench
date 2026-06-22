@@ -1,29 +1,26 @@
 {
-  "version": "LXFD-202606221335-8CF9D5A7",
-  "generatedAt": "2026-06-22T13:35:15+08:00",
+  "version": "LXFD-GALLERY-202606221428-9E6904D0",
+  "generatedAt": "2026-06-22T14:28:40+08:00",
   "timezone": "Asia/Shanghai",
-  "scope": "线上首页全屏对话页面、全屏聊天态及相关交互功能",
+  "scope": "线上首页全屏对话画廊首页变体、全屏聊天态及相关交互功能",
   "route": "https://leaibot.cn/",
   "assets": {
     "html": "https://leaibot.cn/",
-    "css": "/css/main.css?v=202606220300",
-    "js": "/js/app.js?v=202606221055"
+    "css": "/css/main.css?v=202606221420",
+    "js": "/js/app.js?v=202606221420"
   },
   "hashes": {
-    "combinedSha256": "8cf9d5a757f820ea15370c90266dfd6133076c2b5071b9068e17ced6516592b6",
-    "fullscreenJsSha256": "03b9028664a0475738f472fa32f81fc49ed61ce1baef7729d3cffaa02516b28c",
-    "fullscreenCssSelectorSha256": "9defd9929ca74cc69a618607d7590f26cd66b61223f247bd7aa87db206b8ac80"
+    "combinedSha256": "9e6904d0ab25f6b79fa7beccb0cf5b195169f6254f70b02aa90408cfcd5eb2c8",
+    "fullscreenJsSha256": "f56789b15909ff09ff70beb34494efd029550b0cad390237a6f8bf2c6bd32b6f",
+    "fullscreenCssSelectorSha256": "748976e345f0f543f83b275554a287bc71b8db913c6f891454121f6944ef7ab3"
   },
   "featureScope": [
-    "首页全屏欢迎态",
-    "3+2 快捷提问卡片",
-    "底部 composer、深度思考、联网搜索、图片上传、发送快捷键",
-    "进入全屏聊天态、流式回答、追问建议、AI 免责声明",
-    "全屏与分屏助手桥接、聊天导入导出、生成中同步",
-    "顶部悬浮导航下拉与右上动作区",
-    "左侧历史栏展开/收起、新建对话、本地历史保存与恢复",
-    "右侧对话问题索引、点击回到对应轮次",
-    "人工服务态进入/退出",
-    "商品卡、职场认证、会员/优惠/门店等联动入口"
+    "leainew 画廊首页变体",
+    "输入框上移居中与 composer 内嵌 scope 胶囊",
+    "新品/活动/新闻/案例 Tab 与三张内容卡片墙",
+    "Tab ink 滑动与卡片淡入切换",
+    "scope 胶囊代理原快捷动作",
+    "保留深度思考、联网搜索、图片上传、发送空态、左侧 rail/FAB、顶部导航、scrim",
+    "发送后进入全屏聊天态并恢复对话布局"
   ]
 }
