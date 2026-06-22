@@ -7744,6 +7744,10 @@ body[data-page="home"] .agent-summary {
   background:#fff;
   border-radius:14px 14px 0 0;
 }
+.assistant-panel .assistant-bottom .shortcut-row .shortcut,
+.assistant-panel .assistant-bottom .shortcut-row .menu-row{
+  font-weight:400!important;
+}
 
 /* Hide the per-floor helper copy and recommendation button in product floors. */
 .lx-site-floors .lx-personal-rec-floor .lx-floor-head > span,

@@ -3519,6 +3519,16 @@ if (!window.__lxMemberFetched) {
             start_student_auth: () => openStudentAuth(),
             start_enterprise_auth: () => openEnterpriseAuth(),
             clear_compare: () => { state.compare = []; save("lexiang.compare.v1", []); lxUpsertCompareTab(null, null, state.activeTabId === "compare"); toast("对比清单已清空"); },
+            open_product: () => {
+              const t = String(target || "").trim();
+              const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || [])];
+              const hit = t && pool.find((p) => p && (p.sku === t || (p.name || "").includes(t) || t.includes(p.name || "__none__")));
+              if (hit && hit.sku) { lxRevealContent(); openProduct(hit.sku); }
+              else if (t) { lxRevealContent(); sendChat("帮我找" + t); }
+              else toast("没说要打开哪款商品");
+            },
+            enter_fullscreen: () => lxSetAutoFs(true),
+            exit_fullscreen: () => { if (state.autoFs) lxSetAutoFs(false); else document.body.classList.remove("assistant-fullscreen"); },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
         }
