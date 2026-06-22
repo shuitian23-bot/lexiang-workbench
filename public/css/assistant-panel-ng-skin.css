@@ -1099,3 +1099,8 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut-row .shortcut {
   font-size: 13px !important;
 }
+
+/* Keep split assistant shortcut labels regular weight. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .shortcut-row .shortcut {
+  font-weight: 400 !important;
+}
