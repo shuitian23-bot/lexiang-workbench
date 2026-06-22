@@ -1642,7 +1642,10 @@ if (!window.__lxMemberFetched) {
                 if (op === 'member') openMemberCenter();
                 else if (op === 'coupon') openCouponCenter();
                 else if (op === 'solution') openSolutionCenter();
-                else if (op === 'edu') openEduZone();
+                else if (op === 'edu') {
+                  openEduZone();
+                  ai.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
+                }
                 else if (op === 'stores') openStoresPanel();
                 else if (op === 'auth') {
                   // 职场认证：往当前 AI 气泡末尾插入触发按钮
@@ -2741,22 +2744,181 @@ if (!window.__lxMemberFetched) {
           if (state.activeTabId === "info:edu") openEduZone();
         }
 
-        function openStudentAuth() {
+        function openStudentAuth(kind) {
+          if (!kind) kind = 'college';
           const stu = lxStuState();
           if (stu.status === "verified") {
             openModal("学生认证已通过", `<div class="lx-ent-status ok"><strong>${esc(stu.name || "同学")}</strong> 已通过学生身份认证</div><ul class="lx-md-list"><li>教育专享价已生效，可与国家补贴叠加</li><li>部分机型支持 12 期免息与赠原装配件</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-edu-zone>逛教育特惠专区</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线对接学信网核验。</p>`);
             return;
           }
           if (stu.status === "pending") {
-            openModal("学生认证审核中", `<div class="lx-ent-status pending">「${esc(stu.name || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境约 10 秒自动通过；正式环境 1-5 天，结果在教育专区与本弹窗回显。</p>`);
+            openModal("学生认证审核中", `<div class="lx-ent-status pending">「${esc(stu.name || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境约 12 秒自动通过；正式环境 1-5 天，结果在教育专区与本弹窗回显。</p>`);
             return;
           }
-          openModal("学生身份认证", `
-            <p class="lx-p0-disclaimer">覆盖小学到博士及应届高考生，认证后享教育专享价，可与国补叠加。</p>
-            <input class="lx-p0-field" id="lxStuName" placeholder="姓名（必填）">
-            <input class="lx-p0-field" id="lxStuSchool" placeholder="学校名称">
-            <input class="lx-p0-field" id="lxStuStage" placeholder="学历阶段，如 本科 / 硕士 / 高三应届">
-            <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-stu-submit>提交认证</button></div>`);
+
+          // ── 多 tab 向导 ───────────────────────────────────────────────
+          let stuTab = kind === 'gaokao' ? 'real' : 'email'; // gaokao: real/skip; college: email/card/wechat
+          const stuData = { name: '', idcard: '', phone: '18910864473', email: '', school: '', gradYear: '', degree: '', cardNo: '', stage: '', examNo: '', agree: false };
+
+          function stuTabsHtml() {
+            if (kind === 'college') {
+              const tabs = [
+                { id: 'email', label: 'edu邮箱认证' },
+                { id: 'card', label: '学生证' },
+                { id: 'wechat', label: '微信学籍' },
+              ];
+              const tabBar = '<div class="lx-stuauth-tabs">' + tabs.map(t =>
+                `<button class="lx-stuauth-tab${stuTab === t.id ? ' active' : ''}" type="button" data-stuauth-tab="${t.id}">${t.label}</button>`
+              ).join('') + '</div>';
+
+              let body = '';
+              if (stuTab === 'email') {
+                body = '<div class="lx-wpa-section">' +
+                  '<input class="lx-p0-field" id="saSchool" placeholder="学校名称（必填）" value="' + esc(stuData.school) + '">' +
+                  '<input class="lx-p0-field" id="saGradYear" placeholder="毕业时间，如 2026-07" value="' + esc(stuData.gradYear) + '">' +
+                  '<select class="lx-p0-field lx-wpa-select" id="saDegree"><option value="">学历（必填）</option>' +
+                  ['专科','本科','硕士','博士'].map(d => `<option value="${d}"${stuData.degree===d?' selected':''}>${d}</option>`).join('') +
+                  '</select>' +
+                  '<input class="lx-p0-field" id="saEmail" placeholder="edu邮箱（必填）" value="' + esc(stuData.email) + '">' +
+                  '<p class="lx-p0-disclaimer">验证邮件将发送至上述 edu 邮箱，请注意查收。</p>' +
+                  '</div>';
+              } else if (stuTab === 'card') {
+                body = '<div class="lx-wpa-section">' +
+                  '<input class="lx-p0-field" id="saName" placeholder="真实姓名（必填）" value="' + esc(stuData.name) + '">' +
+                  '<input class="lx-p0-field" id="saIdcard" placeholder="身份证号（必填）" value="' + esc(stuData.idcard) + '">' +
+                  '<input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly style="color:#aaa">' +
+                  '<input class="lx-p0-field" id="saCardNo" placeholder="学生证号（必填）" value="' + esc(stuData.cardNo) + '">' +
+                  '<select class="lx-p0-field lx-wpa-select" id="saStage"><option value="">教育阶段（必填）</option>' +
+                  ['小学','初中','高中','专科','本科','硕士','博士'].map(d => `<option value="${d}"${stuData.stage===d?' selected':''}>${d}</option>`).join('') +
+                  '</select>' +
+                  '<input class="lx-p0-field" id="saGradYear2" placeholder="毕业时间，如 2026-07" value="' + esc(stuData.gradYear) + '">' +
+                  '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-plus">+</span><span>学生证照片</span><span class="lx-p0-disclaimer" style="margin:0">仅为示例</span></div>' +
+                  '</div>';
+              } else {
+                body = '<div class="lx-wpa-section">' +
+                  '<p style="color:#4A4453;font-size:13px;line-height:1.6;margin:0 0 16px">授权微信获取学籍状态，系统反馈验证结果。扫描下方小程序或 App 二维码完成授权。</p>' +
+                  '<div class="lx-stuauth-qr-row">' +
+                  '<div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><span>乐享小程序</span></div>' +
+                  '<div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><span>联想 App</span></div>' +
+                  '</div>' +
+                  '<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn" type="button" data-stuauth-wechat-done>我已认证，查看认证状态</button></div>' +
+                  '</div>';
+              }
+
+              const agree = '<label class="lx-wpa-agree" style="margin-top:8px"><input type="checkbox" id="saAgree"' + (stuData.agree ? ' checked' : '') + '> 已阅读并同意联想<a href="#" onclick="return false">《服务须知》</a>和<a href="#" onclick="return false">《活动规则》</a></label>';
+              const btns = '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-modal-close>取消</button><button class="lx-p0-btn primary" type="button" data-stuauth-submit>立即认证</button></div>';
+              const disclaimer = '<p class="lx-p0-disclaimer" style="margin-top:8px">POC 演示流程，不真实提交，演示约 12 秒自动通过。</p>';
+              return tabBar + body + agree + btns + disclaimer;
+
+            } else {
+              // gaokao: 2 tabs
+              const tabs = [
+                { id: 'real', label: '实名认证' },
+                { id: 'skip', label: '跳过实名' },
+              ];
+              const tabBar = '<div class="lx-stuauth-tabs">' + tabs.map(t =>
+                `<button class="lx-stuauth-tab${stuTab === t.id ? ' active' : ''}" type="button" data-stuauth-tab="${t.id}">${t.label}</button>`
+              ).join('') + '</div>';
+
+              let body = '';
+              if (stuTab === 'real') {
+                body = '<div class="lx-wpa-section" style="position:relative">' +
+                  '<div class="lx-stuauth-gaokao-hint">高考生认证有效期至 10 月 31 日</div>' +
+                  '<input class="lx-p0-field" id="saName" placeholder="真实姓名（必填）" value="' + esc(stuData.name) + '">' +
+                  '<input class="lx-p0-field" id="saIdcard" placeholder="身份证号（必填）" value="' + esc(stuData.idcard) + '">' +
+                  '<input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly style="color:#aaa">' +
+                  '<input class="lx-p0-field" id="saExamNo" placeholder="考生号 / 准考证号（必填）" value="' + esc(stuData.examNo) + '">' +
+                  '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-plus">+</span><span>准考证照片</span><span class="lx-p0-disclaimer" style="margin:0">仅为示例</span></div>' +
+                  '</div>';
+              } else {
+                body = '<div class="lx-wpa-section">' +
+                  '<p style="color:#4A4453;font-size:13px;line-height:1.6;margin:0 0 12px">可跳过实名验证，直接凭考生号认证高考生身份，享教育专享价。</p>' +
+                  '<input class="lx-p0-field" id="saExamNo" placeholder="考生号 / 准考证号（必填）" value="' + esc(stuData.examNo) + '">' +
+                  '</div>';
+              }
+
+              const agree = '<label class="lx-wpa-agree" style="margin-top:8px"><input type="checkbox" id="saAgree"' + (stuData.agree ? ' checked' : '') + '> 已阅读并同意联想<a href="#" onclick="return false">《服务须知》</a>和<a href="#" onclick="return false">《活动规则》</a></label>';
+              const btns = '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-modal-close>取消</button><button class="lx-p0-btn primary" type="button" data-stuauth-submit>立即认证</button></div>';
+              const disclaimer = '<p class="lx-p0-disclaimer" style="margin-top:8px">POC 演示流程，不真实提交，演示约 12 秒自动通过。</p>';
+              return tabBar + body + agree + btns + disclaimer;
+            }
+          }
+
+          function stuCollect() {
+            stuData.agree = document.getElementById('saAgree')?.checked || false;
+            stuData.name = (document.getElementById('saName')?.value || '').trim();
+            stuData.idcard = (document.getElementById('saIdcard')?.value || '').trim();
+            stuData.email = (document.getElementById('saEmail')?.value || '').trim();
+            stuData.school = (document.getElementById('saSchool')?.value || '').trim();
+            stuData.gradYear = (document.getElementById('saGradYear')?.value || document.getElementById('saGradYear2')?.value || '').trim();
+            stuData.degree = (document.getElementById('saDegree')?.value || '').trim();
+            stuData.cardNo = (document.getElementById('saCardNo')?.value || '').trim();
+            stuData.stage = (document.getElementById('saStage')?.value || '').trim();
+            stuData.examNo = (document.getElementById('saExamNo')?.value || '').trim();
+          }
+
+          function stuRender() {
+            const title = kind === 'gaokao' ? '高考生认证' : '在校生认证';
+            openModal(title, stuTabsHtml());
+            // 挂 tab 切换委托
+            const mask = document.querySelector('.lx-p0-modal-mask');
+            if (mask) mask.addEventListener('click', stuHandleClick, true);
+          }
+
+          function stuHandleClick(e) {
+            // tab 切换
+            const tabBtn = e.target.closest('[data-stuauth-tab]');
+            if (tabBtn) {
+              stuCollect();
+              stuTab = tabBtn.getAttribute('data-stuauth-tab');
+              stuRender();
+              return;
+            }
+            // 取消
+            if (e.target.closest('[data-modal-close]')) {
+              const mask = document.querySelector('.lx-p0-modal-mask');
+              if (mask) mask.removeEventListener('click', stuHandleClick, true);
+              closeModal();
+              return;
+            }
+            // 微信学籍：查看认证状态（demo：直接关弹窗给 toast）
+            if (e.target.closest('[data-stuauth-wechat-done]')) {
+              const mask = document.querySelector('.lx-p0-modal-mask');
+              if (mask) mask.removeEventListener('click', stuHandleClick, true);
+              closeModal();
+              toast('认证状态确认中，演示约 12 秒自动通过');
+              lxSaveStuState({ status: 'pending', name: '演示同学', submittedAt: Date.now() });
+              setTimeout(() => {
+                if (lxStuState().status === 'verified') {
+                  toast('学生认证已通过，教育专享价已生效');
+                  if (state.activeTabId === 'info:edu') openEduZone();
+                }
+              }, LX_STU_REVIEW_MS + 500);
+              return;
+            }
+            // 提交
+            if (e.target.closest('[data-stuauth-submit]')) {
+              stuCollect();
+              if (!stuData.agree) { toast('请勾选服务须知'); return; }
+              const nameVal = stuData.name || (kind === 'gaokao' ? '' : stuData.email ? stuData.email.split('@')[0] : '');
+              if (kind === 'gaokao' && !stuData.examNo) { toast('请填写考生号'); return; }
+              if (kind === 'college' && stuTab === 'email' && !stuData.email) { toast('请填写 edu 邮箱'); return; }
+              if (kind === 'college' && stuTab === 'card' && !stuData.name) { toast('请填写真实姓名'); return; }
+              const mask = document.querySelector('.lx-p0-modal-mask');
+              if (mask) mask.removeEventListener('click', stuHandleClick, true);
+              lxSaveStuState({ status: 'pending', name: nameVal || '同学', kind, submittedAt: Date.now() });
+              closeModal();
+              toast('认证资料已提交，审核中（演示约 12 秒自动通过）');
+              setTimeout(() => {
+                if (lxStuState().status === 'verified') {
+                  toast('学生认证已通过，教育专享价已生效');
+                  if (state.activeTabId === 'info:edu') openEduZone();
+                }
+              }, LX_STU_REVIEW_MS + 500);
+            }
+          }
+
+          stuRender();
         }
 
         // ── 职场认证 demo 向导（4步 modal）────────────────────────────────────────
@@ -3651,8 +3813,9 @@ if (!window.__lxMemberFetched) {
 
           const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>根据你的需求挑出 ${products.length} 款，可继续追问缩小范围</span></div>`;
           if (products.length <= 6) {
+            const cmpN = Math.min(products.length, 4);
             const compareAll = products.length >= 2
-              ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, 4).map((p) => p.sku).join(","))}">对比这 ${Math.min(products.length, 4)} 款</button></div>`
+              ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, cmpN).map((p) => p.sku).join(","))}">对比这 ${cmpN} 款</button></div>`
               : "";
             pageBox.innerHTML = intro + products.map((p) => `
               <div class="reco-row">
@@ -5195,6 +5358,8 @@ if (!window.__lxMemberFetched) {
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
             if (event.target.closest("[data-stu-auth]")) openStudentAuth();
+            const _stuAuthEl = event.target.closest("[data-open-stuauth]");
+            if (_stuAuthEl) openStudentAuth(_stuAuthEl.dataset.openStuauth);
             if (event.target.closest("[data-edu-zone]")) { closeModal(); openEduZone(); }
             if (event.target.closest("[data-stu-submit]")) {
               const name = $("#lxStuName")?.value.trim();
@@ -6186,7 +6351,10 @@ if (!window.__lxMemberFetched) {
         action: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const { op } = parseJson(data) || {};
-          if (op === 'auth') {
+          if (op === 'edu') {
+            const body = ai.querySelector('.lxfd-ai-body');
+            if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
+          } else if (op === 'auth') {
             // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
             const body = ai.querySelector('.lxfd-ai-body');
             if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');

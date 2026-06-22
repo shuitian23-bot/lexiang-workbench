@@ -8667,3 +8667,84 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
    [hidden] 默认的 display:none,导致 lxClampFloors 标了 hidden 的卡片仍显示→楼层撑成多排。
    文件末尾 + !important 强制隐藏。 */
 .lx-floor-product[hidden] { display: none !important; }
+
+/* ── 学生认证多 tab 向导 (.lx-stuauth-*) ─────────────────────────── */
+.lx-stuauth-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1.5px solid #e6dfea;
+  margin-bottom: 16px;
+}
+.lx-stuauth-tab {
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #7a7285;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.lx-stuauth-tab.active {
+  color: #5b1452;
+  border-bottom-color: #5b1452;
+  font-weight: 700;
+}
+.lx-stuauth-tab:hover:not(.active) {
+  color: #5b1452;
+}
+.lx-stuauth-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 96px;
+  border: 1.5px dashed #c9bfd4;
+  border-radius: 8px;
+  background: #faf8fc;
+  color: #9b91a8;
+  font-size: 13px;
+  margin-top: 8px;
+  cursor: default;
+}
+.lx-stuauth-upload-plus {
+  font-size: 28px;
+  line-height: 1;
+  color: #c9bfd4;
+}
+.lx-stuauth-qr-row {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin: 12px 0;
+}
+.lx-stuauth-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #7a7285;
+}
+.lx-stuauth-qr-box {
+  width: 96px;
+  height: 96px;
+  background: #e6dfea;
+  border-radius: 8px;
+}
+.lx-stuauth-gaokao-hint {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px 10px;
+  background: #fdf1f0;
+  border-radius: 0 8px 0 8px;
+  font-size: 11px;
+  color: #e42b20;
+  font-weight: 600;
+}
