@@ -1973,21 +1973,15 @@ if (!window.__lxMemberFetched) {
         }
 
 
+        // 整机过滤：子品牌电脑楼层只放笔记本/台式整机，剔除配件周边（货盘里部分配件 category 错标成"笔记本电脑"，按名字兜底排除）
+        const LX_PERIPHERAL_RE = /固态硬盘|SSD|移动硬盘|适配器|电源线|电源适配|双肩包|背包|斜挎|行李箱|鼠标|键盘膜|键盘|耳机|散热器|散热|支架|增高|水杯|T-?Shirt|T恤|卫衣|羽绒|马甲|自行车|手柄|底座|随身WIFI|电竞WiFi|WiFi|移动电源|充电|剃须刀|眼镜|拆机|兑换卡|电竞椅|椅|彩膜|保护壳|保护夹|钢化膜|延保|只换不修|保值|换新|服务包/i;
+        const lxIsWholeMachine = (p) => !LX_PERIPHERAL_RE.test(`${p.name || ""}`);
         // 推荐页子品牌楼层（仅渲染 shop 货盘真有量的；空楼层自动跳过）。
         // 平板单列一层（含拯救者 Y700/Y900、小新平板等），手机走 moto+拯救者手机
         const LX_PERSONAL_RECOMMEND_FLOORS = [
-          ["拯救者", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /拯救者|Legion/i.test(text);
-          }],
-          ["小新", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /小新|XIAOXIN/i.test(text);
-          }],
-          ["YOGA", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /YOGA/i.test(text);
-          }],
+          ["拯救者", (p) => /拯救者|Legion/i.test(p.name || "") && lxIsWholeMachine(p)],
+          ["小新", (p) => /小新|XIAOXIN/i.test(p.name || "") && lxIsWholeMachine(p)],
+          ["YOGA", (p) => /YOGA/i.test(p.name || "") && lxIsWholeMachine(p)],
           ["平板", (p) => p.category === "平板电脑"],
           ["手机", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
