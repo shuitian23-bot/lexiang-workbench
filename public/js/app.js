@@ -5745,6 +5745,10 @@ if (!window.__lxMemberFetched) {
     if (ta && ta.dataset.origPh) ta.placeholder = ta.dataset.origPh;
   }
 
+  function lxfdSetGalleryChatting(on) {
+    stage?.classList.toggle("is-chatting", !!on);
+  }
+
   function resetConversation(collapseRail) {
     lxfdPersistCurrent();
     chatState.conversationNonce += 1;
@@ -5757,6 +5761,7 @@ if (!window.__lxMemberFetched) {
     turns = [];
     renderTurnIndex("");
     if (welcome) welcome.style.display = "flex";
+    lxfdSetGalleryChatting(false);
     if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
     if (ta) { if (ta.dataset.origPh) ta.placeholder = ta.dataset.origPh; ta.value = ""; fit(); syncSend(); }
     if (collapseRail && !wide()) openRail(false);
@@ -5795,6 +5800,7 @@ if (!window.__lxMemberFetched) {
       if (quick) quick.style.display = "none";
     }
     setFullscreen(true);
+    lxfdSetGalleryChatting(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
     if (convoName) { convoName.textContent = shortText(value, 15); convoName.title = value; }
@@ -6061,7 +6067,7 @@ if (!window.__lxMemberFetched) {
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
   $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); const id = a.dataset.conv; if (id) lxfdLoadConv(id); });
-  $$(".lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; if (btn.textContent.includes("联网")) window.__lxWebSearch = on; }));
+  $$(".lxfd-comp-left .lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; if (btn.textContent.includes("联网")) window.__lxWebSearch = on; }));
   // lxfd 图片上传
   const lxfdImgBtn = document.querySelector('.lxfd-img-btn');
   if (lxfdImgBtn) {
@@ -6105,6 +6111,106 @@ if (!window.__lxMemberFetched) {
       }
     });
   }
+
+  (function initLxfdHomeGallery() {
+    const data = {
+      new: [
+        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)" },
+        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)" },
+        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)" }
+      ],
+      act: [
+        { nm: "618 年中钜惠", ds: "全场至高省 2000，下单再享 12 期免息", price: "省 2000", isText: true, badge: "限时", wm: "618 SALE", g: "linear-gradient(135deg,#3a1020,#8a1f2e 56%,#e1432e)" },
+        { nm: "教育优惠季", ds: "学生 / 教师认证，专属机型至高 9 折", price: "享 9 折", isText: true, badge: "进行中", wm: "EDU SEASON", g: "linear-gradient(135deg,#15233f,#2f5aa0 58%,#6a9fe0)" },
+        { nm: "以旧换新", ds: "旧机抵扣 + 平台补贴，至高补 800 元", price: "补 800", isText: true, badge: "可叠加", wm: "TRADE-IN", g: "linear-gradient(135deg,#143028,#1f6e54 58%,#56b78c)" }
+      ],
+      news: [
+        { nm: "联想 2026 拯救者全系发布", ds: "搭载新一代 AI 引擎与超频引擎，性能再进阶", price: "查看全文", isText: true, badge: "官方", wm: "PRESS", g: "linear-gradient(135deg,#241b3a,#4a2d6e 58%,#8a3f5e)" },
+        { nm: "联想 AI PC 出货领跑行业", ds: "IDC 最新报告：中国 AI PC 市场份额持续第一", price: "查看全文", isText: true, badge: "行业", wm: "INSIGHT", g: "linear-gradient(135deg,#1b2a3f,#36608f 58%,#74a8d0)" },
+        { nm: "联想乐享门店破 5000 家", ds: "线下服务网络全面升级，到店体验更进一步", price: "查看全文", isText: true, badge: "动态", wm: "RETAIL", g: "linear-gradient(135deg,#2a2410,#7a6320 58%,#d0a84a)" }
+      ],
+      case: [
+        { nm: "某重点高校机房方案", ds: "1200 台统一部署与运维，开机即用，集中管理", price: "教育行业", isText: true, badge: "已交付", wm: "CAMPUS", g: "linear-gradient(135deg,#1a2740,#2f5e8f 58%,#6f9fd0)" },
+        { nm: "设计工作室创作方案", ds: "ThinkStation + 校色屏整体方案，效率提升 40%", price: "创意设计", isText: true, badge: "标杆", wm: "STUDIO", g: "linear-gradient(135deg,#2a1640,#5b2f8a 58%,#9a6ad0)" },
+        { nm: "连锁零售 POS 升级", ds: "300+ 门店终端统一焕新，稳定支撑高峰交易", price: "零售行业", isText: true, badge: "规模化", wm: "RETAIL POS", g: "linear-gradient(135deg,#301622,#7a2740 58%,#d04a5a)" }
+      ]
+    };
+    const root = document.querySelector(".lxfd-home-gallery");
+    const grid = document.getElementById("lxfdGalleryGrid");
+    const tabs = Array.from(document.querySelectorAll("[data-gallery-tab]"));
+    const ink = document.getElementById("lxfdGalleryInk");
+    if (!root || !grid || !tabs.length) return;
+    const price = (item) => item.isText ? escapeHtml(item.price) : "¥" + escapeHtml(item.price);
+    const card = (item) => {
+      const shotClass = item.img ? "gallery-shot has-image" : "gallery-shot";
+      const inner = item.img
+        ? '<img class="gallery-img" src="' + escapeAttr(item.img) + '" alt="" loading="eager" />'
+        : '<span class="gallery-lid"></span><span class="gallery-wm">' + escapeHtml(item.wm) + '</span>';
+      return '<article class="gallery-card"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
+        + '<div class="gallery-meta"><span class="gallery-badge">' + escapeHtml(item.badge) + '</span><strong class="gallery-name">' + escapeHtml(item.nm) + '</strong><span class="gallery-desc">' + escapeHtml(item.ds) + '</span>'
+        + '<div class="gallery-foot"><span class="gallery-price">' + price(item) + '</span><button class="gallery-go" type="button">了解 →</button></div></div></article>';
+    };
+    const moveInk = () => {
+      const active = root.querySelector(".gallery-tab.is-active");
+      if (active && ink) {
+        ink.style.left = active.offsetLeft + "px";
+        ink.style.width = active.offsetWidth + "px";
+      }
+    };
+    const render = (key, animate) => {
+      if (!data[key]) key = "new";
+      if (animate) grid.classList.add("is-switching");
+      window.setTimeout(() => {
+        grid.innerHTML = data[key].map(card).join("");
+        grid.classList.remove("is-switching");
+      }, animate ? 120 : 0);
+    };
+    tabs.forEach((tab) => tab.addEventListener("click", () => {
+      if (tab.classList.contains("is-active")) return;
+      tabs.forEach((item) => item.classList.remove("is-active"));
+      tab.classList.add("is-active");
+      moveInk();
+      render(tab.dataset.galleryTab, true);
+    }));
+    render("new", false);
+    requestAnimationFrame(moveInk);
+    window.addEventListener("resize", moveInk);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveInk);
+  })();
+
+  (function initLxfdScopeActions() {
+    const scope = document.getElementById("lxfdScopeActions");
+    const more = document.getElementById("lxfdScopeMore");
+    const moreBtn = more?.querySelector(".lxfd-scope-more-btn");
+    const close = () => {
+      more?.classList.remove("open");
+      moreBtn?.setAttribute("aria-expanded", "false");
+    };
+    if (scope) {
+      scope.addEventListener("click", (event) => {
+        const chip = event.target.closest(".lxfd-scope-chip");
+        if (!chip) return;
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        const label = chip.textContent.trim();
+        if (!label) return;
+        submit(LXFD_ACTION_Q[label] || label);
+      });
+    }
+    if (more && moreBtn) {
+      moreBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const open = !more.classList.contains("open");
+        more.classList.toggle("open", open);
+        moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      document.addEventListener("click", (event) => { if (!more.contains(event.target)) close(); });
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
+    }
+  })();
+
   ta?.addEventListener("input", () => { fit(); syncSend(); });
   ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
   $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
