@@ -1,0 +1,29 @@
+{
+  "version": "LXFD-202606221335-8CF9D5A7",
+  "generatedAt": "2026-06-22T13:35:15+08:00",
+  "timezone": "Asia/Shanghai",
+  "scope": "线上首页全屏对话页面、全屏聊天态及相关交互功能",
+  "route": "https://leaibot.cn/",
+  "assets": {
+    "html": "https://leaibot.cn/",
+    "css": "/css/main.css?v=202606220300",
+    "js": "/js/app.js?v=202606221055"
+  },
+  "hashes": {
+    "combinedSha256": "8cf9d5a757f820ea15370c90266dfd6133076c2b5071b9068e17ced6516592b6",
+    "fullscreenJsSha256": "03b9028664a0475738f472fa32f81fc49ed61ce1baef7729d3cffaa02516b28c",
+    "fullscreenCssSelectorSha256": "9defd9929ca74cc69a618607d7590f26cd66b61223f247bd7aa87db206b8ac80"
+  },
+  "featureScope": [
+    "首页全屏欢迎态",
+    "3+2 快捷提问卡片",
+    "底部 composer、深度思考、联网搜索、图片上传、发送快捷键",
+    "进入全屏聊天态、流式回答、追问建议、AI 免责声明",
+    "全屏与分屏助手桥接、聊天导入导出、生成中同步",
+    "顶部悬浮导航下拉与右上动作区",
+    "左侧历史栏展开/收起、新建对话、本地历史保存与恢复",
+    "右侧对话问题索引、点击回到对应轮次",
+    "人工服务态进入/退出",
+    "商品卡、职场认证、会员/优惠/门店等联动入口"
+  ]
+}
