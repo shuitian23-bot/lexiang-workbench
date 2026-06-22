@@ -907,6 +907,17 @@ if (!window.__lxMemberFetched) {
           actions.appendChild(btn);
         }
 
+        function lxFindSimilarViaChat() {
+          const p = state.currentProduct;
+          if (!p || !p.sku) return toast("请先选择商品");
+          const name = p.name || "这款商品";
+          const price = Number(p.price || 0);
+          const cat = p.category || "";
+          lxRevealContent();
+          const ask = `帮我推荐几款和「${name}」同类、价位相近（${price ? "¥" + price.toLocaleString() + " 上下" : "相近价位"}）但可能更适合我的${cat || "商品"}，说下各自的差异和适合谁。`;
+          sendChat(ask);
+        }
+
         async function openSimilarProducts() {
           const sku = state.currentProduct?.sku;
           if (!sku) return toast("请先选择商品");
@@ -1082,7 +1093,8 @@ if (!window.__lxMemberFetched) {
               <button class="lx-p0-btn primary" data-buy-sku="${esc(item.sku)}">立即购买</button>
               <button class="lx-p0-btn" data-remove-cart="${esc(item.sku)}">移除</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">购物车为空。可以在商品详情页点击“加入购物车”。</p>`;
-          openModal("购物车", rows);
+          lxRevealContent();
+          lxOpenInfoTab("cart", "购物车", rows);
         }
 
         function openOrders() {
@@ -1094,7 +1106,8 @@ if (!window.__lxMemberFetched) {
               <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span>${item.address ? `<span>收货：${esc(item.address.name || "")} ${esc(item.address.phone || "")} ${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>` : ""}</div>
               <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
             </div>`).join("") : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页「一键领优惠下单」即可生成演示订单。</p>`;
-          openModal("我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
+          lxRevealContent();
+          lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
         }
 
         // 发票抬头（PRD 5.0.2 弹窗层场景：开票信息填写与修改）
@@ -4891,7 +4904,7 @@ if (!window.__lxMemberFetched) {
             if (event.target.closest(".lx-p0-detail-wp")) openWhitepaperLib();
             if (event.target.closest(".detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit):not(.lx-p0-detail-quote):not(.lx-p0-detail-wp)")) addCart();
             if (event.target.closest(".lx-p0-detail-compare")) addCompare();
-            if (event.target.closest(".lx-p0-detail-similar")) openSimilarProducts();
+            if (event.target.closest(".lx-p0-detail-similar")) lxFindSimilarViaChat();
             if (event.target.closest(".lx-p0-detail-benefit")) sendChat(`帮我算${state.currentProduct?.name || "这款商品"}叠加教育优惠和国家补贴后的到手价`);
 
             const detailTab = event.target.closest("[data-detail-tab]");
