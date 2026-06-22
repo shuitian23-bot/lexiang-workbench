@@ -524,9 +524,10 @@ function renderSkillHubActions(item, role) {
     disabled: ['启用', '查看'],
     rejected: ['查看', '编辑']
   };
-  const actions = [...((role === 'admin' ? adminActions : pmActions)[item.status] || ['查看']), '应用'];
+  const baseActions = (role === 'admin' ? adminActions : pmActions)[item.status] || ['查看'];
+  const actions = [...baseActions.filter(action => action !== '应用'), '应用'];
   return actions.map(action => {
-    const tone = action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
+    const tone = action === '应用' ? 'test' : action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
     return `<button class="skill-hub-action ${tone}" onclick="handleSkillHubAction('${item.name}', '${action}')">${action}</button>`;
   }).join('');
 }

@@ -5335,6 +5335,15 @@ html[data-product="leaibot"] .skill-hub-action.success:hover {
   border-color:#bbf7d0;
 }
 
+html[data-product="leaibot"] .skill-hub-action.test {
+  color:var(--primary);
+}
+
+html[data-product="leaibot"] .skill-hub-action.test:hover {
+  background:var(--primary-light);
+  border-color:var(--color-primary-border, #b7c8ff);
+}
+
 html[data-product="leaibot"] .skill-hub-action.warning {
   color:var(--orange);
 }
@@ -5367,16 +5376,13 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
 /* Account hub cards */
 .account-hub-popover {
   position:fixed;
-  top:42px;
-  right:var(--ai-panel-width);
-  bottom:0;
-  left:var(--sidebar-width);
+  inset:0;
   width:auto;
-  z-index:2600;
+  z-index:3600;
   display:none;
   align-items:center;
   justify-content:center;
-  padding:0 56px;
+  padding:72px 56px 40px calc(var(--sidebar-width, 72px) + 56px);
   background:rgba(248,250,252,.58);
   backdrop-filter:blur(3px);
 }
@@ -5389,6 +5395,18 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:18px;
   margin-left:0;
+}
+html[data-product="leaibot"] body.ai-open .account-hub-popover {
+  right:var(--active-ai-panel-width, var(--ai-panel-width, 380px));
+  padding:72px 36px 40px calc(var(--sidebar-width, 72px) + 36px);
+}
+html[data-product="leaibot"] body.ai-open .account-hub-panel {
+  width:min(980px, 100%);
+  gap:14px;
+}
+html[data-product="leaibot"] body.ai-open .account-hub-card {
+  min-height:142px;
+  padding:20px 22px;
 }
 .account-hub-close {
   position:absolute;
@@ -5506,9 +5524,15 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
 @media (max-width:1100px) {
   .account-hub-panel,
   .permission-hub-grid { grid-template-columns:1fr; }
-  .account-hub-popover { left:0; right:0; padding:72px 16px 24px; }
+  .account-hub-popover { inset:0; padding:72px 16px 24px; }
   .account-hub-panel { width:min(560px, calc(100vw - 32px)); margin-left:0; }
   .account-hub-close { right:0; top:-42px; }
+}
+@media (max-width:1500px) {
+  html[data-product="leaibot"] body.ai-open .account-hub-panel {
+    width:min(720px, 100%);
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
 }
 
 /* ===== Portal 0615 adjustments ===== */

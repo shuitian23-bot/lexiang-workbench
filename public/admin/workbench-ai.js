@@ -17,6 +17,7 @@ function aiSetPanelWidth(width) {
   const nextW = Math.min(Math.max(width, AI_PANEL_DEFAULT_WIDTH), maxW);
   panel.style.width = `${nextW}px`;
   panel.style.setProperty('--ai-panel-width', `${nextW}px`);
+  document.body.style.setProperty('--active-ai-panel-width', `${nextW}px`);
 
   const sidebar = document.getElementById('sidebar');
   const atMax = nextW >= maxW - 1;
@@ -41,10 +42,15 @@ function toggleAI(forceState) {
   }
   const panel = document.getElementById('ai-panel');
   panel.classList.toggle('open', STATE.aiOpen);
+  document.body.classList.toggle('ai-open', STATE.aiOpen);
+  if (STATE.aiOpen) {
+    document.body.style.setProperty('--active-ai-panel-width', `${panel.offsetWidth || AI_PANEL_DEFAULT_WIDTH}px`);
+  }
   // 关闭时清掉拖拽留下的 inline width + 挤压状态，避免关不掉
   if (!STATE.aiOpen) {
     panel.style.width = '';
     panel.style.removeProperty('--ai-panel-width');
+    document.body.style.removeProperty('--active-ai-panel-width');
     document.body.classList.remove('ai-squeeze');
     const sb = document.getElementById('sidebar');
     if (sb && aiPanelAutoCollapsedSidebar) {
