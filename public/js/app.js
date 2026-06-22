@@ -2117,8 +2117,13 @@ if (!window.__lxMemberFetched) {
             const grid = sec.querySelector(".lx-floor-products");
             if (!grid) return;
             const cards = [...grid.querySelectorAll(".lx-floor-product")];
-            const colStr = getComputedStyle(grid).gridTemplateColumns || "";
-            const cols = Math.max(1, colStr.split(" ").filter(Boolean).length);
+            if (!cards.length) return;
+            // 真实列数：先全显示触发实际布局，按 offsetTop 数第一行卡片个数（基准真值，
+            // 不读 getComputedStyle 的 gridTemplateColumns——auto-fill 下它可能滞后/不准）。
+            cards.forEach((c) => { c.hidden = false; });
+            void grid.offsetWidth; // 强制 reflow
+            const firstTop = Math.min(...cards.map((c) => c.offsetTop));
+            const cols = Math.max(1, cards.filter((c) => Math.abs(c.offsetTop - firstTop) <= 2).length);
             const keep = cols * 2; // 默认两排
             sec.querySelector("[data-floor-more]")?.remove();
             const hiddenCount = Math.max(0, cards.length - keep);
@@ -6224,10 +6229,12 @@ if (!window.__lxMemberFetched) {
     const render = (key, animate) => {
       if (!data[key]) key = "new";
       if (animate) grid.classList.add("is-switching");
+      else grid.classList.add("is-loading");
       window.setTimeout(() => {
         grid.innerHTML = data[key].map(card).join("");
+        grid.classList.remove("is-loading");
         grid.classList.remove("is-switching");
-      }, animate ? 120 : 0);
+      }, animate ? 120 : 180);
     };
     tabs.forEach((tab) => tab.addEventListener("click", () => {
       if (tab.classList.contains("is-active")) return;
