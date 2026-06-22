@@ -190,7 +190,17 @@ function getSpuKey(row) {
     const value = String(v).trim();
     return value.length >= 3 && !/^(lenovo|lecoo|moto|手机|笔记本|台式机|服务|配件)$/i.test(value);
   });
-  if (explicit) return `${row.category || ''}:${String(explicit).trim().toLowerCase()}`;
+  if (explicit) {
+    const preClean = String(explicit)
+      .replace(/\b\d+[gG][bB]?\+\d+[gG][bB]?[a-zA-Z]*\b/g, '')  // 8G+256GBL, 12G+256GB 等内存+存储组合
+      .replace(/\b\d+[gGtT][bB]?[a-zA-Z]*\b/g, '')                // 256GBL, 512G, 16GB 等单独容量
+      .replace(/\bL?-?CN\b/gi, '');                                // 国行后缀
+    const cleaned = normalizeSpuName(preClean)
+      .replace(/\b[lwh]+-?cn\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return `${row.category || ''}:${cleaned || String(explicit).trim().toLowerCase()}`;
+  }
   return `${row.category || ''}:${normalizeSpuName(row.name || row.sku || '') || row.sku || row.name || ''}`;
 }
 

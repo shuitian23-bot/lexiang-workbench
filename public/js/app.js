@@ -1890,15 +1890,14 @@ if (!window.__lxMemberFetched) {
 
         // 站内商品分类楼层：tab 点击后只渲染当前内容，不再平铺整页锚点跳转
         const LX_CATEGORY_MATCHERS = {
+          // personal 子站只列 shop 货盘真有量的子品牌/品类（ThinkPad/ThinkBook/IdeaPad 被归到企业购站，
+          // shop 货盘几乎没货，列了就是空标签 → 不列）。手机=moto+拯救者手机；平板含拯救者Y700/Y900
           personal: [
             ["小新", (p) => /小新/.test(p.name)],
             ["拯救者", (p) => /拯救者|Legion/i.test(p.name)],
             ["YOGA", (p) => /YOGA/i.test(p.name)],
-            ["ThinkPad", (p) => /ThinkPad/i.test(p.name)],
-            ["ThinkBook", (p) => /ThinkBook/i.test(p.name)],
-            ["IdeaPad", (p) => /IdeaPad/i.test(p.name)],
-            ["手机", (p) => p.category === "手机" || /moto/i.test(p.name)],
             ["平板", (p) => p.category === "平板电脑"],
+            ["手机", (p) => p.category === "手机" || /moto/i.test(p.name)],
             ["配件", (p) => ["耳机", "包袋", "键鼠相关", "显示器"].includes(p.category)],
           ],
           business: [
@@ -1974,34 +1973,29 @@ if (!window.__lxMemberFetched) {
         }
 
 
+        // 推荐页子品牌楼层（仅渲染 shop 货盘真有量的；空楼层自动跳过）。
+        // 平板单列一层（含拯救者 Y700/Y900、小新平板等），手机走 moto+拯救者手机
         const LX_PERSONAL_RECOMMEND_FLOORS = [
           ["拯救者", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
             return /拯救者|Legion/i.test(text);
           }],
-          ["YOGA", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /YOGA/i.test(text);
-          }],
           ["小新", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
             return /小新|XIAOXIN/i.test(text);
           }],
-          ["IdeaPad", (p) => {
+          ["YOGA", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /IdeaPad|ideapad/i.test(text);
+            return /YOGA/i.test(text);
           }],
-          ["ThinkPad", (p) => {
+          ["平板", (p) => p.category === "平板电脑"],
+          ["手机", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /ThinkPad/i.test(text);
+            return p.category === "手机" || /moto|motorola|razr|edge|折叠屏/i.test(text);
           }],
-          ["ThinkPlus", (p) => {
+          ["ThinkPlus 配件", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /ThinkPlus|Thinkplus|thinkplus|think\+|口红电源|扩展坞|会议|耳机|蓝牙|随身充/i.test(text);
-          }],
-          ["moto", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "手机" || /moto|motorola|razr|edge|手机|折叠屏/i.test(text);
+            return /ThinkPlus|Thinkplus|thinkplus|think\+|口红电源|扩展坞|会议|耳机|蓝牙|随身充/i.test(text) || ["耳机", "包袋", "键鼠相关", "显示器"].includes(p.category);
           }],
         ];
 
@@ -2113,6 +2107,17 @@ if (!window.__lxMemberFetched) {
           }, tried ? 5000 : 1500);
         }
 
+        // 楼层带「查看更多」：前 visibleCount 直出，余下折叠（默认隐藏），点按钮展开
+        function lxFloorWithMore(label, items, visibleCount, askLabel = label) {
+          const visible = items.slice(0, visibleCount);
+          const hidden = items.slice(visibleCount);
+          const moreHtml = hidden.length
+            ? `<div class="lx-floor-products lx-floor-more" hidden>${hidden.map(lxProductMiniCard).join("")}</div>`
+              + `<button class="lx-floor-more-btn" type="button" data-floor-more>查看更多 ${hidden.length} 款<i aria-hidden="true">▾</i></button>`
+            : "";
+          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${visible.map(lxProductMiniCard).join("")}</div>${moreHtml}</section>`;
+        }
+
         async function lxRenderPersonalRecommendFloors() {
           const site = API_SITE.personal || "shop";
           const pool = await lxEnsureFloorProducts(site, 96);
@@ -2121,9 +2126,10 @@ if (!window.__lxMemberFetched) {
           const used = new Set();
           const floorCount = lxFloorProductCount();
           return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
-            const items = lxPickFloorProducts(source, match, used, floorCount);
+            // 多取（最多 4 排），前 floorCount 直出，余下折叠进「查看更多」
+            const items = lxPickFloorProducts(source, match, used, floorCount * 4);
             if (!items.length) return "";  // 该系列没货就不显示空楼层
-            return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            return lxFloorWithMore(label, items, floorCount);
           }).join("");
         }
 
@@ -2207,18 +2213,21 @@ if (!window.__lxMemberFetched) {
           const site = API_SITE[page] || "shop";
           if (!state.floorProducts || state.floorProductsSite !== site) {
             try {
-              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=48`, { cache: "no-store" });
+              const response = await fetch(`/api/products?site=${encodeURIComponent(site)}&limit=96`, { cache: "no-store" });
               state.floorProducts = await response.json();
               state.floorProductsSite = site;
             } catch { state.floorProducts = []; }
           }
           const pool = Array.isArray(state.floorProducts) ? state.floorProducts : [];
           const used = new Set();
+          const floorCount = lxFloorProductCount();
+          // 单点品类标签：该品类全量取（多取折叠进「查看更多」）；推荐页平铺时每类限 floorCount
+          const perFloorCap = onlyLabel ? floorCount * 6 : floorCount;
           return matchers.filter(([label]) => !onlyLabel || label === onlyLabel).map(([label, match]) => {
-            const items = pool.filter((p) => !used.has(p.sku) && match(p)).slice(0, 5);
+            const items = pool.filter((p) => !used.has(p.sku) && match(p)).slice(0, perFloorCap);
             items.forEach((p) => used.add(p.sku));
             if (!items.length) return "";
-            return `<section class="lx-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            return lxFloorWithMore(label, items, floorCount);
           }).join("");
         }
 
@@ -4998,6 +5007,15 @@ if (!window.__lxMemberFetched) {
                 save("lexiang.invoice.v1", { title, taxNo });
                 closeModal();
                 toast("开票信息已保存");
+              }
+            }
+            const moreBtn = event.target.closest("[data-floor-more]");
+            if (moreBtn) {
+              const more = moreBtn.parentElement?.querySelector(".lx-floor-more");
+              if (more) {
+                const show = more.hidden;
+                more.hidden = !show;
+                moreBtn.innerHTML = show ? `收起<i aria-hidden="true">▴</i>` : `查看更多 ${more.children.length} 款<i aria-hidden="true">▾</i>`;
               }
             }
             const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
