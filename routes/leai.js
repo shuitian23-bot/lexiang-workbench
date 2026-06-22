@@ -87,6 +87,23 @@ router.post('/stream', async (req, res) => {
   });
   res.flushHeaders();
 
+  // 页面操作短路：纯操作指令（关标签/回首页/切站/开订单等）不走官方大模型——
+  // 官方 LLM 不懂我们的标签/分页概念，会答"我是文字助手没有浏览器"。直接发 control 事件让前端执行 + 简短确认。
+  const controlIntents = [
+    { op: 'close_all_tabs', re: /关闭(所有|全部|这些|当前)?(标签|页面|分页|tab|页签).*|(把|将)?(所有|全部|这些)(标签|页面|分页|页签).{0,4}关(掉|闭)?|关(掉|闭)(所有|全部)?(标签|页面|分页|页签)|清空(标签|页面|分页|页签)/i, text: '好的，已为你关闭所有打开的页面标签。' },
+    { op: 'go_home', re: /回(到)?首页|返回首页|去首页|回主页/, text: '好的，已为你回到首页。' },
+    { op: 'open_orders', re: /(我的|查看?|打开|看看?)订单|订单(列表|页面|中心)/, text: '好的，已为你打开订单页面。' },
+    { op: 'open_cart', re: /(我的|查看?|打开|看看?)购物车|购物车(里|有什么)?/, text: '好的，已为你打开购物车。' },
+    { op: 'clear_compare', re: /清(空|除)对比|清(空|除)(对比)?清单|删(掉|除)对比/, text: '好的，已为你清空对比清单。' },
+  ];
+  const ctrl = controlIntents.find(({ re }) => re.test(message));
+  if (ctrl) {
+    res.write('event: chunk\ndata:' + JSON.stringify({ text: ctrl.text }) + '\n\n');
+    res.write('event: control\ndata:' + JSON.stringify({ op: ctrl.op }) + '\n\n');
+    res.write('event: done\ndata:' + JSON.stringify({ conv_id: bodySessionId || null }) + '\n\n');
+    return res.end();
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 45000);
 

@@ -5128,6 +5128,8 @@ if (!window.__lxMemberFetched) {
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
         };
+        // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
+        window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
 
         openUploadControls();
         setupSelectionAsk();
@@ -5966,6 +5968,12 @@ if (!window.__lxMemberFetched) {
           } else if (op) {
             turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
           }
+        },
+        control: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data) || {};
+          // 页面操作（关标签/回首页/开订单等）：桥接到主面板执行
+          if (payload.op && typeof window.__lxExecControl === 'function') window.__lxExecControl(payload.op, payload.target);
         },
         done: (data) => {
           if (nonce !== chatState.conversationNonce) return;
