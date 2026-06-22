@@ -8541,6 +8541,8 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-comp-right{ flex:0
 .lxfd-scope-more.open .lxfd-scope-menu{ opacity:1; visibility:visible; transform:translate(-50%,0); transition:opacity .16s var(--ease),transform .16s var(--ease),visibility 0s; }
 .lxfd-scope-menu .lxfd-scope-chip{ width:100%; height:34px; justify-content:flex-start; background:transparent; border:0; }
 .lxfd-scope-menu .lxfd-scope-chip:hover{ background:var(--lavender-hover); }
+body.assistant-fullscreen .lxfd-scope-menu .lxfd-scope-chip,
+body.lx-auto-fs .lxfd-scope-menu .lxfd-scope-chip{ border:0!important; box-shadow:none!important; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-more{ display:inline-flex; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip:nth-child(n+3){ display:none; }
 body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-menu .lxfd-scope-chip{ display:flex; }

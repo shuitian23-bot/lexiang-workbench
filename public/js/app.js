@@ -1390,58 +1390,8 @@ if (!window.__lxMemberFetched) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
-
-          // ── 意图路由分流 ─────────────────────────────────────────────
-          // 1. 本地快路径（regex，0 延迟，高频明确操作指令）
-          const _localCtrl = (function() {
-            const _t = text;
-            if (/关闭?(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)|清空(标签|页面|分页|页签)|(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)?/.test(_t)) return { op: "close_all_tabs", target: "", msg: "好的，已为你关闭所有页面标签。" };
-            if (/^(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
-            if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|恢复|缩小)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
-            if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
-            if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
-            if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
-            return null;
-          })();
-          if (_localCtrl) {
-            lxExecControl(_localCtrl.op, _localCtrl.target);
-            addMessage("ai", _localCtrl.msg);
-            return;
-          }
-          // 2. 远程意图路由器（火山 lite，3 秒前端超时，失败降级 chat）
-          let _intentResult = null;
-          try {
-            const _intentAbort = new AbortController();
-            const _intentTimer = setTimeout(() => _intentAbort.abort(), 3000);
-            const _intentRes = await fetch("/api/leai/intent", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ message: text }),
-              signal: _intentAbort.signal
-            });
-            clearTimeout(_intentTimer);
-            if (_intentRes.ok) _intentResult = await _intentRes.json();
-          } catch (_) { /* 超时/失败 → 降级 chat */ }
-          if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
-            lxExecControl(_intentResult.op, _intentResult.target || "");
-            const _opNames = { close_all_tabs: "关闭了所有页面标签", close_tab: `关闭了「${_intentResult.target || "该标签"}」`, go_home: "回到了首页", switch_site: "切换了站点", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_orders: "打开了订单页面", open_cart: "打开了购物车", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_compare: "打开了对比清单", clear_compare: "清空了对比清单", start_student_auth: "打开了学生认证", start_enterprise_auth: "打开了企业认证", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式" };
-            addMessage("ai", `好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
-            return;
-          }
-          // 3. fallthrough → 继续走原来的 AI 对话流程
-          // ── 意图路由分流结束 ─────────────────────────────────────────
-
           const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
           state.sending = true;
-          // 前端兜底超时：50 秒后若 sending 仍 true 且 nonce 未变，强制解锁
-          const _sendTimeout = setTimeout(() => {
-            if (state.sending && state.conversationNonce === nonce) {
-              state.sending = false;
-              ai.className = "lx-p0-message ai";
-              ai.textContent = "响应超时，请重试。";
-            }
-          }, 50000);
-          state._sendTimeout = _sendTimeout;
           state._fallbackFired = false;
           try {
             // 多模态路由：有图/语音或开联网搜索时走火山 /api/chat/stream，否则走官方 /api/leai/stream
@@ -2153,14 +2103,62 @@ if (!window.__lxMemberFetched) {
         }
 
         // 楼层带「查看更多」：前 visibleCount 直出，余下折叠（默认隐藏），点按钮展开
+        // 楼层：全部商品渲进一个网格，渲染后由 lxClampFloors 按「实际列数×2」夹成两排、超出折叠。
+        // 不在这里按 JS 猜的列数切——分屏/全屏态下 CSS 列数(3)≠JS按窗宽猜的列数(6)，会多出 3-4 排。
         function lxFloorWithMore(label, items, visibleCount, askLabel = label) {
-          const visible = items.slice(0, visibleCount);
-          const hidden = items.slice(visibleCount);
-          const moreHtml = hidden.length
-            ? `<div class="lx-floor-products lx-floor-more" hidden>${hidden.map(lxProductMiniCard).join("")}</div>`
-              + `<button class="lx-floor-more-btn" type="button" data-floor-more>查看更多 ${hidden.length} 款<i aria-hidden="true">▾</i></button>`
-            : "";
-          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${visible.map(lxProductMiniCard).join("")}</div>${moreHtml}</section>`;
+          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}" data-floor-collapsible><div class="lx-floor-head"><h3>${esc(label)}</h3><span>精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(askLabel)}里适合我的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+        }
+
+        // 按渲染后的真实列数把楼层夹成两排：第 2*cols 个之后的商品隐藏，补「查看更多 N 款」按钮。
+        // 列数从 DOM 计算（getComputedStyle 网格列数），与 CSS 真实渲染一致，不依赖 JS 猜窗宽。
+        function lxClampFloors(root) {
+          const scope = root || document;
+          scope.querySelectorAll("[data-floor-collapsible]").forEach((sec) => {
+            if (sec.dataset.expanded === "1") return; // 用户已展开的不再夹
+            const grid = sec.querySelector(".lx-floor-products");
+            if (!grid) return;
+            const cards = [...grid.querySelectorAll(".lx-floor-product")];
+            if (!cards.length) return;
+            // 真实列数：先全显示触发实际布局，按 offsetTop 数第一行卡片个数（基准真值，
+            // 不读 getComputedStyle 的 gridTemplateColumns——auto-fill 下它可能滞后/不准）。
+            cards.forEach((c) => { c.hidden = false; });
+            void grid.offsetWidth; // 强制 reflow
+            const firstTop = Math.min(...cards.map((c) => c.offsetTop));
+            const cols = Math.max(1, cards.filter((c) => Math.abs(c.offsetTop - firstTop) <= 2).length);
+            const keep = cols * 2; // 默认两排
+            sec.querySelector("[data-floor-more]")?.remove();
+            const hiddenCount = Math.max(0, cards.length - keep);
+            cards.forEach((c, i) => { c.hidden = i >= keep; });
+            if (hiddenCount > 0) {
+              const btn = document.createElement("button");
+              btn.className = "lx-floor-more-btn";
+              btn.type = "button";
+              btn.setAttribute("data-floor-more", "");
+              btn.innerHTML = `查看更多 ${hiddenCount} 款<i aria-hidden="true">▾</i>`;
+              grid.after(btn);
+            }
+          });
+        }
+
+        // 用 ResizeObserver 盯楼层网格宽度变化（分屏/全屏切换、路由切换、缩放都会改列数）→ 重新夹两排。
+        // RAF 一次性夹有时机问题（全屏 class 还没让 grid 重排到真实列数），ResizeObserver 在每次实际重排后都补夹，彻底解决。
+        let lxFloorRO = null;
+        let lxFloorROTimer = null;
+        function lxObserveFloors(box) {
+          if (!box) return;
+          if (!lxFloorRO) {
+            lxFloorRO = new ResizeObserver(() => {
+              clearTimeout(lxFloorROTimer);
+              lxFloorROTimer = setTimeout(() => {
+                const b = document.querySelector("[data-site-floors]");
+                if (b) lxClampFloors(b);
+              }, 60);
+            });
+          }
+          lxFloorRO.disconnect();
+          // 观察每个楼层网格本身（其单元格宽度随列数变化）+ box 整体
+          lxFloorRO.observe(box);
+          box.querySelectorAll(".lx-floor-products").forEach((g) => lxFloorRO.observe(g));
         }
 
         async function lxRenderPersonalRecommendFloors() {
@@ -2302,7 +2300,8 @@ if (!window.__lxMemberFetched) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box); // 盯网格宽度变化,分屏/全屏切到3列时自动重夹
               return;
             }
             if (page === "business") {
@@ -2343,6 +2342,8 @@ if (!window.__lxMemberFetched) {
           if (categoryFloors) {
             box.innerHTML = categoryFloors;
             lxSyncCategoryTabs();
+            requestAnimationFrame(() => lxClampFloors(box));
+            lxObserveFloors(box);
             return;
           }
           if (page === "personal") {
@@ -2601,12 +2602,11 @@ if (!window.__lxMemberFetched) {
         let lxLastFloorProductCount = lxFloorProductCount();
         let lxFloorResizeTimer = null;
         window.addEventListener("resize", () => {
-          const nextCount = lxFloorProductCount();
-          if (nextCount === lxLastFloorProductCount) return;
-          lxLastFloorProductCount = nextCount;
           clearTimeout(lxFloorResizeTimer);
+          // 列数变了就重新夹（夹断按真实列数，分屏/全屏切换也覆盖；不依赖 JS 猜的 lxFloorProductCount）
           lxFloorResizeTimer = setTimeout(() => {
-            if (["personal", "business", "enterprise"].includes(state.page) && (state.activeSiteFloorTab || "推荐") === "推荐") lxRenderSiteFloors();
+            const box = document.querySelector("[data-site-floors]");
+            if (box) lxClampFloors(box);
           }, 120);
         });
 
@@ -3449,6 +3449,9 @@ if (!window.__lxMemberFetched) {
           if (on) document.body.dataset.state = "chat";
           document.body.classList.toggle("assistant-fullscreen", !!on);
           document.body.classList.toggle("lx-auto-fs", !!on);
+          // 分屏/全屏切换会改变楼层网格列数 → 重新按真实列数夹两排
+          const floorBox = document.querySelector("[data-site-floors]");
+          if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
@@ -5056,11 +5059,19 @@ if (!window.__lxMemberFetched) {
             }
             const moreBtn = event.target.closest("[data-floor-more]");
             if (moreBtn) {
-              const more = moreBtn.parentElement?.querySelector(".lx-floor-more");
-              if (more) {
-                const show = more.hidden;
-                more.hidden = !show;
-                moreBtn.innerHTML = show ? `收起<i aria-hidden="true">▴</i>` : `查看更多 ${more.children.length} 款<i aria-hidden="true">▾</i>`;
+              const sec = moreBtn.closest("[data-floor-collapsible]");
+              const grid = sec?.querySelector(".lx-floor-products");
+              if (sec && grid) {
+                const cards = [...grid.querySelectorAll(".lx-floor-product")];
+                const collapsed = cards.some((c) => c.hidden);
+                if (collapsed) {
+                  cards.forEach((c) => { c.hidden = false; });
+                  sec.dataset.expanded = "1";
+                  moreBtn.innerHTML = `收起<i aria-hidden="true">▴</i>`;
+                } else {
+                  sec.dataset.expanded = "";
+                  lxClampFloors(sec.parentElement || document); // 重新夹回两排
+                }
               }
             }
             const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
@@ -5146,6 +5157,8 @@ if (!window.__lxMemberFetched) {
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
         };
+        // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
+        window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
 
         openUploadControls();
         setupSelectionAsk();
@@ -5310,26 +5323,9 @@ if (!window.__lxMemberFetched) {
     return !!((window.__lxState && window.__lxState.sending) ||
       document.querySelector(".lx-p0-messages > .lx-p0-message.ai .lx-generating"));
   }
-  function lxfdLegacyChatMessages() {
-    const chat = document.querySelector(".assistant-panel .chat-state");
-    if (!chat) return [];
-    const isChatState = document.body.dataset.state === "chat";
-    const style = window.getComputedStyle ? window.getComputedStyle(chat) : null;
-    const isVisible = !!(chat.offsetParent || chat.getClientRects().length) &&
-      (!style || (style.display !== "none" && style.visibility !== "hidden"));
-    if (!isChatState && !isVisible) return [];
-    return Array.prototype.slice.call(chat.querySelectorAll(":scope > .user-bubble, :scope > .assistant-answer")).map(function(el) {
-      return {
-        role: el.classList.contains("user-bubble") ? "user" : "ai",
-        text: el.textContent.trim(),
-        html: el.innerHTML
-      };
-    }).filter(function(item) { return item.text || item.html; });
-  }
   function lxfdDoImport() {
-    const msgs = Array.prototype.slice.call(document.querySelectorAll(".lx-p0-messages > .lx-p0-message"));
-    const legacyMsgs = msgs.length ? [] : lxfdLegacyChatMessages();
-    if (!msgs.length && !legacyMsgs.length) return false;
+    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    if (!msgs.length) return false;
     thread.innerHTML = "";
     turns = [];
     msgs.forEach(function(el) {
@@ -5343,21 +5339,10 @@ if (!window.__lxMemberFetched) {
         thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + el.innerHTML + '</div></div>');
       }
     });
-    legacyMsgs.forEach(function(item) {
-      if (item.role === "user") {
-        const text = item.text;
-        const turnId = "turn-" + Date.now() + "-" + turns.length;
-        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-user" id="' + turnId + '">' + escapeHtml(text) + '</div>');
-        turns.push({ id: turnId, text: text });
-      } else {
-        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + item.html + '</div></div>');
-      }
-    });
     renderTurnIndex("");
     chatState.convId = (window.__lxState && window.__lxState.convId) || null;
     if (welcome) welcome.style.display = "none";
     thread.classList.add("show");
-    lxfdSetGalleryChatting(true);
     const lastUser = thread.querySelector(".lxfd-msg-user:last-of-type");
     const titleText = lastUser ? lastUser.textContent.trim() : "导入的对话";
     if (convoName) { convoName.textContent = shortText(titleText, 15); convoName.title = titleText; }
@@ -5368,8 +5353,7 @@ if (!window.__lxMemberFetched) {
   }
   function lxfdImportFromMain() {
     const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
-    const hasLegacy = !msgs.length && lxfdLegacyChatMessages().length;
-    if (!msgs.length && !hasLegacy) return false;
+    if (!msgs.length) return false;
     const generating = lxfdMainGenerating();
     // 先把当前所有消息（含那条还在生成、内容只有一半的 AI）原样克隆过来——带一半过来
     lxfdDoImport();
@@ -5650,11 +5634,6 @@ if (!window.__lxMemberFetched) {
   function enterFullscreen() {
     lxfdApplySite();
     if (thread && !thread.children.length) lxfdImportFromMain();
-    if (thread && thread.children.length) {
-      if (welcome) welcome.style.display = "none";
-      thread.classList.add("show");
-      lxfdSetGalleryChatting(true);
-    }
     const motionLayer = createPanelStretchLayer();
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.remove("lxfd-split-returning");
@@ -5900,25 +5879,11 @@ if (!window.__lxMemberFetched) {
     if (ta) { ta.value = ""; fit(); syncSend(); }
 
     // ── lxfd 意图路由分流 ──────────────────────────────────────────────
-    // 辅助函数：在 lxfd 线程里追加操作确认气泡
-    const _lxfdAddCtrlMsg = (msg) => {
-      const _ca = document.createElement("div"); _ca.className = "lxfd-msg-ai";
-      const _cb = document.createElement("div"); _cb.className = "lxfd-ai-body";
-      const _ct = document.createElement("div"); _ct.className = "lxfd-ai-text";
-      _ct.textContent = msg; _cb.appendChild(_ct); _ca.appendChild(_cb);
-      thread?.appendChild(_ca); _ca.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
-    };
-    // 辅助函数：执行控制操作（通过 __lxBridge 桥接到主 IIFE 的 lxExecControl）
-    const _lxfdExecCtrl = (op, target) => {
-      if (op === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ return; }
-      if (op === "exit_fullscreen") { if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen(); return; }
-      if (typeof window.__lxBridge?.execControl === "function") window.__lxBridge.execControl(op, target);
-    };
-    // 1. 本地快路径（regex，0 延迟）
+    // 1. 本地快路径
     const _lxfdLocalCtrl = (function() {
       const _t = value;
       if (/关闭?(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)|清空(标签|页面|分页|页签)|(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)?/.test(_t)) return { op: "close_all_tabs", target: "", msg: "好的，已为你关闭所有页面标签。" };
-      if (/^(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式（当前已在全屏）。" };
+      if (/^(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
       if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|恢复|缩小)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
       if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
       if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
@@ -5926,29 +5891,66 @@ if (!window.__lxMemberFetched) {
       return null;
     })();
     if (_lxfdLocalCtrl) {
-      _lxfdAddCtrlMsg(_lxfdLocalCtrl.msg);
-      _lxfdExecCtrl(_lxfdLocalCtrl.op, _lxfdLocalCtrl.target);
+      const _lxfdCtrlAi = document.createElement("div");
+      _lxfdCtrlAi.className = "lxfd-msg-ai";
+      const _lxfdCtrlBody = document.createElement("div");
+      _lxfdCtrlBody.className = "lxfd-ai-body";
+      const _lxfdCtrlText = document.createElement("div");
+      _lxfdCtrlText.className = "lxfd-ai-text";
+      _lxfdCtrlText.textContent = _lxfdLocalCtrl.msg;
+      _lxfdCtrlBody.appendChild(_lxfdCtrlText);
+      _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
+      thread?.appendChild(_lxfdCtrlAi);
+      _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      // 执行操作：通过 __lxExecControl 桥（全屏态 lxExecControl 不在此作用域）
+      const _execOp = _lxfdLocalCtrl.op;
+      const _execTarget = _lxfdLocalCtrl.target;
+      if (_execOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
+      else if (_execOp === "exit_fullscreen") {
+        if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
+      } else if (typeof window.__lxBridge?.execControl === "function") {
+        window.__lxBridge.execControl(_execOp, _execTarget);
+      }
       return;
     }
-    // 2. 远程意图路由器（3 秒超时，失败降级 chat）
+
+    // 2. 远程意图路由器
     let _lxfdIntentResult = null;
     try {
-      const _lxfdAbort = new AbortController();
-      const _lxfdIntentTimer = setTimeout(() => _lxfdAbort.abort(), 3000);
+      const _lxfdIntentAbort = new AbortController();
+      const _lxfdIntentTimer = setTimeout(() => _lxfdIntentAbort.abort(), 3000);
       const _lxfdIntentRes = await fetch("/api/leai/intent", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: value }), signal: _lxfdAbort.signal
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: value }),
+        signal: _lxfdIntentAbort.signal
       });
       clearTimeout(_lxfdIntentTimer);
       if (_lxfdIntentRes.ok) _lxfdIntentResult = await _lxfdIntentRes.json();
-    } catch (_) { /* 超时/失败 → 降级 chat */ }
+    } catch (_lxfdIntentErr) { /* 超时/失败 → 降级 chat */ }
     if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
-      const _lxfdOpMsg = { close_all_tabs: "关闭了所有页面标签", close_tab: `关闭了「${_lxfdIntentResult.target || "该标签"}」`, go_home: "回到了首页", switch_site: "切换了站点", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_orders: "打开了订单页面", open_cart: "打开了购物车", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_compare: "打开了对比清单", clear_compare: "清空了对比清单", start_student_auth: "打开了学生认证", start_enterprise_auth: "打开了企业认证", open_product: `正在帮你打开「${_lxfdIntentResult.target || "该商品"}」`, enter_fullscreen: "当前已在全屏模式", exit_fullscreen: "退出了全屏模式" };
-      _lxfdAddCtrlMsg(`好的，已为你${_lxfdOpMsg[_lxfdIntentResult.op] || "执行了操作"}。`);
-      _lxfdExecCtrl(_lxfdIntentResult.op, _lxfdIntentResult.target || "");
+      const _lxfdCtrlAi = document.createElement("div");
+      _lxfdCtrlAi.className = "lxfd-msg-ai";
+      const _lxfdCtrlBody = document.createElement("div");
+      _lxfdCtrlBody.className = "lxfd-ai-body";
+      const _lxfdCtrlText = document.createElement("div");
+      _lxfdCtrlText.className = "lxfd-ai-text";
+      const _lxfdOpNames = { close_all_tabs: "关闭了所有页面标签", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_lxfdIntentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式（当前已在全屏）", exit_fullscreen: "退出了全屏模式" };
+      _lxfdCtrlText.textContent = `好的，已为你${_lxfdOpNames[_lxfdIntentResult.op] || "执行了操作"}。`;
+      _lxfdCtrlBody.appendChild(_lxfdCtrlText);
+      _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
+      thread?.appendChild(_lxfdCtrlAi);
+      _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      const _lxfdExecOp = _lxfdIntentResult.op;
+      const _lxfdExecTarget = _lxfdIntentResult.target || "";
+      if (_lxfdExecOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
+      else if (_lxfdExecOp === "exit_fullscreen") {
+        if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
+      } else if (typeof window.__lxBridge?.execControl === "function") {
+        window.__lxBridge.execControl(_lxfdExecOp, _lxfdExecTarget);
+      }
       return;
     }
-    // 3. fallthrough → 继续走原来的 AI 对话流程
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
     const ai = document.createElement("div");
@@ -5969,7 +5971,7 @@ if (!window.__lxMemberFetched) {
       if (body) body.insertBefore(ai._textBox, body.firstChild);
       ai._raw = "";
     };
-    // lxfd 前端兜底超时：50 秒后强制解锁
+    // lxfd 前端兜底超时：50秒后强制解锁
     const _lxfdSendTimeout = setTimeout(() => {
       if (chatState.sending && chatState.conversationNonce === nonce) {
         chatState.sending = false;
@@ -6079,6 +6081,12 @@ if (!window.__lxMemberFetched) {
           } else if (op) {
             turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
           }
+        },
+        control: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data) || {};
+          // 页面操作（关标签/回首页/开订单等）：桥接到主面板执行
+          if (payload.op && typeof window.__lxExecControl === 'function') window.__lxExecControl(payload.op, payload.target);
         },
         done: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -6214,7 +6222,6 @@ if (!window.__lxMemberFetched) {
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
   $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); const id = a.dataset.conv; if (id) lxfdLoadConv(id); });
-  window.__lxThinking = true;
   $$(".lxfd-comp-left .lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; if (btn.textContent.includes("联网")) window.__lxWebSearch = on; }));
   // lxfd 图片上传
   const lxfdImgBtn = document.querySelector('.lxfd-img-btn');
@@ -6294,8 +6301,7 @@ if (!window.__lxMemberFetched) {
       const inner = item.img
         ? '<img class="gallery-img" src="' + escapeAttr(item.img) + '" alt="" loading="eager" />'
         : '<span class="gallery-lid"></span><span class="gallery-wm">' + escapeHtml(item.wm) + '</span>';
-      const shotStyle = item.img ? "" : ' style="background:' + escapeAttr(item.g) + '"';
-      return '<article class="gallery-card"><div class="' + shotClass + '"' + shotStyle + '>' + inner + '</div>'
+      return '<article class="gallery-card"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
         + '<div class="gallery-meta"><span class="gallery-badge">' + escapeHtml(item.badge) + '</span><strong class="gallery-name">' + escapeHtml(item.nm) + '</strong><span class="gallery-desc">' + escapeHtml(item.ds) + '</span>'
         + '<div class="gallery-foot"><span class="gallery-price">' + price(item) + '</span><button class="gallery-go" type="button">了解 →</button></div></div></article>';
     };
