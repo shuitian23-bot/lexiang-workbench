@@ -5259,9 +5259,26 @@ if (!window.__lxMemberFetched) {
     return !!((window.__lxState && window.__lxState.sending) ||
       document.querySelector(".lx-p0-messages > .lx-p0-message.ai .lx-generating"));
   }
+  function lxfdLegacyChatMessages() {
+    const chat = document.querySelector(".assistant-panel .chat-state");
+    if (!chat) return [];
+    const isChatState = document.body.dataset.state === "chat";
+    const style = window.getComputedStyle ? window.getComputedStyle(chat) : null;
+    const isVisible = !!(chat.offsetParent || chat.getClientRects().length) &&
+      (!style || (style.display !== "none" && style.visibility !== "hidden"));
+    if (!isChatState && !isVisible) return [];
+    return Array.prototype.slice.call(chat.querySelectorAll(":scope > .user-bubble, :scope > .assistant-answer")).map(function(el) {
+      return {
+        role: el.classList.contains("user-bubble") ? "user" : "ai",
+        text: el.textContent.trim(),
+        html: el.innerHTML
+      };
+    }).filter(function(item) { return item.text || item.html; });
+  }
   function lxfdDoImport() {
-    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
-    if (!msgs.length) return false;
+    const msgs = Array.prototype.slice.call(document.querySelectorAll(".lx-p0-messages > .lx-p0-message"));
+    const legacyMsgs = msgs.length ? [] : lxfdLegacyChatMessages();
+    if (!msgs.length && !legacyMsgs.length) return false;
     thread.innerHTML = "";
     turns = [];
     msgs.forEach(function(el) {
@@ -5273,6 +5290,16 @@ if (!window.__lxMemberFetched) {
         turns.push({ id: turnId, text: text });
       } else {
         thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + el.innerHTML + '</div></div>');
+      }
+    });
+    legacyMsgs.forEach(function(item) {
+      if (item.role === "user") {
+        const text = item.text;
+        const turnId = "turn-" + Date.now() + "-" + turns.length;
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-user" id="' + turnId + '">' + escapeHtml(text) + '</div>');
+        turns.push({ id: turnId, text: text });
+      } else {
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + item.html + '</div></div>');
       }
     });
     renderTurnIndex("");
@@ -5290,7 +5317,8 @@ if (!window.__lxMemberFetched) {
   }
   function lxfdImportFromMain() {
     const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
-    if (!msgs.length) return false;
+    const hasLegacy = !msgs.length && lxfdLegacyChatMessages().length;
+    if (!msgs.length && !hasLegacy) return false;
     const generating = lxfdMainGenerating();
     // 先把当前所有消息（含那条还在生成、内容只有一半的 AI）原样克隆过来——带一半过来
     lxfdDoImport();
