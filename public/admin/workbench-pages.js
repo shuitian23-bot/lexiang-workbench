@@ -540,7 +540,7 @@ function handleSkillHubAction(name, action) {
     openSkillHubDetail(name);
     return;
   }
-  if (['发布', '禁用', '审批', '驳回'].includes(action)) {
+  if (['发布', '启用', '禁用', '审批', '驳回'].includes(action)) {
     openSkillHubConfirm(name, action);
     return;
   }
@@ -703,6 +703,12 @@ function getSkillHubConfirmMeta(action) {
       desc: '禁用后该 Skill 将暂不可用，已配置的调用入口会停止响应。',
       confirmText: '确认禁用',
       tone: 'danger'
+    },
+    启用: {
+      title: '确认启用 Skill',
+      desc: '启用后该 Skill 将恢复线上可用状态，操作列会切换为“禁用”。',
+      confirmText: '确认启用',
+      tone: 'success'
     },
     审批: {
       title: '确认审批通过',
@@ -1001,6 +1007,12 @@ function updateSkillHubLifecycleStatus(name, action) {
     item.statusText = '已禁用';
     item.updated = '2026-06-11 19:10';
     skillHubToast(`${name}：已禁用`);
+  } else if (action === '启用') {
+    item.status = 'published';
+    item.statusText = '已发布';
+    item.online = item.online && item.online !== '未发布' ? item.online : item.version;
+    item.updated = '2026-06-11 19:10';
+    skillHubToast(`${name}：已启用`);
   } else {
     skillHubToast(`${name}：${action}操作已记录`);
   }
