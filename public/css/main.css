@@ -5475,6 +5475,16 @@
       .lx-floor-products { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: clamp(13px, 1vw, 19px); grid-column: 1 / -1; }
       @media (min-width: 1720px) { .lx-floor-products { grid-template-columns: repeat(5, minmax(150px, 1fr)); } }
       @media (min-width: 1920px) { .lx-floor-products { grid-template-columns: repeat(6, minmax(150px, 1fr)); } }
+      .lx-floor-more { margin-top: clamp(13px, 1vw, 19px); }
+      .lx-floor-more-btn {
+        grid-column: 1 / -1; margin-top: 14px; width: 100%;
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        height: 38px; border: 1px solid var(--lx-border, #e6dfea); border-radius: 8px;
+        background: #fff; color: var(--lx-aubergine, #5b1452); font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: background .15s, border-color .15s;
+      }
+      .lx-floor-more-btn:hover { background: #faf6fd; border-color: #d9c9e4; }
+      .lx-floor-more-btn i { font-style: normal; font-size: 11px; }
       .lx-floor-product {
         min-height: 0;
         height: auto;
