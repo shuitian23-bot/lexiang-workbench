@@ -10599,3 +10599,25 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-legal-
 @media (max-width:900px){
   body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-legal-line{ padding:0 24px; }
 }
+
+/* Tune fullscreen gallery legal footer position. */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-legal-line{
+  position:fixed!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:18px!important;
+  transform:translateX(-50%)!important;
+  width:auto!important;
+  max-width:calc(100vw - 48px)!important;
+  margin:0!important;
+  padding:0!important;
+  color:#c0b1c4!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+  text-align:center!important;
+  white-space:nowrap;
+  z-index:3;
+}
+
+/* Tune fullscreen composer footnote color. */
+.lxfd-footnote{ color:#c0b1c4!important; }
