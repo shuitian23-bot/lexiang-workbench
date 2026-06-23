@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="workbench.css?v=20260623-poc-adjustment-log4">
+<link rel="stylesheet" href="workbench.css?v=20260623-poc-adjustment-log7">
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
 <link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
@@ -1039,18 +1039,11 @@ function openPocAdjustmentLog() {
   if (existing) existing.remove();
   const records = [
     {
-      time: '2026-06-23 12:57',
-      title: '账号入口增加调整日志',
-      scope: '右下角账号入口弹层',
-      detail: '新增 POC 日志查看入口，用于记录工作台功能调整过程。',
+      time: '2026-06-23 13:20',
+      title: '账号入口与 POC 调整日志',
+      scope: '账号入口弹层 / 调整日志 / admin 入口跳转',
+      detail: '账号入口弹层改为 2x2 功能入口，新增调整日志查看；日志按功能点归纳展示，时间按北京时间取值；admin/index.html 覆盖为跳转页，进入 workbench.html?demo=1。',
       status: '预览验证中'
-    },
-    {
-      time: '2026-06-22 14:00',
-      title: '账号入口弹层适配 AI 助手展开',
-      scope: '账号入口弹层 / 右侧 Agent',
-      detail: 'AI 助手展开时，弹层避让右侧区域并收缩卡片布局。',
-      status: '已合并正式'
     },
     {
       time: '2026-06-22 13:40',
@@ -1061,9 +1054,23 @@ function openPocAdjustmentLog() {
     },
     {
       time: '2026-06-18 18:30',
-      title: '技能包管理改为开关模式',
-      scope: '业务侧技能包管理',
-      detail: '技能包不再走申请流程，使用绿色开关表示开、灰色开关表示关。',
+      title: '业务侧技能包管理与顶部入口整理',
+      scope: '技能包管理 / 顶部栏',
+      detail: '技能包管理固定为启停管理面，不再展示申请、使用、查看进度等旧流程；筛选归并为全部、已开启、已关闭；顶部中间搜索入口移除，同时保留夜间模式按钮。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-18 17:40',
+      title: 'Skill 创建命名与 AI 微调闭环',
+      scope: 'Skill 创建 / 评估验证 / 右侧 Agent',
+      detail: '基础配置中区分 Skill 名称（英文）和必填中文命名；评估验证出现低分项时提供 AI 微调，唤起右侧 Agent 更新草稿和评分，示例评分刷新到综合评分 0.859 后进入后续审核。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-18 14:42',
+      title: '企业客户管理打分模型样式修复',
+      scope: '企业客户管理 / 打分模型',
+      detail: '根据 0617 wangxt8 样式包替换 workbench-lead.js，修复打分模型页面样式不生效的问题；后续遇到同类问题先检查模块版本，不再只叠加 CSS 覆盖。',
       status: '已合并正式'
     }
   ];
