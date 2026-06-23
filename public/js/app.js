@@ -425,15 +425,15 @@ if (!window.__lxMemberFetched) {
           const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
           if (!bottom || !list) return;
-          const key = String(product?.sku || "");
-          list.innerHTML = renderHoverPromptPop(product);
+          const key = String(product?.sku || product?.name || "");
+          const alreadyVisible = bottom.classList.contains("has-hover-prompts") && state.hoverPromptVisibleSku === key && !!list.querySelector(".pop");
+          if (!alreadyVisible) {
+            list.innerHTML = renderHoverPromptPop(product);
+            state.hoverPromptVisibleSku = key;
+          }
           bottom.classList.add("has-hover-prompts");
-<<<<<<< HEAD
-          scheduleHoverPromptAutoClose();
-=======
           document.querySelector(".assistant-panel")?.classList.add("assistant-glass-active");
           clearHoverPromptAutoCloseTimer();
->>>>>>> c14f56d (feat(详情页): 加官方商品编号(specs.materialNumber,如83UE000HCD))
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
           state.reasonCache = state.reasonCache || {};
@@ -446,7 +446,13 @@ if (!window.__lxMemberFetched) {
             state.reasonCache[key] = reason;
           }
           if (reason && state.hoverPromptSku === key && bottom.classList.contains("has-hover-prompts")) {
-            list.innerHTML = renderHoverPromptPop(product, reason);
+            const sum = list.querySelector(".pop .sum");
+            const summary = esc(reason).replace(/配置拉满/g, "<b>配置拉满</b>");
+            if (sum && state.hoverPromptVisibleSku === key) sum.innerHTML = summary;
+            else {
+              list.innerHTML = renderHoverPromptPop(product, reason);
+              state.hoverPromptVisibleSku = key;
+            }
           }
         }
 
@@ -458,22 +464,16 @@ if (!window.__lxMemberFetched) {
           if (!bottom || !list) return;
           if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
             bottom.classList.remove("has-hover-prompts");
-<<<<<<< HEAD
-=======
             document.querySelector(".assistant-panel")?.classList.remove("assistant-glass-active");
             state.hoverPromptVisibleSku = "";
->>>>>>> c14f56d (feat(详情页): 加官方商品编号(specs.materialNumber,如83UE000HCD))
             list.innerHTML = "";
             return;
           }
           pop.classList.add("is-closing");
           window.setTimeout(() => {
             bottom.classList.remove("has-hover-prompts");
-<<<<<<< HEAD
-=======
             document.querySelector(".assistant-panel")?.classList.remove("assistant-glass-active");
             state.hoverPromptVisibleSku = "";
->>>>>>> c14f56d (feat(详情页): 加官方商品编号(specs.materialNumber,如83UE000HCD))
             list.innerHTML = "";
           }, 240);
         }
@@ -483,12 +483,12 @@ if (!window.__lxMemberFetched) {
           state.hoverPromptAutoCloseTimer = null;
         }
 
-        function scheduleHoverPromptAutoClose() {
+        function scheduleHoverPromptAutoClose(delay = 4000) {
           clearHoverPromptAutoCloseTimer();
           state.hoverPromptAutoCloseTimer = window.setTimeout(() => {
             hideHoverPrompts();
             state.hoverPromptSku = "";
-          }, 8000);
+          }, delay);
         }
 
         function clearHoverPromptTimer() {
@@ -504,6 +504,10 @@ if (!window.__lxMemberFetched) {
           clearHoverPromptTimer();
           if (!key) return;
           state.hoverPromptSku = key;
+          if (state.hoverPromptVisibleSku === key && $(".assistant-bottom")?.classList.contains("has-hover-prompts")) {
+            clearHoverPromptAutoCloseTimer();
+            return;
+          }
           state.hoverPromptTimer = window.setTimeout(() => {
             if (state.hoverPromptSku !== key) return;
             showHoverPrompts(product);
@@ -3210,11 +3214,32 @@ if (!window.__lxMemberFetched) {
           return bar;
         }
 
+        function lxMoveTabInk() {
+          const bar = document.querySelector(".lx-tabbar");
+          if (!bar || bar.hidden) return;
+          let ink = bar.querySelector(".lx-tab-ink");
+          if (!ink) {
+            ink = document.createElement("span");
+            ink.className = "lx-tab-ink";
+            ink.setAttribute("aria-hidden", "true");
+            bar.appendChild(ink);
+          }
+          const active = bar.querySelector(".lx-tab.is-active") || bar.querySelector(".lx-tab");
+          const lab = active ? (active.querySelector(".lx-tab-label") || active) : null;
+          if (!active || !lab) { ink.style.width = "0px"; return; }
+          const inkWidth = Math.min(50, lab.offsetWidth || active.offsetWidth || 0);
+          ink.style.left = (active.offsetLeft + lab.offsetLeft + ((lab.offsetWidth || active.offsetWidth) - inkWidth) / 2) + "px";
+          ink.style.width = inkWidth + "px";
+        }
+        window.addEventListener("resize", () => requestAnimationFrame(lxMoveTabInk));
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(lxMoveTabInk));
+
         function lxRenderTabbar() {
           const bar = lxEnsureTabbar();
           const tabs = state.tabs || [];
-          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("");
+          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
           bar.hidden = tabs.length <= 1; // 单标签无切换意义，隐藏（用户反馈）
+          requestAnimationFrame(lxMoveTabInk);
         }
 
         function lxUpsertTab(tab, activate = true) {
@@ -4838,7 +4863,10 @@ if (!window.__lxMemberFetched) {
           document.addEventListener("mouseout", (event) => {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || card.contains(event.relatedTarget)) return;
-            clearHoverPromptTimer();
+            if (state.hoverPromptTimer) window.clearTimeout(state.hoverPromptTimer);
+            state.hoverPromptTimer = null;
+            if (state.hoverPromptVisibleSku) scheduleHoverPromptAutoClose(4000);
+            else state.hoverPromptSku = "";
           });
 
           document.addEventListener("click", (event) => {
@@ -5664,6 +5692,9 @@ if (!window.__lxMemberFetched) {
     chatState.convId = (window.__lxState && window.__lxState.convId) || null;
     if (welcome) welcome.style.display = "none";
     thread.classList.add("show");
+    chatState.started = true;
+    lxfdSetGalleryChatting(true);
+    if (quick) quick.style.display = "none";
     const lastUser = thread.querySelector(".lxfd-msg-user:last-of-type");
     const titleText = lastUser ? lastUser.textContent.trim() : "导入的对话";
     if (convoName) { convoName.textContent = shortText(titleText, 15); convoName.title = titleText; }
@@ -6015,7 +6046,16 @@ if (!window.__lxMemberFetched) {
     document.body.classList.toggle("lx-auto-fs", !!on);
     if (!on) document.body.classList.remove("lxfd-split-entered");
     if (on) document.body.dataset.state = "chat";
-    if (on) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
+    if (on) {
+      const hasThread = !!(thread && (thread.classList.contains("show") || thread.children.length));
+      if (hasThread || chatState.started) {
+        if (welcome) welcome.style.display = "none";
+        if (thread) thread.classList.add("show");
+        if (quick) quick.style.display = "none";
+        lxfdSetGalleryChatting(true);
+      }
+      requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
+    }
   }
   function setNav(open) {
     navCluster?.classList.toggle("open", open);
@@ -6845,3 +6885,58 @@ if (!window.__lxMemberFetched) {
     document.addEventListener('pointercancel', onUp, true);
   }, true);
 })();
+
+/* Smart AI arrow cursor: product card dwell overlay, independent of product-card actions. */
+(function(global){
+  "use strict";
+  if (global.ARROWCURSOR && global.ARROWCURSOR.__lxProductDwell) return;
+  var ARROW = "M0 0 L0 18.5 L5 13.8 L8.3 21 L11 19.8 L7.8 12.9 L14.2 12.9 Z";
+  var STAR = "M15 1C15.7 9.2 20.8 14.3 29 15C20.8 15.7 15.7 20.8 15 29C14.3 20.8 9.2 15.7 1 15C9.2 14.3 14.3 9.2 15 1Z";
+  function defsSVG(){
+    return '<svg class="defs" aria-hidden="true"><defs>'
+      + '<linearGradient id="arrowIris" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0" stop-color="#ff3b00"><animate attributeName="stop-color" values="#ff3b00;#ff006e;#d900ff;#35b8ff;#b7f2ff;#ff3b00" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="0.24" stop-color="#ff006e"><animate attributeName="stop-color" values="#ff006e;#d900ff;#35b8ff;#b7f2ff;#ff3b00;#ff006e" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="0.5" stop-color="#d900ff"><animate attributeName="stop-color" values="#d900ff;#35b8ff;#b7f2ff;#ff3b00;#ff006e;#d900ff" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="0.76" stop-color="#35b8ff"><animate attributeName="stop-color" values="#35b8ff;#b7f2ff;#ff3b00;#ff006e;#d900ff;#35b8ff" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="1" stop-color="#b7f2ff"><animate attributeName="stop-color" values="#b7f2ff;#ff3b00;#ff006e;#d900ff;#35b8ff;#b7f2ff" dur="2.2s" repeatCount="indefinite"/></stop></linearGradient>'
+      + '<linearGradient id="arrowBrand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d144a"/><stop offset="1" stop-color="#b8252e"/></linearGradient>'
+      + '<linearGradient id="irisFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b00"/><stop offset="0.25" stop-color="#ff006e"/><stop offset="0.5" stop-color="#d900ff"/><stop offset="0.72" stop-color="#48c6ff"/><stop offset="0.88" stop-color="#5eeaff"/><stop offset="1" stop-color="#b7f2ff"/></linearGradient>'
+      + '</defs></svg>';
+  }
+  function arrowSVG(){ return '<svg class="arrow" width="22" height="26" viewBox="-1 -1 17 24" aria-hidden="true"><path class="ar-body" d="' + ARROW + '"/></svg>'; }
+  function starSVG(){ return '<span class="star"><svg class="sx" viewBox="0 0 30 30" aria-hidden="true"><path d="' + STAR + '" fill="url(#irisFill)"/><ellipse class="sheen" cx="11" cy="10" rx="3.4" ry="2.5" fill="#fff"/></svg></span>'; }
+  function fxHTML(label){ return '<div class="fx">' + starSVG() + '<div class="label"><span class="ltxt">' + label + '</span><span class="ldot"><i></i><i></i><i></i></span></div></div>'; }
+  function init(opts){
+    opts = opts || {};
+    var v = opts.variant || "A";
+    var delay = opts.delay != null ? opts.delay : 4000;
+    var label = opts.label || "乐享正在帮你";
+    var targetSelector = opts.target || ".content .product-card, .content .lx-floor-product";
+    if (document.querySelector(".ai-arrow")) return;
+    document.body.setAttribute("data-arr", v);
+    var root = document.createElement("div");
+    root.className = "ai-arrow";
+    root.setAttribute("aria-hidden", "true");
+    root.innerHTML = defsSVG() + arrowSVG() + fxHTML(label);
+    document.body.appendChild(root);
+    var x = -200, y = -200, timer = null, awake = false, inTarget = false;
+    function place(){ root.style.transform = "translate(" + x + "px," + y + "px)"; }
+    function sleep(){ if (!awake && !document.body.classList.contains("cursor-awake")) return; awake = false; root.classList.remove("awake"); document.body.classList.remove("cursor-awake"); }
+    function wake(){ if (!inTarget) return; awake = true; var old = root.querySelector(".fx"); if (old) old.remove(); root.insertAdjacentHTML("beforeend", fxHTML(label)); void root.offsetWidth; root.classList.add("awake"); document.body.classList.add("cursor-awake"); }
+    function arm(){ clearTimeout(timer); timer = setTimeout(wake, delay); }
+    function insideTarget(t){ return !!(t && t.closest && t.closest(targetSelector)); }
+    function onMove(e){ x = e.clientX; y = e.clientY; place(); inTarget = insideTarget(e.target); if (!inTarget){ clearTimeout(timer); sleep(); return; } if (awake) sleep(); arm(); }
+    function onLeave(){ clearTimeout(timer); inTarget = false; sleep(); root.style.transform = "translate(-200px,-200px)"; }
+    document.addEventListener("mousemove", onMove, { passive:true });
+    document.addEventListener("mouseleave", onLeave, { passive:true });
+    document.addEventListener("mousedown", function(){ clearTimeout(timer); sleep(); if (inTarget) arm(); }, { passive:true });
+    window.addEventListener("blur", onLeave);
+    return { wake:wake, sleep:sleep, setVariant:function(nv){ v = nv; document.body.setAttribute("data-arr", nv); sleep(); } };
+  }
+  global.ARROWCURSOR = global.ARROWCURSOR || {};
+  global.ARROWCURSOR.init = init;
+  global.ARROWCURSOR.__lxProductDwell = true;
+  function boot(){ init({ variant:"A", delay:4000, label:"乐享正在帮你", target:".content .product-card, .content .lx-floor-product" }); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})(window);

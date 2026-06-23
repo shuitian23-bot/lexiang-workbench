@@ -6299,6 +6299,8 @@
 .content[data-view="detail"] .detail-primary:hover { filter: brightness(1.12); }
 .content[data-view="detail"] .detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit):not(.lx-p0-detail-quote):not(.lx-p0-detail-wp) { width: 126px; border: 1.5px solid #E5E0EC; background: #fff; color: #4A4453; font-weight: 600; }
 .content[data-view="detail"] .detail-secondary:not(.lx-p0-detail-compare):not(.lx-p0-detail-similar):not(.lx-p0-detail-benefit):not(.lx-p0-detail-quote):not(.lx-p0-detail-wp):hover { border-color: #6D3260; color: #6D3260; }
+.content[data-view="detail"] .detail-actions .detail-secondary.lx-p0-detail-similar { width: 126px !important; height: 52px !important; padding: 0 !important; border: 1.5px solid #E5E0EC !important; border-radius: 14px !important; background: #fff !important; color: #4A4453 !important; font-size: 15px !important; font-family: inherit !important; font-weight: 600 !important; white-space: nowrap !important; }
+.content[data-view="detail"] .detail-actions .detail-secondary.lx-p0-detail-similar:hover { border-color: #6D3260 !important; color: #6D3260 !important; }
 .content[data-view="detail"] .detail-service { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 0; border-top: 0; }
 .content[data-view="detail"] .detail-service .service-item { display: flex; flex-direction: column; gap: 5px; min-height: 66px; padding: 14px 12px; border-radius: 12px; background: #F7F5FA; cursor: pointer; transition: background 0.18s ease; }
 .content[data-view="detail"] .detail-service .service-item:hover { background: #EFE5F5; }
@@ -8084,6 +8086,22 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
   display: block !important;
 }
 
+/* Detail sticky buybar should attach flush to the content bottom with no spacer. */
+body:not(.assistant-fullscreen) .content[data-view="detail"] {
+  padding-bottom: 0 !important;
+}
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
+  padding-bottom: 0 !important;
+}
+body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
+  bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-bottom: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
 /* Composer input requested one step larger. */
 .assistant-panel .assistant-bottom .composer textarea,
 .assistant-panel .composer textarea {
@@ -8752,8 +8770,6 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
   color: #e42b20;
   font-weight: 600;
 }
-<<<<<<< HEAD
-=======
 
 /* 推荐结果区皮肤：复刻「推荐商品.html」方案 F 通栏巨卡，仅覆盖右侧推荐结果 DOM。 */
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) {
@@ -9969,4 +9985,3 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
   position: relative;
   z-index: 30 !important;
 }
->>>>>>> c14f56d (feat(详情页): 加官方商品编号(specs.materialNumber,如83UE000HCD))
