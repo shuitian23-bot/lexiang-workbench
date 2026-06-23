@@ -2162,22 +2162,23 @@ if (!window.__lxMemberFetched) {
           {
             label: "笔记本",
             categories: ["笔记本电脑"],
-            filter: (p) => p.category === "笔记本电脑" && lxIsValidProduct(p),
+            // 整机品类排周边（lxIsWholeMachine 去自行车/鼠标/配件等错标进笔记本的脏数据）
+            filter: (p) => p.category === "笔记本电脑" && lxIsValidProduct(p) && lxIsWholeMachine(p),
           },
           {
             label: "台式机/显示器",
             categories: ["台式机", "显示器"],
-            filter: (p) => (p.category === "台式机" || p.category === "显示器") && lxIsValidProduct(p),
+            filter: (p) => (p.category === "台式机" || p.category === "显示器") && lxIsValidProduct(p) && lxIsWholeMachine(p),
           },
           {
             label: "平板",
             categories: ["平板电脑"],
-            filter: (p) => p.category === "平板电脑" && lxIsValidProduct(p),
+            filter: (p) => p.category === "平板电脑" && lxIsValidProduct(p) && lxIsWholeMachine(p),
           },
           {
             label: "手机",
             categories: ["手机"],
-            filter: (p) => p.category === "手机" && lxIsValidProduct(p),
+            filter: (p) => p.category === "手机" && lxIsValidProduct(p) && lxIsWholeMachine(p),
           },
           {
             label: "智能生活",
@@ -2391,7 +2392,7 @@ if (!window.__lxMemberFetched) {
               clearTimeout(lxFloorROTimer);
               lxFloorROTimer = setTimeout(() => {
                 const b = document.querySelector("[data-site-floors]");
-                if (b) lxClampFloors(b);
+                if (b) { lxClampFloors(b); lxClampCatFloors(b); }
               }, 60);
             });
           }
@@ -2405,10 +2406,26 @@ if (!window.__lxMemberFetched) {
         function lxRenderCatFloor(floorDef, items) {
           const label = floorDef.label;
           const catKey = floorDef.categories.join(",");
-          const canShuffle = items.length > 8;
+          // 渲染最多 12 个（够 6 列），渲染后 lxClampCatFloors 按真实列数夹成两排（不依赖 JS 猜列数）
+          const n = 12;
+          const canShuffle = items.length > n;
           const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品">换一换</button>`;
-          const cards = items.slice(0, 8).map(lxProductMiniCard).join("");
-          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
+          const cards = items.slice(0, n).map(lxProductMiniCard).join("");
+          return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
+        }
+
+        // 品类楼层：按真实渲染列数夹成两排（第 2*cols 个之后隐藏；不加「查看更多」，纯夹断）
+        function lxClampCatFloors(root) {
+          (root || document).querySelectorAll(".lx-cat-floor .lx-floor-products").forEach((grid) => {
+            const cards = [...grid.querySelectorAll(".lx-floor-product")];
+            if (!cards.length) return;
+            cards.forEach((c) => { c.hidden = false; });
+            void grid.offsetWidth;
+            const firstTop = Math.min(...cards.map((c) => c.offsetTop));
+            const cols = Math.max(1, cards.filter((c) => Math.abs(c.offsetTop - firstTop) <= 2).length);
+            const keep = cols * 2;
+            cards.forEach((c, i) => { c.hidden = i >= keep; });
+          });
         }
 
         async function lxRenderPersonalRecommendFloors() {
@@ -2559,7 +2576,7 @@ if (!window.__lxMemberFetched) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(() => { lxClampFloors(box); lxSyncCategoryTabsStuck(); });
+              requestAnimationFrame(() => { lxClampFloors(box); lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
               lxObserveFloors(box); // 盯网格宽度变化,分屏/全屏切到3列时自动重夹
               return;
             }
@@ -5555,18 +5572,19 @@ if (!window.__lxMemberFetched) {
                 const items = uniq.filter(floorDef.filter);
                 if (items.length > 0) {
                   if (!state.catFloorOffset) state.catFloorOffset = {};
+                  const n = 12; // 渲染 12 个，渲染后按真实列数夹两排（与初次渲染一致）
                   const cur = state.catFloorOffset[catKey] || 0;
-                  const next = (cur + 8) % items.length;
+                  const next = (cur + n) % items.length;
                   state.catFloorOffset[catKey] = next;
-                  // 取从 next 开始的 8 个，到末尾不足时循环补
                   const batch = [];
-                  for (let i = 0; i < 8 && i < items.length; i++) {
+                  for (let i = 0; i < n && i < items.length; i++) {
                     batch.push(items[(next + i) % items.length]);
                   }
                   const grid = shuffleBtn.closest("[data-cat-floor-key]")?.querySelector("[data-cat-floor-grid]");
                   if (grid) {
                     grid.innerHTML = batch.map(lxProductMiniCard).join("");
-                    shuffleBtn.disabled = items.length <= 8;
+                    shuffleBtn.disabled = items.length <= n;
+                    requestAnimationFrame(() => lxClampCatFloors(grid.closest(".lx-cat-floor")));
                   }
                 }
               }
