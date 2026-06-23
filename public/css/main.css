@@ -10332,3 +10332,85 @@ body:is([data-page="personal"]):not(.assistant-fullscreen) .lx-floor-head .lx-ca
   padding: 1px 6px;
   margin-left: 6px;
 }
+
+/* Force visible liquid-glass state while hover prompt is open, cache 202606231525. */
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:90!important;
+  display:block!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  opacity:1!important;
+  transform:none!important;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.68),rgba(248,242,250,.50) 48%,rgba(255,255,255,.36)),
+    radial-gradient(105% 58% at 14% 0%,rgba(255,255,255,.86),rgba(255,255,255,.24) 70%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(1.75) contrast(1.06)!important;
+  backdrop-filter:blur(28px) saturate(1.75) contrast(1.06)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.86),inset 0 -1px 0 rgba(91,20,82,.08)!important;
+}
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil::before{
+  content:"" !important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  background:
+    linear-gradient(112deg,transparent 0%,rgba(255,255,255,.48) 38%,transparent 62%),
+    radial-gradient(36% 18% at 82% 14%,rgba(255,255,255,.56),transparent 70%)!important;
+  mix-blend-mode:screen!important;
+  opacity:.86!important;
+  animation:lx-agent-glass-sheen 3.2s cubic-bezier(.22,.61,.36,1) infinite!important;
+}
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil::after{
+  content:"" !important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  background:
+    radial-gradient(circle at 22% 22%,rgba(255,255,255,.38) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 78% 58%,rgba(91,20,82,.09) 0 1px,transparent 1.5px)!important;
+  background-size:42px 42px,58px 58px!important;
+  opacity:.38!important;
+}
+.assistant-panel.assistant-glass-active .tool-row,
+.assistant-panel.assistant-glass-active .assistant-toggle,
+.assistant-panel.assistant-glass-active .assistant-brand,
+.assistant-panel.assistant-glass-active .assistant-prompts,
+.assistant-panel.assistant-glass-active .agent-buttons,
+.assistant-panel.assistant-glass-active .assistant-body,
+.assistant-panel.assistant-glass-active .assistant-main,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .tool-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-toggle,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-brand,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-prompts,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .agent-buttons,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-body,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-main{
+  filter:blur(5px) saturate(.92)!important;
+  opacity:.42!important;
+  transition:filter .24s cubic-bezier(.22,.61,.36,1),opacity .24s cubic-bezier(.22,.61,.36,1)!important;
+}
+.assistant-panel.assistant-glass-active .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-bottom{
+  position:relative!important;
+  z-index:120!important;
+  filter:none!important;
+  opacity:1!important;
+}
+.assistant-panel.assistant-glass-active .hover-prompt-panel,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .hover-prompt-panel{
+  position:relative!important;
+  z-index:122!important;
+  filter:none!important;
+  opacity:1!important;
+}
