@@ -1167,7 +1167,7 @@ if (!window.__lxMemberFetched) {
           if (!product) return toast("请先选择商品");
           const item = normalizeProduct(product);
           if (state.compare.some((p) => p.sku === item.sku)) return toast("该商品已在对比清单");
-          if (state.compare.length >= 4) return toast("最多对比 4 件商品");
+          if (state.compare.length >= 8) return toast("最多对比 8 件商品");
           state.compare.push(item);
           save("lexiang.compare.v1", state.compare);
           // 收口到右侧「对比」标签：不打断当前浏览，仅更新标签与数量
@@ -1229,7 +1229,7 @@ if (!window.__lxMemberFetched) {
             return;
           }
           pageBox.innerHTML = `<div class="reco-head"><h2>${esc(title)}</h2><span>正在加载参数明细...</span></div>`;
-          const full = await Promise.all(source.slice(0, 4).map(async (item) => {
+          const full = await Promise.all(source.slice(0, 8).map(async (item) => {
             if (item.specs && Object.keys(item.specs).length) return item;
             try {
               const response = await fetch(`/api/products/${encodeURIComponent(item.sku)}`, { cache: "no-store" });
@@ -1437,7 +1437,7 @@ if (!window.__lxMemberFetched) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProduct.name.slice(0, 22))}</div>`);
           }
           // 引用 ≥2 个商品 + 对比意图 → 直接用引用的这几款出结构化对比表（不依赖官方返回商品）
-          const _cmpRefs = (Array.isArray(state.refProducts) ? state.refProducts : []).slice(0, 5);
+          const _cmpRefs = (Array.isArray(state.refProducts) ? state.refProducts : []).slice(0, 8);
           if (_cmpRefs.length >= 2 && /对比|比较|哪个好|哪个更|哪个值|怎么选(?!购)|差别|区别|谁更好|选哪/.test(text)) {
             lxRevealContent();
             lxUpsertCompareTab(_cmpRefs, "商品对比");
@@ -1594,7 +1594,7 @@ if (!window.__lxMemberFetched) {
                   if (payload.title && !ai.textContent.trim()) ai.textContent = payload.title;
                   ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                   lxRevealContent();
-                  lxUpsertCompareTab(products.slice(0, 4), payload.title || "商品参数对比");
+                  lxUpsertCompareTab(products.slice(0, 8), payload.title || "商品参数对比");
                   return;
                 }
                 if (products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
@@ -3813,7 +3813,7 @@ if (!window.__lxMemberFetched) {
 
           const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>根据你的需求挑出 ${products.length} 款，可继续追问缩小范围</span></div>`;
           if (products.length <= 6) {
-            const cmpN = Math.min(products.length, 4);
+            const cmpN = Math.min(products.length, 8);
             const compareAll = products.length >= 2
               ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, cmpN).map((p) => p.sku).join(","))}">对比这 ${cmpN} 款</button></div>`
               : "";
