@@ -8866,8 +8866,8 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 }
 
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row > img {
-  width:136px !important;
-  height:136px !important;
+  width:126px !important;
+  height:126px !important;
   border:1px solid var(--line) !important;
   border-radius:12px !important;
   background:#fff !important;
