@@ -481,13 +481,13 @@ function submitSkillPackageAction(title, message) {
 }
 
 const PM_SKILL_HUB_ITEMS = [
-  { name: 'workplace-cert-analysis', platform: 'lexiang', desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'draft', statusText: '草稿', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', updated: '2026-06-10 14:20' },
-  { name: 'low-stock-auto-offline', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '商品运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36' },
-  { name: 'product-knowledge', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '知识问答', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
-  { name: 'voucher-recommend', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '权益推荐', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
-  { name: 'driver-download-guide', platform: 'lexiang', desc: '联想驱动下载指导 Skill，支持驱动查询、版本差异对比和安装说明生成。', version: 'v1.0.0', online: '未发布', status: 'review', statusText: '待审批', category: '服务支持', tags: ['下载', '驱动'], owner: 'service-pm', updated: '2026-06-05 16:45' },
-  { name: 'lenovo-order-detail-query', platform: 'lexiang,aiadmin', desc: '联想商城订单明细查询助手，支持自然语言查询订单状态和售后发货信息。', version: 'v1.0.0', online: '未发布', status: 'approved', statusText: '已审批', category: '订单服务', tags: ['订单'], owner: 'ops-pm', updated: '2026-06-02 17:15' },
-  { name: 'weather-query', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: '未发布', status: 'disabled', statusText: '已禁用', category: '工具服务', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
+  { name: 'workplace-cert-analysis', cnName: '职场认证数据分析', platform: 'lexiang', desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
+  { name: 'low-stock-auto-offline', cnName: '低库存自动下架', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '商品运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36' },
+  { name: 'product-knowledge', cnName: '产品知识问答', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '知识问答', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
+  { name: 'voucher-recommend', cnName: '券包权益推荐', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '权益推荐', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
+  { name: 'driver-download-guide', cnName: '驱动下载指导', platform: 'lexiang', desc: '联想驱动下载指导 Skill，支持驱动查询、版本差异对比和安装说明生成。', version: 'v1.0.0', online: '未发布', status: 'review', statusText: '待审批', category: '服务支持', tags: ['下载', '驱动'], owner: 'service-pm', updated: '2026-06-05 16:45' },
+  { name: 'lenovo-order-detail-query', cnName: '订单明细查询', platform: 'lexiang,aiadmin', desc: '联想商城订单明细查询助手，支持自然语言查询订单状态和售后发货信息。', version: 'v1.0.0', online: '未发布', status: 'approved', statusText: '已审批', category: '订单服务', tags: ['订单'], owner: 'ops-pm', updated: '2026-06-02 17:15' },
+  { name: 'weather-query', cnName: '实时天气查询', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: '未发布', status: 'disabled', statusText: '已禁用', category: '工具服务', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
 ];
 
 let skillHubEvaluationTimer = null;
@@ -509,32 +509,40 @@ function skillHubStatusLabel(status) {
 
 function renderSkillHubActions(item, role) {
   const pmActions = {
-    draft: ['提交审核', '编辑', '测试', '删除'],
-    review: ['查看', '撤回', '测试'],
-    approved: ['发布', '编辑', '测试'],
-    published: ['禁用', '编辑', '测试'],
-    disabled: ['启用', '编辑', '测试'],
-    rejected: ['查看', '编辑', '测试']
+    draft: ['提交审核', '编辑', '评估', '删除'],
+    review: ['查看', '编辑', '撤回', '评估'],
+    approved: ['发布', '编辑', '评估'],
+    published: ['禁用', '编辑', '评估'],
+    disabled: ['启用', '编辑', '评估'],
+    rejected: ['被驳回去修改', '编辑', '评估']
   };
   const adminActions = {
     draft: ['查看', '编辑'],
-    review: ['审批', '驳回', '查看', '测试'],
+    review: ['审批', '驳回', '查看', '评估'],
     approved: ['发布', '禁用', '查看'],
-    published: ['禁用', '查看', '测试'],
+    published: ['禁用', '查看', '评估'],
     disabled: ['启用', '查看'],
-    rejected: ['查看', '编辑']
+    rejected: ['查看']
   };
   const baseActions = (role === 'admin' ? adminActions : pmActions)[item.status] || ['查看'];
-  const actions = [...baseActions.filter(action => action !== '应用'), '应用'];
+  const actions = [...baseActions.filter(action => action !== '测试'), '测试'];
   return actions.map(action => {
-    const tone = action === '应用' ? 'test' : action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' ? 'warning' : 'normal';
+    const tone = action === '测试' ? 'test' : action === '删除' || action === '驳回' ? 'danger' : action === '审批' || action === '发布' || action === '启用' ? 'success' : action === '提交审核' || action === '被驳回去修改' ? 'warning' : 'normal';
     return `<button class="skill-hub-action ${tone}" onclick="handleSkillHubAction('${item.name}', '${action}')">${action}</button>`;
   }).join('');
 }
 
 function handleSkillHubAction(name, action) {
-  if (action === '应用') {
+  if (action === '测试') {
     applySkillHubItem(name);
+    return;
+  }
+  if (action === '评估') {
+    openSkillHubEvaluation(name);
+    return;
+  }
+  if (action === '编辑' || action === '被驳回去修改') {
+    openSkillCreateForHubItem(name, action === '被驳回去修改');
     return;
   }
   if (action === '查看') {
@@ -543,10 +551,6 @@ function handleSkillHubAction(name, action) {
   }
   if (['发布', '启用', '禁用', '审批', '驳回'].includes(action)) {
     openSkillHubConfirm(name, action);
-    return;
-  }
-  if (action === '测试') {
-    openSkillHubEvaluation(name);
     return;
   }
   if (action === '审批') {
@@ -566,6 +570,37 @@ function handleSkillHubAction(name, action) {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 220);
   }, 1800);
+}
+
+function openSkillCreateForHubItem(name, rejected = false) {
+  const item = getSkillHubItem(name);
+  if (!item) {
+    skillHubToast(`${name}：未找到 Skill 信息`);
+    return;
+  }
+  window.__skillHubEditDraft = item;
+  window.__skillHubEditRejected = !!rejected;
+  switchPage('agent.skillCreate');
+  setTimeout(() => {
+    const set = (id, value) => {
+      const el = document.getElementById(id);
+      if (el && value) el.value = value;
+    };
+    set('skill-create-name', item.name);
+    set('skill-create-cn-name', item.cnName);
+    set('skill-create-scene', item.desc);
+    set('skill-create-output', '自然语言响应、表格结果、可继续展开的报告或调整建议');
+    const sub = document.querySelector('.skill-workspace-sub');
+    if (sub) sub.textContent = rejected ? `${item.cnName || item.name} · 已驳回 · 修改中` : `${item.cnName || item.name} · 编辑中`;
+    const banner = document.querySelector('[data-skill-create-panel="config"] .skill-step-banner');
+    if (banner && rejected) {
+      banner.textContent = '当前 Skill 已被管理员驳回，请根据审批意见补充业务边界、测试用例或审批材料后重新提交。';
+    }
+    const reviewStatus = document.getElementById('skill-create-review-status');
+    if (reviewStatus && rejected) reviewStatus.textContent = '当前状态为已驳回，修改完成后可重新提交审核';
+    switchSkillCreateTab('config', document.querySelector('[data-skill-create-tab=config]'));
+  }, 0);
+  skillHubToast(rejected ? `${item.cnName || item.name}：已进入创建流程，请修改后重新提交` : `${item.cnName || item.name}：已进入编辑流程`);
 }
 
 function applySkillHubItem(name) {
@@ -638,12 +673,12 @@ function applySkillHubItem(name) {
     '',
     `**自然语言调用**：${query}`,
     `**调用 Skill**：${item.name}`,
+    `**中文名**：${item.cnName || '-'}`,
     `**版本**：${item.online && item.online !== '未发布' ? item.online : item.version}`,
     `**状态**：${statusNote}`,
     '',
     '**识别结果**：',
     `- 已识别业务场景：${item.category}`,
-    `- 已加载标签：${item.tags.join(' / ')}`,
     `- 已按 Skill 描述执行：${item.desc}`,
     '',
     '**output 结果**：',
@@ -651,10 +686,10 @@ function applySkillHubItem(name) {
   ].join('\n');
 
   if (typeof addAiMessage === 'function') {
-    addAiMessage('user', `请用自然语言调用 Skill「${item.name}」：${query}`);
+    addAiMessage('user', `请用自然语言测试 Skill「${item.name}」：${query}`);
     addAiMessage('assistant', result);
   } else if (typeof aiQuick === 'function') {
-    aiQuick(`请用自然语言调用 Skill「${item.name}」：${query}`);
+    aiQuick(`请用自然语言测试 Skill「${item.name}」：${query}`);
   }
   skillHubToast(`${item.name}：已在右侧 Agent 展示调用结果`);
 }
@@ -863,9 +898,6 @@ function openSkillHubDetail(name) {
               <th>创建时间</th><td>${detail.created}</td>
               <th>更新时间</th><td>${detail.updated}</td>
             </tr>
-            <tr>
-              <th>标签</th><td colspan="3" class="skill-hub-detail-tags">${item.tags.map(tag => `<i>${tag}</i>`).join('')}</td>
-            </tr>
           </tbody>
         </table>
         <div class="skill-hub-detail-history">
@@ -951,7 +983,7 @@ function renderSkillHubEvaluationResult(item) {
           <div class="skill-score-card"><span>结果评分</span><b>0.846</b><i style="--score:84.6%"></i></div>
           <div class="skill-score-card"><span>过程评分</span><b>0.831</b><i style="--score:83.1%"></i></div>
           <div class="skill-score-card"><span>效率评分</span><b>0.888</b><i style="--score:88.8%"></i></div>
-          <div class="skill-score-card featured pass"><span>综合评分</span><b>0.859</b><i style="--score:85.9%"></i><em>已达及格线 0.80</em></div>
+          <div class="skill-score-card featured pass"><span>综合评分</span><b>0.859</b><i style="--score:85.9%"></i><em>已达及格线 0.60</em></div>
         </div>
         <div class="skill-eval-pass">
           <b>评估通过</b>
@@ -1063,6 +1095,7 @@ function submitSkillCreateReview() {
   const existing = PM_SKILL_HUB_ITEMS.find(item => item.name === skillName || item.name === 'workplace-cert-analysis');
   const submitted = {
     name: skillName,
+    cnName: skillCnName,
     platform: 'lexiang',
     desc: `${skillCnName} Skill，归属${menuName}，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。`,
     version: 'v1.0.0',
@@ -1096,13 +1129,11 @@ function filterSkillHub() {
   const keyword = (document.getElementById('skill-hub-search')?.value || '').trim().toLowerCase();
   const status = document.getElementById('skill-hub-status')?.value || 'all';
   const category = document.getElementById('skill-hub-category')?.value || 'all';
-  const tag = document.getElementById('skill-hub-tag')?.value || 'all';
   document.querySelectorAll('.skill-hub-row').forEach(row => {
     const matchKeyword = !keyword || row.textContent.toLowerCase().includes(keyword);
     const matchStatus = status === 'all' || row.dataset.status === status;
     const matchCategory = category === 'all' || row.dataset.category === category;
-    const matchTag = tag === 'all' || row.dataset.tags.split(',').includes(tag);
-    row.style.display = matchKeyword && matchStatus && matchCategory && matchTag ? '' : 'none';
+    row.style.display = matchKeyword && matchStatus && matchCategory ? '' : 'none';
   });
 }
 
@@ -1246,24 +1277,21 @@ function renderAgentSkillsManager(options = {}) {
     .map(status => `<option value="${status}">${skillHubStatusLabel(status)}</option>`).join('');
   const categories = [...new Set(PM_SKILL_HUB_ITEMS.map(item => item.category))]
     .map(category => `<option value="${category}">${category}</option>`).join('');
-  const tags = [...new Set(PM_SKILL_HUB_ITEMS.flatMap(item => item.tags.map(tag => tag.replace(/^\+/, ''))))]
-    .filter(tag => !/^\d+$/.test(tag))
-    .map(tag => `<option value="${tag}">${tag}</option>`).join('');
   const ownCount = PM_SKILL_HUB_ITEMS.filter(item => item.owner === (STATE.user || 'admin')).length;
   const reviewCount = PM_SKILL_HUB_ITEMS.filter(item => item.status === 'review').length;
   const publishedCount = PM_SKILL_HUB_ITEMS.filter(item => item.status === 'published').length;
   const disabledCount = PM_SKILL_HUB_ITEMS.filter(item => item.status === 'disabled').length;
   const rows = PM_SKILL_HUB_ITEMS.map(item => `
-    <tr class="skill-hub-row" data-status="${item.status}" data-category="${item.category}" data-tags="${item.tags.map(tag => tag.replace(/^\+/, '')).join(',')}">
+    <tr class="skill-hub-row" data-status="${item.status}" data-category="${item.category}">
       <td>
         <div class="skill-hub-name"><span class="skill-hub-doc-icon">▤</span><strong>${item.name}</strong></div>
       </td>
+      <td><div class="skill-hub-cn">${item.cnName || '-'}</div></td>
       <td>${item.platform}</td>
       <td><div class="skill-hub-desc">${item.desc}</div></td>
       <td><span class="skill-hub-version">${item.version}</span></td>
       <td><span class="skill-hub-online ${item.online === '未发布' ? 'empty' : ''}">${item.online}</span></td>
       <td><span class="skill-hub-status status-${item.status}">${item.statusText}</span></td>
-      <td><div class="skill-hub-tags">${item.tags.map(tag => `<span>${tag}</span>`).join('')}</div></td>
       <td>${item.updated}</td>
       <td><div class="skill-hub-actions">${renderSkillHubActions(item, role)}</div></td>
     </tr>`).join('');
@@ -1272,7 +1300,7 @@ function renderAgentSkillsManager(options = {}) {
       <div class="page-header">
         <div>
           <div class="page-title">Skill Hub</div>
-          <div class="page-desc">${role === 'admin' ? '管理员可审批、发布、启用或禁用 Skill；PM 可查看自己提交的 Skill 状态。' : 'PM 查看自己提交的 Skill 状态，并对自己的 Skill 执行提交审核、编辑、测试、启用或禁用。'}</div>
+          <div class="page-desc">${role === 'admin' ? '管理员可审批、驳回、发布、启用或禁用 Skill；已驳回的 Skill 不再展示发布或审批操作。' : 'PM 查看自己提交的 Skill 状态；被驳回的 Skill 可返回创建流程修改后重新提交。'}</div>
         </div>
         <div class="agent-skill-page-actions">
           <button class="btn btn-primary" onclick="openSkillCreatePage()">创建 Skill</button>
@@ -1289,10 +1317,9 @@ function renderAgentSkillsManager(options = {}) {
       </div>
 
       <div class="skill-hub-toolbar">
-        <input id="skill-hub-search" placeholder="搜索技能名称或描述" oninput="filterSkillHub()">
+        <input id="skill-hub-search" placeholder="搜索技能名称、中文名或描述" oninput="filterSkillHub()">
         <select id="skill-hub-status" onchange="filterSkillHub()"><option value="all">状态</option>${statusOptions}</select>
         <select id="skill-hub-category" onchange="filterSkillHub()"><option value="all">分类</option>${categories}</select>
-        <select id="skill-hub-tag" onchange="filterSkillHub()"><option value="all">标签</option>${tags}</select>
         <button class="btn btn-primary" onclick="filterSkillHub()">搜索</button>
       </div>
 
@@ -1301,12 +1328,12 @@ function renderAgentSkillsManager(options = {}) {
           <thead>
             <tr>
               <th>名称</th>
+              <th>中文名</th>
               <th>绑定平台</th>
               <th>描述</th>
               <th>版本</th>
               <th>上线版本</th>
               <th>状态</th>
-              <th>标签</th>
               <th>更新时间</th>
               <th>操作</th>
             </tr>
@@ -1796,9 +1823,9 @@ function startSkillCreateAiTune() {
   if (typeof toggleAI === 'function') toggleAI(true);
   if (typeof aiHideEmptyState === 'function') aiHideEmptyState();
   if (typeof addAiMessage === 'function') {
-    addAiMessage('user', '请针对 Skill 创建评估验证中的低分项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。');
+    addAiMessage('user', '请针对 Skill 创建评估验证中的可优化项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。');
     addAiMessage('assistant', [
-      '已定位 2 个低分项，并完成 Skill 微调：',
+      '已定位 2 个可优化项，并完成 Skill 微调：',
       '',
       '- 将认证数据查询流程拆成「参数确认 → 数据读取 → 异常兜底 → 结果生成 → 高风险动作确认」。',
       '- 补充导出 CSV、定时报告、异常提醒前的确认节点，明确范围、对象、频率和影响。',
@@ -1816,7 +1843,7 @@ function startSkillCreateAiTune() {
         <div class="skill-score-card"><span>结果评分</span><b>0.846</b><i style="--score:84.6%"></i></div>
         <div class="skill-score-card"><span>过程评分</span><b>0.831</b><i style="--score:83.1%"></i></div>
         <div class="skill-score-card"><span>效率评分</span><b>0.888</b><i style="--score:88.8%"></i></div>
-        <div class="skill-score-card featured pass"><span>综合评分</span><b>0.859</b><i style="--score:85.9%"></i><em>已达及格线 0.80</em></div>`;
+        <div class="skill-score-card featured pass"><span>综合评分</span><b>0.859</b><i style="--score:85.9%"></i><em>已达及格线 0.60</em></div>`;
     }
     const gate = document.getElementById('skill-create-eval-gate');
     if (gate) {
@@ -1842,7 +1869,7 @@ function startSkillCreateAiTune() {
         <div class="skill-optimization-head">
           <div>
             <b>AI 微调完成</b>
-            <span>低分项已修复，评分结果已刷新。核心风险已补齐，可提交审核。</span>
+            <span>可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。</span>
           </div>
           <button class="btn btn-secondary" onclick="appendSkillClarifyAssistant('AI 微调已完成：流程步骤、关键确认节点和失败 case 已补齐；可进入提交审核。')">同步到需求澄清</button>
         </div>
@@ -2142,7 +2169,6 @@ function renderSkillCreatePage() {
               </div>
             </div>
             <div class="skill-create-step-actions">
-              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
               <button class="btn btn-primary" onclick="goSkillCreateNext('config')">下一步：需求澄清</button>
             </div>
           </div>
@@ -2227,30 +2253,106 @@ function renderSkillCreatePage() {
               <button type="button" aria-label="发送澄清内容" onclick="submitSkillClarifyMessage()">➤</button>
             </div>
             <div class="skill-create-step-actions">
-              <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
               <button class="btn btn-secondary" onclick="switchSkillCreateTab('config', document.querySelector('[data-skill-create-tab=config]'))">上一步</button>
               <button class="btn btn-primary" onclick="goSkillCreateNext('clarify')">下一步：生成 Skill 草稿</button>
             </div>
           </div>
 
           <div class="skill-create-panel" data-skill-create-panel="draft">
-            <div class="skill-code-card">
-              <pre>skill:
+            <div class="skill-code-card skill-draft-workspace">
+              <aside class="skill-draft-tree" aria-label="Skill 草稿文件树">
+                <div class="skill-draft-tree-head">
+                  <span class="skill-tree-head-icon"></span>
+                  <b>Docs</b>
+                  <small>~ · skill-create · docs</small>
+                </div>
+                <div class="skill-draft-tree-body">
+                  <div class="skill-tree-row folder open depth-0">
+                    <span class="skill-tree-caret">▾</span>
+                    <span class="skill-tree-icon folder"></span>
+                    <b>employee_certification_analysis</b>
+                    <em>4</em>
+                  </div>
+                  <div class="skill-tree-row folder open depth-1">
+                    <span class="skill-tree-caret">▾</span>
+                    <span class="skill-tree-icon folder"></span>
+                    <b>config</b>
+                    <em>1</em>
+                  </div>
+                  <button type="button" class="skill-tree-row file active depth-2">
+                    <span class="skill-tree-caret"></span>
+                    <span class="skill-tree-icon file yaml"></span>
+                    <b>skill.yaml</b>
+                  </button>
+                  <div class="skill-tree-row folder open depth-1">
+                    <span class="skill-tree-caret">▾</span>
+                    <span class="skill-tree-icon folder"></span>
+                    <b>rules</b>
+                    <em>1</em>
+                  </div>
+                  <button type="button" class="skill-tree-row file depth-2">
+                    <span class="skill-tree-caret"></span>
+                    <span class="skill-tree-icon file md"></span>
+                    <b>business_rules.md</b>
+                  </button>
+                  <div class="skill-tree-row folder open depth-1">
+                    <span class="skill-tree-caret">▾</span>
+                    <span class="skill-tree-icon folder"></span>
+                    <b>evaluation</b>
+                    <em>2</em>
+                  </div>
+                  <button type="button" class="skill-tree-row file depth-2">
+                    <span class="skill-tree-caret"></span>
+                    <span class="skill-tree-icon file json"></span>
+                    <b>test_cases.json</b>
+                  </button>
+                  <button type="button" class="skill-tree-row file depth-2">
+                    <span class="skill-tree-caret"></span>
+                    <span class="skill-tree-icon file md"></span>
+                    <b>sample_queries.md</b>
+                  </button>
+                </div>
+              </aside>
+              <section class="skill-draft-editor" aria-label="生成的 Skill 草稿">
+                <div class="skill-draft-editor-head">
+                  <span>skill.yaml</span>
+                  <small>Generated draft</small>
+                </div>
+                <pre>skill:
   name: employee_certification_analysis
-  title: 职场人群认证数据分析
-  trigger: natural_language | scheduled_report
+  cn_name: 职场人群认证数据分析
+  version: 1.0.0
+  trigger:
+    - natural_language
+    - scheduled_report
+    - anomaly_alert
   scope:
     - 认证记录查询
     - 认证方式分布
     - 通过率和失败原因分析
+    - 待审核积压提醒
   boundary:
     - 只读分析
     - 不修改用户认证状态
-    - 不导出敏感明文信息
+    - 导出 CSV 默认脱敏
+    - 导出前校验组织权限
+  inputs:
+    - 时间范围
+    - 认证方式
+    - 认证状态
+    - 企业名称
+    - 失败原因
+    - 输出格式
   outputs:
-    - text_summary
-    - table
-    - csv_link</pre>
+    direct_response: 文本摘要与趋势判断
+    display_info: 认证方式分布表、失败原因 TopN
+    link_list: 脱敏 CSV 下载链接
+  files:
+    - skill.yaml
+    - business_rules.md
+    - test_cases.json
+    - sample_queries.md</pre>
+              </section>
             </div>
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary skill-draft-save" onclick="saveSkillCreateDraft()">保存草稿</button>
@@ -2263,7 +2365,7 @@ function renderSkillCreatePage() {
             <div class="skill-eval-head">
               <div>
                 <b>评估验证</b>
-                <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.80。</p>
+                <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.60。</p>
               </div>
               <button class="btn btn-secondary" onclick="alert('已发起重新评估')">重新评估</button>
             </div>
@@ -2272,27 +2374,27 @@ function renderSkillCreatePage() {
               <div class="skill-score-card"><span>结果评分</span><b>0.804</b><i style="--score:80.4%"></i></div>
               <div class="skill-score-card"><span>过程评分</span><b>0.742</b><i style="--score:74.2%"></i></div>
               <div class="skill-score-card"><span>效率评分</span><b>0.831</b><i style="--score:83.1%"></i></div>
-              <div class="skill-score-card featured"><span>综合评分</span><b>0.782</b><i style="--score:78.2%"></i><em>未达及格线 0.80</em></div>
+              <div class="skill-score-card featured pass"><span>综合评分</span><b>0.782</b><i style="--score:78.2%"></i><em>已达及格线 0.60</em></div>
             </div>
-            <div class="skill-eval-gate warn" id="skill-create-eval-gate">
-              <b>存在低分项</b>
-              <span>综合评分 0.782，暂未达到提交审核门槛。建议先由 AI 助手微调流程步骤和关键确认节点，再刷新评估结果。</span>
+            <div class="skill-eval-gate pass" id="skill-create-eval-gate">
+              <b>评估通过</b>
+              <span>综合评分 0.782，已达到提交审核门槛。仍可由 AI 助手微调流程步骤和关键确认节点，进一步优化草稿质量。</span>
             </div>
             <div class="skill-eval-list" id="skill-create-eval-list">
               <div><span class="pass">PASS</span><b>基本信息规范</b><em>1.00</em></div>
-              <div class="needs-fix"><span class="warn">FIX</span><b>流程步骤清晰<small>缺少参数确认、异常兜底和结果交付的分步描述</small></b><em>0.72</em></div>
+              <div><span class="pass">PASS</span><b>流程步骤清晰<small>可继续补充参数确认、异常兜底和结果交付的分步描述</small></b><em>0.72</em></div>
               <div><span class="pass">PASS</span><b>异常处理完善<small>已覆盖无数据、字段缺失、权限不足时的兜底话术</small></b><em>0.90</em></div>
-              <div class="needs-fix"><span class="warn">FIX</span><b>关键节点确认<small>导出 CSV、定时报告和异常提醒前的确认范围不够明确</small></b><em>0.74</em></div>
+              <div><span class="pass">PASS</span><b>关键节点确认<small>可继续明确导出 CSV、定时报告和异常提醒前的确认范围</small></b><em>0.74</em></div>
               <div><span class="pass">PASS</span><b>指令具体明确</b><em>1.00</em></div>
               <div><span class="pass">PASS</span><b>资源引用有效</b><em>1.00</em></div>
               <div><span class="pass">PASS</span><b>平台适配合规</b><em>1.00</em></div>
               <div><span class="pass">PASS</span><b>测试用例充分</b><em>1.00</em></div>
             </div>
-            <div class="skill-optimization-panel needs-tune" id="skill-create-optimization-panel">
+            <div class="skill-optimization-panel" id="skill-create-optimization-panel">
               <div class="skill-optimization-head">
                 <div>
-                  <b>AI 可微调低分项</b>
-                  <span>检测到 2 个低分项：流程步骤清晰、关键节点确认。可唤起右侧 AI 助手调整 Skill 草稿并刷新评分结果。</span>
+                  <b>AI 可继续优化</b>
+                  <span>当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。</span>
                 </div>
                 <button id="skill-ai-tune-btn" class="btn btn-primary" onclick="startSkillCreateAiTune()">AI 微调</button>
               </div>
@@ -2339,8 +2441,8 @@ function renderSkillCreatePage() {
                 <button class="btn btn-secondary" onclick="switchSkillCreateTab('verify', document.querySelector('[data-skill-create-tab=verify]'))">返回评估验证</button>
               </div>
               <div class="skill-doc-list">
-                <div><span>门槛</span><b>综合评分 ≥ 0.80</b></div>
-                <div><span>状态</span><b>当前综合评分 0.859，已达到审核门槛</b></div>
+                <div><span>门槛</span><b>综合评分 ≥ 0.60</b></div>
+                <div><span>状态</span><b>当前综合评分 0.782，已达到审核门槛</b></div>
                 <div><span>动作</span><b id="skill-create-review-status">提交审核后停留当前页面，Skill Hub 状态变为待审批</b></div>
                 <div><span>后续</span><b>审核通过后才可上传发布</b></div>
               </div>
@@ -2397,7 +2499,7 @@ function renderAgentPermissionManager() {
         <thead><tr><th>对象</th><th>可见范围</th><th>可操作</th><th>审批要求</th><th>状态</th></tr></thead>
         <tbody>
           <tr><td>创建 Skill</td><td>PM / 平台侧</td><td>创建、保存草稿、提交审核</td><td>提交后由管理员审批</td><td><span class="badge green">启用</span></td></tr>
-          <tr><td>Skill Hub</td><td>PM / 管理员</td><td>查看状态、测试、审批、发布、启停</td><td>发布和禁用需确认</td><td><span class="badge green">启用</span></td></tr>
+          <tr><td>Skill Hub</td><td>PM / 管理员</td><td>查看状态、编辑、评估、测试、审批、发布、启停</td><td>发布和禁用需确认；驳回后由 PM 返回创建流程修改</td><td><span class="badge green">启用</span></td></tr>
           <tr><td>管理技能包</td><td>业务用户</td><td>查看可用技能包、启停状态、调用说明</td><td>高风险启停需留痕</td><td><span class="badge blue">业务入口</span></td></tr>
         </tbody>
       </table>

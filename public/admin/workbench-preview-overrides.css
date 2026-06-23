@@ -9111,3 +9111,77 @@ html[data-product="leaibot"] .lead-score-page .lead-abtn {
   border-radius: 7px !important;
   background: #fff !important;
 }
+
+/* 20260623 UI Skill normalization: keep the AI composer on the 0623 contract. */
+html[data-product="leaibot"] .ai-input-area {
+  padding: 10px var(--ai-panel-gutter, 16px) 12px !important;
+}
+
+html[data-product="leaibot"] .ai-input-combo {
+  border-radius: 12px !important;
+}
+
+html[data-product="leaibot"] .ai-scope-row {
+  display: flex !important;
+  min-height: 38px !important;
+  padding: 6px 7px !important;
+}
+
+html[data-product="leaibot"] .ai-shortcuts {
+  display: flex !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+}
+
+html[data-product="leaibot"] .ai-scope-arrow:not([hidden]) {
+  display: inline-flex !important;
+}
+
+html[data-product="leaibot"] .ai-scope-arrow[hidden] {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .ai-scope-select {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .ai-composer-box {
+  min-height: 46px !important;
+  padding: 5px !important;
+}
+
+html[data-product="leaibot"] .ai-input {
+  min-height: 36px !important;
+  max-height: 76px !important;
+  padding: 8px 2px !important;
+  line-height: 1.5 !important;
+  overflow-y: hidden;
+}
+
+html[data-product="leaibot"] .ai-input.is-scrollable {
+  overflow-y: auto !important;
+}
+
+html[data-product="leaibot"] .ai-send,
+html[data-product="leaibot"] body.dark-mode .ai-send,
+html[data-product="leaibot"] body:not(.dark-mode) .ai-send {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  text-indent: 0 !important;
+}
+
+html[data-product="leaibot"] .ai-send::before {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .ai-send svg,
+html[data-product="leaibot"] body.dark-mode .ai-send svg,
+html[data-product="leaibot"] body:not(.dark-mode) .ai-send svg {
+  display: block !important;
+  width: 15px !important;
+  height: 15px !important;
+}

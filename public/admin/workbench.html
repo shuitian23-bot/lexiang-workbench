@@ -6,11 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="workbench.css?v=20260623-ai-chip-query2">
+<link rel="stylesheet" href="workbench.css?v=20260623-skill-draft-tree2">
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
 <link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
-<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260618-ai-collapse-original1">
+<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260623-ui-skill1">
 <script>
   window.LEAIBOT_PREVIEW_MODE = /[?&](demo|preview)=1\b/.test(location.search) || location.protocol === 'file:';
   if (window.LEAIBOT_PREVIEW_MODE) {
@@ -1039,6 +1039,34 @@ function openPocAdjustmentLog() {
   if (existing) existing.remove();
   const records = [
     {
+      time: '2026-06-23 17:33',
+      title: 'Skill 创建评估及格线调整',
+      scope: 'Skill 创建 / 评估验证 / 提交审核门槛',
+      detail: '评估验证综合评分及格线从 0.80 调整为 0.60；当前综合评分 0.782 直接显示评估通过并允许进入提交审核，AI 微调保留为可选优化动作。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-23 17:26',
+      title: 'Skill 创建草稿生成布局调整',
+      scope: 'Skill 创建 / 基础配置 / 需求澄清 / 草稿生成',
+      detail: '基础配置、需求澄清阶段移除保存草稿按钮；草稿生成阶段改为深色左右分栏，左侧按 IDE 文件树展示目录、缩进层级、文件类型图标和选中态，右侧展示生成草稿内容。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-23 17:07',
+      title: 'Skill Hub 列表与角色操作调整',
+      scope: 'Skill Hub / 列表字段 / 操作列 / 管理员与 PM 角色',
+      detail: 'Skill Hub 列表新增中文名列并移除标签列和标签筛选；操作列中“测试”改为“评估”，“应用”改为“测试”；管理员驳回后状态显示已驳回且不再展示发布、审批；PM 侧可看到编辑，被驳回的 Skill 可点击返回创建流程修改。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-23 14:22',
+      title: '0623 UI Skill 规范归一',
+      scope: '右侧 Agent / 底部输入区 / 快捷 chips / 样式覆盖层',
+      detail: '按 portal-workbench-ui-0623 样式规范收敛右侧 Agent 底部输入区：chips 始终保持横向 pill 与左右箭头，不退化为下拉框；输入框默认 36px、最多 3 行内滚动；发送按钮统一为 32px 单图标控件。',
+      status: '已合并正式'
+    },
+    {
       time: '2026-06-23 14:11',
       title: '右侧 Agent 快捷 chips 查询触发',
       scope: '右侧 Agent / 底部快捷 chips',
@@ -1260,11 +1288,11 @@ function switchBehaviorTab(tab, el) {
 </script>
 <!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
 <script src="workbench-data-leai.js"></script>
-<script src="workbench-pages.js?v=20260622-skill-hub-apply-test1"></script>
+<script src="workbench-pages.js?v=20260623-skill-score-threshold1"></script>
 <script src="workbench-lead.js?v=20260618-wangxt8-lead1"></script>
 <script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
 <script src="workbench-geo.js?v=20260617-report-openall1"></script>
-	<script src="workbench-ai.js?v=20260623-ai-chip-query1"></script>
+	<script src="workbench-ai.js?v=20260623-ui-skill1"></script>
 <script src="workbench-data.js?v=20260618-topbar-clean1"></script>
 <script src="workbench-employee.js?v=20260605-design-global4"></script>
 <script src="workbench-ops.js?v=20260611-component-fix1"></script>

@@ -1422,14 +1422,15 @@ function _aiAutoResizeInput() {
     input.style.overflowY = 'hidden';
     return;
   }
-  const maxHeight = 128;
+  const maxHeight = 76;
   const styles = getComputedStyle(input);
   const lineHeight = parseFloat(styles.lineHeight) || 19;
-  const verticalPadding = 20;
+  const verticalPadding = 16;
   const lineCount = input.value.split('\n').length;
   const nextHeight = Math.min(maxHeight, Math.max(36, Math.ceil(verticalPadding + lineHeight * lineCount)));
   input.style.height = nextHeight + 'px';
   input.style.overflowY = nextHeight >= maxHeight ? 'auto' : 'hidden';
+  input.classList.toggle('is-scrollable', nextHeight >= maxHeight);
 }
 
 function _aiCanSend() {

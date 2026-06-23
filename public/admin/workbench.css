@@ -1201,6 +1201,208 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   line-height:1.7;
   white-space:pre-wrap;
 }
+.skill-draft-workspace {
+  display:grid;
+  grid-template-columns:300px minmax(0, 1fr);
+  min-height:480px;
+  background:#080d18;
+  border-color:rgba(148,163,184,.22);
+}
+.skill-draft-tree {
+  min-width:0;
+  background:linear-gradient(180deg, #111326 0%, #0d1020 100%);
+  border-right:1px solid rgba(91,103,138,.38);
+  color:#b7c4dc;
+  box-shadow:inset -10px 0 18px rgba(0,0,0,.16);
+}
+.skill-draft-tree-head {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:46px;
+  padding:0 16px;
+  border-bottom:1px solid rgba(91,103,138,.36);
+  background:#111326;
+}
+.skill-tree-head-icon {
+  width:17px;
+  height:13px;
+  border:2px solid #6d8cff;
+  border-radius:3px;
+  position:relative;
+  flex:0 0 auto;
+  opacity:.9;
+}
+.skill-tree-head-icon::before {
+  content:"";
+  position:absolute;
+  left:1px;
+  top:-6px;
+  width:8px;
+  height:5px;
+  border:2px solid #6d8cff;
+  border-bottom:0;
+  border-radius:3px 3px 0 0;
+  background:#111326;
+}
+.skill-draft-tree-head b {
+  color:#e5edff;
+  font-size:13px;
+  font-weight:800;
+}
+.skill-draft-tree-head small {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#7787a3;
+  font-size:11px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.skill-draft-tree-body {
+  padding:12px 6px 18px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.skill-tree-row {
+  width:100%;
+  min-height:30px;
+  display:grid;
+  grid-template-columns:15px 18px minmax(0,1fr) auto;
+  align-items:center;
+  gap:7px;
+  padding:4px 8px;
+  border:0;
+  border-radius:4px;
+  background:transparent;
+  color:#b7c4dc;
+  text-align:left;
+  font:inherit;
+}
+.skill-tree-row.file {
+  cursor:default;
+}
+.skill-tree-row.depth-1 { padding-left:26px; }
+.skill-tree-row.depth-2 { padding-left:52px; }
+.skill-tree-row.active {
+  background:rgba(69,79,137,.45);
+  color:#e6edff;
+}
+.skill-tree-row b {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+  font-weight:700;
+}
+.skill-tree-row em {
+  color:#4d5f84;
+  font-size:10px;
+  font-style:normal;
+  font-weight:700;
+}
+.skill-tree-caret {
+  color:#7d89a6;
+  font-size:11px;
+  line-height:1;
+}
+.skill-tree-icon {
+  position:relative;
+  width:16px;
+  height:15px;
+  flex:0 0 auto;
+}
+.skill-tree-icon.folder {
+  border-radius:3px;
+  background:#f6c548;
+  box-shadow:0 0 0 1px rgba(0,0,0,.18), inset 0 -2px 0 rgba(0,0,0,.12);
+}
+.skill-tree-icon.folder::before {
+  content:"";
+  position:absolute;
+  left:1px;
+  top:-4px;
+  width:8px;
+  height:5px;
+  border-radius:3px 3px 0 0;
+  background:#e2ae35;
+}
+.skill-tree-icon.file {
+  width:13px;
+  height:16px;
+  border-radius:2px;
+  background:#f8fafc;
+  box-shadow:0 0 0 1px rgba(100,116,139,.3);
+}
+.skill-tree-icon.file::after {
+  content:"";
+  position:absolute;
+  right:0;
+  top:0;
+  width:5px;
+  height:5px;
+  border-left:1px solid rgba(100,116,139,.28);
+  border-bottom:1px solid rgba(100,116,139,.28);
+  background:#cbd5e1;
+}
+.skill-tree-icon.file.yaml::before,
+.skill-tree-icon.file.md::before,
+.skill-tree-icon.file.json::before {
+  content:"";
+  position:absolute;
+  left:3px;
+  bottom:3px;
+  width:7px;
+  height:2px;
+  border-radius:999px;
+}
+.skill-tree-icon.file.yaml::before { background:#3b82f6; }
+.skill-tree-icon.file.md::before { background:#ef4444; }
+.skill-tree-icon.file.json::before { background:#22c55e; }
+.skill-tree-row:hover {
+  background:rgba(69,79,137,.24);
+}
+.skill-draft-editor {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  background:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+    #080d18;
+  background-size:32px 32px;
+}
+.skill-draft-editor-head {
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 16px;
+  border-bottom:1px solid rgba(148,163,184,.14);
+  background:rgba(15,23,42,.72);
+}
+.skill-draft-editor-head span {
+  color:#dbeafe;
+  font-size:13px;
+  font-weight:800;
+}
+.skill-draft-editor-head small {
+  color:#64748b;
+  font-size:11px;
+}
+.skill-draft-editor pre {
+  flex:1 1 auto;
+  min-height:0;
+  margin:0;
+  padding:22px 24px;
+  color:#dbeafe;
+  overflow:auto;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size:12px;
+  line-height:1.72;
+  white-space:pre-wrap;
+}
 .skill-rule-grid {
   display:grid;
   grid-template-columns:repeat(3, minmax(0,1fr));
@@ -1448,7 +1650,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-hub-summary div { background:#fff; border:1px solid var(--border-light); border-radius:8px; padding:14px 16px; }
 .skill-hub-summary strong { display:block; font-size:22px; line-height:1.2; color:var(--text); }
 .skill-hub-summary span { display:block; margin-top:6px; font-size:12px; color:var(--text-secondary); }
-.skill-hub-toolbar { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr auto; gap:10px; align-items:center; }
+.skill-hub-toolbar { display:grid; grid-template-columns:1.4fr 1fr 1fr auto; gap:10px; align-items:center; }
 .skill-hub-toolbar input,
 .skill-hub-toolbar select {
   height:36px; border:1px solid var(--border); border-radius:6px; background:#fff; padding:0 12px; color:var(--text); outline:none;
@@ -1456,7 +1658,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-hub-toolbar input:focus,
 .skill-hub-toolbar select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(51,112,255,0.08); }
 .skill-hub-table-card { background:#fff; border:1px solid var(--border-light); border-radius:8px; overflow:auto; }
-.skill-hub-table { width:100%; min-width:1120px; border-collapse:collapse; font-size:13px; }
+.skill-hub-table { width:100%; min-width:1160px; border-collapse:collapse; font-size:13px; }
 .skill-hub-table th {
   text-align:left; color:var(--text-tertiary); font-weight:600; background:#f8fafc; padding:12px 14px; border-bottom:1px solid var(--border-light); white-space:nowrap;
 }
@@ -1464,6 +1666,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-hub-table tbody tr:hover { background:#f9fbff; }
 .skill-hub-name { display:flex; align-items:center; gap:8px; min-width:190px; color:var(--text); }
 .skill-hub-name strong { font-weight:600; }
+.skill-hub-cn { min-width:120px; color:var(--text); font-weight:600; white-space:nowrap; }
 .skill-hub-doc-icon { color:#ef466f; font-size:14px; }
 .skill-hub-desc { max-width:300px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .skill-hub-version,
@@ -5112,7 +5315,7 @@ html[data-product="leaibot"] .skill-hub-summary span {
 
 html[data-product="leaibot"] .skill-hub-toolbar {
   display:grid !important;
-  grid-template-columns:minmax(260px,1.6fr) minmax(140px,.8fr) minmax(140px,.8fr) minmax(140px,.8fr) auto;
+  grid-template-columns:minmax(260px,1.6fr) minmax(140px,.8fr) minmax(140px,.8fr) auto;
   gap:10px;
   align-items:center;
   padding:14px;
@@ -5152,7 +5355,7 @@ html[data-product="leaibot"] .skill-hub-table-card {
 
 html[data-product="leaibot"] .skill-hub-table {
   width:100%;
-  min-width:1180px;
+  min-width:1200px;
   border-collapse:separate;
   border-spacing:0;
   font-size:13px;
@@ -5198,6 +5401,15 @@ html[data-product="leaibot"] .skill-hub-name strong {
   font-weight:600;
   line-height:1.35;
   word-break:break-word;
+}
+
+html[data-product="leaibot"] .skill-hub-cn {
+  min-width:120px;
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  line-height:1.35;
+  white-space:nowrap;
 }
 
 html[data-product="leaibot"] .skill-hub-doc-icon {
@@ -5283,6 +5495,11 @@ html[data-product="leaibot"] .skill-hub-status.status-published {
 html[data-product="leaibot"] .skill-hub-status.status-disabled {
   background:#f1f5f9;
   color:#64748b;
+}
+
+html[data-product="leaibot"] .skill-hub-status.status-rejected {
+  background:#fef2f2;
+  color:#ef4444;
 }
 
 html[data-product="leaibot"] .skill-hub-tags {
