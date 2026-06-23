@@ -144,6 +144,16 @@ router.post('/wiki-history', async (req, res) => {
   }
 });
 
+// 联想官网引用 URL Top10（固定项目143，2026-05-01累计）
+router.post('/source-top10', async (req, res) => {
+  try {
+    const data = await proxyExternalPost('source-top10', req.body);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.post('/conversion', (req, res) => {
   res.status(501).json({
     code: 501,
