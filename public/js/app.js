@@ -2147,7 +2147,10 @@ if (!window.__lxMemberFetched) {
 
         // 整机过滤：子品牌电脑楼层只放笔记本/台式整机，剔除配件周边（货盘里部分配件 category 错标成"笔记本电脑"，按名字兜底排除）
         const LX_PERIPHERAL_RE = /固态硬盘|SSD|移动硬盘|适配器|电源线|电源适配|双肩包|背包|斜挎|行李箱|鼠标|键盘膜|键盘|耳机|散热器|散热|支架|增高|水杯|T-?Shirt|T恤|卫衣|羽绒|马甲|自行车|手柄|底座|随身WIFI|电竞WiFi|WiFi|移动电源|充电|剃须刀|眼镜|拆机|兑换卡|电竞椅|椅|彩膜|保护壳|保护夹|钢化膜|延保|只换不修|保值|换新|服务包/i;
-        const lxIsWholeMachine = (p) => !LX_PERIPHERAL_RE.test(`${p.name || ""}`);
+        // 整机楼层精准黑名单（只排明确非整机/B端办公品，宁漏勿误，不用「充电/会议/音箱」等宽词误伤正常机型）。
+        // 查 name+description（moto buds 名里没「耳机」，desc 才有）。会议平板/大屏属 B 端，个人站不展示。
+        const LX_NON_MACHINE_RE = /耳机|buds|延保|服务包|权益包|出行权益|套餐|手柄|会议平板|会议大屏|传屏器|移动支架|电子白板|触控会议|自行车|滑板车|双肩包|背包|斜挎|行李箱|鼠标|键盘膜|贴膜|钢化膜|彩膜|保护套|保护壳|保护夹|水杯|T-?Shirt|T恤|卫衣|羽绒|马甲|剃须刀|拆机|兑换卡/i;
+        const lxIsWholeMachine = (p) => !LX_NON_MACHINE_RE.test(`${p.name || ""} ${p.description || ""}`);
 
         // 全屋智能关键词：命中→全屋楼层；不命中→智能生活楼层（两者共享 category='智能生活'，靠此正则拆分）
         const LX_SMARTHOME_RE = /全屋|智能家居|门锁|网关|摄像头|摄像机|传感器|智能灯|智能开关|智能插座|路由器|门铃|监控/;
@@ -2188,7 +2191,8 @@ if (!window.__lxMemberFetched) {
           {
             label: "配件/办公",
             categories: ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"],
-            filter: (p) => ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"].includes(p.category) && lxIsValidProduct(p),
+            // 会议平板/大屏属 B 端商用，个人站不展示（无论它被标成哪个 category）
+            filter: (p) => ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"].includes(p.category) && lxIsValidProduct(p) && !/会议平板|会议大屏|传屏器|电子白板|触控会议/.test(`${p.name || ""} ${p.description || ""}`),
           },
           {
             label: "全屋智能",
