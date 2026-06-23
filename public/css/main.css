@@ -9417,3 +9417,9 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
   background:#fbece9!important;
   color:var(--brand-red)!important;
 }
+
+/* Detail main cleanup: remove container border and shadow. */
+.content[data-view="detail"] .detail-main {
+  border:0!important;
+  box-shadow:none!important;
+}
