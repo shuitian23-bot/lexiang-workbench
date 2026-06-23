@@ -3180,11 +3180,32 @@ if (!window.__lxMemberFetched) {
           return bar;
         }
 
+        function lxMoveTabInk() {
+          const bar = document.querySelector(".lx-tabbar");
+          if (!bar || bar.hidden) return;
+          let ink = bar.querySelector(".lx-tab-ink");
+          if (!ink) {
+            ink = document.createElement("span");
+            ink.className = "lx-tab-ink";
+            ink.setAttribute("aria-hidden", "true");
+            bar.appendChild(ink);
+          }
+          const active = bar.querySelector(".lx-tab.is-active") || bar.querySelector(".lx-tab");
+          const lab = active ? (active.querySelector(".lx-tab-label") || active) : null;
+          if (!active || !lab) { ink.style.width = "0px"; return; }
+          const inkWidth = Math.min(50, lab.offsetWidth || active.offsetWidth || 0);
+          ink.style.left = (active.offsetLeft + lab.offsetLeft + ((lab.offsetWidth || active.offsetWidth) - inkWidth) / 2) + "px";
+          ink.style.width = inkWidth + "px";
+        }
+        window.addEventListener("resize", () => requestAnimationFrame(lxMoveTabInk));
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(lxMoveTabInk));
+
         function lxRenderTabbar() {
           const bar = lxEnsureTabbar();
           const tabs = state.tabs || [];
-          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("");
+          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
           bar.hidden = tabs.length <= 1; // 单标签无切换意义，隐藏（用户反馈）
+          requestAnimationFrame(lxMoveTabInk);
         }
 
         function lxUpsertTab(tab, activate = true) {
