@@ -5228,7 +5228,9 @@
       .lx-bf-row.final b { color: var(--lx-brand-red); font-size: 17px; }
       .lx-cmp-wrap { overflow-x: auto; }
       .lx-cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-      .lx-cmp-table th, .lx-cmp-table td { border: 1px solid var(--lx-border); padding: 7px 10px; text-align: left; vertical-align: top; }
+      /* 多款对比(最多8列)时每列保底宽度,超出容器由 .lx-cmp-wrap 横滚,不挤成一团 */
+      .lx-cmp-table th, .lx-cmp-table td { border: 1px solid var(--lx-border); padding: 7px 10px; text-align: left; vertical-align: top; min-width: 132px; }
+      .lx-cmp-table th.lx-cmp-label, .lx-cmp-table td.lx-cmp-label { min-width: 76px; position: sticky; left: 0; background: var(--lx-surface-muted); z-index: 1; }
       .lx-cmp-table thead th { background: var(--lx-surface-muted); }
       .lx-cmp-name { font-weight: 600; }
       .lx-cmp-price { color: var(--lx-brand-red); font-weight: 700; }
