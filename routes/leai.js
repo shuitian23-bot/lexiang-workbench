@@ -389,14 +389,16 @@ router.post('/intent', (req, res) => {
 {"type":"chat","op":"","target":""}
 
 操作码枚举（从以下选一个，不能自造）：
-close_all_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen
+close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen
 
 判断规则：
 1. 只有用户明确要求"操作界面/页面/标签/全屏"时才返回 type=control，选最贴切的 op。
 2. 商品咨询、推荐、参数、价格、政策、闲聊、比较等一律 type=chat（op和target留空字符串）。
 3. "打开/帮我看/看下 XX 商品""帮我打开拯救者Y9000P" → op=open_product，target填商品名/型号。
 4. "全屏/放大/沉浸/专注模式" → op=enter_fullscreen；"退出全屏/缩小/分屏/恢复窗口" → op=exit_fullscreen。
-5. "关所有标签/关掉所有页面/清空标签" → op=close_all_tabs。
+5. "关所有标签/关掉所有页面/清空标签/全部关掉" → op=close_all_tabs。
+   "关闭其他标签/只留当前/留一个/留一排/关掉多余的标签/关掉除当前外的/把标签关成剩余一排" → op=close_other_tabs（保留当前页面，关其余）。
+   "关闭这个标签/关掉当前页/关闭XX标签" → op=close_tab，target填要关的标签名（没明确名就留空）。
 6. "回首页/去首页" → op=go_home；"打开购物车" → op=open_cart；"看我的订单" → op=open_orders。
 7. 拿不准的一律判 type=chat（宁可走问答，不误触发操作）。`;
   const body = JSON.stringify({
