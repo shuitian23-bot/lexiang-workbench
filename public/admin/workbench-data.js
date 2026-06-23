@@ -1841,6 +1841,7 @@ function getSearchResults(q) {
 
 function renderSearchDropdown(q) {
   const dd = document.getElementById('search-dropdown');
+  if (!dd) return;
   if (!q) { dd.style.display = 'none'; return; }
   const results = getSearchResults(q);
   if (!results.length) {
@@ -1855,36 +1856,46 @@ function renderSearchDropdown(q) {
   dd.style.display = 'block';
 }
 
-document.getElementById('global-search').addEventListener('input', function(e) {
-  renderSearchDropdown(e.target.value.toLowerCase().trim());
-});
+const globalSearchInput = document.getElementById('global-search');
+if (globalSearchInput) {
+  globalSearchInput.addEventListener('input', function(e) {
+    renderSearchDropdown(e.target.value.toLowerCase().trim());
+  });
 
-document.getElementById('global-search').addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    document.getElementById('search-dropdown').style.display = 'none'; return;
-  }
-  if (e.key === 'Enter') {
-    const q = e.target.value.toLowerCase().trim();
-    if (!q) return;
-    const results = getSearchResults(q);
-    if (results.length) {
-      switchPage(results[0].pageId);
-      e.target.value = '';
-      document.getElementById('search-dropdown').style.display = 'none';
+  globalSearchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const dd = document.getElementById('search-dropdown');
+      if (dd) dd.style.display = 'none';
       return;
     }
-    // 没匹配到菜单，发送到 AI 助手
-    if (!STATE.aiOpen) toggleAI();
-    document.getElementById('ai-input').value = e.target.value;
-    e.target.value = '';
-    document.getElementById('search-dropdown').style.display = 'none';
-    aiSend();
-  }
-});
+    if (e.key === 'Enter') {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) return;
+      const results = getSearchResults(q);
+      if (results.length) {
+        switchPage(results[0].pageId);
+        e.target.value = '';
+        const dd = document.getElementById('search-dropdown');
+        if (dd) dd.style.display = 'none';
+        return;
+      }
+      // 没匹配到菜单，发送到 AI 助手
+      if (!STATE.aiOpen) toggleAI();
+      document.getElementById('ai-input').value = e.target.value;
+      e.target.value = '';
+      const dd = document.getElementById('search-dropdown');
+      if (dd) dd.style.display = 'none';
+      aiSend();
+    }
+  });
 
-document.getElementById('global-search').addEventListener('blur', function() {
-  setTimeout(() => { document.getElementById('search-dropdown').style.display = 'none'; }, 200);
-});
+  globalSearchInput.addEventListener('blur', function() {
+    setTimeout(() => {
+      const dd = document.getElementById('search-dropdown');
+      if (dd) dd.style.display = 'none';
+    }, 200);
+  });
+}
 
 // ===== DARK MODE =====
 function applyThemeMode(isDark) {

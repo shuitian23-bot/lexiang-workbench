@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-product="leaibot">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乐享 AI 工作台</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    :root {
+      --online-primary: #3370ff;
+      --online-primary-light: rgba(51,112,255,.08);
+      --online-red: #e2001a;
+      --online-canvas: #f5f6f8;
+      --online-surface: #fff;
+      --online-border: #e5e6eb;
+      --online-text: #1f2329;
+      --online-sub: #646a73;
+      --online-tertiary: #8f959e;
+      --online-sidebar: 168px;
+      --online-topbar: 48px;
+      --online-ai: 380px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      min-width: 1280px;
+      overflow: hidden;
+      display: flex;
+      background: var(--online-canvas);
+      color: var(--online-text);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+    button, input, textarea { font: inherit; letter-spacing: 0; }
+    button { cursor: pointer; }
+    svg { flex: 0 0 auto; }
+
+    .template-sidebar {
+      width: var(--online-sidebar);
+      flex: 0 0 var(--online-sidebar);
+      background: var(--online-surface);
+      border-right: 1px solid var(--online-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+    .template-brand {
+      min-height: 42px;
+      padding: 8px 7px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border-bottom: 1px solid var(--online-border);
+      color: var(--online-red);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .template-brand[role="button"] { cursor: pointer; }
+    .brand-mark {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--online-red);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      line-height: 1;
+      flex: none;
+    }
+    .brand-pill {
+      margin-left: 4px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #f1f3f5;
+      border: 1px solid #e5e6eb;
+      color: var(--online-sub);
+      font-size: 11px;
+      font-weight: 500;
+      flex: none;
+    }
+    .sidebar-toggle {
+      margin-left: auto;
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--online-border);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--online-tertiary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .template-nav {
+      flex: 1;
+      padding: 10px 6px;
+      overflow-y: auto;
+    }
+    .nav-group { margin-bottom: 4px; }
+    .nav-row,
+    .nav-child {
+      height: 34px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 10px;
+      color: var(--online-sub);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .nav-row:hover,
+    .nav-child:hover {
+      background: var(--online-canvas);
+      color: var(--online-text);
+    }
+    .nav-row .arrow {
+      margin-left: auto;
+      width: 14px;
+      height: 14px;
+      color: var(--online-tertiary);
+    }
+    .nav-child {
+      margin-left: 28px;
+      height: 32px;
+      font-size: 12px;
+    }
+    .nav-child.active {
+      background: var(--online-primary-light);
+      color: var(--online-primary);
+      font-weight: 600;
+      border: 1px solid rgba(51,112,255,.12);
+    }
+    .nav-ico {
+      width: 18px;
+      height: 18px;
+      color: #8f959e;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .nav-row:hover .nav-ico,
+    .nav-row.active .nav-ico { color: var(--online-primary); }
+    .sidebar-user {
+      padding: 10px;
+      border-top: 1px solid var(--online-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--online-primary);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex: none;
+    }
+    .user-copy { min-width: 0; flex: 1; }
+    .user-copy b { display: block; font-size: 12px; line-height: 1.2; }
+    .user-copy span { display: block; color: var(--online-tertiary); font-size: 10px; }
+    .logout {
+      border: 0;
+      background: transparent;
+      color: var(--online-tertiary);
+      font-size: 12px;
+      padding: 4px;
+    }
+
+    .template-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .template-topbar {
+      height: var(--online-topbar);
+      flex: 0 0 var(--online-topbar);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      background: #fff;
+      border-bottom: 1px solid var(--online-border);
+    }
+    .breadcrumb {
+      font-size: 13px;
+      color: var(--online-sub);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .breadcrumb b {
+      color: var(--online-text);
+      font-weight: 600;
+    }
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .search-box {
+      width: 250px;
+      height: 34px;
+      border: 1px solid var(--online-border);
+      border-radius: 7px;
+      background: #f8fafc;
+      color: var(--online-sub);
+      padding: 0 12px;
+      outline: none;
+    }
+    .search-box:focus {
+      background: #fff;
+      border-color: var(--online-primary);
+      box-shadow: 0 0 0 2px rgba(51,112,255,.1);
+    }
+    .icon-btn,
+    .ai-toggle {
+      height: 34px;
+      border: 1px solid var(--online-border);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--online-sub);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .icon-btn { width: 34px; }
+    .ai-toggle {
+      color: var(--online-primary);
+      background: rgba(51,112,255,.06);
+      border-color: rgba(51,112,255,.18);
+      padding: 0 12px;
+      font-weight: 600;
+    }
+
+    .template-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px 28px;
+      background:
+        radial-gradient(ellipse at 18% 0%, rgba(51,112,255,.028) 0%, rgba(51,112,255,.016) 30%, rgba(51,112,255,0) 66%),
+        radial-gradient(ellipse at 74% 0%, rgba(63,158,173,.022) 0%, rgba(63,158,173,.012) 28%, rgba(63,158,173,0) 64%),
+        linear-gradient(105deg, rgba(51,112,255,.014) 0%, rgba(63,158,173,.010) 46%, rgba(144,112,195,.008) 100%),
+        linear-gradient(180deg, rgba(255,255,255,.56) 0%, rgba(248,250,252,.74) 14%, rgba(244,246,249,.92) 38%, #f2f4f7 100%);
+    }
+    .content-slot {
+      min-height: 100%;
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      margin: 0;
+    }
+    .workspace-tabs {
+      min-height: 54px;
+      padding: 0 24px;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      border-bottom: 1px solid rgba(221,225,230,.72);
+      background: rgba(255,255,255,.86);
+      overflow-x: auto;
+    }
+    .workspace-tabs[hidden] { display: none; }
+    .workspace-tab {
+      position: relative;
+      height: 54px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 6px;
+      border: 0;
+      background: transparent;
+      color: var(--online-sub);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .workspace-tab.active {
+      color: var(--online-text);
+      font-weight: 700;
+    }
+    .workspace-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--online-primary);
+    }
+    .workspace-tab-base {
+      padding-left: 0;
+      padding-right: 20px;
+      color: var(--online-tertiary);
+    }
+    .workspace-tab-spark { color: var(--online-primary); font-size: 13px; }
+    .workspace-tab-close {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      color: var(--online-tertiary);
+      font-size: 0;
+      line-height: 1;
+    }
+
+    .template-ai {
+      flex: 0 0 var(--online-ai);
+      width: var(--online-ai);
+      background: #fff;
+      border-left: 1px solid var(--online-border);
+      display: flex;
+      flex-direction: column;
+    }
+    .ai-head {
+      height: 48px;
+      flex: 0 0 48px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--online-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .ai-title {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .ai-bot {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--online-primary-light);
+      color: var(--online-primary);
+      display: grid;
+      place-items: center;
+      position: relative;
+      flex: none;
+    }
+    .ai-bot::after {
+      content: "";
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      border: 2px solid #fff;
+    }
+    .ai-title-copy { min-width: 0; }
+    .ai-title-copy b {
+      display: block;
+      color: var(--online-text);
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    .ai-title-copy span {
+      display: block;
+      max-width: 180px;
+      margin-top: 2px;
+      padding: 1px 7px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border-radius: 999px;
+      background: rgba(51,112,255,.08);
+      color: var(--online-primary);
+      font-size: 11px;
+      line-height: 18px;
+    }
+    .ai-tools {
+      display: flex;
+      gap: 6px;
+    }
+    .ai-tools button {
+      width: 26px;
+      height: 26px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--online-tertiary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-tools button:hover {
+      background: #f1f3f5;
+      color: var(--online-text);
+    }
+    .ai-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 16px 16px;
+      background: linear-gradient(180deg, #f7f8fa 0%, #fff 100%);
+    }
+    .ai-doc-message {
+      padding: 13px 14px;
+      border: 1px solid var(--online-border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--online-sub);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .ai-doc-message p { margin: 0; }
+    .ai-doc-message p + p { margin-top: 8px; }
+    .ai-doc-prompt-group {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .ai-doc-prompt {
+      min-height: 58px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--online-border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--online-text);
+      text-align: left;
+    }
+    .ai-doc-prompt:hover {
+      border-color: rgba(51,112,255,.36);
+      background: rgba(51,112,255,.04);
+      box-shadow: 0 1px 2px rgba(15,23,42,.035), 0 6px 14px rgba(15,23,42,.055);
+      transform: translateY(-1px);
+    }
+    .ai-doc-prompt span {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: 9px;
+      background: var(--online-primary-light);
+      color: var(--online-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-doc-prompt b {
+      color: var(--online-text);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .ai-result-card {
+      margin-top: 12px;
+      padding: 16px;
+      border: 1px solid rgba(190,207,244,.72);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+      box-shadow: 0 8px 22px rgba(15,23,42,.06);
+    }
+    .ai-result-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ai-result-icon {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(51,112,255,.10);
+      color: var(--online-primary);
+    }
+    .ai-result-card b { display: block; font-size: 13px; }
+    .ai-result-card em {
+      display: block;
+      margin-top: 2px;
+      color: var(--online-tertiary);
+      font-size: 11px;
+      font-style: normal;
+    }
+    .ai-result-card p {
+      margin: 14px 0;
+      color: var(--online-sub);
+      font-size: 13px;
+      line-height: 1.72;
+    }
+    .ai-result-card-foot {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .ai-result-tags {
+      width: 100%;
+      display: flex;
+      gap: 5px;
+    }
+    .ai-result-tags span {
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(31,35,41,.045);
+      color: var(--online-tertiary);
+      font-size: 11px;
+    }
+    .ai-result-card-foot button {
+      min-height: 30px;
+      padding: 0 12px;
+      border: 1px solid var(--online-primary);
+      border-radius: 6px;
+      background: var(--online-primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .ai-result-card-foot button.secondary {
+      background: #fff;
+      color: var(--online-primary);
+    }
+    .ai-insight-card {
+      margin-top: 12px;
+      padding: 14px;
+      border: 1px solid rgba(221,225,230,.92);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(15,23,42,.035), 0 10px 28px rgba(15,23,42,.055);
+    }
+    .ai-bottleneck-panel {
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid rgba(245,149,78,.34);
+      border-radius: 13px;
+      background: linear-gradient(135deg, rgba(255,247,240,.98), rgba(255,236,220,.88));
+      color: #c3540d;
+    }
+    .ai-bottleneck-main { display: grid; gap: 5px; min-width: 0; }
+    .ai-bottleneck-main span { color: #b9540f; font-size: 13px; line-height: 1.35; font-weight: 800; }
+    .ai-bottleneck-main strong { color: #f05a12; font-size: 42px; line-height: .92; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .ai-bottleneck-main em { color: #b9540f; font-size: 13px; line-height: 1.2; font-style: normal; font-weight: 700; }
+    .ai-bottleneck-side { flex: 0 0 86px; display: grid; gap: 3px; text-align: right; color: #b9540f; font-size: 13px; line-height: 1.35; font-variant-numeric: tabular-nums; }
+    .ai-insight-card .ai-bottleneck-panel { display: none; }
+    .ai-insight-copy { margin: 12px 0 13px; color: var(--online-sub); font-size: 14px; line-height: 1.62; }
+    .ai-insight-copy strong { color: var(--online-text); font-weight: 800; }
+    .ai-insight-copy .is-positive { color: #13a05f; }
+    .ai-flow-triplet { display: grid; grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr) 24px minmax(0,.94fr); align-items: center; gap: 6px; margin: 0 0 12px; }
+    .ai-flow-node { min-height: 66px; display: grid; align-content: center; gap: 4px; padding: 9px 8px; border: 1px solid rgba(207,222,255,.95); border-radius: 12px; background: #f6f8ff; text-align: center; }
+    .ai-flow-node span { color: #717b8d; font-size: 12px; line-height: 1.2; }
+    .ai-flow-node strong { color: #101828; font-size: 19px; line-height: 1.15; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .ai-flow-node.is-risk { border-color: rgba(246,174,126,.54); background: #fff7f1; }
+    .ai-flow-node.is-risk span,
+    .ai-flow-node.is-risk strong { color: #ea580c; }
+    .ai-flow-bridge { display: grid; place-items: center; gap: 2px; font-variant-numeric: tabular-nums; }
+    .ai-flow-bridge b { font-size: 11px; line-height: 1.15; font-weight: 800; }
+    .ai-flow-bridge i { font-style: normal; font-size: 18px; line-height: 1; }
+    .ai-flow-bridge.is-positive { color: #13a05f; }
+    .ai-flow-bridge.is-risk { color: #f05a12; }
+    .ai-insight-card .ai-answer-actions { display: grid; grid-template-columns: minmax(116px,1.3fr) minmax(80px,.86fr) minmax(76px,.78fr); gap: 8px; margin-top: 6px; }
+    .ai-insight-card .ai-answer-actions button { min-height: 38px; padding: 0 9px; border: 1px solid var(--online-primary); border-radius: 10px; background: #fff; color: var(--online-primary); font-size: 13px; font-weight: 800; white-space: nowrap; }
+    .ai-insight-card .ai-answer-actions button.primary { border-color: transparent; background: #2f66ee; color: #fff; box-shadow: 0 8px 18px rgba(47,102,238,.20); }
+    .ai-input {
+      padding: 10px 16px 12px;
+      border-top: 1px solid var(--online-border);
+      background: #fff;
+    }
+    .scope-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #eef1f4;
+    }
+    .scope-row button {
+      height: 28px;
+      padding: 0 11px;
+      border: 1px solid var(--online-border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--online-sub);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    .scope-row button.active {
+      border-color: rgba(51,112,255,.28);
+      background: var(--online-primary-light);
+      color: var(--online-primary);
+    }
+    .prompt-box {
+      min-height: 42px;
+      border: 1px solid var(--online-border);
+      border-radius: 12px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      color: var(--online-tertiary);
+      font-size: 12px;
+    }
+    .prompt-box textarea {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: none;
+      resize: none;
+      background: transparent;
+      color: var(--online-text);
+      font-size: 13px;
+    }
+    .send {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--online-primary);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <aside class="template-sidebar">
+    <div class="template-brand" role="button" title="返回门户工作台">
+      <span class="brand-mark">L</span>
+      <span>联想乐享</span>
+      <span class="brand-pill">工作台</span>
+      <button class="sidebar-toggle" aria-label="收起侧栏">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="3.5" width="14.4" height="13" rx="2.4"/><line x1="8" y1="3.5" x2="8" y2="16.5"/><path d="M13 8l-2 2 2 2"/></svg>
+      </button>
+    </div>
+    <nav class="template-nav" aria-label="主导航">
+      <!-- 当前确认版：侧栏不渲染“首页”目录；点击 logo 返回“首页 / 门户工作台”。 -->
+      <div class="nav-group">
+        <div class="nav-row active">
+          <span class="nav-ico"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="12" rx="2.2"/><path d="M6.2 12.6 8.7 10l2 1.7 3.2-4.2"/><path d="M6 16.8h8"/></svg></span>
+          乐享运营
+          <svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="m7 5 6 5-6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="nav-child active">当前页面</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-row"><span class="nav-ico"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4" width="13.6" height="12" rx="2.2"/><path d="M6 7.2h3.4M6 10h2.2M6 12.8h3.4"/><path d="M12.4 7.2h1.6M12.4 10h1.6M12.4 12.8h1.6"/></svg></span>GEO 看板<svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="m7 5 6 5-6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="nav-row"><span class="nav-ico"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.4 8.4a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4Z"/><path d="M2.8 16.4c.4-2.6 2.1-4.1 4.6-4.1 2.4 0 4.1 1.5 4.5 4.1"/><path d="M13.1 8.1a2.2 2.2 0 1 0 0-4.4"/><path d="M13.6 12.2c1.8.3 3 1.7 3.3 3.8"/></svg></span>在职员工管理<svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="m7 5 6 5-6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="nav-row"><span class="nav-ico"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.2h8.2M4 9.8h5.8M4 14.4h5"/><path d="M12.2 13.6h4.6M14.8 11l2.6 2.6-2.6 2.6"/></svg></span>企业客户管理<svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="m7 5 6 5-6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="nav-row"><span class="nav-ico"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.8" cy="8.8" r="4.8"/><path d="m12.3 12.3 3.9 3.9"/><path d="M4.6 16.4h7.6"/></svg></span>搜索后台<svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="m7 5 6 5-6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="nav-row"><span class="nav-ico"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8 15.8 5v4.2c0 3.6-2.2 6.5-5.8 8-3.6-1.5-5.8-4.4-5.8-8V5L10 2.8Z"/><path d="m7.5 10 1.7 1.7 3.4-3.7"/></svg></span>风控管理<svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="m7 5 6 5-6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar">D</div>
+      <div class="user-copy"><b>demo</b><span>平台管理员</span></div>
+      <button class="logout">退出</button>
+    </div>
+  </aside>
+
+  <section class="template-main">
+    <header class="template-topbar">
+      <div class="breadcrumb"><b>父级目录</b><span>/</span><b>当前页面</b></div>
+      <div class="topbar-right">
+        <input class="search-box" placeholder="搜索菜单或输入指令...">
+        <button class="icon-btn" aria-label="切换深色模式"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15.8 12.2A6.8 6.8 0 0 1 7.8 4.2a6.6 6.6 0 1 0 8 8z"/></svg></button>
+        <button class="ai-toggle"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8v2.4M5.8 5.1 4.5 3.8M14.2 5.1l1.3-1.3"/><rect x="4" y="6" width="12" height="9" rx="3"/><path d="M7.5 10h.01M12.5 10h.01M8 13h4"/></svg>AI 助手</button>
+      </div>
+    </header>
+
+    <!-- 仅当右侧 AI 长报告展开为临时内容时显示；普通导航页面隐藏。 -->
+    <div class="workspace-tabs" id="workspace-tabs" hidden>
+      <button class="workspace-tab workspace-tab-base">当前页面</button>
+      <button class="workspace-tab active">
+        <span class="workspace-tab-spark">✦</span>
+        <span class="workspace-tab-title">真实报告主题</span>
+        <span class="workspace-tab-close"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></span>
+      </button>
+    </div>
+
+    <main class="template-content" id="content-slot">
+      <!-- 中间内容槽故意留空。每个新需求必须根据 references/page-templates.md 和真实业务内容单独生成页面主体。 -->
+      <div class="content-slot"></div>
+    </main>
+  </section>
+
+  <aside class="template-ai">
+    <div class="ai-head">
+      <div class="ai-title">
+        <div class="ai-bot"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v2.2M6 5.2 4.8 4M14 5.2 15.2 4"/><rect x="4" y="6.2" width="12" height="9" rx="3"/><path d="M7.5 10.2h.01M12.5 10.2h.01M8.2 13h3.6"/></svg></div>
+        <div class="ai-title-copy"><b>AI 助手</b><span>正在关注:当前二级标题</span></div>
+      </div>
+      <div class="ai-tools">
+        <button title="管理技能" aria-label="管理技能"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 2.8h2.6l.5 2a5.4 5.4 0 0 1 1.3.8l2-.6 1.3 2.2-1.5 1.4c.1.4.2.9.2 1.4s-.1 1-.2 1.4l1.5 1.4-1.3 2.2-2-.6c-.4.3-.8.6-1.3.8l-.5 2H8.7l-.5-2a5.4 5.4 0 0 1-1.3-.8l-2 .6-1.3-2.2 1.5-1.4A5.5 5.5 0 0 1 4.9 10c0-.5.1-1 .2-1.4L3.6 7.2 4.9 5l2 .6c.4-.3.8-.6 1.3-.8l.5-2z"/><circle cx="10" cy="10" r="2.3"/></svg></button>
+        <button title="新开会话" aria-label="新开会话"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4v12M4 10h12"/></svg></button>
+        <button title="历史对话" aria-label="历史对话"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 5.8A7 7 0 1 1 3 10"/><path d="M4.2 5.8H7M4.2 5.8V3"/><path d="M10 6.4v4l2.6 1.6"/></svg></button>
+        <button title="收起 AI 助手" aria-label="收起 AI 助手"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="3.5" width="14.4" height="13" rx="2.4"/><line x1="12" y1="3.5" x2="12" y2="16.5"/><path d="M8.2 8 6.1 10l2.1 2"/></svg></button>
+      </div>
+    </div>
+    <div class="ai-body">
+      <div class="ai-doc-message">
+        <p>你好！我是乐享 AI 助手。</p>
+        <p>你可以在底部输入框里直接描述要完成的运营任务，例如查数据、生成报告、配置商品或查询知识库。涉及写入或发布时，我会先展示影响范围并等待确认。</p>
+      </div>
+      <div class="ai-doc-prompt-group" aria-label="推荐提问">
+        <button class="ai-doc-prompt"><span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10v12H5z"/><path d="M8 8h4M8 11h4"/></svg></span><b>工作台说明</b></button>
+        <button class="ai-doc-prompt"><span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h5l3 3v11H6z"/><path d="M11 3v3h3M8 10h4M8 13h5"/></svg></span><b>生成报告</b></button>
+        <button class="ai-doc-prompt"><span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.2c1.8-.8 3.5-.8 5.2 0v10.5c-1.7-.8-3.4-.8-5.2 0zM10.8 5.2c1.7-.8 3.4-.8 5.2 0v10.5c-1.8-.8-3.5-.8-5.2 0z"/></svg></span><b>查询知识库</b></button>
+      </div>
+      <div class="ai-insight-card">
+        <p class="ai-insight-copy">登录 → 互动 <strong class="is-positive">(48.4%)</strong> 健康，问题出在互动后的承接。互动量增长 12% 但下单持平，<strong>新增流量未被承接</strong>。</p>
+        <div class="ai-answer-actions"><button class="primary">展开报告</button><button>查看明细</button><button>优化建议</button></div>
+      </div>
+      <div class="ai-result-card">
+        <div class="ai-result-card-head">
+          <span class="ai-result-icon"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h5l3 3v11H6z"/><path d="M11 3v3h3M8 10h4M8 13h5"/></svg></span>
+          <div><b>当前页面 · 真实报告主题</b><em>可展开为临时页签，多开对比</em></div>
+        </div>
+        <p>长篇数据、解读报告或结构化分析不要堆在右侧 AI 面板内，使用统一结论卡片承接。</p>
+        <div class="ai-result-card-foot">
+          <span class="ai-result-tags"><span>AI 对话</span><span>当前页面</span></span>
+          <button class="secondary">保存</button>
+          <button>展开查看</button>
+        </div>
+      </div>
+    </div>
+    <div class="ai-input">
+      <div class="scope-row">
+        <button class="active">工作台说明</button>
+        <button>技能包管理</button>
+        <button>权限说明</button>
+      </div>
+      <div class="prompt-box">
+        <button class="icon-btn" aria-label="上传文件"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg></button>
+        <textarea rows="1" placeholder="在「工作台说明」中查询..."></textarea>
+        <button class="send" aria-label="发送"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 16 3l-3.2 14-3.1-5.6L3 10z"/><path d="m9.7 11.4 3.8-4.8"/></svg></button>
+      </div>
+    </div>
+  </aside>
+</body>
+</html>

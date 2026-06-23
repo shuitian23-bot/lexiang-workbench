@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-product="leaibot">
+<head>
+<link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乐享 AI 工作台</title>
+<!-- v2024-04-16-cert-view-button -->
+<link rel="stylesheet" href="workbench.css?v=20260623-poc-adjustment-log7">
+<link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
+<link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
+<link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
+<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260618-ai-collapse-original1">
+<script>
+  window.LEAIBOT_PREVIEW_MODE = /[?&](demo|preview)=1\b/.test(location.search) || location.protocol === 'file:';
+  if (window.LEAIBOT_PREVIEW_MODE) {
+    document.write('<script src="demo-mock.js"><\/script>');
+  }
+</script>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo" style="margin-bottom:40px;">
+      <div class="icon">L</div>
+      <span>联想乐享</span>
+    </div>
+    <div class="login-title">登录</div>
+    <div class="form-group">
+      <label class="form-label">用户名</label>
+      <input class="form-input" id="login-user" placeholder="admin" autofocus>
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="••••••">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary login-btn" onclick="doLogin()">登录工作台</button>
+  </div>
+</div>
+
+<!-- ===== THREE-COLUMN LAYOUT ===== -->
+
+<!-- LEFT: Sidebar Menu -->
+<div class="sidebar" id="sidebar" style="display:none">
+  <div class="sidebar-header" onclick="goPortalHome()" title="返回首页">
+    <div class="brand-lockup">
+      <img class="logo-full" src="assets/logo-full.png" alt="联想乐享">
+      <span class="brand-suffix">工作台</span>
+    </div>
+    <img class="logo-icon-img" src="assets/logo-icon.png" alt="联想乐享">
+    <button class="sidebar-collapse-btn" onclick="event.stopPropagation(); toggleSidebarCollapse()" title="收起侧栏" aria-label="收起侧栏">
+      <span class="sidebar-collapse-glyph" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+  <div class="sidebar-nav" id="sidebar-nav">
+    <!-- 动态渲染 -->
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-info" onclick="toggleUserMenu(event)">
+      <div class="user-avatar" id="user-avatar">A</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">admin</div>
+        <div class="user-role" id="user-role">管理员</div>
+      </div>
+      <span class="user-logout" onclick="event.stopPropagation(); doLogout()" title="退出登录">退出</span>
+    </div>
+    <div class="user-menu-popover account-hub-popover" id="user-menu-popover" aria-label="账号工作区入口" onclick="if(event.target===this) closeUserMenu()">
+      <div class="account-hub-panel" onclick="event.stopPropagation()">
+        <button type="button" class="account-hub-close" onclick="closeUserMenu()" aria-label="关闭">×</button>
+        <button type="button" class="account-hub-card primary" onclick="openSkillCreatePage()">
+          <span class="account-hub-icon">＋</span>
+          <b>创建 Skill</b>
+          <small>从业务场景定义新能力、参数、输入输出和审批规则。</small>
+        </button>
+        <button type="button" class="account-hub-card" onclick="openSkillManagerFromUserMenu()">
+          <span class="account-hub-icon">◎</span>
+          <b>Skill Hub</b>
+          <small>查看已提交 Skill 状态，处理审批、发布、启用或禁用。</small>
+        </button>
+        <button type="button" class="account-hub-card" onclick="openPermissionManagerPage()">
+          <span class="account-hub-icon">◇</span>
+          <b>权限管理</b>
+          <small>敬请期待……后续开放菜单权限、Skill 权限和角色范围管理。</small>
+        </button>
+        <button type="button" class="account-hub-card" onclick="openPocAdjustmentLog()">
+          <span class="account-hub-icon">LOG</span>
+          <b>调整日志</b>
+          <small>查看功能调整记录。仅用于 POC 记录。</small>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CENTER: Main Content -->
+<div class="main" id="main-area" style="display:none">
+  <div class="topbar">
+    <div class="topbar-breadcrumb" id="breadcrumb">
+      <span>门户工作台</span> / <span>首页</span>
+    </div>
+    <div class="topbar-right">
+      <button type="button" class="topbar-icon-btn" onclick="toggleDarkMode()" title="切换深色模式" id="dark-mode-btn" aria-label="切换深色模式">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15.8 12.2A6.8 6.8 0 0 1 7.8 4.2a6.6 6.6 0 1 0 8 8z"/></svg>
+      </button>
+      <button type="button" class="ai-toggle" id="ai-toggle-btn" onclick="toggleAI()" title="打开 AI 助手" aria-label="打开 AI 助手">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8v2.4M5.8 5.1 4.5 3.8M14.2 5.1l1.3-1.3"/><rect x="4" y="6" width="12" height="9" rx="3"/><path d="M7.5 10h.01M12.5 10h.01M8 13h4"/></svg>
+        <span>AI 助手</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="workspace-tabs" id="workspace-tabs" hidden></div>
+
+  <!-- Page Content Area -->
+  <div class="page-content" id="page-content">
+    <div class="portal-home portal-home-v2 portal-home-fallback">
+      <section class="portal-home-command portal-home-command-solo">
+        <div class="portal-home-command-copy">
+          <div class="portal-home-kicker">LEAIBOT WORKBENCH</div>
+          <div class="page-title">门户工作台</div>
+          <div class="page-desc">统一承载运营看板、业务后台、风险审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
+          <div class="portal-home-actions">
+            <button class="btn btn-secondary" onclick="openSkillManagerOverlay?.()">管理技能包</button>
+            <button class="btn btn-primary" onclick="openSkillCreatePage?.()">创建 Skill</button>
+          </div>
+        </div>
+      </section>
+      <div class="portal-home-grid portal-home-spotlight">
+        <button class="portal-home-card" onclick="toggleAI?.(true)"><span>AI</span><b>全局 AI 助手</b><p>右侧助手独立存在，可用自然语言发起数据查询、报告生成、知识维护、商品配置等任务。</p></button>
+        <button class="portal-home-card" onclick="switchPage?.('dashboard.overview')"><span>OP</span><b>运营分析</b><p>聚合乐享运营、Query、质量、流量和 GMV 数据，支持按业务视角查看趋势和异常。</p></button>
+        <button class="portal-home-card" onclick="openSkillCreatePage?.()"><span>PM</span><b>Skill 创建</b><p>平台侧和 PM 可从账号入口创建 Skill，并在 Skill Hub 中跟踪提交、审批、启停和发布状态。</p></button>
+        <button class="portal-home-card" onclick="openSkillManagerOverlay?.()"><span>SK</span><b>技能包管理</b><p>业务用户通过右上角管理技能查看并启停技能包，通过 AI 助手调用已开启能力。</p></button>
+      </div>
+      <div class="portal-home-layout portal-home-workgrid">
+        <div class="card portal-home-entry-card">
+          <div class="card-header">
+            <div class="card-title">常用入口</div>
+            <button class="btn btn-secondary btn-sm" onclick="switchPage?.('dashboard.overview')">进入运营总览</button>
+          </div>
+          <div class="portal-home-entry-list">
+            <button onclick="switchPage?.('employee.overview')"><i>01</i><b>在职员工管理</b><span>认证审核、职工数据、认证方式分布</span></button>
+            <button onclick="switchPage?.('dashboard.overview')"><i>02</i><b>乐享运营</b><span>经营指标、流量质量、GMV 分析</span></button>
+            <button onclick="switchPage?.('lead.dashboard')"><i>03</i><b>企业客户管理</b><span>线索看板、线索池和分配跟进</span></button>
+            <button onclick="switchPage?.('search.categories')"><i>04</i><b>搜索后台</b><span>分类标签、筛选、直达和词典管理</span></button>
+            <button onclick="switchPage?.('risk.overview')"><i>05</i><b>风控管理</b><span>策略、限购、DPL 和数据查询</span></button>
+          </div>
+        </div>
+        <div class="card portal-home-flow-card">
+          <div class="card-header"><div class="card-title">基础操作流程</div></div>
+          <div class="portal-home-flow">
+            <div><span>1</span><p>从左侧菜单进入确定性的后台页面，完成固定流程和人工审核。</p></div>
+            <div><span>2</span><p>在右侧 AI 助手输入任务，补充查询、分析、生成和配置类工作。</p></div>
+            <div><span>3</span><p>涉及写入、发布、导出等高影响操作时，先展示影响范围，再确认执行并留下任务记录。</p></div>
+            <div><span>4</span><p>PM 从左下角账号入口进入 Skill Hub 管理提交状态；业务从右上角管理技能使用技能包。</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT: AI Panel -->
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-resize-handle" id="ai-resize-handle"></div>
+  <div class="ai-panel-header">
+    <div class="ai-panel-title">
+      <span class="ai-assistant-avatar">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v2.2M6 5.2 4.8 4M14 5.2 15.2 4"/><rect x="4" y="6.2" width="12" height="9" rx="3"/><path d="M7.5 10.2h.01M12.5 10.2h.01M8.2 13h3.6"/></svg>
+      </span>
+      <span class="ai-title-copy">
+        <span class="ai-title-name">AI 助手</span>
+        <span class="ai-title-subtitle ai-attention-pill"><span class="ai-attention-dot"></span>正在关注:门户工作台</span>
+      </span>
+    </div>
+    <div class="ai-panel-actions">
+      <button type="button" class="ai-icon-action ai-action-settings" onclick="openSkillManagerOverlay()" title="管理技能" aria-label="管理技能">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 2.8h2.6l.5 2a5.4 5.4 0 0 1 1.3.8l2-.6 1.3 2.2-1.5 1.4c.1.4.2.9.2 1.4s-.1 1-.2 1.4l1.5 1.4-1.3 2.2-2-.6c-.4.3-.8.6-1.3.8l-.5 2H8.7l-.5-2a5.4 5.4 0 0 1-1.3-.8l-2 .6-1.3-2.2 1.5-1.4A5.5 5.5 0 0 1 4.9 10c0-.5.1-1 .2-1.4L3.6 7.2 4.9 5l2 .6c.4-.3.8-.6 1.3-.8l.5-2z"/><circle cx="10" cy="10" r="2.3"/></svg>
+      </button>
+      <button type="button" class="ai-icon-action ai-action-new" onclick="newAiConversation()" title="新开会话" aria-label="新开会话">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4v12M4 10h12"/></svg>
+      </button>
+      <button type="button" class="ai-icon-action ai-action-history" onclick="aiOpenConversationHistory()" title="历史对话" aria-label="历史对话">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 5.8A7 7 0 1 1 3 10"/><path d="M4.2 5.8H7M4.2 5.8V3"/><path d="M10 6.4v4l2.6 1.6"/></svg>
+      </button>
+      <button type="button" class="ai-icon-action ai-action-collapse" onclick="toggleAI()" title="收起 AI 助手" aria-label="收起 AI 助手">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="3.5" width="14.4" height="13" rx="2.4"/><line x1="12" y1="3.5" x2="12" y2="16.5"/><path d="M8.2 8 6.1 10l2.1 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="ai-messages" id="ai-messages">
+    <div class="ai-msg assistant ai-welcome-msg"><div class="bubble">
+      <div class="ai-empty-state ai-doc-flow">
+        <div class="ai-doc-message">
+          <p>你好！我是乐享 AI 助手。</p>
+          <p>你可以在底部输入框里直接描述要完成的运营任务，例如查数据、生成报告、配置商品或查询知识库。涉及写入或发布时，我会先展示影响范围并等待确认。</p>
+        </div>
+        <div class="ai-doc-prompt-group" aria-label="推荐提问">
+          <button type="button" class="ai-doc-prompt" onclick="aiQuick('帮我说明门户工作台当前可以怎么使用')">
+            <span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10v12H5z"/><path d="M8 8h4M8 11h4"/></svg></span>
+            <b>工作台说明</b>
+          </button>
+          <button type="button" class="ai-doc-prompt" onclick="aiQuick('帮我生成一份运营任务报告草稿，先列出需要的参数')">
+            <span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h5l3 3v11H6z"/><path d="M11 3v3h3M8 10h4M8 13h5"/></svg></span>
+            <b>生成报告</b>
+          </button>
+          <button type="button" class="ai-doc-prompt" onclick="aiQuick('查询知识库，帮我按关键词整理相关条目')">
+            <span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.2c1.8-.8 3.5-.8 5.2 0v10.5c-1.7-.8-3.4-.8-5.2 0zM10.8 5.2c1.7-.8 3.4-.8 5.2 0v10.5c-1.8-.8-3.5-.8-5.2 0z"/></svg></span>
+            <b>查询知识库</b>
+          </button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+  <div id="ai-file-preview" style="display:none;padding:6px 12px;background:var(--primary-light);font-size:12px;align-items:center;gap:6px;border-top:1px solid var(--border-light)">
+    <span>📎</span><span id="ai-file-name"></span>
+    <span style="cursor:pointer;margin-left:auto;color:var(--text-tertiary)" onclick="aiClearFile()">✕</span>
+  </div>
+  <div class="ai-input-area" id="ai-input-area">
+    <input type="file" id="ai-file-input" style="display:none" accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json" onchange="aiFileSelected(this)">
+    <div class="ai-input-combo">
+      <div class="ai-scope-row" aria-label="选择提问范围">
+        <button type="button" class="ai-scope-arrow left" id="ai-scope-left" aria-label="向左滚动项目标签">
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 5-5 5 5 5"/></svg>
+        </button>
+        <div class="ai-shortcuts" id="ai-shortcuts" role="listbox" aria-label="提问范围">
+          <button type="button" class="ai-shortcut active" data-ai-shortcut="0" role="option" aria-selected="true">今日指标</button>
+          <button type="button" class="ai-shortcut" data-ai-shortcut="1" role="option" aria-selected="false">查数据</button>
+          <button type="button" class="ai-shortcut" data-ai-shortcut="2" role="option" aria-selected="false">商品管理</button>
+          <button type="button" class="ai-shortcut" data-ai-shortcut="3" role="option" aria-selected="false">知识库</button>
+          <button type="button" class="ai-shortcut" data-ai-shortcut="4" role="option" aria-selected="false">CMS</button>
+          <button type="button" class="ai-shortcut" data-ai-shortcut="5" role="option" aria-selected="false">运营建议</button>
+        </div>
+        <button type="button" class="ai-scope-arrow right" id="ai-scope-right" aria-label="向右滚动项目标签">
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5 5 5-5 5"/></svg>
+        </button>
+        <select class="ai-scope-select" id="ai-scope-select" aria-label="选择提问范围">
+          <option>今日指标</option>
+          <option>查数据</option>
+          <option>商品管理</option>
+          <option>知识库</option>
+          <option>CMS</option>
+          <option>运营建议</option>
+        </select>
+      </div>
+      <div class="ai-composer-box">
+        <button type="button" class="ai-composer-action" onclick="document.getElementById('ai-file-input').click()" title="上传文件" aria-label="上传文件">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg>
+        </button>
+        <textarea class="ai-input" id="ai-input" placeholder="在「今日指标」中查询..." rows="1"></textarea>
+        <button class="ai-send" id="ai-send" onclick="aiSend()" title="发送" aria-label="发送">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 16 3l-3.2 14-3.1-5.6L3 10z"/><path d="m9.7 11.4 3.8-4.8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="ai-composer-hint">支持数据、报告、配置、知识库，写入前确认。</div>
+  </div>
+</div>
+
+
+<script>
+/* ===== 核心框架（STATE/MENU/LOGIN/SIDEBAR/PAGE_SWITCH）===== */
+// ===== STATE =====
+const STATE = {
+  user: null,
+  role: null,
+  permissions: [],
+  visibleMenus: [],
+  currentPage: 'portal.home',
+  tempTabs: [],
+  activeTempTabId: null,
+  aiOpen: false,
+  aiMessages: [],
+  aiConvId: null  // Harness 会话ID，复用 conversations 表
+};
+
+// ===== MENU DEFINITION =====
+const menuIcon = (paths) => `<svg class="menu-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">${paths}</svg>`;
+const MENU_TREE = {
+  dashboard: {
+    icon: menuIcon('<rect x="3" y="4" width="14" height="12" rx="2.2"/><path d="M6.2 12.6 8.7 10l2 1.7 3.2-4.2"/><path d="M6 16.8h8"/>'), label: '乐享运营', children: {
+      'dashboard.overview': { label: '运营总览' },
+      'pipeline.annotate': { label: 'Query 分析' },
+      'pipeline.quality': { label: '质量分析' },
+      'ops.traffic': { label: '流量分析' },
+      'ops.gmv': { label: 'GMV 分析' }
+    }
+  },
+  geo: {
+    icon: menuIcon('<rect x="3.2" y="4" width="13.6" height="12" rx="2.2"/><path d="M6 7.2h3.4M6 10h2.2M6 12.8h3.4"/><path d="M12.4 7.2h1.6M12.4 10h1.6M12.4 12.8h1.6"/>'), label: 'GEO 看板', children: {
+      'dashboard.geo': { label: '整体数据概览' },
+      'dashboard.geoSource': { label: '各平台信源分布' },
+      'dashboard.geoIntent': { label: '各平台意图分布' },
+      'dashboard.geoConversion': { label: 'GEO 转化看板' },
+      'dashboard.geoKnowledge': { label: '手工上传知识' }
+    }
+  },
+  employee: {
+    icon: menuIcon('<path d="M7.4 8.4a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4Z"/><path d="M2.8 16.4c.4-2.6 2.1-4.1 4.6-4.1 2.4 0 4.1 1.5 4.5 4.1"/><path d="M13.1 8.1a2.2 2.2 0 1 0 0-4.4"/><path d="M13.6 12.2c1.8.3 3 1.7 3.3 3.8"/>'), label: '在职员工管理', children: {
+      'employee.overview': { label: '概览' },
+      'employee.certification': { label: '认证审核' }
+    }
+  },
+  lead: {
+    icon: menuIcon('<path d="M4 5.2h8.2M4 9.8h5.8M4 14.4h5"/><path d="M12.2 13.6h4.6M14.8 11l2.6 2.6-2.6 2.6"/>'), label: '企业客户管理', children: {
+      'lead.dashboard': { label: '线索看板' },
+      'lead.pool': { label: '线索池' },
+      'lead.score': { label: '打分模型' }
+    }
+  },
+  search: {
+    icon: menuIcon('<circle cx="8.8" cy="8.8" r="4.8"/><path d="m12.3 12.3 3.9 3.9"/><path d="M4.6 16.4h7.6"/>'), label: '搜索后台', children: {
+      'search.categories': { label: '分类标签' },
+      'search.filters': { label: '筛选条件' },
+      'search.activity': { label: '活动直达' },
+      'search.express': { label: '直通车' },
+      'search.dictionary': { label: '词典管理' },
+      'search.box': { label: '搜索框管理' }
+    }
+  },
+  risk: {
+    icon: menuIcon('<path d="M10 2.8 15.8 5v4.2c0 3.6-2.2 6.5-5.8 8-3.6-1.5-5.8-4.4-5.8-8V5L10 2.8Z"/><path d="m7.5 10 1.7 1.7 3.4-3.7"/>'), label: '风控管理', children: {
+      'risk.overview': { label: '概况' },
+      'risk.strategy': { label: '策略' },
+      'risk.limit': { label: '限购' },
+      'risk.dpl': { label: 'DPL' },
+      'risk.data': { label: '数据查询' }
+    }
+  },
+};
+
+// ===== LOGIN =====
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  if (!username || !password) return showLoginError('请输入用户名和密码');
+
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) return showLoginError(data.error || '登录失败');
+
+    STATE.user = data.username;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-area').style.display = 'flex';
+
+    await loadUserContext();
+    applyInitialPageFromUrl();
+    renderSidebar();
+    restoreSidebarState();
+    restoreAIState();
+    switchPage(STATE.currentPage);
+  } catch (e) {
+    showLoginError('网络错误，请重试');
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function doLogout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  location.reload();
+}
+
+// Enter 键登录
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ===== LOAD USER CONTEXT =====
+async function loadUserContext() {
+  try {
+    const res = await fetch('/api/harness/menu');
+    if (res.ok) {
+      const data = await res.json();
+      STATE.visibleMenus = data.menus || [];
+      STATE.permissions = data.permissions || [];
+      // 兼容：GEO 之前在 dashboard 下，有 dashboard 权限就自动补 geo
+      if (STATE.visibleMenus.includes('dashboard') && !STATE.visibleMenus.includes('geo')) {
+        STATE.visibleMenus.push('geo');
+      }
+      // 员工管理默认可见
+      ['employee','lead','search','risk'].forEach(k => { if (!STATE.visibleMenus.includes(k)) STATE.visibleMenus.push(k); });
+      // POC 简化：只保留前端已注册的菜单 key，过滤掉已下线模块
+      STATE.visibleMenus = STATE.visibleMenus.filter(k => MENU_TREE[k]);
+    } else {
+      // fallback：旧版兼容，默认全部可见
+      STATE.visibleMenus = Object.keys(MENU_TREE);
+      STATE.permissions = ['*'];
+    }
+  } catch {
+    STATE.visibleMenus = Object.keys(MENU_TREE);
+    STATE.permissions = ['*'];
+  }
+
+  // 获取当前用户信息
+  try {
+    const res = await fetch('/api/admin/me');
+    if (res.ok) {
+      const data = await res.json();
+      STATE.user = data.admin?.username || 'admin';
+    }
+  } catch {}
+
+  document.getElementById('user-name').textContent = STATE.user;
+  document.getElementById('user-avatar').textContent = (STATE.user || 'A')[0].toUpperCase();
+
+  // 找角色名
+  const roleMap = { '*': '平台管理员' };
+  if (STATE.permissions.includes('*')) {
+    STATE.role = '平台管理员';
+  } else if (STATE.permissions.some(p => p.startsWith('ai:'))) {
+    STATE.role = 'AI 运维';
+  } else if (STATE.permissions.some(p => p.startsWith('ecommerce:'))) {
+    STATE.role = '运营';
+  } else {
+    STATE.role = '工作台用户';
+  }
+  document.getElementById('user-role').textContent = STATE.role;
+
+  // 默认保留门户首页，不自动展开任一业务菜单。
+}
+
+// ===== SIDEBAR COLLAPSE =====
+function toggleSidebarCollapse() {
+  const sb = document.getElementById('sidebar');
+  _sidebarPeek = false; // 手动操作，取消peek模式
+  clearTimeout(_sidebarPeekTimer);
+  sb.classList.toggle('collapsed');
+  localStorage.setItem('sidebar_collapsed', sb.classList.contains('collapsed') ? '1' : '0');
+  updateSidebarCollapseControl();
+}
+function restoreSidebarState() {
+  if (localStorage.getItem('sidebar_collapsed') === '1') {
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
+  updateSidebarCollapseControl();
+}
+function updateSidebarCollapseControl() {
+  const sb = document.getElementById('sidebar');
+  const btn = document.querySelector('.sidebar-collapse-btn');
+  if (!sb || !btn) return;
+  const collapsed = sb.classList.contains('collapsed');
+  btn.classList.toggle('is-collapsed', collapsed);
+  btn.classList.toggle('is-expanded', !collapsed);
+  const glyph = btn.querySelector('.sidebar-collapse-glyph');
+  if (glyph) glyph.innerHTML = collapsed ? '&rsaquo;' : '&lsaquo;';
+  btn.title = collapsed ? '展开侧栏' : '收起侧栏';
+  btn.setAttribute('aria-label', collapsed ? '展开侧栏' : '收起侧栏');
+  if (!window.__sidebarCollapseObserverBound) {
+    new MutationObserver(() => updateSidebarCollapseControl()).observe(sb, { attributes:true, attributeFilter:['class'] });
+    window.__sidebarCollapseObserverBound = true;
+  }
+}
+
+// ===== RENDER SIDEBAR =====
+function renderSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  let html = '';
+
+  for (const [key, group] of Object.entries(MENU_TREE)) {
+    if (!STATE.visibleMenus.includes(key)) continue;
+
+    const children = Object.entries(group.children);
+    const isActive = !!group.children[STATE.currentPage];
+    const isOpen = isActive;
+
+    html += `<div class="nav-group" data-group="${key}">`;
+    html += `<div class="nav-item ${isActive ? 'active' : ''}" data-tip="${group.label}" onclick="toggleGroup('${key}')">
+      <span class="ni">${group.icon}</span>
+      <span>${group.label}</span>
+      <span class="arrow ${isOpen ? 'open' : ''}"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>`;
+    html += `<div class="nav-sub ${isOpen ? 'open' : ''}">`;
+    for (const [pageId, page] of children) {
+      html += `<div class="nav-item ${STATE.currentPage === pageId ? 'active' : ''}" onclick="switchPage('${pageId}')">
+        <span>${page.label}</span>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  nav.innerHTML = html;
+}
+
+let _sidebarPeek = false;
+let _sidebarPeekTimer = null;
+
+function toggleGroup(key) {
+  const sb = document.getElementById('sidebar');
+  // 收起状态下：临时展开侧栏
+  if (sb.classList.contains('collapsed')) {
+    _sidebarPeek = true;
+    sb.classList.remove('collapsed');
+    updateSidebarCollapseControl();
+    // 展开对应分组
+    setTimeout(() => {
+      const group = document.querySelector(`.nav-group[data-group="${key}"]`);
+      if (group) { group.querySelector('.nav-sub')?.classList.add('open'); group.querySelector('.arrow')?.classList.add('open'); }
+    }, 50);
+    // 鼠标离开侧栏后自动收回
+    clearTimeout(_sidebarPeekTimer);
+    const onLeave = () => {
+      _sidebarPeekTimer = setTimeout(() => {
+        if (_sidebarPeek) { sb.classList.add('collapsed'); _sidebarPeek = false; updateSidebarCollapseControl(); }
+      }, 1500);
+    };
+    const onEnter = () => { clearTimeout(_sidebarPeekTimer); };
+    // 清除旧事件再绑新的
+    sb.removeEventListener('mouseleave', sb._peekLeave);
+    sb.removeEventListener('mouseenter', sb._peekEnter);
+    sb._peekLeave = onLeave;
+    sb._peekEnter = onEnter;
+    sb.addEventListener('mouseleave', onLeave);
+    sb.addEventListener('mouseenter', onEnter);
+    return;
+  }
+  const group = document.querySelector(`.nav-group[data-group="${key}"]`);
+  if (!group) return;
+  const sub = group.querySelector('.nav-sub');
+  const arrow = group.querySelector('.arrow');
+  const willOpen = !sub.classList.contains('open');
+  document.querySelectorAll('.sidebar-nav .nav-sub.open').forEach(el => {
+    if (el !== sub) el.classList.remove('open');
+  });
+  document.querySelectorAll('.sidebar-nav .arrow.open').forEach(el => {
+    if (el !== arrow) el.classList.remove('open');
+  });
+  sub.classList.toggle('open', willOpen);
+  arrow.classList.toggle('open', willOpen);
+}
+
+
+
+
+// ===== PAGE SWITCH =====
+function switchPage(pageId) {
+  STATE.currentPage = pageId;
+  STATE.activeTempTabId = null;
+  closeUserMenu();
+
+  // Dispatch page-change event for plugins to hook into
+  document.dispatchEvent(new CustomEvent('page-change', { detail: pageId }));
+
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
+  // Find and activate the clicked item
+  const groupKey = Object.entries(MENU_TREE).find(([, g]) => g.children && g.children[pageId])?.[0] || pageId.split('.')[0];
+  const group = document.querySelector(`.nav-group[data-group="${groupKey}"]`);
+  if (group) {
+    group.querySelector('.nav-sub').classList.add('open');
+    group.querySelector('.arrow')?.classList.add('open');
+    group.querySelectorAll('.nav-sub .nav-item').forEach(el => {
+      if (el.textContent.trim() === getPageLabel(pageId)) el.classList.add('active');
+    });
+  } else {
+    document.querySelectorAll('.sidebar-nav .nav-sub.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.sidebar-nav .arrow.open').forEach(el => el.classList.remove('open'));
+  }
+
+  // Update breadcrumb
+  const groupLabelMap = { agent: 'AI 助手', portal: '首页' };
+  const groupLabel = findPageGroup(pageId)?.label || groupLabelMap[pageId.split('.')[0]] || pageId.split('.')[0];
+  const pageLabel = getPageLabel(pageId);
+  document.getElementById('breadcrumb').innerHTML = `<span>${groupLabel}</span> / <span>${pageLabel}</span>`;
+
+  // Render page
+  renderPage(pageId);
+  workspaceRenderTabs();
+  if ((pageId === 'agent.skills' || pageId === 'agent.skillCreate') && typeof toggleAI === 'function' && STATE.aiOpen) {
+    toggleAI(false);
+  }
+  if (pageId === 'portal.home' && typeof toggleAI === 'function') {
+    toggleAI(true);
+  }
+  if (typeof aiRefreshPageAssistant === 'function') {
+    aiRefreshPageAssistant();
+  }
+
+  // Auto-load data for specific pages
+  if (pageId === 'employee.overview') {
+    setTimeout(() => loadEmployeeOverview(), 50);
+  } else if (pageId === 'employee.list') {
+    setTimeout(() => loadEmployeeList(1), 50);
+  } else if (pageId === 'employee.certification') {
+    setTimeout(() => loadCertificationTable(1), 50);
+  }
+}
+
+function applyInitialPageFromUrl() {
+  const page = new URLSearchParams(window.location.search).get('page');
+  if (!page) return;
+  const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
+  const isKnownPage = !!findPageGroup(page) || !!hiddenPages[page] || page === 'portal.home' || page === 'agent.skills' || page === 'agent.skillCreate' || page === 'agent.permissions';
+  if (isKnownPage) STATE.currentPage = page;
+}
+
+function findPageGroup(pageId) {
+  for (const g of Object.values(MENU_TREE)) {
+    if (g.children && g.children[pageId]) return g;
+  }
+  return null;
+}
+
+function workspaceEscapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getPageLabel(pageId) {
+  const pageLabelMap = {
+    'agent.skills': 'Skill Hub',
+    'agent.skillCreate': 'Skill 创建',
+    'agent.permissions': '权限管理',
+    'portal.home': '门户工作台'
+  };
+  if (pageLabelMap[pageId]) return pageLabelMap[pageId];
+  const g = findPageGroup(pageId);
+  return g?.children[pageId]?.label || pageId.split('.')[1] || '';
+}
+
+function workspaceTabLabel(pageId = STATE.currentPage) {
+  return getPageLabel(pageId) || '当前页面';
+}
+
+function workspaceCleanReportTitle(title, sourcePageLabel = '') {
+  const source = workspaceEscapeHtml(sourcePageLabel).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let clean = String(title || '')
+    .replace(/^AI\s*报告\s*[·:：-]\s*/i, '')
+    .replace(/\s*#\d+\s*$/g, '')
+    .trim();
+  if (source) clean = clean.replace(new RegExp(`^${source}\\s*[·:：-]?\\s*`), '').trim();
+  return clean || '数据解读报告';
+}
+
+function workspaceReportDisplayTitle(tab) {
+  const page = tab?.sourcePageLabel || workspaceTabLabel(tab?.sourcePage);
+  const clean = workspaceCleanReportTitle(tab?.title, page);
+  if (!clean || clean === page) return `${page} · 数据解读报告`;
+  return `${page} · ${clean}`;
+}
+
+function workspaceReportTabTitle(tab) {
+  const page = tab?.sourcePageLabel || workspaceTabLabel(tab?.sourcePage);
+  const clean = workspaceCleanReportTitle(tab?.title, page);
+  return clean.replace(/原因分析$/, '分析') || '数据报告';
+}
+
+function workspaceResetContentScroll() {
+  const content = document.getElementById('page-content');
+  if (!content) return;
+  requestAnimationFrame(() => {
+    content.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  });
+}
+
+function workspaceRenderTabs() {
+  const wrap = document.getElementById('workspace-tabs');
+  if (!wrap) return;
+  const tabs = Array.isArray(STATE.tempTabs) ? STATE.tempTabs : [];
+  if (!tabs.length) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.hidden = false;
+  const baseActive = !STATE.activeTempTabId;
+  const baseTab = `
+    <button type="button" class="workspace-tab workspace-tab-base ${baseActive ? 'active' : ''}" onclick="workspaceOpenBasePage()">
+      <span>${workspaceEscapeHtml(workspaceTabLabel(STATE.currentPage))}</span>
+    </button>`;
+  const tempTabs = tabs.map(tab => `
+    <button type="button" class="workspace-tab workspace-tab-report ${tab.id === STATE.activeTempTabId ? 'active' : ''} ${tab.saved ? 'saved' : ''}" onclick="workspaceActivateTempTab('${tab.id}')">
+      <span class="workspace-tab-spark" aria-hidden="true">*</span>
+      <span class="workspace-tab-title">${workspaceEscapeHtml(workspaceReportTabTitle(tab))}</span>
+      ${tab.saved ? '<span class="workspace-tab-saved">已保存</span>' : ''}
+      <span class="workspace-tab-close" role="button" tabindex="0" title="关闭页签" onclick="event.stopPropagation(); workspaceCloseTempTab('${tab.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();workspaceCloseTempTab('${tab.id}')}">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>
+      </span>
+    </button>`).join('');
+  wrap.innerHTML = `${baseTab}${tempTabs}`;
+}
+
+function workspaceOpenBasePage() {
+  STATE.activeTempTabId = null;
+  renderPage(STATE.currentPage);
+  workspaceRenderTabs();
+  workspaceResetContentScroll();
+  if (typeof aiRefreshPageAssistant === 'function') aiRefreshPageAssistant();
+}
+
+function workspaceActivateTempTab(id) {
+  const tab = STATE.tempTabs.find(item => item.id === id);
+  if (!tab) return;
+  STATE.activeTempTabId = id;
+  workspaceRenderTempContent(tab);
+  workspaceRenderTabs();
+  workspaceResetContentScroll();
+}
+
+function workspaceOpenTempTab(payload) {
+  if (!payload) return null;
+  const id = payload.id || `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const sourcePage = payload.sourcePage || STATE.currentPage;
+  const sourceGroup = findPageGroup(sourcePage);
+  const tab = {
+    id,
+    title: (payload.title || '数据解读报告').slice(0, 42),
+    sourcePage,
+    sourcePageLabel: payload.sourcePageLabel || getPageLabel(sourcePage),
+    groupLabel: payload.groupLabel || sourceGroup?.label || 'AI 报告',
+    content: payload.content || '',
+    summary: payload.summary || '',
+    chips: payload.chips || [],
+    externalUrl: payload.externalUrl || '',
+    previewHtml: payload.previewHtml || '',
+    createdAt: payload.createdAt || new Date().toISOString(),
+    saved: !!payload.saved
+  };
+  const existingIndex = STATE.tempTabs.findIndex(item => item.id === id);
+  if (existingIndex >= 0) STATE.tempTabs.splice(existingIndex, 1, tab);
+  else STATE.tempTabs.push(tab);
+  STATE.activeTempTabId = id;
+  workspaceRenderTempContent(tab);
+  workspaceRenderTabs();
+  workspaceResetContentScroll();
+  return tab;
+}
+
+function workspaceCloseTempTab(id) {
+  const wasActive = STATE.activeTempTabId === id;
+  STATE.tempTabs = STATE.tempTabs.filter(item => item.id !== id);
+  if (!STATE.tempTabs.length) {
+    STATE.activeTempTabId = null;
+    workspaceRenderTabs();
+    if (wasActive) {
+      renderPage(STATE.currentPage);
+      workspaceResetContentScroll();
+    }
+    return;
+  }
+  if (wasActive) {
+    const next = STATE.tempTabs[STATE.tempTabs.length - 1];
+    STATE.activeTempTabId = next.id;
+    workspaceRenderTempContent(next);
+    workspaceResetContentScroll();
+  }
+  workspaceRenderTabs();
+}
+
+const WORKSPACE_SAVED_TAB_KEY = 'leai_workspace_saved_tabs';
+
+function workspaceSavedTabs() {
+  try {
+    const list = JSON.parse(localStorage.getItem(WORKSPACE_SAVED_TAB_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+function workspaceSaveTempTab(id) {
+  const tab = STATE.tempTabs.find(item => item.id === id);
+  if (!tab) return;
+  tab.saved = true;
+  const saved = workspaceSavedTabs().filter(item => item.id !== id);
+  localStorage.setItem(WORKSPACE_SAVED_TAB_KEY, JSON.stringify([tab, ...saved].slice(0, 30)));
+  workspaceRenderTabs();
+  workspaceRenderTempContent(tab);
+  if (typeof skillHubToast === 'function') skillHubToast('AI 报告已保存，可在本机继续查看');
+}
+
+function workspaceDownloadTempTab(id) {
+  const tab = STATE.tempTabs.find(item => item.id === id);
+  if (!tab) return;
+  const isHtmlPreview = !!tab.previewHtml;
+  const blob = new Blob(
+    [isHtmlPreview ? tab.previewHtml : `# ${tab.title}\n\n${tab.content}`],
+    { type: isHtmlPreview ? 'text/html;charset=utf-8' : 'text/markdown;charset=utf-8' }
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tab.title.replace(/[\\/:*?"<>|]/g, '_')}.${isHtmlPreview ? 'html' : 'md'}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function workspaceCopyText(text) {
+  if (!text) return;
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      if (typeof skillHubToast === 'function') skillHubToast('链接已复制');
+    }).catch(() => {});
+  }
+}
+
+function workspaceCopyTempTabUrl(id) {
+  const tab = STATE.tempTabs.find(item => item.id === id);
+  workspaceCopyText(tab?.externalUrl || '');
+}
+
+function workspaceOpenExternalLink(event, linkEl) {
+  event?.preventDefault();
+  const el = linkEl?.closest ? linkEl.closest('a') : linkEl;
+  const url = el?.href || el?.getAttribute?.('href') || '';
+  if (!url) return false;
+  const title = (el?.dataset?.workspaceTitle || el?.textContent || '外部链接').trim();
+  const sourceLabel = el?.dataset?.workspaceSource || getPageLabel(STATE.currentPage) || '外部链接';
+  workspaceOpenTempTab({
+    id: `link_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    title: `${title}链接`,
+    sourcePage: STATE.currentPage,
+    sourcePageLabel: sourceLabel,
+    groupLabel: '链接报告',
+    summary: '已按展开报告规范在工作区内打开链接信息，不再跳出新页面。',
+    chips: ['链接', sourceLabel],
+    externalUrl: url,
+    content: `# ${title}链接
+
+## 链接信息
+- 链接标题：${title}
+- 来源位置：${sourceLabel}
+- 原始地址：${url}
+
+## 操作说明
+- 当前链接已收敛到中间临时页签中展示。
+- 需要访问原始地址时，先复制链接后在合适环境中打开。`
+  });
+  return false;
+}
+
+function workspaceOpenHtmlPreviewTab(payload = {}) {
+  const title = payload.title || '页面预览';
+  workspaceOpenTempTab({
+    id: payload.id || `preview_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    title,
+    sourcePage: payload.sourcePage || STATE.currentPage,
+    sourcePageLabel: payload.sourcePageLabel || getPageLabel(STATE.currentPage) || '页面构建',
+    groupLabel: payload.groupLabel || '页面预览',
+    summary: payload.summary || '已按展开报告规范在工作区内打开页面预览，不再新开浏览器页面。',
+    chips: payload.chips || ['预览', 'HTML'],
+    previewHtml: payload.html || payload.previewHtml || '',
+    content: payload.content || `# ${title}
+
+## 预览说明
+- 该页面预览已在中间工作区临时页签中打开。
+- 可使用右上角下载导出 HTML 文件，或返回原页面继续编辑。`
+  });
+}
+
+function workspaceRenderMarkdown(text) {
+  if (typeof renderAiMarkdown === 'function') return renderAiMarkdown(text || '');
+  return workspaceEscapeHtml(text || '').replace(/\n/g, '<br>');
+}
+
+function workspaceReportSections(text) {
+  const lines = String(text || '').split('\n').map(line => line.trim()).filter(Boolean);
+  const sections = [];
+  let current = null;
+  const push = () => {
+    if (!current) return;
+    if (current.items.length || current.paragraphs.length) sections.push(current);
+  };
+  lines.forEach(line => {
+    const heading = line.match(/^#{1,3}\s*(.+)$/) || line.match(/^([一二三四五六七八九十]+、.+)$/);
+    if (heading) {
+      push();
+      current = { title: heading[1].replace(/^AI\s*报告\s*[·:：-]\s*/i, '').trim(), items: [], paragraphs: [] };
+      return;
+    }
+    if (!current) current = { title: '核心摘要', items: [], paragraphs: [] };
+    if (/^[-•]\s+/.test(line)) current.items.push(line.replace(/^[-•]\s+/, '').trim());
+    else if (!/^\|/.test(line)) current.paragraphs.push(line);
+  });
+  push();
+  const filtered = sections.filter(section => section.title && !/^AI\s*报告/i.test(section.title));
+  const bullets = filtered.flatMap(section => section.items).slice(0, 5);
+  const headings = filtered.map(section => section.title).slice(0, 5);
+  return { bullets, headings, sections: filtered };
+}
+
+function workspaceReportMetricCards(tab, sections) {
+  const sourceText = `${tab.content || ''} ${tab.summary || ''}`;
+  const nums = [...sourceText.matchAll(/([A-Za-z\u4e00-\u9fa5]{2,12})\s*([0-9]+(?:\.[0-9]+)?\s*(?:万|%|人)?)/g)]
+    .map(match => ({ label: match[1], value: match[2] }))
+    .filter(item => !/(AI|Generated|Report)/i.test(item.label))
+    .slice(0, 3);
+  const fallback = [
+    { label: '来源页面', value: tab.sourcePageLabel || '当前页面' },
+    { label: '报告段落', value: `${Math.max(sections.length, 1)} 段` },
+    { label: '生成方式', value: 'AI 对话' }
+  ];
+  return (nums.length >= 2 ? nums : fallback).slice(0, 3);
+}
+
+function workspaceRenderReportSection(section, index) {
+  const title = workspaceEscapeHtml(section.title || `分析 ${index + 1}`);
+  const paragraphs = (section.paragraphs || []).map(text => `<p>${workspaceEscapeHtml(text)}</p>`).join('');
+  const items = (section.items || []).length
+    ? `<ul>${section.items.map(item => `<li>${workspaceEscapeHtml(item)}</li>`).join('')}</ul>`
+    : '';
+  return `
+    <section class="workspace-report-section">
+      <div class="workspace-report-section-head">
+        <span>${String(index + 1).padStart(2, '0')}</span>
+        <h3>${title}</h3>
+      </div>
+      <div class="workspace-report-section-body">${paragraphs}${items}</div>
+    </section>`;
+}
+
+function workspaceRenderTempContent(tab) {
+  const content = document.getElementById('page-content');
+  if (!content) return;
+  const created = new Date(tab.createdAt || Date.now()).toLocaleString('zh-CN', { hour12: false });
+  const sections = workspaceReportSections(tab.content);
+  const displayTitle = workspaceReportDisplayTitle(tab);
+  const chips = (tab.chips?.length ? tab.chips : ['AI 对话', tab.sourcePageLabel || '当前页面']).slice(0, 4);
+  const metricCards = workspaceReportMetricCards(tab, sections.sections || []);
+  const externalBlock = tab.externalUrl ? `
+    <div class="workspace-link-panel">
+      <b>链接地址</b>
+      <code>${workspaceEscapeHtml(tab.externalUrl)}</code>
+      <button class="btn btn-secondary btn-sm" onclick="workspaceCopyTempTabUrl('${tab.id}')">复制链接</button>
+    </div>` : '';
+  const previewBlock = tab.previewHtml ? `
+    <div class="workspace-preview-shell">
+      <iframe title="${workspaceEscapeHtml(displayTitle)}" sandbox="allow-same-origin allow-scripts allow-forms" srcdoc="${workspaceEscapeHtml(tab.previewHtml)}"></iframe>
+    </div>` : '';
+  const reportBody = previewBlock || `
+    ${sections.bullets.length ? `
+      <div class="workspace-report-summary">
+        <b>结论摘要</b>
+        ${sections.bullets.map(item => `<p>${workspaceEscapeHtml(item)}</p>`).join('')}
+      </div>` : ''}
+    <div class="workspace-report-sections">
+      ${(sections.sections || []).map((section, index) => workspaceRenderReportSection(section, index)).join('') || `<div class="workspace-report-markdown">${workspaceRenderMarkdown(tab.content)}</div>`}
+    </div>`;
+  content.innerHTML = `
+    <div class="workspace-report-page">
+      <div class="page-header workspace-report-header">
+        <div>
+          <div class="page-title">${workspaceEscapeHtml(displayTitle)}</div>
+          <div class="page-desc">来自 AI 对话 · ${workspaceEscapeHtml(tab.groupLabel)} / ${workspaceEscapeHtml(tab.sourcePageLabel)} · ${workspaceEscapeHtml(created)}</div>
+        </div>
+        <div class="workspace-report-actions">
+          <button class="btn btn-secondary btn-sm" onclick="workspaceSaveTempTab('${tab.id}')">${tab.saved ? '已保存' : '保存'}</button>
+          <button class="btn btn-secondary btn-sm" onclick="workspaceDownloadTempTab('${tab.id}')">下载</button>
+          <button class="btn btn-primary btn-sm" onclick="workspaceOpenBasePage()">返回页面</button>
+        </div>
+      </div>
+      <section class="workspace-report-hero">
+        <div>
+          <span class="workspace-report-kicker">AI GENERATED REPORT</span>
+          <p>${workspaceEscapeHtml(tab.summary || '已将右侧 AI 对话中的长篇数据、解读和建议整理为临时工作页签，便于在中间内容槽阅读、保存和对比。')}</p>
+        </div>
+        <div class="workspace-report-meta">
+          ${chips.map(chip => `<span>${workspaceEscapeHtml(chip)}</span>`).join('')}
+        </div>
+      </section>
+      <div class="workspace-report-metrics">
+        ${metricCards.map(item => `
+          <div>
+            <span>${workspaceEscapeHtml(item.label)}</span>
+            <b>${workspaceEscapeHtml(item.value)}</b>
+          </div>
+        `).join('')}
+      </div>
+      <div class="workspace-report-grid">
+        <aside class="workspace-report-outline">
+          <b>报告目录</b>
+          ${(sections.headings.length ? sections.headings : ['核心结论', '关键证据', '建议动作']).map((heading, index) => `
+            <span><i>${String(index + 1).padStart(2, '0')}</i>${workspaceEscapeHtml(heading)}</span>
+          `).join('')}
+        </aside>
+        <article class="workspace-report-body">
+          ${externalBlock}
+          ${reportBody}
+        </article>
+      </div>
+    </div>`;
+}
+
+function toggleUserMenu(event) {
+  event?.stopPropagation();
+  const menu = document.getElementById('user-menu-popover');
+  if (!menu) return;
+  menu.classList.toggle('open');
+}
+
+function closeUserMenu() {
+  document.getElementById('user-menu-popover')?.classList.remove('open');
+}
+
+function goPortalHome() {
+  closeUserMenu();
+  switchPage('portal.home');
+  if (typeof toggleAI === 'function') toggleAI(true);
+}
+
+function openSkillCreatePage() {
+  closeUserMenu();
+  if (typeof toggleAI === 'function' && STATE.aiOpen) toggleAI(false);
+  switchPage('agent.skillCreate');
+}
+
+function openSkillManagerFromUserMenu() {
+  closeUserMenu();
+  if (typeof toggleAI === 'function' && STATE.aiOpen) toggleAI(false);
+  switchPage('agent.skills');
+}
+
+function openPermissionManagerPage() {
+  if (typeof skillHubToast === 'function') {
+    skillHubToast('权限管理敬请期待，后续开放菜单权限、Skill 权限和角色范围管理');
+  }
+}
+
+function openPocAdjustmentLog() {
+  closeUserMenu();
+  const existing = document.getElementById('poc-adjustment-log-modal');
+  if (existing) existing.remove();
+  const records = [
+    {
+      time: '2026-06-23 13:20',
+      title: '账号入口与 POC 调整日志',
+      scope: '账号入口弹层 / 调整日志 / admin 入口跳转',
+      detail: '账号入口弹层改为 2x2 功能入口，新增调整日志查看；日志按功能点归纳展示，时间按北京时间取值；admin/index.html 覆盖为跳转页，进入 workbench.html?demo=1。',
+      status: '预览验证中'
+    },
+    {
+      time: '2026-06-22 13:40',
+      title: 'Skill Hub 应用入口调整',
+      scope: 'Skill Hub 操作列',
+      detail: '应用固定为蓝色测试入口，放在操作项最后，点击后在右侧 Agent 展示 output 结果。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-18 18:30',
+      title: '业务侧技能包管理与顶部入口整理',
+      scope: '技能包管理 / 顶部栏',
+      detail: '技能包管理固定为启停管理面，不再展示申请、使用、查看进度等旧流程；筛选归并为全部、已开启、已关闭；顶部中间搜索入口移除，同时保留夜间模式按钮。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-18 17:40',
+      title: 'Skill 创建命名与 AI 微调闭环',
+      scope: 'Skill 创建 / 评估验证 / 右侧 Agent',
+      detail: '基础配置中区分 Skill 名称（英文）和必填中文命名；评估验证出现低分项时提供 AI 微调，唤起右侧 Agent 更新草稿和评分，示例评分刷新到综合评分 0.859 后进入后续审核。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-18 14:42',
+      title: '企业客户管理打分模型样式修复',
+      scope: '企业客户管理 / 打分模型',
+      detail: '根据 0617 wangxt8 样式包替换 workbench-lead.js，修复打分模型页面样式不生效的问题；后续遇到同类问题先检查模块版本，不再只叠加 CSS 覆盖。',
+      status: '已合并正式'
+    }
+  ];
+  const modal = document.createElement('div');
+  modal.id = 'poc-adjustment-log-modal';
+  modal.className = 'poc-log-modal open';
+  modal.innerHTML = `
+    <div class="poc-log-panel" role="dialog" aria-modal="true" aria-label="调整日志">
+      <button type="button" class="poc-log-close" onclick="closePocAdjustmentLog()" aria-label="关闭">×</button>
+      <div class="poc-log-head">
+        <span>仅用于 POC 记录</span>
+        <h3>调整日志</h3>
+        <p>记录本轮工作台功能调整与验证状态，不作为正式审计、发布审批或生产变更依据。</p>
+      </div>
+      <div class="poc-log-list">
+        ${records.map(item => `
+          <div class="poc-log-item">
+            <time>${item.time}</time>
+            <div>
+              <b>${item.title}</b>
+              <p>${item.detail}</p>
+              <small>${item.scope}</small>
+            </div>
+            <em>${item.status}</em>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  modal.addEventListener('click', event => {
+    if (event.target === modal) closePocAdjustmentLog();
+  });
+  document.body.appendChild(modal);
+}
+
+function closePocAdjustmentLog() {
+  document.getElementById('poc-adjustment-log-modal')?.remove();
+}
+
+document.addEventListener('click', event => {
+  const footer = document.querySelector('.sidebar-footer');
+  if (footer && !footer.contains(event.target)) closeUserMenu();
+});
+
+
+// ===== 认证材料预览弹窗 =====
+function showMaterialPreview(title, icon) {
+  // 创建弹窗背景
+  const overlay = document.createElement('div');
+  overlay.id = 'material-preview-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+
+  // 创建弹窗容器
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  `;
+
+  // 弹窗内容
+  modal.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border);">
+      <div style="font-size: 18px; font-weight: 600;">${icon} ${title}</div>
+      <button onclick="document.getElementById('material-preview-overlay').remove()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--text-secondary);">×</button>
+    </div>
+    <div style="padding: 40px; text-align: center;">
+      <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #e5e7eb, #f3f4f6); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <div style="font-size: 120px; opacity: 0.3;">${icon}</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+        ${title} 预览（演示图片）
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <button class="btn btn-primary" onclick="alert('下载：${title}'); document.getElementById('material-preview-overlay').remove()">📥 下载</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('material-preview-overlay').remove()">关闭</button>
+      </div>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // 点击背景关闭
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+}
+
+// ===== TAB SWITCH =====
+function switchTab(el, tabId) {
+  el.parentElement.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  el.closest('.page-content, .card').querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tabId)?.classList.add('active');
+}
+
+// ===== BEHAVIOR TAB =====
+function switchBehaviorTab(tab, el) {
+  if (el) {
+    el.parentElement.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  ['conversion','intent','churn','marketing','member'].forEach(t => {
+    const d = document.getElementById('behavior-' + t);
+    if (d) d.style.display = t === tab ? '' : 'none';
+  });
+}
+
+
+</script>
+<!-- Chart.js for report charts; async so ops pages are not blocked by the CDN. -->
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- ECharts for quality dashboard -->
+<script src="echarts.min.js"></script>
+<script>
+// Keep ECharts colors aligned with the Leaibot design system without changing page data logic.
+(function installLeaibotChartThemeBridge() {
+  if (!window.echarts || window.__LEAIBOT_CHART_THEME_BRIDGE__) return;
+  window.__LEAIBOT_CHART_THEME_BRIDGE__ = true;
+  window.LEAIBOT_CHART = {
+    palette: ['#3f78c5', '#3f9ead', '#58a86a', '#c89532', '#9070c3', '#b45f86', '#6f879e', '#4f6578'],
+    danger: '#d24a4a',
+    warning: '#c47f24',
+    success: '#4f9b62'
+  };
+  const colorAliases = {
+    '#3370ff': '#3f78c5', '#3b82f6': '#3f78c5', '#2563eb': '#3f78c5',
+    '#06b6d4': '#3f9ead', '#0891b2': '#3f9ead', '#14b8a6': '#3f9ead',
+    '#16a34a': '#58a86a', '#10b981': '#58a86a', '#059669': '#58a86a',
+    '#f59e0b': '#c89532', '#ff7d00': '#c89532', '#d97706': '#c47f24',
+    '#8b5cf6': '#9070c3', '#722ed1': '#9070c3',
+    '#ec4899': '#b45f86', '#be185d': '#b45f86',
+    '#ef4444': '#d24a4a', '#dc2626': '#d24a4a', '#e2001a': '#d24a4a',
+    '#94a3b8': '#6f879e', '#6b7280': '#6f879e'
+  };
+  const adaptColor = value => typeof value === 'string' ? (colorAliases[value.trim().toLowerCase()] || value) : value;
+  const adaptOption = value => {
+    if (value == null || typeof value !== 'object') return adaptColor(value);
+    if (Array.isArray(value)) return value.map(adaptOption);
+    if (value.constructor && value.constructor !== Object) return value;
+    const next = {};
+    Object.keys(value).forEach(key => { next[key] = adaptOption(value[key]); });
+    return next;
+  };
+  const originalInit = echarts.init.bind(echarts);
+  echarts.init = function themedInit(dom, theme, opts) {
+    const chart = originalInit(dom, theme, opts);
+    if (!chart.__leaiThemeWrapped) {
+      const originalSetOption = chart.setOption.bind(chart);
+      chart.setOption = function themedSetOption(option, ...args) {
+        const nextOption = adaptOption(option);
+        if (nextOption && typeof nextOption === 'object' && !Array.isArray(nextOption) && !nextOption.color) {
+          nextOption.color = window.LEAIBOT_CHART.palette;
+        }
+        return originalSetOption(nextOption, ...args);
+      };
+      chart.__leaiThemeWrapped = true;
+    }
+    return chart;
+  };
+})();
+</script>
+<!-- 模块化JS：依赖核心变量，必须在核心之后加载 -->
+<script src="workbench-data-leai.js"></script>
+<script src="workbench-pages.js?v=20260622-skill-hub-apply-test1"></script>
+<script src="workbench-lead.js?v=20260618-wangxt8-lead1"></script>
+<script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
+<script src="workbench-geo.js?v=20260617-report-openall1"></script>
+	<script src="workbench-ai.js?v=20260622-account-hub-ai-open1"></script>
+<script src="workbench-data.js?v=20260618-topbar-clean1"></script>
+<script src="workbench-employee.js?v=20260605-design-global4"></script>
+<script src="workbench-ops.js?v=20260611-component-fix1"></script>
+<script src="workbench-report.js"></script>
+<script src="workbench-pipeline.js?v=20260520e"></script>
+<script src="workbench-quality.js?v=20260520d"></script>
+<script>
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('login-screen').style.display = 'flex';
+  // Check if already logged in
+  fetch('/api/admin/me').then(r => {
+    if (r.ok) return r.json();
+    throw new Error('not logged in');
+  }).then(async data => {
+    STATE.user = data.admin?.username;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-area').style.display = 'flex';
+    await loadUserContext();
+    applyInitialPageFromUrl();
+    renderSidebar();
+    restoreSidebarState();
+    restoreAIState();
+    if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
+    if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
+    switchPage(STATE.currentPage);
+    const requestedPage = new URLSearchParams(window.location.search).get('page');
+    if (requestedPage) {
+      setTimeout(() => {
+        const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
+        const canOpen = !!findPageGroup(requestedPage) || !!hiddenPages[requestedPage] || ['portal.home', 'agent.skills', 'agent.skillCreate', 'agent.permissions'].includes(requestedPage);
+        if (canOpen) switchPage(requestedPage);
+      }, 0);
+    }
+    if (STATE.currentPage === 'portal.home' && typeof toggleAI === 'function') {
+      requestAnimationFrame(() => toggleAI(true));
+    }
+  }).catch(() => {
+    // Show login screen
+  });
+});
+</script>
+</body>
+</html>

@@ -120,12 +120,15 @@ core/agent.js runAgentStream
 git clone https://github.com/shuitian23-bot/lexiang-workbench.git
 cd lexiang-workbench
 pnpm install   # 或 npm
-cp .env.example .env       # 填 DASHSCOPE_API_KEY / BAIDU_MAP_KEY 等
+cp .env.example .env       # 填 ARK_API_KEY / VOLCENGINE_API_KEY / BAIDU_MAP_KEY 等
 pnpm start                  # 跑 server.js 监听 :3001
 ```
 
 环境变量（`.env`）:
-- `DASHSCOPE_API_KEY` — 自研 AI 必填
+- `ARK_API_KEY` / `VOLCENGINE_API_KEY` — 右侧工作台 Agent 的火山方舟调用密钥（优先）
+- `ARK_CHAT_MODEL` / `VOLCENGINE_ARK_MODEL` — 右侧工作台 Agent 模型，默认 `doubao-seed-2.0-lite`
+- `ARK_BASE_URL` — 火山方舟 Chat API Base URL，默认 `https://ark.cn-beijing.volces.com/api/coding/v3`
+- `DASHSCOPE_API_KEY` — 兼容旧环境变量；未配置火山命名变量时会继续读取
 - `BAIDU_MAP_KEY` — 门店查询用
 - `LEAI_*` — 联想官方代理密钥
 - `SMS_*` — 短信登录

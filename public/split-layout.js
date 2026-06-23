@@ -801,40 +801,125 @@
 
   RENDERERS.stores = function (container, data) {
     data = data || {};
-    var stores = data.stores || [];
+    var allStores = data.stores || [];
     var perks = data.perks || [];
-    var perksHtml = perks.length ? '<div class="cp-perks"><strong>🎁 到店专享</strong>' + perks.map(function(p){ return '<span>' + escH(p) + '</span>'; }).join('') + '</div>' : '';
-    var cardsHtml = stores.map(function(s){
-      var slotsHtml = (s.slots||[]).map(function(t){
-        var ask = '我要预约' + (s.name || '') + ' ' + (t.time || '') + '，请帮我下单';
-        var safe = ask.replace(/'/g, "\\'");
-        return '<div class="cp-store-slot"><span class="cp-slot-time">'+escH(t.time||'')+'</span><span class="cp-slot-remain">剩 '+(t.remain||0)+' 名额</span><button class="cp-slot-btn" data-ask="'+escH(safe)+'">立即预约</button></div>';
-      }).join('');
-      var prodLines = (s.product_lines||[]).map(function(pl){ return '<span class="cp-store-tag">'+escH(pl)+'</span>'; }).join('');
-      var flag = s.is_flagship ? '<span class="cp-store-flag">旗舰</span>' : '';
-      var ratingHtml = s.rating ? '<span class="cp-store-rating">⭐ ' + s.rating + '</span>' : '';
-      return '<div class="cp-store-card">' +
-        '<div class="cp-store-head">' +
-          '<div class="cp-store-name">' + escH(s.name||'') + ratingHtml + flag + '</div>' +
-          (s.distance ? '<div class="cp-store-distance">' + escH(s.distance) + '</div>' : '') +
-        '</div>' +
-        '<div class="cp-store-meta">' +
-          (s.address ? '<div>📍 ' + escH(s.address) + '</div>' : '') +
-          (s.hours   ? '<div>🕐 ' + escH(s.hours) + '</div>' : '') +
-          (s.metro   ? '<div>🚇 ' + escH(s.metro) + '</div>' : '') +
-          (s.phone   ? '<div>📞 <a href="tel:'+escH(s.phone)+'">'+escH(s.phone)+'</a></div>' : '') +
-        '</div>' +
-        (prodLines ? '<div class="cp-store-tags"><strong>在售：</strong>' + prodLines + '</div>' : '') +
-        (slotsHtml ? '<div class="cp-store-slots"><h4>📅 可预约时段</h4>' + slotsHtml + '</div>' : '') +
-      '</div>';
-    }).join('');
-    container.innerHTML = '<div class="cp-stores-page">' + perksHtml + cardsHtml + '</div>';
-    container.querySelectorAll('.cp-slot-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        if (typeof quickAsk === 'function') quickAsk(btn.dataset.ask || '我要预约门店');
+
+    var CATEGORIES = ['个人&家庭产品','商用产品及方案','Think产品'];
+    var STORE_TYPES = ['联想直营店','联想授权店','联想Think体验店','联想Think专卖店','联想扬天专卖店','联想官方直营客服中心','智商务融合店','其他'];
+    var cities = [];
+    allStores.forEach(function(s){ if(s.city && cities.indexOf(s.city)<0) cities.push(s.city); });
+
+    var selCity = cities[0] || '';
+    var selCat = '';
+    var selType = '';
+
+    function getFiltered() {
+      return allStores.filter(function(s){
+        if(selCity && s.city !== selCity) return false;
+        if(selCat && s.category !== selCat) return false;
+        if(selType && s.store_type !== selType) return false;
+        return true;
       });
-    });
+    }
+
+    function renderSelect(opts, val, placeholder, onchange) {
+      var s = document.createElement('select');
+      s.className = 'cp-store-sel';
+      var def = document.createElement('option');
+      def.value = ''; def.textContent = placeholder;
+      s.appendChild(def);
+      opts.forEach(function(o){
+        var opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if(o === val) opt.selected = true;
+        s.appendChild(opt);
+      });
+      s.addEventListener('change', function(){ onchange(s.value); });
+      return s;
+    }
+
+    function render() {
+      var filtered = getFiltered();
+      // header
+      var hd = container.querySelector('.cp-stores-hd');
+      var countEl = container.querySelector('.cp-stores-count');
+      if(countEl) countEl.textContent = '找到 ' + filtered.length + ' 家门店';
+      // cards
+      var list = container.querySelector('.cp-stores-list');
+      if(!list) return;
+      list.innerHTML = '';
+      if(!filtered.length) {
+        list.innerHTML = '<div style="padding:32px;text-align:center;color:#999;font-size:13px">暂无符合条件的门店</div>';
+        return;
+      }
+      filtered.forEach(function(s){
+        var slotsHtml = (s.slots||[]).map(function(t){
+          var ask = '我要预约' + (s.name||'') + ' ' + (t.time||'');
+          return '<div class="cp-store-slot"><span class="cp-slot-time">'+escH(t.time||'')+'</span><span class="cp-slot-remain">剩 '+(t.remain||0)+' 名额</span><button class="cp-slot-btn" data-ask="'+escH(ask)+'">立即预约</button></div>';
+        }).join('');
+        var prodLines = (s.product_lines||[]).map(function(pl){ return '<span class="cp-store-tag">'+escH(pl)+'</span>'; }).join('');
+        var flag = s.is_flagship ? '<span class="cp-store-flag">旗舰</span>' : '';
+        var ratingHtml = s.rating ? '<span class="cp-store-rating">⭐ '+s.rating+'</span>' : '';
+        var typeTag = s.store_type ? '<span class="cp-store-type-tag">'+escH(s.store_type)+'</span>' : '';
+        var mapUrl = 'https://map.baidu.com/search/?querytype=s&wd=' + encodeURIComponent((s.name||'')+' '+(s.address||''));
+        var card = document.createElement('div');
+        card.className = 'cp-store-card';
+        card.innerHTML =
+          '<div class="cp-store-head">' +
+            '<div class="cp-store-name">'+escH(s.name||'')+ratingHtml+flag+'</div>' +
+            (s.distance && s.distance!=='—' ? '<div class="cp-store-distance">'+escH(s.distance)+'</div>' : '') +
+          '</div>' +
+          (typeTag ? '<div style="margin-bottom:6px">'+typeTag+'</div>' : '') +
+          '<div class="cp-store-body">' +
+            '<div class="cp-store-meta">' +
+              (s.address ? '<div>📍 '+escH(s.address)+'</div>' : '') +
+              (s.hours   ? '<div>🕐 '+escH(s.hours)+'</div>' : '') +
+              (s.metro   ? '<div>🚇 '+escH(s.metro)+'</div>' : '') +
+              (s.phone   ? '<div>📞 <a href="tel:'+escH(s.phone)+'">'+escH(s.phone)+'</a></div>' : '') +
+            '</div>' +
+            '<a class="cp-store-map" href="'+escH(mapUrl)+'" target="_blank" title="查看地图" style="flex-shrink:0;width:140px;height:112px;border-radius:9px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative;border:1px solid #d0d0d0;text-decoration:none;background:#edf3ed;transition:border-color .2s,transform .15s">' +
+              '<svg width="140" height="112" viewBox="0 0 140 112" style="position:absolute;top:0;left:0" xmlns="http://www.w3.org/2000/svg"><rect width="140" height="112" fill="#e8f0e6"/><line x1="0" y1="16" x2="140" y2="16" stroke="#c8dcc6" stroke-width="0.8"/><line x1="0" y1="32" x2="140" y2="32" stroke="#c8dcc6" stroke-width="0.8"/><line x1="0" y1="48" x2="140" y2="48" stroke="#c8dcc6" stroke-width="0.8"/><line x1="0" y1="64" x2="140" y2="64" stroke="#c8dcc6" stroke-width="0.8"/><line x1="0" y1="80" x2="140" y2="80" stroke="#c8dcc6" stroke-width="0.8"/><line x1="0" y1="96" x2="140" y2="96" stroke="#c8dcc6" stroke-width="0.8"/><line x1="20" y1="0" x2="20" y2="112" stroke="#c8dcc6" stroke-width="0.8"/><line x1="40" y1="0" x2="40" y2="112" stroke="#c8dcc6" stroke-width="0.8"/><line x1="60" y1="0" x2="60" y2="112" stroke="#c8dcc6" stroke-width="0.8"/><line x1="80" y1="0" x2="80" y2="112" stroke="#c8dcc6" stroke-width="0.8"/><line x1="100" y1="0" x2="100" y2="112" stroke="#c8dcc6" stroke-width="0.8"/><line x1="120" y1="0" x2="120" y2="112" stroke="#c8dcc6" stroke-width="0.8"/><rect x="10" y="44" width="26" height="10" rx="1.5" fill="#b8d0b4" opacity="0.8"/><rect x="76" y="26" width="34" height="14" rx="1.5" fill="#b8d0b4" opacity="0.8"/><rect x="90" y="72" width="22" height="10" rx="1.5" fill="#b8d0b4" opacity="0.7"/><rect x="28" y="76" width="28" height="8" rx="1.5" fill="#b8d0b4" opacity="0.7"/><rect x="6" y="68" width="20" height="8" rx="1.5" fill="#b8d0b4" opacity="0.6"/><rect x="44" y="48" width="5" height="112" fill="#fff" opacity="0.75"/><rect x="0" y="58" width="140" height="5" fill="#fff" opacity="0.75"/></svg>' +
+              '<svg width="20" height="26" viewBox="0 0 24 30" style="position:relative;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))" xmlns="http://www.w3.org/2000/svg"><path d="M12 1C7.03 1 3 5.03 3 10c0 6.56 9 19 9 19s9-12.44 9-19c0-4.97-4.03-9-9-9z" fill="#E2231A" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>' +
+              '<span style="position:relative;z-index:1;font-size:10px;color:#444;font-weight:600;background:rgba(255,255,255,.9);padding:2px 7px;border-radius:10px;white-space:nowrap;line-height:1.4">查看地图</span>' +
+            '</a>' +
+          '</div>' +
+          (prodLines ? '<div class="cp-store-tags"><strong>在售：</strong>'+prodLines+'</div>' : '') +
+          (slotsHtml ? '<div class="cp-store-slots"><h4>📅 可预约时段</h4>'+slotsHtml+'</div>' : '');
+        card.querySelectorAll && setTimeout(function(){
+          card.querySelectorAll('.cp-slot-btn').forEach(function(btn){
+            btn.addEventListener('click', function(){ if(typeof quickAsk==='function') quickAsk(btn.dataset.ask||'我要预约门店'); });
+          });
+        },0);
+        list.appendChild(card);
+      });
+      list.querySelectorAll('.cp-slot-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){ if(typeof quickAsk==='function') quickAsk(btn.dataset.ask||'我要预约门店'); });
+      });
+    }
+
+    // Build DOM
+    var perksHtml = perks.length ? '<div class="cp-perks"><strong>🎁 到店专享</strong>'+perks.map(function(p){ return '<span>'+escH(p)+'</span>'; }).join('')+'</div>' : '';
+    container.innerHTML = perksHtml +
+      '<div class="cp-stores-filters">' +
+        '<div class="cp-stores-sel-row"></div>' +
+        '<div class="cp-stores-count">找到 '+allStores.length+' 家门店</div>' +
+      '</div>' +
+      '<div class="cp-stores-list"></div>';
+
+
+
+    // Dropdowns
+    var selRow = container.querySelector('.cp-stores-sel-row');
+    var ALL_CITIES = ['北京','上海','深圳','广州','成都','杭州','武汉','南京','西安','重庆','天津','苏州','长沙','青岛','郑州','沈阳','宁波','合肥','厦门','济南','大连','哈尔滨','福州','昆明','无锡','南昌','贵阳','太原','石家庄','乌鲁木齐','南宁','呼和浩特','长春','兰州','银川','海口','西宁','拉萨'];
+    var cityDrop = renderSelect(ALL_CITIES, selCity, '📍 选择城市', function(v){ selCity=v; render(); });
+    cityDrop.style.fontWeight='600'; cityDrop.style.minWidth='130px';
+    selRow.appendChild(cityDrop);
+    selRow.appendChild(renderSelect(CATEGORIES, selCat, '选择产品类别', function(v){ selCat=v; render(); }));
+    selRow.appendChild(renderSelect(STORE_TYPES, selType, '选择门店类型', function(v){ selType=v; render(); }));
+
+    render();
   };
+
 
   RENDERERS.preview = function (container, data) {
     var url = data && data.url || '';
