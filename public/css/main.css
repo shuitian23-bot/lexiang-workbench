@@ -9675,3 +9675,17 @@ body.cursor-awake .ai-arrow{ opacity:1; }
 body[data-arr="A"] .arrow .ar-body{ fill:url(#arrowIris); stroke:#fff; stroke-width:1.4; stroke-linejoin:round; }
 body[data-arr="A"] .fx{ left:11px; top:13px; }
 @media (prefers-reduced-motion:reduce){ .ai-arrow *{ animation-duration:.001s!important; } }
+
+/* Tabbar/content spacing cleanup requested 2026-06-23. */
+.content > .lx-tabbar {
+  min-height: unset !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+}
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors) {
+  padding: 0 18px 18px 18px !important;
+}
+.lx-tabbar {
+  border-bottom: 0 !important;
+}
