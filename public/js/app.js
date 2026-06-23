@@ -425,8 +425,12 @@ if (!window.__lxMemberFetched) {
           const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
           if (!bottom || !list) return;
-          const key = String(product?.sku || "");
-          list.innerHTML = renderHoverPromptPop(product);
+          const key = String(product?.sku || product?.name || "");
+          const alreadyVisible = bottom.classList.contains("has-hover-prompts") && state.hoverPromptVisibleSku === key && !!list.querySelector(".pop");
+          if (!alreadyVisible) {
+            list.innerHTML = renderHoverPromptPop(product);
+            state.hoverPromptVisibleSku = key;
+          }
           bottom.classList.add("has-hover-prompts");
           scheduleHoverPromptAutoClose();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
@@ -441,7 +445,13 @@ if (!window.__lxMemberFetched) {
             state.reasonCache[key] = reason;
           }
           if (reason && state.hoverPromptSku === key && bottom.classList.contains("has-hover-prompts")) {
-            list.innerHTML = renderHoverPromptPop(product, reason);
+            const sum = list.querySelector(".pop .sum");
+            const summary = esc(reason).replace(/配置拉满/g, "<b>配置拉满</b>");
+            if (sum && state.hoverPromptVisibleSku === key) sum.innerHTML = summary;
+            else {
+              list.innerHTML = renderHoverPromptPop(product, reason);
+              state.hoverPromptVisibleSku = key;
+            }
           }
         }
 
@@ -453,12 +463,14 @@ if (!window.__lxMemberFetched) {
           if (!bottom || !list) return;
           if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
             bottom.classList.remove("has-hover-prompts");
+            state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
             return;
           }
           pop.classList.add("is-closing");
           window.setTimeout(() => {
             bottom.classList.remove("has-hover-prompts");
+            state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
           }, 240);
         }
