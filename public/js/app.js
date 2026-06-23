@@ -445,6 +445,7 @@ if (!window.__lxMemberFetched) {
             return;
           }
           panel.classList.remove("assistant-glass-active");
+          panel.classList.remove("assistant-hover-active");
           if (veil) {
             veil.classList.remove("is-on");
             veil.classList.add("is-off");
@@ -465,6 +466,7 @@ if (!window.__lxMemberFetched) {
             state.hoverPromptVisibleSku = key;
           }
           bottom.classList.add("has-hover-prompts");
+          document.querySelector(".assistant-panel")?.classList.add("assistant-hover-active");
           setAssistantGlass(true);
           clearHoverPromptAutoCloseTimer();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
@@ -497,6 +499,7 @@ if (!window.__lxMemberFetched) {
           if (!bottom || !list) return;
           if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
             bottom.classList.remove("has-hover-prompts");
+            document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active");
             setAssistantGlass(false);
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
@@ -505,6 +508,7 @@ if (!window.__lxMemberFetched) {
           pop.classList.add("is-closing");
           window.setTimeout(() => {
             bottom.classList.remove("has-hover-prompts");
+            document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active");
             setAssistantGlass(false);
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
