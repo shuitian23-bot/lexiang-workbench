@@ -8084,6 +8084,19 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
   display: block !important;
 }
 
+/* Detail sticky buybar should attach flush to the content bottom with no spacer. */
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
+  padding-bottom: 0 !important;
+}
+body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
+  bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-bottom: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
 /* Composer input requested one step larger. */
 .assistant-panel .assistant-bottom .composer textarea,
 .assistant-panel .composer textarea {
