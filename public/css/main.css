@@ -10012,3 +10012,41 @@ body[data-arr="A"] .ai-arrow .fx{ left:11px!important; top:-2px!important; }
 .assistant-panel.assistant-glass-active .assistant-bottom{ position:relative!important; z-index:40!important; }
 .assistant-panel.assistant-glass-active .hover-prompt-panel{ position:relative!important; z-index:42!important; }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .assistant-panel > .assistant-glass-veil{ background:rgba(248,244,250,.88); } }
+
+/* 个人站品类楼层换一换按钮，放楼层标题行右侧。cache 202606231 */
+.lx-cat-shuffle-btn {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border: 1px solid #d9c9e4;
+  border-radius: 8px;
+  background: #fff;
+  color: #5b1452;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s;
+}
+.lx-cat-shuffle-btn::before {
+  content: "\21BA";
+  font-size: 14px;
+  line-height: 1;
+}
+.lx-cat-shuffle-btn:hover:not(:disabled) {
+  background: #f6f1f8;
+  border-color: #b68dc8;
+  color: #4d144a;
+}
+.lx-cat-shuffle-btn:disabled {
+  opacity: .38;
+  cursor: default;
+}
+@media (max-width: 768px) {
+  .lx-cat-shuffle-btn { padding: 4px 10px; font-size: 12px; }
+}
+/* 换一换按钮不被全局的 .lx-floor-head .lx-p0-btn { display:none } 规则隐藏 */
+body:is([data-page="personal"]):not(.assistant-fullscreen) .lx-floor-head .lx-cat-shuffle-btn { display: inline-flex !important; }
