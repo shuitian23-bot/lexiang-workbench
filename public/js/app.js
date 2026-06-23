@@ -5634,6 +5634,9 @@ if (!window.__lxMemberFetched) {
     chatState.convId = (window.__lxState && window.__lxState.convId) || null;
     if (welcome) welcome.style.display = "none";
     thread.classList.add("show");
+    chatState.started = true;
+    lxfdSetGalleryChatting(true);
+    if (quick) quick.style.display = "none";
     const lastUser = thread.querySelector(".lxfd-msg-user:last-of-type");
     const titleText = lastUser ? lastUser.textContent.trim() : "导入的对话";
     if (convoName) { convoName.textContent = shortText(titleText, 15); convoName.title = titleText; }
@@ -5985,7 +5988,16 @@ if (!window.__lxMemberFetched) {
     document.body.classList.toggle("lx-auto-fs", !!on);
     if (!on) document.body.classList.remove("lxfd-split-entered");
     if (on) document.body.dataset.state = "chat";
-    if (on) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
+    if (on) {
+      const hasThread = !!(thread && (thread.classList.contains("show") || thread.children.length));
+      if (hasThread || chatState.started) {
+        if (welcome) welcome.style.display = "none";
+        if (thread) thread.classList.add("show");
+        if (quick) quick.style.display = "none";
+        lxfdSetGalleryChatting(true);
+      }
+      requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
+    }
   }
   function setNav(open) {
     navCluster?.classList.toggle("open", open);
