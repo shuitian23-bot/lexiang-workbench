@@ -1449,6 +1449,8 @@ if (!window.__lxMemberFetched) {
           renderQueryHistory();
           // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端 ──────────────
           const _localCtrl = (function(_t) {
+            // 关其他/留当前/留一排——必须在 close_all 之前判（更具体）
+            if (/(关闭?|关掉)(其他|其它|多余|别的|除当前外?的?)(标签|页面|页签)?|只留(当前|这个|一个|一排)|留(当前|这个|一个|一排)(标签|页面)?|关成(剩余|只剩)?一(排|个)|剩(余|下)一(排|个)/.test(_t)) return { op: "close_other_tabs", msg: "好的，已关闭其他标签，只留当前页面。" };
             if (/^\s*(关闭?|清空)(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)\s*$/i.test(_t) || /(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)/.test(_t)) return { op: "close_all_tabs", msg: "好的，已为你关闭所有页面标签。" };
             if (/^\s*(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?\s*$|^\s*(放大|沉浸|专注)(模式|对话|查看)?\s*$/.test(_t)) return { op: "enter_fullscreen", msg: "好的，已切换到全屏对话模式。" };
             if (/^\s*(退出|关闭|取消|结束)(全屏|沉浸|专注)|^\s*(分屏|窗口|恢复|缩小)(模式)?\s*$/.test(_t)) return { op: "exit_fullscreen", msg: "好的，已退出全屏模式。" };
@@ -1485,7 +1487,7 @@ if (!window.__lxMemberFetched) {
               } catch (_intentErr) { /* 超时/失败 → 降级 chat */ }
               if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
                 ai.remove(); // 移除 loading 气泡
-                const _opNames = { close_all_tabs: "关闭了所有页面标签", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式" };
+                const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式" };
                 addMessage("ai", `好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
                 lxExecControl(_intentResult.op, _intentResult.target || "");
                 state.sending = false;
@@ -3720,9 +3722,21 @@ if (!window.__lxMemberFetched) {
           const siteMap = { shop: "personal", b: "business", biz: "enterprise" };
           const ops = {
             close_all_tabs: () => { state.tabs = []; state.activeTabId = null; state.pageTrail = []; lxRenderTabbar(); document.querySelector(".content")?.setAttribute("data-view", "list"); toast("已关闭所有页面"); },
+            close_other_tabs: () => {
+              // 关其他/留当前一个（「留一排」「只留这个」「关多余」都走这里）
+              const keep = state.activeTabId || (state.tabs && state.tabs[state.tabs.length - 1]?.id);
+              if (!keep) { toast("当前没有其他标签"); return; }
+              state.tabs = (state.tabs || []).filter((t) => t.id === keep);
+              state.activeTabId = keep;
+              lxRenderTabbar();
+              lxActivateTab(keep);
+              toast("已关闭其他标签，只留当前页面");
+            },
             close_tab: () => {
+              // 指定标签名匹配；匹配不到（如「右侧标签」这类泛指）则退化为关其他、留当前
               const tab = (state.tabs || []).find((t) => target && (t.label || "").includes(target));
-              if (tab) { lxCloseTab(tab.id); toast(`已关闭「${tab.label}」`); } else toast("没有找到对应的页面标签");
+              if (tab) { lxCloseTab(tab.id); toast(`已关闭「${tab.label}」`); }
+              else { ops.close_other_tabs(); }
             },
             go_home: () => document.querySelector('.main-nav [data-page="home"]')?.click(),
             switch_site: () => routeTo(siteMap[target] || "personal"),
@@ -6212,7 +6226,7 @@ if (!window.__lxMemberFetched) {
       _lxfdCtrlBody.className = "lxfd-ai-body";
       const _lxfdCtrlText = document.createElement("div");
       _lxfdCtrlText.className = "lxfd-ai-text";
-      const _lxfdOpNames = { close_all_tabs: "关闭了所有页面标签", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_lxfdIntentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式（当前已在全屏）", exit_fullscreen: "退出了全屏模式" };
+      const _lxfdOpNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_lxfdIntentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式（当前已在全屏）", exit_fullscreen: "退出了全屏模式" };
       _lxfdCtrlText.textContent = `好的，已为你${_lxfdOpNames[_lxfdIntentResult.op] || "执行了操作"}。`;
       _lxfdCtrlBody.appendChild(_lxfdCtrlText);
       _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
