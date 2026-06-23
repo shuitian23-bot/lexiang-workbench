@@ -9633,3 +9633,12 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
   position: sticky !important;
   top: 0 !important;
 }
+
+/* Rollback content-level context tabbar sizing/background to previous pill style. */
+.content > .lx-tabbar {
+  min-height: 0 !important;
+  padding: 8px 16px 8px 0 !important;
+  background: var(--lavender-bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
