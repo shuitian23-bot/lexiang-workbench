@@ -8085,6 +8085,9 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
 }
 
 /* Detail sticky buybar should attach flush to the content bottom with no spacer. */
+body:not(.assistant-fullscreen) .content[data-view="detail"] {
+  padding-bottom: 0 !important;
+}
 body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
   padding-bottom: 0 !important;
 }
