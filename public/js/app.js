@@ -1988,7 +1988,8 @@ if (!window.__lxMemberFetched) {
             [/教育特惠/, "lx-floor--activity lx-floor--education"],
             [/^国补$/, "lx-floor--activity lx-floor--guobu"],
             [/^会员$/, "lx-floor--activity lx-floor--member-floor"],
-            [/门店|服务/, "lx-floor--activity lx-floor--service"],
+            [/^门店$/, "lx-floor--activity lx-floor--service lx-floor--store"],
+            [/服务/, "lx-floor--activity lx-floor--service"],
             [/会员权益/, "lx-floor--activity lx-floor--member"],
             [/私人定制/, "lx-floor--activity lx-floor--custom"],
             [/以旧换新/, "lx-floor--activity lx-floor--tradein"],
@@ -2729,7 +2730,7 @@ if (!window.__lxMemberFetched) {
               ["质保承诺", "维修后同故障90天内免费返修"]
             ].map(([t, d]) => `<div class="lx-floor-card" style="flex:1;min-width:0"><strong>${esc(t)}</strong><span>${esc(d)}</span></div>`).join("")}</div>`;
 
-            const serviceCards = `<h4 class="lx-gb-sub-title">服务项目</h4><div class="lx-mhc-rights-grid">${serviceGrid}</div><h4 class="lx-gb-sub-title">服务流程</h4><div class="lx-ia-cards-row">${serviceSteps}</div><h4 class="lx-gb-sub-title">保修查询</h4>${serviceSnRow}<h4 class="lx-gb-sub-title">服务承诺</h4>${servicePromise}`;
+            const serviceCards = `<h4 class="lx-gb-sub-title">服务项目</h4><div class="lx-pale-grid">${serviceGrid}</div><h4 class="lx-gb-sub-title">服务流程</h4><div class="lx-ia-cards-row">${serviceSteps}</div><h4 class="lx-gb-sub-title">保修查询</h4>${serviceSnRow}<h4 class="lx-gb-sub-title">服务承诺</h4>${servicePromise}`;
             const memberCards = [
               ["1000", "≈ ¥10", "乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？"],
               ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
@@ -2835,7 +2836,7 @@ if (!window.__lxMemberFetched) {
 
             const customSection = lxFloorSection("私人定制",
               "外观喷绘 · 刻字 · 配色 · 高配升级",
-              `<h4 class="lx-gb-sub-title">定制类型</h4><div class="lx-mhc-rights-grid">${customTypes}</div><h4 class="lx-gb-sub-title">定制流程</h4><div class="lx-ia-cards-row lx-custom-steps">${customSteps}</div><h4 class="lx-gb-sub-title">热门案例</h4><div class="lx-ia-cards-row">${customCases}</div>`,
+              `<h4 class="lx-gb-sub-title">定制类型</h4><div class="lx-pale-grid">${customTypes}</div><h4 class="lx-gb-sub-title">定制流程</h4><div class="lx-ia-cards-row lx-custom-steps">${customSteps}</div><h4 class="lx-gb-sub-title">热门案例</h4><div class="lx-ia-cards-row">${customCases}</div>`,
               `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我设计一个私人定制方案">发起定制方案</button><button class="lx-p0-btn" type="button" data-quick-ask="私人定制的价格和时间是多少">了解定制价格</button>`
             );
 
