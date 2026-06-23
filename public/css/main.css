@@ -10581,3 +10581,21 @@ body:is([data-page="personal"]):not(.assistant-fullscreen) .lx-floor-head .lx-ca
 .assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .shortcut-row{
   display:none!important;
 }
+
+/* Fullscreen gallery legal footer. */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-legal-line{
+  width:min(100%,1180px);
+  margin:clamp(14px,2.2vh,24px) auto 0;
+  padding:0 84px;
+  text-align:center;
+  color:#f6f1f8;
+  font-size:12px;
+  line-height:1.5;
+  font-weight:400;
+  letter-spacing:0;
+  pointer-events:none;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-legal-line{ display:none!important; }
+@media (max-width:900px){
+  body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-legal-line{ padding:0 24px; }
+}
