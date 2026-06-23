@@ -9848,3 +9848,87 @@ body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .hero {
   }
   .assistant-panel:has(.assistant-bottom.has-hover-prompts)::before { opacity: 1; }
 }
+
+/* Detail buybar flush to sticky bottom edge, removing side/bottom gutters. */
+body:not(.assistant-fullscreen) .content[data-view="detail"] {
+  padding-bottom: 0 !important;
+}
+body:not(.assistant-fullscreen) .content[data-view="detail"] > .product-detail {
+  padding-bottom: 0 !important;
+}
+body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: calc(100% + 4px) !important;
+  max-width: none !important;
+  margin: 0 -4px 0 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Detail buybar edge correction: remove visible side and bottom gutters. */
+body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
+  bottom: -1px !important;
+  width: calc(100% + 36px) !important;
+  margin: 0 -18px -1px -18px !important;
+  border-radius: 12px 12px 0 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+}
+
+/* Fix liquid glass veil: valid pseudo content and stronger overlay while product hover card is visible. */
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts)::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 18 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(115% 68% at 16% 4%, rgba(255,255,255,.78), rgba(255,255,255,.32) 56%, rgba(246,241,248,.16) 100%),
+    linear-gradient(145deg, rgba(255,255,255,.58), rgba(246,241,248,.36) 48%, rgba(255,255,255,.22)) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.55) contrast(1.04) !important;
+  backdrop-filter: blur(22px) saturate(1.55) contrast(1.04) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.78),
+    inset 0 -1px 0 rgba(91,20,82,.06),
+    0 18px 48px rgba(91,20,82,.12) !important;
+  opacity: 1 !important;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts)::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 19 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(112deg, transparent 0%, rgba(255,255,255,.38) 38%, transparent 62%),
+    radial-gradient(42% 18% at 84% 16%, rgba(255,255,255,.42), transparent 68%) !important;
+  mix-blend-mode: screen !important;
+  opacity: .62 !important;
+  animation: lx-agent-glass-sheen 3.2s cubic-bezier(.22,.61,.36,1) infinite !important;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-brand,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-prompts,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .agent-buttons,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-body,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-main {
+  position: relative;
+  z-index: 17;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .hover-prompt-panel,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-bottom {
+  position: relative;
+  z-index: 30 !important;
+}
