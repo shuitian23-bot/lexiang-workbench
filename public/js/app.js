@@ -2652,6 +2652,30 @@ if (!window.__lxMemberFetched) {
                 price: "7,039",
                 old: "7,999",
                 sold: 58
+              },
+              {
+                pattern: /拯救者|LEGION|Y9000/i,
+                name: "联想拯救者 Y7000P 2024款 16英寸游戏本",
+                spec: "英特尔酷睿 i7-13700H / RTX 4060 / 16英寸 165Hz",
+                price: "7,999",
+                old: "8,999",
+                sold: 45
+              },
+              {
+                pattern: /ThinkBook|商务轻薄/i,
+                name: "联想 ThinkBook 14+ 2024款 14英寸商务本",
+                spec: "第14代酷睿 i5-13500H / Windows 11 / 14 英寸",
+                price: "4,799",
+                old: "5,499",
+                sold: 63
+              },
+              {
+                pattern: /Tab|平板|P12|小新Pad/i,
+                name: "联想小新Pad Pro 12.7英寸平板电脑",
+                spec: "天玑9000+ / 144Hz 2K屏 / 12GB+256GB",
+                price: "2,199",
+                old: "2,699",
+                sold: 81
               }
             ].map((item) => {
               const product = findProduct(item.pattern);
@@ -2674,13 +2698,37 @@ if (!window.__lxMemberFetched) {
               ["02", "算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "算价格", "帮我算下教育优惠+国补叠加后的到手价"],
               ["03", "以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "估旧机", "我有旧机想以旧换新，怎么估值？"]
             ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
-            const storeCards = [
-              ["附近门店", ["查门店", "看库存", "约到店服务"], "帮我查附近的联想门店和到店权益"],
-            ].map(([title, chips, ask]) => `<article class="lx-service-card" data-quick-ask="${esc(ask)}" tabindex="0"><i class="lx-service-icon" aria-hidden="true"></i><div><h4>${esc(title)}</h4><div class="lx-service-chips">${chips.map((chip) => `<span>${esc(chip)}</span>`).join("")}</div></div><b aria-hidden="true">→</b></article>`).join("");
-            const serviceCards = [
-              ["上门服务", ["安装", "清灰", "换电池", "数据迁移"], "联想上门服务都有什么项目？"],
-              ["官方售后", ["保修查询", "寄修", "延保", "工程师支持"], "联想官方售后服务都包含什么？"]
-            ].map(([title, chips, ask]) => `<article class="lx-service-card" data-quick-ask="${esc(ask)}" tabindex="0"><i class="lx-service-icon" aria-hidden="true"></i><div><h4>${esc(title)}</h4><div class="lx-service-chips">${chips.map((chip) => `<span>${esc(chip)}</span>`).join("")}</div></div><b aria-hidden="true">→</b></article>`).join("");
+            const storeCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我切换查询城市">切换城市</button></div>`;
+            const storeListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
+            const storeHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想授权门店</p>`;
+            const storeCards = storeCityBar + storeHint + storeListEl + quickCard("门店服务权益", "到店享专属权益：优先服务、现场演示、贴膜安装", "到联想门店购机有哪些专属到店权益？") + quickCard("到店预约", "预约上门或到店服务节省等待", "如何预约联想门店到店服务？");
+            const serviceGrid = [
+              ["上门安装", "新机开箱安装调试，上门到家", "我想预约联想上门安装服务"],
+              ["寄修服务", "寄回维修，7个工作日内完成", "联想寄修流程是什么，怎么预约？"],
+              ["延保服务", "最长延保至5年，全国联保", "联想延保服务有哪些套餐？"],
+              ["清灰除尘", "专业清灰，恢复散热性能", "联想清灰服务多少钱，怎么预约？"],
+              ["换电池", "官方原厂电池，安全可靠", "联想换电池多少钱，哪里可以换？"],
+              ["数据迁移", "旧机数据安全迁移到新机", "联想数据迁移服务怎么预约？"],
+              ["系统重装", "官方授权工程师上门重装", "联想系统重装服务价格和流程？"],
+              ["保修查询", "输入SN查询保修状态", "帮我查询联想设备的保修期限"],
+              ["官方配件", "原厂电源、内存、键盘等配件", "联想官方配件在哪里购买？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+
+            const serviceSteps = [
+              ["01", "在线报修", "选择服务类型，填写故障描述", "预约", "我要在线预约联想售后服务"],
+              ["02", "上门/寄修", "工程师上门或邮寄到服务中心", "跟进", "联想上门服务通常多久能到？"],
+              ["03", "完成交付", "修复后验收，享全国联保", "查进度", "我的维修单现在在哪个阶段？"]
+            ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
+
+            const serviceSnRow = `<div class="lx-tradein-sn-row"><input class="lx-p0-field lx-tradein-sn-input" placeholder="输入设备 SN 序列号查询保修（演示，不提交）" readonly><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询设备保修状态，需要提供哪些信息">查保修</button></div>`;
+
+            const servicePromise = `<div class="lx-service-promise-row">${[
+              ["原厂配件", "所有维修使用官方原厂零部件"],
+              ["全国联保", "3000+ 授权服务中心覆盖全国"],
+              ["质保承诺", "维修后同故障90天内免费返修"]
+            ].map(([t, d]) => `<div class="lx-floor-card" style="flex:1;min-width:0"><strong>${esc(t)}</strong><span>${esc(d)}</span></div>`).join("")}</div>`;
+
+            const serviceCards = `<h4 class="lx-gb-sub-title">服务项目</h4><div class="lx-mhc-rights-grid">${serviceGrid}</div><h4 class="lx-gb-sub-title">服务流程</h4><div class="lx-ia-cards-row">${serviceSteps}</div><h4 class="lx-gb-sub-title">保修查询</h4>${serviceSnRow}<h4 class="lx-gb-sub-title">服务承诺</h4>${servicePromise}`;
             const memberCards = [
               ["1000", "≈ ¥10", "乐豆抵现", "1000 乐豆抵 ¥10，购物即赚", "我的乐豆余额和会员权益有哪些？"],
               ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
@@ -2762,14 +2810,32 @@ if (!window.__lxMemberFetched) {
             );
 
             // 私人定制楼层
+            const customTypes = [
+              ["外观喷绘", "个性图案/品牌logo/艺术设计，定制机身", "我想做联想笔记本外观喷绘，能定制什么样的图案？"],
+              ["激光刻字", "机身背面刻字，永久留存纪念", "联想激光刻字定制怎么做，价格多少？"],
+              ["配色定制", "机身颜色自选，专属配色方案", "联想笔记本配色定制有哪些颜色可以选？"],
+              ["CTO高配", "升级CPU/内存/存储，真正的高配机", "帮我做CTO高配定制，能升级哪些配置？"],
+              ["键盘定制", "按键布局、背光颜色、键帽自定义", "联想键盘定制有哪些选项？"],
+              ["限定联名", "与艺术家/品牌联名限定款", "联想现在有哪些限定联名款可以购买？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+
+            const customSteps = [
+              ["01", "选机型", "从全系机型中选定基础款", "发起定制", "帮我挑一款适合做定制的联想机型"],
+              ["02", "选定制项", "外观/硬件/软件按需勾选", "开始配置", "私人定制具体有哪些定制项目？"],
+              ["03", "确认预览", "3D预览效果图，满意再下单", "看效果", "定制机下单前能预览效果图吗？"],
+              ["04", "下单交付", "专属生产，15个工作日内交付", "查进度", "私人定制从下单到收货要多久？"]
+            ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
+
+            const customCases = [
+              ["毕业纪念款", "刻上母校名称+毕业年份，送给自己的礼物", "我想做毕业纪念款定制，有什么推荐方案？"],
+              ["企业Logo定制", "公司logo喷绘，商务礼品首选", "企业批量定制喷绘Logo怎么操作？"],
+              ["游戏联名款", "拯救者x热门IP联名，限量发售", "拯救者联名款现在有哪些，怎么购买？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+
             const customSection = lxFloorSection("私人定制",
-              "外观喷绘 · 刻字 · 高配升级",
-              `<div class="lx-ia-cards-row">${
-              quickCard("外观定制", "笔记本喷绘、刻字、配色方案", "我想做联想笔记本的外观喷绘和刻字定制") +
-              quickCard("高配定制", "升级CPU/内存/存储，真CTO机型", "帮我做高配CTO定制，说下能升级哪些硬件") +
-              quickCard("定制活动", "当前定制优惠与档期", "联想私人定制现在有什么优惠活动？")
-              }</div>`,
-              `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我做私人定制方案">发起定制方案</button>`
+              "外观喷绘 · 刻字 · 配色 · 高配升级",
+              `<h4 class="lx-gb-sub-title">定制类型</h4><div class="lx-mhc-rights-grid">${customTypes}</div><h4 class="lx-gb-sub-title">定制流程</h4><div class="lx-ia-cards-row lx-custom-steps">${customSteps}</div><h4 class="lx-gb-sub-title">热门案例</h4><div class="lx-ia-cards-row">${customCases}</div>`,
+              `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我设计一个私人定制方案">发起定制方案</button><button class="lx-p0-btn" type="button" data-quick-ask="私人定制的价格和时间是多少">了解定制价格</button>`
             );
 
             // 以旧换新楼层
@@ -2789,24 +2855,50 @@ if (!window.__lxMemberFetched) {
             );
 
             // 今日秒杀楼层（保留现有内容，新增场次 chip）
-            const seckillSceneChips = `<div class="lx-seckill-scenes">${[["10点场","帮我看看10点秒杀场有什么"],["14点场","帮我看看14点秒杀场有什么"],["20点场","帮我看看20点秒杀场有什么"]].map(([label,ask]) => `<button class="lx-seckill-scene-chip" type="button" data-quick-ask="${esc(ask)}">${esc(label)}</button>`).join("")}</div>`;
+            const nowHour = new Date().getHours();
+            const seckillScenes = [
+              { label: "10点场", hour: 10, endHour: 14, ask: "帮我看看10点秒杀场有什么商品" },
+              { label: "14点场", hour: 14, endHour: 20, ask: "帮我看看14点秒杀场有什么商品" },
+              { label: "20点场", hour: 20, endHour: 24, ask: "帮我看看20点秒杀场有什么商品" }
+            ];
+            const seckillSceneChips = `<div class="lx-seckill-scenes">${seckillScenes.map(({ label, hour, endHour, ask }) => {
+              const status = nowHour >= endHour ? "已结束" : (nowHour >= hour ? "抢购中" : "即将开始");
+              const statusClass = nowHour >= endHour ? "lx-scene-ended" : (nowHour >= hour ? "lx-scene-active" : "lx-scene-upcoming");
+              return `<button class="lx-seckill-scene-chip ${statusClass}" type="button" data-quick-ask="${esc(ask)}">${esc(label)} <span class="lx-scene-status">${esc(status)}</span></button>`;
+            }).join("")}</div>`;
             const seckillSection = lxFloorSection("今日秒杀",
               "限时优惠，先到先得",
-              seckillSceneChips + `<div class="lx-floor-seckill">${seckill}</div>`,
+              seckillSceneChips + `<div class="lx-floor-seckill">${seckill}</div>` + `<div class="lx-floor-card" data-quick-ask="如何设置秒杀到点提醒？" style="margin-top:8px"><strong>秒杀到点提醒</strong><span>开抢前15分钟自动提醒，不错过限量秒杀</span></div>`,
               `<span class="lx-floor-countdown">距本场结束 <b data-lx-countdown="${seckillEnd}">${lxFormatCountdown(seckillEnd)}</b></span><button class="lx-p0-btn primary" type="button" data-quick-ask="今天有哪些秒杀和限时优惠活动？">更多秒杀</button>`
             );
 
             // 种草楼层
+            const discoverReviews = [
+              ["小新Pro16 2024 深度评测", "一块2.5K 120Hz屏配AMD 7745HX，生产力利器", "给我看看小新Pro16 2024款的详细评测"],
+              ["拯救者Y9000P实战测试", "RTX 4080游戏性能全解析，散热表现如何", "拯救者Y9000P游戏性能实测怎么样？"],
+              ["YOGA Air14s对比ThinkBook", "同价位商务轻薄本哪个更值得买", "YOGA Air14s和ThinkBook 14+哪个更值"],
+              ["联想最值笔记本TOP5推荐", "2024年各价位最值得购买的联想笔记本", "2024年各价位最推荐的联想笔记本有哪些？"]
+            ].map(([t, d, a]) => `<div class="lx-discover-review-item" data-quick-ask="${esc(a)}" tabindex="0"><div class="lx-drv-badge">评测</div><div class="lx-drv-content"><h4>${esc(t)}</h4><p>${esc(d)}</p></div><span class="lx-drv-arrow">→</span></div>`).join("");
+
+            const discoverTopics = [
+              ["小新Pro16用久了会变卡吗", "热", "小新Pro16用了一年后性能有没有衰减？"],
+              ["拯救者散热贴吧大神经验帖", "热", "拯救者散热优化有什么好的方法？"],
+              ["YOGA Air购机后必做的设置", "新", "买了YOGA Air新机后应该做哪些设置？"],
+              ["ThinkPad T系列值得买吗2024", "热", "2024年ThinkPad T系列商务本值得入手吗？"]
+            ].map(([title, tag, ask]) => `<div class="lx-discover-topic" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-topic-tag ${tag === '热' ? 'hot' : 'new'}">${esc(tag)}</span><span>${esc(title)}</span></div>`).join("");
+
+            const discoverActivities = [
+              ["晒单有礼", "进行中", "晒出新机获奖励，每月100名", "参加晒单活动有什么要求？"],
+              ["积分换好礼", "进行中", "用乐豆兑换品牌周边和优惠券", "积分换好礼怎么参与，能换什么？"],
+              ["0元试用", "报名中", "申请试用新品7天，真实体验", "0元试用活动如何申请，要满足什么条件？"]
+            ].map(([t, status, d, a]) => `<div class="lx-floor-card" data-quick-ask="${esc(a)}"><strong>${esc(t)}<span class="lx-activity-status">${esc(status)}</span></strong><span>${esc(d)}</span></div>`).join("");
+
+            const discoverTasks = `<div class="lx-floor-card" data-quick-ask="积分任务中心有哪些可以完成的任务"><strong>积分任务</strong><span>每日签到 +10豆 · 浏览商品 +5豆 · 分享评测 +20豆 · 写评价 +50豆</span></div>`;
+
             const discoverSection = lxFloorSection("种草",
-              "评测 · 社区 · 活动 · 积分 · 反馈",
-              `<div class="lx-ia-cards-row">${
-              quickCard("新机评测", "最新联想机型深度评测", "看看最新的联想新机评测") +
-              quickCard("品牌社区", "用户晒单 · 经验交流", "联想品牌社区有哪些热帖？") +
-              quickCard("热门活动", "当前进行中的用户活动", "现在有哪些用户互动活动可以参加？") +
-              quickCard("积分乐园", "签到赢积分，积分换好礼", "积分乐园怎么玩，能换什么？") +
-              quickCard("产品反馈", "我有产品使用建议", "我想提交联想产品的使用反馈")
-              }</div>`,
-              `<button class="lx-p0-btn" type="button" data-quick-ask="给我推荐几篇最近热门的联想机评">看热门评测</button>`
+              "评测 · 社区热帖 · 用户活动 · 积分任务",
+              `<h4 class="lx-gb-sub-title">新机评测</h4><div class="lx-discover-reviews">${discoverReviews}</div><h4 class="lx-gb-sub-title">社区热话题</h4><div class="lx-discover-topics">${discoverTopics}</div><h4 class="lx-gb-sub-title">用户活动</h4><div class="lx-ia-cards-row">${discoverActivities}</div><h4 class="lx-gb-sub-title">积分任务</h4>${discoverTasks}`,
+              `<button class="lx-p0-btn" type="button" data-quick-ask="给我推荐几篇最近热门的联想机型评测">看热门评测</button><button class="lx-p0-btn" type="button" data-quick-ask="现在有哪些用户活动可以参加？">查看活动</button>`
             );
 
             const activitySections = {
@@ -2817,8 +2909,8 @@ if (!window.__lxMemberFetched) {
               "以旧换新": tradeInSection,
               "今日秒杀": seckillSection,
               "种草": discoverSection,
-              "服务": lxFloorSection("服务", "官方售后与上门支持", serviceCards, `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
-              "门店": lxFloorSection("门店", "线上下单，到店体验", storeCards, `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              "服务": lxFloorSection("服务", "官方售后 · 原厂配件 · 全国联保", serviceCards, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我预约联想售后服务">预约服务</button><button class="lx-p0-btn" type="button" data-floor-action="service">服务中心</button>`),
+              "门店": lxFloorSection("门店", "附近门店 · 到店体验 · 专属权益", storeCards, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询并推荐最近的联想门店">找附近门店</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
             // 国补城市异步填充（进 tab 后 geo 定位，回填城市名）
@@ -2842,6 +2934,52 @@ if (!window.__lxMemberFetched) {
                     if (state.page !== "personal" || state.activeSiteFloorTab !== "国补") return;
                     const el = box.querySelector("[data-gb-city]");
                     if (el) el.textContent = "北京";
+                  });
+              }).catch(() => {});
+            }
+            if (activeFloorTab === "门店") {
+              lxRequestGeo().then((coord) => {
+                if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
+                const cityEl = box.querySelector("[data-store-city]");
+                const listEl = box.querySelector("[data-store-list]");
+                const lat = coord?.lat ?? 39.9042;
+                const lng = coord?.lng ?? 116.4074;
+                if (cityEl) cityEl.textContent = coord ? "定位成功" : "北京（默认）";
+                fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (!el) return;
+                    const stores = data.stores || data || [];
+                    if (cityEl) {
+                      const addr = stores[0]?.address || "";
+                      const city = addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
+                      cityEl.textContent = city;
+                    }
+                    if (!stores.length) {
+                      el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近门店，可向乐享询问</div>`;
+                      return;
+                    }
+                    el.innerHTML = stores.map((s) => {
+                      const name = esc(s.name || "联想授权门店");
+                      const addr = esc(s.address || "");
+                      const dist = s.distance ? `<span class="lx-store-dist">${s.distance < 1000 ? Math.round(s.distance) + "m" : (s.distance / 1000).toFixed(1) + "km"}</span>` : "";
+                      const hours = esc(s.hours || s.business_hours || "10:00–20:00");
+                      const tel = s.tel || s.phone || "";
+                      const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
+                      const rights = ["优先体验", "贴膜安装", "以旧换新"].map((r) => `<span>${esc(r)}</span>`).join("");
+                      const navBtn = `<button class="lx-p0-btn" type="button" data-store-nav="${esc(String(s.lng||lng))},${esc(String(s.lat||lat))}" data-store-name="${name}" data-store-addr="${addr}" data-store-tel="${esc(tel)}">导航</button>`;
+                      const stockBtn = `<button class="lx-p0-btn" type="button" data-quick-ask="查询${esc(s.name||'该门店')}的库存情况">查库存</button>`;
+                      const apptBtn = `<button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到${esc(s.name||'门店')}的到店服务">约到店</button>`;
+                      return `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>${name}${dist}</h4><div class="lx-store-rights-chips">${rights}</div></div><p class="lx-store-addr">${addr}</p><div class="lx-store-meta"><span class="lx-store-hours">${hours}</span>${telHtml}</div><div class="lx-store-btns">${navBtn}${stockBtn}${apptBtn}</div></article>`;
+                    }).join("");
+                  })
+                  .catch(() => {
+                    if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (el) el.innerHTML = `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>联想北京中关村旗舰店<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span>优先体验</span><span>贴膜安装</span><span>以旧换新</span></div></div><p class="lx-store-addr">北京市海淀区中关村大街1号</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想中关村旗舰店的到店服务">约到店</button></div></article>`;
+                    if (cityEl) cityEl.textContent = "北京（示例）";
                   });
               }).catch(() => {});
             }
@@ -5136,6 +5274,68 @@ if (!window.__lxMemberFetched) {
               const contentBox = document.querySelector(".content");
               contentBox?.scrollTo({ top: 0, behavior: "smooth" });
               lxRenderSiteFloors();
+              return;
+            }
+
+            const heroBtn = event.target.closest(".hero-btn");
+            if (heroBtn) {
+              event.preventDefault();
+              const kicker = document.querySelector("[data-page-kicker]")?.textContent || "";
+              const title = document.querySelector("[data-page-title]")?.textContent || "";
+              const bannerText = kicker + " " + title;
+              const bannerMap = [
+                {
+                  patterns: [/拯救者|LEGION|游戏|GPU|RTX/i],
+                  tab: "今日秒杀",
+                  highlights: [
+                    "本期秒杀有拯救者游戏本，限时折扣力度超大",
+                    "RTX 40系显卡配置，游戏和创作两不误",
+                    "搭配国补政策最高再省20%，到手价更低",
+                    "库存有限，想要赶快和我说，马上帮你锁单"
+                  ]
+                },
+                {
+                  patterns: [/国补|补贴|以旧换新/i],
+                  tab: "国补",
+                  highlights: [
+                    "国家以旧换新补贴最高20%，北京/上海等多城市参与",
+                    "联想全系参与国补的机型均可叠加教育特惠",
+                    "旧机回收估价+国补双重减免，换新成本大幅降低",
+                    "名额有限，点我告诉你符合条件的最优惠机型"
+                  ]
+                },
+                {
+                  patterns: [/小新|轻薄|YOGA|AIR/i],
+                  tab: "今日秒杀",
+                  highlights: [
+                    "小新/YOGA系列轻薄本今日秒杀专区已上线",
+                    "最轻至1.1kg机型，出行和办公都不压手",
+                    "2.5K高刷屏标配，护眼又清晰",
+                    "秒杀数量有限，想了解哪款直接告诉我"
+                  ]
+                }
+              ];
+              const matched = bannerMap.find(({ patterns }) => patterns.some((p) => p.test(bannerText)));
+              const targetTab = matched?.tab || "今日秒杀";
+              const highlights = matched?.highlights || [
+                "当前活动优惠力度超大，多款机型参与",
+                "可与国补、教育特惠叠加享受",
+                "限时限量，先到先得",
+                "直接告诉我你的需求，我帮你找最合适的方案"
+              ];
+              if (["personal", "business", "enterprise"].includes(state.page)) {
+                state.activeSiteFloorTab = targetTab;
+                document.querySelectorAll(".category-tabs button:not([data-cat-more])").forEach((btn) => {
+                  btn.classList.toggle("active", (btn.dataset.catLabel || btn.textContent.trim()) === targetTab);
+                });
+                const contentBox = document.querySelector(".content");
+                contentBox?.scrollTo({ top: 0, behavior: "smooth" });
+                lxRenderSiteFloors();
+              }
+              const bulletHtml = highlights.map((h) => `<div class="lx-discover-review-item" data-quick-ask="${esc(h)}" tabindex="0" style="cursor:pointer"><span>${esc(h)}</span></div>`).join("");
+              const quickLinks = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我了解当前活动详情和最优惠方案">咨询详情</button><button class="lx-p0-btn" type="button" data-quick-ask="当前活动有哪些优惠可以叠加使用">叠加优惠</button></div>`;
+              const disclaimer = `<p class="lx-p0-disclaimer" style="margin-top:8px">以上内容由 AI 生成，仅供参考，实际以联想官网为准。</p>`;
+              addMessage("assistant", `「${targetTab}」活动亮点：`, bulletHtml + quickLinks + disclaimer);
               return;
             }
 

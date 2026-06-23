@@ -10050,3 +10050,242 @@ body[data-arr="A"] .ai-arrow .fx{ left:11px!important; top:-2px!important; }
 }
 /* 换一换按钮不被全局的 .lx-floor-head .lx-p0-btn { display:none } 规则隐藏 */
 body:is([data-page="personal"]):not(.assistant-fullscreen) .lx-floor-head .lx-cat-shuffle-btn { display: inline-flex !important; }
+
+/* === lx-store: 门店 tab 样式 === */
+.lx-store-city-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--lx-surface-weak);
+  border-radius: 7px;
+  border: 1px solid var(--lx-border);
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--lx-text-soft);
+}
+.lx-store-city-name {
+  font-weight: 500;
+  color: var(--lx-text);
+}
+.lx-store-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.lx-store-card {
+  background: var(--lx-surface);
+  border: 1px solid var(--lx-border);
+  border-radius: 8px;
+  padding: 14px;
+  cursor: default;
+}
+.lx-store-card:hover {
+  border-color: var(--lx-border-strong);
+  box-shadow: 0 4px 12px rgba(50,29,57,0.07);
+}
+.lx-store-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.lx-store-card-head h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lx-text-strong);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lx-store-dist {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--lx-aubergine);
+  background: var(--lx-surface-hover);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+.lx-store-rights-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.lx-store-rights-chips span {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--lx-surface-blue);
+  color: var(--lx-aubergine);
+  border: 1px solid var(--lx-border);
+}
+.lx-store-addr {
+  font-size: 12px;
+  color: var(--lx-text-soft);
+  margin: 0 0 6px;
+}
+.lx-store-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--lx-text-muted);
+}
+.lx-store-hours { color: var(--lx-text-soft); }
+.lx-store-tel {
+  color: var(--lx-aubergine);
+  text-decoration: none;
+  font-weight: 500;
+}
+.lx-store-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lx-store-skeleton { display: flex; flex-direction: column; gap: 10px; }
+.lx-store-sk-card {
+  height: 90px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--lx-surface-weak) 25%, var(--lx-surface-hover) 50%, var(--lx-surface-weak) 75%);
+  background-size: 200% 100%;
+  animation: lx-sk-shimmer 1.4s infinite;
+}
+@keyframes lx-sk-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* === lx-service: 服务大厅样式 === */
+.lx-service-promise-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* === lx-seckill-scene: 场次状态 === */
+.lx-seckill-scene-chip.lx-scene-active {
+  background: var(--lx-gradient-brand);
+  color: #fff;
+  border-color: transparent;
+}
+.lx-seckill-scene-chip.lx-scene-upcoming {
+  border-color: var(--lx-border-strong);
+  color: var(--lx-text-soft);
+}
+.lx-seckill-scene-chip.lx-scene-ended {
+  border-color: var(--lx-border);
+  color: var(--lx-text-muted);
+  opacity: 0.7;
+}
+.lx-scene-status {
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: 4px;
+  opacity: 0.85;
+}
+
+/* === lx-discover: 种草 tab 样式 === */
+.lx-discover-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.lx-discover-review-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--lx-surface);
+  border: 1px solid var(--lx-border);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.lx-discover-review-item:hover {
+  border-color: var(--lx-border-strong);
+  box-shadow: 0 4px 10px rgba(50,29,57,0.07);
+}
+.lx-drv-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lx-aubergine);
+  background: var(--lx-surface-hover);
+  border: 1px solid var(--lx-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+.lx-drv-content { flex: 1; min-width: 0; }
+.lx-drv-content h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lx-text-strong);
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lx-drv-content p {
+  font-size: 12px;
+  color: var(--lx-text-soft);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lx-drv-arrow {
+  flex-shrink: 0;
+  color: var(--lx-text-muted);
+  font-size: 14px;
+}
+.lx-discover-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.lx-discover-topic {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--lx-surface);
+  border: 1px solid var(--lx-border);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--lx-text);
+  transition: background 0.15s;
+}
+.lx-discover-topic:hover { background: var(--lx-surface-hover); }
+.lx-topic-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.lx-topic-tag.hot {
+  background: #fff0f0;
+  color: var(--lx-price-red);
+  border: 1px solid #ffd0d0;
+}
+.lx-topic-tag.new {
+  background: var(--lx-surface-blue);
+  color: var(--lx-aubergine);
+  border: 1px solid var(--lx-border);
+}
+.lx-activity-status {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--lx-aubergine);
+  background: var(--lx-surface-hover);
+  border-radius: 999px;
+  padding: 1px 6px;
+  margin-left: 6px;
+}
