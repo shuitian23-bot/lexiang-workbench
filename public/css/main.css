@@ -10414,3 +10414,64 @@ body:is([data-page="personal"]):not(.assistant-fullscreen) .lx-floor-head .lx-ca
   filter:none!important;
   opacity:1!important;
 }
+
+/* Final glass layering fix: keep hover prompt and composer above the veil, cache 2026062401. */
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-glass-active::before,
+.assistant-panel.assistant-glass-active::after,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts)::before,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts)::after{
+  display:none!important;
+  content:none!important;
+}
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  z-index:20!important;
+  opacity:1!important;
+  display:block!important;
+}
+.assistant-panel.assistant-glass-active .panel-state,
+.assistant-panel.assistant-glass-active .page-dots,
+.assistant-panel.assistant-glass-active > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-toggle,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .panel-state,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .page-dots,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .tool-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-toggle{
+  filter:blur(5px) saturate(.92)!important;
+  opacity:.42!important;
+  transition:filter .24s cubic-bezier(.22,.61,.36,1),opacity .24s cubic-bezier(.22,.61,.36,1)!important;
+}
+.assistant-panel.assistant-glass-active .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-bottom{
+  position:absolute!important;
+  z-index:80!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-glass-active .hover-prompt-panel,
+.assistant-panel.assistant-glass-active .hover-prompt-panel .pop,
+.assistant-panel.assistant-glass-active .composer,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .hover-prompt-panel,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .hover-prompt-panel .pop,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .composer{
+  position:relative!important;
+  z-index:90!important;
+  display:block;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-glass-active .assistant-bottom .shortcut-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-bottom .shortcut-row{
+  display:none!important;
+}
