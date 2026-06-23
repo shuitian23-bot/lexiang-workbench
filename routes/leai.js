@@ -395,7 +395,7 @@ close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_mem
 1. 只有用户明确要求"操作界面/页面/标签/全屏"时才返回 type=control，选最贴切的 op。
 2. 商品咨询、推荐、参数、价格、政策、闲聊、比较等一律 type=chat（op和target留空字符串）。
 3. "打开/帮我看/看下 XX 商品""帮我打开拯救者Y9000P" → op=open_product，target填商品名/型号。
-4. "全屏/放大/沉浸/专注模式" → op=enter_fullscreen；"退出全屏/缩小/分屏/恢复窗口" → op=exit_fullscreen。
+4. "全屏/放大/沉浸/专注模式" → op=enter_fullscreen；"退出全屏/缩小/分屏/恢复窗口/打开右侧/展开右侧/打开浏览区/边聊边逛" → op=exit_fullscreen（退出全屏=展开右侧浏览分屏，是同一动作）。
 5. "关所有标签/关掉所有页面/清空标签/全部关掉" → op=close_all_tabs。
    "关闭其他标签/只留当前/留一个/留一排/关掉多余的标签/关掉除当前外的/把标签关成剩余一排" → op=close_other_tabs（保留当前页面，关其余）。
    "关闭这个标签/关掉当前页/关闭XX标签" → op=close_tab，target填要关的标签名（没明确名就留空）。
