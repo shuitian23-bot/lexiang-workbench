@@ -432,7 +432,7 @@ if (!window.__lxMemberFetched) {
             state.hoverPromptVisibleSku = key;
           }
           bottom.classList.add("has-hover-prompts");
-          scheduleHoverPromptAutoClose();
+          clearHoverPromptAutoCloseTimer();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
           state.reasonCache = state.reasonCache || {};
@@ -480,12 +480,12 @@ if (!window.__lxMemberFetched) {
           state.hoverPromptAutoCloseTimer = null;
         }
 
-        function scheduleHoverPromptAutoClose() {
+        function scheduleHoverPromptAutoClose(delay = 4000) {
           clearHoverPromptAutoCloseTimer();
           state.hoverPromptAutoCloseTimer = window.setTimeout(() => {
             hideHoverPrompts();
             state.hoverPromptSku = "";
-          }, 8000);
+          }, delay);
         }
 
         function clearHoverPromptTimer() {
@@ -501,6 +501,10 @@ if (!window.__lxMemberFetched) {
           clearHoverPromptTimer();
           if (!key) return;
           state.hoverPromptSku = key;
+          if (state.hoverPromptVisibleSku === key && $(".assistant-bottom")?.classList.contains("has-hover-prompts")) {
+            clearHoverPromptAutoCloseTimer();
+            return;
+          }
           state.hoverPromptTimer = window.setTimeout(() => {
             if (state.hoverPromptSku !== key) return;
             showHoverPrompts(product);
@@ -4841,7 +4845,10 @@ if (!window.__lxMemberFetched) {
           document.addEventListener("mouseout", (event) => {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || card.contains(event.relatedTarget)) return;
-            clearHoverPromptTimer();
+            if (state.hoverPromptTimer) window.clearTimeout(state.hoverPromptTimer);
+            state.hoverPromptTimer = null;
+            if (state.hoverPromptVisibleSku) scheduleHoverPromptAutoClose(4000);
+            else state.hoverPromptSku = "";
           });
 
           document.addEventListener("click", (event) => {
