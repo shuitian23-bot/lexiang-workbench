@@ -187,10 +187,37 @@ function seriesKeyFromName(name = '') {
   return null;
 }
 
+// 配件/外设按「品名主干 + 型号码」折叠（同型号不同颜色/容量归一）。
+// 整机走 seriesKeyFromName；配件 specs 多为空、normalizeSpuName 又剥不掉中文颜色名（米墨韵/汐澜色/宇宙蓝），
+// 故单独抓型号码（如 YS510 / M7X / C170W）+ 品名去掉颜色容量后的主干当 SPU。
+function accessoryKeyFromName(name = '') {
+  const n = String(name || '');
+  // 抓型号码：YS510 / M7X / C170W / Z7 / G910 等（字母1-3位 + 数字2-4位 + 可选字母后缀）
+  const m = n.match(/\b([A-Za-z]{1,4}\d{2,4}[A-Za-z]{0,3})\b/);
+  if (!m) return null;
+  const model = m[1].toLowerCase();
+  // 品名主干：去掉型号码、颜色名（括号内/常见配件色）、容量、规格描述，只留「品类词」
+  let trunk = n
+    .replace(m[0], ' ')                              // 去型号码
+    .replace(/[（(][^）)]*[）)]/g, ' ')              // 去括号内容（容量/规格）
+    .replace(/[【\[][^】\]]*[】\]]/g, ' ')            // 去【】营销词
+    .replace(/\d+\s*(GB|TB|G|T|MB|mAh|W|MB\/S|MB\/s)\b/gi, ' ') // 去容量/功率
+    .replace(/联想|lenovo|YOGA|拯救者|legion|小新|thinkplus|来酷|lecoo/gi, ' ') // 去品牌（保留型号码区分）
+    .replace(/[一-龥]{2,4}(色|韵|墨|澜|蓝|白|黑|灰|银|金|绿|红|紫|粉)\b/g, ' ') // 去中文颜色名(米墨韵/汐澜色/宇宙蓝)
+    .replace(/(米墨韵|汐澜色|宇宙蓝|钛晶灰|碳晶黑|冰魄白|月光银|幻影黑)/g, ' ')        // 兜底常见配件色
+    .replace(/[^一-龥a-z0-9]/gi, ' ')
+    .replace(/\s+/g, '')
+    .toLowerCase();
+  return trunk ? `${trunk}_${model}` : model;
+}
+
 function getSpuKey(row) {
   // 优先按商品名的系列型号折叠（同系列不同色/年款/配置归一）
   const sk = seriesKeyFromName(row?.name);
   if (sk) return `${row.category || ''}:series:${sk.toLowerCase()}`;
+  // 配件/外设按型号码折叠（YS510 三色 → 一个 SPU）
+  const ak = accessoryKeyFromName(row?.name);
+  if (ak) return `${row.category || ''}:acc:${ak}`;
   const specs = parseProductSpecs(row?.specs);
   const candidates = [
     specs.spu,
