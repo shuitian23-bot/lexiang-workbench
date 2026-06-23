@@ -9549,3 +9549,87 @@ body[data-page="home"] .lx-tabbar { display:none!important; }
 .content > .lx-tabbar .lx-tab-ink {
   bottom: 10px !important;
 }
+
+/* Disable sticky behavior for context tabbar on personal/business/enterprise pages. */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .lx-tabbar {
+  position: relative !important;
+  top: auto !important;
+}
+
+/* Rollback context tabbar to previous pill style. */
+.lx-tabbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  min-height: 0 !important;
+  padding: 8px 16px 8px 0 !important;
+  background: var(--lavender-bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+body[data-page="home"] .lx-tabbar { display: none !important; }
+.lx-tabbar .lx-tab {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  max-width: 200px !important;
+  height: auto !important;
+  padding: 4px 6px 4px 12px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  color: var(--lx-text-secondary) !important;
+  font-size: 12.5px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+.lx-tabbar .lx-tab.is-active {
+  border-color: var(--lx-aubergine) !important;
+  color: var(--lx-aubergine) !important;
+  background: var(--lx-surface-hover) !important;
+  font-weight: 400 !important;
+}
+.lx-tabbar .lx-tab:hover {
+  color: var(--lx-aubergine) !important;
+  background: var(--lx-surface-hover) !important;
+}
+.lx-tabbar .lx-tab-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.lx-tabbar .lx-tab-close {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  height: auto !important;
+  margin-right: 0 !important;
+  padding: 2px 4px !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  color: var(--lx-text-tertiary) !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.lx-tabbar .lx-tab-close:hover {
+  background: var(--lavender-hover) !important;
+  color: var(--lx-brand-red) !important;
+  transform: none !important;
+}
+.lx-tabbar .lx-tab-ink { display: none !important; }
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content > .lx-tabbar {
+  position: sticky !important;
+  top: 0 !important;
+}
