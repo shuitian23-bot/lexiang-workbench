@@ -2972,7 +2972,8 @@ if (!window.__lxMemberFetched) {
                     el.innerHTML = stores.map((s) => {
                       const name = esc(s.name || "联想授权门店");
                       const addr = esc(s.address || "");
-                      const dist = s.distance ? `<span class="lx-store-dist">${s.distance < 1000 ? Math.round(s.distance) + "m" : (s.distance / 1000).toFixed(1) + "km"}</span>` : "";
+                      const dm = s.distance ?? s.dist;
+                      const dist = dm ? `<span class="lx-store-dist">${dm < 1000 ? Math.round(dm) + "m" : (dm / 1000).toFixed(1) + "km"}</span>` : "";
                       const hours = esc(s.hours || s.business_hours || "10:00–20:00");
                       const tel = s.tel || s.phone || "";
                       const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
