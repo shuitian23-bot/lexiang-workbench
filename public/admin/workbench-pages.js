@@ -2843,6 +2843,16 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
+      <!-- 联想官网引用 URL Top10 -->
+      <div class="geo-row" style="margin-bottom:12px">
+        <div class="geo-panel" style="flex:1">
+          <div class="gpnl-title">联想官网引用 URL Top10 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 2026-05-01 起累计，统计至查询日前一天</span></div>
+          <div class="geo-scroll-wrap" style="max-height:380px;overflow-y:auto">
+            <div id="geo-source-top10"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+          </div>
+        </div>
+      </div>
+
       <!-- 各优化平台意图总数 -->
       <div class="geo-panel" style="margin-bottom:12px">
         <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>

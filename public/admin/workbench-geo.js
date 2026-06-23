@@ -470,7 +470,7 @@ function geoRenderDashboardPending(message = GEO_PENDING_TEXT) {
   if (chart) chart.innerHTML = geoPendingHtml(message);
   const canvas = document.getElementById('geo-trend-canvas');
   if (canvas) geoDrawCanvasPending(canvas, message);
-  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
+  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-source-top10','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = geoPendingHtml(message);
   });
@@ -505,6 +505,7 @@ async function geoLoadData() {
       return fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }).then(r => r.json());
     }));
     const sitesPromise = geoLoadSites(loadSeq);
+    const sourceTop10Promise = geoLoadSourceTop10(loadSeq);
     const wikiHistoryPromise = (async () => {
       try {
         const body = geoWikiHistoryBody();
@@ -945,6 +946,45 @@ function geoRenderLinkTop50(sites) {
       <span style="${countStyle}">${geoFmtCount(s.count)}</span>
     </li>`;
   }).join('') + '</ol>';
+}
+
+// ===== GEO 联想官网引用 URL Top10 =====
+async function geoLoadSourceTop10(loadSeq) {
+  const c = document.getElementById('geo-source-top10');
+  if (!c) return;
+  try {
+    const date = geoResolveDateRange().end_date;
+    const json = await geoPost('source-top10', { date });
+    if (loadSeq && loadSeq !== geoState._loadSeq) return;
+    if (json.code !== 200 || !json.data?.top_urls?.length) {
+      c.innerHTML = geoPendingHtml('暂无数据');
+      return;
+    }
+    const urls = json.data.top_urls;
+    const maxCount = Math.max(...urls.map(u => u.citation_count), 1);
+    c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + urls.map(u => {
+      const isTop3 = u.rank <= 3;
+      const barW = Math.max((u.citation_count / maxCount * 100), 2).toFixed(0);
+      const idxStyle = isTop3
+        ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#3f78c5;border-radius:50%;flex-shrink:0'
+        : 'min-width:28px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0';
+      const countStyle = isTop3
+        ? 'font-size:14px;font-weight:700;color:#1d4ed8;white-space:nowrap;min-width:90px;text-align:right'
+        : 'font-size:11px;color:#6b7280;white-space:nowrap;min-width:80px;text-align:right';
+      return `<li style="display:flex;align-items:center;gap:8px;padding:${isTop3 ? '8px' : '6px'} 8px;border-bottom:1px solid #f3f4f6;${isTop3 ? 'background:#f0f7ff;' : ''}">
+        <span style="${idxStyle}">${u.rank}</span>
+        <div style="flex:1;min-width:0">
+          <a href="${geoEscape(u.url)}" target="_blank" rel="noopener" style="display:block;font-size:${isTop3 ? '13px' : '12px'};font-weight:${isTop3 ? '600' : '400'};color:#3f78c5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none" title="${geoEscape(u.url)}">${geoEscape(u.url)}</a>
+          <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e8ec;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#3f78c5' : '#9fc4ea'};border-radius:3px"></div></div>
+        </div>
+        <span style="${countStyle}">${geoFmtCount(u.citation_count)}</span>
+      </li>`;
+    }).join('') + '</ol>';
+  } catch (e) {
+    if (loadSeq && loadSeq !== geoState._loadSeq) return;
+    c.innerHTML = geoPendingHtml('暂无数据');
+    console.error('geoLoadSourceTop10', e);
+  }
 }
 
 // ===== GEO 意图列表 (questions API) =====
