@@ -8825,7 +8825,7 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row {
   position:relative !important;
   flex:none !important;
-  min-height:190px !important;
+  min-height:152px !important;
   display:flex !important;
   align-items:center !important;
   gap:24px !important;
