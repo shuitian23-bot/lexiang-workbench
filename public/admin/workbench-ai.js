@@ -634,7 +634,7 @@ function aiShortcutItemsForPage(page) {
   ];
 }
 
-let _aiScopeIndex = 0;
+let _aiScopeIndex = -1;
 let _aiScopeItems = [];
 let _aiScopeDrag = null;
 let _aiScopeResizeTimer = null;
@@ -645,7 +645,7 @@ function _aiScopePlaceholder(label) {
 
 function _aiUpdateScopePlaceholder() {
   const input = document.getElementById('ai-input');
-  const label = _aiScopeItems[_aiScopeIndex]?.label || '';
+  const label = (typeof getPageLabel === 'function' ? getPageLabel(STATE.currentPage) : '') || _aiScopeItems[0]?.label || '';
   if (input) input.placeholder = _aiScopePlaceholder(label);
 }
 
@@ -656,11 +656,10 @@ function _aiSetScope(index, focusTag = false) {
   const shortcuts = document.getElementById('ai-shortcuts');
   const select = document.getElementById('ai-scope-select');
   shortcuts?.querySelectorAll('[data-ai-shortcut]').forEach(btn => {
-    const active = Number(btn.dataset.aiShortcut) === next;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-selected', active ? 'true' : 'false');
-    btn.tabIndex = active ? 0 : -1;
-    if (active) {
+    btn.classList.remove('active');
+    btn.removeAttribute('aria-selected');
+    btn.tabIndex = 0;
+    if (Number(btn.dataset.aiShortcut) === next) {
       btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
       if (focusTag) btn.focus({ preventScroll: true });
     }
@@ -668,6 +667,12 @@ function _aiSetScope(index, focusTag = false) {
   if (select) select.value = String(next);
   _aiUpdateScopePlaceholder();
   _aiUpdateScopeArrows();
+}
+
+function _aiRunShortcut(index) {
+  const item = _aiScopeItems[index];
+  if (!item?.text) return;
+  aiQuick(item.text);
 }
 
 function _aiUpdateScopeArrows() {
@@ -722,7 +727,7 @@ function _aiInitScopeTabs() {
   });
   left?.addEventListener('click', () => _aiScrollScope(-1));
   right?.addEventListener('click', () => _aiScrollScope(1));
-  select?.addEventListener('change', () => _aiSetScope(Number(select.value), false));
+  select?.addEventListener('change', () => _aiRunShortcut(Number(select.value)));
   window.addEventListener('resize', () => {
     clearTimeout(_aiScopeResizeTimer);
     _aiScopeResizeTimer = setTimeout(_aiUpdateScopeArrows, 120);
@@ -739,9 +744,9 @@ function aiRefreshPageAssistant() {
   if (shortcuts) {
     const items = aiShortcutItemsForPage(STATE.currentPage);
     _aiScopeItems = items;
-    if (_aiScopeIndex >= items.length) _aiScopeIndex = 0;
+    _aiScopeIndex = -1;
     shortcuts.innerHTML = items.map((item, i) => `
-      <button type="button" class="ai-shortcut ${i === _aiScopeIndex ? 'active' : ''}" data-ai-shortcut="${i}" role="option" aria-selected="${i === _aiScopeIndex ? 'true' : 'false'}" tabindex="${i === _aiScopeIndex ? '0' : '-1'}">
+      <button type="button" class="ai-shortcut" data-ai-shortcut="${i}">
         ${escapeHtml(item.label).replace(/<br>/g, '')}
       </button>`).join('');
     shortcuts.querySelectorAll('[data-ai-shortcut]').forEach(el => {
@@ -750,7 +755,7 @@ function aiRefreshPageAssistant() {
           e.preventDefault();
           return;
         }
-        _aiSetScope(Number(el.dataset.aiShortcut), false);
+        _aiRunShortcut(Number(el.dataset.aiShortcut));
       });
       el.addEventListener('keydown', e => {
         const current = Number(el.dataset.aiShortcut);
@@ -768,18 +773,18 @@ function aiRefreshPageAssistant() {
           _aiSetScope(items.length - 1, true);
         } else if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          _aiSetScope(current, false);
-          document.getElementById('ai-input')?.focus();
+          _aiRunShortcut(current);
         }
       });
     });
     const select = document.getElementById('ai-scope-select');
     if (select) {
       select.innerHTML = items.map((item, i) => `<option value="${i}">${escapeHtml(item.label).replace(/<br>/g, '')}</option>`).join('');
-      select.value = String(_aiScopeIndex);
+      select.selectedIndex = -1;
     }
     _aiInitScopeTabs();
-    _aiSetScope(_aiScopeIndex, false);
+    _aiUpdateScopePlaceholder();
+    _aiUpdateScopeArrows();
   }
 }
 
@@ -805,22 +810,23 @@ function aiSetFollowupChips() {
     { label: '导出为报告', text: '把这次转化分析导出为报告' }
   ];
   _aiScopeItems = items;
-  _aiScopeIndex = 0;
+  _aiScopeIndex = -1;
   const shortcuts = document.getElementById('ai-shortcuts');
   if (!shortcuts) return;
   shortcuts.innerHTML = items.map((item, i) => `
-    <button type="button" class="ai-shortcut ${i === 0 ? 'active' : ''}" data-ai-shortcut="${i}" role="option" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}">
+    <button type="button" class="ai-shortcut" data-ai-shortcut="${i}">
       ${escapeHtml(item.label).replace(/<br>/g, '')}
     </button>`).join('');
   shortcuts.querySelectorAll('[data-ai-shortcut]').forEach(el => {
-    el.addEventListener('click', () => _aiSetScope(Number(el.dataset.aiShortcut), false));
+    el.addEventListener('click', () => _aiRunShortcut(Number(el.dataset.aiShortcut)));
   });
   const select = document.getElementById('ai-scope-select');
   if (select) {
     select.innerHTML = items.map((item, i) => `<option value="${i}">${escapeHtml(item.label).replace(/<br>/g, '')}</option>`).join('');
-    select.value = '0';
+    select.selectedIndex = -1;
   }
-  _aiSetScope(0, false);
+  _aiUpdateScopePlaceholder();
+  _aiUpdateScopeArrows();
 }
 
 function aiAddHtmlMessage(role, html, extraClass = '') {
@@ -1906,7 +1912,8 @@ function _aiInitComposer() {
   }
   if (!_aiScopeItems.length) _aiScopeItems = aiShortcutItemsForPage(STATE.currentPage);
   _aiInitScopeTabs();
-  _aiSetScope(_aiScopeIndex, false);
+  _aiUpdateScopePlaceholder();
+  _aiUpdateScopeArrows();
   _aiAutoResizeInput();
   _aiUpdateComposerState();
 }
