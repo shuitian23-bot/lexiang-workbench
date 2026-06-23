@@ -9789,3 +9789,62 @@ body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .hero {
   padding: 18px 18px 18px 0 !important;
   box-shadow: none !important;
 }
+
+/* Liquid glass veil behind hover product prompt. */
+.assistant-panel:has(.assistant-bottom.has-hover-prompts)::before {
+  content: ;
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 62% at 14% 7%, rgba(255,255,255,.66), rgba(255,255,255,.18) 58%, rgba(246,241,248,.08) 100%),
+    linear-gradient(145deg, rgba(255,255,255,.44), rgba(246,241,248,.28) 48%, rgba(255,255,255,.18));
+  -webkit-backdrop-filter: blur(18px) saturate(1.45) contrast(1.02);
+  backdrop-filter: blur(18px) saturate(1.45) contrast(1.02);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.68),
+    inset 0 -1px 0 rgba(91,20,82,.05),
+    0 18px 48px rgba(91,20,82,.10);
+  opacity: 0;
+  animation: lx-agent-glass-in 260ms cubic-bezier(.22,.61,.36,1) forwards;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts)::after {
+  content: ;
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(112deg, transparent 0%, rgba(255,255,255,.34) 38%, transparent 62%),
+    radial-gradient(42% 18% at 84% 16%, rgba(255,255,255,.34), transparent 68%);
+  mix-blend-mode: screen;
+  opacity: .58;
+  transform: translateX(-22%);
+  animation: lx-agent-glass-sheen 3.2s cubic-bezier(.22,.61,.36,1) infinite;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-bottom {
+  z-index: 30 !important;
+}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-toggle,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) .tool-row {
+  position: relative;
+  z-index: 21;
+}
+@keyframes lx-agent-glass-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lx-agent-glass-sheen {
+  0%, 100% { opacity: .34; transform: translateX(-28%); }
+  48% { opacity: .62; transform: translateX(18%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-panel:has(.assistant-bottom.has-hover-prompts)::before,
+  .assistant-panel:has(.assistant-bottom.has-hover-prompts)::after {
+    animation: none !important;
+  }
+  .assistant-panel:has(.assistant-bottom.has-hover-prompts)::before { opacity: 1; }
+}
