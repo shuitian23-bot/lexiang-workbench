@@ -8768,3 +8768,274 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
   color: #e42b20;
   font-weight: 600;
 }
+
+/* 推荐结果区皮肤：复刻「推荐商品.html」方案 F 通栏巨卡，仅覆盖右侧推荐结果 DOM。 */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) {
+  --brand-red:#e1251b;
+  --price-red:#e1251b;
+  --aubergine:#5b1452;
+  --aubergine-dark:#4e1646;
+  --ink:#1a1320;
+  --text-soft:#5f5a64;
+  --text-muted:#9a929f;
+  --line:#ece7ef;
+  --line-strong:#ddd4e2;
+  --grad-brand:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);
+  --ease:cubic-bezier(.22,.61,.36,1);
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:100% !important;
+  padding:26px 28px 0 !important;
+  counter-reset:lx-rec-row;
+  overflow:auto !important;
+  scrollbar-width:none;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row)::-webkit-scrollbar {
+  width:0;
+  height:0;
+  display:none;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-head {
+  flex:none !important;
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+  margin:0 !important;
+  padding:0 0 18px !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-head h2 {
+  margin:0 !important;
+  color:var(--ink) !important;
+  font-size:22px !important;
+  font-weight:800 !important;
+  letter-spacing:.5px !important;
+  line-height:1.35 !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-head span {
+  color:var(--text-soft) !important;
+  font-size:13px !important;
+  font-weight:500 !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row {
+  position:relative !important;
+  flex:none !important;
+  min-height:190px !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:24px !important;
+  padding:9px 14px !important;
+  margin:0 !important;
+  counter-increment:lx-rec-row;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transition:background-color .18s var(--ease) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row + .reco-row {
+  border-top:1px solid var(--line) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row:hover {
+  background:#faf7fc !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row::before {
+  content:counter(lx-rec-row);
+  flex:none;
+  width:40px;
+  text-align:center;
+  color:#efe7f3;
+  font:800 30px ui-monospace,"SF Mono",monospace;
+  line-height:.8;
+  transition:color .2s var(--ease);
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row:hover::before {
+  background:var(--grad-brand);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row > img {
+  width:172px !important;
+  height:172px !important;
+  flex:0 0 172px !important;
+  padding:16px !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  object-fit:contain !important;
+  box-sizing:border-box !important;
+  cursor:pointer !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-tags {
+  position:absolute !important;
+  top:17px !important;
+  left:86px !important;
+  z-index:2 !important;
+  display:flex !important;
+  gap:6px !important;
+  max-width:156px !important;
+  overflow:hidden !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-tags .product-promo {
+  height:19px !important;
+  padding:0 7px !important;
+  border:0 !important;
+  border-radius:5px !important;
+  background:rgba(225,37,27,.95) !important;
+  color:#fff !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-main {
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:7px !important;
+  cursor:pointer !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-main strong {
+  color:var(--ink) !important;
+  font-size:20px !important;
+  font-weight:800 !important;
+  letter-spacing:.3px !important;
+  line-height:1.35 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-desc {
+  max-width:600px !important;
+  color:var(--text-soft) !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+  overflow:hidden !important;
+  display:-webkit-box !important;
+  -webkit-line-clamp:2 !important;
+  -webkit-box-orient:vertical !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .lx-reco-specs,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .lx-reco-why {
+  display:none !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-side {
+  flex:none !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-end !important;
+  justify-items:end !important;
+  gap:11px !important;
+  text-align:right !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-price {
+  color:var(--price-red) !important;
+  font-size:24px !important;
+  font-weight:800 !important;
+  letter-spacing:.3px !important;
+  white-space:nowrap !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-actions {
+  display:flex !important;
+  gap:9px !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-actions .lx-p0-btn {
+  height:38px !important;
+  min-width:auto !important;
+  padding:0 20px !important;
+  border:1px solid var(--line-strong) !important;
+  border-radius:9px !important;
+  background:#fff !important;
+  color:#4a4350 !important;
+  box-shadow:none !important;
+  font-size:13.5px !important;
+  font-weight:600 !important;
+  white-space:nowrap !important;
+  transition:background-color .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease),box-shadow .16s var(--ease),transform .16s var(--ease) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-actions .lx-p0-btn:hover {
+  border-color:var(--aubergine) !important;
+  color:var(--aubergine) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-actions .lx-p0-btn:last-child:not([data-reco-compare]) {
+  padding:0 18px !important;
+  border-color:transparent !important;
+  background:var(--aubergine) !important;
+  color:#fff !important;
+  font-weight:700 !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-actions .lx-p0-btn:last-child:not([data-reco-compare]):hover {
+  background:var(--aubergine-dark) !important;
+  box-shadow:0 6px 14px rgba(91,20,82,.30) !important;
+  transform:translateY(-1px) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-actions .lx-p0-btn:active,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .lx-p0-actions .lx-p0-btn:active {
+  transform:scale(.95) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .lx-p0-actions {
+  flex:none !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:14px !important;
+  margin:2px 0 0 !important;
+  padding:14px 0 18px !important;
+  border-top:1px solid var(--line) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .lx-p0-actions .lx-p0-btn {
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:9px !important;
+  height:40px !important;
+  padding:0 18px !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:var(--grad-brand) !important;
+  color:#fff !important;
+  box-shadow:0 6px 16px rgba(120,25,70,.28) !important;
+  font-size:14px !important;
+  font-weight:700 !important;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),opacity .2s var(--ease) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .lx-p0-actions .lx-p0-btn:hover {
+  transform:translateY(-2px) !important;
+  box-shadow:0 10px 24px rgba(120,25,70,.4) !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .lx-p0-disclaimer {
+  flex:none !important;
+  margin:0 !important;
+  padding:0 0 18px !important;
+  color:var(--text-muted) !important;
+  font-size:12.5px !important;
+  text-align:right !important;
+}
