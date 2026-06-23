@@ -2699,9 +2699,10 @@ if (!window.__lxMemberFetched) {
               ["03", "以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "估旧机", "我有旧机想以旧换新，怎么估值？"]
             ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
             const storeCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我切换查询城市">切换城市</button></div>`;
+            const storeMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的门店</span></div>`;
             const storeListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
             const storeHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想授权门店</p>`;
-            const storeCards = storeCityBar + storeHint + storeListEl + quickCard("门店服务权益", "到店享专属权益：优先服务、现场演示、贴膜安装", "到联想门店购机有哪些专属到店权益？") + quickCard("到店预约", "预约上门或到店服务节省等待", "如何预约联想门店到店服务？");
+            const storeCards = storeCityBar + storeMapEl + storeHint + storeListEl + quickCard("门店服务权益", "到店享专属权益：优先服务、现场演示、贴膜安装", "到联想门店购机有哪些专属到店权益？") + quickCard("到店预约", "预约上门或到店服务节省等待", "如何预约联想门店到店服务？");
             const serviceGrid = [
               ["上门安装", "新机开箱安装调试，上门到家", "我想预约联想上门安装服务"],
               ["寄修服务", "寄回维修，7个工作日内完成", "联想寄修流程是什么，怎么预约？"],
@@ -2961,6 +2962,13 @@ if (!window.__lxMemberFetched) {
                       el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近门店，可向乐享询问</div>`;
                       return;
                     }
+                    // 用最近门店坐标刷新地图标点
+                    const top = stores[0];
+                    const mLng = top.lng ?? top.longitude ?? lng, mLat = top.lat ?? top.latitude ?? lat;
+                    const mapImg = box.querySelector("[data-store-map] img");
+                    if (mapImg && mLng && mLat) mapImg.src = `/api/stores/staticmap?lng=${encodeURIComponent(mLng)}&lat=${encodeURIComponent(mLat)}`;
+                    const mapTip = box.querySelector("[data-store-map-tip]");
+                    if (mapTip) mapTip.textContent = `${esc(top.name || "最近门店")} · 点击门店卡「导航」开地图`;
                     el.innerHTML = stores.map((s) => {
                       const name = esc(s.name || "联想授权门店");
                       const addr = esc(s.address || "");
