@@ -9524,3 +9524,17 @@ body[data-page="home"] .lx-tabbar { display:none!important; }
   width: min(32px, 100%) !important;
   transform: translateX(-50%) !important;
 }
+
+/* Detail context tabbar: remove top spacer and keep a white backing while sticky. */
+.content[data-view="detail"] {
+  padding-top: 0 !important;
+}
+.content[data-view="detail"] .lx-tabbar {
+  min-height: 64px !important;
+  padding: 14px 16px 14px 0 !important;
+  background: #fff !important;
+  box-shadow: 0 12px 0 #fff !important;
+}
+.content[data-view="detail"] .lx-tabbar .lx-tab-ink {
+  bottom: 10px !important;
+}
