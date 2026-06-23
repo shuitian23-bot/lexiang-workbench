@@ -9772,3 +9772,20 @@ body:not(.assistant-fullscreen) .content:has(.lx-site-floors) {
     max-height: none !important;
   }
 }
+
+/* Detail/tabbar spacing refinements requested 2026-06-23. */
+.content[data-view="detail"] .lx-tabbar {
+  box-shadow: none !important;
+  padding: 18px 18px 18px 0 !important;
+}
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors) > .hero {
+  margin-top: 18px !important;
+}
+.content > .lx-tabbar {
+  padding: 18px 18px 0 0 !important;
+}
+.content[data-view="detail"] > .lx-tabbar,
+.content[data-view="detail"] .lx-tabbar {
+  padding: 18px 18px 18px 0 !important;
+  box-shadow: none !important;
+}
