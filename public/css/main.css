@@ -9689,3 +9689,86 @@ body:not(.assistant-fullscreen) .content:has(.lx-site-floors) {
 .lx-tabbar {
   border-bottom: 0 !important;
 }
+
+/* Hover product prompt drawer motion: expand/collapse like a drawer. */
+.hover-prompt-panel .pop {
+  overflow: hidden !important;
+  transform-origin: bottom center !important;
+  animation: lx-hover-drawer-panel-in 280ms cubic-bezier(.34,1.4,.4,1) both !important;
+  will-change: opacity, transform, clip-path, max-height !important;
+}
+.hover-prompt-panel .pop .box {
+  transform-origin: top center !important;
+  animation: lx-hover-drawer-box-in 280ms cubic-bezier(.34,1.4,.4,1) both !important;
+  will-change: opacity, transform, clip-path !important;
+}
+.hover-prompt-panel .pop.is-closing {
+  animation: lx-hover-drawer-panel-out 220ms cubic-bezier(.22,.61,.36,1) both !important;
+  pointer-events: none !important;
+}
+.hover-prompt-panel .pop.is-closing .box {
+  animation: lx-hover-drawer-box-out 220ms cubic-bezier(.22,.61,.36,1) both !important;
+}
+@keyframes lx-hover-drawer-panel-in {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(18px);
+    clip-path: inset(100% 0 0 0 round 16px);
+  }
+  to {
+    opacity: 1;
+    max-height: 420px;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+}
+@keyframes lx-hover-drawer-box-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(.985);
+    clip-path: inset(100% 0 0 0 round 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+}
+@keyframes lx-hover-drawer-panel-out {
+  from {
+    opacity: 1;
+    max-height: 420px;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(18px);
+    clip-path: inset(100% 0 0 0 round 16px);
+  }
+}
+@keyframes lx-hover-drawer-box-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(.985);
+    clip-path: inset(100% 0 0 0 round 16px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hover-prompt-panel .pop,
+  .hover-prompt-panel .pop .box,
+  .hover-prompt-panel .pop.is-closing,
+  .hover-prompt-panel .pop.is-closing .box {
+    animation: none !important;
+    transform: none !important;
+    clip-path: none !important;
+    max-height: none !important;
+  }
+}
