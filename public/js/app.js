@@ -432,6 +432,7 @@ if (!window.__lxMemberFetched) {
             state.hoverPromptVisibleSku = key;
           }
           bottom.classList.add("has-hover-prompts");
+          document.querySelector(".assistant-panel")?.classList.add("assistant-glass-active");
           clearHoverPromptAutoCloseTimer();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
@@ -463,6 +464,7 @@ if (!window.__lxMemberFetched) {
           if (!bottom || !list) return;
           if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
             bottom.classList.remove("has-hover-prompts");
+            document.querySelector(".assistant-panel")?.classList.remove("assistant-glass-active");
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
             return;
@@ -470,6 +472,7 @@ if (!window.__lxMemberFetched) {
           pop.classList.add("is-closing");
           window.setTimeout(() => {
             bottom.classList.remove("has-hover-prompts");
+            document.querySelector(".assistant-panel")?.classList.remove("assistant-glass-active");
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
           }, 240);
@@ -683,11 +686,26 @@ if (!window.__lxMemberFetched) {
           loadProductDetailImages(product);
           lxApplyDetailCtaMode(product);
           lxEnsureBuybar(product);
+          lxRenderItemCode(product);
           document.querySelector(".lx-detail-official-link")?.remove();
           loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
           lxHintOnDetail(product);
+        }
+
+        // 详情页官方商品编号（取 specs.materialNumber，如 83UE000HCD；无则不展示）
+        function lxRenderItemCode(product) {
+          const services = document.querySelector(".detail-service");
+          if (!services) return;
+          document.querySelector(".detail-itemcode")?.remove();
+          const specs = lxParseSpecs(product && product.specs);
+          const code = specs.materialNumber || specs.materialnumber || "";
+          if (!code) return;
+          const el = document.createElement("div");
+          el.className = "detail-itemcode";
+          el.innerHTML = `商品编号：<span>${esc(code)}</span>`;
+          services.after(el);
         }
 
         // SPU 体系：详情页展示同系列全部配置（SKU 选择器 + 价格区间 + 系列内对比）
