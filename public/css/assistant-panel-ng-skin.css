@@ -1442,3 +1442,72 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
   z-index:200!important;
 }
+
+/* Snapshot-backed liquid glass for assistant hover state, cache 2026062410. */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.assistant-panel > .assistant-glass-snapshot{
+  position:absolute!important;
+  inset:0!important;
+  z-index:18!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  overflow:hidden!important;
+  opacity:.62!important;
+  filter:blur(4px) saturate(.96)!important;
+  transform:scale(1.012)!important;
+  transform-origin:center!important;
+}
+.assistant-panel > .assistant-glass-snapshot > *{
+  pointer-events:none!important;
+}
+.assistant-panel > .assistant-glass-snapshot .panel-state,
+.assistant-panel > .assistant-glass-snapshot .default-state,
+.assistant-panel > .assistant-glass-snapshot .chat-state{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:20!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:
+    radial-gradient(120% 70% at 14% 0%,rgba(255,255,255,.30),rgba(255,255,255,.07) 66%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.20),rgba(248,242,250,.12) 48%,rgba(255,255,255,.07))!important;
+  -webkit-backdrop-filter:blur(8px) saturate(1.38)!important;
+  backdrop-filter:blur(8px) saturate(1.38)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(91,20,82,.05)!important;
+}
+.assistant-panel.assistant-hover-active > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-toggle,
+.assistant-panel.assistant-hover-active > .panel-state,
+.assistant-panel.assistant-hover-active > .page-dots,
+.assistant-panel.assistant-glass-active > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-toggle,
+.assistant-panel.assistant-glass-active > .panel-state,
+.assistant-panel.assistant-glass-active > .page-dots{
+  position:relative!important;
+  z-index:5!important;
+  opacity:0!important;
+  filter:none!important;
+  pointer-events:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  position:relative!important;
+  z-index:200!important;
+  opacity:1!important;
+  filter:none!important;
+  pointer-events:auto!important;
+}
