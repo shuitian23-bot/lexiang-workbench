@@ -290,7 +290,7 @@ router.post('/followups', (req, res) => {
   const a = String((req.body && req.body.a) || '').trim().slice(0, 300);
   if (!q) return res.json({ rc: 0, questions: [] });
 
-  const sys = '基于问答生成3个用户可能接着问的简短追问，每个≤15字、口语化、不重复原问题。只返回JSON数组如["问题1","问题2","问题3"]，不要其它文字。';
+  const sys = '你是联想乐享购物助手的追问生成器。基于问答生成3个用户可能接着问的简短追问，每个≤15字、口语化、不重复原问题。追问只围绕联想自家产品、政策、服务、优惠、门店、认证等，绝不提及苹果/小米/华为/华硕/戴尔等任何竞品品牌（用户购机语境聚焦联想）。只返回JSON数组如["问题1","问题2","问题3"]，不要其它文字。';
   const userContent = `问:${q}\n答:${a}`;
   const body = JSON.stringify({
     model: 'doubao-seed-2.0-lite',
