@@ -6906,7 +6906,7 @@ if (!window.__lxMemberFetched) {
   }
   function arrowSVG(){ return '<svg class="arrow" width="22" height="26" viewBox="-1 -1 17 24" aria-hidden="true"><path class="ar-body" d="' + ARROW + '"/></svg>'; }
   function starSVG(){ return '<span class="star"><svg class="sx" viewBox="0 0 30 30" aria-hidden="true"><path d="' + STAR + '" fill="url(#irisFill)"/><ellipse class="sheen" cx="11" cy="10" rx="3.4" ry="2.5" fill="#fff"/></svg></span>'; }
-  function fxHTML(label){ return '<div class="fx">' + starSVG() + '<div class="label"><span class="ltxt">' + label + '</span><span class="ldot"><i></i><i></i><i></i></span></div></div>'; }
+  function fxHTML(label){ return '<div class=fx><div class=label><span class=lx-icon><img src=/assets/img/lx-icon-0016.png alt=/></span><span class=ltxt>' + label + '</span></div></div>'; }
   function init(opts){
     opts = opts || {};
     var v = opts.variant || "A";

@@ -9985,3 +9985,17 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
   position: relative;
   z-index: 30 !important;
 }
+
+/* Smart cursor scheme A: Lexiang icon bubble, cache 202606231256. */
+body[data-arr="A"] .ai-arrow .fx{ left:11px!important; top:-2px!important; }
+.ai-arrow .star,
+.ai-arrow .label .ldot{ display:none!important; }
+.ai-arrow .label{ left:12px!important; top:0!important; gap:6px!important; height:30px!important; padding:0 13px 0 8px!important; border-radius:11px 16px 16px 4px!important; background:#fff!important; color:var(--aubergine)!important; font-size:13px!important; font-weight:700!important; box-shadow:0 8px 22px rgba(60,15,55,.22)!important; border:1px solid var(--border)!important; }
+.ai-arrow .lx-icon{ position:relative; width:18px; height:18px; flex:none; display:inline-flex; align-items:center; justify-content:center; }
+.ai-arrow .lx-icon::before{ content:""; position:absolute; inset:-4px; border-radius:50%; background:radial-gradient(circle,rgba(255,48,48,.26),rgba(255,48,48,.10) 48%,transparent 70%); animation:iconAura 2.8s var(--ease) infinite; }
+.ai-arrow .lx-icon::after{ content:""; position:absolute; inset:-2px; border-radius:50%; border:1px solid rgba(255,43,43,.36); border-top-color:rgba(255,255,255,.9); animation:iconRing 3.2s linear infinite; }
+.ai-arrow .lx-icon img{ position:relative; z-index:1; width:18px; height:18px; display:block; border-radius:50%; animation:iconPulse 2.6s var(--ease) infinite; }
+@keyframes iconAura{ 0%,100%{ opacity:.45; transform:scale(.82);} 50%{ opacity:1; transform:scale(1.18);} }
+@keyframes iconRing{ to{ transform:rotate(360deg); } }
+@keyframes iconPulse{ 0%,100%{ transform:scale(.9);} 50%{ transform:scale(1.14);} }
+@media (prefers-reduced-motion:reduce){ .ai-arrow .lx-icon::before,.ai-arrow .lx-icon::after,.ai-arrow .lx-icon img{ animation-duration:.001s!important; } }
