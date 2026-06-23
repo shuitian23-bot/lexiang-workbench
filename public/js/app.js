@@ -421,6 +421,34 @@ if (!window.__lxMemberFetched) {
             </div></div>`;
         }
 
+        function setAssistantGlass(active) {
+          const panel = document.querySelector(".assistant-panel");
+          if (!panel) return;
+          let veil = panel.querySelector(":scope > .assistant-glass-veil");
+          if (active) {
+            if (!veil) {
+              veil = document.createElement("div");
+              veil.className = "assistant-glass-veil";
+              veil.setAttribute("aria-hidden", "true");
+              panel.appendChild(veil);
+              requestAnimationFrame(() => veil.classList.add("is-on"));
+            } else {
+              veil.classList.remove("is-off");
+              veil.classList.add("is-on");
+            }
+            panel.classList.add("assistant-glass-active");
+            return;
+          }
+          panel.classList.remove("assistant-glass-active");
+          if (veil) {
+            veil.classList.remove("is-on");
+            veil.classList.add("is-off");
+            window.setTimeout(() => {
+              if (veil.parentNode && !panel.classList.contains("assistant-glass-active")) veil.remove();
+            }, 260);
+          }
+        }
+
         async function showHoverPrompts(product) {
           const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
@@ -432,7 +460,7 @@ if (!window.__lxMemberFetched) {
             state.hoverPromptVisibleSku = key;
           }
           bottom.classList.add("has-hover-prompts");
-          document.querySelector(".assistant-panel")?.classList.add("assistant-glass-active");
+          setAssistantGlass(true);
           clearHoverPromptAutoCloseTimer();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
@@ -464,7 +492,7 @@ if (!window.__lxMemberFetched) {
           if (!bottom || !list) return;
           if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
             bottom.classList.remove("has-hover-prompts");
-            document.querySelector(".assistant-panel")?.classList.remove("assistant-glass-active");
+            setAssistantGlass(false);
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
             return;
@@ -472,7 +500,7 @@ if (!window.__lxMemberFetched) {
           pop.classList.add("is-closing");
           window.setTimeout(() => {
             bottom.classList.remove("has-hover-prompts");
-            document.querySelector(".assistant-panel")?.classList.remove("assistant-glass-active");
+            setAssistantGlass(false);
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
           }, 240);
