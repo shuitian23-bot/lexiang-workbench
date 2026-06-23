@@ -9513,3 +9513,14 @@ body[data-page="home"] .lx-tabbar { display:none!important; }
   pointer-events:none!important;
   transition:left .3s var(--ease-spring), width .3s var(--ease-spring)!important;
 }
+
+/* Detail content tabs alignment: shift group right and center active underline. */
+.content[data-view="detail"] .detail-tabbar {
+  padding-left: 9px !important;
+}
+.content[data-view="detail"] .detail-tab.is-active::after {
+  left: 50% !important;
+  right: auto !important;
+  width: min(32px, 100%) !important;
+  transform: translateX(-50%) !important;
+}
