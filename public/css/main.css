@@ -9642,3 +9642,36 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
   border-bottom: 1px solid var(--border) !important;
   box-shadow: none !important;
 }
+
+/* Smart AI arrow cursor for product-card hover dwell. */
+:root{
+  --spring:cubic-bezier(.34,1.5,.4,1);
+}
+body.cursor-awake .content .product-card,
+body.cursor-awake .content .product-card *,
+body.cursor-awake .content .lx-floor-product,
+body.cursor-awake .content .lx-floor-product *{ cursor:none!important; }
+.ai-arrow{ position:fixed; left:0; top:0; z-index:99999; pointer-events:none; opacity:0; transform:translate(-200px,-200px); will-change:transform; transition:opacity .18s var(--ease); }
+body.cursor-awake .ai-arrow{ opacity:1; }
+.ai-arrow .defs{ position:absolute; width:0; height:0; }
+.ai-arrow .arrow{ position:absolute; left:0; top:0; overflow:visible; filter:drop-shadow(0 3px 6px rgba(60,15,55,.32)); }
+.ai-arrow .arrow .ar-body{ transform-origin:center; }
+.ai-arrow.awake .arrow{ animation:nod .6s var(--spring); }
+@keyframes nod{ 0%,100%{ transform:rotate(0);} 35%{ transform:rotate(-8deg);} }
+.ai-arrow .fx{ position:absolute; left:14px; top:14px; }
+.ai-arrow .star{ position:absolute; left:0; top:0; width:22px; height:22px; opacity:0; transform:scale(.2) rotate(-40deg); transform-origin:center; transition:opacity .3s var(--ease),transform .5s var(--spring); }
+.ai-arrow.awake .star{ opacity:1; transform:scale(1) rotate(0); }
+.ai-arrow .star .sx{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; transform-origin:50% 50%; animation:spin 3.6s linear infinite; }
+.ai-arrow .star .sheen{ transform-box:fill-box; transform-origin:center; animation:twinkle 2.2s var(--ease) infinite; }
+.ai-arrow .label{ position:absolute; left:22px; top:2px; white-space:nowrap; display:flex; align-items:center; gap:6px; height:30px; padding:0 13px 0 11px; border-radius:11px 16px 16px 4px; background:#fff; color:var(--aubergine); font-size:13px; font-weight:700; box-shadow:0 8px 22px rgba(60,15,55,.22); border:1px solid var(--border); opacity:0; transform:translateX(-6px) scale(.86); transform-origin:left center; transition:opacity .32s var(--ease) .12s,transform .46s var(--spring) .12s; }
+.ai-arrow.awake .label{ opacity:1; transform:translateX(0) scale(1); }
+.ai-arrow .label .ldot{ display:inline-flex; gap:2px; }
+.ai-arrow .label .ldot i{ width:4px; height:4px; border-radius:50%; background:var(--brand-red); opacity:.5; animation:typing 1.2s var(--ease) infinite; }
+.ai-arrow .label .ldot i:nth-child(2){ animation-delay:.18s; }
+.ai-arrow .label .ldot i:nth-child(3){ animation-delay:.36s; }
+@keyframes typing{ 0%,100%{ opacity:.3; transform:translateY(0);} 50%{ opacity:1; transform:translateY(-2px);} }
+@keyframes spin{ to{ transform:rotate(360deg);} }
+@keyframes twinkle{ 0%,100%{ opacity:.3;} 50%{ opacity:.9;} }
+body[data-arr="A"] .arrow .ar-body{ fill:url(#arrowIris); stroke:#fff; stroke-width:1.4; stroke-linejoin:round; }
+body[data-arr="A"] .fx{ left:11px; top:13px; }
+@media (prefers-reduced-motion:reduce){ .ai-arrow *{ animation-duration:.001s!important; } }

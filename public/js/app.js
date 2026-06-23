@@ -6848,3 +6848,58 @@ if (!window.__lxMemberFetched) {
     document.addEventListener('pointercancel', onUp, true);
   }, true);
 })();
+
+/* Smart AI arrow cursor: product card dwell overlay, independent of product-card actions. */
+(function(global){
+  "use strict";
+  if (global.ARROWCURSOR && global.ARROWCURSOR.__lxProductDwell) return;
+  var ARROW = "M0 0 L0 18.5 L5 13.8 L8.3 21 L11 19.8 L7.8 12.9 L14.2 12.9 Z";
+  var STAR = "M15 1C15.7 9.2 20.8 14.3 29 15C20.8 15.7 15.7 20.8 15 29C14.3 20.8 9.2 15.7 1 15C9.2 14.3 14.3 9.2 15 1Z";
+  function defsSVG(){
+    return '<svg class="defs" aria-hidden="true"><defs>'
+      + '<linearGradient id="arrowIris" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0" stop-color="#ff3b00"><animate attributeName="stop-color" values="#ff3b00;#ff006e;#d900ff;#35b8ff;#b7f2ff;#ff3b00" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="0.24" stop-color="#ff006e"><animate attributeName="stop-color" values="#ff006e;#d900ff;#35b8ff;#b7f2ff;#ff3b00;#ff006e" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="0.5" stop-color="#d900ff"><animate attributeName="stop-color" values="#d900ff;#35b8ff;#b7f2ff;#ff3b00;#ff006e;#d900ff" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="0.76" stop-color="#35b8ff"><animate attributeName="stop-color" values="#35b8ff;#b7f2ff;#ff3b00;#ff006e;#d900ff;#35b8ff" dur="2.2s" repeatCount="indefinite"/></stop>'
+      + '<stop offset="1" stop-color="#b7f2ff"><animate attributeName="stop-color" values="#b7f2ff;#ff3b00;#ff006e;#d900ff;#35b8ff;#b7f2ff" dur="2.2s" repeatCount="indefinite"/></stop></linearGradient>'
+      + '<linearGradient id="arrowBrand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d144a"/><stop offset="1" stop-color="#b8252e"/></linearGradient>'
+      + '<linearGradient id="irisFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b00"/><stop offset="0.25" stop-color="#ff006e"/><stop offset="0.5" stop-color="#d900ff"/><stop offset="0.72" stop-color="#48c6ff"/><stop offset="0.88" stop-color="#5eeaff"/><stop offset="1" stop-color="#b7f2ff"/></linearGradient>'
+      + '</defs></svg>';
+  }
+  function arrowSVG(){ return '<svg class="arrow" width="22" height="26" viewBox="-1 -1 17 24" aria-hidden="true"><path class="ar-body" d="' + ARROW + '"/></svg>'; }
+  function starSVG(){ return '<span class="star"><svg class="sx" viewBox="0 0 30 30" aria-hidden="true"><path d="' + STAR + '" fill="url(#irisFill)"/><ellipse class="sheen" cx="11" cy="10" rx="3.4" ry="2.5" fill="#fff"/></svg></span>'; }
+  function fxHTML(label){ return '<div class="fx">' + starSVG() + '<div class="label"><span class="ltxt">' + label + '</span><span class="ldot"><i></i><i></i><i></i></span></div></div>'; }
+  function init(opts){
+    opts = opts || {};
+    var v = opts.variant || "A";
+    var delay = opts.delay != null ? opts.delay : 4000;
+    var label = opts.label || "乐享正在帮你";
+    var targetSelector = opts.target || ".content .product-card, .content .lx-floor-product";
+    if (document.querySelector(".ai-arrow")) return;
+    document.body.setAttribute("data-arr", v);
+    var root = document.createElement("div");
+    root.className = "ai-arrow";
+    root.setAttribute("aria-hidden", "true");
+    root.innerHTML = defsSVG() + arrowSVG() + fxHTML(label);
+    document.body.appendChild(root);
+    var x = -200, y = -200, timer = null, awake = false, inTarget = false;
+    function place(){ root.style.transform = "translate(" + x + "px," + y + "px)"; }
+    function sleep(){ if (!awake && !document.body.classList.contains("cursor-awake")) return; awake = false; root.classList.remove("awake"); document.body.classList.remove("cursor-awake"); }
+    function wake(){ if (!inTarget) return; awake = true; var old = root.querySelector(".fx"); if (old) old.remove(); root.insertAdjacentHTML("beforeend", fxHTML(label)); void root.offsetWidth; root.classList.add("awake"); document.body.classList.add("cursor-awake"); }
+    function arm(){ clearTimeout(timer); timer = setTimeout(wake, delay); }
+    function insideTarget(t){ return !!(t && t.closest && t.closest(targetSelector)); }
+    function onMove(e){ x = e.clientX; y = e.clientY; place(); inTarget = insideTarget(e.target); if (!inTarget){ clearTimeout(timer); sleep(); return; } if (awake) sleep(); arm(); }
+    function onLeave(){ clearTimeout(timer); inTarget = false; sleep(); root.style.transform = "translate(-200px,-200px)"; }
+    document.addEventListener("mousemove", onMove, { passive:true });
+    document.addEventListener("mouseleave", onLeave, { passive:true });
+    document.addEventListener("mousedown", function(){ clearTimeout(timer); sleep(); if (inTarget) arm(); }, { passive:true });
+    window.addEventListener("blur", onLeave);
+    return { wake:wake, sleep:sleep, setVariant:function(nv){ v = nv; document.body.setAttribute("data-arr", nv); sleep(); } };
+  }
+  global.ARROWCURSOR = global.ARROWCURSOR || {};
+  global.ARROWCURSOR.init = init;
+  global.ARROWCURSOR.__lxProductDwell = true;
+  function boot(){ init({ variant:"A", delay:4000, label:"乐享正在帮你", target:".content .product-card, .content .lx-floor-product" }); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})(window);
