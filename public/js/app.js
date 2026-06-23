@@ -435,7 +435,9 @@ if (!window.__lxMemberFetched) {
               veil = document.createElement("div");
               veil.className = "assistant-glass-veil";
               veil.setAttribute("aria-hidden", "true");
-              panel.appendChild(veil);
+              const bottom = panel.querySelector(":scope > .assistant-bottom");
+              if (bottom) panel.insertBefore(veil, bottom);
+              else panel.appendChild(veil);
               requestAnimationFrame(() => veil.classList.add("is-on"));
             } else {
               veil.classList.remove("is-off");

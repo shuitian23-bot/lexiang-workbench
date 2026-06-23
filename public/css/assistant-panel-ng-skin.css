@@ -1140,3 +1140,245 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .shortcut-row .shortcut {
   font-weight: 400 !important;
 }
+
+/* Final assistant hover glass layering: keep watching card and composer visible above liquid veil, cache 2026062406. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-glass-veil,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-glass-veil,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:30!important;
+  display:block!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(248,242,250,.36) 48%,rgba(255,255,255,.22)),radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.82),rgba(255,255,255,.20) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.65) contrast(1.04)!important;
+  backdrop-filter:blur(24px) saturate(1.65) contrast(1.04)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.84),inset 0 -1px 0 rgba(91,20,82,.06)!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-glass-veil::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:radial-gradient(circle at 28% 22%,rgba(255,255,255,.46) 0 1px,transparent 1.4px),radial-gradient(circle at 70% 38%,rgba(91,20,82,.10) 0 1px,transparent 1.5px),radial-gradient(circle at 46% 74%,rgba(255,255,255,.38) 0 1px,transparent 1.4px);
+  background-size:68px 68px,94px 94px,82px 82px;
+  opacity:.58;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-glass-veil::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(120deg,rgba(255,255,255,.34),transparent 30%,rgba(255,255,255,.18) 58%,transparent 78%);
+  mix-blend-mode:screen;
+  opacity:.7;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .tool-row,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-toggle,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .panel-state,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .page-dots,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .tool-row,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-toggle,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .panel-state,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .page-dots{
+  filter:blur(5px) saturate(.92)!important;
+  opacity:.42!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-bottom,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-bottom,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  position:absolute!important;
+  left:20px!important;
+  right:20px!important;
+  bottom:10px!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  z-index:200!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts > .hover-prompt-panel,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .hover-prompt-panel,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts > .hover-prompt-panel{
+  display:block!important;
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0 0 14px!important;
+  z-index:210!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop{
+  position:relative!important;
+  z-index:220!important;
+  width:100%!important;
+  max-width:100%!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-bottom > .composer,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-bottom > .composer,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom > .composer{
+  display:grid!important;
+  position:relative!important;
+  z-index:230!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts > .shortcut-row,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .shortcut-row,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts > .shortcut-row{
+  display:none!important;
+}
+
+/* Final assistant hover visibility fallback: page-agnostic, keep card and composer above glass. cache 2026062407 */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:30!important;
+  display:block!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(248,242,250,.36) 48%,rgba(255,255,255,.22)),radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.82),rgba(255,255,255,.20) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.65) contrast(1.04)!important;
+  backdrop-filter:blur(24px) saturate(1.65) contrast(1.04)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.84),inset 0 -1px 0 rgba(91,20,82,.06)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before{
+  content:!important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  background:radial-gradient(circle at 28% 22%,rgba(255,255,255,.46) 0 1px,transparent 1.4px),radial-gradient(circle at 70% 38%,rgba(91,20,82,.10) 0 1px,transparent 1.5px),radial-gradient(circle at 46% 74%,rgba(255,255,255,.38) 0 1px,transparent 1.4px)!important;
+  background-size:68px 68px,94px 94px,82px 82px!important;
+  opacity:.58!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after{
+  content:!important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  background:linear-gradient(120deg,rgba(255,255,255,.34),transparent 30%,rgba(255,255,255,.18) 58%,transparent 78%)!important;
+  mix-blend-mode:screen!important;
+  opacity:.7!important;
+}
+.assistant-panel.assistant-hover-active > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-toggle,
+.assistant-panel.assistant-hover-active > .panel-state,
+.assistant-panel.assistant-hover-active > .page-dots,
+.assistant-panel.assistant-glass-active > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-toggle,
+.assistant-panel.assistant-glass-active > .panel-state,
+.assistant-panel.assistant-glass-active > .page-dots{
+  filter:blur(5px) saturate(.92)!important;
+  opacity:.42!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  position:absolute!important;
+  left:20px!important;
+  right:20px!important;
+  bottom:10px!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  z-index:200!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts > .hover-prompt-panel,
+.assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .hover-prompt-panel,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts > .hover-prompt-panel{
+  display:block!important;
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0 0 14px!important;
+  z-index:210!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop,
+.assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop{
+  position:relative!important;
+  z-index:220!important;
+  width:100%!important;
+  max-width:100%!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom > .composer,
+.assistant-panel.assistant-glass-active > .assistant-bottom > .composer,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom > .composer{
+  display:grid!important;
+  position:relative!important;
+  z-index:230!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts > .shortcut-row,
+.assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .shortcut-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts > .shortcut-row{
+  display:none!important;
+}
