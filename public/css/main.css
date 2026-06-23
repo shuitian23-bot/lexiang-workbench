@@ -9538,3 +9538,14 @@ body[data-page="home"] .lx-tabbar { display:none!important; }
 .content[data-view="detail"] .lx-tabbar .lx-tab-ink {
   bottom: 10px !important;
 }
+
+/* Right content context tabbar fallback: keep default height and white sticky backing. */
+.content > .lx-tabbar {
+  min-height: 64px !important;
+  padding: 14px 16px 14px 0 !important;
+  background: #fff !important;
+  box-shadow: 0 12px 0 #fff !important;
+}
+.content > .lx-tabbar .lx-tab-ink {
+  bottom: 10px !important;
+}
