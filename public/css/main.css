@@ -10475,3 +10475,109 @@ body:is([data-page="personal"]):not(.assistant-fullscreen) .lx-floor-head .lx-ca
 .assistant-panel:has(.assistant-bottom.has-hover-prompts) .assistant-bottom .shortcut-row{
   display:none!important;
 }
+
+/* Stable hover glass layer: keep watching card and composer visible above liquid veil, cache 2026062402. */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active{
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-hover-active::before,
+.assistant-panel.assistant-hover-active::after,
+.assistant-panel.assistant-glass-active::before,
+.assistant-panel.assistant-glass-active::after{
+  display:none!important;
+  content:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:12!important;
+  display:block!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.58),rgba(248,242,250,.36) 48%,rgba(255,255,255,.22)),
+    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.82),rgba(255,255,255,.20) 68%,transparent 100%);
+  -webkit-backdrop-filter:blur(24px) saturate(1.65) contrast(1.04)!important;
+  backdrop-filter:blur(24px) saturate(1.65) contrast(1.04)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.84),inset 0 -1px 0 rgba(91,20,82,.06)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.36) 38%,transparent 62%),radial-gradient(34% 16% at 82% 15%,rgba(255,255,255,.42),transparent 70%)!important;
+  mix-blend-mode:screen!important;
+  opacity:.78!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  background:radial-gradient(circle at 22% 22%,rgba(255,255,255,.34) 0 1px,transparent 1.5px),radial-gradient(circle at 78% 58%,rgba(91,20,82,.07) 0 1px,transparent 1.5px)!important;
+  background-size:42px 42px,58px 58px!important;
+  opacity:.34!important;
+}
+.assistant-panel.assistant-hover-active .panel-state,
+.assistant-panel.assistant-hover-active .page-dots,
+.assistant-panel.assistant-hover-active > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-toggle{
+  filter:blur(5px) saturate(.92)!important;
+  opacity:.42!important;
+  transition:filter .24s cubic-bezier(.22,.61,.36,1),opacity .24s cubic-bezier(.22,.61,.36,1)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom{
+  position:absolute!important;
+  left:clamp(28px,2.4vw,46px)!important;
+  right:clamp(20px,1.55vw,29px)!important;
+  bottom:18px!important;
+  z-index:120!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts > .hover-prompt-panel,
+.assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .hover-prompt-panel{
+  display:block!important;
+  position:relative!important;
+  z-index:130!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop,
+.assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts .hover-prompt-panel .pop{
+  position:relative!important;
+  z-index:140!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom > .composer,
+.assistant-panel.assistant-glass-active > .assistant-bottom > .composer{
+  display:grid!important;
+  position:relative!important;
+  z-index:130!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom.has-hover-prompts > .shortcut-row,
+.assistant-panel.assistant-glass-active > .assistant-bottom.has-hover-prompts > .shortcut-row{
+  display:none!important;
+}
