@@ -9329,3 +9329,41 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
     grid-row:auto!important;
   }
 }
+
+/* Product review skin layout correction: align rating card and AI brief in one row. */
+.content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-rating-wrap {
+  display:contents!important;
+}
+.content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-rating-card {
+  grid-column:1!important;
+  grid-row:2 / span 2!important;
+}
+.content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-ai-banner {
+  grid-column:2!important;
+  grid-row:2!important;
+  align-self:start!important;
+}
+.content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-filter-tags {
+  grid-column:2!important;
+  grid-row:3!important;
+  align-self:end!important;
+  margin-top:16px!important;
+  padding-top:16px!important;
+  padding-bottom:0!important;
+  border-top:1px solid var(--border)!important;
+  border-bottom:0!important;
+}
+.content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-cards-wrap {
+  grid-row:4!important;
+}
+@media (max-width: 900px) {
+  .content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-rating-wrap {
+    display:contents!important;
+  }
+  .content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-rating-card,
+  .content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-ai-banner,
+  .content[data-view="detail"] .detail-reviews-section.lx-review-b .detail-review-filter-tags {
+    grid-column:1!important;
+    grid-row:auto!important;
+  }
+}
