@@ -426,23 +426,59 @@ if (!window.__lxMemberFetched) {
             </div></div>`;
         }
 
+        function buildAssistantGlassSnapshot(panel) {
+          let snapshot = panel.querySelector(":scope > .assistant-glass-snapshot");
+          if (!snapshot) {
+            snapshot = document.createElement("div");
+            snapshot.className = "assistant-glass-snapshot";
+            snapshot.setAttribute("aria-hidden", "true");
+          }
+          snapshot.replaceChildren();
+          const cloneIntoSnapshot = (node, extraClass) => {
+            if (!node) return;
+            const copy = node.cloneNode(true);
+            if (extraClass) copy.classList.add(extraClass);
+            copy.querySelectorAll("button,a,input,textarea,select").forEach((el) => {
+              el.setAttribute("tabindex", "-1");
+              el.setAttribute("aria-hidden", "true");
+            });
+            snapshot.appendChild(copy);
+          };
+          cloneIntoSnapshot(panel.querySelector(":scope > .tool-row"));
+          cloneIntoSnapshot(panel.querySelector(":scope > .assistant-toggle"));
+          const states = Array.from(panel.querySelectorAll(":scope > .panel-state"));
+          const visibleState = states.find((el) => {
+            const cs = window.getComputedStyle(el);
+            return cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > 0;
+          });
+          cloneIntoSnapshot(visibleState || panel.querySelector(":scope > .default-state") || states[0], "snapshot-state");
+          cloneIntoSnapshot(panel.querySelector(":scope > .page-dots"));
+          return snapshot;
+        }
+
         function setAssistantGlass(active) {
           const panel = document.querySelector(".assistant-panel");
           if (!panel) return;
           let veil = panel.querySelector(":scope > .assistant-glass-veil");
+          let snapshot = panel.querySelector(":scope > .assistant-glass-snapshot");
           if (active) {
+            snapshot = buildAssistantGlassSnapshot(panel);
+            const bottom = panel.querySelector(":scope > .assistant-bottom");
+            if (!snapshot.parentNode) {
+              if (bottom) panel.insertBefore(snapshot, bottom);
+              else panel.appendChild(snapshot);
+            }
             if (!veil) {
               veil = document.createElement("div");
               veil.className = "assistant-glass-veil";
               veil.setAttribute("aria-hidden", "true");
-              const bottom = panel.querySelector(":scope > .assistant-bottom");
+            }
+            if (!veil.parentNode) {
               if (bottom) panel.insertBefore(veil, bottom);
               else panel.appendChild(veil);
-              requestAnimationFrame(() => veil.classList.add("is-on"));
-            } else {
-              veil.classList.remove("is-off");
-              veil.classList.add("is-on");
             }
+            veil.classList.remove("is-off");
+            requestAnimationFrame(() => veil.classList.add("is-on"));
             panel.classList.add("assistant-glass-active");
             return;
           }
@@ -451,10 +487,13 @@ if (!window.__lxMemberFetched) {
           if (veil) {
             veil.classList.remove("is-on");
             veil.classList.add("is-off");
-            window.setTimeout(() => {
-              if (veil.parentNode && !panel.classList.contains("assistant-glass-active")) veil.remove();
-            }, 260);
           }
+          window.setTimeout(() => {
+            if (!panel.classList.contains("assistant-glass-active")) {
+              panel.querySelector(":scope > .assistant-glass-veil")?.remove();
+              panel.querySelector(":scope > .assistant-glass-snapshot")?.remove();
+            }
+          }, 260);
         }
 
         async function showHoverPrompts(product) {
