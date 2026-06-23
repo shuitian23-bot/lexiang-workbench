@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="workbench.css?v=20260622-account-hub-ai-open1">
+<link rel="stylesheet" href="workbench.css?v=20260623-poc-adjustment-log2">
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
 <link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
@@ -84,6 +84,11 @@
           <span class="account-hub-icon">◇</span>
           <b>权限管理</b>
           <small>敬请期待……后续开放菜单权限、Skill 权限和角色范围管理。</small>
+        </button>
+        <button type="button" class="account-hub-card" onclick="openPocAdjustmentLog()">
+          <span class="account-hub-icon">LOG</span>
+          <b>调整日志</b>
+          <small>查看功能调整记录。仅用于 POC 记录。</small>
         </button>
       </div>
     </div>
@@ -1026,6 +1031,75 @@ function openPermissionManagerPage() {
   if (typeof skillHubToast === 'function') {
     skillHubToast('权限管理敬请期待，后续开放菜单权限、Skill 权限和角色范围管理');
   }
+}
+
+function openPocAdjustmentLog() {
+  closeUserMenu();
+  const existing = document.getElementById('poc-adjustment-log-modal');
+  if (existing) existing.remove();
+  const records = [
+    {
+      time: '2026-06-23 14:00',
+      title: '账号入口增加调整日志',
+      scope: '右下角账号入口弹层',
+      detail: '新增 POC 日志查看入口，用于记录工作台功能调整过程。',
+      status: '预览验证中'
+    },
+    {
+      time: '2026-06-22 14:00',
+      title: '账号入口弹层适配 AI 助手展开',
+      scope: '账号入口弹层 / 右侧 Agent',
+      detail: 'AI 助手展开时，弹层避让右侧区域并收缩卡片布局。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-22 13:40',
+      title: 'Skill Hub 应用入口调整',
+      scope: 'Skill Hub 操作列',
+      detail: '应用固定为蓝色测试入口，放在操作项最后，点击后在右侧 Agent 展示 output 结果。',
+      status: '已合并正式'
+    },
+    {
+      time: '2026-06-18 18:30',
+      title: '技能包管理改为开关模式',
+      scope: '业务侧技能包管理',
+      detail: '技能包不再走申请流程，使用绿色开关表示开、灰色开关表示关。',
+      status: '已合并正式'
+    }
+  ];
+  const modal = document.createElement('div');
+  modal.id = 'poc-adjustment-log-modal';
+  modal.className = 'poc-log-modal open';
+  modal.innerHTML = `
+    <div class="poc-log-panel" role="dialog" aria-modal="true" aria-label="调整日志">
+      <button type="button" class="poc-log-close" onclick="closePocAdjustmentLog()" aria-label="关闭">×</button>
+      <div class="poc-log-head">
+        <span>仅用于 POC 记录</span>
+        <h3>调整日志</h3>
+        <p>记录本轮工作台功能调整与验证状态，不作为正式审计、发布审批或生产变更依据。</p>
+      </div>
+      <div class="poc-log-list">
+        ${records.map(item => `
+          <div class="poc-log-item">
+            <time>${item.time}</time>
+            <div>
+              <b>${item.title}</b>
+              <p>${item.detail}</p>
+              <small>${item.scope}</small>
+            </div>
+            <em>${item.status}</em>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  modal.addEventListener('click', event => {
+    if (event.target === modal) closePocAdjustmentLog();
+  });
+  document.body.appendChild(modal);
+}
+
+function closePocAdjustmentLog() {
+  document.getElementById('poc-adjustment-log-modal')?.remove();
 }
 
 document.addEventListener('click', event => {

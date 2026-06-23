@@ -5392,7 +5392,7 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
   position:relative;
   width:min(1040px, 100%);
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:18px;
   margin-left:0;
 }
@@ -5441,13 +5441,15 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   display:flex;
   align-items:center;
   justify-content:center;
-  width:30px;
+  min-width:30px;
+  width:max-content;
   height:30px;
+  padding:0 8px;
   margin-bottom:18px;
   border-radius:10px;
   background:#eef4ff;
   color:var(--primary);
-  font-size:18px;
+  font-size:13px;
   font-weight:700;
 }
 .account-hub-card.primary .account-hub-icon {
@@ -5466,6 +5468,121 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   color:var(--text-secondary);
   font-size:14px;
   line-height:1.55;
+}
+.poc-log-modal {
+  position:fixed;
+  inset:0;
+  z-index:3800;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:40px;
+  background:rgba(15,23,42,.18);
+  backdrop-filter:blur(5px);
+}
+.poc-log-modal.open { display:flex; }
+.poc-log-panel {
+  position:relative;
+  width:min(860px, calc(100vw - 80px));
+  max-height:min(720px, calc(100vh - 80px));
+  overflow:auto;
+  border:1px solid #e3e8ef;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 24px 70px rgba(15,23,42,.18);
+  padding:26px;
+}
+.poc-log-close {
+  position:absolute;
+  right:18px;
+  top:18px;
+  width:32px;
+  height:32px;
+  border:1px solid #dbe2ea;
+  border-radius:10px;
+  background:#fff;
+  color:#8b95a1;
+  font-size:22px;
+  line-height:1;
+  cursor:pointer;
+}
+.poc-log-close:hover {
+  background:#f8fafc;
+  color:#334155;
+}
+.poc-log-head {
+  padding-right:48px;
+  margin-bottom:18px;
+}
+.poc-log-head span {
+  display:inline-flex;
+  align-items:center;
+  height:26px;
+  padding:0 10px;
+  border-radius:999px;
+  background:#fff7e6;
+  color:#b77900;
+  font-size:12px;
+  font-weight:700;
+}
+.poc-log-head h3 {
+  margin:12px 0 8px;
+  color:var(--text);
+  font-size:24px;
+  line-height:1.25;
+}
+.poc-log-head p {
+  margin:0;
+  color:var(--text-secondary);
+  font-size:14px;
+  line-height:1.7;
+}
+.poc-log-list {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.poc-log-item {
+  display:grid;
+  grid-template-columns:132px minmax(0,1fr) 98px;
+  gap:14px;
+  align-items:start;
+  padding:14px;
+  border:1px solid #e5eaf2;
+  border-radius:12px;
+  background:#fbfdff;
+}
+.poc-log-item time {
+  color:var(--text-tertiary);
+  font-size:12px;
+  line-height:1.5;
+}
+.poc-log-item b {
+  display:block;
+  color:var(--text);
+  font-size:15px;
+  line-height:1.45;
+}
+.poc-log-item p {
+  margin:5px 0 8px;
+  color:var(--text-secondary);
+  font-size:13px;
+  line-height:1.6;
+}
+.poc-log-item small {
+  color:var(--text-tertiary);
+  font-size:12px;
+}
+.poc-log-item em {
+  justify-self:end;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#eef4ff;
+  color:var(--primary);
+  font-size:12px;
+  font-style:normal;
+  font-weight:700;
+  white-space:nowrap;
 }
 .permission-hub-grid {
   display:grid;
@@ -5527,6 +5644,10 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   .account-hub-popover { inset:0; padding:72px 16px 24px; }
   .account-hub-panel { width:min(560px, calc(100vw - 32px)); margin-left:0; }
   .account-hub-close { right:0; top:-42px; }
+  .poc-log-modal { padding:18px; }
+  .poc-log-panel { width:calc(100vw - 36px); max-height:calc(100vh - 36px); padding:20px; }
+  .poc-log-item { grid-template-columns:1fr; }
+  .poc-log-item em { justify-self:start; }
 }
 @media (max-width:1500px) {
   html[data-product="leaibot"] body.ai-open .account-hub-panel {
