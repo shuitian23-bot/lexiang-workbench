@@ -287,13 +287,18 @@ if (!window.__lxMemberFetched) {
           }
         }
 
-        // 子品牌（系列）识别——做角标用；LEGION→拯救者、Lecoo→来酷
-        const LX_SUBBRAND_RE = /小新|拯救者|YOGA|ThinkPad|ThinkBook|ThinkStation|ThinkVision|thinkplus|moto|来酷|Lecoo|天逸|扬天|开天|昭阳|启天|问天|GeekPro|LEGION/i;
+        // 子品牌（系列）识别——做角标用；15 个子品牌全集
+        // 拯救者含 Legion/LEGION；Lecoo→来酷；GeeKPro/GeekPro 均收；ThinkPlus/thinkplus 均收
+        const LX_SUBBRAND_RE = /拯救者|Legion|LEGION|YOGA|小新|GeeKPro|GeekPro|IdeaPad|天骄|天逸|Lecoo|来酷|AIO|ThinkPad|ThinkBook|ThinkPlus|thinkplus|BOX|异能者|moto/i;
         function lxSubBrand(name) {
           const m = String(name || "").match(LX_SUBBRAND_RE);
           if (!m) return "";
           const s = m[0];
-          return /legion/i.test(s) ? "拯救者" : /lecoo/i.test(s) ? "来酷" : s;
+          if (/legion/i.test(s) || s === "拯救者") return "拯救者";
+          if (/lecoo|来酷/i.test(s)) return "来酷";
+          if (/thinkplus/i.test(s)) return "ThinkPlus";
+          if (/geekpro/i.test(s)) return "GeeKPro";
+          return s;
         }
         // 清洗成干净 SPU 名：去营销词(【xx同款】【定制款】企业购)、品牌(联想/Lenovo)、子品牌(已用角标展示)
         function cleanSpuName(name) {
@@ -2117,7 +2122,7 @@ if (!window.__lxMemberFetched) {
 
         function lxProductMiniCard(product) {
           const _sub = lxSubBrand(product.name);
-          const _badge = `<span class="lx-cat-badge">${esc(_sub || "其他")}</span>`;
+          const _badge = _sub ? `<span class="lx-cat-badge">${esc(_sub)}</span>` : "";
           const _clean = cleanSpuName(product.name) || "联想商品";
           if (product.official) {
             return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
@@ -2143,22 +2148,61 @@ if (!window.__lxMemberFetched) {
         // 整机过滤：子品牌电脑楼层只放笔记本/台式整机，剔除配件周边（货盘里部分配件 category 错标成"笔记本电脑"，按名字兜底排除）
         const LX_PERIPHERAL_RE = /固态硬盘|SSD|移动硬盘|适配器|电源线|电源适配|双肩包|背包|斜挎|行李箱|鼠标|键盘膜|键盘|耳机|散热器|散热|支架|增高|水杯|T-?Shirt|T恤|卫衣|羽绒|马甲|自行车|手柄|底座|随身WIFI|电竞WiFi|WiFi|移动电源|充电|剃须刀|眼镜|拆机|兑换卡|电竞椅|椅|彩膜|保护壳|保护夹|钢化膜|延保|只换不修|保值|换新|服务包/i;
         const lxIsWholeMachine = (p) => !LX_PERIPHERAL_RE.test(`${p.name || ""}`);
-        // 推荐页子品牌楼层（仅渲染 shop 货盘真有量的；空楼层自动跳过）。
-        // 平板单列一层（含拯救者 Y700/Y900、小新平板等），手机走 moto+拯救者手机
-        const LX_PERSONAL_RECOMMEND_FLOORS = [
-          ["拯救者", (p) => /拯救者|Legion/i.test(p.name || "") && lxIsWholeMachine(p)],
-          ["小新", (p) => /小新|XIAOXIN/i.test(p.name || "") && lxIsWholeMachine(p)],
-          ["YOGA", (p) => /YOGA/i.test(p.name || "") && lxIsWholeMachine(p)],
-          ["平板", (p) => p.category === "平板电脑"],
-          ["手机", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return p.category === "手机" || /moto|motorola|razr|edge|折叠屏/i.test(text);
-          }],
-          ["ThinkPlus 配件", (p) => {
-            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /ThinkPlus|Thinkplus|thinkplus|think\+|口红电源|扩展坞|会议|耳机|蓝牙|随身充/i.test(text) || ["耳机", "包袋", "键鼠相关", "显示器"].includes(p.category);
-          }],
+
+        // 全屋智能关键词：命中→全屋楼层；不命中→智能生活楼层（两者共享 category='智能生活'，靠此正则拆分）
+        const LX_SMARTHOME_RE = /全屋|智能家居|门锁|网关|摄像头|摄像机|传感器|智能灯|智能开关|智能插座|路由器|门铃|监控/;
+
+        // 测试/无效品过滤
+        const LX_TEST_PRODUCT_RE = /UI自动化专用|测试|请勿修改|下单不发货/;
+        const lxIsValidProduct = (p) => !LX_TEST_PRODUCT_RE.test(`${p.name || ""}`);
+
+        // 8 品类楼层定义：[标题, 取货所需 categories 列表, 前端过滤函数]
+        // categories 列表用于 lxEnsureCategoryPool 并发拉货；filter 在客户端二次过滤（处理多 cat 合并和智能生活拆分）
+        const LX_PERSONAL_CATEGORY_FLOORS = [
+          {
+            label: "笔记本",
+            categories: ["笔记本电脑"],
+            filter: (p) => p.category === "笔记本电脑" && lxIsValidProduct(p),
+          },
+          {
+            label: "台式机/显示器",
+            categories: ["台式机", "显示器"],
+            filter: (p) => (p.category === "台式机" || p.category === "显示器") && lxIsValidProduct(p),
+          },
+          {
+            label: "平板",
+            categories: ["平板电脑"],
+            filter: (p) => p.category === "平板电脑" && lxIsValidProduct(p),
+          },
+          {
+            label: "手机",
+            categories: ["手机"],
+            filter: (p) => p.category === "手机" && lxIsValidProduct(p),
+          },
+          {
+            label: "智能生活",
+            categories: ["智能生活"],
+            filter: (p) => p.category === "智能生活" && !LX_SMARTHOME_RE.test(`${p.name || ""} ${p.description || ""}`) && lxIsValidProduct(p),
+          },
+          {
+            label: "配件/办公",
+            categories: ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"],
+            filter: (p) => ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"].includes(p.category) && lxIsValidProduct(p),
+          },
+          {
+            label: "全屋智能",
+            categories: ["智能生活"],
+            filter: (p) => p.category === "智能生活" && LX_SMARTHOME_RE.test(`${p.name || ""} ${p.description || ""}`) && lxIsValidProduct(p),
+          },
+          {
+            label: "服务",
+            categories: ["服务产品"],
+            filter: (p) => p.category === "服务产品" && lxIsValidProduct(p),
+          },
         ];
+
+        // 兼容旧的子品牌楼层格式（business/enterprise 仍在用）
+        const LX_PERSONAL_RECOMMEND_FLOORS = [];
 
         const LX_BUSINESS_RECOMMEND_FLOORS = [
           ["ThinkPad", (p) => {
@@ -2212,6 +2256,36 @@ if (!window.__lxMemberFetched) {
             }
           }
           return Array.isArray(state.floorProducts) ? state.floorProducts : [];
+        }
+
+        // 按 category 取货并缓存，供个人站 8 品类楼层使用。
+        // categories: 去重后并发请求，结果按 category 分桶存入 state.catPool。
+        async function lxEnsureCategoryPool(categories, limitPerCat = 40) {
+          if (!state.catPool) state.catPool = {};
+          const needed = [...new Set(categories)].filter((c) => !state.catPool[c]);
+          if (needed.length) {
+            const results = await Promise.allSettled(
+              needed.map(async (cat) => {
+                try {
+                  const controller = new AbortController();
+                  const timer = setTimeout(() => controller.abort(), 15000);
+                  const resp = await fetch(`/api/products?category=${encodeURIComponent(cat)}&limit=${limitPerCat}`, { cache: "no-store", signal: controller.signal });
+                  clearTimeout(timer);
+                  const data = await resp.json();
+                  return { cat, items: Array.isArray(data) ? data : [] };
+                } catch {
+                  return { cat, items: [] };
+                }
+              })
+            );
+            results.forEach((r) => {
+              if (r.status === "fulfilled") {
+                state.catPool[r.value.cat] = r.value.items;
+              }
+            });
+          }
+          // 返回所有请求 category 的商品合集（按传入顺序合并，去重由调用方负责）
+          return categories.flatMap((c) => state.catPool[c] || []);
         }
 
         function lxProductKey(product) {
@@ -2327,18 +2401,37 @@ if (!window.__lxMemberFetched) {
           box.querySelectorAll(".lx-floor-products").forEach((g) => lxFloorRO.observe(g));
         }
 
+        // 渲染个人站 8 品类楼层（标题 + 换一换 + 8 个商品网格，无「查看更多」）
+        function lxRenderCatFloor(floorDef, items) {
+          const label = floorDef.label;
+          const catKey = floorDef.categories.join(",");
+          const canShuffle = items.length > 8;
+          const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品">换一换</button>`;
+          const cards = items.slice(0, 8).map(lxProductMiniCard).join("");
+          return `<section class="lx-floor lx-personal-rec-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
+        }
+
         async function lxRenderPersonalRecommendFloors() {
-          const site = API_SITE.personal || "shop";
-          const pool = await lxEnsureFloorProducts(site, 96);
-          const source = pool.length ? pool : (Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []));
-          if (!source.length) return "";
-          const used = new Set();
-          const floorCount = lxFloorProductCount();
-          return LX_PERSONAL_RECOMMEND_FLOORS.map(([label, match]) => {
-            // 多取（最多 4 排），前 floorCount 直出，余下折叠进「查看更多」
-            const items = lxPickFloorProducts(source, match, used, floorCount * 4);
-            if (!items.length) return "";  // 该系列没货就不显示空楼层
-            return lxFloorWithMore(label, items, floorCount);
+          // 收集所有楼层需要的 category 去重并发请求
+          const allCats = [...new Set(LX_PERSONAL_CATEGORY_FLOORS.flatMap((f) => f.categories))];
+          await lxEnsureCategoryPool(allCats, 40);
+
+          // 初始化 offset state
+          if (!state.catFloorOffset) state.catFloorOffset = {};
+
+          return LX_PERSONAL_CATEGORY_FLOORS.map((floorDef) => {
+            const pool = floorDef.categories.flatMap((c) => state.catPool?.[c] || []);
+            // 去重
+            const seen = new Set();
+            const uniq = pool.filter((p) => {
+              const k = lxProductKey(p);
+              if (seen.has(k)) return false;
+              seen.add(k);
+              return true;
+            });
+            const items = uniq.filter(floorDef.filter);
+            if (!items.length) return "";  // 没货不显示空楼层
+            return lxRenderCatFloor(floorDef, items);
           }).join("");
         }
 
@@ -5445,6 +5538,36 @@ if (!window.__lxMemberFetched) {
                 } else {
                   sec.dataset.expanded = "";
                   lxClampFloors(sec.parentElement || document); // 重新夹回两排
+                }
+              }
+            }
+
+            // 换一换：品类楼层刷新下一批 8 个商品
+            const shuffleBtn = event.target.closest("[data-cat-shuffle]");
+            if (shuffleBtn && !shuffleBtn.disabled) {
+              const catKey = shuffleBtn.dataset.catShuffle;
+              const floorLabel = shuffleBtn.dataset.floorLabel;
+              const floorDef = LX_PERSONAL_CATEGORY_FLOORS.find((f) => f.label === floorLabel);
+              if (floorDef && catKey) {
+                const pool = floorDef.categories.flatMap((c) => state.catPool?.[c] || []);
+                const seen = new Set();
+                const uniq = pool.filter((p) => { const k = lxProductKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
+                const items = uniq.filter(floorDef.filter);
+                if (items.length > 0) {
+                  if (!state.catFloorOffset) state.catFloorOffset = {};
+                  const cur = state.catFloorOffset[catKey] || 0;
+                  const next = (cur + 8) % items.length;
+                  state.catFloorOffset[catKey] = next;
+                  // 取从 next 开始的 8 个，到末尾不足时循环补
+                  const batch = [];
+                  for (let i = 0; i < 8 && i < items.length; i++) {
+                    batch.push(items[(next + i) % items.length]);
+                  }
+                  const grid = shuffleBtn.closest("[data-cat-floor-key]")?.querySelector("[data-cat-floor-grid]");
+                  if (grid) {
+                    grid.innerHTML = batch.map(lxProductMiniCard).join("");
+                    shuffleBtn.disabled = items.length <= 8;
+                  }
                 }
               }
             }
