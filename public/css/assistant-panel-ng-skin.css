@@ -1382,3 +1382,34 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom.has-hover-prompts > .shortcut-row{
   display:none!important;
 }
+
+/* Tune assistant hover liquid glass: translucent blur with visible background, cache 2026062408. */
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  background:linear-gradient(145deg,rgba(255,255,255,.24),rgba(248,242,250,.18) 48%,rgba(255,255,255,.12)),radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.38),rgba(255,255,255,.10) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(1.45) contrast(1.02)!important;
+  backdrop-filter:blur(12px) saturate(1.45) contrast(1.02)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.62),inset 0 -1px 0 rgba(91,20,82,.04)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before{
+  background:radial-gradient(circle at 28% 22%,rgba(255,255,255,.30) 0 1px,transparent 1.4px),radial-gradient(circle at 70% 38%,rgba(91,20,82,.07) 0 1px,transparent 1.5px),radial-gradient(circle at 46% 74%,rgba(255,255,255,.24) 0 1px,transparent 1.4px)!important;
+  opacity:.42!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after{
+  background:linear-gradient(120deg,rgba(255,255,255,.22),transparent 30%,rgba(255,255,255,.12) 58%,transparent 78%)!important;
+  opacity:.42!important;
+}
+.assistant-panel.assistant-hover-active > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-toggle,
+.assistant-panel.assistant-hover-active > .panel-state,
+.assistant-panel.assistant-hover-active > .page-dots,
+.assistant-panel.assistant-glass-active > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-toggle,
+.assistant-panel.assistant-glass-active > .panel-state,
+.assistant-panel.assistant-glass-active > .page-dots{
+  filter:blur(2.5px) saturate(.96)!important;
+  opacity:.72!important;
+}
