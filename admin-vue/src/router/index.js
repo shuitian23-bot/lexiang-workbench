@@ -5,8 +5,25 @@ import DashboardOverview from '../views/DashboardOverview.vue'
 const routes = [
   { path: '/', redirect: '/dashboard/overview' },
 
+  // 门户首页
+  { path: '/portal/home', component: () => import('../views/PortalHome.vue') },
+
   // 乐享运营
   { path: '/dashboard/overview', component: DashboardOverview },
+  { path: '/dashboard/query',    component: () => import('../views/DashboardQuery.vue') },
+  { path: '/dashboard/behavior', component: () => import('../views/DashboardBehavior.vue') },
+  { path: '/pipeline/annotate',  component: () => import('../views/PipelineAnnotate.vue') },
+  { path: '/pipeline/quality',   component: () => import('../views/PipelineQuality.vue') },
+
+  // Skill Hub / 权限
+  { path: '/agent/skills',      component: () => import('../views/AgentSkills.vue') },
+  { path: '/agent/skillCreate', component: () => import('../views/AgentSkillCreate.vue') },
+  { path: '/agent/permissions', component: () => import('../views/AgentPermissions.vue') },
+
+  // 报告
+  { path: '/report/overview', component: () => import('../views/ReportOverview.vue') },
+  { path: '/report/detail',   component: () => import('../views/ReportDetail.vue') },
+  { path: '/report/quality',  component: () => import('../views/ReportQuality.vue') },
 
   // GEO 看板
   { path: '/dashboard/geo',           component: () => import('../views/GeoOverview.vue') },
