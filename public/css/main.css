@@ -10558,21 +10558,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   transition: filter .22s ease, opacity .22s ease;
   pointer-events: none;
 }
-/* 极淡一层提亮，让弹窗与背景层次更清，但不盖死内容 */
-.assistant-panel.assistant-hover-active::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(160deg, rgba(250,246,253,.28), rgba(245,238,249,.18));
-  transition: opacity .22s ease;
-}
-/* 弹窗 + 底部输入区抬到遮罩之上，清晰可见可点击 */
+/* 不加任何盖在内容上的遮罩层——背后内容靠自身 blur+opacity 虚化，弹窗与底部输入区清晰浮于其上 */
 .assistant-panel.assistant-hover-active > .assistant-bottom { position: relative; z-index: 30; }
 .assistant-panel.assistant-hover-active > .assistant-bottom .hover-prompt-panel { position: relative; z-index: 32; }
-@media (max-width: 768px) {
-  .assistant-panel.assistant-hover-active::before { border-radius: 0; }
-}
 
