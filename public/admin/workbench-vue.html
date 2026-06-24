@@ -315,19 +315,6 @@
   };
 })();
 </script>
-<!-- 模块化JS：依赖核心变量，必须在 Vue app setup 之后加载 -->
-<script src="workbench-data-leai.js"></script>
-<script src="workbench-pages.js?v=20260623-skill-score-threshold1"></script>
-<script src="workbench-lead.js?v=20260618-wangxt8-lead1"></script>
-<script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
-<script src="workbench-geo.js?v=20260617-report-openall1"></script>
-<script src="workbench-ai.js?v=20260624-ui0624"></script>
-<script src="workbench-data.js?v=20260618-topbar-clean1"></script>
-<script src="workbench-employee.js?v=20260605-design-global4"></script>
-<script src="workbench-ops.js?v=20260611-component-fix1"></script>
-<script src="workbench-report.js"></script>
-<script src="workbench-pipeline.js?v=20260520e"></script>
-<script src="workbench-quality.js?v=20260520d"></script>
 
 <script>
 /* ===== Vue 主脚本 ===== */
@@ -1223,90 +1210,128 @@ async function loadUserContext() {
   document.getElementById('user-role').textContent = STATE.role;
 }
 
-// ===== Vue App =====
-const app = createApp({
-  setup() {
-    const loggedIn = ref(false);
-    const loginError = ref('');
+window.toggleSidebarCollapse = toggleSidebarCollapse;
+window.goPortalHome = goPortalHome;
+window.toggleUserMenu = toggleUserMenu;
+window.closeUserMenu = closeUserMenu;
+window.loadUserContext = loadUserContext;
+window.applyInitialPageFromUrl = applyInitialPageFromUrl;
+window.renderSidebar = renderSidebar;
+window.restoreSidebarState = restoreSidebarState;
+window.applyResponsiveSidebarCollapse = applyResponsiveSidebarCollapse;
+window.switchBehaviorTab = switchBehaviorTab;
+window.switchTab = switchTab;
+window.showMaterialPreview = showMaterialPreview;
+window.openSkillCreatePage = openSkillCreatePage;
+window.openSkillManagerFromUserMenu = openSkillManagerFromUserMenu;
+window.openPermissionManagerPage = openPermissionManagerPage;
+window.openPocAdjustmentLog = openPocAdjustmentLog;
+window.closePocAdjustmentLog = closePocAdjustmentLog;
+</script>
 
-    function showLoginError(msg) {
-      loginError.value = msg;
-    }
+<!-- 定义块：STATE、shell 函数、window 导出 — 必须在 workbench-*.js 之前 -->
+<script src="workbench-data-leai.js"></script>
+<script src="workbench-pages.js?v=20260623-skill-score-threshold1"></script>
+<script src="workbench-lead.js?v=20260618-wangxt8-lead1"></script>
+<script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
+<script src="workbench-geo.js?v=20260617-report-openall1"></script>
+<script src="workbench-ai.js?v=20260624-ui0624"></script>
+<script src="workbench-data.js?v=20260618-topbar-clean1"></script>
+<script src="workbench-employee.js?v=20260605-design-global4"></script>
+<script src="workbench-ops.js?v=20260611-component-fix1"></script>
+<script src="workbench-report.js"></script>
+<script src="workbench-pipeline.js?v=20260520e"></script>
+<script src="workbench-quality.js?v=20260520d"></script>
 
-    async function doLogin() {
-      const username = document.getElementById('login-user').value.trim();
-      const password = document.getElementById('login-pass').value;
-      if (!username || !password) return showLoginError('请输入用户名和密码');
+<script>
+/* ===== Vue 挂载块 ===== */
+(function() {
+  const { createApp, ref, onMounted } = Vue;
 
-      try {
-        const res = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (!res.ok) return showLoginError(data.error || '登录失败');
+  const app = createApp({
+    setup() {
+      const loggedIn = ref(false);
+      const loginError = ref('');
 
-        STATE.user = data.username;
-        loggedIn.value = true;
-
-        await loadUserContext();
-        applyInitialPageFromUrl();
-        renderSidebar();
-        restoreSidebarState();
-        if (typeof restoreAIState === 'function') restoreAIState();
-        applyResponsiveSidebarCollapse();
-        if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
-        if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
-        switchPage(STATE.currentPage);
-      } catch (e) {
-        showLoginError('网络错误，请重试');
+      function showLoginError(msg) {
+        loginError.value = msg;
       }
-    }
 
-    async function doLogout() {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      location.reload();
-    }
+      async function doLogin() {
+        const username = document.getElementById('login-user').value.trim();
+        const password = document.getElementById('login-pass').value;
+        if (!username || !password) return showLoginError('请输入用户名和密码');
 
-    onMounted(() => {
-      fetch('/api/admin/me').then(r => {
-        if (r.ok) return r.json();
-        throw new Error('not logged in');
-      }).then(async data => {
-        STATE.user = data.admin?.username;
-        loggedIn.value = true;
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          const data = await res.json();
+          if (!res.ok) return showLoginError(data.error || '登录失败');
 
-        await loadUserContext();
-        applyInitialPageFromUrl();
-        renderSidebar();
-        restoreSidebarState();
-        if (typeof restoreAIState === 'function') restoreAIState();
-        applyResponsiveSidebarCollapse();
-        if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
-        if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
-        switchPage(STATE.currentPage);
+          window.STATE.user = data.username;
+          loggedIn.value = true;
 
-        const requestedPage = new URLSearchParams(window.location.search).get('page');
-        if (requestedPage) {
-          setTimeout(() => {
-            const hiddenPages = typeof HIDDEN_PAGES !== 'undefined' ? HIDDEN_PAGES : {};
-            const canOpen = !!findPageGroup(requestedPage) || !!hiddenPages[requestedPage] || ['portal.home', 'agent.skills', 'agent.skillCreate', 'agent.permissions'].includes(requestedPage);
-            if (canOpen) switchPage(requestedPage);
-          }, 0);
+          await window.loadUserContext();
+          window.applyInitialPageFromUrl();
+          window.renderSidebar();
+          window.restoreSidebarState();
+          if (typeof restoreAIState === 'function') restoreAIState();
+          window.applyResponsiveSidebarCollapse();
+          if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
+          if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
+          window.switchPage(window.STATE.currentPage);
+        } catch (e) {
+          showLoginError('网络错误，请重试');
         }
-        if (STATE.currentPage === 'portal.home' && typeof toggleAI === 'function') {
-          requestAnimationFrame(() => toggleAI(true));
-        }
-      }).catch(() => {
-        // 保持登录屏显示
+      }
+
+      async function doLogout() {
+        await fetch('/api/admin/logout', { method: 'POST' });
+        location.reload();
+      }
+
+      onMounted(() => {
+        fetch('/api/admin/me').then(r => {
+          if (r.ok) return r.json();
+          throw new Error('not logged in');
+        }).then(async data => {
+          window.STATE.user = data.admin?.username;
+          loggedIn.value = true;
+
+          await window.loadUserContext();
+          window.applyInitialPageFromUrl();
+          window.renderSidebar();
+          window.restoreSidebarState();
+          if (typeof restoreAIState === 'function') restoreAIState();
+          window.applyResponsiveSidebarCollapse();
+          if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
+          if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
+          window.switchPage(window.STATE.currentPage);
+
+          const requestedPage = new URLSearchParams(window.location.search).get('page');
+          if (requestedPage) {
+            setTimeout(() => {
+              const hiddenPages = typeof window.HIDDEN_PAGES !== 'undefined' ? window.HIDDEN_PAGES : {};
+              const canOpen = !!window.findPageGroup(requestedPage) || !!hiddenPages[requestedPage] || ['portal.home', 'agent.skills', 'agent.skillCreate', 'agent.permissions'].includes(requestedPage);
+              if (canOpen) window.switchPage(requestedPage);
+            }, 0);
+          }
+          if (window.STATE.currentPage === 'portal.home' && typeof toggleAI === 'function') {
+            requestAnimationFrame(() => toggleAI(true));
+          }
+        }).catch(() => {
+          // 保持登录屏显示
+        });
       });
-    });
 
-    return { loggedIn, loginError, STATE, doLogin, doLogout, toggleSidebarCollapse, goPortalHome, toggleUserMenu };
-  }
-});
-app.mount('#app');
+      return { loggedIn, loginError, STATE: window.STATE, doLogin, doLogout, toggleSidebarCollapse: window.toggleSidebarCollapse, goPortalHome: window.goPortalHome, toggleUserMenu: window.toggleUserMenu };
+    }
+  });
+  app.mount('#app');
+})();
 </script>
 </body>
 </html>
