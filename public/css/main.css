@@ -5405,6 +5405,8 @@
       /* 浅底等分网格（定制类型 / 服务项目）：复用 lx-floor-card 浅底样式，不沿用会员深紫宫格 */
       .lx-pale-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
       @media (max-width: 1100px) { .lx-pale-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      .lx-city-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+      .lx-city-grid .lx-city-pick { width: 100%; justify-content: center; }
       /* 新版信息架构楼层（教育/会员/国补/私定/以旧换新/种草）body 内是混合内容
          （banner + 卡行 + 标题 + 商品网格），不能继承 .lx-floor-body 的强制 grid，
          否则混合直接子项 + 内嵌商品 grid 在懒加载图入视口时反复重排 → 滚动闪烁。改普通流，

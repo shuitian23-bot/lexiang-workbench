@@ -2747,7 +2747,7 @@ if (!window.__lxMemberFetched) {
               ["02", "算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "算价格", "帮我算下教育优惠+国补叠加后的到手价"],
               ["03", "以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "估旧机", "我有旧机想以旧换新，怎么估值？"]
             ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
-            const storeCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我切换查询城市">切换城市</button></div>`;
+            const storeCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
             const storeMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的门店</span></div>`;
             const storeListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
             const storeHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想授权门店</p>`;
@@ -2785,7 +2785,7 @@ if (!window.__lxMemberFetched) {
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             const seckillEnd = lxSeckillCountdown();
             // 国补楼层：LBS 定位 + 步骤卡 + 叠加入口 + 商品
-            const gbCityBar = `<div class="lx-gb-city-bar"><span class="lx-gb-city-label">当前城市：</span><span class="lx-gb-city-name" data-gb-city>正在定位你所在城市…</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我切换国补城市">切换城市</button></div>`;
+            const gbCityBar = `<div class="lx-gb-city-bar"><span class="lx-gb-city-label">当前城市：</span><span class="lx-gb-city-name" data-gb-city>正在定位你所在城市…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
             const gbSteps = [
               ["01", "确认资格", "北京/上海等参与城市用户，需有有效身份证", "查资格", "我怎么确认是否有国补购机资格？"],
               ["02", "平台领券", "登录联想商城，在国补专区领取补贴券", "去领券", "怎么在联想商城领取国补券？"],
@@ -2965,10 +2965,11 @@ if (!window.__lxMemberFetched) {
             box.innerHTML = activitySections[activeFloorTab] || "";
             // 国补城市异步填充（进 tab 后 geo 定位，回填城市名）
             if (activeFloorTab === "国补") {
-              lxRequestGeo().then((coord) => {
+              lxResolveCoord().then((coord) => {
                 if (state.page !== "personal" || state.activeSiteFloorTab !== "国补") return;
                 const cityEl = box.querySelector("[data-gb-city]");
                 if (!cityEl) return;
+                if (coord?.city) { cityEl.textContent = coord.city; return; }
                 if (!coord) { cityEl.textContent = "北京"; return; }
                 fetch(`/api/stores/nearby?lat=${coord.lat}&lng=${coord.lng}&limit=1`)
                   .then((r) => r.json())
@@ -2988,13 +2989,13 @@ if (!window.__lxMemberFetched) {
               }).catch(() => {});
             }
             if (activeFloorTab === "门店") {
-              lxRequestGeo().then((coord) => {
+              lxResolveCoord().then((coord) => {
                 if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
                 const cityEl = box.querySelector("[data-store-city]");
                 const listEl = box.querySelector("[data-store-list]");
                 const lat = coord?.lat ?? 39.9042;
                 const lng = coord?.lng ?? 116.4074;
-                if (cityEl) cityEl.textContent = coord ? "定位成功" : "北京（默认）";
+                if (cityEl) cityEl.textContent = coord?.city || (coord ? "定位成功" : "北京（默认）");
                 fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
                   .then((r) => r.json())
                   .then((data) => {
@@ -3004,7 +3005,7 @@ if (!window.__lxMemberFetched) {
                     const stores = data.stores || data || [];
                     if (cityEl) {
                       const addr = stores[0]?.address || "";
-                      const city = addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
+                      const city = coord?.city || addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
                       cityEl.textContent = city;
                     }
                     if (!stores.length) {
@@ -4630,6 +4631,25 @@ if (!window.__lxMemberFetched) {
           });
         }
 
+        // 城市切换：热门城市坐标表（bd09ll，与门店 API/静态图同坐标系）。选中存 __lxCityOverride，优先于 geo
+        const LX_CITY_COORDS = [
+          ["北京", 39.9042, 116.4074], ["上海", 31.2304, 121.4737], ["广州", 23.1291, 113.2644],
+          ["深圳", 22.5431, 114.0579], ["杭州", 30.2741, 120.1551], ["成都", 30.5728, 104.0668],
+          ["武汉", 30.5928, 114.3055], ["南京", 32.0603, 118.7969], ["西安", 34.3416, 108.9398],
+          ["重庆", 29.5630, 106.5516], ["苏州", 31.2989, 120.5853], ["天津", 39.0842, 117.2009]
+        ];
+        function lxResolveCoord() {
+          if (window.__lxCityOverride && window.__lxCityOverride.lat) return Promise.resolve(window.__lxCityOverride);
+          return lxRequestGeo();
+        }
+        function lxOpenCityPicker() {
+          const cur = window.__lxCityOverride?.city || "";
+          const grid = LX_CITY_COORDS.map(([name, lat, lng]) =>
+            `<button class="lx-p0-btn lx-city-pick${name === cur ? " primary" : ""}" type="button" data-city-pick="${esc(name)}" data-city-lat="${lat}" data-city-lng="${lng}">${esc(name)}</button>`
+          ).join("");
+          openModal("选择城市", `<p class="lx-p0-disclaimer" style="margin-bottom:12px">选择城市后，门店列表和国补查询会按该城市刷新（演示坐标）。</p><div class="lx-city-grid">${grid}</div>`);
+        }
+
         // 门店导航：右侧开地图标签页（百度静态图走服务器代理）+ 「在百度地图打开」做真实导航
         function openStoreMap(latlng, name, addr, tel) {
           const [lat, lng] = String(latlng || "").split(",");
@@ -5718,6 +5738,15 @@ if (!window.__lxMemberFetched) {
             if (askOrder) {
               closeModal();
               sendChat(`帮我查询订单和售后服务：${askOrder}`);
+            }
+            if (event.target.closest("[data-city-picker]")) { lxOpenCityPicker(); return; }
+            const cityPick = event.target.closest("[data-city-pick]");
+            if (cityPick) {
+              window.__lxCityOverride = { city: cityPick.dataset.cityPick, lat: parseFloat(cityPick.dataset.cityLat), lng: parseFloat(cityPick.dataset.cityLng) };
+              closeModal();
+              toast(`已切换到${cityPick.dataset.cityPick}`);
+              lxRenderSiteFloors();
+              return;
             }
             const quickAsk = event.target.closest("[data-quick-ask]")?.dataset.quickAsk;
             if (quickAsk) {
