@@ -10549,16 +10549,5 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   .lx-cmp-skin[data-v="2"]{min-width:760px!important;}
 }
 
-/* hover 弹窗：背后真实内容（欢迎语/快捷问题/对话）自身轻模糊+半透，弹窗清晰浮于其上。
-   不用 ::before backdrop 遮罩——它会把深色文字盖洗成纯白看不到。改让内容自己 blur，模糊但可见。 */
-.assistant-panel.assistant-hover-active { position: relative; }
-.assistant-panel.assistant-hover-active > .panel-state {
-  filter: blur(3px);
-  opacity: .5;
-  transition: filter .22s ease, opacity .22s ease;
-  pointer-events: none;
-}
-/* 不加任何盖在内容上的遮罩层——背后内容靠自身 blur+opacity 虚化，弹窗与底部输入区清晰浮于其上 */
-.assistant-panel.assistant-hover-active > .assistant-bottom { position: relative; z-index: 30; }
-.assistant-panel.assistant-hover-active > .assistant-bottom .hover-prompt-panel { position: relative; z-index: 32; }
+/* hover 弹窗遮罩规则统一在 assistant-panel-ng-skin.css（panel-state blur+opacity 虚化 + 弹窗浮层），此处不再重复 */
 
