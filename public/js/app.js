@@ -290,15 +290,19 @@ if (!window.__lxMemberFetched) {
         // 子品牌（系列）识别——做角标用；15 个子品牌全集
         // 拯救者含 Legion/LEGION；Lecoo→来酷；GeeKPro/GeekPro 均收；ThinkPlus/thinkplus 均收
         const LX_SUBBRAND_RE = /拯救者|Legion|LEGION|YOGA|小新|GeeKPro|GeekPro|IdeaPad|天骄|天逸|Lecoo|来酷|AIO|ThinkPad|ThinkBook|ThinkPlus|thinkplus|BOX|异能者|moto/i;
-        function lxSubBrand(name) {
+        function lxSubBrand(name, desc) {
           const m = String(name || "").match(LX_SUBBRAND_RE);
-          if (!m) return "";
-          const s = m[0];
-          if (/legion/i.test(s) || s === "拯救者") return "拯救者";
-          if (/lecoo|来酷/i.test(s)) return "来酷";
-          if (/thinkplus/i.test(s)) return "ThinkPlus";
-          if (/geekpro/i.test(s)) return "GeeKPro";
-          return s;
+          if (m) {
+            const s = m[0];
+            if (/legion/i.test(s) || s === "拯救者") return "拯救者";
+            if (/lecoo|来酷/i.test(s)) return "来酷";
+            if (/thinkplus/i.test(s)) return "ThinkPlus";
+            if (/geekpro/i.test(s)) return "GeeKPro";
+            return s;
+          }
+          // 无子品牌系列词，但是联想自营品（名/描述含 Lenovo/联想）→ 标 Lenovo 角标；三方品(戴森/微果/礼品卡)仍留空
+          if (/\bLenovo\b|联想/i.test(`${name || ""} ${desc || ""}`)) return "Lenovo";
+          return "";
         }
         // 清洗成干净 SPU 名：去营销词(【xx同款】【定制款】企业购)、品牌(联想/Lenovo)、子品牌(已用角标展示)
         function cleanSpuName(name) {
@@ -2168,7 +2172,7 @@ if (!window.__lxMemberFetched) {
         };
 
         function lxProductMiniCard(product) {
-          const _sub = lxSubBrand(product.name);
+          const _sub = lxSubBrand(product.name, product.description);
           const _badge = _sub ? `<span class="lx-cat-badge">${esc(_sub)}</span>` : "";
           const _clean = cleanSpuName(product.name) || "联想商品";
           if (product.official) {
