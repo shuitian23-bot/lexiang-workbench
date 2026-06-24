@@ -1815,3 +1815,36 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   -webkit-backdrop-filter:blur(8px) saturate(1.24) contrast(1.02)!important;
   backdrop-filter:blur(8px) saturate(1.24) contrast(1.02)!important;
 }
+
+/* Restore assistant default glass background, no product-image substrate. */
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .snapshot-hover-pop,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .snapshot-hover-pop,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .snapshot-hover-pop{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot{
+  z-index:16!important;
+  opacity:.72!important;
+  filter:blur(3px) saturate(1.04) contrast(.99)!important;
+  transform:scale(1.01)!important;
+  overflow:hidden!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > :not(.snapshot-hover-pop),
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > :not(.snapshot-hover-pop),
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > :not(.snapshot-hover-pop){
+  opacity:1!important;
+  visibility:visible!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  background:
+    radial-gradient(120% 72% at 16% 0%,rgba(255,255,255,.26),rgba(255,255,255,.08) 62%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.18),rgba(246,241,248,.11) 50%,rgba(255,255,255,.06))!important;
+  -webkit-backdrop-filter:blur(8px) saturate(1.22) contrast(1.02)!important;
+  backdrop-filter:blur(8px) saturate(1.22) contrast(1.02)!important;
+}
