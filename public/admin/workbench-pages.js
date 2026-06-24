@@ -710,8 +710,46 @@ function getSkillHubItem(name) {
   return PM_SKILL_HUB_ITEMS.find(item => item.name === name);
 }
 
+let skillHubDetailLastFocus = null;
+
+function getSkillHubFocusableElements(root) {
+  if (!root) return [];
+  return Array.from(root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+    .filter(el => el.offsetParent !== null);
+}
+
+function trapSkillHubDetailFocus(event) {
+  const overlay = document.getElementById('skill-hub-detail-modal');
+  if (!overlay?.classList.contains('open')) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeSkillHubDetail();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const focusables = getSkillHubFocusableElements(overlay);
+  if (!focusables.length) {
+    event.preventDefault();
+    return;
+  }
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 function closeSkillHubDetail() {
   document.getElementById('skill-hub-detail-modal')?.classList.remove('open');
+  document.removeEventListener('keydown', trapSkillHubDetailFocus, true);
+  if (skillHubDetailLastFocus && typeof skillHubDetailLastFocus.focus === 'function') {
+    skillHubDetailLastFocus.focus();
+  }
+  skillHubDetailLastFocus = null;
 }
 
 function closeSkillHubConfirm() {
@@ -825,6 +863,7 @@ function openSkillHubDetail(name) {
     skillHubToast(`${name}：未找到 Skill 信息`);
     return;
   }
+  skillHubDetailLastFocus = document.activeElement;
   let overlay = document.getElementById('skill-hub-detail-modal');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -857,7 +896,7 @@ function openSkillHubDetail(name) {
     ? item.history.map(row => `<tr><td>${row.version}</td><td>${row.status}</td><td>${row.operator}</td><td>${row.time}</td><td>${row.note}</td></tr>`).join('')
     : `<tr><td colspan="5" class="skill-hub-detail-empty">暂无历史记录</td></tr>`;
   overlay.innerHTML = `
-    <div class="skill-hub-detail-panel" role="dialog" aria-label="Skill 详情">
+    <div class="skill-hub-detail-panel" role="dialog" aria-modal="true" aria-label="Skill 详情">
       <div class="skill-hub-detail-head">
         <h3>Skill 详情</h3>
         <button type="button" class="skill-hub-detail-close" onclick="closeSkillHubDetail()" aria-label="关闭">×</button>
@@ -917,6 +956,9 @@ function openSkillHubDetail(name) {
       </div>
     </div>`;
   overlay.classList.add('open');
+  document.removeEventListener('keydown', trapSkillHubDetailFocus, true);
+  document.addEventListener('keydown', trapSkillHubDetailFocus, true);
+  requestAnimationFrame(() => overlay.querySelector('.skill-hub-detail-close')?.focus());
 }
 
 function openSkillHubEvaluation(name) {
@@ -1133,7 +1175,23 @@ function filterSkillHub() {
     const matchKeyword = !keyword || row.textContent.toLowerCase().includes(keyword);
     const matchStatus = status === 'all' || row.dataset.status === status;
     const matchCategory = category === 'all' || row.dataset.category === category;
-    row.style.display = matchKeyword && matchStatus && matchCategory ? '' : 'none';
+    const visible = matchKeyword && matchStatus && matchCategory;
+    row.style.display = visible ? '' : 'none';
+    row.querySelectorAll('button, a, input, select, textarea').forEach(control => {
+      if (visible) {
+        control.removeAttribute('tabindex');
+        if (control.dataset.filteredDisabled === 'true') {
+          control.disabled = false;
+          delete control.dataset.filteredDisabled;
+        }
+      } else {
+        control.setAttribute('tabindex', '-1');
+        if ('disabled' in control && !control.disabled) {
+          control.disabled = true;
+          control.dataset.filteredDisabled = 'true';
+        }
+      }
+    });
   });
 }
 
@@ -1308,12 +1366,32 @@ function renderAgentSkillsManager(options = {}) {
         </div>
       </div>
 
-      <div class="skill-hub-summary">
-        <div><strong>${PM_SKILL_HUB_ITEMS.length}</strong><span>全部 Skill</span></div>
-        <div><strong>${ownCount}</strong><span>我的提交</span></div>
-        <div><strong>${reviewCount}</strong><span>待审批</span></div>
-        <div><strong>${publishedCount}</strong><span>已发布</span></div>
-        <div><strong>${disabledCount}</strong><span>已禁用</span></div>
+      <div class="skill-hub-summary" aria-label="Skill Hub 重点指标">
+        <div class="skill-hub-stat stat--primary">
+          <div class="skill-hub-stat-head"><span>全部 Skill</span><i>ALL</i></div>
+          <strong>${PM_SKILL_HUB_ITEMS.length}</strong>
+          <em>覆盖 ${new Set(PM_SKILL_HUB_ITEMS.map(item => item.category)).size} 个业务分类</em>
+        </div>
+        <div class="skill-hub-stat stat--info">
+          <div class="skill-hub-stat-head"><span>我的提交</span><i>ME</i></div>
+          <strong>${ownCount}</strong>
+          <em>${role === 'admin' ? '管理员视角当前账号' : '仅统计当前 PM 账号'}</em>
+        </div>
+        <div class="skill-hub-stat stat--warning">
+          <div class="skill-hub-stat-head"><span>待审批</span><i>TODO</i></div>
+          <strong>${reviewCount}</strong>
+          <em>需管理员审核处理</em>
+        </div>
+        <div class="skill-hub-stat stat--success">
+          <div class="skill-hub-stat-head"><span>已发布</span><i>LIVE</i></div>
+          <strong>${publishedCount}</strong>
+          <em>线上可被工作台调用</em>
+        </div>
+        <div class="skill-hub-stat stat--muted">
+          <div class="skill-hub-stat-head"><span>已禁用</span><i>OFF</i></div>
+          <strong>${disabledCount}</strong>
+          <em>暂停参与任务匹配</em>
+        </div>
       </div>
 
       <div class="skill-hub-toolbar">
@@ -2839,16 +2917,6 @@ const PAGE_RENDERERS = {
           <div class="gpnl-title">联想域名 AI 引用 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个联想站点</span></div>
           <div class="geo-scroll-wrap" style="max-height:380px;overflow-y:auto">
             <div id="geo-link-top50"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 联想官网引用 URL Top10 -->
-      <div class="geo-row" style="margin-bottom:12px">
-        <div class="geo-panel" style="flex:1">
-          <div class="gpnl-title">联想官网引用 URL Top10 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 2026-05-01 起累计，统计至查询日前一天</span></div>
-          <div class="geo-scroll-wrap" style="max-height:380px;overflow-y:auto">
-            <div id="geo-source-top10"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
           </div>
         </div>
       </div>

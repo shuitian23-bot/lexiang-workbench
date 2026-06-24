@@ -6,11 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乐享 AI 工作台</title>
 <!-- v2024-04-16-cert-view-button -->
-<link rel="stylesheet" href="workbench.css?v=20260623-skill-draft-tree2">
+<link rel="stylesheet" href="workbench.css?v=20260624-ui0624">
 <link rel="stylesheet" href="workbench-original-lock.css?v=20260611-original-lock1">
 <link rel="stylesheet" href="workbench-prd-modules.css?v=20260605-prdrestore1">
-<link rel="stylesheet" href="workbench-ui-polish.css?v=20260617-style0616-1">
-<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260623-ui-skill1">
+<link rel="stylesheet" href="workbench-ui-polish.css?v=20260624-ui0624">
+<link rel="stylesheet" href="workbench-preview-overrides.css?v=20260624-ui0624">
 <script>
   window.LEAIBOT_PREVIEW_MODE = /[?&](demo|preview)=1\b/.test(location.search) || location.protocol === 'file:';
   if (window.LEAIBOT_PREVIEW_MODE) {
@@ -52,7 +52,7 @@
     </div>
     <img class="logo-icon-img" src="assets/logo-icon.png" alt="联想乐享">
     <button class="sidebar-collapse-btn" onclick="event.stopPropagation(); toggleSidebarCollapse()" title="收起侧栏" aria-label="收起侧栏">
-      <span class="sidebar-collapse-glyph" aria-hidden="true">&rsaquo;</span>
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="3.5" width="14.4" height="13" rx="2.4"/><line x1="8" y1="3.5" x2="8" y2="16.5"/><path d="M13 8 10.9 10 13 12"/></svg>
     </button>
   </div>
   <div class="sidebar-nav" id="sidebar-nav">
@@ -356,6 +356,7 @@ async function doLogin() {
     renderSidebar();
     restoreSidebarState();
     restoreAIState();
+    applyResponsiveSidebarCollapse();
     switchPage(STATE.currentPage);
   } catch (e) {
     showLoginError('网络错误，请重试');
@@ -433,8 +434,32 @@ async function loadUserContext() {
 }
 
 // ===== SIDEBAR COLLAPSE =====
+const SIDEBAR_AUTO_COLLAPSE_WIDTH = 1360;
+const SIDEBAR_AUTO_EXPAND_WIDTH = 1700;
+const SIDEBAR_CONTENT_SLOT_TOLERANCE = 2;
+let sidebarAutoCollapsedForViewport = false;
+let sidebarResponsiveLastWidth = window.innerWidth;
+
+function getResponsiveSidebarMetrics() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.querySelector('.main');
+  const styles = getComputedStyle(document.documentElement);
+  const contentMax = parseFloat(styles.getPropertyValue('--content-max')) || 1440;
+  const expandedSidebarWidth = parseFloat(styles.getPropertyValue('--sidebar-width')) || 168;
+  const collapsedSidebarWidth = 58;
+  const contentMinWidth = Math.max(1280, contentMax - 80);
+  return {
+    sidebar,
+    main,
+    contentSlotWidth: main?.getBoundingClientRect().width || 0,
+    contentMinWidth,
+    sidebarDelta: Math.max(0, expandedSidebarWidth - collapsedSidebarWidth)
+  };
+}
+
 function toggleSidebarCollapse() {
   const sb = document.getElementById('sidebar');
+  sidebarAutoCollapsedForViewport = false;
   _sidebarPeek = false; // 手动操作，取消peek模式
   clearTimeout(_sidebarPeekTimer);
   sb.classList.toggle('collapsed');
@@ -442,11 +467,57 @@ function toggleSidebarCollapse() {
   updateSidebarCollapseControl();
 }
 function restoreSidebarState() {
-  if (localStorage.getItem('sidebar_collapsed') === '1') {
-    document.getElementById('sidebar').classList.add('collapsed');
-  }
+  const sb = document.getElementById('sidebar');
+  if (!sb) return;
+  sb.classList.remove('collapsed');
+  localStorage.setItem('sidebar_collapsed', '0');
+  sidebarAutoCollapsedForViewport = false;
   updateSidebarCollapseControl();
 }
+
+function applyResponsiveSidebarCollapse(options = {}) {
+  const { sidebar: sb, main, contentSlotWidth, contentMinWidth, sidebarDelta } = getResponsiveSidebarMetrics();
+  if (!sb || !main || sb.style.display === 'none') return;
+  const allowCollapse = options.allowCollapse === true;
+  const allowExpand = options.allowExpand !== false;
+  const userCollapsed = localStorage.getItem('sidebar_collapsed') === '1';
+  const aiAutoCollapsed = typeof aiPanelAutoCollapsedSidebar !== 'undefined' && aiPanelAutoCollapsedSidebar;
+  const collapsed = sb.classList.contains('collapsed');
+  const expandedContentSlotWidth = collapsed ? contentSlotWidth - sidebarDelta : contentSlotWidth;
+  const shouldCollapse = contentSlotWidth < contentMinWidth - SIDEBAR_CONTENT_SLOT_TOLERANCE || window.innerWidth <= SIDEBAR_AUTO_COLLAPSE_WIDTH;
+  if (allowCollapse && !collapsed && shouldCollapse) {
+    if (!sb.classList.contains('collapsed')) {
+      sb.classList.add('collapsed');
+      sidebarAutoCollapsedForViewport = true;
+      updateSidebarCollapseControl();
+    }
+    return;
+  }
+  if (
+    allowExpand &&
+    collapsed &&
+    window.innerWidth >= SIDEBAR_AUTO_EXPAND_WIDTH &&
+    sidebarAutoCollapsedForViewport &&
+    !userCollapsed &&
+    !aiAutoCollapsed
+  ) {
+    sb.classList.remove('collapsed');
+    sidebarAutoCollapsedForViewport = false;
+    updateSidebarCollapseControl();
+  }
+}
+
+window.addEventListener('resize', () => {
+  const nextWidth = window.innerWidth;
+  const shrinking = nextWidth < sidebarResponsiveLastWidth;
+  const growing = nextWidth > sidebarResponsiveLastWidth;
+  sidebarResponsiveLastWidth = nextWidth;
+  window.clearTimeout(window.__sidebarResponsiveTimer);
+  window.__sidebarResponsiveTimer = window.setTimeout(() => {
+    applyResponsiveSidebarCollapse({ allowCollapse: shrinking, allowExpand: growing });
+  }, 80);
+});
+
 function updateSidebarCollapseControl() {
   const sb = document.getElementById('sidebar');
   const btn = document.querySelector('.sidebar-collapse-btn');
@@ -454,8 +525,6 @@ function updateSidebarCollapseControl() {
   const collapsed = sb.classList.contains('collapsed');
   btn.classList.toggle('is-collapsed', collapsed);
   btn.classList.toggle('is-expanded', !collapsed);
-  const glyph = btn.querySelector('.sidebar-collapse-glyph');
-  if (glyph) glyph.innerHTML = collapsed ? '&rsaquo;' : '&lsaquo;';
   btn.title = collapsed ? '展开侧栏' : '收起侧栏';
   btn.setAttribute('aria-label', collapsed ? '展开侧栏' : '收起侧栏');
   if (!window.__sidebarCollapseObserverBound) {
@@ -578,14 +647,14 @@ function switchPage(pageId) {
   // Render page
   renderPage(pageId);
   workspaceRenderTabs();
-  if ((pageId === 'agent.skills' || pageId === 'agent.skillCreate') && typeof toggleAI === 'function' && STATE.aiOpen) {
-    toggleAI(false);
-  }
   if (pageId === 'portal.home' && typeof toggleAI === 'function') {
     toggleAI(true);
   }
   if (typeof aiRefreshPageAssistant === 'function') {
     aiRefreshPageAssistant();
+  }
+  if (typeof applyResponsiveSidebarCollapse === 'function') {
+    requestAnimationFrame(applyResponsiveSidebarCollapse);
   }
 
   // Auto-load data for specific pages
@@ -1017,13 +1086,11 @@ function goPortalHome() {
 
 function openSkillCreatePage() {
   closeUserMenu();
-  if (typeof toggleAI === 'function' && STATE.aiOpen) toggleAI(false);
   switchPage('agent.skillCreate');
 }
 
 function openSkillManagerFromUserMenu() {
   closeUserMenu();
-  if (typeof toggleAI === 'function' && STATE.aiOpen) toggleAI(false);
   switchPage('agent.skills');
 }
 
@@ -1061,9 +1128,9 @@ function openPocAdjustmentLog() {
     },
     {
       time: '2026-06-23 14:22',
-      title: '0623 UI Skill 规范归一',
+      title: '0624 UI Skill 规范归一',
       scope: '右侧 Agent / 底部输入区 / 快捷 chips / 样式覆盖层',
-      detail: '按 portal-workbench-ui-0623 样式规范收敛右侧 Agent 底部输入区：chips 始终保持横向 pill 与左右箭头，不退化为下拉框；输入框默认 36px、最多 3 行内滚动；发送按钮统一为 32px 单图标控件。',
+      detail: '按 portal-workbench-ui-0624 样式规范收敛右侧 Agent 底部输入区：chips 始终保持横向 pill 与左右箭头，不退化为下拉框；输入框默认 36px、最多 3 行内滚动；发送按钮统一为 32px 单图标控件。',
       status: '已合并正式'
     },
     {
@@ -1292,7 +1359,7 @@ function switchBehaviorTab(tab, el) {
 <script src="workbench-lead.js?v=20260618-wangxt8-lead1"></script>
 <script src="workbench-prd-modules.js?v=20260618-lead0615style1"></script>
 <script src="workbench-geo.js?v=20260617-report-openall1"></script>
-	<script src="workbench-ai.js?v=20260623-ui-skill1"></script>
+	<script src="workbench-ai.js?v=20260624-ui0624"></script>
 <script src="workbench-data.js?v=20260618-topbar-clean1"></script>
 <script src="workbench-employee.js?v=20260605-design-global4"></script>
 <script src="workbench-ops.js?v=20260611-component-fix1"></script>
@@ -1317,6 +1384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebar();
     restoreSidebarState();
     restoreAIState();
+    applyResponsiveSidebarCollapse();
     if (typeof aiInitConversationStore === 'function') aiInitConversationStore();
     if (typeof _aiInitDragDrop === 'function') _aiInitDragDrop();
     switchPage(STATE.currentPage);

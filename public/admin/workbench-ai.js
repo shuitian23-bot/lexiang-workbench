@@ -63,6 +63,9 @@ function toggleAI(forceState) {
   btn.classList.toggle('active', STATE.aiOpen);
   btn.style.display = STATE.aiOpen ? 'none' : '';
   localStorage.setItem('ai_panel_open', STATE.aiOpen ? '1' : '0');
+  if (typeof applyResponsiveSidebarCollapse === 'function') {
+    applyResponsiveSidebarCollapse();
+  }
 }
 function restoreAIState() {
   const saved = localStorage.getItem('ai_panel_open');
@@ -1417,20 +1420,28 @@ let _aiSending = false;
 function _aiAutoResizeInput() {
   const input = document.getElementById('ai-input');
   if (!input) return;
+  const styles = getComputedStyle(input);
+  const lineHeight = parseFloat(styles.lineHeight) || 19.5;
+  const paddingTop = parseFloat(styles.paddingTop) || 0;
+  const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+  const borderTop = parseFloat(styles.borderTopWidth) || 0;
+  const borderBottom = parseFloat(styles.borderBottomWidth) || 0;
+  const minHeight = parseFloat(styles.minHeight) || 36;
+  const maxHeight = Math.ceil(lineHeight * 3 + paddingTop + paddingBottom + borderTop + borderBottom);
+
   if (!input.value) {
-    input.style.height = '36px';
+    input.style.height = minHeight + 'px';
     input.style.overflowY = 'hidden';
+    input.classList.remove('is-scrollable');
     return;
   }
-  const maxHeight = 76;
-  const styles = getComputedStyle(input);
-  const lineHeight = parseFloat(styles.lineHeight) || 19;
-  const verticalPadding = 16;
-  const lineCount = input.value.split('\n').length;
-  const nextHeight = Math.min(maxHeight, Math.max(36, Math.ceil(verticalPadding + lineHeight * lineCount)));
+
+  input.style.height = 'auto';
+  const nextHeight = Math.min(maxHeight, Math.max(minHeight, input.scrollHeight + borderTop + borderBottom));
   input.style.height = nextHeight + 'px';
-  input.style.overflowY = nextHeight >= maxHeight ? 'auto' : 'hidden';
-  input.classList.toggle('is-scrollable', nextHeight >= maxHeight);
+  const hasOverflow = input.scrollHeight + borderTop + borderBottom > maxHeight;
+  input.style.overflowY = hasOverflow ? 'auto' : 'hidden';
+  input.classList.toggle('is-scrollable', hasOverflow);
 }
 
 function _aiCanSend() {
