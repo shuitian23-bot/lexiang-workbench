@@ -430,77 +430,6 @@ if (!window.__lxMemberFetched) {
             </div></div>`;
         }
 
-        function buildAssistantGlassSnapshot(panel) {
-          let snapshot = panel.querySelector(":scope > .assistant-glass-snapshot");
-          if (!snapshot) {
-            snapshot = document.createElement("div");
-            snapshot.className = "assistant-glass-snapshot";
-            snapshot.setAttribute("aria-hidden", "true");
-          }
-          snapshot.replaceChildren();
-          const cloneIntoSnapshot = (node, extraClass) => {
-            if (!node) return;
-            const copy = node.cloneNode(true);
-            if (extraClass) copy.classList.add(...String(extraClass).split(/\s+/).filter(Boolean));
-            copy.querySelectorAll("button,a,input,textarea,select").forEach((el) => {
-              el.setAttribute("tabindex", "-1");
-              el.setAttribute("aria-hidden", "true");
-            });
-            snapshot.appendChild(copy);
-          };
-          cloneIntoSnapshot(panel.querySelector(":scope > .tool-row"));
-          cloneIntoSnapshot(panel.querySelector(":scope > .assistant-toggle"));
-          const states = Array.from(panel.querySelectorAll(":scope > .panel-state"));
-          const defaultState = panel.querySelector(":scope > .default-state") || panel.querySelector(":scope > .panel-state.default-state");
-          const visibleState = states.find((el) => {
-            const cs = window.getComputedStyle(el);
-            return cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > 0;
-          });
-          cloneIntoSnapshot(defaultState || visibleState || states[0], "snapshot-state glass-default-source");
-          cloneIntoSnapshot(panel.querySelector(":scope > .page-dots"));
-          return snapshot;
-        }
-
-        function setAssistantGlass(active) {
-          const panel = document.querySelector(".assistant-panel");
-          if (!panel) return;
-          let veil = panel.querySelector(":scope > .assistant-glass-veil");
-          let snapshot = panel.querySelector(":scope > .assistant-glass-snapshot");
-          if (active) {
-            snapshot = buildAssistantGlassSnapshot(panel);
-            const bottom = panel.querySelector(":scope > .assistant-bottom");
-            if (!snapshot.parentNode) {
-              if (bottom) panel.insertBefore(snapshot, bottom);
-              else panel.appendChild(snapshot);
-            }
-            if (!veil) {
-              veil = document.createElement("div");
-              veil.className = "assistant-glass-veil";
-              veil.setAttribute("aria-hidden", "true");
-            }
-            if (!veil.parentNode) {
-              if (bottom) panel.insertBefore(veil, bottom);
-              else panel.appendChild(veil);
-            }
-            veil.classList.remove("is-off");
-            requestAnimationFrame(() => veil.classList.add("is-on"));
-            panel.classList.add("assistant-glass-active");
-            return;
-          }
-          panel.classList.remove("assistant-glass-active");
-          panel.classList.remove("assistant-hover-active");
-          if (veil) {
-            veil.classList.remove("is-on");
-            veil.classList.add("is-off");
-          }
-          window.setTimeout(() => {
-            if (!panel.classList.contains("assistant-glass-active")) {
-              panel.querySelector(":scope > .assistant-glass-veil")?.remove();
-              panel.querySelector(":scope > .assistant-glass-snapshot")?.remove();
-            }
-          }, 260);
-        }
-
         async function showHoverPrompts(product) {
           const bottom = $(".assistant-bottom");
           const list = $("[data-hover-prompt-list]");
@@ -513,7 +442,6 @@ if (!window.__lxMemberFetched) {
           }
           bottom.classList.add("has-hover-prompts");
           document.querySelector(".assistant-panel")?.classList.add("assistant-hover-active");
-          setAssistantGlass(true);
           clearHoverPromptAutoCloseTimer();
           // 异步补一条 AI 促单钩子（✨含卖点），缓存按 sku
           if (!key) return;
@@ -546,7 +474,6 @@ if (!window.__lxMemberFetched) {
           if (!pop || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
             bottom.classList.remove("has-hover-prompts");
             document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active");
-            setAssistantGlass(false);
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
             return;
@@ -555,7 +482,6 @@ if (!window.__lxMemberFetched) {
           window.setTimeout(() => {
             bottom.classList.remove("has-hover-prompts");
             document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active");
-            setAssistantGlass(false);
             state.hoverPromptVisibleSku = "";
             list.innerHTML = "";
           }, 240);
