@@ -6,7 +6,7 @@ const routes = [
   { path: '/dashboard/overview', component: DashboardOverview },
   // 占位路由（后续转页时补充）
   { path: '/dashboard/geo', component: () => import('../views/Placeholder.vue') },
-  { path: '/employee/overview', component: () => import('../views/Placeholder.vue') },
+  { path: '/employee/overview', component: () => import('../views/EmployeeOverview.vue') },
   { path: '/lead/dashboard', component: () => import('../views/Placeholder.vue') },
   { path: '/search/categories', component: () => import('../views/Placeholder.vue') },
   { path: '/risk/overview', component: () => import('../views/Placeholder.vue') },
