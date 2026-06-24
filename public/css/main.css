@@ -10749,3 +10749,59 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   filter:none!important;
   opacity:1!important;
 }
+
+/* Hard fix: the normal split-panel top area is intentionally blank, so expose a cloned,
+   blurred assistant state as the visible content under the liquid glass. */
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot{
+  z-index:14!important;
+  opacity:.46!important;
+  mix-blend-mode:multiply!important;
+  filter:blur(4.5px) saturate(1.08) contrast(1.05)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil{
+  z-index:13!important;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.22),rgba(248,242,250,.13) 48%,rgba(255,255,255,.06)),
+    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.30),rgba(255,255,255,.07) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.28) contrast(1.01)!important;
+  backdrop-filter:blur(10px) saturate(1.28) contrast(1.01)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .snapshot-state.default-state,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .snapshot-state.default-state{
+  display:block!important;
+  min-height:100%!important;
+  padding-top:clamp(76px,9.6vh,118px)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot .fullscreen-welcome,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot .fullscreen-welcome{
+  display:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot .headline,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot .headline{
+  display:block!important;
+  margin:0 0 clamp(20px,2.1vw,32px) clamp(12px,1.55vw,30px)!important;
+  color:#1a1320!important;
+  opacity:1!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot .quick-list,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot .quick-list{
+  display:grid!important;
+  gap:clamp(10px,1vh,14px)!important;
+  width:min(468px,calc(100% - clamp(20px,2.85vw,56px)))!important;
+  margin-left:clamp(12px,1.5vw,29px)!important;
+  opacity:1!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot .quick-item,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot .quick-item{
+  display:flex!important;
+  background:rgba(255,255,255,.72)!important;
+  border-color:rgba(91,20,82,.18)!important;
+  color:#2a2030!important;
+  box-shadow:0 8px 22px rgba(91,20,82,.08)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom{
+  z-index:120!important;
+}
