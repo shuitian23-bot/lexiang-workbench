@@ -10808,6 +10808,12 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   z-index:120!important;
 }
 
+/* Use external mall action icons in the fullscreen header. */
+.lxfd-ic > .icon{
+  width:20px;
+  height:20px;
+}
+
 /* Strict v2 compare-wall skin override, scoped to recommendation comparison only. */
 .lx-cmp-skin[data-v="2"]{
   --brand-red:#e42b20!important;
@@ -11096,11 +11102,12 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .assistant-panel.assistant-hover-active > .assistant-glass-veil,
 .assistant-panel.assistant-glass-active > .assistant-glass-veil{
   z-index:12!important;
+  /* 半透明毛玻璃遮罩：淡紫白底，背后内容仍隐约可见但明显虚化（不要求显示具体内容） */
   background:
-    linear-gradient(145deg,rgba(255,255,255,.24),rgba(248,242,250,.14) 48%,rgba(255,255,255,.08)),
-    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.34),rgba(255,255,255,.08) 68%,transparent 100%)!important;
-  -webkit-backdrop-filter:blur(12px) saturate(1.32) contrast(1.02)!important;
-  backdrop-filter:blur(12px) saturate(1.32) contrast(1.02)!important;
+    linear-gradient(145deg,rgba(250,245,252,.62),rgba(245,238,249,.5) 48%,rgba(250,246,253,.44)),
+    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.5),rgba(248,243,251,.28) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.4) contrast(1.02)!important;
+  backdrop-filter:blur(16px) saturate(1.4) contrast(1.02)!important;
 }
 .assistant-panel.assistant-hover-active > .assistant-glass-snapshot > :not(.snapshot-hover-pop),
 .assistant-panel.assistant-glass-active > .assistant-glass-snapshot > :not(.snapshot-hover-pop){
@@ -11116,14 +11123,24 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   display:block!important;
   visibility:visible!important;
   opacity:.42!important;
+  width:auto!important;
+  min-height:260px!important;
+  max-height:none!important;
   transform:scale(1.04)!important;
   transform-origin:center top!important;
   filter:blur(9px) saturate(1.08) contrast(1.04)!important;
   pointer-events:none!important;
-}
-.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .snapshot-hover-pop .box,
-.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .snapshot-hover-pop .box{
+  overflow:hidden!important;
+  border-radius:16px!important;
+  background:linear-gradient(165deg,#fff,#fbf6fc)!important;
+  border:1px solid rgba(235,222,239,.8)!important;
   box-shadow:0 18px 46px rgba(91,20,82,.18)!important;
+  animation:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .snapshot-hover-pop *,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .snapshot-hover-pop *{
+  animation:none!important;
+  pointer-events:none!important;
 }
 .assistant-panel.assistant-hover-active > .assistant-bottom,
 .assistant-panel.assistant-glass-active > .assistant-bottom{
