@@ -10549,8 +10549,16 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   .lx-cmp-skin[data-v="2"]{min-width:760px!important;}
 }
 
-/* hover 弹窗遮罩：backdrop-filter 虚化面板背后真实内容，弹窗与底部输入区浮于其上 */
-.assistant-panel.assistant-hover-active { position: relative; isolation: isolate; }
+/* hover 弹窗：背后真实内容（欢迎语/快捷问题/对话）自身轻模糊+半透，弹窗清晰浮于其上。
+   不用 ::before backdrop 遮罩——它会把深色文字盖洗成纯白看不到。改让内容自己 blur，模糊但可见。 */
+.assistant-panel.assistant-hover-active { position: relative; }
+.assistant-panel.assistant-hover-active > .panel-state {
+  filter: blur(3px);
+  opacity: .5;
+  transition: filter .22s ease, opacity .22s ease;
+  pointer-events: none;
+}
+/* 极淡一层提亮，让弹窗与背景层次更清，但不盖死内容 */
 .assistant-panel.assistant-hover-active::before {
   content: "";
   position: absolute;
@@ -10558,10 +10566,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   z-index: 20;
   pointer-events: none;
   border-radius: inherit;
-  /* 底色极淡（白底太浓会把浅色内容洗成纯白看不到）；主要靠 backdrop-filter 模糊真实背景，内容模糊但透得出来 */
-  background: linear-gradient(160deg, rgba(250,246,253,.16), rgba(245,238,249,.1));
-  -webkit-backdrop-filter: blur(5px) saturate(1.05);
-  backdrop-filter: blur(5px) saturate(1.05);
+  background: linear-gradient(160deg, rgba(250,246,253,.28), rgba(245,238,249,.18));
   transition: opacity .22s ease;
 }
 /* 弹窗 + 底部输入区抬到遮罩之上，清晰可见可点击 */
