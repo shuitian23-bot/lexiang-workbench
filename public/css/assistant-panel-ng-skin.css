@@ -1638,3 +1638,114 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   filter:none!important;
   pointer-events:auto!important;
 }
+
+/* Liquid-glass assistant overlay correction, cache 2026062413.
+   Use the cloned snapshot as the blurred substrate, keep hover card and composer above it. */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-hover-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
+.assistant-panel.assistant-glass-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot){
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:16!important;
+  visibility:visible!important;
+  opacity:.82!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  overflow:hidden!important;
+  filter:blur(2.8px) saturate(1.08) contrast(.98)!important;
+  transform:scale(1.01)!important;
+  transform-origin:center!important;
+}
+.assistant-panel > .assistant-glass-snapshot::after{
+  content:!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:
+    radial-gradient(120% 72% at 16% 0%,rgba(255,255,255,.10),rgba(255,255,255,.025) 62%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.035),rgba(246,241,248,.018))!important;
+}
+.assistant-panel > .assistant-glass-snapshot .tool-row{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.assistant-panel > .assistant-glass-snapshot .assistant-toggle,
+.assistant-panel > .assistant-glass-snapshot .page-dots{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.assistant-panel > .assistant-glass-snapshot .panel-state,
+.assistant-panel > .assistant-glass-snapshot .default-state,
+.assistant-panel > .assistant-glass-snapshot .chat-state,
+.assistant-panel > .assistant-glass-snapshot .snapshot-state{
+  display:block!important;
+  position:relative!important;
+  visibility:visible!important;
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:24!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:
+    radial-gradient(120% 74% at 18% 0%,rgba(255,255,255,.13),rgba(255,255,255,.035) 58%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.075),rgba(246,241,248,.045) 50%,rgba(255,255,255,.026))!important;
+  -webkit-backdrop-filter:blur(4.5px) saturate(1.2) contrast(1.02)!important;
+  backdrop-filter:blur(4.5px) saturate(1.2) contrast(1.02)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.32), inset 0 -1px 0 rgba(91,20,82,.035)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil::before{
+  opacity:.16!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil::after{
+  opacity:.14!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  position:relative!important;
+  z-index:320!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  pointer-events:auto!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom .hover-prompt-panel,
+.assistant-panel.assistant-glass-active > .assistant-bottom .hover-prompt-panel,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom .hover-prompt-panel,
+.assistant-panel.assistant-hover-active > .assistant-bottom .composer,
+.assistant-panel.assistant-glass-active > .assistant-bottom .composer,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom .composer{
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  pointer-events:auto!important;
+}
