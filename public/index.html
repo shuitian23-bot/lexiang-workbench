@@ -874,12 +874,13 @@
 
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd") || location.pathname.replace(/\/+$|^$/, "/") === "/";</script>
     <script src="/js/portal.js?v=202606183100"></script>
-    <script src="/js/app.js?v=2026062417"></script>
+    <script src="/js/app.js?v=2026062422"></script>
     <script>
       (function(){
         try {
           if (!window.__LXFD_FORCE && !new URLSearchParams(location.search).has("lxfd")) return;
           var force = function(){
+            if (!window.__LXFD_FORCE && !new URLSearchParams(location.search).has("lxfd")) return;
             document.body.classList.add("assistant-fullscreen", "lx-auto-fs");
             document.body.dataset.state = "chat";
             var stage = document.getElementById("lxfdStage");

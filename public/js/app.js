@@ -1159,6 +1159,36 @@ if (!window.__lxMemberFetched) {
           lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
         }
 
+        function lxOpenCommerceEntry(kind) {
+          const clearFullscreenState = () => {
+            document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
+            state.autoFs = false;
+          };
+          const prepareSplit = () => {
+            document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+            window.__LXFD_FORCE = false;
+            document.body.classList.add("lx-home-split");
+            document.body.dataset.page = "personal";
+            document.body.dataset.state = "chat";
+            routeTo("personal", true);
+          };
+          const run = () => {
+            prepareSplit();
+            clearFullscreenState();
+            if (kind === "orders") openOrders();
+            else openCart();
+            requestAnimationFrame(clearFullscreenState);
+            setTimeout(clearFullscreenState, 780);
+            setTimeout(clearFullscreenState, 2100);
+          };
+          const isFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
+          if (isFullscreen && typeof window.__lxfdExitWithReveal === "function") {
+            window.__lxfdExitWithReveal(run);
+            return;
+          }
+          run();
+        }
+
         function openOrderDetail(orderId) {
           const item = (state.orders || []).find((o) => o.orderId === orderId);
           if (!item) return toast("找不到该订单");
@@ -4064,8 +4094,8 @@ if (!window.__lxMemberFetched) {
             switch_site: () => routeTo(siteMap[target] || "personal"),
             open_member: () => openMemberCenter(),
             open_coupon: () => openCouponCenter(),
-            open_orders: () => openOrders(),
-            open_cart: () => openCart(),
+            open_orders: () => lxOpenCommerceEntry("orders"),
+            open_cart: () => lxOpenCommerceEntry("cart"),
             open_stores: () => openStoresPanel(),
             open_edu_zone: () => openEduZone(),
             open_compare: () => openCompare(),
@@ -5586,9 +5616,33 @@ if (!window.__lxMemberFetched) {
               reviewTrack.scrollBy({ left: 320, behavior: "smooth" });
             }
 
+            const lxfdCommerce = event.target.closest(".lxfd-actions .lxfd-ic");
+            const lxfdCommerceKind = (() => {
+              if (!lxfdCommerce) return "";
+              if (lxfdCommerce.dataset.lxfdOpen) return lxfdCommerce.dataset.lxfdOpen;
+              const label = lxfdCommerce.getAttribute("aria-label") || "";
+              if (label.includes("购物车")) return "cart";
+              if (label.includes("订单")) return "orders";
+              const buttons = [...lxfdCommerce.closest(".lxfd-actions")?.querySelectorAll(".lxfd-ic") || []];
+              const index = buttons.indexOf(lxfdCommerce);
+              if (index === 1) return "cart";
+              if (index === 2) return "orders";
+              return "";
+            })();
+            if (lxfdCommerceKind === "cart") {
+              event.preventDefault();
+              lxOpenCommerceEntry("cart");
+              return;
+            }
+            if (lxfdCommerceKind === "orders") {
+              event.preventDefault();
+              lxOpenCommerceEntry("orders");
+              return;
+            }
+
             const utility = event.target.closest(".utility-btn");
-            if (utility?.getAttribute("aria-label") === "购物车") openCart();
-            if (utility?.getAttribute("aria-label") === "订单") openOrders();
+            if (utility?.getAttribute("aria-label") === "购物车") lxOpenCommerceEntry("cart");
+            if (utility?.getAttribute("aria-label") === "订单") lxOpenCommerceEntry("orders");
             if (utility?.getAttribute("aria-label") === "账号" && !state.user) openLogin();
 
             const accountBtn = event.target.closest(".account-wrap > .utility-btn");
@@ -5898,6 +5952,7 @@ if (!window.__lxMemberFetched) {
 
         window.openCart = openCart;
         window.openOrders = openOrders;
+        window.lxOpenCommerceEntry = lxOpenCommerceEntry;
         window.openCompare = openCompare;
         window.openMemberCenter = openMemberCenter;
         window.openCouponCenter = openCouponCenter;
@@ -5912,6 +5967,8 @@ if (!window.__lxMemberFetched) {
           else if (op === 'solution') openSolutionCenter();
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
+          else if (op === 'cart' || op === 'open_cart') lxOpenCommerceEntry("cart");
+          else if (op === 'orders' || op === 'open_orders') lxOpenCommerceEntry("orders");
         };
         // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
         window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
@@ -6989,7 +7046,23 @@ if (!window.__lxMemberFetched) {
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) setRailManual(false); } });
   railFab?.addEventListener("click", () => setRailManual(true));
   $("#lxfdRailClose")?.addEventListener("click", () => setRailManual(false));
-  $(".lxfd-actions .lxfd-ic")?.addEventListener("click", (e) => { e.preventDefault(); exitFullscreen(); });
+  $(".lxfd-actions")?.addEventListener("click", (e) => {
+    const button = e.target.closest(".lxfd-ic");
+    if (!button) return;
+    const label = button.getAttribute("aria-label") || "";
+    if (button.dataset.lxfdOpen === "cart" || label.includes("购物车")) {
+      e.preventDefault();
+      window.lxOpenCommerceEntry?.("cart");
+      return;
+    }
+    if (button.dataset.lxfdOpen === "orders" || label.includes("订单")) {
+      e.preventDefault();
+      window.lxOpenCommerceEntry?.("orders");
+      return;
+    }
+    e.preventDefault();
+    exitFullscreen();
+  });
   scrim?.addEventListener("click", () => setRailManual(false));
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
