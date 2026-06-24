@@ -4381,12 +4381,29 @@ if (!window.__lxMemberFetched) {
             seen.add(key);
             keys.push(key);
           }));
-          const prices = products.map(p => Number(p.price || 0));
+          const cmpPriceNum = (value) => Number(String(value ?? "").replace(/[^\d.]/g, "")) || 0;
+          const prices = products.map(p => cmpPriceNum(p.price));
           const validPrices = prices.filter(p => p > 0);
           const minPrice = validPrices.length >= 2 ? Math.min(...validPrices) : -1;
           const bestPriceIdx = minPrice > 0 ? prices.indexOf(minPrice) : -1;
-          const displayKeys = keys.slice(0, 8);
-          const rowMeta = displayKeys.map((key) => {
+          const bestTag = '<span class="best-tag">优</span>';
+          const spark = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/></svg>';
+          const cartIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>';
+          const priceText = (value) => {
+            const n = cmpPriceNum(value);
+            return n > 0 ? n.toLocaleString() : "—";
+          };
+          const cmpAiText = (product) => {
+            const specs = product.specs || {};
+            const points = [specs.cpu, specs.ram || specs.memory, specs.ssd || specs.disk || specs.storage].filter(Boolean).slice(0, 3).join("、");
+            return product.description || (points ? `配置覆盖${points}，适合结合预算、性能和便携需求继续做购买决策。` : "适合结合预算、配置和使用场景继续对比，确认优惠后再下单。");
+          };
+          const headCells = products.map((product, i) => {
+            const custom = /定制|定制款/.test(product.name || "") || product.custom;
+            const cleanName = String(product.name || "").replace(/^【?定制款】?\s*/, "");
+            return `<div class="cell phead bodycell" data-col="${i}"><div class="pname lx-cmp-name" data-open-product="${esc(product.sku)}">${custom ? '<span class="cz">定制款</span>' : ""}${esc(cleanName)}</div><div class="price pr"><span class="cur">¥</span>${priceText(product.price)}${i === bestPriceIdx ? bestTag : ""}</div></div>`;
+          }).join("");
+          const bodyRows = keys.slice(0, 18).map((key) => {
             const values = products.map((product) => String((product.specs || {})[key] ?? "—").trim());
             const differs = new Set(values).size > 1;
             // 优势格：数值可比的行，按方向找最优列高亮（如内存大/重量轻）
@@ -4404,32 +4421,26 @@ if (!window.__lxMemberFetched) {
               const maxScore = Math.max(...scores);
               if (maxScore > 0) bestIndex = scores.indexOf(maxScore);
             }
-            return { key, label: DETAIL_SPEC_LABELS[key] || key, values, differs, bestIndex };
-          });
-          const spark = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/></svg>';
-          const cartIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>';
-          const labels = `<div class="labels"><div class="spacer-flag"></div>${rowMeta.map((row) => `<div class="lrow">${esc(row.label)}</div>`).join("")}</div>`;
-          const cards = products.map((product, i) => {
-            const img = String(product.image_url || product.img || "").replace(/^http:/, "https:");
-            const name = product.name || "";
-            const isReco = i === 0 || product.reco || product.recommended || product.ai_recommended;
-            const isCustom = product.cz || product.custom || product.is_custom || /定制/.test(name);
-            const rows = rowMeta.map((row) => {
-              const best = row.bestIndex === i;
-              return `<div class="srow${best ? " best" : ""}">${best ? '<span class="bdot"></span>' : ""}<span>${esc(row.values[i] || "—")}</span>${best ? '<span class="best-tag">优</span>' : ""}</div>`;
-            }).join("");
-            return `<div class="pcard${isReco ? " reco" : ""}">
-              ${isReco ? `<div class="reco-flag">${spark} 乐享推荐</div>` : '<div class="spacer-flag"></div>'}
-              <div class="ph">
-                <div class="shot">${img ? `<img src="${esc(img)}" alt="${esc(name)}" loading="lazy">` : `<span class="wm">${esc((name || "LENOVO").slice(0, 18))}</span>`}</div>
-                <div class="pname" data-open-product="${esc(product.sku)}">${isCustom ? '<span class="cz">定制款</span>' : ""}${esc(name)}</div>
-                <div class="price pr"><span class="cur">¥</span>${Number(product.price || 0).toLocaleString()}${i === bestPriceIdx ? '<span class="best-tag">优</span>' : ""}</div>
-              </div>
-              ${rows}
-              ${opts.actions ? `<div class="pfoot"><button class="buy" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button><button class="cart" type="button" data-cmp-cart="${esc(product.sku)}">${cartIcon}加购</button></div>` : ""}
-            </div>`;
+            return `<div class="cell rowlabel">${esc(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="cell val bodycell${i === bestIndex ? ' best' : ""}" data-col="${i}">${i === bestIndex ? `<span class="v">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
           }).join("");
-          return `<div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="2">${labels}${cards}</div><p class="lx-p0-disclaimer">浅紫底纹为差异项，「优」标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+          const actionsRow = opts.actions
+            ? `<div class="cell rowlabel">操作</div>${products.map((product, i) => `<div class="cell op bodycell" data-col="${i}"><button class="buy" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button><button class="cart" type="button" data-cmp-cart="${esc(product.sku)}">${cartIcon}加购</button></div>`).join("")}`
+            : "";
+          const aiRow = `<div class="cell rowlabel ai-label">${spark}<span>乐享AI解读</span></div>${products.map((product, i) => `<div class="cell ai-cell bodycell" data-col="${i}"><span class="ai-text">${esc(cmpAiText(product))}</span></div>`).join("")}`;
+          return `<div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="1" style="--lx-cmp-cols:${products.length}"><div class="tbl"><div class="cell rowlabel" style="border-bottom:1px solid var(--border)">商品</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div><p class="foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+        }
+
+        if (!window.__lxCmpSkinHoverBound) {
+          window.__lxCmpSkinHoverBound = true;
+          document.addEventListener("pointerover", (event) => {
+            const cell = event.target.closest?.('.lx-cmp-skin[data-v="1"] .bodycell[data-col]');
+            const root = cell?.closest('.lx-cmp-skin[data-v="1"]');
+            if (root) root.dataset.hoverCol = cell.dataset.col || "";
+          }, true);
+          document.addEventListener("pointerout", (event) => {
+            const root = event.target.closest?.('.lx-cmp-skin[data-v="1"]');
+            if (root && !root.contains(event.relatedTarget)) delete root.dataset.hoverCol;
+          }, true);
         }
 
         function navigateToPortalSection(target) {
