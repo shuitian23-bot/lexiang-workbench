@@ -1848,3 +1848,149 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   -webkit-backdrop-filter:blur(8px) saturate(1.22) contrast(1.02)!important;
   backdrop-filter:blur(8px) saturate(1.22) contrast(1.02)!important;
 }
+
+/* Final assistant glass content restore, cache 2026062417.
+   The glass layer must reveal the assistant default content, not a blank panel or product card. */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-hover-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
+.assistant-panel.assistant-glass-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot){
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:18!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  transform:none!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > *,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > *,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > *{
+  opacity:0!important;
+  visibility:hidden!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .tool-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .assistant-toggle,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .assistant-toggle,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .assistant-toggle,
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .glass-default-source,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .glass-default-source,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .glass-default-source,
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .page-dots,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .page-dots,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .page-dots{
+  opacity:.72!important;
+  visibility:visible!important;
+  filter:blur(2.4px) saturate(.98) contrast(.98)!important;
+  transform:scale(1.006)!important;
+  pointer-events:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .tool-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .tool-row{
+  display:flex!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .assistant-toggle,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .assistant-toggle,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .assistant-toggle,
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .page-dots,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .page-dots,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .page-dots{
+  display:block!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .glass-default-source,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .glass-default-source,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .glass-default-source{
+  display:block!important;
+  position:relative!important;
+  padding-top:50px!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .glass-default-source .fullscreen-welcome,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .glass-default-source .fullscreen-welcome,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .glass-default-source .fullscreen-welcome{
+  display:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .glass-default-source .headline,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .glass-default-source .headline,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .glass-default-source .headline{
+  display:block!important;
+  position:relative!important;
+  width:96.25%!important;
+  margin:0 auto clamp(22px,2vw,34px)!important;
+  padding:0 4px 4px!important;
+  color:var(--text-soft)!important;
+  font-size:15px!important;
+  line-height:1.45!important;
+  font-weight:400!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .glass-default-source .quick-list,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .glass-default-source .quick-list,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .glass-default-source .quick-list{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  width:96.25%!important;
+  margin:22px auto 0!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .glass-default-source .quick-item,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .glass-default-source .quick-item,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .glass-default-source .quick-item{
+  display:flex!important;
+  height:54px!important;
+  min-height:54px!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .snapshot-hover-pop,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .snapshot-hover-pop,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot > .snapshot-hover-pop{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  z-index:26!important;
+  opacity:1!important;
+  background:
+    radial-gradient(120% 70% at 18% 0%,rgba(255,255,255,.16),rgba(255,255,255,.035) 62%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.09),rgba(246,241,248,.055) 50%,rgba(255,255,255,.025))!important;
+  -webkit-backdrop-filter:blur(5.5px) saturate(1.16) contrast(1.01)!important;
+  backdrop-filter:blur(5.5px) saturate(1.16) contrast(1.01)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil::before{
+  opacity:.12!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil::after{
+  opacity:.08!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  position:relative!important;
+  z-index:320!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  pointer-events:auto!important;
+}

@@ -437,7 +437,7 @@ if (!window.__lxMemberFetched) {
           const cloneIntoSnapshot = (node, extraClass) => {
             if (!node) return;
             const copy = node.cloneNode(true);
-            if (extraClass) copy.classList.add(extraClass);
+            if (extraClass) copy.classList.add(...String(extraClass).split(/\s+/).filter(Boolean));
             copy.querySelectorAll("button,a,input,textarea,select").forEach((el) => {
               el.setAttribute("tabindex", "-1");
               el.setAttribute("aria-hidden", "true");
@@ -452,7 +452,7 @@ if (!window.__lxMemberFetched) {
             const cs = window.getComputedStyle(el);
             return cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > 0;
           });
-          cloneIntoSnapshot(defaultState || visibleState || states[0], "snapshot-state");
+          cloneIntoSnapshot(defaultState || visibleState || states[0], "snapshot-state glass-default-source");
           cloneIntoSnapshot(panel.querySelector(":scope > .page-dots"));
           return snapshot;
         }
