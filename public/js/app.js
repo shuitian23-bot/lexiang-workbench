@@ -454,7 +454,7 @@ if (!window.__lxMemberFetched) {
           });
           cloneIntoSnapshot(defaultState || visibleState || states[0], "snapshot-state");
           cloneIntoSnapshot(panel.querySelector(":scope > .page-dots"));
-          const hoverPop = panel.querySelector(":scope > .assistant-bottom .hover-prompt-panel .pop");
+          const hoverPop = panel.querySelector(":scope > .assistant-bottom .hover-prompt-panel .pop .box");
           if (hoverPop) cloneIntoSnapshot(hoverPop, "snapshot-hover-pop");
           return snapshot;
         }
