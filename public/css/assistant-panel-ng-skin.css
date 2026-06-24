@@ -1511,3 +1511,62 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   filter:none!important;
   pointer-events:auto!important;
 }
+
+/* Clearer liquid-glass assistant snapshot, cache 2026062411. */
+.assistant-panel > .assistant-glass-snapshot{
+  z-index:18!important;
+  opacity:.9!important;
+  filter:blur(2.5px) saturate(1.06)!important;
+  transform:scale(1.006)!important;
+}
+.assistant-panel > .assistant-glass-snapshot .tool-row,
+.assistant-panel > .assistant-glass-snapshot .assistant-toggle,
+.assistant-panel > .assistant-glass-snapshot .panel-state,
+.assistant-panel > .assistant-glass-snapshot .default-state,
+.assistant-panel > .assistant-glass-snapshot .chat-state,
+.assistant-panel > .assistant-glass-snapshot .page-dots{
+  visibility:visible!important;
+  opacity:1!important;
+}
+.assistant-panel > .assistant-glass-snapshot .tool-row{
+  display:flex!important;
+}
+.assistant-panel > .assistant-glass-snapshot .assistant-toggle,
+.assistant-panel > .assistant-glass-snapshot .page-dots{
+  display:block!important;
+}
+.assistant-panel > .assistant-glass-snapshot .panel-state,
+.assistant-panel > .assistant-glass-snapshot .default-state,
+.assistant-panel > .assistant-glass-snapshot .chat-state,
+.assistant-panel > .assistant-glass-snapshot .snapshot-state{
+  display:block!important;
+  position:relative!important;
+  transform:none!important;
+  filter:none!important;
+}
+.assistant-panel > .assistant-glass-snapshot::after{
+  content:!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(246,241,248,.03))!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  background:
+    radial-gradient(120% 70% at 14% 0%,rgba(255,255,255,.18),rgba(255,255,255,.035) 66%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.10),rgba(248,242,250,.065) 48%,rgba(255,255,255,.035))!important;
+  -webkit-backdrop-filter:blur(5px) saturate(1.28)!important;
+  backdrop-filter:blur(5px) saturate(1.28)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38), inset 0 -1px 0 rgba(91,20,82,.035)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  z-index:240!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}

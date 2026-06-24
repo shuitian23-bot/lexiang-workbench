@@ -447,11 +447,12 @@ if (!window.__lxMemberFetched) {
           cloneIntoSnapshot(panel.querySelector(":scope > .tool-row"));
           cloneIntoSnapshot(panel.querySelector(":scope > .assistant-toggle"));
           const states = Array.from(panel.querySelectorAll(":scope > .panel-state"));
+          const defaultState = panel.querySelector(":scope > .default-state") || panel.querySelector(":scope > .panel-state.default-state");
           const visibleState = states.find((el) => {
             const cs = window.getComputedStyle(el);
             return cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > 0;
           });
-          cloneIntoSnapshot(visibleState || panel.querySelector(":scope > .default-state") || states[0], "snapshot-state");
+          cloneIntoSnapshot(defaultState || visibleState || states[0], "snapshot-state");
           cloneIntoSnapshot(panel.querySelector(":scope > .page-dots"));
           return snapshot;
         }
