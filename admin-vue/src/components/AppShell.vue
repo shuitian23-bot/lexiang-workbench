@@ -89,22 +89,15 @@
       </div>
     </div>
 
-    <!-- 右侧 AI panel（占位，后续接入） -->
-    <div class="ai-panel" v-show="state.aiOpen">
-      <div class="ai-panel-header">
-        <span class="ai-title-name">AI 助手</span>
-        <button class="ai-icon-action" @click="toggleAI" title="收起">×</button>
-      </div>
-      <div class="ai-messages" style="flex:1;padding:16px;color:var(--text-secondary);font-size:13px;">
-        <p>AI 助手面板（后续接入 /api/leai/chat）</p>
-      </div>
-    </div>
+    <!-- 右侧 AI panel -->
+    <AiPanel v-show="state.aiOpen" :visible="state.aiOpen" @toggle="toggleAI" />
   </template>
 </template>
 
 <script setup>
 import { reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import AiPanel from './AiPanel.vue'
 
 const router = useRouter()
 const route = useRoute()
