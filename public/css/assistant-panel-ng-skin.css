@@ -1648,9 +1648,9 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   overflow:visible!important;
   isolation:isolate!important;
 }
-.assistant-panel.assistant-hover-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
-.assistant-panel.assistant-glass-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot){
+.assistant-panel.assistant-hover-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot):not(.panel-state),
+.assistant-panel.assistant-glass-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot):not(.panel-state),
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot):not(.panel-state){
   opacity:0!important;
   visibility:hidden!important;
   pointer-events:none!important;
@@ -2122,9 +2122,9 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 .assistant-panel:has(.assistant-bottom.has-hover-prompts){
   isolation:isolate!important;
 }
-.assistant-panel.assistant-hover-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
-.assistant-panel.assistant-glass-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot),
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot){
+.assistant-panel.assistant-hover-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot):not(.panel-state),
+.assistant-panel.assistant-glass-active > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot):not(.panel-state),
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-bottom):not(.assistant-glass-veil):not(.assistant-glass-snapshot):not(.panel-state){
   opacity:0!important;
   visibility:hidden!important;
   pointer-events:none!important;
@@ -2279,7 +2279,7 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .page-dots{display:block!important;position:absolute!important;z-index:18!important;opacity:.22!important;visibility:visible!important;filter:blur(7px) saturate(.9) contrast(.96)!important;pointer-events:none!important}
 .assistant-panel.assistant-hover-active > .panel-state,
 .assistant-panel.assistant-glass-active > .panel-state,
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .panel-state{position:relative!important;z-index:18!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .panel-state{position:relative!important;z-index:18!important;opacity:.48!important;visibility:visible!important;filter:blur(3.5px) saturate(.92) contrast(.98)!important;pointer-events:none!important}
 .assistant-panel.assistant-hover-active > .default-state,
 .assistant-panel.assistant-glass-active > .default-state,
 .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .default-state{display:block!important;min-height:calc(100% - 260px)!important;padding-top:50px!important;opacity:.30!important;visibility:visible!important;filter:blur(9px) saturate(.86) contrast(.95)!important;transform:translateZ(0) scale(1.01)!important;transform-origin:center top!important;pointer-events:none!important}
