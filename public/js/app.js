@@ -4395,8 +4395,16 @@ if (!window.__lxMemberFetched) {
           };
           const cmpAiText = (product) => {
             const specs = product.specs || {};
-            const points = [specs.cpu, specs.ram || specs.memory, specs.ssd || specs.disk || specs.storage].filter(Boolean).slice(0, 3).join("、");
-            return product.description || (points ? `配置覆盖${points}，适合结合预算、性能和便携需求继续做购买决策。` : "适合结合预算、配置和使用场景继续对比，确认优惠后再下单。");
+            const text = `${product.name || ""} ${Object.values(specs).join(" ")}`.toLowerCase();
+            const highlights = [];
+            if (/rtx|独显|显卡/.test(text)) highlights.push("图形性能更强");
+            if (/oled|2\.8k|高刷|120hz|144hz|240hz/.test(text)) highlights.push("屏幕观感细腻");
+            if (/14英寸|轻薄|air|1\.\d+kg/.test(text)) highlights.push("轻薄便携");
+            if (/32gb|64gb|96gb|128gb|192gb|32g|64g|96g|128g|192g/.test(text)) highlights.push("多任务更从容");
+            if (/1tb|2tb|4tb|512gb/.test(text)) highlights.push("存储空间充足");
+            if (!highlights.length) highlights.push("配置均衡", "日常使用稳定");
+            const scene = /游戏|rtx|独显/.test(text) ? "游戏创作" : /商务|thinkpad|thinkbook/.test(text) ? "办公差旅" : "学习办公";
+            return `${highlights.slice(0, 3).join("，")}，适合${scene}。`;
           };
           const headCells = products.map((product, i) => {
             const custom = /定制|定制款/.test(product.name || "") || product.custom;
