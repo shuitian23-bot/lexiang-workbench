@@ -1570,3 +1570,71 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   visibility:visible!important;
   pointer-events:auto!important;
 }
+
+/* Final liquid-glass substrate fix: keep real assistant content visible behind veil, cache 2026062412. */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts){
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-snapshot{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.assistant-panel.assistant-hover-active > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-toggle,
+.assistant-panel.assistant-hover-active > .panel-state,
+.assistant-panel.assistant-hover-active > .page-dots,
+.assistant-panel.assistant-glass-active > .tool-row,
+.assistant-panel.assistant-glass-active > .assistant-toggle,
+.assistant-panel.assistant-glass-active > .panel-state,
+.assistant-panel.assistant-glass-active > .page-dots,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .tool-row,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-toggle,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .panel-state,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .page-dots{
+  position:relative!important;
+  z-index:16!important;
+  opacity:.46!important;
+  visibility:visible!important;
+  filter:blur(3.5px) saturate(.92) contrast(.98)!important;
+  pointer-events:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
+  position:absolute!important;
+  inset:0!important;
+  z-index:24!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:
+    radial-gradient(130% 78% at 18% 0%,rgba(255,255,255,.12),rgba(255,255,255,.035) 58%,transparent 100%),
+    linear-gradient(145deg,rgba(255,255,255,.07),rgba(246,241,248,.045) 48%,rgba(255,255,255,.026))!important;
+  -webkit-backdrop-filter:blur(8px) saturate(1.22) contrast(1.02)!important;
+  backdrop-filter:blur(8px) saturate(1.22) contrast(1.02)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34), inset 0 -1px 0 rgba(91,20,82,.04)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before{
+  opacity:.28!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after{
+  opacity:.24!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom,
+.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-bottom{
+  position:relative!important;
+  z-index:260!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  pointer-events:auto!important;
+}
