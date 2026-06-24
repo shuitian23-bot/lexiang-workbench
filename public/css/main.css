@@ -11102,11 +11102,12 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .assistant-panel.assistant-hover-active > .assistant-glass-veil,
 .assistant-panel.assistant-glass-active > .assistant-glass-veil{
   z-index:12!important;
+  /* 半透明毛玻璃遮罩：淡紫白底，背后内容仍隐约可见但明显虚化（不要求显示具体内容） */
   background:
-    linear-gradient(145deg,rgba(255,255,255,.24),rgba(248,242,250,.14) 48%,rgba(255,255,255,.08)),
-    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.34),rgba(255,255,255,.08) 68%,transparent 100%)!important;
-  -webkit-backdrop-filter:blur(12px) saturate(1.32) contrast(1.02)!important;
-  backdrop-filter:blur(12px) saturate(1.32) contrast(1.02)!important;
+    linear-gradient(145deg,rgba(250,245,252,.62),rgba(245,238,249,.5) 48%,rgba(250,246,253,.44)),
+    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.5),rgba(248,243,251,.28) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.4) contrast(1.02)!important;
+  backdrop-filter:blur(16px) saturate(1.4) contrast(1.02)!important;
 }
 .assistant-panel.assistant-hover-active > .assistant-glass-snapshot > :not(.snapshot-hover-pop),
 .assistant-panel.assistant-glass-active > .assistant-glass-snapshot > :not(.snapshot-hover-pop){
