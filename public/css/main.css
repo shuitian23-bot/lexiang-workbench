@@ -10680,3 +10680,72 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 
 /* Tune fullscreen composer footnote color. */
 .lxfd-footnote{ color:#c0b1c4!important; }
+
+/* Product hover liquid glass visibility fix, cache 2026062406.
+   Keep the hover prompt/composer sharp while the panel content remains visible through the glass. */
+.assistant-panel.assistant-hover-active,
+.assistant-panel.assistant-glass-active{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot{
+  position:absolute!important;
+  inset:0!important;
+  z-index:10!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:.66!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  overflow:hidden!important;
+  filter:blur(3px) saturate(1.05) contrast(1.02)!important;
+  transform:scale(1.01)!important;
+  transform-origin:center!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > *,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > *{
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .panel-state,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .panel-state,
+.assistant-panel.assistant-hover-active > .assistant-glass-snapshot > .snapshot-state,
+.assistant-panel.assistant-glass-active > .assistant-glass-snapshot > .snapshot-state{
+  display:block!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil{
+  z-index:12!important;
+  opacity:1!important;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.30),rgba(248,242,250,.18) 48%,rgba(255,255,255,.08)),
+    radial-gradient(90% 55% at 14% 0%,rgba(255,255,255,.40),rgba(255,255,255,.10) 68%,transparent 100%)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(1.38) contrast(1.02)!important;
+  backdrop-filter:blur(14px) saturate(1.38) contrast(1.02)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.58),inset 0 -1px 0 rgba(91,20,82,.05)!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::before,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::before{
+  background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.24) 38%,transparent 62%),radial-gradient(34% 16% at 82% 15%,rgba(255,255,255,.28),transparent 70%)!important;
+  opacity:.42!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-glass-veil::after,
+.assistant-panel.assistant-glass-active > .assistant-glass-veil::after{
+  opacity:.16!important;
+}
+.assistant-panel.assistant-hover-active .panel-state,
+.assistant-panel.assistant-hover-active .page-dots,
+.assistant-panel.assistant-hover-active > .tool-row,
+.assistant-panel.assistant-hover-active > .assistant-toggle{
+  filter:blur(2.5px) saturate(.98)!important;
+  opacity:.66!important;
+}
+.assistant-panel.assistant-hover-active > .assistant-bottom,
+.assistant-panel.assistant-glass-active > .assistant-bottom{
+  z-index:120!important;
+  filter:none!important;
+  opacity:1!important;
+}
