@@ -3631,9 +3631,8 @@ if (!window.__lxMemberFetched) {
             content?.scrollTo({ top: 0, behavior: "smooth" });
           } else if (tab.kind === "info") {
             const pageBox = lxEnsureInfoPage();
-            const isEduInfo = tab.id === "info:edu";
-            pageBox.classList.toggle("is-wide", isEduInfo);
-            pageBox.innerHTML = `${isEduInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            pageBox.classList.toggle("is-wide", tab.id === "info:edu");
+            pageBox.innerHTML = `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>${tab.html || ""}`;
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
