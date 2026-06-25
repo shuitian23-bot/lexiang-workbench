@@ -10749,12 +10749,12 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   display:none;
   flex-direction:column;
   gap:0;
-  background:transparent;
-  border:0;
-  border-radius:0;
-  padding:0;
-  box-shadow:none;
-  overflow:visible;
+  background:linear-gradient(180deg,#fff 0%,#fbf9fc 100%);
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:18px;
+  box-shadow:var(--sh-1);
+  overflow:hidden;
   color:var(--text);
   font-size:14px;
   line-height:1.6;
