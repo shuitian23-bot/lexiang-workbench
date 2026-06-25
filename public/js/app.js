@@ -5219,6 +5219,8 @@ if (!window.__lxMemberFetched) {
         function lxAdvisorPick(stepKey, value) {
           const flow = state.advisorFlow;
           if (!flow) return;
+          // 禁用历史步骤的所有 chip：选过的步骤不可回点（否则会重复推进 + 累加 chip）
+          document.querySelectorAll(".lx-advisor-chip").forEach(function(btn) { btn.disabled = true; btn.classList.add("is-picked"); });
           flow[stepKey] = value;
           const stepDef = LX_ADVISOR_STEPS.find(function(s) { return s.key === stepKey; });
           const pickedLabel = stepDef ? (stepDef.chips.find(function(c) { return c.value === value; }) || {}).label || value : value;
