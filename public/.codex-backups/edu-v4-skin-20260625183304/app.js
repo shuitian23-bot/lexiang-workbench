@@ -3420,69 +3420,28 @@ if (!window.__lxMemberFetched) {
           if (mask) mask.addEventListener('click', wpaHandleClick, true);
         }
 
-        // 教育特惠专区（右侧信息标签页）：方案 4 净白轻卡 + 教育货盘 + 国补叠加
+        // 教育特惠专区（右侧信息标签页）：认证状态 + 教育货盘 + 国补叠加 + 算到手价
         async function openEduZone() {
           const stu = lxStuState();
           let pool = [];
           try {
             const response = await fetch("/api/products?site=shop&limit=24", { cache: "no-store" });
-            pool = (await response.json()).filter((p) => p.category === "笔记本电脑").slice(0, 12);
+            pool = (await response.json()).filter((p) => p.category === "笔记本电脑").slice(0, 8);
           } catch {}
-          const icn = {
-            cap: `<svg class="cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 9l9-5 9 5-9 5-9-5Z"/><path d="M7 11.5V16c0 1.7 2.2 3 5 3s5-1.3 5-3v-4.5"/><path d="M21 9v5"/></svg>`,
-            cert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4 4 8l8 4 8-4-8-4Z"/><path d="M6.5 10.5V15c0 2 2.4 3.5 5.5 3.5S17.5 17 17.5 15v-4.5"/></svg>`,
-            laptop: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="6.5" width="12" height="8" rx="1.1"/><path d="M4.5 17.5h15"/></svg>`,
-            spark: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/></svg>`,
-            layers: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4"/><path d="m4 17 8 4 8-4"/></svg>`,
-          };
-          const statusLabel = stu.status === "verified" ? "已认证" : stu.status === "pending" ? "审核中" : "未认证";
-          const statusDesc = stu.status === "verified"
-            ? `${stu.name ? esc(stu.name) + "，" : ""}认证后教育专享价已生效，并可与国家补贴叠加使用`
+          const statusBar = stu.status === "verified"
+            ? `<div class="lx-ent-banner"><span class="lx-ent-badge ok">已认证</span><span class="lx-ent-text"><strong>${esc(stu.name || "同学")}</strong> 教育专享价已生效，下方为认证后价格（演示）</span></div>`
             : stu.status === "pending"
-              ? "学生/教师认证审核中，通过后可享教育专享价，并可与国家补贴叠加使用"
-              : "认证后享教育专享价，并可与国家补贴叠加使用";
-          const markName = (name) => {
-            const text = String(name || "").toUpperCase();
-            if (/LEGION|拯救者|创世/.test(text)) return "LEGION 创世";
-            if (/Y9000P/.test(text)) return "Y9000P 联名";
-            if (/Y9000X/.test(text)) return "Y9000X";
-            if (/R9000P/.test(text)) return "R9000P";
-            if (/Y7000P/.test(text)) return "Y7000P";
-            if (/YOGA\s*PRO\s*16|PRO 16/.test(text)) return "YOGA Pro 16";
-            if (/YOGA\s*AIR\s*14|AIR 14/.test(text)) return "YOGA Air 14";
-            if (/YOGA\s*PRO\s*15|PRO 15/.test(text)) return "YOGA Pro 15";
-            return "LENOVO";
-          };
+              ? `<div class="lx-ent-banner"><span class="lx-ent-badge pending">审核中</span><span class="lx-ent-text">学生认证审核中，通过后自动解锁教育专享价</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
+              : `<div class="lx-ent-banner"><span class="lx-ent-badge">未认证</span><span class="lx-ent-text">学生/教师认证后享教育专享价，并可与国家补贴叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`;
           const cards = pool.map((p) => {
-            const rawPrice = Number(p.price || 0);
-            const eduPrice = Math.round(rawPrice * 0.95);
-            return `<div class="card" data-open-product="${esc(p.sku)}">
-              <div class="shot" aria-hidden="true"><div class="ph">${icn.laptop}</div><div class="wm">${esc(markName(p.name))}</div></div>
-              <div class="nm">${esc(p.name)}</div>
-              <div class="etag">${icn.spark}<span>认证后享教育价</span></div>
-              <div class="eduprice"><span class="now"><span class="cur">¥</span>${eduPrice.toLocaleString()}</span><span class="was">¥${rawPrice.toLocaleString()}</span></div>
-              <button class="lcta" type="button" data-open-product="${esc(p.sku)}">立即认证购买</button>
-            </div>`;
+            const eduPrice = Math.round(Number(p.price || 0) * 0.95);
+            const priceHtml = stu.status === "verified"
+              ? `<div class="lx-sim-price">教育价 ¥${eduPrice.toLocaleString()} <s class="lx-edu-orig">¥${Number(p.price || 0).toLocaleString()}</s></div>`
+              : `<div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div><span class="lx-edu-hint">认证后享教育价</span>`;
+            return `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div>${priceHtml}</div>`;
           }).join("");
-          const html = `<div class="edu lx-edu-skin" data-v="4">
-            <div class="e-head"><h2>${icn.cap}<span>教育特惠专区</span></h2><div class="tip">在校学生与在职教师 · 认证后享教育专享价</div></div>
-            <div class="lcert">
-              <div class="ci">${icn.cert}</div>
-              <div class="ct"><div class="t"><span>学生 / 教师专属教育优惠</span><span class="badge">${statusLabel}</span></div><div class="d">${statusDesc}</div></div>
-              <button class="lcta solid" type="button" data-stu-auth>立即认证</button>
-            </div>
-            <div class="grid">${cards || '<p class="foot-note">教育货盘加载中，可稍后重试。</p>'}</div>
-            <div class="lrules">
-              <h3>${icn.layers}<span>国补叠加规则</span></h3>
-              <div class="ltiers">
-                <div class="ltier"><div class="num">1</div><div><div class="tt">教育专享价</div><div class="td">认证学生 / 教师享专属教育价</div></div></div>
-                <div class="ltier"><div class="num">2</div><div><div class="tt">国家补贴 15%</div><div class="td">目录内机型可叠加国补</div></div></div>
-                <div class="ltier"><div class="num">3</div><div><div class="tt">券券叠加</div><div class="td">教育认证券 + 会员券叠加</div></div></div>
-              </div>
-            </div>
-            <div class="foot-note">演示口径：教育价按 <b>95 折</b> 模拟，实际优惠以商品页与结算页为准。</div>
-          </div>`;
-          lxOpenInfoTab("edu", "教育特惠专区", html);
+          const rules = `<div class="lx-floor" style="margin-top:14px"><div class="lx-floor-head"><h3>国补叠加规则</h3><span>教育价与国家补贴可叠加，逐层计算</span><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我算下教育优惠+国补叠加后的到手价，按学生身份">算到手价</button></div><ul class="lx-md-list"><li>第一层：教育专享价（认证学生/教师）</li><li>第二层：国家补贴 15%（目录内机型）</li><li>第三层：教育认证券与会员券叠加</li></ul><p class="lx-p0-disclaimer">演示口径：教育价按 95 折模拟，实际优惠以商品页与结算页为准。</p></div>`;
+          lxOpenInfoTab("edu", "教育特惠专区", `${statusBar}<div class="lx-sim-grid" style="margin-top:14px">${cards || '<p class="lx-p0-disclaimer">教育货盘加载中，可稍后重试。</p>'}</div>${rules}`);
         }
 
         // ── 迭代二：biz 内容页体系（PRD 5.13.2/3/6/8）──
