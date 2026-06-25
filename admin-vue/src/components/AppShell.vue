@@ -58,13 +58,39 @@
         </div>
       </nav>
       <div class="sidebar-footer">
-        <div class="user-info">
+        <!-- 账号菜单弹层 (account-hub-popover) -->
+        <div class="user-menu-popover account-hub-popover" v-show="state.accountHubOpen" @click.self="closeAccountHub">
+          <div class="account-hub-panel" @click.stop>
+            <button type="button" class="account-hub-close" @click="closeAccountHub" aria-label="关闭">×</button>
+            <button type="button" class="account-hub-card primary" @click="goSkillCreate">
+              <span class="account-hub-icon">＋</span>
+              <b>创建 Skill</b>
+              <small>从业务场景定义新能力、参数、输入输出和审批规则。</small>
+            </button>
+            <button type="button" class="account-hub-card" @click="goSkillHub">
+              <span class="account-hub-icon">◎</span>
+              <b>Skill Hub</b>
+              <small>查看已提交 Skill 状态，处理审批、发布、启用或禁用。</small>
+            </button>
+            <button type="button" class="account-hub-card" @click="goPermissions">
+              <span class="account-hub-icon">◇</span>
+              <b>权限管理</b>
+              <small>敬请期待……后续开放菜单权限、Skill 权限和角色范围管理。</small>
+            </button>
+            <button type="button" class="account-hub-card" @click="openPocLog">
+              <span class="account-hub-icon">LOG</span>
+              <b>调整日志</b>
+              <small>查看功能调整记录。仅用于 POC 记录。</small>
+            </button>
+          </div>
+        </div>
+        <div class="user-info" @click="toggleAccountHub">
           <div class="user-avatar">{{ state.username ? state.username[0].toUpperCase() : 'A' }}</div>
           <div class="user-meta">
             <div class="user-name">{{ state.username || 'admin' }}</div>
             <div class="user-role">管理员</div>
           </div>
-          <span class="user-logout" @click="doLogout" title="退出登录">退出</span>
+          <span class="user-logout" @click.stop="doLogout" title="退出登录">退出</span>
         </div>
       </div>
     </div>
@@ -78,16 +104,47 @@
           <span v-if="currentPageLabel"> / {{ currentPageLabel }}</span>
         </div>
         <div class="topbar-right">
+          <!-- 暗黑模式按钮 -->
+          <button type="button" class="topbar-icon-btn" @click="toggleDarkMode" title="切换深色模式" aria-label="切换深色模式">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15.8 12.2A6.8 6.8 0 0 1 7.8 4.2a6.6 6.6 0 1 0 8 8z"/></svg>
+          </button>
           <button type="button" class="ai-toggle" :class="{ active: state.aiOpen }" @click="toggleAI" title="AI 助手">
             <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8v2.4M5.8 5.1 4.5 3.8M14.2 5.1l1.3-1.3"/><rect x="4" y="6" width="12" height="9" rx="3"/><path d="M7.5 10h.01M12.5 10h.01M8 13h4"/></svg>
             <span>AI 助手</span>
           </button>
         </div>
       </div>
+      <!-- ponytail: workspace 页签待接 AI 报告流程 -->
+      <div class="workspace-tabs" v-show="false"></div>
       <div class="page-content">
         <router-view />
       </div>
     </div>
+
+    <!-- 调整日志 modal -->
+    <Teleport to="body">
+      <div class="poc-log-modal" :class="{ open: state.pocLogOpen }" v-if="state.pocLogOpen" @click.self="closePocLog">
+        <div class="poc-log-panel" role="dialog" aria-modal="true" aria-label="调整日志">
+          <button type="button" class="poc-log-close" @click="closePocLog" aria-label="关闭">×</button>
+          <div class="poc-log-head">
+            <span>仅用于 POC 记录</span>
+            <h3>调整日志</h3>
+            <p>记录本轮工作台功能调整与验证状态，不作为正式审计、发布审批或生产变更依据。</p>
+          </div>
+          <div class="poc-log-list">
+            <div class="poc-log-item" v-for="item in POC_LOG_RECORDS" :key="item.time">
+              <time>{{ item.time }}</time>
+              <div>
+                <b>{{ item.title }}</b>
+                <p>{{ item.detail }}</p>
+                <small>{{ item.scope }}</small>
+              </div>
+              <em>{{ item.status }}</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- 右侧 AI panel -->
     <AiPanel v-show="state.aiOpen" :visible="state.aiOpen" @toggle="toggleAI" />
@@ -98,6 +155,20 @@
 import { reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AiPanel from './AiPanel.vue'
+
+// ===== 调整日志数据（从 workbench-vue.html openPocAdjustmentLog 照搬）=====
+const POC_LOG_RECORDS = [
+  { time: '2026-06-23 17:33', title: 'Skill 创建评估及格线调整', scope: 'Skill 创建 / 评估验证 / 提交审核门槛', detail: '评估验证综合评分及格线从 0.80 调整为 0.60；当前综合评分 0.782 直接显示评估通过并允许进入提交审核，AI 微调保留为可选优化动作。', status: '已合并正式' },
+  { time: '2026-06-23 17:26', title: 'Skill 创建草稿生成布局调整', scope: 'Skill 创建 / 基础配置 / 需求澄清 / 草稿生成', detail: '基础配置、需求澄清阶段移除保存草稿按钮；草稿生成阶段改为深色左右分栏，左侧按 IDE 文件树展示目录、缩进层级、文件类型图标和选中态，右侧展示生成草稿内容。', status: '已合并正式' },
+  { time: '2026-06-23 17:07', title: 'Skill Hub 列表与角色操作调整', scope: 'Skill Hub / 列表字段 / 操作列 / 管理员与 PM 角色', detail: 'Skill Hub 列表新增中文名列并移除标签列和标签筛选；操作列中"测试"改为"评估"，"应用"改为"测试"；管理员驳回后状态显示已驳回且不再展示发布、审批；PM 侧可看到编辑，被驳回的 Skill 可点击返回创建流程修改。', status: '已合并正式' },
+  { time: '2026-06-23 14:22', title: '0624 UI Skill 规范归一', scope: '右侧 Agent / 底部输入区 / 快捷 chips / 样式覆盖层', detail: '按 portal-workbench-ui-0624 样式规范收敛右侧 Agent 底部输入区：chips 始终保持横向 pill 与左右箭头，不退化为下拉框；输入框默认 36px、最多 3 行内滚动；发送按钮统一为 32px 单图标控件。', status: '已合并正式' },
+  { time: '2026-06-23 14:11', title: '右侧 Agent 快捷 chips 查询触发', scope: '右侧 Agent / 底部快捷 chips', detail: '底部 chips 从范围选择改为快捷查询按钮，默认不再显示选中态；点击 chip 后直接把对应自然语言问题发送给右侧 Agent 执行查询。', status: '已合并正式' },
+  { time: '2026-06-23 13:20', title: '账号入口与 POC 调整日志', scope: '账号入口弹层 / 调整日志 / admin 入口跳转', detail: '账号入口弹层改为 2x2 功能入口，新增调整日志查看；日志按功能点归纳展示，时间按北京时间取值；admin/index.html 覆盖为跳转页，进入 workbench.html?demo=1。', status: '已合并正式' },
+  { time: '2026-06-22 13:40', title: 'Skill Hub 应用入口调整', scope: 'Skill Hub 操作列', detail: '应用固定为蓝色测试入口，放在操作项最后，点击后在右侧 Agent 展示 output 结果。', status: '已合并正式' },
+  { time: '2026-06-18 18:30', title: '业务侧技能包管理与顶部入口整理', scope: '技能包管理 / 顶部栏', detail: '技能包管理固定为启停管理面，不再展示申请、使用、查看进度等旧流程；筛选归并为全部、已开启、已关闭；顶部中间搜索入口移除，同时保留夜间模式按钮。', status: '已合并正式' },
+  { time: '2026-06-18 17:40', title: 'Skill 创建命名与 AI 微调闭环', scope: 'Skill 创建 / 评估验证 / 右侧 Agent', detail: '基础配置中区分 Skill 名称（英文）和必填中文命名；评估验证出现低分项时提供 AI 微调，唤起右侧 Agent 更新草稿和评分，示例评分刷新到综合评分 0.859 后进入后续审核。', status: '已合并正式' },
+  { time: '2026-06-18 14:42', title: '企业客户管理打分模型样式修复', scope: '企业客户管理 / 打分模型', detail: '根据 0617 wangxt8 样式包替换 workbench-lead.js，修复打分模型页面样式不生效的问题；后续遇到同类问题先检查模块版本，不再只叠加 CSS 覆盖。', status: '已合并正式' }
+]
 
 const router = useRouter()
 const route = useRoute()
@@ -187,7 +258,9 @@ const state = reactive({
   username: '',
   sidebarCollapsed: false,
   aiOpen: true,
-  openGroups: ['dashboard']  // 默认展开第一组
+  openGroups: ['dashboard'],  // 默认展开第一组
+  accountHubOpen: false,      // 账号菜单弹层
+  pocLogOpen: false           // 调整日志 modal
 })
 
 const loginForm = reactive({ username: '', password: '' })
@@ -227,6 +300,48 @@ function toggleSidebar() {
 
 function toggleAI() {
   state.aiOpen = !state.aiOpen
+}
+
+// ===== 暗黑模式 =====
+function toggleDarkMode() {
+  const next = !document.body.classList.contains('dark-mode')
+  localStorage.setItem('lexiang_dark', next ? '1' : '0')
+  document.body.classList.toggle('dark-mode', next)
+}
+
+// ===== 账号菜单 (account-hub-popover) =====
+function toggleAccountHub() {
+  state.accountHubOpen = !state.accountHubOpen
+}
+
+function closeAccountHub() {
+  state.accountHubOpen = false
+}
+
+function goSkillCreate() {
+  closeAccountHub()
+  router.push('/agent/skillCreate')
+}
+
+function goSkillHub() {
+  closeAccountHub()
+  router.push('/agent/skills')
+}
+
+function goPermissions() {
+  closeAccountHub()
+  // 权限管理敬请期待
+  router.push('/agent/permissions')
+}
+
+// ===== 调整日志 modal =====
+function openPocLog() {
+  closeAccountHub()
+  state.pocLogOpen = true
+}
+
+function closePocLog() {
+  state.pocLogOpen = false
 }
 
 function onNavClick(pageKey) {
@@ -274,6 +389,19 @@ async function doLogout() {
 }
 
 onMounted(async () => {
+  // 初始化暗黑模式（读 localStorage）
+  if (localStorage.getItem('lexiang_dark') === '1') {
+    document.body.classList.add('dark-mode')
+  }
+
+  // 点击外部关闭账号菜单
+  document.addEventListener('click', (e) => {
+    const footer = document.querySelector('.sidebar-footer')
+    if (footer && !footer.contains(e.target)) {
+      state.accountHubOpen = false
+    }
+  })
+
   // demo 模式
   if (/[?&](demo|preview)=1\b/.test(location.search) || location.protocol === 'file:') {
     window.LEAIBOT_PREVIEW_MODE = true
