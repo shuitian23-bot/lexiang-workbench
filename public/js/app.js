@@ -4719,19 +4719,41 @@ if (!window.__lxMemberFetched) {
           chat.scrollTop = chat.scrollHeight;
         }
 
+        // 人工客服态的快捷菜单项（与正常 actionbar 同样走测宽溢出收「更多」，小屏不再挤两排）
+        const LX_CS_SHORTCUTS = [
+          { label: "退出人工", attr: 'data-human-off', cls: " lx-cs-exit" },
+          { label: "我的订单", attr: 'data-quick-ask="小联，帮我查最近的订单状态和物流"' },
+          { label: "发图片", attr: 'data-cs-upload' },
+          { label: "评价服务", attr: 'data-quick-ask="给小联的服务打个 5 星好评，服务专业体验好"' },
+          { label: "需求清单", attr: 'data-quick-ask="小联，我整理一份采购需求清单发给你确认"' },
+        ];
         function lxRenderShortcutRow() {
           const row = document.querySelector(".shortcut-row");
           if (!row) return;
-          if (state.humanMode) {
-            row.innerHTML = `
-              <button class="shortcut lx-cs-exit" type="button" data-human-off>退出人工</button>
-              <button class="shortcut" type="button" data-quick-ask="小联，帮我查最近的订单状态和物流">我的订单</button>
-              <button class="shortcut" type="button" data-cs-upload>发图片</button>
-              <button class="shortcut" type="button" data-quick-ask="给小联的服务打个 5 星好评，服务专业体验好">评价服务</button>
-              <button class="shortcut" type="button" data-quick-ask="小联，我整理一份采购需求清单发给你确认">需求清单</button>`;
-          } else {
-            lxRenderActionbar();
+          if (!state.humanMode) { lxRenderActionbar(); return; }
+          const btnHtml = (it) => `<button class="shortcut${it.cls || ""}" type="button" ${it.attr}>${esc(it.label)}</button>`;
+          // 先全量平铺测真实宽度，放不下的收进「更多 ▾」（对齐 lxRenderActionbar 方案）
+          row.innerHTML = LX_CS_SHORTCUTS.map(btnHtml).join("");
+          if (!row.clientWidth) return; // 面板隐藏时跳过，可见后 ResizeObserver 重排
+          row.style.flexWrap = "nowrap";
+          const gap = parseFloat(getComputedStyle(row).columnGap) || 8;
+          const widths = [...row.children].map((n) => n.offsetWidth);
+          const total = widths.reduce((s, w, i) => s + w + (i ? gap : 0), 0);
+          let fit = LX_CS_SHORTCUTS.length;
+          if (total > row.clientWidth) {
+            const avail = row.clientWidth - 96; // 「更多」按钮预留
+            let used = 0; fit = 0;
+            for (let i = 0; i < widths.length; i++) {
+              used += widths[i] + (i ? gap : 0);
+              if (used > avail) break;
+              fit = i + 1;
+            }
+            fit = Math.max(1, fit);
           }
+          const visible = LX_CS_SHORTCUTS.slice(0, fit), overflow = LX_CS_SHORTCUTS.slice(fit);
+          row.innerHTML = visible.map(btnHtml).join("") + (overflow.length
+            ? `<span class="more-wrap"><button class="shortcut" type="button">更多<img class="icon" src="/assets/icons/arrow-down.svg" alt="" /></button><div class="more-menu" role="menu">${overflow.map((it) => `<div class="menu-row" ${it.attr}>${esc(it.label)}</div>`).join("")}</div></span>`
+            : "");
         }
 
         // 响应式 actionbar：按面板宽度能放多少放多少，放不下的收进「更多」（对齐旧版测宽溢出方案）
