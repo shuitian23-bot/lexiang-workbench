@@ -2524,11 +2524,22 @@ if (!window.__lxMemberFetched) {
             "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, floorCount),
           };
 
-          // 存完整池供换一换轮换
+          // 存完整池供换一换轮换（用未 slice 的全量筛选，否则池=可见数，换一换无货可换被禁用）
+          const matchAll = (match) => uniq(basePool.filter(match));
+          const floorPoolFull = {
+            "ThinkPad": matchAll((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)),
+            "ThinkBook": matchAll((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)),
+            "Thinkplus": accessoryProducts,
+            "ThinkCentre": uniq([...basePool.filter((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts]),
+            "扬天&瑞天": desktopProducts,
+            "配件&外设": accessoryProducts,
+            "服务存储": serviceStorageProducts,
+            "企业服务": uniq([...serviceProducts, ...serviceStorageProducts]),
+          };
           if (!state.bizFloorPool) state.bizFloorPool = {};
           LX_BUSINESS_RECOMMEND_FLOORS.forEach(([label]) => {
-            const fullItems = floorItems[label] || [];
-            if (fullItems.length) state.bizFloorPool[label] = fullItems;
+            const full = floorPoolFull[label] || floorItems[label] || [];
+            if (full.length) state.bizFloorPool[label] = full;
           });
 
           return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
@@ -2536,7 +2547,7 @@ if (!window.__lxMemberFetched) {
             if (!items.length) return "";  // 该类没货就不显示空楼层，不跨品类凑
             const catKey = label;
             const visibleCount = lxCatFloorVisibleCount();
-            const canShuffle = items.length > visibleCount;
+            const canShuffle = (state.bizFloorPool?.[label] || items).length > visibleCount;
             const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
             const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
             return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
@@ -2555,10 +2566,12 @@ if (!window.__lxMemberFetched) {
           return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, floorCount);
             if (!items.length) return "";  // 该类没货就不显示空楼层
-            state.bizFloorPool[label] = items;
+            // 完整池供换一换轮换（不受 floorCount/used 限制；该类全量匹配去重）
+            const fullPool = lxUniqProducts(source.filter(match));
+            state.bizFloorPool[label] = fullPool.length >= items.length ? fullPool : items;
             const catKey = label;
             const visibleCount = lxCatFloorVisibleCount();
-            const canShuffle = items.length > visibleCount;
+            const canShuffle = (state.bizFloorPool[label] || items).length > visibleCount;
             const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
             const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
             return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
