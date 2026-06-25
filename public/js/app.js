@@ -3135,14 +3135,80 @@ if (!window.__lxMemberFetched) {
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
+            const bizStoreCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
+            const bizStoreMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的门店</span></div>`;
+            const bizStoreListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
+            const bizStoreHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想授权门店（企业服务）</p>`;
+            const bizStoreBody = bizStoreCityBar + bizStoreMapEl + bizStoreHint + bizStoreListEl;
             const activitySections = {
               "企业专享权益": lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
               "对公与售后保障": lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
               "轻量定制方案": lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
-              "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              "门店": lxFloorSection("门店", "到店洽谈批量采购 · 企业专属服务", bizStoreBody, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询附近可以办理企业批量采购的联想门店">查附近企业服务门店</button>`),
               "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
+            if (activeFloorTab === "门店") {
+              lxResolveCoord().then((coord) => {
+                if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                const cityEl = box.querySelector("[data-store-city]");
+                const listEl = box.querySelector("[data-store-list]");
+                const lat = coord?.lat ?? 39.9042;
+                const lng = coord?.lng ?? 116.4074;
+                if (cityEl) cityEl.textContent = coord?.city || (coord ? "定位成功" : "北京（默认）");
+                fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (!el) return;
+                    let stores = data.stores || data || [];
+                    if (cityEl) {
+                      const addr = stores[0]?.address || "";
+                      const city = coord?.city || addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
+                      cityEl.textContent = city;
+                    }
+                    if (!stores.length) {
+                      el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近门店，可向乐享询问</div>`;
+                      return;
+                    }
+                    // 前 2 家标记企业服务中心（POC 演示，无后端字段时默认前2家）
+                    stores = stores.map((s, i) => ({ ...s, _bizCenter: s.biz_center || s.enterprise_service || i < 2 }));
+                    // 企业服务中心排前面
+                    stores.sort((a, b) => (b._bizCenter ? 1 : 0) - (a._bizCenter ? 1 : 0));
+                    // 用最近门店坐标刷新地图标点
+                    const top = stores[0];
+                    const mLng = top.lng ?? top.longitude ?? lng, mLat = top.lat ?? top.latitude ?? lat;
+                    const mapImg = box.querySelector("[data-store-map] img");
+                    if (mapImg && mLng && mLat) mapImg.src = `/api/stores/staticmap?lng=${encodeURIComponent(mLng)}&lat=${encodeURIComponent(mLat)}`;
+                    const mapTip = box.querySelector("[data-store-map-tip]");
+                    if (mapTip) mapTip.textContent = `${esc(top.name || "最近门店")} · 点击门店卡「导航」开地图`;
+                    el.innerHTML = stores.map((s) => {
+                      const name = esc(s.name || "联想授权门店");
+                      const addr = esc(s.address || "");
+                      const dm = s.distance ?? s.dist;
+                      const dist = dm ? `<span class="lx-store-dist">${dm < 1000 ? Math.round(dm) + "m" : (dm / 1000).toFixed(1) + "km"}</span>` : "";
+                      const hours = esc(s.hours || s.business_hours || "10:00–20:00");
+                      const tel = s.tel || s.phone || "";
+                      const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
+                      const bizChips = s._bizCenter
+                        ? ["企业服务中心", "批量采购洽谈", "到店看样机"]
+                        : ["批量采购洽谈", "到店看样机"];
+                      const rights = bizChips.map((r) => `<span${r === "企业服务中心" ? ' class="lx-store-biz-chip"' : ""}>${esc(r)}</span>`).join("");
+                      const navBtn = `<button class="lx-p0-btn" type="button" data-store-nav="${esc(String(s.lng||lng))},${esc(String(s.lat||lat))}" data-store-name="${name}" data-store-addr="${addr}" data-store-tel="${esc(tel)}">导航</button>`;
+                      const stockBtn = `<button class="lx-p0-btn" type="button" data-quick-ask="查询${esc(s.name||'该门店')}是否支持企业批量采购">企业咨询</button>`;
+                      const apptBtn = `<button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到${esc(s.name||'门店')}洽谈企业批量采购">约洽谈</button>`;
+                      return `<article class="lx-store-card lx-store-card--biz" tabindex="0"><div class="lx-store-card-head"><h4>${name}${dist}</h4><div class="lx-store-rights-chips">${rights}</div></div><p class="lx-store-addr">${addr}</p><div class="lx-store-meta"><span class="lx-store-hours">${hours}</span>${telHtml}</div><div class="lx-store-btns">${navBtn}${stockBtn}${apptBtn}</div></article>`;
+                    }).join("");
+                  })
+                  .catch(() => {
+                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (el) el.innerHTML = `<article class="lx-store-card lx-store-card--biz" tabindex="0"><div class="lx-store-card-head"><h4>联想北京中关村旗舰店<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span class="lx-store-biz-chip">企业服务中心</span><span>批量采购洽谈</span><span>到店看样机</span></div></div><p class="lx-store-addr">北京市海淀区中关村大街1号</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想中关村旗舰店洽谈企业批量采购">约洽谈</button></div></article><article class="lx-store-card lx-store-card--biz" tabindex="0"><div class="lx-store-card-head"><h4>联想北京望京体验中心<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span class="lx-store-biz-chip">企业服务中心</span><span>批量采购洽谈</span><span>到店看样机</span></div></div><p class="lx-store-addr">北京市朝阳区望京SOHO T1</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想望京体验中心洽谈企业批量采购">约洽谈</button></div></article><article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>联想北京五道口店<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span>批量采购洽谈</span><span>到店看样机</span></div></div><p class="lx-store-addr">北京市海淀区五道口成府路</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–19:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想五道口店洽谈企业批量采购">约洽谈</button></div></article>`;
+                    if (cityEl) cityEl.textContent = "北京（示例）";
+                  });
+              }).catch(() => {});
+            }
           } else {
             const activitySections = {
               "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", (() => {
