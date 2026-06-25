@@ -10749,7 +10749,6 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   display:none;
   flex-direction:column;
   gap:0;
-  margin-top:18px;
   background:transparent;
   border:0;
   border-radius:0;
