@@ -15,7 +15,7 @@
         <label class="form-label">密码</label>
         <input class="form-input" type="password" v-model="loginForm.password" placeholder="••••••" @keydown.enter="doLogin">
       </div>
-      <div class="login-error" v-show="state.loginError">{{ state.loginError }}</div>
+      <div class="login-error" v-if="state.loginError" style="display:block">{{ state.loginError }}</div>
       <button class="btn btn-primary login-btn" @click="doLogin">登录工作台</button>
     </div>
   </div>
@@ -114,8 +114,7 @@
           </button>
         </div>
       </div>
-      <!-- ponytail: workspace 页签待接 AI 报告流程 -->
-      <div class="workspace-tabs" v-show="false"></div>
+      <!-- ponytail: workspace 页签待接 AI 报告流程；v-if 不渲染(CSS 有 display:flex!important, v-show 压不住会留空白) -->
       <div class="page-content">
         <router-view />
       </div>
