@@ -70,6 +70,12 @@
   border-color: #4e1646;
   color: #fff;
 }
+.lx-advisor-chip:disabled,
+.lx-advisor-chip.is-picked {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
 .lx-advisor-summary {
   margin-top: 12px;
   padding: 18px 20px;
