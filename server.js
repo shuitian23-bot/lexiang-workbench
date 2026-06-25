@@ -487,12 +487,12 @@ app.get('/api/preview', async (req, res) => {
 });
 
 // SPA fallback
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
-});
-app.get('/admin/*path', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
-});
+// /admin 入口已改指 Vue3 版(admin-vue):
+//  - /admin/workbench.html 本身是跳转页(static 返回, 跳 /admin-vue/)
+//  - 旧原生版回退: /admin/workbench-native.html (static 直接提供)
+//  - /admin/* 的 css/js/assets 仍由 express.static 提供
+// 这里只补 /admin 无斜杠的入口跳转(static 会把它 301 到 /admin/ 然后 404, 故显式跳)
+app.get('/admin', (req, res) => res.redirect('/admin-vue/'));
 // admin-vue (Vite SPA, history 模式) — 深层路由 fallback 到工程 index，否则落到主站 index
 app.get('/admin-vue/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin-vue/index.html'));
