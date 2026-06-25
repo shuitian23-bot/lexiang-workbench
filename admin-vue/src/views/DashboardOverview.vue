@@ -12,9 +12,15 @@
             v-for="r in rangeOptions"
             :key="r.value"
             :class="['dash-pill', activeRange === r.value ? 'active' : '']"
-            @click="activeRange = r.value"
+            @click="onRangeChange(r.value)"
           >{{ r.label }}</button>
         </div>
+        <span v-if="activeRange === 'custom'" class="ops-custom-range" style="display:flex;align-items:center;gap:4px">
+          <input type="date" class="ops-date-input" :min="bounds.min" :max="bounds.max" v-model="customStart" />
+          <span style="color:#9199a6;font-size:12px">至</span>
+          <input type="date" class="ops-date-input" :min="bounds.min" :max="bounds.max" v-model="customEnd" />
+        </span>
+        <button class="btn btn-sm btn-secondary" @click="handleAiQuick">AI 解读</button>
       </div>
     </div>
 
@@ -267,6 +273,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { LEAI_DATA } from '../data/leaiData.js'
+import { leaiDateBounds, leaiRowIso } from '../data/leaiHelpers.js'
 
 // ── 常量 ──────────────────────────────────────────────────
 const PRODUCT_ROWS = [
@@ -281,12 +288,16 @@ const RANGE_OPTIONS = [
   { value: '1d', label: '最近1天' },
   { value: '7d', label: '最近7天' },
   { value: '14d', label: '近14天' },
-  { value: '30d', label: '近30天' }
+  { value: '30d', label: '近30天' },
+  { value: 'custom', label: '自定义' }
 ]
 
 // ── 响应式状态 ─────────────────────────────────────────────
 const activeRange = ref('1d')
 const scenarioMode = ref('all')
+const bounds = leaiDateBounds()
+const customStart = ref(bounds.min)
+const customEnd = ref(bounds.max)
 const productMetric = ref('views')
 const scenarioChartEl = ref(null)
 let scenarioChart = null
@@ -294,14 +305,41 @@ let scenarioChart = null
 // ── 工具函数 ───────────────────────────────────────────────
 const rangeOptions = RANGE_OPTIONS
 
+function handleAiQuick() {
+  const label = RANGE_OPTIONS.find(r => r.value === activeRange.value)?.label || '最近1天'
+  const prompt = `基于当前运营总览看板，分析${label}的主要趋势、核心风险、增长机会和优先动作。`
+  if (typeof window !== 'undefined' && typeof window.aiQuick === 'function') {
+    window.aiQuick(prompt)
+  } else {
+    console.warn('[DashboardOverview] window.aiQuick 未就绪，跳过 AI 解读')
+  }
+}
+
 function rangeSize(r) {
   return r === '1d' ? 1 : r === '7d' ? 7 : r === '14d' ? 14 : 30
 }
 
 function getRows(range) {
   const rows = LEAI_DATA.daily || []
+  if (range === 'custom') {
+    const lo = customStart.value <= customEnd.value ? customStart.value : customEnd.value
+    const hi = customStart.value <= customEnd.value ? customEnd.value : customStart.value
+    return rows.filter(r => {
+      const d = leaiRowIso(r.d)
+      return (!lo || d >= lo) && (!hi || d <= hi)
+    })
+  }
   const n = Math.min(rangeSize(range), rows.length)
   return rows.slice(-n)
+}
+
+function onRangeChange(val) {
+  if (val === 'custom') {
+    const b = leaiDateBounds()
+    if (!customStart.value) customStart.value = b.min
+    if (!customEnd.value) customEnd.value = b.max
+  }
+  activeRange.value = val
 }
 
 function sum(rows, key) {
@@ -592,6 +630,17 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* 自定义日期输入 */
+.ops-date-input {
+  border: 1px solid var(--border-color, #e1e4e8);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  color: var(--text-primary, #1f2329);
+  background: #fff;
+  width: 118px;
+}
+
 /* 进度条（CSS变量驱动） */
 :deep(.overview-row-track) {
   height: 4px;

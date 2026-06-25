@@ -311,7 +311,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
 // ── 颜色 ──
@@ -415,7 +415,7 @@ const dataEditLogs = ref(JSON.parse(localStorage.getItem(DE_LOGS_KEY) || '[]'))
 const charts = {}
 
 // ── 点击空白关闭多选 ──
-document.addEventListener('click', () => { msOpen.value = null })
+function handleDocClick() { msOpen.value = null }
 
 function toggleMs(key) { msOpen.value = msOpen.value === key ? null : key }
 
@@ -631,9 +631,17 @@ function exportQuality() {
 // ── 监听 tab / 周期变化重绘图表 ──
 watch([kbTab, kbPeriod, kbTab2Period, kbYoy, kbMom, kbTab2Yoy, kbTab2Mom], renderKbChart)
 
+function handleResize() { Object.values(charts).forEach(c => c && c.resize && c.resize()) }
+
 onMounted(() => {
   renderKbChart()
-  window.addEventListener('resize', () => Object.values(charts).forEach(c => c && c.resize && c.resize()))
+  document.addEventListener('click', handleDocClick)
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocClick)
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
