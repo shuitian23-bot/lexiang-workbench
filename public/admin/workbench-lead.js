@@ -1,3 +1,7 @@
+/* ⚠️ 已废弃 (2026-06-25) — 此为旧原生后台代码，仅供 /admin/workbench-native.html 回退用。
+ * 后台已全量迁到 Vue3: /opt/projects/lexiang-new/admin-vue/ (访问 /admin-vue/ 或 /admin/)。
+ * 新功能/改动请改 admin-vue/src/ 下的 .vue，不要改这里——改了不会生效(/admin 已跳 Vue3)。
+ * 详见项目 CLAUDE.md「前端一律 Vue3」。 */
 // ===== 企业客户管理 · 线索管理（线索看板 + 线索池） =====
 // 原生 JS 模块，移植自 线索管理系统(Vue) POC，复用 workbench CSS 与本地 ECharts。
 // 注册 PAGE_RENDERERS['lead.dashboard'] / ['lead.pool']，通过 page-change 事件初始化图表与交互。

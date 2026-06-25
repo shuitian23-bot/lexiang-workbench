@@ -1,3 +1,7 @@
+/* ⚠️ 已废弃 (2026-06-25) — 此为旧原生后台代码，仅供 /admin/workbench-native.html 回退用。
+ * 后台已全量迁到 Vue3: /opt/projects/lexiang-new/admin-vue/ (访问 /admin-vue/ 或 /admin/)。
+ * 新功能/改动请改 admin-vue/src/ 下的 .vue，不要改这里——改了不会生效(/admin 已跳 Vue3)。
+ * 详见项目 CLAUDE.md「前端一律 Vue3」。 */
 // ===== PAGE RENDERERS =====
 function renderPage(pageId) {
   const content = document.getElementById('page-content');
