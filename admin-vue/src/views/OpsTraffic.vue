@@ -139,6 +139,10 @@
 <script setup>
 import * as echarts from 'echarts'
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import {
+  leaiGetData, leaiRows, leaiBuildSummary, leaiSum as leaiSumHelper,
+  leaiFmtW, leaiFmtPct, leaiDistributeAmount
+} from '../data/leaiHelpers'
 
 // ---- 常量 ----
 const OPS_CHART_COLORS = {
@@ -182,44 +186,31 @@ let _charts = {}
 
 // ---- 数据获取 ----
 function getData() {
-  return typeof window.leaiGetData === 'function' ? window.leaiGetData() : null
+  return leaiGetData()
 }
 
 function getRows(range, source, csStart, csEnd) {
-  if (typeof window.leaiRows === 'function') return window.leaiRows(range, source, csStart, csEnd)
-  if (!source) return []
-  if (range === '1d') return source.slice(-1)
-  if (range === '7d') return source.slice(-7)
-  if (range === '14d') return source.slice(-14)
-  if (range === 'custom' && csStart && csEnd) return source.filter(r => r.d >= csStart && r.d <= csEnd)
-  return source.slice(-30)
+  return leaiRows(range, source, csStart, csEnd)
 }
 
 function getSummary(range, csStart, csEnd) {
-  if (typeof window.leaiBuildSummary === 'function') return window.leaiBuildSummary(range, csStart, csEnd)
-  return { dau: 0, mau: 0, loginAvg: 0, loginM: 0, loginDedup: 0, interDedup: 0, loginDedupEst: false, interDedupEst: false, login: 0, inter: 0 }
+  return leaiBuildSummary(range, csStart, csEnd)
 }
 
 function fmtW(v) {
-  if (typeof window.leaiFmtW === 'function') return window.leaiFmtW(v)
-  const n = Number(v) || 0
-  return n >= 10000 ? (n / 10000).toFixed(1) + '万' : n.toLocaleString()
+  return leaiFmtW(v)
 }
 
 function fmtPct(part, total) {
-  if (typeof window.leaiFmtPct === 'function') return window.leaiFmtPct(part, total)
-  return total ? (part / total * 100).toFixed(1) + '%' : '-'
+  return leaiFmtPct(part, total)
 }
 
 function leaiSum(rows, key) {
-  if (typeof window.leaiSum === 'function') return window.leaiSum(rows, key)
-  return (rows || []).reduce((s, r) => s + (Number(r?.[key]) || 0), 0)
+  return leaiSumHelper(rows, key)
 }
 
 function distribute(total, weights) {
-  if (typeof window.leaiDistributeAmount === 'function') return window.leaiDistributeAmount(total, weights)
-  const sum = weights.reduce((s, w) => s + w, 0)
-  return weights.map(w => Math.round((Number(total) || 0) * w / sum))
+  return leaiDistributeAmount(total, weights)
 }
 
 // ---- 计算媒体行 ----
@@ -264,7 +255,6 @@ function buildPortSummary(rows, metric) {
 }
 
 function seriesForDates(source, baseRows, key) {
-  if (typeof window.opsSeriesForDates === 'function') return window.opsSeriesForDates(source, baseRows, key)
   const map = new Map((source || []).map(r => [r.d, r]))
   return baseRows.map(r => Number(map.get(r.d)?.[key]) || 0)
 }

@@ -123,6 +123,10 @@
 <script setup>
 import * as echarts from 'echarts'
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import {
+  leaiGetData, leaiRows, leaiBuildSummary, leaiBizTradeSummaries, leaiBizSummary,
+  leaiFmtY, leaiFmtPct
+} from '../data/leaiHelpers'
 
 const OPS_CHART_COLORS = {
   blue: '#3f78c5', teal: '#3f9ead', green: '#58a86a', amber: '#c89532',
@@ -155,47 +159,26 @@ const chartPlatformTrend = ref(null)
 let _charts = {}
 
 // ---- 数据辅助 ----
-function getData() { return typeof window.leaiGetData === 'function' ? window.leaiGetData() : null }
+function getData() { return leaiGetData() }
 
 function getRows(range, source, csStart, csEnd) {
-  if (typeof window.leaiRows === 'function') return window.leaiRows(range, source, csStart, csEnd)
-  if (!source) return []
-  if (range === '1d') return source.slice(-1)
-  if (range === '7d') return source.slice(-7)
-  if (range === '14d') return source.slice(-14)
-  if (range === 'custom' && csStart && csEnd) return source.filter(r => r.d >= csStart && r.d <= csEnd)
-  return source.slice(-30)
+  return leaiRows(range, source, csStart, csEnd)
 }
 
 function getSummary(range, csStart, csEnd) {
-  if (typeof window.leaiBuildSummary === 'function') return window.leaiBuildSummary(range, csStart, csEnd)
-  return { gmv: 0, buy: 0, offGmv: 0, offBuy: 0, nonGmv: 0, nonBuy: 0 }
+  return leaiBuildSummary(range, csStart, csEnd)
 }
 
 function getBizTrade(rows) {
-  const L = getData()
-  if (!L) return [{ gmv: 0, buy: 0 }, { gmv: 0, buy: 0 }, { gmv: 0, buy: 0 }]
-  if (typeof window.leaiBizTradeSummaries === 'function') return window.leaiBizTradeSummaries(rows)
-  const bizData = [L.consumer, L.smb, L.gov]
-  return bizData.map(b => {
-    if (typeof window.leaiBizSummary === 'function') return window.leaiBizSummary(rows, b)
-    const dates = new Set(rows.map(r => r.d))
-    const picked = (b || []).filter(r => dates.has(r.d))
-    return { gmv: picked.reduce((s, r) => s + (Number(r.gmv) || 0), 0), buy: picked.reduce((s, r) => s + (Number(r.buy) || 0), 0) }
-  })
+  return leaiBizTradeSummaries(rows)
 }
 
 function fmtY(v) {
-  if (typeof window.leaiFmtY === 'function') return window.leaiFmtY(v)
-  const n = Number(v) || 0
-  if (n >= 100000000) return (n / 100000000).toFixed(1) + '亿'
-  if (n >= 10000) return (n / 10000).toFixed(1) + '万'
-  return n.toLocaleString()
+  return leaiFmtY(v)
 }
 
 function fmtPct(part, total) {
-  if (typeof window.leaiFmtPct === 'function') return window.leaiFmtPct(part, total)
-  return total ? (part / total * 100).toFixed(1) + '%' : '-'
+  return leaiFmtPct(part, total)
 }
 
 // ---- KPI ----
