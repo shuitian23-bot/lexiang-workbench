@@ -26,7 +26,7 @@
         <em>{{ role === 'admin' ? '管理员视角当前账号' : '仅统计当前 PM 账号' }}</em>
       </div>
       <div class="skill-hub-stat stat--warning">
-        <div class="skill-hub-stat-head"><span>待审批</span><i>TODO</i></div>
+        <div class="skill-hub-stat-head"><span>待审批</span></div>
         <strong>{{ reviewCount }}</strong>
         <em>需管理员审核处理</em>
       </div>
