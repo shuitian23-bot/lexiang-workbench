@@ -59,7 +59,7 @@
       </nav>
       <div class="sidebar-footer">
         <!-- 账号菜单弹层 (account-hub-popover) -->
-        <div class="user-menu-popover account-hub-popover" v-show="state.accountHubOpen" @click.self="closeAccountHub">
+        <div class="user-menu-popover account-hub-popover" :class="{ open: state.accountHubOpen }" @click.self="closeAccountHub">
           <div class="account-hub-panel" @click.stop>
             <button type="button" class="account-hub-close" @click="closeAccountHub" aria-label="关闭">×</button>
             <button type="button" class="account-hub-card primary" @click="goSkillCreate">
