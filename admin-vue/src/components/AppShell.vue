@@ -21,7 +21,7 @@
   </div>
 
   <!-- 三栏布局 -->
-  <template v-else>
+  <div class="workbench-shell" v-else>
     <!-- 左侧栏 -->
     <div class="sidebar" :class="{ collapsed: state.sidebarCollapsed }">
       <div class="sidebar-header">
@@ -91,7 +91,7 @@
 
     <!-- 右侧 AI panel -->
     <AiPanel v-show="state.aiOpen" :visible="state.aiOpen" @toggle="toggleAI" />
-  </template>
+  </div>
 </template>
 
 <script setup>
@@ -296,6 +296,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* 三栏横向并排 + 满高，等价原版 body{display:flex;height:100vh} */
+.workbench-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
 .login-card-wrapper {
   display: flex;
   align-items: center;
@@ -351,4 +358,9 @@ onMounted(async () => {
   color: var(--primary, #3f78c5);
   font-weight: 500;
 }
+</style>
+
+<!-- 全局根高度：原版靠 body{height:100vh}，Vite 工程需显式给 html/body/#app 满高 -->
+<style>
+html, body, #app { height: 100%; margin: 0; }
 </style>
