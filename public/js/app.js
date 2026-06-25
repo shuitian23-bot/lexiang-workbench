@@ -1318,22 +1318,23 @@ if (!window.__lxMemberFetched) {
           pageBox.innerHTML = `
             <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
             ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>
-            <div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我解读这几款的差异，按我的需求给出选购建议：${esc(full.map((item) => item.name).join("、"))}">让乐享解读差异</button></div>`;
-          // AI建议：异步 fetch，不阻塞渲染
+            <div class="lx-cmp-advice" style="margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"><strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong><span style="opacity:.6">乐享正在解读这几款的差异…</span></div>`;
+          // AI建议：异步 fetch，自动展示在对比表下方（无需点按钮）。失败/无数据给兜底文案，不卡在"正在解读"
           (async () => {
+            const adviceEl = pageBox.querySelector(".lx-cmp-advice");
+            if (!adviceEl) return;
+            const fallback = '可点开任一款看详情，或直接问乐享「这几款哪个更适合我」获取选购建议。';
+            const setAdvice = (html) => { adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>${html}`; };
             try {
-              const adviceEl = pageBox.querySelector(".lx-cmp-advice");
-              if (!adviceEl) return;
               const advProducts = full.map(p => ({ name: p.name, price: p.price, cpu: (p.specs || {}).cpu || '', gpu: (p.specs || {}).gpu || '', ram: (p.specs || {}).ram || (p.specs || {}).memory || '' }));
               const advQ = state.lastUserText || '';
               const r = await fetch('/api/leai/compare-advice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ products: advProducts, q: advQ }) });
-              if (!r.ok) return;
-              const d = await r.json();
-              if (!d.pick || !d.reason) return;
-              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
-              adviceEl.style.display = 'block';
-            } catch (_) {}
+              const d = r.ok ? await r.json() : null;
+              if (d && d.pick && d.reason) setAdvice(`结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`);
+              else setAdvice(`<span style="opacity:.85">${fallback}</span>`);
+            } catch (_) {
+              setAdvice(`<span style="opacity:.85">${fallback}</span>`);
+            }
           })();
         }
 
