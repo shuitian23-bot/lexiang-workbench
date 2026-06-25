@@ -5896,10 +5896,6 @@ if (!window.__lxMemberFetched) {
             // 换一换：品类楼层刷新下一批 8 个商品
             const shuffleBtn = event.target.closest("[data-cat-shuffle]");
             if (shuffleBtn && !shuffleBtn.disabled) {
-              shuffleBtn.classList.remove("is-spinning");
-              void shuffleBtn.offsetWidth;
-              shuffleBtn.classList.add("is-spinning");
-              window.setTimeout(() => shuffleBtn.classList.remove("is-spinning"), 520);
               const catKey = shuffleBtn.dataset.catShuffle;
               const floorLabel = shuffleBtn.dataset.floorLabel;
               const floorDef = LX_PERSONAL_CATEGORY_FLOORS.find((f) => f.label === floorLabel);

@@ -9933,12 +9933,6 @@ body[data-arr="A"] .ai-arrow .fx{ left:11px!important; top:-2px!important; }
   display: block;
   object-fit: contain;
 }
-.lx-cat-shuffle-btn.is-spinning .lx-cat-shuffle-icon {
-  animation: lxCatShuffleSpin .48s ease;
-}
-@keyframes lxCatShuffleSpin {
-  to { transform: rotate(360deg); }
-}
 .lx-cat-shuffle-btn:hover:not(:disabled) {
   background: #f6f1f8;
   border-color: #b68dc8;
