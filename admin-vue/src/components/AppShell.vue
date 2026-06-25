@@ -296,10 +296,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 三栏横向并排 + 满高，等价原版 body{display:flex;height:100vh} */
+/* 三栏横向并排 + 满高满宽，等价原版 body{display:flex;height:100vh} */
 .workbench-shell {
   display: flex;
   height: 100vh;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -362,5 +363,5 @@ onMounted(async () => {
 
 <!-- 全局根高度：原版靠 body{height:100vh}，Vite 工程需显式给 html/body/#app 满高 -->
 <style>
-html, body, #app { height: 100%; margin: 0; }
+html, body, #app { height: 100%; width: 100%; margin: 0; }
 </style>
