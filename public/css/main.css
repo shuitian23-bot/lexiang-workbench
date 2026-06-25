@@ -8578,7 +8578,8 @@ body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+  grid-column: 1 / -1; /* 楼层 body 是 grid，bar 独占整行，不和方案卡同行挤 */
 }
 .lx-ent-industry-tag {
   padding: 7px 18px;
@@ -10811,7 +10812,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .brand[data-v="3"].lx-brand-skin .sec-title{ display:flex; align-items:center; gap:10px; font-size:19px; font-weight:800; color:var(--text); margin:0 0 18px; }
 .brand[data-v="3"].lx-brand-skin .sec-title::before{ content:""; width:4px; height:18px; border-radius:3px; background:var(--grad-brand); }
 .brand[data-v="3"].lx-brand-skin .chips{ display:flex; flex-wrap:wrap; gap:10px; }
-.brand[data-v="3"].lx-brand-skin .hero{ position:relative; border-radius:20px; overflow:hidden; min-height:360px; aspect-ratio:1680/720; background:url("/assets/img/brand.jpg") center/cover no-repeat; box-shadow:none; display:block; padding:0; color:#fff; isolation:auto; }
+.brand[data-v="3"].lx-brand-skin .hero{ position:relative; border-radius:20px; overflow:hidden; min-height:360px; aspect-ratio:1680/720; background:url("/assets/img/brand-20260626.jpg") center/cover no-repeat; box-shadow:none; display:block; padding:0; color:#fff; isolation:auto; }
 .brand[data-v="3"].lx-brand-skin .hero .photo,
 .brand[data-v="3"].lx-brand-skin .hero .inner{ display:none; }
 .brand[data-v="3"].lx-brand-skin .hero .photo{ position:relative; flex:0 0 42%; inset:auto; width:auto; height:auto; -webkit-mask:none; mask:none; background:url("/assets/img/brand-hero-building.jpg") center/cover no-repeat; opacity:.72; mix-blend-mode:screen; }
