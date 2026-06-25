@@ -10817,3 +10817,45 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   .brand[data-v="3"].lx-brand-skin .vside{ border-left:0; border-top:1px solid var(--line); }
   .brand[data-v="3"].lx-brand-skin .cases{ grid-template-columns:1fr 1fr; }
 }
+
+/* ── 政企频道行业入口 tag 横排 ─────────────────────────────── */
+.lx-ent-industry-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0 16px;
+  margin-bottom: 4px;
+}
+.lx-ent-industry-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 14px;
+  border: 1.5px solid #b5173f;
+  border-radius: 15px;
+  background: #fff;
+  color: #b5173f;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.lx-ent-industry-tag:hover {
+  background: #fdf0f3;
+  border-color: #8f1030;
+  color: #8f1030;
+}
+.lx-ent-industry-tag.is-active {
+  background: #b5173f;
+  border-color: #b5173f;
+  color: #fff;
+}
+.lx-ent-industry-tag.no-case {
+  opacity: 0.82;
+}
+.lx-ent-industry-tag.no-case:not(.is-active) {
+  border-style: dashed;
+}
