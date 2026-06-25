@@ -1875,53 +1875,8 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
   visibility:hidden!important;
   pointer-events:none!important;
 }
-.assistant-panel.assistant-hover-active > .default-state,
-.assistant-panel.assistant-glass-active > .default-state,
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .default-state{
-  display:block!important;
-  min-height:calc(100% - 260px)!important;
-  padding-top:50px!important;
-  opacity:.28!important;
-  visibility:visible!important;
-  filter:blur(9px) saturate(.86) contrast(.95)!important;
-  transform:translateZ(0) scale(1.01)!important;
-  transform-origin:center top!important;
-}
-.assistant-panel.assistant-hover-active > .default-state .fullscreen-welcome,
-.assistant-panel.assistant-glass-active > .default-state .fullscreen-welcome,
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .default-state .fullscreen-welcome{
-  display:none!important;
-}
-.assistant-panel.assistant-hover-active > .default-state .headline,
-.assistant-panel.assistant-glass-active > .default-state .headline,
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .default-state .headline{
-  display:block!important;
-  position:relative!important;
-  width:96.25%!important;
-  margin:0 auto clamp(22px,2vw,34px)!important;
-  padding:0 4px 4px!important;
-  color:#1a1320!important;
-  font-size:21px!important;
-  line-height:1.45!important;
-  font-weight:800!important;
-}
-.assistant-panel.assistant-hover-active > .default-state .quick-list,
-.assistant-panel.assistant-glass-active > .default-state .quick-list,
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .default-state .quick-list{
-  display:flex!important;
-  flex-direction:column!important;
-  gap:8px!important;
-  width:96.25%!important;
-  margin:22px auto 0!important;
-}
-.assistant-panel.assistant-hover-active > .default-state .quick-item,
-.assistant-panel.assistant-glass-active > .default-state .quick-item,
-.assistant-panel:has(.assistant-bottom.has-hover-prompts) > .default-state .quick-item{
-  display:flex!important;
-  height:54px!important;
-  min-height:54px!important;
-  opacity:1!important;
-}
+/* 删除：第三份写死 default-state display:block 的重复强制块。hover 遮罩由通用 > .panel-state 规则虚化
+   当前可见的 panel-state（对话→chat-state，未对话→default-state），不再强制拉欢迎语。 */
 .assistant-panel.assistant-hover-active > .assistant-glass-veil,
 .assistant-panel.assistant-glass-active > .assistant-glass-veil,
 .assistant-panel:has(.assistant-bottom.has-hover-prompts) > .assistant-glass-veil{
