@@ -2420,7 +2420,7 @@ if (!window.__lxMemberFetched) {
           // 渲染最多 12 个（够 6 列），渲染后 lxClampCatFloors 按真实列数夹成两排（不依赖 JS 猜列数）
           const n = 12;
           const canShuffle = items.length > n;
-          const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><span class="lx-cat-shuffle-icon" aria-hidden="true"></span>换一换</button>`;
+          const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品">换一换</button>`;
           const cards = items.slice(0, n).map(lxProductMiniCard).join("");
           return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
         }
