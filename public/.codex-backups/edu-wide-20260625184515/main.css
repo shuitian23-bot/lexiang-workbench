@@ -1752,7 +1752,6 @@
       }
       .content[data-view="compare"] .compare-page { display: block; }
       .info-page { display: none; padding: 4px 2px 40px; max-width: 880px; }
-      .info-page.is-wide { width: 100%; max-width: none; }
       .content[data-view="info"] .hero,
       .content[data-view="info"] .category-tabs,
       .content[data-view="info"] .product-grid,
@@ -10657,7 +10656,6 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   --ease:cubic-bezier(.22,.61,.36,1);
   background:#fff;
   color:var(--text);
-  width:100%;
   font-size:14px;
   line-height:1.6;
   -webkit-font-smoothing:antialiased;

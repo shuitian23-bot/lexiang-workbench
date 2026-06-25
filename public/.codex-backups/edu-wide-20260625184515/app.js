@@ -3631,7 +3631,6 @@ if (!window.__lxMemberFetched) {
             content?.scrollTo({ top: 0, behavior: "smooth" });
           } else if (tab.kind === "info") {
             const pageBox = lxEnsureInfoPage();
-            pageBox.classList.toggle("is-wide", tab.id === "info:edu");
             pageBox.innerHTML = `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>${tab.html || ""}`;
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "info");
