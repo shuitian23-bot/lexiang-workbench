@@ -1,0 +1,12 @@
+# lexiang 开发约定（Cursor）
+
+完整约定见 AGENTS.md 和 CLAUDE.md。核心底线：
+
+## ⚠️ 前端一律 Vue3（强制）
+- 后台 workbench 已全量迁 Vue3：源码 admin-vue/，产物 public/admin-vue/，访问 /admin-vue/(或 /admin/ 已跳转)。
+- 改后台：改 admin-vue/src/ 的 .vue → cd admin-vue && npm run build → commit src + public/admin-vue。
+- ❌ 不要改 public/admin/workbench*.js（旧原生版，已废弃，改了不生效）。
+- 新前端建 Vue3 SFC，不写原生 HTML。
+
+## 协作
+- 改动先在 new(next 分支)改+验证再同步 prod；改完必须 commit+push。
