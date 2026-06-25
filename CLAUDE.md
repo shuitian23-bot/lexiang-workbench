@@ -190,6 +190,13 @@ ssh leaiteam "sudo pm2 logs lexiang --lines 50"
 
 ## 十、团队协作约定（**所有人/所有 AI 必读**）
 
+### 前端一律 Vue3（**强制**，2026-06-25 起）
+
+- **所有人（团队成员 + 任何 AI）新写前端一律用 Vue3**，不再写原生 `innerHTML` 拼字符串 + 全局函数 + inline `onclick` 那套。
+- 后台 workbench 已全量迁到 **Vite + Vue3 SFC**：工程 `/opt/projects/lexiang-new/admin-vue/`（源码），`npm run build` 产物入库 `public/admin-vue/`（cron 不跑 build，访问 `new.leaibot.cn/admin-vue/`）。40 页 + AI panel 已转完，E2E PASS。
+- 改后台：在 `admin-vue/src/` 改 SFC → `npm run build` → commit 源码 + `public/admin-vue/` 产物。**旧原生 `public/admin/workbench*.js` 仅作回退，不再在上面加新功能。**
+- 新前端模块同理：建 Vue3 SFC 或新 Vite 工程（参考 admin-vue / ops-content-manager），别再起原生页。
+
 ### 部署架构（2026-05-10 起）
 
 - **生产**: leaiteam 服务器 `/opt/projects/lexiang`（不是 singapore 了）
