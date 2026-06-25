@@ -1159,6 +1159,36 @@ if (!window.__lxMemberFetched) {
           lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
         }
 
+        function lxOpenCommerceEntry(kind) {
+          const clearFullscreenState = () => {
+            document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
+            state.autoFs = false;
+          };
+          const prepareSplit = () => {
+            document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+            window.__LXFD_FORCE = false;
+            document.body.classList.add("lx-home-split");
+            document.body.dataset.page = "personal";
+            document.body.dataset.state = "chat";
+            routeTo("personal", true);
+          };
+          const run = () => {
+            prepareSplit();
+            clearFullscreenState();
+            if (kind === "orders") openOrders();
+            else openCart();
+            requestAnimationFrame(clearFullscreenState);
+            setTimeout(clearFullscreenState, 780);
+            setTimeout(clearFullscreenState, 2100);
+          };
+          const isFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
+          if (isFullscreen && typeof window.__lxfdExitWithReveal === "function") {
+            window.__lxfdExitWithReveal(run);
+            return;
+          }
+          run();
+        }
+
         function openOrderDetail(orderId) {
           const item = (state.orders || []).find((o) => o.orderId === orderId);
           if (!item) return toast("找不到该订单");
@@ -4064,8 +4094,8 @@ if (!window.__lxMemberFetched) {
             switch_site: () => routeTo(siteMap[target] || "personal"),
             open_member: () => openMemberCenter(),
             open_coupon: () => openCouponCenter(),
-            open_orders: () => openOrders(),
-            open_cart: () => openCart(),
+            open_orders: () => lxOpenCommerceEntry("orders"),
+            open_cart: () => lxOpenCommerceEntry("cart"),
             open_stores: () => openStoresPanel(),
             open_edu_zone: () => openEduZone(),
             open_compare: () => openCompare(),
@@ -4351,12 +4381,37 @@ if (!window.__lxMemberFetched) {
             seen.add(key);
             keys.push(key);
           }));
-          const prices = products.map(p => Number(p.price || 0));
+          const cmpPriceNum = (value) => Number(String(value ?? "").replace(/[^\d.]/g, "")) || 0;
+          const prices = products.map(p => cmpPriceNum(p.price));
           const validPrices = prices.filter(p => p > 0);
           const minPrice = validPrices.length >= 2 ? Math.min(...validPrices) : -1;
           const bestPriceIdx = minPrice > 0 ? prices.indexOf(minPrice) : -1;
-          const displayKeys = keys.slice(0, 8);
-          const rowMeta = displayKeys.map((key) => {
+          const bestTag = '<span class="best-tag">优</span>';
+          const spark = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/></svg>';
+          const cartIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>';
+          const priceText = (value) => {
+            const n = cmpPriceNum(value);
+            return n > 0 ? n.toLocaleString() : "—";
+          };
+          const cmpAiText = (product) => {
+            const specs = product.specs || {};
+            const text = `${product.name || ""} ${Object.values(specs).join(" ")}`.toLowerCase();
+            const highlights = [];
+            if (/rtx|独显|显卡/.test(text)) highlights.push("图形性能更强");
+            if (/oled|2\.8k|高刷|120hz|144hz|240hz/.test(text)) highlights.push("屏幕观感细腻");
+            if (/14英寸|轻薄|air|1\.\d+kg/.test(text)) highlights.push("轻薄便携");
+            if (/32gb|64gb|96gb|128gb|192gb|32g|64g|96g|128g|192g/.test(text)) highlights.push("多任务更从容");
+            if (/1tb|2tb|4tb|512gb/.test(text)) highlights.push("存储空间充足");
+            if (!highlights.length) highlights.push("配置均衡", "日常使用稳定");
+            const scene = /游戏|rtx|独显/.test(text) ? "游戏创作" : /商务|thinkpad|thinkbook/.test(text) ? "办公差旅" : "学习办公";
+            return `${highlights.slice(0, 3).join("，")}，适合${scene}。`;
+          };
+          const headCells = products.map((product, i) => {
+            const custom = /定制|定制款/.test(product.name || "") || product.custom;
+            const cleanName = String(product.name || "").replace(/^【?定制款】?\s*/, "");
+            return `<div class="cell phead bodycell" data-col="${i}"><div class="pname lx-cmp-name" data-open-product="${esc(product.sku)}">${custom ? '<span class="cz">定制款</span>' : ""}${esc(cleanName)}</div><div class="price pr"><span class="cur">¥</span>${priceText(product.price)}${i === bestPriceIdx ? bestTag : ""}</div></div>`;
+          }).join("");
+          const bodyRows = keys.slice(0, 18).map((key) => {
             const values = products.map((product) => String((product.specs || {})[key] ?? "—").trim());
             const differs = new Set(values).size > 1;
             // 优势格：数值可比的行，按方向找最优列高亮（如内存大/重量轻）
@@ -4374,32 +4429,26 @@ if (!window.__lxMemberFetched) {
               const maxScore = Math.max(...scores);
               if (maxScore > 0) bestIndex = scores.indexOf(maxScore);
             }
-            return { key, label: DETAIL_SPEC_LABELS[key] || key, values, differs, bestIndex };
-          });
-          const spark = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/></svg>';
-          const cartIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>';
-          const labels = `<div class="labels"><div class="spacer-flag"></div>${rowMeta.map((row) => `<div class="lrow">${esc(row.label)}</div>`).join("")}</div>`;
-          const cards = products.map((product, i) => {
-            const img = String(product.image_url || product.img || "").replace(/^http:/, "https:");
-            const name = product.name || "";
-            const isReco = i === 0 || product.reco || product.recommended || product.ai_recommended;
-            const isCustom = product.cz || product.custom || product.is_custom || /定制/.test(name);
-            const rows = rowMeta.map((row) => {
-              const best = row.bestIndex === i;
-              return `<div class="srow${best ? " best" : ""}">${best ? '<span class="bdot"></span>' : ""}<span>${esc(row.values[i] || "—")}</span>${best ? '<span class="best-tag">优</span>' : ""}</div>`;
-            }).join("");
-            return `<div class="pcard${isReco ? " reco" : ""}">
-              ${isReco ? `<div class="reco-flag">${spark} 乐享推荐</div>` : '<div class="spacer-flag"></div>'}
-              <div class="ph">
-                <div class="shot">${img ? `<img src="${esc(img)}" alt="${esc(name)}" loading="lazy">` : `<span class="wm">${esc((name || "LENOVO").slice(0, 18))}</span>`}</div>
-                <div class="pname" data-open-product="${esc(product.sku)}">${isCustom ? '<span class="cz">定制款</span>' : ""}${esc(name)}</div>
-                <div class="price pr"><span class="cur">¥</span>${Number(product.price || 0).toLocaleString()}${i === bestPriceIdx ? '<span class="best-tag">优</span>' : ""}</div>
-              </div>
-              ${rows}
-              ${opts.actions ? `<div class="pfoot"><button class="buy" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button><button class="cart" type="button" data-cmp-cart="${esc(product.sku)}">${cartIcon}加购</button></div>` : ""}
-            </div>`;
+            return `<div class="cell rowlabel">${esc(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="cell val bodycell${i === bestIndex ? ' best' : ""}" data-col="${i}">${i === bestIndex ? `<span class="v">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
           }).join("");
-          return `<div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="2">${labels}${cards}</div><p class="lx-p0-disclaimer">浅紫底纹为差异项，「优」标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+          const actionsRow = opts.actions
+            ? `<div class="cell rowlabel">操作</div>${products.map((product, i) => `<div class="cell op bodycell" data-col="${i}"><button class="buy" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button><button class="cart" type="button" data-cmp-cart="${esc(product.sku)}">${cartIcon}加购</button></div>`).join("")}`
+            : "";
+          const aiRow = `<div class="cell rowlabel ai-label">${spark}<span>乐享AI解读</span></div>${products.map((product, i) => `<div class="cell ai-cell bodycell" data-col="${i}"><span class="ai-text">${esc(cmpAiText(product))}</span></div>`).join("")}`;
+          return `<div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="1" style="--lx-cmp-cols:${products.length}"><div class="tbl"><div class="cell rowlabel" style="border-bottom:1px solid var(--border)">商品</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div><p class="foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+        }
+
+        if (!window.__lxCmpSkinHoverBound) {
+          window.__lxCmpSkinHoverBound = true;
+          document.addEventListener("pointerover", (event) => {
+            const cell = event.target.closest?.('.lx-cmp-skin[data-v="1"] .bodycell[data-col]');
+            const root = cell?.closest('.lx-cmp-skin[data-v="1"]');
+            if (root) root.dataset.hoverCol = cell.dataset.col || "";
+          }, true);
+          document.addEventListener("pointerout", (event) => {
+            const root = event.target.closest?.('.lx-cmp-skin[data-v="1"]');
+            if (root && !root.contains(event.relatedTarget)) delete root.dataset.hoverCol;
+          }, true);
         }
 
         function navigateToPortalSection(target) {
@@ -4670,19 +4719,41 @@ if (!window.__lxMemberFetched) {
           chat.scrollTop = chat.scrollHeight;
         }
 
+        // 人工客服态的快捷菜单项（与正常 actionbar 同样走测宽溢出收「更多」，小屏不再挤两排）
+        const LX_CS_SHORTCUTS = [
+          { label: "退出人工", attr: 'data-human-off', cls: " lx-cs-exit" },
+          { label: "我的订单", attr: 'data-quick-ask="小联，帮我查最近的订单状态和物流"' },
+          { label: "发图片", attr: 'data-cs-upload' },
+          { label: "评价服务", attr: 'data-quick-ask="给小联的服务打个 5 星好评，服务专业体验好"' },
+          { label: "需求清单", attr: 'data-quick-ask="小联，我整理一份采购需求清单发给你确认"' },
+        ];
         function lxRenderShortcutRow() {
           const row = document.querySelector(".shortcut-row");
           if (!row) return;
-          if (state.humanMode) {
-            row.innerHTML = `
-              <button class="shortcut lx-cs-exit" type="button" data-human-off>退出人工</button>
-              <button class="shortcut" type="button" data-quick-ask="小联，帮我查最近的订单状态和物流">我的订单</button>
-              <button class="shortcut" type="button" data-cs-upload>发图片</button>
-              <button class="shortcut" type="button" data-quick-ask="给小联的服务打个 5 星好评，服务专业体验好">评价服务</button>
-              <button class="shortcut" type="button" data-quick-ask="小联，我整理一份采购需求清单发给你确认">需求清单</button>`;
-          } else {
-            lxRenderActionbar();
+          if (!state.humanMode) { lxRenderActionbar(); return; }
+          const btnHtml = (it) => `<button class="shortcut${it.cls || ""}" type="button" ${it.attr}>${esc(it.label)}</button>`;
+          // 先全量平铺测真实宽度，放不下的收进「更多 ▾」（对齐 lxRenderActionbar 方案）
+          row.innerHTML = LX_CS_SHORTCUTS.map(btnHtml).join("");
+          if (!row.clientWidth) return; // 面板隐藏时跳过，可见后 ResizeObserver 重排
+          row.style.flexWrap = "nowrap";
+          const gap = parseFloat(getComputedStyle(row).columnGap) || 8;
+          const widths = [...row.children].map((n) => n.offsetWidth);
+          const total = widths.reduce((s, w, i) => s + w + (i ? gap : 0), 0);
+          let fit = LX_CS_SHORTCUTS.length;
+          if (total > row.clientWidth) {
+            const avail = row.clientWidth - 96; // 「更多」按钮预留
+            let used = 0; fit = 0;
+            for (let i = 0; i < widths.length; i++) {
+              used += widths[i] + (i ? gap : 0);
+              if (used > avail) break;
+              fit = i + 1;
+            }
+            fit = Math.max(1, fit);
           }
+          const visible = LX_CS_SHORTCUTS.slice(0, fit), overflow = LX_CS_SHORTCUTS.slice(fit);
+          row.innerHTML = visible.map(btnHtml).join("") + (overflow.length
+            ? `<span class="more-wrap"><button class="shortcut" type="button">更多<img class="icon" src="/assets/icons/arrow-down.svg" alt="" /></button><div class="more-menu" role="menu">${overflow.map((it) => `<div class="menu-row" ${it.attr}>${esc(it.label)}</div>`).join("")}</div></span>`
+            : "");
         }
 
         // 响应式 actionbar：按面板宽度能放多少放多少，放不下的收进「更多」（对齐旧版测宽溢出方案）
@@ -5586,9 +5657,33 @@ if (!window.__lxMemberFetched) {
               reviewTrack.scrollBy({ left: 320, behavior: "smooth" });
             }
 
+            const lxfdCommerce = event.target.closest(".lxfd-actions .lxfd-ic");
+            const lxfdCommerceKind = (() => {
+              if (!lxfdCommerce) return "";
+              if (lxfdCommerce.dataset.lxfdOpen) return lxfdCommerce.dataset.lxfdOpen;
+              const label = lxfdCommerce.getAttribute("aria-label") || "";
+              if (label.includes("购物车")) return "cart";
+              if (label.includes("订单")) return "orders";
+              const buttons = [...lxfdCommerce.closest(".lxfd-actions")?.querySelectorAll(".lxfd-ic") || []];
+              const index = buttons.indexOf(lxfdCommerce);
+              if (index === 1) return "cart";
+              if (index === 2) return "orders";
+              return "";
+            })();
+            if (lxfdCommerceKind === "cart") {
+              event.preventDefault();
+              lxOpenCommerceEntry("cart");
+              return;
+            }
+            if (lxfdCommerceKind === "orders") {
+              event.preventDefault();
+              lxOpenCommerceEntry("orders");
+              return;
+            }
+
             const utility = event.target.closest(".utility-btn");
-            if (utility?.getAttribute("aria-label") === "购物车") openCart();
-            if (utility?.getAttribute("aria-label") === "订单") openOrders();
+            if (utility?.getAttribute("aria-label") === "购物车") lxOpenCommerceEntry("cart");
+            if (utility?.getAttribute("aria-label") === "订单") lxOpenCommerceEntry("orders");
             if (utility?.getAttribute("aria-label") === "账号" && !state.user) openLogin();
 
             const accountBtn = event.target.closest(".account-wrap > .utility-btn");
@@ -5898,6 +5993,7 @@ if (!window.__lxMemberFetched) {
 
         window.openCart = openCart;
         window.openOrders = openOrders;
+        window.lxOpenCommerceEntry = lxOpenCommerceEntry;
         window.openCompare = openCompare;
         window.openMemberCenter = openMemberCenter;
         window.openCouponCenter = openCouponCenter;
@@ -5912,6 +6008,8 @@ if (!window.__lxMemberFetched) {
           else if (op === 'solution') openSolutionCenter();
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
+          else if (op === 'cart' || op === 'open_cart') lxOpenCommerceEntry("cart");
+          else if (op === 'orders' || op === 'open_orders') lxOpenCommerceEntry("orders");
         };
         // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
         window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
@@ -6989,7 +7087,23 @@ if (!window.__lxMemberFetched) {
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) setRailManual(false); } });
   railFab?.addEventListener("click", () => setRailManual(true));
   $("#lxfdRailClose")?.addEventListener("click", () => setRailManual(false));
-  $(".lxfd-actions .lxfd-ic")?.addEventListener("click", (e) => { e.preventDefault(); exitFullscreen(); });
+  $(".lxfd-actions")?.addEventListener("click", (e) => {
+    const button = e.target.closest(".lxfd-ic");
+    if (!button) return;
+    const label = button.getAttribute("aria-label") || "";
+    if (button.dataset.lxfdOpen === "cart" || label.includes("购物车")) {
+      e.preventDefault();
+      window.lxOpenCommerceEntry?.("cart");
+      return;
+    }
+    if (button.dataset.lxfdOpen === "orders" || label.includes("订单")) {
+      e.preventDefault();
+      window.lxOpenCommerceEntry?.("orders");
+      return;
+    }
+    e.preventDefault();
+    exitFullscreen();
+  });
   scrim?.addEventListener("click", () => setRailManual(false));
   $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
   railNewFab?.addEventListener("click", () => resetConversation(false));
