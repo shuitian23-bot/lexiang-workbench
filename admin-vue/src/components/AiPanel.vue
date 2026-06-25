@@ -892,7 +892,9 @@ function initResize() {
     const diff = dragState.startX - e.clientX
     const maxW = Math.max(380, Math.min(380 + 112, window.innerWidth - 320))
     const nextW = Math.min(Math.max(380, dragState.startW + diff), maxW)
-    panel.style.width = `${nextW}px`
+    // 改 CSS 变量 --ai-panel-width：preview-overrides.css 的 .ai-panel.open{width:var(--ai-panel-width)!important}
+    // 锁死 panel.style.width，必须走变量才能拖动（对齐原版 aiSetPanelWidth）
+    panel.style.setProperty('--ai-panel-width', `${nextW}px`)
   }
 
   function onResizeUp() {
@@ -956,4 +958,12 @@ defineExpose({ aiQuick, newConversation })
 .ai-conversation-modal.open {
   display: flex;
 }
+</style>
+
+<!-- flex 协调：AiPanel 在 AppShell 的 .workbench-shell(flex) 里当 flex item。
+     原版靠 .ai-panel{flex-shrink:0} 自己控宽。Vite 工程需显式声明，否则 flex 压缩它
+     → 拖拽改的 width 被 flex 重算无效、handle(left:-3px) 露成灰条。 -->
+<style>
+.workbench-shell > .ai-panel { flex-shrink: 0; flex-grow: 0; }
+.ai-panel > .ai-resize-handle { background: transparent; }
 </style>
