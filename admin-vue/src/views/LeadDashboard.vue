@@ -312,6 +312,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import * as echarts from 'echarts'
 
 // ── 颜色 ──
 const LCHART = {
@@ -496,9 +497,9 @@ const teamTableData = computed(() => {
 // ── ECharts ──
 function ec(id) {
   const el = document.getElementById(id)
-  if (!el || !window.echarts) return null
+  if (!el) return null
   if (charts[id]) { charts[id].dispose() }
-  charts[id] = window.echarts.init(el)
+  charts[id] = echarts.init(el)
   return charts[id]
 }
 function drawFunnel() {

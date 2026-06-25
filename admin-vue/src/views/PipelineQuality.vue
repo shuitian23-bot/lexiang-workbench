@@ -176,6 +176,7 @@
 </template>
 
 <script setup>
+import * as echarts from 'echarts'
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 
 // ---- 调色板 ----
@@ -235,7 +236,6 @@ const TH = {
 }
 
 function getChart(elRef) {
-  const echarts = window.echarts
   if (!echarts || !elRef.value) return null
   const key = elRef.value.__chartKey || (elRef.value.__chartKey = Math.random())
   if (!_charts[key]) _charts[key] = echarts.init(elRef.value)
@@ -454,7 +454,6 @@ function fmtNum(n) {
 
 // ---- 图表渲染 ----
 function _qLineSeries(dates, series, colors, extraYAxis) {
-  const echarts = window.echarts
   return {
     tooltip: { trigger: 'axis' },
     legend: { data: series.map(s => s.name), bottom: 0, textStyle: { fontSize: 10, color: '#646a73' } },
@@ -470,7 +469,6 @@ function _qLineSeries(dates, series, colors, extraYAxis) {
 }
 
 function renderAllCharts(data) {
-  const echarts = window.echarts
   if (!echarts) return
   const dates = data.daily.map(d => d.date.slice(5))
   _currentData = data
@@ -566,7 +564,6 @@ function renderFirstTokenByIntent() {
 
 function renderQaFirstToken(data, dates) {
   const ch = getChart(cQaFirstToken); if (!ch) return
-  const echarts = window.echarts
   const prefix = firstTokenMode.value === 'think' ? 'qa_think_' : 'qa_nothink_'
   ch.setOption({ ...TH, tooltip: { trigger: 'axis' }, legend: { data: ['avg', 'p90', 'p99'], bottom: 0, textStyle: { fontSize: 10, color: '#646a73' } }, grid: { left: 50, right: 20, top: 10, bottom: 36 }, xAxis: { type: 'category', data: dates, axisLabel: { color: '#8f959e', fontSize: 9, rotate: 30 }, axisLine: { lineStyle: { color: '#e5e6eb' } } }, yAxis: { type: 'value', axisLabel: { color: '#8f959e', fontSize: 10, formatter: '{value}ms' }, splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } } }, series: [{ name: 'avg', type: 'line', data: data.daily.map(d => d[prefix + 'avg']), smooth: true, symbol: 'circle', symbolSize: 4, lineStyle: { width: 2, color: '#3370ff' }, itemStyle: { color: '#3370ff' }, areaStyle: echarts ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#3370ff33' }, { offset: 1, color: '#3370ff05' }]) } : undefined }, { name: 'p90', type: 'line', data: data.daily.map(d => d[prefix + 'p90']), smooth: true, symbol: 'circle', symbolSize: 4, lineStyle: { width: 2, color: '#ff7d00' }, itemStyle: { color: '#ff7d00' } }, { name: 'p99', type: 'line', data: data.daily.map(d => d[prefix + 'p99']), smooth: true, symbol: 'circle', symbolSize: 4, lineStyle: { width: 2, color: '#e2001a' }, itemStyle: { color: '#e2001a' } }] })
 }

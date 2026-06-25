@@ -168,6 +168,7 @@
 </template>
 
 <script setup>
+import * as echarts from 'echarts'
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 
 // ---- 颜色常量 ----
@@ -355,7 +356,6 @@ function renderKPI(recs) {
 
 // ---- 图表工具 ----
 function getChart(elRef) {
-  const echarts = window.echarts
   if (!echarts || !elRef.value) return null
   const key = elRef.value.__chartKey || (elRef.value.__chartKey = Math.random())
   if (!_charts[key]) {
@@ -425,7 +425,6 @@ function hbarChart(elRef, data, color, left) {
 
 function renderDailyVolume(recs) {
   const ch = getChart(cDaily); if (!ch) return
-  const echarts = window.echarts
   const m = {}
   recs.forEach(r => { Object.entries(r.daily_volume || {}).forEach(([d, v]) => { if (d !== '1970-01-01') m[d] = (m[d] || 0) + v }) })
   const dates = Object.keys(m).sort()
@@ -561,7 +560,7 @@ function renderTag3Current(recs) {
 }
 
 function renderAllCharts(recs) {
-  if (!window.echarts) return
+  if (!echarts) return
   const mergedTagAll = _mergeDist(recs, 'tag_dist_all')
   const mergedTagSem = _mergeDist(recs, 'tag_dist_semantic')
   const mergedChannel = _mergeDist(recs, 'channel_dist')
@@ -639,7 +638,7 @@ function clearDateFilter() {
 
 function applyTrendFilter(which) {
   // 趋势筛选不影响 KPI，只重绘对应图表
-  if (!window.echarts) return
+  if (!echarts) return
   if (which === 'daily') renderDailyVolume(trendFilteredRecords())
   else if (which === 'tag') renderTagTrend(tagTrendFilteredRecords())
   else if (which === 'ap') renderApTrend(apTrendFilteredRecords())

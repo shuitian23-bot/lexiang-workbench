@@ -134,6 +134,7 @@
 </template>
 
 <script setup>
+import * as echarts from 'echarts'
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 
 const OPS_CHART_COLORS = {
@@ -183,7 +184,6 @@ function destroyCharts() {
 
 function makeChart(el, type, labels, datasets, opts) {
   if (!el) return
-  const echarts = window.echarts
   if (!echarts) {
     el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-tertiary)">图表库加载中</div>'
     return

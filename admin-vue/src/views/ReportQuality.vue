@@ -83,6 +83,7 @@
 </template>
 
 <script setup>
+import * as echarts from 'echarts'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const REPORT_DATA = {
@@ -117,8 +118,7 @@ const chartRating = ref(null)
 let _charts = []
 
 onMounted(() => {
-  if (typeof window.echarts === 'undefined') return
-  const ec = window.echarts
+  const ec = echarts
   const c = ec.init(chartRating.value)
   _charts.push(c)
   c.setOption({

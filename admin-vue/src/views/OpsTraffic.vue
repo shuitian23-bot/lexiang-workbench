@@ -137,6 +137,7 @@
 </template>
 
 <script setup>
+import * as echarts from 'echarts'
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 
 // ---- 常量 ----
@@ -312,7 +313,6 @@ function destroyCharts() {
 
 function makeChart(el, type, labels, datasets, opts) {
   if (!el) return
-  const echarts = window.echarts
   if (!echarts) {
     el.innerHTML = '<div class="ops-chart-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-tertiary)">图表库加载中</div>'
     return
