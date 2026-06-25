@@ -2069,6 +2069,65 @@ if (!window.__lxMemberFetched) {
         }
 
         // 站内商品分类楼层：tab 点击后只渲染当前内容，不再平铺整页锚点跳转
+        const LX_ENT_INDUSTRIES = [
+          {
+            key: "gov",
+            label: "政府",
+            opener: "我们是政府单位，需要信创合规的整机和国产化解决方案，请按政务场景给我推荐产品",
+            focusCats: ["台式机", "笔记本", "存储"],
+            hasCase: true,
+          },
+          {
+            key: "edu",
+            label: "教育",
+            opener: "我们是教育行业（学校/教育机构），想了解适合的整体解决方案，比如云桌面教室、师生用 AI PC、机房统一管理，请按教育场景给我推荐方案和产品",
+            focusCats: ["笔记本", "智能设备", "软件超融合"],
+            hasCase: true,
+          },
+          {
+            key: "med",
+            label: "医疗",
+            opener: "我们是医疗机构，需要影像工作站、HIS 终端和科室一体机，请按医院信息化场景推荐合适产品",
+            focusCats: ["工作站", "智能设备", "存储"],
+            hasCase: true,
+          },
+          {
+            key: "fin",
+            label: "金融",
+            opener: "我们是金融机构，关注信创合规、网点终端和数据中心建设，请推荐符合金融行业要求的产品方案",
+            focusCats: ["台式机", "存储", "数据网络"],
+            hasCase: false,
+          },
+          {
+            key: "mfg",
+            label: "制造",
+            opener: "我们是制造企业，需要工业平板、产线服务器和异构智算平台，请按智能制造场景给我推荐",
+            focusCats: ["工作站", "异构智算", "智能设备"],
+            hasCase: true,
+          },
+          {
+            key: "energy",
+            label: "能源",
+            opener: "我们是能源企业，关注边缘计算、异构智算和工控场景，请推荐适合能源行业部署的产品",
+            focusCats: ["异构智算", "数据网络", "工作站"],
+            hasCase: false,
+          },
+          {
+            key: "trans",
+            label: "交通",
+            opener: "我们是交通行业，需要调度大屏、边缘终端和数据网络设备，请按交通行业场景推荐",
+            focusCats: ["智能设备", "数据网络", "存储"],
+            hasCase: false,
+          },
+          {
+            key: "retail",
+            label: "零售",
+            opener: "我们是零售企业，需要收银一体机、智慧门店终端和数据网络，请推荐适合新零售场景的产品",
+            focusCats: ["智能设备", "台式机", "数据网络"],
+            hasCase: false,
+          },
+        ];
+
         const LX_CATEGORY_MATCHERS = {
           // personal 子站只列 shop 货盘真有量的子品牌/品类（ThinkPad/ThinkBook/IdeaPad 被归到企业购站，
           // shop 货盘几乎没货，列了就是空标签 → 不列）。手机=moto+拯救者手机；平板含拯救者Y700/Y900
@@ -2563,7 +2622,30 @@ if (!window.__lxMemberFetched) {
           const floorCount = lxFloorProductCount();
           // 存完整池供换一换轮换（enterprise 和 business 共用 bizFloorPool）
           if (!state.bizFloorPool) state.bizFloorPool = {};
-          return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
+
+          // 行业 tag 横排 bar
+          const activeInd = state.entIndustry || "";
+          const industryBar = `<div class="lx-ent-industry-bar">${LX_ENT_INDUSTRIES.map((ind) => {
+            const isActive = activeInd === ind.key;
+            const tipAttr = ind.hasCase ? "" : ` title="方案咨询"`;
+            return `<button class="lx-ent-industry-tag${isActive ? " is-active" : ""}${ind.hasCase ? "" : " no-case"}" type="button" data-ent-industry="${esc(ind.key)}"${tipAttr}>${esc(ind.label)}</button>`;
+          }).join("")}</div>`;
+
+          // 楼层排序：若选中行业，把 focusCats 对应楼层置顶
+          let matchers = LX_CATEGORY_MATCHERS.enterprise || [];
+          if (activeInd) {
+            const ind = LX_ENT_INDUSTRIES.find((i) => i.key === activeInd);
+            if (ind && ind.focusCats && ind.focusCats.length) {
+              const focus = new Set(ind.focusCats);
+              const focusMatchers = matchers.filter(([label]) => focus.has(label));
+              const restMatchers = matchers.filter(([label]) => !focus.has(label));
+              // focusCats 按 focusCats 数组顺序排（不是楼层原始顺序）
+              const sortedFocus = ind.focusCats.map((cat) => focusMatchers.find(([label]) => label === cat)).filter(Boolean);
+              matchers = [...sortedFocus, ...restMatchers];
+            }
+          }
+
+          const floorsHtml = matchers.map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, floorCount);
             if (!items.length) return "";  // 该类没货就不显示空楼层
             // 完整池供换一换轮换（不受 floorCount/used 限制；该类全量匹配去重）
@@ -2576,6 +2658,8 @@ if (!window.__lxMemberFetched) {
             const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
             return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
+
+          return industryBar + floorsHtml;
         }
 
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
@@ -5333,7 +5417,7 @@ if (!window.__lxMemberFetched) {
             else state.hoverPromptSku = "";
           });
 
-          document.addEventListener("click", (event) => {
+          document.addEventListener("click", async (event) => {
             if (event.target.closest(".new-chat-button")) {
               event.preventDefault();
               event.stopImmediatePropagation();
@@ -5858,6 +5942,31 @@ if (!window.__lxMemberFetched) {
               lxRenderSiteFloors();
               return;
             }
+            // 政企行业 tag 三联动
+            const entIndustryBtn = event.target.closest("[data-ent-industry]");
+            if (entIndustryBtn) {
+              const key = entIndustryBtn.dataset.entIndustry;
+              const ind = LX_ENT_INDUSTRIES.find((i) => i.key === key);
+              if (ind) {
+                // a. 更新选中态
+                state.entIndustry = key;
+                document.querySelectorAll(".lx-ent-industry-tag").forEach((btn) => btn.classList.toggle("is-active", btn.dataset.entIndustry === key));
+                // b. 注入开场白
+                if (typeof window.lxfdSubmit === "function" && document.body.classList.contains("lx-fullscreen")) {
+                  window.lxfdSubmit(ind.opener);
+                } else {
+                  sendChat(ind.opener);
+                }
+                // c. 重渲楼层（楼层排序依赖 state.entIndustry 已更新）
+                const box = document.querySelector("[data-site-floors]");
+                if (box) {
+                  box.innerHTML = await lxRenderEnterpriseRecommendFloors();
+                  requestAnimationFrame(() => { lxClampCatFloors(box); });
+                }
+              }
+              return;
+            }
+
             const quickAsk = event.target.closest("[data-quick-ask]")?.dataset.quickAsk;
             if (quickAsk) {
               closeModal();
