@@ -1318,22 +1318,23 @@ if (!window.__lxMemberFetched) {
           pageBox.innerHTML = `
             <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
             ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>
-            <div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我解读这几款的差异，按我的需求给出选购建议：${esc(full.map((item) => item.name).join("、"))}">让乐享解读差异</button></div>`;
-          // AI建议：异步 fetch，不阻塞渲染
+            <div class="lx-cmp-advice" style="margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"><strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong><span style="opacity:.6">乐享正在解读这几款的差异…</span></div>`;
+          // AI建议：异步 fetch，自动展示在对比表下方（无需点按钮）。失败/无数据给兜底文案，不卡在"正在解读"
           (async () => {
+            const adviceEl = pageBox.querySelector(".lx-cmp-advice");
+            if (!adviceEl) return;
+            const fallback = '可点开任一款看详情，或直接问乐享「这几款哪个更适合我」获取选购建议。';
+            const setAdvice = (html) => { adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>${html}`; };
             try {
-              const adviceEl = pageBox.querySelector(".lx-cmp-advice");
-              if (!adviceEl) return;
               const advProducts = full.map(p => ({ name: p.name, price: p.price, cpu: (p.specs || {}).cpu || '', gpu: (p.specs || {}).gpu || '', ram: (p.specs || {}).ram || (p.specs || {}).memory || '' }));
               const advQ = state.lastUserText || '';
               const r = await fetch('/api/leai/compare-advice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ products: advProducts, q: advQ }) });
-              if (!r.ok) return;
-              const d = await r.json();
-              if (!d.pick || !d.reason) return;
-              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
-              adviceEl.style.display = 'block';
-            } catch (_) {}
+              const d = r.ok ? await r.json() : null;
+              if (d && d.pick && d.reason) setAdvice(`结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`);
+              else setAdvice(`<span style="opacity:.85">${fallback}</span>`);
+            } catch (_) {
+              setAdvice(`<span style="opacity:.85">${fallback}</span>`);
+            }
           })();
         }
 
@@ -2413,14 +2414,22 @@ if (!window.__lxMemberFetched) {
           box.querySelectorAll(".lx-floor-products").forEach((g) => lxFloorRO.observe(g));
         }
 
-        // 渲染个人站 8 品类楼层（标题 + 换一换 + 8 个商品网格，无「查看更多」）
+        function lxCatFloorVisibleCount() {
+          const width = window.innerWidth || document.documentElement.clientWidth || 0;
+          if (width >= 1920) return 12;
+          if (width >= 1720) return 10;
+          return 8;
+        }
+
+        // 渲染个人站品类楼层（标题 + 换一换 + 两排商品网格，无「查看更多」）
         function lxRenderCatFloor(floorDef, items) {
           const label = floorDef.label;
           const catKey = floorDef.categories.join(",");
-          // 渲染最多 12 个（够 6 列），渲染后 lxClampCatFloors 按真实列数夹成两排（不依赖 JS 猜列数）
+          const visibleCount = lxCatFloorVisibleCount();
+          // 始终最多渲染 12 个，宽度变化时可从 8/10 扩到 12；可见数量由 lxClampCatFloors 控制。
           const n = 12;
-          const canShuffle = items.length > n;
-          const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品">换一换</button>`;
+          const canShuffle = items.length > visibleCount;
+          const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
           const cards = items.slice(0, n).map(lxProductMiniCard).join("");
           return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
         }
@@ -3412,28 +3421,69 @@ if (!window.__lxMemberFetched) {
           if (mask) mask.addEventListener('click', wpaHandleClick, true);
         }
 
-        // 教育特惠专区（右侧信息标签页）：认证状态 + 教育货盘 + 国补叠加 + 算到手价
+        // 教育特惠专区（右侧信息标签页）：方案 4 净白轻卡 + 教育货盘 + 国补叠加
         async function openEduZone() {
           const stu = lxStuState();
           let pool = [];
           try {
             const response = await fetch("/api/products?site=shop&limit=24", { cache: "no-store" });
-            pool = (await response.json()).filter((p) => p.category === "笔记本电脑").slice(0, 8);
+            pool = (await response.json()).filter((p) => p.category === "笔记本电脑").slice(0, 12);
           } catch {}
-          const statusBar = stu.status === "verified"
-            ? `<div class="lx-ent-banner"><span class="lx-ent-badge ok">已认证</span><span class="lx-ent-text"><strong>${esc(stu.name || "同学")}</strong> 教育专享价已生效，下方为认证后价格（演示）</span></div>`
+          const icn = {
+            cap: `<svg class="cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 9l9-5 9 5-9 5-9-5Z"/><path d="M7 11.5V16c0 1.7 2.2 3 5 3s5-1.3 5-3v-4.5"/><path d="M21 9v5"/></svg>`,
+            cert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4 4 8l8 4 8-4-8-4Z"/><path d="M6.5 10.5V15c0 2 2.4 3.5 5.5 3.5S17.5 17 17.5 15v-4.5"/></svg>`,
+            laptop: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="6.5" width="12" height="8" rx="1.1"/><path d="M4.5 17.5h15"/></svg>`,
+            spark: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/></svg>`,
+            layers: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4"/><path d="m4 17 8 4 8-4"/></svg>`,
+          };
+          const statusLabel = stu.status === "verified" ? "已认证" : stu.status === "pending" ? "审核中" : "未认证";
+          const statusDesc = stu.status === "verified"
+            ? `${stu.name ? esc(stu.name) + "，" : ""}认证后教育专享价已生效，并可与国家补贴叠加使用`
             : stu.status === "pending"
-              ? `<div class="lx-ent-banner"><span class="lx-ent-badge pending">审核中</span><span class="lx-ent-text">学生认证审核中，通过后自动解锁教育专享价</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
-              : `<div class="lx-ent-banner"><span class="lx-ent-badge">未认证</span><span class="lx-ent-text">学生/教师认证后享教育专享价，并可与国家补贴叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`;
+              ? "学生/教师认证审核中，通过后可享教育专享价，并可与国家补贴叠加使用"
+              : "认证后享教育专享价，并可与国家补贴叠加使用";
+          const markName = (name) => {
+            const text = String(name || "").toUpperCase();
+            if (/LEGION|拯救者|创世/.test(text)) return "LEGION 创世";
+            if (/Y9000P/.test(text)) return "Y9000P 联名";
+            if (/Y9000X/.test(text)) return "Y9000X";
+            if (/R9000P/.test(text)) return "R9000P";
+            if (/Y7000P/.test(text)) return "Y7000P";
+            if (/YOGA\s*PRO\s*16|PRO 16/.test(text)) return "YOGA Pro 16";
+            if (/YOGA\s*AIR\s*14|AIR 14/.test(text)) return "YOGA Air 14";
+            if (/YOGA\s*PRO\s*15|PRO 15/.test(text)) return "YOGA Pro 15";
+            return "LENOVO";
+          };
           const cards = pool.map((p) => {
-            const eduPrice = Math.round(Number(p.price || 0) * 0.95);
-            const priceHtml = stu.status === "verified"
-              ? `<div class="lx-sim-price">教育价 ¥${eduPrice.toLocaleString()} <s class="lx-edu-orig">¥${Number(p.price || 0).toLocaleString()}</s></div>`
-              : `<div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div><span class="lx-edu-hint">认证后享教育价</span>`;
-            return `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div>${priceHtml}</div>`;
+            const rawPrice = Number(p.price || 0);
+            const eduPrice = Math.round(rawPrice * 0.95);
+            return `<div class="card lx-edu-card" data-sku="${esc(p.sku)}" data-open-product="${esc(p.sku)}">
+              <div class="shot"><div class="ph">${icn.laptop}</div><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'" /><div class="wm">${esc(markName(p.name))}</div></div>
+              <div class="nm">${esc(p.name)}</div>
+              <div class="etag">${icn.spark}<span>认证后享教育价</span></div>
+              <div class="eduprice"><span class="now"><span class="cur">¥</span>${eduPrice.toLocaleString()}</span><span class="was">¥${rawPrice.toLocaleString()}</span></div>
+              <button class="lcta" type="button" data-open-product="${esc(p.sku)}">立即认证购买</button>
+            </div>`;
           }).join("");
-          const rules = `<div class="lx-floor" style="margin-top:14px"><div class="lx-floor-head"><h3>国补叠加规则</h3><span>教育价与国家补贴可叠加，逐层计算</span><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我算下教育优惠+国补叠加后的到手价，按学生身份">算到手价</button></div><ul class="lx-md-list"><li>第一层：教育专享价（认证学生/教师）</li><li>第二层：国家补贴 15%（目录内机型）</li><li>第三层：教育认证券与会员券叠加</li></ul><p class="lx-p0-disclaimer">演示口径：教育价按 95 折模拟，实际优惠以商品页与结算页为准。</p></div>`;
-          lxOpenInfoTab("edu", "教育特惠专区", `${statusBar}<div class="lx-sim-grid" style="margin-top:14px">${cards || '<p class="lx-p0-disclaimer">教育货盘加载中，可稍后重试。</p>'}</div>${rules}`);
+          const html = `<div class="edu lx-edu-skin" data-v="4">
+            <div class="e-head"><h2>${icn.cap}<span>教育特惠专区</span></h2><div class="tip">在校学生与在职教师 · 认证后享教育专享价</div></div>
+            <div class="lcert">
+              <div class="ci">${icn.cert}</div>
+              <div class="ct"><div class="t"><span>学生 / 教师专属教育优惠</span><span class="badge">${statusLabel}</span></div><div class="d">${statusDesc}</div></div>
+              <button class="lcta solid" type="button" data-stu-auth>立即认证</button>
+            </div>
+            <div class="grid">${cards || '<p class="foot-note">教育货盘加载中，可稍后重试。</p>'}</div>
+            <div class="lrules">
+              <h3>${icn.layers}<span>国补叠加规则</span></h3>
+              <div class="ltiers">
+                <div class="ltier"><div class="num">1</div><div><div class="tt">教育专享价</div><div class="td">认证学生 / 教师享专属教育价</div></div></div>
+                <div class="ltier"><div class="num">2</div><div><div class="tt">国家补贴 15%</div><div class="td">目录内机型可叠加国补</div></div></div>
+                <div class="ltier"><div class="num">3</div><div><div class="tt">券券叠加</div><div class="td">教育认证券 + 会员券叠加</div></div></div>
+              </div>
+            </div>
+            <div class="foot-note">演示口径：教育价按 <b>95 折</b> 模拟，实际优惠以商品页与结算页为准。</div>
+          </div>`;
+          lxOpenInfoTab("edu", "教育特惠专区", html);
         }
 
         // ── 迭代二：biz 内容页体系（PRD 5.13.2/3/6/8）──
@@ -3582,7 +3632,9 @@ if (!window.__lxMemberFetched) {
             content?.scrollTo({ top: 0, behavior: "smooth" });
           } else if (tab.kind === "info") {
             const pageBox = lxEnsureInfoPage();
-            pageBox.innerHTML = `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>${tab.html || ""}`;
+            const isEduInfo = tab.id === "info:edu";
+            pageBox.classList.toggle("is-wide", isEduInfo);
+            pageBox.innerHTML = `${isEduInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
@@ -3797,17 +3849,17 @@ if (!window.__lxMemberFetched) {
         }
 
         // ── 商品引用（设计稿：hover 勾选 / 拖拽到对话框 → 引用商品，针对性提问）──
-        const LX_PICK_CARD_SEL = ".product-card, .lx-sim-card, .lx-floor-product, .lx-p0-product-mini, .reco-row";
+        const LX_PICK_CARD_SEL = ".product-card, .lx-sim-card, .lx-floor-product, .lx-p0-product-mini, .reco-row, .lx-edu-card";
 
         function lxCardSku(card) {
           return card?.dataset.sku || card?.dataset.openProduct || card?.querySelector("[data-open-product]")?.dataset.openProduct || "";
         }
 
         function lxProductRefPayload(product, card) {
-          const title = product?.name || card?.querySelector(".product-title, .name, h3, strong")?.textContent?.trim() || "联想商品";
-          const rawPrice = product?.price ? `¥${Number(product.price || 0).toLocaleString()}` : (card?.querySelector(".price, .pc-price")?.textContent || "").trim();
-          const spec = (product?.description || card?.querySelector(".spec, .pc-spec")?.textContent || "").trim().replace(/\s+/g, " ");
-          const img = product?.image_url ? imgUrl(product.image_url) : (card?.querySelector(".product-visual img, img")?.getAttribute("src") || card?.querySelector(".product-visual img, img")?.src || "/assets/product-placeholder.svg");
+          const title = product?.name || card?.querySelector(".product-title, .name, .nm, h3, strong")?.textContent?.trim() || "联想商品";
+          const rawPrice = product?.price ? `¥${Number(product.price || 0).toLocaleString()}` : (card?.querySelector(".price, .pc-price, .eduprice .now")?.textContent || "").trim();
+          const spec = (product?.description || card?.querySelector(".spec, .pc-spec, .etag")?.textContent || "").trim().replace(/\s+/g, " ");
+          const img = product?.image_url ? imgUrl(product.image_url) : (card?.querySelector(".product-visual img, .shot img, img")?.getAttribute("src") || card?.querySelector(".product-visual img, .shot img, img")?.src || "/assets/product-placeholder.svg");
           return {
             sku: product?.sku || lxCardSku(card),
             name: title,
@@ -5896,6 +5948,10 @@ if (!window.__lxMemberFetched) {
             // 换一换：品类楼层刷新下一批 8 个商品
             const shuffleBtn = event.target.closest("[data-cat-shuffle]");
             if (shuffleBtn && !shuffleBtn.disabled) {
+              shuffleBtn.classList.remove("is-spinning");
+              void shuffleBtn.offsetWidth;
+              shuffleBtn.classList.add("is-spinning");
+              window.setTimeout(() => shuffleBtn.classList.remove("is-spinning"), 520);
               const catKey = shuffleBtn.dataset.catShuffle;
               const floorLabel = shuffleBtn.dataset.floorLabel;
               const floorDef = LX_PERSONAL_CATEGORY_FLOORS.find((f) => f.label === floorLabel);
@@ -5906,9 +5962,10 @@ if (!window.__lxMemberFetched) {
                 const items = uniq.filter(floorDef.filter);
                 if (items.length > 0) {
                   if (!state.catFloorOffset) state.catFloorOffset = {};
+                  const visibleCount = lxCatFloorVisibleCount();
                   const n = 12; // 渲染 12 个，渲染后按真实列数夹两排（与初次渲染一致）
                   const cur = state.catFloorOffset[catKey] || 0;
-                  const next = (cur + n) % items.length;
+                  const next = (cur + visibleCount) % items.length;
                   state.catFloorOffset[catKey] = next;
                   const batch = [];
                   for (let i = 0; i < n && i < items.length; i++) {
@@ -5917,7 +5974,7 @@ if (!window.__lxMemberFetched) {
                   const grid = shuffleBtn.closest("[data-cat-floor-key]")?.querySelector("[data-cat-floor-grid]");
                   if (grid) {
                     grid.innerHTML = batch.map(lxProductMiniCard).join("");
-                    shuffleBtn.disabled = items.length <= n;
+                    shuffleBtn.disabled = items.length <= visibleCount;
                     requestAnimationFrame(() => lxClampCatFloors(grid.closest(".lx-cat-floor")));
                   }
                 }
