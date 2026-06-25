@@ -3456,8 +3456,8 @@ if (!window.__lxMemberFetched) {
           const cards = pool.map((p) => {
             const rawPrice = Number(p.price || 0);
             const eduPrice = Math.round(rawPrice * 0.95);
-            return `<div class="card lx-edu-card" data-sku="${esc(p.sku)}" data-open-product="${esc(p.sku)}">
-              <div class="shot"><div class="ph">${icn.laptop}</div><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'" /><div class="wm">${esc(markName(p.name))}</div></div>
+            return `<div class="card" data-open-product="${esc(p.sku)}">
+              <div class="shot" aria-hidden="true"><div class="ph">${icn.laptop}</div><div class="wm">${esc(markName(p.name))}</div></div>
               <div class="nm">${esc(p.name)}</div>
               <div class="etag">${icn.spark}<span>认证后享教育价</span></div>
               <div class="eduprice"><span class="now"><span class="cur">¥</span>${eduPrice.toLocaleString()}</span><span class="was">¥${rawPrice.toLocaleString()}</span></div>
@@ -3846,17 +3846,17 @@ if (!window.__lxMemberFetched) {
         }
 
         // ── 商品引用（设计稿：hover 勾选 / 拖拽到对话框 → 引用商品，针对性提问）──
-        const LX_PICK_CARD_SEL = ".product-card, .lx-sim-card, .lx-floor-product, .lx-p0-product-mini, .reco-row, .lx-edu-card";
+        const LX_PICK_CARD_SEL = ".product-card, .lx-sim-card, .lx-floor-product, .lx-p0-product-mini, .reco-row";
 
         function lxCardSku(card) {
           return card?.dataset.sku || card?.dataset.openProduct || card?.querySelector("[data-open-product]")?.dataset.openProduct || "";
         }
 
         function lxProductRefPayload(product, card) {
-          const title = product?.name || card?.querySelector(".product-title, .name, .nm, h3, strong")?.textContent?.trim() || "联想商品";
-          const rawPrice = product?.price ? `¥${Number(product.price || 0).toLocaleString()}` : (card?.querySelector(".price, .pc-price, .eduprice .now")?.textContent || "").trim();
-          const spec = (product?.description || card?.querySelector(".spec, .pc-spec, .etag")?.textContent || "").trim().replace(/\s+/g, " ");
-          const img = product?.image_url ? imgUrl(product.image_url) : (card?.querySelector(".product-visual img, .shot img, img")?.getAttribute("src") || card?.querySelector(".product-visual img, .shot img, img")?.src || "/assets/product-placeholder.svg");
+          const title = product?.name || card?.querySelector(".product-title, .name, h3, strong")?.textContent?.trim() || "联想商品";
+          const rawPrice = product?.price ? `¥${Number(product.price || 0).toLocaleString()}` : (card?.querySelector(".price, .pc-price")?.textContent || "").trim();
+          const spec = (product?.description || card?.querySelector(".spec, .pc-spec")?.textContent || "").trim().replace(/\s+/g, " ");
+          const img = product?.image_url ? imgUrl(product.image_url) : (card?.querySelector(".product-visual img, img")?.getAttribute("src") || card?.querySelector(".product-visual img, img")?.src || "/assets/product-placeholder.svg");
           return {
             sku: product?.sku || lxCardSku(card),
             name: title,
