@@ -10817,3 +10817,99 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   .brand[data-v="3"].lx-brand-skin .vside{ border-left:0; border-top:1px solid var(--line); }
   .brand[data-v="3"].lx-brand-skin .cases{ grid-template-columns:1fr 1fr; }
 }
+
+/* ── 政企方案顾问向导 lx-advisor-* ──────────────────────────────────────── */
+.lx-advisor-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.lx-advisor-chip {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--aubergine);
+  background: #fff;
+  color: var(--aubergine);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .16s, color .16s, border-color .16s, box-shadow .16s;
+  white-space: nowrap;
+}
+.lx-advisor-chip:hover {
+  background: var(--aubergine);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(91,20,82,.18);
+}
+.lx-advisor-chip:active {
+  background: #4e1646;
+  border-color: #4e1646;
+  color: #fff;
+}
+.lx-advisor-summary {
+  margin-top: 12px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1.5px solid #dcd2e3;
+  background: #fbf8fd;
+}
+.lx-advisor-summary-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--aubergine);
+  margin-bottom: 14px;
+  letter-spacing: .02em;
+}
+.lx-advisor-summary-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #ede5f0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.lx-advisor-summary-row:last-of-type {
+  border-bottom: none;
+}
+.lx-advisor-summary-key {
+  color: var(--text-muted);
+  font-weight: 600;
+  min-width: 90px;
+  flex: none;
+}
+.lx-advisor-summary-val {
+  color: #1d1822;
+  font-weight: 500;
+}
+.lx-advisor-disclaimer {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.lx-advisor-summary-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .lx-advisor-chips {
+    gap: 6px;
+  }
+  .lx-advisor-chip {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  .lx-advisor-summary {
+    padding: 14px 14px;
+  }
+  .lx-advisor-summary-key {
+    min-width: 76px;
+  }
+  .lx-advisor-summary-actions {
+    flex-direction: column;
+  }
+}
