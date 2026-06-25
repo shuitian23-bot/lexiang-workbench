@@ -9931,7 +9931,9 @@ body[data-arr="A"] .ai-arrow .fx{ left:11px!important; top:-2px!important; }
   height: 14px;
   flex: 0 0 14px;
   display: block;
-  object-fit: contain;
+  background: currentColor;
+  -webkit-mask: url("/assets/icons/global-refresh.svg?v=2026062503") center / contain no-repeat;
+  mask: url("/assets/icons/global-refresh.svg?v=2026062503") center / contain no-repeat;
 }
 .lx-cat-shuffle-btn:hover:not(:disabled) {
   background: #f6f1f8;
