@@ -382,6 +382,21 @@ function callLLMStream(messages, onDelta, maxTokens = 1024) {
   return callArkChatStream(messages, onDelta, { maxTokens });
 }
 
+function extractWorkbenchUserQuestion(message) {
+  const text = String(message || '');
+  const match = text.match(/【用户问题】\s*([\s\S]*?)(?:\n\s*【回答要求】|$)/);
+  return (match ? match[1] : text).trim();
+}
+
+function shouldRouteThroughTools(message) {
+  const text = extractWorkbenchUserQuestion(message);
+  if (!text) return false;
+  if (/(介绍|说明|能力边界|基础操作|操作流程|怎么用|是什么|有哪些能力|工作台说明|权限说明|创建流程|评估验证|提交审核)/.test(text)) {
+    return false;
+  }
+  return /(查询|查一下|查数据|统计|明细|库存|商品|价格|订单|售后|知识库|文档|导出|下载|生成报表|生成报告|配置|修改|创建|新增|发布|审批|上架|下架|改价|执行|调用|应用|测试)/.test(text);
+}
+
 // 构建工作台系统 prompt
 function buildWorkbenchSystemPrompt(skills, currentPage) {
   const skillList = skills.map(s =>
@@ -509,18 +524,17 @@ router.post('/chat', requireAdmin, async (req, res) => {
       db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'user', message);
       const contextMsgs = historyMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 
-      // 第一轮非流式：判定是否有 tool_call
-      const llmResponse = await callLLM(
-        [{ role: 'system', content: systemPrompt }, ...contextMsgs, { role: 'user', content: message }],
-        llmTools,
-        1024
-      );
+      const baseMessages = [{ role: 'system', content: systemPrompt }, ...contextMsgs, { role: 'user', content: message }];
+      const useTools = shouldRouteThroughTools(message);
+      let finalMessages = baseMessages;
+      let llmResponse = null;
 
-      let finalMessages;
-      if (!llmResponse.tool_calls || !llmResponse.tool_calls.length) {
-        // 没有工具调用 → 流式重放第一轮（让用户看到打字效果）
-        finalMessages = [{ role: 'system', content: systemPrompt }, ...contextMsgs, { role: 'user', content: message }];
-      } else {
+      if (useTools) {
+        // 只有明确需要读写数据/调用能力时才先做工具判定；说明类问题直接单次流式生成，避免双模型调用超时。
+        llmResponse = await callLLM(baseMessages, llmTools, 1024);
+      }
+
+      if (llmResponse?.tool_calls?.length) {
         // 有工具调用：先执行，再流式生成最终回复
         send({ type: 'tools', tools: llmResponse.tool_calls.map(tc => tc.function?.name) });
         const toolResults = [];
@@ -558,7 +572,7 @@ router.post('/chat', requireAdmin, async (req, res) => {
       db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'assistant', fullReply);
       db.prepare('UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(convId);
 
-      const toolsUsed = llmResponse.tool_calls ? llmResponse.tool_calls.map(tc => tc.function?.name) : [];
+      const toolsUsed = llmResponse?.tool_calls ? llmResponse.tool_calls.map(tc => tc.function?.name) : [];
       send({ type: 'done', toolsUsed, convId });
       res.end();
     } catch (err) {
@@ -629,12 +643,20 @@ router.post('/chat', requireAdmin, async (req, res) => {
 
     const contextMsgs = historyMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 
+    const baseMessages = [{ role: 'system', content: systemPrompt }, ...contextMsgs, { role: 'user', content: message }];
+    const useTools = shouldRouteThroughTools(message);
+
+    // 说明/介绍类问题不需要工具判定，直接单次调用，减少火山引擎超时概率。
+    if (!useTools) {
+      const directResponse = await callLLM(baseMessages, null, 1024);
+      const reply = directResponse.content || '我不太理解你的意思，可以再说具体一点吗？';
+      db.prepare('INSERT INTO messages (conv_id, role, content) VALUES (?, ?, ?)').run(convId, 'assistant', reply);
+      db.prepare('UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(convId);
+      return res.json({ reply, convId });
+    }
+
     // 第一轮：LLM 解析意图
-    const llmResponse = await callLLM(
-      [{ role: 'system', content: systemPrompt }, ...contextMsgs, { role: 'user', content: message }],
-      llmTools,
-      1024
-    );
+    const llmResponse = await callLLM(baseMessages, llmTools, 1024);
 
     // 没有 tool_call → 直接文本回答
     if (!llmResponse.tool_calls || !llmResponse.tool_calls.length) {

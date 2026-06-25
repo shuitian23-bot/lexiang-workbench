@@ -5272,45 +5272,133 @@ html[data-product="leaibot"] .skill-hub-page .page-title {
 html[data-product="leaibot"] .skill-hub-summary {
   display:grid !important;
   grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:12px;
+  gap:14px;
+  align-items:stretch;
+  margin:12px 0 16px;
 }
 
-html[data-product="leaibot"] .skill-hub-summary div {
+html[data-product="leaibot"] .skill-hub-stat {
+  --skill-hub-stat-accent:var(--primary);
+  --skill-hub-stat-soft:#f2f6ff;
+  --skill-hub-stat-surface:#fff;
   position:relative;
   overflow:hidden;
-  min-height:78px;
-  padding:16px;
-  background:linear-gradient(135deg,#fff 0%,#f8fbff 100%);
-  border:1px solid var(--border-light);
-  border-radius:12px;
-  box-shadow:var(--shadow);
+  min-height:112px;
+  padding:18px 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  background:
+    linear-gradient(135deg, var(--skill-hub-stat-soft) 0%, #fff 64%, var(--skill-hub-stat-surface) 100%);
+  border:1px solid color-mix(in srgb, var(--skill-hub-stat-accent) 10%, var(--border-light));
+  border-radius:8px;
+  box-shadow:0 8px 24px rgba(15,23,42,.06);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
-html[data-product="leaibot"] .skill-hub-summary div::before {
-  content:"";
-  position:absolute;
-  left:0;
-  top:0;
-  width:100%;
-  height:3px;
-  background:var(--primary);
-  opacity:.9;
+html[data-product="leaibot"] .skill-hub-stat::before {
+  content:none;
+}
+
+html[data-product="leaibot"] .skill-hub-stat:hover {
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb, var(--skill-hub-stat-accent) 36%, var(--border-light));
+  box-shadow:0 14px 34px rgba(15,23,42,.09);
+}
+
+html[data-product="leaibot"] .skill-hub-stat-head {
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+  min-height:0;
+  padding:0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+
+html[data-product="leaibot"] .skill-hub-stat-head span {
+  display:block;
+  margin:0;
+  color:var(--text-secondary);
+  font-size:13px;
+  line-height:1.35;
+  font-weight:600;
+}
+
+html[data-product="leaibot"] .skill-hub-stat-head i {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  height:20px;
+  padding:0 7px;
+  border-radius:999px;
+  background:color-mix(in srgb, var(--skill-hub-stat-accent) 8%, #fff);
+  color:var(--skill-hub-stat-accent);
+  font-size:10px;
+  line-height:1;
+  font-style:normal;
+  font-weight:700;
+  letter-spacing:0;
 }
 
 html[data-product="leaibot"] .skill-hub-summary strong {
+  position:relative;
+  z-index:1;
   display:block;
   color:var(--text);
-  font-size:24px;
+  font-size:28px;
   line-height:1.1;
-  font-weight:700;
+  font-weight:800;
   font-variant-numeric:tabular-nums;
+  letter-spacing:0;
 }
 
-html[data-product="leaibot"] .skill-hub-summary span {
+html[data-product="leaibot"] .skill-hub-summary em {
+  position:relative;
+  z-index:1;
   display:block;
-  margin-top:8px;
-  color:var(--text-secondary);
+  margin-top:10px;
+  color:var(--text-tertiary);
   font-size:12px;
+  line-height:1.45;
+  font-style:normal;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.stat--primary {
+  --skill-hub-stat-accent:var(--primary);
+  --skill-hub-stat-soft:#f7faff;
+  --skill-hub-stat-surface:#fbfdff;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.stat--info {
+  --skill-hub-stat-accent:#7c3aed;
+  --skill-hub-stat-soft:#faf7ff;
+  --skill-hub-stat-surface:#fdfbff;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.stat--warning {
+  --skill-hub-stat-accent:var(--orange);
+  --skill-hub-stat-soft:#fffbf3;
+  --skill-hub-stat-surface:#fffdf8;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.stat--success {
+  --skill-hub-stat-accent:var(--green);
+  --skill-hub-stat-soft:#f6fcf8;
+  --skill-hub-stat-surface:#fbfefc;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.stat--muted {
+  --skill-hub-stat-accent:#64748b;
+  --skill-hub-stat-soft:#f8fafc;
+  --skill-hub-stat-surface:#fdfefe;
 }
 
 html[data-product="leaibot"] .skill-hub-toolbar {
