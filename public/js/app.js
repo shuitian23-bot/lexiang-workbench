@@ -2524,10 +2524,33 @@ if (!window.__lxMemberFetched) {
             "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, floorCount),
           };
 
+          // 存完整池供换一换轮换（用未 slice 的全量筛选，否则池=可见数，换一换无货可换被禁用）
+          const matchAll = (match) => uniq(basePool.filter(match));
+          const floorPoolFull = {
+            "ThinkPad": matchAll((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)),
+            "ThinkBook": matchAll((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)),
+            "Thinkplus": accessoryProducts,
+            "ThinkCentre": uniq([...basePool.filter((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts]),
+            "扬天&瑞天": desktopProducts,
+            "配件&外设": accessoryProducts,
+            "服务存储": serviceStorageProducts,
+            "企业服务": uniq([...serviceProducts, ...serviceStorageProducts]),
+          };
+          if (!state.bizFloorPool) state.bizFloorPool = {};
+          LX_BUSINESS_RECOMMEND_FLOORS.forEach(([label]) => {
+            const full = floorPoolFull[label] || floorItems[label] || [];
+            if (full.length) state.bizFloorPool[label] = full;
+          });
+
           return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
             const items = floorItems[label] || [];
             if (!items.length) return "";  // 该类没货就不显示空楼层，不跨品类凑
-            return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            const catKey = label;
+            const visibleCount = lxCatFloorVisibleCount();
+            const canShuffle = (state.bizFloorPool?.[label] || items).length > visibleCount;
+            const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
+            const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
+            return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
         }
 
@@ -2538,10 +2561,20 @@ if (!window.__lxMemberFetched) {
           if (!source.length) return "";
           const used = new Set();
           const floorCount = lxFloorProductCount();
+          // 存完整池供换一换轮换（enterprise 和 business 共用 bizFloorPool）
+          if (!state.bizFloorPool) state.bizFloorPool = {};
           return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, floorCount);
             if (!items.length) return "";  // 该类没货就不显示空楼层
-            return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            // 完整池供换一换轮换（不受 floorCount/used 限制；该类全量匹配去重）
+            const fullPool = lxUniqProducts(source.filter(match));
+            state.bizFloorPool[label] = fullPool.length >= items.length ? fullPool : items;
+            const catKey = label;
+            const visibleCount = lxCatFloorVisibleCount();
+            const canShuffle = (state.bizFloorPool[label] || items).length > visibleCount;
+            const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
+            const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
+            return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
         }
 
@@ -2609,7 +2642,8 @@ if (!window.__lxMemberFetched) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampFloors(box); lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box);
               return;
             }
             if (page === "enterprise") {
@@ -2621,7 +2655,8 @@ if (!window.__lxMemberFetched) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampFloors(box); lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box);
               return;
             }
             box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
@@ -4958,14 +4993,14 @@ if (!window.__lxMemberFetched) {
             hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
           },
           business: {
-            quick: ["我要企业批量采购", "我要企业认证享专享价", "我要对公开票和账期", "我要找商用电脑", "我要查售后和上门服务"],
+            quick: ["中小企业有没有批量采购优惠？", "ThinkBook和ThinkCentre怎么选？", "公司账期/分期采购怎么办理？", "我们想给员工配电脑，能不能上门安装调试？", "帮我推荐一款适合小团队的轻薄本"],
             welcome: ["公司采购50台办公本，怎么拿企业价？", "ThinkBook和ThinkPad办公怎么选？", "企业购能开专票、走账期吗？", "中小企业有什么采购补贴？"],
             placeholder: "公司要配办公电脑，帮我推荐",
             actionbar: ["企业认证", "对公开票", "账期申请", "批量采购", "上门服务", "专属客服"],
             hello: ["企业采购", "专享价", "对公开票", "商用电脑", "上门服务"],
           },
           enterprise: {
-            quick: ["我要看行业解决方案", "我要信创合规产品", "我要批量采购报价", "我要对接专属客户经理", "我要查售后服务"],
+            quick: ["我们是XX行业，有没有对应的整体解决方案？", "信创/国产化适配方案怎么选？", "服务器/存储应该怎么配置？", "批量采购流程是怎样的？", "能否安排方案顾问对接？"],
             welcome: ["信创服务器怎么选型？", "智慧教育解决方案有哪些案例？", "参与政采招投标需要什么资质？", "工作站和服务器怎么搭配？"],
             placeholder: "我们单位要采购信创设备，帮我推荐",
             actionbar: ["信创合规", "解决方案", "招投标支持", "批量报价", "客户经理", "售后服务"],
@@ -5955,12 +5990,19 @@ if (!window.__lxMemberFetched) {
               const catKey = shuffleBtn.dataset.catShuffle;
               const floorLabel = shuffleBtn.dataset.floorLabel;
               const floorDef = LX_PERSONAL_CATEGORY_FLOORS.find((f) => f.label === floorLabel);
-              if (floorDef && catKey) {
-                const pool = floorDef.categories.flatMap((c) => state.catPool?.[c] || []);
-                const seen = new Set();
-                const uniq = pool.filter((p) => { const k = lxProductKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
-                const items = uniq.filter(floorDef.filter);
-                if (items.length > 0) {
+              // business/enterprise 楼层走 bizFloorPool
+              const bizPool = !floorDef ? (state.bizFloorPool?.[floorLabel] || null) : null;
+              if ((floorDef || bizPool) && catKey) {
+                let items;
+                if (floorDef) {
+                  const pool = floorDef.categories.flatMap((c) => state.catPool?.[c] || []);
+                  const seen = new Set();
+                  const uniq = pool.filter((p) => { const k = lxProductKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
+                  items = uniq.filter(floorDef.filter);
+                } else {
+                  items = bizPool;
+                }
+                if (items && items.length > 0) {
                   if (!state.catFloorOffset) state.catFloorOffset = {};
                   const visibleCount = lxCatFloorVisibleCount();
                   const n = 12; // 渲染 12 个，渲染后按真实列数夹两排（与初次渲染一致）
