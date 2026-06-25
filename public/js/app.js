@@ -2614,6 +2614,16 @@ if (!window.__lxMemberFetched) {
           }).join("");
         }
 
+        // 行业 tag 横排 bar（可复用：推荐 tab 和行业解决方案 tab 均调用）
+        function lxEntIndustryBar() {
+          const activeInd = state.entIndustry || "";
+          return `<div class="lx-ent-industry-bar">${LX_ENT_INDUSTRIES.map((ind) => {
+            const isActive = activeInd === ind.key;
+            const tipAttr = ind.hasCase ? "" : ` title="方案咨询"`;
+            return `<button class="lx-ent-industry-tag${isActive ? " is-active" : ""}${ind.hasCase ? "" : " no-case"}" type="button" data-ent-industry="${esc(ind.key)}"${tipAttr}>${esc(ind.label)}</button>`;
+          }).join("")}</div>`;
+        }
+
         async function lxRenderEnterpriseRecommendFloors() {
           const site = API_SITE.enterprise || "biz";
           const pool = await lxEnsureFloorProducts(site, 120);
@@ -2624,15 +2634,8 @@ if (!window.__lxMemberFetched) {
           // 存完整池供换一换轮换（enterprise 和 business 共用 bizFloorPool）
           if (!state.bizFloorPool) state.bizFloorPool = {};
 
-          // 行业 tag 横排 bar
-          const activeInd = state.entIndustry || "";
-          const industryBar = `<div class="lx-ent-industry-bar">${LX_ENT_INDUSTRIES.map((ind) => {
-            const isActive = activeInd === ind.key;
-            const tipAttr = ind.hasCase ? "" : ` title="方案咨询"`;
-            return `<button class="lx-ent-industry-tag${isActive ? " is-active" : ""}${ind.hasCase ? "" : " no-case"}" type="button" data-ent-industry="${esc(ind.key)}"${tipAttr}>${esc(ind.label)}</button>`;
-          }).join("")}</div>`;
-
           // 楼层排序：若选中行业，把 focusCats 对应楼层置顶
+          const activeInd = state.entIndustry || "";
           let matchers = LX_CATEGORY_MATCHERS.enterprise || [];
           if (activeInd) {
             const ind = LX_ENT_INDUSTRIES.find((i) => i.key === activeInd);
@@ -2660,7 +2663,7 @@ if (!window.__lxMemberFetched) {
             return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
 
-          return industryBar + floorsHtml;
+          return floorsHtml;
         }
 
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
@@ -3142,7 +3145,17 @@ if (!window.__lxMemberFetched) {
             box.innerHTML = activitySections[activeFloorTab] || "";
           } else {
             const activitySections = {
-              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
+              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", (() => {
+                // 行业 key → LX_SOLUTIONS 中文名映射
+                const IND_TO_SOLUTION = { gov: "数字政府", edu: "智慧教育", med: "智慧医疗", fin: "智慧金融", mfg: "智能制造" };
+                const activeSolution = IND_TO_SOLUTION[state.entIndustry || ""] || "";
+                const allSolutions = Object.keys(LX_SOLUTIONS);
+                // 若有选中行业且能匹配到方案，把匹配方案置顶并高亮
+                const sorted = activeSolution
+                  ? [activeSolution, ...allSolutions.filter((n) => n !== activeSolution)]
+                  : allSolutions;
+                return lxEntIndustryBar() + sorted.map((industry) => `<div class="lx-floor-card${activeSolution && industry === activeSolution ? " is-active" : ""}" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join("");
+              })(), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
               "信创合规": lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
               "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
             };
@@ -6057,12 +6070,10 @@ if (!window.__lxMemberFetched) {
                 } else {
                   sendChat(ind.opener);
                 }
-                // c. 重渲楼层（楼层排序依赖 state.entIndustry 已更新）
+                // c. 重渲当前 tab（行业解决方案 tab 更新高亮+置顶；推荐 tab 产品楼层排序依赖 state.entIndustry 已更新）
+                await lxRenderSiteFloors();
                 const box = document.querySelector("[data-site-floors]");
-                if (box) {
-                  box.innerHTML = await lxRenderEnterpriseRecommendFloors();
-                  requestAnimationFrame(() => { lxClampCatFloors(box); });
-                }
+                if (box) requestAnimationFrame(() => { lxClampCatFloors(box); });
               }
               return;
             }
