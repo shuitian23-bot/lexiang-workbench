@@ -67,7 +67,8 @@ if (!window.__lxMemberFetched) {
           hoverPromptAutoCloseTimer: null,
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
-          refProducts: []
+          refProducts: [],
+          advisorFlow: null
         };
         window.__lxState = state;
 
@@ -2613,6 +2614,16 @@ if (!window.__lxMemberFetched) {
           }).join("");
         }
 
+        // 行业 tag 横排 bar（可复用：推荐 tab 和行业解决方案 tab 均调用）
+        function lxEntIndustryBar() {
+          const activeInd = state.entIndustry || "";
+          return `<div class="lx-ent-industry-bar">${LX_ENT_INDUSTRIES.map((ind) => {
+            const isActive = activeInd === ind.key;
+            const tipAttr = ind.hasCase ? "" : ` title="方案咨询"`;
+            return `<button class="lx-ent-industry-tag${isActive ? " is-active" : ""}${ind.hasCase ? "" : " no-case"}" type="button" data-ent-industry="${esc(ind.key)}"${tipAttr}>${esc(ind.label)}</button>`;
+          }).join("")}</div>`;
+        }
+
         async function lxRenderEnterpriseRecommendFloors() {
           const site = API_SITE.enterprise || "biz";
           const pool = await lxEnsureFloorProducts(site, 120);
@@ -2623,15 +2634,8 @@ if (!window.__lxMemberFetched) {
           // 存完整池供换一换轮换（enterprise 和 business 共用 bizFloorPool）
           if (!state.bizFloorPool) state.bizFloorPool = {};
 
-          // 行业 tag 横排 bar
-          const activeInd = state.entIndustry || "";
-          const industryBar = `<div class="lx-ent-industry-bar">${LX_ENT_INDUSTRIES.map((ind) => {
-            const isActive = activeInd === ind.key;
-            const tipAttr = ind.hasCase ? "" : ` title="方案咨询"`;
-            return `<button class="lx-ent-industry-tag${isActive ? " is-active" : ""}${ind.hasCase ? "" : " no-case"}" type="button" data-ent-industry="${esc(ind.key)}"${tipAttr}>${esc(ind.label)}</button>`;
-          }).join("")}</div>`;
-
           // 楼层排序：若选中行业，把 focusCats 对应楼层置顶
+          const activeInd = state.entIndustry || "";
           let matchers = LX_CATEGORY_MATCHERS.enterprise || [];
           if (activeInd) {
             const ind = LX_ENT_INDUSTRIES.find((i) => i.key === activeInd);
@@ -2659,7 +2663,7 @@ if (!window.__lxMemberFetched) {
             return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
 
-          return industryBar + floorsHtml;
+          return floorsHtml;
         }
 
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
@@ -3141,7 +3145,17 @@ if (!window.__lxMemberFetched) {
             box.innerHTML = activitySections[activeFloorTab] || "";
           } else {
             const activitySections = {
-              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
+              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", (() => {
+                // 行业 key → LX_SOLUTIONS 中文名映射
+                const IND_TO_SOLUTION = { gov: "数字政府", edu: "智慧教育", med: "智慧医疗", fin: "智慧金融", mfg: "智能制造" };
+                const activeSolution = IND_TO_SOLUTION[state.entIndustry || ""] || "";
+                const allSolutions = Object.keys(LX_SOLUTIONS);
+                // 若有选中行业且能匹配到方案，把匹配方案置顶并高亮
+                const sorted = activeSolution
+                  ? [activeSolution, ...allSolutions.filter((n) => n !== activeSolution)]
+                  : allSolutions;
+                return lxEntIndustryBar() + sorted.map((industry) => `<div class="lx-floor-card${activeSolution && industry === activeSolution ? " is-active" : ""}" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join("");
+              })(), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
               "信创合规": lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
               "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
             };
@@ -5125,6 +5139,104 @@ if (!window.__lxMemberFetched) {
           } catch {}
         })();
 
+        // ── 政企方案顾问对话式5步向导 ─────────────────────────────────────────
+        const LX_ADVISOR_STEPS = [
+          {
+            key: "industry",
+            ask: "您好，我来帮您对接方案顾问。先了解下，您是哪个行业的项目？",
+            chips: LX_ENT_INDUSTRIES.map(function(ind) { return { label: ind.label, value: ind.key }; })
+          },
+          {
+            key: "scale",
+            ask: "贵单位这次大概采购多少设备？涉及几个部门/科室？",
+            chips: [
+              { label: "50 台以内", value: "small" },
+              { label: "50-200 台", value: "medium" },
+              { label: "200-500 台", value: "large" },
+              { label: "500 台以上", value: "xlarge" }
+            ]
+          },
+          {
+            key: "budget",
+            ask: "这个项目目前预算批文/招采计划是什么阶段？",
+            chips: [
+              { label: "已有批文，准备招采", value: "approved" },
+              { label: "预算审批中", value: "pending" },
+              { label: "前期调研选型", value: "research" },
+              { label: "暂未立项", value: "none" }
+            ]
+          },
+          {
+            key: "xinchuang",
+            ask: "项目是否有信创/国产化适配要求？",
+            chips: [
+              { label: "必须信创合规", value: "required" },
+              { label: "优先国产化", value: "preferred" },
+              { label: "无强制要求", value: "none" },
+              { label: "不确定，需顾问评估", value: "tbd" }
+            ]
+          }
+        ];
+
+        const LX_ADVISOR_INDUSTRY_LABELS = {};
+        LX_ENT_INDUSTRIES.forEach(function(ind) { LX_ADVISOR_INDUSTRY_LABELS[ind.key] = ind.label; });
+
+        const LX_ADVISOR_SCALE_LABELS = { small: "50 台以内", medium: "50-200 台", large: "200-500 台", xlarge: "500 台以上" };
+        const LX_ADVISOR_BUDGET_LABELS = { approved: "已有批文，准备招采", pending: "预算审批中", research: "前期调研选型", none: "暂未立项" };
+        const LX_ADVISOR_XINCHUANG_LABELS = { required: "必须信创合规", preferred: "优先国产化", none: "无强制要求", tbd: "不确定，需顾问评估" };
+
+        function lxAdvisorChipsHtml(chips, step) {
+          return `<div class="lx-advisor-chips">${chips.map(function(c) {
+            return `<button class="lx-advisor-chip" type="button" data-advisor-pick="${esc(step + ":" + c.value)}">${esc(c.label)}</button>`;
+          }).join("")}</div>`;
+        }
+
+        function lxAdvisorSummaryHtml(flow) {
+          const industryLabel = LX_ADVISOR_INDUSTRY_LABELS[flow.industry] || flow.industry || "—";
+          const scaleLabel = LX_ADVISOR_SCALE_LABELS[flow.scale] || flow.scale || "—";
+          const budgetLabel = LX_ADVISOR_BUDGET_LABELS[flow.budget] || flow.budget || "—";
+          const xinchuangLabel = LX_ADVISOR_XINCHUANG_LABELS[flow.xinchuang] || flow.xinchuang || "—";
+          return `<div class="lx-advisor-summary">
+            <div class="lx-advisor-summary-title">需求摘要</div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">行业</span><span class="lx-advisor-summary-val">${esc(industryLabel)}</span></div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">采购规模</span><span class="lx-advisor-summary-val">${esc(scaleLabel)}</span></div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">预算/招采阶段</span><span class="lx-advisor-summary-val">${esc(budgetLabel)}</span></div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">信创要求</span><span class="lx-advisor-summary-val">${esc(xinchuangLabel)}</span></div>
+            <p class="lx-advisor-disclaimer">以上为初步整理，正式方案以顾问确认为准。</p>
+            <div class="lx-advisor-summary-actions">
+              <button class="lx-p0-btn primary" type="button" data-advisor-submit>提交给方案顾问</button>
+              <button class="lx-p0-btn" type="button" data-quick-ask="我还有补充说明需要告知方案顾问">补充说明</button>
+            </div>
+          </div>`;
+        }
+
+        function lxStartAdvisorFlow() {
+          state.advisorFlow = { step: 0, industry: null, scale: null, budget: null, xinchuang: null };
+          const first = LX_ADVISOR_STEPS[0];
+          addMessage("assistant", first.ask, lxAdvisorChipsHtml(first.chips, first.key));
+        }
+
+        function lxAdvisorPick(stepKey, value) {
+          const flow = state.advisorFlow;
+          if (!flow) return;
+          flow[stepKey] = value;
+          const stepDef = LX_ADVISOR_STEPS.find(function(s) { return s.key === stepKey; });
+          const pickedLabel = stepDef ? (stepDef.chips.find(function(c) { return c.value === value; }) || {}).label || value : value;
+          addMessage("user", pickedLabel);
+          const currentIdx = LX_ADVISOR_STEPS.findIndex(function(s) { return s.key === stepKey; });
+          const nextStep = LX_ADVISOR_STEPS[currentIdx + 1];
+          if (nextStep) {
+            flow.step = currentIdx + 1;
+            addMessage("assistant", nextStep.ask, lxAdvisorChipsHtml(nextStep.chips, nextStep.key));
+          } else {
+            // 第5步：生成摘要卡
+            flow.step = 4;
+            addMessage("assistant", "好的，已收集完整需求。以下是整理好的需求摘要，请确认后提交给方案顾问：", lxAdvisorSummaryHtml(flow));
+          }
+        }
+
+        window.lxStartAdvisorFlow = lxStartAdvisorFlow;
+
         function lxSetHumanMode(on) {
           state.humanMode = !!on;
           closeModal();
@@ -5739,6 +5851,7 @@ if (!window.__lxMemberFetched) {
               if (text.includes("教育特惠")) openEduZone();
               else if (text.includes("国补")) sendChat(text);
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
+              else if (text.includes("批量采购流程") || text.includes("方案顾问")) lxStartAdvisorFlow();
               else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
               else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
@@ -5957,12 +6070,10 @@ if (!window.__lxMemberFetched) {
                 } else {
                   sendChat(ind.opener);
                 }
-                // c. 重渲楼层（楼层排序依赖 state.entIndustry 已更新）
+                // c. 重渲当前 tab（行业解决方案 tab 更新高亮+置顶；推荐 tab 产品楼层排序依赖 state.entIndustry 已更新）
+                await lxRenderSiteFloors();
                 const box = document.querySelector("[data-site-floors]");
-                if (box) {
-                  box.innerHTML = await lxRenderEnterpriseRecommendFloors();
-                  requestAnimationFrame(() => { lxClampCatFloors(box); });
-                }
+                if (box) requestAnimationFrame(() => { lxClampCatFloors(box); });
               }
               return;
             }
@@ -6136,7 +6247,14 @@ if (!window.__lxMemberFetched) {
             else if (floorAction === "service") openServicePanel();
             else if (floorAction === "member") openMemberCenter();
             else if (floorAction === "coupon") openCouponCenter();
-            else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
+            else if (floorAction === "lead") { if (state.page === "enterprise") lxStartAdvisorFlow(); else openLeadPanel("b_purchase"); }
+            const advisorPick = event.target.closest("[data-advisor-pick]");
+            if (advisorPick) { const [step, val] = advisorPick.dataset.advisorPick.split(":"); lxAdvisorPick(step, val); }
+            if (event.target.closest("[data-advisor-submit]")) {
+              lxSetHumanMode(true);
+              addMessage("assistant", "已将您的需求摘要转交方案顾问，稍后由专属顾问对接（演示）。");
+              state.advisorFlow = null;
+            }
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
