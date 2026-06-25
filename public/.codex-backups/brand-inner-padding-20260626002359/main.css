@@ -10776,7 +10776,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .brand[data-v="3"].lx-brand-skin .hero .inner{ display:none; }
 .brand[data-v="3"].lx-brand-skin .hero .photo{ position:relative; flex:0 0 42%; inset:auto; width:auto; height:auto; -webkit-mask:none; mask:none; background:url("/assets/img/brand-hero-building.jpg") center/cover no-repeat; opacity:.72; mix-blend-mode:screen; }
 .brand[data-v="3"].lx-brand-skin .hero .photo::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(44,10,42,.25),rgba(212,69,47,.18)); }
-.brand[data-v="3"].lx-brand-skin .hero .inner{ position:relative; z-index:2; flex:1; padding:74px 46px; display:flex; flex-direction:column; justify-content:center; }
+.brand[data-v="3"].lx-brand-skin .hero .inner{ position:relative; z-index:2; flex:1; padding:44px 46px; display:flex; flex-direction:column; justify-content:center; }
 .brand[data-v="3"].lx-brand-skin .hero .eyebrow{ color:rgba(255,255,255,.6); margin:0; }
 .brand[data-v="3"].lx-brand-skin .hero h1{ font-size:40px; font-weight:800; letter-spacing:1px; line-height:1.1; color:#fff; margin:16px 0 16px; }
 .brand[data-v="3"].lx-brand-skin .hero .desc{ font-size:14.5px; line-height:1.85; color:rgba(255,255,255,.86); margin:0 0 24px; }
