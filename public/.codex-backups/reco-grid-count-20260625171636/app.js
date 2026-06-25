@@ -2413,21 +2413,13 @@ if (!window.__lxMemberFetched) {
           box.querySelectorAll(".lx-floor-products").forEach((g) => lxFloorRO.observe(g));
         }
 
-        function lxCatFloorVisibleCount() {
-          const width = window.innerWidth || document.documentElement.clientWidth || 0;
-          if (width >= 1920) return 12;
-          if (width >= 1720) return 10;
-          return 8;
-        }
-
-        // 渲染个人站品类楼层（标题 + 换一换 + 两排商品网格，无「查看更多」）
+        // 渲染个人站 8 品类楼层（标题 + 换一换 + 8 个商品网格，无「查看更多」）
         function lxRenderCatFloor(floorDef, items) {
           const label = floorDef.label;
           const catKey = floorDef.categories.join(",");
-          const visibleCount = lxCatFloorVisibleCount();
-          // 始终最多渲染 12 个，宽度变化时可从 8/10 扩到 12；可见数量由 lxClampCatFloors 控制。
+          // 渲染最多 12 个（够 6 列），渲染后 lxClampCatFloors 按真实列数夹成两排（不依赖 JS 猜列数）
           const n = 12;
-          const canShuffle = items.length > visibleCount;
+          const canShuffle = items.length > n;
           const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
           const cards = items.slice(0, n).map(lxProductMiniCard).join("");
           return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
@@ -5918,10 +5910,9 @@ if (!window.__lxMemberFetched) {
                 const items = uniq.filter(floorDef.filter);
                 if (items.length > 0) {
                   if (!state.catFloorOffset) state.catFloorOffset = {};
-                  const visibleCount = lxCatFloorVisibleCount();
                   const n = 12; // 渲染 12 个，渲染后按真实列数夹两排（与初次渲染一致）
                   const cur = state.catFloorOffset[catKey] || 0;
-                  const next = (cur + visibleCount) % items.length;
+                  const next = (cur + n) % items.length;
                   state.catFloorOffset[catKey] = next;
                   const batch = [];
                   for (let i = 0; i < n && i < items.length; i++) {
@@ -5930,7 +5921,7 @@ if (!window.__lxMemberFetched) {
                   const grid = shuffleBtn.closest("[data-cat-floor-key]")?.querySelector("[data-cat-floor-grid]");
                   if (grid) {
                     grid.innerHTML = batch.map(lxProductMiniCard).join("");
-                    shuffleBtn.disabled = items.length <= visibleCount;
+                    shuffleBtn.disabled = items.length <= n;
                     requestAnimationFrame(() => lxClampCatFloors(grid.closest(".lx-cat-floor")));
                   }
                 }
