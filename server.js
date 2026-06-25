@@ -493,6 +493,10 @@ app.get('/admin', (req, res) => {
 app.get('/admin/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
 });
+// admin-vue (Vite SPA, history 模式) — 深层路由 fallback 到工程 index，否则落到主站 index
+app.get('/admin-vue/*path', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/admin-vue/index.html'));
+});
 // Share page
 app.get('/share/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/share.html'));
