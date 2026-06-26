@@ -7111,31 +7111,18 @@ if (!window.__lxCreateTypewriter) {
   }
   function renderLxfdProducts(products) {
     if (!Array.isArray(products) || !products.length) return "";
-    const first = products[0] || {};
-    const desc = products.length === 1
-      ? `${escapeHtml(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
-      : `已为你筛选 ${products.length} 款候选商品`;
-    return `<button class="answer-cta lx-answer-reco" type="button" data-lxfd-reveal-products="1">
-      <span class="answer-cta-copy">
-        <span class="answer-cta-title">查看推荐商品</span>
-        <span class="answer-cta-desc">${desc}</span>
-      </span>
-      <span class="answer-cta-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
-      </span>
-    </button>`;
+    return `<div class="lxfd-products">${products.slice(0, 4).map((product) => `
+      <button class="lxfd-product-mini" type="button" data-open-product="${escapeAttr(product.sku || "")}">
+        <img src="${escapeAttr(imgUrl(product.image_url))}" alt="">
+        <span><strong>${escapeHtml(product.name || "联想商品")}</strong><em>${escapeHtml(money(product.price))}</em></span>
+      </button>`).join("")}</div>`;
   }
 
   function appendLxfdSuggestions(ai, suggestions) {
     const list = Array.isArray(suggestions) ? suggestions.slice(0, 3) : [];
     if (!list.length) return;
-    thread?.querySelectorAll(".lxfd-followups").forEach((el) => {
-      if (!ai.contains(el)) el.remove();
-    });
-    ai.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
-    const host = ai.querySelector(".lxfd-ai-body") || ai;
-    host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
-    $$(".lxfd-followups button", host).forEach(btn => btn.addEventListener("click", () => submit(btn.textContent)));
+    ai.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
+    $$(".lxfd-followups button", ai).forEach(btn => btn.addEventListener("click", () => submit(btn.textContent)));
   }
 
   async function submit(text) {
@@ -7146,7 +7133,6 @@ if (!window.__lxCreateTypewriter) {
     let turnTitle = "";
     let turnGrouped = false;
     let turnAction = null; // 本轮意图操作（action 事件带来的 op）
-    thread?.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
     // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
     if (!chatState.started && !chatState.human) {
       chatState.started = true;
@@ -7244,7 +7230,7 @@ if (!window.__lxCreateTypewriter) {
 
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
-    ai.innerHTML = '<div class="lxfd-ai-body"><div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div></div>';
+    ai.innerHTML = '<div class="lxfd-ai-body"><span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;检索知识库…</span></div>';
     thread?.appendChild(ai);
     ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
     const body = ai.querySelector(".lxfd-ai-body");
@@ -7254,7 +7240,7 @@ if (!window.__lxCreateTypewriter) {
     const revealAi = () => {
       if (hasContent) return;
       hasContent = true;
-      body?.querySelector(".lxfd-typing, .loading-line")?.remove();
+      body?.querySelector(".lxfd-typing")?.remove();
       ai._textBox = document.createElement("div");
       ai._textBox.className = "lxfd-ai-text";
       if (body) body.insertBefore(ai._textBox, body.firstChild);
@@ -7324,8 +7310,9 @@ if (!window.__lxCreateTypewriter) {
           const payload = parseJson(data);
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
           if (payload.text && !hasContent && body) {
-            const typing = body.querySelector(".loading-line .typing-text");
-            if (typing) typing.textContent = "联想乐享正在生成中...";
+            let typing = body.querySelector(".lxfd-typing");
+            if (!typing) { body.insertAdjacentHTML("afterbegin", '<span class="lxfd-typing"><i></i><i></i><i></i>&nbsp;</span>'); typing = body.querySelector(".lxfd-typing"); }
+            if (typing) typing.innerHTML = `<i></i><i></i><i></i>&nbsp;${escapeHtml(payload.text)}`;
           }
         },
         products: (data) => {
@@ -7337,8 +7324,6 @@ if (!window.__lxCreateTypewriter) {
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
           // 记录本轮商品以便 done 时桥接到主面板
           turnProducts = products;
-          chatState.lastProducts = products;
-          chatState.lastProductsMeta = { title: "AI 推荐", grouped: false };
         },
         display: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -7355,8 +7340,6 @@ if (!window.__lxCreateTypewriter) {
             turnProducts = products;
             turnTitle = payload.title || "";
             turnGrouped = !!payload.grouped;
-            chatState.lastProducts = products;
-            chatState.lastProductsMeta = { title: turnTitle, grouped: turnGrouped };
           }
         },
         clicks: (data) => {
@@ -7378,11 +7361,11 @@ if (!window.__lxCreateTypewriter) {
           const { op } = parseJson(data) || {};
           if (op === 'edu') {
             const body = ai.querySelector('.lxfd-ai-body');
-            if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
+            if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
           } else if (op === 'auth') {
             // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
             const body = ai.querySelector('.lxfd-ai-body');
-            if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
+            if (body) body.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
           } else if (op) {
             turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
           }
@@ -7470,7 +7453,8 @@ if (!window.__lxCreateTypewriter) {
       }
       if (ai._writer) await ai._writer.drain();
       body?.insertAdjacentHTML("beforeend", `<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>`);
-      // 追问 links 由 done handler 异步填充；没有返回则不展示。
+      // 追问 chips 由 done handler 异步填充；若后端超时未返回则保留默认
+      if (!ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, ["可以推荐适合学生的笔记本吗？", "怎么查询我的产品保修状态？", "现在有哪些可以叠加的优惠政策？"]);
     } catch (error) {
       if (nonce !== chatState.conversationNonce) return;
       revealAi();
@@ -7720,20 +7704,6 @@ if (!window.__lxCreateTypewriter) {
     e.stopPropagation();
     if (b.textContent.trim() === "退出人工") { lxfdExitHuman(); return; }
     submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
-  });
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-lxfd-reveal-products]");
-    if (!btn) return;
-    e.preventDefault();
-    const products = chatState.lastProducts || [];
-    if (!products.length) return;
-    if (document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
-      lxfdExportToMain();
-      exitFullscreenWithReveal(() => {
-        window.__lxBridge.revealProducts(products, chatState.lastProductsMeta || {});
-        if (thread) thread.innerHTML = "";
-      });
-    }
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
