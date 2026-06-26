@@ -2282,7 +2282,7 @@ if (!window.__lxCreateTypewriter) {
           const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
             personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "种草", "服务", "门店"],
-            business: ["企业会员权益", "企业定制", "门店", "服务"],
+            business: ["企业会员权益", "企业定制", "企业积分兑换", "门店", "服务"],
             enterprise: ["行业解决方案", "行业资料"],
           }[page] || [];
           return ["推荐", ...categoryLabels, ...activityLabels];
@@ -3284,8 +3284,9 @@ if (!window.__lxCreateTypewriter) {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
             const activitySections = {
-              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
+              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？") + `<h4 class="lx-gb-sub-title">企业服务工具</h4>` + quickCard("企业账期申请", "对公采购可申请账期，T+30/60", "企业账期怎么申请，需要什么资质？") + quickCard("上门部署", "工程师上门安装调试整批设备", "企业批量设备的上门部署服务怎么预约？") + quickCard("远程支持", "远程协助配置与故障排查", "企业远程技术支持怎么获取？") + quickCard("清洁保养", "定期巡检、清灰、保养", "企业设备的清洁保养服务包含什么？"), entCta),
               "企业定制": lxFloorSection("企业定制", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              "企业积分兑换": lxFloorSection("企业积分兑换", "企业采购赚积分 · 好物随心换", `<div class="lx-floor-card lx-floor-card--points-hero"><strong>当前积分</strong><span>登录后查询企业账户积分余额</span></div>` + quickCard("查询我的积分", "看看当前企业积分余额", "帮我查询企业账户的积分余额") + quickCard("怎么领取积分", "采购/签到/活动赚积分", "企业积分怎么赚取和领取？") + quickCard("积分规则", "积分有效期与兑换规则", "企业积分商城的规则是什么？") + quickCard("推荐兑换商品", "积分能换什么好物", "用企业积分能兑换哪些商品？") + `<p class="lx-p0-disclaimer">积分数据为演示口径，正式以企业积分商城为准。</p>`, `<button class="lx-p0-btn primary" type="button" data-quick-ask="带我进企业积分商城看看能换什么">进入积分商城</button>`),
               "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
               "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
