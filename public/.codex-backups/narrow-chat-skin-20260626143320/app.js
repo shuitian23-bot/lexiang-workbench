@@ -1470,18 +1470,23 @@ if (!window.__lxCreateTypewriter) {
         function addMessage(role, text, extraHtml = "") {
           const list = ensureChat();
           const node = document.createElement("div");
-          const isAi = /\b(ai|assistant)\b/.test(role);
-          const isUser = /\buser\b/.test(role);
-          node.className = `lx-p0-message msg ${role}${isAi ? " lx-chat-skin" : ""}`;
-          if (isUser) {
-            node.innerHTML = `<div class="user-bubble">${esc(text)}${extraHtml}</div>`;
-          } else if (isAi) {
-            const body = lxEnsureAiBody(node);
-            if (text) {
-              node._raw = String(text);
-              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`);
-            } else {
-              body.innerHTML = extraHtml;
+          node.className = `lx-p0-message ${role}`;
+          if (/\b(ai|assistant)\b/.test(role) && text) {
+            const textBox = document.createElement("div");
+            textBox.className = "lx-msg-text";
+            node.appendChild(textBox);
+            node._raw = String(text);
+            node._textBox = textBox;
+            node._writer = window.__lxCreateTypewriter(textBox, {
+              charsPerTick: 1,
+              interval: 24,
+              scroll: () => { list.scrollTop = list.scrollHeight; }
+            });
+            node._writer.set(node._raw);
+            if (extraHtml) {
+              node._writer.drain().then(() => {
+                if (node.isConnected) node.insertAdjacentHTML("beforeend", extraHtml);
+              });
             }
           } else {
             node.innerHTML = `${esc(text)}${extraHtml}`;
@@ -1493,209 +1498,23 @@ if (!window.__lxCreateTypewriter) {
 
         function renderGenerating(label = "正在分析需求并生成回复...") {
           return `
-            <div class="loading-line lx-generating" role="status" aria-live="polite">
-              <span class="typing-text">${esc(label)}</span><span class="typing-cursor"></span>
+            <div class="lx-generating" role="status" aria-live="polite">
+              <div class="lx-generating-head"><span class="lx-generating-orb"></span>${esc(label)}</div>
+              <div class="lx-generating-lines" aria-hidden="true">
+                <span class="lx-generating-line"></span>
+                <span class="lx-generating-line"></span>
+                <span class="lx-generating-line"></span>
+              </div>
             </div>`;
         }
 
         function renderProductsInMessage(products) {
           if (!Array.isArray(products) || !products.length) return "";
-          const first = products[0] || {};
-          const action = products.length === 1 && first.sku
-            ? `data-open-product="${esc(first.sku)}"`
-            : `data-lx-focus-reco="1"`;
-          const desc = products.length === 1
-            ? `${esc(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
-            : `已为你筛选 ${products.length} 款候选商品`;
-          return `<button class="answer-cta lx-answer-reco" type="button" ${action}>
-            <span class="answer-cta-copy">
-              <span class="answer-cta-title">查看推荐商品</span>
-              <span class="answer-cta-desc">${desc}</span>
-            </span>
-            <span class="answer-cta-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
-            </span>
-          </button>`;
-        }
-
-        function lxEnsureAiBody(node) {
-          let body = $(".ai-body", node);
-          if (body) return body;
-          node.innerHTML = `<article class="ai-wrap"><div class="ai-body"></div></article>`;
-          return $(".ai-body", node);
-        }
-
-        function lxNormalizeAnswerHtml(html) {
-          const box = document.createElement("div");
-          box.innerHTML = String(html || "");
-          const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT, {
-            acceptNode: (node) => {
-              const parent = node.parentElement;
-              if (!parent || parent.closest("script,style,svg,.price")) return NodeFilter.FILTER_REJECT;
-              return /¥\s?[\d,]+(?:\.\d+)?/.test(node.nodeValue || "") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-            }
-          });
-          const priceNodes = [];
-          while (walker.nextNode()) priceNodes.push(walker.currentNode);
-          priceNodes.forEach((node) => {
-            const frag = document.createDocumentFragment();
-            String(node.nodeValue || "").split(/(¥\s?[\d,]+(?:\.\d+)?)/g).forEach((part) => {
-              if (/^¥\s?[\d,]+(?:\.\d+)?$/.test(part)) {
-                const span = document.createElement("span");
-                span.className = "price";
-                span.textContent = part;
-                frag.appendChild(span);
-              } else {
-                frag.appendChild(document.createTextNode(part));
-              }
-            });
-            node.parentNode.replaceChild(frag, node);
-          });
-          box.querySelectorAll(".lx-md-h").forEach((el) => {
-            el.classList.add("section-title");
-            if (/^[-—一二三四五六七八九十]+\s*/.test(el.textContent || "")) el.textContent = (el.textContent || "").replace(/^[-—]\s*/, "");
-          });
-          box.querySelectorAll(".lx-p0-suggest[data-followups]").forEach((el) => {
-            el.classList.remove("lx-p0-suggest");
-            el.classList.add("followups");
-          });
-          box.querySelectorAll(".lx-p0-suggest:not([data-followups])").forEach((el) => {
-            if (el.querySelector("[data-quick-ask]")) {
-              el.classList.remove("lx-p0-suggest");
-              el.classList.add("followups");
-            }
-          });
-          box.querySelectorAll(".lx-p0-suggest-chip").forEach((el) => {
-            el.classList.remove("lx-p0-suggest-chip");
-          });
-          box.querySelectorAll(".lx-p0-actions").forEach((el) => {
-            el.classList.add("followups");
-          });
-          return box.innerHTML;
-        }
-
-        function lxActionBarHtml() {
-          return `<div class="message-actions" aria-label="回答操作">
-            <button type="button" data-msg-action="copy" aria-label="复制"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3"></rect><rect x="4" y="4" width="12" height="12" rx="3"></rect></svg></button>
-            <button type="button" data-msg-action="up" aria-label="有帮助"><svg viewBox="0 0 24 24"><path d="M7 10v10"></path><path d="M11 10l1.2-5.2a2 2 0 0 1 3.7-.5L16 5.5V10h4a2 2 0 0 1 2 2.3l-1 6a2 2 0 0 1-2 1.7H9a2 2 0 0 1-2-2v-8"></path><path d="M3 10h4v10H3z"></path></svg></button>
-            <button type="button" data-msg-action="down" aria-label="无帮助"><svg viewBox="0 0 24 24"><path d="M7 14V4"></path><path d="M11 14l1.2 5.2a2 2 0 0 0 3.7.5l.1-1.2V14h4a2 2 0 0 0 2-2.3l-1-6A2 2 0 0 0 19 4H9a2 2 0 0 0-2 2v8"></path><path d="M3 4h4v10H3z"></path></svg></button>
-            <button type="button" data-msg-action="regen" aria-label="重新生成"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.6 4.5L21 15"></path><path d="M21 20v-5h-5"></path></svg></button>
-          </div>`;
-        }
-
-        function lxWithAnswerActions(html) {
-          const box = document.createElement("div");
-          box.innerHTML = lxNormalizeAnswerHtml(html);
-          if (!box.querySelector(".message-actions")) {
-            const actions = document.createElement("div");
-            actions.innerHTML = lxActionBarHtml();
-            const followups = box.querySelector(".followups");
-            if (followups) box.insertBefore(actions.firstElementChild, followups);
-            else box.appendChild(actions.firstElementChild);
-          }
-          return box.innerHTML;
-        }
-
-        function lxAppendAiHtml(node, html) {
-          if (!node || !html) return;
-          if (node._pendingExtras != null) {
-            node._pendingExtras += String(html);
-            return;
-          }
-          lxEnsureAiBody(node).insertAdjacentHTML("beforeend", lxNormalizeAnswerHtml(html));
-          const list = ensureChat();
-          if (list) list.scrollTop = list.scrollHeight;
-        }
-
-        function lxTypeText(el, text, speed, done) {
-          let index = 0;
-          const tick = () => {
-            el.textContent = String(text).slice(0, index);
-            index += 1;
-            if (index <= String(text).length) window.setTimeout(tick, speed);
-            else if (done) done();
-          };
-          tick();
-        }
-
-        function lxTypeNodes(sourceParent, targetParent, speed, done) {
-          const cursor = document.createElement("span");
-          cursor.className = "typing-cursor";
-          const scroll = () => {
-            const list = ensureChat();
-            if (list) list.scrollTop = list.scrollHeight;
-          };
-          const moveCursor = (parent) => { cursor.remove(); parent.appendChild(cursor); scroll(); };
-          const typeTextNode = (text, parent, next) => {
-            const textNode = document.createTextNode("");
-            let index = 0;
-            parent.appendChild(textNode);
-            moveCursor(parent);
-            const tick = () => {
-              textNode.nodeValue = text.slice(0, index);
-              index += 1;
-              if (index <= text.length) window.setTimeout(tick, speed);
-              else next();
-            };
-            tick();
-          };
-          const typeChildList = (children, parent, next) => {
-            let index = 0;
-            const step = () => {
-              if (index >= children.length) { next(); return; }
-              typeNode(children[index], parent, () => { index += 1; step(); });
-            };
-            step();
-          };
-          const typeNode = (node, parent, next) => {
-            if (node.nodeType === Node.TEXT_NODE) {
-              if (!node.nodeValue) { next(); return; }
-              typeTextNode(node.nodeValue, parent, next);
-              return;
-            }
-            if (node.nodeType !== Node.ELEMENT_NODE) { next(); return; }
-            const clone = node.cloneNode(false);
-            parent.appendChild(clone);
-            moveCursor(clone);
-            typeChildList(Array.from(node.childNodes), clone, next);
-          };
-          targetParent.innerHTML = "";
-          typeChildList(Array.from(sourceParent.childNodes), targetParent, () => {
-            cursor.remove();
-            if (done) done();
-          });
-        }
-
-        function lxAnimateAiFinal(node, html) {
-          const body = lxEnsureAiBody(node);
-          const finalHTML = lxWithAnswerActions(html);
-          node.classList.remove("loading");
-          node.classList.add("ai", "lx-chat-skin");
-          if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            body.innerHTML = finalHTML;
-            return Promise.resolve();
-          }
-          body.innerHTML = '<div class="loading-line"><span class="typing-text"></span><span class="typing-cursor"></span></div>';
-          const loadingText = $(".typing-text", body);
-          const loadingStarted = Date.now();
-          return new Promise((resolve) => {
-            lxTypeText(loadingText, "联想乐享正在整理推荐…", 48, () => {
-              const waitTime = Math.max(0, 5000 - (Date.now() - loadingStarted));
-              window.setTimeout(() => {
-                const source = document.createElement("div");
-                source.innerHTML = finalHTML;
-                source.querySelectorAll(".answer-cta, .message-actions, .followups").forEach((el) => el.remove());
-                lxTypeNodes(source, body, 18, () => {
-                  window.setTimeout(() => {
-                    body.innerHTML = finalHTML;
-                    const list = ensureChat();
-                    if (list) list.scrollTop = list.scrollHeight;
-                    resolve();
-                  }, 140);
-                });
-              }, waitTime);
-            });
-          });
+          return `<div class="lx-p0-products">${products.slice(0, 4).map((product) => `
+            <button class="lx-p0-product-mini" type="button" data-open-product="${esc(product.sku || "")}">
+              <img src="${esc(imgUrl(product.image_url))}" alt="">
+              <span><strong>${esc(product.name || "联想商品")}</strong><span>${money(product.price)}</span></span>
+            </button>`).join("")}</div>`;
         }
 
         function renderQueryHistory() {
@@ -1799,8 +1618,6 @@ if (!window.__lxCreateTypewriter) {
           }
           // ── 本地快路径结束 ───────────────────────────────────────────────
           const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
-          ai._raw = "";
-          ai._pendingExtras = "";
           state.sending = true;
           state._fallbackFired = false;
           try {
@@ -1864,15 +1681,25 @@ if (!window.__lxCreateTypewriter) {
             let hasContent = false;
             const revealAi = () => {
               if (hasContent) return;
-              ai.className = "lx-p0-message msg ai lx-chat-skin";
+              ai.className = "lx-p0-message ai";
+              ai.textContent = "";
               hasContent = true;
             };
             const ensureAiTextBox = () => {
               revealAi();
               if (!ai._textBox || !ai.contains(ai._textBox)) {
-                ai._textBox = lxEnsureAiBody(ai);
+                ai._textBox = document.createElement("div");
                 ai._textBox.className = "lx-msg-text";
+                ai.appendChild(ai._textBox);
                 ai._raw = "";
+                ai._writer = window.__lxCreateTypewriter(ai._textBox, {
+                  charsPerTick: 1,
+                  interval: 24,
+                  scroll: () => {
+                    const chat = ensureChat();
+                    if (chat) chat.scrollTop = chat.scrollHeight;
+                  }
+                });
               }
               return ai._textBox;
             };
@@ -1882,16 +1709,17 @@ if (!window.__lxCreateTypewriter) {
                 const payload = parseJson(data);
                 const content = payload.text || data || "";
                 if (!content) return;
-                revealAi();
+                ensureAiTextBox();
                 ai._raw += content;
+                ai._writer?.append(content);
               },
               status: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 if (payload.text) {
-                  const head = $(".loading-line .typing-text", ai);
-                  if (head) head.textContent = payload.text;
+                  const head = $(".lx-generating-head", ai);
+                  if (head) head.innerHTML = `<span class="lx-generating-orb"></span>${esc(payload.text)}`;
                 }
               },
               products: (data) => {
@@ -1899,7 +1727,7 @@ if (!window.__lxCreateTypewriter) {
                 const payload = parseJson(data);
                 const products = payload.products || [];
                 revealAi();
-                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                 if (products.length === 1 && products[0].sku) {
                   lxRevealContent();
                   openProduct(products[0]);
@@ -1915,7 +1743,7 @@ if (!window.__lxCreateTypewriter) {
                 const list = (parseJson(data).clicks) || [];
                 if (!list.length) return;
                 revealAi();
-                lxAppendAiHtml(ai, '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
+                ai.insertAdjacentHTML("beforeend", '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
                   `<button type="button" class="leai-click-btn" data-leai-url="${esc(c.link_url || "")}" data-leai-cb="${esc(c.callback_data || "")}" data-leai-event="${esc(c.event_type || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${esc(c.display_text)}</button>`
                 ).join("") + "</div>");
               },
@@ -1928,9 +1756,11 @@ if (!window.__lxCreateTypewriter) {
                 const lastAsk = state.lastUserText || "";
                 if (products.length >= 2 && /对比|比较|哪个好|怎么选(?!购)/.test(lastAsk)) {
                   if (payload.title && !ai._raw) {
+                    ensureAiTextBox();
                     ai._raw = payload.title;
+                    ai._writer?.set(payload.title);
                   }
-                  lxAppendAiHtml(ai, renderProductsInMessage(products));
+                  ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                   lxRevealContent();
                   lxUpsertCompareTab(products.slice(0, 8), payload.title || "商品参数对比");
                   return;
@@ -1939,9 +1769,11 @@ if (!window.__lxCreateTypewriter) {
                   products = products.slice(0, 1);
                 }
                 if (payload.title && !ai._raw) {
+                  ensureAiTextBox();
                   ai._raw = payload.title;
+                  ai._writer?.set(payload.title);
                 }
-                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   lxRevealContent();
@@ -1984,12 +1816,12 @@ if (!window.__lxCreateTypewriter) {
                 else if (op === 'solution') openSolutionCenter();
                 else if (op === 'edu') {
                   openEduZone();
-                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
+                  ai.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
                 }
                 else if (op === 'stores') openStoresPanel();
                 else if (op === 'auth') {
                   // 职场认证：往当前 AI 气泡末尾插入触发按钮
-                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
+                  ai.insertAdjacentHTML('beforeend', '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
                 }
               },
               tradein: (data) => {
@@ -2014,7 +1846,7 @@ if (!window.__lxCreateTypewriter) {
                 // 官方商品缓存到 state，供点击时按 sku 取对象传给 openProduct
                 state.officialProducts = state.officialProducts || {};
                 products.forEach((p) => { if (p.sku) state.officialProducts[p.sku] = p; });
-                lxAppendAiHtml(ai, `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-open-product="${esc(p.sku)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-open-product="${esc(p.sku)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
                 lxRevealContent();
                 const recoTab = { id: "reco", kind: "reco", label: payload.title || "官方在售推荐", products };
                 lxUpsertTab(recoTab);
@@ -2026,7 +1858,7 @@ if (!window.__lxCreateTypewriter) {
                 const options = payload.options || [];
                 if (!options.length) return;
                 revealAi();
-                lxAppendAiHtml(ai, `<div class="lx-choices"><div class="lx-choices-title">${esc(payload.title || "请选择")}</div><div class="lx-p0-suggest">${options.map((opt) => `<button class="lx-p0-suggest-chip" type="button" data-choice="${esc(opt)}" data-choice-template="${esc(payload.ask_template || "{choice}")}">${esc(opt)}</button>`).join("")}</div></div>`);
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-choices"><div class="lx-choices-title">${esc(payload.title || "请选择")}</div><div class="lx-p0-suggest">${options.map((opt) => `<button class="lx-p0-suggest-chip" type="button" data-choice="${esc(opt)}" data-choice-template="${esc(payload.ask_template || "{choice}")}">${esc(opt)}</button>`).join("")}</div></div>`);
                 ensureChat().scrollTop = ensureChat().scrollHeight;
               },
               control: (data) => {
@@ -2096,25 +1928,32 @@ if (!window.__lxCreateTypewriter) {
               },
               thinking: () => {
                 if (nonce !== state.conversationNonce) return;
-                const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "深度思考中，正在权衡更稳妥的建议...";
+                const head = $(".lx-generating-head", ai);
+                if (head) head.innerHTML = `<span class="lx-generating-orb"></span>深度思考中，正在权衡更稳妥的建议...`;
               },
               think_end: () => {
                 if (nonce !== state.conversationNonce) return;
-                const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "思考完成，正在组织回答...";
+                const head = $(".lx-generating-head", ai);
+                if (head) head.innerHTML = `<span class="lx-generating-orb"></span>思考完成，正在组织回答...`;
               },
               suggestions: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const list = Array.isArray(payload.suggestions) ? payload.suggestions.slice(0, 3) : [];
                 if (!list.length || !hasContent) return;
-                lxAppendAiHtml(ai, `<div class="lx-p0-suggest">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
               },
               done: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
+                // 流式结束后把整段回复升级为 markdown 渲染（加粗/列表/表格）
+                if (ai._raw && ai._textBox && ai.contains(ai._textBox)) {
+                  const raw = ai._raw;
+                  (ai._writer ? ai._writer.drain() : Promise.resolve(raw)).then(() => {
+                    if (nonce === state.conversationNonce && ai.contains(ai._textBox)) ai._textBox.innerHTML = mdLite(raw);
+                  });
+                }
                 // 追问 chips：异步生成，不阻塞主流程
                 const _q = state.lastUserText || "";
                 const _a = (ai._raw || "").slice(0, 300);
@@ -2126,7 +1965,7 @@ if (!window.__lxCreateTypewriter) {
                       if (qs.length) {
                         // 移除已有追问块（避免重复/叠加）
                         ai.querySelectorAll(".lx-p0-suggest[data-followups]").forEach(el => el.remove());
-                        lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                        ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                       }
                     }).catch(() => {});
                 }
@@ -2144,30 +1983,44 @@ if (!window.__lxCreateTypewriter) {
                   if (!huoRes.ok || !huoRes.body) throw new Error('fallback upstream ' + huoRes.status);
                   await readSse(huoRes, handlers);
                 } catch (_e) {
+                  ensureAiTextBox();
                   ai._raw = '当前服务暂时不可用，请稍后再试。';
+                  ai._writer?.set(ai._raw);
                 }
               }
             };
             await readSse(response, handlers);
             if (nonce !== state.conversationNonce) return;
             if (!hasContent) revealAi();
-            if (!ai._raw && !ai._pendingExtras) {
+            if (!ai._raw && !$(".lx-p0-products", ai)) {
+              ensureAiTextBox();
               ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
+              ai._writer?.set(ai._raw);
             }
-            if (!state.humanMode) lxAppendAiHtml(ai, `<div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>`);
-            const finalHtml = `${ai._raw ? mdLite(ai._raw) : ""}${ai._pendingExtras || ""}`;
-            ai._pendingExtras = null;
-            await lxAnimateAiFinal(ai, finalHtml);
+            if (ai._writer) await ai._writer.drain();
+            if (!state.humanMode) ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>`);
             state.pendingImageUrl = "";
             state.pendingAudioUrl = "";
             updateUploadNote();
             if (state.officialCompare) callOfficialAI(text);
           } catch (error) {
             if (nonce !== state.conversationNonce) return;
-            ai.className = "lx-p0-message msg ai lx-chat-skin";
+            ai.className = "lx-p0-message ai";
+            ai.textContent = "";
+            ai._textBox = document.createElement("div");
+            ai._textBox.className = "lx-msg-text";
+            ai.appendChild(ai._textBox);
             ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
-            ai._pendingExtras = null;
-            await lxAnimateAiFinal(ai, mdLite(ai._raw));
+            ai._writer = window.__lxCreateTypewriter(ai._textBox, {
+              charsPerTick: 1,
+              interval: 24,
+              scroll: () => {
+                const chat = ensureChat();
+                if (chat) chat.scrollTop = chat.scrollHeight;
+              }
+            });
+            ai._writer.set(ai._raw);
+            await ai._writer.drain();
           } finally {
             clearTimeout(state._sendTimeout);
             if (nonce === state.conversationNonce) state.sending = false;
@@ -6080,29 +5933,6 @@ if (!window.__lxCreateTypewriter) {
             if (quickAsk) {
               closeModal();
               sendChat(quickAsk);
-            }
-            const msgAction = event.target.closest("[data-msg-action]")?.dataset.msgAction;
-            if (msgAction) {
-              const msg = event.target.closest(".lx-p0-message.ai, .lx-p0-message.assistant");
-              if (msgAction === "copy") {
-                const text = msg?.querySelector(".ai-body")?.innerText || msg?.innerText || "";
-                navigator.clipboard?.writeText(text.trim()).then(() => toast("已复制回答")).catch(() => toast("复制失败"));
-              } else if (msgAction === "regen") {
-                if (state.lastUserText) sendChat(state.lastUserText);
-              } else {
-                toast(msgAction === "up" ? "已记录：有帮助" : "已记录：无帮助");
-              }
-              return;
-            }
-            if (event.target.closest("[data-lx-focus-reco]")) {
-              lxRevealContent();
-              const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
-              if (tab) {
-                state.activeTabId = tab.id;
-                lxRenderTabbar();
-                lxRunTab(tab);
-              }
-              return;
             }
             const claimCoupon = event.target.closest("[data-claim-coupon]")?.dataset.claimCoupon;
             if (claimCoupon) {
