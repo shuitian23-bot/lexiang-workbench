@@ -5581,22 +5581,6 @@
         grid-column: 2;
       }
       .lx-msg-text { white-space: normal; }
-      .lx-msg-text.streaming::after,
-      .lxfd-ai-text.streaming::after {
-        content: "▋";
-        display: inline-block;
-        margin-left: 2px;
-        color: #b8252e;
-        font-size: 0.9em;
-        line-height: 1;
-        vertical-align: baseline;
-        animation: lxTypingCursor 0.72s step-end infinite;
-      }
-
-      @keyframes lxTypingCursor {
-        0%, 45% { opacity: 1; }
-        46%, 100% { opacity: 0; }
-      }
 
       .lx-p1-upload-note {
         display: none;
@@ -5889,11 +5873,6 @@
         padding: 8px 18px;
         border-radius: 12px;
         box-shadow: 0 6px 16px rgba(200, 22, 30, 0.25);
-      }
-      .lx-site-floors > .lx-floor--seckill .lx-floor-title h3,
-      .lx-site-floors > .lx-floor--seckill .lx-floor-title h3 * {
-        color: #fff !important;
-        -webkit-text-fill-color: #fff;
       }
 
       .lx-floor--seckill .lx-floor-title p { color: #a4555e; }
