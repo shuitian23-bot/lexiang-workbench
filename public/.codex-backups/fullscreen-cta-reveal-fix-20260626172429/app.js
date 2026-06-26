@@ -7721,22 +7721,19 @@ if (!window.__lxCreateTypewriter) {
     submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
   });
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco]");
+    const btn = e.target.closest("[data-lxfd-reveal-products]");
     if (!btn) return;
     e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    const recoTab = (window.__lxState?.tabs || []).find((item) => item && (item.kind === "reco" || item.id === "reco") && Array.isArray(item.products) && item.products.length);
-    const products = (chatState.lastProducts && chatState.lastProducts.length) ? chatState.lastProducts : (recoTab?.products || []);
+    const products = chatState.lastProducts || [];
     if (!products.length) return;
     if (document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
       lxfdExportToMain();
       exitFullscreenWithReveal(() => {
-        window.__lxBridge.revealProducts(products, chatState.lastProductsMeta || { title: recoTab?.label || "AI 推荐", grouped: !!recoTab?.grouped });
+        window.__lxBridge.revealProducts(products, chatState.lastProductsMeta || {});
         if (thread) thread.innerHTML = "";
       });
     }
-  }, true);
+  });
   thread?.addEventListener("click", (e) => {
     const btn = e.target.closest(".lxfd-followups button, .lxfd-ai-body .followups button, .lxfd-ai-body .lx-p0-suggest[data-followups] button, .lxfd-ai-body [data-quick-ask]");
     if (!btn) return;
