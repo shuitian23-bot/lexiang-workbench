@@ -1494,7 +1494,7 @@ if (!window.__lxCreateTypewriter) {
         function renderGenerating(label = "正在分析需求并生成回复...") {
           return `
             <div class="loading-line lx-generating" role="status" aria-live="polite">
-              <span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span>
+              <span class="typing-text"></span><span class="typing-cursor"></span>
             </div>`;
         }
 
@@ -1675,7 +1675,7 @@ if (!window.__lxCreateTypewriter) {
             body.innerHTML = finalHTML;
             return Promise.resolve();
           }
-          body.innerHTML = '<div class="loading-line"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div>';
+          body.innerHTML = '<div class="loading-line"><span class="typing-text"></span><span class="typing-cursor"></span></div>';
           const loadingStarted = Date.now();
           return new Promise((resolve) => {
             const startBodyTyping = () => {
@@ -1891,7 +1891,7 @@ if (!window.__lxCreateTypewriter) {
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 if (payload.text) {
                   const head = $(".loading-line .typing-text", ai);
-                  if (head) head.textContent = "联想乐享正在生成中...";
+                  if (head) head.textContent = "";
                 }
               },
               products: (data) => {
@@ -2097,12 +2097,12 @@ if (!window.__lxCreateTypewriter) {
               thinking: () => {
                 if (nonce !== state.conversationNonce) return;
                 const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "联想乐享正在生成中...";
+                if (head) head.textContent = "";
               },
               think_end: () => {
                 if (nonce !== state.conversationNonce) return;
                 const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "联想乐享正在生成中...";
+                if (head) head.textContent = "";
               },
               suggestions: (data) => {
                 if (nonce !== state.conversationNonce) return;

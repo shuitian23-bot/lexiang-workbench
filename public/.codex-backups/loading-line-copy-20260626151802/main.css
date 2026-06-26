@@ -5169,6 +5169,7 @@
         z-index: 1;
       }
 
+      .lx-p0-message.lx-chat-skin .loading-line .typing-text,
       .lx-p0-message.lx-chat-skin .loading-line .typing-cursor {
         display: none;
       }
