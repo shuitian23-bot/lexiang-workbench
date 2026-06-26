@@ -5365,6 +5365,7 @@
         background: transparent;
         color: var(--aubergine);
         font-size: 13px;
+        font-weight: 600;
         line-height: 1.55;
         text-align: left;
         cursor: pointer;
