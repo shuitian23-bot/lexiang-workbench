@@ -3223,7 +3223,7 @@ if (!window.__lxMemberFetched) {
                 return lxEntIndustryBar() + sorted.map((industry) => `<div class="lx-floor-card${activeSolution && industry === activeSolution ? " is-active" : ""}" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join("");
               })(), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
               "信创合规": lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
-              "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
+              "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>` + `<div class="lx-floor-card" data-resource-center><strong>资料中心</strong><span>视频 · 白皮书 · 案例 · 手册 · 数字人</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button><button class="lx-p0-btn" type="button" data-resource-center style="margin-left:8px">进入资料中心</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
           }
@@ -3744,6 +3744,175 @@ if (!window.__lxMemberFetched) {
         function openWhitepaperLib() {
           const rows = LX_WHITEPAPERS.map(([name, desc]) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(name)}</strong><span>${esc(desc)}</span></div><button class="lx-p0-btn primary" type="button" data-wp-download="${esc(name)}">下载</button></div>`).join("");
           lxOpenInfoTab("whitepaper", "白皮书资料库", `${rows}<p class="lx-p0-disclaimer">下载需留下联系方式，资料将发送至您的邮箱/手机（演示环境）。</p>`);
+        }
+
+        // ── 资料中心（双维度筛选：类型 × 行业）──
+        const LX_RES_TYPES = [
+          { key: "video", label: "产品视频" },
+          { key: "whitepaper", label: "行业白皮书" },
+          { key: "case", label: "行业案例" },
+          { key: "manual", label: "产品手册" },
+          { key: "avatar", label: "数字人讲解" },
+        ];
+
+        const LX_RES_DATA = {
+          video: [
+            { title: "ThinkStation P 系列工作站产品演示", desc: "深度剖析图形工作站性能与可靠性", industry: "mfg", duration: "约 5 分钟" },
+            { title: "问天服务器开箱与机架部署", desc: "ThinkSystem SR650 V3 完整部署流程", industry: "infra", duration: "约 8 分钟" },
+            { title: "开天 M 系列信创台式机评测", desc: "国产 OS 兼容性与等保达标演示", industry: "gov", duration: "约 6 分钟" },
+            { title: "智慧教室一体化方案展示", desc: "互动教学终端 + 云桌面统一管理", industry: "edu", duration: "约 4 分钟" },
+            { title: "医院 HIS 终端解决方案演示", desc: "医护工作站与移动查房终端全流程", industry: "med", duration: "约 5 分钟" },
+            { title: "金融网点智能化改造纪录片", desc: "从柜面到自助终端全套替换方案", industry: "fin", duration: "约 7 分钟" },
+            { title: "DaaS 设备即服务全程解读", desc: "资产管理、运维外包到生命周期终止", industry: "all", duration: "约 10 分钟" },
+            { title: "ThinkPad X 系列 AI PC 新品发布", desc: "AI 算力加速与 NPU 应用场景展示", industry: "all", duration: "约 12 分钟" },
+          ],
+          whitepaper: [
+            { title: "信创 PC 选型指南（2026 版）", desc: "覆盖开天/昭阳全系，含国产 OS/CPU 兼容矩阵", industry: "gov" },
+            { title: "智慧教育解决方案白皮书", desc: "智慧教室+信创替代完整方案与案例", industry: "edu" },
+            { title: "政务信创替代实施手册", desc: "等保 2.0 基线、政采流程与迁移路线图", industry: "gov" },
+            { title: "金融行业国密合规指南", desc: "TCM/SM 算法机型与密评要点", industry: "fin" },
+            { title: "智能制造边缘 AI 白皮书", desc: "产线质检与数字孪生算力规划", industry: "mfg" },
+            { title: "企业级服务器选型手册", desc: "问天/ThinkSystem 全栈配置指南", industry: "infra" },
+            { title: "医疗信息化终端配置指南", desc: "HIS/PACS 适配、抗菌外壳与 7×24 运维", industry: "med" },
+            { title: "DaaS 服务模式落地白皮书", desc: "设备全生命周期外包成本测算与案例", industry: "all" },
+          ],
+          case: [
+            { title: "某省属重点高校 8000 台信创替代", desc: "交付周期缩短 40%，三年运维成本下降 30%", industry: "edu" },
+            { title: "某市教育局智慧教室全覆盖工程", desc: "覆盖 200 所学校，师生终端统一纳管", industry: "edu" },
+            { title: "某省级机关万台信创替代", desc: "单台综合成本下降 18%，零停机切换", industry: "gov" },
+            { title: "某市政务服务中心智能窗口改造", desc: "窗口效率提升 35%，市民满意度达 92%", industry: "gov" },
+            { title: "某三甲医院全院 3000 终端升级", desc: "门诊系统响应速度提升 35%，故障率下降一半", industry: "med" },
+            { title: "某区域影像中心 GPU 工作站集群", desc: "影像处理速度提升 3 倍，报告出具时间压缩", industry: "med" },
+            { title: "某股份制银行 300 网点信创替代", desc: "业务切换零中断，密评一次通过", industry: "fin" },
+            { title: "某汽配集团 12 条产线 AI 质检", desc: "漏检率下降 60%，单线人力成本省 25%", industry: "mfg" },
+            { title: "某互联网企业千卡推理集群", desc: "算力成本下降 22%，交付周期 5 周", industry: "infra" },
+            { title: "某能源集团两地三中心存储", desc: "RTO<15 分钟，RPO<5 分钟，存储成本降 18%", industry: "infra" },
+          ],
+          manual: [
+            { title: "ThinkStation P 系列配置手册", desc: "P3/P5/P7 完整规格、配件与认证清单", industry: "mfg" },
+            { title: "ThinkSystem 服务器部署手册", desc: "SR650 V3 / ST658 机架/塔式完整部署指南", industry: "infra" },
+            { title: "DE 系列企业存储配置手册", desc: "DE6400/DE6800 容量规划与扩容指南", industry: "infra" },
+            { title: "开天 M/T 系列信创台式机手册", desc: "固件、驱动与国产 OS 适配操作指南", industry: "gov" },
+            { title: "昭阳系列商务笔记本选购手册", desc: "E/K/N 子系列对比与企业批采说明", industry: "all" },
+            { title: "超融合一体机部署与运维手册", desc: "SE360 V3 超融合节点初始化与扩容", industry: "infra" },
+            { title: "医疗专用终端维护手册", desc: "抗菌清洁规范与 7×24 快速换机流程", industry: "med" },
+            { title: "DaaS 服务资产管理操作手册", desc: "管理门户、工单、报表全功能说明", industry: "all" },
+          ],
+          avatar: [
+            { title: "3 分钟讲清信创替代方案", desc: "数字人讲师带你看懂国产化合规路径", industry: "gov", duration: "约 3 分钟" },
+            { title: "智慧教育方案数字人讲解", desc: "从智慧教室到信创替代的整体方案导览", industry: "edu", duration: "约 4 分钟" },
+            { title: "边缘 AI 质检方案解读", desc: "产线 AI 落地从硬件选型到部署全流程", industry: "mfg", duration: "约 5 分钟" },
+            { title: "金融国密合规数字人导览", desc: "SM 算法机型与密评关键步骤一图搞懂", industry: "fin", duration: "约 3 分钟" },
+            { title: "DaaS 全生命周期服务讲解", desc: "从采购到报废，设备服务化的价值拆解", industry: "all", duration: "约 6 分钟" },
+            { title: "问天服务器 AI 推理集群方案", desc: "大模型推理集群规划与选型要点", industry: "infra", duration: "约 5 分钟" },
+          ],
+        };
+
+        function openResourceCenter(type, industry) {
+          const activeType = type || "video";
+          const activeInd = industry || "all";
+
+          // 行业 key → industry 字段映射：LX_ENT_INDUSTRIES 8 个 + "infra" + "all"
+          // 过滤逻辑：item.industry === activeInd 或 activeInd === "all" 或 item.industry === "all"
+          function filterItems(items) {
+            if (activeInd === "all") return items;
+            return items.filter((it) => it.industry === activeInd || it.industry === "all");
+          }
+
+          // 类型 tab 行
+          const typeTabs = LX_RES_TYPES.map((t) =>
+            `<button class="lx-res-tab${t.key === activeType ? " is-active" : ""}" type="button" data-res-type="${esc(t.key)}" data-res-industry="${esc(activeInd)}">${esc(t.label)}</button>`
+          ).join("");
+
+          // 行业 chip 行（"全部" + LX_ENT_INDUSTRIES + "基础设施"）
+          const industryOptions = [
+            { key: "all", label: "全部" },
+            ...LX_ENT_INDUSTRIES,
+            { key: "infra", label: "基础设施" },
+          ];
+          const industryChips = industryOptions.map((ind) =>
+            `<button class="lx-res-chip${ind.key === activeInd ? " is-active" : ""}" type="button" data-res-industry="${esc(ind.key)}" data-res-type="${esc(activeType)}">${esc(ind.label)}</button>`
+          ).join("");
+
+          // 内容区
+          const items = filterItems(LX_RES_DATA[activeType] || []);
+
+          let contentHtml = "";
+          if (!items.length) {
+            contentHtml = `<p class="lx-p0-disclaimer" style="padding:24px 0;text-align:center">暂无该行业相关资料，请选择「全部」查看所有资料。</p>`;
+          } else if (activeType === "video") {
+            // 卡片网格 + 缩略图占位
+            const cards = items.map((it) =>
+              `<div class="lx-res-card">
+                <div class="lx-res-thumb lx-res-thumb--video">
+                  <span class="lx-res-play-icon"></span>
+                  <span class="lx-res-duration">${esc(it.duration || "")}</span>
+                </div>
+                <div class="lx-res-card-body">
+                  <strong class="lx-res-card-title">${esc(it.title)}</strong>
+                  <span class="lx-res-card-desc">${esc(it.desc)}</span>
+                </div>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-grid">${cards}</div>`;
+          } else if (activeType === "whitepaper") {
+            // 列表式
+            const rows = items.map((it) =>
+              `<div class="lx-res-list-item">
+                <div class="lx-res-list-item-main">
+                  <strong>${esc(it.title)}</strong>
+                  <span>${esc(it.desc)}</span>
+                </div>
+                <button class="lx-p0-btn primary" type="button" data-res-download="${esc(it.title)}">下载</button>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-list">${rows}</div>`;
+          } else if (activeType === "case") {
+            // 案例卡片（点击让乐享介绍）
+            const cards = items.map((it) =>
+              `<div class="lx-floor-card" data-quick-ask="详细介绍这个政企案例：${esc(it.title)}">
+                <strong>${esc(it.title)}</strong>
+                <span>${esc(it.desc)}</span>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-floor-body">${cards}</div>`;
+          } else if (activeType === "manual") {
+            // 列表式 + 下载按钮
+            const rows = items.map((it) =>
+              `<div class="lx-res-list-item">
+                <div class="lx-res-list-item-main">
+                  <strong>${esc(it.title)}</strong>
+                  <span>${esc(it.desc)}</span>
+                </div>
+                <button class="lx-p0-btn primary" type="button" data-res-download="${esc(it.title)}">下载</button>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-list">${rows}</div>`;
+          } else if (activeType === "avatar") {
+            // 卡片网格 + 缩略图 + 观看按钮
+            const cards = items.map((it) =>
+              `<div class="lx-res-card">
+                <div class="lx-res-thumb lx-res-thumb--avatar">
+                  <span class="lx-res-play-icon"></span>
+                  <span class="lx-res-duration">${esc(it.duration || "")}</span>
+                </div>
+                <div class="lx-res-card-body">
+                  <strong class="lx-res-card-title">${esc(it.title)}</strong>
+                  <span class="lx-res-card-desc">${esc(it.desc)}</span>
+                  <button class="lx-p0-btn primary lx-res-watch-btn" type="button" data-res-watch="${esc(it.title)}">观看</button>
+                </div>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-grid">${cards}</div>`;
+          }
+
+          const html = `
+            <div class="lx-res-tabs">${typeTabs}</div>
+            <div class="lx-res-industry-filter">${industryChips}</div>
+            <div class="lx-res-content">${contentHtml}</div>
+            <p class="lx-p0-disclaimer lx-res-footer-disclaimer">资料为演示示例，正式素材以官方发布为准。生成内容由 AI 辅助整理，仅供参考。</p>`;
+
+          lxOpenInfoTab("resource", "资料中心", html);
         }
 
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
@@ -6195,6 +6364,30 @@ if (!window.__lxMemberFetched) {
             else if (event.target.closest("[data-solution-center]")) openSolutionCenter();
             if (event.target.closest("[data-xinchuang]")) openXinchuangZone();
             if (event.target.closest("[data-whitepaper]")) openWhitepaperLib();
+            if (event.target.closest("[data-resource-center]")) openResourceCenter();
+            const resType = event.target.closest("[data-res-type]");
+            if (resType) { openResourceCenter(resType.dataset.resType, resType.dataset.resIndustry || "all"); return; }
+            const resIndustry = event.target.closest("[data-res-industry]");
+            if (resIndustry && !resIndustry.dataset.resType) { openResourceCenter(resIndustry.dataset.resType || "video", resIndustry.dataset.resIndustry); return; }
+            if (resIndustry) { openResourceCenter(resIndustry.dataset.resType, resIndustry.dataset.resIndustry); return; }
+            const resDownload = event.target.closest("[data-res-download]")?.dataset.resDownload;
+            if (resDownload) {
+              toast("正在为您准备（演示）");
+              setTimeout(() => {
+                state.leadScenario = "resource_download:" + resDownload;
+                openModal("需要顾问进一步讲解吗？", `<p class="lx-p0-disclaimer" style="margin-bottom:12px">「${esc(resDownload)}」已准备完成，需要联想专家为您深度解读？</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">联系顾问</button><button class="lx-p0-btn" type="button" data-modal-close>暂不需要</button></div>`);
+              }, 1200);
+              return;
+            }
+            const resWatch = event.target.closest("[data-res-watch]")?.dataset.resWatch;
+            if (resWatch) {
+              toast("正在为您准备（演示）");
+              setTimeout(() => {
+                state.leadScenario = "resource_watch:" + resWatch;
+                openModal("需要顾问进一步讲解吗？", `<p class="lx-p0-disclaimer" style="margin-bottom:12px">「${esc(resWatch)}」播放完成，需要联想专家为您详细解读方案？</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">联系顾问</button><button class="lx-p0-btn" type="button" data-modal-close>暂不需要</button></div>`);
+              }, 1200);
+              return;
+            }
             const wpDownload = event.target.closest("[data-wp-download]")?.dataset.wpDownload;
             if (wpDownload) { state.leadScenario = "whitepaper:" + wpDownload; openLeadPanel("whitepaper:" + wpDownload); }
 
