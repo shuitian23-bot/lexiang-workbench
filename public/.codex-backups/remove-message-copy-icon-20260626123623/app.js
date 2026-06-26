@@ -5333,6 +5333,11 @@ if (!window.__lxCreateTypewriter) {
           document.addEventListener("mouseover", (event) => {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (card) lxEnsurePickBtn(card);
+            const aiMsg = event.target.closest?.(".lx-p0-message.ai, .lx-p0-message.assistant");
+            if (aiMsg && !aiMsg.querySelector(":scope > .lx-msg-copy") && (aiMsg.textContent || "").length > 20) {
+              if (getComputedStyle(aiMsg).position === "static") aiMsg.style.position = "relative";
+              aiMsg.insertAdjacentHTML("beforeend", `<button class="lx-msg-copy" type="button" title="复制回答" aria-label="复制回答">⧉</button>`);
+            }
           });
           document.addEventListener("pointerdown", (event) => {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
@@ -5626,6 +5631,14 @@ if (!window.__lxCreateTypewriter) {
               } else {
                 lxSetProductRef(pickSku, pickBtn.closest(LX_PICK_CARD_SEL));
               }
+              return;
+            }
+
+            const copyBtn = event.target.closest(".lx-msg-copy");
+            if (copyBtn) {
+              const msg = copyBtn.closest(".lx-p0-message");
+              const text = (msg?.textContent || "").replace(/⧉/g, "").trim();
+              navigator.clipboard?.writeText(text).then(() => { copyBtn.textContent = "✓"; setTimeout(() => { copyBtn.textContent = "⧉"; }, 1200); });
               return;
             }
 
