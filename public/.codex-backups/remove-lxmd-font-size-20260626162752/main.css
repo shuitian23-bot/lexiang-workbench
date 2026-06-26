@@ -5646,8 +5646,8 @@
       .lx-cmp-table tr.diff td { background: var(--lx-surface-hover); }
       .lx-cmp-table tr.diff td:first-child { box-shadow: inset 3px 0 0 var(--lx-brand-red); }
       .lx-md .lx-md-h { margin: 10px 0 4px; font-size: 14px; }
-      .lx-md .lx-md-p { margin: 6px 0; line-height: 1.7; }
-      .lx-md .lx-md-list { margin: 6px 0 6px 18px; line-height: 1.7; }
+      .lx-md .lx-md-p { margin: 6px 0; font-size: 13px; line-height: 1.7; }
+      .lx-md .lx-md-list { margin: 6px 0 6px 18px; font-size: 13px; line-height: 1.7; }
       .lx-md-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0; }
       .lx-md-table th, .lx-md-table td { border: 1px solid var(--lx-border); padding: 6px 8px; text-align: left; }
       .lx-md-table thead th { background: var(--lx-surface-muted); }
