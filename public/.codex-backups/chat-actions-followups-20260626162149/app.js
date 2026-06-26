@@ -1518,26 +1518,6 @@ if (!window.__lxCreateTypewriter) {
           </button>`;
         }
 
-        function renderPageCta({ title = "查看页面", desc = "已在右侧为你打开相关内容", attr = 'data-lx-focus-active="1"' } = {}) {
-          return `<button class="answer-cta lx-answer-page" type="button" ${attr}>
-            <span class="answer-cta-copy">
-              <span class="answer-cta-title">${esc(title)}</span>
-              <span class="answer-cta-desc">${esc(desc)}</span>
-            </span>
-            <span class="answer-cta-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
-            </span>
-          </button>`;
-        }
-
-        function lxClearFollowups(exceptNode) {
-          const root = ensureChat();
-          if (!root) return;
-          root.querySelectorAll(".followups[data-followups], .lx-p0-suggest[data-followups]").forEach((el) => {
-            if (!exceptNode || !exceptNode.contains(el)) el.remove();
-          });
-        }
-
         function lxEnsureAiBody(node) {
           let body = $(".ai-body", node);
           if (body) return body;
@@ -1585,11 +1565,11 @@ if (!window.__lxCreateTypewriter) {
               el.classList.add("followups");
             }
           });
-          box.querySelectorAll(".followups .lx-p0-suggest-chip").forEach((el) => {
+          box.querySelectorAll(".lx-p0-suggest-chip").forEach((el) => {
             el.classList.remove("lx-p0-suggest-chip");
           });
           box.querySelectorAll(".lx-p0-actions").forEach((el) => {
-            el.classList.add("answer-actions");
+            el.classList.add("followups");
           });
           return box.innerHTML;
         }
@@ -1791,7 +1771,6 @@ if (!window.__lxCreateTypewriter) {
           if (textarea) textarea.value = "";
           lxHideSuggest();
           state.lastUserText = text;
-          lxClearFollowups();
           addMessage("user", text);
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 10)).join("、"))}</div>`);
@@ -1907,13 +1886,7 @@ if (!window.__lxCreateTypewriter) {
               }
               return ai._textBox;
             };
-            const deferRightPanel = (fn, cta) => {
-              if (cta && !ai._rightPanelCtaAdded) {
-                ai._rightPanelCtaAdded = true;
-                lxAppendAiHtml(ai, renderPageCta(cta));
-              }
-              lxAfterAiAnswer(ai, fn);
-            };
+            const deferRightPanel = (fn) => lxAfterAiAnswer(ai, fn);
             const handlers = {
               chunk: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -2021,21 +1994,21 @@ if (!window.__lxCreateTypewriter) {
                 deferRightPanel(() => {
                   lxRevealContent();
                   lxOpenInfoTab("stores", payload.title || "联想体验店", `${perksHtml}${rows}<p class="lx-p0-disclaimer">门店与时段为演示数据，正式预约以门店确认为准。</p>`);
-                }, { title: "查看附近门店", desc: "已为你整理门店、权益和可约时段" });
+                });
               },
-              coupon: () => { if (nonce === state.conversationNonce) deferRightPanel(() => { lxRevealContent(); openCouponCenter(); }, { title: "查看优惠与活动", desc: "已在右侧打开可领取权益" }); },
-              member: () => { if (nonce === state.conversationNonce) deferRightPanel(() => { lxRevealContent(); openMemberCenter(); }, { title: "查看会员中心", desc: "已为你打开会员权益与资产" }); },
+              coupon: () => { if (nonce === state.conversationNonce) deferRightPanel(() => { lxRevealContent(); openCouponCenter(); }); },
+              member: () => { if (nonce === state.conversationNonce) deferRightPanel(() => { lxRevealContent(); openMemberCenter(); }); },
               action: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const { op } = parseJson(data) || {};
-                if (op === 'member') deferRightPanel(() => { lxRevealContent(); openMemberCenter(); }, { title: "查看会员中心", desc: "已为你打开会员权益与资产" });
-                else if (op === 'coupon') deferRightPanel(() => { lxRevealContent(); openCouponCenter(); }, { title: "查看优惠与活动", desc: "已在右侧打开可领取权益" });
-                else if (op === 'solution') deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
+                if (op === 'member') deferRightPanel(() => { lxRevealContent(); openMemberCenter(); });
+                else if (op === 'coupon') deferRightPanel(() => { lxRevealContent(); openCouponCenter(); });
+                else if (op === 'solution') deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); });
                 else if (op === 'edu') {
                   lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
-                  deferRightPanel(() => { lxRevealContent(); openEduZone(); }, { title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" });
+                  deferRightPanel(() => { lxRevealContent(); openEduZone(); });
                 }
-                else if (op === 'stores') deferRightPanel(() => { lxRevealContent(); openStoresPanel(); }, { title: "查看附近门店", desc: "已为你打开门店查询页面" });
+                else if (op === 'stores') deferRightPanel(() => { lxRevealContent(); openStoresPanel(); });
                 else if (op === 'auth') {
                   // 职场认证：往当前 AI 气泡末尾插入触发按钮
                   lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
@@ -2047,12 +2020,12 @@ if (!window.__lxCreateTypewriter) {
                 const bodyHtml = payload.content
                   ? mdLite(payload.content)
                   : `<p class="lx-p0-disclaimer">旧机估值、补贴权益和换新推荐已接入联想乐享。可继续发送旧机型号、成色和购买新机目标。</p>`;
-                deferRightPanel(() => openModal(payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`), { title: "查看以旧换新", desc: "已为你打开估值与补贴说明" });
+                deferRightPanel(() => openModal(payload.title || "以旧换新", `${bodyHtml}<div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="我有旧机想以旧换新，请问怎么估值并叠加补贴">问联想乐享</button></div>`));
               },
               lead: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
-                deferRightPanel(() => openLeadPanel(payload.scenario || ""), { title: "查看咨询表单", desc: "已为你打开项目咨询入口" });
+                deferRightPanel(() => openLeadPanel(payload.scenario || ""));
               },
               official_products: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -2096,27 +2069,27 @@ if (!window.__lxCreateTypewriter) {
                   return `<div class="lx-bf-row${step.kind === "base" ? " base" : ""}"><div class="lx-bf-main"><strong>${esc(step.label || "")}</strong>${step.reason ? `<span>${esc(step.reason)}</span>` : ""}</div><b class="${minus ? "minus" : ""}">${amountText}</b></div>`;
                 }).join("");
                 const finalRow = payload.final_price ? `<div class="lx-bf-row final"><div class="lx-bf-main"><strong>预计到手价</strong>${payload.discount_total ? `<span>共可省 ¥${Math.abs(Math.round(payload.discount_total)).toLocaleString()}</span>` : ""}</div><b>¥${Math.round(payload.final_price).toLocaleString()}</b></div>` : "";
-                deferRightPanel(() => lxOpenInfoTab("benefit", "到手价明细", `${payload.title ? `<p class="lx-md-p" style="font-size:13px">${esc(payload.title)}</p>` : ""}<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`), { title: "查看到手价明细", desc: "已为你展开优惠叠加计算" });
+                deferRightPanel(() => lxOpenInfoTab("benefit", "到手价明细", `${payload.title ? `<p class="lx-md-p" style="font-size:13px">${esc(payload.title)}</p>` : ""}<div class="lx-bf-list">${rows}${finalRow}</div><p class="lx-p0-disclaimer">${esc(payload.final_text || "")} 优惠随活动变化，最终以实际结算页为准。</p>`));
               },
               solutions: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const list = Array.isArray(payload.solutions) ? payload.solutions : [];
                 if (!list.length) {
-                  deferRightPanel(() => openModal(payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`), { title: "查看推荐方案", desc: "已为你打开方案详情" });
+                  deferRightPanel(() => openModal(payload.title || "推荐方案", `<p class="lx-p0-disclaimer">${esc(payload.note || "已生成方案，可继续向联想乐享细化预算、行业和交付要求。")}</p>`));
                   return;
                 }
                 const cards = list.map((sol) => {
                   const items = (sol.products || []).slice(0, 3).map((p) => `<span class="lx-sol-item">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</span>`).join("");
                   return `<div class="lx-sol-card"><strong>${esc(sol.title || "")}</strong><p>${esc(sol.summary || "")}</p>${items ? `<div class="lx-sol-items">${items}</div>` : ""}${sol.cta_text ? `<div class="lx-p0-actions"><button class="lx-p0-btn" data-quick-ask="${esc(sol.cta_text)}（方案：${esc(sol.title || "")}）">${esc(sol.cta_text)}</button></div>` : ""}</div>`;
                 }).join("");
-                deferRightPanel(() => openModal(payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`), { title: "查看推荐方案", desc: `已为你整理 ${list.length} 个候选方案` });
+                deferRightPanel(() => openModal(payload.title || "推荐方案", `${cards}${payload.note ? `<p class="lx-p0-disclaimer">${esc(payload.note)}</p>` : ""}`));
               },
               modal: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.error) {
-                  deferRightPanel(() => openModal(payload.title || "提示", `<p class="lx-p0-disclaimer">${esc(payload.error)}</p>`), { title: "查看提示", desc: "已在右侧打开详细信息" });
+                  deferRightPanel(() => openModal(payload.title || "提示", `<p class="lx-p0-disclaimer">${esc(payload.error)}</p>`));
                   return;
                 }
                 if (payload.type === "compare" && Array.isArray(payload.products) && payload.products.length >= 2) {
@@ -2124,7 +2097,7 @@ if (!window.__lxCreateTypewriter) {
                   deferRightPanel(() => {
                     lxRevealContent();
                     lxUpsertCompareTab(payload.products, payload.title || "商品参数对比");
-                  }, { title: "查看参数对比", desc: `已为你对比 ${payload.products.length} 款商品` });
+                  });
                   return;
                 }
                 const content = payload.content || "";
@@ -2133,21 +2106,21 @@ if (!window.__lxCreateTypewriter) {
                   deferRightPanel(() => {
                     lxRevealContent();
                     lxOpenInfoTab("info", payload.title || "详细信息", mdLite(content));
-                  }, { title: `查看${payload.title || "详细信息"}`, desc: "已在右侧打开完整内容" });
+                  });
                 } else {
-                  deferRightPanel(() => openModal(payload.title || "联想乐享", mdLite(content)), { title: `查看${payload.title || "详情"}`, desc: "已在右侧打开相关内容" });
+                  deferRightPanel(() => openModal(payload.title || "联想乐享", mdLite(content)));
                 }
               },
               customize: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const name = payload.product_name || "心仪机型";
-                deferRightPanel(() => openModal(`${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`), { title: "查看私人定制", desc: `已为你打开 ${name} 定制入口` });
+                deferRightPanel(() => openModal(`${esc(name)} · 私人定制`, `<p class="lx-p0-disclaimer">告诉联想乐享你的用途和预算，即可生成专属配置方案。</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我把${esc(name)}配成性价比配置，并给出价格">性价比配置</button><button class="lx-p0-btn" data-quick-ask="帮我把${esc(name)}配成顶配，并给出价格">顶配方案</button><button class="lx-p0-btn" data-quick-ask="帮我推荐${esc(name)}的默认起步配置">起步配置</button></div>`));
               },
               nav: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
-                deferRightPanel(() => navigateToPortalSection(payload.target || "home"), { title: "查看目标页面", desc: "已为你切换到对应专区" });
+                deferRightPanel(() => navigateToPortalSection(payload.target || "home"));
               },
               thinking: () => {
                 if (nonce !== state.conversationNonce) return;
@@ -2180,8 +2153,7 @@ if (!window.__lxCreateTypewriter) {
                       const qs = Array.isArray(d && d.questions) ? d.questions.filter(Boolean).slice(0, 3) : [];
                       if (qs.length) {
                         // 移除已有追问块（避免重复/叠加）
-                        lxClearFollowups(ai);
-                        ai.querySelectorAll(".followups[data-followups], .lx-p0-suggest[data-followups]").forEach(el => el.remove());
+                        ai.querySelectorAll(".lx-p0-suggest[data-followups]").forEach(el => el.remove());
                         lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                       }
                     }).catch(() => {});
@@ -6162,16 +6134,6 @@ if (!window.__lxCreateTypewriter) {
             if (event.target.closest("[data-lx-focus-reco]")) {
               lxRevealContent();
               const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
-              if (tab) {
-                state.activeTabId = tab.id;
-                lxRenderTabbar();
-                lxRunTab(tab);
-              }
-              return;
-            }
-            if (event.target.closest("[data-lx-focus-active]")) {
-              lxRevealContent();
-              const tab = (state.tabs || []).find((item) => item.id === state.activeTabId) || (state.tabs || [])[0];
               if (tab) {
                 state.activeTabId = tab.id;
                 lxRenderTabbar();

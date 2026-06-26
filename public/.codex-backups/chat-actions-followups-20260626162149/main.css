@@ -5353,47 +5353,14 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 7px;
         margin-top: 14px;
       }
 
-      .lx-p0-message.lx-chat-skin .followups button {
-        min-height: 0;
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        color: var(--aubergine);
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.55;
-        text-align: left;
-        cursor: pointer;
-        transition: color .16s ease, transform .16s ease;
-      }
-
-      .lx-p0-message.lx-chat-skin .followups button::after {
-        content: " →";
-        color: currentColor;
-      }
-
-      .lx-p0-message.lx-chat-skin .followups button:hover {
-        color: #7a1e70;
-        transform: translateX(3px);
-      }
-
-      .lx-p0-message.lx-chat-skin .answer-actions {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        margin-top: 14px;
-      }
-
-      .lx-p0-message.lx-chat-skin .answer-actions .lx-p0-btn {
+      .lx-p0-message.lx-chat-skin .followups button,
+      .lx-p0-message.lx-chat-skin .lx-p0-actions.followups .lx-p0-btn {
         min-height: 32px;
-        padding: 0 13px;
+        padding: 8px 12px;
         border: 1px solid var(--lavender-200);
         border-radius: 10px;
         background: #fff;
@@ -5401,11 +5368,16 @@
         font-size: 12.5px;
         font-weight: 600;
         line-height: 1.25;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
       }
 
-      .lx-p0-message.lx-chat-skin .answer-actions .lx-p0-btn:hover {
+      .lx-p0-message.lx-chat-skin .followups button:hover,
+      .lx-p0-message.lx-chat-skin .lx-p0-actions.followups .lx-p0-btn:hover {
         background: var(--lavender-100);
         border-color: var(--text-muted);
+        transform: translateX(3px);
       }
 
       .lx-p0-message.lx-chat-skin .lx-p0-disclaimer {
