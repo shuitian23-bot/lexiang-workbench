@@ -1494,7 +1494,7 @@ if (!window.__lxCreateTypewriter) {
         function renderGenerating(label = "正在分析需求并生成回复...") {
           return `
             <div class="loading-line lx-generating" role="status" aria-live="polite">
-              <span class="typing-text"></span><span class="typing-cursor"></span>
+              <span class="typing-text">${esc(label)}</span><span class="typing-cursor"></span>
             </div>`;
         }
 
@@ -1676,9 +1676,10 @@ if (!window.__lxCreateTypewriter) {
             return Promise.resolve();
           }
           body.innerHTML = '<div class="loading-line"><span class="typing-text"></span><span class="typing-cursor"></span></div>';
+          const loadingText = $(".typing-text", body);
           const loadingStarted = Date.now();
           return new Promise((resolve) => {
-            const startBodyTyping = () => {
+            lxTypeText(loadingText, "联想乐享正在整理推荐…", 48, () => {
               const waitTime = Math.max(0, 5000 - (Date.now() - loadingStarted));
               window.setTimeout(() => {
                 const source = document.createElement("div");
@@ -1693,8 +1694,7 @@ if (!window.__lxCreateTypewriter) {
                   }, 140);
                 });
               }, waitTime);
-            };
-            startBodyTyping();
+            });
           });
         }
 
@@ -1891,7 +1891,7 @@ if (!window.__lxCreateTypewriter) {
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 if (payload.text) {
                   const head = $(".loading-line .typing-text", ai);
-                  if (head) head.textContent = "";
+                  if (head) head.textContent = payload.text;
                 }
               },
               products: (data) => {
@@ -2097,12 +2097,12 @@ if (!window.__lxCreateTypewriter) {
               thinking: () => {
                 if (nonce !== state.conversationNonce) return;
                 const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "";
+                if (head) head.textContent = "深度思考中，正在权衡更稳妥的建议...";
               },
               think_end: () => {
                 if (nonce !== state.conversationNonce) return;
                 const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "";
+                if (head) head.textContent = "思考完成，正在组织回答...";
               },
               suggestions: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -2156,11 +2156,8 @@ if (!window.__lxCreateTypewriter) {
             }
             if (!state.humanMode) lxAppendAiHtml(ai, `<div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>`);
             const finalHtml = `${ai._raw ? mdLite(ai._raw) : ""}${ai._pendingExtras || ""}`;
-            ai._pendingExtras = "";
-            await lxAnimateAiFinal(ai, finalHtml);
-            const delayedExtras = ai._pendingExtras || "";
             ai._pendingExtras = null;
-            if (delayedExtras) lxAppendAiHtml(ai, delayedExtras);
+            await lxAnimateAiFinal(ai, finalHtml);
             state.pendingImageUrl = "";
             state.pendingAudioUrl = "";
             updateUploadNote();
