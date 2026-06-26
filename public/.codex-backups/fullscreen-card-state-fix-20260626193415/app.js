@@ -6942,20 +6942,7 @@ if (!window.__lxCreateTypewriter) {
     runMotionPanel(layer);
     return true;
   }
-  function normalizeFullscreenEntryState() {
-    document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-    document.body.classList.remove("lxfd-exiting", "lxfd-split-returning");
-    if (document.body.classList.contains("lx-home-split")) {
-      document.body.dataset.page = "home";
-      const content = document.querySelector(".content");
-      if (content) content.setAttribute("data-view", "home");
-      document.body.classList.remove("lx-home-split");
-    }
-    stage?.classList.remove("shift");
-    openRail(false);
-  }
   function enterFullscreen() {
-    normalizeFullscreenEntryState();
     lxfdApplySite();
     if (thread && !thread.children.length) lxfdImportFromMain();
     const motionLayer = createPanelStretchLayer();
@@ -7721,10 +7708,26 @@ if (!window.__lxCreateTypewriter) {
   // 分屏→全屏回退：关空右侧 tab 时带入主面板对话回全屏
   window.__lxfdEnterFromSplit = function() {
     if (thread) thread.innerHTML = "";
+    // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
+    // 还原首页：从 personal 布局切回 home + 复原首页内容视图（与 revealProducts 的 data-page=personal 对应）
+    if (document.body.classList.contains("lx-home-split")) {
+      document.body.dataset.page = "home";
+      const _c = document.querySelector(".content");
+      if (_c) _c.setAttribute("data-view", "home");
+    }
+    document.body.classList.remove("lx-home-split");
     enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
   };
   // 新建对话回全屏欢迎态
   window.__lxfdNewFullscreen = function() {
+    // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
+    // 还原首页：从 personal 布局切回 home + 复原首页内容视图（与 revealProducts 的 data-page=personal 对应）
+    if (document.body.classList.contains("lx-home-split")) {
+      document.body.dataset.page = "home";
+      const _c = document.querySelector(".content");
+      if (_c) _c.setAttribute("data-view", "home");
+    }
+    document.body.classList.remove("lx-home-split");
     resetConversation(true);
     enterFullscreen();
   };
@@ -7938,28 +7941,11 @@ if (!window.__lxCreateTypewriter) {
     submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
   });
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco], .lxfd [data-lxfd-open-feature], .lxfd [data-lx-focus-active]");
+    const btn = e.target.closest(".lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco]");
     if (!btn) return;
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    const feature = btn.getAttribute("data-lxfd-open-feature") || "";
-    if (feature && document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
-      lxfdExportToMain();
-      exitFullscreenWithReveal(() => {
-        lxfdRevealFeature(feature);
-        if (thread) thread.innerHTML = "";
-      });
-      return;
-    }
-    if (btn.hasAttribute("data-lx-focus-active") && !btn.hasAttribute("data-lx-focus-reco") && document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
-      lxfdExportToMain();
-      exitFullscreenWithReveal(() => {
-        window.__lxBridge.focusReco?.();
-        if (thread) thread.innerHTML = "";
-      });
-      return;
-    }
     const recoId = btn.getAttribute("data-lxfd-reco-id") || "";
     const storedProducts = recoId && window.__lxRecoPayloads && Array.isArray(window.__lxRecoPayloads[recoId])
       ? window.__lxRecoPayloads[recoId]
