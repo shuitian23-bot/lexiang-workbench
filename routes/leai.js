@@ -72,6 +72,7 @@ router.post('/chat', async (req, res) => {
 router.post('/stream', async (req, res) => {
   const { message, sessionId: bodySessionId, lng, lat, enableThinking } = req.body;
   if (!message) return res.status(400).json({ error: '缺少 message 参数' });
+  const safeBodySessionId = /^[a-f0-9]{32}$/i.test(String(bodySessionId || '')) ? String(bodySessionId) : '';
 
   // 门店查询官方需定位，否则卡在 get_position 等死。前端传真实经纬度则用，否则默认北京(演示)。
   const extendParams = {
@@ -100,7 +101,7 @@ router.post('/stream', async (req, res) => {
   if (ctrl) {
     res.write('event: chunk\ndata:' + JSON.stringify({ text: ctrl.text }) + '\n\n');
     res.write('event: control\ndata:' + JSON.stringify({ op: ctrl.op }) + '\n\n');
-    res.write('event: done\ndata:' + JSON.stringify({ conv_id: bodySessionId || null }) + '\n\n');
+    res.write('event: done\ndata:' + JSON.stringify({ conv_id: safeBodySessionId || null }) + '\n\n');
     return res.end();
   }
 
@@ -109,7 +110,7 @@ router.post('/stream', async (req, res) => {
 
   try {
     let auth = await getAuth();
-    let sessionId = bodySessionId || auth.sessionId;
+    let sessionId = safeBodySessionId || auth.sessionId;
 
     const callQa = (token, sid) => fetch(`${AIGC_BASE}/api/chat/qa`, {
       method: 'POST',
@@ -135,7 +136,7 @@ router.post('/stream', async (req, res) => {
     // 缓存的 guest token 可能比 20min 缓存先过期 → 401/403 时强制重新鉴权并重试一次
     if (upstream.status === 401 || upstream.status === 403) {
       auth = await getAuth(true);
-      sessionId = bodySessionId || auth.sessionId;
+      sessionId = safeBodySessionId || auth.sessionId;
       upstream = await callQa(auth.token, sessionId);
     }
 
@@ -172,10 +173,11 @@ router.post('/stream', async (req, res) => {
           try { d = JSON.parse(line.slice(5)); } catch { continue; }
           const r = d.response || {};
 
-          // session 失效检测：正文未开始 + response_text 是"参数有误" → 丢弃并重试
+          // session 失效检测：正文未开始 + response_text 是"参数有误"/"params error" → 丢弃并重试
           if (!retried && lastLen === 0 && typeof r.response_text === 'string') {
             const trimmed = r.response_text.replace(/\s/g, '');
-            if (trimmed === '参数有误' || trimmed.startsWith('参数有误')) {
+            const lower = trimmed.toLowerCase();
+            if (trimmed === '参数有误' || trimmed.startsWith('参数有误') || lower === 'paramserror.' || lower === 'paramserror' || lower.startsWith('paramserror')) {
               needRetry = true;
               break streamLoop;
             }
