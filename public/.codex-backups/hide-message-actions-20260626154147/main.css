@@ -5312,7 +5312,7 @@
       }
 
       .lx-p0-message.lx-chat-skin .message-actions {
-        display: none;
+        display: flex;
         align-items: center;
         gap: 12px;
         margin: 10px 0 12px;
