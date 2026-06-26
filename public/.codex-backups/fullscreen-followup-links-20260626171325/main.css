@@ -7519,47 +7519,13 @@ body.lx-auto-fs .lxfd-ai-body .answer-cta:hover .answer-cta-icon{background:#f3f
 body.assistant-fullscreen .lxfd-ai-body .answer-cta svg,
 body.lx-auto-fs .lxfd-ai-body .answer-cta svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 body.assistant-fullscreen .lxfd-followups,
-body.assistant-fullscreen .lxfd-ai-body .followups,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups],
-body.lx-auto-fs .lxfd-followups,
-body.lx-auto-fs .lxfd-ai-body .followups,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups]{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:14px}
+body.lx-auto-fs .lxfd-followups{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:14px}
 body.assistant-fullscreen .lxfd-followups button,
-body.assistant-fullscreen .lxfd-ai-body .followups button,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] button,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest-chip,
-body.assistant-fullscreen .lxfd-ai-body .followups [data-quick-ask],
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask],
-body.lx-auto-fs .lxfd-followups button,
-body.lx-auto-fs .lxfd-ai-body .followups button,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] button,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest-chip,
-body.lx-auto-fs .lxfd-ai-body .followups [data-quick-ask],
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]{display:inline-flex;min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:rgb(78,22,70);font-size:13px;font-weight:400;line-height:1.55;text-align:left;cursor:pointer;transition:color .16s ease,transform .16s ease;box-shadow:none}
+body.lx-auto-fs .lxfd-followups button{min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:rgb(78,22,70);font-size:13px;font-weight:400;line-height:1.55;text-align:left;cursor:pointer;transition:color .16s ease,transform .16s ease;box-shadow:none}
 body.assistant-fullscreen .lxfd-followups button::after,
-body.assistant-fullscreen .lxfd-ai-body .followups button::after,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] button::after,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest-chip::after,
-body.assistant-fullscreen .lxfd-ai-body .followups [data-quick-ask]::after,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]::after,
-body.lx-auto-fs .lxfd-followups button::after,
-body.lx-auto-fs .lxfd-ai-body .followups button::after,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] button::after,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest-chip::after,
-body.lx-auto-fs .lxfd-ai-body .followups [data-quick-ask]::after,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]::after{content:" →";color:currentColor}
+body.lx-auto-fs .lxfd-followups button::after{content:" →";color:currentColor}
 body.assistant-fullscreen .lxfd-followups button:hover,
-body.assistant-fullscreen .lxfd-ai-body .followups button:hover,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] button:hover,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest-chip:hover,
-body.assistant-fullscreen .lxfd-ai-body .followups [data-quick-ask]:hover,
-body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]:hover,
-body.lx-auto-fs .lxfd-followups button:hover,
-body.lx-auto-fs .lxfd-ai-body .followups button:hover,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] button:hover,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest-chip:hover,
-body.lx-auto-fs .lxfd-ai-body .followups [data-quick-ask]:hover,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]:hover{color:#7a1e70;transform:translateX(3px);background:transparent;border-color:transparent;box-shadow:none}
+body.lx-auto-fs .lxfd-followups button:hover{color:#7a1e70;transform:translateX(3px);background:transparent;border-color:transparent;box-shadow:none}
 body.assistant-fullscreen .lxfd-disclaimer,
 body.lx-auto-fs .lxfd-disclaimer{display:block;margin-top:8px;color:#9b8eb6;font-size:12px;line-height:1.5;font-weight:400}
 body.assistant-fullscreen .lxfd-ai-body .lx-p0-actions,

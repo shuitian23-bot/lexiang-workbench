@@ -7135,6 +7135,7 @@ if (!window.__lxCreateTypewriter) {
     ai.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
     const host = ai.querySelector(".lxfd-ai-body") || ai;
     host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
+    $$(".lxfd-followups button", host).forEach(btn => btn.addEventListener("click", () => submit(btn.textContent)));
   }
 
   async function submit(text) {
@@ -7733,13 +7734,6 @@ if (!window.__lxCreateTypewriter) {
         if (thread) thread.innerHTML = "";
       });
     }
-  });
-  thread?.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lxfd-followups button, .lxfd-ai-body .followups button, .lxfd-ai-body .lx-p0-suggest[data-followups] button, .lxfd-ai-body [data-quick-ask]");
-    if (!btn) return;
-    e.preventDefault();
-    const text = btn.getAttribute("data-quick-ask") || btn.textContent.replace(/→\s*$/, "").trim();
-    if (text) submit(text);
   });
   turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
   window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
