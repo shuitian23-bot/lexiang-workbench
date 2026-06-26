@@ -1102,90 +1102,6 @@ if (!window.__lxCreateTypewriter) {
           return { claimed, discount, finalPrice: Math.max(0, price + discount) };
         }
 
-        function lxClaimTicketSvg() {
-          return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/></svg>';
-        }
-
-        function lxClaimCheckSvg() {
-          return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        }
-
-        function lxClaimAmount(coupon) {
-          return Math.abs(Number(coupon?.amount || 0));
-        }
-
-        function lxRenderClaimProgressCard(item, claimed, totalSaved) {
-          const offers = Array.isArray(claimed) ? claimed : [];
-          const chips = offers.map((coupon) => `
-            <span class="chip">
-              <span class="od"></span>${esc(coupon.label || "优惠券")} <span class="cv">¥${lxClaimAmount(coupon).toLocaleString()}</span>
-            </span>`).join("");
-          return `
-            <div class="cl lx-claim-skin" data-v="D" data-state="claiming">
-              <div class="drow">
-                <span class="ic">${lxClaimTicketSvg()}</span>
-                <span class="mid">
-                  <div class="t1" data-t1>正在为你自动领取优惠</div>
-                  <div class="t2">${esc(item.name)}</div>
-                </span>
-                <span class="cnt"><span class="n" data-cnt>0</span>/${offers.length}</span>
-                <span class="done-amt"><span class="ok">${lxClaimCheckSvg()}</span>已省 ¥${Math.abs(Number(totalSaved || 0)).toLocaleString()}</span>
-              </div>
-              <div class="track"><span class="fill" style="width:0%"></span></div>
-              <div class="chips">${chips}</div>
-            </div>`;
-        }
-
-        function lxRunClaimProgressCard(root, claimed, totalSaved, onDone) {
-          if (!root) {
-            if (typeof onDone === "function") onDone();
-            return;
-          }
-          const offers = Array.isArray(claimed) ? claimed : [];
-          const t1 = root.querySelector("[data-t1]");
-          const cnt = root.querySelector("[data-cnt]");
-          const fill = root.querySelector(".fill");
-          const chips = Array.from(root.querySelectorAll(".chip"));
-          const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-          const finish = () => {
-            root.setAttribute("data-state", "done");
-            if (t1) t1.textContent = `已为你领取 ${offers.length} 项优惠`;
-            if (cnt) cnt.textContent = String(offers.length);
-            if (fill) fill.style.width = "100%";
-            chips.forEach((chip) => chip.classList.add("on"));
-            ensureChat().scrollTop = ensureChat().scrollHeight;
-            setTimeout(() => {
-              if (typeof onDone === "function") onDone();
-            }, reduced ? 0 : 260);
-          };
-          const reset = () => {
-            root.setAttribute("data-state", "claiming");
-            if (t1) t1.textContent = "正在为你自动领取优惠";
-            if (cnt) cnt.textContent = "0";
-            if (fill) fill.style.width = "0%";
-            chips.forEach((chip) => chip.classList.remove("on"));
-          };
-          const run = () => {
-            reset();
-            if (!offers.length || reduced) {
-              finish();
-              return;
-            }
-            offers.forEach((_, i) => {
-              setTimeout(() => {
-                const pct = Math.round(((i + 1) / offers.length) * 100);
-                if (fill) fill.style.width = `${pct}%`;
-                if (cnt) cnt.textContent = String(i + 1);
-                if (chips[i]) chips[i].classList.add("on");
-                ensureChat().scrollTop = ensureChat().scrollHeight;
-              }, 480 + i * 640);
-            });
-            setTimeout(finish, 480 + offers.length * 640 + 150);
-          };
-          root.__replay = run;
-          run();
-        }
-
         function lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr) {
           const rows = claimed.map((c) => `<div class="lx-bf-row"><div class="lx-bf-main"><strong><i class="lx-claim-check" style="animation:none;transform:none">✓</i> ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
           openModal(claimed.length ? `确认订单 · 已领取 ${claimed.length} 项优惠` : "确认订单", `
@@ -1220,12 +1136,32 @@ if (!window.__lxCreateTypewriter) {
           if (!claimed.length) return lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
           state._buyFlowRunning = true;
           addMessage("user", `我要购买 ${item.name}，帮我领取所有可用优惠`);
-          const card = lxRenderClaimProgressCard(item, claimed, Math.abs(discount));
+          const card = `
+            <div class="lx-buyflow-card">
+              <div class="lx-bff-head"><strong>正在为你自动领取优惠</strong><span>${esc(item.name)}</span><div class="lx-bff-progress"><i data-bff-bar style="width:0%"></i></div></div>
+              <div class="lx-bff-list" data-bff-list></div>
+            </div>`;
           const node = addMessage("assistant", `好的！为你自动领取 ${claimed.length} 项专属优惠：`, card);
-          lxRunClaimProgressCard(node.querySelector('.cl[data-v="D"].lx-claim-skin'), claimed, Math.abs(discount), () => {
-            state._buyFlowRunning = false;
-            lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
+          const list = node.querySelector("[data-bff-list]");
+          const bar = node.querySelector("[data-bff-bar]");
+          const STEP = 1000;
+          claimed.forEach((c, i) => {
+            setTimeout(() => {
+              list?.insertAdjacentHTML("beforeend", `<div class="lx-bff-item"><div class="lx-bff-info"><strong>${esc(c.label)}</strong><span>-¥${Math.abs(c.amount).toLocaleString()} · ${esc(c.reason)}</span></div><span class="lx-bff-status" data-bff-st="${i}"><i class="lx-bff-spinner"></i>领取中</span></div>`);
+              ensureChat().scrollTop = ensureChat().scrollHeight;
+            }, 300 + i * STEP);
+            setTimeout(() => {
+              const st = node.querySelector(`[data-bff-st="${i}"]`);
+              if (st) { st.innerHTML = "✓ 已领取"; st.classList.add("done"); }
+              if (bar) bar.style.width = `${Math.round(((i + 1) / claimed.length) * 100)}%`;
+            }, 300 + i * STEP + 700);
           });
+          setTimeout(() => {
+            state._buyFlowRunning = false;
+            list?.insertAdjacentHTML("afterend", `<div class="lx-bff-foot">共省 ¥${Math.abs(discount).toLocaleString()}，到手价 <b>¥${(finalPrice || item.price).toLocaleString()}</b></div>`);
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+            lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
+          }, 300 + claimed.length * STEP + 600);
         }
 
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
