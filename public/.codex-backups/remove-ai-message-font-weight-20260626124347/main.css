@@ -4873,6 +4873,7 @@
       .lx-p0-message.ai {
         align-self: flex-start;
         color: var(--lx-text-primary);
+        font-weight: 500;
       }
 
       .lx-p0-message.assistant {
