@@ -6160,7 +6160,6 @@ if (!window.__lxCreateTypewriter) {
               return;
             }
             if (event.target.closest("[data-lx-focus-reco]")) {
-              if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) return;
               lxRevealContent();
               const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
               if (tab) {
@@ -6587,15 +6586,6 @@ if (!window.__lxCreateTypewriter) {
     return !!((window.__lxState && window.__lxState.sending) ||
       document.querySelector(".lx-p0-messages > .lx-p0-message.ai .lx-generating"));
   }
-  function lxfdNormalizeImportedAiHtml(html) {
-    const box = document.createElement("div");
-    box.innerHTML = String(html || "");
-    box.querySelectorAll("[data-lx-focus-reco]").forEach((node) => {
-      node.removeAttribute("data-lx-focus-reco");
-      node.setAttribute("data-lxfd-reveal-products", "1");
-    });
-    return box.innerHTML;
-  }
   function lxfdDoImport() {
     const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
     if (!msgs.length) return false;
@@ -6609,7 +6599,7 @@ if (!window.__lxCreateTypewriter) {
         thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-user" id="' + turnId + '">' + escapeHtml(text) + '</div>');
         turns.push({ id: turnId, text: text });
       } else {
-        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + lxfdNormalizeImportedAiHtml(el.innerHTML) + '</div></div>');
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + el.innerHTML + '</div></div>');
       }
     });
     renderTurnIndex("");
@@ -6644,11 +6634,11 @@ if (!window.__lxCreateTypewriter) {
         let tries = 0;
         const iv = setInterval(function() {
           tries++;
-          fsAiBody.innerHTML = lxfdNormalizeImportedAiHtml(mainAi.innerHTML);          // 镜像最新流式内容
+          fsAiBody.innerHTML = mainAi.innerHTML;          // 镜像最新流式内容
           thread.scrollTop = thread.scrollHeight;
           if (!lxfdMainGenerating() || tries > 400) {     // 60s 上限兜底
             clearInterval(iv);
-            fsAiBody.innerHTML = lxfdNormalizeImportedAiHtml(mainAi.innerHTML);          // 收尾再同步最终一帧
+            fsAiBody.innerHTML = mainAi.innerHTML;          // 收尾再同步最终一帧
             lxfdPersistCurrent();
             lxfdRenderHist();
           }
