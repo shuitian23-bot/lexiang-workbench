@@ -170,22 +170,6 @@ if (!window.__lxCreateTypewriter) {
               lxRunTab(recoTab);
             }
           },
-          // 只聚焦已有推荐页：用于全屏 CTA 数据兜底，避免点击后停留在全屏首页
-          focusReco: function() {
-            if (state.page === "home" || !state.page || document.body.dataset.page === "home") {
-              document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-              document.body.classList.add("lx-home-split");
-              document.body.dataset.page = "personal";
-              document.body.dataset.state = "chat";
-            }
-            lxRevealContent();
-            const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
-            if (tab) {
-              state.activeTabId = tab.id;
-              lxRenderTabbar();
-              lxRunTab(tab);
-            }
-          },
           // 退出全屏（带动画）
           exitFullscreen: function() { lxSetAutoFs(false); },
           // 当前是否有右侧 tab
@@ -203,13 +187,6 @@ if (!window.__lxCreateTypewriter) {
           const n = Number(value);
           return Number.isFinite(n) && n > 0 ? `¥ ${n.toLocaleString("zh-CN")}` : "咨询报价";
         };
-        function lxStoreRecoPayload(products) {
-          if (!Array.isArray(products) || !products.length) return "";
-          const id = "reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-          window.__lxRecoPayloads = window.__lxRecoPayloads || {};
-          window.__lxRecoPayloads[id] = products;
-          return id;
-        }
         const imgUrl = (url) => {
           if (!url) return "/assets/product-placeholder.svg";
           const value = String(url).trim().replace(/^http:\/\//, "https://");
@@ -1524,10 +1501,9 @@ if (!window.__lxCreateTypewriter) {
         function renderProductsInMessage(products) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
-          const recoId = lxStoreRecoPayload(products);
           const action = products.length === 1 && first.sku
             ? `data-open-product="${esc(first.sku)}"`
-            : `data-lx-focus-reco="1" data-lxfd-reco-id="${esc(recoId)}"`;
+            : `data-lx-focus-reco="1"`;
           const desc = products.length === 1
             ? `${esc(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
             : `已为你筛选 ${products.length} 款候选商品`;
@@ -7146,13 +7122,10 @@ if (!window.__lxCreateTypewriter) {
   function renderLxfdProducts(products) {
     if (!Array.isArray(products) || !products.length) return "";
     const first = products[0] || {};
-    const recoId = "lxfd-reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-    window.__lxRecoPayloads = window.__lxRecoPayloads || {};
-    window.__lxRecoPayloads[recoId] = products;
     const desc = products.length === 1
       ? `${escapeHtml(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
       : `已为你筛选 ${products.length} 款候选商品`;
-    return `<button class="answer-cta lx-answer-reco" type="button" data-lxfd-reveal-products="1" data-lxfd-reco-id="${escapeHtml(recoId)}">
+    return `<button class="answer-cta lx-answer-reco" type="button" data-lxfd-reveal-products="1">
       <span class="answer-cta-copy">
         <span class="answer-cta-title">查看推荐商品</span>
         <span class="answer-cta-desc">${desc}</span>
@@ -7763,22 +7736,13 @@ if (!window.__lxCreateTypewriter) {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    const recoId = btn.getAttribute("data-lxfd-reco-id") || "";
-    const storedProducts = recoId && window.__lxRecoPayloads && Array.isArray(window.__lxRecoPayloads[recoId])
-      ? window.__lxRecoPayloads[recoId]
-      : [];
     const recoTab = (window.__lxState?.tabs || []).find((item) => item && (item.kind === "reco" || item.id === "reco") && Array.isArray(item.products) && item.products.length);
-    const products = storedProducts.length
-      ? storedProducts
-      : ((chatState.lastProducts && chatState.lastProducts.length) ? chatState.lastProducts : (recoTab?.products || []));
+    const products = (chatState.lastProducts && chatState.lastProducts.length) ? chatState.lastProducts : (recoTab?.products || []);
+    if (!products.length) return;
     if (document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
       lxfdExportToMain();
       exitFullscreenWithReveal(() => {
-        if (products.length) {
-          window.__lxBridge.revealProducts(products, chatState.lastProductsMeta || { title: recoTab?.label || "AI 推荐", grouped: !!recoTab?.grouped });
-        } else {
-          window.__lxBridge.focusReco?.();
-        }
+        window.__lxBridge.revealProducts(products, chatState.lastProductsMeta || { title: recoTab?.label || "AI 推荐", grouped: !!recoTab?.grouped });
         if (thread) thread.innerHTML = "";
       });
     }
