@@ -19,65 +19,6 @@ if (!window.__lxMemberFetched) {
   });
 }
 
-// AI 回复前端打字机：即使服务端一次性返回整段，也按字符渐进展示。
-if (!window.__lxCreateTypewriter) {
-  window.__lxCreateTypewriter = function createTypewriter(target, options) {
-    var cfg = options || {};
-    var source = "";
-    var rendered = 0;
-    var timer = 0;
-    var drains = [];
-    var charsPerTick = Number(cfg.charsPerTick || 1);
-    var interval = Number(cfg.interval || 24);
-    var scroll = typeof cfg.scroll === "function" ? cfg.scroll : function () {};
-
-    function finishDrains() {
-      var pending = drains.splice(0);
-      pending.forEach(function (resolve) { resolve(source); });
-    }
-
-    function tick() {
-      if (!target) return;
-      if (rendered >= source.length) {
-        window.clearInterval(timer);
-        timer = 0;
-        target.classList.remove("streaming");
-        finishDrains();
-        return;
-      }
-      var step = charsPerTick;
-      rendered = Math.min(source.length, rendered + step);
-      target.textContent = source.slice(0, rendered);
-      target.classList.add("streaming");
-      scroll();
-    }
-
-    function start() {
-      if (!timer) timer = window.setInterval(tick, interval);
-      tick();
-    }
-
-    return {
-      append: function (text) {
-        source += String(text || "");
-        if (source.length > rendered) start();
-      },
-      set: function (text) {
-        source = String(text || "");
-        if (rendered > source.length) rendered = 0;
-        start();
-      },
-      raw: function () {
-        return source;
-      },
-      drain: function () {
-        if (rendered >= source.length && !timer) return Promise.resolve(source);
-        return new Promise(function (resolve) { drains.push(resolve); });
-      }
-    };
-  };
-}
-
       (() => {
         "use strict";
 
@@ -126,7 +67,8 @@ if (!window.__lxCreateTypewriter) {
           hoverPromptAutoCloseTimer: null,
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
-          refProducts: []
+          refProducts: [],
+          advisorFlow: null
         };
         window.__lxState = state;
 
@@ -1377,22 +1319,23 @@ if (!window.__lxCreateTypewriter) {
           pageBox.innerHTML = `
             <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
             ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>
-            <div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我解读这几款的差异，按我的需求给出选购建议：${esc(full.map((item) => item.name).join("、"))}">让乐享解读差异</button></div>`;
-          // AI建议：异步 fetch，不阻塞渲染
+            <div class="lx-cmp-advice" style="margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"><strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong><span style="opacity:.6">乐享正在解读这几款的差异…</span></div>`;
+          // AI建议：异步 fetch，自动展示在对比表下方（无需点按钮）。失败/无数据给兜底文案，不卡在"正在解读"
           (async () => {
+            const adviceEl = pageBox.querySelector(".lx-cmp-advice");
+            if (!adviceEl) return;
+            const fallback = '可点开任一款看详情，或直接问乐享「这几款哪个更适合我」获取选购建议。';
+            const setAdvice = (html) => { adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>${html}`; };
             try {
-              const adviceEl = pageBox.querySelector(".lx-cmp-advice");
-              if (!adviceEl) return;
               const advProducts = full.map(p => ({ name: p.name, price: p.price, cpu: (p.specs || {}).cpu || '', gpu: (p.specs || {}).gpu || '', ram: (p.specs || {}).ram || (p.specs || {}).memory || '' }));
               const advQ = state.lastUserText || '';
               const r = await fetch('/api/leai/compare-advice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ products: advProducts, q: advQ }) });
-              if (!r.ok) return;
-              const d = await r.json();
-              if (!d.pick || !d.reason) return;
-              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
-              adviceEl.style.display = 'block';
-            } catch (_) {}
+              const d = r.ok ? await r.json() : null;
+              if (d && d.pick && d.reason) setAdvice(`结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`);
+              else setAdvice(`<span style="opacity:.85">${fallback}</span>`);
+            } catch (_) {
+              setAdvice(`<span style="opacity:.85">${fallback}</span>`);
+            }
           })();
         }
 
@@ -1471,26 +1414,7 @@ if (!window.__lxCreateTypewriter) {
           const list = ensureChat();
           const node = document.createElement("div");
           node.className = `lx-p0-message ${role}`;
-          if (/\b(ai|assistant)\b/.test(role) && text) {
-            const textBox = document.createElement("div");
-            textBox.className = "lx-msg-text";
-            node.appendChild(textBox);
-            node._raw = String(text);
-            node._textBox = textBox;
-            node._writer = window.__lxCreateTypewriter(textBox, {
-              charsPerTick: 1,
-              interval: 24,
-              scroll: () => { list.scrollTop = list.scrollHeight; }
-            });
-            node._writer.set(node._raw);
-            if (extraHtml) {
-              node._writer.drain().then(() => {
-                if (node.isConnected) node.insertAdjacentHTML("beforeend", extraHtml);
-              });
-            }
-          } else {
-            node.innerHTML = `${esc(text)}${extraHtml}`;
-          }
+          node.innerHTML = `${esc(text)}${extraHtml}`;
           list.appendChild(node);
           list.scrollTop = list.scrollHeight;
           return node;
@@ -1685,33 +1609,22 @@ if (!window.__lxCreateTypewriter) {
               ai.textContent = "";
               hasContent = true;
             };
-            const ensureAiTextBox = () => {
-              revealAi();
-              if (!ai._textBox || !ai.contains(ai._textBox)) {
-                ai._textBox = document.createElement("div");
-                ai._textBox.className = "lx-msg-text";
-                ai.appendChild(ai._textBox);
-                ai._raw = "";
-                ai._writer = window.__lxCreateTypewriter(ai._textBox, {
-                  charsPerTick: 1,
-                  interval: 24,
-                  scroll: () => {
-                    const chat = ensureChat();
-                    if (chat) chat.scrollTop = chat.scrollHeight;
-                  }
-                });
-              }
-              return ai._textBox;
-            };
             const handlers = {
               chunk: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const content = payload.text || data || "";
                 if (!content) return;
-                ensureAiTextBox();
+                revealAi();
+                if (!ai._textBox || !ai.contains(ai._textBox)) {
+                  ai._textBox = document.createElement("div");
+                  ai._textBox.className = "lx-msg-text";
+                  ai.appendChild(ai._textBox);
+                  ai._raw = "";
+                }
                 ai._raw += content;
-                ai._writer?.append(content);
+                ai._textBox.textContent = ai._raw;
+                ensureChat().scrollTop = ensureChat().scrollHeight;
               },
               status: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -1755,11 +1668,7 @@ if (!window.__lxCreateTypewriter) {
                 // 意图忠实于形态：单品意图（推荐一台/哪个最值）收敛到 1 款直开；对比意图直开对比表
                 const lastAsk = state.lastUserText || "";
                 if (products.length >= 2 && /对比|比较|哪个好|怎么选(?!购)/.test(lastAsk)) {
-                  if (payload.title && !ai._raw) {
-                    ensureAiTextBox();
-                    ai._raw = payload.title;
-                    ai._writer?.set(payload.title);
-                  }
+                  if (payload.title && !ai.textContent.trim()) ai.textContent = payload.title;
                   ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                   lxRevealContent();
                   lxUpsertCompareTab(products.slice(0, 8), payload.title || "商品参数对比");
@@ -1768,11 +1677,7 @@ if (!window.__lxCreateTypewriter) {
                 if (products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
                   products = products.slice(0, 1);
                 }
-                if (payload.title && !ai._raw) {
-                  ensureAiTextBox();
-                  ai._raw = payload.title;
-                  ai._writer?.set(payload.title);
-                }
+                if (payload.title && !ai.textContent.trim()) ai.textContent = payload.title;
                 ai.insertAdjacentHTML("beforeend", renderProductsInMessage(products));
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
@@ -1948,12 +1853,7 @@ if (!window.__lxCreateTypewriter) {
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 // 流式结束后把整段回复升级为 markdown 渲染（加粗/列表/表格）
-                if (ai._raw && ai._textBox && ai.contains(ai._textBox)) {
-                  const raw = ai._raw;
-                  (ai._writer ? ai._writer.drain() : Promise.resolve(raw)).then(() => {
-                    if (nonce === state.conversationNonce && ai.contains(ai._textBox)) ai._textBox.innerHTML = mdLite(raw);
-                  });
-                }
+                if (ai._raw && ai._textBox && ai.contains(ai._textBox)) ai._textBox.innerHTML = mdLite(ai._raw);
                 // 追问 chips：异步生成，不阻塞主流程
                 const _q = state.lastUserText || "";
                 const _a = (ai._raw || "").slice(0, 300);
@@ -1983,21 +1883,15 @@ if (!window.__lxCreateTypewriter) {
                   if (!huoRes.ok || !huoRes.body) throw new Error('fallback upstream ' + huoRes.status);
                   await readSse(huoRes, handlers);
                 } catch (_e) {
-                  ensureAiTextBox();
-                  ai._raw = '当前服务暂时不可用，请稍后再试。';
-                  ai._writer?.set(ai._raw);
+                  revealAi();
+                  if (ai._textBox) ai._textBox.textContent = '当前服务暂时不可用，请稍后再试。';
                 }
               }
             };
             await readSse(response, handlers);
             if (nonce !== state.conversationNonce) return;
             if (!hasContent) revealAi();
-            if (!ai._raw && !$(".lx-p0-products", ai)) {
-              ensureAiTextBox();
-              ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
-              ai._writer?.set(ai._raw);
-            }
-            if (ai._writer) await ai._writer.drain();
+            if (!ai.textContent.trim() && !$(".lx-p0-products", ai)) ai.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
             if (!state.humanMode) ai.insertAdjacentHTML("beforeend", `<div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>`);
             state.pendingImageUrl = "";
             state.pendingAudioUrl = "";
@@ -2006,21 +1900,7 @@ if (!window.__lxCreateTypewriter) {
           } catch (error) {
             if (nonce !== state.conversationNonce) return;
             ai.className = "lx-p0-message ai";
-            ai.textContent = "";
-            ai._textBox = document.createElement("div");
-            ai._textBox.className = "lx-msg-text";
-            ai.appendChild(ai._textBox);
-            ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
-            ai._writer = window.__lxCreateTypewriter(ai._textBox, {
-              charsPerTick: 1,
-              interval: 24,
-              scroll: () => {
-                const chat = ensureChat();
-                if (chat) chat.scrollTop = chat.scrollHeight;
-              }
-            });
-            ai._writer.set(ai._raw);
-            await ai._writer.drain();
+            ai.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
           } finally {
             clearTimeout(state._sendTimeout);
             if (nonce === state.conversationNonce) state.sending = false;
@@ -2190,6 +2070,65 @@ if (!window.__lxCreateTypewriter) {
         }
 
         // 站内商品分类楼层：tab 点击后只渲染当前内容，不再平铺整页锚点跳转
+        const LX_ENT_INDUSTRIES = [
+          {
+            key: "gov",
+            label: "政府",
+            opener: "我们是政府单位，需要信创合规的整机和国产化解决方案，请按政务场景给我推荐产品",
+            focusCats: ["台式机", "笔记本", "存储"],
+            hasCase: true,
+          },
+          {
+            key: "edu",
+            label: "教育",
+            opener: "我们是教育行业（学校/教育机构），想了解适合的整体解决方案，比如云桌面教室、师生用 AI PC、机房统一管理，请按教育场景给我推荐方案和产品",
+            focusCats: ["笔记本", "智能设备", "软件超融合"],
+            hasCase: true,
+          },
+          {
+            key: "med",
+            label: "医疗",
+            opener: "我们是医疗机构，需要影像工作站、HIS 终端和科室一体机，请按医院信息化场景推荐合适产品",
+            focusCats: ["工作站", "智能设备", "存储"],
+            hasCase: true,
+          },
+          {
+            key: "fin",
+            label: "金融",
+            opener: "我们是金融机构，关注信创合规、网点终端和数据中心建设，请推荐符合金融行业要求的产品方案",
+            focusCats: ["台式机", "存储", "数据网络"],
+            hasCase: false,
+          },
+          {
+            key: "mfg",
+            label: "制造",
+            opener: "我们是制造企业，需要工业平板、产线服务器和异构智算平台，请按智能制造场景给我推荐",
+            focusCats: ["工作站", "异构智算", "智能设备"],
+            hasCase: true,
+          },
+          {
+            key: "energy",
+            label: "能源",
+            opener: "我们是能源企业，关注边缘计算、异构智算和工控场景，请推荐适合能源行业部署的产品",
+            focusCats: ["异构智算", "数据网络", "工作站"],
+            hasCase: false,
+          },
+          {
+            key: "trans",
+            label: "交通",
+            opener: "我们是交通行业，需要调度大屏、边缘终端和数据网络设备，请按交通行业场景推荐",
+            focusCats: ["智能设备", "数据网络", "存储"],
+            hasCase: false,
+          },
+          {
+            key: "retail",
+            label: "零售",
+            opener: "我们是零售企业，需要收银一体机、智慧门店终端和数据网络，请推荐适合新零售场景的产品",
+            focusCats: ["智能设备", "台式机", "数据网络"],
+            hasCase: false,
+          },
+        ];
+
         const LX_CATEGORY_MATCHERS = {
           // personal 子站只列 shop 货盘真有量的子品牌/品类（ThinkPad/ThinkBook/IdeaPad 被归到企业购站，
           // shop 货盘几乎没货，列了就是空标签 → 不列）。手机=moto+拯救者手机；平板含拯救者Y700/Y900
@@ -2645,11 +2584,44 @@ if (!window.__lxCreateTypewriter) {
             "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, floorCount),
           };
 
+          // 存完整池供换一换轮换（用未 slice 的全量筛选，否则池=可见数，换一换无货可换被禁用）
+          const matchAll = (match) => uniq(basePool.filter(match));
+          const floorPoolFull = {
+            "ThinkPad": matchAll((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)),
+            "ThinkBook": matchAll((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)),
+            "Thinkplus": accessoryProducts,
+            "ThinkCentre": uniq([...basePool.filter((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts]),
+            "扬天&瑞天": desktopProducts,
+            "配件&外设": accessoryProducts,
+            "服务存储": serviceStorageProducts,
+            "企业服务": uniq([...serviceProducts, ...serviceStorageProducts]),
+          };
+          if (!state.bizFloorPool) state.bizFloorPool = {};
+          LX_BUSINESS_RECOMMEND_FLOORS.forEach(([label]) => {
+            const full = floorPoolFull[label] || floorItems[label] || [];
+            if (full.length) state.bizFloorPool[label] = full;
+          });
+
           return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
             const items = floorItems[label] || [];
             if (!items.length) return "";  // 该类没货就不显示空楼层，不跨品类凑
-            return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            const catKey = label;
+            const visibleCount = lxCatFloorVisibleCount();
+            const canShuffle = (state.bizFloorPool?.[label] || items).length > visibleCount;
+            const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
+            const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
+            return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
+        }
+
+        // 行业 tag 横排 bar（可复用：推荐 tab 和行业解决方案 tab 均调用）
+        function lxEntIndustryBar() {
+          const activeInd = state.entIndustry || "";
+          return `<div class="lx-ent-industry-bar">${LX_ENT_INDUSTRIES.map((ind) => {
+            const isActive = activeInd === ind.key;
+            const tipAttr = ind.hasCase ? "" : ` title="方案咨询"`;
+            return `<button class="lx-ent-industry-tag${isActive ? " is-active" : ""}${ind.hasCase ? "" : " no-case"}" type="button" data-ent-industry="${esc(ind.key)}"${tipAttr}>${esc(ind.label)}</button>`;
+          }).join("")}</div>`;
         }
 
         async function lxRenderEnterpriseRecommendFloors() {
@@ -2659,11 +2631,39 @@ if (!window.__lxCreateTypewriter) {
           if (!source.length) return "";
           const used = new Set();
           const floorCount = lxFloorProductCount();
-          return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
+          // 存完整池供换一换轮换（enterprise 和 business 共用 bizFloorPool）
+          if (!state.bizFloorPool) state.bizFloorPool = {};
+
+          // 楼层排序：若选中行业，把 focusCats 对应楼层置顶
+          const activeInd = state.entIndustry || "";
+          let matchers = LX_CATEGORY_MATCHERS.enterprise || [];
+          if (activeInd) {
+            const ind = LX_ENT_INDUSTRIES.find((i) => i.key === activeInd);
+            if (ind && ind.focusCats && ind.focusCats.length) {
+              const focus = new Set(ind.focusCats);
+              const focusMatchers = matchers.filter(([label]) => focus.has(label));
+              const restMatchers = matchers.filter(([label]) => !focus.has(label));
+              // focusCats 按 focusCats 数组顺序排（不是楼层原始顺序）
+              const sortedFocus = ind.focusCats.map((cat) => focusMatchers.find(([label]) => label === cat)).filter(Boolean);
+              matchers = [...sortedFocus, ...restMatchers];
+            }
+          }
+
+          const floorsHtml = matchers.map(([label, match]) => {
             const items = lxPickFloorProducts(source, match, used, floorCount);
             if (!items.length) return "";  // 该类没货就不显示空楼层
-            return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            // 完整池供换一换轮换（不受 floorCount/used 限制；该类全量匹配去重）
+            const fullPool = lxUniqProducts(source.filter(match));
+            state.bizFloorPool[label] = fullPool.length >= items.length ? fullPool : items;
+            const catKey = label;
+            const visibleCount = lxCatFloorVisibleCount();
+            const canShuffle = (state.bizFloorPool[label] || items).length > visibleCount;
+            const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(catKey)}" data-floor-label="${esc(label)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
+            const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
+            return `<section class="lx-floor lx-personal-rec-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(catKey)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(catKey)}">${cards}</div></section>`;
           }).join("");
+
+          return floorsHtml;
         }
 
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
@@ -2730,7 +2730,8 @@ if (!window.__lxCreateTypewriter) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampFloors(box); lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box);
               return;
             }
             if (page === "enterprise") {
@@ -2742,7 +2743,8 @@ if (!window.__lxCreateTypewriter) {
               lxRetryEmptyRecommendFloors(page, box);
               if (state.page !== page) return;
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampFloors(box); lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box);
               return;
             }
             box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
@@ -3133,19 +3135,95 @@ if (!window.__lxCreateTypewriter) {
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
+            const bizStoreCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
+            const bizStoreMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的门店</span></div>`;
+            const bizStoreListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
+            const bizStoreHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想授权门店（企业服务）</p>`;
+            const bizStoreBody = bizStoreCityBar + bizStoreMapEl + bizStoreHint + bizStoreListEl;
             const activitySections = {
               "企业专享权益": lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
               "对公与售后保障": lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
               "轻量定制方案": lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
-              "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              "门店": lxFloorSection("门店", "到店洽谈批量采购 · 企业专属服务", bizStoreBody, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询附近可以办理企业批量采购的联想门店">查附近企业服务门店</button>`),
               "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
+            if (activeFloorTab === "门店") {
+              lxResolveCoord().then((coord) => {
+                if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                const cityEl = box.querySelector("[data-store-city]");
+                const listEl = box.querySelector("[data-store-list]");
+                const lat = coord?.lat ?? 39.9042;
+                const lng = coord?.lng ?? 116.4074;
+                if (cityEl) cityEl.textContent = coord?.city || (coord ? "定位成功" : "北京（默认）");
+                fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (!el) return;
+                    let stores = data.stores || data || [];
+                    if (cityEl) {
+                      const addr = stores[0]?.address || "";
+                      const city = coord?.city || addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
+                      cityEl.textContent = city;
+                    }
+                    if (!stores.length) {
+                      el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近门店，可向乐享询问</div>`;
+                      return;
+                    }
+                    // 前 2 家标记企业服务中心（POC 演示，无后端字段时默认前2家）
+                    stores = stores.map((s, i) => ({ ...s, _bizCenter: s.biz_center || s.enterprise_service || i < 2 }));
+                    // 企业服务中心排前面
+                    stores.sort((a, b) => (b._bizCenter ? 1 : 0) - (a._bizCenter ? 1 : 0));
+                    // 用最近门店坐标刷新地图标点
+                    const top = stores[0];
+                    const mLng = top.lng ?? top.longitude ?? lng, mLat = top.lat ?? top.latitude ?? lat;
+                    const mapImg = box.querySelector("[data-store-map] img");
+                    if (mapImg && mLng && mLat) mapImg.src = `/api/stores/staticmap?lng=${encodeURIComponent(mLng)}&lat=${encodeURIComponent(mLat)}`;
+                    const mapTip = box.querySelector("[data-store-map-tip]");
+                    if (mapTip) mapTip.textContent = `${esc(top.name || "最近门店")} · 点击门店卡「导航」开地图`;
+                    el.innerHTML = stores.map((s) => {
+                      const name = esc(s.name || "联想授权门店");
+                      const addr = esc(s.address || "");
+                      const dm = s.distance ?? s.dist;
+                      const dist = dm ? `<span class="lx-store-dist">${dm < 1000 ? Math.round(dm) + "m" : (dm / 1000).toFixed(1) + "km"}</span>` : "";
+                      const hours = esc(s.hours || s.business_hours || "10:00–20:00");
+                      const tel = s.tel || s.phone || "";
+                      const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
+                      const bizChips = s._bizCenter
+                        ? ["企业服务中心", "批量采购洽谈", "到店看样机"]
+                        : ["批量采购洽谈", "到店看样机"];
+                      const rights = bizChips.map((r) => `<span${r === "企业服务中心" ? ' class="lx-store-biz-chip"' : ""}>${esc(r)}</span>`).join("");
+                      const navBtn = `<button class="lx-p0-btn" type="button" data-store-nav="${esc(String(s.lng||lng))},${esc(String(s.lat||lat))}" data-store-name="${name}" data-store-addr="${addr}" data-store-tel="${esc(tel)}">导航</button>`;
+                      const stockBtn = `<button class="lx-p0-btn" type="button" data-quick-ask="查询${esc(s.name||'该门店')}是否支持企业批量采购">企业咨询</button>`;
+                      const apptBtn = `<button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到${esc(s.name||'门店')}洽谈企业批量采购">约洽谈</button>`;
+                      return `<article class="lx-store-card lx-store-card--biz" tabindex="0"><div class="lx-store-card-head"><h4>${name}${dist}</h4><div class="lx-store-rights-chips">${rights}</div></div><p class="lx-store-addr">${addr}</p><div class="lx-store-meta"><span class="lx-store-hours">${hours}</span>${telHtml}</div><div class="lx-store-btns">${navBtn}${stockBtn}${apptBtn}</div></article>`;
+                    }).join("");
+                  })
+                  .catch(() => {
+                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (el) el.innerHTML = `<article class="lx-store-card lx-store-card--biz" tabindex="0"><div class="lx-store-card-head"><h4>联想北京中关村旗舰店<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span class="lx-store-biz-chip">企业服务中心</span><span>批量采购洽谈</span><span>到店看样机</span></div></div><p class="lx-store-addr">北京市海淀区中关村大街1号</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想中关村旗舰店洽谈企业批量采购">约洽谈</button></div></article><article class="lx-store-card lx-store-card--biz" tabindex="0"><div class="lx-store-card-head"><h4>联想北京望京体验中心<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span class="lx-store-biz-chip">企业服务中心</span><span>批量采购洽谈</span><span>到店看样机</span></div></div><p class="lx-store-addr">北京市朝阳区望京SOHO T1</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想望京体验中心洽谈企业批量采购">约洽谈</button></div></article><article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>联想北京五道口店<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span>批量采购洽谈</span><span>到店看样机</span></div></div><p class="lx-store-addr">北京市海淀区五道口成府路</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–19:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想五道口店洽谈企业批量采购">约洽谈</button></div></article>`;
+                    if (cityEl) cityEl.textContent = "北京（示例）";
+                  });
+              }).catch(() => {});
+            }
           } else {
             const activitySections = {
-              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
+              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", (() => {
+                // 行业 key → LX_SOLUTIONS 中文名映射
+                const IND_TO_SOLUTION = { gov: "数字政府", edu: "智慧教育", med: "智慧医疗", fin: "智慧金融", mfg: "智能制造" };
+                const activeSolution = IND_TO_SOLUTION[state.entIndustry || ""] || "";
+                const allSolutions = Object.keys(LX_SOLUTIONS);
+                // 若有选中行业且能匹配到方案，把匹配方案置顶并高亮
+                const sorted = activeSolution
+                  ? [activeSolution, ...allSolutions.filter((n) => n !== activeSolution)]
+                  : allSolutions;
+                return lxEntIndustryBar() + sorted.map((industry) => `<div class="lx-floor-card${activeSolution && industry === activeSolution ? " is-active" : ""}" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join("");
+              })(), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
               "信创合规": lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
-              "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
+              "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>` + `<div class="lx-floor-card" data-resource-center><strong>资料中心</strong><span>视频 · 白皮书 · 案例 · 手册 · 数字人</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button><button class="lx-p0-btn" type="button" data-resource-center style="margin-left:8px">进入资料中心</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
           }
@@ -3666,6 +3744,175 @@ if (!window.__lxCreateTypewriter) {
         function openWhitepaperLib() {
           const rows = LX_WHITEPAPERS.map(([name, desc]) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(name)}</strong><span>${esc(desc)}</span></div><button class="lx-p0-btn primary" type="button" data-wp-download="${esc(name)}">下载</button></div>`).join("");
           lxOpenInfoTab("whitepaper", "白皮书资料库", `${rows}<p class="lx-p0-disclaimer">下载需留下联系方式，资料将发送至您的邮箱/手机（演示环境）。</p>`);
+        }
+
+        // ── 资料中心（双维度筛选：类型 × 行业）──
+        const LX_RES_TYPES = [
+          { key: "video", label: "产品视频" },
+          { key: "whitepaper", label: "行业白皮书" },
+          { key: "case", label: "行业案例" },
+          { key: "manual", label: "产品手册" },
+          { key: "avatar", label: "数字人讲解" },
+        ];
+
+        const LX_RES_DATA = {
+          video: [
+            { title: "ThinkStation P 系列工作站产品演示", desc: "深度剖析图形工作站性能与可靠性", industry: "mfg", duration: "约 5 分钟" },
+            { title: "问天服务器开箱与机架部署", desc: "ThinkSystem SR650 V3 完整部署流程", industry: "infra", duration: "约 8 分钟" },
+            { title: "开天 M 系列信创台式机评测", desc: "国产 OS 兼容性与等保达标演示", industry: "gov", duration: "约 6 分钟" },
+            { title: "智慧教室一体化方案展示", desc: "互动教学终端 + 云桌面统一管理", industry: "edu", duration: "约 4 分钟" },
+            { title: "医院 HIS 终端解决方案演示", desc: "医护工作站与移动查房终端全流程", industry: "med", duration: "约 5 分钟" },
+            { title: "金融网点智能化改造纪录片", desc: "从柜面到自助终端全套替换方案", industry: "fin", duration: "约 7 分钟" },
+            { title: "DaaS 设备即服务全程解读", desc: "资产管理、运维外包到生命周期终止", industry: "all", duration: "约 10 分钟" },
+            { title: "ThinkPad X 系列 AI PC 新品发布", desc: "AI 算力加速与 NPU 应用场景展示", industry: "all", duration: "约 12 分钟" },
+          ],
+          whitepaper: [
+            { title: "信创 PC 选型指南（2026 版）", desc: "覆盖开天/昭阳全系，含国产 OS/CPU 兼容矩阵", industry: "gov" },
+            { title: "智慧教育解决方案白皮书", desc: "智慧教室+信创替代完整方案与案例", industry: "edu" },
+            { title: "政务信创替代实施手册", desc: "等保 2.0 基线、政采流程与迁移路线图", industry: "gov" },
+            { title: "金融行业国密合规指南", desc: "TCM/SM 算法机型与密评要点", industry: "fin" },
+            { title: "智能制造边缘 AI 白皮书", desc: "产线质检与数字孪生算力规划", industry: "mfg" },
+            { title: "企业级服务器选型手册", desc: "问天/ThinkSystem 全栈配置指南", industry: "infra" },
+            { title: "医疗信息化终端配置指南", desc: "HIS/PACS 适配、抗菌外壳与 7×24 运维", industry: "med" },
+            { title: "DaaS 服务模式落地白皮书", desc: "设备全生命周期外包成本测算与案例", industry: "all" },
+          ],
+          case: [
+            { title: "某省属重点高校 8000 台信创替代", desc: "交付周期缩短 40%，三年运维成本下降 30%", industry: "edu" },
+            { title: "某市教育局智慧教室全覆盖工程", desc: "覆盖 200 所学校，师生终端统一纳管", industry: "edu" },
+            { title: "某省级机关万台信创替代", desc: "单台综合成本下降 18%，零停机切换", industry: "gov" },
+            { title: "某市政务服务中心智能窗口改造", desc: "窗口效率提升 35%，市民满意度达 92%", industry: "gov" },
+            { title: "某三甲医院全院 3000 终端升级", desc: "门诊系统响应速度提升 35%，故障率下降一半", industry: "med" },
+            { title: "某区域影像中心 GPU 工作站集群", desc: "影像处理速度提升 3 倍，报告出具时间压缩", industry: "med" },
+            { title: "某股份制银行 300 网点信创替代", desc: "业务切换零中断，密评一次通过", industry: "fin" },
+            { title: "某汽配集团 12 条产线 AI 质检", desc: "漏检率下降 60%，单线人力成本省 25%", industry: "mfg" },
+            { title: "某互联网企业千卡推理集群", desc: "算力成本下降 22%，交付周期 5 周", industry: "infra" },
+            { title: "某能源集团两地三中心存储", desc: "RTO<15 分钟，RPO<5 分钟，存储成本降 18%", industry: "infra" },
+          ],
+          manual: [
+            { title: "ThinkStation P 系列配置手册", desc: "P3/P5/P7 完整规格、配件与认证清单", industry: "mfg" },
+            { title: "ThinkSystem 服务器部署手册", desc: "SR650 V3 / ST658 机架/塔式完整部署指南", industry: "infra" },
+            { title: "DE 系列企业存储配置手册", desc: "DE6400/DE6800 容量规划与扩容指南", industry: "infra" },
+            { title: "开天 M/T 系列信创台式机手册", desc: "固件、驱动与国产 OS 适配操作指南", industry: "gov" },
+            { title: "昭阳系列商务笔记本选购手册", desc: "E/K/N 子系列对比与企业批采说明", industry: "all" },
+            { title: "超融合一体机部署与运维手册", desc: "SE360 V3 超融合节点初始化与扩容", industry: "infra" },
+            { title: "医疗专用终端维护手册", desc: "抗菌清洁规范与 7×24 快速换机流程", industry: "med" },
+            { title: "DaaS 服务资产管理操作手册", desc: "管理门户、工单、报表全功能说明", industry: "all" },
+          ],
+          avatar: [
+            { title: "3 分钟讲清信创替代方案", desc: "数字人讲师带你看懂国产化合规路径", industry: "gov", duration: "约 3 分钟" },
+            { title: "智慧教育方案数字人讲解", desc: "从智慧教室到信创替代的整体方案导览", industry: "edu", duration: "约 4 分钟" },
+            { title: "边缘 AI 质检方案解读", desc: "产线 AI 落地从硬件选型到部署全流程", industry: "mfg", duration: "约 5 分钟" },
+            { title: "金融国密合规数字人导览", desc: "SM 算法机型与密评关键步骤一图搞懂", industry: "fin", duration: "约 3 分钟" },
+            { title: "DaaS 全生命周期服务讲解", desc: "从采购到报废，设备服务化的价值拆解", industry: "all", duration: "约 6 分钟" },
+            { title: "问天服务器 AI 推理集群方案", desc: "大模型推理集群规划与选型要点", industry: "infra", duration: "约 5 分钟" },
+          ],
+        };
+
+        function openResourceCenter(type, industry) {
+          const activeType = type || "video";
+          const activeInd = industry || "all";
+
+          // 行业 key → industry 字段映射：LX_ENT_INDUSTRIES 8 个 + "infra" + "all"
+          // 过滤逻辑：item.industry === activeInd 或 activeInd === "all" 或 item.industry === "all"
+          function filterItems(items) {
+            if (activeInd === "all") return items;
+            return items.filter((it) => it.industry === activeInd || it.industry === "all");
+          }
+
+          // 类型 tab 行
+          const typeTabs = LX_RES_TYPES.map((t) =>
+            `<button class="lx-res-tab${t.key === activeType ? " is-active" : ""}" type="button" data-res-type="${esc(t.key)}" data-res-industry="${esc(activeInd)}">${esc(t.label)}</button>`
+          ).join("");
+
+          // 行业 chip 行（"全部" + LX_ENT_INDUSTRIES + "基础设施"）
+          const industryOptions = [
+            { key: "all", label: "全部" },
+            ...LX_ENT_INDUSTRIES,
+            { key: "infra", label: "基础设施" },
+          ];
+          const industryChips = industryOptions.map((ind) =>
+            `<button class="lx-res-chip${ind.key === activeInd ? " is-active" : ""}" type="button" data-res-industry="${esc(ind.key)}" data-res-type="${esc(activeType)}">${esc(ind.label)}</button>`
+          ).join("");
+
+          // 内容区
+          const items = filterItems(LX_RES_DATA[activeType] || []);
+
+          let contentHtml = "";
+          if (!items.length) {
+            contentHtml = `<p class="lx-p0-disclaimer" style="padding:24px 0;text-align:center">暂无该行业相关资料，请选择「全部」查看所有资料。</p>`;
+          } else if (activeType === "video") {
+            // 卡片网格 + 缩略图占位
+            const cards = items.map((it) =>
+              `<div class="lx-res-card">
+                <div class="lx-res-thumb lx-res-thumb--video">
+                  <span class="lx-res-play-icon"></span>
+                  <span class="lx-res-duration">${esc(it.duration || "")}</span>
+                </div>
+                <div class="lx-res-card-body">
+                  <strong class="lx-res-card-title">${esc(it.title)}</strong>
+                  <span class="lx-res-card-desc">${esc(it.desc)}</span>
+                </div>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-grid">${cards}</div>`;
+          } else if (activeType === "whitepaper") {
+            // 列表式
+            const rows = items.map((it) =>
+              `<div class="lx-res-list-item">
+                <div class="lx-res-list-item-main">
+                  <strong>${esc(it.title)}</strong>
+                  <span>${esc(it.desc)}</span>
+                </div>
+                <button class="lx-p0-btn primary" type="button" data-res-download="${esc(it.title)}">下载</button>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-list">${rows}</div>`;
+          } else if (activeType === "case") {
+            // 案例卡片（点击让乐享介绍）
+            const cards = items.map((it) =>
+              `<div class="lx-floor-card" data-quick-ask="详细介绍这个政企案例：${esc(it.title)}">
+                <strong>${esc(it.title)}</strong>
+                <span>${esc(it.desc)}</span>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-floor-body">${cards}</div>`;
+          } else if (activeType === "manual") {
+            // 列表式 + 下载按钮
+            const rows = items.map((it) =>
+              `<div class="lx-res-list-item">
+                <div class="lx-res-list-item-main">
+                  <strong>${esc(it.title)}</strong>
+                  <span>${esc(it.desc)}</span>
+                </div>
+                <button class="lx-p0-btn primary" type="button" data-res-download="${esc(it.title)}">下载</button>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-list">${rows}</div>`;
+          } else if (activeType === "avatar") {
+            // 卡片网格 + 缩略图 + 观看按钮
+            const cards = items.map((it) =>
+              `<div class="lx-res-card">
+                <div class="lx-res-thumb lx-res-thumb--avatar">
+                  <span class="lx-res-play-icon"></span>
+                  <span class="lx-res-duration">${esc(it.duration || "")}</span>
+                </div>
+                <div class="lx-res-card-body">
+                  <strong class="lx-res-card-title">${esc(it.title)}</strong>
+                  <span class="lx-res-card-desc">${esc(it.desc)}</span>
+                  <button class="lx-p0-btn primary lx-res-watch-btn" type="button" data-res-watch="${esc(it.title)}">观看</button>
+                </div>
+              </div>`
+            ).join("");
+            contentHtml = `<div class="lx-res-grid">${cards}</div>`;
+          }
+
+          const html = `
+            <div class="lx-res-tabs">${typeTabs}</div>
+            <div class="lx-res-industry-filter">${industryChips}</div>
+            <div class="lx-res-content">${contentHtml}</div>
+            <p class="lx-p0-disclaimer lx-res-footer-disclaimer">资料为演示示例，正式素材以官方发布为准。生成内容由 AI 辅助整理，仅供参考。</p>`;
+
+          lxOpenInfoTab("resource", "资料中心", html);
         }
 
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
@@ -5079,14 +5326,14 @@ if (!window.__lxCreateTypewriter) {
             hello: ["找商品", "找门店", "找优惠", "以旧换新", "教育优惠", "找方案"],
           },
           business: {
-            quick: ["我要企业批量采购", "我要企业认证享专享价", "我要对公开票和账期", "我要找商用电脑", "我要查售后和上门服务"],
+            quick: ["中小企业有没有批量采购优惠？", "ThinkBook和ThinkCentre怎么选？", "公司账期/分期采购怎么办理？", "我们想给员工配电脑，能不能上门安装调试？", "帮我推荐一款适合小团队的轻薄本"],
             welcome: ["公司采购50台办公本，怎么拿企业价？", "ThinkBook和ThinkPad办公怎么选？", "企业购能开专票、走账期吗？", "中小企业有什么采购补贴？"],
             placeholder: "公司要配办公电脑，帮我推荐",
             actionbar: ["企业认证", "对公开票", "账期申请", "批量采购", "上门服务", "专属客服"],
             hello: ["企业采购", "专享价", "对公开票", "商用电脑", "上门服务"],
           },
           enterprise: {
-            quick: ["我要看行业解决方案", "我要信创合规产品", "我要批量采购报价", "我要对接专属客户经理", "我要查售后服务"],
+            quick: ["我们是XX行业，有没有对应的整体解决方案？", "信创/国产化适配方案怎么选？", "服务器/存储应该怎么配置？", "批量采购流程是怎样的？", "能否安排方案顾问对接？"],
             welcome: ["信创服务器怎么选型？", "智慧教育解决方案有哪些案例？", "参与政采招投标需要什么资质？", "工作站和服务器怎么搭配？"],
             placeholder: "我们单位要采购信创设备，帮我推荐",
             actionbar: ["信创合规", "解决方案", "招投标支持", "批量报价", "客户经理", "售后服务"],
@@ -5126,6 +5373,106 @@ if (!window.__lxCreateTypewriter) {
             }
           } catch {}
         })();
+
+        // ── 政企方案顾问对话式5步向导 ─────────────────────────────────────────
+        const LX_ADVISOR_STEPS = [
+          {
+            key: "industry",
+            ask: "您好，我来帮您对接方案顾问。先了解下，您是哪个行业的项目？",
+            chips: LX_ENT_INDUSTRIES.map(function(ind) { return { label: ind.label, value: ind.key }; })
+          },
+          {
+            key: "scale",
+            ask: "贵单位这次大概采购多少设备？涉及几个部门/科室？",
+            chips: [
+              { label: "50 台以内", value: "small" },
+              { label: "50-200 台", value: "medium" },
+              { label: "200-500 台", value: "large" },
+              { label: "500 台以上", value: "xlarge" }
+            ]
+          },
+          {
+            key: "budget",
+            ask: "这个项目目前预算批文/招采计划是什么阶段？",
+            chips: [
+              { label: "已有批文，准备招采", value: "approved" },
+              { label: "预算审批中", value: "pending" },
+              { label: "前期调研选型", value: "research" },
+              { label: "暂未立项", value: "none" }
+            ]
+          },
+          {
+            key: "xinchuang",
+            ask: "项目是否有信创/国产化适配要求？",
+            chips: [
+              { label: "必须信创合规", value: "required" },
+              { label: "优先国产化", value: "preferred" },
+              { label: "无强制要求", value: "none" },
+              { label: "不确定，需顾问评估", value: "tbd" }
+            ]
+          }
+        ];
+
+        const LX_ADVISOR_INDUSTRY_LABELS = {};
+        LX_ENT_INDUSTRIES.forEach(function(ind) { LX_ADVISOR_INDUSTRY_LABELS[ind.key] = ind.label; });
+
+        const LX_ADVISOR_SCALE_LABELS = { small: "50 台以内", medium: "50-200 台", large: "200-500 台", xlarge: "500 台以上" };
+        const LX_ADVISOR_BUDGET_LABELS = { approved: "已有批文，准备招采", pending: "预算审批中", research: "前期调研选型", none: "暂未立项" };
+        const LX_ADVISOR_XINCHUANG_LABELS = { required: "必须信创合规", preferred: "优先国产化", none: "无强制要求", tbd: "不确定，需顾问评估" };
+
+        function lxAdvisorChipsHtml(chips, step) {
+          return `<div class="lx-advisor-chips">${chips.map(function(c) {
+            return `<button class="lx-advisor-chip" type="button" data-advisor-pick="${esc(step + ":" + c.value)}">${esc(c.label)}</button>`;
+          }).join("")}</div>`;
+        }
+
+        function lxAdvisorSummaryHtml(flow) {
+          const industryLabel = LX_ADVISOR_INDUSTRY_LABELS[flow.industry] || flow.industry || "—";
+          const scaleLabel = LX_ADVISOR_SCALE_LABELS[flow.scale] || flow.scale || "—";
+          const budgetLabel = LX_ADVISOR_BUDGET_LABELS[flow.budget] || flow.budget || "—";
+          const xinchuangLabel = LX_ADVISOR_XINCHUANG_LABELS[flow.xinchuang] || flow.xinchuang || "—";
+          return `<div class="lx-advisor-summary">
+            <div class="lx-advisor-summary-title">需求摘要</div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">行业</span><span class="lx-advisor-summary-val">${esc(industryLabel)}</span></div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">采购规模</span><span class="lx-advisor-summary-val">${esc(scaleLabel)}</span></div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">预算/招采阶段</span><span class="lx-advisor-summary-val">${esc(budgetLabel)}</span></div>
+            <div class="lx-advisor-summary-row"><span class="lx-advisor-summary-key">信创要求</span><span class="lx-advisor-summary-val">${esc(xinchuangLabel)}</span></div>
+            <p class="lx-advisor-disclaimer">以上为初步整理，正式方案以顾问确认为准。</p>
+            <div class="lx-advisor-summary-actions">
+              <button class="lx-p0-btn primary" type="button" data-advisor-submit>提交给方案顾问</button>
+              <button class="lx-p0-btn" type="button" data-quick-ask="我还有补充说明需要告知方案顾问">补充说明</button>
+            </div>
+          </div>`;
+        }
+
+        function lxStartAdvisorFlow() {
+          state.advisorFlow = { step: 0, industry: null, scale: null, budget: null, xinchuang: null };
+          const first = LX_ADVISOR_STEPS[0];
+          addMessage("assistant", first.ask, lxAdvisorChipsHtml(first.chips, first.key));
+        }
+
+        function lxAdvisorPick(stepKey, value) {
+          const flow = state.advisorFlow;
+          if (!flow) return;
+          // 禁用历史步骤的所有 chip：选过的步骤不可回点（否则会重复推进 + 累加 chip）
+          document.querySelectorAll(".lx-advisor-chip").forEach(function(btn) { btn.disabled = true; btn.classList.add("is-picked"); });
+          flow[stepKey] = value;
+          const stepDef = LX_ADVISOR_STEPS.find(function(s) { return s.key === stepKey; });
+          const pickedLabel = stepDef ? (stepDef.chips.find(function(c) { return c.value === value; }) || {}).label || value : value;
+          addMessage("user", pickedLabel);
+          const currentIdx = LX_ADVISOR_STEPS.findIndex(function(s) { return s.key === stepKey; });
+          const nextStep = LX_ADVISOR_STEPS[currentIdx + 1];
+          if (nextStep) {
+            flow.step = currentIdx + 1;
+            addMessage("assistant", nextStep.ask, lxAdvisorChipsHtml(nextStep.chips, nextStep.key));
+          } else {
+            // 第5步：生成摘要卡
+            flow.step = 4;
+            addMessage("assistant", "好的，已收集完整需求。以下是整理好的需求摘要，请确认后提交给方案顾问：", lxAdvisorSummaryHtml(flow));
+          }
+        }
+
+        window.lxStartAdvisorFlow = lxStartAdvisorFlow;
 
         function lxSetHumanMode(on) {
           state.humanMode = !!on;
@@ -5419,7 +5766,7 @@ if (!window.__lxCreateTypewriter) {
             else state.hoverPromptSku = "";
           });
 
-          document.addEventListener("click", (event) => {
+          document.addEventListener("click", async (event) => {
             if (event.target.closest(".new-chat-button")) {
               event.preventDefault();
               event.stopImmediatePropagation();
@@ -5741,6 +6088,7 @@ if (!window.__lxCreateTypewriter) {
               if (text.includes("教育特惠")) openEduZone();
               else if (text.includes("国补")) sendChat(text);
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
+              else if (text.includes("批量采购流程") || text.includes("方案顾问")) lxStartAdvisorFlow();
               else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
               else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
@@ -5944,6 +6292,29 @@ if (!window.__lxCreateTypewriter) {
               lxRenderSiteFloors();
               return;
             }
+            // 政企行业 tag 三联动
+            const entIndustryBtn = event.target.closest("[data-ent-industry]");
+            if (entIndustryBtn) {
+              const key = entIndustryBtn.dataset.entIndustry;
+              const ind = LX_ENT_INDUSTRIES.find((i) => i.key === key);
+              if (ind) {
+                // a. 更新选中态
+                state.entIndustry = key;
+                document.querySelectorAll(".lx-ent-industry-tag").forEach((btn) => btn.classList.toggle("is-active", btn.dataset.entIndustry === key));
+                // b. 注入开场白
+                if (typeof window.lxfdSubmit === "function" && document.body.classList.contains("lx-fullscreen")) {
+                  window.lxfdSubmit(ind.opener);
+                } else {
+                  sendChat(ind.opener);
+                }
+                // c. 重渲当前 tab（行业解决方案 tab 更新高亮+置顶；推荐 tab 产品楼层排序依赖 state.entIndustry 已更新）
+                await lxRenderSiteFloors();
+                const box = document.querySelector("[data-site-floors]");
+                if (box) requestAnimationFrame(() => { lxClampCatFloors(box); });
+              }
+              return;
+            }
+
             const quickAsk = event.target.closest("[data-quick-ask]")?.dataset.quickAsk;
             if (quickAsk) {
               closeModal();
@@ -5993,6 +6364,30 @@ if (!window.__lxCreateTypewriter) {
             else if (event.target.closest("[data-solution-center]")) openSolutionCenter();
             if (event.target.closest("[data-xinchuang]")) openXinchuangZone();
             if (event.target.closest("[data-whitepaper]")) openWhitepaperLib();
+            if (event.target.closest("[data-resource-center]")) openResourceCenter();
+            const resType = event.target.closest("[data-res-type]");
+            if (resType) { openResourceCenter(resType.dataset.resType, resType.dataset.resIndustry || "all"); return; }
+            const resIndustry = event.target.closest("[data-res-industry]");
+            if (resIndustry && !resIndustry.dataset.resType) { openResourceCenter(resIndustry.dataset.resType || "video", resIndustry.dataset.resIndustry); return; }
+            if (resIndustry) { openResourceCenter(resIndustry.dataset.resType, resIndustry.dataset.resIndustry); return; }
+            const resDownload = event.target.closest("[data-res-download]")?.dataset.resDownload;
+            if (resDownload) {
+              toast("正在为您准备（演示）");
+              setTimeout(() => {
+                state.leadScenario = "resource_download:" + resDownload;
+                openModal("需要顾问进一步讲解吗？", `<p class="lx-p0-disclaimer" style="margin-bottom:12px">「${esc(resDownload)}」已准备完成，需要联想专家为您深度解读？</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">联系顾问</button><button class="lx-p0-btn" type="button" data-modal-close>暂不需要</button></div>`);
+              }, 1200);
+              return;
+            }
+            const resWatch = event.target.closest("[data-res-watch]")?.dataset.resWatch;
+            if (resWatch) {
+              toast("正在为您准备（演示）");
+              setTimeout(() => {
+                state.leadScenario = "resource_watch:" + resWatch;
+                openModal("需要顾问进一步讲解吗？", `<p class="lx-p0-disclaimer" style="margin-bottom:12px">「${esc(resWatch)}」播放完成，需要联想专家为您详细解读方案？</p><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">联系顾问</button><button class="lx-p0-btn" type="button" data-modal-close>暂不需要</button></div>`);
+              }, 1200);
+              return;
+            }
             const wpDownload = event.target.closest("[data-wp-download]")?.dataset.wpDownload;
             if (wpDownload) { state.leadScenario = "whitepaper:" + wpDownload; openLeadPanel("whitepaper:" + wpDownload); }
 
@@ -6076,12 +6471,19 @@ if (!window.__lxCreateTypewriter) {
               const catKey = shuffleBtn.dataset.catShuffle;
               const floorLabel = shuffleBtn.dataset.floorLabel;
               const floorDef = LX_PERSONAL_CATEGORY_FLOORS.find((f) => f.label === floorLabel);
-              if (floorDef && catKey) {
-                const pool = floorDef.categories.flatMap((c) => state.catPool?.[c] || []);
-                const seen = new Set();
-                const uniq = pool.filter((p) => { const k = lxProductKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
-                const items = uniq.filter(floorDef.filter);
-                if (items.length > 0) {
+              // business/enterprise 楼层走 bizFloorPool
+              const bizPool = !floorDef ? (state.bizFloorPool?.[floorLabel] || null) : null;
+              if ((floorDef || bizPool) && catKey) {
+                let items;
+                if (floorDef) {
+                  const pool = floorDef.categories.flatMap((c) => state.catPool?.[c] || []);
+                  const seen = new Set();
+                  const uniq = pool.filter((p) => { const k = lxProductKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
+                  items = uniq.filter(floorDef.filter);
+                } else {
+                  items = bizPool;
+                }
+                if (items && items.length > 0) {
                   if (!state.catFloorOffset) state.catFloorOffset = {};
                   const visibleCount = lxCatFloorVisibleCount();
                   const n = 12; // 渲染 12 个，渲染后按真实列数夹两排（与初次渲染一致）
@@ -6106,7 +6508,14 @@ if (!window.__lxCreateTypewriter) {
             else if (floorAction === "service") openServicePanel();
             else if (floorAction === "member") openMemberCenter();
             else if (floorAction === "coupon") openCouponCenter();
-            else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
+            else if (floorAction === "lead") { if (state.page === "enterprise") lxStartAdvisorFlow(); else openLeadPanel("b_purchase"); }
+            const advisorPick = event.target.closest("[data-advisor-pick]");
+            if (advisorPick) { const [step, val] = advisorPick.dataset.advisorPick.split(":"); lxAdvisorPick(step, val); }
+            if (event.target.closest("[data-advisor-submit]")) {
+              lxSetHumanMode(true);
+              addMessage("assistant", "已将您的需求摘要转交方案顾问，稍后由专属顾问对接（演示）。");
+              state.advisorFlow = null;
+            }
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
@@ -7015,21 +7424,13 @@ if (!window.__lxCreateTypewriter) {
       ai._textBox.className = "lxfd-ai-text";
       if (body) body.insertBefore(ai._textBox, body.firstChild);
       ai._raw = "";
-      ai._writer = window.__lxCreateTypewriter(ai._textBox, {
-        charsPerTick: 1,
-        interval: 24,
-        scroll: () => {
-          if (thread) thread.scrollTop = thread.scrollHeight;
-        }
-      });
     };
     // lxfd 前端兜底超时：50秒后强制解锁
     const _lxfdSendTimeout = setTimeout(() => {
       if (chatState.sending && chatState.conversationNonce === nonce) {
         chatState.sending = false;
         revealAi();
-        ai._raw = "响应超时，请重试。";
-        ai._writer?.set(ai._raw);
+        if (ai._textBox) ai._textBox.textContent = "响应超时，请重试。";
       }
     }, 50000);
     try {
@@ -7073,7 +7474,8 @@ if (!window.__lxCreateTypewriter) {
           if (!content) return;
           revealAi();
           ai._raw += content;
-          ai._writer?.append(content);
+          if (ai._textBox) ai._textBox.textContent = ai._raw;
+          thread.scrollTop = thread.scrollHeight;
         },
         status: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -7100,10 +7502,7 @@ if (!window.__lxCreateTypewriter) {
           const payload = parseJson(data);
           const products = payload.products || payload.items || [];
           revealAi();
-          if (payload.title && !ai._raw) {
-            ai._raw = payload.title;
-            ai._writer?.set(payload.title);
-          }
+          if (payload.title && ai._textBox && !ai._textBox.textContent.trim()) ai._textBox.textContent = payload.title;
           body?.insertAdjacentHTML("beforeend", renderLxfdProducts(products));
           // 记录本轮商品及展示元信息以便 done 时桥接到主面板
           if (products.length) {
@@ -7150,12 +7549,7 @@ if (!window.__lxCreateTypewriter) {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
-          if (ai._raw && ai._textBox) {
-            const raw = ai._raw;
-            (ai._writer ? ai._writer.drain() : Promise.resolve(raw)).then(() => {
-              if (nonce === chatState.conversationNonce && ai._textBox) ai._textBox.innerHTML = mdLite(raw);
-            });
-          }
+          if (ai._raw && ai._textBox) ai._textBox.innerHTML = mdLite(ai._raw);
           lxfdPersistCurrent();
           lxfdRenderHist();
           // 追问 chips：异步生成，不阻塞桥接逻辑
@@ -7209,8 +7603,7 @@ if (!window.__lxCreateTypewriter) {
             await readSse(huoRes, lxfdHandlers);
           } catch (_e) {
             revealAi();
-            ai._raw = '当前服务暂时不可用，请稍后再试。';
-            ai._writer?.set(ai._raw);
+            if (ai._textBox) ai._textBox.textContent = '当前服务暂时不可用，请稍后再试。';
           }
         }
       };
@@ -7218,19 +7611,15 @@ if (!window.__lxCreateTypewriter) {
       if (nonce !== chatState.conversationNonce) return;
       if (!hasContent) {
         revealAi();
-        ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
-        ai._writer?.set(ai._raw);
+        if (ai._textBox) ai._textBox.textContent = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
       }
-      if (ai._writer) await ai._writer.drain();
       body?.insertAdjacentHTML("beforeend", `<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>`);
       // 追问 chips 由 done handler 异步填充；若后端超时未返回则保留默认
       if (!ai.querySelector(".lxfd-followups")) appendLxfdSuggestions(ai, ["可以推荐适合学生的笔记本吗？", "怎么查询我的产品保修状态？", "现在有哪些可以叠加的优惠政策？"]);
     } catch (error) {
       if (nonce !== chatState.conversationNonce) return;
       revealAi();
-      ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
-      ai._writer?.set(ai._raw);
-      if (ai._writer) await ai._writer.drain();
+      if (ai._textBox) ai._textBox.textContent = "当前 AI 服务暂时不可用，请稍后重试。";
     } finally {
       clearTimeout(_lxfdSendTimeout);
       if (nonce === chatState.conversationNonce) chatState.sending = false;

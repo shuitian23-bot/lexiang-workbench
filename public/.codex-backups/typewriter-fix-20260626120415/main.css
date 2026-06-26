@@ -4876,12 +4876,6 @@
         font-weight: 500;
       }
 
-      .lx-p0-message.assistant {
-        align-self: flex-start;
-        color: var(--lx-text-primary);
-        font-weight: 500;
-      }
-
       .lx-p0-message.ai.loading {
         color: var(--lx-text-secondary);
         font-weight: 400;
