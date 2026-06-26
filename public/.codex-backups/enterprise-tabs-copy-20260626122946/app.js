@@ -2122,7 +2122,7 @@ if (!window.__lxCreateTypewriter) {
             [/私人定制/, "lx-floor--activity lx-floor--custom"],
             [/以旧换新/, "lx-floor--activity lx-floor--tradein"],
             [/^种草$/, "lx-floor--activity lx-floor--discover"],
-            [/企业会员|企业定制|行业解决方案|行业资料|信创|大客户/, "lx-floor--activity"],
+            [/企业会员|企业定制|行业解决方案|信创|大客户/, "lx-floor--activity"],
           ];
           const extraClass = (classMap.find(([pattern]) => pattern.test(title)) || [null, ""])[1];
           return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><i class="lx-floor-badge" aria-hidden="true"></i><div class="lx-floor-title"><h3>${esc(title)}</h3>${sub ? `<p>${esc(sub)}</p>` : ""}</div><div class="lx-floor-actions">${cta || ""}</div></div><div class="lx-floor-body">${body}</div></section>`;
@@ -2133,7 +2133,7 @@ if (!window.__lxCreateTypewriter) {
           const activityLabels = {
             personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "种草", "服务", "门店"],
             business: ["企业会员权益", "企业定制", "门店", "服务"],
-            enterprise: ["行业解决方案", "行业资料"],
+            enterprise: ["行业解决方案", "信创合规", "大客户专属服务"],
           }[page] || [];
           return ["推荐", ...categoryLabels, ...activityLabels];
         }
@@ -3143,7 +3143,8 @@ if (!window.__lxCreateTypewriter) {
           } else {
             const activitySections = {
               "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
-              "行业资料": lxFloorSection("行业资料", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
+              "信创合规": lxFloorSection("信创合规", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
+              "大客户专属服务": lxFloorSection("大客户专属服务", "专属客户经理 · 全生命周期", quickCard("项目意向单", "提交项目信息，专家一对一", "我有采购项目，想对接专属顾问") + quickCard("DaaS 服务", "设备即服务，运维资产全托管", "DaaS 全生命周期服务包含什么？") + `<div class="lx-floor-card" data-whitepaper><strong>白皮书资料库</strong><span>选型指南 · 行业方案 · 实施手册</span></div>`, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目意向</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
           }
