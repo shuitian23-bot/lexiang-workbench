@@ -1221,8 +1221,10 @@ if (!window.__lxCreateTypewriter) {
           state._buyFlowRunning = true;
           addMessage("user", `我要购买 ${item.name}，帮我领取所有可用优惠`);
           const card = lxRenderClaimProgressCard(item, claimed, Math.abs(discount));
-          const node = addMessage("assistant", `好的！为你自动领取 ${claimed.length} 项专属优惠：`, card);
-          lxRunClaimProgressCard(node.querySelector('.cl[data-v="D"].lx-claim-skin'), claimed, Math.abs(discount), () => {
+          const node = addMessage("assistant", "");
+          lxEnsureAiBody(node).innerHTML = `<p>好的！为你自动领取 ${claimed.length} 项专属优惠：</p>${card}`;
+          const claimCard = node.querySelector('.cl[data-v="D"].lx-claim-skin');
+          lxRunClaimProgressCard(claimCard, claimed, Math.abs(discount), () => {
             state._buyFlowRunning = false;
             lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
           });
