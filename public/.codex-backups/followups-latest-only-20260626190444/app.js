@@ -1557,7 +1557,7 @@ if (!window.__lxCreateTypewriter) {
         function lxClearFollowups(exceptNode) {
           const root = ensureChat();
           if (!root) return;
-          root.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach((el) => {
+          root.querySelectorAll(".followups[data-followups], .lx-p0-suggest[data-followups]").forEach((el) => {
             if (!exceptNode || !exceptNode.contains(el)) el.remove();
           });
         }
@@ -1943,7 +1943,6 @@ if (!window.__lxCreateTypewriter) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const content = payload.text || data || "";
-                if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
                 if (!content) return;
                 revealAi();
                 ai._raw += content;
@@ -2189,8 +2188,7 @@ if (!window.__lxCreateTypewriter) {
                 const payload = parseJson(data);
                 const list = Array.isArray(payload.suggestions) ? payload.suggestions.slice(0, 3) : [];
                 if (!list.length || !hasContent) return;
-                lxClearFollowups(ai);
-                lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                lxAppendAiHtml(ai, `<div class="lx-p0-suggest">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
               },
               done: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -2207,7 +2205,7 @@ if (!window.__lxCreateTypewriter) {
                       if (qs.length) {
                         // 移除已有追问块（避免重复/叠加）
                         lxClearFollowups(ai);
-                        ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
+                        ai.querySelectorAll(".followups[data-followups], .lx-p0-suggest[data-followups]").forEach(el => el.remove());
                         lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                       }
                     }).catch(() => {});
@@ -7221,10 +7219,10 @@ if (!window.__lxCreateTypewriter) {
   function appendLxfdSuggestions(ai, suggestions) {
     const list = Array.isArray(suggestions) ? suggestions.slice(0, 3) : [];
     if (!list.length) return;
-    thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => {
+    thread?.querySelectorAll(".lxfd-followups").forEach((el) => {
       if (!ai.contains(el)) el.remove();
     });
-    ai.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
+    ai.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
     const host = ai.querySelector(".lxfd-ai-body") || ai;
     host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
   }
@@ -7339,7 +7337,7 @@ if (!window.__lxCreateTypewriter) {
     let pendingFollowups = [];
     let finalized = false;
     let finalizePromise = null;
-    thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
+    thread?.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
     // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
     if (!chatState.started && !chatState.human) {
       chatState.started = true;
@@ -7526,7 +7524,6 @@ if (!window.__lxCreateTypewriter) {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           const content = payload.text || data || "";
-          if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
           if (!content) return;
           hasContent = true;
           ai._raw += content;
