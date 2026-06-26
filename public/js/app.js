@@ -2443,7 +2443,7 @@ if (!window.__lxCreateTypewriter) {
             ["ThinkPad", (p) => /ThinkPad/i.test(p.name)],
             ["商用台式机", (p) => p.category === "台式机" || /扬天|瑞天/.test(p.name)],
             ["显示器", (p) => p.category === "显示器"],
-            ["服务", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
+            ["外设耗材", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
           ],
           enterprise: [
             ["笔记本", (p) => {
@@ -3369,13 +3369,74 @@ if (!window.__lxCreateTypewriter) {
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
+            const entMemberBody = `<h4 class="lx-gb-sub-title">会员等级</h4>` + quickCard("黄金会员", "免费注册 · 年综合折扣低至8.6折 · 每月38元购机礼券 · 1倍积分", "黄金会员怎么注册，有哪些权益？") + quickCard("铂金会员", "累计满1万元 · 折扣低至8折 · 每月68元礼券 · 3倍积分 · 解决方案中心", "铂金会员怎么升级，权益是什么？") + quickCard("钻石会员", "累计满5万元 · 折扣低至7.8折 · 每月88元礼券 · 5倍积分 · 1V1专属客服", "钻石会员有哪些专属权益？") + `<h4 class="lx-gb-sub-title">通用权益</h4>` + quickCard("企业账期", "对公采购支持账期结算", "企业账期怎么申请？") + quickCard("积分商城", "积分兑换办公好物", "企业积分怎么兑换？") + quickCard("增值税专票", "开具增值税专用发票", "怎么开增值税专用发票？") + quickCard("电子合同", "在线签署，省去寄送", "电子合同怎么签？") + quickCard("资产管理平台", "设备资产统一管理", "资产管理平台怎么用？") + quickCard("专属客户经理", "1V1 采购顾问", "怎么联系专属客户经理？");
+            const entCustomBody = quickCard("硬件按需配置", "CPU/内存/硬盘/显卡按需选配", "企业批量采购怎么定制硬件配置？") + quickCard("系统镜像定制", "预装企业标准镜像与软件", "能定制系统镜像和预装软件吗？") + quickCard("BIOS 锁定", "统一 BIOS 策略，安全管控", "BIOS 能统一定制锁定吗？") + quickCard("资产标签与激光打标", "企业资产编号、LOGO 打标", "能在机器上打企业资产标签吗？") + quickCard("批量部署交付", "整批装机、贴标、配送到位", "批量采购怎么部署交付？") + quickCard("定制采购补贴", "定制采购最高享补贴", "企业定制采购有什么补贴？");
+            const entStoreCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
+            const entStoreMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的企业服务中心</span></div>`;
+            const entStoreListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
+            const entStoreHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想企业服务中心</p>`;
+            const entStoreCards = entStoreCityBar + entStoreMapEl + entStoreHint + entStoreListEl + quickCard("企业服务权益", "到店享专属企业服务：批量采购咨询、上门部署、企业专项支持", "联想企业服务中心有哪些到店服务？") + quickCard("预约到店", "预约企业采购顾问或上门部署服务", "如何预约联想企业到店服务？");
+            const entServiceBody = `<h4 class="lx-gb-sub-title">增值服务</h4>` + quickCard("延长保修", "保修期内不限次数免费维修", "企业设备延保怎么买？") + quickCard("3年超值服务包", "上门保修延至3年 + 3次远程服务", "3年服务包包含什么？") + quickCard("数据无忧", "1年数据安全与隐私保护", "数据无忧服务怎么开通？") + quickCard("远程新机开荒", "远程协助新机设置部署", "新机开荒服务是什么？") + quickCard("远程管家", "远程电脑维护，实时守护", "远程管家怎么订？") + quickCard("上门软件调修", "工程师全国上门，便捷安全", "上门软件调修怎么预约？") + `<h4 class="lx-gb-sub-title">技术支持</h4>` + quickCard("保修与配置查询", "在线查保修期、机器配置", "怎么查我的设备保修和配置？") + quickCard("远程系统重装", "远程协助系统重装恢复", "能远程帮我重装系统吗？") + quickCard("24小时智能客服", "全天候在线技术支持", "怎么联系企业技术支持？");
             const activitySections = {
-              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
-              "企业定制": lxFloorSection("企业定制", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
-              "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
-              "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
+              "企业会员权益": lxFloorSection("企业会员权益", "认证即享 · 等级越高权益越丰厚", entMemberBody, entCta),
+              "企业定制": lxFloorSection("企业定制", "硬件到系统，按需定制，批量交付", entCustomBody, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              "门店": lxFloorSection("门店", "列表+地图 · 就近企业服务中心 · 批量采购咨询", entStoreCards, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询并推荐最近的联想企业服务中心">找企业服务中心</button>`),
+              "服务": lxFloorSection("服务", "增值服务 · 技术支持 · 全国覆盖", entServiceBody, `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
+            if (activeFloorTab === "门店") {
+              lxResolveCoord().then((coord) => {
+                if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                const cityEl = box.querySelector("[data-store-city]");
+                const listEl = box.querySelector("[data-store-list]");
+                const lat = coord?.lat ?? 39.9042;
+                const lng = coord?.lng ?? 116.4074;
+                if (cityEl) cityEl.textContent = coord?.city || (coord ? "定位成功" : "北京（默认）");
+                fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (!el) return;
+                    const stores = data.stores || data || [];
+                    if (cityEl) {
+                      const addr = stores[0]?.address || "";
+                      const city = coord?.city || addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
+                      cityEl.textContent = city;
+                    }
+                    if (!stores.length) {
+                      el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近企业服务中心，可向乐享询问</div>`;
+                      return;
+                    }
+                    const top = stores[0];
+                    const mLng = top.lng ?? top.longitude ?? lng, mLat = top.lat ?? top.latitude ?? lat;
+                    const mapImg = box.querySelector("[data-store-map] img");
+                    if (mapImg && mLng && mLat) mapImg.src = `/api/stores/staticmap?lng=${encodeURIComponent(mLng)}&lat=${encodeURIComponent(mLat)}`;
+                    const mapTip = box.querySelector("[data-store-map-tip]");
+                    if (mapTip) mapTip.textContent = `${esc(top.name || "最近企业服务中心")} · 点击门店卡「导航」开地图`;
+                    el.innerHTML = stores.map((s) => {
+                      const name = esc(s.name || "联想授权企业服务中心");
+                      const addr = esc(s.address || "");
+                      const dm = s.distance ?? s.dist;
+                      const dist = dm ? `<span class="lx-store-dist">${dm < 1000 ? Math.round(dm) + "m" : (dm / 1000).toFixed(1) + "km"}</span>` : "";
+                      const hours = esc(s.hours || s.business_hours || "10:00–20:00");
+                      const tel = s.tel || s.phone || "";
+                      const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
+                      const rights = ["企业服务中心", "批量采购", "上门部署"].map((r) => `<span>${esc(r)}</span>`).join("");
+                      const navBtn = `<button class="lx-p0-btn" type="button" data-store-nav="${esc(String(s.lng||lng))},${esc(String(s.lat||lat))}" data-store-name="${name}" data-store-addr="${addr}" data-store-tel="${esc(tel)}">导航</button>`;
+                      const stockBtn = `<button class="lx-p0-btn" type="button" data-quick-ask="查询${esc(s.name||'该企业服务中心')}的企业采购方案">咨询采购</button>`;
+                      const apptBtn = `<button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到${esc(s.name||'门店')}的企业采购顾问服务">约企业顾问</button>`;
+                      return `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>${name}${dist}</h4><div class="lx-store-rights-chips">${rights}</div></div><p class="lx-store-addr">${addr}</p><div class="lx-store-meta"><span class="lx-store-hours">${hours}</span>${telHtml}</div><div class="lx-store-btns">${navBtn}${stockBtn}${apptBtn}</div></article>`;
+                    }).join("");
+                  })
+                  .catch(() => {
+                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
+                    const el = box.querySelector("[data-store-list]");
+                    if (el) el.innerHTML = `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>联想北京中关村企业服务中心<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span>企业服务中心</span><span>批量采购</span><span>上门部署</span></div></div><p class="lx-store-addr">北京市海淀区中关村大街1号</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想中关村企业服务中心的企业采购顾问服务">约企业顾问</button></div></article>`;
+                    if (cityEl) cityEl.textContent = "北京（示例）";
+                  });
+              }).catch(() => {});
+            }
           } else {
             const activitySections = {
               "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
