@@ -2049,7 +2049,7 @@ if (!window.__lxCreateTypewriter) {
           if (state._entCongrats) return;
           state._entCongrats = true;
           toast("企业认证已通过");
-          addMessage("assistant", `好消息：「${ent.company || "贵公司"}」的企业采购负责人认证已通过！已为你解锁企业专享价（商品价签即刻生效）、采购补贴、对公专票与账期通道。`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="按企业专享价帮我重新推荐刚才在看的办公电脑">按企业价重看推荐</button><button class="lx-p0-btn" type="button" data-quick-ask="企业会员权益都有哪些，怎么用">看全部企业权益</button></div>`);
+          addMessage("assistant", `好消息：「${ent.company || "贵公司"}」的企业采购负责人认证已通过！已为你解锁企业专享价（商品价签即刻生效）、采购补贴、对公专票与账期通道。`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="按企业专享价帮我重新推荐刚才在看的办公电脑">按企业价重看推荐</button><button class="lx-p0-btn" type="button" data-quick-ask="企业专享权益都有哪些，怎么用">看全部企业权益</button></div>`);
           if (state.page === "business") setTimeout(() => { try { lxRunTab(state.tabs.find((t) => t.id === state.activeTabId) || state.tabs[0]); } catch {} }, 200);
         }
 
@@ -2071,7 +2071,7 @@ if (!window.__lxCreateTypewriter) {
         function openEnterpriseAuth() {
           const ent = lxEntState();
           if (ent.status === "verified") {
-            openModal("企业账户已认证", `<div class="lx-ent-status ok"><strong>${esc(ent.company || "贵公司")}</strong> 已通过企业采购负责人认证</div><ul class="lx-md-list"><li>企业专享价与采购补贴已生效</li><li>支持对公付款、增值税专票与企业账期咨询</li><li>专属客服与企业定制通道已开通</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="以企业身份帮我推荐办公采购方案并说明企业会员权益">看企业专享推荐</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线将对接联想企业购实名核验。</p>`);
+            openModal("企业账户已认证", `<div class="lx-ent-status ok"><strong>${esc(ent.company || "贵公司")}</strong> 已通过企业采购负责人认证</div><ul class="lx-md-list"><li>企业专享价与采购补贴已生效</li><li>支持对公付款、增值税专票与企业账期咨询</li><li>专属客服与轻量定制方案通道已开通</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="以企业身份帮我推荐办公采购方案并说明专享权益">看企业专享推荐</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线将对接联想企业购实名核验。</p>`);
             return;
           }
           if (ent.status === "pending") {
@@ -2122,7 +2122,7 @@ if (!window.__lxCreateTypewriter) {
             [/私人定制/, "lx-floor--activity lx-floor--custom"],
             [/以旧换新/, "lx-floor--activity lx-floor--tradein"],
             [/^种草$/, "lx-floor--activity lx-floor--discover"],
-            [/企业会员|企业定制|行业解决方案|信创|大客户/, "lx-floor--activity"],
+            [/企业专享|对公|轻量定制|行业解决方案|信创|大客户/, "lx-floor--activity"],
           ];
           const extraClass = (classMap.find(([pattern]) => pattern.test(title)) || [null, ""])[1];
           return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><i class="lx-floor-badge" aria-hidden="true"></i><div class="lx-floor-title"><h3>${esc(title)}</h3>${sub ? `<p>${esc(sub)}</p>` : ""}</div><div class="lx-floor-actions">${cta || ""}</div></div><div class="lx-floor-body">${body}</div></section>`;
@@ -2132,7 +2132,7 @@ if (!window.__lxCreateTypewriter) {
           const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
             personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "种草", "服务", "门店"],
-            business: ["企业会员权益", "企业定制", "门店", "服务"],
+            business: ["企业专享权益", "对公与售后保障", "轻量定制方案", "门店", "服务"],
             enterprise: ["行业解决方案", "信创合规", "大客户专属服务"],
           }[page] || [];
           return ["推荐", ...categoryLabels, ...activityLabels];
@@ -3134,8 +3134,9 @@ if (!window.__lxCreateTypewriter) {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
             const activitySections = {
-              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
-              "企业定制": lxFloorSection("企业定制", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              "企业专享权益": lxFloorSection("企业专享权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
+              "对公与售后保障": lxFloorSection("对公与售后保障", "财务合规，售后省心", quickCard("增值税专票", "下单开专票，资料线上提交", "企业购买怎么开增值税专票？") + quickCard("企业账期", "30/60/90 天账期可申请", "企业账期怎么申请？") + quickCard("3 年保修", "整机 3 年含上门维修", "商用机型的保修政策是什么？") + quickCard("远程支持", "工程师远程 + 上门一体化", "企业售后服务都包含什么？")),
+              "轻量定制方案": lxFloorSection("轻量定制方案", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
               "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
               "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
@@ -6155,7 +6156,7 @@ if (!window.__lxCreateTypewriter) {
                   const ent = lxEntState();
                   if (ent.status === "verified") {
                     lxRenderEnterpriseBanner();
-                    toast("企业认证已通过，企业会员权益已生效");
+                    toast("企业认证已通过，企业专享权益已生效");
                   }
                 }, LX_ENT_REVIEW_MS + 500);
               }
