@@ -1561,7 +1561,6 @@ if (!window.__lxCreateTypewriter) {
           const node = document.createElement("div");
           const isAi = /\b(ai|assistant)\b/.test(role);
           const isUser = /\buser\b/.test(role);
-          if (isUser) lxClearFollowups();
           node.className = `lx-p0-message msg ${role}${isAi ? " lx-chat-skin" : ""}`;
           if (isUser) {
             node.innerHTML = `<div class="user-bubble">${esc(text)}${extraHtml}</div>`;
@@ -6754,9 +6753,7 @@ if (!window.__lxCreateTypewriter) {
   function lxfdExportToMain() {
     if (!thread || !window.__lxBridge) return;
     const messages = [];
-    const allNodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai"));
-    const lastAi = allNodes.filter(function(el) { return el.classList.contains("lxfd-msg-ai"); }).pop();
-    allNodes.forEach(function(el) {
+    thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai").forEach(function(el) {
       if (el.classList.contains("lxfd-msg-user")) {
         messages.push({ role: "user", text: el.textContent.trim(), html: "" });
       } else {
@@ -6767,7 +6764,6 @@ if (!window.__lxCreateTypewriter) {
           // 商品已在右侧 reco 页正常展示，左侧对话保留文字答案 + 最新追问。
           const clone = body.cloneNode(true);
           clone.querySelectorAll(".lxfd-products, .lxfd-disclaimer").forEach(function(n) { n.remove(); });
-          if (el !== lastAi) clone.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach(function(n) { n.remove(); });
           clone.querySelectorAll(".lxfd-followups").forEach(function(n) {
             n.classList.remove("lxfd-followups");
             n.classList.add("followups");
