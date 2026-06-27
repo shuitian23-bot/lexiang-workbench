@@ -1519,41 +1519,80 @@ if (!window.__lxCreateTypewriter) {
           run();
         }
 
-        function openOrderDetail(orderId) {
-          const item = (state.orders || []).find((o) => o.orderId === orderId);
-          if (!item) return toast("找不到该订单");
-          const benefitLine = item.benefitNote ? `<div class="lx-p0-row-main" style="padding:6px 0"><span style="color:var(--lx-accent,#c41230)">已用优惠：${esc(item.benefitNote)}</span></div>` : "";
-          const html = `
-            <div class="lx-p0-row">
-              <img src="${esc(item.image_url)}" alt="">
-              <div class="lx-p0-row-main">
-                <strong>${esc(item.name)}</strong>
-                <span>${esc(item.category || "")}</span>
-                <span>单价 ${money(item.price)}</span>
-              </div>
-            </div>
-            <div class="lx-p0-row-main" style="padding:8px 0">
-              <span>订单号：${esc(item.orderId)}</span>
-              <span>下单时间：${esc(item.createdAt)}</span>
-            </div>
-            ${item.address ? `<div class="lx-p0-row-main" style="padding:4px 0">
-              <span>收货人：${esc(item.address.name || "")} ${esc(item.address.phone || "")}</span>
-              <span>地址：${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>
-            </div>` : ""}
-            <div class="lx-p0-row-main" style="padding:4px 0">
-              <span>实付金额：<strong>${money(item.price)}</strong></span>
-            </div>
-            ${benefitLine}
-            <div class="lx-p0-row-main" style="padding:8px 0">
-              <span>物流状态：<strong>已下单 → 备货中 → 待发货</strong></span>
-            </div>
-            <div class="lx-p0-actions">
-              <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
-              <button class="lx-p0-btn" data-buy-sku="${esc(item.sku || "")}">再次购买</button>
-            </div>
-            <p class="lx-p0-disclaimer">物流状态为演示数据，正式上线对接真实物流接口。</p>`;
-          lxOpenInfoTab("order-detail", "订单详情", html);
-        }
+function openOrderDetail(orderId) {
+  const item = (state.orders || []).find((o) => o.orderId === orderId);
+  if (!item) return toast("找不到该订单");
+  const rawStatus = String(item.status || item.orderStatus || item.logisticsStatus || "备货中");
+  const statusText = /待付款/.test(rawStatus)
+    ? "待付款"
+    : /已完成|已签收|签收/.test(rawStatus)
+      ? "已完成"
+      : /待发货|已发货|运输|配送/.test(rawStatus)
+        ? "待发货"
+        : "备货中";
+  const statusClass = statusText === "待付款" ? "pay" : statusText === "已完成" ? "done" : "ship";
+  const stepIndex = statusText === "待付款" ? 0 : statusText === "已完成" ? 3 : statusText === "待发货" ? 2 : 1;
+  const address = item.address || {};
+  const addressName = address.name || "演示用户";
+  const addressPhone = address.phone || "138****0000";
+  const addressText = `${address.region || ""}${address.detail || ""}` || "演示地址可在订单中修改收货信息";
+  const paidText = money(item.price);
+  const paidAmount = paidText.replace(/^¥\s?/, "");
+  const benefitLine = item.benefitNote ? `<div class="used usedoffer">已用优惠：${esc(item.benefitNote)}</div>` : "";
+  const productImage = item.image_url
+    ? `<img src="${esc(item.image_url)}" alt="">`
+    : `<span>暂无图片</span>`;
+  const stepIcon = {
+    check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>`,
+    box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`,
+    cal: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg>`,
+    nav: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg>`
+  };
+  const steps = [
+    ["已下单", stepIcon.check],
+    ["备货中", stepIcon.box],
+    ["待发货", stepIcon.cal],
+    ["已签收", stepIcon.nav]
+  ].map(([label, icon], idx) => {
+    const cls = idx < stepIndex ? "done" : idx === stepIndex ? "cur" : "";
+    return `<div class="sp ${cls}"><span class="dot">${icon}</span><span class="lb">${label}</span></div>`;
+  }).join("");
+  const html = `
+    <div class="od lx-orderdetail-skin" data-v="1">
+      <div class="head">
+        <span class="bar"></span>
+        <h2>订单详情</h2>
+        <span class="st ${statusClass}"><span class="d"></span>${esc(statusText)}</span>
+      </div>
+      <div class="prod">
+        <span class="shot">${productImage}</span>
+        <div class="pmain">
+          <div class="pn">${esc(item.name)}</div>
+          <div class="pmeta"><span class="cat">${esc(item.category || "商品")}</span><span class="unit">单价 ${paidText}</span></div>
+        </div>
+      </div>
+      <div class="info">
+        <div class="kv"><span class="k">订单号</span><span class="v sn">${esc(item.orderId)}</span></div>
+        <div class="kv"><span class="k">下单时间</span><span class="v">${esc(item.createdAt || "")}</span></div>
+        <div class="kv"><span class="k">收货人</span><span class="v">${esc(addressName)} ${esc(addressPhone)}</span></div>
+        <div class="kv"><span class="k">地址</span><span class="v">${esc(addressText)}</span></div>
+      </div>
+      <div class="paybar">
+        <div class="pl"><div class="pk">实付金额</div>${benefitLine}</div>
+        <div class="pp"><span class="cur">¥</span>${esc(paidAmount)}</div>
+      </div>
+      <div class="logi">
+        <div class="lt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 8h4l4 4v5h-3"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>物流状态</div>
+        <div class="steps">${steps}</div>
+      </div>
+      <div class="acts">
+        <button class="obtn ghost" data-ask-order="${esc(item.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>问订单</button>
+        <button class="obtn solid" data-buy-sku="${esc(item.sku || "")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>再次购买</button>
+      </div>
+      <p class="foot-tip">物流状态为演示数据，正式上线对接真实物流接口。</p>
+    </div>`;
+  lxOpenInfoTab("order-detail", "订单详情", html);
+}
 
         // 发票抬头（PRD 5.0.2 弹窗层场景：开票信息填写与修改）
         function openInvoiceForm() {
