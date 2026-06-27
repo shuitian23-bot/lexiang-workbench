@@ -1631,7 +1631,7 @@ if (!window.__lxCreateTypewriter) {
         function renderGenerating(label = "正在分析需求并生成回复...") {
           return `
             <div class="loading-line lx-generating" role="status" aria-live="polite">
-              <span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span>
+              <span class="typing-text">联想乐享正在生成中</span><span class="typing-cursor"></span>
             </div>`;
         }
 
@@ -1842,7 +1842,7 @@ if (!window.__lxCreateTypewriter) {
             body.innerHTML = finalHTML;
             return Promise.resolve();
           }
-          body.innerHTML = '<div class="loading-line"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div>';
+          body.innerHTML = '<div class="loading-line"><span class="typing-text">联想乐享正在生成中</span><span class="typing-cursor"></span></div>';
           const loadingStarted = Date.now();
           return new Promise((resolve) => {
             const startBodyTyping = () => {
@@ -2068,7 +2068,7 @@ if (!window.__lxCreateTypewriter) {
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 if (payload.text) {
                   const head = $(".loading-line .typing-text", ai);
-                  if (head) head.textContent = "联想乐享正在生成中...";
+                  if (head) head.textContent = "联想乐享正在生成中";
                 }
               },
               products: (data) => {
@@ -2291,12 +2291,12 @@ if (!window.__lxCreateTypewriter) {
               thinking: () => {
                 if (nonce !== state.conversationNonce) return;
                 const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "联想乐享正在生成中...";
+                if (head) head.textContent = "联想乐享正在生成中";
               },
               think_end: () => {
                 if (nonce !== state.conversationNonce) return;
                 const head = $(".loading-line .typing-text", ai);
-                if (head) head.textContent = "联想乐享正在生成中...";
+                if (head) head.textContent = "联想乐享正在生成中";
               },
               suggestions: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -7457,10 +7457,10 @@ if (!window.__lxCreateTypewriter) {
     }
     const loadingStarted = ai._loadingStarted || Date.now();
     if (!body.querySelector(".loading-line")) {
-      body.innerHTML = '<div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div>';
+      body.innerHTML = '<div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中</span><span class="typing-cursor"></span></div>';
     } else {
       const typing = body.querySelector(".loading-line .typing-text");
-      if (typing) typing.textContent = "联想乐享正在生成中...";
+      if (typing) typing.textContent = "联想乐享正在生成中";
     }
     return new Promise((resolve) => {
       const waitTime = Math.max(0, 5000 - (Date.now() - loadingStarted));
@@ -7627,7 +7627,7 @@ if (!window.__lxCreateTypewriter) {
 
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
-    ai.innerHTML = '<div class="lxfd-ai-body"><div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div></div>';
+    ai.innerHTML = '<div class="lxfd-ai-body"><div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中</span><span class="typing-cursor"></span></div></div>';
     ai._raw = "";
     ai._loadingStarted = Date.now();
     thread?.appendChild(ai);
@@ -7709,7 +7709,7 @@ if (!window.__lxCreateTypewriter) {
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
           if (payload.text && !hasContent && body) {
             const typing = body.querySelector(".loading-line .typing-text");
-            if (typing) typing.textContent = "联想乐享正在生成中...";
+            if (typing) typing.textContent = "联想乐享正在生成中";
           }
         },
         products: (data) => {
