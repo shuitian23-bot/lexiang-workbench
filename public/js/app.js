@@ -5128,82 +5128,108 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function openMemberCenter() {
-          // 会员页 9 模块（移植旧版 c4dcfa2 结构：等级/资产/签到任务/等级表/权益宫格/活动/乐豆商城/测评/快捷入口）
-          // 官方登录态优先（window.__lxMember）；OUR state.user 兜底；都没有则游客
-          const offMember = window.__lxMember; // 可能 undefined（fetch 尚未完成）
-          const offLogged = offMember && offMember.guest === false; // 官方已登录
+          const offMember = window.__lxMember;
+          const offLogged = offMember && offMember.guest === false;
           const logged = offLogged || !!state.user;
+          const maskPhone = (value) => {
+            const raw = String(value || "").trim();
+            const digits = raw.replace(/\D/g, "");
+            if (digits.length >= 7) return digits.slice(0, 3) + "****" + digits.slice(-4);
+            return raw || "游客";
+          };
+          const beanValue = (value) => {
+            const n = Number(value);
+            return Number.isFinite(n) ? n.toLocaleString("zh-CN") : String(value || "—");
+          };
+          const vipIcon = (name) => {
+            const icons = {
+              crown: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 18h16l1-11-5.2 4.2L12 4l-3.8 7.2L3 7l1 11Zm1 2h14v2H5v-2Z"/></svg>',
+              tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13 11 22 2 13V4h9l9 9Z"/><path d="M7.5 8.5h.01"/></svg>',
+              coins: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v8c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 10c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>',
+              ticket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z"/><path d="M15 6v12" stroke-dasharray="2 2"/></svg>',
+              flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 8a3 3 0 0 0 2.5 4.5h9a3 3 0 0 0 2.5-4.5l-5-8V3"/><path d="M8 16h8"/></svg>',
+              cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+              headset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13a8 8 0 0 1 16 0v4a2 2 0 0 1-2 2h-2v-7h4M4 17v-4h4v7H6a2 2 0 0 1-2-2v-1Z"/><path d="M13 20h3"/></svg>',
+              check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></svg>',
+              stairs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h5v-4h5v-4h6"/><path d="M4 22h16"/></svg>',
+              arr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+            };
+            return icons[name] || "";
+          };
 
-          // 显示名称：官方登录态用脱敏手机号（159****4903）；OUR 登录态用 nickname/phone；游客显示"游客"
           let name;
           if (offLogged && offMember.loginName) {
-            const ln = String(offMember.loginName);
-            name = ln.length >= 7 ? ln.slice(0, 3) + "****" + ln.slice(-4) : ln;
+            name = maskPhone(offMember.loginName);
           } else if (state.user) {
-            name = state.user.nickname || state.user.phone || "会员";
+            name = state.user.phone ? maskPhone(state.user.phone) : (state.user.nickname || "会员");
           } else {
             name = "游客";
           }
-
-          // 等级：官方登录态用官方等级名（"金钻会员"）；OUR 登录 = V3；游客 = 0
-          // 金钻是最顶级，等级表 lv 用 5（对齐 V5 黑卡槽，全解锁）
-          const offLevelName = offLogged ? (offMember.memberLevel || "金钻会员") : "";
-          const lv = offLogged ? 5 : (logged ? 3 : 0);
-
-          // 成长值：官方登录态 = 顶级已满（拉满显示）；OUR 登录 = 演示值；游客 = 0
-          const growth = offLogged ? 5000 : (logged ? 2480 : 0), nextLv = 5000;
-
-          // Hero 区：官方登录态不显示"登录/注册"按钮，显示等级徽章；成长值拉满或隐藏"距下一级"
-          const heroSubtitle = offLogged
-            ? `<span style="display:inline-block;background:rgba(255,255,255,.22);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">${esc(offLevelName)}</span>`
-            : (logged ? "V3 金卡 · 注册 365 天" : "注册即得新人 ¥200 礼包");
-          const heroBtns = offLogged
-            ? `<button class="lx-p0-btn" type="button" data-stu-auth style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">学生认证</button><button class="lx-p0-btn" type="button" data-open-ent style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">企业认证</button>`
-            : (logged
-              ? `<button class="lx-p0-btn" type="button" data-stu-auth style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">学生认证</button><button class="lx-p0-btn" type="button" data-open-ent style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">企业认证</button>`
-              : `<button class="lx-p0-btn" type="button" data-open-login style="background:#fff;color:#4D144A;font-weight:700">立即登录 / 注册</button>`);
-          const heroGrowth = offLogged
-            ? `<div style="font-size:12px;opacity:.9">金钻会员 · 顶级权益已全部解锁</div><div class="bar"><i style="width:100%"></i></div>`
-            : (logged
-              ? `<div style="font-size:12px;opacity:.9">距 V4 钻石卡还需 <b style="color:#ffd700">${nextLv - growth}</b> 成长值</div><div class="bar"><i style="width:${Math.round(growth / nextLv * 100)}%"></i></div>`
-              : `<div style="font-size:12px;opacity:.9">登录后立享 V1 普卡 · 11 项专属权益</div>`);
-          const hero = `<div class="lx-member-hero">
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
-              <div style="flex:1"><div style="font-size:18px;font-weight:700">${esc(name)}</div><div style="font-size:13px;opacity:.92">${heroSubtitle}</div></div>
-              ${heroBtns}
-            </div>
-            ${heroGrowth}
-          </div>`;
-
-          // 4 个数字卡：官方登录态没有实时余额，显示"—"而不是编造数字
-          // OUR state.user 登录的旧分支保持演示值；游客全 0
-          const assetVal = (offLogged, ourVal, label) => offLogged ? "—" : ourVal;
-          const assetsData = [
-            ["乐豆", assetVal(offLogged, logged ? 1280 : 0), offLogged ? "" : "1000豆=¥10", "乐豆余额和使用规则"],
-            ["优惠券", assetVal(offLogged, logged ? 5 : 0), offLogged ? "" : "张可用", "我的优惠券"],
-            ["积分",   assetVal(offLogged, logged ? 860 : 0), offLogged ? "" : "分",   "消费积分规则"],
-            ["成长值", assetVal(offLogged, growth),           offLogged ? "" : "/" + nextLv, "成长值如何获得"],
+          const tierName = offLogged ? (offMember.memberLevel || "金钻会员") : (logged ? "金钻会员" : "游客会员");
+          const rawBeans = offMember?.points ?? offMember?.beanBalance ?? offMember?.beans ?? offMember?.score;
+          const beanBalance = rawBeans != null ? beanValue(rawBeans) : (offLogged ? "—" : (logged ? "1,280" : "8,860"));
+          const subtitle = logged ? "顶级权益已全部解锁" : "登录后解锁会员权益";
+          const rights = [
+            ["tag", "会员价", "全场专享折扣"],
+            ["coins", "乐豆抵现", "1000 豆抵 ¥10"],
+            ["ticket", "月度券包", "每月 4 张专属券"],
+            ["flask", "0 元试用", "新品先体验"],
+            ["cal", "会员日", "每月 18 日双倍豆"],
+            ["headset", "专属客服", "VIP 通道"],
           ];
-          const assets = `<div class="lx-member-assets">${assetsData.map((a) => `<div class="cell" data-quick-ask="${esc(a[3])}"><span>${a[0]}</span><b>${a[1]}</b><span>${a[2]}</span></div>`).join("")}</div>`
-            + (offLogged ? `<p style="margin:6px 16px 0;font-size:11px;color:var(--lx-text-secondary,#888)">实时乐豆/积分余额以对话中查询为准</p>` : "");
-
-          const sign = logged ? `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>签到与任务</h3><span>连续签到 5 天 · 明日加倍</span><button class="lx-p0-btn" type="button" data-quick-ask="我的任务中心有哪些任务">全部任务</button></div><div class="lx-sign-row">${[1,2,3,4,5,6,7].map((d) => `<div class="lx-sign-day${d <= 5 ? " done" : ""}">第${d}天<br>${d <= 5 ? "✓" : "+" + d * 10 + "豆"}</div>`).join("")}</div></div>` : "";
-
-          // 等级表：官方登录态（金钻=顶级）高亮 V5 行
-          const tiers = [["V1 普卡", "登录即得", "基础券包 / 新人礼"], ["V2 银卡", "成长值 1000", "5% 会员价 / 生日礼"], ["V3 金卡", "成长值 2500", "延保 88 折 / 月度券包 / VIP 客服"], ["V4 钻石卡", "成长值 5000", "拯救者/YOGA 专享价 / 优先发货"], ["V5 黑卡", "邀请制", "私人定制 / 酒店权益 / 生活特权"]];
-          const tierTable = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>会员等级与权益</h3><button class="lx-p0-btn" type="button" data-quick-ask="会员等级体系和升级规则">规则 FAQ</button></div><table class="lx-tier-table"><thead><tr><th>等级</th><th>升级条件</th><th>核心权益</th></tr></thead><tbody>${tiers.map((t, i) => `<tr${i + 1 === lv ? ' style="background:var(--lx-surface-hover)"' : ""}><td><strong>${t[0]}</strong>${i + 1 === lv ? " ←当前" : ""}</td><td>${t[1]}</td><td>${t[2]}</td></tr>`).join("")}</tbody></table></div>`;
-
-          // 权益宫格：官方金钻=顶级，全部解锁（lv=5 覆盖所有 r[2]<=5），标题显示"金钻会员·全部权益已解锁"
-          const rights = [["新人礼包", "¥200 大礼包", 1], ["生日特权", "双倍乐豆+礼包", 1], ["会员价", "专享折扣", 1], ["月度券包", "每月 4 张", 2], ["优先发货", "VIP 优先排单", 2], ["专属客服", "VIP 通道", 3], ["延保 88 折", "会员专享", 3], ["拯救者 9 折", "游戏装备专享", 4], ["YOGA 专享", "设计师礼盒", 4], ["酒店权益", "合作酒店折扣", 5], ["生活特权", "美团/星巴克券", 5]];
-          const rightsTitle = offLogged
-            ? "金钻会员 · 全部权益已解锁"
-            : `会员权益（${rights.filter((r) => r[2] <= lv).length}/11 已解锁）`;
-          const rightsGrid = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>${rightsTitle}</h3></div><div class="lx-rights-grid">${rights.map((r) => `<div class="cell${r[2] > lv ? " locked" : ""}" data-quick-ask="会员权益详情：${esc(r[0])}"><strong>${r[0]}</strong><span>${r[1]} · V${r[2]}+</span></div>`).join("")}</div></div>`;
-
-          const acts = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>会员活动</h3></div><div class="lx-floor-body">${[["会员日", "每月 18 日双倍乐豆"], ["0 元试用", "新品先体验后购买"], ["会员秒杀", "专属低价场次"], ["新品首发", "优先购买资格"]].map((a) => `<div class="lx-floor-card" data-quick-ask="会员活动：${esc(a[0])}详情"><strong>${a[0]}</strong><span>${a[1]}</span></div>`).join("")}</div></div>`;
-          const mall = `<div class="lx-floor" style="margin-bottom:16px"><div class="lx-floor-head"><h3>乐豆兑换商城</h3><span>乐豆当钱花</span><button class="lx-p0-btn primary" type="button" data-quick-ask="乐豆商城能兑换什么，帮我推荐">去兑换</button></div><div class="lx-floor-body">${[["鼠标垫", "500 豆"], ["无线鼠标", "2900 豆"], ["延保 1 年", "5000 豆"], ["蓝牙耳机", "9900 豆"]].map((g) => `<div class="lx-floor-card" data-quick-ask="用乐豆兑换${esc(g[0])}"><strong>${g[0]}</strong><span>${g[1]}</span></div>`).join("")}</div></div>`;
-          const quick = `<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-quick-ask="查我的会员等级、乐豆余额、优惠券和可领取权益">让乐享整理我的权益</button><button class="lx-p0-btn" type="button" data-quick-ask="帮我做会员测评，看看我适合冲哪个等级">会员测评</button><button class="lx-p0-btn" type="button" data-floor-action="coupon">领券中心</button></div>`;
-          lxOpenInfoTab("member", "会员中心", hero + assets + sign + tierTable + rightsGrid + acts + mall + quick + `<p class="lx-p0-disclaimer" style="margin-top:10px">会员数据为演示口径，正式上线对接联想会员系统。</p>`);
+          const tasks = [
+            ["check", "每日签到赚乐豆", "签到 +10 豆 · 浏览商品 +5 豆 · 分享 +20 豆"],
+            ["stairs", "看看适合冲哪个等级", "对比各等级权益与升级门槛"],
+          ];
+          const rightsHtml = rights.map((item) => `
+              <button class="ben" type="button" data-quick-ask="会员权益详情：${esc(item[1])}">
+                <span class="bi">${vipIcon(item[0])}</span>
+                <span><span class="bt">${esc(item[1])}</span><span class="bs">${esc(item[2])}</span></span>
+              </button>`).join("");
+          const tasksHtml = tasks.map((item) => `
+              <button class="task" type="button" data-quick-ask="${esc(item[1])}">
+                <span class="ti">${vipIcon(item[0])}</span>
+                <span class="tt"><span class="tn">${esc(item[1])}</span><span class="td">${esc(item[2])}</span></span>
+              </button>`).join("");
+          lxOpenInfoTab("member", "会员", `
+            <div class="lx-vip-wrap">
+              <div class="vhead">
+                <h2>会员</h2>
+                <span class="sub">等级成长 · 乐豆 · 权益 · 任务</span>
+              </div>
+              <section class="vp lx-vip-skin" data-v="6">
+                <div class="vcard">
+                  <div class="vc-top">
+                    <span class="ava">${vipIcon("crown")}</span>
+                    <span class="vc-main">
+                      <span class="ph">${esc(name)} <span class="tier">${vipIcon("crown")}${esc(tierName)}</span></span>
+                      <span class="vc-sub">${esc(subtitle)}</span>
+                    </span>
+                    <button class="vbtn ghost vc-cta" type="button" data-quick-ask="打开会员中心，查看我的会员权益">会员中心 ${vipIcon("arr")}</button>
+                  </div>
+                  <div class="beanbar">
+                    <span class="bk">乐豆余额</span>
+                    <span class="bv">${esc(beanBalance)}<span class="u">豆</span></span>
+                    <span class="bd">1000 豆抵 ¥10</span>
+                    <span class="sp"></span>
+                    <button class="vbtn solid" type="button" data-quick-ask="乐豆商城能兑换什么，帮我推荐">去兑换</button>
+                    <button class="vbtn ghost" type="button" data-quick-ask="会员乐豆规则是什么">规则</button>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="panel">
+                    <div class="sect">核心权益 <span class="ln"></span></div>
+                    <div class="bengrid">${rightsHtml}</div>
+                  </div>
+                  <div class="panel">
+                    <div class="sect">任务与活动 <span class="ln"></span></div>
+                    <div class="tasks">${tasksHtml}</div>
+                    <button class="vbtn ghost taskcta" type="button" data-quick-ask="怎么赚乐豆，帮我列出今天能做的任务">去赚乐豆 ${vipIcon("arr")}</button>
+                  </div>
+                </div>
+                <p class="fnote">会员数据为演示口径，正式上线对接联想会员系统。</p>
+              </section>
+            </div>`);
         }
 
         function openCouponCenter() {
