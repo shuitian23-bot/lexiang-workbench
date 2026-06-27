@@ -1374,13 +1374,55 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function openCart() {
-          const rows = state.cart.length ? state.cart.map((item) => `
-            <div class="lx-p0-row">
-              <img src="${esc(item.image_url)}" alt="">
-              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>${esc(item.category)} · ${money(item.price)}</span></div>
-              <button class="lx-p0-btn primary" data-buy-sku="${esc(item.sku)}">立即购买</button>
-              <button class="lx-p0-btn" data-remove-cart="${esc(item.sku)}">移除</button>
-            </div>`).join("") : `<p class="lx-p0-disclaimer">购物车为空。可以在商品详情页点击“加入购物车”。</p>`;
+          state.cartSelection = state.cartSelection || {};
+          const currentSkus = new Set(state.cart.map((item) => item.sku));
+          Object.keys(state.cartSelection).forEach((sku) => {
+            if (!currentSkus.has(sku)) delete state.cartSelection[sku];
+          });
+          state.cart.forEach((item) => {
+            if (state.cartSelection[item.sku] === undefined) state.cartSelection[item.sku] = true;
+          });
+          const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>';
+          const selectedItems = state.cart.filter((item) => state.cartSelection[item.sku] !== false);
+          const total = selectedItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+          const allSelected = state.cart.length > 0 && selectedItems.length === state.cart.length;
+          const priceHtml = (value, cls = "") => {
+            const n = Number(value || 0);
+            return n ? `<span class="${cls}"><span class="cur">¥</span>${n.toLocaleString("zh-CN")}</span>` : `<span class="${cls}">咨询报价</span>`;
+          };
+          const rows = state.cart.length ? `
+            <div class="lx-cart-wrap">
+              <div class="chead"><h2><span class="bar"></span>购物车</h2><span class="cnt">共 ${state.cart.length} 件商品</span></div>
+              <div class="cart lx-cart-skin" data-v="1">
+                <div class="items">
+                  ${state.cart.map((item) => {
+                    const selected = state.cartSelection[item.sku] !== false;
+                    return `
+                      <div class="it${selected ? "" : " off"}" data-cart-item="${esc(item.sku)}">
+                        <button class="ck${selected ? " on" : ""}" type="button" data-cart-toggle="${esc(item.sku)}" aria-label="${selected ? "取消选择" : "选择"}${esc(item.name)}">${checkIcon}</button>
+                        <div class="shot"><img src="${esc(item.image_url || "/assets/product-placeholder.svg")}" alt="${esc(item.name)}" loading="lazy"></div>
+                        <div class="mid">
+                          <div class="pn" title="${esc(item.name)}">${esc(item.name)}</div>
+                          <div class="sub"><span class="cat">${esc(item.category || "联想商品")}</span>${priceHtml(item.price, "pp price")}</div>
+                        </div>
+                        <div class="acts">
+                          <button class="cbtn buy" type="button" data-buy-sku="${esc(item.sku)}">立即购买</button>
+                          <button class="cbtn rm" type="button" data-remove-cart="${esc(item.sku)}">移除</button>
+                        </div>
+                      </div>`;
+                  }).join("")}
+                </div>
+                <div class="checkout">
+                  <button class="selall" type="button" data-cart-select-all="${allSelected ? "0" : "1"}" aria-label="全选">
+                    <span class="ck${allSelected ? " on" : ""}">${checkIcon}</span><span>全选</span>
+                  </button>
+                  <span class="spacer"></span>
+                  <span class="sumtxt">已选 <b>${selectedItems.length}</b> 件</span>
+                  <span class="total">合计 <span class="tp"><span class="cur">¥</span>${total.toLocaleString("zh-CN")}</span></span>
+                  <button class="go" type="button" data-cart-checkout>去结算</button>
+                </div>
+              </div>
+            </div>` : `<div class="lx-cart-wrap"><div class="chead"><h2><span class="bar"></span>购物车</h2><span class="cnt">共 0 件商品</span></div><p class="lx-p0-disclaimer">购物车为空。可以在商品详情页点击“加入购物车”。</p></div>`;
           lxRevealContent();
           lxOpenInfoTab("cart", "购物车", rows);
         }
@@ -1558,7 +1600,8 @@ if (!window.__lxCreateTypewriter) {
           pageBox.innerHTML = `
             <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
             ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>`;
+            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>
+            <div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我解读这几款的差异，按我的需求给出选购建议：${esc(full.map((item) => item.name).join("、"))}">让乐享解读差异</button></div>`;
           // AI建议：异步 fetch，不阻塞渲染
           (async () => {
             try {
@@ -4151,8 +4194,9 @@ if (!window.__lxCreateTypewriter) {
           } else if (tab.kind === "info") {
             const pageBox = lxEnsureInfoPage();
             const isEduInfo = tab.id === "info:edu";
-            pageBox.classList.toggle("is-wide", isEduInfo);
-            pageBox.innerHTML = `${isEduInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            const isCartInfo = tab.id === "info:cart";
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo);
+            pageBox.innerHTML = `${isEduInfo || isCartInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
@@ -6283,9 +6327,34 @@ if (!window.__lxCreateTypewriter) {
             const buySku = event.target.closest("[data-buy-sku]")?.dataset.buySku;
             if (buySku) buyNow(state.cart.find((item) => item.sku === buySku));
 
+            const cartToggleSku = event.target.closest("[data-cart-toggle]")?.dataset.cartToggle;
+            if (cartToggleSku) {
+              state.cartSelection = state.cartSelection || {};
+              state.cartSelection[cartToggleSku] = state.cartSelection[cartToggleSku] === false;
+              openCart();
+              return;
+            }
+
+            const cartSelectAll = event.target.closest("[data-cart-select-all]")?.dataset.cartSelectAll;
+            if (cartSelectAll !== undefined) {
+              state.cartSelection = state.cartSelection || {};
+              const next = cartSelectAll === "1";
+              state.cart.forEach((item) => { state.cartSelection[item.sku] = next; });
+              openCart();
+              return;
+            }
+
+            if (event.target.closest("[data-cart-checkout]")) {
+              const selected = state.cart.filter((item) => !state.cartSelection || state.cartSelection[item.sku] !== false);
+              if (!selected.length) return toast("请先选择要结算的商品");
+              buyNow(selected[0]);
+              return;
+            }
+
             const removeCart = event.target.closest("[data-remove-cart]")?.dataset.removeCart;
             if (removeCart) {
               state.cart = state.cart.filter((item) => item.sku !== removeCart);
+              if (state.cartSelection) delete state.cartSelection[removeCart];
               save("lexiang.cart.v1", state.cart);
               updateBadges();
               openCart();
