@@ -296,18 +296,8 @@ if (!window.__lxCreateTypewriter) {
           return mask;
         }
 
-        function openModal(title, html, options = {}) {
+        function openModal(title, html) {
           const mask = ensureModal();
-          const isOrderSkin = options.skin === "order";
-          const modal = $(".lx-p0-modal", mask);
-          const head = $(".lx-p0-modal-head", mask);
-          mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
-          if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : "lx-p0-modal";
-            if (isOrderSkin) modal.setAttribute("data-v", "1");
-            else modal.removeAttribute("data-v");
-          }
-          if (head) head.hidden = isOrderSkin;
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
@@ -1241,41 +1231,21 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr) {
-          const fmt = (value) => {
-            const n = Number(value) || 0;
-            return n.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
-          };
-          const couponCount = claimed.length;
-          const saved = Math.abs(Number(discount) || 0);
-          const payable = Number(finalPrice || item.price || 0);
-          const rows = claimed.map((c) => `
-              <div class="ofr">
-                <span class="ck">${lxClaimCheckSvg()}</span>
-                <span class="oc"><span class="on">${esc(c.label)}</span><span class="od">${esc(c.reason || "已自动领取并使用")}</span></span>
-                <span class="ov minus">-¥${fmt(Math.abs(c.amount))}</span>
-              </div>`).join("");
-          const emptyRows = '<p class="lx-order-empty">该商品暂无可叠加优惠，按标价下单。</p>';
-          openModal("", `
-            <button class="x lx-p0-close" type="button" aria-label="关闭">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </button>
-            <div class="title">确认订单${couponCount ? `<span class="gp">${lxClaimCheckSvg()}已领取 ${couponCount} 项优惠</span>` : ""}</div>
-            <div class="prod">
-              <span class="pic"><img src="${esc(imgUrl(item.image_url))}" alt="${esc(item.name || "商品图")}" /></span>
-              <span class="pc"><span class="pn">${esc(item.name)}</span><span class="pp">标价 <s>¥${fmt(item.price)}</s></span></span>
+          const rows = claimed.map((c) => `<div class="lx-bf-row"><div class="lx-bf-main"><strong><i class="lx-claim-check" style="animation:none;transform:none">✓</i> ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
+          openModal(claimed.length ? `确认订单 · 已领取 ${claimed.length} 项优惠` : "确认订单", `
+            <div class="lx-p0-row" style="align-items:center">
+              <img src="${esc(imgUrl(item.image_url))}" alt="" style="width:64px;height:52px;object-fit:contain;background:#fff;border-radius:6px;flex:none" />
+              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>标价 ¥${Number(item.price || 0).toLocaleString()}</span></div>
             </div>
-            <div class="offers">${rows || emptyRows}</div>
-            <div class="total">
-              <span class="tl"><span class="tk">到手价</span>${saved ? `<span class="ts">已为你省 ¥${fmt(saved)}</span>` : ""}</span>
-              <span class="tp"><span class="cur">¥</span>${fmt(payable)}</span>
+            <div class="lx-bf-list" style="margin:10px 0">${rows || '<p class="lx-p0-disclaimer">该商品暂无可叠加优惠，按标价下单。</p>'}
+              <div class="lx-bf-row final" style="animation:none;opacity:1"><div class="lx-bf-main"><strong>到手价</strong>${discount ? `<span>已为你省 ¥${Math.abs(discount).toLocaleString()}</span>` : ""}</div><b>¥${(finalPrice || item.price).toLocaleString()}</b></div>
             </div>
-            <div class="user">
-              <span class="ui"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-              <span class="ut"><span class="un">${esc(addr.name)} ${esc(addr.phone)}</span><span class="ud">${esc(addr.region || "")}${esc(addr.detail || "")}</span></span>
-              <button class="edit" type="button" data-occ-addr>修改</button>
+            <div class="lx-p0-row" style="align-items:center">
+              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
+              <button class="lx-p0-btn" type="button" data-occ-addr>修改</button>
             </div>
-            <button class="cta" type="button" data-occ-confirm>确认下单 · <span class="amt">¥${fmt(payable)}</span></button>
-            <p class="foot-tip">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`, { skin: "order" });
+            <button class="lx-p0-btn primary" type="button" data-occ-confirm style="width:100%;margin-top:12px">确认下单</button>
+            <p class="lx-p0-disclaimer">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`);
         }
 
         // 一键领优惠：领券过程在乐享对话流里逐项播报（对照旧版 startBuyFlow），全部领完才弹订单确认
