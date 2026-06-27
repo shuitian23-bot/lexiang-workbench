@@ -5885,12 +5885,12 @@
         --spring:cubic-bezier(.34,1.4,.4,1);
         position:relative;
         width:min(560px,calc(100vw - 48px));
-        max-height:none;
+        max-height:min(760px,88vh);
         padding:24px 26px;
         background:#fff;
         border:0;
         border-radius:22px;
-        overflow:visible;
+        overflow:auto;
         box-shadow:0 24px 70px rgba(45,18,52,.28),0 4px 14px rgba(45,18,52,.12);
         animation: lxOrderPop .24s var(--spring) both;
       }
@@ -6129,13 +6129,8 @@
       }
 
       .ad[data-v="1"].lx-addr-skin .save {
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        margin:18px auto 0;
+        margin-top:18px;
         width:100%;
-        text-align:center;
-        line-height:1;
       }
 
       .ad[data-v="1"].lx-addr-skin .acta.ghost {
