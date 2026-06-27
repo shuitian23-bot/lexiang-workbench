@@ -6828,11 +6828,9 @@ body.lx-home-split[data-page="home"].assistant-right .shell {
         font-weight: 800;
         color: var(--g-amt);
       }
-      .gc[data-v="I"].lx-claimed-skin .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+      .gc[data-v="I"].lx-claimed-skin .chips { display: flex; gap: 6px; margin-top: 11px; }
       .gc[data-v="I"].lx-claimed-skin .chip {
-        flex: 0 1 auto;
-        min-width: max-content;
-        max-width: 100%;
+        flex: 1;
         height: 26px;
         padding: 0 8px;
         display: inline-flex;
@@ -6846,7 +6844,7 @@ body.lx-home-split[data-page="home"].assistant-right .shell {
         font-weight: 600;
         color: var(--g-muted);
         white-space: nowrap;
-        overflow: visible;
+        overflow: hidden;
       }
       .gc[data-v="I"].lx-claimed-skin .chip .cv { font-weight: 800; color: var(--g-text); }
       .gc[data-v="I"].lx-claimed-skin .chip .ck { flex: none; width: 11px; height: 11px; color: #a9c0b3; }
