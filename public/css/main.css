@@ -5524,10 +5524,19 @@
         overflow:visible;
       }
 
+      .co[data-v="1"].lx-order-skin .order-head {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:16px;
+        margin:0 0 18px;
+        padding-bottom:14px;
+        border-bottom:1px solid var(--line);
+      }
+
       .co[data-v="1"].lx-order-skin .x {
-        position:absolute;
-        top:16px;
-        right:16px;
+        position:static;
+        flex:none;
         width:30px;
         height:30px;
         border:0;
@@ -5605,8 +5614,10 @@
       }
 
       .co[data-v="1"].lx-order-skin .title {
+        flex:1;
+        min-width:0;
         justify-content:flex-start;
-        margin:0 0 20px;
+        margin:0;
         font-size:17px;
         font-weight:800;
         color:var(--ink);
