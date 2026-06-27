@@ -299,17 +299,15 @@ if (!window.__lxCreateTypewriter) {
         function openModal(title, html, options = {}) {
           const mask = ensureModal();
           const isOrderSkin = options.skin === "order";
-          const isAddrSkin = options.skin === "address";
           const modal = $(".lx-p0-modal", mask);
           const head = $(".lx-p0-modal-head", mask);
           mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
-          mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
           if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : "lx-p0-modal";
-            if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : "lx-p0-modal";
+            if (isOrderSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
-          if (head) head.hidden = isOrderSkin || isAddrSkin;
+          if (head) head.hidden = isOrderSkin;
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
@@ -1317,37 +1315,22 @@ if (!window.__lxCreateTypewriter) {
         function openAddressPicker(product) {
           state.pendingOrderProduct = product;
           const list = lxAddresses();
-          const pinSvg = '<svg class="pin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.9"/></svg>';
-          const closeSvg = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-          const checkSvg = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-          const icon = (path) => `<svg class="fi" viewBox="0 0 24 24" fill="none" aria-hidden="true">${path}</svg>`;
-          const personIcon = icon('<path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>');
-          const phoneIcon = icon('<rect x="7" y="3" width="10" height="18" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>');
-          const mapIcon = icon('<path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 3v15M15 6v15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>');
-          const homeIcon = icon('<path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>');
-          const primary = list[0];
-          const saved = primary ? `
-            <section class="saved">
-              <div class="tagrow"><span class="deftag">${checkSvg}默认</span></div>
-              <div class="nm">${esc(primary.name || "演示用户")}<span class="ph">${esc(primary.phone || "138****0000")}</span></div>
-              <div class="ds">${esc(primary.region || "")}${esc(primary.detail || "") || "演示收货地址"}<br>演示地址可在订单中修改收货信息</div>
-              <button class="use acta" type="button" data-addr-pick="0">用这个地址下单</button>
-            </section>` : `<p class="lx-p0-disclaimer">还没有收货地址，填写后即可下单。</p>`;
-          openModal("", `
-            <button class="x lx-p0-close" type="button" aria-label="关闭">${closeSvg}</button>
-            <div class="head">${pinSvg}<h3>确认收货地址</h3></div>
-            ${saved}
-            <div class="divider">${primary ? "或新增地址" : "新增地址"}</div>
-            <div class="form lx-addr-form">
-              <div class="frow">
-                <label class="field half">${personIcon}<input id="lxAddrName" placeholder="收货人姓名"></label>
-                <label class="field half">${phoneIcon}<input id="lxAddrPhone" placeholder="手机号"></label>
-              </div>
-              <label class="field">${mapIcon}<input id="lxAddrRegion" placeholder="省 / 市 / 区"></label>
-              <label class="field">${homeIcon}<input id="lxAddrDetail" placeholder="详细地址（街道、楼栋、门牌号）"></label>
+          const rows = list.map((addr, index) => `
+            <div class="lx-p0-row lx-addr-row" data-addr-pick="${index}">
+              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
+              <button class="lx-p0-btn primary" type="button" data-addr-pick="${index}">用这个地址下单</button>
+            </div>`).join("");
+          openModal("确认收货地址", `
+            ${rows || `<p class="lx-p0-disclaimer">还没有收货地址，填写后即可下单。</p>`}
+            <div class="lx-addr-form">
+              <div class="lx-trail-head" style="border-top:none;padding-left:0">${rows ? "或新增地址" : "新增收货地址"}</div>
+              <input class="lx-p0-field" id="lxAddrName" placeholder="收货人姓名">
+              <input class="lx-p0-field" id="lxAddrPhone" placeholder="手机号">
+              <input class="lx-p0-field" id="lxAddrRegion" placeholder="省 / 市 / 区">
+              <input class="lx-p0-field" id="lxAddrDetail" placeholder="详细地址（街道、楼栋、门牌号）">
+              <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-addr-save>保存地址并下单</button></div>
             </div>
-            <button class="save acta ghost" type="button" data-addr-save>保存地址并下单</button>
-            <p class="foot-tip">演示环境：订单与地址仅保存在本机浏览器，不会真实发货。</p>`, { skin: "address" });
+            <p class="lx-p0-disclaimer">演示环境：订单与地址仅保存在本机浏览器，不会真实发货。</p>`);
         }
 
         function lxPlaceOrder(address) {
