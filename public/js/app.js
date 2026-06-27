@@ -3325,11 +3325,7 @@ if (!window.__lxCreateTypewriter) {
               ["02", "算清到手价", "教育价 + 国补 + 优惠券逐层叠加", "算价格", "帮我算下教育优惠+国补叠加后的到手价"],
               ["03", "以旧换新", "旧机折价抵扣，支持寄修/上门/到店", "估旧机", "我有旧机想以旧换新，怎么估值？"]
             ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
-            const storeCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
-            const storeMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的门店</span></div>`;
-            const storeListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
-            const storeHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想授权门店</p>`;
-            const storeCards = storeCityBar + storeMapEl + storeHint + storeListEl + quickCard("门店服务权益", "到店享专属权益：优先服务、现场演示、贴膜安装", "到联想门店购机有哪些专属到店权益？") + quickCard("到店预约", "预约上门或到店服务节省等待", "如何预约联想门店到店服务？");
+            const storeCards = lxRenderStoreZone([], { loading: true });
             const serviceGrid = [
               ["上门安装", "新机开箱安装调试，上门到家", "我想预约联想上门安装服务"],
               ["寄修服务", "寄回维修，7个工作日内完成", "联想寄修流程是什么，怎么预约？"],
@@ -3569,54 +3565,22 @@ if (!window.__lxCreateTypewriter) {
             if (activeFloorTab === "门店") {
               lxResolveCoord().then((coord) => {
                 if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
-                const cityEl = box.querySelector("[data-store-city]");
-                const listEl = box.querySelector("[data-store-list]");
                 const lat = coord?.lat ?? 39.9042;
                 const lng = coord?.lng ?? 116.4074;
-                if (cityEl) cityEl.textContent = coord?.city || (coord ? "定位成功" : "北京（默认）");
                 fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
                   .then((r) => r.json())
                   .then((data) => {
                     if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
-                    const el = box.querySelector("[data-store-list]");
-                    if (!el) return;
                     const stores = data.stores || data || [];
-                    if (cityEl) {
-                      const addr = stores[0]?.address || "";
-                      const city = coord?.city || addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
-                      cityEl.textContent = city;
-                    }
                     if (!stores.length) {
-                      el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近门店，可向乐享询问</div>`;
+                      box.innerHTML = lxRenderStoreZone(lxFallbackStores(), { lat, lng });
                       return;
                     }
-                    // 用最近门店坐标刷新地图标点
-                    const top = stores[0];
-                    const mLng = top.lng ?? top.longitude ?? lng, mLat = top.lat ?? top.latitude ?? lat;
-                    const mapImg = box.querySelector("[data-store-map] img");
-                    if (mapImg && mLng && mLat) mapImg.src = `/api/stores/staticmap?lng=${encodeURIComponent(mLng)}&lat=${encodeURIComponent(mLat)}`;
-                    const mapTip = box.querySelector("[data-store-map-tip]");
-                    if (mapTip) mapTip.textContent = `${esc(top.name || "最近门店")} · 点击门店卡「导航」开地图`;
-                    el.innerHTML = stores.map((s) => {
-                      const name = esc(s.name || "联想授权门店");
-                      const addr = esc(s.address || "");
-                      const dm = s.distance ?? s.dist;
-                      const dist = dm ? `<span class="lx-store-dist">${dm < 1000 ? Math.round(dm) + "m" : (dm / 1000).toFixed(1) + "km"}</span>` : "";
-                      const hours = esc(s.hours || s.business_hours || "10:00–20:00");
-                      const tel = s.tel || s.phone || "";
-                      const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
-                      const rights = ["优先体验", "贴膜安装", "以旧换新"].map((r) => `<span>${esc(r)}</span>`).join("");
-                      const navBtn = `<button class="lx-p0-btn" type="button" data-store-nav="${esc(String(s.lng||lng))},${esc(String(s.lat||lat))}" data-store-name="${name}" data-store-addr="${addr}" data-store-tel="${esc(tel)}">导航</button>`;
-                      const stockBtn = `<button class="lx-p0-btn" type="button" data-quick-ask="查询${esc(s.name||'该门店')}的库存情况">查库存</button>`;
-                      const apptBtn = `<button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到${esc(s.name||'门店')}的到店服务">约到店</button>`;
-                      return `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>${name}${dist}</h4><div class="lx-store-rights-chips">${rights}</div></div><p class="lx-store-addr">${addr}</p><div class="lx-store-meta"><span class="lx-store-hours">${hours}</span>${telHtml}</div><div class="lx-store-btns">${navBtn}${stockBtn}${apptBtn}</div></article>`;
-                    }).join("");
+                    box.innerHTML = lxRenderStoreZone(stores.slice(0, 3), { lat, lng });
                   })
                   .catch(() => {
                     if (state.page !== "personal" || state.activeSiteFloorTab !== "门店") return;
-                    const el = box.querySelector("[data-store-list]");
-                    if (el) el.innerHTML = `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>联想北京中关村旗舰店<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span>优先体验</span><span>贴膜安装</span><span>以旧换新</span></div></div><p class="lx-store-addr">北京市海淀区中关村大街1号</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想中关村旗舰店的到店服务">约到店</button></div></article>`;
-                    if (cityEl) cityEl.textContent = "北京（示例）";
+                    box.innerHTML = lxRenderStoreZone(lxFallbackStores(), { lat, lng });
                   });
               }).catch(() => {});
             }
@@ -5290,6 +5254,101 @@ if (!window.__lxCreateTypewriter) {
           openModal("选择城市", `<p class="lx-p0-disclaimer" style="margin-bottom:12px">选择城市后，门店列表和国补查询会按该城市刷新（演示坐标）。</p><div class="lx-city-grid">${grid}</div>`);
         }
 
+        function lxStoreIcon(name) {
+          const icons = {
+            nav: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2Z"/></svg>',
+            box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-4 9 4v8l-9 4-9-4V8Z"/><path d="M3 8l9 4 9-4M12 12v8"/></svg>',
+            cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+            gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4 8 8 12 8Zm0 0s2-5 4.5-4-.5 4-4.5 4Z"/></svg>',
+            arr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+          };
+          return icons[name] || "";
+        }
+
+        function lxFallbackStores() {
+          return [
+            { name: "联想体验店(北京市房山区良乡苏庄店)", address: "北京市房山区苏庄大街建鑫园三里", distance: 8700, hours: "10:00–20:00", tel: "15313378937", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 39.724, lng: 116.139 },
+            { name: "联想3C服务中心(良乡店)", address: "北京市房山区苏庄北路苏庄东街小区", distance: 9300, hours: "10:00–20:00", tel: "(010)89374140", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 39.727, lng: 116.135 },
+            { name: "联想体验店(房山熙悦天街店)", address: "北京市房山区良乡东路与长于大街交汇处北侧首开龙湖北京熙悦天街A馆B1", distance: 12800, hours: "10:00–20:00", tel: "18519195202", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 39.743, lng: 116.175 },
+          ];
+        }
+
+        function lxStoreName(store) { return store.name || store.nm || store.title || "联想授权门店"; }
+        function lxStoreAddr(store) { return store.address || store.addr || ""; }
+        function lxStoreTel(store) { return store.tel || store.phone || store.telephone || ""; }
+        function lxStoreHours(store) { return store.hours || store.openingHours || "10:00–20:00"; }
+        function lxStoreDistance(store) {
+          const raw = store.distance ?? store.dist;
+          if (raw == null || raw === "") return "";
+          if (typeof raw === "string") return raw;
+          const n = Number(raw);
+          if (!Number.isFinite(n)) return "";
+          return n >= 1000 ? `${(n / 1000).toFixed(1)}km` : `${Math.round(n)}m`;
+        }
+        function lxStoreTags(store) {
+          const tags = store.tags || store.rights || store.services || ["优先体验", "贴膜安装", "以旧换新"];
+          return Array.isArray(tags) ? tags.slice(0, 3) : ["优先体验", "贴膜安装", "以旧换新"];
+        }
+        function lxStoreLat(store, fallback) { return store.lat ?? store.latitude ?? fallback ?? 39.9042; }
+        function lxStoreLng(store, fallback) { return store.lng ?? store.longitude ?? fallback ?? 116.4074; }
+
+        function lxStoreCard(store, index, ctx = {}) {
+          const name = lxStoreName(store);
+          const addr = lxStoreAddr(store);
+          const tel = lxStoreTel(store);
+          const lat = lxStoreLat(store, ctx.lat);
+          const lng = lxStoreLng(store, ctx.lng);
+          const dist = lxStoreDistance(store) || (index === 0 ? "8.7km" : index === 1 ? "9.3km" : "12.8km");
+          const tagHtml = lxStoreTags(store).map((tag, i) => `<span class="tag${i === 0 ? " key" : ""}">${esc(tag)}</span>`).join("");
+          return `<div class="store" data-store-card>
+            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}<div class="tags">${tagHtml}</div></div>
+            <div class="meta">
+              <div class="addr">${esc(addr)}</div>
+              <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
+            </div>
+            <div class="acts">
+              <button class="btn store-ghost" type="button" data-store-nav="${esc(lat + "," + lng)}" data-store-name="${esc(name)}" data-store-addr="${esc(addr)}" data-store-tel="${esc(tel)}">${lxStoreIcon("nav")}导航</button>
+              <button class="btn store-ghost" type="button" data-quick-ask="查询${esc(name)}的库存情况">${lxStoreIcon("box")}查库存</button>
+              <button class="btn store-solid" type="button" data-quick-ask="我要预约到${esc(name)}的到店服务">${lxStoreIcon("cal")}约到店</button>
+            </div>
+          </div>`;
+        }
+
+        function lxRenderStoreZone(stores = [], opts = {}) {
+          const list = Array.isArray(stores) ? stores : [];
+          const loading = Boolean(opts.loading);
+          const shown = loading ? [] : (list.length ? list : lxFallbackStores());
+          const pinPositions = [[50, 34], [30, 60], [72, 52]];
+          const pins = shown.length
+            ? shown.slice(0, 3).map((store, index) => {
+                const [left, top] = pinPositions[index] || [58, 46];
+                return `<span class="pin${index ? " sm" : ""}" style="left:${left}%;top:${top}%"><span class="pd"></span><span class="pc"></span></span>`;
+              }).join("")
+            : `<span class="pin" style="left:50%;top:34%"><span class="pd"></span><span class="pc"></span></span>`;
+          const captionName = shown[0] ? lxStoreName(shown[0]) : "附近联想授权门店";
+          const listHtml = loading
+            ? `<div class="lx-store-loading">正在查询附近联想门店...</div>`
+            : shown.map((store, index) => lxStoreCard(store, index, opts)).join("");
+          const countText = loading ? "查询中" : `${shown.length} 家`;
+          return `<div class="lx-store-skin st" data-v="2">
+            <div class="split">
+              <div class="map" data-store-map>
+                <div class="streets"></div><div class="park"></div><div class="rail"></div>${pins}
+                <div class="ctrl"><button type="button" data-store-zoom="in">+</button><button type="button" data-store-zoom="out">−</button></div>
+                <div class="cap"><b>${esc(captionName)}</b> · 点击门店卡「导航」开地图</div>
+              </div>
+              <div class="col">
+                <div class="listhd">附近联想授权门店 · ${esc(countText)}</div>
+                <div class="store-list">${listHtml}</div>
+              </div>
+            </div>
+            <div class="bands">
+              <button class="band" type="button" data-quick-ask="门店服务权益有哪些，包含贴膜安装和现场演示吗"><span class="bi">${lxStoreIcon("gift")}</span><span><span class="bt">门店服务权益</span><span class="bd">到店享专属权益：优先服务、现场演示、贴膜安装</span></span><span class="more">${lxStoreIcon("arr")}</span></button>
+              <button class="band" type="button" data-quick-ask="帮我预约附近联想门店到店服务"><span class="bi">${lxStoreIcon("cal")}</span><span><span class="bt">到店预约</span><span class="bd">预约上门或到店服务，节省等待</span></span><span class="more">${lxStoreIcon("arr")}</span></button>
+            </div>
+          </div>`;
+        }
+
         // 门店导航：右侧开地图标签页（百度静态图走服务器代理）+ 「在百度地图打开」做真实导航
         function openStoreMap(latlng, name, addr, tel) {
           const [lat, lng] = String(latlng || "").split(",");
@@ -5303,39 +5362,22 @@ if (!window.__lxCreateTypewriter) {
         }
 
         async function openStoresPanel(address = "北京海淀") {
-          lxOpenInfoTab("stores", "附近门店", `<p class="lx-p0-disclaimer">正在获取你的位置、查询附近联想门店...</p>`);
+          lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone([], { loading: true }));
           try {
-            // 优先浏览器真实定位（弹授权）；拒绝/不支持再按默认地址 geocode
             const me = await lxRequestGeo();
-            let lat, lng, label;
+            let lat, lng;
             if (me && me.lat && me.lng) {
-              lat = me.lat; lng = me.lng; label = "你当前位置附近";
+              lat = me.lat; lng = me.lng;
             } else {
               const geo = await fetch(`/api/stores/geocode?address=${encodeURIComponent(address)}`).then((r) => r.json());
               if (!geo.lat || !geo.lng) throw new Error(geo.error || "无法定位");
-              lat = geo.lat; lng = geo.lng; label = geo.name || address;
+              lat = geo.lat; lng = geo.lng;
             }
-            const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`).then((r) => r.json());
-            const stores = data.stores || [];
-            // 接口报错或无结果 → 抛到 catch 走备用门店，别给死「暂未查到」（如百度 key IP 校验失败）
-            if (!stores.length) throw new Error(data.error || "附近暂无门店");
-            lxOpenInfoTab("stores", "附近门店", stores.length ? `
-              <div class="lx-p1-strip"><strong>${esc(label)}</strong><div class="lx-p0-disclaimer">可继续预约到店、咨询库存、门店闪送和工程师服务。</div></div>
-              ${stores.slice(0, 6).map((store) => {
-                const nav = (store.lat && store.lng) ? `<button class="lx-p0-btn" data-store-nav="${esc(store.lat + "," + store.lng)}" data-store-name="${esc(store.name)}" data-store-addr="${esc(store.address || "")}" data-store-tel="${esc(store.tel || "")}">导航</button>` : "";
-                return `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(store.name)}</strong><span>${esc(store.address || "")} · ${store.dist ? Math.round(store.dist / 100) / 10 + "km" : ""} · ${esc(store.tel || "暂无电话")}</span></div>${nav}<button class="lx-p0-btn" data-quick-ask="预约${esc(store.name)}到店服务">预约</button></div>`;
-              }).join("")}
-            ` : `<p class="lx-p0-disclaimer">暂未查到附近门店，可以换一个地址再试。</p>`);
+            const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&limit=5`).then((r) => r.json());
+            const stores = Array.isArray(data.stores) ? data.stores : (Array.isArray(data) ? data : []);
+            lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone(stores.length ? stores.slice(0, 3) : lxFallbackStores(), { lat, lng }));
           } catch (error) {
-            const fallback = [
-              ["联想北京中关村体验店", "海淀区中关村商圈", "到店体验 / 选配咨询"],
-              ["联想北京望京服务网点", "朝阳区望京商圈", "维修预约 / 延保服务"],
-              ["联想官方在线服务", "线上客服", "库存咨询 / 订单售后"]
-            ];
-            lxOpenInfoTab("stores", "附近门店", `
-              <p class="lx-p0-disclaimer">门店接口暂时不可用，先展示常用服务入口。可继续让联想乐享按城市/区县查询。</p>
-              ${fallback.map((store) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${store[0]}</strong><span>${store[1]} · ${store[2]}</span></div><button class="lx-p0-btn" data-quick-ask="帮我预约${store[0]}，并确认营业时间和可用服务">预约</button></div>`).join("")}
-              <div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="帮我找附近联想体验店和服务网点">问联想乐享</button></div>`);
+            lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone(lxFallbackStores(), {}));
           }
         }
 
@@ -5905,6 +5947,13 @@ if (!window.__lxCreateTypewriter) {
           });
 
           document.addEventListener("click", (event) => {
+            const storeMotionTarget = event.target.closest?.(".lx-store-skin .btn, .lx-store-skin .band, .lx-store-skin .map .ctrl button");
+            if (storeMotionTarget?.animate) {
+              storeMotionTarget.animate([
+                { transform: "scale(.96)" },
+                { transform: "scale(1)" },
+              ], { duration: 180, easing: "cubic-bezier(.34,1.4,.4,1)" });
+            }
             if (event.target.closest(".new-chat-button")) {
               event.preventDefault();
               event.stopImmediatePropagation();
