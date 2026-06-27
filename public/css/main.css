@@ -12251,7 +12251,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .lx-cart-wrap svg{ display:block; }
 .lx-cart-wrap .chead{ display:flex; align-items:baseline; gap:13px; margin-bottom:20px; }
 .lx-cart-wrap .chead h2{ margin:0; font-size:22px; font-weight:800; color:var(--ink); letter-spacing:.5px; display:flex; align-items:center; gap:10px; }
-.lx-cart-wrap .chead h2 .bar{ width:4px; height:20px; border-radius:3px; background:var(--grad-brand); }
+.lx-cart-wrap .chead h2 .bar{ display:none; }
 .lx-cart-wrap .chead .cnt{ font-size:12.5px; color:var(--text-muted); font-weight:600; }
 .lx-cart-skin[data-v="1"] .cur{ font-size:.66em; margin-right:1px; }
 .lx-cart-skin[data-v="1"] .price{ color:var(--price-red); font-weight:800; font-variant-numeric:tabular-nums; }
