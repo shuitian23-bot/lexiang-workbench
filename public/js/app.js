@@ -1346,7 +1346,7 @@ if (!window.__lxCreateTypewriter) {
               <label class="field">${mapIcon}<input id="lxAddrRegion" placeholder="省 / 市 / 区"></label>
               <label class="field">${homeIcon}<input id="lxAddrDetail" placeholder="详细地址（街道、楼栋、门牌号）"></label>
             </div>
-            <button class="save acta ghost" type="button" data-addr-save>保存地址并下单</button>
+            <button class="save acta addr-ghost" type="button" data-addr-save>保存地址并下单</button>
             <p class="foot-tip">演示环境：订单与地址仅保存在本机浏览器，不会真实发货。</p>`, { skin: "address" });
         }
 

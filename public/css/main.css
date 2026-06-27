@@ -6138,14 +6138,14 @@
         line-height:1;
       }
 
-      .ad[data-v="1"].lx-addr-skin .acta.ghost {
+      .ad[data-v="1"].lx-addr-skin .acta.addr-ghost {
         background:#fff;
         color:var(--aubergine);
         border:1.5px solid var(--line-2);
         box-shadow:none;
       }
 
-      .ad[data-v="1"].lx-addr-skin .acta.ghost:hover {
+      .ad[data-v="1"].lx-addr-skin .acta.addr-ghost:hover {
         background:var(--tint);
         border-color:var(--aubergine);
         transform:translateY(-1px);
