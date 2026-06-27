@@ -296,8 +296,20 @@ if (!window.__lxCreateTypewriter) {
           return mask;
         }
 
-        function openModal(title, html) {
+        function openModal(title, html, options = {}) {
           const mask = ensureModal();
+          const isOrderSkin = options.skin === "order";
+          const isAddrSkin = options.skin === "address";
+          const modal = $(".lx-p0-modal", mask);
+          const head = $(".lx-p0-modal-head", mask);
+          mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
+          mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
+          if (modal) {
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : "lx-p0-modal";
+            if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
+            else modal.removeAttribute("data-v");
+          }
+          if (head) head.hidden = isOrderSkin || isAddrSkin;
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
@@ -1102,22 +1114,172 @@ if (!window.__lxCreateTypewriter) {
           return { claimed, discount, finalPrice: Math.max(0, price + discount) };
         }
 
+        function lxClaimTicketSvg() {
+          return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/></svg>';
+        }
+
+        function lxClaimCheckSvg() {
+          return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+
+        function lxClaimChipCheckSvg() {
+          return '<svg class="ck" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+
+        function lxClaimAmount(coupon) {
+          return Math.abs(Number(coupon?.amount || 0));
+        }
+
+        function lxRenderClaimProgressCard(item, claimed, totalSaved) {
+          const offers = Array.isArray(claimed) ? claimed : [];
+          const chips = offers.map((coupon) => `
+            <span class="chip" data-claim-name="${esc(coupon.label || "优惠券")}" data-claim-amount="${lxClaimAmount(coupon)}">
+              <span class="od"></span>${esc(coupon.label || "优惠券")} <span class="cv">¥${lxClaimAmount(coupon).toLocaleString()}</span>
+            </span>`).join("");
+          return `
+            <div class="cl lx-claim-skin" data-v="D" data-state="claiming" data-claim-product="${esc(item.name)}" data-claim-total="${Math.abs(Number(totalSaved || 0))}">
+              <div class="drow">
+                <span class="ic">${lxClaimTicketSvg()}</span>
+                <span class="mid">
+                  <div class="t1" data-t1>正在为你自动领取优惠</div>
+                  <div class="t2">${esc(item.name)}</div>
+                </span>
+                <span class="cnt"><span class="n" data-cnt>0</span>/${offers.length}</span>
+                <span class="done-amt"><span class="ok">${lxClaimCheckSvg()}</span>已省 ¥${Math.abs(Number(totalSaved || 0)).toLocaleString()}</span>
+              </div>
+              <div class="track"><span class="fill" style="width:0%"></span></div>
+              <div class="chips">${chips}</div>
+            </div>`;
+        }
+
+        function lxRenderClaimedStaticCard(productName, claimed, totalSaved) {
+          const offers = Array.isArray(claimed) ? claimed : [];
+          const chips = offers.map((coupon) => `
+            <span class="chip">
+              ${lxClaimChipCheckSvg()}${esc(coupon.label || "优惠券")} <span class="cv">¥${lxClaimAmount(coupon).toLocaleString()}</span>
+            </span>`).join("");
+          return `
+            <div class="gc lx-claimed-skin" data-v="I" aria-disabled="true">
+              <div class="irow">
+                <span class="ic">${lxClaimTicketSvg()}</span>
+                <span class="mid">
+                  <div class="t1">已领取 ${offers.length} 项优惠 <span class="doneflag df">${lxClaimCheckSvg()}已领取</span></div>
+                  <div class="t2">${esc(productName || "商品")} · 已收进卡包</div>
+                </span>
+                <span class="sa">已省 ¥${Math.abs(Number(totalSaved || 0)).toLocaleString()}</span>
+              </div>
+              <div class="chips">${chips}</div>
+            </div>`;
+        }
+
+        function lxClaimInfoFromCard(card) {
+          const productName = card?.dataset?.claimProduct || card?.querySelector(".t2")?.textContent?.trim() || "商品";
+          const chips = Array.from(card?.querySelectorAll(".chip") || []);
+          const claimed = chips.map((chip) => {
+            const amount = Number(chip.dataset.claimAmount || String(chip.querySelector(".cv")?.textContent || "").replace(/[^0-9.]/g, "")) || 0;
+            const label = chip.dataset.claimName || String(chip.textContent || "").replace(/¥\s?[\d,]+(?:\.\d+)?/g, "").trim() || "优惠券";
+            return { label, amount };
+          });
+          const domTotal = String(card?.querySelector(".done-amt")?.textContent || "").replace(/[^0-9.]/g, "");
+          const totalSaved = Number(card?.dataset?.claimTotal || domTotal) || claimed.reduce((sum, item) => sum + lxClaimAmount(item), 0);
+          return { productName, claimed, totalSaved };
+        }
+
+        function lxArchiveClaimProgressCards(root = document) {
+          root.querySelectorAll('.cl[data-v="D"].lx-claim-skin').forEach((card) => {
+            const info = lxClaimInfoFromCard(card);
+            card.outerHTML = lxRenderClaimedStaticCard(info.productName, info.claimed, info.totalSaved);
+          });
+        }
+
+        function lxRunClaimProgressCard(root, claimed, totalSaved, onDone) {
+          if (!root) {
+            if (typeof onDone === "function") onDone();
+            return;
+          }
+          const offers = Array.isArray(claimed) ? claimed : [];
+          const t1 = root.querySelector("[data-t1]");
+          const cnt = root.querySelector("[data-cnt]");
+          const fill = root.querySelector(".fill");
+          const chips = Array.from(root.querySelectorAll(".chip"));
+          const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+          const finish = () => {
+            root.setAttribute("data-state", "done");
+            if (t1) t1.textContent = `已为你领取 ${offers.length} 项优惠`;
+            if (cnt) cnt.textContent = String(offers.length);
+            if (fill) fill.style.width = "100%";
+            chips.forEach((chip) => chip.classList.add("on"));
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+            setTimeout(() => {
+              if (typeof onDone === "function") onDone();
+            }, reduced ? 0 : 260);
+          };
+          const reset = () => {
+            root.setAttribute("data-state", "claiming");
+            if (t1) t1.textContent = "正在为你自动领取优惠";
+            if (cnt) cnt.textContent = "0";
+            if (fill) fill.style.width = "0%";
+            chips.forEach((chip) => chip.classList.remove("on"));
+          };
+          const run = () => {
+            reset();
+            if (!offers.length || reduced) {
+              finish();
+              return;
+            }
+            offers.forEach((_, i) => {
+              setTimeout(() => {
+                const pct = Math.round(((i + 1) / offers.length) * 100);
+                if (fill) fill.style.width = `${pct}%`;
+                if (cnt) cnt.textContent = String(i + 1);
+                if (chips[i]) chips[i].classList.add("on");
+                ensureChat().scrollTop = ensureChat().scrollHeight;
+              }, 480 + i * 640);
+            });
+            setTimeout(finish, 480 + offers.length * 640 + 150);
+          };
+          root.__replay = run;
+          run();
+        }
+
         function lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr) {
-          const rows = claimed.map((c) => `<div class="lx-bf-row"><div class="lx-bf-main"><strong><i class="lx-claim-check" style="animation:none;transform:none">✓</i> ${esc(c.label)}</strong><span>${esc(c.reason)}</span></div><b class="minus">-¥${Math.abs(c.amount).toLocaleString()}</b></div>`).join("");
-          openModal(claimed.length ? `确认订单 · 已领取 ${claimed.length} 项优惠` : "确认订单", `
-            <div class="lx-p0-row" style="align-items:center">
-              <img src="${esc(imgUrl(item.image_url))}" alt="" style="width:64px;height:52px;object-fit:contain;background:#fff;border-radius:6px;flex:none" />
-              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>标价 ¥${Number(item.price || 0).toLocaleString()}</span></div>
+          const fmt = (value) => {
+            const n = Number(value) || 0;
+            return n.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+          };
+          const couponCount = claimed.length;
+          const saved = Math.abs(Number(discount) || 0);
+          const payable = Number(finalPrice || item.price || 0);
+          const rows = claimed.map((c) => `
+              <div class="ofr">
+                <span class="ck">${lxClaimCheckSvg()}</span>
+                <span class="oc"><span class="on">${esc(c.label)}</span><span class="od">${esc(c.reason || "已自动领取并使用")}</span></span>
+                <span class="ov minus">-¥${fmt(Math.abs(c.amount))}</span>
+              </div>`).join("");
+          const emptyRows = '<p class="lx-order-empty">该商品暂无可叠加优惠，按标价下单。</p>';
+          openModal("", `
+            <div class="order-head">
+              <div class="title">确认订单${couponCount ? `<span class="gp">${lxClaimCheckSvg()}已领取 ${couponCount} 项优惠</span>` : ""}</div>
+              <button class="x lx-p0-close" type="button" aria-label="关闭">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
             </div>
-            <div class="lx-bf-list" style="margin:10px 0">${rows || '<p class="lx-p0-disclaimer">该商品暂无可叠加优惠，按标价下单。</p>'}
-              <div class="lx-bf-row final" style="animation:none;opacity:1"><div class="lx-bf-main"><strong>到手价</strong>${discount ? `<span>已为你省 ¥${Math.abs(discount).toLocaleString()}</span>` : ""}</div><b>¥${(finalPrice || item.price).toLocaleString()}</b></div>
+            <div class="prod">
+              <span class="pic"><img src="${esc(imgUrl(item.image_url))}" alt="${esc(item.name || "商品图")}" /></span>
+              <span class="pc"><span class="pn">${esc(item.name)}</span><span class="pp">标价 <s>¥${fmt(item.price)}</s></span></span>
             </div>
-            <div class="lx-p0-row" style="align-items:center">
-              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
-              <button class="lx-p0-btn" type="button" data-occ-addr>修改</button>
+            <div class="offers">${rows || emptyRows}</div>
+            <div class="total">
+              <span class="tl"><span class="tk">到手价</span>${saved ? `<span class="ts">已为你省 ¥${fmt(saved)}</span>` : ""}</span>
+              <span class="tp"><span class="cur">¥</span>${fmt(payable)}</span>
             </div>
-            <button class="lx-p0-btn primary" type="button" data-occ-confirm style="width:100%;margin-top:12px">确认下单</button>
-            <p class="lx-p0-disclaimer">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`);
+            <div class="user">
+              <span class="ui"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+              <span class="ut"><span class="un">${esc(addr.name)} ${esc(addr.phone)}</span><span class="ud">${esc(addr.region || "")}${esc(addr.detail || "")}</span></span>
+              <button class="edit" type="button" data-occ-addr>修改</button>
+            </div>
+            <button class="cta" type="button" data-occ-confirm>确认下单 · <span class="amt">¥${fmt(payable)}</span></button>
+            <p class="foot-tip">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`, { skin: "order" });
         }
 
         // 一键领优惠：领券过程在乐享对话流里逐项播报（对照旧版 startBuyFlow），全部领完才弹订单确认
@@ -1136,32 +1298,14 @@ if (!window.__lxCreateTypewriter) {
           if (!claimed.length) return lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
           state._buyFlowRunning = true;
           addMessage("user", `我要购买 ${item.name}，帮我领取所有可用优惠`);
-          const card = `
-            <div class="lx-buyflow-card">
-              <div class="lx-bff-head"><strong>正在为你自动领取优惠</strong><span>${esc(item.name)}</span><div class="lx-bff-progress"><i data-bff-bar style="width:0%"></i></div></div>
-              <div class="lx-bff-list" data-bff-list></div>
-            </div>`;
-          const node = addMessage("assistant", `好的！为你自动领取 ${claimed.length} 项专属优惠：`, card);
-          const list = node.querySelector("[data-bff-list]");
-          const bar = node.querySelector("[data-bff-bar]");
-          const STEP = 1000;
-          claimed.forEach((c, i) => {
-            setTimeout(() => {
-              list?.insertAdjacentHTML("beforeend", `<div class="lx-bff-item"><div class="lx-bff-info"><strong>${esc(c.label)}</strong><span>-¥${Math.abs(c.amount).toLocaleString()} · ${esc(c.reason)}</span></div><span class="lx-bff-status" data-bff-st="${i}"><i class="lx-bff-spinner"></i>领取中</span></div>`);
-              ensureChat().scrollTop = ensureChat().scrollHeight;
-            }, 300 + i * STEP);
-            setTimeout(() => {
-              const st = node.querySelector(`[data-bff-st="${i}"]`);
-              if (st) { st.innerHTML = "✓ 已领取"; st.classList.add("done"); }
-              if (bar) bar.style.width = `${Math.round(((i + 1) / claimed.length) * 100)}%`;
-            }, 300 + i * STEP + 700);
-          });
-          setTimeout(() => {
+          const card = lxRenderClaimProgressCard(item, claimed, Math.abs(discount));
+          const node = addMessage("assistant", "");
+          lxEnsureAiBody(node).innerHTML = `<p>好的！为你自动领取 ${claimed.length} 项专属优惠：</p>${card}`;
+          const claimCard = node.querySelector('.cl[data-v="D"].lx-claim-skin');
+          lxRunClaimProgressCard(claimCard, claimed, Math.abs(discount), () => {
             state._buyFlowRunning = false;
-            list?.insertAdjacentHTML("afterend", `<div class="lx-bff-foot">共省 ¥${Math.abs(discount).toLocaleString()}，到手价 <b>¥${(finalPrice || item.price).toLocaleString()}</b></div>`);
-            ensureChat().scrollTop = ensureChat().scrollHeight;
             lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
-          }, 300 + claimed.length * STEP + 600);
+          });
         }
 
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
@@ -1173,22 +1317,36 @@ if (!window.__lxCreateTypewriter) {
         function openAddressPicker(product) {
           state.pendingOrderProduct = product;
           const list = lxAddresses();
-          const rows = list.map((addr, index) => `
-            <div class="lx-p0-row lx-addr-row" data-addr-pick="${index}">
-              <div class="lx-p0-row-main"><strong>${esc(addr.name)} ${esc(addr.phone)}</strong><span>${esc(addr.region || "")}${esc(addr.detail || "")}</span></div>
-              <button class="lx-p0-btn primary" type="button" data-addr-pick="${index}">用这个地址下单</button>
-            </div>`).join("");
-          openModal("确认收货地址", `
-            ${rows || `<p class="lx-p0-disclaimer">还没有收货地址，填写后即可下单。</p>`}
-            <div class="lx-addr-form">
-              <div class="lx-trail-head" style="border-top:none;padding-left:0">${rows ? "或新增地址" : "新增收货地址"}</div>
-              <input class="lx-p0-field" id="lxAddrName" placeholder="收货人姓名">
-              <input class="lx-p0-field" id="lxAddrPhone" placeholder="手机号">
-              <input class="lx-p0-field" id="lxAddrRegion" placeholder="省 / 市 / 区">
-              <input class="lx-p0-field" id="lxAddrDetail" placeholder="详细地址（街道、楼栋、门牌号）">
-              <div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-addr-save>保存地址并下单</button></div>
+          const pinSvg = '<svg class="pin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.9"/></svg>';
+          const closeSvg = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+          const checkSvg = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          const icon = (path) => `<svg class="fi" viewBox="0 0 24 24" fill="none" aria-hidden="true">${path}</svg>`;
+          const personIcon = icon('<path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>');
+          const phoneIcon = icon('<rect x="7" y="3" width="10" height="18" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>');
+          const mapIcon = icon('<path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 3v15M15 6v15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>');
+          const homeIcon = icon('<path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>');
+          const primary = list[0];
+          const saved = primary ? `
+            <section class="saved">
+              <div class="tagrow"><span class="deftag">${checkSvg}默认</span></div>
+              <div class="nm">${esc(primary.name || "演示用户")}<span class="ph">${esc(primary.phone || "138****0000")}</span></div>
+              <button class="use acta" type="button" data-addr-pick="0">用这个地址下单</button>
+            </section>` : `<p class="lx-p0-disclaimer">还没有收货地址，填写后即可下单。</p>`;
+          openModal("", `
+            <button class="x lx-p0-close" type="button" aria-label="关闭">${closeSvg}</button>
+            <div class="head">${pinSvg}<h3>确认收货地址</h3></div>
+            ${saved}
+            <div class="divider">${primary ? "或新增地址" : "新增地址"}</div>
+            <div class="form lx-addr-form">
+              <div class="frow">
+                <label class="field half">${personIcon}<input id="lxAddrName" placeholder="收货人姓名"></label>
+                <label class="field half">${phoneIcon}<input id="lxAddrPhone" placeholder="手机号"></label>
+              </div>
+              <label class="field">${mapIcon}<input id="lxAddrRegion" placeholder="省 / 市 / 区"></label>
+              <label class="field">${homeIcon}<input id="lxAddrDetail" placeholder="详细地址（街道、楼栋、门牌号）"></label>
             </div>
-            <p class="lx-p0-disclaimer">演示环境：订单与地址仅保存在本机浏览器，不会真实发货。</p>`);
+            <button class="save acta addr-ghost" type="button" data-addr-save>保存地址并下单</button>
+            <p class="foot-tip">演示环境：订单与地址仅保存在本机浏览器，不会真实发货。</p>`, { skin: "address" });
         }
 
         function lxPlaceOrder(address) {
@@ -1400,8 +1558,7 @@ if (!window.__lxCreateTypewriter) {
           pageBox.innerHTML = `
             <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
             ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>
-            <div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我解读这几款的差异，按我的需求给出选购建议：${esc(full.map((item) => item.name).join("、"))}">让乐享解读差异</button></div>`;
+            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>`;
           // AI建议：异步 fetch，不阻塞渲染
           (async () => {
             try {
@@ -1495,6 +1652,10 @@ if (!window.__lxCreateTypewriter) {
           const node = document.createElement("div");
           const isAi = /\b(ai|assistant)\b/.test(role);
           const isUser = /\buser\b/.test(role);
+          if (isUser) {
+            lxArchiveClaimProgressCards(list);
+            lxClearFollowups();
+          }
           node.className = `lx-p0-message msg ${role}${isAi ? " lx-chat-skin" : ""}`;
           if (isUser) {
             node.innerHTML = `<div class="user-bubble">${esc(text)}${extraHtml}</div>`;
@@ -1557,7 +1718,7 @@ if (!window.__lxCreateTypewriter) {
         function lxClearFollowups(exceptNode) {
           const root = ensureChat();
           if (!root) return;
-          root.querySelectorAll(".followups[data-followups], .lx-p0-suggest[data-followups]").forEach((el) => {
+          root.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach((el) => {
             if (!exceptNode || !exceptNode.contains(el)) el.remove();
           });
         }
@@ -1943,6 +2104,7 @@ if (!window.__lxCreateTypewriter) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const content = payload.text || data || "";
+                if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
                 if (!content) return;
                 revealAi();
                 ai._raw += content;
@@ -2188,7 +2350,8 @@ if (!window.__lxCreateTypewriter) {
                 const payload = parseJson(data);
                 const list = Array.isArray(payload.suggestions) ? payload.suggestions.slice(0, 3) : [];
                 if (!list.length || !hasContent) return;
-                lxAppendAiHtml(ai, `<div class="lx-p0-suggest">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                lxClearFollowups(ai);
+                lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${list.map((sug) => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
               },
               done: (data) => {
                 if (nonce !== state.conversationNonce) return;
@@ -2205,7 +2368,7 @@ if (!window.__lxCreateTypewriter) {
                       if (qs.length) {
                         // 移除已有追问块（避免重复/叠加）
                         lxClearFollowups(ai);
-                        ai.querySelectorAll(".followups[data-followups], .lx-p0-suggest[data-followups]").forEach(el => el.remove());
+                        ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
                         lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                       }
                     }).catch(() => {});
@@ -2443,7 +2606,7 @@ if (!window.__lxCreateTypewriter) {
             ["ThinkPad", (p) => /ThinkPad/i.test(p.name)],
             ["商用台式机", (p) => p.category === "台式机" || /扬天|瑞天/.test(p.name)],
             ["显示器", (p) => p.category === "显示器"],
-            ["外设耗材", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
+            ["服务", (p) => ["打印机及配件", "键鼠相关", "服务产品"].includes(p.category)],
           ],
           enterprise: [
             ["笔记本", (p) => {
@@ -3369,74 +3532,13 @@ if (!window.__lxCreateTypewriter) {
           } else if (page === "business") {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
-            const entMemberBody = `<h4 class="lx-gb-sub-title">会员等级</h4>` + quickCard("黄金会员", "免费注册 · 年综合折扣低至8.6折 · 每月38元购机礼券 · 1倍积分", "黄金会员怎么注册，有哪些权益？") + quickCard("铂金会员", "累计满1万元 · 折扣低至8折 · 每月68元礼券 · 3倍积分 · 解决方案中心", "铂金会员怎么升级，权益是什么？") + quickCard("钻石会员", "累计满5万元 · 折扣低至7.8折 · 每月88元礼券 · 5倍积分 · 1V1专属客服", "钻石会员有哪些专属权益？") + `<h4 class="lx-gb-sub-title">通用权益</h4>` + quickCard("企业账期", "对公采购支持账期结算", "企业账期怎么申请？") + quickCard("积分商城", "积分兑换办公好物", "企业积分怎么兑换？") + quickCard("增值税专票", "开具增值税专用发票", "怎么开增值税专用发票？") + quickCard("电子合同", "在线签署，省去寄送", "电子合同怎么签？") + quickCard("资产管理平台", "设备资产统一管理", "资产管理平台怎么用？") + quickCard("专属客户经理", "1V1 采购顾问", "怎么联系专属客户经理？");
-            const entCustomBody = quickCard("硬件按需配置", "CPU/内存/硬盘/显卡按需选配", "企业批量采购怎么定制硬件配置？") + quickCard("系统镜像定制", "预装企业标准镜像与软件", "能定制系统镜像和预装软件吗？") + quickCard("BIOS 锁定", "统一 BIOS 策略，安全管控", "BIOS 能统一定制锁定吗？") + quickCard("资产标签与激光打标", "企业资产编号、LOGO 打标", "能在机器上打企业资产标签吗？") + quickCard("批量部署交付", "整批装机、贴标、配送到位", "批量采购怎么部署交付？") + quickCard("定制采购补贴", "定制采购最高享补贴", "企业定制采购有什么补贴？");
-            const entStoreCityBar = `<div class="lx-store-city-bar"><span class="lx-gb-city-label">当前位置：</span><span class="lx-store-city-name" data-store-city>正在定位…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
-            const entStoreMapEl = `<div class="lx-store-map" data-store-map><img src="/api/stores/staticmap?lng=116.4074&lat=39.9042" alt="门店地图" loading="lazy" onerror="this.closest('.lx-store-map').classList.add('lx-store-map--empty')" /><span class="lx-store-map-tip" data-store-map-tip>北京（默认）· 定位后显示离你最近的企业服务中心</span></div>`;
-            const entStoreListEl = `<div class="lx-store-list" data-store-list><div class="lx-store-skeleton"><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div><div class="lx-store-sk-card"></div></div></div>`;
-            const entStoreHint = `<p class="lx-gb-sub-title" style="margin-top:12px">附近联想企业服务中心</p>`;
-            const entStoreCards = entStoreCityBar + entStoreMapEl + entStoreHint + entStoreListEl + quickCard("企业服务权益", "到店享专属企业服务：批量采购咨询、上门部署、企业专项支持", "联想企业服务中心有哪些到店服务？") + quickCard("预约到店", "预约企业采购顾问或上门部署服务", "如何预约联想企业到店服务？");
-            const entServiceBody = `<h4 class="lx-gb-sub-title">增值服务</h4>` + quickCard("延长保修", "保修期内不限次数免费维修", "企业设备延保怎么买？") + quickCard("3年超值服务包", "上门保修延至3年 + 3次远程服务", "3年服务包包含什么？") + quickCard("数据无忧", "1年数据安全与隐私保护", "数据无忧服务怎么开通？") + quickCard("远程新机开荒", "远程协助新机设置部署", "新机开荒服务是什么？") + quickCard("远程管家", "远程电脑维护，实时守护", "远程管家怎么订？") + quickCard("上门软件调修", "工程师全国上门，便捷安全", "上门软件调修怎么预约？") + `<h4 class="lx-gb-sub-title">技术支持</h4>` + quickCard("保修与配置查询", "在线查保修期、机器配置", "怎么查我的设备保修和配置？") + quickCard("远程系统重装", "远程协助系统重装恢复", "能远程帮我重装系统吗？") + quickCard("24小时智能客服", "全天候在线技术支持", "怎么联系企业技术支持？");
             const activitySections = {
-              "企业会员权益": lxFloorSection("企业会员权益", "认证即享 · 等级越高权益越丰厚", entMemberBody, entCta),
-              "企业定制": lxFloorSection("企业定制", "硬件到系统，按需定制，批量交付", entCustomBody, `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
-              "门店": lxFloorSection("门店", "列表+地图 · 就近企业服务中心 · 批量采购咨询", entStoreCards, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询并推荐最近的联想企业服务中心">找企业服务中心</button>`),
-              "服务": lxFloorSection("服务", "增值服务 · 技术支持 · 全国覆盖", entServiceBody, `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
+              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
+              "企业定制": lxFloorSection("企业定制", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
+              "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
-            if (activeFloorTab === "门店") {
-              lxResolveCoord().then((coord) => {
-                if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
-                const cityEl = box.querySelector("[data-store-city]");
-                const listEl = box.querySelector("[data-store-list]");
-                const lat = coord?.lat ?? 39.9042;
-                const lng = coord?.lng ?? 116.4074;
-                if (cityEl) cityEl.textContent = coord?.city || (coord ? "定位成功" : "北京（默认）");
-                fetch(`/api/stores/nearby?lat=${lat}&lng=${lng}&limit=5`)
-                  .then((r) => r.json())
-                  .then((data) => {
-                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
-                    const el = box.querySelector("[data-store-list]");
-                    if (!el) return;
-                    const stores = data.stores || data || [];
-                    if (cityEl) {
-                      const addr = stores[0]?.address || "";
-                      const city = coord?.city || addr.match(/^(.{2,4}[市省区])/)?.[1] || (coord ? "定位成功" : "北京");
-                      cityEl.textContent = city;
-                    }
-                    if (!stores.length) {
-                      el.innerHTML = `<div class="lx-p0-disclaimer" style="padding:16px 0">未找到附近企业服务中心，可向乐享询问</div>`;
-                      return;
-                    }
-                    const top = stores[0];
-                    const mLng = top.lng ?? top.longitude ?? lng, mLat = top.lat ?? top.latitude ?? lat;
-                    const mapImg = box.querySelector("[data-store-map] img");
-                    if (mapImg && mLng && mLat) mapImg.src = `/api/stores/staticmap?lng=${encodeURIComponent(mLng)}&lat=${encodeURIComponent(mLat)}`;
-                    const mapTip = box.querySelector("[data-store-map-tip]");
-                    if (mapTip) mapTip.textContent = `${esc(top.name || "最近企业服务中心")} · 点击门店卡「导航」开地图`;
-                    el.innerHTML = stores.map((s) => {
-                      const name = esc(s.name || "联想授权企业服务中心");
-                      const addr = esc(s.address || "");
-                      const dm = s.distance ?? s.dist;
-                      const dist = dm ? `<span class="lx-store-dist">${dm < 1000 ? Math.round(dm) + "m" : (dm / 1000).toFixed(1) + "km"}</span>` : "";
-                      const hours = esc(s.hours || s.business_hours || "10:00–20:00");
-                      const tel = s.tel || s.phone || "";
-                      const telHtml = tel ? `<a class="lx-store-tel" href="tel:${esc(tel)}">${esc(tel)}</a>` : "";
-                      const rights = ["企业服务中心", "批量采购", "上门部署"].map((r) => `<span>${esc(r)}</span>`).join("");
-                      const navBtn = `<button class="lx-p0-btn" type="button" data-store-nav="${esc(String(s.lng||lng))},${esc(String(s.lat||lat))}" data-store-name="${name}" data-store-addr="${addr}" data-store-tel="${esc(tel)}">导航</button>`;
-                      const stockBtn = `<button class="lx-p0-btn" type="button" data-quick-ask="查询${esc(s.name||'该企业服务中心')}的企业采购方案">咨询采购</button>`;
-                      const apptBtn = `<button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到${esc(s.name||'门店')}的企业采购顾问服务">约企业顾问</button>`;
-                      return `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>${name}${dist}</h4><div class="lx-store-rights-chips">${rights}</div></div><p class="lx-store-addr">${addr}</p><div class="lx-store-meta"><span class="lx-store-hours">${hours}</span>${telHtml}</div><div class="lx-store-btns">${navBtn}${stockBtn}${apptBtn}</div></article>`;
-                    }).join("");
-                  })
-                  .catch(() => {
-                    if (state.page !== "business" || state.activeSiteFloorTab !== "门店") return;
-                    const el = box.querySelector("[data-store-list]");
-                    if (el) el.innerHTML = `<article class="lx-store-card" tabindex="0"><div class="lx-store-card-head"><h4>联想北京中关村企业服务中心<span class="lx-store-dist">示例</span></h4><div class="lx-store-rights-chips"><span>企业服务中心</span><span>批量采购</span><span>上门部署</span></div></div><p class="lx-store-addr">北京市海淀区中关村大街1号</p><div class="lx-store-meta"><span class="lx-store-hours">10:00–20:00</span></div><div class="lx-store-btns"><button class="lx-p0-btn primary" type="button" data-quick-ask="我要预约到联想中关村企业服务中心的企业采购顾问服务">约企业顾问</button></div></article>`;
-                    if (cityEl) cityEl.textContent = "北京（示例）";
-                  });
-              }).catch(() => {});
-            }
           } else {
             const activitySections = {
               "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
@@ -6746,7 +6848,9 @@ if (!window.__lxCreateTypewriter) {
   function lxfdExportToMain() {
     if (!thread || !window.__lxBridge) return;
     const messages = [];
-    thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai").forEach(function(el) {
+    const allNodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai"));
+    const lastAi = allNodes.filter(function(el) { return el.classList.contains("lxfd-msg-ai"); }).pop();
+    allNodes.forEach(function(el) {
       if (el.classList.contains("lxfd-msg-user")) {
         messages.push({ role: "user", text: el.textContent.trim(), html: "" });
       } else {
@@ -6757,6 +6861,7 @@ if (!window.__lxCreateTypewriter) {
           // 商品已在右侧 reco 页正常展示，左侧对话保留文字答案 + 最新追问。
           const clone = body.cloneNode(true);
           clone.querySelectorAll(".lxfd-products, .lxfd-disclaimer").forEach(function(n) { n.remove(); });
+          if (el !== lastAi) clone.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach(function(n) { n.remove(); });
           clone.querySelectorAll(".lxfd-followups").forEach(function(n) {
             n.classList.remove("lxfd-followups");
             n.classList.add("followups");
@@ -7001,7 +7106,20 @@ if (!window.__lxCreateTypewriter) {
     runMotionPanel(layer);
     return true;
   }
+  function normalizeFullscreenEntryState() {
+    document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+    document.body.classList.remove("lxfd-exiting", "lxfd-split-returning");
+    if (document.body.classList.contains("lx-home-split")) {
+      document.body.dataset.page = "home";
+      const content = document.querySelector(".content");
+      if (content) content.setAttribute("data-view", "home");
+      document.body.classList.remove("lx-home-split");
+    }
+    stage?.classList.remove("shift");
+    openRail(false);
+  }
   function enterFullscreen() {
+    normalizeFullscreenEntryState();
     lxfdApplySite();
     if (thread && !thread.children.length) lxfdImportFromMain();
     const motionLayer = createPanelStretchLayer();
@@ -7233,15 +7351,100 @@ if (!window.__lxCreateTypewriter) {
     </button>`;
   }
 
+  function lxfdPageCtaMeta(op) {
+    const key = String(op || "");
+    const map = {
+      edu: { feature: "edu", title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" },
+      open_edu_zone: { feature: "edu", title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" },
+      solution: { feature: "solution", title: "查看方案中心", desc: "已为你打开行业解决方案" },
+      open_solution: { feature: "solution", title: "查看方案中心", desc: "已为你打开行业解决方案" },
+      stores: { feature: "stores", title: "查看附近门店", desc: "已为你打开门店查询页面" },
+      open_stores: { feature: "stores", title: "查看附近门店", desc: "已为你打开门店查询页面" },
+      member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
+      open_member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
+      coupon: { feature: "coupon", title: "查看优惠与活动", desc: "已在右侧打开可领取权益" },
+      open_coupon: { feature: "coupon", title: "查看优惠与活动", desc: "已在右侧打开可领取权益" },
+      cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
+      open_cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
+      orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" },
+      open_orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" }
+    };
+    return map[key] || null;
+  }
+
+  function renderLxfdPageCta(meta) {
+    if (!meta) return "";
+    return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}">
+      <span class="answer-cta-copy">
+        <span class="answer-cta-title">${escapeHtml(meta.title || "查看页面")}</span>
+        <span class="answer-cta-desc">${escapeHtml(meta.desc || "已在右侧为你打开相关内容")}</span>
+      </span>
+      <span class="answer-cta-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+      </span>
+    </button>`;
+  }
+
+  function lxfdRevealFeature(feature) {
+    if (document.body.dataset.page === "home" || !document.body.dataset.page) {
+      document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+      document.body.classList.add("lx-home-split");
+      document.body.dataset.page = "personal";
+      document.body.dataset.state = "chat";
+    }
+    if (typeof window.__lxOpenFeature === "function") window.__lxOpenFeature(feature);
+  }
+
   function appendLxfdSuggestions(ai, suggestions) {
     const list = Array.isArray(suggestions) ? suggestions.slice(0, 3) : [];
     if (!list.length) return;
-    thread?.querySelectorAll(".lxfd-followups").forEach((el) => {
+    thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => {
       if (!ai.contains(el)) el.remove();
     });
-    ai.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
+    ai.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
     const host = ai.querySelector(".lxfd-ai-body") || ai;
     host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
+  }
+
+  function lxfdClaimTicketSvg() {
+    return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/></svg>';
+  }
+
+  function lxfdClaimCheckSvg(width) {
+    return '<svg' + (width ? ' class="ck"' : '') + ' viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="' + (width || "2.6") + '" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function lxfdClaimInfoFromCard(card) {
+    const productName = (card && card.dataset && card.dataset.claimProduct) || (card && card.querySelector(".t2") && card.querySelector(".t2").textContent.trim()) || "商品";
+    const chips = Array.prototype.slice.call(card ? card.querySelectorAll(".chip") : []);
+    const claimed = chips.map(function(chip) {
+      const amount = Number((chip.dataset && chip.dataset.claimAmount) || String((chip.querySelector(".cv") || {}).textContent || "").replace(/[^0-9.]/g, "")) || 0;
+      const label = (chip.dataset && chip.dataset.claimName) || String(chip.textContent || "").replace(/¥\s?[\d,]+(?:\.\d+)?/g, "").trim() || "优惠券";
+      return { label: label, amount: amount };
+    });
+    const domTotal = String((card && card.querySelector(".done-amt") || {}).textContent || "").replace(/[^0-9.]/g, "");
+    const totalSaved = Number((card && card.dataset && card.dataset.claimTotal) || domTotal) || claimed.reduce(function(sum, item) { return sum + Math.abs(Number(item.amount || 0)); }, 0);
+    return { productName: productName, claimed: claimed, totalSaved: totalSaved };
+  }
+
+  function lxfdRenderClaimedStaticCard(info) {
+    const offers = Array.isArray(info.claimed) ? info.claimed : [];
+    const chips = offers.map(function(coupon) {
+      const amount = Math.abs(Number(coupon.amount || 0));
+      return '<span class="chip">' + lxfdClaimCheckSvg("3.2") + escapeHtml(coupon.label || "优惠券") + ' <span class="cv">¥' + amount.toLocaleString("zh-CN") + '</span></span>';
+    }).join("");
+    return '<div class="gc lx-claimed-skin" data-v="I" aria-disabled="true">'
+      + '<div class="irow"><span class="ic">' + lxfdClaimTicketSvg() + '</span>'
+      + '<span class="mid"><div class="t1">已领取 ' + offers.length + ' 项优惠 <span class="doneflag df">' + lxfdClaimCheckSvg("2.6") + '已领取</span></div>'
+      + '<div class="t2">' + escapeHtml(info.productName || "商品") + ' · 已收进卡包</div></span>'
+      + '<span class="sa">已省 ¥' + Math.abs(Number(info.totalSaved || 0)).toLocaleString("zh-CN") + '</span></div>'
+      + '<div class="chips">' + chips + '</div></div>';
+  }
+
+  function lxfdArchiveClaimProgressCards(root) {
+    (root || document).querySelectorAll('.cl[data-v="D"].lx-claim-skin').forEach(function(card) {
+      card.outerHTML = lxfdRenderClaimedStaticCard(lxfdClaimInfoFromCard(card));
+    });
   }
 
   function lxfdTypeNodes(sourceParent, targetParent, speed, done) {
@@ -7354,7 +7557,8 @@ if (!window.__lxCreateTypewriter) {
     let pendingFollowups = [];
     let finalized = false;
     let finalizePromise = null;
-    thread?.querySelectorAll(".lxfd-followups").forEach((el) => el.remove());
+    lxfdArchiveClaimProgressCards(thread);
+    thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
     // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
     if (!chatState.started && !chatState.human) {
       chatState.started = true;
@@ -7402,6 +7606,15 @@ if (!window.__lxCreateTypewriter) {
       // 执行操作：通过 __lxExecControl 桥（全屏态 lxExecControl 不在此作用域）
       const _execOp = _lxfdLocalCtrl.op;
       const _execTarget = _lxfdLocalCtrl.target;
+      const _execPageMeta = lxfdPageCtaMeta(_execOp);
+      if (_execPageMeta) {
+        _lxfdCtrlBody.insertAdjacentHTML("beforeend", renderLxfdPageCta(_execPageMeta));
+        lxfdExportToMain();
+        exitFullscreenWithReveal(() => {
+          lxfdRevealFeature(_execPageMeta.feature);
+        });
+        return;
+      }
       if (_execOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
       else if (_execOp === "exit_fullscreen") {
         if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
@@ -7440,6 +7653,15 @@ if (!window.__lxCreateTypewriter) {
       _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       const _lxfdExecOp = _lxfdIntentResult.op;
       const _lxfdExecTarget = _lxfdIntentResult.target || "";
+      const _lxfdPageMeta = lxfdPageCtaMeta(_lxfdExecOp);
+      if (_lxfdPageMeta) {
+        _lxfdCtrlBody.insertAdjacentHTML("beforeend", renderLxfdPageCta(_lxfdPageMeta));
+        lxfdExportToMain();
+        exitFullscreenWithReveal(() => {
+          lxfdRevealFeature(_lxfdPageMeta.feature);
+        });
+        return;
+      }
       if (_lxfdExecOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
       else if (_lxfdExecOp === "exit_fullscreen") {
         if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
@@ -7523,6 +7745,7 @@ if (!window.__lxCreateTypewriter) {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           const content = payload.text || data || "";
+          if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
           if (!content) return;
           hasContent = true;
           ai._raw += content;
@@ -7582,8 +7805,10 @@ if (!window.__lxCreateTypewriter) {
         action: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const { op } = parseJson(data) || {};
-          if (op === 'edu') {
-            pendingExtras += '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>';
+          const pageMeta = lxfdPageCtaMeta(op);
+          if (pageMeta) {
+            pendingExtras += renderLxfdPageCta(pageMeta);
+            turnAction = pageMeta.feature;
           } else if (op === 'auth') {
             // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
             pendingExtras += '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>';
@@ -7618,7 +7843,7 @@ if (!window.__lxCreateTypewriter) {
               lxfdExportToMain();
               exitFullscreenWithReveal(() => {
                 window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
-                if (turnAction && typeof window.__lxOpenFeature === 'function') window.__lxOpenFeature(turnAction);
+                if (turnAction) lxfdRevealFeature(turnAction);
                 // 清空 lxfd thread，下次回全屏会从主面板重新 import
                 if (thread) thread.innerHTML = "";
               });
@@ -7633,7 +7858,7 @@ if (!window.__lxCreateTypewriter) {
                   document.body.dataset.page = "personal";
                   document.body.dataset.state = "chat";
                 }
-                if (typeof window.__lxOpenFeature === 'function') window.__lxOpenFeature(turnAction);
+                lxfdRevealFeature(turnAction);
                 if (thread) thread.innerHTML = "";
               });
             }
@@ -7681,7 +7906,7 @@ if (!window.__lxCreateTypewriter) {
           lxfdExportToMain();
           exitFullscreenWithReveal(() => {
             window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
-            if (turnAction && typeof window.__lxOpenFeature === 'function') window.__lxOpenFeature(turnAction);
+            if (turnAction) lxfdRevealFeature(turnAction);
             if (thread) thread.innerHTML = "";
           });
         }
@@ -7702,26 +7927,10 @@ if (!window.__lxCreateTypewriter) {
   // 分屏→全屏回退：关空右侧 tab 时带入主面板对话回全屏
   window.__lxfdEnterFromSplit = function() {
     if (thread) thread.innerHTML = "";
-    // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
-    // 还原首页：从 personal 布局切回 home + 复原首页内容视图（与 revealProducts 的 data-page=personal 对应）
-    if (document.body.classList.contains("lx-home-split")) {
-      document.body.dataset.page = "home";
-      const _c = document.querySelector(".content");
-      if (_c) _c.setAttribute("data-view", "home");
-    }
-    document.body.classList.remove("lx-home-split");
     enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
   };
   // 新建对话回全屏欢迎态
   window.__lxfdNewFullscreen = function() {
-    // 若是首页原地分屏，回全屏时移除 lx-home-split 并还原 content data-view
-    // 还原首页：从 personal 布局切回 home + 复原首页内容视图（与 revealProducts 的 data-page=personal 对应）
-    if (document.body.classList.contains("lx-home-split")) {
-      document.body.dataset.page = "home";
-      const _c = document.querySelector(".content");
-      if (_c) _c.setAttribute("data-view", "home");
-    }
-    document.body.classList.remove("lx-home-split");
     resetConversation(true);
     enterFullscreen();
   };
@@ -7935,11 +8144,28 @@ if (!window.__lxCreateTypewriter) {
     submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
   });
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco]");
+    const btn = e.target.closest(".lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco], .lxfd [data-lxfd-open-feature], .lxfd [data-lx-focus-active]");
     if (!btn) return;
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
+    const feature = btn.getAttribute("data-lxfd-open-feature") || "";
+    if (feature && document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => {
+        lxfdRevealFeature(feature);
+        if (thread) thread.innerHTML = "";
+      });
+      return;
+    }
+    if (btn.hasAttribute("data-lx-focus-active") && !btn.hasAttribute("data-lx-focus-reco") && document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => {
+        window.__lxBridge.focusReco?.();
+        if (thread) thread.innerHTML = "";
+      });
+      return;
+    }
     const recoId = btn.getAttribute("data-lxfd-reco-id") || "";
     const storedProducts = recoId && window.__lxRecoPayloads && Array.isArray(window.__lxRecoPayloads[recoId])
       ? window.__lxRecoPayloads[recoId]
