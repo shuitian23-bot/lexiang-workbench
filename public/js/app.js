@@ -1330,7 +1330,6 @@ if (!window.__lxCreateTypewriter) {
             <section class="saved">
               <div class="tagrow"><span class="deftag">${checkSvg}默认</span></div>
               <div class="nm">${esc(primary.name || "演示用户")}<span class="ph">${esc(primary.phone || "138****0000")}</span></div>
-              <div class="ds">${esc(primary.region || "")}${esc(primary.detail || "") || "演示收货地址"}<br>演示地址可在订单中修改收货信息</div>
               <button class="use acta" type="button" data-addr-pick="0">用这个地址下单</button>
             </section>` : `<p class="lx-p0-disclaimer">还没有收货地址，填写后即可下单。</p>`;
           openModal("", `
