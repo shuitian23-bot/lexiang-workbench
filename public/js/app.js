@@ -1430,15 +1430,63 @@ if (!window.__lxCreateTypewriter) {
         function openOrders() {
           const invoice = load("lexiang.invoice.v1");
           const invoiceText = invoice && invoice.title ? `已设置开票抬头：${esc(invoice.title)}` : "未设置开票信息";
-          const rows = state.orders.length ? state.orders.map((item) => `
-            <div class="lx-p0-row">
-              <img src="${esc(item.image_url)}" alt="">
-              <div class="lx-p0-row-main"><strong>${esc(item.name)}</strong><span>订单 ${esc(item.orderId)} · ${esc(item.createdAt)} · ${money(item.price)}</span>${item.address ? `<span>收货：${esc(item.address.name || "")} ${esc(item.address.phone || "")} ${esc(item.address.region || "")}${esc(item.address.detail || "")}</span>` : ""}</div>
-              <button class="lx-p0-btn" data-ask-order="${esc(item.name)}">问订单</button>
-              <button class="lx-p0-btn" data-order-detail="${esc(item.orderId)}">订单详情</button>
-            </div>`).join("") : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页「一键领优惠下单」即可生成演示订单。</p>`;
+          const statusMeta = (item) => {
+            const raw = String(item.status || item.orderStatus || item.state || item.payStatus || item.shippingStatus || "").toLowerCase();
+            if (/待付|付款|unpaid|pending_pay|pay/.test(raw)) return { cls: "pay", label: "待付款" };
+            if (/待收|收货|配送|发货|ship|delivery|delivering|shipping/.test(raw)) return { cls: "ship", label: "待收货" };
+            return { cls: "done", label: "已完成" };
+          };
+          const orderPrice = (value) => {
+            const n = Number(value || 0);
+            return n ? `<span class="cur">¥</span>${n.toLocaleString("zh-CN")}` : "咨询价";
+          };
+          const orderImg = (src) => {
+            const value = String(src || "").trim();
+            if (!value) return "/assets/product-placeholder.svg";
+            return value.startsWith("http") || value.startsWith("/") ? value : "/" + value;
+          };
+          const ticketIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z"/><path d="M15 6v12" stroke-dasharray="2 2"/></svg>`;
+          const rows = state.orders.length ? `
+            <div class="ol lx-order-skin" data-v="1">
+              ${state.orders.map((item) => {
+                const st = statusMeta(item);
+                const address = item.address
+                  ? `${item.address.name || ""} ${item.address.phone || ""} ${item.address.region || ""}${item.address.detail || ""}`.trim()
+                  : "演示用户 138****0000 演示地址可在订单中修改收货信息";
+                return `
+                  <div class="ord">
+                    <div class="shot"><img src="${esc(orderImg(item.image_url))}" alt="${esc(item.name)}" loading="lazy"></div>
+                    <div class="mid">
+                      <div class="pn">
+                        <span class="nm" title="${esc(item.name)}">${esc(item.name)}</span>
+                        <span class="ost ${st.cls}"><span class="d"></span>${st.label}</span>
+                      </div>
+                      <div class="meta">
+                        <span>订单</span><span class="sn">${esc(item.orderId || "")}</span>
+                        <span class="dot"></span><span>${esc(item.createdAt || "")}</span>
+                        <span class="dot"></span><span class="amt">${orderPrice(item.price)}</span>
+                      </div>
+                      <div class="recv">收货：${esc(address)}</div>
+                    </div>
+                    <div class="acts">
+                      <button class="obtn ghost" type="button" data-ask-order="${esc(item.name)}">问订单</button>
+                      <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}">订单详情</button>
+                    </div>
+                  </div>`;
+              }).join("")}
+            </div>` : `<p class="lx-p0-disclaimer">暂无订单。点击商品详情页「一键领优惠下单」即可生成演示订单。</p>`;
+          const html = `
+            <div class="lx-orders-wrap">
+              <div class="ohead"><h2><span class="bar"></span>我的订单</h2><span class="cnt">共 ${state.orders.length} 笔订单</span></div>
+              ${rows}
+              <div class="invoice">
+                <span class="ii">${ticketIcon}</span>
+                <span class="it"><b>开票信息</b><span>${invoiceText}</span></span>
+                <button class="obtn ghost iset" type="button" data-open-invoice>去设置</button>
+              </div>
+            </div>`;
           lxRevealContent();
-          lxOpenInfoTab("orders", "我的订单", `${rows}<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-open-invoice>开票信息</button><span class="lx-invoice-note">${invoiceText}</span></div>`);
+          lxOpenInfoTab("orders", "我的订单", html);
         }
 
         function lxOpenCommerceEntry(kind) {
@@ -4195,8 +4243,9 @@ if (!window.__lxCreateTypewriter) {
             const pageBox = lxEnsureInfoPage();
             const isEduInfo = tab.id === "info:edu";
             const isCartInfo = tab.id === "info:cart";
-            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            const isOrdersInfo = tab.id === "info:orders";
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo);
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
