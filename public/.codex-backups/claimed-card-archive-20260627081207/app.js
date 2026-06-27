@@ -1110,10 +1110,6 @@ if (!window.__lxCreateTypewriter) {
           return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         }
 
-        function lxClaimChipCheckSvg() {
-          return '<svg class="ck" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        }
-
         function lxClaimAmount(coupon) {
           return Math.abs(Number(coupon?.amount || 0));
         }
@@ -1121,11 +1117,11 @@ if (!window.__lxCreateTypewriter) {
         function lxRenderClaimProgressCard(item, claimed, totalSaved) {
           const offers = Array.isArray(claimed) ? claimed : [];
           const chips = offers.map((coupon) => `
-            <span class="chip" data-claim-name="${esc(coupon.label || "优惠券")}" data-claim-amount="${lxClaimAmount(coupon)}">
+            <span class="chip">
               <span class="od"></span>${esc(coupon.label || "优惠券")} <span class="cv">¥${lxClaimAmount(coupon).toLocaleString()}</span>
             </span>`).join("");
           return `
-            <div class="cl lx-claim-skin" data-v="D" data-state="claiming" data-claim-product="${esc(item.name)}" data-claim-total="${Math.abs(Number(totalSaved || 0))}">
+            <div class="cl lx-claim-skin" data-v="D" data-state="claiming">
               <div class="drow">
                 <span class="ic">${lxClaimTicketSvg()}</span>
                 <span class="mid">
@@ -1138,46 +1134,6 @@ if (!window.__lxCreateTypewriter) {
               <div class="track"><span class="fill" style="width:0%"></span></div>
               <div class="chips">${chips}</div>
             </div>`;
-        }
-
-        function lxRenderClaimedStaticCard(productName, claimed, totalSaved) {
-          const offers = Array.isArray(claimed) ? claimed : [];
-          const chips = offers.map((coupon) => `
-            <span class="chip">
-              ${lxClaimChipCheckSvg()}${esc(coupon.label || "优惠券")} <span class="cv">¥${lxClaimAmount(coupon).toLocaleString()}</span>
-            </span>`).join("");
-          return `
-            <div class="gc lx-claimed-skin" data-v="I" aria-disabled="true">
-              <div class="irow">
-                <span class="ic">${lxClaimTicketSvg()}</span>
-                <span class="mid">
-                  <div class="t1">已领取 ${offers.length} 项优惠 <span class="doneflag df">${lxClaimCheckSvg()}已领取</span></div>
-                  <div class="t2">${esc(productName || "商品")} · 已收进卡包</div>
-                </span>
-                <span class="sa">已省 ¥${Math.abs(Number(totalSaved || 0)).toLocaleString()}</span>
-              </div>
-              <div class="chips">${chips}</div>
-            </div>`;
-        }
-
-        function lxClaimInfoFromCard(card) {
-          const productName = card?.dataset?.claimProduct || card?.querySelector(".t2")?.textContent?.trim() || "商品";
-          const chips = Array.from(card?.querySelectorAll(".chip") || []);
-          const claimed = chips.map((chip) => {
-            const amount = Number(chip.dataset.claimAmount || String(chip.querySelector(".cv")?.textContent || "").replace(/[^0-9.]/g, "")) || 0;
-            const label = chip.dataset.claimName || String(chip.textContent || "").replace(/¥\s?[\d,]+(?:\.\d+)?/g, "").trim() || "优惠券";
-            return { label, amount };
-          });
-          const domTotal = String(card?.querySelector(".done-amt")?.textContent || "").replace(/[^0-9.]/g, "");
-          const totalSaved = Number(card?.dataset?.claimTotal || domTotal) || claimed.reduce((sum, item) => sum + lxClaimAmount(item), 0);
-          return { productName, claimed, totalSaved };
-        }
-
-        function lxArchiveClaimProgressCards(root = document) {
-          root.querySelectorAll('.cl[data-v="D"].lx-claim-skin').forEach((card) => {
-            const info = lxClaimInfoFromCard(card);
-            card.outerHTML = lxRenderClaimedStaticCard(info.productName, info.claimed, info.totalSaved);
-          });
         }
 
         function lxRunClaimProgressCard(root, claimed, totalSaved, onDone) {
@@ -1605,10 +1561,7 @@ if (!window.__lxCreateTypewriter) {
           const node = document.createElement("div");
           const isAi = /\b(ai|assistant)\b/.test(role);
           const isUser = /\buser\b/.test(role);
-          if (isUser) {
-            lxArchiveClaimProgressCards(list);
-            lxClearFollowups();
-          }
+          if (isUser) lxClearFollowups();
           node.className = `lx-p0-message msg ${role}${isAi ? " lx-chat-skin" : ""}`;
           if (isUser) {
             node.innerHTML = `<div class="user-bubble">${esc(text)}${extraHtml}</div>`;
@@ -7359,47 +7312,6 @@ if (!window.__lxCreateTypewriter) {
     host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
   }
 
-  function lxfdClaimTicketSvg() {
-    return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/></svg>';
-  }
-
-  function lxfdClaimCheckSvg(width) {
-    return '<svg' + (width ? ' class="ck"' : '') + ' viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="' + (width || "2.6") + '" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  }
-
-  function lxfdClaimInfoFromCard(card) {
-    const productName = (card && card.dataset && card.dataset.claimProduct) || (card && card.querySelector(".t2") && card.querySelector(".t2").textContent.trim()) || "商品";
-    const chips = Array.prototype.slice.call(card ? card.querySelectorAll(".chip") : []);
-    const claimed = chips.map(function(chip) {
-      const amount = Number((chip.dataset && chip.dataset.claimAmount) || String((chip.querySelector(".cv") || {}).textContent || "").replace(/[^0-9.]/g, "")) || 0;
-      const label = (chip.dataset && chip.dataset.claimName) || String(chip.textContent || "").replace(/¥\s?[\d,]+(?:\.\d+)?/g, "").trim() || "优惠券";
-      return { label: label, amount: amount };
-    });
-    const domTotal = String((card && card.querySelector(".done-amt") || {}).textContent || "").replace(/[^0-9.]/g, "");
-    const totalSaved = Number((card && card.dataset && card.dataset.claimTotal) || domTotal) || claimed.reduce(function(sum, item) { return sum + Math.abs(Number(item.amount || 0)); }, 0);
-    return { productName: productName, claimed: claimed, totalSaved: totalSaved };
-  }
-
-  function lxfdRenderClaimedStaticCard(info) {
-    const offers = Array.isArray(info.claimed) ? info.claimed : [];
-    const chips = offers.map(function(coupon) {
-      const amount = Math.abs(Number(coupon.amount || 0));
-      return '<span class="chip">' + lxfdClaimCheckSvg("3.2") + escapeHtml(coupon.label || "优惠券") + ' <span class="cv">¥' + amount.toLocaleString("zh-CN") + '</span></span>';
-    }).join("");
-    return '<div class="gc lx-claimed-skin" data-v="I" aria-disabled="true">'
-      + '<div class="irow"><span class="ic">' + lxfdClaimTicketSvg() + '</span>'
-      + '<span class="mid"><div class="t1">已领取 ' + offers.length + ' 项优惠 <span class="doneflag df">' + lxfdClaimCheckSvg("2.6") + '已领取</span></div>'
-      + '<div class="t2">' + escapeHtml(info.productName || "商品") + ' · 已收进卡包</div></span>'
-      + '<span class="sa">已省 ¥' + Math.abs(Number(info.totalSaved || 0)).toLocaleString("zh-CN") + '</span></div>'
-      + '<div class="chips">' + chips + '</div></div>';
-  }
-
-  function lxfdArchiveClaimProgressCards(root) {
-    (root || document).querySelectorAll('.cl[data-v="D"].lx-claim-skin').forEach(function(card) {
-      card.outerHTML = lxfdRenderClaimedStaticCard(lxfdClaimInfoFromCard(card));
-    });
-  }
-
   function lxfdTypeNodes(sourceParent, targetParent, speed, done) {
     const cursor = document.createElement("span");
     cursor.className = "typing-cursor";
@@ -7510,7 +7422,6 @@ if (!window.__lxCreateTypewriter) {
     let pendingFollowups = [];
     let finalized = false;
     let finalizePromise = null;
-    lxfdArchiveClaimProgressCards(thread);
     thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
     // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
     if (!chatState.started && !chatState.human) {
