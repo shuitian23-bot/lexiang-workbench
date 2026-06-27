@@ -1469,7 +1469,7 @@ if (!window.__lxCreateTypewriter) {
                       <div class="recv">收货：${esc(address)}</div>
                     </div>
                     <div class="acts">
-                      <button class="obtn ghost" type="button" data-ask-order="${esc(item.name)}">问订单</button>
+                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(item.name)}">问订单</button>
                       <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}">订单详情</button>
                     </div>
                   </div>`;
@@ -1482,7 +1482,7 @@ if (!window.__lxCreateTypewriter) {
               <div class="invoice">
                 <span class="ii">${ticketIcon}</span>
                 <span class="it"><b>开票信息</b><span>${invoiceText}</span></span>
-                <button class="obtn ghost iset" type="button" data-open-invoice>去设置</button>
+                <button class="obtn order-ghost iset" type="button" data-open-invoice>去设置</button>
               </div>
             </div>`;
           lxRevealContent();
