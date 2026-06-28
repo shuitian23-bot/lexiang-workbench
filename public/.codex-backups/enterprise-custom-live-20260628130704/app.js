@@ -2657,70 +2657,6 @@ function openOrderDetail(orderId) {
           return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><i class="lx-floor-badge" aria-hidden="true"></i><div class="lx-floor-title"><h3>${esc(title)}</h3>${sub ? `<p>${esc(sub)}</p>` : ""}</div><div class="lx-floor-actions">${cta || ""}</div></div><div class="lx-floor-body">${body}</div></section>`;
         }
 
-        const LX_ENT_CUSTOM_ICONS = {
-          chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/></svg>',
-          arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
-          check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>',
-          cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
-          laptop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="1.6"/><path d="M2 20h20"/></svg>',
-          tower: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="1.6"/><path d="M10 6h4M10 9h4"/><circle cx="12" cy="16" r="1.2"/></svg>',
-          shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 7.5 7 9 4-1.5 7-4.6 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
-          sliders: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></svg>'
-        };
-
-        const LX_ENT_CUSTOM_FILTERS = [
-          ["all", "全部"], ["flagship", "商用旗舰"], ["workstation", "移动工作站"],
-          ["light", "轻薄商务"], ["desktop", "台式机"], ["value", "高性价比"]
-        ];
-
-        const LX_ENT_CUSTOM_SERIES = [
-          { id: "xtes", cat: ["flagship"], icon: "laptop", name: "ThinkPad X/T/E/S 系列", scene: "商业领航 · 职场担当", price: "3999", cpu: "酷睿 Ultra 7 起", ram: "最高 64GB", ssd: "最高 2TB SSD", gpu: "集显", aMian: true, kezi: false, match: /ThinkPad|X1|T14|T16|E14|E16|S2/i },
-          { id: "tp", cat: ["workstation", "flagship"], icon: "laptop", name: "ThinkPad P 系列", scene: "数据专家 · 专业工程师", price: "8999", cpu: "酷睿 Ultra 9 起", ram: "最高 96GB", ssd: "最高 4TB SSD", gpu: "RTX 3000 Ada", aMian: true, kezi: false, match: /ThinkPad\s*P|移动工作站|工作站/i },
-          { id: "tc", cat: ["desktop"], icon: "tower", name: "ThinkCentre 台式机", scene: "台式机定制 · 影音达人", price: "3599", cpu: "酷睿 i7 起", ram: "最高 64GB", ssd: "最高 2TB SSD", gpu: "RTX 4060 Ti", aMian: false, kezi: false, match: /ThinkCentre|台式机|商用台式/i },
-          { id: "tb", cat: ["light", "value"], icon: "laptop", name: "ThinkBook 14/16 系列", scene: "职场担当 · 创业者", price: "3999", cpu: "酷睿 Ultra 7 起", ram: "最高 64GB", ssd: "最高 2TB SSD", gpu: "集显", aMian: true, kezi: true, match: /ThinkBook\s*(14|16)(?!\+)/i },
-          { id: "tbp", cat: ["light"], icon: "laptop", name: "ThinkBook 14+/16+ 系列", scene: "影音达人 · 创业者", price: "4999", cpu: "酷睿 Ultra 9 起", ram: "最高 32GB", ssd: "最高 2TB SSD", gpu: "RTX 4060", aMian: true, kezi: true, match: /ThinkBook.*(14\+|16\+|Plus)/i },
-          { id: "ytl", cat: ["value", "light"], icon: "laptop", name: "扬天笔记本 系列", scene: "职场担当 · 创业者", price: "2999", cpu: "酷睿 i7 起", ram: "最高 32GB", ssd: "最高 1TB SSD", gpu: "集显", aMian: false, kezi: false, match: /扬天.*(笔记本|本)|YangTian.*Notebook/i },
-          { id: "ytd", cat: ["desktop", "value"], icon: "tower", name: "扬天台式机 系列", scene: "职场担当 · 创业者", price: "3299", cpu: "酷睿 i7 起", ram: "最高 32GB", ssd: "最高 2TB SSD", gpu: "集显", aMian: false, kezi: false, match: /扬天.*(台式|主机)|YangTian.*Desktop/i }
-        ];
-
-        function lxFindEntCustomSku(series) {
-          const pool = [...(state.products || []), ...Object.values(state.officialProducts || {})];
-          const hit = pool.find((product) => {
-            const text = `${product.name || ""} ${product.category || ""} ${product.description || ""}`;
-            return series.match.test(text);
-          });
-          return hit?.sku || "";
-        }
-
-        function lxRenderEnterpriseCustomSkin() {
-          const ico = LX_ENT_CUSTOM_ICONS;
-          const cb = (yes, label) => `<span class="cb ${yes ? "yes" : "no"}">${yes ? ico.check : ico.cross}${esc(label)}</span>`;
-          const cards = LX_ENT_CUSTOM_SERIES.map((series) => {
-            const sku = lxFindEntCustomSku(series);
-            const actionAttr = sku ? `data-open-product="${esc(sku)}"` : `data-quick-ask="帮我选配${esc(series.name)}企业定制方案"`;
-            return `<article class="scard" data-cat="${esc(series.cat.join(" "))}" data-series="${esc(series.id)}">
-              <span class="ico">${ico[series.icon]}</span>
-              <div class="sn">${esc(series.name)}</div><div class="scn">${esc(series.scene)}</div>
-              <div class="price"><span class="pl">参考价</span><span class="pv"><span class="cur">¥</span>${esc(series.price)}<span class="up">起</span></span></div>
-              <div class="specs">
-                <div class="srow"><span class="sk">处理器</span><span class="sv">${esc(series.cpu)}</span></div>
-                <div class="srow"><span class="sk">内存</span><span class="sv">${esc(series.ram)}</span></div>
-                <div class="srow"><span class="sk">硬盘</span><span class="sv">${esc(series.ssd)}</span></div>
-                <div class="srow"><span class="sk">显卡</span><span class="sv">${esc(series.gpu)}</span></div>
-              </div>
-              <div class="cust">${cb(series.aMian, "A面定制")}${cb(series.kezi, "C面刻字")}</div>
-              <button class="pick" type="button" ${actionAttr}>立即选配 ${ico.arrow}</button>
-            </article>`;
-          }).join("");
-          return `<section class="ec lx-entcustom-skin" data-v="1" data-floor-cat="企业定制">
-            <div class="ehead"><h3>企业定制</h3><span class="slogan">一句话提需求，专业人员搭配</span><span class="sp"></span><div class="merits"><span class="merit">${ico.chat}<b>30分钟内响应</b></span><span class="merit">${ico.sliders}多配置定制</span><span class="merit">${ico.shield}原厂质保</span></div></div>
-            <div class="submit"><span class="si">${ico.chat}</span><div class="st"><b>一句话提需求</b>，专业人员搭配 · 用途 / 台量 / 预算，<span class="red">30 分钟内响应</span></div><button class="sbtn" type="button" data-floor-action="lead">一键提交需求 ${ico.arrow}</button></div>
-            <div class="filters"><span class="flabel">按场景</span>${LX_ENT_CUSTOM_FILTERS.map(([key, label], index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-entcustom-filter="${esc(key)}">${esc(label)}</button>`).join("")}</div>
-            <div class="grid">${cards}</div>
-            <div class="efoot"><span>7 大系列 · 多配置自由定制</span><span class="d"></span><span>A面定制 / C面刻字按系列支持</span><span class="d"></span><span>参考价为标品起价，最终以选配页为准</span></div>
-          </section>`;
-        }
-
         function lxGetSiteTabLabels(page = state.page) {
           const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
@@ -3346,8 +3282,7 @@ function openOrderDetail(orderId) {
           }
           box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
           box.hidden = false;
-          const categoryLabels = (LX_CATEGORY_MATCHERS[page] || []).map(([label]) => label);
-          const categoryFloors = page === "personal" || !categoryLabels.includes(activeFloorTab) ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
+          const categoryFloors = page === "personal" ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
           if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (categoryFloors) {
@@ -3693,8 +3628,8 @@ function openOrderDetail(orderId) {
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
             const activitySections = {
               "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
-              "企业定制": lxRenderEnterpriseCustomSkin(),
-              "门店": lxRenderStoreZone(lxFallbackStores(), {}),
+              "企业定制": lxFloorSection("企业定制", "一句话提需求，专业人员搭配", quickCard("一键提交需求", "用途/台量/预算，30 分钟内响应", "帮我配一套办公采购方案"), `<button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交采购需求</button>`),
+              "门店": lxFloorSection("门店", "企业客户同享到店服务", quickCard("附近门店", "到店看样机、谈批量采购", "帮我查附近的联想门店"), `<button class="lx-p0-btn" type="button" data-floor-action="stores">查附近门店</button>`),
               "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
@@ -5437,9 +5372,9 @@ function openOrderDetail(orderId) {
               <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
             </div>
             <div class="acts">
-              <button class="btn ghost store-ghost" type="button" data-store-nav="${esc(lat + "," + lng)}" data-store-name="${esc(name)}" data-store-addr="${esc(addr)}" data-store-tel="${esc(tel)}">${lxStoreIcon("nav")}导航</button>
-              <button class="btn ghost store-ghost" type="button" data-quick-ask="查询${esc(name)}的库存情况">${lxStoreIcon("box")}查库存</button>
-              <button class="btn solid store-solid" type="button" data-quick-ask="我要预约到${esc(name)}的到店服务">${lxStoreIcon("cal")}约到店</button>
+              <button class="btn store-ghost" type="button" data-store-nav="${esc(lat + "," + lng)}" data-store-name="${esc(name)}" data-store-addr="${esc(addr)}" data-store-tel="${esc(tel)}">${lxStoreIcon("nav")}导航</button>
+              <button class="btn store-ghost" type="button" data-quick-ask="查询${esc(name)}的库存情况">${lxStoreIcon("box")}查库存</button>
+              <button class="btn store-solid" type="button" data-quick-ask="我要预约到${esc(name)}的到店服务">${lxStoreIcon("cal")}约到店</button>
             </div>
           </div>`;
         }
@@ -6817,17 +6752,6 @@ function openOrderDetail(orderId) {
               }
             }
             const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
-            const entCustomFilter = event.target.closest("[data-entcustom-filter]");
-            if (entCustomFilter) {
-              const root = entCustomFilter.closest(".ec[data-v='1']");
-              const key = entCustomFilter.dataset.entcustomFilter || "all";
-              root?.querySelectorAll(".chip").forEach((chip) => chip.classList.toggle("on", chip === entCustomFilter));
-              root?.querySelectorAll(".scard").forEach((card) => {
-                const show = key === "all" || (` ${card.dataset.cat || ""} `).includes(` ${key} `);
-                card.hidden = !show;
-              });
-              return;
-            }
             if (floorAction === "stores") openStoresPanel();
             else if (floorAction === "service") openServicePanel();
             else if (floorAction === "member") openMemberCenter();
