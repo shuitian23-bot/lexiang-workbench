@@ -2782,6 +2782,7 @@ function openOrderDetail(orderId) {
               <div class="right"><span class="case ${caseCls}" data-solution="${esc(item.solutionKey || "")}">${caseIcon}${esc(caseText)}</span><div class="opener"><div class="ol">${icon.chat}行业专家联系你</div><div class="composer"><div class="otext" data-industry-opener="${esc(item.opener)}">${esc(item.opener)}</div><button class="send" type="button" data-industry-send="${esc(item.opener)}" title="发送到对话">${icon.send}</button></div></div></div>
             </div>
             <div class="cols3"><div class="acard"><div class="ah">功能</div><div class="at">${esc(item.func)}</div></div><div class="acard"><div class="ah">优势</div><div class="at">${esc(item.adv)}</div></div><div class="acard"><div class="ah">收益</div><div class="at">${esc(item.gain)}</div></div></div>
+            <div class="ifoot"><span>8 大行业 · 概述 / 功能 / 优势 / 收益 / 案例</span><span class="d"></span><span>点击行业：追加对话开场白</span><span class="d"></span><span>案例区过滤 + 推荐产品池切换</span></div>
           </section>`;
         }
 
