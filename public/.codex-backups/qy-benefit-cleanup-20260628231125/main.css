@@ -12862,10 +12862,6 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
 .qy[data-v="1"] .grid4{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
 .qy[data-v="1"] .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
 .qy[data-v="1"] .cols{ display:grid; grid-template-columns:1fr 1fr; gap:22px; }
-.qy[data-v="1"] .sect .st{ font-size:16.5px; }
-.qy[data-v="1"] .sect .ln{ display:none; }
-.qy[data-v="1"] .sect .pill.chat,
-.qy[data-v="1"] .sect .pill.keep{ display:none; }
 @media (max-width:1180px){
   .qy[data-v="1"] .grid4{ grid-template-columns:repeat(2,1fr); }
   .qy[data-v="1"] .cols{ grid-template-columns:1fr; }
