@@ -2789,13 +2789,9 @@ function openOrderDetail(orderId) {
         function lxSetIndustryOpener(text) {
           const textarea = document.querySelector(".composer textarea");
           if (!textarea || !text) return;
-          textarea.dataset.lxSuppressSuggest = "1";
           textarea.value = text;
           textarea.dispatchEvent(new Event("input", { bubbles: true }));
-          clearTimeout(lxSuggestTimer);
-          lxHideSuggest();
           textarea.focus();
-          setTimeout(() => { delete textarea.dataset.lxSuppressSuggest; }, 0);
         }
 
         const LX_ENT_CUSTOM_ICONS = {
@@ -6151,11 +6147,6 @@ function openOrderDetail(orderId) {
             const ta = event.target.closest?.(".composer textarea, .hero-composer textarea");
             if (!ta) return;
             const isHero = !!ta.closest(".hero-composer");
-            if (ta.dataset.lxSuppressSuggest === "1") {
-              lxHideSuggest();
-              if (!isHero) lxHideRefPicker();
-              return;
-            }
             if (!isHero && /@$/.test(ta.value)) { lxShowRefPicker(); lxHideSuggest(); }
             else { if (!isHero) lxHideRefPicker(); lxComposerSuggest(ta); }
           });
