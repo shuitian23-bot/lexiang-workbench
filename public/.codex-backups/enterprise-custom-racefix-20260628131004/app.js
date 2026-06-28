@@ -3348,7 +3348,7 @@ function openOrderDetail(orderId) {
           box.hidden = false;
           const categoryLabels = (LX_CATEGORY_MATCHERS[page] || []).map(([label]) => label);
           const categoryFloors = page === "personal" || !categoryLabels.includes(activeFloorTab) ? "" : await lxRenderCategoryFloors(box, activeFloorTab);
-          if (state.page !== page || state.activeSiteFloorTab !== activeFloorTab) return;
+          if (state.page !== page) return;
           const quickCard = (title, desc, ask) => `<div class="lx-floor-card" data-quick-ask="${esc(ask)}"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
           if (categoryFloors) {
             box.innerHTML = categoryFloors;
