@@ -13041,7 +13041,6 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
 .ec .ehead{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; padding-bottom:18px; border-bottom:1px solid var(--hair); }
 .ec .ehead h3{ margin:0; font-size:18px; line-height:1.6; font-weight:800; color:var(--ink); letter-spacing:.5px; display:flex; align-items:center; gap:9px; }
 .ec .ehead h3::before{ content:""; width:4px; height:17px; border-radius:2px; background:linear-gradient(180deg,var(--aubergine),var(--brand-red)); }
-.ec[data-v="1"] .ehead h3::before{ display:none; }
 .ec .ehead .slogan{ font-size:12.5px; color:var(--text-muted); font-weight:500; }
 .ec .ehead .sp{ flex:1; }
 .ec .ehead .merits{ display:flex; gap:16px; }
