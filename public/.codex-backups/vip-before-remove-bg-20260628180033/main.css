@@ -12657,6 +12657,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   inset:0;
   z-index:-1;
   border-radius:inherit;
+  background:radial-gradient(820px 460px at 8% -12%,var(--pageglow1) 0,transparent 58%),radial-gradient(760px 420px at 100% -8%,var(--pageglow2) 0,transparent 56%),var(--page);
 }
 .lx-vip-skin.vp[data-v="6"] .vcard{
   position:relative;
