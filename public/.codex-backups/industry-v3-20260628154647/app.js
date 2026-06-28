@@ -2722,78 +2722,6 @@ function openOrderDetail(orderId) {
           </section>`;
         }
 
-        const LX_INDUSTRY_ICONS = {
-          factory: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l6 4V9l6 4V9l6 4v8H3Z"/><path d="M7 21v-3M12 21v-3M17 21v-3"/></svg>',
-          energy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>',
-          media: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>',
-          event: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-          edu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M5 11v4.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V11"/></svg>',
-          health: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"/><path d="M9 11h2l1-2 1 4 1-2h2"/></svg>',
-          finance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18"/></svg>',
-          transit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="13" rx="2"/><path d="M5 11h14M8 20l1-3M16 20l-1-3"/><circle cx="8.5" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/></svg>',
-          cube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg>',
-          check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>',
-          plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-          send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
-          chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/></svg>'
-        };
-
-        function lxIndustrySolutions() {
-          const sol = typeof LX_SOLUTIONS !== "undefined" ? LX_SOLUTIONS : {};
-          const fromSolution = (key, fallback) => {
-            const item = sol[key] || {};
-            return {
-              ...fallback,
-              solutionKey: key,
-              overview: fallback.overview || item.overview || "",
-              func: fallback.func || (item.features || []).slice(0, 3).join("、"),
-              adv: fallback.adv || (item.advantages || []).slice(0, 2).join("、"),
-              gain: fallback.gain || item.gains || "",
-              caseName: fallback.caseName || (item.cases || [])[0] || "待补充"
-            };
-          };
-          return [
-            fromSolution("智能制造", { id: "mfg", name: "制造", icon: "factory", pool: ["ThinkSystem 服务器", "异构智算"], caseName: "吉利汽车", caseReal: true, overview: "面向智能制造的端到端算力与终端方案，覆盖研发、产线与数据中台。", func: "产线 AI 质检、研发仿真、数据中台", adv: "异构智算统一调度、稳定可扩展", gain: "提效降本、缩短研发周期", opener: "我们是制造企业，想了解 ThinkSystem 服务器 + 异构智算如何支撑产线 AI 与研发，请帮我推荐方案。" }),
-            fromSolution("数字政府", { id: "energy", name: "能源 / 政府", icon: "energy", pool: ["信创全栈", "存储"], caseName: "中石油", caseReal: true, overview: "信创全栈、安全合规的能源与政务数字化方案。", func: "国产化替代、集中存储、安全管控", adv: "自主可控、等保合规", gain: "合规达标、数据安全可靠", opener: "我们单位需要信创全栈 + 存储的合规方案，请结合政府 / 能源场景帮我推荐。" }),
-            fromSolution("智能基础设施", { id: "media", name: "媒体 / 服务", icon: "media", pool: ["AIPC", "内容生产"], caseName: "新华社", caseReal: true, overview: "AIPC 驱动的内容生产与服务提效方案。", func: "端侧推理、素材生产、协同剪辑", adv: "创作提效、随身算力", gain: "内容产能成倍提升", opener: "我们是媒体 / 服务机构，想用 AIPC + 内容生产提效，请帮我推荐终端方案。" }),
-            fromSolution("数字政府", { id: "event", name: "大型活动 / 政府", icon: "event", pool: ["高算力", "5G+AI"], caseName: "北京冬奥", caseReal: true, overview: "大型活动的高算力与实时智能保障方案。", func: "高并发算力、5G+AI 实时分析", adv: "赛事级稳定、零停机保障", gain: "平稳运行、智慧观赛体验", opener: "我们要保障大型活动，需要高算力 + 5G+AI 方案，请帮我推荐。" }),
-            fromSolution("智慧教育", { id: "edu", name: "教育", icon: "edu", pool: ["云桌面", "轻薄 AIPC", "国产化适配"], caseReal: false, opener: "我们是教育单位，想了解云桌面 + 轻薄 AIPC + 国产化适配方案，请帮我推荐。" }),
-            fromSolution("智慧医疗", { id: "health", name: "医疗", icon: "health", pool: ["数据保护", "合规存储"], caseReal: false, opener: "我们是医疗机构，关注数据保护与合规存储，请帮我推荐方案。" }),
-            fromSolution("智慧金融", { id: "finance", name: "金融", icon: "finance", pool: ["关键业务服务器", "信创"], caseReal: false, opener: "我们是金融机构，需要关键业务服务器 + 信创方案，请帮我推荐。" }),
-            fromSolution("智能基础设施", { id: "transit", name: "交通", icon: "transit", pool: ["边缘计算", "通用方案"], caseReal: false, overview: "交通行业的边缘计算与通用终端方案。", func: "边缘计算、终端通用部署", adv: "低时延、广覆盖", gain: "智慧调度、运维高效", opener: "我们是交通行业，想了解边缘计算 + 通用方案，请帮我推荐。" })
-          ];
-        }
-
-        function lxRenderIndustrySolutionSkin(selected = 0) {
-          const icon = LX_INDUSTRY_ICONS;
-          const list = lxIndustrySolutions();
-          const index = Math.max(0, Math.min(Number(selected) || 0, list.length - 1));
-          const item = list[index] || list[0];
-          const tags = list.map((entry, idx) => `<button class="tag${idx === index ? " on" : ""}" type="button" data-industry-index="${idx}"><span class="tdot"></span>${esc(entry.name)}</button>`).join("");
-          const chips = item.pool.map((name) => `<span class="chip">${icon.cube}${esc(name)}</span>`).join("");
-          const caseCls = item.caseReal ? "real" : "tba";
-          const caseIcon = item.caseReal ? icon.check : icon.plus;
-          const caseText = item.caseReal ? `同行案例 · ${item.caseName}` : "案例 · 待补充";
-          return `<section class="ind lx-industry-skin" data-v="3" data-floor-cat="行业解决方案" data-industry-selected="${index}">
-            <div class="ihead"><h3>行业解决方案与行业案例</h3><span class="slogan">概述 / 功能 / 优势 / 收益 / 案例联动</span></div>
-            <div class="tags">${tags}</div>
-            <div class="hero">
-              <div class="left"><div class="dtitle"><span class="di">${icon[item.icon]}</span><div><div class="dn">${esc(item.name)}</div><div class="dd">行业整体方案</div></div></div><div class="ov">${esc(item.overview)}</div><div class="poolrow"><span class="lab">推荐产品池</span><div class="chips">${chips}</div></div></div>
-              <div class="right"><span class="case ${caseCls}" data-solution="${esc(item.solutionKey || "")}">${caseIcon}${esc(caseText)}</span><div class="opener"><div class="ol">${icon.chat}点击行业后，自动向对话追加专属开场白</div><div class="composer"><div class="otext" data-industry-opener="${esc(item.opener)}">${esc(item.opener)}</div><button class="send" type="button" data-industry-send="${esc(item.opener)}" title="发送到对话">${icon.send}</button></div></div></div>
-            </div>
-            <div class="cols3"><div class="acard"><div class="ah">功能</div><div class="at">${esc(item.func)}</div></div><div class="acard"><div class="ah">优势</div><div class="at">${esc(item.adv)}</div></div><div class="acard"><div class="ah">收益</div><div class="at">${esc(item.gain)}</div></div></div>
-            <div class="ifoot"><span>8 大行业 · 概述 / 功能 / 优势 / 收益 / 案例</span><span class="d"></span><span>点击行业：追加对话开场白</span><span class="d"></span><span>案例区过滤 + 推荐产品池切换</span></div>
-          </section>`;
-        }
-
-        function lxSetIndustryOpener(text) {
-          const textarea = document.querySelector(".composer textarea");
-          if (!textarea || !text) return;
-          textarea.value = text;
-          textarea.dispatchEvent(new Event("input", { bubbles: true }));
-          textarea.focus();
-        }
-
         const LX_ENT_CUSTOM_ICONS = {
           chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/></svg>',
           arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
@@ -3813,7 +3741,7 @@ function openOrderDetail(orderId) {
             box.innerHTML = activitySections[activeFloorTab] || "";
           } else {
             const activitySections = {
-              "行业解决方案": lxRenderIndustrySolutionSkin(state.industrySolutionIndex || 0),
+              "行业解决方案": lxFloorSection("行业解决方案", "六大行业整体方案与同行案例", Object.keys(LX_SOLUTIONS).map((industry) => `<div class="lx-floor-card" data-solution="${esc(industry)}"><strong>${esc(industry)}</strong><span>概述 · 功能 · 优势 · 收益 · 案例</span></div>`).join(""), `<button class="lx-p0-btn primary" type="button" data-solution-center>进入方案中心</button>`),
               "行业资料": lxFloorSection("行业资料", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
@@ -6821,27 +6749,6 @@ function openOrderDetail(orderId) {
               const recoTab = (state.tabs || []).find((tab) => tab.id === "reco");
               const product = (recoTab?.products || []).find((p) => p.sku === recoCompare.dataset.recoCompare);
               if (product) addCompare(product);
-            }
-
-            const industryTag = event.target.closest("[data-industry-index]");
-            if (industryTag) {
-              event.preventDefault();
-              const idx = Number(industryTag.dataset.industryIndex) || 0;
-              state.industrySolutionIndex = idx;
-              const root = industryTag.closest(".ind[data-v='3']");
-              const nextHtml = lxRenderIndustrySolutionSkin(idx);
-              const opener = lxIndustrySolutions()[idx]?.opener || "";
-              if (root) root.outerHTML = nextHtml;
-              lxSetIndustryOpener(opener);
-              return;
-            }
-            const industrySend = event.target.closest("[data-industry-send]");
-            if (industrySend) {
-              event.preventDefault();
-              const text = industrySend.dataset.industrySend || industrySend.closest(".opener")?.querySelector("[data-industry-opener]")?.textContent || "";
-              industrySend.animate?.([{ transform: "scale(.9)" }, { transform: "scale(1)" }], { duration: 200, easing: "cubic-bezier(.34,1.4,.4,1)" });
-              if (text.trim()) sendChat(text.trim());
-              return;
             }
 
             const solBtn = event.target.closest("[data-solution]");
