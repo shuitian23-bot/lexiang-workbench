@@ -2720,6 +2720,7 @@ function openOrderDetail(orderId) {
           }).join("");
           return `<section class="ec lx-entcustom-skin" data-v="1" data-floor-cat="企业定制">
             <div class="ehead"><h3>企业定制</h3><span class="slogan">一句话提需求，专业人员搭配</span><span class="sp"></span><div class="merits"><span class="merit">${ico.chat}<b>30分钟内响应</b></span><span class="merit">${ico.sliders}多配置定制</span><span class="merit">${ico.shield}原厂质保</span></div></div>
+            <div class="submit"><span class="si">${ico.chat}</span><div class="st"><b>一句话提需求</b>，专业人员搭配 · 用途 / 台量 / 预算，<span class="red">30 分钟内响应</span></div><button class="sbtn" type="button" data-floor-action="lead">一键提交需求 ${ico.arrow}</button></div>
             <div class="filters"><span class="flabel">按场景</span>${LX_ENT_CUSTOM_FILTERS.map(([key, label], index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-entcustom-filter="${esc(key)}">${esc(label)}</button>`).join("")}</div>
             <div class="grid">${cards}</div>
             <div class="efoot"><span>7 大系列 · 多配置自由定制</span><span class="d"></span><span>A面定制 / C面刻字按系列支持</span><span class="d"></span><span>参考价为标品起价，最终以选配页为准</span></div>

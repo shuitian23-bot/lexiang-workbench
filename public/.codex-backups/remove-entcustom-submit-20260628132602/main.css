@@ -12806,7 +12806,16 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .ec .ehead .merit{ font-size:12.5px; font-weight:600; color:var(--text-soft); display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
 .ec .ehead .merit b{ color:var(--brand-red); font-weight:700; }
 .ec .ehead .merit svg{ width:13px; height:13px; color:var(--brand-red); }
-.ec .filters{ display:flex; align-items:center; gap:4px; margin:16px 0 18px; flex-wrap:wrap; border-bottom:1px solid var(--hair); }
+.ec .submit{ display:flex; align-items:center; gap:12px; margin-top:16px; padding:13px 0; }
+.ec .submit .si{ flex:none; width:30px; height:30px; border-radius:9px; background:var(--tint); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--accent); }
+.ec .submit .si svg{ width:16px; height:16px; }
+.ec .submit .st{ flex:1; min-width:0; font-size:13px; color:var(--text-soft); }
+.ec .submit .st b{ color:var(--ink); font-weight:800; }
+.ec .submit .st .red{ color:var(--brand-red); font-weight:700; }
+.ec .submit .sbtn{ flex:none; height:34px; padding:0 16px; border-radius:9px; border:1px solid var(--aubergine); color:var(--aubergine); font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:6px; transition:background-color .16s,color .16s; }
+.ec .submit .sbtn:hover{ background:var(--aubergine); color:#fff; }
+.ec .submit .sbtn svg{ width:13px; height:13px; flex:none; }
+.ec .filters{ display:flex; align-items:center; gap:4px; margin:6px 0 18px; flex-wrap:wrap; border-bottom:1px solid var(--hair); }
 .ec .filters .flabel{ font-size:12px; font-weight:700; color:var(--text-faint); margin-right:10px; }
 .ec .chip{ position:relative; height:34px; padding:0 13px; font-size:13px; font-weight:600; color:var(--text-soft); background:none; transition:color .16s; }
 .ec .chip:hover{ color:var(--aubergine); }
