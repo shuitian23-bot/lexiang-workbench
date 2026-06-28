@@ -2663,65 +2663,6 @@ function openOrderDetail(orderId) {
           return `<section class="lx-floor ${extraClass}" data-floor-cat="${esc(title)}"><div class="lx-floor-head"><i class="lx-floor-badge" aria-hidden="true"></i><div class="lx-floor-title"><h3>${esc(title)}</h3>${sub ? `<p>${esc(sub)}</p>` : ""}</div><div class="lx-floor-actions">${cta || ""}</div></div><div class="lx-floor-body">${body}</div></section>`;
         }
 
-        const LX_QY_BENEFIT_ICONS = {
-          cert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 7.5 7 9 4-1.5 7-4.6 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
-          tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4l12 12 6-6L9 3Z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor"/></svg>',
-          percent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>',
-          medal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-2 7 5.5-3 5.5 3-2-7"/></svg>',
-          gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4 9 8 12 8Zm0 0s2-5 4.5-4S15 8 12 8Z"/></svg>',
-          wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12h2M3 9h14M21 10v5"/></svg>',
-          truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>',
-          remote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m9 9 2 2-2 2M13 13h2"/></svg>',
-          clean: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 3 9 13M14 4l6 6M8 14l-4 7 7-4"/></svg>',
-          shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1 4H5L4 7ZM5 11v9h14v-9M3 7l1-3h16l1 3"/></svg>',
-          edu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M5 11v4.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V11"/></svg>',
-          recycle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 4 12l3 2M17 7l3 5-3 2M9 19h6"/><path d="m9 4 3-1 3 1"/></svg>',
-          chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/></svg>',
-          arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
-          ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/></svg>',
-          keep: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>'
-        };
-
-        function lxRenderQyBenefitSkin() {
-          const icon = LX_QY_BENEFIT_ICONS;
-          const benefits = [
-            { title: "认证后全场企业价", desc: "认证即享，价格优于个人渠道", icon: "tag", hl: true },
-            { title: "定制采购最高 25% 补贴", desc: "批量定制更划算", icon: "percent" },
-            { title: "企业会员专属折扣", desc: "会员等级叠加优惠", icon: "medal" },
-            { title: "首购礼券一键领取", desc: "新企业专享礼包", icon: "gift" }
-          ];
-          const steps = [
-            ["提交资质", "营业执照等"],
-            ["授信审批", "官网在线审核"],
-            ["获得额度", "账期授信额度"],
-            ["账期下单", "先采购后付款"]
-          ];
-          const tools = [
-            { name: "上门部署", desc: "工程师上门安装、系统部署与调试", icon: "truck", ask: "我需要企业上门部署服务" },
-            { name: "远程支持", desc: "远程协助排障，快速恢复办公", icon: "remote", ask: "我需要企业远程支持服务" },
-            { name: "清洁保养", desc: "定期上门清洁保养，延长设备寿命", icon: "clean", ask: "我需要企业设备清洁保养服务" }
-          ];
-          const keeps = [
-            { name: "积分商城", desc: "乐豆兑好礼", icon: "shop", ask: "积分商城和乐豆兑换规则是什么" },
-            { name: "教育特惠", desc: "师生专属价", icon: "edu", ask: "教育特惠怎么认证和享受师生专属价" },
-            { name: "以旧换新", desc: "旧机抵现购新", icon: "recycle", ask: "以旧换新怎么估价和下单" }
-          ];
-          const section = (title, extra = "") => `<div class="sect"><span class="st">${esc(title)}</span>${extra}<span class="ln"></span></div>`;
-          const benefitCards = benefits.map((item) => `<div class="ben${item.hl ? " hl" : ""}"><span class="ic tile">${icon[item.icon]}</span><div><div class="bt">${esc(item.title)}</div><div class="bd">${esc(item.desc)}</div></div></div>`).join("");
-          const stepItems = steps.map(([title, desc], index) => `<div class="step"><span class="sn">${index + 1}</span><div class="sk">${esc(title)}</div><div class="sd">${esc(desc)}</div></div>`).join("");
-          const toolCards = tools.map((item) => `<div class="tool" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="tt"><div class="tn">${esc(item.name)}</div><div class="td">${esc(item.desc)}</div><span class="trigger">${icon.chat} 对话中说出需求即可触发</span></div></div>`).join("");
-          const keepCards = keeps.map((item) => `<div class="keep-item" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="kt"><div class="kn">${esc(item.name)}</div><div class="kd">${esc(item.desc)}</div></div><span class="karr">${icon.arrow}</span></div>`).join("");
-          return `<section class="qy lx-qybenefit-skin" data-v="1" data-floor-cat="企业会员权益">
-            <div class="qhead"><h3>企业会员权益</h3><span class="slogan">认证即享，价格优于个人渠道</span><span class="sp"></span><button class="cert" type="button" data-open-ent>${icon.cert} 企业认证</button></div>
-            ${section("核心权益")}
-            <div class="grid4">${benefitCards}</div>
-            ${section("企业账期")}
-            <div class="acct"><div class="ah"><span class="ic tile">${icon.wallet}</span><div class="at"><div class="atitle">企业账期 · 先采购后付款</div><div class="adesc">接通 b.lenovo 官网账期申请流程，授信后可享账期下单</div></div><button class="abtn" type="button" data-quick-ask="企业账期怎么申请，帮我准备资料">申请企业账期 ${icon.ext}</button></div><div class="steps">${stepItems}</div></div>
-            <div class="cols"><div>${section("服务工具", `<span class="pill chat">${icon.chat} 对话可触发</span>`) + toolCards}</div><div>${section("现有功能", `<span class="pill keep">${icon.keep} 保留</span>`) + keepCards}</div></div>
-            <div class="qfoot"><span>认证即享企业价</span><span class="d"></span><span>服务工具可在对话中触发</span><span class="d"></span><span>积分 / 教育 / 以旧换新沿用现有功能</span></div>
-          </section>`;
-        }
-
         const LX_ENT_CUSTOM_ICONS = {
           chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/></svg>',
           arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
@@ -3733,8 +3674,10 @@ function openOrderDetail(orderId) {
               }).catch(() => {});
             }
           } else if (page === "business") {
+            const ent = lxEntState();
+            const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
             const activitySections = {
-	              "企业会员权益": lxRenderQyBenefitSkin(),
+	              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
 	              "企业定制": lxRenderEnterpriseCustomSkin(),
 	              "门店": lxRenderStoreZone(lxFallbackStores(), {}),
 	            };
