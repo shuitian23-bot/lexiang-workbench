@@ -12567,12 +12567,16 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   --spring:cubic-bezier(.34,1.4,.4,1);
   position:relative;
   color:var(--text);
-  background:#fff;
   padding:0 28px;
 }
 .lx-vip-wrap::before{
-  content:none;
-  display:none;
+  content:"";
+  position:absolute;
+  inset:-18px -20px;
+  z-index:0;
+  border-radius:22px;
+  background:radial-gradient(820px 460px at 8% -12%,var(--pageglow1) 0,transparent 58%),radial-gradient(760px 420px at 100% -8%,var(--pageglow2) 0,transparent 56%),var(--page);
+  pointer-events:none;
 }
 .lx-vip-wrap > *{ position:relative; z-index:1; }
 .lx-vip-wrap *,
