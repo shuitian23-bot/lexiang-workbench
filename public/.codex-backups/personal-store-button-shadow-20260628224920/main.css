@@ -12515,8 +12515,6 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .lx-store-skin .btn.ghost:hover{ border-color:var(--aubergine); color:var(--aubergine); background:var(--tint); }
 .lx-store-skin .btn.solid{ background:var(--grad-brand); color:#fff; box-shadow:none; }
 .lx-store-skin .btn.solid:hover{ filter:brightness(1.05); transform:translateY(-1px); }
-body[data-page="personal"] .lx-store-skin .store .acts .btn,
-body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:none!important; }
 .lx-store-skin .bands{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .lx-store-skin .band{ display:flex; align-items:center; gap:14px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:#fff; text-align:left; transition:border-color .16s,background-color .16s; }
 .lx-store-skin .band:hover{ border-color:var(--line-2); background:#fff; }
