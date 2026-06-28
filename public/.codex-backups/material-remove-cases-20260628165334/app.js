@@ -2836,6 +2836,10 @@ function openOrderDetail(orderId) {
             { n: "ThinkStation 工作站规格书", model: "P3 / P5 / PX", pages: 64, prod: "工作站" },
             { n: "ThinkBook 系列用户手册", model: "14/16 / 14+/16+", pages: 48, prod: "ThinkBook" }
           ];
+          const avatars = [
+            { n: "ThinkPad X9 · 数字人讲解", modes: ["数字人讲产品", "数字人讲方案"], dur: "02:10", tag: "ThinkPad", img: "/assets/img/lxfd-gallery-1-1.jpg" },
+            { n: "制造行业方案 · 数字人讲解", modes: ["数字人讲方案", "数字人讲产品"], dur: "03:25", tag: "制造", img: "/assets/img/lxfd-gallery-1-2.jpg" }
+          ];
           const indTag = (text) => `<span class="tag ind">${esc(text)}</span>`;
           const prodTag = (text) => `<span class="tag prod">${esc(text)}</span>`;
           const filters = (label, items, grp) => `<div class="filters"><span class="flabel">${esc(label)}</span>${items.map((item, index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-mat-filter="${esc(grp)}">${esc(item)}</button>`).join("")}</div>`;
@@ -2844,6 +2848,7 @@ function openOrderDetail(orderId) {
           const videoCard = (item) => `<div class="vcard" data-mat-action="play">${thumb("", item.wm, item.dur, item.img)}<div class="vb"><div class="vn">${esc(item.n)}</div><div class="vmeta">${prodTag(item.prod)}</div></div></div>`;
           const docItem = (item, isManual) => `<div class="doc"><span class="dt">${icon.doc}<span class="ext">PDF</span></span><div class="dm"><div class="dn">${esc(item.n)}</div><div class="dd">${esc(isManual ? item.model : item.sum)}</div><div class="dmeta">${isManual ? prodTag(item.prod) : indTag(item.ind)}<span class="pages">${esc(item.pages)} 页</span></div></div><button class="dl dact" type="button" data-wp-download="${esc(item.n)}">${icon.download}下载</button></div>`;
           const caseCard = (item) => `<div class="ccard"><div class="co">${esc(item.o)}</div><div class="ct">${esc(item.t)}</div><div class="cstats">${item.stats.map((stat) => `<div class="cstat"><div class="cn">${esc(stat[0])}</div><div class="cl">${esc(stat[1])}</div></div>`).join("")}</div><div class="cmeta">${indTag(item.ind)}<button class="clink" type="button" data-quick-ask="详细介绍${esc(item.o)}${esc(item.t)}案例">查看详情 ${icon.arrow}</button></div></div>`;
+          const avatarCard = (item) => `<div class="dcard">${thumb("avatar", "数字人", item.dur, item.img)}<div class="db"><div class="dn">${esc(item.n)}</div><div class="modes">${item.modes.map((mode, index) => `<button class="mode${index === 0 ? " on" : ""}" type="button" data-mat-mode>${esc(mode.replace(/^数字人/, ""))}</button>`).join("")}</div><div class="dfoot"><button class="play" type="button" data-quick-ask="播放${esc(item.n)}">${icon.play}播放讲解</button>${indFilters.includes(item.tag) ? indTag(item.tag) : prodTag(item.tag)}</div></div></div>`;
           return `<section class="mat lx-material-skin" data-v="1" data-floor-cat="行业资料">
             ${filters("行业", indFilters, "ind")}
             ${filters("产品线", prodFilters, "prod")}
@@ -2851,9 +2856,13 @@ function openOrderDetail(orderId) {
             <div class="vgrid">${videos.map(videoCard).join("")}</div>
             ${section(icon.doc, "行业白皮书", `${whitepapers.length} 份 · 标题+摘要+页数+下载`)}
             <div class="dlist">${whitepapers.map((item) => docItem(item, false)).join("")}</div>
+            ${section(icon.caseic, "行业案例", `${cases.length} 个 · 客户+核心数据+详情`)}
+            <div class="cgrid">${cases.map(caseCard).join("")}</div>
             ${section(icon.manual, "产品手册", `${manuals.length} 份 · 标题+适用型号+下载`)}
             <div class="dgrid">${manuals.map((item) => docItem(item, true)).join("")}</div>
-            <div class="mfoot-note"><span>三类资料：产品视频 / 行业白皮书 / 产品手册</span><span class="d"></span><span>视频点击内嵌播放</span><span class="d"></span><span>白皮书 / 手册支持下载</span></div>
+            ${section(icon.avatar, "数字人讲解", `${avatars.length} 个 · 讲产品 / 讲方案`, true)}
+            <div class="dgrid">${avatars.map(avatarCard).join("")}</div>
+            <div class="mfoot-note"><span>五类资料：产品视频 / 行业白皮书 / 行业案例 / 产品手册 / 数字人讲解</span><span class="d"></span><span>视频与数字人点击内嵌播放</span><span class="d"></span><span>白皮书 / 手册支持下载</span></div>
           </section>`;
         }
 
