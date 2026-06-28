@@ -12918,7 +12918,6 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .ind .dtitle .dd{ font-size:12px; color:var(--text-muted); margin-top:3px; }
 .ind .block .bh{ font-size:12px; font-weight:800; color:var(--text-muted); letter-spacing:.5px; margin-bottom:11px; }
 .ind[data-v="3"] .hero{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; border:1px solid var(--line-2); border-radius:16px; padding:20px 22px; background:linear-gradient(120deg,#fbf6fb,#f7eef5); }
-.ind[data-v="3"] .hero::before,.ind[data-v="3"] .hero::after{ content:none!important; display:none!important; }
 .ind[data-v="3"] .hero .left .ov{ font-size:13px; color:var(--text-soft); line-height:1.7; margin:12px 0 14px; }
 .ind[data-v="3"] .hero .poolrow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .ind[data-v="3"] .hero .right{ display:flex; flex-direction:column; gap:12px; }
