@@ -12542,7 +12542,6 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 }
 
 /* Member center scheme 6: purple-red gradient light layout */
-.lx-site-floors > .lx-vip-wrap{ width:100%; }
 .lx-vip-wrap{
   --ink:#23202a;
   --text:#46414e;
