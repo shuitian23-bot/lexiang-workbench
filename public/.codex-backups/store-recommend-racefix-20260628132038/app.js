@@ -2731,7 +2731,7 @@ function openOrderDetail(orderId) {
           const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
             personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "种草", "服务", "门店"],
-            business: ["企业会员权益", "企业定制", "门店"],
+            business: ["企业会员权益", "企业定制", "门店", "服务"],
             enterprise: ["行业解决方案", "行业资料"],
           }[page] || [];
           return ["推荐", ...categoryLabels, ...activityLabels];
@@ -3310,12 +3310,11 @@ function openOrderDetail(orderId) {
             if (page === "personal") {
               grid.hidden = true;
               box.hidden = false;
-	              box.classList.add("lx-personal-rec-floors");
-	              box.classList.remove("lx-business-rec-floors", "lx-enterprise-rec-floors");
-	              const personalRecommendHtml = await lxRenderPersonalRecommendFloors();
-	              if (state.page !== page || state.activeSiteFloorTab !== activeFloorTab) return;
-	              box.innerHTML = personalRecommendHtml;
-	              lxRetryEmptyRecommendFloors(page, box);
+              box.classList.add("lx-personal-rec-floors");
+              box.classList.remove("lx-business-rec-floors", "lx-enterprise-rec-floors");
+              box.innerHTML = await lxRenderPersonalRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
+              if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(() => { lxClampFloors(box); lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
               lxObserveFloors(box); // 盯网格宽度变化,分屏/全屏切到3列时自动重夹
@@ -3324,12 +3323,11 @@ function openOrderDetail(orderId) {
             if (page === "business") {
               grid.hidden = true;
               box.hidden = false;
-	              box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
-	              box.classList.add("lx-business-rec-floors");
-	              const businessRecommendHtml = await lxRenderBusinessRecommendFloors();
-	              if (state.page !== page || state.activeSiteFloorTab !== activeFloorTab) return;
-	              box.innerHTML = businessRecommendHtml;
-	              lxRetryEmptyRecommendFloors(page, box);
+              box.classList.remove("lx-personal-rec-floors", "lx-enterprise-rec-floors");
+              box.classList.add("lx-business-rec-floors");
+              box.innerHTML = await lxRenderBusinessRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
+              if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
               return;
@@ -3337,12 +3335,11 @@ function openOrderDetail(orderId) {
             if (page === "enterprise") {
               grid.hidden = true;
               box.hidden = false;
-	              box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors");
-	              box.classList.add("lx-enterprise-rec-floors");
-	              const enterpriseRecommendHtml = await lxRenderEnterpriseRecommendFloors();
-	              if (state.page !== page || state.activeSiteFloorTab !== activeFloorTab) return;
-	              box.innerHTML = enterpriseRecommendHtml;
-	              lxRetryEmptyRecommendFloors(page, box);
+              box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors");
+              box.classList.add("lx-enterprise-rec-floors");
+              box.innerHTML = await lxRenderEnterpriseRecommendFloors();
+              lxRetryEmptyRecommendFloors(page, box);
+              if (state.page !== page) return;
               lxSyncCategoryTabs();
               requestAnimationFrame(lxSyncCategoryTabsStuck);
               return;
@@ -3701,10 +3698,11 @@ function openOrderDetail(orderId) {
             const ent = lxEntState();
             const entCta = ent.status === "verified" ? `<button class="lx-p0-btn" type="button" data-open-ent>已认证 · 查看权益</button>` : `<button class="lx-p0-btn primary" type="button" data-open-ent>立即认证</button>`;
             const activitySections = {
-	              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
-	              "企业定制": lxRenderEnterpriseCustomSkin(),
-	              "门店": lxRenderStoreZone(lxFallbackStores(), {}),
-	            };
+              "企业会员权益": lxFloorSection("企业会员权益", "认证即享，价格优于个人渠道", quickCard("企业专享价", "认证后全场企业价", "企业专享价怎么享受？") + quickCard("采购补贴", "定制采购最高 25% 补贴", "企业采购补贴政策是什么？") + quickCard("会员 8 折", "企业会员专属折扣", "企业会员折扣怎么用？") + quickCard("新客礼券", "首购礼券一键领取", "企业新客有什么礼券？"), entCta),
+              "企业定制": lxRenderEnterpriseCustomSkin(),
+              "门店": lxRenderStoreZone(lxFallbackStores(), {}),
+              "服务": lxFloorSection("服务", "企业售后与工程师支持", quickCard("企业售后", "远程支持、上门维修与批量设备保障", "企业售后服务都包含什么？") + quickCard("上门服务", "安装部署、巡检清洁、数据迁移", "企业上门服务怎么预约？"), `<button class="lx-p0-btn" type="button" data-floor-action="service">查看服务</button>`),
+            };
             box.innerHTML = activitySections[activeFloorTab] || "";
           } else {
             const activitySections = {
