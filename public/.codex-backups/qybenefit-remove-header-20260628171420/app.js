@@ -2712,6 +2712,7 @@ function openOrderDetail(orderId) {
           const toolCards = tools.map((item) => `<div class="tool" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="tt"><div class="tn">${esc(item.name)}</div><div class="td">${esc(item.desc)}</div><span class="trigger">${icon.chat} 对话中说出需求即可触发</span></div></div>`).join("");
           const keepCards = keeps.map((item) => `<div class="keep-item" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="kt"><div class="kn">${esc(item.name)}</div><div class="kd">${esc(item.desc)}</div></div><span class="karr">${icon.arrow}</span></div>`).join("");
           return `<section class="qy lx-qybenefit-skin" data-v="1" data-floor-cat="企业会员权益">
+            <div class="qhead"><h3>企业会员权益</h3><span class="slogan">认证即享，价格优于个人渠道</span><span class="sp"></span><button class="cert" type="button" data-open-ent>${icon.cert} 企业认证</button></div>
             ${section("核心权益")}
             <div class="grid4">${benefitCards}</div>
             ${section("企业账期")}
@@ -5610,8 +5611,9 @@ function openOrderDetail(orderId) {
           const lat = lxStoreLat(store, ctx.lat);
           const lng = lxStoreLng(store, ctx.lng);
           const dist = lxStoreDistance(store) || (index === 0 ? "8.7km" : index === 1 ? "9.3km" : "12.8km");
+          const tagHtml = lxStoreTags(store).map((tag, i) => `<span class="tag${i === 0 ? " key" : ""}">${esc(tag)}</span>`).join("");
           return `<div class="store" data-store-card>
-            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}</div>
+            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}<div class="tags">${tagHtml}</div></div>
             <div class="meta">
               <div class="addr">${esc(addr)}</div>
               <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>

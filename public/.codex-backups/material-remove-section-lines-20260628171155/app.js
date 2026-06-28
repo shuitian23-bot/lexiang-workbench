@@ -2712,6 +2712,7 @@ function openOrderDetail(orderId) {
           const toolCards = tools.map((item) => `<div class="tool" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="tt"><div class="tn">${esc(item.name)}</div><div class="td">${esc(item.desc)}</div><span class="trigger">${icon.chat} 对话中说出需求即可触发</span></div></div>`).join("");
           const keepCards = keeps.map((item) => `<div class="keep-item" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="kt"><div class="kn">${esc(item.name)}</div><div class="kd">${esc(item.desc)}</div></div><span class="karr">${icon.arrow}</span></div>`).join("");
           return `<section class="qy lx-qybenefit-skin" data-v="1" data-floor-cat="企业会员权益">
+            <div class="qhead"><h3>企业会员权益</h3><span class="slogan">认证即享，价格优于个人渠道</span><span class="sp"></span><button class="cert" type="button" data-open-ent>${icon.cert} 企业认证</button></div>
             ${section("核心权益")}
             <div class="grid4">${benefitCards}</div>
             ${section("企业账期")}
@@ -2838,7 +2839,7 @@ function openOrderDetail(orderId) {
           const prodTag = (text) => `<span class="tag prod">${esc(text)}</span>`;
           const filters = (label, items, grp) => `<div class="filters"><span class="flabel">${esc(label)}</span>${items.map((item, index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-mat-filter="${esc(grp)}">${esc(item)}</button>`).join("")}</div>`;
           const thumb = (cls, wm, dur, img) => `<div class="thumb ${cls || ""}${img ? " has-img" : ""}">${img ? `<img class="thumb-img" src="${esc(img)}" alt="${esc(wm)}">` : ""}<div class="pbtn"><span>${icon.play}</span></div>${dur ? `<span class="dur">${esc(dur)}</span>` : ""}<span class="wm">${esc(wm)}</span></div>`;
-          const section = (ic, title, count, isNew = false) => `<div class="sect"><span class="si">${ic}</span><span class="st">${esc(title)}</span>${isNew ? '<span class="new">新增</span>' : ""}</div>`;
+          const section = (ic, title, count, isNew = false) => `<div class="sect"><span class="si">${ic}</span><span class="st">${esc(title)}</span>${isNew ? '<span class="new">新增</span>' : ""}<span class="ln"></span></div>`;
           const videoCard = (item) => `<div class="vcard" data-mat-action="play">${thumb("", item.wm, item.dur, item.img)}<div class="vb"><div class="vn">${esc(item.n)}</div><div class="vmeta">${prodTag(item.prod)}</div></div></div>`;
           const docItem = (item, isManual) => `<div class="doc"><span class="dt">${icon.doc}<span class="ext">PDF</span></span><div class="dm"><div class="dn">${esc(item.n)}</div><div class="dd">${esc(isManual ? item.model : item.sum)}</div><div class="dmeta">${isManual ? prodTag(item.prod) : indTag(item.ind)}<span class="pages">${esc(item.pages)} 页</span></div></div><button class="dl dact" type="button" data-wp-download="${esc(item.n)}">${icon.download}下载</button></div>`;
           const caseCard = (item) => `<div class="ccard"><div class="co">${esc(item.o)}</div><div class="ct">${esc(item.t)}</div><div class="cstats">${item.stats.map((stat) => `<div class="cstat"><div class="cn">${esc(stat[0])}</div><div class="cl">${esc(stat[1])}</div></div>`).join("")}</div><div class="cmeta">${indTag(item.ind)}<button class="clink" type="button" data-quick-ask="详细介绍${esc(item.o)}${esc(item.t)}案例">查看详情 ${icon.arrow}</button></div></div>`;
@@ -5610,8 +5611,9 @@ function openOrderDetail(orderId) {
           const lat = lxStoreLat(store, ctx.lat);
           const lng = lxStoreLng(store, ctx.lng);
           const dist = lxStoreDistance(store) || (index === 0 ? "8.7km" : index === 1 ? "9.3km" : "12.8km");
+          const tagHtml = lxStoreTags(store).map((tag, i) => `<span class="tag${i === 0 ? " key" : ""}">${esc(tag)}</span>`).join("");
           return `<div class="store" data-store-card>
-            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}</div>
+            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}<div class="tags">${tagHtml}</div></div>
             <div class="meta">
               <div class="addr">${esc(addr)}</div>
               <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>

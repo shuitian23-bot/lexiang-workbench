@@ -12567,7 +12567,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
   --spring:cubic-bezier(.34,1.4,.4,1);
   position:relative;
   color:var(--text);
-  padding:0 28px;
+  padding:0;
 }
 .lx-vip-wrap::before{
   content:"";

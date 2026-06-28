@@ -5610,8 +5610,9 @@ function openOrderDetail(orderId) {
           const lat = lxStoreLat(store, ctx.lat);
           const lng = lxStoreLng(store, ctx.lng);
           const dist = lxStoreDistance(store) || (index === 0 ? "8.7km" : index === 1 ? "9.3km" : "12.8km");
+          const tagHtml = lxStoreTags(store).map((tag, i) => `<span class="tag${i === 0 ? " key" : ""}">${esc(tag)}</span>`).join("");
           return `<div class="store" data-store-card>
-            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}</div>
+            <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}<div class="tags">${tagHtml}</div></div>
             <div class="meta">
               <div class="addr">${esc(addr)}</div>
               <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
