@@ -5474,6 +5474,10 @@ function openOrderDetail(orderId) {
               </button>`).join("");
           return `
             <div class="lx-vip-wrap">
+              <div class="vhead">
+                <h2>会员</h2>
+                <span class="sub">等级成长 · 乐豆 · 权益 · 任务</span>
+              </div>
               <section class="vp lx-vip-skin" data-v="6">
                 <div class="vcard">
                   <div class="vc-top">

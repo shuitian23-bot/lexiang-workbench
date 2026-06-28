@@ -5441,10 +5441,10 @@ function openOrderDetail(orderId) {
           else name = "游客";
           const rawBeans = offMember?.points ?? offMember?.beanBalance ?? offMember?.beans ?? offMember?.score;
           return {
-            name: "联小想",
-            tierName: "铂金会员",
+            name,
+            tierName: offLogged ? (offMember.memberLevel || "金钻会员") : (logged ? "金钻会员" : "游客会员"),
             beanBalance: rawBeans != null ? beanValue(rawBeans) : (offLogged ? "—" : (logged ? "1,280" : "8,860")),
-            subtitle: "你已加入联想会员2679天",
+            subtitle: logged ? "顶级权益已全部解锁" : "登录后解锁会员权益",
           };
         }
 
@@ -5474,6 +5474,10 @@ function openOrderDetail(orderId) {
               </button>`).join("");
           return `
             <div class="lx-vip-wrap">
+              <div class="vhead">
+                <h2>会员</h2>
+                <span class="sub">等级成长 · 乐豆 · 权益 · 任务</span>
+              </div>
               <section class="vp lx-vip-skin" data-v="6">
                 <div class="vcard">
                   <div class="vc-top">
@@ -5504,6 +5508,7 @@ function openOrderDetail(orderId) {
                     <button class="vbtn ghost taskcta" type="button" data-quick-ask="怎么赚乐豆，帮我列出今天能做的任务">去赚乐豆 ${lxVipIcon("arr")}</button>
                   </div>
                 </div>
+                <p class="fnote">会员数据为演示口径，正式上线对接联想会员系统。</p>
               </section>
             </div>`;
         }
