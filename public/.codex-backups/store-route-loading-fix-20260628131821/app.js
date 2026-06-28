@@ -342,13 +342,7 @@ if (!window.__lxCreateTypewriter) {
           badge.textContent = count > 99 ? "99+" : String(count);
         }
 
-        function lxClearRouteLoading() {
-          document.documentElement.classList.remove("lx-route-prepaint");
-          document.querySelector(".lx-route-loading")?.remove();
-        }
-
         function routeTo(page, replace = false) {
-          lxClearRouteLoading();
           const nextPage = page || "home";
           if (state.page !== nextPage) state.activeSiteFloorTab = "推荐";
           state.page = nextPage;
@@ -364,7 +358,7 @@ if (!window.__lxCreateTypewriter) {
         function initRoute() {
           const page = SITE_BY_PATH[location.pathname] || "home";
           routeTo(page, true);
-          lxClearRouteLoading();
+          document.documentElement.classList.remove("lx-route-prepaint");
         }
 
         async function loadProductsForPage() {
