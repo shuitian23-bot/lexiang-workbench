@@ -2798,74 +2798,6 @@ function openOrderDetail(orderId) {
           setTimeout(() => { delete textarea.dataset.lxSuppressSuggest; }, 0);
         }
 
-        const LX_MATERIAL_ICONS = {
-          video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>',
-          doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6V2Z"/><path d="M14 2v4h4M9 13h6M9 17h6"/></svg>',
-          caseic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4zM4 9h16M8 13h5"/></svg>',
-          manual: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z"/><path d="M8 8h6M8 12h6"/></svg>',
-          avatar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M3 12h1M20 12h1"/></svg>',
-          play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l11-7L7 5Z"/></svg>',
-          download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>',
-          arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
-        };
-
-        function lxRenderIndustryMaterialSkin() {
-          const icon = LX_MATERIAL_ICONS;
-          const indFilters = ["全部", "制造", "能源/政府", "媒体/服务", "大型活动", "教育", "医疗", "金融", "交通"];
-          const prodFilters = ["全部产品线", "ThinkPad", "ThinkBook", "服务器", "工作站", "台式机"];
-          const videos = [
-            { n: "ThinkPad X9 开箱与商务实测", dur: "03:42", prod: "ThinkPad", wm: "ThinkPad X9", img: "/assets/img/lxfd-gallery-1-1.jpg" },
-            { n: "ThinkStation 工作站性能评测", dur: "05:18", prod: "工作站", wm: "ThinkStation", img: "/assets/img/lxfd-gallery-1-2.jpg" },
-            { n: "ThinkBook 14+ 使用演示", dur: "02:56", prod: "ThinkBook", wm: "ThinkBook 14+", img: "/assets/img/lxfd-gallery-1-3.jpg" },
-            { n: "ThinkSystem 服务器部署演示", dur: "06:30", prod: "服务器", wm: "ThinkSystem", img: "/assets/img/brand-20260626-2.jpg" }
-          ];
-          const whitepapers = [
-            { n: "制造业智能化转型白皮书", sum: "产线 AI、研发仿真与数据中台的落地路径", pages: 42, ind: "制造" },
-            { n: "政务信创合规建设指南", sum: "国产化替代、等保国密与政采资质要点", pages: 38, ind: "能源/政府" },
-            { n: "教育数字化终端方案白皮书", sum: "云桌面、轻薄 AIPC 与国产化适配", pages: 31, ind: "教育" }
-          ];
-          const cases = [
-            { o: "吉利汽车", t: "智能制造数字化转型", stats: [["90%", "国产化率"], ["3×", "研发提效"]], ind: "制造" },
-            { o: "中石油", t: "央企信创与智能运维", stats: [["万台", "统一管理"], ["A 级", "CDP 评级"]], ind: "能源/政府" },
-            { o: "新华社", t: "融媒体 AI 内容生产", stats: [["3×", "稿件效率"], ["端侧", "AIPC 推理"]], ind: "媒体/服务" },
-            { o: "北京冬奥", t: "智慧观赛与运营保障", stats: [["0", "停机时长"], ["5G+AI", "实时分析"]], ind: "大型活动" }
-          ];
-          const manuals = [
-            { n: "ThinkPad X 系列用户手册", model: "适用 X1 / X9 / X13", pages: 56, prod: "ThinkPad" },
-            { n: "ThinkSystem 服务器规格书", model: "SR/ST 全系列", pages: 78, prod: "服务器" },
-            { n: "ThinkStation 工作站规格书", model: "P3 / P5 / PX", pages: 64, prod: "工作站" },
-            { n: "ThinkBook 系列用户手册", model: "14/16 / 14+/16+", pages: 48, prod: "ThinkBook" }
-          ];
-          const avatars = [
-            { n: "ThinkPad X9 · 数字人讲解", modes: ["数字人讲产品", "数字人讲方案"], dur: "02:10", tag: "ThinkPad", img: "/assets/img/lxfd-gallery-1-1.jpg" },
-            { n: "制造行业方案 · 数字人讲解", modes: ["数字人讲方案", "数字人讲产品"], dur: "03:25", tag: "制造", img: "/assets/img/lxfd-gallery-1-2.jpg" }
-          ];
-          const indTag = (text) => `<span class="tag ind">${esc(text)}</span>`;
-          const prodTag = (text) => `<span class="tag prod">${esc(text)}</span>`;
-          const filters = (label, items, grp) => `<div class="filters"><span class="flabel">${esc(label)}</span>${items.map((item, index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-mat-filter="${esc(grp)}">${esc(item)}</button>`).join("")}</div>`;
-          const thumb = (cls, wm, dur, img) => `<div class="thumb ${cls || ""}${img ? " has-img" : ""}">${img ? `<img class="thumb-img" src="${esc(img)}" alt="${esc(wm)}">` : ""}<div class="pbtn"><span>${icon.play}</span></div>${dur ? `<span class="dur">${esc(dur)}</span>` : ""}<span class="wm">${esc(wm)}</span></div>`;
-          const section = (ic, title, count, isNew = false) => `<div class="sect"><span class="si">${ic}</span><span class="st">${esc(title)}</span><span class="cnt">${esc(count)}</span>${isNew ? '<span class="new">新增</span>' : ""}<span class="ln"></span></div>`;
-          const videoCard = (item) => `<div class="vcard" data-mat-action="play">${thumb("", item.wm, item.dur, item.img)}<div class="vb"><div class="vn">${esc(item.n)}</div><div class="vmeta">${prodTag(item.prod)}</div></div></div>`;
-          const docItem = (item, isManual) => `<div class="doc"><span class="dt">${icon.doc}<span class="ext">PDF</span></span><div class="dm"><div class="dn">${esc(item.n)}</div><div class="dd">${esc(isManual ? item.model : item.sum)}</div><div class="dmeta">${isManual ? prodTag(item.prod) : indTag(item.ind)}<span class="pages">${esc(item.pages)} 页</span></div></div><button class="dl dact" type="button" data-wp-download="${esc(item.n)}">${icon.download}下载</button></div>`;
-          const caseCard = (item) => `<div class="ccard"><div class="co">${esc(item.o)}</div><div class="ct">${esc(item.t)}</div><div class="cstats">${item.stats.map((stat) => `<div class="cstat"><div class="cn">${esc(stat[0])}</div><div class="cl">${esc(stat[1])}</div></div>`).join("")}</div><div class="cmeta">${indTag(item.ind)}<button class="clink" type="button" data-quick-ask="详细介绍${esc(item.o)}${esc(item.t)}案例">查看详情 ${icon.arrow}</button></div></div>`;
-          const avatarCard = (item) => `<div class="dcard">${thumb("avatar", "数字人", item.dur, item.img)}<div class="db"><div class="dn">${esc(item.n)}</div><div class="modes">${item.modes.map((mode, index) => `<button class="mode${index === 0 ? " on" : ""}" type="button" data-mat-mode>${esc(mode.replace(/^数字人/, ""))}</button>`).join("")}</div><div class="dfoot"><button class="play" type="button" data-quick-ask="播放${esc(item.n)}">${icon.play}播放讲解</button>${indFilters.includes(item.tag) ? indTag(item.tag) : prodTag(item.tag)}</div></div></div>`;
-          return `<section class="mat lx-material-skin" data-v="1" data-floor-cat="行业资料">
-            ${filters("行业", indFilters, "ind")}
-            ${filters("产品线", prodFilters, "prod")}
-            ${section(icon.video, "产品视频", `${videos.length} 条 · 点击内嵌播放`)}
-            <div class="vgrid">${videos.map(videoCard).join("")}</div>
-            ${section(icon.doc, "行业白皮书", `${whitepapers.length} 份 · 标题+摘要+页数+下载`)}
-            <div class="dlist">${whitepapers.map((item) => docItem(item, false)).join("")}</div>
-            ${section(icon.caseic, "行业案例", `${cases.length} 个 · 客户+核心数据+详情`)}
-            <div class="cgrid">${cases.map(caseCard).join("")}</div>
-            ${section(icon.manual, "产品手册", `${manuals.length} 份 · 标题+适用型号+下载`)}
-            <div class="dgrid">${manuals.map((item) => docItem(item, true)).join("")}</div>
-            ${section(icon.avatar, "数字人讲解", `${avatars.length} 个 · 讲产品 / 讲方案`, true)}
-            <div class="dgrid">${avatars.map(avatarCard).join("")}</div>
-            <div class="mfoot-note"><span>五类资料：产品视频 / 行业白皮书 / 行业案例 / 产品手册 / 数字人讲解</span><span class="d"></span><span>视频与数字人点击内嵌播放</span><span class="d"></span><span>白皮书 / 手册支持下载</span></div>
-          </section>`;
-        }
-
         const LX_ENT_CUSTOM_ICONS = {
           chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/></svg>',
           arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
@@ -3886,7 +3818,7 @@ function openOrderDetail(orderId) {
           } else {
             const activitySections = {
               "行业解决方案": lxRenderIndustrySolutionSkin(state.industrySolutionIndex || 0),
-              "行业资料": lxRenderIndustryMaterialSkin(),
+              "行业资料": lxFloorSection("行业资料", "国产化适配 · 等保国密 · 政采资质", `<div class="lx-floor-card" data-xinchuang><strong>信创合规专区</strong><span>合规货盘 · 资质背书 · 选型指南</span></div>` + quickCard("等保与国密", "等保 2.0 三级、国密 TCM 机型", "满足等保和国密要求的机型有哪些？") + quickCard("招投标支持", "政采入围资质、投标资料", "参与政采招投标需要什么资质支持？"), `<button class="lx-p0-btn primary" type="button" data-xinchuang>进入信创专区</button>`),
             };
             box.innerHTML = activitySections[activeFloorTab] || "";
           }
@@ -6919,23 +6851,6 @@ function openOrderDetail(orderId) {
               industrySend.animate?.([{ transform: "scale(.9)" }, { transform: "scale(1)" }], { duration: 200, easing: "cubic-bezier(.34,1.4,.4,1)" });
               if (text.trim()) sendChat(text.trim());
               return;
-            }
-            const matChip = event.target.closest(".mat[data-v='1'] [data-mat-filter]");
-            if (matChip) {
-              event.preventDefault();
-              const grp = matChip.dataset.matFilter;
-              matChip.closest(".mat")?.querySelectorAll(`[data-mat-filter="${CSS.escape(grp)}"]`).forEach((item) => item.classList.toggle("on", item === matChip));
-              return;
-            }
-            const matMode = event.target.closest(".mat[data-v='1'] [data-mat-mode]");
-            if (matMode) {
-              event.preventDefault();
-              matMode.closest(".dcard")?.querySelectorAll("[data-mat-mode]").forEach((item) => item.classList.toggle("on", item === matMode));
-              return;
-            }
-            const matAction = event.target.closest(".mat[data-v='1'] .play, .mat[data-v='1'] .dl, .mat[data-v='1'] .clink, .mat[data-v='1'] .dact");
-            if (matAction) {
-              matAction.animate?.([{ transform: "scale(.96)" }, { transform: "scale(1)" }], { duration: 180, easing: "cubic-bezier(.34,1.4,.4,1)" });
             }
 
             const solBtn = event.target.closest("[data-solution]");
