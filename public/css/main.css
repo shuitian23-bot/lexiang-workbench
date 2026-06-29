@@ -12036,6 +12036,11 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
       .lx-cmp-skin[data-v="1"][data-hover-col="5"] .bodycell[data-col="5"],
       .lx-cmp-skin[data-v="1"][data-hover-col="6"] .bodycell[data-col="6"],
       .lx-cmp-skin[data-v="1"][data-hover-col="7"] .bodycell[data-col="7"] { background: var(--lavender-weak); }
+      /* AI 最推荐整列高亮（区别于单项「优」）：竖向品牌色描边 + 浅底 + 列头角标 */
+      .lx-cmp-skin[data-v="1"] .cell.lx-cmp-pick { background: rgba(184,37,46,.06); box-shadow: inset 1px 0 0 var(--lx-brand-red,#B8252E), inset -1px 0 0 var(--lx-brand-red,#B8252E); }
+      .lx-cmp-skin[data-v="1"] .phead.lx-cmp-pick { box-shadow: inset 1px 0 0 var(--lx-brand-red,#B8252E), inset -1px 0 0 var(--lx-brand-red,#B8252E), inset 0 2px 0 var(--lx-brand-red,#B8252E); }
+      .lx-cmp-skin[data-v="1"] .op.lx-cmp-pick { box-shadow: inset 1px 0 0 var(--lx-brand-red,#B8252E), inset -1px 0 0 var(--lx-brand-red,#B8252E), inset 0 -2px 0 var(--lx-brand-red,#B8252E); }
+      .lx-cmp-skin[data-v="1"] .lx-cmp-pick-flag { display:inline-flex; align-items:center; height:18px; padding:0 8px; border-radius:5px; background:var(--lx-brand-red,#B8252E); color:#fff; font-size:10.5px; font-weight:800; letter-spacing:.4px; white-space:nowrap; margin-bottom:2px; }
       .lx-cmp-wrap .foot-note { margin-top: 12px; font-size: 12px; color: #9a929f; }
       .lx-cmp-wrap .foot-note b { color: #5b1452; }
       .lx-md .lx-md-h { margin: 10px 0 4px; font-size: 14px; }

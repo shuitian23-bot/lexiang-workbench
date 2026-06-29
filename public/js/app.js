@@ -1707,6 +1707,21 @@ function openOrderDetail(orderId) {
               if (!d.pick || !d.reason) return;
               adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
               adviceEl.style.display = 'block';
+              // 把 AI 最推荐那款整列高亮（区别于单项「优」）。按 pick 商品名匹配列 index
+              const pick = String(d.pick || "").trim();
+              let pickIdx = full.findIndex((p) => String(p.name || "").trim() === pick);
+              if (pickIdx < 0) pickIdx = full.findIndex((p) => pick && (String(p.name || "").includes(pick) || pick.includes(String(p.name || "").trim())));
+              if (pickIdx >= 0) {
+                const tbl = pageBox.querySelector(".lx-cmp-skin .tbl");
+                if (tbl) {
+                  tbl.querySelectorAll(`[data-col="${pickIdx}"]`).forEach((cell) => cell.classList.add("lx-cmp-pick"));
+                  // 列头加「最推荐」角标
+                  const head = tbl.querySelector(`.phead[data-col="${pickIdx}"]`);
+                  if (head && !head.querySelector(".lx-cmp-pick-flag")) {
+                    head.insertAdjacentHTML("afterbegin", `<span class="lx-cmp-pick-flag">乐享最推荐</span>`);
+                  }
+                }
+              }
             } catch (_) {}
           })();
         }
