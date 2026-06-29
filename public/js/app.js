@@ -3071,8 +3071,12 @@ function openOrderDetail(orderId) {
         const LX_NON_MACHINE_RE = /耳机|buds|延保|服务包|权益包|出行权益|套餐|手柄|会议平板|会议大屏|传屏器|移动支架|电子白板|触控会议|自行车|滑板车|双肩包|背包|斜挎|行李箱|鼠标|键盘膜|贴膜|钢化膜|彩膜|保护套|保护壳|保护夹|水杯|T-?Shirt|T恤|卫衣|羽绒|马甲|剃须刀|拆机|兑换卡/i;
         const lxIsWholeMachine = (p) => !LX_NON_MACHINE_RE.test(`${p.name || ""} ${p.description || ""}`);
 
-        // 全屋智能关键词：命中→全屋楼层；不命中→智能生活楼层（两者共享 category='智能生活'，靠此正则拆分）
-        const LX_SMARTHOME_RE = /全屋|智能家居|门锁|网关|摄像头|摄像机|传感器|智能灯|智能开关|智能插座|路由器|门铃|监控/;
+        // 全屋智能关键词：命中→全屋楼层；不命中→智能生活楼层
+        // 6 大类（场景方案/照明/球机/安防/投影/存储）跨 category 捞货——这些货 category 五花八门
+        //（投影设备/监控安防/灯具/智能生活…），靠关键词归拢；上架(active)后自动进楼层，无需改码。
+        const LX_SMARTHOME_RE = /全屋智能|智能家居|智能照明|吸顶灯|智能灯|灯带|球机|云台|摄像机|摄像头|安防|门锁|门铃|网关|传感器|智能开关|智能插座|监控|智能投影|投影仪|个人云存储|家庭存储|私有云|NAS/;
+        // 全屋智能楼层排除项：跳绳/洗手机/插排等被误打【联想全屋智能】前缀的非智能家居杂货
+        const LX_SMARTHOME_EXCLUDE_RE = /跳绳|洗手机|插排|快充|轨道插|跑步|健身|运动/;
 
         // 测试/无效品过滤
         const LX_TEST_PRODUCT_RE = /UI自动化专用|测试|请勿修改|下单不发货/;
@@ -3108,15 +3112,20 @@ function openOrderDetail(orderId) {
             filter: (p) => p.category === "智能生活" && !LX_SMARTHOME_RE.test(`${p.name || ""} ${p.description || ""}`) && lxIsValidProduct(p),
           },
           {
+            label: "全屋智能",
+            // 跨 category 捞 6 大类（场景方案/照明/球机/安防/投影/存储）；这些 category 之前没被任何楼层拉，故货全没展示
+            categories: ["智能生活", "监控安防", "摄像监控", "投影设备", "灯具", "居家好物"],
+            filter: (p) =>
+              ["智能生活", "监控安防", "摄像监控", "投影设备", "灯具", "居家好物"].includes(p.category) &&
+              LX_SMARTHOME_RE.test(`${p.name || ""} ${p.description || ""}`) &&
+              !LX_SMARTHOME_EXCLUDE_RE.test(`${p.name || ""} ${p.description || ""}`) &&
+              lxIsValidProduct(p),
+          },
+          {
             label: "配件/办公",
             categories: ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"],
             // 会议平板/大屏属 B 端商用，个人站不展示（无论它被标成哪个 category）
             filter: (p) => ["键鼠相关", "电脑外设与配件", "充电设备", "包袋", "耳机", "打印机及配件", "存储设备"].includes(p.category) && lxIsValidProduct(p) && !/会议平板|会议大屏|传屏器|电子白板|触控会议/.test(`${p.name || ""} ${p.description || ""}`),
-          },
-          {
-            label: "全屋智能",
-            categories: ["智能生活"],
-            filter: (p) => p.category === "智能生活" && LX_SMARTHOME_RE.test(`${p.name || ""} ${p.description || ""}`) && lxIsValidProduct(p),
           },
           {
             label: "服务",
@@ -5417,6 +5426,10 @@ function openOrderDetail(orderId) {
             check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></svg>',
             stairs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h5v-4h5v-4h6"/><path d="M4 22h16"/></svg>',
             arr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+            star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+            gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4 9 8 12 8Zm0 0s2-5 4.5-4S15 8 12 8Z"/></svg>',
+            shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1 4H5L4 7ZM5 11v9h14v-9M3 7l1-3h16l1 3"/></svg>',
+            pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
           };
           return icons[name] || "";
         }
@@ -5448,63 +5461,146 @@ function openOrderDetail(orderId) {
           };
         }
 
+        // ponytail: 行为驱动排序 — 无真埋点，用 localStorage + 对话关键词近似；
+        // 要真行为排序需接入埋点系统，现在是 POC 轻量实现。
+        function lxMemberModuleOrder() {
+          const DEFAULT_ORDER = ["等级成长", "乐豆", "权益", "任务", "活动", "兑换", "测评"];
+          const KEYWORD_MAP = [
+            { keys: ["乐豆", "兑换", "积分", "抵现"], mod: "乐豆" },
+            { keys: ["兑换", "商城", "好物", "兑换记录"], mod: "兑换" },
+            { keys: ["签到", "任务", "打卡", "赚豆"], mod: "任务" },
+            { keys: ["活动", "会员日", "试用", "限时"], mod: "活动" },
+            { keys: ["等级", "升级", "成长值", "铂金", "钻石", "黄金", "认证"], mod: "等级成长" },
+            { keys: ["权益", "黑卡", "专属", "优惠券", "特权"], mod: "权益" },
+            { keys: ["评测", "测评", "写评测", "晒单"], mod: "测评" },
+          ];
+          // 读取最近点击的模块（localStorage）
+          let lastMod = null;
+          try { lastMod = localStorage.getItem("lexiang.member.lastModule"); } catch (e) {}
+          // 从对话文本中匹配模块关键词
+          let textMod = null;
+          const lastText = (typeof state !== "undefined" && state.lastUserText) ? state.lastUserText : "";
+          if (lastText) {
+            for (const { keys, mod } of KEYWORD_MAP) {
+              if (keys.some((k) => lastText.includes(k))) { textMod = mod; break; }
+            }
+          }
+          // 优先级：对话关键词 > localStorage，都没有则默认顺序
+          const hitMod = textMod || lastMod;
+          if (hitMod && DEFAULT_ORDER.includes(hitMod)) {
+            return [hitMod, ...DEFAULT_ORDER.filter((m) => m !== hitMod)];
+          }
+          return DEFAULT_ORDER.slice();
+        }
+
         function lxRenderVipSkin() {
           const model = lxVipModel();
-          const rights = [
-            ["tag", "会员价", "全场专享折扣"],
-            ["coins", "乐豆抵现", "1000 豆抵 ¥10"],
-            ["ticket", "月度券包", "每月 4 张专属券"],
-            ["flask", "0 元试用", "新品先体验"],
-            ["cal", "会员日", "每月 18 日双倍豆"],
-            ["headset", "专属客服", "VIP 通道"],
-          ];
-          const tasks = [
-            ["check", "每日签到赚乐豆", "签到 +10 豆 · 浏览商品 +5 豆 · 分享 +20 豆"],
-            ["stairs", "看看适合冲哪个等级", "对比各等级权益与升级门槛"],
-          ];
-          const rightsHtml = rights.map((item) => `
-              <button class="ben" type="button" data-quick-ask="会员权益详情：${esc(item[1])}">
-                <span class="bi">${lxVipIcon(item[0])}</span>
-                <span><span class="bt">${esc(item[1])}</span><span class="bs">${esc(item[2])}</span></span>
-              </button>`).join("");
-          const tasksHtml = tasks.map((item) => `
-              <button class="task" type="button" data-quick-ask="${esc(item[1])}">
-                <span class="ti">${lxVipIcon(item[0])}</span>
-                <span class="tt"><span class="tn">${esc(item[1])}</span><span class="td">${esc(item[2])}</span></span>
-              </button>`).join("");
+
+          // ---- 顶部会员卡（保留观的精致卡，不动 .lx-vip-skin 结构）----
+          const vcardHtml = `
+            <section class="vp lx-vip-skin" data-v="6">
+              <div class="vcard">
+                <div class="vc-top">
+                  <span class="ava">${lxVipIcon("crown")}</span>
+                  <span class="vc-main">
+                    <span class="ph">${esc(model.name)} <span class="tier">${lxVipIcon("crown")}${esc(model.tierName)}</span></span>
+                    <span class="vc-sub">${esc(model.subtitle)}</span>
+                  </span>
+                  <button class="vbtn ghost vc-cta" type="button" data-quick-ask="打开会员中心，查看我的会员权益">会员中心 ${lxVipIcon("arr")}</button>
+                </div>
+                <div class="beanbar">
+                  <span class="bk">乐豆余额</span>
+                  <span class="bv">${esc(model.beanBalance)}<span class="u">豆</span></span>
+                  <span class="bd">1000 豆抵 ¥10</span>
+                  <span class="sp"></span>
+                  <button class="vbtn solid" type="button" data-quick-ask="乐豆商城能兑换什么，帮我推荐">去兑换</button>
+                  <button class="vbtn ghost" type="button" data-quick-ask="会员乐豆规则是什么">规则</button>
+                </div>
+              </div>
+            </section>`;
+
+          // ---- 7 大模块定义 ----
+          const qc = (title, desc, ask, extra) =>
+            `<div class="lx-floor-card${extra ? " " + extra : ""}" data-quick-ask="${esc(ask)}" data-mem-mod="${esc(ask)}" role="button" tabindex="0"><strong>${esc(title)}</strong><span>${esc(desc)}</span></div>`;
+
+          const MODULES = {
+            "等级成长": () => {
+              const body =
+                qc("等级权益对比", "黄金/铂金/钻石/黑卡各级差异一览", "帮我对比联想会员各等级权益有什么差别") +
+                qc("我的成长值", "查看当前积累的成长值进度", "我的会员成长值是多少，距离升级还差多少") +
+                qc("怎么升级", "了解升级所需成长值和途径", "联想会员怎么快速升级，升级需要多少成长值") +
+                qc("会员 FAQ", "常见问题解答，入会/等级/权益", "联想会员常见问题解答，帮我列一下") +
+                qc("职场认证", "职场身份认证解锁专属权益", "怎么做职场认证，认证后有什么额外权益") +
+                qc("学生认证", "学生身份认证享教育特价", "学生认证怎么做，认证后有什么优惠");
+              return { title: "等级和成长体系", sub: "等级 · 成长值 · 认证", body, modKey: "等级成长" };
+            },
+            "乐豆": () => {
+              const body =
+                qc("乐豆兑换秒杀", "限时乐豆专属秒杀好物", "现在乐豆兑换秒杀有什么商品，帮我推荐") +
+                qc("乐豆 IP 形象", "认识联想乐豆 IP 形象故事", "联想乐豆 IP 形象是什么，有什么故事") +
+                qc("乐豆规则说明", "怎么赚乐豆，1000豆抵¥10", "联想乐豆的获取规则和使用规则详细说明") +
+                qc("积分规则", "积分与乐豆的关系和折算", "联想积分和乐豆是什么关系，怎么换算");
+              return { title: "乐豆", sub: `余额 ${model.beanBalance} 豆 · 兑换 · 规则`, body, modKey: "乐豆" };
+            },
+            "权益": () => {
+              const body =
+                qc("黄金会员权益", "黄金专属折扣、月度券包详情", "黄金会员有哪些专属权益") +
+                qc("铂金会员权益", "铂金专属特权与升级好处", "铂金会员有哪些专属权益") +
+                qc("钻石会员权益", "钻石顶级权益与专属服务", "钻石会员有哪些专属权益") +
+                qc("黑卡专区", "黑卡会员超高端特权，专属通道", "黑卡会员有什么专属特权，怎么申请黑卡", "lx-mem-blackcard") +
+                qc("会员专属优惠", "分级专属折扣与限时特惠", "我能享受哪些会员专属优惠");
+              return { title: "权益", sub: "分级权益 · 黑卡专区 · 专属优惠", body, modKey: "权益" };
+            },
+            "任务": () => {
+              const body =
+                qc("每日签到", "签到 +10 豆，连续签到有额外奖励", "怎么每日签到赚乐豆，有连续签到奖励吗") +
+                qc("今日任务", "查看今天能做哪些任务赚乐豆", "今天有哪些任务可以做，帮我列出来") +
+                qc("专属任务", "我的专属任务，完成赚更多豆", "我有哪些专属任务，完成后能赚多少乐豆") +
+                qc("任务中心", "进入任务中心查看全部任务", "打开任务中心，帮我列出所有可做的任务");
+              return { title: "任务", sub: "签到 · 日常任务 · 专属任务", body, modKey: "任务" };
+            },
+            "活动": () => {
+              const body =
+                qc("会员日", "每月 18 日乐豆双倍，专属折扣", "会员日是哪天，有什么活动和优惠") +
+                qc("限时活动", "当前正在进行的限时会员活动", "现在有哪些限时会员活动，帮我整理") +
+                qc("0 元试用", "申请新品 0 元免费体验资格", "怎么申请联想新品 0 元试用，有哪些产品可以试") +
+                qc("新品试用", "会员专属新品抢先体验通道", "联想新品试用有哪些，我能参加吗");
+              return { title: "活动", sub: "会员日 · 限时活动 · 新品试用", body, modKey: "活动" };
+            },
+            "兑换": () => {
+              const body =
+                qc("进入积分商城", "用乐豆兑换优惠券、好物、配件", "帮我打开积分商城，我想用乐豆兑换东西") +
+                qc("热门兑换好物", "近期热门乐豆兑换商品推荐", "现在积分商城里最热门的兑换商品是什么") +
+                qc("我的兑换记录", "查看历史兑换订单和进度", "帮我查一下我的乐豆兑换记录");
+              return { title: "兑换", sub: "积分商城 · 乐豆换好物", body, modKey: "兑换" };
+            },
+            "测评": () => {
+              const body =
+                qc("会员评测专区", "查看会员专属产品评测内容", "联想会员评测专区有什么，帮我推荐值得看的评测") +
+                qc("写评测赚乐豆", "写真实使用评测可获乐豆奖励", "怎么写产品评测赚乐豆，有什么要求") +
+                qc("看他人评测", "真实用户评测，买前参考", "帮我找一下联想笔记本的真实用户评测");
+              return { title: "测评", sub: "会员评测 · 写评测赚豆", body, modKey: "测评" };
+            },
+          };
+
+          // ---- 按行为排序渲染楼层 ----
+          const order = lxMemberModuleOrder();
+          const floorsHtml = order.map((key) => {
+            if (!MODULES[key]) return "";
+            const { title, sub, body, modKey } = MODULES[key]();
+            return `<div class="lx-mem-floor" data-mem-floor="${esc(modKey)}">
+              <div class="lx-mem-floor-hd">
+                <span class="lx-mem-floor-title">${esc(title)}</span>
+                <span class="lx-mem-floor-sub">${esc(sub)}</span>
+              </div>
+              <div class="lx-mem-floor-grid">${body}</div>
+            </div>`;
+          }).join("");
+
           return `
-            <div class="lx-vip-wrap">
-              <section class="vp lx-vip-skin" data-v="6">
-                <div class="vcard">
-                  <div class="vc-top">
-                    <span class="ava">${lxVipIcon("crown")}</span>
-                    <span class="vc-main">
-                      <span class="ph">${esc(model.name)} <span class="tier">${lxVipIcon("crown")}${esc(model.tierName)}</span></span>
-                      <span class="vc-sub">${esc(model.subtitle)}</span>
-                    </span>
-                    <button class="vbtn ghost vc-cta" type="button" data-quick-ask="打开会员中心，查看我的会员权益">会员中心 ${lxVipIcon("arr")}</button>
-                  </div>
-                  <div class="beanbar">
-                    <span class="bk">乐豆余额</span>
-                    <span class="bv">${esc(model.beanBalance)}<span class="u">豆</span></span>
-                    <span class="bd">1000 豆抵 ¥10</span>
-                    <span class="sp"></span>
-                    <button class="vbtn solid" type="button" data-quick-ask="乐豆商城能兑换什么，帮我推荐">去兑换</button>
-                    <button class="vbtn ghost" type="button" data-quick-ask="会员乐豆规则是什么">规则</button>
-                  </div>
-                </div>
-                <div class="body">
-                  <div class="panel">
-                    <div class="sect">核心权益 <span class="ln"></span></div>
-                    <div class="bengrid">${rightsHtml}</div>
-                  </div>
-                  <div class="panel">
-                    <div class="sect">任务与活动 <span class="ln"></span></div>
-                    <div class="tasks">${tasksHtml}</div>
-                    <button class="vbtn ghost taskcta" type="button" data-quick-ask="怎么赚乐豆，帮我列出今天能做的任务">去赚乐豆 ${lxVipIcon("arr")}</button>
-                  </div>
-                </div>
-              </section>
+            <div class="lx-vip-wrap lx-vip-floors-wrap">
+              ${vcardHtml}
+              <div class="lx-mem-floors" id="lxMemFloors">${floorsHtml}</div>
             </div>`;
         }
 
@@ -6807,6 +6903,13 @@ function openOrderDetail(orderId) {
             }
             const quickAsk = event.target.closest("[data-quick-ask]")?.dataset.quickAsk;
             if (quickAsk) {
+              // ponytail: 会员楼层点击写 localStorage，用于行为驱动模块排序（POC 轻量实现）
+              try {
+                const memFloor = event.target.closest("[data-mem-floor]");
+                if (memFloor && memFloor.dataset.memFloor) {
+                  localStorage.setItem("lexiang.member.lastModule", memFloor.dataset.memFloor);
+                }
+              } catch (e) {}
               closeModal();
               sendChat(quickAsk);
             }

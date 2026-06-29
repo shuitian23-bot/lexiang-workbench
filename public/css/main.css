@@ -13087,3 +13087,124 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
 .ec[data-v="1"] .scard .cust{ margin-top:12px; padding-top:12px; border-top:1px solid var(--hair); display:flex; gap:14px; }
 .ec[data-v="1"] .scard .pick{ margin-top:14px; width:100%; }
 @media (max-width:1240px){ .ec[data-v="1"] .grid{ grid-template-columns:repeat(3,1fr); } }
+
+/* =====================================================================
+   lx-mem-floor — 会员 tab 7 大模块楼层化样式
+   新增 class，不覆盖 .lx-vip-skin（观的顶部会员卡）
+   ===================================================================== */
+.lx-vip-floors-wrap{ display:flex; flex-direction:column; gap:20px; }
+.lx-mem-floors{ display:flex; flex-direction:column; gap:16px; }
+
+/* 单模块楼层容器 */
+.lx-mem-floor{
+  background:#fff;
+  border:1px solid var(--line,#ece6f0);
+  border-radius:18px;
+  padding:20px 22px 22px;
+  box-shadow:0 1px 4px rgba(50,30,60,.04);
+}
+
+/* 楼层标题栏 */
+.lx-mem-floor-hd{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin-bottom:14px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--hair,#f4eff7);
+}
+.lx-mem-floor-title{
+  font-size:14.5px;
+  font-weight:800;
+  color:var(--ink,#1f1822);
+  letter-spacing:.3px;
+  flex:none;
+}
+.lx-mem-floor-title::before{
+  content:"";
+  display:inline-block;
+  width:3px;
+  height:13px;
+  border-radius:2px;
+  background:linear-gradient(180deg,var(--aubergine,#5b1452),var(--lx-brand-red,#b8252e));
+  margin-right:8px;
+  vertical-align:middle;
+  position:relative;
+  top:-1px;
+}
+.lx-mem-floor-sub{
+  font-size:12px;
+  color:var(--text-muted,#9a929f);
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* 卡片网格：默认 3 列 */
+.lx-mem-floor-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+/* 楼层内卡片样式（复用 .lx-floor-card 风格，独立作用域防冲突） */
+.lx-mem-floor .lx-floor-card{
+  padding:13px 14px;
+  border-radius:12px;
+  background:var(--tint,#faf6fc);
+  border:1px solid var(--hair,#f4eff7);
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  transition:background-color .15s,border-color .15s,box-shadow .15s;
+  text-align:left;
+  user-select:none;
+}
+.lx-mem-floor .lx-floor-card:hover{
+  background:#fff;
+  border-color:var(--line,#ece6f0);
+  box-shadow:0 4px 12px rgba(60,30,70,.07);
+}
+.lx-mem-floor .lx-floor-card strong{
+  font-size:13.5px;
+  font-weight:800;
+  color:var(--ink,#1f1822);
+  display:block;
+  line-height:1.4;
+}
+.lx-mem-floor .lx-floor-card span{
+  font-size:11.5px;
+  color:var(--text-muted,#9a929f);
+  display:block;
+  line-height:1.5;
+}
+
+/* 黑卡专区 — 醒目深色卡（联想深紫红，符合设计规范，不用营销背景） */
+.lx-mem-floor .lx-floor-card.lx-mem-blackcard{
+  background:var(--aubergine-dark,#4e1646);
+  border-color:var(--aubergine-dark,#4e1646);
+  box-shadow:0 6px 18px rgba(78,22,70,.18);
+}
+.lx-mem-floor .lx-floor-card.lx-mem-blackcard strong{
+  color:#fff;
+}
+.lx-mem-floor .lx-floor-card.lx-mem-blackcard span{
+  color:rgba(255,255,255,.65);
+}
+.lx-mem-floor .lx-floor-card.lx-mem-blackcard:hover{
+  background:#5b1452;
+  border-color:#5b1452;
+  box-shadow:0 8px 22px rgba(78,22,70,.26);
+}
+
+/* 移动端 768px 退化：单列 */
+@media (max-width:768px){
+  .lx-mem-floor-grid{ grid-template-columns:1fr 1fr; }
+  .lx-mem-floor{ padding:16px 16px 18px; }
+  .lx-mem-floor-hd{ flex-wrap:wrap; }
+}
+@media (max-width:480px){
+  .lx-mem-floor-grid{ grid-template-columns:1fr; }
+}
