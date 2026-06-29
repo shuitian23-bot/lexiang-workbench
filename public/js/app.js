@@ -2228,7 +2228,7 @@ function openOrderDetail(orderId) {
               return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
             }
             // 下单当前正在看的商品
-            if (/^\s*(我?要|帮我|给我|我?想)?(下单|购买|买)(这个|它|当前|这台|这款|这件|了)?\s*$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
+            if (/^\s*(我?要|帮我|给我|我?想|那)?(就)?(下单|购买|下个单|买)(这个|它|当前|这台|这款|这件|了|下)?\s*(吧|呀|啊|喽|咯|吧。?)?\s*$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
             return null;
           })(text);
           if (_localCtrl) {
@@ -5188,6 +5188,30 @@ function openOrderDetail(orderId) {
             return { type: "list", product: null, products: activeTab.products.slice() };
           }
           if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
+          // 兜底列表：优先用「用户真正看到的」可见商品卡顺序（推荐墙/楼层/对话推荐），按 sku 映射回商品对象。
+          // 这样「第三个」=屏幕上第 3 张卡，而不是 state.products 的内部顺序（可能和显示不一致）。
+          const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.compare || [])];
+          const bySku = {};
+          pool.forEach((p) => { if (p && p.sku) bySku[p.sku] = p; });
+          const seen = new Set();
+          const domProducts = [];
+          // 优先对话里最近一条 AI 回复内的商品列表（用户刚问完推荐，"第N个"多指这批）
+          const aiLists = document.querySelectorAll(".lx-p0-messages .ai-body");
+          const lastAi = aiLists.length ? aiLists[aiLists.length - 1] : null;
+          const scanRoots = [];
+          if (lastAi) scanRoots.push(lastAi);
+          // 再加右侧可见的推荐墙/楼层（用户在看的）
+          document.querySelectorAll(".content [data-open-product], .reco-grid [data-open-product], [data-site-floors] [data-open-product]").forEach((el) => scanRoots.push(el));
+          scanRoots.forEach((root) => {
+            const els = root.matches && root.matches("[data-open-product]") ? [root] : root.querySelectorAll("[data-open-product]");
+            els.forEach((el) => {
+              const sku = el.getAttribute("data-open-product");
+              if (!sku || seen.has(sku)) return;
+              seen.add(sku);
+              if (bySku[sku]) domProducts.push(bySku[sku]);
+            });
+          });
+          if (domProducts.length) return { type: "list", product: null, products: domProducts };
           const visible = [...(state.products || []), ...(state.siteProducts || [])];
           if (visible.length) return { type: "list", product: null, products: visible.slice() };
           return { type: "other", product: null, products: [] };
@@ -8535,7 +8559,7 @@ function openOrderDetail(orderId) {
         const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
         return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
       }
-      if (/^(我?要|帮我|给我|我?想)?(下单|购买|买)(这个|它|当前|这台|这款|这件|了)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
+      if (/^(我?要|帮我|给我|我?想|那)?(就)?(下单|购买|下个单|买)(这个|它|当前|这台|这款|这件|了|下)?(吧|呀|啊|喽|咯)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
       return null;
     })();
     if (_lxfdLocalCtrl) {
