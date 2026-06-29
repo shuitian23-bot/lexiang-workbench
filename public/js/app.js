@@ -1788,6 +1788,62 @@ function openOrderDetail(orderId) {
           toast("已退出登录");
         }
 
+        // ── 对话持久化：切站点/刷新后从 localStorage 恢复（不碰导航软切，靠整页重载后恢复兜底）──
+        const LX_CONV_KEY = "lexiang.conversation.v1";
+        let _lxConvSaveTimer = null;
+        function lxSaveConversation() {
+          clearTimeout(_lxConvSaveTimer);
+          _lxConvSaveTimer = setTimeout(function () {
+            try {
+              const listEl = document.querySelector(".chat-state .lx-p0-messages");
+              if (!listEl) return;
+              const messages = [];
+              listEl.querySelectorAll(":scope > .lx-p0-message").forEach(function (el) {
+                const isUser = el.classList.contains("user");
+                const isAi = el.classList.contains("ai");
+                if (!isUser && !isAi) return; // 跳过 loading 态
+                const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
+                const html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+                if (!text && !html) return;
+                messages.push({ role: isUser ? "user" : "ai", text, html });
+              });
+              if (!messages.length) return;
+              localStorage.setItem(LX_CONV_KEY, JSON.stringify({
+                convId: state.convId || null,
+                messages: messages.slice(-50),
+                ts: Date.now()
+              }));
+            } catch (_e) { /* localStorage 写满等，静默 */ }
+          }, 400);
+        }
+        function lxRestoreConversation() {
+          try {
+            const raw = localStorage.getItem(LX_CONV_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (!data || !Array.isArray(data.messages) || !data.messages.length) return;
+            if (data.ts && Date.now() - data.ts > 7 * 24 * 3600 * 1000) { localStorage.removeItem(LX_CONV_KEY); return; }
+            state.convId = data.convId || state.convId;
+            const list = ensureChat();
+            if (!list) return;
+            list.innerHTML = "";
+            data.messages.forEach(function (m) {
+              if (m.role === "user") {
+                addMessage("user", m.text || "");
+              } else {
+                // AI 消息：用已渲染的 html 直接还原（不重跑流式动画）
+                const node = document.createElement("div");
+                node.className = "lx-p0-message msg ai lx-chat-skin";
+                node._raw = m.text || "";
+                const body = lxEnsureAiBody(node);
+                body.innerHTML = m.html || mdLite(m.text || "");
+                list.appendChild(node);
+              }
+            });
+            list.scrollTop = list.scrollHeight;
+          } catch (_e) { /* 恢复失败静默，不影响首屏 */ }
+        }
+
         function ensureChat() {
           document.body.dataset.state = "chat";
           const chatState = $(".chat-state");
@@ -1822,6 +1878,7 @@ function openOrderDetail(orderId) {
           }
           list.appendChild(node);
           list.scrollTop = list.scrollHeight;
+          if (isUser || isAi) lxSaveConversation(); // 用户/AI消息变化即防抖持久化（AI流式终态由lxAnimateAiFinal后的_raw兜住）
           return node;
         }
 
@@ -2089,6 +2146,7 @@ function openOrderDetail(orderId) {
           state.pendingImageUrl = "";
           state.pendingAudioUrl = "";
           state.queryHistory = [];
+          try { localStorage.removeItem(LX_CONV_KEY); } catch (_e) {} // 仅主动新建对话才清持久化
           document.body.dataset.state = "default";
           $(".lx-p0-messages")?.remove();
           const chatState = $(".chat-state");
@@ -7436,6 +7494,16 @@ function openOrderDetail(orderId) {
         checkAuth();
         initRoute();
         window.addEventListener("popstate", initRoute);
+        // 切站点(整页重载)/刷新后恢复对话：仅当有持久化对话时还原并切到 chat 态；无则保持首页/欢迎态不变
+        try {
+          const _convRaw = localStorage.getItem(LX_CONV_KEY);
+          if (_convRaw) {
+            const _convData = JSON.parse(_convRaw);
+            if (_convData && Array.isArray(_convData.messages) && _convData.messages.length) {
+              lxRestoreConversation();
+            }
+          }
+        } catch (_e) {}
       })();
 
 // Lexiang fullscreen dialog replacement behavior
