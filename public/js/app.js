@@ -1693,8 +1693,7 @@ function openOrderDetail(orderId) {
           pageBox.innerHTML = `
             <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
             ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>
-            <div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-quick-ask="帮我解读这几款的差异，按我的需求给出选购建议：${esc(full.map((item) => item.name).join("、"))}">让乐享解读差异</button></div>`;
+            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f5f0ff;border-radius:10px;font-size:13px;color:#3d1fa3;line-height:1.6"></div>`;
           // AI建议：异步 fetch，不阻塞渲染
           (async () => {
             try {
@@ -3671,7 +3670,7 @@ function openOrderDetail(orderId) {
               ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             const seckillEnd = lxSeckillCountdown();
-            // 国补楼层：LBS 定位 + 步骤卡 + 叠加入口 + 商品
+            // 国补楼层：LBS 定位 + 步骤卡 + 叠加入口 + 商品（2 态：未认证 / 已认证已领取）
             const gbCityBar = `<div class="lx-gb-city-bar"><span class="lx-gb-city-label">当前城市：</span><span class="lx-gb-city-name" data-gb-city>正在定位你所在城市…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
             const gbSteps = [
               ["01", "确认资格", "北京/上海等参与城市用户，需有有效身份证", "查资格", "我怎么确认是否有国补购机资格？"],
@@ -3685,39 +3684,97 @@ function openOrderDetail(orderId) {
               ["保值焕新叠加", "保值焕新入门门槛更低", "保值焕新和国补可以同时享受吗？"]
             ].map(([t, d, a]) => `<div class="lx-floor-card" data-quick-ask="${esc(a)}"><strong>${esc(t)}</strong><span>${esc(d)}</span></div>`).join("")}</div>`;
             const gbProductPool = (state.products || []).filter((p) => /小新|YOGA|ThinkPad|ThinkBook|拯救者|LEGION|GeekPro|轻薄|昭阳|台式|天逸|扬天|开天|启天|平板|Tab|moto|ThinkVision|显示器/.test(p.name || ""));
-            const gbProductGrid = `<div class="lx-floor-products">${gbProductPool.slice(0, 6).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>`;
+            // 国补态判断
+            const gbSt = lxGbState();
+            const gbVerified = gbSt.realVerified && gbSt.claimed;
+            // 认证状态卡
+            const gbAuthCard = gbVerified
+              ? `<div class="lx-gb-auth-card verified"><span class="lx-auth-badge ok">已认证</span><span>实名认证已通过，国补资格已绑定</span></div>`
+              : `<div class="lx-gb-auth-card unverified"><span class="lx-auth-badge">未认证</span><span>完成实名认证后方可领取国补资格</span><button class="lx-p0-btn primary" type="button" data-gb-auth>立即实名认证领资格</button></div>`;
+            // 态B 额外：绑定资格卡
+            const gbBoundCard = gbVerified
+              ? `<div class="lx-gb-bound-card"><span class="lx-gb-bound-city">${esc(gbSt.city || "当前城市")}</span>国补资格已绑定 · <strong>${esc(gbSt.boundCat || "笔记本")}</strong></div>`
+              : "";
+            // 商品：态B 优先 boundCat，两态均按 cart 品类调序
+            const gbSortedPool = lxSortByCartCat(gbProductPool, gbVerified ? (gbSt.boundCat || "") : "");
+            const gbProductGrid = `<div class="lx-floor-products">${gbSortedPool.slice(0, 6).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>`;
+            // 态A 内容：城市栏 + 认证卡 + 步骤 + 叠加 + 商品
+            // 态B 内容：城市栏 + 认证卡 + 绑定资格卡 + 叠加 + 商品
+            const gbBody = gbCityBar
+              + gbAuthCard
+              + (gbVerified ? gbBoundCard : `<h4 class="lx-gb-sub-title">按你所在城市领取国补资格</h4><div class="lx-ia-cards-row">${gbSteps}</div>`)
+              + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking
+              + `<h4 class="lx-gb-sub-title">${gbVerified ? "支持该资格的商品" : "参与国补商品"}</h4>` + gbProductGrid;
             const guobuSection = lxFloorSection("国补",
-              "国家以旧换新 · 最高补贴 20%",
-              gbCityBar + `<div class="lx-ia-cards-row">${gbSteps}</div>` + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking + `<h4 class="lx-gb-sub-title">参与国补商品</h4>` + gbProductGrid,
-              `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我找参与国补的联想笔记本">找国补商品</button>`
+              gbVerified ? "国补资格已绑定 · 最高补贴 20%" : "国家以旧换新 · 最高补贴 20%",
+              gbBody,
+              gbVerified
+                ? `<button class="lx-p0-btn" type="button" data-quick-ask="帮我找支持我国补资格的联想笔记本">找匹配商品</button>`
+                : `<button class="lx-p0-btn primary" type="button" data-gb-auth>立即认证领资格</button>`
             );
 
-            // 教育特惠楼层：读学生认证态
+            // 教育特惠楼层：3 态（未认证/已认证/已失效）
             const stuState = lxStuState();
-            const isEduVerified = stuState.status === "verified";
-            const eduVerifiedDate = isEduVerified && stuState.submittedAt
-              ? new Date(stuState.submittedAt + 365 * 86400000).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
+            const _eduNow = Date.now();
+            const _eduExpiry = stuState.submittedAt ? stuState.submittedAt + 365 * 86400000 : 0;
+            // 态判断：none/pending→未认证；verified且未过期→已认证；verified且已过期→已失效
+            const eduAuthMode = stuState.status === "verified"
+              ? (_eduExpiry > _eduNow ? "verified" : "expired")
+              : (stuState.status === "pending" ? "pending" : "none");
+            const isEduVerified = eduAuthMode === "verified";
+            const isEduExpired = eduAuthMode === "expired";
+            const eduVerifiedDate = _eduExpiry > 0
+              ? new Date(_eduExpiry).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
               : "2027年6月21日";
+            const _eduRemainDays = _eduExpiry > _eduNow ? Math.ceil((_eduExpiry - _eduNow) / 86400000) : 0;
+            // banner
             const eduAuthBanner = isEduVerified
-              ? `<div class="lx-edu-verified-banner"><span class="lx-edu-badge ok">已认证</span><span>认证有效期至 ${esc(eduVerifiedDate)}，教育专享价已生效</span></div>`
-              : (stuState.status === "pending"
-                ? `<div class="lx-edu-verified-banner pending"><span class="lx-edu-badge pending">审核中</span><span>认证资料已提交，审核通过后自动解锁教育专享价（演示约 12 秒）</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
-                : `<div class="lx-edu-verified-banner unverified"><span class="lx-edu-badge">未认证</span><span>学生/教师认证后享教育专享价，可与国补叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`);
-            const eduRightsCards = isEduVerified
-              ? [
-                  ["可领权益", "当月教育专属券未领取", "帮我领取教育专属优惠券"],
-                  ["国补叠加", "认证后可与国补同时享用", "教育价和国补怎么叠加计算？"],
-                  ["12期免息", "部分机型支持12期免息", "哪些机型支持教育+12期免息？"]
-                ].map(([t, d, a]) => quickCard(t, d, a)).join("")
-              : [
-                  ["教育专享价", "小新/YOGA/平板均有教育专区", "教育专享价比普通价优惠多少？"],
-                  ["国补叠加", "认证后教育价可叠加国家补贴", "国补和教育特惠能叠加吗？"],
-                  ["12期免息", "学生用户专属分期政策", "教育用户如何申请12期免息？"]
-                ].map(([t, d, a]) => quickCard(t, d, a)).join("");
-            const eduProductGrid = `<div class="lx-floor-products">${(state.products || []).filter((p) => /小新|YOGA|平板|轻薄/.test(p.name || "")).slice(0, 4).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="padding:16px 0">货盘加载中（POC 演示）</div>`}</div>`;
+              ? `<div class="lx-edu-verified-banner"><span class="lx-edu-badge ok">已认证</span><span>认证有效期至 ${esc(eduVerifiedDate)}，剩余 <strong>${_eduRemainDays}</strong> 天，教育专享价已生效</span></div>`
+              : isEduExpired
+                ? `<div class="lx-edu-verified-banner expired"><span class="lx-edu-badge expired">已失效</span><span>认证已于 ${esc(eduVerifiedDate)} 到期，教育专享价暂停</span><button class="lx-p0-btn primary" type="button" data-stu-auth>重新认证</button></div>`
+                : (eduAuthMode === "pending"
+                  ? `<div class="lx-edu-verified-banner pending"><span class="lx-edu-badge pending">审核中</span><span>认证资料已提交，审核通过后自动解锁教育专享价（演示约 12 秒）</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
+                  : `<div class="lx-edu-verified-banner unverified"><span class="lx-edu-badge">未认证</span><span>学生/教师认证后享教育专享价，可与国补叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`);
+            // 认证后待发权益（未认证/已失效共用，标注"认证后解锁"）
+            const eduPendingRights = [
+              ["教育专享价", "认证后解锁 · 小新/YOGA/平板均有教育专区", "教育专享价比普通价优惠多少？"],
+              ["教育券包", "认证后解锁 · 每月可领专属券包", "教育特惠有哪些优惠券可以领？"],
+              ["12期免息", "认证后解锁 · 学生用户专属分期政策", "教育用户如何申请12期免息？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 已认证权益
+            const eduVerifiedRights = [
+              ["可领权益", "当月教育专属券未领取", "帮我领取教育专属优惠券"],
+              ["国补叠加", "认证后可与国补同时享用", "教育价和国补怎么叠加计算？"],
+              ["12期免息", "部分机型支持12期免息", "哪些机型支持教育+12期免息？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 叠加优惠（3 态共用）
+            const eduStackCards = [
+              ["国补叠加", "学生认证可与国家补贴叠加享用", "国补和教育特惠能叠加吗？"],
+              ["以旧换新", "旧机折价抵扣可叠加教育价", "教育价和以旧换新怎么叠？"],
+              ["保值焕新", "学生用户保值焕新门槛更低", "保值焕新和教育特惠能同时享受吗？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 学生任务（3 态共用）
+            const eduTaskCards = [
+              ["每日打卡", "打卡领积分，积分兑换礼品", "学生打卡任务怎么参与？"],
+              ["校园大使", "邀同学解锁额外礼品券", "校园大使活动怎么参加？"],
+              ["晒单返现", "晒单赢专属返现", "教育用户晒单返现怎么操作？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 商品：按行为调序
+            const eduProductPool = (state.products || []).filter((p) => /小新|YOGA|平板|轻薄/.test(p.name || ""));
+            const eduSortedPool = lxSortByCartCat(eduProductPool);
+            const eduProductGrid = `<div class="lx-floor-products">${eduSortedPool.slice(0, 4).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="padding:16px 0">货盘加载中（POC 演示）</div>`}</div>`;
+            // 态A 未认证：banner + 待发权益 + 叠加 + 学生任务 + 商品
+            // 态B 已认证：banner(剩余天数) + 已获权益 + 叠加 + 学生任务 + 商品
+            // 态C 已失效：banner(红警示) + 待发权益 + 叠加 + 学生任务 + 商品
+            const eduRightsCards = isEduVerified ? eduVerifiedRights : eduPendingRights;
+            const eduBody = eduAuthBanner
+              + `<h4 class="lx-gb-sub-title">${isEduVerified ? "已获权益" : "认证后待发权益"}</h4><div class="lx-ia-cards-row">${eduRightsCards}</div>`
+              + `<h4 class="lx-gb-sub-title">可叠加优惠</h4><div class="lx-ia-cards-row">${eduStackCards}</div>`
+              + `<h4 class="lx-gb-sub-title">学生任务</h4><div class="lx-ia-cards-row">${eduTaskCards}</div>`
+              + `<h4 class="lx-gb-sub-title">教育友好商品</h4>` + eduProductGrid;
             const eduSection = lxFloorSection("教育特惠",
-              isEduVerified ? "教育专享价已生效 · 国补可叠加" : "学生教师专属价 · 认证即享",
-              eduAuthBanner + `<div class="lx-ia-cards-row">${eduRightsCards}</div>` + `<h4 class="lx-gb-sub-title">教育友好商品</h4>` + eduProductGrid,
+              isEduVerified ? "教育专享价已生效 · 国补可叠加" : (isEduExpired ? "认证已失效 · 重新认证恢复权益" : "学生教师专属价 · 认证即享"),
+              eduBody,
               `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`
             );
 
@@ -3939,6 +3996,29 @@ function openOrderDetail(orderId) {
             }
             return stu;
           } catch { return { status: "none" }; }
+        }
+
+        // ── 国补状态（POC mock）──────────────────────────────────────────
+        const LX_GB_KEY = "lexiang.guobu.v1";
+        function lxGbState() {
+          try {
+            const raw = JSON.parse(localStorage.getItem(LX_GB_KEY) || "null");
+            return (raw && typeof raw === "object") ? raw : { realVerified: false, claimed: false };
+          } catch { return { realVerified: false, claimed: false }; }
+        }
+        function lxSaveGbState(gb) {
+          try { localStorage.setItem(LX_GB_KEY, JSON.stringify(gb)); } catch {}
+        }
+
+        // ── 商品行为排序（POC：仅用 cart 品类作信号）─────────────────────
+        // ponytail: POC 只有 cart 作行为信号，收藏/浏览品类无埋点，接埋点另说
+        function lxSortByCartCat(products, priorityCat) {
+          const cartCats = new Set((state.cart || []).map((p) => p.category).filter(Boolean));
+          if (priorityCat) cartCats.add(priorityCat); // 国补态B额外优先 boundCat
+          if (!cartCats.size) return products;
+          const inCart = products.filter((p) => cartCats.has(p.category));
+          const rest = products.filter((p) => !cartCats.has(p.category));
+          return [...inCart, ...rest];
         }
 
         function lxSaveStuState(stu) {
@@ -7158,6 +7238,15 @@ function openOrderDetail(orderId) {
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
             if (event.target.closest("[data-stu-auth]")) openStudentAuth();
+            if (event.target.closest("[data-gb-auth]")) {
+              // POC mock：写入已认证已领取状态，城市从 DOM 读
+              const gbCityEl = document.querySelector("[data-gb-city]");
+              const gbCity = (gbCityEl && gbCityEl.textContent && !gbCityEl.textContent.includes("定位")) ? gbCityEl.textContent.trim() : "北京";
+              lxSaveGbState({ realVerified: true, claimed: true, city: gbCity, boundCat: "笔记本" });
+              toast("实名认证成功，国补资格已绑定");
+              const _gbTabBtn = document.querySelector('[data-floor-tab="国补"]');
+              if (_gbTabBtn) _gbTabBtn.click();
+            }
             const _stuAuthEl = event.target.closest("[data-open-stuauth]");
             if (_stuAuthEl) openStudentAuth(_stuAuthEl.dataset.openStuauth);
             if (event.target.closest("[data-edu-zone]")) { closeModal(); openEduZone(); }

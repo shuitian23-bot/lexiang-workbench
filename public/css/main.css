@@ -13208,3 +13208,208 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
 @media (max-width:480px){
   .lx-mem-floor-grid{ grid-template-columns:1fr; }
 }
+
+/* ── 国补/教育 认证状态卡（新增分态样式）─────────────────────────────────── */
+/* 国补认证状态卡 */
+.lx-gb-auth-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  grid-column: 1 / -1;
+  border: 1px solid transparent;
+}
+.lx-gb-auth-card--none {
+  background: #f5f0fb;
+  border-color: #e0d0f0;
+  color: #4a1060;
+}
+.lx-gb-auth-card--ok {
+  background: #edf7ee;
+  border-color: #b8e0bb;
+  color: #1e5c26;
+}
+.lx-gb-auth-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  background: #9d76b8;
+  flex-shrink: 0;
+}
+.lx-gb-auth-badge.ok {
+  background: #4a9e52;
+}
+.lx-gb-auth-desc {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.lx-gb-auth-card--none .lx-p0-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 国补绑定资格卡（态B醒目卡，联想品牌色，无营销大背景） */
+.lx-gb-qual-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #f0eafa;
+  border: 1.5px solid #c9aee8;
+  grid-column: 1 / -1;
+}
+.lx-gb-qual-icon {
+  font-size: 20px;
+  line-height: 1;
+  color: #6b1b8e;
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.lx-gb-qual-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3a0a5e;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.lx-gb-qual-desc {
+  display: block;
+  font-size: 12px;
+  color: #7a5a9e;
+  line-height: 1.5;
+}
+
+/* 教育认证失效态 banner */
+.lx-edu-verified-banner--expired {
+  background: #fef0f0;
+  color: #8b2020;
+  border: 1px solid #f5c0c0;
+}
+.lx-edu-badge--expired {
+  background: #d94040;
+}
+/* 教育重新认证按钮（警示色） */
+.lx-p0-btn--warn {
+  color: #c0392b !important;
+  border-color: #e57373 !important;
+  background: #fff5f5 !important;
+}
+.lx-p0-btn--warn:hover {
+  background: #fde8e8 !important;
+  border-color: #c0392b !important;
+}
+
+/* 教育待解锁权益卡（「认证后解锁」标签） */
+.lx-edu-pending-right {
+  position: relative;
+  padding-top: 28px !important;
+}
+.lx-edu-pending-tag {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #9d76b8;
+  background: #f0e9fa;
+  border-radius: 6px;
+  padding: 2px 7px;
+  line-height: 1.4;
+}
+
+/* 移动端退化 */
+@media (max-width: 768px) {
+  .lx-gb-auth-card { flex-wrap: wrap; }
+  .lx-gb-auth-card--none .lx-p0-btn { margin-left: 0; margin-top: 8px; }
+  .lx-gb-qual-card { flex-direction: column; gap: 8px; }
+}
+
+/* ── 国补/教育 认证状态卡（2026-06 重构）────────────────────────────────── */
+.lx-gb-auth-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--lx-pale, #f8f8fa);
+  border: 1px solid var(--lx-border, #e8e8ef);
+  margin: 10px 0;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.lx-gb-auth-card.verified {
+  background: #f0faf4;
+  border-color: #a8d5b5;
+}
+.lx-auth-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--lx-border, #e8e8ef);
+  color: #666;
+  white-space: nowrap;
+}
+.lx-auth-badge.ok {
+  background: #d4f0df;
+  color: #1a7a40;
+}
+/* 国补绑定资格醒目卡 */
+.lx-gb-bound-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--lx-brand-pale, #f0eeff);
+  border: 1.5px solid var(--lx-brand, #5b3fd4);
+  margin: 10px 0;
+  font-size: 15px;
+  color: var(--lx-text, #1a1a2e);
+}
+.lx-gb-bound-city {
+  font-size: 13px;
+  color: var(--lx-brand, #5b3fd4);
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* 教育已失效 banner */
+.lx-edu-verified-banner.expired {
+  background: #fff5f5;
+  border-color: #f5a0a0;
+}
+.lx-edu-badge.expired {
+  background: #ffe0e0;
+  color: #c0392b;
+}
+/* 教育认证后解锁标注 */
+.lx-badge-unlock {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--lx-brand, #5b3fd4);
+  background: var(--lx-brand-pale, #f0eeff);
+  border-radius: 4px;
+  padding: 1px 5px;
+  vertical-align: middle;
+}
+@media (max-width: 768px) {
+  .lx-gb-auth-card { flex-direction: column; align-items: flex-start; }
+  .lx-gb-bound-card { flex-direction: column; }
+}
