@@ -1788,41 +1788,6 @@ function openOrderDetail(orderId) {
           toast("已退出登录");
         }
 
-        // ── 对话持久化 ─────────────────────────────────────────────────────────
-        const LX_CONV_KEY = "lexiang.conversation.v1";
-        let _lxConvSaveTimer = null;
-        function lxSaveConversation() {
-          clearTimeout(_lxConvSaveTimer);
-          _lxConvSaveTimer = setTimeout(function() {
-            try {
-              const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
-              if (!msgs.length) return;
-              const messages = [];
-              msgs.forEach(function(el) {
-                const isUser = el.classList.contains("user");
-                const isAi = el.classList.contains("ai");
-                if (!isUser && !isAi) return; // 跳过 loading 态
-                const text = isUser
-                  ? (el.querySelector(".user-bubble")?.textContent || "").trim()
-                  : (el._raw || "");
-                const html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
-                if (!text && !html) return;
-                messages.push({ role: isUser ? "user" : "ai", text, html });
-              });
-              if (!messages.length) return;
-              const maxMessages = 50;
-              const trimmed = messages.slice(-maxMessages);
-              localStorage.setItem(LX_CONV_KEY, JSON.stringify({
-                convId: state.convId || null,
-                messages: trimmed,
-                page: state.page || "home",
-                ts: Date.now()
-              }));
-            } catch (_e) { /* localStorage 写入失败（容量超限等），静默忽略 */ }
-          }, 300);
-        }
-        // ── 对话持久化结束 ──────────────────────────────────────────────────────
-
         function ensureChat() {
           document.body.dataset.state = "chat";
           const chatState = $(".chat-state");
@@ -1857,8 +1822,6 @@ function openOrderDetail(orderId) {
           }
           list.appendChild(node);
           list.scrollTop = list.scrollHeight;
-          // 用户消息立即保存；AI 消息在 lxAnimateAiFinal 后由 sendChat 再调一次
-          if (isUser) lxSaveConversation();
           return node;
         }
 
@@ -2126,7 +2089,6 @@ function openOrderDetail(orderId) {
           state.pendingImageUrl = "";
           state.pendingAudioUrl = "";
           state.queryHistory = [];
-          try { localStorage.removeItem(LX_CONV_KEY); } catch (_e) {}
           document.body.dataset.state = "default";
           $(".lx-p0-messages")?.remove();
           const chatState = $(".chat-state");
@@ -2187,24 +2149,15 @@ function openOrderDetail(orderId) {
             // 关其他/留当前/留一排——必须在 close_all 之前判（更具体）
             if (/(关闭?|关掉)(其他|其它|多余|别的|除当前外?的?)(标签|页面|页签)?|只留(当前|这个|一个|一排)|留(当前|这个|一个|一排)(标签|页面)?|关成(剩余|只剩)?一(排|个)|剩(余|下)一(排|个)/.test(_t)) return { op: "close_other_tabs", msg: "好的，已关闭其他标签，只留当前页面。" };
             if (/^\s*(关闭?|清空)(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)\s*$/i.test(_t) || /(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)/.test(_t)) return { op: "close_all_tabs", msg: "好的，已为你关闭所有页面标签。" };
-            if (/^\s*(进入|开启|切换?到?|变成?|开|恢复|回到?)?全屏(模式|对话|查看)?\s*$|^\s*(放大|沉浸|专注)(模式|对话|查看)?\s*$/.test(_t)) return { op: "enter_fullscreen", msg: "好的，已切换到全屏对话模式。" };
-            if (/^\s*(退出|关闭|取消|结束)(全屏|沉浸|专注)|^\s*(分屏|窗口|缩小)(模式)?\s*$|^\s*恢复(分屏|窗口)(模式)?\s*$|^\s*(打开|展开)(右侧|浏览区|浏览|分屏)(面板)?\s*$|^\s*(右侧|浏览区)(展开|打开)\s*$/.test(_t)) return { op: "exit_fullscreen", msg: "好的，已展开右侧浏览区。" };
+            if (/^\s*(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?\s*$|^\s*(放大|沉浸|专注)(模式|对话|查看)?\s*$/.test(_t)) return { op: "enter_fullscreen", msg: "好的，已切换到全屏对话模式。" };
+            if (/^\s*(退出|关闭|取消|结束)(全屏|沉浸|专注)|^\s*(分屏|窗口|恢复|缩小)(模式)?\s*$|^\s*(打开|展开)(右侧|浏览区|浏览|分屏)(面板)?\s*$|^\s*(右侧|浏览区)(展开|打开)\s*$/.test(_t)) return { op: "exit_fullscreen", msg: "好的，已展开右侧浏览区。" };
             if (/^\s*(回|返回|去|到)(首页|主页)\s*$/.test(_t)) return { op: "go_home", msg: "好的，已为你回到首页。" };
             if (/^\s*(打开|查看|看看?)(我的)?购物车\s*$/.test(_t)) return { op: "open_cart", msg: "好的，已为你打开购物车。" };
             if (/^\s*(打开|查看|看看?)(我的)?订单(列表|页面|中心)?\s*$/.test(_t)) return { op: "open_orders", msg: "好的，已为你打开订单页面。" };
-            // 选第 N 个 + 动作（下单/加购/打开）——比 buy_current 更具体，先判
-            const _ord = lxParseOrdinal(_t);
-            if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-              const _act = /加购|加入购物车/.test(_t) ? "cart" : /打开|看/.test(_t) ? "open" : "buy";
-              const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
-              return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
-            }
-            // 下单当前正在看的商品
-            if (/^\s*(我?要|帮我|给我|我?想)?(下单|购买|买)(这个|它|当前|这台|这款|这件|了)?\s*$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
             return null;
           })(text);
           if (_localCtrl) {
-            lxExecControl(_localCtrl.op, _localCtrl.target || "");
+            lxExecControl(_localCtrl.op, "");
             addMessage("ai", _localCtrl.msg);
             // state.sending 此时仍为 false（还没设置），直接 return 即可
             return;
@@ -2601,7 +2554,6 @@ function openOrderDetail(orderId) {
             const delayedExtras = ai._pendingExtras || "";
             ai._pendingExtras = null;
             if (delayedExtras) lxAppendAiHtml(ai, delayedExtras);
-            lxSaveConversation();
             const afterAnswer = Array.isArray(ai._afterAnswer) ? ai._afterAnswer.splice(0) : [];
             ai._afterAnswer = null;
             afterAnswer.forEach((fn) => {
@@ -5126,54 +5078,6 @@ function openOrderDetail(orderId) {
           if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
-        // 序号解析：第一/二/三…/N 个、阿拉伯数字，返回 1-based 序号或 null
-        const LX_CN_NUM = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
-        function lxParseOrdinal(text) {
-          const t = String(text || "");
-          const ar = t.match(/第?\s*(\d+)\s*(个|款|台|件|号)?/);
-          if (ar) { const n = Number(ar[1]); if (n >= 1) return n; }
-          const cn = t.match(/第?\s*([一二两三四五六七八九十]+)\s*(个|款|台|件|号)/);
-          if (cn) {
-            const s = cn[1];
-            if (s === "十") return 10;
-            if (s.length === 1) return LX_CN_NUM[s] || null;
-            if (s[0] === "十") return 10 + (LX_CN_NUM[s[1]] || 0); // 十一..十九
-            if (s[1] === "十") return (LX_CN_NUM[s[0]] || 0) * 10 + (LX_CN_NUM[s[2]] || 0); // 二十..
-          }
-          return null;
-        }
-        // 当前浏览上下文：用户正在看什么 → 决定下单/选N个操作谁
-        function lxCurrentContext() {
-          const activeTab = (state.tabs || []).find((t) => t.id === state.activeTabId);
-          // 对比页：用 state.compare 有序列表
-          if ((activeTab && (activeTab.id === "compare" || activeTab.kind === "compare")) || state.activeTabId === "compare") {
-            return { type: "compare", product: null, products: (state.compare || []).slice() };
-          }
-          // 商详页：当前激活的 detail tab → 它的商品（多商详页时下"正在看的这个"）
-          if (activeTab && activeTab.kind === "detail") {
-            const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.compare || [])];
-            const prod = (state.currentProduct && state.currentProduct.sku === activeTab.sku)
-              ? state.currentProduct
-              : (pool.find((p) => p && p.sku === activeTab.sku) || state.currentProduct);
-            return { type: "detail", product: prod || null, products: [] };
-          }
-          // 自定义商品列表 tab（推荐结果等）
-          if (activeTab && Array.isArray(activeTab.products) && activeTab.products.length) {
-            return { type: "list", product: null, products: activeTab.products.slice() };
-          }
-          // 兜底：当前商详商品 / 可见推荐列表
-          if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
-          const visible = [...(state.products || []), ...(state.siteProducts || [])];
-          if (visible.length) return { type: "list", product: null, products: visible.slice() };
-          return { type: "other", product: null, products: [] };
-        }
-        // 取第 N 个商品（1-based），越界返回 {error}
-        function lxPickNth(products, n) {
-          if (!Array.isArray(products) || !products.length) return { error: "当前没有可选的商品列表，先打开商品或推荐看看吧" };
-          if (n < 1 || n > products.length) return { error: `当前列表只有 ${products.length} 个商品，请选 1-${products.length}` };
-          return { product: products[n - 1] };
-        }
-
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
         function lxExecControl(op, target) {
           const siteMap = { shop: "personal", b: "business", biz: "enterprise" };
@@ -5217,27 +5121,6 @@ function openOrderDetail(orderId) {
             },
             enter_fullscreen: () => lxSetAutoFs(true),
             exit_fullscreen: () => { if (state.autoFs) lxSetAutoFs(false); else document.body.classList.remove("assistant-fullscreen"); },
-            // 下单当前正在看的商品（多商详页时是当前激活的那个）
-            buy_current: () => {
-              const ctx = lxCurrentContext();
-              const prod = ctx.product || (ctx.products && ctx.products.length === 1 ? ctx.products[0] : null);
-              if (!prod) { toast("请先打开一个商品，再说「下单」"); return; }
-              lxRevealContent();
-              oneClickBuy(prod);
-            },
-            // 按序号操作列表第 N 个：target = "序号|动作"（动作 buy/open/cart）
-            buy_nth: () => {
-              const [nStr, action = "buy"] = String(target || "").split("|");
-              const n = Number(nStr);
-              const ctx = lxCurrentContext();
-              const picked = lxPickNth(ctx.products, n);
-              if (picked.error) { toast(picked.error); return; }
-              const prod = picked.product;
-              lxRevealContent();
-              if (action === "open") { openProduct(prod.sku); }
-              else if (action === "cart") { addCart(prod); }
-              else { oneClickBuy(prod); }
-            },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
         }
@@ -6654,18 +6537,7 @@ function openOrderDetail(orderId) {
               if (event.isTrusted) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                // 软切站点：保留对话 DOM 和 state，不整页重载（对话持久化方案选择：软切无闪烁）
-                if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
-                if (state.page !== page) state.activeSiteFloorTab = "推荐";
-                state.page = page;
-                if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
-                if (state.autoFs) lxSetAutoFs(false);
-                if (page === "home") document.body.dataset.state = "default";
-                setTimeout(loadProductsForPage, 0);
-                setTimeout(() => lxEntInviteInChat(page), 400);
-                lxRenderQuickList();
-                lxRenderActionbar();
-                setTimeout(lxRenderSiteFloors, 0);
+                hardNavigatePage(page);
                 return;
               }
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
@@ -7489,32 +7361,6 @@ function openOrderDetail(orderId) {
         checkAuth();
         initRoute();
         window.addEventListener("popstate", initRoute);
-        // 恢复持久化对话（刷新/重新加载后恢复）
-        (function() {
-          try {
-            const raw = localStorage.getItem(LX_CONV_KEY);
-            if (!raw) return;
-            const data = JSON.parse(raw);
-            if (!data || !Array.isArray(data.messages) || !data.messages.length) return;
-            if (data.ts && Date.now() - data.ts > 7 * 24 * 3600 * 1000) { localStorage.removeItem(LX_CONV_KEY); return; }
-            state.convId = data.convId || null;
-            const list = ensureChat();
-            if (!list) return;
-            list.innerHTML = "";
-            data.messages.forEach(function(m) {
-              addMessage(m.role === "user" ? "user" : "", m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
-              if (m.role === "ai") {
-                const lastNode = list.lastElementChild;
-                if (lastNode) {
-                  lastNode.className = "lx-p0-message msg ai lx-chat-skin";
-                  const body = lastNode.querySelector(".ai-body");
-                  if (body) body.innerHTML = m.html || "";
-                  else { lastNode.innerHTML = '<article class="ai-wrap"><div class="ai-body">' + (m.html || "") + '</div></article>'; }
-                }
-              }
-            });
-          } catch (_e) {}
-        })();
       })();
 
 // Lexiang fullscreen dialog replacement behavior
@@ -8482,19 +8328,11 @@ function openOrderDetail(orderId) {
     const _lxfdLocalCtrl = (function() {
       const _t = value;
       if (/关闭?(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)|清空(标签|页面|分页|页签)|(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)?/.test(_t)) return { op: "close_all_tabs", target: "", msg: "好的，已为你关闭所有页面标签。" };
-      if (/^(进入|开启|切换?到?|变成?|开|恢复|回到?)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
-      if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|缩小)(模式|对话|查看)?$|^恢复(分屏|窗口)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
+      if (/^(进入|开启|切换?到?|变成?|开)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
+      if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|恢复|缩小)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
       if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
       if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
       if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
-      // 选第 N 个 + 动作
-      const _ord = lxParseOrdinal(_t);
-      if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-        const _act = /加购|加入购物车/.test(_t) ? "cart" : /打开|看/.test(_t) ? "open" : "buy";
-        const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
-        return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
-      }
-      if (/^(我?要|帮我|给我|我?想)?(下单|购买|买)(这个|它|当前|这台|这款|这件|了)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
       return null;
     })();
     if (_lxfdLocalCtrl) {
@@ -8849,36 +8687,11 @@ function openOrderDetail(orderId) {
     $$("#lxfdNavSheet a").forEach(x => x.classList.remove("active"));
     a.classList.add("active");
     setNav(false);
-    const page = a.dataset.page || "home";
-    const path = navPaths[page] || "/";
+    const path = navPaths[a.dataset.page] || "/";
     const currentPath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
     const targetPath = path.endsWith("/") ? path : `${path}/`;
-    // 软切站点：全屏对话先导出到主面板，再退出全屏进入对应站点（保留对话）
-    if (currentPath === targetPath) {
-      // 同站点：仅退出全屏
-      exitFullscreen();
-    } else {
-      // 跨站点：导出对话 → 软切
-      lxfdExportToMain();
-      exitFullscreen(() => {
-        if (typeof window.__lxState !== "undefined") {
-          window.__lxState.page = page;
-          if (window.__lxState.autoFs) {
-            document.body.classList.remove("assistant-fullscreen");
-            document.body.classList.remove("lx-auto-fs");
-            window.__lxState.autoFs = false;
-          }
-        }
-        history.pushState(null, "", path);
-        // 通知主面板切换货盘和楼层
-        const mainNav = document.querySelector(`.main-nav [data-page="${page}"]`);
-        if (mainNav) mainNav.click();
-        else {
-          // 如果主面板 nav 点击不触发，直接刷新（保守兜底）
-          location.assign(path);
-        }
-      });
-    }
+    if (currentPath === targetPath) location.reload();
+    else location.assign(path);
   }));
   document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) setRailManual(false); } });
