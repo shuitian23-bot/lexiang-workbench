@@ -5228,6 +5228,15 @@ function openOrderDetail(orderId) {
           return { product: products[n - 1] };
         }
         // 操作目标卡片「按下去」反馈：找到 sku 对应卡片 → 滚动可见 → 按压动画(缩小弹回+闪光) → 动画结束后执行 cb
+        // 通用「按下去」动效：对任意元素施加按压动画，动效进行中(约300ms)就执行 cb，500ms 内有反应不拖沓
+        function lxPressEl(el, cb) {
+          if (!el) { if (cb) cb(); return; }
+          try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_e) {}
+          el.classList.add("lx-op-press");
+          setTimeout(() => el.classList.remove("lx-op-press"), 420);
+          // 动效起手后 300ms 就执行动作（打开/下单），用户「看到按下→很快就开」
+          setTimeout(() => { if (cb) cb(); }, 300);
+        }
         function lxFlashCard(sku, cb) {
           let card = null;
           if (sku) {
@@ -5235,13 +5244,7 @@ function openOrderDetail(orderId) {
             card = el ? (el.closest(".lx-floor-product, .lx-product-mini-card, .lx-sim-card, .phead, .bodycell") || el) : null;
           }
           if (!card) { cb(); return; } // 找不到卡（如当前商详页）直接执行
-          try { card.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_e) {}
-          // 等滚动到位再按压，按压动画(.42s)结束后才执行动作 → 用户看到"按下去了"再打开
-          setTimeout(() => {
-            card.classList.add("lx-op-press");
-            setTimeout(() => card.classList.remove("lx-op-press"), 460);
-            setTimeout(cb, 440);
-          }, 260);
+          lxPressEl(card, cb);
         }
         // 对话下单：分步「看得见」——打开商品详情(先稳住) → 核对优惠 → 进下单领券，节奏放慢，弹窗在商详页之后
         function lxBuyWithIntro(prod) {
@@ -5264,11 +5267,16 @@ function openOrderDetail(orderId) {
           const setBody = (h) => { const body = tip && tip.querySelector(".ai-body"); if (body) body.innerHTML = h; };
           // 步骤1：打开商品详情（立即，让右侧先稳定展示）
           if (prod.sku) openProduct(prod.sku);
-          // 步骤2：商详页稳定后，核对优惠（停留够久，能看清）
-          setTimeout(() => setBody(mk("done", "doing", "wait")), 900);
-          // 步骤3：再过一会才进领券下单（弹窗在商详页之后，不抢跑）
-          setTimeout(() => setBody(mk("done", "done", "doing")), 1700);
-          setTimeout(() => { setBody(mk("done", "done", "done")); oneClickBuy(prod); }, 2300);
+          // 步骤2：商详页稳定后，核对优惠
+          setTimeout(() => setBody(mk("done", "doing", "wait")), 700);
+          // 步骤3：进领券下单 —— 先给「一键领优惠下单」按钮一个按下去动效，再真正下单
+          setTimeout(() => setBody(mk("done", "done", "doing")), 1400);
+          setTimeout(() => {
+            setBody(mk("done", "done", "done"));
+            const buyBtn = document.querySelector(".detail-primary");
+            if (buyBtn) lxPressEl(buyBtn, () => oneClickBuy(prod));
+            else oneClickBuy(prod);
+          }, 1900);
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
