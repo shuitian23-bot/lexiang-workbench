@@ -36,11 +36,9 @@ CHANGED=$(git status --porcelain -- $PATHS 2>/dev/null)
 LAST_MTIME=$(echo "$CHANGED" | sed 's/^...//' | while read -r f; do [ -f "$f" ] && stat -c %Y "$f"; done | sort -rn | head -1)
 [ -n "$LAST_MTIME" ] && [ $(( $(date +%s) - LAST_MTIME )) -lt 90 ] && exit 0
 
-# 4) 只做本地 commit 留存，【不再自动 push main】
-#    2026-06-28 改：自动 push 是多 session 同工作区互相覆盖线上的根因。
-#    现在裸改只在本地入库（防丢、可回溯），上线必须由人手动 git push origin main。
-#    这样：A 改动有本地快照保护不丢；B 谁的旧副本都不会再被 cron 自动推上线覆盖别人。
+# 4) 入库 + push（此时已基于远端最新，push 不会非 ff，也不会回退新提交）
+#    2026-06-29 恢复自动 push（用户确认 Codex 已停、无并发旧副本对冲风险）。
+#    第 1) 步已 fetch+ff 同步远端，冲突一律保留远端新版本，旧裸改不会覆盖更新的提交。
 git add $PATHS 2>/dev/null
-git commit -m "auto-checkpoint(本地): 工作区裸改入库留存,未推送 ($(echo "$CHANGED" | head -3 | sed 's/^...//' | tr '\n' ' '))" -q || exit 0
-# 不 push。提醒：本地有未推送的 checkpoint，需人工审核后手动 push。
-echo "[$(date '+%F %T')] 本地 checkpoint 已留存未推送，需人工 review 后手动 push：$(echo "$CHANGED" | head -3 | sed 's/^...//' | tr '\n' ' ')" >> /var/log/lexiang-checkpoint.log
+git commit -m "auto-checkpoint: 工作区裸改自动入库保护 ($(echo "$CHANGED" | head -3 | sed 's/^...//' | tr '\n' ' '))" -q || exit 0
+git push origin main -q 2>>/var/log/lexiang-checkpoint.log
