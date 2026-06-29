@@ -13421,3 +13421,11 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
   .lx-gb-auth-card { flex-direction: column; align-items: flex-start; }
   .lx-gb-bound-card { flex-direction: column; }
 }
+
+/* AI 操作目标卡片高亮反馈：对话触发下单/选N个时，被操作的卡片闪一下品牌色描边，让用户看到"点了哪个" */
+.lx-op-flash { animation: lxOpFlash .7s ease-out; position: relative; z-index: 2; }
+@keyframes lxOpFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(184,37,46,.55); }
+  35%  { box-shadow: 0 0 0 4px rgba(184,37,46,.35), inset 0 0 0 2px var(--lx-brand-red,#B8252E); transform: scale(1.015); }
+  100% { box-shadow: 0 0 0 0 rgba(184,37,46,0); transform: scale(1); }
+}

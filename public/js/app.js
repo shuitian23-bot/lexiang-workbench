@@ -2215,7 +2215,7 @@ function openOrderDetail(orderId) {
             // 选第 N 个 + 动作（更具体，先判）
             const _ord = lxParseOrdinal(_t);
             if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-              const _act = /加购|加入购物车/.test(_t) ? "cart" : /打开|看/.test(_t) ? "open" : "buy";
+              const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
               const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
               return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
             }
@@ -5189,6 +5189,19 @@ function openOrderDetail(orderId) {
           if (n < 1 || n > products.length) return { error: `当前列表只有 ${products.length} 个商品，请选 1-${products.length}` };
           return { product: products[n - 1] };
         }
+        // 操作目标卡片高亮反馈：找到 sku 对应卡片 → 高亮脉冲 + 滚动可见 → 延迟执行动作（让用户看到"点了哪个"）
+        function lxFlashCard(sku, cb) {
+          let card = null;
+          if (sku) {
+            const el = document.querySelector(`[data-open-product="${(window.CSS && CSS.escape) ? CSS.escape(sku) : sku}"]`);
+            card = el ? (el.closest(".lx-floor-product, .lx-product-mini-card, .lx-sim-card, .phead, .bodycell") || el) : null;
+          }
+          if (!card) { cb(); return; } // 找不到卡（如当前商详页）直接执行
+          card.classList.add("lx-op-flash");
+          try { card.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_e) {}
+          setTimeout(() => { card.classList.remove("lx-op-flash"); }, 700);
+          setTimeout(cb, 320);
+        }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
         function lxExecControl(op, target) {
@@ -5239,7 +5252,7 @@ function openOrderDetail(orderId) {
               const prod = ctx.product || (ctx.products && ctx.products.length === 1 ? ctx.products[0] : null);
               if (!prod) { toast("请先打开一个商品，再说「下单」"); return; }
               lxRevealContent();
-              oneClickBuy(prod);
+              lxFlashCard(prod.sku, () => oneClickBuy(prod));
             },
             // 按序号操作列表第 N 个：target = "序号|动作"（buy/open/cart）
             buy_nth: () => {
@@ -5250,9 +5263,11 @@ function openOrderDetail(orderId) {
               if (picked.error) { toast(picked.error); return; }
               const prod = picked.product;
               lxRevealContent();
-              if (action === "open") { openProduct(prod.sku); }
-              else if (action === "cart") { addCart(prod); }
-              else { oneClickBuy(prod); }
+              lxFlashCard(prod.sku, () => {
+                if (action === "open") { openProduct(prod.sku); }
+                else if (action === "cart") { addCart(prod); }
+                else { oneClickBuy(prod); }
+              });
             },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
@@ -8478,7 +8493,7 @@ function openOrderDetail(orderId) {
       if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
       const _ord = (window.__lxParseOrdinal || (() => null))(_t);
       if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-        const _act = /加购|加入购物车/.test(_t) ? "cart" : /打开|看/.test(_t) ? "open" : "buy";
+        const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
         const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
         return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
       }
