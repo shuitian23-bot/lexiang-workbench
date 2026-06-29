@@ -1801,7 +1801,9 @@ function openOrderDetail(orderId) {
               listEl.querySelectorAll(":scope > .lx-p0-message").forEach(function (el) {
                 const isUser = el.classList.contains("user");
                 const isAi = el.classList.contains("ai");
-                if (!isUser && !isAi) return; // 跳过 loading 态
+                if (!isUser && !isAi) return; // 跳过非用户/非AI节点
+                // 跳过未完成的 loading 态 AI 消息（class 含 loading 或 body 仍是生成中占位），否则刷新后会卡在「生成中…」
+                if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line"))) return;
                 const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
                 const html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
                 if (!text && !html) return;
@@ -1831,6 +1833,8 @@ function openOrderDetail(orderId) {
               if (m.role === "user") {
                 addMessage("user", m.text || "");
               } else {
+                // 容错：跳过历史坏数据里残留的「生成中…」loading 态（旧版本误存的，否则刷新后卡住）
+                if (!m.text && (!m.html || /正在生成中|正在处理|lx-generating|loading-line|typing-cursor/.test(m.html))) return;
                 // AI 消息：用已渲染的 html 直接还原（不重跑流式动画）
                 const node = document.createElement("div");
                 node.className = "lx-p0-message msg ai lx-chat-skin";
