@@ -5206,6 +5206,17 @@ function openOrderDetail(orderId) {
           setTimeout(() => { card.classList.remove("lx-op-flash"); }, 700);
           setTimeout(cb, 320);
         }
+        // 对话下单：先在右侧打开商品详情（看清下的哪款）→ 过渡提示 → 延迟进下单领券流程，不突兀
+        function lxBuyWithIntro(prod) {
+          if (!prod) return;
+          if (prod.sku) openProduct(prod.sku); // 右侧展示该商品详情页
+          // 给一条「正在为你下单」过渡气泡（区别于领券面板的突然弹出）
+          try {
+            const tip = addMessage("ai", `正在为你下单「${prod.name || "该商品"}」，正在核对可用优惠…`);
+            if (tip) tip._lxBuyTip = true;
+          } catch (_e) {}
+          setTimeout(() => { oneClickBuy(prod); }, 650);
+        }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
         function lxExecControl(op, target) {
@@ -5256,7 +5267,7 @@ function openOrderDetail(orderId) {
               const prod = ctx.product || (ctx.products && ctx.products.length === 1 ? ctx.products[0] : null);
               if (!prod) { toast("请先打开一个商品，再说「下单」"); return; }
               lxRevealContent();
-              lxFlashCard(prod.sku, () => oneClickBuy(prod));
+              lxFlashCard(prod.sku, () => lxBuyWithIntro(prod));
             },
             // 按序号操作列表第 N 个：target = "序号|动作"（buy/open/cart）
             buy_nth: () => {
@@ -5270,7 +5281,7 @@ function openOrderDetail(orderId) {
               lxFlashCard(prod.sku, () => {
                 if (action === "open") { openProduct(prod.sku); }
                 else if (action === "cart") { addCart(prod); }
-                else { oneClickBuy(prod); }
+                else { lxBuyWithIntro(prod); }
               });
             },
           };
