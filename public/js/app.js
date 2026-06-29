@@ -1788,6 +1788,41 @@ function openOrderDetail(orderId) {
           toast("已退出登录");
         }
 
+        // ── 对话持久化 ─────────────────────────────────────────────────────────
+        const LX_CONV_KEY = "lexiang.conversation.v1";
+        let _lxConvSaveTimer = null;
+        function lxSaveConversation() {
+          clearTimeout(_lxConvSaveTimer);
+          _lxConvSaveTimer = setTimeout(function() {
+            try {
+              const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+              if (!msgs.length) return;
+              const messages = [];
+              msgs.forEach(function(el) {
+                const isUser = el.classList.contains("user");
+                const isAi = el.classList.contains("ai");
+                if (!isUser && !isAi) return; // 跳过 loading 态
+                const text = isUser
+                  ? (el.querySelector(".user-bubble")?.textContent || "").trim()
+                  : (el._raw || "");
+                const html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+                if (!text && !html) return;
+                messages.push({ role: isUser ? "user" : "ai", text, html });
+              });
+              if (!messages.length) return;
+              const maxMessages = 50;
+              const trimmed = messages.slice(-maxMessages);
+              localStorage.setItem(LX_CONV_KEY, JSON.stringify({
+                convId: state.convId || null,
+                messages: trimmed,
+                page: state.page || "home",
+                ts: Date.now()
+              }));
+            } catch (_e) { /* localStorage 写入失败（容量超限等），静默忽略 */ }
+          }, 300);
+        }
+        // ── 对话持久化结束 ──────────────────────────────────────────────────────
+
         function ensureChat() {
           document.body.dataset.state = "chat";
           const chatState = $(".chat-state");
@@ -1822,6 +1857,8 @@ function openOrderDetail(orderId) {
           }
           list.appendChild(node);
           list.scrollTop = list.scrollHeight;
+          // 用户消息立即保存；AI 消息在 lxAnimateAiFinal 后由 sendChat 再调一次
+          if (isUser) lxSaveConversation();
           return node;
         }
 
@@ -2089,6 +2126,7 @@ function openOrderDetail(orderId) {
           state.pendingImageUrl = "";
           state.pendingAudioUrl = "";
           state.queryHistory = [];
+          try { localStorage.removeItem(LX_CONV_KEY); } catch (_e) {}
           document.body.dataset.state = "default";
           $(".lx-p0-messages")?.remove();
           const chatState = $(".chat-state");
@@ -2554,6 +2592,7 @@ function openOrderDetail(orderId) {
             const delayedExtras = ai._pendingExtras || "";
             ai._pendingExtras = null;
             if (delayedExtras) lxAppendAiHtml(ai, delayedExtras);
+            lxSaveConversation();
             const afterAnswer = Array.isArray(ai._afterAnswer) ? ai._afterAnswer.splice(0) : [];
             ai._afterAnswer = null;
             afterAnswer.forEach((fn) => {
@@ -6537,7 +6576,18 @@ function openOrderDetail(orderId) {
               if (event.isTrusted) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                hardNavigatePage(page);
+                // 软切站点：保留对话 DOM 和 state，不整页重载（对话持久化方案选择：软切无闪烁）
+                if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
+                if (state.page !== page) state.activeSiteFloorTab = "推荐";
+                state.page = page;
+                if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
+                if (state.autoFs) lxSetAutoFs(false);
+                if (page === "home") document.body.dataset.state = "default";
+                setTimeout(loadProductsForPage, 0);
+                setTimeout(() => lxEntInviteInChat(page), 400);
+                lxRenderQuickList();
+                lxRenderActionbar();
+                setTimeout(lxRenderSiteFloors, 0);
                 return;
               }
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
@@ -7361,6 +7411,32 @@ function openOrderDetail(orderId) {
         checkAuth();
         initRoute();
         window.addEventListener("popstate", initRoute);
+        // 恢复持久化对话（刷新/重新加载后恢复）
+        (function() {
+          try {
+            const raw = localStorage.getItem(LX_CONV_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (!data || !Array.isArray(data.messages) || !data.messages.length) return;
+            if (data.ts && Date.now() - data.ts > 7 * 24 * 3600 * 1000) { localStorage.removeItem(LX_CONV_KEY); return; }
+            state.convId = data.convId || null;
+            const list = ensureChat();
+            if (!list) return;
+            list.innerHTML = "";
+            data.messages.forEach(function(m) {
+              addMessage(m.role === "user" ? "user" : "", m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
+              if (m.role === "ai") {
+                const lastNode = list.lastElementChild;
+                if (lastNode) {
+                  lastNode.className = "lx-p0-message msg ai lx-chat-skin";
+                  const body = lastNode.querySelector(".ai-body");
+                  if (body) body.innerHTML = m.html || "";
+                  else { lastNode.innerHTML = '<article class="ai-wrap"><div class="ai-body">' + (m.html || "") + '</div></article>'; }
+                }
+              }
+            });
+          } catch (_e) {}
+        })();
       })();
 
 // Lexiang fullscreen dialog replacement behavior
@@ -8687,11 +8763,36 @@ function openOrderDetail(orderId) {
     $$("#lxfdNavSheet a").forEach(x => x.classList.remove("active"));
     a.classList.add("active");
     setNav(false);
-    const path = navPaths[a.dataset.page] || "/";
+    const page = a.dataset.page || "home";
+    const path = navPaths[page] || "/";
     const currentPath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
     const targetPath = path.endsWith("/") ? path : `${path}/`;
-    if (currentPath === targetPath) location.reload();
-    else location.assign(path);
+    // 软切站点：全屏对话先导出到主面板，再退出全屏进入对应站点（保留对话）
+    if (currentPath === targetPath) {
+      // 同站点：仅退出全屏
+      exitFullscreen();
+    } else {
+      // 跨站点：导出对话 → 软切
+      lxfdExportToMain();
+      exitFullscreen(() => {
+        if (typeof window.__lxState !== "undefined") {
+          window.__lxState.page = page;
+          if (window.__lxState.autoFs) {
+            document.body.classList.remove("assistant-fullscreen");
+            document.body.classList.remove("lx-auto-fs");
+            window.__lxState.autoFs = false;
+          }
+        }
+        history.pushState(null, "", path);
+        // 通知主面板切换货盘和楼层
+        const mainNav = document.querySelector(`.main-nav [data-page="${page}"]`);
+        if (mainNav) mainNav.click();
+        else {
+          // 如果主面板 nav 点击不触发，直接刷新（保守兜底）
+          location.assign(path);
+        }
+      });
+    }
   }));
   document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) setRailManual(false); } });
