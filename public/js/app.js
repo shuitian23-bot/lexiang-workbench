@@ -2171,8 +2171,9 @@ function openOrderDetail(orderId) {
           }
           updateUploadNote();
           renderQueryHistory();
-          // 若分屏态新建对话，回全屏欢迎页
-          if (!document.body.classList.contains("assistant-fullscreen") &&
+          // 新建对话：仅「首页」分屏态才回全屏欢迎页；在子站（个人/企业/政教）应留在子站分屏，不弹全屏
+          const _onHome = (state.page === "home" || !state.page);
+          if (_onHome && !document.body.classList.contains("assistant-fullscreen") &&
               typeof window.__lxfdNewFullscreen === "function") {
             state.tabs = [];
             state.activeTabId = null;
@@ -2180,6 +2181,11 @@ function openOrderDetail(orderId) {
             document.querySelector(".content")?.setAttribute("data-view", "list");
             window.__lxfdNewFullscreen();
           } else {
+            // 子站新建：清空右侧标签回到推荐列表态，对话区复位，但保持在当前子站（不进全屏）
+            state.tabs = [];
+            state.activeTabId = null;
+            lxRenderTabbar();
+            document.querySelector(".content")?.setAttribute("data-view", "list");
             toast("已新建对话");
           }
         }
