@@ -2154,10 +2154,19 @@ function openOrderDetail(orderId) {
             if (/^\s*(回|返回|去|到)(首页|主页)\s*$/.test(_t)) return { op: "go_home", msg: "好的，已为你回到首页。" };
             if (/^\s*(打开|查看|看看?)(我的)?购物车\s*$/.test(_t)) return { op: "open_cart", msg: "好的，已为你打开购物车。" };
             if (/^\s*(打开|查看|看看?)(我的)?订单(列表|页面|中心)?\s*$/.test(_t)) return { op: "open_orders", msg: "好的，已为你打开订单页面。" };
+            // 选第 N 个 + 动作（更具体，先判）
+            const _ord = lxParseOrdinal(_t);
+            if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
+              const _act = /加购|加入购物车/.test(_t) ? "cart" : /打开|看/.test(_t) ? "open" : "buy";
+              const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
+              return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
+            }
+            // 下单当前正在看的商品
+            if (/^\s*(我?要|帮我|给我|我?想)?(下单|购买|买)(这个|它|当前|这台|这款|这件|了)?\s*$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
             return null;
           })(text);
           if (_localCtrl) {
-            lxExecControl(_localCtrl.op, "");
+            lxExecControl(_localCtrl.op, _localCtrl.target || "");
             addMessage("ai", _localCtrl.msg);
             // state.sending 此时仍为 false（还没设置），直接 return 即可
             return;
@@ -5078,6 +5087,51 @@ function openOrderDetail(orderId) {
           if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
+        // 序号解析：第一/二/三…/N 个、阿拉伯数字，返回 1-based 序号或 null
+        const LX_CN_NUM = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+        function lxParseOrdinal(text) {
+          const t = String(text || "");
+          const ar = t.match(/第?\s*(\d+)\s*(个|款|台|件|号)?/);
+          if (ar) { const n = Number(ar[1]); if (n >= 1) return n; }
+          const cn = t.match(/第?\s*([一二两三四五六七八九十]+)\s*(个|款|台|件|号)/);
+          if (cn) {
+            const s = cn[1];
+            if (s === "十") return 10;
+            if (s.length === 1) return LX_CN_NUM[s] || null;
+            if (s[0] === "十") return 10 + (LX_CN_NUM[s[1]] || 0);
+            if (s[1] === "十") return (LX_CN_NUM[s[0]] || 0) * 10 + (LX_CN_NUM[s[2]] || 0);
+          }
+          return null;
+        }
+        // 挂 window 供 lxfd 全屏 IIFE 跨作用域调用（序号解析）
+        window.__lxParseOrdinal = lxParseOrdinal;
+        // 当前浏览上下文：用户正在看什么 → 决定下单/选N个操作谁
+        function lxCurrentContext() {
+          const activeTab = (state.tabs || []).find((t) => t.id === state.activeTabId);
+          if ((activeTab && (activeTab.id === "compare" || activeTab.kind === "compare")) || state.activeTabId === "compare") {
+            return { type: "compare", product: null, products: (state.compare || []).slice() };
+          }
+          if (activeTab && activeTab.kind === "detail") {
+            const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.compare || [])];
+            const prod = (state.currentProduct && state.currentProduct.sku === activeTab.sku)
+              ? state.currentProduct
+              : (pool.find((p) => p && p.sku === activeTab.sku) || state.currentProduct);
+            return { type: "detail", product: prod || null, products: [] };
+          }
+          if (activeTab && Array.isArray(activeTab.products) && activeTab.products.length) {
+            return { type: "list", product: null, products: activeTab.products.slice() };
+          }
+          if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
+          const visible = [...(state.products || []), ...(state.siteProducts || [])];
+          if (visible.length) return { type: "list", product: null, products: visible.slice() };
+          return { type: "other", product: null, products: [] };
+        }
+        function lxPickNth(products, n) {
+          if (!Array.isArray(products) || !products.length) return { error: "当前没有可选的商品列表，先打开商品或推荐看看吧" };
+          if (n < 1 || n > products.length) return { error: `当前列表只有 ${products.length} 个商品，请选 1-${products.length}` };
+          return { product: products[n - 1] };
+        }
+
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
         function lxExecControl(op, target) {
           const siteMap = { shop: "personal", b: "business", biz: "enterprise" };
@@ -5121,6 +5175,27 @@ function openOrderDetail(orderId) {
             },
             enter_fullscreen: () => lxSetAutoFs(true),
             exit_fullscreen: () => { if (state.autoFs) lxSetAutoFs(false); else document.body.classList.remove("assistant-fullscreen"); },
+            // 下单当前正在看的商品（多商详页时是当前激活的那个）
+            buy_current: () => {
+              const ctx = lxCurrentContext();
+              const prod = ctx.product || (ctx.products && ctx.products.length === 1 ? ctx.products[0] : null);
+              if (!prod) { toast("请先打开一个商品，再说「下单」"); return; }
+              lxRevealContent();
+              oneClickBuy(prod);
+            },
+            // 按序号操作列表第 N 个：target = "序号|动作"（buy/open/cart）
+            buy_nth: () => {
+              const [nStr, action = "buy"] = String(target || "").split("|");
+              const n = Number(nStr);
+              const ctx = lxCurrentContext();
+              const picked = lxPickNth(ctx.products, n);
+              if (picked.error) { toast(picked.error); return; }
+              const prod = picked.product;
+              lxRevealContent();
+              if (action === "open") { openProduct(prod.sku); }
+              else if (action === "cart") { addCart(prod); }
+              else { oneClickBuy(prod); }
+            },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
         }
@@ -8333,6 +8408,13 @@ function openOrderDetail(orderId) {
       if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
       if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
       if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
+      const _ord = (window.__lxParseOrdinal || (() => null))(_t);
+      if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
+        const _act = /加购|加入购物车/.test(_t) ? "cart" : /打开|看/.test(_t) ? "open" : "buy";
+        const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
+        return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
+      }
+      if (/^(我?要|帮我|给我|我?想)?(下单|购买|买)(这个|它|当前|这台|这款|这件|了)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
       return null;
     })();
     if (_lxfdLocalCtrl) {
