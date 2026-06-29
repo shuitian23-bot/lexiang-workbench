@@ -1802,10 +1802,13 @@ function openOrderDetail(orderId) {
                 const isUser = el.classList.contains("user");
                 const isAi = el.classList.contains("ai");
                 if (!isUser && !isAi) return; // 跳过非用户/非AI节点
+                if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return; // 跳过操作过渡气泡（步骤进度）
                 // 跳过未完成的 loading 态 AI 消息（class 含 loading 或 body 仍是生成中占位），否则刷新后会卡在「生成中…」
-                if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line"))) return;
+                if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
                 const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
-                const html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+                let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+                // 双保险：html 仍残留 loading 标记则丢弃 html，只留文本（恢复时用 mdLite 重渲染）
+                if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor/.test(html)) html = "";
                 if (!text && !html) return;
                 messages.push({ role: isUser ? "user" : "ai", text, html });
               });
@@ -1833,8 +1836,8 @@ function openOrderDetail(orderId) {
               if (m.role === "user") {
                 addMessage("user", m.text || "");
               } else {
-                // 容错：跳过历史坏数据里残留的「生成中…」loading 态（旧版本误存的，否则刷新后卡住）
-                if (!m.text && (!m.html || /正在生成中|正在处理|lx-generating|loading-line|typing-cursor/.test(m.html))) return;
+                // 容错：跳过坏数据——空消息，或 html 残留「生成中/处理中」loading（无条件，不管 text 有无），否则刷新后卡住
+                if ((!m.text && !m.html) || /正在生成中|正在处理|lx-generating|loading-line|typing-cursor|typing-text/.test(m.html || "")) return;
                 // AI 消息：用已渲染的 html 直接还原（不重跑流式动画）
                 const node = document.createElement("div");
                 node.className = "lx-p0-message msg ai lx-chat-skin";
@@ -5206,16 +5209,40 @@ function openOrderDetail(orderId) {
           setTimeout(() => { card.classList.remove("lx-op-flash"); }, 700);
           setTimeout(cb, 320);
         }
-        // 对话下单：先在右侧打开商品详情（看清下的哪款）→ 过渡提示 → 延迟进下单领券流程，不突兀
+        // 对话下单：分步「看得见」——打开商品 → 核对优惠 → 进下单领券，每步在同一气泡内推进，用户有感知
         function lxBuyWithIntro(prod) {
           if (!prod) return;
-          if (prod.sku) openProduct(prod.sku); // 右侧展示该商品详情页
-          // 给一条「正在为你下单」过渡气泡（区别于领券面板的突然弹出）
+          const name = prod.name || "该商品";
+          const stepHtml = (steps) => `<div class="lx-op-steps">${steps.map((s) =>
+            `<div class="lx-op-step ${s.state}"><span class="lx-op-step-ic">${s.state === "done" ? "✓" : s.state === "doing" ? '<span class="lx-op-spin"></span>' : ""}</span><span>${esc(s.label)}</span></div>`
+          ).join("")}</div>`;
+          let tip = null;
           try {
-            const tip = addMessage("ai", `正在为你下单「${prod.name || "该商品"}」，正在核对可用优惠…`);
-            if (tip) tip._lxBuyTip = true;
+            tip = addMessage("ai", "", stepHtml([
+              { label: `打开「${name.slice(0, 18)}」详情`, state: "doing" },
+              { label: "核对可用优惠", state: "wait" },
+              { label: "生成下单清单", state: "wait" },
+            ]));
+            if (tip) { tip._lxTransient = true; tip.dataset.lxTransient = "1"; } // 过渡气泡，不持久化
           } catch (_e) {}
-          setTimeout(() => { oneClickBuy(prod); }, 650);
+          const setSteps = (steps) => { const body = tip && tip.querySelector(".ai-body"); if (body) body.innerHTML = stepHtml(steps); };
+          // 步骤1：打开商品详情
+          if (prod.sku) openProduct(prod.sku);
+          // 步骤2：核对优惠
+          setTimeout(() => setSteps([
+            { label: `打开「${name.slice(0, 18)}」详情`, state: "done" },
+            { label: "核对可用优惠", state: "doing" },
+            { label: "生成下单清单", state: "wait" },
+          ]), 550);
+          // 步骤3：进下单领券
+          setTimeout(() => {
+            setSteps([
+              { label: `打开「${name.slice(0, 18)}」详情`, state: "done" },
+              { label: "核对可用优惠", state: "done" },
+              { label: "生成下单清单", state: "done" },
+            ]);
+            oneClickBuy(prod);
+          }, 1200);
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
