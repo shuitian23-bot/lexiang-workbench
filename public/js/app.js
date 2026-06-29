@@ -3704,7 +3704,7 @@ function openOrderDetail(orderId) {
             const gbVerified = gbSt.realVerified && gbSt.claimed;
             // 认证状态卡
             const gbAuthCard = gbVerified
-              ? `<div class="lx-gb-auth-card verified"><span class="lx-auth-badge ok">已认证</span><span>实名认证已通过，国补资格已绑定</span></div>`
+              ? `<div class="lx-gb-auth-card verified"><span class="lx-auth-badge ok">已认证</span><span>实名认证已通过，国补资格已绑定</span><button type="button" class="lx-auth-reset" data-gb-reset>重置认证（演示）</button></div>`
               : `<div class="lx-gb-auth-card unverified"><span class="lx-auth-badge">未认证</span><span>完成实名认证后方可领取国补资格</span><button class="lx-p0-btn primary" type="button" data-gb-auth>立即实名认证领资格</button></div>`;
             // 态B 额外：绑定资格卡
             const gbBoundCard = gbVerified
@@ -3744,7 +3744,7 @@ function openOrderDetail(orderId) {
             const _eduRemainDays = _eduExpiry > _eduNow ? Math.ceil((_eduExpiry - _eduNow) / 86400000) : 0;
             // banner
             const eduAuthBanner = isEduVerified
-              ? `<div class="lx-edu-verified-banner"><span class="lx-edu-badge ok">已认证</span><span>认证有效期至 ${esc(eduVerifiedDate)}，剩余 <strong>${_eduRemainDays}</strong> 天，教育专享价已生效</span></div>`
+              ? `<div class="lx-edu-verified-banner"><span class="lx-edu-badge ok">已认证</span><span>认证有效期至 ${esc(eduVerifiedDate)}，剩余 <strong>${_eduRemainDays}</strong> 天，教育专享价已生效</span><button type="button" class="lx-auth-reset" data-stu-reset>重置认证（演示）</button></div>`
               : isEduExpired
                 ? `<div class="lx-edu-verified-banner expired"><span class="lx-edu-badge expired">已失效</span><span>认证已于 ${esc(eduVerifiedDate)} 到期，教育专享价暂停</span><button class="lx-p0-btn primary" type="button" data-stu-auth>重新认证</button></div>`
                 : (eduAuthMode === "pending"
@@ -7261,6 +7261,17 @@ function openOrderDetail(orderId) {
               toast("实名认证成功，国补资格已绑定");
               const _gbTabBtn = document.querySelector('[data-floor-tab="国补"]');
               if (_gbTabBtn) _gbTabBtn.click();
+            }
+            // POC 演示：重置国补/教育认证态，方便对照各态
+            if (event.target.closest("[data-gb-reset]")) {
+              try { localStorage.removeItem("lexiang.guobu.v1"); } catch (_) {}
+              toast("已重置国补认证（演示）");
+              document.querySelector('[data-floor-tab="国补"]')?.click();
+            }
+            if (event.target.closest("[data-stu-reset]")) {
+              try { localStorage.removeItem(LX_STU_KEY); } catch (_) {}
+              toast("已重置教育认证（演示）");
+              document.querySelector('[data-floor-tab="教育特惠"]')?.click();
             }
             const _stuAuthEl = event.target.closest("[data-open-stuauth]");
             if (_stuAuthEl) openStudentAuth(_stuAuthEl.dataset.openStuauth);

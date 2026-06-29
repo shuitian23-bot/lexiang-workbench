@@ -12041,6 +12041,9 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
       .lx-cmp-skin[data-v="1"] .phead.lx-cmp-pick { box-shadow: inset 1px 0 0 var(--lx-brand-red,#B8252E), inset -1px 0 0 var(--lx-brand-red,#B8252E), inset 0 2px 0 var(--lx-brand-red,#B8252E); }
       .lx-cmp-skin[data-v="1"] .op.lx-cmp-pick { box-shadow: inset 1px 0 0 var(--lx-brand-red,#B8252E), inset -1px 0 0 var(--lx-brand-red,#B8252E), inset 0 -2px 0 var(--lx-brand-red,#B8252E); }
       .lx-cmp-skin[data-v="1"] .lx-cmp-pick-flag { display:inline-flex; align-items:center; height:18px; padding:0 8px; border-radius:5px; background:var(--lx-brand-red,#B8252E); color:#fff; font-size:10.5px; font-weight:800; letter-spacing:.4px; white-space:nowrap; margin-bottom:2px; }
+      /* 认证态重置（POC 演示用，不起眼文字链） */
+      .lx-auth-reset { margin-left: auto; background: none; border: none; padding: 2px 4px; font-size: 11.5px; color: #b0a8b8; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+      .lx-auth-reset:hover { color: var(--lx-brand-red,#B8252E); }
       .lx-cmp-wrap .foot-note { margin-top: 12px; font-size: 12px; color: #9a929f; }
       .lx-cmp-wrap .foot-note b { color: #5b1452; }
       .lx-md .lx-md-h { margin: 10px 0 4px; font-size: 14px; }
