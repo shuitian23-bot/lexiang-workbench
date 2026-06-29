@@ -1836,14 +1836,15 @@ function openOrderDetail(orderId) {
               if (m.role === "user") {
                 addMessage("user", m.text || "");
               } else {
-                // 容错：跳过坏数据——空消息，或 html 残留「生成中/处理中」loading（无条件，不管 text 有无），否则刷新后卡住
-                if ((!m.text && !m.html) || /正在生成中|正在处理|lx-generating|loading-line|typing-cursor|typing-text/.test(m.html || "")) return;
-                // AI 消息：用已渲染的 html 直接还原（不重跑流式动画）
+                const _badHtml = /正在生成中|正在处理|lx-generating|loading-line|typing-cursor|typing-text|lx-op-steps/.test(m.html || "");
+                // 坏 html（loading/进度残留）但有正文 → 丢弃 html 用 text 重渲染；text 也空才整条跳过
+                if (_badHtml && !m.text) return;
+                if (!m.text && !m.html) return;
                 const node = document.createElement("div");
                 node.className = "lx-p0-message msg ai lx-chat-skin";
                 node._raw = m.text || "";
                 const body = lxEnsureAiBody(node);
-                body.innerHTML = m.html || mdLite(m.text || "");
+                body.innerHTML = (_badHtml || !m.html) ? mdLite(m.text || "") : m.html;
                 list.appendChild(node);
               }
             });
@@ -5196,7 +5197,7 @@ function openOrderDetail(orderId) {
           if (n < 1 || n > products.length) return { error: `当前列表只有 ${products.length} 个商品，请选 1-${products.length}` };
           return { product: products[n - 1] };
         }
-        // 操作目标卡片高亮反馈：找到 sku 对应卡片 → 高亮脉冲 + 滚动可见 → 延迟执行动作（让用户看到"点了哪个"）
+        // 操作目标卡片「按下去」反馈：找到 sku 对应卡片 → 滚动可见 → 按压动画(缩小弹回+闪光) → 动画结束后执行 cb
         function lxFlashCard(sku, cb) {
           let card = null;
           if (sku) {
@@ -5204,45 +5205,40 @@ function openOrderDetail(orderId) {
             card = el ? (el.closest(".lx-floor-product, .lx-product-mini-card, .lx-sim-card, .phead, .bodycell") || el) : null;
           }
           if (!card) { cb(); return; } // 找不到卡（如当前商详页）直接执行
-          card.classList.add("lx-op-flash");
           try { card.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_e) {}
-          setTimeout(() => { card.classList.remove("lx-op-flash"); }, 700);
-          setTimeout(cb, 320);
+          // 等滚动到位再按压，按压动画(.42s)结束后才执行动作 → 用户看到"按下去了"再打开
+          setTimeout(() => {
+            card.classList.add("lx-op-press");
+            setTimeout(() => card.classList.remove("lx-op-press"), 460);
+            setTimeout(cb, 440);
+          }, 260);
         }
-        // 对话下单：分步「看得见」——打开商品 → 核对优惠 → 进下单领券，每步在同一气泡内推进，用户有感知
+        // 对话下单：分步「看得见」——打开商品详情(先稳住) → 核对优惠 → 进下单领券，节奏放慢，弹窗在商详页之后
         function lxBuyWithIntro(prod) {
           if (!prod) return;
           const name = prod.name || "该商品";
+          const short = name.slice(0, 18);
           const stepHtml = (steps) => `<div class="lx-op-steps">${steps.map((s) =>
             `<div class="lx-op-step ${s.state}"><span class="lx-op-step-ic">${s.state === "done" ? "✓" : s.state === "doing" ? '<span class="lx-op-spin"></span>' : ""}</span><span>${esc(s.label)}</span></div>`
           ).join("")}</div>`;
+          const mk = (a, b, c) => stepHtml([
+            { label: `打开「${short}」详情`, state: a },
+            { label: "核对可用优惠", state: b },
+            { label: "生成下单清单并领券", state: c },
+          ]);
           let tip = null;
           try {
-            tip = addMessage("ai", "", stepHtml([
-              { label: `打开「${name.slice(0, 18)}」详情`, state: "doing" },
-              { label: "核对可用优惠", state: "wait" },
-              { label: "生成下单清单", state: "wait" },
-            ]));
-            if (tip) { tip._lxTransient = true; tip.dataset.lxTransient = "1"; } // 过渡气泡，不持久化
+            tip = addMessage("ai", "", mk("doing", "wait", "wait"));
+            if (tip) { tip._lxTransient = true; tip.dataset.lxTransient = "1"; }
           } catch (_e) {}
-          const setSteps = (steps) => { const body = tip && tip.querySelector(".ai-body"); if (body) body.innerHTML = stepHtml(steps); };
-          // 步骤1：打开商品详情
+          const setBody = (h) => { const body = tip && tip.querySelector(".ai-body"); if (body) body.innerHTML = h; };
+          // 步骤1：打开商品详情（立即，让右侧先稳定展示）
           if (prod.sku) openProduct(prod.sku);
-          // 步骤2：核对优惠
-          setTimeout(() => setSteps([
-            { label: `打开「${name.slice(0, 18)}」详情`, state: "done" },
-            { label: "核对可用优惠", state: "doing" },
-            { label: "生成下单清单", state: "wait" },
-          ]), 550);
-          // 步骤3：进下单领券
-          setTimeout(() => {
-            setSteps([
-              { label: `打开「${name.slice(0, 18)}」详情`, state: "done" },
-              { label: "核对可用优惠", state: "done" },
-              { label: "生成下单清单", state: "done" },
-            ]);
-            oneClickBuy(prod);
-          }, 1200);
+          // 步骤2：商详页稳定后，核对优惠（停留够久，能看清）
+          setTimeout(() => setBody(mk("done", "doing", "wait")), 900);
+          // 步骤3：再过一会才进领券下单（弹窗在商详页之后，不抢跑）
+          setTimeout(() => setBody(mk("done", "done", "doing")), 1700);
+          setTimeout(() => { setBody(mk("done", "done", "done")); oneClickBuy(prod); }, 2300);
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）

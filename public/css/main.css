@@ -13429,6 +13429,14 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
   35%  { box-shadow: 0 0 0 4px rgba(184,37,46,.35), inset 0 0 0 2px var(--lx-brand-red,#B8252E); transform: scale(1.015); }
   100% { box-shadow: 0 0 0 0 rgba(184,37,46,0); transform: scale(1); }
 }
+/* AI 操作目标卡片「按下去」效果：缩小→弹回 + 闪光，模拟真实点击按压，然后再打开商详 */
+.lx-op-press { animation: lxOpPress .46s cubic-bezier(.34,1.56,.5,1); position: relative; z-index: 2; }
+@keyframes lxOpPress {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(184,37,46,0); }
+  30%  { transform: scale(.94); box-shadow: 0 0 0 3px rgba(184,37,46,.45), inset 0 0 0 2px var(--lx-brand-red,#B8252E); }
+  60%  { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(184,37,46,.22); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(184,37,46,0); }
+}
 
 /* AI 对话操作分步进度「看得见」：打开商品→核对优惠→生成清单，逐步打勾 */
 .lx-op-steps { display: flex; flex-direction: column; gap: 8px; padding: 2px 0; }
