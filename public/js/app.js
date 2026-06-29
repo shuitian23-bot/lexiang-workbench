@@ -4841,7 +4841,7 @@ function openOrderDetail(orderId) {
             if (document.querySelector(".lx-ref-picker")) return; // @引用优先
             const hit = lxDetectSuggest(ta.value);
             if (!hit) return;
-            const composer = ta.closest(".composer, .hero-composer");
+            const composer = ta.closest(".composer, .hero-composer, .lxfd-composer");
             if (!composer) return;
             state._suggestTa = ta;
             composer.style.position = "relative";
@@ -6614,7 +6614,7 @@ function openOrderDetail(orderId) {
           });
 
           document.addEventListener("input", (event) => {
-            const ta = event.target.closest?.(".composer textarea, .hero-composer textarea");
+            const ta = event.target.closest?.(".composer textarea, .hero-composer textarea, .lxfd-composer textarea");
             if (!ta) return;
             const isHero = !!ta.closest(".hero-composer");
             if (ta.dataset.lxSuppressSuggest === "1") {
@@ -9211,6 +9211,18 @@ function openOrderDetail(orderId) {
   setTimeout(startRotatingTitle, reduceMotion ? 0 : 2000);
   syncSend();
   lxfdRenderHist();
+  // 刷新/进首页后恢复历史对话：主面板 IIFE 已把 localStorage 里的对话还原到 .lx-p0-messages，
+  // lxfd 在自己初始化完成后立即导入，使用户进全屏时能看到历史而非空白欢迎态。
+  // 用 setTimeout(0) 确保主面板 IIFE 的 lxRestoreConversation 已执行完毕（两 IIFE 顺序执行，
+  // 此处追加 tick 只是保险，实测主面板已先于 lxfd IIFE 完整执行）。
+  setTimeout(function() {
+    try {
+      if (thread && !thread.children.length) {
+        const mainMsgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+        if (mainMsgs.length) lxfdDoImport();
+      }
+    } catch (_e) {}
+  }, 0);
 
   document.addEventListener("click", (e) => {
     const fsToggle = e.target.closest(".assistant-toggle");
