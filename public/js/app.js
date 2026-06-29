@@ -2234,7 +2234,7 @@ function openOrderDetail(orderId) {
               return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
             }
             // 下单当前正在看的商品
-            if (/^\s*(我?要|帮我|给我|我?想|那)?(就)?(下单|购买|下个单|买)(这个|它|当前|这台|这款|这件|了|下)?\s*(吧|呀|啊|喽|咯|吧。?)?\s*$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
+            if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这个?|那个?|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买)(这个|它|当前|这台|这款|这件|了|下)?\s*(吧|呀|啊|喽|咯)?[。\s]*$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
             return null;
           })(text);
           if (_localCtrl) {
@@ -8565,7 +8565,7 @@ function openOrderDetail(orderId) {
         const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
         return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
       }
-      if (/^(我?要|帮我|给我|我?想|那)?(就)?(下单|购买|下个单|买)(这个|它|当前|这台|这款|这件|了|下)?(吧|呀|啊|喽|咯)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
+      if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这个?|那个?|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买)(这个|它|当前|这台|这款|这件|了|下)?\s*(吧|呀|啊|喽|咯)?[。\s]*$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
       return null;
     })();
     if (_lxfdLocalCtrl) {
