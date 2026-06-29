@@ -5443,6 +5443,7 @@
       }
 
       .lx-p0-modal-head {
+        display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
@@ -5460,12 +5461,18 @@
       }
 
       .lx-p0-close {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 30px;
         height: 30px;
         border: 0;
         border-radius: 50%;
         background: rgba(120,90,130,.06);
         color: #9c93a4;
+        font-size: 18px;
+        line-height: 1;
         cursor: pointer;
         transition: background-color .16s, color .16s;
       }
