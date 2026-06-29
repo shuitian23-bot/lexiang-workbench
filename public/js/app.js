@@ -1882,10 +1882,10 @@ function openOrderDetail(orderId) {
           return node;
         }
 
-        function renderGenerating(label = "正在分析需求并生成回复...") {
+        function renderGenerating(label = "联想乐享正在处理…") {
           return `
             <div class="loading-line lx-generating" role="status" aria-live="polite">
-              <span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span>
+              <span class="typing-text">${esc(label)}</span><span class="typing-cursor"></span>
             </div>`;
         }
 
@@ -2230,7 +2230,7 @@ function openOrderDetail(orderId) {
             return;
           }
           // ── 本地快路径结束 ───────────────────────────────────────────────
-          const ai = addMessage("ai loading", "", renderGenerating("正在检索权益、商品和服务信息..."));
+          const ai = addMessage("ai loading", "", renderGenerating("联想乐享正在处理你的请求…"));
           ai._raw = "";
           ai._pendingExtras = "";
           ai._afterAnswer = [];
