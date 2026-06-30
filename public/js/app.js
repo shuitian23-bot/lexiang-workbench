@@ -2243,6 +2243,12 @@ function openOrderDetail(orderId) {
             if (/^\s*(回|返回|去|到)(首页|主页)\s*$/.test(_t)) return { op: "go_home", msg: "好的，已为你回到首页。" };
             if (/^\s*(打开|查看|看看?)(我的)?购物车\s*$/.test(_t)) return { op: "open_cart", msg: "好的，已为你打开购物车。" };
             if (/^\s*(打开|查看|看看?)(我的)?订单(列表|页面|中心)?\s*$/.test(_t)) return { op: "open_orders", msg: "好的，已为你打开订单页面。" };
+            // 高频导航单词/短语本地秒判（不扔给小模型赌——「门店」「会员」这类短词小模型常误判成咨询）
+            if (/^\s*(打开|查看?|看看?|去|进)?(附近)?(门店|实体店|线下店|体验店|专卖店|服务网点|服务中心)(查询|页面|列表)?\s*$/.test(_t)) return { op: "open_stores", msg: "好的，已为你打开门店查询。" };
+            if (/^\s*(打开|查看?|看看?|去|进)?(我的)?(会员(中心|页面|权益)?|会员卡|乐豆|积分(中心|商城)?)\s*$/.test(_t)) return { op: "open_member", msg: "好的，已为你打开会员中心。" };
+            if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", msg: "好的，已为你打开优惠券中心。" };
+            if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", msg: "好的，已为你打开教育特惠专区。" };
+            if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", msg: "好的，已为你打开商品对比。" };
             // 选第 N 个 + 动作（更具体，先判）
             const _ord = lxParseOrdinal(_t);
             if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
@@ -8612,6 +8618,12 @@ function openOrderDetail(orderId) {
       if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
       if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
       if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
+      // 高频导航单词本地秒判（与主面板对齐，「门店」「会员」等短词不扔小模型赌）
+      if (/^\s*(打开|查看?|看看?|去|进)?(附近)?(门店|实体店|线下店|体验店|专卖店|服务网点|服务中心)(查询|页面|列表)?\s*$/.test(_t)) return { op: "open_stores", target: "", msg: "好的，已为你打开门店查询。" };
+      if (/^\s*(打开|查看?|看看?|去|进)?(我的)?(会员(中心|页面|权益)?|会员卡|乐豆|积分(中心|商城)?)\s*$/.test(_t)) return { op: "open_member", target: "", msg: "好的，已为你打开会员中心。" };
+      if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", target: "", msg: "好的，已为你打开优惠券中心。" };
+      if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", target: "", msg: "好的，已为你打开教育特惠专区。" };
+      if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", target: "", msg: "好的，已为你打开商品对比。" };
       const _ord = (window.__lxParseOrdinal || (() => null))(_t);
       if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
         const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
