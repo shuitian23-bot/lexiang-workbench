@@ -1366,6 +1366,7 @@ if (!window.__lxCreateTypewriter) {
           updateBadges();
           toast("下单成功（演示订单）");
           addMessage("assistant", `已下单成功（演示）：${order.name}，实付 ¥${Number(order.price || 0).toLocaleString()}，订单号 ${order.orderId}。${order.benefitNote ? `已用优惠：${order.benefitNote}。` : ""}`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-floor-action="orders">查看订单</button><button class="lx-p0-btn" type="button" data-quick-ask="刚买了${esc(order.name)}，帮我配个合适的鼠标或包">顺手配个配件</button></div>`);
+          try { lxSaveConversation(); } catch (_e) {} // 下单成功是关键节点，显式保存进历史（不只靠防抖）
           if (state.user) openOrders();
         }
 
@@ -5225,24 +5226,22 @@ function openOrderDetail(orderId) {
             return { type: "list", product: null, products: activeTab.products.slice() };
           }
           if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
-          // 「第N个」最该指 AI 这次推荐的那几款 —— 它们存在 reco tab（kind:"reco"）。优先用它，序号严格对应 AI 推荐顺序。
+          // 「第N个」候选列表：AI 这次推荐的（reco tab）排最前，再接上用户屏幕上可见的推荐墙商品，序号连续。
+          // 这样「第三个」=AI推荐第3款，「第六个」也能落到推荐墙里——不会再「只有3个」。
+          const merged = [];
+          const seen = new Set();
+          const pushP = (p) => { if (p && p.sku && !seen.has(p.sku)) { seen.add(p.sku); merged.push(p); } };
           const recoTab = (state.tabs || []).find((t) => t.kind === "reco" || t.id === "reco");
-          if (recoTab && Array.isArray(recoTab.products) && recoTab.products.length) {
-            return { type: "list", product: null, products: recoTab.products.slice() };
-          }
-          // 没有 AI 推荐列表时，才退到可见推荐墙（按屏幕顺序）
+          if (recoTab && Array.isArray(recoTab.products)) recoTab.products.forEach(pushP);
+          // 再按屏幕顺序补上可见推荐墙/楼层的商品
           const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.compare || [])];
           const bySku = {};
           pool.forEach((p) => { if (p && p.sku) bySku[p.sku] = p; });
-          const seen = new Set();
-          const domProducts = [];
           document.querySelectorAll("[data-site-floors] [data-open-product], .content [data-open-product]").forEach((el) => {
             const sku = el.getAttribute("data-open-product");
-            if (!sku || seen.has(sku)) return;
-            seen.add(sku);
-            if (bySku[sku]) domProducts.push(bySku[sku]);
+            if (sku && bySku[sku]) pushP(bySku[sku]);
           });
-          if (domProducts.length) return { type: "list", product: null, products: domProducts };
+          if (merged.length) return { type: "list", product: null, products: merged };
           const visible = [...(state.products || []), ...(state.siteProducts || [])];
           if (visible.length) return { type: "list", product: null, products: visible.slice() };
           return { type: "other", product: null, products: [] };
