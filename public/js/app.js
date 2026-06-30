@@ -5163,15 +5163,28 @@ function openOrderDetail(orderId) {
         const LX_CN_NUM = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
         function lxParseOrdinal(text) {
           const t = String(text || "");
-          const ar = t.match(/第?\s*(\d+)\s*(个|款|台|件|号)?/);
-          if (ar) { const n = Number(ar[1]); if (n >= 1) return n; }
-          const cn = t.match(/第?\s*([一二两三四五六七八九十]+)\s*(个|款|台|件|号)/);
+          // 序号必须有明确标志：①「第N个/第N款/第N台/第N件」 ②「N个/N款」紧跟量词（不含金额）。
+          // 严防把「预算10000」「20000元」「16G」这类金额/规格数字误当序号。范围限 1-20。
+          // 先排除：数字紧跟金额/规格单位（元/块/万/千/价/G/GB/寸/英寸/Hz/年），这些不是序号
+          const isAmount = (numStr, idx) => {
+            const after = t.slice(idx + numStr.length, idx + numStr.length + 4);
+            return /^(元|块|万|千|价|G|GB|TB|寸|英寸|Hz|年|月|号机|%|度)/.test(after) || /到\d/.test(t.slice(idx, idx + numStr.length + 6));
+          };
+          // 阿拉伯：必须「第N(个/款/台/件)?」或「N(个/款/台/件)」量词，且非金额
+          let m = t.match(/第\s*(\d{1,2})\s*(个|款|台|件|号)?/);
+          if (m && !isAmount(m[1], m.index + (m[0].indexOf(m[1])))) { const n = Number(m[1]); if (n >= 1 && n <= 20) return n; }
+          m = t.match(/(?:^|[^\d.])(\d{1,2})\s*(个|款|台|件)(?![\d元])/);
+          if (m) { const n = Number(m[1]); const idx = t.indexOf(m[1], m.index); if (!isAmount(m[1], idx) && n >= 1 && n <= 20) return n; }
+          // 中文：必须带「第」前缀（第一台/第三个），光「一台/两个」是量词不是序号，不匹配
+          const cn = t.match(/第\s*([一二两三四五六七八九十]+)\s*(个|款|台|件)?/);
           if (cn) {
             const s = cn[1];
-            if (s === "十") return 10;
-            if (s.length === 1) return LX_CN_NUM[s] || null;
-            if (s[0] === "十") return 10 + (LX_CN_NUM[s[1]] || 0);
-            if (s[1] === "十") return (LX_CN_NUM[s[0]] || 0) * 10 + (LX_CN_NUM[s[2]] || 0);
+            let n = null;
+            if (s === "十") n = 10;
+            else if (s.length === 1) n = LX_CN_NUM[s] || null;
+            else if (s[0] === "十") n = 10 + (LX_CN_NUM[s[1]] || 0);
+            else if (s[1] === "十") n = (LX_CN_NUM[s[0]] || 0) * 10 + (LX_CN_NUM[s[2]] || 0);
+            if (n && n >= 1 && n <= 20) return n;
           }
           return null;
         }
