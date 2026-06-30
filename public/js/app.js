@@ -1838,6 +1838,10 @@ function openOrderDetail(orderId) {
             const list = ensureChat();
             if (!list) return;
             list.innerHTML = "";
+            // 顶部插「历史对话」分隔条，让用户明确这是上次的记录（而非当前出错）
+            const _histDivider = document.createElement("div");
+            _histDivider.className = "lx-conv-hist-divider";
+            _histDivider.innerHTML = `<span>以上为历史对话</span>`;
             _msgs.forEach(function (m) {
               if (m.role === "user") {
                 addMessage("user", m.text || "");
@@ -1854,6 +1858,7 @@ function openOrderDetail(orderId) {
                 list.appendChild(node);
               }
             });
+            if (list.children.length) list.appendChild(_histDivider); // 历史末尾加分隔，往下是新对话
             list.scrollTop = list.scrollHeight;
           } catch (_e) { /* 恢复失败静默，不影响首屏 */ }
         }

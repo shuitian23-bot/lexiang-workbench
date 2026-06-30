@@ -13455,3 +13455,21 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
 .lx-op-step.doing .lx-op-step-ic, .lx-op-step.wait .lx-op-step-ic { border: 1.5px solid currentColor; }
 .lx-op-spin { width: 11px; height: 11px; border: 2px solid rgba(184,37,46,.3); border-top-color: var(--lx-brand-red,#B8252E); border-radius: 50%; animation: lxOpSpin .7s linear infinite; }
 @keyframes lxOpSpin { to { transform: rotate(360deg); } }
+
+/* 对话历史恢复分隔条：标明上面是上次的历史对话，下面是新对话 */
+.lx-conv-hist-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 4px 6px;
+  color: var(--text-muted, #9a929f);
+  font-size: 12px;
+}
+.lx-conv-hist-divider::before,
+.lx-conv-hist-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line, #e8e3f0), transparent);
+}
+.lx-conv-hist-divider span { flex: none; white-space: nowrap; }
