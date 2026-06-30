@@ -6967,19 +6967,29 @@ function openOrderDetail(orderId) {
                 "限时限量，先到先得",
                 "直接告诉我你的需求，我帮你找最合适的方案"
               ];
-              if (["personal", "business", "enterprise"].includes(state.page)) {
+              // 先发一条用户 query 气泡，让用户清楚自己问的是什么（之前直接 AI 播报，显得像凭空生成）
+              const bannerQuery = `我想了解一下「${(title || kicker || "当前活动").trim()}」这个活动，有什么优惠？`;
+              addMessage("user", bannerQuery);
+              // 首页点 banner：先切到个人站再定位活动楼层（首页本身没有活动楼层可跳）
+              if (state.page === "home" && typeof routeTo === "function") {
+                routeTo("personal");
+              }
+              if (["personal", "business", "enterprise"].includes(state.page) || state.page === "home") {
                 state.activeSiteFloorTab = targetTab;
-                document.querySelectorAll(".category-tabs button:not([data-cat-more])").forEach((btn) => {
-                  btn.classList.toggle("active", (btn.dataset.catLabel || btn.textContent.trim()) === targetTab);
-                });
-                const contentBox = document.querySelector(".content");
-                contentBox?.scrollTo({ top: 0, behavior: "smooth" });
-                lxRenderSiteFloors();
+                // routeTo 是异步渲染，稍等再切 tab + 渲染楼层
+                setTimeout(() => {
+                  document.querySelectorAll(".category-tabs button:not([data-cat-more])").forEach((btn) => {
+                    btn.classList.toggle("active", (btn.dataset.catLabel || btn.textContent.trim()) === targetTab);
+                  });
+                  const contentBox = document.querySelector(".content");
+                  contentBox?.scrollTo({ top: 0, behavior: "smooth" });
+                  lxRenderSiteFloors();
+                }, state.page === "home" ? 260 : 0);
               }
               const bulletHtml = highlights.map((h) => `<div class="lx-discover-review-item" data-quick-ask="${esc(h)}" tabindex="0" style="cursor:pointer"><span>${esc(h)}</span></div>`).join("");
               const quickLinks = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="帮我了解当前活动详情和最优惠方案">咨询详情</button><button class="lx-p0-btn" type="button" data-quick-ask="当前活动有哪些优惠可以叠加使用">叠加优惠</button></div>`;
               const disclaimer = `<p class="lx-p0-disclaimer" style="margin-top:8px">以上内容由 AI 生成，仅供参考，实际以联想官网为准。</p>`;
-              addMessage("assistant", `「${targetTab}」活动亮点：`, bulletHtml + quickLinks + disclaimer);
+              addMessage("assistant", `好的，已为你打开「${targetTab}」活动专区，这个活动的亮点：`, bulletHtml + quickLinks + disclaimer);
               return;
             }
 
@@ -9128,24 +9138,24 @@ function openOrderDetail(orderId) {
   (function initLxfdHomeGallery() {
     const data = {
       new: [
-        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)" },
-        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)" },
-        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)" }
+        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "帮我介绍下拯救者 Y9000P 2026，这款怎么样？" },
+        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "帮我介绍下 YOGA Air 14c 2026，这款怎么样？" },
+        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "帮我介绍下小新 Pad Pro 13英寸，这款怎么样？" }
       ],
       act: [
-        { nm: "618 年中钜惠", ds: "全场至高省 2000，下单再享 12 期免息", price: "省 2000", isText: true, badge: "限时", wm: "618 SALE", g: "linear-gradient(135deg,#3a1020,#8a1f2e 56%,#e1432e)" },
-        { nm: "教育优惠季", ds: "学生 / 教师认证，专属机型至高 9 折", price: "享 9 折", isText: true, badge: "进行中", wm: "EDU SEASON", g: "linear-gradient(135deg,#15233f,#2f5aa0 58%,#6a9fe0)" },
-        { nm: "以旧换新", ds: "旧机抵扣 + 平台补贴，至高补 800 元", price: "补 800", isText: true, badge: "可叠加", wm: "TRADE-IN", g: "linear-gradient(135deg,#143028,#1f6e54 58%,#56b78c)" }
+        { nm: "618 年中钜惠", ds: "全场至高省 2000，下单再享 12 期免息", price: "省 2000", isText: true, badge: "限时", wm: "618 SALE", g: "linear-gradient(135deg,#3a1020,#8a1f2e 56%,#e1432e)", q: "618 年中钜惠有什么优惠？怎么参加？" },
+        { nm: "教育优惠季", ds: "学生 / 教师认证，专属机型至高 9 折", price: "享 9 折", isText: true, badge: "进行中", wm: "EDU SEASON", g: "linear-gradient(135deg,#15233f,#2f5aa0 58%,#6a9fe0)", q: "教育优惠季怎么参加？学生认证有哪些优惠？" },
+        { nm: "以旧换新", ds: "旧机抵扣 + 平台补贴，至高补 800 元", price: "补 800", isText: true, badge: "可叠加", wm: "TRADE-IN", g: "linear-gradient(135deg,#143028,#1f6e54 58%,#56b78c)", q: "以旧换新怎么操作？旧机能抵多少钱？" }
       ],
       news: [
-        { nm: "联想 2026 拯救者全系发布", ds: "搭载新一代 AI 引擎与超频引擎，性能再进阶", price: "查看全文", isText: true, badge: "官方", wm: "PRESS", g: "linear-gradient(135deg,#241b3a,#4a2d6e 58%,#8a3f5e)" },
-        { nm: "联想 AI PC 出货领跑行业", ds: "IDC 最新报告：中国 AI PC 市场份额持续第一", price: "查看全文", isText: true, badge: "行业", wm: "INSIGHT", g: "linear-gradient(135deg,#1b2a3f,#36608f 58%,#74a8d0)" },
-        { nm: "联想乐享门店破 5000 家", ds: "线下服务网络全面升级，到店体验更进一步", price: "查看全文", isText: true, badge: "动态", wm: "RETAIL", g: "linear-gradient(135deg,#2a2410,#7a6320 58%,#d0a84a)" }
+        { nm: "联想 2026 拯救者全系发布", ds: "搭载新一代 AI 引擎与超频引擎，性能再进阶", price: "查看全文", isText: true, badge: "官方", wm: "PRESS", g: "linear-gradient(135deg,#241b3a,#4a2d6e 58%,#8a3f5e)", q: "联想 2026 拯救者全系发布了哪些新品？有什么亮点？" },
+        { nm: "联想 AI PC 出货领跑行业", ds: "IDC 最新报告：中国 AI PC 市场份额持续第一", price: "查看全文", isText: true, badge: "行业", wm: "INSIGHT", g: "linear-gradient(135deg,#1b2a3f,#36608f 58%,#74a8d0)", q: "联想 AI PC 有哪些优势？为什么市场份额第一？" },
+        { nm: "联想乐享门店破 5000 家", ds: "线下服务网络全面升级，到店体验更进一步", price: "查看全文", isText: true, badge: "动态", wm: "RETAIL", g: "linear-gradient(135deg,#2a2410,#7a6320 58%,#d0a84a)", q: "联想门店能提供哪些服务？帮我找附近门店。" }
       ],
       case: [
-        { nm: "某重点高校机房方案", ds: "1200 台统一部署与运维，开机即用，集中管理", price: "教育行业", isText: true, badge: "已交付", wm: "CAMPUS", g: "linear-gradient(135deg,#1a2740,#2f5e8f 58%,#6f9fd0)" },
-        { nm: "设计工作室创作方案", ds: "ThinkStation + 校色屏整体方案，效率提升 40%", price: "创意设计", isText: true, badge: "标杆", wm: "STUDIO", g: "linear-gradient(135deg,#2a1640,#5b2f8a 58%,#9a6ad0)" },
-        { nm: "连锁零售 POS 升级", ds: "300+ 门店终端统一焕新，稳定支撑高峰交易", price: "零售行业", isText: true, badge: "规模化", wm: "RETAIL POS", g: "linear-gradient(135deg,#301622,#7a2740 58%,#d04a5a)" }
+        { nm: "某重点高校机房方案", ds: "1200 台统一部署与运维，开机即用，集中管理", price: "教育行业", isText: true, badge: "已交付", wm: "CAMPUS", g: "linear-gradient(135deg,#1a2740,#2f5e8f 58%,#6f9fd0)", q: "教育行业的机房统一部署方案是怎么做的？" },
+        { nm: "设计工作室创作方案", ds: "ThinkStation + 校色屏整体方案，效率提升 40%", price: "创意设计", isText: true, badge: "标杆", wm: "STUDIO", g: "linear-gradient(135deg,#2a1640,#5b2f8a 58%,#9a6ad0)", q: "设计创作行业有什么整体方案？ThinkStation 怎么配？" },
+        { nm: "连锁零售 POS 升级", ds: "300+ 门店终端统一焕新，稳定支撑高峰交易", price: "零售行业", isText: true, badge: "规模化", wm: "RETAIL POS", g: "linear-gradient(135deg,#301622,#7a2740 58%,#d04a5a)", q: "连锁零售门店终端怎么统一升级？有什么方案？" }
       ]
     };
     const root = document.querySelector(".lxfd-home-gallery");
@@ -9159,10 +9169,25 @@ function openOrderDetail(orderId) {
       const inner = item.img
         ? '<img class="gallery-img" src="' + escapeAttr(item.img) + '" alt="" loading="eager" />'
         : '<span class="gallery-lid"></span><span class="gallery-wm">' + escapeHtml(item.wm) + '</span>';
-      return '<article class="gallery-card"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
+      return '<article class="gallery-card" role="button" tabindex="0" data-gallery-q="' + escapeAttr(item.q || ("帮我介绍下" + item.nm)) + '"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
         + '<div class="gallery-meta"><span class="gallery-badge">' + escapeHtml(item.badge) + '</span><strong class="gallery-name">' + escapeHtml(item.nm) + '</strong><span class="gallery-desc">' + escapeHtml(item.ds) + '</span>'
         + '<div class="gallery-foot"><span class="gallery-price">' + price(item) + '</span><button class="gallery-go" type="button">了解 →</button></div></div></article>';
     };
+    // 卡片点击 → 发对应 query 进对话（事件委托，覆盖换 tab 后新卡片）
+    const fireCard = (cardEl) => {
+      const q = cardEl && cardEl.getAttribute("data-gallery-q");
+      if (!q) return;
+      if (typeof window.lxfdSubmit === "function") window.lxfdSubmit(q);
+    };
+    grid.addEventListener("click", (e) => {
+      const cardEl = e.target.closest(".gallery-card");
+      if (cardEl) fireCard(cardEl);
+    });
+    grid.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const cardEl = e.target.closest(".gallery-card");
+      if (cardEl) { e.preventDefault(); fireCard(cardEl); }
+    });
     const moveInk = () => {
       const active = root.querySelector(".gallery-tab.is-active");
       if (active && ink) {
