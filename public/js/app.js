@@ -4505,15 +4505,16 @@ function openOrderDetail(orderId) {
             if (/YOGA\s*PRO\s*15|PRO 15/.test(text)) return "YOGA Pro 15";
             return "LENOVO";
           };
+          const _eduOk = stu.status === "verified"; // 已认证：按钮/标签改成「已享教育价·立即购买」
           const cards = pool.map((p) => {
             const rawPrice = Number(p.price || 0);
             const eduPrice = Math.round(rawPrice * 0.95);
             return `<div class="card lx-edu-card" data-sku="${esc(p.sku)}" data-open-product="${esc(p.sku)}">
               <div class="shot"><div class="ph">${icn.laptop}</div><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'" /><div class="wm">${esc(markName(p.name))}</div></div>
               <div class="nm">${esc(p.name)}</div>
-              <div class="etag">${icn.spark}<span>认证后享教育价</span></div>
+              <div class="etag">${icn.spark}<span>${_eduOk ? "教育价已生效" : "认证后享教育价"}</span></div>
               <div class="eduprice"><span class="now"><span class="cur">¥</span>${eduPrice.toLocaleString()}</span><span class="was">¥${rawPrice.toLocaleString()}</span></div>
-              <button class="lcta" type="button" data-open-product="${esc(p.sku)}">立即认证购买</button>
+              <button class="lcta" type="button" data-open-product="${esc(p.sku)}">${_eduOk ? "立即购买" : "立即认证购买"}</button>
             </div>`;
           }).join("");
           const html = `<div class="edu lx-edu-skin" data-v="4">
@@ -5224,28 +5225,22 @@ function openOrderDetail(orderId) {
             return { type: "list", product: null, products: activeTab.products.slice() };
           }
           if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
-          // 兜底列表：优先用「用户真正看到的」可见商品卡顺序（推荐墙/楼层/对话推荐），按 sku 映射回商品对象。
-          // 这样「第三个」=屏幕上第 3 张卡，而不是 state.products 的内部顺序（可能和显示不一致）。
+          // 「第N个」最该指 AI 这次推荐的那几款 —— 它们存在 reco tab（kind:"reco"）。优先用它，序号严格对应 AI 推荐顺序。
+          const recoTab = (state.tabs || []).find((t) => t.kind === "reco" || t.id === "reco");
+          if (recoTab && Array.isArray(recoTab.products) && recoTab.products.length) {
+            return { type: "list", product: null, products: recoTab.products.slice() };
+          }
+          // 没有 AI 推荐列表时，才退到可见推荐墙（按屏幕顺序）
           const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.compare || [])];
           const bySku = {};
           pool.forEach((p) => { if (p && p.sku) bySku[p.sku] = p; });
           const seen = new Set();
           const domProducts = [];
-          // 优先对话里最近一条 AI 回复内的商品列表（用户刚问完推荐，"第N个"多指这批）
-          const aiLists = document.querySelectorAll(".lx-p0-messages .ai-body");
-          const lastAi = aiLists.length ? aiLists[aiLists.length - 1] : null;
-          const scanRoots = [];
-          if (lastAi) scanRoots.push(lastAi);
-          // 再加右侧可见的推荐墙/楼层（用户在看的）
-          document.querySelectorAll(".content [data-open-product], .reco-grid [data-open-product], [data-site-floors] [data-open-product]").forEach((el) => scanRoots.push(el));
-          scanRoots.forEach((root) => {
-            const els = root.matches && root.matches("[data-open-product]") ? [root] : root.querySelectorAll("[data-open-product]");
-            els.forEach((el) => {
-              const sku = el.getAttribute("data-open-product");
-              if (!sku || seen.has(sku)) return;
-              seen.add(sku);
-              if (bySku[sku]) domProducts.push(bySku[sku]);
-            });
+          document.querySelectorAll("[data-site-floors] [data-open-product], .content [data-open-product]").forEach((el) => {
+            const sku = el.getAttribute("data-open-product");
+            if (!sku || seen.has(sku)) return;
+            seen.add(sku);
+            if (bySku[sku]) domProducts.push(bySku[sku]);
           });
           if (domProducts.length) return { type: "list", product: null, products: domProducts };
           const visible = [...(state.products || []), ...(state.siteProducts || [])];
