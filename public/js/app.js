@@ -4849,9 +4849,64 @@ function openOrderDetail(orderId) {
           },
         };
 
+        // 服务意图引导（基于 61049 条真实提问：售后5.4%/认证4.5%/门店3.2%/会员2.4%，原推荐漏斗未覆盖）
+        // 短词即触发（不受购物漏斗 length<3 限制），选完直接发出对应能力的口语句
+        const LX_SERVICE_SUGGEST = {
+          repair: {
+            test: (t) => /^(维修|修电脑|修一下|售后|保修|清灰|换电池|进水|开不了?机|蓝屏|卡顿|死机|系统重装|重装系统|数据迁移|坏了|出问题)$/.test(t) || /^(电脑|笔记本|台式|主机)?(坏了|进水|开不了?机|蓝屏|卡顿|死机)$/.test(t),
+            title: "你的设备遇到什么问题？",
+            options: [
+              ["清灰除尘 / 散热差", "", "我的电脑要清灰除尘，散热不太好，怎么处理？"],
+              ["换电池 / 续航变差", "", "我的电脑要换电池，续航变差了，怎么处理？"],
+              ["进水 / 开不了机 / 蓝屏", "", "我的电脑进水或开不了机了，怎么报修？"],
+              ["卡顿 / 重装系统 / 数据迁移", "", "我的电脑很卡想重装系统并迁移数据，怎么弄？"],
+              ["查保修 / 不确定，问问售后", "", "我想查一下保修，并咨询售后服务怎么办理？"],
+            ],
+            replace: true,
+          },
+          auth: {
+            test: (t) => /^(认证|教育认证|学生认证|职场认证|高考生认证|怎么认证|如何认证|认证状态|重新认证|认证失败)$/.test(t),
+            title: "你要做哪种认证？",
+            options: [
+              ["在校生认证（学生）", "", "我是在校学生，怎么完成学生教育认证？"],
+              ["职场人认证", "", "我是职场人，怎么完成职场认证？"],
+              ["高考生认证", "", "我是高考生，怎么完成高考生教育认证？"],
+              ["查认证状态 / 重新认证", "", "帮我查认证状态，认证失败了怎么重新认证？"],
+            ],
+            replace: true,
+          },
+          store: {
+            test: (t) => /^(门店|附近门店|实体店|体验店|线下店)$/.test(t),
+            title: "去门店想做什么？",
+            options: [
+              ["看样机 / 现场体验", "", "我想去附近门店看样机、现场体验，帮我找门店。"],
+              ["送修 / 售后维修", "", "我想去附近门店送修做售后，帮我找能维修的门店。"],
+              ["学生 / 教育认证", "", "我想去门店做学生教育认证，帮我找门店。"],
+              ["参加门店活动", "", "我想了解附近门店有什么活动，帮我找门店。"],
+            ],
+            replace: true,
+          },
+          member: {
+            test: (t) => /^(会员|智享金|乐豆|积分|会员权益|会员活动)$/.test(t),
+            title: "想看会员的哪部分？",
+            options: [
+              ["会员权益 / 等级", "", "帮我看看我的会员权益和等级。"],
+              ["智享金 / 乐豆余额", "", "帮我看看我的智享金和乐豆余额怎么用。"],
+              ["会员活动 / 0元试用", "", "最近有什么会员活动和0元试用？"],
+              ["积分兑换 / 商城", "", "帮我打开积分兑换商城。"],
+            ],
+            replace: true,
+          },
+        };
+
         function lxDetectSuggest(text) {
           const t = (text || "").trim();
-          if (t.length < 3 || t.length > 80) return null;
+          if (t.length > 80) return null;
+          // 服务引导优先（短词精确匹配，覆盖售后/认证/门店/会员）
+          for (const key of ["repair", "auth", "store", "member"]) {
+            if (LX_SERVICE_SUGGEST[key].test(t)) return { key, isService: true, ...LX_SERVICE_SUGGEST[key] };
+          }
+          if (t.length < 3) return null; // 购物漏斗仍要 ≥3 字，避免误触
           for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
             if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
           }
@@ -4888,6 +4943,15 @@ function openOrderDetail(orderId) {
           ta.value = hit.replace ? opt[2] : ta.value.replace(/[，,。\s]*$/, "") + "，" + opt[2].replace(/^，/, "");
           ta.focus();
           lxHideSuggest();
+          // 服务引导是末级，选完直接发出（购物漏斗才递归下一级）
+          if (hit.isService) {
+            const v = ta.value.trim();
+            ta.value = "";
+            ta.dispatchEvent(new Event("input", { bubbles: true }));
+            if (typeof window.lxfdSubmit === "function" && ta.closest(".hero-composer, .lxfd-composer")) window.lxfdSubmit(v);
+            else sendChat(v);
+            return;
+          }
           lxComposerSuggest(ta); // 递归检测下一级，没有则不出
         }
 
