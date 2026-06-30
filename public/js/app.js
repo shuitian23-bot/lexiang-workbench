@@ -1890,7 +1890,8 @@ function openOrderDetail(orderId) {
             const body = lxEnsureAiBody(node);
             if (text) {
               node._raw = String(text);
-              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`);
+              // 打字动画最长拖 5s，落地后再存一次——否则下单成功等消息存的是「生成中…」占位被丢弃，刷新就没了
+              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`).then(() => { try { lxSaveConversation(); } catch (_e) {} });
             } else {
               body.innerHTML = extraHtml;
             }
@@ -5226,25 +5227,42 @@ function openOrderDetail(orderId) {
             return { type: "list", product: null, products: activeTab.products.slice() };
           }
           if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
-          // 「第N个」候选列表：AI 这次推荐的（reco tab）排最前，再接上用户屏幕上可见的推荐墙商品，序号连续。
-          // 这样「第三个」=AI推荐第3款，「第六个」也能落到推荐墙里——不会再「只有3个」。
+          // 「第N个」候选列表：完全按用户屏幕上看到的卡片顺序（DOM 顺序）枚举，序号 = 视觉顺序。
+          // 之前用 reco tab 拼接导致「第一个」点到另一个列表的第一项、楼层卡又选不到（只有3个）——弃用。
           const merged = [];
           const seen = new Set();
-          const pushP = (p) => { if (p && p.sku && !seen.has(p.sku)) { seen.add(p.sku); merged.push(p); } };
-          const recoTab = (state.tabs || []).find((t) => t.kind === "reco" || t.id === "reco");
-          if (recoTab && Array.isArray(recoTab.products)) recoTab.products.forEach(pushP);
-          // 再按屏幕顺序补上可见推荐墙/楼层的商品
-          const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.compare || [])];
+          // 商品解析池：覆盖所有来源 + 官方商品（楼层卡多来自这里）
+          const pool = [
+            ...(state.products || []), ...(state.siteProducts || []),
+            ...(state.floorProducts || []), ...(state.compare || []),
+            ...Object.values(state.officialProducts || {}),
+          ];
+          (state.tabs || []).forEach((t) => { if (Array.isArray(t.products)) pool.push(...t.products); });
           const bySku = {};
-          pool.forEach((p) => { if (p && p.sku) bySku[p.sku] = p; });
-          document.querySelectorAll("[data-site-floors] [data-open-product], .content [data-open-product]").forEach((el) => {
-            const sku = el.getAttribute("data-open-product");
-            if (sku && bySku[sku]) pushP(bySku[sku]);
-          });
+          pool.forEach((p) => { if (p && p.sku) bySku[String(p.sku)] = p; });
+          const pushBySku = (sku, fallbackEl) => {
+            if (!sku || seen.has(sku)) return;
+            const p = bySku[sku] || (fallbackEl ? lxCardToProduct(fallbackEl, sku) : null);
+            if (p) { seen.add(sku); merged.push(p); }
+          };
+          // 按屏幕从上到下、从左到右枚举可见商品卡（楼层网格 + 推荐墙 + reco 卡片）
+          const cardSel = "[data-cat-floor-grid] [data-open-product], [data-site-floors] [data-open-product], .lx-floor-products [data-open-product], .lx-p0-reco [data-open-product], .content [data-open-product]";
+          const cards = Array.from(document.querySelectorAll(cardSel))
+            .filter((el) => el.offsetParent !== null); // 只数可见的
+          cards.forEach((el) => pushBySku(String(el.getAttribute("data-open-product") || ""), el));
           if (merged.length) return { type: "list", product: null, products: merged };
           const visible = [...(state.products || []), ...(state.siteProducts || [])];
           if (visible.length) return { type: "list", product: null, products: visible.slice() };
           return { type: "other", product: null, products: [] };
+        }
+        // 池里查不到时，从卡片 DOM 抠出最小商品对象（名/价/图），保证「第N个」永远拿得到能下单的商品
+        function lxCardToProduct(el, sku) {
+          const card = el.closest(".lx-floor-product, .lx-product-mini-card, .card, .lx-sim-card") || el;
+          const name = (card.querySelector(".product-title, .lx-sim-name, .lx-mini-name, h3")?.textContent || "").trim()
+            || (card.getAttribute("aria-label") || "").trim() || "联想商品";
+          const priceTxt = (card.querySelector(".price, .lx-sim-price, .lx-mini-price")?.textContent || "").replace(/[^\d.]/g, "");
+          const img = card.querySelector("img");
+          return { sku: String(sku), name, price: Number(priceTxt) || 0, image_url: img ? img.getAttribute("src") : "" };
         }
         function lxPickNth(products, n) {
           if (!Array.isArray(products) || !products.length) return { error: "当前没有可选的商品列表，先打开商品或推荐看看吧" };
