@@ -9211,18 +9211,8 @@ function openOrderDetail(orderId) {
   setTimeout(startRotatingTitle, reduceMotion ? 0 : 2000);
   syncSend();
   lxfdRenderHist();
-  // 刷新/进首页后恢复历史对话：主面板 IIFE 已把 localStorage 里的对话还原到 .lx-p0-messages，
-  // lxfd 在自己初始化完成后立即导入，使用户进全屏时能看到历史而非空白欢迎态。
-  // 用 setTimeout(0) 确保主面板 IIFE 的 lxRestoreConversation 已执行完毕（两 IIFE 顺序执行，
-  // 此处追加 tick 只是保险，实测主面板已先于 lxfd IIFE 完整执行）。
-  setTimeout(function() {
-    try {
-      if (thread && !thread.children.length) {
-        const mainMsgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
-        if (mainMsgs.length) lxfdDoImport();
-      }
-    } catch (_e) {}
-  }, 0);
+  // 注：首页自动导入历史对话的钩子已移除——它会让首页进对话态但渲染不全，首页崩成只剩一条用户消息。
+  // 首页保持欢迎态；对话恢复仅在分屏主面板生效（用户从首页发问/进分屏自然能看到）。
 
   document.addEventListener("click", (e) => {
     const fsToggle = e.target.closest(".assistant-toggle");
