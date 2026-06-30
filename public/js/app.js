@@ -1812,6 +1812,8 @@ function openOrderDetail(orderId) {
                 if (!text && !html) return;
                 messages.push({ role: isUser ? "user" : "ai", text, html });
               });
+              // 去掉末尾「孤立的用户提问」（AI 还没回答就保存了）——否则刷新后只剩一条没回答的提问，体验怪
+              while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
               if (!messages.length) return;
               localStorage.setItem(LX_CONV_KEY, JSON.stringify({
                 convId: state.convId || null,
@@ -1828,11 +1830,15 @@ function openOrderDetail(orderId) {
             const data = JSON.parse(raw);
             if (!data || !Array.isArray(data.messages) || !data.messages.length) return;
             if (data.ts && Date.now() - data.ts > 7 * 24 * 3600 * 1000) { localStorage.removeItem(LX_CONV_KEY); return; }
+            // 兜底：去掉末尾孤立用户提问（老坏数据），没有有效内容就不恢复，避免只剩一条没回答的提问
+            const _msgs = data.messages.slice();
+            while (_msgs.length && _msgs[_msgs.length - 1].role === "user") _msgs.pop();
+            if (!_msgs.length) { localStorage.removeItem(LX_CONV_KEY); return; }
             state.convId = data.convId || state.convId;
             const list = ensureChat();
             if (!list) return;
             list.innerHTML = "";
-            data.messages.forEach(function (m) {
+            _msgs.forEach(function (m) {
               if (m.role === "user") {
                 addMessage("user", m.text || "");
               } else {
