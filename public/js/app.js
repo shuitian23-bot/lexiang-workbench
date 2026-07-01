@@ -8825,6 +8825,8 @@ function openOrderDetail(orderId) {
     turns.push({ id: turnId, text: value });
     renderTurnIndex(turnId);
     if (ta) { ta.value = ""; fit(); syncSend(); }
+    // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
+    try { lxfdPersistCurrent(); } catch (_e) {}
 
     // ── lxfd 意图路由分流 ──────────────────────────────────────────────
     // 1. 本地快路径
