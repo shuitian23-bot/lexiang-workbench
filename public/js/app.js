@@ -140,6 +140,8 @@ if (!window.__lxCreateTypewriter) {
               addMessage(m.role, m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
             });
             if (convId) state.convId = convId;
+            // 立即持久化（不靠防抖）——桥接后可能马上切站，防抖会被吞
+            try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
           },
           // 退全屏 + 右侧显示商品/页面
           revealProducts: function(products, opts) {
@@ -1801,39 +1803,43 @@ function openOrderDetail(orderId) {
         // ── 对话持久化：切站点/刷新后从 localStorage 恢复（不碰导航软切，靠整页重载后恢复兜底）──
         const LX_CONV_KEY = "lexiang.conversation.v1";
         let _lxConvSaveTimer = null;
+        // 立即把主面板对话写进 localStorage（不防抖）——桥接退全屏后可能马上切站，防抖 timer 会被页面卸载吞掉
+        function _lxDoSaveConversation() {
+          try {
+            const listEl = document.querySelector(".chat-state .lx-p0-messages");
+            if (!listEl) return;
+            const messages = [];
+            listEl.querySelectorAll(":scope > .lx-p0-message").forEach(function (el) {
+              const isUser = el.classList.contains("user");
+              // AI 消息：class 可能是 "ai" 或 "assistant"（下单成功等系统消息用 assistant），都算 AI
+              const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
+              if (!isUser && !isAi) return; // 跳过非用户/非AI节点
+              if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return; // 跳过操作过渡气泡（步骤进度）
+              // 跳过未完成的 loading 态 AI 消息（class 含 loading 或 body 仍是生成中占位），否则刷新后会卡在「生成中…」
+              if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
+              const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
+              let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+              // 双保险：html 仍残留 loading 标记则丢弃 html，只留文本（恢复时用 mdLite 重渲染）
+              if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor/.test(html)) html = "";
+              if (!text && !html) return;
+              messages.push({ role: isUser ? "user" : "ai", text, html });
+            });
+            // 去掉末尾「孤立的用户提问」（AI 还没回答就保存了）——否则刷新后只剩一条没回答的提问，体验怪
+            while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
+            if (!messages.length) return;
+            localStorage.setItem(LX_CONV_KEY, JSON.stringify({
+              convId: state.convId || null,
+              messages: messages.slice(-50),
+              ts: Date.now()
+            }));
+          } catch (_e) { /* localStorage 写满等，静默 */ }
+        }
         function lxSaveConversation() {
           clearTimeout(_lxConvSaveTimer);
-          _lxConvSaveTimer = setTimeout(function () {
-            try {
-              const listEl = document.querySelector(".chat-state .lx-p0-messages");
-              if (!listEl) return;
-              const messages = [];
-              listEl.querySelectorAll(":scope > .lx-p0-message").forEach(function (el) {
-                const isUser = el.classList.contains("user");
-                // AI 消息：class 可能是 "ai" 或 "assistant"（下单成功等系统消息用 assistant），都算 AI
-                const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
-                if (!isUser && !isAi) return; // 跳过非用户/非AI节点
-                if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return; // 跳过操作过渡气泡（步骤进度）
-                // 跳过未完成的 loading 态 AI 消息（class 含 loading 或 body 仍是生成中占位），否则刷新后会卡在「生成中…」
-                if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
-                const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
-                let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
-                // 双保险：html 仍残留 loading 标记则丢弃 html，只留文本（恢复时用 mdLite 重渲染）
-                if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor/.test(html)) html = "";
-                if (!text && !html) return;
-                messages.push({ role: isUser ? "user" : "ai", text, html });
-              });
-              // 去掉末尾「孤立的用户提问」（AI 还没回答就保存了）——否则刷新后只剩一条没回答的提问，体验怪
-              while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
-              if (!messages.length) return;
-              localStorage.setItem(LX_CONV_KEY, JSON.stringify({
-                convId: state.convId || null,
-                messages: messages.slice(-50),
-                ts: Date.now()
-              }));
-            } catch (_e) { /* localStorage 写满等，静默 */ }
-          }, 400);
+          _lxConvSaveTimer = setTimeout(_lxDoSaveConversation, 400);
         }
+        // 挂 window：lxfd 全屏 IIFE 桥接退全屏后立即 flush，避免防抖被切站/卸载吞掉
+        window.__lxSaveConversationNow = function () { clearTimeout(_lxConvSaveTimer); _lxDoSaveConversation(); };
         function lxRestoreConversation() {
           try {
             const raw = localStorage.getItem(LX_CONV_KEY);
