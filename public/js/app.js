@@ -3600,7 +3600,20 @@ function openOrderDetail(orderId) {
         async function lxRenderEnterpriseRecommendFloors() {
           const site = API_SITE.enterprise || "biz";
           const pool = await lxEnsureFloorProducts(site, 120);
-          const source = pool.length ? pool : (Array.isArray(state.siteProducts) && state.siteProducts.length ? state.siteProducts : (Array.isArray(state.products) ? state.products : []));
+          // 融合 feed 货盘：/api/products?site=biz 只有服务器/服务，笔记本/台式机在 feed 里，
+          // 不融进来这两个楼层永远空、显示不出来（政企也要有笔记本/台式机楼层）
+          let feedProducts = [];
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            const response = await fetch(`/api/site/feed?site=${encodeURIComponent(site)}`, { cache: "no-store", signal: controller.signal });
+            clearTimeout(timer);
+            const feed = await response.json();
+            feedProducts = (Array.isArray(feed.sections) ? feed.sections : []).flatMap((s) => Array.isArray(s.products) ? s.products : []);
+          } catch {}
+          const merged = [...feedProducts, ...pool, ...(Array.isArray(state.siteProducts) ? state.siteProducts : []), ...(Array.isArray(state.products) ? state.products : [])];
+          const seen = new Set();
+          const source = merged.filter((p) => { const k = lxProductKey(p); if (!p || seen.has(k)) return false; seen.add(k); return true; });
           if (!source.length) return "";
           const used = new Set();
           const floorCount = lxFloorProductCount();
