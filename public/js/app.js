@@ -4953,7 +4953,9 @@ function openOrderDetail(orderId) {
           for (const key of ["repair", "auth", "store", "member"]) {
             if (LX_SERVICE_SUGGEST[key].test(t)) return { key, isService: true, ...LX_SERVICE_SUGGEST[key] };
           }
-          if (t.length < 3) return null; // 购物漏斗仍要 ≥3 字，避免误触
+          // 明确的 2 字购物意图词（推荐/想买/选购/入手/换个）直接放行，否则要打第 3 个字才弹引导——体验差
+          const _short = /^(推荐|想买|选购|入手|换个|想要)$/.test(t);
+          if (t.length < 3 && !_short) return null; // 其余仍要 ≥3 字，避免误触
           for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
             if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
           }
@@ -9288,7 +9290,7 @@ function openOrderDetail(orderId) {
   (function initLxfdHomeGallery() {
     const data = {
       new: [
-        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "帮我介绍下拯救者 Y9000P 2026，这款怎么样？" },
+        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "请解读这款商品：拯救者 Y9000P 2026，配置是 i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏，价格约 ¥15,098，适合什么人买？" },
         { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "帮我介绍下 YOGA Air 14c 2026，这款怎么样？" },
         { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "帮我介绍下小新 Pad Pro 13英寸，这款怎么样？" }
       ],
