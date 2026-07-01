@@ -7943,6 +7943,35 @@ function openOrderDetail(orderId) {
     const store = lxfdLoadStore().filter(c => c.id !== chatState.localId);
     store.unshift({ id: chatState.localId, title, convId: chatState.convId || null, threadHtml: thread.innerHTML, ts: Date.now() });
     lxfdSaveStore(store);
+    // 同步一份到子站切换/刷新恢复用的 key（lexiang.conversation.v1）——否则首页对话切子站后丢失
+    lxfdSyncToMainConvKey();
+  }
+  // 首页 lxfd 对话 → 写进主对话持久化 key，让切子站(整页重载)后能恢复到同一段历史
+  function lxfdSyncToMainConvKey() {
+    try {
+      if (!thread) return;
+      const nodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai"));
+      const messages = [];
+      nodes.forEach(function (el) {
+        if (el.classList.contains("lxfd-msg-user")) {
+          const text = (el.textContent || "").trim();
+          if (text) messages.push({ role: "user", text: text, html: "" });
+        } else {
+          const body = el.querySelector(".lxfd-ai-body");
+          const html = body ? body.innerHTML : "";
+          const text = body ? (body.textContent || "").trim() : "";
+          if (/正在生成中|lx-generating|loading-line|typing-cursor|typing-text/.test(html)) return; // 跳过生成中
+          if (html || text) messages.push({ role: "ai", text: text, html: html });
+        }
+      });
+      while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
+      if (!messages.length) return;
+      localStorage.setItem("lexiang.conversation.v1", JSON.stringify({
+        convId: chatState.convId || null,
+        messages: messages.slice(-50),
+        ts: Date.now()
+      }));
+    } catch (_e) {}
   }
   function lxfdRenderHist() {
     const store = lxfdLoadStore();
