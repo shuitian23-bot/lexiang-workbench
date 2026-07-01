@@ -3551,7 +3551,8 @@ function openOrderDetail(orderId) {
             });
           };
           const floorCount = lxFloorProductCount();
-          const matching = (match, source = basePool) => uniq(source.filter(match)).slice(0, floorCount);
+          const poolCount = Math.max(floorCount, 24); // 换一换要翻批，每楼层多备货
+          const matching = (match, source = basePool) => uniq(source.filter(match)).slice(0, poolCount);
           const serviceProducts = sectionByKey.service || [];
           const desktopProducts = uniq([...(sectionByKey.smb || []), ...(sectionByKey.tianyi || []), ...basePool]).filter((p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -3566,21 +3567,34 @@ function openOrderDetail(orderId) {
             return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品|云智|流量|部署/i.test(text);
           });
           const floorItems = {
-            "ThinkPad": lxFillFloorProducts([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, floorCount),
-            "ThinkBook": lxFillFloorProducts([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, floorCount),
-            "Thinkplus": lxFillFloorProducts(accessoryProducts, basePool, floorCount),
-            "ThinkCentre": lxFillFloorProducts([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts], basePool, floorCount),
-            "扬天&瑞天": lxFillFloorProducts([...(sectionByKey.tianyi || []), ...desktopProducts], basePool, floorCount),
-            "配件&外设": lxFillFloorProducts(accessoryProducts, basePool, floorCount),
-            "服务存储": lxFillFloorProducts(serviceStorageProducts, basePool, floorCount),
-            "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, floorCount),
+            "ThinkPad": lxFillFloorProducts([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, poolCount),
+            "ThinkBook": lxFillFloorProducts([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, poolCount),
+            "Thinkplus": lxFillFloorProducts(accessoryProducts, basePool, poolCount),
+            "ThinkCentre": lxFillFloorProducts([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts], basePool, poolCount),
+            "扬天&瑞天": lxFillFloorProducts([...(sectionByKey.tianyi || []), ...desktopProducts], basePool, poolCount),
+            "配件&外设": lxFillFloorProducts(accessoryProducts, basePool, poolCount),
+            "服务存储": lxFillFloorProducts(serviceStorageProducts, basePool, poolCount),
+            "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, poolCount),
           };
 
+          if (!state.floorAllItems) state.floorAllItems = {};
           return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
             const items = floorItems[label] || [];
             if (!items.length) return "";  // 该类没货就不显示空楼层，不跨品类凑
-            return `<section class="lx-floor lx-business-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合中小企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            return lxRenderSiteCatFloor(label, "biz", items, "帮我推荐" + label + "里适合中小企业的产品");
           }).join("");
+        }
+
+        // business/enterprise 品类楼层：与个人站一致（标题 + 换一换 + 两排网格），换一换分页取全集下一批
+        function lxRenderSiteCatFloor(label, sitePrefix, items, askText) {
+          if (!state.floorAllItems) state.floorAllItems = {};
+          const key = `${sitePrefix}:${label}`;
+          state.floorAllItems[key] = items;                       // 存全集供换一换分页
+          const visibleCount = lxCatFloorVisibleCount();
+          const canShuffle = items.length > visibleCount;
+          const shuffleBtn = `<button class="lx-cat-shuffle-btn" type="button" data-cat-shuffle="${esc(key)}" data-floor-label="${esc(label)}" data-floor-all="${esc(key)}" ${canShuffle ? "" : "disabled"} title="换一批商品"><img class="lx-cat-shuffle-icon" src="/assets/icons/global-refresh.svg?v=2026062504" alt="" aria-hidden="true" />换一换</button>`;
+          const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
+          return `<section class="lx-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(key)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(key)}">${cards}</div></section>`;
         }
 
         async function lxRenderEnterpriseRecommendFloors() {
@@ -3591,9 +3605,10 @@ function openOrderDetail(orderId) {
           const used = new Set();
           const floorCount = lxFloorProductCount();
           return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
-            const items = lxPickFloorProducts(source, match, used, floorCount);
+            // 换一换要能翻批，多取一些（不止两排），全集存起来分页
+            const items = lxPickFloorProducts(source, match, used, Math.max(floorCount, 24));
             if (!items.length) return "";  // 该类没货就不显示空楼层
-            return `<section class="lx-floor lx-enterprise-rec-floor" data-floor-cat="${esc(label)}"><div class="lx-floor-head"><h3>${esc(label)}</h3><span>两排精选 ${items.length} 款</span><button class="lx-p0-btn" type="button" data-quick-ask="帮我推荐${esc(label)}里适合政教及大企业的产品">问乐享要推荐</button></div><div class="lx-floor-products">${items.map(lxProductMiniCard).join("")}</div></section>`;
+            return lxRenderSiteCatFloor(label, "gov", items, "帮我推荐" + label + "里适合政教及大企业的产品");
           }).join("");
         }
 
@@ -3663,7 +3678,8 @@ function openOrderDetail(orderId) {
 	              box.innerHTML = businessRecommendHtml;
 	              lxRetryEmptyRecommendFloors(page, box);
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box); // 换一换/分屏列数变化时重夹两排
               return;
             }
             if (page === "enterprise") {
@@ -3676,7 +3692,8 @@ function openOrderDetail(orderId) {
 	              box.innerHTML = enterpriseRecommendHtml;
 	              lxRetryEmptyRecommendFloors(page, box);
               lxSyncCategoryTabs();
-              requestAnimationFrame(lxSyncCategoryTabsStuck);
+              requestAnimationFrame(() => { lxClampCatFloors(box); lxSyncCategoryTabsStuck(); });
+              lxObserveFloors(box); // 换一换/分屏列数变化时重夹两排
               return;
             }
             box.classList.remove("lx-personal-rec-floors", "lx-business-rec-floors", "lx-enterprise-rec-floors");
@@ -7603,6 +7620,30 @@ function openOrderDetail(orderId) {
 
             // 换一换：品类楼层刷新下一批 8 个商品
             const shuffleBtn = event.target.closest("[data-cat-shuffle]");
+            // business/enterprise 楼层：从存好的全集 state.floorAllItems[key] 翻下一批（与个人站分页同逻辑）
+            if (shuffleBtn && !shuffleBtn.disabled && shuffleBtn.dataset.floorAll) {
+              shuffleBtn.classList.remove("is-spinning");
+              void shuffleBtn.offsetWidth;
+              shuffleBtn.classList.add("is-spinning");
+              window.setTimeout(() => shuffleBtn.classList.remove("is-spinning"), 520);
+              const key = shuffleBtn.dataset.floorAll;
+              const items = (state.floorAllItems && state.floorAllItems[key]) || [];
+              if (items.length > 1) {
+                if (!state.catFloorOffset) state.catFloorOffset = {};
+                const visibleCount = lxCatFloorVisibleCount();
+                const cur = state.catFloorOffset[key] || 0;
+                const next = (cur + visibleCount) % items.length;
+                state.catFloorOffset[key] = next;
+                const batch = [];
+                for (let i = 0; i < 12 && i < items.length; i++) batch.push(items[(next + i) % items.length]);
+                const grid = shuffleBtn.closest("[data-cat-floor-key]")?.querySelector("[data-cat-floor-grid]");
+                if (grid) {
+                  grid.innerHTML = batch.map(lxProductMiniCard).join("");
+                  requestAnimationFrame(() => lxClampCatFloors(grid.closest(".lx-cat-floor")));
+                }
+              }
+              return;
+            }
             if (shuffleBtn && !shuffleBtn.disabled) {
               shuffleBtn.classList.remove("is-spinning");
               void shuffleBtn.offsetWidth;
