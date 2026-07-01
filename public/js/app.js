@@ -152,6 +152,10 @@ if (!window.__lxCreateTypewriter) {
               document.body.classList.add("lx-home-split");
               document.body.dataset.page = "personal";
               document.body.dataset.state = "chat";
+              // state.page 也切 personal（不改 URL/不 pushState），否则推荐墙楼层数据源认作 home、
+              // 不加载真实货盘 → 露出 index.html 里的静态占位卡（小新AIR13 ¥9799 那批）
+              state.page = "personal";
+              if (!Array.isArray(state.siteProducts) || !state.siteProducts.length) loadProductsForPage();
             }
             lxRevealContent();
             if (products && products.length === 1 && products[0] && products[0].sku) {
@@ -177,6 +181,8 @@ if (!window.__lxCreateTypewriter) {
               document.body.classList.add("lx-home-split");
               document.body.dataset.page = "personal";
               document.body.dataset.state = "chat";
+              state.page = "personal";
+              if (!Array.isArray(state.siteProducts) || !state.siteProducts.length) loadProductsForPage();
             }
             lxRevealContent();
             const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
@@ -2249,6 +2255,11 @@ function openOrderDetail(orderId) {
             if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", msg: "好的，已为你打开优惠券中心。" };
             if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", msg: "好的，已为你打开教育特惠专区。" };
             if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", msg: "好的，已为你打开商品对比。" };
+            // 「对比下 1 2 3」「对比第一个第二个第三个」「把1和3对比一下」——按当前列表序号取商品对比（本地取，不丢给AI瞎检索）
+            if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
+              const _nths = lxParseOrdinals(_t);
+              if (_nths.length >= 2) return { op: "compare_nth", target: _nths.join(","), msg: `好的，正在为你对比第 ${_nths.join("、")} 个商品。` };
+            }
             // 选第 N 个 + 动作（更具体，先判）
             const _ord = lxParseOrdinal(_t);
             if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
@@ -2291,7 +2302,7 @@ function openOrderDetail(orderId) {
               } catch (_intentErr) { /* 超时/失败 → 降级 chat */ }
               if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
                 ai.remove(); // 移除 loading 气泡
-                const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_nth: "正在为你处理所选商品" };
+                const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
                 // 下单类操作不加这条提示气泡（lxExecControl 里 lxBuyWithIntro 自带分步进度卡，避免重复）
                 if (_intentResult.op !== "buy_current" && _intentResult.op !== "buy_nth") {
                   addMessage("ai", `好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
@@ -5283,6 +5294,34 @@ function openOrderDetail(orderId) {
         }
         // 挂 window 供 lxfd 全屏 IIFE 跨作用域调用（序号解析）
         window.__lxParseOrdinal = lxParseOrdinal;
+
+        // 多序号解析（对比场景）：从「1 2 3」「第一个第二个第三个」「1和2和3」抽出一组序号，去重保序，范围 1-20
+        function lxParseOrdinals(text) {
+          const t = String(text || "");
+          const nums = [];
+          const push = (n) => { if (n >= 1 && n <= 20 && !nums.includes(n)) nums.push(n); };
+          // 中文序号：第一/二/三…（不含「两」——「两款」是量词不是序号）
+          const cnMap = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+          const cnRe = /第?\s*([一二三四五六七八九十])\s*(?:个|款|台|件)?/g;
+          let m;
+          while ((m = cnRe.exec(t))) push(cnMap[m[1]] || 0);
+          // 阿拉伯：先抓数字串。连写如「123」= 逐位拆成 1,2,3（列表商品少，很少两位数序号）；
+          // 但带量词/两位如「12个」「第15」当整体。排除金额/规格数字。
+          const arRe = /(\d{1,2})/g;
+          while ((m = arRe.exec(t))) {
+            const numStr = m[1];
+            const after = t.slice(m.index + numStr.length, m.index + numStr.length + 3);
+            if (/^(元|块|万|千|价|G|GB|TB|寸|Hz|年|月|%|度|k|K|W)/i.test(after)) continue;
+            // 两位数：紧跟量词(个/款/台/件)或前有「第」才当整体序号，否则逐位拆（如「123」→1,2,3）
+            if (numStr.length === 2 && !/^(个|款|台|件)/.test(after) && t[m.index - 1] !== "第") {
+              numStr.split("").forEach((d) => push(Number(d)));
+            } else {
+              push(Number(numStr));
+            }
+          }
+          return nums;
+        }
+        window.__lxParseOrdinals = lxParseOrdinals;
         // 当前浏览上下文：用户正在看什么 → 决定下单/选N个操作谁
         function lxCurrentContext() {
           const activeTab = (state.tabs || []).find((t) => t.id === state.activeTabId);
@@ -5459,6 +5498,22 @@ function openOrderDetail(orderId) {
                 else if (action === "cart") { addCart(prod); }
                 else { lxBuyWithIntro(prod); }
               });
+            },
+            // 按序号对比：target = "1,2,3"，从当前列表取对应商品加入对比（不丢给 AI 检索）
+            compare_nth: () => {
+              const nums = String(target || "").split(",").map(Number).filter((n) => n >= 1);
+              const ctx = lxCurrentContext();
+              const list = ctx.products || [];
+              if (!list.length) { toast("当前没有可对比的商品列表，先让我推荐几款吧"); return; }
+              const picks = [];
+              const bad = [];
+              nums.forEach((n) => { if (n <= list.length && list[n - 1]) picks.push(list[n - 1]); else bad.push(n); });
+              if (picks.length < 2) { toast(`当前列表只有 ${list.length} 个商品，无法对比第 ${nums.join("、")} 个`); return; }
+              state.compare = picks.slice(0, 8);
+              save("lexiang.compare.v1", state.compare);
+              lxRevealContent();
+              lxUpsertCompareTab(null, null, true);
+              if (bad.length) toast(`第 ${bad.join("、")} 个超出列表范围，已对比其余 ${picks.length} 款`);
             },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
@@ -8698,6 +8753,10 @@ function openOrderDetail(orderId) {
       if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", target: "", msg: "好的，已为你打开优惠券中心。" };
       if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", target: "", msg: "好的，已为你打开教育特惠专区。" };
       if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", target: "", msg: "好的，已为你打开商品对比。" };
+      if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
+        const _nths = (window.__lxParseOrdinals || (() => []))(_t);
+        if (_nths.length >= 2) return { op: "compare_nth", target: _nths.join(","), msg: `好的，正在为你对比第 ${_nths.join("、")} 个商品。` };
+      }
       const _ord = (window.__lxParseOrdinal || (() => null))(_t);
       if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
         const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";

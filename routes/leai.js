@@ -391,7 +391,7 @@ router.post('/intent', (req, res) => {
 {"type":"chat","op":"","target":""}
 
 操作码枚举（从以下选一个，不能自造）：
-close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen / buy_current / buy_nth
+close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen / buy_current / buy_nth / compare_nth
 
 判断规则：
 1. 只有用户明确要求"操作界面/页面/标签/全屏"或"明确要下单/购买当前/某序号商品"时才返回 type=control，选最贴切的 op。
@@ -406,6 +406,7 @@ close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_mem
    - "下单/就买它/买这个/这个不错下单吧/帮我下单/就这台了" 等【对当前正在看的某个商品确认购买】 → op=buy_current，target留空。
    - "第三个下单/买第二个/选第一款下单/第3个加购/打开第二个" 等【按列表序号操作】 → op=buy_nth，target填"序号|动作"，动作是 buy(下单)/cart(加购)/open(打开)，例如"第三个下单"→target="3|buy"，"第二个加购"→target="2|cart"，"打开第一个"→target="1|open"。序号只取 1-20 的小整数。
    - **严格区分**："我想买一台笔记本，预算1万到2万" → 这是表达需求要推荐，判 type=chat！不是 buy_nth（"1万""2万"是金额不是序号）。只有明确"第N个/这个/它"指向具体某款时才判 buy_*。
+   - "对比下1 2 3/对比第一个第二个第三个/把1和3对比一下/1和2哪个好" 等【按列表序号对比多款】 → op=compare_nth，target填逗号分隔序号如"1,2,3"。序号只取 1-20。至少 2 个序号才算。
 8. 拿不准的一律判 type=chat（宁可走问答，不误触发操作；下单是重操作，不确定绝不误触发）。`;
   const body = JSON.stringify({
     model: 'doubao-seed-2.0-lite',
