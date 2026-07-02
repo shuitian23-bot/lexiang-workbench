@@ -317,7 +317,8 @@ if (!window.__lxCreateTypewriter) {
             if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
-          if (head) head.hidden = isOrderSkin || isAddrSkin;
+          // 行内样式兜底：CSS 文件屡被并发覆盖丢掉 [hidden] 规则，行内 display 优先级最高盖不掉（订单弹窗双×回归根治）
+          if (head) { head.hidden = isOrderSkin || isAddrSkin; head.style.display = (isOrderSkin || isAddrSkin) ? "none" : ""; }
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");

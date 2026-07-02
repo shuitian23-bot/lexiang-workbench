@@ -5450,7 +5450,7 @@
         padding: 22px 28px 16px;
         border-bottom: 1px solid #efe9f2;
       }
-      /* order/address skin 隐藏外壳头（自带 order-head 的×），display:flex 会盖掉 [hidden] 默认隐藏，必须显式补回，否则弹窗出现两个× */
+      /* order/address skin 隐藏外壳头（自带 order-head 的×）；并发覆盖防丢，JS 里另有行内样式兜底 */
       .lx-p0-modal-head[hidden] { display: none !important; }
 
       .lx-p0-modal-title {
@@ -13617,16 +13617,17 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
 }
 
 .ai-arrow .label {
-  transform: translate3d(-8px,0,0) scale(.92) !important;
+  transform: translate3d(-8px,0,0) scale(.92);
   transform-origin: 18px 50% !important;
   will-change: transform, opacity;
   transition: none !important;
-  opacity: 0 !important;
+  opacity: 0;
   box-shadow: 0 8px 20px rgba(60,15,55,.18) !important;
 }
 
 .ai-arrow.awake .label {
   animation: lxSmartLabelIn 420ms cubic-bezier(.2,.9,.24,1) 80ms both;
+  opacity: 1;
 }
 
 .ai-arrow .lx-icon::before,
