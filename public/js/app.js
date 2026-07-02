@@ -4839,13 +4839,35 @@ function openOrderDetail(orderId) {
             ],
             replace: true,
           },
+          tradein: {
+            test: (t) => /^(以旧换新|旧机回收|换新|回收|旧电脑回收|旧机抵扣)$/.test(t),
+            title: "以旧换新想了解什么？",
+            options: [
+              ["旧机能抵多少钱", "", "我想以旧换新，旧机能抵多少钱？怎么估价？"],
+              ["换新流程怎么走", "", "以旧换新的流程怎么走？在哪里操作？"],
+              ["能和国补/教育叠加吗", "", "以旧换新能和国家补贴、教育优惠叠加吗？"],
+              ["哪些旧机可以回收", "", "哪些品牌和型号的旧机可以回收换新？"],
+            ],
+            replace: true,
+          },
+          guobu: {
+            test: (t) => /^(国补|国家补贴|政府补贴|消费补贴)$/.test(t),
+            title: "国补想了解什么？",
+            options: [
+              ["怎么领取国补资格", "", "国家补贴怎么领取？需要实名认证吗？"],
+              ["哪些商品参与国补", "", "哪些商品参与国家补贴？帮我看看。"],
+              ["能叠加什么优惠", "", "国补能和教育优惠、以旧换新叠加吗？"],
+              ["我的城市能用吗", "", "我所在的城市能用国家补贴吗？"],
+            ],
+            replace: true,
+          },
         };
 
         function lxDetectSuggest(text) {
           const t = (text || "").trim();
           if (t.length > 80) return null;
           // 服务引导优先（短词精确匹配，覆盖售后/认证/门店/会员）
-          for (const key of ["repair", "auth", "store", "member"]) {
+          for (const key of ["repair", "auth", "store", "member", "tradein", "guobu"]) {
             if (LX_SERVICE_SUGGEST[key].test(t)) return { key, isService: true, ...LX_SERVICE_SUGGEST[key] };
           }
           // 明确的 2 字购物意图词（推荐/想买/选购/入手/换个）直接放行，否则要打第 3 个字才弹引导——体验差

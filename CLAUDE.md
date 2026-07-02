@@ -13,6 +13,8 @@
 | `lexiang-deploy` | 部署、回滚、PM2、backup 恢复 | 部署/恢复/重启 |
 | `lexiang-ai-flow` | 双 AI 架构、runAgentStream、SSE 协议 | 改 AI 流程/SSE |
 | `lexiang-changelog` | changelog.json 完整格式规则 | 每次上线后写日志 |
+| `lexiang-release` | 发布一条龙（锁→版本→changelog→哨兵→提交→烟测） | 任何改动要上线时**必读** |
+| `lexiang-smoke` | headless 烟测模板 + 踩坑库（选择器/时序/隐身坑） | 上线后验证真实行为前**必读** |
 | `lenovo-leai-pc-design` | PC 端设计规范全套 | 改任何 PC 端样式/交互/文案前**必读** |
 
 ---
