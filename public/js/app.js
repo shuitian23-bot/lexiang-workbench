@@ -629,7 +629,7 @@ if (!window.__lxCreateTypewriter) {
             if (state.hoverPromptSku !== key) return;
             showHoverPrompts(product);
             state.hoverPromptTimer = null;
-          }, 6000);
+          }, 4000);
         }
 
         const DETAIL_SPEC_SKIP_KEYS = new Set([
@@ -1053,15 +1053,6 @@ if (!window.__lxCreateTypewriter) {
           actions.appendChild(btn);
         }
 
-        function ensureDetailBenefitButton() {
-          const actions = $(".detail-actions");
-          if (!actions || $(".lx-p0-detail-benefit", actions)) return;
-          const btn = document.createElement("button");
-          btn.className = "detail-secondary lx-p0-detail-benefit";
-          btn.type = "button";
-          btn.textContent = "算到手价";
-          actions.appendChild(btn);
-        }
 
         function lxFindSimilarViaChat() {
           const p = state.currentProduct;
@@ -1074,28 +1065,7 @@ if (!window.__lxCreateTypewriter) {
           sendChat(ask);
         }
 
-        async function openSimilarProducts() {
-          const sku = state.currentProduct?.sku;
-          if (!sku) return toast("请先选择商品");
-          try {
-            const response = await fetch(`/api/products?similar=${encodeURIComponent(sku)}&limit=6`, { cache: "no-store" });
-            const items = await response.json();
-            if (!Array.isArray(items) || !items.length) return toast("暂未找到同类相近价位的商品");
-            openModal("相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
-          } catch {
-            toast("相似商品加载失败，请稍后再试");
-          }
-        }
 
-        function ensureDetailCompareButton() {
-          const actions = $(".detail-actions");
-          if (!actions || $(".lx-p0-detail-compare", actions)) return;
-          const btn = document.createElement("button");
-          btn.className = "detail-secondary lx-p0-detail-compare";
-          btn.type = "button";
-          btn.textContent = "加入对比";
-          actions.appendChild(btn);
-        }
 
         function addCart(product = state.currentProduct) {
           if (!product) return toast("请先选择商品");
@@ -2065,16 +2035,6 @@ function openOrderDetail(orderId) {
           fn();
         }
 
-        function lxTypeText(el, text, speed, done) {
-          let index = 0;
-          const tick = () => {
-            el.textContent = String(text).slice(0, index);
-            index += 1;
-            if (index <= String(text).length) window.setTimeout(tick, speed);
-            else if (done) done();
-          };
-          tick();
-        }
 
         function lxTypeNodes(sourceParent, targetParent, speed, done) {
           const cursor = document.createElement("span");
@@ -2418,7 +2378,7 @@ function openOrderDetail(orderId) {
                 if (!list.length) return;
                 revealAi();
                 lxAppendAiHtml(ai, '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
-                  `<button type="button" class="leai-click-btn" data-leai-url="${esc(c.link_url || "")}" data-leai-cb="${esc(c.callback_data || "")}" data-leai-event="${esc(c.event_type || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${esc(c.display_text)}</button>`
+                  `<button type="button" class="leai-click-btn" data-leai-url="${esc(c.link_url || "")}" data-leai-cb="${esc(c.callback_data || "")}" data-leai-event="${esc(c.event_type || "")}">${esc(c.display_text)}</button>`
                 ).join("") + "</div>");
               },
               display: (data) => {
@@ -2490,7 +2450,10 @@ function openOrderDetail(orderId) {
                 const { op } = parseJson(data) || {};
                 if (op === 'member') deferRightPanel(() => { lxRevealContent(); openMemberCenter(); }, { title: "查看会员中心", desc: "已为你打开会员权益与资产" });
                 else if (op === 'coupon') deferRightPanel(() => { lxRevealContent(); openCouponCenter(); }, { title: "查看优惠与活动", desc: "已在右侧打开可领取权益" });
-                else if (op === 'solution') deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
+                else if (op === 'solution') {
+                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>');
+                  deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
+                }
                 else if (op === 'edu') {
                   lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
                   deferRightPanel(() => { lxRevealContent(); openEduZone(); }, { title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" });
@@ -4634,7 +4597,25 @@ function openOrderDetail(orderId) {
             lxOpenInfoTab("solution", `${industry}解决方案`, html);
             return;
           }
-          const cards = Object.entries(LX_SOLUTIONS).map(([name, s]) => `<div class="lx-floor-card" data-solution="${esc(name)}"><strong>${s.icon} ${esc(name)}</strong><span>${esc(s.overview.slice(0, 38))}…</span></div>`).join("");
+          const solutionMeta = {
+            "智慧教育": ["EDU", "教学终端 / 校园信创"],
+            "数字政府": ["GOV", "政务办公 / 安全可信"],
+            "智慧医疗": ["MED", "院内终端 / 边缘算力"],
+            "智能制造": ["MFG", "产线工控 / AI 质检"],
+            "智慧金融": ["FIN", "金融信创 / 网点智能化"],
+            "智能基础设施": ["INF", "服务器 / 存储 / AI 算力"]
+          };
+          const cards = Object.entries(LX_SOLUTIONS).map(([name, s]) => {
+            const [code, scope] = solutionMeta[name] || ["AI", "行业方案"];
+            return `<article class="lx-floor-card lx-solution-card" data-solution="${esc(name)}" role="button" tabindex="0">
+              <div class="lx-solution-card-head">
+                <span class="lx-solution-code" aria-hidden="true">${esc(code)}</span>
+                <div><strong>${esc(name)}</strong><small>${esc(scope)}</small></div>
+              </div>
+              <span>${esc(s.overview.slice(0, 46))}…</span>
+              <em>查看方案</em>
+            </article>`;
+          }).join("");
           lxOpenInfoTab("solution", "行业解决方案中心", `<div class="lx-floor-body">${cards}</div><p class="lx-p0-disclaimer">六大行业整体方案，点击查看「概述/功能/优势/收益」与同行案例。</p>`);
         }
 
@@ -6214,10 +6195,6 @@ function openOrderDetail(orderId) {
           if (!Number.isFinite(n)) return "";
           return n >= 1000 ? `${(n / 1000).toFixed(1)}km` : `${Math.round(n)}m`;
         }
-        function lxStoreTags(store) {
-          const tags = store.tags || store.rights || store.services || ["优先体验", "贴膜安装", "以旧换新"];
-          return Array.isArray(tags) ? tags.slice(0, 3) : ["优先体验", "贴膜安装", "以旧换新"];
-        }
         function lxStoreLat(store, fallback) { return store.lat ?? store.latitude ?? fallback ?? 39.9042; }
         function lxStoreLng(store, fallback) { return store.lng ?? store.longitude ?? fallback ?? 116.4074; }
 
@@ -6666,11 +6643,6 @@ function openOrderDetail(orderId) {
           note.classList.toggle("show", !!parts.length);
         }
 
-        function toggleOfficialCompare() {
-          state.officialCompare = !state.officialCompare;
-          $(".lx-p1-compare-toggle")?.classList.toggle("is-active", state.officialCompare);
-          toast(state.officialCompare ? "已开启官方 AI 对比" : "已关闭官方 AI 对比");
-        }
 
         async function callOfficialAI(text) {
           const bubble = addMessage("ai loading", "", renderGenerating("正在获取联想官方 AI 对比结果..."));
@@ -6840,6 +6812,12 @@ function openOrderDetail(orderId) {
               if (brandFocus) {
                 event.preventDefault();
                 brandFocus.click();
+                return;
+              }
+              const brandAskButton = event.target.closest?.("[data-brand-ask]");
+              if (brandAskButton && !["BUTTON", "A"].includes(event.target.tagName)) {
+                event.preventDefault();
+                brandAskButton.click();
                 return;
               }
             }
@@ -7163,7 +7141,8 @@ function openOrderDetail(orderId) {
 
             const brandAsk = event.target.closest("[data-brand-ask]")?.dataset.brandAsk;
             if (brandAsk) {
-              routeTo("personal");
+              event.preventDefault();
+              event.stopPropagation();
               setTimeout(() => sendChat(brandAsk), 0);
               return;
             }
@@ -8634,6 +8613,10 @@ function openOrderDetail(orderId) {
     </button>`;
   }
 
+  function renderLxfdLeadCta() {
+    return '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>';
+  }
+
   function lxfdRevealFeature(feature) {
     if (document.body.dataset.page === "home" || !document.body.dataset.page) {
       document.documentElement.classList.remove("lx-root-lxfd-prepaint");
@@ -9062,7 +9045,7 @@ function openOrderDetail(orderId) {
           const list = (parseJson(data).clicks) || [];
           if (!list.length || !body) return;
           pendingExtras += '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
-            `<button type="button" class="leai-click-btn" data-leai-url="${escapeAttr(c.link_url || "")}" data-leai-cb="${escapeAttr(c.callback_data || "")}" data-leai-event="${escapeAttr(c.event_type || "")}" style="padding:8px 16px;border-radius:999px;border:1px solid #c8161e;background:#c8161e;color:#fff;font-size:13px;font-weight:600;cursor:pointer">${escapeHtml(c.display_text)}</button>`
+            `<button type="button" class="leai-click-btn" data-leai-url="${escapeAttr(c.link_url || "")}" data-leai-cb="${escapeAttr(c.callback_data || "")}" data-leai-event="${escapeAttr(c.event_type || "")}">${escapeHtml(c.display_text)}</button>`
           ).join("") + "</div>";
         },
         suggestions: (data) => {
@@ -9075,6 +9058,7 @@ function openOrderDetail(orderId) {
           const { op } = parseJson(data) || {};
           const pageMeta = lxfdPageCtaMeta(op);
           if (pageMeta) {
+            if (pageMeta.feature === "solution") pendingExtras += renderLxfdLeadCta();
             pendingExtras += renderLxfdPageCta(pageMeta);
             turnAction = pageMeta.feature;
           } else if (op === 'auth') {
@@ -9291,8 +9275,8 @@ function openOrderDetail(orderId) {
     const data = {
       new: [
         { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "请解读这款商品：拯救者 Y9000P 2026，配置是 i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏，价格约 ¥15,098，适合什么人买？" },
-        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "帮我介绍下 YOGA Air 14c 2026，这款怎么样？" },
-        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "帮我介绍下小新 Pad Pro 13英寸，这款怎么样？" }
+        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "请解读这款商品：YOGA Air 14c 2026，配置是酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控，价格约 ¥8,999，适合什么人买？" },
+        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "请解读这款商品：小新Pad Pro 13英寸，配置是酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄，价格约 ¥7,299，适合什么人买？" }
       ],
       act: [
         { nm: "618 年中钜惠", ds: "全场至高省 2000，下单再享 12 期免息", price: "省 2000", isText: true, badge: "限时", wm: "618 SALE", g: "linear-gradient(135deg,#3a1020,#8a1f2e 56%,#e1432e)", q: "618 年中钜惠有什么优惠？怎么参加？" },
@@ -9628,12 +9612,11 @@ function openOrderDetail(orderId) {
       + '</defs></svg>';
   }
   function arrowSVG(){ return '<svg class="arrow" width="22" height="26" viewBox="-1 -1 17 24" aria-hidden="true"><path class="ar-body" d="' + ARROW + '"/></svg>'; }
-  function starSVG(){ return '<span class="star"><svg class="sx" viewBox="0 0 30 30" aria-hidden="true"><path d="' + STAR + '" fill="url(#irisFill)"/><ellipse class="sheen" cx="11" cy="10" rx="3.4" ry="2.5" fill="#fff"/></svg></span>'; }
   function fxHTML(label){ return '<div class="fx"><div class="label"><span class="lx-icon"><img src="/assets/img/lx-icon-0016.png" alt=""/></span><span class="ltxt">' + label + '</span></div></div>'; }
   function init(opts){
     opts = opts || {};
     var v = opts.variant || "A";
-    var delay = opts.delay != null ? opts.delay : 4000;
+    var delay = opts.delay != null ? opts.delay : 3000;
     var label = opts.label || "乐享正在帮你";
     var targetSelector = opts.target || ".content .product-card, .content .lx-floor-product";
     if (document.querySelector(".ai-arrow")) return;
@@ -9643,23 +9626,47 @@ function openOrderDetail(orderId) {
     root.setAttribute("aria-hidden", "true");
     root.innerHTML = defsSVG() + arrowSVG() + fxHTML(label);
     document.body.appendChild(root);
-    var x = -200, y = -200, timer = null, awake = false, inTarget = false;
-    function place(){ root.style.transform = "translate(" + x + "px," + y + "px)"; }
+    var x = -200, y = -200, px = -200, py = -200, raf = 0, timer = null, awake = false, inTarget = false;
+    function place(){
+      raf = 0;
+      var dx = x - px;
+      var dy = y - py;
+      px += dx * 0.42;
+      py += dy * 0.42;
+      if (Math.abs(dx) < 0.35 && Math.abs(dy) < 0.35) {
+        px = x;
+        py = y;
+      }
+      root.style.transform = "translate3d(" + px.toFixed(2) + "px," + py.toFixed(2) + "px,0)";
+      if (px !== x || py !== y) raf = window.requestAnimationFrame(place);
+    }
+    function schedulePlace(){ if (!raf) raf = window.requestAnimationFrame(place); }
     function sleep(){ if (!awake && !document.body.classList.contains("cursor-awake")) return; awake = false; root.classList.remove("awake"); document.body.classList.remove("cursor-awake"); }
-    function wake(){ if (!inTarget) return; awake = true; var old = root.querySelector(".fx"); if (old) old.remove(); root.insertAdjacentHTML("beforeend", fxHTML(label)); void root.offsetWidth; root.classList.add("awake"); document.body.classList.add("cursor-awake"); }
-    function arm(){ clearTimeout(timer); timer = setTimeout(wake, delay); }
+    function wake(){ timer = null; if (!inTarget) return; awake = true; var old = root.querySelector(".fx"); if (old) old.remove(); root.insertAdjacentHTML("beforeend", fxHTML(label)); void root.offsetWidth; root.classList.add("awake"); document.body.classList.add("cursor-awake"); }
+    function showArrow(){ document.body.classList.add("cursor-awake"); }
+    function clearArm(){ if (timer) window.clearTimeout(timer); timer = null; }
+    function arm(){ clearArm(); timer = window.setTimeout(wake, delay); }
     function insideTarget(t){ return !!(t && t.closest && t.closest(targetSelector)); }
-    function onMove(e){ x = e.clientX; y = e.clientY; place(); inTarget = insideTarget(e.target); if (!inTarget){ clearTimeout(timer); sleep(); return; } if (awake) sleep(); arm(); }
-    function onLeave(){ clearTimeout(timer); inTarget = false; sleep(); root.style.transform = "translate(-200px,-200px)"; }
+    function onMove(e){
+      var wasInTarget = inTarget;
+      x = e.clientX;
+      y = e.clientY;
+      schedulePlace();
+      inTarget = insideTarget(e.target);
+      if (!inTarget){ clearArm(); sleep(); return; }
+      showArrow();
+      if (!wasInTarget || (!awake && !timer)) arm();
+    }
+    function onLeave(){ clearArm(); inTarget = false; sleep(); if (raf) window.cancelAnimationFrame(raf); raf = 0; x = y = px = py = -200; root.style.transform = "translate3d(-200px,-200px,0)"; }
     document.addEventListener("mousemove", onMove, { passive:true });
     document.addEventListener("mouseleave", onLeave, { passive:true });
-    document.addEventListener("mousedown", function(){ clearTimeout(timer); sleep(); if (inTarget) arm(); }, { passive:true });
+    document.addEventListener("mousedown", function(){ clearArm(); sleep(); if (inTarget) arm(); }, { passive:true });
     window.addEventListener("blur", onLeave);
     return { wake:wake, sleep:sleep, setVariant:function(nv){ v = nv; document.body.setAttribute("data-arr", nv); sleep(); } };
   }
   global.ARROWCURSOR = global.ARROWCURSOR || {};
   global.ARROWCURSOR.init = init;
   global.ARROWCURSOR.__lxProductDwell = true;
-  function boot(){ init({ variant:"A", delay:4000, label:"乐享正在帮你", target:".content .product-card, .content .lx-floor-product" }); }
+  function boot(){ init({ variant:"A", delay:3000, label:"乐享正在帮你", target:".content .product-card, .content .lx-floor-product" }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
