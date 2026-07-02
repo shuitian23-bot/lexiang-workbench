@@ -16,3 +16,6 @@ public/js/app.js|window.__lxIntent.matchControl|app.js调用共享意图模块
 public/index.html|app-intent.js|index加载意图模块
 public/js/app-lxfd.js|__lxfdInstalled|lxfd全屏模块本体
 public/index.html|app-lxfd.js|index加载lxfd模块
+public/js/app-conv.js|__lxConvFactory|对话持久化模块本体
+public/js/app.js|window.__lxConvFactory|app.js接线conv工厂
+public/index.html|app-conv.js|index加载conv模块
