@@ -1860,6 +1860,18 @@ function openOrderDetail(orderId) {
           return $(".lx-p0-messages", chatState);
         }
 
+        // 操作确认气泡：固定短句秒显，不走 5s 打字动画（动作已经立即执行了，文字不能慢吞吞）
+        function lxAddInstantAi(text) {
+          const list = ensureChat();
+          const node = document.createElement("div");
+          node.className = "lx-p0-message msg ai lx-chat-skin";
+          node._raw = String(text || "");
+          lxEnsureAiBody(node).innerHTML = mdLite(node._raw);
+          list.appendChild(node);
+          list.scrollTop = list.scrollHeight;
+          lxSaveConversation();
+          return node;
+        }
         function addMessage(role, text, extraHtml = "") {
           const list = ensureChat();
           const node = document.createElement("div");
@@ -2210,7 +2222,7 @@ function openOrderDetail(orderId) {
           const _localCtrl = window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
           if (_localCtrl) {
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
-            addMessage("ai", _localCtrl.msg);
+            lxAddInstantAi(_localCtrl.msg);
             // state.sending 此时仍为 false（还没设置），直接 return 即可
             return;
           }
@@ -2242,7 +2254,7 @@ function openOrderDetail(orderId) {
                 const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
                 // 下单类操作不加这条提示气泡（lxExecControl 里 lxBuyWithIntro 自带分步进度卡，避免重复）
                 if (_intentResult.op !== "buy_current" && _intentResult.op !== "buy_nth") {
-                  addMessage("ai", `好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
+                  lxAddInstantAi(`好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
                 }
                 lxExecControl(_intentResult.op, _intentResult.target || "");
                 state.sending = false;
