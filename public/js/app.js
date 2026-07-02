@@ -2206,38 +2206,8 @@ function openOrderDetail(orderId) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
-          // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端 ──────────────
-          const _localCtrl = (function(_t) {
-            // 关其他/留当前/留一排——必须在 close_all 之前判（更具体）
-            if (/(关闭?|关掉)(其他|其它|多余|别的|除当前外?的?)(标签|页面|页签)?|只留(当前|这个|一个|一排)|留(当前|这个|一个|一排)(标签|页面)?|关成(剩余|只剩)?一(排|个)|剩(余|下)一(排|个)/.test(_t)) return { op: "close_other_tabs", msg: "好的，已关闭其他标签，只留当前页面。" };
-            if (/^\s*(关闭?|清空)(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)\s*$/i.test(_t) || /(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)/.test(_t)) return { op: "close_all_tabs", msg: "好的，已为你关闭所有页面标签。" };
-            if (/^\s*(进入|开启|切换?到?|变成?|开|恢复|回到?)?全屏(模式|对话|查看)?\s*$|^\s*(放大|沉浸|专注)(模式|对话|查看)?\s*$/.test(_t)) return { op: "enter_fullscreen", msg: "好的，已切换到全屏对话模式。" };
-            if (/^\s*(退出|关闭|取消|结束)(全屏|沉浸|专注)|^\s*(分屏|窗口|缩小)(模式)?\s*$|^\s*恢复(分屏|窗口)(模式)?\s*$|^\s*(打开|展开)(右侧|浏览区|浏览|分屏)(面板)?\s*$|^\s*(右侧|浏览区)(展开|打开)\s*$/.test(_t)) return { op: "exit_fullscreen", msg: "好的，已展开右侧浏览区。" };
-            if (/^\s*(回|返回|去|到)(首页|主页)\s*$/.test(_t)) return { op: "go_home", msg: "好的，已为你回到首页。" };
-            if (/^\s*(打开|查看|看看?)(我的)?购物车\s*$/.test(_t)) return { op: "open_cart", msg: "好的，已为你打开购物车。" };
-            if (/^\s*(打开|查看|看看?)(我的)?订单(列表|页面|中心)?\s*$/.test(_t)) return { op: "open_orders", msg: "好的，已为你打开订单页面。" };
-            // 高频导航单词/短语本地秒判（不扔给小模型赌——「门店」「会员」这类短词小模型常误判成咨询）
-            if (/^\s*(打开|查看?|看看?|去|进)?(附近)?(门店|实体店|线下店|体验店|专卖店|服务网点|服务中心)(查询|页面|列表)?\s*$/.test(_t)) return { op: "open_stores", msg: "好的，已为你打开门店查询。" };
-            if (/^\s*(打开|查看?|看看?|去|进)?(我的)?(会员(中心|页面|权益)?|会员卡|乐豆|积分(中心|商城)?)\s*$/.test(_t)) return { op: "open_member", msg: "好的，已为你打开会员中心。" };
-            if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", msg: "好的，已为你打开优惠券中心。" };
-            if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", msg: "好的，已为你打开教育特惠专区。" };
-            if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", msg: "好的，已为你打开商品对比。" };
-            // 「对比下 1 2 3」「对比第一个第二个第三个」「把1和3对比一下」——按当前列表序号取商品对比（本地取，不丢给AI瞎检索）
-            if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
-              const _nths = lxParseOrdinals(_t);
-              if (_nths.length >= 2) return { op: "compare_nth", target: _nths.join(","), msg: `好的，正在为你对比第 ${_nths.join("、")} 个商品。` };
-            }
-            // 选第 N 个 + 动作（更具体，先判）
-            const _ord = lxParseOrdinal(_t);
-            if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-              const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
-              const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
-              return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
-            }
-            // 下单当前正在看的商品
-            if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这[个款台件本]?|那[个款台件本]?|它|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买(这[个款台件本]|它|那[个款台件本])?)(吧|呀|啊|喽|咯)?(?:[，,、。\s].*?(优惠|券|领|结算).*)?$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
-            return null;
-          })(text);
+          // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端（正则统一收口 app-intent.js，主面板/全屏共用一份）──
+          const _localCtrl = window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
           if (_localCtrl) {
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
             addMessage("ai", _localCtrl.msg);
@@ -5283,65 +5253,7 @@ function openOrderDetail(orderId) {
           if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
-        // 序号解析：第一/二/三…/N 个、阿拉伯数字，返回 1-based 序号或 null
-        const LX_CN_NUM = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
-        function lxParseOrdinal(text) {
-          const t = String(text || "");
-          // 序号必须有明确标志：①「第N个/第N款/第N台/第N件」 ②「N个/N款」紧跟量词（不含金额）。
-          // 严防把「预算10000」「20000元」「16G」这类金额/规格数字误当序号。范围限 1-20。
-          // 先排除：数字紧跟金额/规格单位（元/块/万/千/价/G/GB/寸/英寸/Hz/年），这些不是序号
-          const isAmount = (numStr, idx) => {
-            const after = t.slice(idx + numStr.length, idx + numStr.length + 4);
-            return /^(元|块|万|千|价|G|GB|TB|寸|英寸|Hz|年|月|号机|%|度)/.test(after) || /到\d/.test(t.slice(idx, idx + numStr.length + 6));
-          };
-          // 阿拉伯：必须「第N(个/款/台/件)?」或「N(个/款/台/件)」量词，且非金额
-          let m = t.match(/第\s*(\d{1,2})\s*(个|款|台|件|号)?/);
-          if (m && !isAmount(m[1], m.index + (m[0].indexOf(m[1])))) { const n = Number(m[1]); if (n >= 1 && n <= 20) return n; }
-          m = t.match(/(?:^|[^\d.])(\d{1,2})\s*(个|款|台|件)(?![\d元])/);
-          if (m) { const n = Number(m[1]); const idx = t.indexOf(m[1], m.index); if (!isAmount(m[1], idx) && n >= 1 && n <= 20) return n; }
-          // 中文：必须带「第」前缀（第一台/第三个），光「一台/两个」是量词不是序号，不匹配
-          const cn = t.match(/第\s*([一二两三四五六七八九十]+)\s*(个|款|台|件)?/);
-          if (cn) {
-            const s = cn[1];
-            let n = null;
-            if (s === "十") n = 10;
-            else if (s.length === 1) n = LX_CN_NUM[s] || null;
-            else if (s[0] === "十") n = 10 + (LX_CN_NUM[s[1]] || 0);
-            else if (s[1] === "十") n = (LX_CN_NUM[s[0]] || 0) * 10 + (LX_CN_NUM[s[2]] || 0);
-            if (n && n >= 1 && n <= 20) return n;
-          }
-          return null;
-        }
-        // 挂 window 供 lxfd 全屏 IIFE 跨作用域调用（序号解析）
-        window.__lxParseOrdinal = lxParseOrdinal;
-
-        // 多序号解析（对比场景）：从「1 2 3」「第一个第二个第三个」「1和2和3」抽出一组序号，去重保序，范围 1-20
-        function lxParseOrdinals(text) {
-          const t = String(text || "");
-          const nums = [];
-          const push = (n) => { if (n >= 1 && n <= 20 && !nums.includes(n)) nums.push(n); };
-          // 中文序号：第一/二/三…（不含「两」——「两款」是量词不是序号）
-          const cnMap = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
-          const cnRe = /第?\s*([一二三四五六七八九十])\s*(?:个|款|台|件)?/g;
-          let m;
-          while ((m = cnRe.exec(t))) push(cnMap[m[1]] || 0);
-          // 阿拉伯：先抓数字串。连写如「123」= 逐位拆成 1,2,3（列表商品少，很少两位数序号）；
-          // 但带量词/两位如「12个」「第15」当整体。排除金额/规格数字。
-          const arRe = /(\d{1,2})/g;
-          while ((m = arRe.exec(t))) {
-            const numStr = m[1];
-            const after = t.slice(m.index + numStr.length, m.index + numStr.length + 3);
-            if (/^(元|块|万|千|价|G|GB|TB|寸|Hz|年|月|%|度|k|K|W)/i.test(after)) continue;
-            // 两位数：紧跟量词(个/款/台/件)或前有「第」才当整体序号，否则逐位拆（如「123」→1,2,3）
-            if (numStr.length === 2 && !/^(个|款|台|件)/.test(after) && t[m.index - 1] !== "第") {
-              numStr.split("").forEach((d) => push(Number(d)));
-            } else {
-              push(Number(numStr));
-            }
-          }
-          return nums;
-        }
-        window.__lxParseOrdinals = lxParseOrdinals;
+        // 序号解析已收口到 app-intent.js（window.__lxParseOrdinal / __lxParseOrdinals），此处不再重复定义
         // 当前浏览上下文：用户正在看什么 → 决定下单/选N个操作谁
         function lxCurrentContext() {
           const activeTab = (state.tabs || []).find((t) => t.id === state.activeTabId);
@@ -8815,34 +8727,8 @@ function openOrderDetail(orderId) {
     try { lxfdPersistCurrent(); } catch (_e) {}
 
     // ── lxfd 意图路由分流 ──────────────────────────────────────────────
-    // 1. 本地快路径
-    const _lxfdLocalCtrl = (function() {
-      const _t = value;
-      if (/关闭?(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)|清空(标签|页面|分页|页签)|(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)?/.test(_t)) return { op: "close_all_tabs", target: "", msg: "好的，已为你关闭所有页面标签。" };
-      if (/^(进入|开启|切换?到?|变成?|开|恢复|回到?)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
-      if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|缩小)(模式|对话|查看)?$|^恢复(分屏|窗口)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
-      if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
-      if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
-      if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
-      // 高频导航单词本地秒判（与主面板对齐，「门店」「会员」等短词不扔小模型赌）
-      if (/^\s*(打开|查看?|看看?|去|进)?(附近)?(门店|实体店|线下店|体验店|专卖店|服务网点|服务中心)(查询|页面|列表)?\s*$/.test(_t)) return { op: "open_stores", target: "", msg: "好的，已为你打开门店查询。" };
-      if (/^\s*(打开|查看?|看看?|去|进)?(我的)?(会员(中心|页面|权益)?|会员卡|乐豆|积分(中心|商城)?)\s*$/.test(_t)) return { op: "open_member", target: "", msg: "好的，已为你打开会员中心。" };
-      if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", target: "", msg: "好的，已为你打开优惠券中心。" };
-      if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", target: "", msg: "好的，已为你打开教育特惠专区。" };
-      if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", target: "", msg: "好的，已为你打开商品对比。" };
-      if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
-        const _nths = (window.__lxParseOrdinals || (() => []))(_t);
-        if (_nths.length >= 2) return { op: "compare_nth", target: _nths.join(","), msg: `好的，正在为你对比第 ${_nths.join("、")} 个商品。` };
-      }
-      const _ord = (window.__lxParseOrdinal || (() => null))(_t);
-      if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-        const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
-        const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
-        return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
-      }
-      if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这[个款台件本]?|那[个款台件本]?|它|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买(这[个款台件本]|它|那[个款台件本])?)(吧|呀|啊|喽|咯)?(?:[，,、。\s].*?(优惠|券|领|结算).*)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
-      return null;
-    })();
+    // 1. 本地快路径（正则统一收口 app-intent.js，主面板/全屏共用一份，改一处两边同时生效）
+    const _lxfdLocalCtrl = window.__lxIntent ? window.__lxIntent.matchControl(value) : null;
     if (_lxfdLocalCtrl) {
       const _lxfdCtrlAi = document.createElement("div");
       _lxfdCtrlAi.className = "lxfd-msg-ai";
