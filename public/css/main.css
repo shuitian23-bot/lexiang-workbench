@@ -5450,8 +5450,8 @@
         padding: 22px 28px 16px;
         border-bottom: 1px solid #efe9f2;
       }
-      /* order/address skin 隐藏外壳头（自带 order-head 的×），display:flex 会盖掉 [hidden]，显式补回 */
-      .lx-p0-modal-head[hidden] { display: none; }
+      /* order/address skin 隐藏外壳头（自带 order-head 的×），display:flex 会盖掉 [hidden] 默认隐藏，必须显式补回，否则弹窗出现两个× */
+      .lx-p0-modal-head[hidden] { display: none !important; }
 
       .lx-p0-modal-title {
         margin: 0;
@@ -6252,6 +6252,29 @@
         border-color: var(--lx-aubergine);
         background: var(--lx-aubergine);
         color: #fff;
+      }
+
+      .assistant-panel .lx-p0-actions .lx-p0-btn.primary,
+      .assistant-panel .leai-click-btn,
+      .lx-p0-message.lx-chat-skin .answer-actions .lx-p0-btn.primary {
+        min-height: 32px;
+        padding: 0 13px;
+        border: 1px solid #e2ddeb !important;
+        border-radius: 10px;
+        background: #fff !important;
+        color: rgb(78,22,70) !important;
+        box-shadow: none;
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      .assistant-panel .lx-p0-actions .lx-p0-btn.primary:hover,
+      .assistant-panel .leai-click-btn:hover,
+      .lx-p0-message.lx-chat-skin .answer-actions .lx-p0-btn.primary:hover {
+        background: #f3f0f7 !important;
+        border-color: #9b8eb6 !important;
+        transform: translateY(-1px);
       }
 
       .lx-p0-field {
@@ -13475,3 +13498,201 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
   background: linear-gradient(90deg, transparent, var(--line, #e8e3f0), transparent);
 }
 .lx-conv-hist-divider span { flex: none; white-space: nowrap; }
+
+/* 行业解决方案中心：独立卡片样式，按对话工作台规范重绘 */
+.content[data-view] .lx-floor-body:has(.lx-solution-card) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.lx-solution-card {
+  min-height: 146px;
+  padding: 18px 18px 15px;
+  border: 1px solid #e6dfea !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, rgba(91,20,82,.22), rgba(230,223,234,.72)) border-box !important;
+  box-shadow: 0 6px 18px rgba(50,29,57,.045);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
+}
+
+.lx-solution-card:hover,
+.lx-solution-card:focus-visible {
+  border-color: #d8c8dd !important;
+  background:
+    linear-gradient(135deg, #fff 0%, #fbf7ff 100%) padding-box,
+    linear-gradient(135deg, rgba(91,20,82,.56), rgba(184,37,46,.22)) border-box !important;
+  box-shadow: 0 12px 28px rgba(50,29,57,.10);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.lx-solution-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lx-solution-code {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f6f1f8 0%, #eef0ff 100%);
+  border: 1px solid #e3d9e8;
+  color: #5b1452;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.lx-solution-card strong {
+  display: block;
+  color: #101010 !important;
+  font-size: 18px !important;
+  line-height: 1.22;
+  font-weight: 800 !important;
+}
+
+.lx-solution-card small {
+  display: block;
+  margin-top: 4px;
+  color: #8b8290;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.lx-solution-card > span {
+  color: #5f5a64 !important;
+  font-size: 14px !important;
+  line-height: 1.62 !important;
+  font-weight: 500;
+}
+
+.lx-solution-card em {
+  margin-top: auto;
+  color: #5b1452;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.lx-solution-card em::after {
+  content: " →";
+}
+
+/* Smart cursor cross-platform motion tuning: Windows/macOS consistent compositor path */
+.ai-arrow {
+  width: 180px !important;
+  height: 54px !important;
+  contain: layout paint style !important;
+  transform: translate3d(-200px, -200px, 0);
+  transform-origin: 0 0 !important;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ai-arrow .arrow {
+  width: 22px !important;
+  height: 26px !important;
+  filter: none !important;
+  transform: translate3d(0,0,0);
+  will-change: transform;
+  filter: drop-shadow(0 2px 4px rgba(60,15,55,.22)) !important;
+}
+
+.ai-arrow .fx {
+  transform: translate3d(0,0,0);
+  will-change: transform, opacity;
+}
+
+.ai-arrow .label {
+  transform: translate3d(-8px,0,0) scale(.92) !important;
+  transform-origin: 18px 50% !important;
+  will-change: transform, opacity;
+  transition: none !important;
+  opacity: 0 !important;
+  box-shadow: 0 8px 20px rgba(60,15,55,.18) !important;
+}
+
+.ai-arrow.awake .label {
+  animation: lxSmartLabelIn 420ms cubic-bezier(.2,.9,.24,1) 80ms both;
+}
+
+.ai-arrow .lx-icon::before,
+.ai-arrow .lx-icon::after,
+.ai-arrow .lx-icon img {
+  will-change: transform, opacity;
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+}
+
+.ai-arrow.awake .lx-icon::before {
+  animation: lxSmartAura 1500ms cubic-bezier(.2,.9,.24,1) infinite !important;
+}
+
+.ai-arrow.awake .lx-icon::after {
+  animation: lxSmartRing 1600ms linear infinite !important;
+}
+
+.ai-arrow.awake .lx-icon img {
+  animation: lxSmartIconPop 520ms cubic-bezier(.2,.9,.24,1) both, lxSmartIconBreath 1700ms ease-in-out 520ms infinite !important;
+}
+
+.ai-arrow.awake .arrow {
+  animation: lxSmartArrowNod 520ms cubic-bezier(.2,.9,.24,1) both !important;
+}
+
+@keyframes lxSmartLabelIn {
+  0% { opacity: 0; transform: translate3d(-8px,0,0) scale(.92); }
+  62% { opacity: 1; transform: translate3d(2px,0,0) scale(1.025); }
+  100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+@keyframes lxSmartArrowNod {
+  0% { transform: translate3d(0,0,0) rotate(0deg); }
+  45% { transform: translate3d(-1px,-1px,0) rotate(-7deg); }
+  100% { transform: translate3d(0,0,0) rotate(0deg); }
+}
+
+@keyframes lxSmartIconPop {
+  0% { opacity: .86; transform: translate3d(0,0,0) scale(.82); }
+  62% { opacity: 1; transform: translate3d(0,0,0) scale(1.12); }
+  100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+@keyframes lxSmartIconBreath {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  50% { transform: translate3d(0,0,0) scale(1.08); }
+}
+
+@keyframes lxSmartAura {
+  0%, 100% { opacity: .42; transform: translate3d(0,0,0) scale(.9); }
+  50% { opacity: .9; transform: translate3d(0,0,0) scale(1.2); }
+}
+
+@keyframes lxSmartRing {
+  to { transform: translate3d(0,0,0) rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-arrow.awake .label,
+  .ai-arrow.awake .arrow,
+  .ai-arrow.awake .lx-icon::before,
+  .ai-arrow.awake .lx-icon::after,
+  .ai-arrow.awake .lx-icon img {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate3d(0,0,0) scale(1) !important;
+  }
+}
