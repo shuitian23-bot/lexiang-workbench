@@ -1,0 +1,13 @@
+# 回归哨兵标记表: 文件|唯一标记串|功能名 (丢失=被覆盖,立即告警)
+# 加新功能时往这里加一行核心标记。井号行忽略。
+public/js/app.js|head.style.display|订单弹窗双×行内兜底
+public/css/main.css|lx-p0-modal-head[hidden]|订单弹窗双×CSS规则
+public/js/app.js|compare_nth: () =>|按序号对比
+public/js/app.js|LX_SERVICE_SUGGEST|服务意图引导(清灰/认证/门店/会员)
+public/js/app.js|lxfdSyncToMainConvKey|首页对话同步子站key
+public/js/app.js|__lxSaveConversationNow|对话立即保存flush
+public/js/app.js|lxRenderSiteCatFloor|企业/政企换一换
+public/js/app.js|data-gallery-q|画廊卡片可点
+public/js/app.js|lxCardToProduct|第N个DOM顺序取商品
+public/js/app.js|这[个款台件本]|口语下单(这款/这台)
+routes/leai.js|compare_nth|后端对比意图枚举
