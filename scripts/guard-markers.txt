@@ -14,3 +14,5 @@ routes/leai.js|compare_nth|后端对比意图枚举
 public/js/app-intent.js|window.__lxIntent|意图路由共享模块本体
 public/js/app.js|window.__lxIntent.matchControl|app.js调用共享意图模块
 public/index.html|app-intent.js|index加载意图模块
+public/js/app-lxfd.js|__lxfdInstalled|lxfd全屏模块本体
+public/index.html|app-lxfd.js|index加载lxfd模块
