@@ -381,37 +381,54 @@ router.post('/compare-advice', (req, res) => {
 });
 
 // POST /api/leai/intent — 火山 lite 意图路由（control vs chat）
+// 意图路由：function calling 强制结构化输出（比 prompt 列枚举+正则抠 JSON 稳），网关/模型不支持 tools 时自动降级老路
+const INTENT_OPS = ['close_all_tabs', 'close_other_tabs', 'close_tab', 'go_home', 'switch_site', 'open_member', 'open_coupon', 'open_orders', 'open_cart', 'open_stores', 'open_edu_zone', 'open_compare', 'clear_compare', 'start_student_auth', 'start_enterprise_auth', 'open_product', 'enter_fullscreen', 'exit_fullscreen', 'buy_current', 'buy_nth', 'compare_nth'];
+const INTENT_RULES = `你是联想乐享 PC 助手的意图路由器，判断用户输入是"页面操作指令"(control)还是"问答/咨询"(chat)，调用 route_intent 上报。
+判断规则：
+1. 只有明确要求"操作界面/页面/标签/全屏"或"明确要下单/购买当前/某序号商品"才是 control。
+2. 商品咨询、推荐、参数、价格、政策、闲聊，以及"我想买X、预算多少、帮我推荐"这类【表达购买需求但没指定具体某款下单】的，一律 chat（要推荐，不是下单）。
+3. "打开/看下 XX 商品" → open_product，target=商品名。
+4. "全屏/放大/沉浸" → enter_fullscreen；"退出全屏/分屏/缩小/展开右侧/边聊边逛" → exit_fullscreen。
+5. "关所有标签/清空标签" → close_all_tabs；"只留当前/关其他/留一排" → close_other_tabs；"关这个/关闭XX标签" → close_tab，target=标签名。
+6. 下单重点区分：
+   - "下单/就买它/买这个/这个不错下单吧/嗯那就这台吧帮我领券" 等【确认购买当前在看的】 → buy_current。
+   - "第三个下单/买第二个/第3个加购/打开第二个" 等【按序号操作】 → buy_nth，target="序号|动作"（buy/cart/open），如"3|buy"。序号限1-20。
+   - "对比下1 2 3/把1和3对比/1和2哪个好" → compare_nth，target="1,3" 逗号分隔，至少2个序号。
+   - "我想买笔记本预算1万到2万" → chat！金额不是序号，没指定具体某款绝不判 buy_*。
+7. 拿不准一律 chat（下单是重操作，不确定绝不误触发）。`;
+const INTENT_TOOLS = [{
+  type: 'function',
+  function: {
+    name: 'route_intent',
+    description: '上报用户输入的意图路由结果',
+    parameters: {
+      type: 'object',
+      properties: {
+        type: { type: 'string', enum: ['control', 'chat'], description: '页面操作=control，问答咨询=chat' },
+        op: { type: 'string', enum: INTENT_OPS.concat(['']), description: 'control 时的操作码，chat 时为空字符串' },
+        target: { type: 'string', description: '操作目标：open_product=商品名；buy_nth="序号|动作"；compare_nth="1,2,3"；close_tab=标签名；其余留空' }
+      },
+      required: ['type']
+    }
+  }
+}];
+function normalizeIntent(obj) {
+  const type = obj && obj.type === 'control' ? 'control' : 'chat';
+  const op = String((obj && obj.op) || '');
+  // 服务端白名单校验：模型自造的 op 一律不认，宁可降级 chat 也不误执行
+  if (type === 'control' && !INTENT_OPS.includes(op)) return { type: 'chat', op: '', target: '' };
+  return { type, op: type === 'control' ? op : '', target: String((obj && obj.target) || '') };
+}
 router.post('/intent', (req, res) => {
   const { message } = req.body || {};
   const fallback = { type: 'chat', op: '', target: '' };
   if (!message) return res.json(fallback);
-  const sys = `你是联想乐享 PC 助手的意图路由器。分析用户输入，判断是"页面操作指令"还是"问答/咨询"，严格按以下 JSON 格式返回，不输出任何其他文字：
-{"type":"control","op":"<操作码>","target":"<目标或空字符串>"}
-或
-{"type":"chat","op":"","target":""}
-
-操作码枚举（从以下选一个，不能自造）：
-close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen / buy_current / buy_nth / compare_nth
-
-判断规则：
-1. 只有用户明确要求"操作界面/页面/标签/全屏"或"明确要下单/购买当前/某序号商品"时才返回 type=control，选最贴切的 op。
-2. 商品咨询、推荐、参数、价格、政策、闲聊、比较，以及"我想买X、预算多少、用途、帮我推荐、想要一台"这类【表达购买需求但没指定具体某款下单】的，一律 type=chat（这是要推荐，不是下单！op和target留空字符串）。
-3. "打开/帮我看/看下 XX 商品""帮我打开拯救者Y9000P" → op=open_product，target填商品名/型号。
-4. "全屏/放大/沉浸/专注模式" → op=enter_fullscreen；"退出全屏/缩小/分屏/恢复窗口/打开右侧/展开右侧/打开浏览区/边聊边逛" → op=exit_fullscreen（退出全屏=展开右侧浏览分屏，是同一动作）。
-5. "关所有标签/关掉所有页面/清空标签/全部关掉" → op=close_all_tabs。
-   "关闭其他标签/只留当前/留一个/留一排/关掉多余的标签/关掉除当前外的/把标签关成剩余一排" → op=close_other_tabs（保留当前页面，关其余）。
-   "关闭这个标签/关掉当前页/关闭XX标签" → op=close_tab，target填要关的标签名（没明确名就留空）。
-6. "回首页/去首页" → op=go_home；"打开购物车" → op=open_cart；"看我的订单" → op=open_orders。
-7. 【下单意图，重点区分】：
-   - "下单/就买它/买这个/这个不错下单吧/帮我下单/就这台了" 等【对当前正在看的某个商品确认购买】 → op=buy_current，target留空。
-   - "第三个下单/买第二个/选第一款下单/第3个加购/打开第二个" 等【按列表序号操作】 → op=buy_nth，target填"序号|动作"，动作是 buy(下单)/cart(加购)/open(打开)，例如"第三个下单"→target="3|buy"，"第二个加购"→target="2|cart"，"打开第一个"→target="1|open"。序号只取 1-20 的小整数。
-   - **严格区分**："我想买一台笔记本，预算1万到2万" → 这是表达需求要推荐，判 type=chat！不是 buy_nth（"1万""2万"是金额不是序号）。只有明确"第N个/这个/它"指向具体某款时才判 buy_*。
-   - "对比下1 2 3/对比第一个第二个第三个/把1和3对比一下/1和2哪个好" 等【按列表序号对比多款】 → op=compare_nth，target填逗号分隔序号如"1,2,3"。序号只取 1-20。至少 2 个序号才算。
-8. 拿不准的一律判 type=chat（宁可走问答，不误触发操作；下单是重操作，不确定绝不误触发）。`;
   const body = JSON.stringify({
     model: 'doubao-seed-2.0-lite',
-    messages: [{ role: 'system', content: sys }, { role: 'user', content: String(message).slice(0, 500) }],
-    max_tokens: 100, temperature: 0, stream: false, thinking: { type: 'disabled' }
+    messages: [{ role: 'system', content: INTENT_RULES }, { role: 'user', content: String(message).slice(0, 500) }],
+    tools: INTENT_TOOLS,
+    tool_choice: { type: 'function', function: { name: 'route_intent' } },
+    max_tokens: 150, temperature: 0, stream: false, thinking: { type: 'disabled' }
   });
   try {
     const ar = https.request({
@@ -429,13 +446,13 @@ close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_mem
       r.on('end', () => {
         try {
           const j = JSON.parse(buf);
-          const raw = (j.choices?.[0]?.message?.content || '').trim();
+          const msg = j.choices?.[0]?.message || {};
+          // 首选 tool_calls 结构化参数；网关/模型不支持 tools 时降级解析 content 里的 JSON
+          const tc = msg.tool_calls?.[0]?.function?.arguments;
+          if (tc) return res.json(normalizeIntent(JSON.parse(tc)));
+          const raw = (msg.content || '').trim();
           const m = raw.match(/\{[\s\S]*?\}/);
-          const obj = m ? JSON.parse(m[0]) : {};
-          const type = obj.type === 'control' ? 'control' : 'chat';
-          const op = String(obj.op || '');
-          const target = String(obj.target || '');
-          res.json({ type, op, target });
+          return res.json(normalizeIntent(m ? JSON.parse(m[0]) : null));
         } catch (_) { try { res.json(fallback); } catch (__) {} }
       });
       r.on('error', () => { try { res.json(fallback); } catch (_) {} });
