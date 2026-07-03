@@ -471,8 +471,8 @@ function trendDelta(rows: Row[], key: keyof Row) {
 function askOverview(kind: 'overview' | 'funnel') {
   const label = rangeLabel(range.value)
   const prompts = {
-    overview: `基于当前运营总览看板，分析${label}的主要趋势、核心风险、增长机会和优先动作。`,
-    funnel: `基于当前运营总览看板，重点分析${label}从登录、互动到购买和GMV的转化链路，指出瓶颈和需要补充的数据。`
+    overview: `基于当前运营总览看板，结合页面中的 DAU、WAU、MAU、GMV、关键经营链路、GMV结构和核心趋势，分析${label}的主要变化、增长机会和优先运营动作。`,
+    funnel: `基于当前运营总览看板，重点分析${label}从登录用户、互动用户、购买人数到成交GMV的转化链路，指出链路瓶颈、数据证据和需要补充的数据。`
   }
   aiStore.toggleOpen(true)
   aiStore.quickSend(prompts[kind], 'dashboard.overview')

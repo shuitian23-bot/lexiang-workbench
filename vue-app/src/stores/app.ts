@@ -358,15 +358,22 @@ export const useAppStore = defineStore('app', () => {
   function openTempTab(payload: TempTabPayload) {
     if (!payload) return null
     const id  = payload.id || `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    const sourcePageLabel = payload.sourcePageLabel || ''
+    const title = sourcePageLabel === '运营总览' && /风控|策略命中|DPL|限购/i.test(payload.title || '')
+      ? '运营总览 · 经营指标解读'
+      : (payload.title || '数据解读报告')
+    const chips = sourcePageLabel === '运营总览'
+      ? (payload.chips || []).filter(chip => !/风控|策略命中|DPL|限购/i.test(chip))
+      : (payload.chips || [])
     const tab = {
       id,
-      title:          (payload.title || '数据解读报告').slice(0, 42),
+      title:          title.slice(0, 42),
       sourcePage:     payload.sourcePage     || '',
-      sourcePageLabel:payload.sourcePageLabel|| '',
+      sourcePageLabel,
       groupLabel:     payload.groupLabel     || 'AI 报告',
       content:        payload.content        || '',
       summary:        payload.summary        || '',
-      chips:          payload.chips          || [],
+      chips,
       externalUrl:    payload.externalUrl    || '',
       previewHtml:    payload.previewHtml    || '',
       createdAt:      payload.createdAt      || new Date().toISOString(),

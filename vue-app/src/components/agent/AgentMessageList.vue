@@ -139,11 +139,19 @@ function reportDisplayTitle(id) {
   if (!report) return '当前页面 · 数据解读报告'
   const sourceLabel = report.sourcePageLabel || getPageLabel(props.currentPageId) || '当前页面'
   const title = report.title || '数据解读报告'
+  if (sourceLabel === '运营总览' && /风控|策略命中|DPL|限购/i.test(title)) {
+    return '运营总览 · 经营指标解读'
+  }
   return title.startsWith(`${sourceLabel} ·`) ? title : `${sourceLabel} · ${title}`
 }
 
 function reportChips(id) {
-  return (reportArtifact(id)?.chips || []).slice(0, 3)
+  const report = reportArtifact(id)
+  const chips = report?.chips || []
+  if ((report?.sourcePageLabel || getPageLabel(props.currentPageId)) === '运营总览') {
+    return chips.filter(chip => !/风控|策略命中|DPL|限购/i.test(chip)).slice(0, 3)
+  }
+  return chips.slice(0, 3)
 }
 
 function escapeHtml(str) {

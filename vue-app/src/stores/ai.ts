@@ -70,6 +70,8 @@ interface ComposerPayload {
   contextSummary: string
 }
 
+const HARNESS_CHAT_ENDPOINT = '/api/harness/chat'
+
 interface QueuedPayload extends ComposerPayload {
   context: AiRuntimeContext
   queueId: string
@@ -251,13 +253,14 @@ export const useAIStore = defineStore('ai', () => {
     const file = attachedFile.value
     if (!text && !file) return null
     const contextSummary = _buildPageContext(pageId)
+    const pageDataContext = _buildPageDataContext(pageId)
 
     const userMsg = file
       ? (text ? `📎 ${file.name}\n${text}` : `📎 ${file.name}`)
       : text
     const apiMessage = file
-      ? `${contextSummary}\n\n${file.text || `📎 ${file.name}`}\n\n${text || '请分析这个文件'}`
-      : `${contextSummary}\n\n${text}`
+      ? `${contextSummary}\n\n${pageDataContext}\n\n${file.text || `📎 ${file.name}`}\n\n${text || '请分析这个文件'}`
+      : `${contextSummary}\n\n${pageDataContext}\n\n${text}`
 
     return {
       pageId: pageId || '',
@@ -303,15 +306,15 @@ export const useAIStore = defineStore('ai', () => {
 
       const body: Record<string, string | null> = {
         message:     payload.apiMessage,
-        conv_id:     convId.value,
-        page_id:     payload.pageId || '',
+        convId:      convId.value,
+        currentPage: payload.pageId || 'portal.home',
         shortcut:    payload.shortcut || activeShortcut.value
       }
       if (payload.fileName) {
         body.file_name = payload.fileName
       }
 
-      const res  = await fetch('/api/harness/ai/chat', {
+      const res  = await fetch(HARNESS_CHAT_ENDPOINT, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(body),
@@ -321,9 +324,9 @@ export const useAIStore = defineStore('ai', () => {
       _markActivityDone('tool_call')
       _upsertActivity('tool_result', 'done', '工具结果已返回', '已拿到 AI 回复内容，正在整理为可读回答。')
       _upsertActivity('streaming', 'running', '生成回复', '正在输出结论、后续动作和可展开结果。')
-      const data = await res.json() as { reply?: string; message?: string; conv_id?: string }
+      const data = await res.json() as { reply?: string; message?: string; convId?: string; conv_id?: string }
       const reply = data.reply || data.message || '（无回复）'
-      convId.value = data.conv_id || convId.value
+      convId.value = data.convId || data.conv_id || convId.value
       _markActivityDone('streaming')
       _appendPostReplyActivities(payload, reply)
       _recordAssistantReply(payload, reply)
@@ -337,8 +340,8 @@ export const useAIStore = defineStore('ai', () => {
         await _delay(850)
         _settleActivity('thinking', 'done')
         _settleActivity('tool_call', 'failed', '接口调用失败', e instanceof Error ? e.message : '远端接口暂不可用。')
-        _settleActivity('tool_result', 'failed', '工具结果不可用', '接口失败后未返回远端结果，已切换本地兜底。')
-        _settleActivity('error', 'done', '启用本地兜底', '已切换为本地 mock 响应，保留状态链路用于走查。')
+        _settleActivity('tool_result', 'failed', '工具结果不可用', '接口失败后未返回火山引擎结果。')
+        _settleActivity('error', 'blocked', '火山引擎不可用', '未生成本地模拟解读，避免把演示内容误当真实分析。')
         _recordAssistantReply(payload, _mockReply(payload, e))
       }
     } finally {
@@ -623,6 +626,7 @@ export const useAIStore = defineStore('ai', () => {
 
   function _shouldCreateReportArtifact(payload: ComposerPayload, reply: string) {
     const text = `${payload?.text || payload?.userMsg || ''}\n${reply || ''}`
+    if (_isRemoteFailureReply(reply)) return false
     return _isReportIntent(text) || /##|核心结论|建议动作|指标|异常/.test(reply || '')
   }
 
@@ -653,6 +657,21 @@ export const useAIStore = defineStore('ai', () => {
       `- 页面 ID：${safePageId}`,
       `- 所属模块：${groupLabel}`,
       '- 回答要求：先说明口径、影响范围和需要确认的动作；涉及写入、发布、导出时必须等待确认。'
+    ].join('\n')
+  }
+
+  function _buildPageDataContext(pageId: string) {
+    if (pageId !== 'dashboard.overview') return ''
+    return [
+      '【当前页面可见数据】',
+      '- 页面：运营总览；数据日期：2026-06-16。',
+      '- 顶部指标：DAU 39.0万，WAU 184.0万，MAU 639.9万，GMV 9801.7万。',
+      '- 关键经营链路：登录用户 19.1万，互动用户 10.7万，购买人数 9,212 人，成交 GMV 9801.7万。',
+      '- 链路转化：互动转化 55.9%，购买转化 8.6%，客单价 ¥10,640。',
+      '- GMV 结构：消费业务 7836.6万，占比 80.0%；SMB 业务 1820.3万，占比 18.6%；政企业务 144.8万，占比 1.5%。',
+      '- 平台结构：非官网 6604.4万，占比 67.4%；官网 3197.2万，占比 32.6%；官网客单价 ¥8,911，非官网客单价 ¥11,743。',
+      '- 趋势速览：DAU 较首日 +16.7%，互动用户较首日 +50.0%，GMV 较首日 +205.7%。',
+      '- 口径限制：只围绕页面展示的运营数据、经营链路、GMV 结构和趋势输出；不要引入风控、策略命中、DPL、限购等无关主题。'
     ].join('\n')
   }
 
@@ -750,7 +769,7 @@ export const useAIStore = defineStore('ai', () => {
     const pageLabel = getPageLabel(payload.pageId) || '当前页面'
     return [
       _createActivity('thinking', 'running', '理解任务意图', `结合「${pageLabel}」页面上下文、快捷标签和附件内容判断任务类型。`),
-      _createActivity('tool_call', 'running', '调用 AI 会话接口', '向 /api/harness/ai/chat 发送当前消息与页面上下文。'),
+      _createActivity('tool_call', 'running', '调用火山引擎会话接口', `向 ${HARNESS_CHAT_ENDPOINT} 发送当前消息与页面上下文。`),
       _createActivity('tool_result', 'pending', '等待工具结果', '接口返回后会转换为回复、报告卡片或后续动作。')
     ]
   }
@@ -816,12 +835,17 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function _reportTitle(text: string, pageLabel: string) {
+    if (pageLabel === '运营总览' || /运营总览|DAU|WAU|MAU|关键经营链路|GMV结构|经营链路/i.test(text)) {
+      if (/漏斗|转化链路|登录|互动|购买/.test(text)) return '运营总览 · 转化链路分析'
+      if (/gmv|成交|结构|客单价/i.test(text)) return '运营总览 · GMV 结构解读'
+      return '运营总览 · 经营指标解读'
+    }
     if (/质量/.test(text)) return '质量分析 · 数据解读报告'
     if (/流量/.test(text)) return '流量分析 · 入口质量报告'
     if (/gmv/i.test(text)) return 'GMV 分析 · 业务贡献报告'
     if (/geo/i.test(text)) return 'GEO 看板 · 汇总分析'
     if (/线索/.test(text)) return '线索看板 · 转化分析'
-    if (/风控|风险/.test(text)) return '风控概况 · 策略命中分析'
+    if (/风控|限购|dpl/i.test(text)) return '风控概况 · 策略命中分析'
     return `${pageLabel} · 数据解读报告`
   }
 
@@ -841,13 +865,18 @@ export const useAIStore = defineStore('ai', () => {
       ['GMV', /gmv|购买|成交/i],
       ['GEO', /geo|信源|意图/i],
       ['线索', /线索|客户|转化/],
-      ['风控', /风控|风险|限购|dpl/i],
+      ['风控', /风控|限购|dpl/i],
       ['报告', /报告|报表|复盘|总结|解读/]
     ]
     chipRules.forEach(([chip, reg]) => {
+      if (pageLabel === '运营总览' && chip === '风控') return
       if (reg.test(text || '') && !chips.includes(chip)) chips.push(chip)
     })
     return chips.slice(0, 4)
+  }
+
+  function _isRemoteFailureReply(reply: string) {
+    return /未配置火山引擎|火山引擎暂不可用|火山引擎调用失败|无法完成真实页面解读|接口失败后未返回火山引擎结果/.test(reply || '')
   }
 
   function _normalizeReportContent(reply: string, pageLabel: string, payload: ComposerPayload) {
@@ -1026,7 +1055,6 @@ ${reply || _reportIntentReply(payload)}
 
   function _mockReply(payload: ComposerPayload, error: unknown) {
     const label = payload.shortcut || activeShortcut.value || '当前任务'
-    const pageHint = payload.pageId ? `当前页面：${payload.pageId}` : '当前页面：门户工作台'
     const message = error instanceof Error ? error.message : ''
     return [
       `已收到「${label}」请求。`,
@@ -1035,12 +1063,10 @@ ${reply || _reportIntentReply(payload)}
       '',
       `> ${payload.text || payload.userMsg}`,
       '',
-      `- ${pageHint}`,
-      '- 我会先按原项目规则展示口径、范围和风险确认点。',
-      '- 涉及写入、发布、导出、配置变更时，会先等待你确认。',
-      '- 当前为 Vue 预览 mock 响应，用于走查标签发送、排队发送和消息样式。',
+      '- 火山引擎暂不可用，未完成真实页面解读。',
+      '- 我没有生成本地 mock 分析内容，避免把演示兜底误当成真实结论。',
       '',
-      message ? `接口暂不可用，已使用本地假数据兜底：${message}` : ''
+      message ? `调用失败原因：${message}` : ''
     ].filter(Boolean).join('\n')
   }
 

@@ -104,6 +104,13 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-07-03 15:48',
+    title: '运营总览 AI 解读口径纠偏',
+    scope: '运营总览 / AI 解读 / 右侧 Agent 演示结果',
+    detail: '运营总览的 AI 解读改为走真实火山引擎会话接口，并把页面已展示的 DAU、WAU、MAU、GMV、关键经营链路、GMV 结构和趋势速览作为上下文传入；接口失败时不再生成本地 mock 分析内容，同时展示层过滤旧报告里的风控、策略命中等无关口径。',
+    status: '源码已更新'
+  },
+  {
     time: '2026-07-03 11:45',
     title: '权限管理 Vue 源码链路补全',
     scope: '权限管理 / 权限申请 / 审批列表 / 角色与用户管理',
