@@ -2135,7 +2135,7 @@ function openOrderDetail(orderId) {
           lxClearFollowups();
           addMessage("user", text);
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
-            ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 10)).join("、"))}</div>`);
+            ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 18)).join("、"))}</div>`);
           } else if (state.refProduct) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProduct.name.slice(0, 22))}</div>`);
           }

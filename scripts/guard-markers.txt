@@ -22,3 +22,4 @@ public/index.html|app-conv.js|index加载conv模块
 public/js/app-lxfd.js|lxfdActionChips|答后动作预判chips(lxfd)
 public/js/app.js|_renderChips(_acts)|答后动作预判chips(主面板)
 public/js/app.js|lxContextSuggest|情境输入预判
+public/js/app-lxfd.js|hasConvo && window.__lxBridge|退全屏恢复分屏

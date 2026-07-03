@@ -531,10 +531,12 @@
     openRail(false);
   }
   function enterFullscreen() {
+    // 动画层必须在 normalize 之前截取：normalize 会拆掉分屏布局，之后 .assistant-panel
+    // 量出 0×0 → 拿不到起点 → 退化成 CSS 兜底的「从下面冒出」而不是面板拉伸过渡
+    const motionLayer = createPanelStretchLayer();
     normalizeFullscreenEntryState();
     lxfdApplySite();
     if (thread && !thread.children.length) lxfdImportFromMain();
-    const motionLayer = createPanelStretchLayer();
     document.body.classList.remove("lxfd-exiting");
     document.body.classList.remove("lxfd-split-returning");
     document.body.classList.add("lxfd-entering");
@@ -549,13 +551,22 @@
       onAfterExit?.();
       return;
     }
+    // 有对话时回「分屏」而不是裸首页：enterFullscreen 的 normalize 把页面态抹成了 home，
+    // 不对称恢复的话对话会藏在隐藏的 lxfd thread 里，用户看到 hero 首页以为对话丢了。
+    // 先恢复分屏布局（复用 focusReco 配方）再量收缩动画落点，动画才有真实目标矩形。
+    const hasConvo = !!(thread && thread.classList.contains("show") && thread.children.length && window.__lxBridge);
+    if (hasConvo) {
+      lxfdExportToMain();
+      try { window.__lxBridge.focusReco(); } catch {}
+    }
     const targetRect = getSplitPanelRect();
     const motionLayer = createFullscreenShrinkLayer(targetRect);
     document.body.classList.remove("lxfd-entering");
     document.body.classList.add("lxfd-exiting");
     setFullscreen(false);
     try { window.__lxBridge?.exitFullscreen?.(); } catch {}
-    document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    document.body.dataset.state = hasConvo ? "chat" : "default";
+    if (hasConvo && thread) thread.innerHTML = "";
     if (onAfterExit) requestAnimationFrame(onAfterExit);
     window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
     window.setTimeout(() => {
