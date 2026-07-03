@@ -19,3 +19,6 @@ public/index.html|app-lxfd.js|index加载lxfd模块
 public/js/app-conv.js|__lxConvFactory|对话持久化模块本体
 public/js/app.js|window.__lxConvFactory|app.js接线conv工厂
 public/index.html|app-conv.js|index加载conv模块
+public/js/app-lxfd.js|lxfdActionChips|答后动作预判chips(lxfd)
+public/js/app.js|_renderChips(_acts)|答后动作预判chips(主面板)
+public/js/app.js|lxContextSuggest|情境输入预判

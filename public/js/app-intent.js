@@ -82,7 +82,7 @@
     // 选第 N 个 + 动作
     const ord = parseOrdinal(_t);
     if (ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
-      const act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
+      const act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下|买了)/.test(_t) ? "buy" : /打开|看/.test(_t) ? "open" : "buy";
       const actWord = act === "cart" ? "加入购物车" : act === "open" ? "打开" : "下单";
       return { op: "buy_nth", target: ord + "|" + act, msg: "好的，正在为你" + actWord + "第 " + ord + " 个商品。" };
     }

@@ -2127,6 +2127,7 @@ function openOrderDetail(orderId) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
           const nonce = state.conversationNonce;
+          let _turnProdCount = 0; // 本轮官方返回的商品数（答后动作预判用）
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
           lxHideSuggest();
@@ -2270,6 +2271,7 @@ function openOrderDetail(orderId) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 const products = payload.products || [];
+                _turnProdCount = Math.max(_turnProdCount, products.length);
                 revealAi();
                 lxAppendAiHtml(ai, renderProductsInMessage(products));
                 if (products.length === 1 && products[0].sku) {
@@ -2316,6 +2318,7 @@ function openOrderDetail(orderId) {
                 if (products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
                   products = products.slice(0, 1);
                 }
+                _turnProdCount = Math.max(_turnProdCount, products.length);
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
                 }
@@ -2508,20 +2511,24 @@ function openOrderDetail(orderId) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
-                // 追问 chips：异步生成，不阻塞主流程
+                // 追问 chips：动作预判确定性前置（多款商品→「对比第1、2款」走本地意图闭环），咨询型 LLM 异步补齐
                 const _q = state.lastUserText || "";
                 const _a = (ai._raw || "").slice(0, 300);
+                const _actN = Math.min(_turnProdCount, 3);
+                const _acts = _actN >= 2 ? [`对比第${Array.from({ length: _actN }, (_, i) => i + 1).join("、")}款`] : [];
+                const _renderChips = (qs) => {
+                  // 移除已有追问块（避免重复/叠加）
+                  lxClearFollowups(ai);
+                  ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
+                  lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                };
+                if (_acts.length) _renderChips(_acts); // 动作 chip 秒显，不等 LLM
                 if (_q && _a) {
                   fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _q, a: _a }) })
                     .then(r => r.json()).then(d => {
                       if (nonce !== state.conversationNonce) return;
-                      const qs = Array.isArray(d && d.questions) ? d.questions.filter(Boolean).slice(0, 3) : [];
-                      if (qs.length) {
-                        // 移除已有追问块（避免重复/叠加）
-                        lxClearFollowups(ai);
-                        ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
-                        lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
-                      }
+                      const qs = _acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []).slice(0, 3);
+                      if (qs.length) _renderChips(qs);
                     }).catch(() => {});
                 }
               },
@@ -4863,9 +4870,29 @@ function openOrderDetail(orderId) {
           },
         };
 
+        // 情境预判：结合右侧当前打开的页面，把模糊短词补全成可执行指令（点选即发，本地意图闭环）
+        function lxContextSuggest(t) {
+          if (/^(结算|买单|付款|结账)$/.test(t)) {
+            if (!(state.cart || []).length) return null;
+            return { key: "ctx_pay", isService: true, replace: true, title: `购物车里有 ${state.cart.length} 件，去结算？`, options: [["打开购物车去结算", "", "打开购物车"]] };
+          }
+          if (!/^(买|购买|下单|入手|要了)$/.test(t)) return null;
+          const tab = (state.tabs || []).find((x) => x.id === state.activeTabId);
+          if (tab && tab.id === "compare" && (state.compare || []).length >= 2) {
+            return { key: "ctx_buy_cmp", isService: true, replace: true, title: "对比表里买哪个？", options: state.compare.slice(0, 4).map((p, i) => [`第${i + 1}个：${(p.name || "").slice(0, 14)}`, "", `买第${i + 1}个`]) };
+          }
+          if (tab && tab.kind === "detail") {
+            return { key: "ctx_buy_cur", isService: true, replace: true, title: "买当前打开的这款？", options: [["就买这个", "", "买这个"], ["先看看有什么券", "", "优惠券"]] };
+          }
+          return null;
+        }
+
         function lxDetectSuggest(text) {
           const t = (text || "").trim();
           if (t.length > 80) return null;
+          // 情境预判最优先（比服务引导更具体：知道用户此刻开着什么页）
+          const ctx = lxContextSuggest(t);
+          if (ctx) return ctx;
           // 服务引导优先（短词精确匹配，覆盖售后/认证/门店/会员）
           for (const key of ["repair", "auth", "store", "member", "tradein", "guobu"]) {
             if (LX_SERVICE_SUGGEST[key].test(t)) return { key, isService: true, ...LX_SERVICE_SUGGEST[key] };

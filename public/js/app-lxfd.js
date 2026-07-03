@@ -961,6 +961,14 @@
     });
   }
 
+  // 答后动作预判：本轮出了多款商品 → 第一个 chip 给操作型指令（「对比第1、2、3款」被
+  // app-intent 本地正则秒接走 compare_nth 闭环，零官方调用；确定性生成，不靠 LLM 赌）
+  function lxfdActionChips(products) {
+    const n = Math.min(Array.isArray(products) ? products.length : 0, 3);
+    if (n < 2) return [];
+    return ["对比第" + Array.from({ length: n }, (_, i) => i + 1).join("、") + "款"];
+  }
+
   async function submit(text) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
@@ -1244,6 +1252,7 @@
             const finalBody = ai.querySelector(".lxfd-ai-body");
             if (pendingExtras && finalBody) finalBody.insertAdjacentHTML("beforeend", pendingExtras);
             if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
+            pendingFollowups = lxfdActionChips(turnProducts).concat(pendingFollowups).slice(0, 3);
             if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);
             lxfdPersistCurrent();
             lxfdRenderHist();
@@ -1308,6 +1317,7 @@
         const finalBody = ai.querySelector(".lxfd-ai-body");
         if (pendingExtras && finalBody) finalBody.insertAdjacentHTML("beforeend", pendingExtras);
         if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
+        pendingFollowups = lxfdActionChips(turnProducts).concat(pendingFollowups).slice(0, 3);
         if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);
         lxfdPersistCurrent();
         lxfdRenderHist();
