@@ -475,7 +475,10 @@
     return layer;
   }
   function getSplitPanelRect() {
-    const wasFullscreen = document.body.classList.contains("assistant-fullscreen");
+    // 全屏态可能只剩 lx-auto-fs：exitFullscreen 里先跑的 focusReco→lxRevealContent 会摘掉
+    // assistant-fullscreen 但留 lx-auto-fs（它单独也藏着 .shell）。只认一个类会误判"不在全屏"，
+    // 不摘类就去量 → 量到 display:none 的面板 → null → 退出动画整个消失
+    const wasFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
     if (wasFullscreen) setFullscreen(false);
     const source = document.querySelector(".assistant-panel");
     const rect = source?.getBoundingClientRect();
