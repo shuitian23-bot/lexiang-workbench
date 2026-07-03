@@ -181,10 +181,15 @@
   }
 
   // ── 能力 A：从主面板导入已有对话 ─────────────────────────────────────────
+  // 查主面板消息必须排除过渡动画层里的克隆：动画层整块克隆 .assistant-panel（类名原样保留），
+  // 存活的 760ms 内全局 querySelectorAll 会真身+克隆各抓一份 → 导入翻倍
+  function lxfdMainMsgs(sel) {
+    return Array.prototype.filter.call(document.querySelectorAll(sel), function(el) { return !el.closest(".lxfd-motion-panel"); });
+  }
   function lxfdMainGenerating() {
     // 主面板是否仍在流式生成（state.sending 或最后一条 AI 消息里还挂着生成骨架）
     return !!((window.__lxState && window.__lxState.sending) ||
-      document.querySelector(".lx-p0-messages > .lx-p0-message.ai .lx-generating"));
+      lxfdMainMsgs(".lx-p0-messages > .lx-p0-message.ai .lx-generating").length);
   }
   function lxfdNormalizeImportedAiHtml(html) {
     const box = document.createElement("div");
@@ -196,7 +201,7 @@
     return box.innerHTML;
   }
   function lxfdDoImport() {
-    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    const msgs = lxfdMainMsgs(".lx-p0-messages > .lx-p0-message");
     if (!msgs.length) return false;
     thread.innerHTML = "";
     turns = [];
@@ -227,7 +232,7 @@
     return true;
   }
   function lxfdImportFromMain() {
-    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    const msgs = lxfdMainMsgs(".lx-p0-messages > .lx-p0-message");
     if (!msgs.length) return false;
     const generating = lxfdMainGenerating();
     // 先把当前所有消息（含那条还在生成、内容只有一半的 AI）原样克隆过来——带一半过来
@@ -235,7 +240,7 @@
     if (generating) {
       // 主面板仍在流式输出：实时把最后一条 AI 消息镜像到全屏，主面板每蹦一段、全屏跟着更新，
       // 直到生成结束——边进边继续往外输出，不再干等（流式 SSE 只发给主面板 DOM，这里做镜像）。
-      const aiNodes = Array.prototype.slice.call(document.querySelectorAll(".lx-p0-messages > .lx-p0-message.ai"));
+      const aiNodes = lxfdMainMsgs(".lx-p0-messages > .lx-p0-message.ai");
       const mainAi = aiNodes[aiNodes.length - 1];
       const fsBodies = thread.querySelectorAll(".lxfd-msg-ai .lxfd-ai-body");
       const fsAiBody = fsBodies[fsBodies.length - 1];
