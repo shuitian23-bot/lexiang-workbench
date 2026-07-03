@@ -32,3 +32,6 @@ public.bak-*/
 
 # macOS
 .DS_Store
+
+# Vue 构建产物（由 vue-app 构建生成，不入库）
+public/admin-vue/
