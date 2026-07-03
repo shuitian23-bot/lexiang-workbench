@@ -1,0 +1,93 @@
+ThinkStation PGX
+
+联想ThinkStation P6X AI工作站
+
+方寸之间 算力万千
+- NVIDIA GB10
+  - 1000 TOPS
+  - PyTorch
+  - TensorFlow
+  - CUDA
+  - NVIDIA HPC
+
+AI开发一手掌控 模型部署随时随地
+- 方寸之间，释放万千算力
+  - Grafe 20.2
+  - NVLINK C2C
+  - 128GB
+  - 1 petasFLOP
+  - NVIDIA GB10 Grafe Blackwell超级芯片
+
+轻松驾驭千亿参数模型 重塑AI未来边界
+- 405B
+- 200B
+
+极速互联 让创新力全速迸发
+- 预装NVIDIA AI软件堆栈 从桌面到云端无缝衔接
+
+从桌面到边缘 全能算力随需而至
+- 强大算力 手到擒来
+- 高效协同 高效高能
+- 边缘智能的核心大脑
+
+全域场景一机掌控 加速AI工作负载
+- AI模型训练
+- AI推理加速
+- AI数据处理
+- AI视觉分析
+
+联想专享服务
+- 专业支持：提供专业的技术支持和咨询服务。
+- 快速响应：确保在最短时间内解决问题。
+- 无忧保障：提供全面的保修和服务保障。
+
+规格参数
+- NVIDIA GB10
+  - 1000 TOPS
+  - PyTorch
+  - TensorFlow
+  - CUDA
+  - NVIDIA HPC
+- Grafe 20.2
+- NVLINK C2C
+- 128GB
+- 1 petasFLOP
+- NVIDIA GB10 Grafe Blackwell超级芯片
+
+| 参数 | 值 |
+|------|----|
+| NVIDIA GB10 | 1000 TOPS |
+| PyTorch | 支持 |
+| TensorFlow | 支持 |
+| CUDA | 支持 |
+| NVIDIA HPC | 支持 |
+| Grafe 20.2 | 支持 |
+| NVLINK C2C | 支持 |
+| 内存 | 128GB |
+| 算力 | 1 petasFLOP |
+
+常见问题
+
+Q: ThinkStation PGX 是否支持千亿参数大语言模型的本地训练？
+A: 是的，ThinkStation PGX 搭载NVIDIA GB10 Grafe Blackwell超级芯片，具备1 petasFLOP算力与128GB内存，可高效支持405B及200B级千亿参数模型的本地训练与推理。
+
+Q: 该工作站预装哪些AI框架和开发工具？
+A: 预装完整NVIDIA AI软件堆栈，原生支持PyTorch、TensorFlow、CUDA及NVIDIA HPC生态，并兼容Grafe 20.2版本与NVLINK C2C高速互连技术。
+
+Q: “方寸之间 算力万千”具体指代什么硬件能力？
+A: 指在紧凑型工作站形态下集成NVIDIA GB10芯片，实现高达1000 TOPS的AI推理性能与1 petasFLOP的混合精度算力，兼顾桌面部署灵活性与数据中心级AI能力。
+
+Q: ThinkStation PGX 的内存配置是否可扩展？标称128GB是单条还是总容量？
+A: 标称128GB为系统总内存容量，采用高带宽、低延迟设计，支持AI密集型任务持续吞吐；具体扩展能力需参考官方技术文档，但出厂配置即为面向大模型优化的128GB统一内存。
+
+Q: 该产品是否适用于边缘AI部署场景？
+A: 是的，ThinkStation PGX 定位“从桌面到边缘 全能算力随需而至”，兼具高性能与环境适应性，可作为边缘智能的核心大脑，支撑AI视觉分析、实时推理及本地化模型迭代等边缘AI工作负载。
+
+Q: “NVLINK C2C”在本产品中实现何种连接功能？
+A: NVLINK C2C（Chip-to-Chip）提供GPU芯片间超低延迟、高带宽直连通道，显著提升多GPU协同训练与推理效率，确保千亿参数模型在本地多卡环境下的数据同步与计算一致性。
+
+Q: ThinkStation PGX 与传统ThinkStation P系列（如P520/P720）在AI能力上有何本质区别？
+A: 传统P系列基于前代GPU架构，而PGX首发搭载NVIDIA GB10 Grafe Blackwell超级芯片，原生支持FP4/INT4稀疏计算、新一代Transformer加速引擎及1000 TOPS推理算力，专为生成式AI全栈工作流深度优化。
+
+Q: 联想专享服务中的“无忧保障”具体包含哪些服务条款？
+A: 包含3年有限硬件保修、7×24小时远程技术支持、关键问题4小时工程师响应承诺、以及AI工作负载调优专项服务，确保用户从部署、开发到生产全周期稳定运行。

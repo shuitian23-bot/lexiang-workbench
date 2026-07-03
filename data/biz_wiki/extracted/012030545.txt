@@ -1,0 +1,110 @@
+ThinkStation P920
+
+ThinkStation P920 旗舰性能 业界巨擘
+
+顶级性能及扩展性，专注高端造型设计
+能源勘探分析解译、人工智能科学研究
+
+顶级旗舰·卓越性能
+- Windows 11 家庭中文版（建议搭配使用 Windows 11 专业版）
+- Windows 11 专业版
+- Intel® Xeon® 至强处理器
+
+顶级双路全尺寸工作站
+- 60TB
+- 20个
+
+先进的模块化机箱设计
+
+三通路散热技术
+
+ISV全功能认证，稳定持续不卡顿
+- Adobe After Effects (Ae)
+- Adobe Photoshop (Ps)
+- Adobe Premiere Pro (Pr)
+- Adobe Lightroom (Lr)
+- CATIA
+- SolidWorks
+- Unity
+- 3D MAX
+- AutoCAD
+
+ThinkStation P920 广泛应用于
+- 能源勘探分析解译
+- 人工智能科学研究
+- 工业设计与制造
+
+尊享服务 全面护航
+- 3年
+- 2300
+- 7x12h
+- 2h
+
+详细描述
+
+ThinkStation P920 是一款专为高端用户设计的旗舰级工作站，适用于能源勘探分析解译和人工智能科学研究等领域。该产品具备以下特点：
+
+1. **顶级性能及扩展性**：
+   - 专注于高端造型设计，提供卓越的性能和扩展能力。
+   - 支持Windows 11家庭中文版和专业版操作系统。
+   - 配备Intel® Xeon®至强处理器，确保强大的计算能力。
+
+2. **顶级双路全尺寸工作站**：
+   - 提供高达60TB的存储容量。
+   - 支持20个设备连接，满足多任务处理需求。
+
+3. **先进的模块化机箱设计**：
+   - 采用模块化设计，便于维护和升级。
+   - 内部结构清晰，易于管理和扩展。
+
+4. **三通路散热技术**：
+   - 采用高效的散热系统，确保长时间稳定运行。
+   - 有效降低噪音，提升用户体验。
+
+5. **ISV全功能认证**：
+   - 通过多个行业标准软件的全功能认证，包括Adobe系列、CATIA、SolidWorks、Unity、3D MAX和AutoCAD等。
+   - 确保在各种专业软件中的稳定性和兼容性。
+
+6. **广泛应用领域**：
+   - 能源勘探分析解译：支持复杂的地质数据分析和模拟。
+   - 人工智能科学研究：提供强大的计算平台，支持深度学习和机器学习算法。
+
+7. **尊享服务 全面护航**：
+   - 提供3年的保修服务。
+   - 2300小时的技术支持。
+   - 7x12小时的客服响应时间。
+   - 2小时内上门服务。
+
+ThinkStation P920凭借其卓越的性能、灵活的扩展性和全面的服务保障，成为高端用户的理想选择。无论是进行复杂的数据分析还是开发先进的AI模型，ThinkStation P920都能提供可靠的支持。
+
+常见问题
+
+Q: ThinkStation P920 支持哪些操作系统？
+A: ThinkStation P920 支持 Windows 11 家庭中文版（建议搭配使用 Windows 11 专业版）和 Windows 11 专业版。
+
+Q: ThinkStation P920 搭载什么类型的处理器？
+A: ThinkStation P920 搭载 Intel® Xeon® 至强处理器，为高性能计算任务提供强大算力支撑。
+
+Q: ThinkStation P920 的最大存储容量是多少？
+A: ThinkStation P920 提供高达 60TB 的存储容量，满足海量数据处理与长期归档需求。
+
+Q: ThinkStation P920 最多可连接多少个外部设备？
+A: ThinkStation P920 支持最多 20 个设备连接，适用于高密度外设部署与多任务协同工作场景。
+
+Q: ThinkStation P920 是否通过专业软件认证？具体覆盖哪些软件？
+A: 是的，ThinkStation P920 通过 ISV 全功能认证，覆盖 Adobe After Effects (Ae)、Adobe Photoshop (Ps)、Adobe Premiere Pro (Pr)、Adobe Lightroom (Lr)、CATIA、SolidWorks、Unity、3D MAX 和 AutoCAD 等主流专业应用。
+
+Q: ThinkStation P920 的售后服务包含哪些具体内容？
+A: ThinkStation P920 提供 3 年保修服务、2300 小时技术支持、7×12 小时客服响应时间，以及 2 小时内上门服务。
+
+Q: ThinkStation P920 主要面向哪些行业应用场景？
+A: ThinkStation P920 广泛应用于能源勘探分析解译、人工智能科学研究、工业设计与制造三大核心领域。
+
+Q: ThinkStation P920 的散热系统有何技术特点？
+A: ThinkStation P920 采用三通路散热技术，通过多路径气流设计实现高效热管理，在保障长时间稳定运行的同时有效降低运行噪音。
+
+Q: ThinkStation P920 的机箱设计有何优势？
+A: ThinkStation P920 采用先进的模块化机箱设计，内部结构清晰、布局合理，显著提升日常维护效率与硬件升级便利性。
+
+Q: ThinkStation P920 是否适合深度学习训练任务？
+A: 是的，ThinkStation P920 凭借双路 Intel® Xeon® 至强处理器、大容量高速内存支持、高扩展性 PCIe 插槽及 ISV 认证显卡兼容性，为人工智能科学研究（含深度学习训练与推理）提供坚实可靠的计算平台。

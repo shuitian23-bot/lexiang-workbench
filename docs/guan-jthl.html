@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>联想乐享 · 悬停 3 秒智能推荐弹层（方案 3 · 上下文产品卡）</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ECEAF2; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
+    #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #ECEAF2; z-index: 9999; }
+    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
+    #__bundler_placeholder { color: #999; font-size: 14px; }
+  </style>
+  <noscript>
+    <style>#__bundler_loading { display: none; }</style>
+    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
+      This page requires JavaScript to display.
+    </div>
+  </noscript>
+</head>
+<body>
+  <div id="__bundler_thumbnail">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#ECEAF2"></rect>
+    <rect x="300" y="250" width="600" height="300" rx="22" fill="#fff" stroke="#E4DEEC" stroke-width="4"></rect>
+    <rect x="300" y="250" width="600" height="78" rx="22" fill="#3a1238"></rect>
+    <rect x="300" y="306" width="600" height="22" fill="#3a1238"></rect>
+    <rect x="328" y="270" width="42" height="42" rx="9" fill="#5b1452"></rect>
+    <rect x="386" y="280" width="240" height="14" rx="7" fill="#ffffff"></rect>
+    <rect x="386" y="302" width="120" height="11" rx="5" fill="#F2BFD9"></rect>
+    <rect x="760" y="278" width="100" height="26" rx="13" fill="#ffffff" opacity="0.25"></rect>
+    <rect x="328" y="360" width="430" height="12" rx="6" fill="#C8161E"></rect>
+    <rect x="328" y="384" width="360" height="12" rx="6" fill="#cdc4d4"></rect>
+    <rect x="328" y="432" width="544" height="40" rx="10" fill="#F4F2F8" stroke="#ECE4F0" stroke-width="2"></rect>
+    <rect x="328" y="486" width="544" height="40" rx="10" fill="#F4F2F8" stroke="#ECE4F0" stroke-width="2"></rect>
+  </svg>
+</div>
+  <div id="__bundler_loading">Unpacking...</div>
+
+  <script>
+    
+document.addEventListener('DOMContentLoaded', async function() {
+  const loading = document.getElementById('__bundler_loading');
+  function setStatus(msg) { if (loading) loading.textContent = msg; }
+
+  // Error sink persists across replaceWith since it's on window, not the DOM.
+  window.addEventListener('error', function(e) {
+    var p = document.body || document.documentElement;
+    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
+    d.id = '__bundler_err';
+    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
+    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
+      '[bundle] ' + (e.message || e.type) +
+      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
+  }, true);
+
+  try {
+    const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
+    const templateEl = document.querySelector('script[type="__bundler/template"]');
+    if (!manifestEl || !templateEl) {
+      setStatus('Error: missing bundle data');
+      console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
+      return;
+    }
+
+    const manifest = JSON.parse(manifestEl.textContent);
+    let template = JSON.parse(templateEl.textContent);
+
+    const uuids = Object.keys(manifest);
+    setStatus('Unpacking ' + uuids.length + ' assets...');
+
+    const blobUrls = {};
+    await Promise.all(uuids.map(async (uuid) => {
+      const entry = manifest[uuid];
+      try {
+        const binaryStr = atob(entry.data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+        let finalBytes = bytes;
+        if (entry.compressed) {
+          if (typeof DecompressionStream !== 'undefined') {
+            const ds = new DecompressionStream('gzip');
+            const writer = ds.writable.getWriter();
+            const reader = ds.readable.getReader();
+            writer.write(bytes);
+            writer.close();
+            const chunks = [];
+            let totalLen = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              totalLen += value.length;
+            }
+            finalBytes = new Uint8Array(totalLen);
+            let offset = 0;
+            for (const chunk of chunks) { finalBytes.set(chunk, offset); offset += chunk.length; }
+          } else {
+            console.warn('DecompressionStream not available, asset ' + uuid + ' may not render');
+          }
+        }
+
+        blobUrls[uuid] = URL.createObjectURL(new Blob([finalBytes], { type: entry.mime }));
+      } catch (err) {
+        console.error('Failed to decode asset ' + uuid + ':', err);
+        blobUrls[uuid] = URL.createObjectURL(new Blob([], { type: entry.mime }));
+      }
+    }));
+
+    const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
+    const extResources = extResEl ? JSON.parse(extResEl.textContent) : [];
+    const resourceMap = {};
+    for (const entry of extResources) {
+      if (blobUrls[entry.uuid]) resourceMap[entry.id] = blobUrls[entry.uuid];
+    }
+
+    setStatus('Rendering...');
+    for (const uuid of uuids) template = template.split(uuid).join(blobUrls[uuid]);
+
+    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
+    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
+    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
+    template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
+
+    const resourceScript = '<script>window.__resources = ' +
+      JSON.stringify(resourceMap).split('</' + 'script>').join('<\\/' + 'script>') +
+      ';</' + 'script>';
+    // Inject after <head> so the DOCTYPE stays first; prepending the script
+    // would push the parser into quirks mode. DOMParser always emits a <head>
+    // (synthesizing one if the source HTML omitted it) but may carry
+    // attributes through, so match the full opening tag. slice() rather than
+    // replace() keeps us clear of $-pattern substitution in resourceScript.
+    const headOpen = template.match(/<head[^>]*>/i);
+    if (headOpen) {
+      const i = headOpen.index + headOpen[0].length;
+      template = template.slice(0, i) + resourceScript + template.slice(i);
+    }
+
+    // Parse the template and swap the root element. Scripts inserted via
+    // DOMParser/replaceWith are inert per spec — re-create each with
+    // createElement so they execute, awaiting onload for src scripts to
+    // preserve ordering (React before ReactDOM before Babel before text/babel).
+    const doc = new DOMParser().parseFromString(template, 'text/html');
+    document.documentElement.replaceWith(doc.documentElement);
+    const dead = Array.from(document.scripts);
+    for (const old of dead) {
+      const s = document.createElement('script');
+      for (const a of old.attributes) s.setAttribute(a.name, a.value);
+      s.textContent = old.textContent;
+      // text/babel scripts with a src: fetch and inline. transformScriptTags
+      // does XHR against the src, but blob:null/ from a file:// origin is
+      // silently dropped. Inlining makes it a plain inline babel script,
+      // which transformScriptTags handles unconditionally.
+      if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
+        const r = await fetch(s.src);
+        s.textContent = await r.text();
+        s.removeAttribute('src');
+      }
+      const p = s.src ? new Promise(function(r) { s.onload = s.onerror = r; }) : null;
+      old.replaceWith(s);
+      if (p) await p;
+    }
+    // Babel standalone auto-transforms type=text/babel on DOMContentLoaded,
+    // which fired before we swapped the document. Trigger manually if present.
+    if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
+      window.Babel.transformScriptTags();
+    }
+  } catch (err) {
+    setStatus('Error unpacking: ' + err.message);
+    console.error('Bundle unpack error:', err);
+  }
+});
+
+  </script>
+
+  <script type="__bundler/manifest">
+{}
+  </script>
+
+  <script type="__bundler/ext_resources">
+[]
+  </script>
+
+  <script type="__bundler/template">
+"<!DOCTYPE html>\n<html lang=\"zh-CN\"><head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>联想乐享 · 悬停 3 秒智能推荐弹层（方案 3 · 上下文产品卡）<\u002Ftitle>\n<style>\n  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }\n  body{\n    font-family:\"PingFang SC\",\"Hiragino Sans GB\",\"Microsoft YaHei\",-apple-system,sans-serif;\n    -webkit-font-smoothing:antialiased; background:#ECEAF2; color:#17181A;\n    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;\n    padding:40px 24px 56px; gap:18px;\n  }\n  :root{\n    --aub:#5b1452; --aub2:#6D3260; --red:#C8161E; --red2:#e42b20;\n    --lav:#F4F2F8; --lav2:#F0E9F6; --line:#ECE3F0;\n    --ink:#17181A; --ink2:#4A4453; --muted:#95909E;\n  }\n  .hint{ display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700;\n    color:var(--aub2); background:#fff; border:1px solid #E2D6E8; border-radius:999px; padding:8px 15px; }\n  .hint .pdot{ width:7px; height:7px; border-radius:50%; background:var(--red); animation:bk 1.4s infinite; }\n  @keyframes bk{ 0%,100%{opacity:1} 50%{opacity:.3} }\n\n  .scene{ width:100%; max-width:1080px; height:564px; border-radius:22px; overflow:hidden;\n    display:flex; background:var(--lav); border:1px solid #E4DEEC;\n    box-shadow:0 2px 4px rgba(60,40,90,.04),0 18px 50px rgba(60,40,90,.10); position:relative; }\n\n  /* left assistant panel */\n  .panel{ width:392px; flex-shrink:0; background:#fff; border-right:1px solid #EEE9F2;\n    display:flex; flex-direction:column; position:relative; padding:22px 20px 18px; }\n  .panel-h{ font-size:21px; font-weight:800; line-height:1.35; color:#1A1320; }\n  .panel-h small{ display:block; font-size:15px; font-weight:700; color:#6A6472; margin-top:4px; }\n  .seed{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }\n  .seed a{ display:flex; align-items:center; justify-content:space-between; height:46px; padding:0 16px;\n    border:1px solid #ECE7F0; border-radius:12px; font-size:13.5px; font-weight:600; color:#3C3646; text-decoration:none;\n    background:#fff; transition:.15s; cursor:pointer; }\n  .seed a:first-child{ background:var(--lav2); border-color:transparent; }\n  .seed a span.ar{ color:#B9B2C2; }\n  .seed a:hover{ border-color:#D8C8E0; }\n  .panel-spacer{ flex:1; min-height:14px; position:relative; }\n\n  /* composer */\n  .composer{ border:1.5px solid #E7DEEC; border-radius:16px; padding:13px 14px 11px; background:#fff; }\n  .composer .ph{ font-size:13.5px; color:#A9A2B4; }\n  .composer .crow{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; }\n  .composer .ctools{ display:flex; gap:7px; }\n  .ctag{ display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 10px; border-radius:999px;\n    border:1px solid #E7DEEC; font-size:11.5px; font-weight:600; color:#5C5667; }\n  .ctag.on{ color:var(--aub2); border-color:#D5BBD4; background:var(--lav2); }\n  .csend{ width:34px; height:34px; border-radius:50%; border:none; background:linear-gradient(135deg,#8a2c66,#5b1452);\n    color:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }\n\n  /* right stage with product card */\n  .stage{ flex:1; padding:34px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;\n    background:radial-gradient(120% 90% at 70% 10%,#FBF6FC,#F1EEF7); position:relative; }\n  .stage-tip{ position:absolute; top:18px; left:0; right:0; text-align:center; font-size:12px; color:#A99FB4; }\n  .pcard{ width:248px; background:#fff; border:1px solid #EFE9F3; border-radius:18px; overflow:hidden; cursor:pointer;\n    position:relative; transition:box-shadow .25s,transform .25s,border-color .25s; }\n  .pcard:hover{ box-shadow:0 16px 40px rgba(91,20,82,.16); transform:translateY(-3px); border-color:#E2D2EA; }\n  .pcard .pc-badge{ position:absolute; top:13px; left:13px; z-index:2; background:#5b1452; color:#fff;\n    font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; }\n  .pcard .pc-img{ height:150px; background:radial-gradient(120% 90% at 50% 0,#241a2e,#13101a);\n    display:flex; align-items:flex-end; justify-content:center; }\n  .pc-img .scr{ width:78%; height:84px; border-radius:6px 6px 0 0; border:1px solid #ffffff26; border-bottom:none;\n    background:linear-gradient(150deg,#c0392b33,#5b145244),repeating-linear-gradient(135deg,#ffffff12 0 9px,#ffffff05 9px 18px); }\n  .pcard .pc-b{ padding:15px 15px 17px; }\n  .pcard .pc-hot{ display:inline-block; font-size:11px; color:var(--red); border:1px solid #F2C9CC; border-radius:999px; padding:2px 9px; margin-bottom:10px; }\n  .pcard .pc-name{ font-size:14px; font-weight:700; line-height:1.4; }\n  .pcard .pc-spec{ font-size:12px; color:#6A6472; margin:6px 0 12px; }\n  .pcard .pc-price{ font-size:18px; font-weight:800; color:var(--red); }\n  .pcard .pc-price small{ font-size:11px; font-weight:600; }\n  /* dwell progress ring */\n  .dwell{ position:absolute; top:11px; right:11px; width:34px; height:34px; z-index:3;\n    opacity:0; transform:scale(.7); transition:opacity .2s,transform .2s; }\n  .pcard.dwelling .dwell{ opacity:1; transform:scale(1); }\n  .pcard.fired .dwell{ opacity:0; }\n  .dwell svg{ transform:rotate(-90deg); }\n  .dwell .bg{ fill:rgba(255,255,255,.85); }\n  .dwell .tr{ fill:none; stroke:#EAD9EE; stroke-width:3; }\n  .dwell .pr{ fill:none; stroke:var(--aub); stroke-width:3; stroke-linecap:round;\n    stroke-dasharray:88; stroke-dashoffset:88; transition:stroke-dashoffset 3s linear; }\n  .pcard.dwelling .dwell .pr{ stroke-dashoffset:0; }\n  .dwell .ck{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;\n    font-size:11px; font-weight:800; color:var(--aub); }\n\n  /* ============ popup (方案3 · 上下文产品卡) ============ */\n  .pop{ position:absolute; left:0; right:0; bottom:12px; z-index:20;\n    opacity:0; transform:translateY(14px) scale(.97); pointer-events:none;\n    transition:opacity .3s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1); }\n  .panel.show .pop{ opacity:1; transform:none; pointer-events:auto; }\n  .pop-close{ position:absolute; top:10px; right:10px; width:22px; height:22px; border:none; cursor:pointer;\n    border-radius:50%; background:rgba(255,255,255,.18); color:#fff; font-size:13px;\n    display:flex; align-items:center; justify-content:center; z-index:3; }\n  .pop-close:hover{ background:rgba(255,255,255,.32); }\n\n  .pop .box{ background:linear-gradient(165deg,#fff,#FBF6FC); border:1px solid #EBDEEF; border-radius:16px;\n    overflow:hidden; box-shadow:0 16px 44px rgba(91,20,82,.20); position:relative; }\n  .pop .ctx{ display:flex; align-items:center; gap:11px; padding:12px 40px 12px 14px;\n    background:linear-gradient(120deg,#2B0F28,#5b1452); position:relative; }\n  .pop .ctx .thumb{ width:42px; height:42px; border-radius:9px; flex-shrink:0;\n    background:radial-gradient(120% 90% at 50% 0,#3a2c48,#16101e); border:1px solid #ffffff22;\n    display:flex; align-items:flex-end; justify-content:center; }\n  .pop .ctx .thumb i{ display:block; width:72%; height:22px; border-radius:3px 3px 0 0; border:1px solid #ffffff26; border-bottom:none;\n    background:linear-gradient(150deg,#c0392b55,#5b145288); }\n  .pop .ctx .ci{ min-width:0; }\n  .pop .ctx .ci .nm{ font-size:12.5px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }\n  .pop .ctx .ci .pr{ font-size:12px; color:#F2BFD9; font-weight:700; margin-top:3px; }\n  .pop .ctx .badge{ margin-left:auto; flex-shrink:0; display:inline-flex; align-items:center; gap:5px;\n    font-size:10.5px; font-weight:800; color:#fff; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22);\n    padding:4px 9px; border-radius:999px; }\n  .pop .body{ padding:14px 15px 15px; }\n  .pop .sum{ font-size:13px; line-height:1.7; color:#2E2738; }\n  .pop .sum b{ color:var(--red); font-weight:700; }\n  .pop .divider{ display:flex; align-items:center; gap:8px; margin:13px 0 11px; }\n  .pop .divider span{ font-size:10.5px; font-weight:700; color:#A99FB4; letter-spacing:.5px; }\n  .pop .divider::after{ content:\"\"; flex:1; height:1px; background:#ECE3F0; }\n  .pop .acts{ display:flex; flex-direction:column; gap:7px; }\n  .pop .act{ display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:10px; cursor:pointer;\n    font-size:12.5px; font-weight:600; color:#3C3646; border:1px solid #ECE4F0; background:#fff; transition:.15s; }\n  .pop .act .ic{ width:26px; height:26px; flex-shrink:0; border-radius:7px; background:var(--lav2); color:var(--aub);\n    display:flex; align-items:center; justify-content:center; }\n  .pop .act .ar{ margin-left:auto; color:#C5BBCF; }\n  .pop .act:hover{ border-color:var(--aub); background:var(--lav); }\n  .pop .act:hover .ar{ color:var(--aub); }\n\n  .replay{ position:absolute; bottom:14px; right:16px; z-index:5; display:inline-flex; align-items:center; gap:6px;\n    height:30px; padding:0 13px; border-radius:999px; border:1px solid #E4DEEC; background:#fff; cursor:pointer;\n    font-size:11.5px; font-weight:700; color:var(--aub2); }\n  .replay:hover{ border-color:var(--aub); }\n  .replay svg{ width:13px; height:13px; }\n<\u002Fstyle>\n<\u002Fhead>\n<body>\n\n<span class=\"hint\"><span class=\"pdot\"><\u002Fspan>把鼠标移到右侧商品卡上，静停 3 秒触发智能推荐<\u002Fspan>\n\n<div class=\"scene\" id=\"scene\"><\u002Fdiv>\n\n<script>\nconst PROD = {\n  badge:\"拯救者\", name:\"联想拯救者 R9000P 2025 AI元启版\",\n  spec:\"AMD Ryzen 9 8945HX / RTX 5060\", price:\"¥14,999\",\n  hot:\"今日 38 人加购\",\n  sum:'这款拯救者<b>配置拉满<\u002Fb>，打游戏、剪视频、跑 AI 都流畅，硬核玩家用着超爽。',\n  acts:[[\"选\",\"拯救者该如何选择？\"],[\"评\",\"R9000P 2025 值得买吗？\"],[\"读\",\"R9000P 2025 详细解读\"]],\n};\nconst SP = (w)=>`<svg width=\"${w}\" height=\"${w}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"><path d=\"M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3Z\"/><\u002Fsvg>`;\n\nconst POP = `\n  <div class=\"pop\"><div class=\"box\">\n    <button class=\"pop-close\">✕<\u002Fbutton>\n    <div class=\"ctx\">\n      <div class=\"thumb\"><i><\u002Fi><\u002Fdiv>\n      <div class=\"ci\"><div class=\"nm\">${PROD.name}<\u002Fdiv><div class=\"pr\">${PROD.price} 起<\u002Fdiv><\u002Fdiv>\n      <span class=\"badge\">${SP(11)}你在看<\u002Fspan>\n    <\u002Fdiv>\n    <div class=\"body\">\n      <div class=\"sum\">${PROD.sum}<\u002Fdiv>\n      <div class=\"divider\"><span>乐享建议你问问<\u002Fspan><\u002Fdiv>\n      <div class=\"acts\">\n        ${PROD.acts.map(([i,t])=>`<div class=\"act\"><span class=\"ic\">${SP(13)}<\u002Fspan><span>${t}<\u002Fspan><span class=\"ar\">›<\u002Fspan><\u002Fdiv>`).join(\"\")}\n      <\u002Fdiv>\n    <\u002Fdiv>\n  <\u002Fdiv><\u002Fdiv>`;\n\ndocument.getElementById(\"scene\").innerHTML = `\n  <div class=\"panel\">\n    <div class=\"panel-h\">我是联想乐享<small>有任何问题随时告诉我<\u002Fsmall><\u002Fdiv>\n    <div class=\"seed\">\n      <a>我要找商品<span class=\"ar\">→<\u002Fspan><\u002Fa>\n      <a>我要找优惠和活动<span class=\"ar\">→<\u002Fspan><\u002Fa>\n      <a>我要问国补和教育优惠<span class=\"ar\">→<\u002Fspan><\u002Fa>\n    <\u002Fdiv>\n    <div class=\"panel-spacer\">${POP}<\u002Fdiv>\n    <div class=\"composer\">\n      <div class=\"ph\">最近有什么优惠活动？<\u002Fdiv>\n      <div class=\"crow\">\n        <div class=\"ctools\"><span class=\"ctag on\">✨ 深度思考<\u002Fspan><span class=\"ctag\">🌐 联网搜索<\u002Fspan><\u002Fdiv>\n        <button class=\"csend\">↑<\u002Fbutton>\n      <\u002Fdiv>\n    <\u002Fdiv>\n  <\u002Fdiv>\n  <div class=\"stage\">\n    <div class=\"stage-tip\">↓ 在这张卡片上静停 3 秒<\u002Fdiv>\n    <div class=\"pcard\">\n      <div class=\"pc-badge\">${PROD.badge}<\u002Fdiv>\n      <div class=\"dwell\"><svg width=\"34\" height=\"34\"><circle class=\"bg\" cx=\"17\" cy=\"17\" r=\"16\"/><circle class=\"tr\" cx=\"17\" cy=\"17\" r=\"14\"/><circle class=\"pr\" cx=\"17\" cy=\"17\" r=\"14\"/><\u002Fsvg><span class=\"ck\">3s<\u002Fspan><\u002Fdiv>\n      <div class=\"pc-img\"><div class=\"scr\"><\u002Fdiv><\u002Fdiv>\n      <div class=\"pc-b\">\n        <span class=\"pc-hot\">${PROD.hot}<\u002Fspan>\n        <div class=\"pc-name\">${PROD.name}<\u002Fdiv>\n        <div class=\"pc-spec\">${PROD.spec}<\u002Fdiv>\n        <div class=\"pc-price\">${PROD.price}<small> 起<\u002Fsmall><\u002Fdiv>\n      <\u002Fdiv>\n    <\u002Fdiv>\n    <button class=\"replay\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 3-6.7M3 4v4h4\"/><\u002Fsvg>重放<\u002Fbutton>\n  <\u002Fdiv>`;\n\nconst panel = document.querySelector(\".panel\");\nconst card = document.querySelector(\".pcard\");\nlet timer=null;\nconst start=()=>{ if(panel.classList.contains(\"show\")) return;\n  card.classList.add(\"dwelling\"); card.classList.remove(\"fired\");\n  timer=setTimeout(()=>{ panel.classList.add(\"show\"); card.classList.add(\"fired\"); card.classList.remove(\"dwelling\"); },3000);\n};\nconst cancel=()=>{ clearTimeout(timer); if(!card.classList.contains(\"fired\")) card.classList.remove(\"dwelling\"); };\ncard.addEventListener(\"mouseenter\",start);\ncard.addEventListener(\"mouseleave\",cancel);\ndocument.querySelector(\".pop-close\").addEventListener(\"click\",()=>{ panel.classList.remove(\"show\"); card.classList.remove(\"fired\",\"dwelling\"); });\ndocument.querySelector(\".replay\").addEventListener(\"click\",()=>{ panel.classList.remove(\"show\"); card.classList.remove(\"fired\",\"dwelling\"); });\n<\u002Fscript>\n\n\n<\u002Fbody><\u002Fhtml>"
+  </script>
+</body>
+</html>

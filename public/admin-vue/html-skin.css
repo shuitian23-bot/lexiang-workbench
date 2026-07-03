@@ -1,0 +1,264 @@
+/* Vue shell skin aligned to the original HTML workbench visual language. */
+html[data-product="leaibot"] {
+  --primary: #3370ff;
+  --primary-light: rgba(51,112,255,.08);
+  --primary-hover: #245bdb;
+  --red: #e2001a;
+  --red-light: rgba(226,0,26,.08);
+  --green: #34c724;
+  --green-light: rgba(52,199,36,.08);
+  --orange: #ff7d00;
+  --orange-light: rgba(255,125,0,.08);
+  --purple: #722ed1;
+  --purple-light: rgba(114,46,209,.08);
+  --bg: #f5f6f7;
+  --sidebar-bg: #fff;
+  --card-bg: #fff;
+  --border: #dee0e3;
+  --border-light: #e5e6eb;
+  --text: #1f2329;
+  --text-secondary: #646a73;
+  --text-tertiary: #8f959e;
+  --shadow: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+html[data-product="leaibot"],
+html[data-product="leaibot"] body,
+html[data-product="leaibot"] #app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}
+
+html[data-product="leaibot"] body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  display: block !important;
+}
+
+html[data-product="leaibot"] .workbench-shell {
+  background: var(--bg) !important;
+}
+
+html[data-product="leaibot"] .sidebar {
+  width: 168px !important;
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--border-light) !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .sidebar-header {
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 10px 0 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  cursor: pointer !important;
+}
+
+html[data-product="leaibot"] .brand-lockup {
+  min-width: 0 !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  max-width: calc(100% - 32px) !important;
+  cursor: pointer !important;
+}
+
+html[data-product="leaibot"] .topbar-breadcrumb span:first-child {
+  cursor: pointer !important;
+}
+
+html[data-product="leaibot"] .topbar-breadcrumb span:first-child:hover {
+  color: var(--primary) !important;
+}
+
+html[data-product="leaibot"] .brand-lockup > span:first-child {
+  width: 45px !important;
+  height: 17px !important;
+  flex: 0 0 45px !important;
+  overflow: hidden !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  background: url("/admin/assets/logo-full.png") left center / contain no-repeat !important;
+}
+
+html[data-product="leaibot"] .brand-suffix {
+  height: 20px !important;
+  padding: 0 7px !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 999px !important;
+  background: #f5f6f7 !important;
+  color: var(--text-secondary) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  line-height: 18px !important;
+}
+
+html[data-product="leaibot"] .sidebar-collapse-btn {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  padding: 0 !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 7px !important;
+  background: #fff !important;
+  color: var(--text-tertiary) !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .sidebar-nav {
+  padding: 10px 8px !important;
+  overflow-y: auto !important;
+}
+
+html[data-product="leaibot"] .nav-group {
+  margin-bottom: 4px !important;
+}
+
+html[data-product="leaibot"] .nav-group-header {
+  height: 34px !important;
+  padding: 0 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 8px !important;
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-product="leaibot"] .nav-group-header:hover {
+  background: #f1f3f5 !important;
+  color: var(--text) !important;
+}
+
+html[data-product="leaibot"] .menu-icon-wrap,
+html[data-product="leaibot"] .menu-icon {
+  width: 16px !important;
+  height: 16px !important;
+  flex: 0 0 16px !important;
+  color: var(--text-tertiary) !important;
+  stroke: currentColor !important;
+}
+
+html[data-product="leaibot"] .nav-group-label {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html[data-product="leaibot"] .nav-chevron {
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: auto !important;
+  color: var(--text-tertiary) !important;
+}
+
+html[data-product="leaibot"] .nav-group-children {
+  padding: 2px 0 6px 28px !important;
+}
+
+html[data-product="leaibot"] .nav-item {
+  min-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 5px 9px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+}
+
+html[data-product="leaibot"] .nav-item:hover {
+  background: #f5f7fa !important;
+  color: var(--text) !important;
+}
+
+html[data-product="leaibot"] .nav-item.active {
+  border-color: rgba(51,112,255,.25) !important;
+  background: rgba(51,112,255,.08) !important;
+  color: var(--primary) !important;
+  font-weight: 600 !important;
+}
+
+html[data-product="leaibot"] .main {
+  background: var(--bg) !important;
+}
+
+html[data-product="leaibot"] .topbar {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 18px 0 20px !important;
+  background: rgba(255,255,255,.96) !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  box-shadow: none !important;
+}
+
+html[data-product="leaibot"] .page-content {
+  padding: 20px 24px 28px !important;
+  background: var(--bg) !important;
+}
+
+html[data-product="leaibot"] .card,
+html[data-product="leaibot"] .ops-card,
+html[data-product="leaibot"] .kpi-card,
+html[data-product="leaibot"] .geo-panel,
+html[data-product="leaibot"] .skill-workspace-pane,
+html[data-product="leaibot"] .skill-context-pane {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+html[data-product="leaibot"] .kpi-card,
+html[data-product="leaibot"] .ops-kpi,
+html[data-product="leaibot"] .rpt-kpi {
+  background: #fff !important;
+}
+
+html[data-product="leaibot"] .kpi-value,
+html[data-product="leaibot"] .ops-kpi-val,
+html[data-product="leaibot"] .rpt-kpi-val {
+  color: var(--text) !important;
+}
+
+html[data-product="leaibot"] .kpi-label,
+html[data-product="leaibot"] .ops-kpi-label,
+html[data-product="leaibot"] .rpt-kpi-label {
+  color: var(--text-secondary) !important;
+}
+
+html[data-product="leaibot"] canvas,
+html[data-product="leaibot"] .chart-wrap,
+html[data-product="leaibot"] .chart-wrap-sm {
+  filter: saturate(.78) hue-rotate(178deg);
+}
+
+html[data-product="leaibot"] .ai-panel {
+  background: #fff !important;
+  border-left: 1px solid var(--border-light) !important;
+}
+
+html[data-product="leaibot"] body.dark-mode canvas,
+html[data-product="leaibot"] body.dark-mode .chart-wrap,
+html[data-product="leaibot"] body.dark-mode .chart-wrap-sm {
+  filter: saturate(.82) hue-rotate(172deg);
+}

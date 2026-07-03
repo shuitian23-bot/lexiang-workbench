@@ -1,0 +1,93 @@
+ThinkStation P3 Tower Gen2
+
+Windows 11 家庭中文版 [联想]推荐使用商用 Windows 11 专业版
+
+最新英特尔® 酷睿™ Ultra 处理器(第二代)
+- Intel CORE ULTRA 9
+
+27L机箱+1100W大电源
+
+Intel vPro® Enterprise
+
+硬盘最高支持3*M.2 SSD，可支持至SSD Gen5
+
+256GB内存，DDR5
+提供4个内存插槽
+
+支持nVIDIA显卡
+NVIDIA RTX PRO 5000 Blackwell与GeForce RTX 5080
+
+PCIe 5.0
+
+Wi-Fi 7+蓝牙5.4
+WiFi 7
+Bluetooth
+
+ThinkPad
+
+全新一代
+ThinkStation P3 Tower Gen2
+ThinkStation
+P3
+
+搭载英特尔® 酷睿™ Ultra 处理器，释放巅峰算力
+
+全新 P-core（性能核）和 E-core（能效核）架构搭载多达 24 个核心，同时采用全新超频功能和高性能技术
+
+Intel W880芯片组
+
+intel
+CORE
+ULTRA
+9
+
+NVIDIA RTX PRO 最新一代专业显卡
+
+借助 NVIDIA RTX PRO GPU，带来 AI、光线追踪和神经图形技术领域的新突破，
+为设计、工程等领域的创新工作流程提供支持
+
+NVIDIA
+RTX PRO
+
+27L 大机箱+1100W 大电源
+
+从17L到27L机箱，使空间增大了30%
+电源瓦数从750W增加到1100W，
+内外部优异的产品设计
+让P3 Tower Gen2拥有更强的扩展性、更合理的机箱布局、更好的散热表现、更优秀的性能体验。
+
+机箱空间增大 37% 电源瓦数增加 350W
+
+17L
+- 高度：370mm
+- 宽度：299.2mm
+- 深度：170mm
+
+27L
+- 高度：415mm
+- 宽度：370mm
+- 深度：180mm
+
+ThinkStation
+
+图片中的文字内容如下：
+
+标题：
+PCIe 5.0 全面进阶，数据传输快人一步
+
+描述：
+大幅提高显卡、存储等设备的数据传输速度，增强多任务处理性能
+
+规格参数：
+PCIe 5.0
+
+Wi-Fi 7 + 蓝牙 5.4 组合
+告别网络卡顿，畅享丝滑体验
+
+WiFi 7
+Bluetooth
+
+联想工作站秉持可持续性环保理念
+
+ISV全功能认证，打造专业平台
+超过100款专业应用程序认证，具备更先进的硬件、软件生态系统，继承优化的稳定驱动程序

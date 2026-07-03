@@ -1,0 +1,58 @@
+联想问天WR5228 G5服务器
+
+联想问天WR5228 G5服务器是联想面向人工智能训练与推理、高性能计算（HPC）、科学计算、大数据分析等关键业务场景推出的2U双路机架式服务器。该产品基于第四代英特尔®至强®可扩展处理器平台，支持最高60核120线程，提供卓越的单机算力密度与能效比；全面适配主流AI框架与加速生态，支持多卡GPU直连拓扑与高速互联，满足大模型训练、AIGC生成、智能推荐等高负载AI工作负载需求。整机采用模块化设计，支持热插拔冗余电源与风扇，具备高可靠性、高可维护性及绿色节能特性，适用于企业数据中心、智算中心、科研机构及云服务提供商等多种部署环境。
+
+产品特性  
+• 全新升级第四代英特尔®至强®可扩展处理器（Sapphire Rapids），支持最高350W TDP，提供更强浮点与AI加速能力  
+• 支持8块双宽PCIe 5.0 GPU（如NVIDIA H100 SXM5、H100 PCIe、L40S等），通过全直连NVLink或PCIe 5.0 x16通道实现低延迟、高带宽互联  
+• 配置8通道DDR5内存，最高支持4TB容量（64×64GB LRDIMM），速率高达4800MT/s，支持Intel® AMX、DL Boost等AI加速指令集  
+• 前置支持24×2.5英寸热插拔硬盘（含12×NVMe U.2），后置支持2×M.2 SSD（PCIe 4.0 x4），提供极致存储I/O性能与灵活扩展能力  
+• 内置Lenovo XClarity Controller（XCC）管理芯片，支持带外远程管理、固件自动更新、健康状态预测与智能告警  
+• 采用高效散热风道设计与动态功耗调控技术，PUE优化显著，典型配置下整机满载功耗较上代降低约12%  
+• 通过TCO Total Cost of Ownership优化设计，支持免工具拆装、前维护架构与统一固件生命周期管理，降低运维复杂度与人力成本  
+
+规格参数  
+| 项目 | 规格说明 |  
+|------|----------|  
+| 外形规格 | 2U机架式服务器，宽482mm × 深820mm × 高87.6mm（不含滑轨），标准19英寸机柜适配 |  
+| 处理器 | 支持2颗第四代英特尔®至强®可扩展处理器（Sapphire Rapids-SP），最大支持60核/120线程，TDP最高350W，支持Intel® Turbo Boost Max 3.0、Intel® Deep Learning Boost（DL Boost）、Intel® Advanced Matrix Extensions（AMX） |  
+| 芯片组 | 英特尔® C741 芯片组 |  
+| 内存 | 8通道DDR5 RDIMM/LRDIMM，最高支持4TB（64×64GB LRDIMM），速率支持4800/4400/4000/3200MT/s；支持ECC、内存镜像、内存热备（Sparing） |  
+| 存储（前置） | 最高支持24×2.5英寸热插拔硬盘/SSD：其中最多12×NVMe U.2（PCIe 4.0 x4），其余为SATA/SAS（需选配RAID卡）；支持RAID 0/1/10/5/50/6/60（通过Lenovo ThinkSystem RAID 940-16i或930-16i） |  
+| 存储（后置） | 支持2×M.2 NVMe SSD（PCIe 4.0 x4），用于系统盘或缓存加速 |  
+| 扩展插槽 | 最高支持8×PCIe 5.0 x16全高全长插槽（全部物理x16宽度，带宽双向各128GB/s），支持GPU直连无瓶颈；另含1×PCIe 5.0 x8（OCP网卡专用）及1×PCIe 4.0 x4（M.2控制器专用） |  
+| 网络 | 板载2×10GbE SFP+（Intel® X710），支持TOE、SR-IOV、PXE；可选配OCP 3.0网卡（如双端口25GbE/100GbE EDR InfiniBand） |  
+| I/O接口 | 前置：2×USB 3.0、1×VGA；后置：2×USB 3.0、1×VGA、1×RJ45串口、1×RJ45 XCC管理口；内置：1×USB 2.0（用于BIOS调试） |  
+| 电源 | 支持2×2400W/2000W/1600W 80 PLUS Titanium/Platinum冗余热插拔电源，支持220V AC / 240V DC / -48V DC输入，支持高压直流（HVDC）供电模式 |  
+| 风扇 | 6×热插拔N+1冗余智能调速风扇模组，支持PWM温控与故障预警 |  
+| 管理功能 | 内置Lenovo XClarity Controller（XCC）基础版（标配），支持IPMI 2.0、Redfish 1.8、SNMP；可升级至XCC Enterprise版，支持批量固件更新、资产管理、安全启动验证、TPM 2.0/TCM可信执行环境 |  
+| 安全特性 | 支持Secure Boot、TPM 2.0/TCM、固件签名验证、带内/带外BIOS密码保护、机箱入侵检测、硬件级加密加速（Intel® QAT） |  
+| 操作系统支持 | Microsoft Windows Server 2022/2019；Red Hat Enterprise Linux 8.8+/9.2+；SUSE Linux Enterprise Server 15 SP4+；Ubuntu Server 22.04 LTS/24.04 LTS；VMware vSphere 7.0 U3+/8.0 U2+；支持NVIDIA AI Enterprise软件栈认证 |  
+| 认证与合规 | 通过中国节能产品认证、中国环境标志认证、CE、FCC、UL、CCC、RoHS、REACH；符合GB/T 17626电磁兼容系列标准；通过ISO/IEC 27001信息安全管理体系认证（整机固件层） |  
+| 工作环境 | 温度：5℃–35℃（运行），-40℃–60℃（非运行）；湿度：8%–90% RH（非凝结）；海拔：最高3000米 |  
+| 保修服务 | 标配3年现场有限保修（7×24×4），可选延保至5年；支持关键部件（CPU、内存、主板、电源、风扇）终身有限保修（以联想官方政策为准） |  
+
+常见问题  
+Q: 联想问天WR5228 G5是否支持NVIDIA H100 SXM5 GPU？  
+A: 是的，联想问天WR5228 G5服务器原生支持NVIDIA H100 SXM5 GPU，通过专用GPU模组与全直连NVLink 4.0互联架构，实现最高900GB/s GPU间带宽，满足大规模模型训练对通信效率的严苛要求。  
+
+Q: 该服务器最大可配置多少内存容量？支持哪些内存类型和速率？  
+A: 最高支持4TB内存容量，采用8通道DDR5架构，可安装64条RDIMM（最大2TB）或LRDIMM（最大4TB）；支持速率包括4800MT/s、4400MT/s、4000MT/s和3200MT/s，并完整支持ECC、内存镜像与内存热备（Sparing）等高可用特性。  
+
+Q: 是否支持PCIe 5.0全速GPU扩展？所有GPU插槽是否均为物理x16宽度？  
+A: 是的，WR5228 G5提供8个PCIe 5.0 x16全高全长插槽，全部为物理x16电气宽度，每槽提供双向128GB/s带宽；所有GPU均可直连CPU，无PCIe Switch瓶颈，确保AI训练任务中GPU间通信零转发延迟。  
+
+Q: 存储方面，前置24个2.5英寸盘位是否全部支持NVMe？能否混插SATA与NVMe？  
+A: 前置24盘位中最多支持12个NVMe U.2（PCIe 4.0 x4），其余12个为SATA/SAS混合盘位（需搭配相应RAID控制器）；支持NVMe与SATA/SAS混插，但NVMe U.2与SATA/SAS物理接口独立，不可在同一背板上互换使用。  
+
+Q: XClarity Controller（XCC）管理功能是否需要额外授权？基础版与企业版的主要区别是什么？  
+A: XCC基础版为硬件标配，无需额外授权；XCC Enterprise版需单独购买许可。主要区别在于：Enterprise版支持批量固件自动化更新、资产标签管理、安全启动策略强制执行、带外BIOS配置同步、高级日志分析与预测性故障告警（PFA）等功能。  
+
+Q: 该服务器是否通过国内信创生态适配认证？支持哪些国产操作系统与数据库？  
+A: 是的，WR5228 G5已完成与麒麟软件银河麒麟V10、统信UOS V20、中科方德Linux Server V7等主流国产操作系统的兼容性认证；同时通过达梦DM8、人大金仓KingbaseES V8、神舟通用OSCAR V5等国产数据库的联合测试与优化适配。  
+
+Q: 在AI训练场景下，该服务器如何保障GPU间通信效率？是否支持RDMA网络？  
+A: 服务器通过GPU直连拓扑（Direct GPU-to-GPU via NVLink或PCIe 5.0 P2P）消除CPU中转开销；同时支持OCP 3.0插槽扩展RDMA网卡（如NVIDIA ConnectX-6/7、AMD Pensando DPU），可构建RoCEv2或InfiniBand高速AI训练网络，实现万卡集群级低延迟互联。  
+
+Q: 整机是否支持热更换所有关键部件？维修是否需要停机？  
+A: 支持热插拔冗余电源、热插拔风扇模组、热插拔硬盘/SSD（含NVMe U.2）、热插拔GPU（需配合GPU支架与固件支持）；内存与CPU为冷插拔设计，更换需关机；整体设计满足99.9%年度可用性目标，绝大多数日常维护无需停机。

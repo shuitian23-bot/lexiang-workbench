@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>线索与运营配置 - 联想乐享</title>
+<style>
+  :root { --red:#B8252E; --aub:#4E1646; --bg:#F7F3FA; --bd:#DED6E3; --t:#2B2230; --t2:#5C4F63; --t3:#8A7C91; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--t); padding:24px; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .sub { font-size:12.5px; color:var(--t3); margin-bottom:20px; }
+  .card { background:#fff; border:1px solid var(--bd); border-radius:12px; padding:18px 20px; margin-bottom:16px; }
+  .card h2 { font-size:15px; color:var(--aub); margin-bottom:12px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th,td { border-bottom:1px solid #F1EDF4; padding:8px 10px; text-align:left; vertical-align:top; }
+  th { color:var(--t3); font-size:11.5px; white-space:nowrap; }
+  .tag { display:inline-block; font-size:11px; padding:1px 7px; border-radius:99px; background:#F1EDF4; color:var(--aub); }
+  button { padding:7px 16px; border-radius:7px; border:1px solid var(--bd); background:#fff; color:var(--aub); cursor:pointer; font-size:13px; }
+  button.primary { background:var(--red); border-color:var(--red); color:#fff; }
+  select, textarea { width:100%; border:1px solid var(--bd); border-radius:7px; padding:8px 10px; font-size:13px; font-family:inherit; }
+  textarea { min-height:180px; font-family:monospace; }
+  .row { display:flex; gap:10px; align-items:center; margin-bottom:10px; }
+  .msg { font-size:12px; color:var(--t3); }
+  .err { color:var(--red); }
+  .login-tip { text-align:center; padding:60px 0; color:var(--t2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>线索与运营配置</h1>
+  <p class="sub">轻量运营页 · 与 workbench 后台共用管理员登录态 · <a href="/admin/workbench.html">去完整后台</a></p>
+  <div id="app"><p class="login-tip">加载中...</p></div>
+</div>
+<script>
+(async function () {
+  const app = document.getElementById('app');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const me = await fetch('/api/admin/me').then(r => r.json()).catch(() => null);
+  if (!me || !me.admin) {
+    app.innerHTML = '<p class="login-tip">需要管理员登录。请先在 <a href="/admin/workbench.html">workbench 后台</a> 登录后刷新本页。</p>';
+    return;
+  }
+  const [leads, lxhint, seckill] = await Promise.all([
+    fetch('/api/admin/leads?limit=200').then(r => r.json()).catch(() => []),
+    fetch('/api/admin/config/lxhint').then(r => r.json()).catch(() => ({})),
+    fetch('/api/admin/config/seckill').then(r => r.json()).catch(() => ({})),
+  ]);
+  const sceneName = (s) => ({ b_purchase: '企业采购', biz_intent: '政企意向', enterprise_auth: '企业认证', student_auth: '学生认证' }[s] || (String(s).startsWith('whitepaper:') ? '白皮书下载' : s || '通用'));
+  app.innerHTML = `
+    <div class="card">
+      <h2>留资线索（${leads.length}）</h2>
+      <table><thead><tr><th>时间</th><th>场景</th><th>站点</th><th>公司/姓名</th><th>联系方式</th><th>需求</th></tr></thead>
+      <tbody>${leads.map(l => `<tr><td>${esc((l.created_at || '').slice(5, 16))}</td><td><span class="tag">${esc(sceneName(l.scenario))}</span></td><td>${esc(l.site_type)}</td><td>${esc(l.company)}</td><td>${esc(l.contact)}</td><td>${esc((l.need || '').slice(0, 60))}</td></tr>`).join('') || '<tr><td colspan="6" style="color:#8A7C91">暂无线索</td></tr>'}</tbody></table>
+    </div>
+    <div class="card">
+      <h2>lxHint 情境转化条</h2>
+      <div class="row">
+        <select id="lxhintMode" style="width:200px">
+          ${['chip', 'legacy', 'off'].map(m => `<option value="${m}"${(lxhint.mode || 'chip') === m ? ' selected' : ''}>${m === 'chip' ? 'chip（情境转化条）' : m === 'off' ? 'off（关闭）' : 'legacy（旧浮窗）'}</option>`).join('')}
+        </select>
+        <button class="primary" id="saveLxhint">保存</button>
+        <span class="msg" id="lxhintMsg">改完即时生效，无需重启</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>秒杀配置（config/seckill.json）</h2>
+      <textarea id="seckillJson">${esc(JSON.stringify(seckill, null, 2))}</textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="saveSeckill">保存</button>
+        <span class="msg" id="seckillMsg">enabled 开关；items 配 [{sku, seckill_price}]；改完前台即时生效</span>
+      </div>
+    </div>`;
+  document.getElementById('saveLxhint').onclick = async () => {
+    const r = await fetch('/api/admin/config/lxhint', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: document.getElementById('lxhintMode').value }) }).then(r => r.json());
+    document.getElementById('lxhintMsg').textContent = r.ok ? '已保存 ✓' : '保存失败：' + (r.error || '');
+  };
+  document.getElementById('saveSeckill').onclick = async () => {
+    let cfg;
+    const msg = document.getElementById('seckillMsg');
+    try { cfg = JSON.parse(document.getElementById('seckillJson').value); } catch (e) { msg.textContent = 'JSON 格式错误：' + e.message; msg.className = 'msg err'; return; }
+    const r = await fetch('/api/admin/config/seckill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) }).then(r => r.json());
+    msg.className = 'msg';
+    msg.textContent = r.ok ? '已保存 ✓' : '保存失败：' + (r.error || '');
+  };
+})();
+</script>
+</body>
+</html>

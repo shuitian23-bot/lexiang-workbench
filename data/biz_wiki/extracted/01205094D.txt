@@ -1,0 +1,76 @@
+Lenovo ThinkSystem SR650 V3
+
+配备 Intel 3D Xpoint Optane Pmem 的 ThinkSystem SR650 V3 可实现低延迟的高容量性能，是处理当前工作负载的必备利器。包括带热插拔驱动器的灵活存储选项，SR650
+
+产品特性  
+• 支持双路第三代/第四代英特尔至强可扩展处理器（Ice Lake-SP / Sapphire Rapids），最高支持 60 核、120 线程，TDP 高达 350W  
+• 最高支持 24 个 DDR5 RDIMM/LRDIMM 内存插槽，最大内存容量达 12TB（使用 512GB LRDIMM），支持内存加密与内存镜像/备用  
+• 支持 Intel Optane 持久内存（PMem）200 系列，可与 DDR5 内存混合部署，实现大容量、低延迟、持久化内存池  
+• 前置支持最多 12 个 3.5 英寸或 24 个 2.5 英寸热插拔 SAS/SATA/NVMe 驱动器；后置支持最多 4 个 2.5 英寸热插拔 NVMe/U.2 驱动器；支持 RAID 0/1/10/5/50/6/60（需选配 RAID 卡）  
+• 提供多达 11 个 PCIe 5.0 插槽（含 1 个 OCP 3.0 x16 网络子卡专用插槽），支持 GPU 加速与高速 I/O 扩展  
+• 支持双冗余热插拔电源（550W/800W/1600W/2000W，80 PLUS 钛金/白金认证），支持 240V DC 输入  
+• 集成 Lenovo XClarity Controller（XCC）基础管理模块，支持带外远程管理、固件更新、健康监控与自动化运维  
+• 符合 ENERGY STAR 8.0 和 Climate Pledge Friendly 认证，支持智能风扇调速与部件级功耗控制  
+
+规格参数  
+| 类别 | 参数项 | 详细说明 |
+|------|--------|----------|
+| 处理器 | CPU 类型 | 支持双路第三代（Ice Lake-SP）和第四代（Sapphire Rapids）英特尔至强可扩展处理器 |
+| 处理器 | CPU 数量 | 2 颗（双路） |
+| 处理器 | 核心数 | 最高 60 核 / 120 线程（单颗 CPU） |
+| 处理器 | TDP | 最高 350W（单颗 CPU） |
+| 内存 | 类型 | DDR5 RDIMM（最高 6400MT/s）、DDR5 LRDIMM（最高 4800MT/s） |
+| 内存 | 插槽数 | 24 个（12 个/处理器） |
+| 内存 | 最大容量 | 12TB（使用 512GB LRDIMM）；支持与 Intel Optane PMem 200 系列混合部署 |
+| 内存 | 内存保护 | 支持高级 ECC、内存镜像、内存备用、内存加密（AES-256） |
+| 存储 - 前置 | 驱动器类型 | 3.5 英寸 SAS/SATA HDD/SSD；2.5 英寸 SAS/SATA/NVMe SSD |
+| 存储 - 前置 | 驱动器数量 | 最多 12 个 3.5 英寸 或 最多 24 个 2.5 英寸（含 NVMe） |
+| 存储 - 后置 | 驱动器类型 | 2.5 英寸 U.2 NVMe SSD |
+| 存储 - 后置 | 驱动器数量 | 最多 4 个 |
+| 存储 - RAID | 支持级别 | RAID 0/1/10/5/50/6/60（需选配 ThinkSystem RAID 930-16i/940-16i 或 950-24i 控制器） |
+| 扩展性 | PCIe 插槽总数 | 11 个（全部为 PCIe 5.0） |
+| 扩展性 | PCIe 插槽配置 | 包括 1 个 OCP 3.0 x16 网络子卡专用插槽、2 个 x16（物理）、3 个 x8（物理）、4 个 x4（物理）、1 个 x16（用于 GPU 或加速卡） |
+| 扩展性 | GPU 支持 | 最多支持 4 块双宽 PCIe 5.0 GPU（需特定散热与电源配置） |
+| 网络 | 标准板载 | 2×10GbE SFP+（通过 Broadcom BCM57416）或 2×25GbE SFP28（通过 Marvell Alaska 88X7111），支持 TOE、iSCSI 卸载、PXE 启动 |
+| 网络 | 可选扩展 | OCP 3.0 网络子卡（支持 10/25/100GbE、InfiniBand、SmartNIC） |
+| 电源 | 类型 | 热插拔、冗余设计 |
+| 电源 | 可选功率 | 550W（白金）、800W（白金）、1600W（钛金）、2000W（钛金） |
+| 电源 | 输入支持 | 100–240V AC，50/60Hz；240V DC（仅限部分型号） |
+| 管理 | 管理模块 | 集成 Lenovo XClarity Controller（XCC）基础版（标配），支持升级至 XCC Enterprise（需许可） |
+| 管理 | 远程功能 | IPMI 2.0、Redfish RESTful API、KVM over IP、虚拟介质、批量固件更新、策略驱动自动化 |
+| 物理规格 | 尺寸（高×宽×深） | 86.8 mm × 447 mm × 748 mm（2U 机架式） |
+| 物理规格 | 重量 | 起始约 22.5 kg（不含导轨与配件） |
+| 认证与合规 | 安全认证 | TPM 2.0（可选固件/离散型号）、Secure Boot、UEFI Secure Boot、Intel Boot Guard、系统锁定（System Lockdown） |
+| 认证与合规 | 能效认证 | ENERGY STAR 8.0、Climate Pledge Friendly、80 PLUS 钛金/白金认证 |
+| 认证与合规 | 环保标准 | RoHS、REACH、China RoHS、WEEE |
+
+常见问题  
+Q: ThinkSystem SR650 V3 是否支持第四代英特尔至强可扩展处理器？  
+A: 是的，ThinkSystem SR650 V3 全面支持第四代英特尔至强可扩展处理器（Sapphire Rapids），同时向后兼容第三代（Ice Lake-SP），需确保 BIOS 版本为 2.0 或更高版本以启用完整功能。
+
+Q: SR650 V3 最多可安装多少块 NVMe SSD？  
+A: 前置最多支持 24 个 2.5 英寸 NVMe SSD（在全 NVMe 配置下），后置最多支持 4 个 U.2 NVMe SSD，总计最多 28 块 NVMe SSD（实际部署受散热、电源及 RAID 控制器能力限制）。
+
+Q: 是否可以在同一台 SR650 V3 中混合使用 DDR5 内存和 Intel Optane 持久内存（PMem）？  
+A: 是的，SR650 V3 支持 DDR5 与 Intel Optane PMem 200 系列混合部署，可在 App Direct 模式或 Memory Mode 下运行，实现大容量低延迟内存池，需在 BIOS 中启用相关内存模式并正确配置内存插槽顺序。
+
+Q: SR650 V3 的 PCIe 插槽是否全部支持 PCIe 5.0？  
+A: 是的，所有 11 个 PCIe 插槽均为 PCIe 5.0 规格，包括用于 OCP 3.0 网络子卡的专用插槽、GPU 插槽及通用扩展插槽，提供高达 32 GT/s 的双向带宽。
+
+Q: 该服务器是否支持 240V 直流输入电源？  
+A: 是的，SR650 V3 支持 240V DC 输入（仅限指定电源型号，如 1600W 钛金或 2000W 钛金直流电源），适用于数据中心直流供电环境，需在订购时明确选择 DC 电源选项。
+
+Q: Lenovo XClarity Controller（XCC）是否需要额外付费才能使用基础管理功能？  
+A: 不需要，XCC 基础版（含 IPMI、KVM、硬件监控、固件更新等核心功能）为出厂标配且永久免费；XCC Enterprise 功能（如批量部署、策略自动化、增强安全审计）需单独购买许可证激活。
+
+Q: SR650 V3 在满配 4 块双宽 GPU 时，是否需要特殊散热或机箱配置？  
+A: 是的，满配 4 块双宽 PCIe 5.0 GPU 需选用高风量散热配置（如“GPU 优化”风扇套件）、2000W 钛金冗余电源，并确保机柜具备 ≥ 300mm 深度与前后直通风道，同时建议采用液冷辅助或高密度机柜专用导风罩。
+
+Q: 该服务器是否支持 UEFI 安全启动和固件签名验证？  
+A: 是的，SR650 V3 支持完整的 UEFI Secure Boot 流程，兼容 Microsoft Windows 和主流 Linux 发行版签名要求；同时支持 Intel Boot Guard、固件写保护、TPM 2.0（可选离散芯片）及系统锁定（System Lockdown）模式，防止未经授权的固件修改。
+
+Q: RAID 功能是否需要额外购买控制器？  
+A: 是的，板载 SATA 控制器仅支持 RAID 0/1/10（非缓存），若需 RAID 5/6/50/60、缓存加速、快照、在线扩容等企业级功能，必须选配独立 ThinkSystem RAID 控制器（如 930-16i、940-16i 或 950-24i），并配套 CacheVault 或超级电容模块。
+
+Q: SR650 V3 的物理尺寸是否兼容标准 EIA-310-E 19 英寸机柜？  
+A: 是的，SR650 V3 为标准 2U（86.8 mm 高）、447 mm 宽、748 mm 深机架式服务器，完全符合 EIA-310-E 规范，支持标准滑动导轨与固定托盘安装，兼容所有主流品牌 19 英寸机柜（最小推荐深度 800 mm 以保障线缆管理和散热）。

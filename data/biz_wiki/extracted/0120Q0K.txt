@@ -1,0 +1,58 @@
+联想万全大模型训推一体解决方案
+
+联想万全大模型训推一体解决方案是面向大模型训练与推理全生命周期的一站式AI基础设施平台。该方案深度融合联想ThinkSystem服务器硬件、Lenovo AI Suite软件栈、高性能网络与存储系统，支持从千卡级分布式训练到毫秒级低延迟推理的无缝衔接，满足金融、制造、医疗、科研等关键行业对大模型落地的高性能、高可靠、高安全与易运维需求。
+
+方案采用“训推协同、软硬协同、云边协同”三层架构设计：在训练层，通过多节点RDMA高速互联与NVLink拓扑优化，实现千卡集群92%以上线性扩展效率；在推理层，集成动态批处理（Dynamic Batching）、连续批处理（Continuous Batching）、PagedAttention内存管理及量化压缩（INT4/FP8）等前沿技术，单卡吞吐提升3.8倍，首token延迟降低至17ms；在运维层，提供统一可视化控制台，支持训练任务调度、推理服务编排、资源弹性伸缩、模型版本管理、性能监控告警及安全审计溯源。
+
+联想万全大模型训推一体解决方案已通过信通院《大模型算力基础设施能力要求》认证，并完成与百度文心一言、讯飞星火、阿里通义千问、智谱GLM、百川智能等主流国产大模型的全栈适配验证，支持Hugging Face生态超2000个开源模型一键部署。
+
+| 组件类别 | 子模块 | 功能说明 |
+|----------|--------|----------|
+| 硬件平台 | ThinkSystem SR670 V2 AI服务器 | 支持8×NVIDIA H100 SXM5 GPU，双路Intel Xeon Platinum 8490H处理器，12TB DDR5内存，PCIe 5.0全速互联，内置NVIDIA Quantum-2 InfiniBand 400Gb/s网卡，支持GPU Direct RDMA与GPUDirect Storage |
+| 硬件平台 | ThinkSystem SR630 V3推理服务器 | 支持4×NVIDIA L40S GPU，双路Intel Xeon Silver 4410Y+处理器，2TB DDR5内存，支持PCIe 5.0×16直连，内置NVIDIA ConnectX-7 200Gb/s SmartNIC，支持vLLM与Triton推理后端 |
+| 软件栈 | Lenovo AI Suite 3.2 | 集成训练框架（PyTorch 2.3+、DeepSpeed 0.14、Megatron-LM 2.10）、推理引擎（vLLM 0.4.2、Triton Inference Server 24.04、TensorRT-LLM 1.0.1）、模型管理（Model Registry with lineage tracking）、分布式通信库（NCCL 2.19、RCCL 6.2）及AI工作流编排器（Airflow 2.8集成） |
+| 软件栈 | Lenovo AI Guard 1.5 | 提供模型水印嵌入与检测、推理请求内容安全过滤（支持敏感词、涉政、涉黄、涉暴规则库）、GPU显存越界访问防护、API调用行为审计日志（保留180天）、国密SM2/SM4加密传输与存储 |
+| 网络与存储 | ThinkSystem DM5000F全闪存阵列 | 4U 24盘位，最大裸容量1.2PB，IOPS ≥ 2.1M，平均延迟 ≤ 85μs，支持NVMe-oF over RoCE v2，与GPU服务器直连带宽达200Gb/s，内置AI数据缓存加速模块（支持Parquet/ORC格式预加载） |
+| 网络与存储 | ThinkAgile VX系列AI就绪超融合节点 | 单节点集成计算、存储、网络与AI加速，支持Kubernetes原生部署，内置NVIDIA A100/A800 GPU直通，预装KubeFlow 1.9与MLflow 2.12 |
+
+产品特性：
+- 全栈国产化适配：全面兼容麒麟V10 SP3、统信UOS V20E、中科方德桌面版V6.0操作系统；通过华为鲲鹏920、海光C86 3250、飞腾S5000平台交叉编译验证；支持昇腾910B异构混训模式（需选配Atlas A200P加速卡）
+- 训推一体化调度：同一控制台统一纳管训练集群与推理集群，支持基于QoS策略的跨集群资源动态切分（如将20%训练GPU资源临时转为高优先级推理实例），切换耗时＜8秒
+- 智能弹性扩缩容：根据训练Loss曲线拐点或推理RPS突增自动触发水平扩缩（支持GPU节点分钟级上线/下线），缩容时保障正在运行的Checkpoint保存与推理会话平滑迁移
+- 低代码模型交付：提供Web端拖拽式Pipeline构建器，支持数据预处理→模型微调→量化压缩→服务封装→AB测试全流程图形化配置，平均交付周期由21天缩短至3.5天
+- 全链路可观测性：覆盖硬件层（GPU温度/功耗/显存占用/PCIe带宽）、框架层（梯度稀疏率/AllReduce耗时/显存碎片率）、应用层（Token生成速率/P99延迟/错误码分布）三级指标，支持自定义告警阈值与根因推荐
+
+规格参数：
+- 最大训练规模：单集群支持≥2048块NVIDIA H100 GPU（FP16精度），实测ResNet-50训练吞吐达1.24 ExaFLOPS
+- 推理服务能力：单SR630 V3节点（4×L40S）支持并发处理≥1200路128-token上下文的ChatGLM3-6B请求，P99延迟≤42ms
+- 存储带宽：DM5000F阵列对接GPU服务器时，持续读带宽≥16GB/s（4K随机读IOPS ≥ 1.8M）
+- 网络延迟：InfiniBand集群内GPU间AllReduce 1GB数据平均延迟≤82μs（99.9%分位≤115μs）
+- 安全合规：通过等保三级、ISO/IEC 27001:2022、GDPR数据处理协议认证；模型权重文件默认启用AES-256-GCM加密存储；所有管理接口强制HTTPS+双向mTLS认证
+- 可靠性：硬件MTBF ≥ 200,000小时；支持GPU故障热替换（无需重启整机）；训练中断自动恢复点间隔可设为≤30秒；推理服务SLA承诺99.99%
+- 环境适应性：工作温度10℃–35℃，相对湿度20%–80%（无凝露），海拔高度≤2500米；符合GB/T 9254-2021 Class A电磁兼容标准
+
+常见问题
+
+Q: 该解决方案是否支持混合精度训练？具体支持哪些精度格式？
+A: 是，本方案全面支持FP16、BF16、FP8及INT8混合精度训练。Lenovo AI Suite 3.2预置AMP（Automatic Mixed Precision）模块与NVIDIA Transformer Engine深度集成，支持torch.compile自动图优化；同时兼容DeepSpeed ZeRO-3与FlashAttention-2，在Llama2-70B模型上实测较纯FP16训练显存占用降低58%，训练速度提升1.7倍。
+
+Q: 是否可将现有本地部署的大模型（如Qwen2-72B）直接迁移至该平台？需要做哪些适配工作？
+A: 是，支持零代码迁移。用户仅需上传Hugging Face格式模型权重（含config.json、pytorch_model.bin或safetensors）、Tokenizer文件及推理配置JSON，Lenovo AI Suite将自动识别架构并匹配最优推理引擎（vLLM/Triton/TensorRT-LLM）。对于Qwen2-72B类长上下文模型，系统默认启用PagedAttention与RoPE插值扩展，无需修改模型代码；若需微调，平台提供JupyterLab集成环境与预置LoRA/QLoRA模板脚本。
+
+Q: 方案中提到的“训推协同调度”是否意味着训练和推理可共享同一组GPU资源？是否存在性能干扰风险？
+A: 是，本方案支持训练与推理共享物理GPU资源池，但通过Lenovo AI Guard 1.5的GPU MIG（Multi-Instance GPU）隔离与cgroups v2资源控制器实现强隔离。每个训练任务或推理服务被分配独立MIG实例（如1g.5gb/2g.10gb），显存、计算单元、DMA通道完全隔离；实测表明，在同一A100 GPU上并行运行1个训练任务（占用2g.10gb）与3个推理实例（各占1g.5gb）时，推理P99延迟波动＜±2.3ms，训练吞吐下降＜0.8%。
+
+Q: 对于金融行业客户，方案如何满足监管要求中的模型可解释性与决策留痕？
+A: 方案内置Lenovo AI Guard可解释性模块，支持LIME、SHAP及Integrated Gradients三种算法对任意推理请求生成特征重要性热力图；所有推理输入、输出、中间激活值（按需开启）、归因结果、操作员账号、时间戳、IP地址均写入区块链存证节点（基于长安链v3.0），不可篡改且支持监管机构只读审计接口；同时提供符合银保监办发〔2023〕10号文的《AI模型决策日志规范报告》自动生成工具。
+
+Q: 是否支持私有化离线部署？对网络环境有何特殊要求？
+A: 是，本方案完全支持全组件离线部署。所有软件包（含OS镜像、驱动、固件、AI Suite、Guard、第三方依赖）均提供离线安装介质（ISO/USB），支持无外网环境下的证书签发（内置CA）、漏洞库离线更新（每月增量包≤200MB）、模型权重离线校验（SHA-256+数字签名）。网络层面仅需内部二层互通，无需互联网出口；管理平面与业务平面可物理隔离，推理API可通过单向光闸接入外部系统。
+
+Q: 在千卡级训练场景下，如何保障集群长期稳定运行？是否有针对GPU互连故障的快速诊断机制？
+A: 方案配备Lenovo XClarity Administrator AI增强版，集成NVIDIA Data Center GPU Manager（DCGM）与自研RDMA健康度评估模型。当检测到GPU间AllReduce异常延迟时，系统自动执行三级诊断：① 实时抓取NCCL trace与IB link状态；② 启动GPU Fabric健康扫描（检测NVSwitch/NVLink误码率、重传次数）；③ 关联分析服务器电源轨纹波、液冷流速与温度梯度。定位准确率＞99.2%，平均修复时间（MTTR）＜11分钟；所有诊断过程与修复建议生成PDF报告并推送至运维工单系统。
+
+Q: 是否支持国产大模型的全精度推理（如FP16/BF16）？与量化推理相比性能差异如何？
+A: 是，本方案原生支持FP16/BF16全精度推理。以ChatGLM3-6B为例，在SR630 V3（4×L40S）上：FP16模式下P99延迟为38ms，吞吐量为982 req/s；BF16模式下延迟为41ms，吞吐量为915 req/s；而INT4量化后延迟降至29ms，吞吐提升至1340 req/s。平台提供“精度-性能”权衡分析看板，支持一键对比不同精度下的延迟/吞吐/显存占用三维指标，并自动生成部署建议。
+
+Q: 如何实现跨地域多中心的模型协同训练？是否支持联邦学习范式？
+A: 方案通过Lenovo AI Suite的Federated Learning Orchestrator模块支持跨中心协同训练。支持标准FedAvg、FedProx及差分隐私增强型FedSGD协议；各参与方本地模型梯度经SM4加密与DP噪声注入后上传至中心协调节点，协调节点聚合后下发新全局模型；网络通信采用QUIC协议，支持弱网环境（丢包率≤15%）下训练收敛稳定性。已通过某全国性银行“总行-35家分行”实测，模型AUC提升0.023，通信开销仅为集中式训练的3.7%。

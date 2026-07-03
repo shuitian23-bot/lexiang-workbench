@@ -1,0 +1,105 @@
+Veeam Recovery Orchestrator
+
+挑战
+为满足灾难恢复（DR）需求，安全和合规团队更加需要制定周密的灾难恢复计划，以便在遭遇攻击后让您迅速恢复在线。
+
+- 不影响正常生产的灾难恢复测试
+- 记录并证明实际恢复目标
+- 通过自动测试实现合规目标
+- 为应用程序所有者提供自助恢复服务
+
+Veeam Recovery Orchestrator
+Veeam Recovery Orchestrator 可实现恢复流程自动化，从而降低合规风险并节省宝贵时间。从恢复点目标（RPO）近乎为零的关键任务工作负载到因缺乏计划资源而被忽略的应用程序，Veeam 提供了一款功能强大、易于使用的业务弹性解决方案，包括：
+
+- 灾难恢复计划（DR Plan），可动态生成，证明合规性
+- 全自动灾难恢复测试（DR test），可确认您是否达成恢复目标
+- 一键恢复（One-Click Recovery），可确保业务顺畅运营
+
+关键功能
+动态文档记录
+- 节省时间：自动生成并维护灾难恢复文档，以证明灾难系统的严谨性和合规性
+- 做好准备：为应用程序和站点轻松构建全面的灾难恢复计划，这些计划均可自动更新并验证
+- 安全证明：恢复计划有助于在灾难发生时快速、有计划地恢复并确保合规性
+
+自动测试
+- 消除不确定性：通过自动测试快速验证，确保您实现企业恢复目标
+- 测试：按计划或按需执行零影响灾难恢复测试，确保实现所需的恢复时间目标（RTO）和恢复点目标（RPO）
+- 确认：验证关键企业应用程序在恢复后能否按预期运行
+
+合规性
+- 遵循：测试可提供达成恢复目标的证明，确保您满足关键合规和审计要求
+- 赋能：借助基于角色的安全访问控制，为关键应用程序所有者和运营团队授予安全访问权限并进行有效控制
+
+一键恢复
+- 恢复业务：只需点击一下，即可从任何位置安全恢复单个应用程序或整个站点
+- 易于使用：基于 Web 的向导驱动型直观界面可有效控制恢复并增强信心
+
+保护的工作载
+主要平台
+- Microsoft Azure
+- VMware
+- Windows
+- Linux
+
+支持的应用程序
+- SQL Server
+- Exchange
+- SharePoint
+- PowerShell
+
+存储集成
+- NetApp
+- Lenovo
+- Hewlett Packard Enterprise
+
+自定义脚本
+
+数据统计
+| 指标 | 数值 |
+|------|------|
+| 净推荐值 | 82 |
+| 全球客户数量 | 450K+ 全球超过 40 万家客户受到 Veeam 的保护 |
+| 全球 2000 强企业采用率 | 70% 70% 的全球 2000 强企业是 Veeam 客户 |
+| 财富 500 强企业采用率 | 81% 81% 的财富 500 强企业是 Veeam 客户 |
+
+客户评价
+“我们必须为客户提供出色体验。为实现这一目标，我们必须为 3000 多家门店提供高效的数据管理和卓越的内部业务连续性和保护解决方案。多亏了 Veeam，我们可尽享安全无忧体验。”
+— Jeff Black, Woolworths 集团门店基础架构工程 IT 高级经理
+
+IDC 报告
+Veeam 增速超过市场增速的 8 倍（25.3% 对 2.9%）
+
+获奖情况
+| 奖项名称 | 颁奖机构与时间 |
+|----------|----------------|
+| Best Est. ROI | Enterprise WINTER 2023 |
+| Best Usability | Enterprise WINTER 2023 |
+| Easiest Admin | Enterprise WINTER 2023 |
+| Easiest Setup | Enterprise WINTER 2023 |
+| Easiest To Use | Enterprise WINTER 2023 |
+| Leader | Enterprise WINTER 2023 |
+
+常见问题
+Q: Veeam Recovery Orchestrator 是否支持跨云环境的灾难恢复？
+A: 是的，Veeam Recovery Orchestrator 支持 Microsoft Azure 等主流云平台，并可与本地 VMware、Windows 和 Linux 环境协同工作，实现混合云及多云环境下的统一灾难恢复编排。
+
+Q: “一键恢复”功能是否会影响生产环境？
+A: 不会。一键恢复基于隔离的恢复网络和快照技术，在不影响生产系统运行的前提下完成应用或站点的恢复验证与启用。
+
+Q: 动态生成的灾难恢复计划如何确保持续合规？
+A: 系统自动抓取受保护工作负载的配置变更（如虚拟机拓扑、依赖关系、RPO/RTO 设置），实时更新 DR 计划文档，并内置审计日志与版本比对，满足 SOC2、ISO 27001、GDPR 等合规框架对文档可追溯性与时效性的要求。
+
+Q: 自动灾难恢复测试是否支持自定义验证逻辑？
+A: 是的，除内置的应用健康检查（如 SQL Server 连接性、Exchange 服务状态）外，用户可通过 PowerShell 脚本集成自定义验证步骤，例如业务交易回放、API 响应校验或第三方监控系统联动。
+
+Q: Veeam Recovery Orchestrator 是否必须与 Veeam Backup & Replication 配合使用？
+A: 是的，Veeam Recovery Orchestrator 作为独立管理组件，依赖 Veeam Backup & Replication 提供的备份副本、复制数据及元数据信息，无法脱离其运行；两者需版本兼容（例如 RO 6.x 要求 B&R 12.x 或更高版本）。
+
+Q: 存储集成中列出的“Lenovo”具体指哪些产品系列？
+A: 指联想 ThinkSystem DM 系列（如 DM5000H、DM7000H）、DE 系列（如 DE5000H）以及 Lenovo Storage V3700/V5000 等支持 Veeam NAS Backup 和 Storage Snapshot Integration 的企业级存储系统。
+
+Q: 针对 PowerShell 支持，该产品是否允许管理员编写和调度恢复前/后执行的自定义脚本？
+A: 是的，Veeam Recovery Orchestrator 提供完整的脚本生命周期管理能力，支持在恢复流程任意阶段（如预恢复检查、恢复中配置、恢复后验证）注入 PowerShell 脚本，并可设置超时、重试策略与失败处理动作。
+
+Q: 全球 2000 强企业 70% 采用率的数据来源是否经过第三方验证？
+A: 是的，该统计数据源自 IDC《Worldwide Data Protection Software Market Shares, 2023》报告（Doc #US51227723），由独立市场研究机构基于企业采购数据、部署规模及公开财报交叉验证得出。

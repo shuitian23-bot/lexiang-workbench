@@ -1,0 +1,65 @@
+Lenovo ThinkSystem SD530 V3
+
+Lenovo ThinkSystem SD530 V3，高密度服务器、intel、英特尔
+
+关键词：Lenovo ThinkSystem SD530 V3，服务器、intel、英特尔
+
+| 特性类别 | 详细描述 |
+|----------|----------|
+| 产品定位 | 高密度2U双路机架式服务器，专为高性能计算（HPC）、人工智能训练与推理、大规模虚拟化及云基础设施优化设计 |
+| 处理器支持 | 支持两颗第三代或第四代Intel® Xeon® Scalable处理器（Ice Lake-SP / Sapphire Rapids-SP），最高支持350W TDP，支持Intel® Turbo Boost Technology、Intel® Hyper-Threading Technology和Intel® Advanced Vector Extensions 512（AVX-512） |
+| 内存配置 | 最多支持32个DDR5 RDIMM/LRDIMM插槽，最大内存容量达8TB（使用256GB LRDIMM），支持Intel® Optane™ Persistent Memory 300系列（需搭配特定CPU和固件版本），支持内存镜像、内存冗余和高级ECC |
+| 存储扩展 | 前置支持最多12个3.5英寸热插拔SAS/SATA/NVMe混插硬盘托架（可选全NVMe配置）；另提供2个M.2 NVMe SSD插槽（用于操作系统启动盘）；支持RAID 0/1/10/5/50/6/60（通过ThinkSystem RAID 930-16i/940-16i控制器）；可选支持Lenovo Flex System Fabric or Lenovo ThinkSystem DM Series存储直连 |
+| I/O与网络 | 标配1个OCP 3.0插槽（支持10/25/50/100GbE网卡），可选双OCP 3.0；后置提供2个USB 3.0端口、1个VGA视频接口、1个串口、1个专用管理网口（RJ-45）；支持PCIe 5.0扩展，最多8个全高全长PCIe 5.0 x16插槽（物理布局为7+1，其中1个为专用OCP插槽） |
+| 散热与电源 | 采用N+1冗余智能风扇模组，支持环境温度高达45°C（35%–90% RH，非冷凝）持续运行；标配2个2400W 80 PLUS Titanium热插拔冗余电源，支持交流、高压直流（-380V DC）及-48V DC输入（需选配对应电源模块） |
+| 管理功能 | 集成Lenovo XClarity Controller（XCC）高级版，支持带外管理、远程控制台、硬件监控、固件更新、自动化部署与合规性报告；兼容Lenovo XClarity Administrator集中管理平台；支持Redfish 1.10 API、SNMP v3、IPMI 2.0；提供可信平台模块（TPM 2.0）支持，可选固件级安全启动（UEFI Secure Boot）与系统锁定（Secure Boot Lock） |
+| 物理规格 | 2U机架式设计；尺寸：87.4 mm（高）× 482 mm（宽）× 829 mm（深）；满配重量约38.5 kg；符合NEBS Level 3、UL/CSA/IEC 62368-1、ENERGY STAR® 8.0等国际安全与能效标准 |
+
+产品特性：
+- 高密度计算架构：在2U空间内提供双路高性能计算能力，单节点最高支持112个核心（Sapphire Rapids-SP 8490H）、高达6TB/s内存带宽及超过128GB/s PCIe 5.0 I/O吞吐
+- 智能散热设计：动态风扇调速算法结合气流导向风道，确保高负载下关键组件（CPU、内存、GPU、NVMe SSD）温度均匀可控
+- 全栈安全加固：从硬件信任根（TPM 2.0 + Intel® TXT）、固件验证（UEFI Secure Boot）、运行时保护（Intel® TME/Intel® MKTME）到管理面隔离（XCC独立管理网络）
+- 灵活存储组合：支持JBOD直通模式、NVMe U.2/U.3热插拔、Zoned Namespace（ZNS）SSD及SCM（Storage Class Memory）设备，满足低延迟与高IOPS混合负载需求
+- 自动化就绪：预集成Ansible Playbook、Terraform Provider及Python SDK，支持与Red Hat OpenShift、VMware vSphere、Nutanix AHV等主流平台无缝对接
+- 可持续设计：整机平均能效比（SPECpower_ssj2008）达6,820 ssj_ops/watt；电源模块转换效率≥96%（典型负载），包装材料100%可回收，符合RoHS 3与REACH法规
+
+规格参数：
+外形规格：2U机架式服务器  
+处理器：2个插槽，支持Intel® Xeon® Scalable处理器（Ice Lake-SP 或 Sapphire Rapids-SP），最高350W TDP  
+芯片组：Intel® C621A/C641A 芯片组  
+内存：32个DDR5 DIMM插槽（RDIMM/LRDIMM），支持速率最高4800 MT/s；最大容量8TB（256GB LRDIMM × 32）；支持Intel® Optane™ PMem 300系列（仅限Ice Lake-SP平台且需BIOS 2.10+）  
+存储控制器：板载SATA控制器（支持RAID 0/1/10）；可选ThinkSystem RAID 930-16i（16端口，2GB缓存，支持RAID 0/1/5/6/10/50/60）或940-16i（4GB缓存，支持缓存断电保护）  
+本地存储：前置12×3.5英寸热插拔驱动器托架（支持SAS/SATA/NVMe混插）；2×M.2 NVMe SSD（2280规格，支持RAID 1）  
+扩展插槽：7个PCIe 5.0 x16（全高全长）+ 1个OCP 3.0插槽（物理x16，电气x16）；所有插槽支持热插拔（需配合支持热插拔的适配器与固件）  
+网络：1个OCP 3.0插槽（标配）；可选第二OCP 3.0；后置2×USB 3.0、1×VGA、1×RJ-45串口、1×专用XCC管理网口  
+电源：2×2400W 80 PLUS Titanium热插拔冗余电源；支持AC（100–240V）、-380V HVDC、-48V DC输入（HVDC/DC需选配对应型号电源）  
+风扇：6个N+1冗余智能风扇模组（每个模组含2个风扇），支持转速分级调控  
+管理：Lenovo XClarity Controller（XCC）高级版（含1GB管理专用内存、16MB闪存）；支持IPv4/IPv6双栈、HTTPS、SSH、KVM over IP、虚拟媒体挂载  
+环境适应性：工作温度10°C–45°C（海拔≤3000米），相对湿度8%–90%（非冷凝），噪声值≤63.5 dBA（ISO 7779，半消音室）  
+认证与合规：通过FCC Class A、CE、VCCI、KC、BIS、SRRC、UL/CSA/IEC 62368-1、ENERGY STAR® 8.0、TCO Certified Edge 3.0、RoHS 3、REACH、China RoHS II  
+
+常见问题
+
+Q: Lenovo ThinkSystem SD530 V3是否支持第四代Intel® Xeon® Scalable处理器（Sapphire Rapids）？
+A: 是的，SD530 V3通过BIOS 2.20及以上版本全面支持第四代Intel® Xeon® Scalable处理器（Sapphire Rapids-SP），包括全系列SKU（如6448Y、8490H等），并启用PCIe 5.0、DDR5-4800、Intel® AMX、Intel® DL Boost等新特性。
+
+Q: 该服务器能否安装NVIDIA GPU并实现全功率运行？
+A: 可以。SD530 V3提供多达7个全高全长PCIe 5.0 x16插槽（物理长度支持312mm GPU），配合2400W双电源及增强型GPU供电设计，支持NVIDIA A100 80GB SXM4（需OAM载板）、H100 PCIe、L40、RTX 6000 Ada等全系列数据中心GPU，单卡最高支持700W供电（需配置GPU供电线缆及固件支持）。
+
+Q: 是否支持Intel® Optane™ Persistent Memory？兼容哪些型号？
+A: 支持Intel® Optane™ Persistent Memory 300系列（128GB/256GB/512GB），但仅限搭载第三代Intel® Xeon® Scalable处理器（Ice Lake-SP）的配置；需BIOS 2.10或更高版本、特定内存拓扑（PMem与DRAM混合插槽规则）及操作系统支持（如RHEL 8.5+/SLES 15 SP3+）。
+
+Q: RAID控制器是否支持NVMe SSD的硬件RAID？
+A: ThinkSystem RAID 930-16i和940-16i控制器均不支持对NVMe U.2/U.3 SSD进行硬件RAID；NVMe阵列需通过操作系统级软件RAID（如Linux mdadm、Windows Storage Spaces）或GPU/NVMe直通方式实现；但主板M.2插槽支持RAID 1（通过BIOS内置控制器）。
+
+Q: XClarity Controller（XCC）是否支持无人值守固件批量升级？
+A: 是的，XCC高级版原生支持基于策略的固件生命周期管理（Firmware Lifecycle Management），可通过XClarity Administrator统一调度，对数百台SD530 V3执行带外静默升级（含UEFI BIOS、XCC固件、RAID控制器微码、网卡固件等），支持升级前健康检查、回滚机制及详细审计日志。
+
+Q: 该服务器是否具备液冷支持选项？
+A: SD530 V3本身为风冷优化设计，不提供原厂直接液冷版本；但联想提供配套的“Cold Plate Ready”机械结构适配套件（需单独订购），允许OEM合作伙伴或最终用户在严格遵循联想液冷集成指南前提下，为CPU、内存及NVMe SSD加装第三方冷板，整机仍保留在联想服务支持范围内（需签署液冷实施确认书）。
+
+Q: 在45°C高温环境下长期运行是否影响可靠性？
+A: 是经过充分验证的。SD530 V3已通过连续168小时45°C/90% RH高温高湿压力测试，并满足Telcordia GR-63-CORE NEBS Level 3可靠性要求；所有关键元器件（包括CPU、内存、电源、SSD）均选用工业级宽温规格，系统自动降频阈值设定在95°C（CPU结温），保障长期稳定运行。
+
+Q: 是否支持虚拟化嵌套（Nested Virtualization）？
+A: 完全支持。在启用Intel® VT-x、VT-d及EPT（Extended Page Tables）的前提下，SD530 V3可在VMware ESXi 7.0 U3+、Microsoft Hyper-V 2022、KVM/QEMU（RHEL 8.6+）等主流Hypervisor中启用嵌套虚拟化，适用于CI/CD测试环境、容器编排平台仿真及多租户开发沙箱场景。

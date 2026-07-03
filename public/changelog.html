@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>更新日志 - 联想乐享</title>
+<style>
+  :root {
+    --lx-brand-red: #B8252E;
+    --lx-aubergine: #4E1646;
+    --lx-bg: #F7F3FA;
+    --lx-surface: #FFFFFF;
+    --lx-surface-muted: #F1EDF4;
+    --lx-border: #DED6E3;
+    --lx-text: #2B2230;
+    --lx-text-secondary: #5C4F63;
+    --lx-text-tertiary: #8A7C91;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    background: var(--lx-bg);
+    color: var(--lx-text);
+    line-height: 1.7;
+  }
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--lx-border);
+    margin-bottom: 28px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand .name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--lx-brand-red);
+  }
+  .brand .sub {
+    font-size: 14px;
+    color: var(--lx-text-secondary);
+  }
+  .back-home {
+    font-size: 13px;
+    color: var(--lx-aubergine);
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid var(--lx-border);
+    border-radius: 6px;
+    background: var(--lx-surface);
+  }
+  .back-home:hover { background: var(--lx-surface-muted); }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .page-desc {
+    font-size: 13px;
+    color: var(--lx-text-tertiary);
+    margin-bottom: 28px;
+  }
+  .day-card {
+    background: var(--lx-surface);
+    border: 1px solid var(--lx-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 18px;
+  }
+  .day-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--lx-aubergine);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--lx-surface-muted);
+  }
+  .day-items { list-style: none; counter-reset: item; }
+  .day-items li {
+    counter-increment: item;
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--lx-text);
+    padding: 6px 0;
+  }
+  .day-items li::before {
+    content: counter(item) ".";
+    flex: none;
+    min-width: 22px;
+    font-weight: 600;
+    color: var(--lx-brand-red);
+  }
+  .empty, .error {
+    text-align: center;
+    color: var(--lx-text-tertiary);
+    font-size: 14px;
+    padding: 40px 0;
+  }
+  .foot-note {
+    margin-top: 28px;
+    font-size: 12px;
+    color: var(--lx-text-tertiary);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="brand">
+        <span class="name">联想乐享</span>
+        <span class="sub">更新日志</span>
+      </div>
+      <a class="back-home" href="/">返回首页</a>
+    </div>
+    <h1>网站更新记录</h1>
+    <div id="logList"><p class="empty">正在加载更新记录…</p></div>
+    <p class="foot-note">联想乐享团队维护 · 更新内容以实际页面为准</p>
+  </div>
+<script>
+(function () {
+  function formatDate(iso) {
+    var p = String(iso || '').split('-');
+    if (p.length !== 3) return iso;
+    return parseInt(p[0], 10) + '年' + parseInt(p[1], 10) + '月' + parseInt(p[2], 10) + '日';
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  fetch('/changelog.json', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (data) {
+      var box = document.getElementById('logList');
+      var days = (data.days || []).slice().sort(function (a, b) {
+        return a.date < b.date ? 1 : -1;
+      });
+      if (!days.length) { box.innerHTML = '<p class="empty">暂无更新记录。</p>'; return; }
+      box.innerHTML = days.map(function (d) {
+        var lis = (d.items || []).map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('');
+        return '<section class="day-card"><div class="day-title">' + esc(formatDate(d.date)) +
+               '更新内容</div><ol class="day-items">' + lis + '</ol></section>';
+      }).join('');
+    })
+    .catch(function () {
+      document.getElementById('logList').innerHTML = '<p class="error">更新记录加载失败，请稍后刷新重试。</p>';
+    });
+})();
+</script>
+</body>
+</html>

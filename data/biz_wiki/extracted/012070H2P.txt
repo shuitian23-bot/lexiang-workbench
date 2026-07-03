@@ -1,0 +1,78 @@
+联想问天NE6730G-48XS8CQ 交换机
+
+联想问天NE6730G-48XS8CQ 交换机
+
+联想问天NE6730G-48XS8CQ是联想面向数据中心和高性能园区网络推出的全新一代高密度、高带宽、低延迟的盒式以太网交换机，基于新一代Broadcom Tomahawk4芯片平台设计，支持全端口线速转发，具备强大的L2/L3转发能力、丰富的数据中心特性及完善的网络可视化能力。该设备采用前后风道散热设计，兼容标准19英寸机柜部署，适用于AI算力集群、超融合基础设施（HCI）、云原生网络及企业核心/汇聚层等关键业务场景。
+
+产品特性：
+• 全端口线速转发：48个25G SFP28 + 8个100G QSFP28端口，整机交换容量达3.2Tbps，包转发率2.38Bpps
+• 数据中心级协议支持：完整支持ECMP、VXLAN、EVPN、BGP-EVPN、PIM-SM/SSM、MLAG（跨设备链路聚合）、NetFlow v9/IPFIX、sFlow、Telemetry（gRPC Dial-out）
+• 智能运维与可视化：内置Lenovo Network Insight（LNI）智能分析引擎，支持实时流量拓扑发现、微秒级流采样、异常流量自动识别与根因定位
+• 高可靠性设计：支持双可热插拔电源（1+1冗余）、双可热插拔风扇模块（2+1冗余）、硬件BMC管理模块、ISSU（不中断升级）、NSF/NSR（不间断转发/不间断路由）
+• 安全合规能力：支持IEEE 802.1X、MAC认证、Portal认证、ACL精细化控制、CPU保护策略（CPP）、DHCP Snooping、IP Source Guard、动态ARP检测（DAI）、IPv6安全扩展（RA Guard、ND Snooping）
+• 绿色节能：符合中国节能产品认证及RoHS指令，典型功耗≤320W，支持端口休眠、动态调频、按需风扇调速等多级节能策略
+
+规格参数：
+|项目|规格|
+|---|---|
+|型号|NE6730G-48XS8CQ|
+|外形尺寸（宽×深×高）|440mm × 500mm × 43.6mm（1U高度）|
+|重量（满配）|9.2kg|
+|交换容量|3.2Tbps|
+|包转发率|2.38Bpps|
+|固定端口|48×25G SFP28（支持10G/25G自适应）<br>8×100G QSFP28（支持40G/100G自适应，可拆分为4×25G）|
+|扩展槽位|无（全固定端口设计）|
+|MAC地址表|256K|
+|IPv4路由表|128K（含主机路由+网段路由）|
+|IPv6路由表|64K|
+|ACL条目|16K（混合ACL，支持IPv4/IPv6/MAC/端口组合规则）|
+|VLAN数量|4094|
+|堆叠支持|不支持物理堆叠，支持通过MLAG实现逻辑堆叠等效|
+|管理接口|1×RJ45 Console口（RS232），1×USB 2.0（用于配置导入/导出及固件升级），1×10/100/1000BASE-T带外管理口（MGMT）|
+|电源|双模块化交流电源（100–240V AC，50/60Hz），支持1+1冗余；可选直流电源（–48V DC）模块|
+|风扇|3×可热插拔风扇模块（2+1冗余），前后风道（进风：前面板，出风：后面板）|
+|工作温度|0℃～45℃（海拔≤2000m）|
+|存储温度|–40℃～70℃|
+|相对湿度|5%～95%（非凝露）|
+|安规认证|CCC、CE、FCC、UL 62368-1、CB、RoHS|
+|绿色认证|中国节能产品认证、Energy Star 8.0|
+
+软件特性：
+• 操作系统：Lenovo Network OS（LNOS）v3.2及以上版本，基于Linux内核深度定制，支持容器化应用部署（内置Docker运行时）
+• L2特性：IEEE 802.1D STP、802.1w RSTP、802.1s MSTP、802.1Q VLAN、802.1ad Q-in-Q、802.1p CoS、802.3ad LACP、802.1AB LLDP、802.1X、Private VLAN、Super VLAN、Voice VLAN、IGMP Snooping v1/v2/v3、MLD Snooping
+• L3特性：静态路由、RIP v1/v2、OSPF v2/v3、IS-IS、BGP v4、PIM-SM/SSM/DM、VRRPv2/v3、Policy-Based Routing（PBR）、URPF、组播VPN（MVPN）
+• DC特性：VXLAN（单/多控制器模式）、EVPN（Type2/3/5路由）、BGP EVPN Control-Plane、VXLAN Gateway（集中式/分布式）、ECMP（32路）、Congestion Notification（ECN）、DCBX、PFC、ETS、RDMA over Converged Ethernet（RoCE v2）
+• 管理与运维：CLI、Web UI、SNMP v1/v2c/v3、RESTful API（OpenAPI 3.0规范）、NETCONF/YANG、Telemetry（gRPC Dial-out & Dial-in）、Syslog、RMON、FTP/TFTP/SFTP/SCP文件传输、AAA（RADIUS/TACACS+）、LDAP/AD集成、零接触部署（ZTP）、自动化配置模板（Ansible Tower集成支持）
+
+典型应用场景：
+• AI训练集群网络：为GPU服务器提供25G/100G无损互联，支持PFC、ECN、ETS保障RoCEv2流量零丢包
+• 超融合基础设施（HCI）：作为HCI节点间高速互联交换机，支撑vSAN、VSphere DRS、Ceph等分布式存储与计算流量
+• 云数据中心接入层：配合SDN控制器（如Lenovo DCN Controller）实现VXLAN/EVPN自动化部署与策略下发
+• 企业核心/汇聚层：承载万兆到桌面、视频会议、无线AC集中管控、物联网终端统一接入等高带宽、多业务融合流量
+• 网络可视化中枢：部署于关键链路，利用Telemetry+LNI实现全网流量画像、东西向微服务调用追踪、DDoS攻击溯源分析
+
+常见问题
+
+Q: NE6730G-48XS8CQ是否支持将100G QSFP28端口拆分为4个25G SFP28端口？
+A: 是的，所有8个100G QSFP28端口均支持通过分支线缆（Breakout Cable）或适配器方式拆分为4×25G SFP28端口，总计可提供最多80个25G端口（48个固定+32个拆分），但拆分后端口需在操作系统中手动启用并配置对应速率与模式。
+
+Q: 该交换机是否支持与第三方SDN控制器对接？兼容哪些主流控制器？
+A: 支持。LNOS提供标准OpenFlow 1.3/1.4/1.5协议栈及NETCONF/YANG北向接口，已通过测试验证兼容OpenDaylight、ONOS、Cisco ACI APIC（仅L2/L3策略同步）、VMware NSX-T（VXLAN Overlay对接）以及联想自研Lenovo DCN Controller。
+
+Q: 在RoCEv2网络中，如何确保无损转发？该设备提供了哪些关键机制？
+A: 设备原生支持PFC（基于802.1Qbb）、ECN（Explicit Congestion Notification）、ETS（Enhanced Transmission Selection）及DCBX（Data Center Bridging Exchange）协议，并支持PFC死锁预防算法、动态ECN阈值调整、基于队列的流量整形，结合LNOS内置的RoCE健康度实时监测看板，可端到端保障RDMA流量零丢包与低延迟。
+
+Q: 是否支持在线升级（ISSU）？升级过程中业务是否会中断？
+A: 支持ISSU（In-Service Software Upgrade）。在满足双电源、双风扇冗余且主控状态正常前提下，LNOS v3.2+版本可在不中断数据平面转发、不重置BGP/OSPF邻居关系、不丢弃已建立TCP连接的情况下完成软件版本平滑升级，控制平面切换时间小于500ms。
+
+Q: 管理口（MGMT）是否支持与业务口共享同一张路由表？能否配置管理口参与动态路由？
+A: 不支持。MGMT口为独立带外管理通道，运行于独立管理VRF（Management VRF）中，与业务路由表完全隔离；其仅支持静态路由、默认路由及直连路由，不参与OSPF/BGP等动态路由协议，亦不可配置为三层业务接口使用。
+
+Q: 该设备是否支持IPv6 Ready Logo认证？已通过哪些IPv6相关互通性测试？
+A: 是。已通过IPv6 Ready Phase-2认证，支持完整的IPv6数据平面（ND、RA、DHCPv6、IPv6 ACL、IPv6 PIM、IPv6 VXLAN）、控制平面（OSPFv3、BGP4+、IS-IS IPv6）及管理平面（SSHv6、HTTPSv6、SNMPv3 over IPv6）；并通过华为、H3C、Juniper等主流厂商IPv6设备的跨厂商互通性测试（含EVPN-VXLAN IPv6 Overlay场景）。
+
+Q: Lenovo Network Insight（LNI）是否需要额外授权或硬件模块？其流采样精度能达到什么级别？
+A: LNI为LNOS内置功能，无需单独License或外置探针；支持sFlow（1:1000～1:100000可调）、NetFlow v9/IPFIX及gRPC Telemetry三种采集方式；其中Telemetry支持纳秒级时间戳、微秒级流粒度（最小采样间隔100μs），可精准捕获短突发流量与微秒级抖动事件。
+
+Q: 当设备部署于高海拔地区（如3000米）时，是否仍可按标称规格长期稳定运行？
+A: 根据IEC 60950-22标准，海拔每升高100米，设备额定工作温度需降额0.5℃；本设备标称工作温度0℃～45℃适用于≤2000米海拔；在2000～3000米海拔区间，建议将最高工作温度限制为40℃，并确保机房空调制冷能力充足、通风无遮挡，即可满足长期稳定运行要求。

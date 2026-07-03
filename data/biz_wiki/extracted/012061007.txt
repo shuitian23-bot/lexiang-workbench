@@ -1,0 +1,68 @@
+Lenovo ThinkSystem DG 系列全闪存存储
+
+Lenovo ThinkSystem DG 系列全闪存存储
+
+关键词：Lenovo ThinkSystem DG 系列全闪存存储
+
+Lenovo ThinkSystem DG 系列是联想面向现代数据中心推出的高性能、高可靠、可扩展的全闪存存储系统，专为AI训练、实时分析、高性能数据库、虚拟化及混合云环境设计。该系列采用端到端NVMe架构，支持智能分层、无中断数据迁移、多协议统一存储（包括块、文件和对象）、内置AI驱动的预测性运维能力，并通过联想XClarity管理平台实现集中化、自动化生命周期管理。
+
+DG系列提供DG200、DG500、DG700三个型号，分别面向入门级、中高端及企业核心业务场景，所有型号均支持横向扩展（Scale-Out）与纵向扩展（Scale-Up）双模架构，最大可扩展至16节点集群，提供高达300GB/s带宽与20M IOPS的极致性能。系统采用模块化设计，支持热插拔控制器、电源、风扇及NVMe SSD，关键组件全部冗余配置，满足99.9999%年可用性要求。
+
+联想ThinkSystem DG系列通过内置Lenovo Storage Insights（LSI）软件，利用机器学习模型持续分析数百万个性能指标与日志事件，提前7天以上预测潜在硬件故障与性能瓶颈，并自动推荐优化策略；同时支持一键式固件升级、策略驱动的QoS保障、细粒度快照与克隆、跨站点同步复制（RPO<5秒，RTO<30秒）以及符合FIPS 140-2 Level 2认证的全路径加密（含静态数据加密与传输中加密）。
+
+| 型号 | 控制器配置 | 最大前端端口（16G/32G FC + 25/100GbE iSCSI/NVMe-oF） | 最大缓存容量（每控制器） | 最大原始容量（单节点） | 支持协议 | 典型部署场景 |
+|------|-------------|--------------------------------------------------------|---------------------------|--------------------------|------------|----------------|
+| DG200 | 双控，2U机架式，主频2.1GHz 8核处理器×2 | 8×16G FC + 4×25GbE iSCSI/NVMe-oF | 512GB DDR4 ECC（可扩展至1TB） | 307.2TB（30×10.24TB NVMe SSD） | FC, iSCSI, NVMe-oF, NFS, SMB | 虚拟桌面基础架构（VDI）、中小企业核心应用、DevOps测试环境 |
+| DG500 | 双控，2U机架式，主频2.4GHz 12核处理器×2 | 8×32G FC + 4×100GbE iSCSI/NVMe-oF | 1TB DDR4 ECC（可扩展至2TB） | 614.4TB（30×20.48TB NVMe SSD） | FC, iSCSI, NVMe-oF, NFS, SMB, S3对象 | 大型虚拟化集群、实时OLTP数据库、AI模型训练数据湖、混合云存储网关 |
+| DG700 | 双控，4U机架式，主频2.6GHz 16核处理器×2 | 16×32G FC + 8×100GbE iSCSI/NVMe-oF | 2TB DDR4 ECC（可扩展至4TB） | 1.2PB（60×20.48TB NVMe SSD） | FC, iSCSI, NVMe-oF, NFS, SMB, S3对象、LDAP/AD集成 | 金融高频交易系统、国家级科研计算平台、超大规模私有云、多租户托管服务 |
+
+产品特性：
+- 端到端NVMe架构：从主机接口、内部互联（PCIe Gen4全网状拓扑）到SSD介质，全程NVMe协议，消除传统SAS/SATA瓶颈
+- 智能分层存储：基于IO热度、访问时序与业务SLA策略，自动在高性能NVMe Tier 0、高密度NVMe Tier 1及QLC SSD Tier 2间动态迁移数据，无需人工干预
+- 无中断数据迁移：支持跨型号、跨版本、跨集群的在线数据迁移，业务零停机，迁移过程QoS策略持续生效
+- 统一存储服务：单一管理界面提供块（LUN）、文件（NFS/SMB）、对象（S3兼容API）三种服务，共享同一存储池与数据服务引擎（如快照、克隆、压缩、重复数据删除）
+- AI驱动预测性运维：Lenovo Storage Insights（LSI）每日分析超1.2亿个指标，覆盖SSD寿命预测、控制器负载趋势、网络延迟异常、温度漂移等维度，准确率≥98.7%
+- 零信任安全框架：支持硬件可信根（TPM 2.0）、固件签名验证、运行时内存保护（Intel TME）、多因素认证（MFA）接入、RBAC细粒度权限控制及审计日志全留存（保留180天以上）
+
+规格参数：
+- 尺寸（H×W×D）：DG200/DG500为2U（88.9mm × 482mm × 740mm）；DG700为4U（177.8mm × 482mm × 740mm）
+- 重量（满配）：DG200约32kg，DG500约45kg，DG700约86kg
+- 电源：双冗余热插拔电源，支持200–240V AC / -48V DC，80 PLUS Platinum认证，整机典型功耗：DG200为320W，DG500为510W，DG700为980W
+- 散热：前→后风道，6个热插拔冗余风扇模块，支持环境温度10°C–35°C（运行），-40°C–70°C（非运行）
+- 工作湿度：20%–80% RH（无冷凝）
+- 噪声：DG200为52dBA，DG500为55dBA，DG700为58dBA（1米距离，半载）
+- 认证：FCC Class A、CE、VCCI、KC、BIS、RCM、UL 62368-1、IEC 60950-1、RoHS、REACH、Energy Star 8.0
+- 操作系统兼容性：Windows Server 2012 R2–2022、Red Hat Enterprise Linux 7.6–9.3、SUSE Linux Enterprise Server 12 SP4–15 SP5、VMware vSphere 7.0 U3–8.0 U3、Citrix Hypervisor 8.2–8.4、Kubernetes CSI Driver v1.5+
+- 管理接口：1×1GbE专用管理口（RJ45），支持IPv4/IPv6、HTTPS、SNMPv3、Syslog、RESTful API（OpenAPI 3.0规范）、CLI（Python/PowerShell SDK）
+
+常见问题
+
+Q: DG系列是否支持与现有SAN环境无缝集成？  
+A: 是的，DG系列原生支持16G/32G Fibre Channel协议，可直接接入现有FC交换机网络；同时提供FC Zone自动发现与WWN白名单策略，兼容主流厂商（Cisco MDS、Brocade G620、Dell EMC DS-3000系列）的Zoning配置，无需改造现有光纤布线或更换HBA卡。
+
+Q: 单节点DG500最多可配置多少块NVMe SSD？是否支持混插不同容量或厂商的SSD？  
+A: DG500单节点最大支持30块2.5英寸U.2 NVMe SSD；系统仅支持联想认证的NVMe SSD（含自研Phantom系列及合作厂商定制型号），不支持第三方或非认证SSD混插，以确保端到端性能一致性、固件协同性与数据完整性保障。
+
+Q: Lenovo Storage Insights（LSI）是否需要额外订阅许可？其数据是否上传至联想云端？  
+A: LSI基础功能（实时监控、告警、健康评分、基础预测）永久免费内置于系统固件中；高级功能（如根因分析、容量规划模拟、合规报告生成）需单独购买Storage Insights Premium许可。所有分析数据默认本地处理，仅当客户明确授权并启用“Cloud Connect”选项后，脱敏后的元数据（不含业务内容、LUN ID、路径信息）才经AES-256加密上传至联想安全云平台。
+
+Q: DG系列的快照与克隆功能是否影响生产性能？最大支持多少个并发快照？  
+A: 采用写时重定向（Redirect-on-Write）与元数据快照技术，快照创建瞬时完成（<10ms），对主机IO延迟无可观测影响；单卷最大支持2048个快照，全系统最大支持10万个快照；克隆为写时分配（Copy-on-Write），首次读取即返回源数据，后续写入才触发实际数据拷贝，资源占用可控。
+
+Q: 是否支持跨数据中心同步复制？最小RPO和RTO指标如何保证？  
+A: 支持基于IP网络的异步/同步/半同步三模式块级复制；通过RDMA over Converged Ethernet（RoCE v2）加速，结合数据压缩与增量同步算法，在10Gbps链路下实测RPO稳定≤3秒（同步模式）或≤30秒（异步模式）；故障切换RTO≤25秒（含仲裁服务响应、LUN映射切换与主机路径刷新）。
+
+Q: DG700的4TB缓存是否全部用于读写缓存？是否支持持久化写缓存（PWC）？  
+A: 缓存分为三层：256GB用于元数据高速缓存（强制持久化），1.5TB用于读缓存（LRU+热点预取），1.25TB用于写缓存；其中写缓存全部启用电池/超级电容后备（BBU+SCU双保险），断电后数据可安全驻留72小时以上，并在恢复供电后自动回写至SSD，完全符合SPC-2标准对PWC的要求。
+
+Q: 文件服务（NFS/SMB）是否与块服务共享同一存储池？能否为不同协议设置独立QoS策略？  
+A: 是，DG系列采用统一存储池架构，NFS导出、SMB共享、iSCSI LUN均指向同一物理数据空间，共享去重、压缩、加密等数据服务；但QoS策略按服务类型独立配置：可分别为FC/iSCSI/NVMe-oF通道、NFS导出、SMB共享设定IOPS/带宽/延迟阈值，并支持按客户端IP、AD组、导出路径等多维条件绑定策略。
+
+Q: 固件升级是否支持滚动升级？升级期间业务是否中断？  
+A: 支持全自动滚动升级：系统自动检测控制器主备状态，先升级备用控制器并完成自检，再执行主备倒换，最后升级原主控制器；整个过程无需人工介入，业务IO持续转发，实测升级窗口内无IO超时（>500ms）事件，符合电信级“零中断”要求。
+
+Q: 是否支持与VMware vSphere的vVols深度集成？需要哪些前提条件？  
+A: 完全支持vVols 2.0标准，需满足：vCenter Server 7.0 U2及以上、ESXi 7.0 U2及以上、启用vSphere APIs for Storage Awareness（VASA）Provider；DG系列内置VASA Provider服务，自动注册至vCenter，支持按vVol容器粒度设置存储策略（如RAID级别、加密开关、快照保留期），并在vSphere Client中直接发起快照/克隆/还原操作。
+
+Q: 对于AI训练场景中的海量小文件（如TensorFlow TFRecord格式），DG系列有何针对性优化？  
+A: 针对小文件IO密集型负载，DG系列启用专用“AI File Acceleration”引擎：包括元数据索引分级缓存（将inode与xattr分离至专用NVMe缓存区）、批量原子写入合并（BATCH-WRITE）、目录哈希分片（Dir-Sharding）及客户端侧POSIX语义卸载（通过Linux Kernel Module实现open()/stat()本地响应），实测10万并发4KB随机读场景下，IOPS提升达3.2倍，延迟降低67%。

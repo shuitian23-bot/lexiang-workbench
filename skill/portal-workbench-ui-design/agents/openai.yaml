@@ -1,0 +1,4 @@
+interface:
+  display_name: "门户工作台 UI 设计"
+  short_description: "门户工作台单一设计 skill，包含原设计规范和样式准确度规则。"
+  default_prompt: "使用门户工作台 UI 设计 skill，按当前项目源码和规范生成或修正 UI，重点保持样式一致并避免跑偏。"

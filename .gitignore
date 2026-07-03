@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# secrets / env
+.env
+.env.*
+
+# runtime data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+lexiang.hnsw*
+uploads/
+public/uploads/
+public/exports/
+backups/
+logs/
+*.log
+server.out
+
+# backups & snapshots
+*.bak-*
+*.bak.*
+.rollback-snapshots/
+public.bak-*/
+
+# agent workspaces
+.codex/
+.claude/
+.codex-backups/
+
+# macOS
+.DS_Store

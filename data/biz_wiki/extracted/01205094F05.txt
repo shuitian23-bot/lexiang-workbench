@@ -1,0 +1,76 @@
+联想问天 WR5228 G3
+
+联想问天 WR5228 G3 是一款面向人工智能训练与推理、高性能计算（HPC）、科学仿真、大数据分析等关键业务场景的双路机架式服务器。该产品基于第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids）平台，支持最高 60 核/120 线程，TDP 高达 350W，提供卓越的单核与多核性能；同时全面支持 PCIe 5.0 和 CXL 1.1 技术，为 AI 加速卡、高速存储和内存扩展提供超宽数据通路。整机采用模块化设计，具备高密度 GPU 支持能力、智能散热架构及企业级可靠性保障，满足大规模模型训练、实时推理及混合负载下的严苛运行要求。
+
+联想问天 WR5228 G3 支持最多 8 块双宽 PCIe 5.0 全高全长 GPU（如 NVIDIA H100/H800、AMD MI300X），GPU 间通过 NVLink 或 Infinity Fabric 实现高速互联；支持 GPU 直通与虚拟化，兼容主流 AI 框架（PyTorch、TensorFlow、DeepSpeed 等）及容器化部署（Kubernetes + NVIDIA GPU Operator）。系统集成联想原创的 LiCO（Lenovo Intelligent Computing Orchestration）集群管理平台，提供从资源调度、作业监控、能效优化到故障自愈的一站式 AI 基础设施管理能力。
+
+该服务器通过多项国际权威认证，包括 NVIDIA DGX™-Ready 认证、NVIDIA Certified Systems™ 认证、Red Hat® Enterprise Linux® 9 和 SUSE Linux Enterprise Server 15 SP4/SP5 认证，并全面兼容国产操作系统（如统信 UOS、麒麟 Kylin V10 SP3）。硬件层面支持 TPM 2.0 安全芯片、Secure Boot、机箱入侵检测、带外管理固件签名验证等多重安全机制，满足等保 2.0 三级及金融、政务等行业合规要求。
+
+联想问天 WR5228 G3 采用 2U 机架式形态，支持前出线与后出线双模式布线，优化数据中心空间利用率与线缆管理效率。整机支持热插拔冗余电源（2+2 或 3+1 配置）、热插拔冗余风扇模组（N+1）、全路径温度传感器网络及动态调速策略，PUE 优化能力显著。支持联想 XClarity™ 管理平台，实现跨设备统一纳管、批量固件升级、远程 KVM、带外 BIOS 配置及预测性故障分析（PFA），大幅提升运维自动化水平与可用性（MTBF ≥ 300,000 小时）。
+
+| 特性类别 | 详细说明 |
+|----------|----------|
+| 处理器 | 支持 2 颗第四代英特尔® 至强® 可扩展处理器（Sapphire Rapids），最高 60 核/120 线程，TDP 最高 350W；支持 Intel® Turbo Boost Max Technology 3.0、Intel® Deep Learning Boost（DL Boost）、Intel® Advanced Matrix Extensions（AMX） |
+| 内存 | 支持 32 个 DDR5 RDIMM/LRDIMM 插槽，最高支持 12TB 内存容量（LRDIMM）；支持 DDR5-4800/5600 MT/s，支持内存镜像、内存热备、ECC、Lockstep 等 RAS 特性；支持 CXL 1.1 内存扩展（需搭配支持 CXL 的内存扩展卡） |
+| 存储 | 前置：最高支持 12 块 2.5 英寸热插拔 SAS/SATA/NVMe SSD（其中最多 8 块 NVMe，支持 RAID 0/1/10/5/50/6/60）；可选前置 2 块 M.2 SATA/NVMe SSD（用于系统盘或缓存）；后置：最高支持 2 块 2.5 英寸热插拔 SATA/NVMe SSD（用于日志或监控盘）；支持 Broadcom / Marvell / Lenovo 自研 RAID 控制器（如 ThinkSystem RAID 940-16i，支持缓存保护电池/超级电容） |
+| 扩展插槽 | 最高支持 12 个 PCIe 5.0 x16 插槽（物理 x16，电气 x16）；其中 8 个专用于 GPU（全高全长双宽），2 个用于存储控制器，2 个用于网络/其他加速卡；所有 PCIe 插槽均支持热插拔；支持 CXL 1.1 设备（如 CXL 内存扩展卡、CXL 智能网卡） |
+| 网络 | 板载 2×10GbE SFP+/RJ45（Intel X710/Broadcom BCM57416）；可选扩展：双端口 25GbE/100GbE OCP 3.0 网卡（Intel E810/Mellanox ConnectX-6/ConnectX-7）、双端口 InfiniBand HDR（200Gb/s）卡；支持 SR-IOV、RDMA、RoCE v2、NVMe over Fabrics（NVMe-oF） |
+| GPU 支持 | 支持最多 8 块双宽全高全长 PCIe 5.0 GPU，包括 NVIDIA H100 SXM5（需配合专用背板与液冷模块）、H100 PCIe、H800、L40、L40S、A100 PCIe、A800；AMD MI300X、MI250X；Intel Gaudi2；支持 GPU 直通、vGPU、MIG（仅限 A100/H100）；GPU 间支持 NVLink（NVIDIA）或 Infinity Fabric（AMD）互联 |
+| 电源与散热 | 支持 2+2 或 3+1 冗余白金/钛金级电源（单颗功率 2200W/2400W/3000W），支持 200–240V AC 或 -48V DC 输入；全冗余热插拔风扇模组（N+1），8 个智能调速风扇，支持 GPU 区域独立风道与动态气流导向；支持风冷与液冷混配（GPU 液冷套件可选，兼容 CDU 与分水器） |
+| 管理与安全 | 集成 Lenovo XClarity Controller（XCC）高级版，支持 IPMI 2.0、Redfish、SNMP；支持远程控制台（HTML5/KVM over IP）、固件批量升级、资产跟踪、健康监控；内置 TPM 2.0 安全芯片，支持 Secure Boot、UEFI 安全启动、固件签名验证、机箱入侵开关、BMC 独立网络隔离；通过 FIPS 140-2 Level 2 认证 |
+| 操作系统支持 | Red Hat Enterprise Linux 9.x、SUSE Linux Enterprise Server 15 SP4/SP5、Ubuntu 22.04 LTS/24.04 LTS、CentOS Stream 9、Oracle Linux 9；Windows Server 2022；VMware ESXi 7.0 U3/8.0 U2；国产操作系统：统信 UOS Server 20/1050、麒麟 Kylin V10 SP3/SP4、OpenEuler 22.03 LTS；AI 软件栈：NVIDIA AI Enterprise 23.11+、ROCm 5.7+、Intel oneAPI 2023.2+ |
+
+产品特性  
+- 双路第四代英特尔® 至强® 可扩展处理器，支持 AMX/DL Boost 加速指令集  
+- 全面支持 PCIe 5.0 与 CXL 1.1，提供业界领先的 I/O 带宽与内存扩展能力  
+- 最高 8 卡 GPU 密度设计，支持风冷/液冷灵活部署，GPU 间高速互联（NVLink/Infinity Fabric）  
+- 32 插槽 DDR5 内存架构，最大 12TB 容量，支持 CXL 内存扩展与高级 RAS 特性  
+- 前置 12 盘位全闪存储配置，NVMe 与 SAS/SATA 混合部署，RAID 级别丰富  
+- Lenovo XClarity 管理平台深度集成，支持预测性故障分析（PFA）、一键固件升级、跨集群资源调度  
+- LiCO AI 集群管理平台预装，提供作业队列、GPU 资源隔离、计费审计、WebIDE 与模型服务发布能力  
+- 通过 NVIDIA DGX™-Ready 与 NVIDIA Certified Systems™ 双认证，开箱即用 AI 生产环境  
+- 全面兼容国产软硬件生态，支持统信、麒麟、OpenEuler 及主流 AI 框架与工具链  
+- 企业级安全加固：TPM 2.0、Secure Boot、BMC 固件签名、机箱入侵检测、带外网络隔离  
+
+规格参数  
+外形尺寸：2U 机架式，宽 482mm × 深 820mm × 高 87.6mm（不含滑轨）；含滑轨深度 ≤ 860mm  
+重量：满配约 45–58 kg（依配置而定）  
+工作温度：5°C 至 35°C（ASHRAE A3/A4 级别）  
+非工作温度：-40°C 至 60°C  
+相对湿度：运行时 8%–90%（无凝露），非运行时 5%–95%（无凝露）  
+海拔高度：运行时 ≤ 3000 米，非运行时 ≤ 12000 米  
+噪声：半载风冷典型值 ≤ 62 dBA（ISO 7779）  
+认证标准：CCC、CE、FCC、UL/cUL、CB、RoHS、REACH、Energy Star、80 PLUS Titanium  
+保修服务：标准 3 年上门服务（含部件与人工），可选延保至 5 年；关键部件（CPU、内存、主板、GPU）享 3 年有限质保  
+
+常见问题  
+
+Q: 联想问天 WR5228 G3 是否支持 NVIDIA H100 SXM5？  
+A: 不支持。WR5228 G3 为 PCIe 接口服务器，仅支持 NVIDIA H100 PCIe 版本；H100 SXM5 为模块化封装，需搭配专用 SXM5 主板与液冷底座（如联想问天 WR7228 G3），不可在 WR5228 G3 上安装或运行。
+
+Q: 该服务器是否支持 CXL 内存扩展？需要哪些前提条件？  
+A: 支持。需同时满足以下条件：搭载支持 CXL 的第四代英特尔® 至强® 处理器（部分型号需 BIOS 开启 CXL 功能）、安装 CXL 1.1 兼容的内存扩展卡（如 Lenovo ThinkSystem CXL Memory Expander）、运行支持 CXL 的操作系统（如 RHEL 9.2+ 或 SLES 15 SP5+），并在 BIOS 中启用 CXL Root Port 和相关内存映射策略。
+
+Q: 最大可配置 GPU 数量为 8 块，此时是否仍能安装全部 12 块前置 NVMe SSD？  
+A: 否。当安装满配 8 块双宽 GPU 时，由于 GPU 占用前部扩展区域，前置存储托盘将缩减为 8 盘位（全部为 NVMe），且默认不支持 SATA/SAS 混插；若需 12 盘位全类型存储，则 GPU 最多配置为 4 块（保留 8 盘位 NVMe + 4 盘位 SAS/SATA）。
+
+Q: 是否支持 VMware vSphere 8.0 及其 GPU 虚拟化功能（如 vGPU、MIG）？  
+A: 支持 VMware vSphere 8.0 Update 2 及以上版本；vGPU 功能需搭配 NVIDIA Virtual PC GPU（vPCG）或 Data Center GPU Manager（DCGM）软件，并使用经 VMware 兼容性指南认证的 GPU 型号（如 A10、A100、L40）；MIG 分区功能仅适用于 A100 和 H100 PCIe GPU，且需在 vSphere 中启用 NVIDIA GPU Manager 插件并配置对应许可。
+
+Q: LiCO 平台是否支持多租户隔离与计费功能？  
+A: 是。LiCO 提供完整的多租户管理能力，包括独立命名空间、资源配额（GPU/CPU/内存/存储）、项目级权限控制、作业提交审批流、GPU 时间/显存用量计量、按小时/按任务计费模板，以及对接企业 LDAP/AD 和第三方计费系统（如 Oracle BRM、Huawei iCare）的 API 接口。
+
+Q: 该服务器能否在 -5°C 的低温机房中启动并长期运行？  
+A: 不建议。根据规格参数，WR5228 G3 的标称工作温度下限为 5°C（ASHRAE A3 级别）；低于此温度可能导致冷凝、润滑失效及 SSD 性能异常；若确需低温部署，须加装机柜级温控单元（如联想 Smart Cooling Unit）或选用经特殊低温验证的定制配置（需单独申请工程评估）。
+
+Q: 是否提供国产化替代方案，例如使用海光或鲲鹏处理器？  
+A: 当前 WR5228 G3 系列仅基于英特尔平台设计，暂不提供海光或鲲鹏处理器版本；联想另有独立产品线（如问天 HR350A5、HR450A5）分别适配海光 C86 和鲲鹏 920 处理器，如需国产 CPU 方案，请参考对应型号技术文档或联系联想行业解决方案团队。
+
+Q: 在安装 8 块 H100 PCIe GPU 时，整机满载功耗与推荐配电容量是多少？  
+A: 满配 8×H100 PCIe（每卡 TDP 700W）+ 2×60C 处理器（每颗 350W）+ 其他组件，典型满载功耗约为 7.2–7.8 kW；建议采用 3+1 冗余 3000W 钛金电源配置，并确保机柜上游配电单元（PDU）单路输出容量 ≥ 40A@208V（即 ≥ 8.3 kVA），同时预留 20% 动态余量以应对瞬时峰值。
+
+Q: 是否支持 U.2 NVMe SSD 热插拔？是否需要额外授权或 License？  
+A: 支持 U.2 NVMe SSD 热插拔，但需满足：使用支持热插拔的 U.2 背板（出厂默认配置）、SSD 固件支持 NVMe 1.3+ 热插拔命令、操作系统启用 nvme_core.default_ps_max_latency_us 参数；无需额外 License，该功能为硬件原生支持，已在 RHEL 9/SLES 15/Ubuntu 22.04 等主流系统中默认启用。
+
+Q: XClarity Controller（XCC）是否支持通过 Redfish API 批量修改 100 台同型号服务器的 BIOS 设置？  
+A: 支持。XCC 高级版内置 Redfish v1.12+ 接口，可通过 POST /redfish/v1/Systems/{SystemId}/Bios/Settings 提交 JSON 配置体；联想提供 Lenovo XClarity Administrator（LXA）集中管理平台，支持跨设备组（Group）批量下发 BIOS 策略（如开启 AMX、调整内存频率、配置 CXL 模式），操作记录完整审计，符合 ISO 27001 配置管理要求。

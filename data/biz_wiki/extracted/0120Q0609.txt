@@ -1,0 +1,62 @@
+ThinkAgile MX 系列
+
+ThinkAgile MX 系列
+
+ThinkAgile MX 系列是联想专为现代混合云与边缘计算场景设计的超融合基础设施（HCI）解决方案，深度融合了联想硬件、VMware vSphere 和 vSAN 软件栈，并通过预集成、预验证和出厂优化，实现开箱即用的部署体验。该系列面向中大型企业核心数据中心、分支机构及边缘站点，提供高可用性、弹性扩展能力与统一管理视图，支持从传统虚拟化向云原生工作负载平滑演进。
+
+ThinkAgile MX 系列采用模块化架构设计，支持按需配置计算、存储与网络资源，单节点起步，可横向扩展至数十节点集群；所有型号均通过 VMware Ready 认证，并获得联想 ThinkAgile Manager 统一管理平台支持，实现跨物理位置的集中监控、自动化运维与策略驱动的生命周期管理。系统内置智能预测性维护功能，依托联想 XClarity 技术，可提前识别潜在硬件故障并主动推送修复建议。
+
+ThinkAgile MX 系列支持多种部署形态：MX1000 适用于远程办公室/边缘轻量级场景（2U/2节点紧凑型）；MX3000 面向中等规模数据中心（2U/4节点高密度）；MX5000 定位核心生产环境（4U/8节点高性能），支持全闪存配置与GPU加速选项；MX7000 为旗舰级机型（4U/16节点超大规模），专为AI训练、实时分析与关键业务数据库等重载场景优化。
+
+下表列出 ThinkAgile MX 系列主要型号规格对比：
+
+| 型号 | 外形规格 | 最大节点数/机箱 | CPU 插槽/节点 | 内存插槽数/节点 | 最大内存容量/节点 | 存储控制器类型 | 支持硬盘类型 | 前置硬盘托架数量/节点 | 网络接口（标配） | GPU 支持 |
+|------|----------|------------------|----------------|-------------------|----------------------|----------------|----------------|--------------------------|-------------------|-----------|
+| MX1000 | 2U | 2 | 2× Socket P+ | 16 | 2TB | Broadcom Tri-Mode HBA 或 PERC H755 | SAS/SATA/NVMe SSD | 8× 2.5" 或 4× 3.5" | 2× 1GbE + 2× 10GbE SFP+（含双端口光纤） | 不支持 |
+| MX3000 | 2U | 4 | 2× Socket P+ | 16 | 2TB | Broadcom Tri-Mode HBA 或 PERC H755 | SAS/SATA/NVMe SSD | 12× 2.5" 或 8× 3.5" | 2× 1GbE + 2× 25GbE SFP28（含双端口光纤） | 单宽 GPU（PCIe x16）×1 |
+| MX5000 | 4U | 8 | 2× Socket P+ | 32 | 4TB | PERC H755 或 Dell EMC PowerEdge RAID 控制器（可选） | SAS/SATA/NVMe SSD（全闪存优化） | 24× 2.5" NVMe/U.2 或 12× 3.5" + 4× 2.5" | 2× 1GbE + 2× 100GbE QSFP28（含双端口光纤） | 双宽 GPU（PCIe x16）×2，支持 NVIDIA A100/A40/L40 |
+| MX7000 | 4U | 16 | 2× Socket P+ | 32 | 4TB | PERC H755 或 Broadcom MegaRAID 9460-16i（可选） | SAS/SATA/NVMe SSD（全闪存/混合配置） | 48× 2.5" NVMe/U.2 或 24× 3.5" + 8× 2.5" | 2× 1GbE + 2× 200GbE QSFP56（含双端口光纤） | 双宽 GPU（PCIe x16）×4，支持 NVIDIA H100/A100/H800 |
+
+产品特性：
+- 全栈预集成验证：出厂前完成硬件、固件、VMware vSphere 7.x/8.x、vSAN 7.x/8.x、NSX-T 及 Lenovo ThinkAgile Manager 的深度集成与压力测试，交付即服务（Delivered-as-a-Service）就绪
+- 智能统一管理：ThinkAgile Manager 提供单一控制台，支持多集群跨地域纳管、一键式固件升级、合规性检查、容量预测、性能基线比对与自定义告警策略
+- 弹性资源池化：vSAN 数据服务支持去重、压缩、纠删码（Erasure Coding）、加密（AES-256）、快照与克隆，实现存储层细粒度 QoS 控制
+- 边缘就绪设计：MX1000/MX3000 支持宽温运行（0°C–40°C）、抗震加固、无风扇静音模式（可选）及离线部署包（Offline Deployment Kit）
+- 安全可信架构：符合 FIPS 140-2 Level 2 加密标准；支持 TPM 2.0、Secure Boot、UEFI 固件签名验证；提供硬件信任根（Root of Trust）与 BIOS 级别安全启动链
+- AI 与数据密集型优化：MX5000/MX7000 支持 NVIDIA GPU 直通（vGPU 与 passthrough）、CUDA 加速库预装、NVMe-oF（NVMe over Fabrics）协议支持，满足 AI 训练、实时推理与高性能数据库需求
+
+规格参数：
+- 处理器：Intel Xeon Scalable 第三代（Ice Lake-SP）或第四代（Sapphire Rapids）处理器，支持最多 60 核 / 120 线程，TDP 最高 350W
+- 内存：DDR4-3200 ECC RDIMM/LRDIMM，支持 Intel Optane Persistent Memory 200 系列（仅 MX5000/MX7000）
+- 存储：支持热插拔 SAS/SATA/NVMe SSD；最大原始存储容量（单机箱）：MX1000 ≤ 384TB，MX3000 ≤ 768TB，MX5000 ≤ 2.4PB，MX7000 ≤ 4.8PB；vSAN 支持最大逻辑容量扩展至 10PB/集群
+- 网络：支持 RoCE v2（RDMA over Converged Ethernet）、iWARP、TCP/IP offload；所有型号标配双端口光纤上联，支持 LACP、VLAN、VXLAN、Geneve 封装
+- 电源：1+1 冗余白金级（94%+）高效电源，支持 100–240V AC / -48V DC（MX1000/MX3000 可选），MX7000 支持 2+2 冗余与 336V DC 高压直流输入
+- 物理尺寸与重量：MX1000（87.8mm H × 482mm W × 740mm D，≤ 32kg）；MX3000（87.8mm H × 482mm W × 800mm D，≤ 48kg）；MX5000（175.5mm H × 482mm W × 850mm D，≤ 92kg）；MX7000（175.5mm H × 482mm W × 920mm D，≤ 136kg）
+- 环境要求：工作温度 10°C–35°C（MX1000/MX3000 边缘版支持 0°C–40°C），相对湿度 20%–80%（无冷凝），海拔高度 ≤ 3000 米
+- 合规认证：通过 UL 62368-1、IEC 62368-1、EN 55032 Class A、EN 55035、FCC Part 15 Subpart B、RoHS、REACH、Energy Star 8.0 认证
+
+常见问题
+
+Q: ThinkAgile MX 系列是否支持国产操作系统或虚拟化平台？
+A: ThinkAgile MX 系列当前官方认证和支持的操作系统与虚拟化平台以 VMware 生态为主（vSphere/vSAN/NSX-T）。联想正与国内主流信创厂商开展兼容性适配测试，部分客户已基于 OpenStack 或麒麟/Kylin OS 在非生产环境完成技术验证；如需信创适配方案，请联系联想售前工程师获取《ThinkAgile MX 信创生态兼容性清单》及定制化支持路径。
+
+Q: MX5000 是否支持将现有 vSAN 6.7 集群在线升级至 vSAN 8.x？
+A: 是的，MX5000 支持从 vSAN 6.7U3 及以上版本在线滚动升级至 vSAN 8.0/8.1，前提是集群中所有主机已完成 BIOS、驱动程序及固件更新至联想发布的 vSAN 8.x 兼容版本清单所列最低要求；升级过程无需停机，但建议在维护窗口内执行，并提前通过 ThinkAgile Manager 运行升级前健康检查（Pre-Upgrade Health Check）。
+
+Q: MX7000 的 200GbE 网络接口是否支持与现有 100GbE 交换机互联？
+A: 是的，MX7000 的 200GbE QSFP56 接口向下兼容 100GbE（通过速率协商或使用分支线缆 QSFP56-to-QSFP28），可与主流厂商（Cisco Nexus、Arista、HPE Aruba）的 100GbE 交换机无缝对接；同时支持自动协商模式切换（200G/100G/50G/25G），确保网络拓扑平滑演进。
+
+Q: ThinkAgile Manager 是否支持与第三方监控系统（如 Zabbix、Prometheus）集成？
+A: 是的，ThinkAgile Manager 提供符合 OpenMetrics 规范的 RESTful API 与 Prometheus Exporter，支持将硬件状态、vSAN 性能指标、集群容量趋势等 200+ 项关键数据实时推送至 Zabbix、Prometheus/Grafana 或企业级 SIEM 平台；详细集成指南与 API 文档可在联想客户门户（Lenovo Client Portal）下载。
+
+Q: MX3000 在边缘场景下能否实现无人值守运行超过 6 个月？
+A: 是的，MX3000 边缘增强版通过强化散热设计、工业级元器件选型、固件级看门狗（Watchdog Timer）及联想 XClarity Agent 的离线缓存机制，支持连续 180 天无人干预稳定运行；配合远程带外管理（Out-of-Band Management）与自动固件回滚功能，即使网络中断亦可保障基础服务不中断。
+
+Q: 所有 MX 系列型号是否都支持 vSAN 延伸集群（Stretched Cluster）？
+A: 是的，全系列均支持 vSAN 延伸集群部署模式，但需满足最低网络延迟要求（≤ 5ms RTT）及仲裁节点（Witness Host）独立部署；MX1000/MX3000 推荐用于同城双活（≤ 100km），MX5000/MX7000 支持跨城延伸（≤ 200km），并可通过 ThinkAgile Manager 一键部署仲裁节点与故障域策略。
+
+Q: 如何为 MX 系列申请硬件级固件安全更新（如 UEFI、BMC、RAID 控制器）？
+A: 所有固件更新均通过联想官方渠道发布，客户须登录 Lenovo Client Portal 下载对应型号的 ThinkAgile Firmware Update Package（TFUP），并通过 ThinkAgile Manager 执行“固件批量升级任务”；严禁使用非联想认证工具或手动刷写，否则将导致保修失效及系统不稳定。
+
+Q: MX5000 配置双 GPU 后，是否影响内置 NVMe SSD 的 PCIe 通道分配？
+A: 不影响。MX5000 采用 Intel C621A 芯片组与 Sapphire Rapids 处理器直连架构，为每个 GPU 插槽（x16）和全部 NVMe U.2 插槽（共 24 个）分别提供独立 PCIe 5.0 通道，无共享或争用；系统 BIOS 中可明确查看各设备 PCIe 拓扑与带宽分配状态。
