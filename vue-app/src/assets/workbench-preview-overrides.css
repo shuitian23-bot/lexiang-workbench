@@ -1774,9 +1774,10 @@ html[data-product="leaibot"] body.dark-mode .ai-image-preview-stage {
   background-size: 16px 16px;
 }
 
-/* Keep Skill 创建 aligned with the shell resize order:
+/* Keep Skill 创建 and 权限管理 aligned with the shell resize order:
    shrink the workspace first, then let the shell collapse navigation, then affect Agent. */
-html[data-product="leaibot"] .skill-create-studio {
+html[data-product="leaibot"] .skill-create-studio,
+html[data-product="leaibot"] .permission-layout {
   min-width: 0 !important;
   grid-template-columns: clamp(220px, 26%, 300px) minmax(0, 1fr) !important;
 }
@@ -1785,16 +1786,24 @@ html[data-product="leaibot"] .skill-main-stack,
 html[data-product="leaibot"] .skill-context-pane,
 html[data-product="leaibot"] .skill-workspace-pane,
 html[data-product="leaibot"] .skill-create-panel.active,
-html[data-product="leaibot"] .skill-clarify-layout {
+html[data-product="leaibot"] .skill-clarify-layout,
+html[data-product="leaibot"] .permission-page-vue,
+html[data-product="leaibot"] .permission-layout,
+html[data-product="leaibot"] .permission-module-rail,
+html[data-product="leaibot"] .permission-workspace,
+html[data-product="leaibot"] .permission-card,
+html[data-product="leaibot"] .permission-step {
   min-width: 0 !important;
 }
 
 @media (max-width: 1180px) {
-  html[data-product="leaibot"] .skill-create-studio {
+  html[data-product="leaibot"] .skill-create-studio,
+  html[data-product="leaibot"] .permission-layout {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  html[data-product="leaibot"] .skill-context-pane {
+  html[data-product="leaibot"] .skill-context-pane,
+  html[data-product="leaibot"] .permission-module-rail {
     height: auto !important;
     max-height: none !important;
   }

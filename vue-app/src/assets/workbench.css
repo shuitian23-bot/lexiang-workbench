@@ -844,10 +844,19 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   display:inline-block;
   line-height:1;
 }
+.skill-summary-refresh svg {
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
 .skill-summary-refresh.loading {
   color:var(--primary);
 }
-.skill-summary-refresh.loading span {
+.skill-summary-refresh.loading svg {
   animation:skill-summary-spin .7s linear infinite;
 }
 @keyframes skill-summary-spin {
@@ -912,6 +921,15 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   font-size:16px;
   line-height:1;
   cursor:pointer;
+}
+.skill-chat-composer button svg {
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 .skill-chat-composer button:hover {
   background:var(--primary-hover);
@@ -5084,20 +5102,28 @@ html[data-product="leaibot"] .skill-create-tabs {
 html[data-product="leaibot"] .skill-create-panel.active {
   flex:1 1 auto;
   min-height:0;
-  overflow-y:auto;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
+  overscroll-behavior:contain;
+  padding-right:0;
+}
+
+html[data-product="leaibot"] .skill-create-panel-body {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
   overscroll-behavior:contain;
   padding-right:4px;
 }
 
-html[data-product="leaibot"] .skill-create-panel.active::-webkit-scrollbar,
+html[data-product="leaibot"] .skill-create-panel-body::-webkit-scrollbar,
 html[data-product="leaibot"] .skill-context-pane::-webkit-scrollbar,
 html[data-product="leaibot"] .skill-clarify-summary::-webkit-scrollbar {
   width:6px;
 }
 
-html[data-product="leaibot"] .skill-create-panel.active::-webkit-scrollbar-thumb,
+html[data-product="leaibot"] .skill-create-panel-body::-webkit-scrollbar-thumb,
 html[data-product="leaibot"] .skill-context-pane::-webkit-scrollbar-thumb,
 html[data-product="leaibot"] .skill-clarify-summary::-webkit-scrollbar-thumb {
   background:rgba(31,35,41,.14);
@@ -5225,6 +5251,16 @@ html[data-product="leaibot"] .skill-summary-refresh:hover {
   background:var(--primary-light);
 }
 
+html[data-product="leaibot"] .skill-summary-refresh svg {
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
 html[data-product="leaibot"] .skill-rule-grid.skill-clarify-actions {
   display:flex;
   flex-wrap:wrap;
@@ -5283,6 +5319,16 @@ html[data-product="leaibot"] .skill-chat-composer button {
   line-height:1;
 }
 
+html[data-product="leaibot"] .skill-chat-composer button svg {
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
 html[data-product="leaibot"] .skill-create-step-actions {
   flex:0 0 auto;
   align-items:center;
@@ -5331,18 +5377,18 @@ html[data-product="leaibot"] .skill-doc-grid {
 }
 
 html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active {
-  display:grid;
-  grid-template-columns:minmax(0, 1fr);
-  grid-template-rows:auto minmax(0, 1fr) auto auto auto;
-  gap:0;
+  display:flex;
+  flex-direction:column;
   overflow:hidden;
 }
 
-html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-step-banner,
-html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-rule-grid.skill-clarify-actions,
-html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-chat-composer,
-html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-create-step-actions {
-  flex:0 0 auto;
+html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-create-panel-body {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  grid-template-rows:auto minmax(0, 1fr) auto auto;
+  gap:0;
+  overflow:hidden;
+  padding-right:0;
 }
 
 html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-step-banner {
@@ -5414,8 +5460,6 @@ html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarif
 }
 
 html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-create-step-actions {
-  grid-column:1;
-  grid-row:5;
   align-self:stretch;
   flex-direction:row;
   justify-content:flex-end;
@@ -5428,6 +5472,8 @@ html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarif
   border-top:1px solid var(--border-light);
   border-left:0;
   background:linear-gradient(180deg, rgba(255,255,255,.86), #fff 34%);
+  position:relative;
+  bottom:auto;
 }
 
 html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-create-step-actions::before {
@@ -6359,4 +6405,35 @@ html[data-product="leaibot"] .agent-skill-card-more {
   height:34px;
   display:inline-flex;
   align-items:center;
+}
+
+/* POC shell account hub: keep action cards as white surfaces; only the leading icon uses primary color. */
+html[data-product="leaibot"] .account-hub-card.primary {
+  background: var(--surface, #fff) !important;
+  color: var(--text, #172033) !important;
+  border-color: #e3e8ef !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .055) !important;
+}
+
+html[data-product="leaibot"] .account-hub-card.primary:hover {
+  border-color: #d4ddea !important;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, .08) !important;
+}
+
+html[data-product="leaibot"] .account-hub-card.primary b {
+  color: var(--text, #172033) !important;
+}
+
+html[data-product="leaibot"] .account-hub-card.primary small {
+  color: var(--text-secondary, #6b778c) !important;
+}
+
+html[data-product="leaibot"] .account-hub-card.primary .account-hub-icon {
+  background: var(--primary, #3370ff) !important;
+  color: #fff !important;
+}
+
+html[data-product="leaibot"] body.dark-mode .account-hub-card.primary {
+  background: var(--surface, #141c2b) !important;
+  border-color: var(--border, rgba(148, 163, 184, .24)) !important;
 }

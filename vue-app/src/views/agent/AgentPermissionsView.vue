@@ -1,16 +1,15 @@
 <template>
   <div class="permission-page-vue">
-    <section class="permission-hero">
+    <div class="page-header permission-page-header">
       <div>
-        <p class="eyebrow">AI 助手 / 权限管理</p>
-        <h1>权限管理</h1>
-        <p>按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。</p>
+        <div class="page-title">权限管理</div>
+        <div class="page-desc">按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。</div>
       </div>
       <div class="hero-actions">
         <button type="button" class="ghost-btn" @click="resetDemo">重置演示</button>
         <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
       </div>
-    </section>
+    </div>
 
     <div class="permission-layout">
       <aside class="permission-module-rail" aria-label="权限管理菜单">
@@ -21,7 +20,7 @@
           :class="{ active: activeModule === item.key }"
           @click="activeModule = item.key"
         >
-          <span>{{ item.icon }}</span>
+          <span class="permission-module-icon" v-html="moduleIcon(item.key)"></span>
           <b>{{ item.label }}</b>
           <small>{{ item.desc }}</small>
         </button>
@@ -45,7 +44,6 @@
               :class="{ active: currentStep === index }"
               @click="currentStep = index"
             >
-              <span>{{ index + 1 }}</span>
               {{ step.label }}
             </button>
           </div>
@@ -415,11 +413,11 @@ const recordModalVisible = ref(false)
 const approvalFilter = ref('全部')
 
 const applySteps = [
-  { key: 'type', label: '选择类型' },
-  { key: 'info', label: '填写信息' },
-  { key: 'scope', label: '权限范围' },
-  { key: 'relation', label: '关联确认' },
-  { key: 'approve', label: '审批执行' }
+  { key: 'type', label: '1. 选择类型' },
+  { key: 'info', label: '2. 填写信息' },
+  { key: 'scope', label: '3. 权限范围' },
+  { key: 'relation', label: '4. 关联确认' },
+  { key: 'approve', label: '5. 审批执行' }
 ]
 
 const requestTypes = [
@@ -658,6 +656,20 @@ function resetDemo() {
   approvalFilter.value = '全部'
 }
 
+function moduleIcon(key) {
+  const icons = {
+    apply: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 4h7l3 3v9H5z"></path><path d="M12 4v3h3"></path><path d="M7.5 10h5"></path><path d="M7.5 13h4"></path></svg>',
+    approval: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5 16 6v4.2c0 3-2 5.2-6 6.3-4-1.1-6-3.3-6-6.3V6z"></path><path d="m7.3 10.2 1.8 1.8 3.8-4"></path></svg>',
+    roles: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 9.2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M2.8 16.5a4.8 4.8 0 0 1 9.4 0"></path><path d="M13.6 5.2a2.5 2.5 0 1 1 0 5"></path><path d="M14.4 12.1a4.2 4.2 0 0 1 2.8 4.4"></path></svg>',
+    users: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 9.5a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"></path><path d="M4.2 17.3a5.8 5.8 0 0 1 11.6 0"></path></svg>',
+    orgs: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.2v4"></path><path d="M5 10.2h10"></path><path d="M5 10.2v3"></path><path d="M15 10.2v3"></path><rect x="7.2" y="7.2" width="5.6" height="4" rx="1"></rect><rect x="2.8" y="13.2" width="4.4" height="3.6" rx="1"></rect><rect x="12.8" y="13.2" width="4.4" height="3.6" rx="1"></rect></svg>',
+    datasource: '<svg viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="10" cy="5" rx="5.5" ry="2.4"></ellipse><path d="M4.5 5v5c0 1.3 2.5 2.4 5.5 2.4s5.5-1.1 5.5-2.4V5"></path><path d="M4.5 10v5c0 1.3 2.5 2.4 5.5 2.4s5.5-1.1 5.5-2.4v-5"></path></svg>',
+    functions: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3.5" width="5.5" height="5.5" rx="1.2"></rect><rect x="11.5" y="3.5" width="5.5" height="5.5" rx="1.2"></rect><rect x="3" y="12" width="5.5" height="5.5" rx="1.2"></rect><path d="M13.5 14.8h3"></path><path d="M15 13.3v3"></path></svg>',
+    backup: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 6.2h10"></path><path d="M8 3.8h4"></path><path d="M6.2 6.2 7 16.5h6l.8-10.3"></path><path d="M8.5 9v5"></path><path d="M11.5 9v5"></path></svg>'
+  }
+  return icons[key] || icons.apply
+}
+
 onMounted(() => {
   document.title = '权限管理 - 乐享 AI 工作台'
 })
@@ -665,53 +677,51 @@ onMounted(() => {
 
 <style scoped>
 .permission-page-vue {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   min-height: 100%;
-  padding: 22px 24px 40px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  padding: 0;
   color: #111827;
-  background: #f4f7fb;
 }
 
-.permission-hero,
-.permission-card {
-  border: 1px solid #dfe7f3;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
-}
-
-.permission-hero {
+.permission-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 22px 24px;
-  margin-bottom: 18px;
+  gap: 16px;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  color: #316dff;
-  font-weight: 700;
-}
-
-.permission-hero h1,
 .section-title h2,
 .permission-step h3 {
   margin: 0;
   letter-spacing: 0;
 }
 
-.permission-hero h1 {
-  font-size: 28px;
+.section-title h2 {
+  color: #172033;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
-.permission-hero p,
+.permission-step h3 {
+  color: #172033;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .section-title p,
 .permission-step p,
 .modal-panel p {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: #6b778c;
-  line-height: 1.65;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .hero-actions,
@@ -723,22 +733,48 @@ onMounted(() => {
 }
 
 .section-title {
+  flex: 0 0 auto;
   justify-content: space-between;
   margin-bottom: 18px;
 }
 
 .permission-layout {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: clamp(220px, 26%, 300px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  min-width: 0;
+  height: calc(100vh - 168px);
+  min-height: 620px;
+  max-height: calc(100vh - 168px);
+  overflow: hidden;
+}
+
+.permission-workspace {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .permission-module-rail {
-  position: sticky;
-  top: 18px;
+  position: relative;
   display: grid;
+  grid-auto-rows: max-content;
   gap: 8px;
-  align-self: start;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  padding: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-self: stretch;
+  border: 1px solid #dfe7f3;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .permission-module-rail button {
@@ -747,22 +783,24 @@ onMounted(() => {
   gap: 2px 10px;
   align-items: center;
   width: 100%;
-  min-height: 64px;
-  padding: 12px;
+  min-height: 56px;
+  padding: 10px 12px;
   border: 1px solid #dfe7f3;
   border-radius: 8px;
   background: #fff;
   color: #455468;
   text-align: left;
   cursor: pointer;
+  box-shadow: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
-.permission-module-rail button span {
+.permission-module-icon {
   grid-row: span 2;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   color: #316dff;
   background: #edf3ff;
@@ -770,12 +808,26 @@ onMounted(() => {
   font-weight: 800;
 }
 
+.permission-module-icon :deep(svg) {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .permission-module-rail button b {
   color: #172033;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .permission-module-rail button small {
   color: #8a96a8;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .permission-module-rail button.active {
@@ -785,12 +837,33 @@ onMounted(() => {
   box-shadow: inset 3px 0 0 #316dff;
 }
 
+.permission-module-rail button:hover {
+  border-color: rgba(49, 109, 255, 0.36);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+}
+
 .permission-card {
-  padding: 20px;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dfe7f3;
+  border-radius: 12px;
+  padding: 18px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .flow-card {
   overflow: hidden;
+  background: #fff;
+}
+
+.flow-card .section-title,
+.flow-card .permission-stage-tabs {
+  flex: 0 0 auto;
 }
 
 .status-pill,
@@ -802,43 +875,47 @@ onMounted(() => {
   padding: 5px 10px;
   background: #eef4ff;
   color: #316dff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  line-height: 1;
 }
 
 .permission-stage-tabs {
   display: flex;
-  gap: 8px;
-  padding: 8px;
-  margin-bottom: 18px;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 4px;
+  margin-bottom: 20px;
   border: 1px solid #dfe7f3;
-  border-radius: 8px;
-  background: #f8fafc;
+  border-radius: 10px;
+  background: #fff;
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.permission-stage-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .permission-stage-tabs button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-width: 132px;
+  justify-content: center;
+  min-width: 118px;
+  min-height: 36px;
   border: 0;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 0 16px;
   background: transparent;
   color: #667085;
+  font-size: 13px;
   font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
   cursor: pointer;
-}
-
-.permission-stage-tabs button span {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: #e9eef7;
-  color: #7a8798;
 }
 
 .permission-stage-tabs button.active {
@@ -846,13 +923,28 @@ onMounted(() => {
   color: #fff;
 }
 
-.permission-stage-tabs button.active span {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+.permission-step {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 35, 41, 0.14) transparent;
 }
 
-.permission-step {
-  min-height: 360px;
+.permission-step::-webkit-scrollbar,
+.permission-module-rail::-webkit-scrollbar,
+.permission-table-wrap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.permission-step::-webkit-scrollbar-thumb,
+.permission-module-rail::-webkit-scrollbar-thumb,
+.permission-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(31, 35, 41, 0.14);
+  border-radius: 999px;
 }
 
 .permission-type-grid,
@@ -868,17 +960,19 @@ onMounted(() => {
 .permission-scope-grid article,
 .permission-grid-list article,
 .relation-grid article {
+  min-width: 0;
   border: 1px solid #dfe7f3;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.04);
+  box-shadow: none;
 }
 
 .permission-type-grid button {
-  min-height: 196px;
-  padding: 20px;
+  min-height: 168px;
+  padding: 16px;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
 .permission-type-grid button span,
@@ -886,11 +980,12 @@ onMounted(() => {
 .relation-grid article span {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   background: #edf3ff;
   color: #316dff;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -898,9 +993,11 @@ onMounted(() => {
 .permission-grid-list h3,
 .relation-grid b {
   display: block;
-  margin-top: 14px;
+  margin-top: 12px;
   color: #111827;
-  font-size: 20px;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .permission-type-grid button em,
@@ -909,16 +1006,26 @@ onMounted(() => {
 .relation-grid p,
 .confirm-box p {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   color: #6b778c;
+  font-size: 12px;
   font-style: normal;
-  line-height: 1.6;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .permission-type-grid button.active {
   border-color: #8cb2ff;
-  background: #eef5ff;
+  background: linear-gradient(135deg, #fff 0%, #f7faff 100%);
   box-shadow: 0 0 0 2px rgba(49, 109, 255, 0.12);
+}
+
+.permission-type-grid button:hover,
+.permission-scope-grid article:hover,
+.permission-grid-list article:hover,
+.relation-grid article:hover {
+  border-color: rgba(49, 109, 255, 0.32);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
 }
 
 .permission-form-grid {
@@ -932,7 +1039,8 @@ onMounted(() => {
   display: grid;
   gap: 8px;
   color: #667085;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .permission-form-grid .full {
@@ -944,12 +1052,14 @@ onMounted(() => {
 .permission-form-grid textarea {
   width: 100%;
   box-sizing: border-box;
+  min-width: 0;
   border: 1px solid #d8e1ee;
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 11px 12px;
   background: #fff;
   color: #172033;
   font: inherit;
+  font-size: 13px;
 }
 
 .permission-form-grid input[readonly] {
@@ -973,8 +1083,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 34px;
+  min-height: 32px;
   color: #455468;
+  font-size: 13px;
 }
 
 .check-row input {
@@ -991,7 +1102,7 @@ onMounted(() => {
 }
 
 .relation-grid article {
-  padding: 16px;
+  padding: 14px;
 }
 
 .confirm-box,
@@ -999,8 +1110,15 @@ onMounted(() => {
   margin-top: 16px;
   border: 1px solid #bcd3ff;
   border-radius: 8px;
-  padding: 16px;
+  padding: 14px;
   background: #f7fbff;
+}
+
+.confirm-box b,
+.execute-summary b {
+  color: #172033;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .approval-route {
@@ -1014,30 +1132,36 @@ onMounted(() => {
   position: relative;
   border: 1px solid #dfe7f3;
   border-radius: 8px;
-  padding: 16px;
+  padding: 14px;
   background: #fff;
 }
 
 .approval-route span {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: #edf3ff;
   color: #316dff;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .approval-route b {
   display: block;
-  margin-top: 12px;
+  margin-top: 10px;
+  color: #172033;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .approval-route small {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   color: #7a8798;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .approval-route .done {
@@ -1046,17 +1170,21 @@ onMounted(() => {
 }
 
 .flow-actions {
+  flex: 0 0 auto;
   justify-content: flex-end;
-  margin-top: 18px;
+  margin-top: 10px;
   border-top: 1px solid #e6edf5;
-  padding-top: 18px;
+  padding-top: 10px;
+  min-height: 56px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), #fff 30%);
 }
 
 .primary-btn,
 .ghost-btn {
-  min-height: 38px;
+  min-height: 36px;
   border-radius: 8px;
-  padding: 0 18px;
+  padding: 0 16px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1074,8 +1202,9 @@ onMounted(() => {
 }
 
 .ghost-btn.small {
-  min-height: 32px;
+  min-height: 30px;
   padding: 0 12px;
+  font-size: 12px;
 }
 
 .ghost-btn:disabled {
@@ -1098,6 +1227,7 @@ onMounted(() => {
   padding: 7px 10px;
   background: transparent;
   color: #667085;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1107,7 +1237,10 @@ onMounted(() => {
 }
 
 .permission-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-x: auto;
+  overflow-y: auto;
 }
 
 .permission-table {
@@ -1119,7 +1252,9 @@ onMounted(() => {
 .permission-table th,
 .permission-table td {
   border-bottom: 1px solid #e6edf5;
-  padding: 14px 12px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.45;
   text-align: left;
 }
 
@@ -1276,13 +1411,17 @@ onMounted(() => {
   font-weight: 700;
 }
 
-@media (max-width: 1280px) {
-  .permission-page-vue {
-    padding: 18px;
-  }
-
+@media (max-height: 820px) {
   .permission-layout {
-    grid-template-columns: 190px minmax(0, 1fr);
+    height: calc(100vh - 148px);
+    min-height: 520px;
+    max-height: calc(100vh - 148px);
+  }
+}
+
+@media (max-width: 1500px) {
+  .permission-layout {
+    grid-template-columns: clamp(220px, 26%, 280px) minmax(0, 1fr);
   }
 
   .permission-type-grid,
@@ -1294,22 +1433,26 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 980px) {
-  .permission-hero,
+@media (max-width: 1180px) {
   .section-title {
     align-items: flex-start;
     flex-direction: column;
   }
 
   .permission-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
   }
 
   .permission-module-rail {
-    position: static;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
   }
+}
 
+@media (max-width: 760px) {
   .permission-form-grid,
   .permission-type-grid,
   .permission-scope-grid,

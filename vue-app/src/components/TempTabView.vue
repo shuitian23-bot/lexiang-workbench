@@ -107,7 +107,8 @@ const displayTitle = computed(() => {
     .replace(/^AI\s*报告\s*[·:：-]\s*/i, '')
     .replace(/\s*#\d+\s*$/g, '')
     .trim()
-  if (page === '运营总览' && /风控|策略命中|DPL|限购/i.test(clean)) {
+  const isOverviewReport = tab.value.sourcePage === 'dashboard.overview' || page === '运营总览' || /运营总览/.test(clean)
+  if (isOverviewReport && /风控|策略命中|DPL|限购/i.test(clean)) {
     return '运营总览 · 经营指标解读'
   }
   if (page) clean = clean.replace(new RegExp(`^${escapeRegExp(page)}\\s*[·:：-]?\\s*`), '').trim()
@@ -120,7 +121,10 @@ const reportChips = computed(() => {
   const chips = tab.value?.chips?.length
     ? tab.value.chips
     : ['AI 对话', tab.value?.sourcePageLabel || '当前页面']
-  if (tab.value?.sourcePageLabel === '运营总览') {
+  const isOverviewReport = tab.value?.sourcePage === 'dashboard.overview'
+    || tab.value?.sourcePageLabel === '运营总览'
+    || /运营总览/.test(tab.value?.title || '')
+  if (isOverviewReport) {
     return chips.filter(chip => !/风控|策略命中|DPL|限购/i.test(chip)).slice(0, 4)
   }
   return chips.slice(0, 4)

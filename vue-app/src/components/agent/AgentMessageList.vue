@@ -139,7 +139,8 @@ function reportDisplayTitle(id) {
   if (!report) return '当前页面 · 数据解读报告'
   const sourceLabel = report.sourcePageLabel || getPageLabel(props.currentPageId) || '当前页面'
   const title = report.title || '数据解读报告'
-  if (sourceLabel === '运营总览' && /风控|策略命中|DPL|限购/i.test(title)) {
+  const isOverviewReport = report.sourcePage === 'dashboard.overview' || sourceLabel === '运营总览' || /运营总览/.test(title)
+  if (isOverviewReport && /风控|策略命中|DPL|限购/i.test(title)) {
     return '运营总览 · 经营指标解读'
   }
   return title.startsWith(`${sourceLabel} ·`) ? title : `${sourceLabel} · ${title}`
@@ -148,7 +149,11 @@ function reportDisplayTitle(id) {
 function reportChips(id) {
   const report = reportArtifact(id)
   const chips = report?.chips || []
-  if ((report?.sourcePageLabel || getPageLabel(props.currentPageId)) === '运营总览') {
+  const isOverviewReport = report?.sourcePage === 'dashboard.overview'
+    || report?.sourcePageLabel === '运营总览'
+    || /运营总览/.test(report?.title || '')
+    || getPageLabel(props.currentPageId) === '运营总览'
+  if (isOverviewReport) {
     return chips.filter(chip => !/风控|策略命中|DPL|限购/i.test(chip)).slice(0, 3)
   }
   return chips.slice(0, 3)

@@ -82,36 +82,38 @@
           </div>
 
           <div class="skill-create-panel" :class="{ active: activeTab === 'config' }" data-skill-create-panel="config">
-            <div class="skill-step-banner">{{ configBanner }}</div>
-            <div class="skill-create-form">
-              <div class="skill-create-field">
-                <label for="skill-create-name">Skill 名称（英文） <span class="field-required">*</span></label>
-                <input id="skill-create-name" v-model="form.name" :class="{ 'field-invalid': invalidField === 'name' }" required>
-              </div>
-              <div class="skill-create-field">
-                <label for="skill-create-cn-name">中文命名 <span class="field-required">*</span></label>
-                <input id="skill-create-cn-name" v-model="form.cnName" :class="{ 'field-invalid': invalidField === 'cnName' }" required>
-              </div>
-              <div class="skill-create-field">
-                <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
-                <select id="skill-create-menu" v-model="form.menu" :class="{ 'field-invalid': invalidField === 'menu' }" required>
-                  <option>在职员工管理</option>
-                  <option>乐享运营</option>
-                  <option>GEO 看板</option>
-                  <option>企业客户管理</option>
-                </select>
-              </div>
-              <div class="skill-create-field full">
-                <label for="skill-create-scene">适用场景 <span class="field-optional">非必填</span></label>
-                <textarea id="skill-create-scene" v-model="form.scene"></textarea>
-              </div>
-              <div class="skill-create-field">
-                <label for="skill-create-input">输入参数 <span class="field-optional">非必填</span></label>
-                <textarea id="skill-create-input" v-model="form.input"></textarea>
-              </div>
-              <div class="skill-create-field">
-                <label for="skill-create-output">输出结果 <span class="field-optional">非必填</span></label>
-                <textarea id="skill-create-output" v-model="form.output"></textarea>
+            <div class="skill-create-panel-body">
+              <div class="skill-step-banner">{{ configBanner }}</div>
+              <div class="skill-create-form">
+                <div class="skill-create-field">
+                  <label for="skill-create-name">Skill 名称（英文） <span class="field-required">*</span></label>
+                  <input id="skill-create-name" v-model="form.name" :class="{ 'field-invalid': invalidField === 'name' }" required>
+                </div>
+                <div class="skill-create-field">
+                  <label for="skill-create-cn-name">中文命名 <span class="field-required">*</span></label>
+                  <input id="skill-create-cn-name" v-model="form.cnName" :class="{ 'field-invalid': invalidField === 'cnName' }" required>
+                </div>
+                <div class="skill-create-field">
+                  <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
+                  <select id="skill-create-menu" v-model="form.menu" :class="{ 'field-invalid': invalidField === 'menu' }" required>
+                    <option>在职员工管理</option>
+                    <option>乐享运营</option>
+                    <option>GEO 看板</option>
+                    <option>企业客户管理</option>
+                  </select>
+                </div>
+                <div class="skill-create-field full">
+                  <label for="skill-create-scene">适用场景 <span class="field-optional">非必填</span></label>
+                  <textarea id="skill-create-scene" v-model="form.scene"></textarea>
+                </div>
+                <div class="skill-create-field">
+                  <label for="skill-create-input">输入参数 <span class="field-optional">非必填</span></label>
+                  <textarea id="skill-create-input" v-model="form.input"></textarea>
+                </div>
+                <div class="skill-create-field">
+                  <label for="skill-create-output">输出结果 <span class="field-optional">非必填</span></label>
+                  <textarea id="skill-create-output" v-model="form.output"></textarea>
+                </div>
               </div>
             </div>
             <div class="skill-create-step-actions">
@@ -120,59 +122,77 @@
           </div>
 
           <div class="skill-create-panel" :class="{ active: activeTab === 'clarify' }" data-skill-create-panel="clarify">
-            <div class="skill-step-banner">当前阶段：基于基础配置、左侧能力上下文和附件材料，通过与 AI 对话补齐应用场景、约束条件和执行边界。</div>
-            <div class="skill-clarify-layout">
-              <div id="skill-clarify-chat" ref="chatEl" class="skill-chat-sim">
-                <div class="skill-chat-context">
-                  <b>我已理解你选择的能力上下文</b>
-                  <div id="skill-selected-tags" class="skill-ai-tags">
-                    <span v-for="item in selectedContextItems" :key="item.code" :title="item.code">{{ item.name }}</span>
-                    <span v-if="!selectedContextItems.length" class="muted">请先从左侧选择能力上下文</span>
+            <div class="skill-create-panel-body">
+              <div class="skill-step-banner">当前阶段：基于基础配置、左侧能力上下文和附件材料，通过与 AI 对话补齐应用场景、约束条件和执行边界。</div>
+              <div class="skill-clarify-layout">
+                <div id="skill-clarify-chat" ref="chatEl" class="skill-chat-sim">
+                  <div class="skill-chat-context">
+                    <b>我已理解你选择的能力上下文</b>
+                    <div id="skill-selected-tags" class="skill-ai-tags">
+                      <span v-for="item in selectedContextItems" :key="item.code" :title="item.code">{{ item.name }}</span>
+                      <span v-if="!selectedContextItems.length" class="muted">请先从左侧选择能力上下文</span>
+                    </div>
+                    <p id="skill-context-summary">{{ contextSummary }}</p>
                   </div>
-                  <p id="skill-context-summary">{{ contextSummary }}</p>
+                  <template v-for="message in clarifyMessages" :key="message.id">
+                    <div v-if="message.kind === 'state'" class="skill-chat-ai skill-conversation-states" aria-label="AI 会话状态">
+                      <div
+                        v-for="state in message.states"
+                        :key="`${message.id}-${state.kind}-${state.title}`"
+                        class="skill-conversation-state"
+                        :class="[`is-${state.kind}`, `status-${state.status}`]"
+                      >
+                        <span class="skill-state-icon" aria-hidden="true" v-html="stateIcon(state.kind)"></span>
+                        <span class="skill-state-body">
+                          <span class="skill-state-title-row"><b>{{ state.title }}</b><em>{{ stateStatus(state.status) }}</em></span>
+                          <span v-if="state.detail" class="skill-state-detail">{{ state.detail }}</span>
+                        </span>
+                        <span v-if="state.status === 'running'" class="skill-state-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                      </div>
+                    </div>
+                    <div v-else :class="message.kind === 'user' ? 'skill-chat-user' : 'skill-chat-ai'">{{ message.text }}</div>
+                  </template>
                 </div>
-                <template v-for="message in clarifyMessages" :key="message.id">
-                  <div v-if="message.kind === 'state'" class="skill-chat-ai skill-conversation-states" aria-label="AI 会话状态">
-                    <div
-                      v-for="state in message.states"
-                      :key="`${message.id}-${state.kind}-${state.title}`"
-                      class="skill-conversation-state"
-                      :class="[`is-${state.kind}`, `status-${state.status}`]"
-                    >
-                      <span class="skill-state-icon" aria-hidden="true" v-html="stateIcon(state.kind)"></span>
-                      <span class="skill-state-body">
-                        <span class="skill-state-title-row"><b>{{ state.title }}</b><em>{{ stateStatus(state.status) }}</em></span>
-                        <span v-if="state.detail" class="skill-state-detail">{{ state.detail }}</span>
-                      </span>
-                      <span v-if="state.status === 'running'" class="skill-state-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <div class="skill-clarify-card skill-clarify-summary">
+                  <div class="skill-summary-head">
+                    <div>
+                      <b>澄清结论</b>
+                      <small id="skill-clarify-summary-updated">{{ summaryUpdated }}</small>
+                    </div>
+                    <button type="button" class="skill-summary-refresh" title="刷新澄清总结" aria-label="刷新澄清总结" :disabled="summaryRefreshing" @click="refreshSummary">
+                      <svg viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M15.4 6.7A5.8 5.8 0 0 0 5.6 4.8L4 6.4"></path>
+                        <path d="M4 3.2v3.2h3.2"></path>
+                        <path d="M4.6 13.3a5.8 5.8 0 0 0 9.8 1.9l1.6-1.6"></path>
+                        <path d="M16 16.8v-3.2h-3.2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <div id="skill-clarify-summary-content">
+                    <div v-for="item in summaryItems" :key="item.label" class="skill-summary-item">
+                      <span>{{ item.label }}</span>
+                      <p>{{ item.text }}</p>
                     </div>
                   </div>
-                  <div v-else :class="message.kind === 'user' ? 'skill-chat-user' : 'skill-chat-ai'">{{ message.text }}</div>
-                </template>
-              </div>
-              <div class="skill-clarify-card skill-clarify-summary">
-                <div class="skill-summary-head">
-                  <div>
-                    <b>澄清结论</b>
-                    <small id="skill-clarify-summary-updated">{{ summaryUpdated }}</small>
-                  </div>
-                  <button type="button" class="skill-summary-refresh" title="刷新澄清总结" aria-label="刷新澄清总结" :disabled="summaryRefreshing" @click="refreshSummary"><span>↻</span></button>
-                </div>
-                <div id="skill-clarify-summary-content">
-                  <div v-for="item in summaryItems" :key="item.label" class="skill-summary-item">
-                    <span>{{ item.label }}</span>
-                    <p>{{ item.text }}</p>
-                  </div>
                 </div>
               </div>
-            </div>
-            <div class="skill-rule-grid skill-clarify-actions" aria-label="需求澄清辅助动作">
-              <button v-for="action in clarifyActions" :key="action.label" type="button" @click="appendAssistant(action.message)">{{ action.label }}</button>
-            </div>
-            <div class="skill-chat-composer">
-              <button type="button" class="skill-chat-attach" aria-label="添加附件" @click="toast('已添加附件：业务说明文档 / 数据样例')">📎</button>
-              <textarea id="skill-clarify-input" ref="clarifyInputEl" v-model="clarifyInput" placeholder="继续补充需求，例如：输出字段、使用人群、定时频率、权限边界..."></textarea>
-              <button type="button" aria-label="发送澄清内容" @click="submitClarifyMessage">➤</button>
+              <div class="skill-rule-grid skill-clarify-actions" aria-label="需求澄清辅助动作">
+                <button v-for="action in clarifyActions" :key="action.label" type="button" @click="appendAssistant(action.message)">{{ action.label }}</button>
+              </div>
+              <div class="skill-chat-composer">
+                <button type="button" class="skill-chat-attach" aria-label="添加附件" @click="toast('已添加附件：业务说明文档 / 数据样例')">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="m8.2 11.8 4.6-4.6a2.2 2.2 0 0 1 3.1 3.1l-6 6a4 4 0 0 1-5.7-5.7l6.2-6.2a5.2 5.2 0 0 1 7.3 7.3l-5.5 5.5"></path>
+                  </svg>
+                </button>
+                <textarea id="skill-clarify-input" ref="clarifyInputEl" v-model="clarifyInput" placeholder="继续补充需求，例如：输出字段、使用人群、定时频率、权限边界..."></textarea>
+                <button type="button" aria-label="发送澄清内容" @click="submitClarifyMessage">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M17 3 8.5 11.5"></path>
+                    <path d="m17 3-5.4 14-3.1-5.5L3 8.4 17 3Z"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary" type="button" @click="switchTab('config')">上一步</button>
@@ -181,29 +201,31 @@
           </div>
 
           <div class="skill-create-panel" :class="{ active: activeTab === 'draft' }" data-skill-create-panel="draft">
-            <div class="skill-code-card skill-draft-workspace">
-              <aside class="skill-draft-tree" aria-label="Skill 草稿文件树">
-                <div class="skill-draft-tree-head">
-                  <span class="skill-tree-head-icon"></span>
-                  <b>Docs</b>
-                  <small>~ · skill-create · docs</small>
-                </div>
-                <div class="skill-draft-tree-body">
-                  <div v-for="row in draftTreeRows" :key="row.label" class="skill-tree-row" :class="row.className">
-                    <span class="skill-tree-caret">{{ row.caret }}</span>
-                    <span class="skill-tree-icon" :class="row.icon"></span>
-                    <b>{{ row.label }}</b>
-                    <em v-if="row.count">{{ row.count }}</em>
+            <div class="skill-create-panel-body">
+              <div class="skill-code-card skill-draft-workspace">
+                <aside class="skill-draft-tree" aria-label="Skill 草稿文件树">
+                  <div class="skill-draft-tree-head">
+                    <span class="skill-tree-head-icon"></span>
+                    <b>Docs</b>
+                    <small>~ · skill-create · docs</small>
                   </div>
-                </div>
-              </aside>
-              <section class="skill-draft-editor" aria-label="生成的 Skill 草稿">
-                <div class="skill-draft-editor-head">
-                  <span>skill.yaml</span>
-                  <small>Generated draft</small>
-                </div>
-                <pre>{{ draftYaml }}</pre>
-              </section>
+                  <div class="skill-draft-tree-body">
+                    <div v-for="row in draftTreeRows" :key="row.label" class="skill-tree-row" :class="row.className">
+                      <span class="skill-tree-caret">{{ row.caret }}</span>
+                      <span class="skill-tree-icon" :class="row.icon"></span>
+                      <b>{{ row.label }}</b>
+                      <em v-if="row.count">{{ row.count }}</em>
+                    </div>
+                  </div>
+                </aside>
+                <section class="skill-draft-editor" aria-label="生成的 Skill 草稿">
+                  <div class="skill-draft-editor-head">
+                    <span>skill.yaml</span>
+                    <small>Generated draft</small>
+                  </div>
+                  <pre>{{ draftYaml }}</pre>
+                </section>
+              </div>
             </div>
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
@@ -213,51 +235,53 @@
           </div>
 
           <div class="skill-create-panel" :class="{ active: activeTab === 'verify' }" data-skill-create-panel="verify">
-            <div class="skill-eval-head">
-              <div>
-                <b>评估验证</b>
-                <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.60。</p>
-              </div>
-              <button class="btn btn-secondary" type="button" @click="toast('已发起重新评估')">重新评估</button>
-            </div>
-            <div id="skill-create-eval-scores" class="skill-score-grid">
-              <div v-for="score in scores" :key="score.label" class="skill-score-card" :class="{ featured: score.featured, pass: score.pass }">
-                <span>{{ score.label }}</span><b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
-              </div>
-            </div>
-            <div id="skill-create-eval-gate" class="skill-eval-gate pass">
-              <b>评估通过</b>
-              <span>{{ evalGateText }}</span>
-            </div>
-            <div id="skill-create-eval-list" class="skill-eval-list">
-              <div v-for="item in evalItems" :key="item.title">
-                <span class="pass">PASS</span><b>{{ item.title }}<small v-if="item.detail">{{ item.detail }}</small></b><em>{{ item.score }}</em>
-              </div>
-            </div>
-            <div id="skill-create-optimization-panel" class="skill-optimization-panel" :class="{ tuned: aiTuned }">
-              <div class="skill-optimization-head">
+            <div class="skill-create-panel-body">
+              <div class="skill-eval-head">
                 <div>
-                  <b>{{ aiTuned ? 'AI 微调完成' : 'AI 可继续优化' }}</b>
-                  <span>{{ aiTuned ? '可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。' : '当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。' }}</span>
+                  <b>评估验证</b>
+                  <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.60。</p>
                 </div>
-                <button id="skill-ai-tune-btn" class="btn" :class="aiTuned ? 'btn-secondary' : 'btn-primary'" type="button" :disabled="aiTuning" @click="startAiTune">
-                  {{ aiTuneButtonText }}
-                </button>
+                <button class="btn btn-secondary" type="button" @click="toast('已发起重新评估')">重新评估</button>
               </div>
-              <div class="skill-optimization-list">
-                <div v-for="item in optimizationItems" :key="item.title">
-                  <span>{{ item.index }}</span>
-                  <b>{{ item.title }}</b>
-                  <p>{{ item.desc }}</p>
-                  <button type="button" @click="item.action()">{{ item.actionText }}</button>
+              <div id="skill-create-eval-scores" class="skill-score-grid">
+                <div v-for="score in scores" :key="score.label" class="skill-score-card" :class="{ featured: score.featured, pass: score.pass }">
+                  <span>{{ score.label }}</span><b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
                 </div>
               </div>
-            </div>
-            <div class="skill-case-list">
-              <b>用例对比</b>
-              <div><span>case-1 · 20.9s</span><em>得分 0.88</em></div>
-              <div><span>case-2 · 25.6s</span><em>得分 0.82</em></div>
-              <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
+              <div id="skill-create-eval-gate" class="skill-eval-gate pass">
+                <b>评估通过</b>
+                <span>{{ evalGateText }}</span>
+              </div>
+              <div id="skill-create-eval-list" class="skill-eval-list">
+                <div v-for="item in evalItems" :key="item.title">
+                  <span class="pass">PASS</span><b>{{ item.title }}<small v-if="item.detail">{{ item.detail }}</small></b><em>{{ item.score }}</em>
+                </div>
+              </div>
+              <div id="skill-create-optimization-panel" class="skill-optimization-panel" :class="{ tuned: aiTuned }">
+                <div class="skill-optimization-head">
+                  <div>
+                    <b>{{ aiTuned ? 'AI 微调完成' : 'AI 可继续优化' }}</b>
+                    <span>{{ aiTuned ? '可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。' : '当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。' }}</span>
+                  </div>
+                  <button id="skill-ai-tune-btn" class="btn" :class="aiTuned ? 'btn-secondary' : 'btn-primary'" type="button" :disabled="aiTuning" @click="startAiTune">
+                    {{ aiTuneButtonText }}
+                  </button>
+                </div>
+                <div class="skill-optimization-list">
+                  <div v-for="item in optimizationItems" :key="item.title">
+                    <span>{{ item.index }}</span>
+                    <b>{{ item.title }}</b>
+                    <p>{{ item.desc }}</p>
+                    <button type="button" @click="item.action()">{{ item.actionText }}</button>
+                  </div>
+                </div>
+              </div>
+              <div class="skill-case-list">
+                <b>用例对比</b>
+                <div><span>case-1 · 20.9s</span><em>得分 0.88</em></div>
+                <div><span>case-2 · 25.6s</span><em>得分 0.82</em></div>
+                <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
+              </div>
             </div>
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
@@ -268,17 +292,19 @@
           </div>
 
           <div class="skill-create-panel" :class="{ active: activeTab === 'review' }" data-skill-create-panel="review">
-            <div class="skill-doc-grid">
-              <div class="skill-upload-box">
-                <b>提交审核</b>
-                <p>综合评分已达标，可提交 PM/平台管理员审核。创建流程到提交审核结束；审核通过后才进入上传或发布，不属于当前创建流程。</p>
-                <button class="btn btn-secondary" type="button" @click="switchTab('verify')">返回评估验证</button>
-              </div>
-              <div class="skill-doc-list">
-                <div><span>门槛</span><b>综合评分 ≥ 0.60</b></div>
-                <div><span>状态</span><b>{{ reviewScoreText }}</b></div>
-                <div><span>动作</span><b id="skill-create-review-status">{{ reviewStatus }}</b></div>
-                <div><span>后续</span><b>审核通过后才可上传发布</b></div>
+            <div class="skill-create-panel-body">
+              <div class="skill-doc-grid">
+                <div class="skill-upload-box">
+                  <b>提交审核</b>
+                  <p>综合评分已达标，可提交 PM/平台管理员审核。创建流程到提交审核结束；审核通过后才进入上传或发布，不属于当前创建流程。</p>
+                  <button class="btn btn-secondary" type="button" @click="switchTab('verify')">返回评估验证</button>
+                </div>
+                <div class="skill-doc-list">
+                  <div><span>门槛</span><b>综合评分 ≥ 0.60</b></div>
+                  <div><span>状态</span><b>{{ reviewScoreText }}</b></div>
+                  <div><span>动作</span><b id="skill-create-review-status">{{ reviewStatus }}</b></div>
+                  <div><span>后续</span><b>审核通过后才可上传发布</b></div>
+                </div>
               </div>
             </div>
             <div class="skill-create-step-actions">
