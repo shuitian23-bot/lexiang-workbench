@@ -1,6 +1,16 @@
 # 乐享 AI 工作台 — Vue 3 源码包
 
-本包是 Vue 源码，不是 `public/admin-vue` 运行产物。0703 版本已把权限管理 POC 回写到 `src/views/agent/AgentPermissionsView.vue`，并在源码侧引入 0702 设计规范样式 `src/assets/ui-0702-design-skill.css`。
+本包是门户工作台当前主维护源码，不是 `public/admin-vue` 运行产物。0703 版本已把权限管理 POC 回写到 `src/views/agent/AgentPermissionsView.vue`，并在源码侧应用 0703 设计规范调整。
+
+## 源码边界
+
+- 当前新功能、交互、页面样式都优先维护在 `vue-app/`。
+- `src/views/` 存放 Vue 页面。
+- `src/components/` 存放壳层、侧栏、右侧 Agent 等组件。
+- `src/assets/` 存放 Vue 工作台样式覆盖层和设计规范样式。
+- `public/admin-runtime/` 存放 Vue 工作台复用的旧运行时数据和页面模块。
+- 仓库根目录的 `public/admin/` 是 Legacy HTML 版本，只做兼容和历史参考。
+- 仓库根目录的 `public/admin-vue/` 是构建产物，不入 Git，也不作为源码修改入口。
 
 ## 快速启动（本地预览）
 
@@ -28,7 +38,7 @@ npm run build
 | 路由 | vue-router 4（History 模式） |
 | 状态 | Pinia |
 | 图表 | ECharts 5 |
-| 样式 | 复用原版 CSS，并叠加 0702 设计规范样式 |
+| 样式 | 复用原版 CSS，并叠加 0703 设计规范样式 |
 
 ## 目录结构
 

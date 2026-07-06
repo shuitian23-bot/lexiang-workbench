@@ -1,5 +1,24 @@
 # leaibot
 
+## 门户工作台源码边界
+
+当前门户工作台以 `vue-app/` 作为 Vue 架构源码主入口。后续功能、交互和样式调整优先修改这里，并通过 Vite 构建生成线上 `/admin-vue/` 运行产物。
+
+| 路径 | 状态 | 用途 |
+| --- | --- | --- |
+| `vue-app/` | 主维护源码 | Vue 3 工作台源码。功能页面、AI 助手、权限管理、Skill 创建和样式规范都在这里维护。 |
+| `vue-app/src/assets/` | 主维护样式 | Vue 工作台当前样式层。设计规范覆盖、壳层适配和页面样式调整放这里。 |
+| `vue-app/public/admin-runtime/` | 运行时适配资源 | Vue 工作台复用的旧模块数据和页面运行时文件，需要随 Vue 源码一起维护。 |
+| `public/admin/` | Legacy HTML 版本 | 旧 HTML 工作台和历史预览链路，仅作为兼容、回查和样式参考。不要把新功能优先改在这里。 |
+| `public/admin-vue/` | 构建产物 | Vue 构建输出目录，不入 Git，不作为源码修改入口。 |
+
+重要约定：
+
+- 新增或修复门户工作台功能时，先改 `vue-app/src` 或 `vue-app/public/admin-runtime`。
+- 不直接提交 `public/admin-vue/`，该目录由构建生成，已在 `.gitignore` 中排除。
+- `public/admin/*.js`、`public/admin/*.css` 仍保留给旧 HTML 链路和历史对照使用，但不是当前 Vue 工作台的主维护对象。
+- 如果需要清理旧 HTML 链路，应先确认线上不再访问 `/admin/workbench.html`，再单独做归档或删除。
+
 
 
 ## Getting started
