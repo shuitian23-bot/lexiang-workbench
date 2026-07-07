@@ -1,0 +1,34 @@
+{
+  "projectId": "lexiang-workbench",
+  "requiredSkillId": "portal-workbench-ui",
+  "requiredSkillVersion": "2026-07-06",
+  "requiredSkillRelease": "0706",
+  "requiredSkillFingerprint": "sha256-001b8fc9ce3b96b0",
+  "warningOnly": true,
+  "baselineName": "0706",
+  "protectedSurfaces": [
+    "topbar",
+    "left-sidebar",
+    "sidebar-collapse",
+    "right-agent",
+    "agent-header",
+    "agent-composer",
+    "static-tabs",
+    "dynamic-tabs",
+    "account-entry",
+    "shared-components"
+  ],
+  "blockedGlobalCssPatterns": [
+    "ui-*-design-skill.css",
+    "*design-skill*.css"
+  ],
+  "approvedDesignSkillCssFiles": [],
+  "allowedGlobalCssImports": [
+    "./assets/workbench.css",
+    "./assets/workbench-original-lock.css",
+    "./assets/workbench-prd-modules.css",
+    "./assets/workbench-ui-polish.css",
+    "./assets/workbench-preview-overrides.css",
+    "./assets/vue-shell-adapter.css"
+  ]
+}

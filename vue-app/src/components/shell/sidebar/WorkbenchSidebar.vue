@@ -104,32 +104,39 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-07-07 08:33',
+    title: '0706 Vue 样式匹配覆盖与规范校验',
+    scope: '右侧 Agent / 工作台壳层收起态 / 设计规范守卫',
+    detail: '对照 lexiang-new-0706/vue-app 和 portal-workbench-ui-0706 设计规范，仅覆盖与当前 new Vue 源码匹配的样式差异：补齐右侧 Agent 收起时宽度归零、隐藏边框阴影、禁用点击和展开恢复交互。同步移除未登记的 ui-0702-design-skill.css 运行时引入，接入 0706 design-baseline guard，用于提示封板壳层、Agent composer、静态/动态页签和共享组件被误覆盖的风险。未回退已确认的夜间模式底层能力。',
+    status: '已合并正式'
+  },
+  {
     time: '2026-07-06 08:52',
     title: '0703 Vue UI 样式覆盖',
     scope: 'Skill 创建 / 权限管理 / 小屏布局 / 工作台壳层样式',
     detail: '对照 lexiang-new-0703.zip，仅合并与当前 Vue 源码重合的样式结构；并按 portal-workbench-ui-0703 设计规范收敛 Skill 创建与权限管理：内容区独立滚动、底部操作行固定、步骤页签密度统一、图标改为线性 SVG、小屏按壳层压缩顺序处理。保留线上新增的火山引擎调用、运营总览口径兜底、夜间模式和账号入口卡片修复，不做功能回退。',
-    status: '已更新 new 预览'
+    status: '已合并正式'
   },
   {
     time: '2026-07-03 17:54',
     title: '账号入口弹层卡片样式修复',
     scope: '账号入口 / 创建 Skill / 工作区入口弹层',
     detail: '修正账号入口弹层中“创建 Skill”卡片被全局 primary 规则误染成整块蓝底的问题；卡片恢复为白色信息面板，仅保留左上角加号图标使用主色。',
-    status: '已更新 new 预览'
+    status: '已合并正式'
   },
   {
     time: '2026-07-03 15:48',
     title: '运营总览 AI 解读口径纠偏',
     scope: '运营总览 / AI 解读 / 右侧 Agent 演示结果',
     detail: '运营总览的 AI 解读改为走真实火山引擎会话接口，并把页面已展示的 DAU、WAU、MAU、GMV、关键经营链路、GMV 结构和趋势速览作为上下文传入；接口失败时不再生成本地 mock 分析内容，同时展示层过滤旧报告里的风控、策略命中等无关口径。',
-    status: '已更新 new 预览'
+    status: '已合并正式'
   },
   {
     time: '2026-07-03 11:45',
     title: '权限管理 Vue 源码链路补全',
     scope: '权限管理 / 权限申请 / 审批列表 / 角色与用户管理',
     detail: '把权限管理从占位入口补成 Vue 源码内的可操作 POC：包含权限申请五步链路、审批列表、角色管理、用户管理、组织管理、数据源管理、功能管理和删除备份，并保留 0702 设计规范覆盖。',
-    status: '源码已更新'
+    status: '已合并正式'
   },
   {
     time: '2026-06-23 17:33',

@@ -10,7 +10,6 @@ import './assets/workbench-prd-modules.css'
 import './assets/workbench-ui-polish.css'
 import './assets/workbench-preview-overrides.css'
 import './assets/vue-shell-adapter.css'
-import './assets/ui-0702-design-skill.css'
 
 const app = createApp(App)
 app.use(createPinia())
