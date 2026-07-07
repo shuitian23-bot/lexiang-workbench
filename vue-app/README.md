@@ -69,7 +69,7 @@ vue-app/
 - `src/views/agent/AgentPermissionsView.vue`：权限管理从占位页补成可操作 POC，包含权限申请五步链路、审批列表、角色管理、用户管理、组织管理、数据源管理、功能管理和删除备份。
 - `src/components/shell/sidebar/WorkbenchSidebar.vue`：账号入口中的权限管理改为进入 `/agent/permissions`，并补充调整日志记录。
 - `src/components/sidebar/SidebarFooter.vue`：权限管理入口说明改为当前可用能力描述。
-- `src/main.ts`：引入 `src/assets/ui-0702-design-skill.css`，让样式覆盖存在于 Vue 源码层。
+- `src/main.ts`：使用封板样式栈 `workbench.css`、`workbench-original-lock.css`、`workbench-prd-modules.css`、`workbench-ui-polish.css`、`workbench-preview-overrides.css`、`vue-shell-adapter.css`；不再引入未登记的 `ui-*-design-skill.css` 运行时样式。
 
 ## 后端接口代理
 
