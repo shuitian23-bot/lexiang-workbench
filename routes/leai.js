@@ -68,6 +68,16 @@ router.post('/chat', async (req, res) => {
   }
 });
 
+// ── 会话槽位保底 ─────────────────────────────────────────────────────────────
+// 官方模型多轮拆解会概率性丢数字条件（说了"7000左右"，追问"要结合学习"后预算没了）。
+// per-session 记住用户提过的预算，追问没提新预算时替他拼回提醒。内存态，重启即清（POC 够用）。
+const SESSION_SLOTS = new Map(); // sessionId → { budget: '7000', ts }
+function slotExtractBudget(msg) {
+  const m = String(msg || '').match(/(?:预算|价位)\s*(?:大概|大约|约|在)?\s*(?<![a-zA-Z0-9])(\d{3,6})|(?<![a-zA-Z0-9])(\d{3,6})\s*(?:块钱|块|元)?\s*(?:左右|以内|以下|上下|之内)|(?<![a-zA-Z0-9])(\d{3,6})\s*(?:块钱|块|元)(?![a-zA-Z0-9])/);
+  const n = Number(m && (m[1] || m[2] || m[3]));
+  return n >= 500 && n <= 200000 ? String(n) : null;
+}
+
 // POST /api/leai/stream — 翻译官方 SSE 为前端 chunk/status/display/done 格式
 router.post('/stream', async (req, res) => {
   const { message, sessionId: bodySessionId, lng, lat, enableThinking } = req.body;
@@ -112,6 +122,20 @@ router.post('/stream', async (req, res) => {
     let auth = await getAuth();
     let sessionId = safeBodySessionId || auth.sessionId;
 
+    // 槽位保底：本轮提了预算→记住；没提且是延续会话的选购类短追问→拼回预算提醒
+    let qaInput = message;
+    const _newBudget = slotExtractBudget(message);
+    if (_newBudget) {
+      SESSION_SLOTS.set(sessionId, { budget: _newBudget, ts: Date.now() });
+    } else if (safeBodySessionId) {
+      const _slot = SESSION_SLOTS.get(safeBodySessionId);
+      if (_slot && Date.now() - _slot.ts < 30 * 60 * 1000 && String(message).length <= 40 &&
+          /学习|办公|游戏|轻薄|便携|大屏|续航|学生|上学|设计|剪辑|编程|推荐|适合|换个?|再来?|还是|要|买|选/.test(message)) {
+        qaInput = message + '（补充：预算仍是之前说的' + _slot.budget + '元左右，推荐请继续满足）';
+      }
+    }
+    if (SESSION_SLOTS.size > 1000) SESSION_SLOTS.clear(); // ponytail: 简单上限防内存涨,够POC用
+
     const callQa = (token, sid) => fetch(`${AIGC_BASE}/api/chat/qa`, {
       method: 'POST',
       headers: {
@@ -121,7 +145,7 @@ router.post('/stream', async (req, res) => {
         ...HEADERS,
       },
       body: JSON.stringify({
-        input: message,
+        input: qaInput,
         sessionId: sid,
         entrySource: 'pc',
         timestamp: Date.now(),
