@@ -580,8 +580,17 @@
     window.setTimeout(() => {
       document.body.classList.remove("lxfd-exiting");
       document.body.classList.remove("lxfd-split-returning");
+      lxfdAssertSplitEndState();
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
+  }
+  // 退出动画收尾断言：分屏已成形则全屏类必须不在。防御外部"回全屏"钩子在动画窗口内
+  // (补分屏类之前的一瞬守卫失效)把全屏类加回来，造成两态共存的混合花屏
+  function lxfdAssertSplitEndState() {
+    if (!document.body.classList.contains("lx-home-split")) return;
+    document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lx-root-home");
+    document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+    if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
   }
   function exitFullscreenWithReveal(afterReveal) {
     const onAfterReveal = typeof afterReveal === "function" ? afterReveal : null;
@@ -604,6 +613,7 @@
     window.setTimeout(() => {
       document.body.classList.remove("lxfd-exiting");
       document.body.classList.remove("lxfd-split-returning");
+      lxfdAssertSplitEndState();
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
   }

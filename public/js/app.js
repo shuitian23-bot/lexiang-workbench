@@ -8733,6 +8733,10 @@ function openOrderDetail(orderId) {
     removePortalHome();
     var splitActive = document.body.classList.contains("lx-home-split") ||
       document.body.classList.contains("lxfd-split-entered") ||
+      // 退全屏→分屏的过渡动画期间(约760ms)分屏类还没就位，此时强制回全屏会造成
+      // 全屏类+分屏类共存的混合态(load后的50/200/600ms定时器正撞用户手快输指令的窗口)
+      document.body.classList.contains("lxfd-exiting") ||
+      document.body.classList.contains("lxfd-split-returning") ||
       (document.body.dataset && document.body.dataset.page && document.body.dataset.page !== "home") ||
       (window.__lxState && window.__lxState.page && window.__lxState.page !== "home");
     if (!isRootPath() || splitActive) return;
