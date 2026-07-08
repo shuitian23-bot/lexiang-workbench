@@ -5966,14 +5966,20 @@ function openOrderDetail(orderId) {
               else { ops.close_other_tabs(); }
             },
             go_home: () => {
-              // 原地分屏里说「回首页」= 右侧回到货架初始态（清功能页签+推荐楼层滚回顶部）。
-              // 不能真点顶部"首页"导航：state.page 会切成 home，楼层数据源直接早退 → 右侧白屏
+              // 原地分屏(URL=/)里说「回首页」= 回到真首页：全屏单屏形态，带着对话回去
+              // （不是右侧换货架——那是「个人及家庭」站不是首页）。不能点顶部"首页"导航：
+              // state.page 切 home 会让楼层数据源早退，曾致右侧白屏
               if (document.body.classList.contains("lx-home-split")) {
                 state.tabs = []; state.activeTabId = null; state.pageTrail = [];
                 lxRenderTabbar();
+                document.querySelector(".content")?.setAttribute("data-view", "list");
+                if (typeof window.__lxfdEnterFromSplit === "function") {
+                  window.__lxfdEnterFromSplit();
+                  return;
+                }
+                // 兜底（lxfd 未就绪）：右侧回货架初始态
                 if (state.page === "home" || !state.page) state.page = "personal";
                 if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
-                document.querySelector(".content")?.setAttribute("data-view", "list");
                 loadProductsForPage();
                 document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
                 return;
