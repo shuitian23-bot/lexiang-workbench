@@ -29,9 +29,9 @@
           if (!isUser && !isAi) return;
           if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return; // 跳过操作过渡气泡
           // 跳过未完成的 loading 态 AI 消息，否则刷新后会卡在「生成中…」
-          if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
-          const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
+          if (isAi && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
           let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+          const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || el.querySelector(".ai-body")?.textContent || "").trim();
           // 双保险：html 残留 loading 标记则丢弃，恢复时用 mdLite 重渲染
           if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor/.test(html)) html = "";
           if (!text && !html) return;

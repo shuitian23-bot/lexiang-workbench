@@ -86,6 +86,8 @@
       const actWord = act === "cart" ? "加入购物车" : act === "open" ? "打开" : "下单";
       return { op: "buy_nth", target: ord + "|" + act, msg: "好的，正在为你" + actWord + "第 " + ord + " 个商品。" };
     }
+    // 下单乐享推荐的商品：例如「那就直接下单你推荐的吧」「买乐享推荐那款」「就按推荐下单」
+    if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不)).*(你|乐享|系统|AI|ai|刚才|最)?推荐[的得]?(那[个款台件本]?|这[个款台件本]?|商品|机器|电脑)?(.*)?(下单|购买|买|要了|就它|就这[个款台件本]?|直接下单)/.test(_t) || /^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不)).*(下单|购买|买|要了|直接下单).*(你|乐享|系统|AI|ai|刚才|最)?推荐[的得]?/.test(_t)) return { op: "buy_recommended", target: "", msg: "好的，正在为你下单乐享推荐商品。" };
     // 下单当前正在看的商品（含「这款/这台/这本不错下单吧」口语）
     if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这[个款台件本]?|那[个款台件本]?|它|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买(这[个款台件本]|它|那[个款台件本])?)(吧|呀|啊|喽|咯)?(?:[，,、。\s].*?(优惠|券|领|结算).*)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
     return null;
@@ -99,7 +101,7 @@
     open_edu_zone: "打开了教育专区", open_compare: "打开了商品对比", clear_compare: "清空了对比清单",
     start_student_auth: "打开了学生认证", start_enterprise_auth: "打开了企业认证", switch_site: "切换了站点",
     enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式",
-    buy_current: "正在为你下单当前商品", buy_nth: "正在为你处理所选商品",
+    buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品",
   };
 
   const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames };
