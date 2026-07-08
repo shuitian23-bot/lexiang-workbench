@@ -27,3 +27,5 @@ routes/leai.js|SESSION_SLOTS|会话槽位保底
 public/js/app.js|_refsSnap|引用快照防竞争
 public/js/app-intent.js|parseWantedCount|推荐数量意愿解析
 public/js/app.js|data-lxfd-reveal-products|主面板旧推荐CTA重建
+public/js/app-voice.js|__lxVoiceInstalled|语音控制模块本体
+public/index.html|app-voice.js|index加载语音模块
