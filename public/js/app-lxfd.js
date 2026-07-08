@@ -592,6 +592,10 @@
     document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lx-root-home");
     document.documentElement.classList.remove("lx-root-lxfd-prepaint");
     if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
+    // forceRootFullscreen 曾给 .lxfd 写内联 display:block/visibility:visible——内联样式压过
+    // 分屏 CSS 的隐藏规则,全屏层会叠在分屏上(消息裸排+hero输入框+画廊混显)。清掉还权给 CSS
+    const lxfdLayer = document.querySelector(".lxfd");
+    if (lxfdLayer) { lxfdLayer.style.display = ""; lxfdLayer.style.visibility = ""; }
   }
   function exitFullscreenWithReveal(afterReveal) {
     const onAfterReveal = typeof afterReveal === "function" ? afterReveal : null;
@@ -839,6 +843,8 @@
       document.documentElement.classList.remove("lx-root-lxfd-prepaint");
       document.body.classList.add("lx-home-split");
       window.__LXFD_FORCE = false;
+      const _lxfdLayer = document.querySelector(".lxfd");
+      if (_lxfdLayer) { _lxfdLayer.style.display = ""; _lxfdLayer.style.visibility = ""; }
       if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
       document.body.dataset.state = "chat";
     }
@@ -1314,6 +1320,9 @@
                 if (location.pathname.replace(/\/+$/, "/") === "/" && !document.body.classList.contains("lx-home-split")) {
                   document.documentElement.classList.remove("lx-root-lxfd-prepaint");
                   document.body.classList.add("lx-home-split");
+                  window.__LXFD_FORCE = false;
+                  const _lxfdLayer2 = document.querySelector(".lxfd");
+                  if (_lxfdLayer2) { _lxfdLayer2.style.display = ""; _lxfdLayer2.style.visibility = ""; }
                   if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
                   document.body.dataset.state = "chat";
                 }
