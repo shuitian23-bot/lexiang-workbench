@@ -5965,7 +5965,21 @@ function openOrderDetail(orderId) {
               if (tab) { lxCloseTab(tab.id); lxKeepHomeFullscreenAfterTabClose(); toast(`已关闭「${tab.label}」`); }
               else { ops.close_other_tabs(); }
             },
-            go_home: () => document.querySelector('.main-nav [data-page="home"]')?.click(),
+            go_home: () => {
+              // 原地分屏里说「回首页」= 右侧回到货架初始态（清功能页签+推荐楼层滚回顶部）。
+              // 不能真点顶部"首页"导航：state.page 会切成 home，楼层数据源直接早退 → 右侧白屏
+              if (document.body.classList.contains("lx-home-split")) {
+                state.tabs = []; state.activeTabId = null; state.pageTrail = [];
+                lxRenderTabbar();
+                if (state.page === "home" || !state.page) state.page = "personal";
+                if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
+                document.querySelector(".content")?.setAttribute("data-view", "list");
+                loadProductsForPage();
+                document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+              }
+              document.querySelector('.main-nav [data-page="home"]')?.click();
+            },
             switch_site: () => routeTo(siteMap[target] || "personal"),
             open_member: () => openMemberCenter(),
             open_coupon: () => openCouponCenter(),
