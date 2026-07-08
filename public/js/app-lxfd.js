@@ -1198,7 +1198,10 @@
         products: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
-          const products = payload.products || [];
+          let products = payload.products || [];
+          // 用户点名要N款(2-6)而官方固定回5-6款 → 按要求截断
+          const _wantN = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(value) : null;
+          if (_wantN && products.length > _wantN) products = products.slice(0, _wantN);
           if (!products.length) return;
           hasContent = true;
           pendingExtras += renderLxfdProducts(products);
@@ -1210,7 +1213,9 @@
         display: (data) => {
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
-          const products = payload.products || payload.items || [];
+          let products = payload.products || payload.items || [];
+          const _wantN = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(value) : null;
+          if (_wantN && products.length > _wantN) products = products.slice(0, _wantN);
           if (products.length || payload.title) hasContent = true;
           if (payload.title && !ai._raw) {
             ai._raw = payload.title;

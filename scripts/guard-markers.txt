@@ -25,3 +25,5 @@ public/js/app.js|lxContextSuggest|情境输入预判
 public/js/app-lxfd.js|hasConvo && window.__lxBridge|退全屏恢复分屏
 routes/leai.js|SESSION_SLOTS|会话槽位保底
 public/js/app.js|_refsSnap|引用快照防竞争
+public/js/app-intent.js|parseWantedCount|推荐数量意愿解析
+public/js/app.js|data-lxfd-reveal-products|主面板旧推荐CTA重建

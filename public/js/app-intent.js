@@ -93,6 +93,18 @@
     return null;
   }
 
+  // 数量意愿：「推荐三款」「来2款」→ 2-6。「第三款」是序号不算。
+  // 1 款不在这里（调用方已有"推荐一款→收敛到1"的单品逻辑）。官方固定回5-6款，前端按此截断。
+  function parseWantedCount(text) {
+    const t = String(text || "");
+    const m = t.match(/(?:推荐|介绍|来|给我?|要|选)[^,，。;；]{0,10}?(?<!第)([两二三四五六23456])\s*[款个台]/) ||
+              t.match(/(?<!第)([两二三四五六23456])\s*[款个台][^,，。;；]{0,4}(?:推荐|介绍)/);
+    if (!m) return null;
+    const map = { 两: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
+    const n = map[m[1]] || Number(m[1]);
+    return n >= 2 && n <= 6 ? n : null;
+  }
+
   // 后端小模型意图命中后的确认话术（target 由调用方插值）
   const opNames = {
     close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", close_tab: "关闭了该标签",
@@ -104,7 +116,7 @@
     buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品",
   };
 
-  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames };
+  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount };
   if (typeof module !== "undefined" && module.exports) module.exports = api; // node 单测用
   if (root) {
     root.__lxIntent = api;

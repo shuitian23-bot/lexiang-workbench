@@ -2512,7 +2512,9 @@ function openOrderDetail(orderId) {
               products: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
-                const products = payload.products || [];
+                let products = payload.products || [];
+                const _wantNp = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(state.lastUserText || "") : null;
+                if (_wantNp && products.length > _wantNp) products = products.slice(0, _wantNp);
                 _turnProdCount = Math.max(_turnProdCount, products.length);
                 revealAi();
                 lxAppendAiHtml(ai, renderProductsInMessage(products));
@@ -2560,6 +2562,9 @@ function openOrderDetail(orderId) {
                 if (products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
                   products = products.slice(0, 1);
                 }
+                // 用户点名要N款(2-6)而官方固定回5-6款 → 按要求截断
+                const _wantN = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(lastAsk) : null;
+                if (_wantN && products.length > _wantN) products = products.slice(0, _wantN);
                 _turnProdCount = Math.max(_turnProdCount, products.length);
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
@@ -8011,9 +8016,21 @@ function openOrderDetail(orderId) {
               }
               return;
             }
-            if (event.target.closest("[data-lx-focus-reco]")) {
+            // 推荐CTA：兼容主面板生成(data-lx-focus-reco)与全屏桥接来的(data-lxfd-reveal-products)两种；
+            // 多轮推荐共用一个reco tab互相覆盖，按消息上的recoId取回"那一轮"的商品重建，点旧消息回旧推荐
+            const _recoCta = event.target.closest("[data-lx-focus-reco], [data-lxfd-reveal-products]");
+            if (_recoCta) {
               if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) return;
               lxRevealContent();
+              const _recoId = _recoCta.getAttribute("data-lxfd-reco-id") || "";
+              const _recoPayload = (_recoId && window.__lxRecoPayloads && window.__lxRecoPayloads[_recoId]) || null;
+              if (_recoPayload && _recoPayload.length) {
+                const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products: _recoPayload };
+                lxUpsertTab(recoTab);
+                lxRunTab(recoTab);
+                return;
+              }
+              // 刷新后内存payload丢失 → 退回打开当前reco tab
               const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
               if (tab) {
                 state.activeTabId = tab.id;
