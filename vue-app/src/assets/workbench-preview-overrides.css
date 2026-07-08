@@ -2589,34 +2589,22 @@ html[data-product="leaibot"] body:not(.dark-mode) .table-row:hover {
   background: var(--color-surface-subtle);
 }
 
-/* Final refinements: neutral brand pill, soft canvas gradient, restored hover lift */
+/* Final refinements: brand lockup, soft canvas gradient, restored hover lift */
 html[data-product="leaibot"] .brand-lockup {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 7px;
-  max-width: calc(100% - 34px);
+  gap: 0;
+  max-width: calc(100% - 36px);
 }
 
 html[data-product="leaibot"] .brand-lockup .logo-full {
-  height: 22px;
-  max-width: 112px;
+  height: 23px;
+  max-width: 114px;
 }
 
 html[data-product="leaibot"] .brand-suffix {
-  height: 20px;
-  padding: 0 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 999px;
-  background: var(--color-surface-subtle);
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0;
-  line-height: 18px;
+  display: none !important;
 }
 
 html[data-product="leaibot"] body:not(.dark-mode) {
@@ -2778,7 +2766,7 @@ html[data-product="leaibot"] .sidebar:not(.collapsed) .sidebar-collapse-btn {
   width: 28px;
   height: 28px;
   min-width: 28px;
-  margin-left: 4px;
+  margin-left: 3px;
   border: 0;
   border-radius: 7px;
   background: transparent;

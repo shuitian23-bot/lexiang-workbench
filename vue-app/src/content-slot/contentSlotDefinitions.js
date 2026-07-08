@@ -67,7 +67,7 @@ export const CONTENT_SLOT_GROUPS = [
     pages: [
       {
         pageId: 'portal.home',
-        label: '门户工作台',
+        label: '联想门户工作台',
         path: '/portal/home',
         layout: CONTENT_SLOT_LAYOUTS.portalWorkbench,
         sourceRenderer: 'src/views/PortalHomeView.vue',
@@ -212,7 +212,7 @@ export const CONTENT_SLOT_GROUPS = [
     pages: [
       {
         pageId: 'employee.overview',
-        label: '概览',
+        label: '职场员工概览',
         path: '/employee/overview',
         layout: CONTENT_SLOT_LAYOUTS.dashboardOverview,
         sourceRenderer: 'src/views/employee/EmployeeOverviewView.vue',
@@ -223,7 +223,7 @@ export const CONTENT_SLOT_GROUPS = [
       },
       {
         pageId: 'employee.certification',
-        label: '认证审核',
+        label: '职场员工审核',
         path: '/employee/cert',
         layout: CONTENT_SLOT_LAYOUTS.reviewWorkbench,
         sourceRenderer: 'src/views/employee/EmployeeCertView.vue',

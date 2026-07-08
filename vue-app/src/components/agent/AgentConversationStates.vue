@@ -1,5 +1,10 @@
 <template>
   <div v-if="items.length" class="conversation-states" aria-label="AI 会话状态">
+    <div v-if="showStateSummary" class="conversation-state-summary">
+      <span class="summary-orb" aria-hidden="true"></span>
+      <b>{{ runningCount ? '思考中' : '处理过程' }}</b>
+      <em>{{ summaryText }}</em>
+    </div>
     <div
       v-for="item in items"
       :key="item.id"
@@ -29,8 +34,20 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   items: { type: Array, default: () => [] }
+})
+
+const runningCount = computed(() => props.items.filter(item => item.status === 'running').length)
+const pendingCount = computed(() => props.items.filter(item => item.status === 'pending').length)
+const failedCount = computed(() => props.items.filter(item => item.status === 'failed').length)
+const showStateSummary = computed(() => props.items.length > 2 || runningCount.value > 1)
+const summaryText = computed(() => {
+  if (runningCount.value) return `${runningCount.value} 步进行中${pendingCount.value ? ` · ${pendingCount.value} 步等待` : ''}`
+  if (failedCount.value) return `${failedCount.value} 步失败`
+  return `${props.items.length} 步已记录`
 })
 
 function statusLabel(status) {
@@ -50,6 +67,38 @@ function statusLabel(status) {
   display: grid;
   gap: 8px;
   margin: 10px 0 0;
+}
+
+.conversation-state-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.conversation-state-summary b {
+  color: var(--color-text, #1f2329);
+  font-size: 13px;
+}
+
+.conversation-state-summary em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+}
+
+.summary-orb {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(51, 112, 255, .18);
+  border-top-color: var(--color-primary, #3370ff);
+  border-radius: 999px;
+  animation: state-spin .9s linear infinite;
 }
 
 .conversation-state {
@@ -178,5 +227,9 @@ function statusLabel(status) {
 @keyframes state-dot {
   0%, 80%, 100% { opacity: .35; transform: translateY(0); }
   40% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes state-spin {
+  to { transform: rotate(360deg); }
 }
 </style>

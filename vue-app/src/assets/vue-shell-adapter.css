@@ -23,32 +23,21 @@ html[data-product="leaibot"] .sidebar.collapsed.is-peeking .brand-lockup {
   display: inline-flex;
   flex: 1 1 auto;
   min-width: 0;
-  max-width: calc(100% - 34px);
+  max-width: calc(100% - 36px);
   align-items: center;
   justify-content: flex-start;
-  gap: 7px;
+  gap: 0;
 }
 
 html[data-product="leaibot"] .sidebar.collapsed.is-peeking .logo-full {
   display: block;
-  height: 22px;
-  max-width: 112px;
+  height: 23px;
+  max-width: 114px;
   flex: 0 1 auto;
 }
 
 html[data-product="leaibot"] .sidebar.collapsed.is-peeking .brand-suffix {
-  display: inline-flex;
-  height: 20px;
-  padding: 0 7px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 999px;
-  background: var(--color-surface-raised);
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
+  display: none !important;
 }
 
 html[data-product="leaibot"] .sidebar.collapsed.is-peeking .logo-icon-img {

@@ -22,7 +22,7 @@ interface AttachedFile {
 }
 
 interface TaskAction {
-  type: 'report' | 'navigate' | 'skill' | 'prompt'
+  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_reject'
   label: string
   value?: string
 }
@@ -36,6 +36,8 @@ interface AiMessage {
   artifacts?: string[]
   actionItems?: TaskAction[]
   activityItems?: ConversationActivityItem[]
+  todoList?: TodoListBlock
+  authRequest?: AuthRequestBlock
 }
 
 interface ConversationActivityItem {
@@ -44,6 +46,27 @@ interface ConversationActivityItem {
   status: ConversationActivityStatus
   title: string
   detail?: string
+}
+
+interface TodoListBlock {
+  title: string
+  done: number
+  total: number
+  items: Array<{
+    id: string
+    text: string
+    status: 'done' | 'running' | 'pending'
+  }>
+}
+
+interface AuthRequestBlock {
+  title: string
+  namespace: string
+  command: string
+  risk: string
+  detail: string
+  approveLabel: string
+  rejectLabel: string
 }
 
 interface ReportArtifact {
@@ -441,6 +464,25 @@ export const useAIStore = defineStore('ai', () => {
     }
     if (action.type === 'prompt') {
       quickSend(action.value || action.label || '', pageId)
+      return
+    }
+    if (action.type === 'auth_approve') {
+      _recordTaskLog('auth', action.value || '授权执行', pageId || 'portal.home')
+      _recordMessage('assistant', '已记录授权。当前为 POC 状态展示，不会实际执行命令。', {
+        activityItems: [
+          _createActivity('confirm', 'done', '授权已确认', '用户已批准执行，高影响操作进入下一步。'),
+          _createActivity('tool_call', 'done', '执行动作已登记', action.value || '授权动作已进入任务日志。')
+        ]
+      })
+      return
+    }
+    if (action.type === 'auth_reject') {
+      _recordTaskLog('auth', action.value || '拒绝执行', pageId || 'portal.home')
+      _recordMessage('assistant', '已拒绝执行。任务已停止，没有触发任何写入、发布、导出或命令执行。', {
+        activityItems: [
+          _createActivity('confirm', 'failed', '授权已拒绝', '用户拒绝执行，高影响操作已停止。')
+        ]
+      })
     }
   }
 
@@ -580,6 +622,62 @@ export const useAIStore = defineStore('ai', () => {
       return true
     }
 
+    if (/todo|待办|任务清单/i.test(text)) {
+      _recordMessage('user', payload.userMsg)
+      _setActivityItems([
+        _createActivity('thinking', 'done', '理解任务意图', '已根据当前页面和输入内容拆解任务。'),
+        _createActivity('tool_call', 'running', '生成 TODO 列表', '正在建立可追踪的步骤清单。'),
+        _createActivity('tool_result', 'pending', '等待任务执行', '后续步骤会按完成状态更新。')
+      ])
+      _recordMessage('assistant', '已创建任务清单，我会按步骤推进并同步完成状态。', {
+        activityItems: _snapshotActivities(),
+        todoList: _demoTodoList()
+      })
+      _clearActivityItems()
+      return true
+    }
+
+    if (/授权|批准|执行命令|高风险|需要确认|python|命令/i.test(text)) {
+      _recordMessage('user', payload.userMsg)
+      _setActivityItems([
+        _createActivity('thinking', 'done', '理解执行请求', '已识别该任务包含高影响执行动作。'),
+        _createActivity('tool_call', 'running', '准备执行命令', '已生成命令与执行参数，等待授权前不会真正执行。'),
+        _createActivity('confirm', 'blocked', '等待用户授权', '涉及本地命令、导出、发布或配置变更，需要明确批准。')
+      ])
+      const command = /python/i.test(text)
+        ? 'python3 -c "import random; print(random.randint(0, 100))"'
+        : 'npm run deploy-preview -- --dry-run'
+      _recordMessage('assistant', '该操作需要授权后才能继续执行。请确认命令、命名空间和影响范围。', {
+        activityItems: _snapshotActivities(),
+        authRequest: {
+          title: '请求执行命令',
+          namespace: 'main',
+          command,
+          risk: '高影响操作',
+          detail: '授权后才会执行。拒绝后任务会停止，并保留当前状态链路用于走查。',
+          approveLabel: '批准执行',
+          rejectLabel: '拒绝'
+        }
+      })
+      _clearActivityItems()
+      return true
+    }
+
+    if (/并行|多个步骤|思考过程|同时进行/i.test(text)) {
+      _recordMessage('user', payload.userMsg)
+      _setActivityItems([
+        _createActivity('thinking', 'running', '理解任务意图', '正在结合页面上下文、快捷标签和附件内容判断任务类型。'),
+        _createActivity('tool_call', 'running', '读取参考内容', '正在读取生成所需的参考内容和页面状态。'),
+        _createActivity('tool_result', 'pending', '等待工具结果', '工具返回后会继续整理为回复、报告或后续动作。'),
+        _createActivity('follow_up', 'pending', '准备追问', '如发现缺少口径，会在生成前提出确认问题。')
+      ])
+      _recordMessage('assistant', '已进入多步骤并行处理状态。状态卡会展示当前进行中的步骤数量和每一步进度。', {
+        activityItems: _snapshotActivities()
+      })
+      _clearActivityItems()
+      return true
+    }
+
     if (_isReportIntent(text)) {
       _recordMessage('user', payload.userMsg)
       _setActivityItems(_reportActivities(payload))
@@ -595,7 +693,7 @@ export const useAIStore = defineStore('ai', () => {
   function _matchNavigationTarget(text: string): string | null {
     const source = String(text || '').toLowerCase()
     const entries: Array<[string, string[]]> = [
-      ['portal.home', ['门户工作台', '首页', 'home']],
+      ['portal.home', ['联想门户工作台', '首页', 'home']],
       ['dashboard.overview', ['运营总览', '运营概览']],
       ['pipeline.annotate', ['query 分析', 'query分析', '查询分析']],
       ['pipeline.quality', ['质量分析', '质量']],
@@ -606,8 +704,8 @@ export const useAIStore = defineStore('ai', () => {
       ['dashboard.geoIntent', ['意图分布']],
       ['dashboard.geoConversion', ['geo 转化', '转化看板']],
       ['dashboard.geoKnowledge', ['手工上传知识', '上传知识']],
-      ['employee.overview', ['员工概览']],
-      ['employee.certification', ['认证审核', '员工认证']],
+      ['employee.overview', ['职场员工概览', '员工概览']],
+      ['employee.certification', ['职场员工审核', '认证审核', '员工认证']],
       ['lead.dashboard', ['线索看板']],
       ['lead.pool', ['线索池']],
       ['lead.score', ['打分模型']],
@@ -774,6 +872,25 @@ export const useAIStore = defineStore('ai', () => {
     ]
   }
 
+  function _demoTodoList(): TodoListBlock {
+    return {
+      title: 'Todo List',
+      done: 0,
+      total: 9,
+      items: [
+        { id: 'todo-1', text: '校验当前状态与生成前确认', status: 'running' },
+        { id: 'todo-2', text: '调用 pre_generate_scripts 生成脚本产物', status: 'pending' },
+        { id: 'todo-3', text: '生成 SKILL.md', status: 'pending' },
+        { id: 'todo-4', text: '确认脚本输出已写入 SKILL.md', status: 'pending' },
+        { id: 'todo-5', text: '生成 evals/evals.json', status: 'pending' },
+        { id: 'todo-6', text: '生成 references/api-contracts.md', status: 'pending' },
+        { id: 'todo-7', text: '生成 references/call-chain.md', status: 'pending' },
+        { id: 'todo-8', text: '生成 references/field-rules.md', status: 'pending' },
+        { id: 'todo-9', text: '最终校验所有必需产物', status: 'pending' }
+      ]
+    }
+  }
+
   function _reportActivities(payload: ComposerPayload) {
     const pageLabel = getPageLabel(payload.pageId) || '当前页面'
     return [
@@ -902,7 +1019,7 @@ ${reply || _reportIntentReply(payload)}
       actions.push({ type: 'skill', label: '查看 Skill Hub', value: 'agent.skills' })
     }
     if (payload?.pageId && payload.pageId !== 'portal.home') {
-      actions.push({ type: 'navigate', label: '回到门户工作台', value: 'portal.home' })
+      actions.push({ type: 'navigate', label: '回到联想门户工作台', value: 'portal.home' })
     }
     return actions.slice(0, 3)
   }
@@ -1005,7 +1122,7 @@ ${reply || _reportIntentReply(payload)}
         createdAt: now
       },
       ...([
-        ['demo_employee_report', '在职员工管理 · 认证审核分析', 'employee.certification', '认证审核', '在职员工管理', ['员工', '认证', '审核'], '认证审核积压集中在劳动合同和个税视频两类材料，需要优化审核分流。'],
+        ['demo_employee_report', '在职员工管理 · 职场员工审核分析', 'employee.certification', '职场员工审核', '在职员工管理', ['员工', '认证', '审核'], '职场员工审核积压集中在劳动合同和个税视频两类材料，需要优化审核分流。'],
         ['demo_gmv_report', 'GMV 分析 · 业务贡献分析', 'ops.gmv', 'GMV 分析', '乐享运营', ['GMV', '购买', '客单价'], '消费商品贡献主要 GMV，SMB 商品增长稳定，政企商品需要提升线索承接。'],
         ['demo_traffic_report', '流量分析 · 入口质量分析', 'ops.traffic', '流量分析', '乐享运营', ['流量', 'DAU', '入口'], 'App 首页和服务频道流量稳定，活动页转化效率低于整体均值。'],
         ['demo_geo_source_report', 'GEO 信源分布 · 引用分析', 'dashboard.geoSource', '各平台信源分布', 'GEO 看板', ['GEO', '信源', '引用'], '官方信源引用稳定，但社区信源内容一致性需要进一步校验。'],

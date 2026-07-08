@@ -136,6 +136,11 @@
                   </div>
                   <template v-for="message in clarifyMessages" :key="message.id">
                     <div v-if="message.kind === 'state'" class="skill-chat-ai skill-conversation-states" aria-label="AI 会话状态">
+                      <div v-if="showSkillStateSummary(message.states)" class="skill-state-summary">
+                        <span class="skill-summary-orb" aria-hidden="true"></span>
+                        <b>{{ skillStateSummaryTitle(message.states) }}</b>
+                        <em>{{ skillStateSummary(message.states) }}</em>
+                      </div>
                       <div
                         v-for="state in message.states"
                         :key="`${message.id}-${state.kind}-${state.title}`"
@@ -150,7 +155,50 @@
                         <span v-if="state.status === 'running'" class="skill-state-dots" aria-hidden="true"><i></i><i></i><i></i></span>
                       </div>
                     </div>
-                    <div v-else :class="message.kind === 'user' ? 'skill-chat-user' : 'skill-chat-ai'">{{ message.text }}</div>
+                    <div v-else-if="message.kind === 'user'" class="skill-chat-user">{{ message.text }}</div>
+                    <div v-else class="skill-chat-ai">
+                      <div>{{ message.text }}</div>
+                      <div v-if="message.todoList" class="skill-todo-card">
+                        <div class="skill-todo-head">
+                          <span class="skill-todo-title">
+                            <span class="skill-todo-orb" aria-hidden="true"></span>
+                            <b>{{ message.todoList.title }}</b>
+                          </span>
+                          <span class="skill-todo-progress">{{ message.todoList.done }}/{{ message.todoList.total }}</span>
+                        </div>
+                        <div class="skill-todo-list">
+                          <div
+                            v-for="item in message.todoList.items"
+                            :key="item.id"
+                            class="skill-todo-item"
+                            :class="`is-${item.status}`"
+                          >
+                            <span class="skill-todo-status" aria-hidden="true"></span>
+                            <span>{{ item.text }}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-if="message.authRequest" class="skill-auth-card">
+                        <div class="skill-auth-head">
+                          <span class="skill-auth-icon" aria-hidden="true" v-html="stateIcon('confirm')"></span>
+                          <div>
+                            <b>{{ message.authRequest.title }}</b>
+                            <em>{{ message.authRequest.risk }}</em>
+                          </div>
+                        </div>
+                        <div class="skill-auth-meta">namespace: {{ message.authRequest.namespace }}</div>
+                        <pre class="skill-auth-command"><code>{{ message.authRequest.command }}</code></pre>
+                        <p>{{ message.authRequest.detail }}</p>
+                        <div class="skill-auth-actions">
+                          <button type="button" class="skill-auth-approve" @click="handleClarifyAuth('approve', message.authRequest.command)">
+                            {{ message.authRequest.approveLabel }}
+                          </button>
+                          <button type="button" class="skill-auth-reject" @click="handleClarifyAuth('reject', message.authRequest.command)">
+                            {{ message.authRequest.rejectLabel }}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </template>
                 </div>
                 <div class="skill-clarify-card skill-clarify-summary">
@@ -330,9 +378,26 @@ import { useAIStore } from '@/stores/ai'
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
 type ContextItem = { code: string; name: string; source: string; selected: boolean }
 type StateStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked'
+type SkillStateItem = { kind: string; status: StateStatus; title: string; detail: string }
+type SkillTodoList = {
+  title: string
+  done: number
+  total: number
+  items: Array<{ id: string; text: string; status: 'done' | 'running' | 'pending' }>
+}
+type SkillAuthRequest = {
+  title: string
+  namespace: string
+  command: string
+  risk: string
+  detail: string
+  approveLabel: string
+  rejectLabel: string
+}
 type ChatMessage =
-  | { id: string; kind: 'user' | 'assistant'; text: string }
-  | { id: string; kind: 'state'; states: Array<{ kind: string; status: StateStatus; title: string; detail: string }> }
+  | { id: string; kind: 'user'; text: string }
+  | { id: string; kind: 'assistant'; text: string; todoList?: SkillTodoList; authRequest?: SkillAuthRequest }
+  | { id: string; kind: 'state'; states: SkillStateItem[] }
 
 const router = useRouter()
 const route = useRoute()
@@ -349,7 +414,7 @@ const tabs: Array<{ key: TabKey; label: string }> = [
 
 const activeTab = ref<TabKey>('config')
 const invalidField = ref('')
-const workspaceSub = ref('职场人群认证 · 迭代 0 轮 · 基础配置中')
+const workspaceSub = ref('职场员工审核 · 迭代 0 轮 · 基础配置中')
 const configBanner = ref('当前阶段：先完成 Skill 基础配置，明确必填的英文 Skill 名称、中文命名、所属菜单，以及可选的适用场景、输入输出和能力边界。')
 const clarifyInput = ref('')
 const clarifyInputEl = ref<HTMLTextAreaElement | null>(null)
@@ -362,10 +427,10 @@ const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
 
 const form = ref({
-  name: 'employee_certification_analysis',
-  cnName: '职场人群认证数据分析',
+  name: 'workplace_employee_review_analysis',
+  cnName: '职场员工审核数据分析',
   menu: '在职员工管理',
-  scene: '运营和 PM 通过自然语言查询职场人群认证数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。',
+  scene: '运营和 PM 通过自然语言查询职场员工审核数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。',
   input: '时间范围、认证方式、认证状态、企业名称、岗位信息、失败原因、输出格式',
   output: '指标摘要、认证方式分布表、失败原因 TopN、趋势判断、可下载 CSV 链接'
 })
@@ -389,14 +454,14 @@ const contextSummary = computed(() => {
 })
 
 const clarifyMessages = ref<ChatMessage[]>([
-  { id: 'u1', kind: 'user', text: '根据职场认证 PRD、后台字段说明和测试样例，创建一个帮助 PM 和运营分析认证数据的 Skill。' },
+  { id: 'u1', kind: 'user', text: '根据职场员工审核 PRD、后台字段说明和测试样例，创建一个帮助 PM 和运营分析认证数据的 Skill。' },
   { id: 's1', kind: 'state', states: [
     { kind: 'thinking', status: 'done', title: '读取基础材料', detail: '已识别 PRD、后台字段说明和测试样例。' },
     { kind: 'tool_call', status: 'done', title: '抽取能力上下文', detail: '匹配查询、统计、导出和权限校验相关能力。' },
     { kind: 'error', status: 'failed', title: '附件解析兜底', detail: '部分附件字段缺失，已改用后台字段说明和测试样例继续澄清。' },
     { kind: 'follow_up', status: 'blocked', title: '生成关键追问', detail: '先确认输出形态，再继续确认触发场景与权限边界。' }
   ] },
-  { id: 'a1', kind: 'assistant', text: '我已读取基础配置和附件材料。这个 Skill 的核心目标是帮助团队查询职场认证数据、识别认证方式分布、通过率趋势、失败原因和待审核积压。为了更准确地设计这个 Skill，我先确认一个关键点：输出结果需要偏文本总结、表格明细，还是两者都要？' },
+  { id: 'a1', kind: 'assistant', text: '我已读取基础配置和附件材料。这个 Skill 的核心目标是帮助团队查询职场员工审核数据、识别认证方式分布、通过率趋势、失败原因和待审核积压。为了更准确地设计这个 Skill，我先确认一个关键点：输出结果需要偏文本总结、表格明细，还是两者都要？' },
   { id: 'u2', kind: 'user', text: '两者都要。默认先给文字结论，再给表格。' },
   { id: 'a2', kind: 'assistant', text: '好的。接下来确认触发场景：除了自然语言查询，例如“最近 7 天个税认证通过率”，是否还需要定时报告或异常提醒？' },
   { id: 'u3', kind: 'user', text: '需要。支持日报，也要能发现待审核过多、某种认证方式失败率异常。' },
@@ -414,7 +479,7 @@ const clarifyMessages = ref<ChatMessage[]>([
 ])
 
 const summaryItems = ref([
-  { label: '基本信息', text: 'name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0' },
+  { label: '基本信息', text: 'name: workplace-employee-review-analysis；描述：职场员工审核数据分析 Skill；版本：1.0.0' },
   { label: '触发场景', text: '自然语言查询、日报/周报/月报、待审核积压和失败率异常提醒。' },
   { label: '文件结构', text: '生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md。' },
   { label: '输出格式', text: 'direct_response 文本结论、display_info 表格明细、link_list 脱敏 CSV 下载。' },
@@ -434,7 +499,7 @@ const clarifyActions = [
 ]
 
 const draftTreeRows = [
-  { label: 'employee_certification_analysis', className: 'folder open depth-0', caret: '▾', icon: 'folder', count: '4' },
+  { label: 'workplace_employee_review_analysis', className: 'folder open depth-0', caret: '▾', icon: 'folder', count: '4' },
   { label: 'config', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '1' },
   { label: 'skill.yaml', className: 'file active depth-2', caret: '', icon: 'file yaml' },
   { label: 'rules', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '1' },
@@ -601,6 +666,10 @@ function submitClarifyMessage() {
   if (!value) return
   clarifyMessages.value.push({ id: `u-${Date.now()}`, kind: 'user', text: value })
   clarifyInput.value = ''
+  if (tryClarifyStructuredDemo(value)) {
+    scrollChat()
+    return
+  }
   const stateId = `s-${Date.now()}`
   clarifyMessages.value.push({ id: stateId, kind: 'state', states: [
     { kind: 'thinking', status: 'running', title: '理解补充需求', detail: '正在结合基础配置、能力上下文和当前澄清记录判断缺口。' },
@@ -623,6 +692,101 @@ function submitClarifyMessage() {
 
 function appendAssistant(message: string) {
   clarifyMessages.value.push({ id: `a-${Date.now()}-${Math.random().toString(36).slice(2)}`, kind: 'assistant', text: message })
+  scrollChat()
+}
+
+function tryClarifyStructuredDemo(value: string) {
+  if (/todo|待办|任务清单/i.test(value)) {
+    clarifyMessages.value.push({ id: `s-${Date.now()}-todo`, kind: 'state', states: [
+      { kind: 'thinking', status: 'done', title: '理解澄清任务', detail: '已根据 Skill 创建上下文拆解待办清单。' },
+      { kind: 'tool_call', status: 'running', title: '生成 TODO 列表', detail: '正在把澄清、草稿、评估和提交动作整理为可追踪步骤。' },
+      { kind: 'tool_result', status: 'pending', title: '等待步骤推进', detail: '后续会按完成状态更新。' }
+    ] })
+    clarifyMessages.value.push({
+      id: `a-${Date.now()}-todo`,
+      kind: 'assistant',
+      text: '已在需求澄清对话中创建任务清单，我会按步骤推进 Skill 创建产物。',
+      todoList: demoSkillTodoList()
+    })
+    return true
+  }
+
+  if (/并行|多个步骤|思考过程|同时进行/i.test(value)) {
+    clarifyMessages.value.push({ id: `s-${Date.now()}-parallel`, kind: 'state', states: [
+      { kind: 'thinking', status: 'running', title: '理解需求意图', detail: '正在结合基础配置、能力上下文和澄清记录判断缺口。' },
+      { kind: 'tool_call', status: 'running', title: '读取参考内容', detail: '正在读取生成 Skill 草稿所需的字段、用例和权限边界。' },
+      { kind: 'tool_result', status: 'pending', title: '等待工具结果', detail: '工具返回后会继续更新澄清结论。' },
+      { kind: 'follow_up', status: 'pending', title: '准备追问', detail: '如发现缺少口径，会在草稿生成前提出确认问题。' }
+    ] })
+    clarifyMessages.value.push({
+      id: `a-${Date.now()}-parallel`,
+      kind: 'assistant',
+      text: '已同步多步骤同时进行状态。需求澄清对话会显示当前进行中的步骤数量，并保留每一步的可审计说明。'
+    })
+    return true
+  }
+
+  if (/授权|批准|执行命令|高风险|需要确认|python|命令/i.test(value)) {
+    const command = /python/i.test(value)
+      ? 'python3 -c "import random; print(random.randint(0, 100))"'
+      : 'skill publish --dry-run workplace_employee_review_analysis'
+    clarifyMessages.value.push({ id: `s-${Date.now()}-auth`, kind: 'state', states: [
+      { kind: 'thinking', status: 'done', title: '识别高影响动作', detail: '已判断该请求涉及命令、发布、导出或配置变更。' },
+      { kind: 'tool_call', status: 'running', title: '准备执行参数', detail: '已生成命令和执行范围，等待授权前不会真正执行。' },
+      { kind: 'confirm', status: 'blocked', title: '等待用户授权', detail: '必须明确批准后才能继续。' }
+    ] })
+    clarifyMessages.value.push({
+      id: `a-${Date.now()}-auth`,
+      kind: 'assistant',
+      text: '该澄清动作需要授权后才能继续。请确认命令、命名空间和影响范围。',
+      authRequest: {
+        title: '请求执行命令',
+        namespace: 'skill-create',
+        command,
+        risk: '高影响操作',
+        detail: '授权后才会进入下一步。拒绝后任务会停止，并保留当前状态链路用于走查。',
+        approveLabel: '批准执行',
+        rejectLabel: '拒绝'
+      }
+    })
+    return true
+  }
+
+  return false
+}
+
+function demoSkillTodoList(): SkillTodoList {
+  return {
+    title: 'Todo List',
+    done: 0,
+    total: 9,
+    items: [
+      { id: 'skill-todo-1', text: '校验基础配置与生成前确认', status: 'running' },
+      { id: 'skill-todo-2', text: '调用 pre_generate_scripts 生成脚本产物', status: 'pending' },
+      { id: 'skill-todo-3', text: '生成 SKILL.md', status: 'pending' },
+      { id: 'skill-todo-4', text: '确认脚本输出已写入 SKILL.md', status: 'pending' },
+      { id: 'skill-todo-5', text: '生成 evals/evals.json', status: 'pending' },
+      { id: 'skill-todo-6', text: '生成 references/api-contracts.md', status: 'pending' },
+      { id: 'skill-todo-7', text: '生成 references/call-chain.md', status: 'pending' },
+      { id: 'skill-todo-8', text: '生成 references/field-rules.md', status: 'pending' },
+      { id: 'skill-todo-9', text: '最终校验所有必需产物', status: 'pending' }
+    ]
+  }
+}
+
+function handleClarifyAuth(action: 'approve' | 'reject', command: string) {
+  if (action === 'approve') {
+    clarifyMessages.value.push({ id: `s-${Date.now()}-approved`, kind: 'state', states: [
+      { kind: 'confirm', status: 'done', title: '授权已确认', detail: '用户已批准执行，高影响操作进入下一步。' },
+      { kind: 'tool_call', status: 'done', title: '执行动作已登记', detail: command }
+    ] })
+    clarifyMessages.value.push({ id: `a-${Date.now()}-approved`, kind: 'assistant', text: '已记录授权。当前为 POC 状态展示，不会实际执行命令。' })
+  } else {
+    clarifyMessages.value.push({ id: `s-${Date.now()}-rejected`, kind: 'state', states: [
+      { kind: 'confirm', status: 'failed', title: '授权已拒绝', detail: '用户拒绝执行，高影响操作已停止。' }
+    ] })
+    clarifyMessages.value.push({ id: `a-${Date.now()}-rejected`, kind: 'assistant', text: '已拒绝执行。任务已停止，没有触发任何写入、发布、导出或命令执行。' })
+  }
   scrollChat()
 }
 
@@ -654,7 +818,7 @@ function refreshSummary() {
 
 function saveDraft() {
   const now = new Date()
-  workspaceSub.value = `职场人群认证 · 草稿已保存 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  workspaceSub.value = `职场员工审核 · 草稿已保存 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 }
 
 function startAiTune() {
@@ -685,6 +849,23 @@ function submitReview() {
 
 function stateStatus(status: StateStatus) {
   return ({ pending: '等待中', running: '进行中', done: '已完成', failed: '失败', blocked: '待确认' })[status]
+}
+
+function showSkillStateSummary(states: SkillStateItem[]) {
+  return states.length > 2 || states.filter(state => state.status === 'running').length > 1
+}
+
+function skillStateSummaryTitle(states: SkillStateItem[]) {
+  return states.some(state => state.status === 'running') ? '思考中' : '处理过程'
+}
+
+function skillStateSummary(states: SkillStateItem[]) {
+  const running = states.filter(state => state.status === 'running').length
+  const pending = states.filter(state => state.status === 'pending').length
+  const failed = states.filter(state => state.status === 'failed').length
+  if (running) return `${running} 步进行中${pending ? ` · ${pending} 步等待` : ''}`
+  if (failed) return `${failed} 步失败`
+  return `${states.length} 步已记录`
 }
 
 function stateIcon(kind: string) {
@@ -728,10 +909,10 @@ function loadEditDraftFromQuery() {
   const skill = String(route.query.skill || '')
   if (!skill) return
   const knownDrafts: Record<string, { name: string; cnName: string; desc: string }> = {
-    'workplace-cert-analysis': {
-      name: 'workplace-cert-analysis',
-      cnName: '职场认证数据分析',
-      desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。'
+    'workplace-employee-review-analysis': {
+      name: 'workplace-employee-review-analysis',
+      cnName: '职场员工审核数据分析',
+      desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。'
     },
     'low-stock-auto-offline': {
       name: 'low-stock-auto-offline',
@@ -772,3 +953,256 @@ onMounted(() => {
   document.title = 'Skill 创建 - 乐享 AI 工作台'
 })
 </script>
+
+<style lang="scss" scoped>
+.skill-state-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 8px;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.skill-state-summary b {
+  color: var(--color-text, #1f2329);
+  font-size: 13px;
+}
+
+.skill-state-summary em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+}
+
+.skill-summary-orb {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 3px solid rgba(51, 112, 255, .18);
+  border-top-color: var(--color-primary, #3370ff);
+  border-radius: 999px;
+  animation: skill-state-spin .9s linear infinite;
+}
+
+.skill-todo-card,
+.skill-auth-card {
+  margin-top: 10px;
+  border: 1px solid rgba(31, 35, 41, .1);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-text, #1f2329);
+}
+
+.skill-todo-card {
+  padding: 12px;
+}
+
+.skill-todo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(31, 35, 41, .08);
+}
+
+.skill-todo-title {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.skill-todo-title b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skill-todo-orb {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 3px solid rgba(51, 112, 255, .18);
+  border-top-color: var(--color-primary, #3370ff);
+  border-radius: 999px;
+}
+
+.skill-todo-progress {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.skill-todo-list {
+  display: grid;
+  gap: 9px;
+  padding-top: 10px;
+}
+
+.skill-todo-item {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.skill-todo-item span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.skill-todo-status {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border: 2px solid rgba(31, 35, 41, .22);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.skill-todo-item.is-done {
+  color: var(--color-text, #1f2329);
+}
+
+.skill-todo-item.is-done .skill-todo-status {
+  border-color: var(--color-primary, #3370ff);
+  background:
+    linear-gradient(45deg, transparent 48%, #fff 49% 56%, transparent 57%) 5px 7px / 8px 5px no-repeat,
+    var(--color-primary, #3370ff);
+}
+
+.skill-todo-item.is-running {
+  color: var(--color-text, #1f2329);
+}
+
+.skill-todo-item.is-running .skill-todo-status {
+  border-color: rgba(51, 112, 255, .22);
+  box-shadow: inset 0 0 0 3px #fff;
+  background: var(--color-primary, #3370ff);
+}
+
+.skill-auth-card {
+  padding: 12px;
+  border-color: rgba(245, 158, 11, .42);
+  background: #fffbf2;
+}
+
+.skill-auth-head {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.skill-auth-icon {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #fff;
+  color: #b76e00;
+}
+
+.skill-auth-icon :deep(svg) {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.skill-auth-head b,
+.skill-auth-head em {
+  display: block;
+  min-width: 0;
+}
+
+.skill-auth-head b {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.skill-auth-head em {
+  color: #8a5a00;
+  font-style: normal;
+  font-size: 12px;
+}
+
+.skill-auth-meta {
+  margin-top: 10px;
+  color: var(--color-text-secondary, #646a73);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 12px;
+}
+
+.skill-auth-command {
+  margin: 8px 0 0;
+  padding: 10px;
+  border-radius: 7px;
+  background: #1f2329;
+  color: #fff;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.skill-auth-command code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+
+.skill-auth-card p {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.skill-auth-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.skill-auth-actions button {
+  min-width: 0;
+  height: 34px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.skill-auth-approve {
+  border: 1px solid #20bf72;
+  background: #20bf72;
+  color: #fff;
+}
+
+.skill-auth-reject {
+  border: 1px solid rgba(239, 68, 68, .5);
+  background: #fff;
+  color: #d92d20;
+}
+
+@keyframes skill-state-spin {
+  to { transform: rotate(360deg); }
+}
+</style>

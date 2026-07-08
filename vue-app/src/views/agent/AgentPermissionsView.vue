@@ -364,7 +364,7 @@ const modules = [
     desc: '组织架构',
     fullDesc: '维护组织架构、组织描述和成员关系。',
     items: [
-      { code: 'L1', name: '联想乐享', desc: '门户工作台业务根组织。', status: '启用', owner: 'admin' },
+      { code: 'L1', name: '联想乐享', desc: '联想门户工作台业务根组织。', status: '启用', owner: 'admin' },
       { code: 'OP', name: '乐享运营', desc: '运营看板、活动和商品配置团队。', status: '启用', owner: 'sunll1' },
       { code: 'GEO', name: 'GEO 看板', desc: '搜索与信源监测团队。', status: '启用', owner: 'zhangjq4' }
     ]
@@ -388,7 +388,7 @@ const modules = [
     desc: '菜单功能',
     fullDesc: '维护菜单权限、功能点和按钮级能力。',
     items: [
-      { code: 'MENU', name: '门户工作台', desc: '工作台首页、固定页签和 Agent 入口。', status: '启用', owner: '平台组' },
+      { code: 'MENU', name: '联想门户工作台', desc: '工作台首页、固定页签和 Agent 入口。', status: '启用', owner: '平台组' },
       { code: 'SKILL', name: 'Skill Hub', desc: 'Skill 创建、评估、审批、发布和测试。', status: '启用', owner: 'AI 平台' },
       { code: 'LEAD', name: '企业客户管理', desc: '线索看板、线索池、打分模型。', status: '启用', owner: '企业客户组' }
     ]
@@ -447,7 +447,7 @@ const form = reactive({
     skill: '经营指标解读、内容发布检查'
   },
   scopes: {
-    menu: ['门户工作台', '乐享运营'],
+    menu: ['联想门户工作台', '乐享运营'],
     function: ['报告生成', '数据导出'],
     data: ['运营数据集'],
     skill: ['经营指标解读'],
@@ -463,7 +463,7 @@ const businessApprovers = [
 ]
 
 const scopeGroups = [
-  { key: 'menu', label: '菜单权限', options: ['门户工作台', '乐享运营', 'GEO 看板', '企业客户管理', '搜索后台'] },
+  { key: 'menu', label: '菜单权限', options: ['联想门户工作台', '乐享运营', 'GEO 看板', '企业客户管理', '搜索后台'] },
   { key: 'function', label: '功能权限', options: ['报告生成', '数据导出', '商品配置', '发布确认', '审批处理'] },
   { key: 'data', label: '数据权限', options: ['运营数据集', '会员标签库', 'GEO 信源库', '企业客户线索', '风控数据'] },
   { key: 'skill', label: 'Skill 权限', options: ['经营指标解读', '商品配置助手', '内容发布检查', '会员分层洞察', '链接巡检'] },

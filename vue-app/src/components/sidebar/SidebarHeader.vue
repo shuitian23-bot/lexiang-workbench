@@ -2,7 +2,6 @@
   <div class="sidebar-header" @click="$emit('home')" title="返回首页">
     <div class="brand-lockup">
       <img class="logo-full" src="/assets/logo-full.png" alt="联想乐享" />
-      <span class="brand-suffix">工作台</span>
     </div>
     <img class="logo-icon-img" src="/assets/logo-icon.png" alt="联想乐享" />
     <button

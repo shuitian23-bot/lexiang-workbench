@@ -104,6 +104,13 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-07-08 09:30',
+    title: '0707 Vue 样式规范覆盖',
+    scope: '工作台壳层 / 右侧 Agent / Skill 创建 / 权限管理 / 首页入口',
+    detail: '按 lexiang-new-0707.zip 覆盖当前 Vue 源码中匹配的样式与演示层：左侧品牌区改为 0707 规范，顶部操作区按包内 TopbarActions 执行；右侧 Agent 增加 TODO、授权确认和多步骤状态卡展示；Skill 创建、Skill Hub、权限管理、首页和在职员工入口统一调整为“联想门户工作台/职场员工审核”口径。随后应用 portal-workbench-ui-0707 设计规范 skill：guard 已对齐 0707 指纹，本期按规范隐藏主题切换入口，并在启动时强制浅色、清理历史深色偏好，避免旧本地状态泄露到当前封板版本。保留既有正式合并日志状态，只更新本次预览记录。',
+    status: '已合并正式'
+  },
+  {
     time: '2026-07-07 08:33',
     title: '0706 Vue 样式匹配覆盖与规范校验',
     scope: '右侧 Agent / 工作台壳层收起态 / 设计规范守卫',

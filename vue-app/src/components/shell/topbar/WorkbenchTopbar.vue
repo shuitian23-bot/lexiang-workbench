@@ -10,8 +10,6 @@
     />
     <TopbarActions
       :ai-open="aiOpen"
-      :dark-mode="darkMode"
-      @toggle-dark-mode="appStore.toggleDarkMode()"
       @toggle-ai="aiStore.toggleOpen()"
     />
   </div>
@@ -31,7 +29,7 @@ const route = useRoute()
 const appStore = useAppStore()
 const aiStore = useAIStore()
 
-const { staticTabs, activeStaticTabId, darkMode } = storeToRefs(appStore)
+const { staticTabs, activeStaticTabId } = storeToRefs(appStore)
 const { open: aiOpen } = storeToRefs(aiStore)
 const staticTabsRef = ref(null)
 

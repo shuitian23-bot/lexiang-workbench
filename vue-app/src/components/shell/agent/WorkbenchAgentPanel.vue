@@ -156,7 +156,7 @@ const modalBodyClass = useBodyClass('agent-skill-modal-open')
 // ---- 关注标签（对应 aiCurrentPageAttentionLabel）----
 const attentionLabel = computed(() => {
   const pid = route.meta?.pageId || ''
-  return getPageLabel(pid) || '门户工作台'
+  return getPageLabel(pid) || '联想门户工作台'
 })
 
 function openReportArtifact(id) {

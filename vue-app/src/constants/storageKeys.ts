@@ -20,3 +20,9 @@ export function readBooleanStorage(primaryKey: string, legacyKey?: string, fallb
 export function writeBooleanStorage(key: string, value: boolean) {
   localStorage.setItem(key, value ? '1' : '0')
 }
+
+export function clearBooleanStorage(...keys: Array<string | undefined>) {
+  keys.filter(Boolean).forEach(key => {
+    localStorage.removeItem(key as string)
+  })
+}

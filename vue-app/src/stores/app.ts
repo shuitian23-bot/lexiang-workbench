@@ -15,7 +15,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { STORAGE_KEYS, readBooleanStorage, writeBooleanStorage } from '@/constants/storageKeys'
+import { STORAGE_KEYS, clearBooleanStorage, readBooleanStorage, writeBooleanStorage } from '@/constants/storageKeys'
 import { syncThemeMode } from '@/composables/useThemeMode'
 import { showWorkbenchToast } from '@/services/toast'
 import { allowPreviewAuth } from '@/config/runtimeMode'
@@ -88,8 +88,8 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
     icon: menuIcon('<path d="M7.4 8.4a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4Z"/><path d="M2.8 16.4c.4-2.6 2.1-4.1 4.6-4.1 2.4 0 4.1 1.5 4.5 4.1"/><path d="M13.1 8.1a2.2 2.2 0 1 0 0-4.4"/><path d="M13.6 12.2c1.8.3 3 1.7 3.3 3.8"/>'),
     label: '在职员工管理',
     children: {
-      'employee.overview':      { label: '概览',   path: '/employee/overview' },
-      'employee.certification': { label: '认证审核', path: '/employee/cert' }
+      'employee.overview':      { label: '职场员工概览', path: '/employee/overview' },
+      'employee.certification': { label: '职场员工审核', path: '/employee/cert' }
     }
   },
   lead: {
@@ -139,7 +139,7 @@ export function getPageLabel(pageId: PageId) {
     'agent.skills': 'Skill Hub',
     'agent.skillCreate': 'Skill 创建',
     'agent.permissions': '权限管理',
-    'portal.home': '门户工作台',
+    'portal.home': '联想门户工作台',
     'dashboard.query': 'Query 明细',
     'dashboard.behavior': '用户行为',
     'ops.queryBiz': 'Query 业务归因',
@@ -183,6 +183,7 @@ export function findPageGroup(pageId: PageId) {
 const WORKSPACE_STATIC_TAB_LIMIT = 10
 const WORKSPACE_TEMP_TAB_LIMIT   = 10
 const WORKSPACE_SAVED_TABS_KEY   = STORAGE_KEYS.workspaceSavedTabs
+const FORCE_LIGHT_THEME_RELEASE = true
 
 export const useAppStore = defineStore('app', () => {
   // ---- 用户状态（对应 STATE.user / role / permissions / visibleMenus）----
@@ -204,10 +205,10 @@ export const useAppStore = defineStore('app', () => {
   ))
 
   // ---- 深色模式 ----
-  const darkMode = ref(readBooleanStorage(
-    STORAGE_KEYS.darkMode,
-    STORAGE_KEYS.legacyDarkMode
-  ))
+  const darkMode = ref(FORCE_LIGHT_THEME_RELEASE
+    ? false
+    : readBooleanStorage(STORAGE_KEYS.darkMode, STORAGE_KEYS.legacyDarkMode)
+  )
 
   // ---- 用户名首字母 ----
   const userInitial = computed(() => (user.value || 'A')[0].toUpperCase())
@@ -307,11 +308,20 @@ export const useAppStore = defineStore('app', () => {
 
   // ===== 深色模式 =====
   function applyDarkMode(value = darkMode.value) {
-    darkMode.value = !!value
-    writeBooleanStorage(STORAGE_KEYS.darkMode, darkMode.value)
-    syncThemeMode(darkMode.value)
+    const nextMode = FORCE_LIGHT_THEME_RELEASE ? false : !!value
+    darkMode.value = nextMode
+    if (FORCE_LIGHT_THEME_RELEASE) {
+      clearBooleanStorage(STORAGE_KEYS.darkMode, STORAGE_KEYS.legacyDarkMode)
+    } else {
+      writeBooleanStorage(STORAGE_KEYS.darkMode, nextMode)
+    }
+    syncThemeMode(nextMode)
   }
   function toggleDarkMode() {
+    if (FORCE_LIGHT_THEME_RELEASE) {
+      applyDarkMode(false)
+      return
+    }
     applyDarkMode(!darkMode.value)
   }
 

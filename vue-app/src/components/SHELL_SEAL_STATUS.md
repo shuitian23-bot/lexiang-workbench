@@ -13,6 +13,7 @@ Compatibility wrappers remain at `AppSidebar.vue`, `AppTopbar.vue`, and `AppAIPa
 ## Current Contract
 
 - Left navigation keeps the Vue component structure and includes the account hub popover plus POC adjustment log modal.
+- Left navigation brand header is sealed after 0707 confirmation: expanded state shows only the red `联想乐享` full logo, without a `工作台` pill/tag. The expanded logo renders at about `112x23px` inside the `168px` sidebar, the sidebar header remains `56px`, and the expanded collapse button remains `28x28px` with about `3px` gap from the logo lockup. Collapsed state keeps the centered `36x36px` icon mark and the `24x24px` rail handle.
 - Top navigation owns static tabs, dynamic report tabs, dark/light toggle, and the AI assistant entry button.
 - Agent panel owns the header actions, conversation history, task log, message/report cards, queue state, waiting state, file attachment, shortcut query chips, and composer controls.
 - Middle content pages can continue to use sealed runtime renderers through `NativeWorkbenchPage.vue` only for hidden/detail compatibility routes or pages explicitly out of the current release scope.

@@ -32,7 +32,7 @@
 defineProps({
   attentionLabel: {
     type: String,
-    default: '门户工作台'
+    default: '联想门户工作台'
   }
 })
 

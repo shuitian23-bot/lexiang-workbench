@@ -24,7 +24,7 @@ function renderPortalHomePage() {
       <section class="portal-home-command portal-home-command-solo">
         <div class="portal-home-command-copy">
           <div class="portal-home-kicker">LEAIBOT WORKBENCH</div>
-          <div class="page-title">门户工作台</div>
+          <div class="page-title">联想门户工作台</div>
           <div class="page-desc">统一承载运营看板、业务后台、风险审核与 AI 助手能力，让团队在一个入口完成查询、分析、处理和协作。</div>
           <div class="portal-home-actions">
             <button class="btn btn-secondary" onclick="openSkillManagerOverlay()">管理技能包</button>
@@ -63,7 +63,7 @@ function renderPortalHomePage() {
             <button class="btn btn-secondary btn-sm" onclick="switchPage('dashboard.overview')">进入运营总览</button>
           </div>
           <div class="portal-home-entry-list">
-            <button onclick="switchPage('employee.overview')"><i>01</i><b>在职员工管理</b><span>认证审核、职工数据、认证方式分布</span></button>
+            <button onclick="switchPage('employee.overview')"><i>01</i><b>在职员工管理</b><span>职场员工概览、职场员工审核、认证方式分布</span></button>
             <button onclick="switchPage('dashboard.overview')"><i>02</i><b>乐享运营</b><span>经营指标、流量质量、GMV 分析</span></button>
             <button onclick="switchPage('lead.dashboard')"><i>03</i><b>企业客户管理</b><span>线索看板、线索池和分配跟进</span></button>
           </div>
@@ -479,7 +479,7 @@ function submitSkillPackageAction(title, message) {
 }
 
 const PM_SKILL_HUB_ITEMS = [
-  { name: 'workplace-cert-analysis', cnName: '职场认证数据分析', platform: 'lexiang', desc: '职场认证数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
+  { name: 'workplace-employee-review-analysis', cnName: '职场员工审核数据分析', platform: 'lexiang', desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
   { name: 'low-stock-auto-offline', cnName: '低库存自动下架', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '商品运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36' },
   { name: 'product-knowledge', cnName: '产品知识问答', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '知识问答', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
   { name: 'voucher-recommend', cnName: '券包权益推荐', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '权益推荐', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
@@ -611,7 +611,7 @@ function applySkillHubItem(name) {
   if (typeof aiHideEmptyState === 'function') aiHideEmptyState();
 
   const queryMap = {
-    'workplace-cert-analysis': '查询近 7 天职场认证通过率、失败原因 Top3 和待审核积压',
+    'workplace-employee-review-analysis': '查询近 7 天职场员工审核通过率、失败原因 Top3 和待审核积压',
     'low-stock-auto-offline': '检查低库存商品并输出可下架建议',
     'product-knowledge': '查询 ThinkPad X1 Carbon 与 X1 Nano 的配置差异',
     'voucher-recommend': '为会员充值场景推荐合适券包权益',
@@ -621,7 +621,7 @@ function applySkillHubItem(name) {
   };
   const query = queryMap[item.name] || `调用 ${item.name} 并返回执行结果`;
   const outputMap = {
-    'workplace-cert-analysis': [
+    'workplace-employee-review-analysis': [
       '认证通过率：近 7 天 86.4%，较上周期 +3.2%。',
       '失败原因 Top3：企业名称不一致、手机号缺失、认证方式不匹配。',
       '待审核积压：42 条，其中 18 条超过 24 小时，建议优先处理。'
@@ -1124,15 +1124,15 @@ function updateSkillHubReviewStatus(name, nextStatus) {
 }
 
 function submitSkillCreateReview() {
-  const currentSkillName = (document.getElementById('skill-create-name')?.value || 'employee_certification_analysis').trim();
+  const currentSkillName = (document.getElementById('skill-create-name')?.value || 'workplace_employee_review_analysis').trim();
   if (window.__skillCreateReviewSubmitted) {
     handleSkillHubAction(window.__skillCreateSubmittedName || currentSkillName, '已在审核中，可前往 Skill Hub 查看');
     return;
   }
   const skillName = currentSkillName;
-  const skillCnName = (document.getElementById('skill-create-cn-name')?.value || '职场人群认证数据分析').trim();
+  const skillCnName = (document.getElementById('skill-create-cn-name')?.value || '职场员工审核数据分析').trim();
   const menuName = document.getElementById('skill-create-menu')?.value || '在职员工管理';
-  const existing = PM_SKILL_HUB_ITEMS.find(item => item.name === skillName || item.name === 'workplace-cert-analysis');
+  const existing = PM_SKILL_HUB_ITEMS.find(item => item.name === skillName || item.name === 'workplace-employee-review-analysis');
   const submitted = {
     name: skillName,
     cnName: skillCnName,
@@ -2100,7 +2100,7 @@ function refreshSkillClarifySummary(btn) {
     summary.innerHTML = `
       <div class="skill-summary-item">
         <span>基本信息</span>
-        <p>name: employee_certification_analysis；中文命名：职场人群认证数据分析；版本：1.0.0；已基于 ${userTurns.length} 轮自然语言澄清更新。</p>
+        <p>name: workplace_employee_review_analysis；中文命名：职场员工审核数据分析；版本：1.0.0；已基于 ${userTurns.length} 轮自然语言澄清更新。</p>
       </div>
       <div class="skill-summary-item">
         <span>触发场景</span>
@@ -2140,7 +2140,7 @@ function saveSkillCreateDraft() {
   const sub = document.querySelector('.skill-workspace-sub');
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  if (sub) sub.textContent = `职场人群认证 · 草稿已保存 ${time}`;
+  if (sub) sub.textContent = `职场员工审核 · 草稿已保存 ${time}`;
 }
 
 function runSkillCreateLocalCheck() {
@@ -2269,7 +2269,7 @@ function renderSkillCreatePage() {
             <div class="skill-workspace-head">
               <div>
                 <div class="skill-workspace-title">Skill Workspace</div>
-          <div class="skill-workspace-sub">职场人群认证 · 迭代 0 轮 · 基础配置中</div>
+          <div class="skill-workspace-sub">职场员工审核 · 迭代 0 轮 · 基础配置中</div>
               </div>
             </div>
 
@@ -2286,11 +2286,11 @@ function renderSkillCreatePage() {
             <div class="skill-create-form">
               <div class="skill-create-field">
                 <label for="skill-create-name">Skill 名称（英文） <span class="field-required">*</span></label>
-                <input id="skill-create-name" value="employee_certification_analysis" required>
+                <input id="skill-create-name" value="workplace_employee_review_analysis" required>
               </div>
               <div class="skill-create-field">
                 <label for="skill-create-cn-name">中文命名 <span class="field-required">*</span></label>
-                <input id="skill-create-cn-name" value="职场人群认证数据分析" required>
+                <input id="skill-create-cn-name" value="职场员工审核数据分析" required>
               </div>
               <div class="skill-create-field">
                 <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
@@ -2298,7 +2298,7 @@ function renderSkillCreatePage() {
               </div>
               <div class="skill-create-field full">
                 <label for="skill-create-scene">适用场景 <span class="field-optional">非必填</span></label>
-                <textarea id="skill-create-scene">运营和 PM 通过自然语言查询职场人群认证数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。</textarea>
+                <textarea id="skill-create-scene">运营和 PM 通过自然语言查询职场员工审核数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。</textarea>
               </div>
               <div class="skill-create-field">
                 <label for="skill-create-input">输入参数 <span class="field-optional">非必填</span></label>
@@ -2323,14 +2323,14 @@ function renderSkillCreatePage() {
                   <div class="skill-ai-tags" id="skill-selected-tags"><span title="product.query">商品查询</span><span title="inventory.query">库存查询</span><span title="product.shelf">商品上下架</span><span title="notify.send">通知发送</span></div>
                   <p id="skill-context-summary">已选择 4 个能力：商品查询、库存查询、商品上下架、通知发送。AI 将结合基础配置继续追问应用场景、边界和输入输出。</p>
                 </div>
-                <div class="skill-chat-user">根据职场认证 PRD、后台字段说明和测试样例，创建一个帮助 PM 和运营分析认证数据的 Skill。</div>
+                <div class="skill-chat-user">根据职场员工审核 PRD、后台字段说明和测试样例，创建一个帮助 PM 和运营分析认证数据的 Skill。</div>
                 <div class="skill-chat-ai skill-conversation-states" aria-label="AI 会话状态">
                   <div class="skill-conversation-state is-thinking status-done"><span class="skill-state-icon" aria-hidden="true">${skillConversationStateIcon('thinking')}</span><span class="skill-state-body"><span class="skill-state-title-row"><b>读取基础材料</b><em>已完成</em></span><span class="skill-state-detail">已识别 PRD、后台字段说明和测试样例。</span></span></div>
                   <div class="skill-conversation-state is-tool_call status-done"><span class="skill-state-icon" aria-hidden="true">${skillConversationStateIcon('tool_call')}</span><span class="skill-state-body"><span class="skill-state-title-row"><b>抽取能力上下文</b><em>已完成</em></span><span class="skill-state-detail">匹配查询、统计、导出和权限校验相关能力。</span></span></div>
                   <div class="skill-conversation-state is-error status-failed"><span class="skill-state-icon" aria-hidden="true">${skillConversationStateIcon('error')}</span><span class="skill-state-body"><span class="skill-state-title-row"><b>附件解析兜底</b><em>失败</em></span><span class="skill-state-detail">部分附件字段缺失，已改用后台字段说明和测试样例继续澄清。</span></span></div>
                   <div class="skill-conversation-state is-follow_up status-blocked"><span class="skill-state-icon" aria-hidden="true">${skillConversationStateIcon('follow_up')}</span><span class="skill-state-body"><span class="skill-state-title-row"><b>生成关键追问</b><em>待确认</em></span><span class="skill-state-detail">先确认输出形态，再继续确认触发场景与权限边界。</span></span></div>
                 </div>
-                <div class="skill-chat-ai">我已读取基础配置和附件材料。这个 Skill 的核心目标是帮助团队查询职场认证数据、识别认证方式分布、通过率趋势、失败原因和待审核积压。为了更准确地设计这个 Skill，我先确认一个关键点：输出结果需要偏文本总结、表格明细，还是两者都要？</div>
+                <div class="skill-chat-ai">我已读取基础配置和附件材料。这个 Skill 的核心目标是帮助团队查询职场员工审核数据、识别认证方式分布、通过率趋势、失败原因和待审核积压。为了更准确地设计这个 Skill，我先确认一个关键点：输出结果需要偏文本总结、表格明细，还是两者都要？</div>
                 <div class="skill-chat-user">两者都要。默认先给文字结论，再给表格。</div>
                 <div class="skill-chat-ai">好的。接下来确认触发场景：除了自然语言查询，例如“最近 7 天个税认证通过率”，是否还需要定时报告或异常提醒？</div>
                 <div class="skill-chat-user">需要。支持日报，也要能发现待审核过多、某种认证方式失败率异常。</div>
@@ -2357,7 +2357,7 @@ function renderSkillCreatePage() {
                 <div id="skill-clarify-summary-content">
                   <div class="skill-summary-item">
                     <span>基本信息</span>
-                    <p>name: workplace-cert-analysis；描述：职场认证数据分析 Skill；版本：1.0.0</p>
+                    <p>name: workplace-employee-review-analysis；描述：职场员工审核数据分析 Skill；版本：1.0.0</p>
                   </div>
                   <div class="skill-summary-item">
                     <span>触发场景</span>
@@ -2421,7 +2421,7 @@ function renderSkillCreatePage() {
                   <div class="skill-tree-row folder open depth-0">
                     <span class="skill-tree-caret">▾</span>
                     <span class="skill-tree-icon folder"></span>
-                    <b>employee_certification_analysis</b>
+                    <b>workplace_employee_review_analysis</b>
                     <em>4</em>
                   </div>
                   <div class="skill-tree-row folder open depth-1">
@@ -2470,8 +2470,8 @@ function renderSkillCreatePage() {
                   <small>Generated draft</small>
                 </div>
                 <pre>skill:
-  name: employee_certification_analysis
-  cn_name: 职场人群认证数据分析
+  name: workplace_employee_review_analysis
+  cn_name: 职场员工审核数据分析
   version: 1.0.0
   trigger:
     - natural_language
@@ -3338,7 +3338,7 @@ const PAGE_RENDERERS = {
   'employee.overview': () => `
     <div class="page-header">
       <div>
-        <div class="page-title">在职员工管理</div>
+        <div class="page-title">职场员工概览</div>
         <div class="page-desc">查看和管理所有在职员工信息</div>
       </div>
     </div>
@@ -3516,7 +3516,7 @@ const PAGE_RENDERERS = {
   'employee.certification': () => `
     <div class="page-header">
       <div>
-        <div class="page-title">认证审核管理</div>
+        <div class="page-title">职场员工审核</div>
         <div class="page-desc">查看认证记录，对认证失败的用户可修改认证结果</div>
       </div>
     </div>
