@@ -24,3 +24,4 @@ public/js/app.js|_renderChips(_acts)|答后动作预判chips(主面板)
 public/js/app.js|lxContextSuggest|情境输入预判
 public/js/app-lxfd.js|hasConvo && window.__lxBridge|退全屏恢复分屏
 routes/leai.js|SESSION_SLOTS|会话槽位保底
+public/js/app.js|_refsSnap|引用快照防竞争
