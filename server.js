@@ -130,6 +130,7 @@ app.use('/api/uploader', require('./routes/uploader'));
 app.use('/api/log', require('./routes/log'));
 app.use('/api/stores', require('./routes/stores'));
 app.use('/api/leai', require('./routes/leai'));
+app.use('/api/asr', require('./routes/asr'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/product', require('./routes/product_detail_images'));
 app.use('/api/pointer', require('./routes/pointer'));
@@ -492,6 +493,20 @@ app.get('/admin', (req, res) => {
 });
 app.get('/admin/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin/workbench.html'));
+});
+function _sendAdminVueIndexNoCache(res) {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.removeHeader('ETag');
+  res.removeHeader('Last-Modified');
+  res.sendFile(path.join(__dirname, 'public/admin-vue/index.html'), { etag: false, lastModified: false, cacheControl: false });
+}
+app.get('/admin-vue', (req, res) => {
+  res.redirect(302, '/admin-vue/');
+});
+app.get('/admin-vue/*path', (req, res) => {
+  _sendAdminVueIndexNoCache(res);
 });
 // Share page
 app.get('/share/:token', (req, res) => {

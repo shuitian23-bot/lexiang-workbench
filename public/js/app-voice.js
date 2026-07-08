@@ -7,63 +7,115 @@
 // 删除整个功能 = 删这一个文件 + index.html 里那行 script。
 //
 // ── 可插拔识别层 ──────────────────────────────────────────────────────────
-// window.__lxASR = { engine, supported, active, start(onInterim,onFinal,onError,onEnd), stop() }
-// 默认实现是浏览器原生 Web Speech（Chrome/Edge，零凭据零后端零费用，中文 zh-CN）。
-// 将来换火山 ASR：只替换 createWebSpeechASR() → createVolcASR()（录音 → 后端 /api/asr 代理 →
-// 火山流式识别），UI 注入与自动提交逻辑一律不动。识别率是升级项，闭环体验今天就成立。
+// window.__lxASR = { engine, supported, active, start(onState,onFinal,onError,onEnd), stop() }
+// 实现：录音（Web Audio 采 PCM）→ 说完静音自动停 → POST /api/asr → 火山豆包流式识别 2.0
+// → 返回文字。Access Token 只在后端，前端零凭据。不依赖 webkitSpeechRecognition，任何支持
+// getUserMedia 的浏览器（Chrome/Edge/Firefox/Safari）都能用。换别家识别只改后端 /api/asr。
 (function (root) {
   "use strict";
   if (!root || root.__lxVoiceInstalled) return;
   root.__lxVoiceInstalled = true;
 
-  const SR = root.SpeechRecognition || root.webkitSpeechRecognition;
-  const supported = !!SR && (location.protocol === "https:" || location.hostname === "localhost");
+  // ── 录音识别层（火山）──────────────────────────────────────────────────
+  function createVolcASR() {
+    const AC = root.AudioContext || root.webkitAudioContext;
+    const supported = !!(root.navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && AC &&
+      (location.protocol === "https:" || location.hostname === "localhost"));
+    let stream = null, ctx = null, source = null, proc = null;
+    let chunks = [], recording = false, srcRate = 48000;
+    let hadSpeech = false, silenceAt = 0, maxTimer = null;
+    let cb = {};
 
-  function createWebSpeechASR() {
-    let rec = null;
-    let active = false;
+    function cleanup() {
+      recording = false;
+      if (maxTimer) { clearTimeout(maxTimer); maxTimer = null; }
+      try { proc && (proc.onaudioprocess = null, proc.disconnect()); } catch (_e) {}
+      try { source && source.disconnect(); } catch (_e) {}
+      try { ctx && ctx.close(); } catch (_e) {}
+      try { stream && stream.getTracks().forEach((t) => t.stop()); } catch (_e) {}
+      proc = source = ctx = stream = null;
+    }
+    function flatten(list) {
+      let n = 0; list.forEach((c) => n += c.length);
+      const out = new Float32Array(n); let o = 0;
+      list.forEach((c) => { out.set(c, o); o += c.length; });
+      return out;
+    }
+    function downsample(buf, from, to) {
+      if (to >= from) return buf;
+      const ratio = from / to, outLen = Math.round(buf.length / ratio), out = new Float32Array(outLen);
+      for (let i = 0; i < outLen; i++) out[i] = buf[Math.floor(i * ratio)] || 0;
+      return out;
+    }
+    function encodeWav(f32, rate) {
+      const len = f32.length, buf = new ArrayBuffer(44 + len * 2), v = new DataView(buf);
+      const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+      ws(0, "RIFF"); v.setUint32(4, 36 + len * 2, true); ws(8, "WAVE"); ws(12, "fmt ");
+      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+      ws(36, "data"); v.setUint32(40, len * 2, true);
+      let o = 44; for (let i = 0; i < len; i++) { const s = Math.max(-1, Math.min(1, f32[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2; }
+      return buf;
+    }
+    async function finish() {
+      if (!recording && !chunks.length) return;
+      recording = false;
+      const pcm = flatten(chunks); chunks = [];
+      const rate = srcRate;
+      cleanup();
+      if (pcm.length < rate * 0.3) { cb.onEnd && cb.onEnd(""); return; }  // 太短（<0.3s）不识别
+      cb.onState && cb.onState("识别中…");
+      const wav = encodeWav(downsample(pcm, rate, 16000), 16000);
+      try {
+        const res = await fetch("/api/asr?format=wav&rate=16000", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: wav });
+        const data = await res.json();
+        const text = ((data && data.text) || "").trim().replace(/[。，、\s]+$/, "");
+        if (text) cb.onFinal && cb.onFinal(text);
+        cb.onEnd && cb.onEnd(text);
+      } catch (_e) { cb.onError && cb.onError("network"); cb.onEnd && cb.onEnd(""); }
+    }
+
     return {
-      engine: "webspeech",
+      engine: "volc",
       supported,
-      get active() { return active; },
-      start(onInterim, onFinal, onError, onEnd) {
+      get active() { return recording; },
+      async start(onState, onFinal, onError, onEnd) {
+        cb = { onState, onFinal, onError, onEnd };
         if (!supported) { onError && onError("unsupported"); return; }
-        if (active) return;
+        if (recording) return;
         try {
-          rec = new SR();
-          rec.lang = "zh-CN";
-          rec.continuous = false;      // 说一句就停，避免连续误触
-          rec.interimResults = true;   // 边说边出字，实时进输入框
-          rec.maxAlternatives = 1;
-          let finalText = "";
-          rec.onresult = (e) => {
-            let interim = "";
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-              const t = e.results[i][0].transcript;
-              if (e.results[i].isFinal) finalText += t; else interim += t;
-            }
-            onInterim && onInterim((finalText + interim).trim());
-          };
-          rec.onerror = (e) => { active = false; onError && onError((e && e.error) || "error"); };
-          rec.onend = () => {
-            active = false;
-            const t = finalText.trim();
-            if (t) onFinal && onFinal(t);
-            onEnd && onEnd(t);
-          };
-          rec.start();
-          active = true;
-        } catch (err) { active = false; onError && onError((err && err.message) || "start_failed"); }
+          stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        } catch (e) {
+          const n = e && e.name;
+          onError && onError(n === "NotAllowedError" || n === "SecurityError" ? "not-allowed" : n === "NotFoundError" ? "audio-capture" : "mic-fail");
+          return;
+        }
+        ctx = new AC(); srcRate = ctx.sampleRate || 48000;
+        source = ctx.createMediaStreamSource(stream);
+        proc = ctx.createScriptProcessor(4096, 1, 1);
+        chunks = []; hadSpeech = false; silenceAt = 0; recording = true;
+        proc.onaudioprocess = (e) => {
+          if (!recording) return;
+          const d = e.inputBuffer.getChannelData(0);
+          chunks.push(new Float32Array(d));
+          let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i];
+          const rms = Math.sqrt(sum / d.length), now = ctx.currentTime;
+          if (rms > 0.014) { hadSpeech = true; silenceAt = 0; }
+          else if (hadSpeech) { if (!silenceAt) silenceAt = now; else if (now - silenceAt > 1.0) finish(); }  // 说完静音1s自动停
+        };
+        source.connect(proc); proc.connect(ctx.destination);
+        cb.onState && cb.onState("recording");
+        maxTimer = setTimeout(finish, 12000);  // 最长12s兜底
       },
-      stop() { if (rec && active) { try { rec.stop(); } catch (_e) {} } },
-      abort() { if (rec) { try { rec.abort(); } catch (_e) {} active = false; } },
+      stop() { if (recording) finish(); },
+      abort() { chunks = []; cleanup(); },
     };
   }
 
-  const asr = createWebSpeechASR();
+  const asr = createVolcASR();
   root.__lxASR = asr;
 
-  // ── 注入按钮样式（自包含，不碰 main.css）──────────────────────────────
+  // ── 按钮样式（自包含，不碰 main.css）──────────────────────────────────
   const STYLE = `
     .lx-voice-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;
       padding:0;border:none;border-radius:50%;background:transparent;color:#6b6577;cursor:pointer;
@@ -74,6 +126,7 @@
     .lx-voice-btn.unsupported{opacity:.45}
     .lx-voice-btn.recording{color:#fff;background:#e2231a;box-shadow:0 0 0 0 rgba(226,35,26,.5);
       animation:lxVoicePulse 1.25s ease-out infinite}
+    .lx-voice-btn.thinking{color:#fff;background:#8a5cf6}
     @keyframes lxVoicePulse{0%{box-shadow:0 0 0 0 rgba(226,35,26,.5)}
       70%{box-shadow:0 0 0 9px rgba(226,35,26,0)}100%{box-shadow:0 0 0 0 rgba(226,35,26,0)}}
     .lx-voice-tip{position:fixed;z-index:99999;max-width:260px;padding:9px 13px;border-radius:10px;
@@ -89,7 +142,6 @@
     '<path d="M12 15.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v6a3.5 3.5 0 0 0 3.5 3.5Z" stroke="currentColor" stroke-width="1.7"/>' +
     '<path d="M18.5 11.5a6.5 6.5 0 0 1-13 0M12 18.5V21.5M8.5 21.5h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  // 提示气泡（自包含，不依赖 app.js 的 toast）
   let tipEl = null, tipTimer = null;
   function showTip(anchor, msg) {
     if (!tipEl) { tipEl = document.createElement("div"); tipEl.className = "lx-voice-tip"; document.body.appendChild(tipEl); }
@@ -101,50 +153,41 @@
     clearTimeout(tipTimer);
     tipTimer = setTimeout(() => tipEl && tipEl.classList.remove("show"), 3200);
   }
-
   function errMsg(code) {
-    if (code === "not-allowed" || code === "service-not-allowed") return "麦克风被拒绝，请在地址栏左侧允许麦克风权限后重试。";
-    if (code === "audio-capture") return "没检测到麦克风，请检查设备后重试。";
-    if (code === "network") return "语音服务网络异常，请稍后再试。";
-    if (code === "unsupported") return "当前浏览器不支持语音，请用 Chrome 或 Edge 打开。";
+    if (code === "not-allowed") return "麦克风被拒绝，请在地址栏左侧允许麦克风权限后重试。";
+    if (code === "audio-capture" || code === "mic-fail") return "没检测到麦克风，请检查设备（Mac 注意别选成了 iPhone 麦克风）。";
+    if (code === "network") return "识别服务连接异常，请稍后再试。";
+    if (code === "unsupported") return "当前环境不支持录音（需 HTTPS + 允许麦克风）。";
     return "";
   }
 
-  // ── 录音交互：toggle 录音，interim 实时进输入框，final 自动提交 ──────────
-  let activeBtn = null;
-  function clearRecordingUI() {
-    document.querySelectorAll(".lx-voice-btn.recording").forEach((b) => {
-      b.classList.remove("recording");
-      if (b.__ta && b.__phOrig != null) b.__ta.placeholder = b.__phOrig;
+  // ── 录音交互：toggle 录音，说完自动识别并提交 ──────────────────────────
+  function clearUI() {
+    document.querySelectorAll(".lx-voice-btn.recording,.lx-voice-btn.thinking").forEach((b) => {
+      b.classList.remove("recording", "thinking");
+      if (b.__ta && b.__phOrig != null) { b.__ta.placeholder = b.__phOrig; b.__phOrig = null; }
     });
-    activeBtn = null;
   }
-
   function toggleRecord(btn, ta, form) {
-    if (asr.active) { asr.stop(); return; }          // 再点一次 = 停止
-    if (!supported) { showTip(btn, errMsg("unsupported")); return; }
-    activeBtn = btn;
+    if (asr.active) { asr.stop(); return; }            // 录音中再点 = 停止并识别
+    if (!asr.supported) { showTip(btn, errMsg("unsupported")); return; }
     btn.__ta = ta;
-    btn.__phOrig = ta.placeholder;
-    btn.classList.add("recording");
-    ta.placeholder = "🎤 请说话…（说完自动执行）";
-    try { ta.focus(); } catch (_e) {}
+    if (btn.__phOrig == null) btn.__phOrig = ta.placeholder;
     asr.start(
-      (interim) => {                                  // 实时中间结果
-        ta.value = interim;
-        ta.dispatchEvent(new Event("input", { bubbles: true }));
+      (state) => {                                      // 状态：recording / 识别中…
+        if (state === "recording") { btn.classList.remove("thinking"); btn.classList.add("recording"); ta.placeholder = "🎤 请说话…（说完停一下自动识别）"; }
+        else { btn.classList.remove("recording"); btn.classList.add("thinking"); ta.placeholder = "识别中…"; }
       },
-      (finalText) => {                                // 最终结果 → 自动提交
-        ta.value = finalText;
+      (text) => {                                       // 识别结果 → 自动提交
+        ta.value = text;
         ta.dispatchEvent(new Event("input", { bubbles: true }));
-        // 说去哪就去哪：说完直接走既有发送链，不用再点发送键
         try {
           if (form && typeof form.requestSubmit === "function") form.requestSubmit();
           else if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
         } catch (_e) {}
       },
-      (err) => { clearRecordingUI(); if (err !== "no-speech" && err !== "aborted") { const m = errMsg(err); if (m) showTip(btn, m); } },
-      () => { clearRecordingUI(); }
+      (err) => { clearUI(); const m = errMsg(err); if (m) showTip(btn, m); },
+      (text) => { clearUI(); if (!text) showTip(btn, "没听清，请靠近麦克风再说一次。"); }
     );
   }
 
@@ -162,9 +205,9 @@
         if (!ta) return;
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "lx-voice-btn" + (supported ? "" : " unsupported");
+        btn.className = "lx-voice-btn" + (asr.supported ? "" : " unsupported");
         btn.setAttribute("aria-label", "语音输入");
-        btn.title = supported ? "点击说话，说完自动执行" : "当前浏览器不支持语音（请用 Chrome/Edge）";
+        btn.title = asr.supported ? "点击说话，说完自动执行" : "当前环境不支持录音";
         btn.innerHTML = MIC_SVG;
         const ref = slot.querySelector(t.before);
         if (ref) slot.insertBefore(btn, ref); else slot.appendChild(btn);
@@ -172,15 +215,12 @@
       });
     });
   }
-
-  // composer 是静态 DOM，就绪即注入；三次延迟重试兜底任何异步渲染（不长挂 observer）
   function boot() { injectButtons(); [200, 800, 2000].forEach((d) => setTimeout(injectButtons, d)); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
-  // 全屏/分屏切换会重挂 composer，点击兜底再注入一次
   document.addEventListener("click", injectButtons, true);
 
-  // 测试钩子：headless 无麦克风，供烟测直接喂一句话验证「文字→提交→意图执行」闭环
+  // 测试钩子：headless 无麦克风，供烟测验证「文字→提交→意图执行」闭环
   root.__lxVoiceTestFeed = function (text, formSel) {
     const form = document.querySelector(formSel || ".composer");
     if (!form) return false;
