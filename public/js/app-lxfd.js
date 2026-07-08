@@ -588,6 +588,7 @@
   // (补分屏类之前的一瞬守卫失效)把全屏类加回来，造成两态共存的混合花屏
   function lxfdAssertSplitEndState() {
     if (!document.body.classList.contains("lx-home-split")) return;
+    window.__LXFD_FORCE = false; // 已进分屏,关掉"URL=/强制全屏"开关,否则内联force定时器会把全屏盖回来
     document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lx-root-home");
     document.documentElement.classList.remove("lx-root-lxfd-prepaint");
     if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
@@ -837,6 +838,7 @@
     if (location.pathname.replace(/\/+$/, "/") === "/" && !document.body.classList.contains("lx-home-split")) {
       document.documentElement.classList.remove("lx-root-lxfd-prepaint");
       document.body.classList.add("lx-home-split");
+      window.__LXFD_FORCE = false;
       if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
       document.body.dataset.state = "chat";
     }
