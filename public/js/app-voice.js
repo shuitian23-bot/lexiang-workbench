@@ -57,6 +57,22 @@
       let o = 44; for (let i = 0; i < len; i++) { const s = Math.max(-1, Math.min(1, f32[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2; }
       return buf;
     }
+    // 优先电脑内置麦克风，避开 iPhone「连续互通」——Mac 默认输入常被设成 iPhone，
+    // 一录音就唤醒手机。已授权后 enumerateDevices 能拿到 label，挑非 iPhone 的内置设备。
+    // 用 ideal 软约束（设备不在也不报错）；首次未授权 label 为空则退回默认（可能仍走 iPhone，
+    // 授权一次后第二次起自动切内置）。
+    async function preferredAudioConstraint() {
+      const base = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+      try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        const ins = devs.filter((d) => d.kind === "audioinput" && d.deviceId && d.deviceId !== "default" && d.deviceId !== "communications");
+        const bad = (l) => /iphone|ipad|continu|连续互通|手机/i.test(l || "");
+        const good = ins.find((d) => /built.?in|macbook|内置|internal|microphone array|imac|mac mini|mac studio/i.test(d.label) && !bad(d.label))
+                  || ins.find((d) => d.label && !bad(d.label));
+        if (good) { base.deviceId = { ideal: good.deviceId }; }
+      } catch (_e) {}
+      return base;
+    }
     async function finish() {
       if (!recording && !chunks.length) return;
       recording = false;
@@ -83,8 +99,10 @@
         cb = { onState, onFinal, onError, onEnd };
         if (!supported) { onError && onError("unsupported"); return; }
         if (recording) return;
+        let audioC;
+        try { audioC = await preferredAudioConstraint(); } catch (_e) { audioC = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }; }
         try {
-          stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+          stream = await navigator.mediaDevices.getUserMedia({ audio: audioC });
         } catch (e) {
           const n = e && e.name;
           onError && onError(n === "NotAllowedError" || n === "SecurityError" ? "not-allowed" : n === "NotFoundError" ? "audio-capture" : "mic-fail");
