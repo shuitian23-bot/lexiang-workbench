@@ -38,3 +38,4 @@ public/js/app-voice.js|asr-stream|前端流式录音
 server.js|attachStream|流式WS挂载
 public/js/app-agent.js|__lxRunChain|多步任务链
 public/js/app-intent.js|matchAutoBuy|代买意图收口(主面板+全屏一套)
+public/js/app-lxfd.js|if (open) lxfdRenderHist();|全屏历史列表展开即刷新

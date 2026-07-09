@@ -649,6 +649,11 @@
     railNewFab?.classList.toggle("hide", open);
     stage?.classList.toggle("shift", open && wide());
     scrim?.classList.remove("show");
+    // 侧栏一露出就重读 localStorage 重渲染——store 是主面板(app.js lxArchiveCurrentConversation)
+    // 和本文件(lxfdPersistCurrent)共用的同一个 key，但 #lxfdHist 只在启动时渲染过一次；
+    // 主面板那边新归档的对话（含多步 agent 卡）不会自动反映到这里，用户点开旧快照里的
+    // 条目会踩到过期/不完整数据，恢复出来就只剩用户那句话。开一次刷一次，零额外触发面。
+    if (open) lxfdRenderHist();
   }
   function setRailManual(open) {
     railManuallyCollapsed = !open;
