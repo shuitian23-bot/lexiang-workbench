@@ -668,19 +668,19 @@
   async function rotateTitleWordForWindows(word) {
     if (helloAnimating || !word || typeof word.animate !== "function") return;
     helloAnimating = true;
-    const ease = "cubic-bezier(.22,.61,.36,1)";
+    const ease = "cubic-bezier(.16,.72,.22,1)";
     try {
       word.style.willChange = "opacity, transform, filter";
       await word.animate([
         { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" },
-        { opacity: 0, transform: "translate3d(0,-18px,0)", filter: "blur(5px)" }
-      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+        { opacity: 0, transform: "translate3d(0,-10px,0)", filter: "blur(1.5px)" }
+      ], { duration: 300, easing: ease, fill: "forwards" }).finished;
       helloIndex = (helloIndex + 1) % helloWords.length;
       word.textContent = helloWords[helloIndex];
       await word.animate([
-        { opacity: 0, transform: "translate3d(0,18px,0)", filter: "blur(5px)" },
+        { opacity: 0, transform: "translate3d(0,10px,0)", filter: "blur(1.5px)" },
         { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" }
-      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      ], { duration: 320, easing: ease, fill: "forwards" }).finished;
       word.style.opacity = "";
       word.style.transform = "";
       word.style.filter = "";
@@ -709,7 +709,7 @@
       word.classList.remove("out");
       word.classList.add("in");
       requestAnimationFrame(() => word.classList.remove("in"));
-    }, reduceMotion ? 0 : 340);
+    }, reduceMotion ? 0 : 300);
   }
   function startRotatingTitle() {
     setRotatingTitle(helloWords[helloIndex]);
