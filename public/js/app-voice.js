@@ -151,6 +151,19 @@
       background:#2a2130;color:#fff;font-size:13px;line-height:1.5;box-shadow:0 6px 20px rgba(0,0,0,.22);
       pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .18s ease,transform .18s ease}
     .lx-voice-tip.show{opacity:1;transform:translateY(0)}
+    .lx-voice-confirm{position:fixed;z-index:99999;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+      padding:10px 14px;border-radius:13px;background:#fff;border:1px solid #ead9e8;
+      box-shadow:0 10px 30px rgba(78,22,70,.18);font-size:13.5px;color:#2a2130;max-width:min(94vw,560px);
+      opacity:0;transform:translateY(6px);transition:opacity .18s ease,transform .18s ease}
+    .lx-voice-confirm.show{opacity:1;transform:translateY(0)}
+    .lx-voice-confirm .lx-vc-text{color:#4e1646}
+    .lx-voice-confirm .lx-vc-text b{color:#111;font-weight:600}
+    .lx-voice-confirm .lx-vc-tip{color:#9a8fa6;white-space:nowrap;margin-left:auto}
+    .lx-voice-confirm .lx-vc-count{display:inline-block;min-width:15px;text-align:center;font-weight:700;color:#e2231a}
+    .lx-voice-confirm button{border:none;border-radius:9px;padding:6px 13px;font-size:13px;cursor:pointer;font-family:inherit;transition:filter .12s ease}
+    .lx-voice-confirm button:hover{filter:brightness(.94)}
+    .lx-voice-confirm .lx-vc-send{background:#4e1646;color:#fff}
+    .lx-voice-confirm .lx-vc-cancel{background:#f1edf5;color:#5a5266}
     @media (prefers-reduced-motion: reduce){.lx-voice-btn.recording{animation:none}}`;
   const styleEl = document.createElement("style");
   styleEl.textContent = STYLE;
@@ -179,6 +192,52 @@
     return "";
   }
 
+  function submitForm(form) {
+    try {
+      if (form && typeof form.requestSubmit === "function") form.requestSubmit();
+      else if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    } catch (_e) {}
+  }
+
+  // ── 识别确认条：识别完先填输入框 + 弹条给用户看清，倒计时后自动发；期间可立即发/取消/改 ──
+  const CONFIRM_SECS = 4;
+  let confirmEl = null, confirmTimer = null, confirmEditH = null, confirmTa = null;
+  function killConfirm() {
+    if (confirmTimer) { clearInterval(confirmTimer); confirmTimer = null; }
+    if (confirmTa && confirmEditH) { confirmTa.removeEventListener("input", confirmEditH); confirmTa.removeEventListener("keydown", confirmEditH); }
+    confirmEditH = null; confirmTa = null;
+    if (confirmEl) { const e = confirmEl; confirmEl = null; e.classList.remove("show"); setTimeout(() => { try { e.remove(); } catch (_e) {} }, 200); }
+  }
+  function showConfirm(anchor, ta, form, text) {
+    killConfirm();
+    const bar = document.createElement("div");
+    bar.className = "lx-voice-confirm";
+    bar.innerHTML = '<span class="lx-vc-text">识别：<b></b></span>' +
+      '<button type="button" class="lx-vc-send">立即发送</button>' +
+      '<button type="button" class="lx-vc-cancel">取消/改</button>' +
+      '<span class="lx-vc-tip"><span class="lx-vc-count"></span> 秒后自动发送</span>';
+    bar.querySelector(".lx-vc-text b").textContent = "「" + text + "」";
+    document.body.appendChild(bar);
+    confirmEl = bar; confirmTa = ta;
+    // 定位在 composer 上方居中
+    const r = (anchor || ta).getBoundingClientRect();
+    bar.style.left = Math.max(8, Math.min(r.left + r.width / 2 - bar.offsetWidth / 2, window.innerWidth - bar.offsetWidth - 8)) + "px";
+    bar.style.top = Math.max(8, r.top - bar.offsetHeight - 12) + "px";
+    requestAnimationFrame(() => bar.classList.add("show"));
+    let left = CONFIRM_SECS;
+    const countEl = bar.querySelector(".lx-vc-count");
+    countEl.textContent = left;
+    const send = () => { killConfirm(); submitForm(form); };
+    const cancel = () => { killConfirm(); try { ta.focus(); } catch (_e) {} };
+    confirmTimer = setInterval(() => { left -= 1; countEl.textContent = left; if (left <= 0) send(); }, 1000);
+    bar.querySelector(".lx-vc-send").addEventListener("click", send);
+    bar.querySelector(".lx-vc-cancel").addEventListener("click", cancel);
+    // 用户在输入框里改字/敲键 → 取消自动发送，交给用户手动发
+    confirmEditH = () => { killConfirm(); };
+    ta.addEventListener("input", confirmEditH);
+    ta.addEventListener("keydown", confirmEditH);
+  }
+
   // ── 录音交互：toggle 录音，说完自动识别并提交 ──────────────────────────
   function clearUI() {
     document.querySelectorAll(".lx-voice-btn.recording,.lx-voice-btn.thinking").forEach((b) => {
@@ -189,6 +248,7 @@
   function toggleRecord(btn, ta, form) {
     if (asr.active) { asr.stop(); return; }            // 录音中再点 = 停止并识别
     if (!asr.supported) { showTip(btn, errMsg("unsupported")); return; }
+    killConfirm();                                     // 重新录音，清掉上一次没发的确认条
     btn.__ta = ta;
     if (btn.__phOrig == null) btn.__phOrig = ta.placeholder;
     asr.start(
@@ -196,13 +256,11 @@
         if (state === "recording") { btn.classList.remove("thinking"); btn.classList.add("recording"); ta.placeholder = "🎤 请说话…（说完停一下自动识别）"; }
         else { btn.classList.remove("recording"); btn.classList.add("thinking"); ta.placeholder = "识别中…"; }
       },
-      (text) => {                                       // 识别结果 → 自动提交
+      (text) => {                                       // 识别结果 → 填框 + 确认条（不立即发，给用户看清）
+        clearUI();
         ta.value = text;
-        ta.dispatchEvent(new Event("input", { bubbles: true }));
-        try {
-          if (form && typeof form.requestSubmit === "function") form.requestSubmit();
-          else if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-        } catch (_e) {}
+        ta.dispatchEvent(new Event("input", { bubbles: true }));  // 先触发（确认条此刻还没挂监听）
+        showConfirm(form, ta, form, text);
       },
       (err) => { clearUI(); const m = errMsg(err); if (m) showTip(btn, m); },
       (text) => { clearUI(); if (!text) showTip(btn, "没听清，请靠近麦克风再说一次。"); }
