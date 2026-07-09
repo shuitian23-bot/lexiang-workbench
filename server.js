@@ -331,6 +331,15 @@ app.get('/api/products', (req, res) => {
       FROM products WHERE ${simWhere} ORDER BY ABS(price - ?) ASC LIMIT ?`).all(...params);
     return res.json(collapseProductsToSpu(rows, limit));
   }
+  // 按名字模糊搜索（语音/意图「打开拯救者Y9000P」秒开用，去空格 LIKE，命中直接给 sku）
+  const q = req.query.q;
+  if (q) {
+    const kw = '%' + String(q).replace(/\s+/g, '') + '%';
+    const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category, specs
+      FROM products WHERE status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
+      AND REPLACE(name, ' ', '') LIKE ? ORDER BY price DESC LIMIT ?`).all(kw, limit);
+    return res.json(collapseProductsToSpu(rows, limit));
+  }
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
   let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
     AND SUBSTR(image_url, -30) NOT IN (

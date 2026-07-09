@@ -6001,9 +6001,18 @@ function openOrderDetail(orderId) {
               const t = String(target || "").trim();
               const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || [])];
               const hit = t && pool.find((p) => p && (p.sku === t || (p.name || "").includes(t) || t.includes(p.name || "__none__")));
-              if (hit && hit.sku) { lxRevealContent(); openProduct(hit.sku); }
-              else if (t) { lxRevealContent(); sendChat("帮我找" + t); }
-              else toast("没说要打开哪款商品");
+              if (hit && hit.sku) { lxRevealContent(); openProduct(hit.sku); return; }
+              if (!t) { toast("没说要打开哪款商品"); return; }
+              // 当前列表没有（如刚回首页）→ 先查本地商品库秒开，查不到才退回官方检索
+              lxRevealContent();
+              lxAddInstantAi(`好的，正在为你打开「${t}」。`);
+              fetch("/api/products?q=" + encodeURIComponent(t) + "&limit=1")
+                .then((r) => r.json())
+                .then((arr) => {
+                  if (Array.isArray(arr) && arr[0] && arr[0].sku) openProduct(arr[0].sku);
+                  else sendChat("帮我找" + t);
+                })
+                .catch(() => sendChat("帮我找" + t));
             },
             enter_fullscreen: () => lxSetAutoFs(true),
             exit_fullscreen: () => { if (state.autoFs) lxSetAutoFs(false); else document.body.classList.remove("assistant-fullscreen"); },
@@ -8768,4 +8777,114 @@ function openOrderDetail(orderId) {
     if (target) setTimeout(forceRootFullscreen, 0);
   }, true);
   [50, 200, 600, 1200].forEach(function(delay){ setTimeout(forceRootFullscreen, delay); });
+})();
+
+// Personal shop page top navigation title state.
+(function(){
+  var CONV_KEY = "lexiang.conversation.v1";
+  var syncTimer = 0;
+  function isPersonal(){
+    return /^\/shop-chat\/?$/.test(location.pathname || "") ||
+      (window.__lxState && window.__lxState.page === "personal") ||
+      (document.body && document.body.dataset && document.body.dataset.page === "personal");
+  }
+  function cap6(text){
+    return Array.from(String(text || "").trim()).slice(0, 6).join("") || "新对话";
+  }
+  function cleanText(text){
+    return String(text || "")
+      .replace(/\s+/g, "")
+      .replace(/[，。！？、,.!?;；:："'“”‘’（）()【】\[\]<>《》]/g, "")
+      .trim();
+  }
+  function summarize(text){
+    var s = cleanText(text);
+    if (!s) return "新对话";
+    var rules = [
+      [/关闭.*标签|标签.*关闭|关.*页面标签/, "关闭标签"],
+      [/教育|学生|教师|认证/, "教育优惠"],
+      [/国补|国家补贴|补贴/, "国补商品"],
+      [/以旧换新|旧机|回收|估算/, "以旧换新"],
+      [/门店|附近|到店/, "门店查询"],
+      [/客服|售后|维修|保修/, "售后服务"],
+      [/订单|物流|发货/, "订单查询"],
+      [/会员|积分|权益/, "会员权益"],
+      [/私人|定制|订制|刻字|喷绘|配色/, "私人定制"],
+      [/对比|比较/, "商品对比"],
+      [/下单|购买|买|领券|优惠券/, "购买商品"],
+      [/活动|优惠|秒杀|促销/, "优惠活动"],
+      [/笔记本|电脑|轻薄本|游戏本|工作站|YOGA|ThinkPad|拯救者|小新/i, "笔记本推荐"]
+    ];
+    for (var i = 0; i < rules.length; i += 1) {
+      if (rules[i][0].test(s)) return cap6(rules[i][1]);
+    }
+    s = s.replace(/^(请)?帮我|^我要|^我想|^给我|^推荐|^找一?款|^一款|适合我的?/g, "");
+    return cap6(s || text);
+  }
+  function currentUserTexts(){
+    var texts = [];
+    document.querySelectorAll(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user, .lxfd-thread .lxfd-msg.user").forEach(function(node){
+      var text = (node.textContent || "").trim();
+      if (text) texts.push(text);
+    });
+    if (!texts.length) {
+      try {
+        var data = JSON.parse(localStorage.getItem(CONV_KEY) || "null");
+        if (data && Array.isArray(data.messages)) {
+          data.messages.forEach(function(msg){
+            if (msg && msg.role === "user" && String(msg.text || "").trim()) texts.push(String(msg.text).trim());
+          });
+        }
+      } catch (_e) {}
+    }
+    return texts;
+  }
+  function conversationLabel(){
+    var texts = currentUserTexts();
+    if (!texts.length) return "新对话";
+    return summarize(texts[0] || texts[texts.length - 1]);
+  }
+  function sync(){
+    if (!isPersonal()) return;
+    var nav = document.querySelector(".main-nav");
+    if (!nav) return;
+    var label = "个人及家庭：" + conversationLabel();
+    nav.setAttribute("data-current-label", label);
+    nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
+    var chip = nav.querySelector(".lx-current-topic-chip");
+    if (!chip) {
+      chip = document.createElement("span");
+      chip.className = "lx-current-topic-chip";
+      chip.setAttribute("aria-hidden", "true");
+      nav.insertBefore(chip, nav.firstElementChild || null);
+    }
+    chip.textContent = label;
+    var personalBtn = nav.querySelector('[data-page="personal"]');
+    if (personalBtn) personalBtn.textContent = "个人及家庭";
+  }
+  function scheduleSync(){
+    window.clearTimeout(syncTimer);
+    syncTimer = window.setTimeout(sync, 40);
+  }
+  window.__lxSyncPersonalNavTitle = scheduleSync;
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync); else sync();
+  if (window.MutationObserver) {
+    var observer = new MutationObserver(scheduleSync);
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-state"] });
+    else document.addEventListener("DOMContentLoaded", function(){
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-state"] });
+    });
+  }
+  document.addEventListener("click", function(event){
+    if (!event.target || !event.target.closest) return;
+    if (event.target.closest(".category-tabs button, .main-nav [data-page], [data-site-floor-tab], [data-floor-tab], .new-chat-button, .send-btn, .hero-send-btn")) {
+      window.setTimeout(scheduleSync, 0);
+      window.setTimeout(scheduleSync, 120);
+    }
+  });
+  window.addEventListener("popstate", sync);
+  window.addEventListener("storage", function(event){
+    if (!event || event.key === CONV_KEY) scheduleSync();
+  });
+  [80, 300, 900].forEach(function(delay){ window.setTimeout(sync, delay); });
 })();

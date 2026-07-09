@@ -31,3 +31,5 @@ public/js/app-voice.js|__lxVoiceInstalled|语音控制模块本体
 public/index.html|app-voice.js|index加载语音模块
 routes/asr.js|sauc/bigmodel|火山语音识别代理
 server.js|/api/asr|ASR路由挂载
+server.js|req.query.q|商品名本地搜索
+public/js/app.js|api/products?q=|open_product本地秒开
