@@ -1045,17 +1045,6 @@
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {}
 
-    // 多步代买意图：与主面板同一套（app-intent.matchAutoBuy）。全屏没右侧货架，桥接退全屏进分屏后跑同一条链
-    const _lxfdAutoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(value) : null;
-    if (_lxfdAutoBuy && window.__lxRunChain) {
-      const _run = () => window.__lxRunChain(_lxfdAutoBuy.chain, _lxfdAutoBuy.params);
-      if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) {
-        lxfdExportToMain();
-        exitFullscreenWithReveal(() => { if (thread) thread.innerHTML = ""; _run(); });
-      } else { _run(); }
-      return;
-    }
-
     // ── lxfd 意图路由分流 ──────────────────────────────────────────────
     // 1. 本地快路径（正则统一收口 app-intent.js，主面板/全屏共用一份，改一处两边同时生效）
     const _lxfdLocalCtrl = window.__lxIntent ? window.__lxIntent.matchControl(value) : null;
