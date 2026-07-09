@@ -15452,3 +15452,1358 @@ body.lx-root-home:not(.lx-home-split) > .lxfd {
 .assistant-panel .page-dots .prompt-menu .menu-row.active{background:#f0e8f6;color:#5b1452;font-weight:800}
 .assistant-panel .page-dots .prompt-menu .lx-trail-head{margin-top:8px;padding:10px 12px 4px;font-size:12px}
 @media (max-width:1280px){.assistant-panel .page-dots .prompt-menu{left:calc(var(--assistant-panel-width, 430px) * .55)!important;transform:translate(-50%,-50%)!important}}
+
+
+/* 首页全屏输入框按钮：恢复清晰描边 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-toggle,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-toggle,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-toggle,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-scope-more-btn,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-scope-more-btn,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-more-btn{
+  border:1px solid #decbe2!important;
+  background:#fff!important;
+  color:#5b1452!important;
+  box-shadow:0 1px 2px rgba(45,18,52,.03)!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-toggle:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-toggle:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-toggle:hover,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-toggle.on,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-toggle.on,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-toggle.on,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip:hover,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-scope-more.open .lxfd-scope-more-btn,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-scope-more.open .lxfd-scope-more-btn,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-more.open .lxfd-scope-more-btn{
+  border-color:#cbaed2!important;
+  background:#f3edf6!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-img-btn,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-img-btn,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-img-btn,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn{
+  border:1px solid #decbe2!important;
+  background:#fff!important;
+  color:#5b1452!important;
+  box-shadow:0 1px 2px rgba(45,18,52,.03)!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-img-btn:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-img-btn:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-img-btn:hover,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn:hover{
+  border-color:#cbaed2!important;
+  background:#f3edf6!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send{
+  border:1px solid #cbaed2!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send.idle,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send.idle,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send.idle{
+  background:#fff!important;
+  color:#8f8391!important;
+  opacity:1!important;
+  box-shadow:0 1px 2px rgba(45,18,52,.03)!important;
+}
+
+
+/* 首页更多下拉菜单项：保持列表态，无按钮描边 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-scope-menu .lxfd-scope-chip,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-scope-menu .lxfd-scope-chip,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-menu .lxfd-scope-chip{
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-scope-menu .lxfd-scope-chip:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-scope-menu .lxfd-scope-chip:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-menu .lxfd-scope-chip:hover{
+  background:#f3edf6!important;
+}
+
+
+/* 首页发送按钮：规范化空态/激活态 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send{
+  width:42px!important;
+  height:42px!important;
+  border-radius:50%!important;
+  border:1px solid transparent!important;
+  background:linear-gradient(135deg,#5b1452 0%,#b8252e 100%)!important;
+  color:#fff!important;
+  opacity:1!important;
+  box-shadow:0 10px 24px rgba(91,20,82,.22),inset 0 1px 0 rgba(255,255,255,.22)!important;
+  transform:translate3d(0,0,0)!important;
+  transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .18s ease,background .18s ease,color .18s ease,border-color .18s ease!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:hover{
+  transform:translate3d(0,-1px,0)!important;
+  box-shadow:0 14px 30px rgba(91,20,82,.28),inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:active,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:active,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:active{
+  transform:translate3d(0,0,0) scale(.96)!important;
+  box-shadow:0 7px 16px rgba(91,20,82,.20),inset 0 1px 0 rgba(255,255,255,.18)!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send.idle,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send.idle,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send.idle{
+  border-color:#decbe2!important;
+  background:#fff!important;
+  color:#9a929f!important;
+  box-shadow:none!important;
+  cursor:not-allowed!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send.idle:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send.idle:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send.idle:hover{
+  transform:translate3d(0,0,0)!important;
+  box-shadow:none!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send svg,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send svg,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send svg{
+  width:18px!important;
+  height:18px!important;
+}
+
+
+/* 首页发送按钮：使用 composer-send.svg，按输入状态控制透明度 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send{
+  width:42px!important;
+  height:42px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:inherit!important;
+  opacity:1!important;
+  padding:0!important;
+  cursor:pointer!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send .icon,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send .icon,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send .icon{
+  width:42px!important;
+  height:42px!important;
+  display:block!important;
+  opacity:1!important;
+  transition:opacity .16s ease,transform .18s cubic-bezier(.2,.7,.2,1)!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send.idle,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send.idle,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send.idle{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  cursor:not-allowed!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send.idle .icon,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send.idle .icon,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send.idle .icon{
+  opacity:.4!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):hover .icon,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):hover .icon,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):hover .icon{
+  transform:translate3d(0,-1px,0)!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):active .icon,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):active .icon,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):active .icon{
+  transform:scale(.96)!important;
+}
+
+
+/* 首页输入框右侧语音/图片图标：无描边图标态 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-img-btn,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-img-btn,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-img-btn{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn:hover,
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-img-btn:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-img-btn:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-img-btn:hover{
+  background:#f3edf6!important;
+}
+
+
+/* 首页发送图标：显示尺寸缩小 1/5，点击区域不变 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send .icon,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send .icon,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send .icon{
+  width:34px!important;
+  height:34px!important;
+}
+
+
+/* 首页发送按钮：hover 不加阴影 */
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:hover,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:hover,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:hover{
+  box-shadow:none!important;
+  transform:none!important;
+}
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):hover .icon,
+body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):hover .icon,
+html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:not(.idle):hover .icon{
+  transform:none!important;
+}
+
+
+/* 个人及家庭页顶部导航：显示页面状态标题 */
+body[data-page="personal"] .main-nav{
+  position:relative!important;
+  justify-self:center!important;
+  min-width:260px!important;
+  height:var(--topbar-h)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
+  padding:0!important;
+  color:#5b1452!important;
+}
+body[data-page="personal"] .main-nav::before{
+  content:attr(data-current-label)!important;
+  display:block!important;
+  color:#5b1452!important;
+  font-size:15px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+}
+body[data-page="personal"] .main-nav button{
+  display:none!important;
+}
+
+
+/* 个人及家庭页顶部导航：标题下拉与 hover 展开 */
+body[data-page="personal"] .main-nav{
+  min-width:360px!important;
+  overflow:visible!important;
+}
+body[data-page="personal"] .main-nav::before{
+  padding:0 24px 0 0!important;
+}
+body[data-page="personal"] .main-nav::after{
+  content:""!important;
+  position:absolute!important;
+  top:50%!important;
+  left:calc(50% + var(--lx-personal-nav-label-half, 72px))!important;
+  width:8px!important;
+  height:8px!important;
+  border-right:2px solid #b8b3bb!important;
+  border-bottom:2px solid #b8b3bb!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+  transition:transform .2s cubic-bezier(.2,.7,.2,1),opacity .16s ease!important;
+}
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  min-width:auto!important;
+  gap:34px!important;
+  padding:0!important;
+}
+body[data-page="personal"] .main-nav:hover::before,
+body[data-page="personal"] .main-nav:focus-within::before{
+  opacity:0!important;
+  visibility:hidden!important;
+}
+body[data-page="personal"] .main-nav:hover::after,
+body[data-page="personal"] .main-nav:focus-within::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+body[data-page="personal"] .main-nav:hover button,
+body[data-page="personal"] .main-nav:focus-within button{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:38px!important;
+  padding:0 10px!important;
+  color:#5f5a64!important;
+  font-size:15px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+  border-radius:7px!important;
+}
+body[data-page="personal"] .main-nav:hover button:hover,
+body[data-page="personal"] .main-nav:focus-within button:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+body[data-page="personal"] .main-nav:hover button.active,
+body[data-page="personal"] .main-nav:focus-within button.active{
+  color:#5b1452!important;
+  background:#f1e7f4!important;
+  font-weight:700!important;
+  padding:0 18px!important;
+}
+body[data-page="personal"] .main-nav:hover button.active::after,
+body[data-page="personal"] .main-nav:focus-within button.active::after{
+  display:none!important;
+}
+
+
+/* 个人及家庭页顶部标题下拉箭头：整体缩小 1/4 */
+body[data-page="personal"] .main-nav::after{
+  width:6px!important;
+  height:6px!important;
+  border-right-width:1.5px!important;
+  border-bottom-width:1.5px!important;
+}
+
+
+/* 个人及家庭页展开主导航：去掉 hover 小横线 */
+body[data-page="personal"] .main-nav:hover button:not(.active)::after,
+body[data-page="personal"] .main-nav:focus-within button:not(.active)::after{
+  display:none!important;
+  content:none!important;
+}
+
+
+/* 个人及家庭页展开主导航：tab 文字小 2px */
+body[data-page="personal"] .main-nav:hover button,
+body[data-page="personal"] .main-nav:focus-within button{
+  font-size:13px!important;
+}
+
+
+/* 个人及家庭页展开主导航：相对默认位置再左移 20px */
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  transform:translateX(-100px)!important;
+}
+
+
+/* 个人及家庭页展开主导航：tab 间距减半 */
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  gap:17px!important;
+}
+
+
+/* 个人及家庭页顶部导航：按整屏自动居中，取消手动偏移 */
+body[data-page="personal"] .topbar{
+  position:relative!important;
+}
+body[data-page="personal"] .main-nav,
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  position:absolute!important;
+  left:50%!important;
+  top:0!important;
+  transform:translateX(-50%)!important;
+  justify-self:auto!important;
+}
+
+
+/* 个人及家庭页顶部导航：修复垂直居中与右侧工具区位置 */
+body[data-page="personal"] .topbar{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:clamp(178px,13vw,252px) 1fr clamp(132px,10vw,190px)!important;
+  align-items:center!important;
+}
+body[data-page="personal"] .brand{
+  grid-column:1!important;
+  justify-self:start!important;
+  position:relative!important;
+  z-index:2!important;
+}
+body[data-page="personal"] .utility{
+  grid-column:3!important;
+  justify-self:end!important;
+  position:relative!important;
+  right:auto!important;
+  top:auto!important;
+  transform:none!important;
+  z-index:2!important;
+}
+body[data-page="personal"] .main-nav,
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  height:100%!important;
+  display:flex!important;
+  align-items:center!important;
+  transform:translate(-50%,-50%)!important;
+  justify-self:auto!important;
+  z-index:1!important;
+}
+
+
+/* 个人及家庭页顶部导航：在 logo 与工具区之间自动居中 */
+body[data-page="personal"] .topbar{
+  grid-template-columns:max-content minmax(0,1fr) max-content!important;
+  column-gap:clamp(20px,2.2vw,44px)!important;
+}
+body[data-page="personal"] .main-nav,
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  grid-column:2!important;
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  height:100%!important;
+  transform:none!important;
+  justify-self:center!important;
+}
+
+
+/* 个人及家庭页顶部导航：按当前视觉稿整体左移 */
+body[data-page="personal"] .main-nav,
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  transform:translateX(-100px)!important;
+}
+
+
+/* 个人及家庭页顶部导航：默认收起态按屏幕居中，展开态保留左移 */
+body[data-page="personal"] .main-nav{
+  grid-column:auto!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  justify-self:auto!important;
+}
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  grid-column:auto!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(calc(-50% - 100px),-50%)!important;
+  justify-self:auto!important;
+}
+
+
+/* 个人及家庭页顶部导航：hover 展开时当前会话标签独立置首位 */
+body[data-page="personal"] .main-nav .lx-current-topic-chip{
+  display:none!important;
+}
+body[data-page="personal"] .main-nav:hover .lx-current-topic-chip,
+body[data-page="personal"] .main-nav:focus-within .lx-current-topic-chip{
+  order:-1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:38px!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-size:13px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+}
+body[data-page="personal"] .main-nav:hover button.active,
+body[data-page="personal"] .main-nav:focus-within button.active{
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-weight:500!important;
+  padding:0 10px!important;
+}
+body[data-page="personal"] .main-nav:hover button.active:hover,
+body[data-page="personal"] .main-nav:focus-within button.active:hover{
+  color:#5b1452!important;
+}
+
+
+/* 顶部导航栏背景去除 */
+.topbar{
+  background:transparent!important;
+}
+
+/* Online hotfix 2026-07-09: remove hidden topic placeholder gap in expanded personal nav */
+body[data-page="personal"] .main-nav:hover::before,
+body[data-page="personal"] .main-nav:focus-within::before{
+  display:none!important;
+  content:none!important;
+  width:0!important;
+  min-width:0!important;
+  padding:0!important;
+  margin:0!important;
+}
+body[data-page="personal"] .main-nav:hover .lx-current-topic-chip,
+body[data-page="personal"] .main-nav:focus-within .lx-current-topic-chip{
+  margin-right:0!important;
+}
+
+/* Online hotfix 2026-07-09: remove top gap between topbar and shop content */
+body:not(.assistant-fullscreen) .shell{
+  padding-top:0!important;
+}
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors),
+body:not(.assistant-fullscreen) .content:has(.product-grid){
+  margin-top:0!important;
+}
+
+/* Online hotfix 2026-07-09: remove bottom gap in split shop layout */
+html,
+body{
+  margin-bottom:0!important;
+  padding-bottom:0!important;
+}
+body:not(.assistant-fullscreen) .shell{
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+}
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors),
+body:not(.assistant-fullscreen) .content:has(.product-grid){
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-site-floors,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .product-grid{
+  margin-bottom:0!important;
+  padding-bottom:0!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .lx-site-floors > .lx-floor:last-child{
+  margin-bottom:0!important;
+  padding-bottom:0!important;
+}
+
+/* Online hotfix 2026-07-09: enlarge expanded personal nav labels */
+body[data-page="personal"] .main-nav:hover button,
+body[data-page="personal"] .main-nav:focus-within button,
+body[data-page="personal"] .main-nav:hover .lx-current-topic-chip,
+body[data-page="personal"] .main-nav:focus-within .lx-current-topic-chip{
+  font-size:14px!important;
+}
+body[data-page="personal"] .main-nav::before{
+  font-size:16px!important;
+}
+
+/* Online hotfix 2026-07-09: center expanded personal nav on viewport */
+body[data-page="personal"] .main-nav,
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  justify-self:auto!important;
+}
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within{
+  min-width:auto!important;
+  gap:17px!important;
+}
+
+/* Online hotfix 2026-07-09: make split layout flush to viewport bottom */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .shell{
+  min-height:calc(100vh - clamp(76px, 7.2vh, 108px))!important;
+  align-items:stretch!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .assistant-panel{
+  height:auto!important;
+  min-height:100%!important;
+  align-self:stretch!important;
+  margin-bottom:0!important;
+  border-bottom-left-radius:0!important;
+  border-bottom-right-radius:0!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content:has(.lx-site-floors),
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .content:has(.product-grid){
+  min-height:100%!important;
+  align-self:stretch!important;
+  border-bottom-left-radius:0!important;
+  border-bottom-right-radius:0!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .assistant-bottom{
+  bottom:0!important;
+}
+
+/* Online hotfix 2026-07-09: smooth personal nav hover expand/collapse */
+body[data-page="personal"] .main-nav{
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+  will-change:transform, gap;
+}
+body[data-page="personal"] .main-nav::before{
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+  transform-origin:center!important;
+  transition:opacity .22s ease, visibility 0s linear .22s, transform .28s cubic-bezier(.22,.61,.36,1)!important;
+}
+body[data-page="personal"] .main-nav::after{
+  transition:left .28s cubic-bezier(.22,.61,.36,1), right .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease!important;
+}
+body[data-page="personal"] .main-nav button,
+body[data-page="personal"] .main-nav .lx-current-topic-chip{
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+  will-change:opacity, transform;
+}
+body[data-page="personal"] .main-nav:not(:hover):not(:focus-within) button,
+body[data-page="personal"] .main-nav:not(:hover):not(:focus-within) .lx-current-topic-chip{
+  opacity:0!important;
+  transform:translateY(-4px) scale(.96)!important;
+  pointer-events:none!important;
+}
+body[data-page="personal"] .main-nav:hover::before,
+body[data-page="personal"] .main-nav:focus-within::before{
+  opacity:0!important;
+  visibility:hidden!important;
+  transform:translateY(4px) scale(.96)!important;
+  transition:opacity .16s ease, visibility 0s linear .16s, transform .22s cubic-bezier(.22,.61,.36,1)!important;
+}
+body[data-page="personal"] .main-nav:hover button,
+body[data-page="personal"] .main-nav:focus-within button,
+body[data-page="personal"] .main-nav:hover .lx-current-topic-chip,
+body[data-page="personal"] .main-nav:focus-within .lx-current-topic-chip{
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+}
+@media (prefers-reduced-motion: reduce){
+  body[data-page="personal"] .main-nav,
+  body[data-page="personal"] .main-nav::before,
+  body[data-page="personal"] .main-nav::after,
+  body[data-page="personal"] .main-nav button,
+  body[data-page="personal"] .main-nav .lx-current-topic-chip{
+    transition:none!important;
+  }
+}
+
+/* Online hotfix 2026-07-09: keep bottom breathing room for left assistant composer */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]):not(.assistant-fullscreen) .assistant-bottom{
+  bottom:clamp(14px, 1.5vh, 22px)!important;
+}
+
+/* Online hotfix 2026-07-09: share top nav title interaction across all channels */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .topbar{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:max-content minmax(0,1fr) max-content!important;
+  column-gap:clamp(20px,2.2vw,44px)!important;
+  align-items:center!important;
+  background:transparent!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .brand{
+  grid-column:1!important;
+  justify-self:start!important;
+  position:relative!important;
+  z-index:2!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .utility{
+  grid-column:3!important;
+  justify-self:end!important;
+  position:relative!important;
+  right:auto!important;
+  top:auto!important;
+  transform:none!important;
+  z-index:2!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within{
+  grid-column:auto!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  height:100%!important;
+  min-width:360px!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  justify-self:auto!important;
+  gap:0!important;
+  overflow:visible!important;
+  color:#5b1452!important;
+  transform:translate(-50%,-50%)!important;
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+  will-change:transform, gap;
+  z-index:1!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav::before{
+  content:attr(data-current-label)!important;
+  display:block!important;
+  padding:0 24px 0 0!important;
+  color:#5b1452!important;
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+  transform-origin:center!important;
+  transition:opacity .22s ease, visibility 0s linear .22s, transform .28s cubic-bezier(.22,.61,.36,1)!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav::after{
+  content:""!important;
+  position:absolute!important;
+  top:50%!important;
+  left:calc(50% + var(--lx-personal-nav-label-half, 72px))!important;
+  width:6px!important;
+  height:6px!important;
+  border-right:1.5px solid #b8b3bb!important;
+  border-bottom:1.5px solid #b8b3bb!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+  transition:left .28s cubic-bezier(.22,.61,.36,1), right .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav button{
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:38px!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+  opacity:0!important;
+  transform:translateY(-4px) scale(.96)!important;
+  pointer-events:none!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+  will-change:opacity, transform;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav button::after,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button:not(.active)::after,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button:not(.active)::after{
+  display:none!important;
+  content:none!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within{
+  min-width:auto!important;
+  gap:17px!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover::before,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within::before{
+  opacity:0!important;
+  visibility:hidden!important;
+  transform:translateY(4px) scale(.96)!important;
+  transition:opacity .16s ease, visibility 0s linear .16s, transform .22s cubic-bezier(.22,.61,.36,1)!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover::after,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button{
+  display:flex!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+  pointer-events:auto!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button.active,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button.active{
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-weight:500!important;
+  padding:0 10px!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav .lx-current-topic-chip{
+  display:none!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover .lx-current-topic-chip,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within .lx-current-topic-chip{
+  order:-1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:38px!important;
+  margin-right:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+}
+@media (prefers-reduced-motion: reduce){
+  body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav,
+  body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav::before,
+  body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav::after,
+  body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav button,
+  body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav .lx-current-topic-chip{
+    transition:none!important;
+  }
+}
+
+/* Online hotfix 2026-07-09: remove expanded nav title gap for all channel hovers */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover::before,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within::before{
+  display:none!important;
+  content:none!important;
+  width:0!important;
+  min-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  transform:translateY(4px) scale(.96)!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover .lx-current-topic-chip,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within .lx-current-topic-chip{
+  order:-1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:38px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button{
+  display:flex!important;
+  height:38px!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button.active,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button.active{
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-weight:500!important;
+  padding:0 10px!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover button:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within button:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+
+/* Online hotfix 2026-07-09: remove collapsed top label switch animation */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:not(:hover):not(:focus-within),
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:not(:hover):not(:focus-within)::before,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:not(:hover):not(:focus-within)::after{
+  transition:none!important;
+  animation:none!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:not(:hover):not(:focus-within)::before{
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+}
+
+/* Online hotfix 2026-07-09: tighten expanded top nav tab spacing by one third */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:hover,
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]) .main-nav:focus-within{
+  gap:11px!important;
+}
+
+/* Online hotfix 2026-07-09: add bottom safe area below left assistant panel */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  height:calc(100% - clamp(18px, 1.8vh, 28px))!important;
+  min-height:calc(100% - clamp(18px, 1.8vh, 28px))!important;
+  align-self:start!important;
+  margin-bottom:clamp(18px, 1.8vh, 28px)!important;
+  border-bottom-left-radius:8px!important;
+  border-bottom-right-radius:8px!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .assistant-bottom{
+  bottom:clamp(18px, 1.8vh, 28px)!important;
+}
+
+/* Online hotfix 2026-07-09: robust viewport-based assistant bottom gap */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen){
+  --lx-assistant-bottom-gap:clamp(18px, 1.8vh, 28px);
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  height:calc(100vh - clamp(76px, 7.2vh, 108px) - var(--lx-assistant-bottom-gap))!important;
+  min-height:0!important;
+  max-height:calc(100vh - clamp(76px, 7.2vh, 108px) - var(--lx-assistant-bottom-gap))!important;
+  align-self:start!important;
+  margin-bottom:var(--lx-assistant-bottom-gap)!important;
+  border-bottom-left-radius:8px!important;
+  border-bottom-right-radius:8px!important;
+  overflow:hidden!important;
+}
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .assistant-bottom{
+  bottom:var(--lx-assistant-bottom-gap)!important;
+}
+
+/* Online v4.0 baseline change 2026-07-09: unify fullscreen home top navigation with channel pages. */
+.lxfd-topbar{
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  height:50px!important;
+  display:grid!important;
+  grid-template-columns:clamp(178px,13vw,252px) minmax(0,1fr) clamp(132px,10vw,190px)!important;
+  align-items:center!important;
+  padding:0 clamp(18px,2vw,34px)!important;
+  pointer-events:none!important;
+}
+.lxfd-topbar>*{
+  pointer-events:auto!important;
+}
+.lxfd-logo-pill{
+  height:50px!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:8px!important;
+}
+.lxfd-logo-full{
+  width:auto!important;
+  height:26px!important;
+}
+.lxfd-nav-cluster{
+  justify-self:center!important;
+  align-self:stretch!important;
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.lxfd-convo-pill,
+.lxfd-convo-pill.lxfd-glass{
+  width:auto!important;
+  min-width:0!important;
+  max-width:min(420px,42vw)!important;
+  height:50px!important;
+  padding:0 12px!important;
+  gap:6px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--aubergine)!important;
+  transform:none!important;
+}
+.lxfd-convo-pill:hover,
+.lxfd-convo-pill:focus-visible{
+  background:var(--lavender-weak)!important;
+  box-shadow:none!important;
+  outline:none!important;
+}
+.lxfd-convo-pill .dot{
+  display:none!important;
+}
+.lxfd-convo-name{
+  display:block!important;
+  min-width:0!important;
+  max-width:360px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  color:var(--aubergine)!important;
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:700!important;
+}
+.lxfd-expand-btn{
+  width:22px!important;
+  height:22px!important;
+  color:#9a929f!important;
+  flex:none!important;
+}
+.lxfd-expand-btn svg{
+  width:17px!important;
+  height:17px!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-pill{
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:none!important;
+}
+.lxfd-nav-cluster.open .lxfd-expand-btn svg{
+  transform:rotate(180deg)!important;
+}
+.lxfd-nav-sheet,
+.lxfd-nav-sheet.lxfd-glass{
+  top:48px!important;
+  left:50%!important;
+  padding:8px!important;
+  border:1px solid var(--border)!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  box-shadow:var(--shadow)!important;
+  transform:translate(-50%,-8px) scale(.98)!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet{
+  transform:translate(-50%,0) scale(1)!important;
+}
+.lxfd-nav-sheet a{
+  height:38px!important;
+  padding:0 16px!important;
+  border-radius:6px!important;
+  color:#2d2931!important;
+  font-size:14px!important;
+  font-weight:500!important;
+}
+.lxfd-nav-sheet a:hover,
+.lxfd-nav-sheet a.active{
+  background:var(--lavender-hover)!important;
+  color:var(--aubergine)!important;
+}
+.lxfd-nav-sheet a.active::after{
+  display:none!important;
+}
+.lxfd-actions,
+.lxfd-actions.lxfd-glass{
+  justify-self:end!important;
+  height:50px!important;
+  padding:0!important;
+  gap:14px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.lxfd-ic,
+.lxfd-avatar{
+  width:32px!important;
+  height:32px!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  color:#171317!important;
+  box-shadow:none!important;
+}
+.lxfd-ic:hover,
+.lxfd-avatar:hover,
+.lxfd-account-wrap:hover .lxfd-avatar{
+  background:var(--lavender-weak)!important;
+  color:var(--aubergine)!important;
+  transform:none!important;
+}
+.lxfd-ic .icon,
+.lxfd-avatar .icon{
+  width:18px!important;
+  height:18px!important;
+}
+.lxfd-badge{
+  top:0!important;
+  right:0!important;
+}
+.lxfd-divider{
+  display:none!important;
+}
+.lxfd-account-wrap{
+  height:50px!important;
+  align-items:center!important;
+}
+.lxfd-account-wrap::after{
+  top:34px!important;
+  left:-120px!important;
+  right:-10px!important;
+  height:22px!important;
+}
+.lxfd-account-menu{
+  top:44px!important;
+  right:-8px!important;
+}
+
+/* Online fix 2026-07-09: homepage fullscreen nav hover matches channel top-nav expansion. */
+.lxfd-nav-cluster.open{
+  position:relative!important;
+  height:50px!important;
+  min-width:auto!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:17px!important;
+  overflow:visible!important;
+}
+.lxfd-nav-cluster.open::after{
+  content:""!important;
+  position:absolute!important;
+  top:50%!important;
+  right:-28px!important;
+  width:6px!important;
+  height:6px!important;
+  border-right:1.5px solid #b8b3bb!important;
+  border-bottom:1.5px solid #b8b3bb!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-pill,
+.lxfd-nav-cluster.open .lxfd-convo-pill.lxfd-glass{
+  order:-1!important;
+  height:38px!important;
+  max-width:none!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  box-shadow:none!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-name{
+  max-width:260px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-pill .lxfd-expand-btn{
+  display:none!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-pill .lxfd-expand-btn svg{
+  width:18px!important;
+  height:18px!important;
+  transform:rotate(180deg)!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet,
+.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{
+  position:static!important;
+  order:0!important;
+  height:50px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:17px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet a{
+  height:38px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet a:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet a.active{
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-weight:500!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet a[data-page="home"]{
+  display:none!important;
+}
+
+/* Online fix 2026-07-09: exact-match homepage fullscreen nav to /shop-chat/ top-nav hover. */
+.lxfd-nav-cluster{
+  position:relative!important;
+  align-self:stretch!important;
+  height:50px!important;
+  min-width:360px!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
+  overflow:visible!important;
+  transform:none!important;
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+  will-change:transform, gap;
+}
+.lxfd-nav-cluster::after{
+  content:""!important;
+  position:absolute!important;
+  top:50%!important;
+  left:calc(50% + var(--lxfd-nav-label-half, 86px))!important;
+  width:6px!important;
+  height:6px!important;
+  border-right:1.5px solid #b8b3bb!important;
+  border-bottom:1.5px solid #b8b3bb!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+  transition:left .28s cubic-bezier(.22,.61,.36,1), right .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease!important;
+}
+.lxfd-convo-pill,
+.lxfd-convo-pill.lxfd-glass{
+  height:50px!important;
+  max-width:none!important;
+  padding:0 24px 0 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#5b1452!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, visibility 0s linear .22s, transform .28s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-convo-pill:hover,
+.lxfd-convo-pill:focus-visible{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.lxfd-convo-name{
+  display:block!important;
+  max-width:360px!important;
+  color:#5b1452!important;
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+}
+.lxfd-convo-pill .lxfd-expand-btn{
+  display:none!important;
+}
+.lxfd-nav-sheet,
+.lxfd-nav-sheet.lxfd-glass{
+  position:absolute!important;
+  inset:auto!important;
+  left:50%!important;
+  top:50%!important;
+  height:38px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:17px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transform:translate(-50%, calc(-50% - 4px)) scale(.96)!important;
+  transition:opacity .22s ease, visibility 0s linear .22s, transform .3s cubic-bezier(.22,.61,.36,1)!important;
+  white-space:nowrap!important;
+}
+.lxfd-nav-sheet a{
+  height:38px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+  opacity:1!important;
+  transform:none!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-sheet a::after{
+  display:none!important;
+  content:none!important;
+}
+.lxfd-nav-sheet a:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+.lxfd-nav-sheet a.active{
+  background:transparent!important;
+  color:#5b1452!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster.open{
+  min-width:auto!important;
+  gap:17px!important;
+}
+.lxfd-nav-cluster.open::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-pill,
+.lxfd-nav-cluster.open .lxfd-convo-pill.lxfd-glass{
+  order:-1!important;
+  height:38px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-weight:700!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+}
+.lxfd-nav-cluster.open .lxfd-convo-name{
+  max-width:320px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet,
+.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{
+  position:static!important;
+  order:0!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:translateY(0) scale(1)!important;
+}
+.lxfd-nav-cluster.open .lxfd-nav-sheet a[data-page="home"]{
+  display:flex!important;
+}
+@media (prefers-reduced-motion: reduce){
+  .lxfd-nav-cluster,
+  .lxfd-nav-cluster::after,
+  .lxfd-convo-pill,
+  .lxfd-nav-sheet,
+  .lxfd-nav-sheet a{
+    transition:none!important;
+  }
+}
