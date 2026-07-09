@@ -2864,6 +2864,9 @@ function openOrderDetail(orderId) {
             if (state.officialCompare) callOfficialAI(text);
           } catch (error) {
             if (nonce !== state.conversationNonce) return;
+            // 代买 pending 若卡在这轮官方流出错（网络/解析异常），必须清掉——否则会遗留到
+            // 用户下一句完全无关的话，只要那句话正常走到 done 就会被误当成代买执行触发
+            state._autoBuyPending = null;
             ai.className = "lx-p0-message msg ai lx-chat-skin";
             ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
             ai._pendingExtras = null;
