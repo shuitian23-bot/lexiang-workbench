@@ -144,6 +144,12 @@ if (!window.__lxCreateTypewriter) {
           refProducts: []
         };
         window.__lxState = state;
+        // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
+        window.__lxAgentAPI = {
+          openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
+          addAiMessage: (html) => addMessage("ai", "", html),
+          lxRevealContent, getState: () => state,
+        };
 
         function lxPrepareRootSplitState() {
           document.documentElement.classList.remove("lx-root-lxfd-prepaint");
@@ -2368,6 +2374,14 @@ function openOrderDetail(orderId) {
           state.lastUserText = text;
           lxClearFollowups();
           addMessage("user", text);
+          // 多步任务链意图识别：一句话代买（"9000以内你看着选一款直接下单"），转发给 app-agent.js 的链框架编排执行；
+          // 企业/政企拦截判断放在链框架内部做，这里只识别意图、不做业务判断（单一职责）
+          const _budgetM = text.match(/(\d{3,6})\s*(元|块|以内|以下|左右)?/);
+          if (/(你看着|帮我|随便|你决定|你选)?\s*(选|挑|推荐|来)\s*(一款|一台|个|台)?.*(下单|买了?|购买|拿下)|直接下单吧|帮我搞定/.test(text) && window.__lxRunChain) {
+            const maxPrice = _budgetM ? Number(_budgetM[1]) : 0;
+            window.__lxRunChain("auto_buy", { maxPrice, rawText: text });
+            return;
+          }
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 18)).join("、"))}</div>`);
           } else if (state.refProduct) {
