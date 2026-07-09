@@ -93,6 +93,19 @@ if (!window.__lxCreateTypewriter) {
         };
         const API_SITE = { personal: "shop", business: "b", enterprise: "biz", home: "default" };
         const PATH_BY_PAGE = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
+        const LX_PAGE_LABELS = { home: "首页", personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
+        const LX_SOURCE_PAGE_KEY = "lexiang.conversation.sourcePage.v1";
+        function lxPageFromPath(path = location.pathname) {
+          const normalized = String(path || "/").replace(/\/+$/, "") || "/";
+          return SITE_BY_PATH[normalized] || SITE_BY_PATH[`${normalized}/`] || "home";
+        }
+        function lxSetConversationSourcePage(page) {
+          const sourcePage = LX_PAGE_LABELS[page] ? page : lxPageFromPath();
+          state.conversationSourcePage = sourcePage;
+          window.__lxConversationSourcePage = sourcePage;
+          try { localStorage.setItem(LX_SOURCE_PAGE_KEY, sourcePage); } catch (_e) {}
+          return sourcePage;
+        }
         function hardNavigatePage(page) {
           const path = PATH_BY_PAGE[page || "home"] || "/";
           try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
@@ -127,6 +140,7 @@ if (!window.__lxCreateTypewriter) {
           hoverPromptAutoCloseTimer: null,
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
+          conversationSourcePage: lxPageFromPath(),
           refProducts: []
         };
         window.__lxState = state;
@@ -172,13 +186,14 @@ if (!window.__lxCreateTypewriter) {
         // ── 双对话桥接接口（lxfd IIFE ↔ 主面板 IIFE 跨作用域通信） ────────────
         window.__lxBridge = {
           // 把 lxfd 收集的消息写进主面板对话列表
-          importConversation: function(messages, convId) {
+          importConversation: function(messages, convId, meta) {
             const list = ensureChat();
             list.innerHTML = "";
             messages.forEach(function(m) {
               addMessage(m.role, m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
             });
             if (convId) state.convId = convId;
+            if (meta && meta.sourcePage) lxSetConversationSourcePage(meta.sourcePage);
             // 立即持久化（不靠防抖）——桥接后可能马上切站，防抖会被吞
             try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
           },
@@ -5488,7 +5503,10 @@ function openOrderDetail(orderId) {
             const v = ta.value.trim();
             ta.value = "";
             ta.dispatchEvent(new Event("input", { bubbles: true }));
-            if (typeof window.lxfdSubmit === "function" && ta.closest(".hero-composer, .lxfd-composer")) window.lxfdSubmit(v);
+            if (typeof window.lxfdSubmit === "function" && ta.closest(".hero-composer, .lxfd-composer")) {
+              lxSetConversationSourcePage(lxPageFromPath());
+              window.lxfdSubmit(v);
+            }
             else sendChat(v);
             return;
           }
@@ -7319,6 +7337,7 @@ function openOrderDetail(orderId) {
               if (!value) value = placeholderQuery(textarea.placeholder);
               if (!value || state.sending) { textarea.focus(); return; }
               if (typeof window.lxfdSubmit === "function") {
+                lxSetConversationSourcePage(lxPageFromPath());
                 window.lxfdSubmit(value);
                 textarea.value = "";
                 textarea.dispatchEvent(new Event("input", { bubbles: true }));
@@ -7765,7 +7784,10 @@ function openOrderDetail(orderId) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
-                if (text && typeof window.lxfdSubmit === "function") window.lxfdSubmit(text);
+                if (text && typeof window.lxfdSubmit === "function") {
+                  lxSetConversationSourcePage(lxPageFromPath());
+                  window.lxfdSubmit(text);
+                }
                 return;
               }
               if (text.includes("教育特惠")) sendChat("教育特惠");
@@ -8779,14 +8801,34 @@ function openOrderDetail(orderId) {
   [50, 200, 600, 1200].forEach(function(delay){ setTimeout(forceRootFullscreen, delay); });
 })();
 
-// Personal shop page top navigation title state.
+// Channel top navigation title state.
 (function(){
   var CONV_KEY = "lexiang.conversation.v1";
+  var SOURCE_PAGE_KEY = "lexiang.conversation.sourcePage.v1";
+  var PAGE_LABELS = { home: "首页", personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
   var syncTimer = 0;
-  function isPersonal(){
-    return /^\/shop-chat\/?$/.test(location.pathname || "") ||
-      (window.__lxState && window.__lxState.page === "personal") ||
-      (document.body && document.body.dataset && document.body.dataset.page === "personal");
+  function pageFromLocation(){
+    var path = (location.pathname || "/").replace(/\/+$/, "") || "/";
+    if (path === "/") return "home";
+    if (path === "/shop-chat") return "personal";
+    if (path === "/b-chat") return "business";
+    if (path === "/biz-chat") return "enterprise";
+    if (path === "/brand") return "brand";
+    return "home";
+  }
+  function sourcePage(){
+    var page = (window.__lxState && window.__lxState.conversationSourcePage) || window.__lxConversationSourcePage || "";
+    if (!PAGE_LABELS[page]) {
+      try { page = localStorage.getItem(SOURCE_PAGE_KEY) || ""; } catch (_e) {}
+    }
+    return PAGE_LABELS[page] ? page : pageFromLocation();
+  }
+  function isTopNavTitlePage(){
+    var page = (window.__lxState && window.__lxState.page) ||
+      (document.body && document.body.dataset && document.body.dataset.page) ||
+      pageFromLocation();
+    return page === "personal" || page === "business" || page === "enterprise" || page === "brand" ||
+      /^\/(shop-chat|b-chat|biz-chat|brand)\/?$/.test(location.pathname || "");
   }
   function cap6(text){
     return Array.from(String(text || "").trim()).slice(0, 6).join("") || "新对话";
@@ -8845,10 +8887,11 @@ function openOrderDetail(orderId) {
     return summarize(texts[0] || texts[texts.length - 1]);
   }
   function sync(){
-    if (!isPersonal()) return;
+    if (!isTopNavTitlePage()) return;
     var nav = document.querySelector(".main-nav");
     if (!nav) return;
-    var label = "个人及家庭：" + conversationLabel();
+    var source = sourcePage();
+    var label = (PAGE_LABELS[source] || "首页") + "：" + conversationLabel();
     nav.setAttribute("data-current-label", label);
     nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
     var chip = nav.querySelector(".lx-current-topic-chip");
@@ -8859,14 +8902,17 @@ function openOrderDetail(orderId) {
       nav.insertBefore(chip, nav.firstElementChild || null);
     }
     chip.textContent = label;
-    var personalBtn = nav.querySelector('[data-page="personal"]');
-    if (personalBtn) personalBtn.textContent = "个人及家庭";
+    Object.keys(PAGE_LABELS).forEach(function(page){
+      var btn = nav.querySelector('[data-page="' + page + '"]');
+      if (btn) btn.textContent = PAGE_LABELS[page];
+    });
   }
   function scheduleSync(){
     window.clearTimeout(syncTimer);
     syncTimer = window.setTimeout(sync, 40);
   }
   window.__lxSyncPersonalNavTitle = scheduleSync;
+  window.__lxSyncTopNavTitle = scheduleSync;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync); else sync();
   if (window.MutationObserver) {
     var observer = new MutationObserver(scheduleSync);
