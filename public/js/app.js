@@ -8901,25 +8901,38 @@ function openOrderDetail(orderId) {
     return summarize(texts[0] || texts[texts.length - 1]);
   }
   function sync(){
-    if (!isTopNavTitlePage()) return;
+    var hasFullscreenNav = !!document.getElementById("lxfdConvoName");
+    if (!isTopNavTitlePage() && !hasFullscreenNav) return;
     var nav = document.querySelector(".main-nav");
-    if (!nav) return;
     var source = sourcePage();
     var label = (PAGE_LABELS[source] || "首页") + "：" + conversationLabel();
-    nav.setAttribute("data-current-label", label);
-    nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
-    var chip = nav.querySelector(".lx-current-topic-chip");
-    if (!chip) {
-      chip = document.createElement("span");
-      chip.className = "lx-current-topic-chip";
-      chip.setAttribute("aria-hidden", "true");
-      nav.insertBefore(chip, nav.firstElementChild || null);
+    if (nav) {
+      nav.setAttribute("data-current-label", label);
+      nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
+      var chip = nav.querySelector(".lx-current-topic-chip");
+      if (!chip) {
+        chip = document.createElement("span");
+        chip.className = "lx-current-topic-chip";
+        chip.setAttribute("aria-hidden", "true");
+        nav.insertBefore(chip, nav.firstElementChild || null);
+      }
+      chip.textContent = label;
+      Object.keys(PAGE_LABELS).forEach(function(page){
+        var btn = nav.querySelector('[data-page="' + page + '"]');
+        if (btn) btn.textContent = PAGE_LABELS[page];
+      });
     }
-    chip.textContent = label;
-    Object.keys(PAGE_LABELS).forEach(function(page){
-      var btn = nav.querySelector('[data-page="' + page + '"]');
-      if (btn) btn.textContent = PAGE_LABELS[page];
-    });
+    var lxfdName = document.getElementById("lxfdConvoName");
+    if (lxfdName) {
+      lxfdName.textContent = label;
+      lxfdName.title = label;
+    }
+    var lxfdNav = document.getElementById("lxfdNavSheet");
+    if (lxfdNav) {
+      Array.prototype.forEach.call(lxfdNav.querySelectorAll("[data-page]"), function(item){
+        item.classList.toggle("active", item.getAttribute("data-page") === pageFromLocation());
+      });
+    }
   }
   function scheduleSync(){
     window.clearTimeout(syncTimer);
