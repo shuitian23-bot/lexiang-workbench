@@ -8920,7 +8920,8 @@ function openOrderDetail(orderId) {
     if (!isTopNavTitlePage() && !hasFullscreenNav) return;
     var nav = document.querySelector(".main-nav");
     var source = sourcePage();
-    var label = (PAGE_LABELS[source] || "首页") + "：" + conversationLabel();
+    var isHomeFullscreenNav = pageFromLocation() === "home" && hasFullscreenNav;
+    var label = isHomeFullscreenNav ? "首页：新对话" : (PAGE_LABELS[source] || "首页") + "：" + conversationLabel();
     if (nav) {
       nav.setAttribute("data-current-label", label);
       nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
