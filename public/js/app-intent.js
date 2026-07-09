@@ -116,7 +116,18 @@
     buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品",
   };
 
-  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount };
+  // 全权代买意图（多步任务链入口）：授权乐享自主选并下单。主面板/全屏共用这一份 = 一套机制。
+  // 要求含成交动词（下单/买/搞定/拿下），避免误伤"推荐一款"这类纯咨询。
+  function matchAutoBuy(text) {
+    const t = String(text || "").trim();
+    if (!t || t.length > 60) return null;
+    if (!/(你看着|帮我|随便|你决定|你选)?\s*(选|挑|推荐|来)\s*(一款|一台|个|台)?.*(下单|买了?|购买|拿下)|直接下单吧|帮我搞定/.test(t)) return null;
+    const m = t.match(/(\d{3,6})\s*(元|块|以内|以下|左右)?/);
+    const maxPrice = m ? Number(m[1]) : 0;
+    return { chain: "auto_buy", params: { maxPrice: maxPrice, rawText: t } };
+  }
+
+  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy };
   if (typeof module !== "undefined" && module.exports) module.exports = api; // node 单测用
   if (root) {
     root.__lxIntent = api;

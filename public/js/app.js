@@ -2374,12 +2374,10 @@ function openOrderDetail(orderId) {
           state.lastUserText = text;
           lxClearFollowups();
           addMessage("user", text);
-          // 多步任务链意图识别：一句话代买（"9000以内你看着选一款直接下单"），转发给 app-agent.js 的链框架编排执行；
-          // 企业/政企拦截判断放在链框架内部做，这里只识别意图、不做业务判断（单一职责）
-          const _budgetM = text.match(/(\d{3,6})\s*(元|块|以内|以下|左右)?/);
-          if (/(你看着|帮我|随便|你决定|你选)?\s*(选|挑|推荐|来)\s*(一款|一台|个|台)?.*(下单|买了?|购买|拿下)|直接下单吧|帮我搞定/.test(text) && window.__lxRunChain) {
-            const maxPrice = _budgetM ? Number(_budgetM[1]) : 0;
-            window.__lxRunChain("auto_buy", { maxPrice, rawText: text });
+          // 多步任务链代买意图（收口 app-intent.matchAutoBuy，主面板/全屏共用一份 = 一套机制）
+          const _autoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
+          if (_autoBuy && window.__lxRunChain) {
+            window.__lxRunChain(_autoBuy.chain, _autoBuy.params);
             return;
           }
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
