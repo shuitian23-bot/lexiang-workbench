@@ -16,51 +16,17 @@
   if (!root || root.__lxVoiceInstalled) return;
   root.__lxVoiceInstalled = true;
 
-  // ── 录音识别层（火山）──────────────────────────────────────────────────
-  function createVolcASR() {
+  // ── 流式录音识别层（火山，边说边出字）──────────────────────────────────
+  // 实时把 PCM 帧经 WebSocket 推到后端 /api/asr-stream → 转发火山 → 中间结果实时回流。
+  function createVolcStreamASR() {
     const AC = root.AudioContext || root.webkitAudioContext;
     const supported = !!(root.navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && AC &&
       (location.protocol === "https:" || location.hostname === "localhost"));
-    let stream = null, ctx = null, source = null, proc = null;
-    let chunks = [], recording = false, srcRate = 48000;
-    let hadSpeech = false, silenceAt = 0, maxTimer = null;
-    let cb = {};
+    let stream = null, ctx = null, source = null, proc = null, ws = null;
+    let recording = false, srcRate = 48000, hadSpeech = false, silenceAt = 0, maxTimer = null;
+    let cb = {}, lastText = "";
 
-    function cleanup() {
-      recording = false;
-      if (maxTimer) { clearTimeout(maxTimer); maxTimer = null; }
-      try { proc && (proc.onaudioprocess = null, proc.disconnect()); } catch (_e) {}
-      try { source && source.disconnect(); } catch (_e) {}
-      try { ctx && ctx.close(); } catch (_e) {}
-      try { stream && stream.getTracks().forEach((t) => t.stop()); } catch (_e) {}
-      proc = source = ctx = stream = null;
-    }
-    function flatten(list) {
-      let n = 0; list.forEach((c) => n += c.length);
-      const out = new Float32Array(n); let o = 0;
-      list.forEach((c) => { out.set(c, o); o += c.length; });
-      return out;
-    }
-    function downsample(buf, from, to) {
-      if (to >= from) return buf;
-      const ratio = from / to, outLen = Math.round(buf.length / ratio), out = new Float32Array(outLen);
-      for (let i = 0; i < outLen; i++) out[i] = buf[Math.floor(i * ratio)] || 0;
-      return out;
-    }
-    function encodeWav(f32, rate) {
-      const len = f32.length, buf = new ArrayBuffer(44 + len * 2), v = new DataView(buf);
-      const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-      ws(0, "RIFF"); v.setUint32(4, 36 + len * 2, true); ws(8, "WAVE"); ws(12, "fmt ");
-      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-      v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-      ws(36, "data"); v.setUint32(40, len * 2, true);
-      let o = 44; for (let i = 0; i < len; i++) { const s = Math.max(-1, Math.min(1, f32[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2; }
-      return buf;
-    }
-    // 优先电脑内置麦克风，避开 iPhone「连续互通」——Mac 默认输入常被设成 iPhone，
-    // 一录音就唤醒手机。已授权后 enumerateDevices 能拿到 label，挑非 iPhone 的内置设备。
-    // 用 ideal 软约束（设备不在也不报错）；首次未授权 label 为空则退回默认（可能仍走 iPhone，
-    // 授权一次后第二次起自动切内置）。
+    // 优先电脑内置麦克风，避开 iPhone「连续互通」（已授权后 label 可见才能挑，ideal 软约束）
     async function preferredAudioConstraint() {
       const base = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true };
       try {
@@ -73,26 +39,41 @@
       } catch (_e) {}
       return base;
     }
-    async function finish() {
-      if (!recording && !chunks.length) return;
+    function downsampleInt16(f32, from) {
+      const to = 16000;
+      if (to >= from) {
+        const o = new Int16Array(f32.length);
+        for (let i = 0; i < f32.length; i++) { const s = Math.max(-1, Math.min(1, f32[i])); o[i] = s < 0 ? s * 0x8000 : s * 0x7fff; }
+        return o;
+      }
+      const ratio = from / to, outLen = Math.floor(f32.length / ratio), o = new Int16Array(outLen);
+      for (let i = 0; i < outLen; i++) { const s = Math.max(-1, Math.min(1, f32[Math.floor(i * ratio)] || 0)); o[i] = s < 0 ? s * 0x8000 : s * 0x7fff; }
+      return o;
+    }
+    function stopAudio() {
+      try { proc && (proc.onaudioprocess = null, proc.disconnect()); } catch (_e) {}
+      try { source && source.disconnect(); } catch (_e) {}
+      try { stream && stream.getTracks().forEach((t) => t.stop()); } catch (_e) {}
+      try { ctx && ctx.close(); } catch (_e) {}
+      proc = source = ctx = stream = null;
+    }
+    function stopRec() {                                   // 说完/超时：停采集，发 END，等火山 final
+      if (!recording) return;
       recording = false;
-      const pcm = flatten(chunks); chunks = [];
-      const rate = srcRate;
-      cleanup();
-      if (pcm.length < rate * 0.3) { cb.onEnd && cb.onEnd(""); return; }  // 太短（<0.3s）不识别
+      if (maxTimer) { clearTimeout(maxTimer); maxTimer = null; }
+      stopAudio();
+      try { if (ws && ws.readyState === 1) ws.send("END"); } catch (_e) {}
       cb.onState && cb.onState("识别中…");
-      const wav = encodeWav(downsample(pcm, rate, 16000), 16000);
-      try {
-        const res = await fetch("/api/asr?format=wav&rate=16000", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: wav });
-        const data = await res.json();
-        const text = ((data && data.text) || "").trim().replace(/[。，、\s]+$/, "");
-        if (text) cb.onFinal && cb.onFinal(text);
-        cb.onEnd && cb.onEnd(text);
-      } catch (_e) { cb.onError && cb.onError("network"); cb.onEnd && cb.onEnd(""); }
+    }
+    function finishFinal(text) {
+      const t = (text || "").trim().replace(/[。，、\s]+$/, "");
+      if (t) cb.onFinal && cb.onFinal(t);
+      cb.onEnd && cb.onEnd(t);
+      try { ws && ws.close(); } catch (_e) {} ws = null;
     }
 
     return {
-      engine: "volc",
+      engine: "volc-stream",
       supported,
       get active() { return recording; },
       async start(onState, onFinal, onError, onEnd) {
@@ -101,36 +82,44 @@
         if (recording) return;
         let audioC;
         try { audioC = await preferredAudioConstraint(); } catch (_e) { audioC = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }; }
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ audio: audioC });
-        } catch (e) {
-          const n = e && e.name;
-          onError && onError(n === "NotAllowedError" || n === "SecurityError" ? "not-allowed" : n === "NotFoundError" ? "audio-capture" : "mic-fail");
-          return;
-        }
+        try { stream = await navigator.mediaDevices.getUserMedia({ audio: audioC }); }
+        catch (e) { const n = e && e.name; onError && onError(n === "NotAllowedError" || n === "SecurityError" ? "not-allowed" : n === "NotFoundError" ? "audio-capture" : "mic-fail"); return; }
+        // 连后端流式 WS（Access Token 只在后端）
+        lastText = "";
+        const wsProto = location.protocol === "https:" ? "wss" : "ws";
+        try { ws = new WebSocket(wsProto + "://" + location.host + "/api/asr-stream"); }
+        catch (_e) { onError && onError("network"); stopAudio(); return; }
+        ws.binaryType = "arraybuffer";
+        ws.onmessage = (ev) => {
+          let d; try { d = JSON.parse(ev.data); } catch (_e) { return; }
+          if (d.error) return;                            // 中间错误忽略，等 final/close
+          if (typeof d.text === "string" && d.text) { lastText = d.text; if (!d.final) cb.onState && cb.onState("interim:" + d.text); }
+          if (d.final) { recording = false; if (maxTimer) { clearTimeout(maxTimer); maxTimer = null; } stopAudio(); finishFinal(lastText); }
+        };
+        ws.onerror = () => { if (recording) { recording = false; stopAudio(); cb.onError && cb.onError("network"); cb.onEnd && cb.onEnd(""); } };
         ctx = new AC(); srcRate = ctx.sampleRate || 48000;
         source = ctx.createMediaStreamSource(stream);
         proc = ctx.createScriptProcessor(4096, 1, 1);
-        chunks = []; hadSpeech = false; silenceAt = 0; recording = true;
+        recording = true; hadSpeech = false; silenceAt = 0;
         proc.onaudioprocess = (e) => {
           if (!recording) return;
           const d = e.inputBuffer.getChannelData(0);
-          chunks.push(new Float32Array(d));
+          if (ws && ws.readyState === 1) { const pcm = downsampleInt16(d, srcRate); ws.send(pcm.buffer); }  // 实时推 PCM 帧
           let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i];
           const rms = Math.sqrt(sum / d.length), now = ctx.currentTime;
           if (rms > 0.014) { hadSpeech = true; silenceAt = 0; }
-          else if (hadSpeech) { if (!silenceAt) silenceAt = now; else if (now - silenceAt > 1.0) finish(); }  // 说完静音1s自动停
+          else if (hadSpeech) { if (!silenceAt) silenceAt = now; else if (now - silenceAt > 0.7) stopRec(); }  // 说完静音0.7s收尾
         };
         source.connect(proc); proc.connect(ctx.destination);
         cb.onState && cb.onState("recording");
-        maxTimer = setTimeout(finish, 12000);  // 最长12s兜底
+        maxTimer = setTimeout(stopRec, 15000);            // 最长15s兜底
       },
-      stop() { if (recording) finish(); },
-      abort() { chunks = []; cleanup(); },
+      stop() { stopRec(); },
+      abort() { recording = false; stopAudio(); try { ws && ws.close(); } catch (_e) {} ws = null; },
     };
   }
 
-  const asr = createVolcASR();
+  const asr = createVolcStreamASR();
   root.__lxASR = asr;
 
   // ── 按钮样式（自包含，不碰 main.css）──────────────────────────────────
@@ -252,8 +241,12 @@
     btn.__ta = ta;
     if (btn.__phOrig == null) btn.__phOrig = ta.placeholder;
     asr.start(
-      (state) => {                                      // 状态：recording / 识别中…
-        if (state === "recording") { btn.classList.remove("thinking"); btn.classList.add("recording"); ta.placeholder = "🎤 请说话…（说完停一下自动识别）"; }
+      (state) => {                                      // 状态：recording / interim:实时文字 / 识别中…
+        if (state === "recording") { btn.classList.remove("thinking"); btn.classList.add("recording"); ta.placeholder = "🎤 请说话…"; }
+        else if (state.indexOf("interim:") === 0) {     // 边说边出字：实时把识别文本填进输入框
+          ta.value = state.slice(8);
+          ta.dispatchEvent(new Event("input", { bubbles: true }));
+        }
         else { btn.classList.remove("recording"); btn.classList.add("thinking"); ta.placeholder = "识别中…"; }
       },
       (text) => {                                       // 识别结果 → 填框 + 确认条（不立即发，给用户看清）

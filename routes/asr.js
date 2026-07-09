@@ -122,4 +122,56 @@ router.post('/', express.raw({ type: '*/*', limit: '12mb' }), async (req, res) =
   }
 });
 
+// ── 流式识别：前端实时推 PCM 帧 → 转发火山 → 中间结果实时回流（边说边出字）──────
+// 前端 WS 发二进制 = raw PCM(16k/16bit/mono) 音频帧；发文本 "END" = 说完，收尾出 final。
+// 后端每个前端连接开一路火山 WS，逐帧转发，火山每次回累积识别文本，实时推回前端。
+function attachStream(server) {
+  const wss = new WebSocket.Server({ server, path: "/api/asr-stream" });
+  wss.on("connection", (client) => {
+    if (!APP_ID || !ACCESS_TOKEN) { try { client.send(JSON.stringify({ error: "ASR 未配置" })); client.close(); } catch (_e) {} return; }
+    let volc = null, seq = 1, volcReady = false, finalSent = false;
+    const pending = [];  // 火山未连好前缓冲前端帧
+    const closeAll = () => { try { volc && volc.close(); } catch (_e) {} try { client.close(); } catch (_e) {} };
+    const sendClient = (obj) => { try { if (client.readyState === 1) client.send(JSON.stringify(obj)); } catch (_e) {} };
+
+    volc = new WebSocket(ASR_URL, { headers: {
+      "X-Api-App-Key": APP_ID, "X-Api-Access-Key": ACCESS_TOKEN,
+      "X-Api-Resource-Id": RESOURCE_ID, "X-Api-Connect-Id": crypto.randomUUID(),
+    } });
+    volc.on("open", () => {
+      volc.send(buildFullClientRequest(seq, { format: "pcm", rate: 16000, bits: 16, channel: 1 }));
+      volcReady = true;
+      pending.forEach((it) => { seq++; volc.send(buildAudioRequest(it.buf, seq, it.last)); });
+      pending.length = 0;
+    });
+    volc.on("message", (data) => {
+      let r; try { r = parseResponse(Buffer.isBuffer(data) ? data : Buffer.from(data)); } catch (_e) { return; }
+      if (r.msgType === 0b1111) { sendClient({ error: "火山ASR " + r.code + " " + (r.errMsg || "") }); return; }
+      const t = extractText(r.json);
+      sendClient({ text: t || "", final: !!r.isLast });   // 中间结果实时回流
+      if (r.isLast) { finalSent = true; closeAll(); }
+    });
+    volc.on("error", () => { sendClient({ error: "asr_conn" }); closeAll(); });
+    volc.on("close", () => { if (!finalSent) { try { client.close(); } catch (_e) {} } });
+
+    client.on("message", (msg, isBinary) => {
+      if (!isBinary) {                                    // 文本控制帧
+        if (String(msg) === "END") {
+          if (volcReady && volc.readyState === 1) { seq++; volc.send(buildAudioRequest(Buffer.alloc(0), seq, true)); }
+          else pending.push({ buf: Buffer.alloc(0), last: true });
+        }
+        return;
+      }
+      const buf = Buffer.isBuffer(msg) ? msg : Buffer.from(msg);   // PCM 音频帧
+      if (volcReady && volc.readyState === 1) { seq++; volc.send(buildAudioRequest(buf, seq, false)); }
+      else pending.push({ buf, last: false });
+    });
+    client.on("close", closeAll);
+    client.on("error", closeAll);
+    // 兜底：30s 强制回收
+    setTimeout(closeAll, 30000);
+  });
+}
+
 module.exports = router;
+module.exports.attachStream = attachStream;

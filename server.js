@@ -620,6 +620,7 @@ app.use((req, res, next) => {
 
 const server = app.listen(PORT, () => {
   console.log(`\n🚀 LeAI Agent Platform running on http://localhost:${PORT}`);
+  try { require('./routes/asr').attachStream(server); console.log('🎙️ ASR 流式 WS 挂载于 /api/asr-stream'); } catch (e) { console.error('[ASR] 流式挂载失败:', e.message); }
   console.log(`📚 Admin panel: http://localhost:${PORT}/admin`);
   console.log(`🔑 Default admin: admin / admin123`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
