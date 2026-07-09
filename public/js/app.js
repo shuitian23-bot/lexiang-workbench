@@ -149,6 +149,7 @@ if (!window.__lxCreateTypewriter) {
           openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
           addAiMessage: (html) => addMessage("ai", "", html),
           lxRevealContent, getState: () => state,
+          lxResolveRecommendedProduct,
         };
 
         function lxPrepareRootSplitState() {
@@ -2368,6 +2369,7 @@ function openOrderDetail(orderId) {
           if (!text || state.sending) return;
           const nonce = state.conversationNonce;
           let _turnProdCount = 0; // 本轮官方返回的商品数（答后动作预判用）
+          let _turnProducts = []; // 本轮官方返回的商品对象数组（代买 pending 时 done 回调要用它接管自研执行）
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
           lxHideSuggest();
@@ -2375,11 +2377,10 @@ function openOrderDetail(orderId) {
           lxClearFollowups();
           addMessage("user", text);
           // 多步任务链代买意图（收口 app-intent.matchAutoBuy，主面板/全屏共用一份 = 一套机制）
+          // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
+          // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
           const _autoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
-          if (_autoBuy && window.__lxRunChain) {
-            window.__lxRunChain(_autoBuy.chain, _autoBuy.params);
-            return;
-          }
+          if (_autoBuy) state._autoBuyPending = { maxPrice: _autoBuy.params.maxPrice || 0 };
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 18)).join("、"))}</div>`);
           } else if (state.refProduct) {
@@ -2420,7 +2421,8 @@ function openOrderDetail(orderId) {
             return;
           }
           // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端（正则统一收口 app-intent.js，主面板/全屏共用一份）──
-          const _localCtrl = window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
+          // 代买 pending 时跳过：避免"选/下单"字样被误判成 buy_current/buy_recommended 抢断，官方推荐流程要走完
+          const _localCtrl = !_autoBuy && window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
           if (_localCtrl) {
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
             if (_localCtrl.op !== "buy_current" && _localCtrl.op !== "buy_recommended" && _localCtrl.op !== "buy_nth") lxAddInstantAi(_localCtrl.msg);
@@ -2436,7 +2438,8 @@ function openOrderDetail(orderId) {
           state._fallbackFired = false;
           try {
             // ── 远程意图路由（非多模态、无媒体附件时先问后端意图，3秒超时降级）──
-            if (!state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch) {
+            // 代买 pending 时跳过：远程意图分类器可能把"选/下单"误判成 control 操作，抢断官方推荐流
+            if (!_autoBuy && !state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch) {
               let _intentResult = null;
               try {
                 const _intentAbort = new AbortController();
@@ -2543,6 +2546,7 @@ function openOrderDetail(orderId) {
                 const _wantNp = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(state.lastUserText || "") : null;
                 if (_wantNp && products.length > _wantNp) products = products.slice(0, _wantNp);
                 _turnProdCount = Math.max(_turnProdCount, products.length);
+                _turnProducts = products;
                 revealAi();
                 lxAppendAiHtml(ai, renderProductsInMessage(products));
                 if (products.length === 1 && products[0].sku) {
@@ -2593,6 +2597,7 @@ function openOrderDetail(orderId) {
                 const _wantN = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(lastAsk) : null;
                 if (_wantN && products.length > _wantN) products = products.slice(0, _wantN);
                 _turnProdCount = Math.max(_turnProdCount, products.length);
+                _turnProducts = products;
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
                 }
@@ -2677,6 +2682,7 @@ function openOrderDetail(orderId) {
                 // 官方商品缓存到 state，供点击时按 sku 取对象传给 openProduct
                 state.officialProducts = state.officialProducts || {};
                 products.forEach((p) => { if (p.sku) state.officialProducts[p.sku] = p; });
+                _turnProducts = products;
                 lxAppendAiHtml(ai, `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-open-product="${esc(p.sku)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
                 deferRightPanel(() => {
                   lxRevealContent();
@@ -2804,6 +2810,17 @@ function openOrderDetail(orderId) {
                       const qs = _acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []).slice(0, 3);
                       if (qs.length) _renderChips(qs);
                     }).catch(() => {});
+                }
+                // 代买 pending → 官方推荐已到位（右侧已展示），等答案气泡完整呈现完，
+                // 再由自研链接管「打开对比→智能选款→提交订单」（件2：推荐走官方，执行走自研）
+                if (state._autoBuyPending) {
+                  const _pendingBuy = state._autoBuyPending;
+                  state._autoBuyPending = null;
+                  lxAfterAiAnswer(ai, () => {
+                    if (window.__lxRunChain) {
+                      window.__lxRunChain("auto_buy_official", { maxPrice: _pendingBuy.maxPrice, officialProducts: _turnProducts.slice() });
+                    }
+                  });
                 }
               },
               fallback: async () => {

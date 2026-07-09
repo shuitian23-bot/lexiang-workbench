@@ -102,6 +102,72 @@
     ],
   });
 
+  // ── auto_buy_official：全权代买·官方推荐版（件2）───────────────────────────
+  // 商品推荐环节交给官方对话流（app.js sendChat 的 /api/leai/stream），本链只接手
+  // 官方 SSE done 之后的「对比→选款→下单」，步骤卡视觉和节奏与 auto_buy 保持一致。
+  // ctx.params.officialProducts 由 app.js 在 done 回调里传入（本轮 products/display 事件收集到的商品）。
+  registerChain("auto_buy_official", {
+    title: "全权代买（官方推荐）",
+    personalOnly: true, // 只服务个人/家庭消费场景，企业采购走顾问对接（与 auto_buy 一致）
+    steps: [
+      {
+        label: "官方推荐",
+        async run(ctx, api, stepState) {
+          const maxPrice = Number(ctx.params.maxPrice) || 0;
+          const officialProducts = Array.isArray(ctx.params.officialProducts) ? ctx.params.officialProducts : [];
+          if (!officialProducts.length) {
+            api.addAiMessage(`<div class="lx-agent-note">官方暂时没有返回符合要求的商品，换个说法或预算再试试。</div>`);
+            return { stop: true };
+          }
+          const candidates = officialProducts.filter(
+            (p) => Number(p.price) > 0 && (!maxPrice || Number(p.price) <= maxPrice)
+          );
+          if (!candidates.length) {
+            api.addAiMessage(`<div class="lx-agent-note">官方推荐的 ${officialProducts.length} 款里，没有预算 ¥${maxPrice} 以内的，换个预算再试试。</div>`);
+            return { stop: true };
+          }
+          ctx.candidates = candidates;
+          stepState.detail = `官方为你推荐了 ${officialProducts.length} 款，预算 ¥${maxPrice || "不限"} 内筛出 ${candidates.length} 款`;
+        },
+      },
+      {
+        label: "打开对比",
+        async run(ctx, api, stepState) {
+          const state = api.getState();
+          // 清掉可能残留的上一轮「乐享最推荐」标记，避免选款步骤误取到旧对比的结果
+          state._compareRecommendedProduct = null;
+          state._compareRecommendedSku = "";
+          api.lxUpsertCompareTab(ctx.candidates, "官方推荐对比");
+          stepState.detail = `已打开 ${ctx.candidates.length} 款官方推荐商品的对比页`;
+        },
+      },
+      {
+        label: "智能选款",
+        async run(ctx, api, stepState) {
+          // 优先取对比页「乐享最推荐」AI 建议（compare-advice 是异步接口，这时可能还没算出来，
+          // 没有就兜底取候选里第一款——官方 display 事件本身通常已按推荐度排序）
+          const picked = (typeof api.lxResolveRecommendedProduct === "function" && api.lxResolveRecommendedProduct()) || ctx.candidates[0];
+          ctx.picked = picked;
+          stepState.detail = `选中「${picked.name}」，¥${picked.price}`;
+          if (picked.sku) await api.openProduct(picked.sku);
+        },
+      },
+      {
+        label: "提交订单",
+        async run(ctx, api, stepState) {
+          const picked = ctx.picked;
+          if (!picked) return;
+          // lxBuyWithIntro 自带分步进度卡（打开详情→核对优惠→生成清单领券），内部是
+          // fire-and-forget（setTimeout 序列，最长 1900ms 后弹出确认下单弹窗），不重复实现；
+          // 这里多等 2200ms 再把本链的「提交订单」标记 done，确保弹窗已经真的弹出来了。
+          api.lxBuyWithIntro(picked);
+          await delay(2200);
+          stepState.detail = "下单清单已生成，确认弹窗已弹出，请核对后确认支付";
+        },
+      },
+    ],
+  });
+
   // ── 核心执行器 ───────────────────────────────────────────────────────────
   async function runChain(chainId, params) {
     const api = root.__lxAgentAPI;
