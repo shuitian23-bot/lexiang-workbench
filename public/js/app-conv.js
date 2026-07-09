@@ -27,7 +27,7 @@
           // AI 消息：class 可能是 "ai" 或 "assistant"（下单成功等系统消息用 assistant），都算 AI
           const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
           if (!isUser && !isAi) return;
-          if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return; // 跳过操作过渡气泡
+          if (el._lxTransient || el.dataset.lxTransient === "1" || (el.querySelector(".lx-op-steps") && !el.querySelector(".lx-agent-chain-head"))) return; // 跳过临时进度卡,但agent多步卡(.lx-agent-chain-head)要存为执行记录
           // 跳过未完成的 loading 态 AI 消息，否则刷新后会卡在「生成中…」
           if (isAi && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
           let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";

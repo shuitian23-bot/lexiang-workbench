@@ -140,6 +140,8 @@
       steps[i].state = "done";
       refresh();
       if (i < chain.steps.length - 1) await delay(STEP_DELAY_MS);
+      // 每步 done 后存一次，链跑到哪存到哪——中途刷新/切走也留得住执行记录
+      try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
     }
   }
 

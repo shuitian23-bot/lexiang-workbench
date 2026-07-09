@@ -2138,11 +2138,11 @@ function openOrderDetail(orderId) {
             const isUser = el.classList.contains("user");
             const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
             if (!isUser && !isAi) return;
-            if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return;
+            if (el._lxTransient || el.dataset.lxTransient === "1" || (el.querySelector(".lx-op-steps") && !el.querySelector(".lx-agent-chain-head"))) return; // agent多步卡(.lx-agent-chain-head)要存为执行记录,只跳lxBuyWithIntro临时进度卡
             if (isAi && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
             const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || el.textContent || "").trim();
             let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
-            if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor|lx-op-steps/.test(html)) html = "";
+            if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor|lx-op-steps/.test(html) && !/lx-agent-chain-head/.test(html)) html = "";
             if (!text && !html) return;
             messages.push({ role: isUser ? "user" : "ai", text, html });
           });
