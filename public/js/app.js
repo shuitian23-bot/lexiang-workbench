@@ -8924,6 +8924,8 @@ function openOrderDetail(orderId) {
     if (lxfdName) {
       lxfdName.textContent = label;
       lxfdName.title = label;
+      var lxfdCluster = document.getElementById("lxfdNavCluster");
+      if (lxfdCluster) lxfdCluster.style.setProperty("--lxfd-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
     }
     var lxfdNav = document.getElementById("lxfdNavSheet");
     if (lxfdNav) {
