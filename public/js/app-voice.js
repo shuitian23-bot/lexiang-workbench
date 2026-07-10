@@ -145,7 +145,7 @@
       box-shadow:0 10px 30px rgba(78,22,70,.18);font-size:13.5px;color:#2a2130;max-width:min(94vw,560px);
       opacity:0;transform:translateY(6px);transition:opacity .18s ease,transform .18s ease}
     .lx-voice-confirm.show{opacity:1;transform:translateY(0)}
-    .lx-voice-confirm .lx-vc-text{color:#4e1646}
+    .lx-voice-confirm .lx-vc-text{flex:0 0 100%;color:#4e1646;line-height:1.55;word-break:break-word}
     .lx-voice-confirm .lx-vc-text b{color:#111;font-weight:600}
     .lx-voice-confirm .lx-vc-tip{color:#9a8fa6;white-space:nowrap;margin-left:auto}
     .lx-voice-confirm .lx-vc-count{display:inline-block;min-width:15px;text-align:center;font-weight:700;color:#e2231a}
