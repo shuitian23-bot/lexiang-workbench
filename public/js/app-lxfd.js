@@ -1142,6 +1142,29 @@
       return;
     }
 
+    // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
+    // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
+    // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
+    const _traceLines = ["联想乐享正在判断…"];
+    const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai";
+    ai.innerHTML = `<div class="lxfd-ai-body">${_renderTrace ? _renderTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }) : ""}</div>`;
+    ai._raw = "";
+    ai._loadingStarted = Date.now();
+    ai._traceLines = _traceLines;
+    ai._traceSkills = new Set();
+    ai._traceCollapsed = false;
+    ai._traceLastRaw = "";
+    thread?.appendChild(ai);
+    ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+    const _lxfdPushJudged = () => {
+      if (ai._judgedPushed) return;
+      ai._judgedPushed = true;
+      _traceLines.push("已判断：商品咨询 → 调用联想乐享官方 SKILL");
+      lxfdRenderTraceLive(ai);
+    };
+
     // 2. 远程意图路由器
     let _lxfdIntentResult = null;
     try {
@@ -1157,6 +1180,7 @@
       if (_lxfdIntentRes.ok) _lxfdIntentResult = await _lxfdIntentRes.json();
     } catch (_lxfdIntentErr) { /* 超时/失败 → 降级 chat */ }
     if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
+      ai.remove(); // 操作指令：撤掉"正在判断"时间线气泡，走操作确认消息（同主面板做法）
       const _lxfdCtrlAi = document.createElement("div");
       _lxfdCtrlAi.className = "lxfd-msg-ai";
       const _lxfdCtrlBody = document.createElement("div");
@@ -1190,23 +1214,9 @@
     }
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
-    // 思考过程时间线（件2）：复用主面板同一套 renderSkillTrace（挂 window.__lxBridge 桥接，
-    // 不复制实现），文案/折叠时机与主面板 sendChat 完全一致——固定首行+本地判断结果一行，
-    // 首个 chunk 到达即折叠成一行摘要条。走到这里说明不是代买（前面已 return），固定走
-    // "商品咨询→调用官方SKILL" 文案。
-    const _traceLines = ["联想乐享正在判断…", "已判断：商品咨询 → 调用联想乐享官方 SKILL"];
-    const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
-    const ai = document.createElement("div");
-    ai.className = "lxfd-msg-ai";
-    ai.innerHTML = `<div class="lxfd-ai-body">${_renderTrace ? _renderTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }) : ""}</div>`;
-    ai._raw = "";
-    ai._loadingStarted = Date.now();
-    ai._traceLines = _traceLines;
-    ai._traceSkills = new Set();
-    ai._traceCollapsed = false;
-    ai._traceLastRaw = "";
-    thread?.appendChild(ai);
-    ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+    // 走到这里说明不是操作指令（代买在更早分支已 return）：补"已判断"行——意图路由刚落定，
+    // 天然有 0.5~4.5s 节奏，不和首行同帧蹦出。
+    _lxfdPushJudged();
     const body = ai.querySelector(".lxfd-ai-body");
     const nonce = chatState.conversationNonce;
     chatState.sending = true;

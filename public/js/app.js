@@ -2527,7 +2527,7 @@ function openOrderDetail(orderId) {
           // ── 本地快路径结束 ───────────────────────────────────────────────
           // 思考过程时间线（PRD：把"联想乐享正在判断/正在调用 XX SKILL"展示出来）：固定首行 +
           // 本地意图判断结果一行，随后 status 事件逐行追加，首个 chunk 到达时折叠成一行摘要条。
-          const _traceLines = ["联想乐享正在判断…", _autoBuy ? "已判断：多步代买任务，已拆解执行步骤" : "已判断：商品咨询 → 调用联想乐享官方 SKILL"];
+          const _traceLines = ["联想乐享正在判断…"];
           const ai = addMessage("ai loading", "", renderSkillTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }));
           ai._raw = "";
           ai._pendingExtras = "";
@@ -2536,12 +2536,21 @@ function openOrderDetail(orderId) {
           ai._traceSkills = new Set();
           ai._traceCollapsed = false;
           ai._traceLastRaw = "";
+          // "已判断"一行不和首行同帧蹦出：走远程意图路由的等路由落定（天然 0.5~4.5s 节奏），
+          // 跳过路由的分支给 500ms 微延迟。幂等，status/chunk 到达时兜底先补，保证顺序。
+          const _pushJudgedLine = () => {
+            if (ai._judgedPushed) return;
+            ai._judgedPushed = true;
+            _traceLines.push(_autoBuy ? "已判断：多步代买任务，已拆解执行步骤" : "已判断：商品咨询 → 调用联想乐享官方 SKILL");
+            lxRenderTraceLive(ai);
+          };
           state.sending = true;
           state._fallbackFired = false;
           try {
             // ── 远程意图路由（非多模态、无媒体附件时先问后端意图，3秒超时降级）──
             // 代买 pending 时跳过：远程意图分类器可能把"选/下单"误判成 control 操作，抢断官方推荐流
-            if (!_autoBuy && !state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch) {
+            const _ranIntent = !_autoBuy && !state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch;
+            if (_ranIntent) {
               let _intentResult = null;
               try {
                 const _intentAbort = new AbortController();
@@ -2568,6 +2577,7 @@ function openOrderDetail(orderId) {
               }
             }
             // ── 远程意图路由结束 ─────────────────────────────────────────────
+            if (_ranIntent) _pushJudgedLine(); else setTimeout(_pushJudgedLine, 500);
             // 多模态路由：有图/语音或开联网搜索时走火山 /api/chat/stream，否则走官方 /api/leai/stream
             const hasMedia = !!(state.pendingImageUrl || state.pendingAudioUrl);
             const useHuoshan = hasMedia || !!window.__lxWebSearch;
@@ -2630,7 +2640,7 @@ function openOrderDetail(orderId) {
                 if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
                 if (!content) return;
                 // 首个 chunk 到达：思考过程时间线收起成一行摘要条，把舞台让给正文
-                if (!ai._traceCollapsed) { ai._traceCollapsed = true; lxRenderTraceLive(ai); }
+                if (!ai._traceCollapsed) { _pushJudgedLine(); ai._traceCollapsed = true; lxRenderTraceLive(ai); }
                 revealAi();
                 ai._raw += content;
               },
@@ -2641,6 +2651,7 @@ function openOrderDetail(orderId) {
                 if (payload.text) {
                   const raw = String(payload.text);
                   if (raw !== ai._traceLastRaw) { // 去重相邻重复（官方 status 流常见连续重复 ping）
+                    _pushJudgedLine(); // 兜底：保证"已判断"行始终排在官方状态行之前
                     ai._traceLastRaw = raw;
                     const skillMatch = raw.match(/^(正在获取数据|已获取数据):(Skill\(.+\))$/);
                     let line = raw; // 非 Skill(...) 的通用状态行原样透传，不过度加工
