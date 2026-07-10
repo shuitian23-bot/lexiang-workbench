@@ -1410,8 +1410,8 @@
   };
 
   convoPill?.addEventListener("click", () => setNav(!navCluster.classList.contains("open")));
-  navCluster?.addEventListener("mouseenter", () => { clearTimeout(hoverTimer); setNav(true); });
-  navCluster?.addEventListener("mouseleave", () => { hoverTimer = setTimeout(() => setNav(false), 260); });
+  navCluster?.addEventListener("mouseenter", () => { clearTimeout(hoverTimer); });
+  navCluster?.addEventListener("mouseleave", () => { clearTimeout(hoverTimer); setNav(false); });
   $$("#lxfdNavSheet a").forEach(a => a.addEventListener("click", (e) => {
     e.preventDefault();
     $$("#lxfdNavSheet a").forEach(x => x.classList.remove("active"));

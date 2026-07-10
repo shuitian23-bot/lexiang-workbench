@@ -16798,6 +16798,374 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 .lxfd-nav-cluster.open .lxfd-nav-sheet a[data-page="home"]{
   display:flex!important;
 }
+
+/* Online fix 2026-07-09 FINAL: soft home nav animation, no menu reflow. */
+.lxfd-nav-cluster{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:360px!important;
+  height:50px!important;
+  gap:0!important;
+  overflow:visible!important;
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+}
+.lxfd-nav-cluster::after{
+  left:calc(50% + var(--lxfd-nav-label-half, 86px))!important;
+  right:auto!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+}
+.lxfd-nav-sheet,
+.lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster:hover .lxfd-nav-sheet,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet,
+.lxfd-nav-cluster.open .lxfd-nav-sheet,
+.lxfd-nav-cluster:hover .lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{
+  position:static!important;
+  display:contents!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  transition:none!important;
+}
+.lxfd-nav-sheet a{
+  display:none!important;
+  height:38px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  opacity:0!important;
+  transform:translateY(-4px) scale(.96)!important;
+  pointer-events:none!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover,
+.lxfd-nav-cluster:focus-within,
+.lxfd-nav-cluster.open{
+  min-width:auto!important;
+  gap:11px!important;
+}
+.lxfd-nav-cluster:hover::after,
+.lxfd-nav-cluster:focus-within::after,
+.lxfd-nav-cluster.open::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-pill,
+.lxfd-nav-cluster:focus-within .lxfd-convo-pill,
+.lxfd-nav-cluster.open .lxfd-convo-pill{
+  order:-1!important;
+  height:38px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-weight:700!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-name,
+.lxfd-nav-cluster:focus-within .lxfd-convo-name,
+.lxfd-nav-cluster.open .lxfd-convo-name{
+  max-width:320px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a{
+  display:flex!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+  pointer-events:auto!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open),
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open)::after{
+  transition:none!important;
+  animation:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-pill{
+  height:50px!important;
+  padding:0 24px 0 0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#5b1452!important;
+  font-weight:500!important;
+  transform:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-name{
+  font-size:16px!important;
+  font-weight:500!important;
+}
+
+/* Online fix 2026-07-09 final: remove absolute/static reflow for soft home nav animation. */
+.lxfd-nav-cluster{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:360px!important;
+  height:50px!important;
+  gap:0!important;
+  overflow:visible!important;
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+}
+.lxfd-nav-cluster::after{
+  left:calc(50% + var(--lxfd-nav-label-half, 86px))!important;
+  right:auto!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+}
+.lxfd-nav-sheet,
+.lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster:hover .lxfd-nav-sheet,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet,
+.lxfd-nav-cluster.open .lxfd-nav-sheet,
+.lxfd-nav-cluster:hover .lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{
+  position:static!important;
+  display:contents!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  transition:none!important;
+}
+.lxfd-nav-sheet a{
+  display:none!important;
+  height:38px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  opacity:0!important;
+  transform:translateY(-4px) scale(.96)!important;
+  pointer-events:none!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover,
+.lxfd-nav-cluster:focus-within,
+.lxfd-nav-cluster.open{
+  min-width:auto!important;
+  gap:11px!important;
+}
+.lxfd-nav-cluster:hover::after,
+.lxfd-nav-cluster:focus-within::after,
+.lxfd-nav-cluster.open::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-pill,
+.lxfd-nav-cluster:focus-within .lxfd-convo-pill,
+.lxfd-nav-cluster.open .lxfd-convo-pill{
+  order:-1!important;
+  height:38px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-weight:700!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-name,
+.lxfd-nav-cluster:focus-within .lxfd-convo-name,
+.lxfd-nav-cluster.open .lxfd-convo-name{
+  max-width:320px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a{
+  display:flex!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+  pointer-events:auto!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open),
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open)::after{
+  transition:none!important;
+  animation:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-pill{
+  height:50px!important;
+  padding:0 24px 0 0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#5b1452!important;
+  font-weight:500!important;
+  transform:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-name{
+  font-size:16px!important;
+  font-weight:500!important;
+}
+
+/* Online fix 2026-07-09: soften home nav by removing absolute/static menu reflow. */
+.lxfd-nav-cluster{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:50px!important;
+  min-width:360px!important;
+  gap:0!important;
+  overflow:visible!important;
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+}
+.lxfd-nav-cluster::after{
+  left:calc(50% + var(--lxfd-nav-label-half, 86px))!important;
+  right:auto!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+  transition:left .28s cubic-bezier(.22,.61,.36,1), right .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease!important;
+}
+.lxfd-nav-sheet,
+.lxfd-nav-sheet.lxfd-glass{
+  position:static!important;
+  display:contents!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  transition:none!important;
+}
+.lxfd-nav-sheet a{
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:38px!important;
+  padding:0 10px!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+  opacity:0!important;
+  transform:translateY(-4px) scale(.96)!important;
+  pointer-events:none!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-sheet a::after{
+  display:none!important;
+  content:none!important;
+}
+.lxfd-nav-cluster:hover,
+.lxfd-nav-cluster:focus-within,
+.lxfd-nav-cluster.open{
+  min-width:auto!important;
+  gap:11px!important;
+}
+.lxfd-nav-cluster:hover::after,
+.lxfd-nav-cluster:focus-within::after,
+.lxfd-nav-cluster.open::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-pill,
+.lxfd-nav-cluster:focus-within .lxfd-convo-pill,
+.lxfd-nav-cluster.open .lxfd-convo-pill{
+  order:-1!important;
+  height:38px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-weight:700!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-name,
+.lxfd-nav-cluster:focus-within .lxfd-convo-name,
+.lxfd-nav-cluster.open .lxfd-convo-name{
+  max-width:320px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a{
+  display:flex!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+  pointer-events:auto!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a:hover,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a:hover,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a.active,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a.active,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a.active{
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-weight:500!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open),
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open)::after{
+  transition:none!important;
+  animation:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-pill{
+  height:50px!important;
+  padding:0 24px 0 0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#5b1452!important;
+  font-weight:500!important;
+  transform:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-name{
+  font-size:16px!important;
+  font-weight:500!important;
+}
 @media (prefers-reduced-motion: reduce){
   .lxfd-nav-cluster,
   .lxfd-nav-cluster::after,
@@ -16807,3 +17175,172 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
     transition:none!important;
   }
 }
+
+/* Online fix 2026-07-09: home nav uses the same CSS hover animation contract as /shop-chat/. */
+.lxfd-nav-cluster,
+.lxfd-nav-cluster:hover,
+.lxfd-nav-cluster:focus-within,
+.lxfd-nav-cluster.open{
+  min-width:360px!important;
+  height:50px!important;
+  gap:0!important;
+  transition:min-width .28s cubic-bezier(.22,.61,.36,1), gap .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), background-color .22s ease, box-shadow .22s ease!important;
+  will-change:transform, gap;
+}
+.lxfd-nav-cluster::after{
+  left:calc(50% + var(--lxfd-nav-label-half, 86px))!important;
+  right:auto!important;
+  transform:translateY(-68%) rotate(45deg)!important;
+  transition:left .28s cubic-bezier(.22,.61,.36,1), right .28s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open),
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open)::after{
+  transition:none!important;
+  animation:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-pill,
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-nav-sheet{
+  transition:none!important;
+  animation:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-pill{
+  height:50px!important;
+  padding:0 24px 0 0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#5b1452!important;
+  font-weight:500!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-name{
+  font-size:16px!important;
+  font-weight:500!important;
+}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-nav-sheet{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transform:translate(-50%, calc(-50% - 4px)) scale(.96)!important;
+}
+.lxfd-nav-cluster:hover,
+.lxfd-nav-cluster:focus-within,
+.lxfd-nav-cluster.open{
+  min-width:auto!important;
+  gap:11px!important;
+}
+.lxfd-nav-cluster:hover::after,
+.lxfd-nav-cluster:focus-within::after,
+.lxfd-nav-cluster.open::after{
+  left:auto!important;
+  right:-28px!important;
+  transform:translateY(-28%) rotate(225deg)!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-pill,
+.lxfd-nav-cluster:focus-within .lxfd-convo-pill,
+.lxfd-nav-cluster.open .lxfd-convo-pill,
+.lxfd-nav-cluster:hover .lxfd-convo-pill.lxfd-glass,
+.lxfd-nav-cluster:focus-within .lxfd-convo-pill.lxfd-glass,
+.lxfd-nav-cluster.open .lxfd-convo-pill.lxfd-glass{
+  order:-1!important;
+  height:38px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  border-radius:7px!important;
+  background:#f1e7f4!important;
+  color:#5b1452!important;
+  font-weight:700!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover .lxfd-convo-name,
+.lxfd-nav-cluster:focus-within .lxfd-convo-name,
+.lxfd-nav-cluster.open .lxfd-convo-name{
+  max-width:320px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet,
+.lxfd-nav-cluster.open .lxfd-nav-sheet,
+.lxfd-nav-cluster:hover .lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet.lxfd-glass,
+.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{
+  position:static!important;
+  order:0!important;
+  height:38px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:11px!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1)!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a{
+  height:38px!important;
+  padding:0 10px!important;
+  color:#5f5a64!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
+  transition:opacity .22s ease, transform .3s cubic-bezier(.22,.61,.36,1), background-color .2s ease, color .2s ease, box-shadow .2s ease!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a:hover,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a:hover,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a:hover{
+  color:#5b1452!important;
+  background:transparent!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a.active,
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a.active,
+.lxfd-nav-cluster.open .lxfd-nav-sheet a.active{
+  background:transparent!important;
+  color:#5f5a64!important;
+  font-weight:500!important;
+}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a[data-page="home"],
+.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a[data-page="home"],
+.lxfd-nav-cluster.open .lxfd-nav-sheet a[data-page="home"]{
+  display:flex!important;
+}
+
+/* Online fix 2026-07-09 EOF override: soft home nav animation, no absolute/static reflow. */
+.lxfd-nav-cluster{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;min-width:360px!important;height:50px!important;gap:0!important;overflow:visible!important;transition:min-width .28s cubic-bezier(.22,.61,.36,1),gap .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1),background-color .22s ease,box-shadow .22s ease!important}
+.lxfd-nav-cluster::after{left:calc(50% + var(--lxfd-nav-label-half,86px))!important;right:auto!important;transform:translateY(-68%) rotate(45deg)!important}
+.lxfd-nav-sheet,.lxfd-nav-sheet.lxfd-glass,.lxfd-nav-cluster:hover .lxfd-nav-sheet,.lxfd-nav-cluster:focus-within .lxfd-nav-sheet,.lxfd-nav-cluster.open .lxfd-nav-sheet,.lxfd-nav-cluster:hover .lxfd-nav-sheet.lxfd-glass,.lxfd-nav-cluster:focus-within .lxfd-nav-sheet.lxfd-glass,.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{position:static!important;display:contents!important;width:auto!important;height:auto!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;opacity:1!important;visibility:visible!important;transform:none!important;transition:none!important}
+.lxfd-nav-sheet a{display:none!important;height:38px!important;align-items:center!important;justify-content:center!important;padding:0 10px!important;border-radius:7px!important;background:transparent!important;color:#5f5a64!important;font-size:14px!important;line-height:1!important;font-weight:500!important;opacity:0!important;transform:translateY(-4px) scale(.96)!important;pointer-events:none!important;transition:opacity .22s ease,transform .3s cubic-bezier(.22,.61,.36,1),background-color .2s ease,color .2s ease,box-shadow .2s ease!important}
+.lxfd-nav-cluster:hover,.lxfd-nav-cluster:focus-within,.lxfd-nav-cluster.open{min-width:auto!important;gap:11px!important}
+.lxfd-nav-cluster:hover::after,.lxfd-nav-cluster:focus-within::after,.lxfd-nav-cluster.open::after{left:auto!important;right:-28px!important;transform:translateY(-28%) rotate(225deg)!important}
+.lxfd-nav-cluster:hover .lxfd-convo-pill,.lxfd-nav-cluster:focus-within .lxfd-convo-pill,.lxfd-nav-cluster.open .lxfd-convo-pill{order:-1!important;height:38px!important;margin:0!important;padding:0 18px!important;border-radius:7px!important;background:#f1e7f4!important;color:#5b1452!important;font-weight:700!important;transform:translateY(0) scale(1)!important;transition:opacity .22s ease,transform .3s cubic-bezier(.22,.61,.36,1),background-color .2s ease,color .2s ease,box-shadow .2s ease!important}
+.lxfd-nav-cluster:hover .lxfd-convo-name,.lxfd-nav-cluster:focus-within .lxfd-convo-name,.lxfd-nav-cluster.open .lxfd-convo-name{max-width:320px!important;font-size:14px!important;font-weight:700!important}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a,.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,.lxfd-nav-cluster.open .lxfd-nav-sheet a{display:flex!important;opacity:1!important;transform:translateY(0) scale(1)!important;pointer-events:auto!important}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open),.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open)::after{transition:none!important;animation:none!important}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-pill{height:50px!important;padding:0 24px 0 0!important;border-radius:0!important;background:transparent!important;color:#5b1452!important;font-weight:500!important;transform:none!important}
+.lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open) .lxfd-convo-name{font-size:16px!important;font-weight:500!important}
+
+/* Online fix 2026-07-09 final: homepage nav uses one continuous flex layout for soft expand/collapse. */
+.lxfd-nav-cluster{position:relative!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:360px!important;height:50px!important;gap:0!important;overflow:visible!important;transition:min-width .36s var(--ease-spring),gap .36s var(--ease-spring)!important}
+.lxfd-nav-cluster::after{left:calc(50% + var(--lxfd-nav-label-half,86px))!important;right:auto!important;transform:translateY(-68%) rotate(45deg)!important;transition:left .34s var(--ease-spring),right .34s var(--ease-spring),transform .34s var(--ease-spring),opacity .22s ease!important}
+.lxfd-convo-pill,.lxfd-convo-pill.lxfd-glass{order:0!important;flex:0 0 auto!important;height:50px!important;margin:0!important;padding:0 24px 0 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#5b1452!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translateY(0) scale(1)!important;transition:height .34s var(--ease-spring),padding .34s var(--ease-spring),border-radius .28s ease,background-color .22s ease,color .22s ease,transform .34s var(--ease-spring)!important}
+.lxfd-convo-name{display:block!important;max-width:360px!important;color:#5b1452!important;font-size:16px!important;line-height:1!important;font-weight:500!important;letter-spacing:0!important;white-space:nowrap!important;transition:max-width .34s var(--ease-spring),font-size .22s ease,font-weight .22s ease!important}
+.lxfd-convo-pill .lxfd-expand-btn{display:none!important}
+.lxfd-nav-sheet,.lxfd-nav-sheet.lxfd-glass{position:static!important;order:1!important;flex:0 1 auto!important;width:auto!important;max-width:0!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;overflow:hidden!important;transform:translateY(-4px) scale(.98)!important;transform-origin:left center!important;white-space:nowrap!important;transition:max-width .42s var(--ease-spring),opacity .28s ease,visibility 0s linear .34s,transform .38s var(--ease-spring),gap .34s var(--ease-spring)!important}
+.lxfd-nav-sheet a{flex:0 0 auto!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0 10px!important;border-radius:7px!important;background:transparent!important;color:#5f5a64!important;font-size:14px!important;line-height:1!important;font-weight:500!important;white-space:nowrap!important;opacity:0!important;transform:translateY(-3px) scale(.98)!important;transition:opacity .24s ease,transform .36s var(--ease-spring),background-color .2s ease,color .2s ease!important}
+.lxfd-nav-sheet a::after{display:none!important;content:none!important}
+.lxfd-nav-sheet a:hover{color:#5b1452!important;background:transparent!important}
+.lxfd-nav-sheet a.active{background:transparent!important;color:#5f5a64!important;font-weight:500!important}
+.lxfd-nav-cluster:hover,.lxfd-nav-cluster:focus-within,.lxfd-nav-cluster.open{min-width:auto!important;gap:11px!important}
+.lxfd-nav-cluster:hover::after,.lxfd-nav-cluster:focus-within::after,.lxfd-nav-cluster.open::after{left:auto!important;right:-28px!important;transform:translateY(-28%) rotate(225deg)!important}
+.lxfd-nav-cluster:hover .lxfd-convo-pill,.lxfd-nav-cluster:focus-within .lxfd-convo-pill,.lxfd-nav-cluster.open .lxfd-convo-pill,.lxfd-nav-cluster:hover .lxfd-convo-pill.lxfd-glass,.lxfd-nav-cluster:focus-within .lxfd-convo-pill.lxfd-glass,.lxfd-nav-cluster.open .lxfd-convo-pill.lxfd-glass{order:-1!important;height:38px!important;padding:0 18px!important;border-radius:7px!important;background:#f1e7f4!important;color:#5b1452!important;font-weight:700!important;transform:translateY(0) scale(1)!important}
+.lxfd-nav-cluster:hover .lxfd-convo-name,.lxfd-nav-cluster:focus-within .lxfd-convo-name,.lxfd-nav-cluster.open .lxfd-convo-name{max-width:320px!important;font-size:14px!important;font-weight:700!important}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet,.lxfd-nav-cluster:focus-within .lxfd-nav-sheet,.lxfd-nav-cluster.open .lxfd-nav-sheet,.lxfd-nav-cluster:hover .lxfd-nav-sheet.lxfd-glass,.lxfd-nav-cluster:focus-within .lxfd-nav-sheet.lxfd-glass,.lxfd-nav-cluster.open .lxfd-nav-sheet.lxfd-glass{max-width:720px!important;gap:11px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translateY(0) scale(1)!important;transition:max-width .46s var(--ease-spring),opacity .28s ease,visibility 0s,transform .42s var(--ease-spring),gap .34s var(--ease-spring)!important}
+.lxfd-nav-cluster:hover .lxfd-nav-sheet a,.lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,.lxfd-nav-cluster.open .lxfd-nav-sheet a{opacity:1!important;transform:translateY(0) scale(1)!important;transition-delay:.03s!important}
