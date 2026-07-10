@@ -2214,7 +2214,11 @@ function openOrderDetail(orderId) {
             const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
             if (!isUser && !isAi) return;
             if (el._lxTransient || el.dataset.lxTransient === "1" || (el.querySelector(".lx-op-steps") && !el.querySelector(".lx-agent-chain-head"))) return; // agent多步卡(.lx-agent-chain-head)要存为执行记录,只跳lxBuyWithIntro临时进度卡
-            if (isAi && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
+            // 跳过未完成的 loading 态 AI 消息——但 _raw 已落地最终文本时例外，理由同 app-conv.js 的
+            // doSave()：下单成功等关键节点 addMessage 后是立即同步调 saveNow，lxAnimateAiFinal 的
+            // 5s+ 占位动画这时候根本没跑完，只看 DOM loading 标记会把已经确定的最终内容整条误杀。
+            const _hasFinalRaw = isAi && typeof el._raw === "string" && el._raw.trim().length > 0;
+            if (isAi && !_hasFinalRaw && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
             const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || el.textContent || "").trim();
             let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
             if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor|lx-op-steps/.test(html) && !/lx-agent-chain-head/.test(html)) html = "";

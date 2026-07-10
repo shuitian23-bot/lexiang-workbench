@@ -28,11 +28,17 @@
           const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
           if (!isUser && !isAi) return;
           if (el._lxTransient || el.dataset.lxTransient === "1" || (el.querySelector(".lx-op-steps") && !el.querySelector(".lx-agent-chain-head"))) return; // 跳过临时进度卡,但agent多步卡(.lx-agent-chain-head)要存为执行记录
-          // 跳过未完成的 loading 态 AI 消息，否则刷新后会卡在「生成中…」
-          if (isAi && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
+          // 跳过未完成的 loading 态 AI 消息，否则刷新后会卡在「生成中…」——但 _raw 已落地最终文本时例外：
+          // lxAnimateAiFinal 打字动画会先塞 5s+「联想乐享正在生成中...」占位 DOM 才开始逐字显示，而
+          // 下单成功/优惠领取等关键节点在 addMessage() 之后是立即同步调 saveNow()，此时动画根本没跑完、
+          // DOM 还全是 loading 标记，但 _raw 早已是完整最终文本——只看 DOM 会把已确定内容整条误杀，
+          // 这正是「立即存」在真机上仍然刷新即丢的根因（400ms 防抖只是另一层，两层都要治）。
+          const _hasFinalRaw = isAi && typeof el._raw === "string" && el._raw.trim().length > 0;
+          if (isAi && !_hasFinalRaw && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
           let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
           const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || el.querySelector(".ai-body")?.textContent || "").trim();
-          // 双保险：html 残留 loading 标记则丢弃，恢复时用 mdLite 重渲染
+          // 双保险：html 残留 loading 标记则丢弃，恢复时用 mdLite(text) 重渲染兜底（_raw 纯文本先保底，
+          // 打字动画真正跑完后下一次 saveNow 会把带按钮的完整 html 补齐，不影响最终态）
           if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor/.test(html)) html = "";
           if (!text && !html) return;
           messages.push({ role: isUser ? "user" : "ai", text, html });
