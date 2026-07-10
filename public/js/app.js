@@ -1888,12 +1888,12 @@ function openOrderDetail(orderId) {
         }
 
         // 操作确认气泡：固定短句秒显，不走 5s 打字动画（动作已经立即执行了，文字不能慢吞吞）
-        function lxAddInstantAi(text) {
+        function lxAddInstantAi(text, extraHtml) {
           const list = ensureChat();
           const node = document.createElement("div");
           node.className = "lx-p0-message msg ai lx-chat-skin";
           node._raw = String(text || "");
-          lxEnsureAiBody(node).innerHTML = mdLite(node._raw);
+          lxEnsureAiBody(node).innerHTML = mdLite(node._raw) + (extraHtml || "");
           list.appendChild(node);
           list.scrollTop = list.scrollHeight;
           lxSaveConversation();
@@ -2501,6 +2501,26 @@ function openOrderDetail(orderId) {
           if (/^教育特惠$|^教育特惠专区$|^国补教育特惠$/.test(text)) {
             lxAddInstantAi("好的，已为你打开教育特惠专区。右侧展示教育认证权益和可享教育价商品，你也可以继续问我如何认证、如何叠加国补。");
             window.setTimeout(() => { lxRevealContent(); openEduZone(); }, 260);
+            return;
+          }
+          // 认证：高频短词秒回身份选择卡（官方 SKILL 通道 8s+ 起步，演示/真实体验都等不起）；
+          // 按钮直开本地认证表单，不再绕一轮 AI 文字引导（彩排 blocker：回车后卡"生成中"）
+          if (/^(认证|我要认证|身份认证|办认证|做认证|教育认证|学生认证|职场认证|高考生认证)$/.test(text)) {
+            lxAddInstantAi("好的，选择你的身份，我直接带你进对应的认证流程（学生 / 高考生认证通过后可享教育专享价，还能叠加国补）：",
+              '<div class="lx-p0-actions">' +
+              '<button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-wpa>职场人认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button>' +
+              '</div>');
+            return;
+          }
+          // 认证引导浮层拼出的句子 / 常见问法：直接秒开对应表单，不送官方慢通道
+          if (/怎么完成学生教育认证|我是在校学生.{0,10}认证/.test(text)) { lxAddInstantAi("好的，已为你打开在校生教育认证。"); window.setTimeout(() => openStudentAuth("college"), 260); return; }
+          if (/怎么完成职场认证|我是职场人.{0,10}认证/.test(text)) { lxAddInstantAi("好的，已为你打开职场身份认证。"); window.setTimeout(() => openWorkplaceAuth(), 260); return; }
+          if (/怎么完成高考生教育认证|我是高考生.{0,10}认证/.test(text)) { lxAddInstantAi("好的，已为你打开高考生教育认证。"); window.setTimeout(() => openStudentAuth("gaokao"), 260); return; }
+          // 人工：秒进人工客服模式（官方转人工 Skill 实测 12-18s 才回；本地直切人设+专属菜单，lxSetHumanMode 自带接入卡）
+          if (/^(人工|转人工|人工客服|找人工|真人客服|转接人工|人工服务)$/.test(text)) {
+            lxSetHumanMode(true);
             return;
           }
           if (/^项目合作$|^合作项目$|^提交项目需求$|^我要项目合作$/.test(text)) {
@@ -5633,7 +5653,7 @@ function openOrderDetail(orderId) {
           // 明确的 2 字购物意图词（推荐/想买/选购/入手/换个）直接放行，否则要打第 3 个字才弹引导——体验差
           const _short = /^(推荐|想买|选购|入手|换个|想要)$/.test(t);
           if (t.length < 3 && !_short) return null; // 其余仍要 ≥3 字，避免误触
-          if (t.length > 24) return null; // 用户已在完整表达（语音长句/自己打了很多字），逐级引导反而碍事
+          if (t.length > 40) return null; // 用户已在完整表达（长句），逐级引导反而碍事。阈值必须容得下引导链自己拼出的句子——24 时「…设计、剪辑和AI创作，」25字被误杀，预算级弹不出来（彩排 blocker）
           for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
             if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
           }
@@ -6207,9 +6227,10 @@ function openOrderDetail(orderId) {
                 .catch(() => sendChat("帮我找" + t));
             },
             enter_fullscreen: () => {
-              // 根路径分屏说「全屏」= 回 lxfd 门户全屏（带着对话，同「回首页」路径），不能走
-              // 子站的遮罩式 lxSetAutoFs——两套全屏机制打架，门户内容不渲染，屏幕大片空白（真机踩坑）
-              if (document.body.classList.contains("lx-home-split") && typeof window.__lxfdEnterFromSplit === "function") {
+              // 说「全屏」= 进 lxfd 门户全屏（带着对话导入，同「回首页」路径）。不限根路径分屏——
+              // /shop-chat/ 等子站没有 lx-home-split 类，但 lxfd 层存在且导入正常（彩排实证），
+              // 走遮罩式 lxSetAutoFs 会把对话留在原地、观众看到陌生欢迎页（彩排 blocker）
+              if (typeof window.__lxfdEnterFromSplit === "function") {
                 window.__lxfdEnterFromSplit();
                 return;
               }

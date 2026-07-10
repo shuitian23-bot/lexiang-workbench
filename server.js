@@ -362,9 +362,11 @@ app.get('/api/products', (req, res) => {
     '水杯','T-Shirt','T恤','卫衣','羽绒','马甲','自行车',
     '游戏手柄','手柄','底座','随身WIFI','移动电源','充电',
     '剃须刀','眼镜','拆机','兑换卡','服务包','延保服务','Care',
-    '测试品','感谢函',
+    '测试','勿拍','勿下单','感谢函',
   ];
-  if (site && !category) {
+  // 排除词对 site 货盘一律生效——之前 !category 豁免了带分类的楼层查询，
+  // biz 台式机楼层因此混入「测试商品，请勿下单!」（彩排发现，官方货盘同步自带 60+ 测试 SKU）
+  if (site) {
     for (const kw of PERIPHERAL_KEYWORDS) {
       where += ` AND name NOT LIKE '%${kw}%'`;
     }
