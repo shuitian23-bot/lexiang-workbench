@@ -259,7 +259,12 @@ if (!window.__lxCreateTypewriter) {
           // （官方推荐 promise+超预算 fallback 阶梯+链前置已在这完整实现，全屏不重造）
           sendChat: function(text) { return sendChat(text); },
           // 件2 全屏接入：思考时间线渲染函数只留一份，全屏 IIFE 挂桥调用，不复制实现
-          renderSkillTrace: function(lines, opts) { return renderSkillTrace(lines, opts); }
+          renderSkillTrace: function(lines, opts) { return renderSkillTrace(lines, opts); },
+          // 件2 代买链桥接真机踩坑修复：多步任务链的 addAiMessage 走的是裸 addMessage，不经过
+          // lxRunWithRevealMotion，不会像 revealProducts 那样自动把根路径首页切进分屏布局——
+          // 桥接完退全屏后背景停留在首页欢迎门户，链卡/下单弹窗虽在DOM里但看不见。这里让
+          // lxfd 那边退全屏回调里显式补一次（复用已验证的 lxPrepareRootSplitState，不重造）。
+          prepareRootSplitState: function() { lxPrepareRootSplitState(); }
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);

@@ -844,10 +844,11 @@
     return '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>';
   }
 
-  function lxfdRevealFeature(feature) {
-    // 只看 page==="home" 会漏：上一轮分屏残留 page="personal" 时再进全屏、退出走到这里，
-    // 分屏类没补上 → 无全屏类也无分屏类的中间态（topbar 露出、lxfd 消息裸奔黑三角）。
-    // 仅 URL=/ 需要补（原地分屏专用类）；/shop-chat/ 等子页有自己的布局
+  // 只看 page==="home" 会漏：上一轮分屏残留 page="personal" 时再进全屏、退出走到这里，
+  // 分屏类没补上 → 无全屏类也无分屏类的中间态（topbar 露出、lxfd 消息裸奔黑三角，或者背景
+  // 停在首页欢迎态门户，聊天消息虽已在DOM里但不可见——件2代买桥接真机截图就踩到了这个）。
+  // 仅 URL=/ 需要补（原地分屏专用类）；/shop-chat/ 等子页有自己的布局。三处桥接收尾共用。
+  function lxfdEnsureRootSplitState() {
     if (location.pathname.replace(/\/+$/, "/") === "/" && !document.body.classList.contains("lx-home-split")) {
       document.documentElement.classList.remove("lx-root-lxfd-prepaint");
       document.body.classList.add("lx-home-split");
@@ -857,6 +858,10 @@
       if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
       document.body.dataset.state = "chat";
     }
+  }
+
+  function lxfdRevealFeature(feature) {
+    lxfdEnsureRootSplitState();
     if (typeof window.__lxOpenFeature === "function") window.__lxOpenFeature(feature);
   }
 
@@ -1092,6 +1097,9 @@
       // 主面板重新生成（同一句原文），带过去导出会变成重复两条。
       lxfdExportToMain([user, _lxfdAutoBuyNote]);
       exitFullscreenWithReveal(() => {
+        // 链卡走裸 addMessage，不会像 revealProducts 那样自动切根路径首页进分屏布局，
+        // 真机踩坑：不补这步背景会停在首页欢迎门户，链卡/下单弹窗在DOM里但看不见。
+        if (typeof window.__lxBridge?.prepareRootSplitState === "function") window.__lxBridge.prepareRootSplitState();
         if (typeof window.__lxBridge?.sendChat === "function") window.__lxBridge.sendChat(value);
         if (thread) thread.innerHTML = ""; // 下次回全屏会从主面板重新 import
       });
@@ -1391,17 +1399,8 @@
               // 本轮只有意图无商品：同样桥接退全屏，再开功能标签
               lxfdExportToMain();
               exitFullscreenWithReveal(() => {
-                // 首页布局设置（和商品桥接一致）：不做这步 .shell 仍 display:none → 功能标签渲染了但主面板隐藏=空白
-                // 补分屏类只看有没有，不看 page 值（残留 personal 时也要补，否则落中间态裸奔）；仅 URL=/
-                if (location.pathname.replace(/\/+$/, "/") === "/" && !document.body.classList.contains("lx-home-split")) {
-                  document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-                  document.body.classList.add("lx-home-split");
-                  window.__LXFD_FORCE = false;
-                  const _lxfdLayer2 = document.querySelector(".lxfd");
-                  if (_lxfdLayer2) { _lxfdLayer2.style.display = ""; _lxfdLayer2.style.visibility = ""; }
-                  if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
-                  document.body.dataset.state = "chat";
-                }
+                // lxfdRevealFeature 内部会先 lxfdEnsureRootSplitState 补首页分屏布局
+                // （不做这步 .shell 仍 display:none → 功能标签渲染了但主面板隐藏=空白）
                 lxfdRevealFeature(turnAction);
                 if (thread) thread.innerHTML = "";
               });

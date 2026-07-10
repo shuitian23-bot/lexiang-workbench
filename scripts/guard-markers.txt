@@ -53,3 +53,5 @@ public/js/app.js|state.localArchiveId|分屏对话归档进全屏历史侧栏
 routes/leai.js|SESSION_PRODUCTS|多轮追问商品槽位保底
 public/js/app-lxfd.js|件2 F1：追问chip|全屏追问chip滚底可点
 public/js/app.js|件2 F1：桥接瞬间主面板刚从|分屏桥接后追问chip滚底可点
+public/js/app.js|prepareRootSplitState: function|代买链桥接补首页分屏布局
+public/js/app-lxfd.js|lxfdEnsureRootSplitState|全屏桥接补首页分屏布局共用
