@@ -200,6 +200,11 @@ router.post('/stream', async (req, res) => {
     let sentProducts = false;
     let sentClicks = false;
     let retried = false;
+    // 多意图补缺：官方跑了门店/权益 skill 但只回文本不发前端组件（实测多意图一轮只带 1 个
+    // action + 1 个 display），从 thinking_trace 嗅探到对应 skill 就代发 action，前端现成
+    // handler 开门店/优惠 tab。member/商品官方自己会发，不代发防重复。
+    let sentStoresAction = false;
+    let sentCouponAction = false;
 
     // 首次进入前先回传当前 sessionId（重试时在重试分支里更新并重发）
     res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
@@ -252,6 +257,15 @@ router.post('/stream', async (req, res) => {
             const last = steps[steps.length - 1];
             const tip = last && last.thinking ? String(last.thinking).slice(0, 60) : '';
             if (tip) res.write('event: status\ndata:' + JSON.stringify({ text: tip }) + '\n\n');
+            const allThinking = steps.map((s) => s && s.thinking ? String(s.thinking) : '').join('\n');
+            if (!sentStoresAction && allThinking.indexOf('Skill(联想门店服务)') >= 0) {
+              sentStoresAction = true;
+              res.write('event: action\ndata:' + JSON.stringify({ op: 'stores' }) + '\n\n');
+            }
+            if (!sentCouponAction && allThinking.indexOf('Skill(会员权益服务)') >= 0) {
+              sentCouponAction = true;
+              res.write('event: action\ndata:' + JSON.stringify({ op: 'coupon' }) + '\n\n');
+            }
           }
 
           // 文本增量（官方是全量累积，必须切 delta）
