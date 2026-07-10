@@ -127,7 +127,24 @@
     return { chain: "auto_buy", params: { maxPrice: maxPrice, rawText: t } };
   }
 
-  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy };
+  // 系列关键词提取（代买链官方超预算 fallback 用：补本地货盘时按系列词缩小范围，不带 q 就是不限系列）。
+  // kw 是发给 /api/products?q= 的实际检索词，需匹配数据库商品名里的写法（中文用中文，英文系列保留常见大小写）。
+  const SERIES_KEYWORDS = [
+    { re: /拯救者|legion/i, kw: "拯救者" },
+    { re: /thinkbook/i, kw: "ThinkBook" },
+    { re: /thinkpad/i, kw: "ThinkPad" },
+    { re: /小新/, kw: "小新" },
+    { re: /yoga/i, kw: "YOGA" },
+  ];
+  function extractSeriesKeyword(text) {
+    const t = String(text || "");
+    for (let i = 0; i < SERIES_KEYWORDS.length; i++) {
+      if (SERIES_KEYWORDS[i].re.test(t)) return SERIES_KEYWORDS[i].kw;
+    }
+    return "";
+  }
+
+  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword };
   if (typeof module !== "undefined" && module.exports) module.exports = api; // node 单测用
   if (root) {
     root.__lxIntent = api;

@@ -41,3 +41,6 @@ public/js/app-intent.js|matchAutoBuy|代买意图收口(主面板+全屏一套)
 public/js/app-lxfd.js|if (open) lxfdRenderHist();|全屏历史列表展开即刷新
 public/js/app-agent.js|registerChain("auto_buy_official"|代买官方推荐链
 public/js/app.js|state._autoBuyPending|代买pending标记(官方推荐接管点)
+public/js/app.js|lx-skill-trace|思考过程时间线
+public/js/app.js|officialWait|代买链前置(先插卡再建官方气泡)
+public/js/app-agent.js|阶梯 3|超预算fallback选最接近预算候选

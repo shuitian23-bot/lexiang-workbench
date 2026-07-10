@@ -103,46 +103,94 @@
   });
 
   // ── auto_buy_official：全权代买·官方推荐版（件2）───────────────────────────
-  // 商品推荐环节交给官方对话流（app.js sendChat 的 /api/leai/stream），本链只接手
-  // 官方 SSE done 之后的「对比→选款→下单」，步骤卡视觉和节奏与 auto_buy 保持一致。
-  // ctx.params.officialProducts 由 app.js 在 done 回调里传入（本轮 products/display 事件收集到的商品）。
+  // 商品推荐环节交给官方对话流（app.js sendChat 的 /api/leai/stream）。件2改动：链在 sendChat
+  // 一开始（用户气泡之后、官方答案气泡之前）就同步插卡起跑，step1 await 官方 promise
+  // （ctx.params.officialWait，app.js done 回调 resolve/error+50s 超时 reject），拿到结果后
+  // 按预算走 fallback 阶梯——官方超预算/超时/为空都不会让链静默死，兜底到本地货盘，实在没有
+  // 候选才 stop（且必须说明原因+给可点建议）。step1 之后「对比→选款→下单」逻辑不变。
   registerChain("auto_buy_official", {
     title: "全权代买（官方推荐）",
     personalOnly: true, // 只服务个人/家庭消费场景，企业采购走顾问对接（与 auto_buy 一致）
     steps: [
       {
-        label: "官方推荐",
-        async run(ctx, api, stepState) {
+        label: "调用联想乐享官方 SKILL",
+        async run(ctx, api, stepState, refresh) {
           const maxPrice = Number(ctx.params.maxPrice) || 0;
-          const officialProducts = Array.isArray(ctx.params.officialProducts) ? ctx.params.officialProducts : [];
-          if (!officialProducts.length) {
-            api.addAiMessage(`<div class="lx-agent-note">官方暂时没有返回符合要求的商品，换个说法或预算再试试。</div>`);
-            return { stop: true };
+          stepState.detail = "等待官方推荐结果…";
+          if (typeof refresh === "function") refresh();
+
+          let officialProducts = [];
+          let officialFailReason = "";
+          try {
+            const waited = await ctx.params.officialWait;
+            officialProducts = Array.isArray(waited) ? waited : [];
+          } catch (_e) {
+            officialFailReason = "官方超时，已切换乐享自营货盘";
           }
-          const candidates = officialProducts.filter(
-            (p) => Number(p.price) > 0 && (!maxPrice || Number(p.price) <= maxPrice)
+
+          // 阶梯 1：官方推荐里直接有预算内候选，最优路径
+          let candidates = officialProducts.filter((p) => Number(p.price) > 0 && (!maxPrice || Number(p.price) <= maxPrice));
+          if (candidates.length) {
+            ctx.candidates = candidates;
+            stepState.detail = `官方推荐 ${officialProducts.length} 款，预算 ¥${maxPrice || "不限"} 内 ${candidates.length} 款`;
+            return;
+          }
+
+          // 阶梯 2：官方无预算内候选（超预算/超时/为空）→ 本地乐享自营货盘按系列词补候选
+          const kw = (typeof window !== "undefined" && window.__lxIntent && window.__lxIntent.extractSeriesKeyword)
+            ? window.__lxIntent.extractSeriesKeyword(ctx.params.rawText || "") : "";
+          let localPool = [];
+          try {
+            const qs = kw ? `&q=${encodeURIComponent(kw)}` : "";
+            const resp = await fetch(`/api/products?site=shop${qs}&limit=40`);
+            if (resp.ok) {
+              const list = await resp.json();
+              localPool = Array.isArray(list) ? list : [];
+            }
+          } catch (_e) { /* 网络异常，localPool 留空，走阶梯3/4兜底 */ }
+
+          const localCandidates = localPool.filter((p) => Number(p.price) > 0 && (!maxPrice || Number(p.price) <= maxPrice));
+          if (localCandidates.length) {
+            ctx.candidates = localCandidates;
+            stepState.detail = officialFailReason
+              ? `${officialFailReason}，预算 ¥${maxPrice || "不限"} 内找到 ${localCandidates.length} 款`
+              : officialProducts.length
+                ? `官方 ${officialProducts.length} 款均超预算 ¥${maxPrice}，已从乐享自营货盘补充预算内 ${localCandidates.length} 款`
+                : `官方暂未返回商品，已从乐享自营货盘找到预算内 ${localCandidates.length} 款`;
+            return;
+          }
+
+          // 阶梯 3：官方 + 本地合并候选都超预算 → 取离预算最近的一款，继续往下走（下单前人工确认，安全）
+          const pool = officialProducts.concat(localPool).filter((p) => Number(p.price) > 0);
+          if (pool.length) {
+            const closest = pool.slice().sort((a, b) => Math.abs(Number(a.price) - maxPrice) - Math.abs(Number(b.price) - maxPrice))[0];
+            ctx.candidates = [closest];
+            const over = Math.max(0, Math.round(Number(closest.price) - maxPrice));
+            stepState.detail = `均超预算，已选最接近的「${closest.name}」，超出 ¥${over}，请下单时确认`;
+            return;
+          }
+
+          // 阶梯 4：官方 0 款且本地也 0 款（极端情况）→ 才允许 stop，但要说明原因 + 给可点建议
+          api.addAiMessage(
+            `<div class="lx-agent-note">官方和乐享自营货盘暂时都没有返回可用商品，换个预算或换个品类再试试。</div>` +
+            `<div class="lx-p0-suggest"><button class="lx-p0-suggest-chip" type="button" data-quick-ask="换个预算，你帮我重新选一款直接下单">换个预算试试</button></div>`
           );
-          if (!candidates.length) {
-            api.addAiMessage(`<div class="lx-agent-note">官方推荐的 ${officialProducts.length} 款里，没有预算 ¥${maxPrice} 以内的，换个预算再试试。</div>`);
-            return { stop: true };
-          }
-          ctx.candidates = candidates;
-          stepState.detail = `官方为你推荐了 ${officialProducts.length} 款，预算 ¥${maxPrice || "不限"} 内筛出 ${candidates.length} 款`;
+          return { stop: true };
         },
       },
       {
-        label: "打开对比",
+        label: "商品对比 SKILL",
         async run(ctx, api, stepState) {
           const state = api.getState();
           // 清掉可能残留的上一轮「乐享最推荐」标记，避免选款步骤误取到旧对比的结果
           state._compareRecommendedProduct = null;
           state._compareRecommendedSku = "";
           api.lxUpsertCompareTab(ctx.candidates, "官方推荐对比");
-          stepState.detail = `已打开 ${ctx.candidates.length} 款官方推荐商品的对比页`;
+          stepState.detail = `已打开 ${ctx.candidates.length} 款候选商品的对比页`;
         },
       },
       {
-        label: "智能选款",
+        label: "智能选款 SKILL",
         async run(ctx, api, stepState) {
           // 优先取对比页「乐享最推荐」AI 建议（compare-advice 是异步接口，这时可能还没算出来，
           // 没有就兜底取候选里第一款——官方 display 事件本身通常已按推荐度排序）
@@ -153,7 +201,7 @@
         },
       },
       {
-        label: "提交订单",
+        label: "下单 SKILL",
         async run(ctx, api, stepState) {
           const picked = ctx.picked;
           if (!picked) return;
@@ -197,7 +245,7 @@
       refresh();
       let result;
       try {
-        result = await chain.steps[i].run(ctx, api, steps[i]);
+        result = await chain.steps[i].run(ctx, api, steps[i], refresh);
       } catch (_e) {
         api.addAiMessage(`<div class="lx-agent-note">执行「${esc(chain.steps[i].label)}」时出错，已停止。</div>`);
         return;

@@ -1898,6 +1898,39 @@ function openOrderDetail(orderId) {
             </div>`;
         }
 
+        // ── 思考过程时间线（联想乐享官方 SKILL 调用轨迹可视化）─────────────────────
+        // 生成阶段实时追加每条 status 文案；首个 chunk 到达即折叠成一行摘要条，点击可展开/收起。
+        // 类名 .lx-skill-trace 系列避开 app-conv.js doSave/restore 的 .lx-op-steps / loading 关键词
+        // 跳过正则，确保能正常存档、刷新后按折叠态恢复。
+        function renderSkillTrace(lines, opts = {}) {
+          const collapsed = !!opts.collapsed;
+          const foldable = !!opts.foldable;
+          const skillCount = Number(opts.skillCount) || 0;
+          const foldText = skillCount > 0 ? `已完成 ${skillCount} 个 Skill 调用` : "已完成意图判断";
+          const itemsHtml = (lines || []).map((line, idx) => {
+            const isLast = idx === (lines || []).length - 1;
+            return `<div class="lx-skill-trace-item${!collapsed && isLast ? " current" : ""}">${esc(line)}</div>`;
+          }).join("");
+          const cls = "lx-skill-trace" + (foldable ? " is-foldable" : "") + (collapsed ? " is-collapsed" : "");
+          return `<div class="${cls}">` +
+            `<button type="button" class="lx-skill-trace-fold" data-lx-trace-toggle aria-expanded="${collapsed ? "false" : "true"}">` +
+            `<span class="lx-skill-trace-fold-ic">✓</span><span class="lx-skill-trace-fold-text">${esc(foldText)}</span><span class="lx-skill-trace-fold-caret">⌄</span>` +
+            `</button>` +
+            `<div class="lx-skill-trace-list">${itemsHtml}</div>` +
+            `</div>`;
+        }
+
+        // 生成阶段（Phase 1，真实 SSE 进行中）实时刷新时间线 DOM——此时 ai-body 里只有这一个结构，
+        // 全量重绘最简单；lxAnimateAiFinal 收尾时会把 ai-body 整体替换掉，届时再把这份时间线的
+        // 折叠态 HTML 拼进 finalHtml，不依赖这里的实时 DOM。
+        function lxRenderTraceLive(ai) {
+          const body = ai && ai.querySelector && ai.querySelector(".ai-body");
+          if (!body) return;
+          body.innerHTML = renderSkillTrace(ai._traceLines, { collapsed: ai._traceCollapsed, foldable: ai._traceCollapsed, skillCount: ai._traceSkills ? ai._traceSkills.size : 0 });
+          const list = ensureChat();
+          if (list) list.scrollTop = list.scrollHeight;
+        }
+
         function renderProductsInMessage(products) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
@@ -2380,7 +2413,22 @@ function openOrderDetail(orderId) {
           // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
           // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
           const _autoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
-          if (_autoBuy) state._autoBuyPending = { maxPrice: _autoBuy.params.maxPrice || 0 };
+          if (_autoBuy) {
+            // 代买链前置（件2）：不再等官方答案气泡"完事"才起链——这里就同步起跑 auto_buy_official
+            // （runChain 首段同步 addAiMessage 先插卡，DOM 序 = 用户气泡→链卡→官方回答气泡）。
+            // 官方推荐结果走 promise 交给链 step1：done 回调 resolve，出错/50s 超时 reject，
+            // 链自己按预算落地或走本地货盘 fallback，绝不会因为这里提前 return 而卡死等不到结果。
+            let _resolveOfficial, _rejectOfficial;
+            const _officialWait = new Promise((resolve, reject) => { _resolveOfficial = resolve; _rejectOfficial = reject; });
+            const _officialTimeoutId = setTimeout(() => { try { _rejectOfficial(new Error("官方 SKILL 响应超时")); } catch (_e) {} }, 50000);
+            state._autoBuyPending = {
+              maxPrice: _autoBuy.params.maxPrice || 0,
+              promise: _officialWait, resolve: _resolveOfficial, reject: _rejectOfficial, timeoutId: _officialTimeoutId,
+            };
+            if (window.__lxRunChain) {
+              window.__lxRunChain("auto_buy_official", { maxPrice: _autoBuy.params.maxPrice || 0, officialWait: _officialWait, rawText: text });
+            }
+          }
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 18)).join("、"))}</div>`);
           } else if (state.refProduct) {
@@ -2430,10 +2478,17 @@ function openOrderDetail(orderId) {
             return;
           }
           // ── 本地快路径结束 ───────────────────────────────────────────────
-          const ai = addMessage("ai loading", "", renderGenerating("联想乐享正在处理你的请求…"));
+          // 思考过程时间线（PRD：把"联想乐享正在判断/正在调用 XX SKILL"展示出来）：固定首行 +
+          // 本地意图判断结果一行，随后 status 事件逐行追加，首个 chunk 到达时折叠成一行摘要条。
+          const _traceLines = ["联想乐享正在判断…", _autoBuy ? "已判断：多步代买任务，已拆解执行步骤" : "已判断：商品咨询 → 调用联想乐享官方 SKILL"];
+          const ai = addMessage("ai loading", "", renderSkillTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }));
           ai._raw = "";
           ai._pendingExtras = "";
           ai._afterAnswer = [];
+          ai._traceLines = _traceLines;
+          ai._traceSkills = new Set();
+          ai._traceCollapsed = false;
+          ai._traceLastRaw = "";
           state.sending = true;
           state._fallbackFired = false;
           try {
@@ -2527,6 +2582,8 @@ function openOrderDetail(orderId) {
                 const content = payload.text || data || "";
                 if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
                 if (!content) return;
+                // 首个 chunk 到达：思考过程时间线收起成一行摘要条，把舞台让给正文
+                if (!ai._traceCollapsed) { ai._traceCollapsed = true; lxRenderTraceLive(ai); }
                 revealAi();
                 ai._raw += content;
               },
@@ -2535,8 +2592,20 @@ function openOrderDetail(orderId) {
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 if (payload.text) {
-                  const head = $(".loading-line .typing-text", ai);
-                  if (head) head.textContent = "联想乐享正在生成中...";
+                  const raw = String(payload.text);
+                  if (raw !== ai._traceLastRaw) { // 去重相邻重复（官方 status 流常见连续重复 ping）
+                    ai._traceLastRaw = raw;
+                    const skillMatch = raw.match(/^(正在获取数据|已获取数据):(Skill\(.+\))$/);
+                    let line = raw; // 非 Skill(...) 的通用状态行原样透传，不过度加工
+                    if (skillMatch) {
+                      ai._traceSkills.add(skillMatch[2]);
+                      line = skillMatch[1] === "正在获取数据"
+                        ? `联想乐享官方 SKILL：正在调用 ${skillMatch[2]}`
+                        : `联想乐享官方 SKILL：${skillMatch[2]} 已完成`;
+                    }
+                    ai._traceLines.push(line);
+                    lxRenderTraceLive(ai);
+                  }
                 }
               },
               products: (data) => {
@@ -2811,16 +2880,13 @@ function openOrderDetail(orderId) {
                       if (qs.length) _renderChips(qs);
                     }).catch(() => {});
                 }
-                // 代买 pending → 官方推荐已到位（右侧已展示），等答案气泡完整呈现完，
-                // 再由自研链接管「打开对比→智能选款→提交订单」（件2：推荐走官方，执行走自研）
+                // 代买 pending → 链早在 sendChat 一开始就已插卡起跑，step1 正等这个 promise；
+                // 官方推荐到位，resolve 交给链自己去接管「对比→选款→下单」（件2：链前置）
                 if (state._autoBuyPending) {
                   const _pendingBuy = state._autoBuyPending;
                   state._autoBuyPending = null;
-                  lxAfterAiAnswer(ai, () => {
-                    if (window.__lxRunChain) {
-                      window.__lxRunChain("auto_buy_official", { maxPrice: _pendingBuy.maxPrice, officialProducts: _turnProducts.slice() });
-                    }
-                  });
+                  clearTimeout(_pendingBuy.timeoutId);
+                  _pendingBuy.resolve(_turnProducts.slice());
                 }
               },
               fallback: async () => {
@@ -2847,7 +2913,10 @@ function openOrderDetail(orderId) {
               ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
             }
             if (!state.humanMode) lxAppendAiHtml(ai, `<div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>`);
-            const finalHtml = `${ai._raw ? mdLite(ai._raw) : ""}${ai._pendingExtras || ""}`;
+            // 收尾把时间线折叠态 HTML 拼进最终正文——lxAnimateAiFinal 会整体替换 ai-body，
+            // 生成阶段的实时 DOM 保不住，得随 finalHtml 一起进去才能存档/恢复时保持折叠。
+            const _traceFinalHtml = renderSkillTrace(ai._traceLines, { collapsed: true, foldable: true, skillCount: ai._traceSkills ? ai._traceSkills.size : 0 });
+            const finalHtml = `${_traceFinalHtml}${ai._raw ? mdLite(ai._raw) : ""}${ai._pendingExtras || ""}`;
             ai._pendingExtras = "";
             await lxAnimateAiFinal(ai, finalHtml);
             const delayedExtras = ai._pendingExtras || "";
@@ -2864,9 +2933,15 @@ function openOrderDetail(orderId) {
             if (state.officialCompare) callOfficialAI(text);
           } catch (error) {
             if (nonce !== state.conversationNonce) return;
-            // 代买 pending 若卡在这轮官方流出错（网络/解析异常），必须清掉——否则会遗留到
-            // 用户下一句完全无关的话，只要那句话正常走到 done 就会被误当成代买执行触发
-            state._autoBuyPending = null;
+            // 代买 pending 若卡在这轮官方流出错（网络/解析异常）：reject 掉 promise，让链 step1
+            // 走本地货盘 fallback 阶梯，而不是让链永远停在「等待官方推荐结果…」；同时清掉标记，
+            // 防止遗留到用户下一句完全无关的话，被误当成代买执行触发
+            if (state._autoBuyPending) {
+              const _pendingBuy = state._autoBuyPending;
+              state._autoBuyPending = null;
+              clearTimeout(_pendingBuy.timeoutId);
+              try { _pendingBuy.reject(error); } catch (_e) {}
+            }
             ai.className = "lx-p0-message msg ai lx-chat-skin";
             ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
             ai._pendingExtras = null;
@@ -8096,6 +8171,16 @@ function openOrderDetail(orderId) {
                 if (state.lastUserText) sendChat(state.lastUserText);
               } else {
                 toast(msgAction === "up" ? "已记录：有帮助" : "已记录：无帮助");
+              }
+              return;
+            }
+            const traceToggle = event.target.closest("[data-lx-trace-toggle]");
+            if (traceToggle) {
+              event.preventDefault();
+              const box = traceToggle.closest(".lx-skill-trace");
+              if (box) {
+                const collapsed = box.classList.toggle("is-collapsed");
+                traceToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
               }
               return;
             }

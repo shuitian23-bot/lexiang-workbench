@@ -13426,6 +13426,22 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .lx-op-spin { width: 11px; height: 11px; border: 2px solid rgba(184,37,46,.3); border-top-color: var(--lx-brand-red,#B8252E); border-radius: 50%; animation: lxOpSpin .7s linear infinite; }
 @keyframes lxOpSpin { to { transform: rotate(360deg); } }
 
+/* 思考过程时间线（联想乐享官方 SKILL 调用轨迹）：生成阶段逐行展示 status 流，首个 chunk 到达
+   即折叠为一行摘要条，点击可展开/收起。细左边框 + 灰字 + 勾图标，不引入新主色/渐变。 */
+.lx-skill-trace { margin: 0 0 8px; }
+.lx-skill-trace-list { display: flex; flex-direction: column; gap: 5px; padding: 1px 0 1px 11px; border-left: 2px solid var(--line,#e8e3f0); }
+.lx-skill-trace-item { display: flex; align-items: flex-start; gap: 5px; font-size: 12.5px; line-height: 1.55; color: var(--text-muted,#9a929f); }
+.lx-skill-trace-item::before { content: "✓"; flex: none; line-height: 1.7; font-size: 11px; font-weight: 800; color: var(--lx-brand-red,#B8252E); }
+.lx-skill-trace-item.current { color: var(--lx-brand-red,#B8252E); font-weight: 600; }
+.lx-skill-trace.is-collapsed .lx-skill-trace-list { display: none; }
+.lx-skill-trace-fold { display: none; align-items: center; gap: 6px; width: 100%; padding: 4px 2px; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; color: var(--text-muted,#9a929f); font-size: 12.5px; }
+.lx-skill-trace.is-foldable .lx-skill-trace-fold { display: flex; }
+.lx-skill-trace-fold:hover { color: var(--text,#3a323f); }
+.lx-skill-trace-fold-ic { flex: none; font-size: 11px; font-weight: 800; color: var(--lx-brand-red,#B8252E); }
+.lx-skill-trace-fold-text { flex: 1; }
+.lx-skill-trace-fold-caret { flex: none; font-size: 11px; color: var(--text-muted,#9a929f); transition: transform .18s ease; }
+.lx-skill-trace.is-foldable:not(.is-collapsed) .lx-skill-trace-fold-caret { transform: rotate(180deg); }
+
 /* 对话历史恢复分隔条：标明上面是上次的历史对话，下面是新对话 */
 .lx-conv-hist-divider {
   display: flex;
