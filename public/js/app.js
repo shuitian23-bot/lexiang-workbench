@@ -6206,7 +6206,15 @@ function openOrderDetail(orderId) {
                 })
                 .catch(() => sendChat("帮我找" + t));
             },
-            enter_fullscreen: () => lxSetAutoFs(true),
+            enter_fullscreen: () => {
+              // 根路径分屏说「全屏」= 回 lxfd 门户全屏（带着对话，同「回首页」路径），不能走
+              // 子站的遮罩式 lxSetAutoFs——两套全屏机制打架，门户内容不渲染，屏幕大片空白（真机踩坑）
+              if (document.body.classList.contains("lx-home-split") && typeof window.__lxfdEnterFromSplit === "function") {
+                window.__lxfdEnterFromSplit();
+                return;
+              }
+              lxSetAutoFs(true);
+            },
             exit_fullscreen: () => { if (state.autoFs) lxSetAutoFs(false); else document.body.classList.remove("assistant-fullscreen"); },
             // 下单乐享推荐商品：优先取对比页「乐享最推荐」列，其次取当前推荐结果第一款
             buy_recommended: () => {
