@@ -1145,7 +1145,7 @@
     // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
     // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
     // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
-    const _traceLines = ["联想乐享正在判断…"];
+    const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
     const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";

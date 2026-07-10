@@ -13433,6 +13433,10 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .lx-skill-trace-item { display: flex; align-items: flex-start; gap: 5px; font-size: 12.5px; line-height: 1.55; color: var(--text-muted,#9a929f); }
 .lx-skill-trace-item::before { content: "✓"; flex: none; line-height: 1.7; font-size: 11px; font-weight: 800; color: var(--lx-brand-red,#B8252E); }
 .lx-skill-trace-item.current { color: var(--lx-brand-red,#B8252E); font-weight: 600; }
+/* 进行中行的"动一动"省略号：. → .. → ... 循环，直到下一行内容出现（current 转正为 ✓ 行即停） */
+.lx-skill-trace-item.current::after { content: "."; animation: lxTraceDots 1.2s steps(1, end) infinite; }
+@keyframes lxTraceDots { 0% { content: "."; } 33% { content: ".."; } 66% { content: "..."; } }
+@media (prefers-reduced-motion: reduce) { .lx-skill-trace-item.current::after { content: "…"; animation: none; } }
 .lx-skill-trace.is-collapsed .lx-skill-trace-list { display: none; }
 .lx-skill-trace-fold { display: none; align-items: center; gap: 6px; width: 100%; padding: 4px 2px; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; color: var(--text-muted,#9a929f); font-size: 12.5px; }
 .lx-skill-trace.is-foldable .lx-skill-trace-fold { display: flex; }

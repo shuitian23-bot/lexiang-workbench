@@ -2527,7 +2527,7 @@ function openOrderDetail(orderId) {
           // ── 本地快路径结束 ───────────────────────────────────────────────
           // 思考过程时间线（PRD：把"联想乐享正在判断/正在调用 XX SKILL"展示出来）：固定首行 +
           // 本地意图判断结果一行，随后 status 事件逐行追加，首个 chunk 到达时折叠成一行摘要条。
-          const _traceLines = ["联想乐享正在判断…"];
+          const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
           const ai = addMessage("ai loading", "", renderSkillTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }));
           ai._raw = "";
           ai._pendingExtras = "";
