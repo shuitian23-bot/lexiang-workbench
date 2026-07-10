@@ -5618,6 +5618,7 @@ function openOrderDetail(orderId) {
           // 明确的 2 字购物意图词（推荐/想买/选购/入手/换个）直接放行，否则要打第 3 个字才弹引导——体验差
           const _short = /^(推荐|想买|选购|入手|换个|想要)$/.test(t);
           if (t.length < 3 && !_short) return null; // 其余仍要 ≥3 字，避免误触
+          if (t.length > 24) return null; // 用户已在完整表达（语音长句/自己打了很多字），逐级引导反而碍事
           for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
             if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
           }
@@ -5627,6 +5628,8 @@ function openOrderDetail(orderId) {
         function lxHideSuggest() {
           document.querySelector(".lx-suggest-panel")?.remove();
         }
+        // 全屏 lxfd 发送后程序性清空输入框不触发 input，浮层会残留——暴露给 app-lxfd.js 发送时收掉
+        window.__lxHideSuggest = lxHideSuggest;
 
         let lxSuggestTimer = null;
         function lxComposerSuggest(ta) {

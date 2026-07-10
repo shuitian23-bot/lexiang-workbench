@@ -1056,6 +1056,7 @@
     let finalized = false;
     let finalizePromise = null;
     lxfdArchiveClaimProgressCards(thread);
+    try { window.__lxHideSuggest && window.__lxHideSuggest(); } catch (_e) {} // 发送即收起输入联想浮层（程序性清空不触发 input，不收会残留）
     thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
     // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
     if (!chatState.started && !chatState.human) {
