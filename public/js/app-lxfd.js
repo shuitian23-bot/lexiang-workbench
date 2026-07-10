@@ -1050,7 +1050,7 @@
     let turnProducts = null;
     let turnTitle = "";
     let turnGrouped = false;
-    let turnAction = null; // 本轮意图操作（action 事件带来的 op）
+    let turnActions = []; // 本轮意图操作（action 事件带来的 op）——多意图一轮可能来多个（门店+优惠+会员），全记录，桥接后全开
     let pendingExtras = "";
     let pendingFollowups = [];
     let finalized = false;
@@ -1356,12 +1356,12 @@
           if (pageMeta) {
             if (pageMeta.feature === "solution") pendingExtras += renderLxfdLeadCta();
             pendingExtras += renderLxfdPageCta(pageMeta);
-            turnAction = pageMeta.feature;
+            if (turnActions.indexOf(pageMeta.feature) < 0) turnActions.push(pageMeta.feature);
           } else if (op === 'auth') {
             // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
             pendingExtras += '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>';
           } else if (op) {
-            turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
+            if (turnActions.indexOf(op) < 0) turnActions.push(op); // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
           }
         },
         control: (data) => {
@@ -1392,16 +1392,16 @@
               lxfdExportToMain();
               exitFullscreenWithReveal(() => {
                 window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
-                if (turnAction) lxfdRevealFeature(turnAction);
+                turnActions.forEach((op) => lxfdRevealFeature(op)); // 多意图：门店/优惠/会员标签全开
                 if (thread) thread.innerHTML = "";
               });
-            } else if (turnAction && isFullscreen && window.__lxBridge) {
+            } else if (turnActions.length && isFullscreen && window.__lxBridge) {
               // 本轮只有意图无商品：同样桥接退全屏，再开功能标签
               lxfdExportToMain();
               exitFullscreenWithReveal(() => {
                 // lxfdRevealFeature 内部会先 lxfdEnsureRootSplitState 补首页分屏布局
                 // （不做这步 .shell 仍 display:none → 功能标签渲染了但主面板隐藏=空白）
-                lxfdRevealFeature(turnAction);
+                turnActions.forEach((op) => lxfdRevealFeature(op));
                 if (thread) thread.innerHTML = "";
               });
             }
@@ -1451,13 +1451,13 @@
           lxfdExportToMain();
           exitFullscreenWithReveal(() => {
             window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
-            if (turnAction) lxfdRevealFeature(turnAction);
+            turnActions.forEach((op) => lxfdRevealFeature(op)); // 多意图：标签全开（同 done 分支）
             if (thread) thread.innerHTML = "";
           });
-        } else if (turnAction && isFullscreen && window.__lxBridge) {
+        } else if (turnActions.length && isFullscreen && window.__lxBridge) {
           lxfdExportToMain();
           exitFullscreenWithReveal(() => {
-            lxfdRevealFeature(turnAction);
+            turnActions.forEach((op) => lxfdRevealFeature(op));
             if (thread) thread.innerHTML = "";
           });
         }
