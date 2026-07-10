@@ -44,3 +44,5 @@ public/js/app.js|state._autoBuyPending|代买pending标记(官方推荐接管点
 public/js/app.js|lx-skill-trace|思考过程时间线
 public/js/app.js|officialWait|代买链前置(先插卡再建官方气泡)
 public/js/app-agent.js|阶梯 3|超预算fallback选最接近预算候选
+public/js/app-conv.js|不含 lx-op-steps|链卡恢复不被误判丢结构
+public/js/app.js|技能链/思考时间线回答刷新即丢|技能链时间线显式存档

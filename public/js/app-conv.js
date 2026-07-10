@@ -77,7 +77,10 @@
           if (m.role === "user") {
             addMessage("user", m.text || "");
           } else {
-            const _badHtml = /正在生成中|正在处理|lx-generating|loading-line|typing-cursor|typing-text|lx-op-steps/.test(m.html || "");
+            // 注意：不含 lx-op-steps——那是 agent 多步链卡（.lx-agent-chain-head 同框）合法内容，
+            // 会被 doSave 正常存档；这里若也判它「坏」会在恢复时被 mdLite(text) 拍平丢光结构。
+            // 真正的临时进度卡（无 .lx-agent-chain-head）doSave 阶段就被过滤，根本不会存进来。
+            const _badHtml = /正在生成中|正在处理|lx-generating|loading-line|typing-cursor|typing-text/.test(m.html || "");
             if (_badHtml && !m.text) return; // 坏 html 且无正文整条跳过
             if (!m.text && !m.html) return;
             const node = document.createElement("div");

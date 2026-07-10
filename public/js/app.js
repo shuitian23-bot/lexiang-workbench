@@ -2922,6 +2922,11 @@ function openOrderDetail(orderId) {
             const delayedExtras = ai._pendingExtras || "";
             ai._pendingExtras = null;
             if (delayedExtras) lxAppendAiHtml(ai, delayedExtras);
+            // 本节点 addMessage("ai loading","",...) 创建时 text=""，走 else 分支直接
+            // body.innerHTML=extraHtml，不会触发 addMessage 内 lxAnimateAiFinal.then() 的
+            // 完成态保存回调（那个回调只在 text 非空分支才注册）；这里显式补一次，同「下单
+            // 成功」节点做法一致，不只靠 400ms 防抖——否则技能链/思考时间线回答刷新即丢。
+            try { lxSaveConversation(); } catch (_e) {}
             const afterAnswer = Array.isArray(ai._afterAnswer) ? ai._afterAnswer.splice(0) : [];
             ai._afterAnswer = null;
             afterAnswer.forEach((fn) => {
@@ -2947,6 +2952,7 @@ function openOrderDetail(orderId) {
             ai._pendingExtras = null;
             ai._afterAnswer = null;
             await lxAnimateAiFinal(ai, mdLite(ai._raw));
+            try { lxSaveConversation(); } catch (_e) {} // 同上：错误兜底态也要显式存一次，不靠防抖
           } finally {
             clearTimeout(state._sendTimeout);
             if (nonce === state.conversationNonce) state.sending = false;
