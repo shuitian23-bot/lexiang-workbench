@@ -262,10 +262,14 @@
     return true;
   }
   // ── 能力 C：把 lxfd 当前对话导出到主面板 ──────────────────────────────────
-  function lxfdExportToMain() {
+  // excludeEls：这一轮临时展示、不该进历史的节点（件2代买桥接用——过渡态用户气泡/提示条
+  // 只在全屏展示做视觉过渡，真正的一条由桥接后 sendChat(value) 在主面板重新生成，
+  // 带过去导出会变成重复两条）。
+  function lxfdExportToMain(excludeEls) {
     if (!thread || !window.__lxBridge) return;
+    const skip = excludeEls && excludeEls.length ? new Set(excludeEls) : null;
     const messages = [];
-    const allNodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai"));
+    const allNodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai")).filter(function(el) { return !skip || !skip.has(el); });
     const lastAi = allNodes.filter(function(el) { return el.classList.contains("lxfd-msg-ai"); }).pop();
     allNodes.forEach(function(el) {
       if (el.classList.contains("lxfd-msg-user")) {
@@ -865,6 +869,9 @@
     ai.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
     const host = ai.querySelector(".lxfd-ai-body") || ai;
     host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
+    // 件2 F1：追问chip常在答案打字动画收尾之后才异步插入，插入前 thread 已经滚到"答案末尾"，
+    // 新增内容会落在可视区之下点不到——插入后补一次滚底（对称主面板的 lxAppendAiHtml 滚动逻辑）
+    if (thread) thread.scrollTop = thread.scrollHeight;
   }
 
   function lxfdClaimTicketSvg() {
@@ -954,10 +961,27 @@
     });
   }
 
+  // 生成阶段实时刷新时间线（件2，同 app.js lxRenderTraceLive 逻辑）：此时 .lxfd-ai-body
+  // 里只有这一个结构，全量重绘最简单；lxfdAnimateFinal 收尾时会把 ai-body 整体替换掉，
+  // 折叠态 HTML 随 finalHtml 一起进去，不依赖这里的实时 DOM。
+  function lxfdRenderTraceLive(ai) {
+    const body = ai && ai.querySelector && ai.querySelector(".lxfd-ai-body");
+    const renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
+    if (!body || !renderTrace) return;
+    body.innerHTML = renderTrace(ai._traceLines, { collapsed: ai._traceCollapsed, foldable: ai._traceCollapsed, skillCount: ai._traceSkills ? ai._traceSkills.size : 0 });
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  }
+
   function lxfdAnimateFinal(ai, rawText) {
     const body = ai?.querySelector(".lxfd-ai-body");
     if (!body) return Promise.resolve();
-    const html = mdLite(String(rawText || "").trim() || "我先为你整理好了相关内容。");
+    // 收尾把时间线折叠态 HTML 拼进最终正文——本函数会整体替换 ai-body，生成阶段的实时 DOM
+    // 保不住，得随最终 html 一起进去才能存档/恢复时保持折叠（同 app.js sendChat done 收尾）。
+    const renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
+    const traceHtml = (ai && ai._traceLines && ai._traceLines.length && renderTrace)
+      ? renderTrace(ai._traceLines, { collapsed: true, foldable: true, skillCount: ai._traceSkills ? ai._traceSkills.size : 0 })
+      : "";
+    const html = traceHtml + mdLite(String(rawText || "").trim() || "我先为你整理好了相关内容。");
     ai.classList.add("lx-chat-skin");
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       body.innerHTML = html;
@@ -1051,6 +1075,29 @@
     try { lxfdPersistCurrent(); } catch (_e) {}
 
     // ── lxfd 意图路由分流 ──────────────────────────────────────────────
+    // 0. 全权代买（多步任务链）意图：优先级最高，同 app.js sendChat 顺序（先于本地快路径/远程
+    //    意图路由判定）。官方推荐 promise+超预算 fallback 阶梯+链前置已在 app.js sendChat 里
+    //    完整实现并验证过（件2主面板），这里不重造——全屏只负责"识别 + 平滑过渡"：显示用户气泡
+    //    +过渡提示，走已验证的退全屏→分屏桥接路径（exitFullscreenWithReveal，避免 df52e98 硬切
+    //    classList 导致背景空白的老坑），把原句交给桥接后的主面板 sendChat 重新处理。
+    const _lxfdAutoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(value) : null;
+    if (_lxfdAutoBuy) {
+      const _lxfdAutoBuyNote = document.createElement("div");
+      _lxfdAutoBuyNote.className = "lxfd-msg-ai";
+      _lxfdAutoBuyNote.innerHTML = '<div class="lxfd-ai-body"><div class="lxfd-ai-text">已识别多步代买任务，为你切换到执行视图…</div></div>';
+      thread?.appendChild(_lxfdAutoBuyNote);
+      _lxfdAutoBuyNote.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      // 用户气泡+过渡提示只在全屏做视觉过渡（退全屏动画会克隆当前 DOM，这两条得先留在
+      // thread 里才能被看到），但不计入导出历史——真正的一条由桥接后 sendChat(value) 在
+      // 主面板重新生成（同一句原文），带过去导出会变成重复两条。
+      lxfdExportToMain([user, _lxfdAutoBuyNote]);
+      exitFullscreenWithReveal(() => {
+        if (typeof window.__lxBridge?.sendChat === "function") window.__lxBridge.sendChat(value);
+        if (thread) thread.innerHTML = ""; // 下次回全屏会从主面板重新 import
+      });
+      return;
+    }
+
     // 1. 本地快路径（正则统一收口 app-intent.js，主面板/全屏共用一份，改一处两边同时生效）
     const _lxfdLocalCtrl = window.__lxIntent ? window.__lxIntent.matchControl(value) : null;
     if (_lxfdLocalCtrl) {
@@ -1134,11 +1181,21 @@
     }
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
+    // 思考过程时间线（件2）：复用主面板同一套 renderSkillTrace（挂 window.__lxBridge 桥接，
+    // 不复制实现），文案/折叠时机与主面板 sendChat 完全一致——固定首行+本地判断结果一行，
+    // 首个 chunk 到达即折叠成一行摘要条。走到这里说明不是代买（前面已 return），固定走
+    // "商品咨询→调用官方SKILL" 文案。
+    const _traceLines = ["联想乐享正在判断…", "已判断：商品咨询 → 调用联想乐享官方 SKILL"];
+    const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
-    ai.innerHTML = '<div class="lxfd-ai-body"><div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div></div>';
+    ai.innerHTML = `<div class="lxfd-ai-body">${_renderTrace ? _renderTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }) : ""}</div>`;
     ai._raw = "";
     ai._loadingStarted = Date.now();
+    ai._traceLines = _traceLines;
+    ai._traceSkills = new Set();
+    ai._traceCollapsed = false;
+    ai._traceLastRaw = "";
     thread?.appendChild(ai);
     ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
     const body = ai.querySelector(".lxfd-ai-body");
@@ -1209,6 +1266,8 @@
           const content = payload.text || data || "";
           if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
           if (!content) return;
+          // 首个 chunk 到达：思考过程时间线收起成一行摘要条，把舞台让给正文（同主面板）
+          if (!ai._traceCollapsed) { ai._traceCollapsed = true; lxfdRenderTraceLive(ai); }
           hasContent = true;
           ai._raw += content;
         },
@@ -1216,9 +1275,21 @@
           if (nonce !== chatState.conversationNonce) return;
           const payload = parseJson(data);
           if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
-          if (payload.text && !hasContent && body) {
-            const typing = body.querySelector(".loading-line .typing-text");
-            if (typing) typing.textContent = "联想乐享正在生成中...";
+          if (payload.text) {
+            const raw = String(payload.text);
+            if (raw !== ai._traceLastRaw) { // 去重相邻重复（官方 status 流常见连续重复 ping）
+              ai._traceLastRaw = raw;
+              const skillMatch = raw.match(/^(正在获取数据|已获取数据):(Skill\(.+\))$/);
+              let line = raw;
+              if (skillMatch) {
+                ai._traceSkills.add(skillMatch[2]);
+                line = skillMatch[1] === "正在获取数据"
+                  ? `联想乐享官方 SKILL：正在调用 ${skillMatch[2]}`
+                  : `联想乐享官方 SKILL：${skillMatch[2]} 已完成`;
+              }
+              ai._traceLines.push(line);
+              lxfdRenderTraceLive(ai);
+            }
           }
         },
         products: (data) => {
@@ -1300,7 +1371,7 @@
             if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
             await lxfdAnimateFinal(ai, ai._raw);
             const finalBody = ai.querySelector(".lxfd-ai-body");
-            if (pendingExtras && finalBody) finalBody.insertAdjacentHTML("beforeend", pendingExtras);
+            if (pendingExtras && finalBody) { finalBody.insertAdjacentHTML("beforeend", pendingExtras); if (thread) thread.scrollTop = thread.scrollHeight; }
             if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
             pendingFollowups = lxfdActionChips(turnProducts).concat(pendingFollowups).slice(0, 3);
             if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);

@@ -78,6 +78,21 @@ function slotExtractBudget(msg) {
   return n >= 500 && n <= 200000 ? String(n) : null;
 }
 
+// ── 商品槽位保底（件2 F2）─────────────────────────────────────────────────
+// 真机诊断（puppeteer 抓包，见 f2Diagnosis）：sessionId 前端确实带对了、值是 32hex、和上一轮
+// status/done 返回的 conv_id 完全一致——前端链路没断。问题在官方端：同一 sessionId 下"对比一下/
+// 第二款怎么样"这类不点名具体商品的短追问，官方经常调用错误的 Skill（如「商品知识技能」而非
+// 「商品推荐服务」）、答非所问，等同于"失忆"。这里 per-session 记住上一轮官方实际返回的商品名，
+// 短追问且自己没点名具体商品时拼回提醒，让官方能对齐"我说的对比是指这几款"。
+const SESSION_PRODUCTS = new Map(); // sessionId → { names: string[], ts }
+function isShortFollowupNeedingProductContext(msg) {
+  const t = String(msg || '').trim();
+  if (!t || t.length > 20) return false;
+  // 已经点名具体商品/型号（含数字型号如 Y9000P/R7000）的不算"没头没脑的追问"，官方自己接得住
+  if (/[a-zA-Z]{2,}\d|拯救者|小新|thinkpad|thinkbook|yoga|legion/i.test(t)) return false;
+  return /^(对比|比较|比一比|比一下)(一下)?(它们|这些)?$|^第?[一二三四五六1-9]\s*[个款台]?(怎么样|如何|好吗|好不好)?$|^(这|那|哪)[个款台](怎么样|好|更好|好一些|如何)?[吗呢]?$|^(还有)?(别的|其他)(推荐|选择|款)?[吗呢]?$|^哪(个|款)(更?好|更?值)/.test(t);
+}
+
 // POST /api/leai/stream — 翻译官方 SSE 为前端 chunk/status/display/done 格式
 router.post('/stream', async (req, res) => {
   const { message, sessionId: bodySessionId, lng, lat, enableThinking } = req.body;
@@ -135,6 +150,17 @@ router.post('/stream', async (req, res) => {
       }
     }
     if (SESSION_SLOTS.size > 1000) SESSION_SLOTS.clear(); // ponytail: 简单上限防内存涨,够POC用
+
+    // 商品槽位保底：短追问（对比一下/第N款/这个怎么样）没点名具体商品 → 拼回上一轮官方实际
+    // 推荐过的商品名，防官方反问"想对比什么"（诊断见上方注释）。budget 槽位和这条互不冲突，
+    // 都是在 qaInput 后面追加说明，官方模型能一起读到。
+    if (safeBodySessionId && isShortFollowupNeedingProductContext(message)) {
+      const _prodSlot = SESSION_PRODUCTS.get(safeBodySessionId);
+      if (_prodSlot && Date.now() - _prodSlot.ts < 30 * 60 * 1000 && _prodSlot.names.length) {
+        qaInput = qaInput + '（补充：你上一轮给我推荐的是：' + _prodSlot.names.join('、') + '，我这句就是针对这几款说的）';
+      }
+    }
+    if (SESSION_PRODUCTS.size > 1000) SESSION_PRODUCTS.clear();
 
     const callQa = (token, sid) => fetch(`${AIGC_BASE}/api/chat/qa`, {
       method: 'POST',
@@ -240,6 +266,8 @@ router.post('/stream', async (req, res) => {
             const products = mapProductList(r.product_list, 6);
             if (products.length) {
               sentProducts = true;
+              const _names = products.map((p) => p && p.name).filter(Boolean);
+              if (_names.length) SESSION_PRODUCTS.set(sessionId, { names: _names, ts: Date.now() });
               res.write('event: display\ndata:' + JSON.stringify({ products, title: '为你推荐' }) + '\n\n');
             }
           }

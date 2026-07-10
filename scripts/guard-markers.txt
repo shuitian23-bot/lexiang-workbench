@@ -46,3 +46,10 @@ public/js/app.js|officialWait|代买链前置(先插卡再建官方气泡)
 public/js/app-agent.js|阶梯 3|超预算fallback选最接近预算候选
 public/js/app-conv.js|不含 lx-op-steps|链卡恢复不被误判丢结构
 public/js/app.js|技能链/思考时间线回答刷新即丢|技能链时间线显式存档
+public/js/app-lxfd.js|_lxfdAutoBuy|全屏首页接入代买链桥接
+public/js/app-lxfd.js|lxfdRenderTraceLive|全屏思考时间线
+public/js/app-lxfd.js|window.__lxBridge.sendChat|桥接后分屏sendChat接管代买
+public/js/app.js|state.localArchiveId|分屏对话归档进全屏历史侧栏
+routes/leai.js|SESSION_PRODUCTS|多轮追问商品槽位保底
+public/js/app-lxfd.js|件2 F1：追问chip|全屏追问chip滚底可点
+public/js/app.js|件2 F1：桥接瞬间主面板刚从|分屏桥接后追问chip滚底可点

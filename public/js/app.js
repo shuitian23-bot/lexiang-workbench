@@ -141,7 +141,8 @@ if (!window.__lxCreateTypewriter) {
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
           conversationSourcePage: lxPageFromPath(),
-          refProducts: []
+          refProducts: [],
+          localArchiveId: null // 件3：当前对话在共享历史侧栏(lexiang.lxfd.convs.v1)里的稳定条目id，反复覆盖同一条不新增
         };
         window.__lxState = state;
         // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
@@ -208,6 +209,12 @@ if (!window.__lxCreateTypewriter) {
           revealProducts: function(products, opts) {
             lxRunWithRevealMotion(() => {
               lxRevealContent();
+              // 件2 F1：桥接瞬间主面板刚从 display:none 变为可见，此前 addMessage 里的
+              // list.scrollTop=list.scrollHeight 发生在隐藏期间是空操作（隐藏元素布局塌陷为0），
+              // 面板留在顶部，答后追问 chip（如「对比第1、2、3款」）被压到composer下方点不到；
+              // 这里刚显影就补一次，此时布局已强制重算，滚动到底才是真值。
+              const _list = ensureChat();
+              if (_list) _list.scrollTop = _list.scrollHeight;
               if (products && products.length === 1 && products[0] && products[0].sku) {
                 openProduct(products[0].sku);
                 return;
@@ -229,6 +236,8 @@ if (!window.__lxCreateTypewriter) {
           focusReco: function() {
             lxRunWithRevealMotion(() => {
               lxRevealContent();
+              const _list = ensureChat();
+              if (_list) _list.scrollTop = _list.scrollHeight; // 同 revealProducts，桥接刚显影补一次滚底
               const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
               if (tab) {
                 state.activeTabId = tab.id;
@@ -242,7 +251,12 @@ if (!window.__lxCreateTypewriter) {
           // 当前是否有右侧 tab
           hasTabs: function() { return !!(state.tabs && state.tabs.length > 0); },
           // 让 lxfd IIFE 调主面板 lxExecControl（跨 IIFE 桥）
-          execControl: function(op, target) { lxExecControl(op, target); }
+          execControl: function(op, target) { lxExecControl(op, target); },
+          // 件2 全屏接入：代买意图桥接到分屏后，把原句交给主面板 sendChat 重新走一遍
+          // （官方推荐 promise+超预算 fallback 阶梯+链前置已在这完整实现，全屏不重造）
+          sendChat: function(text) { return sendChat(text); },
+          // 件2 全屏接入：思考时间线渲染函数只留一份，全屏 IIFE 挂桥调用，不复制实现
+          renderSkillTrace: function(lines, opts) { return renderSkillTrace(lines, opts); }
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);
@@ -1838,7 +1852,13 @@ function openOrderDetail(orderId) {
         const lxSaveConversation = __lxConv.save;
         const lxRestoreConversation = __lxConv.restore;
         // 挂 window：lxfd 桥接退全屏后立即 flush，避免防抖被切站/卸载吞掉
-        window.__lxSaveConversationNow = __lxConv.saveNow;
+        // 件3 刷新找回：每次强制flush当前会话快照，同步把（可能是桥接进来的）分屏对话
+        // upsert 进共享历史侧栏（lexiang.lxfd.convs.v1，与全屏 lxfdRenderHist 同一份数据源）。
+        // 不改 __lxConv.saveNow 本身（round1已验证的分屏内刷新恢复零改动），只是外面多包一层。
+        window.__lxSaveConversationNow = function() {
+          try { __lxConv.saveNow(); } catch (_e) {}
+          try { lxArchiveCurrentConversation(); } catch (_e) {}
+        };
 
         function ensureChat() {
           document.body.dataset.state = "chat";
@@ -2215,17 +2235,17 @@ function openOrderDetail(orderId) {
           return (firstUser ? String(firstUser.text || "") : "新对话").trim().slice(0, 24) || "新对话";
         }
 
+        // 件3 刷新找回：id 稳定复用（state.localArchiveId）而不是每次新开一条——分屏对话进行中
+        // 会被 window.__lxSaveConversationNow 反复调用（答完/链每步/桥接导入时），同一通对话
+        // 只覆盖同一条历史记录，不会刷屏式地在侧栏里刷出一堆重复条目。
         function lxArchiveCurrentConversation() {
           const messages = lxMainConversationMessages();
           if (!messages.length) return;
           const title = lxConversationTitle(messages);
-          const id = "lc" + Date.now() + Math.random().toString(36).slice(2, 6);
+          const id = state.localArchiveId || ("lc" + Date.now() + Math.random().toString(36).slice(2, 6));
+          state.localArchiveId = id;
           const item = { id, title, convId: state.convId || null, messages, threadHtml: lxMessagesToLxfdHtml(messages), ts: Date.now() };
-          const store = lxLoadConversationHistoryStore().filter((entry) => {
-            if (!entry || entry.id === id) return false;
-            if (entry.title === title && Math.abs(Date.now() - Number(entry.ts || 0)) < 1500) return false;
-            return true;
-          });
+          const store = lxLoadConversationHistoryStore().filter((entry) => entry && entry.id !== id);
           store.unshift(item);
           lxSaveConversationHistoryStore(store);
         }
@@ -2235,6 +2255,7 @@ function openOrderDetail(orderId) {
           if (!record) return;
           lxArchiveCurrentConversation();
           state.conversationNonce += 1;
+          state.localArchiveId = record.id; // 继续聊这条恢复的对话，仍覆盖同一条记录
           state.convId = record.convId || null;
           state.sending = false;
           state.queryHistory = [];
@@ -2355,6 +2376,7 @@ function openOrderDetail(orderId) {
 
         function resetConversation() {
           lxArchiveCurrentConversation();
+          state.localArchiveId = null; // 新对话另起一条稳定id，不再覆盖刚归档的这条
           state.conversationNonce += 1;
           state.convId = null;
           state.sending = false;
