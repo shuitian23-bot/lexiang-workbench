@@ -201,6 +201,9 @@ if (!window.__lxCreateTypewriter) {
               addMessage(m.role, m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
             });
             if (convId) state.convId = convId;
+            // 件3：沿用 lxfd 那边的本地归档id，桥接后主面板 upsert 覆盖的是同一条历史记录，
+            // 不会因为两边各自开了不同id而在侧栏里出现同一通对话的两条重复条目
+            if (meta && meta.localId) state.localArchiveId = meta.localId;
             if (meta && meta.sourcePage) lxSetConversationSourcePage(meta.sourcePage);
             // 立即持久化（不靠防抖）——桥接后可能马上切站，防抖会被吞
             try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}

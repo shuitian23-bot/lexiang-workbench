@@ -300,7 +300,7 @@
       }
     });
     if (!messages.length) return;
-    window.__lxBridge.importConversation(messages, chatState.convId);
+    window.__lxBridge.importConversation(messages, chatState.convId, { localId: chatState.localId });
   }
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
