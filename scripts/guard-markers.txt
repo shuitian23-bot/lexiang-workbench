@@ -56,3 +56,4 @@ public/js/app.js|件2 F1：桥接瞬间主面板刚从|分屏桥接后追问chip
 public/js/app.js|prepareRootSplitState: function|代买链桥接补首页分屏布局
 public/js/app-lxfd.js|lxfdEnsureRootSplitState|全屏桥接补首页分屏布局共用
 public/js/app-lxfd.js|普通商品咨询不再自动跳分屏|全屏普通咨询留在全屏不强制跳分屏
+public/js/app.js|_lxFlushConversationOnHide|下单成功等关键结果消息刷新前立即存档不丢

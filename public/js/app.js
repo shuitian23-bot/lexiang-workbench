@@ -1364,7 +1364,7 @@ if (!window.__lxCreateTypewriter) {
           const claimCard = node.querySelector('.cl[data-v="D"].lx-claim-skin');
           lxRunClaimProgressCard(claimCard, claimed, Math.abs(discount), () => {
             state._buyFlowRunning = false;
-            try { lxSaveConversation(); } catch (_e) {} // 优惠卡动画跑完(计数器停)再存一次，保住最终态
+            try { window.__lxSaveConversationNow(); } catch (_e) {} // 优惠卡动画跑完(计数器停)再存一次，保住最终态——用真·立即存，不吃400ms防抖
             lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
           });
         }
@@ -1421,7 +1421,7 @@ if (!window.__lxCreateTypewriter) {
           updateBadges();
           toast("下单成功（演示订单）");
           addMessage("assistant", `已下单成功（演示）：${order.name}，实付 ¥${Number(order.price || 0).toLocaleString()}，订单号 ${order.orderId}。${order.benefitNote ? `已用优惠：${order.benefitNote}。` : ""}`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-floor-action="orders">查看订单</button><button class="lx-p0-btn" type="button" data-quick-ask="刚买了${esc(order.name)}，帮我配个合适的鼠标或包">顺手配个配件</button></div>`);
-          try { lxSaveConversation(); } catch (_e) {} // 下单成功是关键节点，显式保存进历史（不只靠防抖）
+          try { window.__lxSaveConversationNow(); } catch (_e) {} // 下单成功是关键节点，显式保存进历史——用真·立即存（原先误调了防抖版save，用户看到消息秒刷新会来不及落盘）
           if (state.user) openOrders();
         }
 
@@ -1867,6 +1867,16 @@ function openOrderDetail(orderId) {
           try { __lxConv.saveNow(); } catch (_e) {}
           try { lxArchiveCurrentConversation(); } catch (_e) {}
         };
+        // 修复：分屏下单流程刷新后整段操作记录丢失——根因是「已下单成功」等关键结果消息只靠
+        // 400ms 防抖持久化，用户看到消息就立刻刷新（人之常情，尤其是在验证「会不会丢」时）会
+        // 打断防抖 timer，那批消息从未落盘过（不是 restore 阶段丢弃，是根本没存进去）。
+        // pagehide 覆盖手动刷新/关标签/前进后退；visibilitychange(hidden) 兜住移动端切后台等
+        // 不一定触发 pagehide 的场景。两个都只是同步 flush 已有的 doSave，不改防抖/过滤逻辑本身。
+        const _lxFlushConversationOnHide = () => { try { window.__lxSaveConversationNow(); } catch (_e) {} };
+        window.addEventListener("pagehide", _lxFlushConversationOnHide);
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden") _lxFlushConversationOnHide();
+        });
 
         function ensureChat() {
           document.body.dataset.state = "chat";
@@ -1905,8 +1915,11 @@ function openOrderDetail(orderId) {
             const body = lxEnsureAiBody(node);
             if (text) {
               node._raw = String(text);
-              // 打字动画最长拖 5s，落地后再存一次——否则下单成功等消息存的是「生成中…」占位被丢弃，刷新就没了
-              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`).then(() => { try { lxSaveConversation(); } catch (_e) {} });
+              // 打字动画最长拖 5s，落地后再存一次——否则下单成功等消息存的是「生成中…」占位被丢弃，刷新就没了。
+              // 这里必须用立即存（不能是400ms防抖版）：内容刚落地即是用户能看到消息的那一刻，
+              // 真机上用户看到「已下单成功」就立刻刷新验证是否保存是常见操作，防抖窗口来不及跑完
+              // 这条消息就没进过 localStorage——不是 restore 阶段丢弃，是根本没存进去。
+              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`).then(() => { try { window.__lxSaveConversationNow(); } catch (_e) {} });
             } else {
               body.innerHTML = extraHtml;
             }
@@ -2956,7 +2969,7 @@ function openOrderDetail(orderId) {
             // body.innerHTML=extraHtml，不会触发 addMessage 内 lxAnimateAiFinal.then() 的
             // 完成态保存回调（那个回调只在 text 非空分支才注册）；这里显式补一次，同「下单
             // 成功」节点做法一致，不只靠 400ms 防抖——否则技能链/思考时间线回答刷新即丢。
-            try { lxSaveConversation(); } catch (_e) {}
+            try { window.__lxSaveConversationNow(); } catch (_e) {} // 真·立即存，不吃400ms防抖（同下单成功节点）
             const afterAnswer = Array.isArray(ai._afterAnswer) ? ai._afterAnswer.splice(0) : [];
             ai._afterAnswer = null;
             afterAnswer.forEach((fn) => {
@@ -2982,7 +2995,7 @@ function openOrderDetail(orderId) {
             ai._pendingExtras = null;
             ai._afterAnswer = null;
             await lxAnimateAiFinal(ai, mdLite(ai._raw));
-            try { lxSaveConversation(); } catch (_e) {} // 同上：错误兜底态也要显式存一次，不靠防抖
+            try { window.__lxSaveConversationNow(); } catch (_e) {} // 同上：错误兜底态也要显式存一次，不靠防抖
           } finally {
             clearTimeout(state._sendTimeout);
             if (nonce === state.conversationNonce) state.sending = false;
@@ -3171,7 +3184,7 @@ function openOrderDetail(orderId) {
           tip._raw = `好的！为你处理企业积分兑换：${item.name}`;
           const progressCard = tip.querySelector('.lx-ent-redeem-steps[data-v="D"]');
           lxRunEntRedeemProgressCard(progressCard, item, () => {
-            try { lxSaveConversation(); } catch (_e) {}
+            try { window.__lxSaveConversationNow(); } catch (_e) {} // 真·立即存，不吃400ms防抖（同下单成功节点）
             lxOpenEntRedeemOrder(item);
           });
           return true;
