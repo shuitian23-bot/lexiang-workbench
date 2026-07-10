@@ -46,6 +46,10 @@ const puppeteer = require('/opt/projects/lexiang/node_modules/puppeteer');
 | **hero-btn 不可见** | `.hero-btn` 在 headless 下 visibility:hidden,page.click 报错 | 用 `page.evaluate(()=>el.click())` JS 直点 |
 | **首页输入框** | 是 `#lxfdTa`,不是 .composer textarea | 按页面选:首页 #lxfdTa,分屏 .composer textarea |
 | **桥接清空 lxfd** | 首页聊出商品后退全屏,`.lxfd-msg-*` 归零、内容搬进 `.lx-p0-messages` | 计数为 0 不等于没发生,查 lx-p0 侧 |
+| **toast 残留文案当 AI 回复** | `toast()` 只 toggle `.lx-p0-toast` 的 `show` class,2.4s 后隐藏但 textContent 不清空;之后整页 innerText/body 扫描仍会读到这行字,误判成"AI 回了一句拒绝/提示" | 判定 AI 回复只认 `.lx-p0-messages .lx-p0-message.ai` 节点,不要扫全页文本;toast 是本地操作反馈(不落库、不算对话消息) |
+| **buy_nth 本地意图不打后端** | 「第N款/第N个…下单/加购/打开」等序号操作词已被 `app-intent.js matchControl` 100% 本地正则拦截(`ord && /第|个|款.../ + /下单|购买.../`),命中就直接走 `lxExecControl`,**永远不会**请求 `/api/leai/intent` 或 `/stream`——见到它没调后端是设计如此,不是"消息没发出" | 判定这类指令别盯网络请求,盯 `.lx-p0-toast` 文案或后续下单卡片/气泡 |
+| **buy_nth 需要"已打开"的商品上下文** | 纯文字推荐答案只带「查看推荐商品」CTA(`data-lx-focus-reco`),不点开 CTA 或未打开过任意商品详情时,`lxCurrentContext()` 拿不到列表,「第三款下单吧」会弹 toast「当前没有可选的商品列表」——这是既有预期行为(2026-07-10 起 3cfc31e 已确认,非 bug) | 要测下单闭环:必须先点「查看推荐商品」或商品卡片打开详情页(`.detail-primary` 可见),再触发下单;别用裸「第N款下单吧」当下单闭环用例 |
+| **连续两问不足 30s 会静默吞消息** | `sendChat()` 首行 `if (!text \|\| state.sending) return;`——上一条 AI 回答的 SSE + ≥5s 打字动画常常整体耗时 25s+ 才把 `state.sending` 落回 false;此时段内发第二条消息,不加气泡、不打网络、无任何反馈,肉眼像"消息没发出" | 两条追问之间必须等上一条 **完整回答 + 动画** 结束(≥30s 保险),或轮询 `window.__lxState.sending === false` 再发下一条,别按固定 25s 硬等 |
 
 ## 意图模块直测(不用起浏览器)
 
