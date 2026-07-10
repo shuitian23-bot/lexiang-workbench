@@ -1386,12 +1386,15 @@
             lxfdPersistCurrent();
             lxfdRenderHist();
             const isFullscreen = document.body.classList.contains("assistant-fullscreen");
-            // 件2-E：普通商品咨询命中 turnProducts 不再自动跳分屏——留在全屏，正文已随
-            // chunk 打进 ai._raw，pendingExtras 里的「查看推荐商品」CTA（renderLxfdProducts）
-            // 按需点击才桥接分屏看富商品栅格（点击处理见下方 data-lxfd-reveal-products 监听）。
-            // 代买链走独立入口（submit() 开头 _lxfdAutoBuy 分支，早 return，不会流到这里），
-            // 故这里只保留"有 action 无商品"的场景（AI 建议打开某功能页）自动桥接。
-            if (turnAction && isFullscreen && window.__lxBridge) {
+            // 官方带回商品 → 自动桥接分屏右侧展示（所推即所见）；只有纯 action 无商品才走功能页桥接
+            if (turnProducts && turnProducts.length && isFullscreen && window.__lxBridge) {
+              lxfdExportToMain();
+              exitFullscreenWithReveal(() => {
+                window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+                if (turnAction) lxfdRevealFeature(turnAction);
+                if (thread) thread.innerHTML = "";
+              });
+            } else if (turnAction && isFullscreen && window.__lxBridge) {
               // 本轮只有意图无商品：同样桥接退全屏，再开功能标签
               lxfdExportToMain();
               exitFullscreenWithReveal(() => {
@@ -1442,8 +1445,15 @@
         lxfdPersistCurrent();
         lxfdRenderHist();
         const isFullscreen = document.body.classList.contains("assistant-fullscreen");
-        // 与上方 done 分支同一条规则：普通商品咨询不自动跳分屏，只有纯 action 才桥接。
-        if (turnAction && isFullscreen && window.__lxBridge) {
+        // 与上方 done 分支同一条规则：有商品自动桥接分屏展示，纯 action 走功能页桥接。
+        if (turnProducts && turnProducts.length && isFullscreen && window.__lxBridge) {
+          lxfdExportToMain();
+          exitFullscreenWithReveal(() => {
+            window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+            if (turnAction) lxfdRevealFeature(turnAction);
+            if (thread) thread.innerHTML = "";
+          });
+        } else if (turnAction && isFullscreen && window.__lxBridge) {
           lxfdExportToMain();
           exitFullscreenWithReveal(() => {
             lxfdRevealFeature(turnAction);
