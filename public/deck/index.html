@@ -129,7 +129,7 @@
 <!-- S5 HOW 总览 -->
 <section class="slide">
   <div class="eyebrow">HOW · 总览</div>
-  <h2>五个方法论，一条边界</h2>
+  <h2>五个方法论</h2>
   <div class="grow">
     <div class="cards" style="grid-template-columns:repeat(6,1fr)">
       <div class="card" style="grid-column:span 2"><h3><span class="num">1</span>数据驱动定功能</h3><p>六万条真实提问聚类，占比说了算，不抄竞品清单。</p></div>
@@ -138,7 +138,6 @@
       <div class="card" style="grid-column:span 3"><h3><span class="num">4</span>对话即操作</h3><p>说话就是操作，AI 说到哪、页面展示到哪。</p></div>
       <div class="card" style="grid-column:span 3"><h3><span class="num">5</span>多步任务链</h3><p>一句话走完推荐→对比→选款→下单，过程全可视。</p></div>
     </div>
-    <div class="boundary"><span class="pill">一条边界</span><p><b>刻意不做的：</b>政企采购不线上下单（合规转顾问对接）；支付等关键决策永远留给人确认。</p></div>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
 </section>
@@ -148,14 +147,13 @@
   <div class="eyebrow">HOW · 方法论 1</div>
   <h2>功能不是拍脑袋，是<em>聚类</em>出来的</h2>
   <div class="grow">
-    <div class="tiles" style="grid-template-columns:1.2fr 1fr 1fr 1fr 1fr">
-      <div class="tile"><div class="v">61,049<small>条</small></div><div class="k">脱敏真实用户提问</div><div class="d">大盘是商品导购咨询（推荐漏斗已覆盖）；意外在漏斗之外 ↓</div></div>
-      <div class="tile"><div class="v">5.4<small>%</small></div><div class="k">售后维修</div><div class="d">→ 售后引导做进输入框</div></div>
-      <div class="tile"><div class="v">4.5<small>%</small></div><div class="k">身份认证</div><div class="d">→ 认证秒回直开表单</div></div>
-      <div class="tile"><div class="v">3.2<small>%</small></div><div class="k">门店查询</div><div class="d">→ 「门店」一词秒开</div></div>
-      <div class="tile"><div class="v">2.4<small>%</small></div><div class="k">会员权益</div><div class="d">→ 会员/优惠券秒开</div></div>
+    <div class="tiles" style="grid-template-columns:1.15fr 1fr 1fr 1fr">
+      <div class="tile"><div class="v">61,049<small>条</small></div><div class="k">脱敏真实用户提问</div><div class="d">官方一级标注统计 · 功能优先级的唯一依据</div></div>
+      <div class="tile"><div class="v">49.8<small>%</small></div><div class="k">电商导购</div><div class="d">推荐 26%、硬件参数 5.9%、对比… → 引导漏斗 + 推荐链路</div></div>
+      <div class="tile"><div class="v">20.6<small>%</small></div><div class="k">服务</div><div class="d">售后咨询 8.6%、驱动系统 4.1%、保修 2.3%… → 售后引导做进输入框</div></div>
+      <div class="tile"><div class="v">20.5<small>%</small></div><div class="k">会员 + 门店</div><div class="d">教育优惠 4.4%、门店查询 5.8%、人工 2.2%… → 全部一词秒回</div></div>
     </div>
-    <div class="quote">右四项是<b>推荐漏斗之外的服务类意图 Top4</b>——合计约 15%，谁都没想到「买东西的入口」里有这么多人在问服务。落地规则只有两条：<b>占比高的意图优先做成引导</b>；<b>高频短词做成本地秒回</b>（零等待）。</div>
+    <div class="quote">购物入口里，<b>只有一半的人在「买东西」，另一半在问服务、会员、门店</b>——这是拍脑袋想不到的。落地规则两条：<b>占比高的意图优先做成引导</b>；<b>高频短词做成本地秒回</b>。连「自主下单」都有 1.1% 的人直接开口要——多步任务链就是给他们做的。</div>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
 </section>
@@ -224,21 +222,6 @@
       <div class="card"><h3>兜底不卡死</h3><p>官方超时 / 超预算 / 空结果，自动降级到自营货盘按需求续跑，任何分支都有下文、有解释。</p></div>
       <div class="card"><h3>决策留给人</h3><p>链的终点是「确认支付」弹窗——AI 干活，人拍板，全程可打断可反悔。</p></div>
     </div>
-  </div>
-  <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
-</section>
-
-<!-- S11 边界 -->
-<section class="slide">
-  <div class="eyebrow">HOW · 边界设计</div>
-  <h2>刻意<em>不做</em>的，和必须守住的</h2>
-  <div class="grow">
-    <div class="cards" style="grid-template-columns:repeat(3,1fr)">
-      <div class="card"><h3>政企采购不线上下单</h3><p>招投标合规要求走顾问对接——AI 负责把需求问清楚、生成需求摘要，最后一步转人工，成单在线下。</p></div>
-      <div class="card"><h3>关键动作人工确认</h3><p>支付、认证提交等不自动执行；演示环境下单不真实发货，并当场明示。</p></div>
-      <div class="card"><h3>AI 结果可核对</h3><p>所有 AI 生成内容带免责提示；推荐理由、优惠明细、参数对比全部摊开可查。</p></div>
-    </div>
-    <p class="sub" style="margin-top:clamp(12px,2.6vh,24px)">边界不是能力不足，是信任设计——<b style="color:var(--aub)">用户敢把「买」交给你，前提是他随时能看见、能叫停。</b></p>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
 </section>
