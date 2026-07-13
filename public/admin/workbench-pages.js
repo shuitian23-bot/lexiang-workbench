@@ -1,3 +1,7 @@
+/* ⚠️ 已废弃 (2026-06-25) — 此为旧原生后台代码，仅供 /admin/workbench-native.html 回退用。
+ * 后台已全量迁到 Vue3: /opt/projects/lexiang-new/admin-vue/ (访问 /admin-vue/ 或 /admin/)。
+ * 新功能/改动请改 admin-vue/src/ 下的 .vue，不要改这里——改了不会生效(/admin 已跳 Vue3)。
+ * 详见项目 CLAUDE.md「前端一律 Vue3」。 */
 // ===== PAGE RENDERERS =====
 function renderPage(pageId) {
   const content = document.getElementById('page-content');
@@ -2622,22 +2626,22 @@ const PAGE_RENDERERS = {
       <div class="kpi-card">
         <div class="kpi-label">DAU（日活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.dau)}</div>
-        <div class="kpi-sub">日均登录 ${leaiFmtW(summary.loginAvg)} · ${leaiMetricDelta(summary.rows, 'dau')}</div>
+        <div class="kpi-sub">日均登录 ${leaiFmtW(summary.loginAvg)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.wau)}</div>
-        <div class="kpi-sub">${leaiRangeLabel(range)}均值 · ${leaiMetricDelta(summary.rows, 'wau')}</div>
+        <div class="kpi-sub">${leaiRangeLabel(range)}均值</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">MAU（月活跃用户）</div>
         <div class="kpi-value">${leaiFmtW(summary.mau)}</div>
-        <div class="kpi-sub">月登录均值 ${leaiFmtW(summary.loginM)} · ${leaiMetricDelta(summary.rows, 'mau')}</div>
+        <div class="kpi-sub">月登录均值 ${leaiFmtW(summary.loginM)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">GMV</div>
         <div class="kpi-value">${leaiFmtY(summary.gmv)}</div>
-        <div class="kpi-sub">购买 ${summary.buy.toLocaleString()}人 · ${leaiMetricDelta(summary.rows, 'gmv')}</div>
+        <div class="kpi-sub">购买 ${summary.buy.toLocaleString()}人</div>
       </div>
     </div>
 
@@ -2752,9 +2756,9 @@ const PAGE_RENDERERS = {
           <div class="dash-card-note">环比对比上一周期</div>
         </div>
         <div class="overview-line-grid">
-          ${leaiLineTrendHtml(trendRows, 'dau', 'DAU', leaiFmtW, summary.dau, `近14天日均 ${leaiFmtW(leaiAvg(trendRows, 'dau'))} · ${leaiMetricDelta(trendRows, 'dau')}`, '#3f78c5')}
-          ${leaiLineTrendHtml(trendRows, 'inter', '互动用户', leaiFmtW, summary.inter, `近14天累计 · ${leaiMetricDelta(trendRows, 'inter')}`, '#7c5cff')}
-          ${leaiLineTrendHtml(trendRows, 'gmv', 'GMV', leaiFmtY, summary.gmv, `近14天累计 · ${leaiMetricDelta(trendRows, 'gmv')}`, '#58a86a')}
+          ${leaiLineTrendHtml(trendRows, 'dau', 'DAU', leaiFmtW, summary.dau, `近14天日均 ${leaiFmtW(leaiAvg(trendRows, 'dau'))}`, '#3f78c5')}
+          ${leaiLineTrendHtml(trendRows, 'inter', '互动用户', leaiFmtW, summary.inter, "近14天累计", '#7c5cff')}
+          ${leaiLineTrendHtml(trendRows, 'gmv', 'GMV', leaiFmtY, summary.gmv, "近14天累计", '#58a86a')}
         </div>
       </div>
     </div>
