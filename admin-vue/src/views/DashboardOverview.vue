@@ -29,22 +29,22 @@
       <div class="kpi-card">
         <div class="kpi-label">DAU（日活跃用户）</div>
         <div class="kpi-value">{{ fmtW(summary.dau) }}</div>
-        <div class="kpi-sub">日均登录 {{ fmtW(summary.loginAvg) }} · {{ metricDelta(summary.rows, 'dau') }}</div>
+        <div class="kpi-sub">日均登录 {{ fmtW(summary.loginAvg) }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">WAU（周活跃用户）</div>
         <div class="kpi-value">{{ fmtW(summary.wau) }}</div>
-        <div class="kpi-sub">{{ rangeLabel }}均值 · {{ metricDelta(summary.rows, 'wau') }}</div>
+        <div class="kpi-sub">{{ rangeLabel }}均值</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">MAU（月活跃用户）</div>
         <div class="kpi-value">{{ fmtW(summary.mau) }}</div>
-        <div class="kpi-sub">月登录均值 {{ fmtW(summary.loginM) }} · {{ metricDelta(summary.rows, 'mau') }}</div>
+        <div class="kpi-sub">月登录均值 {{ fmtW(summary.loginM) }}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">GMV</div>
         <div class="kpi-value">{{ fmtY(summary.gmv) }}</div>
-        <div class="kpi-sub">购买 {{ summary.buy.toLocaleString() }}人 · {{ metricDelta(summary.rows, 'gmv') }}</div>
+        <div class="kpi-sub">购买 {{ summary.buy.toLocaleString() }}人</div>
       </div>
     </div>
 
@@ -187,7 +187,7 @@
                 :cy="svgLastPoint(trend14, 'dau').y.toFixed(1)"
                 r="3.5"></circle>
             </svg>
-            <div class="overview-line-sub">近14天日均 {{ fmtW(avg14(trend14, 'dau')) }} · {{ metricDelta(trend14, 'dau') }}</div>
+            <div class="overview-line-sub">近14天日均 {{ fmtW(avg14(trend14, 'dau')) }}</div>
           </div>
           <!-- 互动用户 -->
           <div class="overview-line-card" data-metric="inter" style="--trend-color:#7c5cff">
@@ -206,7 +206,7 @@
                 :cy="svgLastPoint(trend14, 'inter').y.toFixed(1)"
                 r="3.5"></circle>
             </svg>
-            <div class="overview-line-sub">近14天累计 · {{ metricDelta(trend14, 'inter') }}</div>
+            <div class="overview-line-sub">近14天累计</div>
           </div>
           <!-- GMV -->
           <div class="overview-line-card" data-metric="gmv" style="--trend-color:#58a86a">
@@ -225,7 +225,7 @@
                 :cy="svgLastPoint(trend14, 'gmv').y.toFixed(1)"
                 r="3.5"></circle>
             </svg>
-            <div class="overview-line-sub">近14天累计 · {{ metricDelta(trend14, 'gmv') }}</div>
+            <div class="overview-line-sub">近14天累计</div>
           </div>
         </div>
       </div>
