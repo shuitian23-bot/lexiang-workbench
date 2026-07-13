@@ -754,6 +754,24 @@ if (!window.__lxCreateTypewriter) {
           is_ai: "AI 商品"
         };
 
+        // 本地货盘 specs 只有运营字段（brand/lvl1/mtm），硬件参数在 description 配置串里
+        // （「英特尔® 酷睿™ Ultra 7 251HX丨Windows 11丨16英寸丨16GB丨1TB SSD丨RTX5060 8G丨碳晶黑」）。
+        // 对比页参数行靠 specs 白名单键渲染，本地候选不解析就整块消失（真机反馈）——按段归类补齐。
+        function lxSpecsFromDescription(product) {
+          const specs = { ...(product.specs || {}) };
+          const segs = String(product.description || "").split(/丨|\||\//).map(s => s.trim()).filter(s => s && s.length <= 40);
+          for (const seg of segs) {
+            if (!specs.cpu && /酷睿|锐龙|Ultra\s*[3579X]|i[3579]-|R[3579]-|骁龙|龙芯/i.test(seg)) { specs.cpu = seg; continue; }
+            if (!specs.gpu && /RTX|GTX|显卡|锐炫|Arc|集显|独显/i.test(seg)) { specs.gpu = seg; continue; }
+            if (!specs.os && /Windows|Win\s*1[01]|麒麟|UOS/i.test(seg)) { specs.os = seg; continue; }
+            if (!specs.screen_size && /英寸/.test(seg)) { specs.screen_size = seg; continue; }
+            if (!specs.storage && /SSD|固态|[12468]TB(?!\s*内存)|512G[B]?(?!\s*内存)/i.test(seg)) { specs.storage = seg; continue; }
+            if (!specs.ram && /^\d{1,3}\s*GB?$|内存/i.test(seg)) { specs.ram = seg; continue; }
+            if (!specs.color && /^[^\d]{1,6}(黑|白|灰|银|紫|蓝|绿|贝|金)$/.test(seg)) { specs.color = seg; continue; }
+          }
+          return specs;
+        }
+
         function normalizeProductSpecs(rawSpecs) {
           if (!rawSpecs) return {};
           if (typeof rawSpecs === "string") {
@@ -1751,7 +1769,7 @@ function openOrderDetail(orderId) {
             return;
           }
           pageBox.innerHTML = `<div class="reco-head"><h2>${esc(title)}</h2><span>正在加载参数明细...</span></div>`;
-          const full = await Promise.all(source.slice(0, 8).map(async (item) => {
+          const fullRaw = await Promise.all(source.slice(0, 8).map(async (item) => {
             if (item.specs && Object.keys(item.specs).length) return item;
             try {
               const response = await fetch(`/api/products/${encodeURIComponent(item.sku)}`, { cache: "no-store" });
@@ -1759,6 +1777,8 @@ function openOrderDetail(orderId) {
             } catch {}
             return item;
           }));
+          // 本地货盘 specs 缺硬件参数（只有运营字段）→ 从 description 配置串解析补齐，参数行才有内容
+          const full = fullRaw.map((item) => ({ ...item, specs: lxSpecsFromDescription({ ...item, specs: normalizeProductSpecs(item.specs) }) }));
           state._comparePageItems = full;
           const manage = isCustom ? "" : `<div class="lx-cmp-manage">${full.map((item) => `<span class="lx-cmp-chip">${esc(item.name?.slice(0, 22) || item.sku)}<button type="button" data-remove-compare="${esc(item.sku)}" aria-label="移除">×</button></span>`).join("")}</div>`;
           const body = full.length >= 2
@@ -2618,7 +2638,13 @@ function openOrderDetail(orderId) {
             const _refProductsPrefix = _refsSnap.length
               ? `[用户正在咨询这些商品: ${_refsSnap.map(p => `${p.name}${p.sku ? ` (SKU:${p.sku})` : ""}`).join("、")}]\n\n`
               : (_refSnap ? `[用户正在咨询商品: ${_refSnap.name}${_refSnap.sku ? ` (SKU:${_refSnap.sku})` : ""}]\n\n` : "");
-            const builtMsg = _refProductsPrefix + (_refMsgSnap ? `[用户引用了此前对话内容作为上下文: ${_refMsgSnap}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text);
+            // 代买链：发给官方的句子剥掉成交短语（「直接购买/下单吧」会触发官方下单 Skill，只回
+            // 「已为您生成订单」不给商品清单，链拿不到候选被迫翻本地货盘）。官方只负责推荐，
+            // 下单由链自己执行；界面上用户气泡仍显示原句（addMessage 早已发生）
+            const _askText = state._autoBuyPending
+              ? text.replace(/[，,。;；]?\s*(并且?|然后|再)?(帮我)?(挑|选|来|拿|搞定)?一?[款台个]?(比较)?(好的?|合适的?|适合我的)?[的]?[，,]?\s*(直接)?(下单|购买|买了?|拿下|搞定)吧?[!！。]?\s*$/,'').trim() + "。请推荐几款符合以上条件的商品。"
+              : text;
+            const builtMsg = _refProductsPrefix + (_refMsgSnap ? `[用户引用了此前对话内容作为上下文: ${_refMsgSnap}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${_askText}` : _askText);
             const response = useHuoshan
               ? await fetch("/api/chat/stream", {
                   method: "POST",
