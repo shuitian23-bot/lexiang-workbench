@@ -6606,11 +6606,14 @@ function openOrderDetail(orderId) {
         function renderCompareTable(products, opts = {}) {
           const keys = [];
           const seen = new Set();
+          const seenLabel = new Set(); // ram/memory、storage/disk 中文标签相同，只留先见的一个，防「内存」行出现两次
           products.forEach((product) => Object.keys(product.specs || {}).forEach((key) => {
             // 白名单：只展示有中文映射的参数；内部字段（materialNumber/screen_res 等）与分类行不外露
             if (DETAIL_SPEC_SKIP_KEYS.has(key) || seen.has(key)) return;
             if (!DETAIL_SPEC_LABELS[key] || /^lvl\d/.test(key)) return;
+            if (seenLabel.has(DETAIL_SPEC_LABELS[key])) return;
             seen.add(key);
+            seenLabel.add(DETAIL_SPEC_LABELS[key]);
             keys.push(key);
           }));
           const cmpPriceNum = (value) => Number(String(value ?? "").replace(/[^\d.]/g, "")) || 0;
