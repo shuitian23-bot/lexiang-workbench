@@ -3,7 +3,7 @@
     <div class="page-header workspace-report-header">
       <div>
         <div class="page-title">{{ displayTitle }}</div>
-        <div class="page-desc">来自 AI 对话 · {{ tab.groupLabel || 'AI 报告' }} / {{ tab.sourcePageLabel || '当前页面' }} · {{ createdText }}</div>
+        <div class="page-desc">{{ pageDescription }}</div>
       </div>
       <div class="workspace-report-actions">
         <button class="btn btn-secondary btn-sm" @click="saveTab">{{ tab.saved ? '已保存' : '保存' }}</button>
@@ -13,32 +13,10 @@
       </div>
     </div>
 
-    <section class="workspace-report-hero">
-      <div>
-        <span class="workspace-report-kicker">AI GENERATED REPORT</span>
-        <p>{{ tab.summary || '已将右侧 AI 对话中的长篇数据、解读和建议整理为临时工作页签，便于在中间内容槽阅读、保存和对比。' }}</p>
-      </div>
-      <div class="workspace-report-meta">
-        <span v-for="chip in reportChips" :key="chip">{{ chip }}</span>
-      </div>
-    </section>
+    <SkillApplicationReport v-if="visualReport" :report="visualReport" />
 
-    <div class="workspace-report-metrics">
-      <div v-for="metric in metricCards" :key="metric.label">
-        <span>{{ metric.label }}</span>
-        <b>{{ metric.value }}</b>
-      </div>
-    </div>
-
-    <div class="workspace-report-grid">
-      <aside class="workspace-report-outline">
-        <b>报告目录</b>
-        <span v-for="(heading, index) in outlineHeadings" :key="`${heading}-${index}`">
-          <i>{{ String(index + 1).padStart(2, '0') }}</i>{{ heading }}
-        </span>
-      </aside>
-
-      <article class="workspace-report-body">
+    <template v-else>
+      <article class="workspace-report-body workspace-report-body-standalone">
         <div v-if="tab.externalUrl" class="workspace-link-panel">
           <b>链接地址</b>
           <code>{{ tab.externalUrl }}</code>
@@ -49,48 +27,55 @@
           <iframe :title="displayTitle" sandbox="allow-same-origin allow-scripts allow-forms" :srcdoc="tab.previewHtml"></iframe>
         </div>
 
-        <template v-else>
-          <div v-if="sections.bullets.length" class="workspace-report-summary">
-            <b>结论摘要</b>
-            <p v-for="item in sections.bullets" :key="item">{{ item }}</p>
-          </div>
+        <div v-else class="workspace-report-sections">
+          <section
+            v-for="(section, index) in sections.sections"
+            :key="`${section.title}-${index}`"
+            class="workspace-report-section"
+          >
+            <div class="workspace-report-section-head">
+              <span>{{ String(index + 1).padStart(2, '0') }}</span>
+              <h3>{{ section.title }}</h3>
+            </div>
+            <div class="workspace-report-section-body">
+              <p v-for="paragraph in section.paragraphs" :key="paragraph">{{ paragraph }}</p>
+              <ul v-if="section.items.length">
+                <li v-for="item in section.items" :key="item">{{ item }}</li>
+              </ul>
+            </div>
+          </section>
 
-          <div class="workspace-report-sections">
-            <section
-              v-for="(section, index) in sections.sections"
-              :key="`${section.title}-${index}`"
-              class="workspace-report-section"
-            >
-              <div class="workspace-report-section-head">
-                <span>{{ String(index + 1).padStart(2, '0') }}</span>
-                <h3>{{ section.title }}</h3>
-              </div>
-              <div class="workspace-report-section-body">
-                <p v-for="paragraph in section.paragraphs" :key="paragraph">{{ paragraph }}</p>
-                <ul v-if="section.items.length">
-                  <li v-for="item in section.items" :key="item">{{ item }}</li>
-                </ul>
-              </div>
-            </section>
-
-            <div v-if="!sections.sections.length" class="workspace-report-markdown" v-html="renderMarkdown(tab.content || '')"></div>
-          </div>
-        </template>
+          <div v-if="!sections.sections.length" class="workspace-report-markdown" v-html="renderMarkdown(tab.content || '')"></div>
+        </div>
       </article>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useAppStore, getPageLabel, type TempTab } from '@/stores/app'
+import { useAppStore, getPageLabel } from '@/stores/app'
 import { downloadTextFile } from '@/utils/download'
+import SkillApplicationReport from '@/components/report/SkillApplicationReport.vue'
+import { createEmployeeCertificationReport } from '@/services/skillApplicationReport'
 
 const appStore = useAppStore()
 const { tempTabs, activeTempTabId } = storeToRefs(appStore)
 
 const tab = computed(() => tempTabs.value.find(t => t.id === activeTempTabId.value) || null)
+
+const visualReport = computed(() => {
+  if (tab.value?.reportData) return tab.value.reportData
+  const isSkillReport = tab.value?.sourcePage === 'agent.skills'
+    || tab.value?.sourcePage === 'agent.skillCreate'
+    || /Skill Hub|presentation-employee-cert|职场员工审核/i.test(`${tab.value?.title || ''}\n${tab.value?.content || ''}`)
+  if (!isSkillReport) return null
+  return createEmployeeCertificationReport({
+    prompt: tab.value?.summary || tab.value?.content || undefined,
+    generatedAt: createdText.value
+  })
+})
 
 const createdText = computed(() => {
   try {
@@ -116,25 +101,14 @@ const displayTitle = computed(() => {
   return page ? `${page} · ${clean}` : clean
 })
 
-const sections = computed(() => parseReportSections(tab.value?.content || ''))
-const reportChips = computed(() => {
-  const chips = tab.value?.chips?.length
-    ? tab.value.chips
-    : ['AI 对话', tab.value?.sourcePageLabel || '当前页面']
-  const isOverviewReport = tab.value?.sourcePage === 'dashboard.overview'
-    || tab.value?.sourcePageLabel === '运营总览'
-    || /运营总览/.test(tab.value?.title || '')
-  if (isOverviewReport) {
-    return chips.filter(chip => !/风控|策略命中|DPL|限购/i.test(chip)).slice(0, 4)
+const pageDescription = computed(() => {
+  if (visualReport.value) {
+    return `数据区间 ${visualReport.value.dateStart} 至 ${visualReport.value.dateEnd} · ${visualReport.value.dayCount} 天 · ${createdText.value}`
   }
-  return chips.slice(0, 4)
+  return `来自 AI 对话 · ${tab.value?.groupLabel || 'AI 报告'} / ${tab.value?.sourcePageLabel || '当前页面'} · ${createdText.value}`
 })
-const outlineHeadings = computed(() => {
-  return sections.value.headings.length
-    ? sections.value.headings
-    : ['核心结论', '关键证据', '建议动作']
-})
-const metricCards = computed(() => reportMetricCards(tab.value, sections.value.sections))
+
+const sections = computed(() => parseReportSections(tab.value?.content || ''))
 
 interface ReportSection {
   title: string
@@ -179,15 +153,6 @@ function parseReportSections(content: string): ParsedReportSections {
     sections,
     headings: sections.map(section => section.title).slice(0, 6)
   }
-}
-
-function reportMetricCards(report: TempTab | null, parsedSections: ReportSection[]) {
-  const chips = report?.chips || []
-  return [
-    { label: '来源页面', value: report?.sourcePageLabel || '当前页面' },
-    { label: '报告段落', value: `${Math.max(parsedSections?.length || 0, 1)} 段` },
-    { label: '生成方式', value: report?.previewHtml ? 'HTML 预览' : 'AI 对话' }
-  ].concat(chips.slice(0, 1).map((chip: string) => ({ label: '主题标签', value: chip }))).slice(0, 4)
 }
 
 function renderMarkdown(text: string) {

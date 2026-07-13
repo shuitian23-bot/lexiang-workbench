@@ -40,6 +40,54 @@ export interface StaticTab {
   groupLabel: string
 }
 
+export interface SkillApplicationMetric {
+  label: string
+  value: string
+  note: string
+  tone?: 'blue' | 'green' | 'orange' | 'neutral'
+}
+
+export interface SkillApplicationInsight {
+  title: string
+  evidence: string[]
+  action?: boolean
+}
+
+export interface SkillApplicationBreakdown {
+  label: string
+  value: number
+  share: string
+  note?: string
+}
+
+export interface SkillApplicationReportData {
+  skillName: string
+  skillCnName: string
+  prompt: string
+  parsedTimeText: string
+  dateStart: string
+  dateEnd: string
+  dayCount: number
+  generatedAt: string
+  truth: {
+    rawRecords: number
+    duplicateRecords: number
+    duplicateUsers: number
+    uniqueUsers: number
+  }
+  metrics: SkillApplicationMetric[]
+  insights: SkillApplicationInsight[]
+  dailyTrend: Array<{ label: string; date: string; value: number }>
+  timeBuckets: SkillApplicationBreakdown[]
+  methods: SkillApplicationBreakdown[]
+  industries: SkillApplicationBreakdown[]
+  roles: SkillApplicationBreakdown[]
+  products: SkillApplicationBreakdown[]
+  actions: string[]
+  sources: string[]
+  notes: string[]
+}
+
 export interface TempTab {
   id: string
   title: string
@@ -51,6 +99,7 @@ export interface TempTab {
   chips: string[]
   externalUrl: string
   previewHtml: string
+  reportData?: SkillApplicationReportData
   createdAt: string
   saved: boolean
 }
@@ -386,6 +435,7 @@ export const useAppStore = defineStore('app', () => {
       chips,
       externalUrl:    payload.externalUrl    || '',
       previewHtml:    payload.previewHtml    || '',
+      reportData:     payload.reportData,
       createdAt:      payload.createdAt      || new Date().toISOString(),
       saved:          !!payload.saved
     }

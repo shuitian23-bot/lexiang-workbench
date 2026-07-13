@@ -4,9 +4,17 @@
       <span class="summary-orb" aria-hidden="true"></span>
       <b>{{ runningCount ? '思考中' : '处理过程' }}</b>
       <em>{{ summaryText }}</em>
+      <button
+        v-if="canToggle"
+        type="button"
+        class="state-toggle"
+        @click="expanded = !expanded"
+      >
+        {{ expanded ? '收起' : '展开' }}
+      </button>
     </div>
     <div
-      v-for="item in items"
+      v-for="item in visibleItems"
       :key="item.id"
       class="conversation-state"
       :class="[`is-${item.kind}`, `status-${item.status}`]"
@@ -34,20 +42,30 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   items: { type: Array, default: () => [] }
 })
 
+const expanded = ref(false)
 const runningCount = computed(() => props.items.filter(item => item.status === 'running').length)
 const pendingCount = computed(() => props.items.filter(item => item.status === 'pending').length)
 const failedCount = computed(() => props.items.filter(item => item.status === 'failed').length)
-const showStateSummary = computed(() => props.items.length > 2 || runningCount.value > 1)
+const blockedCount = computed(() => props.items.filter(item => item.status === 'blocked').length)
+const visibleItems = computed(() => {
+  if (expanded.value) return props.items
+  const activeItems = props.items.filter(item => item.status !== 'done')
+  return (activeItems.length ? activeItems : props.items.slice(-1)).slice(0, 3)
+})
+const hiddenCount = computed(() => Math.max(props.items.length - visibleItems.value.length, 0))
+const canToggle = computed(() => props.items.length > visibleItems.value.length || expanded.value)
+const showStateSummary = computed(() => props.items.length > 1 || runningCount.value > 0 || hiddenCount.value > 0)
 const summaryText = computed(() => {
   if (runningCount.value) return `${runningCount.value} 步进行中${pendingCount.value ? ` · ${pendingCount.value} 步等待` : ''}`
   if (failedCount.value) return `${failedCount.value} 步失败`
-  return `${props.items.length} 步已记录`
+  if (blockedCount.value) return `${blockedCount.value} 步待确认${hiddenCount.value ? ` · ${hiddenCount.value} 步已收起` : ''}`
+  return `${props.items.length} 步已记录${hiddenCount.value ? ` · ${hiddenCount.value} 步已收起` : ''}`
 })
 
 function statusLabel(status) {
@@ -86,10 +104,28 @@ function statusLabel(status) {
 
 .conversation-state-summary em {
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-style: normal;
+}
+
+.state-toggle {
+  flex: 0 0 auto;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(51, 112, 255, .24);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-primary, #3370ff);
+  font-size: 12px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.state-toggle:hover {
+  background: rgba(51, 112, 255, .08);
 }
 
 .summary-orb {
@@ -111,6 +147,23 @@ function statusLabel(status) {
   border-radius: 8px;
   background: #f7f9ff;
   color: var(--color-text, #1f2329);
+  animation: state-card-enter .22s cubic-bezier(.2, .8, .2, 1) both;
+  transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.conversation-state:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes state-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .state-icon {

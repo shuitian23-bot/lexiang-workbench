@@ -211,41 +211,14 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
-
-type SkillStatus = 'draft' | 'review' | 'approved' | 'published' | 'disabled' | 'rejected'
-
-interface SkillHubItem {
-  name: string
-  cnName: string
-  platform: string
-  desc: string
-  version: string
-  online: string
-  status: SkillStatus
-  statusText: string
-  category: string
-  tags: string[]
-  owner: string
-  reviewer?: string
-  reviewTime?: string
-  reviewNote?: string
-  updated: string
-}
+import { skillHubStatusLabel, useSkillHubStore, type SkillHubItem, type SkillStatus } from '@/stores/skillHub'
 
 const router = useRouter()
 const appStore = useAppStore()
 const aiStore = useAIStore()
+const skillHubStore = useSkillHubStore()
 const { permissions, user } = storeToRefs(appStore)
-
-const items = ref<SkillHubItem[]>([
-  { name: 'workplace-employee-review-analysis', cnName: '职场员工审核数据分析', platform: 'lexiang', desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
-  { name: 'low-stock-auto-offline', cnName: '低库存自动下架', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '商品运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36' },
-  { name: 'product-knowledge', cnName: '产品知识问答', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '知识问答', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
-  { name: 'voucher-recommend', cnName: '券包权益推荐', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '权益推荐', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
-  { name: 'driver-download-guide', cnName: '驱动下载指导', platform: 'lexiang', desc: '联想驱动下载指导 Skill，支持驱动查询、版本差异对比和安装说明生成。', version: 'v1.0.0', online: '未发布', status: 'review', statusText: '待审批', category: '服务支持', tags: ['下载', '驱动'], owner: 'service-pm', updated: '2026-06-05 16:45' },
-  { name: 'lenovo-order-detail-query', cnName: '订单明细查询', platform: 'lexiang,aiadmin', desc: '联想商城订单明细查询助手，支持自然语言查询订单状态和售后发货信息。', version: 'v1.0.0', online: '未发布', status: 'approved', statusText: '已审批', category: '订单服务', tags: ['订单'], owner: 'ops-pm', updated: '2026-06-02 17:15' },
-  { name: 'weather-query', cnName: '实时天气查询', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: '未发布', status: 'disabled', statusText: '已禁用', category: '工具服务', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
-])
+const { items } = storeToRefs(skillHubStore)
 
 const keyword = ref('')
 const statusFilter = ref<'all' | SkillStatus>('all')
@@ -296,17 +269,6 @@ const confirmMeta = computed(() => {
     驳回: { title: '确认驳回 Skill', desc: '驳回后提交人需要补充材料、业务边界或测试用例后重新提交。', confirmText: '确认驳回', tone: 'danger' }
   }[action] || { title: `确认${action}`, desc: '该操作会改变 Skill 当前状态，请确认后继续。', confirmText: '确认', tone: 'normal' }
 })
-
-function skillHubStatusLabel(status: SkillStatus) {
-  return {
-    draft: '草稿',
-    review: '待审批',
-    approved: '已审批',
-    published: '已发布',
-    disabled: '已禁用',
-    rejected: '已驳回'
-  }[status]
-}
 
 function skillHubActions(item: SkillHubItem) {
   const pmActions: Record<SkillStatus, string[]> = {
@@ -374,10 +336,7 @@ function confirmAction() {
 }
 
 function updateStatus(item: SkillHubItem, status: SkillStatus) {
-  item.status = status
-  item.statusText = skillHubStatusLabel(status)
-  item.updated = '2026-07-02 17:20'
-  if (status === 'published') item.online = item.online && item.online !== '未发布' ? item.online : item.version
+  skillHubStore.updateStatus(item, status, user.value || 'admin')
   toast(`${item.name}：状态已更新为${item.statusText}`)
 }
 

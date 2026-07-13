@@ -1,0 +1,164 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+
+export type SkillStatus = 'draft' | 'review' | 'approved' | 'published' | 'disabled' | 'rejected'
+
+export interface SkillHubItem {
+  name: string
+  cnName: string
+  platform: string
+  desc: string
+  version: string
+  online: string
+  status: SkillStatus
+  statusText: string
+  category: string
+  tags: string[]
+  owner: string
+  reviewer?: string
+  reviewTime?: string
+  reviewNote?: string
+  updated: string
+  submittedAt?: string
+  score?: string
+}
+
+type SkillCreatePayload = {
+  name: string
+  cnName: string
+  desc: string
+  category: string
+  owner: string
+  score: string
+  tags?: string[]
+}
+
+const STORAGE_KEY = 'leai.skillHub.items.v1'
+
+const defaultItems: SkillHubItem[] = [
+  { name: 'workplace-employee-review-analysis', cnName: '职场员工审核数据分析', platform: 'lexiang', desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '数据查询', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
+  { name: 'low-stock-auto-offline', cnName: '低库存自动下架', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '商品运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36', submittedAt: '2026-06-10 11:36', score: '0.782' },
+  { name: 'product-knowledge', cnName: '产品知识问答', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '知识问答', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
+  { name: 'voucher-recommend', cnName: '券包权益推荐', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '权益推荐', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
+  { name: 'driver-download-guide', cnName: '驱动下载指导', platform: 'lexiang', desc: '联想驱动下载指导 Skill，支持驱动查询、版本差异对比和安装说明生成。', version: 'v1.0.0', online: '未发布', status: 'review', statusText: '待审批', category: '服务支持', tags: ['下载', '驱动'], owner: 'service-pm', updated: '2026-06-05 16:45', submittedAt: '2026-06-05 16:45', score: '0.801' },
+  { name: 'lenovo-order-detail-query', cnName: '订单明细查询', platform: 'lexiang,aiadmin', desc: '联想商城订单明细查询助手，支持自然语言查询订单状态和售后发货信息。', version: 'v1.0.0', online: '未发布', status: 'approved', statusText: '已审批', category: '订单服务', tags: ['订单'], owner: 'ops-pm', updated: '2026-06-02 17:15' },
+  { name: 'weather-query', cnName: '实时天气查询', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: '未发布', status: 'disabled', statusText: '已禁用', category: '工具服务', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
+]
+
+export function skillHubStatusLabel(status: SkillStatus) {
+  return {
+    draft: '草稿',
+    review: '待审批',
+    approved: '已审批',
+    published: '已发布',
+    disabled: '已禁用',
+    rejected: '已驳回'
+  }[status]
+}
+
+function nowMinute() {
+  const parts = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).formatToParts(new Date())
+  const map = Object.fromEntries(parts.map(part => [part.type, part.value]))
+  return `${map.year}-${map.month}-${map.day} ${map.hour}:${map.minute}`
+}
+
+function cloneDefaultItems() {
+  return defaultItems.map(item => ({ ...item, tags: [...item.tags] }))
+}
+
+function loadItems() {
+  if (typeof localStorage === 'undefined') return cloneDefaultItems()
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return cloneDefaultItems()
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return cloneDefaultItems()
+    return parsed.map(item => ({
+      ...item,
+      statusText: skillHubStatusLabel(item.status),
+      tags: Array.isArray(item.tags) ? item.tags : []
+    }))
+  } catch {
+    return cloneDefaultItems()
+  }
+}
+
+export const useSkillHubStore = defineStore('skillHub', () => {
+  const items = ref<SkillHubItem[]>(loadItems())
+
+  function persist() {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value))
+  }
+
+  function upsertSubmittedSkill(payload: SkillCreatePayload) {
+    const updated = nowMinute()
+    const name = payload.name.trim()
+    const nextItem: SkillHubItem = {
+      name,
+      cnName: payload.cnName.trim(),
+      platform: 'lexiang',
+      desc: payload.desc.trim() || `${payload.cnName || name} Skill，已从 Skill 创建流程提交审核。`,
+      version: 'v1.0.0',
+      online: '未发布',
+      status: 'review',
+      statusText: skillHubStatusLabel('review'),
+      category: payload.category || '未分类',
+      tags: payload.tags?.length ? payload.tags : ['待审批'],
+      owner: payload.owner || 'admin',
+      updated,
+      submittedAt: updated,
+      score: payload.score,
+      reviewNote: `提交审核：综合评分 ${payload.score}，等待管理员审批。`
+    }
+    const index = items.value.findIndex(item => item.name === name)
+    if (index >= 0) {
+      items.value[index] = { ...items.value[index], ...nextItem }
+    } else {
+      items.value.unshift(nextItem)
+    }
+    persist()
+    return nextItem
+  }
+
+  function updateStatus(item: SkillHubItem, status: SkillStatus, reviewer = 'admin') {
+    const target = items.value.find(row => row.name === item.name)
+    if (!target) return
+    const updated = nowMinute()
+    target.status = status
+    target.statusText = skillHubStatusLabel(status)
+    target.updated = updated
+    if (status === 'approved') {
+      target.reviewer = reviewer
+      target.reviewTime = updated
+      target.reviewNote = '审批通过：可进入发布或上传流程。'
+    }
+    if (status === 'rejected') {
+      target.reviewer = reviewer
+      target.reviewTime = updated
+      target.reviewNote = '驳回：请补充业务边界、测试用例或审批材料后重新提交。'
+    }
+    if (status === 'published') {
+      target.online = target.online && target.online !== '未发布' ? target.online : target.version
+      target.reviewNote = '已发布：当前版本可被工作台调用。'
+    }
+    if (status === 'disabled') {
+      target.reviewNote = '已禁用：暂停参与任务匹配。'
+    }
+    persist()
+  }
+
+  return {
+    items,
+    upsertSubmittedSkill,
+    updateStatus
+  }
+})

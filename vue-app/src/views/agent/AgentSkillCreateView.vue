@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <div class="page-title">Skill 创建</div>
-        <div class="page-desc">从业务场景出发定义 Skill 能力、输入输出、权限风险和审批边界。</div>
+        <div class="page-desc">从业务场景出发定义 Skill 能力、输入输出、权限边界和验收用例。</div>
       </div>
       <div class="agent-skill-page-actions">
         <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
@@ -27,7 +27,7 @@
           </button>
         </div>
 
-        <div class="skill-pane-title">推荐能力 <button type="button" @click="toast('已刷新推荐能力')">刷新</button></div>
+        <div class="skill-pane-title">推荐能力 <button type="button" @click="syncMenuContext">同步</button></div>
         <div class="skill-context-list compact">
           <button
             v-for="item in recommendedContextItems"
@@ -43,18 +43,24 @@
 
         <div class="skill-context-quick">
           <label>快速加入上下文</label>
-          <input placeholder="输入能力名或业务对象">
+          <input placeholder="输入子菜单、页面或业务对象">
           <div>
-            <button type="button" @click="fillTemplate('query')">库存查询</button>
-            <button type="button" @click="fillTemplate('action')">商品上下架</button>
+            <button
+              v-for="item in quickContextItems"
+              :key="item.code"
+              type="button"
+              @click="selectQuickContext(item.code)"
+            >
+              {{ item.name }}
+            </button>
           </div>
         </div>
 
         <div class="skill-context-metrics">
-          <div><b>12</b><span>API</span></div>
-          <div><b>4</b><span>DB 表</span></div>
-          <div><b>5</b><span>Tool</span></div>
-          <div><b>8</b><span>权限点</span></div>
+          <div><b>{{ menuMetrics.menuCount }}</b><span>菜单</span></div>
+          <div><b>{{ menuMetrics.submenuCount }}</b><span>子菜单</span></div>
+          <div><b>{{ selectedContextItems.length }}</b><span>已选</span></div>
+          <div><b>{{ recommendedContextItems.length }}</b><span>推荐</span></div>
         </div>
       </aside>
 
@@ -96,10 +102,7 @@
                 <div class="skill-create-field">
                   <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
                   <select id="skill-create-menu" v-model="form.menu" :class="{ 'field-invalid': invalidField === 'menu' }" required>
-                    <option>在职员工管理</option>
-                    <option>乐享运营</option>
-                    <option>GEO 看板</option>
-                    <option>企业客户管理</option>
+                    <option v-for="menu in menuGroupLabels" :key="menu">{{ menu }}</option>
                   </select>
                 </div>
                 <div class="skill-create-field full">
@@ -134,6 +137,9 @@
                     </div>
                     <p id="skill-context-summary">{{ contextSummary }}</p>
                   </div>
+                  <div v-if="!clarifyMessages.length" class="skill-chat-ai">
+                    <div>请在下方输入框补充本轮 Skill 创建需求。需求澄清智能体会基于你的描述、基础配置和已选子菜单上下文，按九要素收敛能力定义、输入输出、执行边界和验收用例。</div>
+                  </div>
                   <template v-for="message in clarifyMessages" :key="message.id">
                     <div v-if="message.kind === 'state'" class="skill-chat-ai skill-conversation-states" aria-label="AI 会话状态">
                       <div v-if="showSkillStateSummary(message.states)" class="skill-state-summary">
@@ -157,7 +163,20 @@
                     </div>
                     <div v-else-if="message.kind === 'user'" class="skill-chat-user">{{ message.text }}</div>
                     <div v-else class="skill-chat-ai">
-                      <div>{{ message.text }}</div>
+                      <div v-if="message.clarifyDoc" class="skill-clarify-doc">
+                        <div class="skill-clarify-doc-rule"></div>
+                        <h3>{{ message.clarifyDoc.title }}</h3>
+                        <section v-for="(section, index) in message.clarifyDoc.sections" :key="section.title">
+                          <h4>{{ index + 1 }}. {{ section.title }}</h4>
+                          <p v-if="section.intro">{{ section.intro }}</p>
+                          <ul>
+                            <li v-for="item in section.items" :key="item">{{ item }}</li>
+                          </ul>
+                        </section>
+                        <div class="skill-clarify-doc-rule bottom"></div>
+                        <p class="skill-clarify-doc-closing">{{ message.clarifyDoc.closing }}</p>
+                      </div>
+                      <div v-else>{{ message.text }}</div>
                       <div v-if="message.todoList" class="skill-todo-card">
                         <div class="skill-todo-head">
                           <span class="skill-todo-title">
@@ -221,11 +240,15 @@
                       <span>{{ item.label }}</span>
                       <p>{{ item.text }}</p>
                     </div>
+                    <div v-if="!summaryItems.length" class="skill-summary-item">
+                      <span>待生成</span>
+                      <p>澄清结论会在你手动输入 Skill 创建需求后生成，用于后续草稿生成和评估验证。</p>
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="skill-rule-grid skill-clarify-actions" aria-label="需求澄清辅助动作">
-                <button v-for="action in clarifyActions" :key="action.label" type="button" @click="appendAssistant(action.message)">{{ action.label }}</button>
+                <button v-for="action in clarifyActions" :key="action.label" type="button" @click="prepareClarifyPrompt(action.prompt)">{{ action.label }}</button>
               </div>
               <div class="skill-chat-composer">
                 <button type="button" class="skill-chat-attach" aria-label="添加附件" @click="toast('已添加附件：业务说明文档 / 数据样例')">
@@ -233,7 +256,14 @@
                     <path d="m8.2 11.8 4.6-4.6a2.2 2.2 0 0 1 3.1 3.1l-6 6a4 4 0 0 1-5.7-5.7l6.2-6.2a5.2 5.2 0 0 1 7.3 7.3l-5.5 5.5"></path>
                   </svg>
                 </button>
-                <textarea id="skill-clarify-input" ref="clarifyInputEl" v-model="clarifyInput" placeholder="继续补充需求，例如：输出字段、使用人群、定时频率、权限边界..."></textarea>
+                <textarea
+                  id="skill-clarify-input"
+                  ref="clarifyInputEl"
+                  v-model="clarifyInput"
+                  placeholder="继续补充需求，例如：输出字段、使用人群、定时频率、权限边界..."
+                  rows="1"
+                  @input="resizeClarifyInput"
+                ></textarea>
                 <button type="button" aria-label="发送澄清内容" @click="submitClarifyMessage">
                   <svg viewBox="0 0 20 20" aria-hidden="true">
                     <path d="M17 3 8.5 11.5"></path>
@@ -330,6 +360,50 @@
                 <div><span>case-2 · 25.6s</span><em>得分 0.82</em></div>
                 <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
               </div>
+
+              <section class="skill-application-validation" aria-labelledby="skill-application-validation-title">
+                <div class="skill-application-validation-head">
+                  <div>
+                    <b id="skill-application-validation-title">Skill 应用验证</b>
+                    <p>输入自然语言提示词，时间范围将按你的原话解析；未提供时间或超过 92 天时不会执行。</p>
+                  </div>
+                  <span>最终验收</span>
+                </div>
+                <div class="skill-application-composer">
+                  <textarea
+                    v-model="applicationPrompt"
+                    rows="2"
+                    aria-label="Skill 应用验证提示词"
+                    placeholder="例如：出一份 5/27 到 6/8 的认证与转化简报"
+                    @keydown.meta.enter.prevent="runSkillApplication"
+                    @keydown.ctrl.enter.prevent="runSkillApplication"
+                  ></textarea>
+                  <button class="btn btn-primary" type="button" :disabled="applicationRunning" @click="runSkillApplication">
+                    {{ applicationRunning ? '运行中...' : '运行 Skill' }}
+                  </button>
+                </div>
+                <p v-if="applicationError" class="skill-application-error">{{ applicationError }}</p>
+
+                <div v-if="applicationReport" class="skill-application-result-card">
+                  <div class="skill-application-result-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20"><path d="M5 3.5h7l3 3V16.5H5z"/><path d="M12 3.5v3h3M7.5 10h5M7.5 13h5"/></svg>
+                  </div>
+                  <div class="skill-application-result-main">
+                    <span>SKILL 应用结果</span>
+                    <b>{{ applicationReport.skillCnName }}</b>
+                    <p>{{ applicationReport.parsedTimeText }}</p>
+                    <div>
+                      <em v-for="chip in applicationResultChips" :key="chip">{{ chip }}</em>
+                    </div>
+                  </div>
+                  <div class="skill-application-result-summary">
+                    <span>核心结果</span>
+                    <b>{{ applicationReport.metrics[0]?.value }} 独立认证</b>
+                    <p>转化率 {{ applicationReport.metrics[2]?.value }}，已生成趋势、画像、Top10 商品与行动建议。</p>
+                  </div>
+                  <button class="btn btn-primary" type="button" @click="openApplicationReport">展开报告</button>
+                </div>
+              </section>
             </div>
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
@@ -358,6 +432,7 @@
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('verify')">上一步</button>
+              <button v-if="reviewSubmitted" class="btn btn-secondary" type="button" @click="openSkills">查看 Skill Hub</button>
               <button id="skill-create-submit-review-btn" class="btn btn-primary" :class="{ disabled: reviewSubmitted }" :disabled="reviewSubmitted" type="button" @click="submitReview">
                 {{ reviewSubmitted ? '已提交审核' : '提交审核' }}
               </button>
@@ -370,10 +445,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAppStore } from '@/stores/app'
+import { MENU_TREE, useAppStore, type SkillApplicationBreakdown, type SkillApplicationReportData } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
+import { useSkillHubStore } from '@/stores/skillHub'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
 type ContextItem = { code: string; name: string; source: string; selected: boolean }
@@ -394,15 +470,54 @@ type SkillAuthRequest = {
   approveLabel: string
   rejectLabel: string
 }
+type SkillClarifyDoc = {
+  title: string
+  sections: Array<{ title: string; intro?: string; items: string[] }>
+  closing: string
+}
 type ChatMessage =
   | { id: string; kind: 'user'; text: string }
-  | { id: string; kind: 'assistant'; text: string; todoList?: SkillTodoList; authRequest?: SkillAuthRequest }
+  | { id: string; kind: 'assistant'; text: string; clarifyDoc?: SkillClarifyDoc; todoList?: SkillTodoList; authRequest?: SkillAuthRequest }
   | { id: string; kind: 'state'; states: SkillStateItem[] }
 
 const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
 const aiStore = useAIStore()
+const skillHubStore = useSkillHubStore()
+
+const EMPLOYEE_CERT_SKILL = {
+  name: 'presentation-employee-cert',
+  cnName: '职场认证与转化综合简报',
+  version: '20260709-v2',
+  menu: '在职员工管理',
+  scene: '面向认证运营、SMB 销售运营和活动运营，通过自然语言生成职场认证与购买转化综合简报，替代跨页面拼 Excel 的人工分析，并输出可落地运营动作。',
+  input: '时间范围（必填）、分析范围（全量认证用户 / 仅认证未购 / 仅已购）、画像维度筛选（行业 / 岗位大类 / 认证方式）、是否含转化分析、导出或下钻请求',
+  output: '结论摘要 7 张卡、数据真实性说明、KPI、时间趋势、认证时段分布、用户画像、Top10 购买商品、简报页链接、脱敏明细 CSV、页脚三行声明',
+  reference: [
+    '九要素已从 portal-workbench-skill-draft-presentation-employee-cert-20260709.md 拆解：命名、归属、场景、触发、输入、输出、边界、依赖、用例。',
+    '命名：职场认证与转化综合简报 / presentation-employee-cert。',
+    '归属：会员 / 职场人群认证；跨域引用 SMB 电商渠道订单数据。',
+    '场景：认证运营、SMB 销售运营、活动运营，生成认证到转化的综合简报。',
+    '触发：本版本仅自然语言触发，不含定时触发。',
+    '输入：时间范围必填；分析范围、画像维度筛选、是否含转化分析可选。',
+    '输出：结论摘要、明细数据、简报页链接、脱敏 CSV，顺序固定。',
+    '边界：只读分析，不修改认证状态，不操作订单和商品，不主动发送推送；导出和权限降级必须用 STOP 固定话术等待用户确认。',
+    '依赖：认证记录查询、SMB 渠道订单查询、LenovoID 关联、明文导出权限判定、岗位归类字典、行业标准分类、时段分桶规则。',
+    '验收用例：10 条，以 2026-05-27 ~ 2026-06-08 参照数据为基准，覆盖正常生成、权限降级、数据为空、时间范围无效。'
+  ].join('\n'),
+  pendingConfirmations: [
+    'SMB 电商渠道订单数据的跨域授权粒度',
+    '明文导出权限判定接口的权限点定义',
+    '岗位归类字典的维护责任方'
+  ]
+}
+
+const EMPLOYEE_CERT_CONTEXT_CODES = new Set([
+  'employee.overview',
+  'employee.certification',
+  'ops.gmv'
+])
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'config', label: '1. 基础配置' },
@@ -414,8 +529,8 @@ const tabs: Array<{ key: TabKey; label: string }> = [
 
 const activeTab = ref<TabKey>('config')
 const invalidField = ref('')
-const workspaceSub = ref('职场员工审核 · 迭代 0 轮 · 基础配置中')
-const configBanner = ref('当前阶段：先完成 Skill 基础配置，明确必填的英文 Skill 名称、中文命名、所属菜单，以及可选的适用场景、输入输出和能力边界。')
+const workspaceSub = ref(`${EMPLOYEE_CERT_SKILL.cnName} · ${EMPLOYEE_CERT_SKILL.version} · 基础配置中`)
+const configBanner = ref('当前阶段：已载入职场认证与转化综合简报完整 Skill 草稿，请先确认基础配置和能力上下文，再进入需求澄清核对依赖与验收口径。')
 const clarifyInput = ref('')
 const clarifyInputEl = ref<HTMLTextAreaElement | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
@@ -425,124 +540,150 @@ const aiTuning = ref(false)
 const aiTuned = ref(false)
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
+const applicationPrompt = ref('出一份 5/27 到 6/8 的认证与转化简报')
+const applicationRunning = ref(false)
+const applicationError = ref('')
+const applicationReport = ref<SkillApplicationReportData | null>(null)
+
+const applicationResultChips = computed(() => applicationReport.value
+  ? [
+      `${applicationReport.value.dateStart} ~ ${applicationReport.value.dateEnd}`,
+      '认证转化',
+      '用户画像',
+      'Top10 商品'
+    ]
+  : [])
 
 const form = ref({
-  name: 'workplace_employee_review_analysis',
-  cnName: '职场员工审核数据分析',
-  menu: '在职员工管理',
-  scene: '运营和 PM 通过自然语言查询职场员工审核数据，分析认证方式分布、通过率趋势、失败原因和待审核积压，并生成文本摘要或表格报告。',
-  input: '时间范围、认证方式、认证状态、企业名称、岗位信息、失败原因、输出格式',
-  output: '指标摘要、认证方式分布表、失败原因 TopN、趋势判断、可下载 CSV 链接'
+  name: EMPLOYEE_CERT_SKILL.name,
+  cnName: EMPLOYEE_CERT_SKILL.cnName,
+  menu: EMPLOYEE_CERT_SKILL.menu,
+  scene: EMPLOYEE_CERT_SKILL.scene,
+  input: EMPLOYEE_CERT_SKILL.input,
+  output: EMPLOYEE_CERT_SKILL.output
 })
 
-const contextItems = ref<ContextItem[]>([
-  { name: '商品查询', code: 'product.query', source: '商品中心', selected: true },
-  { name: '库存查询', code: 'inventory.query', source: '库存中心', selected: true },
-  { name: '商品上下架', code: 'product.shelf', source: '商品中心', selected: true },
-  { name: '通知发送', code: 'notify.send', source: '通知中心', selected: true },
-  { name: '活动商品判断', code: 'activity.judge', source: '商品中心', selected: false },
-  { name: '商品价格查询', code: 'price.query', source: '价格中心', selected: false },
-  { name: '标签管理', code: 'tag.manage', source: '商品中心', selected: false }
-])
+const menuGroups = Object.values(MENU_TREE)
+const menuGroupLabels = menuGroups.map(group => group.label)
+const contextItems = ref<ContextItem[]>(createMenuContextItems(form.value.menu))
 
-const primaryContextItems = computed(() => contextItems.value.slice(0, 4))
-const recommendedContextItems = computed(() => contextItems.value.slice(4))
+const primaryContextItems = computed(() => contextItems.value)
+const selectedContextSources = computed(() => new Set(selectedContextItems.value.map(item => item.source)))
+const recommendedContextItems = computed(() => {
+  if (!selectedContextItems.value.length) return []
+  return contextItems.value.filter(item =>
+    !item.selected && selectedContextSources.value.has(item.source)
+  )
+})
+const quickContextItems = computed(() => contextItems.value.filter(item => item.source === form.value.menu).slice(0, 3))
 const selectedContextItems = computed(() => contextItems.value.filter(item => item.selected))
+const menuMetrics = computed(() => ({
+  menuCount: menuGroups.length,
+  submenuCount: contextItems.value.length
+}))
 const contextSummary = computed(() => {
-  if (!selectedContextItems.value.length) return '尚未选择能力上下文。请先从左侧勾选可被 Skill 编排的底层能力。'
-  return `已选择 ${selectedContextItems.value.length} 个能力：${selectedContextItems.value.map(item => item.name).join('、')}。AI 将基于这些能力继续追问应用场景、边界和输入输出。`
+  if (!selectedContextItems.value.length) return '尚未选择能力上下文。请先从左侧全部子菜单中勾选可被 Skill 编排的页面能力。'
+  const grouped = menuGroups
+    .map(group => {
+      const names = selectedContextItems.value.filter(item => item.source === group.label).map(item => item.name)
+      return names.length ? `${group.label}：${names.join('、')}` : ''
+    })
+    .filter(Boolean)
+    .join('；')
+  return `已选择 ${selectedContextItems.value.length} 个子菜单上下文：${grouped}。推荐能力会基于已选上下文展示相关子菜单，AI 将继续核对应用场景、输入输出、执行边界、依赖能力和验收用例。`
 })
 
-const clarifyMessages = ref<ChatMessage[]>([
-  { id: 'u1', kind: 'user', text: '根据职场员工审核 PRD、后台字段说明和测试样例，创建一个帮助 PM 和运营分析认证数据的 Skill。' },
-  { id: 's1', kind: 'state', states: [
-    { kind: 'thinking', status: 'done', title: '读取基础材料', detail: '已识别 PRD、后台字段说明和测试样例。' },
-    { kind: 'tool_call', status: 'done', title: '抽取能力上下文', detail: '匹配查询、统计、导出和权限校验相关能力。' },
-    { kind: 'error', status: 'failed', title: '附件解析兜底', detail: '部分附件字段缺失，已改用后台字段说明和测试样例继续澄清。' },
-    { kind: 'follow_up', status: 'blocked', title: '生成关键追问', detail: '先确认输出形态，再继续确认触发场景与权限边界。' }
-  ] },
-  { id: 'a1', kind: 'assistant', text: '我已读取基础配置和附件材料。这个 Skill 的核心目标是帮助团队查询职场员工审核数据、识别认证方式分布、通过率趋势、失败原因和待审核积压。为了更准确地设计这个 Skill，我先确认一个关键点：输出结果需要偏文本总结、表格明细，还是两者都要？' },
-  { id: 'u2', kind: 'user', text: '两者都要。默认先给文字结论，再给表格。' },
-  { id: 'a2', kind: 'assistant', text: '好的。接下来确认触发场景：除了自然语言查询，例如“最近 7 天个税认证通过率”，是否还需要定时报告或异常提醒？' },
-  { id: 'u3', kind: 'user', text: '需要。支持日报，也要能发现待审核过多、某种认证方式失败率异常。' },
-  { id: 'a3', kind: 'assistant', text: '明白。再确认权限和边界：这个 Skill 是否只读？是否允许导出明细 CSV？是否可以修改认证状态？' },
-  { id: 'u4', kind: 'user', text: '只读，可以导出脱敏 CSV，不能修改认证状态。' },
-  { id: 'a4', kind: 'assistant', text: '我会将能力边界记录为：只读查询与分析、默认脱敏、导出需带权限校验、不触发认证状态变更。接下来为了验证 Skill，我建议准备 5 个测试用例：认证方式分布、失败原因 TopN、待审核积压、单企业认证明细、个税认证趋势。是否需要覆盖所有这些场景？' },
-  { id: 'u5', kind: 'user', text: '需要，5 个都保留。' },
-  { id: 'a5', kind: 'assistant', text: '好的。最后确认交付结构：我会生成 Skill 配置、业务规则说明、测试用例和示例问法。前端展示适配为 direct_response 文本摘要、display_info 表格卡片、link_list 导出链接。这样理解是否准确？' },
-  { id: 'u6', kind: 'user', text: '准确，可以进入草稿生成。' },
-  { id: 's2', kind: 'state', states: [
-    { kind: 'tool_result', status: 'done', title: '澄清结果已汇总', detail: '已形成触发场景、文件结构、输出格式、测试用例和权限边界。' },
-    { kind: 'confirm', status: 'blocked', title: '等待进入草稿生成', detail: '点击下一步后再生成 Skill 草稿，不直接发布或修改线上状态。' }
-  ] },
-  { id: 'a6', kind: 'assistant', text: '需求澄清已完成。当前 Skill 将支持自然语言查询、定时报告、异常提醒、脱敏导出和只读数据分析。下一步我会基于这些结论生成 Skill 草稿。' }
-])
+watch(
+  () => form.value.menu,
+  () => syncMenuContext()
+)
 
-const summaryItems = ref([
-  { label: '基本信息', text: 'name: workplace-employee-review-analysis；描述：职场员工审核数据分析 Skill；版本：1.0.0' },
-  { label: '触发场景', text: '自然语言查询、日报/周报/月报、待审核积压和失败率异常提醒。' },
-  { label: '文件结构', text: '生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md。' },
-  { label: '输出格式', text: 'direct_response 文本结论、display_info 表格明细、link_list 脱敏 CSV 下载。' },
-  { label: '测试用例方向', text: '认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势。' },
-  { label: '评估重点', text: '数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性。' },
-  { label: '复杂度', text: 'medium；只读分析为主，涉及多字段过滤、聚合统计和权限校验。' },
-  { label: 'Phoenix 输出', text: '使用 direct_response + display_info + link_list，不触发状态修改动作。' }
+function createMenuContextItems(activeMenu: string) {
+  return menuGroups.flatMap(group =>
+    Object.entries(group.children).map(([pageId, page]) => ({
+      name: page.label,
+      code: pageId,
+      source: group.label,
+      selected: EMPLOYEE_CERT_CONTEXT_CODES.has(pageId) || group.label === activeMenu
+    }))
+  )
+}
+
+function syncMenuContext() {
+  contextItems.value = createMenuContextItems(form.value.menu)
+}
+
+function selectQuickContext(code: string) {
+  contextItems.value = contextItems.value.map(item => ({
+    ...item,
+    selected: item.code === code || (item.source === form.value.menu && item.selected)
+  }))
+}
+
+const clarifyMessages = ref<ChatMessage[]>([])
+
+const summaryItems = ref<Array<{ label: string; text: string }>>([
+  { label: '当前 Skill', text: '已载入 Skill 创建框架和基础配置，等待你用自然语言补充本轮需求。' },
+  { label: '已确认', text: '基础配置已预填；具体业务口径会根据你的输入逐步沉淀。' },
+  { label: '待确认', text: '请先补充本轮要表达的场景、输入、输出、边界或验收用例。' },
+  { label: '下一步', text: '每次输入后，我会只追问仍未闭合的信息，并同步更新本区结论。' }
 ])
 
 const clarifyActions = [
-  { label: '生成测试用例', message: '已根据当前澄清结论生成测试用例方向：认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势。' },
-  { label: '检查权限与依赖', message: '已检查权限与依赖：当前 Skill 仅做只读分析，导出使用脱敏 CSV，依赖认证记录表、认证方式字段、失败原因字段和组织权限。' },
-  { label: '运行预览', message: '已完成运行预览：自然语言查询将返回文本摘要、表格明细和脱敏 CSV 链接，不触发认证状态修改。' },
-  { label: '优化逻辑', message: '已给出优化逻辑：建议补充异常输入处理、失败 case、定时报告频率和待审核积压阈值。' },
-  { label: '风险评估', message: '已完成风险评估：主要风险为敏感字段泄露、导出权限不足、统计口径不一致；需默认脱敏并记录导出日志。' },
-  { label: '发布建议', message: '已生成发布建议：先按只读分析能力提交审核，通过后再进入上传发布链路；当前创建流程止于提交审核。' }
+  { label: '生成测试用例', prompt: '请根据我刚才补充的需求，生成需要覆盖的测试用例方向。' },
+  { label: '检查权限与依赖', prompt: '请根据我刚才补充的需求，检查权限边界、依赖页面和需要确认的数据范围。' },
+  { label: '运行预览', prompt: '请根据我刚才补充的需求，预览这个 Skill 被调用时应该返回什么内容。' },
+  { label: '优化逻辑', prompt: '请根据我刚才补充的需求，指出还需要优化的流程、字段和异常兜底。' },
+  { label: '风险评估', prompt: '请根据我刚才补充的需求，评估导出、发布、写入或审批相关风险。' },
+  { label: '发布建议', prompt: '请根据我刚才补充的需求，给出是否适合进入草稿生成和提交审核的建议。' }
 ]
 
 const draftTreeRows = [
-  { label: 'workplace_employee_review_analysis', className: 'folder open depth-0', caret: '▾', icon: 'folder', count: '4' },
-  { label: 'config', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '1' },
-  { label: 'skill.yaml', className: 'file active depth-2', caret: '', icon: 'file yaml' },
-  { label: 'rules', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '1' },
-  { label: 'business_rules.md', className: 'file depth-2', caret: '', icon: 'file md' },
-  { label: 'evaluation', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '2' },
-  { label: 'test_cases.json', className: 'file depth-2', caret: '', icon: 'file json' },
-  { label: 'sample_queries.md', className: 'file depth-2', caret: '', icon: 'file md' }
+  { label: 'presentation-employee-cert', className: 'folder open depth-0', caret: '▾', icon: 'folder', count: '3' },
+  { label: 'SKILL.md', className: 'file active depth-1', caret: '', icon: 'file md' },
+  { label: 'modules', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '3' },
+  { label: 'data-query.md', className: 'file depth-2', caret: '', icon: 'file md' },
+  { label: 'analysis.md', className: 'file depth-2', caret: '', icon: 'file md' },
+  { label: 'briefing.md', className: 'file depth-2', caret: '', icon: 'file md' },
+  { label: 'tests', className: 'folder open depth-1', caret: '▾', icon: 'folder', count: '1' },
+  { label: 'acceptance.md', className: 'file depth-2', caret: '', icon: 'file md' }
 ]
 
 const draftYaml = computed(() => `skill:
   name: ${form.value.name}
   cn_name: ${form.value.cnName}
-  version: 1.0.0
+  version: ${EMPLOYEE_CERT_SKILL.version}
+  menu: ${form.value.menu}
+  context_pages:
+${selectedContextItems.value.map(item => `    - ${item.source}/${item.name} (${item.code})`).join('\n') || '    - 待选择'}
   trigger:
     - natural_language
-    - scheduled_report
-    - anomaly_alert
   scope:
-    - 认证记录查询
-    - 认证方式分布
-    - 通过率和失败原因分析
-    - 待审核积压提醒
+    - 职场认证独立用户统计
+    - 认证用户购买转化分析
+    - 画像、时段、行业和岗位归并分析
+    - 简报结论卡与可落地动作生成
   boundary:
     - 只读分析
-    - 不修改用户认证状态
-    - 导出 CSV 默认脱敏
-    - 导出前校验组织权限
+    - 不修改认证状态、订单或商品
+    - 无 SMB 电商权限时先 STOP 询问是否继续仅认证分析
+    - 导出明细 CSV 前必须二次确认
+    - 明文字段按权限判定，默认脱敏
   inputs:
-    - 时间范围
-    - 认证方式
-    - 认证状态
-    - 企业名称
-    - 失败原因
-    - 输出格式
+    - 时间范围（必填）
+    - 分析范围
+    - 画像维度筛选
+    - 是否含转化分析
   outputs:
-    direct_response: 文本摘要与趋势判断
-    display_info: 认证方式分布表、失败原因 TopN
-    link_list: 脱敏 CSV 下载链接
+    direct_response: 结论摘要与行动指引
+    display_info: KPI、趋势、时段、画像、Top10 购买商品
+    link_list: 简报页链接与脱敏 CSV 下载
   files:
-    - skill.yaml
-    - business_rules.md
-    - test_cases.json
-    - sample_queries.md`)
+    - SKILL.md
+    - modules/data-query.md
+    - modules/analysis.md
+    - modules/briefing.md
+    - tests/acceptance.md`)
 
 const scores = computed(() => aiTuned.value
   ? [
@@ -570,7 +711,7 @@ const evalItems = computed(() => aiTuned.value
       { title: '基本信息规范', score: '1.00' },
       { title: '流程步骤清晰', detail: 'AI 已补充分步执行顺序、参数确认和结果交付路径', score: '0.92' },
       { title: '异常处理完善', detail: '已覆盖无数据、字段缺失、权限不足时的兜底话术', score: '0.90' },
-      { title: '关键节点确认', detail: '导出 CSV、定时报告、异常提醒前均有确认节点', score: '0.86' },
+      { title: '关键节点确认', detail: '时间解析回显、权限降级、明细导出前均有 STOP 确认节点', score: '0.86' },
       { title: '指令具体明确', score: '1.00' },
       { title: '资源引用有效', score: '1.00' },
       { title: '平台适配合规', score: '1.00' },
@@ -580,7 +721,7 @@ const evalItems = computed(() => aiTuned.value
       { title: '基本信息规范', score: '1.00' },
       { title: '流程步骤清晰', detail: '可继续补充参数确认、异常兜底和结果交付的分步描述', score: '0.72' },
       { title: '异常处理完善', detail: '已覆盖无数据、字段缺失、权限不足时的兜底话术', score: '0.90' },
-      { title: '关键节点确认', detail: '可继续明确导出 CSV、定时报告和异常提醒前的确认范围', score: '0.74' },
+      { title: '关键节点确认', detail: '可继续明确权限降级和明细导出前的确认范围、字段清单和脱敏方式', score: '0.74' },
       { title: '指令具体明确', score: '1.00' },
       { title: '资源引用有效', score: '1.00' },
       { title: '平台适配合规', score: '1.00' },
@@ -591,12 +732,12 @@ const aiTuneButtonText = computed(() => aiTuning.value ? 'AI 微调中...' : aiT
 const optimizationItems = computed(() => aiTuned.value
   ? [
       { index: 1, title: '流程步骤已拆清', desc: '补充参数确认、查询执行、异常兜底、结果生成、导出确认五段流程。', actionText: '查看草稿', action: () => switchTab('draft') },
-      { index: 2, title: '关键节点已补齐', desc: '导出 CSV、开启定时报告、发送异常提醒前，都会先展示范围和影响。', actionText: '查看澄清', action: () => switchTab('clarify') },
-      { index: 3, title: '测试样例已更新', desc: '新增权限不足、企业名称为空、认证数据缺失、失败原因字段异常等样例。', actionText: '查看用例', action: () => switchTab('clarify') }
+      { index: 2, title: '关键节点已补齐', desc: '权限降级、明文导出和脱敏 CSV 导出前，都会先展示影响范围并等待确认。', actionText: '查看澄清', action: () => switchTab('clarify') },
+      { index: 3, title: '测试样例已更新', desc: '新增参照区间、权限降级、无数据、无明文导出权限和时间范围无效等样例。', actionText: '查看用例', action: () => switchTab('clarify') }
     ]
   : [
       { index: 1, title: '补齐流程步骤', desc: '需要把查询、分析、异常兜底、结果输出和确认动作拆成可执行步骤。', actionText: '让 AI 处理', action: startAiTune },
-      { index: 2, title: '明确确认节点', desc: '导出 CSV、定时报告、异常提醒前，需要展示范围、对象、频率和影响。', actionText: '让 AI 处理', action: startAiTune },
+      { index: 2, title: '明确确认节点', desc: '权限降级、明文导出和脱敏导出前，需要展示范围、字段、脱敏方式和等待回复。', actionText: '让 AI 处理', action: startAiTune },
       { index: 3, title: '刷新评分结果', desc: 'AI 完成草稿微调后，自动回写评估列表、综合评分和提交审核门槛状态。', actionText: '开始微调', action: startAiTune }
     ])
 
@@ -658,36 +799,450 @@ function fillTemplate(type: 'query' | 'generate' | 'action') {
     }
   }
   form.value = { ...templates[type] }
+  syncMenuContext()
   switchTab('config')
 }
 
-function submitClarifyMessage() {
+async function submitClarifyMessage() {
   const value = clarifyInput.value.trim()
   if (!value) return
   clarifyMessages.value.push({ id: `u-${Date.now()}`, kind: 'user', text: value })
   clarifyInput.value = ''
-  if (tryClarifyStructuredDemo(value)) {
-    scrollChat()
-    return
-  }
+  void nextTick(resizeClarifyInput)
   const stateId = `s-${Date.now()}`
   clarifyMessages.value.push({ id: stateId, kind: 'state', states: [
-    { kind: 'thinking', status: 'running', title: '理解补充需求', detail: '正在结合基础配置、能力上下文和当前澄清记录判断缺口。' },
-    { kind: 'tool_call', status: 'pending', title: '检查约束条件', detail: '准备检查定时触发、CSV 导出、审批风险和权限边界。' },
-    { kind: 'streaming', status: 'pending', title: '组织澄清回复', detail: '将把缺口转换为下一轮澄清问题。' }
+    { kind: 'thinking', status: 'running', title: '理解补充需求', detail: '正在结合基础配置、菜单子项上下文和当前澄清记录判断缺口。' },
+    { kind: 'tool_call', status: 'running', title: '调用大模型', detail: '正在把 Skill 创建上下文发送到服务端会话接口。' },
+    { kind: 'streaming', status: 'pending', title: '组织澄清回复', detail: '模型返回后将提炼为下一轮澄清问题和配置建议。' }
   ] })
   scrollChat()
-  window.setTimeout(() => {
+
+  try {
+    const reply = await requestSkillModelReply(value)
     clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
-    clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '已记录。请继续确认这个需求是否需要固定时间触发、是否允许导出 CSV，以及是否有需要审批的高风险操作。' })
     clarifyMessages.value.push({ id: `sd-${Date.now()}`, kind: 'state', states: [
-      { kind: 'thinking', status: 'done', title: '理解补充需求', detail: '已写入当前 Skill 需求上下文。' },
-      { kind: 'tool_call', status: 'done', title: '检查约束条件', detail: '发现仍需确认定时触发、CSV 导出和审批风险。' },
-      { kind: 'streaming', status: 'done', title: '组织澄清回复', detail: '已生成下一轮可确认的问题。' },
-      { kind: 'follow_up', status: 'blocked', title: '等待用户追问确认', detail: '请继续补充时间频率、导出权限和高风险动作边界。' }
+      { kind: 'thinking', status: 'done', title: '理解补充需求', detail: '已写入当前 Skill 创建上下文。' },
+      { kind: 'tool_call', status: 'done', title: '大模型已返回', detail: '已结合历史输入和当前菜单子项更新澄清建议。' },
+      { kind: 'streaming', status: 'done', title: '组织澄清回复', detail: '已生成本轮更新后的 Skill 创建确认项。' },
+      { kind: 'follow_up', status: 'blocked', title: '等待用户确认', detail: '请继续确认未闭合的能力定义、输入输出、调用边界或验收用例。' }
     ] })
+    clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '', clarifyDoc: reply })
+    updateClarifySummary(value, reply)
     scrollChat()
-  }, 1800)
+  } catch (error) {
+    clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
+    clarifyMessages.value.push({ id: `sf-${Date.now()}`, kind: 'state', states: [
+      { kind: 'thinking', status: 'done', title: '理解补充需求', detail: '已保留当前用户输入和菜单子项上下文。' },
+      { kind: 'tool_call', status: 'failed', title: '大模型调用失败', detail: error instanceof Error ? sanitizeModelVendorName(error.message) : '服务端会话接口暂不可用。' },
+      { kind: 'error', status: 'blocked', title: '等待重试', detail: '未生成本地替代内容，避免把演示内容误当真实模型结果。' }
+    ] })
+    clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '大模型暂时没有返回结果。我已经保留当前输入和菜单子项上下文，你可以稍后重试，或先继续补充应用场景、数据范围、输出形式和验收用例。' })
+    scrollChat()
+  }
+}
+
+async function requestSkillModelReply(userText: string): Promise<SkillClarifyDoc> {
+  const history = getClarifyHistory()
+  const facts = inferSkillClarifyFacts(history)
+  const turnIndex = history.length
+  const message = [
+    '你是乐享门户工作台的 Skill 创建助手，请在需求澄清阶段帮助 PM 设计 Skill。',
+    '你的唯一目标是支持 Skill 创建：把用户描述收敛为可进入草稿生成的 Skill 能力定义、输入输出、调用边界和验收用例。',
+    '必须基于当前工作台已有菜单和子菜单理解能力上下文，不要编造菜单外能力。',
+    `这是第 ${turnIndex} 轮用户补充。必须基于全部历史输入更新澄清结果，不要每轮重新开始。`,
+    '如果用户是在确认上一轮问题或补充边界，请把对应事项视为已确认，再追问剩余缺口；不要重复追问已经确认的内容。',
+    '你的任务是帮助用户完成澄清闭环：已确认的内容用“已确认”沉淀，缺失内容用“还需要补充”推进，不要机械反问。',
+    '必须按 Skill 撰写九要素判断用户是否已经提供信息：命名、归属、场景、触发、输入、输出、边界、依赖、用例。',
+    '用户用自然语言提供九要素时，也视为已提供；不要要求用户按字段名重复填写。',
+    '输出必须是结构化的“本轮澄清反馈”。禁止输出 markdown 符号、代码块、JSON、配置对象或长段落。',
+    '内容必须严格基于“用户补充”里的问题描述和已选子菜单上下文；不要自行补充示例业务、指标、页面、产物、数值或场景。',
+    '如果用户没有提到某个字段、产物或系统集成，只能提出“是否需要确认”的问题，不能当作已确定内容。',
+    '请只围绕创建 Skill 前必须由人确认的问题输出，不要提前给最终 Skill 配置或最终结论。',
+    '已经由用户明确给出的内容不要再作为待确认问题输出；例如用户已说“作为一个独立 Skill 创建”，就不要再问是否拆分为多个 Skill。',
+    '不要要求用户确认平台默认 AI 评估标准，例如理解准确性、工具调用正确性、输出完整性、权限合规性；这些属于基础 AI 能力，由平台默认纳入评估。',
+    '验收用例部分只追问业务特有的正常用例、异常输入、边界场景和兜底期望；不要追问审批链路，不追问通用模型能力指标。',
+    '本轮反馈只列未闭合缺口；已确认项由页面右侧“澄清结论”承载。',
+    `已确认九要素：${facts.confirmedElementLabels.join('、') || '无'}`,
+    `仍缺九要素：${facts.missingElementLabels.join('、') || '无'}`,
+    '禁止追问“已确认九要素”里的内容。',
+    '固定输出三组：Skill 能力定义确认、输入输出与调用边界、验收用例。每组 2-4 个项目符号。',
+    '',
+    `当前所属菜单：${form.value.menu}`,
+    `已选子菜单上下文：${selectedContextItems.value.map(item => `${item.source}/${item.name}(${item.code})`).join('、') || '未选择'}`,
+    '',
+    '基础配置：',
+    JSON.stringify({
+      name: form.value.name,
+      cnName: form.value.cnName,
+      menu: form.value.menu,
+      scene: form.value.scene,
+      input: form.value.input,
+      output: form.value.output
+    }, null, 2),
+    '',
+    '当前已载入的完整 Skill 草稿摘要：',
+    EMPLOYEE_CERT_SKILL.reference,
+    '',
+    '历史用户输入：',
+    history.map((item, index) => `${index + 1}. ${item}`).join('\n') || '无',
+    '',
+    '已识别确认线索：',
+    JSON.stringify(facts, null, 2),
+    '',
+    `用户补充：${userText}`,
+    '',
+    '请输出适合页面展示的本轮澄清反馈，语气直接、简洁。'
+  ].join('\n')
+
+  const res = await fetch('/api/harness/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      currentPage: 'agent.skillCreate',
+      shortcut: '创建流程'
+    })
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = await res.json() as { reply?: string; message?: string }
+  return normalizeClarifyDoc(data.reply || data.message || '', userText)
+}
+
+function normalizeClarifyDoc(raw: string, userText: string): SkillClarifyDoc {
+  const text = sanitizeModelVendorName(String(raw || ''))
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/[#{}`*_>]/g, '')
+    .replace(/\r/g, '\n')
+    .trim()
+  const history = getClarifyHistory()
+  const facts = inferSkillClarifyFacts(history)
+  const fallback = buildClarifyFallbacks(userText, history, facts)
+
+  const sections = [
+    {
+      title: 'Skill 能力定义确认',
+      intro: fallback.outputIntro,
+      items: selectClarifyItems(text, ['Skill 能力定义确认', '能力定义', 'Skill 能力', '能力边界'], fallback.output, facts, 'capability')
+    },
+    {
+      title: '输入输出与调用边界',
+      items: selectClarifyItems(text, ['输入输出与调用边界', '输入输出', '调用边界', '执行边界'], fallback.test, facts, 'boundary')
+    },
+    {
+      title: '验收用例',
+      items: selectClarifyItems(text, ['验收用例', '用例', '测试用例', '正常用例', '异常兜底', '异常用例'], fallback.integration, facts, 'evaluation')
+    }
+  ]
+
+  return {
+    title: `第${toChineseNumber(Math.max(history.length, 1))}轮澄清反馈`,
+    sections,
+    closing: facts.readyForDraft
+      ? '关键创建信息已基本收敛。如确认无补充，我将据此准备进入草稿生成。'
+      : '请确认以上问题，我将据此更新 Skill 需求收敛结果。'
+  }
+}
+
+function buildClarifyFallbacks(userText: string, history: string[], facts: SkillClarifyFacts) {
+  const topic = extractClarifyTopic(history.join('；') || userText)
+  const outputItems = [
+    !facts.elements.naming
+      ? '还需要补充 Skill 的中文命名和英文唯一标识。'
+      : '',
+    !facts.elements.ownership
+      ? '还需要确认 Skill 归属的业务域、菜单或可见范围。'
+      : '',
+    !facts.elements.scenario
+      ? '还需要说明这个 Skill 面向谁、在什么时候、解决什么业务问题。'
+      : '',
+    !facts.hasCapabilityConfirmed && facts.hasCapability
+        ? `“${topic}”是否可以作为一个独立 Skill 创建，还是需要拆分成多个 Skill？`
+        : !facts.hasCapability
+          ? `这个 Skill 的核心能力是否就是处理“${topic}”，还是还需要拆分为多个独立能力？`
+          : '',
+    !facts.hasAudience && facts.elements.scenario
+      ? '还需要补充这个 Skill 面向的主要使用人群和成功结果。'
+      : ''
+  ].filter((item): item is string => Boolean(item))
+  const boundaryItems = [
+    !facts.elements.trigger
+      ? '还需要补充 Skill 的触发方式，例如典型问法、入口操作或定时规则。'
+      : '',
+    !facts.hasInput
+      ? `还需要补充用户调用这个 Skill 时必须提供哪些输入信息，才能完成“${topic}”。`
+      : '',
+    !facts.hasOutput
+      ? '还需要补充 Skill 输出结果形态，例如文字结论、表格明细、链接、文件或操作建议。'
+      : '',
+    !(facts.hasBoundaryConfirmed || facts.hasBoundary)
+      ? '还需要确认操作、数据、范围、动作四类执行边界。'
+      : '',
+    !facts.elements.dependency
+      ? '还需要补充依赖的数据口径、页面能力、接口或上游材料。'
+      : ''
+  ].filter((item): item is string => Boolean(item))
+  const evaluateItems = [
+    !facts.hasTest
+      ? `还需要为“${topic}”准备至少 3 条正常用例和 1 条异常兜底用例。`
+      : ''
+  ].filter((item): item is string => Boolean(item))
+  return {
+    outputIntro: '以下仅列出仍需要你确认的缺口：',
+    output: outputItems.length ? outputItems : ['本组暂无待确认问题，已沉淀到右侧澄清结论。'],
+    test: boundaryItems.length ? boundaryItems : ['本组暂无待确认问题，已沉淀到右侧澄清结论。'],
+    integration: evaluateItems.length ? evaluateItems : ['本组暂无待确认问题，已沉淀到右侧澄清结论。']
+  }
+}
+
+type SkillClarifyFacts = {
+  hasCapability: boolean
+  hasCapabilityConfirmed: boolean
+  hasContextConfirmed: boolean
+  hasAudience: boolean
+  hasInput: boolean
+  hasOutput: boolean
+  hasBoundary: boolean
+  hasBoundaryConfirmed: boolean
+  hasTest: boolean
+  hasApproval: boolean
+  readyForDraft: boolean
+  elements: SkillElementFacts
+  confirmedElementLabels: string[]
+  missingElementLabels: string[]
+}
+
+type SkillElementKey = 'naming' | 'ownership' | 'scenario' | 'trigger' | 'input' | 'output' | 'boundary' | 'dependency' | 'cases'
+type SkillElementFacts = Record<SkillElementKey, boolean>
+
+const SKILL_ELEMENT_LABELS: Record<SkillElementKey, string> = {
+  naming: '命名',
+  ownership: '归属',
+  scenario: '场景',
+  trigger: '触发',
+  input: '输入',
+  output: '输出',
+  boundary: '边界',
+  dependency: '依赖',
+  cases: '用例'
+}
+
+function getClarifyHistory() {
+  return clarifyMessages.value
+    .filter((message): message is Extract<ChatMessage, { kind: 'user' }> => message.kind === 'user')
+    .map(message => message.text.trim())
+    .filter(Boolean)
+}
+
+function inferSkillClarifyFacts(history: string[]): SkillClarifyFacts {
+  const text = history.join(' ')
+  const fullText = [
+    text,
+    form.value.name,
+    form.value.cnName,
+    form.value.menu,
+    form.value.scene,
+    form.value.input,
+    form.value.output,
+    selectedContextItems.value.map(item => `${item.source} ${item.name} ${item.code}`).join(' ')
+  ].join(' ')
+  const elements = inferSkillElements(text, fullText)
+  const confirmedElementLabels = skillElementLabels(elements, true)
+  const missingElementLabels = skillElementLabels(elements, false)
+  const hasCapability = text.length > 12 || elements.scenario
+  const hasStandaloneSkillConfirmed = /(作为|按|就按|创建|建立|做)(一个)?[^。；\n]{0,40}独立\s*(skill|Skill)|独立\s*(skill|Skill)\s*(创建|处理|就行)|不再拆分|不用拆分|无需拆分|不要拆分/.test(text)
+  const hasSkillCreationStatement = /做一个[^。；\n]{0,60}(skill|Skill)|创建一个[^。；\n]{0,60}(skill|Skill)|创建[^。；\n]{0,60}的\s*(skill|Skill)|一个\s*(skill|Skill)/.test(text)
+  const hasCapabilityConfirmed = /定义确认|能力定义.*(确认|就是|已定|没问题)|核心能力.*(确认|就是)|不再拆分|就是选定/.test(text) || hasStandaloneSkillConfirmed || hasSkillCreationStatement || (elements.naming && elements.scenario)
+  const hasContextConfirmed = elements.ownership
+  const hasAudience = /用户|人群|角色|PM|运营|管理员|员工|使用人|触发入口|入口|谁/.test(fullText)
+  const hasInput = elements.input
+  const hasOutput = elements.output
+  const hasBoundary = elements.boundary
+  const hasBoundaryConfirmed = elements.boundary && /边界.*(给了|确认|已给|已确认|明确)|边界已经给了|范围.*(确认|已给|明确)|只读|不写入|不发布|不导出|需要确认|四维/.test(fullText)
+  const hasTest = elements.cases
+  const hasApproval = /审批|审核|直线经理|业务审批|系统审批|提交审核/.test(text)
+  return {
+    hasCapability,
+    hasCapabilityConfirmed,
+    hasContextConfirmed,
+    hasAudience,
+    hasInput,
+    hasOutput,
+    hasBoundary,
+    hasBoundaryConfirmed,
+    hasTest,
+    hasApproval,
+    readyForDraft: elements.naming && elements.ownership && elements.scenario && elements.trigger && elements.input && elements.output && elements.boundary && elements.dependency && elements.cases,
+    elements,
+    confirmedElementLabels,
+    missingElementLabels
+  }
+}
+
+function inferSkillElements(historyText: string, fullText: string): SkillElementFacts {
+  const normalized = `${historyText} ${fullText}`.replace(/\s+/g, ' ')
+  return {
+    naming: hasMeaningfulText(form.value.name) && hasMeaningfulText(form.value.cnName)
+      || /命名|名称|英文|中文名|叫做|名为|name|cnName/i.test(normalized),
+    ownership: selectedContextItems.value.length > 0
+      || hasMeaningfulText(form.value.menu)
+      || /归属|业务域|菜单|子菜单|部门|谁可见|所属|能力上下文|上下文|页面/.test(normalized),
+    scenario: hasMeaningfulText(form.value.scene)
+      || /场景|用于|支持|帮助|解决|查看|分析|生成|查询|统计|复盘|运营|管理|谁.*什么时候|什么时候.*问题/.test(normalized),
+    trigger: /触发|入口|问法|自然语言|定时|每[天周月]|日报|周报|月报|按钮|点击|查询|生成|当.*时|如果/.test(normalized),
+    input: hasMeaningfulText(form.value.input)
+      || /输入|参数|字段|时间范围|时间|范围|筛选|条件|必填|可选|提供|传入|数据口径|日期|状态|类型/.test(normalized),
+    output: hasMeaningfulText(form.value.output)
+      || /输出|返回|结果|摘要|表格|明细|下载|导出声明|脱敏|CSV|报告|结论|链接|文件|建议/.test(normalized),
+    boundary: /边界|权限|只读|写入|发布|导出|配置|数据范围|操作范围|动作|确认|审批|不能|不允许|允许|四维|高风险|脱敏/.test(normalized),
+    dependency: selectedContextItems.value.length > 0
+      || /依赖|接口|API|数据源|数据口径|能力|菜单|子菜单|页面|后台|字段|PRD|附件|系统|表|库|调用/.test(normalized),
+    cases: /用例|测试|异常|兜底|典型问法|样例|case|正常|失败|边界场景|至少|不少于|≥|>=|3\s*条|一条异常/.test(normalized)
+  }
+}
+
+function hasMeaningfulText(value: string) {
+  return String(value || '').trim().length > 1
+}
+
+function sanitizeModelVendorName(text: string) {
+  return String(text || '')
+    .replace(/火山模型/g, '大模型')
+    .replace(/火山引擎/g, '大模型')
+}
+
+function skillElementLabels(elements: SkillElementFacts, confirmed: boolean) {
+  return (Object.keys(SKILL_ELEMENT_LABELS) as SkillElementKey[])
+    .filter(key => elements[key] === confirmed)
+    .map(key => SKILL_ELEMENT_LABELS[key])
+}
+
+function updateClarifySummary(latestInput: string, doc: SkillClarifyDoc) {
+  const history = getClarifyHistory()
+  const facts = inferSkillClarifyFacts(history)
+  const confirmed = [
+    ...facts.confirmedElementLabels
+  ].filter(Boolean)
+  const docPending = extractPendingClarifyItems(doc)
+  const missing = docPending.length
+    ? docPending
+    : facts.missingElementLabels
+  summaryItems.value = [
+    { label: '当前轮次', text: `${doc.title}；已根据“${truncateText(latestInput, 36)}”更新澄清结论。` },
+    { label: '已确认', text: confirmed.length ? confirmed.join('、') : '已记录当前需求描述，待继续补充创建信息。' },
+    { label: '待确认', text: missing.length ? missing.join('、') : '关键创建信息已基本收敛，可进入草稿生成前确认。' },
+    { label: '下一步', text: facts.readyForDraft ? '可进入草稿生成，并在草稿中固化能力定义、输入输出、执行边界和验收用例。' : '继续补齐待确认项，避免草稿生成后反复返工。' }
+  ]
+  const now = new Date()
+  summaryUpdated.value = `已更新 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
+
+function extractPendingClarifyItems(doc: SkillClarifyDoc) {
+  return doc.sections
+    .flatMap(section => section.items)
+    .map(item => item.trim())
+    .filter(item => item && !/暂无待确认|已沉淀|已确认|已记录|已收到|已写入|平台默认/.test(item))
+    .slice(0, 4)
+}
+
+function toChineseNumber(value: number) {
+  const labels = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+  if (value <= 10) return labels[value]
+  return String(value)
+}
+
+function extractClarifyTopic(userText: string) {
+  const normalized = userText
+    .replace(/\s+/g, ' ')
+    .replace(/[“”"']/g, '')
+    .trim()
+  if (!normalized) return '当前需求'
+  return truncateText(normalized, 28)
+}
+
+function pickItems(text: string, titles: string[], fallback: string[]) {
+  const segment = findSectionSegment(text, titles)
+  const items = splitClarifyItems(segment)
+  return (items.length ? items : fallback).slice(0, 4)
+}
+
+function selectClarifyItems(
+  text: string,
+  titles: string[],
+  fallback: string[],
+  facts: SkillClarifyFacts,
+  area: 'capability' | 'boundary' | 'evaluation'
+) {
+  const rawItems = pickItems(text, titles, fallback)
+  const filtered = rawItems.filter(item => (
+    !isConfirmedStatement(item)
+    && !isPlatformDefaultEvaluationQuestion(item)
+    && !isRepeatedConfirmedQuestion(item, facts, area)
+    && !isQuestionForConfirmedElement(item, facts)
+  ))
+  if (area === 'capability' && (facts.hasCapabilityConfirmed || facts.hasContextConfirmed)) {
+    return fallback
+  }
+  if (area === 'boundary' && facts.hasBoundaryConfirmed) {
+    return fallback
+  }
+  return (filtered.length ? filtered : fallback).slice(0, 4)
+}
+
+function isConfirmedStatement(item: string) {
+  return /^(已收到|已确认|已记录|已识别|已写入|可写入|后续会|已经|当前已)/.test(item.trim())
+}
+
+function isPlatformDefaultEvaluationQuestion(item: string) {
+  const text = item.trim()
+  return /理解准确性|工具调用正确性|输出完整性|权限合规性|通用模型能力|基础\s*AI\s*能力|评估通过标准关注/.test(text)
+}
+
+function isRepeatedConfirmedQuestion(item: string, facts: SkillClarifyFacts, area: 'capability' | 'boundary' | 'evaluation') {
+  if (area === 'capability') {
+    if (facts.hasCapabilityConfirmed && /核心能力|能力描述|独立\s*Skill|拆分|多个\s*Skill|能力定义|是否可以作为/.test(item)) return true
+    if (facts.hasContextConfirmed && /能力上下文|限定在|排除|子菜单|页面|归属|业务域|菜单/.test(item)) return true
+  }
+  if (area === 'boundary' && facts.hasBoundaryConfirmed && /边界|只读|写入|发布|导出|配置变更|执行/.test(item)) return true
+  if (area === 'evaluation' && facts.hasApproval && /审批|审核|直线经理|业务审批|系统审批/.test(item)) return true
+  return false
+}
+
+function isQuestionForConfirmedElement(item: string, facts: SkillClarifyFacts) {
+  const text = item.trim()
+  const checks: Array<[SkillElementKey, RegExp]> = [
+    ['naming', /命名|名称|英文|中文|唯一标识|name/i],
+    ['ownership', /归属|业务域|谁可见|所属|菜单|子菜单|上下文|页面|排除/],
+    ['scenario', /场景|谁|什么时候|解决什么|使用人群|成功结果|目标用户|业务问题/],
+    ['trigger', /触发|问法|自然语言|定时|日报|周报|月报|入口|按钮|点击/],
+    ['input', /输入|参数|字段|时间范围|筛选|条件|必填|可选|提供哪些/],
+    ['output', /输出|结果|返回|摘要|表格|明细|下载|CSV|报告|结论|链接|文件/],
+    ['boundary', /边界|权限|只读|写入|发布|导出|配置|数据范围|操作范围|动作|四维/],
+    ['dependency', /依赖|接口|API|数据源|数据口径|页面能力|上游|PRD|附件|系统|调用/],
+    ['cases', /用例|测试|异常|兜底|典型问法|样例|case|边界场景/]
+  ]
+  return checks.some(([key, pattern]) => facts.elements[key] && pattern.test(text))
+}
+
+function findSectionSegment(text: string, titles: string[]) {
+  const startIndexes = titles.map(title => text.indexOf(title)).filter(index => index >= 0)
+  if (!startIndexes.length) return ''
+  const start = Math.min(...startIndexes)
+  const after = text.slice(start)
+  const next = after.slice(1).search(/(?:Skill 能力定义确认|输入输出与调用边界|验收用例|能力定义|Skill 能力|能力边界|输入输出|调用边界|执行边界|测试用例|正常用例|异常兜底|异常用例|用例)/)
+  return next > 0 ? after.slice(0, next + 1) : after
+}
+
+function splitClarifyItems(text: string) {
+  return text
+    .split(/\n|(?:^|\s)(?:\d+[.、]|[-•])\s*/g)
+    .flatMap(part => part.split(/；|;/g))
+    .map(item => item.replace(/^(Skill 能力定义确认|输入输出与调用边界|验收用例|能力定义|Skill 能力|能力边界|输入输出|调用边界|执行边界|测试用例|正常用例|异常兜底|异常用例|用例)[:：]?\s*/g, '').trim())
+    .filter(item => item.length > 5)
+    .map(item => truncateText(item, 64))
+}
+
+function truncateText(text: string, max: number) {
+  return text.length > max ? `${text.slice(0, max)}...` : text
 }
 
 function appendAssistant(message: string) {
@@ -695,83 +1250,25 @@ function appendAssistant(message: string) {
   scrollChat()
 }
 
-function tryClarifyStructuredDemo(value: string) {
-  if (/todo|待办|任务清单/i.test(value)) {
-    clarifyMessages.value.push({ id: `s-${Date.now()}-todo`, kind: 'state', states: [
-      { kind: 'thinking', status: 'done', title: '理解澄清任务', detail: '已根据 Skill 创建上下文拆解待办清单。' },
-      { kind: 'tool_call', status: 'running', title: '生成 TODO 列表', detail: '正在把澄清、草稿、评估和提交动作整理为可追踪步骤。' },
-      { kind: 'tool_result', status: 'pending', title: '等待步骤推进', detail: '后续会按完成状态更新。' }
-    ] })
-    clarifyMessages.value.push({
-      id: `a-${Date.now()}-todo`,
-      kind: 'assistant',
-      text: '已在需求澄清对话中创建任务清单，我会按步骤推进 Skill 创建产物。',
-      todoList: demoSkillTodoList()
-    })
-    return true
-  }
-
-  if (/并行|多个步骤|思考过程|同时进行/i.test(value)) {
-    clarifyMessages.value.push({ id: `s-${Date.now()}-parallel`, kind: 'state', states: [
-      { kind: 'thinking', status: 'running', title: '理解需求意图', detail: '正在结合基础配置、能力上下文和澄清记录判断缺口。' },
-      { kind: 'tool_call', status: 'running', title: '读取参考内容', detail: '正在读取生成 Skill 草稿所需的字段、用例和权限边界。' },
-      { kind: 'tool_result', status: 'pending', title: '等待工具结果', detail: '工具返回后会继续更新澄清结论。' },
-      { kind: 'follow_up', status: 'pending', title: '准备追问', detail: '如发现缺少口径，会在草稿生成前提出确认问题。' }
-    ] })
-    clarifyMessages.value.push({
-      id: `a-${Date.now()}-parallel`,
-      kind: 'assistant',
-      text: '已同步多步骤同时进行状态。需求澄清对话会显示当前进行中的步骤数量，并保留每一步的可审计说明。'
-    })
-    return true
-  }
-
-  if (/授权|批准|执行命令|高风险|需要确认|python|命令/i.test(value)) {
-    const command = /python/i.test(value)
-      ? 'python3 -c "import random; print(random.randint(0, 100))"'
-      : 'skill publish --dry-run workplace_employee_review_analysis'
-    clarifyMessages.value.push({ id: `s-${Date.now()}-auth`, kind: 'state', states: [
-      { kind: 'thinking', status: 'done', title: '识别高影响动作', detail: '已判断该请求涉及命令、发布、导出或配置变更。' },
-      { kind: 'tool_call', status: 'running', title: '准备执行参数', detail: '已生成命令和执行范围，等待授权前不会真正执行。' },
-      { kind: 'confirm', status: 'blocked', title: '等待用户授权', detail: '必须明确批准后才能继续。' }
-    ] })
-    clarifyMessages.value.push({
-      id: `a-${Date.now()}-auth`,
-      kind: 'assistant',
-      text: '该澄清动作需要授权后才能继续。请确认命令、命名空间和影响范围。',
-      authRequest: {
-        title: '请求执行命令',
-        namespace: 'skill-create',
-        command,
-        risk: '高影响操作',
-        detail: '授权后才会进入下一步。拒绝后任务会停止，并保留当前状态链路用于走查。',
-        approveLabel: '批准执行',
-        rejectLabel: '拒绝'
-      }
-    })
-    return true
-  }
-
-  return false
+function prepareClarifyPrompt(prompt: string) {
+  clarifyInput.value = prompt
+  void nextTick(() => {
+    resizeClarifyInput()
+    clarifyInputEl.value?.focus()
+  })
 }
 
-function demoSkillTodoList(): SkillTodoList {
-  return {
-    title: 'Todo List',
-    done: 0,
-    total: 9,
-    items: [
-      { id: 'skill-todo-1', text: '校验基础配置与生成前确认', status: 'running' },
-      { id: 'skill-todo-2', text: '调用 pre_generate_scripts 生成脚本产物', status: 'pending' },
-      { id: 'skill-todo-3', text: '生成 SKILL.md', status: 'pending' },
-      { id: 'skill-todo-4', text: '确认脚本输出已写入 SKILL.md', status: 'pending' },
-      { id: 'skill-todo-5', text: '生成 evals/evals.json', status: 'pending' },
-      { id: 'skill-todo-6', text: '生成 references/api-contracts.md', status: 'pending' },
-      { id: 'skill-todo-7', text: '生成 references/call-chain.md', status: 'pending' },
-      { id: 'skill-todo-8', text: '生成 references/field-rules.md', status: 'pending' },
-      { id: 'skill-todo-9', text: '最终校验所有必需产物', status: 'pending' }
-    ]
-  }
+function resizeClarifyInput() {
+  const input = clarifyInputEl.value
+  if (!input) return
+  input.style.height = 'auto'
+  const style = window.getComputedStyle(input)
+  const lineHeight = Number.parseFloat(style.lineHeight) || 20
+  const verticalPadding = Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom)
+  const maxHeight = Math.ceil(lineHeight * 4 + verticalPadding)
+  const nextHeight = Math.min(input.scrollHeight, maxHeight)
+  input.style.height = `${nextHeight}px`
+  input.style.overflowY = input.scrollHeight > maxHeight + 1 ? 'auto' : 'hidden'
 }
 
 function handleClarifyAuth(action: 'approve' | 'reject', command: string) {
@@ -800,15 +1297,17 @@ function refreshSummary() {
   summaryRefreshing.value = true
   const userTurns = clarifyMessages.value.filter(message => message.kind === 'user').length
   window.setTimeout(() => {
+    const facts = inferSkillClarifyFacts(getClarifyHistory())
+    const latestDoc = [...clarifyMessages.value]
+      .reverse()
+      .find((message): message is Extract<ChatMessage, { kind: 'assistant' }> => message.kind === 'assistant' && Boolean(message.clarifyDoc))
+      ?.clarifyDoc
+    const pending = latestDoc ? extractPendingClarifyItems(latestDoc) : facts.missingElementLabels
     summaryItems.value = [
-      { label: '基本信息', text: `name: ${form.value.name}；中文命名：${form.value.cnName}；版本：1.0.0；已基于 ${userTurns} 轮自然语言澄清更新。` },
-      { label: '触发场景', text: '自然语言查询、日报/周报/月报、待审核积压提醒、认证方式失败率异常提醒。' },
-      { label: '文件结构', text: '生成 skill.yaml、business_rules.md、test_cases.json、sample_queries.md；附件材料只作为需求和字段依据。' },
-      { label: '输出格式', text: '默认先返回 direct_response 文本结论，再返回 display_info 表格明细；允许提供 link_list 脱敏 CSV 下载。' },
-      { label: '测试用例方向', text: '认证方式分布、失败原因 TopN、待审核积压、单企业明细、个税认证趋势、异常输入兜底。' },
-      { label: '评估重点', text: '数据准确性、查询解析正确性、输出格式合规性、权限与脱敏可靠性、定时任务稳定性。' },
-      { label: '复杂度', text: 'medium；只读分析为主，涉及多字段过滤、聚合统计、脱敏导出和异常提醒。' },
-      { label: 'Phoenix 输出', text: '使用 direct_response + display_info + link_list，不触发认证状态修改动作。' }
+      { label: '当前 Skill', text: `name: ${form.value.name || '待补充'}；中文命名：${form.value.cnName || '待补充'}；已基于 ${userTurns} 轮自然语言澄清更新。` },
+      { label: '已确认', text: facts.confirmedElementLabels.length ? facts.confirmedElementLabels.join('、') : '尚未从对话中确认新的九要素信息。' },
+      { label: '待确认', text: pending.length ? pending.join('；') : '关键创建信息已基本收敛。' },
+      { label: '下一步', text: facts.readyForDraft ? '可进入草稿生成，并在草稿中固化能力定义、输入输出、执行边界和验收用例。' : '继续按自然语言补充待确认项。' }
     ]
     const now = new Date()
     summaryUpdated.value = `已刷新 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
@@ -830,11 +1329,353 @@ function startAiTune() {
   aiTuning.value = true
   aiStore.toggleOpen(true)
   aiStore.messages.push({ role: 'user', text: '请针对 Skill 创建评估验证中的可优化项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。', at: new Date().toISOString() })
-  aiStore.messages.push({ role: 'assistant', text: ['已定位 2 个可优化项，并完成 Skill 微调：', '', '- 将认证数据查询流程拆成「参数确认 → 数据读取 → 异常兜底 → 结果生成 → 高风险动作确认」。', '- 补充导出 CSV、定时报告、异常提醒前的确认节点，明确范围、对象、频率和影响。', '- 更新测试用例，覆盖权限不足、企业名称为空、认证数据缺失、失败原因字段异常。', '', '我会把新的评估结果同步回左侧评估验证页。'].join('\n'), at: new Date().toISOString() })
+  aiStore.messages.push({ role: 'assistant', text: ['已定位 2 个可优化项，并完成 Skill 微调：', '', '- 将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。', '- 补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。', '- 更新验收用例，覆盖参照区间正常生成、权限降级、无数据、模糊时间和时间范围无效。', '', '我会把新的评估结果同步回左侧评估验证页。'].join('\n'), at: new Date().toISOString() })
   window.setTimeout(() => {
     aiTuning.value = false
     aiTuned.value = true
   }, 900)
+}
+
+type ParsedApplicationRange = {
+  original: string
+  start: Date
+  end: Date
+  startText: string
+  endText: string
+  dayCount: number
+}
+
+async function runSkillApplication() {
+  if (applicationRunning.value) return
+  applicationError.value = ''
+  applicationReport.value = null
+  const prompt = applicationPrompt.value.trim()
+  if (!prompt) {
+    applicationError.value = '请输入包含时间范围的自然语言提示词。'
+    return
+  }
+  const parsed = parseApplicationDateRange(prompt)
+  if ('error' in parsed) {
+    applicationError.value = parsed.error
+    return
+  }
+  applicationRunning.value = true
+  await new Promise(resolve => window.setTimeout(resolve, 560))
+  applicationReport.value = buildApplicationReport(prompt, parsed)
+  applicationRunning.value = false
+  workspaceSub.value = `${form.value.cnName} · Skill 应用验证完成 · ${parsed.startText} ~ ${parsed.endText}`
+}
+
+function openApplicationReport() {
+  const report = applicationReport.value
+  if (!report) return
+  appStore.openTempTab({
+    id: `skill_application_${Date.now()}`,
+    title: `${report.skillCnName} · ${report.dateStart} 至 ${report.dateEnd}`,
+    sourcePage: 'agent.skillCreate',
+    sourcePageLabel: '评估验证',
+    groupLabel: 'Skill 创建',
+    summary: `已按提示词时间生成认证与转化综合简报，覆盖数据真实性、核心 KPI、趋势、时段、画像、Top10 商品和行动建议。`,
+    chips: ['Skill 应用', '认证转化', report.dateStart, report.dateEnd],
+    content: buildApplicationReportMarkdown(report),
+    reportData: report,
+    createdAt: new Date().toISOString()
+  })
+}
+
+function parseApplicationDateRange(prompt: string): ParsedApplicationRange | { error: string } {
+  const today = startOfLocalDay(new Date())
+  const explicitDates = Array.from(prompt.matchAll(/(?:(\d{4})[年/.\-])?(\d{1,2})(?:月|[/.\-])(\d{1,2})日?/g))
+    .map(match => ({
+      year: match[1] ? Number(match[1]) : 0,
+      month: Number(match[2]),
+      day: Number(match[3]),
+      raw: match[0]
+    }))
+    .filter(item => item.month >= 1 && item.month <= 12 && item.day >= 1 && item.day <= 31)
+
+  let start: Date | null = null
+  let end: Date | null = null
+
+  if (explicitDates.length >= 2) {
+    const first = explicitDates[0]
+    const second = explicitDates[1]
+    const firstYear = first.year || today.getFullYear()
+    let secondYear = second.year || firstYear
+    start = makeLocalDate(firstYear, first.month, first.day)
+    end = makeLocalDate(secondYear, second.month, second.day)
+    if (!second.year && end < start) {
+      secondYear += 1
+      end = makeLocalDate(secondYear, second.month, second.day)
+    }
+  } else if (explicitDates.length === 1 && /(?:到|至|截止|截至)\s*(?:今天|今日)/.test(prompt)) {
+    const item = explicitDates[0]
+    start = makeLocalDate(item.year || today.getFullYear(), item.month, item.day)
+    end = today
+  } else {
+    const recentDays = prompt.match(/(?:最近|近)\s*(\d+|一|二|两|三|四|五|六|七|八|九|十|半个)\s*(?:天|日)/)
+    const recentWeeks = prompt.match(/(?:最近|近)\s*(\d+|一|二|两|三|四|五|六|七|八|九|十)\s*(?:周|星期)/)
+    if (recentDays) {
+      const days = recentDays[1] === '半个' ? 15 : parseNaturalNumber(recentDays[1])
+      end = today
+      start = addLocalDays(today, -(Math.max(days, 1) - 1))
+    } else if (recentWeeks) {
+      const days = Math.max(parseNaturalNumber(recentWeeks[1]), 1) * 7
+      end = today
+      start = addLocalDays(today, -(days - 1))
+    } else if (/上周|上个星期/.test(prompt)) {
+      const currentMonday = addLocalDays(today, -((today.getDay() + 6) % 7))
+      start = addLocalDays(currentMonday, -7)
+      end = addLocalDays(currentMonday, -1)
+    } else if (/本周|这周|这个星期/.test(prompt)) {
+      start = addLocalDays(today, -((today.getDay() + 6) % 7))
+      end = today
+    } else if (/上月|上个月/.test(prompt)) {
+      start = makeLocalDate(today.getFullYear(), today.getMonth(), 1)
+      end = addLocalDays(makeLocalDate(today.getFullYear(), today.getMonth() + 1, 1), -1)
+    } else if (/本月|这个月/.test(prompt)) {
+      start = makeLocalDate(today.getFullYear(), today.getMonth() + 1, 1)
+      end = today
+    } else if (/最近一个月|近一个月/.test(prompt)) {
+      end = today
+      start = addLocalDays(today, -29)
+    } else if (/昨天|昨日/.test(prompt)) {
+      start = addLocalDays(today, -1)
+      end = start
+    } else if (/今天|今日/.test(prompt)) {
+      start = today
+      end = today
+    }
+  }
+
+  if (!start || !end || !isValidLocalDate(start) || !isValidLocalDate(end)) {
+    return { error: '未识别到可执行的时间范围。请使用“5/27 到 6/8”“最近两周”或“上周”等表达。' }
+  }
+  if (end < start) {
+    return { error: `时间范围无效：结束日期（${formatDate(end)}）早于开始日期（${formatDate(start)}）。请重新输入起止日期。` }
+  }
+  const dayCount = inclusiveDayCount(start, end)
+  if (dayCount > 92) {
+    return { error: `时间范围超过 92 天上限（当前：${dayCount} 天）。请缩小区间后重试。` }
+  }
+  return {
+    original: prompt,
+    start,
+    end,
+    startText: formatDate(start),
+    endText: formatDate(end),
+    dayCount
+  }
+}
+
+function buildApplicationReport(prompt: string, range: ParsedApplicationRange): SkillApplicationReportData {
+  const isReferenceRange = range.startText === '2026-05-27' && range.endText === '2026-06-08'
+  const seed = Number(`${range.startText}${range.endText}`.replace(/\D/g, '').slice(-8)) || 1
+  const scale = range.dayCount / 13
+  const uniqueUsers = isReferenceRange
+    ? 861
+    : Math.max(1, Math.round(861 * scale * (0.92 + (seed % 17) / 100)))
+  const conversionRate = isReferenceRange ? 56 : Number((54.5 + (seed % 36) / 10).toFixed(1))
+  const purchasedUsers = isReferenceRange ? 482 : Math.max(0, Math.round(uniqueUsers * conversionRate / 100))
+  const orderCount = isReferenceRange ? 536 : Math.max(purchasedUsers, Math.round(purchasedUsers * 1.112))
+  const averageOrderValue = isReferenceRange ? 7925 : 7600 + (seed % 701)
+  const totalGmv = isReferenceRange ? 4247310 : orderCount * averageOrderValue
+  const duplicateRecords = isReferenceRange ? 71 : Math.max(0, Math.round(uniqueUsers * 0.082))
+  const duplicateUsers = isReferenceRange ? 59 : Math.max(0, Math.round(duplicateRecords * 0.83))
+  const rawRecords = isReferenceRange ? 888 : uniqueUsers + Math.max(1, Math.round(uniqueUsers * 0.031))
+  const unpurchasedUsers = Math.max(uniqueUsers - purchasedUsers, 0)
+  const dailyTrend = buildDailyTrend(range, uniqueUsers, seed, isReferenceRange)
+  const peak = dailyTrend.reduce((best, item) => item.value > best.value ? item : best, dailyTrend[0])
+  const timeBuckets = buildTimeBuckets(uniqueUsers, isReferenceRange)
+  const methods = buildBreakdown([
+    ['其他材料', 629],
+    ['个税视频', 102],
+    ['在职证明', 73],
+    ['社保材料', 57]
+  ], uniqueUsers, 861)
+  const industries = buildBreakdown([
+    ['房地产业', 101], ['制造业', 84], ['信息技术服务', 73], ['批发和零售业', 65], ['金融业', 58],
+    ['教育', 52], ['建筑业', 44], ['交通运输', 39], ['商务服务', 34], ['其他行业', 29]
+  ], uniqueUsers, 861)
+  const roles = buildBreakdown([
+    ['管理层', 335], ['工程师', 136], ['运营', 90], ['销售', 72], ['客户服务', 52],
+    ['财务', 48], ['人力资源', 44], ['采购', 39], ['其他岗位', 45]
+  ], uniqueUsers, 861)
+  const products = buildProductBreakdown(purchasedUsers)
+  const generatedAt = formatBeijingTime(new Date())
+  const lastDay = dailyTrend[dailyTrend.length - 1]
+
+  return {
+    skillName: form.value.name,
+    skillCnName: form.value.cnName,
+    prompt,
+    parsedTimeText: `已将「${prompt}」解析为 ${range.startText} ~ ${range.endText}，按此区间生成简报。`,
+    dateStart: range.startText,
+    dateEnd: range.endText,
+    dayCount: range.dayCount,
+    generatedAt,
+    truth: { rawRecords, duplicateRecords, duplicateUsers, uniqueUsers },
+    metrics: [
+      { label: '已认证独立用户', value: formatNumber(uniqueUsers), note: `${range.dayCount} 天累计`, tone: 'blue' },
+      { label: '已购用户', value: formatNumber(purchasedUsers), note: `${formatNumber(orderCount)} 笔支付订单`, tone: 'green' },
+      { label: '认证购买转化率', value: `${conversionRate.toFixed(1)}%`, note: '已购用户 ÷ 已认证独立用户', tone: 'green' },
+      { label: '总 GMV', value: `¥${formatNumber(totalGmv)}`, note: 'SMB 渠道支付成功订单', tone: 'blue' },
+      { label: '平均客单价', value: `¥${formatNumber(averageOrderValue)}`, note: '总 GMV ÷ 订单笔数', tone: 'neutral' },
+      { label: '认证未购池', value: formatNumber(unpurchasedUsers), note: '可用于后续召回圈选', tone: 'orange' }
+    ],
+    insights: [
+      { title: `${formatNumber(uniqueUsers)} 名独立认证用户，购买转化率 ${conversionRate.toFixed(1)}%`, evidence: [`原始 ${formatNumber(rawRecords)} 条记录按 LenovoID 去重`, `${formatNumber(purchasedUsers)} 人完成购买，${formatNumber(unpurchasedUsers)} 人仍未购`] },
+      { title: `${peak.label} 为区间认证峰值`, evidence: [`当日新增 ${formatNumber(peak.value)} 人`, `${lastDay.label} 新增 ${formatNumber(lastDay.value)} 人`] },
+      { title: '下午 14-18 时是认证主力窗口', evidence: [`${timeBuckets[4].value} 人，占 ${timeBuckets[4].share}`, `14-22 时合计 ${timeBuckets[4].value + timeBuckets[5].value} 人`] },
+      { title: '其他材料是主要认证方式', evidence: [`${methods[0].value} 人，占 ${methods[0].share}`, '适合优先优化材料识别与审核说明'] },
+      { title: '房地产业认证人数居首', evidence: [`${industries[0].value} 人，占 ${industries[0].share}`, '可继续下钻行业转化与商品偏好'] },
+      { title: `${products[0].label} 为区间 Top1 商品`, evidence: [`${products[0].value} 名已购用户购买`, `占已购用户 ${products[0].share}`] },
+      { title: '围绕未购池、爆款和主力时段组织后续动作', evidence: [`召回 ${formatNumber(unpurchasedUsers)} 名认证未购用户`, `聚焦 14-18 与 18-22 时段`, '下钻重点行业和岗位大类'], action: true }
+    ],
+    dailyTrend,
+    timeBuckets,
+    methods,
+    industries,
+    roles,
+    products,
+    actions: [
+      `行动指引：圈选 ${formatNumber(unpurchasedUsers)} 名认证未购用户，形成召回池；本 Skill 只输出范围，不执行触达。`,
+      `行动指引：主推 ${products[0].label}，当前覆盖 ${products[0].share} 的已购用户。`,
+      `行动指引：运营触达优先安排在 14-18 与 18-22 时段。`,
+      `行动指引：优先下钻房地产业和管理层人群的购买偏好。`,
+      '行动指引：导出明细前展示行数、字段和脱敏方式，并等待用户确认。'
+    ],
+    sources: ['联想职场认证系统', 'SMB 电商渠道'],
+    notes: ['数据按 LenovoID 去重', '不含 B4 企业相关分析', '当前为 Skill 应用验证结果']
+  }
+}
+
+function buildDailyTrend(range: ParsedApplicationRange, total: number, seed: number, exact: boolean) {
+  const exactValues = [52, 61, 79, 134, 82, 47, 54, 56, 64, 57, 51, 59, 65]
+  const dates = Array.from({ length: range.dayCount }, (_, index) => addLocalDays(range.start, index))
+  if (exact && dates.length === exactValues.length) {
+    return dates.map((date, index) => ({ date: formatDate(date), label: formatShortDate(date), value: exactValues[index] }))
+  }
+  const weights = dates.map((date, index) => {
+    const weekdayBoost = [0.82, 1.04, 1.12, 1.18, 1.1, 1.02, 0.76][date.getDay()]
+    return weekdayBoost * (0.88 + ((seed + index * 7) % 23) / 50)
+  })
+  const weightTotal = weights.reduce((sum, value) => sum + value, 0)
+  const values = weights.map(value => Math.max(0, Math.floor(total * value / weightTotal)))
+  let remainder = total - values.reduce((sum, value) => sum + value, 0)
+  for (let index = 0; remainder > 0; index = (index + 1) % values.length) {
+    values[index] += 1
+    remainder -= 1
+  }
+  return dates.map((date, index) => ({ date: formatDate(date), label: formatShortDate(date), value: values[index] }))
+}
+
+function buildTimeBuckets(uniqueUsers: number, exact: boolean): SkillApplicationBreakdown[] {
+  const labels = ['凌晨 00-06', '早高峰 06-09', '上午 09-12', '午间 12-14', '下午 14-18', '晚间 18-22', '深夜 22-24']
+  const exactValues = [24, 65, 118, 101, 255, 203, 51]
+  const shares = [2.9, 8, 14.4, 12.4, 31.2, 24.8, 6.3]
+  const available = exact ? 817 : Math.max(1, Math.round(uniqueUsers * 0.95))
+  return labels.map((label, index) => ({
+    label,
+    value: exact ? exactValues[index] : Math.round(available * shares[index] / 100),
+    share: `${shares[index].toFixed(1)}%`
+  }))
+}
+
+function buildBreakdown(entries: Array<[string, number]>, total: number, baseTotal: number): SkillApplicationBreakdown[] {
+  return entries.map(([label, base]) => {
+    const value = Math.max(0, Math.round(base * total / baseTotal))
+    return { label, value, share: total ? `${(value / total * 100).toFixed(1)}%` : '0.0%' }
+  })
+}
+
+function buildProductBreakdown(purchasedUsers: number): SkillApplicationBreakdown[] {
+  const products: Array<[string, number]> = [
+    ['ThinkBook 14+ Ultra 5 06CD', 133],
+    ['ThinkPad X1 Carbon', 92],
+    ['小新 Pro 14', 76],
+    ['ThinkBook 16+', 61],
+    ['拯救者 Y7000P', 54],
+    ['ThinkPad T14', 46],
+    ['小新 Air 14', 39],
+    ['联想异能者台式机', 33],
+    ['ThinkVision 显示器', 29],
+    ['联想办公配件套装', 24]
+  ]
+  return products.map(([label, base]) => {
+    const value = Math.max(0, Math.round(base * purchasedUsers / 482))
+    return { label, value, share: purchasedUsers ? `${(value / purchasedUsers * 100).toFixed(1)}%` : '0.0%' }
+  })
+}
+
+function buildApplicationReportMarkdown(report: SkillApplicationReportData) {
+  return [
+    `# ${report.skillCnName}`,
+    report.parsedTimeText,
+    '',
+    '## 数据真实性说明',
+    `- 原始 ${report.truth.rawRecords} 条，重复 ${report.truth.duplicateRecords} 条，去重后 ${report.truth.uniqueUsers} 名独立用户。`,
+    '',
+    '## 核心指标',
+    ...report.metrics.map(item => `- ${item.label}：${item.value}（${item.note}）`),
+    '',
+    '## 可落地动作',
+    ...report.actions.map(item => `- ${item}`)
+  ].join('\n')
+}
+
+function startOfLocalDay(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0)
+}
+
+function makeLocalDate(year: number, month: number, day: number) {
+  return new Date(year, month - 1, day, 12, 0, 0, 0)
+}
+
+function addLocalDays(value: Date, days: number) {
+  const next = new Date(value)
+  next.setDate(next.getDate() + days)
+  return next
+}
+
+function isValidLocalDate(value: Date) {
+  return Number.isFinite(value.getTime())
+}
+
+function inclusiveDayCount(start: Date, end: Date) {
+  const startUtc = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())
+  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate())
+  return Math.floor((endUtc - startUtc) / 86400000) + 1
+}
+
+function parseNaturalNumber(value: string) {
+  if (/^\d+$/.test(value)) return Number(value)
+  return ({ 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 } as Record<string, number>)[value] || 1
+}
+
+function formatDate(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
+}
+
+function formatShortDate(value: Date) {
+  return `${String(value.getMonth() + 1).padStart(2, '0')}/${String(value.getDate()).padStart(2, '0')}`
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat('zh-CN').format(value)
+}
+
+function formatBeijingTime(value: Date) {
+  return new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(value).replace(/\//g, '-')
 }
 
 function submitReview() {
@@ -842,9 +1683,19 @@ function submitReview() {
     toast(`${form.value.name}：已在审核中，可前往 Skill Hub 查看`)
     return
   }
+  const score = aiTuned.value ? '0.859' : '0.782'
+  skillHubStore.upsertSubmittedSkill({
+    name: form.value.name,
+    cnName: form.value.cnName,
+    desc: form.value.scene,
+    category: form.value.menu,
+    owner: appStore.user || 'admin',
+    score,
+    tags: selectedContextItems.value.slice(0, 3).map(item => item.name)
+  })
   reviewSubmitted.value = true
   reviewStatus.value = '已提交审核，当前 Skill Hub 状态为待审批'
-  toast(`${form.value.name}：已提交审核，等待管理员审批`)
+  toast(`${form.value.name}：已提交审核，已同步到 Skill Hub 待审批列表`)
 }
 
 function stateStatus(status: StateStatus) {
@@ -909,6 +1760,11 @@ function loadEditDraftFromQuery() {
   const skill = String(route.query.skill || '')
   if (!skill) return
   const knownDrafts: Record<string, { name: string; cnName: string; desc: string }> = {
+    'presentation-employee-cert': {
+      name: EMPLOYEE_CERT_SKILL.name,
+      cnName: EMPLOYEE_CERT_SKILL.cnName,
+      desc: EMPLOYEE_CERT_SKILL.scene
+    },
     'workplace-employee-review-analysis': {
       name: 'workplace-employee-review-analysis',
       cnName: '职场员工审核数据分析',
@@ -951,6 +1807,7 @@ onMounted(() => {
   appStore.ensureStaticTab('agent.skillCreate')
   appStore.setActiveStaticTab('agent.skillCreate')
   document.title = 'Skill 创建 - 乐享 AI 工作台'
+  resizeClarifyInput()
 })
 </script>
 
@@ -1200,6 +2057,259 @@ onMounted(() => {
   border: 1px solid rgba(239, 68, 68, .5);
   background: #fff;
   color: #d92d20;
+}
+
+.skill-clarify-doc {
+  min-width: min(520px, 100%);
+  display: grid;
+  gap: 14px;
+  color: var(--color-text, #1f2329);
+}
+
+.skill-clarify-doc-rule {
+  height: 3px;
+  background: #d5dbe4;
+}
+
+.skill-clarify-doc-rule.bottom {
+  height: 2px;
+  margin-top: 2px;
+}
+
+.skill-clarify-doc h3 {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #dfe3ea;
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.skill-clarify-doc section {
+  display: grid;
+  gap: 8px;
+}
+
+.skill-clarify-doc h4 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.skill-clarify-doc p {
+  margin: 0;
+  color: var(--color-text, #1f2329);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.skill-clarify-doc ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.skill-clarify-doc li {
+  color: var(--color-text, #1f2329);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.skill-clarify-doc-closing {
+  padding-top: 2px;
+}
+
+.skill-chat-ai:has(.skill-clarify-doc) {
+  width: min(620px, 92%);
+  max-width: 92%;
+}
+
+.skill-application-validation {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--border, #dfe3eb);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.skill-application-validation-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.skill-application-validation-head b {
+  display: block;
+  color: var(--text, #1f2329);
+  font-size: 14px;
+}
+
+.skill-application-validation-head p {
+  margin: 4px 0 0;
+  color: var(--text-secondary, #8f959e);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.skill-application-validation-head > span {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: #edf3ff;
+  color: var(--primary, #3370ff);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.skill-application-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.skill-application-composer textarea {
+  min-height: 52px;
+  max-height: 94px;
+  resize: vertical;
+  padding: 9px 11px;
+  border: 1px solid #d8dde6;
+  border-radius: 7px;
+  outline: none;
+  color: var(--text, #1f2329);
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.skill-application-composer textarea:focus {
+  border-color: #7aa2ff;
+  box-shadow: 0 0 0 2px rgba(51, 112, 255, .1);
+}
+
+.skill-application-composer .btn {
+  min-width: 92px;
+  height: auto;
+}
+
+.skill-application-error {
+  margin: 8px 0 0;
+  color: #d92d20;
+  font-size: 11px;
+}
+
+.skill-application-result-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) minmax(220px, .65fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid #bcd2ff;
+  border-radius: 8px;
+  background: #f7f9ff;
+}
+
+.skill-application-result-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  background: #e8efff;
+  color: var(--primary, #3370ff);
+}
+
+.skill-application-result-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.skill-application-result-main,
+.skill-application-result-summary {
+  min-width: 0;
+}
+
+.skill-application-result-main > span,
+.skill-application-result-summary > span {
+  color: var(--primary, #3370ff);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.skill-application-result-main > b,
+.skill-application-result-summary > b {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--text, #1f2329);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skill-application-result-main > p,
+.skill-application-result-summary > p {
+  margin: 4px 0 0;
+  color: var(--text-secondary, #646a73);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.skill-application-result-main > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.skill-application-result-main em {
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #fff;
+  color: #646a73;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.skill-application-result-summary {
+  padding-left: 12px;
+  border-left: 1px solid #dce5f7;
+}
+
+@media (max-width: 1180px) {
+  .skill-application-result-card {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .skill-application-result-summary {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .skill-application-composer,
+  .skill-application-result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-application-result-icon {
+    display: none;
+  }
+
+  .skill-application-result-card .btn {
+    width: 100%;
+  }
 }
 
 @keyframes skill-state-spin {

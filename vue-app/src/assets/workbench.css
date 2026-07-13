@@ -5441,17 +5441,29 @@ html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarif
   grid-column:1;
   grid-row:4;
   grid-template-columns:38px minmax(0, 1fr) 42px;
+  align-items:end;
   padding:6px;
 }
 
 html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-chat-composer textarea {
   box-sizing:border-box;
-  height:38px;
   min-height:38px;
-  max-height:38px;
+  max-height:78px;
   padding:8px 12px;
   line-height:1.4;
-  overflow:hidden;
+  overflow-y:auto;
+  resize:none;
+  scrollbar-width:thin;
+  overscroll-behavior:contain;
+}
+
+html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-chat-composer textarea::-webkit-scrollbar {
+  width:6px;
+}
+
+html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-chat-composer textarea::-webkit-scrollbar-thumb {
+  border-radius:999px;
+  background:rgba(100,106,115,.24);
 }
 
 html[data-product="leaibot"] .skill-create-panel[data-skill-create-panel="clarify"].active .skill-chat-composer button {
