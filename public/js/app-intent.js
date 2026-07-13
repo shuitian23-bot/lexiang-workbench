@@ -122,9 +122,13 @@
     const t = String(text || "").trim();
     if (!t || t.length > 60) return null;
     if (!/(你看着|帮我|随便|你决定|你选)?\s*(选|挑|推荐|来)\s*(一款|一台|个|台)?.*(下单|买了?|购买|拿下)|直接下单吧|帮我搞定/.test(t)) return null;
-    const m = t.match(/(\d{3,6})\s*(元|块|以内|以下|左右)?/);
-    const maxPrice = m ? Number(m[1]) : 0;
-    return { chain: "auto_buy", params: { maxPrice: maxPrice, rawText: t } };
+    // 预算区间：「10000到20000」「1万-2万」按 min~max 双边过滤（之前只取上限，9999 的轻薄本
+    // 混进"10000到20000 玩游戏"的候选，观感翻车）；单值仍按上限处理
+    const rng = t.match(/(\d{3,6})\s*(?:元|块)?\s*[-~—到至]\s*(\d{3,6})/);
+    let minPrice = 0, maxPrice = 0;
+    if (rng) { minPrice = Math.min(Number(rng[1]), Number(rng[2])); maxPrice = Math.max(Number(rng[1]), Number(rng[2])); }
+    else { const m = t.match(/(\d{3,6})\s*(元|块|以内|以下|左右)?/); maxPrice = m ? Number(m[1]) : 0; }
+    return { chain: "auto_buy", params: { maxPrice: maxPrice, minPrice: minPrice, rawText: t } };
   }
 
   // 系列关键词提取（代买链官方超预算 fallback 用：补本地货盘时按系列词缩小范围，不带 q 就是不限系列）。
@@ -136,10 +140,18 @@
     { re: /小新/, kw: "小新" },
     { re: /yoga/i, kw: "YOGA" },
   ];
+  // 场景关键词（没点名系列时的兜底缩圈）：kw 需匹配数据库商品名写法——游戏本商品名普遍含「游戏」
+  const SCENE_KEYWORDS = [
+    { re: /游戏|电竞|打机|吃鸡|3A/i, kw: "游戏" },
+    { re: /轻薄|便携|出差|随身/, kw: "轻薄" },
+  ];
   function extractSeriesKeyword(text) {
     const t = String(text || "");
     for (let i = 0; i < SERIES_KEYWORDS.length; i++) {
       if (SERIES_KEYWORDS[i].re.test(t)) return SERIES_KEYWORDS[i].kw;
+    }
+    for (let i = 0; i < SCENE_KEYWORDS.length; i++) {
+      if (SCENE_KEYWORDS[i].re.test(t)) return SCENE_KEYWORDS[i].kw;
     }
     return "";
   }

@@ -151,6 +151,19 @@ if (!window.__lxCreateTypewriter) {
           addAiMessage: (html) => addMessage("ai", "", html),
           lxRevealContent, getState: () => state,
           lxResolveRecommendedProduct,
+          // 正文视觉稳定信号：最后一条 AI 消息 1.5s 内容不再变化且不在 loading 态（通吃官方流/
+          // 火山兜底流/打字动画）。代买链数据到位后等这个再推进，否则「上面还在输出、下面已领券」
+          waitAnswerSettled: () => new Promise((resolve) => {
+            let last = ""; let still = 0; const t0 = Date.now();
+            const timer = setInterval(() => {
+              const ais = document.querySelectorAll(".lx-p0-messages .lx-p0-message.ai");
+              const el = ais[ais.length - 1];
+              const loading = el && (el.classList.contains("loading") || el.querySelector(".loading-line"));
+              const snap = el ? `${(el._raw || "").length}:${el.querySelectorAll("*").length}` : "";
+              if (!loading && snap === last) still += 1; else { still = 0; last = snap; }
+              if (still >= 3 || Date.now() - t0 > 60000) { clearInterval(timer); resolve(); }
+            }, 500);
+          }),
         };
 
         function lxPrepareRootSplitState() {
@@ -2467,13 +2480,14 @@ function openOrderDetail(orderId) {
             // 链自己按预算落地或走本地货盘 fallback，绝不会因为这里提前 return 而卡死等不到结果。
             let _resolveOfficial, _rejectOfficial;
             const _officialWait = new Promise((resolve, reject) => { _resolveOfficial = resolve; _rejectOfficial = reject; });
-            const _officialTimeoutId = setTimeout(() => { try { _rejectOfficial(new Error("官方 SKILL 响应超时")); } catch (_e) {} }, 50000);
+            // 75s：官方 session 失效时是 假done(~10s)+火山兜底流(30-45s) 两段,50s 会在兜底跑一半时误判超时
+            const _officialTimeoutId = setTimeout(() => { try { _rejectOfficial(new Error("官方 SKILL 响应超时")); } catch (_e) {} }, 75000);
             state._autoBuyPending = {
               maxPrice: _autoBuy.params.maxPrice || 0,
               promise: _officialWait, resolve: _resolveOfficial, reject: _rejectOfficial, timeoutId: _officialTimeoutId,
             };
             if (window.__lxRunChain) {
-              window.__lxRunChain("auto_buy_official", { maxPrice: _autoBuy.params.maxPrice || 0, officialWait: _officialWait, rawText: text });
+              window.__lxRunChain("auto_buy_official", { maxPrice: _autoBuy.params.maxPrice || 0, minPrice: _autoBuy.params.minPrice || 0, officialWait: _officialWait, rawText: text });
             }
           }
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
@@ -2962,9 +2976,16 @@ function openOrderDetail(orderId) {
                 // 官方推荐到位，resolve 交给链自己去接管「对比→选款→下单」（件2：链前置）
                 if (state._autoBuyPending) {
                   const _pendingBuy = state._autoBuyPending;
-                  state._autoBuyPending = null;
-                  clearTimeout(_pendingBuy.timeoutId);
-                  _pendingBuy.resolve(_turnProducts.slice());
+                  // 官方 session 失效走兜底时，后端在 fallback 事件后紧跟一个「假 done」（此刻火山
+                  // 兜底流才刚起步，_turnProducts 必空）——跳过这一次，等兜底流的真 done 带着它
+                  // 收集到的商品来 resolve；否则链 10s 就拿空结果去翻本地货盘，和正文推荐两张皮（真机反馈）
+                  if (state._fallbackFired && !_pendingBuy._skippedFakeDone) {
+                    _pendingBuy._skippedFakeDone = true;
+                  } else {
+                    state._autoBuyPending = null;
+                    clearTimeout(_pendingBuy.timeoutId);
+                    _pendingBuy.resolve(_turnProducts.slice());
+                  }
                 }
               },
               fallback: async () => {

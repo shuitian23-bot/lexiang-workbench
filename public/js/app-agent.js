@@ -116,6 +116,9 @@
         label: "调用联想乐享官方 SKILL",
         async run(ctx, api, stepState, refresh) {
           const maxPrice = Number(ctx.params.maxPrice) || 0;
+          const minPrice = Number(ctx.params.minPrice) || 0;
+          const budgetLabel = minPrice ? `¥${minPrice}~${maxPrice || "不限"}` : `¥${maxPrice || "不限"}`;
+          const inBudget = (p) => { const pr = Number(p.price); return pr > 0 && (!maxPrice || pr <= maxPrice) && (!minPrice || pr >= minPrice); };
           stepState.detail = "等待官方推荐结果…";
           if (typeof refresh === "function") refresh();
 
@@ -124,15 +127,20 @@
           try {
             const waited = await ctx.params.officialWait;
             officialProducts = Array.isArray(waited) ? waited : [];
+            // 数据到位 ≠ 视觉到位：正文打字动画/商品卡可能还在渲染。等回答展示稳定再推进，
+            // 否则「上面还在输出、下面已开始领券」两线打架（真机反馈）
+            stepState.detail = "官方推荐已返回，等待回答展示完成…";
+            if (typeof refresh === "function") refresh();
+            if (typeof api.waitAnswerSettled === "function") await api.waitAnswerSettled();
           } catch (_e) {
             officialFailReason = "官方超时，已切换乐享自营货盘";
           }
 
           // 阶梯 1：官方推荐里直接有预算内候选，最优路径
-          let candidates = officialProducts.filter((p) => Number(p.price) > 0 && (!maxPrice || Number(p.price) <= maxPrice));
+          let candidates = officialProducts.filter(inBudget);
           if (candidates.length) {
             ctx.candidates = candidates;
-            stepState.detail = `官方推荐 ${officialProducts.length} 款，预算 ¥${maxPrice || "不限"} 内 ${candidates.length} 款`;
+            stepState.detail = `官方推荐 ${officialProducts.length} 款，预算 ${budgetLabel} 内 ${candidates.length} 款`;
             return;
           }
 
@@ -149,13 +157,13 @@
             }
           } catch (_e) { /* 网络异常，localPool 留空，走阶梯3/4兜底 */ }
 
-          const localCandidates = localPool.filter((p) => Number(p.price) > 0 && (!maxPrice || Number(p.price) <= maxPrice));
+          const localCandidates = localPool.filter(inBudget);
           if (localCandidates.length) {
             ctx.candidates = localCandidates;
             stepState.detail = officialFailReason
-              ? `${officialFailReason}，预算 ¥${maxPrice || "不限"} 内找到 ${localCandidates.length} 款`
+              ? `${officialFailReason}，预算 ${budgetLabel} 内找到 ${localCandidates.length} 款`
               : officialProducts.length
-                ? `官方 ${officialProducts.length} 款均超预算 ¥${maxPrice}，已从乐享自营货盘补充预算内 ${localCandidates.length} 款`
+                ? `官方 ${officialProducts.length} 款均不在预算 ${budgetLabel} 内，已从乐享自营货盘补充 ${localCandidates.length} 款`
                 : `官方暂未返回商品，已从乐享自营货盘找到预算内 ${localCandidates.length} 款`;
             return;
           }
