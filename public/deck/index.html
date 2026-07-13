@@ -73,6 +73,11 @@
   .quote{border-left:4px solid var(--red);background:var(--card);border-radius:0 14px 14px 0;padding:clamp(12px,2.2vh,20px) clamp(16px,1.8vw,24px);font-size:clamp(13px,2.15vh,18px);color:var(--ink);line-height:1.75;box-shadow:0 2px 10px rgba(61,14,55,.05)}
   .quote b{color:var(--aub)}
   .cols2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.8vw,24px)}
+  /* 总览页：边界与五个方法论视觉分组——独立虚线横幅，不混进卡片网格里像第六项 */
+  .boundary{margin-top:clamp(14px,2.6vh,26px);display:flex;align-items:center;gap:clamp(12px,1.4vw,20px);border:1.5px dashed #c9aed3;background:var(--lav);border-radius:14px;padding:clamp(12px,2.2vh,20px) clamp(16px,1.8vw,26px)}
+  .boundary .pill{flex:none;background:var(--aub);color:#fff}
+  .boundary p{font-size:clamp(12.5px,2vh,17px);color:var(--ink-soft);line-height:1.65}
+  .boundary b{color:var(--aub-dark)}
 </style>
 </head>
 <body>
@@ -126,14 +131,14 @@
   <div class="eyebrow">HOW · 总览</div>
   <h2>五个方法论，一条边界</h2>
   <div class="grow">
-    <div class="cards" style="grid-template-columns:repeat(3,1fr)">
-      <div class="card"><h3><span class="num">1</span>数据驱动定功能</h3><p>六万条真实提问聚类，占比说了算，不抄竞品清单。</p></div>
-      <div class="card"><h3><span class="num">2</span>双通道架构</h3><p>高频确定性指令本地毫秒级执行；复杂意图交给模型。</p></div>
-      <div class="card"><h3><span class="num">3</span>预判用户的预判</h3><p>用户不会开口？引导替他把需求问清楚。</p></div>
-      <div class="card"><h3><span class="num">4</span>对话即操作</h3><p>说话就是操作，AI 说到哪、页面展示到哪。</p></div>
-      <div class="card"><h3><span class="num">5</span>多步任务链</h3><p>一句话走完推荐→对比→选款→下单，过程全可视。</p></div>
-      <div class="card" style="border-style:dashed"><h3><span class="pill">边界</span>刻意不做的</h3><p>政企采购不线上下单（合规转顾问）；关键决策永远留给人。</p></div>
+    <div class="cards" style="grid-template-columns:repeat(6,1fr)">
+      <div class="card" style="grid-column:span 2"><h3><span class="num">1</span>数据驱动定功能</h3><p>六万条真实提问聚类，占比说了算，不抄竞品清单。</p></div>
+      <div class="card" style="grid-column:span 2"><h3><span class="num">2</span>双通道架构</h3><p>高频确定性指令本地毫秒级执行；复杂意图交给模型。</p></div>
+      <div class="card" style="grid-column:span 2"><h3><span class="num">3</span>预判用户的预判</h3><p>用户不会开口？引导替他把需求问清楚。</p></div>
+      <div class="card" style="grid-column:span 3"><h3><span class="num">4</span>对话即操作</h3><p>说话就是操作，AI 说到哪、页面展示到哪。</p></div>
+      <div class="card" style="grid-column:span 3"><h3><span class="num">5</span>多步任务链</h3><p>一句话走完推荐→对比→选款→下单，过程全可视。</p></div>
     </div>
+    <div class="boundary"><span class="pill">一条边界</span><p><b>刻意不做的：</b>政企采购不线上下单（合规转顾问对接）；支付等关键决策永远留给人确认。</p></div>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
 </section>
