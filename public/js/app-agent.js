@@ -30,7 +30,7 @@
   }
   function delay(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
-  const STEP_DELAY_MS = 1100; // 两步之间的节奏，900~1400ms 区间取值，让人看清每步
+  const STEP_DELAY_MS = 1600; // 两步之间的节奏，让人看清每步（真机反馈 1100 偏赶）
 
   // 复用 main.css 已有的 .lx-op-steps/.lx-op-step/.lx-op-step-ic/.lx-op-spin（lxBuyWithIntro 同款），
   // 不重复定义那套规则；本文件只加链标题栏和步骤详情行两个新 class，避免规则打架。
@@ -199,13 +199,19 @@
       },
       {
         label: "智能选款 SKILL",
-        async run(ctx, api, stepState) {
-          // 优先取对比页「乐享最推荐」AI 建议（compare-advice 是异步接口，这时可能还没算出来，
-          // 没有就兜底取候选里第一款——官方 display 事件本身通常已按推荐度排序）
+        async run(ctx, api, stepState, refresh) {
+          // 对比页停留 5s：①让人看清对比表和差异高亮（真机反馈"一闪就到详情页"）；
+          // ②compare-advice 是异步接口，多等这几秒「乐享最推荐」大概率已算出并高亮，选款更准
+          stepState.detail = "正在阅读对比结果与 AI 建议…";
+          if (typeof refresh === "function") refresh();
+          await delay(5000);
           const picked = (typeof api.lxResolveRecommendedProduct === "function" && api.lxResolveRecommendedProduct()) || ctx.candidates[0];
           ctx.picked = picked;
           stepState.detail = `选中「${picked.name}」，¥${picked.price}`;
+          if (typeof refresh === "function") refresh();
           if (picked.sku) await api.openProduct(picked.sku);
+          // 商详页也留 2.5s 再进下单，节奏可跟
+          await delay(2500);
         },
       },
       {
