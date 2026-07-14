@@ -23,6 +23,8 @@
       html.lx-root-lxfd-prepaint .lxfd-actions .lxfd-ic:first-child{display:none!important}
       /* 首页(URL=/)首帧就藏导航里重复的「首页」项，不等 app.js 的 sync 跑（防 FOUC 闪变） */
       html.lx-root-lxfd-prepaint #lxfdNavSheet [data-page="home"]{display:none!important}
+      /* 首页空白态：历史入口驻顶栏右侧（购物车那排）；进对话(body.lxfd-chatting)回左上原位 */
+      html.lx-root-lxfd-prepaint body:not(.lxfd-chatting) .lxfd-rail-fab{left:auto!important;right:166px!important;top:17px!important}
       html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail{transform:translate3d(calc(-100% - 26px),0,0)!important}
       html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail.open{transform:translate3d(0,0,0)!important}
       html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-fab{opacity:1!important;visibility:visible!important;transform:none!important}
