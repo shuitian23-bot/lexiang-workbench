@@ -265,15 +265,32 @@ const kpi = reactive({
   loginDedup: '-', interDedup: '-', loginSub: '选期排重', interSub: '选期排重'
 })
 
+// 选期排重：1天=当日真实；≥30天=末日 loginM/interM（日报滚动30天去重列，真实）；
+// 2~29天=按 1天/30天两个真实端点做幂律插值（估算）；端点异常回退旧固定系数。
+function dedupUsers(rows, total, key, fallback) {
+  const d = rows.length
+  if (d <= 1) return total
+  const m = Number(rows[d - 1]?.[key]) || 0
+  const avg = total / d
+  if (d >= 30 && m > 0) return Math.round(m)
+  if (m > avg && avg > 0) return Math.round(avg * Math.pow(d, Math.log(m / avg) / Math.log(30)))
+  return Math.round(total * fallback)
+}
+
+function dedupLabel(rows) {
+  const d = rows.length
+  return d <= 1 ? '选期排重' : d >= 30 ? '滚动30天排重' : '选期排重·估算'
+}
+
 function updateKpi(summary) {
   kpi.dau = fmtW(summary.dau)
   kpi.mau = fmtW(summary.mau)
   kpi.dauLogin = fmtW(summary.loginAvg)
   kpi.mauLogin = fmtW(summary.loginM)
-  kpi.loginDedup = fmtW(summary.loginDedup)
-  kpi.interDedup = fmtW(summary.interDedup)
-  kpi.loginSub = `选期排重${summary.loginDedupEst ? '·估算' : ''} · 累计 ${fmtW(summary.login)}`
-  kpi.interSub = `选期排重${summary.interDedupEst ? '·估算' : ''} · 累计 ${fmtW(summary.inter)}`
+  kpi.loginDedup = fmtW(dedupUsers(summary.rows, summary.login, 'loginM', 0.72))
+  kpi.interDedup = fmtW(dedupUsers(summary.rows, summary.inter, 'interM', 0.78))
+  kpi.loginSub = `${dedupLabel(summary.rows)} · 累计 ${fmtW(summary.login)}`
+  kpi.interSub = `${dedupLabel(summary.rows)} · 累计 ${fmtW(summary.inter)}`
 }
 
 // ---- 媒体表格行（computed） ----
