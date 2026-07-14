@@ -219,6 +219,8 @@ if (!window.__lxCreateTypewriter) {
             try { localStorage.removeItem(LX_CONV_KEY); } catch (_e) {}
             try { renderQueryHistory(); } catch (_e) {}
           },
+          // 全屏首页空白态顶栏历史入口用：与分屏 .history-button 同一个「历史记录」弹窗
+          openHistoryModal: function() { lxOpenHistoryModal(); },
           // 把 lxfd 收集的消息写进主面板对话列表
           importConversation: function(messages, convId, meta) {
             const list = ensureChat();
@@ -7777,6 +7779,9 @@ function openOrderDetail(orderId) {
             if (convHistoryRow) {
               event.preventDefault();
               lxRestoreConversationRecord(convHistoryRow.dataset.convId || "");
+              // 全屏欢迎态从弹窗点开历史：对话恢复进的是被全屏层盖住的主面板，必须切分屏
+              // 布局才看得见（否则视觉上点了没反应，真机反馈）
+              if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) lxPrepareRootSplitState();
               return;
             }
             if (event.target.closest(".new-chat-button")) {

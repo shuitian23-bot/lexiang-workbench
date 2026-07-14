@@ -790,6 +790,13 @@
     turns = [];
     renderTurnIndex("");
     if (welcome) welcome.style.display = "flex";
+    // 根路径新建对话=回到初始首页态：把 prepaint 标记类加回来（分屏桥接时被摘掉），
+    // 否则整套「空白态」规则失效——topbar 露出、左侧 fab 复现、右上冒出「收起」按钮（真机反馈）
+    if (location.pathname.replace(/\/+$/, "/") === "/") {
+      document.documentElement.classList.add("lx-root-lxfd-prepaint");
+      document.body.classList.remove("lx-home-split", "lxfd-split-entered", "assistant-fullscreen", "lx-auto-fs");
+      window.__LXFD_FORCE = true;
+    }
     lxfdSetGalleryChatting(false);
     if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
     if (window.__lxSyncTopNavTitle) window.__lxSyncTopNavTitle();
@@ -1566,10 +1573,12 @@
       window.lxOpenCommerceEntry?.("orders");
       return;
     }
-    // 首页空白态胶囊里的历史入口（必须在兜底 exitFullscreen 之前拦下）
+    // 首页空白态胶囊里的历史入口（必须在兜底 exitFullscreen 之前拦下）：
+    // 开「历史记录」弹窗（与分屏同款），不拉左侧 rail（真机反馈）
     if (button.id === "lxfdTopHistBtn" || label.includes("历史")) {
       e.preventDefault();
-      setRailManual(true);
+      if (window.__lxBridge && typeof window.__lxBridge.openHistoryModal === "function") window.__lxBridge.openHistoryModal();
+      else setRailManual(true);
       return;
     }
     e.preventDefault();
