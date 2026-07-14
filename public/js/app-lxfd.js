@@ -813,6 +813,13 @@
     const recoId = "lxfd-reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
     window.__lxRecoPayloads = window.__lxRecoPayloads || {};
     window.__lxRecoPayloads[recoId] = products;
+    // 同步持久化（与主面板 lxReadRecoPayload 同一 key）：桥接导出的历史恢复后 CTA 仍可取回商品
+    try {
+      const key = "lexiang.recoPayloads.v1";
+      const store = JSON.parse(localStorage.getItem(key) || "[]");
+      store.push({ id: recoId, products: products.slice(0, 8).map((p) => ({ sku: p.sku, name: p.name, price: p.price, image_url: p.image_url || p.image, specs: p.specs, description: (p.description || "").slice(0, 400) })) });
+      localStorage.setItem(key, JSON.stringify(store.slice(-8)));
+    } catch (_e) {}
     const desc = products.length === 1
       ? `${escapeHtml(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
       : `已为你筛选 ${products.length} 款候选商品`;

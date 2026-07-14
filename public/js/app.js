@@ -309,7 +309,26 @@ if (!window.__lxCreateTypewriter) {
           const id = "reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
           window.__lxRecoPayloads = window.__lxRecoPayloads || {};
           window.__lxRecoPayloads[id] = products;
+          // 同步持久化（裁剪字段+只留最近8组）：恢复历史对话后「查看推荐商品」CTA 还能取回
+          // 那一轮的商品——之前只存内存，刷新/恢复后点击静默没反应（真机反馈）
+          try {
+            const key = "lexiang.recoPayloads.v1";
+            const store = JSON.parse(localStorage.getItem(key) || "[]");
+            store.push({ id, products: products.slice(0, 8).map((p) => ({ sku: p.sku, name: p.name, price: p.price, image_url: p.image_url || p.image, specs: p.specs, description: (p.description || "").slice(0, 400) })) });
+            localStorage.setItem(key, JSON.stringify(store.slice(-8)));
+          } catch (_e) {}
           return id;
+        }
+        function lxReadRecoPayload(id) {
+          if (!id) return null;
+          const mem = window.__lxRecoPayloads && window.__lxRecoPayloads[id];
+          if (mem && mem.length) return mem;
+          try {
+            const store = JSON.parse(localStorage.getItem("lexiang.recoPayloads.v1") || "[]");
+            const hit = store.find((row) => row && row.id === id);
+            if (hit && Array.isArray(hit.products) && hit.products.length) return hit.products;
+          } catch (_e) {}
+          return null;
         }
         const imgUrl = (url) => {
           if (!url) return "/assets/product-placeholder.svg";
@@ -2024,8 +2043,10 @@ function openOrderDetail(orderId) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
           const recoId = lxStoreRecoPayload(products);
+          // 单品也带 recoId：官方 sku 在自有库 404，恢复历史后 officialProducts 缓存也空，
+          // 点击时优先用持久化 payload 里的完整商品对象兜底（真机反馈：历史里点 CTA 没反应）
           const action = products.length === 1 && first.sku
-            ? `data-open-product="${esc(first.sku)}"`
+            ? `data-open-product="${esc(first.sku)}" data-lxfd-reco-id="${esc(recoId)}"`
             : `data-lx-focus-reco="1" data-lxfd-reco-id="${esc(recoId)}"`;
           const desc = products.length === 1
             ? `${esc(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
@@ -8259,14 +8280,17 @@ function openOrderDetail(orderId) {
               return;
             }
 
-            const openSku = event.target.closest("[data-open-product]")?.dataset.openProduct;
+            const openEl = event.target.closest("[data-open-product]");
+            const openSku = openEl?.dataset.openProduct;
             if (openSku) {
               event.preventDefault();
               event.stopPropagation();
               closeModal();
-              // 官方商品对象优先（避免 fetch 官方 sku 404），其次走普通路径
+              // 官方商品对象优先（避免 fetch 官方 sku 404）；恢复的历史消息里 officialProducts
+              // 缓存已空，再兜持久化 recoPayload 里的完整对象（真机反馈：历史里点 CTA 没反应）
               const officialObj = (state.officialProducts || {})[openSku];
-              openProduct(officialObj || openSku);
+              const payloadObj = officialObj ? null : (lxReadRecoPayload(openEl.getAttribute("data-lxfd-reco-id")) || []).find((p) => p && p.sku === openSku);
+              openProduct(officialObj || payloadObj || openSku);
               return;
             }
 
@@ -8399,19 +8423,21 @@ function openOrderDetail(orderId) {
               if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) return;
               lxRevealContent();
               const _recoId = _recoCta.getAttribute("data-lxfd-reco-id") || "";
-              const _recoPayload = (_recoId && window.__lxRecoPayloads && window.__lxRecoPayloads[_recoId]) || null;
+              const _recoPayload = lxReadRecoPayload(_recoId); // 内存→localStorage 两级（恢复历史后内存已空）
               if (_recoPayload && _recoPayload.length) {
                 const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products: _recoPayload };
                 lxUpsertTab(recoTab);
                 lxRunTab(recoTab);
                 return;
               }
-              // 刷新后内存payload丢失 → 退回打开当前reco tab
+              // payload 彻底丢失 → 退回打开当前reco tab；连 tab 都没有则明确提示，不再静默没反应
               const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
               if (tab) {
                 state.activeTabId = tab.id;
                 lxRenderTabbar();
                 lxRunTab(tab);
+              } else {
+                toast("这轮推荐的清单已过期，跟我说「再推荐一次」马上补上");
               }
               return;
             }
