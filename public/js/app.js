@@ -158,8 +158,11 @@ if (!window.__lxCreateTypewriter) {
             const timer = setInterval(() => {
               const ais = document.querySelectorAll(".lx-p0-messages .lx-p0-message.ai");
               const el = ais[ais.length - 1];
-              const loading = el && (el.classList.contains("loading") || el.querySelector(".loading-line"));
-              const snap = el ? `${(el._raw || "").length}:${el.querySelectorAll("*").length}` : "";
+              const loading = el && (el.classList.contains("loading") || el.querySelector(".loading-line, .typing-text, .typing-cursor"));
+              // snap 必须含 textContent 长度：打字机逐字往同一文本节点里加字，_raw 早已拼完、
+              // DOM 节点数也不变，只看那两项会在打字刚开始就误判「已展示稳定」（真机反馈：
+              // 正文还在输出、链已经跑到下单）
+              const snap = el ? `${(el._raw || "").length}:${el.querySelectorAll("*").length}:${(el.textContent || "").length}` : "";
               if (!loading && snap === last) still += 1; else { still = 0; last = snap; }
               if (still >= 3 || Date.now() - t0 > 60000) { clearInterval(timer); resolve(); }
             }, 500);
@@ -2821,7 +2824,9 @@ function openOrderDetail(orderId) {
                   });
                   return;
                 }
-                if (products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
+                // 代买链跳过单品收敛：「挑一款最好的直接下单」意图是链自己从候选里选一款，
+                // 截成 1 款会让对比页空转、正文却继续列多款（真机反馈）
+                if (!state._autoBuyPending && products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
                   products = products.slice(0, 1);
                 }
                 // 用户点名要N款(2-6)而官方固定回5-6款 → 按要求截断
