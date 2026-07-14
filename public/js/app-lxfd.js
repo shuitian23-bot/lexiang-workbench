@@ -687,17 +687,18 @@
     helloAnimating = true;
     const ease = "cubic-bezier(.16,.72,.22,1)";
     try {
-      // 纯 opacity：transform/will-change/blur 都会把词提成合成层，配合父级
-      // background-clip:text 渐变字在 Chrome 留旧帧残影（真机两轮反馈），全部不用
+      // 位移用 top（布局属性，主线程绘制）不用 transform/blur/will-change——那些会把词提成
+      // 合成层，配合父级 background-clip:text 渐变字在 Chrome 留旧帧残影（真机两轮反馈）；
+      // top 动画不产生层缓存，动效在、残影无。word 的 position:relative 由 CSS 提供。
       await word.animate([
-        { opacity: 1 },
-        { opacity: 0 }
+        { opacity: 1, top: "0px" },
+        { opacity: 0, top: "-10px" }
       ], { duration: 300, easing: ease, fill: "forwards" }).finished;
       helloIndex = (helloIndex + 1) % helloWords.length;
       word.textContent = helloWords[helloIndex];
       await word.animate([
-        { opacity: 0 },
-        { opacity: 1 }
+        { opacity: 0, top: "10px" },
+        { opacity: 1, top: "0px" }
       ], { duration: 320, easing: ease, fill: "forwards" }).finished;
       word.style.opacity = "";
       word.style.transform = "";
