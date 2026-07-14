@@ -1621,9 +1621,9 @@
   (function initLxfdHomeGallery() {
     const data = {
       new: [
-        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "请解读这款商品：拯救者 Y9000P 2026，配置是 i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏，价格约 ¥15,098，适合什么人买？" },
-        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "请解读这款商品：YOGA Air 14c 2026，配置是酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控，价格约 ¥8,999，适合什么人买？" },
-        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "请解读这款商品：小新Pad Pro 13英寸，配置是酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄，价格约 ¥7,299，适合什么人买？" }
+        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.webp", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "请解读这款商品：拯救者 Y9000P 2026，配置是 i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏，价格约 ¥15,098，适合什么人买？" },
+        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.webp", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "请解读这款商品：YOGA Air 14c 2026，配置是酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控，价格约 ¥8,999，适合什么人买？" },
+        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.webp", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "请解读这款商品：小新Pad Pro 13英寸，配置是酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄，价格约 ¥7,299，适合什么人买？" }
       ],
       act: [
         { nm: "618 年中钜惠", ds: "全场至高省 2000，下单再享 12 期免息", price: "省 2000", isText: true, badge: "限时", wm: "618 SALE", g: "linear-gradient(135deg,#3a1020,#8a1f2e 56%,#e1432e)", q: "618 年中钜惠有什么优惠？怎么参加？" },
