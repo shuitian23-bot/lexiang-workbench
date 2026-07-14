@@ -58,3 +58,6 @@ public/js/app-lxfd.js|lxfdEnsureRootSplitState|全屏桥接补首页分屏布局
 public/js/app-lxfd.js|普通商品咨询不再自动跳分屏|全屏普通咨询留在全屏不强制跳分屏
 public/js/app.js|_lxFlushConversationOnHide|下单成功等关键结果消息刷新前立即存档不丢
 public/js/app-conv.js|_hasFinalRaw|下单成功等关键消息立即存不被打字动画loading占位误杀
+public/js/app-lxfd.js|resetConversationContext|全屏首问新对话不带旧账
+public/js/app.js|这条早退分支也必须记录本轮商品|代买对比分支商品记录
+public/css/main.css|SourceHanSansCN-Regular.subset.woff2|首页子集字体
