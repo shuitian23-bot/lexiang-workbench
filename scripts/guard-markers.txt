@@ -61,3 +61,5 @@ public/js/app-conv.js|_hasFinalRaw|下单成功等关键消息立即存不被打
 public/js/app-lxfd.js|resetConversationContext|全屏首问新对话不带旧账
 public/js/app.js|这条早退分支也必须记录本轮商品|代买对比分支商品记录
 public/css/main.css|SourceHanSansCN-Regular.subset.woff2|首页子集字体
+public/js/app.js|chips 统一渲染点|chips单排根修
+public/js/app-intent.js|compare_recent|裸对比句本地闭环

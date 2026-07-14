@@ -315,7 +315,9 @@
     return value.startsWith("http") || value.startsWith("/") ? value : "/" + value;
   }
   function mdLite(text) {
-    const src = String(text || "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ");
+    // 官方文本常自带 HTML 实体（「我的」&gt;「设置」），不先解码会被 escapeHtml 二次转义显示成字面（同主面板 mdLite）
+    const src = String(text || "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ")
+      .replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
     let html = escapeHtml(src);
     html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     html = html.replace(/(?:^|\n)####?\s*(.+)/g, "\n<h4>$1</h4>");
@@ -685,16 +687,17 @@
     helloAnimating = true;
     const ease = "cubic-bezier(.16,.72,.22,1)";
     try {
-      word.style.willChange = "opacity, transform";
+      // 纯 opacity：transform/will-change/blur 都会把词提成合成层，配合父级
+      // background-clip:text 渐变字在 Chrome 留旧帧残影（真机两轮反馈），全部不用
       await word.animate([
-        { opacity: 1, transform: "translate3d(0,0,0)" },
-        { opacity: 0, transform: "translate3d(0,-10px,0)" }
+        { opacity: 1 },
+        { opacity: 0 }
       ], { duration: 300, easing: ease, fill: "forwards" }).finished;
       helloIndex = (helloIndex + 1) % helloWords.length;
       word.textContent = helloWords[helloIndex];
       await word.animate([
-        { opacity: 0, transform: "translate3d(0,10px,0)" },
-        { opacity: 1, transform: "translate3d(0,0,0)" }
+        { opacity: 0 },
+        { opacity: 1 }
       ], { duration: 320, easing: ease, fill: "forwards" }).finished;
       word.style.opacity = "";
       word.style.transform = "";

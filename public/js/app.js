@@ -1575,7 +1575,7 @@ if (!window.__lxCreateTypewriter) {
                       <div class="recv">收货：${esc(address)}</div>
                     </div>
                     <div class="acts">
-                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(item.name)}">问订单</button>
+                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，${st.label}，${orderPrice(item.price)}，下单时间 ${item.createdAt || "未知"}）`)}">问订单</button>
                       <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}">订单详情</button>
                     </div>
                   </div>`;
@@ -1697,7 +1697,7 @@ function openOrderDetail(orderId) {
         <div class="steps">${steps}</div>
       </div>
       <div class="acts">
-        <button class="obtn ghost" data-ask-order="${esc(item.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>问订单</button>
+        <button class="obtn ghost" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，实付 ¥${paidAmount}）`)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>问订单</button>
         <button class="obtn solid" data-buy-sku="${esc(item.sku || "")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>再次购买</button>
       </div>
       <p class="foot-tip">物流状态为演示数据，正式上线对接真实物流接口。</p>
@@ -2550,14 +2550,18 @@ function openOrderDetail(orderId) {
             window.setTimeout(() => { lxRevealContent(); openEduZone(); }, 260);
             return;
           }
-          // 认证：高频短词秒回身份选择卡（官方 SKILL 通道 8s+ 起步，演示/真实体验都等不起）；
-          // 按钮直开本地认证表单，不再绕一轮 AI 文字引导（彩排 blocker：回车后卡"生成中"）
-          if (/^(认证|我要认证|身份认证|办认证|做认证|教育认证|学生认证|职场认证|高考生认证)$/.test(text)) {
+          // 认证：点名了具体身份直接开对应表单，不再让用户二选身份（真机反馈"我打了职场认证就别再问了"）
+          if (/^(职场认证|职场人认证)$/.test(text)) { lxAddInstantAi("好的，已为你打开职场身份认证。"); window.setTimeout(() => openWorkplaceAuth(), 260); return; }
+          if (/^(学生认证|在校生认证)$/.test(text)) { lxAddInstantAi("好的，已为你打开在校生教育认证。"); window.setTimeout(() => openStudentAuth("college"), 260); return; }
+          if (/^(高考生认证)$/.test(text)) { lxAddInstantAi("好的，已为你打开高考生教育认证。"); window.setTimeout(() => openStudentAuth("gaokao"), 260); return; }
+          // 泛认证词才弹身份选择卡（官方 SKILL 通道 8s+ 起步，演示/真实体验都等不起）；
+          // 三个按钮同样式（曾一红两白被当成"推荐在校生"，真机反馈），职场放最后不夹中间
+          if (/^(认证|我要认证|身份认证|办认证|做认证|教育认证)$/.test(text)) {
             lxAddInstantAi("好的，选择你的身份，我直接带你进对应的认证流程（学生 / 高考生认证通过后可享教育专享价，还能叠加国补）：",
               '<div class="lx-p0-actions">' +
-              '<button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button>' +
-              '<button class="lx-p0-btn" type="button" data-open-wpa>职场人认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-stuauth="college">在校生认证</button>' +
               '<button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-wpa>职场人认证</button>' +
               '</div>');
             return;
           }
@@ -3007,14 +3011,18 @@ function openOrderDetail(orderId) {
                   arr.concat(_fb).forEach((x) => { if (x && out.indexOf(x) < 0 && out.length < 3) out.push(x); });
                   return out;
                 };
+                // chips 渲染收敛：动画没完只记账（ai._chipsQs），动画收尾统一渲染一次。
+                // 之前首渲进 _pendingExtras → finalHtml 快照带旧份，LLM 补齐无论删 DOM 还是改
+                // 字符串都够不着快照，最终两排 6 个（真机两轮反馈），根修=chips 永不进 finalHtml。
                 const _renderChips = (qs) => {
-                  // 移除已有追问块（避免重复/叠加）——不传 exceptNode 全删：本消息里先渲染的那份
-                  // 可能已被答案后处理改造成 .followups，带 except 的删法会漏掉它导致两排 chips
+                  ai._chipsQs = qs;
+                  if (!ai._chipsRendered) return; // 等 done 收尾的统一渲染点
                   lxClearFollowups();
                   ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
                   lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                 };
-                _renderChips(_fill3(_acts)); // 动作 chip + 静态兜底秒显 3 个，不等 LLM
+                ai._renderChipsFn = _renderChips;
+                _renderChips(_fill3(_acts)); // 动作 chip + 静态兜底先记账，答案动画完成即显 3 个，不等 LLM
                 if (_q && _a) {
                   fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _q, a: _a }) })
                     .then(r => r.json()).then(d => {
@@ -3072,6 +3080,9 @@ function openOrderDetail(orderId) {
             const delayedExtras = ai._pendingExtras || "";
             ai._pendingExtras = null;
             if (delayedExtras) lxAppendAiHtml(ai, delayedExtras);
+            // chips 统一渲染点：动画期间只记账（_chipsQs 可能已被 LLM 补齐更新过），这里一次性上屏
+            ai._chipsRendered = true;
+            if (ai._chipsQs && typeof ai._renderChipsFn === "function") { try { ai._renderChipsFn(ai._chipsQs); } catch (_e) {} }
             // 本节点 addMessage("ai loading","",...) 创建时 text=""，走 else 分支直接
             // body.innerHTML=extraHtml，不会触发 addMessage 内 lxAnimateAiFinal.then() 的
             // 完成态保存回调（那个回调只在 text 非空分支才注册）；这里显式补一次，同「下单
@@ -5627,7 +5638,8 @@ function openOrderDetail(orderId) {
         // 短词即触发（不受购物漏斗 length<3 限制），选完直接发出对应能力的口语句
         const LX_SERVICE_SUGGEST = {
           repair: {
-            test: (t) => /^(维修|修电脑|修一下|售后|保修|清灰|换电池|进水|开不了?机|蓝屏|卡顿|死机|系统重装|重装系统|数据迁移|坏了|出问题)$/.test(t) || /^(电脑|笔记本|台式|主机)?(坏了|进水|开不了?机|蓝屏|卡顿|死机)$/.test(t),
+            // 「电脑卡」也是故障（曾落到"买电脑"用途套问"主要用来做什么"，真机反馈），卡/很卡/卡顿都算
+            test: (t) => /^(维修|修电脑|修一下|售后|保修|清灰|换电池|进水|开不了?机|蓝屏|卡顿|死机|系统重装|重装系统|数据迁移|坏了|出问题)$/.test(t) || /^(电脑|笔记本|台式|主机)?(坏了|进水|开不了?机|蓝屏|卡顿?|很卡|变卡|死机)$/.test(t),
             title: "你的设备遇到什么问题？",
             options: [
               ["清灰除尘 / 散热差", "", "我的电脑要清灰除尘，散热不太好，怎么处理？"],
@@ -5639,7 +5651,8 @@ function openOrderDetail(orderId) {
             replace: true,
           },
           auth: {
-            test: (t) => /^(认证|教育认证|学生认证|职场认证|高考生认证|怎么认证|如何认证|认证状态|重新认证|认证失败)$/.test(t),
+            // 已点名具体身份（学生/职场/高考生认证）不再弹泛身份选择——回车直开对应表单（真机反馈）
+            test: (t) => /^(认证|教育认证|怎么认证|如何认证|认证状态|重新认证|认证失败)$/.test(t),
             title: "你要做哪种认证？",
             options: [
               ["在校生认证（学生）", "", "我是在校学生，怎么完成学生教育认证？"],
@@ -5666,8 +5679,8 @@ function openOrderDetail(orderId) {
             options: [
               ["会员权益 / 等级", "", "帮我看看我的会员权益和等级。"],
               ["智享金 / 乐豆余额", "", "帮我看看我的智享金和乐豆余额怎么用。"],
-              ["会员活动 / 0元试用", "", "最近有什么会员活动和0元试用？"],
-              ["积分兑换 / 商城", "", "帮我打开积分兑换商城。"],
+              ["会员活动 / 0元试用", "联想新款IoT设备免费试用", "最近有什么会员活动和0元试用？"],
+              ["积分兑换 / 商城", "一球千金活动进行中", "帮我打开积分兑换商城。"],
             ],
             replace: true,
           },
@@ -6093,7 +6106,9 @@ function openOrderDetail(orderId) {
           if (activeTab && Array.isArray(activeTab.products) && activeTab.products.length) {
             return { type: "list", product: null, products: activeTab.products.slice() };
           }
-          if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
+          // 注意：currentProduct 残留兜底挪到可见卡枚举之后——用户开过商详再逛楼层页时，
+          // 残留的 currentProduct 曾把上下文短路成 detail（products 空），「打开第三个/对比123」
+          // 对着满屏楼层卡还是提示没商品（真机反馈）。可见卡优先 = 视觉顺序原则。
           // 「第N个」候选列表：完全按用户屏幕上看到的卡片顺序（DOM 顺序）枚举，序号 = 视觉顺序。
           // 之前用 reco tab 拼接导致「第一个」点到另一个列表的第一项、楼层卡又选不到（只有3个）——弃用。
           const merged = [];
@@ -6118,6 +6133,7 @@ function openOrderDetail(orderId) {
             .filter((el) => el.offsetParent !== null); // 只数可见的
           cards.forEach((el) => pushBySku(String(el.getAttribute("data-open-product") || ""), el));
           if (merged.length) return { type: "list", product: null, products: merged };
+          if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
           const visible = [...(state.products || []), ...(state.siteProducts || [])];
           if (visible.length) return { type: "list", product: null, products: visible.slice() };
           return { type: "other", product: null, products: [] };
@@ -6355,6 +6371,16 @@ function openOrderDetail(orderId) {
               lxUpsertCompareTab(null, null, true);
               if (bad.length) toast(`第 ${bad.join("、")} 个超出列表范围，已对比其余 ${picks.length} 款`);
             },
+            // 裸对比（「对比一下吧」）：取当前可见/最近推荐列表前 4 款直接开对比
+            compare_recent: () => {
+              const ctx = lxCurrentContext();
+              const list = (ctx.products && ctx.products.length ? ctx.products : (ctx.product ? [ctx.product] : [])).slice(0, 4);
+              if (list.length < 2) { toast("当前没有可对比的商品列表，先让我推荐几款吧"); return; }
+              state.compare = list;
+              save("lexiang.compare.v1", state.compare);
+              lxRevealContent();
+              lxUpsertCompareTab(null, null, true);
+            },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
         }
@@ -6546,7 +6572,9 @@ function openOrderDetail(orderId) {
         }
 
         function mdLite(text) {
-          const src = String(text || "").replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ");
+          // 官方文本常自带 HTML 实体（「我的」&gt;「设置」），不先解码会被 esc 二次转义显示成字面 &gt;（真机反馈）
+          const src = String(text || "").replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ")
+            .replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
           const lines = src.split("\n");
           const out = [];
           let listOpen = false;
@@ -8300,7 +8328,12 @@ function openOrderDetail(orderId) {
             const askOrder = event.target.closest("[data-ask-order]")?.dataset.askOrder;
             if (askOrder) {
               closeModal();
-              sendChat(`帮我查询订单和售后服务：${askOrder}`);
+              // 引用模式：订单摘要挂到输入框上方（同商品引用），用户自己问发票/物流/退换——
+              // 之前是替用户发一句泛泛的"帮我查询订单"，没法针对性咨询（真机反馈：客服常见场景）
+              lxSetRef(askOrder);
+              const _askTa = $(".composer textarea");
+              if (_askTa) { _askTa.focus(); _askTa.placeholder = "针对这笔订单想问什么？物流、发票、退换货都可以…"; }
+              toast("已引用该订单，直接输入你的问题");
             }
             if (event.target.closest("[data-city-picker]")) { lxOpenCityPicker(); return; }
             const cityPick = event.target.closest("[data-city-pick]");
