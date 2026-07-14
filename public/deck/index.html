@@ -71,6 +71,10 @@
   .boundary .pill{flex:none;background:var(--aub);color:#fff}
   .boundary p{font-size:clamp(12.5px,2vh,17px);color:var(--ink-soft);line-height:1.65}
   .boundary b{color:var(--aub-dark)}
+  .creed-grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.2vw,20px)}
+  .creed-grid>div{display:flex;flex-direction:column;gap:3px}
+  .creed-grid b{font-size:clamp(13px,2.15vh,17.5px);color:var(--aub-dark)}
+  .creed-grid span{font-size:clamp(11.5px,1.85vh,15px);color:var(--ink-soft)}
   /* 图标体系 */
   .ico{width:clamp(44px,6.6vh,60px);height:clamp(44px,6.6vh,60px);border-radius:12px;background:var(--lav);color:var(--aub);display:flex;align-items:center;justify-content:center;flex:none}
   .ico svg{width:55%;height:55%}
@@ -317,7 +321,12 @@
         <h3>多步任务链</h3><p>一句话走完推荐→对比→选款→下单，过程全可视。</p>
       </div>
     </div>
-    <div class="boundary"><span class="pill">一条主线</span><p>五个方法论共同指向：<b>让用户少想、少等、少动手</b>——能引导的引导、能代办的代办，把最终决策留给人。</p></div>
+    <div class="boundary"><span class="pill">用户视角</span><div class="creed-grid">
+      <div><b>用户说话</b><span>界面随之而变</span></div>
+      <div><b>用户犹豫</b><span>乐享主动提示</span></div>
+      <div><b>用户回看</b><span>脉络清晰可溯</span></div>
+      <div><b>用户决策</b><span>理由量身定制</span></div>
+    </div></div>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
 </section>
