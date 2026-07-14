@@ -147,9 +147,9 @@
     .lx-voice-confirm.show{opacity:1;transform:translateY(0)}
     .lx-voice-confirm .lx-vc-text{flex:0 0 100%;color:#4e1646;line-height:1.55;word-break:break-word;padding-right:92px}
     .lx-voice-confirm .lx-vc-text b{color:#111;font-weight:600}
-    /* 倒计时挪右上角小字，行尾位置让给「立即发送」——语音说完手在右侧，就近直接点发（真机反馈） */
+    /* 倒计时挪右上角小字，两个按钮一起靠右挨着（手在右侧就近点，真机反馈） */
     .lx-voice-confirm .lx-vc-tip{position:absolute;top:9px;right:14px;color:#9a8fa6;white-space:nowrap;font-size:12px}
-    .lx-voice-confirm .lx-vc-send{margin-left:auto}
+    .lx-voice-confirm .lx-vc-cancel{margin-left:auto}
     .lx-voice-confirm .lx-vc-count{display:inline-block;min-width:15px;text-align:center;font-weight:700;color:#e2231a}
     .lx-voice-confirm button{border:none;border-radius:9px;padding:6px 13px;font-size:13px;cursor:pointer;font-family:inherit;transition:filter .12s ease}
     .lx-voice-confirm button:hover{filter:brightness(.94)}
@@ -258,11 +258,13 @@
     killConfirm();                                     // 重新录音，清掉上一次没发的确认条
     btn.__ta = ta;
     if (btn.__phOrig == null) btn.__phOrig = ta.placeholder;
+    // 追加而非覆盖：框里已有内容（如上一段识别后点了「取消/改」）时，新一段拼在后面（真机反馈）
+    const prefix = ta.value.trim() ? ta.value.replace(/\s+$/, "") : "";
     asr.start(
       (state) => {                                      // 状态：recording / interim:实时文字 / 识别中…
         if (state === "recording") { btn.classList.remove("thinking"); btn.classList.add("recording"); ta.placeholder = "🎤 请说话…"; }
         else if (state.indexOf("interim:") === 0) {     // 边说边出字：实时把识别文本填进输入框
-          ta.value = state.slice(8);
+          ta.value = prefix + state.slice(8);
           ta.dispatchEvent(new Event("input", { bubbles: true }));
         }
         else { btn.classList.remove("recording"); btn.classList.add("thinking"); ta.placeholder = "识别中…"; }
@@ -270,9 +272,9 @@
       (text) => {                                       // 识别结果 → 填框 + 确认条（不立即发，给用户看清）
         clearUI();
         if (discardNext) { discardNext = false; return; } // 用户已手动发过这句，结果作废
-        ta.value = text;
+        ta.value = prefix + text;
         ta.dispatchEvent(new Event("input", { bubbles: true }));  // 先触发（确认条此刻还没挂监听）
-        showConfirm(form, ta, form, text);
+        showConfirm(form, ta, form, ta.value);           // 确认条/自动发送都用拼接后的完整内容
       },
       (err) => { clearUI(); const m = errMsg(err); if (m) showTip(btn, m); },
       (text) => { clearUI(); if (!text) showTip(btn, "没听清，请靠近麦克风再说一次。"); }
