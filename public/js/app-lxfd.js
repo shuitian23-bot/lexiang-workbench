@@ -647,10 +647,16 @@
     navCluster?.classList.toggle("open", open);
     convoPill?.setAttribute("aria-expanded", open ? "true" : "false");
   }
+  function syncRailNewFabVisibility() {
+    const chatting = !!stage?.classList.contains("is-chatting");
+    const railOpen = !!rail?.classList.contains("open");
+    document.body.classList.toggle("lxfd-chatting", chatting);
+    railNewFab?.classList.toggle("hide", railOpen || !chatting);
+  }
   function openRail(open) {
     rail?.classList.toggle("open", open);
     railFab?.classList.toggle("hide", open);
-    railNewFab?.classList.toggle("hide", open);
+    syncRailNewFabVisibility();
     stage?.classList.toggle("shift", open && wide());
     scrim?.classList.remove("show");
     // 侧栏一露出就重读 localStorage 重渲染——store 是主面板(app.js lxArchiveCurrentConversation)
@@ -763,6 +769,7 @@
 
   function lxfdSetGalleryChatting(on) {
     stage?.classList.toggle("is-chatting", !!on);
+    syncRailNewFabVisibility();
   }
 
   function resetConversation(collapseRail) {
@@ -773,12 +780,15 @@
     chatState.sending = false;
     chatState.human = false;
     chatState.started = false; // 新建对话回到欢迎态，恢复 actionbar
+    // 当前会话已重置，避免顶部标题从上一轮共享缓存中恢复。
+    try { localStorage.removeItem("lexiang.conversation.v1"); } catch (_e) {}
     if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
     turns = [];
     renderTurnIndex("");
     if (welcome) welcome.style.display = "flex";
     lxfdSetGalleryChatting(false);
     if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
+    if (window.__lxSyncTopNavTitle) window.__lxSyncTopNavTitle();
     if (ta) { if (ta.dataset.origPh) ta.placeholder = ta.dataset.origPh; ta.value = ""; fit(); syncSend(); }
     if (collapseRail && !wide()) openRail(false);
     // 恢复 actionbar（lxfdApplySite 会重渲内容）
@@ -1035,12 +1045,16 @@
     });
   }
 
-  // 答后动作预判：本轮出了多款商品 → 第一个 chip 给操作型指令（「对比第1、2、3款」被
-  // app-intent 本地正则秒接走 compare_nth 闭环，零官方调用；确定性生成，不靠 LLM 赌）
+  // 答后「猜你想干」动作 chips：生成器收口 app-intent.actionChips（主/全屏共用一份，
+  // 生成的句子被本地正则秒接闭环）；lxfdFill3 保证无论 LLM 追问成败都凑满 3 个（静态兜底）
   function lxfdActionChips(products) {
-    const n = Math.min(Array.isArray(products) ? products.length : 0, 3);
-    if (n < 2) return [];
-    return ["对比第" + Array.from({ length: n }, (_, i) => i + 1).join("、") + "款"];
+    return (window.__lxIntent && window.__lxIntent.actionChips) ? window.__lxIntent.actionChips(products) : [];
+  }
+  function lxfdFill3(arr) {
+    const fb = (window.__lxIntent && window.__lxIntent.FOLLOWUP_FALLBACKS) || [];
+    const out = [];
+    (arr || []).concat(fb).forEach((x) => { if (x && out.indexOf(x) < 0 && out.length < 3) out.push(x); });
+    return out;
   }
 
   async function submit(text) {
@@ -1392,7 +1406,7 @@
             const finalBody = ai.querySelector(".lxfd-ai-body");
             if (pendingExtras && finalBody) { finalBody.insertAdjacentHTML("beforeend", pendingExtras); if (thread) thread.scrollTop = thread.scrollHeight; }
             if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
-            pendingFollowups = lxfdActionChips(turnProducts).concat(pendingFollowups).slice(0, 3);
+            pendingFollowups = lxfdFill3(lxfdActionChips(turnProducts).concat(pendingFollowups));
             if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);
             lxfdPersistCurrent();
             lxfdRenderHist();
@@ -1451,7 +1465,7 @@
         const finalBody = ai.querySelector(".lxfd-ai-body");
         if (pendingExtras && finalBody) finalBody.insertAdjacentHTML("beforeend", pendingExtras);
         if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
-        pendingFollowups = lxfdActionChips(turnProducts).concat(pendingFollowups).slice(0, 3);
+        pendingFollowups = lxfdFill3(lxfdActionChips(turnProducts).concat(pendingFollowups));
         if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);
         lxfdPersistCurrent();
         lxfdRenderHist();

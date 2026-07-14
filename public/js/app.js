@@ -2978,23 +2978,30 @@ function openOrderDetail(orderId) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
-                // 追问 chips：动作预判确定性前置（多款商品→「对比第1、2款」走本地意图闭环），咨询型 LLM 异步补齐
+                // 追问 chips「猜你想干」：动作预判确定性前置（对比第1、2款/打开第1款走本地意图闭环，
+                // 生成器收口 app-intent.actionChips 主/全屏共用），咨询型 LLM 异步补齐；无论 LLM
+                // 成败都保证凑满 3 个（静态兜底），不能只孤零零一条（真机反馈）
                 const _q = state.lastUserText || "";
                 const _a = (ai._raw || "").slice(0, 300);
-                const _actN = Math.min(_turnProdCount, 3);
-                const _acts = _actN >= 2 ? [`对比第${Array.from({ length: _actN }, (_, i) => i + 1).join("、")}款`] : [];
+                const _acts = (window.__lxIntent && window.__lxIntent.actionChips) ? window.__lxIntent.actionChips((_turnProducts || []).slice(0, _turnProdCount || 3)) : [];
+                const _fb = (window.__lxIntent && window.__lxIntent.FOLLOWUP_FALLBACKS) || [];
+                const _fill3 = (arr) => {
+                  const out = [];
+                  arr.concat(_fb).forEach((x) => { if (x && out.indexOf(x) < 0 && out.length < 3) out.push(x); });
+                  return out;
+                };
                 const _renderChips = (qs) => {
                   // 移除已有追问块（避免重复/叠加）
                   lxClearFollowups(ai);
                   ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
                   lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                 };
-                if (_acts.length) _renderChips(_acts); // 动作 chip 秒显，不等 LLM
+                _renderChips(_fill3(_acts)); // 动作 chip + 静态兜底秒显 3 个，不等 LLM
                 if (_q && _a) {
                   fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _q, a: _a }) })
                     .then(r => r.json()).then(d => {
                       if (nonce !== state.conversationNonce) return;
-                      const qs = _acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []).slice(0, 3);
+                      const qs = _fill3(_acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []));
                       if (qs.length) _renderChips(qs);
                     }).catch(() => {});
                 }
@@ -9128,7 +9135,7 @@ function openOrderDetail(orderId) {
   }
   function currentUserTexts(){
     var texts = [];
-    document.querySelectorAll(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user, .lxfd-thread .lxfd-msg.user").forEach(function(node){
+    document.querySelectorAll(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user, .lxfd-thread .lxfd-msg.user, .lxfd-thread .lxfd-msg-user").forEach(function(node){
       var text = (node.textContent || "").trim();
       if (text) texts.push(text);
     });
@@ -9155,7 +9162,13 @@ function openOrderDetail(orderId) {
     var nav = document.querySelector(".main-nav");
     var source = sourcePage();
     var isHomeFullscreenNav = pageFromLocation() === "home" && hasFullscreenNav;
-    var label = isHomeFullscreenNav ? "首页：新对话" : (PAGE_LABELS[source] || "首页") + "：" + conversationLabel();
+    var isHomeFullscreenMode = isHomeFullscreenNav &&
+      (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
+    var hasFullscreenUserMessage = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
+    var hasSplitUserMessage = !!document.querySelector(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user");
+    var hasCurrentUserMessage = isHomeFullscreenMode ? hasFullscreenUserMessage : (hasSplitUserMessage || hasFullscreenUserMessage);
+    var topic = isHomeFullscreenNav && !hasCurrentUserMessage ? "新对话" : conversationLabel();
+    var label = (isHomeFullscreenNav ? PAGE_LABELS.home : (PAGE_LABELS[source] || PAGE_LABELS.home)) + "：" + topic;
     if (nav) {
       nav.setAttribute("data-current-label", label);
       nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");

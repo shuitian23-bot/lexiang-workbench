@@ -156,7 +156,17 @@
     return "";
   }
 
-  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword };
+  // 答后「猜你想干」动作 chips（主面板/全屏共用一份）：生成的句子必须能被 matchControl 本地接住，
+  // 点击即执行零等待。LLM 咨询型追问异步补齐，不足 3 个用 FOLLOWUP_FALLBACKS 兜底。
+  function actionChips(products) {
+    const n = Math.min(Array.isArray(products) ? products.length : 0, 3);
+    if (n >= 2) return ["对比第" + Array.from({ length: n }, (_, i) => i + 1).join("、") + "款", "打开第1款"];
+    if (n === 1) return ["这款不错，下单吧"];
+    return [];
+  }
+  const FOLLOWUP_FALLBACKS = ["现在下单有优惠吗", "线下门店能体验吗", "支持以旧换新吗"];
+
+  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword, actionChips: actionChips, FOLLOWUP_FALLBACKS: FOLLOWUP_FALLBACKS };
   if (typeof module !== "undefined" && module.exports) module.exports = api; // node 单测用
   if (root) {
     root.__lxIntent = api;
