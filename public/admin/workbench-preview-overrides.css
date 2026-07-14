@@ -7624,6 +7624,12 @@ html[data-product="leaibot"] .workspace-tab-base {
   color: var(--color-text-tertiary, #86909c) !important;
 }
 
+html[data-product="leaibot"] .workspace-tab-base span {
+  max-width: min(180px, 20vw) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
 html[data-product="leaibot"] .workspace-tab-spark {
   color: var(--color-primary, #3370ff) !important;
   font-size: 13px !important;
