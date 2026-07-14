@@ -2991,8 +2991,9 @@ function openOrderDetail(orderId) {
                   return out;
                 };
                 const _renderChips = (qs) => {
-                  // 移除已有追问块（避免重复/叠加）
-                  lxClearFollowups(ai);
+                  // 移除已有追问块（避免重复/叠加）——不传 exceptNode 全删：本消息里先渲染的那份
+                  // 可能已被答案后处理改造成 .followups，带 except 的删法会漏掉它导致两排 chips
+                  lxClearFollowups();
                   ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
                   lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                 };
