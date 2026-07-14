@@ -166,7 +166,14 @@
   }
   const FOLLOWUP_FALLBACKS = ["现在下单有优惠吗", "线下门店能体验吗", "支持以旧换新吗"];
 
-  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword, actionChips: actionChips, FOLLOWUP_FALLBACKS: FOLLOWUP_FALLBACKS };
+  // 代买句发给官方前剥掉成交短语（「直接购买/下单吧」会触发官方下单 Skill，只回「已为您生成
+  // 订单」不给商品清单）。官方只负责推荐，下单由链自己执行。主面板/全屏共用一份。
+  function stripPurchasePhrase(text) {
+    const t = String(text || "").replace(/[，,。;；]?\s*(并且?|然后|再)?(帮我)?(挑|选|来|拿|搞定)?一?[款台个]?(比较)?(好的?|合适的?|适合我的)?[的]?[，,]?\s*(直接)?(下单|购买|买了?|拿下|搞定)吧?[!！。]?\s*$/, "").trim();
+    return t + "。请推荐几款符合以上条件的商品。";
+  }
+
+  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword, actionChips: actionChips, FOLLOWUP_FALLBACKS: FOLLOWUP_FALLBACKS, stripPurchasePhrase: stripPurchasePhrase };
   if (typeof module !== "undefined" && module.exports) module.exports = api; // node 单测用
   if (root) {
     root.__lxIntent = api;

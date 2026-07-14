@@ -206,19 +206,6 @@ if (!window.__lxCreateTypewriter) {
 
         // ── 双对话桥接接口（lxfd IIFE ↔ 主面板 IIFE 跨作用域通信） ────────────
         window.__lxBridge = {
-          // 全屏欢迎态首问=新对话：清掉 boot 时 restore 的旧对话上下文（DOM/convId/持久化键/
-          // 提问历史/归档id），否则首问桥接进分屏带着"以上为历史对话"的旧账（真机反馈）。
-          // 旧对话已被归档进侧栏历史（convs.v1），随时可找回；归档id一并重置防新对话覆盖旧条目。
-          resetConversationContext: function() {
-            state.convId = null;
-            state.localArchiveId = null;
-            state.queryHistory = [];
-            state.queryAnchors = [];
-            const list = $(".lx-p0-messages");
-            if (list) list.innerHTML = "";
-            try { localStorage.removeItem(LX_CONV_KEY); } catch (_e) {}
-            try { renderQueryHistory(); } catch (_e) {}
-          },
           // 把 lxfd 收集的消息写进主面板对话列表
           importConversation: function(messages, convId, meta) {
             const list = ensureChat();
@@ -2654,8 +2641,8 @@ function openOrderDetail(orderId) {
             // 代买链：发给官方的句子剥掉成交短语（「直接购买/下单吧」会触发官方下单 Skill，只回
             // 「已为您生成订单」不给商品清单，链拿不到候选被迫翻本地货盘）。官方只负责推荐，
             // 下单由链自己执行；界面上用户气泡仍显示原句（addMessage 早已发生）
-            const _askText = state._autoBuyPending && window.__lxIntent && window.__lxIntent.stripPurchasePhrase
-              ? window.__lxIntent.stripPurchasePhrase(text)
+            const _askText = state._autoBuyPending
+              ? text.replace(/[，,。;；]?\s*(并且?|然后|再)?(帮我)?(挑|选|来|拿|搞定)?一?[款台个]?(比较)?(好的?|合适的?|适合我的)?[的]?[，,]?\s*(直接)?(下单|购买|买了?|拿下|搞定)吧?[!！。]?\s*$/,'').trim() + "。请推荐几款符合以上条件的商品。"
               : text;
             const builtMsg = _refProductsPrefix + (_refMsgSnap ? `[用户引用了此前对话内容作为上下文: ${_refMsgSnap}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${_askText}` : _askText);
             const response = useHuoshan
@@ -2780,10 +2767,6 @@ function openOrderDetail(orderId) {
                 // 意图忠实于形态：单品意图（推荐一台/哪个最值）收敛到 1 款直开；对比意图直开对比表
                 const lastAsk = state.lastUserText || "";
                 if (products.length >= 2 && /对比|比较|哪个好|怎么选(?!购)/.test(lastAsk)) {
-                  // 这条早退分支也必须记录本轮商品——代买句常带"顺便对比一下"，官方只发 display
-                  // 不发 products，漏记则 done 时链拿空数组误报"官方暂未返回"翻本地货盘（真机反馈）
-                  _turnProdCount = Math.max(_turnProdCount, products.length);
-                  _turnProducts = products;
                   if (payload.title && !ai._raw) {
                     ai._raw = payload.title;
                   }
@@ -2995,31 +2978,23 @@ function openOrderDetail(orderId) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
-                // 追问 chips「猜你想干」：动作预判确定性前置（对比第1、2款/打开第1款走本地意图闭环，
-                // 生成器收口 app-intent.actionChips 主/全屏共用），咨询型 LLM 异步补齐；无论 LLM
-                // 成败都保证凑满 3 个（静态兜底），不能只孤零零一条（真机反馈）
+                // 追问 chips：动作预判确定性前置（多款商品→「对比第1、2款」走本地意图闭环），咨询型 LLM 异步补齐
                 const _q = state.lastUserText || "";
                 const _a = (ai._raw || "").slice(0, 300);
-                const _acts = (window.__lxIntent && window.__lxIntent.actionChips) ? window.__lxIntent.actionChips((_turnProducts || []).slice(0, _turnProdCount || 3)) : [];
-                const _fb = (window.__lxIntent && window.__lxIntent.FOLLOWUP_FALLBACKS) || [];
-                const _fill3 = (arr) => {
-                  const out = [];
-                  arr.concat(_fb).forEach((x) => { if (x && out.indexOf(x) < 0 && out.length < 3) out.push(x); });
-                  return out;
-                };
+                const _actN = Math.min(_turnProdCount, 3);
+                const _acts = _actN >= 2 ? [`对比第${Array.from({ length: _actN }, (_, i) => i + 1).join("、")}款`] : [];
                 const _renderChips = (qs) => {
-                  // 移除已有追问块（避免重复/叠加）——不传 exceptNode 全删：本消息里先渲染的那份
-                  // 可能已被答案后处理改造成 .followups，带 except 的删法会漏掉它导致两排 chips
-                  lxClearFollowups();
+                  // 移除已有追问块（避免重复/叠加）
+                  lxClearFollowups(ai);
                   ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
                   lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
                 };
-                _renderChips(_fill3(_acts)); // 动作 chip + 静态兜底秒显 3 个，不等 LLM
+                if (_acts.length) _renderChips(_acts); // 动作 chip 秒显，不等 LLM
                 if (_q && _a) {
                   fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _q, a: _a }) })
                     .then(r => r.json()).then(d => {
                       if (nonce !== state.conversationNonce) return;
-                      const qs = _fill3(_acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []));
+                      const qs = _acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []).slice(0, 3);
                       if (qs.length) _renderChips(qs);
                     }).catch(() => {});
                 }
@@ -9180,11 +9155,7 @@ function openOrderDetail(orderId) {
     var nav = document.querySelector(".main-nav");
     var source = sourcePage();
     var isHomeFullscreenNav = pageFromLocation() === "home" && hasFullscreenNav;
-    var isHomeFullscreenMode = isHomeFullscreenNav &&
-      (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
-    var hasFullscreenUserMessage = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
-    var hasSplitUserMessage = !!document.querySelector(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user");
-    var hasCurrentUserMessage = isHomeFullscreenMode ? hasFullscreenUserMessage : (hasSplitUserMessage || hasFullscreenUserMessage);
+    var hasCurrentUserMessage = !!document.querySelector(".lxfd-thread .lxfd-msg-user, .lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user");
     var topic = isHomeFullscreenNav && !hasCurrentUserMessage ? "新对话" : conversationLabel();
     var label = (isHomeFullscreenNav ? PAGE_LABELS.home : (PAGE_LABELS[source] || PAGE_LABELS.home)) + "：" + topic;
     if (nav) {
