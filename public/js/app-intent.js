@@ -47,6 +47,7 @@
       const numStr = m[1];
       const after = t.slice(m.index + numStr.length, m.index + numStr.length + 3);
       if (/^(元|块|万|千|价|G|GB|TB|寸|Hz|年|月|%|度|k|K|W)/i.test(after)) continue;
+      if (/^[,，]\d/.test(after)) continue; // 千分位（8,000）的首位不是序号
       if (numStr.length === 2 && !/^(个|款|台|件)/.test(after) && t[m.index - 1] !== "第") {
         numStr.split("").forEach((d) => push(Number(d)));
       } else {
@@ -74,8 +75,11 @@
     if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", target: "", msg: "好的，已为你打开优惠券中心。" };
     if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", target: "", msg: "好的，已为你打开教育特惠专区。" };
     if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", target: "", msg: "好的，已为你打开商品对比。" };
-    // 按序号对比：「对比下1 2 3」「把1和3对比一下」——本地取当前列表，不丢给 AI 瞎检索
-    if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
+    // 按序号对比：「对比下1 2 3」「把1和3对比一下」——本地取当前列表，不丢给 AI 瞎检索。
+    // 收紧（真机语音长句反馈）：①「比较适合我的」这类"比较+形容词"是程度副词不是对比意图；
+    // ②对比指令都是短句，长自然句（"我想买…8,000块…玩玩游戏"）里的"一个/8"是量词和价格，
+    // 不收紧会被抠成"对比第1、8个"
+    if (_t.length <= 24 && /对比|比一?比|比较|哪个好|哪款好/.test(_t) && !/比较(适合|喜欢|中意|在意|看重|倾向)/.test(_t)) {
       const nths = parseOrdinals(_t);
       if (nths.length >= 2) return { op: "compare_nth", target: nths.join(","), msg: "好的，正在为你对比第 " + nths.join("、") + " 个商品。" };
       // 裸对比句（「对比一下吧」「这几款对比下」）：短句无序号 = 对比当前这几款，别丢给官方

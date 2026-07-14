@@ -145,9 +145,11 @@
       box-shadow:0 10px 30px rgba(78,22,70,.18);font-size:13.5px;color:#2a2130;max-width:min(94vw,560px);
       opacity:0;transform:translateY(6px);transition:opacity .18s ease,transform .18s ease}
     .lx-voice-confirm.show{opacity:1;transform:translateY(0)}
-    .lx-voice-confirm .lx-vc-text{flex:0 0 100%;color:#4e1646;line-height:1.55;word-break:break-word}
+    .lx-voice-confirm .lx-vc-text{flex:0 0 100%;color:#4e1646;line-height:1.55;word-break:break-word;padding-right:92px}
     .lx-voice-confirm .lx-vc-text b{color:#111;font-weight:600}
-    .lx-voice-confirm .lx-vc-tip{color:#9a8fa6;white-space:nowrap;margin-left:auto}
+    /* 倒计时挪右上角小字，行尾位置让给「立即发送」——语音说完手在右侧，就近直接点发（真机反馈） */
+    .lx-voice-confirm .lx-vc-tip{position:absolute;top:9px;right:14px;color:#9a8fa6;white-space:nowrap;font-size:12px}
+    .lx-voice-confirm .lx-vc-send{margin-left:auto}
     .lx-voice-confirm .lx-vc-count{display:inline-block;min-width:15px;text-align:center;font-weight:700;color:#e2231a}
     .lx-voice-confirm button{border:none;border-radius:9px;padding:6px 13px;font-size:13px;cursor:pointer;font-family:inherit;transition:filter .12s ease}
     .lx-voice-confirm button:hover{filter:brightness(.94)}
@@ -191,6 +193,22 @@
   // ── 识别确认条：识别完先填输入框 + 弹条给用户看清，倒计时后自动发；期间可立即发/取消/改 ──
   const CONFIRM_SECS = 4;
   let confirmEl = null, confirmTimer = null, confirmEditH = null, confirmTa = null;
+  // 用户已手动点发送/回车发送：确认条立即撤；识别结果还在路上的话到了也丢弃——
+  // 消息已经发出去了，再弹条+倒计时会把同一句话自动发第二遍（真机反馈）
+  let discardNext = false;
+  const asrBusy = () => (asr && asr.active) || !!document.querySelector(".lx-voice-btn.thinking");
+  const onManualSend = () => {
+    if (confirmEl) killConfirm();
+    if (asrBusy()) discardNext = true;
+  };
+  document.addEventListener("click", (e) => {
+    if (e.target && e.target.closest && e.target.closest(".send-btn, .lxfd-send, .hero-send-btn")) onManualSend();
+  }, true);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const t = e.target;
+    if (t && t.matches && t.matches(".composer textarea, #lxfdTa, .hero-composer textarea")) onManualSend();
+  }, true);
   function killConfirm() {
     if (confirmTimer) { clearInterval(confirmTimer); confirmTimer = null; }
     if (confirmTa && confirmEditH) { confirmTa.removeEventListener("input", confirmEditH); confirmTa.removeEventListener("keydown", confirmEditH); }
@@ -202,8 +220,8 @@
     const bar = document.createElement("div");
     bar.className = "lx-voice-confirm";
     bar.innerHTML = '<span class="lx-vc-text">识别：<b></b></span>' +
-      '<button type="button" class="lx-vc-send">立即发送</button>' +
       '<button type="button" class="lx-vc-cancel">取消/改</button>' +
+      '<button type="button" class="lx-vc-send">立即发送</button>' +
       '<span class="lx-vc-tip"><span class="lx-vc-count"></span> 秒后自动发送</span>';
     bar.querySelector(".lx-vc-text b").textContent = "「" + text + "」";
     document.body.appendChild(bar);
@@ -251,6 +269,7 @@
       },
       (text) => {                                       // 识别结果 → 填框 + 确认条（不立即发，给用户看清）
         clearUI();
+        if (discardNext) { discardNext = false; return; } // 用户已手动发过这句，结果作废
         ta.value = text;
         ta.dispatchEvent(new Event("input", { bubbles: true }));  // 先触发（确认条此刻还没挂监听）
         showConfirm(form, ta, form, text);
