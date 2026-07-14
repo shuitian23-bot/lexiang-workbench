@@ -12493,7 +12493,7 @@ body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-
 .lx-store-skin .addr{ font-size:12.5px; color:var(--text-soft); line-height:1.6; }
 .lx-store-skin .hours{ font-size:12.5px; color:var(--text-soft); display:flex; align-items:center; gap:10px; }
 .lx-store-skin .hours .tel{ color:var(--aubergine); font-weight:700; }
-.lx-store-skin .hours .od{ color:#1f8a5b; font-weight:600; }
+.lx-store-skin .hours .od{ color:#1f8a5b; font-weight:600; }.lx-store-skin .hours .od.closed{ color:#9a8fa6; }
 .lx-store-skin .acts{ display:flex; gap:8px; }
 .lx-store-skin .btn{ position:static!important; width:auto!important; min-width:0!important; height:34px!important; padding:0 16px!important; display:inline-flex!important; align-items:center!important; justify-content:center!important; gap:6px!important; border-radius:9px!important; font-size:13px!important; line-height:1!important; font-weight:700!important; opacity:1!important; transform:none; transition:all .16s var(--ease); }
 .lx-store-skin .btn svg{ width:15px; height:15px; flex:none; display:block; }

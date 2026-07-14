@@ -7076,6 +7076,15 @@ function openOrderDetail(orderId) {
         function lxStoreAddr(store) { return store.address || store.addr || ""; }
         function lxStoreTel(store) { return store.tel || store.phone || store.telephone || ""; }
         function lxStoreHours(store) { return store.hours || store.openingHours || "10:00–20:00"; }
+        // 营业状态按当前时间算，深夜不再挂着"营业中"（真机反馈：23 点半官方都说已打烊了）
+        function lxStoreOpenState(store) {
+          const m = String(lxStoreHours(store)).match(/(\d{1,2}):(\d{2})\s*[-–—~至]\s*(\d{1,2}):(\d{2})/);
+          if (!m) return { open: true, label: "营业中" };
+          const now = new Date();
+          const cur = now.getHours() * 60 + now.getMinutes();
+          const open = cur >= (+m[1]) * 60 + (+m[2]) && cur < (+m[3]) * 60 + (+m[4]);
+          return { open, label: open ? "营业中" : "已打烊" };
+        }
         function lxStoreDistance(store) {
           const raw = store.distance ?? store.dist;
           if (raw == null || raw === "") return "";
@@ -7098,7 +7107,7 @@ function openOrderDetail(orderId) {
             <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}</div>
             <div class="meta">
               <div class="addr">${esc(addr)}</div>
-              <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
+              <div class="hours">${(() => { const st = lxStoreOpenState(store); return `<span class="od${st.open ? "" : " closed"}">${st.label}</span>`; })()}<span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
             </div>
             <div class="acts">
               <button class="btn ghost store-ghost" type="button" data-store-nav="${esc(lat + "," + lng)}" data-store-name="${esc(name)}" data-store-addr="${esc(addr)}" data-store-tel="${esc(tel)}">${lxStoreIcon("nav")}导航</button>
