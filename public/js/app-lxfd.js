@@ -692,12 +692,12 @@
       // top 动画不产生层缓存，动效在、残影无。word 的 position:relative 由 CSS 提供。
       await word.animate([
         { opacity: 1, top: "0px" },
-        { opacity: 0, top: "-10px" }
+        { opacity: 0, top: "-6px" }
       ], { duration: 300, easing: ease, fill: "forwards" }).finished;
       helloIndex = (helloIndex + 1) % helloWords.length;
       word.textContent = helloWords[helloIndex];
       await word.animate([
-        { opacity: 0, top: "10px" },
+        { opacity: 0, top: "6px" },
         { opacity: 1, top: "0px" }
       ], { duration: 320, easing: ease, fill: "forwards" }).finished;
       word.style.opacity = "";
