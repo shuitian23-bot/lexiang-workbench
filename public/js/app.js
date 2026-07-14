@@ -9218,8 +9218,12 @@ function openOrderDetail(orderId) {
     var hasFullscreenUserMessage = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
     var hasSplitUserMessage = !!document.querySelector(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user");
     var hasCurrentUserMessage = isHomeFullscreenMode ? hasFullscreenUserMessage : (hasSplitUserMessage || hasFullscreenUserMessage);
-    var topic = isHomeFullscreenNav && !hasCurrentUserMessage ? "新对话" : conversationLabel();
-    var label = (isHomeFullscreenNav ? PAGE_LABELS.home : (PAGE_LABELS[source] || PAGE_LABELS.home)) + "：" + topic;
+    // leaibot.cn(URL=/)：没聊过 =「开启新对话」（不带"首页："前缀）；有对话保持「首页：xxx」（真机反馈）
+    var label = isHomeFullscreenNav && !hasCurrentUserMessage
+      ? "开启新对话"
+      : (isHomeFullscreenNav ? PAGE_LABELS.home : (PAGE_LABELS[source] || PAGE_LABELS.home)) + "：" + conversationLabel();
+    // 当前就在首页时，导航列表里的「首页」项是重复入口，藏掉（子站仍显示，用于回首页）
+    var onHomePage = pageFromLocation() === "home";
     if (nav) {
       nav.setAttribute("data-current-label", label);
       nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
@@ -9235,6 +9239,8 @@ function openOrderDetail(orderId) {
         var btn = nav.querySelector('[data-page="' + page + '"]');
         if (btn) btn.textContent = PAGE_LABELS[page];
       });
+      var navHomeBtn = nav.querySelector('[data-page="home"]');
+      if (navHomeBtn) { if (onHomePage) navHomeBtn.style.setProperty("display", "none", "important"); else navHomeBtn.style.removeProperty("display"); }
     }
     var lxfdName = document.getElementById("lxfdConvoName");
     if (lxfdName) {
@@ -9248,6 +9254,9 @@ function openOrderDetail(orderId) {
       Array.prototype.forEach.call(lxfdNav.querySelectorAll("[data-page]"), function(item){
         item.classList.toggle("active", item.getAttribute("data-page") === pageFromLocation());
       });
+      var lxfdHomeItem = lxfdNav.querySelector('[data-page="home"]');
+      // 加 important：.lxfd-nav-sheet 的 display 规则带 !important，普通 inline 压不过
+      if (lxfdHomeItem) { if (onHomePage) lxfdHomeItem.style.setProperty("display", "none", "important"); else lxfdHomeItem.style.removeProperty("display"); }
     }
   }
   function scheduleSync(){
