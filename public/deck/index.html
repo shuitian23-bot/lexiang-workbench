@@ -136,7 +136,7 @@
   <div class="grow">
     <div class="cards" style="grid-template-columns:repeat(6,1fr)">
       <div class="card" style="grid-column:span 2"><h3><span class="num">1</span>数据驱动定功能</h3><p>六万条真实提问聚类，以占比定优先级，而非竞品清单。</p></div>
-      <div class="card" style="grid-column:span 2"><h3><span class="num">2</span>双通道架构</h3><p>高频确定性指令本地毫秒级执行；复杂意图交给模型。</p></div>
+      <div class="card" style="grid-column:span 2"><h3><span class="num">2</span>三通道意图分流</h3><p>本地规则毫秒级、小模型路由口语、官方 SKILL 管复杂能力。</p></div>
       <div class="card" style="grid-column:span 2"><h3><span class="num">3</span>预判用户的预判</h3><p>用户不会开口？引导替他把需求问清楚。</p></div>
       <div class="card" style="grid-column:span 3"><h3><span class="num">4</span>对话即操作</h3><p>说话就是操作，AI 说到哪、页面展示到哪。</p></div>
       <div class="card" style="grid-column:span 3"><h3><span class="num">5</span>多步任务链</h3><p>一句话走完推荐→对比→选款→下单，过程全可视。</p></div>
@@ -154,7 +154,7 @@
       <div class="tile"><div class="v">61,049<small>条</small></div><div class="k">脱敏真实用户提问</div><div class="d">官方一级标注统计 · 功能优先级的唯一依据</div></div>
       <div class="tile"><div class="v">49.8<small>%</small></div><div class="k">电商导购</div><div class="d">推荐 26%、硬件参数 5.9%、对比… → 引导漏斗 + 推荐链路</div></div>
       <div class="tile"><div class="v">20.6<small>%</small></div><div class="k">服务</div><div class="d">售后咨询 8.6%、驱动系统 4.1%、保修 2.3%… → 售后引导做进输入框</div></div>
-      <div class="tile"><div class="v">20.5<small>%</small></div><div class="k">会员 + 门店</div><div class="d">教育优惠 4.4%、门店查询 5.8%、人工 2.2%… → 全部一词秒回</div></div>
+      <div class="tile"><div class="v">20.5<small>%</small></div><div class="k">会员 + 门店</div><div class="d">教育优惠 4.4%、门店查询 5.8%、人工 2.2%… → 全部一词秒回（其余 9.1% 为通用咨询、多模态等）</div></div>
     </div>
     <div class="quote">购物入口里，<b>有一半的人在「买东西」，另一半在问服务、会员、门店</b>。落地规则两条：<b>占比高的意图优先做成引导</b>；<b>高频短词做成本地秒回</b>。「自主下单」也有 1.1% 的人直接开口要——多步任务链就是给他们做的。</div>
   </div>
@@ -270,8 +270,9 @@
     if (e.target.closest('a')) return; // 链接（真机演示按钮）不触发翻页
     if (e.clientX > window.innerWidth * 0.5) show(idx + 1); else show(idx - 1);
   });
-  var h = parseInt((location.hash || '').replace('#',''), 10);
-  show(isNaN(h) ? 0 : h - 1);
+  function fromHash(){ var h = parseInt((location.hash || '').replace('#',''), 10); show(isNaN(h) ? 0 : h - 1); }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
 })();
 </script>
 </body>
