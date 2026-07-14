@@ -8195,12 +8195,11 @@ function openOrderDetail(orderId) {
               if (!lxfdCommerce) return "";
               if (lxfdCommerce.dataset.lxfdOpen) return lxfdCommerce.dataset.lxfdOpen;
               const label = lxfdCommerce.getAttribute("aria-label") || "";
+              if (label.includes("历史")) return ""; // 首页空白态胶囊里的历史入口，归 app-lxfd 处理
               if (label.includes("购物车")) return "cart";
               if (label.includes("订单")) return "orders";
-              const buttons = [...lxfdCommerce.closest(".lxfd-actions")?.querySelectorAll(".lxfd-ic") || []];
-              const index = buttons.indexOf(lxfdCommerce);
-              if (index === 1) return "cart";
-              if (index === 2) return "orders";
+              // 按位置兜底(index 1/2=购物车/订单)因新增历史按钮会错位误伤——购物车/订单
+              // 都带 data-lxfd-open，dataset 分支已可靠覆盖，这里不再按位置猜
               return "";
             })();
             if (lxfdCommerceKind === "cart") {

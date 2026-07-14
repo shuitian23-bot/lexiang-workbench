@@ -1566,6 +1566,12 @@
       window.lxOpenCommerceEntry?.("orders");
       return;
     }
+    // 首页空白态胶囊里的历史入口（必须在兜底 exitFullscreen 之前拦下）
+    if (button.id === "lxfdTopHistBtn" || label.includes("历史")) {
+      e.preventDefault();
+      setRailManual(true);
+      return;
+    }
     e.preventDefault();
     exitFullscreen();
   });
