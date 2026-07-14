@@ -7823,6 +7823,9 @@ function openOrderDetail(orderId) {
               event.preventDefault();
               event.stopImmediatePropagation();
               resetConversation();
+              // 根路径分屏：新建 = 回全屏首页开新会话（lxfd 版 reset 已做完整初始态还原：
+              // prepaint 类/分屏类/欢迎页）；子站没有 lxfd 全屏形态，保持分屏内新建不变（真机反馈）
+              if (location.pathname.replace(/\/+$/, "/") === "/" && typeof window.lxfdReset === "function") window.lxfdReset(true);
               return;
             }
             const sendButton = event.target.closest(".send-btn, .hero-send-btn");
