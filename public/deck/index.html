@@ -50,15 +50,26 @@
   .tile .v small{font-size:.45em;font-weight:700;color:var(--ink-muted);margin-left:2px}
   .tile .k{margin-top:8px;font-size:clamp(12px,1.9vh,16px);font-weight:700;color:var(--ink)}
   .tile .d{margin-top:4px;font-size:clamp(11px,1.7vh,14px);color:var(--ink-muted);line-height:1.55}
-  /* 流程图（双通道） */
-  .flow{display:grid;grid-template-columns:auto 1fr;gap:clamp(12px,1.6vw,22px);align-items:stretch}
-  .flow .say{display:flex;align-items:center}
-  .say .bubble{background:var(--aub);color:#fff;border-radius:16px 16px 16px 4px;padding:clamp(12px,2.2vh,20px) clamp(14px,1.6vw,22px);font-size:clamp(13px,2.1vh,18px);font-weight:600;max-width:230px;line-height:1.6}
-  .lanes{display:grid;gap:clamp(8px,1.4vh,14px)}
-  .lane{display:grid;grid-template-columns:clamp(120px,12vw,170px) 1fr auto;gap:clamp(10px,1.2vw,18px);align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:clamp(10px,1.8vh,17px) clamp(12px,1.4vw,20px)}
-  .lane .tag{font-weight:800;color:var(--aub-dark);font-size:clamp(12.5px,2vh,16.5px)}
-  .lane .desc{font-size:clamp(11.5px,1.8vh,15px);color:var(--ink-soft);line-height:1.55}
+  /* 分流拓扑 + 过程时间线（三通道页） */
+  .bubble{background:var(--aub);color:#fff;border-radius:16px 16px 16px 4px;padding:clamp(12px,2.2vh,20px) clamp(14px,1.6vw,22px);font-size:clamp(13px,2.1vh,18px);font-weight:600;max-width:230px;line-height:1.6;text-align:center}
+  .split{display:grid;grid-template-columns:clamp(170px,17vw,250px) clamp(48px,5.5vw,84px) 1fr;align-items:center}
+  .split-in{display:flex;justify-content:center}
+  .split-lines{align-self:stretch;display:flex}
+  .split-lines svg{width:100%;height:100%}
+  .lanes{display:grid;gap:clamp(10px,1.8vh,16px)}
+  .lane{display:grid;grid-template-columns:1fr auto auto;gap:clamp(10px,1.2vw,18px);align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:clamp(10px,1.8vh,17px) clamp(12px,1.4vw,20px)}
+  .lane .cond{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .lane .cond-k{font-size:clamp(10px,1.3vh,12px);color:var(--ink-muted);letter-spacing:.1em}
+  .lane .cond-v{font-size:clamp(12.5px,2vh,16px);color:var(--ink);font-weight:600;line-height:1.4}
+  .lane .tag{font-weight:800;color:var(--aub);background:var(--lav);padding:6px 14px;border-radius:10px;font-size:clamp(13px,2.1vh,17px);white-space:nowrap}
   .lane .win{font-size:clamp(11px,1.7vh,14px);font-weight:700;color:var(--red);white-space:nowrap}
+  .stepper{flex:1;display:flex;align-items:flex-start}
+  .step{display:flex;flex-direction:column;align-items:center;flex:none}
+  .step .dot{width:12px;height:12px;border-radius:50%;background:var(--lav);border:2px solid var(--aub);flex:none}
+  .step .dot.done{background:var(--red);border-color:var(--red)}
+  .step .slabel{margin-top:8px;font-size:clamp(12.5px,2vh,16px);font-weight:700;color:var(--ink);text-align:center;white-space:nowrap}
+  .sline{flex:1;height:2px;background:#d9cfe0;align-self:center;margin-top:5px}
+  .proc-note{margin-top:clamp(10px,1.8vh,16px);font-size:clamp(11.5px,1.8vh,14.5px);color:var(--ink-muted);line-height:1.6}
   /* 键位提示 */
   .hint{position:fixed;right:18px;bottom:14px;color:#cdbfd6;font-size:12px;z-index:9;opacity:.85}
   .quote{border-left:4px solid var(--red);background:var(--card);border-radius:0 14px 14px 0;padding:clamp(12px,2.2vh,20px) clamp(16px,1.8vw,24px);font-size:clamp(13px,2.15vh,18px);color:var(--ink);line-height:1.75;box-shadow:0 2px 10px rgba(61,14,55,.05)}
@@ -123,11 +134,14 @@
   .bf-top{height:clamp(22px,3.4vh,30px);background:#f1ecf5;display:flex;align-items:center;gap:6px;padding:0 12px}
   .bf-dot{width:8px;height:8px;border-radius:50%;flex:none}
   .bf-url{flex:1;text-align:center;font-size:clamp(10px,1.5vh,12px);color:var(--ink-muted)}
-  /* S9 撑高 */
-  #s9-cards{min-height:clamp(320px,52vh,560px)}
-  #s9-cards .card{padding:clamp(18px,3.2vh,30px);display:flex;flex-direction:column;justify-content:center}
-  #s9-cards .card p{font-size:clamp(13px,2.1vh,17px)}
-  #s9-cards .ico.sm{width:clamp(30px,4.6vh,40px);height:clamp(30px,4.6vh,40px)}
+  /* S9 四场景旅程 */
+  .scenes{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.2vw,20px);align-items:stretch}
+  .scene{display:flex;flex-direction:column;gap:clamp(12px,2.2vh,20px);padding:clamp(18px,3.2vh,30px) clamp(16px,1.6vw,26px);min-height:clamp(230px,33vh,350px);justify-content:center}
+  .scene-head{display:flex;align-items:center;gap:10px}
+  .scene-say{display:flex;align-items:flex-start}
+  .say-bubble{background:var(--aub);color:#fff;border-radius:14px 14px 14px 4px;padding:clamp(10px,1.8vh,16px) clamp(12px,1.2vw,18px);font-size:clamp(12.5px,2.05vh,16.5px);font-weight:600;line-height:1.55}
+  .scene-do{font-size:clamp(12px,1.9vh,15.5px);color:var(--ink-soft);line-height:1.6}
+  .scene-do b{color:var(--red);font-weight:800}
   /* S10 字号微增 */
   .mini h3{font-size:clamp(14px,2.15vh,18px)}
   .mini p{font-size:clamp(12.5px,1.95vh,16px)}
@@ -362,15 +376,51 @@
   <div class="eyebrow">HOW · 方法论 2</div>
   <h2>一句话进来，<em>三条通道</em>分流</h2>
   <div class="grow">
-    <div class="flow">
-      <div class="say"><div class="bubble">用户开口说一句话</div></div>
+    <div class="split">
+      <div class="split-in"><div class="bubble">用户开口<br>说一句话</div></div>
+      <div class="split-lines">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M0,50 C55,50 45,16 100,16" stroke="#c9bfd2" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>
+          <path d="M0,50 L100,50" stroke="#c9bfd2" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>
+          <path d="M0,50 C55,50 45,84 100,84" stroke="#c9bfd2" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>
+          <circle cx="97" cy="16" r="2.2" fill="#c9bfd2"/>
+          <circle cx="97" cy="50" r="2.2" fill="#c9bfd2"/>
+          <circle cx="97" cy="84" r="2.2" fill="#c9bfd2"/>
+        </svg>
+      </div>
       <div class="lanes">
-        <div class="lane"><span class="tag">① 本地规则</span><span class="desc">高频确定性指令（开页 / 切站 / 认证 / 人工 / 序号下单）本地正则识别直接执行</span><span class="win">毫秒级 · 零模型成本 · 断网可用</span></div>
-        <div class="lane"><span class="tag">② 小模型意图路由</span><span class="desc">口语化操作（“嗯…那就这台吧，优惠都领了”）由轻量模型判定意图，结构化输出交前端执行</span><span class="win">秒级 · 泛化口语</span></div>
-        <div class="lane"><span class="tag">③ 官方 SKILL + 自研编排</span><span class="desc">推荐 / 知识 / 会员等复杂能力调联想官方 AI；自研编排负责执行与兜底</span><span class="win">能力最全</span></div>
+        <div class="lane" style="border-left:4px solid var(--red)">
+          <div class="cond"><span class="cond-k">什么情况</span><span class="cond-v">高频确定指令——开页 / 切站 / 认证 / 人工 / 序号下单</span></div>
+          <span class="tag">① 本地规则</span>
+          <span class="win">毫秒级 · 零模型成本 · 断网可用</span>
+        </div>
+        <div class="lane" style="border-left:4px solid var(--aub)">
+          <div class="cond"><span class="cond-k">什么情况</span><span class="cond-v">口语化操作，意图要「听懂」——“嗯…那就这台吧，优惠都领了”</span></div>
+          <span class="tag">② 小模型意图路由</span>
+          <span class="win">秒级 · 泛化口语</span>
+        </div>
+        <div class="lane" style="border-left:4px solid var(--aub-dark)">
+          <div class="cond"><span class="cond-k">什么情况</span><span class="cond-v">复杂能力——推荐 / 知识 / 会员 / 多步任务</span></div>
+          <span class="tag">③ 官方 SKILL + 自研编排</span>
+          <span class="win">能力最全 · 有兜底</span>
+        </div>
       </div>
     </div>
-    <div class="quote" style="margin-top:clamp(12px,2.2vh,20px)">过程全程透明：<b>「联想乐享正在判断 → 已判断 → 正在调用 XX SKILL → 已完成」</b>思考时间线实时可见，答完自动折叠成一行。快指令不进大模型，等待与成本都省下来。</div>
+    <div class="proc" style="margin-top:clamp(32px,6vh,64px)">
+      <div style="display:flex;align-items:center;gap:clamp(12px,1.6vw,22px)">
+        <span class="pill" style="background:var(--aub);color:#fff;flex:none">过程全透明</span>
+        <div class="stepper">
+          <div class="step"><div class="dot"></div><div class="slabel">正在判断</div></div>
+          <div class="sline"></div>
+          <div class="step"><div class="dot"></div><div class="slabel">已判断</div></div>
+          <div class="sline"></div>
+          <div class="step"><div class="dot"></div><div class="slabel">正在调用 XX SKILL</div></div>
+          <div class="sline"></div>
+          <div class="step"><div class="dot done"></div><div class="slabel">已完成</div></div>
+        </div>
+      </div>
+      <p class="proc-note">思考时间线实时可见，答完自动折叠成一行；快指令不进大模型——等待与成本都省下来。</p>
+    </div>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
 </section>
@@ -395,12 +445,29 @@
 <section class="slide">
   <div class="eyebrow">HOW · 方法论 4</div>
   <h2>对话即操作：<em>说话 = 点击</em></h2>
+  <p class="sub" style="font-size:clamp(13px,2.1vh,17px);margin-bottom:clamp(12px,2.2vh,20px)">一次购物走下来，每个环节都是一句话的事：</p>
   <div class="grow">
-    <div class="cards" id="s9-cards" style="grid-template-columns:1fr 1fr">
-      <div class="card"><h3><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="7" cy="9" r=".9" fill="currentColor" stroke="none"/><line x1="15" y1="9" x2="18" y2="9"/></svg></span><span class="pill">浏览挑选时</span>所见即所得</h3><p>左边对话、右边页面联动——AI 说到哪，右侧展示到哪：推荐出商品墙、对比开参数表、下单弹确认单，用户不用在对话和页面间来回切。</p></div>
-      <div class="card"><h3><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12v8H9l-3.5 3.5V13H3z"/><path d="M15 9h6m0 0l-2.5-2.5M21 9l-2.5 2.5"/></svg></span><span class="pill">下指令时</span>口语直达闭环</h3><p>「打开拯救者Y9000P」「第三个不错，下单吧」「回首页」「全屏」——导航、比较、下单、窗口控制全部一句话完成，序号按用户屏幕上看到的顺序数。</p></div>
-      <div class="card"><h3><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 000 4v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 000-4V5a2 2 0 00-2-2H5a2 2 0 00-2 2z"/><line x1="12" y1="4" x2="12" y2="18" stroke-dasharray="2.2 2.2"/></svg></span><span class="pill">下单结算时</span>领券自动化</h3><p>下单前自动核对可用优惠：国补、平台满减、会员折扣自动领取叠加，省多少钱当场展示。</p></div>
-      <div class="card"><h3><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0116 0v1"/><path d="M4 13a2 2 0 012-2h1v5H6a2 2 0 01-2-2v-1z"/><path d="M20 13a2 2 0 00-2-2h-1v5h1a2 2 0 002-2v-1z"/><path d="M18 17v1a3 3 0 01-3 3h-1.5"/></svg></span><span class="pill">要服务时</span>服务一词直达</h3><p>「认证」秒回三类身份选择直开表单；「人工」秒切专属客服模式——服务入口不藏在菜单里。</p></div>
+    <div class="scenes">
+      <div class="card scene">
+        <div class="scene-head"><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="7" cy="9" r=".9" fill="currentColor" stroke="none"/><line x1="15" y1="9" x2="18" y2="9"/></svg></span><span class="pill">浏览挑选时</span></div>
+        <div class="scene-say"><div class="say-bubble">“对比第 1、3 款，哪个屏幕好？”</div></div>
+        <div class="scene-do"><b>乐享</b> 所见即所得——AI 说到哪、右侧页面展示到哪：商品墙、参数对比表随对话实时联动。</div>
+      </div>
+      <div class="card scene">
+        <div class="scene-head"><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12v8H9l-3.5 3.5V13H3z"/><path d="M15 9h6m0 0l-2.5-2.5M21 9l-2.5 2.5"/></svg></span><span class="pill">下指令时</span></div>
+        <div class="scene-say"><div class="say-bubble">“第三个不错，就买它吧”</div></div>
+        <div class="scene-do"><b>乐享</b> 口语直达闭环——导航、比较、下单、全屏一句话完成，序号按屏幕所见顺序数。</div>
+      </div>
+      <div class="card scene">
+        <div class="scene-head"><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 000 4v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 000-4V5a2 2 0 00-2-2H5a2 2 0 00-2 2z"/><line x1="12" y1="4" x2="12" y2="18" stroke-dasharray="2.2 2.2"/></svg></span><span class="pill">下单结算时</span></div>
+        <div class="scene-say"><div class="say-bubble">“现在下单有什么优惠？”</div></div>
+        <div class="scene-do"><b>乐享</b> 领券自动化——国补、满减、会员折扣自动领取叠加，省多少当场展示。</div>
+      </div>
+      <div class="card scene">
+        <div class="scene-head"><span class="ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0116 0v1"/><path d="M4 13a2 2 0 012-2h1v5H6a2 2 0 01-2-2v-1z"/><path d="M20 13a2 2 0 00-2-2h-1v5h1a2 2 0 002-2v-1z"/><path d="M18 17v1a3 3 0 01-3 3h-1.5"/></svg></span><span class="pill">要服务时</span></div>
+        <div class="scene-say"><div class="say-bubble">“认证” / “转人工”</div></div>
+        <div class="scene-do"><b>乐享</b> 服务一词直达——秒回身份表单、秒切专属客服，入口不藏菜单。</div>
+      </div>
     </div>
   </div>
   <div class="foot"><span class="logo">联想乐享</span><span class="pageno"></span></div>
