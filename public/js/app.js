@@ -1599,7 +1599,7 @@ if (!window.__lxCreateTypewriter) {
                       <div class="recv">收货：${esc(address)}</div>
                     </div>
                     <div class="acts">
-                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，${st.label}，${orderPrice(item.price)}，下单时间 ${item.createdAt || "未知"}）`)}">问订单</button>
+                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，${st.label}，¥${item.price}，下单时间 ${item.createdAt || "未知"}）`)}">问订单</button>
                       <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}">订单详情</button>
                     </div>
                   </div>`;
@@ -2677,7 +2677,9 @@ function openOrderDetail(orderId) {
             if (_ranIntent) _pushJudgedLine(); else setTimeout(_pushJudgedLine, 500);
             // 多模态路由：有图/语音或开联网搜索时走火山 /api/chat/stream，否则走官方 /api/leai/stream
             const hasMedia = !!(state.pendingImageUrl || state.pendingAudioUrl);
-            const useHuoshan = hasMedia || !!window.__lxWebSearch;
+            // 引用了本地演示订单时强制走火山：官方对演示订单一无所知，只会回「需要登录」（真机反馈）；
+            // 火山带着引用里的订单号/状态/金额上下文能正面回答物流、发票、退换货
+            const useHuoshan = hasMedia || !!window.__lxWebSearch || /^订单\s/.test(_refMsgSnap || "");
             const _refProductsPrefix = _refsSnap.length
               ? `[用户正在咨询这些商品: ${_refsSnap.map(p => `${p.name}${p.sku ? ` (SKU:${p.sku})` : ""}`).join("、")}]\n\n`
               : (_refSnap ? `[用户正在咨询商品: ${_refSnap.name}${_refSnap.sku ? ` (SKU:${_refSnap.sku})` : ""}]\n\n` : "");
