@@ -2585,9 +2585,9 @@ function openOrderDetail(orderId) {
           if (/^(认证|我要认证|身份认证|办认证|做认证|教育认证)$/.test(text)) {
             lxAddInstantAi("好的，选择你的身份，我直接带你进对应的认证流程（学生 / 高考生认证通过后可享教育专享价，还能叠加国补）：",
               '<div class="lx-p0-actions">' +
-              '<button class="lx-p0-btn" type="button" data-open-stuauth="college">在校生认证</button>' +
-              '<button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button>' +
-              '<button class="lx-p0-btn" type="button" data-open-wpa>职场人认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-stuauth="college">🎓 在校生认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">📝 高考生认证</button>' +
+              '<button class="lx-p0-btn" type="button" data-open-wpa>💼 职场人认证</button>' +
               '</div>');
             return;
           }
@@ -5683,10 +5683,10 @@ function openOrderDetail(orderId) {
             test: (t) => /^(认证|教育认证|怎么认证|如何认证|认证状态|重新认证|认证失败)$/.test(t),
             title: "你要做哪种认证？",
             options: [
-              ["在校生认证（学生）", "", "我是在校学生，怎么完成学生教育认证？"],
-              ["职场人认证", "", "我是职场人，怎么完成职场认证？"],
-              ["高考生认证", "", "我是高考生，怎么完成高考生教育认证？"],
-              ["查认证状态 / 重新认证", "", "帮我查认证状态，认证失败了怎么重新认证？"],
+              ["🎓 在校生认证（学生）", "", "我是在校学生，怎么完成学生教育认证？"],
+              ["📝 高考生认证", "", "我是高考生，怎么完成高考生教育认证？"],
+              ["💼 职场人认证", "", "我是职场人，怎么完成职场认证？"],
+              ["🔍 查认证状态 / 重新认证", "", "帮我查认证状态，认证失败了怎么重新认证？"],
             ],
             replace: true,
           },
