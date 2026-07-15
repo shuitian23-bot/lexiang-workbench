@@ -15458,19 +15458,19 @@ body.lx-root-home:not(.lx-home-split) > .lxfd {
 
 /* 对话历史/打开页面弹层：置于对话中段并盖过底部输入区 */
 .assistant-panel .page-dots .prompt-menu{
-  position:fixed!important;
+  /* 贴着圆点弹（同全屏 turn-panel），鼠标能划过去；::after 24px 桥保留填 hover 空隙 */
+  position:absolute!important;
   top:50%!important;
-  left:calc(var(--assistant-panel-width, clamp(390px,29.2vw,560px)) * .5)!important;
-  right:auto!important;
+  right:24px!important;
+  left:auto!important;
   width:min(240px, calc(var(--assistant-panel-width, clamp(390px,29.2vw,560px)) - 120px))!important;
-  max-height:min(520px, calc(100vh - 260px))!important;
+  max-height:min(480px, calc(100vh - 280px))!important;
   overflow:auto!important;
   padding:10px!important;border-radius:10px!important;
-  transform:translate(-42%,-50%)!important;
+  transform:translateY(-50%)!important;
   z-index:220!important;
   box-shadow:0 24px 70px rgba(45,18,52,.20),0 4px 14px rgba(45,18,52,.10)!important;
 }
-.assistant-panel .page-dots .prompt-menu::after{display:none!important}
 .assistant-panel .page-dots .prompt-menu .menu-row,
 .assistant-panel .page-dots .prompt-menu .trail-row{min-height:34px;display:flex;align-items:center;font-size:12.5px;line-height:1.35;padding:8px 10px;border-radius:7px;color:var(--menu-text);transition:background-color .16s,color .16s}
 .assistant-panel .page-dots .prompt-menu .menu-row:hover,
