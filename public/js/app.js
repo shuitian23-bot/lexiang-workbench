@@ -1721,7 +1721,6 @@ function openOrderDetail(orderId) {
         <div class="steps">${steps}</div>
       </div>
       <div class="acts">
-        <button class="obtn ghost" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，实付 ¥${paidAmount}）`)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>问订单</button>
         <button class="obtn solid" data-buy-sku="${esc(item.sku || "")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>再次购买</button>
       </div>
       <p class="foot-tip">物流状态为演示数据，正式上线对接真实物流接口。</p>
