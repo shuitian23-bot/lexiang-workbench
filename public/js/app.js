@@ -5598,9 +5598,33 @@ function openOrderDetail(orderId) {
               ["运动颈挂式", "", "要运动颈挂式的，"],
             ],
           },
-          // 预算（主品类；兜底——说了买什么没提预算就问）
+          // 预算按品类分档（真机反馈：手机/平板/显示器不该套用笔记本的万元档）
+          // 手机、平板：中低价位（含 moto razr 折叠屏顶配约 6000）
+          budget_mobile: {
+            test: (t) => /手机|平板/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
+            title: "预算大概多少？",
+            options: [
+              ["2000 元以下", "", "预算2000元以下，"],
+              ["2000 ~ 4000 元", "", "预算2000到4000元，"],
+              ["4000 ~ 6000 元", "", "预算4000到6000元，"],
+              ["价格不限", "", "价格不限，"],
+            ],
+          },
+          // 显示器：低中价位
+          budget_monitor: {
+            test: (t) => /显示器/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
+            title: "预算大概多少？",
+            options: [
+              ["1000 元以下", "", "预算1000元以下，"],
+              ["1000 ~ 2000 元", "", "预算1000到2000元，"],
+              ["2000 ~ 4000 元", "", "预算2000到4000元，"],
+              ["价格不限", "", "价格不限，"],
+            ],
+          },
+          // 预算（电脑类；兜底——说了买什么没提预算就问）。收窄：不含手机/平板/显示器，
+          // 让它们各走上面专属档；"平板电脑"含"电脑"，靠 !/平板/ 排除 + budget_mobile 排在前双保险
           budget: {
-            test: (t) => /笔记本|游戏本|轻薄本|电脑|台式|主机|手机|平板|显示器/.test(t) && !/耳机|键盘|鼠标/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
+            test: (t) => /笔记本|游戏本|轻薄本|电脑|台式|主机/.test(t) && !/手机|平板|显示器|耳机|键盘|鼠标/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
             title: "预算大概多少？",
             options: [
               ["5000 元以下", "", "预算5000元以下，"],
@@ -5768,7 +5792,7 @@ function openOrderDetail(orderId) {
           const _short = /^(推荐|想买|选购|入手|换个|想要)$/.test(t);
           if (t.length < 3 && !_short) return null; // 其余仍要 ≥3 字，避免误触
           if (t.length > 40) return null; // 用户已在完整表达（长句），逐级引导反而碍事。阈值必须容得下引导链自己拼出的句子——24 时「…设计、剪辑和AI创作，」25字被误杀，预算级弹不出来（彩排 blocker）
-          for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
+          for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget_mobile", "budget_monitor", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
             if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
           }
           return null;
