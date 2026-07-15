@@ -8739,6 +8739,7 @@ function openOrderDetail(orderId) {
             else if (floorAction === "service") openServicePanel();
             else if (floorAction === "member") openMemberCenter();
             else if (floorAction === "coupon") openCouponCenter();
+            else if (floorAction === "orders") lxOpenCommerceEntry("orders");
             else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);

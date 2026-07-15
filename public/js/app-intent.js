@@ -116,6 +116,9 @@
         && !/(不下单|别下单|先不|不要|不买|取消|暂不)/.test(_t) && !/什么|哪|吗|怎么|[?？]/.test(_t)) {
       return { op: "buy_recommended", target: "", msg: "好的，正在为你下单最适合你的那款。" };
     }
+    // 「领取权益下单」动作 chip（推荐结果页第三个 chip）：领券 + 下单乐享最推荐那款。
+    // 复用 buy_recommended（lxBuyWithIntro 本身就是"打开详情→核对优惠→领券下单"三步）。
+    if (/^(领取?权益|领券|领(取)?优惠券?)(并|后)?(直接)?(下单|购买|买)吧?[!！。]?$/.test(_t)) return { op: "buy_recommended", target: "", msg: "好的，正在为你领取权益并下单推荐款。" };
     // 「就你推荐的这款吧」确认式（无成交动词也算数）：句首"就"+推荐指代 = 选定推荐款下单（真机反馈）
     if (/^(那?就)(你|乐享)?(最)?推荐的?[这那]?[款个台]?(吧|好了|行)?[!！。]?$/.test(_t)) return { op: "buy_recommended", target: "", msg: "好的，就选乐享最推荐的这款，正在为你下单。" };
     // 下单当前正在看的商品（含「这款/这台/这本不错下单吧」口语）
@@ -193,7 +196,7 @@
   // 点击即执行零等待。LLM 咨询型追问异步补齐，不足 3 个用 FOLLOWUP_FALLBACKS 兜底。
   function actionChips(products) {
     const n = Math.min(Array.isArray(products) ? products.length : 0, 3);
-    if (n >= 2) return ["对比第" + Array.from({ length: n }, (_, i) => i + 1).join("、") + "款", "打开第1款"];
+    if (n >= 2) return ["对比第" + Array.from({ length: n }, (_, i) => i + 1).join("、") + "款", "打开第1款", "领取权益下单"];
     if (n === 1) return ["这款不错，下单吧"];
     return [];
   }
