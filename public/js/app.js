@@ -1625,6 +1625,14 @@ if (!window.__lxCreateTypewriter) {
             state.autoFs = false;
           };
           const prepareSplit = () => {
+            // 首页语境(URL=/)：留在原地分屏，不 navigate 到 /shop-chat/ 子站、不建"个人及家庭"标签
+            // （真机反馈：开我的订单/购物车会连带把人拽进 shop 子站还多冒个个人及家庭标签）。
+            // lxPrepareRootSplitState 已含 lx-home-split/dataset/加载货盘，且不走 routeTo 的 nav.click 副作用。
+            const onRoot = (location.pathname || "/").replace(/\/+$/, "/") === "/";
+            if (onRoot && typeof lxPrepareRootSplitState === "function") {
+              lxPrepareRootSplitState();
+              return;
+            }
             document.documentElement.classList.remove("lx-root-lxfd-prepaint");
             window.__LXFD_FORCE = false;
             const lxfdLayer = document.querySelector(".lxfd");
