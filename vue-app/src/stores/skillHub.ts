@@ -3,6 +3,26 @@ import { ref } from 'vue'
 
 export type SkillStatus = 'draft' | 'review' | 'approved' | 'published' | 'disabled' | 'rejected'
 
+export interface SkillDraftForm {
+  name: string
+  cnName: string
+  menu: string
+  scene: string
+  input: string
+  output: string
+}
+
+export interface SkillDraftSnapshot {
+  form: SkillDraftForm
+  selectedContextCodes: string[]
+  clarifyMessages: unknown[]
+  summaryItems: Array<{ label: string; text: string }>
+  summaryUpdated: string
+  aiTuned: boolean
+  applicationPrompt: string
+  savedAt: string
+}
+
 export interface SkillHubItem {
   name: string
   cnName: string
@@ -21,6 +41,7 @@ export interface SkillHubItem {
   updated: string
   submittedAt?: string
   score?: string
+  draft?: SkillDraftSnapshot
 }
 
 type SkillCreatePayload = {
@@ -31,6 +52,11 @@ type SkillCreatePayload = {
   owner: string
   score: string
   tags?: string[]
+  draft?: SkillDraftSnapshot
+}
+
+type SkillDraftPayload = Omit<SkillCreatePayload, 'score'> & {
+  draft: SkillDraftSnapshot
 }
 
 const STORAGE_KEY = 'leai.skillHub.items.v1'
@@ -84,7 +110,8 @@ function loadItems() {
     return parsed.map(item => ({
       ...item,
       statusText: skillHubStatusLabel(item.status),
-      tags: Array.isArray(item.tags) ? item.tags : []
+      tags: Array.isArray(item.tags) ? item.tags : [],
+      draft: item.draft && typeof item.draft === 'object' ? item.draft : undefined
     }))
   } catch {
     return cloneDefaultItems()
@@ -117,6 +144,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
       updated,
       submittedAt: updated,
       score: payload.score,
+      draft: payload.draft,
+      reviewer: undefined,
+      reviewTime: undefined,
       reviewNote: `提交审核：综合评分 ${payload.score}，等待管理员审批。`
     }
     const index = items.value.findIndex(item => item.name === name)
@@ -127,6 +157,43 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     }
     persist()
     return nextItem
+  }
+
+  function upsertDraftSkill(payload: SkillDraftPayload) {
+    const updated = nowMinute()
+    const name = payload.name.trim()
+    const nextItem: SkillHubItem = {
+      name,
+      cnName: payload.cnName.trim(),
+      platform: 'lexiang',
+      desc: payload.desc.trim() || `${payload.cnName || name} Skill 草稿，可返回需求澄清继续编辑。`,
+      version: 'v0.1.0',
+      online: '未发布',
+      status: 'draft',
+      statusText: skillHubStatusLabel('draft'),
+      category: payload.category || '未分类',
+      tags: payload.tags?.length ? payload.tags : ['草稿'],
+      owner: payload.owner || 'admin',
+      updated,
+      draft: payload.draft,
+      submittedAt: undefined,
+      score: undefined,
+      reviewer: undefined,
+      reviewTime: undefined,
+      reviewNote: '草稿已保存：可从 Skill Hub 返回需求澄清阶段继续编辑。'
+    }
+    const index = items.value.findIndex(item => item.name === name)
+    if (index >= 0) {
+      items.value[index] = { ...items.value[index], ...nextItem }
+    } else {
+      items.value.unshift(nextItem)
+    }
+    persist()
+    return nextItem
+  }
+
+  function findSkill(name: string) {
+    return items.value.find(item => item.name === name)
   }
 
   function updateStatus(item: SkillHubItem, status: SkillStatus, reviewer = 'admin') {
@@ -158,6 +225,8 @@ export const useSkillHubStore = defineStore('skillHub', () => {
 
   return {
     items,
+    findSkill,
+    upsertDraftSkill,
     upsertSubmittedSkill,
     updateStatus
   }

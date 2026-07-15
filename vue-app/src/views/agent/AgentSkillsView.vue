@@ -229,8 +229,8 @@ const confirmState = ref<{ item: SkillHubItem; action: string } | null>(null)
 
 const role = computed(() => permissions.value.includes('*') ? 'admin' : 'pm')
 const pageDesc = computed(() => role.value === 'admin'
-  ? '管理员可审批、驳回、发布、启用或禁用 Skill；已驳回的 Skill 不再展示发布或审批操作。'
-  : 'PM 查看自己提交的 Skill 状态；被驳回的 Skill 可返回创建流程修改后重新提交。')
+  ? '管理员可查看草稿，并审批、驳回、发布、启用或禁用 Skill；草稿可返回需求澄清继续编辑。'
+  : 'PM 查看自己保存或提交的 Skill；草稿和被驳回的 Skill 可返回创建流程继续修改。')
 
 const categories = computed(() => [...new Set(items.value.map(item => item.category))])
 const statusOptions: SkillStatus[] = ['draft', 'review', 'approved', 'published', 'disabled', 'rejected']
@@ -252,7 +252,7 @@ const summaryItems = computed(() => {
   const disabledCount = items.value.filter(item => item.status === 'disabled').length
   return [
     { key: 'all', label: '全部 Skill', code: 'ALL', value: items.value.length, desc: `覆盖 ${categories.value.length} 个业务分类`, tone: 'stat--primary' },
-    { key: 'own', label: '我的提交', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '管理员视角当前账号' : '仅统计当前 PM 账号', tone: 'stat--info' },
+    { key: 'own', label: '我的 Skill', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '含当前账号草稿与已提交' : '含草稿与已提交记录', tone: 'stat--info' },
     { key: 'review', label: '待审批', code: 'TODO', value: reviewCount, desc: '需管理员审核处理', tone: 'stat--warning' },
     { key: 'published', label: '已发布', code: 'LIVE', value: publishedCount, desc: '线上可被工作台调用', tone: 'stat--success' },
     { key: 'disabled', label: '已禁用', code: 'OFF', value: disabledCount, desc: '暂停参与任务匹配', tone: 'stat--muted' }
@@ -272,7 +272,7 @@ const confirmMeta = computed(() => {
 
 function skillHubActions(item: SkillHubItem) {
   const pmActions: Record<SkillStatus, string[]> = {
-    draft: ['提交审核', '编辑', '评估', '删除'],
+    draft: ['返回编辑', '查看'],
     review: ['查看', '编辑', '撤回', '评估'],
     approved: ['发布', '编辑', '评估'],
     published: ['禁用', '编辑', '评估'],
@@ -280,7 +280,7 @@ function skillHubActions(item: SkillHubItem) {
     rejected: ['被驳回去修改', '编辑', '评估']
   }
   const adminActions: Record<SkillStatus, string[]> = {
-    draft: ['查看', '编辑'],
+    draft: ['返回编辑', '查看'],
     review: ['审批', '驳回', '查看', '评估'],
     approved: ['发布', '禁用', '查看'],
     published: ['禁用', '查看', '评估'],
@@ -288,6 +288,7 @@ function skillHubActions(item: SkillHubItem) {
     rejected: ['查看']
   }
   const baseActions = (role.value === 'admin' ? adminActions : pmActions)[item.status] || ['查看']
+  if (item.status === 'draft') return baseActions
   return [...baseActions.filter(action => action !== '测试'), '测试']
 }
 
@@ -309,7 +310,7 @@ function handleAction(item: SkillHubItem, action: string) {
     detailItem.value = item
     return
   }
-  if (action === '编辑' || action === '被驳回去修改') {
+  if (action === '返回编辑' || action === '编辑' || action === '被驳回去修改') {
     openSkillCreateForItem(item, action === '被驳回去修改')
     return
   }
@@ -341,7 +342,9 @@ function updateStatus(item: SkillHubItem, status: SkillStatus) {
 }
 
 function testSkill(item: SkillHubItem) {
-  const query = `请用自然语言测试 Skill「${item.name}」，说明适用场景、风险边界和输出结果。`
+  const query = item.name === 'presentation-employee-cert'
+    ? '总结近两周的认证数据情况，人群画像，并查看认证用户的购买转化、GMV、爆款商品。'
+    : `请用自然语言测试 Skill「${item.name}」，说明适用场景、风险边界和输出结果。`
   aiStore.toggleOpen(true)
   aiStore.quickSend(query, 'agent.skills')
   toast(`${item.name}：已在右侧 Agent 展示调用结果`)
@@ -353,34 +356,24 @@ function detailId(item: SkillHubItem) {
 
 function openSkillCreateForItem(item: SkillHubItem, rejected = false) {
   sessionStorage.setItem('leai.skillCreateDraft', JSON.stringify({ item, rejected }))
-  void router.push({ path: '/agent/skill-create', query: { skill: item.name, rejected: rejected ? '1' : undefined } })
-  window.setTimeout(() => {
-    const setValue = (id: string, value: string) => {
-      const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | null
-      if (el && value) el.value = value
+  const isDraft = item.status === 'draft'
+  void router.push({
+    path: '/agent/skill-create',
+    query: {
+      skill: item.name,
+      rejected: rejected ? '1' : undefined,
+      edit: isDraft ? 'draft' : undefined
     }
-    setValue('skill-create-name', item.name)
-    setValue('skill-create-cn-name', item.cnName)
-    setValue('skill-create-scene', item.desc)
-    setValue('skill-create-output', '自然语言响应、表格结果、可继续展开的报告或调整建议')
-
-    const sub = document.querySelector('.skill-workspace-sub')
-    if (sub) sub.textContent = rejected ? `${item.cnName || item.name} · 已驳回 · 修改中` : `${item.cnName || item.name} · 编辑中`
-
-    if (rejected) {
-      const banner = document.querySelector('[data-skill-create-panel="config"] .skill-step-banner')
-      if (banner) banner.textContent = '当前 Skill 已被管理员驳回，请根据审批意见补充业务边界、测试用例或审批材料后重新提交。'
-      const reviewStatus = document.getElementById('skill-create-review-status')
-      if (reviewStatus) reviewStatus.textContent = '当前状态为已驳回，修改完成后可重新提交审核'
-    }
-
-    const configTab = document.querySelector<HTMLElement>('[data-skill-create-tab=config]')
-    configTab?.click()
-  }, 0)
-  toast(rejected ? `${item.cnName || item.name}：已进入创建流程，请修改后重新提交` : `${item.cnName || item.name}：已进入编辑流程`)
+  })
+  toast(rejected
+    ? `${item.cnName || item.name}：已进入创建流程，请修改后重新提交`
+    : isDraft
+      ? `${item.cnName || item.name}：已恢复草稿并进入需求澄清`
+      : `${item.cnName || item.name}：已进入编辑流程`)
 }
 
 function openSkillCreate() {
+  sessionStorage.removeItem('leai.skillCreateDraft')
   router.push('/agent/skill-create')
 }
 

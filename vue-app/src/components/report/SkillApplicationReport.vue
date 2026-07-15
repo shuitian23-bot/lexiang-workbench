@@ -221,6 +221,41 @@ const charts: ECharts[] = []
 let echartsRuntime: EChartsRuntime | null = null
 let resizeObserver: ResizeObserver | null = null
 
+const CHART_COLORS = {
+  blue: '#3f78c5',
+  blueMid: '#5b8def',
+  blueSoft: '#9bbcff',
+  green: '#58a86a',
+  greenSoft: '#6ac69a',
+  purple: '#7c5cff',
+  purpleSoft: '#a996ff',
+  slate: '#8da2bf',
+  amber: '#d6a458',
+  neutral: '#aeb8c8',
+  danger: '#d94b4b'
+}
+
+const CHART_PALETTE = [
+  CHART_COLORS.blue,
+  CHART_COLORS.green,
+  CHART_COLORS.purple,
+  CHART_COLORS.blueMid,
+  CHART_COLORS.greenSoft,
+  CHART_COLORS.blueSoft,
+  CHART_COLORS.slate,
+  CHART_COLORS.amber,
+  CHART_COLORS.neutral
+]
+
+const CHART_LEGEND = {
+  bottom: 6,
+  itemWidth: 18,
+  itemHeight: 8,
+  itemGap: 16,
+  padding: [8, 0, 0, 0],
+  textStyle: { color: '#646a73', fontSize: 10, lineHeight: 14 }
+}
+
 const purchasedUsers = computed(() => metricText('已购用户'))
 const conversionRate = computed(() => metricText('认证购买转化率'))
 const unpurchasedUsers = computed(() => metricText('认证未购池'))
@@ -422,10 +457,22 @@ function axisTooltip() {
   return {
     trigger: 'axis' as const,
     backgroundColor: '#ffffff',
-    borderColor: '#dfe3eb',
+    borderColor: '#e5e6eb',
     borderWidth: 1,
-    textStyle: { color: '#172033', fontSize: 12 },
-    padding: [9, 11]
+    textStyle: { color: '#1f2329', fontSize: 12 },
+    padding: [9, 11],
+    confine: true,
+    extraCssText: 'box-shadow:0 4px 12px rgba(0,0,0,.08);border-radius:8px;'
+  }
+}
+
+function chartMotion() {
+  return {
+    animation: true,
+    animationDuration: 720,
+    animationEasing: 'cubicOut' as const,
+    animationDurationUpdate: 360,
+    animationEasingUpdate: 'cubicOut' as const
   }
 }
 
@@ -433,20 +480,21 @@ function trendOption(): EChartsOption {
   const values = props.report.dailyTrend.map(item => item.value)
   const peak = Math.max(...values, 0)
   return {
+    ...chartMotion(),
     tooltip: axisTooltip(),
-    grid: { left: 54, right: 24, top: 42, bottom: 42 },
+    grid: { left: 54, right: 24, top: 34, bottom: 42 },
     xAxis: {
       type: 'category',
       data: props.report.dailyTrend.map(item => item.label),
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: '#d5dae3' } },
-      axisLabel: { color: '#5f6979', fontSize: 11, interval: 0 }
+      axisLine: { lineStyle: { color: '#dee0e3' } },
+      axisLabel: { color: '#8f959e', fontSize: 10, interval: 0 }
     },
     yAxis: {
       type: 'value',
       max: (value: { max: number }) => Math.ceil(value.max / 30) * 30,
-      axisLabel: { color: '#5f6979', fontSize: 11 },
-      splitLine: { lineStyle: { color: '#dfe3ea' } }
+      axisLabel: { color: '#8f959e', fontSize: 10 },
+      splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }
     },
     series: [{
       name: '新增认证',
@@ -456,25 +504,26 @@ function trendOption(): EChartsOption {
         value,
         itemStyle: {
           color: isWeekend(props.report.dailyTrend[index]?.date || '')
-            ? '#20a878'
-            : value === peak ? '#245eea' : '#3370ff',
+            ? chartBarGradient(CHART_COLORS.green)
+            : value === peak ? chartBarGradient(CHART_COLORS.blueMid) : chartBarGradient(CHART_COLORS.blue),
           borderRadius: [4, 4, 0, 0]
         }
       })),
+      animationDelay: (index: number) => index * 28,
       emphasis: { focus: 'series' },
       markLine: {
         symbol: 'none',
         silent: true,
-        lineStyle: { color: '#8793a5', type: 'dashed', width: 1 },
-        label: { color: '#68758a', fontSize: 9, position: 'insideEndTop', formatter: `日均 ${dailyAverage.value.toFixed(1)}` },
+        lineStyle: { color: CHART_COLORS.slate, type: 'dashed', width: 1 },
+        label: { color: '#646a73', fontSize: 9, position: 'insideEndTop', formatter: `日均 ${dailyAverage.value.toFixed(1)}` },
         data: [{ yAxis: Number(dailyAverage.value.toFixed(1)) }]
       },
       markPoint: {
         symbolSize: 38,
         label: { color: '#ffffff', fontSize: 9, formatter: '{c}' },
         data: [
-          { type: 'max', name: '峰值', itemStyle: { color: '#245eea' } },
-          { type: 'min', name: '低点', itemStyle: { color: '#d98324' } }
+          { type: 'max', name: '峰值', itemStyle: { color: CHART_COLORS.blueMid } },
+          { type: 'min', name: '低点', itemStyle: { color: CHART_COLORS.amber } }
         ]
       }
     }]
@@ -483,38 +532,54 @@ function trendOption(): EChartsOption {
 
 function methodOption(): EChartsOption {
   return {
-    color: ['#3370ff', '#20a878', '#8f959e', '#d98324'],
-    tooltip: { trigger: 'item', formatter: '{b}<br/>{c} 人 · {d}%' },
+    ...chartMotion(),
+    color: CHART_PALETTE,
+    tooltip: { ...axisTooltip(), trigger: 'item', formatter: '{b}<br/>{c} 人 · {d}%' },
     legend: {
-      bottom: 4,
+      ...CHART_LEGEND,
+      type: 'scroll',
       left: 'center',
-      icon: 'roundRect',
-      itemWidth: 18,
-      itemHeight: 8,
-      textStyle: { color: '#68758a', fontSize: 10 }
+      icon: 'roundRect'
     },
     series: [{
       name: '认证方式',
       type: 'pie',
       radius: ['43%', '69%'],
-      center: ['50%', '45%'],
+      center: ['50%', '44%'],
+      padAngle: 1.5,
       itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
       label: { show: false },
       emphasis: { label: { show: true, fontSize: 13, fontWeight: 700 } },
-      data: props.report.methods.map(item => ({ name: item.label, value: item.value }))
+      data: props.report.methods.map((item, index) => ({
+        name: item.label,
+        value: item.value,
+        itemStyle: { color: CHART_PALETTE[index % CHART_PALETTE.length] }
+      })),
+      animationDelay: (index: number) => index * 45
     }]
   }
 }
 
 function industryOption(): EChartsOption {
   const items = [...props.report.industries].slice(0, 10).reverse()
-  return horizontalBarOption(items, '#3370ff', 128, false)
+  return horizontalBarOption(items, CHART_COLORS.blue, 128, false)
 }
 
 function roleOption(): EChartsOption {
   const items = [...props.report.roles].reverse()
-  const palette = ['#9cb9ff', '#9cb9ff', '#7fa2f7', '#7fa2f7', '#6e98f7', '#5b88f5', '#8f959e', '#3370ff', '#245eea']
+  const palette = [
+    CHART_COLORS.blueSoft,
+    CHART_COLORS.blueSoft,
+    CHART_COLORS.blueMid,
+    CHART_COLORS.greenSoft,
+    CHART_COLORS.slate,
+    CHART_COLORS.purpleSoft,
+    CHART_COLORS.green,
+    CHART_COLORS.blue,
+    CHART_COLORS.purple
+  ]
   return {
+    ...chartMotion(),
     tooltip: axisTooltip(),
     grid: { left: 88, right: 50, top: 14, bottom: 18 },
     xAxis: { type: 'value', show: false },
@@ -523,29 +588,30 @@ function roleOption(): EChartsOption {
       data: items.map(item => item.label),
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: '#53627a', fontSize: 10, fontWeight: 600 }
+      axisLabel: { color: '#646a73', fontSize: 10, fontWeight: 600 }
     },
     series: [{
       name: '认证人数',
       type: 'bar',
       showBackground: true,
-      backgroundStyle: { color: '#edf1f6', borderRadius: 10 },
+      backgroundStyle: { color: '#eef1f4', borderRadius: 10 },
       barWidth: 18,
       data: items.map((item, index) => ({
         value: item.value,
-        itemStyle: { color: palette[index], borderRadius: [10, 10, 10, 10] }
+        itemStyle: { color: chartBarGradient(palette[index % palette.length]), borderRadius: [10, 10, 10, 10] }
       })),
-      label: { show: true, position: 'right', color: '#53627a', fontSize: 10, fontWeight: 700 }
+      label: { show: true, position: 'right', color: '#646a73', fontSize: 10, fontWeight: 700 },
+      animationDelay: (index: number) => index * 34
     }]
   }
 }
 
 function timeOption(): EChartsOption {
-  return horizontalBarOption([...props.report.timeBuckets].reverse(), '#20a878', 66, true)
+  return horizontalBarOption([...props.report.timeBuckets].reverse(), CHART_COLORS.green, 66, true)
 }
 
 function productOption(): EChartsOption {
-  return horizontalBarOption([...props.report.products].slice(0, 10).reverse(), '#d98324', 142, false)
+  return horizontalBarOption([...props.report.products].slice(0, 10).reverse(), CHART_COLORS.blueMid, 142, false)
 }
 
 function horizontalBarOption(
@@ -555,33 +621,51 @@ function horizontalBarOption(
   showShare: boolean
 ): EChartsOption {
   return {
+    ...chartMotion(),
     tooltip: axisTooltip(),
     grid: { left, right: 48, top: 14, bottom: 20 },
     xAxis: {
       type: 'value',
-      axisLabel: { color: '#7c8797', fontSize: 9 },
-      splitLine: { lineStyle: { color: '#e8ebf0' } }
+      axisLabel: { color: '#8f959e', fontSize: 9 },
+      splitLine: { lineStyle: { color: '#e5e6eb', type: 'dashed' } }
     },
     yAxis: {
       type: 'category',
       data: items.map(item => shorten(item.label, 18)),
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: '#53627a', fontSize: 10 }
+      axisLabel: { color: '#646a73', fontSize: 10 }
     },
     series: [{
       type: 'bar',
       barMaxWidth: 16,
-      data: items.map(item => ({ value: item.value, itemStyle: { color, borderRadius: [0, 5, 5, 0] } })),
+      data: items.map(item => ({ value: item.value, itemStyle: { color: chartBarGradient(color), borderRadius: [0, 5, 5, 0] } })),
       label: {
         show: true,
         position: 'right',
-        color: '#68758a',
+        color: '#646a73',
         fontSize: 9,
         formatter: ({ dataIndex }: { dataIndex: number }) => showShare ? items[dataIndex]?.share || '' : `${items[dataIndex]?.value || 0}`
-      }
+      },
+      animationDelay: (index: number) => index * 30
     }]
   }
+}
+
+function chartBarGradient(color: string) {
+  if (!echartsRuntime?.graphic) return color
+  return new echartsRuntime.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color: hexToRgba(color, .18) },
+    { offset: 1, color }
+  ])
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const value = hex.replace('#', '')
+  const r = Number.parseInt(value.slice(0, 2), 16)
+  const g = Number.parseInt(value.slice(2, 4), 16)
+  const b = Number.parseInt(value.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
 }
 
 function metricText(label: string) {
@@ -621,16 +705,16 @@ function shorten(value: string, maxLength: number) {
 
 <style scoped>
 .skill-data-dashboard {
-  --dash-blue: #3370ff;
-  --dash-blue-strong: #245eea;
-  --dash-blue-soft: #edf3ff;
-  --dash-green: #20a878;
-  --dash-amber: #d98324;
-  --dash-purple: #7f6bff;
+  --dash-blue: #3f78c5;
+  --dash-blue-strong: #3370ff;
+  --dash-blue-soft: rgba(63, 120, 197, .1);
+  --dash-green: #58a86a;
+  --dash-amber: #d6a458;
+  --dash-purple: #7c5cff;
   display: grid;
-  gap: 26px;
+  gap: 18px;
   min-width: 0;
-  color: var(--text, #172033);
+  color: var(--text, #1f2329);
 }
 
 .dashboard-kpis {
@@ -641,24 +725,38 @@ function shorten(value: string, maxLength: number) {
 
 .dashboard-kpi {
   min-width: 0;
-  min-height: 158px;
-  padding: 22px 24px;
-  border: 1px solid var(--border, #dfe3eb);
-  border-top: 3px solid #cfd6e4;
-  border-radius: 8px;
-  background: var(--surface, #fff);
-  box-shadow: 0 4px 14px rgba(31, 45, 61, .04);
+  min-height: 128px;
+  padding: 18px 20px;
+  border: 1px solid rgba(221, 225, 230, .82);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(63, 120, 197, .08), rgba(255, 255, 255, .96)),
+    #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .035);
+  transition: var(--central-module-hover-transition, border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease);
 }
 
 .dashboard-kpi-primary {
-  border-color: #c8d7ff;
-  border-top-color: var(--dash-blue);
-  background: #f7f9ff;
+  border-color: rgba(63, 120, 197, .24);
 }
 
-.dashboard-kpi:nth-child(2) { border-top-color: var(--dash-green); }
-.dashboard-kpi:nth-child(3) { border-top-color: var(--dash-purple); }
-.dashboard-kpi:nth-child(4) { border-top-color: var(--dash-amber); }
+.dashboard-kpi:nth-child(2) {
+  background: linear-gradient(135deg, rgba(63, 158, 173, .075), rgba(255, 255, 255, .96)), #fff;
+}
+
+.dashboard-kpi:nth-child(3) {
+  background: linear-gradient(135deg, rgba(226, 0, 26, .045), rgba(255, 255, 255, .97)), #fff;
+}
+
+.dashboard-kpi:nth-child(4) {
+  background: linear-gradient(135deg, rgba(124, 92, 255, .065), rgba(255, 255, 255, .97)), #fff;
+}
+
+.dashboard-kpi:hover {
+  border-color: var(--central-module-hover-border, rgba(51, 112, 255, .36));
+  box-shadow: var(--central-module-hover-shadow, 0 1px 2px rgba(15, 23, 42, .035), 0 6px 14px rgba(15, 23, 42, .055));
+  transform: var(--central-module-hover-transform, translateY(-1px));
+}
 
 .dashboard-kpi-head {
   display: flex;
@@ -668,69 +766,72 @@ function shorten(value: string, maxLength: number) {
 }
 
 .dashboard-kpi-head span {
-  color: #7b8aa0;
+  color: var(--text-tertiary, #8f959e);
   font-size: 12px;
   font-weight: 650;
 }
 
 .dashboard-kpi-head i {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 30px;
   place-items: center;
   border-radius: 7px;
-  color: #68758a;
-  background: #f2f4f7;
+  color: var(--dash-blue);
+  background: rgba(63, 120, 197, .1);
   font-size: 11px;
   font-style: normal;
   font-weight: 700;
 }
 
 .dashboard-kpi-primary .dashboard-kpi-head i {
-  color: #fff;
-  background: var(--dash-blue);
+  color: var(--dash-blue);
+  background: rgba(63, 120, 197, .12);
 }
 
-.dashboard-kpi:nth-child(2) .dashboard-kpi-head i { color: var(--dash-green); background: #edf8f4; }
-.dashboard-kpi:nth-child(3) .dashboard-kpi-head i { color: var(--dash-purple); background: #f1efff; }
-.dashboard-kpi:nth-child(4) .dashboard-kpi-head i { color: var(--dash-amber); background: #fff5e9; }
+.dashboard-kpi:nth-child(2) .dashboard-kpi-head i { color: var(--dash-green); background: rgba(88, 168, 106, .12); }
+.dashboard-kpi:nth-child(3) .dashboard-kpi-head i { color: var(--dash-purple); background: rgba(124, 92, 255, .1); }
+.dashboard-kpi:nth-child(4) .dashboard-kpi-head i { color: var(--dash-amber); background: rgba(214, 164, 88, .14); }
 
 .dashboard-kpi > b {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 24px;
+  margin-top: 18px;
   overflow-wrap: anywhere;
-  font-size: 35px;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
-.dashboard-kpi > b small { font-size: 15px; }
-.dashboard-kpi p { margin: 10px 0 0; color: #7b8aa0; font-size: 11px; font-weight: 600; }
+.dashboard-kpi > b small { font-size: 13px; }
+.dashboard-kpi p { margin: 9px 0 0; color: var(--text-secondary, #646a73); font-size: 11px; font-weight: 600; }
 .dashboard-kpi-primary > b { color: var(--dash-blue); }
 
 .data-trust-strip {
   display: grid;
   grid-template-columns: minmax(230px, 1.35fr) repeat(4, minmax(120px, .65fr));
   overflow: hidden;
-  border: 1px solid var(--border, #dfe3eb);
+  border: 1px solid rgba(221, 225, 230, .82);
   border-radius: 8px;
-  background: var(--surface, #fff);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+  transition: var(--central-module-hover-transition, border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease);
 }
 
 .data-trust-strip > div {
   min-width: 0;
   padding: 14px 16px;
-  border-left: 1px solid #e7eaf0;
+  border-left: 1px solid var(--border-light, #e5e6eb);
 }
 
 .data-trust-strip > div:first-child { border-left: 0; }
-.data-trust-title { display: grid; align-content: center; gap: 5px; border-left: 4px solid var(--dash-blue) !important; background: #f5f9ff; }
+.data-trust-title { display: grid; align-content: center; gap: 5px; background: rgba(51, 112, 255, .045); }
 .data-trust-title > span { color: var(--dash-blue) !important; font-weight: 700; }
 .data-trust-title > b { font-size: 11px !important; line-height: 1.5; }
 .data-trust-strip span,
-.data-trust-strip small { display: block; color: #7b8aa0; font-size: 9px; }
-.data-trust-strip b { display: block; margin-top: 5px; font-size: 16px; }
+.data-trust-strip small { display: block; color: var(--text-tertiary, #8f959e); font-size: 9px; }
+.data-trust-strip b { display: block; margin-top: 5px; font-size: 16px; font-variant-numeric: tabular-nums; }
 .data-trust-strip small { margin-top: 3px; }
 
 .diagnostic-grid {
@@ -743,22 +844,23 @@ function shorten(value: string, maxLength: number) {
   --diagnostic-color: var(--dash-blue);
   min-width: 0;
   padding: 16px;
-  border: 1px solid var(--border, #dfe3eb);
-  border-top: 3px solid var(--diagnostic-color);
+  border: 1px solid rgba(221, 225, 230, .82);
   border-radius: 8px;
-  background: var(--surface, #fff);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+  transition: var(--central-module-hover-transition, border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease);
 }
 
 .diagnostic-grid article.diagnostic-green { --diagnostic-color: var(--dash-green); }
 .diagnostic-grid article.diagnostic-purple { --diagnostic-color: var(--dash-purple); }
 .diagnostic-grid article.diagnostic-amber { --diagnostic-color: var(--dash-amber); }
 .diagnostic-grid article > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.diagnostic-grid span { color: #6f7b8d; font-size: 10px; font-weight: 650; }
-.diagnostic-grid b { color: var(--diagnostic-color); font-size: 18px; white-space: nowrap; }
-.diagnostic-meter { height: 5px; margin: 12px 0; overflow: hidden; border-radius: 999px; background: #edf0f4; }
+.diagnostic-grid span { color: var(--text-secondary, #646a73); font-size: 10px; font-weight: 650; }
+.diagnostic-grid b { color: var(--diagnostic-color); font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.diagnostic-meter { height: 5px; margin: 12px 0; overflow: hidden; border-radius: 999px; background: #eef1f4; }
 .diagnostic-meter i { display: block; height: 100%; border-radius: inherit; background: var(--diagnostic-color); }
 .diagnostic-grid p { min-height: 34px; margin: 0; font-size: 10px; font-weight: 650; line-height: 1.65; }
-.diagnostic-grid small { display: block; margin-top: 8px; color: #8b95a5; font-size: 9px; line-height: 1.55; }
+.diagnostic-grid small { display: block; margin-top: 8px; color: var(--text-tertiary, #8f959e); font-size: 9px; line-height: 1.55; }
 
 .analysis-loop-list { display: grid; gap: 10px; }
 
@@ -768,9 +870,11 @@ function shorten(value: string, maxLength: number) {
   grid-template-columns: 38px minmax(150px, .9fr) repeat(3, minmax(145px, 1fr));
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--border, #dfe3eb);
+  border: 1px solid rgba(221, 225, 230, .82);
   border-radius: 8px;
-  background: var(--surface, #fff);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+  transition: var(--central-module-hover-transition, border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease);
 }
 
 .analysis-loop-list article.loop-green { --loop-color: var(--dash-green); }
@@ -779,9 +883,10 @@ function shorten(value: string, maxLength: number) {
 
 .loop-index {
   display: grid;
+  align-self: stretch;
   place-items: center;
-  color: #fff;
-  background: var(--loop-color);
+  color: var(--loop-color);
+  background: color-mix(in srgb, var(--loop-color) 10%, #fff);
   font-size: 10px;
   font-weight: 700;
 }
@@ -790,36 +895,23 @@ function shorten(value: string, maxLength: number) {
   position: relative;
   min-width: 0;
   padding: 13px 14px;
-  border-left: 1px solid #e7eaf0;
-}
-
-.loop-node:not(:last-child)::after {
-  position: absolute;
-  top: 50%;
-  right: -7px;
-  z-index: 1;
-  width: 14px;
-  height: 14px;
-  border-top: 1px solid #d8dee8;
-  border-right: 1px solid #d8dee8;
-  background: #fff;
-  content: '';
-  transform: translateY(-50%) rotate(45deg);
+  border-left: 1px solid var(--border-light, #e5e6eb);
 }
 
 .loop-node > span { display: block; margin-bottom: 7px; color: var(--loop-color); font-size: 9px; font-weight: 700; }
 .loop-node b { display: block; margin-bottom: 5px; font-size: 13px; line-height: 1.45; }
-.loop-node p { margin: 0; color: #5d6674; font-size: 9px; line-height: 1.65; }
-.loop-signal { background: #f7f9ff; }
+.loop-node p { margin: 0; color: var(--text-secondary, #646a73); font-size: 9px; line-height: 1.65; }
+.loop-signal { background: rgba(51, 112, 255, .035); }
 .loop-validation { background: #f8f9fb; }
 
 .dashboard-section,
 .dashboard-panel {
   min-width: 0;
-  border: 1px solid var(--border, #dfe3eb);
+  border: 1px solid rgba(221, 225, 230, .82);
   border-radius: 8px;
-  background: var(--surface, #fff);
-  box-shadow: 0 4px 18px rgba(31, 45, 61, .035);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .035);
+  transition: var(--central-module-hover-transition, border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease);
 }
 
 .dashboard-section { padding: 26px 28px 18px; }
@@ -845,15 +937,15 @@ function shorten(value: string, maxLength: number) {
 .dashboard-group-heading p,
 .panel-title p {
   margin: 6px 0 0;
-  color: #7b8aa0;
+  color: var(--text-secondary, #646a73);
   font-size: 10px;
   line-height: 1.5;
 }
 
 .dashboard-section-heading > span,
-.panel-title > span { color: #8b95a5; font-size: 10px; white-space: nowrap; }
+.panel-title > span { color: var(--text-tertiary, #8f959e); font-size: 10px; white-space: nowrap; }
 
-.trend-heading-meta { display: grid; justify-items: end; gap: 6px; color: #8b95a5; font-size: 10px; }
+.trend-heading-meta { display: grid; justify-items: end; gap: 6px; color: var(--text-tertiary, #8f959e); font-size: 10px; }
 .trend-legend { display: flex; align-items: center; gap: 5px; }
 .trend-legend i { width: 8px; height: 8px; border-radius: 2px; background: var(--dash-blue); }
 .trend-legend i:nth-of-type(2) { margin-left: 5px; background: var(--dash-green); }
@@ -887,13 +979,17 @@ function shorten(value: string, maxLength: number) {
   margin-inline: auto;
   padding: 13px 16px;
   border-radius: 6px;
-  color: #fff;
+  border: 1px solid rgba(221, 225, 230, .82);
+  color: var(--text, #1f2329);
+  background: #fff;
 }
 .funnel-row span { font-size: 11px; }
-.funnel-row b { font-size: 19px; }
-.funnel-raw { width: 100%; background: #75859b; }
-.funnel-verified { width: 82%; background: var(--dash-blue); }
-.funnel-purchased { width: 58%; background: var(--dash-green); }
+.funnel-row b { font-size: 19px; font-variant-numeric: tabular-nums; }
+.funnel-raw { width: 100%; background: linear-gradient(135deg, rgba(141, 162, 191, .14), rgba(255, 255, 255, .98)); }
+.funnel-verified { width: 82%; background: linear-gradient(135deg, rgba(63, 120, 197, .14), rgba(255, 255, 255, .98)); }
+.funnel-purchased { width: 58%; background: linear-gradient(135deg, rgba(88, 168, 106, .14), rgba(255, 255, 255, .98)); }
+.funnel-verified b { color: var(--dash-blue); }
+.funnel-purchased b { color: var(--dash-green); }
 
 .conversion-stats {
   display: grid;
@@ -901,20 +997,20 @@ function shorten(value: string, maxLength: number) {
   gap: 1px;
   margin-top: 22px;
   overflow: hidden;
-  border: 1px solid #e1e5eb;
+  border: 1px solid var(--border-light, #e5e6eb);
   border-radius: 6px;
-  background: #e1e5eb;
+  background: var(--border-light, #e5e6eb);
 }
 .conversion-stats div { min-width: 0; padding: 12px 10px; background: #f8fafc; text-align: center; }
-.conversion-stats span { display: block; color: #7b8aa0; font-size: 9px; }
-.conversion-stats b { display: block; margin-top: 6px; font-size: 15px; }
+.conversion-stats span { display: block; color: var(--text-tertiary, #8f959e); font-size: 9px; }
+.conversion-stats b { display: block; margin-top: 6px; font-size: 15px; font-variant-numeric: tabular-nums; }
 
 .product-table-panel { overflow: hidden; }
-.product-table-scroll { max-height: 390px; margin-top: 16px; overflow: auto; border: 1px solid #e5e8ed; border-radius: 6px; }
+.product-table-scroll { max-height: 390px; margin-top: 16px; overflow: auto; border: 1px solid var(--border-light, #e5e6eb); border-radius: 6px; }
 .product-table-scroll table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 10px; }
 .product-table-scroll th,
 .product-table-scroll td { padding: 11px 12px; border-bottom: 1px solid #edf0f4; text-align: left; }
-.product-table-scroll th { position: sticky; top: 0; z-index: 1; color: #7b8aa0; background: #f5f7fa; font-weight: 600; }
+.product-table-scroll th { position: sticky; top: 0; z-index: 1; color: var(--text-tertiary, #8f959e); background: #f5f7fa; font-weight: 600; }
 .product-table-scroll td:first-child { color: var(--dash-blue); font-weight: 700; }
 .product-table-scroll td:nth-child(3),
 .product-table-scroll td:last-child { white-space: nowrap; }
@@ -928,9 +1024,11 @@ function shorten(value: string, maxLength: number) {
   gap: 10px;
   min-width: 0;
   padding: 16px;
-  border: 1px solid var(--border, #dfe3eb);
+  border: 1px solid rgba(221, 225, 230, .82);
   border-radius: 8px;
-  background: var(--surface, #fff);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+  transition: var(--central-module-hover-transition, border-color .14s ease, box-shadow .14s ease, background-color .14s ease, transform .14s ease);
 }
 .insight-grid article > span {
   display: grid;
@@ -939,12 +1037,25 @@ function shorten(value: string, maxLength: number) {
   place-items: center;
   border-radius: 5px;
   color: var(--dash-blue);
-  background: #eaf4fb;
+  background: rgba(63, 120, 197, .1);
   font-size: 9px;
   font-weight: 700;
 }
 .insight-grid h3 { margin: 2px 0 6px; font-size: 11px; }
-.insight-grid p { margin: 0; color: #6f7b8d; font-size: 9px; line-height: 1.65; }
+.insight-grid p { margin: 0; color: var(--text-secondary, #646a73); font-size: 9px; line-height: 1.65; }
+
+@media (hover: hover) {
+  .data-trust-strip:hover,
+  .diagnostic-grid article:hover,
+  .analysis-loop-list article:hover,
+  .dashboard-section:hover,
+  .dashboard-panel:hover,
+  .insight-grid article:hover {
+    border-color: var(--central-module-hover-border, rgba(51, 112, 255, .36));
+    box-shadow: var(--central-module-hover-shadow, 0 1px 2px rgba(15, 23, 42, .035), 0 6px 14px rgba(15, 23, 42, .055));
+    transform: var(--central-module-hover-transform, translateY(-1px));
+  }
+}
 
 @media (max-width: 1500px) {
   .profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -395,13 +395,15 @@
                     <div>
                       <em v-for="chip in applicationResultChips" :key="chip">{{ chip }}</em>
                     </div>
+                    <div class="skill-application-result-footer">
+                      <div class="skill-application-result-summary">
+                        <span>核心结果</span>
+                        <b>{{ applicationReport.metrics[0]?.value }} 独立认证</b>
+                        <p>转化率 {{ applicationReport.metrics[2]?.value }}，已生成趋势、画像、Top10 商品与行动建议。</p>
+                      </div>
+                      <button class="btn btn-primary" type="button" @click="openApplicationReport">展开报告</button>
+                    </div>
                   </div>
-                  <div class="skill-application-result-summary">
-                    <span>核心结果</span>
-                    <b>{{ applicationReport.metrics[0]?.value }} 独立认证</b>
-                    <p>转化率 {{ applicationReport.metrics[2]?.value }}，已生成趋势、画像、Top10 商品与行动建议。</p>
-                  </div>
-                  <button class="btn btn-primary" type="button" @click="openApplicationReport">展开报告</button>
                 </div>
               </section>
             </div>
@@ -449,7 +451,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE, useAppStore, type SkillApplicationBreakdown, type SkillApplicationReportData } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
-import { useSkillHubStore } from '@/stores/skillHub'
+import { useSkillHubStore, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
 type ContextItem = { code: string; name: string; source: string; selected: boolean }
@@ -1316,8 +1318,35 @@ function refreshSummary() {
 }
 
 function saveDraft() {
+  if (!validateConfig()) return
   const now = new Date()
-  workspaceSub.value = `职场员工审核 · 草稿已保存 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const snapshot = createDraftSnapshot(now)
+  skillHubStore.upsertDraftSkill({
+    name: form.value.name,
+    cnName: form.value.cnName,
+    desc: form.value.scene,
+    category: form.value.menu,
+    owner: appStore.user || 'admin',
+    tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
+    draft: snapshot
+  })
+  workspaceSub.value = `${form.value.cnName || form.value.name} · 草稿已保存 ${snapshot.savedAt.slice(-8, -3)}`
+  reviewSubmitted.value = false
+  reviewStatus.value = '草稿已同步到 Skill Hub，可返回需求澄清继续编辑'
+  toast(`${form.value.name}：草稿已保存并同步到 Skill Hub`)
+}
+
+function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
+  return {
+    form: { ...form.value },
+    selectedContextCodes: selectedContextItems.value.map(item => item.code),
+    clarifyMessages: JSON.parse(JSON.stringify(clarifyMessages.value)),
+    summaryItems: summaryItems.value.map(item => ({ ...item })),
+    summaryUpdated: summaryUpdated.value,
+    aiTuned: aiTuned.value,
+    applicationPrompt: applicationPrompt.value,
+    savedAt: formatBeijingTime(now)
+  }
 }
 
 function startAiTune() {
@@ -1691,7 +1720,8 @@ function submitReview() {
     category: form.value.menu,
     owner: appStore.user || 'admin',
     score,
-    tags: selectedContextItems.value.slice(0, 3).map(item => item.name)
+    tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
+    draft: createDraftSnapshot()
   })
   reviewSubmitted.value = true
   reviewStatus.value = '已提交审核，当前 Skill Hub 状态为待审批'
@@ -1733,6 +1763,11 @@ function stateIcon(kind: string) {
 }
 
 function loadEditDraft() {
+  const requestedSkill = String(route.query.skill || '')
+  if (!requestedSkill) {
+    sessionStorage.removeItem('leai.skillCreateDraft')
+    return
+  }
   const raw = sessionStorage.getItem('leai.skillCreateDraft')
   if (!raw) {
     loadEditDraftFromQuery()
@@ -1740,25 +1775,79 @@ function loadEditDraft() {
   }
   try {
     const parsed = JSON.parse(raw)
-    const item = parsed?.item
-    if (!item?.name) return
-    form.value.name = item.name
-    form.value.cnName = item.cnName || form.value.cnName
-    form.value.scene = item.desc || form.value.scene
-    form.value.output = '自然语言响应、表格结果、可继续展开的报告或调整建议'
-    workspaceSub.value = parsed.rejected ? `${item.cnName || item.name} · 已驳回 · 修改中` : `${item.cnName || item.name} · 编辑中`
+    const item = parsed?.item as SkillHubItem | undefined
+    if (!item?.name || item.name !== requestedSkill) {
+      loadEditDraftFromQuery()
+      return
+    }
+    restoreSkillItem(item)
+    const isDraft = item.status === 'draft' || route.query.edit === 'draft'
+    workspaceSub.value = parsed.rejected
+      ? `${item.cnName || item.name} · 已驳回 · 修改中`
+      : isDraft
+        ? `${item.cnName || item.name} · 草稿编辑中`
+        : `${item.cnName || item.name} · 编辑中`
     if (parsed.rejected) {
       configBanner.value = '当前 Skill 已被管理员驳回，请根据审批意见补充业务边界、测试用例或审批材料后重新提交。'
       reviewStatus.value = '当前状态为已驳回，修改完成后可重新提交审核'
+    }
+    if (isDraft) {
+      activeTab.value = 'clarify'
+      reviewStatus.value = '当前为 Skill Hub 草稿，修改后可继续保存或进入后续流程'
     }
   } catch {
     loadEditDraftFromQuery()
   }
 }
 
+function restoreSkillItem(item: SkillHubItem) {
+  const snapshot = item.draft
+  if (snapshot) {
+    form.value = { ...snapshot.form }
+    const selectedCodes = new Set(snapshot.selectedContextCodes)
+    const restoreContexts = () => {
+      contextItems.value = createMenuContextItems(snapshot.form.menu).map(context => ({
+        ...context,
+        selected: selectedCodes.has(context.code)
+      }))
+    }
+    restoreContexts()
+    void nextTick(restoreContexts)
+    clarifyMessages.value = JSON.parse(JSON.stringify(snapshot.clarifyMessages || [])) as ChatMessage[]
+    summaryItems.value = (snapshot.summaryItems || []).map(summary => ({ ...summary }))
+    summaryUpdated.value = snapshot.summaryUpdated || '根据已保存草稿恢复'
+    aiTuned.value = Boolean(snapshot.aiTuned)
+    applicationPrompt.value = snapshot.applicationPrompt || applicationPrompt.value
+    return
+  }
+  form.value.name = item.name
+  form.value.cnName = item.cnName || form.value.cnName
+  form.value.menu = item.category || form.value.menu
+  form.value.scene = item.desc || form.value.scene
+  form.value.output = '自然语言响应、表格结果、可继续展开的报告或调整建议'
+  syncMenuContext()
+}
+
 function loadEditDraftFromQuery() {
   const skill = String(route.query.skill || '')
   if (!skill) return
+  const storedItem = skillHubStore.findSkill(skill)
+  if (storedItem) {
+    restoreSkillItem(storedItem)
+    const isDraft = storedItem.status === 'draft' || route.query.edit === 'draft'
+    workspaceSub.value = isDraft
+      ? `${storedItem.cnName || storedItem.name} · 草稿编辑中`
+      : `${storedItem.cnName || storedItem.name} · 编辑中`
+    if (isDraft) {
+      activeTab.value = 'clarify'
+      reviewStatus.value = '当前为 Skill Hub 草稿，修改后可继续保存或进入后续流程'
+    }
+    if (route.query.rejected === '1') {
+      configBanner.value = '当前 Skill 已被管理员驳回，请根据审批意见补充业务边界、测试用例或审批材料后重新提交。'
+      reviewStatus.value = '当前状态为已驳回，修改完成后可重新提交审核'
+    }
+    return
+  }
   const knownDrafts: Record<string, { name: string; cnName: string; desc: string }> = {
     'presentation-employee-cert': {
       name: EMPLOYEE_CERT_SKILL.name,
@@ -2127,6 +2216,7 @@ onMounted(() => {
 }
 
 .skill-application-validation {
+  container-type: inline-size;
   margin-top: 14px;
   padding: 16px;
   border: 1px solid var(--border, #dfe3eb);
@@ -2205,14 +2295,24 @@ onMounted(() => {
 
 .skill-application-result-card {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) minmax(220px, .65fr) auto;
-  align-items: center;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
   gap: 12px;
   margin-top: 12px;
   padding: 14px;
-  border: 1px solid #bcd2ff;
+  border: 1px solid var(--border-light, #e5e6eb);
   border-radius: 8px;
-  background: #f7f9ff;
+  background: #fff;
+  box-shadow: var(--shadow, 0 1px 2px rgba(0, 0, 0, .06));
+  transition: border-color .14s ease, box-shadow .14s ease, transform .14s ease;
+}
+
+@media (hover: hover) {
+  .skill-application-result-card:hover {
+    border-color: var(--central-module-hover-border, rgba(51, 112, 255, .36));
+    box-shadow: var(--central-module-hover-shadow, 0 1px 2px rgba(15, 23, 42, .035), 0 6px 14px rgba(15, 23, 42, .055));
+    transform: var(--central-module-hover-transform, translateY(-1px));
+  }
 }
 
 .skill-application-result-icon {
@@ -2243,26 +2343,25 @@ onMounted(() => {
 .skill-application-result-main > span,
 .skill-application-result-summary > span {
   color: var(--primary, #3370ff);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
+  line-height: 1.4;
 }
 
 .skill-application-result-main > b,
 .skill-application-result-summary > b {
   display: block;
   margin-top: 4px;
-  overflow: hidden;
   color: var(--text, #1f2329);
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.45;
 }
 
 .skill-application-result-main > p,
 .skill-application-result-summary > p {
   margin: 4px 0 0;
   color: var(--text-secondary, #646a73);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -2275,29 +2374,48 @@ onMounted(() => {
 
 .skill-application-result-main em {
   padding: 3px 6px;
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid rgba(51, 112, 255, .12);
+  border-radius: 999px;
+  background: rgba(51, 112, 255, .06);
   color: #646a73;
-  font-size: 9px;
+  font-size: 10px;
   font-style: normal;
+  line-height: 1.25;
 }
 
 .skill-application-result-summary {
-  padding-left: 12px;
-  border-left: 1px solid #dce5f7;
+  min-width: 0;
 }
 
-@media (max-width: 1180px) {
+.skill-application-result-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, #e5e6eb);
+}
+
+.skill-application-result-footer > .btn {
+  min-width: 88px;
+  white-space: nowrap;
+}
+
+@container (max-width: 560px) {
   .skill-application-result-card {
-    grid-template-columns: 38px minmax(0, 1fr) auto;
+    grid-template-columns: 34px minmax(0, 1fr);
   }
 
-  .skill-application-result-summary {
-    display: none;
+  .skill-application-result-icon {
+    width: 34px;
+    height: 34px;
   }
+
+  .skill-application-result-footer { gap: 12px; }
 }
 
-@media (max-width: 760px) {
+@container (max-width: 420px) {
   .skill-application-composer,
   .skill-application-result-card {
     grid-template-columns: 1fr;
@@ -2307,7 +2425,11 @@ onMounted(() => {
     display: none;
   }
 
-  .skill-application-result-card .btn {
+  .skill-application-result-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-application-result-footer .btn {
     width: 100%;
   }
 }

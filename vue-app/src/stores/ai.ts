@@ -608,6 +608,10 @@ export const useAIStore = defineStore('ai', () => {
 
   function _tryLocalCommand(payload: ComposerPayload, context: AiRuntimeContext = {}) {
     const text = payload.text || payload.userMsg || ''
+    if (_isEmployeeCertificationSkillQuery(text)) {
+      return _runEmployeeCertificationSkill(payload)
+    }
+
     if (/全场景串联演示/.test(text)) {
       _recordMessage('user', payload.userMsg)
       const pageLabel = getPageLabel(payload.pageId) || '当前页面'
@@ -774,8 +778,106 @@ export const useAIStore = defineStore('ai', () => {
     return false
   }
 
+  function _isEmployeeCertificationSkillQuery(text: string) {
+    const source = String(text || '')
+    if (!/认证/.test(source)) return false
+    const dimensions = [
+      /近两周|最近\s*14\s*天|近\s*14\s*天/,
+      /人群画像|用户画像/,
+      /购买转化|认证转化|转化率/,
+      /gmv|成交额/i,
+      /爆款商品|热销商品|top\s*\d*\s*商品/i
+    ]
+    return dimensions.filter(pattern => pattern.test(source)).length >= 3
+  }
+
+  function _runEmployeeCertificationSkill(payload: ComposerPayload) {
+    _recordMessage('user', payload.userMsg)
+    _setActivityItems([
+      _createActivity('thinking', 'done', '解析查询任务', '已识别近两周认证数据、人群画像和购买转化分析需求。'),
+      _createActivity('tool_call', 'done', '调用 presentation-employee-cert', '已获取认证、交易、GMV 和商品维度数据。'),
+      _createActivity('tool_result', 'done', '完成口径计算', '已完成 LenovoID 去重、人群结构、转化率和爆款商品排名计算。'),
+      _createActivity('streaming', 'done', '生成分析结果', '结果摘要与可视化报告已就绪。')
+    ])
+
+    const reportData = createEmployeeCertificationReport({
+      prompt: payload.text || payload.userMsg
+    })
+    const reply = _employeeCertificationSkillReply(reportData)
+    const report: ReportArtifact = {
+      id: `skill_report_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      title: '职场认证与购买转化分析',
+      sourcePage: 'agent.skills',
+      sourcePageLabel: 'Skill Hub',
+      groupLabel: 'AI 助手',
+      summary: '近两周共 861 名独立认证用户，482 人完成购买，转化率 56.0%，GMV 为 ¥4,247,310。',
+      chips: ['认证画像', '购买转化', 'GMV', '爆款商品'],
+      content: reply,
+      reportData,
+      createdAt: new Date().toISOString()
+    }
+    AI_REPORT_ARTIFACTS[report.id] = report
+    _recordTaskLog('skill', '调用 Skill：职场认证与转化综合简报', 'agent.skills')
+    _recordMessage('assistant', reply, {
+      renderMode: 'typewriter',
+      artifacts: [report.id],
+      activityItems: _snapshotActivities()
+    })
+    _clearActivityItems()
+    return true
+  }
+
+  function _employeeCertificationSkillReply(report: SkillApplicationReportData) {
+    const metric = (label: string) => report.metrics.find(item => item.label === label)?.value || '-'
+    const metricNote = (label: string) => report.metrics.find(item => item.label === label)?.note || ''
+    const topProducts = report.products.slice(0, 3)
+    const topRoles = report.roles.slice(0, 3)
+    const topIndustries = report.industries.slice(0, 3)
+    const peakDays = [...report.dailyTrend].sort((a, b) => b.value - a.value).slice(0, 2)
+
+    return [
+      `已完成近两周认证数据汇总，数据区间为 ${report.dateStart} 至 ${report.dateEnd}。`,
+      '',
+      '## 核心数据',
+      `- 独立认证用户 **${metric('已认证独立用户')} 人**，其中 **${metric('已购用户')} 人**完成购买，认证购买转化率为 **${metric('认证购买转化率')}**。`,
+      `- 共产生 **${metricNote('已购用户')}**，总 GMV **${metric('总 GMV')}**，平均客单价 **${metric('平均客单价')}**。`,
+      `- 认证未购用户 **${metric('认证未购池')} 人**，占独立认证用户的 44.0%。`,
+      '',
+      '## 认证趋势',
+      `- 区间日均新增认证 66 人；${peakDays[0]?.label} 为最高点，新增 ${peakDays[0]?.value} 人，${peakDays[1]?.label} 次之，新增 ${peakDays[1]?.value} 人。`,
+      '- 14:00-22:00 是主力认证时段，共 458 人，占已覆盖时段记录的 56.1%。',
+      '',
+      '## 人群画像',
+      `- 认证方式以其他材料为主，共 ${report.methods[0]?.value} 人，占 ${report.methods[0]?.share}。`,
+      `- 岗位人群主要为${topRoles.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
+      `- 行业人群前三为${topIndustries.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
+      '',
+      '## 爆款商品',
+      ...topProducts.map((item, index) => `${index + 1}. **${item.label}**：${item.value} 名认证已购用户，占已购用户 ${item.share}。`),
+      '',
+      '## 分析结论',
+      '- 认证到购买的转化率已超过五成，交易承接稳定；同时仍有 379 名认证未购用户，是后续运营的核心增量人群。',
+      '- 人群集中在管理层、工程师以及房地产和信息技术行业，爆款商品则以商务办公和高性能笔记本为主。',
+      '- 已生成完整的趋势、画像、转化漏斗和 Top10 商品报告，可点击下方“展开报告”查看。'
+    ].join('\n')
+  }
+
   function _matchNavigationTarget(text: string): string | null {
     const source = String(text || '').toLowerCase()
+    const analysisSignals = [
+      /总结|汇总|数据情况|综合分析/,
+      /近两周|最近\s*14\s*天|近\s*14\s*天/,
+      /人群画像|用户画像/,
+      /购买转化|认证转化|转化率/,
+      /爆款商品|热销商品|top\s*\d*\s*商品/
+    ]
+    const isCompoundAnalysis = analysisSignals.filter(pattern => pattern.test(source)).length >= 2
+    const hasExplicitNavVerb = /打开|进入|跳转|切到|切换/.test(source)
+    const isShortViewCommand = /^\s*(?:请|帮我|麻烦)?\s*查看/.test(source) && source.length <= 24
+
+    // “查看 GMV”等词可能只是复合分析任务中的一个数据维度，不能据此切走当前会话。
+    if (isCompoundAnalysis && !hasExplicitNavVerb) return null
+
     const entries: Array<[string, string[]]> = [
       ['portal.home', ['联想门户工作台', '首页', 'home']],
       ['dashboard.overview', ['运营总览', '运营概览']],
@@ -797,9 +899,8 @@ export const useAIStore = defineStore('ai', () => {
       ['agent.skillCreate', ['创建 skill', '创建skill', '创建技能']],
       ['agent.permissions', ['权限管理']]
     ]
-    const hasNavVerb = /打开|进入|查看|跳转|切到|切换/.test(source)
     const matched = entries.find(([, aliases]) => aliases.some(alias => source.includes(alias.toLowerCase())))
-    return matched && (hasNavVerb || source.length <= 16) ? matched[0] : null
+    return matched && (hasExplicitNavVerb || isShortViewCommand || source.length <= 16) ? matched[0] : null
   }
 
   function _isReportIntent(text: string) {

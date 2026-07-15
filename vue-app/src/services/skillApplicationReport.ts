@@ -105,7 +105,7 @@ export function createEmployeeCertificationReport(
       '优先下钻房地产业、管理层与工程师人群的购买偏好。'
     ],
     sources: ['联想职场认证系统', 'SMB 电商渠道'],
-    notes: ['数据按 LenovoID 去重', '不含 B4 企业相关分析', '当前为 Skill 应用验证结果']
+    notes: ['数据按 LenovoID 去重', '不含 B4 企业相关分析']
   }
 }
 
