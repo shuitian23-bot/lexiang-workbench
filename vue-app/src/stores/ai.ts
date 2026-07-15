@@ -781,43 +781,55 @@ export const useAIStore = defineStore('ai', () => {
   function _isEmployeeCertificationSkillQuery(text: string) {
     const source = String(text || '')
     if (!/认证/.test(source)) return false
+    const hasTimeRange = [
+      /上周|上一周|上个星期|本周|这周|这个星期/,
+      /上月|上个月|本月|这个月|近一个月|最近一个月/,
+      /最近|近\s*(?:\d+|一|二|两|三|四|五|六|七|八|九|十)\s*(?:天|日|周|星期)/,
+      /\d{1,4}[年/.\-]\d{1,2}(?:月|[/.\-])\d{1,2}日?/,
+      /今天|今日|昨天|昨日/
+    ].some(pattern => pattern.test(source))
     const dimensions = [
-      /近两周|最近\s*14\s*天|近\s*14\s*天/,
+      /职场|员工|人群/,
+      /数据|情况|趋势|分析|总结|汇总|看一下|查看|查询/,
       /人群画像|用户画像/,
-      /购买转化|认证转化|转化率/,
+      /购买转化|认证转化|转化率|认证和转化|认证与转化/,
       /gmv|成交额/i,
       /爆款商品|热销商品|top\s*\d*\s*商品/i
     ]
-    return dimensions.filter(pattern => pattern.test(source)).length >= 3
+    const matchedDimensions = dimensions.filter(pattern => pattern.test(source)).length
+    return matchedDimensions >= 2 && (hasTimeRange || matchedDimensions >= 4)
   }
 
   function _runEmployeeCertificationSkill(payload: ComposerPayload) {
     _recordMessage('user', payload.userMsg)
-    _setActivityItems([
-      _createActivity('thinking', 'done', '解析查询任务', '已识别近两周认证数据、人群画像和购买转化分析需求。'),
-      _createActivity('tool_call', 'done', '调用 presentation-employee-cert', '已获取认证、交易、GMV 和商品维度数据。'),
-      _createActivity('tool_result', 'done', '完成口径计算', '已完成 LenovoID 去重、人群结构、转化率和爆款商品排名计算。'),
-      _createActivity('streaming', 'done', '生成分析结果', '结果摘要与可视化报告已就绪。')
-    ])
-
     const reportData = createEmployeeCertificationReport({
       prompt: payload.text || payload.userMsg
     })
+    _setActivityItems([
+      _createActivity('thinking', 'done', '解析查询时间', `已将用户输入解析为 ${reportData.parsedTimeText}。`),
+      _createActivity('tool_call', 'done', '调用 presentation-employee-cert', '已按解析后的时间区间读取认证、交易、GMV 和商品维度数据。'),
+      _createActivity('tool_result', 'done', '汇总数据明细', '已完成 LenovoID 去重、认证规模、购买转化、GMV 和人群画像计算。'),
+      _createActivity('streaming', 'done', '生成查询结果', '查询结论、数据明细和可展开的可视化报告已就绪。')
+    ])
+
     const reply = _employeeCertificationSkillReply(reportData)
+    const sourcePage = payload.pageId || 'employee.overview'
+    const sourcePageLabel = getPageLabel(sourcePage) || '职场员工概览'
+    const metricValue = (label: string) => reportData.metrics.find(item => item.label === label)?.value || '-'
     const report: ReportArtifact = {
       id: `skill_report_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      title: '职场认证与购买转化分析',
-      sourcePage: 'agent.skills',
-      sourcePageLabel: 'Skill Hub',
-      groupLabel: 'AI 助手',
-      summary: '近两周共 861 名独立认证用户，482 人完成购买，转化率 56.0%，GMV 为 ¥4,247,310。',
-      chips: ['认证画像', '购买转化', 'GMV', '爆款商品'],
+      title: `职场认证与购买转化分析 · ${reportData.dateStart} 至 ${reportData.dateEnd}`,
+      sourcePage,
+      sourcePageLabel,
+      groupLabel: getGroupLabel(sourcePage) || '在职员工管理',
+      summary: `${reportData.parsedTimeText}：独立认证用户 ${metricValue('已认证独立用户')} 人，购买转化率 ${metricValue('认证购买转化率')}，GMV ${metricValue('总 GMV')}。`,
+      chips: ['职场认证', '购买转化', reportData.dateStart, reportData.dateEnd],
       content: reply,
       reportData,
       createdAt: new Date().toISOString()
     }
     AI_REPORT_ARTIFACTS[report.id] = report
-    _recordTaskLog('skill', '调用 Skill：职场认证与转化综合简报', 'agent.skills')
+    _recordTaskLog('skill', `查询职场认证与转化：${reportData.dateStart} 至 ${reportData.dateEnd}`, sourcePage)
     _recordMessage('assistant', reply, {
       renderMode: 'typewriter',
       artifacts: [report.id],
@@ -830,35 +842,43 @@ export const useAIStore = defineStore('ai', () => {
   function _employeeCertificationSkillReply(report: SkillApplicationReportData) {
     const metric = (label: string) => report.metrics.find(item => item.label === label)?.value || '-'
     const metricNote = (label: string) => report.metrics.find(item => item.label === label)?.note || ''
+    const totalGmv = Number(metric('总 GMV').replace(/[^\d]/g, '')) || 0
+    const totalGmvText = totalGmv >= 10_000
+      ? `${(totalGmv / 10_000).toLocaleString('zh-CN', { maximumFractionDigits: 1 })} 万元`
+      : metric('总 GMV')
     const topProducts = report.products.slice(0, 3)
     const topRoles = report.roles.slice(0, 3)
     const topIndustries = report.industries.slice(0, 3)
     const peakDays = [...report.dailyTrend].sort((a, b) => b.value - a.value).slice(0, 2)
 
     return [
-      `已完成近两周认证数据汇总，数据区间为 ${report.dateStart} 至 ${report.dateEnd}。`,
+      `已按你的查询时间完成分析：**${report.parsedTimeText}**。`,
       '',
-      '## 核心数据',
-      `- 独立认证用户 **${metric('已认证独立用户')} 人**，其中 **${metric('已购用户')} 人**完成购买，认证购买转化率为 **${metric('认证购买转化率')}**。`,
-      `- 共产生 **${metricNote('已购用户')}**，总 GMV **${metric('总 GMV')}**，平均客单价 **${metric('平均客单价')}**。`,
-      `- 认证未购用户 **${metric('认证未购池')} 人**，占独立认证用户的 44.0%。`,
+      '## 查询结论',
+      `- 区间内共有 **${metric('已认证独立用户')} 名独立认证用户**，其中 **${metric('已购用户')} 人**完成购买，认证购买转化率为 **${metric('认证购买转化率')}**。`,
+      `- 共产生 **${metricNote('已购用户')}**，总 GMV 为 **${totalGmvText}**，平均客单价为 **${metric('平均客单价')}**。`,
+      `- 仍有 **${metric('认证未购池')} 名认证未购用户**，是后续召回和商品推荐的主要增量人群。`,
       '',
-      '## 认证趋势',
-      `- 区间日均新增认证 66 人；${peakDays[0]?.label} 为最高点，新增 ${peakDays[0]?.value} 人，${peakDays[1]?.label} 次之，新增 ${peakDays[1]?.value} 人。`,
-      '- 14:00-22:00 是主力认证时段，共 458 人，占已覆盖时段记录的 56.1%。',
+      '## 数据明细',
+      '| 指标 | 结果 | 说明 |',
+      '| --- | ---: | --- |',
+      `| 已认证独立用户 | ${metric('已认证独立用户')} 人 | ${report.dayCount} 天累计，按 LenovoID 去重 |`,
+      `| 已购用户 | ${metric('已购用户')} 人 | ${metricNote('已购用户')} |`,
+      `| 认证购买转化率 | ${metric('认证购买转化率')} | 已购用户 ÷ 已认证独立用户 |`,
+      `| 总 GMV | ${totalGmvText} | SMB 渠道支付成功订单 |`,
+      `| 平均客单价 | ${metric('平均客单价')} | 总 GMV ÷ 订单笔数 |`,
+      `| 认证未购池 | ${metric('认证未购池')} 人 | 可用于后续召回圈选 |`,
       '',
-      '## 人群画像',
-      `- 认证方式以其他材料为主，共 ${report.methods[0]?.value} 人，占 ${report.methods[0]?.share}。`,
-      `- 岗位人群主要为${topRoles.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
-      `- 行业人群前三为${topIndustries.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
+      '## 趋势与人群',
+      `- ${peakDays[0]?.label} 为认证峰值，新增 ${peakDays[0]?.value} 人；${peakDays[1]?.label} 次之，新增 ${peakDays[1]?.value} 人。`,
+      `- 认证方式以${report.methods[0]?.label}为主，共 ${report.methods[0]?.value} 人，占 ${report.methods[0]?.share}。`,
+      `- 岗位人群主要为${topRoles.map(item => `${item.label} ${item.value} 人`).join('、')}；行业前三为${topIndustries.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
       '',
       '## 爆款商品',
       ...topProducts.map((item, index) => `${index + 1}. **${item.label}**：${item.value} 名认证已购用户，占已购用户 ${item.share}。`),
       '',
-      '## 分析结论',
-      '- 认证到购买的转化率已超过五成，交易承接稳定；同时仍有 379 名认证未购用户，是后续运营的核心增量人群。',
-      '- 人群集中在管理层、工程师以及房地产和信息技术行业，爆款商品则以商务办公和高性能笔记本为主。',
-      '- 已生成完整的趋势、画像、转化漏斗和 Top10 商品报告，可点击下方“展开报告”查看。'
+      '## 对应报告',
+      `已生成 **${report.dateStart} 至 ${report.dateEnd}** 的完整可视化报告，包含认证趋势、时段分布、人群画像、购买转化、GMV 和 Top10 商品。点击下方报告卡片中的“展开报告”即可查看。`
     ].join('\n')
   }
 

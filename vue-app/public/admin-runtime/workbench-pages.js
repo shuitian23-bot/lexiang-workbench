@@ -3347,23 +3347,23 @@ const PAGE_RENDERERS = {
     <div class="kpi-grid employee-kpi-grid">
       <div class="kpi-card employee-kpi-card" onclick="filterAndNavigate('all')">
         <div class="kpi-label">在职员工总数</div>
-        <div class="kpi-value" id="kpi-total">2,847</div>
-        <div class="kpi-sub"><span class="up">↑ 8%</span> 较上月</div>
+        <div class="kpi-value" id="kpi-total">2,144</div>
+        <div class="kpi-sub"><span class="up">↑ 8.56%</span> 较上月</div>
       </div>
       <div class="kpi-card employee-kpi-card success" onclick="filterAndNavigate('approved')">
-        <div class="kpi-label">已认证工数</div>
-        <div class="kpi-value" id="kpi-approved">2,341</div>
-        <div class="kpi-sub">82.3% 认证率</div>
+        <div class="kpi-label">已认证员工数</div>
+        <div class="kpi-value" id="kpi-approved">1,718</div>
+        <div class="kpi-sub">80.13% 认证率</div>
       </div>
       <div class="kpi-card employee-kpi-card warning" onclick="filterAndNavigate('rejected')">
-        <div class="kpi-label">已驳回工</div>
-        <div class="kpi-value" id="kpi-rejected">45</div>
+        <div class="kpi-label">已驳回员工数</div>
+        <div class="kpi-value" id="kpi-rejected">307</div>
         <div class="kpi-sub">需重新认证</div>
       </div>
       <div class="kpi-card employee-kpi-card purple" onclick="filterAndNavigate('pending')">
         <div class="kpi-label">本月新增</div>
-        <div class="kpi-value" id="kpi-pending">187</div>
-        <div class="kpi-sub"><span class="up">↑ 15%</span> 环比</div>
+        <div class="kpi-value" id="kpi-pending">169</div>
+        <div class="kpi-sub"><span class="up">↓ -88.23%</span> 环比</div>
       </div>
     </div>
 
@@ -3375,24 +3375,24 @@ const PAGE_RENDERERS = {
       </div>
       <div class="employee-method-grid">
         <button type="button" class="employee-method-tile" data-method="email" aria-pressed="false" onclick="filterByMethod('email')">
-          <div class="employee-method-value" id="method-email">1,051</div>
+          <div class="employee-method-value" id="method-email">514</div>
           <div class="employee-method-label">企业邮箱</div>
-          <div class="employee-method-sub">45%</div>
+          <div class="employee-method-sub">23.97%</div>
         </button>
         <button type="button" class="employee-method-tile success" data-method="contract" aria-pressed="false" onclick="filterByMethod('contract')">
-          <div class="employee-method-value" id="method-contract">703</div>
+          <div class="employee-method-value" id="method-contract">230</div>
           <div class="employee-method-label">劳动合同</div>
-          <div class="employee-method-sub">30%</div>
+          <div class="employee-method-sub">10.73%</div>
         </button>
         <button type="button" class="employee-method-tile purple" data-method="tax" aria-pressed="false" onclick="filterByMethod('tax')">
-          <div class="employee-method-value" id="method-tax">422</div>
-          <div class="employee-method-label">个人所得税视频认证</div>
-          <div class="employee-method-sub">18%</div>
+          <div class="employee-method-value" id="method-tax">0</div>
+          <div class="employee-method-label">个人所得税</div>
+          <div class="employee-method-sub">0%</div>
         </button>
         <button type="button" class="employee-method-tile gray" data-method="other" aria-pressed="false" onclick="filterByMethod('other')">
-          <div class="employee-method-value" id="method-other">165</div>
+          <div class="employee-method-value" id="method-other">1,400</div>
           <div class="employee-method-label">其他材料</div>
-          <div class="employee-method-sub">7%</div>
+          <div class="employee-method-sub">65.3%</div>
         </button>
       </div>
     </div>
@@ -3516,7 +3516,7 @@ const PAGE_RENDERERS = {
   'employee.certification': () => `
     <div class="page-header">
       <div>
-        <div class="page-title">职场员工审核</div>
+        <div class="page-title">认证审核管理</div>
         <div class="page-desc">查看认证记录，对认证失败的用户可修改认证结果</div>
       </div>
     </div>
@@ -3524,13 +3524,13 @@ const PAGE_RENDERERS = {
     <!-- 标签页 -->
     <div class="employee-cert-tabs">
       <button class="tab-btn active" data-status="rejected" onclick="switchCertTab('rejected', this)" id="tab-rejected">
-        <span>认证失败</span> <span class="tab-count danger">(60)</span>
+        <span>认证失败</span> <span class="tab-count danger">(307)</span>
       </button>
       <button class="tab-btn" data-status="approved" onclick="switchCertTab('approved', this)">
-        <span>认证成功</span> <span class="tab-count success">(645)</span>
+        <span>认证成功</span> <span class="tab-count success">(1718)</span>
       </button>
       <button class="tab-btn" data-status="pending" onclick="switchCertTab('pending', this)">
-        <span>待审核</span> <span class="tab-count primary">(49)</span>
+        <span>待审核</span> <span class="tab-count primary">(119)</span>
       </button>
       <button class="tab-btn" data-status="expired" onclick="switchCertTab('expired', this)">
         <span>已失效</span> <span class="tab-count muted">(0)</span>

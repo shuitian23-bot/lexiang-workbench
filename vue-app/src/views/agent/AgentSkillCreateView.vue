@@ -1507,8 +1507,8 @@ function buildApplicationReport(prompt: string, range: ParsedApplicationRange): 
   const conversionRate = isReferenceRange ? 56 : Number((54.5 + (seed % 36) / 10).toFixed(1))
   const purchasedUsers = isReferenceRange ? 482 : Math.max(0, Math.round(uniqueUsers * conversionRate / 100))
   const orderCount = isReferenceRange ? 536 : Math.max(purchasedUsers, Math.round(purchasedUsers * 1.112))
-  const averageOrderValue = isReferenceRange ? 7925 : 7600 + (seed % 701)
-  const totalGmv = isReferenceRange ? 4247310 : orderCount * averageOrderValue
+  const totalGmv = isReferenceRange ? 7_170_000 : orderCount * (7600 + (seed % 701))
+  const averageOrderValue = orderCount ? Math.round(totalGmv / orderCount) : 0
   const duplicateRecords = isReferenceRange ? 71 : Math.max(0, Math.round(uniqueUsers * 0.082))
   const duplicateUsers = isReferenceRange ? 59 : Math.max(0, Math.round(duplicateRecords * 0.83))
   const rawRecords = isReferenceRange ? 888 : uniqueUsers + Math.max(1, Math.round(uniqueUsers * 0.031))
