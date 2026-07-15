@@ -6316,7 +6316,14 @@ function openOrderDetail(orderId) {
               }
               document.querySelector('.main-nav [data-page="home"]')?.click();
             },
-            switch_site: () => routeTo(siteMap[target] || "personal"),
+            switch_site: () => {
+              // target 兼容两种来源：后端小模型给 shop/b/biz，本地意图给 personal/business/enterprise/brand
+              const page = siteMap[target] || (["personal", "business", "enterprise", "brand"].includes(target) ? target : "personal");
+              const lab = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" }[page] || "该板块";
+              routeTo(page);
+              // 已在该站时 routeTo 的 URL 不变、可能无视觉变化——补一个可见提示，别让用户觉得"没执行"
+              toast("已为你打开" + lab);
+            },
             open_member: () => openMemberCenter(),
             open_coupon: () => openCouponCenter(),
             open_orders: () => lxOpenCommerceEntry("orders"),
@@ -9260,7 +9267,10 @@ function openOrderDetail(orderId) {
     var hasFullscreenNav = !!document.getElementById("lxfdConvoName");
     if (!isTopNavTitlePage() && !hasFullscreenNav) return;
     var nav = document.querySelector(".main-nav");
-    var source = sourcePage();
+    // 前缀取"当前所在页"而非"对话起源页"：URL=/ 的首页(含原地分屏)显「首页」，真navigate到
+    // 子站(/shop-chat 等)就显子站名。原用 sourcePage() 会把首页起的对话在子站里仍标「首页」，
+    // 造成"人在 shop 子站却标首页"的矛盾(真机反馈)。原始需求「有对话保持首页:xxx」只针对 URL=/。
+    var source = pageFromLocation();
     var isHomeFullscreenNav = pageFromLocation() === "home" && hasFullscreenNav;
     var isHomeFullscreenMode = isHomeFullscreenNav &&
       (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
