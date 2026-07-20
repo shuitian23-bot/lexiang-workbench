@@ -7110,11 +7110,10 @@ function openOrderDetail(orderId) {
         }
 
         function lxFallbackStores() {
-          // ponytail: 演示默认烟台（用户所在地）；正解是客户端 IP 定位，桌面 geo 在国内走 Google 常失败
           return [
-            { name: "联想体验店(烟台市保利mall)", address: "山东省烟台市莱山区清泉路29号保利MALL F2", distance: 2600, hours: "10:00–22:00", tel: "18663871538", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 37.484783, lng: 121.457924 },
-            { name: "联想专卖店(振华购物中心店)", address: "烟台市芝罘区南大街78号振华购物中心F8", distance: 5400, hours: "09:00–21:00", tel: "0535-6666888", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 37.543873, lng: 121.39606 },
-            { name: "联想ThinkPad专卖店(众诚数码广场B065店)", address: "烟台市芝罘区芝罘屯路11号众诚数码广场B065号商铺", distance: 6100, hours: "09:00–20:00", tel: "15615087223", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 37.555968, lng: 121.380826 },
+            { name: "联想体验店(北京市房山区良乡苏庄店)", address: "北京市房山区苏庄大街建鑫园三里", distance: 8700, hours: "10:00–20:00", tel: "15313378937", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 39.724, lng: 116.139 },
+            { name: "联想3C服务中心(良乡店)", address: "北京市房山区苏庄北路苏庄东街小区", distance: 9300, hours: "10:00–20:00", tel: "(010)89374140", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 39.727, lng: 116.135 },
+            { name: "联想体验店(房山熙悦天街店)", address: "北京市房山区良乡东路与长于大街交汇处北侧首开龙湖北京熙悦天街A馆B1", distance: 12800, hours: "10:00–20:00", tel: "18519195202", tags: ["优先体验", "贴膜安装", "以旧换新"], lat: 39.743, lng: 116.175 },
           ];
         }
 
@@ -7210,7 +7209,7 @@ function openOrderDetail(orderId) {
             <div class="lx-p0-row" style="margin-top:14px"><div class="lx-p0-row-main"><strong>${esc(name || "门店位置")}</strong><span>${meta}</span></div>${tel ? `<a class="lx-p0-btn" href="tel:${esc(String(tel).replace(/[^0-9,]/g, ""))}">致电</a>` : ""}<button class="lx-p0-btn" type="button" data-quick-ask="预约${esc(name || "该门店")}到店服务">预约</button><a class="lx-p0-btn primary" href="${esc(baiduUrl)}" target="_blank" rel="noopener">导航</a></div>`);
         }
 
-        async function openStoresPanel(address = "烟台市") {
+        async function openStoresPanel(address = "北京海淀") {
           lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone([], { loading: true }));
           try {
             const me = await lxRequestGeo();
