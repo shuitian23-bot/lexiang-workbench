@@ -110,7 +110,7 @@
                 <span>手机号</span>
                 <input v-model="form.mobile" placeholder="用于账号开通或审批沟通">
               </label>
-              <label>
+              <label class="relation-account-field">
                 <span :class="['field-label', { required: isExternalPerson }]">关联账号 / 关联人员 <em v-if="isExternalPerson">必填</em></span>
                 <input
                   v-model.trim="form.relatedAccount"
@@ -121,7 +121,7 @@
                 <small v-if="formErrors.relatedAccount" class="field-error">{{ formErrors.relatedAccount }}</small>
                 <small v-else class="field-help">用于确认外部协作人员的内部对接关系。</small>
               </label>
-              <label>
+              <label class="email-field">
                 <span>邮箱</span>
                 <input v-model="form.email" placeholder="name@lenovo.com">
               </label>
@@ -976,8 +976,8 @@
       <div class="modal-panel permission-picker-modal">
         <button type="button" class="modal-close" @click="closeRoleModal">×</button>
         <h3>添加角色</h3>
-        <p class="modal-note">可按角色名称、角色中包含的功能权限或数据权限搜索。</p>
-        <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限、数据权限">
+        <p class="modal-note">仅按角色名称和角色中包含的功能权限搜索。</p>
+        <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限">
         <div class="role-picker-list">
           <label v-for="role in filteredRoleOptions" :key="role.id" class="role-picker-row">
             <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" @change="toggleTempRole(role.id)">
@@ -1218,7 +1218,7 @@
             <div class="scope-panel-head">
               <div>
                 <b>业务归属</b>
-                <small>业务负责人确认当前人员可归属的组织和租户。</small>
+                <small>业务负责人填写申请人的所属组织和所属租户，权限范围只读不可修改。</small>
               </div>
             </div>
             <div class="permission-form-grid approval-business-form">
@@ -1230,7 +1230,7 @@
                     :key="org"
                     type="button"
                     :class="{ active: approvalWorkspace.organizations.includes(org) }"
-                    :disabled="approvalWorkspace.mode === 'view'"
+                    :disabled="!canEditBusinessOwnership"
                     @click="toggleApprovalOrganization(org)"
                   >{{ org }}</button>
                 </div>
@@ -1238,7 +1238,7 @@
               </div>
               <label>
                 <span class="field-label required">所属租户 <em>必填</em></span>
-                <select v-model="approvalWorkspace.tenant" :disabled="approvalWorkspace.mode === 'view'" :class="{ invalid: approvalWorkspace.errors.tenant }">
+                <select v-model="approvalWorkspace.tenant" :disabled="!canEditBusinessOwnership" :class="{ invalid: approvalWorkspace.errors.tenant }" @change="approvalWorkspace.errors.tenant = ''">
                   <option disabled value="">请选择所属租户</option>
                   <option v-for="tenant in tenantOptions" :key="tenant" :value="tenant">{{ tenant }}</option>
                 </select>
@@ -1415,18 +1415,9 @@
               >{{ option.label }}</button>
             </div>
             <small v-if="approvalWorkspace.errors.result" class="field-error">{{ approvalWorkspace.errors.result }}</small>
-            <label v-if="needsTransferItcode" class="modal-form-field">
-              <span class="field-label required">{{ transferItcodeLabel }} <em>必填</em></span>
-              <input
-                v-model.trim="approvalWorkspace.transferItcode"
-                :class="{ invalid: approvalWorkspace.errors.transferItcode }"
-                placeholder="请输入对方 ITCode，例如 liwen08"
-              >
-              <small v-if="approvalWorkspace.errors.transferItcode" class="field-error">{{ approvalWorkspace.errors.transferItcode }}</small>
-            </label>
             <label class="modal-form-field">
               <span>审批意见</span>
-              <textarea v-model.trim="approvalWorkspace.opinion" rows="4" placeholder="请说明审批意见、调整原因或需要申请人补充的内容。"></textarea>
+              <textarea v-model.trim="approvalWorkspace.opinion" rows="4" placeholder="请说明审批意见或需要申请人补充的内容。"></textarea>
             </label>
             <div class="approval-submit-note">
               <b>提交后将更新列表状态</b>
@@ -1559,10 +1550,11 @@
 
         <section v-else class="role-editor-section">
           <div class="role-data-tabs" role="tablist" aria-label="数据权限类型">
-            <button type="button" :class="{ active: roleEditor.dataTab === 'normal' }" @click="roleEditor.dataTab = 'normal'">普通授权</button>
-            <button type="button" :class="{ active: roleEditor.dataTab === 'custom' }" @click="roleEditor.dataTab = 'custom'">自定义授权</button>
+            <button type="button" :class="{ active: roleEditor.dataTab === 'normal', locked: roleCustomDataLocked }" @click="switchRoleDataTab('normal')">普通授权</button>
+            <button type="button" :class="{ active: roleEditor.dataTab === 'custom', locked: roleNormalDataLocked }" @click="switchRoleDataTab('custom')">自定义授权</button>
           </div>
 
+          <div v-if="roleDataModeNotice || roleEditor.errors.dataMode" :class="['data-mode-notice', { error: roleEditor.errors.dataMode }]">{{ roleEditor.errors.dataMode || roleDataModeNotice }}</div>
           <div v-if="roleEditor.dataTab === 'normal'" class="permission-editor-grid">
             <div class="permission-tree-panel">
               <div class="permission-subhead">
@@ -1575,7 +1567,7 @@
                   <div v-for="child in group.children" :key="child.id" class="data-tree-child">
                     <span>{{ child.name }}</span>
                     <label v-for="leaf in child.children" :key="leaf.id" class="data-tree-leaf">
-                      <input type="checkbox" :disabled="roleEditorReadonly" :checked="roleEditor.draft.dataPermissionIds.includes(leaf.id)" @change="toggleRoleDataPermission(leaf.id)">
+                      <input type="checkbox" :disabled="roleEditorReadonly || roleCustomDataLocked" :checked="roleEditor.draft.dataPermissionIds.includes(leaf.id)" @change="toggleRoleDataPermission(leaf.id)">
                       <span>{{ leaf.name }}</span>
                     </label>
                   </div>
@@ -1616,7 +1608,7 @@
                 <b>自定义授权</b>
                 <small>用于表达角色普通权限之外的特殊数据范围，例如字段级、组织级、地域级或临时授权。</small>
               </div>
-              <button v-if="!roleEditorReadonly" type="button" class="ghost-btn" @click="addCustomDataRule">新增自定义授权</button>
+              <button v-if="!roleEditorReadonly" type="button" class="ghost-btn" :disabled="roleNormalDataLocked" @click="addCustomDataRule">新增自定义授权</button>
             </div>
             <table v-if="roleEditor.draft.customDataRules.length" class="permission-table custom-rule-table">
               <thead>
@@ -1684,14 +1676,13 @@
         <div class="role-editor-head">
           <div>
             <h3>{{ userWorkspaceTitle }}</h3>
-            <p>{{ userWorkspace.mode === 'view' ? '当前为只读详情，可查看基础信息、已分配角色和角色之外的额外权限。' : '保存前仅修改当前草稿，取消不会影响用户列表。' }}</p>
+            <p>{{ userWorkspace.mode === 'view' ? '当前为只读详情，可查看基础信息、已分配角色和角色之外的额外数据权限。' : '保存前仅修改当前草稿，取消不会影响用户列表。' }}</p>
           </div>
           <span v-if="userWorkspace.draft" class="table-status user-modal-status" :class="userWorkspace.draft.statusKey">{{ userStatusLabel(userWorkspace.draft) }}</span>
         </div>
 
         <div v-if="userWorkspace.draft" class="role-impact-strip user-impact-strip">
           <span>已分配角色 <b>{{ userWorkspace.draft.roleIds.length }}</b> 个</span>
-          <span>额外功能权限 <b>{{ userWorkspace.draft.extraFunctionPermissionIds.length }}</b> 项</span>
           <span>额外普通数据 <b>{{ userWorkspace.draft.extraDataPermissionIds.length }}</b> 项</span>
           <span>自定义数据授权 <b>{{ userWorkspace.draft.customDataRules.length }}</b> 条</span>
         </div>
@@ -1707,7 +1698,6 @@
         <div class="role-editor-tabs" role="tablist" aria-label="用户编辑区">
           <button type="button" :class="{ active: userWorkspace.activeTab === 'basic' }" @click="userWorkspace.activeTab = 'basic'">基本信息</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'roles' }" @click="userWorkspace.activeTab = 'roles'">已分配角色</button>
-          <button type="button" :class="{ active: userWorkspace.activeTab === 'function' }" @click="userWorkspace.activeTab = 'function'">功能权限</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'data' }" @click="userWorkspace.activeTab = 'data'">数据权限</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'history' }" @click="userWorkspace.activeTab = 'history'">历史变更</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'login' }" @click="userWorkspace.activeTab = 'login'">登录日志</button>
@@ -1821,56 +1811,15 @@
           </div>
           <div v-else class="scope-empty compact-empty">
             <b>还没有分配角色</b>
-            <p>请点击“添加角色”，为用户补充基础角色后再授予额外权限。</p>
+            <p>请点击“添加角色”，为用户补充基础角色；用户层面仅支持额外数据权限。</p>
           </div>
         </section>
-
-        <section v-else-if="userWorkspace.draft && userWorkspace.activeTab === 'function'" class="role-editor-section">
-          <div class="permission-editor-grid">
-            <div class="permission-tree-panel">
-              <div class="permission-subhead">
-                <b>可额外授予的功能</b>
-                <small>角色已带出的功能会标注为角色继承；这里只保存角色之外的用户额外功能权限。</small>
-              </div>
-              <div class="data-tree-picker role-permission-tree">
-                <div v-for="group in functionPermissionTree" :key="group.id" class="data-tree-group">
-                  <b>{{ group.name }}</b>
-                  <div v-for="child in group.children" :key="child.id" class="data-tree-child">
-                    <span>{{ child.name }}</span>
-                    <label v-for="leaf in child.children" :key="leaf.id" class="data-tree-leaf">
-                      <input type="checkbox" :disabled="userWorkspaceReadonly || userDraftInheritedFunctionIds.includes(leaf.id)" :checked="userWorkspace.draft.extraFunctionPermissionIds.includes(leaf.id) || userDraftInheritedFunctionIds.includes(leaf.id)" @change="toggleUserExtraFunction(leaf.id)">
-                      <span>{{ leaf.name }}</span>
-                      <em v-if="userDraftInheritedFunctionIds.includes(leaf.id)" class="source-tag role">角色继承</em>
-                      <em v-else-if="userWorkspace.draft.extraFunctionPermissionIds.includes(leaf.id)" class="source-tag user">用户单独授权</em>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="permission-selected-panel">
-              <div class="permission-subhead">
-                <b>已额外授予功能</b>
-              </div>
-              <table v-if="userDraftExtraFunctionPermissions.length" class="permission-table selected-permission-table">
-                <thead><tr><th>选择</th><th>名称</th><th>来源</th></tr></thead>
-                <tbody>
-                  <tr v-for="permission in userDraftExtraFunctionPermissions" :key="permission.id">
-                    <td><input type="checkbox" :disabled="userWorkspaceReadonly" checked @change="toggleUserExtraFunction(permission.id)"></td>
-                    <td>{{ permission.name }}</td>
-                    <td><em class="source-tag user">用户单独授权</em></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div v-else class="scope-empty compact-empty"><b>没有额外功能权限</b><p>当前用户仅使用角色带出的功能权限。</p></div>
-            </div>
-          </div>
-        </section>
-
         <section v-else-if="userWorkspace.draft && userWorkspace.activeTab === 'data'" class="role-editor-section">
           <div class="role-data-tabs" role="tablist" aria-label="用户数据权限类型">
-            <button type="button" :class="{ active: userWorkspace.dataTab === 'normal' }" @click="userWorkspace.dataTab = 'normal'">普通授权</button>
-            <button type="button" :class="{ active: userWorkspace.dataTab === 'custom' }" @click="userWorkspace.dataTab = 'custom'">自定义授权</button>
+            <button type="button" :class="{ active: userWorkspace.dataTab === 'normal', locked: userCustomDataLocked }" @click="switchUserDataTab('normal')">普通授权</button>
+            <button type="button" :class="{ active: userWorkspace.dataTab === 'custom', locked: userNormalDataLocked }" @click="switchUserDataTab('custom')">自定义授权</button>
           </div>
+          <div v-if="userDataModeNotice || userWorkspace.errors.dataMode" :class="['data-mode-notice', { error: userWorkspace.errors.dataMode }]">{{ userWorkspace.errors.dataMode || userDataModeNotice }}</div>
           <div v-if="userWorkspace.dataTab === 'normal'" class="permission-editor-grid">
             <div class="permission-tree-panel">
               <div class="permission-subhead"><b>可额外授予的数据权限</b><small>角色继承的数据权限只读展示；这里保存角色之外的用户单独授权。</small></div>
@@ -1880,7 +1829,7 @@
                   <div v-for="child in group.children" :key="child.id" class="data-tree-child">
                     <span>{{ child.name }}</span>
                     <label v-for="leaf in child.children" :key="leaf.id" class="data-tree-leaf">
-                      <input type="checkbox" :disabled="userWorkspaceReadonly || userDraftInheritedDataIds.includes(leaf.id)" :checked="userWorkspace.draft.extraDataPermissionIds.includes(leaf.id) || userDraftInheritedDataIds.includes(leaf.id)" @change="toggleUserExtraData(leaf.id)">
+                      <input type="checkbox" :disabled="userWorkspaceReadonly || userCustomDataLocked || userDraftInheritedDataIds.includes(leaf.id)" :checked="userWorkspace.draft.extraDataPermissionIds.includes(leaf.id) || userDraftInheritedDataIds.includes(leaf.id)" @change="toggleUserExtraData(leaf.id)">
                       <span>{{ leaf.name }}</span>
                       <em v-if="userDraftInheritedDataIds.includes(leaf.id)" class="source-tag role">角色继承</em>
                       <em v-else-if="userWorkspace.draft.extraDataPermissionIds.includes(leaf.id)" class="source-tag user">用户单独授权</em>
@@ -1907,7 +1856,7 @@
           <div v-else class="custom-rule-panel">
             <div class="permission-subhead custom-rule-head">
               <div><b>用户自定义授权</b><small>用于记录角色之外的字段级、组织级、地域级或临时数据授权。</small></div>
-              <button v-if="!userWorkspaceReadonly" type="button" class="ghost-btn" @click="addUserCustomDataRule">新增自定义授权</button>
+              <button v-if="!userWorkspaceReadonly" type="button" class="ghost-btn" :disabled="userNormalDataLocked" @click="addUserCustomDataRule">新增自定义授权</button>
             </div>
             <table v-if="userWorkspace.draft.customDataRules.length" class="permission-table custom-rule-table">
               <thead><tr><th>数据集</th><th>字段范围</th><th>组织范围</th><th>地域范围</th><th>生效周期</th><th>备注</th><th>操作</th></tr></thead>
@@ -2384,13 +2333,11 @@ const allRoles = reactive([
     systemRole: false,
     updatedAt: '2026-07-13 18:20',
     functionPermissionIds: ['func.dashboard.view', 'func.report.generate', 'func.data.export'],
-    dataPermissionIds: ['data.ops.region.east', 'data.ops.metric.gmv', 'data.ops.metric.flow'],
+    dataPermissionIds: [],
     functionPermissionNotes: {
       'func.data.export': '仅用于运营日报和复盘导出。'
     },
-    dataPermissionNotes: {
-      'data.ops.region.east': '默认负责华东区运营。'
-    },
+    dataPermissionNotes: {},
     customDataRules: [
       { id: 'rule-ops-east-quarter', dataset: '运营数据集', fields: 'GMV、流量、转化', organization: '乐享运营', region: '华东区', period: '2026-07-01 至 2026-09-30', remark: '季度活动复盘临时授权。' }
     ]
@@ -2448,7 +2395,7 @@ const allRoles = reactive([
     systemRole: false,
     updatedAt: '2026-07-10 11:42',
     functionPermissionIds: ['func.lead.assign', 'func.data.export'],
-    dataPermissionIds: ['data.lead.pool.all', 'data.lead.pool.assigned'],
+    dataPermissionIds: [],
     functionPermissionNotes: {},
     dataPermissionNotes: {},
     customDataRules: [
@@ -2754,13 +2701,11 @@ const approvalWorkspace = reactive({
   title: '',
   result: '',
   opinion: '',
-  transferItcode: '',
   organizations: [],
   tenant: '',
   notice: '',
   errors: {
     result: '',
-    transferItcode: '',
     organizations: '',
     tenant: ''
   }
@@ -2835,7 +2780,7 @@ const approvals = ref([
       copiedFromItcode: '',
       copiedRoleIds: [],
       copiedFunctionPermissionIds: [],
-      selectedDataPermissionIds: ['data.ops.region.east', 'data.ops.metric.gmv', 'data.ops.metric.flow'],
+      selectedDataPermissionIds: [],
       manualDataPermissionIds: [],
       copiedDataSourceMap: {}
     }
@@ -2941,7 +2886,8 @@ const roleEditor = reactive({
     name: '',
     type: '',
     group: '',
-    owner: ''
+    owner: '',
+    dataMode: ''
   }
 })
 
@@ -2967,8 +2913,8 @@ const users = reactive([
     status: 'enabled',
     statusKey: 'done',
     roleIds: ['ops-pm'],
-    extraFunctionPermissionIds: ['func.skill.manage'],
-    extraDataPermissionIds: ['data.member.profile.level'],
+    extraFunctionPermissionIds: [],
+    extraDataPermissionIds: [],
     suppressedRoleDataPermissionIds: [],
     customDataRules: [
       { id: 'user-rule-zhangrui-east', dataset: '会员标签库', fields: '等级、权益使用', organization: '乐享运营', region: '华东区', period: '2026-07-01 至 2026-09-30', remark: '活动复盘临时授权。' }
@@ -3086,7 +3032,8 @@ const userWorkspace = reactive({
     loginAccount: '',
     validUntil: '',
     internalAdAccount: '',
-    applicationNo: ''
+    applicationNo: '',
+    dataMode: ''
   }
 })
 
@@ -3344,6 +3291,16 @@ const roleEditorSelectedFunctionPermissions = computed(() => roleEditor.draft.fu
 const roleEditorSelectedDataPermissions = computed(() => roleEditor.draft.dataPermissionIds
   .map((id) => findDataPermission(id))
   .filter(Boolean))
+const roleHasNormalData = computed(() => !!roleEditor.draft.dataPermissionIds.length)
+const roleHasCustomData = computed(() => !!roleEditor.draft.customDataRules.length)
+const roleNormalDataLocked = computed(() => roleEditor.mode !== 'view' && roleHasNormalData.value)
+const roleCustomDataLocked = computed(() => roleEditor.mode !== 'view' && roleHasCustomData.value)
+const roleDataModeNotice = computed(() => {
+  if (roleEditor.mode === 'view') return ''
+  if (roleHasCustomData.value) return '当前使用自定义授权。如需改为普通授权，请先删除全部自定义授权。'
+  if (roleHasNormalData.value) return '当前使用普通授权。如需改为自定义授权，请先取消全部普通数据权限。'
+  return '请选择一种数据授权方式：普通授权或自定义授权，二者不能同时使用。'
+})
 const roleDeleteBlockReason = computed(() => {
   const role = roleDeleteConfirm.role
   if (!role) return ''
@@ -3377,12 +3334,19 @@ const userWorkspaceTitle = computed(() => {
 const userDraftRoles = computed(() => userWorkspace.draft ? userRoles(userWorkspace.draft) : [])
 const userDraftInheritedFunctionIds = computed(() => userWorkspace.draft ? userInheritedFunctionIds(userWorkspace.draft) : [])
 const userDraftInheritedDataIds = computed(() => userWorkspace.draft ? userInheritedDataIds(userWorkspace.draft) : [])
-const userDraftExtraFunctionPermissions = computed(() => userWorkspace.draft
-  ? userWorkspace.draft.extraFunctionPermissionIds.map((id) => allFunctionPermissions.find((permission) => permission.id === id)).filter(Boolean)
-  : [])
 const userDraftExtraDataPermissions = computed(() => userWorkspace.draft
   ? userWorkspace.draft.extraDataPermissionIds.map((id) => findDataPermission(id)).filter(Boolean)
   : [])
+const userHasNormalData = computed(() => !!(userWorkspace.draft?.extraDataPermissionIds?.length))
+const userHasCustomData = computed(() => !!(userWorkspace.draft?.customDataRules?.length))
+const userNormalDataLocked = computed(() => userWorkspace.mode !== 'view' && userHasNormalData.value)
+const userCustomDataLocked = computed(() => userWorkspace.mode !== 'view' && userHasCustomData.value)
+const userDataModeNotice = computed(() => {
+  if (userWorkspace.mode === 'view') return ''
+  if (userHasCustomData.value) return '当前使用自定义授权。如需改为普通授权，请先删除全部自定义授权。'
+  if (userHasNormalData.value) return '当前使用普通授权。如需改为自定义授权，请先取消全部额外普通数据权限。'
+  return '请选择一种数据授权方式：普通授权或自定义授权，二者不能同时使用。'
+})
 const filteredUserLoginLogs = computed(() => {
   const logs = userWorkspace.draft?.loginLogs || []
   if (userWorkspace.loginFilter === 'success') return logs.filter((log) => log.result === 'success')
@@ -3443,8 +3407,7 @@ const filteredRoleOptions = computed(() => {
   if (!keyword) return allRoles
   return allRoles.filter((role) => {
     const functionText = role.functionPermissionIds.map(permissionName).join(' ')
-    const dataText = role.dataPermissionIds.map(dataPermissionName).join(' ')
-    return `${role.name} ${role.desc} ${functionText} ${dataText}`.toLowerCase().includes(keyword)
+    return `${role.name} ${functionText}`.toLowerCase().includes(keyword)
   })
 })
 const selectedFunctionPermissions = computed(() => {
@@ -3536,23 +3499,14 @@ const activeApprovalBasicFields = computed(() => {
   if (row.businessInfo?.tenant) fields.push({ label: '所属租户', value: row.businessInfo.tenant })
   return fields
 })
-const canEditApprovalPermission = computed(() => approvalWorkspace.mode === 'approve' && ['manager', 'business'].includes(approvalWorkspace.nodeType))
+const canEditApprovalPermission = computed(() => approvalWorkspace.mode === 'approve' && approvalWorkspace.nodeType === 'manager')
+const canEditBusinessOwnership = computed(() => approvalWorkspace.mode === 'approve' && approvalWorkspace.nodeType === 'business')
 const activeApprovalHasPermission = computed(() => hasPermissionSources.value)
 const activeApprovalPermissionSummary = computed(() => scopeSummaryText.value)
-const approvalResultOptions = computed(() => {
-  if (approvalWorkspace.nodeType === 'business') {
-    return [
-      { value: 'agree', label: '同意' },
-      { value: 'reject', label: '驳回' },
-      { value: 'countersign', label: '同意并加签' },
-      { value: 'transfer', label: '转交他人办理' }
-    ]
-  }
-  return [
-    { value: 'agree', label: '同意' },
-    { value: 'reject', label: '驳回' }
-  ]
-})
+const approvalResultOptions = computed(() => [
+  { value: 'agree', label: '同意' },
+  { value: 'reject', label: '驳回' }
+])
 const approvalDecisionTitle = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '关联确认'
   if (approvalWorkspace.nodeType === 'manager') return '直线经理审批'
@@ -3561,15 +3515,11 @@ const approvalDecisionTitle = computed(() => {
 const approvalDecisionHint = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '关联人只能确认关系并填写审批意见，申请信息和权限信息不可编辑。'
   if (approvalWorkspace.nodeType === 'manager') return '经理可在审批中调整权限范围，再提交审批结论。'
-  return '业务负责人可确认组织、租户和权限范围，也可加签或转交。'
+  return '业务负责人需填写业务归属，权限范围只读不可修改。'
 })
-const needsTransferItcode = computed(() => ['countersign', 'transfer'].includes(approvalWorkspace.result))
-const transferItcodeLabel = computed(() => approvalWorkspace.result === 'countersign' ? '加签人 ITCode' : '转交处理人 ITCode')
 const approvalSubmitImpact = computed(() => {
   if (!approvalWorkspace.result) return '请选择审批结果后提交。'
   if (approvalWorkspace.result === 'reject') return '申请将退回申请人修改，列表状态变为已驳回。'
-  if (approvalWorkspace.result === 'countersign') return `申请将流转给 ${approvalWorkspace.transferItcode || '待填写加签人'} 加签，列表仍保留为待审批。`
-  if (approvalWorkspace.result === 'transfer') return `申请将转交给 ${approvalWorkspace.transferItcode || '待填写处理人'} 办理，当前处理人会同步更新。`
   if (approvalWorkspace.nodeType === 'relation') return '确认通过后，申请进入直线经理审批。'
   if (approvalWorkspace.nodeType === 'manager') return '经理审批通过后，申请进入业务负责人审批。'
   return '业务审批通过后，申请进入后台执行并在 POC 中标记执行完成。'
@@ -3940,9 +3890,9 @@ function openRoleEditor(mode, role = null) {
   roleEditor.mode = mode
   roleEditor.roleId = role?.id || ''
   roleEditor.activeTab = 'basic'
-  roleEditor.dataTab = 'normal'
   roleEditor.notice = mode === 'view' ? '当前为只读查看。' : ''
   roleEditor.draft = cloneRole(role || emptyRoleDraft())
+  roleEditor.dataTab = roleEditor.draft.customDataRules.length ? 'custom' : 'normal'
 }
 
 function closeRoleEditor() {
@@ -3952,6 +3902,7 @@ function closeRoleEditor() {
 
 function switchRoleEditorToEdit() {
   roleEditor.mode = roleEditor.roleId ? 'edit' : 'create'
+  roleEditor.dataTab = roleEditor.draft.customDataRules.length ? 'custom' : 'normal'
   roleEditor.notice = ''
 }
 
@@ -3961,12 +3912,13 @@ function validateRoleEditor() {
   roleEditor.errors.type = roleEditor.draft.type ? '' : '请选择角色类型，例如业务角色或分析角色。'
   roleEditor.errors.group = roleEditor.draft.group ? '' : '请选择角色组，便于列表筛选和业务归口。'
   roleEditor.errors.owner = roleEditor.draft.owner ? '' : '请输入业务负责人，便于后续审批和维护。'
+  roleEditor.errors.dataMode = roleEditor.draft.dataPermissionIds.length && roleEditor.draft.customDataRules.length ? '普通授权和自定义授权只能选择一种，请先删除其中一类数据权限。' : ''
   return !Object.values(roleEditor.errors).some(Boolean)
 }
 
 function saveRoleEditor() {
   if (!validateRoleEditor()) {
-    roleEditor.activeTab = 'basic'
+    roleEditor.activeTab = roleEditor.errors.dataMode ? 'data' : 'basic'
     return
   }
   const nextRole = cloneRole(roleEditor.draft)
@@ -4000,8 +3952,26 @@ function toggleRoleFunctionPermission(id) {
   }
 }
 
+function switchRoleDataTab(tab) {
+  roleEditor.errors.dataMode = ''
+  if (tab === 'normal' && roleCustomDataLocked.value) {
+    roleEditor.errors.dataMode = '当前已有自定义授权，需删除自定义授权后才能使用普通授权。'
+    return
+  }
+  if (tab === 'custom' && roleNormalDataLocked.value) {
+    roleEditor.errors.dataMode = '当前已有普通授权，需取消普通授权后才能使用自定义授权。'
+    return
+  }
+  roleEditor.dataTab = tab
+}
+
 function toggleRoleDataPermission(id) {
   if (roleEditorReadonly.value) return
+  if (roleCustomDataLocked.value) {
+    roleEditor.errors.dataMode = '当前已有自定义授权，需删除自定义授权后才能使用普通授权。'
+    return
+  }
+  roleEditor.errors.dataMode = ''
   toggleId(roleEditor.draft.dataPermissionIds, id)
   if (!roleEditor.draft.dataPermissionIds.includes(id)) {
     delete roleEditor.draft.dataPermissionNotes[id]
@@ -4009,6 +3979,12 @@ function toggleRoleDataPermission(id) {
 }
 
 function addCustomDataRule() {
+  if (roleEditorReadonly.value) return
+  if (roleNormalDataLocked.value) {
+    roleEditor.errors.dataMode = '当前已有普通授权，需取消普通授权后才能使用自定义授权。'
+    return
+  }
+  roleEditor.errors.dataMode = ''
   roleEditor.draft.customDataRules.push({
     id: `rule-${Date.now()}`,
     dataset: '运营数据集',
@@ -4022,6 +3998,7 @@ function addCustomDataRule() {
 
 function removeCustomDataRule(id) {
   roleEditor.draft.customDataRules = roleEditor.draft.customDataRules.filter((rule) => rule.id !== id)
+  roleEditor.errors.dataMode = ''
 }
 
 function sensitivityMeta(value) {
@@ -4473,7 +4450,6 @@ function openApprovalWorkspace(row, mode) {
   approvalWorkspace.title = mode === 'view' ? '申请详情' : approvalDecisionTitleByNode(row.nodeType)
   approvalWorkspace.result = ''
   approvalWorkspace.opinion = ''
-  approvalWorkspace.transferItcode = ''
   approvalWorkspace.organizations = [...(row.businessInfo?.organizations || [])]
   approvalWorkspace.tenant = row.businessInfo?.tenant || ''
   approvalWorkspace.notice = mode === 'view' ? '当前为只读详情。' : ''
@@ -4493,7 +4469,6 @@ function closeApprovalWorkspace() {
 
 function clearApprovalErrors() {
   approvalWorkspace.errors.result = ''
-  approvalWorkspace.errors.transferItcode = ''
   approvalWorkspace.errors.organizations = ''
   approvalWorkspace.errors.tenant = ''
 }
@@ -4501,14 +4476,10 @@ function clearApprovalErrors() {
 function selectApprovalResult(value) {
   approvalWorkspace.result = value
   approvalWorkspace.errors.result = ''
-  if (!['countersign', 'transfer'].includes(value)) {
-    approvalWorkspace.transferItcode = ''
-    approvalWorkspace.errors.transferItcode = ''
-  }
 }
 
 function toggleApprovalOrganization(org) {
-  if (approvalWorkspace.mode === 'view') return
+  if (!canEditBusinessOwnership.value) return
   toggleId(approvalWorkspace.organizations, org)
   approvalWorkspace.errors.organizations = ''
 }
@@ -4518,13 +4489,11 @@ function validateApprovalDecision() {
   if (!approvalWorkspace.result) {
     approvalWorkspace.errors.result = '请选择审批结果，例如同意或驳回。'
   }
-  if (needsTransferItcode.value && !approvalWorkspace.transferItcode) {
-    approvalWorkspace.errors.transferItcode = `请输入${transferItcodeLabel.value}，否则无法继续流转。`
-  }
-  if (approvalWorkspace.nodeType === 'business' && approvalWorkspace.result === 'agree') {
+  if (canEditBusinessOwnership.value && approvalWorkspace.result === 'agree') {
     approvalWorkspace.errors.organizations = approvalWorkspace.organizations.length ? '' : '请选择至少一个所属组织，便于后台按组织授权。'
     approvalWorkspace.errors.tenant = approvalWorkspace.tenant ? '' : '请选择所属租户，便于后台按租户开通权限。'
   }
+
   return !Object.values(approvalWorkspace.errors).some(Boolean)
 }
 
@@ -4534,12 +4503,13 @@ function submitApprovalDecision() {
   if (canEditApprovalPermission.value) {
     row.permissionSnapshot = createPermissionSnapshot()
   }
-  if (approvalWorkspace.nodeType === 'business') {
+  if (canEditBusinessOwnership.value) {
     row.businessInfo = {
       organizations: [...approvalWorkspace.organizations],
       tenant: approvalWorkspace.tenant
     }
   }
+
   row.approvalLogs.push({
     node: row.node,
     action: approvalWorkspace.result,
@@ -4553,22 +4523,6 @@ function submitApprovalDecision() {
       statusKey: 'rejected',
       approverItcode: row.applicantItcode,
       handlers: [row.applicantItcode]
-    })
-  } else if (approvalWorkspace.result === 'countersign') {
-    updateApprovalNode(row, 'business', {
-      node: '加签人确认',
-      status: '待我审批',
-      statusKey: 'pending',
-      approverItcode: approvalWorkspace.transferItcode,
-      handlers: [approvalWorkspace.transferItcode]
-    })
-  } else if (approvalWorkspace.result === 'transfer') {
-    updateApprovalNode(row, 'business', {
-      node: '业务负责人审批',
-      status: '待我审批',
-      statusKey: 'pending',
-      approverItcode: approvalWorkspace.transferItcode,
-      handlers: [approvalWorkspace.transferItcode]
     })
   } else if (approvalWorkspace.nodeType === 'relation') {
     updateApprovalNode(row, 'manager', {
@@ -4653,7 +4607,7 @@ function emptyUserDraft() {
 function cloneUser(user) {
   const nextUser = JSON.parse(JSON.stringify(user || emptyUserDraft()))
   nextUser.roleIds ||= []
-  nextUser.extraFunctionPermissionIds ||= []
+  nextUser.extraFunctionPermissionIds = []
   nextUser.extraDataPermissionIds ||= []
   nextUser.suppressedRoleDataPermissionIds ||= []
   nextUser.customDataRules ||= []
@@ -4674,12 +4628,12 @@ function openUserWorkspace(mode, user = null) {
   userWorkspace.mode = mode
   userWorkspace.userAccount = user?.userAccount || ''
   userWorkspace.activeTab = 'basic'
-  userWorkspace.dataTab = 'normal'
   userWorkspace.loginFilter = 'all'
   userWorkspace.applicationNo = ''
   userWorkspace.generatedApplicationNo = ''
   userWorkspace.notice = mode === 'view' ? '当前为只读详情。' : ''
   userWorkspace.draft = cloneUser(user || emptyUserDraft())
+  userWorkspace.dataTab = userWorkspace.draft.customDataRules.length ? 'custom' : 'normal'
 }
 
 function openUserDataWorkspace(user) {
@@ -4695,6 +4649,7 @@ function closeUserWorkspace() {
 
 function switchUserWorkspaceToEdit() {
   userWorkspace.mode = userWorkspace.userAccount ? 'edit' : 'create'
+  userWorkspace.dataTab = userWorkspace.draft?.customDataRules?.length ? 'custom' : 'normal'
   userWorkspace.notice = ''
 }
 
@@ -4715,12 +4670,13 @@ function validateUserWorkspace() {
   userWorkspace.errors.validUntil = draft.validUntil ? '' : '请填写有效期，例如 2026-12-31 或长期有效。'
   userWorkspace.errors.internalAdAccount = draft.bindItcode && !draft.internalAdAccount ? '已绑定 IT code 时需要填写内部 AD 账户。' : ''
   userWorkspace.errors.applicationNo = showUserApplicationNoField.value && !userWorkspace.applicationNo ? '权限变更需要填写申请单号，用于关联审批流程。' : ''
+  userWorkspace.errors.dataMode = draft.extraDataPermissionIds.length && draft.customDataRules.length ? '普通授权和自定义授权只能选择一种，请先删除其中一类数据权限。' : ''
   return !Object.values(userWorkspace.errors).some(Boolean)
 }
 
 function saveUserWorkspace() {
   if (!validateUserWorkspace()) {
-    userWorkspace.activeTab = userWorkspace.errors.applicationNo ? userWorkspace.activeTab : 'basic'
+    userWorkspace.activeTab = userWorkspace.errors.dataMode ? 'data' : (userWorkspace.errors.applicationNo ? userWorkspace.activeTab : 'basic')
     return
   }
   const nextUser = cloneUser(userWorkspace.draft)
@@ -4736,7 +4692,7 @@ function saveUserWorkspace() {
     appendCreateUserApproval(nextUser, ticketNo)
   } else if (userPermissionChanged.value) {
     changeType = '权限变更'
-    detail = '保存用户角色、功能权限或数据权限变更，申请单号用于审批流程追溯。'
+    detail = '保存用户角色或数据权限变更，申请单号用于审批流程追溯。'
     upsertUserApproval(nextUser, ticketNo, 'change', '权限变更', detail)
   }
   appendUserChange(nextUser, changeType, ticketNo, detail)
@@ -4775,7 +4731,6 @@ function customRulesSignature(rules = []) {
 function hasUserPermissionChanged(original, draft) {
   if (!original || !draft) return false
   return !sameIdSet(original.roleIds, draft.roleIds)
-    || !sameIdSet(original.extraFunctionPermissionIds, draft.extraFunctionPermissionIds)
     || !sameIdSet(original.extraDataPermissionIds, draft.extraDataPermissionIds)
     || !sameIdSet(original.suppressedRoleDataPermissionIds, draft.suppressedRoleDataPermissionIds)
     || customRulesSignature(original.customDataRules) !== customRulesSignature(draft.customDataRules)
@@ -4792,7 +4747,7 @@ function userPermissionSnapshot(user) {
     selectedRoleIds: [...(user.roleIds || [])],
     copiedFromItcode: '',
     copiedRoleIds: [],
-    copiedFunctionPermissionIds: [...(user.extraFunctionPermissionIds || [])],
+    copiedFunctionPermissionIds: [],
     selectedDataPermissionIds: [...new Set([...inheritedDataIds, ...(user.extraDataPermissionIds || [])])],
     manualDataPermissionIds: [...(user.extraDataPermissionIds || [])],
     copiedDataSourceMap: {}
@@ -4882,18 +4837,36 @@ function userInheritedDataIds(user) {
     .filter((id) => !suppressedIds.includes(id))
 }
 
-function toggleUserExtraFunction(id) {
-  if (userWorkspaceReadonly.value || !userWorkspace.draft || userDraftInheritedFunctionIds.value.includes(id)) return
-  toggleId(userWorkspace.draft.extraFunctionPermissionIds, id)
+function switchUserDataTab(tab) {
+  userWorkspace.errors.dataMode = ''
+  if (tab === 'normal' && userCustomDataLocked.value) {
+    userWorkspace.errors.dataMode = '当前已有自定义授权，需删除自定义授权后才能使用普通授权。'
+    return
+  }
+  if (tab === 'custom' && userNormalDataLocked.value) {
+    userWorkspace.errors.dataMode = '当前已有普通授权，需取消普通授权后才能使用自定义授权。'
+    return
+  }
+  userWorkspace.dataTab = tab
 }
 
 function toggleUserExtraData(id) {
   if (userWorkspaceReadonly.value || !userWorkspace.draft || userDraftInheritedDataIds.value.includes(id)) return
+  if (userCustomDataLocked.value) {
+    userWorkspace.errors.dataMode = '当前已有自定义授权，需删除自定义授权后才能使用普通授权。'
+    return
+  }
+  userWorkspace.errors.dataMode = ''
   toggleId(userWorkspace.draft.extraDataPermissionIds, id)
 }
 
 function addUserCustomDataRule() {
   if (userWorkspaceReadonly.value || !userWorkspace.draft) return
+  if (userNormalDataLocked.value) {
+    userWorkspace.errors.dataMode = '当前已有普通授权，需取消普通授权后才能使用自定义授权。'
+    return
+  }
+  userWorkspace.errors.dataMode = ''
   userWorkspace.draft.customDataRules.push({
     id: `user-rule-${Date.now()}`,
     dataset: '运营数据集',
@@ -4908,6 +4881,7 @@ function addUserCustomDataRule() {
 function removeUserCustomDataRule(id) {
   if (userWorkspaceReadonly.value || !userWorkspace.draft) return
   userWorkspace.draft.customDataRules = userWorkspace.draft.customDataRules.filter((rule) => rule.id !== id)
+  userWorkspace.errors.dataMode = ''
 }
 
 function openUserRoleWorkspace(user) {
@@ -5714,6 +5688,17 @@ onUnmounted(() => {
 
 .permission-form-grid .full {
   grid-column: 1 / -1;
+}
+.permission-form-grid .relation-account-field,
+.permission-form-grid .email-field {
+  align-self: start;
+  align-content: start;
+}
+
+.permission-form-grid .relation-account-field > span:first-child,
+.permission-form-grid .email-field > span:first-child {
+  min-height: 18px;
+  line-height: 18px;
 }
 
 .permission-form-grid input,
@@ -7314,6 +7299,40 @@ onUnmounted(() => {
 .role-data-tabs button.active {
   border-bottom-color: #316dff;
   color: #316dff;
+}
+
+.role-data-tabs button.locked:not(.active) {
+  color: #8a96a8;
+}
+
+.role-data-tabs button.locked:not(.active)::after {
+  content: "需先清空另一类";
+  display: inline-flex;
+  margin-left: 8px;
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: #fff5e6;
+  color: #b56a00;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.data-mode-notice {
+  display: block;
+  margin-bottom: 10px;
+  border: 1px solid #d6e6ff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #f6faff;
+  color: #415675;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.data-mode-notice.error {
+  border-color: #ffd1d1;
+  background: #fff7f7;
+  color: #d33b3b;
 }
 
 .role-editor-section {
