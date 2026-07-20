@@ -32,31 +32,16 @@
         v-for="(msg, idx) in messages"
         :key="idx"
         class="ai-msg"
-        :class="[msg.role, { 'ai-structured-msg': isStructuredMessage(msg) }]"
+        :class="[msg.role, {
+          'ai-structured-msg': isStructuredMessage(msg),
+          'ai-has-external-state': hasExternalState(msg),
+          'ai-typewriter-msg': isTypewriterMessage(msg),
+          'ai-typewriter-done': isTypewriterDone(msg, idx)
+        }]"
       >
+        <AgentConversationStates v-if="hasExternalState(msg)" :items="msg.activityItems || []" />
         <div class="bubble">
-          <div v-html="renderMsg(msg)"></div>
-          <AgentConversationStates :items="msg.activityItems || []" />
-          <div v-if="msg.todoList" class="ai-todo-card">
-            <div class="ai-todo-head">
-              <span class="ai-todo-title">
-                <span class="ai-todo-orb" aria-hidden="true"></span>
-                <b>{{ msg.todoList.title }}</b>
-              </span>
-              <span class="ai-todo-progress">{{ msg.todoList.done }}/{{ msg.todoList.total }}</span>
-            </div>
-            <div class="ai-todo-list">
-              <div
-                v-for="item in msg.todoList.items"
-                :key="item.id"
-                class="ai-todo-item"
-                :class="`is-${item.status}`"
-              >
-                <span class="todo-status" aria-hidden="true"></span>
-                <span>{{ item.text }}</span>
-              </div>
-            </div>
-          </div>
+          <div v-html="renderMsg(msg, idx)"></div>
           <div v-if="msg.authRequest" class="ai-auth-card">
             <div class="ai-auth-head">
               <span class="ai-auth-icon" aria-hidden="true">
@@ -70,7 +55,11 @@
             <div class="ai-auth-meta">namespace: {{ msg.authRequest.namespace }}</div>
             <pre class="ai-auth-command"><code>{{ msg.authRequest.command }}</code></pre>
             <p>{{ msg.authRequest.detail }}</p>
-            <div class="ai-auth-actions">
+            <div v-if="msg.authResult" class="ai-auth-result" :class="`is-${msg.authResult.status}`">
+              <b>{{ msg.authResult.title }}</b>
+              <span>{{ msg.authResult.detail }}</span>
+            </div>
+            <div v-else class="ai-auth-actions">
               <button
                 type="button"
                 class="ai-auth-approve"
@@ -87,7 +76,7 @@
               </button>
             </div>
           </div>
-          <div v-if="msg.artifacts?.length" class="ai-report-artifact-list">
+          <div v-if="msg.artifacts?.length && canShowStructuredContent(msg, idx)" class="ai-report-artifact-list">
             <div v-for="reportId in msg.artifacts" :key="reportId" class="ai-result-card">
               <div class="ai-result-card-head">
                 <span class="ai-result-icon" aria-hidden="true">
@@ -110,7 +99,7 @@
               </div>
             </div>
           </div>
-          <div v-if="msg.actionItems?.length" class="ai-task-actions">
+          <div v-if="msg.actionItems?.length && canShowStructuredContent(msg, idx)" class="ai-task-actions">
             <div class="ai-task-actions-title">可继续执行</div>
             <div class="ai-task-actions-row">
               <button
@@ -122,6 +111,28 @@
               >
                 {{ item.label }}
               </button>
+            </div>
+          </div>
+        </div>
+        <div v-if="msg.todoList && canShowStructuredContent(msg, idx)" class="bubble ai-todo-bubble">
+          <div class="ai-todo-card">
+            <div class="ai-todo-head">
+              <span class="ai-todo-title">
+                <span class="ai-todo-orb" aria-hidden="true"></span>
+                <b>{{ msg.todoList.title }}</b>
+              </span>
+              <span class="ai-todo-progress">{{ msg.todoList.done }}/{{ msg.todoList.total }}</span>
+            </div>
+            <div class="ai-todo-list">
+              <div
+                v-for="item in msg.todoList.items"
+                :key="item.id"
+                class="ai-todo-item"
+                :class="`is-${item.status}`"
+              >
+                <span class="todo-status" aria-hidden="true"></span>
+                <span>{{ item.text }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -144,7 +155,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 import { AI_REPORT_ARTIFACTS } from '@/stores/ai'
 import { getPageLabel } from '@/stores/app'
@@ -159,6 +170,9 @@ const props = defineProps({
 defineEmits(['quick-send', 'open-report', 'save-report', 'run-action'])
 
 const messagesEl = ref(null)
+const typewriterText = reactive({})
+const typewriterDone = reactive({})
+const typewriterTimers = new Map()
 const showWelcome = computed(() => !props.messages.some(msg => msg.role === 'user' && !msg.demoReportQuery))
 
 function scrollToBottom() {
@@ -170,10 +184,64 @@ function scrollToBottom() {
 
 watch(() => props.messages, scrollToBottom, { deep: true })
 watch(() => props.loading, scrollToBottom)
+watch(() => props.messages, syncTypewriterMessages, { deep: true, immediate: true })
 
-function renderMsg(msg) {
-  if (msg.role === 'assistant') return renderMarkdown(msg.text)
+onBeforeUnmount(() => {
+  typewriterTimers.forEach(timer => clearInterval(timer))
+  typewriterTimers.clear()
+})
+
+function renderMsg(msg, idx) {
+  const text = isTypewriterMessage(msg)
+    ? (typewriterText[typewriterKey(msg, idx)] ?? '')
+    : msg.text
+  if (msg.role === 'assistant') return renderMarkdown(text)
   return escapeHtml(msg.text)
+}
+
+function hasExternalState(msg) {
+  return Boolean(msg?.activityItems?.length)
+}
+
+function isTypewriterMessage(msg) {
+  return msg?.role === 'assistant' && msg?.renderMode === 'typewriter'
+}
+
+function typewriterKey(msg, idx) {
+  return msg.id || `${idx}-${msg.at || ''}-${String(msg.text || '').slice(0, 12)}`
+}
+
+function isTypewriterDone(msg, idx) {
+  if (!isTypewriterMessage(msg)) return true
+  return Boolean(typewriterDone[typewriterKey(msg, idx)])
+}
+
+function canShowStructuredContent(msg, idx) {
+  return !isTypewriterMessage(msg) || isTypewriterDone(msg, idx)
+}
+
+function syncTypewriterMessages() {
+  props.messages.forEach((msg, idx) => {
+    if (!isTypewriterMessage(msg)) return
+    const key = typewriterKey(msg, idx)
+    if (typewriterDone[key] || typewriterTimers.has(key)) return
+    typewriterText[key] = ''
+    typewriterDone[key] = false
+    let cursor = 0
+    const source = String(msg.text || '')
+    const timer = window.setInterval(() => {
+      cursor = Math.min(cursor + 2, source.length)
+      typewriterText[key] = source.slice(0, cursor)
+      scrollToBottom()
+      if (cursor >= source.length) {
+        window.clearInterval(timer)
+        typewriterTimers.delete(key)
+        typewriterDone[key] = true
+        scrollToBottom()
+      }
+    }, 18)
+    typewriterTimers.set(key, timer)
+  })
 }
 
 function isStructuredMessage(msg) {
@@ -215,18 +283,39 @@ function reportChips(id) {
   return chips.slice(0, 3)
 }
 
-function escapeHtml(str) {
+function escapeHtmlText(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br>')
+}
+
+function escapeHtml(str) {
+  return escapeHtmlText(str).replace(/\n/g, '<br>')
 }
 
 function renderMarkdown(text) {
-  return String(text || '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/```([\s\S]*?)```/g, (_, c) => `<pre><code>${c.trim()}</code></pre>`)
+  const codeBlocks = []
+  const source = String(text || '').replace(/```([\s\S]*?)```/g, (_, content) => {
+    const token = `@@AI_CODE_BLOCK_${codeBlocks.length}@@`
+    codeBlocks.push(`<pre><code>${escapeHtmlText(content.trim())}</code></pre>`)
+    return token
+  })
+  const lines = escapeHtmlText(source).split('\n')
+  const renderedLines = []
+
+  for (let index = 0; index < lines.length;) {
+    if (isMarkdownTableStart(lines, index)) {
+      const table = renderMarkdownTable(lines, index)
+      renderedLines.push(table.html)
+      index = table.nextIndex
+      continue
+    }
+    renderedLines.push(lines[index])
+    index += 1
+  }
+
+  const html = renderedLines.join('\n')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -236,21 +325,195 @@ function renderMarkdown(text) {
     .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
     .replace(/\n/g, '<br>')
+
+  return html.replace(/@@AI_CODE_BLOCK_(\d+)@@/g, (_, index) => codeBlocks[Number(index)] || '')
+}
+
+function isMarkdownTableStart(lines, index) {
+  if (index + 1 >= lines.length || !lines[index].includes('|')) return false
+  const headers = splitMarkdownTableRow(lines[index])
+  const dividers = splitMarkdownTableRow(lines[index + 1])
+  return headers.length >= 2
+    && dividers.length === headers.length
+    && dividers.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s/g, '')))
+}
+
+function splitMarkdownTableRow(line) {
+  const cells = []
+  let cell = ''
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index]
+    if (char === '\\' && line[index + 1] === '|') {
+      cell += '|'
+      index += 1
+      continue
+    }
+    if (char === '|') {
+      cells.push(cell.trim())
+      cell = ''
+      continue
+    }
+    cell += char
+  }
+  cells.push(cell.trim())
+
+  if (line.trim().startsWith('|')) cells.shift()
+  if (line.trim().endsWith('|')) cells.pop()
+  return cells
+}
+
+function renderMarkdownTable(lines, startIndex) {
+  const headers = splitMarkdownTableRow(lines[startIndex])
+  const dividers = splitMarkdownTableRow(lines[startIndex + 1])
+  const alignments = dividers.map(cell => {
+    const value = cell.replace(/\s/g, '')
+    if (value.startsWith(':') && value.endsWith(':')) return 'center'
+    if (value.endsWith(':')) return 'right'
+    return 'left'
+  })
+  const rows = []
+  let nextIndex = startIndex + 2
+
+  while (nextIndex < lines.length && lines[nextIndex].trim() && lines[nextIndex].includes('|')) {
+    const cells = splitMarkdownTableRow(lines[nextIndex])
+    rows.push(headers.map((_, index) => cells[index] || ''))
+    nextIndex += 1
+  }
+
+  const headerHtml = headers.map((cell, index) => `<th class="is-${alignments[index]}">${cell}</th>`).join('')
+  const bodyHtml = rows.map(row => `<tr>${row.map((cell, index) => `<td class="is-${alignments[index]}">${cell}</td>`).join('')}</tr>`).join('')
+
+  return {
+    html: `<div class="ai-markdown-table-wrap" role="region" aria-label="AI 回复表格"><table class="ai-markdown-table"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`,
+    nextIndex
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 .ai-todo-card,
 .ai-auth-card {
-  margin-top: 10px;
   border: 1px solid rgba(31, 35, 41, .1);
   border-radius: 8px;
   background: #fff;
   color: var(--color-text, #1f2329);
 }
 
+.ai-msg > .conversation-states {
+  max-width: min(92%, 340px);
+  margin: 0 0 6px;
+}
+
+.ai-msg.ai-has-external-state {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.ai-msg.ai-has-external-state > .conversation-states {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 8px;
+}
+
+.ai-msg.assistant.ai-has-external-state > .bubble {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+.ai-msg.assistant.ai-has-external-state > .conversation-states {
+  margin-left: 0;
+}
+
+.ai-msg.user.ai-has-external-state > .conversation-states {
+  margin-left: auto;
+}
+
+:deep(.ai-markdown-table-wrap) {
+  width: 100%;
+  margin: 10px 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-border, #e5e8ef);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+  scrollbar-width: thin;
+}
+
+:deep(.ai-markdown-table) {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  color: var(--color-text, #1f2329);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+:deep(.ai-markdown-table th),
+:deep(.ai-markdown-table td) {
+  padding: 8px 10px;
+  border-right: 1px solid var(--color-border, #e5e8ef);
+  border-bottom: 1px solid var(--color-border, #e5e8ef);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+:deep(.ai-markdown-table th) {
+  background: var(--color-bg-muted, #f5f7fa);
+  color: var(--color-text-secondary, #4e5969);
+  font-weight: 650;
+}
+
+:deep(.ai-markdown-table td) {
+  color: var(--color-text, #1f2329);
+}
+
+:deep(.ai-markdown-table tbody tr:nth-child(even) td) {
+  background: rgba(31, 35, 41, .018);
+}
+
+:deep(.ai-markdown-table tbody tr:hover td) {
+  background: rgba(51, 112, 255, .055);
+}
+
+:deep(.ai-markdown-table th:last-child),
+:deep(.ai-markdown-table td:last-child) {
+  border-right: 0;
+}
+
+:deep(.ai-markdown-table tbody tr:last-child td) {
+  border-bottom: 0;
+}
+
+:deep(.ai-markdown-table .is-center) { text-align: center; }
+:deep(.ai-markdown-table .is-right) { text-align: right; }
+
+:global(body.dark-mode) :deep(.ai-markdown-table-wrap) {
+  border-color: var(--color-border-subtle, #3a3d45);
+  background: var(--color-surface, #25272d);
+}
+
+:global(body.dark-mode) :deep(.ai-markdown-table th) {
+  background: var(--color-bg-muted, #2d3037);
+  color: var(--color-text-secondary, #b8bdc7);
+}
+
+:global(body.dark-mode) :deep(.ai-markdown-table td) {
+  color: var(--color-text, #f2f3f5);
+}
+
 .ai-todo-card {
   padding: 12px;
+}
+
+.ai-todo-bubble {
+  display: block;
+  margin-top: 8px;
+  border-style: dashed;
+  background: #fbfdff;
+  animation: ai-card-soft-enter .22s ease both;
 }
 
 .ai-todo-head {
@@ -415,6 +678,30 @@ function renderMarkdown(text) {
   line-height: 1.5;
 }
 
+.ai-auth-result {
+  display: grid;
+  gap: 3px;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(32, 191, 114, .24);
+  background: rgba(32, 191, 114, .08);
+  color: #176b3a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ai-auth-result.is-rejected {
+  border-color: rgba(239, 68, 68, .22);
+  background: rgba(239, 68, 68, .08);
+  color: #b42318;
+}
+
+.ai-auth-result b,
+.ai-auth-result span {
+  min-width: 0;
+}
+
 .ai-auth-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -441,5 +728,43 @@ function renderMarkdown(text) {
   border: 1px solid rgba(239, 68, 68, .5);
   background: #fff;
   color: #d92d20;
+}
+
+.ai-typewriter-msg .bubble > div:first-child::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -2px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: ai-typewriter-cursor .9s steps(2, jump-none) infinite;
+}
+
+.ai-typewriter-done .bubble > div:first-child::after {
+  content: none;
+}
+
+.ai-typewriter-done .ai-report-artifact-list,
+.ai-typewriter-done .ai-task-actions,
+.ai-typewriter-done .ai-todo-bubble {
+  animation: ai-card-soft-enter .22s ease both;
+}
+
+@keyframes ai-typewriter-cursor {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+@keyframes ai-card-soft-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

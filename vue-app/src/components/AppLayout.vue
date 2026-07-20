@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { nextTick, ref, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -81,6 +81,14 @@ watch(() => route.path, () => {
   // 滚回顶部
   if (pageContentEl.value) {
     pageContentEl.value.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+})
+
+// 从页面内直接创建或切换动态报告时，也要重置中间内容区滚动位置。
+watch(activeTempTabId, async () => {
+  await nextTick()
+  if (pageContentEl.value) {
+    pageContentEl.value.scrollTo({ top: 0, behavior: 'auto' })
   }
 })
 

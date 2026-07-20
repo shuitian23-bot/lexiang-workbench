@@ -7,14 +7,15 @@
     <button
       class="sidebar-collapse-btn"
       :class="{ 'is-collapsed': collapsed, 'is-expanded': !collapsed }"
-      :title="collapsed ? '展开侧栏' : '收起侧栏'"
+      :data-tooltip="collapsed ? '展开侧栏' : '收起侧栏'"
+      data-tooltip-placement="bottom"
       :aria-label="collapsed ? '展开侧栏' : '收起侧栏'"
       @click.stop="$emit('toggle')"
     >
-      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="2.8" y="3.5" width="14.4" height="13" rx="2.4"/>
-        <line x1="8" y1="3.5" x2="8" y2="16.5"/>
-        <path d="M13 8 10.9 10 13 12"/>
+      <svg class="sidebar-panel-toggle-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+        <rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
+        <rect v-if="collapsed" x="8.6" y="6.3" width="1.8" height="11.4" rx="0.9" fill="currentColor"/>
+        <rect v-else x="13.6" y="6.3" width="1.8" height="11.4" rx="0.9" fill="currentColor"/>
       </svg>
     </button>
   </div>

@@ -4,8 +4,9 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getGroupLabel, getPageLabel, pageIdToPath } from '@/stores/app'
+import { getGroupLabel, getPageLabel, pageIdToPath, type SkillApplicationReportData } from '@/stores/app'
 import { STORAGE_KEYS, readBooleanStorage, writeBooleanStorage } from '@/constants/storageKeys'
+import { createEmployeeCertificationReport } from '@/services/skillApplicationReport'
 
 type AnyRecord = Record<string, unknown>
 type ShortcutLabel = '今日指标' | '查数据' | '商品管理' | '知识库' | 'CMS' | '运营建议'
@@ -28,9 +29,11 @@ interface TaskAction {
 }
 
 interface AiMessage {
+  id?: string
   role: MessageRole
   text: string
   at: string
+  renderMode?: 'typewriter'
   demoReportQuery?: boolean
   demoReportEntry?: boolean
   artifacts?: string[]
@@ -38,6 +41,7 @@ interface AiMessage {
   activityItems?: ConversationActivityItem[]
   todoList?: TodoListBlock
   authRequest?: AuthRequestBlock
+  authResult?: AuthResultBlock
 }
 
 interface ConversationActivityItem {
@@ -69,6 +73,12 @@ interface AuthRequestBlock {
   rejectLabel: string
 }
 
+interface AuthResultBlock {
+  status: 'approved' | 'rejected'
+  title: string
+  detail: string
+}
+
 interface ReportArtifact {
   id: string
   title: string
@@ -79,6 +89,7 @@ interface ReportArtifact {
   chips: string[]
   content?: string
   previewHtml?: string
+  reportData?: SkillApplicationReportData
   createdAt: string
   saved?: boolean
 }
@@ -363,8 +374,8 @@ export const useAIStore = defineStore('ai', () => {
         await _delay(850)
         _settleActivity('thinking', 'done')
         _settleActivity('tool_call', 'failed', '接口调用失败', e instanceof Error ? e.message : '远端接口暂不可用。')
-        _settleActivity('tool_result', 'failed', '工具结果不可用', '接口失败后未返回火山引擎结果。')
-        _settleActivity('error', 'blocked', '火山引擎不可用', '未生成本地模拟解读，避免把演示内容误当真实分析。')
+        _settleActivity('tool_result', 'failed', '工具结果不可用', '接口失败后未返回大模型结果。')
+        _settleActivity('error', 'blocked', '大模型不可用', '未生成本地模拟解读，避免把演示内容误当真实分析。')
         _recordAssistantReply(payload, _mockReply(payload, e))
       }
     } finally {
@@ -401,14 +412,15 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function seedDemoReportCards(pageId = '') {
-    const reports: ReportArtifact[] = _createDemoReports(pageId)
-    reports.forEach(report => { AI_REPORT_ARTIFACTS[report.id] = report })
+    const reportCatalog: ReportArtifact[] = _createDemoReports(pageId)
+    reportCatalog.forEach(report => { AI_REPORT_ARTIFACTS[report.id] = report })
+    const reports = reportCatalog.slice(0, 2)
     if (!open.value) toggleOpen(true)
     if (messages.value.some(msg => msg.demoReportEntry)) return
-    _recordMessage('user', '我准备了几份动态页签走查报告。点击卡片里的“展开报告”，会从 Agent 区推送到中间工作区动态页签。', {
+    _recordMessage('user', '我准备了质量分析和运营总览两份默认报告。点击卡片里的“展开报告”，会从 Agent 区推送到中间工作区动态页签。', {
       demoReportQuery: true
     })
-    _recordMessage('assistant', '已根据你的 query 生成动态页签走查报告，可点击卡片里的“展开报告”推送到中间工作区动态页签。', {
+    _recordMessage('assistant', '已准备质量分析和运营总览报告，可点击卡片里的“展开报告”推送到中间工作区动态页签。后续查询生成的报告会继续追加在对应回答中。', {
       demoReportEntry: true,
       artifacts: reports.map(report => report.id)
     })
@@ -468,20 +480,19 @@ export const useAIStore = defineStore('ai', () => {
     }
     if (action.type === 'auth_approve') {
       _recordTaskLog('auth', action.value || '授权执行', pageId || 'portal.home')
-      _recordMessage('assistant', '已记录授权。当前为 POC 状态展示，不会实际执行命令。', {
-        activityItems: [
-          _createActivity('confirm', 'done', '授权已确认', '用户已批准执行，高影响操作进入下一步。'),
-          _createActivity('tool_call', 'done', '执行动作已登记', action.value || '授权动作已进入任务日志。')
-        ]
+      _resolveLatestAuthRequest({
+        status: 'approved',
+        title: '授权已确认',
+        detail: '当前为 POC 状态展示，不会实际执行命令；高影响操作已登记到任务日志。'
       })
       return
     }
     if (action.type === 'auth_reject') {
       _recordTaskLog('auth', action.value || '拒绝执行', pageId || 'portal.home')
-      _recordMessage('assistant', '已拒绝执行。任务已停止，没有触发任何写入、发布、导出或命令执行。', {
-        activityItems: [
-          _createActivity('confirm', 'failed', '授权已拒绝', '用户拒绝执行，高影响操作已停止。')
-        ]
+      _resolveLatestAuthRequest({
+        status: 'rejected',
+        title: '授权已拒绝',
+        detail: '任务已停止，没有触发任何写入、发布、导出或命令执行。'
       })
     }
   }
@@ -545,13 +556,36 @@ export const useAIStore = defineStore('ai', () => {
 
   function _recordMessage(role: MessageRole, text: string, extra: Partial<AiMessage> = {}) {
     if (!text) return
-    messages.value.push({ role, text, at: new Date().toISOString(), ...extra })
+    messages.value.push({ id: _newMessageId(role), role, text, at: new Date().toISOString(), ...extra })
+    _persistConversation()
+  }
+
+  function _newMessageId(role: MessageRole) {
+    return `msg_${role}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+  }
+
+  function _resolveLatestAuthRequest(result: AuthResultBlock) {
+    const index = [...messages.value].reverse().findIndex(item => item.authRequest && !item.authResult)
+    if (index === -1) {
+      _recordMessage('assistant', result.detail)
+      return
+    }
+    const targetIndex = messages.value.length - 1 - index
+    messages.value = messages.value.map((message, idx) => {
+      if (idx !== targetIndex) return message
+      return {
+        ...message,
+        activityItems: undefined,
+        authResult: result
+      }
+    })
     _persistConversation()
   }
 
   function _recordAssistantReply(payload: ComposerPayload, reply: string) {
+    const displayReply = _sanitizeModelVendorName(reply)
     const artifacts: string[] = []
-    if (_shouldCreateReportArtifact(payload, reply)) {
+    if (_shouldCreateReportArtifact(payload, displayReply)) {
       if (_hasActivityKind('tool_call')) {
         _markActivityDone('tool_call')
       } else {
@@ -560,20 +594,74 @@ export const useAIStore = defineStore('ai', () => {
       if (!_hasActivityKind('tool_result')) {
         _upsertActivity('tool_result', 'done', '报告结果已就绪', '报告可保存，也可展开为顶部动态页签。')
       }
-      const report = _createReportArtifact(payload, reply)
+      const report = _createReportArtifact(payload, displayReply)
       AI_REPORT_ARTIFACTS[report.id] = report
       artifacts.push(report.id)
     }
-    _appendPostReplyActivities(payload, reply)
-    _recordMessage('assistant', reply, {
+    _appendPostReplyActivities(payload, displayReply)
+    _recordMessage('assistant', displayReply, {
       ...(artifacts.length ? { artifacts } : {}),
-      actionItems: _taskActionItems(payload, reply),
+      actionItems: _taskActionItems(payload, displayReply),
       activityItems: _snapshotActivities()
     })
   }
 
   function _tryLocalCommand(payload: ComposerPayload, context: AiRuntimeContext = {}) {
     const text = payload.text || payload.userMsg || ''
+    if (_isEmployeeCertificationSkillQuery(text)) {
+      return _runEmployeeCertificationSkill(payload)
+    }
+
+    if (/全场景串联演示/.test(text)) {
+      _recordMessage('user', payload.userMsg)
+      const pageLabel = getPageLabel(payload.pageId) || '当前页面'
+      _setActivityItems([
+        _createActivity('thinking', 'done', '理解演示目标', `已识别为「${pageLabel}」右侧 Agent 对话流全场景走查。`),
+        _createActivity('tool_call', 'done', '调用页面能力', '模拟读取页面上下文、报告生成和权限边界。'),
+        _createActivity('tool_result', 'done', '能力结果返回', '已生成可审计的结构化输出。'),
+        _createActivity('confirm', 'blocked', '等待授权确认', '涉及命令、写入或导出动作时，需要用户批准。')
+      ])
+      _createDemoReports(payload.pageId).forEach(report => {
+        if (!AI_REPORT_ARTIFACTS[report.id]) AI_REPORT_ARTIFACTS[report.id] = report
+      })
+      _recordMessage('assistant', [
+        `我会按「${pageLabel}」上下文串联展示完整 Agent 对话流。`,
+        '',
+        '本次演示包含过程状态、能力调用、打字机回答、授权请求、授权结论回填、报告卡片和独立 Todo List。',
+        '状态区会锚定在当前回答上方，不混入普通回答气泡。'
+      ].join('\n'), {
+        renderMode: 'typewriter',
+        activityItems: _snapshotActivities(),
+        authRequest: {
+          title: '请求执行演示命令',
+          namespace: 'agent.demo',
+          command: 'python3 scripts/demo_agent_flow.py --dry-run',
+          risk: 'POC 高影响动作确认',
+          detail: '这是全场景串联演示中的授权卡片。批准或拒绝后，结论会回填到当前卡片，不再追加多余说明气泡。',
+          approveLabel: '批准执行',
+          rejectLabel: '拒绝'
+        },
+        artifacts: ['demo_skill_report'],
+        actionItems: [
+          { type: 'prompt', label: '继续追问', value: '继续说明这个 Agent 对话流的交互边界。' },
+          { type: 'skill', label: '查看 Skill Hub', value: 'agent.skills' }
+        ],
+        todoList: {
+          title: 'Todo List',
+          done: 4,
+          total: 4,
+          items: [
+            { id: 'flow-demo-1', text: '展示气泡外过程状态区', status: 'done' },
+            { id: 'flow-demo-2', text: '打字机输出回答正文', status: 'done' },
+            { id: 'flow-demo-3', text: '展示授权请求与结论回填', status: 'done' },
+            { id: 'flow-demo-4', text: '展示结构卡片和独立待办气泡', status: 'done' }
+          ]
+        }
+      })
+      _clearActivityItems()
+      return true
+    }
+
     const targetPageId = _matchNavigationTarget(text)
     if (targetPageId) {
       const targetPath = pageIdToPath(targetPageId)
@@ -690,8 +778,106 @@ export const useAIStore = defineStore('ai', () => {
     return false
   }
 
+  function _isEmployeeCertificationSkillQuery(text: string) {
+    const source = String(text || '')
+    if (!/认证/.test(source)) return false
+    const dimensions = [
+      /近两周|最近\s*14\s*天|近\s*14\s*天/,
+      /人群画像|用户画像/,
+      /购买转化|认证转化|转化率/,
+      /gmv|成交额/i,
+      /爆款商品|热销商品|top\s*\d*\s*商品/i
+    ]
+    return dimensions.filter(pattern => pattern.test(source)).length >= 3
+  }
+
+  function _runEmployeeCertificationSkill(payload: ComposerPayload) {
+    _recordMessage('user', payload.userMsg)
+    _setActivityItems([
+      _createActivity('thinking', 'done', '解析查询任务', '已识别近两周认证数据、人群画像和购买转化分析需求。'),
+      _createActivity('tool_call', 'done', '调用 presentation-employee-cert', '已获取认证、交易、GMV 和商品维度数据。'),
+      _createActivity('tool_result', 'done', '完成口径计算', '已完成 LenovoID 去重、人群结构、转化率和爆款商品排名计算。'),
+      _createActivity('streaming', 'done', '生成分析结果', '结果摘要与可视化报告已就绪。')
+    ])
+
+    const reportData = createEmployeeCertificationReport({
+      prompt: payload.text || payload.userMsg
+    })
+    const reply = _employeeCertificationSkillReply(reportData)
+    const report: ReportArtifact = {
+      id: `skill_report_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      title: '职场认证与购买转化分析',
+      sourcePage: 'agent.skills',
+      sourcePageLabel: 'Skill Hub',
+      groupLabel: 'AI 助手',
+      summary: '近两周共 861 名独立认证用户，482 人完成购买，转化率 56.0%，GMV 为 ¥4,247,310。',
+      chips: ['认证画像', '购买转化', 'GMV', '爆款商品'],
+      content: reply,
+      reportData,
+      createdAt: new Date().toISOString()
+    }
+    AI_REPORT_ARTIFACTS[report.id] = report
+    _recordTaskLog('skill', '调用 Skill：职场认证与转化综合简报', 'agent.skills')
+    _recordMessage('assistant', reply, {
+      renderMode: 'typewriter',
+      artifacts: [report.id],
+      activityItems: _snapshotActivities()
+    })
+    _clearActivityItems()
+    return true
+  }
+
+  function _employeeCertificationSkillReply(report: SkillApplicationReportData) {
+    const metric = (label: string) => report.metrics.find(item => item.label === label)?.value || '-'
+    const metricNote = (label: string) => report.metrics.find(item => item.label === label)?.note || ''
+    const topProducts = report.products.slice(0, 3)
+    const topRoles = report.roles.slice(0, 3)
+    const topIndustries = report.industries.slice(0, 3)
+    const peakDays = [...report.dailyTrend].sort((a, b) => b.value - a.value).slice(0, 2)
+
+    return [
+      `已完成近两周认证数据汇总，数据区间为 ${report.dateStart} 至 ${report.dateEnd}。`,
+      '',
+      '## 核心数据',
+      `- 独立认证用户 **${metric('已认证独立用户')} 人**，其中 **${metric('已购用户')} 人**完成购买，认证购买转化率为 **${metric('认证购买转化率')}**。`,
+      `- 共产生 **${metricNote('已购用户')}**，总 GMV **${metric('总 GMV')}**，平均客单价 **${metric('平均客单价')}**。`,
+      `- 认证未购用户 **${metric('认证未购池')} 人**，占独立认证用户的 44.0%。`,
+      '',
+      '## 认证趋势',
+      `- 区间日均新增认证 66 人；${peakDays[0]?.label} 为最高点，新增 ${peakDays[0]?.value} 人，${peakDays[1]?.label} 次之，新增 ${peakDays[1]?.value} 人。`,
+      '- 14:00-22:00 是主力认证时段，共 458 人，占已覆盖时段记录的 56.1%。',
+      '',
+      '## 人群画像',
+      `- 认证方式以其他材料为主，共 ${report.methods[0]?.value} 人，占 ${report.methods[0]?.share}。`,
+      `- 岗位人群主要为${topRoles.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
+      `- 行业人群前三为${topIndustries.map(item => `${item.label} ${item.value} 人`).join('、')}。`,
+      '',
+      '## 爆款商品',
+      ...topProducts.map((item, index) => `${index + 1}. **${item.label}**：${item.value} 名认证已购用户，占已购用户 ${item.share}。`),
+      '',
+      '## 分析结论',
+      '- 认证到购买的转化率已超过五成，交易承接稳定；同时仍有 379 名认证未购用户，是后续运营的核心增量人群。',
+      '- 人群集中在管理层、工程师以及房地产和信息技术行业，爆款商品则以商务办公和高性能笔记本为主。',
+      '- 已生成完整的趋势、画像、转化漏斗和 Top10 商品报告，可点击下方“展开报告”查看。'
+    ].join('\n')
+  }
+
   function _matchNavigationTarget(text: string): string | null {
     const source = String(text || '').toLowerCase()
+    const analysisSignals = [
+      /总结|汇总|数据情况|综合分析/,
+      /近两周|最近\s*14\s*天|近\s*14\s*天/,
+      /人群画像|用户画像/,
+      /购买转化|认证转化|转化率/,
+      /爆款商品|热销商品|top\s*\d*\s*商品/
+    ]
+    const isCompoundAnalysis = analysisSignals.filter(pattern => pattern.test(source)).length >= 2
+    const hasExplicitNavVerb = /打开|进入|跳转|切到|切换/.test(source)
+    const isShortViewCommand = /^\s*(?:请|帮我|麻烦)?\s*查看/.test(source) && source.length <= 24
+
+    // “查看 GMV”等词可能只是复合分析任务中的一个数据维度，不能据此切走当前会话。
+    if (isCompoundAnalysis && !hasExplicitNavVerb) return null
+
     const entries: Array<[string, string[]]> = [
       ['portal.home', ['联想门户工作台', '首页', 'home']],
       ['dashboard.overview', ['运营总览', '运营概览']],
@@ -713,9 +899,8 @@ export const useAIStore = defineStore('ai', () => {
       ['agent.skillCreate', ['创建 skill', '创建skill', '创建技能']],
       ['agent.permissions', ['权限管理']]
     ]
-    const hasNavVerb = /打开|进入|查看|跳转|切到|切换/.test(source)
     const matched = entries.find(([, aliases]) => aliases.some(alias => source.includes(alias.toLowerCase())))
-    return matched && (hasNavVerb || source.length <= 16) ? matched[0] : null
+    return matched && (hasExplicitNavVerb || isShortViewCommand || source.length <= 16) ? matched[0] : null
   }
 
   function _isReportIntent(text: string) {
@@ -732,6 +917,9 @@ export const useAIStore = defineStore('ai', () => {
     const sourcePage = payload.pageId || 'portal.home'
     const sourcePageLabel = getPageLabel(sourcePage) || '当前页面'
     const title = _reportTitle(payload.text || payload.userMsg || '', sourcePageLabel)
+    const isSkillApplicationReport = sourcePage === 'agent.skills'
+      || sourcePage === 'agent.skillCreate'
+      || /presentation-employee-cert|职场员工审核|认证转化/i.test(`${payload.text || ''}\n${reply || ''}`)
     return {
       id: `ai_report_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       title,
@@ -741,6 +929,9 @@ export const useAIStore = defineStore('ai', () => {
       summary: _reportSummary(reply, sourcePageLabel),
       chips: _reportChips(payload.text || reply || '', sourcePageLabel),
       content: _normalizeReportContent(reply, sourcePageLabel, payload),
+      ...(isSkillApplicationReport
+        ? { reportData: createEmployeeCertificationReport({ prompt: payload.text || payload.userMsg }) }
+        : {}),
       createdAt: new Date().toISOString()
     }
   }
@@ -867,7 +1058,7 @@ export const useAIStore = defineStore('ai', () => {
     const pageLabel = getPageLabel(payload.pageId) || '当前页面'
     return [
       _createActivity('thinking', 'running', '理解任务意图', `结合「${pageLabel}」页面上下文、快捷标签和附件内容判断任务类型。`),
-      _createActivity('tool_call', 'running', '调用火山引擎会话接口', `向 ${HARNESS_CHAT_ENDPOINT} 发送当前消息与页面上下文。`),
+      _createActivity('tool_call', 'running', '调用大模型会话接口', `向 ${HARNESS_CHAT_ENDPOINT} 发送当前消息与页面上下文。`),
       _createActivity('tool_result', 'pending', '等待工具结果', '接口返回后会转换为回复、报告卡片或后续动作。')
     ]
   }
@@ -996,6 +1187,12 @@ export const useAIStore = defineStore('ai', () => {
     return /未配置火山引擎|火山引擎暂不可用|火山引擎调用失败|无法完成真实页面解读|接口失败后未返回火山引擎结果/.test(reply || '')
   }
 
+  function _sanitizeModelVendorName(text: string) {
+    return String(text || '')
+      .replace(/火山模型/g, '大模型')
+      .replace(/火山引擎/g, '大模型')
+  }
+
   function _normalizeReportContent(reply: string, pageLabel: string, payload: ComposerPayload) {
     if (/^#\s/m.test(reply || '')) return reply
     return `# ${pageLabel} · 数据解读报告
@@ -1049,12 +1246,12 @@ ${reply || _reportIntentReply(payload)}
       },
       {
         id: 'demo_ops_preview',
-        title: '本地预览报告',
+        title: '运营总览 · 数据解读报告',
         sourcePage: pageId || 'dashboard.overview',
         sourcePageLabel: '运营总览',
         groupLabel: '乐享运营',
-        summary: '用于检查 HTML 预览类动态页签在中间内容槽中的展示。',
-        chips: ['本地预览', 'HTML', '运营报告'],
+        summary: '汇总访问、活跃、交易和核心趋势，可展开查看运营总览报告。',
+        chips: ['运营总览', '活跃', 'GMV'],
         previewHtml: '<!doctype html><html><body style="font-family:-apple-system,PingFang SC,sans-serif;padding:28px;background:#f6f8fb;color:#1f2329"><h1 style="font-size:22px;margin:0 0 12px">运营总览预览报告</h1><p style="color:#646a73">这是用于走查动态页签 iframe 预览样式的 mock 内容。</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px"><section style="background:#fff;border:1px solid #e5e6eb;border-radius:10px;padding:16px"><b>访问用户</b><div style="font-size:26px;font-weight:700;margin-top:8px">128.6万</div></section><section style="background:#fff;border:1px solid #e5e6eb;border-radius:10px;padding:16px"><b>活跃会员</b><div style="font-size:26px;font-weight:700;margin-top:8px">42.3万</div></section><section style="background:#fff;border:1px solid #e5e6eb;border-radius:10px;padding:16px"><b>异常预警</b><div style="font-size:26px;font-weight:700;margin-top:8px">7</div></section></div></body></html>',
         createdAt: now
       },
@@ -1146,6 +1343,7 @@ ${reply || _reportIntentReply(payload)}
 - 保留当前静态业务页上下文，不把报告写入静态页签。
 - 检查动态页签标题截断、已保存状态和关闭后的回退行为。
 - 后续接入真实数据时，替换这里的 mock content 和 summary。`,
+        ...(sourcePage === 'agent.skills' ? { reportData: createEmployeeCertificationReport() } : {}),
         createdAt: now
       }))
     ]
@@ -1172,7 +1370,7 @@ ${reply || _reportIntentReply(payload)}
 
   function _mockReply(payload: ComposerPayload, error: unknown) {
     const label = payload.shortcut || activeShortcut.value || '当前任务'
-    const message = error instanceof Error ? error.message : ''
+    const message = error instanceof Error ? _sanitizeModelVendorName(error.message) : ''
     return [
       `已收到「${label}」请求。`,
       '',
@@ -1180,7 +1378,7 @@ ${reply || _reportIntentReply(payload)}
       '',
       `> ${payload.text || payload.userMsg}`,
       '',
-      '- 火山引擎暂不可用，未完成真实页面解读。',
+      '- 大模型暂不可用，未完成真实页面解读。',
       '- 我没有生成本地 mock 分析内容，避免把演示兜底误当成真实结论。',
       '',
       message ? `调用失败原因：${message}` : ''

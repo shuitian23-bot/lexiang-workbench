@@ -94,11 +94,13 @@ function compareSkillMeta(skillMatch) {
   if (baseline.requiredSkillFingerprint) {
     const actualFingerprint = getSkillFingerprint(dir)
     const metaFingerprint = meta.fingerprint
-    if (metaFingerprint && metaFingerprint !== baseline.requiredSkillFingerprint) {
-      warnings.push(`设计 skill 元信息指纹不一致：项目绑定 ${baseline.requiredSkillFingerprint}，meta 声明 ${metaFingerprint}。`)
-    }
     if (actualFingerprint && actualFingerprint !== baseline.requiredSkillFingerprint) {
       warnings.push(`设计 skill 内容指纹不一致：项目绑定 ${baseline.requiredSkillFingerprint}，实际检测 ${actualFingerprint}。请确认 skill 内容是否被改过或是否需要更新项目基线锁。`)
+    }
+    if (metaFingerprint && metaFingerprint !== baseline.requiredSkillFingerprint) {
+      const message = `设计 skill 元信息指纹不一致：项目绑定 ${baseline.requiredSkillFingerprint}，meta 声明 ${metaFingerprint}。`
+      if (actualFingerprint === baseline.requiredSkillFingerprint) notices.push(`${message} 已按实际内容指纹通过校验。`)
+      else warnings.push(message)
     }
   }
 }

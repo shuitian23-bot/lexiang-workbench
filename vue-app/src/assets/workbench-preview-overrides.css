@@ -2832,6 +2832,10 @@ html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn svg {
   transform: rotate(180deg);
 }
 
+html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn .sidebar-panel-toggle-icon {
+  transform: none;
+}
+
 html[data-product="leaibot"] .sidebar.collapsed .sidebar-collapse-btn:hover {
   border-color: transparent;
   background: var(--color-bg-muted, #f5f7fa);
@@ -9872,6 +9876,43 @@ html[data-product="leaibot"] body:not(.dark-mode) .ai-send svg {
   display: block !important;
   width: 15px !important;
   height: 15px !important;
+}
+
+html[data-product="leaibot"] [data-tooltip]::after {
+  display: none !important;
+}
+
+.workbench-tooltip {
+  position: fixed;
+  z-index: 10000;
+  max-width: min(240px, calc(100vw - 16px));
+  padding: 6px 10px;
+  border: 1px solid rgba(226, 232, 240, .95);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .14);
+  color: #111827;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(2px);
+  transition: opacity .08s ease, transform .08s ease;
+}
+
+.workbench-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+body.dark-mode .workbench-tooltip {
+  border-color: rgba(55, 65, 81, .95);
+  background: rgba(17, 24, 39, .98);
+  color: #f9fafb;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .32);
 }
 
 /* 20260706: make right Agent collapse/expand state deterministic. */
