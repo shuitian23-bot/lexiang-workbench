@@ -42,7 +42,7 @@
         <AgentConversationStates v-if="hasExternalState(msg)" :items="msg.activityItems || []" />
         <div class="bubble">
           <div v-html="renderMsg(msg, idx)"></div>
-          <div v-if="msg.authRequest" class="ai-auth-card">
+          <div v-if="msg.authRequest && canShowStructuredContent(msg, idx)" class="ai-auth-card">
             <div class="ai-auth-head">
               <span class="ai-auth-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 16 6v4.1c0 3.1-2.1 5.4-6 6.4-3.9-1-6-3.3-6-6.4V6l6-2.5Z"/><path d="M10 8v3M10 14h.01"/></svg>
@@ -114,32 +114,39 @@
             </div>
           </div>
         </div>
-        <div v-if="msg.todoList && canShowStructuredContent(msg, idx)" class="bubble ai-todo-bubble">
-          <div class="ai-todo-card">
-            <div class="ai-todo-head">
-              <span class="ai-todo-title">
-                <span class="ai-todo-orb" aria-hidden="true"></span>
-                <b>{{ msg.todoList.title }}</b>
-              </span>
-              <span class="ai-todo-progress">{{ msg.todoList.done }}/{{ msg.todoList.total }}</span>
-            </div>
-            <div class="ai-todo-list">
-              <div
-                v-for="item in msg.todoList.items"
-                :key="item.id"
-                class="ai-todo-item"
-                :class="`is-${item.status}`"
-              >
-                <span class="todo-status" aria-hidden="true"></span>
-                <span>{{ item.text }}</span>
-              </div>
+      </div>
+    </template>
+
+    <div v-if="shouldShowLatestTodo" class="ai-msg assistant ai-todo-bubble-row">
+      <div class="ai-todo-list-block" :class="{ 'is-complete': isTodoComplete }">
+        <div class="ai-todo-card">
+          <button
+            type="button"
+            class="ai-todo-head"
+            :aria-expanded="todoExpanded"
+            :aria-label="todoExpanded ? '收起 Todo List' : '展开 Todo List'"
+            @click="todoExpanded = !todoExpanded"
+          >
+            <span class="ai-todo-title">
+              <span class="ai-todo-orb" aria-hidden="true"></span>
+              <b>{{ latestTodoList.title }}</b>
+            </span>
+            <span class="ai-todo-summary">
+              <span class="ai-todo-progress">{{ latestTodoList.done }}/{{ latestTodoList.total }}</span>
+              <svg class="ai-todo-toggle-icon" :class="{ 'is-collapsed': !todoExpanded }" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5-5 5 5" /></svg>
+            </span>
+          </button>
+          <div v-show="todoExpanded" class="ai-todo-list">
+            <div v-for="item in latestTodoList.items" :key="item.id" class="ai-todo-item" :class="`is-${item.status}`">
+              <span class="todo-status" aria-hidden="true"></span>
+              <span>{{ item.text }}</span>
             </div>
           </div>
         </div>
       </div>
-    </template>
+    </div>
 
-    <div v-if="loading" class="ai-msg assistant ai-typing-row">
+    <div v-if="loading && !activityItems.length" class="ai-msg assistant ai-typing-row">
       <div class="bubble ai-typing-bubble" role="status" aria-live="polite">
         <span class="ai-typing-orb" aria-hidden="true"></span>
         <span class="ai-typing-label">正在整理上下文</span>
@@ -147,9 +154,7 @@
       </div>
     </div>
     <div v-if="loading && activityItems.length" class="ai-msg assistant ai-state-row">
-      <div class="bubble">
-        <AgentConversationStates :items="activityItems" />
-      </div>
+      <AgentConversationStates :items="activityItems" />
     </div>
   </div>
 </template>
@@ -173,7 +178,20 @@ const messagesEl = ref(null)
 const typewriterText = reactive({})
 const typewriterDone = reactive({})
 const typewriterTimers = new Map()
+const todoExpanded = ref(true)
 const showWelcome = computed(() => !props.messages.some(msg => msg.role === 'user' && !msg.demoReportQuery))
+const latestTodoMessage = computed(() => [...props.messages]
+  .reverse()
+  .find(message => message?.role === 'assistant' && message.todoList) || null
+)
+const latestTodoList = computed(() => latestTodoMessage.value?.todoList || null)
+const shouldShowLatestTodo = computed(() => {
+  const message = latestTodoMessage.value
+  if (!message?.todoList) return false
+  const index = props.messages.indexOf(message)
+  return !isTypewriterMessage(message) || isTypewriterDone(message, index)
+})
+const isTodoComplete = computed(() => Boolean(latestTodoList.value && latestTodoList.value.done >= latestTodoList.value.total))
 
 function scrollToBottom() {
   nextTick(() => {
@@ -185,6 +203,7 @@ function scrollToBottom() {
 watch(() => props.messages, scrollToBottom, { deep: true })
 watch(() => props.loading, scrollToBottom)
 watch(() => props.messages, syncTypewriterMessages, { deep: true, immediate: true })
+watch(isTodoComplete, complete => { todoExpanded.value = !complete }, { immediate: true })
 
 onBeforeUnmount(() => {
   typewriterTimers.forEach(timer => clearInterval(timer))
@@ -508,22 +527,46 @@ function renderMarkdownTable(lines, startIndex) {
   padding: 12px;
 }
 
-.ai-todo-bubble {
-  display: block;
+.ai-todo-list-block {
+  width: 100%;
   margin-top: 8px;
-  border-style: dashed;
-  background: #fbfdff;
+  padding: 2px 2px 0;
   animation: ai-card-soft-enter .22s ease both;
 }
 
+.ai-todo-list-block .ai-todo-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.ai-todo-list-block.is-complete {
+  color: var(--color-primary, #3370ff);
+}
+
 .ai-todo-head {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(31, 35, 41, .08);
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
+
+.ai-todo-summary { display: inline-flex; align-items: center; gap: 6px; }
+.ai-todo-toggle-icon { transition: transform .16s ease; }
+.ai-todo-toggle-icon.is-collapsed { transform: rotate(180deg); }
+.ai-todo-list-block.is-complete .ai-todo-orb { position: relative; border-color: var(--color-primary, #3370ff); background: var(--color-primary, #3370ff); }
+.ai-todo-list-block.is-complete .ai-todo-orb::after { content: ''; position: absolute; left: 4px; top: 2px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 
 .ai-todo-title {
   min-width: 0;
@@ -746,9 +789,10 @@ function renderMarkdownTable(lines, startIndex) {
   content: none;
 }
 
+.ai-typewriter-done .ai-auth-card,
 .ai-typewriter-done .ai-report-artifact-list,
 .ai-typewriter-done .ai-task-actions,
-.ai-typewriter-done .ai-todo-bubble {
+.ai-typewriter-done .ai-todo-list-block {
   animation: ai-card-soft-enter .22s ease both;
 }
 

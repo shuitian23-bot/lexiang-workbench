@@ -13,54 +13,115 @@
 
     <div class="skill-create-studio">
       <aside class="skill-context-pane">
-        <div class="skill-pane-title">能力上下文 <span id="skill-selected-count">已选 {{ selectedContextItems.length }}</span></div>
-        <div class="skill-context-list">
-          <button
-            v-for="item in primaryContextItems"
-            :key="item.code"
-            class="skill-context-item"
-            :class="{ selected: item.selected }"
-            type="button"
-            @click="toggleContext(item.code)"
-          >
-            <b>{{ item.name }}</b><span>{{ item.code }}</span><em>{{ item.source }}</em>
-          </button>
-        </div>
+        <div class="skill-context-fixed-head">
+          <div class="skill-context-search">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.25"></circle><path d="m16 16 4 4"></path></svg>
+            <input v-model="contextSearch" type="search" placeholder="搜索能力名或业务对象" aria-label="搜索能力名或业务对象">
+          </div>
 
-        <div class="skill-pane-title">推荐能力 <button type="button" @click="syncMenuContext">同步</button></div>
-        <div class="skill-context-list compact">
-          <button
-            v-for="item in recommendedContextItems"
-            :key="item.code"
-            class="skill-context-item"
-            :class="{ selected: item.selected }"
-            type="button"
-            @click="toggleContext(item.code)"
+          <div
+            class="skill-context-scroll-wrap"
+            :class="{ open: contextDomainMenuOpen }"
+            @click.stop
           >
-            <b>{{ item.name }}</b><span>{{ item.code }}</span><em>{{ item.source }}</em>
-          </button>
-        </div>
-
-        <div class="skill-context-quick">
-          <label>快速加入上下文</label>
-          <input placeholder="输入子菜单、页面或业务对象">
-          <div>
-            <button
-              v-for="item in quickContextItems"
-              :key="item.code"
-              type="button"
-              @click="selectQuickContext(item.code)"
+            <div
+              class="skill-context-domain-scroll"
+              aria-label="按业务域筛选"
             >
-              {{ item.name }}
-            </button>
+              <button
+                v-for="source in contextSourceOptions"
+                :key="source"
+                type="button"
+                class="skill-context-domain"
+                :class="{ active: contextSourceFilter === source }"
+                @click="selectContextSource(source)"
+              >{{ source }}</button>
+            </div>
+            <button
+              type="button"
+              class="skill-context-more-button"
+              :aria-expanded="contextDomainMenuOpen"
+              aria-label="展开全部业务域"
+              @click="toggleContextDomainMenu"
+            ><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg></button>
+            <div v-if="contextDomainMenuOpen" class="skill-context-dropdown domain" role="menu" aria-label="全部业务域">
+              <button
+                v-for="source in contextSourceOptions"
+                :key="source"
+                type="button"
+                :class="{ active: contextSourceFilter === source }"
+                role="menuitem"
+                @click="selectContextSource(source)"
+              ><span>{{ source }}</span><i v-if="contextSourceFilter === source" aria-hidden="true">✓</i></button>
+            </div>
+          </div>
+
+          <div class="skill-context-toolbar">
+            <div class="skill-context-toolbar-title">能力目录 <span id="skill-selected-count">{{ selectedContextItems.length }} 已选</span></div>
+            <label class="skill-context-selected-toggle">
+              <span>只看已选</span>
+              <input v-model="selectedOnly" type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+          </div>
+
+          <div
+            v-if="selectedContextItems.length"
+            class="skill-context-scroll-wrap selected"
+            :class="{ open: selectedContextMenuOpen }"
+            @click.stop
+          >
+            <div
+              class="skill-context-selected-rail"
+              aria-label="已选能力"
+            >
+              <button
+                v-for="item in selectedContextItems"
+                :key="item.code"
+                type="button"
+                class="skill-context-selected-chip"
+                :title="`移除 ${item.name}`"
+                @click="toggleContext(item.code)"
+              ><span class="skill-context-selected-chip-label">{{ item.name }}</span><span class="skill-context-selected-chip-remove" aria-hidden="true">×</span></button>
+            </div>
+            <button
+              type="button"
+              class="skill-context-more-button"
+              :aria-expanded="selectedContextMenuOpen"
+              aria-label="展开全部已选能力"
+              @click="toggleSelectedContextMenu"
+            ><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg></button>
+            <div v-if="selectedContextMenuOpen" class="skill-context-dropdown selected" role="menu" aria-label="全部已选能力">
+              <button
+                v-for="item in selectedContextItems"
+                :key="item.code"
+                type="button"
+                role="menuitem"
+                @click="removeSelectedContext(item.code)"
+              ><span>{{ item.name }}</span><small>{{ item.source }}</small><i aria-hidden="true">×</i></button>
+            </div>
           </div>
         </div>
 
-        <div class="skill-context-metrics">
-          <div><b>{{ menuMetrics.menuCount }}</b><span>菜单</span></div>
-          <div><b>{{ menuMetrics.submenuCount }}</b><span>子菜单</span></div>
-          <div><b>{{ selectedContextItems.length }}</b><span>已选</span></div>
-          <div><b>{{ recommendedContextItems.length }}</b><span>推荐</span></div>
+        <div class="skill-context-card-grid" aria-live="polite">
+          <button
+            v-for="item in filteredContextItems"
+            :key="item.code"
+            class="skill-context-card"
+            :class="{ selected: item.selected }"
+            type="button"
+            @click="toggleContext(item.code)"
+          >
+            <span v-if="item.recommended" class="skill-context-card-recommend">推荐</span>
+            <span class="skill-context-card-icon" aria-hidden="true">{{ item.selected ? '✓' : '+' }}</span>
+            <b>{{ item.name }}</b>
+            <em>{{ item.source }}</em>
+          </button>
+          <div v-if="!filteredContextItems.length" class="skill-context-empty-state">没有匹配的能力，请调整搜索或筛选条件。</div>
+        </div>
+
+        <div class="skill-context-resource-metrics" aria-label="能力资源统计">
+          <div v-for="metric in contextResourceMetrics" :key="metric.label"><b>{{ metric.value }}</b><span>{{ metric.label }}</span></div>
         </div>
       </aside>
 
@@ -93,29 +154,30 @@
               <div class="skill-create-form">
                 <div class="skill-create-field">
                   <label for="skill-create-name">Skill 名称（英文） <span class="field-required">*</span></label>
-                  <input id="skill-create-name" v-model="form.name" :class="{ 'field-invalid': invalidField === 'name' }" required>
+                  <input id="skill-create-name" v-model="form.name" :class="{ 'field-invalid': invalidField === 'name' }" placeholder="例如：employee-cert-report" required>
                 </div>
                 <div class="skill-create-field">
                   <label for="skill-create-cn-name">中文命名 <span class="field-required">*</span></label>
-                  <input id="skill-create-cn-name" v-model="form.cnName" :class="{ 'field-invalid': invalidField === 'cnName' }" required>
+                  <input id="skill-create-cn-name" v-model="form.cnName" :class="{ 'field-invalid': invalidField === 'cnName' }" placeholder="请输入 Skill 中文名称" required>
                 </div>
                 <div class="skill-create-field">
                   <label for="skill-create-menu">菜单 <span class="field-required">*</span></label>
                   <select id="skill-create-menu" v-model="form.menu" :class="{ 'field-invalid': invalidField === 'menu' }" required>
+                    <option value="" disabled>请选择菜单</option>
                     <option v-for="menu in menuGroupLabels" :key="menu">{{ menu }}</option>
                   </select>
                 </div>
                 <div class="skill-create-field full">
                   <label for="skill-create-scene">适用场景 <span class="field-optional">非必填</span></label>
-                  <textarea id="skill-create-scene" v-model="form.scene"></textarea>
+                  <textarea id="skill-create-scene" v-model="form.scene" placeholder="描述此 Skill 适用的业务场景"></textarea>
                 </div>
                 <div class="skill-create-field">
                   <label for="skill-create-input">输入参数 <span class="field-optional">非必填</span></label>
-                  <textarea id="skill-create-input" v-model="form.input"></textarea>
+                  <textarea id="skill-create-input" v-model="form.input" placeholder="描述输入参数，例如：时间范围、认证方式等"></textarea>
                 </div>
                 <div class="skill-create-field">
                   <label for="skill-create-output">输出结果 <span class="field-optional">非必填</span></label>
-                  <textarea id="skill-create-output" v-model="form.output"></textarea>
+                  <textarea id="skill-create-output" v-model="form.output" placeholder="描述输出结果，例如：指标摘要、明细表、报告链接"></textarea>
                 </div>
               </div>
             </div>
@@ -142,24 +204,7 @@
                   </div>
                   <template v-for="message in clarifyMessages" :key="message.id">
                     <div v-if="message.kind === 'state'" class="skill-chat-ai skill-conversation-states" aria-label="AI 会话状态">
-                      <div v-if="showSkillStateSummary(message.states)" class="skill-state-summary">
-                        <span class="skill-summary-orb" aria-hidden="true"></span>
-                        <b>{{ skillStateSummaryTitle(message.states) }}</b>
-                        <em>{{ skillStateSummary(message.states) }}</em>
-                      </div>
-                      <div
-                        v-for="state in message.states"
-                        :key="`${message.id}-${state.kind}-${state.title}`"
-                        class="skill-conversation-state"
-                        :class="[`is-${state.kind}`, `status-${state.status}`]"
-                      >
-                        <span class="skill-state-icon" aria-hidden="true" v-html="stateIcon(state.kind)"></span>
-                        <span class="skill-state-body">
-                          <span class="skill-state-title-row"><b>{{ state.title }}</b><em>{{ stateStatus(state.status) }}</em></span>
-                          <span v-if="state.detail" class="skill-state-detail">{{ state.detail }}</span>
-                        </span>
-                        <span v-if="state.status === 'running'" class="skill-state-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                      </div>
+                      <AgentConversationStates :items="message.states" />
                     </div>
                     <div v-else-if="message.kind === 'user'" class="skill-chat-user">{{ message.text }}</div>
                     <div v-else class="skill-chat-ai">
@@ -177,26 +222,6 @@
                         <p class="skill-clarify-doc-closing">{{ message.clarifyDoc.closing }}</p>
                       </div>
                       <div v-else>{{ message.text }}</div>
-                      <div v-if="message.todoList" class="skill-todo-card">
-                        <div class="skill-todo-head">
-                          <span class="skill-todo-title">
-                            <span class="skill-todo-orb" aria-hidden="true"></span>
-                            <b>{{ message.todoList.title }}</b>
-                          </span>
-                          <span class="skill-todo-progress">{{ message.todoList.done }}/{{ message.todoList.total }}</span>
-                        </div>
-                        <div class="skill-todo-list">
-                          <div
-                            v-for="item in message.todoList.items"
-                            :key="item.id"
-                            class="skill-todo-item"
-                            :class="`is-${item.status}`"
-                          >
-                            <span class="skill-todo-status" aria-hidden="true"></span>
-                            <span>{{ item.text }}</span>
-                          </div>
-                        </div>
-                      </div>
                       <div v-if="message.authRequest" class="skill-auth-card">
                         <div class="skill-auth-head">
                           <span class="skill-auth-icon" aria-hidden="true" v-html="stateIcon('confirm')"></span>
@@ -208,7 +233,7 @@
                         <div class="skill-auth-meta">namespace: {{ message.authRequest.namespace }}</div>
                         <pre class="skill-auth-command"><code>{{ message.authRequest.command }}</code></pre>
                         <p>{{ message.authRequest.detail }}</p>
-                        <div class="skill-auth-actions">
+                        <div v-if="!message.authResult" class="skill-auth-actions">
                           <button type="button" class="skill-auth-approve" @click="handleClarifyAuth('approve', message.authRequest.command)">
                             {{ message.authRequest.approveLabel }}
                           </button>
@@ -217,8 +242,28 @@
                           </button>
                         </div>
                       </div>
+                      <p v-if="message.authRequest && !message.authResult" class="skill-auth-outside-note">当前命令仍处于等待确认状态，未批准前不会执行；拒绝后会停止本次执行链路。</p>
+                      <div v-if="message.authResult" class="skill-auth-result-card" :class="`is-${message.authResult.status}`">
+                        <div class="skill-auth-result-head">
+                          <span class="skill-auth-result-icon" aria-hidden="true" v-html="stateIcon('confirm')"></span>
+                          <div><b>{{ message.authResult.title }}</b><em>{{ message.authResult.status === 'success' ? '成功' : '失败' }}</em></div>
+                        </div>
+                        <p>{{ message.authResult.detail }}</p>
+                        <pre v-if="message.authResult.command" class="skill-auth-result-command"><code>{{ message.authResult.command }}</code></pre>
+                      </div>
                     </div>
                   </template>
+                  <div v-if="latestSkillTodo" class="skill-todo-list-block" :class="{ 'is-complete': isSkillTodoComplete(latestSkillTodo) }">
+                    <div class="skill-todo-card">
+                      <button type="button" class="skill-todo-head" :aria-expanded="skillTodoExpanded" :aria-label="skillTodoExpanded ? '收起 Todo List' : '展开 Todo List'" @click="skillTodoExpanded = !skillTodoExpanded">
+                        <span class="skill-todo-title"><span class="skill-todo-orb" aria-hidden="true"></span><b>{{ latestSkillTodo.title }}</b></span>
+                        <span class="skill-todo-summary"><span class="skill-todo-progress">{{ latestSkillTodo.done }}/{{ latestSkillTodo.total }}</span><svg class="skill-todo-toggle-icon" :class="{ 'is-collapsed': !skillTodoExpanded }" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5-5 5 5" /></svg></span>
+                      </button>
+                      <div v-show="skillTodoExpanded" class="skill-todo-list">
+                        <div v-for="item in latestSkillTodo.items" :key="item.id" class="skill-todo-item" :class="`is-${item.status}`"><span class="skill-todo-status" aria-hidden="true"></span><span>{{ item.text }}</span></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="skill-clarify-card skill-clarify-summary">
                   <div class="skill-summary-head">
@@ -447,14 +492,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE, useAppStore, type SkillApplicationBreakdown, type SkillApplicationReportData } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { useSkillHubStore, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
+import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
-type ContextItem = { code: string; name: string; source: string; selected: boolean }
+type ContextItem = { code: string; name: string; source: string; selected: boolean; recommended: boolean }
 type StateStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked'
 type SkillStateItem = { kind: string; status: StateStatus; title: string; detail: string }
 type SkillTodoList = {
@@ -472,6 +518,12 @@ type SkillAuthRequest = {
   approveLabel: string
   rejectLabel: string
 }
+type SkillAuthResult = {
+  title: string
+  status: 'success' | 'failed'
+  detail: string
+  command?: string
+}
 type SkillClarifyDoc = {
   title: string
   sections: Array<{ title: string; intro?: string; items: string[] }>
@@ -479,7 +531,7 @@ type SkillClarifyDoc = {
 }
 type ChatMessage =
   | { id: string; kind: 'user'; text: string }
-  | { id: string; kind: 'assistant'; text: string; clarifyDoc?: SkillClarifyDoc; todoList?: SkillTodoList; authRequest?: SkillAuthRequest }
+  | { id: string; kind: 'assistant'; text: string; clarifyDoc?: SkillClarifyDoc; todoList?: SkillTodoList; authRequest?: SkillAuthRequest; authResult?: SkillAuthResult }
   | { id: string; kind: 'state'; states: SkillStateItem[] }
 
 const router = useRouter()
@@ -521,6 +573,13 @@ const EMPLOYEE_CERT_CONTEXT_CODES = new Set([
   'ops.gmv'
 ])
 
+const RECOMMENDED_CONTEXT_CODES_BY_MENU: Record<string, Set<string>> = {
+  乐享运营: new Set(['dashboard.overview', 'pipeline.annotate', 'pipeline.quality', 'ops.gmv']),
+  'GEO 看板': new Set(['dashboard.geo', 'dashboard.geoSource', 'dashboard.geoIntent']),
+  在职员工管理: EMPLOYEE_CERT_CONTEXT_CODES,
+  企业客户管理: new Set(['lead.dashboard', 'lead.pool', 'lead.score'])
+}
+
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'config', label: '1. 基础配置' },
   { key: 'clarify', label: '2. 需求澄清' },
@@ -531,8 +590,8 @@ const tabs: Array<{ key: TabKey; label: string }> = [
 
 const activeTab = ref<TabKey>('config')
 const invalidField = ref('')
-const workspaceSub = ref(`${EMPLOYEE_CERT_SKILL.cnName} · ${EMPLOYEE_CERT_SKILL.version} · 基础配置中`)
-const configBanner = ref('当前阶段：已载入职场认证与转化综合简报完整 Skill 草稿，请先确认基础配置和能力上下文，再进入需求澄清核对依赖与验收口径。')
+const workspaceSub = ref('新建 Skill · 基础配置待补充')
+const configBanner = ref('当前阶段：请先填写 Skill 基础信息，并从左侧选择需要编排的能力上下文。')
 const clarifyInput = ref('')
 const clarifyInputEl = ref<HTMLTextAreaElement | null>(null)
 const chatEl = ref<HTMLElement | null>(null)
@@ -542,7 +601,7 @@ const aiTuning = ref(false)
 const aiTuned = ref(false)
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
-const applicationPrompt = ref('出一份 5/27 到 6/8 的认证与转化简报')
+const applicationPrompt = ref('')
 const applicationRunning = ref(false)
 const applicationError = ref('')
 const applicationReport = ref<SkillApplicationReportData | null>(null)
@@ -557,34 +616,41 @@ const applicationResultChips = computed(() => applicationReport.value
   : [])
 
 const form = ref({
-  name: EMPLOYEE_CERT_SKILL.name,
-  cnName: EMPLOYEE_CERT_SKILL.cnName,
-  menu: EMPLOYEE_CERT_SKILL.menu,
-  scene: EMPLOYEE_CERT_SKILL.scene,
-  input: EMPLOYEE_CERT_SKILL.input,
-  output: EMPLOYEE_CERT_SKILL.output
+  name: '',
+  cnName: '',
+  menu: '',
+  scene: '',
+  input: '',
+  output: ''
 })
 
 const menuGroups = Object.values(MENU_TREE)
 const menuGroupLabels = menuGroups.map(group => group.label)
 const contextItems = ref<ContextItem[]>(createMenuContextItems(form.value.menu))
-
-const primaryContextItems = computed(() => contextItems.value)
-const selectedContextSources = computed(() => new Set(selectedContextItems.value.map(item => item.source)))
-const recommendedContextItems = computed(() => {
-  if (!selectedContextItems.value.length) return []
-  return contextItems.value.filter(item =>
-    !item.selected && selectedContextSources.value.has(item.source)
-  )
-})
-const quickContextItems = computed(() => contextItems.value.filter(item => item.source === form.value.menu).slice(0, 3))
 const selectedContextItems = computed(() => contextItems.value.filter(item => item.selected))
-const menuMetrics = computed(() => ({
-  menuCount: menuGroups.length,
-  submenuCount: contextItems.value.length
-}))
+const contextSearch = ref('')
+const contextSourceFilter = ref('全部')
+const selectedOnly = ref(false)
+const contextDomainMenuOpen = ref(false)
+const selectedContextMenuOpen = ref(false)
+const contextSourceOptions = computed(() => ['全部', ...menuGroupLabels])
+const filteredContextItems = computed(() => {
+  const keyword = contextSearch.value.trim().toLocaleLowerCase()
+  return contextItems.value.filter(item => {
+    const matchesSource = contextSourceFilter.value === '全部' || item.source === contextSourceFilter.value
+    const matchesSelected = !selectedOnly.value || item.selected
+    const matchesKeyword = !keyword || `${item.name} ${item.source} ${item.code}`.toLocaleLowerCase().includes(keyword)
+    return matchesSource && matchesSelected && matchesKeyword
+  })
+})
+const contextResourceMetrics = [
+  { label: 'API', value: 13 },
+  { label: 'DB 表', value: 5 },
+  { label: 'Tool', value: 2 },
+  { label: '权限点', value: 10 }
+]
 const contextSummary = computed(() => {
-  if (!selectedContextItems.value.length) return '尚未选择能力上下文。请先从左侧全部子菜单中勾选可被 Skill 编排的页面能力。'
+  if (!selectedContextItems.value.length) return '尚未选择能力上下文。请从能力目录中勾选可被 Skill 编排的页面能力。'
   const grouped = menuGroups
     .map(group => {
       const names = selectedContextItems.value.filter(item => item.source === group.label).map(item => item.name)
@@ -592,7 +658,7 @@ const contextSummary = computed(() => {
     })
     .filter(Boolean)
     .join('；')
-  return `已选择 ${selectedContextItems.value.length} 个子菜单上下文：${grouped}。推荐能力会基于已选上下文展示相关子菜单，AI 将继续核对应用场景、输入输出、执行边界、依赖能力和验收用例。`
+  return `已选择 ${selectedContextItems.value.length} 个子菜单上下文：${grouped}。AI 将继续核对应用场景、输入输出、执行边界、依赖能力和验收用例。`
 })
 
 watch(
@@ -600,14 +666,27 @@ watch(
   () => syncMenuContext()
 )
 
+watch(
+  () => selectedContextItems.value.length,
+  (length) => {
+    if (!length) selectedContextMenuOpen.value = false
+  },
+  { flush: 'post' }
+)
+
 function createMenuContextItems(activeMenu: string) {
+  const recommendedCodes = RECOMMENDED_CONTEXT_CODES_BY_MENU[activeMenu] || new Set<string>()
   return menuGroups.flatMap(group =>
-    Object.entries(group.children).map(([pageId, page]) => ({
-      name: page.label,
-      code: pageId,
-      source: group.label,
-      selected: EMPLOYEE_CERT_CONTEXT_CODES.has(pageId) || group.label === activeMenu
-    }))
+    Object.entries(group.children).map(([pageId, page]) => {
+      const recommended = recommendedCodes.has(pageId)
+      return {
+        name: page.label,
+        code: pageId,
+        source: group.label,
+        selected: false,
+        recommended
+      }
+    })
   )
 }
 
@@ -615,18 +694,48 @@ function syncMenuContext() {
   contextItems.value = createMenuContextItems(form.value.menu)
 }
 
-function selectQuickContext(code: string) {
-  contextItems.value = contextItems.value.map(item => ({
-    ...item,
-    selected: item.code === code || (item.source === form.value.menu && item.selected)
-  }))
+function closeContextDropdowns() {
+  contextDomainMenuOpen.value = false
+  selectedContextMenuOpen.value = false
+}
+
+function toggleContextDomainMenu() {
+  contextDomainMenuOpen.value = !contextDomainMenuOpen.value
+  selectedContextMenuOpen.value = false
+}
+
+function toggleSelectedContextMenu() {
+  selectedContextMenuOpen.value = !selectedContextMenuOpen.value
+  contextDomainMenuOpen.value = false
+}
+
+function selectContextSource(source: string) {
+  contextSourceFilter.value = source
+  contextDomainMenuOpen.value = false
+}
+
+function removeSelectedContext(code: string) {
+  toggleContext(code)
+  if (selectedContextItems.value.length <= 1) selectedContextMenuOpen.value = false
 }
 
 const clarifyMessages = ref<ChatMessage[]>([])
+const skillTodoExpanded = ref(true)
+const latestSkillTodo = computed(() => [...clarifyMessages.value]
+  .reverse()
+  .find((message): message is Extract<ChatMessage, { kind: 'assistant' }> => message.kind === 'assistant' && Boolean(message.todoList))
+  ?.todoList || null
+)
+
+watch(
+  () => latestSkillTodo.value && `${latestSkillTodo.value.title}-${latestSkillTodo.value.done}-${latestSkillTodo.value.total}`,
+  () => { skillTodoExpanded.value = !isSkillTodoComplete(latestSkillTodo.value) },
+  { immediate: true }
+)
 
 const summaryItems = ref<Array<{ label: string; text: string }>>([
-  { label: '当前 Skill', text: '已载入 Skill 创建框架和基础配置，等待你用自然语言补充本轮需求。' },
-  { label: '已确认', text: '基础配置已预填；具体业务口径会根据你的输入逐步沉淀。' },
+  { label: '当前 Skill', text: '新建 Skill 尚未填写基础配置，等待你补充名称、菜单和业务场景。' },
+  { label: '已确认', text: '暂无已确认信息；左侧能力上下文和表单内容均为空。' },
   { label: '待确认', text: '请先补充本轮要表达的场景、输入、输出、边界或验收用例。' },
   { label: '下一步', text: '每次输入后，我会只追问仍未闭合的信息，并同步更新本区结论。' }
 ])
@@ -811,6 +920,10 @@ async function submitClarifyMessage() {
   clarifyMessages.value.push({ id: `u-${Date.now()}`, kind: 'user', text: value })
   clarifyInput.value = ''
   void nextTick(resizeClarifyInput)
+  if (tryClarifyStructuredDemo(value)) {
+    scrollChat()
+    return
+  }
   const stateId = `s-${Date.now()}`
   clarifyMessages.value.push({ id: stateId, kind: 'state', states: [
     { kind: 'thinking', status: 'running', title: '理解补充需求', detail: '正在结合基础配置、菜单子项上下文和当前澄清记录判断缺口。' },
@@ -840,6 +953,48 @@ async function submitClarifyMessage() {
     ] })
     clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '大模型暂时没有返回结果。我已经保留当前输入和菜单子项上下文，你可以稍后重试，或先继续补充应用场景、数据范围、输出形式和验收用例。' })
     scrollChat()
+  }
+}
+
+function tryClarifyStructuredDemo(value: string) {
+  if (!/全场景串联演示/.test(value)) return false
+  const command = 'python3 scripts/demo_agent_flow.py --dry-run'
+  clarifyMessages.value.push({ id: `s-${Date.now()}-full`, kind: 'state', states: [
+    { kind: 'thinking', status: 'done', title: '理解演示目标', detail: '已识别为 Skill 创建 / 需求澄清的全场景走查。' },
+    { kind: 'tool_call', status: 'done', title: '调用页面能力', detail: '已读取 Skill 草稿、字段规则、测试用例和权限边界。' },
+    { kind: 'tool_result', status: 'done', title: '能力结果返回', detail: '已生成可审计的结构化输出。' },
+    { kind: 'confirm', status: 'blocked', title: '等待用户授权', detail: '涉及命令、写入或导出动作时，需要用户批准。' }
+  ] })
+  clarifyMessages.value.push({
+    id: `a-${Date.now()}-full`,
+    kind: 'assistant',
+    text: '我会按当前 Skill 创建上下文串联展示完整对话流。过程状态会固定在回答上方；授权结论会回填到当前回答；Todo List 会作为独立的完成态气泡保留在对话底部。',
+    authRequest: {
+      title: '请求执行演示命令',
+      namespace: 'skill-create.demo',
+      command,
+      risk: 'POC 高影响动作确认',
+      detail: '这是全场景串联演示中的授权卡片。批准或拒绝后，结论会回填到当前卡片，不会追加新的解释性消息。',
+      approveLabel: '批准执行',
+      rejectLabel: '拒绝'
+    },
+    todoList: demoSkillTodoList(true)
+  })
+  return true
+}
+
+function demoSkillTodoList(complete = false): SkillTodoList {
+  const done = complete ? 4 : 0
+  return {
+    title: 'Todo List',
+    done,
+    total: 4,
+    items: [
+      { id: 'skill-flow-1', text: '展示气泡外过程状态区', status: complete ? 'done' : 'running' },
+      { id: 'skill-flow-2', text: '展示九要素澄清回复', status: complete ? 'done' : 'pending' },
+      { id: 'skill-flow-3', text: '展示授权请求与结论回填', status: complete ? 'done' : 'pending' },
+      { id: 'skill-flow-4', text: '保留独立 Todo List 完成态', status: complete ? 'done' : 'pending' }
+    ]
   }
 }
 
@@ -1274,18 +1429,19 @@ function resizeClarifyInput() {
 }
 
 function handleClarifyAuth(action: 'approve' | 'reject', command: string) {
-  if (action === 'approve') {
-    clarifyMessages.value.push({ id: `s-${Date.now()}-approved`, kind: 'state', states: [
-      { kind: 'confirm', status: 'done', title: '授权已确认', detail: '用户已批准执行，高影响操作进入下一步。' },
-      { kind: 'tool_call', status: 'done', title: '执行动作已登记', detail: command }
-    ] })
-    clarifyMessages.value.push({ id: `a-${Date.now()}-approved`, kind: 'assistant', text: '已记录授权。当前为 POC 状态展示，不会实际执行命令。' })
-  } else {
-    clarifyMessages.value.push({ id: `s-${Date.now()}-rejected`, kind: 'state', states: [
-      { kind: 'confirm', status: 'failed', title: '授权已拒绝', detail: '用户拒绝执行，高影响操作已停止。' }
-    ] })
-    clarifyMessages.value.push({ id: `a-${Date.now()}-rejected`, kind: 'assistant', text: '已拒绝执行。任务已停止，没有触发任何写入、发布、导出或命令执行。' })
-  }
+  let resolved = false
+  clarifyMessages.value = clarifyMessages.value
+    .filter(message => !(message.kind === 'state' && message.states.some(state => state.kind === 'confirm' && state.status === 'blocked')))
+    .map(message => {
+      if (resolved || message.kind !== 'assistant' || !message.authRequest || message.authResult) return message
+      resolved = true
+      return {
+        ...message,
+        authResult: action === 'approve'
+          ? { title: '授权已记录', status: 'success', detail: '当前为 POC 状态展示，不会实际执行命令；高影响操作已登记。', command }
+          : { title: '授权已拒绝', status: 'failed', detail: '任务已停止，没有触发任何写入、发布、导出或命令执行。', command }
+      }
+    })
   scrollChat()
 }
 
@@ -1507,8 +1663,8 @@ function buildApplicationReport(prompt: string, range: ParsedApplicationRange): 
   const conversionRate = isReferenceRange ? 56 : Number((54.5 + (seed % 36) / 10).toFixed(1))
   const purchasedUsers = isReferenceRange ? 482 : Math.max(0, Math.round(uniqueUsers * conversionRate / 100))
   const orderCount = isReferenceRange ? 536 : Math.max(purchasedUsers, Math.round(purchasedUsers * 1.112))
-  const averageOrderValue = isReferenceRange ? 7925 : 7600 + (seed % 701)
-  const totalGmv = isReferenceRange ? 4247310 : orderCount * averageOrderValue
+  const totalGmv = isReferenceRange ? 7_170_000 : orderCount * (7600 + (seed % 701))
+  const averageOrderValue = orderCount ? Math.round(totalGmv / orderCount) : 0
   const duplicateRecords = isReferenceRange ? 71 : Math.max(0, Math.round(uniqueUsers * 0.082))
   const duplicateUsers = isReferenceRange ? 59 : Math.max(0, Math.round(duplicateRecords * 0.83))
   const rawRecords = isReferenceRange ? 888 : uniqueUsers + Math.max(1, Math.round(uniqueUsers * 0.031))
@@ -1732,6 +1888,10 @@ function stateStatus(status: StateStatus) {
   return ({ pending: '等待中', running: '进行中', done: '已完成', failed: '失败', blocked: '待确认' })[status]
 }
 
+function isSkillTodoComplete(todo: SkillTodoList | null) {
+  return Boolean(todo && todo.done >= todo.total)
+}
+
 function showSkillStateSummary(states: SkillStateItem[]) {
   return states.length > 2 || states.filter(state => state.status === 'running').length > 1
 }
@@ -1843,7 +2003,7 @@ function loadEditDraftFromQuery() {
       reviewStatus.value = '当前为 Skill Hub 草稿，修改后可继续保存或进入后续流程'
     }
     if (route.query.rejected === '1') {
-      configBanner.value = '当前 Skill 已被管理员驳回，请根据审批意见补充业务边界、测试用例或审批材料后重新提交。'
+      configBanner.value = '当前 Skill 已被管理员驳回，请根据审批意见补充业务边界、测试用例或审批材料后重新提交审核。'
       reviewStatus.value = '当前状态为已驳回，修改完成后可重新提交审核'
     }
     return
@@ -1897,6 +2057,11 @@ onMounted(() => {
   appStore.setActiveStaticTab('agent.skillCreate')
   document.title = 'Skill 创建 - 乐享 AI 工作台'
   resizeClarifyInput()
+  document.addEventListener('click', closeContextDropdowns)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeContextDropdowns)
 })
 </script>
 
@@ -1936,7 +2101,8 @@ onMounted(() => {
 }
 
 .skill-todo-card,
-.skill-auth-card {
+.skill-auth-card,
+.skill-auth-result-card {
   margin-top: 10px;
   border: 1px solid rgba(31, 35, 41, .1);
   border-radius: 8px;
@@ -1948,14 +2114,45 @@ onMounted(() => {
   padding: 12px;
 }
 
+.skill-todo-list-block {
+  width: min(100%, 620px);
+  margin-top: 8px;
+  padding: 2px 2px 0;
+}
+
+.skill-todo-list-block .skill-todo-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.skill-todo-list-block.is-complete {
+  color: var(--color-primary, #3370ff);
+}
+
 .skill-todo-head {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(31, 35, 41, .08);
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
+
+.skill-todo-summary { display: inline-flex; align-items: center; gap: 6px; }
+.skill-todo-toggle-icon { transition: transform .16s ease; }
+.skill-todo-toggle-icon.is-collapsed { transform: rotate(180deg); }
+.skill-todo-list-block.is-complete .skill-todo-orb { position: relative; border-color: var(--color-primary, #3370ff); background: var(--color-primary, #3370ff); }
+.skill-todo-list-block.is-complete .skill-todo-orb::after { content: ''; position: absolute; left: 4px; top: 2px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 
 .skill-todo-title {
   min-width: 0;
@@ -2118,6 +2315,60 @@ onMounted(() => {
   color: var(--color-text-secondary, #646a73);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.skill-auth-outside-note {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.skill-auth-result-card {
+  margin-top: 10px;
+  padding: 12px;
+  border-color: rgba(32, 191, 114, .26);
+  background: rgba(32, 191, 114, .08);
+}
+
+.skill-auth-result-card.is-failed {
+  border-color: rgba(239, 68, 68, .24);
+  background: rgba(239, 68, 68, .08);
+}
+
+.skill-auth-result-head {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.skill-auth-result-icon {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #fff;
+  color: #176b3a;
+}
+
+.skill-auth-result-card.is-failed .skill-auth-result-icon { color: #b42318; }
+.skill-auth-result-icon :deep(svg) { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.skill-auth-result-head b, .skill-auth-result-head em { display: block; min-width: 0; }
+.skill-auth-result-head b { font-size: 14px; line-height: 1.45; }
+.skill-auth-result-head em { color: inherit; font-style: normal; font-size: 12px; }
+.skill-auth-result-card p { margin: 8px 0 0; color: var(--color-text-secondary, #646a73); font-size: 12px; line-height: 1.5; }
+.skill-auth-result-command { margin: 8px 0 0; padding: 10px; overflow-x: auto; border-radius: 7px; background: #1f2329; color: #fff; font-size: 12px; line-height: 1.5; }
+.skill-auth-result-command code { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); }
+
+.skill-conversation-states {
+  width: min(100%, 620px);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .skill-auth-actions {
@@ -2304,15 +2555,6 @@ onMounted(() => {
   border-radius: 8px;
   background: #fff;
   box-shadow: var(--shadow, 0 1px 2px rgba(0, 0, 0, .06));
-  transition: border-color .14s ease, box-shadow .14s ease, transform .14s ease;
-}
-
-@media (hover: hover) {
-  .skill-application-result-card:hover {
-    border-color: var(--central-module-hover-border, rgba(51, 112, 255, .36));
-    box-shadow: var(--central-module-hover-shadow, 0 1px 2px rgba(15, 23, 42, .035), 0 6px 14px rgba(15, 23, 42, .055));
-    transform: var(--central-module-hover-transform, translateY(-1px));
-  }
 }
 
 .skill-application-result-icon {
@@ -2437,4 +2679,494 @@ onMounted(() => {
 @keyframes skill-state-spin {
   to { transform: rotate(360deg); }
 }
+
+/* 固定头部与资源统计，卡片列表在中段独立滚动。 */
+.skill-create-page .skill-context-pane {
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  overflow: hidden !important;
+}
+
+.skill-context-fixed-head {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--border-light, #e5e6eb);
+}
+
+.skill-context-fixed-head > * + * { margin-top: 0; }
+
+.skill-context-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border, #dee0e3);
+  border-radius: 8px;
+  background: var(--bg, #f5f6f7);
+}
+
+.skill-context-search:focus-within {
+  border-color: var(--primary, #3370ff);
+  box-shadow: 0 0 0 2px rgba(51, 112, 255, .1);
+}
+
+.skill-context-search svg {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--text-tertiary, #8f959e);
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.skill-context-search input {
+  display: block;
+  width: 100%;
+  height: 28px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--text, #1f2329);
+  font: inherit;
+  font-size: 12px;
+}
+
+.skill-context-search input::placeholder { color: var(--text-tertiary, #8f959e); }
+
+.skill-context-scroll-wrap {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-top: 8px;
+  margin-bottom: 9px;
+}
+
+.skill-context-scroll-wrap.selected { margin-top: 6px; margin-bottom: 0; }
+
+.skill-context-more-button {
+  display: grid;
+  place-items: center;
+  grid-column: 2;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(51, 112, 255, .2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .96);
+  color: var(--primary, #3370ff);
+  box-shadow: 0 1px 2px rgba(31, 35, 41, .06);
+  cursor: pointer;
+  transition: border-color .14s ease, color .14s ease, background .14s ease, transform .14s ease;
+}
+
+.skill-context-more-button:hover,
+.skill-context-scroll-wrap.open .skill-context-more-button {
+  border-color: rgba(51, 112, 255, .42);
+  background: #fff;
+}
+
+.skill-context-more-button:focus-visible {
+  outline: 2px solid rgba(51, 112, 255, .22);
+  outline-offset: 2px;
+}
+
+.skill-context-more-button svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.skill-context-scroll-wrap.open .skill-context-more-button svg {
+  transform: rotate(180deg);
+}
+
+.skill-context-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 12;
+  box-sizing: border-box;
+  display: grid;
+  gap: 2px;
+  width: min(198px, 100%);
+  max-height: 218px;
+  padding: 6px;
+  overflow: auto;
+  border: 1px solid var(--border-light, #e5e6eb);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 35, 41, .12);
+}
+
+.skill-context-dropdown button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary, #646a73);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skill-context-dropdown button:hover,
+.skill-context-dropdown button.active {
+  background: rgba(51, 112, 255, .08);
+  color: var(--primary, #3370ff);
+}
+
+.skill-context-dropdown span,
+.skill-context-dropdown small {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.skill-context-dropdown small {
+  color: var(--text-tertiary, #8f959e);
+  font-size: 10px;
+}
+
+.skill-context-dropdown.selected button {
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  gap: 8px;
+  padding: 0 6px 0 10px;
+}
+
+.skill-context-dropdown.selected span,
+.skill-context-dropdown.selected small,
+.skill-context-dropdown.selected i {
+  grid-row: 1;
+}
+
+.skill-context-dropdown.selected i {
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  color: var(--text-tertiary, #8f959e);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.skill-context-dropdown.selected button:hover i {
+  background: rgba(51, 112, 255, .1);
+  color: var(--primary, #3370ff);
+}
+
+.skill-context-dropdown i {
+  color: var(--primary, #3370ff);
+  font-style: normal;
+  font-size: 12px;
+}
+
+.skill-context-domain-scroll,
+.skill-context-selected-rail {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.skill-context-domain-scroll { min-height: 26px; padding: 1px 0; }
+.skill-context-domain-scroll::-webkit-scrollbar,
+.skill-context-selected-rail::-webkit-scrollbar { display: none; }
+
+.skill-context-domain {
+  flex: 0 0 auto;
+  height: 24px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg, #f5f6f7);
+  color: var(--text-secondary, #646a73);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.skill-context-domain:hover { color: var(--primary, #3370ff); background: rgba(51, 112, 255, .06); }
+.skill-context-domain.active { background: var(--primary, #3370ff); color: #fff; font-weight: 700; }
+
+.skill-context-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 23px;
+  margin-top: 7px;
+}
+
+.skill-context-toolbar-title {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--text, #1f2329);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.skill-context-toolbar-title span {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--primary, #3370ff);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.skill-context-selected-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary, #646a73);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.skill-context-selected-toggle input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; }
+
+.skill-context-selected-toggle i {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: #d8dde6;
+  transition: background .18s ease;
+}
+
+.skill-context-selected-toggle i::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(31, 35, 41, .16);
+  transition: transform .18s ease;
+}
+
+.skill-context-selected-toggle input:checked + i { background: var(--primary, #3370ff); }
+.skill-context-selected-toggle input:checked + i::after { transform: translateX(12px); }
+.skill-context-selected-toggle input:focus-visible + i { box-shadow: 0 0 0 2px rgba(51, 112, 255, .18); }
+
+.skill-context-selected-rail {
+  box-sizing: border-box;
+  min-height: 28px;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--primary-light, rgba(51, 112, 255, .08));
+}
+
+.skill-context-selected-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  height: 23px;
+  max-width: 104px;
+  padding: 0 5px 0 8px;
+  overflow: hidden;
+  border: 1px solid rgba(51, 112, 255, .24);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--primary, #3370ff);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+.skill-context-selected-chip:hover {
+  border-color: rgba(51, 112, 255, .46);
+  box-shadow: 0 1px 2px rgba(31, 35, 41, .06);
+}
+.skill-context-selected-chip-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skill-context-selected-chip-remove {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.skill-context-card-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 7px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1px 2px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 35, 41, .14) transparent;
+}
+
+.skill-context-card-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.skill-context-card-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.skill-context-card-grid::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(31, 35, 41, .14);
+}
+
+.skill-context-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 76px;
+  padding: 9px 10px 8px;
+  border: 1px solid var(--border-light, #e5e6eb);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text, #1f2329);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.skill-context-card:hover { border-color: rgba(51, 112, 255, .48); box-shadow: 0 1px 3px rgba(31, 35, 41, .06); }
+.skill-context-card.selected { padding: 8px 9px 7px; border: 2px solid var(--primary, #3370ff); background: rgba(51, 112, 255, .055); }
+
+.skill-context-card b {
+  position: absolute;
+  top: 50%;
+  right: 32px;
+  left: 10px;
+  display: block;
+  overflow: hidden;
+  color: var(--text, #1f2329);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transform: translateY(-58%);
+}
+
+.skill-context-card.selected b { left: 9px; }
+
+.skill-context-card em {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  left: 10px;
+  overflow: hidden;
+  color: var(--text-tertiary, #8f959e);
+  font-size: 10px;
+  font-style: normal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.skill-context-card.selected em { right: 9px; bottom: 8px; left: 9px; color: var(--primary, #3370ff); }
+
+.skill-context-card-recommend {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  max-width: calc(100% - 42px);
+  padding: 1px 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(51, 112, 255, .1);
+  color: var(--primary, #3370ff);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.skill-context-card.selected .skill-context-card-recommend { top: 7px; left: 8px; }
+
+.skill-context-card-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #d8dde6;
+  border-radius: 50%;
+  color: #8f959e;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.skill-context-card.selected .skill-context-card-icon { top: 7px; right: 7px; border-color: var(--primary, #3370ff); background: var(--primary, #3370ff); color: #fff; font-size: 13px; font-weight: 700; }
+.skill-context-card:focus-visible { z-index: 1; outline: 2px solid rgba(51, 112, 255, .3); outline-offset: 2px; }
+.skill-context-empty-state { grid-column: 1 / -1; padding: 26px 12px; color: var(--text-tertiary, #8f959e); font-size: 12px; text-align: center; }
+
+.skill-context-resource-metrics {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  height: 74px;
+  min-height: 74px;
+  margin: 0 -10px -10px;
+  padding: 15px 14px;
+  border-top: 1px solid var(--border-light, #e5e6eb);
+  background: #fff;
+}
+
+.skill-context-resource-metrics > div { display: grid; justify-items: center; gap: 3px; min-width: 0; }
+.skill-context-resource-metrics b { color: var(--text, #1f2329); font-size: 16px; line-height: 1.2; }
+.skill-context-resource-metrics span { color: var(--text-tertiary, #8f959e); font-size: 10px; white-space: nowrap; }
 </style>

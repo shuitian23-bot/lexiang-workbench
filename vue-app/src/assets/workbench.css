@@ -6180,13 +6180,31 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
 }
 .poc-log-item {
   display:grid;
-  grid-template-columns:132px minmax(0,1fr) 98px;
+  grid-template-columns:164px minmax(0,1fr) 112px;
   gap:14px;
   align-items:start;
   padding:14px;
   border:1px solid #e5eaf2;
   border-radius:12px;
   background:#fbfdff;
+}
+.poc-log-meta,
+.poc-log-status {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.poc-log-meta > span,
+.poc-log-status > span {
+  color:var(--text-tertiary);
+  font-size:11px;
+  line-height:1.4;
+}
+.poc-log-meta strong {
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+  line-height:1.5;
 }
 .poc-log-item time {
   color:var(--text-tertiary);
@@ -6206,11 +6224,20 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   line-height:1.6;
 }
 .poc-log-item small {
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
   color:var(--text-tertiary);
   font-size:12px;
+  line-height:1.55;
+}
+.poc-log-item small span {
+  flex:none;
+  color:var(--text-secondary);
+  font-weight:600;
 }
 .poc-log-item em {
-  justify-self:end;
+  align-self:flex-start;
   padding:5px 9px;
   border-radius:999px;
   background:#eef4ff;
@@ -6219,6 +6246,9 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   font-style:normal;
   font-weight:700;
   white-space:nowrap;
+}
+.poc-log-status {
+  align-items:flex-end;
 }
 .permission-hub-grid {
   display:grid;
@@ -6283,7 +6313,7 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   .poc-log-modal { padding:18px; }
   .poc-log-panel { width:calc(100vw - 36px); max-height:calc(100vh - 36px); padding:20px; }
   .poc-log-item { grid-template-columns:1fr; }
-  .poc-log-item em { justify-self:start; }
+  .poc-log-status { align-items:flex-start; }
 }
 @media (max-width:1500px) {
   html[data-product="leaibot"] body.ai-open .account-hub-panel {

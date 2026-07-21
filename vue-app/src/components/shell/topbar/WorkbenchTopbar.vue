@@ -45,6 +45,9 @@ watch(() => route.meta?.pageId, (pageId) => {
 }, { immediate: true })
 
 function activateTab(pageId) {
+  // 静态页签与动态报告页签可同时保留，但点击基础业务页签必须回到该页内容。
+  // 不能只依赖路由 watch：当前静态页签已在同一路由时，router.push 不会触发切换。
+  appStore.setActiveTempTab(null)
   appStore.setActiveStaticTab(pageId)
   const path = pageIdToPath(pageId)
   if (path) router.push(path)
