@@ -2,8 +2,8 @@ import{G as n,c as e,o as t}from"./index-Cq-2AIDZ.js";
 
 const r={
   width:"100%",
-  height:"calc(100vh - 126px)",
-  minHeight:"640px",
+  height:"calc(100dvh - 126px)",
+  minHeight:"480px",
   overflow:"hidden",
   border:"1px solid #dee0e3",
   borderRadius:"8px",
