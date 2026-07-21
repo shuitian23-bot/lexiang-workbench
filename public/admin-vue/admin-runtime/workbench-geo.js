@@ -1122,7 +1122,8 @@ function geoRenderQuestions(qs) {
   geoState._questionsData = qs;
   const c = document.getElementById('geo-questions-table'); if(!c) return;
   if (!qs.length) { c.innerHTML = geoPendingHtml(); geoSetValue('gv-q-count', null); geoRenderIntentFooter(0); return; }
-  const allModels = (qs[0].models || []).map(m => m.model);
+  // 只展示项目已开启的平台（接口会回传 qwen 等未开启平台的数据，产品口径不展示）
+  const allModels = (qs[0].models || []).map(m => m.model).filter(m => GEO_PLATFORMS.includes(m));
   const models = geoState._intentPlatforms.length
     ? allModels.filter(m => geoState._intentPlatforms.includes(m))
     : allModels;
