@@ -3012,7 +3012,7 @@ const PAGE_RENDERERS = {
 
   'dashboard.geoSource': () => `
     <div class="page-header">
-      <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">各 AI 模型引用的内容发布平台分布及占比</div></div>
+      <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">AI 检索场景下的站点信源分布与占比</div></div>
       <div class="geo-source-controls">
         <select id="geo-source-scope" onchange="geoLoadSourcePage(1)">
           <option value="all">整体</option>
@@ -3025,12 +3025,9 @@ const PAGE_RENDERERS = {
           <option value="deepseek">DeepSeek</option>
           <option value="yuanbao">元宝</option>
           <option value="kimi">Kimi</option>
-        </select>
-        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)">
-          <option value="10" selected>10条/页</option>
-          <option value="20">20条/页</option>
-          <option value="50">50条/页</option>
-          <option value="100">100条/页</option>
+          <option value="qianwen" disabled>千问（未开启）</option>
+          <option value="wenxin" disabled>文心（未开启）</option>
+          <option value="kuake" disabled>夸克（未开启）</option>
         </select>
       </div>
     </div>
@@ -3039,7 +3036,16 @@ const PAGE_RENDERERS = {
         <div class="geo-source-meta" id="geo-source-status">加载中...</div>
       </div>
       <div id="geo-source-list"><div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">加载中...</div></div>
-      <div id="geo-source-pager"></div>
+      <div class="geo-source-footer" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px">
+        <div id="geo-source-total" style="font-size:12px;color:#6b7280">共 0 条</div>
+        <div id="geo-source-pager"></div>
+        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)">
+          <option value="10" selected>10条/页</option>
+          <option value="20">20条/页</option>
+          <option value="50">50条/页</option>
+          <option value="100">100条/页</option>
+        </select>
+      </div>
     </div>
   `,
 
@@ -3059,13 +3065,20 @@ const PAGE_RENDERERS = {
       <div class="geo-panel" style="margin-bottom:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
           <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <div id="geo-intent-visibility-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
-            <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
-          </div>
+          <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
         </div>
+        <div id="geo-intent-visibility-filter" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
         <div class="geo-scroll-wrap" style="max-height:600px">
           <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px">
+          <div id="geo-intent-total" style="font-size:12px;color:#6b7280">共 0 条</div>
+          <div id="geo-intent-pager"></div>
+          <select id="geo-intent-page-size" onchange="geoIntentSetPageSize(this.value)">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
         </div>
       </div>
     </div>

@@ -28,7 +28,7 @@ const GEO_SCOPE_CONFIG = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platforms:[], period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatforms:[], _intentVisibilityFilters:[] };
+const geoState = { scope:'all', platforms:[], period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatforms:[], _intentVisibilityFilters:[], _intentPage:1, _intentPageSize:10 };
 const geoConversionState = { period:'30d', startDate:null, endDate:null };
 const geoSourceState = { scope:'all', platform:'all', page:1, pageSize:10 };
 
@@ -89,6 +89,28 @@ function geoPendingInline(message = GEO_PENDING_TEXT) {
 
 function geoSiteName(site = {}) {
   return site.site_name || site.name || site.domain || '-';
+}
+
+const GEO_AVATAR_PALETTE = ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#e2685c','#4f6578','#b45f86'];
+function geoDomainColor(seed) {
+  const s = String(seed || '');
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return GEO_AVATAR_PALETTE[h % GEO_AVATAR_PALETTE.length];
+}
+function geoSiteAvatarHtml(domain, name) {
+  const initial = geoEscape((String(name || domain || '?').trim().charAt(0) || '?').toUpperCase());
+  const color = geoDomainColor(domain || name);
+  if (!domain) {
+    return `<span class="geo-site-logo fallback" style="background:${color};color:#fff">${initial}</span>`;
+  }
+  const src = `https://${geoEscape(domain)}/favicon.ico`;
+  return `<span class="geo-site-logo"><img src="${src}" alt="" onerror="this.parentElement.style.display='none';this.parentElement.nextElementSibling.style.display='inline-flex'"></span><span class="geo-site-logo fallback" style="display:none;background:${color};color:#fff">${initial}</span>`;
+}
+function geoSourceRankHtml(rank) {
+  const colors = { 1: '#f5b942', 2: '#b0b8c1', 3: '#e2984f' };
+  if (colors[rank]) return `<span class="geo-source-rank" style="background:${colors[rank]};color:#fff">${rank}</span>`;
+  return `<span style="display:inline-flex;justify-content:center;width:22px;color:#94a3b8;font-weight:600">${rank}</span>`;
 }
 
 function geoApiPayload(json) {
@@ -360,6 +382,7 @@ function geoSetScope(el) {
   geoState.questions = [];
   geoState._intentPlatforms = [];
   geoState._intentVisibilityFilters = [];
+  geoState._intentPage = 1;
   geoResetPlatformPills();
   geoSyncScopeUi();
   geoLoadData();
@@ -1004,11 +1027,10 @@ const GEO_FIELD_LABELS = {
   competitor_visibility:'竞品可见'
 };
 const GEO_INTENT_FILTERS = [
-  { key:'all', label:'全部展示' },
+  { key:'all', label:'全部' },
   { key:'lenovo_brand_visibility', label:'联想品牌可见' },
-  { key:'official_visibility', label:'联想官网可见' },
-  { key:'leai_visibility', label:'联想乐享可见' },
-  { key:'competitor_visibility', label:'竞品可见' }
+  { key:'official_visibility', label:'联想官网可见性' },
+  { key:'leai_visibility', label:'联想乐享可见' }
 ];
 
 function geoModelFieldValue(modelData, field) {
@@ -1053,7 +1075,7 @@ function geoFilterQuestionsByScope(qs, models) {
 function geoFilterQuestionsByVisibility(qs, models) {
   const filters = geoState._intentVisibilityFilters || [];
   if (!filters.length) return qs || [];
-  return (qs || []).filter(q => filters.some(f => geoQuestionHasVisibility(q, f, models)));
+  return (qs || []).filter(q => filters.every(f => geoQuestionHasVisibility(q, f, models)));
 }
 
 function geoQuestionsForOverviewSelect() {
@@ -1099,7 +1121,7 @@ async function geoLoadQuestions(loadSeq) {
 function geoRenderQuestions(qs) {
   geoState._questionsData = qs;
   const c = document.getElementById('geo-questions-table'); if(!c) return;
-  if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
+  if (!qs.length) { c.innerHTML = geoPendingHtml(); geoSetValue('gv-q-count', null); geoRenderIntentFooter(0); return; }
   const allModels = (qs[0].models || []).map(m => m.model);
   const models = geoState._intentPlatforms.length
     ? allModels.filter(m => geoState._intentPlatforms.includes(m))
@@ -1107,14 +1129,35 @@ function geoRenderQuestions(qs) {
   geoRenderIntentFilter(allModels, models);
   geoRenderIntentVisibilityFilter();
   const scoped = geoFilterQuestionsByScope(qs, models);
-  const rows = geoFilterQuestionsByVisibility(scoped, models);
-  geoSetValue('gv-q-count', rows.length ? rows.length : null);
-  if (!rows.length) { c.innerHTML = geoPendingHtml(); return; }
+  const filtered = geoFilterQuestionsByVisibility(scoped, models);
+  geoSetValue('gv-q-count', filtered.length ? filtered.length : null);
+  if (!filtered.length) { c.innerHTML = geoPendingHtml(); geoRenderIntentFooter(0); return; }
+
+  const pageSize = geoState._intentPageSize || 10;
+  const totalPages = Math.max(Math.ceil(filtered.length / pageSize), 1);
+  if (geoState._intentPage > totalPages) geoState._intentPage = totalPages;
+  if (geoState._intentPage < 1) geoState._intentPage = 1;
+  const current = geoState._intentPage;
+  const rows = filtered.slice((current - 1) * pageSize, current * pageSize);
+
+  // 竞品可见列已从筛选项移除，但列始终保留展示
   const activeFieldKeys = geoState._intentVisibilityFilters.length
-    ? GEO_INTENT_FIELD_KEYS.filter(k => geoState._intentVisibilityFilters.includes(k))
+    ? GEO_INTENT_FIELD_KEYS.filter(k => k === 'competitor_visibility' || geoState._intentVisibilityFilters.includes(k))
     : GEO_INTENT_FIELD_KEYS;
-  let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
-  models.forEach(m => { const name = geoPlatNames[m] || m; activeFieldKeys.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
+  const colCount = activeFieldKeys.length;
+
+  let html = '<table class="geo-intent-table" style="width:100%"><thead>';
+  html += '<tr><th rowspan="2" style="text-align:left;min-width:180px;vertical-align:middle">意图关键词</th>';
+  models.forEach(m => {
+    const name = geoPlatNames[m] || m;
+    html += `<th colspan="${colCount}" style="text-align:center">${geoEscape(name)}</th>`;
+  });
+  html += '</tr><tr>';
+  models.forEach(m => {
+    activeFieldKeys.forEach(f => {
+      html += `<th style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</th>`;
+    });
+  });
   html += '</tr></thead><tbody>';
   rows.forEach(q => {
     const questionText = q.question || '';
@@ -1131,6 +1174,36 @@ function geoRenderQuestions(qs) {
   });
   html += '</tbody></table>';
   c.innerHTML = html;
+  geoRenderIntentFooter(filtered.length, current, totalPages);
+}
+
+function geoIntentPagerHtml(current, total) {
+  const pages = geoSourceVisiblePages(current, total);
+  return `<div class="geo-source-pager">
+    <button ${current <= 1 ? 'disabled' : ''} onclick="geoIntentSetPage(${Math.max(current - 1, 1)})">‹</button>
+    ${pages.map(p => p === '...'
+      ? `<span class="geo-source-ellipsis">...</span>`
+      : `<button class="${p === current ? 'active' : ''}" onclick="geoIntentSetPage(${p})">${p}</button>`).join('')}
+    <button ${current >= total ? 'disabled' : ''} onclick="geoIntentSetPage(${Math.min(current + 1, total)})">›</button>
+  </div>`;
+}
+
+function geoRenderIntentFooter(total, current, totalPages) {
+  const totalEl = document.getElementById('geo-intent-total');
+  if (totalEl) totalEl.textContent = `共 ${total} 条`;
+  const pagerEl = document.getElementById('geo-intent-pager');
+  if (pagerEl) pagerEl.innerHTML = total ? geoIntentPagerHtml(current || 1, totalPages || 1) : '';
+}
+
+function geoIntentSetPage(page) {
+  geoState._intentPage = page || 1;
+  geoRenderQuestions(geoState._questionsData || []);
+}
+
+function geoIntentSetPageSize(size) {
+  geoState._intentPageSize = Number(size) || 10;
+  geoState._intentPage = 1;
+  geoRenderQuestions(geoState._questionsData || []);
 }
 
 function geoRenderIntentFilter(allModels, activeModels) {
@@ -1145,10 +1218,17 @@ function geoRenderIntentFilter(allModels, activeModels) {
 function geoRenderIntentVisibilityFilter() {
   const c = document.getElementById('geo-intent-visibility-filter'); if (!c) return;
   const current = geoState._intentVisibilityFilters || [];
-  c.innerHTML = GEO_INTENT_FILTERS.map(item => {
-    const active = item.key === 'all' ? current.length === 0 : current.includes(item.key);
-    return `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#3f78c5' : '#d1d5db'};background:${active ? '#3f78c5' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
-  }).join('');
+  const allActive = current.length === 0;
+  let html = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+  html += '<span style="font-size:12px;color:#6b7280;white-space:nowrap">筛选展示：</span>';
+  html += `<button onclick="geoSetIntentVisibilityFilter('all')" style="padding:5px 14px;font-size:12px;border-radius:8px;border:1px solid ${allActive ? '#3f78c5' : '#d1d5db'};background:${allActive ? '#eff6ff' : '#f9fafb'};color:${allActive ? '#2563eb' : '#6b7280'};cursor:pointer;font-weight:600;transition:all .15s">全部</button>`;
+  GEO_INTENT_FILTERS.filter(item => item.key !== 'all').forEach(item => {
+    const active = current.includes(item.key);
+    html += `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;font-size:12px;border-radius:8px;border:1px solid ${active ? '#10b981' : '#d1d5db'};background:${active ? '#ecfdf5' : '#fff'};color:${active ? '#059669' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s"><span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:3px;border:1.5px solid ${active ? '#10b981' : '#9ca3af'};background:${active ? '#10b981' : '#fff'};color:#fff;font-size:10px;line-height:1">${active ? '✓' : ''}</span>${geoEscape(item.label)}：是</button>`;
+  });
+  html += '</div>';
+  html += `<button onclick="geoClearIntentFilters()" style="background:none;border:none;color:#6b7280;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">清空筛选 <span style="font-size:13px">↺</span></button>`;
+  c.innerHTML = html;
 }
 
 function geoSetIntentModel(model) {
@@ -1159,6 +1239,7 @@ function geoSetIntentModel(model) {
   } else {
     geoState._intentPlatforms.push(model);
   }
+  geoState._intentPage = 1;
   geoRenderQuestions(geoState._questionsData || []);
 }
 
@@ -1170,6 +1251,14 @@ function geoSetIntentVisibilityFilter(filter) {
   } else {
     geoState._intentVisibilityFilters.push(filter);
   }
+  geoState._intentPage = 1;
+  geoRenderQuestions(geoState._questionsData || []);
+}
+
+function geoClearIntentFilters() {
+  geoState._intentVisibilityFilters = [];
+  geoState._intentPlatforms = [];
+  geoState._intentPage = 1;
   geoRenderQuestions(geoState._questionsData || []);
 }
 
@@ -1226,20 +1315,17 @@ function geoSourceScopeLabel() {
 }
 
 function geoSourceVisiblePages(current, total) {
-  const pages = [];
-  const safeTotal = Math.max(total || 1, 1);
-  const add = p => { if (p >= 1 && p <= safeTotal && !pages.includes(p)) pages.push(p); };
-  add(1);
-  add(current - 1);
-  add(current);
-  add(current + 1);
-  add(safeTotal);
-  pages.sort((a, b) => a - b);
-  const out = [];
-  pages.forEach((p, i) => {
-    if (i && p - pages[i - 1] > 1) out.push('...');
-    out.push(p);
-  });
+  const t = Math.max(total || 1, 1);
+  if (t <= 7) { const a=[]; for (let p=1;p<=t;p++) a.push(p); return a; }
+  let start = current - 2, end = current + 2;
+  if (start < 1) { end += (1 - start); start = 1; }
+  if (end > t) { start -= (end - t); end = t; }
+  start = Math.max(start, 1); end = Math.min(end, t);
+  const out = [1];
+  if (start > 2) out.push('...');
+  for (let p = Math.max(start,2); p <= Math.min(end,t-1); p++) out.push(p);
+  if (end < t - 1) out.push('...');
+  out.push(t);
   return out;
 }
 
@@ -1280,14 +1366,15 @@ async function geoLoadSourcePage(page) {
       if (c) c.innerHTML = geoPendingHtml();
       const pager = document.getElementById('geo-source-pager');
       if (pager) pager.innerHTML = '';
+      const totalEl0 = document.getElementById('geo-source-total');
+      if (totalEl0) totalEl0.textContent = '共 0 条';
       return;
     }
-    const shownPageSize = pg.per_page || pageSize;
-    const pageSizeNote = shownPageSize !== pageSize ? ' · 接口暂未按所选条数返回' : '';
     if (st) st.innerHTML = `
-      <span class="geo-source-stat"><strong>${(d.total_records||0).toLocaleString()}</strong> 个站点</span>
-      <span class="geo-source-stat">第 <strong>${pg.current_page || 1} / ${pg.total_pages || 1}</strong> 页</span>
-      <span class="geo-source-stat">${geoEscape(geoSourceScopeLabel())} · ${geoEscape(model === 'all' ? '全平台' : (geoPlatNames[model] || model))} · ${shownPageSize} 条/页${geoEscape(pageSizeNote)}</span>`;
+      <span class="geo-source-stat">👥 共 <strong>${(d.total_records||0).toLocaleString()}</strong> 个站点</span>
+      <span class="geo-source-stat">📄 第 <strong>${pg.current_page||1}</strong> / <strong>${pg.total_pages||1}</strong> 页</span>`;
+    const totalEl = document.getElementById('geo-source-total');
+    if (totalEl) totalEl.textContent = `共 ${(d.total_records||0).toLocaleString()} 条`;
     if (!c) return;
     const maxCount = Math.max(...sites.map(s => geoNum(s.count) || 0), 1);
     c.innerHTML = `<table class="geo-source-table"><thead><tr><th>排名</th><th>站点</th><th>域名</th><th>引用次数</th><th>占比</th></tr></thead><tbody>
@@ -1297,10 +1384,10 @@ async function geoLoadSourcePage(page) {
         const barW = Math.max(count / maxCount * 100, 3).toFixed(0);
         const name = geoSiteName(s);
         return `<tr>
-          <td><span class="geo-source-rank ${s.rank <= 3 ? 'top' : ''}">${s.rank}</span></td>
-          <td class="name"><span class="geo-source-site"><span>${geoEscape(name)}</span></span></td>
+          <td>${geoSourceRankHtml(s.rank)}</td>
+          <td class="name"><span class="geo-source-site">${geoSiteAvatarHtml(s.domain, name)}<span>${geoEscape(name)}</span></span></td>
           <td class="domain">${geoEscape(s.domain || '-')}</td>
-          <td><div class="geo-source-count"><strong>${geoFmtCount(count)}</strong><span><i style="width:${barW}%"></i></span></div></td>
+          <td><div class="geo-source-count"><strong>${geoFmtCount(count)}</strong><span style="background:#e5e8ec"><i style="width:${barW}%;background:#3f78c5"></i></span></div></td>
           <td><div class="geo-source-pct"><span>${geoFmtPct(pct)}</span><i style="background:conic-gradient(#3f78c5 ${Math.max(Math.min(pct || 0, 100), 0)}%, #e2e8f0 0)"></i></div></td>
         </tr>`;
       }).join('')}</tbody></table>`;
