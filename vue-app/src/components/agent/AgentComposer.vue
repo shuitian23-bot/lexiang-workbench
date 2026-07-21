@@ -1,41 +1,9 @@
 <template>
   <div
-    id="ai-file-preview"
-    class="ai-file-preview"
-    :style="{
-      display: attachedFile ? 'flex' : 'none',
-      background: 'var(--primary-light)'
-    }"
-  >
-    <button
-      v-if="isImageAttachment"
-      type="button"
-      class="ai-file-thumb"
-      title="查看参考图"
-      aria-label="查看参考图"
-      @click="previewOpen = true"
-    >
-      <img :src="attachedFile.dataUrl" :alt="attachedFile.name" />
-    </button>
-    <span v-else class="ai-file-icon" aria-hidden="true">📎</span>
-    <button
-      type="button"
-      class="ai-file-meta"
-      :class="{ 'is-clickable': isImageAttachment }"
-      :title="isImageAttachment ? '查看参考图' : attachedFile?.name"
-      @click="isImageAttachment && (previewOpen = true)"
-    >
-      <span class="ai-file-label">{{ isImageAttachment ? '参考图' : '附件' }}</span>
-      <span id="ai-file-name">{{ attachedFile?.name }}</span>
-    </button>
-    <button type="button" class="ai-file-clear" title="移除附件" aria-label="移除附件" @click="$emit('clear-file')">×</button>
-  </div>
-
-  <div
     class="ai-input-area"
     id="ai-input-area"
     :class="{
-      'has-file': !!attachedFile,
+      'has-file': hasAttachments,
       'is-sending': loading,
       'has-queue': queuedMessages.length > 0
     }"
@@ -45,6 +13,7 @@
       id="ai-file-input"
       ref="fileInputEl"
       style="display:none"
+      multiple
       accept=".txt,.md,.pdf,.docx,.xlsx,.csv,.json,image/*"
       @change="onFileSelected"
     />
@@ -80,8 +49,55 @@
         </select>
       </div>
 
+      <div v-if="hasAttachments" id="ai-file-preview" class="ai-file-preview" aria-label="已上传附件">
+        <div class="ai-file-strip">
+          <div
+            v-for="(file, index) in attachmentItems"
+            :key="`${file.name}-${index}`"
+            class="ai-file-chip"
+            :class="{ 'is-image': isImageFile(file) }"
+            :title="file.name"
+          >
+            <button
+              v-if="isImageFile(file)"
+              type="button"
+              class="ai-file-chip-main"
+              aria-label="查看参考图"
+              @click="openPreview(file)"
+            >
+              <span class="ai-file-thumb" aria-hidden="true">
+                <img :src="file.dataUrl" :alt="file.name" />
+              </span>
+              <span class="ai-file-meta">
+                <span class="ai-file-label">参考图</span>
+                <span class="ai-file-name">{{ file.name }}</span>
+              </span>
+            </button>
+            <span v-else class="ai-file-chip-main">
+              <span class="ai-file-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg>
+              </span>
+              <span class="ai-file-meta">
+                <span class="ai-file-label">附件</span>
+                <span class="ai-file-name">{{ file.name }}</span>
+              </span>
+            </span>
+            <button
+              type="button"
+              class="ai-file-clear"
+              :aria-label="`移除附件 ${file.name}`"
+              data-tooltip="移除附件"
+              data-tooltip-placement="top"
+              @click="$emit('clear-file', index)"
+            >
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="ai-composer-box">
-        <button type="button" class="ai-composer-action" @click="fileInputEl?.click()" title="上传文件" aria-label="上传文件">
+        <button type="button" class="ai-composer-action" @click="fileInputEl?.click()" data-tooltip="上传文件" data-tooltip-placement="top" aria-label="上传文件">
           <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5 11 7a2.2 2.2 0 1 1 3.1 3.1l-5 5a3.6 3.6 0 0 1-5.1-5.1l5.5-5.5"/></svg>
         </button>
         <textarea
@@ -100,7 +116,9 @@
           :class="{ 'is-stop': stopMode }"
           :disabled="!loading && !canSend"
           @click="$emit('send')"
-          :title="sendButtonTitle"
+          :data-tooltip="sendButtonTitle"
+          data-tooltip-placement="top"
+          data-tooltip-align="end"
           :aria-label="sendButtonTitle"
           :aria-disabled="(!loading && !canSend) ? 'true' : 'false'"
         >
@@ -118,7 +136,7 @@
 
   <Teleport to="body">
     <div
-      v-if="previewOpen && isImageAttachment"
+      v-if="previewOpen && previewFile"
       class="ai-image-preview-modal"
       role="dialog"
       aria-modal="true"
@@ -129,12 +147,12 @@
         <div class="ai-image-preview-head">
           <div>
             <span>参考图</span>
-            <b>{{ attachedFile.name }}</b>
+            <b>{{ previewFile.name }}</b>
           </div>
           <button type="button" title="关闭预览" aria-label="关闭预览" @click="previewOpen = false">×</button>
         </div>
         <div class="ai-image-preview-stage">
-          <img :src="attachedFile.dataUrl" :alt="attachedFile.name" />
+          <img :src="previewFile.dataUrl" :alt="previewFile.name" />
         </div>
       </div>
     </div>
@@ -147,6 +165,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 const props = defineProps({
   inputText: { type: String, default: '' },
   attachedFile: { type: Object, default: null },
+  attachedFiles: { type: Array, default: () => [] },
   activeShortcut: { type: String, default: '' },
   shortcuts: { type: Array, default: () => [] },
   inputPlaceholder: { type: String, default: '' },
@@ -162,9 +181,14 @@ const inputEl = ref(null)
 const fileInputEl = ref(null)
 const shortcutsEl = ref(null)
 const previewOpen = ref(false)
+const previewFile = ref(null)
 
-const canSend = computed(() => !!props.inputText.trim() || !!props.attachedFile)
-const isImageAttachment = computed(() => !!props.attachedFile?.isImage && !!props.attachedFile?.dataUrl)
+const attachmentItems = computed(() => {
+  if (props.attachedFiles?.length) return props.attachedFiles
+  return props.attachedFile ? [props.attachedFile] : []
+})
+const hasAttachments = computed(() => attachmentItems.value.length > 0)
+const canSend = computed(() => !!props.inputText.trim() || hasAttachments.value)
 const stopMode = computed(() => props.loading && !canSend.value)
 const sendButtonTitle = computed(() => {
   if (stopMode.value) return '停止当前回答'
@@ -173,8 +197,9 @@ const sendButtonTitle = computed(() => {
 })
 
 watch(() => props.inputText, () => nextTick(autoResize))
-watch(() => props.attachedFile, () => {
+watch(attachmentItems, (files) => {
   previewOpen.value = false
+  if (previewFile.value && !files.includes(previewFile.value)) previewFile.value = null
 })
 
 function onInput(event) {
@@ -199,26 +224,40 @@ function scrollShortcuts(dir) {
 }
 
 async function onFileSelected(e) {
-  const file = e.target.files?.[0]
-  if (!file) return
+  const files = Array.from(e.target.files || [])
+  if (!files.length) return
   e.target.value = ''
+  for (const file of files) {
+    emit('attach-file', await normalizeFile(file))
+  }
+}
+
+async function normalizeFile(file) {
   if (file.type.startsWith('image/')) {
     const dataUrl = await readFileAsDataUrl(file)
-    emit('attach-file', {
+    return {
       name: file.name,
       type: file.type,
       dataUrl,
       isImage: true,
       text: `参考图：${file.name}\n\n用户上传了一张参考图，请结合图像内容和当前页面上下文分析。`
-    })
-    return
+    }
   }
   try {
     const text = await file.text()
-    emit('attach-file', { name: file.name, text: `📎 ${file.name}\n\n${text}` })
+    return { name: file.name, type: file.type, text: `附件：${file.name}\n\n${text}` }
   } catch {
-    emit('attach-file', { name: file.name, text: `📎 ${file.name}` })
+    return { name: file.name, type: file.type, text: `附件：${file.name}` }
   }
+}
+
+function isImageFile(file) {
+  return !!file?.isImage && !!file?.dataUrl
+}
+
+function openPreview(file) {
+  previewFile.value = file
+  previewOpen.value = true
 }
 
 function readFileAsDataUrl(file) {

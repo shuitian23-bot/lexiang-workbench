@@ -61,13 +61,21 @@
         </div>
         <div class="poc-log-list">
           <div v-for="item in pocLogRecords" :key="`${item.time}-${item.title}`" class="poc-log-item">
-            <time>{{ item.time }}</time>
+            <div class="poc-log-meta">
+              <span>改动人</span>
+              <strong>{{ item.operator || '历史未记录' }}</strong>
+              <span>更新时间</span>
+              <time>{{ item.time }}</time>
+            </div>
             <div>
               <b>{{ item.title }}</b>
               <p>{{ item.detail }}</p>
-              <small>{{ item.scope }}</small>
+              <small><span>主要功能点</span>{{ item.scope }}</small>
             </div>
-            <em>{{ item.status }}</em>
+            <div class="poc-log-status">
+              <span>状态</span>
+              <em>{{ item.status }}</em>
+            </div>
           </div>
         </div>
       </div>
@@ -103,6 +111,22 @@ const isPeeking = ref(false)
 const pocLogVisible = ref(false)
 
 const pocLogRecords = [
+  {
+    time: '2026-07-21 12:59',
+    operator: 'zhangrui（部署账号）',
+    title: '调整日志字段与追溯口径完善',
+    scope: '调整日志 / 改动人 / 更新时间 / 状态 / 主要功能点',
+    detail: '调整日志卡片补齐改动人、更新时间、状态和主要改动功能点四类信息，并保留完整功能说明。服务器直连可确认本次 admin-vue 文件由 zhangrui 账号部署，故按“部署账号”记录；历史记录无法仅凭当前文件属主准确还原实际改动人，统一显示“历史未记录”，避免错误归属。',
+    status: '已合并正式'
+  },
+  {
+    time: '2026-07-21 12:16',
+    operator: 'zhangrui（部署账号）',
+    title: '0716 Vue 样式与设计规范应用',
+    scope: 'Skill 创建 / 右侧 Agent / 权限管理 / 顶部页签 / 设计基线',
+    detail: '对照 lexiang-new-0716 交付包，仅同步与当前 new Vue 源码一一匹配的区域：能力上下文改为可搜索、按业务域筛选、只看已选和卡片式能力目录；右侧 Agent 更新附件预览、处理过程与 Todo 展开收起样式；权限管理收紧模块间距和表单密度；顶部静态页签恢复点击后回到对应业务页内容。随后应用 portal-workbench-ui-0716 设计规范 Skill，完成版本、内容指纹、全局样式栈和封板组件保护校验，并按规范复核顶部、侧栏、Agent、输入区、页签、权限管理及 1280px 响应式布局。保留现有自然语言时间解析、认证查询结论与展开报告、GMV 717 万元参考口径、Skill 草稿及审核闭环等 new 后续新增功能，不覆盖未匹配业务数据和运行脚本。',
+    status: '已合并正式'
+  },
   {
     time: '2026-07-15 16:53',
     title: '职场认证菜单、查询时间与 Skill 数据闭环统一',

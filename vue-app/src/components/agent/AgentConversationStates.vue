@@ -2,7 +2,7 @@
   <div v-if="items.length" class="conversation-states" aria-label="AI 会话状态">
     <div v-if="showStateSummary" class="conversation-state-summary">
       <span class="summary-orb" aria-hidden="true"></span>
-      <b>{{ runningCount ? '思考中' : '处理过程' }}</b>
+      <b>处理过程</b>
       <em>{{ summaryText }}</em>
       <button
         v-if="canToggle"
@@ -55,8 +55,8 @@ const failedCount = computed(() => props.items.filter(item => item.status === 'f
 const blockedCount = computed(() => props.items.filter(item => item.status === 'blocked').length)
 const visibleItems = computed(() => {
   if (expanded.value) return props.items
-  const activeItems = props.items.filter(item => item.status !== 'done')
-  return (activeItems.length ? activeItems : props.items.slice(-1)).slice(0, 3)
+  const activeItems = props.items.filter(item => item.status !== 'done' && item.kind !== 'confirm')
+  return activeItems.slice(0, 3)
 })
 const hiddenCount = computed(() => Math.max(props.items.length - visibleItems.value.length, 0))
 const canToggle = computed(() => props.items.length > visibleItems.value.length || expanded.value)

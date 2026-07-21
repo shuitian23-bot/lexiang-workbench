@@ -176,7 +176,8 @@ export const useAIStore = defineStore('ai', () => {
   // ---- 输入框内容 ----
   const inputText   = ref('')
   // ---- 上传的文件 ----
-  const attachedFile = ref<AttachedFile | null>(null)  // { name, text }
+  const attachedFiles = ref<AttachedFile[]>([])
+  const attachedFile = computed(() => attachedFiles.value[0] || null)
   // ---- 当前选中的快捷标签 ----
   const activeShortcut = ref('')
   const pendingShortcut = ref('')
@@ -255,7 +256,7 @@ export const useAIStore = defineStore('ai', () => {
     localConvId.value = _newLocalId()
     messages.value    = []
     inputText.value   = ''
-    attachedFile.value = null
+    attachedFiles.value = []
     queuedMessages.value = []
     queueNotice.value = ''
     activityItems.value = []
@@ -284,16 +285,19 @@ export const useAIStore = defineStore('ai', () => {
 
   function _createComposerPayload(pageId: string): ComposerPayload | null {
     const text = inputText.value.trim()
-    const file = attachedFile.value
-    if (!text && !file) return null
+    const files = attachedFiles.value
+    if (!text && !files.length) return null
     const contextSummary = _buildPageContext(pageId)
     const pageDataContext = _buildPageDataContext(pageId)
 
-    const userMsg = file
-      ? (text ? `📎 ${file.name}\n${text}` : `📎 ${file.name}`)
+    const fileNames = files.map(file => file.name)
+    const attachmentSummary = fileNames.map(name => `附件：${name}`).join('\n')
+    const attachmentContent = files.map(file => file.text || `附件：${file.name}`).join('\n\n')
+    const userMsg = files.length
+      ? (text ? `${attachmentSummary}\n${text}` : attachmentSummary)
       : text
-    const apiMessage = file
-      ? `${contextSummary}\n\n${pageDataContext}\n\n${file.text || `📎 ${file.name}`}\n\n${text || '请分析这个文件'}`
+    const apiMessage = files.length
+      ? `${contextSummary}\n\n${pageDataContext}\n\n${attachmentContent}\n\n${text || '请分析这些文件'}`
       : `${contextSummary}\n\n${pageDataContext}\n\n${text}`
 
     return {
@@ -301,7 +305,7 @@ export const useAIStore = defineStore('ai', () => {
       text,
       userMsg,
       apiMessage,
-      fileName: file?.name || '',
+      fileName: fileNames.join('、'),
       shortcut: pendingShortcut.value || activeShortcut.value,
       contextSummary
     }
@@ -309,7 +313,7 @@ export const useAIStore = defineStore('ai', () => {
 
   function _clearComposerDraft() {
     inputText.value = ''
-    attachedFile.value = null
+    attachedFiles.value = []
     pendingShortcut.value = ''
   }
 
@@ -519,10 +523,14 @@ export const useAIStore = defineStore('ai', () => {
 
   // ===== 附件 =====
   function attachFile(file: AttachedFile) {
-    attachedFile.value = file
+    attachedFiles.value = [...attachedFiles.value, file]
   }
-  function clearFile() {
-    attachedFile.value = null
+  function clearFile(index?: number) {
+    if (typeof index === 'number') {
+      attachedFiles.value = attachedFiles.value.filter((_, itemIndex) => itemIndex !== index)
+      return
+    }
+    attachedFiles.value = []
   }
 
   // ===== 对话历史（localStorage）=====
@@ -600,6 +608,7 @@ export const useAIStore = defineStore('ai', () => {
     }
     _appendPostReplyActivities(payload, displayReply)
     _recordMessage('assistant', displayReply, {
+      renderMode: 'typewriter',
       ...(artifacts.length ? { artifacts } : {}),
       actionItems: _taskActionItems(payload, displayReply),
       activityItems: _snapshotActivities()
@@ -1426,7 +1435,7 @@ ${reply || _reportIntentReply(payload)}
     open, convId, localConvId, messages, loading,
     queuedMessages, queueNotice, taskLogs, activityItems,
     panelWidth, autoCollapsedSidebar,
-    inputText, attachedFile, activeShortcut, shortcuts, inputPlaceholder,
+    inputText, attachedFile, attachedFiles, activeShortcut, shortcuts, inputPlaceholder,
     toggleOpen, restoreState, maxPanelWidth, setPanelWidth,
     newConversation, send, stopCurrentResponse, quickSend, sendShortcut, runTaskAction,
     setShortcut, shortcutQuery, attachFile, clearFile,

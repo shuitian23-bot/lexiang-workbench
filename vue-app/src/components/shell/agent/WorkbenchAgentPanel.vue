@@ -36,6 +36,7 @@
     <AgentComposer
       :input-text="aiStore.inputText"
       :attached-file="attachedFile"
+      :attached-files="attachedFiles"
       :active-shortcut="activeShortcut"
       :shortcuts="shortcuts"
       :input-placeholder="inputPlaceholder"
@@ -142,7 +143,7 @@ const router   = useRouter()
 
 const {
   open: aiOpen, messages, loading, panelWidth,
-  attachedFile, activeShortcut, shortcuts, inputPlaceholder,
+  attachedFile, attachedFiles, activeShortcut, shortcuts, inputPlaceholder,
   queuedMessages, queueNotice, taskLogs, activityItems
 } = storeToRefs(aiStore)
 
