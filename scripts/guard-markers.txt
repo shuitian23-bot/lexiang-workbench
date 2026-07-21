@@ -63,3 +63,6 @@ public/js/app.js|这条早退分支也必须记录本轮商品|代买对比分�
 public/css/main.css|SourceHanSansCN-Regular.subset.woff2|首页子集字体
 public/js/app.js|chips 统一渲染点|chips单排根修
 public/js/app-intent.js|compare_recent|裸对比句本地闭环
+public/battle-map.html|乐享+ 5.0 人力作战地图|人力作战地图页
+public/admin-vue/admin-runtime/workbench-geo.js|geoIsAbortError|GEO看板2.0整改-并发治理与多选
+public/admin-vue/admin-runtime/workbench-pages.js|geo-source-top10|GEO看板2.0整改-Top10面板
