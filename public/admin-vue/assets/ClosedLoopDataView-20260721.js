@@ -22,8 +22,8 @@ const a=n({
   setup(){
     return()=>(t(),e("div",{style:r},[
       e("iframe",{
-        src:"/lexiang-dashboard/index.html",
-        title:"闭环交易数据",
+        src:"/lexiang-dashboard/index.html?embedded=1",
+        title:"（内部）闭环交易看板",
         loading:"eager",
         style:i
       })
