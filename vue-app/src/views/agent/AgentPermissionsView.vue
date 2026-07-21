@@ -69,7 +69,7 @@
 
           <div v-else-if="currentStep === 1" class="permission-step">
             <h3>填写信息</h3>
-            <p>申请人和直线经理由当前登录信息带出，不允许修改。</p>
+            <p>申请人、申请人直线经理和被申请人直线经理由当前登录信息或被申请人信息带出，不允许修改。</p>
             <div class="permission-form-grid">
               <div class="permission-form-field full">
                 <span class="field-label required">人员类型 <em>必填</em></span>
@@ -126,8 +126,12 @@
                 <input v-model="form.email" placeholder="name@lenovo.com">
               </label>
               <label>
-                <span>直线经理</span>
-                <input v-model="form.manager" readonly>
+                <span>申请人直线经理</span>
+                <input v-model="form.applicantManager" readonly>
+              </label>
+              <label>
+                <span>被申请人直线经理</span>
+                <input v-model="form.targetManager" readonly>
               </label>
               <label class="full">
                 <span class="field-label required">申请原因 / 需求描述 <em>必填</em></span>
@@ -379,7 +383,8 @@
                   <th>申请类型</th>
                   <th>申请人</th>
                   <th>申请人 ITCode</th>
-                  <th>申请人邮箱</th>
+                  <th>被申请人</th>
+                  <th>被申请人 ITCode</th>
                   <th>当前处理人</th>
                   <th>当前节点</th>
                   <th>状态</th>
@@ -393,7 +398,8 @@
                   <td>{{ row.type }}</td>
                   <td>{{ row.applicant }}</td>
                   <td>{{ row.applicantItcode }}</td>
-                  <td>{{ row.applicantEmail }}</td>
+                  <td>{{ row.target }}</td>
+                  <td>{{ row.targetItcode }}</td>
                   <td>{{ row.handlers.join('、') }}</td>
                   <td>{{ row.node }}</td>
                   <td><span class="table-status" :class="row.statusKey">{{ row.status }}</span></td>
@@ -404,7 +410,7 @@
                   </td>
                 </tr>
                 <tr v-if="!filteredApprovals.length">
-                  <td colspan="10">
+                  <td colspan="11">
                     <div class="table-empty">
                       <b>没有匹配的审批任务</b>
                       <p>请调整审批人 ITCode、处理人或状态筛选后再查看。</p>
@@ -1608,32 +1614,63 @@
                 <b>自定义授权</b>
                 <small>用于表达角色普通权限之外的特殊数据范围，例如字段级、组织级、地域级或临时授权。</small>
               </div>
-              <button v-if="!roleEditorReadonly" type="button" class="ghost-btn" :disabled="roleNormalDataLocked" @click="addCustomDataRule">新增自定义授权</button>
+              <div v-if="!roleEditorReadonly" class="custom-add-menu">
+                <button type="button" class="ghost-btn" :disabled="roleNormalDataLocked" @click="roleEditor.customMenuPickerVisible = !roleEditor.customMenuPickerVisible">添加</button>
+                <div v-if="roleEditor.customMenuPickerVisible" class="custom-add-menu-list">
+                  <button v-for="option in availableCustomMenuOptions(roleEditor.draft.customDataRules)" :key="option.key" type="button" @click="addCustomDataRule(option.key)">{{ option.name }}</button>
+                  <small v-if="!availableCustomMenuOptions(roleEditor.draft.customDataRules).length" class="custom-add-empty">已添加全部一级菜单</small>
+                </div>
+              </div>
             </div>
-            <table v-if="roleEditor.draft.customDataRules.length" class="permission-table custom-rule-table">
-              <thead>
-                <tr>
-                  <th>数据集</th>
-                  <th>字段范围</th>
-                  <th>组织范围</th>
-                  <th>地域范围</th>
-                  <th>生效周期</th>
-                  <th>备注</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="rule in roleEditor.draft.customDataRules" :key="rule.id">
-                  <td><input v-model.trim="rule.dataset" :readonly="roleEditorReadonly" placeholder="数据集"></td>
-                  <td><input v-model.trim="rule.fields" :readonly="roleEditorReadonly" placeholder="字段范围"></td>
-                  <td><input v-model.trim="rule.organization" :readonly="roleEditorReadonly" placeholder="组织范围"></td>
-                  <td><input v-model.trim="rule.region" :readonly="roleEditorReadonly" placeholder="地域范围"></td>
-                  <td><input v-model.trim="rule.period" :readonly="roleEditorReadonly" placeholder="生效周期"></td>
-                  <td><input v-model.trim="rule.remark" :readonly="roleEditorReadonly" placeholder="选填"></td>
-                  <td><button v-if="!roleEditorReadonly" type="button" class="link-btn danger" @click="removeCustomDataRule(rule.id)">删除</button></td>
-                </tr>
-              </tbody>
-            </table>
+            <div v-if="roleEditor.draft.customDataRules.length" class="custom-rule-menu-list">
+              <article v-for="menu in roleEditor.draft.customDataRules" :key="menu.id" class="custom-menu-card">
+                <div class="custom-menu-head">
+                  <div>
+                    <b>{{ menu.menuName }}</b>
+                    <small>{{ customRuleMenuDescription(menu.menuKey) }}</small>
+                  </div>
+                  <div class="custom-menu-actions">
+                    <button v-if="!roleEditorReadonly" type="button" class="ghost-btn small" @click="addCustomRuleGroup(menu)">新增条件组</button>
+                    <button v-if="!roleEditorReadonly" type="button" class="link-btn danger" @click="removeCustomRuleMenu(roleEditor.draft.customDataRules, menu.id)">删除菜单</button>
+                  </div>
+                </div>
+                <div :class="['custom-logic-rail', { connected: menu.groups.length > 1 }]">
+                  <article v-for="(group, groupIndex) in menu.groups" :key="group.id" class="custom-rule-group">
+                    <span v-if="groupIndex > 0" class="logic-connector">
+                      <button type="button" :disabled="roleEditorReadonly" @click="toggleCustomRuleGroupLogic(group)">{{ customLogicLabel(group.relation) }}</button>
+                    </span>
+                    <div class="custom-group-head">
+                      <b>{{ group.title || '业务条件' }}</b>
+                      <button v-if="!roleEditorReadonly && menu.groups.length > 1" type="button" class="link-btn danger" @click="removeCustomRuleGroup(menu, group.id)">删除条件组</button>
+                    </div>
+                    <div class="custom-condition-list">
+                      <div v-for="(condition, conditionIndex) in group.conditions" :key="condition.id" class="custom-condition-row">
+                        <span :class="['condition-connector', { hidden: conditionIndex === 0 }]">且</span>
+                        <select v-model="condition.dimension" :disabled="roleEditorReadonly">
+                          <option v-for="option in customConditionDimensions" :key="option" :value="option">{{ option }}</option>
+                        </select>
+                        <select v-model="condition.operator" :disabled="roleEditorReadonly">
+                          <option value="包含">包含</option>
+                          <option value="等于">等于</option>
+                          <option value="不包含">不包含</option>
+                        </select>
+                        <div class="custom-value-list">
+                          <span v-for="(value, valueIndex) in condition.values" :key="valueIndex" class="custom-value-chip">
+                            <input v-model.trim="condition.values[valueIndex]" :readonly="roleEditorReadonly" placeholder="请输入值">
+                            <button v-if="!roleEditorReadonly && condition.values.length > 1" type="button" @click="removeCustomConditionValue(condition, valueIndex)">×</button>
+                          </span>
+                          <button v-if="!roleEditorReadonly" type="button" class="chip-add-btn" @click="addCustomConditionValue(condition)">+ 值</button>
+                        </div>
+                        <button v-if="!roleEditorReadonly && group.conditions.length > 1" type="button" class="link-btn danger" @click="removeCustomCondition(group, condition.id)">删除</button>
+                      </div>
+                    </div>
+                    <div class="custom-group-actions">
+                      <button v-if="!roleEditorReadonly" type="button" class="ghost-btn small" @click="addCustomCondition(group)">添加且条件</button>
+                    </div>
+                  </article>
+                </div>
+              </article>
+            </div>
             <div v-else class="scope-empty compact-empty">
               <b>还没有自定义授权</b>
               <p>普通授权无法覆盖的临时或特殊范围，可以在这里新增规则。</p>
@@ -1706,12 +1743,25 @@
         <section v-if="userWorkspace.draft && userWorkspace.activeTab === 'basic'" class="role-editor-section">
           <div class="permission-form-grid role-basic-form">
             <label>
+              <span>申请人</span>
+              <input v-model.trim="userWorkspace.draft.applicant" readonly>
+            </label>
+            <label>
+              <span>申请人 ITCode</span>
+              <input v-model.trim="userWorkspace.draft.applicantItcode" readonly>
+            </label>
+            <label>
+              <span class="field-label required">被申请人 <em>必填</em></span>
+              <input v-model.trim="userWorkspace.draft.name" :readonly="userWorkspaceReadonly" :class="{ invalid: userWorkspace.errors.name }" placeholder="请输入被申请人姓名">
+              <small v-if="userWorkspace.errors.name" class="field-error">{{ userWorkspace.errors.name }}</small>
+            </label>
+            <label>
               <span class="field-label required">用户账号 <em>必填</em></span>
               <input v-model.trim="userWorkspace.draft.userAccount" :readonly="userWorkspaceReadonly" :class="{ invalid: userWorkspace.errors.userAccount }" placeholder="例如 U-10032">
               <small v-if="userWorkspace.errors.userAccount" class="field-error">{{ userWorkspace.errors.userAccount }}</small>
             </label>
             <label>
-              <span class="field-label required">登陆账号 <em>必填</em></span>
+              <span class="field-label required">被申请人 ITCode <em>必填</em></span>
               <input v-model.trim="userWorkspace.draft.loginAccount" :readonly="userWorkspaceReadonly" :class="{ invalid: userWorkspace.errors.loginAccount }" placeholder="例如 zhangrui32">
               <small v-if="userWorkspace.errors.loginAccount" class="field-error">{{ userWorkspace.errors.loginAccount }}</small>
             </label>
@@ -1729,6 +1779,23 @@
             <label>
               <span>邮箱</span>
               <input v-model.trim="userWorkspace.draft.email" :readonly="userWorkspaceReadonly" placeholder="name@lenovo.com">
+            </label>
+            <label class="relation-account-field">
+              <span :class="['field-label', { required: userWorkspace.draft.userType === '外部用户' }]">关联账号 / 关联人员 <em v-if="userWorkspace.draft.userType === '外部用户'">必填</em></span>
+              <input v-model.trim="userWorkspace.draft.relatedAccount" :readonly="userWorkspaceReadonly" placeholder="外部人员请填写负责对接的内部员工 ITCode 或姓名">
+              <small class="field-help">用于确认外部协作人员的内部对接关系。</small>
+            </label>
+            <label>
+              <span>申请人直线经理</span>
+              <input v-model.trim="userWorkspace.draft.applicantManager" :readonly="userWorkspaceReadonly" placeholder="例如 sunll1">
+            </label>
+            <label>
+              <span>被申请人直线经理</span>
+              <input v-model.trim="userWorkspace.draft.targetManager" :readonly="userWorkspaceReadonly" placeholder="例如 wangxt8">
+            </label>
+            <label class="full">
+              <span>申请原因 / 需求描述</span>
+              <textarea v-model.trim="userWorkspace.draft.requestReason" :readonly="userWorkspaceReadonly" rows="3" placeholder="请描述业务场景、需要开通的权限、使用周期和影响范围。"></textarea>
             </label>
             <label>
               <span class="field-label required">有效期 <em>必填</em></span>
@@ -1856,22 +1923,63 @@
           <div v-else class="custom-rule-panel">
             <div class="permission-subhead custom-rule-head">
               <div><b>用户自定义授权</b><small>用于记录角色之外的字段级、组织级、地域级或临时数据授权。</small></div>
-              <button v-if="!userWorkspaceReadonly" type="button" class="ghost-btn" :disabled="userNormalDataLocked" @click="addUserCustomDataRule">新增自定义授权</button>
+              <div v-if="!userWorkspaceReadonly" class="custom-add-menu">
+                <button type="button" class="ghost-btn" :disabled="userNormalDataLocked" @click="userWorkspace.customMenuPickerVisible = !userWorkspace.customMenuPickerVisible">添加</button>
+                <div v-if="userWorkspace.customMenuPickerVisible" class="custom-add-menu-list">
+                  <button v-for="option in availableCustomMenuOptions(userWorkspace.draft.customDataRules)" :key="option.key" type="button" @click="addUserCustomDataRule(option.key)">{{ option.name }}</button>
+                  <small v-if="!availableCustomMenuOptions(userWorkspace.draft.customDataRules).length" class="custom-add-empty">已添加全部一级菜单</small>
+                </div>
+              </div>
             </div>
-            <table v-if="userWorkspace.draft.customDataRules.length" class="permission-table custom-rule-table">
-              <thead><tr><th>数据集</th><th>字段范围</th><th>组织范围</th><th>地域范围</th><th>生效周期</th><th>备注</th><th>操作</th></tr></thead>
-              <tbody>
-                <tr v-for="rule in userWorkspace.draft.customDataRules" :key="rule.id">
-                  <td><input v-model.trim="rule.dataset" :readonly="userWorkspaceReadonly" placeholder="数据集"></td>
-                  <td><input v-model.trim="rule.fields" :readonly="userWorkspaceReadonly" placeholder="字段范围"></td>
-                  <td><input v-model.trim="rule.organization" :readonly="userWorkspaceReadonly" placeholder="组织范围"></td>
-                  <td><input v-model.trim="rule.region" :readonly="userWorkspaceReadonly" placeholder="地域范围"></td>
-                  <td><input v-model.trim="rule.period" :readonly="userWorkspaceReadonly" placeholder="生效周期"></td>
-                  <td><input v-model.trim="rule.remark" :readonly="userWorkspaceReadonly" placeholder="选填"></td>
-                  <td><button v-if="!userWorkspaceReadonly" type="button" class="link-btn danger" @click="removeUserCustomDataRule(rule.id)">删除</button></td>
-                </tr>
-              </tbody>
-            </table>
+            <div v-if="userWorkspace.draft.customDataRules.length" class="custom-rule-menu-list">
+              <article v-for="menu in userWorkspace.draft.customDataRules" :key="menu.id" class="custom-menu-card">
+                <div class="custom-menu-head">
+                  <div>
+                    <b>{{ menu.menuName }}</b>
+                    <small>{{ customRuleMenuDescription(menu.menuKey) }}</small>
+                  </div>
+                  <div class="custom-menu-actions">
+                    <button v-if="!userWorkspaceReadonly" type="button" class="ghost-btn small" @click="addCustomRuleGroup(menu)">新增条件组</button>
+                    <button v-if="!userWorkspaceReadonly" type="button" class="link-btn danger" @click="removeCustomRuleMenu(userWorkspace.draft.customDataRules, menu.id)">删除菜单</button>
+                  </div>
+                </div>
+                <div :class="['custom-logic-rail', { connected: menu.groups.length > 1 }]">
+                  <article v-for="(group, groupIndex) in menu.groups" :key="group.id" class="custom-rule-group">
+                    <span v-if="groupIndex > 0" class="logic-connector">
+                      <button type="button" :disabled="userWorkspaceReadonly" @click="toggleCustomRuleGroupLogic(group)">{{ customLogicLabel(group.relation) }}</button>
+                    </span>
+                    <div class="custom-group-head">
+                      <b>{{ group.title || '业务条件' }}</b>
+                      <button v-if="!userWorkspaceReadonly && menu.groups.length > 1" type="button" class="link-btn danger" @click="removeCustomRuleGroup(menu, group.id)">删除条件组</button>
+                    </div>
+                    <div class="custom-condition-list">
+                      <div v-for="(condition, conditionIndex) in group.conditions" :key="condition.id" class="custom-condition-row">
+                        <span :class="['condition-connector', { hidden: conditionIndex === 0 }]">且</span>
+                        <select v-model="condition.dimension" :disabled="userWorkspaceReadonly">
+                          <option v-for="option in customConditionDimensions" :key="option" :value="option">{{ option }}</option>
+                        </select>
+                        <select v-model="condition.operator" :disabled="userWorkspaceReadonly">
+                          <option value="包含">包含</option>
+                          <option value="等于">等于</option>
+                          <option value="不包含">不包含</option>
+                        </select>
+                        <div class="custom-value-list">
+                          <span v-for="(value, valueIndex) in condition.values" :key="valueIndex" class="custom-value-chip">
+                            <input v-model.trim="condition.values[valueIndex]" :readonly="userWorkspaceReadonly" placeholder="请输入值">
+                            <button v-if="!userWorkspaceReadonly && condition.values.length > 1" type="button" @click="removeCustomConditionValue(condition, valueIndex)">×</button>
+                          </span>
+                          <button v-if="!userWorkspaceReadonly" type="button" class="chip-add-btn" @click="addCustomConditionValue(condition)">+ 值</button>
+                        </div>
+                        <button v-if="!userWorkspaceReadonly && group.conditions.length > 1" type="button" class="link-btn danger" @click="removeCustomCondition(group, condition.id)">删除</button>
+                      </div>
+                    </div>
+                    <div class="custom-group-actions">
+                      <button v-if="!userWorkspaceReadonly" type="button" class="ghost-btn small" @click="addCustomCondition(group)">添加且条件</button>
+                    </div>
+                  </article>
+                </div>
+              </article>
+            </div>
             <div v-else class="scope-empty compact-empty"><b>还没有自定义授权</b><p>普通授权无法覆盖的临时或特殊范围，可以在这里新增规则。</p></div>
           </div>
         </section>
@@ -1952,23 +2060,94 @@
     </div>
 
     <div v-if="userStatusConfirm.visible && statusTargetUser" class="permission-modal" @click.self="closeUserStatusConfirm">
-      <div class="modal-panel small">
+      <div class="modal-panel status-confirm-modal">
         <button type="button" class="modal-close" @click="closeUserStatusConfirm">×</button>
-        <h3>{{ userStatusConfirm.action === 'disable' ? '禁用用户确认' : '启用用户确认' }}</h3>
-        <p class="modal-note">{{ statusTargetUser.name }}（{{ statusTargetUser.loginAccount }}）{{ userStatusConfirm.action === 'disable' ? '禁用后将无法登录工作台，相关导出、发布、审批能力会暂停；已有角色和权限保留，但不可使用。' : '启用后将恢复登录和已有角色、用户单独授权权限的使用。' }}</p>
-        <label class="modal-form-field">
-          <span class="field-label required">申请单号 <em>必填</em></span>
-          <input v-model.trim="userStatusConfirm.applicationNo" :class="{ invalid: userStatusConfirm.applicationNoError }" placeholder="请输入启用/禁用审批对应的申请单号">
-          <small v-if="userStatusConfirm.applicationNoError" class="field-error">{{ userStatusConfirm.applicationNoError }}</small>
-        </label>
-        <label class="modal-form-field">
-          <span :class="['field-label', { required: userStatusConfirm.action === 'disable' }]">原因 / 备注 <em v-if="userStatusConfirm.action === 'disable'">必填</em></span>
-          <input v-model.trim="userStatusConfirm.reason" :class="{ invalid: userStatusConfirm.error }" placeholder="请说明操作原因，便于历史追溯">
-          <small v-if="userStatusConfirm.error" class="field-error">{{ userStatusConfirm.error }}</small>
-        </label>
-        <div class="modal-actions">
+        <div class="role-editor-head">
+          <div>
+            <h3>{{ userStatusConfirm.action === 'disable' ? '禁用账号' : '启用账号' }}</h3>
+            <p>{{ userStatusConfirm.action === 'disable' ? '关闭账号登录、导出、发布和后台操作权限。' : '恢复已停用账号的登录和业务操作能力。' }}</p>
+          </div>
+          <span class="table-status" :class="userStatusConfirm.action === 'disable' ? 'rejected' : 'done'">{{ userStatusConfirm.action === 'disable' ? '禁用申请' : '启用申请' }}</span>
+        </div>
+
+        <div class="status-apply-type-card">
+          <span>{{ userStatusConfirm.action === 'disable' ? '04' : '03' }}</span>
+          <div>
+            <b>{{ userStatusConfirm.action === 'disable' ? '禁用账号' : '启用账号' }}</b>
+            <small>直线经理 + 系统审批</small>
+          </div>
+        </div>
+
+        <div class="permission-form-grid status-apply-form">
+          <div class="permission-form-field full">
+            <span class="field-label required">人员类型 <em>必填</em></span>
+            <div class="person-type-switch compact" role="radiogroup" aria-label="人员类型">
+              <button type="button" :class="{ active: statusTargetUser.userType !== '外部用户' }" role="radio" :aria-checked="statusTargetUser.userType !== '外部用户'" disabled>
+                <b>内部人员</b>
+                <small>联想内部员工或已有正式账号人员。</small>
+              </button>
+              <button type="button" :class="{ active: statusTargetUser.userType === '外部用户' }" role="radio" :aria-checked="statusTargetUser.userType === '外部用户'" disabled>
+                <b>外部人员</b>
+                <small>供应商、外包或临时协作人员。</small>
+              </button>
+            </div>
+          </div>
+          <label>
+            <span>申请人</span>
+            <input :value="statusTargetUser.applicant || 'admin'" readonly>
+          </label>
+          <label>
+            <span>ITCode</span>
+            <input :value="statusTargetUser.applicantItcode || 'admin'" readonly>
+          </label>
+          <label>
+            <span class="field-label required">被申请人 <em>必填</em></span>
+            <input :value="statusTargetUser.name" readonly>
+          </label>
+          <label>
+            <span class="field-label required">被申请人 ITCode <em>必填</em></span>
+            <input :value="statusTargetUser.loginAccount" readonly>
+          </label>
+          <label>
+            <span>手机号</span>
+            <input :value="statusTargetUser.mobile || '未填写'" readonly>
+          </label>
+          <label class="relation-account-field">
+            <span :class="['field-label', { required: statusTargetUser.userType === '外部用户' }]">关联账号 / 关联人员 <em v-if="statusTargetUser.userType === '外部用户'">必填</em></span>
+            <input :value="statusTargetUser.relatedAccount || '无'" readonly>
+            <small class="field-help">用于确认外部协作人员的内部对接关系。</small>
+          </label>
+          <label class="email-field">
+            <span>邮箱</span>
+            <input :value="statusTargetUser.email || '未填写'" readonly>
+          </label>
+          <label>
+            <span>申请人直线经理</span>
+            <input :value="statusTargetUser.applicantManager || 'sunll1'" readonly>
+          </label>
+          <label>
+            <span>被申请人直线经理</span>
+            <input :value="statusTargetUser.targetManager || 'wangxt8'" readonly>
+          </label>
+          <label class="full">
+            <span class="field-label required">申请原因 / 需求描述 <em>必填</em></span>
+            <textarea v-model.trim="userStatusConfirm.reason" :class="{ invalid: userStatusConfirm.error }" rows="4" :placeholder="userStatusConfirm.action === 'disable' ? '请说明禁用账号的业务原因、影响范围和是否需要保留已有权限。' : '请说明启用账号的业务原因、恢复使用的范围和期望生效时间。'"></textarea>
+            <small v-if="userStatusConfirm.error" class="field-error">{{ userStatusConfirm.error }}</small>
+          </label>
+          <label>
+            <span>系统审批人</span>
+            <input value="sunzh4" readonly>
+          </label>
+          <label>
+            <span class="field-label required">申请单号 <em>必填</em></span>
+            <input v-model.trim="userStatusConfirm.applicationNo" :class="{ invalid: userStatusConfirm.applicationNoError }" placeholder="请输入启用/禁用审批对应的申请单号">
+            <small v-if="userStatusConfirm.applicationNoError" class="field-error">{{ userStatusConfirm.applicationNoError }}</small>
+          </label>
+        </div>
+
+        <div class="modal-actions sticky-actions">
           <button type="button" class="ghost-btn" @click="closeUserStatusConfirm">取消</button>
-          <button type="button" :class="userStatusConfirm.action === 'disable' ? 'danger-btn' : 'primary-btn'" @click="confirmUserStatusChange">确认{{ userStatusConfirm.action === 'disable' ? '禁用' : '启用' }}</button>
+          <button type="button" :class="userStatusConfirm.action === 'disable' ? 'danger-btn' : 'primary-btn'" @click="confirmUserStatusChange">提交{{ userStatusConfirm.action === 'disable' ? '禁用' : '启用' }}申请</button>
         </div>
       </div>
     </div>
@@ -2181,7 +2360,8 @@ const form = reactive({
   relatedAccount: '',
   mobile: '13800000000',
   email: 'zhangrui32@lenovo.com',
-  manager: 'sunll1',
+  applicantManager: 'sunll1',
+  targetManager: 'wangxt8',
   businessApprover: 'zhangjq4（消费业务 to C）',
   systemApprover: 'sunzh4',
   reason: '需要联动运营看板、商品管理和 Skill Hub 进行日常数据查询、报告生成和配置确认。',
@@ -2730,7 +2910,10 @@ const approvals = ref([
     applicant: 'sunll1',
     applicantItcode: 'sunll1',
     target: 'liwen08',
-    nodeType: 'manager',
+    nodeType: 'applicant-manager',
+    targetItcode: 'liwen08',
+    applicantManager: 'sunll1',
+    targetManager: 'huangjq5',
     approverItcode: 'sunll1',
     handlers: ['sunll1'],
     time: '2026-07-13 09:48',
@@ -2838,6 +3021,22 @@ const sensitivityOptions = [
   { value: 'it-config-data', label: 'IT 配置数据（高风险）', risk: 'high', desc: '涉及系统配置、租户、接口或高影响后台数据。' }
 ]
 
+const customDataMenuOptions = [
+  { key: 'product-ai', name: '商品AI助手', desc: '控制商品、FA、业务线等商品助手可见数据。' },
+  { key: 'data-ai', name: '数据AI助手', desc: '控制 Chat、报表等数据助手的数据来源和品类范围。' }
+]
+const customConditionDimensions = ['数据来源', '业务', 'FA', '一级品类', '二级品类', '组织', '地域', '字段', '生效周期']
+const customConditionPresets = {
+  'product-ai': [
+    { dimension: '业务', values: ['消费业务'] },
+    { dimension: 'FA', values: ['FA01', 'FA02'] }
+  ],
+  'data-ai': [
+    { dimension: '数据来源', values: ['Chat'] },
+    { dimension: '业务', values: ['消费业务'] },
+    { dimension: '一级品类', values: ['消费PC'] }
+  ]
+}
 const roleFilters = reactive({
   keyword: '',
   group: ''
@@ -2868,6 +3067,7 @@ const roleEditor = reactive({
   roleId: '',
   activeTab: 'basic',
   dataTab: 'normal',
+  customMenuPickerVisible: false,
   draft: emptyRoleDraft(),
   notice: '',
   errors: {
@@ -3010,6 +3210,7 @@ const userWorkspace = reactive({
   userAccount: '',
   activeTab: 'basic',
   dataTab: 'normal',
+  customMenuPickerVisible: false,
   loginFilter: 'all',
   applicationNo: '',
   generatedApplicationNo: '',
@@ -3017,6 +3218,7 @@ const userWorkspace = reactive({
   notice: '',
   errors: {
     userAccount: '',
+    name: '',
     loginAccount: '',
     validUntil: '',
     internalAdAccount: '',
@@ -3386,6 +3588,7 @@ const activeFunctionMenuLeaves = computed(() => activeFunctionMenuChild.value?.c
 const availableFunctionInterfaces = computed(() => functionInterfaceCatalog.filter((api) => !functionEditor.draft.interfaces.some((item) => item.id === api.id)))
 const selectedFunctionInterface = computed(() => functionInterfaceCatalog.find((api) => api.id === functionEditor.selectedInterfaceId) || null)
 const isExternalPerson = computed(() => form.personType === 'external')
+const isSelfApplication = computed(() => samePrincipal(form.itcode, form.targetUser))
 const selectedRoles = computed(() => allRoles.filter((role) => selectedRoleIds.value.includes(role.id)))
 const copiedRoles = computed(() => allRoles.filter((role) => copiedRoleIds.value.includes(role.id)))
 const allSelectedRoles = computed(() => allRoles.filter((role) => [...selectedRoleIds.value, ...copiedRoleIds.value].includes(role.id)))
@@ -3428,8 +3631,15 @@ const approvalNodes = computed(() => {
   if (isExternalPerson.value) {
     nodes.push({ label: '关联人审批', owner: form.relatedAccount || '待填写关联人员', done: false })
   }
+  if (isSelfApplication.value) {
+    nodes.push({ label: '被申请人直线经理审批', owner: form.targetManager || '待带出', done: false })
+  } else {
+    nodes.push(
+      { label: '申请人直线经理审批', owner: form.applicantManager || '待带出', done: false },
+      { label: '被申请人直线经理审批', owner: form.targetManager || '待带出', done: false }
+    )
+  }
   nodes.push(
-    { label: '直线经理审批', owner: form.manager, done: false },
     { label: '业务审批', owner: form.businessApprover || '待选择', done: false },
     { label: '系统审批 / 后台执行', owner: form.systemApprover, done: false }
   )
@@ -3438,7 +3648,7 @@ const approvalNodes = computed(() => {
 const handlerCandidateOptions = computed(() => {
   const values = new Set()
   approvals.value.forEach((row) => {
-    ;[row.approverItcode, row.applicantItcode, row.manager, row.systemApprover, ...row.handlers].forEach((item) => {
+    ;[row.approverItcode, row.applicantItcode, row.targetItcode, row.applicantManager, row.targetManager, row.systemApprover, ...row.handlers].forEach((item) => {
       if (item) values.add(parseApproverItcode(item))
     })
   })
@@ -3473,10 +3683,11 @@ const activeApprovalBasicFields = computed(() => {
     { label: '申请单号', value: row.id },
     { label: '申请类型', value: row.type },
     { label: '申请人', value: `${row.applicant}（${row.applicantItcode}）` },
-    { label: '被申请人', value: row.target },
+    { label: '被申请人', value: `${row.target}（${row.targetItcode}）` },
     { label: '人员类型', value: row.personType === 'external' ? '外部人员' : '内部人员' },
     { label: '关联账号 / 关联人员', value: row.relatedAccount || '无' },
-    { label: '直线经理', value: row.manager },
+    { label: '申请人直线经理', value: row.applicantManager },
+    { label: '被申请人直线经理', value: row.targetManager },
     { label: '业务审批人', value: row.businessApprover },
     { label: '系统审批人', value: row.systemApprover },
     { label: '当前审批人', value: row.approverItcode },
@@ -3487,7 +3698,7 @@ const activeApprovalBasicFields = computed(() => {
   if (row.businessInfo?.tenant) fields.push({ label: '所属租户', value: row.businessInfo.tenant })
   return fields
 })
-const canEditApprovalPermission = computed(() => approvalWorkspace.mode === 'approve' && approvalWorkspace.nodeType === 'manager')
+const canEditApprovalPermission = computed(() => approvalWorkspace.mode === 'approve' && ['applicant-manager', 'target-manager'].includes(approvalWorkspace.nodeType))
 const canEditBusinessOwnership = computed(() => approvalWorkspace.mode === 'approve' && approvalWorkspace.nodeType === 'business')
 const activeApprovalHasPermission = computed(() => hasPermissionSources.value)
 const activeApprovalPermissionSummary = computed(() => scopeSummaryText.value)
@@ -3497,19 +3708,22 @@ const approvalResultOptions = computed(() => [
 ])
 const approvalDecisionTitle = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '关联确认'
-  if (approvalWorkspace.nodeType === 'manager') return '直线经理审批'
+  if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理审批'
+  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理审批'
   return '业务负责人审批'
 })
 const approvalDecisionHint = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '关联人只能确认关系并填写审批意见，申请信息和权限信息不可编辑。'
-  if (approvalWorkspace.nodeType === 'manager') return '经理可在审批中调整权限范围，再提交审批结论。'
+  if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理先确认申请合理性，通过后流转给被申请人直线经理。'
+  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理拥有最终决定权和解释权，可确认权限范围后提交。'
   return '业务负责人需填写业务归属，权限范围只读不可修改。'
 })
 const approvalSubmitImpact = computed(() => {
   if (!approvalWorkspace.result) return '请选择审批结果后提交。'
   if (approvalWorkspace.result === 'reject') return '申请将退回申请人修改，列表状态变为已驳回。'
-  if (approvalWorkspace.nodeType === 'relation') return '确认通过后，申请进入直线经理审批。'
-  if (approvalWorkspace.nodeType === 'manager') return '经理审批通过后，申请进入业务负责人审批。'
+  if (approvalWorkspace.nodeType === 'relation') return '确认通过后，申请进入下一位直线经理审批。'
+  if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理审批通过后，申请进入被申请人直线经理审批。'
+  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理审批通过后，申请进入业务负责人审批。'
   return '业务审批通过后，申请进入后台执行并在 POC 中标记执行完成。'
 })
 
@@ -3863,7 +4077,9 @@ function resetRoleFilters() {
 }
 
 function cloneRole(role) {
-  return JSON.parse(JSON.stringify(role || emptyRoleDraft()))
+  const nextRole = JSON.parse(JSON.stringify(role || emptyRoleDraft()))
+  nextRole.customDataRules = normalizeCustomDataRules(nextRole.customDataRules)
+  return nextRole
 }
 
 function resetRoleEditorErrors() {
@@ -3879,6 +4095,7 @@ function openRoleEditor(mode, role = null) {
   roleEditor.roleId = role?.id || ''
   roleEditor.activeTab = 'basic'
   roleEditor.notice = mode === 'view' ? '当前为只读查看。' : ''
+  roleEditor.customMenuPickerVisible = false
   roleEditor.draft = cloneRole(role || emptyRoleDraft())
   roleEditor.dataTab = roleEditor.draft.customDataRules.length ? 'custom' : 'normal'
 }
@@ -3886,6 +4103,7 @@ function openRoleEditor(mode, role = null) {
 function closeRoleEditor() {
   roleEditor.visible = false
   roleEditor.notice = ''
+  roleEditor.customMenuPickerVisible = false
 }
 
 function switchRoleEditorToEdit() {
@@ -3966,26 +4184,19 @@ function toggleRoleDataPermission(id) {
   }
 }
 
-function addCustomDataRule() {
+function addCustomDataRule(key = '') {
   if (roleEditorReadonly.value) return
   if (roleNormalDataLocked.value) {
     roleEditor.errors.dataMode = '当前已有普通授权，需取消普通授权后才能使用自定义授权。'
     return
   }
   roleEditor.errors.dataMode = ''
-  roleEditor.draft.customDataRules.push({
-    id: `rule-${Date.now()}`,
-    dataset: '运营数据集',
-    fields: '字段范围待填写',
-    organization: roleEditor.draft.group || '乐享运营',
-    region: '全国',
-    period: '长期有效',
-    remark: ''
-  })
+  addCustomRuleMenu(roleEditor.draft.customDataRules, key)
+  roleEditor.customMenuPickerVisible = false
 }
 
 function removeCustomDataRule(id) {
-  roleEditor.draft.customDataRules = roleEditor.draft.customDataRules.filter((rule) => rule.id !== id)
+  removeCustomRuleMenu(roleEditor.draft.customDataRules, id)
   roleEditor.errors.dataMode = ''
 }
 
@@ -4051,7 +4262,12 @@ function submitApplication() {
     currentStep.value = 1
     return
   }
-  const nodeType = isExternalPerson.value ? 'relation' : 'manager'
+  const targetItcode = parseApproverItcode(form.targetUser) || '待补充'
+  const firstManagerNode = isSelfApplication.value ? 'target-manager' : 'applicant-manager'
+  const nodeType = isExternalPerson.value ? 'relation' : firstManagerNode
+  const firstApprover = nodeType === 'relation'
+    ? form.relatedAccount
+    : (nodeType === 'target-manager' ? form.targetManager : form.applicantManager)
   approvals.value.unshift(createApprovalRow({
     id: `AP-20260713-${String(approvals.value.length + 11).padStart(3, '0')}`,
     typeKey: form.type,
@@ -4060,12 +4276,14 @@ function submitApplication() {
     applicantItcode: form.itcode,
     applicantEmail: form.itcode + '@lenovo.com',
     target: form.targetUser || '待补充',
+    targetItcode,
     nodeType,
-    approverItcode: nodeType === 'relation' ? form.relatedAccount : form.manager,
-    handlers: [nodeType === 'relation' ? form.relatedAccount : form.manager].filter(Boolean),
+    approverItcode: firstApprover,
+    handlers: [firstApprover].filter(Boolean),
     personType: form.personType,
     relatedAccount: form.relatedAccount,
-    manager: form.manager,
+    applicantManager: form.applicantManager,
+    targetManager: form.targetManager,
     businessApprover: form.businessApprover,
     systemApprover: form.systemApprover,
     reason: form.reason,
@@ -4321,7 +4539,8 @@ function applyPermissionSnapshotToEditor(snapshot = {}) {
 }
 
 function createApprovalRow(payload) {
-  const nodeMeta = approvalNodeMeta(payload.nodeType)
+  const normalizedNodeType = payload.nodeType || (samePrincipal(payload.applicantItcode || payload.applicant, payload.targetItcode || payload.target) ? 'target-manager' : 'applicant-manager')
+  const nodeMeta = approvalNodeMeta(normalizedNodeType)
   const permissionSnapshot = payload.permissionSnapshot || emptyPermissionSnapshot()
   return {
     id: payload.id,
@@ -4331,15 +4550,18 @@ function createApprovalRow(payload) {
     applicantItcode: payload.applicantItcode || payload.applicant || 'admin',
     applicantEmail: payload.applicantEmail || ((payload.applicantItcode || payload.applicant || 'admin') + '@lenovo.com'),
     target: payload.target || '待补充',
+    targetItcode: payload.targetItcode || parseApproverItcode(payload.target) || '待补充',
     personType: payload.personType || 'internal',
     relatedAccount: payload.relatedAccount || '',
     mobile: payload.mobile || '13800000000',
     email: payload.email || `${payload.target || 'user'}@lenovo.com`,
-    manager: payload.manager || 'sunll1',
+    applicantManager: payload.applicantManager || payload.manager || 'sunll1',
+    targetManager: payload.targetManager || payload.manager || 'wangxt8',
+    manager: payload.applicantManager || payload.manager || 'sunll1',
     businessApprover: payload.businessApprover || 'zhangjq4（消费业务 to C）',
     systemApprover: payload.systemApprover || 'sunzh4',
     reason: payload.reason || '需要根据业务职责开通或调整乐享 AI 工作台权限。',
-    nodeType: payload.nodeType || 'manager',
+    nodeType: normalizedNodeType,
     node: payload.node || nodeMeta.label,
     approverItcode: payload.approverItcode || nodeMeta.owner || 'sunll1',
     handlers: payload.handlers?.length ? [...payload.handlers] : [payload.approverItcode || nodeMeta.owner || 'sunll1'],
@@ -4378,13 +4600,30 @@ function emptyPermissionSnapshot() {
 function approvalNodeMeta(nodeType) {
   const map = {
     relation: { label: '关联人审批', owner: 'wangxt8', status: '待我审批', statusKey: 'pending' },
-    manager: { label: '直线经理审批', owner: 'sunll1', status: '待我审批', statusKey: 'pending' },
+    'applicant-manager': { label: '申请人直线经理审批', owner: 'sunll1', status: '待我审批', statusKey: 'pending' },
+    'target-manager': { label: '被申请人直线经理审批', owner: 'wangxt8', status: '待我审批', statusKey: 'pending' },
     business: { label: '业务负责人审批', owner: 'zhangjq4', status: '待我审批', statusKey: 'pending' },
     execute: { label: '后台执行', owner: 'sunzh4', status: '已通过', statusKey: 'approved' },
     done: { label: '后台执行', owner: 'sunzh4', status: '执行完成', statusKey: 'done' },
     rework: { label: '申请人修改', owner: '申请人', status: '已驳回', statusKey: 'rejected' }
   }
-  return map[nodeType] || map.manager
+  return map[nodeType] || map['target-manager']
+}
+
+function normalizePrincipal(value) {
+  return parseApproverItcode(value).toLowerCase()
+}
+
+function samePrincipal(left, right) {
+  return !!normalizePrincipal(left) && normalizePrincipal(left) === normalizePrincipal(right)
+}
+
+function isSameApplicantAndTarget(row) {
+  return samePrincipal(row.applicantItcode, row.targetItcode || row.target)
+}
+
+function nextManagerNodeType(row) {
+  return isSameApplicantAndTarget(row) ? 'target-manager' : 'applicant-manager'
 }
 
 function parseApproverItcode(value) {
@@ -4446,7 +4685,8 @@ function openApprovalWorkspace(row, mode) {
 
 function approvalDecisionTitleByNode(nodeType) {
   if (nodeType === 'relation') return '关联确认'
-  if (nodeType === 'manager') return '直线经理审批'
+  if (nodeType === 'applicant-manager') return '申请人直线经理审批'
+  if (nodeType === 'target-manager') return '被申请人直线经理审批'
   if (nodeType === 'business') return '业务负责人审批'
   return '审批处理'
 }
@@ -4513,15 +4753,22 @@ function submitApprovalDecision() {
       handlers: [row.applicantItcode]
     })
   } else if (approvalWorkspace.nodeType === 'relation') {
-    updateApprovalNode(row, 'manager', {
-      approverItcode: row.manager,
-      handlers: [row.manager]
+    const nextNodeType = nextManagerNodeType(row)
+    const nextApprover = nextNodeType === 'target-manager' ? row.targetManager : row.applicantManager
+    updateApprovalNode(row, nextNodeType, {
+      approverItcode: nextApprover,
+      handlers: [nextApprover]
     })
-  } else if (approvalWorkspace.nodeType === 'manager') {
+  } else if (approvalWorkspace.nodeType === 'applicant-manager') {
+    updateApprovalNode(row, 'target-manager', {
+      approverItcode: row.targetManager,
+      handlers: [row.targetManager]
+    })
+  } else if (approvalWorkspace.nodeType === 'target-manager') {
     const businessItcode = parseApproverItcode(row.businessApprover)
     updateApprovalNode(row, 'business', {
       approverItcode: businessItcode,
-      handlers: [businessItcode, row.manager]
+      handlers: [businessItcode, row.targetManager]
     })
   } else {
     updateApprovalNode(row, 'done', {
@@ -4571,6 +4818,12 @@ function emptyUserDraft() {
     userAccount: `U-${Date.now().toString().slice(-5)}`,
     loginAccount: '',
     name: '',
+    applicant: 'admin',
+    applicantItcode: 'admin',
+    relatedAccount: '',
+    applicantManager: 'sunll1',
+    targetManager: 'wangxt8',
+    requestReason: '需要根据业务职责开通或调整乐享 AI 工作台权限。',
     bindItcode: true,
     mobile: '',
     email: '',
@@ -4594,11 +4847,17 @@ function emptyUserDraft() {
 
 function cloneUser(user) {
   const nextUser = JSON.parse(JSON.stringify(user || emptyUserDraft()))
+  nextUser.applicant ||= 'admin'
+  nextUser.applicantItcode ||= 'admin'
+  nextUser.relatedAccount ||= ''
+  nextUser.applicantManager ||= 'sunll1'
+  nextUser.targetManager ||= 'wangxt8'
+  nextUser.requestReason ||= nextUser.remark || '需要根据业务职责开通或调整乐享 AI 工作台权限。'
   nextUser.roleIds ||= []
   nextUser.extraFunctionPermissionIds = []
   nextUser.extraDataPermissionIds ||= []
   nextUser.suppressedRoleDataPermissionIds ||= []
-  nextUser.customDataRules ||= []
+  nextUser.customDataRules = normalizeCustomDataRules(nextUser.customDataRules || [])
   nextUser.changeLogs ||= []
   nextUser.loginLogs ||= []
   return nextUser
@@ -4620,6 +4879,7 @@ function openUserWorkspace(mode, user = null) {
   userWorkspace.applicationNo = ''
   userWorkspace.generatedApplicationNo = ''
   userWorkspace.notice = mode === 'view' ? '当前为只读详情。' : ''
+  userWorkspace.customMenuPickerVisible = false
   userWorkspace.draft = cloneUser(user || emptyUserDraft())
   userWorkspace.dataTab = userWorkspace.draft.customDataRules.length ? 'custom' : 'normal'
 }
@@ -4632,6 +4892,7 @@ function openUserDataWorkspace(user) {
 function closeUserWorkspace() {
   userWorkspace.visible = false
   userWorkspace.notice = ''
+  userWorkspace.customMenuPickerVisible = false
   userWorkspace.draft = null
 }
 
@@ -4654,7 +4915,8 @@ function validateUserWorkspace() {
   const draft = userWorkspace.draft
   if (!draft) return false
   userWorkspace.errors.userAccount = draft.userAccount ? '' : '请填写用户账号，用于识别用户主档。'
-  userWorkspace.errors.loginAccount = draft.loginAccount ? '' : '请填写登陆账号，用户登录工作台时需要使用。'
+  userWorkspace.errors.name = draft.name ? '' : '请填写被申请人，便于审批人确认对象。'
+  userWorkspace.errors.loginAccount = draft.loginAccount ? '' : '请填写被申请人 ITCode，用于识别被申请账号。'
   userWorkspace.errors.validUntil = draft.validUntil ? '' : '请填写有效期，例如 2026-12-31 或长期有效。'
   userWorkspace.errors.internalAdAccount = draft.bindItcode && !draft.internalAdAccount ? '已绑定 IT code 时需要填写内部 AD 账户。' : ''
   userWorkspace.errors.applicationNo = showUserApplicationNoField.value && !userWorkspace.applicationNo ? '权限变更需要填写申请单号，用于关联审批流程。' : ''
@@ -4705,15 +4967,140 @@ function sameIdSet(left = [], right = []) {
   return JSON.stringify(sortedIds(left)) === JSON.stringify(sortedIds(right))
 }
 
+function customRuleMenuOption(key) {
+  return customDataMenuOptions.find((option) => option.key === key) || customDataMenuOptions[0]
+}
+
+function customRuleMenuDescription(key) {
+  return customRuleMenuOption(key).desc
+}
+
+function availableCustomMenuOptions(rules = []) {
+  const usedKeys = new Set((rules || []).map((rule) => rule.menuKey))
+  return customDataMenuOptions.filter((option) => !usedKeys.has(option.key))
+}
+
+function customLogicLabel(value) {
+  return value === 'AND' ? '且' : '或'
+}
+
+function nextCustomId(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+}
+
+function createCustomCondition(dimension = '业务', values = ['待填写'], id = '') {
+  return {
+    id: id || nextCustomId('condition'),
+    dimension,
+    operator: '包含',
+    values: Array.isArray(values) && values.length ? [...values] : ['待填写']
+  }
+}
+
+function createCustomRuleGroup(menuKey = 'product-ai', title = '业务条件', conditions = null, id = '', relation = 'OR') {
+  const preset = conditions || (customConditionPresets[menuKey] || customConditionPresets['product-ai']).map((item) => createCustomCondition(item.dimension, item.values))
+  return {
+    id: id || nextCustomId('group'),
+    relation,
+    title,
+    conditions: preset.length ? preset : [createCustomCondition()]
+  }
+}
+
+function createCustomRuleMenu(key = '') {
+  const usedKey = key || customDataMenuOptions[0].key
+  const option = customRuleMenuOption(usedKey)
+  return {
+    id: nextCustomId('menu'),
+    menuKey: option.key,
+    menuName: option.name,
+    groups: [createCustomRuleGroup(option.key, option.key === 'data-ai' ? '数据来源：Chat' : '业务条件', null, '', '')]
+  }
+}
+
+function legacyCustomRuleToMenu(rule = {}) {
+  const dataset = rule.dataset || '运营数据集'
+  const menuKey = dataset.includes('线索') || dataset.includes('运营') || dataset.includes('会员') ? 'data-ai' : 'product-ai'
+  const option = customRuleMenuOption(menuKey)
+  const baseId = rule.id || `legacy-${dataset}`
+  const conditions = [
+    createCustomCondition('数据来源', [dataset], `${baseId}-source`),
+    createCustomCondition('字段', String(rule.fields || '字段范围待填写').split('、').filter(Boolean), `${baseId}-fields`),
+    createCustomCondition('组织', [rule.organization || '乐享运营'], `${baseId}-org`),
+    createCustomCondition('地域', [rule.region || '全国'], `${baseId}-region`)
+  ]
+  if (rule.period) conditions.push(createCustomCondition('生效周期', [rule.period], `${baseId}-period`))
+  return {
+    id: baseId,
+    menuKey: option.key,
+    menuName: option.name,
+    groups: [createCustomRuleGroup(option.key, rule.remark || '历史自定义授权', conditions, `${baseId}-group`, '')]
+  }
+}
+
+function normalizeCustomDataRules(rules = []) {
+  return (rules || []).map((rule) => {
+    if (!rule?.menuKey) return legacyCustomRuleToMenu(rule)
+    const option = customRuleMenuOption(rule.menuKey)
+    return {
+      id: rule.id || nextCustomId('menu'),
+      menuKey: option.key,
+      menuName: rule.menuName || option.name,
+      groups: (rule.groups?.length ? rule.groups : [createCustomRuleGroup(option.key)]).map((group, groupIndex) => ({
+        id: group.id || nextCustomId('group'),
+        relation: groupIndex === 0 ? '' : (group.relation || rule.groupLogic || 'OR'),
+        title: group.title || '业务条件',
+        conditions: (group.conditions?.length ? group.conditions : [createCustomCondition()]).map((condition) => ({
+          id: condition.id || nextCustomId('condition'),
+          dimension: condition.dimension || '业务',
+          operator: condition.operator || '包含',
+          values: condition.values?.length ? condition.values : ['待填写']
+        }))
+      }))
+    }
+  })
+}
+
+function addCustomRuleMenu(rules, key = '') {
+  const option = key ? customRuleMenuOption(key) : availableCustomMenuOptions(rules)[0]
+  if (!option) return
+  rules.push(createCustomRuleMenu(option.key))
+}
+
+function removeCustomRuleMenu(rules, id) {
+  const index = rules.findIndex((rule) => rule.id === id)
+  if (index >= 0) rules.splice(index, 1)
+}
+
+function addCustomRuleGroup(menu) {
+  menu.groups.push(createCustomRuleGroup(menu.menuKey, menu.menuKey === 'data-ai' ? '数据来源：报表' : '业务条件', null, '', 'OR'))
+}
+
+function removeCustomRuleGroup(menu, groupId) {
+  menu.groups = menu.groups.filter((group) => group.id !== groupId)
+}
+
+function toggleCustomRuleGroupLogic(group) {
+  group.relation = group.relation === 'AND' ? 'OR' : 'AND'
+}
+
+function addCustomCondition(group) {
+  group.conditions.push(createCustomCondition())
+}
+
+function removeCustomCondition(group, conditionId) {
+  group.conditions = group.conditions.filter((condition) => condition.id !== conditionId)
+}
+
+function addCustomConditionValue(condition) {
+  condition.values.push('')
+}
+
+function removeCustomConditionValue(condition, index) {
+  condition.values.splice(index, 1)
+}
 function customRulesSignature(rules = []) {
-  return JSON.stringify((rules || []).map((rule) => ({
-    dataset: rule.dataset || '',
-    fields: rule.fields || '',
-    organization: rule.organization || '',
-    region: rule.region || '',
-    period: rule.period || '',
-    remark: rule.remark || ''
-  })))
+  return JSON.stringify(normalizeCustomDataRules(rules))
 }
 
 function hasUserPermissionChanged(original, draft) {
@@ -4743,15 +5130,20 @@ function userPermissionSnapshot(user) {
 }
 
 function approvalNodeForUser(user) {
-  return user?.userType === '外部用户' ? 'relation' : 'manager'
+  if (user?.userType === '外部用户') return 'relation'
+  return samePrincipal('admin', user?.loginAccount || user?.userAccount) ? 'target-manager' : 'applicant-manager'
 }
 
 function userApprovalRelationItcode(user) {
-  return user?.userType === '外部用户' ? (user.internalAdAccount || 'wangxt8') : ''
+  return user?.userType === '外部用户' ? (user.relatedAccount || 'wangxt8') : ''
 }
 
-function userApprovalManagerItcode() {
-  return 'sunll1'
+function userApprovalApplicantManagerItcode(user) {
+  return user?.applicantManager || 'sunll1'
+}
+
+function userApprovalTargetManagerItcode(user) {
+  return user?.targetManager || 'wangxt8'
 }
 
 function userApprovalBusinessApprover() {
@@ -4762,8 +5154,9 @@ function userApprovalStartState(user) {
   const nodeType = approvalNodeForUser(user)
   const meta = approvalNodeMeta(nodeType)
   const relationItcode = userApprovalRelationItcode(user)
-  const managerItcode = userApprovalManagerItcode(user)
-  const approverItcode = nodeType === 'relation' ? relationItcode : managerItcode
+  const applicantManagerItcode = userApprovalApplicantManagerItcode(user)
+  const targetManagerItcode = userApprovalTargetManagerItcode(user)
+  const approverItcode = nodeType === 'relation' ? relationItcode : (nodeType === 'target-manager' ? targetManagerItcode : applicantManagerItcode)
   return {
     nodeType,
     node: meta.label,
@@ -4772,8 +5165,10 @@ function userApprovalStartState(user) {
     status: meta.status,
     statusKey: meta.statusKey,
     personType: user.userType === '外部用户' ? 'external' : 'internal',
-    relatedAccount: relationItcode,
-    manager: managerItcode,
+    relatedAccount: relationItcode || user.relatedAccount || '',
+    applicantManager: applicantManagerItcode,
+    targetManager: targetManagerItcode,
+    manager: applicantManagerItcode,
     businessApprover: userApprovalBusinessApprover(),
     systemApprover: 'sunzh4'
   }
@@ -4788,11 +5183,12 @@ function upsertUserApproval(user, applicationNo, typeKey, type, detail) {
     applicant: 'admin',
     applicantItcode: 'admin',
     applicantEmail: 'admin@lenovo.com',
-    target: user.loginAccount || user.userAccount,
+    target: user.name || user.loginAccount || user.userAccount,
+    targetItcode: user.loginAccount || user.userAccount,
     ...startState,
     mobile: user.mobile,
     email: user.email,
-    reason: detail,
+    reason: user.requestReason || detail,
     permissionSnapshot: userPermissionSnapshot(user),
     time: '2026-07-14 18:30'
   }
@@ -4848,27 +5244,20 @@ function toggleUserExtraData(id) {
   toggleId(userWorkspace.draft.extraDataPermissionIds, id)
 }
 
-function addUserCustomDataRule() {
+function addUserCustomDataRule(key = '') {
   if (userWorkspaceReadonly.value || !userWorkspace.draft) return
   if (userNormalDataLocked.value) {
     userWorkspace.errors.dataMode = '当前已有普通授权，需取消普通授权后才能使用自定义授权。'
     return
   }
   userWorkspace.errors.dataMode = ''
-  userWorkspace.draft.customDataRules.push({
-    id: `user-rule-${Date.now()}`,
-    dataset: '运营数据集',
-    fields: '字段范围待填写',
-    organization: userWorkspace.draft.organization || '乐享运营',
-    region: '全国',
-    period: userWorkspace.draft.validUntil || '长期有效',
-    remark: ''
-  })
+  addCustomRuleMenu(userWorkspace.draft.customDataRules, key)
+  userWorkspace.customMenuPickerVisible = false
 }
 
 function removeUserCustomDataRule(id) {
   if (userWorkspaceReadonly.value || !userWorkspace.draft) return
-  userWorkspace.draft.customDataRules = userWorkspace.draft.customDataRules.filter((rule) => rule.id !== id)
+  removeCustomRuleMenu(userWorkspace.draft.customDataRules, id)
   userWorkspace.errors.dataMode = ''
 }
 
@@ -4960,14 +5349,14 @@ function confirmUserStatusChange() {
   if (!user) return
   userStatusConfirm.applicationNoError = userStatusConfirm.applicationNo ? '' : '启用或禁用用户需要填写申请单号。'
   if (userStatusConfirm.applicationNoError) return
-  if (userStatusConfirm.action === 'disable' && !userStatusConfirm.reason) {
-    userStatusConfirm.error = '禁用用户前请填写原因，方便后续追溯。'
+  if (!userStatusConfirm.reason) {
+    userStatusConfirm.error = userStatusConfirm.action === 'disable' ? '请填写禁用原因，方便审批人判断影响范围。' : '请填写启用原因，方便审批人判断恢复范围。'
     return
   }
   const enabled = userStatusConfirm.action === 'enable'
   user.status = enabled ? 'enabled' : 'disabled'
   user.statusKey = enabled ? 'done' : 'rejected'
-  const detail = enabled ? `已恢复登录和权限使用。${userStatusConfirm.reason || ''}` : `已暂停登录、导出、发布和审批能力。原因：${userStatusConfirm.reason}`
+  const detail = enabled ? "申请恢复登录和权限使用。原因：" + userStatusConfirm.reason : "申请暂停登录、导出、发布和审批能力。原因：" + userStatusConfirm.reason
   appendUserChange(user, enabled ? '启用用户' : '禁用用户', userStatusConfirm.applicationNo, detail)
   upsertUserApproval(user, userStatusConfirm.applicationNo, enabled ? 'enable' : 'disable', enabled ? '启用账号' : '禁用账号', detail)
   closeUserStatusConfirm()
@@ -8716,4 +9105,281 @@ onUnmounted(() => {
     grid-column: auto;
   }
 }
-</style>
+
+
+.status-confirm-modal {
+  width: min(860px, 100%);
+  max-height: min(760px, calc(100vh - 56px));
+  overflow: auto;
+}
+
+.status-apply-type-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.status-apply-type-card > span {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #eaf1ff;
+  color: #316dff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.status-apply-type-card b {
+  display: block;
+  color: #172033;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.status-apply-type-card small {
+  display: block;
+  margin-top: 3px;
+  color: #7a8798;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.status-apply-form {
+  margin-top: 0;
+}
+
+.person-type-switch.compact button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.custom-add-menu {
+  position: relative;
+}
+
+.custom-add-menu-list {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 6px;
+  min-width: 160px;
+  margin-top: 6px;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.custom-add-empty { display: block; padding: 6px 8px; color: #8a96a8; font-size: 12px; }
+
+.custom-add-menu-list button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: transparent;
+  color: #172033;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+}
+
+.custom-add-menu-list button:hover {
+  background: #eef4ff;
+  color: #316dff;
+}
+.custom-rule-menu-list {
+  display: grid;
+  gap: 14px;
+}
+
+.custom-menu-card {
+  min-width: 0;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.custom-menu-head,
+.custom-group-head,
+.custom-menu-actions,
+.custom-group-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.custom-menu-head {
+  margin-bottom: 12px;
+}
+
+.custom-menu-head b,
+.custom-group-head b {
+  color: #172033;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.custom-menu-head small {
+  display: block;
+  margin-top: 4px;
+  color: #7a8798;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.custom-menu-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.custom-logic-rail {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding-left: 34px;
+}
+
+.custom-logic-rail.connected::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 28px;
+  bottom: 28px;
+  border-left: 1px solid #dfc8e7;
+}
+.custom-rule-group {
+  position: relative;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.logic-connector {
+  position: absolute;
+  left: -47px;
+  top: -22px;
+}
+
+.logic-connector button {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #c58ad4;
+  border-radius: 4px;
+  background: #fff;
+  color: #8a3a95;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.logic-connector button:disabled {
+  cursor: default;
+}
+
+.custom-condition-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.custom-condition-row {
+  display: grid;
+  grid-template-columns: 42px 116px 84px minmax(220px, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.condition-connector {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 6px;
+  border: 1px solid #dfc8e7;
+  border-radius: 4px;
+  color: #8a3a95;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.custom-condition-row:first-child .condition-connector {
+  visibility: hidden;
+}
+
+.custom-condition-row select,
+.custom-value-chip input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 36px;
+  border: 1px solid #d8e1ee;
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+  font-size: 13px;
+}
+
+.custom-condition-row select:disabled,
+.custom-value-chip input[readonly] {
+  background: #f8fafc;
+  color: #5b6678;
+}
+
+.custom-value-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.custom-value-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.custom-value-chip button,
+.chip-add-btn {
+  min-height: 28px;
+  border: 1px solid #d8e1ee;
+  border-radius: 6px;
+  background: #fff;
+  color: #316dff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.custom-value-chip button {
+  width: 28px;
+  color: #e53935;
+}
+
+.chip-add-btn {
+  padding: 0 9px;
+}
+
+.custom-group-actions {
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+.condition-connector.hidden {
+  visibility: hidden;
+}</style>
