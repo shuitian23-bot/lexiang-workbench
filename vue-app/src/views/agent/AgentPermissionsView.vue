@@ -193,9 +193,12 @@
                     <div class="bound-permission-grid">
                       <div>
                         <span class="bound-title">功能权限</span>
-                        <div class="permission-chip-list compact">
-                          <span v-for="permission in roleFunctionPermissions(role)" :key="permission.id">{{ permission.name }}</span>
+                        <div v-if="roleFunctionPermissions(role).length" class="permission-chip-list compact role-function-card-preview">
+                          <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                          <em v-if="roleHiddenFunctionCount(role)" class="chip-more">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                          <button v-if="roleHiddenFunctionCount(role)" type="button" class="link-btn chip-detail-btn" @click="openRoleCardDetail(role)">查看详情</button>
                         </div>
+                        <small v-else class="bound-empty">暂无功能权限。</small>
                       </div>
                       <div>
                         <div class="bound-title-row">
@@ -234,9 +237,12 @@
                     <div class="bound-permission-grid">
                       <div>
                         <span class="bound-title">功能权限</span>
-                        <div class="permission-chip-list compact">
-                          <span v-for="permission in roleFunctionPermissions(role)" :key="permission.id">{{ permission.name }}</span>
+                        <div v-if="roleFunctionPermissions(role).length" class="permission-chip-list compact role-function-card-preview">
+                          <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                          <em v-if="roleHiddenFunctionCount(role)" class="chip-more">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                          <button v-if="roleHiddenFunctionCount(role)" type="button" class="link-btn chip-detail-btn" @click="openRoleCardDetail(role)">查看详情</button>
                         </div>
+                        <small v-else class="bound-empty">暂无功能权限。</small>
                       </div>
                       <div>
                         <div class="bound-title-row">
@@ -979,21 +985,58 @@
     </div>
 
     <div v-if="roleModal.visible" class="permission-modal permission-picker-layer" @click.self="closeRoleModal">
-      <div class="modal-panel permission-picker-modal">
+      <div :class="['modal-panel permission-picker-modal role-picker-modal', { 'with-detail': roleModalDetailRole }]">
         <button type="button" class="modal-close" @click="closeRoleModal">×</button>
         <h3>添加角色</h3>
         <p class="modal-note">仅按角色名称和角色中包含的功能权限搜索。</p>
         <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限">
-        <div class="role-picker-list">
-          <label v-for="role in filteredRoleOptions" :key="role.id" class="role-picker-row">
-            <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" @change="toggleTempRole(role.id)">
-            <div>
-              <b>{{ role.name }}</b>
-              <p>{{ role.desc }}</p>
-              <small>功能：{{ role.functionPermissionIds.map(permissionName).join('、') }}</small>
-              <small>数据：{{ role.dataPermissionIds.map(dataPermissionName).join('、') }}</small>
+        <div class="role-picker-layout">
+          <div class="role-picker-list">
+            <article v-for="role in filteredRoleOptions" :key="role.id" :class="['role-picker-row', { active: roleModal.detailRoleId === role.id }]">
+              <label class="role-picker-check">
+                <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" @change="toggleTempRole(role.id)">
+              </label>
+              <div class="role-picker-content">
+                <div class="role-picker-title">
+                  <b>{{ role.name }}</b>
+                  <button type="button" class="link-btn" @click="openRoleDetail(role)">查看详情</button>
+                </div>
+                <p>{{ role.desc }}</p>
+                <div class="role-function-preview">
+                  <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                  <em v-if="roleHiddenFunctionCount(role)">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                  <small v-if="!role.functionPermissionIds.length">暂无功能权限</small>
+                </div>
+                <small>数据：{{ role.dataPermissionIds.map(dataPermissionName).join('、') || '无' }}</small>
+              </div>
+            </article>
+          </div>
+          <aside v-if="roleModalDetailRole" class="role-detail-drawer">
+            <button type="button" class="modal-close drawer-close" @click="closeRoleDetail">×</button>
+            <span class="drawer-eyebrow">角色详情</span>
+            <h4>{{ roleModalDetailRole.name }}</h4>
+            <p>{{ roleModalDetailRole.desc }}</p>
+            <input v-model.trim="roleModal.detailKeyword" class="modal-search-input drawer-search" placeholder="搜索功能权限名称、描述">
+            <div class="role-detail-table-wrap">
+              <table class="role-detail-table">
+                <thead>
+                  <tr>
+                    <th>功能权限名称</th>
+                    <th>描述</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="permission in filteredRoleDetailFunctions(roleModalDetailRole, roleModal.detailKeyword)" :key="permission.id">
+                    <td>{{ permission.name }}</td>
+                    <td>{{ permission.description || '暂无描述' }}</td>
+                  </tr>
+                  <tr v-if="!filteredRoleDetailFunctions(roleModalDetailRole, roleModal.detailKeyword).length">
+                    <td colspan="2">暂无匹配的功能权限</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </label>
+          </aside>
         </div>
         <div class="modal-actions">
           <button type="button" class="ghost-btn" @click="closeRoleModal">取消</button>
@@ -1001,7 +1044,37 @@
         </div>
       </div>
     </div>
-
+    <div v-if="roleCardDetail.visible && roleCardDetailRole" class="permission-modal" @click.self="closeRoleCardDetail">
+      <div class="modal-panel role-card-detail-modal">
+        <button type="button" class="modal-close" @click="closeRoleCardDetail">×</button>
+        <span class="drawer-eyebrow">角色功能权限详情</span>
+        <h3>{{ roleCardDetailRole.name }}</h3>
+        <p class="modal-note">{{ roleCardDetailRole.desc }}</p>
+        <input v-model.trim="roleCardDetail.keyword" class="modal-search-input" placeholder="搜索功能权限名称、描述">
+        <div class="role-detail-table-wrap card-detail-table-wrap">
+          <table class="role-detail-table">
+            <thead>
+              <tr>
+                <th>功能权限名称</th>
+                <th>描述</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="permission in filteredRoleDetailFunctions(roleCardDetailRole, roleCardDetail.keyword)" :key="permission.id">
+                <td>{{ permission.name }}</td>
+                <td>{{ permission.description || '暂无描述' }}</td>
+              </tr>
+              <tr v-if="!filteredRoleDetailFunctions(roleCardDetailRole, roleCardDetail.keyword).length">
+                <td colspan="2">暂无匹配的功能权限</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="primary-btn" @click="closeRoleCardDetail">知道了</button>
+        </div>
+      </div>
+    </div>
     <div v-if="copyModal.visible" class="permission-modal permission-picker-layer" @click.self="closeCopyModal">
       <div class="modal-panel small">
         <button type="button" class="modal-close" @click="closeCopyModal">×</button>
@@ -1291,9 +1364,12 @@
                     <div class="bound-permission-grid">
                       <div>
                         <span class="bound-title">功能权限</span>
-                        <div class="permission-chip-list compact">
-                          <span v-for="permission in roleFunctionPermissions(role)" :key="permission.id">{{ permission.name }}</span>
+                        <div v-if="roleFunctionPermissions(role).length" class="permission-chip-list compact role-function-card-preview">
+                          <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                          <em v-if="roleHiddenFunctionCount(role)" class="chip-more">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                          <button v-if="roleHiddenFunctionCount(role)" type="button" class="link-btn chip-detail-btn" @click="openRoleCardDetail(role)">查看详情</button>
                         </div>
+                        <small v-else class="bound-empty">暂无功能权限。</small>
                       </div>
                       <div>
                         <div class="bound-title-row">
@@ -1332,9 +1408,12 @@
                     <div class="bound-permission-grid">
                       <div>
                         <span class="bound-title">功能权限</span>
-                        <div class="permission-chip-list compact">
-                          <span v-for="permission in roleFunctionPermissions(role)" :key="permission.id">{{ permission.name }}</span>
+                        <div v-if="roleFunctionPermissions(role).length" class="permission-chip-list compact role-function-card-preview">
+                          <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                          <em v-if="roleHiddenFunctionCount(role)" class="chip-more">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                          <button v-if="roleHiddenFunctionCount(role)" type="button" class="link-btn chip-detail-btn" @click="openRoleCardDetail(role)">查看详情</button>
                         </div>
+                        <small v-else class="bound-empty">暂无功能权限。</small>
                       </div>
                       <div>
                         <div class="bound-title-row">
@@ -1855,9 +1934,12 @@
               <div class="bound-permission-grid">
                 <div>
                   <span class="bound-title">角色功能权限</span>
-                  <div class="permission-chip-list compact">
-                    <span v-for="permission in roleFunctionPermissions(role)" :key="permission.id">{{ permission.name }}</span>
-                  </div>
+                  <div v-if="roleFunctionPermissions(role).length" class="permission-chip-list compact role-function-card-preview">
+                          <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                          <em v-if="roleHiddenFunctionCount(role)" class="chip-more">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                          <button v-if="roleHiddenFunctionCount(role)" type="button" class="link-btn chip-detail-btn" @click="openRoleCardDetail(role)">查看详情</button>
+                        </div>
+                        <small v-else class="bound-empty">暂无功能权限。</small>
                 </div>
                 <div>
                   <div class="bound-title-row">
@@ -2036,21 +2118,58 @@
     </div>
 
     <div v-if="userRoleModal.visible" class="permission-modal permission-picker-layer" @click.self="closeUserRoleModal">
-      <div class="modal-panel permission-picker-modal">
+      <div :class="['modal-panel permission-picker-modal role-picker-modal', { 'with-detail': userRoleModalDetailRole }]">
         <button type="button" class="modal-close" @click="closeUserRoleModal">×</button>
         <h3>设置角色</h3>
         <p class="modal-note">可按角色名称、角色组、功能权限或数据权限搜索；确认后会回填到当前用户。</p>
         <input v-model.trim="userRoleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、角色组、功能权限、数据权限">
-        <div class="role-picker-list">
-          <label v-for="role in filteredUserRoleOptions" :key="role.id" class="role-picker-row">
-            <input type="checkbox" :checked="userRoleModal.selectedIds.includes(role.id)" @change="toggleUserRoleSelection(role.id)">
-            <div>
-              <b>{{ role.name }}</b>
-              <p>{{ role.group }} · {{ role.desc }}</p>
-              <small>功能：{{ role.functionPermissionIds.map(permissionName).join('、') || '无' }}</small>
-              <small>数据：{{ role.dataPermissionIds.map(dataPermissionName).join('、') || '无' }}</small>
+        <div class="role-picker-layout">
+          <div class="role-picker-list">
+            <article v-for="role in filteredUserRoleOptions" :key="role.id" :class="['role-picker-row', { active: userRoleModal.detailRoleId === role.id }]">
+              <label class="role-picker-check">
+                <input type="checkbox" :checked="userRoleModal.selectedIds.includes(role.id)" @change="toggleUserRoleSelection(role.id)">
+              </label>
+              <div class="role-picker-content">
+                <div class="role-picker-title">
+                  <b>{{ role.name }}</b>
+                  <button type="button" class="link-btn" @click="openUserRoleDetail(role)">查看详情</button>
+                </div>
+                <p>{{ role.group }} · {{ role.desc }}</p>
+                <div class="role-function-preview">
+                  <span v-for="permission in roleFunctionPreview(role)" :key="permission.id">{{ permission.name }}</span>
+                  <em v-if="roleHiddenFunctionCount(role)">+ {{ roleHiddenFunctionCount(role) }} 项</em>
+                  <small v-if="!role.functionPermissionIds.length">暂无功能权限</small>
+                </div>
+                <small>数据：{{ role.dataPermissionIds.map(dataPermissionName).join('、') || '无' }}</small>
+              </div>
+            </article>
+          </div>
+          <aside v-if="userRoleModalDetailRole" class="role-detail-drawer">
+            <button type="button" class="modal-close drawer-close" @click="closeUserRoleDetail">×</button>
+            <span class="drawer-eyebrow">角色详情</span>
+            <h4>{{ userRoleModalDetailRole.name }}</h4>
+            <p>{{ userRoleModalDetailRole.desc }}</p>
+            <input v-model.trim="userRoleModal.detailKeyword" class="modal-search-input drawer-search" placeholder="搜索功能权限名称、描述">
+            <div class="role-detail-table-wrap">
+              <table class="role-detail-table">
+                <thead>
+                  <tr>
+                    <th>功能权限名称</th>
+                    <th>描述</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="permission in filteredRoleDetailFunctions(userRoleModalDetailRole, userRoleModal.detailKeyword)" :key="permission.id">
+                    <td>{{ permission.name }}</td>
+                    <td>{{ permission.description || '暂无描述' }}</td>
+                  </tr>
+                  <tr v-if="!filteredRoleDetailFunctions(userRoleModalDetailRole, userRoleModal.detailKeyword).length">
+                    <td colspan="2">暂无匹配的功能权限</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </label>
+          </aside>
         </div>
         <div class="modal-actions">
           <button type="button" class="ghost-btn" @click="closeUserRoleModal">取消</button>
@@ -2058,7 +2177,6 @@
         </div>
       </div>
     </div>
-
     <div v-if="userStatusConfirm.visible && statusTargetUser" class="permission-modal" @click.self="closeUserStatusConfirm">
       <div class="modal-panel status-confirm-modal">
         <button type="button" class="modal-close" @click="closeUserStatusConfirm">×</button>
@@ -2637,9 +2755,16 @@ const copiedFromItcode = ref('')
 const roleModal = reactive({
   visible: false,
   keyword: '',
-  selectedIds: []
+  selectedIds: [],
+  detailRoleId: '',
+  detailKeyword: ''
 })
 
+const roleCardDetail = reactive({
+  visible: false,
+  roleId: '',
+  keyword: ''
+})
 const copyModal = reactive({
   visible: false,
   itcode: '',
@@ -3231,7 +3356,9 @@ const userRoleModal = reactive({
   visible: false,
   keyword: '',
   selectedIds: [],
-  targetUserAccount: ''
+  targetUserAccount: '',
+  detailRoleId: '',
+  detailKeyword: ''
 })
 
 const userStatusConfirm = reactive({
@@ -3601,6 +3728,9 @@ const filteredRoleOptions = computed(() => {
     return `${role.name} ${functionText}`.toLowerCase().includes(keyword)
   })
 })
+const roleModalDetailRole = computed(() => allRoles.find((role) => role.id === roleModal.detailRoleId) || null)
+const roleCardDetailRole = computed(() => allRoles.find((role) => role.id === roleCardDetail.roleId) || null)
+const userRoleModalDetailRole = computed(() => allRoles.find((role) => role.id === userRoleModal.detailRoleId) || null)
 const selectedFunctionPermissions = computed(() => {
   const ids = new Set(copiedFunctionPermissionIds.value)
   allSelectedRoles.value.forEach((role) => role.functionPermissionIds.forEach((id) => ids.add(id)))
@@ -4304,12 +4434,34 @@ function openRoleModal() {
   roleModal.visible = true
   roleModal.keyword = ''
   roleModal.selectedIds = [...selectedRoleIds.value]
+  closeRoleDetail()
 }
 
 function closeRoleModal() {
   roleModal.visible = false
+  closeRoleDetail()
 }
 
+function openRoleDetail(role) {
+  roleModal.detailRoleId = role.id
+  roleModal.detailKeyword = ''
+}
+
+function closeRoleDetail() {
+  roleModal.detailRoleId = ''
+  roleModal.detailKeyword = ''
+}
+function openRoleCardDetail(role) {
+  roleCardDetail.visible = true
+  roleCardDetail.roleId = role.id
+  roleCardDetail.keyword = ''
+}
+
+function closeRoleCardDetail() {
+  roleCardDetail.visible = false
+  roleCardDetail.roleId = ''
+  roleCardDetail.keyword = ''
+}
 function toggleTempRole(id) {
   toggleId(roleModal.selectedIds, id)
 }
@@ -4402,10 +4554,37 @@ function applyRoleSelection(nextIds) {
   addUniqueIds(selectedDataPermissionIds.value, nextRoleDataIds)
 }
 
-function roleFunctionPermissions(role) {
-  return role.functionPermissionIds.map((id) => allFunctionPermissions.find((permission) => permission.id === id)).filter(Boolean)
+const roleFunctionPreviewLimit = 3
+
+function functionPermissionDetail(id) {
+  const managed = managedFunctions.find((permission) => permission.id === id)
+  if (managed) return managed
+  const permission = allFunctionPermissions.find((item) => item.id === id)
+  return permission ? { ...permission, description: '' } : { id, name: id, description: '' }
 }
 
+function roleFunctionDetails(role) {
+  return (role?.functionPermissionIds || []).map(functionPermissionDetail)
+}
+
+function roleFunctionPreview(role) {
+  return roleFunctionDetails(role).slice(0, roleFunctionPreviewLimit)
+}
+
+function roleHiddenFunctionCount(role) {
+  return Math.max(roleFunctionDetails(role).length - roleFunctionPreviewLimit, 0)
+}
+
+function filteredRoleDetailFunctions(role, keyword = '') {
+  const text = keyword.trim().toLowerCase()
+  const permissions = roleFunctionDetails(role)
+  if (!text) return permissions
+  return permissions.filter((permission) => `${permission.name} ${permission.description || ''}`.toLowerCase().includes(text))
+}
+
+function roleFunctionPermissions(role) {
+  return roleFunctionDetails(role)
+}
 function roleDataPermissions(role) {
   return role.dataPermissionIds
     .filter((id) => selectedDataPermissionIds.value.includes(id))
@@ -5297,12 +5476,23 @@ function openUserRoleModal(user) {
   userRoleModal.keyword = ''
   userRoleModal.selectedIds = [...(user?.roleIds || [])]
   userRoleModal.targetUserAccount = user?.userAccount || userWorkspace.userAccount || ''
+  closeUserRoleDetail()
 }
 
 function closeUserRoleModal() {
   userRoleModal.visible = false
+  closeUserRoleDetail()
 }
 
+function openUserRoleDetail(role) {
+  userRoleModal.detailRoleId = role.id
+  userRoleModal.detailKeyword = ''
+}
+
+function closeUserRoleDetail() {
+  userRoleModal.detailRoleId = ''
+  userRoleModal.detailKeyword = ''
+}
 function toggleUserRoleSelection(id) {
   toggleId(userRoleModal.selectedIds, id)
 }
@@ -6344,6 +6534,41 @@ onUnmounted(() => {
   padding: 0 9px;
 }
 
+.role-function-card-preview {
+  align-items: center;
+}
+
+.role-function-card-preview .chip-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 0 9px;
+  background: #f4f7fb;
+  color: #667085;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.chip-detail-btn {
+  min-height: 26px;
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.role-card-detail-modal {
+  width: min(760px, 100%);
+}
+
+.role-card-detail-modal h3 {
+  margin-top: 6px;
+}
+
+.card-detail-table-wrap {
+  max-height: 440px;
+}
 .permission-chip-list span .source-tag {
   min-height: 18px;
   padding: 0 6px;
@@ -6509,6 +6734,10 @@ onUnmounted(() => {
   width: min(820px, 100%);
 }
 
+.role-picker-modal.with-detail {
+  width: min(1120px, 100%);
+}
+
 .modal-search-input,
 .modal-form-field input {
   width: 100%;
@@ -6573,6 +6802,163 @@ onUnmounted(() => {
   line-height: 1.45;
 }
 
+.role-picker-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.role-picker-modal.with-detail .role-picker-layout {
+  grid-template-columns: minmax(360px, 1fr) minmax(360px, 420px);
+  align-items: stretch;
+}
+
+.role-picker-check {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.role-picker-row.active {
+  border-color: #8fb2ff;
+  background: #f7fbff;
+  box-shadow: 0 0 0 3px rgba(49, 109, 255, 0.08);
+}
+
+.role-picker-content {
+  min-width: 0;
+}
+
+.role-picker-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.role-function-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.role-function-preview span,
+.role-function-preview em {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 6px;
+  padding: 0 8px;
+  background: #eef4ff;
+  color: #316dff;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.role-function-preview em {
+  background: #f4f7fb;
+  color: #667085;
+}
+
+.role-detail-drawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 420px;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfdff;
+}
+
+.drawer-close {
+  top: 10px;
+  right: 10px;
+}
+
+.drawer-eyebrow {
+  color: #316dff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.role-detail-drawer h4 {
+  margin: 6px 32px 4px 0;
+  color: #172033;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.role-detail-drawer p {
+  margin: 0;
+  color: #6b778c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.drawer-search {
+  flex: 0 0 auto;
+  margin-top: 12px;
+}
+
+.role-detail-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 12px;
+  overflow: auto;
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.role-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.role-detail-table th,
+.role-detail-table td {
+  border-bottom: 1px solid #e6edf5;
+  padding: 10px;
+  color: #455468;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  vertical-align: top;
+}
+
+.role-detail-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #8a96a8;
+  font-weight: 800;
+}
+
+.role-detail-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.role-detail-table td:first-child {
+  width: 34%;
+  color: #172033;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .role-picker-modal.with-detail .role-picker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .role-detail-drawer {
+    max-height: 360px;
+  }
+}
 .modal-actions {
   justify-content: flex-start;
   margin-top: 18px;
@@ -9383,3 +9769,9 @@ onUnmounted(() => {
 .condition-connector.hidden {
   visibility: hidden;
 }</style>
+
+
+
+
+
+
