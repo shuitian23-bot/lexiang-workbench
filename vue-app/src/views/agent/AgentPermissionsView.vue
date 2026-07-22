@@ -455,8 +455,7 @@
             <span>共 {{ allRoles.length }} 个角色，当前显示 {{ filteredManagedRoles.length }} 个</span>
             <b v-if="roleFilters.keyword || roleFilters.group">已按条件筛选</b>
           </div>
-
-          <div class="permission-table-wrap role-table-wrap">
+          <div class="permission-table-wrap role-table-wrap">
             <table class="permission-table role-management-table">
               <thead>
                 <tr>
@@ -512,6 +511,22 @@
             <button type="button" class="primary-btn" @click="openUserWorkspace('create')">新增用户</button>
           </div>
 
+          <div class="admin-cleanup-panel">
+            <div>
+              <b>admin 权限清理提醒</b>
+              <p>规则：超过 3 个月未成功登录 admin，将自动清理角色、额外数据权限和自定义数据授权；清理前 1 天自动发送邮件提醒。</p>
+              <small>当前演示日期：{{ adminCleanupRunDate }}；按用户最近一次成功 admin 登录时间分别计算到期日。</small>
+            </div>
+            <div class="admin-cleanup-actions">
+              <span class="table-status pending">提醒 {{ adminCleanupReminderCount }} 个</span>
+              <span :class="['table-status', adminCleanupCandidates.length ? 'pending' : 'done']">清理 {{ adminCleanupCandidates.length }} 个</span>
+              <span class="table-status done">自动巡检</span>
+            </div>
+          </div>
+          <div v-if="adminCleanupNotice" class="admin-cleanup-notice">{{ adminCleanupNotice }}</div>
+
+          
+
           <div class="user-filter-bar">
             <label>
               <span>用户账号</span>
@@ -544,6 +559,7 @@
                   <th>登录账号</th>
                   <th>用户姓名</th>
                   <th>有效期</th>
+                  <th>最近 admin 登录</th>
                   <th>状态</th>
                   <th>操作</th>
                 </tr>
@@ -558,6 +574,12 @@
                   </td>
                   <td>{{ user.name }}</td>
                   <td>{{ user.validUntil }}</td>
+                  <td>
+                    <div class="admin-login-cell">
+                      <b>{{ lastAdminLoginText(user) }}</b>
+                      <small v-if="adminCleanupRiskText(user)">{{ adminCleanupRiskText(user) }}</small>
+                    </div>
+                  </td>
                   <td><span class="table-status" :class="user.statusKey">{{ userStatusLabel(user) }}</span></td>
                   <td>
                     <div class="row-actions">
@@ -570,7 +592,7 @@
                   </td>
                 </tr>
                 <tr v-if="!filteredUsers.length">
-                  <td colspan="5">
+                  <td colspan="6">
                     <div class="table-empty">
                       <b>没有找到匹配的用户</b>
                       <p>请调整用户账号、用户姓名或 ITCode 绑定状态后再查看。</p>
@@ -1631,7 +1653,7 @@
               </div>
             </div>
           </div>
-        </section>
+</section>
 
         <section v-else class="role-editor-section">
           <div class="role-data-tabs" role="tablist" aria-label="数据权限类型">
@@ -2079,6 +2101,14 @@
             </tbody>
           </table>
           <div v-else class="scope-empty compact-empty"><b>暂无历史变更</b><p>后续编辑、设置角色、分配权限或启禁用账号后，会在这里追加记录。</p></div>
+          <div v-if="userWorkspace.draft.emailNotifications?.length" class="email-notice-list">
+            <div class="permission-subhead compact-subhead"><b>邮件通知记录</b><small>当前为 POC mock，不会真实发送邮件。</small></div>
+            <article v-for="mail in userWorkspace.draft.emailNotifications" :key="mail.time + mail.to">
+              <b>{{ mail.subject }}</b>
+              <p>{{ mail.content }}</p>
+              <small>{{ mail.time }} · {{ mail.to }}</small>
+            </article>
+          </div>
         </section>
 
         <section v-else-if="userWorkspace.draft && userWorkspace.activeTab === 'login'" class="role-editor-section">
@@ -2689,6 +2719,61 @@ const allRoles = reactive([
     ]
   },
   {
+    id: 'admin',
+    code: 'ADMIN',
+    name: 'admin',
+    type: '系统管理员角色',
+    group: '系统管理',
+    desc: '用于 mock 管理员账号，覆盖权限申请、审批、用户、组织、数据源、功能配置和审计类能力。',
+    owner: 'admin',
+    sensitivity: 'it-config-data',
+    users: 2,
+    systemRole: true,
+    updatedAt: '2026-07-22 10:35',
+    functionPermissionIds: ['func.dashboard.view', 'func.report.generate', 'func.data.export', 'func.product.config', 'func.publish.confirm', 'func.skill.manage', 'func.geo.monitor', 'func.lead.assign'],
+    dataPermissionIds: ['data.ops.region.east', 'data.ops.region.north', 'data.ops.region.south', 'data.ops.metric.gmv', 'data.ops.metric.flow', 'data.member.profile.level', 'data.member.profile.rights', 'data.geo.source.official', 'data.geo.source.community', 'data.lead.pool.all', 'data.lead.pool.assigned'],
+    functionPermissionNotes: {
+      'func.data.export': '管理员可导出权限审计和运营排查所需数据。',
+      'func.skill.manage': '管理员可配置 Skill、菜单和后台能力开关。',
+      'func.lead.assign': '管理员可在紧急情况下协助线索权限修复。'
+    },
+    dataPermissionNotes: {
+      'data.lead.pool.all': '仅用于权限排障和审计回溯。',
+      'data.member.profile.rights': '涉及会员权益明细，默认作为高敏数据展示。'
+    },
+    customDataRules: [
+      {
+        id: 'admin-product-ai',
+        menuKey: 'product-ai',
+        menuName: '商品AI助手',
+        groups: [
+          { id: 'admin-product-ai-consumer', relation: '', title: '消费业务全量', conditions: [
+            { id: 'admin-product-ai-consumer-business', dimension: '业务', operator: '包含', values: ['消费业务', 'SMB业务'] },
+            { id: 'admin-product-ai-consumer-fa', dimension: 'FA', operator: '包含', values: ['FA01', 'FA02', 'SMBFA01', 'SMBFA02'] }
+          ] },
+          { id: 'admin-product-ai-publish', relation: 'OR', title: '发布与商品配置', conditions: [
+            { id: 'admin-product-ai-publish-business', dimension: '业务', operator: '包含', values: ['商品运营'] },
+            { id: 'admin-product-ai-publish-region', dimension: '地域', operator: '包含', values: ['全国'] }
+          ] }
+        ]
+      },
+      {
+        id: 'admin-data-ai',
+        menuKey: 'data-ai',
+        menuName: '数据AI助手',
+        groups: [
+          { id: 'admin-data-ai-chat', relation: '', title: '数据来源：Chat', conditions: [
+            { id: 'admin-data-ai-chat-source', dimension: '数据来源', operator: '包含', values: ['Chat'] },
+            { id: 'admin-data-ai-chat-category', dimension: '一级品类', operator: '包含', values: ['消费PC', 'SMB'] }
+          ] },
+          { id: 'admin-data-ai-report', relation: 'OR', title: '数据来源：报表', conditions: [
+            { id: 'admin-data-ai-report-source', dimension: '数据来源', operator: '包含', values: ['报表'] },
+            { id: 'admin-data-ai-report-field', dimension: '字段', operator: '包含', values: ['GMV', '流量', '转化', '线索状态'] }
+          ] }
+        ]
+      }
+    ]
+  },  {
     id: 'bpo-collab',
     code: 'BPO',
     name: '外包协作',
@@ -3296,6 +3381,75 @@ const users = reactive([
     ]
   },
   {
+    userAccount: 'U-10088',
+    loginAccount: 'liwen08',
+    name: '李雯',
+    bindItcode: true,
+    mobile: '13900000008',
+    email: 'liwen08@lenovo.com',
+    validUntil: '长期有效',
+    userType: '内部用户',
+    tenant: 'leaibot-cn',
+    organization: '系统管理',
+    internalAdAccount: 'LENOVO\\liwen08',
+    remark: '历史管理员账号，保留较高权限用于 POC 清理演示。',
+    status: 'enabled',
+    statusKey: 'done',
+    adminPermissionCleaned: false,
+    roleIds: ['admin', 'product-op'],
+    extraFunctionPermissionIds: [],
+    extraDataPermissionIds: ['data.member.profile.rights', 'data.lead.pool.all'],
+    suppressedRoleDataPermissionIds: [],
+    customDataRules: [
+      {
+        id: 'user-rule-liwen-admin-report',
+        menuKey: 'data-ai',
+        menuName: '数据AI助手',
+        groups: [
+          { id: 'user-rule-liwen-admin-report-group', relation: '', title: '历史报表临时授权', conditions: [
+            { id: 'user-rule-liwen-admin-report-source', dimension: '数据来源', operator: '包含', values: ['报表'] },
+            { id: 'user-rule-liwen-admin-report-field', dimension: '字段', operator: '包含', values: ['GMV', '会员权益', '线索状态'] }
+          ] }
+        ]
+      }
+    ],
+    changeLogs: [
+      { time: '2026-03-20 19:10', type: '设置角色', ticketNo: 'AP-20260320-009', detail: '分配 admin 和商品运营角色，用于阶段性后台配置。' }
+    ],
+    emailNotifications: [],
+    loginLogs: [
+      { time: '2026-03-20 18:42', result: 'success', ip: '10.24.12.8', device: 'Chrome / Windows', entry: 'admin 权限后台', failureReason: '' },
+      { time: '2026-07-02 09:20', result: 'success', ip: '10.24.12.8', device: 'Chrome / Windows', entry: '乐享 AI 工作台', failureReason: '' }
+    ]
+  },  {
+    userAccount: 'U-10089',
+    loginAccount: 'wangming9',
+    name: '王明',
+    bindItcode: true,
+    mobile: '13900000009',
+    email: 'wangming9@lenovo.com',
+    validUntil: '长期有效',
+    userType: '内部用户',
+    tenant: 'leaibot-cn',
+    organization: '系统管理',
+    internalAdAccount: 'LENOVO\wangming9',
+    remark: '管理员备份账号，用于 POC 展示清理前一天邮件提醒。',
+    status: 'enabled',
+    statusKey: 'done',
+    adminPermissionCleaned: false,
+    roleIds: ['admin'],
+    extraFunctionPermissionIds: [],
+    extraDataPermissionIds: ['data.ops.metric.flow'],
+    suppressedRoleDataPermissionIds: [],
+    customDataRules: [],
+    changeLogs: [
+      { time: '2026-04-23 11:05', type: '设置角色', ticketNo: 'AP-20260423-011', detail: '分配 admin 角色，作为后台管理员备份账号。' }
+    ],
+    emailNotifications: [],
+    loginLogs: [
+      { time: '2026-04-23 10:20', result: 'success', ip: '10.24.12.9', device: 'Edge / Windows', entry: 'admin 权限后台', failureReason: '' }
+    ]
+  },  {
     userAccount: 'EXT-9008',
     loginAccount: 'temp-bpo',
     name: '外部协作',
@@ -3329,6 +3483,9 @@ const userFilters = reactive({
   bindItcode: ''
 })
 
+const adminCleanupRunDate = '2026-07-22'
+const adminCleanupNotice = ref('')
+const adminAutomationResult = reactive({ reminded: 0, cleaned: 0 })
 const userWorkspace = reactive({
   visible: false,
   mode: 'view',
@@ -3641,6 +3798,9 @@ const filteredUsers = computed(() => {
     return accountMatched && nameMatched && bindMatched
   })
 })
+const adminCleanupCandidates = computed(() => users.filter((user) => shouldCleanupAdminPermission(user)))
+const adminCleanupReminderCandidates = computed(() => users.filter((user) => shouldSendAdminCleanupReminder(user)))
+const adminCleanupReminderCount = computed(() => adminCleanupReminderCandidates.value.length + adminAutomationResult.reminded)
 const userWorkspaceReadonly = computed(() => userWorkspace.mode === 'view')
 const activeUser = computed(() => users.find((user) => user.userAccount === userWorkspace.userAccount) || null)
 const userWorkspaceTitle = computed(() => {
@@ -4986,6 +5146,140 @@ function userStatusLabel(user) {
   return user?.status === 'enabled' ? '启用' : '已禁用'
 }
 
+function parseDateTime(value = '') {
+  const normalized = String(value || '').replace(' ', 'T')
+  const date = new Date(normalized)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function startOfDay(date) {
+  if (!date) return null
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function addMonths(date, months) {
+  if (!date) return null
+  const next = new Date(date)
+  next.setMonth(next.getMonth() + months)
+  return next
+}
+
+function daysBetween(left, right) {
+  const leftDay = startOfDay(left)
+  const rightDay = startOfDay(right)
+  if (!leftDay || !rightDay) return 0
+  return Math.round((rightDay - leftDay) / 86400000)
+}
+
+function adminAutomationDate() {
+  return parseDateTime(`${adminCleanupRunDate} 00:00`)
+}
+
+function isAdminLoginEntry(log = {}) {
+  const entry = String(log.entry || '').toLowerCase()
+  return log.result === 'success' && (entry.includes('admin') || entry.includes('后台') || entry.includes('权限管理') || entry.includes('乐享 ai 工作台') || entry.includes('审批列表') || entry.includes('商品运营'))
+}
+
+function lastAdminLogin(user) {
+  const logs = (user.loginLogs || [])
+    .filter(isAdminLoginEntry)
+    .map((log) => ({ ...log, date: parseDateTime(log.time) }))
+    .filter((log) => log.date)
+    .sort((left, right) => right.date - left.date)
+  return logs[0] || null
+}
+
+function lastAdminLoginText(user) {
+  return lastAdminLogin(user)?.time || '从未登录 admin'
+}
+
+function hasUserPermissions(user) {
+  return !!((user.roleIds || []).length || (user.extraDataPermissionIds || []).length || (user.customDataRules || []).length)
+}
+
+function adminCleanupDueDate(user) {
+  const lastLog = lastAdminLogin(user)
+  return lastLog ? addMonths(lastLog.date, 3) : adminAutomationDate()
+}
+
+function adminCleanupDueDateText(user) {
+  const date = adminCleanupDueDate(user)
+  if (!date) return '-'
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+function adminCleanupDaysUntilDue(user) {
+  return daysBetween(adminAutomationDate(), adminCleanupDueDate(user))
+}
+
+function hasAdminMail(user, subject) {
+  return (user.emailNotifications || []).some((mail) => mail.subject === subject)
+}
+
+function shouldCleanupAdminPermission(user) {
+  if (!user || user.status !== 'enabled' || user.adminPermissionCleaned || !hasUserPermissions(user)) return false
+  return adminCleanupDaysUntilDue(user) <= 0
+}
+
+function shouldSendAdminCleanupReminder(user) {
+  if (!user || user.status !== 'enabled' || user.adminPermissionCleaned || !hasUserPermissions(user)) return false
+  return adminCleanupDaysUntilDue(user) === 1 && !hasAdminMail(user, 'admin 权限清理前提醒')
+}
+
+function adminCleanupRiskText(user) {
+  if (user?.adminPermissionCleaned) return '已自动清理并邮件通知'
+  if (shouldCleanupAdminPermission(user)) return `已到三个月期限，系统将自动清理`
+  if (adminCleanupDaysUntilDue(user) === 1) {
+    return hasAdminMail(user, 'admin 权限清理前提醒') ? '明天到期，已发送提醒' : '明天到期，待自动提醒'
+  }
+  return ''
+}
+
+function sendAdminCleanupReminder(user) {
+  if (!user.emailNotifications) user.emailNotifications = []
+  user.emailNotifications.unshift({
+    time: `${adminCleanupRunDate} 09:00`,
+    to: user.email || user.loginAccount,
+    subject: 'admin 权限清理前提醒',
+    content: `你已接近 3 个月未成功登录 admin，系统将在 ${adminCleanupDueDateText(user)} 自动清理后台角色和数据权限。如仍需使用，请在到期前登录 admin 或重新确认权限。`
+  })
+  appendUserChange(user, 'admin 清理前邮件提醒', `AUTO-REMIND-${adminCleanupRunDate.replaceAll('-', '')}`, `距离 admin 权限清理还有 1 天，已向 ${user.email || user.loginAccount} 发送提醒邮件。到期日：${adminCleanupDueDateText(user)}。`)
+}
+
+function cleanupAdminPermission(user) {
+  const removedRoles = userRoles(user).map((role) => role.name)
+  const removedDataCount = (user.extraDataPermissionIds || []).length + (user.customDataRules || []).length
+  user.roleIds = []
+  user.extraFunctionPermissionIds = []
+  user.extraDataPermissionIds = []
+  user.suppressedRoleDataPermissionIds = []
+  user.customDataRules = []
+  user.statusKey = 'pending'
+  user.adminPermissionCleaned = true
+  const lastText = lastAdminLoginText(user)
+  const ticketNo = `AUTO-CLEAN-${adminCleanupRunDate.replaceAll('-', '')}`
+  const detail = `已到达 3 个月未成功登录 admin 期限，系统自动清理角色${removedRoles.length ? `：${removedRoles.join('、')}` : '权限'}，并清理 ${removedDataCount} 项用户级数据授权。最近 admin 登录：${lastText}。邮件已通知 ${user.email || user.loginAccount}。`
+  appendUserChange(user, 'admin 到期自动清理权限', ticketNo, detail)
+  if (!user.emailNotifications) user.emailNotifications = []
+  user.emailNotifications.unshift({
+    time: `${adminCleanupRunDate} 10:40`,
+    to: user.email || user.loginAccount,
+    subject: 'admin 权限已自动清理通知',
+    content: `因已满 3 个月未成功登录 admin，系统已自动清理你的后台角色和数据权限。如需恢复，请重新发起权限申请。`
+  })
+}
+
+function runAdminPermissionAutomation() {
+  const reminderCandidates = adminCleanupReminderCandidates.value
+  reminderCandidates.forEach(sendAdminCleanupReminder)
+  const cleanupCandidates = adminCleanupCandidates.value
+  cleanupCandidates.forEach(cleanupAdminPermission)
+  adminAutomationResult.reminded = reminderCandidates.length
+  adminAutomationResult.cleaned = cleanupCandidates.length
+  adminCleanupNotice.value = `自动巡检完成：清理前一天提醒 ${reminderCandidates.length} 人，到期自动清理 ${cleanupCandidates.length} 人。`
+}
 function resetUserFilters() {
   userFilters.account = ''
   userFilters.name = ''
@@ -5875,6 +6169,7 @@ function moduleIcon(key) {
 
 onMounted(() => {
   document.title = '权限管理 - 乐享 AI 工作台'
+  runAdminPermissionAutomation()
 })
 
 onUnmounted(() => {
@@ -7779,6 +8074,96 @@ onUnmounted(() => {
   min-width: 820px;
 }
 
+.admin-cleanup-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #bcd3ff;
+  border-radius: 8px;
+  padding: 14px;
+  background: #f7fbff;
+}
+
+.admin-cleanup-panel b {
+  color: #172033;
+  font-size: 14px;
+}
+
+.admin-cleanup-panel p,
+.admin-cleanup-panel small {
+  display: block;
+  margin: 4px 0 0;
+  color: #6b778c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-cleanup-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.admin-cleanup-notice {
+  margin-top: -6px;
+  margin-bottom: 16px;
+  border: 1px solid #cdebd7;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f2fff6;
+  color: #16803a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.email-notice-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.email-notice-list article {
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.email-notice-list article b {
+  color: #172033;
+  font-size: 13px;
+}
+
+.email-notice-list article p {
+  margin: 6px 0;
+  color: #455468;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.email-notice-list article small {
+  color: #8a96a8;
+  font-size: 12px;
+}
+.admin-login-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-login-cell b {
+  color: #172033;
+  font-size: 13px;
+}
+
+.admin-login-cell small {
+  color: #d97706;
+  font-size: 12px;
+  line-height: 1.4;
+}
 .user-account-cell {
   display: grid;
   gap: 4px;
@@ -9769,6 +10154,29 @@ onUnmounted(() => {
 .condition-connector.hidden {
   visibility: hidden;
 }</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
