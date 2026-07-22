@@ -1067,7 +1067,7 @@
         </div>
       </div>
     </div>
-    <div v-if="roleCardDetail.visible && roleCardDetailRole" class="permission-modal" @click.self="closeRoleCardDetail">
+    <div v-if="roleCardDetail.visible && roleCardDetailRole" class="permission-modal permission-detail-layer" @click.self="closeRoleCardDetail">
       <div class="modal-panel role-card-detail-modal">
         <button type="button" class="modal-close" @click="closeRoleCardDetail">×</button>
         <span class="drawer-eyebrow">角色功能权限详情</span>
@@ -7605,6 +7605,10 @@ onUnmounted(() => {
 
 .permission-picker-layer {
   z-index: 1400;
+}
+
+.permission-detail-layer {
+  z-index: 1600;
 }
 
 .modal-panel {
