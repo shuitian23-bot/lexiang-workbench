@@ -26,7 +26,9 @@ server.out
 public.bak-*/
 
 # agent workspaces
-.codex/
+.codex/*
+!.codex/skills/
+!.codex/skills/**
 .claude/
 .codex-backups/
 
@@ -35,3 +37,4 @@ public.bak-*/
 
 # Vue 构建产物（由 vue-app 构建生成，不入库）
 public/admin-vue/
+
