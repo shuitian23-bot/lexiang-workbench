@@ -41,8 +41,9 @@
               v-for="(step, index) in applySteps"
               :key="step.key"
               type="button"
-              :class="{ active: currentStep === index }"
-              @click="currentStep = index"
+              :class="{ active: currentStep === index, locked: !canOpenApplyStep(index) }"
+              :disabled="!canOpenApplyStep(index)"
+              @click="goToApplyStep(index)"
             >
               {{ step.label }}
             </button>
@@ -2477,6 +2478,7 @@ const modules = [
 
 const activeModule = ref('apply')
 const currentStep = ref(0)
+const maxReachableStep = ref(0)
 const recordModalVisible = ref(false)
 
 const applySteps = [
@@ -4538,9 +4540,29 @@ function selectRequestType(key) {
   }
 }
 
+function canOpenApplyStep(index) {
+  return index <= maxReachableStep.value
+}
+
+function goToApplyStep(index) {
+  if (!canOpenApplyStep(index)) return
+  currentStep.value = index
+}
+
+function unlockApplyStep(index) {
+  maxReachableStep.value = Math.max(maxReachableStep.value, index)
+}
+
+function resetApplyStepProgress() {
+  currentStep.value = 0
+  maxReachableStep.value = 0
+}
+
 function nextStep() {
   if (currentStep.value === 1 && !validateInfoForm()) return
-  currentStep.value = Math.min(currentStep.value + 1, applySteps.length - 1)
+  const next = Math.min(currentStep.value + 1, applySteps.length - 1)
+  currentStep.value = next
+  unlockApplyStep(next)
 }
 
 function prevStep() {
@@ -4550,6 +4572,7 @@ function prevStep() {
 function submitApplication() {
   if (!validateInfoForm()) {
     currentStep.value = 1
+    unlockApplyStep(1)
     return
   }
   const targetItcode = parseApproverItcode(form.targetUser) || '待补充'
@@ -4587,7 +4610,7 @@ function submitApplication() {
     status: 'POC 记录'
   })
   activeModule.value = 'approval'
-  currentStep.value = 0
+  resetApplyStepProgress()
 }
 
 function openRoleModal() {
@@ -6150,7 +6173,7 @@ function openRecordModal() {
 
 function resetDemo() {
   activeModule.value = 'apply'
-  currentStep.value = 0
+  resetApplyStepProgress()
   resetApprovalFilters()
 }
 
@@ -6425,6 +6448,13 @@ onUnmounted(() => {
 .permission-stage-tabs button.active {
   background: #316dff;
   color: #fff;
+}
+
+.permission-stage-tabs button.locked,
+.permission-stage-tabs button:disabled {
+  color: #98a2b3;
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .permission-step {
