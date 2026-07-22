@@ -112,6 +112,14 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-07-22 13:24',
+    operator: 'Codex（协作代理）',
+    title: '企业客户管理业务链路更新',
+    scope: '企业客户管理 / 线索看板 / 线索池 / 打分模型',
+    detail: '基于 _0708_analysis 交付内容，在 GitLab 最新 Vue 源码上合并企业客户管理运行层：线索看板增加查询与重置生效快照并移除旧产品组隐藏筛选；线索池完善触达名称与描述、PC/SD/SS/SI 四类 SQL 金额及超限确认、列表/导出/详情同步；转商机按产品组名称联动编码和型号并校验保存；打分模型补齐日期至今、留资链接、商品目标和搜索关键词规则。保留当前权限管理、Agent、Skill 和壳层功能，专项回归覆盖三项菜单完整链路。',
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-07-21 12:59',
     operator: 'zhangrui（部署账号）',
     title: '调整日志字段与追溯口径完善',
