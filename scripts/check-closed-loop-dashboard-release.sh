@@ -28,6 +28,25 @@ injection_count="$(grep -o '/lexiang-admin-extension/closed-loop-menu.js' <<<"$a
 [[ "$injection_count" == "1" ]] || fail "admin extension injection count is $injection_count, expected 1"
 printf 'OK: admin HTML contains one extension injection\n'
 
+cache_headers="$(mktemp)"
+cache_body="$(mktemp)"
+trap 'rm -f "$cache_headers" "$cache_body"' EXIT
+cache_status="$(
+  curl -sS \
+    -D "$cache_headers" \
+    -o "$cache_body" \
+    -w '%{http_code}' \
+    -H 'If-None-Match: W/"legacy-admin-html"' \
+    -H 'If-Modified-Since: Wed, 31 Dec 2099 23:59:59 GMT' \
+    "$base_url/admin-vue/portal/home"
+)"
+[[ "$cache_status" == "200" ]] || fail "conditional admin HTML request returned $cache_status, expected 200"
+cache_injection_count="$(grep -o '/lexiang-admin-extension/closed-loop-menu.js' "$cache_body" | wc -l | tr -d ' ')"
+[[ "$cache_injection_count" == "1" ]] || fail "conditional admin HTML injection count is $cache_injection_count, expected 1"
+! grep -qiE '^(ETag|Last-Modified):' "$cache_headers" || fail 'admin HTML exposes a stale validator'
+grep -qi '^Cache-Control:.*no-store' "$cache_headers" || fail 'admin HTML is missing no-store cache control'
+printf 'OK: stale browser validators cannot reuse pre-extension admin HTML\n'
+
 entry_path="$(grep -oE '/admin-vue/assets/index-[A-Za-z0-9_-]+\.js' <<<"$admin_html" | head -1)"
 [[ -n "$entry_path" ]] || fail "could not find the current admin entry asset"
 check_url "$entry_path"

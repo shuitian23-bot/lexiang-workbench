@@ -15,13 +15,15 @@
 
 Nginx 在返回后台 HTML 时加载该扩展。两个看板页面继续由独立的 `lexiang-dashboard` 服务提供。后台重新构建或整包更新 `public/admin-vue` 时，不需要重做菜单，也不会覆盖其他人的后台页面。
 
+后台 HTML 注入层必须禁用条件缓存：不向上游传递 `If-None-Match` / `If-Modified-Since`，不向浏览器返回 `ETag` / `Last-Modified`，并返回包含 `no-store` 的 `Cache-Control`。否则浏览器可能在服务器返回 `304` 后继续使用注入前的旧 HTML，表现为两个菜单偶发消失。带哈希的 `/admin-vue/assets/` 静态资源保持独立处理，不受此规则影响。
+
 ## 发布纪律
 
 1. 不直接修改 `public/admin-vue/assets` 中带哈希的构建文件。
 2. 不用旧版 `admin-vue` 目录覆盖当前目录。
 3. 修改扩展前先使用 `scripts/edit-lock.sh` 申领编辑锁，并记录现场文件校验值。
 4. 只更新扩展文件；Nginx 配置必须先备份、执行 `nginx -t`，再平滑重载。
-5. 发布后运行 `scripts/check-closed-loop-dashboard-release.sh`。检查不通过时立即停止，不把异常版本视为上线完成。
+5. 发布后运行 `scripts/check-closed-loop-dashboard-release.sh`。自检必须包含“携带旧缓存标识仍返回 `200` 且扩展只注入一次”；检查不通过时立即停止，不把异常版本视为上线完成。
 6. 改动必须单独提交并推送。推送失败属于未完成状态，需要明确同步给仓库维护人。
 
 ## 回滚
