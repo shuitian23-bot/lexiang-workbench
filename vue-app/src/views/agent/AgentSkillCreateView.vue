@@ -383,10 +383,10 @@
               <div id="skill-create-optimization-panel" class="skill-optimization-panel" :class="{ tuned: aiTuned }">
                 <div class="skill-optimization-head">
                   <div>
-                    <b>{{ aiTuned ? 'AI 微调完成' : 'AI 可继续优化' }}</b>
+                    <b>{{ aiTuned ? 'AI 助手已同步评估' : 'AI 可继续优化' }}</b>
                     <span>{{ aiTuned ? '可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。' : '当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。' }}</span>
                   </div>
-                  <button id="skill-ai-tune-btn" class="btn" :class="aiTuned ? 'btn-secondary' : 'btn-primary'" type="button" :disabled="aiTuning" @click="startAiTune">
+                  <button v-if="!aiTuned" id="skill-ai-tune-btn" class="btn btn-primary" type="button" :disabled="aiTuning" @click="startAiTune">
                     {{ aiTuneButtonText }}
                   </button>
                 </div>
@@ -395,7 +395,6 @@
                     <span>{{ item.index }}</span>
                     <b>{{ item.title }}</b>
                     <p>{{ item.desc }}</p>
-                    <button type="button" @click="item.action()">{{ item.actionText }}</button>
                   </div>
                 </div>
               </div>
@@ -406,51 +405,6 @@
                 <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
               </div>
 
-              <section class="skill-application-validation" aria-labelledby="skill-application-validation-title">
-                <div class="skill-application-validation-head">
-                  <div>
-                    <b id="skill-application-validation-title">Skill 应用验证</b>
-                    <p>输入自然语言提示词，时间范围将按你的原话解析；未提供时间或超过 92 天时不会执行。</p>
-                  </div>
-                  <span>最终验收</span>
-                </div>
-                <div class="skill-application-composer">
-                  <textarea
-                    v-model="applicationPrompt"
-                    rows="2"
-                    aria-label="Skill 应用验证提示词"
-                    placeholder="例如：出一份 5/27 到 6/8 的认证与转化简报"
-                    @keydown.meta.enter.prevent="runSkillApplication"
-                    @keydown.ctrl.enter.prevent="runSkillApplication"
-                  ></textarea>
-                  <button class="btn btn-primary" type="button" :disabled="applicationRunning" @click="runSkillApplication">
-                    {{ applicationRunning ? '运行中...' : '运行 Skill' }}
-                  </button>
-                </div>
-                <p v-if="applicationError" class="skill-application-error">{{ applicationError }}</p>
-
-                <div v-if="applicationReport" class="skill-application-result-card">
-                  <div class="skill-application-result-icon" aria-hidden="true">
-                    <svg viewBox="0 0 20 20"><path d="M5 3.5h7l3 3V16.5H5z"/><path d="M12 3.5v3h3M7.5 10h5M7.5 13h5"/></svg>
-                  </div>
-                  <div class="skill-application-result-main">
-                    <span>SKILL 应用结果</span>
-                    <b>{{ applicationReport.skillCnName }}</b>
-                    <p>{{ applicationReport.parsedTimeText }}</p>
-                    <div>
-                      <em v-for="chip in applicationResultChips" :key="chip">{{ chip }}</em>
-                    </div>
-                    <div class="skill-application-result-footer">
-                      <div class="skill-application-result-summary">
-                        <span>核心结果</span>
-                        <b>{{ applicationReport.metrics[0]?.value }} 独立认证</b>
-                        <p>转化率 {{ applicationReport.metrics[2]?.value }}，已生成趋势、画像、Top10 商品与行动建议。</p>
-                      </div>
-                      <button class="btn btn-primary" type="button" @click="openApplicationReport">展开报告</button>
-                    </div>
-                  </div>
-                </div>
-              </section>
             </div>
             <div class="skill-create-step-actions">
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
@@ -494,7 +448,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { MENU_TREE, useAppStore, type SkillApplicationBreakdown, type SkillApplicationReportData } from '@/stores/app'
+import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { useSkillHubStore, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
@@ -601,19 +555,6 @@ const aiTuning = ref(false)
 const aiTuned = ref(false)
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
-const applicationPrompt = ref('')
-const applicationRunning = ref(false)
-const applicationError = ref('')
-const applicationReport = ref<SkillApplicationReportData | null>(null)
-
-const applicationResultChips = computed(() => applicationReport.value
-  ? [
-      `${applicationReport.value.dateStart} ~ ${applicationReport.value.dateEnd}`,
-      '认证转化',
-      '用户画像',
-      'Top10 商品'
-    ]
-  : [])
 
 const form = ref({
   name: '',
@@ -839,17 +780,17 @@ const evalItems = computed(() => aiTuned.value
       { title: '测试用例充分', score: '1.00' }
     ])
 
-const aiTuneButtonText = computed(() => aiTuning.value ? 'AI 微调中...' : aiTuned.value ? 'AI 微调完成' : 'AI 微调')
+const aiTuneButtonText = computed(() => aiTuning.value ? 'AI 微调中...' : '打开 AI 助手微调')
 const optimizationItems = computed(() => aiTuned.value
   ? [
-      { index: 1, title: '流程步骤已拆清', desc: '补充参数确认、查询执行、异常兜底、结果生成、导出确认五段流程。', actionText: '查看草稿', action: () => switchTab('draft') },
-      { index: 2, title: '关键节点已补齐', desc: '权限降级、明文导出和脱敏 CSV 导出前，都会先展示影响范围并等待确认。', actionText: '查看澄清', action: () => switchTab('clarify') },
-      { index: 3, title: '测试样例已更新', desc: '新增参照区间、权限降级、无数据、无明文导出权限和时间范围无效等样例。', actionText: '查看用例', action: () => switchTab('clarify') }
+      { index: 1, title: '流程步骤已拆清', desc: '补充参数确认、查询执行、异常兜底、结果生成、导出确认五段流程。' },
+      { index: 2, title: '关键节点已补齐', desc: '权限降级、明文导出和脱敏 CSV 导出前，都会先展示影响范围并等待确认。' },
+      { index: 3, title: '测试样例已更新', desc: '新增参照区间、权限降级、无数据、无明文导出权限和时间范围无效等样例。' }
     ]
   : [
-      { index: 1, title: '补齐流程步骤', desc: '需要把查询、分析、异常兜底、结果输出和确认动作拆成可执行步骤。', actionText: '让 AI 处理', action: startAiTune },
-      { index: 2, title: '明确确认节点', desc: '权限降级、明文导出和脱敏导出前，需要展示范围、字段、脱敏方式和等待回复。', actionText: '让 AI 处理', action: startAiTune },
-      { index: 3, title: '刷新评分结果', desc: 'AI 完成草稿微调后，自动回写评估列表、综合评分和提交审核门槛状态。', actionText: '开始微调', action: startAiTune }
+      { index: 1, title: '补齐流程步骤', desc: '需要把查询、分析、异常兜底、结果输出和确认动作拆成可执行步骤。' },
+      { index: 2, title: '明确确认节点', desc: '权限降级、明文导出和脱敏导出前，需要展示范围、字段、脱敏方式和等待回复。' },
+      { index: 3, title: '刷新评分结果', desc: 'AI 完成草稿微调后，自动回写评估列表、综合评分和提交审核门槛状态。' }
     ])
 
 function switchTab(tab: TabKey) {
@@ -1500,7 +1441,6 @@ function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
     summaryItems: summaryItems.value.map(item => ({ ...item })),
     summaryUpdated: summaryUpdated.value,
     aiTuned: aiTuned.value,
-    applicationPrompt: applicationPrompt.value,
     savedAt: formatBeijingTime(now)
   }
 }
@@ -1514,340 +1454,11 @@ function startAiTune() {
   aiTuning.value = true
   aiStore.toggleOpen(true)
   aiStore.messages.push({ role: 'user', text: '请针对 Skill 创建评估验证中的可优化项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。', at: new Date().toISOString() })
-  aiStore.messages.push({ role: 'assistant', text: ['已定位 2 个可优化项，并完成 Skill 微调：', '', '- 将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。', '- 补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。', '- 更新验收用例，覆盖参照区间正常生成、权限降级、无数据、模糊时间和时间范围无效。', '', '我会把新的评估结果同步回左侧评估验证页。'].join('\n'), at: new Date().toISOString() })
+  aiStore.messages.push({ role: 'assistant', text: ['已定位 2 个可优化项，并完成 Skill 微调：', '', '- 将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。', '- 补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。', '- 更新验收用例，覆盖参照区间、权限降级、无数据、模糊时间和时间范围无效。', '', '请在右侧会话中确认本轮微调结束；确认后，左侧评估页只同步评分与提交审核状态。'].join('\n'), at: new Date().toISOString() })
   window.setTimeout(() => {
     aiTuning.value = false
     aiTuned.value = true
   }, 900)
-}
-
-type ParsedApplicationRange = {
-  original: string
-  start: Date
-  end: Date
-  startText: string
-  endText: string
-  dayCount: number
-}
-
-async function runSkillApplication() {
-  if (applicationRunning.value) return
-  applicationError.value = ''
-  applicationReport.value = null
-  const prompt = applicationPrompt.value.trim()
-  if (!prompt) {
-    applicationError.value = '请输入包含时间范围的自然语言提示词。'
-    return
-  }
-  const parsed = parseApplicationDateRange(prompt)
-  if ('error' in parsed) {
-    applicationError.value = parsed.error
-    return
-  }
-  applicationRunning.value = true
-  await new Promise(resolve => window.setTimeout(resolve, 560))
-  applicationReport.value = buildApplicationReport(prompt, parsed)
-  applicationRunning.value = false
-  workspaceSub.value = `${form.value.cnName} · Skill 应用验证完成 · ${parsed.startText} ~ ${parsed.endText}`
-}
-
-function openApplicationReport() {
-  const report = applicationReport.value
-  if (!report) return
-  appStore.openTempTab({
-    id: `skill_application_${Date.now()}`,
-    title: `${report.skillCnName} · ${report.dateStart} 至 ${report.dateEnd}`,
-    sourcePage: 'agent.skillCreate',
-    sourcePageLabel: '评估验证',
-    groupLabel: 'Skill 创建',
-    summary: `已按提示词时间生成认证与转化综合简报，覆盖数据真实性、核心 KPI、趋势、时段、画像、Top10 商品和行动建议。`,
-    chips: ['Skill 应用', '认证转化', report.dateStart, report.dateEnd],
-    content: buildApplicationReportMarkdown(report),
-    reportData: report,
-    createdAt: new Date().toISOString()
-  })
-}
-
-function parseApplicationDateRange(prompt: string): ParsedApplicationRange | { error: string } {
-  const today = startOfLocalDay(new Date())
-  const explicitDates = Array.from(prompt.matchAll(/(?:(\d{4})[年/.\-])?(\d{1,2})(?:月|[/.\-])(\d{1,2})日?/g))
-    .map(match => ({
-      year: match[1] ? Number(match[1]) : 0,
-      month: Number(match[2]),
-      day: Number(match[3]),
-      raw: match[0]
-    }))
-    .filter(item => item.month >= 1 && item.month <= 12 && item.day >= 1 && item.day <= 31)
-
-  let start: Date | null = null
-  let end: Date | null = null
-
-  if (explicitDates.length >= 2) {
-    const first = explicitDates[0]
-    const second = explicitDates[1]
-    const firstYear = first.year || today.getFullYear()
-    let secondYear = second.year || firstYear
-    start = makeLocalDate(firstYear, first.month, first.day)
-    end = makeLocalDate(secondYear, second.month, second.day)
-    if (!second.year && end < start) {
-      secondYear += 1
-      end = makeLocalDate(secondYear, second.month, second.day)
-    }
-  } else if (explicitDates.length === 1 && /(?:到|至|截止|截至)\s*(?:今天|今日)/.test(prompt)) {
-    const item = explicitDates[0]
-    start = makeLocalDate(item.year || today.getFullYear(), item.month, item.day)
-    end = today
-  } else {
-    const recentDays = prompt.match(/(?:最近|近)\s*(\d+|一|二|两|三|四|五|六|七|八|九|十|半个)\s*(?:天|日)/)
-    const recentWeeks = prompt.match(/(?:最近|近)\s*(\d+|一|二|两|三|四|五|六|七|八|九|十)\s*(?:周|星期)/)
-    if (recentDays) {
-      const days = recentDays[1] === '半个' ? 15 : parseNaturalNumber(recentDays[1])
-      end = today
-      start = addLocalDays(today, -(Math.max(days, 1) - 1))
-    } else if (recentWeeks) {
-      const days = Math.max(parseNaturalNumber(recentWeeks[1]), 1) * 7
-      end = today
-      start = addLocalDays(today, -(days - 1))
-    } else if (/上周|上个星期/.test(prompt)) {
-      const currentMonday = addLocalDays(today, -((today.getDay() + 6) % 7))
-      start = addLocalDays(currentMonday, -7)
-      end = addLocalDays(currentMonday, -1)
-    } else if (/本周|这周|这个星期/.test(prompt)) {
-      start = addLocalDays(today, -((today.getDay() + 6) % 7))
-      end = today
-    } else if (/上月|上个月/.test(prompt)) {
-      start = makeLocalDate(today.getFullYear(), today.getMonth(), 1)
-      end = addLocalDays(makeLocalDate(today.getFullYear(), today.getMonth() + 1, 1), -1)
-    } else if (/本月|这个月/.test(prompt)) {
-      start = makeLocalDate(today.getFullYear(), today.getMonth() + 1, 1)
-      end = today
-    } else if (/最近一个月|近一个月/.test(prompt)) {
-      end = today
-      start = addLocalDays(today, -29)
-    } else if (/昨天|昨日/.test(prompt)) {
-      start = addLocalDays(today, -1)
-      end = start
-    } else if (/今天|今日/.test(prompt)) {
-      start = today
-      end = today
-    }
-  }
-
-  if (!start || !end || !isValidLocalDate(start) || !isValidLocalDate(end)) {
-    return { error: '未识别到可执行的时间范围。请使用“5/27 到 6/8”“最近两周”或“上周”等表达。' }
-  }
-  if (end < start) {
-    return { error: `时间范围无效：结束日期（${formatDate(end)}）早于开始日期（${formatDate(start)}）。请重新输入起止日期。` }
-  }
-  const dayCount = inclusiveDayCount(start, end)
-  if (dayCount > 92) {
-    return { error: `时间范围超过 92 天上限（当前：${dayCount} 天）。请缩小区间后重试。` }
-  }
-  return {
-    original: prompt,
-    start,
-    end,
-    startText: formatDate(start),
-    endText: formatDate(end),
-    dayCount
-  }
-}
-
-function buildApplicationReport(prompt: string, range: ParsedApplicationRange): SkillApplicationReportData {
-  const isReferenceRange = range.startText === '2026-05-27' && range.endText === '2026-06-08'
-  const seed = Number(`${range.startText}${range.endText}`.replace(/\D/g, '').slice(-8)) || 1
-  const scale = range.dayCount / 13
-  const uniqueUsers = isReferenceRange
-    ? 861
-    : Math.max(1, Math.round(861 * scale * (0.92 + (seed % 17) / 100)))
-  const conversionRate = isReferenceRange ? 56 : Number((54.5 + (seed % 36) / 10).toFixed(1))
-  const purchasedUsers = isReferenceRange ? 482 : Math.max(0, Math.round(uniqueUsers * conversionRate / 100))
-  const orderCount = isReferenceRange ? 536 : Math.max(purchasedUsers, Math.round(purchasedUsers * 1.112))
-  const totalGmv = isReferenceRange ? 7_170_000 : orderCount * (7600 + (seed % 701))
-  const averageOrderValue = orderCount ? Math.round(totalGmv / orderCount) : 0
-  const duplicateRecords = isReferenceRange ? 71 : Math.max(0, Math.round(uniqueUsers * 0.082))
-  const duplicateUsers = isReferenceRange ? 59 : Math.max(0, Math.round(duplicateRecords * 0.83))
-  const rawRecords = isReferenceRange ? 888 : uniqueUsers + Math.max(1, Math.round(uniqueUsers * 0.031))
-  const unpurchasedUsers = Math.max(uniqueUsers - purchasedUsers, 0)
-  const dailyTrend = buildDailyTrend(range, uniqueUsers, seed, isReferenceRange)
-  const peak = dailyTrend.reduce((best, item) => item.value > best.value ? item : best, dailyTrend[0])
-  const timeBuckets = buildTimeBuckets(uniqueUsers, isReferenceRange)
-  const methods = buildBreakdown([
-    ['其他材料', 629],
-    ['个税视频', 102],
-    ['在职证明', 73],
-    ['社保材料', 57]
-  ], uniqueUsers, 861)
-  const industries = buildBreakdown([
-    ['房地产业', 101], ['制造业', 84], ['信息技术服务', 73], ['批发和零售业', 65], ['金融业', 58],
-    ['教育', 52], ['建筑业', 44], ['交通运输', 39], ['商务服务', 34], ['其他行业', 29]
-  ], uniqueUsers, 861)
-  const roles = buildBreakdown([
-    ['管理层', 335], ['工程师', 136], ['运营', 90], ['销售', 72], ['客户服务', 52],
-    ['财务', 48], ['人力资源', 44], ['采购', 39], ['其他岗位', 45]
-  ], uniqueUsers, 861)
-  const products = buildProductBreakdown(purchasedUsers)
-  const generatedAt = formatBeijingTime(new Date())
-  const lastDay = dailyTrend[dailyTrend.length - 1]
-
-  return {
-    skillName: form.value.name,
-    skillCnName: form.value.cnName,
-    prompt,
-    parsedTimeText: `已将「${prompt}」解析为 ${range.startText} ~ ${range.endText}，按此区间生成简报。`,
-    dateStart: range.startText,
-    dateEnd: range.endText,
-    dayCount: range.dayCount,
-    generatedAt,
-    truth: { rawRecords, duplicateRecords, duplicateUsers, uniqueUsers },
-    metrics: [
-      { label: '已认证独立用户', value: formatNumber(uniqueUsers), note: `${range.dayCount} 天累计`, tone: 'blue' },
-      { label: '已购用户', value: formatNumber(purchasedUsers), note: `${formatNumber(orderCount)} 笔支付订单`, tone: 'green' },
-      { label: '认证购买转化率', value: `${conversionRate.toFixed(1)}%`, note: '已购用户 ÷ 已认证独立用户', tone: 'green' },
-      { label: '总 GMV', value: `¥${formatNumber(totalGmv)}`, note: 'SMB 渠道支付成功订单', tone: 'blue' },
-      { label: '平均客单价', value: `¥${formatNumber(averageOrderValue)}`, note: '总 GMV ÷ 订单笔数', tone: 'neutral' },
-      { label: '认证未购池', value: formatNumber(unpurchasedUsers), note: '可用于后续召回圈选', tone: 'orange' }
-    ],
-    insights: [
-      { title: `${formatNumber(uniqueUsers)} 名独立认证用户，购买转化率 ${conversionRate.toFixed(1)}%`, evidence: [`原始 ${formatNumber(rawRecords)} 条记录按 LenovoID 去重`, `${formatNumber(purchasedUsers)} 人完成购买，${formatNumber(unpurchasedUsers)} 人仍未购`] },
-      { title: `${peak.label} 为区间认证峰值`, evidence: [`当日新增 ${formatNumber(peak.value)} 人`, `${lastDay.label} 新增 ${formatNumber(lastDay.value)} 人`] },
-      { title: '下午 14-18 时是认证主力窗口', evidence: [`${timeBuckets[4].value} 人，占 ${timeBuckets[4].share}`, `14-22 时合计 ${timeBuckets[4].value + timeBuckets[5].value} 人`] },
-      { title: '其他材料是主要认证方式', evidence: [`${methods[0].value} 人，占 ${methods[0].share}`, '适合优先优化材料识别与审核说明'] },
-      { title: '房地产业认证人数居首', evidence: [`${industries[0].value} 人，占 ${industries[0].share}`, '可继续下钻行业转化与商品偏好'] },
-      { title: `${products[0].label} 为区间 Top1 商品`, evidence: [`${products[0].value} 名已购用户购买`, `占已购用户 ${products[0].share}`] },
-      { title: '围绕未购池、爆款和主力时段组织后续动作', evidence: [`召回 ${formatNumber(unpurchasedUsers)} 名认证未购用户`, `聚焦 14-18 与 18-22 时段`, '下钻重点行业和岗位大类'], action: true }
-    ],
-    dailyTrend,
-    timeBuckets,
-    methods,
-    industries,
-    roles,
-    products,
-    actions: [
-      `行动指引：圈选 ${formatNumber(unpurchasedUsers)} 名认证未购用户，形成召回池；本 Skill 只输出范围，不执行触达。`,
-      `行动指引：主推 ${products[0].label}，当前覆盖 ${products[0].share} 的已购用户。`,
-      `行动指引：运营触达优先安排在 14-18 与 18-22 时段。`,
-      `行动指引：优先下钻房地产业和管理层人群的购买偏好。`,
-      '行动指引：导出明细前展示行数、字段和脱敏方式，并等待用户确认。'
-    ],
-    sources: ['联想职场认证系统', 'SMB 电商渠道'],
-    notes: ['数据按 LenovoID 去重', '不含 B4 企业相关分析', '当前为 Skill 应用验证结果']
-  }
-}
-
-function buildDailyTrend(range: ParsedApplicationRange, total: number, seed: number, exact: boolean) {
-  const exactValues = [52, 61, 79, 134, 82, 47, 54, 56, 64, 57, 51, 59, 65]
-  const dates = Array.from({ length: range.dayCount }, (_, index) => addLocalDays(range.start, index))
-  if (exact && dates.length === exactValues.length) {
-    return dates.map((date, index) => ({ date: formatDate(date), label: formatShortDate(date), value: exactValues[index] }))
-  }
-  const weights = dates.map((date, index) => {
-    const weekdayBoost = [0.82, 1.04, 1.12, 1.18, 1.1, 1.02, 0.76][date.getDay()]
-    return weekdayBoost * (0.88 + ((seed + index * 7) % 23) / 50)
-  })
-  const weightTotal = weights.reduce((sum, value) => sum + value, 0)
-  const values = weights.map(value => Math.max(0, Math.floor(total * value / weightTotal)))
-  let remainder = total - values.reduce((sum, value) => sum + value, 0)
-  for (let index = 0; remainder > 0; index = (index + 1) % values.length) {
-    values[index] += 1
-    remainder -= 1
-  }
-  return dates.map((date, index) => ({ date: formatDate(date), label: formatShortDate(date), value: values[index] }))
-}
-
-function buildTimeBuckets(uniqueUsers: number, exact: boolean): SkillApplicationBreakdown[] {
-  const labels = ['凌晨 00-06', '早高峰 06-09', '上午 09-12', '午间 12-14', '下午 14-18', '晚间 18-22', '深夜 22-24']
-  const exactValues = [24, 65, 118, 101, 255, 203, 51]
-  const shares = [2.9, 8, 14.4, 12.4, 31.2, 24.8, 6.3]
-  const available = exact ? 817 : Math.max(1, Math.round(uniqueUsers * 0.95))
-  return labels.map((label, index) => ({
-    label,
-    value: exact ? exactValues[index] : Math.round(available * shares[index] / 100),
-    share: `${shares[index].toFixed(1)}%`
-  }))
-}
-
-function buildBreakdown(entries: Array<[string, number]>, total: number, baseTotal: number): SkillApplicationBreakdown[] {
-  return entries.map(([label, base]) => {
-    const value = Math.max(0, Math.round(base * total / baseTotal))
-    return { label, value, share: total ? `${(value / total * 100).toFixed(1)}%` : '0.0%' }
-  })
-}
-
-function buildProductBreakdown(purchasedUsers: number): SkillApplicationBreakdown[] {
-  const products: Array<[string, number]> = [
-    ['ThinkBook 14+ Ultra 5 06CD', 133],
-    ['ThinkPad X1 Carbon', 92],
-    ['小新 Pro 14', 76],
-    ['ThinkBook 16+', 61],
-    ['拯救者 Y7000P', 54],
-    ['ThinkPad T14', 46],
-    ['小新 Air 14', 39],
-    ['联想异能者台式机', 33],
-    ['ThinkVision 显示器', 29],
-    ['联想办公配件套装', 24]
-  ]
-  return products.map(([label, base]) => {
-    const value = Math.max(0, Math.round(base * purchasedUsers / 482))
-    return { label, value, share: purchasedUsers ? `${(value / purchasedUsers * 100).toFixed(1)}%` : '0.0%' }
-  })
-}
-
-function buildApplicationReportMarkdown(report: SkillApplicationReportData) {
-  return [
-    `# ${report.skillCnName}`,
-    report.parsedTimeText,
-    '',
-    '## 数据真实性说明',
-    `- 原始 ${report.truth.rawRecords} 条，重复 ${report.truth.duplicateRecords} 条，去重后 ${report.truth.uniqueUsers} 名独立用户。`,
-    '',
-    '## 核心指标',
-    ...report.metrics.map(item => `- ${item.label}：${item.value}（${item.note}）`),
-    '',
-    '## 可落地动作',
-    ...report.actions.map(item => `- ${item}`)
-  ].join('\n')
-}
-
-function startOfLocalDay(value: Date) {
-  return new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0)
-}
-
-function makeLocalDate(year: number, month: number, day: number) {
-  return new Date(year, month - 1, day, 12, 0, 0, 0)
-}
-
-function addLocalDays(value: Date, days: number) {
-  const next = new Date(value)
-  next.setDate(next.getDate() + days)
-  return next
-}
-
-function isValidLocalDate(value: Date) {
-  return Number.isFinite(value.getTime())
-}
-
-function inclusiveDayCount(start: Date, end: Date) {
-  const startUtc = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())
-  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate())
-  return Math.floor((endUtc - startUtc) / 86400000) + 1
-}
-
-function parseNaturalNumber(value: string) {
-  if (/^\d+$/.test(value)) return Number(value)
-  return ({ 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 } as Record<string, number>)[value] || 1
-}
-
-function formatDate(value: Date) {
-  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
-}
-
-function formatShortDate(value: Date) {
-  return `${String(value.getMonth() + 1).padStart(2, '0')}/${String(value.getDate()).padStart(2, '0')}`
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat('zh-CN').format(value)
 }
 
 function formatBeijingTime(value: Date) {
@@ -1977,7 +1588,6 @@ function restoreSkillItem(item: SkillHubItem) {
     summaryItems.value = (snapshot.summaryItems || []).map(summary => ({ ...summary }))
     summaryUpdated.value = snapshot.summaryUpdated || '根据已保存草稿恢复'
     aiTuned.value = Boolean(snapshot.aiTuned)
-    applicationPrompt.value = snapshot.applicationPrompt || applicationPrompt.value
     return
   }
   form.value.name = item.name

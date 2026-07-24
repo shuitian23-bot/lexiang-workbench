@@ -19,7 +19,6 @@ export interface SkillDraftSnapshot {
   summaryItems: Array<{ label: string; text: string }>
   summaryUpdated: string
   aiTuned: boolean
-  applicationPrompt: string
   savedAt: string
 }
 

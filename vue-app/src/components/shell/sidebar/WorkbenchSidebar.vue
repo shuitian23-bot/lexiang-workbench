@@ -112,6 +112,14 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-07-24 13:44',
+    operator: 'Codex（协作代理）',
+    title: 'Skill 创建评估页微调收口调整',
+    scope: 'Skill 创建 / 评估验证 / 右侧 AI 助手 / 提交审核',
+    detail: '调整 Skill 创建评估验证阶段的微调链路：左侧评估页不再承载 Skill 应用验证、运行 Skill 输入框、最终验收动作，以及“查看草稿 / 查看澄清 / 查看用例”等卡片内跳转按钮，避免在主流程内重复完成测试调用或跳转到非当前步骤；AI 微调入口仅负责唤起右侧 AI 助手，由右侧会话引导用户确认本轮微调结束，再将评分和提交审核状态同步回左侧。提交审核仍保留在 Skill 创建主流程内，后续真实 Skill 调用、结果卡片和展开报告继续通过右侧 AI 助手完成。',
+    status: '已合并正式'
+  },
+  {
     time: '2026-07-22 17:02',
     operator: 'Codex（协作代理）',
     title: '企业客户管理业务链路更新',
