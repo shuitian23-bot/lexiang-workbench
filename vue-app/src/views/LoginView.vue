@@ -118,36 +118,99 @@
 
         <div v-else-if="currentRegisterStepKey === 'scope'" class="register-step-body">
           <h3>权限范围</h3>
-          <p>账号创建默认包含登录工作台能力，可按岗位选择初始角色和数据权限。</p>
-          <div class="register-scope-section">
-            <b>初始角色</b>
-            <div class="register-option-grid">
-              <button
-                v-for="role in roleOptions"
-                :key="role.id"
-                type="button"
-                :class="{ active: registerForm.roleIds.includes(role.id) }"
-                @click="toggleRegisterId(registerForm.roleIds, role.id)"
-              >
-                <span>{{ role.name }}</span>
-                <small>{{ role.desc }}</small>
-              </button>
-            </div>
+          <p>可以先复制他人权限作为参考，再添加角色，最后补充单独的数据权限；重复权限会按来源合并展示。</p>
+          <div class="register-scope-action-bar">
+            <button type="button" class="register-primary-btn" @click="openRegisterRoleModal">添加角色</button>
+            <button type="button" class="register-ghost-btn" @click="openRegisterCopyModal">复制他人权限</button>
+            <button type="button" class="register-ghost-btn" @click="openRegisterDataModal">添加数据权限</button>
           </div>
-          <div class="register-scope-section">
-            <b>数据权限</b>
-            <div class="register-option-grid">
-              <button
-                v-for="item in dataScopeOptions"
-                :key="item.id"
-                type="button"
-                :class="{ active: registerForm.dataScopeIds.includes(item.id) }"
-                @click="toggleRegisterId(registerForm.dataScopeIds, item.id)"
-              >
-                <span>{{ item.name }}</span>
-                <small>{{ item.desc }}</small>
-              </button>
+          <div class="register-source-stack">
+            <div v-if="!hasRegisterPermissionSources" class="register-scope-empty">
+              <b>还没有选择权限范围</b>
+              <p>请先点击“添加角色”“复制他人权限”或“添加数据权限”，系统会按来源分别展示申请内容。</p>
+              <small v-if="registerErrors.scope" class="register-scope-error">{{ registerErrors.scope }}</small>
             </div>
+
+            <article v-if="selectedRegisterRoles.length" class="register-source-panel">
+              <div class="register-source-head">
+                <div>
+                  <b>添加角色</b>
+                  <small>{{ selectedRegisterRoles.length }} 个角色，角色内绑定展示功能权限和数据权限</small>
+                </div>
+                <button type="button" class="register-link-btn" @click="openRegisterRoleModal">调整角色</button>
+              </div>
+              <div class="register-role-list">
+                <div v-for="role in selectedRegisterRoles" :key="role.id" class="register-role-card">
+                  <div>
+                    <b>{{ role.name }}</b>
+                    <small>{{ role.desc }}</small>
+                  </div>
+                  <div class="register-card-actions">
+                    <button type="button" class="register-link-btn" @click="openRegisterRoleDetail(role)">详情</button>
+                    <button type="button" class="register-link-btn danger" @click="removeRegisterRole(role.id)">移除</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article v-if="copiedRegisterUser" class="register-source-panel">
+              <div class="register-source-head">
+                <div>
+                  <b>复制他人权限</b>
+                  <small>复制自 {{ copiedRegisterUser.name }}（{{ copiedRegisterUser.itcode }}）</small>
+                </div>
+                <button type="button" class="register-link-btn" @click="clearRegisterCopiedPermissions">清除复制结果</button>
+              </div>
+              <div class="register-role-list">
+                <div v-for="role in copiedRegisterRoles" :key="role.id" class="register-role-card copied">
+                  <div>
+                    <b>{{ role.name }}</b>
+                    <small>{{ role.desc }}</small>
+                  </div>
+                  <div class="register-card-actions">
+                    <button type="button" class="register-link-btn" @click="openRegisterRoleDetail(role)">详情</button>
+                  </div>
+                </div>
+                <div v-if="copiedRegisterExtraFunctionPermissions.length || copiedRegisterUserDataPermissions.length" class="register-extra-card">
+                  <b>对方单独授权</b>
+                  <div class="register-bound-grid">
+                    <div>
+                      <span>功能权限</span>
+                      <div v-if="copiedRegisterExtraFunctionPermissions.length" class="register-chip-list">
+                        <em v-for="permission in copiedRegisterExtraFunctionPermissions" :key="permission.id">{{ permission.name }}</em>
+                      </div>
+                      <small v-else>无单独功能权限。</small>
+                    </div>
+                    <div>
+                      <span>数据权限</span>
+                      <div v-if="copiedRegisterUserDataPermissions.length" class="register-chip-list">
+                        <em v-for="permission in copiedRegisterUserDataPermissions" :key="permission.id">
+                          {{ permission.name }}
+                          <button type="button" @click="removeRegisterDataPermission(permission.id)">×</button>
+                        </em>
+                      </div>
+                      <small v-else>无单独数据权限。</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article v-if="manualRegisterDataPermissions.length" class="register-source-panel">
+              <div class="register-source-head">
+                <div>
+                  <b>添加数据权限</b>
+                  <small>{{ manualRegisterDataPermissions.length }} 项本次新增数据权限</small>
+                </div>
+                <button type="button" class="register-link-btn" @click="openRegisterDataModal">调整数据权限</button>
+              </div>
+              <div class="register-chip-list">
+                <em v-for="permission in manualRegisterDataPermissions" :key="permission.id">
+                  {{ permission.name }}
+                  <button type="button" @click="removeRegisterDataPermission(permission.id)">×</button>
+                </em>
+              </div>
+            </article>
           </div>
         </div>
 
@@ -171,6 +234,105 @@
           <button type="button" class="register-ghost-btn" :disabled="registerStep === 0 || registerSubmitted" @click="prevRegisterStep">上一步</button>
           <button v-if="registerStep < registerSteps.length - 1" type="button" class="register-primary-btn" @click="nextRegisterStep">下一步</button>
           <button v-else type="button" class="register-primary-btn" :disabled="registerSubmitted" @click="submitRegisterApplication">{{ registerSubmitted ? '已提交' : '提交审批' }}</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="registerRoleModal.visible" class="register-modal-layer" @click.self="closeRegisterRoleModal">
+      <div class="register-picker-panel" role="dialog" aria-modal="true">
+        <button type="button" class="register-modal-close" aria-label="关闭" @click="closeRegisterRoleModal">×</button>
+        <h2>添加角色</h2>
+        <p class="register-modal-note">选择创建账号时需要带入的初始角色，可查看每个角色绑定的功能和数据权限。</p>
+        <div class="register-picker-list">
+          <article v-for="role in roleOptions" :key="role.id" :class="{ active: registerRoleModal.selectedIds.includes(role.id) }">
+            <label>
+              <input type="checkbox" :checked="registerRoleModal.selectedIds.includes(role.id)" @change="toggleRegisterModalRole(role.id)">
+              <span>
+                <b>{{ role.name }}</b>
+                <small>{{ role.desc }}</small>
+              </span>
+            </label>
+            <button type="button" class="register-link-btn" @click="openRegisterRoleDetail(role)">详情</button>
+          </article>
+        </div>
+        <div class="register-modal-actions flat">
+          <button type="button" class="register-ghost-btn" @click="closeRegisterRoleModal">取消</button>
+          <button type="button" class="register-primary-btn" @click="confirmRegisterRoleSelection">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="registerCopyModal.visible" class="register-modal-layer" @click.self="closeRegisterCopyModal">
+      <div class="register-small-panel" role="dialog" aria-modal="true">
+        <button type="button" class="register-modal-close" aria-label="关闭" @click="closeRegisterCopyModal">×</button>
+        <h2>复制他人权限</h2>
+        <p class="register-modal-note">输入对方 ITCode 后，系统会把对方的角色、功能权限和数据权限回填到本次申请。</p>
+        <label class="register-single-field">
+          <span>对方 ITCode <em>必填</em></span>
+          <input v-model.trim="registerCopyModal.itcode" :class="{ invalid: registerCopyModal.error }" placeholder="例如 wangxt8" @keyup.enter="confirmRegisterCopyPermissions">
+          <small v-if="registerCopyModal.error">{{ registerCopyModal.error }}</small>
+        </label>
+        <div class="register-hints">可试用：wangxt8、liwen08、temp-bpo</div>
+        <div class="register-modal-actions flat">
+          <button type="button" class="register-ghost-btn" @click="closeRegisterCopyModal">取消</button>
+          <button type="button" class="register-primary-btn" @click="confirmRegisterCopyPermissions">确认复制</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="registerDataModal.visible" class="register-modal-layer" @click.self="closeRegisterDataModal">
+      <div class="register-picker-panel" role="dialog" aria-modal="true">
+        <button type="button" class="register-modal-close" aria-label="关闭" @click="closeRegisterDataModal">×</button>
+        <h2>添加数据权限</h2>
+        <p class="register-modal-note">补充角色之外的数据范围，创建账号审批时会一并提交。</p>
+        <div class="register-data-tree">
+          <div v-for="group in dataPermissionTree" :key="group.id" class="register-data-group">
+            <b>{{ group.name }}</b>
+            <div v-for="child in group.children" :key="child.id" class="register-data-child">
+              <span>{{ child.name }}</span>
+              <label v-for="leaf in child.children" :key="leaf.id">
+                <input type="checkbox" :checked="registerDataModal.selectedIds.includes(leaf.id)" @change="toggleRegisterId(registerDataModal.selectedIds, leaf.id)">
+                {{ leaf.name }}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="register-modal-actions flat">
+          <button type="button" class="register-ghost-btn" @click="closeRegisterDataModal">取消</button>
+          <button type="button" class="register-primary-btn" @click="confirmRegisterDataSelection">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="registerRoleDetail.visible && registerRoleDetailRole" class="register-modal-layer" @click.self="closeRegisterRoleDetail">
+      <div class="register-detail-panel" role="dialog" aria-modal="true">
+        <button type="button" class="register-modal-close" aria-label="关闭" @click="closeRegisterRoleDetail">×</button>
+        <span class="register-detail-eyebrow">角色权限详情</span>
+        <h2>{{ registerRoleDetailRole.name }}</h2>
+        <p class="register-modal-note">{{ registerRoleDetailRole.desc }}</p>
+        <div class="register-permission-tree">
+          <details v-for="root in registerRolePermissionTree(registerRoleDetailRole)" :key="root.id">
+            <summary><b>{{ root.name }}</b><span>{{ registerPermissionCountLabel(root) }}</span></summary>
+            <div class="register-permission-branches">
+              <details v-for="branch in root.children" :key="branch.id">
+                <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
+                <div class="register-permission-matrix">
+                  <div class="head"><span>功能权限</span><span>数据权限</span></div>
+                  <div v-for="row in registerPermissionMatrixRows(branch)" :key="(row.functionPermission?.id || 'func-empty') + '-' + (row.dataPermission?.id || 'data-empty')" class="row">
+                    <span>{{ row.functionPermission?.name || '-' }}</span>
+                    <label v-if="row.dataPermission">
+                      <input type="checkbox" :checked="registerForm.dataScopeIds.includes(row.dataPermission.id)" @change="toggleRegisterId(registerForm.dataScopeIds, row.dataPermission.id)">
+                      {{ row.dataPermission.name }}
+                    </label>
+                    <span v-else>-</span>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </details>
+        </div>
+        <div class="register-modal-actions flat">
+          <button type="button" class="register-primary-btn" @click="closeRegisterRoleDetail">知道了</button>
         </div>
       </div>
     </div>
@@ -202,16 +364,74 @@ const registerSteps = [
   { key: 'approve', label: '3. 提交审批' }
 ]
 
-const roleOptions = [
-  { id: 'role-workbench-basic', name: '工作台基础角色', desc: '门户首页、个人任务和基础 Agent 入口。' },
-  { id: 'role-ops-viewer', name: '运营查看角色', desc: '运营看板、商品和会员数据的只读查看。' },
-  { id: 'role-skill-user', name: 'Skill 使用角色', desc: 'Skill Hub 查看、试用和申请创建能力。' }
+const functionPermissionTree = [
+  {
+    id: 'func.ops',
+    name: '运营能力',
+    children: [
+      { id: 'func.ops.dashboard', name: '运营看板', children: [{ id: 'func.dashboard.view', name: '查看运营总览' }, { id: 'func.report.generate', name: '报告生成' }, { id: 'func.data.export', name: '数据导出' }] }
+    ]
+  },
+  {
+    id: 'func.business',
+    name: '业务能力',
+    children: [
+      { id: 'func.business.product', name: '商品与发布', children: [{ id: 'func.product.config', name: '商品配置' }, { id: 'func.publish.confirm', name: '发布确认' }] },
+      { id: 'func.business.lead', name: '企业客户', children: [{ id: 'func.lead.assign', name: '线索分配' }] }
+    ]
+  },
+  {
+    id: 'func.platform',
+    name: '平台能力',
+    children: [
+      { id: 'func.platform.skill', name: 'AI 与搜索', children: [{ id: 'func.skill.manage', name: 'Skill 管理' }, { id: 'func.geo.monitor', name: 'GEO 信源监测' }] }
+    ]
+  }
 ]
 
-const dataScopeOptions = [
-  { id: 'data-region-default', name: '默认组织数据', desc: '按申请人组织带出默认数据范围。' },
-  { id: 'data-ops-summary', name: '运营汇总数据', desc: 'GMV、流量、转化等汇总指标。' },
-  { id: 'data-member-basic', name: '会员基础标签', desc: '会员分层、权益和基础画像标签。' }
+const dataPermissionTree = [
+  {
+    id: 'data.ops',
+    name: '运营数据集',
+    children: [
+      { id: 'data.ops.region', name: '区域数据', children: [{ id: 'data.ops.region.east', name: '华东区' }, { id: 'data.ops.region.north', name: '华北区' }, { id: 'data.ops.region.south', name: '华南区' }] },
+      { id: 'data.ops.metric', name: '经营指标', children: [{ id: 'data.ops.metric.gmv', name: 'GMV 指标' }, { id: 'data.ops.metric.flow', name: '流量转化' }] }
+    ]
+  },
+  {
+    id: 'data.member',
+    name: '会员标签库',
+    children: [
+      { id: 'data.member.profile', name: '会员画像', children: [{ id: 'data.member.profile.level', name: '会员等级' }, { id: 'data.member.profile.rights', name: '权益使用' }] }
+    ]
+  },
+  {
+    id: 'data.geo',
+    name: 'GEO 信源库',
+    children: [
+      { id: 'data.geo.source', name: '信源范围', children: [{ id: 'data.geo.source.official', name: '官方信源' }, { id: 'data.geo.source.community', name: '社区信源' }] }
+    ]
+  },
+  {
+    id: 'data.lead',
+    name: '企业客户线索',
+    children: [
+      { id: 'data.lead.pool', name: '线索池', children: [{ id: 'data.lead.pool.all', name: '全部线索' }, { id: 'data.lead.pool.assigned', name: '已分配线索' }] }
+    ]
+  }
+]
+
+const roleOptions = [
+  { id: 'ops-pm', name: '运营分析 PM', desc: '可查看运营总览、生成报告，并使用常用运营数据。', functionPermissionIds: ['func.dashboard.view', 'func.report.generate', 'func.data.export'], dataPermissionIds: ['data.ops.region.east', 'data.ops.metric.gmv'] },
+  { id: 'product-op', name: '商品运营', desc: '可配置商品、推荐位、价格和上下架策略。', functionPermissionIds: ['func.product.config', 'func.publish.confirm'], dataPermissionIds: ['data.ops.region.north', 'data.ops.metric.gmv', 'data.member.profile.rights'] },
+  { id: 'geo-analyst', name: 'GEO 分析师', desc: '可查看信源、引用和搜索表现数据。', functionPermissionIds: ['func.geo.monitor', 'func.report.generate'], dataPermissionIds: ['data.geo.source.official', 'data.geo.source.community'] },
+  { id: 'lead-operator', name: '线索运营', desc: '可查看企业客户线索并进行分配跟进。', functionPermissionIds: ['func.lead.assign', 'func.dashboard.view'], dataPermissionIds: ['data.lead.pool.all', 'data.lead.pool.assigned'] }
+]
+
+const registerCopyUsers = [
+  { itcode: 'wangxt8', name: '王晓婷', roleIds: ['ops-pm', 'product-op'], extraFunctionPermissionIds: ['func.skill.manage'], dataPermissionIds: ['data.ops.region.east', 'data.member.profile.rights'] },
+  { itcode: 'liwen08', name: '李雯', roleIds: ['product-op'], extraFunctionPermissionIds: [], dataPermissionIds: ['data.member.profile.rights'] },
+  { itcode: 'temp-bpo', name: '外部协作', roleIds: ['geo-analyst'], extraFunctionPermissionIds: ['func.report.generate'], dataPermissionIds: ['data.geo.source.official'] }
 ]
 
 const registerForm = reactive({
@@ -225,8 +445,13 @@ const registerForm = reactive({
   targetManager: '',
   relatedAccount: '',
   reason: '',
-  roleIds: ['role-workbench-basic'],
-  dataScopeIds: ['data-region-default']
+  roleIds: [] as string[],
+  copiedRoleIds: [] as string[],
+  copiedFromItcode: '',
+  copiedFunctionPermissionIds: [] as string[],
+  copiedDataSourceMap: {} as Record<string, string>,
+  dataScopeIds: [] as string[],
+  manualDataScopeIds: [] as string[]
 })
 
 const registerErrors = reactive({
@@ -234,12 +459,30 @@ const registerErrors = reactive({
   applicantItcode: '',
   targetUser: '',
   relatedAccount: '',
-  reason: ''
+  reason: '',
+  scope: ''
 })
+const registerRoleModal = reactive({ visible: false, selectedIds: [] as string[] })
+const registerCopyModal = reactive({ visible: false, itcode: '', error: '' })
+const registerDataModal = reactive({ visible: false, selectedIds: [] as string[] })
+const registerRoleDetail = reactive({ visible: false, roleId: '' })
+
+function isPresent<T>(value: T | null | undefined): value is T {
+  return value != null
+}
 
 const currentRegisterStepKey = computed(() => registerSteps[registerStep.value]?.key || 'info')
-const selectedRoleNames = computed(() => roleOptions.filter((item) => registerForm.roleIds.includes(item.id)).map((item) => item.name).join('、') || '未选择角色')
-const selectedDataScopeNames = computed(() => dataScopeOptions.filter((item) => registerForm.dataScopeIds.includes(item.id)).map((item) => item.name).join('、') || '默认无额外数据权限')
+const selectedRegisterRoles = computed(() => roleOptions.filter((item) => registerForm.roleIds.includes(item.id)))
+const copiedRegisterUser = computed(() => registerCopyUsers.find((item) => item.itcode === registerForm.copiedFromItcode) || null)
+const copiedRegisterRoles = computed(() => roleOptions.filter((item) => registerForm.copiedRoleIds.includes(item.id)))
+const allRegisterRoles = computed(() => [...selectedRegisterRoles.value, ...copiedRegisterRoles.value].filter((role, index, list) => list.findIndex((item) => item.id === role.id) === index))
+const copiedRegisterExtraFunctionPermissions = computed(() => registerForm.copiedFunctionPermissionIds.map(registerFunctionPermissionDetail).filter(isPresent))
+const copiedRegisterUserDataPermissions = computed(() => registerForm.dataScopeIds.filter((id) => registerCopiedDataSource(id) === '用户单独授权').map(findRegisterDataPermission).filter(isPresent))
+const manualRegisterDataPermissions = computed(() => registerForm.manualDataScopeIds.map(findRegisterDataPermission).filter(isPresent))
+const hasRegisterPermissionSources = computed(() => selectedRegisterRoles.value.length > 0 || !!copiedRegisterUser.value || manualRegisterDataPermissions.value.length > 0)
+const selectedRoleNames = computed(() => allRegisterRoles.value.map((item) => item.name).join('、') || '未选择角色')
+const selectedDataScopeNames = computed(() => registerForm.dataScopeIds.map(findRegisterDataPermission).filter(isPresent).map((item) => item.name).join('、') || '默认无额外数据权限')
+const registerRoleDetailRole = computed(() => roleOptions.find((role) => role.id === registerRoleDetail.roleId) || null)
 const approvalRoute = computed(() => [
   { step: '1', label: '申请人提交', owner: registerForm.applicant || '待填写', done: true },
   { step: '2', label: '申请人直线经理审批', owner: registerForm.applicantManager || '待带出', done: false },
@@ -307,7 +550,12 @@ function validateRegisterInfo() {
   registerErrors.targetUser = registerForm.targetUser ? '' : '请填写待创建账号人员。'
   registerErrors.relatedAccount = registerForm.personType === 'external' && !registerForm.relatedAccount ? '外部人员需要填写内部关联人员。' : ''
   registerErrors.reason = registerForm.reason ? '' : '请填写申请原因和业务场景。'
-  return !Object.values(registerErrors).some(Boolean)
+  return ![registerErrors.applicant, registerErrors.applicantItcode, registerErrors.targetUser, registerErrors.relatedAccount, registerErrors.reason].some(Boolean)
+}
+
+function validateRegisterScope() {
+  registerErrors.scope = hasRegisterPermissionSources.value ? '' : '请至少添加角色、复制他人权限或添加数据权限后再继续。'
+  return !registerErrors.scope
 }
 
 function goRegisterStep(index: number) {
@@ -317,6 +565,7 @@ function goRegisterStep(index: number) {
 
 function nextRegisterStep() {
   if (currentRegisterStepKey.value === 'info' && !validateRegisterInfo()) return
+  if (currentRegisterStepKey.value === 'scope' && !validateRegisterScope()) return
   registerStep.value = Math.min(registerStep.value + 1, registerSteps.length - 1)
   maxRegisterStep.value = Math.max(maxRegisterStep.value, registerStep.value)
 }
@@ -331,10 +580,199 @@ function toggleRegisterId(list: string[], id: string) {
   else list.push(id)
 }
 
+function addUniqueRegisterIds(list: string[], ids: string[]) {
+  ids.forEach((id) => {
+    if (!list.includes(id)) list.push(id)
+  })
+}
+
+function roleDataIds(roleIds: string[]) {
+  return [...new Set(roleOptions.filter((role) => roleIds.includes(role.id)).flatMap((role) => role.dataPermissionIds))]
+}
+
+function openRegisterRoleModal() {
+  registerRoleModal.visible = true
+  registerRoleModal.selectedIds = [...registerForm.roleIds]
+}
+
+function closeRegisterRoleModal() {
+  registerRoleModal.visible = false
+}
+
+function toggleRegisterModalRole(id: string) {
+  toggleRegisterId(registerRoleModal.selectedIds, id)
+}
+
+function confirmRegisterRoleSelection() {
+  registerForm.roleIds = [...registerRoleModal.selectedIds]
+  addUniqueRegisterIds(registerForm.dataScopeIds, roleDataIds(registerForm.roleIds))
+  closeRegisterRoleModal()
+}
+
+function removeRegisterRole(id: string) {
+  registerForm.roleIds = registerForm.roleIds.filter((roleId) => roleId !== id)
+}
+
+function openRegisterCopyModal() {
+  registerCopyModal.visible = true
+  registerCopyModal.itcode = ''
+  registerCopyModal.error = ''
+}
+
+function closeRegisterCopyModal() {
+  registerCopyModal.visible = false
+}
+
+function confirmRegisterCopyPermissions() {
+  const user = registerCopyUsers.find((item) => item.itcode === registerCopyModal.itcode)
+  if (!user) {
+    registerCopyModal.error = '没有找到可复制的 mock 用户，请输入 wangxt8、liwen08 或 temp-bpo。'
+    return
+  }
+  registerForm.copiedFromItcode = user.itcode
+  registerForm.copiedRoleIds = [...user.roleIds]
+  registerForm.copiedFunctionPermissionIds = [...user.extraFunctionPermissionIds]
+  registerForm.copiedDataSourceMap = {}
+  roleDataIds(user.roleIds).forEach((id) => {
+    registerForm.copiedDataSourceMap[id] = '角色继承'
+  })
+  user.dataPermissionIds.forEach((id) => {
+    registerForm.copiedDataSourceMap[id] = '用户单独授权'
+  })
+  addUniqueRegisterIds(registerForm.dataScopeIds, [...roleDataIds(user.roleIds), ...user.dataPermissionIds])
+  closeRegisterCopyModal()
+}
+
+function clearRegisterCopiedPermissions() {
+  const copiedIds = Object.keys(registerForm.copiedDataSourceMap)
+  registerForm.copiedFromItcode = ''
+  registerForm.copiedRoleIds = []
+  registerForm.copiedFunctionPermissionIds = []
+  registerForm.copiedDataSourceMap = {}
+  registerForm.dataScopeIds = registerForm.dataScopeIds.filter((id) => !copiedIds.includes(id) || registerForm.manualDataScopeIds.includes(id))
+}
+
+function openRegisterDataModal() {
+  registerDataModal.visible = true
+  registerDataModal.selectedIds = [...registerForm.dataScopeIds]
+}
+
+function closeRegisterDataModal() {
+  registerDataModal.visible = false
+}
+
+function confirmRegisterDataSelection() {
+  registerForm.dataScopeIds = [...registerDataModal.selectedIds]
+  registerForm.manualDataScopeIds = registerForm.dataScopeIds.filter((id) => !roleDataIds(registerForm.roleIds).includes(id) && registerCopiedDataSource(id) !== '角色继承' && registerCopiedDataSource(id) !== '用户单独授权')
+  closeRegisterDataModal()
+}
+
+function removeRegisterDataPermission(id: string) {
+  registerForm.dataScopeIds = registerForm.dataScopeIds.filter((item) => item !== id)
+  registerForm.manualDataScopeIds = registerForm.manualDataScopeIds.filter((item) => item !== id)
+}
+
+function openRegisterRoleDetail(role: { id: string }) {
+  registerRoleDetail.visible = true
+  registerRoleDetail.roleId = role.id
+}
+
+function closeRegisterRoleDetail() {
+  registerRoleDetail.visible = false
+  registerRoleDetail.roleId = ''
+}
+
+function registerCopiedDataSource(id: string) {
+  return registerForm.copiedDataSourceMap[id] || ''
+}
+
+function registerFunctionPermissionDetail(id: string) {
+  for (const root of functionPermissionTree) {
+    for (const branch of root.children) {
+      const leaf = branch.children.find((item) => item.id === id)
+      if (leaf) return leaf
+    }
+  }
+  return { id, name: id }
+}
+
+function findRegisterDataPermission(id: string) {
+  for (const group of dataPermissionTree) {
+    for (const child of group.children) {
+      const leaf = child.children.find((item) => item.id === id)
+      if (leaf) return leaf
+    }
+  }
+  return null
+}
+
+function registerPermissionPathInTree(id: string) {
+  for (const root of functionPermissionTree) {
+    for (const branch of root.children) {
+      if (branch.children.some((leaf) => leaf.id === id)) return { rootId: root.id, rootName: root.name, branchId: branch.id, branchName: branch.name }
+    }
+  }
+  return null
+}
+
+function registerDataBranchId(id: string) {
+  if (id.startsWith('data.geo.')) return 'func.platform.skill'
+  if (id.startsWith('data.lead.')) return 'func.business.lead'
+  if (id.startsWith('data.member.')) return 'func.ops.dashboard'
+  if (id.startsWith('data.ops.')) return 'func.ops.dashboard'
+  return 'func.ops.dashboard'
+}
+
+function registerBranchMetaById(branchId: string) {
+  for (const root of functionPermissionTree) {
+    const branch = root.children.find((item) => item.id === branchId)
+    if (branch) return { rootId: root.id, rootName: root.name, branchId: branch.id, branchName: branch.name }
+  }
+  return { rootId: 'func.other', rootName: '其他能力', branchId: 'func.other.misc', branchName: '未归类权限' }
+}
+
+function ensureRegisterPermissionBranch(map: Map<string, any>, meta: any) {
+  if (!map.has(meta.rootId)) map.set(meta.rootId, { id: meta.rootId, name: meta.rootName, children: new Map() })
+  const root = map.get(meta.rootId)
+  if (!root.children.has(meta.branchId)) root.children.set(meta.branchId, { id: meta.branchId, name: meta.branchName, functions: [], dataPermissions: [] })
+  return root.children.get(meta.branchId)
+}
+
+function registerRolePermissionTree(role: any) {
+  const map = new Map()
+  ;(role?.functionPermissionIds || []).forEach((id: string) => {
+    const meta = registerPermissionPathInTree(id) || registerBranchMetaById('func.other.misc')
+    ensureRegisterPermissionBranch(map, meta).functions.push(registerFunctionPermissionDetail(id))
+  })
+  ;(role?.dataPermissionIds || []).forEach((id: string) => {
+    const permission = findRegisterDataPermission(id)
+    if (!permission) return
+    const meta = registerBranchMetaById(registerDataBranchId(id))
+    ensureRegisterPermissionBranch(map, meta).dataPermissions.push(permission)
+  })
+  return [...map.values()].map((root: any) => ({ ...root, children: [...root.children.values()] }))
+}
+
+function registerPermissionMatrixRows(branch: any) {
+  const max = Math.max(branch.functions.length, branch.dataPermissions.length)
+  return Array.from({ length: max }, (_, index) => ({ functionPermission: branch.functions[index] || null, dataPermission: branch.dataPermissions[index] || null }))
+}
+
+function registerPermissionCountLabel(root: any) {
+  const functionCount = root.children.reduce((sum: number, child: any) => sum + child.functions.length, 0)
+  const dataCount = root.children.reduce((sum: number, child: any) => sum + child.dataPermissions.length, 0)
+  return `${functionCount} 项功能 / ${dataCount} 项数据`
+}
+
 function submitRegisterApplication() {
   if (!validateRegisterInfo()) {
     registerStep.value = 0
     maxRegisterStep.value = Math.max(maxRegisterStep.value, 0)
+    return
+  }
+  if (!validateRegisterScope()) {
+    registerStep.value = 1
+    maxRegisterStep.value = Math.max(maxRegisterStep.value, 1)
     return
   }
   registerSubmitted.value = true
@@ -514,6 +952,378 @@ function submitRegisterApplication() {
   font-weight: 600;
 }
 
+.register-scope-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.register-source-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.register-scope-empty,
+.register-source-panel,
+.register-extra-card {
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fff;
+}
+
+.register-scope-empty {
+  background: #f8fafc;
+  color: #667085;
+}
+
+.register-scope-empty b,
+.register-source-head b,
+.register-role-card b,
+.register-extra-card b {
+  color: #111827;
+  font-size: 14px;
+}
+
+.register-scope-empty p,
+.register-scope-error,
+.register-source-head small,
+.register-role-card small,
+.register-extra-card small {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.register-scope-error {
+  display: block;
+  margin-top: 8px;
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.register-source-head,
+.register-role-card,
+.register-bound-grid {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.register-role-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.register-role-card {
+  border: 1px solid #e6edf7;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.register-role-card.copied {
+  background: #f8fbff;
+}
+
+.register-card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.register-link-btn {
+  border: 0;
+  background: transparent;
+  color: #316dff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.register-link-btn.danger {
+  color: #e53935;
+}
+
+.register-bound-grid {
+  margin-top: 12px;
+}
+
+.register-bound-grid > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.register-bound-grid span {
+  color: #455468;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.register-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.register-chip-list em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #eef4ff;
+  color: #316dff;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.register-chip-list button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.register-picker-panel,
+.register-detail-panel {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
+}
+
+.register-small-panel {
+  position: relative;
+  width: min(460px, 100%);
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
+}
+
+.register-picker-panel h2,
+.register-small-panel h2,
+.register-detail-panel h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.register-modal-note {
+  margin: 8px 0 16px;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.register-picker-list,
+.register-data-tree,
+.register-permission-tree {
+  display: grid;
+  gap: 10px;
+}
+
+.register-picker-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.register-picker-list article.active {
+  border-color: #316dff;
+  background: #f4f7ff;
+}
+
+.register-picker-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.register-picker-list b,
+.register-picker-list small {
+  display: block;
+}
+
+.register-picker-list small {
+  margin-top: 5px;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.register-single-field {
+  display: grid;
+  gap: 7px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.register-single-field em {
+  color: #ff4d4f;
+  font-style: normal;
+}
+
+.register-single-field input {
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.register-single-field input.invalid {
+  border-color: #ff4d4f;
+  background: #fff7f7;
+}
+
+.register-single-field small {
+  color: #ff4d4f;
+}
+
+.register-hints {
+  margin-top: 10px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.register-data-group {
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.register-data-group > b {
+  display: block;
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.register-data-child {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding-left: 10px;
+}
+
+.register-data-child > span {
+  color: #455468;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.register-data-child label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #344054;
+  font-size: 13px;
+}
+
+.register-detail-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #316dff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.register-permission-tree details {
+  border: 1px solid #dfe7f3;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.register-permission-tree summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #111827;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.register-permission-tree summary span {
+  color: #667085;
+  font-size: 12px;
+}
+
+.register-permission-branches {
+  display: grid;
+  gap: 8px;
+  padding: 0 10px 10px 22px;
+}
+
+.register-permission-matrix {
+  margin: 0 10px 10px;
+  border: 1px solid #edf2f8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.register-permission-matrix .head,
+.register-permission-matrix .row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.register-permission-matrix .head {
+  background: #f8fafc;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.register-permission-matrix span,
+.register-permission-matrix label {
+  min-width: 0;
+  padding: 9px 10px;
+  border-right: 1px solid #edf2f8;
+  color: #455468;
+  font-size: 12px;
+}
+
+.register-permission-matrix span:last-child,
+.register-permission-matrix label:last-child {
+  border-right: 0;
+}
+
+.register-permission-matrix .row + .row {
+  border-top: 1px solid #edf2f8;
+}
+
+.register-permission-matrix label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.register-modal-actions.flat {
+  position: static;
+  margin: 18px 0 0;
+  padding: 14px 0 0;
+}
 .register-scope-section {
   margin-top: 18px;
 }
@@ -669,3 +1479,5 @@ function submitRegisterApplication() {
   }
 }
 </style>
+
+

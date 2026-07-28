@@ -527,7 +527,7 @@
                   <td>
                     <div class="role-name-cell">
                       <b>{{ role.name }}</b>
-                      <span v-if="role.systemRole" class="table-status pending">系统角色</span>
+                      <span v-if="role.systemRole" class="table-status pending">内置角色</span>
                     </div>
                   </td>
                   <td>{{ role.users }} 人</td>
@@ -837,8 +837,7 @@
               <p>维护菜单下的功能、按钮和 Skill 能力，并明确每项能力关联的后台接口。</p>
             </div>
             <div class="section-actions function-section-actions">
-              <button type="button" class="ghost-btn" @click="openFunctionMenuEditor">新增菜单</button>
-              <button type="button" class="primary-btn" @click="openFunctionEditor('create')">新增功能</button>
+              <button type="button" class="primary-btn" @click="openFunctionCreateModal('function')">新增</button>
             </div>
           </div>
           <div class="function-filter-bar">
@@ -847,16 +846,16 @@
               <input v-model.trim="functionFilters.name" placeholder="搜索功能名称">
             </label>
             <label>
-              <span>目录</span>
+              <span>所属目录</span>
               <select v-model="functionFilters.root" @change="syncFunctionMenuFilter">
                 <option value="">全部目录</option>
                 <option v-for="root in functionRootOptions" :key="root" :value="root">{{ root }}</option>
               </select>
             </label>
             <label>
-              <span>菜单</span>
+              <span>所属页面</span>
               <select v-model="functionFilters.menu">
-                <option value="">全部菜单</option>
+                <option value="">全部页面</option>
                 <option v-for="menu in functionSecondMenuOptions" :key="menu" :value="menu">{{ menu }}</option>
               </select>
             </label>
@@ -871,11 +870,11 @@
           </div>
 
           <div class="role-result-line function-result-line">
-            <span>共 {{ managedFunctions.length }} 项功能，当前显示 {{ filteredManagedFunctions.length }} 项</span>
+            <span>共 {{ functionCatalogRows.length }} 项权限对象，当前显示 {{ filteredManagedFunctions.length }} 项</span>
             <b v-if="hasFunctionFilters">已按条件筛选</b>
           </div>
 
-          <div class="function-workspace-layout">
+          <div :class="['function-workspace-layout', { 'detail-collapsed': !functionDetailVisible }]">
             <div class="permission-table-wrap function-table-wrap">
               <table v-if="filteredManagedFunctions.length" class="permission-table function-table">
                 <thead>
@@ -894,55 +893,73 @@
                     @click="selectManagedFunction(item.id)"
                   >
                     <td>
-                      <div class="function-name-cell">
-                        <b>{{ item.name }}</b>
-                        <small>{{ item.menu }}</small>
+                      <div class="function-name-cell function-tree-name" :style="{ '--tree-depth': item.depth }">
+                        <button
+                          v-if="item.hasChildren"
+                          type="button"
+                          :class="['function-tree-toggle', { expanded: isFunctionTreeExpanded(item) }]"
+                          :aria-label="isFunctionTreeExpanded(item) ? '收起' : '展开'"
+                          @click.stop="toggleFunctionTreeRow(item)"
+                        >›</button>
+                        <span v-else class="function-tree-spacer"></span>
+                        <div>
+                          <b>{{ item.name }}</b>
+                          <small>{{ item.menu }}</small>
+                        </div>
                       </div>
                     </td>
                     <td><span class="function-type-badge">{{ functionTypeLabel(item.type) }}</span></td>
                     <td class="function-desc-cell">{{ item.description }}</td>
                     <td>
                       <div class="row-actions" @click.stop>
-                        <button type="button" class="link-btn" @click="openFunctionEditor('edit', item)">编辑</button>
+                        <button type="button" class="link-btn" @click="openFunctionDetail(item)">详情</button>
+                        <button v-if="item.itemKind === 'directory' || item.itemKind === 'menu'" type="button" class="link-btn" @click="openFunctionStructureEditor(item)">编辑</button>
+                        <button v-if="item.itemKind === 'function'" type="button" class="link-btn" @click="openFunctionEditor('edit', item)">编辑</button>
+                        <button v-if="item.itemKind === 'function'" type="button" class="link-btn danger" @click="deleteManagedFunctionFromRow(item)">删除</button>
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
               <div v-else class="table-empty function-empty">
-                <b>没有找到匹配的功能</b>
-                <p>请调整名称、目录、菜单或类型后再查看。</p>
+                <b>没有找到匹配的权限对象</b>
+                <p>请调整名称、目录、页面或类型后再查看。</p>
                 <button type="button" class="ghost-btn small" @click="resetFunctionFilters">重置筛选</button>
               </div>
             </div>
 
-            <aside v-if="selectedManagedFunction" class="function-detail-panel">
+            <aside v-if="functionDetailVisible && selectedManagedFunction" class="function-detail-panel">
               <div class="function-detail-head">
                 <div>
                   <h3>{{ selectedManagedFunction.name }}</h3>
                   <p>{{ selectedManagedFunction.description }}</p>
                 </div>
                 <div class="function-detail-actions">
-                  <button type="button" class="ghost-btn small" @click="openFunctionEditor('edit', selectedManagedFunction)">编辑</button>
-                  <button type="button" class="danger-outline-btn small" @click="deleteSelectedManagedFunction">删除</button>
+                  <button v-if="selectedManagedFunction.itemKind === 'directory' || selectedManagedFunction.itemKind === 'menu'" type="button" class="ghost-btn small" @click="openFunctionStructureEditor(selectedManagedFunction)">编辑</button>
+                  <button v-if="selectedManagedFunction.itemKind === 'function'" type="button" class="ghost-btn small" @click="openFunctionEditor('edit', selectedManagedFunction)">编辑</button>
+                  <button v-if="selectedManagedFunction.itemKind === 'function'" type="button" class="danger-outline-btn small" @click="deleteSelectedManagedFunction">删除</button>
+                  <button type="button" class="ghost-btn small" @click="closeFunctionDetail">关闭</button>
                 </div>
               </div>
               <dl class="function-detail-grid">
-                <div class="full"><dt>所属菜单</dt><dd>{{ selectedManagedFunction.menu }}</dd></div>
-                <div><dt>功能名称</dt><dd>{{ selectedManagedFunction.name }}</dd></div>
+                <div><dt>所属目录</dt><dd>{{ functionMenuParts(selectedManagedFunction.menu).root || '-' }}</dd></div>
+                <div><dt>所属页面</dt><dd>{{ functionMenuParts(selectedManagedFunction.menu).leaf || functionMenuParts(selectedManagedFunction.menu).second || '-' }}</dd></div>
+                <div class="full"><dt>完整路径</dt><dd>{{ selectedManagedFunction.menu }}</dd></div>
+                <div><dt>对象名称</dt><dd>{{ selectedManagedFunction.name }}</dd></div>
                 <div><dt>类型</dt><dd>{{ functionTypeLabel(selectedManagedFunction.type) }}</dd></div>
-                <div class="full"><dt>功能描述</dt><dd>{{ selectedManagedFunction.description }}</dd></div>
+                <div class="full"><dt>描述</dt><dd>{{ selectedManagedFunction.description }}</dd></div>
               </dl>
 
               <div class="function-detail-block">
                 <b>关联接口</b>
-                <div v-if="selectedManagedFunction.interfaces.length" class="function-api-list">
+                <div v-if="selectedManagedFunction.itemKind === 'function' && selectedManagedFunction.interfaces.length" class="function-api-list">
                   <article v-for="api in selectedManagedFunction.interfaces" :key="api.id">
                     <span>{{ api.name }}</span>
                     <code>{{ api.url }}</code>
                   </article>
                 </div>
-                <p v-else class="function-muted">当前功能还没有关联接口。</p>
+                <p v-else-if="selectedManagedFunction.itemKind === 'function'" class="function-muted">当前功能还没有关联接口。</p>
+                <p v-else class="function-muted">目录和菜单不直接关联接口，接口在具体功能里维护。</p>
               </div>
             </aside>
           </div>
@@ -1199,64 +1216,154 @@
     </div>
 
     <div v-if="functionMenuEditor.visible" class="permission-modal" @click.self="closeFunctionMenuEditor">
-      <div class="modal-panel function-menu-editor-modal">
+      <div class="modal-panel function-menu-editor-modal function-create-modal">
         <button type="button" class="modal-close" @click="closeFunctionMenuEditor">×</button>
-        <h3>新增菜单</h3>
-        <p class="modal-note">维护菜单名称、上级目录和基础标识，保存后可在新增功能时选择该菜单。</p>
-        <div class="permission-form-grid function-editor-form">
-          <label>
-            <span class="field-label required">上级根目录 <em>必填</em></span>
-            <select v-model="functionMenuEditor.draft.rootId" :class="{ invalid: functionMenuEditor.errors.rootId }" @change="syncFunctionMenuEditorRoot">
-              <option v-for="root in functionMenuTree" :key="root.id" :value="root.id">{{ root.name }}</option>
-            </select>
-            <small v-if="functionMenuEditor.errors.rootId" class="field-error">{{ functionMenuEditor.errors.rootId }}</small>
-          </label>
-          <label>
-            <span class="field-label required">上级目录 <em>必填</em></span>
-            <select v-model="functionMenuEditor.draft.parentId" :class="{ invalid: functionMenuEditor.errors.parentId }">
-              <option v-for="child in functionMenuEditorParentOptions" :key="child.id" :value="child.id">{{ child.name }}</option>
-            </select>
-            <small v-if="functionMenuEditor.errors.parentId" class="field-error">{{ functionMenuEditor.errors.parentId }}</small>
-          </label>
-          <label>
-            <span class="field-label required">菜单名称 <em>必填</em></span>
-            <input v-model.trim="functionMenuEditor.draft.name" :class="{ invalid: functionMenuEditor.errors.name }" placeholder="例如：质量分析">
-            <small v-if="functionMenuEditor.errors.name" class="field-error">{{ functionMenuEditor.errors.name }}</small>
-          </label>
-          <label>
-            <span class="field-label required">菜单路径 <em>必填</em></span>
-            <input v-model.trim="functionMenuEditor.draft.path" :class="{ invalid: functionMenuEditor.errors.path }" placeholder="例如 /ops/quality">
-            <small v-if="functionMenuEditor.errors.path" class="field-error">{{ functionMenuEditor.errors.path }}</small>
-          </label>
-          <label>
-            <span class="field-label required">菜单编码 <em>必填</em></span>
-            <input v-model.trim="functionMenuEditor.draft.code" :class="{ invalid: functionMenuEditor.errors.code }" placeholder="例如 menu.ops.quality">
-            <small v-if="functionMenuEditor.errors.code" class="field-error">{{ functionMenuEditor.errors.code }}</small>
-          </label>
-          <label>
-            <span>排序值</span>
-            <input v-model.number="functionMenuEditor.draft.order" type="number" min="1" placeholder="例如 10">
-          </label>
-          <label>
-            <span>状态</span>
-            <select v-model="functionMenuEditor.draft.status">
-              <option value="enabled">启用</option>
-              <option value="disabled">停用</option>
-            </select>
-          </label>
-          <label class="full">
-            <span>菜单描述</span>
-            <textarea v-model.trim="functionMenuEditor.draft.description" rows="3" placeholder="说明该菜单承载的业务页面、入口或能力范围。"></textarea>
-          </label>
+        <h3>{{ functionMenuEditor.mode === 'edit' ? (functionCreateTab === 'directory' ? '编辑目录' : '编辑菜单') : '新增' }}</h3>
+        <p class="modal-note">{{ functionMenuEditor.mode === 'edit' ? '编辑后会同步更新列表结构和相关功能的完整路径。' : '按“目录 / 菜单（页面） / 功能”的层级维护权限对象，当前为本地 POC 状态。' }}</p>
+        <div v-if="functionMenuEditor.mode === 'create'" class="role-editor-tabs function-create-tabs" role="tablist" aria-label="菜单管理新增类型">
+          <button type="button" :class="{ active: functionCreateTab === 'directory' }" @click="switchFunctionCreateTab('directory')">新增目录</button>
+          <button type="button" :class="{ active: functionCreateTab === 'menu' }" @click="switchFunctionCreateTab('menu')">新增菜单</button>
+          <button type="button" :class="{ active: functionCreateTab === 'function' }" @click="switchFunctionCreateTab('function')">新增功能</button>
         </div>
-        <span v-if="functionMenuEditor.notice" class="approval-feedback">{{ functionMenuEditor.notice }}</span>
-        <div class="modal-actions">
-          <button type="button" class="ghost-btn" @click="closeFunctionMenuEditor">取消</button>
-          <button type="button" class="primary-btn" @click="saveFunctionMenuEditor">保存</button>
-        </div>
+
+        <section v-if="functionCreateTab === 'directory'" class="function-create-section">
+          <div class="permission-form-grid function-editor-form">
+            <label>
+              <span class="field-label required">上级目录 <em>必填</em></span>
+              <select v-model="functionDirectoryEditor.draft.parentId" :class="{ invalid: functionDirectoryEditor.errors.parentId }">
+                <option v-for="option in functionDirectoryParentOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
+              </select>
+              <small v-if="functionDirectoryEditor.errors.parentId" class="field-error">{{ functionDirectoryEditor.errors.parentId }}</small>
+            </label>
+            <label>
+              <span class="field-label required">目录名称 <em>必填</em></span>
+              <input v-model.trim="functionDirectoryEditor.draft.name" :class="{ invalid: functionDirectoryEditor.errors.name }" placeholder="例如：活动运营">
+              <small v-if="functionDirectoryEditor.errors.name" class="field-error">{{ functionDirectoryEditor.errors.name }}</small>
+            </label>
+            <label>
+              <span class="field-label required">目录路由 <em>必填</em></span>
+              <input v-model.trim="functionDirectoryEditor.draft.path" :class="{ invalid: functionDirectoryEditor.errors.path }" placeholder="例如 /ops/campaign">
+              <small v-if="functionDirectoryEditor.errors.path" class="field-error">{{ functionDirectoryEditor.errors.path }}</small>
+            </label>
+            <label>
+              <span class="field-label required">目录排序 <em>必填</em></span>
+              <input v-model.number="functionDirectoryEditor.draft.order" :class="{ invalid: functionDirectoryEditor.errors.order }" type="number" min="1" placeholder="例如 10">
+              <small v-if="functionDirectoryEditor.errors.order" class="field-error">{{ functionDirectoryEditor.errors.order }}</small>
+            </label>
+            <label class="full">
+              <span class="field-label required">目录描述 <em>必填</em></span>
+              <textarea v-model.trim="functionDirectoryEditor.draft.description" :class="{ invalid: functionDirectoryEditor.errors.description }" rows="3" placeholder="说明该目录承载的页面范围和业务边界。"></textarea>
+              <small v-if="functionDirectoryEditor.errors.description" class="field-error">{{ functionDirectoryEditor.errors.description }}</small>
+            </label>
+          </div>
+          <div class="modal-actions flat">
+            <button type="button" class="ghost-btn" @click="closeFunctionMenuEditor">取消</button>
+            <button type="button" class="primary-btn" @click="saveFunctionDirectoryEditor">保存目录</button>
+          </div>
+        </section>
+
+        <section v-else-if="functionCreateTab === 'menu'" class="function-create-section">
+          <div class="permission-form-grid function-editor-form">
+            <label>
+              <span class="field-label required">所属目录 <em>必填</em></span>
+              <select v-model="functionMenuEditor.draft.parentId" :class="{ invalid: functionMenuEditor.errors.parentId }">
+                <option v-for="option in functionMenuParentOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
+              </select>
+              <small v-if="functionMenuEditor.errors.parentId" class="field-error">{{ functionMenuEditor.errors.parentId }}</small>
+            </label>
+            <label>
+              <span class="field-label required">菜单名称 <em>必填</em></span>
+              <input v-model.trim="functionMenuEditor.draft.name" :class="{ invalid: functionMenuEditor.errors.name }" placeholder="例如：质量分析">
+              <small v-if="functionMenuEditor.errors.name" class="field-error">{{ functionMenuEditor.errors.name }}</small>
+            </label>
+            <label>
+              <span class="field-label required">菜单路由 <em>必填</em></span>
+              <input v-model.trim="functionMenuEditor.draft.path" :class="{ invalid: functionMenuEditor.errors.path }" placeholder="例如 /ops/quality">
+              <small v-if="functionMenuEditor.errors.path" class="field-error">{{ functionMenuEditor.errors.path }}</small>
+            </label>
+            <label>
+              <span class="field-label required">菜单排序 <em>必填</em></span>
+              <input v-model.number="functionMenuEditor.draft.order" :class="{ invalid: functionMenuEditor.errors.order }" type="number" min="1" placeholder="例如 10">
+              <small v-if="functionMenuEditor.errors.order" class="field-error">{{ functionMenuEditor.errors.order }}</small>
+            </label>
+            <label class="full">
+              <span class="field-label required">菜单描述 <em>必填</em></span>
+              <textarea v-model.trim="functionMenuEditor.draft.description" :class="{ invalid: functionMenuEditor.errors.description }" rows="3" placeholder="说明该菜单对应的页面、入口或业务模块。"></textarea>
+              <small v-if="functionMenuEditor.errors.description" class="field-error">{{ functionMenuEditor.errors.description }}</small>
+            </label>
+          </div>
+          <div class="modal-actions flat">
+            <button type="button" class="ghost-btn" @click="closeFunctionMenuEditor">取消</button>
+            <button type="button" class="primary-btn" @click="saveFunctionMenuEditor">保存菜单</button>
+          </div>
+        </section>
+
+        <section v-else class="function-create-section">
+          <div class="permission-form-grid function-editor-form">
+            <div class="permission-form-field function-menu-field full">
+              <span class="field-label required">所属菜单 <em>必填</em></span>
+              <button type="button" :class="['function-menu-trigger', { invalid: functionEditor.errors.menu, active: functionEditor.menuPickerOpen }]" @click="functionEditor.menuPickerOpen = !functionEditor.menuPickerOpen">
+                <span>{{ functionEditor.draft.menu || '请选择' }}</span>
+                <i>⌄</i>
+              </button>
+              <div v-if="functionEditor.menuPickerOpen" class="function-menu-cascade">
+                <div class="function-menu-column">
+                  <button v-for="root in functionMenuTree" :key="root.id" type="button" :class="{ active: functionEditor.menuRootId === root.id }" @click="selectFunctionMenuRoot(root.id)"><span>{{ root.name }}</span><i>⌄</i></button>
+                </div>
+                <div class="function-menu-column">
+                  <button v-for="child in activeFunctionMenuChildren" :key="child.id" type="button" :class="{ active: functionEditor.menuChildId === child.id || functionEditor.draft.menu === functionMenuFullPath(activeFunctionMenuRoot, child) }" @click="selectFunctionMenuChild(child.id)"><span>{{ child.name }}</span><i v-if="child.children.length">⌄</i></button>
+                </div>
+                <div v-if="activeFunctionMenuLeaves.length" class="function-menu-column leaf">
+                  <button v-for="leaf in activeFunctionMenuLeaves" :key="leaf.id" type="button" :class="{ active: functionEditor.draft.menu === functionMenuFullPath(activeFunctionMenuRoot, activeFunctionMenuChild, leaf) }" @click="selectFunctionMenuLeaf(leaf.name)">{{ leaf.name }}</button>
+                </div>
+              </div>
+              <small v-if="functionEditor.errors.menu" class="field-error">{{ functionEditor.errors.menu }}</small>
+            </div>
+            <label>
+              <span class="field-label required">功能名称 <em>必填</em></span>
+              <input v-model.trim="functionEditor.draft.name" :class="{ invalid: functionEditor.errors.name }" placeholder="例如：数据导出">
+              <small v-if="functionEditor.errors.name" class="field-error">{{ functionEditor.errors.name }}</small>
+            </label>
+            <div class="permission-form-field">
+              <span class="field-label required">类型 <em>必填</em></span>
+              <div class="handler-chip-list function-type-radio" :class="{ invalid: functionEditor.errors.type }">
+                <button v-for="type in functionTypeOptions" :key="type.value" type="button" :class="{ active: functionEditor.draft.type === type.value }" @click="functionEditor.draft.type = type.value">{{ type.label }}</button>
+              </div>
+              <small v-if="functionEditor.errors.type" class="field-error">{{ functionEditor.errors.type }}</small>
+            </div>
+            <label class="full">
+              <span class="field-label required">功能描述 <em>必填</em></span>
+              <textarea v-model.trim="functionEditor.draft.description" :class="{ invalid: functionEditor.errors.description }" rows="3" placeholder="说明该功能给谁使用、能完成什么操作。"></textarea>
+              <small v-if="functionEditor.errors.description" class="field-error">{{ functionEditor.errors.description }}</small>
+            </label>
+            <div class="permission-form-field full">
+              <span class="field-label required">关联接口 <em>必填</em></span>
+              <div class="function-interface-picker">
+                <select v-model="functionEditor.selectedInterfaceId">
+                  <option value="">请选择接口</option>
+                  <option v-for="api in availableFunctionInterfaces" :key="api.id" :value="api.id">{{ api.name }} · {{ api.url }}</option>
+                </select>
+                <button type="button" class="ghost-btn small" @click="addFunctionInterface">添加接口</button>
+              </div>
+              <small v-if="functionEditor.errors.interfaces" class="field-error">{{ functionEditor.errors.interfaces }}</small>
+              <table v-if="functionEditor.draft.interfaces.length" class="permission-table function-interface-table">
+                <tbody>
+                  <tr v-for="api in functionEditor.draft.interfaces" :key="api.id">
+                    <td><b>{{ api.name }}</b><small>{{ api.url }}</small></td>
+                    <td><button type="button" class="link-btn danger" @click="removeFunctionInterface(api.id)">移除</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-actions flat">
+            <button type="button" class="ghost-btn" @click="closeFunctionMenuEditor">取消</button>
+            <button type="button" class="primary-btn" @click="saveFunctionEditor">保存功能</button>
+          </div>
+        </section>
       </div>
     </div>
-    <div v-if="functionEditor.visible" class="permission-modal" @click.self="closeFunctionEditor">
+    <div v-if="functionEditor.visible && functionEditor.mode === 'edit'" class="permission-modal" @click.self="closeFunctionEditor">
       <div class="modal-panel function-editor-modal">
         <button type="button" class="modal-close" @click="closeFunctionEditor">×</button>
         <h3>{{ functionEditor.mode === 'create' ? '新增功能' : '编辑功能' }}</h3>
@@ -1286,19 +1393,19 @@
                   v-for="child in activeFunctionMenuChildren"
                   :key="child.id"
                   type="button"
-                  :class="{ active: functionEditor.menuChildId === child.id }"
+                  :class="{ active: functionEditor.menuChildId === child.id || functionEditor.draft.menu === functionMenuFullPath(activeFunctionMenuRoot, child) }"
                   @click="selectFunctionMenuChild(child.id)"
                 >
                   <span>{{ child.name }}</span>
-                  <i>⌄</i>
+                  <i v-if="child.children.length">⌄</i>
                 </button>
               </div>
-              <div class="function-menu-column leaf">
+              <div v-if="activeFunctionMenuLeaves.length" class="function-menu-column leaf">
                 <button
                   v-for="leaf in activeFunctionMenuLeaves"
                   :key="leaf.id"
                   type="button"
-                  :class="{ active: functionEditor.draft.menu === leaf.name }"
+                  :class="{ active: functionEditor.draft.menu === functionMenuFullPath(activeFunctionMenuRoot, activeFunctionMenuChild, leaf) }"
                   @click="selectFunctionMenuLeaf(leaf.name)"
                 >{{ leaf.name }}</button>
               </div>
@@ -1687,6 +1794,7 @@
                 <option v-for="type in roleTypeOptions" :key="type" :value="type">{{ type }}</option>
               </select>
               <small v-if="roleEditor.errors.type" class="field-error">{{ roleEditor.errors.type }}</small>
+              <small v-else class="field-help">角色管理员可管理当前角色组内的角色，普通角色不具备角色管理权限。</small>
             </label>
             <label>
               <span class="field-label required">角色组 <em>必填</em></span>
@@ -2469,6 +2577,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { MENU_TREE } from '@/stores/app'
 
 const modules = [
   { key: 'apply', label: '权限申请', icon: 'AP', desc: '申请链路', fullDesc: '按类型发起权限变更、创建账号、启用账号、禁用账号和重置密码。' },
@@ -2713,7 +2822,7 @@ const allRoles = reactive([
     id: 'ops-pm',
     code: 'PM',
     name: '运营分析 PM',
-    type: '业务角色',
+    type: '普通角色',
     group: '乐享运营',
     desc: '可查看运营总览、生成报告，并使用常用运营数据。',
     owner: 'zhangjq4',
@@ -2735,7 +2844,7 @@ const allRoles = reactive([
     id: 'product-op',
     code: 'OP',
     name: '商品运营',
-    type: '业务角色',
+    type: '普通角色',
     group: '商品中心',
     desc: '可配置商品、推荐位、价格和上下架策略。',
     owner: 'huangjq5',
@@ -2755,7 +2864,7 @@ const allRoles = reactive([
     id: 'geo-analyst',
     code: 'GEO',
     name: 'GEO 分析师',
-    type: '分析角色',
+    type: '普通角色',
     group: '搜索后台',
     desc: '可查看信源、引用和搜索表现数据。',
     owner: 'zhangxy43',
@@ -2775,7 +2884,7 @@ const allRoles = reactive([
     id: 'lead-operator',
     code: 'LEAD',
     name: '线索运营',
-    type: '业务角色',
+    type: '普通角色',
     group: '企业客户管理',
     desc: '可查看企业客户线索并进行分配跟进。',
     owner: 'sunll1',
@@ -2795,7 +2904,7 @@ const allRoles = reactive([
     id: 'admin',
     code: 'ADMIN',
     name: 'admin',
-    type: '系统管理员角色',
+    type: '角色管理员',
     group: '系统管理',
     desc: '用于 mock 管理员账号，覆盖权限申请、审批、用户、组织、数据源、功能配置和审计类能力。',
     owner: 'admin',
@@ -2850,7 +2959,7 @@ const allRoles = reactive([
     id: 'bpo-collab',
     code: 'BPO',
     name: '外包协作',
-    type: '外部协作角色',
+    type: '普通角色',
     group: '外部协作',
     desc: '受限菜单和脱敏数据，仅保留必要操作。',
     owner: 'wangxt8',
@@ -2964,51 +3073,28 @@ const functionTypeOptions = [
   { value: 'skill', label: 'Skill' }
 ]
 
-const functionMenuTree = reactive([
-  {
-    id: 'root-1',
-    name: '根目录 1',
-    children: [
-      { id: 'root-1-product', name: '商品', children: [{ id: 'menu-product-up', name: '商品上架' }, { id: 'menu-product-config', name: '商品配置' }, { id: 'menu-publish-confirm', name: '发布确认' }] },
-      { id: 'root-1-data', name: '数据', children: [{ id: 'menu-dashboard', name: '运营总览' }, { id: 'menu-report', name: '报告生成' }, { id: 'menu-export', name: '数据导出' }] },
-      { id: 'root-1-user-a', name: '用户', children: [{ id: 'menu-user-create', name: '用户新增' }, { id: 'menu-user-role', name: '角色分配' }, { id: 'menu-user-extra', name: '额外授权' }] },
-      { id: 'root-1-user-b', name: '用户', children: [{ id: 'menu-user-enable', name: '启用账号' }, { id: 'menu-user-disable', name: '禁用账号' }] },
-      { id: 'root-1-user-c', name: '用户', children: [{ id: 'menu-user-batch-change', name: '批量改价' }, { id: 'menu-user-batch-approve', name: '批量审批' }] }
-    ]
-  },
-  {
-    id: 'root-2',
-    name: '根目录 2',
-    children: [
-      { id: 'root-2-geo', name: 'GEO 看板', children: [{ id: 'menu-geo-monitor', name: 'GEO 信源监测' }, { id: 'menu-geo-export', name: '信源导出' }] },
-      { id: 'root-2-search', name: '搜索后台', children: [{ id: 'menu-search-query', name: 'Query 分析' }, { id: 'menu-search-intent', name: '意图分布' }] }
-    ]
-  },
-  {
-    id: 'root-3',
-    name: '根目录 3',
-    children: [
-      { id: 'root-3-lead', name: '企业客户', children: [{ id: 'menu-lead-assign', name: '线索分配' }, { id: 'menu-lead-pool', name: '线索池' }] },
-      { id: 'root-3-customer', name: '客户管理', children: [{ id: 'menu-customer-follow', name: '客户跟进' }, { id: 'menu-customer-score', name: '客户评分' }] }
-    ]
-  },
-  {
-    id: 'root-4',
-    name: '根目录 4',
-    children: [
-      { id: 'root-4-skill', name: 'Skill Hub', children: [{ id: 'menu-skill-manage', name: 'Skill 管理' }, { id: 'menu-skill-publish', name: 'Skill 发布' }] },
-      { id: 'root-4-ai', name: 'AI 平台', children: [{ id: 'menu-agent-config', name: '智能体配置' }, { id: 'menu-model-eval', name: '模型评测' }] }
-    ]
-  },
-  {
-    id: 'root-5',
-    name: '根目录 5',
-    children: [
-      { id: 'root-5-system', name: '系统管理', children: [{ id: 'menu-role-manage', name: '角色管理' }, { id: 'menu-permission-audit', name: '权限审计' }] },
-      { id: 'root-5-api', name: '接口管理', children: [{ id: 'menu-api-auth', name: '接口授权' }, { id: 'menu-api-log', name: '接口日志' }] }
-    ]
-  }
-])
+function createFunctionMenuTreeFromNavigation() {
+  return Object.entries(MENU_TREE).map(([groupKey, group]) => ({
+    id: groupKey,
+    name: group.label,
+    path: '',
+    code: `menu.${groupKey}`,
+    nodeType: 'directory',
+    children: Object.entries(group.children || {}).map(([pageId, page], index) => ({
+      id: pageId,
+      name: page.label,
+      path: page.path,
+      code: pageId,
+      order: index + 1,
+      status: 'enabled',
+      description: `${group.label}下的${page.label}页面`,
+      nodeType: 'menu',
+      children: []
+    }))
+  }))
+}
+
+const functionMenuTree = reactive(createFunctionMenuTreeFromNavigation())
 const functionInterfaceCatalog = [
   { id: 'api-ops-dashboard', name: '运营总览查询', url: '/api/ops/dashboard' },
   { id: 'api-report-generate', name: '报告生成任务', url: '/api/report/generate' },
@@ -3023,7 +3109,7 @@ const functionInterfaceCatalog = [
 const managedFunctions = reactive([
   {
     id: 'func.dashboard.view',
-    menu: '根目录 1 / 数据 / 运营总览',
+    menu: '乐享运营 / 运营总览',
     name: '查看运营总览',
     description: '允许用户进入运营总览页面，查看核心经营指标和常用运营入口。',
     type: 'function',
@@ -3032,7 +3118,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.report.generate',
-    menu: '根目录 1 / 数据 / 报告生成',
+    menu: '乐享运营 / 质量分析',
     name: '报告生成',
     description: '允许用户基于运营数据生成日报、复盘报告和业务分析材料。',
     type: 'function',
@@ -3041,7 +3127,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.data.export',
-    menu: '根目录 1 / 数据 / 数据导出',
+    menu: '乐享运营 / GMV 分析',
     name: '数据导出',
     description: '允许用户在已授权数据范围内导出运营、线索或看板明细。',
     type: 'button',
@@ -3050,7 +3136,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.product.config',
-    menu: '根目录 1 / 商品 / 商品配置',
+    menu: '乐享运营 / 运营总览',
     name: '商品配置',
     description: '允许商品运营维护商品、推荐位、价格和活动配置。',
     type: 'function',
@@ -3059,7 +3145,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.publish.confirm',
-    menu: '根目录 1 / 商品 / 发布确认',
+    menu: '乐享运营 / Query 分析',
     name: '发布确认',
     description: '允许负责人在发布前完成配置复核和确认提交。',
     type: 'button',
@@ -3068,7 +3154,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.skill.manage',
-    menu: '根目录 4 / Skill Hub / Skill 管理',
+    menu: '在职员工管理 / 职场员工审核',
     name: 'Skill 管理',
     description: '允许用户创建、编辑、评估和发布 Skill。',
     type: 'skill',
@@ -3077,7 +3163,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.geo.monitor',
-    menu: '根目录 2 / GEO 看板 / GEO 信源监测',
+    menu: 'GEO 看板 / 各平台信源分布',
     name: 'GEO 信源监测',
     description: '允许用户查看 GEO 信源引用、平台表现和趋势监测数据。',
     type: 'function',
@@ -3086,7 +3172,7 @@ const managedFunctions = reactive([
   },
   {
     id: 'func.lead.assign',
-    menu: '根目录 3 / 企业客户 / 线索分配',
+    menu: '企业客户管理 / 线索池',
     name: '线索分配',
     description: '允许企业客户运营将线索分配给对应跟进人员。',
     type: 'button',
@@ -3096,9 +3182,21 @@ const managedFunctions = reactive([
 ])
 
 const selectedFunctionId = ref('func.dashboard.view')
+const functionDetailVisible = ref(false)
 const functionNotice = ref('')
 let functionNoticeTimer = null
 const functionFilters = reactive({ name: '', root: '', menu: '', type: '' })
+const functionCreateTab = ref('function')
+const collapsedFunctionTreeIds = ref(new Set())
+const expandedFunctionMenuIds = ref(new Set())
+const emptyFunctionDirectoryDraft = () => ({ parentId: '__root__', name: '', path: '', order: 10, description: '' })
+const functionDirectoryEditor = reactive({
+  mode: 'create',
+  targetId: '',
+  draft: emptyFunctionDirectoryDraft(),
+  errors: { parentId: '', name: '', path: '', order: '', description: '' },
+  notice: ''
+})
 const emptyFunctionDraft = () => ({ id: '', menu: '', name: '', description: '', type: 'function', status: 'enabled', interfaces: [] })
 const functionEditor = reactive({
   visible: false,
@@ -3112,8 +3210,10 @@ const functionEditor = reactive({
 const emptyFunctionMenuDraft = () => ({ rootId: '', parentId: '', name: '', path: '', code: '', order: 10, status: 'enabled', description: '' })
 const functionMenuEditor = reactive({
   visible: false,
+  mode: 'create',
+  targetId: '',
   draft: emptyFunctionMenuDraft(),
-  errors: { rootId: '', parentId: '', name: '', path: '', code: '' },
+  errors: { rootId: '', parentId: '', name: '', path: '', code: '', order: '', description: '' },
   notice: ''
 })
 const relationCards = computed(() => [
@@ -3303,7 +3403,7 @@ const approvals = ref([
     time: '2026-07-01 19:12'
   })
 ])
-const roleTypeOptions = ['业务角色', '分析角色', '外部协作角色', '系统角色']
+const roleTypeOptions = ['角色管理员', '普通角色']
 const roleGroupOptions = ['乐享运营', '商品中心', '搜索后台', '企业客户管理', '外部协作']
 const sensitivityOptions = [
   { value: 'standard-data', label: '标准数据（低风险）', risk: 'low', desc: '常规查看或脱敏数据。' },
@@ -3339,7 +3439,7 @@ const emptyRoleDraft = () => ({
   id: '',
   code: 'NEW',
   name: '',
-  type: '业务角色',
+  type: '普通角色',
   group: '乐享运营',
   desc: '',
   owner: '',
@@ -3882,7 +3982,7 @@ const roleDataModeNotice = computed(() => {
 const roleDeleteBlockReason = computed(() => {
   const role = roleDeleteConfirm.role
   if (!role) return ''
-  if (role.systemRole) return '该角色是系统角色，用于基础流程或外部协作默认权限，不允许直接删除。'
+  if (role.systemRole) return '该角色是系统内置角色，用于基础流程或外部协作默认权限，不允许直接删除。'
   if (role.users > 0) return `该角色仍有 ${role.users} 个用户在使用，请先迁移这些用户后再删除。`
   return ''
 })
@@ -3956,28 +4056,154 @@ const functionSecondMenuOptions = computed(() => {
   const roots = functionFilters.root
     ? functionMenuTree.filter((root) => root.name === functionFilters.root)
     : functionMenuTree
-  return [...new Set(roots.flatMap((root) => root.children.map((child) => child.name)))]
+  return [...new Set(roots.flatMap((root) => allFunctionMenuLeaves(root).map(({ leaf }) => leaf.name)))]
 })
+const functionDirectoryParentOptions = computed(() => [
+  { id: '__root__', label: '根目录' },
+  ...functionMenuTree
+    .filter((root) => root.id !== functionDirectoryEditor.targetId)
+    .map((root) => ({ id: root.id, label: root.name }))
+])
+const functionMenuParentOptions = computed(() => flattenFunctionDirectories().map((item) => ({ id: item.node.id, label: item.path })))
 const hasFunctionFilters = computed(() => !!(functionFilters.name || functionFilters.root || functionFilters.menu || functionFilters.type))
+
+function functionCatalogStructureRows() {
+  const rows = []
+  functionMenuTree.forEach((root, rootIndex) => {
+    const rootSort = (Number(root.order) || rootIndex + 1) * 100000
+    rows.push({
+      id: root.id,
+      parentId: '',
+      depth: 0,
+      itemKind: 'directory',
+      menu: root.name,
+      name: root.name,
+      description: root.description || '一级目录，承载下级目录和页面菜单。',
+      type: 'directory',
+      status: root.status || 'enabled',
+      interfaces: [],
+      sortIndex: rootSort
+    })
+    root.children.forEach((child, childIndex) => {
+      const childSort = rootSort + (Number(child.order) || childIndex + 1) * 1000
+      if (child.nodeType === 'directory') {
+        rows.push({
+          id: child.id,
+          parentId: root.id,
+          depth: 1,
+          itemKind: 'directory',
+          menu: functionMenuFullPath(root, child),
+          name: child.name,
+          description: child.description || '二级目录，承载页面菜单。',
+          type: 'directory',
+          status: child.status || 'enabled',
+          interfaces: [],
+          sortIndex: childSort
+        })
+        child.children.filter((leaf) => leaf.nodeType === 'menu').forEach((leaf, leafIndex) => {
+          rows.push({
+            id: leaf.id,
+            parentId: child.id,
+            depth: 2,
+            itemKind: 'menu',
+            menu: functionMenuFullPath(root, child, leaf),
+            name: leaf.name,
+            description: leaf.description || '页面菜单，承载功能、按钮和 Skill 能力。',
+            type: 'menu',
+            status: leaf.status || 'enabled',
+            interfaces: [],
+            sortIndex: childSort + (Number(leaf.order) || leafIndex + 1) * 10
+          })
+        })
+        return
+      }
+      rows.push({
+        id: child.id,
+        parentId: root.id,
+        depth: 1,
+        itemKind: 'menu',
+        menu: functionMenuFullPath(root, child),
+        name: child.name,
+        description: child.description || '页面菜单，承载功能、按钮和 Skill 能力。',
+        type: 'menu',
+        status: child.status || 'enabled',
+        interfaces: [],
+        sortIndex: childSort
+      })
+    })
+  })
+  return rows
+}
+
+const functionCatalogRows = computed(() => {
+  const structureRows = functionCatalogStructureRows()
+  const menuSortMap = new Map(structureRows.filter((item) => item.itemKind === 'menu').map((item) => [item.menu, item]))
+  const functionRows = managedFunctions.map((item, index) => {
+    const parent = menuSortMap.get(item.menu)
+    return {
+      ...item,
+      parentId: parent?.id || '',
+      depth: (parent?.depth ?? 0) + 1,
+      itemKind: 'function',
+      sortIndex: (parent?.sortIndex || 999000) + 100 + index
+    }
+  })
+  const rows = [...structureRows, ...functionRows].sort((a, b) => a.sortIndex - b.sortIndex || a.name.localeCompare(b.name, 'zh-Hans-CN'))
+  const parentIds = new Set(rows.map((item) => item.parentId).filter(Boolean))
+  return rows.map((item) => ({ ...item, hasChildren: parentIds.has(item.id) }))
+})
+
+function functionTreeRowMatches(item, name) {
+  const menuParts = functionMenuParts(item.menu)
+  const menuName = menuParts.leaf || menuParts.second
+  const searchableText = `${item.name} ${item.description} ${item.menu}`.toLowerCase()
+  const nameMatched = !name || searchableText.includes(name)
+  const rootMatched = !functionFilters.root || menuParts.root === functionFilters.root
+  const menuMatched = !functionFilters.menu || menuName === functionFilters.menu
+  const typeMatched = !functionFilters.type || item.type === functionFilters.type
+  return nameMatched && rootMatched && menuMatched && typeMatched
+}
+
+function isFunctionTreeExpanded(item) {
+  if (!item?.hasChildren) return false
+  if (item.itemKind === 'directory') return !collapsedFunctionTreeIds.value.has(item.id)
+  if (item.itemKind === 'menu') return expandedFunctionMenuIds.value.has(item.id)
+  return false
+}
+
+function isFunctionTreeRowVisible(item, rowMap) {
+  if (!item.parentId) return true
+  const parent = rowMap.get(item.parentId)
+  if (!parent) return true
+  return isFunctionTreeExpanded(parent) && isFunctionTreeRowVisible(parent, rowMap)
+}
+
 const filteredManagedFunctions = computed(() => {
   const name = functionFilters.name.trim().toLowerCase()
-  return managedFunctions.filter((item) => {
-    const menuParts = functionMenuParts(item.menu)
-    const nameMatched = !name || item.name.toLowerCase().includes(name)
-    const rootMatched = !functionFilters.root || menuParts.root === functionFilters.root
-    const menuMatched = !functionFilters.menu || menuParts.second === functionFilters.menu
-    const typeMatched = !functionFilters.type || item.type === functionFilters.type
-    return nameMatched && rootMatched && menuMatched && typeMatched
+  const rows = functionCatalogRows.value
+  const rowMap = new Map(rows.map((item) => [item.id, item]))
+  if (!hasFunctionFilters.value) {
+    return rows.filter((item) => isFunctionTreeRowVisible(item, rowMap))
+  }
+  const visibleIds = new Set()
+  rows.forEach((item) => {
+    if (!functionTreeRowMatches(item, name)) return
+    let cursor = item
+    while (cursor) {
+      visibleIds.add(cursor.id)
+      cursor = cursor.parentId ? rowMap.get(cursor.parentId) : null
+    }
   })
+  return rows.filter((item) => visibleIds.has(item.id))
 })
 const selectedManagedFunction = computed(() => filteredManagedFunctions.value.find((item) => item.id === selectedFunctionId.value) || filteredManagedFunctions.value[0] || null)
-const selectedFunctionUsage = computed(() => selectedManagedFunction.value ? functionUsage(selectedManagedFunction.value) : { roles: [], users: [] })
+const selectedFunctionUsage = computed(() => selectedManagedFunction.value?.itemKind === 'function' ? functionUsage(selectedManagedFunction.value) : { roles: [], users: [] })
 const functionMenuEditorRoot = computed(() => functionMenuTree.find((root) => root.id === functionMenuEditor.draft.rootId) || functionMenuTree[0])
 const functionMenuEditorParentOptions = computed(() => functionMenuEditorRoot.value?.children || [])
 const activeFunctionMenuRoot = computed(() => functionMenuTree.find((root) => root.id === functionEditor.menuRootId) || functionMenuTree[0])
 const activeFunctionMenuChildren = computed(() => activeFunctionMenuRoot.value?.children || [])
 const activeFunctionMenuChild = computed(() => activeFunctionMenuChildren.value.find((child) => child.id === functionEditor.menuChildId) || activeFunctionMenuChildren.value[0] || null)
-const activeFunctionMenuLeaves = computed(() => activeFunctionMenuChild.value?.children || [])
+const activeFunctionMenuLeaves = computed(() => activeFunctionMenuChild.value?.children?.filter((item) => item.nodeType === 'menu') || [])
 const availableFunctionInterfaces = computed(() => functionInterfaceCatalog.filter((api) => !functionEditor.draft.interfaces.some((item) => item.id === api.id)))
 const selectedFunctionInterface = computed(() => functionInterfaceCatalog.find((api) => api.id === functionEditor.selectedInterfaceId) || null)
 const isExternalPerson = computed(() => form.personType === 'external')
@@ -4125,12 +4351,23 @@ const approvalSubmitImpact = computed(() => {
 })
 
 
+function resetFunctionDirectoryEditorErrors() {
+  functionDirectoryEditor.errors.parentId = ''
+  functionDirectoryEditor.errors.name = ''
+  functionDirectoryEditor.errors.path = ''
+  functionDirectoryEditor.errors.order = ''
+  functionDirectoryEditor.errors.description = ''
+  functionDirectoryEditor.notice = ''
+}
+
 function resetFunctionMenuEditorErrors() {
   functionMenuEditor.errors.rootId = ''
   functionMenuEditor.errors.parentId = ''
   functionMenuEditor.errors.name = ''
   functionMenuEditor.errors.path = ''
   functionMenuEditor.errors.code = ''
+  functionMenuEditor.errors.order = ''
+  functionMenuEditor.errors.description = ''
   functionMenuEditor.notice = ''
 }
 
@@ -4140,22 +4377,124 @@ function menuSlugFromName(name) {
   return ascii || `menu-${Date.now()}`
 }
 
-function openFunctionMenuEditor() {
+function flattenFunctionDirectories() {
+  return functionMenuTree.flatMap((root) => [
+    { node: root, parent: null, root, level: 1, path: root.name },
+    ...root.children
+      .filter((child) => child.nodeType === 'directory')
+      .map((child) => ({ node: child, parent: root, root, level: 2, path: `${root.name} / ${child.name}` }))
+  ])
+}
+
+function findFunctionDirectory(id) {
+  return flattenFunctionDirectories().find((item) => item.node.id === id) || null
+}
+
+function findFunctionMenuNode(id) {
+  for (const root of functionMenuTree) {
+    for (const child of root.children) {
+      if (child.nodeType === 'menu' && child.id === id) return { node: child, parent: root, root, path: functionMenuFullPath(root, child) }
+      if (child.nodeType === 'directory') {
+        const leaf = child.children.find((item) => item.nodeType === 'menu' && item.id === id)
+        if (leaf) return { node: leaf, parent: child, root, path: functionMenuFullPath(root, child, leaf) }
+      }
+    }
+  }
+  return null
+}
+
+function functionMenuPathMap() {
+  return new Map(allFunctionMenuLeaves().map(({ root, child, leaf }) => [leaf.id, functionMenuFullPath(root, child, leaf)]))
+}
+
+function syncManagedFunctionMenus(oldMap, newMap) {
+  const pathMap = new Map()
+  oldMap.forEach((oldPath, id) => {
+    const newPath = newMap.get(id)
+    if (newPath && newPath !== oldPath) pathMap.set(oldPath, newPath)
+  })
+  if (!pathMap.size) return
+  managedFunctions.forEach((item) => {
+    if (pathMap.has(item.menu)) item.menu = pathMap.get(item.menu)
+  })
+}
+
+function allFunctionMenuLeaves(scopeRoot = null) {
+  const roots = scopeRoot ? [scopeRoot] : functionMenuTree
+  return roots.flatMap((root) => root.children.flatMap((child) => {
+    if (child.nodeType === 'menu') return [{ root, child, leaf: child }]
+    return child.children.filter((leaf) => leaf.nodeType === 'menu').map((leaf) => ({ root, child, leaf }))
+  }))
+}
+
+function functionMenuSortIndex(menu) {
+  const index = allFunctionMenuLeaves().findIndex(({ root, child, leaf }) => functionMenuFullPath(root, child, leaf) === menu || functionMenuFullPath(root, child) === menu)
+  return index >= 0 ? index : 9999
+}
+
+function initFunctionDirectoryDraft(parentId = '') {
+  resetFunctionDirectoryEditorErrors()
+  const selectedRoot = functionMenuTree.find((root) => root.name === functionFilters.root)
+  functionDirectoryEditor.draft = {
+    ...emptyFunctionDirectoryDraft(),
+    parentId: parentId || selectedRoot?.id || '__root__',
+    order: (selectedRoot?.children?.filter((item) => item.nodeType === 'directory').length || functionMenuTree.length) + 1
+  }
+}
+
+function initFunctionMenuDraft(parentId = '') {
   resetFunctionMenuEditorErrors()
-  const root = functionMenuTree[0]
-  const parent = root?.children?.[0]
-  functionMenuEditor.visible = true
+  const selectedRoot = functionMenuTree.find((root) => root.name === functionFilters.root)
+  const fallbackDirectory = selectedRoot || functionMenuTree[0]
+  const directoryId = parentId || fallbackDirectory?.id || ''
+  const directory = findFunctionDirectory(directoryId)
   functionMenuEditor.draft = {
     ...emptyFunctionMenuDraft(),
-    rootId: root?.id || '',
-    parentId: parent?.id || '',
-    order: (parent?.children?.length || 0) + 1
+    rootId: directory?.root?.id || fallbackDirectory?.id || '',
+    parentId: directoryId,
+    code: '',
+    status: 'enabled',
+    order: (directory?.node?.children?.filter((item) => item.nodeType === 'menu').length || 0) + 1
   }
+}
+
+function initFunctionDraft(menuPath = '') {
+  resetFunctionEditorErrors()
+  functionEditor.visible = false
+  functionEditor.mode = 'create'
+  functionEditor.functionId = ''
+  functionEditor.selectedInterfaceId = ''
+  functionEditor.menuPickerOpen = false
+  functionEditor.draft = emptyFunctionDraft()
+  const selectedMenu = menuPath || (functionFilters.root && functionFilters.menu ? `${functionFilters.root} / ${functionFilters.menu}` : '')
+  if (selectedMenu) functionEditor.draft.menu = selectedMenu
+  setFunctionMenuPickerByMenu(functionEditor.draft.menu)
+}
+
+function openFunctionCreateModal(tab = 'function') {
+  functionMenuEditor.visible = true
+  functionMenuEditor.mode = 'create'
+  functionMenuEditor.targetId = ''
+  functionDirectoryEditor.mode = 'create'
+  functionDirectoryEditor.targetId = ''
+  switchFunctionCreateTab(tab)
+}
+
+function openFunctionMenuEditor() {
+  openFunctionCreateModal('menu')
+}
+
+function switchFunctionCreateTab(tab) {
+  functionCreateTab.value = tab
+  if (tab === 'directory') initFunctionDirectoryDraft()
+  if (tab === 'menu') initFunctionMenuDraft()
+  if (tab === 'function') initFunctionDraft()
 }
 
 function closeFunctionMenuEditor() {
   functionMenuEditor.visible = false
   functionMenuEditor.notice = ''
+  functionEditor.menuPickerOpen = false
 }
 
 function syncFunctionMenuEditorRoot() {
@@ -4163,60 +4502,152 @@ function syncFunctionMenuEditorRoot() {
   functionMenuEditor.draft.parentId = root?.children?.[0]?.id || ''
 }
 
-function allFunctionMenuLeaves() {
-  return functionMenuTree.flatMap((root) => root.children.flatMap((child) => child.children.map((leaf) => ({ root, child, leaf }))))
+function validateFunctionDirectoryEditor() {
+  resetFunctionDirectoryEditorErrors()
+  const draft = functionDirectoryEditor.draft
+  const parent = draft.parentId === '__root__' ? null : findFunctionDirectory(draft.parentId)
+  const editingDirectory = functionDirectoryEditor.mode === 'edit' ? findFunctionDirectory(functionDirectoryEditor.targetId) : null
+  if (!draft.parentId) functionDirectoryEditor.errors.parentId = '请选择上级目录。'
+  if (draft.parentId !== '__root__' && !parent) functionDirectoryEditor.errors.parentId = '请选择有效的上级目录。'
+  if (parent?.level >= 2) functionDirectoryEditor.errors.parentId = '目录最多两级，请选择根目录或一级目录。'
+  if (editingDirectory && draft.parentId === editingDirectory.node.id) functionDirectoryEditor.errors.parentId = '上级目录不能选择自身。'
+  if (editingDirectory?.level === 1 && draft.parentId !== '__root__' && editingDirectory.node.children.some((item) => item.nodeType === 'directory')) functionDirectoryEditor.errors.parentId = '当前目录已有下级目录，不能移动到二级目录下。'
+  if (!draft.name) functionDirectoryEditor.errors.name = '请填写目录名称。'
+  if (!draft.path) functionDirectoryEditor.errors.path = '请填写目录路由。'
+  if (!Number(draft.order)) functionDirectoryEditor.errors.order = '请填写目录排序。'
+  if (!draft.description) functionDirectoryEditor.errors.description = '请填写目录描述。'
+  const siblings = draft.parentId === '__root__' ? functionMenuTree : (parent?.node?.children || []).filter((item) => item.nodeType === 'directory')
+  if (draft.name && siblings.some((item) => item.id !== functionDirectoryEditor.targetId && item.name === draft.name)) functionDirectoryEditor.errors.name = '同一上级目录下已存在同名目录。'
+  if (draft.path && flattenFunctionDirectories().some((item) => item.node.id !== functionDirectoryEditor.targetId && item.node.path === draft.path)) functionDirectoryEditor.errors.path = '该目录路由已存在，请换一个路由。'
+  return !Object.values(functionDirectoryEditor.errors).some(Boolean)
+}
+
+function saveFunctionDirectoryEditor() {
+  const draft = functionDirectoryEditor.draft
+  if (!validateFunctionDirectoryEditor()) return
+  if (functionDirectoryEditor.mode === 'edit') {
+    const target = findFunctionDirectory(functionDirectoryEditor.targetId)
+    const nextParent = draft.parentId === '__root__' ? null : findFunctionDirectory(draft.parentId)
+    if (!target) return
+    const oldMap = functionMenuPathMap()
+    const oldContainer = target.parent ? target.parent.children : functionMenuTree
+    const oldIndex = oldContainer.findIndex((item) => item.id === target.node.id)
+    if (oldIndex >= 0) oldContainer.splice(oldIndex, 1)
+    Object.assign(target.node, {
+      name: draft.name,
+      path: draft.path,
+      order: Number(draft.order),
+      description: draft.description,
+      code: target.node.code || `directory.${menuSlugFromName(draft.name).replace(/-/g, '.')}`
+    })
+    const nextContainer = nextParent ? nextParent.node.children : functionMenuTree
+    nextContainer.push(target.node)
+    nextContainer.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+    syncManagedFunctionMenus(oldMap, functionMenuPathMap())
+    selectedFunctionId.value = target.node.id
+    functionFilters.root = nextParent?.root?.name || target.node.name
+    showFunctionNotice(`已保存目录“${draft.name}”。`)
+    closeFunctionMenuEditor()
+    return
+  }
+  const idBase = `dir-${menuSlugFromName(draft.name)}`
+  let nextId = idBase
+  while (flattenFunctionDirectories().some((item) => item.node.id === nextId)) nextId = `${idBase}-${Date.now()}`
+  const nextDirectory = {
+    id: nextId,
+    name: draft.name,
+    path: draft.path,
+    code: `directory.${menuSlugFromName(draft.name).replace(/-/g, '.')}`,
+    order: Number(draft.order),
+    status: 'enabled',
+    description: draft.description,
+    nodeType: 'directory',
+    children: []
+  }
+  if (draft.parentId === '__root__') {
+    functionMenuTree.push(nextDirectory)
+    functionMenuTree.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+    functionFilters.root = nextDirectory.name
+  } else {
+    const parent = findFunctionDirectory(draft.parentId)
+    parent?.node.children.push(nextDirectory)
+    parent?.node.children.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+    functionFilters.root = parent?.root?.name || ''
+  }
+  selectedFunctionId.value = nextDirectory.id
+  showFunctionNotice(`已新增目录“${draft.name}”。`)
+  functionCreateTab.value = 'menu'
+  initFunctionMenuDraft(nextId)
 }
 
 function validateFunctionMenuEditor() {
   resetFunctionMenuEditorErrors()
   const draft = functionMenuEditor.draft
-  const root = functionMenuTree.find((item) => item.id === draft.rootId)
-  const parent = root?.children?.find((item) => item.id === draft.parentId)
-  if (!root) functionMenuEditor.errors.rootId = '请选择上级根目录。'
-  if (!parent) functionMenuEditor.errors.parentId = '请选择上级目录。'
+  const directory = findFunctionDirectory(draft.parentId)
+  if (!directory) functionMenuEditor.errors.parentId = '请选择所属目录。'
   if (!draft.name) functionMenuEditor.errors.name = '请填写菜单名称。'
-  if (!draft.path) functionMenuEditor.errors.path = '请填写菜单路径。'
-  if (!draft.code) functionMenuEditor.errors.code = '请填写菜单编码。'
+  if (!draft.path) functionMenuEditor.errors.path = '请填写菜单路由。'
+  if (!Number(draft.order)) functionMenuEditor.errors.order = '请填写菜单排序。'
+  if (!draft.description) functionMenuEditor.errors.description = '请填写菜单描述。'
   const leaves = allFunctionMenuLeaves()
-  if (draft.name && parent?.children?.some((leaf) => leaf.name === draft.name)) {
-    functionMenuEditor.errors.name = '同一上级目录下已存在同名菜单。'
-  }
-  if (draft.path && leaves.some(({ leaf }) => leaf.path === draft.path)) {
-    functionMenuEditor.errors.path = '该菜单路径已存在，请换一个路径。'
-  }
-  if (draft.code && leaves.some(({ leaf }) => leaf.code === draft.code)) {
-    functionMenuEditor.errors.code = '该菜单编码已存在，请换一个编码。'
-  }
+  if (draft.name && directory?.node.children.some((leaf) => leaf.id !== functionMenuEditor.targetId && leaf.nodeType === 'menu' && leaf.name === draft.name)) functionMenuEditor.errors.name = '同一所属目录下已存在同名菜单。'
+  if (draft.path && leaves.some(({ leaf }) => leaf.id !== functionMenuEditor.targetId && leaf.path === draft.path)) functionMenuEditor.errors.path = '该菜单路由已存在，请换一个路由。'
   return !Object.values(functionMenuEditor.errors).some(Boolean)
 }
 
 function saveFunctionMenuEditor() {
   const draft = functionMenuEditor.draft
-  if (!draft.path && draft.name) draft.path = `/${menuSlugFromName(draft.name)}`
   if (!draft.code && draft.name) draft.code = `menu.${menuSlugFromName(draft.name).replace(/-/g, '.')}`
   if (!validateFunctionMenuEditor()) return
-  const root = functionMenuTree.find((item) => item.id === draft.rootId)
-  const parent = root?.children?.find((item) => item.id === draft.parentId)
-  if (!root || !parent) return
+  const directory = findFunctionDirectory(draft.parentId)
+  if (!directory) return
+  if (functionMenuEditor.mode === 'edit') {
+    const target = findFunctionMenuNode(functionMenuEditor.targetId)
+    if (!target) return
+    const oldMap = functionMenuPathMap()
+    const oldIndex = target.parent.children.findIndex((item) => item.id === target.node.id)
+    if (oldIndex >= 0) target.parent.children.splice(oldIndex, 1)
+    Object.assign(target.node, {
+      name: draft.name,
+      path: draft.path,
+      code: draft.code,
+      order: Number(draft.order),
+      status: draft.status || target.node.status || 'enabled',
+      description: draft.description
+    })
+    directory.node.children.push(target.node)
+    directory.node.children.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+    syncManagedFunctionMenus(oldMap, functionMenuPathMap())
+    functionFilters.root = directory.root.name
+    functionFilters.menu = target.node.name
+    selectedFunctionId.value = target.node.id
+    showFunctionNotice(`已保存菜单“${draft.name}”。`)
+    closeFunctionMenuEditor()
+    return
+  }
   const idBase = draft.code.replace(/[^a-zA-Z0-9_-]+/g, '-') || `menu-${Date.now()}`
   let nextId = idBase
-  while (allFunctionMenuLeaves().some(({ leaf }) => leaf.id === nextId)) {
-    nextId = `${idBase}-${Date.now()}`
-  }
-  parent.children.push({
+  while (allFunctionMenuLeaves().some(({ leaf }) => leaf.id === nextId)) nextId = `${idBase}-${Date.now()}`
+  const nextMenu = {
     id: nextId,
     name: draft.name,
     path: draft.path,
     code: draft.code,
-    order: Number(draft.order) || parent.children.length + 1,
-    status: draft.status,
-    description: draft.description
-  })
-  parent.children.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
-  functionFilters.root = root.name
-  functionFilters.menu = parent.name
-  showFunctionNotice(`已新增菜单“${draft.name}”，新增功能时可以选择该菜单。`)
-  closeFunctionMenuEditor()
+    order: Number(draft.order),
+    status: 'enabled',
+    description: draft.description,
+    nodeType: 'menu',
+    children: []
+  }
+  directory.node.children.push(nextMenu)
+  directory.node.children.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+  functionFilters.root = directory.root.name
+  functionFilters.menu = nextMenu.name
+  const menuPath = directory.parent ? functionMenuFullPath(directory.root, directory.node, nextMenu) : functionMenuFullPath(directory.root, nextMenu)
+  selectedFunctionId.value = nextMenu.id
+  showFunctionNotice(`已新增菜单“${draft.name}”。`)
+  functionCreateTab.value = 'function'
+  initFunctionDraft(menuPath)
 }
 function syncFunctionMenuFilter() {
   if (functionFilters.menu && !functionSecondMenuOptions.value.includes(functionFilters.menu)) {
@@ -4235,7 +4666,94 @@ function selectManagedFunction(id) {
   selectedFunctionId.value = id
 }
 
+function openFunctionDetail(item) {
+  selectedFunctionId.value = item.id
+  functionDetailVisible.value = true
+}
+
+function closeFunctionDetail() {
+  functionDetailVisible.value = false
+}
+
+function openFunctionStructureEditor(item) {
+  selectedFunctionId.value = item.id
+  if (item.itemKind === 'directory') {
+    const directory = findFunctionDirectory(item.id)
+    if (!directory) return
+    functionMenuEditor.visible = true
+    functionMenuEditor.mode = 'edit'
+    functionMenuEditor.targetId = ''
+    functionCreateTab.value = 'directory'
+    resetFunctionDirectoryEditorErrors()
+    functionDirectoryEditor.mode = 'edit'
+    functionDirectoryEditor.targetId = item.id
+    functionDirectoryEditor.draft = {
+      parentId: directory.parent?.id || '__root__',
+      name: directory.node.name,
+      path: directory.node.path || '',
+      order: Number(directory.node.order) || 10,
+      description: directory.node.description || ''
+    }
+    return
+  }
+  if (item.itemKind === 'menu') {
+    const menu = findFunctionMenuNode(item.id)
+    if (!menu) return
+    functionMenuEditor.visible = true
+    functionMenuEditor.mode = 'edit'
+    functionMenuEditor.targetId = item.id
+    functionCreateTab.value = 'menu'
+    resetFunctionMenuEditorErrors()
+    functionMenuEditor.draft = {
+      ...emptyFunctionMenuDraft(),
+      rootId: menu.root.id,
+      parentId: menu.parent.id,
+      name: menu.node.name,
+      path: menu.node.path || '',
+      code: menu.node.code || '',
+      order: Number(menu.node.order) || 10,
+      status: menu.node.status || 'enabled',
+      description: menu.node.description || ''
+    }
+  }
+}
+
+function toggleFunctionTreeRow(item) {
+  if (!item?.hasChildren) return
+  if (item.itemKind === 'directory') {
+    const next = new Set(collapsedFunctionTreeIds.value)
+    if (next.has(item.id)) next.delete(item.id)
+    else next.add(item.id)
+    collapsedFunctionTreeIds.value = next
+    return
+  }
+  if (item.itemKind === 'menu') {
+    const next = new Set(expandedFunctionMenuIds.value)
+    if (next.has(item.id)) next.delete(item.id)
+    else next.add(item.id)
+    expandedFunctionMenuIds.value = next
+  }
+}
+
+function expandFunctionTreeToMenu(menu) {
+  const rows = functionCatalogRows.value
+  const rowMap = new Map(rows.map((item) => [item.id, item]))
+  const menuRow = rows.find((item) => item.itemKind === 'menu' && item.menu === menu)
+  if (!menuRow) return
+  const expandedMenus = new Set(expandedFunctionMenuIds.value)
+  expandedMenus.add(menuRow.id)
+  expandedFunctionMenuIds.value = expandedMenus
+  const collapsedDirectories = new Set(collapsedFunctionTreeIds.value)
+  let cursor = menuRow.parentId ? rowMap.get(menuRow.parentId) : null
+  while (cursor) {
+    if (cursor.itemKind === 'directory') collapsedDirectories.delete(cursor.id)
+    cursor = cursor.parentId ? rowMap.get(cursor.parentId) : null
+  }
+  collapsedFunctionTreeIds.value = collapsedDirectories
+}
 function functionTypeLabel(value) {
+  if (value === 'directory') return '目录'
+  if (value === 'menu') return '菜单'
   return functionTypeOptions.find((option) => option.value === value)?.label || value
 }
 
@@ -4277,6 +4795,11 @@ function functionMenuFullPath(root, child, leaf) {
 function setFunctionMenuPickerByMenu(menu) {
   for (const root of functionMenuTree) {
     for (const child of root.children) {
+      if (child.name === menu || functionMenuFullPath(root, child) === menu) {
+        functionEditor.menuRootId = root.id
+        functionEditor.menuChildId = child.id
+        return
+      }
       const leaf = child.children.find((item) => item.name === menu || functionMenuFullPath(root, child, item) === menu)
       if (leaf) {
         functionEditor.menuRootId = root.id
@@ -4285,8 +4808,8 @@ function setFunctionMenuPickerByMenu(menu) {
       }
     }
   }
-  functionEditor.menuRootId = functionMenuTree[0].id
-  functionEditor.menuChildId = functionMenuTree[0].children[0].id
+  functionEditor.menuRootId = functionMenuTree[0]?.id || ''
+  functionEditor.menuChildId = functionMenuTree[0]?.children?.[0]?.id || ''
 }
 
 function selectFunctionMenuRoot(id) {
@@ -4297,6 +4820,13 @@ function selectFunctionMenuRoot(id) {
 
 function selectFunctionMenuChild(id) {
   functionEditor.menuChildId = id
+  const root = activeFunctionMenuRoot.value
+  const child = root?.children?.find((item) => item.id === id)
+  if (child && !child.children.length) {
+    functionEditor.draft.menu = functionMenuFullPath(root, child)
+    functionEditor.menuPickerOpen = false
+    functionEditor.errors.menu = ''
+  }
 }
 
 function selectFunctionMenuLeaf(name) {
@@ -4370,6 +4900,7 @@ function saveFunctionEditor() {
       allFunctionPermissions.push({ id: draft.id, name: draft.name })
     }
     selectedFunctionId.value = draft.id
+    expandFunctionTreeToMenu(draft.menu)
     showFunctionNotice(`已新增“${draft.name}”。`)
   } else {
     const index = managedFunctions.findIndex((item) => item.id === functionEditor.functionId)
@@ -4381,7 +4912,13 @@ function saveFunctionEditor() {
       showFunctionNotice(`已保存“${draft.name}”。`)
     }
   }
-  closeFunctionEditor()
+  if (functionEditor.mode === 'create') closeFunctionMenuEditor()
+  else closeFunctionEditor()
+}
+
+function deleteManagedFunctionFromRow(item) {
+  selectedFunctionId.value = item.id
+  deleteSelectedManagedFunction()
 }
 
 function deleteSelectedManagedFunction() {
@@ -4650,7 +5187,7 @@ function switchRoleEditorToEdit() {
 function validateRoleEditor() {
   resetRoleEditorErrors()
   roleEditor.errors.name = roleEditor.draft.name ? '' : '请输入角色名称，便于申请人识别该角色用途。'
-  roleEditor.errors.type = roleEditor.draft.type ? '' : '请选择角色类型，例如业务角色或分析角色。'
+  roleEditor.errors.type = roleEditor.draft.type ? '' : '请选择角色类型：角色管理员或普通角色。'
   roleEditor.errors.group = roleEditor.draft.group ? '' : '请选择角色组，便于列表筛选和业务归口。'
   roleEditor.errors.owner = roleEditor.draft.owner ? '' : '请输入业务负责人，便于后续审批和维护。'
   roleEditor.errors.dataMode = roleEditor.draft.dataPermissionIds.length && roleEditor.draft.customDataRules.length ? '普通授权和自定义授权只能选择一种，请先删除其中一类数据权限。' : ''
@@ -9766,6 +10303,9 @@ onUnmounted(() => {
   min-height: 0;
   flex: 1 1 auto;
 }
+.function-workspace-layout.detail-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
 
 .function-table-wrap {
   min-height: 0;
@@ -9790,6 +10330,48 @@ onUnmounted(() => {
   display: grid;
   gap: 4px;
   min-width: 0;
+}
+.function-tree-name {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 6px;
+  padding-left: calc(var(--tree-depth, 0) * 22px);
+}
+
+.function-tree-toggle,
+.function-tree-spacer {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+.function-tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d8e1ee;
+  border-radius: 6px;
+  background: #fff;
+  color: #667085;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.function-tree-toggle:hover {
+  border-color: #316dff;
+  color: #316dff;
+}
+
+.function-tree-toggle.expanded {
+  transform: rotate(90deg);
+}
+
+.function-tree-spacer {
+  display: inline-block;
 }
 
 .function-name-cell b,
@@ -9951,6 +10533,26 @@ onUnmounted(() => {
 
 .function-editor-modal {
   width: min(760px, calc(100vw - 48px));
+}
+.function-create-modal {
+  width: min(900px, calc(100vw - 48px));
+}
+
+.function-create-tabs {
+  margin-top: 12px;
+}
+
+.function-create-section {
+  display: grid;
+  gap: 16px;
+  padding-top: 2px;
+}
+
+.modal-actions.flat {
+  justify-content: flex-end;
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1px solid #e6edf5;
 }
 
 .function-editor-form {
@@ -10797,33 +11399,6 @@ onUnmounted(() => {
 }
 .condition-connector.hidden {
   visibility: hidden;
-}</style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
+</style>
 
