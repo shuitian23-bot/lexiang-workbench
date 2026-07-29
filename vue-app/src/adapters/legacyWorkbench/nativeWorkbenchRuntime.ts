@@ -97,7 +97,7 @@ function installNativeWorkbenchShim(router: Router) {
     activeStaticTabId: 'portal.home',
     tempTabs: [],
     activeTempTabId: null,
-    aiOpen: true
+    aiOpen: false
   }
   window.MENU_TREE ||= MENU_TREE
   window.HIDDEN_PAGES ||= {}

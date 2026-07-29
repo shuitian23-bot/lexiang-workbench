@@ -103,18 +103,24 @@
           </div>
         </div>
 
-        <div class="skill-context-card-grid" aria-live="polite">
+        <div class="skill-context-card-grid" aria-live="polite" @scroll.passive="hideContextSubtitleTooltip">
           <button
             v-for="item in filteredContextItems"
             :key="item.code"
             class="skill-context-card"
-            :class="{ selected: item.selected }"
+            :class="{ selected: item.selected, recommended: item.recommended }"
+            :aria-describedby="contextSubtitleTooltip?.code === item.code ? 'skill-context-subtitle-tooltip' : undefined"
+            :aria-pressed="item.selected"
             type="button"
+            @mouseenter="showContextSubtitleTooltip($event, item)"
+            @mouseleave="hideContextSubtitleTooltip"
+            @focus="showContextSubtitleTooltip($event, item)"
+            @blur="hideContextSubtitleTooltip"
             @click="toggleContext(item.code)"
           >
             <span v-if="item.recommended" class="skill-context-card-recommend">推荐</span>
-            <span class="skill-context-card-icon" aria-hidden="true">{{ item.selected ? '✓' : '+' }}</span>
             <b>{{ item.name }}</b>
+            <span class="skill-context-card-subtitle">{{ item.subtitle }}</span>
             <em>{{ item.source }}</em>
           </button>
           <div v-if="!filteredContextItems.length" class="skill-context-empty-state">没有匹配的能力，请调整搜索或筛选条件。</div>
@@ -442,6 +448,21 @@
         </section>
       </div>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="contextSubtitleTooltip"
+        id="skill-context-subtitle-tooltip"
+        class="skill-context-subtitle-tooltip"
+        :style="{
+          left: `${contextSubtitleTooltip.left}px`,
+          top: `${contextSubtitleTooltip.top}px`,
+          width: `${contextSubtitleTooltip.width}px`,
+          transform: contextSubtitleTooltip.placement === 'top' ? 'translateY(-100%)' : 'none'
+        }"
+        role="tooltip"
+      >{{ contextSubtitleTooltip.text }}</div>
+    </Teleport>
   </div>
 </template>
 
@@ -454,7 +475,8 @@ import { useSkillHubStore, type SkillDraftSnapshot, type SkillHubItem } from '@/
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
-type ContextItem = { code: string; name: string; source: string; selected: boolean; recommended: boolean }
+type ContextItem = { code: string; name: string; subtitle: string; source: string; selected: boolean; recommended: boolean }
+type ContextSubtitleTooltip = { code: string; text: string; left: number; top: number; width: number; placement: 'top' | 'bottom' }
 type StateStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked'
 type SkillStateItem = { kind: string; status: StateStatus; title: string; detail: string }
 type SkillTodoList = {
@@ -534,6 +556,24 @@ const RECOMMENDED_CONTEXT_CODES_BY_MENU: Record<string, Set<string>> = {
   企业客户管理: new Set(['lead.dashboard', 'lead.pool', 'lead.score'])
 }
 
+const CONTEXT_SUBTITLE_BY_CODE: Record<string, string> = {
+  'dashboard.overview': '聚合乐享运营核心经营指标，支持多维度数据拆解与趋势对比',
+  'pipeline.annotate': '用户查询、意图识别、命中率与标注闭环分析',
+  'pipeline.quality': '服务满意度、性能、对话质量、异常监控与用户评分分析',
+  'ops.traffic': '查看核心活跃趋势、访问入口、端口与业务流量分布',
+  'ops.gmv': '分析交易规模、购买人数、客单价与业务模块贡献',
+  'dashboard.geo': '监测 AI 搜索可见度、信源、意图与转化的整体表现',
+  'dashboard.geoSource': '按平台查看可抓取信源、引用频次与内容质量',
+  'dashboard.geoIntent': '对比不同平台的用户意图、品牌露出与回答路径',
+  'dashboard.geoConversion': '分析 AI 搜索到官网、线索、购买和服务路径的转化',
+  'dashboard.geoKnowledge': '上传文档或补充 QA，维护 AI 搜索可抓取的知识内容',
+  'employee.overview': '查看在职员工规模、认证方式、人群画像与购买转化概览',
+  'employee.certification': '分析认证审核进度、通过率、失败原因与待审核积压',
+  'lead.dashboard': '查看企业客户线索来源、阶段、转化与负责人跟进概览',
+  'lead.pool': '管理线索列表、分配规则、负责人及跟进进展',
+  'lead.score': '配置企业客户线索评分、规则权重并监测模型效果'
+}
+
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'config', label: '1. 基础配置' },
   { key: 'clarify', label: '2. 需求澄清' },
@@ -553,6 +593,7 @@ const summaryUpdated = ref('根据当前对话生成')
 const summaryRefreshing = ref(false)
 const aiTuning = ref(false)
 const aiTuned = ref(false)
+const aiTuneRequestKey = ref('')
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
 
@@ -574,15 +615,18 @@ const contextSourceFilter = ref('全部')
 const selectedOnly = ref(false)
 const contextDomainMenuOpen = ref(false)
 const selectedContextMenuOpen = ref(false)
+const contextSubtitleTooltip = ref<ContextSubtitleTooltip | null>(null)
 const contextSourceOptions = computed(() => ['全部', ...menuGroupLabels])
 const filteredContextItems = computed(() => {
   const keyword = contextSearch.value.trim().toLocaleLowerCase()
-  return contextItems.value.filter(item => {
-    const matchesSource = contextSourceFilter.value === '全部' || item.source === contextSourceFilter.value
-    const matchesSelected = !selectedOnly.value || item.selected
-    const matchesKeyword = !keyword || `${item.name} ${item.source} ${item.code}`.toLocaleLowerCase().includes(keyword)
-    return matchesSource && matchesSelected && matchesKeyword
-  })
+  return contextItems.value
+    .filter(item => {
+      const matchesSource = contextSourceFilter.value === '全部' || item.source === contextSourceFilter.value
+      const matchesSelected = !selectedOnly.value || item.selected
+      const matchesKeyword = !keyword || `${item.name} ${item.subtitle} ${item.source} ${item.code}`.toLocaleLowerCase().includes(keyword)
+      return matchesSource && matchesSelected && matchesKeyword
+    })
+    .sort((left, right) => Number(right.recommended) - Number(left.recommended))
 })
 const contextResourceMetrics = [
   { label: 'API', value: 13 },
@@ -615,6 +659,18 @@ watch(
   { flush: 'post' }
 )
 
+watch(
+  () => aiStore.skillTuneConfirmation?.confirmedAt,
+  () => {
+    if (!aiTuning.value || !aiTuneRequestKey.value) return
+    if (aiStore.skillTuneConfirmation?.key !== aiTuneRequestKey.value) return
+    aiTuning.value = false
+    aiTuned.value = true
+    workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · AI 微调结果已确认`
+    toast('AI 微调结果已确认，评分与提交审核状态已同步')
+  }
+)
+
 function createMenuContextItems(activeMenu: string) {
   const recommendedCodes = RECOMMENDED_CONTEXT_CODES_BY_MENU[activeMenu] || new Set<string>()
   return menuGroups.flatMap(group =>
@@ -623,6 +679,7 @@ function createMenuContextItems(activeMenu: string) {
       return {
         name: page.label,
         code: pageId,
+        subtitle: CONTEXT_SUBTITLE_BY_CODE[pageId] || `查看${page.label}相关业务数据与操作能力`,
         source: group.label,
         selected: false,
         recommended
@@ -632,7 +689,29 @@ function createMenuContextItems(activeMenu: string) {
 }
 
 function syncMenuContext() {
+  hideContextSubtitleTooltip()
   contextItems.value = createMenuContextItems(form.value.menu)
+}
+
+function showContextSubtitleTooltip(event: MouseEvent | FocusEvent, item: ContextItem) {
+  const target = event.currentTarget
+  if (!(target instanceof HTMLElement)) return
+  const rect = target.getBoundingClientRect()
+  const width = Math.min(280, Math.max(220, rect.width + 40))
+  const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - width - 8))
+  const placement: 'top' | 'bottom' = window.innerHeight - rect.bottom >= 92 ? 'bottom' : 'top'
+  contextSubtitleTooltip.value = {
+    code: item.code,
+    text: item.subtitle,
+    left,
+    top: placement === 'bottom' ? rect.bottom + 6 : rect.top - 6,
+    width,
+    placement
+  }
+}
+
+function hideContextSubtitleTooltip() {
+  contextSubtitleTooltip.value = null
 }
 
 function closeContextDropdowns() {
@@ -780,7 +859,7 @@ const evalItems = computed(() => aiTuned.value
       { title: '测试用例充分', score: '1.00' }
     ])
 
-const aiTuneButtonText = computed(() => aiTuning.value ? 'AI 微调中...' : '打开 AI 助手微调')
+const aiTuneButtonText = computed(() => aiTuning.value ? '等待 AI 助手确认...' : '打开 AI 助手微调')
 const optimizationItems = computed(() => aiTuned.value
   ? [
       { index: 1, title: '流程步骤已拆清', desc: '补充参数确认、查询执行、异常兜底、结果生成、导出确认五段流程。' },
@@ -1452,13 +1531,15 @@ function startAiTune() {
   }
   if (aiTuning.value) return
   aiTuning.value = true
+  aiTuneRequestKey.value = `skill-tune-${form.value.name || 'draft'}-${Date.now()}`
   aiStore.toggleOpen(true)
   aiStore.messages.push({ role: 'user', text: '请针对 Skill 创建评估验证中的可优化项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。', at: new Date().toISOString() })
-  aiStore.messages.push({ role: 'assistant', text: ['已定位 2 个可优化项，并完成 Skill 微调：', '', '- 将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。', '- 补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。', '- 更新验收用例，覆盖参照区间、权限降级、无数据、模糊时间和时间范围无效。', '', '请在右侧会话中确认本轮微调结束；确认后，左侧评估页只同步评分与提交审核状态。'].join('\n'), at: new Date().toISOString() })
-  window.setTimeout(() => {
-    aiTuning.value = false
-    aiTuned.value = true
-  }, 900)
+  aiStore.messages.push({
+    role: 'assistant',
+    text: ['已定位 2 个可优化项，并生成 Skill 微调建议：', '', '- 将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。', '- 补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。', '- 更新验收用例，覆盖参照区间、权限降级、无数据、模糊时间和时间范围无效。', '', '请确认是否采用本轮微调结果；确认后左侧才会刷新评分并开放提交审核。'].join('\n'),
+    at: new Date().toISOString(),
+    actionItems: [{ type: 'skill_tune_confirm', label: '确认微调完成', value: aiTuneRequestKey.value }]
+  })
 }
 
 function formatBeijingTime(value: Date) {
@@ -1665,12 +1746,13 @@ onMounted(() => {
   loadEditDraft()
   appStore.ensureStaticTab('agent.skillCreate')
   appStore.setActiveStaticTab('agent.skillCreate')
-  document.title = 'Skill 创建 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
   resizeClarifyInput()
   document.addEventListener('click', closeContextDropdowns)
 })
 
 onBeforeUnmount(() => {
+  hideContextSubtitleTooltip()
   document.removeEventListener('click', closeContextDropdowns)
 })
 </script>
@@ -2677,7 +2759,7 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 76px;
+  min-height: 104px;
   padding: 9px 10px 8px;
   border: 1px solid var(--border-light, #e5e6eb);
   border-radius: 10px;
@@ -2693,8 +2775,8 @@ onBeforeUnmount(() => {
 
 .skill-context-card b {
   position: absolute;
-  top: 50%;
-  right: 32px;
+  top: 13px;
+  right: 10px;
   left: 10px;
   display: block;
   overflow: hidden;
@@ -2703,10 +2785,28 @@ onBeforeUnmount(() => {
   line-height: 18px;
   white-space: nowrap;
   text-overflow: ellipsis;
-  transform: translateY(-58%);
 }
 
-.skill-context-card.selected b { left: 9px; }
+.skill-context-card.selected b { top: 12px; right: 9px; left: 9px; }
+.skill-context-card.recommended b { right: 48px; }
+.skill-context-card.selected.recommended b { right: 47px; }
+
+.skill-context-card-subtitle {
+  position: absolute;
+  top: 35px;
+  right: 10px;
+  left: 10px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-secondary, #646a73);
+  font-size: 10px;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.skill-context-card.selected .skill-context-card-subtitle { top: 34px; right: 9px; left: 9px; }
 
 .skill-context-card em {
   position: absolute;
@@ -2726,8 +2826,8 @@ onBeforeUnmount(() => {
 .skill-context-card-recommend {
   position: absolute;
   top: 8px;
-  left: 9px;
-  max-width: calc(100% - 42px);
+  right: 8px;
+  max-width: calc(100% - 20px);
   padding: 1px 5px;
   overflow: hidden;
   border-radius: 999px;
@@ -2740,27 +2840,25 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-.skill-context-card.selected .skill-context-card-recommend { top: 7px; left: 8px; }
-
-.skill-context-card-icon {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 1px solid #d8dde6;
-  border-radius: 50%;
-  color: #8f959e;
-  font-size: 18px;
-  font-weight: 300;
-  line-height: 1;
-}
-
-.skill-context-card.selected .skill-context-card-icon { top: 7px; right: 7px; border-color: var(--primary, #3370ff); background: var(--primary, #3370ff); color: #fff; font-size: 13px; font-weight: 700; }
+.skill-context-card.selected .skill-context-card-recommend { top: 7px; right: 7px; }
 .skill-context-card:focus-visible { z-index: 1; outline: 2px solid rgba(51, 112, 255, .3); outline-offset: 2px; }
 .skill-context-empty-state { grid-column: 1 / -1; padding: 26px 12px; color: var(--text-tertiary, #8f959e); font-size: 12px; text-align: center; }
+
+.skill-context-subtitle-tooltip {
+  position: fixed;
+  z-index: 1800;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: rgba(31, 35, 41, .96);
+  box-shadow: 0 4px 12px rgba(31, 35, 41, .18);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+}
 
 .skill-context-resource-metrics {
   flex: 0 0 auto;

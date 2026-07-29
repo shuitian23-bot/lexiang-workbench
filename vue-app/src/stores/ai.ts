@@ -5,7 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getGroupLabel, getPageLabel, pageIdToPath, type SkillApplicationReportData } from '@/stores/app'
-import { STORAGE_KEYS, readBooleanStorage, writeBooleanStorage } from '@/constants/storageKeys'
+import { STORAGE_KEYS, writeBooleanStorage } from '@/constants/storageKeys'
 import { createEmployeeCertificationReport } from '@/services/skillApplicationReport'
 
 type AnyRecord = Record<string, unknown>
@@ -23,7 +23,7 @@ interface AttachedFile {
 }
 
 interface TaskAction {
-  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_reject'
+  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_reject' | 'skill_tune_confirm'
   label: string
   value?: string
 }
@@ -169,6 +169,7 @@ export const useAIStore = defineStore('ai', () => {
   const queueNotice = ref('')
   const taskLogs = ref<TaskLog[]>([])
   const activityItems = ref<ConversationActivityItem[]>([])
+  const skillTuneConfirmation = ref({ key: '', confirmedAt: 0 })
   // ---- 面板宽度（内联 style 用）----
   const panelWidth  = ref(AI_PANEL_DEFAULT_WIDTH) // 0 表示用 CSS 默认
   // ---- 是否因 AI 面板展开而自动折叠了侧栏 ----
@@ -214,12 +215,8 @@ export const useAIStore = defineStore('ai', () => {
 
   // ===== 恢复 AI 状态（对应原 restoreAIState）=====
   function restoreState() {
-    const shouldOpen = readBooleanStorage(
-      STORAGE_KEYS.aiOpen,
-      STORAGE_KEYS.legacyAiOpen,
-      true
-    )
-    if (shouldOpen) toggleOpen(true)
+    // 每次完整打开工作台都从收起态开始；同一会话内仍保留用户手动展开/收起结果。
+    toggleOpen(false)
   }
 
   // ===== 计算面板最大宽度（对应 aiPanelMaxWidth）=====
@@ -419,7 +416,6 @@ export const useAIStore = defineStore('ai', () => {
     const reportCatalog: ReportArtifact[] = _createDemoReports(pageId)
     reportCatalog.forEach(report => { AI_REPORT_ARTIFACTS[report.id] = report })
     const reports = reportCatalog.slice(0, 2)
-    if (!open.value) toggleOpen(true)
     if (messages.value.some(msg => msg.demoReportEntry)) return
     _recordMessage('user', '我准备了质量分析和运营总览两份默认报告。点击卡片里的“展开报告”，会从 Agent 区推送到中间工作区动态页签。', {
       demoReportQuery: true
@@ -498,6 +494,11 @@ export const useAIStore = defineStore('ai', () => {
         title: '授权已拒绝',
         detail: '任务已停止，没有触发任何写入、发布、导出或命令执行。'
       })
+      return
+    }
+    if (action.type === 'skill_tune_confirm') {
+      _recordTaskLog('skill', '确认 Skill 微调完成', pageId || 'agent.skills')
+      _resolveSkillTuneConfirmation(action.value || '')
     }
   }
 
@@ -587,6 +588,24 @@ export const useAIStore = defineStore('ai', () => {
         authResult: result
       }
     })
+    _persistConversation()
+  }
+
+  function _resolveSkillTuneConfirmation(key: string) {
+    const reverseIndex = [...messages.value].reverse().findIndex(message =>
+      message.actionItems?.some(action => action.type === 'skill_tune_confirm' && action.value === key)
+    )
+    if (reverseIndex !== -1) {
+      const targetIndex = messages.value.length - 1 - reverseIndex
+      messages.value = messages.value.map((message, index) => index === targetIndex
+        ? {
+            ...message,
+            text: `${message.text}\n\n已确认本轮微调完成，评估结果已同步到左侧 Skill 创建页。`,
+            actionItems: undefined
+          }
+        : message)
+    }
+    skillTuneConfirmation.value = { key, confirmedAt: Date.now() }
     _persistConversation()
   }
 
@@ -1433,7 +1452,7 @@ ${reply || _reportIntentReply(payload)}
 
   return {
     open, convId, localConvId, messages, loading,
-    queuedMessages, queueNotice, taskLogs, activityItems,
+    queuedMessages, queueNotice, taskLogs, activityItems, skillTuneConfirmation,
     panelWidth, autoCollapsedSidebar,
     inputText, attachedFile, attachedFiles, activeShortcut, shortcuts, inputPlaceholder,
     toggleOpen, restoreState, maxPanelWidth, setPanelWidth,

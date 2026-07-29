@@ -1,5 +1,5 @@
 <template>
-  <div class="ops-traffic-native" v-html="trafficHtml"></div>
+  <div ref="trafficRoot" class="ops-traffic-native" v-html="trafficHtml"></div>
 </template>
 
 <script setup lang="ts">
@@ -71,19 +71,26 @@ const metric = ref<MetricKey>('uv')
 const customStart = ref(rowIso(OPS_ROWS[0].d))
 const customEnd = ref(rowIso(OPS_ROWS[OPS_ROWS.length - 1].d))
 const trafficHtml = ref(buildTrafficHtml())
+const trafficRoot = ref<HTMLElement | null>(null)
 const charts: TrafficChart[] = []
+let resizeObserver: ResizeObserver | null = null
 
 onMounted(async () => {
   appStore.ensureStaticTab('ops.traffic')
   appStore.setActiveStaticTab('ops.traffic')
-  document.title = '流量分析 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
   installTrafficHandlers()
   echartsRuntime = await import('echarts')
   await nextTick()
   renderTraffic()
+  if (trafficRoot.value && typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => charts.forEach(chart => chart.resize())))
+    resizeObserver.observe(trafficRoot.value)
+  }
 })
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
   disposeCharts()
   delete window.opsAskTraffic
   delete window.opsCustomTimeChanged

@@ -528,7 +528,7 @@ const TrendCard = defineComponent({
 onMounted(() => {
   appStore.ensureStaticTab('dashboard.overview')
   appStore.setActiveStaticTab('dashboard.overview')
-  document.title = '运营总览 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
 })
 </script>
 

@@ -192,7 +192,7 @@ let hotMode = 'active'
 onMounted(async () => {
   appStore.ensureStaticTab('pipeline.annotate')
   appStore.setActiveStaticTab('pipeline.annotate')
-  document.title = 'Query 分析 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
   await nextTick()
   await ensureECharts()
   initDashboard()

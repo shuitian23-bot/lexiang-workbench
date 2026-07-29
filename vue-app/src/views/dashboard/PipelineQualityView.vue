@@ -158,7 +158,7 @@ const qualityHtml = `
 onMounted(async () => {
   appStore.ensureStaticTab('pipeline.quality')
   appStore.setActiveStaticTab('pipeline.quality')
-  document.title = '质量分析 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
   await nextTick()
   await ensureECharts()
   await ensureQualityRuntime()

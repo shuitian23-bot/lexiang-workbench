@@ -1,11 +1,11 @@
 {
   "projectId": "lexiang-workbench",
   "requiredSkillId": "portal-workbench-ui",
-  "requiredSkillVersion": "2026-07-16",
-  "requiredSkillRelease": "0716",
-  "requiredSkillFingerprint": "sha256-094d280eb96f6091",
+  "requiredSkillVersion": "2026-07-28",
+  "requiredSkillRelease": "0728",
+  "requiredSkillFingerprint": "sha256-2de527d0a92cd0eb",
   "warningOnly": true,
-  "baselineName": "0716",
+  "baselineName": "0728-project+0728-ui-closure",
   "protectedSurfaces": [
     "topbar",
     "left-sidebar",

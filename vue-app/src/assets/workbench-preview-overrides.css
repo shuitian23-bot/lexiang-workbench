@@ -3498,10 +3498,26 @@ html[data-product="leaibot"] .ai-panel.open {
 }
 
 html[data-product="leaibot"] .page-content {
+  container-name: workbench-content;
+  container-type: inline-size;
   width: 100%;
   min-width: 0;
   padding-left: clamp(16px, 1.2vw, 24px);
   padding-right: clamp(16px, 1.2vw, 24px);
+}
+
+@container workbench-content (max-width: 1000px) {
+  html[data-product="leaibot"] .geo-dark .geo-row,
+  html[data-product="leaibot"] .geo-dark .geo-row.wide-right,
+  html[data-product="leaibot"] .geo-dark .geo-row.geo-compare-trend-row,
+  html[data-product="leaibot"] .geo-dark .geo-official-board,
+  html[data-product="leaibot"] .geo-dark .geo-business-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-product="leaibot"] .geo-dark .geo-official-top-card {
+    grid-column: auto !important;
+  }
 }
 
 html[data-product="leaibot"] .page-content > * {
@@ -7876,6 +7892,9 @@ html[data-product="leaibot"] body.dark-mode .agent-skill-card-icon {
 
 /* ===== Main workspace subtle wash ===== */
 html[data-product="leaibot"] body:not(.dark-mode) .page-content {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
   background:
     radial-gradient(ellipse at 18% 0%, rgba(51,112,255,.028) 0%, rgba(51,112,255,.016) 30%, rgba(51,112,255,0) 66%),
     radial-gradient(ellipse at 74% 0%, rgba(63,158,173,.022) 0%, rgba(63,158,173,.012) 28%, rgba(63,158,173,0) 64%),
@@ -8910,6 +8929,7 @@ html[data-product="leaibot"] body:not(.dark-mode) .page-content {
 }
 
 html[data-product="leaibot"] .page-content > * {
+  box-sizing: border-box !important;
   width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;

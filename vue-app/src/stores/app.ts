@@ -398,12 +398,12 @@ export const useAppStore = defineStore('app', () => {
 
   function closeStaticTab(pageId: PageId) {
     const idx = staticTabs.value.findIndex(t => t.id === pageId)
-    if (idx === -1 || staticTabs.value.length <= 1) return null
+    if (idx === -1) return null
     const wasActive = activeStaticTabId.value === pageId
     staticTabs.value.splice(idx, 1)
     // 如果关的是当前活跃页签，切到相邻
     if (wasActive) {
-      return staticTabs.value[Math.max(0, idx - 1)]?.id || staticTabs.value[0]?.id || null
+      return staticTabs.value[Math.max(0, idx - 1)]?.id || staticTabs.value[0]?.id || 'portal.home'
     }
     return null
   }

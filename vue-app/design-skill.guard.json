@@ -1,5 +1,8 @@
 {
   "skillSearchDirs": [
+    "../../portal-workbench-ui-0728",
+    "../../portal-workbench-ui-0727",
+    "../../../skill历史版本/portal-workbench-ui-0727",
     "../../skill历史版本/portal-workbench-ui-0716",
     "../portal-workbench-ui",
     "../portal-workbench-ui-0709",

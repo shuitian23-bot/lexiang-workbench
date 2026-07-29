@@ -9,6 +9,8 @@
     id="ai-panel"
     :class="{ open: aiOpen }"
     :style="panelWidthStyle"
+    :aria-hidden="aiOpen ? undefined : 'true'"
+    :inert="aiOpen ? undefined : true"
     ref="panelEl"
   >
     <!-- 左边拖拽把手 -->
@@ -124,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAIStore } from '@/stores/ai'
@@ -153,6 +155,23 @@ const handleEl    = ref(null)
 
 const { panelWidthStyle, syncBodyPanelState } = useAiPanelLayout(panelEl)
 const modalBodyClass = useBodyClass('agent-skill-modal-open')
+
+let _layoutResizeTimer = 0
+
+function notifyWorkbenchResize() {
+  window.dispatchEvent(new Event('resize'))
+  window.clearTimeout(_layoutResizeTimer)
+  _layoutResizeTimer = window.setTimeout(() => window.dispatchEvent(new Event('resize')), 320)
+}
+
+watch(aiOpen, (isOpen) => {
+  if (!isOpen && panelEl.value?.contains(document.activeElement)) {
+    nextTick(() => document.getElementById('ai-toggle-btn')?.focus())
+  }
+  nextTick(notifyWorkbenchResize)
+})
+
+watch(panelWidth, () => nextTick(notifyWorkbenchResize))
 
 // ---- 关注标签（对应 aiCurrentPageAttentionLabel）----
 const attentionLabel = computed(() => {
@@ -301,6 +320,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  window.clearTimeout(_layoutResizeTimer)
   window.removeEventListener('resize', _onWindowResize)
   document.removeEventListener('mousemove', _onDragMove)
   document.removeEventListener('mouseup', _onDragUp)

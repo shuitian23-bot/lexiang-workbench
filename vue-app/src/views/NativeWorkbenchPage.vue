@@ -26,7 +26,7 @@ async function renderPage() {
   rootEl.value.innerHTML = renderNativeWorkbenchPage(pageId)
   await nextTick()
   runNativeWorkbenchPageInit(pageId)
-  document.title = `${getPageLabel(pageId) || '工作台'} - 乐享 AI 工作台`
+  document.title = '联想门户工作台'
 }
 
 onMounted(renderPage)

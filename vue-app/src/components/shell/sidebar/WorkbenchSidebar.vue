@@ -112,6 +112,14 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-07-29 11:16',
+    operator: 'Codex（协作代理）',
+    title: '0728 设计规范覆盖（排除权限管理）',
+    scope: '工作台壳层 / 右侧 AI 助手 / 静态页签 / 首页 / Skill 创建 / Skill Hub / 运营 / GEO / 在职员工 / 企业客户',
+    detail: '拉取 Git 最新 main 后，对照 lexiang-new-0728 设计交付包与 UI 独立交付的 portal-workbench-ui-0728 设计 Skill，仅覆盖当前 Vue 源码中与功能页面交互重合的样式和交互：右侧 AI 助手默认收起、收起态焦点隔离与宽度变化重排；静态页签支持关闭最后一个并回到门户首页；运营、GEO、在职员工、企业客户等页面同步 0728 设计样式与轻量交互修正；Skill 创建和 Skill Hub 保留右侧 AI 微调、测试调用和报告展开闭环。权限管理模块本次明确排除，未覆盖 AgentPermissionsView.vue。',
+    status: '已合并正式'
+  },
+  {
     time: '2026-07-24 13:44',
     operator: 'Codex（协作代理）',
     title: 'Skill 创建评估页微调收口调整',

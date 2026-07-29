@@ -21,7 +21,7 @@ const pageHtml = ref('')
 onMounted(async () => {
   appStore.ensureStaticTab(pageId)
   appStore.setActiveStaticTab(pageId)
-  document.title = '打分模型 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
 
   await ensureNativeWorkbenchRuntime(router)
   pageHtml.value = renderNativeWorkbenchPage(pageId)

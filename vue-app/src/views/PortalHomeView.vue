@@ -81,8 +81,6 @@ async function openSkillManager() {
 }
 
 onMounted(() => {
-  // 首页自动打开 AI 面板（对应原 switchPage 逻辑）
-  aiStore.toggleOpen(true)
   // 记录页签
   appStore.ensureStaticTab('portal.home')
   appStore.setActiveStaticTab('portal.home')

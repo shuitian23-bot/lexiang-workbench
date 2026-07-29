@@ -3363,7 +3363,7 @@ const PAGE_RENDERERS = {
       <div class="kpi-card employee-kpi-card purple" onclick="filterAndNavigate('pending')">
         <div class="kpi-label">本月新增</div>
         <div class="kpi-value" id="kpi-pending">169</div>
-        <div class="kpi-sub"><span class="up">↓ -88.23%</span> 环比</div>
+        <div class="kpi-sub"><span class="down">↓ 88.23%</span> 环比</div>
       </div>
     </div>
 

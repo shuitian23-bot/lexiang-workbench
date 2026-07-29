@@ -1,5 +1,5 @@
 <template>
-  <div class="ops-gmv-native" v-html="gmvHtml"></div>
+  <div ref="gmvRoot" class="ops-gmv-native" v-html="gmvHtml"></div>
 </template>
 
 <script setup lang="ts">
@@ -41,7 +41,9 @@ const customStart = ref(rowIso(OPS_ROWS[0].d))
 const customEnd = ref(rowIso(OPS_ROWS[OPS_ROWS.length - 1].d))
 const trendScope = ref<GmvScope>('all')
 const gmvHtml = ref(buildGmvHtml())
+const gmvRoot = ref<HTMLElement | null>(null)
 const charts: GmvChart[] = []
+let resizeObserver: ResizeObserver | null = null
 
 const bizConfigs = [
   { name: '消费', key: 'consumer' as const, color: OPS_CHART_COLORS.blue, weight: 0.66 },
@@ -52,14 +54,19 @@ const bizConfigs = [
 onMounted(async () => {
   appStore.ensureStaticTab('ops.gmv')
   appStore.setActiveStaticTab('ops.gmv')
-  document.title = 'GMV 分析 - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
   installGmvHandlers()
   echartsRuntime = await import('echarts')
   await nextTick()
   renderGmv()
+  if (gmvRoot.value && typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => charts.forEach(chart => chart.resize())))
+    resizeObserver.observe(gmvRoot.value)
+  }
 })
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
   disposeCharts()
   delete window.opsAskGmv
   delete window.opsCustomTimeChanged

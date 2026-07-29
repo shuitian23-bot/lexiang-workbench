@@ -21,7 +21,6 @@
       >
         <span>{{ tab.title }}</span>
         <i
-          v-if="staticTabs.length > 1"
           class="static-tab-close"
           role="button"
           tabindex="0"

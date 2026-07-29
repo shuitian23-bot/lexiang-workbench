@@ -388,6 +388,6 @@ function toast(message: string) {
 onMounted(() => {
   appStore.ensureStaticTab('agent.skills')
   appStore.setActiveStaticTab('agent.skills')
-  document.title = 'Skill Hub - 乐享 AI 工作台'
+  document.title = '联想门户工作台'
 })
 </script>
