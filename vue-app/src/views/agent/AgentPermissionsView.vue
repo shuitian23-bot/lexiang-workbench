@@ -6,7 +6,21 @@
         <div class="page-desc">按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。</div>
       </div>
       <div class="hero-actions">
-        <button type="button" class="ghost-btn" @click="resetDemo">重置演示</button>
+        <div class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
+          <button type="button" class="ghost-btn demo-reset-trigger" @click="demoIdentityMenuOpen = !demoIdentityMenuOpen">
+            重置演示：{{ currentDemoIdentity.label }}
+            <span>⌄</span>
+          </button>
+          <div v-if="demoIdentityMenuOpen" class="demo-reset-options">
+            <button
+              v-for="identity in demoIdentityOptions"
+              :key="identity.key"
+              type="button"
+              :class="{ active: demoIdentityKey === identity.key }"
+              @click="resetDemo(identity.key)"
+            >{{ identity.label }}</button>
+          </div>
+        </div>
         <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
       </div>
     </div>
@@ -386,7 +400,7 @@
             </div>
             <div class="segmented">
               <button
-                v-for="filter in approvalFilters"
+                v-for="filter in approvalVisibleFilters"
                 :key="filter"
                 type="button"
                 :class="{ active: approvalSearch.status === filter }"
@@ -452,10 +466,10 @@
                   <td>{{ row.targetItcode }}</td>
                   <td>{{ row.handlers.join('、') }}</td>
                   <td>{{ row.node }}</td>
-                  <td><span class="table-status" :class="row.statusKey">{{ row.status }}</span></td>
+                  <td><span class="table-status" :class="approvalDisplayStatusKey(row)">{{ approvalDisplayStatus(row) }}</span></td>
                   <td>{{ row.time }}</td>
                   <td>
-                    <button v-if="row.statusKey === 'pending'" type="button" class="link-btn success" @click="openApprovalWorkspace(row, 'approve')">审批</button>
+                    <button v-if="canApproveRow(row)" type="button" class="link-btn success" @click="openApprovalWorkspace(row, 'approve')">审批</button>
                     <button v-else type="button" class="link-btn" @click="openApprovalWorkspace(row, 'view')">查看</button>
                   </td>
                 </tr>
@@ -576,7 +590,7 @@
           </div>
           <div v-if="adminCleanupNotice" class="admin-cleanup-notice">{{ adminCleanupNotice }}</div>
 
-          
+
 
           <div class="user-filter-bar">
             <label>
@@ -973,7 +987,7 @@
           <div class="section-title datasource-section-title">
             <div>
               <h2>数据源管理</h2>
-              <p>维护数据权限的基础对象，按分组、数据源和接口权限参数管理可授权范围。</p>
+              <p>维护数据权限的基础对象，按分组、接口地址和权限参数管理可授权范围。</p>
             </div>
             <button type="button" class="primary-btn" @click="openDataSourceEditor('create')">新增数据源</button>
           </div>
@@ -990,6 +1004,13 @@
               <span>名称</span>
               <input v-model.trim="dataSourceFilters.name" placeholder="输入名称搜索">
             </label>
+            <label>
+              <span>敏感性</span>
+              <select v-model="dataSourceFilters.sensitivity">
+                <option value="">全部敏感性</option>
+                <option v-for="option in dataSourceSensitivityOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+              </select>
+            </label>
             <button type="button" class="ghost-btn" @click="resetDataSourceFilters">重置筛选</button>
           </div>
 
@@ -1003,7 +1024,6 @@
               <thead>
                 <tr>
                   <th>分组</th>
-                  <th>数据源</th>
                   <th>名称</th>
                   <th>接口地址</th>
                   <th>权限参数</th>
@@ -1013,7 +1033,6 @@
               <tbody>
                 <tr v-for="row in filteredDataSources" :key="row.id">
                   <td>{{ row.group }}</td>
-                  <td>{{ row.dataSource }}</td>
                   <td><b class="datasource-table-name">{{ row.name }}</b></td>
                   <td class="datasource-url-cell">{{ row.apiUrl }}</td>
                   <td>{{ row.permissionParam }}</td>
@@ -1082,17 +1101,17 @@
         <button type="button" class="modal-close" @click="closeRoleModal">×</button>
         <h3>添加角色</h3>
         <p class="modal-note">仅按角色名称和角色中包含的功能权限搜索。</p>
-        <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限">
+        <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限" @input="syncRoleModalDetailWithResults">
         <div class="role-picker-layout">
           <div class="role-picker-list">
-            <article v-for="role in filteredRoleOptions" :key="role.id" :class="['role-picker-row', { active: roleModal.detailRoleId === role.id }]">
+            <article v-for="role in filteredRoleOptions" :key="role.id" :class="['role-picker-row', { active: roleModal.detailRoleId === role.id }]" @click="openRoleDetail(role)">
               <label class="role-picker-check">
                 <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" @change="toggleTempRole(role.id)">
               </label>
               <div class="role-picker-content">
                 <div class="role-picker-title">
                   <b>{{ role.name }}</b>
-                  <button type="button" class="link-btn" @click="openRoleDetail(role)">查看详情</button>
+                  <button type="button" class="link-btn" @click.stop="toggleTempRole(role.id)">查看详情</button>
                 </div>
                 <p>{{ role.desc }}</p>
                 <small>{{ role.functionPermissionIds.length }} 项功能权限 / {{ role.dataPermissionIds.length }} 项数据权限</small>
@@ -1105,15 +1124,19 @@
             <h4>{{ roleModalDetailRole.name }}</h4>
             <p>{{ roleModalDetailRole.desc }}</p>
             <div class="role-permission-tree">
-              <details v-for="root in rolePermissionTree(roleModalDetailRole)" :key="root.id" class="permission-tree-root">
+              <details v-for="root in rolePermissionTree(roleModalDetailRole)" :key="root.id" class="permission-tree-root" open>
                 <summary><b>{{ root.name }}</b><span>{{ rolePermissionCountLabel(root) }}</span></summary>
                 <div class="permission-tree-branch-list">
-                  <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch">
+                  <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                     <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
                     <div class="permission-matrix">
                       <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
                       <div v-for="row in permissionMatrixRows(branch)" :key="(row.functionPermission?.id || 'func-empty') + '-' + (row.dataPermission?.id || 'data-empty')" class="permission-matrix-row">
-                        <span>{{ row.functionPermission?.name || '-' }}</span>
+                        <label v-if="row.functionPermission" class="permission-data-check">
+                          <input type="checkbox" :checked="isRoleModalFunctionSelected(row.functionPermission.id)" @change="toggleRoleModalFunctionPermission(row.functionPermission.id)">
+                          {{ row.functionPermission.name }}
+                        </label>
+                        <span v-else>-</span>
                         <label v-if="row.dataPermission" class="permission-data-check">
                           <input type="checkbox" :checked="isRoleModalDataSelected(row.dataPermission.id)" @change="toggleRoleModalDataPermission(row.dataPermission.id)">
                           {{ row.dataPermission.name }}
@@ -1143,12 +1166,16 @@
           <details v-for="root in rolePermissionTree(roleCardDetailRole)" :key="root.id" class="permission-tree-root">
             <summary><b>{{ root.name }}</b><span>{{ rolePermissionCountLabel(root) }}</span></summary>
             <div class="permission-tree-branch-list">
-              <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch">
+              <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                 <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
                 <div class="permission-matrix">
                   <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
                   <div v-for="row in permissionMatrixRows(branch)" :key="(row.functionPermission?.id || 'func-empty') + '-' + (row.dataPermission?.id || 'data-empty')" class="permission-matrix-row">
-                    <span>{{ row.functionPermission?.name || '-' }}</span>
+                    <label v-if="row.functionPermission" class="permission-data-check">
+                      <input type="checkbox" :disabled="roleCardPermissionCheckboxDisabled()" :checked="isRoleCardFunctionSelected(row.functionPermission.id)" @change="toggleRoleCardFunctionPermission(row.functionPermission.id)">
+                      {{ row.functionPermission.name }}
+                    </label>
+                    <span v-else>-</span>
                     <label v-if="row.dataPermission" class="permission-data-check">
                       <input type="checkbox" :disabled="roleCardDataCheckboxDisabled()" :checked="isRoleCardDataSelected(row.dataPermission.id)" @change="toggleRoleCardDataPermission(row.dataPermission.id)">
                       {{ row.dataPermission.name }}
@@ -1490,7 +1517,6 @@
         <p class="modal-note">维护接口授权所需的基础信息，保存后立即更新数据源列表。</p>
         <div class="permission-form-grid datasource-editor-form">
           <label><span class="field-label required">分组 <em>必填</em></span><select v-model="dataSourceEditor.draft.group" :class="{ invalid: dataSourceEditor.errors.group }"><option disabled value="">请选择分组</option><option v-for="option in dataSourceGroupOptions" :key="option" :value="option">{{ option }}</option></select><small v-if="dataSourceEditor.errors.group" class="field-error">{{ dataSourceEditor.errors.group }}</small></label>
-          <label><span class="field-label required">数据源 <em>必填</em></span><select v-model="dataSourceEditor.draft.dataSource" :class="{ invalid: dataSourceEditor.errors.dataSource }"><option disabled value="">请选择数据源</option><option v-for="option in dataSourceNameOptions" :key="option" :value="option">{{ option }}</option></select><small v-if="dataSourceEditor.errors.dataSource" class="field-error">{{ dataSourceEditor.errors.dataSource }}</small></label>
           <label><span class="field-label required">名称 <em>必填</em></span><input v-model.trim="dataSourceEditor.draft.name" :class="{ invalid: dataSourceEditor.errors.name }" placeholder="例如：运营指标查询"><small v-if="dataSourceEditor.errors.name" class="field-error">{{ dataSourceEditor.errors.name }}</small></label>
           <label><span class="field-label required">接口地址 <em>必填</em></span><input v-model.trim="dataSourceEditor.draft.apiUrl" :class="{ invalid: dataSourceEditor.errors.apiUrl }" placeholder="例如：/api/ops/metrics"><small v-if="dataSourceEditor.errors.apiUrl" class="field-error">{{ dataSourceEditor.errors.apiUrl }}</small></label>
           <label><span class="field-label required">权限参数 <em>必填</em></span><input v-model.trim="dataSourceEditor.draft.permissionParam" :class="{ invalid: dataSourceEditor.errors.permissionParam }" placeholder="例如：regionCode"><small v-if="dataSourceEditor.errors.permissionParam" class="field-error">{{ dataSourceEditor.errors.permissionParam }}</small></label>
@@ -1512,7 +1538,7 @@
             <h3>{{ approvalWorkspace.title }}</h3>
             <p>{{ activeApproval.id }} · {{ activeApproval.type }} · {{ activeApproval.node }}</p>
           </div>
-          <span class="table-status" :class="activeApproval.statusKey">{{ activeApproval.status }}</span>
+          <span class="table-status" :class="approvalDisplayStatusKey(activeApproval)">{{ approvalDisplayStatus(activeApproval) }}</span>
         </div>
 
         <div class="approval-workspace-body">
@@ -1529,6 +1555,34 @@
                 <dd>{{ item.value }}</dd>
               </template>
             </dl>
+          </section>
+
+          <section v-if="activeApprovalNotifications.length" class="approval-readonly-panel approval-mail-panel">
+            <div class="scope-panel-head">
+              <div>
+                <b>邮件通知</b>
+                <small>当前为 POC mock，展示本单会通知的对象、链接和审批按钮。</small>
+              </div>
+            </div>
+            <div class="approval-mail-list compact">
+              <article v-for="mail in activeApprovalNotifications" :key="mail.id">
+                <div>
+                  <b>{{ mail.subject }}</b>
+                  <p>{{ mail.content }}</p>
+                  <small>{{ mail.time }} · {{ mail.toName }} · {{ mail.to }}</small>
+                </div>
+                <div class="approval-mail-actions">
+                  <button type="button" class="link-btn" @click="openMailLink(mail)">打开链接</button>
+                  <button
+                    v-for="action in mail.actions"
+                    :key="action.value"
+                    type="button"
+                    :class="['link-btn', action.value === 'approve' ? 'success' : 'danger']"
+                    @click="openMailAction(mail, action.value)"
+                  >{{ action.label }}</button>
+                </div>
+              </article>
+            </div>
           </section>
 
           <section v-if="approvalWorkspace.nodeType === 'business'" class="approval-edit-panel">
@@ -1597,7 +1651,10 @@
                         <b>{{ role.name }}</b>
                         <small>{{ role.desc }}</small>
                       </div>
-                      <button v-if="canEditApprovalPermission" type="button" class="link-btn danger" @click="removeRole(role.id)">移除</button>
+                      <div class="role-card-actions">
+                        <button type="button" class="link-btn" @click="openRoleCardDetail(role)">详情</button>
+                        <button v-if="canEditApprovalPermission" type="button" class="link-btn danger" @click="removeRole(role.id)">移除</button>
+                      </div>
                     </div>
                     <div class="bound-permission-grid">
                       <div>
@@ -1642,6 +1699,7 @@
                         <b>{{ role.name }}</b>
                         <small>{{ role.desc }}</small>
                       </div>
+                      <button type="button" class="link-btn" @click="openRoleCardDetail(role)">详情</button>
                     </div>
                     <div class="bound-permission-grid">
                       <div>
@@ -1756,7 +1814,24 @@
         </div>
       </div>
     </div>
-    <div v-if="roleEditor.visible" class="permission-modal" @click.self="closeRoleEditor">
+    <div v-if="approvalNotificationModal.visible && submittedApproval" class="permission-modal" @click.self="closeApprovalNotificationModal">
+      <div class="modal-panel approval-notification-modal simple-notice-modal">
+        <button type="button" class="modal-close" @click="closeApprovalNotificationModal">×</button>
+        <div class="simple-notice-title">提示</div>
+        <div class="simple-notice-body">
+          <h3>
+            您提交的账号申请表单
+            <button type="button" class="notice-ticket-link" @click="viewSubmittedApproval">{{ submittedApproval.id }}</button>
+            已受理。
+          </h3>
+          <p>点击表单号码可查询审核状态。同时审核结果查询链接已发送至您的邮箱，请注意查收。</p>
+          <p>如有疑问，请联系：<b>wusq16@lenovo.com</b>。</p>
+        </div>
+        <div class="modal-actions simple-notice-actions">
+          <button type="button" class="ghost-btn" @click="closeApprovalNotificationModal">关闭</button>
+        </div>
+      </div>
+    </div>    <div v-if="roleEditor.visible" class="permission-modal" @click.self="closeRoleEditor">
       <div class="modal-panel role-editor-modal">
         <button type="button" class="modal-close" @click="closeRoleEditor">×</button>
         <div class="role-editor-head">
@@ -1834,7 +1909,7 @@
             <details v-for="root in permissionEditorTree()" :key="root.id" class="permission-tree-root">
               <summary><b>{{ root.name }}</b><span>{{ rolePermissionCountLabel(root) }}</span></summary>
               <div class="permission-tree-branch-list">
-                <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch">
+                <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                   <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
                   <div class="permission-matrix editable-permission-matrix">
                     <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
@@ -1868,7 +1943,7 @@
             <details v-for="root in permissionEditorTree()" :key="root.id" class="permission-tree-root">
               <summary><b>{{ root.name }}</b><span>{{ rolePermissionCountLabel(root) }}</span></summary>
               <div class="permission-tree-branch-list">
-                <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch">
+                <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                   <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
                   <div class="permission-matrix editable-permission-matrix">
                     <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
@@ -1998,13 +2073,14 @@
         <div class="role-editor-head">
           <div>
             <h3>{{ userWorkspaceTitle }}</h3>
-            <p>{{ userWorkspace.mode === 'view' ? '当前为只读详情，可查看基础信息、已分配角色和角色之外的额外数据权限。' : '保存前仅修改当前草稿，取消不会影响用户列表。' }}</p>
+            <p>{{ userWorkspace.mode === 'view' ? '当前为只读详情，可查看基础信息、已分配角色和角色之外的额外功能/数据权限。' : '保存前仅修改当前草稿，取消不会影响用户列表。' }}</p>
           </div>
           <span v-if="userWorkspace.draft" class="table-status user-modal-status" :class="userWorkspace.draft.statusKey">{{ userStatusLabel(userWorkspace.draft) }}</span>
         </div>
 
         <div v-if="userWorkspace.draft" class="role-impact-strip user-impact-strip">
           <span>已分配角色 <b>{{ userWorkspace.draft.roleIds.length }}</b> 个</span>
+          <span>额外功能权限 <b>{{ userWorkspace.draft.extraFunctionPermissionIds.length }}</b> 项</span>
           <span>额外普通数据 <b>{{ userWorkspace.draft.extraDataPermissionIds.length }}</b> 项</span>
           <span>自定义数据授权 <b>{{ userWorkspace.draft.customDataRules.length }}</b> 条</span>
         </div>
@@ -2020,7 +2096,7 @@
         <div class="role-editor-tabs" role="tablist" aria-label="用户编辑区">
           <button type="button" :class="{ active: userWorkspace.activeTab === 'basic' }" @click="userWorkspace.activeTab = 'basic'">基本信息</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'roles' }" @click="userWorkspace.activeTab = 'roles'">已分配角色</button>
-          <button type="button" :class="{ active: userWorkspace.activeTab === 'data' }" @click="userWorkspace.activeTab = 'data'">数据权限</button>
+          <button type="button" :class="{ active: userWorkspace.activeTab === 'data' }" @click="userWorkspace.activeTab = 'data'">权限范围</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'history' }" @click="userWorkspace.activeTab = 'history'">历史变更</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'login' }" @click="userWorkspace.activeTab = 'login'">登录日志</button>
         </div>
@@ -2121,7 +2197,7 @@
           <div class="permission-subhead custom-rule-head">
             <div>
               <b>已分配角色</b>
-              <small>这里展示用户已有角色，角色带来的功能和数据权限只读展示。</small>
+              <small>这里展示用户已有角色，可在详情中调整角色带来的功能和数据权限范围。</small>
             </div>
             <button v-if="!userWorkspaceReadonly" type="button" class="primary-btn" @click="openUserRoleModal(userWorkspace.draft)">添加角色</button>
           </div>
@@ -2142,7 +2218,7 @@
           </div>
           <div v-else class="scope-empty compact-empty">
             <b>还没有分配角色</b>
-            <p>请点击“添加角色”，为用户补充基础角色；用户层面仅支持额外数据权限。</p>
+            <p>请点击“添加角色”，为用户补充基础角色；用户层面支持额外功能和数据权限。</p>
           </div>
         </section>
         <section v-else-if="userWorkspace.draft && userWorkspace.activeTab === 'data'" class="role-editor-section">
@@ -2155,15 +2231,17 @@
             <details v-for="root in permissionEditorTree()" :key="root.id" class="permission-tree-root">
               <summary><b>{{ root.name }}</b><span>{{ rolePermissionCountLabel(root) }}</span></summary>
               <div class="permission-tree-branch-list">
-                <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch">
+                <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                   <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
                   <div class="permission-matrix editable-permission-matrix">
                     <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
                     <div v-for="row in permissionMatrixRows(branch)" :key="(row.functionPermission?.id || 'func-empty') + '-' + (row.dataPermission?.id || 'data-empty')" class="permission-matrix-row">
-                      <span v-if="row.functionPermission" class="permission-readonly-cell">
-                        {{ row.functionPermission.name }}
+                      <label v-if="row.functionPermission" class="permission-data-check">
+                        <input type="checkbox" :disabled="userWorkspaceReadonly" :checked="isUserFunctionPermissionSelected(row.functionPermission.id)" @change="toggleUserFunctionPermission(row.functionPermission.id)">
+                        <span>{{ row.functionPermission.name }}</span>
                         <em v-if="userDraftInheritedFunctionIds.includes(row.functionPermission.id)" class="source-tag role">角色继承</em>
-                      </span>
+                        <em v-else-if="userWorkspace.draft.extraFunctionPermissionIds.includes(row.functionPermission.id)" class="source-tag user">用户单独授权</em>
+                      </label>
                       <span v-else>-</span>
                       <label v-if="row.dataPermission" class="permission-data-check">
                         <input type="checkbox" :disabled="userWorkspaceReadonly || userCustomDataLocked || userDraftInheritedDataIds.includes(row.dataPermission.id)" :checked="userWorkspace.draft.extraDataPermissionIds.includes(row.dataPermission.id) || userDraftInheritedDataIds.includes(row.dataPermission.id)" @change="toggleUserExtraData(row.dataPermission.id)">
@@ -2177,9 +2255,9 @@
                 </details>
               </div>
             </details>
-            <div v-if="!userDraftExtraDataPermissions.length" class="scope-empty compact-empty inline-empty">
-              <b>没有额外普通数据权限</b>
-              <p>当前用户仅使用角色继承的数据权限，可在右侧数据权限列补充用户单独授权。</p>
+            <div v-if="!userDraftExtraFunctionPermissions.length && !userDraftExtraDataPermissions.length" class="scope-empty compact-empty inline-empty">
+              <b>没有额外普通权限</b>
+              <p>当前用户仅使用角色继承的功能和数据权限，可在对应列补充用户单独授权。</p>
             </div>
           </div>
           <div v-else class="custom-rule-panel">
@@ -2336,12 +2414,16 @@
               <details v-for="root in rolePermissionTree(userRoleModalDetailRole)" :key="root.id" class="permission-tree-root">
                 <summary><b>{{ root.name }}</b><span>{{ rolePermissionCountLabel(root) }}</span></summary>
                 <div class="permission-tree-branch-list">
-                  <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch">
+                  <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                     <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
                     <div class="permission-matrix">
                       <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
                       <div v-for="row in permissionMatrixRows(branch)" :key="(row.functionPermission?.id || 'func-empty') + '-' + (row.dataPermission?.id || 'data-empty')" class="permission-matrix-row">
-                        <span>{{ row.functionPermission?.name || '-' }}</span>
+                        <label v-if="row.functionPermission" class="permission-data-check">
+                          <input type="checkbox" :checked="isUserRoleModalFunctionSelected(row.functionPermission.id)" @change="toggleUserRoleModalFunctionPermission(row.functionPermission.id)">
+                          {{ row.functionPermission.name }}
+                        </label>
+                        <span v-else>-</span>
                         <span>{{ row.dataPermission?.name || '-' }}</span>
                       </div>
                     </div>
@@ -3014,6 +3096,7 @@ const copyableUsers = [
 const selectedRoleIds = ref([])
 const copiedRoleIds = ref([])
 const copiedFunctionPermissionIds = ref([])
+const selectedFunctionPermissionIds = ref([])
 const selectedDataPermissionIds = ref([])
 const manualDataPermissionIds = ref([])
 const copiedDataSourceMap = reactive({})
@@ -3023,6 +3106,7 @@ const roleModal = reactive({
   visible: false,
   keyword: '',
   selectedIds: [],
+  selectedFunctionIds: [],
   selectedDataIds: [],
   detailRoleId: '',
   detailKeyword: ''
@@ -3046,7 +3130,6 @@ const dataModal = reactive({
 })
 
 const dataSourceGroupOptions = ['乐享运营', '会员中心', 'GEO 看板', '企业客户管理', '商城运营']
-const dataSourceNameOptions = ['运营数据集', '会员标签库', 'GEO 信源库', '企业客户线索', '商城订单数据']
 const dataSourceSensitivityOptions = [
   { value: 'standard-data', label: '标准数据（低风险）' },
   { value: 'standard-action', label: '标准操作（低风险）' },
@@ -3055,17 +3138,17 @@ const dataSourceSensitivityOptions = [
   { value: 'it-config-data', label: 'IT 配置数据（高风险）' }
 ]
 const dataSources = reactive([
-  { id: 'ds-ops-region', group: '乐享运营', dataSource: '运营数据集', name: '运营指标查询', apiUrl: '/api/ops/metrics', permissionParam: 'regionCode', key: 'scope', value: 'east', remark: '用于运营日报和活动复盘，按区域控制可见范围。', sensitivity: 'sensitive-data' },
-  { id: 'ds-member-tag', group: '会员中心', dataSource: '会员标签库', name: '会员标签查询', apiUrl: '/api/member/tags', permissionParam: 'tagGroup', key: 'tag_group', value: 'rights', remark: '涉及会员权益使用情况，默认需要业务负责人确认。', sensitivity: 'it-config-data' },
-  { id: 'ds-geo-source', group: 'GEO 看板', dataSource: 'GEO 信源库', name: '信源引用查询', apiUrl: '/api/geo/sources', permissionParam: 'sourceType', key: 'source_type', value: 'official', remark: '用于 GEO 信源监测和引用趋势分析。', sensitivity: 'sensitive-data' },
-  { id: 'ds-lead-pool', group: '企业客户管理', dataSource: '企业客户线索', name: '线索池查询', apiUrl: '/api/biz/leads', permissionParam: 'ownerOrg', key: 'owner_org', value: 'enterprise', remark: '包含客户线索和跟进状态，仅企业客户相关组织可申请。', sensitivity: 'it-config-data' },
-  { id: 'ds-mall-order', group: '商城运营', dataSource: '商城订单数据', name: '订单状态查询', apiUrl: '/api/mall/orders', permissionParam: 'orderScope', key: 'order_scope', value: 'summary', remark: '用于订单状态和售后进展查看，暂不开放明细字段。', sensitivity: 'it-config-data' }
+  { id: 'ds-ops-region', group: '乐享运营', name: '运营指标查询', apiUrl: '/api/ops/metrics', permissionParam: 'regionCode', key: 'scope', value: 'east', remark: '用于运营日报和活动复盘，按区域控制可见范围。', sensitivity: 'sensitive-data' },
+  { id: 'ds-member-tag', group: '会员中心', name: '会员标签查询', apiUrl: '/api/member/tags', permissionParam: 'tagGroup', key: 'tag_group', value: 'rights', remark: '涉及会员权益使用情况，默认需要业务负责人确认。', sensitivity: 'it-config-data' },
+  { id: 'ds-geo-source', group: 'GEO 看板', name: '信源引用查询', apiUrl: '/api/geo/sources', permissionParam: 'sourceType', key: 'source_type', value: 'official', remark: '用于 GEO 信源监测和引用趋势分析。', sensitivity: 'sensitive-data' },
+  { id: 'ds-lead-pool', group: '企业客户管理', name: '线索池查询', apiUrl: '/api/biz/leads', permissionParam: 'ownerOrg', key: 'owner_org', value: 'enterprise', remark: '包含客户线索和跟进状态，仅企业客户相关组织可申请。', sensitivity: 'it-config-data' },
+  { id: 'ds-mall-order', group: '商城运营', name: '订单状态查询', apiUrl: '/api/mall/orders', permissionParam: 'orderScope', key: 'order_scope', value: 'summary', remark: '用于订单状态和售后进展查看，暂不开放明细字段。', sensitivity: 'it-config-data' }
 ])
 const dataSourceNotice = ref('')
 let dataSourceNoticeTimer = null
-const dataSourceFilters = reactive({ group: '', name: '' })
-const emptyDataSourceDraft = () => ({ id: '', group: '', dataSource: '', name: '', apiUrl: '', permissionParam: '', key: '', value: '', remark: '', sensitivity: 'sensitive-data' })
-const dataSourceEditor = reactive({ visible: false, mode: 'create', sourceId: '', draft: emptyDataSourceDraft(), errors: { group: '', dataSource: '', name: '', apiUrl: '', permissionParam: '', remark: '' }, notice: '' })
+const dataSourceFilters = reactive({ group: '', name: '', sensitivity: '' })
+const emptyDataSourceDraft = () => ({ id: '', group: '', name: '', apiUrl: '', permissionParam: '', key: '', value: '', remark: '', sensitivity: 'sensitive-data' })
+const dataSourceEditor = reactive({ visible: false, mode: 'create', sourceId: '', draft: emptyDataSourceDraft(), errors: { group: '', name: '', apiUrl: '', permissionParam: '', remark: '' }, notice: '' })
 
 const functionTypeOptions = [
   { value: 'function', label: '功能' },
@@ -3243,12 +3326,24 @@ const detailModal = reactive({
   data: {}
 })
 
-const approvalFilters = ['全部', '待我审批', '已通过', '已驳回', '执行完成']
+const approvalFilters = ['全部', '审批中', '已完成', '已驳回']
+const demoIdentityOptions = [
+  { key: 'admin', label: '管理员', viewer: 'approver', approverItcode: '', nodeTypes: [] },
+  { key: 'requester', label: '申请人/被申请人', viewer: 'applicant', approverItcode: '', nodeTypes: [] },
+  { key: 'relation', label: '关联人', viewer: 'approver', approverItcode: 'wangxt8', nodeTypes: ['relation'] },
+  { key: 'applicant-manager', label: '申请人直线经理', viewer: 'approver', approverItcode: 'sunll1', nodeTypes: ['applicant-manager'] },
+  { key: 'target-manager', label: '被申请人直线经理', viewer: 'approver', approverItcode: 'wangxt8', nodeTypes: ['target-manager'] },
+  { key: 'business-owner', label: '业务负责人', viewer: 'approver', approverItcode: 'zhangjq4', nodeTypes: ['business'] }
+]
 const organizationOptions = ['乐享运营', 'GEO 看板', '企业客户管理', '搜索后台', '商用业务运营']
 const tenantOptions = ['leaibot-cn', 'shop-chat', 'b-chat', 'biz-chat']
+const demoIdentityKey = ref('admin')
+const demoIdentityMenuOpen = ref(false)
+const currentDemoIdentity = computed(() => demoIdentityOptions.find((item) => item.key === demoIdentityKey.value) || demoIdentityOptions[0])
 const approvalSearch = reactive({
   status: '全部',
   approverItcode: '',
+  viewer: 'approver',
   handlerDraft: '',
   handlerFocused: false,
   handlers: []
@@ -3269,6 +3364,11 @@ const approvalWorkspace = reactive({
     organizations: '',
     tenant: ''
   }
+})
+const approvalNotificationModal = reactive({
+  visible: false,
+  rowId: '',
+  notice: ''
 })
 const approvals = ref([
   createApprovalRow({
@@ -3379,12 +3479,12 @@ const approvals = ref([
     applicant: 'huangjq5',
     applicantItcode: 'huangjq5',
     target: 'temp-bpo',
-    nodeType: 'execute',
+    nodeType: 'done',
     approverItcode: 'sunzh4',
     handlers: ['huangjq5', 'sunzh4'],
-    status: '已通过',
-    statusKey: 'approved',
-    node: '后台执行',
+    status: '执行完成',
+    statusKey: 'done',
+    node: '后台自动执行',
     time: '2026-07-02 15:44'
   }),
   createApprovalRow({
@@ -3496,6 +3596,7 @@ const users = reactive([
     roleIds: ['ops-pm'],
     extraFunctionPermissionIds: [],
     extraDataPermissionIds: [],
+    suppressedRoleFunctionPermissionIds: [],
     suppressedRoleDataPermissionIds: [],
     customDataRules: [
       { id: 'user-rule-zhangrui-east', dataset: '会员标签库', fields: '等级、权益使用', organization: '乐享运营', region: '华东区', period: '2026-07-01 至 2026-09-30', remark: '活动复盘临时授权。' }
@@ -3939,13 +4040,14 @@ const organizationStats = computed(() => {
   }
 })
 
-const hasDataSourceFilters = computed(() => !!(dataSourceFilters.group || dataSourceFilters.name))
+const hasDataSourceFilters = computed(() => !!(dataSourceFilters.group || dataSourceFilters.name || dataSourceFilters.sensitivity))
 const filteredDataSources = computed(() => {
   const name = dataSourceFilters.name.trim().toLowerCase()
   return dataSources.filter((source) => {
     const groupMatched = !dataSourceFilters.group || source.group === dataSourceFilters.group
     const nameMatched = !name || source.name.toLowerCase().includes(name)
-    return groupMatched && nameMatched
+    const sensitivityMatched = !dataSourceFilters.sensitivity || source.sensitivity === dataSourceFilters.sensitivity
+    return groupMatched && nameMatched && sensitivityMatched
   })
 })
 const organizationParentOptions = computed(() => flatOrganizations.value.filter((org) => org.id !== organizationEditor.orgId))
@@ -4015,6 +4117,9 @@ const userWorkspaceTitle = computed(() => {
 const userDraftRoles = computed(() => userWorkspace.draft ? userRoles(userWorkspace.draft) : [])
 const userDraftInheritedFunctionIds = computed(() => userWorkspace.draft ? userInheritedFunctionIds(userWorkspace.draft) : [])
 const userDraftInheritedDataIds = computed(() => userWorkspace.draft ? userInheritedDataIds(userWorkspace.draft) : [])
+const userDraftExtraFunctionPermissions = computed(() => userWorkspace.draft
+  ? userWorkspace.draft.extraFunctionPermissionIds.map(functionPermissionDetail).filter(Boolean)
+  : [])
 const userDraftExtraDataPermissions = computed(() => userWorkspace.draft
   ? userWorkspace.draft.extraDataPermissionIds.map((id) => findDataPermission(id)).filter(Boolean)
   : [])
@@ -4223,11 +4328,7 @@ const filteredRoleOptions = computed(() => {
 const roleModalDetailRole = computed(() => allRoles.find((role) => role.id === roleModal.detailRoleId) || null)
 const roleCardDetailRole = computed(() => allRoles.find((role) => role.id === roleCardDetail.roleId) || null)
 const userRoleModalDetailRole = computed(() => allRoles.find((role) => role.id === userRoleModal.detailRoleId) || null)
-const selectedFunctionPermissions = computed(() => {
-  const ids = new Set(copiedFunctionPermissionIds.value)
-  allSelectedRoles.value.forEach((role) => role.functionPermissionIds.forEach((id) => ids.add(id)))
-  return allFunctionPermissions.filter((permission) => ids.has(permission.id))
-})
+const selectedFunctionPermissions = computed(() => selectedFunctionPermissionIds.value.map(functionPermissionDetail).filter(Boolean))
 const selectedDataPermissionDetails = computed(() => selectedDataPermissionIds.value
   .map((id) => {
     const permission = findDataPermission(id)
@@ -4290,16 +4391,22 @@ const handlerSuggestions = computed(() => {
 })
 const showHandlerSuggestions = computed(() => approvalSearch.handlerFocused && handlerSuggestions.value.length > 0)
 const handlerInputPlaceholder = computed(() => approvalSearch.handlers.length ? '继续输入 ITCode' : '输入处理人 ITCode')
+const approvalReadonlyViewer = computed(() => ['applicant', 'target'].includes(approvalSearch.viewer))
+const approvalVisibleFilters = computed(() => approvalFilters)
 const filteredApprovals = computed(() => {
   const approverKeyword = approvalSearch.approverItcode.trim().toLowerCase()
   return approvals.value.filter((row) => {
-    const statusMatched = approvalSearch.status === '全部' || row.status === approvalSearch.status
-    const approverMatched = !approverKeyword || row.approverItcode.toLowerCase().includes(approverKeyword)
+    const statusMatched = approvalSearch.status === '全部' || approvalDisplayStatus(row) === approvalSearch.status
+    const handledByApprover = (row.approvalLogs || []).some((log) => samePrincipal(log.operator, approverKeyword))
+    const approverMatched = !approverKeyword || row.approverItcode.toLowerCase().includes(approverKeyword) || handledByApprover
     const handlersMatched = !approvalSearch.handlers.length || approvalSearch.handlers.some((handler) => row.handlers.some((item) => item.toLowerCase().includes(handler.toLowerCase())))
-    return statusMatched && approverMatched && handlersMatched
+    const demoNodeMatched = !currentDemoIdentity.value.nodeTypes.length || currentDemoIdentity.value.nodeTypes.includes(row.nodeType)
+    return statusMatched && approverMatched && handlersMatched && demoNodeMatched
   })
 })
 const activeApproval = computed(() => approvals.value.find((row) => row.id === approvalWorkspace.rowId) || null)
+const submittedApproval = computed(() => approvals.value.find((row) => row.id === approvalNotificationModal.rowId) || null)
+const activeApprovalNotifications = computed(() => activeApproval.value?.notificationLogs || [])
 const activeApprovalBasicFields = computed(() => {
   if (!activeApproval.value) return []
   const row = activeApproval.value
@@ -4347,7 +4454,7 @@ const approvalSubmitImpact = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '确认通过后，申请进入下一位直线经理审批。'
   if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理审批通过后，申请进入被申请人直线经理审批。'
   if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理审批通过后，申请进入业务负责人审批。'
-  return '业务审批通过后，申请进入后台执行并在 POC 中标记执行完成。'
+  return '业务审批通过后，系统自动执行权限变更，并记录执行结果。'
 })
 
 
@@ -4973,6 +5080,7 @@ function showFunctionNotice(message) {
 function resetDataSourceFilters() {
   dataSourceFilters.group = ''
   dataSourceFilters.name = ''
+  dataSourceFilters.sensitivity = ''
 }
 
 function dataSourceSensitivityLabel(value) {
@@ -4981,7 +5089,6 @@ function dataSourceSensitivityLabel(value) {
 
 function resetDataSourceEditorErrors() {
   dataSourceEditor.errors.group = ''
-  dataSourceEditor.errors.dataSource = ''
   dataSourceEditor.errors.name = ''
   dataSourceEditor.errors.apiUrl = ''
   dataSourceEditor.errors.permissionParam = ''
@@ -5010,12 +5117,11 @@ function validateDataSourceEditor() {
   resetDataSourceEditorErrors()
   const draft = dataSourceEditor.draft
   if (!draft.group) dataSourceEditor.errors.group = '请选择分组。'
-  if (!draft.dataSource) dataSourceEditor.errors.dataSource = '请选择数据源。'
   if (!draft.name) dataSourceEditor.errors.name = '请填写名称，方便业务人员识别。'
   if (!draft.apiUrl) dataSourceEditor.errors.apiUrl = '请填写接口地址。'
   if (!draft.permissionParam) dataSourceEditor.errors.permissionParam = '请填写权限参数。'
   if (draft.remark.length > 120) dataSourceEditor.errors.remark = '备注建议控制在 120 字以内。'
-  return !(dataSourceEditor.errors.group || dataSourceEditor.errors.dataSource || dataSourceEditor.errors.name || dataSourceEditor.errors.apiUrl || dataSourceEditor.errors.permissionParam || dataSourceEditor.errors.remark)
+  return !(dataSourceEditor.errors.group || dataSourceEditor.errors.name || dataSourceEditor.errors.apiUrl || dataSourceEditor.errors.permissionParam || dataSourceEditor.errors.remark)
 }
 
 function buildNewDataSourceFromDraft(draft) {
@@ -5050,7 +5156,6 @@ function deleteDataSource(row) {
 function openDataSourceDetail(row) {
   openEntityModal('数据源详情', {
     分组: row.group,
-    数据源: row.dataSource,
     名称: row.name,
     接口地址: row.apiUrl,
     权限参数: row.permissionParam,
@@ -5378,7 +5483,7 @@ function submitApplication() {
   const firstApprover = nodeType === 'relation'
     ? form.relatedAccount
     : (nodeType === 'target-manager' ? form.targetManager : form.applicantManager)
-  approvals.value.unshift(createApprovalRow({
+  const approvalRow = createApprovalRow({
     id: `AP-20260713-${String(approvals.value.length + 11).padStart(3, '0')}`,
     typeKey: form.type,
     type: selectedType.value.label,
@@ -5400,7 +5505,12 @@ function submitApplication() {
     reason: form.reason,
     permissionSnapshot: createPermissionSnapshot(),
     time: '2026-07-13 11:45'
-  }))
+  })
+  approvalRow.notificationLogs = createApprovalNotificationLogs(approvalRow)
+  openApprovalMailMockTabs(approvalRow)
+  approvals.value.unshift(approvalRow)
+  approvalNotificationModal.rowId = approvalRow.id
+  approvalNotificationModal.visible = true
   records.value.unshift({
     time: '2026-07-13 11:45',
     title: `${selectedType.value.label}申请已提交`,
@@ -5417,8 +5527,11 @@ function openRoleModal() {
   roleModal.visible = true
   roleModal.keyword = ''
   roleModal.selectedIds = [...selectedRoleIds.value]
+  roleModal.selectedFunctionIds = [...selectedFunctionPermissionIds.value]
   roleModal.selectedDataIds = [...selectedDataPermissionIds.value]
-  closeRoleDetail()
+  const firstRole = allRoles.find((role) => roleModal.selectedIds.includes(role.id)) || filteredRoleOptions.value[0] || allRoles[0]
+  if (firstRole) openRoleDetail(firstRole)
+  else closeRoleDetail()
 }
 
 function closeRoleModal() {
@@ -5429,6 +5542,16 @@ function closeRoleModal() {
 function openRoleDetail(role) {
   roleModal.detailRoleId = role.id
   roleModal.detailKeyword = ''
+}
+
+function syncRoleModalDetailWithResults() {
+  window.setTimeout(() => {
+    const currentVisible = filteredRoleOptions.value.some((role) => role.id === roleModal.detailRoleId)
+    if (currentVisible) return
+    const firstRole = filteredRoleOptions.value[0]
+    if (firstRole) openRoleDetail(firstRole)
+    else closeRoleDetail()
+  }, 0)
 }
 
 function closeRoleDetail() {
@@ -5454,14 +5577,18 @@ function toggleTempRole(id) {
   toggleId(roleModal.selectedIds, id)
   if (!role) return
   if (selected) {
+    roleModal.selectedFunctionIds = roleModal.selectedFunctionIds.filter((functionId) => !role.functionPermissionIds.includes(functionId))
     roleModal.selectedDataIds = roleModal.selectedDataIds.filter((dataId) => !role.dataPermissionIds.includes(dataId))
   } else {
+    addUniqueIds(roleModal.selectedFunctionIds, role.functionPermissionIds)
     addUniqueIds(roleModal.selectedDataIds, role.dataPermissionIds)
   }
 }
 
 function confirmRoleSelection() {
   applyRoleSelection(roleModal.selectedIds)
+  const selectedRoleFunctionIds = roleFunctionIds(roleModal.selectedIds)
+  selectedFunctionPermissionIds.value = selectedFunctionPermissionIds.value.filter((id) => !selectedRoleFunctionIds.includes(id) || roleModal.selectedFunctionIds.includes(id))
   const selectedRoleDataIds = roleDataIds(roleModal.selectedIds)
   selectedDataPermissionIds.value = selectedDataPermissionIds.value.filter((id) => !selectedRoleDataIds.includes(id) || roleModal.selectedDataIds.includes(id))
   closeRoleModal()
@@ -5495,6 +5622,7 @@ function confirmCopyPermissions() {
   copiedFromItcode.value = user.itcode
   copiedRoleIds.value = [...user.roleIds]
   copiedFunctionPermissionIds.value = [...user.functionPermissionIds]
+  addUniqueIds(selectedFunctionPermissionIds.value, [...roleFunctionIds(user.roleIds), ...user.functionPermissionIds])
   clearCopiedDataSources()
   user.dataPermissions.forEach((item) => {
     copiedDataSourceMap[item.id] = item.source
@@ -5509,6 +5637,7 @@ function clearCopiedPermissions() {
   copiedRoleIds.value = []
   copiedFunctionPermissionIds.value = []
   clearCopiedDataSources()
+  selectedFunctionPermissionIds.value = selectedFunctionPermissionIds.value.filter((id) => manualFunctionPermissionIds().includes(id) || currentRoleFunctionIds().includes(id))
   selectedDataPermissionIds.value = selectedDataPermissionIds.value.filter((id) => !copiedIds.includes(id) || manualDataPermissionIds.value.includes(id) || currentRoleDataIds().includes(id))
 }
 
@@ -5540,9 +5669,16 @@ function removeDataPermission(id) {
 }
 
 function applyRoleSelection(nextIds) {
+  const previousRoleFunctionIds = currentRoleFunctionIds()
   const previousRoleDataIds = currentRoleDataIds()
   selectedRoleIds.value = [...nextIds]
+  const nextRoleFunctionIds = currentRoleFunctionIds()
   const nextRoleDataIds = currentRoleDataIds()
+  selectedFunctionPermissionIds.value = selectedFunctionPermissionIds.value.filter((id) => {
+    const wasRoleOnly = previousRoleFunctionIds.includes(id) && !manualFunctionPermissionIds().includes(id)
+    return !(wasRoleOnly && !nextRoleFunctionIds.includes(id))
+  })
+  addUniqueIds(selectedFunctionPermissionIds.value, nextRoleFunctionIds)
   selectedDataPermissionIds.value = selectedDataPermissionIds.value.filter((id) => {
     const wasRoleOnly = previousRoleDataIds.includes(id) && !manualDataPermissionIds.value.includes(id) && !copiedDataSourceMap[id]
     return !(wasRoleOnly && !nextRoleDataIds.includes(id))
@@ -5646,12 +5782,32 @@ function rolePermissionCountLabel(root) {
   return `${functionCount} 项功能 / ${dataCount} 项数据`
 }
 
+function isRoleModalFunctionSelected(id) {
+  return roleModal.selectedFunctionIds.includes(id)
+}
+
+function toggleRoleModalFunctionPermission(id) {
+  toggleId(roleModal.selectedFunctionIds, id)
+}
+
 function isRoleModalDataSelected(id) {
   return roleModal.selectedDataIds.includes(id)
 }
 
 function toggleRoleModalDataPermission(id) {
   toggleId(roleModal.selectedDataIds, id)
+}
+
+function isApplicationFunctionSelected(id) {
+  return selectedFunctionPermissionIds.value.includes(id)
+}
+
+function toggleApplicationRoleFunctionPermission(id) {
+  if (selectedFunctionPermissionIds.value.includes(id)) {
+    selectedFunctionPermissionIds.value = selectedFunctionPermissionIds.value.filter((item) => item !== id)
+  } else {
+    addUniqueIds(selectedFunctionPermissionIds.value, [id])
+  }
 }
 
 function isApplicationDataSelected(id) {
@@ -5665,8 +5821,37 @@ function toggleApplicationRoleDataPermission(id) {
     addUniqueIds(selectedDataPermissionIds.value, [id])
   }
 }
+function roleCardPermissionCheckboxDisabled() {
+  if (roleCardDetail.context === 'userWorkspace') return userWorkspaceReadonly.value
+  if (approvalWorkspace.visible) return !canEditApprovalPermission.value
+  return false
+}
+
 function roleCardDataCheckboxDisabled() {
-  return roleCardDetail.context === 'userWorkspace' && userWorkspaceReadonly.value
+  return roleCardPermissionCheckboxDisabled()
+}
+
+function isRoleCardFunctionSelected(id) {
+  if (roleCardDetail.context !== 'userWorkspace') return isApplicationFunctionSelected(id)
+  const role = roleCardDetailRole.value
+  if (!role || !userWorkspace.draft || !role.functionPermissionIds.includes(id)) return false
+  return !(userWorkspace.draft.suppressedRoleFunctionPermissionIds || []).includes(id)
+}
+
+function toggleRoleCardFunctionPermission(id) {
+  if (roleCardDetail.context !== 'userWorkspace') {
+    toggleApplicationRoleFunctionPermission(id)
+    return
+  }
+  if (roleCardPermissionCheckboxDisabled() || !userWorkspace.draft) return
+  const role = roleCardDetailRole.value
+  if (!role || !role.functionPermissionIds.includes(id)) return
+  if (isRoleCardFunctionSelected(id)) {
+    removeUserRoleFunctionPermission(role.id, id)
+  } else {
+    userWorkspace.draft.suppressedRoleFunctionPermissionIds = (userWorkspace.draft.suppressedRoleFunctionPermissionIds || []).filter((item) => item !== id)
+    userWorkspace.notice = '已恢复该角色带出的功能权限，保存后生效。'
+  }
 }
 
 function isRoleCardDataSelected(id) {
@@ -5701,6 +5886,10 @@ function functionPermissionDetail(id) {
 }
 
 function roleFunctionDetails(role) {
+  return (role?.functionPermissionIds || []).filter((id) => selectedFunctionPermissionIds.value.includes(id)).map(functionPermissionDetail)
+}
+
+function rawRoleFunctionDetails(role) {
   return (role?.functionPermissionIds || []).map(functionPermissionDetail)
 }
 
@@ -5714,7 +5903,7 @@ function roleHiddenFunctionCount(role) {
 
 function filteredRoleDetailFunctions(role, keyword = '') {
   const text = keyword.trim().toLowerCase()
-  const permissions = roleFunctionDetails(role)
+  const permissions = rawRoleFunctionDetails(role)
   if (!text) return permissions
   return permissions.filter((permission) => `${permission.name} ${permission.description || ''}`.toLowerCase().includes(text))
 }
@@ -5768,11 +5957,25 @@ function sourceClass(source) {
   return 'manual'
 }
 
+function roleFunctionIds(roleIds = []) {
+  return [...new Set(allRoles
+    .filter((role) => roleIds.includes(role.id))
+    .flatMap((role) => role.functionPermissionIds))]
+}
+
+function currentRoleFunctionIds() {
+  return roleFunctionIds(selectedRoleIds.value)
+}
+
+function manualFunctionPermissionIds() {
+  return copiedFunctionPermissionIds.value.filter((id) => !roleFunctionIds(copiedRoleIds.value).includes(id))
+}
+
 function currentRoleDataIds() {
   return roleDataIds(selectedRoleIds.value)
 }
 
-function roleDataIds(roleIds) {
+function roleDataIds(roleIds = []) {
   return [...new Set(allRoles
     .filter((role) => roleIds.includes(role.id))
     .flatMap((role) => role.dataPermissionIds))]
@@ -5835,6 +6038,7 @@ function createPermissionSnapshot() {
     copiedFromItcode: copiedFromItcode.value,
     copiedRoleIds: [...copiedRoleIds.value],
     copiedFunctionPermissionIds: [...copiedFunctionPermissionIds.value],
+    selectedFunctionPermissionIds: [...selectedFunctionPermissionIds.value],
     selectedDataPermissionIds: [...selectedDataPermissionIds.value],
     manualDataPermissionIds: [...manualDataPermissionIds.value],
     copiedDataSourceMap: { ...copiedDataSourceMap }
@@ -5846,6 +6050,9 @@ function applyPermissionSnapshotToEditor(snapshot = {}) {
   copiedFromItcode.value = snapshot.copiedFromItcode || ''
   copiedRoleIds.value = [...(snapshot.copiedRoleIds || [])]
   copiedFunctionPermissionIds.value = [...(snapshot.copiedFunctionPermissionIds || [])]
+  selectedFunctionPermissionIds.value = snapshot.selectedFunctionPermissionIds
+    ? [...snapshot.selectedFunctionPermissionIds]
+    : [...new Set([...roleFunctionIds(snapshot.selectedRoleIds || []), ...roleFunctionIds(snapshot.copiedRoleIds || []), ...(snapshot.copiedFunctionPermissionIds || [])])]
   selectedDataPermissionIds.value = [...(snapshot.selectedDataPermissionIds || [])]
   manualDataPermissionIds.value = [...(snapshot.manualDataPermissionIds || [])]
   clearCopiedDataSources()
@@ -5894,11 +6101,15 @@ function createApprovalRow(payload) {
       copiedFromItcode: permissionSnapshot.copiedFromItcode || '',
       copiedRoleIds: [...(permissionSnapshot.copiedRoleIds || [])],
       copiedFunctionPermissionIds: [...(permissionSnapshot.copiedFunctionPermissionIds || [])],
+      selectedFunctionPermissionIds: permissionSnapshot.selectedFunctionPermissionIds
+        ? [...permissionSnapshot.selectedFunctionPermissionIds]
+        : [...new Set([...roleFunctionIds(permissionSnapshot.selectedRoleIds || []), ...roleFunctionIds(permissionSnapshot.copiedRoleIds || []), ...(permissionSnapshot.copiedFunctionPermissionIds || [])])],
       selectedDataPermissionIds: [...(permissionSnapshot.selectedDataPermissionIds || [])],
       manualDataPermissionIds: [...(permissionSnapshot.manualDataPermissionIds || [])],
       copiedDataSourceMap: { ...(permissionSnapshot.copiedDataSourceMap || {}) }
     },
-    approvalLogs: [...(payload.approvalLogs || [])]
+    approvalLogs: [...(payload.approvalLogs || [])],
+    notificationLogs: [...(payload.notificationLogs || [])]
   }
 }
 
@@ -5908,6 +6119,7 @@ function emptyPermissionSnapshot() {
     copiedFromItcode: '',
     copiedRoleIds: [],
     copiedFunctionPermissionIds: [],
+    selectedFunctionPermissionIds: [],
     selectedDataPermissionIds: [],
     manualDataPermissionIds: [],
     copiedDataSourceMap: {}
@@ -5920,8 +6132,8 @@ function approvalNodeMeta(nodeType) {
     'applicant-manager': { label: '申请人直线经理审批', owner: 'sunll1', status: '待我审批', statusKey: 'pending' },
     'target-manager': { label: '被申请人直线经理审批', owner: 'wangxt8', status: '待我审批', statusKey: 'pending' },
     business: { label: '业务负责人审批', owner: 'zhangjq4', status: '待我审批', statusKey: 'pending' },
-    execute: { label: '后台执行', owner: 'sunzh4', status: '已通过', statusKey: 'approved' },
-    done: { label: '后台执行', owner: 'sunzh4', status: '执行完成', statusKey: 'done' },
+    execute: { label: '后台自动执行', owner: 'sunzh4', status: '执行完成', statusKey: 'done' },
+    done: { label: '后台自动执行', owner: 'sunzh4', status: '执行完成', statusKey: 'done' },
     rework: { label: '申请人修改', owner: '申请人', status: '已驳回', statusKey: 'rejected' }
   }
   return map[nodeType] || map['target-manager']
@@ -5980,6 +6192,7 @@ function deferCloseHandlerSuggestions() {
 function resetApprovalFilters() {
   approvalSearch.status = '全部'
   approvalSearch.approverItcode = ''
+  approvalSearch.viewer = 'approver'
   approvalSearch.handlerDraft = ''
   approvalSearch.handlerFocused = false
   approvalSearch.handlers = []
@@ -6094,11 +6307,18 @@ function submitApprovalDecision() {
       approverItcode: row.systemApprover,
       handlers: [...new Set([...row.handlers, row.systemApprover])]
     })
+    row.approvalLogs.push({
+      node: '后台自动执行',
+      action: 'execute-success',
+      operator: row.systemApprover,
+      opinion: '系统已自动执行权限变更，执行结果：成功。',
+      time: '2026-07-13 16:30'
+    })
   }
   records.value.unshift({
     time: row.time,
     title: `${row.id} ${approvalDecisionTitleByNode(approvalWorkspace.nodeType)}已提交`,
-    detail: `${row.target} 的审批结果为“${approvalResultLabel(approvalWorkspace.result)}”，当前流转到“${row.node}”。`,
+    detail: `${row.target} 的审批结果为“${approvalResultLabel(approvalWorkspace.result)}”，当前流转到“${row.node}”。${row.statusKey === 'done' ? ' 系统已自动执行权限变更，执行结果：成功。' : ''}`,
     status: 'POC 记录'
   })
   approvalWorkspace.notice = '已提交审批，列表状态已更新。'
@@ -6116,6 +6336,443 @@ function updateApprovalNode(row, nodeType, overrides = {}) {
   row.time = '2026-07-13 16:30'
 }
 
+function approvalDisplayStatus(row) {
+  if (!row) return ''
+  if (row.statusKey === 'done') return '已完成'
+  if (row.statusKey === 'rejected') return '已驳回'
+  return '审批中'
+}
+
+function approvalDisplayStatusKey(row) {
+  if (row?.statusKey === 'done') return 'done'
+  if (row?.statusKey === 'rejected') return 'rejected'
+  return 'pending'
+}
+
+function canApproveRow(row) {
+  const identity = currentDemoIdentity.value
+  const approver = approvalSearch.approverItcode.trim()
+  const nodeAllowed = identity.key === 'admin' || identity.nodeTypes.includes(row?.nodeType)
+  const approverMatched = identity.key === 'admin' || (!!approver && samePrincipal(row.approverItcode, approver))
+  return row?.statusKey === 'pending' && !approvalReadonlyViewer.value && nodeAllowed && approverMatched
+}
+
+function approvalPersonMail(itcode, fallback = 'user') {
+  const normalized = parseApproverItcode(itcode) || fallback
+  return `${normalized}@lenovo.com`
+}
+
+function approvalAppBaseUrl(path = '/agent/permissions') {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  const fullPath = `${base}${path}`
+  if (typeof window === 'undefined') return fullPath
+  return `${window.location.origin}${fullPath}`
+}
+
+function approvalListLink(row, action = '', viewer = 'approver') {
+  const query = [
+    `module=approval`,
+    `ticket=${encodeURIComponent(row.id)}`,
+    `approver=${encodeURIComponent(row.approverItcode)}`,
+    `viewer=${encodeURIComponent(viewer)}`
+  ]
+  if (action) query.push(`action=${encodeURIComponent(action)}`)
+  return `${approvalAppBaseUrl('/agent/permissions')}?${query.join('&')}`
+}
+
+
+function approvalActionLink(row, action = 'approve') {
+  const query = [
+    `ticket=${encodeURIComponent(row.id)}`,
+    `source=permissions`,
+    `action=${encodeURIComponent(action)}`,
+    `approver=${encodeURIComponent(row.approverItcode)}`,
+    `token=mock`
+  ]
+  return `${approvalAppBaseUrl('/mail-approval/action')}?${query.join('&')}`
+}
+function approvalMailActions(row) {
+  return [
+    { value: 'approve', label: '同意', link: approvalActionLink(row, 'approve') },
+    { value: 'reject', label: '驳回', link: approvalActionLink(row, 'reject') }
+  ]
+}
+
+function createApprovalNotificationLogs(row) {
+  const listLink = approvalListLink(row, '', 'approver')
+  const applicantLink = approvalListLink(row, '', 'applicant')
+  const targetLink = approvalListLink(row, '', 'target')
+  const managerActions = approvalMailActions(row)
+  const relationItcode = parseApproverItcode(row.relatedAccount || row.approverItcode || row.applicantManager)
+  const businessItcode = parseApproverItcode(row.businessApprover)
+  const relationActions = managerActions
+  const recipients = [
+    {
+      role: 'applicant',
+      roleLabel: '申请人',
+      toName: row.applicant,
+      to: row.applicantEmail,
+      subject: `${row.id} 账号申请表单已受理`,
+      content: `您提交的${row.type}账号申请表单已受理，可点击表单号码进入审批列表查看审核状态。`,
+      link: applicantLink,
+      linkLabel: '查看审核进度',
+      actions: []
+    },
+    {
+      role: 'target',
+      roleLabel: '被申请人',
+      toName: row.target,
+      to: row.email || approvalPersonMail(row.targetItcode, row.target),
+      subject: `${row.id} 有一条与你相关的账号权限申请`,
+      content: `${row.applicant} 为您提交了${row.type}申请，当前申请已受理。您可以点击表单号码进入审批列表查看审核状态和申请内容。`,
+      link: targetLink,
+      linkLabel: '查看审核进度',
+      actions: []
+    },
+    {
+      role: 'relation',
+      roleLabel: '关联人',
+      toName: relationItcode || '关联人',
+      to: approvalPersonMail(relationItcode, 'relation-owner'),
+      subject: `${row.id} 关联关系确认通知`,
+      content: `${row.target} 的${row.type}申请需要关联人确认。您可在审批列表中查看详情，请核对后进行处理。`,
+      link: listLink,
+      linkLabel: '进入审批列表',
+      actions: relationActions
+    },
+    {
+      role: 'applicant-manager',
+      roleLabel: '申请人直线经理',
+      toName: row.applicantManager,
+      to: approvalPersonMail(row.applicantManager, 'applicant-manager'),
+      subject: `${row.id} 待审批：请确认申请合理性`,
+      content: `${row.applicant} 为${row.target}提交了${row.type}申请，请确认申请是否合理，并进行审批。`,
+      link: listLink,
+      linkLabel: '进入审批列表',
+      actions: managerActions
+    },
+    {
+      role: 'target-manager',
+      roleLabel: '被申请人直线经理',
+      toName: row.targetManager,
+      to: approvalPersonMail(row.targetManager, 'target-manager'),
+      subject: `${row.id} 待审批：请确认被申请人权限范围`,
+      content: `${row.target} 的${row.type}申请等待确认，请确认申请是否合理，并进行审批。`,
+      link: listLink,
+      linkLabel: '进入审批列表',
+      actions: managerActions
+    },
+    {
+      role: 'business-owner',
+      roleLabel: '业务负责人',
+      toName: businessItcode || row.businessApprover,
+      to: approvalPersonMail(businessItcode, 'business-owner'),
+      subject: `${row.id} 待审批：请确认业务归属和权限范围`,
+      content: `${row.target} 的${row.type}申请等待确认，请确认申请是否合理，并进行审批。`,
+      link: listLink,
+      linkLabel: '进入审批列表',
+      actions: managerActions
+    }
+  ]
+  return recipients.map((item, index) => ({
+    id: `${row.id}-mail-${index + 1}`,
+    ticketNo: row.id,
+    time: '2026-07-13 11:45',
+    status: 'mock_sent',
+    statusLabel: '邮件 mock 已生成，未真实发送',
+    ...item
+  }))
+}
+
+function escapeMailHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function approvalMailMockContent(mail, row) {
+  const actions = mail.actions.length
+    ? `<div class="mail-actions">${mail.actions.map((action) => `<a class="${action.value === 'approve' ? 'agree' : 'reject'}" href="${escapeMailHtml(action.link)}">${escapeMailHtml(action.label)}</a>`).join('')}</div>`
+    : ''
+  return `<section class="mail-pane" data-mail-role="${escapeMailHtml(mail.role)}">
+    <section class="mail-head">
+      <span>${escapeMailHtml(mail.roleLabel)}邮件 mock</span>
+      <h1>${escapeMailHtml(mail.subject)}</h1>
+    </section>
+    <section class="mail-meta">
+      <div>收件人：${escapeMailHtml(mail.toName)} &lt;${escapeMailHtml(mail.to)}&gt;</div>
+      <div>申请单号：${escapeMailHtml(row.id)} · 申请类型：${escapeMailHtml(row.type)} · 当前节点：${escapeMailHtml(row.node)}</div>
+    </section>
+    <section class="mail-body">
+      <p>${escapeMailHtml(mail.content)}</p>
+      <div class="mail-card">
+        <div>表单号码：<a class="ticket" href="${escapeMailHtml(mail.link)}">${escapeMailHtml(row.id)}</a></div>
+        <div>申请人：${escapeMailHtml(row.applicant)}（${escapeMailHtml(row.applicantItcode)}）</div>
+        <div>被申请人：${escapeMailHtml(row.target)}（${escapeMailHtml(row.targetItcode)}）</div>
+      </div>
+      <a class="progress-link" href="${escapeMailHtml(mail.link)}">${escapeMailHtml(mail.linkLabel || '打开链接')}</a>
+      ${actions}
+    </section>
+    <section class="mail-foot">这是一封 POC mock 邮件，不会真实发送。同意/驳回按钮会进入邮件审批确认页，确认后同步审批列表。</section>
+  </section>`
+}
+
+function approvalMailMockInboxHtml(row) {
+  const tabs = row.notificationLogs.map((mail, index) => `<button type="button" class="mail-tab${index === 0 ? ' active' : ''}" data-mail-role="${escapeMailHtml(mail.role)}">${escapeMailHtml(mail.roleLabel)}</button>`).join('')
+  const panes = row.notificationLogs.map((mail, index) => {
+    const pane = approvalMailMockContent(mail, row)
+    return index === 0 ? pane : pane.replace('class="mail-pane"', 'class="mail-pane hidden"')
+  }).join('')
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>邮件 mock 收件箱 - ${escapeMailHtml(row.id)}</title>
+<style>
+  body { margin: 0; background: #f3f5f8; color: #111827; font-family: Arial, "Microsoft YaHei", sans-serif; }
+  .inbox-shell { max-width: 980px; margin: 28px auto; border: 1px solid #d8dee8; background: #fff; box-shadow: 0 16px 42px rgba(15, 23, 42, .12); }
+  .inbox-title { border-bottom: 1px solid #e5e7eb; padding: 18px 28px; }
+  .inbox-title h1 { margin: 0; color: #101828; font-size: 22px; line-height: 1.35; }
+  .inbox-title p { margin: 8px 0 0; color: #667085; font-size: 13px; }
+  .mail-tabs { display: flex; gap: 8px; border-bottom: 1px solid #e5e7eb; padding: 12px 18px; background: #f8fafc; overflow-x: auto; }
+  .mail-tab { flex: 0 0 auto; min-height: 34px; border: 1px solid #d8e1ee; border-radius: 6px; padding: 0 14px; background: #fff; color: #455468; font-weight: 700; cursor: pointer; }
+  .mail-tab.active { border-color: #316dff; background: #316dff; color: #fff; }
+  .mail-pane.hidden { display: none; }
+  .mail-head { border-bottom: 1px solid #e5e7eb; padding: 20px 28px; }
+  .mail-head span { display: inline-block; margin-bottom: 10px; border: 1px solid #bcd3ff; border-radius: 999px; padding: 4px 10px; color: #316dff; font-size: 12px; font-weight: 700; }
+  .mail-head h1 { margin: 0; color: #101828; font-size: 22px; line-height: 1.35; }
+  .mail-meta { display: grid; gap: 6px; padding: 18px 28px; border-bottom: 1px solid #eef2f7; color: #667085; font-size: 13px; }
+  .mail-body { padding: 28px; font-size: 16px; line-height: 1.8; }
+  .ticket { color: #2380d9; font-weight: 800; text-decoration: underline; }
+  .mail-card { margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: #f8fafc; }
+  .mail-actions { display: flex; gap: 12px; margin-top: 24px; }
+  .mail-actions a, .progress-link { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; border-radius: 6px; padding: 0 18px; font-weight: 700; text-decoration: none; }
+  .progress-link { background: #316dff; color: #fff; }
+  .agree { background: #18a058; color: #fff; }
+  .reject { background: #fff1f1; color: #e53935; border: 1px solid #ffc9c9; }
+  .mail-foot { padding: 18px 28px 26px; color: #667085; font-size: 13px; }
+</style>
+</head>
+<body>
+  <main class="inbox-shell">
+    <section class="inbox-title">
+      <h1>${escapeMailHtml(row.id)} 邮件 mock 收件箱</h1>
+      <p>提交申请后生成的 6 封邮件集中展示，可切换查看申请人、被申请人、关联人、两位直线经理和业务负责人收到的内容。</p>
+    </section>
+    <nav class="mail-tabs" aria-label="邮件列表">${tabs}</nav>
+    ${panes}
+  </main>
+  <script>
+    document.querySelectorAll('.mail-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const role = tab.dataset.mailRole;
+        document.querySelectorAll('.mail-tab').forEach((item) => item.classList.toggle('active', item === tab));
+        document.querySelectorAll('.mail-pane').forEach((pane) => pane.classList.toggle('hidden', pane.dataset.mailRole !== role));
+      });
+    });
+  <\/script>
+</body>
+</html>`
+}
+function persistApprovalMockRow(row) {
+  if (typeof window === 'undefined') return
+  try {
+    const key = 'leaibot-approval-mail-mock-rows'
+    const existing = JSON.parse(window.localStorage.getItem(key) || '[]').filter((item) => item.id !== row.id)
+    existing.unshift(row)
+    window.localStorage.setItem(key, JSON.stringify(existing.slice(0, 10)))
+  } catch {}
+}
+
+function openApprovalMailMockTabs(row) {
+  if (typeof window === 'undefined') return
+  persistApprovalMockRow(row)
+  const url = window.URL.createObjectURL(new Blob([approvalMailMockInboxHtml(row)], { type: 'text/html;charset=utf-8' }))
+  window.open(url, 'approval-mail-inbox-' + row.id)
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 60000)
+}
+function closeApprovalNotificationModal() {
+  approvalNotificationModal.visible = false
+}
+
+function viewSubmittedApproval() {
+  if (!submittedApproval.value) return
+  closeApprovalNotificationModal()
+  activeModule.value = 'approval'
+  resetApprovalFilters()
+  openApprovalWorkspace(submittedApproval.value, 'view')
+}
+
+function copySubmittedTicket() {
+  const ticket = submittedApproval.value?.id || ''
+  if (!ticket) return
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(ticket).catch(() => {})
+  }
+  approvalNotificationModal.notice = `已复制申请单号 ${ticket}`
+}
+
+function openMailLink(mail) {
+  const row = approvals.value.find((item) => item.id === mail.ticketNo)
+  if (!row) return
+  closeApprovalNotificationModal()
+  activeModule.value = 'approval'
+  resetApprovalFilters()
+  approvalSearch.approverItcode = mail.role.includes('manager') ? row.approverItcode : ''
+  approvalSearch.viewer = ['applicant', 'target'].includes(mail.role) ? mail.role : 'approver'
+  openApprovalWorkspace(row, mail.actions.length ? 'approve' : 'view')
+}
+
+function openMailAction(mail, action) {
+  const targetAction = mail.actions.find((item) => item.value === action)
+  if (targetAction?.link && typeof window !== 'undefined') {
+    window.open(targetAction.link, '_blank')
+  }
+}
+
+function applyMailApprovalActionToRow(row, actionRecord) {
+  if (!row || row.approvalLogs.some((log) => log.mailActionId === actionRecord.id)) return false
+  const approve = actionRecord.action === 'approve'
+  row.approvalLogs.push({
+    node: row.node,
+    action: approve ? 'agree' : 'reject',
+    operator: actionRecord.operator || row.approverItcode,
+    opinion: approve ? '审批人通过邮件确认同意。' : '审批人通过邮件确认驳回。',
+    time: actionRecord.time,
+    mailActionId: actionRecord.id
+  })
+  if (!approve) {
+    updateApprovalNode(row, 'rework', {
+      status: '已驳回',
+      statusKey: 'rejected',
+      approverItcode: row.applicantItcode,
+      handlers: [row.applicantItcode]
+    })
+    return true
+  }
+  if (row.nodeType === 'relation') {
+    const nextNodeType = nextManagerNodeType(row)
+    const nextApprover = nextNodeType === 'target-manager' ? row.targetManager : row.applicantManager
+    updateApprovalNode(row, nextNodeType, {
+      approverItcode: nextApprover,
+      handlers: [nextApprover]
+    })
+  } else if (row.nodeType === 'applicant-manager') {
+    updateApprovalNode(row, 'target-manager', {
+      approverItcode: row.targetManager,
+      handlers: [row.targetManager]
+    })
+  } else if (row.nodeType === 'target-manager') {
+    const businessItcode = parseApproverItcode(row.businessApprover)
+    updateApprovalNode(row, 'business', {
+      approverItcode: businessItcode,
+      handlers: [businessItcode, row.targetManager]
+    })
+  } else {
+    updateApprovalNode(row, 'done', {
+      status: '执行完成',
+      statusKey: 'done',
+      approverItcode: row.systemApprover,
+      handlers: [...new Set([...row.handlers, row.systemApprover])]
+    })
+    row.approvalLogs.push({
+      node: '后台自动执行',
+      action: 'execute-success',
+      operator: row.systemApprover,
+      opinion: '系统已自动执行权限变更，执行结果：成功。',
+      time: actionRecord.time,
+      mailActionId: `${actionRecord.id}-execute`
+    })
+  }
+  return true
+}
+
+function syncStoredApprovalRows() {
+  if (typeof window === 'undefined') return
+  try {
+    const stored = JSON.parse(window.localStorage.getItem('leaibot-approval-mail-mock-rows') || '[]')
+    stored.forEach((item) => {
+      if (!approvals.value.some((row) => row.id === item.id)) {
+        approvals.value.unshift(createApprovalRow(item))
+      }
+    })
+  } catch {}
+}
+
+function syncRegisterApprovalRows() {
+  if (typeof window === 'undefined') return
+  try {
+    const rows = JSON.parse(window.localStorage.getItem('leaibot-account-request-status-rows') || '[]')
+    rows.forEach((item) => {
+      const existing = approvals.value.find((row) => row.id === item.id)
+      if (existing) {
+        existing.status = item.status
+        existing.statusKey = item.statusKey
+        existing.node = item.node
+        existing.nodeType = item.statusKey === 'done' ? 'done' : (item.statusKey === 'rejected' ? 'rework' : existing.nodeType)
+        return
+      }
+      approvals.value.unshift(createApprovalRow({
+        id: item.id,
+        typeKey: 'create',
+        type: '创建账号',
+        applicant: item.applicant,
+        applicantItcode: item.applicantItcode,
+        target: item.target,
+        targetItcode: item.targetItcode,
+        applicantManager: item.applicantManager,
+        targetManager: item.targetManager,
+        relatedAccount: item.relatedAccount,
+        businessApprover: item.businessApprover,
+        systemApprover: item.systemApprover,
+        approverItcode: item.applicantManager,
+        handlers: [item.applicantManager],
+        nodeType: item.statusKey === 'done' ? 'done' : (item.statusKey === 'rejected' ? 'rework' : 'applicant-manager'),
+        node: item.node,
+        status: item.status,
+        statusKey: item.statusKey,
+        time: item.time,
+        reason: item.reason,
+        approvalLogs: (item.logs || []).map((log) => ({
+          node: log.node,
+          action: 'sync',
+          operator: 'mail-approval',
+          opinion: log.detail,
+          time: log.time
+        }))
+      }))
+    })
+  } catch {}
+}
+
+function syncMailApprovalActions() {
+  if (typeof window === 'undefined') return
+  syncStoredApprovalRows()
+  syncRegisterApprovalRows()
+  try {
+    const actions = JSON.parse(window.localStorage.getItem('leaibot-mail-approval-actions') || '[]')
+    let changed = false
+    actions.filter((item) => item.source === 'permissions').forEach((actionRecord) => {
+      const row = approvals.value.find((item) => item.id === actionRecord.ticket)
+      if (row && applyMailApprovalActionToRow(row, actionRecord)) changed = true
+    })
+    if (changed) {
+      records.value.unshift({
+        time: '2026-07-13 16:30',
+        title: '邮件审批结果已同步',
+        detail: '审批列表已读取邮件确认页产生的 mock 审批结果。',
+        status: 'POC 记录'
+      })
+    }
+  } catch {}
+}
+
+function handleMailApprovalStorage(event) {
+  if (event.key === 'leaibot-mail-approval-actions' || event.key === 'leaibot-account-request-status-rows') syncMailApprovalActions()
+}
 function approvalResultLabel(value) {
   const option = approvalResultOptions.value.find((item) => item.value === value)
   return option?.label || value
@@ -6232,6 +6889,7 @@ function cleanupAdminPermission(user) {
   user.roleIds = []
   user.extraFunctionPermissionIds = []
   user.extraDataPermissionIds = []
+  user.suppressedRoleFunctionPermissionIds = []
   user.suppressedRoleDataPermissionIds = []
   user.customDataRules = []
   user.statusKey = 'pending'
@@ -6305,8 +6963,9 @@ function cloneUser(user) {
   nextUser.targetManager ||= 'wangxt8'
   nextUser.requestReason ||= nextUser.remark || '需要根据业务职责开通或调整乐享 AI 工作台权限。'
   nextUser.roleIds ||= []
-  nextUser.extraFunctionPermissionIds = []
+  nextUser.extraFunctionPermissionIds ||= []
   nextUser.extraDataPermissionIds ||= []
+  nextUser.suppressedRoleFunctionPermissionIds ||= []
   nextUser.suppressedRoleDataPermissionIds ||= []
   nextUser.customDataRules = normalizeCustomDataRules(nextUser.customDataRules || [])
   nextUser.changeLogs ||= []
@@ -6557,7 +7216,9 @@ function customRulesSignature(rules = []) {
 function hasUserPermissionChanged(original, draft) {
   if (!original || !draft) return false
   return !sameIdSet(original.roleIds, draft.roleIds)
+    || !sameIdSet(original.extraFunctionPermissionIds, draft.extraFunctionPermissionIds)
     || !sameIdSet(original.extraDataPermissionIds, draft.extraDataPermissionIds)
+    || !sameIdSet(original.suppressedRoleFunctionPermissionIds, draft.suppressedRoleFunctionPermissionIds)
     || !sameIdSet(original.suppressedRoleDataPermissionIds, draft.suppressedRoleDataPermissionIds)
     || customRulesSignature(original.customDataRules) !== customRulesSignature(draft.customDataRules)
 }
@@ -6568,12 +7229,14 @@ function generateApplicationNo() {
 }
 
 function userPermissionSnapshot(user) {
+  const inheritedFunctionIds = userInheritedFunctionIds(user)
   const inheritedDataIds = userInheritedDataIds(user)
   return {
     selectedRoleIds: [...(user.roleIds || [])],
     copiedFromItcode: '',
     copiedRoleIds: [],
-    copiedFunctionPermissionIds: [],
+    copiedFunctionPermissionIds: [...(user.extraFunctionPermissionIds || [])],
+    selectedFunctionPermissionIds: [...new Set([...inheritedFunctionIds, ...(user.extraFunctionPermissionIds || [])])],
     selectedDataPermissionIds: [...new Set([...inheritedDataIds, ...(user.extraDataPermissionIds || [])])],
     manualDataPermissionIds: [...(user.extraDataPermissionIds || [])],
     copiedDataSourceMap: {}
@@ -6663,7 +7326,9 @@ function userRoles(user) {
 }
 
 function userInheritedFunctionIds(user) {
+  const suppressedIds = user?.suppressedRoleFunctionPermissionIds || []
   return [...new Set(userRoles(user).flatMap((role) => role.functionPermissionIds))]
+    .filter((id) => !suppressedIds.includes(id))
 }
 
 function userInheritedDataIds(user) {
@@ -6683,6 +7348,27 @@ function switchUserDataTab(tab) {
     return
   }
   userWorkspace.dataTab = tab
+}
+
+function isUserFunctionPermissionSelected(id) {
+  if (!userWorkspace.draft) return false
+  return userDraftInheritedFunctionIds.value.includes(id) || userWorkspace.draft.extraFunctionPermissionIds.includes(id)
+}
+
+function toggleUserFunctionPermission(id) {
+  if (userWorkspaceReadonly.value || !userWorkspace.draft) return
+  if (userDraftInheritedFunctionIds.value.includes(id)) {
+    const role = userDraftRoles.value.find((item) => item.functionPermissionIds.includes(id))
+    if (role) removeUserRoleFunctionPermission(role.id, id)
+    return
+  }
+  const suppressedIds = userWorkspace.draft.suppressedRoleFunctionPermissionIds || []
+  if (suppressedIds.includes(id)) {
+    userWorkspace.draft.suppressedRoleFunctionPermissionIds = suppressedIds.filter((item) => item !== id)
+    userWorkspace.notice = '已恢复角色继承的功能权限，保存后生效。'
+    return
+  }
+  toggleId(userWorkspace.draft.extraFunctionPermissionIds, id)
 }
 
 function toggleUserExtraData(id) {
@@ -6717,6 +7403,15 @@ function openUserRoleWorkspace(user) {
   userWorkspace.activeTab = 'roles'
 }
 
+function userDraftRoleFunctionPermissions(role) {
+  if (!userWorkspace.draft) return []
+  const suppressedIds = userWorkspace.draft.suppressedRoleFunctionPermissionIds || []
+  return role.functionPermissionIds
+    .filter((id) => !suppressedIds.includes(id))
+    .map(functionPermissionDetail)
+    .filter(Boolean)
+}
+
 function userDraftRoleDataPermissions(role) {
   if (!userWorkspace.draft) return []
   const suppressedIds = userWorkspace.draft.suppressedRoleDataPermissionIds || []
@@ -6724,6 +7419,24 @@ function userDraftRoleDataPermissions(role) {
     .filter((id) => !suppressedIds.includes(id))
     .map((id) => findDataPermission(id))
     .filter(Boolean)
+}
+
+function removeUserRoleFunctionPermission(roleId, permissionId) {
+  if (userWorkspaceReadonly.value || !userWorkspace.draft) return
+  const role = allRoles.find((item) => item.id === roleId)
+  if (!role || !role.functionPermissionIds.includes(permissionId)) return
+  if (!userWorkspace.draft.suppressedRoleFunctionPermissionIds.includes(permissionId)) {
+    userWorkspace.draft.suppressedRoleFunctionPermissionIds.push(permissionId)
+  }
+  userWorkspace.notice = '已移除该角色带出的功能权限，保存后作为用户级例外生效。'
+}
+
+function resetUserRoleFunctionPermissions(roleId) {
+  if (userWorkspaceReadonly.value || !userWorkspace.draft) return
+  const role = allRoles.find((item) => item.id === roleId)
+  if (!role) return
+  userWorkspace.draft.suppressedRoleFunctionPermissionIds = userWorkspace.draft.suppressedRoleFunctionPermissionIds.filter((id) => !role.functionPermissionIds.includes(id))
+  userWorkspace.notice = '已恢复该角色带出的功能权限，保存后生效。'
 }
 
 function removeUserRoleDataPermission(roleId, permissionId) {
@@ -6747,6 +7460,7 @@ function openUserRoleModal(user) {
   userRoleModal.visible = true
   userRoleModal.keyword = ''
   userRoleModal.selectedIds = [...(user?.roleIds || [])]
+  userRoleModal.selectedFunctionIds = [...userInheritedFunctionIds(user || userWorkspace.draft || {})]
   userRoleModal.targetUserAccount = user?.userAccount || userWorkspace.userAccount || ''
   closeUserRoleDetail()
 }
@@ -6766,17 +7480,37 @@ function closeUserRoleDetail() {
   userRoleModal.detailKeyword = ''
 }
 function toggleUserRoleSelection(id) {
+  const role = allRoles.find((item) => item.id === id)
+  const selected = userRoleModal.selectedIds.includes(id)
   toggleId(userRoleModal.selectedIds, id)
+  if (!role) return
+  if (selected) {
+    userRoleModal.selectedFunctionIds = userRoleModal.selectedFunctionIds.filter((functionId) => !role.functionPermissionIds.includes(functionId))
+  } else {
+    addUniqueIds(userRoleModal.selectedFunctionIds, role.functionPermissionIds)
+  }
+}
+
+function isUserRoleModalFunctionSelected(id) {
+  return userRoleModal.selectedFunctionIds.includes(id)
+}
+
+function toggleUserRoleModalFunctionPermission(id) {
+  toggleId(userRoleModal.selectedFunctionIds, id)
 }
 
 function confirmUserRoleSelection() {
   if (userWorkspace.visible && userWorkspace.draft) {
     userWorkspace.draft.roleIds = [...userRoleModal.selectedIds]
-    userWorkspace.notice = '已更新当前用户角色，保存后生效。'
+    const selectedRoleFunctionIds = roleFunctionIds(userRoleModal.selectedIds)
+    userWorkspace.draft.suppressedRoleFunctionPermissionIds = selectedRoleFunctionIds.filter((id) => !userRoleModal.selectedFunctionIds.includes(id))
+    userWorkspace.notice = '已更新当前用户角色和功能权限范围，保存后生效。'
   } else {
     const user = users.find((item) => item.userAccount === userRoleModal.targetUserAccount)
     if (user) {
       user.roleIds = [...userRoleModal.selectedIds]
+      const selectedRoleFunctionIds = roleFunctionIds(userRoleModal.selectedIds)
+      user.suppressedRoleFunctionPermissionIds = selectedRoleFunctionIds.filter((id) => !userRoleModal.selectedFunctionIds.includes(id))
       appendUserChange(user, '设置角色', 'POC-ROLE', `角色已调整为：${userRoles(user).map((role) => role.name).join('、') || '无角色'}。`)
     }
   }
@@ -6790,6 +7524,10 @@ function removeUserDraftRole(id) {
     userWorkspace.notice = `“${role.name}”是高敏角色，请确认业务影响后再保存。`
   }
   userWorkspace.draft.roleIds = userWorkspace.draft.roleIds.filter((roleId) => roleId !== id)
+  if (role) {
+    userWorkspace.draft.suppressedRoleFunctionPermissionIds = (userWorkspace.draft.suppressedRoleFunctionPermissionIds || []).filter((permissionId) => !role.functionPermissionIds.includes(permissionId))
+    userWorkspace.draft.suppressedRoleDataPermissionIds = (userWorkspace.draft.suppressedRoleDataPermissionIds || []).filter((permissionId) => !role.dataPermissionIds.includes(permissionId))
+  }
 }
 
 function openUserStatusConfirm(user) {
@@ -7126,10 +7864,17 @@ function openRecordModal() {
   recordModalVisible.value = true
 }
 
-function resetDemo() {
-  activeModule.value = 'apply'
+function resetDemo(identityKey = 'admin') {
+  const identity = demoIdentityOptions.find((item) => item.key === identityKey) || demoIdentityOptions[0]
+  demoIdentityKey.value = identity.key
+  demoIdentityMenuOpen.value = false
+  activeModule.value = 'approval'
+  syncMailApprovalActions()
   resetApplyStepProgress()
   resetApprovalFilters()
+  approvalSearch.viewer = identity.viewer
+  approvalSearch.approverItcode = identity.approverItcode
+  approvalSearch.status = identity.key === 'admin' || identity.key === 'requester' ? '全部' : '审批中'
 }
 
 function moduleIcon(key) {
@@ -7145,12 +7890,33 @@ function moduleIcon(key) {
   return icons[key] || icons.apply
 }
 
+function restoreApprovalListDeepLink() {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('module') !== 'approval') return
+  activeModule.value = 'approval'
+  resetApprovalFilters()
+  approvalSearch.approverItcode = params.get('approver') || ''
+  const viewer = params.get('viewer') || 'approver'
+  approvalSearch.viewer = ['applicant', 'target', 'approver'].includes(viewer) ? viewer : 'approver'
+}
+
 onMounted(() => {
   document.title = '权限管理 - 乐享 AI 工作台'
   runAdminPermissionAutomation()
+  syncMailApprovalActions()
+  restoreApprovalListDeepLink()
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', handleMailApprovalStorage)
+    window.addEventListener('focus', syncMailApprovalActions)
+  }
 })
 
 onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('storage', handleMailApprovalStorage)
+    window.removeEventListener('focus', syncMailApprovalActions)
+  }
   clearOrganizationNoticeTimer()
   clearDataSourceNoticeTimer()
   clearFunctionNoticeTimer()
@@ -7176,6 +7942,57 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 16px;
 }
+
+.demo-reset-menu {
+  position: relative;
+}
+
+.demo-reset-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.demo-reset-trigger span {
+  color: #8a96a8;
+  font-size: 12px;
+}
+
+.demo-reset-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 4px;
+  width: 190px;
+  border: 1px solid #d8e1ee;
+  border-radius: 8px;
+  padding: 6px;
+  background: #fff;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+}
+
+.demo-reset-options button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: transparent;
+  color: #455468;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.demo-reset-options button:hover,
+.demo-reset-options button.active {
+  background: #eef4ff;
+  color: #316dff;
+}
+
 
 .section-title h2,
 .permission-step h3 {
@@ -8015,7 +8832,7 @@ onUnmounted(() => {
 }
 
 .role-picker-modal.with-detail {
-  width: min(1120px, 100%);
+  width: min(1280px, calc(100vw - 72px));
 }
 
 .modal-search-input,
@@ -8089,7 +8906,7 @@ onUnmounted(() => {
 }
 
 .role-picker-modal.with-detail .role-picker-layout {
-  grid-template-columns: minmax(360px, 1fr) minmax(360px, 420px);
+  grid-template-columns: minmax(420px, 0.95fr) minmax(500px, 1.05fr);
   align-items: stretch;
 }
 
@@ -8148,7 +8965,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: 420px;
+  max-height: 520px;
   border: 1px solid #dfe7f3;
   border-radius: 8px;
   padding: 14px;
@@ -8507,8 +9324,7 @@ onUnmounted(() => {
   font-weight: 700;
 }
 
-.table-status.done,
-.table-status.approved {
+.table-status.done {
   background: #eafaf0;
   color: #18a058;
 }
@@ -9010,6 +9826,168 @@ onUnmounted(() => {
   color: #18a058;
   font-size: 12px;
   font-weight: 700;
+}
+
+.approval-notification-modal {
+  width: min(780px, 100%);
+}
+
+.simple-notice-modal {
+  width: min(1080px, calc(100vw - 96px));
+  min-height: 500px;
+  padding: 0;
+}
+
+.simple-notice-title {
+  border-bottom: 1px solid #dfe3ea;
+  padding: 30px 44px 12px;
+  color: #172033;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.simple-notice-body {
+  display: grid;
+  gap: 24px;
+  min-height: 300px;
+  padding: 42px 70px 28px;
+  color: #070833;
+}
+
+.simple-notice-body h3 {
+  margin: 0;
+  color: #070833;
+  font-size: 24px;
+  line-height: 1.55;
+  font-weight: 800;
+}
+
+.simple-notice-body p {
+  margin: 0;
+  color: #101138;
+  font-size: 20px;
+  line-height: 1.75;
+}
+
+.simple-notice-body b {
+  color: #070833;
+  font-weight: 900;
+}
+
+.notice-ticket-link {
+  border: 0;
+  padding: 0 4px;
+  background: transparent;
+  color: #2b8fdf;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.simple-notice-actions {
+  margin: 0 44px;
+  border-top: 1px solid #cfd4dc;
+  padding: 20px 6px 16px;
+}
+.approval-notification-head {
+  display: grid;
+  gap: 8px;
+  padding-right: 44px;
+}
+
+.approval-notification-head h3 {
+  margin: 0;
+  color: #172033;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.approval-notification-head p {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.approval-notification-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.approval-notification-summary div {
+  min-width: 0;
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.approval-notification-summary span {
+  display: block;
+  margin-bottom: 6px;
+  color: #8a96a8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.approval-notification-summary b {
+  color: #172033;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.approval-mail-panel {
+  border-color: #cdebd7;
+  background: #fbfffd;
+}
+
+.approval-mail-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.approval-mail-list.compact {
+  margin-top: 12px;
+}
+
+.approval-mail-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.approval-mail-list article b {
+  color: #172033;
+  font-size: 13px;
+}
+
+.approval-mail-list article p {
+  margin: 6px 0;
+  color: #455468;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.approval-mail-list article small {
+  color: #8a96a8;
+  font-size: 12px;
+}
+
+.approval-mail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 160px;
 }
 
 .approval-business-form select.invalid,
@@ -11008,7 +11986,7 @@ onUnmounted(() => {
 
 .datasource-filter-bar.compact {
   display: grid;
-  grid-template-columns: minmax(180px, 260px) minmax(220px, 1fr) auto;
+  grid-template-columns: minmax(180px, 260px) minmax(260px, 1fr) minmax(180px, 220px) 128px;
   gap: 10px;
   align-items: end;
   margin-bottom: 10px;
@@ -11016,6 +11994,12 @@ onUnmounted(() => {
   border: 1px solid #dfe7f3;
   border-radius: 8px;
   background: #f8fafc;
+}
+
+.datasource-filter-bar.compact .ghost-btn {
+  width: 128px;
+  min-height: 38px;
+  justify-content: center;
 }
 
 .datasource-filter-bar label,

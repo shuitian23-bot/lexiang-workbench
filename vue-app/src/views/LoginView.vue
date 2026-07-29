@@ -226,6 +226,7 @@
           </div>
           <div class="register-submit-summary">
             <b>{{ registerSubmitted ? '账号创建申请已提交' : '将提交的申请' }}</b>
+            <p v-if="submittedRegisterRequest">{{ submittedRegisterRequest.id }} · {{ submittedRegisterRequest.status === '待我审批' ? '审核中' : submittedRegisterRequest.status }}</p>
             <p>{{ registerForm.targetUser || '待创建账号人员' }} · {{ selectedRoleNames }} · {{ selectedDataScopeNames }}</p>
           </div>
         </div>
@@ -357,6 +358,7 @@ const registerModalVisible = ref(false)
 const registerStep = ref(0)
 const maxRegisterStep = ref(0)
 const registerSubmitted = ref(false)
+const submittedRegisterRequest = ref<any>(null)
 
 const registerSteps = [
   { key: 'info', label: '1. 填写信息' },
@@ -764,6 +766,211 @@ function registerPermissionCountLabel(root: any) {
   return `${functionCount} 项功能 / ${dataCount} 项数据`
 }
 
+function registerMailAddress(value: string, fallback = 'user') {
+  const normalized = String(value || '').split('（')[0].trim() || fallback
+  return normalized.includes('@') ? normalized : `${normalized}@lenovo.com`
+}
+
+function registerAppBaseUrl(path: string) {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  if (typeof window === 'undefined') return `${base}${path}`
+  return `${window.location.origin}${base}${path}`
+}
+
+function registerStatusLink(request: any) {
+  return `${registerAppBaseUrl('/account-request/status')}?ticket=${encodeURIComponent(request.id)}&token=${encodeURIComponent(request.token)}`
+}
+
+function registerApprovalActionLink(request: any, action = 'approve') {
+  const query = [
+    `ticket=${encodeURIComponent(request.id)}`,
+    `source=account-register`,
+    `action=${encodeURIComponent(action)}`,
+    `approver=${encodeURIComponent(request.applicantManager || 'sunll1')}`,
+    `token=${encodeURIComponent(request.token)}`
+  ]
+  return `${registerAppBaseUrl('/mail-approval/action')}?${query.join('&')}`
+}
+function registerApprovalListLink(request: any, action = '') {
+  const query = [
+    'module=approval',
+    `ticket=${encodeURIComponent(request.id)}`,
+    `approver=${encodeURIComponent(request.applicantManager || 'sunll1')}`,
+    'viewer=approver'
+  ]
+  if (action) query.push(`action=${encodeURIComponent(action)}`)
+  return `${registerAppBaseUrl('/agent/permissions')}?${query.join('&')}`
+}
+
+function createRegisterRequest() {
+  const now = new Date()
+  const dateNo = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('')
+  const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const id = `AP-${dateNo}-${String(Math.floor(Math.random() * 900) + 100)}`
+  const token = Math.random().toString(36).slice(2, 10)
+  return {
+    id,
+    token,
+    type: '创建账号',
+    applicant: registerForm.applicant,
+    applicantItcode: registerForm.applicantItcode,
+    target: registerForm.targetUser,
+    targetItcode: registerForm.targetUser,
+    applicantManager: registerForm.applicantManager || 'sunll1',
+    targetManager: registerForm.targetManager || registerForm.applicantManager || 'sunll1',
+    relatedAccount: registerForm.relatedAccount,
+    businessApprover: '账号与权限管理员',
+    systemApprover: 'sunzh4',
+    email: registerForm.email || registerMailAddress(registerForm.applicantItcode),
+    mobile: registerForm.mobile,
+    roleNames: selectedRoleNames.value,
+    dataScopeNames: selectedDataScopeNames.value,
+    reason: registerForm.reason,
+    status: '待我审批',
+    statusKey: 'pending',
+    node: registerForm.personType === 'external' ? '关联人审批' : '申请人直线经理审批',
+    time,
+    result: '',
+    logs: [
+      { node: '申请人提交', detail: '账号创建申请已受理，系统已生成审批流程和邮件通知。', time }
+    ]
+  }
+}
+
+function persistRegisterRequest(request: any) {
+  if (typeof window === 'undefined') return
+  try {
+    const key = 'leaibot-account-request-status-rows'
+    const existing = JSON.parse(window.localStorage.getItem(key) || '[]').filter((item: any) => item.id !== request.id)
+    existing.unshift(request)
+    window.localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)))
+  } catch {}
+}
+
+function escapeRegisterMailHtml(value: any) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function createRegisterMailLogs(request: any) {
+  const progressLink = registerStatusLink(request)
+  const approvalLink = registerApprovalListLink(request)
+  const actions = [
+    { value: 'approve', label: '同意', link: registerApprovalActionLink(request, 'approve') },
+    { value: 'reject', label: '驳回', link: registerApprovalActionLink(request, 'reject') }
+  ]
+  const mails = [
+    {
+      role: 'applicant',
+      roleLabel: '申请人',
+      toName: request.applicant,
+      to: request.email,
+      subject: `${request.id} 账号创建申请已受理`,
+      content: '您提交的创建账号申请已受理，可点击表单号码进入申请进度查询页查看审核状态。',
+      link: progressLink,
+      linkLabel: '查看审核进度',
+      actions: []
+    },
+    {
+      role: 'applicant-manager',
+      roleLabel: '申请人直线经理',
+      toName: request.applicantManager,
+      to: registerMailAddress(request.applicantManager, 'applicant-manager'),
+      subject: `${request.id} 待审批：创建账号申请`,
+      content: `${request.applicant} 为${request.target}提交了创建账号申请，请确认申请是否合理，并进行审批。`,
+      link: approvalLink,
+      linkLabel: '进入审批列表',
+      actions
+    },
+    {
+      role: 'business-owner',
+      roleLabel: '业务负责人',
+      toName: request.businessApprover,
+      to: 'account-owner@lenovo.com',
+      subject: `${request.id} 待审批：确认账号初始权限`,
+      content: `${request.target} 的创建账号申请等待确认，请确认申请是否合理，并进行审批。`,
+      link: approvalLink,
+      linkLabel: '进入审批列表',
+      actions
+    }
+  ]
+  if (registerForm.personType === 'external') {
+    mails.splice(1, 0, {
+      role: 'relation',
+      roleLabel: '关联人',
+      toName: request.relatedAccount || '关联人',
+      to: registerMailAddress(request.relatedAccount, 'relation-owner'),
+      subject: `${request.id} 关联关系确认通知`,
+      content: `${request.target} 的创建账号申请需要关联人确认。您可在审批列表中查看详情，请核对后进行处理。`,
+      link: approvalLink,
+      linkLabel: '进入审批列表',
+      actions
+    })
+  }
+  return mails
+}
+
+function registerMailMockContent(mail: any, request: any) {
+  const actions = mail.actions.length
+    ? `<div class="mail-actions">${mail.actions.map((action: any) => `<a class="${action.value === 'approve' ? 'agree' : 'reject'}" href="${escapeRegisterMailHtml(action.link)}">${escapeRegisterMailHtml(action.label)}</a>`).join('')}</div>`
+    : ''
+  return `<section class="mail-pane" data-mail-role="${escapeRegisterMailHtml(mail.role)}">
+    <section class="mail-head"><span>${escapeRegisterMailHtml(mail.roleLabel)}邮件 mock</span><h1>${escapeRegisterMailHtml(mail.subject)}</h1></section>
+    <section class="mail-meta"><div>收件人：${escapeRegisterMailHtml(mail.toName)} &lt;${escapeRegisterMailHtml(mail.to)}&gt;</div><div>申请单号：${escapeRegisterMailHtml(request.id)} · 申请类型：创建账号 · 当前节点：${escapeRegisterMailHtml(request.node)}</div></section>
+    <section class="mail-body">
+      <p>${escapeRegisterMailHtml(mail.content)}</p>
+      <div class="mail-card"><div>表单号码：<a class="ticket" href="${escapeRegisterMailHtml(mail.link)}">${escapeRegisterMailHtml(request.id)}</a></div><div>申请人：${escapeRegisterMailHtml(request.applicant)}（${escapeRegisterMailHtml(request.applicantItcode)}）</div><div>待创建账号人员：${escapeRegisterMailHtml(request.target)}</div></div>
+      <a class="progress-link" href="${escapeRegisterMailHtml(mail.link)}">${escapeRegisterMailHtml(mail.linkLabel)}</a>
+      ${actions}
+    </section>
+    <section class="mail-foot">这是一封 POC mock 邮件，不会真实发送。申请人查看进度无需登录，审批人按钮会进入邮件审批确认页。</section>
+  </section>`
+}
+
+function registerMailMockInboxHtml(request: any, mails: any[]) {
+  const tabs = mails.map((mail, index) => `<button type="button" class="mail-tab${index === 0 ? ' active' : ''}" data-mail-role="${escapeRegisterMailHtml(mail.role)}">${escapeRegisterMailHtml(mail.roleLabel)}</button>`).join('')
+  const panes = mails.map((mail, index) => {
+    const pane = registerMailMockContent(mail, request)
+    return index === 0 ? pane : pane.replace('class="mail-pane"', 'class="mail-pane hidden"')
+  }).join('')
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>登录页创建账号邮件 mock - ${escapeRegisterMailHtml(request.id)}</title><style>
+  body { margin: 0; background: #f3f5f8; color: #111827; font-family: Arial, "Microsoft YaHei", sans-serif; }
+  .inbox-shell { max-width: 980px; margin: 28px auto; border: 1px solid #d8dee8; background: #fff; box-shadow: 0 16px 42px rgba(15, 23, 42, .12); }
+  .inbox-title { border-bottom: 1px solid #e5e7eb; padding: 18px 28px; }
+  .inbox-title h1 { margin: 0; color: #101828; font-size: 22px; line-height: 1.35; }
+  .inbox-title p { margin: 8px 0 0; color: #667085; font-size: 13px; }
+  .mail-tabs { display: flex; gap: 8px; border-bottom: 1px solid #e5e7eb; padding: 12px 18px; background: #f8fafc; overflow-x: auto; }
+  .mail-tab { flex: 0 0 auto; min-height: 34px; border: 1px solid #d8e1ee; border-radius: 6px; padding: 0 14px; background: #fff; color: #455468; font-weight: 700; cursor: pointer; }
+  .mail-tab.active { border-color: #316dff; background: #316dff; color: #fff; }
+  .mail-pane.hidden { display: none; }
+  .mail-head { border-bottom: 1px solid #e5e7eb; padding: 20px 28px; }
+  .mail-head span { display: inline-block; margin-bottom: 10px; border: 1px solid #bcd3ff; border-radius: 999px; padding: 4px 10px; color: #316dff; font-size: 12px; font-weight: 700; }
+  .mail-head h1 { margin: 0; color: #101828; font-size: 22px; line-height: 1.35; }
+  .mail-meta { display: grid; gap: 6px; padding: 18px 28px; border-bottom: 1px solid #eef2f7; color: #667085; font-size: 13px; }
+  .mail-body { padding: 28px; font-size: 16px; line-height: 1.8; }
+  .ticket { color: #2380d9; font-weight: 800; text-decoration: underline; }
+  .mail-card { margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: #f8fafc; }
+  .mail-actions { display: flex; gap: 12px; margin-top: 24px; }
+  .mail-actions a, .progress-link { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; border-radius: 6px; padding: 0 18px; font-weight: 700; text-decoration: none; }
+  .progress-link { background: #316dff; color: #fff; }
+  .agree { background: #18a058; color: #fff; }
+  .reject { background: #fff1f1; color: #e53935; border: 1px solid #ffc9c9; }
+  .mail-foot { padding: 18px 28px 26px; color: #667085; font-size: 13px; }
+</style></head><body><main class="inbox-shell"><section class="inbox-title"><h1>${escapeRegisterMailHtml(request.id)} 邮件 mock 收件箱</h1><p>登录页创建账号申请提交后生成的邮件。申请人进公开进度页，审批人进后台审批列表。</p></section><nav class="mail-tabs" aria-label="邮件列表">${tabs}</nav>${panes}</main><script>document.querySelectorAll('.mail-tab').forEach((tab)=>{tab.addEventListener('click',()=>{const role=tab.dataset.mailRole;document.querySelectorAll('.mail-tab').forEach((item)=>item.classList.toggle('active',item===tab));document.querySelectorAll('.mail-pane').forEach((pane)=>pane.classList.toggle('hidden',pane.dataset.mailRole!==role));});});<\/script></body></html>`
+}
+
+function openRegisterMailMockInbox(request: any) {
+  if (typeof window === 'undefined') return
+  const mails = createRegisterMailLogs(request)
+  const url = window.URL.createObjectURL(new Blob([registerMailMockInboxHtml(request, mails)], { type: 'text/html;charset=utf-8' }))
+  window.open(url, 'login-register-mail-inbox-' + request.id)
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 60000)
+}
+
 function submitRegisterApplication() {
   if (!validateRegisterInfo()) {
     registerStep.value = 0
@@ -775,6 +982,10 @@ function submitRegisterApplication() {
     maxRegisterStep.value = Math.max(maxRegisterStep.value, 1)
     return
   }
+  const request = createRegisterRequest()
+  persistRegisterRequest(request)
+  submittedRegisterRequest.value = request
+  openRegisterMailMockInbox(request)
   registerSubmitted.value = true
   registerStep.value = registerSteps.length - 1
   maxRegisterStep.value = registerSteps.length - 1

@@ -35,6 +35,16 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true }
   },
   {
+    path: '/account-request/status',
+    component: () => import('@/views/AccountRequestStatusView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/mail-approval/action',
+    component: () => import('@/views/MailApprovalActionView.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/',
     component: AppLayout,
     // 所有业务路由都需要登录（在 beforeEach 中统一拦截）
