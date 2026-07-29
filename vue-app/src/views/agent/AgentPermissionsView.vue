@@ -676,33 +676,11 @@
               <p>维护权限体系中的基础组织对象，用于角色归属、用户成员、数据范围和功能范围的统一引用。</p>
             </div>
             <div class="org-title-actions">
-              <button type="button" class="ghost-btn" @click="openOrganizationEditor('create')">新增组织</button>
-              <button type="button" class="primary-btn" @click="openOrganizationMemberModal">添加成员</button>
+              <button type="button" class="primary-btn" @click="openOrganizationEditor('create')">新增组织</button>
             </div>
           </div>
 
-          <div class="org-metric-grid">
-            <article>
-              <span>组织总数</span>
-              <b>{{ organizationStats.total }}</b>
-              <small>含根组织和下级组织</small>
-            </article>
-            <article>
-              <span>下级组织</span>
-              <b>{{ organizationStats.children }}</b>
-              <small>根组织之外的组织数量</small>
-            </article>
-            <article>
-              <span>组织成员</span>
-              <b>{{ organizationStats.members }}</b>
-              <small>按当前 mock 成员统计</small>
-            </article>
-            <article>
-              <span>负责人覆盖</span>
-              <b>{{ organizationStats.ownerCoverage }}</b>
-              <small>已配置负责人组织占比</small>
-            </article>
-          </div>
+
 
           <div class="org-workspace-layout">
             <aside class="org-tree-panel">
@@ -716,130 +694,66 @@
                 <input v-model.trim="organizationSearchKeyword" placeholder="搜索组织名称、编码、负责人">
                 <button v-if="organizationSearchKeyword" type="button" class="link-btn" @click="organizationSearchKeyword = ''">清空</button>
               </div>
-              <div v-if="filteredOrganizationTree.length" class="org-tree-list">
-                <template v-for="org in filteredOrganizationTree" :key="org.id">
-                  <button
-                    type="button"
-                    :class="['org-tree-node', { active: selectedOrganizationId === org.id }]"
-                    :style="{ '--level': org.level }"
-                    @click="selectOrganization(org.id)"
-                  >
-                    <span class="org-node-branch"></span>
-                    <span class="org-node-main">
-                      <b>{{ org.name }}</b>
-                      <small>{{ org.code }} · {{ org.memberCount }} 人</small>
-                    </span>
-                  </button>
-                  <button
-                    v-for="child in org.children"
+              <div v-if="organizationSearchKeyword" class="org-chart-search-results">
+                <span>搜索结果</span>
+                <button
+                  v-for="org in orgChartSearchResults"
+                  :key="org.id"
+                  type="button"
+                  :class="{ active: selectedOrganizationId === org.id }"
+                  @click="selectOrganization(org.id)"
+                >{{ org.name }} · {{ org.code }}</button>
+                <small v-if="!orgChartSearchResults.length">没有找到匹配组织</small>
+              </div>
+              <div v-if="selectedOrganization" class="org-chart-canvas">
+                <div v-if="selectedOrganizationParent" class="org-chart-tier parent-tier">
+                  <article class="org-chart-card parent-card">
+                    <button type="button" class="org-chart-focus" @click="selectOrganization(selectedOrganizationParent.id)">
+                      <span>上级组织</span>
+                      <b>{{ selectedOrganizationParent.name }}</b>
+                      <small>{{ selectedOrganizationParent.owner || '未配置负责人' }} · {{ selectedOrganizationParent.code }}</small>
+                    </button>
+                    <button type="button" class="org-chart-detail-btn" @click="openOrganizationDetail(selectedOrganizationParent.id)">详情</button>
+                  </article>
+                </div>
+                <div v-if="selectedOrganizationParent" class="org-chart-link parent-link"><i></i></div>
+                <div class="org-chart-tier current-tier">
+                  <article class="org-chart-card current-card active">
+                    <button type="button" class="org-chart-focus" @click="selectOrganization(selectedOrganization.id)">
+                      <span>{{ selectedOrganization.code }}</span>
+                      <b>{{ selectedOrganization.name }}</b>
+                      <small>{{ selectedOrganization.owner || '未配置负责人' }} · {{ selectedOrganization.memberCount }} 人</small>
+                    </button>
+                    <button type="button" class="org-chart-detail-btn" @click="openOrganizationDetail(selectedOrganization.id)">详情</button>
+                  </article>
+                </div>
+                <div class="org-chart-link child-link" :class="{ hidden: !selectedOrganizationChildren.length }"><i></i></div>
+                <div class="org-chart-tier child-tier">
+                  <article
+                    v-for="child in selectedOrganizationChildren"
                     :key="child.id"
-                    type="button"
-                    :class="['org-tree-node', { active: selectedOrganizationId === child.id }]"
-                    :style="{ '--level': child.level }"
-                    @click="selectOrganization(child.id)"
+                    class="org-chart-card child-card"
                   >
-                    <span class="org-node-branch"></span>
-                    <span class="org-node-main">
+                    <button type="button" class="org-chart-focus" @click="selectOrganization(child.id)">
+                      <span>{{ child.code }}</span>
                       <b>{{ child.name }}</b>
-                      <small>{{ child.code }} · {{ child.memberCount }} 人</small>
-                    </span>
+                      <small>{{ child.owner || '未配置负责人' }} · {{ child.memberCount }} 人</small>
+                    </button>
+                    <button type="button" class="org-chart-detail-btn" @click="openOrganizationDetail(child.id)">详情</button>
+                  </article>
+                  <button type="button" class="org-chart-card add-card" @click="openOrganizationChildEditor(selectedOrganization.id)">
+                    <b>+</b>
+                    <small>新增下级组织</small>
                   </button>
-                </template>
-              </div>
-              <div v-else class="scope-empty compact-empty org-empty">
-                <b>没有找到匹配的组织</b>
-                <p>请调整搜索关键词后再查看组织架构。</p>
-                <button type="button" class="ghost-btn small" @click="organizationSearchKeyword = ''">重置搜索</button>
-              </div>
-            </aside>
-
-            <section v-if="selectedOrganization" class="org-detail-panel">
-              <div class="org-detail-head">
-                <div>
-                  <span>{{ selectedOrganization.code }}</span>
-                  <h3>{{ selectedOrganization.name }}</h3>
-                  <p>{{ selectedOrganization.description || '暂无组织描述，请补充该组织的职责边界和使用场景。' }}</p>
-                </div>
-                <div class="org-detail-actions">
-                  <button type="button" class="ghost-btn small" @click="openOrganizationEditor('edit')">编辑信息</button>
-                  <button type="button" class="danger-outline-btn small" @click="removeSelectedOrganization">移除组织</button>
                 </div>
               </div>
-
-              <dl class="org-detail-grid">
-                <div>
-                  <dt>负责人</dt>
-                  <dd>{{ selectedOrganization.owner || '未配置' }}</dd>
-                </div>
-                <div>
-                  <dt>上级组织</dt>
-                  <dd>{{ organizationParentName(selectedOrganization) }}</dd>
-                </div>
-                <div>
-                  <dt>组织层级</dt>
-                  <dd>{{ selectedOrganization.level + 1 }} 级</dd>
-                </div>
-                <div>
-                  <dt>成员数量</dt>
-                  <dd>{{ selectedOrganization.memberCount }} 人</dd>
-                </div>
-                <div>
-                  <dt>更新时间</dt>
-                  <dd>{{ selectedOrganization.updatedAt }}</dd>
-                </div>
-                <div>
-                  <dt>权限定位</dt>
-                  <dd>{{ selectedOrganization.scope }}</dd>
-                </div>
-              </dl>
-
-
-              <div class="org-member-head">
-                <div>
-                  <b>组织成员</b>
-                  <small>展示该组织下已维护的人员、组织角色和权限身份。</small>
-                </div>
-                <button type="button" class="primary-btn" @click="openOrganizationMemberModal">添加成员</button>
-              </div>
-              <div class="permission-table-wrap org-member-table-wrap">
-                <table v-if="selectedOrganizationMembers.length" class="permission-table org-member-table">
-                  <thead>
-                    <tr>
-                      <th>姓名</th>
-                      <th>账号</th>
-                      <th>部门</th>
-                      <th>组织角色</th>
-                      <th>权限身份</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="member in selectedOrganizationMembers" :key="member.account">
-                      <td>{{ member.name }}</td>
-                      <td>{{ member.account }}</td>
-                      <td>{{ member.department }}</td>
-                      <td>{{ member.orgRole }}</td>
-                      <td>{{ member.permissionIdentity }}</td>
-                      <td>
-                        <div class="row-actions">
-                          <button type="button" class="link-btn" @click="openOrganizationMemberModal(member)">编辑</button>
-                          <button type="button" class="link-btn danger" @click="removeOrganizationMember(member.account)">移除</button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div v-else class="table-empty">
-                  <b>当前组织还没有成员</b>
-                  <p>请点击“添加成员”，补充后会同步更新成员数量。</p>
-                  <button type="button" class="ghost-btn small" @click="openOrganizationMemberModal">添加成员</button>
-                </div>
-              </div>
-              <div v-if="organizationNotice" class="approval-feedback org-feedback">
+              <div v-if="organizationNotice" class="approval-feedback org-feedback org-chart-feedback">
                 <span>{{ organizationNotice }}</span>
                 <button type="button" aria-label="关闭提示" @click="dismissOrganizationNotice">×</button>
               </div>
-            </section>
+            </aside>
+
+
           </div>
         </section>
 
@@ -987,17 +901,17 @@
           <div class="section-title datasource-section-title">
             <div>
               <h2>数据源管理</h2>
-              <p>维护数据权限的基础对象，按分组、接口地址和权限参数管理可授权范围。</p>
+              <p>维护数据权限的基础对象，按左侧导航目录、页面、接口地址和权限参数管理可授权范围。</p>
             </div>
             <button type="button" class="primary-btn" @click="openDataSourceEditor('create')">新增数据源</button>
           </div>
 
           <div class="datasource-filter-bar compact">
             <label>
-              <span>分组</span>
-              <select v-model="dataSourceFilters.group">
-                <option value="">全部分组</option>
-                <option v-for="option in dataSourceGroupOptions" :key="option" :value="option">{{ option }}</option>
+              <span>所属目录/页面</span>
+              <select v-model="dataSourceFilters.menu">
+                <option value="">全部目录/页面</option>
+                <option v-for="option in dataSourceMenuFilterOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
               </select>
             </label>
             <label>
@@ -1019,38 +933,82 @@
             <b v-if="hasDataSourceFilters">已按条件筛选</b>
           </div>
 
-          <div class="permission-table-wrap datasource-table-wrap flat">
-            <table v-if="filteredDataSources.length" class="permission-table datasource-table flat">
+          <div :class="['datasource-workspace-layout', { 'detail-collapsed': !dataSourceDetailVisible }]">
+            <div class="permission-table-wrap datasource-table-wrap flat">
+            <table v-if="filteredDataSourceRows.length" class="permission-table datasource-table datasource-tree-table flat">
               <thead>
                 <tr>
-                  <th>分组</th>
-                  <th>名称</th>
+                  <th>目录 / 页面 / 数据源</th>
+                  <th>类型</th>
                   <th>接口地址</th>
                   <th>权限参数</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in filteredDataSources" :key="row.id">
-                  <td>{{ row.group }}</td>
-                  <td><b class="datasource-table-name">{{ row.name }}</b></td>
-                  <td class="datasource-url-cell">{{ row.apiUrl }}</td>
-                  <td>{{ row.permissionParam }}</td>
+                <tr v-for="row in filteredDataSourceRows" :key="row.id" :class="['datasource-tree-row', row.itemKind, { active: selectedDataSource?.id === row.sourceId } ]" @click="handleDataSourceRowClick(row)">
                   <td>
-                    <div class="row-actions">
-                      <button type="button" class="link-btn" @click="openDataSourceEditor('edit', row)">编辑</button>
-                      <button type="button" class="link-btn danger" @click="deleteDataSource(row)">删除</button>
-                      <button type="button" class="link-btn" @click="openDataSourceDetail(row)">详情</button>
+                    <div class="function-name-cell function-tree-name datasource-tree-name" :style="{ '--tree-depth': row.depth }">
+                      <button
+                        v-if="row.hasChildren"
+                        type="button"
+                        :class="['function-tree-toggle', { expanded: isDataSourceTreeExpanded(row) }]"
+                        :aria-label="isDataSourceTreeExpanded(row) ? '收起' : '展开'"
+                        @click.stop="toggleDataSourceTreeRow(row)"
+                      >›</button>
+                      <span v-else class="function-tree-spacer"></span>
+                      <div>
+                        <b>{{ row.name }}</b>
+                        <small>{{ row.itemKind === 'source' ? dataSourceMenuPath(row) : row.menu }}</small>
+                      </div>
                     </div>
+                  </td>
+                  <td><span :class="['function-type-badge', 'datasource-tree-type', row.itemKind]">{{ dataSourceTreeTypeLabel(row) }}</span></td>
+                  <td class="datasource-url-cell">{{ row.itemKind === 'source' ? row.apiUrl : '-' }}</td>
+                  <td>{{ row.itemKind === 'source' ? row.permissionParam : '-' }}</td>
+                  <td>
+                    <div v-if="row.itemKind === 'source'" class="row-actions">
+                      <button type="button" class="link-btn" @click.stop="openDataSourceEditor('edit', row)">编辑</button>
+                      <button type="button" class="link-btn danger" @click.stop="deleteDataSource(row)">删除</button>
+                      <button type="button" class="link-btn" @click.stop="openDataSourceDetail(row)">详情</button>
+                    </div>
+                    <span v-else class="datasource-structure-note">承载数据源</span>
                   </td>
                 </tr>
               </tbody>
             </table>
             <div v-else class="table-empty datasource-empty">
               <b>没有找到匹配的数据源</b>
-              <p>请调整分组或名称后再查看。</p>
+              <p>请调整目录/页面、名称或敏感性后再查看。</p>
               <button type="button" class="ghost-btn small" @click="resetDataSourceFilters">重置筛选</button>
             </div>
+            </div>
+
+            <aside v-if="dataSourceDetailVisible && selectedDataSource" class="datasource-detail-panel datasource-drawer-panel">
+              <div class="datasource-detail-head">
+                <div>
+                  <span>{{ dataSourceMenuPath(selectedDataSource) }}</span>
+                  <h3>{{ selectedDataSource.name }}</h3>
+                  <p>{{ selectedDataSource.remark || '暂无备注，请补充该数据源的授权场景和使用边界。' }}</p>
+                </div>
+                <div class="function-detail-actions">
+                  <button type="button" class="ghost-btn small" @click="openDataSourceEditor('edit', selectedDataSource)">编辑</button>
+                  <button type="button" class="danger-outline-btn small" @click="deleteDataSource(selectedDataSource)">删除</button>
+                  <button type="button" class="ghost-btn small" @click="closeDataSourceDetail">关闭</button>
+                </div>
+              </div>
+              <div class="datasource-detail-scroll">
+                <dl class="datasource-detail-grid">
+                  <div class="full"><dt>所属目录/页面</dt><dd>{{ dataSourceMenuPath(selectedDataSource) }}</dd></div>
+                  <div><dt>数据源名称</dt><dd>{{ selectedDataSource.name }}</dd></div>
+                  <div><dt>敏感性</dt><dd><span :class="['datasource-badge', sensitivityRisk(selectedDataSource.sensitivity)]">{{ dataSourceSensitivityLabel(selectedDataSource.sensitivity) }}</span></dd></div>
+                  <div class="full"><dt>接口地址</dt><dd>{{ selectedDataSource.apiUrl }}</dd></div>
+                  <div><dt>权限参数</dt><dd>{{ selectedDataSource.permissionParam }}</dd></div>
+                  <div><dt>key / value</dt><dd>{{ selectedDataSource.key || '未配置' }} / {{ selectedDataSource.value || '未配置' }}</dd></div>
+                  <div class="full"><dt>备注</dt><dd>{{ selectedDataSource.remark || '无' }}</dd></div>
+                </dl>
+              </div>
+            </aside>
           </div>
 
           <div v-if="dataSourceNotice" class="approval-feedback datasource-feedback">
@@ -1516,7 +1474,25 @@
         <h3>{{ dataSourceEditor.mode === 'create' ? '新增数据源' : '编辑数据源' }}</h3>
         <p class="modal-note">维护接口授权所需的基础信息，保存后立即更新数据源列表。</p>
         <div class="permission-form-grid datasource-editor-form">
-          <label><span class="field-label required">分组 <em>必填</em></span><select v-model="dataSourceEditor.draft.group" :class="{ invalid: dataSourceEditor.errors.group }"><option disabled value="">请选择分组</option><option v-for="option in dataSourceGroupOptions" :key="option" :value="option">{{ option }}</option></select><small v-if="dataSourceEditor.errors.group" class="field-error">{{ dataSourceEditor.errors.group }}</small></label>
+          <div class="permission-form-field function-menu-field datasource-menu-field">
+            <span class="field-label required">所属页面 <em>必填</em></span>
+            <button type="button" :class="['function-menu-trigger', { invalid: dataSourceEditor.errors.menu, active: dataSourceEditor.menuPickerOpen }]" @click="dataSourceEditor.menuPickerOpen = !dataSourceEditor.menuPickerOpen">
+              <span>{{ dataSourceEditor.draft.menu || '请选择所属页面' }}</span>
+              <i>⌄</i>
+            </button>
+            <div v-if="dataSourceEditor.menuPickerOpen" class="function-menu-cascade datasource-menu-cascade">
+              <div class="function-menu-column">
+                <button v-for="root in functionMenuTree" :key="root.id" type="button" :class="{ active: dataSourceEditor.menuRootId === root.id }" @click="selectDataSourceMenuRoot(root.id)"><span>{{ root.name }}</span><i>⌄</i></button>
+              </div>
+              <div class="function-menu-column">
+                <button v-for="child in activeDataSourceMenuChildren" :key="child.id" type="button" :class="{ active: dataSourceEditor.menuChildId === child.id || dataSourceEditor.draft.menu === functionMenuFullPath(activeDataSourceMenuRoot, child) }" @click="selectDataSourceMenuChild(child.id)"><span>{{ child.name }}</span><i v-if="child.children.length">⌄</i></button>
+              </div>
+              <div v-if="activeDataSourceMenuLeaves.length" class="function-menu-column leaf">
+                <button v-for="leaf in activeDataSourceMenuLeaves" :key="leaf.id" type="button" :class="{ active: dataSourceEditor.draft.menu === functionMenuLeafPath(activeDataSourceMenuRoot, activeDataSourceMenuChild, leaf) }" @click="selectDataSourceMenuLeaf(leaf.id)">{{ leaf.name }}</button>
+              </div>
+            </div>
+            <small v-if="dataSourceEditor.errors.menu" class="field-error">{{ dataSourceEditor.errors.menu }}</small>
+          </div>
           <label><span class="field-label required">名称 <em>必填</em></span><input v-model.trim="dataSourceEditor.draft.name" :class="{ invalid: dataSourceEditor.errors.name }" placeholder="例如：运营指标查询"><small v-if="dataSourceEditor.errors.name" class="field-error">{{ dataSourceEditor.errors.name }}</small></label>
           <label><span class="field-label required">接口地址 <em>必填</em></span><input v-model.trim="dataSourceEditor.draft.apiUrl" :class="{ invalid: dataSourceEditor.errors.apiUrl }" placeholder="例如：/api/ops/metrics"><small v-if="dataSourceEditor.errors.apiUrl" class="field-error">{{ dataSourceEditor.errors.apiUrl }}</small></label>
           <label><span class="field-label required">权限参数 <em>必填</em></span><input v-model.trim="dataSourceEditor.draft.permissionParam" :class="{ invalid: dataSourceEditor.errors.permissionParam }" placeholder="例如：regionCode"><small v-if="dataSourceEditor.errors.permissionParam" class="field-error">{{ dataSourceEditor.errors.permissionParam }}</small></label>
@@ -1557,33 +1533,7 @@
             </dl>
           </section>
 
-          <section v-if="activeApprovalNotifications.length" class="approval-readonly-panel approval-mail-panel">
-            <div class="scope-panel-head">
-              <div>
-                <b>邮件通知</b>
-                <small>当前为 POC mock，展示本单会通知的对象、链接和审批按钮。</small>
-              </div>
-            </div>
-            <div class="approval-mail-list compact">
-              <article v-for="mail in activeApprovalNotifications" :key="mail.id">
-                <div>
-                  <b>{{ mail.subject }}</b>
-                  <p>{{ mail.content }}</p>
-                  <small>{{ mail.time }} · {{ mail.toName }} · {{ mail.to }}</small>
-                </div>
-                <div class="approval-mail-actions">
-                  <button type="button" class="link-btn" @click="openMailLink(mail)">打开链接</button>
-                  <button
-                    v-for="action in mail.actions"
-                    :key="action.value"
-                    type="button"
-                    :class="['link-btn', action.value === 'approve' ? 'success' : 'danger']"
-                    @click="openMailAction(mail, action.value)"
-                  >{{ action.label }}</button>
-                </div>
-              </article>
-            </div>
-          </section>
+
 
           <section v-if="approvalWorkspace.nodeType === 'business'" class="approval-edit-panel">
             <div class="scope-panel-head">
@@ -2096,7 +2046,7 @@
         <div class="role-editor-tabs" role="tablist" aria-label="用户编辑区">
           <button type="button" :class="{ active: userWorkspace.activeTab === 'basic' }" @click="userWorkspace.activeTab = 'basic'">基本信息</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'roles' }" @click="userWorkspace.activeTab = 'roles'">已分配角色</button>
-          <button type="button" :class="{ active: userWorkspace.activeTab === 'data' }" @click="userWorkspace.activeTab = 'data'">权限范围</button>
+          <button type="button" :class="{ active: userWorkspace.activeTab === 'data' }" @click="userWorkspace.activeTab = 'data'">数据权限</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'history' }" @click="userWorkspace.activeTab = 'history'">历史变更</button>
           <button type="button" :class="{ active: userWorkspace.activeTab === 'login' }" @click="userWorkspace.activeTab = 'login'">登录日志</button>
         </div>
@@ -2233,31 +2183,27 @@
               <div class="permission-tree-branch-list">
                 <details v-for="branch in root.children" :key="branch.id" class="permission-tree-branch" open>
                   <summary><b>{{ branch.name }}</b><span>{{ branch.functions.length }} 项功能 / {{ branch.dataPermissions.length }} 项数据</span></summary>
-                  <div class="permission-matrix editable-permission-matrix">
-                    <div class="permission-matrix-head"><span>功能权限</span><span>数据权限</span></div>
-                    <div v-for="row in permissionMatrixRows(branch)" :key="(row.functionPermission?.id || 'func-empty') + '-' + (row.dataPermission?.id || 'data-empty')" class="permission-matrix-row">
-                      <label v-if="row.functionPermission" class="permission-data-check">
-                        <input type="checkbox" :disabled="userWorkspaceReadonly" :checked="isUserFunctionPermissionSelected(row.functionPermission.id)" @change="toggleUserFunctionPermission(row.functionPermission.id)">
-                        <span>{{ row.functionPermission.name }}</span>
-                        <em v-if="userDraftInheritedFunctionIds.includes(row.functionPermission.id)" class="source-tag role">角色继承</em>
-                        <em v-else-if="userWorkspace.draft.extraFunctionPermissionIds.includes(row.functionPermission.id)" class="source-tag user">用户单独授权</em>
+                  <div class="permission-matrix editable-permission-matrix data-only-permission-matrix">
+                    <div class="permission-matrix-head"><span>数据权限</span><span>来源</span></div>
+                    <div v-for="dataPermission in branch.dataPermissions" :key="dataPermission.id" class="permission-matrix-row">
+                      <label class="permission-data-check">
+                        <input type="checkbox" :disabled="userWorkspaceReadonly || userCustomDataLocked || userDraftInheritedDataIds.includes(dataPermission.id)" :checked="userWorkspace.draft.extraDataPermissionIds.includes(dataPermission.id) || userDraftInheritedDataIds.includes(dataPermission.id)" @change="toggleUserExtraData(dataPermission.id)">
+                        <span>{{ dataPermission.name }}</span>
                       </label>
-                      <span v-else>-</span>
-                      <label v-if="row.dataPermission" class="permission-data-check">
-                        <input type="checkbox" :disabled="userWorkspaceReadonly || userCustomDataLocked || userDraftInheritedDataIds.includes(row.dataPermission.id)" :checked="userWorkspace.draft.extraDataPermissionIds.includes(row.dataPermission.id) || userDraftInheritedDataIds.includes(row.dataPermission.id)" @change="toggleUserExtraData(row.dataPermission.id)">
-                        <span>{{ row.dataPermission.name }}</span>
-                        <em v-if="userDraftInheritedDataIds.includes(row.dataPermission.id)" class="source-tag role">角色继承</em>
-                        <em v-else-if="userWorkspace.draft.extraDataPermissionIds.includes(row.dataPermission.id)" class="source-tag user">用户单独授权</em>
-                      </label>
-                      <span v-else>-</span>
+                      <span>
+                        <em v-if="userDraftInheritedDataIds.includes(dataPermission.id)" class="source-tag role">角色继承</em>
+                        <em v-else-if="userWorkspace.draft.extraDataPermissionIds.includes(dataPermission.id)" class="source-tag user">用户单独授权</em>
+                        <em v-else class="source-tag manual">未授权</em>
+                      </span>
                     </div>
+                    <div v-if="!branch.dataPermissions.length" class="permission-matrix-row muted-row"><span>该菜单暂无数据权限</span><span>-</span></div>
                   </div>
                 </details>
               </div>
             </details>
-            <div v-if="!userDraftExtraFunctionPermissions.length && !userDraftExtraDataPermissions.length" class="scope-empty compact-empty inline-empty">
-              <b>没有额外普通权限</b>
-              <p>当前用户仅使用角色继承的功能和数据权限，可在对应列补充用户单独授权。</p>
+            <div v-if="!userDraftExtraDataPermissions.length" class="scope-empty compact-empty inline-empty">
+              <b>没有额外普通数据权限</b>
+              <p>角色继承的数据权限会只读展示；如需用户级补充授权，只在这里勾选额外数据权限。</p>
             </div>
           </div>
           <div v-else class="custom-rule-panel">
@@ -2424,7 +2370,11 @@
                           {{ row.functionPermission.name }}
                         </label>
                         <span v-else>-</span>
-                        <span>{{ row.dataPermission?.name || '-' }}</span>
+                        <label v-if="row.dataPermission" class="permission-data-check">
+                          <input type="checkbox" :checked="isUserRoleModalDataSelected(row.dataPermission.id)" @change="toggleUserRoleModalDataPermission(row.dataPermission.id)">
+                          {{ row.dataPermission.name }}
+                        </label>
+                        <span v-else>-</span>
                       </div>
                     </div>
                   </details>
@@ -2527,6 +2477,98 @@
         </div>
       </div>
     </div>
+
+
+    <div v-if="organizationDetailModalVisible && selectedOrganization" class="permission-modal" @click.self="closeOrganizationDetail">
+      <div class="modal-panel org-detail-modal">
+        <button type="button" class="modal-close" @click="closeOrganizationDetail">×</button>
+        <div class="org-detail-head">
+          <div>
+            <span>{{ selectedOrganization.code }}</span>
+            <h3>{{ selectedOrganization.name }}</h3>
+            <p>{{ selectedOrganization.description || '暂无组织描述，请补充该组织的职责边界和使用场景。' }}</p>
+          </div>
+          <div class="org-detail-actions">
+            <button type="button" class="ghost-btn small" @click="openOrganizationEditor('edit')">编辑信息</button>
+            <button type="button" class="danger-outline-btn small" @click="removeSelectedOrganization">移除组织</button>
+          </div>
+        </div>
+
+        <dl class="org-detail-grid">
+          <div>
+            <dt>负责人</dt>
+            <dd>{{ selectedOrganization.owner || '未配置' }}</dd>
+          </div>
+          <div>
+            <dt>上级组织</dt>
+            <dd>{{ organizationParentName(selectedOrganization) }}</dd>
+          </div>
+          <div>
+            <dt>组织层级</dt>
+            <dd>{{ selectedOrganization.level + 1 }} 级</dd>
+          </div>
+          <div>
+            <dt>成员数量</dt>
+            <dd>{{ selectedOrganization.memberCount }} 人</dd>
+          </div>
+          <div>
+            <dt>更新时间</dt>
+            <dd>{{ selectedOrganization.updatedAt }}</dd>
+          </div>
+          <div>
+            <dt>权限定位</dt>
+            <dd>{{ selectedOrganization.scope }}</dd>
+          </div>
+        </dl>
+
+        <div class="org-member-head">
+          <div>
+            <b>组织成员</b>
+            <small>展示该组织下已维护的人员、组织角色和权限身份。</small>
+          </div>
+          <button type="button" class="primary-btn" @click="openOrganizationMemberModal">添加成员</button>
+        </div>
+        <div class="permission-table-wrap org-member-table-wrap">
+          <table v-if="selectedOrganizationMembers.length" class="permission-table org-member-table">
+            <thead>
+              <tr>
+                <th>姓名</th>
+                <th>账号</th>
+                <th>部门</th>
+                <th>组织角色</th>
+                <th>权限身份</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="member in selectedOrganizationMembers" :key="member.account">
+                <td>{{ member.name }}</td>
+                <td>{{ member.account }}</td>
+                <td>{{ member.department }}</td>
+                <td>{{ member.orgRole }}</td>
+                <td>{{ member.permissionIdentity }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button type="button" class="link-btn" @click="openOrganizationMemberModal(member)">编辑</button>
+                    <button type="button" class="link-btn danger" @click="removeOrganizationMember(member.account)">移除</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else class="table-empty">
+            <b>当前组织还没有成员</b>
+            <p>请点击“添加成员”，补充后会同步更新成员数量。</p>
+            <button type="button" class="ghost-btn small" @click="openOrganizationMemberModal">添加成员</button>
+          </div>
+        </div>
+        <div v-if="organizationNotice" class="approval-feedback org-feedback">
+          <span>{{ organizationNotice }}</span>
+          <button type="button" aria-label="关闭提示" @click="dismissOrganizationNotice">×</button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="organizationEditor.visible" class="permission-modal" @click.self="closeOrganizationEditor">
       <div class="modal-panel org-editor-modal">
         <button type="button" class="modal-close" @click="closeOrganizationEditor">×</button>
@@ -2659,6 +2701,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { MENU_TREE } from '@/stores/app'
 
 const modules = [
@@ -2704,6 +2747,7 @@ const modules = [
   }
 ]
 
+const route = useRoute()
 const activeModule = ref('apply')
 const currentStep = ref(0)
 const maxReachableStep = ref(0)
@@ -3129,7 +3173,13 @@ const dataModal = reactive({
   selectedIds: []
 })
 
-const dataSourceGroupOptions = ['乐享运营', '会员中心', 'GEO 看板', '企业客户管理', '商城运营']
+const legacyDataSourceGroupMenuMap = {
+  乐享运营: '乐享运营 / 运营总览',
+  会员中心: '在职员工管理 / 职场员工概览',
+  'GEO 看板': 'GEO 看板 / 各平台信源分布',
+  企业客户管理: '企业客户管理 / 线索池',
+  商城运营: '乐享运营 / GMV 分析'
+}
 const dataSourceSensitivityOptions = [
   { value: 'standard-data', label: '标准数据（低风险）' },
   { value: 'standard-action', label: '标准操作（低风险）' },
@@ -3138,17 +3188,29 @@ const dataSourceSensitivityOptions = [
   { value: 'it-config-data', label: 'IT 配置数据（高风险）' }
 ]
 const dataSources = reactive([
-  { id: 'ds-ops-region', group: '乐享运营', name: '运营指标查询', apiUrl: '/api/ops/metrics', permissionParam: 'regionCode', key: 'scope', value: 'east', remark: '用于运营日报和活动复盘，按区域控制可见范围。', sensitivity: 'sensitive-data' },
-  { id: 'ds-member-tag', group: '会员中心', name: '会员标签查询', apiUrl: '/api/member/tags', permissionParam: 'tagGroup', key: 'tag_group', value: 'rights', remark: '涉及会员权益使用情况，默认需要业务负责人确认。', sensitivity: 'it-config-data' },
-  { id: 'ds-geo-source', group: 'GEO 看板', name: '信源引用查询', apiUrl: '/api/geo/sources', permissionParam: 'sourceType', key: 'source_type', value: 'official', remark: '用于 GEO 信源监测和引用趋势分析。', sensitivity: 'sensitive-data' },
-  { id: 'ds-lead-pool', group: '企业客户管理', name: '线索池查询', apiUrl: '/api/biz/leads', permissionParam: 'ownerOrg', key: 'owner_org', value: 'enterprise', remark: '包含客户线索和跟进状态，仅企业客户相关组织可申请。', sensitivity: 'it-config-data' },
-  { id: 'ds-mall-order', group: '商城运营', name: '订单状态查询', apiUrl: '/api/mall/orders', permissionParam: 'orderScope', key: 'order_scope', value: 'summary', remark: '用于订单状态和售后进展查看，暂不开放明细字段。', sensitivity: 'it-config-data' }
+  { id: 'ds-ops-region', group: '乐享运营', menu: '乐享运营 / 运营总览', name: '运营指标查询', apiUrl: '/api/ops/metrics', permissionParam: 'regionCode', key: 'scope', value: 'east', remark: '用于运营日报和活动复盘，按区域控制可见范围。', sensitivity: 'sensitive-data' },
+  { id: 'ds-member-tag', group: '会员中心', menu: '在职员工管理 / 职场员工概览', name: '会员标签查询', apiUrl: '/api/member/tags', permissionParam: 'tagGroup', key: 'tag_group', value: 'rights', remark: '涉及会员权益使用情况，默认需要业务负责人确认。', sensitivity: 'it-config-data' },
+  { id: 'ds-geo-source', group: 'GEO 看板', menu: 'GEO 看板 / 各平台信源分布', name: '信源引用查询', apiUrl: '/api/geo/sources', permissionParam: 'sourceType', key: 'source_type', value: 'official', remark: '用于 GEO 信源监测和引用趋势分析。', sensitivity: 'sensitive-data' },
+  { id: 'ds-lead-pool', group: '企业客户管理', menu: '企业客户管理 / 线索池', name: '线索池查询', apiUrl: '/api/biz/leads', permissionParam: 'ownerOrg', key: 'owner_org', value: 'enterprise', remark: '包含客户线索和跟进状态，仅企业客户相关组织可申请。', sensitivity: 'it-config-data' },
+  { id: 'ds-mall-order', group: '商城运营', menu: '乐享运营 / GMV 分析', name: '订单状态查询', apiUrl: '/api/mall/orders', permissionParam: 'orderScope', key: 'order_scope', value: 'summary', remark: '用于订单状态和售后进展查看，暂不开放明细字段。', sensitivity: 'it-config-data' }
 ])
 const dataSourceNotice = ref('')
 let dataSourceNoticeTimer = null
-const dataSourceFilters = reactive({ group: '', name: '', sensitivity: '' })
-const emptyDataSourceDraft = () => ({ id: '', group: '', name: '', apiUrl: '', permissionParam: '', key: '', value: '', remark: '', sensitivity: 'sensitive-data' })
-const dataSourceEditor = reactive({ visible: false, mode: 'create', sourceId: '', draft: emptyDataSourceDraft(), errors: { group: '', name: '', apiUrl: '', permissionParam: '', remark: '' }, notice: '' })
+const selectedDataSourceId = ref('')
+const dataSourceDetailVisible = ref(false)
+const dataSourceFilters = reactive({ menu: '', name: '', sensitivity: '' })
+const emptyDataSourceDraft = () => ({ id: '', group: '', menu: '', name: '', apiUrl: '', permissionParam: '', key: '', value: '', remark: '', sensitivity: 'sensitive-data' })
+const dataSourceEditor = reactive({
+  visible: false,
+  mode: 'create',
+  sourceId: '',
+  draft: emptyDataSourceDraft(),
+  menuPickerOpen: false,
+  menuRootId: '',
+  menuChildId: '',
+  errors: { menu: '', name: '', apiUrl: '', permissionParam: '', remark: '' },
+  notice: ''
+})
 
 const functionTypeOptions = [
   { value: 'function', label: '功能' },
@@ -3272,6 +3334,7 @@ const functionFilters = reactive({ name: '', root: '', menu: '', type: '' })
 const functionCreateTab = ref('function')
 const collapsedFunctionTreeIds = ref(new Set())
 const expandedFunctionMenuIds = ref(new Set())
+const collapsedDataSourceTreeIds = ref(new Set())
 const emptyFunctionDirectoryDraft = () => ({ parentId: '__root__', name: '', path: '', order: 10, description: '' })
 const functionDirectoryEditor = reactive({
   mode: 'create',
@@ -3340,6 +3403,8 @@ const tenantOptions = ['leaibot-cn', 'shop-chat', 'b-chat', 'biz-chat']
 const demoIdentityKey = ref('admin')
 const demoIdentityMenuOpen = ref(false)
 const currentDemoIdentity = computed(() => demoIdentityOptions.find((item) => item.key === demoIdentityKey.value) || demoIdentityOptions[0])
+const approvalMailRoleContext = ref('')
+const approvalDeepLinkTicket = ref('')
 const approvalSearch = reactive({
   status: '全部',
   approverItcode: '',
@@ -3797,6 +3862,8 @@ const userRoleModal = reactive({
   visible: false,
   keyword: '',
   selectedIds: [],
+  selectedFunctionIds: [],
+  selectedDataIds: [],
   targetUserAccount: '',
   detailRoleId: '',
   detailKeyword: ''
@@ -3946,6 +4013,7 @@ const organizations = reactive([
 ])
 
 const selectedOrganizationId = ref('leai-root')
+const organizationDetailModalVisible = ref(false)
 const organizationSearchKeyword = ref('')
 const organizationNotice = ref('')
 let organizationNoticeTimer = null
@@ -4017,37 +4085,36 @@ const finalButtonText = computed(() => isPasswordResetRequest.value ? '完成' :
 const currentModule = computed(() => modules.find((item) => item.key === activeModule.value) || modules[0])
 const flatOrganizations = computed(() => flattenOrganizations(organizations))
 const selectedOrganization = computed(() => findOrganizationById(selectedOrganizationId.value))
+const selectedOrganizationParent = computed(() => selectedOrganization.value?.parentId ? findOrganizationById(selectedOrganization.value.parentId) : null)
+const selectedOrganizationChildren = computed(() => selectedOrganization.value?.children || [])
 const selectedOrganizationMembers = computed(() => selectedOrganization.value?.members || [])
-const filteredOrganizationTree = computed(() => {
+const orgChartSearchResults = computed(() => {
   const keyword = organizationSearchKeyword.value.trim().toLowerCase()
-  const rows = flatOrganizations.value
-  if (!keyword) return rows.map((org) => ({ ...org, children: [] }))
-  return rows
-    .filter((org) => `${org.name} ${org.code} ${org.owner} ${org.description}`.toLowerCase().includes(keyword))
-    .map((org) => ({ ...org, children: [] }))
-})
-const organizationStats = computed(() => {
-  const rows = flatOrganizations.value
-  const total = rows.length
-  const children = rows.filter((org) => org.parentId).length
-  const members = rows.reduce((sum, org) => sum + org.memberCount, 0)
-  const ownerCount = rows.filter((org) => org.owner).length
-  return {
-    total,
-    children,
-    members,
-    ownerCoverage: total ? `${Math.round((ownerCount / total) * 100)}%` : '0%'
-  }
+  if (!keyword) return []
+  return flatOrganizations.value.filter((org) => organizationMatchesKeyword(org, keyword)).slice(0, 8)
 })
 
-const hasDataSourceFilters = computed(() => !!(dataSourceFilters.group || dataSourceFilters.name || dataSourceFilters.sensitivity))
+const dataSourceMenuLeafOptions = computed(() => allFunctionMenuLeaves().map(({ root, child, leaf }) => ({ value: functionMenuLeafPath(root, child, leaf), label: functionMenuLeafPath(root, child, leaf) })))
+const dataSourceMenuFilterOptions = computed(() => {
+  const options = []
+  functionMenuTree.forEach((root) => {
+    options.push({ value: root.name, label: root.name })
+    allFunctionMenuLeaves(root).forEach(({ root: leafRoot, child, leaf }) => {
+      const path = functionMenuLeafPath(leafRoot, child, leaf)
+      options.push({ value: path, label: '  ' + path })
+    })
+  })
+  return options
+})
+const hasDataSourceFilters = computed(() => !!(dataSourceFilters.menu || dataSourceFilters.name || dataSourceFilters.sensitivity))
 const filteredDataSources = computed(() => {
   const name = dataSourceFilters.name.trim().toLowerCase()
   return dataSources.filter((source) => {
-    const groupMatched = !dataSourceFilters.group || source.group === dataSourceFilters.group
-    const nameMatched = !name || source.name.toLowerCase().includes(name)
+    const searchableText = (source.name + ' ' + source.apiUrl + ' ' + source.permissionParam + ' ' + source.remark + ' ' + dataSourceMenuPath(source)).toLowerCase()
+    const menuMatched = dataSourceMatchesMenuFilter(source, dataSourceFilters.menu)
+    const nameMatched = !name || searchableText.includes(name)
     const sensitivityMatched = !dataSourceFilters.sensitivity || source.sensitivity === dataSourceFilters.sensitivity
-    return groupMatched && nameMatched && sensitivityMatched
+    return menuMatched && nameMatched && sensitivityMatched
   })
 })
 const organizationParentOptions = computed(() => flatOrganizations.value.filter((org) => org.id !== organizationEditor.orgId))
@@ -4309,6 +4376,10 @@ const activeFunctionMenuRoot = computed(() => functionMenuTree.find((root) => ro
 const activeFunctionMenuChildren = computed(() => activeFunctionMenuRoot.value?.children || [])
 const activeFunctionMenuChild = computed(() => activeFunctionMenuChildren.value.find((child) => child.id === functionEditor.menuChildId) || activeFunctionMenuChildren.value[0] || null)
 const activeFunctionMenuLeaves = computed(() => activeFunctionMenuChild.value?.children?.filter((item) => item.nodeType === 'menu') || [])
+const activeDataSourceMenuRoot = computed(() => functionMenuTree.find((root) => root.id === dataSourceEditor.menuRootId) || functionMenuTree[0])
+const activeDataSourceMenuChildren = computed(() => activeDataSourceMenuRoot.value?.children || [])
+const activeDataSourceMenuChild = computed(() => activeDataSourceMenuChildren.value.find((child) => child.id === dataSourceEditor.menuChildId) || activeDataSourceMenuChildren.value[0] || null)
+const activeDataSourceMenuLeaves = computed(() => activeDataSourceMenuChild.value?.children?.filter((item) => item.nodeType === 'menu') || [])
 const availableFunctionInterfaces = computed(() => functionInterfaceCatalog.filter((api) => !functionEditor.draft.interfaces.some((item) => item.id === api.id)))
 const selectedFunctionInterface = computed(() => functionInterfaceCatalog.find((api) => api.id === functionEditor.selectedInterfaceId) || null)
 const isExternalPerson = computed(() => form.personType === 'external')
@@ -4401,7 +4472,8 @@ const filteredApprovals = computed(() => {
     const approverMatched = !approverKeyword || row.approverItcode.toLowerCase().includes(approverKeyword) || handledByApprover
     const handlersMatched = !approvalSearch.handlers.length || approvalSearch.handlers.some((handler) => row.handlers.some((item) => item.toLowerCase().includes(handler.toLowerCase())))
     const demoNodeMatched = !currentDemoIdentity.value.nodeTypes.length || currentDemoIdentity.value.nodeTypes.includes(row.nodeType)
-    return statusMatched && approverMatched && handlersMatched && demoNodeMatched
+    const mailRoleMatched = approvalRowVisibleInMailContext(row)
+    return statusMatched && approverMatched && handlersMatched && demoNodeMatched && mailRoleMatched
   })
 })
 const activeApproval = computed(() => approvals.value.find((row) => row.id === approvalWorkspace.rowId) || null)
@@ -4899,6 +4971,57 @@ function functionMenuFullPath(root, child, leaf) {
   return [root?.name, child?.name, leaf?.name].filter(Boolean).join(' / ')
 }
 
+function functionMenuLeafPath(root, child, leaf) {
+  return child?.id === leaf?.id ? functionMenuFullPath(root, child) : functionMenuFullPath(root, child, leaf)
+}
+
+function setDataSourceMenuPickerByMenu(menu) {
+  for (const root of functionMenuTree) {
+    for (const child of root.children) {
+      if (child.name === menu || functionMenuFullPath(root, child) === menu) {
+        dataSourceEditor.menuRootId = root.id
+        dataSourceEditor.menuChildId = child.id
+        return
+      }
+      const leaf = child.children.find((item) => item.name === menu || functionMenuLeafPath(root, child, item) === menu)
+      if (leaf) {
+        dataSourceEditor.menuRootId = root.id
+        dataSourceEditor.menuChildId = child.id
+        return
+      }
+    }
+  }
+  dataSourceEditor.menuRootId = functionMenuTree[0]?.id || ''
+  dataSourceEditor.menuChildId = functionMenuTree[0]?.children?.[0]?.id || ''
+}
+
+function selectDataSourceMenuRoot(id) {
+  dataSourceEditor.menuRootId = id
+  const root = functionMenuTree.find((item) => item.id === id)
+  dataSourceEditor.menuChildId = root?.children?.[0]?.id || ''
+}
+
+function selectDataSourceMenuChild(id) {
+  dataSourceEditor.menuChildId = id
+  const root = activeDataSourceMenuRoot.value
+  const child = root?.children?.find((item) => item.id === id)
+  if (child && !child.children.length) {
+    dataSourceEditor.draft.menu = functionMenuFullPath(root, child)
+    dataSourceEditor.menuPickerOpen = false
+    dataSourceEditor.errors.menu = ''
+  }
+}
+
+function selectDataSourceMenuLeaf(id) {
+  const root = activeDataSourceMenuRoot.value
+  const child = activeDataSourceMenuChild.value
+  const leaf = activeDataSourceMenuLeaves.value.find((item) => item.id === id)
+  if (!root || !child || !leaf) return
+  dataSourceEditor.draft.menu = functionMenuLeafPath(root, child, leaf)
+  dataSourceEditor.menuPickerOpen = false
+  dataSourceEditor.errors.menu = ''
+}
+
 function setFunctionMenuPickerByMenu(menu) {
   for (const root of functionMenuTree) {
     for (const child of root.children) {
@@ -5078,7 +5201,7 @@ function showFunctionNotice(message) {
   }, 2800)
 }
 function resetDataSourceFilters() {
-  dataSourceFilters.group = ''
+  dataSourceFilters.menu = ''
   dataSourceFilters.name = ''
   dataSourceFilters.sensitivity = ''
 }
@@ -5087,8 +5210,115 @@ function dataSourceSensitivityLabel(value) {
   return dataSourceSensitivityOptions.find((option) => option.value === value)?.label || value
 }
 
+function dataSourceMenuPath(source) {
+  return source?.menu || legacyDataSourceGroupMenuMap[source?.group] || source?.group || ''
+}
+
+function dataSourceMatchesMenuFilter(source, filter) {
+  if (!filter) return true
+  const menu = dataSourceMenuPath(source)
+  const parts = functionMenuParts(menu)
+  return menu === filter || parts.root === filter
+}
+
+function dataSourceTreeTypeLabel(row) {
+  if (row.itemKind === 'directory') return row.depth === 0 ? '目录' : '子目录'
+  if (row.itemKind === 'menu') return '页面'
+  return '数据源'
+}
+
+function dataSourceCatalogStructureRows() {
+  return functionCatalogStructureRows().map((item) => ({ ...item, sourceId: '', apiUrl: '', permissionParam: '', key: '', value: '', remark: '', sensitivity: '' }))
+}
+
+const dataSourceCatalogRows = computed(() => {
+  const structureRows = dataSourceCatalogStructureRows()
+  const menuSortMap = new Map(structureRows.filter((item) => item.itemKind === 'menu').map((item) => [item.menu, item]))
+  const sourceRows = dataSources.map((source, index) => {
+    const menu = dataSourceMenuPath(source)
+    const parent = menuSortMap.get(menu)
+    return {
+      ...source,
+      menu,
+      group: functionMenuParts(menu).root || source.group,
+      parentId: parent?.id || '',
+      depth: (parent?.depth ?? 0) + 1,
+      itemKind: 'source',
+      type: 'datasource',
+      sourceId: source.id,
+      sortIndex: (parent?.sortIndex || 999000) + 100 + index
+    }
+  })
+  const rows = [...structureRows, ...sourceRows].sort((a, b) => a.sortIndex - b.sortIndex || a.name.localeCompare(b.name, 'zh-Hans-CN'))
+  const rowMap = new Map(rows.map((item) => [item.id, item]))
+  const usedIds = new Set()
+  sourceRows.forEach((source) => {
+    let cursor = source
+    while (cursor) {
+      usedIds.add(cursor.id)
+      cursor = cursor.parentId ? rowMap.get(cursor.parentId) : null
+    }
+  })
+  const prunedRows = rows.filter((item) => usedIds.has(item.id))
+  const parentIds = new Set(prunedRows.map((item) => item.parentId).filter(Boolean))
+  return prunedRows.map((item) => ({ ...item, hasChildren: parentIds.has(item.id) }))
+})
+
+function isDataSourceTreeExpanded(item) {
+  if (!item?.hasChildren) return false
+  if (item.itemKind === 'directory' || item.itemKind === 'menu') return !collapsedDataSourceTreeIds.value.has(item.id)
+  return false
+}
+
+function isDataSourceTreeRowVisible(item, rowMap) {
+  if (!item.parentId) return true
+  const parent = rowMap.get(item.parentId)
+  if (!parent) return true
+  return isDataSourceTreeExpanded(parent) && isDataSourceTreeRowVisible(parent, rowMap)
+}
+
+const filteredDataSourceRows = computed(() => {
+  const rows = dataSourceCatalogRows.value
+  const rowMap = new Map(rows.map((item) => [item.id, item]))
+  if (!hasDataSourceFilters.value) return rows.filter((item) => isDataSourceTreeRowVisible(item, rowMap))
+  const matchedSourceIds = new Set(filteredDataSources.value.map((source) => source.id))
+  const visibleIds = new Set()
+  rows.forEach((item) => {
+    if (item.itemKind !== 'source' || !matchedSourceIds.has(item.sourceId || item.id)) return
+    let cursor = item
+    while (cursor) {
+      visibleIds.add(cursor.id)
+      cursor = cursor.parentId ? rowMap.get(cursor.parentId) : null
+    }
+  })
+  return rows.filter((item) => visibleIds.has(item.id))
+})
+
+const selectedDataSource = computed(() => dataSources.find((source) => source.id === selectedDataSourceId.value) || null)
+
+function toggleDataSourceTreeRow(item) {
+  if (!item?.hasChildren) return
+  const next = new Set(collapsedDataSourceTreeIds.value)
+  if (next.has(item.id)) next.delete(item.id)
+  else next.add(item.id)
+  collapsedDataSourceTreeIds.value = next
+}
+
+function handleDataSourceRowClick(row) {
+  if (row.itemKind !== 'source') {
+    toggleDataSourceTreeRow(row)
+    return
+  }
+  openDataSourceDetail(row)
+}
+
+function closeDataSourceDetail() {
+  dataSourceDetailVisible.value = false
+}
+
+
 function resetDataSourceEditorErrors() {
-  dataSourceEditor.errors.group = ''
+  dataSourceEditor.errors.menu = ''
   dataSourceEditor.errors.name = ''
   dataSourceEditor.errors.apiUrl = ''
   dataSourceEditor.errors.permissionParam = ''
@@ -5106,31 +5336,34 @@ function openDataSourceEditor(mode, source = null) {
   dataSourceEditor.visible = true
   dataSourceEditor.mode = mode
   dataSourceEditor.sourceId = source?.id || ''
+  dataSourceEditor.menuPickerOpen = false
   dataSourceEditor.draft = cloneDataSourceDraft(source)
+  setDataSourceMenuPickerByMenu(dataSourceEditor.draft.menu)
 }
 
 function closeDataSourceEditor() {
   dataSourceEditor.visible = false
+  dataSourceEditor.menuPickerOpen = false
 }
 
 function validateDataSourceEditor() {
   resetDataSourceEditorErrors()
   const draft = dataSourceEditor.draft
-  if (!draft.group) dataSourceEditor.errors.group = '请选择分组。'
+  if (!draft.menu) dataSourceEditor.errors.menu = '请选择所属页面。'
   if (!draft.name) dataSourceEditor.errors.name = '请填写名称，方便业务人员识别。'
   if (!draft.apiUrl) dataSourceEditor.errors.apiUrl = '请填写接口地址。'
   if (!draft.permissionParam) dataSourceEditor.errors.permissionParam = '请填写权限参数。'
   if (draft.remark.length > 120) dataSourceEditor.errors.remark = '备注建议控制在 120 字以内。'
-  return !(dataSourceEditor.errors.group || dataSourceEditor.errors.name || dataSourceEditor.errors.apiUrl || dataSourceEditor.errors.permissionParam || dataSourceEditor.errors.remark)
+  return !(dataSourceEditor.errors.menu || dataSourceEditor.errors.name || dataSourceEditor.errors.apiUrl || dataSourceEditor.errors.permissionParam || dataSourceEditor.errors.remark)
 }
 
 function buildNewDataSourceFromDraft(draft) {
-  return { ...emptyDataSourceDraft(), ...draft, id: `ds-${Date.now()}` }
+  return { ...emptyDataSourceDraft(), ...draft, group: functionMenuParts(draft.menu).root, id: `ds-${Date.now()}` }
 }
 
 function saveDataSourceEditor() {
   if (!validateDataSourceEditor()) return
-  const draft = { ...dataSourceEditor.draft }
+  const draft = { ...dataSourceEditor.draft, group: functionMenuParts(dataSourceEditor.draft.menu).root }
   if (dataSourceEditor.mode === 'create') {
     const source = buildNewDataSourceFromDraft(draft)
     dataSources.unshift(source)
@@ -5139,6 +5372,7 @@ function saveDataSourceEditor() {
     const index = dataSources.findIndex((source) => source.id === dataSourceEditor.sourceId)
     if (index >= 0) {
       dataSources.splice(index, 1, { ...dataSources[index], ...draft })
+      selectedDataSourceId.value = dataSources[index].id
       showDataSourceNotice(`已保存“${draft.name}”。`)
     }
   }
@@ -5150,20 +5384,17 @@ function deleteDataSource(row) {
   if (!window.confirm(`确认删除“${row.name}”吗？删除后当前 POC 列表将不再展示该数据源。`)) return
   const index = dataSources.findIndex((source) => source.id === row.id)
   if (index >= 0) dataSources.splice(index, 1)
+  if (selectedDataSourceId.value === row.id) {
+    selectedDataSourceId.value = ''
+    dataSourceDetailVisible.value = false
+  }
   showDataSourceNotice(`已删除“${row.name}”。`)
 }
 
 function openDataSourceDetail(row) {
-  openEntityModal('数据源详情', {
-    分组: row.group,
-    名称: row.name,
-    接口地址: row.apiUrl,
-    权限参数: row.permissionParam,
-    key: row.key || '未配置',
-    Value: row.value || '未配置',
-    备注: row.remark || '无',
-    敏感性: dataSourceSensitivityLabel(row.sensitivity)
-  })
+  if (!row || row.itemKind !== 'source') return
+  selectedDataSourceId.value = row.sourceId || row.id
+  dataSourceDetailVisible.value = true
 }
 
 function clearDataSourceNoticeTimer() {
@@ -6207,6 +6438,8 @@ function resetApprovalFilters() {
   approvalSearch.handlerDraft = ''
   approvalSearch.handlerFocused = false
   approvalSearch.handlers = []
+  approvalMailRoleContext.value = ''
+  approvalDeepLinkTicket.value = ''
 }
 
 function openApprovalWorkspace(row, mode) {
@@ -6347,6 +6580,65 @@ function updateApprovalNode(row, nodeType, overrides = {}) {
   row.time = '2026-07-13 16:30'
 }
 
+function normalizeApprovalMailRole(value) {
+  const role = String(value || '').trim()
+  const aliasMap = {
+    requester: 'applicant',
+    applicant: 'applicant',
+    target: 'target',
+    relation: 'relation',
+    approver: 'approver',
+    'applicant-manager': 'applicant-manager',
+    'target-manager': 'target-manager',
+    'business-owner': 'business-owner',
+    business: 'business-owner'
+  }
+  return aliasMap[role] || ''
+}
+
+function demoIdentityKeyForMailRole(role) {
+  const normalized = normalizeApprovalMailRole(role)
+  const map = {
+    applicant: 'requester',
+    target: 'requester',
+    relation: 'relation',
+    'applicant-manager': 'applicant-manager',
+    'target-manager': 'target-manager',
+    'business-owner': 'business-owner'
+  }
+  return map[normalized] || 'admin'
+}
+
+function applyApprovalMailContext(role, ticket = '') {
+  const normalizedRole = normalizeApprovalMailRole(role)
+  if (!normalizedRole) return false
+  const identityKey = demoIdentityKeyForMailRole(normalizedRole)
+  const identity = demoIdentityOptions.find((item) => item.key === identityKey) || demoIdentityOptions[0]
+  const row = approvals.value.find((item) => item.id === ticket) || {}
+  const readonlyViewer = ['applicant', 'target'].includes(normalizedRole)
+  demoIdentityKey.value = identity.key
+  approvalMailRoleContext.value = normalizedRole
+  approvalDeepLinkTicket.value = ticket
+  approvalSearch.viewer = readonlyViewer ? normalizedRole : identity.viewer
+  approvalSearch.approverItcode = readonlyViewer ? '' : (ticket ? approverItcodeForMailRole(row, normalizedRole) : identity.approverItcode)
+  approvalSearch.status = identity.key === 'requester' ? '全部' : '审批中'
+  return true
+}
+
+function approvalRowVisibleInMailContext(row) {
+  const role = approvalMailRoleContext.value
+  const ticket = approvalDeepLinkTicket.value
+  if (ticket && row.id !== ticket) return false
+  if (!role) return true
+  if (role === 'applicant') return samePrincipal(row.applicantItcode, approverItcodeForMailRole(row, role)) || !!ticket
+  if (role === 'target') return samePrincipal(row.targetItcode, approverItcodeForMailRole(row, role)) || !!ticket
+  if (role === 'relation') return samePrincipal(row.relatedAccount, approverItcodeForMailRole(row, role)) || row.nodeType === 'relation'
+  if (role === 'applicant-manager') return samePrincipal(row.applicantManager, approverItcodeForMailRole(row, role))
+  if (role === 'target-manager') return samePrincipal(row.targetManager, approverItcodeForMailRole(row, role))
+  if (role === 'business-owner') return samePrincipal(row.businessApprover, approverItcodeForMailRole(row, role))
+  return true
+}
+
 function approvalDisplayStatus(row) {
   if (!row) return ''
   if (row.statusKey === 'done') return '已完成'
@@ -6380,43 +6672,62 @@ function approvalAppBaseUrl(path = '/agent/permissions') {
   return `${window.location.origin}${fullPath}`
 }
 
-function approvalListLink(row, action = '', viewer = 'approver') {
+function approvalListLink(row, action = '', viewer = 'approver', role = '') {
   const query = [
     `module=approval`,
     `ticket=${encodeURIComponent(row.id)}`,
-    `approver=${encodeURIComponent(row.approverItcode)}`,
+    `approver=${encodeURIComponent(approverItcodeForMailRole(row, role) || row.approverItcode)}`,
     `viewer=${encodeURIComponent(viewer)}`
   ]
+  if (role) query.push(`identity=${encodeURIComponent(role)}`)
   if (action) query.push(`action=${encodeURIComponent(action)}`)
   return `${approvalAppBaseUrl('/agent/permissions')}?${query.join('&')}`
 }
 
-
-function approvalActionLink(row, action = 'approve') {
+function approvalActionLink(row, action = 'approve', role = '') {
   const query = [
     `ticket=${encodeURIComponent(row.id)}`,
     `source=permissions`,
     `action=${encodeURIComponent(action)}`,
-    `approver=${encodeURIComponent(row.approverItcode)}`,
+    `approver=${encodeURIComponent(approverItcodeForMailRole(row, role) || row.approverItcode)}`,
     `token=mock`
   ]
+  if (role) query.push(`identity=${encodeURIComponent(role)}`)
   return `${approvalAppBaseUrl('/mail-approval/action')}?${query.join('&')}`
 }
-function approvalMailActions(row) {
+
+function approverItcodeForMailRole(row, role) {
+  const map = {
+    relation: row.relatedAccount || row.approverItcode,
+    'applicant-manager': row.applicantManager,
+    'target-manager': row.targetManager,
+    'business-owner': row.businessApprover,
+    applicant: row.applicantItcode,
+    target: row.targetItcode
+  }
+  return parseApproverItcode(map[role] || row.approverItcode || '')
+}
+
+function approvalMailActions(row, role = '') {
   return [
-    { value: 'approve', label: '同意', link: approvalActionLink(row, 'approve') },
-    { value: 'reject', label: '驳回', link: approvalActionLink(row, 'reject') }
+    { value: 'approve', label: '同意', link: approvalActionLink(row, 'approve', role) },
+    { value: 'reject', label: '驳回', link: approvalActionLink(row, 'reject', role) }
   ]
 }
 
 function createApprovalNotificationLogs(row) {
-  const listLink = approvalListLink(row, '', 'approver')
-  const applicantLink = approvalListLink(row, '', 'applicant')
-  const targetLink = approvalListLink(row, '', 'target')
-  const managerActions = approvalMailActions(row)
+  const applicantLink = approvalListLink(row, '', 'applicant', 'applicant')
+  const targetLink = approvalListLink(row, '', 'target', 'target')
+  const relationLink = approvalListLink(row, '', 'approver', 'relation')
+  const applicantManagerLink = approvalListLink(row, '', 'approver', 'applicant-manager')
+  const targetManagerLink = approvalListLink(row, '', 'approver', 'target-manager')
+  const businessOwnerLink = approvalListLink(row, '', 'approver', 'business-owner')
   const relationItcode = parseApproverItcode(row.relatedAccount || row.approverItcode || row.applicantManager)
   const businessItcode = parseApproverItcode(row.businessApprover)
-  const relationActions = managerActions
+  const relationActions = approvalMailActions(row, 'relation')
+  const applicantManagerActions = approvalMailActions(row, 'applicant-manager')
+  const targetManagerActions = approvalMailActions(row, 'target-manager')
+  const businessOwnerActions = approvalMailActions(row, 'business-owner')
   const recipients = [
     {
       role: 'applicant',
@@ -6447,7 +6758,7 @@ function createApprovalNotificationLogs(row) {
       to: approvalPersonMail(relationItcode, 'relation-owner'),
       subject: `${row.id} 关联关系确认通知`,
       content: `${row.target} 的${row.type}申请需要关联人确认。您可在审批列表中查看详情，请核对后进行处理。`,
-      link: listLink,
+      link: relationLink,
       linkLabel: '进入审批列表',
       actions: relationActions
     },
@@ -6458,9 +6769,9 @@ function createApprovalNotificationLogs(row) {
       to: approvalPersonMail(row.applicantManager, 'applicant-manager'),
       subject: `${row.id} 待审批：请确认申请合理性`,
       content: `${row.applicant} 为${row.target}提交了${row.type}申请，请确认申请是否合理，并进行审批。`,
-      link: listLink,
+      link: applicantManagerLink,
       linkLabel: '进入审批列表',
-      actions: managerActions
+      actions: applicantManagerActions
     },
     {
       role: 'target-manager',
@@ -6469,9 +6780,9 @@ function createApprovalNotificationLogs(row) {
       to: approvalPersonMail(row.targetManager, 'target-manager'),
       subject: `${row.id} 待审批：请确认被申请人权限范围`,
       content: `${row.target} 的${row.type}申请等待确认，请确认申请是否合理，并进行审批。`,
-      link: listLink,
+      link: targetManagerLink,
       linkLabel: '进入审批列表',
-      actions: managerActions
+      actions: targetManagerActions
     },
     {
       role: 'business-owner',
@@ -6480,9 +6791,9 @@ function createApprovalNotificationLogs(row) {
       to: approvalPersonMail(businessItcode, 'business-owner'),
       subject: `${row.id} 待审批：请确认业务归属和权限范围`,
       content: `${row.target} 的${row.type}申请等待确认，请确认申请是否合理，并进行审批。`,
-      link: listLink,
+      link: businessOwnerLink,
       linkLabel: '进入审批列表',
-      actions: managerActions
+      actions: businessOwnerActions
     }
   ]
   return recipients.map((item, index) => ({
@@ -6632,8 +6943,7 @@ function openMailLink(mail) {
   closeApprovalNotificationModal()
   activeModule.value = 'approval'
   resetApprovalFilters()
-  approvalSearch.approverItcode = mail.role.includes('manager') ? row.approverItcode : ''
-  approvalSearch.viewer = ['applicant', 'target'].includes(mail.role) ? mail.role : 'approver'
+  applyApprovalMailContext(mail.role, row.id)
   openApprovalWorkspace(row, mail.actions.length ? 'approve' : 'view')
 }
 
@@ -7472,6 +7782,7 @@ function openUserRoleModal(user) {
   userRoleModal.keyword = ''
   userRoleModal.selectedIds = [...(user?.roleIds || [])]
   userRoleModal.selectedFunctionIds = [...userInheritedFunctionIds(user || userWorkspace.draft || {})]
+  userRoleModal.selectedDataIds = [...userInheritedDataIds(user || userWorkspace.draft || {})]
   userRoleModal.targetUserAccount = user?.userAccount || userWorkspace.userAccount || ''
   closeUserRoleDetail()
 }
@@ -7497,8 +7808,10 @@ function toggleUserRoleSelection(id) {
   if (!role) return
   if (selected) {
     userRoleModal.selectedFunctionIds = userRoleModal.selectedFunctionIds.filter((functionId) => !role.functionPermissionIds.includes(functionId))
+    userRoleModal.selectedDataIds = userRoleModal.selectedDataIds.filter((dataId) => !role.dataPermissionIds.includes(dataId))
   } else {
     addUniqueIds(userRoleModal.selectedFunctionIds, role.functionPermissionIds)
+    addUniqueIds(userRoleModal.selectedDataIds, role.dataPermissionIds)
   }
 }
 
@@ -7510,18 +7823,30 @@ function toggleUserRoleModalFunctionPermission(id) {
   toggleId(userRoleModal.selectedFunctionIds, id)
 }
 
+function isUserRoleModalDataSelected(id) {
+  return userRoleModal.selectedDataIds.includes(id)
+}
+
+function toggleUserRoleModalDataPermission(id) {
+  toggleId(userRoleModal.selectedDataIds, id)
+}
+
 function confirmUserRoleSelection() {
   if (userWorkspace.visible && userWorkspace.draft) {
     userWorkspace.draft.roleIds = [...userRoleModal.selectedIds]
     const selectedRoleFunctionIds = roleFunctionIds(userRoleModal.selectedIds)
+    const selectedRoleDataIds = roleDataIds(userRoleModal.selectedIds)
     userWorkspace.draft.suppressedRoleFunctionPermissionIds = selectedRoleFunctionIds.filter((id) => !userRoleModal.selectedFunctionIds.includes(id))
-    userWorkspace.notice = '已更新当前用户角色和功能权限范围，保存后生效。'
+    userWorkspace.draft.suppressedRoleDataPermissionIds = selectedRoleDataIds.filter((id) => !userRoleModal.selectedDataIds.includes(id))
+    userWorkspace.notice = '已更新当前用户角色、功能权限和数据权限范围，保存后生效。'
   } else {
     const user = users.find((item) => item.userAccount === userRoleModal.targetUserAccount)
     if (user) {
       user.roleIds = [...userRoleModal.selectedIds]
       const selectedRoleFunctionIds = roleFunctionIds(userRoleModal.selectedIds)
+      const selectedRoleDataIds = roleDataIds(userRoleModal.selectedIds)
       user.suppressedRoleFunctionPermissionIds = selectedRoleFunctionIds.filter((id) => !userRoleModal.selectedFunctionIds.includes(id))
+      user.suppressedRoleDataPermissionIds = selectedRoleDataIds.filter((id) => !userRoleModal.selectedDataIds.includes(id))
       appendUserChange(user, '设置角色', 'POC-ROLE', `角色已调整为：${userRoles(user).map((role) => role.name).join('、') || '无角色'}。`)
     }
   }
@@ -7608,6 +7933,10 @@ function flattenOrganizations(list, rows = []) {
   return rows
 }
 
+function organizationMatchesKeyword(org, keyword) {
+  return `${org.name} ${org.code} ${org.owner} ${org.description} ${org.scope}`.toLowerCase().includes(keyword)
+}
+
 function findOrganizationById(id, list = organizations) {
   for (const org of list) {
     if (org.id === id) return org
@@ -7625,6 +7954,16 @@ function organizationParentName(org) {
 function selectOrganization(id) {
   selectedOrganizationId.value = id
   dismissOrganizationNotice()
+}
+
+function openOrganizationDetail(id) {
+  selectedOrganizationId.value = id
+  organizationDetailModalVisible.value = true
+  dismissOrganizationNotice()
+}
+
+function closeOrganizationDetail() {
+  organizationDetailModalVisible.value = false
 }
 
 function clearOrganizationNoticeTimer() {
@@ -7660,6 +7999,11 @@ function resetOrganizationEditorErrors() {
   organizationEditor.errors.code = ''
   organizationEditor.errors.description = ''
   organizationEditor.notice = ''
+}
+
+function openOrganizationChildEditor(parentId) {
+  selectedOrganizationId.value = parentId
+  openOrganizationEditor('create')
 }
 
 function openOrganizationEditor(mode) {
@@ -7858,6 +8202,7 @@ function removeSelectedOrganization() {
   parent.children = parent.children.filter((child) => child.id !== org.id)
   parent.updatedAt = currentDateTimeText()
   selectedOrganizationId.value = parent.id
+  organizationDetailModalVisible.value = false
   showOrganizationNotice(`已移除组织“${org.name}”。`)
 }
 
@@ -7902,13 +8247,14 @@ function moduleIcon(key) {
 }
 
 function restoreApprovalListDeepLink() {
-  if (typeof window === 'undefined') return
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('module') !== 'approval') return
+  if (route.query.module !== 'approval') return
   activeModule.value = 'approval'
   resetApprovalFilters()
-  approvalSearch.approverItcode = params.get('approver') || ''
-  const viewer = params.get('viewer') || 'approver'
+  const ticket = String(route.query.ticket || '')
+  const identity = String(route.query.identity || '')
+  if (identity && applyApprovalMailContext(identity, ticket)) return
+  approvalSearch.approverItcode = String(route.query.approver || '')
+  const viewer = String(route.query.viewer || 'approver')
   approvalSearch.viewer = ['applicant', 'target', 'approver'].includes(viewer) ? viewer : 'approver'
 }
 
@@ -10825,22 +11171,6 @@ onUnmounted(() => {
   flex: 0 0 auto;
 }
 
-.org-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.org-metric-grid article {
-  min-width: 0;
-  border: 1px solid #e4ebf5;
-  border-radius: 8px;
-  padding: 12px;
-  background: #f8fafc;
-}
-
-.org-metric-grid span,
-.org-metric-grid small,
 .org-panel-head small,
 .org-member-head small {
   display: block;
@@ -10849,17 +11179,9 @@ onUnmounted(() => {
   line-height: 1.45;
 }
 
-.org-metric-grid b {
-  display: block;
-  margin: 6px 0 2px;
-  color: #172033;
-  font-size: 20px;
-  line-height: 1.2;
-}
-
 .org-workspace-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 34%) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   min-height: 0;
   flex: 1 1 auto;
@@ -10909,69 +11231,235 @@ onUnmounted(() => {
   outline: none;
 }
 
-.org-tree-list {
-  display: grid;
-  gap: 8px;
-  min-height: 0;
-  overflow: auto;
-  padding-right: 2px;
-}
-
-.org-tree-node {
-  display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto;
+.org-chart-search-results {
+  display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  min-height: 52px;
-  border: 1px solid #e4ebf5;
-  border-radius: 8px;
-  padding: 9px 10px 9px calc(10px + var(--level, 0) * 18px);
+  min-height: 36px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.org-chart-search-results span,
+.org-chart-search-results small {
+  flex: 0 0 auto;
+  color: #8a96a8;
+  font-size: 12px;
+}
+
+.org-chart-search-results button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  border: 1px solid #d8e1ee;
+  border-radius: 999px;
+  padding: 0 10px;
   background: #fff;
-  text-align: left;
+  color: #455468;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
-.org-tree-node:hover {
-  border-color: rgba(49, 109, 255, 0.32);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
-}
-
-.org-tree-node.active {
+.org-chart-search-results button.active {
   border-color: #8cb2ff;
-  background: #f3f7ff;
-  box-shadow: inset 3px 0 0 #316dff;
+  background: #edf4ff;
+  color: #316dff;
 }
 
-.org-node-branch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #b8c5d8;
-}
-
-.org-tree-node.active .org-node-branch {
-  background: #316dff;
-}
-
-.org-node-main {
+.org-chart-canvas {
+  position: relative;
   display: grid;
-  gap: 3px;
-  min-width: 0;
+  align-content: start;
+  gap: 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  padding: 20px 18px 24px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcff 100%);
 }
 
-.org-node-main b {
+.org-chart-tier {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  min-width: max-content;
+}
+
+.org-chart-tier.child-tier {
+  align-items: stretch;
+  justify-content: flex-start;
+  padding-top: 18px;
+}
+
+.org-chart-tier.child-tier::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 110px;
+  right: 110px;
+  height: 1px;
+  background: #d8e1ee;
+}
+
+.org-chart-card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 7px;
+  width: 196px;
+  min-height: 112px;
+  border: 1px solid #d8e1ee;
+  border-radius: 4px;
+  padding: 13px 14px 14px;
+  background: #fff;
   color: #172033;
-  font-size: 13px;
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.org-chart-card::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: #edf4ff;
+  box-shadow: inset 0 0 0 5px #316dff;
+}
+
+.org-chart-focus {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.org-chart-card:hover {
+  border-color: #8cb2ff;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+.org-chart-card.active {
+  border-color: #316dff;
+  box-shadow: 0 10px 22px rgba(49, 109, 255, 0.18);
+}
+
+.org-chart-card span {
+  order: -1;
+  color: #316dff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.org-chart-card b {
+  max-width: 100%;
+  color: #172033;
+  font-size: 14px;
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.org-node-main small {
-  color: #8a96a8;
+.org-chart-card small {
+  max-width: 100%;
+  color: #667085;
   font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.org-chart-card.current-card {
+  width: 220px;
+  min-height: 122px;
+}
+
+.org-chart-card.parent-card {
+  width: 220px;
+}
+
+.org-chart-card.add-card {
+  border-style: dashed;
+  border-color: #ff6b6b;
+  background: #fff;
+  color: #172033;
+}
+
+.org-chart-card.add-card::before {
+  display: none;
+}
+
+.org-chart-card.add-card b {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.org-chart-detail-btn {
+  min-height: 28px;
+  border: 1px solid #d8e1ee;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #fff;
+  color: #316dff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.org-chart-detail-btn:hover {
+  border-color: #8cb2ff;
+  background: #edf4ff;
+}
+
+.org-chart-link {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: max-content;
+  height: 32px;
+}
+
+.org-chart-link.hidden {
+  visibility: hidden;
+}
+
+.org-chart-link i {
+  display: block;
+  width: 1px;
+  height: 32px;
+  background: #d8e1ee;
+}
+
+.org-chart-link.child-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 16px;
+  background: #d8e1ee;
+}
+
+.org-chart-tier.child-tier .org-chart-card::after {
+  content: '';
+  position: absolute;
+  top: -19px;
+  left: 50%;
+  width: 1px;
+  height: 18px;
+  background: #d8e1ee;
 }
 
 .org-empty {
@@ -10982,6 +11470,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.org-detail-modal {
+  width: min(980px, calc(100vw - 48px));
+  max-height: min(82vh, 760px);
+  overflow: auto;
 }
 
 .org-detail-head {
@@ -11022,7 +11516,7 @@ onUnmounted(() => {
 
 .org-detail-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
   padding: 14px 16px;
@@ -11067,8 +11561,12 @@ onUnmounted(() => {
   margin: 0 16px 16px;
 }
 
+.org-chart-feedback {
+  margin: 0;
+}
+
 .org-member-table {
-  min-width: 760px;
+  min-width: 640px;
 }
 
 .org-feedback {
@@ -11759,6 +12257,11 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.8fr);
   gap: 14px;
+  overflow: hidden;
+}
+
+.datasource-workspace-layout.detail-collapsed {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .datasource-list-panel,
@@ -11830,7 +12333,13 @@ onUnmounted(() => {
   background: #fbfdff;
 }
 
+.datasource-drawer-panel {
+  min-height: 360px;
+  max-height: 100%;
+}
+
 .datasource-detail-head {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -11886,9 +12395,29 @@ onUnmounted(() => {
 }
 
 .datasource-detail-scroll {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+  padding: 12px 6px 2px 0;
+}
+
+.datasource-detail-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.datasource-detail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.datasource-detail-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.datasource-detail-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.58);
 }
 
 .datasource-detail-grid {
@@ -12025,6 +12554,7 @@ onUnmounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
+  overflow: auto;
 }
 
 .datasource-table.flat {
@@ -12034,6 +12564,35 @@ onUnmounted(() => {
 .datasource-table-name {
   color: #172033;
   font-size: 13px;
+}
+
+.datasource-tree-table tbody tr.directory,
+.datasource-tree-table tbody tr.menu {
+  background: #fbfdff;
+}
+
+.datasource-tree-table tbody tr.source .datasource-tree-name b {
+  font-size: 13px;
+}
+
+.datasource-tree-name small {
+  color: #8a96a8;
+}
+
+.datasource-tree-type.directory,
+.datasource-tree-type.menu {
+  background: #edf4ff;
+  color: #316dff;
+}
+
+.datasource-tree-type.source {
+  background: #eef8f2;
+  color: #247a3d;
+}
+
+.datasource-structure-note {
+  color: #8a96a8;
+  font-size: 12px;
 }
 
 .datasource-url-cell {
@@ -12054,6 +12613,15 @@ onUnmounted(() => {
 
 .datasource-editor-modal {
   width: min(820px, calc(100vw - 48px));
+}
+
+.datasource-menu-field {
+  position: relative;
+}
+
+.datasource-menu-cascade {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(720px, calc(100vw - 96px));
 }
 
 @media (max-height: 820px) {

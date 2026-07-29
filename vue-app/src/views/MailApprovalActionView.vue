@@ -59,6 +59,7 @@ const action = computed(() => String(route.query.action || 'approve'))
 const source = computed(() => String(route.query.source || 'permissions'))
 const token = computed(() => String(route.query.token || 'mock'))
 const approver = computed(() => String(route.query.approver || ''))
+const identity = computed(() => String(route.query.identity || 'approver'))
 const actionLabel = computed(() => action.value === 'reject' ? '驳回' : '同意')
 const sourceLabel = computed(() => source.value === 'account-register' ? '登录页创建账号申请' : '权限申请')
 const resultClass = computed(() => action.value === 'reject' ? 'reject' : 'agree')
@@ -66,7 +67,7 @@ const message = computed(() => `请确认是否通过邮件直接${actionLabel.v
 const fallbackLink = computed(() => {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
   if (source.value === 'account-register') return `${base}/account-request/status?ticket=${encodeURIComponent(ticket.value)}&token=${encodeURIComponent(token.value)}`
-  return `${base}/agent/permissions?module=approval&ticket=${encodeURIComponent(ticket.value)}&approver=${encodeURIComponent(approver.value)}&viewer=approver`
+  return `${base}/agent/permissions?module=approval&ticket=${encodeURIComponent(ticket.value)}&approver=${encodeURIComponent(approver.value)}&viewer=approver&identity=${encodeURIComponent(identity.value)}`
 })
 
 function readList(key: string) {
