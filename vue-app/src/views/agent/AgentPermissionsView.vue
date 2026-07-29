@@ -1111,7 +1111,7 @@
               <div class="role-picker-content">
                 <div class="role-picker-title">
                   <b>{{ role.name }}</b>
-                  <button type="button" class="link-btn" @click.stop="toggleTempRole(role.id)">查看详情</button>
+                  <button type="button" class="link-btn" @click.stop="openRoleDetail(role)">查看详情</button>
                 </div>
                 <p>{{ role.desc }}</p>
                 <small>{{ role.functionPermissionIds.length }} 项功能权限 / {{ role.dataPermissionIds.length }} 项数据权限</small>
@@ -5786,8 +5786,17 @@ function isRoleModalFunctionSelected(id) {
   return roleModal.selectedFunctionIds.includes(id)
 }
 
+function ensureRoleModalDetailRoleSelected() {
+  const role = roleModalDetailRole.value
+  if (role && !roleModal.selectedIds.includes(role.id)) {
+    roleModal.selectedIds.push(role.id)
+  }
+}
+
 function toggleRoleModalFunctionPermission(id) {
+  const willSelect = !roleModal.selectedFunctionIds.includes(id)
   toggleId(roleModal.selectedFunctionIds, id)
+  if (willSelect) ensureRoleModalDetailRoleSelected()
 }
 
 function isRoleModalDataSelected(id) {
@@ -5795,7 +5804,9 @@ function isRoleModalDataSelected(id) {
 }
 
 function toggleRoleModalDataPermission(id) {
+  const willSelect = !roleModal.selectedDataIds.includes(id)
   toggleId(roleModal.selectedDataIds, id)
+  if (willSelect) ensureRoleModalDetailRoleSelected()
 }
 
 function isApplicationFunctionSelected(id) {
