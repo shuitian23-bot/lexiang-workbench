@@ -2,7 +2,7 @@
 // 项目 project_id=143（联想乐享）
 const GEO_PROJECT_ID = 143;
 // 2026-06-05 接口：sites 支持 page_size/brands，新增 stable-intents、competitor-trends、wiki-history。
-// 2026-06-11/12 批5：平台筛选改为多选（geoState.platforms 数组）；全平台=空数组，用空模型参数请求。
+// 平台筛选按产品确认改为单选；全平台用空模型参数请求。
 const GEO_SCOPE_CONFIG = {
   all: {
     label: '整体',
@@ -28,7 +28,7 @@ const GEO_SCOPE_CONFIG = {
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
 const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
-const geoState = { scope:'all', platforms:[], period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatforms:[], _intentVisibilityFilters:[], _intentPage:1, _intentPageSize:10 };
+const geoState = { scope:'all', platform:'all', period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatform:'all', _intentVisibilityFilter:'all' };
 const geoConversionState = { period:'30d', startDate:null, endDate:null };
 const geoSourceState = { scope:'all', platform:'all', page:1, pageSize:10 };
 
@@ -87,30 +87,21 @@ function geoPendingInline(message = GEO_PENDING_TEXT) {
   return `<span class="geo-pending-inline">${geoEscape(message)}</span>`;
 }
 
-function geoSiteName(site = {}) {
-  return site.site_name || site.name || site.domain || '-';
+function geoSiteLogoHtml(domain = '', name = '') {
+  const d = String(domain || '').replace(/^https?:\/\//, '').split('/')[0];
+  const fallback = geoEscape(String(name || d || '?').trim().slice(0, 1).toUpperCase() || '?');
+  if (!d) return `<span class="geo-site-logo fallback">${fallback}</span>`;
+  if (/lenovo\.(com|com\.cn|cn)$/i.test(d) || d.includes('.lenovo.')) {
+    return `<span class="geo-site-logo"><img src="assets/logo-icon.png" alt=""></span>`;
+  }
+  const url = `https://www.google.com/s2/favicons?sz=32&domain_url=https://${encodeURIComponent(d)}`;
+  return `<span class="geo-site-logo" data-fallback="${fallback}">
+    <img src="${url}" alt="" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent=this.parentElement.dataset.fallback||'?'">
+  </span>`;
 }
 
-const GEO_AVATAR_PALETTE = ['#3f78c5','#3f9ead','#58a86a','#c89532','#9070c3','#e2685c','#4f6578','#b45f86'];
-function geoDomainColor(seed) {
-  const s = String(seed || '');
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return GEO_AVATAR_PALETTE[h % GEO_AVATAR_PALETTE.length];
-}
-function geoSiteAvatarHtml(domain, name) {
-  const initial = geoEscape((String(name || domain || '?').trim().charAt(0) || '?').toUpperCase());
-  const color = geoDomainColor(domain || name);
-  if (!domain) {
-    return `<span class="geo-site-logo fallback" style="background:${color};color:#fff">${initial}</span>`;
-  }
-  const src = `https://${geoEscape(domain)}/favicon.ico`;
-  return `<span class="geo-site-logo"><img src="${src}" alt="" onerror="this.parentElement.style.display='none';this.parentElement.nextElementSibling.style.display='inline-flex'"></span><span class="geo-site-logo fallback" style="display:none;background:${color};color:#fff">${initial}</span>`;
-}
-function geoSourceRankHtml(rank) {
-  const colors = { 1: '#f5b942', 2: '#b0b8c1', 3: '#e2984f' };
-  if (colors[rank]) return `<span class="geo-source-rank" style="background:${colors[rank]};color:#fff">${rank}</span>`;
-  return `<span style="display:inline-flex;justify-content:center;width:22px;color:#94a3b8;font-weight:600">${rank}</span>`;
+function geoSiteName(site = {}) {
+  return site.site_name || site.name || site.domain || '-';
 }
 
 function geoApiPayload(json) {
@@ -185,7 +176,7 @@ function geoDrawCanvasPending(canvas, message = GEO_PENDING_TEXT) {
 }
 
 function geoSelectedModels() {
-  return geoState.platforms.slice();
+  return geoState.platform && geoState.platform !== 'all' ? [geoState.platform] : [];
 }
 
 function geoSelectedQuestion() {
@@ -202,42 +193,13 @@ function geoCurrentPlatformLabel() {
   return models.map(m => geoPlatNames[m] || m).join('、');
 }
 
-// 加载并发治理：统一走 geoFetchJson——30s 超时兜底 + loadSeq 切换时可批量取消旧请求，
-// 防止竞品/筛选连点时新旧两轮请求抢连接槽位、互相拖累，导致状态栏卡在"加载中..."。
-// 外部点亮AI接口实测慢时 15s+ 才回，超时给到 30s，防抖+abort 保证不会堆积。
-const GEO_FETCH_TIMEOUT_MS = 30000;
-
-function geoAbortPending() {
-  (geoState._pendingAborts || []).forEach(c => { try { c.abort(); } catch (_) {} });
-  geoState._pendingAborts = [];
-}
-
-// 区分「主动取消/超时」与真实业务错误：前者不该拿英文 DOMException 消息糊用户脸
-function geoIsAbortError(e) {
-  return !!e && (e.name === 'AbortError' || e.code === 20);
-}
-
-async function geoFetchJson(url, options = {}, { timeoutMs = GEO_FETCH_TIMEOUT_MS, abortable = true } = {}) {
-  const controller = new AbortController();
-  if (abortable) {
-    geoState._pendingAborts = geoState._pendingAborts || [];
-    geoState._pendingAborts.push(controller);
-  }
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const resp = await fetch(url, { ...options, signal: controller.signal });
-    return await resp.json();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function geoPost(path, body, opts) {
-  return geoFetchJson('/api/geo-dashboard/' + path, {
+async function geoPost(path, body) {
+  const resp = await fetch('/api/geo-dashboard/' + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body || {})
-  }, opts);
+  });
+  return resp.json();
 }
 
 function geoCurrentDateLabel() {
@@ -275,7 +237,10 @@ function geoSyncCompetitorButtons() {
   document.querySelectorAll('.geo-comp-pill').forEach(el => {
     const brand = el.dataset.brand;
     const active = geoState.competitors.includes(brand);
-    el.classList.toggle('active', active);
+    const color = GEO_COMPETITOR_COLORS[brand] || '#6b7280';
+    el.style.background = active ? color : '#fff';
+    el.style.color = active ? '#fff' : '#374151';
+    el.style.borderColor = active ? color : '#d1d5db';
   });
   const counter = document.getElementById('geo-comp-counter');
   if (counter) counter.textContent = `竞品品牌 · 已选 ${geoState.competitors.length}/5`;
@@ -347,7 +312,7 @@ function geoResetPlatformPills() {
   document.querySelectorAll('.geo-pill').forEach(p => p.classList.remove('active'));
   const all = document.querySelector('.geo-pill[data-model="all"]');
   if (all) all.classList.add('active');
-  geoState.platforms = [];
+  geoState.platform = 'all';
 }
 
 function geoSyncScopeUi() {
@@ -357,7 +322,9 @@ function geoSyncScopeUi() {
     geoState.competitors = [];
   }
   document.querySelectorAll('.geo-cmp-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.cmp === geoState.compare);
+    const active = b.dataset.cmp === geoState.compare;
+    b.style.background = active ? '#3f78c5' : '#fff';
+    b.style.color = active ? '#fff' : '#374151';
   });
   const compareControl = document.getElementById('geo-compare-control');
   if (compareControl) compareControl.style.display = isLeai ? 'none' : 'flex';
@@ -373,6 +340,7 @@ function geoSyncScopeUi() {
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
+  geoRenderCompareDetail();
 }
 
 function geoSetScope(el) {
@@ -380,27 +348,17 @@ function geoSetScope(el) {
   el.classList.add('active');
   geoState.scope = el.dataset.scope;
   geoState.questions = [];
-  geoState._intentPlatforms = [];
-  geoState._intentVisibilityFilters = [];
-  geoState._intentPage = 1;
+  geoState._intentPlatform = 'all';
+  geoState._intentVisibilityFilter = 'all';
   geoResetPlatformPills();
   geoSyncScopeUi();
   geoLoadData();
 }
 function geoTogglePlatform(el) {
   const m = el.dataset.model;
-  if (!m || m === 'all') {
-    geoState.platforms = [];
-  } else if (geoState.platforms.includes(m)) {
-    geoState.platforms = geoState.platforms.filter(p => p !== m);
-  } else {
-    geoState.platforms.push(m);
-  }
-  document.querySelectorAll('.geo-pill').forEach(p => {
-    const pm = p.dataset.model;
-    const active = (!pm || pm === 'all') ? geoState.platforms.length === 0 : geoState.platforms.includes(pm);
-    p.classList.toggle('active', active);
-  });
+  document.querySelectorAll('.geo-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  geoState.platform = m || 'all';
   geoState.questions = [];
   geoLoadData();
 }
@@ -425,7 +383,9 @@ function geoQuickPeriod(period) {
   if (startEl) startEl.value = geoState.startDate;
   if (endEl && !endEl.value) endEl.value = geoState.endDate;
   document.querySelectorAll('.geo-period-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.period === period);
+    const active = b.dataset.period === period;
+    b.style.background = active ? '#3f78c5' : '#fff';
+    b.style.color = active ? '#fff' : '#374151';
   });
   geoLoadData();
 }
@@ -437,7 +397,7 @@ function geoDateRangeChanged() {
     geoState.startDate = s.value;
     geoState.endDate = e.value;
     geoState.period = null;
-    document.querySelectorAll('.geo-period-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.geo-period-btn').forEach(b => { b.style.background = '#fff'; b.style.color = '#374151'; });
     geoLoadData();
   }
 }
@@ -510,31 +470,20 @@ function geoRenderDashboardPending(message = GEO_PENDING_TEXT) {
   if (chart) chart.innerHTML = geoPendingHtml(message);
   const canvas = document.getElementById('geo-trend-canvas');
   if (canvas) geoDrawCanvasPending(canvas, message);
-  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-source-top10','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
+  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = geoPendingHtml(message);
   });
 }
 
-// 竞品/筛选连点防抖：短时间内多次触发只合并成一轮真正的网络加载，
-// 避免"连点N个竞品chip = N轮全量并发请求"把外部接口打到限流/排队。
-const GEO_LOAD_DEBOUNCE_MS = 350;
-
-function geoLoadData() {
+async function geoLoadData() {
   if (!document.getElementById('gv-brand-visible')) return;
   const loadSeq = (geoState._loadSeq || 0) + 1;
   geoState._loadSeq = loadSeq;
-  geoAbortPending(); // 立即取消上一轮还没跑完的请求，腾出连接槽位，防止新旧两轮互相拖累
   geoInitDatePicker();
   geoSyncScopeUi();
   geoSyncCompetitorButtons();
   geoSetStatus('加载中...');
-  clearTimeout(geoState._loadDataTimer);
-  geoState._loadDataTimer = setTimeout(() => { geoLoadDataRun(loadSeq); }, GEO_LOAD_DEBOUNCE_MS);
-}
-
-async function geoLoadDataRun(loadSeq) {
-  if (loadSeq !== geoState._loadSeq) return; // 防抖等待期间又被更新的一轮取代
   const selectedModels = geoSelectedModels();
   try {
     const data = await geoFetch(selectedModels);
@@ -553,7 +502,7 @@ async function geoLoadDataRun(loadSeq) {
     const platPromise = Promise.allSettled(GEO_PLATFORMS.map(p => geoFetch([p])));
     const platSitesPromise = Promise.allSettled(GEO_PLATFORMS.map(p => {
       const b = geoSitesBody({ model: p });
-      return geoFetchJson('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) });
+      return fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }).then(r => r.json());
     }));
     const sitesPromise = geoLoadSites(loadSeq);
     const wikiHistoryPromise = (async () => {
@@ -562,17 +511,12 @@ async function geoLoadDataRun(loadSeq) {
         const r = await geoPost('wiki-history', body);
         if (loadSeq !== geoState._loadSeq) return;
         geoState.wikiHistoryData = r.code === 200 ? r.data : null;
-      } catch (e) {
-        if (loadSeq !== geoState._loadSeq) return;
-        console.error('wiki-history fetch', e);
-        geoState.wikiHistoryData = null;
-      }
+      } catch (e) { console.error('wiki-history fetch', e); geoState.wikiHistoryData = null; }
     })();
     const questionsPromise = geoLoadQuestions(loadSeq);
     const stableIntentsPromise = geoLoadStableIntents(loadSeq);
     const trendChartPromise = geoLoadTrendChart(loadSeq);
-    const wordCloudPromise = geoLoadWordCloud(30, loadSeq);
-    const sourceTop10Promise = geoLoadSourceTop10(loadSeq);
+    const wordCloudPromise = geoLoadWordCloud(30);
 
     // 平台分布 + 平台级sites一起完成后渲染
     Promise.all([platPromise, platSitesPromise, wikiHistoryPromise]).then(([overviewResults, sitesResults]) => {
@@ -592,16 +536,10 @@ async function geoLoadDataRun(loadSeq) {
 
     // sites 和 questions 各自内部已有渲染逻辑，无需额外处理
   } catch (e) {
-    if (loadSeq !== geoState._loadSeq) return; // 已被更新一轮取代，静默，不碰状态栏
-    if (geoIsAbortError(e)) {
-      geoSetStatus('加载失败：请求超时，请稍后重试', true);
-      geoRenderDashboardPending();
-      console.warn('GEO API timeout', e);
-    } else {
-      geoSetStatus('加载失败：' + e.message, true);
-      geoRenderDashboardPending();
-      console.error('GEO API error', e);
-    }
+    if (loadSeq !== geoState._loadSeq) return;
+    geoSetStatus('加载失败：' + e.message, true);
+    geoRenderDashboardPending();
+    console.error('GEO API error', e);
   }
 }
 
@@ -625,12 +563,93 @@ function geoRenderKpis(data) {
 }
 
 function geoRenderTrendChart() {
-  // 「品牌 vs 竞品」对比横条面板已下线；趋势折线图由 geoLoadTrendChart/geoDrawTrendCanvas 独立渲染，与此函数无关
+  geoRenderCompareDetail();
+}
+
+function geoRenderCompareDetail() {
+  const c = document.getElementById('geo-trend-chart');
+  const panel = document.getElementById('geo-compare-detail-panel');
+  const row = document.getElementById('geo-trend-row');
+  const showCompare = geoState.scope !== 'leai' && geoState.compare === 'compare';
+  if (panel) panel.style.display = showCompare ? '' : 'none';
+  if (row) row.classList.toggle('single', !showCompare);
+  if (!c) return;
+  if (!showCompare) {
+    c.innerHTML = '';
+    return;
+  }
+  if (!geoState.competitors.length) {
+    c.innerHTML = geoPendingHtml('请选择最多5个竞品');
+    return;
+  }
+  c.innerHTML = geoRenderCompareBars();
 }
 
 function geoCompetitorColorByName(name) {
   const item = Object.entries(GEO_COMPETITOR_NAMES).find(([, label]) => label === name);
   return item ? (GEO_COMPETITOR_COLORS[item[0]] || '#6b7280') : '#6b7280';
+}
+
+function geoLatestSeriesValue(series) {
+  const values = (series?.data || []).filter(v => geoNum(v) !== null);
+  return values.length ? geoNum(values[values.length - 1]) : null;
+}
+
+function geoRenderCompareBars() {
+  const metric = geoState.selectedKpi || 'visible';
+  const metaMap = {
+    visible: { label:'品牌可见度', brandLabel:'联想品牌', source:'趋势最近值' },
+    rec: { label:'品牌推荐率' },
+    top1: { label:'品牌推荐置顶率' },
+    top3: { label:'品牌推荐前三率' }
+  };
+  const meta = metaMap[metric] || metaMap.visible;
+  const isVisibility = metric === 'visible';
+  const brandSeries = (_trendChartData?.series || []).find(s =>
+    s.field === (geoState.scope === 'all' ? 'all' : geoTrendField()) ||
+    (geoState.scope === 'all' && s.field === 'brand_composite_exposure_rate')
+  );
+  const brandValue = isVisibility ? geoLatestSeriesValue(brandSeries) : geoNum(geoState._kpiRaw?.[metric]?.brand);
+  const rows = [{
+    name: geoState.scope === 'all' ? '联想品牌' : geoBrandLabel(),
+    value: brandValue,
+    color: '#3f78c5',
+    type: 'brand'
+  }];
+  const compSeries = isVisibility ? (geoState._competitorTrendSeries || []) : [];
+  geoSelectedCompetitors().forEach(name => {
+    const series = compSeries.find(s => s.field_name === name || s.brand === name || s.field === name);
+    rows.push({
+      name,
+      value: isVisibility ? geoLatestSeriesValue(series) : null,
+      color: geoCompetitorColorByName(name),
+      type: 'competitor'
+    });
+  });
+  const nums = rows.map(r => geoNum(r.value)).filter(v => v !== null);
+  const max = Math.max(...nums, 1);
+  const diff = rows.length > 1 && geoNum(rows[1].value) !== null && geoNum(rows[0].value) !== null
+    ? rows[0].value - rows[1].value
+    : null;
+  const diffText = diff === null ? GEO_PENDING_TEXT : `${diff > 0 ? '+' : ''}${geoFmtCount(diff)}`;
+  return `<div class="geo-compare-bars">
+    <div class="geo-compare-bars-head">
+      <span>${geoEscape(meta.label)}${isVisibility ? `（${meta.source}）` : ''}</span>
+      <strong class="${diff === null ? 'is-pending' : (diff < 0 ? 'neg' : 'pos')}">${diffText}</strong>
+    </div>
+    <div class="geo-compare-bars-list">
+      ${rows.map(r => {
+        const n = geoNum(r.value);
+        const width = n === null ? 0 : Math.max(n / max * 100, 4);
+        return `<div class="geo-compare-bar">
+          <span class="geo-compare-bar-name">${geoEscape(r.name)}</span>
+          <span class="geo-compare-track"><i style="width:${width}%;background:${r.color}"></i></span>
+          <strong class="${n === null ? 'is-pending' : ''}">${n === null ? GEO_PENDING_TEXT : geoFmtCount(n)}</strong>
+        </div>`;
+      }).join('')}
+    </div>
+    ${isVisibility ? '' : `<div class="geo-compare-note">${GEO_PENDING_TEXT}：分竞品${geoEscape(meta.label.replace('品牌', ''))}接口未提供</div>`}
+  </div>`;
 }
 
 function geoSelectKpi(el) {
@@ -647,6 +666,9 @@ function geoToggleCompetitor(el) {
   const idx = geoState.competitors.indexOf(brand);
   if (idx >= 0) {
     geoState.competitors.splice(idx, 1);
+    el.style.background = '#fff';
+    el.style.color = '#374151';
+    el.style.borderColor = '#d1d5db';
   } else {
     if (geoState.competitors.length >= 5) {
       const msg = document.getElementById('geo-comp-limit-msg');
@@ -665,6 +687,10 @@ function geoToggleCompetitor(el) {
       return;
     }
     geoState.competitors.push(brand);
+    const color = GEO_COMPETITOR_COLORS[brand] || '#6b7280';
+    el.style.background = color;
+    el.style.color = '#fff';
+    el.style.borderColor = color;
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
@@ -676,15 +702,6 @@ function geoSetCompare(mode) {
   geoState.compare = next === 'compare' ? 'compare' : 'brand';
   geoSyncScopeUi();
   geoLoadData();
-}
-
-function geoLatestSeriesValue(dataArr) {
-  if (!Array.isArray(dataArr)) return null;
-  for (let i = dataArr.length - 1; i >= 0; i--) {
-    const n = geoNum(dataArr[i]);
-    if (n !== null) return n; // 0 也算有效值，只跳过 null/undefined/NaN
-  }
-  return null;
 }
 
 function geoApplyCompare() {
@@ -724,83 +741,39 @@ function geoApplyCompare() {
       if (brandSubEl) brandSubEl.style.display = 'none';
       if (compareEl) {
         compareEl.style.display = '';
-        if (!hasCompetitors) {
-          compareEl.innerHTML = `<div class="geo-pending-line">请选择竞品</div>`;
+        if (!hasCompetitors || b === null || c === null) {
+          compareEl.innerHTML = `<div class="geo-pending-line">${!hasCompetitors ? '请选择竞品' : GEO_PENDING_TEXT}</div>`;
           card.classList.remove('highlight');
           card.style.borderColor = '';
           continue;
         }
-        if (metric === 'visible') {
-          const trendField = geoTrendField();
-          const brandSeries = (_trendChartData?.series || []).find(s => s.field === trendField);
-          const brandVal = brandSeries ? geoLatestSeriesValue(brandSeries.data) : null;
-          const compSeriesList = geoState._competitorTrendSeries || [];
-          if (!_trendChartData || brandVal === null || !compSeriesList.length) {
-            compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
-            card.classList.remove('highlight');
-            card.style.borderColor = '';
-            continue;
-          }
-          const rows = geoSelectedCompetitors().map(name => {
-            const series = compSeriesList.find(s => s.brand === name);
-            const val = series ? geoLatestSeriesValue(series.data) : null;
-            const dotColor = geoCompetitorColorByName(name);
-            let diffHtml = `<span style="color:#9ca3af">${GEO_PENDING_TEXT}</span>`;
-            if (val !== null) {
-              const diff = brandVal - val;
-              const diffSign = diff > 0 ? '+' : '';
-              const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-              diffHtml = `<span style="color:${diffColor};font-weight:600">${diffSign}${diff}</span>`;
-            }
-            return `
-              <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:4px">
-                <span style="display:flex;align-items:center;gap:4px"><i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor}"></i>${geoEscape(name)}</span>
-                <span style="display:flex;align-items:center;gap:6px"><span>${val === null ? GEO_PENDING_TEXT : geoFmtCount(val)}</span>${diffHtml}</span>
-              </div>
-            `;
-          }).join('');
-          compareEl.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:6px;font-weight:600">
-              <span>${geoEscape(brandLabel)}</span>
-              <span style="display:flex;align-items:center;gap:6px"><span>${geoFmtCount(brandVal)}</span><span style="color:#9ca3af;font-size:10px;font-weight:400">基准</span></span>
+        const bv = b, cv = c;
+        const diff = bv - cv;
+        const diffSign = diff > 0 ? '+' : '';
+        const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
+        const maxV = Math.max(bv, cv, 1);
+        compareEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>品牌</span><span>${geoFmtPct(b)}</span></div>
+              <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#3f78c5;border-radius:3px"></div></div>
             </div>
-            ${rows}
-          `;
-        } else {
-          if (b === null || c === null) {
-            compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
-            card.classList.remove('highlight');
-            card.style.borderColor = '';
-            continue;
-          }
-          const bv = b, cv = c;
-          const diff = bv - cv;
-          const diffSign = diff > 0 ? '+' : '';
-          const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-          const maxV = Math.max(bv, cv, 1);
-          compareEl.innerHTML = `
-            <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-              <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>品牌</span><span>${geoFmtPct(b)}</span></div>
-                <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#3f78c5;border-radius:3px"></div></div>
-              </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>竞品综合</span><span>${geoFmtPct(c)}</span></div>
+              <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#c89532;border-radius:3px"></div></div>
             </div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-              <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>竞品综合</span><span>${geoFmtPct(c)}</span></div>
-                <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#c89532;border-radius:3px"></div></div>
-              </div>
-            </div>
-            <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
-            <div style="font-size:10px;color:#9ca3af;margin-top:4px">分竞品数据待接口提供数据</div>
-          `;
-        }
+          </div>
+          <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
+        `;
       }
       card.classList.toggle('highlight', metric === geoState.selectedKpi && b !== null && c !== null);
       card.style.borderColor = '';
     }
     card.style.borderColor = '';
   }
+  geoRenderCompareDetail();
 }
 
 function geoRenderEcology(data) {
@@ -877,7 +850,8 @@ async function geoLoadSites(loadSeq) {
   try {
     const body = geoSitesBody();
     // 全站点（treemap / site rank 用）
-    const json = await geoFetchJson('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const resp = await fetch('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const json = await resp.json();
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     if (json.code !== 200) { geoRenderSitesPending(); return; }
     const d = json.data || {};
@@ -895,10 +869,7 @@ async function geoLoadSites(loadSeq) {
         lenovoSites = lj.data.sites;
         lenovoTotal = geoNum(lj.data.total_records);
       }
-    } catch (err) {
-      if (loadSeq && loadSeq !== geoState._loadSeq) return; // 旧一轮被取消，静默，别当真实错误打日志
-      console.error('lenovo_top50 fetch fail, fallback to client filter', err);
-    }
+    } catch (err) { console.error('lenovo_top50 fetch fail, fallback to client filter', err); }
     geoRenderLinkTop50(lenovoSites);
     geoSetValue('gv-sites-total', lenovoTotal ?? (lenovoSites.length ? lenovoSites.length : null));
     // wiki 引用数走 0605 wiki-history；联想链接字段未提供时保持占位。
@@ -914,7 +885,6 @@ async function geoLoadSites(loadSeq) {
       geoSetValue('gv-wiki-b-cite', metrics.smb);
       geoSetValue('gv-wiki-biz-cite', metrics.biz);
     } catch (err) {
-      if (loadSeq && loadSeq !== geoState._loadSeq) return; // 旧一轮被取消，静默
       console.error('wiki-history API failed', err);
       geoSetSectionPending(['gv-lenovo-link-cite','gv-lenovo-wiki-cite','gv-wiki-shop-cite','gv-wiki-c-cite','gv-wiki-b-cite','gv-wiki-biz-cite']);
     }
@@ -943,7 +913,7 @@ function geoRenderSiteRank(sites) {
   const top = sites.slice(0, 20);
   if (!top.length) { c.innerHTML = geoPendingHtml(); return; }
   c.innerHTML = '<ol class="geo-rank-list">' + top.map(s =>
-    `<li><span class="grl-idx">${s.rank}</span><span class="grl-name" title="${geoEscape(s.domain)}">${geoEscape(geoSiteName(s))}</span><span class="grl-count">${geoFmtCount(s.count)} · ${geoNum(s.percentage) ?? 0}%</span></li>`
+    `<li><span class="grl-idx">${s.rank}</span>${geoSiteLogoHtml(s.domain, geoSiteName(s))}<span class="grl-name" title="${geoEscape(s.domain)}">${geoEscape(geoSiteName(s))}</span><span class="grl-count">${geoFmtCount(s.count)} · ${geoNum(s.percentage) ?? 0}%</span></li>`
   ).join('') + '</ol>';
 }
 
@@ -966,6 +936,7 @@ function geoRenderLinkTop50(sites) {
       <span style="${idxStyle}">${s.rank}</span>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px">
+          ${geoSiteLogoHtml(s.domain, geoSiteName(s))}
           <span style="font-size:${isTop3 ? '14px' : '13px'};font-weight:${isTop3 ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${geoEscape(geoSiteName(s))}</span>
           <a href="https://${geoEscape(s.domain)}" onclick="return workspaceOpenExternalLink?.(event,this)" data-workspace-source="GEO 引用链接" data-workspace-title="${geoEscape(geoSiteName(s))}" style="font-size:11px;color:#3f78c5;white-space:nowrap;text-decoration:none;flex-shrink:0" title="${geoEscape(s.domain)}">${geoEscape(s.domain)}</a>
         </div>
@@ -974,48 +945,6 @@ function geoRenderLinkTop50(sites) {
       <span style="${countStyle}">${geoFmtCount(s.count)}</span>
     </li>`;
   }).join('') + '</ol>';
-}
-
-// ===== GEO 联想官网引用 URL Top10（0501 起累计，source-top10 接口） =====
-function geoRenderSourceTop10(list) {
-  const c = document.getElementById('geo-source-top10'); if (!c) return;
-  const top = (list || []).slice(0, 10);
-  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">暂无数据</div>'; return; }
-  const maxCount = Math.max(...top.map(s => geoNum(s.citation_count) || 0), 1);
-  c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
-    const rank = s.rank;
-    const count = geoNum(s.citation_count) || 0;
-    const barW = Math.max((count / maxCount * 100), 2).toFixed(0);
-    const isTop3 = rank <= 3;
-    const idxStyle = isTop3
-      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#3f78c5;border-radius:50%;flex-shrink:0'
-      : 'min-width:28px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0';
-    const urlStyle = isTop3
-      ? 'font-size:13px;font-weight:600;color:#1d4ed8'
-      : 'font-size:12px;font-weight:400;color:#3f78c5';
-    return `<li style="display:flex;align-items:center;gap:8px;padding:${isTop3 ? '8px' : '6px'} 8px;border-bottom:1px solid #f3f4f6;${isTop3 ? 'background:#f0f7ff;' : ''}">
-      <span style="${idxStyle}">${rank}</span>
-      <div style="flex:1;min-width:0">
-        <a href="${geoEscape(s.url)}" target="_blank" rel="noopener" style="${urlStyle};display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none" title="${geoEscape(s.url)}">${geoEscape(s.url)}</a>
-        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e8ec;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#3f78c5' : '#9fc4ea'};border-radius:3px"></div></div>
-      </div>
-      <span style="font-size:12px;color:#6b7280;white-space:nowrap;min-width:50px;text-align:right">${geoFmtCount(count)}</span>
-    </li>`;
-  }).join('') + '</ol>';
-}
-
-async function geoLoadSourceTop10(loadSeq) {
-  try {
-    const json = await geoPost('source-top10', { date: geoResolveDateRange().end_date });
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    const list = json.code === 200 ? (json.data?.top_urls || []) : [];
-    geoRenderSourceTop10(list);
-  } catch (e) {
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    console.error('geoLoadSourceTop10', e);
-    const c = document.getElementById('geo-source-top10');
-    if (c) c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">暂无数据</div>';
-  }
 }
 
 // ===== GEO 意图列表 (questions API) =====
@@ -1027,10 +956,11 @@ const GEO_FIELD_LABELS = {
   competitor_visibility:'竞品可见'
 };
 const GEO_INTENT_FILTERS = [
-  { key:'all', label:'全部' },
+  { key:'all', label:'全部展示' },
   { key:'lenovo_brand_visibility', label:'联想品牌可见' },
-  { key:'official_visibility', label:'联想官网可见性' },
-  { key:'leai_visibility', label:'联想乐享可见' }
+  { key:'official_visibility', label:'联想官网可见' },
+  { key:'leai_visibility', label:'联想乐享可见' },
+  { key:'competitor_visibility', label:'竞品可见' }
 ];
 
 function geoModelFieldValue(modelData, field) {
@@ -1073,9 +1003,9 @@ function geoFilterQuestionsByScope(qs, models) {
 }
 
 function geoFilterQuestionsByVisibility(qs, models) {
-  const filters = geoState._intentVisibilityFilters || [];
-  if (!filters.length) return qs || [];
-  return (qs || []).filter(q => filters.every(f => geoQuestionHasVisibility(q, f, models)));
+  const filter = geoState._intentVisibilityFilter || 'all';
+  if (filter === 'all') return qs || [];
+  return (qs || []).filter(q => geoQuestionHasVisibility(q, filter, models));
 }
 
 function geoQuestionsForOverviewSelect() {
@@ -1121,51 +1051,26 @@ async function geoLoadQuestions(loadSeq) {
 function geoRenderQuestions(qs) {
   geoState._questionsData = qs;
   const c = document.getElementById('geo-questions-table'); if(!c) return;
-  if (!qs.length) { c.innerHTML = geoPendingHtml(); geoSetValue('gv-q-count', null); geoRenderIntentFooter(0); return; }
-  // 只展示项目已开启的平台（接口会回传 qwen 等未开启平台的数据，产品口径不展示）
-  const allModels = (qs[0].models || []).map(m => m.model).filter(m => GEO_PLATFORMS.includes(m));
-  const models = geoState._intentPlatforms.length
-    ? allModels.filter(m => geoState._intentPlatforms.includes(m))
+  if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
+  const allModels = (qs[0].models || []).map(m => m.model);
+  const models = geoState._intentPlatform && geoState._intentPlatform !== 'all'
+    ? allModels.filter(m => m === geoState._intentPlatform)
     : allModels;
   geoRenderIntentFilter(allModels, models);
   geoRenderIntentVisibilityFilter();
   const scoped = geoFilterQuestionsByScope(qs, models);
-  const filtered = geoFilterQuestionsByVisibility(scoped, models);
-  geoSetValue('gv-q-count', filtered.length ? filtered.length : null);
-  if (!filtered.length) { c.innerHTML = geoPendingHtml(); geoRenderIntentFooter(0); return; }
-
-  const pageSize = geoState._intentPageSize || 10;
-  const totalPages = Math.max(Math.ceil(filtered.length / pageSize), 1);
-  if (geoState._intentPage > totalPages) geoState._intentPage = totalPages;
-  if (geoState._intentPage < 1) geoState._intentPage = 1;
-  const current = geoState._intentPage;
-  const rows = filtered.slice((current - 1) * pageSize, current * pageSize);
-
-  // 竞品可见列已从筛选项移除，但列始终保留展示
-  const activeFieldKeys = geoState._intentVisibilityFilters.length
-    ? GEO_INTENT_FIELD_KEYS.filter(k => k === 'competitor_visibility' || geoState._intentVisibilityFilters.includes(k))
-    : GEO_INTENT_FIELD_KEYS;
-  const colCount = activeFieldKeys.length;
-
-  let html = '<table class="geo-intent-table" style="width:100%"><thead>';
-  html += '<tr><th rowspan="2" style="text-align:left;min-width:180px;vertical-align:middle">意图关键词</th>';
-  models.forEach(m => {
-    const name = geoPlatNames[m] || m;
-    html += `<th colspan="${colCount}" style="text-align:center">${geoEscape(name)}</th>`;
-  });
-  html += '</tr><tr>';
-  models.forEach(m => {
-    activeFieldKeys.forEach(f => {
-      html += `<th style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</th>`;
-    });
-  });
+  const rows = geoFilterQuestionsByVisibility(scoped, models);
+  geoSetValue('gv-q-count', rows.length ? rows.length : null);
+  if (!rows.length) { c.innerHTML = geoPendingHtml(); return; }
+  let html = '<table class="geo-intent-table" style="width:100%"><thead><tr><th style="text-align:left;min-width:180px">意图</th>';
+  models.forEach(m => { const name = geoPlatNames[m] || m; GEO_INTENT_FIELD_KEYS.forEach(f => { html += `<th>${geoEscape(name)}<br><span style="font-size:10px;font-weight:400">${geoEscape(GEO_FIELD_LABELS[f] || f)}</span></th>`; }); });
   html += '</tr></thead><tbody>';
   rows.forEach(q => {
     const questionText = q.question || '';
     html += `<tr><td class="name" title="${geoEscape(questionText)}">${geoEscape(questionText.length > 20 ? questionText.slice(0,20)+'...' : questionText)}</td>`;
     models.forEach(m => {
       const md = (q.models || []).find(x => x.model === m);
-      activeFieldKeys.forEach(f => {
+      GEO_INTENT_FIELD_KEYS.forEach(f => {
         const v = geoIntentDerivedValue(md, f);
         const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : '');
         html += `<td class="${cls}"><span class="geo-yn-badge ${cls}">${geoEscape(v)}</span></td>`;
@@ -1175,91 +1080,33 @@ function geoRenderQuestions(qs) {
   });
   html += '</tbody></table>';
   c.innerHTML = html;
-  geoRenderIntentFooter(filtered.length, current, totalPages);
-}
-
-function geoIntentPagerHtml(current, total) {
-  const pages = geoSourceVisiblePages(current, total);
-  return `<div class="geo-source-pager">
-    <button ${current <= 1 ? 'disabled' : ''} onclick="geoIntentSetPage(${Math.max(current - 1, 1)})">‹</button>
-    ${pages.map(p => p === '...'
-      ? `<span class="geo-source-ellipsis">...</span>`
-      : `<button class="${p === current ? 'active' : ''}" onclick="geoIntentSetPage(${p})">${p}</button>`).join('')}
-    <button ${current >= total ? 'disabled' : ''} onclick="geoIntentSetPage(${Math.min(current + 1, total)})">›</button>
-  </div>`;
-}
-
-function geoRenderIntentFooter(total, current, totalPages) {
-  const totalEl = document.getElementById('geo-intent-total');
-  if (totalEl) totalEl.textContent = `共 ${total} 条`;
-  const pagerEl = document.getElementById('geo-intent-pager');
-  if (pagerEl) pagerEl.innerHTML = total ? geoIntentPagerHtml(current || 1, totalPages || 1) : '';
-}
-
-function geoIntentSetPage(page) {
-  geoState._intentPage = page || 1;
-  geoRenderQuestions(geoState._questionsData || []);
-}
-
-function geoIntentSetPageSize(size) {
-  geoState._intentPageSize = Number(size) || 10;
-  geoState._intentPage = 1;
-  geoRenderQuestions(geoState._questionsData || []);
 }
 
 function geoRenderIntentFilter(allModels, activeModels) {
   const c = document.getElementById('geo-intent-plat-filter'); if (!c) return;
   const buttons = [{ key:'all', label:'全平台', color:'#3f78c5' }].concat(allModels.map(m => ({ key:m, label:geoPlatNames[m] || m, color:geoPlatColors[m] || '#6b7280' })));
   c.innerHTML = buttons.map(item => {
-    const active = item.key === 'all' ? geoState._intentPlatforms.length === 0 : geoState._intentPlatforms.includes(item.key);
+    const active = item.key === 'all' ? activeModels.length === allModels.length : activeModels.length === 1 && activeModels.includes(item.key);
     return `<button onclick="geoSetIntentModel('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? item.color : '#d1d5db'};background:${active ? item.color : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
   }).join('');
 }
 
 function geoRenderIntentVisibilityFilter() {
   const c = document.getElementById('geo-intent-visibility-filter'); if (!c) return;
-  const current = geoState._intentVisibilityFilters || [];
-  const allActive = current.length === 0;
-  let html = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
-  html += '<span style="font-size:12px;color:#6b7280;white-space:nowrap">筛选展示：</span>';
-  html += `<button onclick="geoSetIntentVisibilityFilter('all')" style="padding:5px 14px;font-size:12px;border-radius:8px;border:1px solid ${allActive ? '#3f78c5' : '#d1d5db'};background:${allActive ? '#eff6ff' : '#f9fafb'};color:${allActive ? '#2563eb' : '#6b7280'};cursor:pointer;font-weight:600;transition:all .15s">全部</button>`;
-  GEO_INTENT_FILTERS.filter(item => item.key !== 'all').forEach(item => {
-    const active = current.includes(item.key);
-    html += `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;font-size:12px;border-radius:8px;border:1px solid ${active ? '#10b981' : '#d1d5db'};background:${active ? '#ecfdf5' : '#fff'};color:${active ? '#059669' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s"><span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:3px;border:1.5px solid ${active ? '#10b981' : '#9ca3af'};background:${active ? '#10b981' : '#fff'};color:#fff;font-size:10px;line-height:1">${active ? '✓' : ''}</span>${geoEscape(item.label)}：是</button>`;
-  });
-  html += '</div>';
-  html += `<button onclick="geoClearIntentFilters()" style="background:none;border:none;color:#6b7280;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">清空筛选 <span style="font-size:13px">↺</span></button>`;
-  c.innerHTML = html;
+  const current = geoState._intentVisibilityFilter || 'all';
+  c.innerHTML = GEO_INTENT_FILTERS.map(item => {
+    const active = item.key === current;
+    return `<button onclick="geoSetIntentVisibilityFilter('${item.key}')" style="padding:3px 10px;font-size:11px;border-radius:12px;border:1px solid ${active ? '#3f78c5' : '#d1d5db'};background:${active ? '#3f78c5' : '#fff'};color:${active ? '#fff' : '#6b7280'};cursor:pointer;font-weight:500;transition:all .15s">${geoEscape(item.label)}</button>`;
+  }).join('');
 }
 
 function geoSetIntentModel(model) {
-  if (!model || model === 'all') {
-    geoState._intentPlatforms = [];
-  } else if (geoState._intentPlatforms.includes(model)) {
-    geoState._intentPlatforms = geoState._intentPlatforms.filter(m => m !== model);
-  } else {
-    geoState._intentPlatforms.push(model);
-  }
-  geoState._intentPage = 1;
+  geoState._intentPlatform = model || 'all';
   geoRenderQuestions(geoState._questionsData || []);
 }
 
 function geoSetIntentVisibilityFilter(filter) {
-  if (!filter || filter === 'all') {
-    geoState._intentVisibilityFilters = [];
-  } else if (geoState._intentVisibilityFilters.includes(filter)) {
-    geoState._intentVisibilityFilters = geoState._intentVisibilityFilters.filter(f => f !== filter);
-  } else {
-    geoState._intentVisibilityFilters.push(filter);
-  }
-  geoState._intentPage = 1;
-  geoRenderQuestions(geoState._questionsData || []);
-}
-
-function geoClearIntentFilters() {
-  geoState._intentVisibilityFilters = [];
-  geoState._intentPlatforms = [];
-  geoState._intentPage = 1;
+  geoState._intentVisibilityFilter = filter || 'all';
   geoRenderQuestions(geoState._questionsData || []);
 }
 
@@ -1270,7 +1117,8 @@ function geoToggleIntentModel(model) {
 function geoRenderIntentPlatformSummary(qs) {
   const c = document.getElementById('geo-intent-platform-summary'); if (!c) return;
   if (!qs.length) { c.innerHTML = geoPendingHtml(); return; }
-  const models = (qs[0].models || []).map(m => m.model);
+  // 只统计项目已开启的平台（接口会回传 qwen 等未开启平台）
+  const models = (qs[0].models || []).map(m => m.model).filter(m => GEO_PLATFORMS.includes(m));
   const totalCount = geoFilterQuestionsByScope(qs, models).length;
   const platStats = {};
   models.forEach(m => { platStats[m] = geoFilterQuestionsByScope(qs, [m]).length; });
@@ -1316,17 +1164,20 @@ function geoSourceScopeLabel() {
 }
 
 function geoSourceVisiblePages(current, total) {
-  const t = Math.max(total || 1, 1);
-  if (t <= 7) { const a=[]; for (let p=1;p<=t;p++) a.push(p); return a; }
-  let start = current - 2, end = current + 2;
-  if (start < 1) { end += (1 - start); start = 1; }
-  if (end > t) { start -= (end - t); end = t; }
-  start = Math.max(start, 1); end = Math.min(end, t);
-  const out = [1];
-  if (start > 2) out.push('...');
-  for (let p = Math.max(start,2); p <= Math.min(end,t-1); p++) out.push(p);
-  if (end < t - 1) out.push('...');
-  out.push(t);
+  const pages = [];
+  const safeTotal = Math.max(total || 1, 1);
+  const add = p => { if (p >= 1 && p <= safeTotal && !pages.includes(p)) pages.push(p); };
+  add(1);
+  add(current - 1);
+  add(current);
+  add(current + 1);
+  add(safeTotal);
+  pages.sort((a, b) => a - b);
+  const out = [];
+  pages.forEach((p, i) => {
+    if (i && p - pages[i - 1] > 1) out.push('...');
+    out.push(p);
+  });
   return out;
 }
 
@@ -1359,7 +1210,7 @@ async function geoLoadSourcePage(page) {
   if (st) st.textContent = '加载中...';
   try {
     const body = geoSitesBody({ _scope: geoSourceState.scope, model: model === 'all' ? '' : model, page: geoSourcePage, page_size: pageSize });
-    const json = await geoPost('sites', body, { abortable: false });
+    const json = await geoPost('sites', body);
     if (json.code !== 200) throw new Error(json.message);
     const d = json.data || {}; const sites = d.sites || []; const pg = d.pagination || {};
     if (!sites.length) {
@@ -1367,15 +1218,14 @@ async function geoLoadSourcePage(page) {
       if (c) c.innerHTML = geoPendingHtml();
       const pager = document.getElementById('geo-source-pager');
       if (pager) pager.innerHTML = '';
-      const totalEl0 = document.getElementById('geo-source-total');
-      if (totalEl0) totalEl0.textContent = '共 0 条';
       return;
     }
+    const shownPageSize = pg.per_page || pageSize;
+    const pageSizeNote = shownPageSize !== pageSize ? ' · 接口暂未按所选条数返回' : '';
     if (st) st.innerHTML = `
-      <span class="geo-source-stat">👥 共 <strong>${(d.total_records||0).toLocaleString()}</strong> 个站点</span>
-      <span class="geo-source-stat">📄 第 <strong>${pg.current_page||1}</strong> / <strong>${pg.total_pages||1}</strong> 页</span>`;
-    const totalEl = document.getElementById('geo-source-total');
-    if (totalEl) totalEl.textContent = `共 ${(d.total_records||0).toLocaleString()} 条`;
+      <span class="geo-source-stat"><strong>${(d.total_records||0).toLocaleString()}</strong> 个站点</span>
+      <span class="geo-source-stat">第 <strong>${pg.current_page || 1} / ${pg.total_pages || 1}</strong> 页</span>
+      <span class="geo-source-stat">${geoEscape(geoSourceScopeLabel())} · ${geoEscape(model === 'all' ? '全平台' : (geoPlatNames[model] || model))} · ${shownPageSize} 条/页${geoEscape(pageSizeNote)}</span>`;
     if (!c) return;
     const maxCount = Math.max(...sites.map(s => geoNum(s.count) || 0), 1);
     c.innerHTML = `<table class="geo-source-table"><thead><tr><th>排名</th><th>站点</th><th>域名</th><th>引用次数</th><th>占比</th></tr></thead><tbody>
@@ -1385,10 +1235,10 @@ async function geoLoadSourcePage(page) {
         const barW = Math.max(count / maxCount * 100, 3).toFixed(0);
         const name = geoSiteName(s);
         return `<tr>
-          <td>${geoSourceRankHtml(s.rank)}</td>
-          <td class="name"><span class="geo-source-site">${geoSiteAvatarHtml(s.domain, name)}<span>${geoEscape(name)}</span></span></td>
+          <td><span class="geo-source-rank ${s.rank <= 3 ? 'top' : ''}">${s.rank}</span></td>
+          <td class="name"><span class="geo-source-site">${geoSiteLogoHtml(s.domain, name)}<span>${geoEscape(name)}</span></span></td>
           <td class="domain">${geoEscape(s.domain || '-')}</td>
-          <td><div class="geo-source-count"><strong>${geoFmtCount(count)}</strong><span style="background:#e5e8ec"><i style="width:${barW}%;background:#3f78c5"></i></span></div></td>
+          <td><div class="geo-source-count"><strong>${geoFmtCount(count)}</strong><span><i style="width:${barW}%"></i></span></div></td>
           <td><div class="geo-source-pct"><span>${geoFmtPct(pct)}</span><i style="background:conic-gradient(#3f78c5 ${Math.max(Math.min(pct || 0, 100), 0)}%, #e2e8f0 0)"></i></div></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -1435,17 +1285,18 @@ async function geoLoadTrendChart(loadSeq) {
   const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange() };
   const brand = geoRequestBrand();
   if (brand) body.brands = brand;
+  const platform = geoState.platform;
   const models = geoSelectedModels();
-  if (models.length) body.model = models[0];
+  if (platform && platform !== 'all' && models.length === 1) body.model = models[0];
   const competitors = geoState.compare === 'compare' ? geoSelectedCompetitors() : [];
   if (competitors.length) body.competitors = competitors;
   try {
-    const json = await geoFetchJson('/api/geo-dashboard/summary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const resp = await fetch('/api/geo-dashboard/summary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const json = await resp.json();
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     if (json.code !== 200 || !json.data) {
       _trendChartData = null;
       geoDrawCanvasPending(canvas);
-      if (geoState.compare === 'compare') geoApplyCompare();
       return;
     }
     const d = json.data;
@@ -1483,7 +1334,6 @@ async function geoLoadTrendChart(loadSeq) {
           scopedSeries = scopedSeries.filter(s => s.field !== 'competitor_exposure_rate').concat(compSeries);
         }
       } catch (err) {
-        if (loadSeq && loadSeq !== geoState._loadSeq) return; // 旧一轮被取消，别拿它的失败去清空新一轮已渲染的数据
         console.error('competitor-trends fetch', err);
         geoState._competitorTrendSeries = [];
       }
@@ -1497,18 +1347,16 @@ async function geoLoadTrendChart(loadSeq) {
     if (!dates.length || !scopedSeries.length) {
       _trendChartData = null;
       geoDrawCanvasPending(canvas);
-      if (geoState.compare === 'compare') geoApplyCompare();
       return;
     }
     _trendChartData = { dates, series: scopedSeries };
     geoDrawTrendCanvas();
-    if (geoState.compare === 'compare') geoApplyCompare();
+    geoRenderCompareDetail();
   } catch(e) {
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     _trendChartData = null;
     geoDrawCanvasPending(canvas);
     console.error('geoLoadTrendChart', e);
-    if (geoState.compare === 'compare') geoApplyCompare();
   }
 }
 
@@ -1649,7 +1497,7 @@ function geoRenderTrendLegend(series, colors) {
 }
 
 // ===== GEO 词云 =====
-async function geoLoadWordCloud(days, loadSeq) {
+async function geoLoadWordCloud(days) {
   days = days || 30;
   document.querySelectorAll('.geo-wc-btn').forEach(b => {
     const active = +b.dataset.days === days;
@@ -1659,15 +1507,11 @@ async function geoLoadWordCloud(days, loadSeq) {
   const c = document.getElementById('geo-word-cloud');
   if (!c) return;
   try {
-    const json = await geoFetchJson('/api/geo-dashboard/word-cloud?days=' + days);
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
+    const resp = await fetch('/api/geo-dashboard/word-cloud?days=' + days);
+    const json = await resp.json();
     if (!json.success || !json.data) { c.innerHTML = geoPendingHtml(); return; }
     geoRenderWordCloud(json.data, c);
-  } catch(e) {
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    console.error('geoLoadWordCloud', e);
-    c.innerHTML = geoPendingHtml();
-  }
+  } catch(e) { console.error('geoLoadWordCloud', e); c.innerHTML = geoPendingHtml(); }
 }
 
 function geoRenderWordCloud(words, container) {
@@ -1746,7 +1590,8 @@ function geoInitConversionDatePicker() {
 function geoSyncConversionPeriodButtons() {
   document.querySelectorAll('.geo-conv-period-btn').forEach(b => {
     const active = geoConversionState.period && b.dataset.period === geoConversionState.period;
-    b.classList.toggle('active', active);
+    b.style.background = active ? '#3f78c5' : '#fff';
+    b.style.color = active ? '#fff' : '#374151';
   });
 }
 
