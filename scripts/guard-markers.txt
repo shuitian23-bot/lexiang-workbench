@@ -66,3 +66,6 @@ public/js/app-intent.js|compare_recent|裸对比句本地闭环
 public/battle-map.html|乐享+ 5.0 人力作战地图|人力作战地图页
 public/admin-vue/admin-runtime/workbench-geo.js|geoIsAbortError|GEO看板2.0整改-并发治理与多选
 public/admin-vue/admin-runtime/workbench-pages.js|geo-source-top10|GEO看板2.0整改-Top10面板
+public/battle-map.html|乐享+ 5.0 人力作战地图|人力作战地图页
+/opt/projects/lexiang-new/public/admin-vue/admin-runtime/workbench-geo.js|geoIsAbortError|GEO2.0-new环境-并发治理
+/opt/projects/lexiang-new/public/admin-vue/admin-runtime/workbench-pages.js|geo-source-top10|GEO2.0-new环境-Top10面板
