@@ -23,7 +23,7 @@ interface AttachedFile {
 }
 
 interface TaskAction {
-  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_reject' | 'skill_tune_confirm'
+  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_batch_approve' | 'auth_reject' | 'skill_tune_confirm'
   label: string
   value?: string
 }
@@ -69,7 +69,13 @@ interface AuthRequestBlock {
   command: string
   risk: string
   detail: string
+  summary?: string
+  scope?: string
+  impact?: string
+  steps?: string[]
+  approveHint?: string
   approveLabel: string
+  batchApproveLabel?: string
   rejectLabel: string
 }
 
@@ -81,6 +87,8 @@ interface AuthResultBlock {
 
 interface ReportArtifact {
   id: string
+  conversationId?: string
+  messageId?: string
   title: string
   sourcePage: string
   sourcePageLabel: string
@@ -116,6 +124,7 @@ interface ConversationItem {
   remoteConvId: string | null
   title: string
   messages: AiMessage[]
+  reports?: ReportArtifact[]
   updatedAt: string
 }
 
@@ -147,6 +156,25 @@ interface AiRuntimeContext {
   appStore?: AppStoreBridge
 }
 
+interface QueryableSkillAuthScenario {
+  pageId: string
+  skillLabel: string
+  groupLabel: string
+  aliases: RegExp[]
+  summary: string
+  scope: string
+  steps: string[]
+  resultTitle: string
+  resultBullets: string[]
+}
+
+interface PendingQueryableSkillAuth {
+  key: string
+  payload: ComposerPayload
+  scenario: QueryableSkillAuthScenario
+  context: AiRuntimeContext
+}
+
 export const AI_PANEL_DEFAULT_WIDTH             = 380
 export const AI_PANEL_COLLAPSED_NAV_EXTRA_WIDTH = 112
 const AI_CONVERSATION_STORAGE_KEY        = 'leai_ai_conversations'
@@ -155,6 +183,132 @@ const AI_PREVIEW_RESPONSE_DELAY_MS       = import.meta.env.DEV ? 3600 : 0
 
 // 全局 report artifacts 缓存（对应原 AI_REPORT_ARTIFACTS 对象）
 export const AI_REPORT_ARTIFACTS: Record<string, ReportArtifact> = {}
+
+const QUERY_ACTION_PATTERN = /查|查询|查看|看一下|分析|汇总|统计|总结|解读|报告|数据|趋势|明细|情况|分布|转化|指标|近\s*(?:\d+|一|二|两|三|四|五|六|七|八|九|十)|上周|本周|今天|今日|昨天|最近/i
+
+const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
+  {
+    pageId: 'dashboard.overview',
+    skillLabel: '运营总览查询',
+    groupLabel: '乐享运营',
+    aliases: [/运营总览|运营概览|今日指标|dau|wau|mau|gmv|活跃|经营数据|转化链路/i],
+    summary: '读取运营总览核心指标、经营链路和趋势数据，生成只读分析结果。',
+    scope: '乐享运营 / 运营总览，以及当前会话内同类运营指标查询。',
+    steps: ['读取 DAU、WAU、MAU、GMV 等核心指标', '汇总登录、互动、购买和成交链路', '生成结论、异常提示和可展开报告'],
+    resultTitle: '运营总览查询结果',
+    resultBullets: ['核心链路会按登录、互动、购买和成交拆解。', '默认只读取看板数据，不改动运营配置。', '如后续涉及导出或发布，会再次请求确认。']
+  },
+  {
+    pageId: 'pipeline.annotate',
+    skillLabel: 'Query 分析查询',
+    groupLabel: '乐享运营',
+    aliases: [/query|查询分析|无答案|问答|关键词|query\s*质量/i],
+    summary: '读取 Query 明细、无答案样本和知识命中情况，生成查询质量分析。',
+    scope: '乐享运营 / Query 分析，以及当前会话内同类 Query 数据查询。',
+    steps: ['读取 Query 聚合和无答案样本', '识别高频问题与知识缺口', '生成补充建议和报告卡片'],
+    resultTitle: 'Query 分析查询结果',
+    resultBullets: ['结果会聚焦 Query 规模、无答案率和高频缺口。', '只读查询不会修改知识库或发布内容。', '补充知识、发布或导出前会再次确认。']
+  },
+  {
+    pageId: 'pipeline.quality',
+    skillLabel: '质量分析查询',
+    groupLabel: '乐享运营',
+    aliases: [/质量分析|服务质量|点踩|badcase|满意度|性能|对话质量/i],
+    summary: '读取质量、点踩、性能和对话体验数据，生成质量复盘。',
+    scope: '乐享运营 / 质量分析，以及当前会话内同类质量数据查询。',
+    steps: ['读取点踩、满意度和性能指标', '定位主要 Badcase 类型', '生成质量结论和优先级建议'],
+    resultTitle: '质量分析查询结果',
+    resultBullets: ['结果会围绕点踩率、低满意度和 Badcase 类型展开。', '仅分析质量数据，不调整线上策略。', '涉及策略或发布改动时会再次确认。']
+  },
+  {
+    pageId: 'ops.traffic',
+    skillLabel: '流量分析查询',
+    groupLabel: '乐享运营',
+    aliases: [/流量分析|入口|访问|流量|渠道|入口质量/i],
+    summary: '读取入口流量、访问趋势和渠道表现，生成流量分析。',
+    scope: '乐享运营 / 流量分析，以及当前会话内同类流量查询。',
+    steps: ['读取入口访问和渠道数据', '对比关键入口变化', '生成流量结论和优化建议'],
+    resultTitle: '流量分析查询结果',
+    resultBullets: ['结果会按入口、渠道和访问质量拆解。', '只读查询不会调整入口配置。', '如需要配置或发布，会单独授权。']
+  },
+  {
+    pageId: 'ops.gmv',
+    skillLabel: 'GMV 分析查询',
+    groupLabel: '乐享运营',
+    aliases: [/gmv|成交|客单价|购买转化|爆款商品|热销商品|订单/i],
+    summary: '读取 GMV、订单、客单价和商品转化数据，生成交易分析。',
+    scope: '乐享运营 / GMV 分析，以及当前会话内同类交易数据查询。',
+    steps: ['读取 GMV、购买人数和客单价', '识别转化变化与爆款商品', '生成交易结论和可展开报告'],
+    resultTitle: 'GMV 分析查询结果',
+    resultBullets: ['结果会突出 GMV、购买转化和商品贡献。', '默认只读取交易统计数据。', '后续导出或运营配置需再次确认。']
+  },
+  {
+    pageId: 'dashboard.geo',
+    skillLabel: 'GEO 看板查询',
+    groupLabel: 'GEO 看板',
+    aliases: [/geo|geo\s*看板|整体数据概览|信源|意图|转化看板|手工上传知识|转化/i],
+    summary: '读取 GEO 看板、信源、意图和转化数据，生成只读分析结果。',
+    scope: 'GEO 看板及其子菜单，以及当前会话内同类 GEO 查询。',
+    steps: ['识别当前 GEO 查询维度和时间范围', '读取信源、意图、引用或转化数据', '生成结论、明细摘要和报告卡片'],
+    resultTitle: 'GEO 查询结果',
+    resultBullets: ['结果会按 GEO 监控数据、信源质量和转化表现组织。', '只读查询不会修改 GEO 配置或知识内容。', '如需要上传知识、发布或导出，会再次请求授权。']
+  },
+  {
+    pageId: 'employee.overview',
+    skillLabel: '职场员工数据查询',
+    groupLabel: '在职员工管理',
+    aliases: [/职场员工|员工概览|认证数据|人群画像|认证方式|在职员工|购买转化|爆款商品/i],
+    summary: '读取职场员工、认证方式、人群画像、购买转化和 GMV 数据，生成认证分析。',
+    scope: '在职员工管理 / 职场员工概览，以及当前会话内同类认证数据查询。',
+    steps: ['解析用户输入的时间范围', '读取认证、画像、购买转化和 GMV 数据', '生成结论、明细和可视化报告'],
+    resultTitle: '职场员工认证查询结果',
+    resultBullets: ['结果会按认证规模、用户画像、购买转化和商品贡献展开。', '只读查询不会修改认证状态。', '修改状态、导出或配置变更需要再次确认。']
+  },
+  {
+    pageId: 'employee.certification',
+    skillLabel: '认证审核数据查询',
+    groupLabel: '在职员工管理',
+    aliases: [/认证审核|认证失败|认证成功|待审核|已失效|修改状态|审核数据/i],
+    summary: '读取认证审核列表、失败原因和待审核数据，生成审核分析。',
+    scope: '在职员工管理 / 职场员工审核，以及当前会话内同类审核数据查询。',
+    steps: ['读取认证审核状态分布', '分析失败原因和待处理样本', '生成审核结论和后续动作建议'],
+    resultTitle: '认证审核查询结果',
+    resultBullets: ['结果会聚焦失败、成功、待审核和已失效状态。', '默认只读，不修改认证状态。', '修改状态前会再次请求授权。']
+  },
+  {
+    pageId: 'lead.dashboard',
+    skillLabel: '线索看板查询',
+    groupLabel: '企业客户管理',
+    aliases: [/线索看板|销售线索|转商机|线索趋势|企业客户/i],
+    summary: '读取线索看板、来源、阶段和转化数据，生成线索分析。',
+    scope: '企业客户管理 / 线索看板，以及当前会话内同类线索数据查询。',
+    steps: ['读取线索规模、来源和阶段数据', '分析线索转化和跟进优先级', '生成线索结论和报告卡片'],
+    resultTitle: '线索看板查询结果',
+    resultBullets: ['结果会围绕线索规模、来源结构和转化效率。', '只读查询不会更改线索归属。', '转派、导出或规则配置需再次确认。']
+  },
+  {
+    pageId: 'lead.pool',
+    skillLabel: '线索池查询',
+    groupLabel: '企业客户管理',
+    aliases: [/线索池|线索明细|公海|待跟进|导出线索/i],
+    summary: '读取线索池明细、待跟进状态和筛选结果，生成线索池分析。',
+    scope: '企业客户管理 / 线索池，以及当前会话内同类线索池查询。',
+    steps: ['读取线索池筛选和明细数据', '识别待跟进和高价值线索', '生成结论、明细摘要和报告卡片'],
+    resultTitle: '线索池查询结果',
+    resultBullets: ['结果会突出待跟进、高价值和异常线索。', '只读查询不会领取、转派或导出线索。', '执行领取、导出或分配前会再次确认。']
+  },
+  {
+    pageId: 'lead.score',
+    skillLabel: '打分模型查询',
+    groupLabel: '企业客户管理',
+    aliases: [/打分模型|评分规则|线索评分|加分|减分|规则命中/i],
+    summary: '读取打分模型、规则命中和分值分布，生成评分分析。',
+    scope: '企业客户管理 / 打分模型，以及当前会话内同类评分数据查询。',
+    steps: ['读取当前评分规则和命中数据', '分析加分、减分和优先级分布', '生成评分结论和优化建议'],
+    resultTitle: '打分模型查询结果',
+    resultBullets: ['结果会围绕规则命中、分值分布和优先级排序。', '只读查询不会改动规则。', '调整规则前会再次请求授权。']
+  }
+]
 
 export const useAIStore = defineStore('ai', () => {
   // ---- 面板开关（对应 STATE.aiOpen）----
@@ -170,6 +324,7 @@ export const useAIStore = defineStore('ai', () => {
   const taskLogs = ref<TaskLog[]>([])
   const activityItems = ref<ConversationActivityItem[]>([])
   const skillTuneConfirmation = ref({ key: '', confirmedAt: 0 })
+  const pendingQueryableSkillAuth = ref<PendingQueryableSkillAuth | null>(null)
   // ---- 面板宽度（内联 style 用）----
   const panelWidth  = ref(AI_PANEL_DEFAULT_WIDTH) // 0 表示用 CSS 默认
   // ---- 是否因 AI 面板展开而自动折叠了侧栏 ----
@@ -413,7 +568,7 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function seedDemoReportCards(pageId = '') {
-    const reportCatalog: ReportArtifact[] = _createDemoReports(pageId)
+    const reportCatalog: ReportArtifact[] = _scopeDemoReports(_createDemoReports(pageId))
     reportCatalog.forEach(report => { AI_REPORT_ARTIFACTS[report.id] = report })
     const reports = reportCatalog.slice(0, 2)
     if (messages.value.some(msg => msg.demoReportEntry)) return
@@ -428,13 +583,19 @@ export const useAIStore = defineStore('ai', () => {
 
   function openReportArtifact(id: string, appStore?: AppStoreBridge) {
     const report = AI_REPORT_ARTIFACTS[id]
-    if (!report || !appStore?.openTempTab) return
+    const ownerMessage = messages.value.find(message => message.artifacts?.includes(id))
+    if (!report || !ownerMessage || !appStore?.openTempTab) return
+    report.conversationId = localConvId.value
+    report.messageId = ownerMessage.id || ''
     appStore.openTempTab(report)
   }
 
   function saveReportArtifact(id: string, appStore?: AppStoreBridge) {
     const report = AI_REPORT_ARTIFACTS[id]
-    if (!report) return
+    const ownerMessage = messages.value.find(message => message.artifacts?.includes(id))
+    if (!report || !ownerMessage) return
+    report.conversationId = localConvId.value
+    report.messageId = ownerMessage.id || ''
     report.saved = true
     const saved = readJsonArray<ReportArtifact>(AI_REPORT_STORAGE_KEY)
     const next = [report, ...saved.filter(item => item.id !== id)].slice(0, 20)
@@ -450,11 +611,11 @@ export const useAIStore = defineStore('ai', () => {
     if (action.type === 'report') {
       const report = _createActionReport(pageId, action.value || action.label)
       AI_REPORT_ARTIFACTS[report.id] = report
-      context.appStore?.openTempTab?.(report)
       _recordTaskLog('report', `生成报告：${report.title}`, pageId || 'portal.home')
       _recordMessage('assistant', `已生成「${report.title}」，可以在顶部动态页签中继续查看。`, {
         artifacts: [report.id]
       })
+      context.appStore?.openTempTab?.(report)
       return
     }
     if (action.type === 'navigate') {
@@ -483,8 +644,19 @@ export const useAIStore = defineStore('ai', () => {
       _resolveLatestAuthRequest({
         status: 'approved',
         title: '授权已确认',
-        detail: '当前为 POC 状态展示，不会实际执行命令；高影响操作已登记到任务日志。'
+        detail: '已允许本次单项操作继续执行。当前为 POC 演示，不会触发真实写入或发布；授权结论已登记到任务日志。'
       })
+      _completeQueryableSkillAuthorization(action.value || '', context)
+      return
+    }
+    if (action.type === 'auth_batch_approve') {
+      _recordTaskLog('auth', action.value || '批量授权执行', pageId || 'portal.home')
+      _resolveLatestAuthRequest({
+        status: 'approved',
+        title: '批量授权已确认',
+        detail: '已允许本轮同类只读查询与数据汇总步骤连续执行。当前为 POC 演示，不会触发真实写入或发布；后续如涉及导出、配置或发布仍会再次确认。'
+      })
+      _completeQueryableSkillAuthorization(action.value || '', context)
       return
     }
     if (action.type === 'auth_reject') {
@@ -494,6 +666,9 @@ export const useAIStore = defineStore('ai', () => {
         title: '授权已拒绝',
         detail: '任务已停止，没有触发任何写入、发布、导出或命令执行。'
       })
+      if (pendingQueryableSkillAuth.value?.key === action.value) {
+        pendingQueryableSkillAuth.value = null
+      }
       return
     }
     if (action.type === 'skill_tune_confirm') {
@@ -550,6 +725,9 @@ export const useAIStore = defineStore('ai', () => {
     localConvId.value = item.id
     convId.value      = item.remoteConvId || null
     messages.value    = item.messages || []
+    ;(item.reports || []).forEach(report => {
+      AI_REPORT_ARTIFACTS[report.id] = report
+    })
     if (!open.value) toggleOpen(true)
   }
 
@@ -565,8 +743,16 @@ export const useAIStore = defineStore('ai', () => {
 
   function _recordMessage(role: MessageRole, text: string, extra: Partial<AiMessage> = {}) {
     if (!text) return
-    messages.value.push({ id: _newMessageId(role), role, text, at: new Date().toISOString(), ...extra })
+    const message = { id: _newMessageId(role), role, text, at: new Date().toISOString(), ...extra }
+    messages.value.push(message)
+    message.artifacts?.forEach(id => {
+      const report = AI_REPORT_ARTIFACTS[id]
+      if (!report) return
+      report.conversationId = localConvId.value
+      report.messageId = message.id || ''
+    })
     _persistConversation()
+    return message
   }
 
   function _newMessageId(role: MessageRole) {
@@ -636,6 +822,8 @@ export const useAIStore = defineStore('ai', () => {
 
   function _tryLocalCommand(payload: ComposerPayload, context: AiRuntimeContext = {}) {
     const text = payload.text || payload.userMsg || ''
+    if (_tryQueryableSkillAuthorization(payload, context)) return true
+
     if (_isEmployeeCertificationSkillQuery(text)) {
       return _runEmployeeCertificationSkill(payload)
     }
@@ -649,7 +837,8 @@ export const useAIStore = defineStore('ai', () => {
         _createActivity('tool_result', 'done', '能力结果返回', '已生成可审计的结构化输出。'),
         _createActivity('confirm', 'blocked', '等待授权确认', '涉及命令、写入或导出动作时，需要用户批准。')
       ])
-      _createDemoReports(payload.pageId).forEach(report => {
+      const demoReports = _scopeDemoReports(_createDemoReports(payload.pageId))
+      demoReports.forEach(report => {
         if (!AI_REPORT_ARTIFACTS[report.id]) AI_REPORT_ARTIFACTS[report.id] = report
       })
       _recordMessage('assistant', [
@@ -669,7 +858,7 @@ export const useAIStore = defineStore('ai', () => {
           approveLabel: '批准执行',
           rejectLabel: '拒绝'
         },
-        artifacts: ['demo_skill_report'],
+        artifacts: [demoReports.find(report => report.id.startsWith('demo_skill_report__'))?.id || demoReports[0].id],
         actionItems: [
           { type: 'prompt', label: '继续追问', value: '继续说明这个 Agent 对话流的交互边界。' },
           { type: 'skill', label: '查看 Skill Hub', value: 'agent.skills' }
@@ -685,6 +874,29 @@ export const useAIStore = defineStore('ai', () => {
             { id: 'flow-demo-4', text: '展示结构卡片和独立待办气泡', status: 'done' }
           ]
         }
+      })
+      _clearActivityItems()
+      return true
+    }
+
+    if (_isSkillCreateIntent(text)) {
+      _recordMessage('user', payload.userMsg)
+      _setActivityItems([
+        _createActivity('thinking', 'done', '识别创建意图', '当前请求是创建新的 Skill。'),
+        _createActivity('tool_call', 'done', '打开 Skill 创建页', '切换到 Skill 创建静态页签。'),
+        _createActivity('tool_result', 'done', '页面已打开', '可以继续填写基础配置，或用自然语言补充需求。'),
+        _createActivity('follow_up', 'blocked', '等待创建信息', '我会按九要素协助澄清能力定义、输入输出、边界和验收用例。')
+      ])
+      context.appStore?.ensureStaticTab?.('agent.skillCreate')
+      context.appStore?.setActiveStaticTab?.('agent.skillCreate')
+      context.router?.push('/agent/skill-create')
+      _recordTaskLog('skill', '打开 Skill 创建', 'agent.skillCreate')
+      _recordMessage('assistant', '已打开「Skill 创建」。你可以先填写基础配置，也可以继续用自然语言描述要创建的 Skill，我会围绕命名、归属、场景、触发、输入、输出、边界、依赖和验收用例协助澄清。', {
+        actionItems: [
+          { type: 'prompt', label: '补充 Skill 需求', value: '我要创建一个用于职场认证数据分析的 Skill。' },
+          { type: 'skill', label: '查看 Skill Hub', value: 'agent.skills' }
+        ],
+        activityItems: _snapshotActivities()
       })
       _clearActivityItems()
       return true
@@ -714,7 +926,7 @@ export const useAIStore = defineStore('ai', () => {
       }
     }
 
-    if (/skill\s*hub|技能包|技能管理|创建\s*skill|创建技能/i.test(text)) {
+    if (/skill\s*hub|技能包|技能管理/i.test(text)) {
       _recordMessage('user', payload.userMsg)
       _setActivityItems([
         _createActivity('thinking', 'done', '识别 Skill 任务', '当前请求属于 Skill 管理或创建链路。'),
@@ -763,15 +975,25 @@ export const useAIStore = defineStore('ai', () => {
       const command = /python/i.test(text)
         ? 'python3 -c "import random; print(random.randint(0, 100))"'
         : 'npm run deploy-preview -- --dry-run'
-      _recordMessage('assistant', '该操作需要授权后才能继续执行。请确认命令、命名空间和影响范围。', {
+      _recordMessage('assistant', '我已识别到这次任务需要读取运营数据并调用分析能力。继续前，请确认授权范围。', {
         activityItems: _snapshotActivities(),
         authRequest: {
-          title: '请求执行命令',
+          title: '确认授权',
           namespace: 'main',
           command,
-          risk: '高影响操作',
-          detail: '授权后才会执行。拒绝后任务会停止，并保留当前状态链路用于走查。',
-          approveLabel: '批准执行',
+          risk: '需要用户确认',
+          summary: '允许 AI 助手读取当前页面相关的只读数据，并继续完成查询、统计和结果生成。',
+          scope: '当前会话、本次任务、当前工作台页面上下文',
+          impact: '不会修改数据，不会发布内容，不会导出文件；如后续涉及写入、导出、发布或配置变更，会再次请求确认。',
+          steps: [
+            '读取当前页面和近 7 天相关数据口径',
+            '调用只读查询能力完成统计汇总',
+            '生成结论、明细摘要和可展开报告卡片'
+          ],
+          detail: '授权后，AI 助手会继续执行本次只读查询链路。拒绝后任务会停止，并保留当前对话状态便于重新发起。',
+          approveHint: '你可以只授权当前一步，也可以批量授权本轮同类只读查询步骤。',
+          approveLabel: '授权',
+          batchApproveLabel: '批量授权',
           rejectLabel: '拒绝'
         }
       })
@@ -806,6 +1028,107 @@ export const useAIStore = defineStore('ai', () => {
     return false
   }
 
+  function _tryQueryableSkillAuthorization(payload: ComposerPayload, context: AiRuntimeContext = {}) {
+    const text = String(payload.text || payload.userMsg || '').trim()
+    const scenario = _matchQueryableSkillScenario(payload.pageId, text)
+    if (!scenario) return false
+
+    const key = `mock:query-skill:${scenario.pageId}:${Date.now()}`
+    pendingQueryableSkillAuth.value = { key, payload: { ...payload }, scenario, context }
+    _recordMessage('user', payload.userMsg)
+    _setActivityItems([
+      _createActivity('thinking', 'done', '识别查询型 Skill', `已匹配「${scenario.groupLabel} / ${scenario.skillLabel}」。`),
+      _createActivity('tool_call', 'blocked', '等待授权后查询', '授权前不会读取页面数据，也不会生成报告。'),
+      _createActivity('confirm', 'blocked', '等待用户授权', '本次为只读查询授权确认。')
+    ])
+    _recordTaskLog('auth', `请求查询授权：${scenario.skillLabel}`, scenario.pageId)
+    _recordMessage('assistant', `我可以继续调用「${scenario.skillLabel}」完成这次查询。继续前，请确认本次只读授权范围。`, {
+      activityItems: _snapshotActivities(),
+      authRequest: {
+        title: '确认查询授权',
+        namespace: `ai.query.${scenario.pageId}`,
+        command: key,
+        risk: '只读查询确认',
+        summary: scenario.summary,
+        scope: scenario.scope,
+        impact: '仅读取当前 POC mock 数据和页面上下文，不会写入、发布、导出、修改配置或变更权限。',
+        steps: scenario.steps,
+        detail: '授权后，AI 助手会继续执行本次查询并返回结论、数据摘要和可展开报告卡片。拒绝后任务会停止，当前会话不受影响。',
+        approveHint: '可以只授权当前一步，也可以批量授权本轮同类只读查询步骤。',
+        approveLabel: '授权',
+        batchApproveLabel: '批量授权',
+        rejectLabel: '拒绝'
+      }
+    })
+    _clearActivityItems()
+    return true
+  }
+
+  function _matchQueryableSkillScenario(pageId: string, text: string) {
+    const source = String(text || '')
+    if (!source || !QUERY_ACTION_PATTERN.test(source)) return null
+    if (_isSkillCreateIntent(source) || /权限管理|审批|驳回|发布|启用|禁用|删除|修改状态/.test(source)) return null
+
+    const geoSubPages = ['dashboard.geoSource', 'dashboard.geoIntent', 'dashboard.geoConversion', 'dashboard.geoKnowledge']
+    const normalizedPageId = geoSubPages.includes(pageId) ? 'dashboard.geo' : pageId
+    const currentPageMatch = QUERYABLE_SKILL_AUTH_SCENARIOS.find(item => item.pageId === normalizedPageId)
+    const textMatch = QUERYABLE_SKILL_AUTH_SCENARIOS.find(item => item.aliases.some(pattern => pattern.test(source)))
+    return textMatch || currentPageMatch || null
+  }
+
+  function _completeQueryableSkillAuthorization(command: string, context: AiRuntimeContext = {}) {
+    const pending = pendingQueryableSkillAuth.value
+    if (!pending || pending.key !== command) return false
+    pendingQueryableSkillAuth.value = null
+
+    const payload = pending.payload
+    const scenario = pending.scenario
+    _setActivityItems([
+      _createActivity('thinking', 'done', '授权已确认', `已允许读取「${scenario.skillLabel}」所需的只读数据。`),
+      _createActivity('tool_call', 'done', `调用 ${scenario.skillLabel}`, '已按当前页面上下文和用户输入读取 mock 数据。'),
+      _createActivity('tool_result', 'done', '生成查询结果', '已整理结论、数据摘要和可展开报告卡片。')
+    ])
+
+    if (_isEmployeeCertificationSkillQuery(payload.text || payload.userMsg || '')) {
+      return _runEmployeeCertificationSkill(payload, { recordUser: false })
+    }
+
+    const reply = _queryableSkillAuthorizedReply(payload, scenario)
+    _recordTaskLog('skill', `完成授权查询：${scenario.skillLabel}`, scenario.pageId)
+    _recordAssistantReply(payload, reply)
+    _clearActivityItems()
+
+    if (scenario.pageId !== payload.pageId) {
+      const targetPath = pageIdToPath(scenario.pageId)
+      if (targetPath) {
+        const runtime = context.appStore || context.router ? context : pending.context
+        runtime.appStore?.ensureStaticTab?.(scenario.pageId)
+        runtime.appStore?.setActiveStaticTab?.(scenario.pageId)
+        runtime.router?.push(targetPath)
+      }
+    }
+    return true
+  }
+
+  function _queryableSkillAuthorizedReply(payload: ComposerPayload, scenario: QueryableSkillAuthScenario) {
+    const sourcePageLabel = getPageLabel(scenario.pageId) || getPageLabel(payload.pageId) || scenario.skillLabel
+    return [
+      `已获得授权，开始执行「${scenario.skillLabel}」只读查询。`,
+      '',
+      '## 查询口径',
+      `- 当前菜单：${scenario.groupLabel} / ${sourcePageLabel}`,
+      `- 用户问题：${payload.text || payload.userMsg}`,
+      '- 权限范围：只读读取当前 POC mock 数据，不执行写入、发布、导出或配置变更。',
+      '',
+      `## ${scenario.resultTitle}`,
+      ...scenario.resultBullets.map(item => `- ${item}`),
+      '',
+      '## 后续动作',
+      '- 已生成可展开报告卡片，可继续查看完整报告。',
+      '- 如后续需要导出、发布、写入或调整配置，AI 助手会再次请求授权。'
+    ].join('\n')
+  }
+
   function _isEmployeeCertificationSkillQuery(text: string) {
     const source = String(text || '')
     if (!/认证/.test(source)) return false
@@ -828,8 +1151,8 @@ export const useAIStore = defineStore('ai', () => {
     return matchedDimensions >= 2 && (hasTimeRange || matchedDimensions >= 4)
   }
 
-  function _runEmployeeCertificationSkill(payload: ComposerPayload) {
-    _recordMessage('user', payload.userMsg)
+  function _runEmployeeCertificationSkill(payload: ComposerPayload, options: { recordUser?: boolean } = {}) {
+    if (options.recordUser !== false) _recordMessage('user', payload.userMsg)
     const reportData = createEmployeeCertificationReport({
       prompt: payload.text || payload.userMsg
     })
@@ -949,6 +1272,15 @@ export const useAIStore = defineStore('ai', () => {
     ]
     const matched = entries.find(([, aliases]) => aliases.some(alias => source.includes(alias.toLowerCase())))
     return matched && (hasExplicitNavVerb || isShortViewCommand || source.length <= 16) ? matched[0] : null
+  }
+
+  function _isSkillCreateIntent(text: string) {
+    const source = String(text || '').trim()
+    if (!source) return false
+    if (/skillhub|skill\s*hub|技能包管理|skill\s*管理|技能管理/i.test(source)) return false
+    return /(?:创建|新建|新增|搭建|配置|定义|做|建立|弄).{0,10}(?:skill|技能|能力)/i.test(source)
+      || /(?:skill|技能|能力).{0,10}(?:创建|新建|新增|搭建|配置|定义)/i.test(source)
+      || /(?:create|new|build).{0,10}skill/i.test(source)
   }
 
   function _isReportIntent(text: string) {
@@ -1236,9 +1568,16 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function _sanitizeModelVendorName(text: string) {
-    return String(text || '')
+    return _stripSeedDebugBlocks(text)
       .replace(/火山模型/g, '大模型')
       .replace(/火山引擎/g, '大模型')
+  }
+
+  function _stripSeedDebugBlocks(text: string) {
+    return String(text || '')
+      .replace(/<seed:[^>]+\/>/g, '')
+      .replace(/<seed:[^>]+>[\s\S]*?(?:<\/seed:[^>]+>|$)/g, '')
+      .trim()
   }
 
   function _normalizeReportContent(reply: string, pageLabel: string, payload: ComposerPayload) {
@@ -1397,6 +1736,14 @@ ${reply || _reportIntentReply(payload)}
     ]
   }
 
+  function _scopeDemoReports(reports: ReportArtifact[]) {
+    return reports.map(report => ({
+      ...report,
+      id: `${report.id}__${localConvId.value}`,
+      conversationId: localConvId.value
+    }))
+  }
+
   function _persistConversation() {
     if (!messages.value.length) return
     const current = {
@@ -1404,10 +1751,18 @@ ${reply || _reportIntentReply(payload)}
       remoteConvId: convId.value || null,
       title:        _convTitle(),
       messages:     messages.value,
+      reports:      _currentConversationReports(),
       updatedAt:    new Date().toISOString()
     }
     const list = loadConversations().filter(c => c.id !== current.id)
     saveConversations([current, ...list])
+  }
+
+  function _currentConversationReports() {
+    const reportIds = new Set(messages.value.flatMap(message => message.artifacts || []))
+    return [...reportIds]
+      .map(id => AI_REPORT_ARTIFACTS[id])
+      .filter((report): report is ReportArtifact => !!report && report.conversationId === localConvId.value)
   }
 
   function _convTitle() {

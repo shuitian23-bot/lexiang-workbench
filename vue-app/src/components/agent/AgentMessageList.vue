@@ -52,9 +52,27 @@
                 <em>{{ msg.authRequest.risk }}</em>
               </div>
             </div>
-            <div class="ai-auth-meta">namespace: {{ msg.authRequest.namespace }}</div>
-            <pre class="ai-auth-command"><code>{{ msg.authRequest.command }}</code></pre>
-            <p>{{ msg.authRequest.detail }}</p>
+            <section class="ai-auth-summary">
+              <span>授权内容</span>
+              <p>{{ msg.authRequest.summary || msg.authRequest.detail }}</p>
+            </section>
+            <div class="ai-auth-scope">
+              <section>
+                <span>授权范围</span>
+                <p>{{ msg.authRequest.scope || '当前会话、本次任务' }}</p>
+              </section>
+              <section>
+                <span>影响说明</span>
+                <p>{{ msg.authRequest.impact || msg.authRequest.detail }}</p>
+              </section>
+            </div>
+            <section v-if="msg.authRequest.steps?.length" class="ai-auth-steps">
+              <span>执行内容</span>
+              <ol>
+                <li v-for="step in msg.authRequest.steps" :key="step">{{ step }}</li>
+              </ol>
+            </section>
+            <p v-if="msg.authRequest.approveHint" class="ai-auth-hint">{{ msg.authRequest.approveHint }}</p>
             <div v-if="msg.authResult" class="ai-auth-result" :class="`is-${msg.authResult.status}`">
               <b>{{ msg.authResult.title }}</b>
               <span>{{ msg.authResult.detail }}</span>
@@ -66,6 +84,14 @@
                 @click="$emit('run-action', { type: 'auth_approve', label: msg.authRequest.approveLabel, value: msg.authRequest.command })"
               >
                 {{ msg.authRequest.approveLabel }}
+              </button>
+              <button
+                v-if="msg.authRequest.batchApproveLabel"
+                type="button"
+                class="ai-auth-batch"
+                @click="$emit('run-action', { type: 'auth_batch_approve', label: msg.authRequest.batchApproveLabel, value: msg.authRequest.command })"
+              >
+                {{ msg.authRequest.batchApproveLabel }}
               </button>
               <button
                 type="button"
@@ -214,8 +240,9 @@ function renderMsg(msg, idx) {
   const text = isTypewriterMessage(msg)
     ? (typewriterText[typewriterKey(msg, idx)] ?? '')
     : msg.text
-  if (msg.role === 'assistant') return renderMarkdown(text)
-  return escapeHtml(msg.text)
+  const visibleText = stripSeedDebugBlocks(text)
+  if (msg.role === 'assistant') return renderMarkdown(visibleText)
+  return escapeHtml(stripSeedDebugBlocks(msg.text))
 }
 
 function hasExternalState(msg) {
@@ -247,7 +274,7 @@ function syncTypewriterMessages() {
     typewriterText[key] = ''
     typewriterDone[key] = false
     let cursor = 0
-    const source = String(msg.text || '')
+    const source = stripSeedDebugBlocks(msg.text)
     const timer = window.setInterval(() => {
       cursor = Math.min(cursor + 2, source.length)
       typewriterText[key] = source.slice(0, cursor)
@@ -307,6 +334,13 @@ function escapeHtmlText(str) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+}
+
+function stripSeedDebugBlocks(str) {
+  return String(str || '')
+    .replace(/<seed:[^>]+\/>/g, '')
+    .replace(/<seed:[^>]+>[\s\S]*?(?:<\/seed:[^>]+>|$)/g, '')
+    .trim()
 }
 
 function escapeHtml(str) {
@@ -652,8 +686,9 @@ function renderMarkdownTable(lines, startIndex) {
 
 .ai-auth-card {
   padding: 12px;
-  border-color: rgba(245, 158, 11, .42);
-  background: #fffbf2;
+  border-color: rgba(51, 112, 255, .22);
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  box-shadow: 0 10px 24px rgba(31, 35, 41, .06);
 }
 
 .ai-auth-head {
@@ -670,8 +705,8 @@ function renderMarkdownTable(lines, startIndex) {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #fff;
-  color: #b76e00;
+  background: #eef4ff;
+  color: var(--color-primary, #3370ff);
 }
 
 .ai-auth-head b,
@@ -686,39 +721,60 @@ function renderMarkdownTable(lines, startIndex) {
 }
 
 .ai-auth-head em {
-  color: #8a5a00;
+  color: var(--color-primary, #3370ff);
   font-style: normal;
   font-size: 12px;
 }
 
-.ai-auth-meta {
+.ai-auth-summary,
+.ai-auth-scope section,
+.ai-auth-steps {
   margin-top: 10px;
-  color: var(--color-text-secondary, #646a73);
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-size: 12px;
-}
-
-.ai-auth-command {
-  margin: 8px 0 0;
   padding: 10px;
-  border-radius: 7px;
-  background: #1f2329;
-  color: #fff;
-  overflow-x: auto;
-  white-space: pre;
-  font-size: 12px;
-  line-height: 1.5;
+  border: 1px solid var(--border-light, #e5e6eb);
+  border-radius: 9px;
+  background: #fff;
 }
 
-.ai-auth-command code {
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+.ai-auth-summary span,
+.ai-auth-scope span,
+.ai-auth-steps span {
+  display: block;
+  color: var(--color-text, #1f2329);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.ai-auth-scope {
+  display: grid;
+  gap: 8px;
 }
 
 .ai-auth-card p {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: var(--color-text-secondary, #646a73);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.ai-auth-steps ol {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.ai-auth-steps li + li {
+  margin-top: 2px;
+}
+
+.ai-auth-hint {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f3f7ff;
+  color: var(--color-primary, #3370ff) !important;
 }
 
 .ai-auth-result {
@@ -747,7 +803,7 @@ function renderMarkdownTable(lines, startIndex) {
 
 .ai-auth-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -762,9 +818,15 @@ function renderMarkdownTable(lines, startIndex) {
 }
 
 .ai-auth-approve {
-  border: 1px solid #20bf72;
-  background: #20bf72;
+  border: 1px solid var(--color-primary, #3370ff);
+  background: var(--color-primary, #3370ff);
   color: #fff;
+}
+
+.ai-auth-batch {
+  border: 1px solid rgba(51, 112, 255, .5);
+  background: #fff;
+  color: var(--color-primary, #3370ff);
 }
 
 .ai-auth-reject {

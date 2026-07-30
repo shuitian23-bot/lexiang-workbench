@@ -8,6 +8,12 @@
       @activate="activateTab"
       @close="closeTab"
     />
+    <DynamicTabs
+      :temp-tabs="currentConversationTabs"
+      :active-temp-tab-id="currentConversationActiveTabId"
+      @activate="activateTempTab"
+      @close="closeTempTab"
+    />
     <TopbarActions
       :ai-open="aiOpen"
       @toggle-ai="aiStore.toggleOpen()"
@@ -22,6 +28,7 @@ import { storeToRefs } from 'pinia'
 import { useAppStore, getGroupLabel, pageIdToPath } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import StaticTabs from '@/components/topbar/StaticTabs.vue'
+import DynamicTabs from '@/components/topbar/DynamicTabs.vue'
 import TopbarActions from '@/components/topbar/TopbarActions.vue'
 
 const router = useRouter()
@@ -29,9 +36,29 @@ const route = useRoute()
 const appStore = useAppStore()
 const aiStore = useAIStore()
 
-const { staticTabs, activeStaticTabId } = storeToRefs(appStore)
-const { open: aiOpen } = storeToRefs(aiStore)
+const { staticTabs, activeStaticTabId, tempTabs, activeTempTabId } = storeToRefs(appStore)
+const { open: aiOpen, localConvId, messages } = storeToRefs(aiStore)
 const staticTabsRef = ref(null)
+
+const currentConversationReportIds = computed(() => new Set(
+  messages.value.flatMap(message => message.artifacts || [])
+))
+
+const currentConversationMessageIds = computed(() => new Set(
+  messages.value.map(message => message.id).filter(Boolean)
+))
+
+const currentConversationTabs = computed(() => tempTabs.value.filter(tab =>
+  tab.conversationId === localConvId.value
+  && currentConversationReportIds.value.has(tab.id)
+  && (!tab.messageId || currentConversationMessageIds.value.has(tab.messageId))
+))
+
+const currentConversationActiveTabId = computed(() =>
+  currentConversationTabs.value.some(tab => tab.id === activeTempTabId.value)
+    ? activeTempTabId.value
+    : null
+)
 
 const groupLabel = computed(() => {
   return getGroupLabel(activeStaticTabId.value || route.meta?.pageId || 'portal.home')
@@ -43,6 +70,10 @@ watch(() => route.meta?.pageId, (pageId) => {
   appStore.setActiveStaticTab(pageId)
   revealActiveTab()
 }, { immediate: true })
+
+watch(localConvId, () => {
+  if (activeTempTabId.value) appStore.setActiveTempTab(null)
+})
 
 function activateTab(pageId) {
   // 静态页签与动态报告页签可同时保留，但点击基础业务页签必须回到该页内容。
@@ -62,6 +93,14 @@ function closeTab(pageId) {
     if (path) router.push(path)
   }
   revealActiveTab()
+}
+
+function activateTempTab(tabId) {
+  appStore.setActiveTempTab(tabId)
+}
+
+function closeTempTab(tabId) {
+  appStore.closeTempTab(tabId)
 }
 
 function revealActiveTab() {

@@ -2,7 +2,7 @@
   <!--
     三栏布局的三个根节点，对应封板工作台壳层：
       .sidebar  → AppSidebar
-      .main     → 中间主区（topbar + workspace-tabs + page-content）
+      .main     → 中间主区（集成静态/动态结果入口的 topbar + page-content）
       .ai-panel → AppAIPanel
     注意：用 Fragment（多根节点）而不是包一层 div，保持与当前 CSS 选择器兼容
   -->
@@ -10,13 +10,6 @@
 
   <div class="main" id="main-area">
     <AppTopbar />
-
-    <DynamicTabs
-      :temp-tabs="tempTabs"
-      :active-temp-tab-id="activeTempTabId"
-      @activate="activateTempTab"
-      @close="closeTempTab"
-    />
 
     <!-- 页面内容区（对应原 #page-content）-->
     <div class="page-content" id="page-content" ref="pageContentEl">
@@ -40,19 +33,16 @@
 <script setup>
 import { nextTick, ref, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import AppSidebar   from './shell/sidebar/WorkbenchSidebar.vue'
 import AppTopbar    from './shell/topbar/WorkbenchTopbar.vue'
 import AppAIPanel   from './shell/agent/WorkbenchAgentPanel.vue'
 import TempTabView  from './TempTabView.vue'
-import DynamicTabs  from './topbar/DynamicTabs.vue'
 
 const appStore = useAppStore()
 const route    = useRoute()
-const router   = useRouter()
-
-const { tempTabs, activeTempTabId, darkMode } = storeToRefs(appStore)
+const { activeTempTabId, darkMode } = storeToRefs(appStore)
 
 const pageContentEl = ref(null)
 
@@ -91,22 +81,5 @@ watch(activeTempTabId, async () => {
     pageContentEl.value.scrollTo({ top: 0, behavior: 'auto' })
   }
 })
-
-// ---- 临时报告页签操作（对应 workspaceActivateTempTab / workspaceCloseTempTab）----
-function activateTempTab(id) {
-  appStore.setActiveTempTab(id)
-  // 滚回顶部
-  if (pageContentEl.value) {
-    pageContentEl.value.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-}
-
-function closeTempTab(id) {
-  const backToBase = appStore.closeTempTab(id)
-  if (backToBase) {
-    // 回到基础业务页
-    if (pageContentEl.value) pageContentEl.value.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-}
 
 </script>

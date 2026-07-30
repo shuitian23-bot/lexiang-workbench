@@ -8410,8 +8410,8 @@ html[data-product="leaibot"] .static-tabs {
   min-width: 0 !important;
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 0 18px 0 2px !important;
+  gap: 3px !important;
+  padding: 0 8px 0 0 !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   scroll-padding: 0 24px !important;
@@ -8433,8 +8433,8 @@ html[data-product="leaibot"] .static-tab {
   height: 28px !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 7px !important;
-  padding: 0 9px !important;
+  gap: 4px !important;
+  padding: 0 6px !important;
   border: 1px solid transparent !important;
   border-radius: 7px !important;
   background: transparent !important;

@@ -90,6 +90,8 @@ export interface SkillApplicationReportData {
 
 export interface TempTab {
   id: string
+  conversationId?: string
+  messageId?: string
   title: string
   sourcePage: PageId
   sourcePageLabel: string
@@ -426,6 +428,8 @@ export const useAppStore = defineStore('app', () => {
       : (payload.chips || [])
     const tab = {
       id,
+      conversationId: payload.conversationId || '',
+      messageId:      payload.messageId || '',
       title:          title.slice(0, 42),
       sourcePage:     payload.sourcePage     || '',
       sourcePageLabel,
@@ -491,12 +495,14 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function closeTempTab(id: string) {
+    const closingTab = tempTabs.value.find(t => t.id === id)
     const wasActive = activeTempTabId.value === id
     tempTabs.value  = tempTabs.value.filter(t => t.id !== id)
     if (wasActive) {
-      activeTempTabId.value = tempTabs.value.length
-        ? tempTabs.value[tempTabs.value.length - 1].id
-        : null
+      const nextTab = [...tempTabs.value].reverse().find(tab =>
+        tab.conversationId === closingTab?.conversationId
+      )
+      activeTempTabId.value = nextTab?.id || null
     }
     return wasActive
   }
