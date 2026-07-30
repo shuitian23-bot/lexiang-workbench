@@ -85,7 +85,7 @@ function writeList(key: string, value: any[]) {
 }
 
 function appendMailAction() {
-  const id = `${source.value}-${ticket.value}-${action.value}`
+  const id = `${source.value}-${ticket.value}-${identity.value || 'approver'}-${approver.value || 'mail-approver'}-${action.value}`
   const now = new Date()
   const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
   const actions = readList(ACTION_KEY)
@@ -97,6 +97,7 @@ function appendMailAction() {
     source: source.value,
     action: action.value === 'reject' ? 'reject' : 'approve',
     token: token.value,
+    identity: identity.value,
     operator: approver.value || 'mail-approver',
     time
   }

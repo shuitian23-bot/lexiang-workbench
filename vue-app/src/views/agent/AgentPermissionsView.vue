@@ -228,6 +228,14 @@
                 <span>邮箱</span>
                 <input v-model="form.email" placeholder="name@lenovo.com">
               </label>
+              <label v-if="requiresTenantInInfoStep">
+                <span class="field-label required">所属租户 <em>必填</em></span>
+                <select v-model="form.tenant" :class="{ invalid: formErrors.tenant }" @change="formErrors.tenant = ''">
+                  <option disabled value="">请选择所属租户</option>
+                  <option v-for="tenant in tenantOptions" :key="tenant" :value="tenant">{{ tenant }}</option>
+                </select>
+                <small v-if="formErrors.tenant" class="field-error">{{ formErrors.tenant }}</small>
+              </label>
               <label>
                 <span>申请人直线经理</span>
                 <input v-model="form.applicantManager" readonly>
@@ -1518,6 +1526,26 @@
         </div>
 
         <div class="approval-workspace-body">
+          <section v-if="activeApprovalBusinessTasks.length" class="approval-readonly-panel business-progress-panel">
+            <div class="scope-panel-head">
+              <div>
+                <b>业务负责人审批进度</b>
+                <small>{{ businessApprovalProgressText }}</small>
+              </div>
+            </div>
+            <div class="business-task-list">
+              <article v-for="task in activeApprovalBusinessTasks" :key="task.approver" :class="['business-task-card', task.status]">
+                <div>
+                  <b>{{ task.approverName || task.approver }}</b>
+                  <p>{{ task.roleNames.join('、') || '未关联角色' }}</p>
+                  <small v-if="task.organizations?.length">所属组织：{{ task.organizations.join('、') }}</small>
+                  <small v-else>所属组织待填写</small>
+                </div>
+                <span :class="['table-status', task.status === 'approved' ? 'done' : task.status === 'rejected' ? 'rejected' : 'pending']">{{ businessTaskStatusLabel(task) }}</span>
+              </article>
+            </div>
+          </section>
+
           <section class="approval-readonly-panel">
             <div class="scope-panel-head">
               <div>
@@ -1539,7 +1567,7 @@
             <div class="scope-panel-head">
               <div>
                 <b>业务归属</b>
-                <small>业务负责人填写申请人的所属组织和所属租户，权限范围只读不可修改。</small>
+                <small>业务负责人填写自己负责角色的所属组织，最终执行时系统取并集。</small>
               </div>
             </div>
             <div class="permission-form-grid approval-business-form">
@@ -1557,14 +1585,6 @@
                 </div>
                 <small v-if="approvalWorkspace.errors.organizations" class="field-error">{{ approvalWorkspace.errors.organizations }}</small>
               </div>
-              <label>
-                <span class="field-label required">所属租户 <em>必填</em></span>
-                <select v-model="approvalWorkspace.tenant" :disabled="!canEditBusinessOwnership" :class="{ invalid: approvalWorkspace.errors.tenant }" @change="approvalWorkspace.errors.tenant = ''">
-                  <option disabled value="">请选择所属租户</option>
-                  <option v-for="tenant in tenantOptions" :key="tenant" :value="tenant">{{ tenant }}</option>
-                </select>
-                <small v-if="approvalWorkspace.errors.tenant" class="field-error">{{ approvalWorkspace.errors.tenant }}</small>
-              </label>
             </div>
           </section>
 
@@ -2799,6 +2819,7 @@ const form = reactive({
   applicantManager: 'sunll1',
   targetManager: 'wangxt8',
   businessApprover: 'zhangjq4（消费业务 to C）',
+  tenant: 'leaibot-cn',
   systemApprover: 'sunzh4',
   reason: '需要联动运营看板、商品管理和 Skill Hub 进行日常数据查询、报告生成和配置确认。',
   relation: {
@@ -2819,6 +2840,7 @@ const formErrors = reactive({
   applicationNo: '',
   relatedAccount: '',
   reason: '',
+  tenant: '',
   businessApprover: ''
 })
 const passwordReset = reactive({
@@ -3423,6 +3445,7 @@ const approvalWorkspace = reactive({
   opinion: '',
   organizations: [],
   tenant: '',
+  businessApprover: '',
   notice: '',
   errors: {
     result: '',
@@ -4064,6 +4087,7 @@ const genericTemplate = { name: '新增项', desc: '根据当前模块补充配�
 const selectedType = computed(() => requestTypes.find((type) => type.key === form.type) || requestTypes[0])
 const isAccountStatusRequest = computed(() => ['enable', 'disable'].includes(form.type))
 const isPasswordResetRequest = computed(() => form.type === 'reset')
+const requiresTenantInInfoStep = computed(() => ['create', 'change'].includes(form.type))
 const applySteps = computed(() => {
   if (isPasswordResetRequest.value) return passwordResetApplySteps
   if (isAccountStatusRequest.value) return accountStatusApplySteps
@@ -4438,6 +4462,10 @@ const approvalNodes = computed(() => {
       { label: '被申请人直线经理审批', owner: form.targetManager || '待带出', done: false }
     )
   }
+  if (!isAccountStatusRequest.value && !isPasswordResetRequest.value) {
+    const businessOwners = createBusinessApprovalTasks(createPermissionSnapshot()).map((task) => task.approver)
+    nodes.push({ label: '业务负责人审批', owner: businessOwners.join('、') || '按角色带出', done: false })
+  }
   nodes.push({ label: '系统审批 / 后台执行', owner: form.systemApprover, done: false })
   return nodes.map((node, index) => ({ ...node, step: String(index + 1) }))
 })
@@ -4492,7 +4520,7 @@ const activeApprovalBasicFields = computed(() => {
     { label: '关联账号 / 关联人员', value: row.relatedAccount || '无' },
     { label: '申请人直线经理', value: row.applicantManager },
     { label: '被申请人直线经理', value: row.targetManager },
-    { label: '当前审批人', value: row.approverItcode },
+    { label: '当前审批人', value: pendingBusinessApprovers(row).length ? pendingBusinessApprovers(row).join('、') : row.approverItcode },
     { label: '处理人', value: row.handlers.join('、') },
     { label: '申请原因', value: row.reason || '未填写' }
   ]
@@ -4502,6 +4530,14 @@ const activeApprovalBasicFields = computed(() => {
 })
 const canEditApprovalPermission = computed(() => approvalWorkspace.mode === 'approve' && ['applicant-manager', 'target-manager'].includes(approvalWorkspace.nodeType))
 const canEditBusinessOwnership = computed(() => approvalWorkspace.mode === 'approve' && approvalWorkspace.nodeType === 'business')
+const activeApprovalBusinessTasks = computed(() => activeApproval.value?.businessApprovalTasks || [])
+const businessApprovalProgressText = computed(() => {
+  const tasks = activeApprovalBusinessTasks.value
+  if (!tasks.length) return '本单暂未生成业务负责人审批任务。'
+  const approved = tasks.filter((task) => task.status === 'approved').length
+  const pending = tasks.filter((task) => task.status === 'pending').map((task) => task.approver).join('、') || '无'
+  return '已通过 ' + approved + ' 人，待审批 ' + (tasks.length - approved) + ' 人：' + pending
+})
 const activeApprovalHasPermission = computed(() => hasPermissionSources.value)
 const activeApprovalPermissionSummary = computed(() => scopeSummaryText.value)
 const approvalResultOptions = computed(() => [
@@ -4517,16 +4553,16 @@ const approvalDecisionTitle = computed(() => {
 const approvalDecisionHint = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '关联人只能确认关系并填写审批意见，申请信息和权限信息不可编辑。'
   if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理先确认申请合理性，通过后流转给被申请人直线经理。'
-  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理拥有最终决定权和解释权，可确认权限范围后提交。'
-  return '业务负责人需填写业务归属，权限范围只读不可修改。'
+  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理确认最终角色范围后，系统会按角色业务负责人重新生成审批任务。'
+  return '业务负责人需填写自己负责角色的所属组织，权限范围只读不可修改。'
 })
 const approvalSubmitImpact = computed(() => {
   if (!approvalWorkspace.result) return '请选择审批结果后提交。'
   if (approvalWorkspace.result === 'reject') return '申请将退回申请人修改，列表状态变为已驳回。'
   if (approvalWorkspace.nodeType === 'relation') return '确认通过后，申请进入下一位直线经理审批。'
   if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理审批通过后，申请进入被申请人直线经理审批。'
-  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理审批通过后，申请进入业务负责人审批。'
-  return '业务审批通过后，系统自动执行权限变更，并记录执行结果。'
+  if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理审批通过后，系统按最终角色范围生成业务负责人审批任务。'
+  return '当前业务负责人审批通过后，若仍有人待审则继续等待；全部通过后系统自动执行。'
 })
 
 
@@ -5475,6 +5511,7 @@ function validateInfoForm() {
     ? '外部人员需要填写负责对接的内部员工 ITCode 或姓名。'
     : ''
   formErrors.reason = form.reason ? '' : '请补充申请原因，说明业务场景和需要使用的权限范围。'
+  formErrors.tenant = requiresTenantInInfoStep.value && !form.tenant ? '请选择所属租户，便于后台按租户开通权限。' : ''
   return !Object.values(formErrors).some(Boolean)
 }
 
@@ -5732,6 +5769,7 @@ function submitApplication() {
     applicantManager: form.applicantManager,
     targetManager: form.targetManager,
     businessApprover: form.businessApprover,
+    businessInfo: { tenant: form.tenant, organizations: [] },
     systemApprover: form.systemApprover,
     reason: form.reason,
     permissionSnapshot: createPermissionSnapshot(),
@@ -6303,6 +6341,126 @@ function applyPermissionSnapshotToEditor(snapshot = {}) {
   })
 }
 
+function roleNamesForIds(roleIds = []) {
+  return allRoles
+    .filter((role) => roleIds.includes(role.id))
+    .map((role) => role.name)
+}
+
+function roleGroupsForIds(roleIds = []) {
+  return [...new Set(allRoles
+    .filter((role) => roleIds.includes(role.id))
+    .map((role) => role.group)
+    .filter(Boolean))]
+}
+
+function selectedApprovalRoleIds(snapshot = {}) {
+  return [...new Set([...(snapshot.selectedRoleIds || []), ...(snapshot.copiedRoleIds || [])])]
+}
+
+function createBusinessApprovalTasks(permissionSnapshot = {}, existingTasks = []) {
+  const roleIds = selectedApprovalRoleIds(permissionSnapshot)
+  const taskMap = new Map()
+  roleIds.forEach((roleId) => {
+    const role = allRoles.find((item) => item.id === roleId)
+    const approver = parseApproverItcode(role?.owner || '')
+    if (!role || !approver) return
+    if (!taskMap.has(approver)) {
+      const existing = existingTasks.find((task) => samePrincipal(task.approver, approver)) || {}
+      taskMap.set(approver, {
+        approver,
+        approverName: existing.approverName || approver,
+        roleIds: [],
+        roleNames: [],
+        organizations: [...(existing.organizations || [])],
+        status: existing.status || 'pending',
+        result: existing.result || '',
+        opinion: existing.opinion || '',
+        handledAt: existing.handledAt || ''
+      })
+    }
+    const task = taskMap.get(approver)
+    task.roleIds.push(role.id)
+    task.roleNames.push(role.name)
+  })
+  return [...taskMap.values()].map((task) => ({
+    ...task,
+    roleIds: [...new Set(task.roleIds)],
+    roleNames: [...new Set(task.roleNames)]
+  }))
+}
+
+function resetBusinessApprovalTasks(row) {
+  row.businessApprovalTasks = createBusinessApprovalTasks(row.permissionSnapshot).map((task) => ({
+    ...task,
+    organizations: [],
+    status: 'pending',
+    result: '',
+    opinion: '',
+    handledAt: ''
+  }))
+  syncBusinessApprovalHandlers(row)
+}
+
+function pendingBusinessTasks(row) {
+  return (row?.businessApprovalTasks || []).filter((task) => task.status === 'pending')
+}
+
+function pendingBusinessApprovers(row) {
+  return pendingBusinessTasks(row).map((task) => task.approver)
+}
+
+function businessTaskStatusLabel(task) {
+  if (task.status === 'approved') return '已通过'
+  if (task.status === 'rejected') return '已驳回'
+  return '待审批'
+}
+
+function businessOrganizationsUnion(row) {
+  return [...new Set((row?.businessApprovalTasks || [])
+    .filter((task) => task.status === 'approved')
+    .flatMap((task) => task.organizations || []))]
+}
+
+function syncBusinessApprovalHandlers(row) {
+  const pending = pendingBusinessApprovers(row)
+  if (!pending.length) return
+  row.nodeType = 'business'
+  row.node = pending.length > 1 ? '业务负责人审批（' + pending.length + '人待审）' : '业务负责人审批'
+  row.approverItcode = pending[0]
+  row.handlers = pending
+  row.status = '待我审批'
+  row.statusKey = 'pending'
+}
+
+function enterBusinessApprovalNode(row) {
+  resetBusinessApprovalTasks(row)
+  if (!row.businessApprovalTasks.length) {
+    completeApprovalExecution(row, '2026-07-13 16:30')
+    return
+  }
+  syncBusinessApprovalHandlers(row)
+  row.notificationLogs = createApprovalNotificationLogs(row)
+  row.time = '2026-07-13 16:30'
+}
+
+function completeApprovalExecution(row, time = '2026-07-13 16:30') {
+  row.businessInfo.organizations = businessOrganizationsUnion(row)
+  updateApprovalNode(row, 'done', {
+    status: '执行完成',
+    statusKey: 'done',
+    approverItcode: row.systemApprover,
+    handlers: [...new Set([...row.handlers, row.systemApprover])]
+  })
+  row.approvalLogs.push({
+    node: '后台自动执行',
+    action: 'execute-success',
+    operator: row.systemApprover,
+    opinion: '系统已自动执行权限变更，执行结果：成功。',
+    time
+  })
+}
+
 function createApprovalRow(payload) {
   const normalizedNodeType = payload.nodeType || (samePrincipal(payload.applicantItcode || payload.applicant, payload.targetItcode || payload.target) ? 'target-manager' : 'applicant-manager')
   const nodeMeta = approvalNodeMeta(normalizedNodeType)
@@ -6336,7 +6494,7 @@ function createApprovalRow(payload) {
     time: payload.time || '2026-07-13 11:45',
     businessInfo: {
       organizations: [...(payload.businessInfo?.organizations || [])],
-      tenant: payload.businessInfo?.tenant || ''
+      tenant: payload.businessInfo?.tenant || payload.tenant || ''
     },
     permissionSnapshot: {
       selectedRoleIds: [...(permissionSnapshot.selectedRoleIds || [])],
@@ -6350,6 +6508,17 @@ function createApprovalRow(payload) {
       manualDataPermissionIds: [...(permissionSnapshot.manualDataPermissionIds || [])],
       copiedDataSourceMap: { ...(permissionSnapshot.copiedDataSourceMap || {}) }
     },
+    businessApprovalTasks: (payload.businessApprovalTasks?.length ? payload.businessApprovalTasks : createBusinessApprovalTasks(permissionSnapshot, payload.businessApprovalTasks || [])).map((task) => ({
+      approver: parseApproverItcode(task.approver),
+      approverName: task.approverName || parseApproverItcode(task.approver),
+      roleIds: [...(task.roleIds || [])],
+      roleNames: task.roleNames?.length ? [...task.roleNames] : roleNamesForIds(task.roleIds || []),
+      organizations: [...(task.organizations || [])],
+      status: task.status || 'pending',
+      result: task.result || '',
+      opinion: task.opinion || '',
+      handledAt: task.handledAt || ''
+    })),
     approvalLogs: [...(payload.approvalLogs || [])],
     notificationLogs: [...(payload.notificationLogs || [])]
   }
@@ -6451,7 +6620,9 @@ function openApprovalWorkspace(row, mode) {
   approvalWorkspace.title = mode === 'view' ? '申请详情' : approvalDecisionTitleByNode(row.nodeType)
   approvalWorkspace.result = ''
   approvalWorkspace.opinion = ''
-  approvalWorkspace.organizations = [...(row.businessInfo?.organizations || [])]
+  const activeBusinessTask = pendingBusinessTasks(row).find((task) => samePrincipal(task.approver, approvalSearch.approverItcode)) || pendingBusinessTasks(row)[0] || null
+  approvalWorkspace.businessApprover = activeBusinessTask?.approver || row.approverItcode
+  approvalWorkspace.organizations = [...(activeBusinessTask?.organizations || [])]
   approvalWorkspace.tenant = row.businessInfo?.tenant || ''
   approvalWorkspace.notice = mode === 'view' ? '当前为只读详情。' : ''
   clearApprovalErrors()
@@ -6493,7 +6664,6 @@ function validateApprovalDecision() {
   }
   if (canEditBusinessOwnership.value && approvalWorkspace.result === 'agree') {
     approvalWorkspace.errors.organizations = approvalWorkspace.organizations.length ? '' : '请选择至少一个所属组织，便于后台按组织授权。'
-    approvalWorkspace.errors.tenant = approvalWorkspace.tenant ? '' : '请选择所属租户，便于后台按租户开通权限。'
   }
 
   return !Object.values(approvalWorkspace.errors).some(Boolean)
@@ -6506,16 +6676,21 @@ function submitApprovalDecision() {
     row.permissionSnapshot = createPermissionSnapshot()
   }
   if (canEditBusinessOwnership.value) {
-    row.businessInfo = {
-      organizations: [...approvalWorkspace.organizations],
-      tenant: approvalWorkspace.tenant
+    const task = pendingBusinessTasks(row).find((item) => samePrincipal(item.approver, approvalWorkspace.businessApprover)) || pendingBusinessTasks(row)[0]
+    if (task) {
+      task.organizations = [...approvalWorkspace.organizations]
+      task.status = approvalWorkspace.result === 'agree' ? 'approved' : 'rejected'
+      task.result = approvalWorkspace.result
+      task.opinion = approvalWorkspace.opinion || '无补充意见'
+      task.handledAt = '2026-07-13 16:30'
     }
+    row.businessInfo.organizations = businessOrganizationsUnion(row)
   }
 
   row.approvalLogs.push({
     node: row.node,
     action: approvalWorkspace.result,
-    operator: row.approverItcode,
+    operator: canEditBusinessOwnership.value ? (approvalWorkspace.businessApprover || row.approverItcode) : row.approverItcode,
     opinion: approvalWorkspace.opinion || '无补充意见',
     time: '2026-07-13 16:30'
   })
@@ -6539,25 +6714,11 @@ function submitApprovalDecision() {
       handlers: [row.targetManager]
     })
   } else if (approvalWorkspace.nodeType === 'target-manager') {
-    const businessItcode = parseApproverItcode(row.businessApprover)
-    updateApprovalNode(row, 'business', {
-      approverItcode: businessItcode,
-      handlers: [businessItcode, row.targetManager]
-    })
+    enterBusinessApprovalNode(row)
+  } else if (approvalWorkspace.nodeType === 'business' && pendingBusinessTasks(row).length) {
+    syncBusinessApprovalHandlers(row)
   } else {
-    updateApprovalNode(row, 'done', {
-      status: '执行完成',
-      statusKey: 'done',
-      approverItcode: row.systemApprover,
-      handlers: [...new Set([...row.handlers, row.systemApprover])]
-    })
-    row.approvalLogs.push({
-      node: '后台自动执行',
-      action: 'execute-success',
-      operator: row.systemApprover,
-      opinion: '系统已自动执行权限变更，执行结果：成功。',
-      time: '2026-07-13 16:30'
-    })
+    completeApprovalExecution(row, '2026-07-13 16:30')
   }
   records.value.unshift({
     time: row.time,
@@ -6581,7 +6742,7 @@ function updateApprovalNode(row, nodeType, overrides = {}) {
 }
 
 function normalizeApprovalMailRole(value) {
-  const role = String(value || '').trim()
+  const role = String(value || '').trim().split(':')[0]
   const aliasMap = {
     requester: 'applicant',
     applicant: 'applicant',
@@ -6610,23 +6771,25 @@ function demoIdentityKeyForMailRole(role) {
 }
 
 function applyApprovalMailContext(role, ticket = '') {
-  const normalizedRole = normalizeApprovalMailRole(role)
+  const rawRole = String(role || '').trim()
+  const normalizedRole = normalizeApprovalMailRole(rawRole)
   if (!normalizedRole) return false
   const identityKey = demoIdentityKeyForMailRole(normalizedRole)
   const identity = demoIdentityOptions.find((item) => item.key === identityKey) || demoIdentityOptions[0]
   const row = approvals.value.find((item) => item.id === ticket) || {}
   const readonlyViewer = ['applicant', 'target'].includes(normalizedRole)
   demoIdentityKey.value = identity.key
-  approvalMailRoleContext.value = normalizedRole
+  approvalMailRoleContext.value = rawRole || normalizedRole
   approvalDeepLinkTicket.value = ticket
   approvalSearch.viewer = readonlyViewer ? normalizedRole : identity.viewer
-  approvalSearch.approverItcode = readonlyViewer ? '' : (ticket ? approverItcodeForMailRole(row, normalizedRole) : identity.approverItcode)
+  approvalSearch.approverItcode = readonlyViewer ? '' : (ticket ? approverItcodeForMailRole(row, rawRole || normalizedRole) : identity.approverItcode)
   approvalSearch.status = identity.key === 'requester' ? '全部' : '审批中'
   return true
 }
 
 function approvalRowVisibleInMailContext(row) {
-  const role = approvalMailRoleContext.value
+  const role = normalizeApprovalMailRole(approvalMailRoleContext.value)
+  const rawRole = approvalMailRoleContext.value
   const ticket = approvalDeepLinkTicket.value
   if (ticket && row.id !== ticket) return false
   if (!role) return true
@@ -6635,7 +6798,7 @@ function approvalRowVisibleInMailContext(row) {
   if (role === 'relation') return samePrincipal(row.relatedAccount, approverItcodeForMailRole(row, role)) || row.nodeType === 'relation'
   if (role === 'applicant-manager') return samePrincipal(row.applicantManager, approverItcodeForMailRole(row, role))
   if (role === 'target-manager') return samePrincipal(row.targetManager, approverItcodeForMailRole(row, role))
-  if (role === 'business-owner') return samePrincipal(row.businessApprover, approverItcodeForMailRole(row, role))
+  if (role === 'business-owner') return (row.businessApprovalTasks || []).some((task) => samePrincipal(task.approver, approverItcodeForMailRole(row, rawRole))) || samePrincipal(row.businessApprover, approverItcodeForMailRole(row, rawRole))
   return true
 }
 
@@ -6656,7 +6819,7 @@ function canApproveRow(row) {
   const identity = currentDemoIdentity.value
   const approver = approvalSearch.approverItcode.trim()
   const nodeAllowed = identity.key === 'admin' || identity.nodeTypes.includes(row?.nodeType)
-  const approverMatched = identity.key === 'admin' || (!!approver && samePrincipal(row.approverItcode, approver))
+  const approverMatched = identity.key === 'admin' || (!!approver && (samePrincipal(row.approverItcode, approver) || (row.handlers || []).some((handler) => samePrincipal(handler, approver))))
   return row?.statusKey === 'pending' && !approvalReadonlyViewer.value && nodeAllowed && approverMatched
 }
 
@@ -6701,11 +6864,12 @@ function approverItcodeForMailRole(row, role) {
     relation: row.relatedAccount || row.approverItcode,
     'applicant-manager': row.applicantManager,
     'target-manager': row.targetManager,
-    'business-owner': row.businessApprover,
+    'business-owner': String(role || '').includes(':') ? String(role).split(':')[1] : ((row.businessApprovalTasks || [])[0]?.approver || row.businessApprover),
     applicant: row.applicantItcode,
     target: row.targetItcode
   }
-  return parseApproverItcode(map[role] || row.approverItcode || '')
+  const normalizedRole = normalizeApprovalMailRole(role)
+  return parseApproverItcode(map[normalizedRole] || row.approverItcode || '')
 }
 
 function approvalMailActions(row, role = '') {
@@ -6721,13 +6885,11 @@ function createApprovalNotificationLogs(row) {
   const relationLink = approvalListLink(row, '', 'approver', 'relation')
   const applicantManagerLink = approvalListLink(row, '', 'approver', 'applicant-manager')
   const targetManagerLink = approvalListLink(row, '', 'approver', 'target-manager')
-  const businessOwnerLink = approvalListLink(row, '', 'approver', 'business-owner')
   const relationItcode = parseApproverItcode(row.relatedAccount || row.approverItcode || row.applicantManager)
-  const businessItcode = parseApproverItcode(row.businessApprover)
+  const businessTasks = row.businessApprovalTasks?.length ? row.businessApprovalTasks : createBusinessApprovalTasks(row.permissionSnapshot)
   const relationActions = approvalMailActions(row, 'relation')
   const applicantManagerActions = approvalMailActions(row, 'applicant-manager')
   const targetManagerActions = approvalMailActions(row, 'target-manager')
-  const businessOwnerActions = approvalMailActions(row, 'business-owner')
   const recipients = [
     {
       role: 'applicant',
@@ -6784,17 +6946,20 @@ function createApprovalNotificationLogs(row) {
       linkLabel: '进入审批列表',
       actions: targetManagerActions
     },
-    {
-      role: 'business-owner',
-      roleLabel: '业务负责人',
-      toName: businessItcode || row.businessApprover,
-      to: approvalPersonMail(businessItcode, 'business-owner'),
-      subject: `${row.id} 待审批：请确认业务归属和权限范围`,
-      content: `${row.target} 的${row.type}申请等待确认，请确认申请是否合理，并进行审批。`,
-      link: businessOwnerLink,
-      linkLabel: '进入审批列表',
-      actions: businessOwnerActions
-    }
+    ...businessTasks.map((task) => {
+      const roleKey = 'business-owner:' + task.approver
+      return {
+        role: roleKey,
+        roleLabel: '业务负责人',
+        toName: task.approverName || task.approver,
+        to: approvalPersonMail(task.approver, 'business-owner'),
+        subject: `${row.id} 待审批：请确认业务归属和权限范围`,
+        content: `${row.target} 的${row.type}申请等待确认，请确认申请是否合理，并进行审批。涉及角色：${task.roleNames.join('、') || '待确认'}。`,
+        link: approvalListLink(row, '', 'approver', roleKey),
+        linkLabel: '进入审批列表',
+        actions: approvalMailActions(row, roleKey)
+      }
+    })
   ]
   return recipients.map((item, index) => ({
     id: `${row.id}-mail-${index + 1}`,
@@ -6882,7 +7047,7 @@ function approvalMailMockInboxHtml(row) {
   <main class="inbox-shell">
     <section class="inbox-title">
       <h1>${escapeMailHtml(row.id)} 邮件 mock 收件箱</h1>
-      <p>提交申请后生成的 6 封邮件集中展示，可切换查看申请人、被申请人、关联人、两位直线经理和业务负责人收到的内容。</p>
+      <p>提交申请后生成的邮件集中展示，可切换查看申请人、被申请人、关联人、两位直线经理和各业务负责人收到的内容。</p>
     </section>
     <nav class="mail-tabs" aria-label="邮件列表">${tabs}</nav>
     ${panes}
@@ -6954,8 +7119,30 @@ function openMailAction(mail, action) {
   }
 }
 
+function mailActionNodeType(identity = '') {
+  const role = normalizeApprovalMailRole(identity)
+  const nodeMap = {
+    relation: 'relation',
+    'applicant-manager': 'applicant-manager',
+    'target-manager': 'target-manager',
+    'business-owner': 'business'
+  }
+  return nodeMap[role] || ''
+}
+
+function mailActionMatchesCurrentNode(row, actionRecord) {
+  const nodeType = mailActionNodeType(actionRecord.identity)
+  if (!nodeType) return true
+  if (row.nodeType !== nodeType) return false
+  const operator = parseApproverItcode(actionRecord.operator)
+  if (!operator) return false
+  if (nodeType === 'business') return pendingBusinessTasks(row).some((task) => samePrincipal(task.approver, operator))
+  return samePrincipal(row.approverItcode, operator) || (row.handlers || []).some((handler) => samePrincipal(handler, operator))
+}
+
 function applyMailApprovalActionToRow(row, actionRecord) {
   if (!row || row.approvalLogs.some((log) => log.mailActionId === actionRecord.id)) return false
+  if (!mailActionMatchesCurrentNode(row, actionRecord)) return false
   const approve = actionRecord.action === 'approve'
   row.approvalLogs.push({
     node: row.node,
@@ -6966,6 +7153,15 @@ function applyMailApprovalActionToRow(row, actionRecord) {
     mailActionId: actionRecord.id
   })
   if (!approve) {
+    if (row.nodeType === 'business') {
+      const task = pendingBusinessTasks(row).find((item) => samePrincipal(item.approver, actionRecord.operator)) || pendingBusinessTasks(row)[0]
+      if (task) {
+        task.status = 'rejected'
+        task.result = 'reject'
+        task.opinion = '业务负责人通过邮件确认驳回。'
+        task.handledAt = actionRecord.time
+      }
+    }
     updateApprovalNode(row, 'rework', {
       status: '已驳回',
       statusKey: 'rejected',
@@ -6987,26 +7183,26 @@ function applyMailApprovalActionToRow(row, actionRecord) {
       handlers: [row.targetManager]
     })
   } else if (row.nodeType === 'target-manager') {
-    const businessItcode = parseApproverItcode(row.businessApprover)
-    updateApprovalNode(row, 'business', {
-      approverItcode: businessItcode,
-      handlers: [businessItcode, row.targetManager]
-    })
+    enterBusinessApprovalNode(row)
+  } else if (row.nodeType === 'business') {
+    const task = pendingBusinessTasks(row).find((item) => samePrincipal(item.approver, actionRecord.operator)) || pendingBusinessTasks(row)[0]
+    if (task) {
+      task.status = 'approved'
+      task.organizations = task.organizations?.length ? task.organizations : roleGroupsForIds(task.roleIds)
+      task.result = 'agree'
+      task.opinion = '业务负责人通过邮件确认同意。'
+      task.handledAt = actionRecord.time
+    }
+    row.businessInfo.organizations = businessOrganizationsUnion(row)
+    if (pendingBusinessTasks(row).length) {
+      syncBusinessApprovalHandlers(row)
+    } else {
+      completeApprovalExecution(row, actionRecord.time)
+      row.approvalLogs[row.approvalLogs.length - 1].mailActionId = `${actionRecord.id}-execute`
+    }
   } else {
-    updateApprovalNode(row, 'done', {
-      status: '执行完成',
-      statusKey: 'done',
-      approverItcode: row.systemApprover,
-      handlers: [...new Set([...row.handlers, row.systemApprover])]
-    })
-    row.approvalLogs.push({
-      node: '后台自动执行',
-      action: 'execute-success',
-      operator: row.systemApprover,
-      opinion: '系统已自动执行权限变更，执行结果：成功。',
-      time: actionRecord.time,
-      mailActionId: `${actionRecord.id}-execute`
-    })
+    completeApprovalExecution(row, actionRecord.time)
+    row.approvalLogs[row.approvalLogs.length - 1].mailActionId = `${actionRecord.id}-execute`
   }
   return true
 }
@@ -7625,6 +7821,7 @@ function upsertUserApproval(user, applicationNo, typeKey, type, detail) {
     email: user.email,
     reason: user.requestReason || detail,
     permissionSnapshot: userPermissionSnapshot(user),
+    businessInfo: { tenant: user.tenant || tenantOptions[0], organizations: [] },
     time: '2026-07-14 18:30'
   }
   const index = approvals.value.findIndex((row) => row.id === applicationNo)
@@ -10142,6 +10339,49 @@ onUnmounted(() => {
 
 .approval-business-form {
   margin-top: 0;
+}
+
+.business-task-list {
+  display: grid;
+  gap: 10px;
+}
+
+.business-task-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.business-task-card.approved {
+  border-color: #bfecd3;
+  background: #f5fff9;
+}
+
+.business-task-card.rejected {
+  border-color: #ffd2d2;
+  background: #fff8f8;
+}
+
+.business-task-card b,
+.business-task-card p,
+.business-task-card small {
+  display: block;
+}
+
+.business-task-card p {
+  margin: 4px 0;
+  color: #455468;
+  font-size: 13px;
+}
+
+.business-task-card small {
+  color: #7a8798;
+  font-size: 12px;
 }
 
 .organization-picker {
