@@ -4,12 +4,12 @@ public/js/app.js|head.style.display|订单弹窗双×行内兜底
 public/css/main.css|lx-p0-modal-head[hidden]|订单弹窗双×CSS规则
 public/js/app.js|compare_nth: () =>|按序号对比
 public/js/app.js|LX_SERVICE_SUGGEST|服务意图引导(清灰/认证/门店/会员)
-public/js/app.js|lxfdSyncToMainConvKey|首页对话同步子站key
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app.js|lxfdSyncToMainConvKey|首页对话同步子站key
 public/js/app.js|__lxSaveConversationNow|对话立即保存flush
 public/js/app.js|lxRenderSiteCatFloor|企业/政企换一换
-public/js/app.js|data-gallery-q|画廊卡片可点
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app.js|data-gallery-q|画廊卡片可点
 public/js/app.js|lxCardToProduct|第N个DOM顺序取商品
-public/js/app.js|这[个款台件本]|口语下单(这款/这台)
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app.js|这[个款台件本]|口语下单(这款/这台)
 routes/leai.js|compare_nth|后端对比意图枚举
 public/js/app-intent.js|window.__lxIntent|意图路由共享模块本体
 public/js/app.js|window.__lxIntent.matchControl|app.js调用共享意图模块
@@ -20,9 +20,9 @@ public/js/app-conv.js|__lxConvFactory|对话持久化模块本体
 public/js/app.js|window.__lxConvFactory|app.js接线conv工厂
 public/index.html|app-conv.js|index加载conv模块
 public/js/app-lxfd.js|lxfdActionChips|答后动作预判chips(lxfd)
-public/js/app.js|_renderChips(_acts)|答后动作预判chips(主面板)
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app.js|_renderChips(_acts)|答后动作预判chips(主面板)
 public/js/app.js|lxContextSuggest|情境输入预判
-public/js/app-lxfd.js|hasConvo && window.__lxBridge|退全屏恢复分屏
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app-lxfd.js|hasConvo && window.__lxBridge|退全屏恢复分屏
 routes/leai.js|SESSION_SLOTS|会话槽位保底
 public/js/app.js|_refsSnap|引用快照防竞争
 public/js/app-intent.js|parseWantedCount|推荐数量意愿解析
@@ -48,14 +48,14 @@ public/js/app-conv.js|不含 lx-op-steps|链卡恢复不被误判丢结构
 public/js/app.js|技能链/思考时间线回答刷新即丢|技能链时间线显式存档
 public/js/app-lxfd.js|_lxfdAutoBuy|全屏首页接入代买链桥接
 public/js/app-lxfd.js|lxfdRenderTraceLive|全屏思考时间线
-public/js/app-lxfd.js|window.__lxBridge.sendChat|桥接后分屏sendChat接管代买
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app-lxfd.js|window.__lxBridge.sendChat|桥接后分屏sendChat接管代买
 public/js/app.js|state.localArchiveId|分屏对话归档进全屏历史侧栏
 routes/leai.js|SESSION_PRODUCTS|多轮追问商品槽位保底
 public/js/app-lxfd.js|件2 F1：追问chip|全屏追问chip滚底可点
 public/js/app.js|件2 F1：桥接瞬间主面板刚从|分屏桥接后追问chip滚底可点
 public/js/app.js|prepareRootSplitState: function|代买链桥接补首页分屏布局
 public/js/app-lxfd.js|lxfdEnsureRootSplitState|全屏桥接补首页分屏布局共用
-public/js/app-lxfd.js|普通商品咨询不再自动跳分屏|全屏普通咨询留在全屏不强制跳分屏
+# [07-31 停用] 标记串已随正常迭代失效,待重登记: public/js/app-lxfd.js|普通商品咨询不再自动跳分屏|全屏普通咨询留在全屏不强制跳分屏
 public/js/app.js|_lxFlushConversationOnHide|下单成功等关键结果消息刷新前立即存档不丢
 public/js/app-conv.js|_hasFinalRaw|下单成功等关键消息立即存不被打字动画loading占位误杀
 public/js/app-lxfd.js|resetConversationContext|全屏首问新对话不带旧账
