@@ -188,6 +188,17 @@ const QUERY_ACTION_PATTERN = /查|查询|查看|看一下|分析|汇总|统计|�
 
 const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
   {
+    pageId: 'portal.home',
+    skillLabel: '门户工作台首页指标查询',
+    groupLabel: '联想门户工作台',
+    aliases: [/当前页面|门户工作台|首页|今日指标|核心指标|异常项|下一步动作|运营指标/i],
+    summary: '读取门户工作台首页的今日核心运营指标、异常项和待确认动作，生成只读分析结果。',
+    scope: '联想门户工作台首页，以及当前会话内同类首页指标查询。',
+    steps: ['读取首页今日核心指标和页面上下文', '识别异常项、影响范围和需要确认的动作', '生成结论、数据摘要和可展开报告卡片'],
+    resultTitle: '门户工作台首页指标查询结果',
+    resultBullets: ['结果会围绕今日核心指标、异常项和优先动作展开。', '默认只读取当前 POC mock 数据，不修改任何运营配置。', '如后续涉及导出、发布或配置调整，会再次请求授权。']
+  },
+  {
     pageId: 'dashboard.overview',
     skillLabel: '运营总览查询',
     groupLabel: '乐享运营',
@@ -246,7 +257,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'dashboard.geo',
     skillLabel: 'GEO 看板查询',
     groupLabel: 'GEO 看板',
-    aliases: [/geo|geo\s*看板|整体数据概览|信源|意图|转化看板|手工上传知识|转化/i],
+    aliases: [/g\s*e\s*o|geo\s*看板|整体数据概览|信源|意图|转化看板|手工上传知识|转化/i],
     summary: '读取 GEO 看板、信源、意图和转化数据，生成只读分析结果。',
     scope: 'GEO 看板及其子菜单，以及当前会话内同类 GEO 查询。',
     steps: ['识别当前 GEO 查询维度和时间范围', '读取信源、意图、引用或转化数据', '生成结论、明细摘要和报告卡片'],
@@ -795,6 +806,123 @@ export const useAIStore = defineStore('ai', () => {
     _persistConversation()
   }
 
+  function _extractExecutableCommand(text: string) {
+    const source = String(text || '').trim()
+    const bodyCommand = source.match(/python3\s+\/skill\/[^\n]*?--body\s+(['"])[\s\S]*?\1/)
+    if (bodyCommand?.[0]) return bodyCommand[0].trim()
+    const pythonCommand = source.match(/python3\s+\/skill\/[^\n。；;]+/)
+    if (pythonCommand?.[0]) return pythonCommand[0].trim()
+    const npmCommand = source.match(/npm\s+run\s+[^\n。；;]+/)
+    if (npmCommand?.[0]) return npmCommand[0].trim()
+    return ''
+  }
+
+  function _safeParseCommandJson(source: string): AnyRecord | null {
+    try {
+      const value = JSON.parse(source)
+      return value && typeof value === 'object' && !Array.isArray(value) ? value as AnyRecord : null
+    } catch {
+      return null
+    }
+  }
+
+  function _commandArg(command: string, name: string) {
+    return command.match(new RegExp(`--${name}\\s+([^\\s]+)`))?.[1] || ''
+  }
+
+  function _commandBody(command: string) {
+    const match = command.match(/--body\s+(['"])([\s\S]*?)\1/)
+    return match?.[2] ? _safeParseCommandJson(match[2]) : null
+  }
+
+  function _periodLabel(periodType: unknown, statDate: string) {
+    const period = Number(periodType)
+    if (period === 1) return statDate ? `${statDate} 当日` : '当日'
+    if (period > 1) return statDate ? `截至 ${statDate} 的近 ${period} 天` : `近 ${period} 天`
+    return statDate ? `截至 ${statDate} 的统计周期` : '当前统计周期'
+  }
+
+  function _geoBoardLabel(boardType: unknown) {
+    const board = Number(boardType)
+    if (board === 1) return 'GEO 转化看板'
+    if (board === 2) return 'GEO 信源看板'
+    if (board === 3) return 'GEO 意图看板'
+    return 'GEO 看板'
+  }
+
+  function _createReadableAuthRequest(command: string, payload: ComposerPayload): AuthRequestBlock {
+    const api = _commandArg(command, 'api')
+    const env = _commandArg(command, 'env')
+    const body = _commandBody(command)
+    const statDate = typeof body?.statDate === 'string' ? body.statDate : ''
+    const periodText = _periodLabel(body?.periodType, statDate)
+    const boardLabel = _geoBoardLabel(body?.boardType)
+
+    if (command.includes('/skill/geo/scripts/call_script.py') && api === 'geo_conversion_stat') {
+      return {
+        title: '确认查询授权',
+        namespace: 'ai.query.dashboard.geo',
+        command,
+        risk: '只读查询确认',
+        summary: `允许 AI 助手读取「${boardLabel}」的转化统计数据，查询范围为${periodText}。`,
+        scope: `${boardLabel}；环境：${env ? env.toUpperCase() : '当前演示环境'}；统计口径：转化数据、信源、意图和引用表现。`,
+        impact: '本次只读取统计数据并生成结论、数据明细和可展开报告，不会修改 GEO 配置、不会发布内容、不会导出文件。',
+        steps: [
+          `读取${periodText}的 GEO 转化统计`,
+          '汇总转化趋势、关键指标和异常变化',
+          '生成结论、数据明细摘要和可展开报告卡片'
+        ],
+        detail: '授权后，AI 助手会继续完成本次 GEO 只读查询。拒绝后任务会停止，当前会话不受影响。',
+        approveHint: '可以只授权本次查询，也可以批量授权本轮同类 GEO 只读查询步骤。',
+        approveLabel: '授权',
+        batchApproveLabel: '批量授权',
+        rejectLabel: '拒绝'
+      }
+    }
+
+    if (command.includes('/skill/geo/scripts/call_script.py')) {
+      return {
+        title: '确认查询授权',
+        namespace: 'ai.query.dashboard.geo',
+        command,
+        risk: '只读查询确认',
+        summary: `允许 AI 助手调用 GEO 查询能力，读取${env ? env.toUpperCase() : '当前演示环境'}的只读看板数据。`,
+        scope: 'GEO 看板相关数据；仅限当前会话和本次查询任务。',
+        impact: '本次只读取统计数据并生成分析结果，不会修改配置、发布内容或导出文件。',
+        steps: [
+          '读取 GEO 看板所需的只读统计数据',
+          '按页面上下文汇总指标和变化',
+          '生成结论、明细摘要和可展开报告卡片'
+        ],
+        detail: '授权后，AI 助手会继续完成本次 GEO 查询。拒绝后任务会停止，当前会话不受影响。',
+        approveHint: '可以只授权本次查询，也可以批量授权本轮同类 GEO 只读查询步骤。',
+        approveLabel: '授权',
+        batchApproveLabel: '批量授权',
+        rejectLabel: '拒绝'
+      }
+    }
+
+    return {
+      title: '确认授权',
+      namespace: `ai.task.${payload.pageId || 'portal.home'}`,
+      command,
+      risk: '需要用户确认',
+      summary: '允许 AI 助手读取当前页面相关的只读数据，并继续完成查询、统计和结果生成。',
+      scope: '当前会话、本次任务、当前工作台页面上下文',
+      impact: '不会修改数据，不会发布内容，不会导出文件；如后续涉及写入、导出、发布或配置变更，会再次请求确认。',
+      steps: [
+        '读取当前页面和近 7 天相关数据口径',
+        '调用只读查询能力完成统计汇总',
+        '生成结论、明细摘要和可展开报告卡片'
+      ],
+      detail: '授权后，AI 助手会继续执行本次只读查询链路。拒绝后任务会停止，并保留当前对话状态便于重新发起。',
+      approveHint: '可以只授权当前一步，也可以批量授权本轮同类只读查询步骤。',
+      approveLabel: '授权',
+      batchApproveLabel: '批量授权',
+      rejectLabel: '拒绝'
+    }
+  }
+
   function _recordAssistantReply(payload: ComposerPayload, reply: string) {
     const displayReply = _sanitizeModelVendorName(reply)
     const artifacts: string[] = []
@@ -966,36 +1094,21 @@ export const useAIStore = defineStore('ai', () => {
     }
 
     if (/授权|批准|执行命令|高风险|需要确认|python|命令/i.test(text)) {
+      const command = _extractExecutableCommand(text)
+        || (/python/i.test(text)
+          ? 'python3 /skill/geo/scripts/call_script.py --api geo_conversion_stat --env uat --body \'{"statDate":"2026-07-21","periodType":7,"boardType":1}\''
+          : 'npm run deploy-preview -- --dry-run')
+      const authRequest = _createReadableAuthRequest(command, payload)
+      const isReadonlyQuery = authRequest.risk.includes('只读')
       _recordMessage('user', payload.userMsg)
       _setActivityItems([
-        _createActivity('thinking', 'done', '理解执行请求', '已识别该任务包含高影响执行动作。'),
-        _createActivity('tool_call', 'running', '准备执行命令', '已生成命令与执行参数，等待授权前不会真正执行。'),
-        _createActivity('confirm', 'blocked', '等待用户授权', '涉及本地命令、导出、发布或配置变更，需要明确批准。')
+        _createActivity('thinking', 'done', isReadonlyQuery ? '理解查询请求' : '理解执行请求', isReadonlyQuery ? '已识别为只读数据查询，需要确认读取范围。' : '已识别该任务包含高影响执行动作。'),
+        _createActivity('tool_call', 'running', isReadonlyQuery ? '准备查询数据' : '准备执行任务', isReadonlyQuery ? '已整理查询口径，授权前不会读取数据。' : '已生成执行参数，等待授权前不会真正执行。'),
+        _createActivity('confirm', 'blocked', '等待用户授权', isReadonlyQuery ? '本次为只读查询授权确认。' : '涉及本地命令、导出、发布或配置变更，需要明确批准。')
       ])
-      const command = /python/i.test(text)
-        ? 'python3 -c "import random; print(random.randint(0, 100))"'
-        : 'npm run deploy-preview -- --dry-run'
-      _recordMessage('assistant', '我已识别到这次任务需要读取运营数据并调用分析能力。继续前，请确认授权范围。', {
+      _recordMessage('assistant', isReadonlyQuery ? '我已把这次查询整理为可读的授权内容。继续前，请确认授权范围。' : '我已识别到这次任务需要授权后继续。请确认授权范围。', {
         activityItems: _snapshotActivities(),
-        authRequest: {
-          title: '确认授权',
-          namespace: 'main',
-          command,
-          risk: '需要用户确认',
-          summary: '允许 AI 助手读取当前页面相关的只读数据，并继续完成查询、统计和结果生成。',
-          scope: '当前会话、本次任务、当前工作台页面上下文',
-          impact: '不会修改数据，不会发布内容，不会导出文件；如后续涉及写入、导出、发布或配置变更，会再次请求确认。',
-          steps: [
-            '读取当前页面和近 7 天相关数据口径',
-            '调用只读查询能力完成统计汇总',
-            '生成结论、明细摘要和可展开报告卡片'
-          ],
-          detail: '授权后，AI 助手会继续执行本次只读查询链路。拒绝后任务会停止，并保留当前对话状态便于重新发起。',
-          approveHint: '你可以只授权当前一步，也可以批量授权本轮同类只读查询步骤。',
-          approveLabel: '授权',
-          batchApproveLabel: '批量授权',
-          rejectLabel: '拒绝'
-        }
+        authRequest
       })
       _clearActivityItems()
       return true
@@ -1070,7 +1183,7 @@ export const useAIStore = defineStore('ai', () => {
     if (_isSkillCreateIntent(source) || /权限管理|审批|驳回|发布|启用|禁用|删除|修改状态/.test(source)) return null
 
     const geoSubPages = ['dashboard.geoSource', 'dashboard.geoIntent', 'dashboard.geoConversion', 'dashboard.geoKnowledge']
-    const normalizedPageId = geoSubPages.includes(pageId) ? 'dashboard.geo' : pageId
+    const normalizedPageId = geoSubPages.includes(pageId) ? 'dashboard.geo' : (pageId || 'portal.home')
     const currentPageMatch = QUERYABLE_SKILL_AUTH_SCENARIOS.find(item => item.pageId === normalizedPageId)
     const textMatch = QUERYABLE_SKILL_AUTH_SCENARIOS.find(item => item.aliases.some(pattern => pattern.test(source)))
     return textMatch || currentPageMatch || null
