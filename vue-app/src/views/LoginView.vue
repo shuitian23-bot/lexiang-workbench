@@ -7,36 +7,48 @@
         <span>联想乐享</span>
       </div>
       <div class="login-title">登录</div>
-      <div class="form-group">
-        <label class="form-label">用户名</label>
-        <input
-          class="form-input"
-          v-model="username"
-          placeholder="admin"
-          autofocus
-          @keydown.enter="doLogin"
-        />
+      <div class="login-mode-tabs" aria-label="登录方式">
+        <button type="button" :class="{ active: loginMode === 'internal' }" @click="switchLoginMode('internal')">内部用户登录</button>
+        <button type="button" :class="{ active: loginMode === 'external' }" @click="switchLoginMode('external')">外部用户登录</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">密码</label>
-        <input
-          class="form-input"
-          v-model="password"
-          type="password"
-          placeholder="••••••"
-          @keydown.enter="doLogin"
-        />
+
+      <div v-if="loginMode === 'internal'" class="internal-login-panel">
+        <button type="button" class="btn btn-primary login-btn" @click="openAdfsLogin">内网ADFS登录</button>
+        <p>内网环境下，可通过您的 ITCode 账号完成身份认证。</p>
       </div>
-      <!-- 原 #login-error：有错误时才显示，保留原来的 display:block 效果 -->
-      <div
-        class="login-error"
-        :style="{ display: errorMsg ? 'block' : '' }"
-      >{{ errorMsg }}</div>
-      <button class="btn btn-primary login-btn" @click="doLogin">登录工作台</button>
-      <div class="login-register-entry">
-        <span>还没有工作台账号？</span>
-        <button type="button" class="login-register-btn" @click="openRegisterModal">创建账户/注册</button>
-      </div>
+
+      <template v-else>
+        <div class="form-group">
+          <label class="form-label">用户名</label>
+          <input
+            class="form-input"
+            v-model="username"
+            placeholder="admin"
+            autofocus
+            @keydown.enter="doLogin"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input
+            class="form-input"
+            v-model="password"
+            type="password"
+            placeholder="••••••"
+            @keydown.enter="doLogin"
+          />
+        </div>
+        <!-- 原 #login-error：有错误时才显示，保留原来的 display:block 效果 -->
+        <div
+          class="login-error"
+          :style="{ display: errorMsg ? 'block' : '' }"
+        >{{ errorMsg }}</div>
+        <button class="btn btn-primary login-btn" @click="doLogin">登录工作台</button>
+        <div class="login-register-entry">
+          <span>还没有工作台账号？</span>
+          <button type="button" class="login-register-btn" @click="openRegisterModal">创建账户/注册</button>
+        </div>
+      </template>
     </div>
 
     <div v-if="registerModalVisible" class="register-modal-layer" @click.self="closeRegisterModal">
@@ -147,6 +159,7 @@ const router   = useRouter()
 const route    = useRoute()
 const appStore = useAppStore()
 
+const loginMode = ref<'internal' | 'external'>('internal')
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
@@ -202,6 +215,19 @@ const approvalRoute = computed(() => [
   { step: '3', label: '直线经理审批', owner: registerForm.applicantManager || '待带出', done: false },
   { step: '4', label: '系统审批 / 后台执行', owner: 'sunzh4', done: false }
 ])
+
+function switchLoginMode(mode: 'internal' | 'external') {
+  loginMode.value = mode
+  errorMsg.value = ''
+}
+
+function openAdfsLogin() {
+  const query: Record<string, string> = {
+    itcode: String(route.query.itcode || 'noaccess'),
+    redirect: String(route.query.redirect || '/')
+  }
+  router.push({ path: '/adfs-login', query })
+}
 
 // 对应原 doLogin()
 async function doLogin() {
@@ -492,6 +518,44 @@ function submitRegisterApplication() {
 </script>
 
 <style scoped>
+.login-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.login-mode-tabs button {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #455468;
+  padding: 0 8px 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.login-mode-tabs button.active {
+  border-color: var(--primary, #316dff);
+  color: var(--primary, #316dff);
+}
+
+.internal-login-panel {
+  display: grid;
+  gap: 76px;
+  padding-top: 88px;
+}
+
+.internal-login-panel p {
+  margin: 0;
+  color: #455468;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
 .login-register-entry {
   display: flex;
   align-items: center;

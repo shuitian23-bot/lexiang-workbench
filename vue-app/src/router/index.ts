@@ -35,6 +35,16 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true }
   },
   {
+    path: '/adfs-login',
+    component: () => import('@/views/AdfsLoginView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/access-denied',
+    component: () => import('@/views/AccessDeniedView.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/account-request/status',
     component: () => import('@/views/AccountRequestStatusView.vue'),
     meta: { public: true }

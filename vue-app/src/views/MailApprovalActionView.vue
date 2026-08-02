@@ -61,12 +61,17 @@ const token = computed(() => String(route.query.token || 'mock'))
 const approver = computed(() => String(route.query.approver || ''))
 const identity = computed(() => String(route.query.identity || 'approver'))
 const actionLabel = computed(() => action.value === 'reject' ? '驳回' : '同意')
-const sourceLabel = computed(() => source.value === 'account-register' ? '登录页创建账号申请' : '权限申请')
+const isPublicAccountFlow = computed(() => source.value === 'account-register' || source.value === 'access-request')
+const sourceLabel = computed(() => {
+  if (source.value === 'account-register') return '登录页创建账号申请'
+  if (source.value === 'access-request') return '无权限访问申请'
+  return '权限申请'
+})
 const resultClass = computed(() => action.value === 'reject' ? 'reject' : 'agree')
 const message = computed(() => `请确认是否通过邮件直接${actionLabel.value}该${sourceLabel.value}。确认后会写入 mock 审批记录，并同步审批列表/进度查询页。`)
 const fallbackLink = computed(() => {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
-  if (source.value === 'account-register') return `${base}/account-request/status?ticket=${encodeURIComponent(ticket.value)}&token=${encodeURIComponent(token.value)}`
+  if (isPublicAccountFlow.value) return `${base}/account-request/status?ticket=${encodeURIComponent(ticket.value)}&token=${encodeURIComponent(token.value)}`
   return `${base}/agent/permissions?module=approval&ticket=${encodeURIComponent(ticket.value)}&approver=${encodeURIComponent(approver.value)}&viewer=approver&identity=${encodeURIComponent(identity.value)}`
 })
 
@@ -113,17 +118,18 @@ function applyRegisterAction(record: any) {
   const row = rows[index]
   if (row.status === '执行完成' || row.status === '已驳回') return true
   const approve = record.action === 'approve'
+  const isAccessRequest = row.type === '访问权限开通' || row.typeKey === 'access'
   row.status = approve ? '执行完成' : '已驳回'
   row.statusKey = approve ? 'done' : 'rejected'
-  row.node = approve ? '后台自动执行' : '申请人修改'
-  row.result = approve ? '系统已自动创建账号，执行结果：成功。' : '申请已通过邮件审批被驳回，请根据反馈重新提交。'
+  row.node = approve ? (isAccessRequest ? '系统管理员执行' : '后台自动执行') : '申请人修改'
+  row.result = approve ? (isAccessRequest ? '系统管理员已开通工作台访问权限，执行结果：成功。' : '系统已自动创建账号，执行结果：成功。') : '申请已通过邮件审批被驳回，请根据反馈重新提交。'
   row.logs = [...(row.logs || []), {
     node: '邮件审批',
     detail: approve ? '审批人通过邮件确认同意。' : '审批人通过邮件确认驳回。',
     time: record.time
   }]
   if (approve) {
-    row.logs.push({ node: '后台自动执行', detail: '系统已自动创建账号，执行结果：成功。', time: record.time })
+    row.logs.push({ node: isAccessRequest ? '系统管理员执行' : '后台自动执行', detail: isAccessRequest ? '系统管理员已开通工作台访问权限，执行结果：成功。' : '系统已自动创建账号，执行结果：成功。', time: record.time })
   }
   rows[index] = row
   writeList(REGISTER_KEY, rows)
@@ -143,7 +149,7 @@ function confirmAction() {
     return
   }
   const record = appendMailAction()
-  const synced = source.value === 'account-register' ? applyRegisterAction(record) : applyPermissionSnapshot(record)
+  const synced = isPublicAccountFlow.value ? applyRegisterAction(record) : applyPermissionSnapshot(record)
   confirmed.value = true
   resultTitle.value = record.duplicate ? '该邮件审批已处理' : `已${actionLabel.value}`
   resultDetail.value = synced

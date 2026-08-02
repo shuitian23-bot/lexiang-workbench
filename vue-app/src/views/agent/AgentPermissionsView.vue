@@ -3418,7 +3418,8 @@ const demoIdentityOptions = [
   { key: 'relation', label: '关联人', viewer: 'approver', approverItcode: 'wangxt8', nodeTypes: ['relation'] },
   { key: 'applicant-manager', label: '申请人直线经理', viewer: 'approver', approverItcode: 'sunll1', nodeTypes: ['applicant-manager'] },
   { key: 'target-manager', label: '被申请人直线经理', viewer: 'approver', approverItcode: 'wangxt8', nodeTypes: ['target-manager'] },
-  { key: 'business-owner', label: '业务负责人', viewer: 'approver', approverItcode: 'zhangjq4', nodeTypes: ['business'] }
+  { key: 'business-owner', label: '业务负责人', viewer: 'approver', approverItcode: 'zhangjq4', nodeTypes: ['business'] },
+  { key: 'system-admin', label: '系统管理员', viewer: 'approver', approverItcode: 'sunzh4', nodeTypes: ['system-admin'] }
 ]
 const organizationOptions = ['乐享运营', 'GEO 看板', '企业客户管理', '搜索后台', '商用业务运营']
 const tenantOptions = ['leaibot-cn', 'shop-chat', 'b-chat', 'biz-chat']
@@ -6543,6 +6544,7 @@ function approvalNodeMeta(nodeType) {
     'applicant-manager': { label: '申请人直线经理审批', owner: 'sunll1', status: '待我审批', statusKey: 'pending' },
     'target-manager': { label: '被申请人直线经理审批', owner: 'wangxt8', status: '待我审批', statusKey: 'pending' },
     business: { label: '业务负责人审批', owner: 'zhangjq4', status: '待我审批', statusKey: 'pending' },
+    'system-admin': { label: '系统管理员审批', owner: 'sunzh4', status: '待我审批', statusKey: 'pending' },
     execute: { label: '后台自动执行', owner: 'sunzh4', status: '执行完成', statusKey: 'done' },
     done: { label: '后台自动执行', owner: 'sunzh4', status: '执行完成', statusKey: 'done' },
     rework: { label: '申请人修改', owner: '申请人', status: '已驳回', statusKey: 'rejected' }
@@ -6633,6 +6635,7 @@ function approvalDecisionTitleByNode(nodeType) {
   if (nodeType === 'applicant-manager') return '申请人直线经理审批'
   if (nodeType === 'target-manager') return '被申请人直线经理审批'
   if (nodeType === 'business') return '业务负责人审批'
+  if (nodeType === 'system-admin') return '系统管理员审批'
   return '审批处理'
 }
 
@@ -7234,8 +7237,8 @@ function syncRegisterApprovalRows() {
       }
       approvals.value.unshift(createApprovalRow({
         id: item.id,
-        typeKey: 'create',
-        type: '创建账号',
+        typeKey: item.typeKey || 'create',
+        type: item.type || '创建账号',
         applicant: item.applicant,
         applicantItcode: item.applicantItcode,
         target: item.target,
@@ -7245,9 +7248,9 @@ function syncRegisterApprovalRows() {
         relatedAccount: item.relatedAccount,
         businessApprover: item.businessApprover,
         systemApprover: item.systemApprover,
-        approverItcode: item.applicantManager,
-        handlers: [item.applicantManager],
-        nodeType: item.statusKey === 'done' ? 'done' : (item.statusKey === 'rejected' ? 'rework' : 'applicant-manager'),
+        approverItcode: item.approverItcode || item.applicantManager,
+        handlers: item.handlers?.length ? item.handlers : [item.approverItcode || item.applicantManager],
+        nodeType: item.statusKey === 'done' ? 'done' : (item.statusKey === 'rejected' ? 'rework' : (item.nodeType || 'applicant-manager')),
         node: item.node,
         status: item.status,
         statusKey: item.statusKey,
