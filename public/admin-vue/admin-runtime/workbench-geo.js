@@ -876,19 +876,24 @@ function geoApplyCompare() {
           }
           return { name, val };
         });
+        const rowBrandLabel = geoState.scope === 'all' ? '联想' : brandLabel;
+        const barMax = Math.max(brandVal, ...compRows.map(r => r.val), 1);
+        const barHtml = (val, color) => `<span style="flex:1;height:6px;background:#eef1f5;border-radius:3px;overflow:hidden;margin:0 8px"><i style="display:block;height:100%;width:${Math.max(val / barMax * 100, 3)}%;background:${color};border-radius:3px"></i></span>`;
         const rowsHtml = compRows.map(r => {
-          const diff = metric === 'visible' ? Math.round((brandVal - r.val) * 100) / 100 : Math.round((brandVal - r.val) * 100) / 100;
+          const diff = Math.round((brandVal - r.val) * 100) / 100;
           const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
           const dotColor = geoCompetitorColorByName(r.name);
-          return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:4px">
-            <span style="display:flex;align-items:center;gap:4px"><i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor}"></i>${geoEscape(r.name)}</span>
-            <span style="display:flex;align-items:center;gap:6px"><span>${fmt(r.val)}</span><span style="color:${diffColor};font-weight:600">${diff > 0 ? '+' : ''}${diff}</span></span>
+          return `<div style="display:flex;align-items:center;font-size:11px;margin-top:5px">
+            <span style="display:flex;align-items:center;gap:4px;min-width:44px"><i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor};flex:none"></i>${geoEscape(r.name)}</span>
+            ${barHtml(r.val, '#e8973a')}
+            <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span>${fmt(r.val)}</span><span style="color:${diffColor};font-weight:600">${diff > 0 ? '+' : ''}${diff}</span></span>
           </div>`;
         }).join('');
         compareEl.innerHTML = `
-          <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:6px;font-weight:600">
-            <span>${geoEscape(brandLabel)}</span>
-            <span style="display:flex;align-items:center;gap:6px"><span>${fmt(brandVal)}</span><span style="color:#9ca3af;font-size:10px;font-weight:400">基准</span></span>
+          <div style="display:flex;align-items:center;font-size:11px;margin-top:6px;font-weight:600">
+            <span style="min-width:44px">${geoEscape(rowBrandLabel)}</span>
+            ${barHtml(brandVal, '#3f78c5')}
+            <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span>${fmt(brandVal)}</span><span style="color:#9ca3af;font-size:10px;font-weight:400">基准</span></span>
           </div>
           ${rowsHtml}
         `;
@@ -1492,9 +1497,9 @@ let _trendChartData = null;
 
 function geoFilterTrendSeries(series) {
   const fieldLabels = {
-    all: '整体可见性',
-    brand_composite_exposure_rate: '联想官网可见性',
-    brand_precise_exposure_rate: '联想乐享可见性',
+    all: '联想',
+    brand_composite_exposure_rate: '联想官网',
+    brand_precise_exposure_rate: '联想乐享',
     competitor_exposure_rate: '竞品可见性'
   };
   let wanted;
