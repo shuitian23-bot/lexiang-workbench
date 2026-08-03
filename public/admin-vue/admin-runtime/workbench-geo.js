@@ -205,7 +205,7 @@ function geoCurrentPlatformLabel() {
 // 加载并发治理：统一走 geoFetchJson——30s 超时兜底 + loadSeq 切换时可批量取消旧请求，
 // 防止竞品/筛选连点时新旧两轮请求抢连接槽位、互相拖累，导致状态栏卡在"加载中..."。
 // 外部点亮AI接口实测慢时 15s+ 才回，超时给到 30s，防抖+abort 保证不会堆积。
-const GEO_FETCH_TIMEOUT_MS = 30000;
+const GEO_FETCH_TIMEOUT_MS = 10000; // POC 演示：10s 未回即降级演示数据，不让页面干等
 
 function geoAbortPending() {
   (geoState._pendingAborts || []).forEach(c => { try { c.abort(); } catch (_) {} });
@@ -469,6 +469,7 @@ function geoSyncScopeUi() {
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
+  geoRenderCompareRank();
 }
 
 function geoSetScope(el) {
@@ -732,6 +733,7 @@ function geoRenderKpis(data) {
   };
   geoApplyCompare();
   geoRenderTrendChart();
+  geoRenderCompareRank();
 }
 
 function geoRenderTrendChart() {
@@ -743,6 +745,55 @@ function geoCompetitorColorByName(name) {
   return item ? (GEO_COMPETITOR_COLORS[item[0]] || '#6b7280') : '#6b7280';
 }
 
+// 「品牌 vs 竞品 对比」逐竞品横条排行卡（需求根文档对比模式示意图）。
+// 分竞品率无真实接口（点亮AI未提供），POC 演示：竞品值=品牌值×伪随机衰减，卡片已标注演示数据。
+const GEO_RANK_METRIC_LABELS = { visible: '品牌可见度', rec: '品牌推荐率', top1: '品牌推荐置顶率', top3: '品牌推荐前三率' };
+function geoRenderCompareRank() {
+  const panel = document.getElementById('geo-compare-rank-panel');
+  const row = document.getElementById('geo-trend-row');
+  if (!panel || !row) return;
+  const show = geoState.scope !== 'leai' && geoState.compare === 'compare';
+  panel.style.display = show ? '' : 'none';
+  row.classList.toggle('single', !show);
+  if (!show) return;
+  const body = document.getElementById('geo-compare-rank-body');
+  const diffEl = document.getElementById('geo-compare-rank-diff');
+  const competitors = geoSelectedCompetitors();
+  if (!competitors.length) {
+    if (body) body.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div>';
+    if (diffEl) diffEl.textContent = '';
+    return;
+  }
+  const metric = geoState.selectedKpi || 'visible';
+  const brandVal = geoNum(geoState._kpiRaw?.[metric]?.brand);
+  if (brandVal === null) {
+    if (body) body.innerHTML = `<div style="color:#9ca3af;font-size:12px;padding:12px">${GEO_PENDING_TEXT}</div>`;
+    if (diffEl) diffEl.textContent = '';
+    return;
+  }
+  const rows = [{ name: geoBrandLabel(), value: brandVal, brand: true }];
+  competitors.forEach(name => {
+    const k = 0.70 + ((geoMockHash(name + '·' + metric) * 131 % 2400)) / 10000; // 0.70-0.9399 各竞品/指标稳定错开
+    rows.push({ name, value: Math.round(brandVal * k * 100) / 100, brand: false });
+  });
+  rows.sort((a, b) => b.value - a.value);
+  const max = Math.max(...rows.map(r => r.value), 1);
+  const best = rows.find(r => !r.brand);
+  const diff = best ? Math.round((brandVal - best.value) * 100) / 100 : null;
+  if (diffEl && diff !== null) {
+    diffEl.textContent = `${diff > 0 ? '+' : ''}${diff.toFixed(2)}pp`;
+    diffEl.style.color = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
+  }
+  if (body) body.innerHTML = `
+    <div style="font-size:12px;font-weight:600;color:#374151;margin:4px 0 10px">${GEO_RANK_METRIC_LABELS[metric] || metric}</div>
+    ${rows.map(r => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:12px">
+        <span style="min-width:52px;color:${r.brand ? '#1d4ed8' : '#374151'};font-weight:${r.brand ? '700' : '400'}">${geoEscape(r.name)}</span>
+        <span style="flex:1;height:8px;background:#eef1f5;border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${Math.max(r.value / max * 100, 3)}%;background:${r.brand ? '#3f78c5' : '#e8973a'};border-radius:4px"></i></span>
+        <strong style="min-width:52px;text-align:right;font-weight:${r.brand ? '700' : '500'}">${geoFmtPct(r.value)}</strong>
+      </div>`).join('')}`;
+}
+
 function geoSelectKpi(el) {
   const metric = el.dataset.metric;
   geoState.selectedKpi = metric;
@@ -750,6 +801,7 @@ function geoSelectKpi(el) {
     k.classList.toggle('highlight', k.dataset.metric === metric);
   });
   geoRenderTrendChart();
+  geoRenderCompareRank();
 }
 
 function geoToggleCompetitor(el) {
@@ -778,6 +830,7 @@ function geoToggleCompetitor(el) {
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
+  geoRenderCompareRank();
   geoLoadData();
 }
 
