@@ -233,11 +233,107 @@ async function geoFetchJson(url, options = {}, { timeoutMs = GEO_FETCH_TIMEOUT_M
 }
 
 async function geoPost(path, body, opts) {
-  return geoFetchJson('/api/geo-dashboard/' + path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {})
-  }, opts);
+  let json = null;
+  try {
+    json = await geoFetchJson('/api/geo-dashboard/' + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {})
+    }, opts);
+  } catch (e) {
+    const mock = geoMockResponse(path, body);
+    if (mock) { geoState._usedMock = true; setTimeout(geoMarkMockStatus, 150); return mock; }
+    throw e;
+  }
+  if (json && json.code === 200 && json.data) return json;
+  const mock = geoMockResponse(path, body);
+  if (mock) { geoState._usedMock = true; return mock; }
+  return json;
+}
+
+// ===== POC 演示数据兜底 =====
+// 外部点亮AI接口慢/超时/失败/501 时降级为演示数据，保证看板按需求示意图完整渲染（POC 演示优先）。
+// 任一板块用了演示数据即置 geoState._usedMock，状态栏标注，不冒充真实数据。
+function geoMockHash(s) { let h = 0; const t = String(s); for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h; }
+function geoMockWave(seed, i, min, max) { const r = (Math.sin((geoMockHash(seed) % 97) + i * 0.7) + 1) / 2; return Math.round((min + r * (max - min)) * 100) / 100; }
+function geoMockDates(body) {
+  const end = body && body.end_date ? new Date(body.end_date) : new Date(Date.now() - 864e5);
+  const start = body && body.start_date ? new Date(body.start_date) : new Date(end.getTime() - 29 * 864e5);
+  const out = [];
+  for (let d = new Date(start); d <= end && out.length < 120; d.setDate(d.getDate() + 1)) out.push(geoFmtDate(new Date(d)));
+  return out;
+}
+const GEO_MOCK_INTENTS = [
+  '拯救者Y9000P配置官方查询渠道','联想官方AI助手官网','联想官方AI助手有什么用','moto 折叠屏手机官方售后渠道',
+  '拯救者游戏平板配置官方查询渠道','小新Pro最新款产品信息从哪看','YOGA Pad Pro平板最新款介绍从哪看','拯救者R7000最新款产品信息从哪看',
+  'ThinkPad X1 Carbon官方参数页','联想笔记本续航怎么查官方数据','联想商城企业购入口','怎么查联想智能客户解决方案官方介绍',
+  'moto edge 60手机官方售后渠道','联想工作站官方选型渠道','联想服务器官方产品线介绍','拯救者刀7000P官方售后渠道',
+  '联想平板电脑官方对比页面','联想门店地址官方查询'
+];
+function geoMockResponse(path, body) {
+  const b = body || {};
+  if (path === 'overview') {
+    const seed = (b.models && b.models[0]) || 'all';
+    const off = (geoMockHash(seed) % 9) - 4; // 各平台数值错开
+    return { code: 200, message: 'mock', data: {
+      brand_coverage_metrics: { brand_exposure_rate: 85.56 + off, competitor_exposure_rate: 29.39 + off / 2 },
+      conversion_metrics: {
+        brand_priority_rate: 68.50 + off, competitor_priority_rate: 24.75 + off / 2,
+        brand_top1_rate: 57.95 + off, competitor_top1_rate: 6.03 + Math.abs(off) / 3,
+        brand_top3_rate: 60.95 + off, competitor_top3_rate: 17.18 + off / 2
+      },
+      content_ecology_metrics: {}
+    } };
+  }
+  if (path === 'summary') {
+    const dates = geoMockDates(b);
+    const mk = (field, min, max) => ({ field, field_name: field, values: dates.map((d, i) => ({ date: d, value: geoMockWave(field, i, min, max) })) });
+    return { code: 200, message: 'mock', data: {
+      x_axis: dates.map(d => ({ date: d, label: d.slice(5) })),
+      series: [ mk('all', 108, 132), mk('brand_composite_exposure_rate', 98, 126), mk('brand_precise_exposure_rate', 58, 86), mk('competitor_exposure_rate', 30, 60) ]
+    } };
+  }
+  if (path === 'competitor-trends') {
+    const dates = geoMockDates(b);
+    const brands = (b.brands || []).length ? b.brands : ['惠普'];
+    return { code: 200, message: 'mock', data: {
+      series: brands.map(name => ({ brand: name, field_name: name, values: dates.map((d, i) => ({ date: d, value: geoMockWave('comp' + name, i, 28, 62) })) }))
+    } };
+  }
+  if (path === 'questions') {
+    const models = ['doubao', 'deepseek', 'yuanbao', 'kimi'];
+    const questions = GEO_MOCK_INTENTS.map((q, qi) => ({
+      question: q, question_id: 'mock-' + qi,
+      models: models.map(m => {
+        const h = geoMockHash(q + m);
+        return { model: m, fields: [
+          { field: 'brand_composite_exposure_rate', value: h % 100 < 62 ? '是' : '否' },
+          { field: 'brand_precise_exposure_rate', value: h % 97 < 68 ? '是' : '否' },
+          { field: 'competitor_exposure_rate', value: h % 89 < 24 ? '是' : '否' }
+        ] };
+      })
+    }));
+    return { code: 200, message: 'mock', data: { questions } };
+  }
+  if (path === 'stable-intents') return { code: 200, message: 'mock', data: GEO_MOCK_INTENTS.map(q => ({ question: q })) };
+  if (path === 'wiki-history') {
+    return { code: 200, message: 'mock', data: {
+      model_counts: ['doubao', 'deepseek', 'yuanbao', 'kimi'].map(m => {
+        const k = 0.7 + (geoMockHash(m) % 60) / 100;
+        return { model: m,
+          wiki_citation_count: Math.round(14100 * k), lenovo_wiki_citation_count: Math.round(9800 * k),
+          wiki_shop_citation_count: Math.round(1260 * k), wiki_c_citation_count: Math.round(2140 * k),
+          wiki_b_citation_count: Math.round(640 * k), wiki_biz_citation_count: Math.round(410 * k) };
+      })
+    } };
+  }
+  if (path === 'source-top10') {
+    const urls = ['https://support.lenovo.com.cn/', 'https://www.lenovo.com.cn/', 'https://newsupport.lenovo.com.cn/serverNet.html',
+      'https://s.lenovo.com.cn/', 'https://m.lenovo.com.cn/', 'https://e.lenovo.com.cn/category/laptops/',
+      'https://www.lenovo.com.cn/wiki/', 'https://s.lenovo.com.cn/category/notebook/', 'https://newsupport.lenovo.com.cn/driveDownloads.html', 'https://club.lenovo.com.cn/'];
+    return { code: 200, message: 'mock', data: { top_urls: urls.map((u, i) => ({ rank: i + 1, url: u, citation_count: Math.round(4567 * Math.pow(0.78, i)) })) } };
+  }
+  return null;
 }
 
 function geoCurrentDateLabel() {
@@ -500,7 +596,20 @@ function geoLoadIntentPage() {
 
 function geoSetStatus(text, isError) {
   const s = document.getElementById('geo-status');
-  if (s) { s.textContent = text; s.style.color = isError ? 'var(--red)' : 'var(--text-tertiary)'; }
+  if (!s) return;
+  let t = text;
+  if (geoState._usedMock && !t.includes('演示数据')) t += ' · ⚠️ 接口超时，部分为演示数据';
+  s.textContent = t;
+  s.style.color = isError ? 'var(--red)' : 'var(--text-tertiary)';
+}
+
+// mock 触发晚于状态栏首次渲染时，幂等补标注
+function geoMarkMockStatus() {
+  if (!geoState._usedMock) return;
+  const s = document.getElementById('geo-status');
+  if (s && s.textContent && !s.textContent.includes('演示数据') && !s.textContent.includes('加载中')) {
+    s.textContent += ' · ⚠️ 接口超时，部分为演示数据';
+  }
 }
 
 function geoRenderDashboardPending(message = GEO_PENDING_TEXT) {
@@ -535,6 +644,7 @@ function geoLoadData() {
 
 async function geoLoadDataRun(loadSeq) {
   if (loadSeq !== geoState._loadSeq) return; // 防抖等待期间又被更新的一轮取代
+  geoState._usedMock = false;
   const selectedModels = geoSelectedModels();
   try {
     const data = await geoFetch(selectedModels);
@@ -1441,7 +1551,7 @@ async function geoLoadTrendChart(loadSeq) {
   const competitors = geoState.compare === 'compare' ? geoSelectedCompetitors() : [];
   if (competitors.length) body.competitors = competitors;
   try {
-    const json = await geoFetchJson('/api/geo-dashboard/summary', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const json = await geoPost('summary', body);
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     if (json.code !== 200 || !json.data) {
       _trendChartData = null;
@@ -1771,16 +1881,78 @@ function geoConversionDateRangeChanged() {
   geoLoadConversionPage();
 }
 
+// 转化看板演示值（需求示意图量级）：主值 + 消费/SMB/政企三业务拆分
+const GEO_CONVERSION_MOCK = {
+  'gc-all-uv': 26820, 'gc-all-login': 597, 'gc-all-newreg': 107,
+  'gc-all-paid': [4, 2, 1, 1], 'gc-all-ca': [5, 2, 1, 2], 'gc-all-gmv': [729.7, 412.3, 187.4, 130],
+  'gc-all-newpaid': [2, 1, 1, 0], 'gc-all-newca': [2, 1, 1, 0], 'gc-all-newgmv': [315.4, 208.1, 107.3, 0],
+  'gc-all-leai-user': [1, 1, 0, 0], 'gc-all-leai-ca': [1, 1, 0, 0], 'gc-all-leai-gmv': [129.9, 129.9, 0, 0],
+  'gc-leai-uv': 1206, 'gc-leai-login': 597, 'gc-leai-newreg': 107, 'gc-leai-interact': 856, 'gc-leai-login-interact': 412,
+  'gc-leai-paid': [4, 2, 1, 1], 'gc-leai-ca': [5, 2, 1, 2], 'gc-leai-gmv': [729.7, 412.3, 187.4, 130],
+  'gc-leai-newpaid': [2, 1, 1, 0], 'gc-leai-newca': [2, 1, 1, 0], 'gc-leai-newgmv': [315.4, 208.1, 107.3, 0],
+  'gc-leai-order-user': [1, 1, 0, 0], 'gc-leai-order-ca': [1, 1, 0, 0], 'gc-leai-order-gmv': [129.9, 129.9, 0, 0],
+  'gc-official-uv': 26820, 'gc-official-home-uv': 10542, 'gc-official-shop-uv': 5421, 'gc-official-c-uv': 3980,
+  'gc-official-b-uv': 3352, 'gc-official-biz-uv': 2128, 'gc-official-service-uv': 896, 'gc-official-other-uv': 501,
+  'gc-official-total-ca': 3285, 'gc-official-total-gmv': 18765432,
+  'gc-official-c-ca': 2156, 'gc-official-b-ca': 742, 'gc-official-biz-ca': 387,
+  'gc-official-c-gmv': 9842123, 'gc-official-b-gmv': 5218760, 'gc-official-biz-gmv': 3704549
+};
+const GEO_CONVERSION_MOCK_TOP5 = [
+  { name: '联想驱动下载首页 - 支持与驱动', url: 'https://newsupport.lenovo.com.cn/driveDownloads.html', uv: 3652 },
+  { name: '联想帮助中心首页', url: 'https://newsupport.lenovo.com.cn/', uv: 2941 },
+  { name: 'ThinkPad X1 Carbon 驱动下载页面', url: 'https://newsupport.lenovo.com.cn/driveDownloads_detail.html', uv: 2136 },
+  { name: '联想商城 - 笔记本电脑', url: 'https://s.lenovo.com.cn/category/notebook/', uv: 1896 },
+  { name: '联想企业购 - 商用笔记本', url: 'https://e.lenovo.com.cn/category/laptops/', uv: 1632 }
+];
+
+function geoFillConversionMock() {
+  Object.entries(GEO_CONVERSION_MOCK).forEach(([id, v]) => {
+    const main = Array.isArray(v) ? v[0] : v;
+    geoSetValue(id, main);
+    if (Array.isArray(v)) {
+      const cell = document.getElementById(id)?.closest('.geo-conv-cell');
+      const split = cell?.querySelector('.geo-business-split-row');
+      if (split) split.innerHTML = `
+        <span>消费业务 <strong>${geoFmtCount(v[1])}</strong></span>
+        <span>SMB业务 <strong>${geoFmtCount(v[2])}</strong></span>
+        <span>政企业务 <strong>${geoFmtCount(v[3])}</strong></span>`;
+    }
+  });
+  const topPages = document.getElementById('gc-official-top-pages');
+  if (topPages) {
+    const max = GEO_CONVERSION_MOCK_TOP5[0].uv;
+    topPages.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="color:#6b7280;text-align:left"><th style="padding:6px 8px;width:36px">排名</th><th style="padding:6px 8px">页面名称</th><th style="padding:6px 8px">链接</th><th style="padding:6px 8px;text-align:right">页面UV</th></tr></thead>
+      <tbody>${GEO_CONVERSION_MOCK_TOP5.map((p, i) => `
+        <tr style="border-top:1px solid #f3f4f6">
+          <td style="padding:6px 8px">${i < 3 ? `<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:#3f78c5;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px">${i + 1}</span>` : `<span style="color:#94a3b8;font-weight:600;padding-left:6px">${i + 1}</span>`}</td>
+          <td style="padding:6px 8px">${geoEscape(p.name)}</td>
+          <td style="padding:6px 8px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${geoEscape(p.url)}" target="_blank" rel="noopener" style="color:#3f78c5;text-decoration:none">${geoEscape(p.url)}</a></td>
+          <td style="padding:6px 8px;text-align:right"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><span style="display:inline-block;width:${Math.round(p.uv / max * 60)}px;height:5px;background:#9fc4ea;border-radius:3px"></span><strong>${geoFmtCount(p.uv)}</strong></div></td>
+        </tr>`).join('')}</tbody></table>`;
+  }
+}
+
 function geoLoadConversionPage() {
   geoInitConversionDatePicker();
   geoSyncConversionPeriodButtons();
   GEO_CONVERSION_VALUE_IDS.forEach(id => geoSetValue(id, null));
   geoAttachConversionBusinessSplits();
-  const topPages = document.getElementById('gc-official-top-pages');
-  if (topPages) topPages.innerHTML = geoPendingHtml('用户访问Top5页面待接口提供数据');
   const status = document.getElementById('geo-conversion-status');
   const range = geoResolveConversionDateRange();
-  if (status) status.textContent = `${GEO_PENDING_TEXT} · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
+  // 后端 /conversion 仍是 501 桩（外部数据源未接），POC 演示优先：请求失败/501 即降级演示数据
+  geoPost('conversion', { project_id: GEO_PROJECT_ID, ...range }, { abortable: false }).then(json => {
+    if (json && json.code === 200 && json.data && !json.mockFilled) {
+      // 真数据到位后按接口结构渲染（数据源接通后再实现字段映射）
+      if (status) status.textContent = `更新于 ${new Date().toLocaleTimeString()} · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
+      return;
+    }
+    geoFillConversionMock();
+    if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入） · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
+  }).catch(() => {
+    geoFillConversionMock();
+    if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入） · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
+  });
 }
 
 function geoAttachConversionBusinessSplits() {

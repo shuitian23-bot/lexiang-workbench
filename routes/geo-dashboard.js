@@ -155,7 +155,8 @@ router.post('/source-top10', async (req, res) => {
 });
 
 router.post('/conversion', (req, res) => {
-  res.status(501).json({
+  // HTTP 200 + 业务 code 501：浏览器网络层不产生 console 错误日志，前端按业务码降级演示数据
+  res.json({
     code: 501,
     message: '待接口提供数据',
     data: null
