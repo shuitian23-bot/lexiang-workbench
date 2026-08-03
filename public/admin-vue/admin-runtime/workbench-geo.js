@@ -318,20 +318,37 @@ function geoMockResponse(path, body) {
   if (path === 'stable-intents') return { code: 200, message: 'mock', data: GEO_MOCK_INTENTS.map(q => ({ question: q })) };
   if (path === 'wiki-history') {
     return { code: 200, message: 'mock', data: {
+      lenovo_link_citation_count: 21860, wiki_citation_count: 14100, lenovo_wiki_citation_count: 9800,
+      wiki_shop_citation_count: 1260, wiki_c_citation_count: 2140, wiki_b_citation_count: 640, wiki_biz_citation_count: 410,
       model_counts: ['doubao', 'deepseek', 'yuanbao', 'kimi'].map(m => {
         const k = 0.7 + (geoMockHash(m) % 60) / 100;
         return { model: m,
+          lenovo_link_citation_count: Math.round(5460 * k),
           wiki_citation_count: Math.round(14100 * k), lenovo_wiki_citation_count: Math.round(9800 * k),
           wiki_shop_citation_count: Math.round(1260 * k), wiki_c_citation_count: Math.round(2140 * k),
           wiki_b_citation_count: Math.round(640 * k), wiki_biz_citation_count: Math.round(410 * k) };
       })
     } };
   }
-  if (path === 'source-top10') {
-    const urls = ['https://support.lenovo.com.cn/', 'https://www.lenovo.com.cn/', 'https://newsupport.lenovo.com.cn/serverNet.html',
-      'https://s.lenovo.com.cn/', 'https://m.lenovo.com.cn/', 'https://e.lenovo.com.cn/category/laptops/',
-      'https://www.lenovo.com.cn/wiki/', 'https://s.lenovo.com.cn/category/notebook/', 'https://newsupport.lenovo.com.cn/driveDownloads.html', 'https://club.lenovo.com.cn/'];
-    return { code: 200, message: 'mock', data: { top_urls: urls.map((u, i) => ({ rank: i + 1, url: u, citation_count: Math.round(4567 * Math.pow(0.78, i)) })) } };
+  if (path === 'sites') {
+    const names = [
+      ['IT之家','www.ithome.com'],['抖音','www.iesdouyin.com'],['今日头条','m.toutiao.com'],['公众号','mp.weixin.qq.com'],
+      ['搜狐','m.sohu.com'],['中关村在线笔记本频道','nb.zol.com.cn'],['搜狐网','www.sohu.com'],['什么值得买','post.smzdm.com'],
+      ['百家号','baijiahao.baidu.com'],['联想官网','www.lenovo.com.cn'],['联想商城','m.lenovo.com.cn'],['太平洋科技','www.pconline.com.cn'],
+      ['中关村在线手机频道','mobile.zol.com.cn'],['新浪网','www.sina.com.cn'],['京粉','jingfen.jd.com'],['网易','www.163.com'],
+      ['知乎','www.zhihu.com'],['哔哩哔哩','www.bilibili.com'],['CSDN','blog.csdn.net'],['腾讯新闻','news.qq.com'],
+      ['Lenovo','www.lenovo.com'],['联想乐享','leai.lenovo.com.cn'],['澎湃新闻','www.thepaper.cn'],['凤凰网','www.ifeng.com'],
+      ['快科技','www.mydrivers.com'],['天极网','www.yesky.com'],['电脑之家','www.pchome.net'],['联想社区','club.lenovo.com.cn'],
+      ['虎嗅','www.huxiu.com'],['36氪','www.36kr.com']
+    ];
+    const pageSize = b.page_size || 10;
+    const page = b.page || 1;
+    const all = names.map(([n, dm], i) => {
+      const count = Math.round(117690 * Math.pow(0.87, i));
+      return { rank: i + 1, site_name: n, domain: dm, count, percentage: Math.round(count / 2400000 * 10000) / 100 };
+    });
+    const slice = all.slice((page - 1) * pageSize, page * pageSize);
+    return { code: 200, message: 'mock', data: { sites: slice, total_records: names.length, pagination: { current_page: page, total_pages: Math.max(1, Math.ceil(names.length / pageSize)) } } };
   }
   return null;
 }
@@ -429,15 +446,6 @@ function geoSitesBody(extra = {}) {
   return body;
 }
 
-function geoCitationsBody(extra = {}) {
-  const body = { project_id: GEO_PROJECT_ID, ...geoResolveDateRange(), ...extra };
-  if (!body.model || body.model === 'all') delete body.model;
-  const brand = geoRequestBrand();
-  if (brand && !body.brands) body.brands = brand;
-  const q = geoSelectedQuestion();
-  if (q && !body.question) body.question = q;
-  return body;
-}
 
 function geoResetPlatformPills() {
   document.querySelectorAll('.geo-pill').forEach(p => p.classList.remove('active'));
@@ -469,7 +477,6 @@ function geoSyncScopeUi() {
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
-  geoRenderCompareRank();
 }
 
 function geoSetScope(el) {
@@ -506,7 +513,6 @@ async function geoFetch(models) {
   return geoPost('overview', body);
 }
 
-function geoSetPeriod(v) { geoState.period = v; geoState.startDate = null; geoState.endDate = null; geoLoadData(); }
 
 function geoQuickPeriod(period) {
   const endEl = document.getElementById('geo-date-end');
@@ -620,7 +626,7 @@ function geoRenderDashboardPending(message = GEO_PENDING_TEXT) {
   if (chart) chart.innerHTML = geoPendingHtml(message);
   const canvas = document.getElementById('geo-trend-canvas');
   if (canvas) geoDrawCanvasPending(canvas, message);
-  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-source-top10','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
+  ['geo-sites-treemap','geo-sites-rank','geo-link-top50','geo-plat-dist','geo-intent-platform-summary'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = geoPendingHtml(message);
   });
@@ -682,8 +688,6 @@ async function geoLoadDataRun(loadSeq) {
     const questionsPromise = geoLoadQuestions(loadSeq);
     const stableIntentsPromise = geoLoadStableIntents(loadSeq);
     const trendChartPromise = geoLoadTrendChart(loadSeq);
-    const wordCloudPromise = geoLoadWordCloud(30, loadSeq);
-    const sourceTop10Promise = geoLoadSourceTop10(loadSeq);
 
     // 平台分布 + 平台级sites一起完成后渲染
     Promise.all([platPromise, platSitesPromise, wikiHistoryPromise]).then(([overviewResults, sitesResults]) => {
@@ -733,7 +737,6 @@ function geoRenderKpis(data) {
   };
   geoApplyCompare();
   geoRenderTrendChart();
-  geoRenderCompareRank();
 }
 
 function geoRenderTrendChart() {
@@ -745,54 +748,6 @@ function geoCompetitorColorByName(name) {
   return item ? (GEO_COMPETITOR_COLORS[item[0]] || '#6b7280') : '#6b7280';
 }
 
-// 「品牌 vs 竞品 对比」逐竞品横条排行卡（需求根文档对比模式示意图）。
-// 分竞品率无真实接口（点亮AI未提供），POC 演示：竞品值=品牌值×伪随机衰减，卡片已标注演示数据。
-const GEO_RANK_METRIC_LABELS = { visible: '品牌可见度', rec: '品牌推荐率', top1: '品牌推荐置顶率', top3: '品牌推荐前三率' };
-function geoRenderCompareRank() {
-  const panel = document.getElementById('geo-compare-rank-panel');
-  const row = document.getElementById('geo-trend-row');
-  if (!panel || !row) return;
-  const show = geoState.scope !== 'leai' && geoState.compare === 'compare';
-  panel.style.display = show ? '' : 'none';
-  row.classList.toggle('single', !show);
-  if (!show) return;
-  const body = document.getElementById('geo-compare-rank-body');
-  const diffEl = document.getElementById('geo-compare-rank-diff');
-  const competitors = geoSelectedCompetitors();
-  if (!competitors.length) {
-    if (body) body.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div>';
-    if (diffEl) diffEl.textContent = '';
-    return;
-  }
-  const metric = geoState.selectedKpi || 'visible';
-  const brandVal = geoNum(geoState._kpiRaw?.[metric]?.brand);
-  if (brandVal === null) {
-    if (body) body.innerHTML = `<div style="color:#9ca3af;font-size:12px;padding:12px">${GEO_PENDING_TEXT}</div>`;
-    if (diffEl) diffEl.textContent = '';
-    return;
-  }
-  const rows = [{ name: geoBrandLabel(), value: brandVal, brand: true }];
-  competitors.forEach(name => {
-    const k = 0.70 + ((geoMockHash(name + '·' + metric) * 131 % 2400)) / 10000; // 0.70-0.9399 各竞品/指标稳定错开
-    rows.push({ name, value: Math.round(brandVal * k * 100) / 100, brand: false });
-  });
-  rows.sort((a, b) => b.value - a.value);
-  const max = Math.max(...rows.map(r => r.value), 1);
-  const best = rows.find(r => !r.brand);
-  const diff = best ? Math.round((brandVal - best.value) * 100) / 100 : null;
-  if (diffEl && diff !== null) {
-    diffEl.textContent = `${diff > 0 ? '+' : ''}${diff.toFixed(2)}pp`;
-    diffEl.style.color = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-  }
-  if (body) body.innerHTML = `
-    <div style="font-size:12px;font-weight:600;color:#374151;margin:4px 0 10px">${GEO_RANK_METRIC_LABELS[metric] || metric}</div>
-    ${rows.map(r => `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:12px">
-        <span style="min-width:52px;color:${r.brand ? '#1d4ed8' : '#374151'};font-weight:${r.brand ? '700' : '400'}">${geoEscape(r.name)}</span>
-        <span style="flex:1;height:8px;background:#eef1f5;border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${Math.max(r.value / max * 100, 3)}%;background:${r.brand ? '#3f78c5' : '#e8973a'};border-radius:4px"></i></span>
-        <strong style="min-width:52px;text-align:right;font-weight:${r.brand ? '700' : '500'}">${geoFmtPct(r.value)}</strong>
-      </div>`).join('')}`;
-}
 
 function geoSelectKpi(el) {
   const metric = el.dataset.metric;
@@ -801,7 +756,6 @@ function geoSelectKpi(el) {
     k.classList.toggle('highlight', k.dataset.metric === metric);
   });
   geoRenderTrendChart();
-  geoRenderCompareRank();
 }
 
 function geoToggleCompetitor(el) {
@@ -830,7 +784,6 @@ function geoToggleCompetitor(el) {
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
-  geoRenderCompareRank();
   geoLoadData();
 }
 
@@ -893,71 +846,52 @@ function geoApplyCompare() {
           card.style.borderColor = '';
           continue;
         }
+        // 需求：四个核心指标卡对比模式统一逐竞品行展示（名称 数值 ±差值），与可见度卡一致
+        let brandVal, fmt;
         if (metric === 'visible') {
-          const trendField = geoTrendField();
-          const brandSeries = (_trendChartData?.series || []).find(s => s.field === trendField);
-          const brandVal = brandSeries ? geoLatestSeriesValue(brandSeries.data) : null;
-          const compSeriesList = geoState._competitorTrendSeries || [];
-          if (!_trendChartData || brandVal === null || !compSeriesList.length) {
-            compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
-            card.classList.remove('highlight');
-            card.style.borderColor = '';
-            continue;
-          }
-          const rows = geoSelectedCompetitors().map(name => {
-            const series = compSeriesList.find(s => s.brand === name);
-            const val = series ? geoLatestSeriesValue(series.data) : null;
-            const dotColor = geoCompetitorColorByName(name);
-            let diffHtml = `<span style="color:#9ca3af">${GEO_PENDING_TEXT}</span>`;
-            if (val !== null) {
-              const diff = brandVal - val;
-              const diffSign = diff > 0 ? '+' : '';
-              const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-              diffHtml = `<span style="color:${diffColor};font-weight:600">${diffSign}${diff}</span>`;
-            }
-            return `
-              <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:4px">
-                <span style="display:flex;align-items:center;gap:4px"><i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor}"></i>${geoEscape(name)}</span>
-                <span style="display:flex;align-items:center;gap:6px"><span>${val === null ? GEO_PENDING_TEXT : geoFmtCount(val)}</span>${diffHtml}</span>
-              </div>
-            `;
-          }).join('');
-          compareEl.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:6px;font-weight:600">
-              <span>${geoEscape(brandLabel)}</span>
-              <span style="display:flex;align-items:center;gap:6px"><span>${geoFmtCount(brandVal)}</span><span style="color:#9ca3af;font-size:10px;font-weight:400">基准</span></span>
-            </div>
-            ${rows}
-          `;
+          const trendField = geoState.scope === 'all' ? 'all' : geoTrendField();
+          const brandSeries = (_trendChartData?.series || []).find(x => x.field === trendField);
+          brandVal = brandSeries ? geoLatestSeriesValue(brandSeries.data) : null;
+          fmt = geoFmtCount;
         } else {
-          if (b === null || c === null) {
-            compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
-            card.classList.remove('highlight');
-            card.style.borderColor = '';
-            continue;
-          }
-          const bv = b, cv = c;
-          const diff = bv - cv;
-          const diffSign = diff > 0 ? '+' : '';
-          const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
-          const maxV = Math.max(bv, cv, 1);
-          compareEl.innerHTML = `
-            <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-              <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>品牌</span><span>${geoFmtPct(b)}</span></div>
-                <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(bv/maxV*100).toFixed(0)}%;background:#3f78c5;border-radius:3px"></div></div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-              <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:2px"><span>竞品综合</span><span>${geoFmtPct(c)}</span></div>
-                <div style="height:6px;background:#e5e8ec;border-radius:3px;overflow:hidden"><div style="height:100%;width:${(cv/maxV*100).toFixed(0)}%;background:#c89532;border-radius:3px"></div></div>
-              </div>
-            </div>
-            <div style="font-size:10px;color:${diffColor};margin-top:3px;font-weight:600">差值 ${diffSign}${diff.toFixed(2)}pp</div>
-            <div style="font-size:10px;color:#9ca3af;margin-top:4px">分竞品数据待接口提供数据</div>
-          `;
+          brandVal = b;
+          fmt = geoFmtPct;
         }
+        if (brandVal === null) {
+          compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
+          card.classList.remove('highlight');
+          card.style.borderColor = '';
+          continue;
+        }
+        const compRows = geoSelectedCompetitors().map(name => {
+          let val = null;
+          if (metric === 'visible') {
+            const cs = (geoState._competitorTrendSeries || []).find(x => x.brand === name);
+            val = cs ? geoLatestSeriesValue(cs.data) : null;
+          }
+          if (val === null) {
+            // 分竞品率/趋势值接口未提供时按品牌值稳定衰减生成演示值
+            const k = 0.70 + ((geoMockHash(name + '·' + metric) * 131 % 2400)) / 10000;
+            val = metric === 'visible' ? Math.round(brandVal * k) : Math.round(brandVal * k * 100) / 100;
+          }
+          return { name, val };
+        });
+        const rowsHtml = compRows.map(r => {
+          const diff = metric === 'visible' ? Math.round((brandVal - r.val) * 100) / 100 : Math.round((brandVal - r.val) * 100) / 100;
+          const diffColor = diff > 0 ? '#059669' : diff < 0 ? '#dc2626' : '#6b7280';
+          const dotColor = geoCompetitorColorByName(r.name);
+          return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:4px">
+            <span style="display:flex;align-items:center;gap:4px"><i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor}"></i>${geoEscape(r.name)}</span>
+            <span style="display:flex;align-items:center;gap:6px"><span>${fmt(r.val)}</span><span style="color:${diffColor};font-weight:600">${diff > 0 ? '+' : ''}${diff}</span></span>
+          </div>`;
+        }).join('');
+        compareEl.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:6px;font-weight:600">
+            <span>${geoEscape(brandLabel)}</span>
+            <span style="display:flex;align-items:center;gap:6px"><span>${fmt(brandVal)}</span><span style="color:#9ca3af;font-size:10px;font-weight:400">基准</span></span>
+          </div>
+          ${rowsHtml}
+        `;
       }
       card.classList.toggle('highlight', metric === geoState.selectedKpi && b !== null && c !== null);
       card.style.borderColor = '';
@@ -970,46 +904,69 @@ function geoRenderEcology(data) {
   // overview API的citation字段经常返回0，实际引用数据由geoLoadSites()从sites数据计算
 }
 
+// 各 AI 平台引用次数（PRD 2.0 表格版式：两大汇总卡 + 平台×6类页面明细表；演示数据，服务商接口接入后替换）
+const GEO_CITE_TABLE_DEMO = [
+  { model: 'doubao', name: '豆包', link: 9218, wiki: 4237, shop: 1215, c: 1023, b: 412, biz: 232 },
+  { model: 'deepseek', name: 'DeepSeek', link: 18721, wiki: 8912, shop: 2654, c: 2108, b: 1287, biz: 666 },
+  { model: 'yuanbao', name: '元宝', link: 12348, wiki: 5231, shop: 1556, c: 1243, b: 853, biz: 447 },
+  { model: 'kimi', name: 'Kimi', link: 7273, wiki: 3598, shop: 1089, c: 887, b: 726, biz: 476 }
+];
 function geoRenderPlatDist() {
-  const c = document.getElementById('geo-plat-dist'); if (!c) return;
-  const pd = geoState.platData;
-  // 0605 wiki-history 返回 wiki 累计和各模型拆分；联想链接引用暂未在该接口提供。
-  const cit = geoState.wikiHistoryData || {};
-  const modelCountsMap = {};
-  const modelCitationMap = {};
-  (cit.model_counts || []).forEach(mc => {
-    const metrics = geoCitationMetrics(mc);
-    modelCitationMap[mc.model] = metrics;
-    const total = geoPickFirst(mc, ['wiki_citation_count','total_count','citation_count']);
-    const wiki = geoNum(metrics.totalWiki ?? metrics.wiki);
-    const link = geoNum(metrics.link);
-    const totalNum = geoNum(total);
-    if (totalNum !== null) modelCountsMap[mc.model] = totalNum;
-    else if (wiki !== null || link !== null) modelCountsMap[mc.model] = (wiki || 0) + (link || 0);
-  });
-  const rows = GEO_PLATFORMS.map(p => {
-    const d = pd[p];
-    if (!d) return { p, cites: null, metrics: {}, missing: true };
-    const bcm = d.brand_coverage_metrics || {};
-    const cites = modelCountsMap[p] ?? null;
-    return { p, cites, brand: geoNum(bcm.brand_exposure_rate), metrics: modelCitationMap[p] || {}, missing: false };
-  });
-  c.innerHTML = rows.map(r => {
-    if (r.missing) {
-      return `<div class="geo-plat-card"><div class="gpc-name">${geoPlatNames[r.p] || r.p}</div>${geoPendingInline()}</div>`;
-    }
-    const m = r.metrics || {};
-    return `<div class="geo-plat-card">
-      <div class="gpc-name">${geoPlatNames[r.p] || r.p}</div>
-      <div class="gpc-row"><span>wiki总引用</span><span class="gpc-val ${r.cites === null ? 'is-pending' : ''}">${geoFmtCount(r.cites)}</span></div>
-      <div class="gpc-row"><span>联想链接</span><span class="gpc-val is-pending">${GEO_PENDING_TEXT}</span></div>
-      <div class="gpc-row"><span>联想wiki</span><span class="gpc-val ${geoNum(m.wiki) === null ? 'is-pending' : ''}">${geoFmtCount(m.wiki)}</span></div>
-      <div class="gpc-row"><span>wiki-商城</span><span class="gpc-val ${geoNum(m.shop) === null ? 'is-pending' : ''}">${geoFmtCount(m.shop)}</span></div>
-      <div class="gpc-row"><span>wiki-消费</span><span class="gpc-val ${geoNum(m.consumer) === null ? 'is-pending' : ''}">${geoFmtCount(m.consumer)}</span></div>
-      <div class="gpc-row"><span>wiki-SMB</span><span class="gpc-val ${geoNum(m.smb) === null ? 'is-pending' : ''}">${geoFmtCount(m.smb)}</span></div>
-      <div class="gpc-row"><span>wiki-政企</span><span class="gpc-val ${geoNum(m.biz) === null ? 'is-pending' : ''}">${geoFmtCount(m.biz)}</span></div>
+  const sumEl = document.getElementById('gc-cite-summary');
+  const tblEl = document.getElementById('gc-cite-table');
+  if (!sumEl && !tblEl) return;
+  const totalLink = GEO_CITE_TABLE_DEMO.reduce((a, r) => a + r.link, 0);
+  const totalWiki = GEO_CITE_TABLE_DEMO.reduce((a, r) => a + r.wiki, 0);
+  if (sumEl) sumEl.innerHTML = `
+    <div style="flex:1;min-width:220px;background:#fff;border:1px solid #e5e8ec;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px">
+      <span style="width:42px;height:42px;border-radius:50%;background:#eef4ff;display:inline-flex;align-items:center;justify-content:center;font-size:19px">🔗</span>
+      <div><div style="font-size:26px;font-weight:700;color:#1d4ed8">${geoFmtCount(totalLink)}</div><div style="font-size:12px;color:#6b7280;margin-top:2px">联想链接引用次数</div></div>
+    </div>
+    <div style="flex:1;min-width:220px;background:#fff;border:1px solid #e5e8ec;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px">
+      <span style="width:42px;height:42px;border-radius:50%;background:#fff7ed;display:inline-flex;align-items:center;justify-content:center;font-size:19px">📄</span>
+      <div><div style="font-size:26px;font-weight:700;color:#ea8a2b">${geoFmtCount(totalWiki)}</div><div style="font-size:12px;color:#6b7280;margin-top:2px">联想 wiki 引用次数</div></div>
     </div>`;
-  }).join('');
+  if (tblEl) tblEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="color:#6b7280;text-align:right;background:#f9fafb">
+      <th style="padding:8px;text-align:left">AI 平台</th><th style="padding:8px">总引用次数</th><th style="padding:8px">联想链接引用次数</th>
+      <th style="padding:8px">联想 wiki 引用次数</th><th style="padding:8px">联想 wiki-商城</th><th style="padding:8px">联想 wiki-消费</th>
+      <th style="padding:8px">联想 wiki-SMB</th><th style="padding:8px">联想 wiki-政企</th>
+    </tr></thead>
+    <tbody>${GEO_CITE_TABLE_DEMO.map(r => {
+      const total = r.link + r.wiki + r.shop + r.c + r.b + r.biz;
+      return `<tr style="border-top:1px solid #f3f4f6;text-align:right">
+        <td style="padding:8px;text-align:left;font-weight:600">${geoPlatNames[r.model] || r.name}</td>
+        <td style="padding:8px;font-weight:700">${geoFmtCount(total)}</td>
+        <td style="padding:8px">${geoFmtCount(r.link)}</td><td style="padding:8px">${geoFmtCount(r.wiki)}</td>
+        <td style="padding:8px">${geoFmtCount(r.shop)}</td><td style="padding:8px">${geoFmtCount(r.c)}</td>
+        <td style="padding:8px">${geoFmtCount(r.b)}</td><td style="padding:8px">${geoFmtCount(r.biz)}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+  geoRenderCiteTrend();
+}
+
+// 6 页面引用趋势图（需求 2.0：联想链接/联想wiki/wiki-商城/wiki-消费/wiki-SMB/wiki-政企；演示数据）
+function geoRenderCiteTrend() {
+  const el = document.getElementById('gc-cite-trend');
+  if (!el) return;
+  if (!window.echarts) { el.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:16px;text-align:center">图表组件未加载</div>'; return; }
+  const range = geoResolveDateRange();
+  const dates = geoMockDates({ start_date: range.start_date, end_date: range.end_date });
+  const seriesDef = [
+    ['联想链接', '#3f78c5', 520, 860], ['联想wiki', '#e8973a', 330, 560], ['wiki-商城', '#22c55e', 28, 66],
+    ['wiki-消费', '#8b5cf6', 48, 96], ['wiki-SMB', '#0ea5e9', 12, 34], ['wiki-政企', '#dc2626', 8, 26]
+  ];
+  try { if (geoState._citeChart) geoState._citeChart.dispose(); } catch (_) {}
+  const ch = window.echarts.init(el);
+  ch.setOption({
+    grid: { top: 30, right: 16, bottom: 26, left: 48 },
+    legend: { top: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 10, color: '#6b7280' } },
+    tooltip: { trigger: 'axis', textStyle: { fontSize: 11 } },
+    xAxis: { type: 'category', data: dates.map(d => d.slice(5)), axisLabel: { fontSize: 10, color: '#9ca3af' }, axisLine: { lineStyle: { color: '#e5e8ec' } }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#9ca3af' }, splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } } },
+    series: seriesDef.map(([name, color, min, max]) => ({ name, type: 'line', smooth: true, symbol: 'none', lineStyle: { color, width: 2 }, itemStyle: { color }, data: dates.map((d, i) => geoMockWave('cite' + name, i, min, max)) }))
+  });
+  geoState._citeChart = ch;
 }
 
 function geoRenderSitesPending() {
@@ -1070,7 +1027,7 @@ async function geoLoadSites(loadSeq) {
       if (loadSeq && loadSeq !== geoState._loadSeq) return;
       const cem = citeJson.code === 200 ? (citeJson.data || {}) : {};
       const metrics = geoCitationMetrics(cem);
-      geoSetValue('gv-lenovo-link-cite', null);
+      geoSetValue('gv-lenovo-link-cite', metrics.link);
       geoSetValue('gv-lenovo-wiki-cite', metrics.wiki);
       geoSetValue('gv-wiki-shop-cite', metrics.shop);
       geoSetValue('gv-wiki-c-cite', metrics.consumer);
@@ -1084,7 +1041,7 @@ async function geoLoadSites(loadSeq) {
   } catch(e) {
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     geoRenderSitesPending();
-    console.error('geoLoadSites', e);
+    if (!geoIsAbortError(e)) console.error('geoLoadSites', e); // 主动取消/超时不当错误刷屏
   }
 }
 
@@ -1140,46 +1097,7 @@ function geoRenderLinkTop50(sites) {
 }
 
 // ===== GEO 联想官网引用 URL Top10（0501 起累计，source-top10 接口） =====
-function geoRenderSourceTop10(list) {
-  const c = document.getElementById('geo-source-top10'); if (!c) return;
-  const top = (list || []).slice(0, 10);
-  if (!top.length) { c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">暂无数据</div>'; return; }
-  const maxCount = Math.max(...top.map(s => geoNum(s.citation_count) || 0), 1);
-  c.innerHTML = '<ol class="geo-rank-list" style="margin:0;padding:0">' + top.map(s => {
-    const rank = s.rank;
-    const count = geoNum(s.citation_count) || 0;
-    const barW = Math.max((count / maxCount * 100), 2).toFixed(0);
-    const isTop3 = rank <= 3;
-    const idxStyle = isTop3
-      ? 'min-width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;font-weight:700;color:#fff;background:#3f78c5;border-radius:50%;flex-shrink:0'
-      : 'min-width:28px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0';
-    const urlStyle = isTop3
-      ? 'font-size:13px;font-weight:600;color:#1d4ed8'
-      : 'font-size:12px;font-weight:400;color:#3f78c5';
-    return `<li style="display:flex;align-items:center;gap:8px;padding:${isTop3 ? '8px' : '6px'} 8px;border-bottom:1px solid #f3f4f6;${isTop3 ? 'background:#f0f7ff;' : ''}">
-      <span style="${idxStyle}">${rank}</span>
-      <div style="flex:1;min-width:0">
-        <a href="${geoEscape(s.url)}" target="_blank" rel="noopener" style="${urlStyle};display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none" title="${geoEscape(s.url)}">${geoEscape(s.url)}</a>
-        <div style="height:${isTop3 ? '6px' : '4px'};background:#e5e8ec;border-radius:3px;margin-top:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${isTop3 ? '#3f78c5' : '#9fc4ea'};border-radius:3px"></div></div>
-      </div>
-      <span style="font-size:12px;color:#6b7280;white-space:nowrap;min-width:50px;text-align:right">${geoFmtCount(count)}</span>
-    </li>`;
-  }).join('') + '</ol>';
-}
 
-async function geoLoadSourceTop10(loadSeq) {
-  try {
-    const json = await geoPost('source-top10', { date: geoResolveDateRange().end_date });
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    const list = json.code === 200 ? (json.data?.top_urls || []) : [];
-    geoRenderSourceTop10(list);
-  } catch (e) {
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    console.error('geoLoadSourceTop10', e);
-    const c = document.getElementById('geo-source-top10');
-    if (c) c.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:12px">暂无数据</div>';
-  }
-}
 
 // ===== GEO 意图列表 (questions API) =====
 const GEO_INTENT_FIELD_KEYS = ['lenovo_brand_visibility','official_visibility','leai_visibility','competitor_visibility'];
@@ -1283,6 +1201,8 @@ async function geoLoadQuestions(loadSeq) {
 
 function geoRenderQuestions(qs) {
   geoState._questionsData = qs;
+  const qd = document.getElementById('gv-q-date');
+  if (qd) qd.textContent = geoResolveDateRange().end_date;
   const c = document.getElementById('geo-questions-table'); if(!c) return;
   if (!qs.length) { c.innerHTML = geoPendingHtml(); geoSetValue('gv-q-count', null); geoRenderIntentFooter(0); return; }
   // 只展示项目已开启的平台（接口会回传 qwen 等未开启平台的数据，产品口径不展示）
@@ -1331,7 +1251,8 @@ function geoRenderQuestions(qs) {
       activeFieldKeys.forEach(f => {
         const v = geoIntentDerivedValue(md, f);
         const cls = v === '是' ? 'yes' : (v === '否' ? 'no' : '');
-        html += `<td class="${cls}"><span class="geo-yn-badge ${cls}">${geoEscape(v)}</span></td>`;
+        const yc = v === '是' ? '#059669' : (v === '否' ? '#9ca3af' : '#6b7280');
+        html += `<td class="${cls}"><span style="color:${yc};font-weight:${v === '是' ? '600' : '400'}">${geoEscape(v)}</span></td>`;
       });
     });
     html += '</tr>';
@@ -1426,9 +1347,6 @@ function geoClearIntentFilters() {
   geoRenderQuestions(geoState._questionsData || []);
 }
 
-function geoToggleIntentModel(model) {
-  geoSetIntentModel(model);
-}
 
 function geoRenderIntentPlatformSummary(qs) {
   const c = document.getElementById('geo-intent-platform-summary'); if (!c) return;
@@ -1581,7 +1499,8 @@ function geoFilterTrendSeries(series) {
   };
   let wanted;
   if (geoState.scope === 'all') {
-    wanted = new Set(['all', 'brand_composite_exposure_rate', 'brand_precise_exposure_rate', 'competitor_exposure_rate']);
+    // 需求：品牌模式仅联想品牌可见性一条线（不体现乐享/竞品）；对比模式竞品线由 competitor-trends 逐竞品拼接
+    wanted = new Set(['all']);
   } else if (geoState.scope === 'official') {
     wanted = new Set(['brand_composite_exposure_rate']);
   } else {
@@ -1628,8 +1547,14 @@ async function geoLoadTrendChart(loadSeq) {
     geoState._competitorTrendSeries = [];
     if (geoState.scope !== 'leai' && geoState.compare === 'compare' && competitors.length) {
       try {
-        const compJson = await geoPost('competitor-trends', geoCompetitorTrendsBody());
+        let compJson = await geoPost('competitor-trends', geoCompetitorTrendsBody());
         if (loadSeq && loadSeq !== geoState._loadSeq) return;
+        if (!(compJson && compJson.code === 200 && compJson.data?.series?.length)) {
+          // 真接口回了 200 但 series 为空：同样降级演示数据，保证对比模式趋势有竞品线
+          compJson = geoMockResponse('competitor-trends', geoCompetitorTrendsBody());
+          geoState._usedMock = true;
+          setTimeout(geoMarkMockStatus, 150);
+        }
         if (compJson.code === 200 && compJson.data?.series?.length) {
           const compSeries = compJson.data.series.map((s, i) => {
             const valMap = {};
@@ -1813,26 +1738,6 @@ function geoRenderTrendLegend(series, colors) {
 }
 
 // ===== GEO 词云 =====
-async function geoLoadWordCloud(days, loadSeq) {
-  days = days || 30;
-  document.querySelectorAll('.geo-wc-btn').forEach(b => {
-    const active = +b.dataset.days === days;
-    b.style.background = active ? '#3f78c5' : '#fff';
-    b.style.color = active ? '#fff' : '#374151';
-  });
-  const c = document.getElementById('geo-word-cloud');
-  if (!c) return;
-  try {
-    const json = await geoFetchJson('/api/geo-dashboard/word-cloud?days=' + days);
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    if (!json.success || !json.data) { c.innerHTML = geoPendingHtml(); return; }
-    geoRenderWordCloud(json.data, c);
-  } catch(e) {
-    if (loadSeq && loadSeq !== geoState._loadSeq) return;
-    console.error('geoLoadWordCloud', e);
-    c.innerHTML = geoPendingHtml();
-  }
-}
 
 function geoRenderWordCloud(words, container) {
   if (!words.length) { container.innerHTML = geoPendingHtml(); return; }
@@ -1877,17 +1782,6 @@ function geoRenderWordCloud(words, container) {
   html += '</div>';
   container.innerHTML = html;
 }
-
-const GEO_CONVERSION_VALUE_IDS = [
-  'gc-all-uv','gc-all-login','gc-all-newreg','gc-all-paid','gc-all-ca','gc-all-gmv','gc-all-newpaid','gc-all-newca','gc-all-newgmv','gc-all-leai-user','gc-all-leai-ca','gc-all-leai-gmv',
-  'gc-leai-uv','gc-leai-login','gc-leai-newreg','gc-leai-interact','gc-leai-login-interact','gc-leai-paid','gc-leai-ca','gc-leai-gmv','gc-leai-newpaid','gc-leai-newca','gc-leai-newgmv','gc-leai-order-user','gc-leai-order-ca','gc-leai-order-gmv',
-  'gc-official-uv','gc-official-home-uv','gc-official-shop-uv','gc-official-c-uv','gc-official-b-uv','gc-official-biz-uv','gc-official-service-uv','gc-official-other-uv','gc-official-total-ca','gc-official-total-gmv','gc-official-c-ca','gc-official-b-ca','gc-official-biz-ca','gc-official-c-gmv','gc-official-b-gmv','gc-official-biz-gmv'
-];
-
-const GEO_CONVERSION_SPLIT_IDS = [
-  'gc-all-paid','gc-all-ca','gc-all-gmv','gc-all-newpaid','gc-all-newca','gc-all-newgmv','gc-all-leai-user','gc-all-leai-ca','gc-all-leai-gmv',
-  'gc-leai-paid','gc-leai-ca','gc-leai-gmv','gc-leai-newpaid','gc-leai-newca','gc-leai-newgmv','gc-leai-order-user','gc-leai-order-ca','gc-leai-order-gmv'
-];
 
 function geoResolveConversionDateRange() {
   if (geoConversionState.startDate && geoConversionState.endDate) return { start_date: geoConversionState.startDate, end_date: geoConversionState.endDate };
@@ -1934,89 +1828,277 @@ function geoConversionDateRangeChanged() {
   geoLoadConversionPage();
 }
 
-// 转化看板演示值（需求示意图量级）：主值 + 消费/SMB/政企三业务拆分
-const GEO_CONVERSION_MOCK = {
-  'gc-all-uv': 26820, 'gc-all-login': 597, 'gc-all-newreg': 107,
-  'gc-all-paid': [4, 2, 1, 1], 'gc-all-ca': [5, 2, 1, 2], 'gc-all-gmv': [729.7, 412.3, 187.4, 130],
-  'gc-all-newpaid': [2, 1, 1, 0], 'gc-all-newca': [2, 1, 1, 0], 'gc-all-newgmv': [315.4, 208.1, 107.3, 0],
-  'gc-all-leai-user': [1, 1, 0, 0], 'gc-all-leai-ca': [1, 1, 0, 0], 'gc-all-leai-gmv': [129.9, 129.9, 0, 0],
-  'gc-leai-uv': 1206, 'gc-leai-login': 597, 'gc-leai-newreg': 107, 'gc-leai-interact': 856, 'gc-leai-login-interact': 412,
-  'gc-leai-paid': [4, 2, 1, 1], 'gc-leai-ca': [5, 2, 1, 2], 'gc-leai-gmv': [729.7, 412.3, 187.4, 130],
-  'gc-leai-newpaid': [2, 1, 1, 0], 'gc-leai-newca': [2, 1, 1, 0], 'gc-leai-newgmv': [315.4, 208.1, 107.3, 0],
-  'gc-leai-order-user': [1, 1, 0, 0], 'gc-leai-order-ca': [1, 1, 0, 0], 'gc-leai-order-gmv': [129.9, 129.9, 0, 0],
-  'gc-official-uv': 26820, 'gc-official-home-uv': 10542, 'gc-official-shop-uv': 5421, 'gc-official-c-uv': 3980,
-  'gc-official-b-uv': 3352, 'gc-official-biz-uv': 2128, 'gc-official-service-uv': 896, 'gc-official-other-uv': 501,
-  'gc-official-total-ca': 3285, 'gc-official-total-gmv': 18765432,
-  'gc-official-c-ca': 2156, 'gc-official-b-ca': 742, 'gc-official-biz-ca': 387,
-  'gc-official-c-gmv': 9842123, 'gc-official-b-gmv': 5218760, 'gc-official-biz-gmv': 3704549
-};
-const GEO_CONVERSION_MOCK_TOP5 = [
-  { name: '联想驱动下载首页 - 支持与驱动', url: 'https://newsupport.lenovo.com.cn/driveDownloads.html', uv: 3652 },
-  { name: '联想帮助中心首页', url: 'https://newsupport.lenovo.com.cn/', uv: 2941 },
-  { name: 'ThinkPad X1 Carbon 驱动下载页面', url: 'https://newsupport.lenovo.com.cn/driveDownloads_detail.html', uv: 2136 },
-  { name: '联想商城 - 笔记本电脑', url: 'https://s.lenovo.com.cn/category/notebook/', uv: 1896 },
-  { name: '联想企业购 - 商用笔记本', url: 'https://e.lenovo.com.cn/category/laptops/', uv: 1632 }
-];
+// ===== 转化看板（2.0 设计图版）=====
+// 转化数据源未接入（后端 /conversion 软501），整页为演示数据渲染，状态行有明示标注；真数据接入后替换本段数据生成部分。
+const GEO_CONV_ICON_BG = '#eef4ff';
+function geoConvFmt(v, money) {
+  if (v === null || v === undefined) return '--';
+  const n = Number(v);
+  const s = n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+  return money ? '¥ ' + s : s;
+}
+function geoConvDisposeCharts() {
+  (geoState._convCharts || []).forEach(c => { try { c.dispose(); } catch (_) {} });
+  geoState._convCharts = [];
+}
+function geoConvChart(id, option) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!window.echarts) { el.innerHTML = '<div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">图表组件未加载</div>'; return; }
+  const ch = window.echarts.init(el);
+  ch.setOption(option);
+  geoState._convCharts.push(ch);
+}
+function geoConvLineOption(dates, values, color, area) {
+  return {
+    grid: { top: 18, right: 16, bottom: 26, left: 48 },
+    xAxis: { type: 'category', data: dates.map(d => d.slice(5)), axisLabel: { fontSize: 10, color: '#9ca3af' }, axisLine: { lineStyle: { color: '#e5e8ec' } }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#9ca3af' }, splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } } },
+    tooltip: { trigger: 'axis', textStyle: { fontSize: 11 } },
+    series: [{ type: 'line', data: values, smooth: true, symbolSize: 4, itemStyle: { color }, lineStyle: { color, width: 2 },
+      areaStyle: area ? { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '44' }, { offset: 1, color: color + '05' }] } } : undefined }]
+  };
+}
+function geoConvSplitRow(vals, money) {
+  return `<div class="geo-business-split-row">
+    <span>消费业务 <strong>${geoConvFmt(vals[0], money)}</strong></span>
+    <span>SMB业务 <strong>${geoConvFmt(vals[1], money)}</strong></span>
+    <span>政企业务 <strong>${geoConvFmt(vals[2], money)}</strong></span>
+  </div>`;
+}
+function geoConvCell(icon, label, val, def, opts = {}) {
+  return `<div class="geo-conv-cell">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:38px;height:38px;border-radius:10px;background:${GEO_CONV_ICON_BG};display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex:none">${icon}</span>
+      <div style="min-width:0"><div class="gcc-label">${label}</div><div class="gcc-val">${geoConvFmt(val, opts.money)}</div></div>
+    </div>
+    <div class="gcc-def">${def}</div>
+    ${opts.splits ? geoConvSplitRow(opts.splits, opts.money) : ''}
+  </div>`;
+}
+function geoConvTop5Table(rows) {
+  const max = Math.max(...rows.map(r => r.uv), 1);
+  return `<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="color:#6b7280;text-align:left"><th style="padding:6px 8px;width:36px">排名</th><th style="padding:6px 8px">页面名称</th><th style="padding:6px 8px">链接</th><th style="padding:6px 8px;text-align:right">页面UV</th></tr></thead>
+    <tbody>${rows.map((p, i) => `
+      <tr style="border-top:1px solid #f3f4f6">
+        <td style="padding:6px 8px">${i < 3 ? `<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:#3f78c5;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px">${i + 1}</span>` : `<span style="color:#94a3b8;font-weight:600;padding-left:6px">${i + 1}</span>`}</td>
+        <td style="padding:6px 8px">${geoEscape(p.name)}</td>
+        <td style="padding:6px 8px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${geoEscape(p.url)}" target="_blank" rel="noopener" style="color:#3f78c5;text-decoration:none">${geoEscape(p.url)}</a></td>
+        <td style="padding:6px 8px;text-align:right"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><span style="display:inline-block;width:${Math.round(p.uv / max * 56)}px;height:5px;background:#9fc4ea;border-radius:3px"></span><strong>${geoConvFmt(p.uv)}</strong></div></td>
+      </tr>`).join('')}</tbody></table>`;
+}
+function geoConvBreakCard(title, icon, total, rows, money) {
+  return `<div class="geo-panel" style="flex:1;min-width:220px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="gpnl-title" style="margin:0">${title}</div>
+      <span style="width:34px;height:34px;border-radius:50%;background:${GEO_CONV_ICON_BG};display:inline-flex;align-items:center;justify-content:center;font-size:16px">${icon}</span>
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-top:8px">${money ? '总销售额' : '总销量'}</div>
+    <div style="font-size:26px;font-weight:700;margin:2px 0 12px">${geoConvFmt(total, money)}</div>
+    ${rows.map(r => `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px;color:#374151">
+      <span>${r.name}</span><span><strong>${geoConvFmt(r.val, money)}</strong> <span style="color:#9ca3af">(${r.pct}%)</span></span>
+    </div>`).join('')}
+  </div>`;
+}
 
-function geoFillConversionMock() {
-  Object.entries(GEO_CONVERSION_MOCK).forEach(([id, v]) => {
-    const main = Array.isArray(v) ? v[0] : v;
-    geoSetValue(id, main);
-    if (Array.isArray(v)) {
-      const cell = document.getElementById(id)?.closest('.geo-conv-cell');
-      const split = cell?.querySelector('.geo-business-split-row');
-      if (split) split.innerHTML = `
-        <span>消费业务 <strong>${geoFmtCount(v[1])}</strong></span>
-        <span>SMB业务 <strong>${geoFmtCount(v[2])}</strong></span>
-        <span>政企业务 <strong>${geoFmtCount(v[3])}</strong></span>`;
-    }
+const GEO_CONV_DEMO = {
+  all: {
+    uv: 9044, login: 597, newreg: 107,
+    paid: [4, 2, 1, 1], ca: [5, 2, 1, 2], gmv: [729.70, 412.30, 187.40, 130.00],
+    newpaid: [0, 0, 0, 0], newca: [0, 0, 0, 0], newgmv: [0, 0, 0, 0],
+    leaiUser: [0, 0, 0, 0], leaiCa: [0, 0, 0, 0], leaiGmv: [0, 0, 0, 0]
+  },
+  official: {
+    uv: 26820, wow: '+8.56%',
+    donut: [
+      ['联想首页', 10542], ['联想商城', 5421], ['消费业务', 3980], ['SMB业务(含企业购)', 3352], ['政企业务', 2128],
+      ['服务', 896], ['联想论坛', 180], ['联想门店', 100], ['联想乐享', 90], ['其他', 131]
+    ],
+    top5: [
+      { name: '联想驱动下载首页 - 支持与驱动', url: 'https://newsupport.lenovo.com.cn/driveDownloads.html', uv: 3652 },
+      { name: '联想帮助中心首页', url: 'https://newsupport.lenovo.com.cn/', uv: 2941 },
+      { name: 'ThinkPad X1 Carbon 驱动下载页面', url: 'https://newsupport.lenovo.com.cn/driveDownloads_detail.html', uv: 2136 },
+      { name: '联想商城 - 笔记本电脑', url: 'https://s.lenovo.com.cn/category/notebook/', uv: 1896 },
+      { name: '联想企业购 - 商用笔记本', url: 'https://e.lenovo.com.cn/category/laptops/', uv: 1632 }
+    ],
+    ca: { total: 3285, rows: [{ name: '消费商品销量', val: 2156, pct: '65.63' }, { name: 'SMB 商品销量', val: 742, pct: '22.58' }, { name: '政企商品销量', val: 387, pct: '11.79' }] },
+    gmv: { total: 18765432, rows: [{ name: '消费商品销售额', val: 9842123, pct: '52.42' }, { name: 'SMB 商品销售额', val: 5218760, pct: '27.77' }, { name: '政企商品销售额', val: 3704549, pct: '19.71' }] }
+  },
+  leai: {
+    uv: 1206, login: 597, newreg: 107, interact: 856, loginInteract: 412,
+    paid: [4, 2, 1, 1], ca: [5, 2, 1, 2], gmv: [729.70, 412.30, 187.40, 130.00],
+    newpaid: [0, 0, 0, 0], newca: [0, 0, 0, 0], newgmv: [0, 0, 0, 0],
+    orderUser: [0, 0, 0, 0], orderCa: [0, 0, 0, 0], orderGmv: [0, 0, 0, 0]
+  },
+  biz: [
+    { key: 'c', name: '消费业务', icon: '🛍️', color: '#22c55e', uv: 3980, wow: '+7.42%', ca: 2156, gmv: 9842123,
+      top5: [
+        { name: '联想商城首页', url: 'https://s.lenovo.com.cn/', uv: 862 }, { name: '笔记本电脑 - 产品页', url: 'https://s.lenovo.com.cn/category/notebook/', uv: 641 },
+        { name: '小新系列 - 产品页', url: 'https://s.lenovo.com.cn/category/xiaoxin/', uv: 523 }, { name: '平板电脑 - 产品页', url: 'https://s.lenovo.com.cn/category/tablet/', uv: 398 },
+        { name: '配件专区 - 产品页', url: 'https://s.lenovo.com.cn/category/accessories/', uv: 302 }] },
+    { key: 'b', name: 'SMB业务（含企业购）', icon: '💼', color: '#8b5cf6', uv: 3352, wow: '+5.31%', ca: 742, gmv: 5218760,
+      top5: [
+        { name: '联想企业购 - 产品页', url: 'https://e.lenovo.com.cn/category/laptops/', uv: 742 }, { name: 'ThinkPad 系列 - 产品页', url: 'https://e.lenovo.com.cn/category/thinkpad/', uv: 581 },
+        { name: '企业解决方案', url: 'https://e.lenovo.com.cn/', uv: 436 }, { name: '工作站 - 产品页', url: 'https://e.lenovo.com.cn/category/workstation/', uv: 287 },
+        { name: '服务与支持 - 产品页', url: 'https://e.lenovo.com.cn/category/servers/', uv: 213 }] },
+    { key: 'biz', name: '政企业务', icon: '🏛️', color: '#3b82f6', uv: 2128, wow: '+6.18%', ca: 387, gmv: 3704549,
+      top5: [
+        { name: '政府解决方案', url: 'https://e.lenovo.com.cn/solutions/', uv: 584 }, { name: '政企行业方案', url: 'https://e.lenovo.com.cn/solutions/government/', uv: 432 },
+        { name: '教育行业方案', url: 'https://e.lenovo.com.cn/solutions/education/', uv: 378 }, { name: '医疗行业方案', url: 'https://e.lenovo.com.cn/solutions/medical/', uv: 261 },
+        { name: '招投标支持', url: 'https://e.lenovo.com.cn/tender-support/', uv: 198 }] }
+  ]
+};
+
+function geoRenderConversionAll(dates) {
+  const c = document.getElementById('gc-section-all'); if (!c) return;
+  const d = GEO_CONV_DEMO.all;
+  c.innerHTML = `<div class="geo-conv-section">
+    <div class="geo-conv-title">联想整体</div>
+    <div class="geo-interface-note">说明：以下数据展示联想整体关键运营指标，帮助您全面了解用户访问、转化与交易情况。（演示数据）</div>
+    <div class="geo-panel" style="margin-bottom:12px">
+      <div class="gpnl-title">UV趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 按当日时间粒度展示联想整体的每日 UV 变化</span></div>
+      <div id="gc-trend-all" style="height:200px"></div>
+    </div>
+    <div class="geo-conv-grid">
+      ${geoConvCell('👤', '访问联想UV', d.uv, '通过 AI 搜索平台访问联想域名的用户数')}
+      ${geoConvCell('🪪', '登录用户', d.login, '访问联想的用户中有 Lenovo ID 登录行为的用户数')}
+      ${geoConvCell('✨', '新注册用户', d.newreg, '访问联想的登录用户中，是新注册的用户')}
+      ${geoConvCell('🛒', '付费用户', d.paid[0], '用户入站后，发生了购买行为的用户数', { splits: d.paid.slice(1) })}
+      ${geoConvCell('📄', 'CA', d.ca[0], '购买用户产生的订单销量', { splits: d.ca.slice(1) })}
+      ${geoConvCell('💰', 'GMV', d.gmv[0], '购买用户产生的订单交易额', { splits: d.gmv.slice(1) })}
+      ${geoConvCell('👥', '新付费用户', d.newpaid[0], '购买用户中，首次发生购买行为的用户', { splits: d.newpaid.slice(1) })}
+      ${geoConvCell('📊', '新付费CA', d.newca[0], '首次购买用户，产生的订单销量', { splits: d.newca.slice(1) })}
+      ${geoConvCell('💎', '新付费GMV', d.newgmv[0], '首次购买用户，产生的交易额', { splits: d.newgmv.slice(1) })}
+      ${geoConvCell('🛍️', '乐享-下单用户', d.leaiUser[0], '付费用户中，通过乐享自主下单功能发生购买行为的用户', { splits: d.leaiUser.slice(1) })}
+      ${geoConvCell('🧾', '乐享-CA', d.leaiCa[0], '通过乐享自主下单功能，购买用户产生的销量', { splits: d.leaiCa.slice(1) })}
+      ${geoConvCell('🪙', '乐享-GMV', d.leaiGmv[0], '通过乐享自主下单功能，购买用户产生的交易额', { splits: d.leaiGmv.slice(1) })}
+    </div>
+  </div>`;
+  geoConvChart('gc-trend-all', geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-all', i, 400, 880)), '#f59a3e', true));
+}
+
+function geoRenderConversionOfficial(dates, range) {
+  const c = document.getElementById('gc-section-official'); if (!c) return;
+  const d = GEO_CONV_DEMO.official;
+  c.innerHTML = `<div class="geo-conv-section">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="geo-conv-title">联想官网 · 总数看板</div>
+      <span style="font-size:12px;color:#6b7280;background:#fff;border:1px solid #e5e8ec;border-radius:8px;padding:4px 10px">📅 ${range.start_date} ~ ${range.end_date}</span>
+    </div>
+    <div class="geo-interface-note">说明：UV不包含挂类页面数据，已按站点归属进行拆分统计。（演示数据）</div>
+    <div class="geo-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <div class="geo-panel" style="flex:1;min-width:180px">
+        <div class="gpnl-title">总 UV <span style="font-size:11px;color:#9ca3af;font-weight:400">（不含挂类页面）</span></div>
+        <div style="font-size:34px;font-weight:700;margin:18px 0 10px">${geoConvFmt(d.uv)}</div>
+        <div style="font-size:12px;color:#6b7280">较上期 <strong style="color:#059669">${d.wow} ↑</strong></div>
+      </div>
+      <div class="geo-panel" style="flex:1.6;min-width:300px">
+        <div class="gpnl-title">UV 按站点拆分</div>
+        <div id="gc-donut" style="height:230px"></div>
+      </div>
+      <div class="geo-panel" style="flex:1.6;min-width:280px">
+        <div class="gpnl-title">UV 趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">（不含挂类页面）</span></div>
+        <div id="gc-trend-official" style="height:210px"></div>
+      </div>
+    </div>
+    <div class="geo-row" style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="geo-panel" style="flex:2;min-width:380px">
+        <div class="gpnl-title">用户访问 Top5 页面 <span style="font-size:11px;color:#9ca3af;font-weight:400">（同一 URL 但不同追踪码可合并）</span></div>
+        <div id="gc-official-top-pages">${geoConvTop5Table(d.top5)}</div>
+      </div>
+      ${geoConvBreakCard('销量概览', '🛍️', d.ca.total, d.ca.rows, false)}
+      ${geoConvBreakCard('销售额概览（元）', '💰', d.gmv.total, d.gmv.rows, true)}
+    </div>
+  </div>`;
+  geoConvChart('gc-trend-official', geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-official', i, 300, 1900)), '#f59a3e', true));
+  geoConvChart('gc-donut', {
+    tooltip: { trigger: 'item', textStyle: { fontSize: 11 } },
+    legend: { orient: 'vertical', right: 4, top: 'middle', itemWidth: 10, itemHeight: 10, textStyle: { fontSize: 10, color: '#6b7280' },
+      formatter: name => { const it = GEO_CONV_DEMO.official.donut.find(x => x[0] === name); return it ? `${name}  ${it[1].toLocaleString('zh-CN')} (${(it[1] / GEO_CONV_DEMO.official.uv * 100).toFixed(2)}%)` : name; } },
+    series: [{ type: 'pie', radius: ['52%', '74%'], center: ['26%', '50%'],
+      label: { show: true, position: 'center', formatter: `{a|${geoConvFmt(d.uv)}}\n{b|总 UV}`, rich: { a: { fontSize: 18, fontWeight: 700, color: '#111827' }, b: { fontSize: 11, color: '#9ca3af' } } },
+      data: d.donut.map(([name, value]) => ({ name, value })) }]
   });
-  const topPages = document.getElementById('gc-official-top-pages');
-  if (topPages) {
-    const max = GEO_CONVERSION_MOCK_TOP5[0].uv;
-    topPages.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr style="color:#6b7280;text-align:left"><th style="padding:6px 8px;width:36px">排名</th><th style="padding:6px 8px">页面名称</th><th style="padding:6px 8px">链接</th><th style="padding:6px 8px;text-align:right">页面UV</th></tr></thead>
-      <tbody>${GEO_CONVERSION_MOCK_TOP5.map((p, i) => `
-        <tr style="border-top:1px solid #f3f4f6">
-          <td style="padding:6px 8px">${i < 3 ? `<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:#3f78c5;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px">${i + 1}</span>` : `<span style="color:#94a3b8;font-weight:600;padding-left:6px">${i + 1}</span>`}</td>
-          <td style="padding:6px 8px">${geoEscape(p.name)}</td>
-          <td style="padding:6px 8px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${geoEscape(p.url)}" target="_blank" rel="noopener" style="color:#3f78c5;text-decoration:none">${geoEscape(p.url)}</a></td>
-          <td style="padding:6px 8px;text-align:right"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><span style="display:inline-block;width:${Math.round(p.uv / max * 60)}px;height:5px;background:#9fc4ea;border-radius:3px"></span><strong>${geoFmtCount(p.uv)}</strong></div></td>
-        </tr>`).join('')}</tbody></table>`;
-  }
+}
+
+function geoRenderConversionLeai() {
+  const c = document.getElementById('gc-section-leai'); if (!c) return;
+  const d = GEO_CONV_DEMO.leai;
+  c.innerHTML = `<div class="geo-conv-section">
+    <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
+    <div class="geo-interface-note">说明：乐享访问、互动、购买与自主下单转化。（演示数据）</div>
+    <div class="geo-conv-grid">
+      ${geoConvCell('👤', '访问联想乐享UV', d.uv, '通过 AI 搜索平台访问联想乐享的用户')}
+      ${geoConvCell('🪪', '登录用户-乐享', d.login, '访问联想乐享的用户中，有 Lenovo ID 登录行为的用户数')}
+      ${geoConvCell('✨', '新注册用户-乐享', d.newreg, '访问联想乐享的登录用户中，是新注册的用户数')}
+      ${geoConvCell('💬', '互动用户数', d.interact, '访问联想乐享的用户中，至少有 1 次会话的用户数')}
+      ${geoConvCell('🗨️', '登录状态下互动人数', d.loginInteract, '互动用户中，是有登录状态的互动用户数')}
+      ${geoConvCell('🛒', '付费用户数', d.paid[0], '访问联想乐享后，在站内发生了购买行为的用户数', { splits: d.paid.slice(1) })}
+      ${geoConvCell('📄', 'CA', d.ca[0], '访问联想乐享后的购买用户，产生的订单销量', { splits: d.ca.slice(1) })}
+      ${geoConvCell('💰', 'GMV', d.gmv[0], '访问联想乐享后的购买用户，产生的订单交易额', { splits: d.gmv.slice(1) })}
+      ${geoConvCell('👥', '新付费用户', d.newpaid[0], '首次购买的用户', { splits: d.newpaid.slice(1) })}
+      ${geoConvCell('📊', '新付费CA', d.newca[0], '首次购买用户，产生的订单销量', { splits: d.newca.slice(1) })}
+      ${geoConvCell('💎', '新付费GMV', d.newgmv[0], '首次购买用户，产生的交易额', { splits: d.newgmv.slice(1) })}
+      ${geoConvCell('🛍️', '乐享·下单用户', d.orderUser[0], '通过乐享自主下单功能，发生购买行为的用户数', { splits: d.orderUser.slice(1) })}
+      ${geoConvCell('🧾', '乐享-CA', d.orderCa[0], '通过乐享自主下单功能，购买用户产生的销量', { splits: d.orderCa.slice(1) })}
+      ${geoConvCell('🪙', '乐享-GMV', d.orderGmv[0], '通过乐享自主下单功能，购买用户产生的交易额', { splits: d.orderGmv.slice(1) })}
+    </div>
+  </div>`;
+}
+
+function geoRenderConversionBiz(dates) {
+  const c = document.getElementById('gc-section-biz'); if (!c) return;
+  c.innerHTML = `<div class="geo-conv-section">
+    <div class="geo-conv-title">分业务模块 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 以下数据均不包含挂类页面数据（演示数据）</span></div>
+    ${GEO_CONV_DEMO.biz.map(b => `
+      <div class="geo-panel" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="width:30px;height:30px;border-radius:8px;background:${b.color}1a;display:inline-flex;align-items:center;justify-content:center;font-size:15px">${b.icon}</span>
+          <strong style="font-size:14px">${b.name}</strong>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <div style="min-width:130px">
+            <div style="font-size:12px;color:#6b7280">业务归属 UV</div>
+            <div style="font-size:28px;font-weight:700;margin:6px 0">${geoConvFmt(b.uv)}</div>
+            <div style="font-size:12px;color:#6b7280">较上期 <strong style="color:#059669">${b.wow} ↑</strong></div>
+          </div>
+          <div style="flex:1.4;min-width:240px">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">UV 趋势</div>
+            <div id="gc-biz-trend-${b.key}" style="height:130px"></div>
+          </div>
+          <div style="flex:2;min-width:340px">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">业务 UV Top5 页面</div>
+            ${geoConvTop5Table(b.top5)}
+          </div>
+          <div style="min-width:170px;display:flex;flex-direction:column;gap:10px">
+            <div style="background:#f9fafb;border:1px solid #eef1f5;border-radius:10px;padding:12px">
+              <div style="font-size:12px;color:#6b7280">业务销量</div>
+              <div style="font-size:22px;font-weight:700;margin-top:4px">${geoConvFmt(b.ca)}</div>
+            </div>
+            <div style="background:#f9fafb;border:1px solid #eef1f5;border-radius:10px;padding:12px">
+              <div style="font-size:12px;color:#6b7280">业务销售额（元）</div>
+              <div style="font-size:22px;font-weight:700;margin-top:4px">${geoConvFmt(b.gmv, true)}</div>
+            </div>
+          </div>
+        </div>
+      </div>`).join('')}
+  </div>`;
+  GEO_CONV_DEMO.biz.forEach(b => {
+    geoConvChart('gc-biz-trend-' + b.key, geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-biz-' + b.key, i, Math.round(b.uv / 40), Math.round(b.uv / 22))), b.color, false));
+  });
 }
 
 function geoLoadConversionPage() {
   geoInitConversionDatePicker();
   geoSyncConversionPeriodButtons();
-  GEO_CONVERSION_VALUE_IDS.forEach(id => geoSetValue(id, null));
-  geoAttachConversionBusinessSplits();
-  const status = document.getElementById('geo-conversion-status');
+  geoConvDisposeCharts();
   const range = geoResolveConversionDateRange();
-  // 后端 /conversion 仍是 501 桩（外部数据源未接），POC 演示优先：请求失败/501 即降级演示数据
-  geoPost('conversion', { project_id: GEO_PROJECT_ID, ...range }, { abortable: false }).then(json => {
-    if (json && json.code === 200 && json.data && !json.mockFilled) {
-      // 真数据到位后按接口结构渲染（数据源接通后再实现字段映射）
-      if (status) status.textContent = `更新于 ${new Date().toLocaleTimeString()} · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
-      return;
-    }
-    geoFillConversionMock();
-    if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入） · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
-  }).catch(() => {
-    geoFillConversionMock();
-    if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入） · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
-  });
-}
-
-function geoAttachConversionBusinessSplits() {
-  GEO_CONVERSION_SPLIT_IDS.forEach(id => {
-    const val = document.getElementById(id);
-    const cell = val?.closest('.geo-conv-cell');
-    if (!cell || cell.querySelector('.geo-business-split-row')) return;
-    cell.insertAdjacentHTML('beforeend', `<div class="geo-business-split-row">
-      <span>消费业务 <strong>${GEO_PENDING_TEXT}</strong></span>
-      <span>SMB业务 <strong>${GEO_PENDING_TEXT}</strong></span>
-      <span>政企业务 <strong>${GEO_PENDING_TEXT}</strong></span>
-    </div>`);
-  });
+  const dates = geoMockDates({ start_date: range.start_date, end_date: range.end_date });
+  geoRenderConversionAll(dates);
+  geoRenderConversionOfficial(dates, range);
+  geoRenderConversionLeai();
+  geoRenderConversionBiz(dates);
+  const status = document.getElementById('geo-conversion-status');
+  if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入，接口就绪后自动替换） · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
 }

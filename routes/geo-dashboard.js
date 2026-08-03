@@ -90,15 +90,6 @@ router.post('/questions', async (req, res) => {
   }
 });
 
-router.post("/citations", async (req, res) => {
-  try {
-    const data = await proxyExternalPost('citations', req.body);
-    res.json(data);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 router.post('/sites', async (req, res) => {
   try {
     const data = await proxyExternalPost('sites', req.body);
