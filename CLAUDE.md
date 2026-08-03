@@ -196,6 +196,16 @@ ssh leaiteam "sudo pm2 logs lexiang --lines 50"
 - 后台 workbench 已全量迁到 **Vite + Vue3 SFC**：工程 `/opt/projects/lexiang-new/admin-vue/`（源码），`npm run build` 产物入库 `public/admin-vue/`（cron 不跑 build，访问 `new.leaibot.cn/admin-vue/`）。40 页 + AI panel 已转完，E2E PASS。
 - 改后台：在 `admin-vue/src/` 改 SFC → `npm run build` → commit 源码 + `public/admin-vue/` 产物。**旧原生 `public/admin/workbench*.js` 仅作回退，不再在上面加新功能。**
 - 新前端模块同理：建 Vue3 SFC 或新 Vite 工程（参考 admin-vue / ops-content-manager），别再起原生页。
+- **别直接改 `public/admin-vue/` 产物**：`vite.config.js` 是 `emptyOutDir: true`，下次谁 build 就全清空丢失（06-26 有人这么改过 html-skin，已同步回源码）。静态资源放 `admin-vue/public/`，build 自动拷入产物。
+
+### UI 组件库：Element Plus（**强制**，2026-06-29 起）
+
+- **后台 admin-vue 新组件/新页面统一用 Element Plus**（开发定的技术选型）。安装 `cd admin-vue && npm i element-plus`。
+- **按需引入**：`npm i -D unplugin-vue-components unplugin-auto-import`，vite.config 配 `AutoImport`/`Components` + `ElementPlusResolver`。**不要 `app.use(ElementPlus)` 全量注册**（体积大 + 全局样式冲突面大）。
+- ⚠️ **样式冲突是主要风险**：admin-vue 复用了原版 workbench 全套 CSS（`workbench.css`/`workbench-ui-polish.css`/`workbench-preview-overrides.css` 约 19000 行，含大量 `!important`）+ `admin-vue/public/html-skin.css`（对齐原版视觉的皮肤）。对策：
+  - 定制 EP 主题变量对齐品牌色（primary `#3370ff`，其余见 html-skin.css），别用 EP 默认蓝。
+  - EP 组件被全局样式压住时，改 EP 主题变量或加 `<style scoped>`，**别再往全局 CSS 堆 `!important`**（现有 `!important` 已坑过：AI panel 宽度锁死、workspace-tabs 顶部空白、账号菜单 v-show 失效）。
+  - **已转好的 40 页不强制返工改 EP**（已跟原版视觉对齐 + E2E 通过），按需渐进替换，别为统一组件库大规模重写。
 
 ### 部署架构（2026-05-10 起）
 

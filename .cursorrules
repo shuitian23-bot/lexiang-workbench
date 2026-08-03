@@ -6,7 +6,13 @@
 - 后台 workbench 已全量迁 Vue3：源码 admin-vue/，产物 public/admin-vue/，访问 /admin-vue/(或 /admin/ 已跳转)。
 - 改后台：改 admin-vue/src/ 的 .vue → cd admin-vue && npm run build → commit src + public/admin-vue。
 - ❌ 不要改 public/admin/workbench*.js（旧原生版，已废弃，改了不生效）。
+- ❌ 不要直接改 public/admin-vue/ 产物（build 时 emptyOutDir 会全清空丢失）；改 admin-vue/src/，静态资源放 admin-vue/public/。
 - 新前端建 Vue3 SFC，不写原生 HTML。
+
+## UI 组件库：Element Plus
+- 后台新组件/新页面用 Element Plus，按需引入（unplugin-vue-components + ElementPlusResolver），别 app.use 全量注册。
+- ⚠️ admin-vue 复用了原版 workbench CSS(~19000行，含大量 !important) + html-skin.css，EP 默认皮肤会撞：定制 EP 主题变量对齐 primary #3370ff；样式被压优先改主题变量/scoped，别再堆 !important。
+- 已转好的 40 页不强制返工改 EP，按需渐进替换。
 
 ## 协作
 - 改动先在 new(next 分支)改+验证再同步 prod；改完必须 commit+push。

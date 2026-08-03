@@ -26,7 +26,31 @@ git add admin-vue/src public/admin-vue && git commit && git push origin next
 
 ### ❌ 不要做
 - **不要改 `public/admin/workbench*.js`**（旧原生版）——这些文件已废弃，顶部有警示注释，仅供 `/admin/workbench-native.html` 回退用。改了**不会生效**（`/admin/` 已跳 Vue3）。
+- **不要直接改 `public/admin-vue/` 产物**——那是 `npm run build` 生成的，`vite.config.js` 里 `emptyOutDir: true`，下次谁 build 就**全被清空丢失**。要改就改 `admin-vue/src/`（静态资源放 `admin-vue/public/`，build 会自动拷过去）。
 - 不要新起原生 HTML 页。新前端模块建 Vue3 SFC，参考 `admin-vue/` 或 `public/ops-content-manager/`。
+
+---
+
+## UI 组件库：Element Plus（2026-06-29 起）
+
+**后台 admin-vue 的新组件/新页面统一用 Element Plus**（Vue3 生态标准库，开发定的）。
+
+```bash
+cd admin-vue && npm i element-plus
+```
+
+**按需引入，别全量注册**（体积 + 样式冲突面都小很多）：
+```bash
+npm i -D unplugin-vue-components unplugin-auto-import
+```
+`vite.config.js` 里配 `AutoImport({ resolvers:[ElementPlusResolver()] })` + `Components({ resolvers:[ElementPlusResolver()] })`，用到哪个组件自动引哪个，**不要** `app.use(ElementPlus)` 全量挂载。
+
+### ⚠️ 样式冲突注意（重要）
+admin-vue **复用了原版 workbench 的全套 CSS**（`workbench.css` / `workbench-ui-polish.css` / `workbench-preview-overrides.css`，共约 19000 行，含大量 `!important`）+ `html-skin.css`（对齐原版视觉的皮肤）。Element Plus 自带一套设计体系，混用会撞：
+
+- **定制 EP 主题变量对齐品牌**：primary 用 `#3370ff`（其余色值见 `admin-vue/public/html-skin.css`），别让 EP 默认蓝跟现有皮肤打架。
+- **EP 组件样式被压时**，优先改 EP 主题变量或加 `<style scoped>` 覆盖；**别再往全局 CSS 堆 `!important`**（现有 `!important` 已经坑过好几次：AI panel 宽度锁死、workspace-tabs 空白）。
+- **已转好的 40 页不强制返工改 EP**——它们已跟原版视觉对齐并通过 E2E，按需渐进替换即可，别为统一组件库大规模重写。
 
 ---
 
