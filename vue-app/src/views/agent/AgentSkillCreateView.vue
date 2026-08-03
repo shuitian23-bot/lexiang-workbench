@@ -380,16 +380,7 @@
                     class="skill-score-card"
                     :class="{ featured: score.featured, pass: score.pass, warn: score.warn, tuned: score.tuned }"
                   >
-                    <div class="skill-score-top">
-                      <span>{{ score.label }}</span>
-                      <button
-                        v-if="score.warn"
-                        class="skill-score-tune"
-                        type="button"
-                        :disabled="tuneControlsDisabled"
-                        @click="startScoreAiTune(score)"
-                      >{{ score.tuned ? '继续微调' : 'AI 微调' }}</button>
-                    </div>
+                    <span>{{ score.label }}</span>
                     <b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
                   </div>
                 </div>
@@ -438,9 +429,21 @@
                 </div>
                 <div class="skill-case-list">
                   <b>用例对比</b>
-                  <div><span>case-1 · 20.9s</span><em>得分 0.88</em></div>
-                  <div><span>case-2 · 25.6s</span><em>得分 0.82</em></div>
-                  <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
+                  <div v-for="testCase in evalCases" :key="testCase.key" :class="{ tuned: testCase.tuned }">
+                    <b>
+                      {{ testCase.title }}
+                      <small>{{ testCase.duration }}</small>
+                    </b>
+                    <div class="skill-case-action">
+                      <button
+                        class="skill-inline-tune"
+                        type="button"
+                        :disabled="tuneControlsDisabled"
+                        @click="startCaseAiTune(testCase)"
+                      >{{ testCase.tuned ? '继续微调' : 'AI 微调' }}</button>
+                      <em>得分 {{ testCase.score }}</em>
+                    </div>
+                  </div>
                 </div>
                 <div v-if="isReevaluating" class="skill-reevaluate-overlay" role="status" aria-live="polite">
                   <span class="skill-reevaluate-spinner" aria-hidden="true"></span>
@@ -545,6 +548,17 @@ type EvalScoreCard = {
   tuneKey?: 'overall' | string
   tuned?: boolean
 }
+type EvalCaseItem = {
+  key: string
+  title: string
+  duration: string
+  score: string
+  tunedDuration: string
+  tunedScore: string
+  tunePrompt: string
+  tuneResult: string[]
+}
+type EvalCaseDisplayItem = EvalCaseItem & { tuned: boolean }
 type SkillTodoList = {
   title: string
   done: number
@@ -662,6 +676,7 @@ const aiTuned = ref(false)
 const aiTuneRequestKey = ref('')
 const aiTuneRequestTargets = ref<Record<string, 'overall' | string>>({})
 const tunedEvalKeys = ref<string[]>([])
+const tunedCaseKeys = ref<string[]>([])
 const isReevaluating = ref(false)
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
@@ -922,6 +937,60 @@ const evalBaselineItems: EvalBaselineItem[] = [
   { key: 'platform', title: '平台适配合规', score: '1.00' },
   { key: 'cases', title: '测试用例充分', score: '1.00' }
 ]
+const evalBaselineCases: EvalCaseItem[] = [
+  {
+    key: 'case-1',
+    title: 'case-1 · 标准时间范围查询',
+    duration: '20.9s',
+    score: '0.88',
+    tunedDuration: '18.8s',
+    tunedScore: '0.93',
+    tunePrompt: '请微调验收案例 case-1“标准时间范围查询”：优化时间解析、批量查询和结果汇总步骤，保持只读边界，并重新运行该案例。',
+    tuneResult: [
+      '已合并重复的时间解析与查询步骤，保留时间口径回显。',
+      '批量查询改为并行取数，并补齐无数据时的结果说明。',
+      '重新运行后预计耗时 18.8s，案例得分更新为 0.93。'
+    ]
+  },
+  {
+    key: 'case-2',
+    title: 'case-2 · 权限降级与脱敏导出',
+    duration: '25.6s',
+    score: '0.82',
+    tunedDuration: '22.7s',
+    tunedScore: '0.91',
+    tunePrompt: '请微调验收案例 case-2“权限降级与脱敏导出”：明确授权不足时的降级路径、导出字段和脱敏确认，并重新运行该案例。',
+    tuneResult: [
+      '已将权限不足、仅可脱敏导出和拒绝导出三种路径拆分处理。',
+      '导出前新增字段清单、行数和脱敏方式确认，避免重复询问。',
+      '重新运行后预计耗时 22.7s，案例得分更新为 0.91。'
+    ]
+  },
+  {
+    key: 'case-3',
+    title: 'case-3 · 无数据与异常兜底',
+    duration: '26.6s',
+    score: '0.90',
+    tunedDuration: '23.9s',
+    tunedScore: '0.94',
+    tunePrompt: '请微调验收案例 case-3“无数据与异常兜底”：减少无效重试，补齐字段缺失和接口失败时的可执行反馈，并重新运行该案例。',
+    tuneResult: [
+      '已减少无数据场景的重复请求，并保留可追溯的异常说明。',
+      '字段缺失和接口失败时会返回原因、可重试条件及下一步建议。',
+      '重新运行后预计耗时 23.9s，案例得分更新为 0.94。'
+    ]
+  }
+]
+const tunedCaseKeySet = computed(() => new Set(tunedCaseKeys.value))
+const evalCases = computed<EvalCaseDisplayItem[]>(() => evalBaselineCases.map(testCase => {
+  const tuned = tunedCaseKeySet.value.has(testCase.key)
+  return {
+    ...testCase,
+    duration: tuned ? testCase.tunedDuration : testCase.duration,
+    score: tuned ? testCase.tunedScore : testCase.score,
+    tuned
+  }
+}))
 const lowScoreThreshold = 0.8
 const tunableEvalKeys = computed(() => evalBaselineItems.filter(item => Number(item.score) < lowScoreThreshold).map(item => item.key))
 const tunedEvalKeySet = computed(() => new Set(tunedEvalKeys.value))
@@ -1677,22 +1746,11 @@ function evalTitleByKey(key: string) {
   return evalBaselineItems.find(item => item.key === key)?.title || '当前评估项'
 }
 
-function startScoreAiTune(score: EvalScoreCard) {
-  if (!score.warn || tuneControlsDisabled.value) return
-  if (score.tuneKey && score.tuneKey !== 'overall') {
-    const target = evalItems.value.find(item => item.key === score.tuneKey && item.tunable)
-    if (target) {
-      startAiTune(target)
-      return
-    }
-  }
-  startAiTune()
-}
-
 function startAiTune(item?: EvalDisplayItem) {
   if (tuneControlsDisabled.value) return
   const target = item?.tunable ? item : null
   const targetKey = target?.key || 'overall'
+  const isCaseTarget = targetKey.startsWith('case:')
   aiTuning.value = true
   aiTuneRequestKey.value = `skill-tune-${targetKey}-${form.value.name || 'draft'}-${Date.now()}`
   aiTuneRequestTargets.value = {
@@ -1719,11 +1777,13 @@ function startAiTune(item?: EvalDisplayItem) {
     aiStore.messages.push({
       role: 'assistant',
       text: [
-        target ? `已定位「${target.title}」低分项，并生成单项 AI 微调建议：` : '已定位全部可优化项，并生成整体 AI 微调建议：',
+        target
+          ? `已定位${isCaseTarget ? '验收案例' : '低分项'}「${target.title}」，并生成单项 AI 微调建议：`
+          : '已定位全部可优化项，并生成整体 AI 微调建议：',
         '',
         ...resultLines.map(line => `- ${line}`),
         '',
-        '你可以继续微调其他低分项，也可以确认采用本轮微调结果。确认后左侧会进入重新评估。'
+        `你可以继续微调其他${isCaseTarget ? '验收案例' : '低分项'}，也可以确认采用本轮微调结果。确认后左侧会进入重新评估。`
       ].join('\n'),
       at: new Date().toISOString(),
       actionItems: [{ type: 'skill_tune_confirm', label: '确认微调完成', value: requestKey }]
@@ -1731,6 +1791,23 @@ function startAiTune(item?: EvalDisplayItem) {
     aiTuning.value = false
     aiTuneResponseTimer = undefined
   }, 900)
+}
+
+function startCaseAiTune(testCase: EvalCaseDisplayItem) {
+  if (tuneControlsDisabled.value) return
+  startAiTune({
+    key: `case:${testCase.key}`,
+    title: testCase.title,
+    score: testCase.score,
+    tunedScore: testCase.tunedScore,
+    tunePrompt: testCase.tunePrompt,
+    tuneResult: testCase.tuneResult,
+    statusText: testCase.tuned ? '已微调' : '可优化',
+    statusClass: testCase.tuned ? 'pass' : 'warn',
+    tuned: testCase.tuned,
+    tunable: true,
+    needsFix: !testCase.tuned
+  })
 }
 
 function beginReevaluation(targetKey: 'overall' | string, requestKey = '') {
@@ -1744,7 +1821,15 @@ function beginReevaluation(targetKey: 'overall' | string, requestKey = '') {
   workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · 正在重新评估`
   if (reevaluationTimer) window.clearTimeout(reevaluationTimer)
   reevaluationTimer = window.setTimeout(() => {
-    if (targetKey === 'overall') {
+    if (targetKey.startsWith('case:')) {
+      const caseKey = targetKey.slice(5)
+      tunedCaseKeys.value = tunedCaseKeys.value.includes(caseKey)
+        ? tunedCaseKeys.value
+        : [...tunedCaseKeys.value, caseKey]
+      const testCase = evalBaselineCases.find(item => item.key === caseKey)
+      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · ${testCase?.title || caseKey} 已重新运行`
+      toast(`${testCase?.title || caseKey}：AI 微调完成，案例结果已刷新`)
+    } else if (targetKey === 'overall') {
       tunedEvalKeys.value = [...tunableEvalKeys.value]
       aiTuned.value = true
       workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · 整体 AI 微调结果已确认`
