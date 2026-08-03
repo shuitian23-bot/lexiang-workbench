@@ -35,21 +35,28 @@ git add admin-vue/src public/admin-vue && git commit && git push origin next
 
 **后台 admin-vue 的新组件/新页面统一用 Element Plus**（Vue3 生态标准库，开发定的）。
 
-```bash
-cd admin-vue && npm i element-plus
-```
+### ✅ 已装好配好，直接用即可（不用自己装）
+`element-plus@2` + 按需引入插件已装进 `admin-vue`，`vite.config.js` 已配 `AutoImport` / `Components` + `ElementPlusResolver`。
 
-**按需引入，别全量注册**（体积 + 样式冲突面都小很多）：
-```bash
-npm i -D unplugin-vue-components unplugin-auto-import
+在任意 `.vue` 里**直接写，不需要 import**：
+```vue
+<template>
+  <el-button type="primary" @click="save">保存</el-button>
+  <el-table :data="rows"><el-table-column prop="name" label="名称" /></el-table>
+</template>
+<script setup>
+function save() { ElMessage.success('已保存') }  // ElMessage/ElMessageBox 也自动引入
+</script>
 ```
-`vite.config.js` 里配 `AutoImport({ resolvers:[ElementPlusResolver()] })` + `Components({ resolvers:[ElementPlusResolver()] })`，用到哪个组件自动引哪个，**不要** `app.use(ElementPlus)` 全量挂载。
+`npm run build` 时用到哪个组件才打包哪个（实测：一个 `el-button` 只给该页 chunk 加 ~40kB JS + ~28kB CSS，其他页零影响）。
+
+**❌ 不要 `app.use(ElementPlus)` 全量注册** —— 会把整个库打进主包 + 全局样式污染。
 
 ### ⚠️ 样式冲突注意（重要）
 admin-vue **复用了原版 workbench 的全套 CSS**（`workbench.css` / `workbench-ui-polish.css` / `workbench-preview-overrides.css`，共约 19000 行，含大量 `!important`）+ `html-skin.css`（对齐原版视觉的皮肤）。Element Plus 自带一套设计体系，混用会撞：
 
-- **定制 EP 主题变量对齐品牌**：primary 用 `#3370ff`（其余色值见 `admin-vue/public/html-skin.css`），别让 EP 默认蓝跟现有皮肤打架。
-- **EP 组件样式被压时**，优先改 EP 主题变量或加 `<style scoped>` 覆盖；**别再往全局 CSS 堆 `!important`**（现有 `!important` 已经坑过好几次：AI panel 宽度锁死、workspace-tabs 空白）。
+- **主题已对齐品牌色**：`admin-vue/src/styles/element-theme.css` 把 `--el-color-primary` 等设成 `#3370ff`（含浅色梯度 + 暗黑模式），选择器用 `html[data-product="leaibot"]`（特异性高于 EP 的 `:root`，不用 `!important` 就能覆盖）。改品牌色改这个文件。
+- **EP 组件样式被压时**，优先改 EP 主题变量或加 `<style scoped>` 覆盖；**别再往全局 CSS 堆 `!important`**（现有 `!important` 已经坑过好几次：AI panel 宽度锁死、workspace-tabs 空白、账号菜单 v-show 失效）。
 - **已转好的 40 页不强制返工改 EP**——它们已跟原版视觉对齐并通过 E2E，按需渐进替换即可，别为统一组件库大规模重写。
 
 ---

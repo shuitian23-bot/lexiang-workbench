@@ -10,8 +10,9 @@
 - 新前端建 Vue3 SFC，不写原生 HTML。
 
 ## UI 组件库：Element Plus
-- 后台新组件/新页面用 Element Plus，按需引入（unplugin-vue-components + ElementPlusResolver），别 app.use 全量注册。
-- ⚠️ admin-vue 复用了原版 workbench CSS(~19000行，含大量 !important) + html-skin.css，EP 默认皮肤会撞：定制 EP 主题变量对齐 primary #3370ff；样式被压优先改主题变量/scoped，别再堆 !important。
+- 后台新组件/新页面用 Element Plus。**已装好配好按需引入**，.vue 里直接写 `<el-button>` / `ElMessage.success()`，无需 import，也别 `app.use(ElementPlus)` 全量注册。
+- 主题已对齐品牌色：改 `admin-vue/src/styles/element-theme.css`（primary #3370ff + 暗黑模式，选择器 `html[data-product="leaibot"]` 特异性高于 EP `:root`）。
+- ⚠️ admin-vue 复用原版 workbench CSS(~19000行，含大量 !important)，EP 样式被压时改主题变量/scoped，别再堆 !important。
 - 已转好的 40 页不强制返工改 EP，按需渐进替换。
 
 ## 协作

@@ -200,10 +200,10 @@ ssh leaiteam "sudo pm2 logs lexiang --lines 50"
 
 ### UI 组件库：Element Plus（**强制**，2026-06-29 起）
 
-- **后台 admin-vue 新组件/新页面统一用 Element Plus**（开发定的技术选型）。安装 `cd admin-vue && npm i element-plus`。
-- **按需引入**：`npm i -D unplugin-vue-components unplugin-auto-import`，vite.config 配 `AutoImport`/`Components` + `ElementPlusResolver`。**不要 `app.use(ElementPlus)` 全量注册**（体积大 + 全局样式冲突面大）。
+- **后台 admin-vue 新组件/新页面统一用 Element Plus**（开发定的技术选型）。**已装好配好，不用自己装**：`element-plus@2` + `unplugin-vue-components`/`unplugin-auto-import` 已在 admin-vue，`vite.config.js` 已配 `ElementPlusResolver`。
+- **直接用**：`.vue` 里写 `<el-button type="primary">` / `<el-table>` / `ElMessage.success()` 即可，**无需 import**。build 时用到哪个才打包哪个（实测一个 el-button 只给该页 chunk 加 ~40kB JS + ~28kB CSS，其他页零影响）。**不要 `app.use(ElementPlus)` 全量注册**。
 - ⚠️ **样式冲突是主要风险**：admin-vue 复用了原版 workbench 全套 CSS（`workbench.css`/`workbench-ui-polish.css`/`workbench-preview-overrides.css` 约 19000 行，含大量 `!important`）+ `admin-vue/public/html-skin.css`（对齐原版视觉的皮肤）。对策：
-  - 定制 EP 主题变量对齐品牌色（primary `#3370ff`，其余见 html-skin.css），别用 EP 默认蓝。
+  - **主题已对齐品牌色**：`admin-vue/src/styles/element-theme.css` 设了 `--el-color-primary: #3370ff` + 浅色梯度 + 暗黑模式（跟随 `body.dark-mode`）。选择器用 `html[data-product="leaibot"]`（特异性 0,1,1 > EP 的 `:root` 0,1,0），无需 `!important` 即可覆盖。改品牌色改这个文件。
   - EP 组件被全局样式压住时，改 EP 主题变量或加 `<style scoped>`，**别再往全局 CSS 堆 `!important`**（现有 `!important` 已坑过：AI panel 宽度锁死、workspace-tabs 顶部空白、账号菜单 v-show 失效）。
   - **已转好的 40 页不强制返工改 EP**（已跟原版视觉对齐 + E2E 通过），按需渐进替换，别为统一组件库大规模重写。
 

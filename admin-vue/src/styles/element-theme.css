@@ -1,0 +1,38 @@
+/* Element Plus 主题变量 — 对齐联想乐享 workbench 品牌视觉。
+ *
+ * 为什么用 html[data-product="leaibot"] 而不是 :root：
+ * EP 把默认变量定义在 :root(特异性 0,1,0)，按需引入时组件样式的注入顺序不确定；
+ * html[data-product="leaibot"] 特异性(0,1,1)更高，无论谁先谁后都能覆盖，不用 !important。
+ * (index.html 的 <html> 上已有 data-product="leaibot")
+ *
+ * 品牌色来源：admin-vue/public/html-skin.css 的 --primary #3370ff / --primary-hover #245bdb
+ */
+html[data-product="leaibot"] {
+  /* 主色 + EP 自动派生的浅色梯度(与白色按 N*10% 混合) */
+  --el-color-primary: #3370ff;
+  --el-color-primary-light-1: #477eff;
+  --el-color-primary-light-2: #5c8dff;
+  --el-color-primary-light-3: #709bff;
+  --el-color-primary-light-4: #85a9ff;
+  --el-color-primary-light-5: #99b8ff;
+  --el-color-primary-light-6: #adc6ff;
+  --el-color-primary-light-7: #c2d4ff;
+  --el-color-primary-light-8: #d6e2ff;
+  --el-color-primary-light-9: #ebf1ff;
+  --el-color-primary-dark-2: #245bdb; /* = 品牌 hover 色 */
+
+  /* 圆角/字体对齐 workbench(按钮 6px、跟随全局字体栈) */
+  --el-border-radius-base: 6px;
+  --el-font-family: inherit;
+}
+
+/* 暗黑模式：workbench 用 body.dark-mode 切换，让 EP 跟着变 */
+html[data-product="leaibot"] body.dark-mode {
+  --el-bg-color: #1f2126;
+  --el-bg-color-overlay: #26282e;
+  --el-text-color-primary: #e5e7eb;
+  --el-text-color-regular: #cbd0d8;
+  --el-border-color: #3a3d45;
+  --el-border-color-light: #33363d;
+  --el-fill-color-blank: #1f2126;
+}
