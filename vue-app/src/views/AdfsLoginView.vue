@@ -1,32 +1,40 @@
 <template>
-  <main class="adfs-page">
+  <main class="adfs-login-page">
     <section class="adfs-visual" aria-hidden="true">
-      <div class="adfs-line one"></div>
-      <div class="adfs-line two"></div>
-      <div class="adfs-ring"></div>
+      <div class="adfs-line line-a"></div>
+      <div class="adfs-line line-b"></div>
+      <div class="adfs-line line-c"></div>
+      <div class="adfs-circle circle-a"></div>
+      <div class="adfs-circle circle-b"></div>
+      <div class="adfs-circle circle-c"></div>
     </section>
-    <section class="adfs-panel">
-      <h1>Lenovo Corporation</h1>
-      <p>Please login with your ITCode / Password and OTP code (if required).</p>
-      <form class="adfs-form" @submit.prevent="submitAdfs">
-        <label>
+
+    <section class="adfs-panel" aria-label="Lenovo ADFS 登录">
+      <form class="adfs-form" @submit.prevent="submitAdfsLogin">
+        <h1>Lenovo Corporation</h1>
+        <p>Please login with your ITCode / Password and OTP code (if required).</p>
+
+        <label class="adfs-row">
           <span>ITCode</span>
-          <input v-model.trim="itcode" autocomplete="username" autofocus>
+          <input v-model.trim="itcode" autofocus autocomplete="username" />
         </label>
-        <label>
+        <label class="adfs-row">
           <span>Password</span>
-          <input v-model="password" type="password" autocomplete="current-password">
+          <input v-model="password" type="password" autocomplete="current-password" />
         </label>
-        <label>
+        <label class="adfs-row">
           <span>OTP Code</span>
-          <input v-model.trim="otp" inputmode="numeric">
+          <input v-model.trim="otpCode" inputmode="numeric" autocomplete="one-time-code" />
         </label>
-        <p v-if="errorMsg" class="adfs-error">{{ errorMsg }}</p>
-        <label class="adfs-check">
-          <input v-model="remember" type="checkbox">
+
+        <p class="adfs-register">If this is the first time you are using Lenovo OTP, please <button type="button">register</button>.</p>
+
+        <label class="adfs-remember">
+          <input v-model="rememberMe" type="checkbox" />
           <span>使我保持登录状态</span>
         </label>
-        <button type="submit">Submit</button>
+        <div v-if="errorMsg" class="adfs-error">{{ errorMsg }}</div>
+        <button class="adfs-submit" type="submit">Submit</button>
       </form>
       <footer>© 2026 Lenovo</footer>
     </section>
@@ -36,187 +44,231 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAppStore } from '@/stores/app'
 
 const route = useRoute()
 const router = useRouter()
+const appStore = useAppStore()
 
-const itcode = ref(String(route.query.itcode || 'noaccess'))
-const password = ref('password')
-const otp = ref('')
-const remember = ref(false)
+const itcode = ref('')
+const password = ref('')
+const otpCode = ref('')
+const rememberMe = ref(false)
 const errorMsg = ref('')
+const noAccessAccounts = ['noaccess', 'guest01']
 
-function submitAdfs() {
-  const user = itcode.value.trim() || 'noaccess'
-  if (user.toLowerCase() === 'noaccess') {
-    router.replace({ path: '/access-denied', query: { itcode: user } })
+async function submitAdfsLogin() {
+  const account = itcode.value.trim()
+  if (!account || !password.value) {
+    errorMsg.value = '请输入 ITCode 和 Password。'
     return
   }
-  errorMsg.value = '当前 POC 仅 mock 无权限用户链路；有权限用户请返回使用外部账号密码登录。'
+
+  if (noAccessAccounts.includes(account.toLowerCase())) {
+    localStorage.removeItem('preview_user')
+    appStore.user = null
+    await router.replace({ path: '/access-denied', query: { itcode: account } })
+    return
+  }
+
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: account, password: password.value, otpCode: otpCode.value, rememberMe: rememberMe.value, loginType: 'adfs' })
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      errorMsg.value = data.error || '登录失败'
+      return
+    }
+    appStore.user = data.username || account
+    await appStore.loadUserContext()
+    await router.replace(String(route.query.redirect || '/'))
+  } catch {
+    errorMsg.value = '登录服务暂不可用，请稍后重试'
+  }
 }
 </script>
 
 <style scoped>
-.adfs-page {
+.adfs-login-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-columns: minmax(0, 1fr) 458px;
   background: #fff;
   color: #111827;
-  font-family: Arial, "Microsoft YaHei", sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .adfs-visual {
   position: relative;
   overflow: hidden;
-  background: #3f92db;
+  background: #4697de;
 }
 
 .adfs-visual::before,
-.adfs-visual::after,
-.adfs-line,
-.adfs-ring {
-  position: absolute;
+.adfs-visual::after {
   content: '';
-  pointer-events: none;
-}
-
-.adfs-visual::before {
-  inset: -18% 38% -8% 12%;
-  transform: rotate(-20deg);
+  position: absolute;
+  inset: -18% auto auto -8%;
+  width: 46%;
+  height: 130%;
   background: rgba(255, 255, 255, 0.12);
+  transform: rotate(-18deg);
 }
 
 .adfs-visual::after {
-  left: -10%;
-  bottom: -18%;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  border: 80px solid rgba(35, 128, 217, 0.34);
+  inset: auto -10% -18% auto;
+  width: 38%;
+  height: 120%;
+  background: rgba(8, 97, 180, 0.16);
 }
 
 .adfs-line {
-  width: 120%;
+  position: absolute;
   height: 2px;
-  background: rgba(161, 230, 255, 0.48);
+  background: rgba(150, 230, 255, 0.72);
   transform-origin: left center;
 }
 
-.adfs-line.one {
-  top: 30%;
-  left: -10%;
-  transform: rotate(-32deg);
+.line-a { top: 36%; left: 0; width: 58%; transform: rotate(-30deg); }
+.line-b { top: 3%; left: 29%; width: 44%; transform: rotate(-35deg); }
+.line-c { bottom: 20%; left: 42%; width: 78%; transform: rotate(-13deg); }
+
+.adfs-circle {
+  position: absolute;
+  border-radius: 999px;
+  border: 3px solid rgba(117, 223, 255, 0.42);
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.adfs-line.two {
-  bottom: 24%;
-  left: -5%;
-  transform: rotate(-12deg);
-}
-
-.adfs-ring {
-  left: 36px;
-  bottom: 42px;
-  width: 82px;
-  height: 82px;
-  border-radius: 50%;
-  border: 12px solid rgba(92, 219, 255, 0.46);
-  box-shadow: 90px -44px 0 28px rgba(255, 255, 255, 0.16);
-}
+.circle-a { left: 8%; bottom: 11%; width: 148px; height: 148px; }
+.circle-b { left: 15%; bottom: -6%; width: 228px; height: 228px; }
+.circle-c { left: 2%; bottom: 4%; width: 76px; height: 76px; }
 
 .adfs-panel {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 58px 54px;
+  justify-content: space-between;
+  padding: 66px 66px 34px;
+  background: #fff;
 }
 
-.adfs-panel h1 {
-  margin: 0 0 66px;
-  font-size: 30px;
-  font-weight: 500;
+.adfs-form h1 {
+  margin: 0 0 86px;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
-.adfs-panel p {
+.adfs-form > p:not(.adfs-register) {
   margin: 0 0 34px;
   font-size: 17px;
   line-height: 1.35;
 }
 
-.adfs-form {
+.adfs-row {
   display: grid;
-  gap: 18px;
-}
-
-.adfs-form label:not(.adfs-check) {
-  display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
   align-items: center;
-  gap: 16px;
+  gap: 24px;
+  margin-bottom: 28px;
   font-size: 18px;
 }
 
-.adfs-form input {
-  height: 34px;
-  border: 1px solid #b9b9b9;
-  padding: 4px 8px;
+.adfs-row input {
+  width: 100%;
+  height: 39px;
+  border: 1px solid #9b9b9b;
+  padding: 5px 8px;
+  background: #fff;
+  color: #111827;
   font-size: 16px;
 }
 
-.adfs-form input:focus {
+.adfs-row input:focus {
   outline: 2px solid #111827;
-  outline-offset: 0;
+  outline-offset: -2px;
+  background: #eaf2ff;
 }
 
-.adfs-error {
-  margin: 0;
-  color: #e53935;
-  font-size: 14px;
-  line-height: 1.5;
+.adfs-register {
+  margin: 0 0 42px;
+  font-size: 18px;
+  line-height: 1.35;
 }
 
-.adfs-check {
+.adfs-register button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #1683f5;
+  font: inherit;
+  cursor: pointer;
+}
+
+.adfs-remember {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 58px;
+  gap: 8px;
+  margin-bottom: 8px;
   font-size: 16px;
 }
 
-.adfs-check input {
+.adfs-remember input {
   width: 16px;
   height: 16px;
 }
 
-.adfs-form button {
-  justify-self: start;
-  min-height: 44px;
+.adfs-error {
+  margin: 0 0 8px;
+  color: #d92d20;
+  font-size: 14px;
+}
+
+.adfs-submit {
+  min-width: 104px;
+  min-height: 48px;
   border: 0;
-  border-radius: 4px;
-  background: #168ddb;
+  border-radius: 3px;
+  background: #0787e5;
   color: #fff;
-  padding: 0 22px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.adfs-panel footer {
-  margin-top: auto;
-  color: #777;
-  font-size: 14px;
+.adfs-submit:hover {
+  background: #0678cc;
 }
 
-@media (max-width: 760px) {
-  .adfs-page {
+.adfs-panel footer {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+@media (max-width: 900px) {
+  .adfs-login-page {
     grid-template-columns: 1fr;
   }
+
   .adfs-visual {
-    display: none;
+    min-height: 180px;
   }
+
   .adfs-panel {
-    padding: 42px 24px;
+    padding: 36px 24px 28px;
+  }
+
+  .adfs-form h1 {
+    margin-bottom: 36px;
+    font-size: 28px;
+  }
+
+  .adfs-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 </style>

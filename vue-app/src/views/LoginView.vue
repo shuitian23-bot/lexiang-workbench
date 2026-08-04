@@ -7,17 +7,29 @@
         <span>联想乐享</span>
       </div>
       <div class="login-title">登录</div>
-      <div class="login-mode-tabs" aria-label="登录方式">
-        <button type="button" :class="{ active: loginMode === 'internal' }" @click="switchLoginMode('internal')">内部用户登录</button>
-        <button type="button" :class="{ active: loginMode === 'external' }" @click="switchLoginMode('external')">外部用户登录</button>
+      <div class="login-tabs" role="tablist" aria-label="登录方式">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="loginTab === 'internal'"
+          :class="{ active: loginTab === 'internal' }"
+          @click="switchLoginTab('internal')"
+        >内部用户登录</button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="loginTab === 'external'"
+          :class="{ active: loginTab === 'external' }"
+          @click="switchLoginTab('external')"
+        >外部用户登录</button>
       </div>
 
-      <div v-if="loginMode === 'internal'" class="internal-login-panel">
-        <button type="button" class="btn btn-primary login-btn" @click="openAdfsLogin">内网ADFS登录</button>
-        <p>内网环境下，可通过您的 ITCode 账号完成身份认证。</p>
+      <div v-if="loginTab === 'internal'" class="login-adfs-panel" role="tabpanel">
+        <button class="btn btn-primary login-btn" type="button" @click="goAdfsLogin">内网ADFS登录</button>
+        <p>内网环境下，可通过您的 ITCode 账号免输入密码直接登录！</p>
       </div>
 
-      <template v-else>
+      <div v-else role="tabpanel">
         <div class="form-group">
           <label class="form-label">用户名</label>
           <input
@@ -48,7 +60,7 @@
           <span>还没有工作台账号？</span>
           <button type="button" class="login-register-btn" @click="openRegisterModal">创建账户/注册</button>
         </div>
-      </template>
+      </div>
     </div>
 
     <div v-if="registerModalVisible" class="register-modal-layer" @click.self="closeRegisterModal">
@@ -159,10 +171,10 @@ const router   = useRouter()
 const route    = useRoute()
 const appStore = useAppStore()
 
-const loginMode = ref<'internal' | 'external'>('internal')
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
+const loginTab = ref<'internal' | 'external'>('internal')
 
 const registerModalVisible = ref(false)
 const registerStep = ref(0)
@@ -212,21 +224,21 @@ const currentRegisterStepKey = computed(() => registerSteps[registerStep.value]?
 const approvalRoute = computed(() => [
   { step: '1', label: '申请人提交', owner: registerForm.accountName || '待填写', done: true },
   { step: '2', label: '关联人确认', owner: registerForm.relatedAccount || '待填写', done: false },
-  { step: '3', label: '直线经理审批', owner: registerForm.applicantManager || '待带出', done: false },
-  { step: '4', label: '系统审批 / 后台执行', owner: 'sunzh4', done: false }
+  { step: '3', label: '申请人直线经理审批', owner: registerForm.applicantManager || '待带出', done: false },
+  { step: '4', label: '被申请人直线经理审批', owner: registerForm.applicantManager || '待带出', done: false },
+  { step: '5', label: '系统管理员审批', owner: 'sunzh4', done: false }
 ])
 
-function switchLoginMode(mode: 'internal' | 'external') {
-  loginMode.value = mode
+function switchLoginTab(tab: 'internal' | 'external') {
+  loginTab.value = tab
   errorMsg.value = ''
 }
 
-function openAdfsLogin() {
-  const query: Record<string, string> = {
-    itcode: String(route.query.itcode || 'noaccess'),
-    redirect: String(route.query.redirect || '/')
-  }
-  router.push({ path: '/adfs-login', query })
+function goAdfsLogin() {
+  router.push({
+    path: '/adfs-login',
+    query: { redirect: String(route.query.redirect || '/') }
+  })
 }
 
 // 对应原 doLogin()
@@ -323,22 +335,34 @@ function registerStatusLink(request: any) {
   return `${registerAppBaseUrl('/account-request/status')}?ticket=${encodeURIComponent(request.id)}&token=${encodeURIComponent(request.token)}`
 }
 
-function registerApprovalActionLink(request: any, action = 'approve') {
+function registerApproverForRole(request: any, role = 'applicant-manager') {
+  const map: Record<string, string> = {
+    relation: request.relatedAccount || 'relation-owner',
+    'applicant-manager': request.applicantManager || 'sunll1',
+    'target-manager': request.targetManager || request.applicantManager || 'sunll1',
+    'system-admin': request.systemApprover || 'sunzh4'
+  }
+  return map[role] || map['applicant-manager']
+}
+
+function registerApprovalActionLink(request: any, action = 'approve', role = 'applicant-manager') {
   const query = [
     `ticket=${encodeURIComponent(request.id)}`,
     `source=account-register`,
     `action=${encodeURIComponent(action)}`,
-    `approver=${encodeURIComponent(request.applicantManager || 'sunll1')}`,
+    `approver=${encodeURIComponent(registerApproverForRole(request, role))}`,
+    `identity=${encodeURIComponent(role)}`,
     `token=${encodeURIComponent(request.token)}`
   ]
   return `${registerAppBaseUrl('/mail-approval/action')}?${query.join('&')}`
 }
-function registerApprovalListLink(request: any, action = '') {
+function registerApprovalListLink(request: any, action = '', role = 'applicant-manager') {
   const query = [
     'module=approval',
     `ticket=${encodeURIComponent(request.id)}`,
-    `approver=${encodeURIComponent(request.applicantManager || 'sunll1')}`,
-    'viewer=approver'
+    `approver=${encodeURIComponent(registerApproverForRole(request, role))}`,
+    'viewer=approver',
+    `identity=${encodeURIComponent(role)}`
   ]
   if (action) query.push(`action=${encodeURIComponent(action)}`)
   return `${registerAppBaseUrl('/agent/permissions')}?${query.join('&')}`
@@ -371,7 +395,10 @@ function createRegisterRequest() {
     reason: registerForm.reason,
     status: '待我审批',
     statusKey: 'pending',
-    node: '关联人确认',
+    nodeType: 'relation',
+    node: '关联人审批',
+    approverItcode: registerForm.relatedAccount,
+    handlers: [registerForm.relatedAccount].filter(Boolean),
     time,
     result: '',
     logs: [
@@ -401,10 +428,10 @@ function escapeRegisterMailHtml(value: any) {
 
 function createRegisterMailLogs(request: any) {
   const progressLink = registerStatusLink(request)
-  const approvalLink = registerApprovalListLink(request)
-  const actions = [
-    { value: 'approve', label: '同意', link: registerApprovalActionLink(request, 'approve') },
-    { value: 'reject', label: '驳回', link: registerApprovalActionLink(request, 'reject') }
+  const approvalLink = (role = 'applicant-manager') => registerApprovalListLink(request, '', role)
+  const actions = (role = 'applicant-manager') => [
+    { value: 'approve', label: '同意', link: registerApprovalActionLink(request, 'approve', role) },
+    { value: 'reject', label: '驳回', link: registerApprovalActionLink(request, 'reject', role) }
   ]
   const mails = [
     {
@@ -425,9 +452,9 @@ function createRegisterMailLogs(request: any) {
       to: registerMailAddress(request.applicantManager, 'applicant-manager'),
       subject: `${request.id} 待审批：创建账号申请`,
       content: `${request.applicant}（用户名：${request.accountName || request.applicantItcode}）提交了外部账号创建申请，请确认申请是否合理，并进行审批。`,
-      link: approvalLink,
+      link: approvalLink('applicant-manager'),
       linkLabel: '进入审批列表',
-      actions
+      actions: actions('applicant-manager')
     }
   ]
   mails.splice(1, 0, {
@@ -437,9 +464,31 @@ function createRegisterMailLogs(request: any) {
     to: registerMailAddress(request.relatedAccount, 'relation-owner'),
     subject: `${request.id} 关联关系确认通知`,
     content: `${request.applicant}（用户名：${request.accountName || request.applicantItcode}）的外部账号创建申请需要关联人确认。您可在审批列表中查看详情，请核对后进行处理。`,
-    link: approvalLink,
+    link: approvalLink('relation'),
     linkLabel: '进入审批列表',
-    actions
+    actions: actions('relation')
+  })
+  mails.push({
+    role: 'target-manager',
+    roleLabel: '被申请人直线经理',
+    toName: request.targetManager || '被申请人直线经理',
+    to: registerMailAddress(request.targetManager || request.applicantManager, 'target-manager'),
+    subject: `${request.id} 待审批：创建账号申请`,
+    content: `${request.applicant}（用户名：${request.accountName || request.applicantItcode}）的外部账号创建申请等待确认，请确认申请是否合理，并进行审批。`,
+    link: approvalLink('target-manager'),
+    linkLabel: '进入审批列表',
+    actions: actions('target-manager')
+  })
+  mails.push({
+    role: 'system-admin',
+    roleLabel: '系统管理员',
+    toName: request.systemApprover || '系统管理员',
+    to: registerMailAddress(request.systemApprover, 'system-admin'),
+    subject: `${request.id} 待审批：请确认账号开通`,
+    content: `${request.applicant}（用户名：${request.accountName || request.applicantItcode}）的外部账号创建申请等待系统管理员确认，请确认是否允许系统创建账号。`,
+    link: approvalLink('system-admin'),
+    linkLabel: '进入审批列表',
+    actions: actions('system-admin')
   })
   return mails
 }
@@ -490,7 +539,7 @@ function registerMailMockInboxHtml(request: any, mails: any[]) {
   .agree { background: #18a058; color: #fff; }
   .reject { background: #fff1f1; color: #e53935; border: 1px solid #ffc9c9; }
   .mail-foot { padding: 18px 28px 26px; color: #667085; font-size: 13px; }
-</style></head><body><main class="inbox-shell"><section class="inbox-title"><h1>${escapeRegisterMailHtml(request.id)} 邮件 mock 收件箱</h1><p>登录页创建账号申请提交后生成的邮件。申请人进公开进度页，审批人进后台审批列表。</p></section><nav class="mail-tabs" aria-label="邮件列表">${tabs}</nav>${panes}</main><script>document.querySelectorAll('.mail-tab').forEach((tab)=>{tab.addEventListener('click',()=>{const role=tab.dataset.mailRole;document.querySelectorAll('.mail-tab').forEach((item)=>item.classList.toggle('active',item===tab));document.querySelectorAll('.mail-pane').forEach((pane)=>pane.classList.toggle('hidden',pane.dataset.mailRole!==role));});});<\/script></body></html>`
+</style></head><body><main class="inbox-shell"><section class="inbox-title"><h1>${escapeRegisterMailHtml(request.id)} 邮件 mock 收件箱</h1><p>登录页创建账号申请提交后生成的邮件。申请人进公开进度页，审批人进后台审批列表，系统管理员完成最终确认。</p></section><nav class="mail-tabs" aria-label="邮件列表">${tabs}</nav>${panes}</main><script>document.querySelectorAll('.mail-tab').forEach((tab)=>{tab.addEventListener('click',()=>{const role=tab.dataset.mailRole;document.querySelectorAll('.mail-tab').forEach((item)=>item.classList.toggle('active',item===tab));document.querySelectorAll('.mail-pane').forEach((pane)=>pane.classList.toggle('hidden',pane.dataset.mailRole!==role));});});<\/script></body></html>`
 }
 
 function openRegisterMailMockInbox(request: any) {
@@ -518,39 +567,40 @@ function submitRegisterApplication() {
 </script>
 
 <style scoped>
-.login-mode-tabs {
+.login-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 24px;
-  border-bottom: 1px solid #e5e7eb;
+  gap: 6px;
+  margin: 22px 0 26px;
+  border-bottom: 1px solid #d8e1ee;
 }
 
-.login-mode-tabs button {
+.login-tabs button {
+  min-height: 42px;
   border: 0;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   background: transparent;
-  color: #455468;
-  padding: 0 8px 12px;
+  color: #303846;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.login-mode-tabs button.active {
-  border-color: var(--primary, #316dff);
+.login-tabs button.active {
+  border-bottom-color: var(--primary, #316dff);
   color: var(--primary, #316dff);
 }
 
-.internal-login-panel {
+.login-adfs-panel {
   display: grid;
-  gap: 76px;
-  padding-top: 88px;
+  min-height: 208px;
+  align-content: space-between;
+  padding-top: 92px;
 }
 
-.internal-login-panel p {
+.login-adfs-panel p {
   margin: 0;
-  color: #455468;
+  color: #303846;
   font-size: 14px;
   line-height: 1.7;
   text-align: center;

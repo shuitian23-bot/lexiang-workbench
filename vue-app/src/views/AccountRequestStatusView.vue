@@ -9,9 +9,9 @@
       <div v-if="request" class="status-content">
         <div class="status-head">
           <div>
-            <span class="status-eyebrow">{{ request.type || '账号创建申请' }}进度</span>
+            <span class="status-eyebrow">账号创建申请进度</span>
             <h1>{{ request.id }}</h1>
-            <p>该页面为免登录只读查询入口，仅用于查看申请状态和处理记录。</p>
+            <p>该页面为免登录只读查询入口，仅用于查看账号创建申请状态和处理记录。</p>
           </div>
           <span :class="['status-pill', statusClass]">{{ displayStatus }}</span>
         </div>
@@ -26,7 +26,7 @@
             <dd>{{ request.applicant }}（{{ request.applicantItcode }}）</dd>
           </div>
           <div>
-            <dt>申请对象</dt>
+            <dt>待创建账号人员</dt>
             <dd>{{ request.target }}</dd>
           </div>
           <div>
@@ -39,7 +39,7 @@
           </div>
           <div>
             <dt>结果说明</dt>
-            <dd>{{ request.result || '申请已受理，请等待审批和执行结果。' }}</dd>
+            <dd>{{ request.result || '申请已受理，请等待审批和系统执行结果。' }}</dd>
           </div>
         </dl>
 
@@ -101,7 +101,7 @@ const token = computed(() => String(route.query.token || ''))
 const request = computed(() => requests.value.find((item: any) => item.id === ticket.value && item.token === token.value) || null)
 const displayStatus = computed(() => request.value?.status === '待我审批' ? '审核中' : request.value?.status || '')
 const statusClass = computed(() => {
-  if (displayStatus.value === '执行完成') return 'done'
+  if (displayStatus.value === '执行完成' || displayStatus.value === '已完成') return 'done'
   if (displayStatus.value === '已驳回') return 'rejected'
   return 'pending'
 })

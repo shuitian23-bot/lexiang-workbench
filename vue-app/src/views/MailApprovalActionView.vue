@@ -61,17 +61,12 @@ const token = computed(() => String(route.query.token || 'mock'))
 const approver = computed(() => String(route.query.approver || ''))
 const identity = computed(() => String(route.query.identity || 'approver'))
 const actionLabel = computed(() => action.value === 'reject' ? '驳回' : '同意')
-const isPublicAccountFlow = computed(() => source.value === 'account-register' || source.value === 'access-request')
-const sourceLabel = computed(() => {
-  if (source.value === 'account-register') return '登录页创建账号申请'
-  if (source.value === 'access-request') return '无权限访问申请'
-  return '权限申请'
-})
+const sourceLabel = computed(() => source.value === 'account-register' ? '账号/访问申请' : '权限申请')
 const resultClass = computed(() => action.value === 'reject' ? 'reject' : 'agree')
 const message = computed(() => `请确认是否通过邮件直接${actionLabel.value}该${sourceLabel.value}。确认后会写入 mock 审批记录，并同步审批列表/进度查询页。`)
 const fallbackLink = computed(() => {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
-  if (isPublicAccountFlow.value) return `${base}/account-request/status?ticket=${encodeURIComponent(ticket.value)}&token=${encodeURIComponent(token.value)}`
+  if (source.value === 'account-register') return `${base}/account-request/status?ticket=${encodeURIComponent(ticket.value)}&token=${encodeURIComponent(token.value)}`
   return `${base}/agent/permissions?module=approval&ticket=${encodeURIComponent(ticket.value)}&approver=${encodeURIComponent(approver.value)}&viewer=approver&identity=${encodeURIComponent(identity.value)}`
 })
 
@@ -111,25 +106,80 @@ function appendMailAction() {
   return record
 }
 
+function registerNodeFromIdentity(identity: string) {
+  const role = String(identity || '').split(':')[0]
+  const map: Record<string, string> = {
+    relation: 'relation',
+    'applicant-manager': 'applicant-manager',
+    'target-manager': 'target-manager',
+    'system-admin': 'system-admin'
+  }
+  return map[role] || ''
+}
+
+function registerNodeMeta(nodeType: string, row: any) {
+  const map: Record<string, any> = {
+    relation: { node: '关联人审批', approverItcode: row.relatedAccount || row.approverItcode, handlers: [row.relatedAccount || row.approverItcode].filter(Boolean) },
+    'applicant-manager': { node: '申请人直线经理审批', approverItcode: row.applicantManager || 'sunll1', handlers: [row.applicantManager || 'sunll1'] },
+    'target-manager': { node: '被申请人直线经理审批', approverItcode: row.targetManager || row.applicantManager || 'sunll1', handlers: [row.targetManager || row.applicantManager || 'sunll1'] },
+    'system-admin': { node: '系统管理员审批', approverItcode: row.systemApprover || 'sunzh4', handlers: [row.systemApprover || 'sunzh4'] }
+  }
+  return map[nodeType] || map['applicant-manager']
+}
+
+function updateRegisterNode(row: any, nodeType: string) {
+  const meta = registerNodeMeta(nodeType, row)
+  row.nodeType = nodeType
+  row.node = meta.node
+  row.approverItcode = meta.approverItcode
+  row.handlers = meta.handlers
+  row.status = '待我审批'
+  row.statusKey = 'pending'
+}
+
 function applyRegisterAction(record: any) {
   const rows = readList(REGISTER_KEY)
   const index = rows.findIndex((item: any) => item.id === record.ticket && item.token === record.token)
   if (index < 0) return false
   const row = rows[index]
-  if (row.status === '执行完成' || row.status === '已驳回') return true
+  if (row.statusKey === 'done' || row.status === '已完成' || row.status === '执行完成' || row.statusKey === 'rejected' || row.status === '已驳回') return true
   const approve = record.action === 'approve'
-  const isAccessRequest = row.type === '访问权限开通' || row.typeKey === 'access'
-  row.status = approve ? '执行完成' : '已驳回'
-  row.statusKey = approve ? 'done' : 'rejected'
-  row.node = approve ? (isAccessRequest ? '系统管理员执行' : '后台自动执行') : '申请人修改'
-  row.result = approve ? (isAccessRequest ? '系统管理员已开通工作台访问权限，执行结果：成功。' : '系统已自动创建账号，执行结果：成功。') : '申请已通过邮件审批被驳回，请根据反馈重新提交。'
+  const currentNodeType = row.nodeType || registerNodeFromIdentity(record.identity) || 'applicant-manager'
+  const actionNodeType = registerNodeFromIdentity(record.identity)
+  if (actionNodeType && currentNodeType !== actionNodeType) return false
+
   row.logs = [...(row.logs || []), {
-    node: '邮件审批',
+    node: row.node || registerNodeMeta(currentNodeType, row).node,
     detail: approve ? '审批人通过邮件确认同意。' : '审批人通过邮件确认驳回。',
-    time: record.time
+    time: record.time,
+    operator: record.operator
   }]
-  if (approve) {
-    row.logs.push({ node: isAccessRequest ? '系统管理员执行' : '后台自动执行', detail: isAccessRequest ? '系统管理员已开通工作台访问权限，执行结果：成功。' : '系统已自动创建账号，执行结果：成功。', time: record.time })
+
+  if (!approve) {
+    row.status = '已驳回'
+    row.statusKey = 'rejected'
+    row.nodeType = 'rework'
+    row.node = '申请人修改'
+    row.result = '申请已通过邮件审批被驳回，请根据反馈重新提交。'
+    rows[index] = row
+    writeList(REGISTER_KEY, rows)
+    return true
+  }
+
+  if (currentNodeType === 'relation') {
+    updateRegisterNode(row, 'applicant-manager')
+  } else if (currentNodeType === 'applicant-manager') {
+    updateRegisterNode(row, 'target-manager')
+  } else if (currentNodeType === 'target-manager') {
+    updateRegisterNode(row, 'system-admin')
+  } else {
+    row.status = '已完成'
+    row.statusKey = 'done'
+    row.nodeType = 'done'
+    row.node = '执行完成'
+    const accessRequest = row.typeKey === 'workspace-access'
+    row.result = accessRequest ? '系统已根据系统管理员审批结果开通工作台访问权限，执行结果：成功。' : '系统已根据系统管理员审批结果创建账号，执行结果：成功。'
+    row.logs.push({ node: '系统执行结果', detail: accessRequest ? '系统已开通工作台访问权限，执行结果：成功。' : '系统已创建账号，执行结果：成功。', time: record.time })
   }
   rows[index] = row
   writeList(REGISTER_KEY, rows)
@@ -149,7 +199,7 @@ function confirmAction() {
     return
   }
   const record = appendMailAction()
-  const synced = isPublicAccountFlow.value ? applyRegisterAction(record) : applyPermissionSnapshot(record)
+  const synced = source.value === 'account-register' ? applyRegisterAction(record) : applyPermissionSnapshot(record)
   confirmed.value = true
   resultTitle.value = record.duplicate ? '该邮件审批已处理' : `已${actionLabel.value}`
   resultDetail.value = synced
