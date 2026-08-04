@@ -3078,12 +3078,12 @@ const PAGE_RENDERERS = {
           <button onclick="geoConversionQuickPeriod('7d')" class="geo-conv-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;transition:all .15s">近7天</button>
           <button onclick="geoConversionQuickPeriod('30d')" class="geo-conv-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;transition:all .15s">近30天</button>
         </div>
-        <span class="geo-label" style="margin-left:8px">数据T+1更新</span>
+        <button onclick="geoLoadConversionPage()" style="margin-left:auto;padding:5px 14px;font-size:12px;border:none;border-radius:8px;background:#3f78c5;color:#fff;cursor:pointer">刷新</button>
       </div>
       <div class="geo-status-line" id="geo-conversion-status">加载中...</div>
       <div id="gc-section-all"></div>
-      <div id="gc-section-official"></div>
       <div id="gc-section-leai"></div>
+      <div id="gc-section-official"></div>
       <div id="gc-section-biz"></div>
     </div>
   `,

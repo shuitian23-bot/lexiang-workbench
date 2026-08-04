@@ -1882,14 +1882,26 @@ function geoConvChart(id, option) {
   ch.setOption(option);
   geoState._convCharts.push(ch);
 }
-function geoConvLineOption(dates, values, color, area) {
+function geoConvLineOption(dates, values, color, area, name) {
   return {
-    grid: { top: 18, right: 16, bottom: 26, left: 48 },
+    grid: { top: name ? 30 : 18, right: 16, bottom: 26, left: 48 },
+    legend: name ? { data: [name], left: 0, top: 0, itemWidth: 14, itemHeight: 8, textStyle: { fontSize: 11, color: '#6b7280' } } : undefined,
     xAxis: { type: 'category', data: dates.map(d => d.slice(5)), axisLabel: { fontSize: 10, color: '#9ca3af' }, axisLine: { lineStyle: { color: '#e5e8ec' } }, axisTick: { show: false } },
     yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#9ca3af' }, splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } } },
     tooltip: { trigger: 'axis', textStyle: { fontSize: 11 } },
-    series: [{ type: 'line', data: values, smooth: true, symbolSize: 4, itemStyle: { color }, lineStyle: { color, width: 2 },
+    series: [{ type: 'line', name: name || undefined, data: values, smooth: true, symbolSize: 4, itemStyle: { color }, lineStyle: { color, width: 2 },
       areaStyle: area ? { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '44' }, { offset: 1, color: color + '05' }] } } : undefined }]
+  };
+}
+// 各来源入站 UV 趋势（多平台一图）
+function geoConvMultiLineOption(dates, seriesDefs) {
+  return {
+    grid: { top: 30, right: 16, bottom: 26, left: 48 },
+    legend: { data: seriesDefs.map(s => s.name), left: 0, top: 0, itemWidth: 14, itemHeight: 8, textStyle: { fontSize: 10, color: '#6b7280' } },
+    xAxis: { type: 'category', data: dates.map(d => d.slice(5)), axisLabel: { fontSize: 10, color: '#9ca3af' }, axisLine: { lineStyle: { color: '#e5e8ec' } }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#9ca3af' }, splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } } },
+    tooltip: { trigger: 'axis', textStyle: { fontSize: 11 } },
+    series: seriesDefs.map(s => ({ type: 'line', name: s.name, data: s.data, smooth: true, symbolSize: 3, itemStyle: { color: s.color }, lineStyle: { color: s.color, width: 2 } }))
   };
 }
 function geoConvSplitRow(vals, money) {
@@ -1905,7 +1917,6 @@ function geoConvCell(icon, label, val, def, opts = {}) {
       <span style="width:38px;height:38px;border-radius:10px;background:${GEO_CONV_ICON_BG};display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex:none">${icon}</span>
       <div style="min-width:0"><div class="gcc-label">${label}</div><div class="gcc-val">${geoConvFmt(val, opts.money)}</div></div>
     </div>
-    <div class="gcc-def">${def}</div>
     ${opts.splits ? geoConvSplitRow(opts.splits, opts.money) : ''}
   </div>`;
 }
@@ -1937,49 +1948,53 @@ function geoConvBreakCard(title, icon, total, rows, money) {
 
 const GEO_CONV_DEMO = {
   all: {
-    uv: 9044, login: 597, newreg: 107,
-    paid: [4, 2, 1, 1], ca: [5, 2, 1, 2], gmv: [729.70, 412.30, 187.40, 130.00],
-    newpaid: [0, 0, 0, 0], newca: [0, 0, 0, 0], newgmv: [0, 0, 0, 0],
+    uv: 83437, login: 3158, newreg: 1476,
+    paid: [40, 36, 4, 0], ca: [43, 39, 4, 0], gmv: [91533.30, 78192.30, 13341.00, 0],
+    newpaid: [36, 33, 3, 0], newca: [39, 36, 3, 0], newgmv: [90866.60, 77944.60, 12922.00, 0],
     leaiUser: [0, 0, 0, 0], leaiCa: [0, 0, 0, 0], leaiGmv: [0, 0, 0, 0]
   },
   official: {
-    uv: 26820, wow: '+8.56%',
+    uv: 101050, cumUv: 182622,
     donut: [
-      ['联想首页', 10542], ['联想商城', 5421], ['消费业务', 3980], ['SMB业务(含企业购)', 3352], ['政企业务', 2128],
-      ['服务', 896], ['联想论坛', 180], ['联想门店', 100], ['联想乐享', 90], ['其他', 131]
+      ['服务', 32698], ['消费', 20771], ['商城', 18668], ['联想论坛', 13285], ['联想乐享', 12229],
+      ['SMB', 5795], ['特惠', 1999], ['联想门店', 1662], ['政企大客户', 1222], ['其他', 4950]
     ],
+    source: {
+      cumUv: 182622,
+      platDonut: [['豆包', 73334, 'doubao'], ['元宝', 3873, 'yuanbao'], ['千问', 1728, 'qwen'], ['kimi', 807, 'kimi'], ['deepseek', 178, 'deepseek']]
+    },
     top5: [
-      { name: '联想驱动下载首页 - 支持与驱动', url: 'https://newsupport.lenovo.com.cn/driveDownloads.html', uv: 3652 },
-      { name: '联想帮助中心首页', url: 'https://newsupport.lenovo.com.cn/', uv: 2941 },
-      { name: 'ThinkPad X1 Carbon 驱动下载页面', url: 'https://newsupport.lenovo.com.cn/driveDownloads_detail.html', uv: 2136 },
-      { name: '联想商城 - 笔记本电脑', url: 'https://s.lenovo.com.cn/category/notebook/', uv: 1896 },
-      { name: '联想企业购 - 商用笔记本', url: 'https://e.lenovo.com.cn/category/laptops/', uv: 1632 }
+      { name: '联想服务中心 - 支持与服务', url: 'https://newsupport.lenovo.com.cn/', uv: 21202 },
+      { name: '联想乐享 AI 助手官网', url: 'https://leai.lenovo.com.cn/', uv: 12034 },
+      { name: '驱动下载列表', url: 'https://newsupport.lenovo.com.cn/driveList.html', uv: 8624 },
+      { name: 'Lenovo 产品首页', url: 'https://www.lenovo.com.cn/products_index.html', uv: 6778 },
+      { name: '联想笔记本电脑_联想商城', url: 'https://www.lenovo.com.cn/notebook.html', uv: 6528 }
     ],
-    ca: { total: 3285, rows: [{ name: '消费商品销量', val: 2156, pct: '65.63' }, { name: 'SMB 商品销量', val: 742, pct: '22.58' }, { name: '政企商品销量', val: 387, pct: '11.79' }] },
-    gmv: { total: 18765432, rows: [{ name: '消费商品销售额', val: 9842123, pct: '52.42' }, { name: 'SMB 商品销售额', val: 5218760, pct: '27.77' }, { name: '政企商品销售额', val: 3704549, pct: '19.71' }] }
+    ca: { total: 43, rows: [{ name: '消费商品销量', val: 39, pct: '91' }, { name: 'SMB 商品销量', val: 4, pct: '9' }, { name: '政企商品销量', val: 0, pct: '0' }] },
+    gmv: { total: 91533.30, rows: [{ name: '消费商品销售额', val: 78192.30, pct: '85' }, { name: 'SMB 商品销售额', val: 13341, pct: '15' }, { name: '政企商品销售额', val: 0, pct: '0' }] }
   },
   leai: {
-    uv: 1206, login: 597, newreg: 107, interact: 856, loginInteract: 412,
-    paid: [4, 2, 1, 1], ca: [5, 2, 1, 2], gmv: [729.70, 412.30, 187.40, 130.00],
+    uv: 12266, login: 1048, newreg: 606, interact: 3488, loginInteract: 808,
+    paid: [0, 0, 0, 0], ca: [0, 0, 0, 0], gmv: [0, 0, 0, 0],
     newpaid: [0, 0, 0, 0], newca: [0, 0, 0, 0], newgmv: [0, 0, 0, 0],
     orderUser: [0, 0, 0, 0], orderCa: [0, 0, 0, 0], orderGmv: [0, 0, 0, 0]
   },
   biz: [
-    { key: 'c', name: '消费业务', icon: '🛍️', color: '#22c55e', uv: 3980, wow: '+7.42%', ca: 2156, gmv: 9842123,
+    { key: 'c', name: '消费业务', icon: '🛍️', color: '#22c55e', uv: 20771, ca: 39, gmv: 78192.30,
       top5: [
-        { name: '联想商城首页', url: 'https://s.lenovo.com.cn/', uv: 862 }, { name: '笔记本电脑 - 产品页', url: 'https://s.lenovo.com.cn/category/notebook/', uv: 641 },
-        { name: '小新系列 - 产品页', url: 'https://s.lenovo.com.cn/category/xiaoxin/', uv: 523 }, { name: '平板电脑 - 产品页', url: 'https://s.lenovo.com.cn/category/tablet/', uv: 398 },
-        { name: '配件专区 - 产品页', url: 'https://s.lenovo.com.cn/category/accessories/', uv: 302 }] },
-    { key: 'b', name: 'SMB业务（含企业购）', icon: '💼', color: '#8b5cf6', uv: 3352, wow: '+5.31%', ca: 742, gmv: 5218760,
+        { name: 'Lenovo 专卖店首页', url: 'https://s.lenovo.com.cn/', uv: 746 }, { name: '小新 2026 新品上市', url: 'https://www.lenovo.com.cn/xiaoxin/', uv: 404 },
+        { name: '联想拯救者游戏本', url: 'https://www.lenovo.com.cn/legion/', uv: 376 }, { name: '联想商城首页', url: 'https://www.lenovo.com.cn/', uv: 365 },
+        { name: '平板电脑 - 产品页', url: 'https://www.lenovo.com.cn/tablet/', uv: 314 }] },
+    { key: 'b', name: 'SMB业务（含企业购）', icon: '💼', color: '#8b5cf6', uv: 5795, ca: 4, gmv: 13341,
       top5: [
-        { name: '联想企业购 - 产品页', url: 'https://e.lenovo.com.cn/category/laptops/', uv: 742 }, { name: 'ThinkPad 系列 - 产品页', url: 'https://e.lenovo.com.cn/category/thinkpad/', uv: 581 },
-        { name: '企业解决方案', url: 'https://e.lenovo.com.cn/', uv: 436 }, { name: '工作站 - 产品页', url: 'https://e.lenovo.com.cn/category/workstation/', uv: 287 },
-        { name: '服务与支持 - 产品页', url: 'https://e.lenovo.com.cn/category/servers/', uv: 213 }] },
-    { key: 'biz', name: '政企业务', icon: '🏛️', color: '#3b82f6', uv: 2128, wow: '+6.18%', ca: 387, gmv: 3704549,
+        { name: 'ThinkPad 商用笔记本', url: 'https://thinkpad.lenovo.com.cn/', uv: 353 }, { name: 'ThinkPad 旗舰系列', url: 'https://thinkpad.lenovo.com.cn/flagship/', uv: 335 },
+        { name: '联想企业购', url: 'https://e.lenovo.com.cn/', uv: 186 }, { name: '商用工作站 - 产品页', url: 'https://e.lenovo.com.cn/category/workstation/', uv: 166 },
+        { name: '服务与支持', url: 'https://e.lenovo.com.cn/category/servers/', uv: 148 }] },
+    { key: 'biz', name: '政企业务', icon: '🏛️', color: '#3b82f6', uv: 1222, ca: 0, gmv: 0,
       top5: [
-        { name: '政府解决方案', url: 'https://e.lenovo.com.cn/solutions/', uv: 584 }, { name: '政企行业方案', url: 'https://e.lenovo.com.cn/solutions/government/', uv: 432 },
-        { name: '教育行业方案', url: 'https://e.lenovo.com.cn/solutions/education/', uv: 378 }, { name: '医疗行业方案', url: 'https://e.lenovo.com.cn/solutions/medical/', uv: 261 },
-        { name: '招投标支持', url: 'https://e.lenovo.com.cn/tender-support/', uv: 198 }] }
+        { name: '联想政企解决方案', url: 'https://e.lenovo.com.cn/solutions/', uv: 162 }, { name: '昭阳 Pc14 2025 新品', url: 'https://e.lenovo.com.cn/zhaoyang/', uv: 96 },
+        { name: '教育行业方案', url: 'https://e.lenovo.com.cn/solutions/education/', uv: 65 }, { name: '医疗行业方案', url: 'https://e.lenovo.com.cn/solutions/medical/', uv: 48 },
+        { name: '招投标支持', url: 'https://e.lenovo.com.cn/tender-support/', uv: 40 }] }
   ]
 };
 
@@ -1987,103 +2002,135 @@ function geoRenderConversionAll(dates) {
   const c = document.getElementById('gc-section-all'); if (!c) return;
   const d = GEO_CONV_DEMO.all;
   c.innerHTML = `<div class="geo-conv-section">
-    <div class="geo-conv-title">联想整体</div>
-    <div class="geo-interface-note">说明：以下数据展示联想整体关键运营指标，帮助您全面了解用户访问、转化与交易情况。（演示数据）</div>
+    <div class="geo-conv-title">GEO看板·整体</div>
     <div class="geo-panel" style="margin-bottom:12px">
-      <div class="gpnl-title">UV趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 按当日时间粒度展示联想整体的每日 UV 变化</span></div>
+      <div class="gpnl-title">UV趋势</div>
       <div id="gc-trend-all" style="height:200px"></div>
     </div>
     <div class="geo-conv-grid">
-      ${geoConvCell('👤', '访问联想UV', d.uv, '通过 AI 搜索平台访问联想域名的用户数')}
-      ${geoConvCell('🪪', '登录用户', d.login, '访问联想的用户中有 Lenovo ID 登录行为的用户数')}
-      ${geoConvCell('✨', '新注册用户', d.newreg, '访问联想的登录用户中，是新注册的用户')}
-      ${geoConvCell('🛒', '付费用户', d.paid[0], '用户入站后，发生了购买行为的用户数', { splits: d.paid.slice(1) })}
-      ${geoConvCell('📄', 'CA', d.ca[0], '购买用户产生的订单销量', { splits: d.ca.slice(1) })}
-      ${geoConvCell('💰', 'GMV', d.gmv[0], '购买用户产生的订单交易额', { splits: d.gmv.slice(1) })}
-      ${geoConvCell('👥', '新付费用户', d.newpaid[0], '购买用户中，首次发生购买行为的用户', { splits: d.newpaid.slice(1) })}
-      ${geoConvCell('📊', '新付费CA', d.newca[0], '首次购买用户，产生的订单销量', { splits: d.newca.slice(1) })}
-      ${geoConvCell('💎', '新付费GMV', d.newgmv[0], '首次购买用户，产生的交易额', { splits: d.newgmv.slice(1) })}
-      ${geoConvCell('🛍️', '乐享-下单用户', d.leaiUser[0], '付费用户中，通过乐享自主下单功能发生购买行为的用户', { splits: d.leaiUser.slice(1) })}
-      ${geoConvCell('🧾', '乐享-CA', d.leaiCa[0], '通过乐享自主下单功能，购买用户产生的销量', { splits: d.leaiCa.slice(1) })}
-      ${geoConvCell('🪙', '乐享-GMV', d.leaiGmv[0], '通过乐享自主下单功能，购买用户产生的交易额', { splits: d.leaiGmv.slice(1) })}
+      ${geoConvCell('👤', '访问联想UV', d.uv, '')}
+      ${geoConvCell('🪪', '登录用户', d.login, '')}
+      ${geoConvCell('✨', '新注册用户', d.newreg, '')}
+      ${geoConvCell('🛒', '付费用户', d.paid[0], '', { splits: d.paid.slice(1) })}
+      ${geoConvCell('📄', 'CA', d.ca[0], '', { splits: d.ca.slice(1) })}
+      ${geoConvCell('💰', 'GMV', d.gmv[0], '', { splits: d.gmv.slice(1) })}
+      ${geoConvCell('👥', '新付费用户', d.newpaid[0], '', { splits: d.newpaid.slice(1) })}
+      ${geoConvCell('📊', '新付费CA', d.newca[0], '', { splits: d.newca.slice(1) })}
+      ${geoConvCell('💎', '新付费GMV', d.newgmv[0], '', { splits: d.newgmv.slice(1) })}
+      ${geoConvCell('🛍️', '乐享-下单用户', d.leaiUser[0], '', { splits: d.leaiUser.slice(1) })}
+      ${geoConvCell('🧾', '乐享-CA', d.leaiCa[0], '', { splits: d.leaiCa.slice(1) })}
+      ${geoConvCell('🪙', '乐享-GMV', d.leaiGmv[0], '', { splits: d.leaiGmv.slice(1) })}
     </div>
   </div>`;
-  geoConvChart('gc-trend-all', geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-all', i, 400, 880)), '#f59a3e', true));
+  geoConvChart('gc-trend-all', geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-all', i, 2400, 3600)), '#3f78c5', true, '联想整体'));
 }
 
 function geoRenderConversionOfficial(dates, range) {
   const c = document.getElementById('gc-section-official'); if (!c) return;
   const d = GEO_CONV_DEMO.official;
+  const donutTotal = d.donut.reduce((s, x) => s + x[1], 0);
+  const platTotal = d.source.platDonut.reduce((s, x) => s + x[1], 0);
   c.innerHTML = `<div class="geo-conv-section">
     <div style="display:flex;align-items:center;justify-content:space-between">
-      <div class="geo-conv-title">联想官网 · 总数看板</div>
+      <div class="geo-conv-title">联想官网</div>
       <span style="font-size:12px;color:#6b7280;background:#fff;border:1px solid #e5e8ec;border-radius:8px;padding:4px 10px">📅 ${range.start_date} ~ ${range.end_date}</span>
     </div>
-    <div class="geo-interface-note">说明：UV不包含挂类页面数据，已按站点归属进行拆分统计。（演示数据）</div>
+    <div class="gpnl-title" style="font-size:13px;margin:6px 0 8px">总数看板</div>
     <div class="geo-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
       <div class="geo-panel" style="flex:1;min-width:180px">
-        <div class="gpnl-title">总 UV <span style="font-size:11px;color:#9ca3af;font-weight:400">（不含挂类页面）</span></div>
-        <div style="font-size:34px;font-weight:700;margin:18px 0 10px">${geoConvFmt(d.uv)}</div>
-        <div style="font-size:12px;color:#6b7280">较上期 <strong style="color:#059669">${d.wow} ↑</strong></div>
+        <div class="gpnl-title">总 UV</div>
+        <div style="font-size:32px;font-weight:700;margin:12px 0 16px">${geoConvFmt(d.uv)}</div>
+        <div class="gpnl-title">累计 UV</div>
+        <div style="font-size:32px;font-weight:700;margin:12px 0 4px">${geoConvFmt(d.cumUv)}</div>
       </div>
       <div class="geo-panel" style="flex:1.6;min-width:300px">
-        <div class="gpnl-title">UV 按站点拆分</div>
+        <div class="gpnl-title">UV 按站点区分</div>
         <div id="gc-donut" style="height:230px"></div>
       </div>
       <div class="geo-panel" style="flex:1.6;min-width:280px">
-        <div class="gpnl-title">UV 趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">（不含挂类页面）</span></div>
+        <div class="gpnl-title">UV 趋势</div>
         <div id="gc-trend-official" style="height:210px"></div>
+      </div>
+    </div>
+    <div class="gpnl-title" style="font-size:13px;margin:6px 0 8px">入站流量来源分布（AI 平台入站）</div>
+    <div class="geo-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <div class="geo-panel" style="flex:1;min-width:180px">
+        <div class="gpnl-title">累计 UV</div>
+        <div style="font-size:32px;font-weight:700;margin:18px 0 10px">${geoConvFmt(d.source.cumUv)}</div>
+      </div>
+      <div class="geo-panel" style="flex:1.6;min-width:300px">
+        <div class="gpnl-title">入站来源各平台分布</div>
+        <div id="gc-plat-donut" style="height:230px"></div>
+      </div>
+      <div class="geo-panel" style="flex:1.6;min-width:280px">
+        <div class="gpnl-title">各来源入站 UV 趋势</div>
+        <div id="gc-source-trend" style="height:210px"></div>
       </div>
     </div>
     <div class="geo-row" style="display:flex;gap:12px;flex-wrap:wrap">
       <div class="geo-panel" style="flex:2;min-width:380px">
-        <div class="gpnl-title">用户访问 Top5 页面 <span style="font-size:11px;color:#9ca3af;font-weight:400">（同一 URL 但不同追踪码可合并）</span></div>
+        <div class="gpnl-title">用户访问 Top5 页面</div>
         <div id="gc-official-top-pages">${geoConvTop5Table(d.top5)}</div>
       </div>
-      ${geoConvBreakCard('销量概览', '🛍️', d.ca.total, d.ca.rows, false)}
+      ${geoConvBreakCard('销售概览', '🛍️', d.ca.total, d.ca.rows, false)}
       ${geoConvBreakCard('销售额概览（元）', '💰', d.gmv.total, d.gmv.rows, true)}
     </div>
   </div>`;
-  geoConvChart('gc-trend-official', geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-official', i, 300, 1900)), '#f59a3e', true));
-  geoConvChart('gc-donut', {
+  geoConvChart('gc-trend-official', geoConvLineOption(dates, dates.map((x, i) => geoMockWave('conv-official', i, 2400, 3900)), '#f59a3e', true, 'UV'));
+  const donutOption = (data, centerVal) => ({
     tooltip: { trigger: 'item', textStyle: { fontSize: 11 } },
     legend: { orient: 'vertical', right: 4, top: 'middle', itemWidth: 10, itemHeight: 10, textStyle: { fontSize: 10, color: '#6b7280' },
-      formatter: name => { const it = GEO_CONV_DEMO.official.donut.find(x => x[0] === name); return it ? `${name}  ${it[1].toLocaleString('zh-CN')} (${(it[1] / GEO_CONV_DEMO.official.uv * 100).toFixed(2)}%)` : name; } },
+      formatter: name => { const it = data.find(x => x.name === name); return it ? `${name}  ${it.value.toLocaleString('zh-CN')} (${(it.value / centerVal.total * 100).toFixed(2)}%)` : name; } },
     series: [{ type: 'pie', radius: ['52%', '74%'], center: ['26%', '50%'],
-      label: { show: true, position: 'center', formatter: `{a|${geoConvFmt(d.uv)}}\n{b|总 UV}`, rich: { a: { fontSize: 18, fontWeight: 700, color: '#111827' }, b: { fontSize: 11, color: '#9ca3af' } } },
-      data: d.donut.map(([name, value]) => ({ name, value })) }]
+      label: { show: true, position: 'center', formatter: `{a|${geoConvFmt(centerVal.total)}}\n{b|总 UV}`, rich: { a: { fontSize: 18, fontWeight: 700, color: '#111827' }, b: { fontSize: 11, color: '#9ca3af' } } },
+      data }]
   });
+  geoConvChart('gc-donut', donutOption(d.donut.map(([name, value]) => ({ name, value })), { total: donutTotal }));
+  geoConvChart('gc-plat-donut', donutOption(
+    d.source.platDonut.map(([name, value, key]) => ({ name, value, itemStyle: { color: geoPlatColors[key] || '#9ca3af' } })),
+    { total: platTotal }));
+  // 各来源入站UV趋势：豆包一线主导，其余贴底，与平台分布占比一致
+  const platWaves = { doubao: [1800, 2900], yuanbao: [90, 170], qwen: [40, 80], kimi: [18, 38], deepseek: [3, 10] };
+  geoConvChart('gc-source-trend', geoConvMultiLineOption(dates,
+    d.source.platDonut.map(([name, _v, key]) => ({
+      name, color: geoPlatColors[key] || '#9ca3af',
+      data: dates.map((x, i) => Math.round(geoMockWave('conv-src-' + key, i, platWaves[key][0], platWaves[key][1])))
+    }))));
 }
 
-function geoRenderConversionLeai() {
+function geoRenderConversionLeai(dates) {
   const c = document.getElementById('gc-section-leai'); if (!c) return;
   const d = GEO_CONV_DEMO.leai;
   c.innerHTML = `<div class="geo-conv-section">
-    <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
-    <div class="geo-interface-note">说明：乐享访问、互动、购买与自主下单转化。（演示数据）</div>
+    <div class="geo-conv-title">GEO看板·联想乐享</div>
+    <div class="geo-panel" style="margin-bottom:12px">
+      <div class="gpnl-title">UV趋势</div>
+      <div id="gc-trend-leai" style="height:200px"></div>
+    </div>
     <div class="geo-conv-grid">
-      ${geoConvCell('👤', '访问联想乐享UV', d.uv, '通过 AI 搜索平台访问联想乐享的用户')}
-      ${geoConvCell('🪪', '登录用户-乐享', d.login, '访问联想乐享的用户中，有 Lenovo ID 登录行为的用户数')}
-      ${geoConvCell('✨', '新注册用户-乐享', d.newreg, '访问联想乐享的登录用户中，是新注册的用户数')}
-      ${geoConvCell('💬', '互动用户数', d.interact, '访问联想乐享的用户中，至少有 1 次会话的用户数')}
-      ${geoConvCell('🗨️', '登录状态下互动人数', d.loginInteract, '互动用户中，是有登录状态的互动用户数')}
-      ${geoConvCell('🛒', '付费用户数', d.paid[0], '访问联想乐享后，在站内发生了购买行为的用户数', { splits: d.paid.slice(1) })}
-      ${geoConvCell('📄', 'CA', d.ca[0], '访问联想乐享后的购买用户，产生的订单销量', { splits: d.ca.slice(1) })}
-      ${geoConvCell('💰', 'GMV', d.gmv[0], '访问联想乐享后的购买用户，产生的订单交易额', { splits: d.gmv.slice(1) })}
-      ${geoConvCell('👥', '新付费用户', d.newpaid[0], '首次购买的用户', { splits: d.newpaid.slice(1) })}
-      ${geoConvCell('📊', '新付费CA', d.newca[0], '首次购买用户，产生的订单销量', { splits: d.newca.slice(1) })}
-      ${geoConvCell('💎', '新付费GMV', d.newgmv[0], '首次购买用户，产生的交易额', { splits: d.newgmv.slice(1) })}
-      ${geoConvCell('🛍️', '乐享·下单用户', d.orderUser[0], '通过乐享自主下单功能，发生购买行为的用户数', { splits: d.orderUser.slice(1) })}
-      ${geoConvCell('🧾', '乐享-CA', d.orderCa[0], '通过乐享自主下单功能，购买用户产生的销量', { splits: d.orderCa.slice(1) })}
-      ${geoConvCell('🪙', '乐享-GMV', d.orderGmv[0], '通过乐享自主下单功能，购买用户产生的交易额', { splits: d.orderGmv.slice(1) })}
+      ${geoConvCell('👤', '访问联想乐享UV', d.uv, '')}
+      ${geoConvCell('🪪', '登录用户-乐享', d.login, '')}
+      ${geoConvCell('✨', '新注册用户-乐享', d.newreg, '')}
+      ${geoConvCell('💬', '互动用户数', d.interact, '')}
+      ${geoConvCell('🗨️', '登录状态下互动人数', d.loginInteract, '')}
+      ${geoConvCell('🛒', '付费用户数', d.paid[0], '', { splits: d.paid.slice(1) })}
+      ${geoConvCell('📄', 'CA', d.ca[0], '', { splits: d.ca.slice(1) })}
+      ${geoConvCell('💰', 'GMV', d.gmv[0], '', { splits: d.gmv.slice(1) })}
+      ${geoConvCell('👥', '新付费用户', d.newpaid[0], '', { splits: d.newpaid.slice(1) })}
+      ${geoConvCell('📊', '新付费CA', d.newca[0], '', { splits: d.newca.slice(1) })}
+      ${geoConvCell('💎', '新付费GMV', d.newgmv[0], '', { splits: d.newgmv.slice(1) })}
+      ${geoConvCell('🛍️', '乐享·下单用户', d.orderUser[0], '', { splits: d.orderUser.slice(1) })}
+      ${geoConvCell('🧾', '乐享-CA', d.orderCa[0], '', { splits: d.orderCa.slice(1) })}
+      ${geoConvCell('🪙', '乐享-GMV', d.orderGmv[0], '', { splits: d.orderGmv.slice(1) })}
     </div>
   </div>`;
+  geoConvChart('gc-trend-leai', geoConvLineOption(dates, dates.map((x, i) => Math.round(geoMockWave('conv-leai', i, 260, 560))), '#22c55e', true, '联想乐享'));
 }
 
 function geoRenderConversionBiz(dates) {
   const c = document.getElementById('gc-section-biz'); if (!c) return;
   c.innerHTML = `<div class="geo-conv-section">
-    <div class="geo-conv-title">分业务模块 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 以下数据均不包含挂类页面数据（演示数据）</span></div>
+    <div class="geo-conv-title">分业务看板</div>
     ${GEO_CONV_DEMO.biz.map(b => `
       <div class="geo-panel" style="margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
@@ -2094,7 +2141,6 @@ function geoRenderConversionBiz(dates) {
           <div style="min-width:130px">
             <div style="font-size:12px;color:#6b7280">业务归属 UV</div>
             <div style="font-size:28px;font-weight:700;margin:6px 0">${geoConvFmt(b.uv)}</div>
-            <div style="font-size:12px;color:#6b7280">较上期 <strong style="color:#059669">${b.wow} ↑</strong></div>
           </div>
           <div style="flex:1.4;min-width:240px">
             <div style="font-size:12px;color:#6b7280;margin-bottom:4px">UV 趋势</div>
@@ -2129,9 +2175,9 @@ function geoLoadConversionPage() {
   const range = geoResolveConversionDateRange();
   const dates = geoMockDates({ start_date: range.start_date, end_date: range.end_date });
   geoRenderConversionAll(dates);
+  geoRenderConversionLeai(dates);
   geoRenderConversionOfficial(dates, range);
-  geoRenderConversionLeai();
   geoRenderConversionBiz(dates);
   const status = document.getElementById('geo-conversion-status');
-  if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入，接口就绪后自动替换） · ${range.start_date} ~ ${range.end_date} · 数据T+1更新`;
+  if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入，接口就绪后自动替换） · ${range.start_date} ~ ${range.end_date}`;
 }
