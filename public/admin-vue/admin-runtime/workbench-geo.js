@@ -1913,10 +1913,7 @@ function geoConvSplitRow(vals, money) {
 }
 function geoConvCell(icon, label, val, def, opts = {}) {
   return `<div class="geo-conv-cell">
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="width:38px;height:38px;border-radius:10px;background:${GEO_CONV_ICON_BG};display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex:none">${icon}</span>
-      <div style="min-width:0"><div class="gcc-label">${label}</div><div class="gcc-val">${geoConvFmt(val, opts.money)}</div></div>
-    </div>
+    <div style="min-width:0"><div class="gcc-label">${label}</div><div class="gcc-val">${geoConvFmt(val, opts.money)}</div></div>
     ${opts.splits ? geoConvSplitRow(opts.splits, opts.money) : ''}
   </div>`;
 }
@@ -1934,10 +1931,7 @@ function geoConvTop5Table(rows) {
 }
 function geoConvBreakCard(title, icon, total, rows, money) {
   return `<div class="geo-panel" style="flex:1;min-width:220px">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div class="gpnl-title" style="margin:0">${title}</div>
-      <span style="width:34px;height:34px;border-radius:50%;background:${GEO_CONV_ICON_BG};display:inline-flex;align-items:center;justify-content:center;font-size:16px">${icon}</span>
-    </div>
+    <div class="gpnl-title" style="margin:0">${title}</div>
     <div style="font-size:12px;color:#6b7280;margin-top:8px">${money ? '总销售额' : '总销量'}</div>
     <div style="font-size:26px;font-weight:700;margin:2px 0 12px">${geoConvFmt(total, money)}</div>
     ${rows.map(r => `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:7px;color:#374151">
@@ -2002,7 +1996,7 @@ function geoRenderConversionAll(dates) {
   const c = document.getElementById('gc-section-all'); if (!c) return;
   const d = GEO_CONV_DEMO.all;
   c.innerHTML = `<div class="geo-conv-section">
-    <div class="geo-conv-title">GEO看板·整体</div>
+    <div class="geo-conv-title">联想整体</div>
     <div class="geo-panel" style="margin-bottom:12px">
       <div class="gpnl-title">UV趋势</div>
       <div id="gc-trend-all" style="height:200px"></div>
@@ -2033,7 +2027,7 @@ function geoRenderConversionOfficial(dates, range) {
   c.innerHTML = `<div class="geo-conv-section">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div class="geo-conv-title">联想官网</div>
-      <span style="font-size:12px;color:#6b7280;background:#fff;border:1px solid #e5e8ec;border-radius:8px;padding:4px 10px">📅 ${range.start_date} ~ ${range.end_date}</span>
+      <span style="font-size:12px;color:#6b7280;background:#fff;border:1px solid #e5e8ec;border-radius:8px;padding:4px 10px">${range.start_date} ~ ${range.end_date}</span>
     </div>
     <div class="gpnl-title" style="font-size:13px;margin:6px 0 8px">总数看板</div>
     <div class="geo-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
@@ -2102,7 +2096,7 @@ function geoRenderConversionLeai(dates) {
   const c = document.getElementById('gc-section-leai'); if (!c) return;
   const d = GEO_CONV_DEMO.leai;
   c.innerHTML = `<div class="geo-conv-section">
-    <div class="geo-conv-title">GEO看板·联想乐享</div>
+    <div class="geo-conv-title">联想乐享</div>
     <div class="geo-panel" style="margin-bottom:12px">
       <div class="gpnl-title">UV趋势</div>
       <div id="gc-trend-leai" style="height:200px"></div>
@@ -2133,10 +2127,7 @@ function geoRenderConversionBiz(dates) {
     <div class="geo-conv-title">分业务看板</div>
     ${GEO_CONV_DEMO.biz.map(b => `
       <div class="geo-panel" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="width:30px;height:30px;border-radius:8px;background:${b.color}1a;display:inline-flex;align-items:center;justify-content:center;font-size:15px">${b.icon}</span>
-          <strong style="font-size:14px">${b.name}</strong>
-        </div>
+        <div style="margin-bottom:10px"><strong style="font-size:14px">${b.name}</strong></div>
         <div style="display:flex;gap:14px;flex-wrap:wrap">
           <div style="min-width:130px">
             <div style="font-size:12px;color:#6b7280">业务归属 UV</div>
