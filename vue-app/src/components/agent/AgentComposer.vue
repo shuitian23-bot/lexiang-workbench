@@ -269,3 +269,29 @@ function readFileAsDataUrl(file) {
   })
 }
 </script>
+
+<style scoped>
+/* 0803 design skill: keep the composer editable row visually active. */
+:global(html[data-product="leaibot"] body:not(.dark-mode) .ai-composer-box) {
+  background: var(--color-surface) !important;
+}
+
+.ai-input {
+  color: var(--color-text);
+  caret-color: var(--color-primary);
+}
+
+.ai-input::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 1;
+}
+
+.ai-composer-action {
+  color: var(--color-text-secondary);
+}
+
+.ai-input:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+</style>

@@ -139,6 +139,38 @@
               </button>
             </div>
           </div>
+          <div v-if="shouldShowFeedback(msg, idx)" class="ai-reply-feedback" aria-label="回答反馈">
+            <button
+              type="button"
+              class="ai-feedback-btn"
+              :class="{ active: feedbackState(feedbackKey(msg, idx)) === 'up' }"
+              title="有帮助"
+              aria-label="有帮助"
+              :aria-pressed="feedbackState(feedbackKey(msg, idx)) === 'up'"
+              @click="setFeedback(msg, idx, 'up')"
+            >
+              <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6.5 8.3v8.2" />
+                <path d="M3.5 8.8h3v7.4h-3a1 1 0 0 1-1-1V9.8a1 1 0 0 1 1-1Z" />
+                <path d="M6.5 9 10 3.8c.5-.7 1.6-.4 1.6.5v3h3.2a1.6 1.6 0 0 1 1.6 1.9l-1 5.5a2 2 0 0 1-2 1.6H6.5" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="ai-feedback-btn"
+              :class="{ active: feedbackState(feedbackKey(msg, idx)) === 'down' }"
+              title="没帮助"
+              aria-label="没帮助"
+              :aria-pressed="feedbackState(feedbackKey(msg, idx)) === 'down'"
+              @click="setFeedback(msg, idx, 'down')"
+            >
+              <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M13.5 11.7V3.5" />
+                <path d="M16.5 11.2h-3V3.8h3a1 1 0 0 1 1 1v5.4a1 1 0 0 1-1 1Z" />
+                <path d="M13.5 11 10 16.2c-.5.7-1.6.4-1.6-.5v-3H5.2a1.6 1.6 0 0 1-1.6-1.9l1-5.5a2 2 0 0 1 2-1.6h6.9" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </template>
@@ -203,6 +235,7 @@ defineEmits(['quick-send', 'open-report', 'save-report', 'run-action'])
 const messagesEl = ref(null)
 const typewriterText = reactive({})
 const typewriterDone = reactive({})
+const messageFeedback = reactive({})
 const typewriterTimers = new Map()
 const todoExpanded = ref(true)
 const showWelcome = computed(() => !props.messages.some(msg => msg.role === 'user' && !msg.demoReportQuery))
@@ -264,6 +297,23 @@ function isTypewriterDone(msg, idx) {
 
 function canShowStructuredContent(msg, idx) {
   return !isTypewriterMessage(msg) || isTypewriterDone(msg, idx)
+}
+
+function shouldShowFeedback(msg, idx) {
+  return msg?.role === 'assistant' && canShowStructuredContent(msg, idx)
+}
+
+function feedbackKey(msg, idx) {
+  return msg.id || `${idx}-${msg.at || ''}-${String(msg.text || '').slice(0, 24)}`
+}
+
+function feedbackState(key) {
+  return messageFeedback[key] || ''
+}
+
+function setFeedback(msg, idx, value) {
+  const key = feedbackKey(msg, idx)
+  messageFeedback[key] = messageFeedback[key] === value ? '' : value
 }
 
 function syncTypewriterMessages() {
@@ -555,6 +605,49 @@ function renderMarkdownTable(lines, startIndex) {
 
 :global(body.dark-mode) :deep(.ai-markdown-table td) {
   color: var(--color-text, #f2f3f5);
+}
+
+.ai-reply-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(31, 35, 41, .06);
+}
+
+.ai-feedback-btn {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-tertiary, #8f99aa);
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.ai-feedback-btn:hover {
+  border-color: rgba(51, 112, 255, .18);
+  background: rgba(51, 112, 255, .07);
+  color: var(--color-primary, #3370ff);
+}
+
+.ai-feedback-btn.active {
+  border-color: rgba(51, 112, 255, .24);
+  background: rgba(51, 112, 255, .11);
+  color: var(--color-primary, #3370ff);
+  transform: translateY(-1px);
+}
+
+.ai-feedback-btn + .ai-feedback-btn.active {
+  border-color: rgba(245, 74, 69, .24);
+  background: rgba(245, 74, 69, .1);
+  color: #f54a45;
 }
 
 .ai-todo-card {

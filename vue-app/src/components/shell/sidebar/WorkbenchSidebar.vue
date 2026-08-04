@@ -112,6 +112,22 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-08-04 14:32',
+    operator: 'Codex（协作代理）',
+    title: '0803 样式包冲突比对与输入区视觉应用',
+    scope: '右侧 AI 助手 / 输入框 Composer / 0803 设计样式（排除权限管理）',
+    detail: '对照 lexiang-new-0803 样式交付包和 portal-workbench-ui-0803 设计 Skill 做冲突检查，排除会回滚后续功能的旧版权限、授权、Skill Hub 分类、评估微调和报告页头代码；仅将与当前功能匹配的 AI 输入区视觉样式迁移到 Vue 组件，使默认输入行保持白色可编辑态、占位文字与控件颜色统一使用设计 token。此前新增的 AI 回复赞/踩反馈入口保留。',
+    status: '已合并正式'
+  },
+  {
+    time: '2026-08-04 13:13',
+    operator: 'Codex（协作代理）',
+    title: '右侧 AI 助手回答反馈按钮',
+    scope: '右侧 AI 助手 / 对话消息 / 反馈按钮（排除权限管理）',
+    detail: '在每条 AI 助手回复结果下增加赞/踩小图标按钮，支持单条回答本地选中、互斥切换和再次点击取消；用户消息、欢迎态、输入区和权限管理模块不受影响，用于 POC 中记录回答质量反馈入口。',
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-03 14:48',
     operator: 'Codex（协作代理）',
     title: 'Skill 评估动态评分与案例微调边界调整',
