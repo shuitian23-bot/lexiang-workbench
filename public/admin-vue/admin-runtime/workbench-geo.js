@@ -784,6 +784,8 @@ function geoToggleCompetitor(el) {
   }
   geoSyncCompetitorButtons();
   geoUpdateContextLine();
+  // 已有 KPI 数据时立即重渲对比区（百分比+mock 衰减不依赖新请求），新一轮数据回来再刷新
+  if (geoState.compare === 'compare' && geoState._kpiRaw) geoApplyCompare();
   geoLoadData();
 }
 
@@ -791,6 +793,7 @@ function geoSetCompare(mode) {
   const next = mode === 'both' ? 'compare' : mode;
   geoState.compare = next === 'compare' ? 'compare' : 'brand';
   geoSyncScopeUi();
+  if (geoState._kpiRaw) geoApplyCompare();
   geoLoadData();
 }
 
@@ -846,17 +849,8 @@ function geoApplyCompare() {
           card.style.borderColor = '';
           continue;
         }
-        // 需求：四个核心指标卡对比模式统一逐竞品行展示（名称 数值 ±差值），与可见度卡一致
-        let brandVal, fmt;
-        if (metric === 'visible') {
-          const trendField = geoState.scope === 'all' ? 'all' : geoTrendField();
-          const brandSeries = (_trendChartData?.series || []).find(x => x.field === trendField);
-          brandVal = brandSeries ? geoLatestSeriesValue(brandSeries.data) : null;
-          fmt = geoFmtCount;
-        } else {
-          brandVal = b;
-          fmt = geoFmtPct;
-        }
+        // 需求：四个核心指标卡对比模式统一逐竞品行展示（名称 数值 ±差值），全部百分比口径
+        const brandVal = b, fmt = geoFmtPct;
         if (brandVal === null) {
           compareEl.innerHTML = `<div class="geo-pending-line">${GEO_PENDING_TEXT}</div>`;
           card.classList.remove('highlight');
@@ -864,17 +858,9 @@ function geoApplyCompare() {
           continue;
         }
         const compRows = geoSelectedCompetitors().map(name => {
-          let val = null;
-          if (metric === 'visible') {
-            const cs = (geoState._competitorTrendSeries || []).find(x => x.brand === name);
-            val = cs ? geoLatestSeriesValue(cs.data) : null;
-          }
-          if (val === null) {
-            // 分竞品率/趋势值接口未提供时按品牌值稳定衰减生成演示值
-            const k = 0.70 + ((geoMockHash(name + '·' + metric) * 131 % 2400)) / 10000;
-            val = metric === 'visible' ? Math.round(brandVal * k) : Math.round(brandVal * k * 100) / 100;
-          }
-          return { name, val };
+          // 分竞品率接口未提供，按品牌值稳定衰减生成演示值（全卡统一百分比口径）
+          const k = 0.70 + ((geoMockHash(name + '·' + metric) * 131 % 2400)) / 10000;
+          return { name, val: Math.round(brandVal * k * 100) / 100 };
         });
         const rowBrandLabel = geoState.scope === 'all' ? '联想' : brandLabel;
         const barMax = Math.max(brandVal, ...compRows.map(r => r.val), 1);
