@@ -999,11 +999,35 @@ function geoCitesFromSites(sites) {
   };
 }
 
+function geoRenderSitesCached(c) {
+  geoRenderTreemap(c.sites);
+  geoRenderSiteRank(c.sites);
+  geoRenderLinkTop50(c.lenovoSites);
+  geoSetValue('gv-sites-total', c.lenovoTotal);
+  if (c.metrics) {
+    geoSetValue('gv-lenovo-link-cite', c.metrics.link);
+    geoSetValue('gv-lenovo-wiki-cite', c.metrics.wiki);
+    geoSetValue('gv-wiki-shop-cite', c.metrics.shop);
+    geoSetValue('gv-wiki-c-cite', c.metrics.consumer);
+    geoSetValue('gv-wiki-b-cite', c.metrics.smb);
+    geoSetValue('gv-wiki-biz-cite', c.metrics.biz);
+  }
+}
+
 async function geoLoadSites(loadSeq) {
   try {
     const body = geoSitesBody();
-    // 全站点（treemap / site rank 用）
-    const json = await geoFetchJson('/api/geo-dashboard/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    // 信源分布图/排行榜/Top50 只看品牌口径，请求体不含竞品参数：
+    // 切竞品对比等不改口径的操作直接复用上次结果，不重发请求、不闪「待接口提供数据」
+    const cacheKey = JSON.stringify(body);
+    const cached = geoState._sitesCache;
+    if (cached && cached.key === cacheKey) {
+      geoRenderSitesCached(cached);
+      if (cached.usedMock) { geoState._usedMock = true; setTimeout(geoMarkMockStatus, 150); }
+      return;
+    }
+    // 全站点（treemap / site rank 用）——geoPost 带演示数据兜底
+    const json = await geoPost('sites', body);
     if (loadSeq && loadSeq !== geoState._loadSeq) return;
     if (json.code !== 200) { geoRenderSitesPending(); return; }
     const d = json.data || {};
@@ -1026,13 +1050,16 @@ async function geoLoadSites(loadSeq) {
       console.error('lenovo_top50 fetch fail, fallback to client filter', err);
     }
     geoRenderLinkTop50(lenovoSites);
-    geoSetValue('gv-sites-total', lenovoTotal ?? (lenovoSites.length ? lenovoSites.length : null));
+    const totalShown = lenovoTotal ?? (lenovoSites.length ? lenovoSites.length : null);
+    geoSetValue('gv-sites-total', totalShown);
+    if (sites.length) geoState._sitesCache = { key: cacheKey, sites, lenovoSites, lenovoTotal: totalShown, metrics: null, usedMock: geoState._usedMock };
     // wiki 引用数走 0605 wiki-history；联想链接字段未提供时保持占位。
     try {
       const citeJson = await geoPost('wiki-history', geoWikiHistoryBody());
       if (loadSeq && loadSeq !== geoState._loadSeq) return;
       const cem = citeJson.code === 200 ? (citeJson.data || {}) : {};
       const metrics = geoCitationMetrics(cem);
+      if (geoState._sitesCache && geoState._sitesCache.key === cacheKey) geoState._sitesCache.metrics = metrics;
       geoSetValue('gv-lenovo-link-cite', metrics.link);
       geoSetValue('gv-lenovo-wiki-cite', metrics.wiki);
       geoSetValue('gv-wiki-shop-cite', metrics.shop);
