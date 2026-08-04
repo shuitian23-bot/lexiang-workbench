@@ -2857,7 +2857,7 @@ const PAGE_RENDERERS = {
         <div class="geo-pill" data-model="deepseek" onclick="geoTogglePlatform(this)">DeepSeek</div>
         <div class="geo-pill" data-model="yuanbao" onclick="geoTogglePlatform(this)">元宝</div>
         <div class="geo-pill" data-model="kimi" onclick="geoTogglePlatform(this)">Kimi</div>
-        <span class="geo-pill-disabled" title="项目未开启该平台">千问 (未开启)</span>
+        <div class="geo-pill" data-model="qwen" onclick="geoTogglePlatform(this)">千问</div>
         <span class="geo-pill-disabled" title="项目未开启该平台">文心 (未开启)</span>
         <span class="geo-pill-disabled" title="项目未开启该平台">夸克 (未开启)</span>
       </div>
@@ -3005,7 +3005,7 @@ const PAGE_RENDERERS = {
           <option value="deepseek">DeepSeek</option>
           <option value="yuanbao">元宝</option>
           <option value="kimi">Kimi</option>
-          <option value="qianwen" disabled>千问（未开启）</option>
+          <option value="qwen">千问</option>
           <option value="wenxin" disabled>文心（未开启）</option>
           <option value="kuake" disabled>夸克（未开启）</option>
         </select>

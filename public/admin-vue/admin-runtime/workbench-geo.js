@@ -27,7 +27,7 @@ const GEO_SCOPE_CONFIG = {
   }
 };
 // 联想乐享项目(143) 点亮AI 实际开启的平台：豆包/DeepSeek/元宝/Kimi（千问/文心/夸克未开启）
-const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi'];
+const GEO_PLATFORMS = ['doubao','deepseek','yuanbao','kimi','qwen'];
 const geoState = { scope:'all', platforms:[], period:'30d', startDate:null, endDate:null, questions:[], apiData:null, platData:{}, compare:'brand', competitors:[], selectedKpi:'visible', _intentPlatforms:[], _intentVisibilityFilters:[], _intentPage:1, _intentPageSize:10 };
 const geoConversionState = { period:'30d', startDate:null, endDate:null };
 const geoSourceState = { scope:'all', platform:'all', page:1, pageSize:10 };
@@ -43,8 +43,8 @@ function geoResolveDateRange() {
 }
 const GEO_COMPETITOR_COLORS = { hp:'#3f78c5', dell:'#3f9ead', huawei:'#9070c3', apple:'#4f6578', asus:'#78a9e6', xiaomi:'#c89532', acer:'#58a86a', honor:'#b45f86' };
 const GEO_COMPETITOR_NAMES = { hp:'惠普', dell:'戴尔', huawei:'华为', apple:'苹果', asus:'华硕', xiaomi:'小米', acer:'宏碁', honor:'荣耀', oppo:'oppo', vivo:'vivo', samsung:'三星' };
-const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi' };
-const geoPlatColors = { doubao:'#3f78c5', deepseek:'#3f9ead', yuanbao:'#58a86a', kimi:'#c89532' };
+const geoPlatNames = { doubao:'豆包', deepseek:'DeepSeek', yuanbao:'元宝', kimi:'Kimi', qwen:'千问' };
+const geoPlatColors = { doubao:'#3f78c5', deepseek:'#3f9ead', yuanbao:'#58a86a', kimi:'#c89532', qwen:'#8b5cf6' };
 const GEO_PENDING_TEXT = '待接口提供数据';
 
 function geoFmtDate(d) {
@@ -255,7 +255,7 @@ async function geoPost(path, body, opts) {
 // 外部点亮AI接口慢/超时/失败/501 时降级为演示数据，保证看板按需求示意图完整渲染（POC 演示优先）。
 // 任一板块用了演示数据即置 geoState._usedMock，状态栏标注，不冒充真实数据。
 function geoMockHash(s) { let h = 0; const t = String(s); for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h; }
-function geoMockWave(seed, i, min, max) { const r = (Math.sin((geoMockHash(seed) % 97) + i * 0.7) + 1) / 2; return Math.round((min + r * (max - min)) * 100) / 100; }
+function geoMockWave(seed, i, min, max) { const h = geoMockHash(seed); const r = (Math.sin(h % 9973 * 0.61 + i * (0.55 + (h % 7) * 0.06)) + 1) / 2; return Math.round((min + r * (max - min)) * 100) / 100; }
 function geoMockDates(body) {
   const end = body && body.end_date ? new Date(body.end_date) : new Date(Date.now() - 864e5);
   const start = body && body.start_date ? new Date(body.start_date) : new Date(end.getTime() - 29 * 864e5);
@@ -301,7 +301,7 @@ function geoMockResponse(path, body) {
     } };
   }
   if (path === 'questions') {
-    const models = ['doubao', 'deepseek', 'yuanbao', 'kimi'];
+    const models = ['doubao', 'deepseek', 'yuanbao', 'kimi', 'qwen'];
     const questions = GEO_MOCK_INTENTS.map((q, qi) => ({
       question: q, question_id: 'mock-' + qi,
       models: models.map(m => {
@@ -320,7 +320,7 @@ function geoMockResponse(path, body) {
     return { code: 200, message: 'mock', data: {
       lenovo_link_citation_count: 21860, wiki_citation_count: 14100, lenovo_wiki_citation_count: 9800,
       wiki_shop_citation_count: 1260, wiki_c_citation_count: 2140, wiki_b_citation_count: 640, wiki_biz_citation_count: 410,
-      model_counts: ['doubao', 'deepseek', 'yuanbao', 'kimi'].map(m => {
+      model_counts: ['doubao', 'deepseek', 'yuanbao', 'kimi', 'qwen'].map(m => {
         const k = 0.7 + (geoMockHash(m) % 60) / 100;
         return { model: m,
           lenovo_link_citation_count: Math.round(5460 * k),
@@ -914,7 +914,8 @@ const GEO_CITE_TABLE_DEMO = [
   { model: 'doubao', name: '豆包', link: 9218, wiki: 4237, shop: 1215, c: 1023, b: 412, biz: 232 },
   { model: 'deepseek', name: 'DeepSeek', link: 18721, wiki: 8912, shop: 2654, c: 2108, b: 1287, biz: 666 },
   { model: 'yuanbao', name: '元宝', link: 12348, wiki: 5231, shop: 1556, c: 1243, b: 853, biz: 447 },
-  { model: 'kimi', name: 'Kimi', link: 7273, wiki: 3598, shop: 1089, c: 887, b: 726, biz: 476 }
+  { model: 'kimi', name: 'Kimi', link: 7273, wiki: 3598, shop: 1089, c: 887, b: 726, biz: 476 },
+  { model: 'qwen', name: '千问', link: 5832, wiki: 2914, shop: 872, c: 715, b: 388, biz: 217 }
 ];
 function geoRenderPlatDist() {
   const sumEl = document.getElementById('gc-cite-summary');
