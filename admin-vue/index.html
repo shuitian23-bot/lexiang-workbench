@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>乐享 AI 工作台</title>
     <link rel="icon" type="image/x-icon" href="/admin/assets/favicon.ico">
-    <!-- 复用原版 workbench CSS + Vue shell 皮肤对齐(html-skin)，public/ 自动拷入产物 -->
+    <!-- 复用原版 workbench CSS + Vue shell 皮肤对齐(html-skin)，public/ 自动拷入产物。
+         这里 link 的 5 个与 src/main.js 里 import 的 5 个一一对应：
+         想去重(把 main.js 那 5 行 import 注释掉，省下约 500KB 打包 CSS)时，这里已全覆盖，不会掉样式。 -->
     <link rel="stylesheet" href="/admin/workbench.css?v=20260624-ui0624">
+    <link rel="stylesheet" href="/admin/workbench-original-lock.css?v=20260624-ui0624">
+    <link rel="stylesheet" href="/admin/workbench-prd-modules.css?v=20260624-ui0624">
     <link rel="stylesheet" href="/admin/workbench-ui-polish.css?v=20260624-ui0624">
     <link rel="stylesheet" href="/admin/workbench-preview-overrides.css?v=20260625-tabs1">
     <link rel="stylesheet" href="/admin-vue/html-skin.css?v=20260626-htmlskin1">
