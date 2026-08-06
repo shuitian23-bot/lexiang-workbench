@@ -2151,10 +2151,10 @@ function geoLoadConversionPage() {
   geoConvDisposeCharts();
   const range = geoResolveConversionDateRange();
   const dates = geoMockDates({ start_date: range.start_date, end_date: range.end_date });
-  geoRenderConversionAll(dates);
-  geoRenderConversionLeai(dates);
+  // 「联想整体」段按产品要求隐藏（容器 display:none，渲染函数保留待恢复）
   geoRenderConversionOfficial(dates, range);
   geoRenderConversionBiz(dates);
+  geoRenderConversionLeai(dates);
   const status = document.getElementById('geo-conversion-status');
   if (status) status.textContent = `⚠️ 演示数据（转化数据源未接入，接口就绪后自动替换） · ${range.start_date} ~ ${range.end_date}`;
 }

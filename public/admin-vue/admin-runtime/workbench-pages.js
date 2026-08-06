@@ -3081,10 +3081,10 @@ const PAGE_RENDERERS = {
         <button onclick="geoLoadConversionPage()" style="margin-left:auto;padding:5px 14px;font-size:12px;border:none;border-radius:8px;background:#3f78c5;color:#fff;cursor:pointer">刷新</button>
       </div>
       <div class="geo-status-line" id="geo-conversion-status">加载中...</div>
-      <div id="gc-section-all"></div>
-      <div id="gc-section-leai"></div>
+      <div id="gc-section-all" style="display:none"></div>
       <div id="gc-section-official"></div>
       <div id="gc-section-biz"></div>
+      <div id="gc-section-leai"></div>
     </div>
   `,
 
