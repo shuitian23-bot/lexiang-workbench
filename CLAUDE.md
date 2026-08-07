@@ -41,7 +41,23 @@ git pull origin main             # 先拉别人改动再开工
 # push 被 rejected → git pull --rebase origin main，解冲突后再 push
 ```
 
-### 3. 多人多 AI 防覆盖（已发生多次覆盖事故，一步不能省）
+### 3. 多人多 AI 防覆盖
+
+**根本解法：不在生产目录裸改，一人一工作区。**
+
+```bash
+scripts/dev-worktree.sh <你的名字> <端口>     # 一次性，建 /opt/wt/<名字> + dev/<名字> 分支
+cd /opt/wt/<名字> && PORT=<端口> node server.js
+# 改完 → commit + push 自己分支 → 要上线在生产目录 git merge dev/<名字>
+```
+
+为什么必须这样：覆盖的机制是"整文件写入 + 过期 buffer"——编辑器保存旧 buffer、AI 重写整文件、cp 部署，都会静默抹掉别人这期间的改动，无报错无冲突标记，git 不知情因为改动没进 git。**这不是纪律问题，下面 6 条纪律全上过仍在发生。** 只要 N 个人写同一个路径就必然覆盖，只能靠路径隔离消灭。
+
+worktree 共享 `.git`，一份 230M；db/hnsw/uploads/node_modules 全软链回生产，不复制。注意软链的 db 是**生产库**，要造脏数据先 `cp lexiang.db` 顶掉软链。
+
+不要再用 `cp -r` 复制整个项目当工作区（已有 `codex-lexiang`、`~wangyt50/lexiang` 等），那样改动 merge 不回来，只能手工重敲成 `[同步prod xxx]` commit，还吃磁盘。
+
+下面 6 条是**仍然必须遵守的兜底**（尤其还没建 worktree、直接动生产目录时）：
 
 1. **git 是唯一事实源**：改完立即 commit + push，禁止裸奔工作区。开工发现他人未提交改动 → 先 `git add` + `checkpoint:` 快照提交保护，再开工。
 2. **编辑互斥锁**：改共享热点文件（`public/index.html`、`public/css/main.css`、`public/js/portal.js`、`public/js/app.js`、`public/admin/*`、`server.js`、`core/*`）前先 `scripts/edit-lock.sh claim <你的标识> <文件>`；BLOCKED → 停下沟通，不硬改；完工 `release`；锁 2 小时自动过期。
