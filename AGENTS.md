@@ -46,25 +46,58 @@
 - **范围限定（强制）**：只记录乐享 POC 前台体验及直接配套内容；GEO 看板、workbench 通用后台、基础设施等不写入。
 - changelog.json 的改动随当次代码提交一起 commit。
 
-## 多人协作与防覆盖（强制）
+## 多人协作与防覆盖（强制，开工前先读完这节）
 
-**开工第一件事：确认你在自己的工作区，不在 `/opt/projects/lexiang`。**
+### 覆盖是怎么发生的
 
+8 个人在改同一个项目。覆盖的机制只有一个：**有人把一整个文件写回去，而他手上那份是旧的。**
+
+具体表现为三种，本质完全相同：
+- 编辑器/IDE 保存了几分钟前读进内存的整个文件
+- AI 重写整个文件（不是改其中几行，是输出整份新内容覆盖）
+- `cp` / `scp` / SFTP 上传把整个文件盖上去
+
+这中间别人写进去的东西**全部消失，不报错、不提示冲突、git 也不知道**（因为那些改动还没进 git）。
+
+这不是纪律问题。本节下面 5 条军规 + `edit-lock.sh` 锁 + guard-markers 哨兵 + auto-checkpoint cron，四道机制都上过，覆盖照样发生。**只要多个人写同一个文件路径，就必然发生**，只能靠让每个人写不同的路径来消灭。
+
+### 第一步：先确认你在哪工作
+
+对号入座，四种情况：
+
+**A. 服务器上的 `/opt/projects/lexiang`** —— ❌ 停下。这是生产目录，8 个人共用的那一份。跑：
 ```bash
-pwd    # 必须是 /opt/wt/<你的名字>。是 /opt/projects/lexiang 就停下，先跑下面这条
-cd /opt/projects/lexiang && scripts/dev-worktree.sh    # 零参数，名字取登录名、端口自动挑
-cd /opt/wt/<你的名字> && ./run-dev                      # 起自己的实例，首次约 90s（加载 339M hnsw）
+cd /opt/projects/lexiang && scripts/dev-worktree.sh   # 零参数，名字取登录名、端口自动挑
+cd /opt/wt/<你的名字> && ./run-dev                     # 起你自己的实例，首次约 90s（在加载 339M hnsw 索引）
 ```
 
-为什么强制：`/opt/projects/lexiang` 是 8 个人共用的一份文件。任何"整文件写入"——编辑器保存旧 buffer、AI 重写整文件、cp 部署——都会静默抹掉别人这期间的改动，**不报错、无冲突标记、git 也不知道**（因为改动没进 git）。这不是纪律问题：下面 5 条 + edit-lock 锁 + guard-markers 哨兵 + auto-checkpoint cron 四道机制都上过，覆盖照样发生。只要多人写同一个文件路径就必然发生，只能靠路径隔离消灭。
+**B. 服务器上的 `/opt/wt/<你的名字>`** —— ✅ 正确，直接干活。
 
-工作区共享同一个 `.git`，一份只占 230M；db / hnsw / uploads / node_modules 全部软链回生产，不复制。**注意软链的 db 是生产库**，要造脏数据先 `cp lexiang.db` 顶掉软链。
+**C. 自己电脑上 `git clone` 下来的这个仓库** —— ✅ 可以，但必须守两条：
+```bash
+git checkout -b dev/<你的名字>    # 永远不要直接在 main 上改
+git pull --rebase origin main     # 开工前先拉，别基于几天前的旧代码改
+# 改完 → commit → git push -u origin dev/<你的名字> → 通知白羽合并
+```
+**绝对不要把改好的文件用 scp / SFTP / IDE 的"上传"功能传到服务器。** 那一步就是覆盖本身——你传的是整个文件，服务器上别人这期间的改动会被你手上的旧内容盖掉。走 push + merge，git 会告诉你有没有冲突；走上传，git 什么都不知道。
 
-提交推自己的分支 `dev/<名字>`（上游是空的，`git push` 不带参数会安全报错，不会误推 main）。没有 GitHub key 也没关系——所有工作区共用一个 `.git`，在生产目录 `git merge dev/<名字>` 就能合，不需要先推远端。
+**D. 自己电脑上一份手工拷贝的代码（不是 clone，没有 `.git` 目录）** —— ❌ 最危险，必须先转成 C。这种情况下你手上那份从拷下来那一刻起就在变旧，改完传回去必然覆盖别人。转法：
+```bash
+git clone git@github.com:shuitian23-bot/lexiang-workbench.git
+# 然后把你本地改动手工搬进 clone 里，之后一律走 C 的流程
+```
+
+### 工作区的一些细节
+
+共享同一个 `.git`，一份只占 230M；db / hnsw / uploads / node_modules 全部软链回生产，不复制。**注意软链的 db 是生产库**，要造脏数据先 `cp lexiang.db` 顶掉软链，用完删掉恢复。
+
+提交推自己的分支 `dev/<名字>`。上游是空的，`git push` 不带参数会安全报错，不会误推 main。没有 GitHub key 也没关系——服务器上所有工作区共用一个 `.git`，在生产目录 `git merge dev/<名字>` 就能合，不需要先推远端。
 
 不要再用 `cp -r` 复制整个项目当工作区（已有 `codex-lexiang`、`~wangyt50/lexiang`）。那样改动 merge 不回来，只能手工重敲成 `[同步prod xxx]` commit，还吃磁盘。
 
-下面 5 条是**兜底**，只在还没建工作区、必须直接动生产目录时用：
+### 兜底 5 条
+
+只在还没建工作区、必须直接动生产目录时用：
 
 1. git 唯一事实源：改完立即 commit+push；他人未提交改动先 `checkpoint:` 快照保护再开工。
 2. 改共享热点文件（public/index.html、public/admin/*、server.js、core/*）前先 `scripts/edit-lock.sh claim <标识> <文件>`，BLOCKED 则先沟通；完工 release（锁 2 小时自动过期）。
