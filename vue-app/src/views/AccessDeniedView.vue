@@ -289,7 +289,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 
@@ -608,11 +608,24 @@ function backToLogin() {
   router.replace('/login')
 }
 
-onMounted(restorePendingApplication)
+onMounted(() => {
+  document.documentElement.classList.add('access-denied-route')
+  document.body.classList.add('access-denied-route')
+  restorePendingApplication()
+})
+
+onBeforeUnmount(() => {
+  document.documentElement.classList.remove('access-denied-route')
+  document.body.classList.remove('access-denied-route')
+})
 </script>
 
 <style scoped>
-.access-denied-page { box-sizing: border-box; height: 100vh; overflow-x: hidden; overflow-y: auto; padding: 32px 18px; background: #f3f6fb; color: #172033; font-family: Arial, "Microsoft YaHei", sans-serif; }
+:global(html.access-denied-route),
+:global(body.access-denied-route) { min-width: 0; overflow: hidden; }
+:global(body.access-denied-route) { display: block; }
+:global(body.access-denied-route #app) { display: block; width: 100%; min-width: 0; }
+.access-denied-page { box-sizing: border-box; width: 100%; min-width: 0; height: 100vh; overflow-x: hidden; overflow-y: auto; padding: 32px 18px; background: #f3f6fb; color: #172033; font-family: Arial, "Microsoft YaHei", sans-serif; }
 .access-shell { width: min(980px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid #dfe7f2; border-radius: 12px; background: #fff; box-shadow: 0 18px 44px rgba(15, 23, 42, .1); }
 .access-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e6edf5; padding: 16px 28px; }
 .access-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
