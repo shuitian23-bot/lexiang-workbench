@@ -294,14 +294,17 @@
               <button type="button" class="ghost-btn" @click="openDataModal">添加数据权限</button>
             </div>
             <div class="permission-form-grid scope-tenant-grid">
-              <label>
+              <div class="permission-form-field full">
                 <span class="field-label required">所属租户 <em>必填</em></span>
-                <select v-model="form.tenant" :class="{ invalid: formErrors.tenant }" @change="formErrors.tenant = ''">
-                  <option disabled value="">请选择所属租户</option>
-                  <option v-for="tenant in tenantOptions" :key="tenant" :value="tenant">{{ tenant }}</option>
-                </select>
+                <div :class="['tenant-multi-options', { invalid: formErrors.tenant }]">
+                  <label v-for="tenant in tenantOptions" :key="tenant" :class="{ selected: form.tenant.includes(tenant) }">
+                    <input type="checkbox" :checked="form.tenant.includes(tenant)" @change="toggleApplicationTenant(tenant)">
+                    <span>{{ tenant }}</span>
+                  </label>
+                </div>
                 <small v-if="formErrors.tenant" class="field-error">{{ formErrors.tenant }}</small>
-              </label>
+                <small v-else class="field-help">可多选，审批通过后将一次性开通所选租户。</small>
+              </div>
             </div>
             <div class="scope-source-stack">
               <div v-if="!hasPermissionSources" class="scope-empty source-empty">
@@ -2826,7 +2829,7 @@ const form = reactive({
   applicantManager: 'sunll1',
   targetManager: 'wangxt8',
   businessApprover: 'zhangjq4（消费业务 to C）',
-  tenant: 'leaibot-cn',
+  tenant: ['leaibot-cn'],
   systemApprover: 'sunzh4',
   reason: '需要联动运营看板、商品管理和 Skill Hub 进行日常数据查询、报告生成和配置确认。',
   relation: {
@@ -4610,6 +4613,21 @@ function sortedUnique(values = []) {
   return [...new Set((values || []).filter(Boolean))].sort()
 }
 
+function normalizeTenantList(value) {
+  if (Array.isArray(value)) return sortedUnique(value)
+  return value ? [value] : []
+}
+
+function tenantListText(value, fallback = '未设置') {
+  const tenants = normalizeTenantList(value)
+  return tenants.length ? tenants.join('、') : fallback
+}
+
+function toggleApplicationTenant(tenant) {
+  toggleId(form.tenant, tenant)
+  formErrors.tenant = ''
+}
+
 
 function formatNameList(values = [], fallback = '无') {
   const list = sortedUnique(values).filter(Boolean)
@@ -4617,7 +4635,7 @@ function formatNameList(values = [], fallback = '无') {
 }
 
 function userPermissionBaselineByItcode(itcode = '') {
-  const emptyBaseline = { roleIds: [], functionIds: [], dataIds: [], tenant: '' }
+  const emptyBaseline = { roleIds: [], functionIds: [], dataIds: [], tenant: [] }
   if (!permissionUserDirectoryReady) return emptyBaseline
   const user = findUserByItcodeOrName(itcode)
   if (!user) return emptyBaseline
@@ -4625,7 +4643,7 @@ function userPermissionBaselineByItcode(itcode = '') {
     roleIds: sortedUnique(user.roleIds || []),
     functionIds: sortedUnique(userInheritedFunctionIds(user).concat(user.extraFunctionPermissionIds || [])),
     dataIds: sortedUnique(userInheritedDataIds(user).concat(user.extraDataPermissionIds || [])),
-    tenant: user.tenant || ''
+    tenant: normalizeTenantList(user.tenant)
   }
 }
 
@@ -4664,8 +4682,8 @@ function buildPermissionChangeSummary(snapshot = null, options = {}) {
     const copiedName = copiedUser ? copiedUser.name + '（' + copiedUser.itcode + '）' : sourceSnapshot.copiedFromItcode
     items.push({ key: 'copy', label: '复制他人权限变化', detail: '本次参考 ' + copiedName + ' 的权限，复制角色 ' + formatNameList(roleNamesForIds(sourceSnapshot.copiedRoleIds || [])) + '。' })
   }
-  if ((tenant || '') !== (baseline.tenant || '')) {
-    items.push({ key: 'tenant', label: '所属租户变化', detail: '由“' + (baseline.tenant || '未设置') + '”调整为“' + (tenant || '未设置') + '”。' })
+  if (!sameIdSet(normalizeTenantList(tenant), normalizeTenantList(baseline.tenant))) {
+    items.push({ key: 'tenant', label: '所属租户变化', detail: '由“' + tenantListText(baseline.tenant) + '”调整为“' + tenantListText(tenant) + '”。' })
   }
   return items
 }
@@ -4760,7 +4778,7 @@ const activeApprovalBasicFields = computed(() => {
   ]
   if (row.typeKey === 'create') fields.push({ label: '初始密码', value: row.passwordConfigured ? '已设置' : '未设置' })
   if (row.businessInfo?.organizations?.length) fields.push({ label: '所属组织', value: row.businessInfo.organizations.join('、') })
-  if (row.businessInfo?.tenant) fields.push({ label: '所属租户', value: row.businessInfo.tenant })
+  if (normalizeTenantList(row.businessInfo?.tenant).length) fields.push({ label: '所属租户', value: tenantListText(row.businessInfo.tenant) })
   return fields
 })
 const canEditApprovalPermission = computed(() => approvalWorkspace.mode === 'approve' && ['applicant-manager', 'target-manager'].includes(approvalWorkspace.nodeType))
@@ -5722,7 +5740,7 @@ function seedChangeRequestFromTargetUser() {
   selectedDataPermissionIds.value = sortedUnique(userInheritedDataIds(user).concat(user.extraDataPermissionIds || []))
   manualDataPermissionIds.value = [...(user.extraDataPermissionIds || [])]
   clearCopiedDataSources()
-  form.tenant = user.tenant || form.tenant
+  form.tenant = normalizeTenantList(user.tenant).length ? normalizeTenantList(user.tenant) : form.tenant
 }
 
 function resetPasswordResetErrors() {
@@ -5789,7 +5807,7 @@ function validateInfoForm() {
     formErrors.confirmAccountPassword = '两次输入的初始密码不一致。'
   }
   formErrors.reason = form.reason ? '' : '请补充申请原因，说明业务场景和需要使用的权限范围。'
-  formErrors.tenant = currentStep.value >= 2 && hasPermissionScopeStep.value && !form.tenant ? '请选择所属租户，便于后台按租户开通权限。' : ''
+  formErrors.tenant = currentStep.value >= 2 && hasPermissionScopeStep.value && !form.tenant.length ? '请至少选择一个所属租户，便于后台按租户开通权限。' : ''
   return !Object.values(formErrors).some(Boolean)
 }
 
@@ -6084,7 +6102,7 @@ function submitApplication() {
     applicantManager: form.applicantManager,
     targetManager: form.targetManager,
     businessApprover: form.businessApprover,
-    businessInfo: { tenant: form.tenant, organizations: [] },
+    businessInfo: { tenant: [...form.tenant], organizations: [] },
     systemApprover: form.systemApprover,
     reason: form.reason,
     permissionSnapshot,
@@ -6878,7 +6896,7 @@ function createApprovalRow(payload) {
     time: payload.time || '2026-07-13 11:45',
     businessInfo: {
       organizations: [...(payload.businessInfo?.organizations || [])],
-      tenant: payload.businessInfo?.tenant || payload.tenant || payload.permissionSnapshot?.tenant || ''
+      tenant: normalizeTenantList(payload.businessInfo?.tenant || payload.tenant || payload.permissionSnapshot?.tenant)
     },
     permissionSnapshot: {
       selectedRoleIds: [...(permissionSnapshot.selectedRoleIds || [])],
@@ -6893,7 +6911,7 @@ function createApprovalRow(payload) {
       copiedDataSourceMap: { ...(permissionSnapshot.copiedDataSourceMap || {}) },
       changeSummary: permissionSnapshot.changeSummary ? [...permissionSnapshot.changeSummary] : buildPermissionChangeSummary(permissionSnapshot, { targetItcode: payload.targetItcode || payload.target, tenant: payload.businessInfo?.tenant || payload.tenant || permissionSnapshot.tenant, baseline: permissionSnapshot.baseline }),
       baseline: permissionSnapshot.baseline || userPermissionBaselineByItcode(payload.targetItcode || payload.target),
-      tenant: payload.businessInfo?.tenant || payload.tenant || permissionSnapshot.tenant || ''
+      tenant: normalizeTenantList(payload.businessInfo?.tenant || payload.tenant || permissionSnapshot.tenant)
     },
     businessApprovalTasks: (payload.businessApprovalTasks?.length ? payload.businessApprovalTasks : createBusinessApprovalTasks(permissionSnapshot, payload.businessApprovalTasks || [])).map((task) => ({
       approver: parseApproverItcode(task.approver),
@@ -7035,7 +7053,7 @@ function openApprovalWorkspace(row, mode) {
   const activeBusinessTask = pendingBusinessTasks(row).find((task) => samePrincipal(task.approver, approvalSearch.approverItcode)) || pendingBusinessTasks(row)[0] || null
   approvalWorkspace.businessApprover = activeBusinessTask?.approver || row.approverItcode
   approvalWorkspace.organizations = [...(activeBusinessTask?.organizations || [])]
-  approvalWorkspace.tenant = row.businessInfo?.tenant || ''
+  approvalWorkspace.tenant = normalizeTenantList(row.businessInfo?.tenant)
   approvalWorkspace.notice = mode === 'view' ? '当前为只读详情。' : ''
   clearApprovalErrors()
 }
@@ -7088,7 +7106,7 @@ function submitApprovalDecision() {
   if (canEditApprovalPermission.value) {
     row.permissionSnapshot = createPermissionSnapshot({
       targetItcode: row.targetItcode || row.target,
-      tenant: row.businessInfo?.tenant || row.permissionSnapshot?.tenant || '',
+      tenant: normalizeTenantList(row.businessInfo?.tenant || row.permissionSnapshot?.tenant),
       baseline: row.permissionSnapshot?.baseline
     })
   }
@@ -10378,8 +10396,46 @@ onUnmounted(() => {
 }
 
 .scope-tenant-grid {
-  grid-template-columns: minmax(240px, 360px);
+  grid-template-columns: minmax(320px, 1fr);
   margin-top: 12px;
+}
+
+.tenant-multi-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+
+.tenant-multi-options.invalid {
+  border-color: #d92d20;
+}
+
+.tenant-multi-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 1px solid #d9e2ef;
+  border-radius: 7px;
+  padding: 0 11px;
+  color: #52637a;
+  cursor: pointer;
+}
+
+.tenant-multi-options label.selected {
+  border-color: #316dff;
+  background: #f1f6ff;
+  color: #245dde;
+}
+
+.tenant-multi-options input {
+  width: 15px;
+  height: 15px;
+  accent-color: #316dff;
 }
 
 .change-summary-panel {
