@@ -172,19 +172,29 @@
                 </div>
               </div>
               <label>
-                <span>申请人</span>
+                <span class="field-label required">申请人用户名 <em>必填</em></span>
                 <input v-model="form.applicant" readonly>
               </label>
               <label>
-                <span>ITCode</span>
+                <span class="field-label required">申请人 ITCode <em>必填</em></span>
                 <input v-model="form.itcode" readonly>
               </label>
-              <label>
-                <span class="field-label required">{{ isCreateAccountRequest ? '被申请人 / 待创建账号人员' : '被申请人' }} <em>必填</em></span>
+              <label v-if="isInternalPerson">
+                <span class="field-label required">被申请人 ITCode <em>必填</em></span>
+                <input
+                  v-model.trim="form.targetItcode"
+                  :class="{ invalid: formErrors.targetItcode }"
+                  placeholder="输入员工 ITCode"
+                  @blur="validateInfoForm"
+                >
+                <small v-if="formErrors.targetItcode" class="field-error">{{ formErrors.targetItcode }}</small>
+              </label>
+              <label v-else>
+                <span class="field-label required">被申请人用户名 <em>必填</em></span>
                 <input
                   v-model.trim="form.targetUser"
                   :class="{ invalid: formErrors.targetUser }"
-                  :placeholder="isCreateAccountRequest ? '输入外部协作人员姓名或拟创建登录名' : '输入员工 ITCode 或姓名'"
+                  placeholder="输入外部协作人员用户名"
                   @blur="validateInfoForm"
                 >
                 <small v-if="formErrors.targetUser" class="field-error">{{ formErrors.targetUser }}</small>
@@ -234,11 +244,11 @@
                 <small v-if="formErrors.applicationNo" class="field-error">{{ formErrors.applicationNo }}</small>
               </label>
               <label>
-                <span>手机号</span>
-                <input v-model="form.mobile" placeholder="用于账号开通或审批沟通">
+                <span>被申请人手机号</span>
+                <input v-model.trim="form.mobile" placeholder="用于账号开通或审批沟通">
               </label>
               <label class="relation-account-field">
-                <span :class="['field-label', { required: requiresRelatedAccount }]">关联账号 / 关联人员 <em v-if="requiresRelatedAccount">必填</em></span>
+                <span :class="['field-label', { required: isExternalPerson }]">关联人 ITCode <em v-if="isExternalPerson">必填</em></span>
                 <input
                   v-model.trim="form.relatedAccount"
                   :class="{ invalid: formErrors.relatedAccount }"
@@ -249,24 +259,24 @@
                 <small v-else class="field-help">用于确认外部协作人员的内部对接关系。</small>
               </label>
               <label class="email-field">
-                <span>邮箱</span>
-                <input v-model="form.email" placeholder="name@lenovo.com">
+                <span>被申请人邮箱</span>
+                <input v-model.trim="form.email" placeholder="name@lenovo.com">
               </label>
               <label>
                 <span>申请人直线经理</span>
                 <input v-model="form.applicantManager" readonly>
               </label>
-              <label>
+              <label v-if="isInternalPerson">
                 <span>被申请人直线经理</span>
                 <input v-model="form.targetManager" readonly>
               </label>
               <label class="full">
-                <span class="field-label required">申请原因 / 需求描述 <em>必填</em></span>
+                <span class="field-label required">申请原因 <em>必填</em></span>
                 <textarea
                   v-model.trim="form.reason"
                   :class="{ invalid: formErrors.reason }"
                   rows="4"
-                  :placeholder="infoReasonPlaceholder"
+                  placeholder="请说明需要申请权限变更的业务场景。"
                   @blur="validateInfoForm"
                 ></textarea>
                 <small v-if="formErrors.reason" class="field-error">{{ formErrors.reason }}</small>
@@ -2843,14 +2853,14 @@ const form = reactive({
   personType: 'internal',
   applicant: 'admin',
   itcode: 'admin',
-  targetUser: 'zhangrui32',
+  targetUser: '',
   targetItcode: 'zhangrui32',
   applicationNo: 'AP-20260714-018',
   relatedAccount: '',
   accountPassword: '',
   confirmAccountPassword: '',
-  mobile: '13800000000',
-  email: 'zhangrui32@lenovo.com',
+  mobile: '',
+  email: '',
   applicantManager: 'sunll1',
   targetManager: 'wangxt8',
   businessApprover: 'zhangjq4（消费业务 to C）',
@@ -4152,6 +4162,7 @@ const selectedType = computed(() => requestTypes.find((type) => type.key === for
 const isAccountStatusRequest = computed(() => ['enable', 'disable'].includes(form.type))
 const isPasswordResetRequest = computed(() => form.type === 'reset')
 const isCreateAccountRequest = computed(() => form.type === 'create')
+const isPermissionChangeRequest = computed(() => form.type === 'change')
 const requiresTenantInInfoStep = computed(() => false)
 const hasPermissionScopeStep = computed(() => ['create', 'change'].includes(form.type))
 const applySteps = computed(() => {
@@ -4606,6 +4617,7 @@ const activeDataSourceMenuChildren = computed(() => activeDataSourceMenuRoot.val
 const activeDataSourceMenuChild = computed(() => activeDataSourceMenuChildren.value.find((child) => child.id === dataSourceEditor.menuChildId) || activeDataSourceMenuChildren.value[0] || null)
 const activeDataSourceMenuLeaves = computed(() => activeDataSourceMenuChild.value?.children?.filter((item) => item.nodeType === 'menu') || [])
 const isExternalPerson = computed(() => isCreateAccountRequest.value || form.personType === 'external')
+const isInternalPerson = computed(() => !isExternalPerson.value)
 const requiresRelatedAccount = computed(() => isCreateAccountRequest.value || form.personType === 'external')
 const isSelfApplication = computed(() => !isCreateAccountRequest.value && samePrincipal(form.itcode, form.targetUser))
 const selectedRoles = computed(() => allRoles.filter((role) => selectedRoleIds.value.includes(role.id)))
@@ -5765,7 +5777,12 @@ function showDataSourceNotice(message) {
 function selectPersonType(key) {
   form.personType = key
   if (key === 'internal' && !isCreateAccountRequest.value) {
+    form.targetUser = ''
+    formErrors.targetUser = ''
     formErrors.relatedAccount = ''
+  } else if (key === 'external' && !isCreateAccountRequest.value) {
+    form.targetItcode = ''
+    formErrors.targetItcode = ''
   }
 }
 function seedChangeRequestFromTargetUser() {
@@ -5828,17 +5845,22 @@ function finishPasswordReset() {
 }
 function validateInfoForm() {
   if (isPasswordResetRequest.value) return validatePasswordResetForm()
-  formErrors.targetUser = form.targetUser ? '' : '请填写被申请人的 ITCode 或姓名，方便审批人确认对象。'
-  formErrors.targetItcode = isAccountStatusRequest.value && !form.targetItcode ? '启用或禁用已有账号时需要填写被申请人 ITCode。' : ''
+  if (isPermissionChangeRequest.value) {
+    formErrors.targetItcode = isInternalPerson.value && !form.targetItcode ? '请填写被申请人 ITCode。' : ''
+    formErrors.targetUser = isExternalPerson.value && !form.targetUser ? '请填写被申请人用户名。' : ''
+  } else {
+    formErrors.targetUser = form.targetUser ? '' : '请填写被申请人的 ITCode 或姓名，方便审批人确认对象。'
+    formErrors.targetItcode = isAccountStatusRequest.value && !form.targetItcode ? '启用或禁用已有账号时需要填写被申请人 ITCode。' : ''
+  }
   formErrors.applicationNo = isAccountStatusRequest.value && !form.applicationNo ? '启用或禁用已有账号时需要填写账号创建时生成的申请单号。' : ''
   if (isCreateAccountRequest.value && samePrincipal(form.itcode, form.targetUser)) {
     formErrors.targetUser = '创建账号用于为其他外部协作人员开通账号，被申请人不能与申请人相同。'
   }
-  formErrors.relatedAccount = requiresRelatedAccount.value && !form.relatedAccount
-    ? '创建外部协作账号需要填写负责对接的内部员工 ITCode 或姓名。'
+  formErrors.relatedAccount = isExternalPerson.value && !form.relatedAccount
+    ? '外部人员需要填写负责对接的内部员工 ITCode 或姓名。'
     : ''
   formErrors.accountPassword = isCreateAccountRequest.value && !form.accountPassword ? '请设置初始登录密码。' : ''
-  formErrors.confirmAccountPassword = isCreateAccountRequest.value && !form.confirmAccountPassword ? '请再次确认初始密码。' : ''
+  formErrors.confirmAccountPassword = isCreateAccountRequest.value && !form.confirmAccountPassword ? '请再次确认初始登录密码。' : ''
   if (isCreateAccountRequest.value && form.accountPassword && form.confirmAccountPassword && form.accountPassword !== form.confirmAccountPassword) {
     formErrors.confirmAccountPassword = '两次输入的初始密码不一致。'
   }
@@ -6028,6 +6050,12 @@ function selectRequestType(key) {
     passwordReset.completedAt = ''
     resetPasswordResetErrors()
   } else {
+    form.personType = 'internal'
+    form.targetUser = ''
+    form.targetItcode = ''
+    form.mobile = ''
+    form.email = ''
+    form.relatedAccount = ''
     form.scopes.account = []
   }
   if (key === 'change') seedChangeRequestFromTargetUser()
@@ -6084,7 +6112,10 @@ function submitApplication() {
     unlockApplyStep(1)
     return
   }
-  const targetItcode = isCreateAccountRequest.value ? (parseApproverItcode(form.targetUser) || '待补充') : (form.targetItcode || parseApproverItcode(form.targetUser) || '待补充')
+  const targetItcode = isCreateAccountRequest.value
+    ? (parseApproverItcode(form.targetUser) || '待补充')
+    : (isInternalPerson.value ? (form.targetItcode || '待补充') : (parseApproverItcode(form.targetUser) || form.targetUser || '待补充'))
+  const targetName = isExternalPerson.value ? form.targetUser : (form.targetItcode || form.targetUser || '待补充')
   const permissionSnapshot = createPermissionSnapshot()
   if (form.type === 'change' && !permissionSnapshot.changeSummary.length) {
     applySubmitNotice.value = '本次申请没有检测到权限变更内容，请调整角色、功能权限或数据权限后再提交。'
@@ -6106,7 +6137,7 @@ function submitApplication() {
     applicant: form.applicant,
     applicantItcode: form.itcode,
     applicantEmail: form.itcode + '@lenovo.com',
-    target: form.targetUser || '待补充',
+    target: targetName,
     targetItcode,
     accountName: isCreateAccountRequest.value ? targetItcode : '',
     passwordConfigured: isCreateAccountRequest.value && !!form.accountPassword,
