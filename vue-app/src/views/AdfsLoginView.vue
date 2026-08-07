@@ -66,7 +66,10 @@ async function submitAdfsLogin() {
 
   if (noAccessAccounts.includes(account.toLowerCase())) {
     localStorage.removeItem('preview_user')
-    appStore.user = null
+    appStore.user = account
+    appStore.role = '待申请权限'
+    appStore.permissions = []
+    appStore.visibleMenus = []
     await router.replace({ path: '/access-denied', query: { itcode: account } })
     return
   }

@@ -58,7 +58,6 @@
         <button class="btn btn-primary login-btn" @click="doLogin">登录工作台</button>
         <div class="login-register-entry">
           <span>还没有工作台账号？</span>
-          <button type="button" class="login-register-btn" @click="openRegisterModal">创建账户/注册</button>
         </div>
       </div>
     </div>
@@ -1303,5 +1302,4 @@ function submitRegisterApplication() {
   }
 }
 </style>
-
 

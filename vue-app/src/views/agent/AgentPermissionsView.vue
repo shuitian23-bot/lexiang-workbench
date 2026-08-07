@@ -179,7 +179,7 @@
                 <span class="field-label required">申请人 ITCode <em>必填</em></span>
                 <input v-model="form.itcode" readonly>
               </label>
-              <label v-if="isInternalPerson">
+              <label v-if="isInternalPerson && !isAccountStatusRequest">
                 <span class="field-label required">被申请人 ITCode <em>必填</em></span>
                 <input
                   v-model.trim="form.targetItcode"
@@ -189,7 +189,7 @@
                 >
                 <small v-if="formErrors.targetItcode" class="field-error">{{ formErrors.targetItcode }}</small>
               </label>
-              <label v-else>
+              <label v-else-if="!isAccountStatusRequest">
                 <span class="field-label required">被申请人用户名 <em>必填</em></span>
                 <input
                   v-model.trim="form.targetUser"
@@ -233,16 +233,6 @@
                 >
                 <small v-if="formErrors.targetItcode" class="field-error">{{ formErrors.targetItcode }}</small>
               </label>
-              <label v-if="isAccountStatusRequest">
-                <span class="field-label required">申请单号 <em>必填</em></span>
-                <input
-                  v-model.trim="form.applicationNo"
-                  :class="{ invalid: formErrors.applicationNo }"
-                  placeholder="请输入创建账号时生成的申请单号"
-                  @blur="validateInfoForm"
-                >
-                <small v-if="formErrors.applicationNo" class="field-error">{{ formErrors.applicationNo }}</small>
-              </label>
               <label>
                 <span>被申请人手机号</span>
                 <input v-model.trim="form.mobile" placeholder="用于账号开通或审批沟通">
@@ -252,17 +242,18 @@
                 <input
                   v-model.trim="form.relatedAccount"
                   :class="{ invalid: formErrors.relatedAccount }"
+                  :readonly="isCreateAccountRequest"
                   placeholder="外部人员请填写负责对接的内部员工 ITCode 或姓名"
                   @blur="validateInfoForm"
                 >
                 <small v-if="formErrors.relatedAccount" class="field-error">{{ formErrors.relatedAccount }}</small>
-                <small v-else class="field-help">用于确认外部协作人员的内部对接关系。</small>
+                <small v-else class="field-help">{{ isCreateAccountRequest ? '外部账号由内部关联人创建，申请人自动作为关联人。' : '用于确认外部协作人员的内部对接关系。' }}</small>
               </label>
               <label class="email-field">
                 <span>被申请人邮箱</span>
                 <input v-model.trim="form.email" placeholder="name@lenovo.com">
               </label>
-              <label>
+              <label v-if="!isExternalApplicant">
                 <span>申请人直线经理</span>
                 <input v-model="form.applicantManager" readonly>
               </label>
@@ -299,7 +290,7 @@
             <p>可以先复制他人权限作为参考，再添加角色，最后补充单独的数据权限；重复的角色将以数据权限为依据进行合并。</p>
             <div class="scope-action-bar">
               <button type="button" class="primary-btn" @click="openRoleModal">添加角色</button>
-              <button type="button" class="ghost-btn" @click="openCopyModal">复制他人权限</button>
+              <button type="button" class="ghost-btn" :disabled="!!copiedFromUser" @click="openCopyModal">{{ copiedFromUser ? '已复制他人权限' : '复制他人权限' }}</button>
               <button type="button" class="ghost-btn" @click="openDataModal">添加数据权限</button>
             </div>
             <div class="permission-form-grid scope-tenant-grid">
@@ -348,7 +339,7 @@
                     <b>复制他人权限</b>
                     <small>复制自 {{ copiedFromUser.name }}（{{ copiedFromUser.itcode }}）</small>
                   </div>
-                  <button type="button" class="link-btn" @click="clearCopiedPermissions">清除复制结果</button>
+                  <span class="readonly-source-badge">复制结果只读</span>
                 </div>
                 <div class="source-role-list">
                   <div v-for="role in copiedRoles" :key="role.id" class="source-role-card copied compact-role-card">
@@ -358,7 +349,7 @@
                         <small>{{ role.desc }}</small>
                       </div>
                       <div class="role-card-actions">
-                        <button type="button" class="link-btn" @click="openRoleCardDetail(role)">详情</button>
+                        <button type="button" class="link-btn" @click="openRoleCardDetail(role, 'copied')">详情</button>
                       </div>
                     </div>
                   </div>
@@ -380,13 +371,11 @@
                       <div>
                         <div class="bound-title-row">
                           <span class="bound-title">数据权限</span>
-                          <button type="button" class="refresh-btn" title="恢复对方单独授权的数据权限" @click="resetCopiedUserDataPermissions">↻</button>
                         </div>
                         <div v-if="copiedUserGrantedDataPermissions.length" class="permission-chip-list compact">
                           <span v-for="permission in copiedUserGrantedDataPermissions" :key="permission.id">
                             {{ permission.name }}
                             <em class="source-tag user">用户单独授权</em>
-                            <button type="button" class="chip-remove" @click="removeDataPermission(permission.id)">×</button>
                           </span>
                         </div>
                         <small v-else class="bound-empty">对方单独授权的数据权限已全部取消，可点击右侧复位按钮恢复。</small>
@@ -415,7 +404,7 @@
           </div>
           <div v-else class="permission-step">
             <h3>审批执行</h3>
-            <p>提交后进入审批列表，系统管理员审批通过后记录执行结果。</p>
+            <p>请确认本次申请的审批路径；全部必要审批通过后，权限由系统一次性自动生效。</p>
             <div class="approval-route">
               <div v-for="node in approvalNodes" :key="node.label" :class="{ done: node.done }">
                 <span>{{ node.step }}</span>
@@ -427,24 +416,6 @@
               <b>将提交的申请</b>
               <p>{{ executionSummaryText }}</p>
             </div>
-            <section v-if="hasPermissionScopeStep" class="change-summary-panel">
-              <div class="scope-panel-head">
-                <div>
-                  <b>本次变更摘要</b>
-                  <small>{{ changeSummaryIntro }}</small>
-                </div>
-              </div>
-              <div v-if="permissionChangeSummary.length" class="change-summary-list">
-                <article v-for="item in permissionChangeSummary" :key="item.key" class="change-summary-item">
-                  <b>{{ item.label }}</b>
-                  <p>{{ item.detail }}</p>
-                </article>
-              </div>
-              <div v-else class="scope-empty compact-empty">
-                <b>未检测到权限变更内容</b>
-                <p>请调整角色、功能权限、数据权限、复制他人权限或所属租户后再提交。</p>
-              </div>
-            </section>
           </div>
 
           <div class="flow-actions">
@@ -512,6 +483,7 @@
                   <th>申请人 ITCode</th>
                   <th>被申请人</th>
                   <th>被申请人 ITCode</th>
+                  <th>变更摘要</th>
                   <th>当前处理人</th>
                   <th>当前节点</th>
                   <th>状态</th>
@@ -527,6 +499,7 @@
                   <td>{{ row.applicantItcode }}</td>
                   <td>{{ row.target }}</td>
                   <td>{{ row.targetItcode }}</td>
+                  <td>{{ approvalChangeSummaryText(row) }}</td>
                   <td>{{ row.handlers.join('、') }}</td>
                   <td>{{ row.node }}</td>
                   <td><span class="table-status" :class="approvalDisplayStatusKey(row)">{{ approvalDisplayStatus(row) }}</span></td>
@@ -537,7 +510,7 @@
                   </td>
                 </tr>
                 <tr v-if="!filteredApprovals.length">
-                  <td colspan="11">
+                  <td colspan="12">
                     <div class="table-empty">
                       <b>没有匹配的审批任务</b>
                       <p>请调整审批人 ITCode、处理人或状态筛选后再查看。</p>
@@ -722,8 +695,6 @@
                     <div class="row-actions">
                       <button type="button" class="link-btn" @click="openUserWorkspace('edit', user)">编辑</button>
                       <button type="button" :class="['link-btn', user.status === 'enabled' ? 'danger' : 'success']" @click="openUserStatusConfirm(user)">{{ user.status === 'enabled' ? '禁用' : '启用' }}</button>
-                      <button type="button" class="link-btn" @click="openUserDataWorkspace(user)">分配数据权限</button>
-                      <button type="button" class="link-btn" @click="openUserRoleWorkspace(user)">设置角色</button>
                       <button type="button" class="link-btn" @click="openUserWorkspace('view', user)">详情</button>
                     </div>
                   </td>
@@ -1136,7 +1107,7 @@
           <div class="role-picker-list">
             <article v-for="role in filteredRoleOptions" :key="role.id" :class="['role-picker-row', { active: roleModal.detailRoleId === role.id }]" @click="openRoleDetail(role)">
               <label class="role-picker-check">
-                <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" @change="toggleTempRole(role.id)">
+                <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" :disabled="copiedRoleIds.includes(role.id)" @change="toggleTempRole(role.id)">
               </label>
               <div class="role-picker-content">
                 <div class="role-picker-title">
@@ -1168,8 +1139,8 @@
                     <summary><b>{{ branch.name }}</b><span>{{ rolePermissionBranchLabel(branch, roleModal.activePermissionTab) }}</span></summary>
                     <div class="permission-item-list">
                       <label v-for="permission in rolePermissionBranchItems(branch, roleModal.activePermissionTab)" :key="permission.id" class="permission-detail-check">
-                        <input v-if="roleModal.activePermissionTab === 'function'" type="checkbox" :checked="isRoleModalFunctionSelected(permission.id)" @change="toggleRoleModalFunctionPermission(permission.id)">
-                        <input v-else type="checkbox" :checked="isRoleModalDataSelected(permission.id)" @change="toggleRoleModalDataPermission(permission.id)">
+                        <input v-if="roleModal.activePermissionTab === 'function'" type="checkbox" :checked="isRoleModalFunctionSelected(permission.id)" :disabled="copiedRoleIds.includes(roleModalDetailRole.id)" @change="toggleRoleModalFunctionPermission(permission.id)">
+                        <input v-else type="checkbox" :checked="isRoleModalDataSelected(permission.id)" :disabled="copiedRoleIds.includes(roleModalDetailRole.id)" @change="toggleRoleModalDataPermission(permission.id)">
                         <span><b>{{ permission.name }}</b><small>{{ permission.description || permission.scope || permission.id }}</small></span>
                       </label>
                     </div>
@@ -1251,7 +1222,7 @@
       <div class="modal-panel permission-picker-modal">
         <button type="button" class="modal-close" @click="closeDataModal">×</button>
         <h3>添加数据权限</h3>
-        <p class="modal-note">默认展示系统全部数据权限，当前已带出的权限会自动选中，也可以取消。</p>
+        <p class="modal-note">默认展示系统全部数据权限；复制带入的权限保持锁定，只能调整本次手工添加的数据权限。</p>
         <input v-model.trim="dataModal.keyword" class="modal-search-input data-modal-search" placeholder="搜索数据权限名称、页面或分组">
         <div class="data-tree-picker portal-permission-tree">
           <details v-for="group in filteredDataPermissionTree" :key="group.id" class="data-tree-group permission-tree-root" open>
@@ -1267,7 +1238,7 @@
                 </summary>
                 <div class="data-tree-leaf-list">
                   <label v-for="leaf in child.children" :key="leaf.id" class="data-tree-leaf">
-                    <input type="checkbox" :checked="dataModal.selectedIds.includes(leaf.id)" @change="toggleTempDataPermission(leaf.id)">
+                    <input type="checkbox" :checked="dataModal.selectedIds.includes(leaf.id)" :disabled="!!copiedDataSourceMap[leaf.id]" @change="toggleTempDataPermission(leaf.id)">
                     <span>{{ leaf.name }}</span>
                     <em v-if="copiedDataSourceMap[leaf.id]" :class="['source-tag', sourceClass(copiedDataSourceMap[leaf.id])]">{{ copiedDataSourceMap[leaf.id] }}</em>
                   </label>
@@ -1414,7 +1385,7 @@
                 <table class="permission-table function-interface-table manual-interface-table">
                   <thead><tr><th>排序</th><th>接口</th><th>接口地址</th><th>操作</th></tr></thead>
                   <tbody>
-                    <tr v-for="(api, index) in functionEditor.draft.interfaces" :key="api.id">
+                    <tr v-for="api in functionEditor.draft.interfaces" :key="api.id">
                       <td><input v-model.trim="api.order" placeholder="输入排序" class="interface-order-input"></td>
                       <td><input v-model.trim="api.name" placeholder="请输入接口名称"></td>
                       <td><input v-model.trim="api.url" placeholder="请输入接口地址"></td>
@@ -1545,20 +1516,14 @@
         <p class="modal-note">维护接口授权所需的基础信息，保存后立即更新数据源列表。</p>
         <div class="permission-form-grid datasource-editor-form">
           <div class="permission-form-field function-menu-field datasource-menu-field">
-            <span class="field-label required">所属页面 <em>必填</em></span>
+            <span class="field-label required">所属一级目录 / 大菜单 <em>必填</em></span>
             <button type="button" :class="['function-menu-trigger', { invalid: dataSourceEditor.errors.menu, active: dataSourceEditor.menuPickerOpen }]" @click="dataSourceEditor.menuPickerOpen = !dataSourceEditor.menuPickerOpen">
-              <span>{{ dataSourceEditor.draft.menu || '请选择所属页面' }}</span>
+              <span>{{ dataSourceEditor.draft.menu || '请选择一级目录 / 大菜单' }}</span>
               <i>⌄</i>
             </button>
-            <div v-if="dataSourceEditor.menuPickerOpen" class="function-menu-cascade datasource-menu-cascade">
+            <div v-if="dataSourceEditor.menuPickerOpen" class="function-menu-cascade datasource-menu-cascade datasource-root-only">
               <div class="function-menu-column">
-                <button v-for="root in functionMenuTree" :key="root.id" type="button" :class="{ active: dataSourceEditor.menuRootId === root.id }" @click="selectDataSourceMenuRoot(root.id)"><span>{{ root.name }}</span><i>⌄</i></button>
-              </div>
-              <div class="function-menu-column">
-                <button v-for="child in activeDataSourceMenuChildren" :key="child.id" type="button" :class="{ active: dataSourceEditor.menuChildId === child.id || dataSourceEditor.draft.menu === functionMenuFullPath(activeDataSourceMenuRoot, child) }" @click="selectDataSourceMenuChild(child.id)"><span>{{ child.name }}</span><i v-if="child.children.length">⌄</i></button>
-              </div>
-              <div v-if="activeDataSourceMenuLeaves.length" class="function-menu-column leaf">
-                <button v-for="leaf in activeDataSourceMenuLeaves" :key="leaf.id" type="button" :class="{ active: dataSourceEditor.draft.menu === functionMenuLeafPath(activeDataSourceMenuRoot, activeDataSourceMenuChild, leaf) }" @click="selectDataSourceMenuLeaf(leaf.id)">{{ leaf.name }}</button>
+                <button v-for="root in functionMenuTree" :key="root.id" type="button" :class="{ active: dataSourceEditor.menuRootId === root.id }" @click="selectDataSourceMenuRoot(root.id)"><span>{{ root.name }}</span></button>
               </div>
             </div>
             <small v-if="dataSourceEditor.errors.menu" class="field-error">{{ dataSourceEditor.errors.menu }}</small>
@@ -1678,7 +1643,7 @@
             </div>
             <div v-if="canEditApprovalPermission" class="scope-action-bar inline approval-change-actions">
               <button type="button" class="primary-btn" @click="openRoleModal">添加角色</button>
-              <button type="button" class="ghost-btn" @click="openCopyModal">复制他人权限</button>
+              <button type="button" class="ghost-btn" :disabled="!!copiedFromUser" @click="openCopyModal">{{ copiedFromUser ? '已复制他人权限' : '复制他人权限' }}</button>
               <button type="button" class="ghost-btn" @click="openDataModal">添加数据权限</button>
             </div>
             <div class="scope-source-stack approval-scope-source-stack">
@@ -1717,7 +1682,7 @@
                     <b>复制他人权限</b>
                     <small>复制自 {{ copiedFromUser.name }}（{{ copiedFromUser.itcode }}）</small>
                   </div>
-                  <button v-if="canEditApprovalPermission" type="button" class="link-btn" @click="clearCopiedPermissions">清除复制结果</button>
+                  <span class="readonly-source-badge">复制结果只读</span>
                 </div>
                 <div class="source-role-list">
                   <div v-for="role in copiedRoles" :key="role.id" class="source-role-card copied compact-role-card">
@@ -1727,7 +1692,7 @@
                         <small>{{ role.desc }}</small>
                       </div>
                       <div class="role-card-actions">
-                        <button type="button" class="link-btn" @click="openRoleCardDetail(role)">详情</button>
+                        <button type="button" class="link-btn" @click="openRoleCardDetail(role, 'copied')">详情</button>
                       </div>
                     </div>
                   </div>
@@ -1749,13 +1714,11 @@
                       <div>
                         <div class="bound-title-row">
                           <span class="bound-title">数据权限</span>
-                          <button v-if="canEditApprovalPermission" type="button" class="refresh-btn" title="恢复对方单独授权的数据权限" @click="resetCopiedUserDataPermissions">↻</button>
                         </div>
                         <div v-if="copiedUserGrantedDataPermissions.length" class="permission-chip-list compact">
                           <span v-for="permission in copiedUserGrantedDataPermissions" :key="permission.id">
                             {{ permission.name }}
                             <em class="source-tag user">用户单独授权</em>
-                            <button v-if="canEditApprovalPermission" type="button" class="chip-remove" @click="removeDataPermission(permission.id)">×</button>
                           </span>
                         </div>
                         <small v-else class="bound-empty">对方单独授权的数据权限已全部取消。</small>
@@ -2518,11 +2481,10 @@
             <textarea v-model.trim="userStatusConfirm.reason" :class="{ invalid: userStatusConfirm.error }" rows="4" :placeholder="userStatusConfirm.action === 'disable' ? '请说明禁用账号的业务原因、影响范围和是否需要保留已有权限。' : '请说明启用账号的业务原因、恢复使用的范围和期望生效时间。'"></textarea>
             <small v-if="userStatusConfirm.error" class="field-error">{{ userStatusConfirm.error }}</small>
           </label>
-          <label>
-            <span class="field-label required">申请单号 <em>必填</em></span>
-            <input v-model.trim="userStatusConfirm.applicationNo" :class="{ invalid: userStatusConfirm.applicationNoError }" placeholder="请输入启用/禁用审批对应的申请单号">
-            <small v-if="userStatusConfirm.applicationNoError" class="field-error">{{ userStatusConfirm.applicationNoError }}</small>
-          </label>
+          <div class="permission-form-field">
+            <span>申请单号</span>
+            <div class="readonly-generated-field">提交后由系统自动生成</div>
+          </div>
         </div>
 
         <div class="modal-actions sticky-actions">
@@ -2836,8 +2798,8 @@ const passwordResetApplySteps = [
 ]
 
 const requestTypes = [
-  { key: 'change', no: '01', label: '权限变更', summary: '已有账号新增或调整菜单、功能、数据和 Skill 权限。', route: '直线经理 + 业务审批 + 系统管理员审批' },
-  { key: 'create', no: '02', label: '创建账号', summary: '为其他外部协作人员创建工作台账号。', route: '关联人 + 双直线经理 + 业务审批 + 系统管理员审批' },
+  { key: 'change', no: '01', label: '权限变更', summary: '已有账号新增或调整菜单、功能、数据和 Skill 权限。', route: '必要关系确认 + 直线经理 + 全部业务负责人' },
+  { key: 'create', no: '02', label: '创建账号', summary: '关联人为外部协作人员创建账号并同步申请权限。', route: '申请人直线经理 + 全部业务负责人' },
   { key: 'enable', no: '03', label: '启用账号', summary: '恢复已停用账号的登录和业务操作能力。', route: '系统管理员审批' },
   { key: 'disable', no: '04', label: '禁用账号', summary: '关闭账号登录、导出、发布和后台操作权限。', route: '系统管理员审批' },
   { key: 'reset', no: '05', label: '重置密码', summary: '当前用户自助修改密码，支持旧密码或手机号/邮箱验证。', route: '自助验证，无需审批' }
@@ -2850,12 +2812,12 @@ const personTypes = [
 
 const form = reactive({
   type: 'change',
+  applicantPersonType: 'internal',
   personType: 'internal',
   applicant: 'admin',
   itcode: 'admin',
   targetUser: '',
   targetItcode: 'zhangrui32',
-  applicationNo: 'AP-20260714-018',
   relatedAccount: '',
   accountPassword: '',
   confirmAccountPassword: '',
@@ -2882,7 +2844,6 @@ const form = reactive({
 const formErrors = reactive({
   targetUser: '',
   targetItcode: '',
-  applicationNo: '',
   relatedAccount: '',
   accountPassword: '',
   confirmAccountPassword: '',
@@ -3266,11 +3227,11 @@ const dataModal = reactive({
 })
 
 const legacyDataSourceGroupMenuMap = {
-  乐享运营: '乐享运营 / 运营总览',
-  会员中心: '在职员工管理 / 职场员工概览',
-  'GEO 看板': 'GEO 看板 / 各平台信源分布',
-  企业客户管理: '企业客户管理 / 线索池',
-  商城运营: '乐享运营 / GMV 分析'
+  乐享运营: '乐享运营',
+  会员中心: '在职员工管理',
+  'GEO 看板': 'GEO 看板',
+  企业客户管理: '企业客户管理',
+  商城运营: '乐享运营'
 }
 const dataSourceSensitivityOptions = [
   { value: 'standard-data', label: '标准数据（低风险）' },
@@ -3280,11 +3241,11 @@ const dataSourceSensitivityOptions = [
   { value: 'it-config-data', label: 'IT 配置数据（高风险）' }
 ]
 const dataSources = reactive([
-  { id: 'ds-ops-region', group: '乐享运营', menu: '乐享运营 / 运营总览', name: '运营指标查询', apiUrl: '/api/ops/metrics', permissionParam: 'regionCode', key: 'scope', value: 'east', remark: '用于运营日报和活动复盘，按区域控制可见范围。', sensitivity: 'sensitive-data' },
-  { id: 'ds-member-tag', group: '会员中心', menu: '在职员工管理 / 职场员工概览', name: '会员标签查询', apiUrl: '/api/member/tags', permissionParam: 'tagGroup', key: 'tag_group', value: 'rights', remark: '涉及会员权益使用情况，默认需要业务负责人确认。', sensitivity: 'it-config-data' },
-  { id: 'ds-geo-source', group: 'GEO 看板', menu: 'GEO 看板 / 各平台信源分布', name: '信源引用查询', apiUrl: '/api/geo/sources', permissionParam: 'sourceType', key: 'source_type', value: 'official', remark: '用于 GEO 信源监测和引用趋势分析。', sensitivity: 'sensitive-data' },
-  { id: 'ds-lead-pool', group: '企业客户管理', menu: '企业客户管理 / 线索池', name: '线索池查询', apiUrl: '/api/biz/leads', permissionParam: 'ownerOrg', key: 'owner_org', value: 'enterprise', remark: '包含客户线索和跟进状态，仅企业客户相关组织可申请。', sensitivity: 'it-config-data' },
-  { id: 'ds-mall-order', group: '商城运营', menu: '乐享运营 / GMV 分析', name: '订单状态查询', apiUrl: '/api/mall/orders', permissionParam: 'orderScope', key: 'order_scope', value: 'summary', remark: '用于订单状态和售后进展查看，暂不开放明细字段。', sensitivity: 'it-config-data' }
+  { id: 'ds-ops-region', group: '乐享运营', menu: '乐享运营', name: '运营指标查询', apiUrl: '/api/ops/metrics', permissionParam: 'regionCode', key: 'scope', value: 'east', remark: '用于运营日报和活动复盘，按区域控制可见范围。', sensitivity: 'sensitive-data' },
+  { id: 'ds-member-tag', group: '在职员工管理', menu: '在职员工管理', name: '会员标签查询', apiUrl: '/api/member/tags', permissionParam: 'tagGroup', key: 'tag_group', value: 'rights', remark: '涉及会员权益使用情况，默认需要业务负责人确认。', sensitivity: 'it-config-data' },
+  { id: 'ds-geo-source', group: 'GEO 看板', menu: 'GEO 看板', name: '信源引用查询', apiUrl: '/api/geo/sources', permissionParam: 'sourceType', key: 'source_type', value: 'official', remark: '用于 GEO 信源监测和引用趋势分析。', sensitivity: 'sensitive-data' },
+  { id: 'ds-lead-pool', group: '企业客户管理', menu: '企业客户管理', name: '线索池查询', apiUrl: '/api/biz/leads', permissionParam: 'ownerOrg', key: 'owner_org', value: 'enterprise', remark: '包含客户线索和跟进状态，仅企业客户相关组织可申请。', sensitivity: 'it-config-data' },
+  { id: 'ds-mall-order', group: '乐享运营', menu: '乐享运营', name: '订单状态查询', apiUrl: '/api/mall/orders', permissionParam: 'orderScope', key: 'order_scope', value: 'summary', remark: '用于订单状态和售后进展查看，暂不开放明细字段。', sensitivity: 'it-config-data' }
 ])
 const dataSourceNotice = ref('')
 let dataSourceNoticeTimer = null
@@ -3299,7 +3260,6 @@ const dataSourceEditor = reactive({
   draft: emptyDataSourceDraft(),
   menuPickerOpen: false,
   menuRootId: '',
-  menuChildId: '',
   errors: { menu: '', name: '', apiUrl: '', permissionParam: '', remark: '' },
   notice: ''
 })
@@ -3971,8 +3931,6 @@ const userStatusConfirm = reactive({
   action: 'disable',
   userAccount: '',
   reason: '',
-  applicationNo: '',
-  applicationNoError: '',
   error: ''
 })
 const organizations = reactive([
@@ -4172,9 +4130,11 @@ const applySteps = computed(() => {
 })
 const infoStepDescription = computed(() => {
   if (isPasswordResetRequest.value) return '重置密码仅支持当前用户本人自助修改，可使用旧密码或绑定手机号 / 邮箱完成身份验证。'
-  if (isAccountStatusRequest.value) return '启用或禁用账号时，需要关联账号创建时生成的申请单号，并确认账号状态变更原因。'
-  if (isCreateAccountRequest.value) return '创建账号用于为其他外部协作人员开通账号，需要区分申请人、被申请人以及双方直线经理，并填写关联人员和初始密码，下一步可选择权限范围。'
-  return '申请人、申请人直线经理和被申请人直线经理由当前登录信息或被申请人信息带出，不允许修改。'
+  if (isAccountStatusRequest.value) return '启用或禁用账号时，只需确认账号对象和状态变更原因；申请单号将在提交后自动生成。'
+  if (isCreateAccountRequest.value) return '内部关联人为外部协作人员创建账号，申请人自动作为关联人；外部用户不设置直线经理，下一步同步选择权限范围。'
+  if (isExternalApplicant.value) return '外部用户没有直线经理，需要填写关联人；被申请人为外部用户时同样不设置被申请人直线经理。'
+  if (isExternalPerson.value) return '申请人直线经理由当前登录信息带出；外部被申请人不设置直线经理，需要填写关联人。'
+  return '申请人直线经理和被申请人直线经理由当前登录信息或被申请人信息带出，不允许修改。'
 })
 const infoReasonPlaceholder = computed(() => {
   if (form.type === 'enable') return '请说明启用账号的业务原因、恢复使用范围和期望生效时间。'
@@ -4197,18 +4157,7 @@ const orgChartSearchResults = computed(() => {
   return flatOrganizations.value.filter((org) => organizationMatchesKeyword(org, keyword)).slice(0, 8)
 })
 
-const dataSourceMenuLeafOptions = computed(() => allFunctionMenuLeaves().map(({ root, child, leaf }) => ({ value: functionMenuLeafPath(root, child, leaf), label: functionMenuLeafPath(root, child, leaf) })))
-const dataSourceMenuFilterOptions = computed(() => {
-  const options = []
-  functionMenuTree.forEach((root) => {
-    options.push({ value: root.name, label: root.name })
-    allFunctionMenuLeaves(root).forEach(({ root: leafRoot, child, leaf }) => {
-      const path = functionMenuLeafPath(leafRoot, child, leaf)
-      options.push({ value: path, label: '  ' + path })
-    })
-  })
-  return options
-})
+const dataSourceMenuFilterOptions = computed(() => functionMenuTree.map((root) => ({ value: root.name, label: root.name })))
 const hasDataSourceFilters = computed(() => !!(dataSourceFilters.menu || dataSourceFilters.name || dataSourceFilters.sensitivity))
 const filteredDataSources = computed(() => {
   const name = dataSourceFilters.name.trim().toLowerCase()
@@ -4337,7 +4286,7 @@ function menuBranchMeta(menu = '') {
   }
   const parts = functionMenuParts(menu)
   const root = functionMenuTree.find((item) => item.name === parts.root)
-  const pageName = parts.leaf || parts.second || '未归类权限'
+  const pageName = parts.leaf || parts.second || '目录级数据源'
   if (root) {
     return {
       rootId: root.id,
@@ -4612,14 +4561,12 @@ const activeFunctionMenuRoot = computed(() => functionMenuTree.find((root) => ro
 const activeFunctionMenuChildren = computed(() => activeFunctionMenuRoot.value?.children || [])
 const activeFunctionMenuChild = computed(() => activeFunctionMenuChildren.value.find((child) => child.id === functionEditor.menuChildId) || activeFunctionMenuChildren.value[0] || null)
 const activeFunctionMenuLeaves = computed(() => activeFunctionMenuChild.value?.children?.filter((item) => item.nodeType === 'menu') || [])
-const activeDataSourceMenuRoot = computed(() => functionMenuTree.find((root) => root.id === dataSourceEditor.menuRootId) || functionMenuTree[0])
-const activeDataSourceMenuChildren = computed(() => activeDataSourceMenuRoot.value?.children || [])
-const activeDataSourceMenuChild = computed(() => activeDataSourceMenuChildren.value.find((child) => child.id === dataSourceEditor.menuChildId) || activeDataSourceMenuChildren.value[0] || null)
-const activeDataSourceMenuLeaves = computed(() => activeDataSourceMenuChild.value?.children?.filter((item) => item.nodeType === 'menu') || [])
 const isExternalPerson = computed(() => isCreateAccountRequest.value || form.personType === 'external')
 const isInternalPerson = computed(() => !isExternalPerson.value)
+const isExternalApplicant = computed(() => form.applicantPersonType === 'external')
 const requiresRelatedAccount = computed(() => isCreateAccountRequest.value || form.personType === 'external')
-const isSelfApplication = computed(() => !isCreateAccountRequest.value && samePrincipal(form.itcode, form.targetUser))
+const targetPrincipal = computed(() => isInternalPerson.value ? form.targetItcode : form.targetUser)
+const isSelfApplication = computed(() => !isCreateAccountRequest.value && samePrincipal(form.itcode, targetPrincipal.value))
 const selectedRoles = computed(() => allRoles.filter((role) => selectedRoleIds.value.includes(role.id)))
 const copiedRoles = computed(() => allRoles.filter((role) => copiedRoleIds.value.includes(role.id)))
 const allSelectedRoles = computed(() => allRoles.filter((role) => [...selectedRoleIds.value, ...copiedRoleIds.value].includes(role.id)))
@@ -4723,15 +4670,12 @@ function buildPermissionChangeSummary(snapshot = null, options = {}) {
   return items
 }
 
-const permissionChangeSummary = computed(() => hasPermissionScopeStep.value ? buildPermissionChangeSummary() : [])
-const changeSummaryIntro = computed(() => permissionChangeSummary.value.length ? permissionChangeSummary.value.length + ' 类变化将随申请提交。' : '未检测到角色、功能权限、数据权限、复制他人权限或所属租户变化。')
-
 const scopeSummaryText = computed(() => {
   if (isPasswordResetRequest.value) return '账号安全操作，不涉及权限范围变更'
-  if (isAccountStatusRequest.value) return `关联原申请单 ${form.applicationNo || '待补充'}`
+  if (isAccountStatusRequest.value) return '提交后自动生成申请单号'
   return `${allSelectedRoles.value.length} 个角色、${selectedFunctionPermissions.value.length} 项功能权限、${selectedDataPermissionDetails.value.length} 项数据权限`
 })
-const executionSummaryText = computed(() => `${selectedType.value.label} · ${isPasswordResetRequest.value ? form.applicant : (form.targetUser || '待补充被申请人')} · ${scopeSummaryText.value}`)
+const executionSummaryText = computed(() => `${selectedType.value.label} · ${isPasswordResetRequest.value ? form.applicant : (targetPrincipal.value || '待补充被申请人')} · ${scopeSummaryText.value}`)
 const confirmationText = computed(() => `${form.relation.contact}，组织为 ${form.relation.org}，角色为 ${allSelectedRoles.value.map((role) => role.name).join('、') || '待选择'}，数据权限 ${selectedDataPermissionDetails.value.length} 项。`)
 const approvalNodes = computed(() => {
   const nodes = [
@@ -4741,22 +4685,22 @@ const approvalNodes = computed(() => {
     nodes.push({ label: '系统管理员审批', owner: form.systemApprover, done: false })
     return nodes.map((node, index) => ({ ...node, step: String(index + 1) }))
   }
-  if (isExternalPerson.value) {
+  if (isExternalApplicant.value) {
     nodes.push({ label: '关联人审批', owner: form.relatedAccount || '待填写关联人员', done: false })
-  }
-  if (isSelfApplication.value) {
-    nodes.push({ label: '被申请人直线经理审批', owner: form.targetManager || '待带出', done: false })
   } else {
-    nodes.push(
-      { label: '申请人直线经理审批', owner: form.applicantManager || '待带出', done: false },
-      { label: '被申请人直线经理审批', owner: form.targetManager || '待带出', done: false }
-    )
+    if (isExternalPerson.value && !samePrincipal(form.relatedAccount, form.itcode)) {
+      nodes.push({ label: '关联人审批', owner: form.relatedAccount || '待填写关联人员', done: false })
+    }
+    nodes.push({ label: '申请人直线经理审批', owner: form.applicantManager || '待带出', done: false })
+    if (isInternalPerson.value && !isSelfApplication.value) {
+      nodes.push({ label: '被申请人直线经理审批', owner: form.targetManager || '待带出', done: false })
+    }
   }
   if (hasPermissionScopeStep.value) {
     const businessOwners = createBusinessApprovalTasks(createPermissionSnapshot()).map((task) => task.approver)
-    nodes.push({ label: '业务负责人审批', owner: businessOwners.join('、') || '按角色带出', done: false })
+    nodes.push({ label: '全部业务负责人审批', owner: businessOwners.join('、') || '按角色带出', done: false })
   }
-  nodes.push({ label: '系统管理员审批', owner: form.systemApprover, done: false })
+  nodes.push({ label: '系统自动生效', owner: '全部必要审批通过后整体生效', done: false })
   return nodes.map((node, index) => ({ ...node, step: String(index + 1) }))
 })
 const handlerCandidateOptions = computed(() => {
@@ -4808,8 +4752,8 @@ const activeApprovalBasicFields = computed(() => {
     { label: '被申请人', value: `${row.target}（${row.targetItcode}）` },
     { label: '人员类型', value: row.personType === 'external' ? '外部人员' : '内部人员' },
     { label: '关联账号 / 关联人员', value: row.relatedAccount || '无' },
-    { label: '申请人直线经理', value: row.applicantManager },
-    { label: '被申请人直线经理', value: row.targetManager },
+    ...(row.applicantPersonType !== 'external' ? [{ label: '申请人直线经理', value: row.applicantManager }] : []),
+    ...(row.personType !== 'external' ? [{ label: '被申请人直线经理', value: row.targetManager }] : []),
     { label: '当前审批人', value: pendingBusinessApprovers(row).length ? pendingBusinessApprovers(row).join('、') : row.approverItcode },
     { label: '处理人', value: row.handlers.join('、') },
     { label: '申请原因', value: row.reason || '未填写' }
@@ -4844,20 +4788,32 @@ const approvalDecisionTitle = computed(() => {
 })
 const approvalDecisionHint = computed(() => {
   if (approvalWorkspace.nodeType === 'relation') return '关联人只能确认关系并填写审批意见，申请信息和权限信息不可编辑。'
-  if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理先确认申请合理性，通过后流转给被申请人直线经理。'
+  if (approvalWorkspace.nodeType === 'applicant-manager') return rowNeedsTargetManager(activeApproval.value)
+    ? '申请人直线经理确认申请合理性，通过后流转给被申请人直线经理。'
+    : '申请人直线经理确认申请合理性，通过后流转给全部业务负责人。'
   if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理确认最终角色范围后，系统会按角色业务负责人重新生成审批任务。'
-  if (approvalWorkspace.nodeType === 'system-admin') return '系统管理员进行最终审批，通过后系统执行并记录执行结果。'
+  if (approvalWorkspace.nodeType === 'system-admin') return '系统管理员确认启用、禁用等需要实际管理操作的账号申请。'
   return '业务负责人需填写自己负责角色的所属组织，权限范围只读不可修改。'
 })
 const approvalSubmitImpact = computed(() => {
   if (!approvalWorkspace.result) return '请选择审批结果后提交。'
   if (approvalWorkspace.result === 'reject') return '申请将退回申请人修改，列表状态变为已驳回。'
-  if (approvalWorkspace.nodeType === 'relation') return '确认通过后，申请进入下一位直线经理审批。'
-  if (approvalWorkspace.nodeType === 'applicant-manager') return '申请人直线经理审批通过后，申请进入被申请人直线经理审批。'
+  if (approvalWorkspace.nodeType === 'relation') return activeApproval.value?.applicantPersonType === 'external'
+    ? '关联人确认通过后，申请进入全部业务负责人审批。'
+    : '关联人确认通过后，申请进入申请人直线经理审批。'
+  if (approvalWorkspace.nodeType === 'applicant-manager') return rowNeedsTargetManager(activeApproval.value)
+    ? '申请人直线经理审批通过后，申请进入被申请人直线经理审批。'
+    : '申请人直线经理审批通过后，申请进入全部业务负责人审批。'
   if (approvalWorkspace.nodeType === 'target-manager') return '被申请人直线经理审批通过后，系统按最终角色范围生成业务负责人审批任务。'
-  if (approvalWorkspace.nodeType === 'system-admin') return '系统管理员审批通过后，系统执行账号或权限变更并记录结果。'
-  return '当前业务负责人审批通过后，若仍有人待审则继续等待；全部通过后进入系统管理员审批。'
+  if (approvalWorkspace.nodeType === 'system-admin') return '系统管理员确认通过后，系统执行启用或禁用等账号管理操作并记录结果。'
+  return '当前业务负责人审批通过后，若仍有人待审则继续等待；全部通过后权限一次性自动生效。'
 })
+
+function approvalChangeSummaryText(row) {
+  const items = row?.permissionSnapshot?.changeSummary || []
+  if (!items.length) return '无权限变化'
+  return items.map((item) => item.label).join('、')
+}
 
 
 function resetFunctionDirectoryEditorErrors() {
@@ -5322,48 +5278,16 @@ function functionMenuLeafPath(root, child, leaf) {
 }
 
 function setDataSourceMenuPickerByMenu(menu) {
-  for (const root of functionMenuTree) {
-    for (const child of root.children) {
-      if (child.name === menu || functionMenuFullPath(root, child) === menu) {
-        dataSourceEditor.menuRootId = root.id
-        dataSourceEditor.menuChildId = child.id
-        return
-      }
-      const leaf = child.children.find((item) => item.name === menu || functionMenuLeafPath(root, child, item) === menu)
-      if (leaf) {
-        dataSourceEditor.menuRootId = root.id
-        dataSourceEditor.menuChildId = child.id
-        return
-      }
-    }
-  }
-  dataSourceEditor.menuRootId = functionMenuTree[0]?.id || ''
-  dataSourceEditor.menuChildId = functionMenuTree[0]?.children?.[0]?.id || ''
+  const rootName = functionMenuParts(menu).root || menu
+  const root = functionMenuTree.find((item) => item.name === rootName) || functionMenuTree[0]
+  dataSourceEditor.menuRootId = root?.id || ''
 }
 
 function selectDataSourceMenuRoot(id) {
   dataSourceEditor.menuRootId = id
   const root = functionMenuTree.find((item) => item.id === id)
-  dataSourceEditor.menuChildId = root?.children?.[0]?.id || ''
-}
-
-function selectDataSourceMenuChild(id) {
-  dataSourceEditor.menuChildId = id
-  const root = activeDataSourceMenuRoot.value
-  const child = root?.children?.find((item) => item.id === id)
-  if (child && !child.children.length) {
-    dataSourceEditor.draft.menu = functionMenuFullPath(root, child)
-    dataSourceEditor.menuPickerOpen = false
-    dataSourceEditor.errors.menu = ''
-  }
-}
-
-function selectDataSourceMenuLeaf(id) {
-  const root = activeDataSourceMenuRoot.value
-  const child = activeDataSourceMenuChild.value
-  const leaf = activeDataSourceMenuLeaves.value.find((item) => item.id === id)
-  if (!root || !child || !leaf) return
-  dataSourceEditor.draft.menu = functionMenuLeafPath(root, child, leaf)
+  if (!root) return
+  dataSourceEditor.draft.menu = root.name
   dataSourceEditor.menuPickerOpen = false
   dataSourceEditor.errors.menu = ''
 }
@@ -5562,14 +5486,13 @@ function dataSourceSensitivityLabel(value) {
 }
 
 function dataSourceMenuPath(source) {
-  return source?.menu || legacyDataSourceGroupMenuMap[source?.group] || source?.group || ''
+  const menu = source?.menu || legacyDataSourceGroupMenuMap[source?.group] || source?.group || ''
+  return functionMenuParts(menu).root || menu
 }
 
 function dataSourceMatchesMenuFilter(source, filter) {
   if (!filter) return true
-  const menu = dataSourceMenuPath(source)
-  const parts = functionMenuParts(menu)
-  return menu === filter || parts.root === filter
+  return dataSourceMenuPath(source) === filter
 }
 
 function dataSourceTreeTypeLabel(row) {
@@ -5584,10 +5507,10 @@ function dataSourceCatalogStructureRows() {
 
 const dataSourceCatalogRows = computed(() => {
   const structureRows = dataSourceCatalogStructureRows()
-  const menuSortMap = new Map(structureRows.filter((item) => item.itemKind === 'menu').map((item) => [item.menu, item]))
+  const rootSortMap = new Map(structureRows.filter((item) => item.itemKind === 'directory' && item.depth === 0).map((item) => [item.name, item]))
   const sourceRows = dataSources.map((source, index) => {
     const menu = dataSourceMenuPath(source)
-    const parent = menuSortMap.get(menu)
+    const parent = rootSortMap.get(menu)
     return {
       ...source,
       menu,
@@ -5679,7 +5602,9 @@ function resetDataSourceEditorErrors() {
 
 function cloneDataSourceDraft(source) {
   const draft = emptyDataSourceDraft()
-  return source ? { ...draft, ...source } : draft
+  if (!source) return draft
+  const menu = dataSourceMenuPath(source)
+  return { ...draft, ...source, group: menu, menu }
 }
 
 function openDataSourceEditor(mode, source = null) {
@@ -5700,7 +5625,7 @@ function closeDataSourceEditor() {
 function validateDataSourceEditor() {
   resetDataSourceEditorErrors()
   const draft = dataSourceEditor.draft
-  if (!draft.menu) dataSourceEditor.errors.menu = '请选择所属页面。'
+  if (!draft.menu || !functionMenuTree.some((root) => root.name === draft.menu)) dataSourceEditor.errors.menu = '请选择一级目录 / 大菜单。'
   if (!draft.name) dataSourceEditor.errors.name = '请填写名称，方便业务人员识别。'
   if (!draft.apiUrl) dataSourceEditor.errors.apiUrl = '请填写接口地址。'
   if (!draft.permissionParam) dataSourceEditor.errors.permissionParam = '请填写权限参数。'
@@ -5709,12 +5634,12 @@ function validateDataSourceEditor() {
 }
 
 function buildNewDataSourceFromDraft(draft) {
-  return { ...emptyDataSourceDraft(), ...draft, group: functionMenuParts(draft.menu).root, id: `ds-${Date.now()}` }
+  return { ...emptyDataSourceDraft(), ...draft, group: draft.menu, id: `ds-${Date.now()}` }
 }
 
 function saveDataSourceEditor() {
   if (!validateDataSourceEditor()) return
-  const draft = { ...dataSourceEditor.draft, group: functionMenuParts(dataSourceEditor.draft.menu).root }
+  const draft = { ...dataSourceEditor.draft, group: dataSourceEditor.draft.menu }
   if (dataSourceEditor.mode === 'create') {
     const source = buildNewDataSourceFromDraft(draft)
     syncDataSourcePermissionToTree(source)
@@ -5852,7 +5777,6 @@ function validateInfoForm() {
     formErrors.targetUser = form.targetUser ? '' : '请填写被申请人的 ITCode 或姓名，方便审批人确认对象。'
     formErrors.targetItcode = isAccountStatusRequest.value && !form.targetItcode ? '启用或禁用已有账号时需要填写被申请人 ITCode。' : ''
   }
-  formErrors.applicationNo = isAccountStatusRequest.value && !form.applicationNo ? '启用或禁用已有账号时需要填写账号创建时生成的申请单号。' : ''
   if (isCreateAccountRequest.value && samePrincipal(form.itcode, form.targetUser)) {
     formErrors.targetUser = '创建账号用于为其他外部协作人员开通账号，被申请人不能与申请人相同。'
   }
@@ -6039,6 +5963,7 @@ function selectRequestType(key) {
   applySubmitNotice.value = ''
   if (key === 'create') {
     form.personType = 'external'
+    form.relatedAccount = form.itcode
     form.scopes.account = ['登录工作台']
   } else if (key === 'enable') {
     form.scopes.account = ['启用账号']
@@ -6123,25 +6048,34 @@ function submitApplication() {
     unlockApplyStep(currentStep.value)
     return
   }
-  const firstManagerNode = isSelfApplication.value ? 'target-manager' : 'applicant-manager'
-  const nodeType = isAccountStatusRequest.value ? 'system-admin' : (isExternalPerson.value ? 'relation' : firstManagerNode)
+  const approvalRouteSeed = {
+    typeKey: form.type,
+    applicantPersonType: form.applicantPersonType,
+    personType: isCreateAccountRequest.value ? 'external' : form.personType,
+    applicantItcode: form.itcode,
+    targetItcode,
+    target: targetName,
+    relatedAccount: form.relatedAccount
+  }
+  const nodeType = firstApprovalNodeType(approvalRouteSeed)
   const firstApprover = nodeType === 'system-admin'
     ? form.systemApprover
     : (nodeType === 'relation'
       ? form.relatedAccount
       : (nodeType === 'target-manager' ? form.targetManager : form.applicantManager))
+  const applicationNo = generateApplicationNo()
   const approvalRow = createApprovalRow({
-    id: `AP-20260713-${String(approvals.value.length + 11).padStart(3, '0')}`,
+    id: applicationNo,
     typeKey: form.type,
     type: selectedType.value.label,
     applicant: form.applicant,
     applicantItcode: form.itcode,
+    applicantPersonType: form.applicantPersonType,
     applicantEmail: form.itcode + '@lenovo.com',
     target: targetName,
     targetItcode,
     accountName: isCreateAccountRequest.value ? targetItcode : '',
     passwordConfigured: isCreateAccountRequest.value && !!form.accountPassword,
-    sourceApplicationNo: form.applicationNo,
     nodeType,
     approverItcode: firstApprover,
     handlers: [firstApprover].filter(Boolean),
@@ -6165,8 +6099,8 @@ function submitApplication() {
     time: '2026-07-13 11:45',
     title: `${selectedType.value.label}申请已提交`,
     detail: isAccountStatusRequest.value
-      ? `${form.targetUser || '目标用户'} 已关联创建申请单 ${form.applicationNo || '待补充'}，申请进入审批列表。`
-      : `${form.targetUser || '目标用户'} 已选择 ${scopeSummaryText.value}，申请进入审批列表。`,
+      ? `${targetName} 的申请单号已自动生成为 ${applicationNo}，申请进入审批列表。`
+      : `${targetName} 已选择 ${scopeSummaryText.value}，申请进入审批列表。`,
     status: 'POC 记录'
   })
   activeModule.value = 'approval'
@@ -6226,6 +6160,7 @@ function closeRoleCardDetail() {
   roleCardDetail.context = 'application'
 }
 function toggleTempRole(id) {
+  if (copiedRoleIds.value.includes(id)) return
   const role = allRoles.find((item) => item.id === id)
   const selected = roleModal.selectedIds.includes(id)
   toggleId(roleModal.selectedIds, id)
@@ -6253,6 +6188,7 @@ function removeRole(id) {
 }
 
 function openCopyModal() {
+  if (copiedFromUser.value) return
   copyModal.visible = true
   copyModal.itcode = copiedFromItcode.value || ''
   copyModal.error = ''
@@ -6263,6 +6199,7 @@ function closeCopyModal() {
 }
 
 function confirmCopyPermissions() {
+  if (copiedFromUser.value) return
   const itcode = copyModal.itcode.trim()
   if (!itcode) {
     copyModal.error = '请输入要复制的对方 ITCode。'
@@ -6285,16 +6222,6 @@ function confirmCopyPermissions() {
   closeCopyModal()
 }
 
-function clearCopiedPermissions() {
-  const copiedIds = Object.keys(copiedDataSourceMap)
-  copiedFromItcode.value = ''
-  copiedRoleIds.value = []
-  copiedFunctionPermissionIds.value = []
-  clearCopiedDataSources()
-  selectedFunctionPermissionIds.value = selectedFunctionPermissionIds.value.filter((id) => manualFunctionPermissionIds().includes(id) || currentRoleFunctionIds().includes(id))
-  selectedDataPermissionIds.value = selectedDataPermissionIds.value.filter((id) => !copiedIds.includes(id) || manualDataPermissionIds.value.includes(id) || currentRoleDataIds().includes(id))
-}
-
 function openDataModal() {
   dataModal.visible = true
   dataModal.selectedIds = [...selectedDataPermissionIds.value]
@@ -6306,19 +6233,21 @@ function closeDataModal() {
 }
 
 function toggleTempDataPermission(id) {
+  if (copiedDataSourceMap[id]) return
   toggleId(dataModal.selectedIds, id)
 }
 
 function confirmDataSelection() {
-  const nextIds = [...dataModal.selectedIds]
-  const roleIds = roleDataIds([...selectedRoleIds.value, ...copiedRoleIds.value])
   const copiedIds = Object.keys(copiedDataSourceMap)
+  const nextIds = [...new Set([...dataModal.selectedIds, ...copiedIds])]
+  const roleIds = roleDataIds([...selectedRoleIds.value, ...copiedRoleIds.value])
   manualDataPermissionIds.value = nextIds.filter((id) => !roleIds.includes(id) && !copiedIds.includes(id))
   selectedDataPermissionIds.value = nextIds
   closeDataModal()
 }
 
 function removeDataPermission(id) {
+  if (copiedDataSourceMap[id]) return
   selectedDataPermissionIds.value = selectedDataPermissionIds.value.filter((item) => item !== id)
   manualDataPermissionIds.value = manualDataPermissionIds.value.filter((item) => item !== id)
 }
@@ -6496,6 +6425,7 @@ function ensureRoleModalDetailRoleSelected() {
 }
 
 function toggleRoleModalFunctionPermission(id) {
+  if (copiedRoleIds.value.includes(roleModal.detailRoleId)) return
   const willSelect = !roleModal.selectedFunctionIds.includes(id)
   toggleId(roleModal.selectedFunctionIds, id)
   if (willSelect) ensureRoleModalDetailRoleSelected()
@@ -6506,6 +6436,7 @@ function isRoleModalDataSelected(id) {
 }
 
 function toggleRoleModalDataPermission(id) {
+  if (copiedRoleIds.value.includes(roleModal.detailRoleId)) return
   const willSelect = !roleModal.selectedDataIds.includes(id)
   toggleId(roleModal.selectedDataIds, id)
   if (willSelect) ensureRoleModalDetailRoleSelected()
@@ -6536,6 +6467,7 @@ function toggleApplicationRoleDataPermission(id) {
 }
 function roleCardPermissionCheckboxDisabled() {
   if (roleCardDetail.context === 'userWorkspace') return userWorkspaceReadonly.value
+  if (roleCardDetail.context === 'copied') return true
   if (approvalWorkspace.visible) return !canEditApprovalPermission.value
   return false
 }
@@ -6553,6 +6485,7 @@ function isRoleCardFunctionSelected(id) {
 
 function toggleRoleCardFunctionPermission(id) {
   if (roleCardDetail.context !== 'userWorkspace') {
+    if (roleCardPermissionCheckboxDisabled()) return
     toggleApplicationRoleFunctionPermission(id)
     return
   }
@@ -6576,6 +6509,7 @@ function isRoleCardDataSelected(id) {
 
 function toggleRoleCardDataPermission(id) {
   if (roleCardDetail.context !== 'userWorkspace') {
+    if (roleCardDataCheckboxDisabled()) return
     toggleApplicationRoleDataPermission(id)
     return
   }
@@ -6650,12 +6584,6 @@ function resetCopiedRoleDataPermissions(roleId) {
   addUniqueIds(selectedDataPermissionIds.value, ids)
 }
 
-function resetCopiedUserDataPermissions() {
-  const ids = Object.entries(copiedDataSourceMap)
-    .filter(([, source]) => source === '用户单独授权')
-    .map(([id]) => id)
-  addUniqueIds(selectedDataPermissionIds.value, ids)
-}
 function permissionName(id) {
   return allFunctionPermissions.find((permission) => permission.id === id)?.name || id
 }
@@ -6889,7 +6817,7 @@ function syncBusinessApprovalHandlers(row) {
 function enterBusinessApprovalNode(row) {
   resetBusinessApprovalTasks(row)
   if (!row.businessApprovalTasks.length) {
-    enterSystemAdminApprovalNode(row, '2026-07-13 16:30')
+    completeApprovalExecution(row, '2026-07-13 16:30')
     return
   }
   syncBusinessApprovalHandlers(row)
@@ -6897,34 +6825,25 @@ function enterBusinessApprovalNode(row) {
   row.time = '2026-07-13 16:30'
 }
 
-function enterSystemAdminApprovalNode(row, time = '2026-07-13 16:30') {
-  updateApprovalNode(row, 'system-admin', {
-    approverItcode: row.systemApprover,
-    handlers: [row.systemApprover].filter(Boolean)
-  })
-  row.notificationLogs = createApprovalNotificationLogs(row)
-  row.time = time
-}
-
 function completeApprovalExecution(row, time = '2026-07-13 16:30') {
   row.businessInfo.organizations = businessOrganizationsUnion(row)
   updateApprovalNode(row, 'done', {
     status: '已完成',
     statusKey: 'done',
-    approverItcode: row.systemApprover,
-    handlers: [...new Set([...row.handlers, row.systemApprover])]
+    approverItcode: 'system',
+    handlers: [...new Set(row.handlers || [])]
   })
   row.approvalLogs.push({
     node: '系统执行结果',
     action: 'execute-success',
     operator: 'system',
-    opinion: '系统已根据系统管理员审批结果执行权限变更，执行结果：成功。',
+    opinion: '全部必要审批已通过，系统已一次性执行权限变更，执行结果：成功。',
     time
   })
 }
 
 function createApprovalRow(payload) {
-  const normalizedNodeType = payload.nodeType || (samePrincipal(payload.applicantItcode || payload.applicant, payload.targetItcode || payload.target) ? 'target-manager' : 'applicant-manager')
+  const normalizedNodeType = payload.nodeType || firstApprovalNodeType(payload)
   const nodeMeta = approvalNodeMeta(normalizedNodeType)
   const permissionSnapshot = payload.permissionSnapshot || emptyPermissionSnapshot()
   return {
@@ -6933,6 +6852,7 @@ function createApprovalRow(payload) {
     type: payload.type || '权限变更',
     applicant: payload.applicant || 'admin',
     applicantItcode: payload.applicantItcode || payload.applicant || 'admin',
+    applicantPersonType: payload.applicantPersonType || 'internal',
     applicantEmail: payload.applicantEmail || ((payload.applicantItcode || payload.applicant || 'admin') + '@lenovo.com'),
     target: payload.target || '待补充',
     targetItcode: payload.targetItcode || parseApproverItcode(payload.target) || '待补充',
@@ -7030,8 +6950,32 @@ function isSameApplicantAndTarget(row) {
   return samePrincipal(row.applicantItcode, row.targetItcode || row.target)
 }
 
-function nextManagerNodeType(row) {
-  return isSameApplicantAndTarget(row) ? 'target-manager' : 'applicant-manager'
+function approvalRouteNodeTypes(row) {
+  if (isSystemAdminOnlyRequest(row)) return ['system-admin']
+  const nodes = []
+  const applicantIsExternal = row?.applicantPersonType === 'external'
+  const targetIsExternal = row?.personType === 'external' || row?.typeKey === 'create'
+  if (applicantIsExternal) {
+    nodes.push('relation')
+  } else {
+    if (targetIsExternal && !samePrincipal(row?.relatedAccount, row?.applicantItcode || row?.applicant)) {
+      nodes.push('relation')
+    }
+    nodes.push('applicant-manager')
+    if (!targetIsExternal && !isSameApplicantAndTarget(row)) {
+      nodes.push('target-manager')
+    }
+  }
+  nodes.push('business', 'done')
+  return nodes
+}
+
+function firstApprovalNodeType(row) {
+  return approvalRouteNodeTypes(row)[0] || 'done'
+}
+
+function rowNeedsTargetManager(row) {
+  return approvalRouteNodeTypes(row).includes('target-manager')
 }
 
 function parseApproverItcode(value) {
@@ -7175,27 +7119,33 @@ function submitApprovalDecision() {
       handlers: [row.applicantItcode]
     })
   } else if (approvalWorkspace.nodeType === 'relation') {
-    const nextNodeType = nextManagerNodeType(row)
-    const nextApprover = nextNodeType === 'target-manager' ? row.targetManager : row.applicantManager
-    updateApprovalNode(row, nextNodeType, {
-      approverItcode: nextApprover,
-      handlers: [nextApprover]
-    })
+    if (row.applicantPersonType === 'external') {
+      enterBusinessApprovalNode(row)
+    } else {
+      updateApprovalNode(row, 'applicant-manager', {
+        approverItcode: row.applicantManager,
+        handlers: [row.applicantManager]
+      })
+    }
   } else if (approvalWorkspace.nodeType === 'applicant-manager') {
-    updateApprovalNode(row, 'target-manager', {
-      approverItcode: row.targetManager,
-      handlers: [row.targetManager]
-    })
+    if (rowNeedsTargetManager(row)) {
+      updateApprovalNode(row, 'target-manager', {
+        approverItcode: row.targetManager,
+        handlers: [row.targetManager]
+      })
+    } else {
+      enterBusinessApprovalNode(row)
+    }
   } else if (approvalWorkspace.nodeType === 'target-manager') {
     enterBusinessApprovalNode(row)
   } else if (approvalWorkspace.nodeType === 'business' && pendingBusinessTasks(row).length) {
     syncBusinessApprovalHandlers(row)
   } else if (approvalWorkspace.nodeType === 'business') {
-    enterSystemAdminApprovalNode(row, '2026-07-13 16:30')
+    completeApprovalExecution(row, '2026-07-13 16:30')
   } else if (approvalWorkspace.nodeType === 'system-admin') {
     completeApprovalExecution(row, '2026-07-13 16:30')
   } else {
-    enterSystemAdminApprovalNode(row, '2026-07-13 16:30')
+    completeApprovalExecution(row, '2026-07-13 16:30')
   }
   records.value.unshift({
     time: row.time,
@@ -7366,6 +7316,7 @@ function isSystemAdminOnlyRequest(row) {
 }
 
 function createApprovalNotificationLogs(row) {
+  const routeNodeTypes = approvalRouteNodeTypes(row)
   const applicantLink = approvalListLink(row, '', 'applicant', 'applicant')
   const targetLink = approvalListLink(row, '', 'target', 'target')
   const relationLink = approvalListLink(row, '', 'approver', 'relation')
@@ -7461,7 +7412,18 @@ function createApprovalNotificationLogs(row) {
     })] : []),
     systemAdminMail
   ]
-  return recipients.map((item, index) => ({
+  const roleNodeMap = {
+    relation: 'relation',
+    'applicant-manager': 'applicant-manager',
+    'target-manager': 'target-manager',
+    'system-admin': 'system-admin'
+  }
+  const routedRecipients = recipients.filter((item) => {
+    if (item.role === 'applicant' || item.role === 'target') return true
+    if (String(item.role).startsWith('business-owner')) return routeNodeTypes.includes('business')
+    return routeNodeTypes.includes(roleNodeMap[item.role])
+  })
+  return routedRecipients.map((item, index) => ({
     id: `${row.id}-mail-${index + 1}`,
     ticketNo: row.id,
     time: '2026-07-13 11:45',
@@ -7672,17 +7634,23 @@ function applyMailApprovalActionToRow(row, actionRecord) {
     return true
   }
   if (row.nodeType === 'relation') {
-    const nextNodeType = nextManagerNodeType(row)
-    const nextApprover = nextNodeType === 'target-manager' ? row.targetManager : row.applicantManager
-    updateApprovalNode(row, nextNodeType, {
-      approverItcode: nextApprover,
-      handlers: [nextApprover]
-    })
+    if (row.applicantPersonType === 'external') {
+      enterBusinessApprovalNode(row)
+    } else {
+      updateApprovalNode(row, 'applicant-manager', {
+        approverItcode: row.applicantManager,
+        handlers: [row.applicantManager]
+      })
+    }
   } else if (row.nodeType === 'applicant-manager') {
-    updateApprovalNode(row, 'target-manager', {
-      approverItcode: row.targetManager,
-      handlers: [row.targetManager]
-    })
+    if (rowNeedsTargetManager(row)) {
+      updateApprovalNode(row, 'target-manager', {
+        approverItcode: row.targetManager,
+        handlers: [row.targetManager]
+      })
+    } else {
+      enterBusinessApprovalNode(row)
+    }
   } else if (row.nodeType === 'target-manager') {
     enterBusinessApprovalNode(row)
   } else if (row.nodeType === 'business') {
@@ -7698,13 +7666,13 @@ function applyMailApprovalActionToRow(row, actionRecord) {
     if (pendingBusinessTasks(row).length) {
       syncBusinessApprovalHandlers(row)
     } else {
-      enterSystemAdminApprovalNode(row, actionRecord.time)
+      completeApprovalExecution(row, actionRecord.time)
     }
   } else if (row.nodeType === 'system-admin') {
     completeApprovalExecution(row, actionRecord.time)
     row.approvalLogs[row.approvalLogs.length - 1].mailActionId = `${actionRecord.id}-execute`
   } else {
-    enterSystemAdminApprovalNode(row, actionRecord.time)
+    completeApprovalExecution(row, actionRecord.time)
   }
   return true
 }
@@ -8040,11 +8008,6 @@ function openUserWorkspace(mode, user = null) {
   userWorkspace.customMenuPickerVisible = false
   userWorkspace.draft = cloneUser(user || emptyUserDraft())
   userWorkspace.dataTab = userWorkspace.draft.customDataRules.length ? 'custom' : 'normal'
-}
-
-function openUserDataWorkspace(user) {
-  openUserWorkspace('edit', user)
-  userWorkspace.activeTab = 'data'
 }
 
 function closeUserWorkspace() {
@@ -8447,11 +8410,6 @@ function removeUserCustomDataRule(id) {
   userWorkspace.errors.dataMode = ''
 }
 
-function openUserRoleWorkspace(user) {
-  openUserWorkspace('edit', user)
-  userWorkspace.activeTab = 'roles'
-}
-
 function userDraftRoleFunctionPermissions(role) {
   if (!userWorkspace.draft) return []
   const suppressedIds = userWorkspace.draft.suppressedRoleFunctionPermissionIds || []
@@ -8601,8 +8559,6 @@ function openUserStatusConfirm(user) {
   userStatusConfirm.action = user.status === 'enabled' ? 'disable' : 'enable'
   userStatusConfirm.userAccount = user.userAccount
   userStatusConfirm.reason = ''
-  userStatusConfirm.applicationNo = ''
-  userStatusConfirm.applicationNoError = ''
   userStatusConfirm.error = ''
 }
 
@@ -8613,18 +8569,17 @@ function closeUserStatusConfirm() {
 function confirmUserStatusChange() {
   const user = statusTargetUser.value
   if (!user) return
-  userStatusConfirm.applicationNoError = userStatusConfirm.applicationNo ? '' : '启用或禁用用户需要填写申请单号。'
-  if (userStatusConfirm.applicationNoError) return
   if (!userStatusConfirm.reason) {
     userStatusConfirm.error = userStatusConfirm.action === 'disable' ? '请填写禁用原因，方便审批人判断影响范围。' : '请填写启用原因，方便审批人判断恢复范围。'
     return
   }
   const enabled = userStatusConfirm.action === 'enable'
+  const applicationNo = generateApplicationNo()
   user.status = enabled ? 'enabled' : 'disabled'
   user.statusKey = enabled ? 'done' : 'rejected'
   const detail = enabled ? "申请恢复登录和权限使用。原因：" + userStatusConfirm.reason : "申请暂停登录、导出、发布和审批能力。原因：" + userStatusConfirm.reason
-  appendUserChange(user, enabled ? '启用用户' : '禁用用户', userStatusConfirm.applicationNo, detail)
-  upsertUserApproval(user, userStatusConfirm.applicationNo, enabled ? 'enable' : 'disable', enabled ? '启用账号' : '禁用账号', detail)
+  appendUserChange(user, enabled ? '启用用户' : '禁用用户', applicationNo, detail)
+  upsertUserApproval(user, applicationNo, enabled ? 'enable' : 'disable', enabled ? '启用账号' : '禁用账号', detail)
   closeUserStatusConfirm()
 }
 
@@ -8978,8 +8933,36 @@ function moduleIcon(key) {
 
 function restorePermissionDeepLink() {
   const module = String(route.query.module || '')
+  const applicantPersonType = String(route.query.applicantType || '')
+  if (['internal', 'external'].includes(applicantPersonType)) {
+    form.applicantPersonType = applicantPersonType
+  }
   if (modules.some((item) => item.key === module)) {
     activeModule.value = module
+  }
+  if (String(route.query.entry || '') === 'first-access') {
+    const applicantItcode = String(route.query.itcode || '').trim() || form.itcode
+    activeModule.value = 'apply'
+    selectRequestType('change')
+    form.applicant = applicantItcode
+    form.itcode = applicantItcode
+    form.applicantPersonType = 'internal'
+    form.personType = 'internal'
+    form.targetUser = ''
+    form.targetItcode = applicantItcode
+    form.relatedAccount = ''
+    form.reason = '首次申请访问乐享 AI 工作台。'
+    selectedRoleIds.value = []
+    copiedRoleIds.value = []
+    copiedFunctionPermissionIds.value = []
+    selectedFunctionPermissionIds.value = []
+    selectedDataPermissionIds.value = []
+    manualDataPermissionIds.value = []
+    copiedFromItcode.value = ''
+    clearCopiedDataSources()
+    currentStep.value = 2
+    unlockApplyStep(2)
+    return
   }
   if (module !== 'approval') return
   resetApprovalFilters()
@@ -9935,6 +9918,25 @@ onUnmounted(() => {
 .source-tag.manual {
   background: #eafaf0;
   color: #18a058;
+}
+
+.readonly-source-badge,
+.readonly-generated-field {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid #d8e1ee;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #f5f7fa;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.readonly-generated-field {
+  width: 100%;
+  margin-top: 8px;
 }
 
 .permission-picker-modal {
@@ -13778,6 +13780,12 @@ onUnmounted(() => {
   width: min(720px, calc(100vw - 96px));
 }
 
+.datasource-menu-cascade.datasource-root-only {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  min-height: 0;
+}
+
 @media (max-height: 820px) {
   .permission-layout {
     height: calc(100vh - 148px);
@@ -14118,4 +14126,3 @@ onUnmounted(() => {
   visibility: hidden;
 }
 </style>
-
