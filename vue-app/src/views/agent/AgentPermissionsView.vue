@@ -7689,6 +7689,18 @@ function syncStoredApprovalRows() {
   } catch {}
 }
 
+function syncFirstAccessApprovalRows() {
+  if (typeof window === 'undefined') return
+  try {
+    const stored = JSON.parse(window.localStorage.getItem('leaibot-first-access-applications') || '[]')
+    stored.forEach((item) => {
+      if (!approvals.value.some((row) => row.id === item.id)) {
+        approvals.value.unshift(createApprovalRow(item))
+      }
+    })
+  } catch {}
+}
+
 function syncRegisterApprovalRows() {
   if (typeof window === 'undefined') return
   try {
@@ -7742,6 +7754,7 @@ function syncRegisterApprovalRows() {
 function syncMailApprovalActions() {
   if (typeof window === 'undefined') return
   syncStoredApprovalRows()
+  syncFirstAccessApprovalRows()
   syncRegisterApprovalRows()
   try {
     const actions = JSON.parse(window.localStorage.getItem('leaibot-mail-approval-actions') || '[]')
