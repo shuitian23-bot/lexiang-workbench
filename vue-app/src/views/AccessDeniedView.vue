@@ -206,64 +206,29 @@
           </footer>
         </form>
 
-        <div v-if="roleModal.visible" class="permission-modal" @click.self="closeRoleModal">
-          <section :class="['modal-panel permission-picker-modal role-picker-modal', { 'with-detail': roleModalDetail }]">
-            <button type="button" class="modal-close" aria-label="关闭" @click="closeRoleModal">×</button>
-            <h3>添加角色</h3>
-            <p class="modal-note">仅按角色名称和角色中包含的功能权限搜索。</p>
-            <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限">
-            <div class="role-picker-layout">
-              <div class="role-picker-list">
-                <article v-for="role in filteredRoles" :key="role.id" :class="['role-picker-row', { active: roleModal.detailRoleId === role.id }]" @click="openRoleDetail(role.id)">
-                  <label class="role-picker-check" @click.stop>
-                    <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" :disabled="copiedRoleIds.includes(role.id)" @change="toggleRoleDraft(role.id)">
-                  </label>
-                  <div class="role-picker-content">
-                    <div class="role-picker-title">
-                      <b>{{ role.name }}</b>
-                      <button type="button" class="text-btn" @click.stop="openRoleDetail(role.id)">查看详情</button>
-                    </div>
-                    <p>{{ role.description }}</p>
-                    <small>{{ role.functionIds.length }} 项功能权限 / {{ role.dataIds.length }} 项数据权限</small>
-                  </div>
-                </article>
-              </div>
-              <aside v-if="roleModalDetail" class="role-detail-drawer">
-                <button type="button" class="modal-close drawer-close" aria-label="关闭角色详情" @click="closeRoleDetail">×</button>
-                <span class="drawer-eyebrow">角色详情</span>
-                <h4>{{ roleModalDetail.name }}</h4>
-                <p>{{ roleModalDetail.description }}</p>
-                <div class="role-permission-tabs" role="tablist" aria-label="角色权限类型">
-                  <button type="button" :class="{ active: roleModal.activePermissionTab === 'function' }" @click="roleModal.activePermissionTab = 'function'">功能权限 <b>{{ roleModalDetail.functionIds.length }}</b></button>
-                  <button type="button" :class="{ active: roleModal.activePermissionTab === 'data' }" @click="roleModal.activePermissionTab = 'data'">数据权限 <b>{{ roleModalDetail.dataIds.length }}</b></button>
-                </div>
-                <input v-model.trim="roleModal.detailKeyword" class="modal-search-input drawer-search" placeholder="搜索权限名称、说明或分类">
-                <div class="role-permission-tree">
-                  <details v-for="group in rolePermissionGroups" :key="group.id" class="permission-tree-root" open>
-                    <summary><b>{{ group.name }}</b><span>{{ group.children.length }} 个页面</span></summary>
-                    <div class="permission-tree-branch-list">
-                      <details v-for="branch in group.children" :key="branch.id" class="permission-tree-branch" open>
-                        <summary><b>{{ branch.name }}</b><span>{{ branch.children.length }} 项权限</span></summary>
-                        <div class="permission-item-list">
-                          <label v-for="permission in branch.children" :key="permission.id" class="permission-detail-check">
-                            <input v-if="roleModal.activePermissionTab === 'function'" type="checkbox" :checked="roleModal.selectedFunctionIds.includes(permission.id)" :disabled="copiedRoleIds.includes(roleModalDetail.id)" @change="toggleRoleFunctionDraft(permission.id)">
-                            <input v-else type="checkbox" :checked="roleModal.selectedDataIds.includes(permission.id)" :disabled="copiedRoleIds.includes(roleModalDetail.id)" @change="toggleRoleDataDraft(permission.id)">
-                            <span><b>{{ permission.name }}</b><small>{{ permission.description }}</small></span>
-                          </label>
-                        </div>
-                      </details>
-                    </div>
-                  </details>
-                  <div v-if="!rolePermissionGroups.length" class="scope-empty compact-empty"><b>没有匹配的权限</b><p>请切换权限类型，或调整搜索关键词。</p></div>
-                </div>
-              </aside>
-            </div>
-            <footer class="modal-actions">
-              <button type="button" class="secondary-btn" @click="closeRoleModal">取消</button>
-              <button type="button" class="primary-btn" @click="confirmRoleSelection">确认</button>
-            </footer>
-          </section>
-        </div>
+        <PermissionRolePickerModal
+          :visible="roleModal.visible"
+          :roles="filteredRoles"
+          :detail-role="roleModalDetail"
+          :permission-groups="rolePermissionGroups"
+          :keyword="roleModal.keyword"
+          :detail-keyword="roleModal.detailKeyword"
+          :active-permission-tab="roleModal.activePermissionTab"
+          :selected-role-ids="roleModal.selectedIds"
+          :selected-function-ids="roleModal.selectedFunctionIds"
+          :selected-data-ids="roleModal.selectedDataIds"
+          :locked-role-ids="copiedRoleIds"
+          @close="closeRoleModal"
+          @confirm="confirmRoleSelection"
+          @open-detail="openRoleDetail($event.id)"
+          @close-detail="closeRoleDetail"
+          @toggle-role="toggleRoleDraft"
+          @toggle-function="toggleRoleFunctionDraft"
+          @toggle-data="toggleRoleDataDraft"
+          @update:keyword="roleModal.keyword = $event"
+          @update:detail-keyword="roleModal.detailKeyword = $event"
+          @update:active-permission-tab="roleModal.activePermissionTab = $event"
+        />
 
         <div v-if="copyModal.visible" class="permission-modal" @click.self="closeCopyModal">
           <section class="modal-panel small">
@@ -283,36 +248,17 @@
           </section>
         </div>
 
-        <div v-if="dataModal.visible" class="permission-modal" @click.self="closeDataModal">
-          <section class="modal-panel permission-picker-modal">
-            <button type="button" class="modal-close" aria-label="关闭" @click="closeDataModal">×</button>
-            <h3>添加数据权限</h3>
-            <p class="modal-note">默认展示系统全部数据权限；复制带入的权限保持锁定，只能调整本次手工添加的数据权限。</p>
-            <input v-model.trim="dataModal.keyword" class="modal-search-input" placeholder="搜索数据权限名称、页面或分组">
-            <div class="data-tree-picker">
-              <details v-for="group in filteredDataPermissionTree" :key="group.id" class="permission-tree-root" open>
-                <summary><b>{{ group.name }}</b><span>{{ group.children.length }} 个页面</span></summary>
-                <div class="permission-tree-branch-list">
-                  <details v-for="branch in group.children" :key="branch.id" class="permission-tree-branch" open>
-                    <summary><b>{{ branch.name }}</b><span>{{ branch.children.length }} 项数据权限</span></summary>
-                    <div class="data-tree-leaf-list">
-                      <label v-for="permission in branch.children" :key="permission.id" class="data-tree-leaf">
-                        <input type="checkbox" :checked="dataModal.selectedIds.includes(permission.id)" :disabled="copiedDataIds.includes(permission.id)" @change="toggleDataDraft(permission.id)">
-                        <span>{{ permission.name }}</span>
-                        <em v-if="copiedDataIds.includes(permission.id)" class="readonly-badge">复制带入</em>
-                      </label>
-                    </div>
-                  </details>
-                </div>
-              </details>
-              <div v-if="!filteredDataPermissionTree.length" class="scope-empty compact-empty"><b>没有匹配的数据权限</b><p>请调整关键词后再试。</p></div>
-            </div>
-            <footer class="modal-actions">
-              <button type="button" class="secondary-btn" @click="closeDataModal">取消</button>
-              <button type="button" class="primary-btn" @click="confirmDataSelection">确认</button>
-            </footer>
-          </section>
-        </div>
+        <PermissionDataPickerModal
+          :visible="dataModal.visible"
+          :permission-tree="filteredDataPermissionTree"
+          :keyword="dataModal.keyword"
+          :selected-ids="dataModal.selectedIds"
+          :locked-ids="copiedDataIds"
+          @close="closeDataModal"
+          @confirm="confirmDataSelection"
+          @toggle="toggleDataDraft"
+          @update:keyword="dataModal.keyword = $event"
+        />
       </template>
     </section>
   </main>
@@ -322,6 +268,8 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import PermissionDataPickerModal from '@/components/permissions/PermissionDataPickerModal.vue'
+import PermissionRolePickerModal from '@/components/permissions/PermissionRolePickerModal.vue'
 
 interface FirstAccessApplication {
   id: string
