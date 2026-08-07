@@ -30,15 +30,24 @@ name="${1:-$(id -un)}"
 wt="$WTROOT/$name"
 branch="dev/$name"
 
-# 端口没给就从 3002 起往上找第一个没人用的，省得互相撞
+# 端口没给就从 3002 起往上找第一个空闲的。
+# 必须同时排掉"已分配给别的工作区但还没启动"的端口，否则新建的几个
+# 会全拿到同一个号，等两个人同时 ./run-dev 才发现撞车。
+taken=$(grep -ho 'PORT=[0-9]*' "$WTROOT"/*/run-dev 2>/dev/null | cut -d= -f2 | tr '\n' ' ')
+port_free() {
+  ss -tln 2>/dev/null | grep -q ":$1 " && return 1
+  case " $taken " in *" $1 "*) return 1;; esac
+  return 0
+}
+
 port="${2:-}"
 if [ -z "$port" ]; then
   for p in $(seq 3002 3059); do
-    ss -tln 2>/dev/null | grep -q ":$p " || { port=$p; break; }
+    port_free "$p" && { port=$p; break; }
   done
   [ -n "$port" ] || { echo "3002-3059 全占满了，手动指定端口"; exit 1; }
-elif ss -tln 2>/dev/null | grep -q ":$port "; then
-  echo "端口 $port 已被占用，换一个（生产 3001 别碰）"; exit 1
+elif ! port_free "$port"; then
+  echo "端口 $port 已被占用或已分配给别的工作区，换一个（生产 3001 别碰）"; exit 1
 fi
 
 mkdir -p "$WTROOT"
@@ -67,6 +76,11 @@ done
 # 必须 sudo：.env 是 root:root 0640，普通用户读不到会拿到 0 个环境变量
 # （火山 Ark key、飞书凭据全丢，AI 功能静默哑掉，且不报错，很难查）。
 # 生产本来就是 root 跑的，这里保持一致，不去改密钥文件权限。
+# 工作区可能由别人代建（属主不是你），git 会以 dubious ownership 拒绝工作。
+# 登记到系统级白名单，所有人都生效，省得每人再配一次 --global。
+sudo git config --system --get-all safe.directory 2>/dev/null | grep -qxF "$wt" \
+  || sudo git config --system --add safe.directory "$wt" 2>/dev/null || true
+
 cat > "$wt/run-dev" <<EOF
 #!/bin/bash
 cd "\$(dirname "\$0")"
