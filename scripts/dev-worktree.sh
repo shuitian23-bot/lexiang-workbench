@@ -59,9 +59,12 @@ else
   if git -C "$PROD" show-ref --verify --quiet "refs/heads/$branch"; then
     git -C "$PROD" worktree add "$wt" "$branch"
   else
-    git -C "$PROD" worktree add "$wt" -b "$branch" origin/main
+    # --no-track 是关键：不加的话上游会是 origin/main，在自己工作区敲一句
+    # git push 就直接推到 main，隔离白做还更危险。上游留空 → push 安全报错。
+    git -C "$PROD" worktree add --no-track "$wt" -b "$branch" origin/main
   fi
 fi
+git -C "$wt" branch --unset-upstream 2>/dev/null || true
 
 # 大件一律软链回生产，不复制：db 823M + wal 432M + hnsw 339M + uploads 304M
 # + node_modules 400M，复制一份 2G，8 个人磁盘直接爆。
@@ -96,5 +99,11 @@ cat <<EOF
   ./run-dev                          # 起你自己的实例（首次约 90s，在加载 339M hnsw 索引）
 
 从此你写你的文件，别人写别人的，物理上不可能互相覆盖。
-改完推自己分支，要上线再 merge 回 main。
+
+改完提交（上游是空的，git push 不带参数会报错，不会误推 main）：
+  git add -A && git commit -m "..."
+  git push -u origin $branch         # 有 GitHub key 才需要；没有可以跳过
+
+要上线：在 /opt/projects/lexiang 里 git merge $branch
+（所有工作区共用一个 .git，不推远端也能合）
 EOF
