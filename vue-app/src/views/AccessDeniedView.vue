@@ -207,37 +207,56 @@
         </form>
 
         <div v-if="roleModal.visible" class="permission-modal" @click.self="closeRoleModal">
-          <section class="modal-panel permission-picker-modal">
+          <section :class="['modal-panel permission-picker-modal role-picker-modal', { 'with-detail': roleModalDetail }]">
             <button type="button" class="modal-close" aria-label="关闭" @click="closeRoleModal">×</button>
             <h3>添加角色</h3>
-            <p>仅按角色名称和角色中包含的功能权限搜索。</p>
+            <p class="modal-note">仅按角色名称和角色中包含的功能权限搜索。</p>
             <input v-model.trim="roleModal.keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限">
-            <div class="modal-role-list">
-              <article v-for="role in filteredRoles" :key="role.id" :class="{ active: roleModal.detailRoleId === role.id }" @click="roleModal.detailRoleId = role.id">
-                <label>
-                  <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" :disabled="copiedRoleIds.includes(role.id)" @change="toggleRoleDraft(role.id)">
-                  <span><b>{{ role.name }}</b><small>{{ role.description }}</small></span>
-                </label>
-                <button type="button" class="text-btn" @click.stop="roleModal.detailRoleId = role.id">查看详情</button>
-              </article>
-            </div>
-            <div v-if="roleModalDetail" class="modal-role-detail">
-              <h4>{{ roleModalDetail.name }}</h4>
-              <p>业务负责人：{{ roleModalDetail.owner }}</p>
-              <b>功能权限</b>
-              <div class="modal-permission-checks">
-                <label v-for="(permission, index) in roleModalDetail.functions" :key="roleModalDetail.functionIds[index]">
-                  <input type="checkbox" :checked="roleModal.selectedFunctionIds.includes(roleModalDetail.functionIds[index])" :disabled="copiedRoleIds.includes(roleModalDetail.id)" @change="toggleRoleFunctionDraft(roleModalDetail.functionIds[index])">
-                  <span>{{ permission }}</span>
-                </label>
+            <div class="role-picker-layout">
+              <div class="role-picker-list">
+                <article v-for="role in filteredRoles" :key="role.id" :class="['role-picker-row', { active: roleModal.detailRoleId === role.id }]" @click="openRoleDetail(role.id)">
+                  <label class="role-picker-check" @click.stop>
+                    <input type="checkbox" :checked="roleModal.selectedIds.includes(role.id)" :disabled="copiedRoleIds.includes(role.id)" @change="toggleRoleDraft(role.id)">
+                  </label>
+                  <div class="role-picker-content">
+                    <div class="role-picker-title">
+                      <b>{{ role.name }}</b>
+                      <button type="button" class="text-btn" @click.stop="openRoleDetail(role.id)">查看详情</button>
+                    </div>
+                    <p>{{ role.description }}</p>
+                    <small>{{ role.functionIds.length }} 项功能权限 / {{ role.dataIds.length }} 项数据权限</small>
+                  </div>
+                </article>
               </div>
-              <b>数据权限</b>
-              <div class="modal-permission-checks data">
-                <label v-for="(permission, index) in roleModalDetail.data" :key="roleModalDetail.dataIds[index]">
-                  <input type="checkbox" :checked="roleModal.selectedDataIds.includes(roleModalDetail.dataIds[index])" :disabled="copiedRoleIds.includes(roleModalDetail.id)" @change="toggleRoleDataDraft(roleModalDetail.dataIds[index])">
-                  <span>{{ permission }}</span>
-                </label>
-              </div>
+              <aside v-if="roleModalDetail" class="role-detail-drawer">
+                <button type="button" class="modal-close drawer-close" aria-label="关闭角色详情" @click="closeRoleDetail">×</button>
+                <span class="drawer-eyebrow">角色详情</span>
+                <h4>{{ roleModalDetail.name }}</h4>
+                <p>{{ roleModalDetail.description }}</p>
+                <div class="role-permission-tabs" role="tablist" aria-label="角色权限类型">
+                  <button type="button" :class="{ active: roleModal.activePermissionTab === 'function' }" @click="roleModal.activePermissionTab = 'function'">功能权限 <b>{{ roleModalDetail.functionIds.length }}</b></button>
+                  <button type="button" :class="{ active: roleModal.activePermissionTab === 'data' }" @click="roleModal.activePermissionTab = 'data'">数据权限 <b>{{ roleModalDetail.dataIds.length }}</b></button>
+                </div>
+                <input v-model.trim="roleModal.detailKeyword" class="modal-search-input drawer-search" placeholder="搜索权限名称、说明或分类">
+                <div class="role-permission-tree">
+                  <details v-for="group in rolePermissionGroups" :key="group.id" class="permission-tree-root" open>
+                    <summary><b>{{ group.name }}</b><span>{{ group.children.length }} 个页面</span></summary>
+                    <div class="permission-tree-branch-list">
+                      <details v-for="branch in group.children" :key="branch.id" class="permission-tree-branch" open>
+                        <summary><b>{{ branch.name }}</b><span>{{ branch.children.length }} 项权限</span></summary>
+                        <div class="permission-item-list">
+                          <label v-for="permission in branch.children" :key="permission.id" class="permission-detail-check">
+                            <input v-if="roleModal.activePermissionTab === 'function'" type="checkbox" :checked="roleModal.selectedFunctionIds.includes(permission.id)" :disabled="copiedRoleIds.includes(roleModalDetail.id)" @change="toggleRoleFunctionDraft(permission.id)">
+                            <input v-else type="checkbox" :checked="roleModal.selectedDataIds.includes(permission.id)" :disabled="copiedRoleIds.includes(roleModalDetail.id)" @change="toggleRoleDataDraft(permission.id)">
+                            <span><b>{{ permission.name }}</b><small>{{ permission.description }}</small></span>
+                          </label>
+                        </div>
+                      </details>
+                    </div>
+                  </details>
+                  <div v-if="!rolePermissionGroups.length" class="scope-empty compact-empty"><b>没有匹配的权限</b><p>请切换权限类型，或调整搜索关键词。</p></div>
+                </div>
+              </aside>
             </div>
             <footer class="modal-actions">
               <button type="button" class="secondary-btn" @click="closeRoleModal">取消</button>
@@ -268,14 +287,25 @@
           <section class="modal-panel permission-picker-modal">
             <button type="button" class="modal-close" aria-label="关闭" @click="closeDataModal">×</button>
             <h3>添加数据权限</h3>
-            <p>复制带入的数据权限保持锁定，只能调整本次手工添加的数据权限。</p>
-            <input v-model.trim="dataModal.keyword" class="modal-search-input" placeholder="搜索数据权限名称或分组">
-            <div class="modal-data-list">
-              <label v-for="permission in filteredDataPermissions" :key="permission.id" :class="{ selected: dataModal.selectedIds.includes(permission.id), locked: copiedDataIds.includes(permission.id) }">
-                <input type="checkbox" :checked="dataModal.selectedIds.includes(permission.id)" :disabled="copiedDataIds.includes(permission.id)" @change="toggleDataDraft(permission.id)">
-                <span><b>{{ permission.name }}</b><small>{{ permission.group }}</small></span>
-                <em v-if="copiedDataIds.includes(permission.id)">复制带入</em>
-              </label>
+            <p class="modal-note">默认展示系统全部数据权限；复制带入的权限保持锁定，只能调整本次手工添加的数据权限。</p>
+            <input v-model.trim="dataModal.keyword" class="modal-search-input" placeholder="搜索数据权限名称、页面或分组">
+            <div class="data-tree-picker">
+              <details v-for="group in filteredDataPermissionTree" :key="group.id" class="permission-tree-root" open>
+                <summary><b>{{ group.name }}</b><span>{{ group.children.length }} 个页面</span></summary>
+                <div class="permission-tree-branch-list">
+                  <details v-for="branch in group.children" :key="branch.id" class="permission-tree-branch" open>
+                    <summary><b>{{ branch.name }}</b><span>{{ branch.children.length }} 项数据权限</span></summary>
+                    <div class="data-tree-leaf-list">
+                      <label v-for="permission in branch.children" :key="permission.id" class="data-tree-leaf">
+                        <input type="checkbox" :checked="dataModal.selectedIds.includes(permission.id)" :disabled="copiedDataIds.includes(permission.id)" @change="toggleDataDraft(permission.id)">
+                        <span>{{ permission.name }}</span>
+                        <em v-if="copiedDataIds.includes(permission.id)" class="readonly-badge">复制带入</em>
+                      </label>
+                    </div>
+                  </details>
+                </div>
+              </details>
+              <div v-if="!filteredDataPermissionTree.length" class="scope-empty compact-empty"><b>没有匹配的数据权限</b><p>请调整关键词后再试。</p></div>
             </div>
             <footer class="modal-actions">
               <button type="button" class="secondary-btn" @click="closeDataModal">取消</button>
@@ -322,6 +352,14 @@ interface FirstAccessApplication {
   approvalLogs: Array<Record<string, string>>
 }
 
+interface PermissionOption {
+  id: string
+  name: string
+  group: string
+  page: string
+  description: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
@@ -345,21 +383,30 @@ const roles = [
   { id: 'geo-analyst', name: 'GEO 分析师', description: '查看信源、引用和搜索表现数据。', owner: 'zhangxy43', functionIds: ['func.geo.monitor', 'func.report.generate'], functions: ['GEO 信源监测', '报告生成'], dataIds: ['data.geo.source.official', 'data.geo.source.community'], data: ['官方信源', '社区信源'] },
   { id: 'lead-operator', name: '线索运营', description: '查看企业客户线索并完成分配跟进。', owner: 'sunll1', functionIds: ['func.lead.assign'], functions: ['线索分配'], dataIds: ['data.lead.pool.assigned'], data: ['已分配线索'] }
 ]
+const functionPermissions = [
+  { id: 'func.dashboard.view', name: '运营总览', group: '乐享运营', page: '运营总览', description: '查看运营总览页面与核心指标。' },
+  { id: 'func.report.generate', name: '报告生成', group: '乐享运营', page: '运营总览', description: '生成并查看运营分析报告。' },
+  { id: 'func.data.export', name: '数据导出', group: '乐享运营', page: '运营总览', description: '导出当前权限范围内的数据。' },
+  { id: 'func.product.config', name: '商品配置', group: '乐享运营', page: '商品运营', description: '维护商品和推荐位配置。' },
+  { id: 'func.publish.confirm', name: '发布确认', group: '乐享运营', page: '商品运营', description: '确认商品上下架和发布操作。' },
+  { id: 'func.geo.monitor', name: 'GEO 信源监测', group: 'GEO 看板', page: '各平台信源分布', description: '查看信源分布和引用趋势。' },
+  { id: 'func.lead.assign', name: '线索分配', group: '企业客户管理', page: '线索池', description: '分配并跟进企业客户线索。' }
+]
 const dataPermissions = [
-  { id: 'data.ops.region.east', name: '华东区运营数据', group: '乐享运营' },
-  { id: 'data.ops.region.north', name: '华北区运营数据', group: '乐享运营' },
-  { id: 'data.ops.region.south', name: '华南区运营数据', group: '乐享运营' },
-  { id: 'data.ops.metric.gmv', name: 'GMV 指标', group: '乐享运营' },
-  { id: 'data.geo.source.official', name: '官方信源', group: 'GEO 看板' },
-  { id: 'data.geo.source.community', name: '社区信源', group: 'GEO 看板' },
-  { id: 'data.lead.pool.assigned', name: '已分配线索', group: '企业客户管理' }
+  { id: 'data.ops.region.east', name: '华东区运营数据', group: '乐享运营', page: '运营总览', description: '华东区域的运营指标数据。' },
+  { id: 'data.ops.region.north', name: '华北区运营数据', group: '乐享运营', page: '运营总览', description: '华北区域的运营指标数据。' },
+  { id: 'data.ops.region.south', name: '华南区运营数据', group: '乐享运营', page: '运营总览', description: '华南区域的运营指标数据。' },
+  { id: 'data.ops.metric.gmv', name: 'GMV 指标', group: '乐享运营', page: 'GMV 分析', description: 'GMV 及相关经营指标。' },
+  { id: 'data.geo.source.official', name: '官方信源', group: 'GEO 看板', page: '各平台信源分布', description: '官方渠道信源数据。' },
+  { id: 'data.geo.source.community', name: '社区信源', group: 'GEO 看板', page: '各平台信源分布', description: '社区渠道信源数据。' },
+  { id: 'data.lead.pool.assigned', name: '已分配线索', group: '企业客户管理', page: '线索池', description: '当前账号已分配的企业线索。' }
 ]
 const copyableUsers = [
   { itcode: 'wangxt8', name: '王晓天', roleIds: ['ops-pm'], functionIds: ['func.data.export'], dataIds: ['data.ops.region.east', 'data.ops.metric.gmv'] },
   { itcode: 'liwen08', name: '李雯', roleIds: ['geo-analyst'], functionIds: [], dataIds: ['data.geo.source.official', 'data.geo.source.community'] },
   { itcode: 'temp-bpo', name: '外部协作账号', roleIds: ['lead-operator'], functionIds: [], dataIds: ['data.lead.pool.assigned'] }
 ]
-const roleModal = reactive({ visible: false, keyword: '', selectedIds: [] as string[], selectedFunctionIds: [] as string[], selectedDataIds: [] as string[], detailRoleId: '' })
+const roleModal = reactive({ visible: false, keyword: '', selectedIds: [] as string[], selectedFunctionIds: [] as string[], selectedDataIds: [] as string[], detailRoleId: '', detailKeyword: '', activePermissionTab: 'function' })
 const copyModal = reactive({ visible: false, itcode: '', error: '' })
 const dataModal = reactive({ visible: false, keyword: '', selectedIds: [] as string[] })
 
@@ -387,10 +434,38 @@ const filteredRoles = computed(() => {
   return roles.filter((role) => [role.name, role.description, ...role.functions].join(' ').toLowerCase().includes(keyword))
 })
 const roleModalDetail = computed(() => roles.find((role) => role.id === roleModal.detailRoleId) || null)
-const filteredDataPermissions = computed(() => {
-  const keyword = dataModal.keyword.toLowerCase()
-  return dataPermissions.filter((permission) => `${permission.name} ${permission.group}`.toLowerCase().includes(keyword))
+const rolePermissionGroups = computed(() => {
+  const role = roleModalDetail.value
+  if (!role) return []
+  const permissionIds = roleModal.activePermissionTab === 'function' ? role.functionIds : role.dataIds
+  const source = roleModal.activePermissionTab === 'function' ? functionPermissions : dataPermissions
+  return groupPermissionTree(source.filter((permission) => permissionIds.includes(permission.id)), roleModal.detailKeyword)
 })
+const filteredDataPermissionTree = computed(() => groupPermissionTree(dataPermissions, dataModal.keyword))
+
+function groupPermissionTree(source: PermissionOption[], keyword = '') {
+  const normalizedKeyword = keyword.trim().toLowerCase()
+  const filtered = source.filter((permission) => [permission.name, permission.description, permission.group, permission.page].join(' ').toLowerCase().includes(normalizedKeyword))
+  const groupMap = new Map<string, Map<string, PermissionOption[]>>()
+  filtered.forEach((permission) => {
+    let pageMap = groupMap.get(permission.group)
+    if (!pageMap) {
+      pageMap = new Map<string, PermissionOption[]>()
+      groupMap.set(permission.group, pageMap)
+    }
+    let pagePermissions = pageMap.get(permission.page)
+    if (!pagePermissions) {
+      pagePermissions = []
+      pageMap.set(permission.page, pagePermissions)
+    }
+    pagePermissions.push(permission)
+  })
+  return [...groupMap.entries()].map(([group, pages]) => ({
+    id: group,
+    name: group,
+    children: [...pages.entries()].map(([page, permissions]) => ({ id: `${group}-${page}`, name: page, children: permissions }))
+  }))
+}
 
 function validateBasic() {
   return true
@@ -409,10 +484,23 @@ function openRoleModal() {
   roleModal.selectedFunctionIds = [...selectedRoleFunctionIds.value]
   roleModal.selectedDataIds = [...selectedRoleDataIds.value]
   roleModal.detailRoleId = selectedRoleIds.value[0] || roles[0].id
+  roleModal.detailKeyword = ''
+  roleModal.activePermissionTab = 'function'
 }
 
 function closeRoleModal() {
   roleModal.visible = false
+}
+
+function openRoleDetail(roleId: string) {
+  roleModal.detailRoleId = roleId
+  roleModal.detailKeyword = ''
+  roleModal.activePermissionTab = 'function'
+}
+
+function closeRoleDetail() {
+  roleModal.detailRoleId = ''
+  roleModal.detailKeyword = ''
 }
 
 function toggleRoleDraft(roleId: string) {
@@ -730,28 +818,43 @@ input:focus, textarea:focus, select:focus { border-color: #316dff; outline: 2px 
 .modal-panel > p { margin: 7px 32px 16px 0; color: #667085; line-height: 1.6; }
 .modal-close { position: absolute; top: 15px; right: 16px; border: 0; background: transparent; color: #667085; font-size: 24px; cursor: pointer; }
 .modal-search-input { margin-bottom: 14px; }
-.modal-role-list { display: grid; gap: 8px; max-height: 280px; overflow-y: auto; }
-.modal-role-list article { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #dce4ef; border-radius: 8px; padding: 11px 12px; cursor: pointer; }
-.modal-role-list article.active { border-color: #316dff; background: #f7faff; }
-.modal-role-list label { display: flex; align-items: flex-start; gap: 10px; flex: 1; cursor: pointer; }
-.modal-role-list label input { width: 16px; height: 16px; margin-top: 2px; }
-.modal-role-list label span { margin: 0; }
-.modal-role-list label small, .modal-role-detail p, .modal-data-list small { display: block; margin-top: 4px; color: #7b8798; font-weight: 400; }
-.modal-role-detail { margin-top: 14px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; background: #fafcff; }
-.modal-role-detail h4 { margin: 0; }
-.modal-role-detail > b { display: block; margin-top: 12px; font-size: 13px; }
-.modal-permission-checks { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
-.modal-permission-checks label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d7e3f5; border-radius: 999px; padding: 5px 9px; background: #eef4ff; color: #245dde; cursor: pointer; }
-.modal-permission-checks.data label { border-color: #ccebdc; background: #ecfdf3; color: #027a48; }
-.modal-permission-checks input { width: 14px; height: 14px; }
+.role-picker-modal.with-detail { width: min(1280px, calc(100vw - 72px)); }
+.role-picker-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.role-picker-modal.with-detail .role-picker-layout { grid-template-columns: minmax(380px, .92fr) minmax(460px, 1.08fr); align-items: stretch; }
+.role-picker-list, .data-tree-picker { display: grid; gap: 8px; max-height: 520px; overflow-y: auto; }
+.role-picker-row { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: flex-start; border: 1px solid #e0e7f1; border-radius: 8px; padding: 12px; background: #fff; cursor: pointer; }
+.role-picker-row.active { border-color: #8fb2ff; background: #f7fbff; box-shadow: 0 0 0 3px rgba(49, 109, 255, .08); }
+.role-picker-check { display: flex; align-items: flex-start; padding-top: 2px; }
+.role-picker-check input { width: 16px; height: 16px; accent-color: #316dff; }
+.role-picker-content { min-width: 0; }
+.role-picker-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.role-picker-content p { margin: 4px 0 8px; color: #6b778c; font-size: 12px; line-height: 1.5; }
+.role-picker-content small { display: block; color: #8a96a8; font-size: 12px; }
+.role-detail-drawer { position: relative; display: flex; min-height: 0; max-height: 520px; flex-direction: column; border: 1px solid #dfe7f3; border-radius: 8px; padding: 14px; background: #fbfdff; }
+.drawer-close { top: 10px; right: 10px; }
+.drawer-eyebrow { color: #316dff; font-size: 12px; font-weight: 800; }
+.role-detail-drawer h4 { margin: 6px 32px 4px 0; font-size: 16px; }
+.role-detail-drawer > p { margin: 0; color: #6b778c; font-size: 12px; line-height: 1.5; }
+.role-permission-tabs { display: flex; gap: 8px; margin-top: 12px; }
+.role-permission-tabs button { border: 1px solid #d9e2ef; border-radius: 7px; padding: 7px 11px; background: #fff; color: #667085; cursor: pointer; }
+.role-permission-tabs button.active { border-color: #316dff; background: #eef4ff; color: #245dde; }
+.drawer-search { flex: 0 0 auto; margin-top: 12px; }
+.role-permission-tree { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.permission-tree-root, .permission-tree-branch { border: 1px solid #e4eaf3; border-radius: 8px; background: #fff; }
+.permission-tree-root { margin-top: 10px; padding: 10px; }
+.permission-tree-branch { margin-top: 8px; padding: 8px; background: #fbfcfe; }
+.permission-tree-root summary, .permission-tree-branch summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+.permission-tree-root summary span, .permission-tree-branch summary span { color: #8a96a8; font-size: 11px; }
+.permission-tree-branch-list, .permission-item-list, .data-tree-leaf-list { display: grid; gap: 7px; margin-top: 8px; }
+.permission-detail-check, .data-tree-leaf { display: flex; align-items: flex-start; gap: 9px; border-radius: 7px; padding: 8px; background: #fff; cursor: pointer; }
+.permission-detail-check:hover, .data-tree-leaf:hover { background: #f2f6ff; }
+.permission-detail-check input, .data-tree-leaf input { width: 16px; height: 16px; margin-top: 2px; accent-color: #316dff; }
+.permission-detail-check span { margin: 0; }
+.permission-detail-check small { display: block; margin-top: 3px; color: #8a96a8; font-weight: 400; }
+.data-tree-leaf { align-items: center; border: 1px solid #edf1f6; }
+.data-tree-leaf > span { flex: 1; margin: 0; }
+.compact-empty { margin-top: 10px; padding: 18px; }
 .modal-form-field { display: block; }
-.modal-data-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; max-height: 420px; overflow-y: auto; }
-.modal-data-list label { display: flex; align-items: center; gap: 10px; border: 1px solid #dce4ef; border-radius: 8px; padding: 11px; cursor: pointer; }
-.modal-data-list label.selected { border-color: #316dff; background: #f7faff; }
-.modal-data-list label.locked { background: #f5f7fa; cursor: not-allowed; }
-.modal-data-list input { width: 16px; height: 16px; }
-.modal-data-list label span { flex: 1; margin: 0; }
-.modal-data-list em { color: #667085; font-size: 11px; font-style: normal; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #edf1f6; padding-top: 16px; }
 @media (max-width: 760px) {
   .access-denied-page { padding: 0; }
@@ -759,11 +862,14 @@ input:focus, textarea:focus, select:focus { border-color: #316dff; outline: 2px 
   .access-header, .access-intro, .application-form, .success-panel { padding-inline: 20px; }
   .step-tabs { padding-inline: 12px; }
   .step-tabs button { flex-direction: column; gap: 4px; font-size: 12px; }
-  .form-grid, .role-grid, .data-grid, .modal-data-list { grid-template-columns: 1fr; }
+  .form-grid, .role-grid, .data-grid { grid-template-columns: 1fr; }
   .section-heading, .scope-title { align-items: flex-start; flex-direction: column; }
   .account-strip { align-items: flex-start; flex-direction: column; }
   .account-strip em { margin-left: 0; }
   .permission-modal { align-items: start; padding: 12px; }
   .modal-panel { max-height: calc(100vh - 24px); padding: 20px; }
+  .role-picker-modal.with-detail { width: 100%; }
+  .role-picker-modal.with-detail .role-picker-layout { grid-template-columns: 1fr; }
+  .role-detail-drawer { max-height: 420px; }
 }
 </style>
