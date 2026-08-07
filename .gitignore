@@ -63,3 +63,4 @@ public/admin-vue.backup-*/
 .rollback-snapshots/
 .codex-backups/
 /e2e_*.js
+/run-dev
