@@ -30,15 +30,6 @@
   let observer = null;
   let scheduled = false;
 
-  if (initialRoute) {
-    sessionStorage.setItem(PENDING_KEY, initialRoute.key);
-    nativeReplaceState(
-      history.state,
-      '',
-      `${BASE_PATH}/portal/home?lexiangDashboard=${encodeURIComponent(initialRoute.key)}`,
-    );
-  }
-
   function emitLocationChange() {
     window.dispatchEvent(new Event('lexiang:locationchange'));
   }
@@ -124,6 +115,20 @@
     return item;
   }
 
+  function findNativeMenuItem(submenu, route) {
+    return [...submenu.children].find((item) => (
+      item.classList?.contains('nav-item')
+      && !item.dataset.lexiangDashboardKey
+      && item.textContent.trim() === route.label
+    )) || null;
+  }
+
+  function isNativeRouteAvailable(route) {
+    const group = document.querySelector('.nav-group[data-group="dashboard"]');
+    const submenu = group && group.querySelector('.nav-sub');
+    return Boolean(submenu && findNativeMenuItem(submenu, route));
+  }
+
   function ensureMenuItems() {
     const group = document.querySelector('.nav-group[data-group="dashboard"]');
     const submenu = group && group.querySelector('.nav-sub');
@@ -131,6 +136,10 @@
 
     ROUTES.forEach((route) => {
       let item = submenu.querySelector(`[data-lexiang-dashboard-key="${route.key}"]`);
+      if (findNativeMenuItem(submenu, route)) {
+        item?.remove();
+        return;
+      }
       if (!item) {
         item = createMenuItem(route);
         submenu.appendChild(item);
@@ -251,6 +260,13 @@
   function sync() {
     scheduled = false;
     ensureMenuItems();
+    if (activeRoute && isNativeRouteAvailable(activeRoute)) {
+      activeRoute = null;
+      hasRenderedDashboard = false;
+      sessionStorage.removeItem(PENDING_KEY);
+      removeDashboard();
+      return;
+    }
     if (activeRoute) renderDashboard();
     else removeDashboard();
   }
