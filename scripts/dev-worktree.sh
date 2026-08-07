@@ -30,24 +30,32 @@ name="${1:-$(id -un)}"
 wt="$WTROOT/$name"
 branch="dev/$name"
 
-# 端口没给就从 3002 起往上找第一个空闲的。
-# 必须同时排掉"已分配给别的工作区但还没启动"的端口，否则新建的几个
-# 会全拿到同一个号，等两个人同时 ./run-dev 才发现撞车。
-taken=$(grep -ho 'PORT=[0-9]*' "$WTROOT"/*/run-dev 2>/dev/null | cut -d= -f2 | tr '\n' ' ')
+# 端口来源优先级：命令行 > scripts/dev-ports.txt 里按名字查 > 从 3012 自动挑。
+# 之所以要 dev-ports.txt：纯自动分配会无视早就定好的约定（生产 3001 /
+# baiyu 3002 / 观 3011），还会撞上 3010(lexiang-new)、3020(codex-lexiang)、
+# 3061(wangyt50) 这些没在 /opt/wt 下、自动扫描看不见的老实例。
+PORTFILE="$PROD/scripts/dev-ports.txt"
+
+# 已分配给别的工作区但还没启动的端口也要排掉，否则连建几个会全拿同一个号
+# || true 不能省：set -e 下 grep 无匹配返回 1，会直接把整个脚本静默干掉
+taken=$(grep -ho 'PORT=[0-9]*' "$WTROOT"/*/run-dev 2>/dev/null | cut -d= -f2 | tr '\n' ' ' || true)
 port_free() {
   ss -tln 2>/dev/null | grep -q ":$1 " && return 1
   case " $taken " in *" $1 "*) return 1;; esac
+  grep -qE "^[^#]\S*[[:space:]]+$1[[:space:]]*$" "$PORTFILE" 2>/dev/null && return 1
   return 0
 }
 
 port="${2:-}"
 if [ -z "$port" ]; then
-  for p in $(seq 3002 3059); do
+  port=$(awk -v n="$name" '$1==n && $2 ~ /^[0-9]+$/ {print $2; exit}' "$PORTFILE" 2>/dev/null || true)
+fi
+if [ -z "$port" ]; then
+  for p in $(seq 3012 3059); do
     port_free "$p" && { port=$p; break; }
   done
-  [ -n "$port" ] || { echo "3002-3059 全占满了，手动指定端口"; exit 1; }
-elif ! port_free "$port"; then
-  echo "端口 $port 已被占用或已分配给别的工作区，换一个（生产 3001 别碰）"; exit 1
+  [ -n "$port" ] || { echo "3012-3059 全占满了，手动指定端口或写进 $PORTFILE"; exit 1; }
+  echo "$name 不在 $PORTFILE 里，自动分到 $port——记得补一行进去，免得下次换号"
 fi
 
 mkdir -p "$WTROOT"

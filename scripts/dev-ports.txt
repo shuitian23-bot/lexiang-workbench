@@ -1,0 +1,16 @@
+# 每人的 dev 端口，一行一个：<登录名> <端口>
+# dev-worktree.sh 按登录名查这里；查不到才从 3012 往上自动挑。
+# 端口约定的唯一事实源——改了这里，别处不用同步。
+#
+# 已被占用、不要分配：
+#   3001 生产 lexiang        3010 lexiang-new        3020 codex-lexiang
+#   3061 wangyt50 的旧副本   3200 lenovo-shop        3799 baiyu 临时实例
+
+baiyu       3002
+guanjf2     3011
+yejw2       3012
+zhangrui    3013
+guanfeng2   3014
+zhouyue118  3015
+wangyt50    3061
+chenbaike   3016

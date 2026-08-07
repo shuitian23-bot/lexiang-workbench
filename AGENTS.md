@@ -73,6 +73,16 @@ cd /opt/wt/<你的名字> && ./run-dev                     # 起你自己的实�
 
 **B. 服务器上的 `/opt/wt/<你的名字>`** —— ✅ 正确，直接干活。
 
+已建好的工作区（端口的唯一事实源是 `scripts/dev-ports.txt`，要改端口改那个文件）：
+
+| 人 | 登录名 | 端口 | | 人 | 登录名 | 端口 |
+|---|---|---|---|---|---|---|
+| 白羽 | baiyu | 3002 | | 管峰 | guanfeng2 | 3014 |
+| 观 | guanjf2 | 3011 | | 周悦 | zhouyue118 | 3015 |
+| yejw2 | yejw2 | 3012 | | 张蕊 | zhangrui | 3013 |
+
+**别分配这些**：3001 生产、3010 lexiang-new、3020 codex-lexiang、3061 wangyt50 旧副本、3200 lenovo-shop。这些实例不在 `/opt/wt` 下，自动扫描看不见，撞上了才发现。
+
 **C. 自己电脑上 `git clone` 下来的这个仓库** —— ✅ 可以，但必须守两条：
 ```bash
 git checkout -b dev/<你的名字>    # 永远不要直接在 main 上改

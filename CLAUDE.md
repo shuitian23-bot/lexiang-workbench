@@ -54,7 +54,18 @@ git pull origin main             # 先拉别人改动再开工
 | 本机 `git clone` 的副本 | ✅ 可以 | 必须在 `dev/<名字>` 分支上；**改完走 push，绝不 scp 传文件上服务器** |
 | 本机手工拷的代码（无 `.git`） | ❌ 最危险 | 先 `git clone` 转成上一行 |
 
-已建好的工作区：baiyu:3002 yejw2:3003 zhangrui:3004 guanfeng2(管峰):3005 guanjf2(观):3006
+已建好的工作区（端口的唯一事实源是 `scripts/dev-ports.txt`，改那里即可）：
+
+| 人 | 登录名 | 目录 | 端口 |
+|---|---|---|---|
+| 白羽 | baiyu | `/opt/wt/baiyu` | 3002 |
+| 观 | guanjf2 | `/opt/wt/guanjf2` | 3011 |
+| yejw2 | yejw2 | `/opt/wt/yejw2` | 3012 |
+| 张蕊 | zhangrui | `/opt/wt/zhangrui` | 3013 |
+| 管峰 | guanfeng2 | `/opt/wt/guanfeng2` | 3014 |
+| 周悦 | zhouyue118 | `/opt/wt/zhouyue118` | 3015 |
+
+已被别的服务占着、不要分配：3001 生产、3010 lexiang-new、3020 codex-lexiang、3061 wangyt50 旧副本、3200 lenovo-shop。
 
 为什么必须这样：覆盖的机制是"整文件写入 + 过期 buffer"——编辑器保存旧 buffer、AI 重写整文件、`cp`/`scp` 上传，都会静默抹掉别人这期间的改动，无报错无冲突标记，git 不知情因为改动没进 git。**这不是纪律问题，下面 6 条纪律全上过仍在发生。** 只要 N 个人写同一个路径就必然覆盖，只能靠路径隔离消灭。
 
@@ -83,4 +94,4 @@ worktree 共享 `.git`，一份 230M；db/hnsw/uploads/node_modules 全软链回
 
 - PM2 reload 前确认目标是 `lexiang`，别误碰 `lexiang-shop / lenovo-shop` 等同名进程
 - 移动端兼容：分屏类改动必须在 `@media (max-width: 768px)` 退化到原逻辑
-- 端口：生产 3001 / baiyu dev 3002 / 观 dev 3011
+- 端口：见 `scripts/dev-ports.txt`（生产 3001，各人 dev 端口都在那）
