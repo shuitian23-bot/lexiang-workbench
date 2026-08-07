@@ -55,3 +55,11 @@ public/wiki-index.html.tmp
 # macOS AppleDouble 垃圾
 ._*
 **/._*
+
+# 人工快照/回滚目录与散落调试脚本（不入库）——多人协作时这些会把 git status 淹没
+public.new/
+public.new.backup-*/
+public/admin-vue.backup-*/
+.rollback-snapshots/
+.codex-backups/
+/e2e_*.js
