@@ -97,75 +97,23 @@
           </section>
 
           <section v-else-if="currentStep === 1" class="form-step">
-            <div class="section-heading">
-              <div>
-                <h2>选择权限范围</h2>
-                <p>角色会自动带入对应功能权限和数据权限，也可以额外补充数据权限。</p>
-              </div>
-              <span>{{ selectedRoleIds.length }} 个角色</span>
-            </div>
-            <div class="scope-action-bar">
-              <button type="button" class="primary-btn" @click="openRoleModal">添加角色</button>
-              <button type="button" class="secondary-btn" :disabled="!!copiedFromUser" @click="openCopyModal">{{ copiedFromUser ? '已复制他人权限' : '复制他人权限' }}</button>
-              <button type="button" class="secondary-btn" @click="openDataModal">添加数据权限</button>
-            </div>
-
-            <div class="tenant-field">
-              <span>所属租户 <em>必填</em></span>
-              <div :class="['tenant-multi-options', { invalid: errors.tenant }]">
-                <label v-for="tenant in tenantOptions" :key="tenant" :class="{ selected: form.tenant.includes(tenant) }">
-                  <input v-model="form.tenant" type="checkbox" :value="tenant" @change="errors.tenant = ''">
-                  <span>{{ tenant }}</span>
-                </label>
-              </div>
-              <small v-if="errors.tenant" class="field-error">{{ errors.tenant }}</small>
-              <small v-else class="field-help">可多选，审批通过后将一次性开通所选租户。</small>
-            </div>
-
-            <div class="scope-source-stack">
-              <div v-if="!hasPermissionSources" class="scope-empty">
-                <b>还没有选择权限范围</b>
-                <p>请使用上方三个入口添加角色、复制他人权限或添加数据权限。</p>
-              </div>
-
-              <article v-if="selectedRoles.length" class="scope-source-panel">
-                <div class="scope-panel-head">
-                  <div><b>添加角色</b><small>{{ selectedRoles.length }} 个角色</small></div>
-                  <button type="button" class="text-btn" @click="openRoleModal">调整角色</button>
-                </div>
-                <div class="source-role-list">
-                  <div v-for="role in selectedRoles" :key="role.id" class="source-role-card">
-                    <div><b>{{ role.name }}</b><small>{{ role.description }}</small></div>
-                    <button type="button" class="text-btn danger" @click="removeRole(role.id)">移除</button>
-                  </div>
-                </div>
-              </article>
-
-              <article v-if="copiedFromUser" class="scope-source-panel copied">
-                <div class="scope-panel-head">
-                  <div><b>复制他人权限</b><small>复制自 {{ copiedFromUser.name }}（{{ copiedFromUser.itcode }}）</small></div>
-                  <span class="readonly-badge">复制结果只读</span>
-                </div>
-                <div class="permission-tags">
-                  <span v-for="role in copiedRoles" :key="role.id">角色 · {{ role.name }}</span>
-                  <span v-for="permission in copiedDataPermissions" :key="permission.id" class="data">数据 · {{ permission.name }}</span>
-                </div>
-              </article>
-
-              <article v-if="manualDataPermissions.length" class="scope-source-panel">
-                <div class="scope-panel-head">
-                  <div><b>添加数据权限</b><small>{{ manualDataPermissions.length }} 项本次新增</small></div>
-                  <button type="button" class="text-btn" @click="openDataModal">调整数据权限</button>
-                </div>
-                <div class="permission-tags">
-                  <span v-for="permission in manualDataPermissions" :key="permission.id" class="data removable">
-                    {{ permission.name }}
-                    <button type="button" @click="removeDataPermission(permission.id)">×</button>
-                  </span>
-                </div>
-              </article>
-            </div>
-            <p v-if="errors.roles" class="field-error scope-error">{{ errors.roles }}</p>
+            <PermissionScopeEditor
+              :tenant-options="tenantOptions"
+              :selected-tenant-ids="form.tenant"
+              :tenant-error="errors.tenant"
+              :selected-roles="selectedRoles"
+              :copied-from-user="copiedFromUser"
+              :copied-roles="copiedRoles"
+              :copied-data-permissions="copiedDataPermissions"
+              :manual-data-permissions="manualDataPermissions"
+              @toggle-tenant="toggleTenant"
+              @add-role="openRoleModal"
+              @copy-role="openCopyModal"
+              @select-data="openDataModal"
+              @inspect-role="inspectRole"
+              @remove-role="removeRole"
+              @remove-data="removeDataPermission"
+            />
           </section>
 
           <section v-else class="form-step">
@@ -192,6 +140,10 @@
                 <b>系统自动生效</b>
                 <small>全部审批通过后执行</small>
               </article>
+            </div>
+            <div class="scope-confirm-summary">
+              <b>将提交的权限范围</b>
+              <p>{{ allSelectedRoles.length }} 个角色、{{ selectedFunctionIds.length }} 项功能权限、{{ selectedDataIds.length }} 项数据权限、{{ form.tenant.length }} 个所属租户。</p>
             </div>
             <div class="submit-note">
               <b>全部业务负责人必须审批通过</b>
@@ -225,39 +177,29 @@
           @toggle-role="toggleRoleDraft"
           @toggle-function="toggleRoleFunctionDraft"
           @toggle-data="toggleRoleDataDraft"
-          @update:keyword="roleModal.keyword = $event"
+          @update:keyword="roleModal.keyword = $event; syncRoleModalDetailWithResults()"
           @update:detail-keyword="roleModal.detailKeyword = $event"
           @update:active-permission-tab="roleModal.activePermissionTab = $event"
         />
 
-        <div v-if="copyModal.visible" class="permission-modal" @click.self="closeCopyModal">
-          <section class="modal-panel small">
-            <button type="button" class="modal-close" aria-label="关闭" @click="closeCopyModal">×</button>
-            <h3>复制他人权限</h3>
-            <p>复制对方当前有效的角色、功能权限、数据权限和用户级例外；复制结果只读。</p>
-            <label class="modal-form-field">
-              <span>对方 ITCode <em>必填</em></span>
-              <input v-model.trim="copyModal.itcode" :class="{ invalid: copyModal.error }" placeholder="例如 wangxt8" @keyup.enter="confirmCopyPermissions">
-              <small v-if="copyModal.error" class="field-error">{{ copyModal.error }}</small>
-            </label>
-            <small class="field-help">可试用：wangxt8、liwen08、temp-bpo</small>
-            <footer class="modal-actions">
-              <button type="button" class="secondary-btn" @click="closeCopyModal">取消</button>
-              <button type="button" class="primary-btn" @click="confirmCopyPermissions">确认复制</button>
-            </footer>
-          </section>
-        </div>
+        <PermissionCopyRoleModal
+          :visible="copyModal.visible"
+          :itcode="copyModal.itcode"
+          :error="copyModal.error"
+          @close="closeCopyModal"
+          @confirm="confirmCopyPermissions"
+          @update:itcode="copyModal.itcode = $event; copyModal.error = ''"
+        />
 
         <PermissionDataPickerModal
           :visible="dataModal.visible"
-          :permission-tree="filteredDataPermissionTree"
-          :keyword="dataModal.keyword"
+          :directories="dataPermissionDirectories"
           :selected-ids="dataModal.selectedIds"
           :locked-ids="copiedDataIds"
+          :locked-labels="copiedDataSourceMap"
           @close="closeDataModal"
           @confirm="confirmDataSelection"
           @toggle="toggleDataDraft"
-          @update:keyword="dataModal.keyword = $event"
         />
       </template>
     </section>
@@ -268,7 +210,11 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import PermissionCopyRoleModal from '@/components/permissions/PermissionCopyRoleModal.vue'
 import PermissionDataPickerModal from '@/components/permissions/PermissionDataPickerModal.vue'
+import PermissionScopeEditor from '@/components/permissions/PermissionScopeEditor.vue'
+import { createPermissionScopeCatalog, groupDataPermissionsByDirectory, groupPermissionCatalog } from '@/components/permissions/permissionScopeCatalog'
+import { permissionScopeValidation } from '@/components/permissions/permissionScopeSnapshot.js'
 import PermissionRolePickerModal from '@/components/permissions/PermissionRolePickerModal.vue'
 
 interface FirstAccessApplication {
@@ -300,13 +246,6 @@ interface FirstAccessApplication {
   approvalLogs: Array<Record<string, string>>
 }
 
-interface PermissionOption {
-  id: string
-  name: string
-  group: string
-  page: string
-  description: string
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -318,45 +257,15 @@ const submitError = ref('')
 const submittedApplication = ref<FirstAccessApplication | null>(null)
 const selectedRoleIds = ref<string[]>([])
 const copiedRoleIds = ref<string[]>([])
-const copiedFunctionIds = ref<string[]>([])
-const copiedDataIds = ref<string[]>([])
+const copiedDataSourceMap = reactive<Record<string, string>>({})
 const selectedRoleFunctionIds = ref<string[]>([])
 const selectedRoleDataIds = ref<string[]>([])
 const manualDataIds = ref<string[]>([])
 const copiedFromItcode = ref('')
-const tenantOptions = ['leaibot-cn', 'shop-chat', 'b-chat', 'biz-chat']
-const roles = [
-  { id: 'ops-pm', name: '运营分析 PM', description: '查看运营总览并生成运营分析报告。', owner: 'zhangjq4', functionIds: ['func.dashboard.view', 'func.report.generate', 'func.data.export'], functions: ['运营总览', '报告生成', '数据导出'], dataIds: ['data.ops.region.east'], data: ['华东区运营数据'] },
-  { id: 'product-op', name: '商品运营', description: '维护商品、推荐位和上下架策略。', owner: 'huangjq5', functionIds: ['func.dashboard.view', 'func.product.config', 'func.publish.confirm'], functions: ['运营总览', '商品配置', '发布确认'], dataIds: ['data.ops.region.north', 'data.ops.metric.gmv'], data: ['华北区运营数据', 'GMV 指标'] },
-  { id: 'geo-analyst', name: 'GEO 分析师', description: '查看信源、引用和搜索表现数据。', owner: 'zhangxy43', functionIds: ['func.geo.monitor', 'func.report.generate'], functions: ['GEO 信源监测', '报告生成'], dataIds: ['data.geo.source.official', 'data.geo.source.community'], data: ['官方信源', '社区信源'] },
-  { id: 'lead-operator', name: '线索运营', description: '查看企业客户线索并完成分配跟进。', owner: 'sunll1', functionIds: ['func.lead.assign'], functions: ['线索分配'], dataIds: ['data.lead.pool.assigned'], data: ['已分配线索'] }
-]
-const functionPermissions = [
-  { id: 'func.dashboard.view', name: '运营总览', group: '乐享运营', page: '运营总览', description: '查看运营总览页面与核心指标。' },
-  { id: 'func.report.generate', name: '报告生成', group: '乐享运营', page: '运营总览', description: '生成并查看运营分析报告。' },
-  { id: 'func.data.export', name: '数据导出', group: '乐享运营', page: '运营总览', description: '导出当前权限范围内的数据。' },
-  { id: 'func.product.config', name: '商品配置', group: '乐享运营', page: '商品运营', description: '维护商品和推荐位配置。' },
-  { id: 'func.publish.confirm', name: '发布确认', group: '乐享运营', page: '商品运营', description: '确认商品上下架和发布操作。' },
-  { id: 'func.geo.monitor', name: 'GEO 信源监测', group: 'GEO 看板', page: '各平台信源分布', description: '查看信源分布和引用趋势。' },
-  { id: 'func.lead.assign', name: '线索分配', group: '企业客户管理', page: '线索池', description: '分配并跟进企业客户线索。' }
-]
-const dataPermissions = [
-  { id: 'data.ops.region.east', name: '华东区运营数据', group: '乐享运营', page: '运营总览', description: '华东区域的运营指标数据。' },
-  { id: 'data.ops.region.north', name: '华北区运营数据', group: '乐享运营', page: '运营总览', description: '华北区域的运营指标数据。' },
-  { id: 'data.ops.region.south', name: '华南区运营数据', group: '乐享运营', page: '运营总览', description: '华南区域的运营指标数据。' },
-  { id: 'data.ops.metric.gmv', name: 'GMV 指标', group: '乐享运营', page: 'GMV 分析', description: 'GMV 及相关经营指标。' },
-  { id: 'data.geo.source.official', name: '官方信源', group: 'GEO 看板', page: '各平台信源分布', description: '官方渠道信源数据。' },
-  { id: 'data.geo.source.community', name: '社区信源', group: 'GEO 看板', page: '各平台信源分布', description: '社区渠道信源数据。' },
-  { id: 'data.lead.pool.assigned', name: '已分配线索', group: '企业客户管理', page: '线索池', description: '当前账号已分配的企业线索。' }
-]
-const copyableUsers = [
-  { itcode: 'wangxt8', name: '王晓天', roleIds: ['ops-pm'], functionIds: ['func.data.export'], dataIds: ['data.ops.region.east', 'data.ops.metric.gmv'] },
-  { itcode: 'liwen08', name: '李雯', roleIds: ['geo-analyst'], functionIds: [], dataIds: ['data.geo.source.official', 'data.geo.source.community'] },
-  { itcode: 'temp-bpo', name: '外部协作账号', roleIds: ['lead-operator'], functionIds: [], dataIds: ['data.lead.pool.assigned'] }
-]
+const { tenantOptions, roles, functionPermissions, dataPermissions, copyableUsers } = createPermissionScopeCatalog()
 const roleModal = reactive({ visible: false, keyword: '', selectedIds: [] as string[], selectedFunctionIds: [] as string[], selectedDataIds: [] as string[], detailRoleId: '', detailKeyword: '', activePermissionTab: 'function' })
 const copyModal = reactive({ visible: false, itcode: '', error: '' })
-const dataModal = reactive({ visible: false, keyword: '', selectedIds: [] as string[] })
+const dataModal = reactive({ visible: false, selectedIds: [] as string[] })
 
 const itcode = computed(() => String(route.query.itcode || appStore.user || 'noaccess'))
 const form = reactive({
@@ -366,20 +275,23 @@ const form = reactive({
   reason: '',
   tenant: [] as string[]
 })
-const errors = reactive({ tenant: '', roles: '' })
+const errors = reactive({ tenant: '' })
 const selectedRoles = computed(() => roles.filter((role) => selectedRoleIds.value.includes(role.id)))
 const copiedRoles = computed(() => roles.filter((role) => copiedRoleIds.value.includes(role.id)))
 const allSelectedRoles = computed(() => [...selectedRoles.value, ...copiedRoles.value.filter((role) => !selectedRoleIds.value.includes(role.id))])
 const copiedFromUser = computed(() => copyableUsers.find((user) => user.itcode === copiedFromItcode.value) || null)
-const copiedDataPermissions = computed(() => dataPermissions.filter((permission) => copiedDataIds.value.includes(permission.id)))
+const copiedDataIds = computed(() => Object.keys(copiedDataSourceMap))
+const copiedDataPermissions = computed(() => dataPermissions.filter((permission) => copiedDataIds.value.includes(permission.id)).map((permission) => ({ ...permission, source: copiedDataSourceMap[permission.id] })))
 const manualDataPermissions = computed(() => dataPermissions.filter((permission) => manualDataIds.value.includes(permission.id)))
-const selectedFunctionIds = computed(() => [...new Set([...selectedRoleFunctionIds.value, ...copiedRoles.value.flatMap((role) => role.functionIds), ...copiedFunctionIds.value])])
+const selectedFunctionIds = computed(() => [...new Set([...selectedRoleFunctionIds.value, ...copiedRoles.value.flatMap((role) => role.functionIds)])])
 const selectedDataIds = computed(() => [...new Set([...selectedRoleDataIds.value, ...copiedDataIds.value, ...manualDataIds.value])])
 const businessOwners = computed(() => [...new Set(allSelectedRoles.value.map((role) => role.owner))])
-const hasPermissionSources = computed(() => selectedRoles.value.length > 0 || !!copiedFromUser.value || manualDataPermissions.value.length > 0)
 const filteredRoles = computed(() => {
-  const keyword = roleModal.keyword.toLowerCase()
-  return roles.filter((role) => [role.name, role.description, ...role.functions].join(' ').toLowerCase().includes(keyword))
+  const keyword = roleModal.keyword.trim().toLowerCase()
+  return roles.filter((role) => {
+    const functionText = role.functionIds.map((id) => functionPermissions.find((permission) => permission.id === id)?.name || id).join(' ')
+    return `${role.name} ${role.description} ${functionText}`.toLowerCase().includes(keyword)
+  })
 })
 const roleModalDetail = computed(() => roles.find((role) => role.id === roleModal.detailRoleId) || null)
 const rolePermissionGroups = computed(() => {
@@ -387,49 +299,35 @@ const rolePermissionGroups = computed(() => {
   if (!role) return []
   const permissionIds = roleModal.activePermissionTab === 'function' ? role.functionIds : role.dataIds
   const source = roleModal.activePermissionTab === 'function' ? functionPermissions : dataPermissions
-  return groupPermissionTree(source.filter((permission) => permissionIds.includes(permission.id)), roleModal.detailKeyword)
+  const filtered = source.filter((permission) => permissionIds.includes(permission.id))
+  return roleModal.activePermissionTab === 'function'
+    ? groupPermissionCatalog(filtered, roleModal.detailKeyword)
+    : groupDataPermissionsByDirectory(filtered)
 })
-const filteredDataPermissionTree = computed(() => groupPermissionTree(dataPermissions, dataModal.keyword))
+const dataPermissionDirectories = computed(() => groupDataPermissionsByDirectory(dataPermissions))
 
-function groupPermissionTree(source: PermissionOption[], keyword = '') {
-  const normalizedKeyword = keyword.trim().toLowerCase()
-  const filtered = source.filter((permission) => [permission.name, permission.description, permission.group, permission.page].join(' ').toLowerCase().includes(normalizedKeyword))
-  const groupMap = new Map<string, Map<string, PermissionOption[]>>()
-  filtered.forEach((permission) => {
-    let pageMap = groupMap.get(permission.group)
-    if (!pageMap) {
-      pageMap = new Map<string, PermissionOption[]>()
-      groupMap.set(permission.group, pageMap)
-    }
-    let pagePermissions = pageMap.get(permission.page)
-    if (!pagePermissions) {
-      pagePermissions = []
-      pageMap.set(permission.page, pagePermissions)
-    }
-    pagePermissions.push(permission)
-  })
-  return [...groupMap.entries()].map(([group, pages]) => ({
-    id: group,
-    name: group,
-    children: [...pages.entries()].map(([page, permissions]) => ({ id: `${group}-${page}`, name: page, children: permissions }))
-  }))
-}
 
 function validateBasic() {
   return true
 }
 
 function validateScope() {
-  errors.tenant = form.tenant.length ? '' : '请至少选择一个所属租户。'
-  errors.roles = allSelectedRoles.value.length ? '' : '请至少添加一个角色或复制一份有效权限。'
-  return !errors.tenant && !errors.roles
+  errors.tenant = permissionScopeValidation({ tenant: form.tenant }).tenantError
+  return !errors.tenant
+}
+
+function toggleTenant(tenant: string) {
+  form.tenant = form.tenant.includes(tenant)
+    ? form.tenant.filter((item) => item !== tenant)
+    : [...form.tenant, tenant]
+  errors.tenant = ''
 }
 
 function openRoleModal() {
   roleModal.visible = true
   roleModal.keyword = ''
   roleModal.selectedIds = [...selectedRoleIds.value]
-  roleModal.selectedFunctionIds = [...selectedRoleFunctionIds.value]
+  roleModal.selectedFunctionIds = [...selectedFunctionIds.value]
   roleModal.selectedDataIds = [...selectedRoleDataIds.value]
   roleModal.detailRoleId = selectedRoleIds.value[0] || roles[0].id
   roleModal.detailKeyword = ''
@@ -446,30 +344,48 @@ function openRoleDetail(roleId: string) {
   roleModal.activePermissionTab = 'function'
 }
 
+function inspectRole(roleId: string) {
+  openRoleModal()
+  openRoleDetail(roleId)
+}
+
 function closeRoleDetail() {
   roleModal.detailRoleId = ''
   roleModal.detailKeyword = ''
+}
+
+function syncRoleModalDetailWithResults() {
+  window.setTimeout(() => {
+    if (filteredRoles.value.some((role) => role.id === roleModal.detailRoleId)) return
+    const firstRole = filteredRoles.value[0]
+    if (firstRole) openRoleDetail(firstRole.id)
+    else closeRoleDetail()
+  }, 0)
 }
 
 function toggleRoleDraft(roleId: string) {
   if (copiedRoleIds.value.includes(roleId)) return
   const role = roles.find((item) => item.id === roleId)
   if (!role) return
-  if (roleModal.selectedIds.includes(roleId)) {
+  const selected = roleModal.selectedIds.includes(roleId)
+  if (selected) {
     roleModal.selectedIds = roleModal.selectedIds.filter((id) => id !== roleId)
     const remainingRoles = roles.filter((item) => roleModal.selectedIds.includes(item.id))
-    const remainingFunctionIds = new Set(remainingRoles.flatMap((item) => item.functionIds))
+    const remainingFunctionIds = new Set(roles
+      .filter((item) => roleModal.selectedIds.includes(item.id) || copiedRoleIds.value.includes(item.id))
+      .flatMap((item) => item.functionIds))
     const remainingDataIds = new Set(remainingRoles.flatMap((item) => item.dataIds))
     roleModal.selectedFunctionIds = roleModal.selectedFunctionIds.filter((id) => remainingFunctionIds.has(id))
-    roleModal.selectedDataIds = roleModal.selectedDataIds.filter((id) => remainingDataIds.has(id))
+    roleModal.selectedDataIds = roleModal.selectedDataIds.filter((id) => !role.dataIds.includes(id) || remainingDataIds.has(id))
   } else {
-    roleModal.selectedIds.push(roleId)
+    roleModal.selectedIds = [...roleModal.selectedIds, roleId]
     roleModal.selectedFunctionIds = [...new Set([...roleModal.selectedFunctionIds, ...role.functionIds])]
     roleModal.selectedDataIds = [...new Set([...roleModal.selectedDataIds, ...role.dataIds])]
   }
 }
 
 function toggleRoleFunctionDraft(permissionId: string) {
+  if (copiedRoleIds.value.includes(roleModal.detailRoleId)) return
   if (!roleModal.selectedIds.includes(roleModal.detailRoleId)) roleModal.selectedIds.push(roleModal.detailRoleId)
   roleModal.selectedFunctionIds = roleModal.selectedFunctionIds.includes(permissionId)
     ? roleModal.selectedFunctionIds.filter((id) => id !== permissionId)
@@ -485,9 +401,11 @@ function toggleRoleDataDraft(permissionId: string) {
 
 function confirmRoleSelection() {
   selectedRoleIds.value = [...roleModal.selectedIds]
-  selectedRoleFunctionIds.value = [...roleModal.selectedFunctionIds]
+  const allowedFunctionIds = new Set(roles
+    .filter((role) => roleModal.selectedIds.includes(role.id))
+    .flatMap((role) => role.functionIds))
+  selectedRoleFunctionIds.value = [...new Set(roleModal.selectedFunctionIds.filter((id) => allowedFunctionIds.has(id)))]
   selectedRoleDataIds.value = [...roleModal.selectedDataIds]
-  errors.roles = ''
   closeRoleModal()
 }
 
@@ -512,22 +430,25 @@ function closeCopyModal() {
 }
 
 function confirmCopyPermissions() {
-  const user = copyableUsers.find((item) => item.itcode.toLowerCase() === copyModal.itcode.toLowerCase())
+  const itcode = copyModal.itcode.trim()
+  if (!itcode) {
+    copyModal.error = '请输入要复制的对方 ITCode。'
+    return
+  }
+  const user = copyableUsers.find((item) => item.itcode.toLowerCase() === itcode.toLowerCase())
   if (!user) {
-    copyModal.error = '没有找到该 ITCode 的 POC 权限，请检查后再试。'
+    copyModal.error = '没有找到该 ITCode 的 mock 权限，请检查后再试。'
     return
   }
   copiedFromItcode.value = user.itcode
   copiedRoleIds.value = [...user.roleIds]
-  copiedFunctionIds.value = [...user.functionIds]
-  copiedDataIds.value = [...user.dataIds]
-  errors.roles = ''
+  Object.keys(copiedDataSourceMap).forEach((id) => delete copiedDataSourceMap[id])
+  user.dataPermissions.forEach((permission) => { copiedDataSourceMap[permission.id] = permission.source })
   closeCopyModal()
 }
 
 function openDataModal() {
   dataModal.visible = true
-  dataModal.keyword = ''
   dataModal.selectedIds = [...new Set([...manualDataIds.value, ...copiedDataIds.value])]
 }
 
@@ -612,11 +533,10 @@ function submitApplication() {
         selectedRoleIds: [...selectedRoleIds.value],
         copiedFromItcode: copiedFromItcode.value,
         copiedRoleIds: [...copiedRoleIds.value],
-        copiedFunctionPermissionIds: [...copiedFunctionIds.value],
         selectedFunctionPermissionIds: selectedFunctionIds.value,
         selectedDataPermissionIds: selectedDataIds.value,
         manualDataPermissionIds: [...manualDataIds.value],
-        copiedDataSourceMap: {},
+        copiedDataSourceMap: { ...copiedDataSourceMap },
         tenant: [...form.tenant],
         changeSummary: [`首次开通 ${allSelectedRoles.value.length} 个角色`, `包含 ${selectedFunctionIds.value.length} 项功能权限`, `包含 ${selectedDataIds.value.length} 项数据权限`, `开通 ${form.tenant.length} 个租户`]
       },
@@ -716,6 +636,9 @@ input:focus, textarea:focus, select:focus { border-color: #316dff; outline: 2px 
 .scope-panel-head small, .source-role-card small { display: block; margin-top: 4px; color: #7b8798; }
 .source-role-list { display: grid; gap: 9px; margin-top: 12px; }
 .source-role-card { border-top: 1px solid #edf1f6; padding-top: 10px; }
+.role-card-actions { display: flex; align-items: center; gap: 8px; }
+.permission-tag-btn { border: 0; border-radius: 999px; padding: 4px 8px; background: #eef4ff; color: #245dde; font-size: 11px; cursor: pointer; }
+.permission-tag-btn:hover, .permission-tag-btn:focus-visible { outline: 2px solid rgba(49, 109, 255, .16); background: #e4edff; }
 .text-btn.danger { color: #d92d20; }
 .readonly-badge { border-radius: 999px; padding: 4px 8px; background: #e8edf5; color: #52637a; font-size: 11px; font-weight: 700; }
 .scope-section + .scope-section { margin-top: 26px; border-top: 1px solid #edf1f6; padding-top: 24px; }
@@ -748,7 +671,9 @@ input:focus, textarea:focus, select:focus { border-color: #316dff; outline: 2px 
 .approval-flow article span { display: grid; place-items: center; width: 24px; height: 24px; margin-bottom: 12px; border-radius: 50%; background: #e8edf5; color: #52637a; font-size: 12px; font-weight: 800; }
 .approval-flow article b, .approval-flow article small { display: block; }
 .approval-flow article small { margin-top: 6px; color: #667085; }
-.submit-note { margin-top: 20px; border: 1px solid #cfe0ff; border-radius: 8px; padding: 14px 16px; background: #f5f8ff; }
+.scope-confirm-summary { margin-top: 20px; border: 1px solid #dce4ef; border-radius: 8px; padding: 14px 16px; background: #f8fafc; }
+.scope-confirm-summary p { margin: 6px 0 0; color: #52637a; line-height: 1.6; }
+.submit-note { margin-top: 12px; border: 1px solid #cfe0ff; border-radius: 8px; padding: 14px 16px; background: #f5f8ff; }
 .submit-note b { color: #244ea3; }
 .submit-note p { margin: 6px 0 0; color: #52637a; line-height: 1.6; }
 .form-actions, .success-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 26px; border-top: 1px solid #edf1f6; padding-top: 20px; }

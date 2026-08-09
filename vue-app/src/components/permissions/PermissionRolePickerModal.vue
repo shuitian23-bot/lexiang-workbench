@@ -1,10 +1,10 @@
 <template>
-  <div v-if="visible" class="permission-modal" @click.self="$emit('close')">
-    <section :class="['modal-panel', 'role-picker-modal', { 'with-detail': detailRole }]">
+  <div v-if="visible" class="permission-modal permission-scope-picker-modal" @click.self="$emit('close')" @keydown.esc="$emit('close')">
+    <section ref="dialog" :class="['modal-panel', 'role-picker-modal', { 'with-detail': detailRole }]" role="dialog" aria-modal="true" aria-labelledby="role-picker-title" tabindex="-1" @keydown.tab="trapFocus">
       <button type="button" class="modal-close" aria-label="关闭" @click="$emit('close')">×</button>
-      <h3>添加角色</h3>
-      <p class="modal-note">仅按角色名称和角色中包含的功能权限搜索。</p>
-      <input :value="keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限" @input="updateKeyword">
+      <h3 id="role-picker-title">添加角色</h3>
+      <p class="modal-note">可在所选角色范围内勾选功能和数据权限；复制角色带入的权限保持只读。</p>
+      <input ref="searchInput" :value="keyword" class="modal-search-input" placeholder="搜索角色名称、功能权限" @input="updateKeyword">
 
       <div class="role-picker-layout">
         <div class="role-picker-list">
@@ -32,23 +32,31 @@
             <button type="button" :class="{ active: activePermissionTab === 'function' }" @click="$emit('update:active-permission-tab', 'function')">功能权限 <b>{{ roleFunctionIds(detailRole).length }}</b></button>
             <button type="button" :class="{ active: activePermissionTab === 'data' }" @click="$emit('update:active-permission-tab', 'data')">数据权限 <b>{{ roleDataIds(detailRole).length }}</b></button>
           </div>
-          <input :value="detailKeyword" class="modal-search-input drawer-search" placeholder="搜索权限名称、说明或分类" @input="updateDetailKeyword">
-          <div class="role-permission-tree">
-            <details v-for="group in permissionGroups" :key="group.id" class="permission-tree-root" open>
-              <summary><b>{{ group.name }}</b><span>{{ groupItemCount(group) }} 项{{ permissionUnit }}</span></summary>
+          <input v-if="activePermissionTab === 'function'" :value="detailKeyword" class="modal-search-input drawer-search" placeholder="搜索功能权限名称、说明或分类" @input="updateDetailKeyword">
+          <div v-if="activePermissionTab === 'function'" class="role-permission-tree">
+            <details v-for="group in functionPermissionGroups" :key="group.id" class="permission-tree-root" open>
+              <summary><b>{{ group.name }}</b><span>{{ groupItemCount(group) }} 项功能</span></summary>
               <div class="permission-tree-branch-list">
                 <details v-for="branch in group.children" :key="branch.id" class="permission-tree-branch" open>
-                  <summary><b>{{ branch.name }}</b><span>{{ branchItems(branch).length }} 项{{ permissionUnit }}</span></summary>
+                  <summary><b>{{ branch.name }}</b><span>{{ branchItems(branch).length }} 项功能</span></summary>
                   <div class="permission-item-list">
                     <label v-for="permission in branchItems(branch)" :key="permission.id" class="permission-detail-check">
-                      <input type="checkbox" :checked="selectedPermissionIds.includes(permission.id)" :disabled="lockedRoleIds.includes(detailRole.id)" @change="togglePermission(permission.id)">
+                      <input type="checkbox" :checked="selectedPermissionIds.includes(permission.id)" :disabled="lockedRoleIds.includes(detailRole.id)" @change="$emit('toggle-function', permission.id)">
                       <span><b>{{ permission.name }}</b><small>{{ permission.description || permission.scope || permission.id }}</small></span>
                     </label>
                   </div>
                 </details>
               </div>
             </details>
-            <div v-if="!permissionGroups.length" class="scope-empty"><b>没有匹配的权限</b><p>请切换权限类型，或调整搜索关键词。</p></div>
+            <div v-if="!functionPermissionGroups.length" class="scope-empty"><b>没有匹配的功能权限</b><p>请调整搜索关键词后再试。</p></div>
+          </div>
+          <div v-else class="role-permission-tree data-directory-tree">
+            <PermissionDataDirectoryList
+              :directories="dataPermissionDirectories"
+              :selected-ids="selectedDataIds"
+              :disabled="lockedRoleIds.includes(detailRole.id)"
+              @toggle="$emit('toggle-data', $event)"
+            />
           </div>
         </aside>
       </div>
@@ -62,7 +70,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
+import PermissionDataDirectoryList, { type DataPermissionDirectory } from './PermissionDataDirectoryList.vue'
 
 interface PermissionItem { id: string; name: string; description?: string; scope?: string }
 interface PermissionBranch { id: string; name: string; children?: PermissionItem[]; functions?: PermissionItem[]; dataPermissions?: PermissionItem[] }
@@ -82,7 +91,7 @@ const props = defineProps<{
   visible: boolean
   roles: RoleOption[]
   detailRole: RoleOption | null
-  permissionGroups: PermissionGroup[]
+  permissionGroups: Array<PermissionGroup | DataPermissionDirectory>
   keyword: string
   detailKeyword: string
   activePermissionTab: string
@@ -91,6 +100,10 @@ const props = defineProps<{
   selectedDataIds: string[]
   lockedRoleIds: string[]
 }>()
+
+const dialog = ref<HTMLElement | null>(null)
+const searchInput = ref<HTMLInputElement | null>(null)
+let returnFocus: HTMLElement | null = null
 
 const emit = defineEmits<{
   close: []
@@ -106,7 +119,8 @@ const emit = defineEmits<{
 }>()
 
 const selectedPermissionIds = computed(() => props.activePermissionTab === 'function' ? props.selectedFunctionIds : props.selectedDataIds)
-const permissionUnit = computed(() => props.activePermissionTab === 'function' ? '功能' : '数据')
+const functionPermissionGroups = computed(() => props.permissionGroups.filter((group): group is PermissionGroup => 'children' in group))
+const dataPermissionDirectories = computed(() => props.permissionGroups.filter((group): group is DataPermissionDirectory => 'datasets' in group))
 const roleDescription = (role: RoleOption) => role.description || role.desc || ''
 const roleFunctionIds = (role: RoleOption) => role.functionPermissionIds || role.functionIds || []
 const roleDataIds = (role: RoleOption) => role.dataPermissionIds || role.dataIds || []
@@ -115,14 +129,35 @@ const groupItemCount = (group: PermissionGroup) => group.children.reduce((count,
 const inputValue = (event: Event) => (event.target as HTMLInputElement).value
 const updateKeyword = (event: Event) => emit('update:keyword', inputValue(event))
 const updateDetailKeyword = (event: Event) => emit('update:detail-keyword', inputValue(event))
-const togglePermission = (id: string) => {
-  if (props.activePermissionTab === 'function') emit('toggle-function', id)
-  else emit('toggle-data', id)
+
+watch(() => props.visible, async (visible) => {
+  if (!visible) {
+    returnFocus?.focus()
+    returnFocus = null
+    return
+  }
+  returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  await nextTick()
+  searchInput.value?.focus()
+})
+
+function trapFocus(event: KeyboardEvent) {
+  const focusable = [...(dialog.value?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), summary') || [])]
+  if (!focusable.length) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 </script>
 
 <style scoped>
-.permission-modal { position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center; overflow-y: auto; padding: 24px; background: rgba(17, 24, 39, .25); backdrop-filter: blur(8px); }
+.permission-modal.permission-scope-picker-modal { position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center; overflow-y: auto; padding: 24px; background: rgba(17, 24, 39, .25); backdrop-filter: blur(8px); }
 .modal-panel { position: relative; box-sizing: border-box; width: min(820px, 100%); max-height: min(720px, calc(100vh - 48px)); overflow: auto; border: 1px solid #dfe7f3; border-radius: 8px; padding: 24px; background: #fff; box-shadow: 0 24px 70px rgba(15, 23, 42, .18); }
 .role-picker-modal.with-detail { width: min(1280px, calc(100vw - 72px)); }
 h3 { margin: 0; color: #172033; font-size: 20px; }

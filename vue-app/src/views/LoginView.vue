@@ -31,8 +31,9 @@
 
       <div v-else role="tabpanel">
         <div class="form-group">
-          <label class="form-label">用户名</label>
+          <label class="form-label" for="external-login-username">用户名</label>
           <input
+            id="external-login-username"
             class="form-input"
             v-model="username"
             placeholder="admin"
@@ -41,8 +42,12 @@
           />
         </div>
         <div class="form-group">
-          <label class="form-label">密码</label>
+          <div class="login-field-head">
+            <label class="form-label" for="external-login-password">密码</label>
+            <button ref="forgotPasswordTrigger" type="button" class="forgot-password-btn" @click="openPasswordRecovery">忘记密码</button>
+          </div>
           <input
+            id="external-login-password"
             class="form-input"
             v-model="password"
             type="password"
@@ -61,6 +66,13 @@
         </div>
       </div>
     </div>
+
+    <ExternalPasswordRecoveryModal
+      :visible="passwordRecoveryVisible"
+      :initial-account="username"
+      @close="closePasswordRecovery"
+      @complete="finishPasswordRecovery"
+    />
 
     <div v-if="registerModalVisible" class="register-modal-layer" @click.self="closeRegisterModal">
       <div class="register-modal-panel" role="dialog" aria-modal="true" aria-labelledby="register-modal-title">
@@ -161,10 +173,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { allowPreviewAuth } from '@/config/runtimeMode'
+import ExternalPasswordRecoveryModal from '@/components/auth/ExternalPasswordRecoveryModal.vue'
 
 const router   = useRouter()
 const route    = useRoute()
@@ -174,6 +187,8 @@ const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
 const loginTab = ref<'internal' | 'external'>('internal')
+const passwordRecoveryVisible = ref(false)
+const forgotPasswordTrigger = ref<HTMLButtonElement | null>(null)
 
 const registerModalVisible = ref(false)
 const registerStep = ref(0)
@@ -200,7 +215,6 @@ const registerForm = reactive({
   roleIds: [] as string[],
   copiedRoleIds: [] as string[],
   copiedFromItcode: '',
-  copiedFunctionPermissionIds: [] as string[],
   copiedDataSourceMap: {} as Record<string, string>,
   dataScopeIds: [] as string[],
   manualDataScopeIds: [] as string[]
@@ -241,6 +255,23 @@ function goAdfsLogin() {
 }
 
 // 对应原 doLogin()
+function openPasswordRecovery() {
+  passwordRecoveryVisible.value = true
+  errorMsg.value = ''
+}
+
+function closePasswordRecovery() {
+  passwordRecoveryVisible.value = false
+  nextTick(() => forgotPasswordTrigger.value?.focus())
+}
+
+function finishPasswordRecovery(account: string) {
+  username.value = account
+  password.value = ''
+  errorMsg.value = ''
+  closePasswordRecovery()
+}
+
 async function doLogin() {
   const u = username.value.trim()
   const p = password.value
@@ -603,6 +634,33 @@ function submitRegisterApplication() {
   font-size: 14px;
   line-height: 1.7;
   text-align: center;
+}
+
+.login-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.forgot-password-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--primary, #316dff);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.forgot-password-btn:hover {
+  text-decoration: underline;
+}
+
+.forgot-password-btn:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--primary, #316dff);
+  outline-offset: 2px;
 }
 
 .login-register-entry {
