@@ -91,6 +91,17 @@ git pull --rebase origin main     # 开工前先拉，别基于几天前的旧�
 ```
 **绝对不要把改好的文件用 scp / SFTP / IDE 的"上传"功能传到服务器。** 那一步就是覆盖本身——你传的是整个文件，服务器上别人这期间的改动会被你手上的旧内容盖掉。走 push + merge，git 会告诉你有没有冲突；走上传，git 什么都不知道。
 
+**C 补充：GitHub 推不上去怎么办（`Permission denied (publickey)`）**
+
+不用等权限，直接推到服务器——你的 SSH key 已经在服务器上了，能登服务器就能推：
+
+```bash
+git remote add server ssh://<你的登录名>@43.160.195.171/opt/projects/lexiang
+git push server HEAD:refs/heads/incoming/<你的登录名>    # 分支名必须带 incoming/
+```
+
+分支名**必须**是 `incoming/<名字>`，不能用 `dev/<名字>`——`dev/*` 在服务器上已被工作区检出，git 会拒绝推送到已检出的分支。推完通知白羽在生产目录 `git merge incoming/<名字>`。
+
 **D. 自己电脑上一份手工拷贝的代码（不是 clone，没有 `.git` 目录）** —— ❌ 最危险，必须先转成 C。这种情况下你手上那份从拷下来那一刻起就在变旧，改完传回去必然覆盖别人。转法：
 ```bash
 git clone git@github.com:shuitian23-bot/lexiang-workbench.git
