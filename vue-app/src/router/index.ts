@@ -27,11 +27,32 @@ const LeadScore = () => import('@/views/lead/LeadScoreView.vue')
 const AgentSkills = () => import('@/views/agent/AgentSkillsView.vue')
 const AgentSkillCreate = () => import('@/views/agent/AgentSkillCreateView.vue')
 const AgentPermissions = () => import('@/views/agent/AgentPermissionsView.vue')
+const AdminCleanupEmailMock = () => import('@/views/agent/AdminCleanupEmailMockView.vue')
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     component: () => import('@/views/LoginView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/adfs-login',
+    component: () => import('@/views/AdfsLoginView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/access-denied',
+    component: () => import('@/views/AccessDeniedView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/account-request/status',
+    component: () => import('@/views/AccountRequestStatusView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/mail-approval/action',
+    component: () => import('@/views/MailApprovalActionView.vue'),
     meta: { public: true }
   },
   {
@@ -69,6 +90,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'agent/skills',         component: AgentSkills, meta: { pageId: 'agent.skills' } },
       { path: 'agent/skill-create',   component: AgentSkillCreate, meta: { pageId: 'agent.skillCreate' } },
       { path: 'agent/permissions',    component: AgentPermissions, meta: { pageId: 'agent.permissions' } },
+      { path: 'agent/permissions/admin-cleanup-email', component: AdminCleanupEmailMock, meta: { pageId: 'agent.permissions' } },
 
       // 封板项目中的隐藏/详情/二级流程页：不进左导航，但需要支持 switchPage 内部跳转
       { path: 'hidden/dashboard/query',      component: NativeWorkbenchPage, meta: { pageId: 'dashboard.query' } },
@@ -102,7 +124,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const appStore = useAppStore()
 
-  if (to.path === '/login') {
+  if (to.path === '/login' || to.path === '/adfs-login') {
     if (appStore.user) return '/portal/home'
     const previewUser = localStorage.getItem('preview_user')
     if (allowPreviewAuth && previewUser) {
