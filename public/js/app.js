@@ -1843,7 +1843,7 @@ function openOrderDetail(orderId) {
               if (!r.ok) return;
               const d = await r.json();
               if (!d.pick || !d.reason) return;
-              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
+              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">乐享建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
               adviceEl.style.display = 'block';
               // 把 AI 最推荐那款整列高亮（区别于单项「优」）。按 pick 商品名匹配列 index
               const pick = String(d.pick || "").trim();
