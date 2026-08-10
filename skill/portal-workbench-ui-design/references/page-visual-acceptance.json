@@ -1,0 +1,3728 @@
+{
+  "schemaVersion": 1,
+  "baseline": "archived-0728-project+0728-content-slot",
+  "evidenceRole": "historical-reference-only",
+  "capturedAt": "2026-07-28T19:52:00+08:00",
+  "captureRuntime": "Vue dev preview via Chrome/Playwright",
+  "sourceProject": "lexiang-new-0728",
+  "environment": {
+    "frontend": "Vite development server",
+    "backend": "unavailable",
+    "backendEvidence": "Vite proxy requests returned ECONNREFUSED; pages rendered with preview or fallback data.",
+    "acceptanceBoundary": "These captures document the archived 0728 rendered UI only. They do not establish current 0803 acceptance or retroactive 0729 acceptance. Real API loading, empty, error, permission and mutation states were not verified."
+  },
+  "review": {
+    "reviewedAt": "2026-07-28T19:52:00+08:00",
+    "method": "Two-profile screenshot contact-sheet review plus browser-computed overflow measurements",
+    "reviewedCaptures": 68,
+    "reviewedPages": 34,
+    "summary": "Archived 0728 captures and 0729 project evidence are retained for historical comparison. All mapped 0803 pages are VA-0 until they are recaptured and reviewed against the current implementation; historical profile labels and measurements must not be presented as current acceptance."
+  },
+  "profiles": [
+    {
+      "id": "wide",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "agent": "closed"
+    },
+    {
+      "id": "squeezed",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "agent": "max"
+    }
+  ],
+  "statusDefinitions": {
+    "VA-0": "No current browser evidence.",
+    "VA-R1": "One current browser capture exists; responsive combinations not complete.",
+    "VA-R2": "Wide and squeezed current browser captures exist and overflow measurements pass; interaction and data-state acceptance remains.",
+    "VA-PASS": "Required screenshots, interactions, responsive combinations, data states, accessibility and engineering checks all pass.",
+    "VA-BLOCKED": "Acceptance cannot proceed; blocker and missing evidence are recorded.",
+    "VA-FAIL": "Current browser evidence contains a measurable failure."
+  },
+  "pages": [
+    {
+      "pageId": "portal.home",
+      "label": "首页 / 联想门户工作台",
+      "route": "/portal/home",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/portal-home--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 795
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1194,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/portal-home--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1307
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1351,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1056,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.overview",
+      "label": "乐享运营 / 运营总览",
+      "route": "/dashboard/overview",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-overview--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "运营总览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1595
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1639,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1698,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-overview--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "运营总览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 2862
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 2906,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1527,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "pipeline.annotate",
+      "label": "乐享运营 / Query 分析",
+      "route": "/pipeline/annotate",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-annotate--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Query 分析 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 3041
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 3085,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1117,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/pipeline-annotate--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "乐享运营 / Query 分析",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 725,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "pipeline.quality",
+      "label": "乐享运营 / 质量分析",
+      "route": "/pipeline/quality",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-quality--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "质量分析 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 4607
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 4651,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1874,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/pipeline-quality--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "乐享运营 / 质量分析",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 725,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "ops.traffic",
+      "label": "乐享运营 / 流量分析",
+      "route": "/ops/traffic",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/ops-traffic--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "流量分析 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1850
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1894,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1320,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/ops-traffic--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "乐享运营 / 流量分析",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 725,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "ops.gmv",
+      "label": "乐享运营 / GMV 分析",
+      "route": "/ops/gmv",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/ops-gmv--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "GMV 分析 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1222
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1266,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1047,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/ops-gmv--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "乐享运营 / GMV 分析",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 725,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.geo",
+      "label": "GEO / 整体数据概览",
+      "route": "/geo/overview",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geo--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "整体数据概览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1993
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 2037,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1592,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "GEO API error SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input\n    at geoPost (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:202:15)\n    at async geoLoadData (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:489:18)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geo--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "整体数据概览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 2645
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 2689,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1454,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "GEO API error SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input\n    at geoPost (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:202:15)\n    at async geoLoadData (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:489:18)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.geoSource",
+      "label": "GEO / 各平台信源分布",
+      "route": "/geo/source",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoSource--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "各平台信源分布 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 232
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 730,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "geoLoadSourcePage SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input\n    at geoPost (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:202:15)\n    at async geoLoadSourcePage (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:1212:18)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoSource--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "各平台信源分布 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 232
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 592,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "geoLoadSourcePage SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input\n    at geoPost (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:202:15)\n    at async geoLoadSourcePage (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:1212:18)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.geoIntent",
+      "label": "GEO / 各平台意图分布",
+      "route": "/geo/intent",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoIntent--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "各平台意图分布 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 442
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 730,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "geoLoadQuestions SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input\n    at geoPost (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:202:15)\n    at async geoLoadQuestions (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:1024:18)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoIntent--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "各平台意图分布 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 442
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 592,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "geoLoadQuestions SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input\n    at geoPost (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:202:15)\n    at async geoLoadQuestions (<local-preview>/admin-vue/admin-runtime/workbench-geo.js:1024:18)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.geoConversion",
+      "label": "GEO / GEO 转化看板",
+      "route": "/geo/conversion",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoConversion--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "GEO 转化看板 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 2665
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 2709,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 3207,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/geo-conversion--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "GEO / GEO 转化看板",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 725,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.geoKnowledge",
+      "label": "GEO / 手工上传知识",
+      "route": "/geo/knowledge",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoKnowledge--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "手工上传知识 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 457
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 767,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoKnowledge--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "手工上传知识 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 575
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 629,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "employee.overview",
+      "label": "在职员工 / 职场员工概览",
+      "route": "/employee/overview",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-overview--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "职场员工概览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1770
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1830,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 2623,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-overview--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "职场员工概览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 2047
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 2107,
+            "contentClientHeight": 844,
+            "visibleTextLength": 2499,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "employee.certification",
+      "label": "在职员工 / 职场员工审核",
+      "route": "/employee/cert",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-certification--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "职场员工审核 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1784
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1844,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 2066,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-certification--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "职场员工审核 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1933
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1993,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1928,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "lead.dashboard",
+      "label": "企业客户 / 线索看板",
+      "route": "/lead/dashboard",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-dashboard--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "线索看板 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 998
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1058,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 934,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/lead-dashboard--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "企业客户 / 线索看板",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 725,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "lead.pool",
+      "label": "企业客户 / 线索池",
+      "route": "/lead/pool",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-pool--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "线索池 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1407
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1467,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 3609,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-pool--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "线索池 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1503
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1563,
+            "contentClientHeight": 844,
+            "visibleTextLength": 3471,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "lead.score",
+      "label": "企业客户 / 打分模型",
+      "route": "/lead/score",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-score--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "打分模型 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 539
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 900,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-score--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "打分模型 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 539
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 762,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "agent.skills",
+      "label": "Agent / Skill Hub",
+      "route": "/agent/skills",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/agent-skills--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Skill Hub - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 887
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1804,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/agent-skills--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Skill Hub - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1095
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1139,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1666,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "agent.skillCreate",
+      "label": "Agent / Skill 创建",
+      "route": "/agent/skill-create",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/agent-skillCreate--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Skill 创建 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 992
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1036,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1184,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/agent-skillCreate--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Skill 创建 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 812
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 856,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1046,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "agent.permissions",
+      "label": "Agent / 权限管理",
+      "route": "/agent/permissions",
+      "scope": "visible",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/agent-permissions--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "联想门户工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 990
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1034,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1101,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/agent-permissions--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "联想门户工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 830
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 874,
+            "contentClientHeight": 844,
+            "visibleTextLength": 963,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.query",
+      "label": "Query 明细",
+      "route": "/hidden/dashboard/query",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-query--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Query 明细 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 596
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 739,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-query--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Query 明细 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 832
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 892,
+            "contentClientHeight": 844,
+            "visibleTextLength": 601,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "dashboard.behavior",
+      "label": "用户行为",
+      "route": "/hidden/dashboard/behavior",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-behavior--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "用户行为 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 760
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 941,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/dashboard-behavior--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "用户行为 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 996
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1056,
+            "contentClientHeight": 844,
+            "visibleTextLength": 803,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "ops.queryBiz",
+      "label": "Query 业务归因",
+      "route": "/hidden/ops/query-biz",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/ops-queryBiz--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Query 业务归因 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1454
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1498,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1059,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/ops-queryBiz--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "Query 业务归因 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1611
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1655,
+            "contentClientHeight": 844,
+            "visibleTextLength": 921,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "ops.keywords",
+      "label": "高频关键词",
+      "route": "/hidden/ops/keywords",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/ops-keywords--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "高频关键词 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 513
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 769,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/ops-keywords--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "高频关键词 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 605
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 631,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "pipeline.task",
+      "label": "标注任务",
+      "route": "/hidden/pipeline/task",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-task--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "标注任务 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 211
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 721,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-task--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "标注任务 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 211
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 583,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "pipeline.stats",
+      "label": "标注统计",
+      "route": "/hidden/pipeline/stats",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-stats--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "标注统计 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 231
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 670,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-stats--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "标注统计 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 231
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 532,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "pipeline.filter",
+      "label": "数据过滤",
+      "route": "/hidden/pipeline/filter",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-filter--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "数据过滤 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 166
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 703,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-filter--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "数据过滤 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 284
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 565,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "pipeline.monitor",
+      "label": "任务监控",
+      "route": "/hidden/pipeline/monitor",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-monitor--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "任务监控 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 901
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 790,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "Failed to load resource: the server responded with a status of 404 (Not Found)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/pipeline-monitor--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "任务监控 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1255
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1315,
+            "contentClientHeight": 844,
+            "visibleTextLength": 652,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+            "Failed to load resource: the server responded with a status of 404 (Not Found)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "employee.list",
+      "label": "员工列表",
+      "route": "/hidden/employee/list",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-list--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "员工列表 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 329
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 758,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-list--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "员工列表 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 361
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 620,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "employee.detail",
+      "label": "员工详情",
+      "route": "/hidden/employee/detail",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-detail--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "员工详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 175
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 625,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-detail--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "员工详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 175
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 487,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "employee.cert-detail",
+      "label": "认证详情",
+      "route": "/hidden/employee/cert-detail",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-cert-detail--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "认证详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 175
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 625,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/employee-cert-detail--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "认证详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 175
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 487,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "lead.detail",
+      "label": "线索详情",
+      "route": "/hidden/lead/detail",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-detail--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "线索详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 159
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1024,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 620,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/lead-detail--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "线索详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 159
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 844,
+            "contentClientHeight": 844,
+            "visibleTextLength": 482,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "report.overview",
+      "label": "报告总览",
+      "route": "/hidden/report/overview",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/report-overview--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "报告总览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1202
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1262,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1234,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/report-overview--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "报告总览 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1377
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1437,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1096,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "report.quality",
+      "label": "质量报告",
+      "route": "/hidden/report/quality",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/report-quality--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "质量报告 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1734
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1794,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 1904,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/report-quality--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "质量报告 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1836
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1896,
+            "contentClientHeight": 844,
+            "visibleTextLength": 1766,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    },
+    {
+      "pageId": "report.detail",
+      "label": "报告详情",
+      "route": "/hidden/report/detail",
+      "scope": "hidden",
+      "visualStatus": "VA-0",
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-27/report-detail--wide.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "报告详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 168,
+              "height": 1080
+            },
+            "agent": {
+              "x": 1540,
+              "y": 0,
+              "width": 380,
+              "height": 1080
+            },
+            "pageContent": {
+              "x": 168,
+              "y": 56,
+              "width": 1372,
+              "height": 1024
+            },
+            "pageRoot": {
+              "x": 196,
+              "y": 76,
+              "width": 1316,
+              "height": 1455
+            },
+            "contentInnerWidth": 1316,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1515,
+            "contentClientHeight": 1024,
+            "visibleTextLength": 759,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-27/report-detail--squeezed.jpg",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "报告详情 - 乐享 AI 工作台",
+            "sidebar": {
+              "x": 0,
+              "y": 0,
+              "width": 58,
+              "height": 900
+            },
+            "agent": {
+              "x": 788,
+              "y": 0,
+              "width": 492,
+              "height": 900
+            },
+            "pageContent": {
+              "x": 58,
+              "y": 56,
+              "width": 730,
+              "height": 844
+            },
+            "pageRoot": {
+              "x": 74,
+              "y": 76,
+              "width": 698,
+              "height": 1543
+            },
+            "contentInnerWidth": 698,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "contentScrollHeight": 1603,
+            "contentClientHeight": 844,
+            "visibleTextLength": 621,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "verifiedStates": [
+        "initial-render",
+        "wide-agent-closed",
+        "1280-agent-max"
+      ],
+      "remainingStates": [
+        "loading",
+        "empty",
+        "error",
+        "no-permission",
+        "interactive-keyboard"
+      ]
+    }
+  ],
+  "supersededEvidence": [
+    {
+      "screenshot": "references/visual-evidence/2026-07-27/pipeline-annotate--squeezed.jpg",
+      "status": "VA-FAIL",
+      "reason": "Replaced on 2026-07-28 after Agent resize reflow repair."
+    },
+    {
+      "screenshot": "references/visual-evidence/2026-07-27/pipeline-quality--squeezed.jpg",
+      "status": "VA-FAIL",
+      "reason": "Replaced on 2026-07-28 after Agent resize reflow repair."
+    },
+    {
+      "screenshot": "references/visual-evidence/2026-07-27/ops-traffic--squeezed.jpg",
+      "status": "VA-FAIL",
+      "reason": "Replaced on 2026-07-28 after chart ResizeObserver repair."
+    },
+    {
+      "screenshot": "references/visual-evidence/2026-07-27/ops-gmv--squeezed.jpg",
+      "status": "VA-FAIL",
+      "reason": "Replaced on 2026-07-28 after chart ResizeObserver repair."
+    },
+    {
+      "screenshot": "references/visual-evidence/2026-07-27/dashboard-geoConversion--squeezed.jpg",
+      "status": "VA-FAIL",
+      "reason": "Replaced on 2026-07-28 after content-container reflow repair."
+    },
+    {
+      "screenshot": "references/visual-evidence/2026-07-27/lead-dashboard--squeezed.jpg",
+      "status": "VA-FAIL",
+      "reason": "Replaced on 2026-07-28 after Agent resize reflow repair."
+    }
+  ],
+  "dynamicPages": [
+    {
+      "pageId": "ai.dynamic-report",
+      "label": "AI 动态报告",
+      "scope": "dynamic",
+      "visualStatus": "VA-0",
+      "requiredStates": [
+        "short-payload",
+        "long-payload",
+        "empty",
+        "failure"
+      ],
+      "verifiedStates": [
+        "stable-demo-payload",
+        "temporary-tab",
+        "wide-agent-closed",
+        "1280-agent-max",
+        "close-return"
+      ],
+      "remainingStates": [
+        "long-payload",
+        "empty",
+        "failure",
+        "interactive-keyboard"
+      ],
+      "captures": [
+        {
+          "profileId": "wide",
+          "screenshot": "references/visual-evidence/2026-07-28/ai-dynamic-report--wide.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "质量分析 · 数据解读报告",
+            "sidebar": {
+              "width": 168
+            },
+            "agent": {
+              "width": 0
+            },
+            "contentInnerWidth": 1560,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        },
+        {
+          "profileId": "squeezed",
+          "screenshot": "references/visual-evidence/2026-07-28/ai-dynamic-report--squeezed.png",
+          "httpStatus": 200,
+          "metrics": {
+            "title": "质量分析 · 数据解读报告",
+            "sidebar": {
+              "width": 58
+            },
+            "agent": {
+              "width": 492
+            },
+            "contentInnerWidth": 731,
+            "pageContentOverflowX": 0,
+            "documentOverflowX": 0,
+            "isLogin": false,
+            "isWip": false
+          },
+          "consoleErrors": [],
+          "pageErrors": []
+        }
+      ]
+    }
+  ]
+}
