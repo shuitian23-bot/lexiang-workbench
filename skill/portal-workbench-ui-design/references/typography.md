@@ -6,7 +6,7 @@
 |---|---|---|
 | 标题 | `"Source Han Sans CN", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif` | 中文后台标题，清晰克制 |
 | 正文 / 界面 | `"Source Han Sans CN", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif` | 表单、表格、导航、按钮 |
-| 等宽内容 | `"JetBrains Mono", "SF Mono", ui-monospace, monospace` | ID、Key、哈希、日志、JSON、数字 |
+| 等宽内容 | `"JetBrains Mono", "SF Mono", ui-monospace, monospace` | ID、Key、哈希、日志、JSON、数字；JetBrains Mono 可用时优先，但不是强依赖 |
 
 > 说明：本 Skill 随包提供思源黑体文件供 HTML POC 和静态原型使用；业务工程生产接入仍需确认授权与加载方式。
 
@@ -39,7 +39,7 @@
 
 - 页面标题使用 `--text-xl` + `--fw-semibold`。
 - 表格、表单、按钮默认 `--text-sm`。
-- 关键指标数字使用 `--text-3xl` + 等宽字体。
+- 关键指标数字可使用 `--text-3xl` + 当前等宽回退栈；首选字体缺失时不得改变布局或阻塞页面。
 - ID、Key、哈希、数字列、日志和 JSON 使用等宽字体。
 - 中文界面保持短句，避免一行过长；说明文字优先控制在一行到两行。
 - 中英文之间留一个空格；英文专有名词保持官方写法：GPU、API、JSON、Token、URL。

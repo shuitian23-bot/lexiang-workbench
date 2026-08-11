@@ -14,20 +14,22 @@
 
 | 文件 | 说明 | 推荐场景 |
 |---|---|---|
-| `assets/logos/lenovo-logo-red-h.png` | 红底横版品牌主标 | 品牌露出、封面、较强品牌展示 |
-| `assets/logos/lenovo-logo-black-h.png` | 黑色横版 | 浅色背景、后台侧栏顶部、普通品牌露出 |
-| `assets/logos/lenovo-logo-1color-h.png` | 单色横版 | 受限色彩场景 |
-| `assets/logos/lenovo-logo-rev-h.png` | 反白横版 | 深色背景、深色模式顶栏 / 侧栏 |
-| `assets/logos/lenovo-logo-rev-v.png` | 反白竖版 | 竖向排布、窄栏特殊场景 |
-| `assets/logos/lenovo-logo-small.jpg` | 紧凑小标 | 侧栏收起态、favicon 级场景 |
+| `assets/logos/LenovoLogo-Chinese_POS-Red-H.png` | 红底横版品牌主标，1600×321 | 品牌露出、封面、较强品牌展示 |
+| `assets/logos/LenovoLogo-Chinese_POS-Black-H.png` | 黑色横版，1600×321 | 浅色背景的 Lenovo 品牌露出 |
+| `assets/logos/LenovoLogo-Chinese_POS-1Color-H.png` | 单色横版，1600×321 | 受限色彩场景 |
+| `assets/logos/LenovoLogo-Chinese_REV-1Color-H.png` | 反白横版，1600×321 | 局部深色承载背景；未来明确恢复深色主题后使用 |
+| `assets/logo-full.png` | 乐享工作台产品横版锁定标，702×144 | 当前展开侧栏和产品级品牌露出 |
+| `assets/logo-icon.png` | 乐享工作台产品图标，64×64 | 当前收起侧栏和紧凑产品入口 |
+| `assets/logos/LenovoLogo-w.jpg` | Lenovo 方形紧凑标，200×200 | Lenovo 品牌独立小尺寸场景，不替代产品图标 |
 
 ### 1.3 使用规则
 
 - Logo 不可变色、不可拉伸、不可裁切、不可加描边、不可重排。
-- 背景必须保持足够对比度；浅底优先黑色 / 红色横版，深底优先反白版。
-- 侧栏展开态使用横版 Logo；侧栏收起态使用紧凑小标。
+- 背景必须保持足够对比度；浅底优先黑色 / 红色横版，深底优先反白横版。
+- 当前侧栏展开态使用 `assets/logo-full.png`；收起态使用 `assets/logo-icon.png`。
 - Logo 周围保留安全区，不贴边、不与导航文字混排过近。
 - 不要把 Logo 当作按钮、状态图标或装饰纹理使用。
+- 随包没有竖版 Logo；竖向场景先登记缺口，不得旋转、裁切或虚构资产路径。
 
 ## 2. 品牌色与 UI 主色关系
 
@@ -50,11 +52,11 @@
 | 侧栏收起 | 使用紧凑小标，居中展示 |
 | 顶栏 | 不重复大 Logo，可放产品名 / 面包屑 |
 | 登录 / 空状态 | 可适度增强品牌露出 |
-| 深色模式 | Logo 不变色，调整承载背景或切换反白版本 |
+| 局部深色承载面 | Logo 不变色，按背景对比度切换反白版本；当前发布不据此启用全局深色主题 |
 
 ## 4. 禁止事项
 
 - 不要重新绘制 Lenovo Logo。
 - 不要使用未经登记的品牌变体。
-- 不要为了适配深色模式而给 Logo 临时加滤镜。
+- 不要为了适配局部深色背景或未来深色主题而给 Logo 临时加滤镜。
 - 不要把 Logo 红作为错误色、警告色或状态色混用。

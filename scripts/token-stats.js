@@ -6,11 +6,10 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const DIR = process.env.CLAUDE_PROJECTS_DIR;
+const DIR = '/home/baiyu/.claude/projects/-opt';
 const since = new Date(process.argv[2]).getTime();
 const until = new Date(process.argv[3] || Date.now()).getTime();
 if (!since) { console.error('usage: token-stats.js <since> [until]'); process.exit(1); }
-if (!DIR) { console.error('CLAUDE_PROJECTS_DIR is required'); process.exit(1); }
 
 (async () => {
   const perMsg = new Map(); // msgId -> max output_tokens（流式多快照取最大）

@@ -1,7 +1,7 @@
 /* ============================================================
    base.css —— 乐享 AI 工作台 POC 统一样式
    实现 references/ 下的设计 token 与组件规范。
-   浅色主题在 :root；深色主题在 [data-theme="dark"]。
+   当前发布只使用 :root 浅色；[data-theme="dark"] 仅保留为未来明确恢复主题能力时的基线。
    ============================================================ */
 
 @font-face{font-family:"Source Han Sans CN";font-weight:400;font-display:swap;
@@ -84,8 +84,11 @@
   --icon-sm:16px; --icon-md:18px; --icon-lg:20px;
 
   /* —— 布局 —— */
-  --header-height:48px; --sidebar-width:168px; --sidebar-width-collapsed:56px; --ai-panel-width:380px;
+  --header-height:56px; --sidebar-width:168px; --sidebar-width-collapsed:58px; --ai-panel-width:380px; --ai-panel-width-max:492px;
   --content-max:1440px; --content-padding:24px; --min-app-width:1280px;
+  --breakpoint-ai-drawer:1279px; --breakpoint-mobile-shell:760px;
+  --ai-shortcut-arrow-size:24px; --ai-input-min-height:36px; --ai-input-max-height:76px;
+  --composer-send-size:32px; --composer-send-radius:10px; --composer-icon-size:15px;
 
   /* —— 圆角 —— */
   --radius-sm:4px; --radius-md:8px; --radius-lg:12px; --radius-full:9999px;
@@ -147,8 +150,8 @@
   --color-text-tertiary:#8F959E;
   --color-danger:#E2001A;
   --sidebar-width:168px;
-  --sidebar-width-collapsed:56px;
-  --header-height:48px;
+  --sidebar-width-collapsed:58px;
+  --header-height:56px;
   --content-padding:24px;
   --radius-md:8px;
   --radius-lg:12px;
@@ -354,14 +357,26 @@ button,input,select,textarea{font:inherit;letter-spacing:0;font-stretch:normal;}
 .ai-empty__card strong{font-size:13px;color:var(--color-text);}
 .ai-empty__card em{margin-top:3px;font-size:11px;color:var(--color-text-tertiary);}
 .ai-panel__input{padding:10px var(--ai-panel-gutter) 12px;border-top:1px solid var(--color-border-subtle);}
-.ai-input-combo{overflow:hidden;border:1px solid var(--color-border);border-radius:12px;background:var(--color-surface-subtle);box-shadow:var(--shadow-xs);}
+.ai-input-combo{overflow:hidden;border:1px solid var(--color-border);border-radius:12px;background:var(--color-surface-subtle);box-shadow:var(--shadow-xs);transition:border-color .14s ease,box-shadow .14s ease;}
+.ai-input-combo:focus-within{border-color:var(--color-primary-border);box-shadow:var(--focus-ring);}
 .ai-scope-row{min-height:38px;padding:6px 7px;display:flex;align-items:center;gap:4px;border-bottom:.5px solid var(--color-border-subtle);}
-.ai-scope-list{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;}
+.ai-scope-list,.ai-shortcuts{min-width:0;display:flex;gap:6px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;}
 .ai-scope-list::-webkit-scrollbar{display:none;}
-.ai-scope-pill{height:24px;padding:0 10px;border:1px solid var(--color-border-subtle);border-radius:var(--radius-full);background:var(--color-surface);color:var(--color-text-secondary);font-size:12px;font-weight:400;}
-.ai-scope-pill.is-active{border-color:transparent;background:var(--color-primary-subtle);color:var(--color-primary);font-weight:500;}
-.ai-composer-row{min-height:46px;padding:5px;display:flex;align-items:flex-end;gap:8px;}
-.ai-composer-row textarea{flex:1;min-height:36px;border:0;background:transparent;resize:none;}
+.ai-shortcuts::-webkit-scrollbar{display:none;}
+.ai-scope-pill,.ai-shortcut{height:24px;padding:0 10px;border:1px solid var(--color-border-subtle);border-radius:var(--radius-full);background:var(--color-surface);color:var(--color-text-secondary);font-size:12px;font-weight:400;white-space:nowrap;}
+.ai-scope-pill.is-active,.ai-shortcut.active,.ai-shortcut[aria-selected="true"]{border-color:transparent;background:var(--color-primary-subtle);color:var(--color-primary);font-weight:500;}
+.ai-scope-arrow{inline-size:var(--ai-shortcut-arrow-size);block-size:var(--ai-shortcut-arrow-size);flex:0 0 var(--ai-shortcut-arrow-size);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-border-subtle);border-radius:var(--radius-full);background:var(--color-surface);color:var(--color-text-secondary);}
+.ai-scope-arrow:disabled{opacity:.45;cursor:default;}
+.ai-scope-select{display:none!important;}
+.ai-composer-row{min-height:46px;padding:5px;display:flex;align-items:flex-end;gap:8px;background:var(--color-surface);}
+.ai-composer-row textarea,.ai-input{flex:1;min-height:var(--ai-input-min-height);max-height:var(--ai-input-max-height);border:0;background:transparent;color:var(--color-text);caret-color:var(--color-primary);resize:none;overflow-y:hidden;}
+.ai-composer-row textarea::placeholder,.ai-input::placeholder{color:var(--color-text-tertiary);opacity:1;}
+.ai-composer-row textarea:disabled,.ai-input:disabled{color:var(--color-text-disabled);cursor:not-allowed;}
+.ai-composer-row textarea.is-scrollable,.ai-input.is-scrollable{overflow-y:auto;}
+.ai-send{inline-size:var(--composer-send-size);block-size:var(--composer-send-size);min-inline-size:var(--composer-send-size);flex:0 0 var(--composer-send-size);display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--composer-send-radius);background:#EEF1F5;color:#A8B0BC;box-shadow:none;}
+.ai-send::before{content:none!important;display:none!important;}
+.ai-send svg{inline-size:var(--composer-icon-size);block-size:var(--composer-icon-size);stroke-width:1.9;}
+.ai-send:not(:disabled):not([aria-disabled="true"]){background:linear-gradient(135deg,var(--color-primary),var(--color-primary-hover));color:var(--color-on-primary);box-shadow:0 6px 14px rgba(51,112,255,.22);}
 .grid-2>.card,.grid-3>.card,.grid-4>.card{
   height:100%;margin-top:0;margin-bottom:0;display:flex;flex-direction:column;
 }
@@ -601,8 +616,9 @@ table.tbl{width:100%;border-collapse:collapse;font-size:var(--text-sm);}
 .tbl thead th{background:var(--color-bg-muted);text-align:left;font-weight:var(--fw-medium);
   font-size:var(--text-xs);color:var(--color-text-secondary);padding:var(--space-2) var(--space-3);
   height:var(--control-height-md);white-space:nowrap;}
-.tbl tbody td{padding:var(--space-2) var(--space-3);height:var(--row-height-compact);
+.tbl tbody td{padding:var(--space-2) var(--space-3);height:var(--row-height-default);
   border-top:var(--border-width) solid var(--color-border-subtle);color:var(--color-text);}
+.tbl--compact tbody td{height:var(--row-height-compact);}
 .tbl tbody tr:hover{background:var(--color-bg-subtle);}
 .tbl .num,.tbl .mono{font-family:var(--font-mono);text-align:right;}
 .tbl .col-actions{text-align:right;}
@@ -738,7 +754,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:var(--text-sm);}
 }
 [data-product="leaibot"] .agent-skill-card-badge{flex:0 0 auto;}
 
-/* ============ AI 临时报告页签 ============ */
+/* ============ AI 动态报告页签 ============ */
 [data-product="leaibot"] .workspace-tabs{
   min-height:54px;padding:0 clamp(16px,1.2vw,24px);display:flex;align-items:flex-end;gap:16px;
   border-bottom:1px solid rgba(221,225,230,.72);background:rgba(255,255,255,.86);overflow-x:auto;
@@ -853,3 +869,21 @@ table.tbl{width:100%;border-collapse:collapse;font-size:var(--text-sm);}
 [data-product="leaibot"] .ai-flow-bridge.is-risk{color:#f05a12;}
 [data-product="leaibot"] .ai-insight-card .ai-answer-actions{display:grid;grid-template-columns:minmax(116px,1.3fr) minmax(80px,.86fr) minmax(76px,.78fr);gap:8px;margin-top:6px;}
 [data-product="leaibot"] .ai-insight-card .ai-answer-actions button{min-height:38px;padding:0 9px;border-radius:10px;font-size:13px;font-weight:800;white-space:nowrap;}
+
+@media (max-width:1279px){
+  html,body{min-width:0;max-width:100vw;overflow-x:hidden;}
+  .app{min-width:0;max-width:100vw;overflow-x:hidden;}
+  .main,.content,.page-content{min-width:0;}
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .ai-panel{position:fixed;inset:0 0 0 auto;z-index:var(--z-overlay);inline-size:var(--ai-panel-width);max-inline-size:100vw;}
+}
+
+@media (max-width:760px){
+  .sidebar{inline-size:var(--sidebar-width-collapsed);flex-basis:var(--sidebar-width-collapsed);}
+  .sidebar__logo{justify-content:center;padding-inline:0;}
+  .sidebar__logo :not(.dot),.nav-item span:not(.ico){display:none;}
+  .content,.page-content{padding-inline:16px;}
+  .grid-4{grid-template-columns:1fr;}
+  .ai-panel{inline-size:100vw;}
+}

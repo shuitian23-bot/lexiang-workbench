@@ -1,8 +1,39 @@
-# Leaibot Admin UI 当前项目主规范
+# Leaibot Admin UI 历史吸收参考
 
-本文件是 `ai-admin-ui-design` 的当前项目主规范。设计或实现 **联想乐享 / 乐享 AI 工作台 / Leaibot**
-后台页面时必须先读取本文件；本文件中的产品规则优先于其他 reference。未覆盖的细节再使用
-`design-tokens.md`、`layout-grid.md`、`components.md`、`table-patterns.md` 等基础规范。
+本文件保留早期已确认视觉和交互的追溯证据，不再是默认当前入口。正常设计与实现先读取根 `SKILL.md`、`style-contract.md`、`content-slot-design-contract.md` 和任务对应专项；只有明确追溯历史或当前合同缺少证据时才读取本文件。历史日期段（包括 0729）不能覆盖当前 0803 Vue 源码和 0803 合同。
+
+## 目录
+
+1. Vue 架构吸收说明
+2. Design Positioning 与 Visual DNA
+3. Layout Rules
+4. 历史 Implementation / Verified Refinements
+5. 当前可复用 Page Composition 与 Component Rules
+6. Interaction States、Responsive、Do / Do Not
+
+## Vue Architecture Absorbed Evidence
+
+The active design and implementation baseline is the 0803 Vue project; 0729 is retained only as inherited historical and non-regression evidence:
+
+```text
+<app-root>
+```
+
+The earlier static-version and 0729 visual and interaction language has been absorbed into this 0803 skill. New work should treat the 0803 Vue project as the current baseline:
+
+- The workbench shell is implemented by Vue components, Pinia stores, Vue Router, composables, services, and typed adapters.
+- Sidebar, topbar, static tabs, dynamic tabs, and the right AI assistant are no longer treated as static `workbench.html` DOM.
+- The middle business pages remain in a transitional legacy content slot until explicitly migrated.
+- `legacyWorkbenchRuntime` is the only intended bridge to old page renderers.
+- New shell features must not add new global `window.*` APIs, global `innerHTML` rendering, or scattered DOM side effects.
+- The production implementation must keep strict TypeScript and pass `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `pnpm smoke:shell`.
+- Auth now has explicit runtime modes: development preview and production server auth. Designs should not assume automatic production demo fallback.
+
+Design impact:
+
+- All current shell visual rules must map to Vue components and typed state.
+- Any new reusable UI pattern should be judged as a Vue component candidate only when it has real reuse or interaction risk.
+- Business-page migration must classify high-reuse modules before extracting components; single-use page-specific blocks may stay local.
 
 ## Design Positioning
 
@@ -45,15 +76,15 @@ Typography:
 ## Layout Rules
 
 Use a three-column admin shell:
-- Left sidebar: `168px`; collapsed: `56px`.
-- Topbar: `48px` high, with breadcrumb left and search/actions right.
+- Left sidebar: `168px`; collapsed: `58px`.
+- Topbar: `56px` high, with breadcrumb + static tabs left and AI action right. Current 0803 Vue portal workbench hides the global search and dark/light theme toggle by default. When the theme toggle is hidden, the runtime must force light mode and clear/ignore persisted dark-mode storage.
 - Main content: flex column, gray background, scrollable content area.
 - Page padding: `20px 24px`.
-- Right AI panel: closed width `0`; open width `380px` by default, with a resize handle that can expand to about `492px`.
+- Right AI panel: closed width `0`; open width `380px` by default, with a resize handle that can expand to about `492px`. The closed state must not keep a visible/offscreen interactive panel, border, or layout width.
 
 When the AI panel is open, reduce visual density gracefully:
 - KPI grid may become two columns.
-- Avoid horizontal overflow.
+- Avoid horizontal overflow; opening the AI panel must not create page-level horizontal scrolling.
 - Keep the AI panel fixed and independent from the main content scroll.
 
 Do not create landing-page heroes, decorative gradients, floating orb backgrounds, or oversized marketing sections. First screen must be the usable workbench.
@@ -92,12 +123,12 @@ The following rules are mandatory for the current Leaibot admin project and futu
 
 - Keep the overall style light and white, with primary blue as the main accent.
 - Use simple auxiliary colors only to reduce monotony: green for positive/active, orange for warning or secondary category, purple for advanced/GMV/AI-related category, red only for brand/danger.
-- Keep every center-content top primary metric block consistent across all modules: fixed four very-light gradient surfaces in order (pale blue, pale cyan, pale red, pale purple), thin border, subtle shadow, and clear text hierarchy. This applies to operations, GEO, employee, lead/customer, search, risk, data query, quality, report, and PRD pages. Lower chain steps, breakdown tiles, tables, chart containers, filters, pending placeholders, and large panels stay white.
+- Keep every center-content top primary metric block consistent across all current modules: fixed four very-light gradient surfaces in order (pale blue, pale cyan, pale indigo, pale purple), thin border, subtle shadow, and clear text hierarchy. This applies to operations, GEO, employee, lead/customer, data query, quality, report, and PRD pages. Lower chain steps, breakdown tiles, tables, chart containers, filters, pending placeholders, and large panels stay white.
 - Do not use decorative semicircle blobs, corner dots, orb/bokeh backgrounds, repeated left-line accents, top accent bars, or repeated label dots on every color block. If many cards repeat the same accent structure, reduce the decoration.
 - For top overview KPI rows, use the fixed four-color light-gradient information palette with clear typography and subtle dividers. Use semantic colors only for deltas, status text, tags, or charts, not as saturated card background washes.
 - Avoid making all KPI cards the same saturated green, blue, or red panel. Saturated fills are reserved for rare highlighted status summaries, not normal dashboard comparisons.
 - Prefer coordinated light-gradient metric cards and white content containers over saturated panels.
-- Charts use a unified medium-low saturation palette with stronger category distinction than the previous muted set. Prefer a single sequential scale for ranked/level data, or the coordinated `--chart-*` categorical palette for categories. Do not mix saturated primary red/blue/green/yellow blocks in ordinary classification charts; reserve strong red for real warning, failure, or risk states.
+- Charts use the 0702 Operations Overview and Query Analysis palette: medium-low saturation, blue/green/purple-led, richer than the old muted set but still calm. Prefer a single sequential scale for ranked/level data, or the coordinated `--chart-*` categorical palette for categories. Do not mix saturated primary red/blue/green/yellow blocks in ordinary classification charts; reserve strong red for real warning, failure, or risk states.
 - When updating the local preview, apply these rules to the shared center workspace and final override CSS, not to a single page selector. A fix that only changes “乐享运营” is incomplete. If demo modules contain inline gradients or inline chart colors, the final override layer and chart palette bridge must beat or map those inline values too.
 
 ### Icons, Buttons, and Typography Integrity
@@ -137,11 +168,14 @@ The following rules are mandatory for the current Leaibot admin project and futu
 
 - Default right AI assistant width is `380px`; resizing may expand it to about `492px`, but the lower bound should remain `380px`.
 - The topbar AI assistant switch opens the panel. When the panel is open, hide this topbar switch and let the panel header become the active AI assistant surface.
-- Closing the panel from its header must restore the topbar AI assistant switch.
+- Closing the panel from its header must restore the topbar AI assistant switch, remove `body.ai-open`, persist the closed state, and return the panel to `0px` layout width.
 - Panel header: avatar / online status + `AI 助手` title + current attention pill on the left; 4 icon-only actions on the right: 管理技能, 新开会话, 历史对话, 收起 AI 助手.
 - Page shortcut tags belong near the input composer, not under the panel header. Place them above the input row so they support the next command directly.
-- Shortcut/scope tags remain flat, compact, and scan-friendly: single-line pill row with horizontal scroll and arrow controls on desktop; narrow screens degrade to a select.
+- Shortcut/scope tags remain flat, compact, and scan-friendly: single-line pill row with horizontal scroll and `24px` round arrow controls in all widths and after AI panel collapse/expand/resize; do not degrade to a select for the current 0803 Vue workbench.
+- Shortcut/scope tags have no default selected pill. They become active only after click / keyboard activation. Query tags send their query; function tags open the matching modal, drawer, or page entry.
 - The input composer uses a grouped container: scope tags above, attachment + textarea + send button below. The tag row must not push messages into an unusable area.
+- The textarea starts at `36px`, auto-grows until 3 lines (`75-76px`), then scrolls internally while keeping the caret at the last line. Empty input returns to the default height.
+- The send button is one icon-only square control in both themes: `32x32px`, `10px` radius, one `15px` SVG. Do not combine an inline SVG with a pseudo-element icon.
 - Header refresh/new-conversation, close, attachment, and send actions should use the same icon-only button treatment and tooltip behavior as the topbar.
 
 ## 2026-06-07 Verified UI Refinements
@@ -164,7 +198,7 @@ These refinements were implemented and verified in the local Leaibot workbench. 
 
 ### Top Metric Cards
 
-- Top metric cards use the shared four very-light `135deg` information gradients: pale blue, pale cyan, pale red, and pale purple, with thin border, subtle shadow, and clear label/value/subtext hierarchy.
+- Top metric cards use the shared four very-light `135deg` information gradients: pale blue, pale cyan, pale indigo, and pale purple, with thin border, subtle shadow, and clear label/value/subtext hierarchy.
 - Do not use saturated semantic gradient washes, repeated label dots, left accent lines, or top accent bars for KPI cards.
 - Semantic colors may appear in delta text, status tags, chart legends, or rare inline markers only when they communicate state.
 - The card should read as a calm light-gradient information card using the fixed four-color cycle. Avoid saturated panels and repeated decorative accents unless the page explicitly needs a strong summary state.
@@ -183,10 +217,11 @@ These refinements were implemented and verified in the local Leaibot workbench. 
 
 ### Brand And Sidebar
 
-- Expanded brand area shows the red 联想乐享 logo plus a neutral `工作台` pill. The pill uses secondary gray background, thin border, secondary gray text, `11px`, `500` weight, and full pill radius. It must not use blue or compete with Lenovo red.
+- Expanded brand area shows only the red `联想乐享` full logo. Do not show a `工作台` pill/tag or any other secondary brand tag in the sidebar header.
+- Confirmed 0707 brand header dimensions: expanded sidebar `168px`, header `56px`, full logo about `112x23px`, expanded collapse button `28x28px` with about `3px` spacing from the logo lockup. Collapsed sidebar remains `58px`, icon mark `36x36px`, and rail handle `24x24px`.
 - Sidebar collapsed state shows a centered brand icon as an independent white rounded mark with thin border and light shadow.
 - Sidebar expand/collapse control in collapsed state is a small round rail handle positioned on the right edge of the sidebar, not squeezed beside the logo. Use white background, subtle border, light shadow, and primary wash on hover.
-- Navigation icon style remains unified linear icons. Parent directory order is: 乐享运营, GEO 看板, 在职员工管理, 企业客户管理, 搜索后台, 风控管理.
+- Navigation icon style remains unified linear icons. Parent directory order is: 乐享运营, GEO 看板, 在职员工管理, 企业客户管理.
 
 ### AI Assistant Panel
 
@@ -195,19 +230,63 @@ These refinements were implemented and verified in the local Leaibot workbench. 
 - Header title must not collide with four icon actions. Use avatar + title `AI 助手` + short subtitle such as `运营协助`; truncate if needed. Icon actions are compact square/rounded buttons with consistent hover.
 - Empty welcome copy is regular weight, not bold. It may be informative but should feel like guidance, not a heading.
 - Recommended question cards are compact, regular weight, around `58-61px` high, with small linear icons, normal text weight, and `10px` vertical spacing. Do not bold card title or subtitle.
-- Bottom input composer is a grouped component: one rounded border container with scope tags on top and input row below, separated by a 0.5px divider. Keep left attachment, middle multi-line textarea, and right primary square send button aligned.
-- Empty send button is disabled/gray; non-empty send uses primary blue. Enter sends, Shift+Enter creates a new line.
-- Scope tags are single-line pills with horizontal scroll and left/right arrow controls on desktop; on narrow widths, degrade to a select. Selected scope updates the placeholder such as `在「知识库」中查询...`.
+- Bottom input composer is a grouped component: one rounded border container with scope tags on top and input row below, separated by a 0.5px divider. Keep left attachment, middle auto-growing textarea, and right primary square send button aligned.
+- Empty send button is disabled/gray; non-empty send uses primary blue. Geometry is theme-independent. Enter sends, Shift+Enter creates a new line.
+- Scope tags are single-line pills with horizontal scroll and left/right round arrow controls in desktop and constrained widths. Do not switch the current 0803 Vue implementation to select. No pill is selected by default; selected scope updates the placeholder such as `在「知识库」中查询...`.
+
+### 2026-06-25 Workbench Interaction Refinements
+
+- The 0803 Vue project is the active baseline. The 0729 project and earlier sealed interaction rules are retained here only as historical non-regression evidence already absorbed into the current Vue version; do not merge new work back into historical folders unless the user explicitly asks.
+- Left sidebar auto-collapse threshold is `<=1320px`; auto-expand threshold is `>=1480px`. If a user manually expands after auto-collapse, keep it expanded until browser resize triggers a fresh rule check.
+- Static tabs are opened from left navigation and are combined with breadcrumb. Dynamic tabs are opened from AI report cards, links, and HTML previews. They are separate surfaces and each type has a `10` tab limit.
+- Dynamic tabs use a `48px` row and `36px` tab height, with compact titles and no visible “AI 结果” label.
+- Agent responses support queueing: while answering, the user can type and send again; queued messages are shown above the composer and enter the conversation one by one after the current answer.
+- Empty input during an Agent answer turns the send button into a stop button.
+- Agent waiting state is not a message bubble. It is a transparent one-line status with an activity dot and three dots; no background, border, radius, or shadow.
+
+### 2026-06-23 AI Composer and Responsive Shell Refinements
+
+- Historical note: the historical local project, including the 0729 release, was the baseline for its earlier iteration. For current work, use the 0803 Vue project and this skill as the active baseline.
+- Current portal workbench hides the topbar search field by default. Keep related DOM when legacy scripts still depend on it, but hide the wrapper and avoid showing an empty command input in the topbar.
+- Below `1280px`, the application must not create page-level horizontal scrolling. Center content uses `min-width:0` and responsive grid fallback; AI uses a fixed right drawer at `380px`; below `760px`, the sidebar collapses and the AI drawer may occupy the full viewport width.
+- Shell resize order is a product interaction contract, not a page-by-page accident: normal pages and Skill 创建 must first compress the middle content slot and internal grids, then let the left sidebar auto-collapse, then constrain the right Agent panel. Page internals must not clip before the sidebar collapse step.
+- Complex two-column pages, especially Skill 创建 / 需求澄清, must avoid rigid inner minimums such as `grid-template-columns: 300px minmax(720px,1fr)` or `280px minmax(640px,1fr)` when the page sits inside the workbench shell. Use a flexible left column such as `clamp(220px, 26%, 300px)`, a right column `minmax(0,1fr)`, `min-width:0` on all grid/flex children, and a single-column fallback at constrained widths.
+- AI bottom tags keep arrow + pill styling before and after panel collapse/expand. Arrows remain present and disabled at scroll edges instead of disappearing.
+- AI composer auto-resize, no-default-tag-selection, functional tag click behavior, and single-icon send button are now part of the base component contract, not page-specific fixes.
 
 ### Chart and Table Pairing
 
 - Chart containers need stable dimensions and must resize after CSS/layout changes.
 - Chart colors must come from `--chart-*`, `--chart-seq-*`, or explicit semantic chart tokens such as `--chart-danger`; keep the same category/level mapped to the same color across all charts.
+- Use Operations Overview and Query Analysis as the canonical chart visual baseline:
+  - Core category palette: `#3f78c5`, `#58a86a`, `#7c5cff`, `#5b8def`, `#6ac69a`, `#9bbcff`, `#8da2bf`, `#d6a458`, `#aeb8c8`.
+  - Extended adjacent tones are allowed when a chart needs more categories, but they must stay in the same blue/green/purple/gray-blue/low-amber family and keep comparable saturation and lightness.
+  - Avoid default ECharts rainbow colors, pure red/green/orange/yellow blocks, and highly saturated category palettes.
+  - Treat `#d94b4b` / `--chart-danger` as a semantic exception for risk, failure, alert, or negative anomaly only.
+- The latest verified chart pages extend this baseline: Query Analysis and Operations Overview define ordinary business colors; Traffic and GMV use the same blue/green/purple/gray-blue/low-amber mapping; Quality Analysis must not turn negative quality charts into large red/orange visuals. Use blue, gray-blue, low-amber, green, and purple for the main chart marks; reserve low-saturation danger only for threshold dots, table values, rare anomaly markers, or hover emphasis. Do not use Lenovo red or saturated orange as chart main colors.
 - ECharts, Chart.js, canvas-rendered charts, HTML progress bars, word clouds, mini trend cards, and inline legend dots all count as charts for palette governance.
 - Chart containers may adapt to card width/height, but chart graphics must not deform. Do not use CSS `max-height` or forced `width/height: 100%` on chart canvas in a way that overrides the chart library's calculated canvas size.
+- Chart legends should follow the verified Query/Quality adjustment: larger rectangular swatches, more horizontal spacing, and enough bottom padding so legends never crowd x-axis labels. Use approximately `18x8` swatches, `16px` item gap, `8px` top padding, and reserve about `54px` bottom grid space when the legend sits below the plot.
+- First-enter chart motion is part of the 0702 operations-page baseline. Query Analysis, Operations Overview, Quality, Traffic, and GMV charts should all have subtle data-entry animation or SVG/DOM equivalent. Keep motion short, non-looping, and data-focused.
+
+### 2026-07-02 乐享运营 Vue Migration Baseline
+
+The 乐享运营 five-menu group is now the reference migration baseline for future middle content-slot work:
+
+- 运营总览: native Vue template and the strongest reference for content-slot structure.
+- Query 分析: Vue page with ECharts and remaining DOM helper seams.
+- 质量分析: Vue route page with `v-html` and a quality runtime script; visually governed by current Vue project rules.
+- 流量分析 / GMV 分析: Vue route pages with reactive data and ECharts, still using local HTML template strings.
+
+Future modules must not disturb the verified 乐享运营 behavior, including chart colors, chart legend spacing, first-enter chart animation, right-AI answer bubbles, static/dynamic tabs, and responsive shell resize order.
+
+The current sealed migration scope is complete for GEO 看板, 在职员工管理, 企业客户管理, and Agent pages. 搜索后台、风控管理 are deleted from the first sealed project; if they return later, add them from fresh requirements.
 - Doughnut/pie charts should not appear tiny inside tall cards; size chart area to the available content region and keep legend readable.
 - Doughnut/pie charts must remain circular. If the card is rectangular, adjust chart center, radius, legend placement, or inner chart area; never stretch the circle into an ellipse.
 - Horizontal bar charts should fill the content area proportionally without clipping axis labels.
+- Pie and doughnut charts should use coordinated category colors, with labels and legends using tertiary text; avoid one category overpowering the entire card unless the data truly dominates.
+- Horizontal bars, TOP lists, and ranked distributions prefer one hue with subtle gradient or opacity changes. Use blue for traffic/query/total volume, green for service/conversion/positive business, purple for AI/member/advanced analysis, and low-amber only as a secondary supporting hue.
+- Trend cards and mini line charts should use blue, green, or purple lines with a very light area fill derived from the same color. Keep line width around `1.5-2px`, point markers small, and fill opacity around `8%-18%`.
 - Tables paired with charts should use fixed header height, stable row height, `table-layout: fixed` where needed, and ellipsis for long cell content.
 
 ## 2026-06-11 Verified UI Refinements
@@ -216,19 +295,30 @@ These refinements were implemented during the current portal workbench iteration
 
 ### Source Merge Contract
 
-- When merging old redesigned UI code with a newer functional codebase, use the newer codebase as the functional source of truth and migrate the older redesigned project as the visual source of truth.
-- Global style files, token files, common CSS, preview overrides, and UI wrapper CSS should be taken from the redesigned project unless the newer project contains new selectors or modules; in that case, merge the new selectors into the final override layer instead of dropping them.
-- Do not overwrite newer feature JS with older visual JS. Preserve new page IDs, menu entries, permission logic, API calls, status transitions, Skill Hub actions, and AI command behavior; migrate only class names, markup rhythm, chart palette, and styling hooks.
-- New pages that do not exist in the redesigned project must be styled to match the same Leaibot visual system: light Feishu-like shell, compact cards, muted chart palette, 36px controls, 40px table rows, white data containers, and right AI assistant.
-- The admin preview entry must live in `public/admin/index.html` or `preview.html` and open the real `workbench.html?demo=1`, not a separate static mock.
+- When merging external or historical UI code, use the inspected target repository at `<app-root>` as the functional and architectural source of truth, then apply this skill's 0803 design contract.
+- Global style files, token files, common CSS, preview overrides, and UI wrapper CSS must map into the current `src/assets/workbench*.css` stack or component-scoped styles. Do not replace the whole Vue app, `src/assets`, or `public/admin-runtime`.
+- Do not overwrite current Vue feature code with historical static JS. Preserve route meta, page IDs, menu entries, permission logic, API calls, status transitions, Skill Hub actions, AI command behavior, and Pinia/composable ownership.
+- New pages that do not exist in the redesigned project must match the same Leaibot visual system: light Feishu-like shell, compact cards, 0702 blue/green/purple-led chart palette, 36px default controls, 48px ordinary business table rows (40px only for explicit compact variants), white data containers, and right AI assistant.
+- Current preview and runtime entry is the 0803 Vue app under `/admin-vue/`; design previews must map back to Vue components, route contracts, and the existing CSS stack.
+
+### External POC / Historical Function Merge Contract
+
+- The current merge target is always the 0803 Vue project. The 0729 and earlier project folders are read-only references unless the user explicitly asks to archive or compare them.
+- Never replace the whole Vue app, `src/assets`, or `public/admin-runtime` from a POC. Compare file-by-file. New feature modules and newer data files may be copied, but older or shorter module files must be merged selectively to avoid deleting current behavior.
+- Preserve local behavior when the POC removes or simplifies it: AI 页面巡检, portal home structure, local preview wrappers, responsive guard rules, retained theme tokens, and existing module renderers remain active unless explicitly replaced by a new requirement. The current release still forces light mode and hides the theme entry. Topbar global search is hidden by default; retain its DOM only where script compatibility requires it.
+- New POC pages must be scoped with page-level wrappers or final override selectors. Do not let module-private CSS leak into old pages. Use the last override layer to normalize new selectors into Leaibot tokens.
+- POC inline styles, hard-coded colors, emoji controls, filled page tabs, default browser selects, and one-off shadows must be normalized before delivery.
+- Verification is part of the merge: run `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `pnpm smoke:shell`; preview `/admin-vue/`, open newly merged routes/pages, and inspect console errors.
 
 ### Portal Home
 
-- `门户工作台` is an operational home page, not a landing page. It should immediately expose common entries and AI/Skill workflows.
-- Current accepted navigation behavior: the left sidebar does not render a separate `首页` parent directory. Clicking the top-left Logo returns to the portal home, while breadcrumb can still read `首页 / 门户工作台`.
+- `联想门户工作台` is an operational home page, not a landing page. It should immediately expose common entries and AI/Skill workflows.
+- Current accepted navigation behavior: the left sidebar does not render a separate `首页` parent directory. Clicking the top-left Logo returns to the portal home, while breadcrumb can still read `首页 / 联想门户工作台`.
 - Structure: compact page header, two primary actions (`管理技能包`, `创建 Skill`), four ability cards, common-entry list, and a four-step operating flow. The `今日工作流 / 核心域联动` panel is not shown in the current phase.
 - Ability cards use white surfaces, subtle border, 8-12px radius, small primary-wash icon labels, and light hover. Avoid large hero sections, decorative images, and marketing composition.
 - Common-entry buttons are full-width white/gray list rows with left business name and right description; they must call real page switch behavior.
+- Portal-home visual polish should stay component-scoped. The command card should remain pure white; polish may add focus-visible rings and better entry/flow row scanning, but must not touch sealed shell surfaces or introduce a late global CSS override.
+- Portal-home rows and cards must use `min-width:0`, stable row/card dimensions, designed truncation or wrapping for long Chinese text, and no page-level horizontal overflow at the `1280px` validation width with the right Agent panel open.
 
 ### Workspace Canvas
 
@@ -238,17 +328,20 @@ These refinements were implemented during the current portal workbench iteration
 ### Account Hub And Skill Hub
 
 - The sidebar user footer can open an account hub popover. The popover contains `创建 Skill`, `Skill Hub`, and `权限管理` cards. It must be styled as an operational launcher with white cards, subtle borders, and concise explanatory copy.
-- `创建 Skill` is the primary PM entry. `Skill Hub` is the lifecycle management page. `权限管理` may be a placeholder, but the placeholder must be explicit and not pretend to be complete.
+- `创建 Skill` is the primary PM entry. `Skill Hub` is the lifecycle management page. `权限管理` is a native Vue Agent page in the 0703 baseline and should navigate to `/agent/permissions`; do not keep it as a “敬请期待” placeholder.
 - Skill Hub uses a data-management page structure: summary cards, search/status/category/tag filters, a dense table, row actions, detail modal, confirmation modal, and evaluation modal.
 - Skill lifecycle status colors remain consistent across table, detail, confirmation, and toast surfaces. High-impact actions require confirmation and should describe the affected Skill, current status, version, and platform.
 - Skill package cards use semantic icons per skill, not one repeated icon. Icons must stay in one linear SVG family, `18px` inside a `34px` primary-wash square, with title and status badge horizontally center-aligned in the card header.
+- Current 历史旧版 Skill Hub also includes skill package enable/disable switches, batch application, business approver selection, system approver display, and `应用` / test-entry actions. These controls must stay compact and tokenized: switch `76x34`, form controls `36px`, selected packages use primary wash + primary border, approver dropdown uses white card + subtle shadow + primary focus ring.
+- Batch application is an approval workflow, not a marketing card gallery. Required structure: selected package cards, business approver grouped dropdown, readonly system approver, reason/remark fields, and footer actions. High-risk or data-permission packages must make the approver path explicit.
+- Skill package application/testing can seed the AI assistant, but it must not execute writes silently. The AI copy should ask for parameters, scope, risk level, and confirmation before any write-like action.
 
 ### Local Preview Mode
 
-- `workbench.html?demo=1` and `file:` previews must load `demo-mock.js` before API requests so login, menus, dashboard data, and AI demo replies work without a backend.
-- Resource paths inside `public/admin/workbench.html` should be relative when possible so the same file works under `/admin/workbench.html` and direct local preview.
-- The final CSS stack for preview and runtime is: base workbench CSS, module CSS, UI polish CSS, preview override CSS. The last layer is allowed to normalize module-private inline/legacy styling, but must not hide or remove newer features.
-- Chart colors across ECharts, Chart.js, inline progress bars, HTML mini charts, and demo panels must use the Leaibot muted palette (`#3f78c5`, `#3f9ead`, `#58a86a`, `#c89532`, `#9070c3`, `#b45f86`, `#6f879e`, `#4f6578`) or the registered semantic chart tokens.
+- Use the 0803 Vue app as the preview surface: run `pnpm dev` for local development and open `/admin-vue/`; use preview auth mode only where the current runtime contract allows it.
+- The final CSS stack for preview and runtime is the current Vue `src/assets/workbench*.css` stack plus component-scoped styles. The last override layer may normalize module-private inline/legacy styling, but must not hide or remove current features.
+- Legacy runtime assets under `public/admin-runtime` are only for middle business pages that remain in the legacy content slot; new shell work must not depend on static HTML entry assumptions.
+- Chart colors across ECharts, Chart.js, inline progress bars, HTML mini charts, and demo panels must use the 0702 chart palette from `references/style-contract.md`: blue/green/purple first, gray-blue and low-amber as supporting tones, semantic danger only for real risk/failure/alert states.
 
 ### AI Assistant Panel Current Spec
 
@@ -257,6 +350,7 @@ These refinements were implemented during the current portal workbench iteration
 - The attention pill updates on sidebar navigation, global search jumps, AI navigation jumps, and direct URL `page=` loading.
 - Current accepted default state is an interactive document-flow welcome, not a metrics insight dashboard. Use the exact welcome copy: `你好！我是乐享 AI 助手。你可以在底部输入框里直接描述要完成的运营任务，例如查数据、生成报告、配置商品或查询知识库。涉及写入或发布时，我会先展示影响范围并等待确认。`
 - Default recommended prompts are compact white cards around `58px` high with small linear icons, regular text weight, `10px` gap, and examples such as `工作台说明`、`生成报告`、`查询知识库`. Do not show `今日速览`、DAU/GMV metric cards、异常卡或最近对话 in the current default state.
+- Agent structured execution states must cover TODO List, multiple simultaneous running steps, and authorization-required operation cards. They are assistant-bubble content blocks only; do not change the sealed header actions, composer, queue behavior, panel width, or shell resize order.
 - Chat state starts with a centered context capsule: `已引用:运营总览 · 最近 1 天`.
 - User messages align right with a blue gradient solid bubble. AI replies are white structured cards with conclusion first.
 - The current default structured insight card is a single white surface without outer drop shadow or outer frame. Put the `已引用:页面 · 时间范围` capsule inside the card header area instead of floating outside.
@@ -267,6 +361,8 @@ These refinements were implemented during the current portal workbench iteration
 - AI reply footer includes solid filled source chips such as `转化漏斗` / `转化基线` plus copy, like, and regenerate icons. Source chips use filled neutral backgrounds, not outline pills and not leading mini icons.
 - Date/time and range pickers inside AI-adjacent workbench filters keep the system calendar glyph in default state; hover only strengthens visibility and must not introduce extra square backgrounds, white patches, or double-frame seams around the calendar indicator or range connector.
 - Long AI outputs are promoted through a temporary report-tab interaction. When a reply contains long data, a report, a recap, or structured interpretation, the right AI panel should show a compact conclusion card only: linear document icon, report title, one-sentence summary, source/category chips, `保存`, and `展开查看`. Clicking `展开查看` opens a temporary tab below the breadcrumb and renders the complete report in the center workspace. These tabs are separate from left navigation, can be saved, closed, and opened multiple times for side-by-side comparison. The base page tab remains first so users can return to the current navigation page smoothly.
+- External links produced by AI or generated report content must also be captured inside a workspace temp tab. The link tab shows the title, source page, raw URL in a code field, and a `复制链接` action; do not call `window.open` or navigate the whole workbench away.
+- HTML previews produced by AI or page-building flows must open in a workspace temp tab with an iframe preview shell and download action. The preview shell uses the same report-page scale and tokenized border/radius. The current release renders the shell in forced light mode; if dark mode is explicitly restored later, the iframe may remain white while the surrounding shell follows dark tokens.
 
 ### Temporary Report Tabs And Report Page
 
@@ -318,7 +414,7 @@ Use a minimal centered login form:
 
 Sidebar should feel compact and operational:
 - White background, right border, grouped navigation.
-- Top logo area height around `42px`.
+- Top logo area height `56px`, aligned with the current sealed topbar and sidebar header.
 - Parent nav items: `13px`, child nav items: `12px`.
 - Active item: blue wash background and primary blue text.
 - Hover item: app background gray.
@@ -332,8 +428,8 @@ Sidebar should feel compact and operational:
 
 Topbar is a utility strip:
 - Breadcrumb left: `模块 / 页面`, compact and semibold on active text.
-- Search input right: `200px`, gray background, search icon, `6px` radius.
-- Dark-mode action may be an icon-only control.
+- Current release hides the global search input; retain underlying DOM only where runtime compatibility requires it.
+- Current release hides the dark-mode action and forces light mode. If the feature is explicitly restored later, use the shared icon-only control contract.
 - AI toggle is a small bordered button; active state uses blue wash and primary border.
 
 ### KPI Cards
@@ -350,7 +446,7 @@ KPI cards are clean primary information blocks:
 ### Analytical Cards
 
 Use simple, readable data visuals:
-- Bar charts prefer a single sequential scale or the default muted `--chart-1` bars with direct labels above or nearby.
+- Bar charts prefer a single sequential scale or the default 0702 chart blue/green/purple bars with direct labels above or nearby.
 - Tables use 13px body text, 12px tertiary headers, and subtle row hover.
 - Badges are small pills: green for good/online/high conversion, orange for warning/low conversion, gray for inactive.
 - Split cards may use thin left accent borders in blue/orange/purple/gray.
@@ -363,7 +459,7 @@ Use compact segmented pills:
 - Active pill: blue wash, blue border/text.
 - In-card switches: small bordered pills such as 浏览 / 购买 / 转化率.
 - Tabs: bottom border style with active blue underline.
-- In tab-heavy admin pages such as 认证审核, keep tab rail, search/filter rail, table header, and pagination on a consistent spacing rhythm.
+- In tab-heavy admin pages such as 职场员工审核, keep tab rail, search/filter rail, table header, and pagination on a consistent spacing rhythm.
 
 ### AI Assistant Panel
 
@@ -389,12 +485,16 @@ For the non-working-hours customer message requirement:
 ### Lead Management
 
 For enterprise lead management:
-- Use a separate `线索管理` sidebar directory, with `线索看板` and `线索池` as children.
-- Preserve these functions: role view switch, global filters, overall lead board, lead quality board, sales-team funnel, source table, lead pool, assignment, batch reach-out, export approval, lead feedback, convert-to-opportunity, detail drawer, assignment-detail drawer, data maintenance, and operation logs.
+- Use the `企业客户管理` sidebar directory in the 历史旧版 project, with `线索看板`, `线索池`, and `打分模型` as children. If a historical branch still uses `线索管理`, keep the local branch naming and do not rename unrelated navigation without confirmation.
+- Preserve these functions: role view switch, global filters, overall lead board, lead quality board, sales-team funnel, source table, lead pool, assignment, batch reach-out, export approval, lead feedback, convert-to-opportunity, lead detail, assignment detail, data maintenance, operation logs, and scoring model configuration.
 - `线索看板` uses tabs: `整体看板`, `线索质量看板`, `销售团队漏斗`. Tabs must follow the standard rail spacing and underline active state.
 - `线索池` starts with six overview KPI cards, then a filter/action rail, then a dense table. Row actions stay compact and must not stretch the row height unpredictably.
 - Drawers are preferred for lead detail and assignment detail; modals are preferred for short forms such as assignment, feedback, opportunity conversion, data maintenance, and export approval.
 - Funnel, bar, and table content must follow the chart/table pairing rules: stable dimensions, no canvas deformation, readable labels, and horizontal scrolling for wide source tables.
+- `打分模型` is an ops-only configuration page. It uses four compact stat cards, a toolbar, and two dense rule tables for add/subtract rules. Rule editing can use a modal or drawer, but conditions must remain readable and table rows must stay `40-44px` high.
+- Lead pages need a scoped wrapper such as `.lead-0615-page`; scoring pages additionally use `.lead-score-page`. All lead-specific styles must stay under that scope or in the final override layer.
+- Lead page controls use normal product text: `导入线索`, `导出（脱敏）`, `导出（明文）`, `新建规则`, `删除`, `返回线索池`. Do not prefix these controls with emoji or standalone text arrows.
+- Sensitive phone/export data is masked by default. 明文导出 must use an approval modal with approver and reason fields; the UI should make the approval status visible before download.
 
 ## Interaction States
 
@@ -404,7 +504,7 @@ Required states:
 - Active nav/filter: blue wash, blue text, sometimes blue border.
 - Disabled button: opacity `0.5`, default cursor.
 - Popovers/dropdowns: white card, `8px` radius, `1px` border, `0 8px 24px rgba(0,0,0,0.12)`.
-- Dark mode: swap token values; keep the same layout and hierarchy.
+- Future dark mode, only when explicitly restored: swap semantic token values while keeping the same layout and hierarchy. It is not part of the current release acceptance.
 
 ## Responsive Behavior
 

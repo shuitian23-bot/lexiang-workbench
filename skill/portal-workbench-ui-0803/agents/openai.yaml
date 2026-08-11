@@ -1,7 +1,0 @@
-interface:
-  display_name: "联想门户工作台统一设计 Skill 0803"
-  short_description: "PM、UI 与研发共用的门户工作台完整设计、实现和验收规范"
-  default_prompt: "使用 $portal-workbench-ui-0803 基于最新确认项目完成需求对比、设计优化、Vue 实现与联合验收。"
-
-policy:
-  allow_implicit_invocation: true

@@ -130,6 +130,7 @@ app.use('/api/uploader', require('./routes/uploader'));
 app.use('/api/log', require('./routes/log'));
 app.use('/api/stores', require('./routes/stores'));
 app.use('/api/leai', require('./routes/leai'));
+app.use('/api/asr', require('./routes/asr'));
 app.use('/api/lenovo', require('./routes/lenovo-proxy'));
 app.use('/api/product', require('./routes/product_detail_images'));
 app.use('/api/pointer', require('./routes/pointer'));
@@ -330,6 +331,15 @@ app.get('/api/products', (req, res) => {
       FROM products WHERE ${simWhere} ORDER BY ABS(price - ?) ASC LIMIT ?`).all(...params);
     return res.json(collapseProductsToSpu(rows, limit));
   }
+  // 按名字模糊搜索（语音/意图「打开拯救者Y9000P」秒开用，去空格 LIKE，命中直接给 sku）
+  const q = req.query.q;
+  if (q) {
+    const kw = '%' + String(q).replace(/\s+/g, '') + '%';
+    const rows = db.prepare(`SELECT sku, name, price, original_price, image_url, description, category, specs
+      FROM products WHERE status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
+      AND REPLACE(name, ' ', '') LIKE ? ORDER BY price DESC LIMIT ?`).all(kw, limit);
+    return res.json(collapseProductsToSpu(rows, limit));
+  }
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
   let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
     AND SUBSTR(image_url, -30) NOT IN (
@@ -352,9 +362,11 @@ app.get('/api/products', (req, res) => {
     '水杯','T-Shirt','T恤','卫衣','羽绒','马甲','自行车',
     '游戏手柄','手柄','底座','随身WIFI','移动电源','充电',
     '剃须刀','眼镜','拆机','兑换卡','服务包','延保服务','Care',
-    '测试品','感谢函',
+    '测试','勿拍','勿下单','感谢函',
   ];
-  if (site && !category) {
+  // 排除词对 site 货盘一律生效——之前 !category 豁免了带分类的楼层查询，
+  // biz 台式机楼层因此混入「测试商品，请勿下单!」（彩排发现，官方货盘同步自带 60+ 测试 SKU）
+  if (site) {
     for (const kw of PERIPHERAL_KEYWORDS) {
       where += ` AND name NOT LIKE '%${kw}%'`;
     }
@@ -610,6 +622,7 @@ app.use((req, res, next) => {
 
 const server = app.listen(PORT, () => {
   console.log(`\n🚀 LeAI Agent Platform running on http://localhost:${PORT}`);
+  try { require('./routes/asr').attachStream(server); console.log('🎙️ ASR 流式 WS 挂载于 /api/asr-stream'); } catch (e) { console.error('[ASR] 流式挂载失败:', e.message); }
   console.log(`📚 Admin panel: http://localhost:${PORT}/admin`);
   console.log(`🔑 Default admin: admin / admin123`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);

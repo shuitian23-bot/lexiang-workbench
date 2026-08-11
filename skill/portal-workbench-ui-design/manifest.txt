@@ -1,36 +1,68 @@
-Leaibot Admin UI Design Skill Full
+Portal Workbench UI 0803 Unified Skill
 
 Root:
 - SKILL.md
+- skill.meta.json
 
 Agents:
 - agents/openai.yaml
 
-References:
-- references/design-tokens.md
+Scripts:
+- scripts/check-consistency.mjs
+
+Visual Evidence:
+- references/page-visual-acceptance.json
+- references/visual-evidence/2026-07-27/*.jpg
+- references/visual-evidence/2026-07-28/*.png
+
+Key References:
+- references/unified-role-workflow.md
+- references/content-slot-design-contract.md
+- references/page-spec-coverage-matrix.md
+- references/page-visual-acceptance.json
+- references/responsive-layout-contract.md
+- references/vue-architecture-contract.md
+- references/style-contract.md
 - references/leaibot-admin-ui.md
-- references/brand-assets.md
-- references/typography.md
-- references/layout-grid.md
-- references/page-templates.md
+- references/workbench-interactions.md
 - references/components.md
 - references/table-patterns.md
-- references/icon-rules.md
-- references/content-guidelines.md
-- references/accessibility.md
-- references/asset-inventory.md
+- references/prd-to-ui-workflow.md
+- references/project-pattern-matching.md
+- references/reusable-interaction-rules.md
+- references/prd-ui-acceptance-checklist.md
 - references/review-checklist.md
-- references/gaps-to-fill.md
+- references/style-qa-checklist.md
 
 Assets:
 - assets/base.css
 - assets/page-template.html
-- assets/logos/*
+- assets/logo-full.png
+- assets/logo-icon.png
+- assets/content-dashboard-template.html
+- assets/content-list-template.html
+- assets/content-long-filter-list-template.html
+- assets/content-form-template.html
+- assets/content-task-import-template.html
+- assets/content-split-settings-template.html
+- assets/content-config-list-template.html
+- assets/content-template.css
+- assets/content-workflow-template.html
+- assets/content-report-detail-template.html
+- assets/logos/LenovoLogo-Chinese_POS-Red-H.png
+- assets/logos/LenovoLogo-Chinese_POS-Black-H.png
+- assets/logos/LenovoLogo-Chinese_POS-1Color-H.png
+- assets/logos/LenovoLogo-Chinese_REV-1Color-H.png
+- assets/logos/LenovoLogo-w.jpg
+- assets/fonts/SourceHanSansCN-Regular.otf
+- assets/fonts/SourceHanSansCN-Medium.otf
+- assets/fonts/SourceHanSansCN-Bold.otf
 
-Note:
-- This skill is the single canonical design specification for the current Leaibot / 乐享 AI 工作台 admin workbench.
-- Keep this project-integrated directory as the canonical source that ships with the workbench project.
-- Keep `lexiang-workbench/skill/portal-workbench-ui-design/` as the canonical project-integrated skill. If a historical or preview-template copy is needed later, sync outward from this directory.
-- Keep this whole portal-workbench-ui-design directory inside the AI 工作台 project so the same rules and assets work on other computers.
-- After a one-off UI adjustment succeeds in real pages 3-5 times, fold the rule back into the relevant reference, token file, or assets/base.css.
-- Font binary files are included for POC usage. Confirm license and production loading strategy in the target project.
+Notes:
+- This is the single 0803 authored skill for PM, UI/UX, frontend development and review/QA.
+- It uses release 0803 as the current feature, interaction, implementation and acceptance baseline, preserves release 0730 and earlier releases only as historical non-regression references, and resolves each developer repository through portable `<app-root>` paths.
+- Do not create or independently maintain developer, PM, UI or project-embedded variants.
+- Do not require project or skill fingerprints, personal machine paths or fixed checkout names.
+- Earlier skills and bundled 0728 screenshots are historical evidence only.
+- Use the unified role workflow and the task-specific contracts from SKILL.md.
+- Required reference-project verification: pnpm guard:design-skill, pnpm lint, pnpm typecheck, pnpm build, pnpm smoke:shell.

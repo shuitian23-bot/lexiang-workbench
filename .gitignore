@@ -1,40 +1,71 @@
-# dependencies
 node_modules/
-
-# secrets / env
-.env
-.env.*
-
-# runtime data
+*.log
 *.db
 *.db-shm
 *.db-wal
-*.sqlite
-lexiang.hnsw*
+*.db.bak*
+.env
+.env.*
+*.hnsw
+*.hnsw.ids
+
+# Python
+__pycache__/
+*.pyc
+
+# 大型数据导出（不入库）
+scripts/*.csv
+scripts/*.json
+scripts/biz_content*.json
+scripts/knowledge_qa*.csv
+scripts/knowledge_qa*.json
+
+# 上传/导出目录
 uploads/
 public/uploads/
 public/exports/
-backups/
-logs/
-*.log
-server.out
 
-# backups & snapshots
-*.bak-*
-*.bak.*
-.rollback-snapshots/
-public.bak-*/
-
-# agent workspaces
-.codex/*
-!.codex/skills/
-!.codex/skills/**
-.claude/
-.codex-backups/
-
-# macOS
+# IDE
+.vscode/
+.idea/
 .DS_Store
 
-# Vue 构建产物（由 vue-app 构建生成，不入库）
-public/admin-vue/
+# Split-layout backups
+*.bak-split-*
+*.bak-*
 
+# 子站目录禁止放index.html（SPA统一走主index.html）
+public/shop-chat/
+public/b-chat/
+public/biz-chat/
+
+.claude/settings.local.json
+.locks/
+
+# AI session 本地目录与运行时产物（不入库）；.claude/skills 是团队共享 skill，入库
+.claude/*
+!.claude/skills/
+.codex/
+backups/
+data/
+server.out
+*.tmp
+public/wiki-index.html.tmp
+
+# macOS AppleDouble 垃圾
+._*
+**/._*
+
+# 人工快照/回滚目录与散落调试脚本（不入库）——多人协作时这些会把 git status 淹没
+public.new/
+public.new.backup-*/
+public/admin-vue.backup-*/
+.rollback-snapshots/
+.codex-backups/
+/e2e_*.js
+/run-dev
+
+# dev worktree 里这两个是软链回生产的「文件」，上面 node_modules/ 和 uploads/
+# 带斜杠的规则只匹配目录，匹配不到软链，会一直挂在 untracked 里干扰视线
+/node_modules
+/uploads

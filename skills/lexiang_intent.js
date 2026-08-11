@@ -3,7 +3,7 @@ const { execFile } = require('child_process');
 const path = require('path');
 
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
-const SKILLS_DIR = path.resolve(process.env.PYTHON_SKILLS_DIR || path.join(__dirname, '..', 'external-skills'));
+const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
 
 function runPython(script, args, timeout = 300000) {
   return new Promise((resolve, reject) => {

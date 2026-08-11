@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乐享+ 5.0 人力作战地图 - 联想乐享</title>
+<style>
+  :root {
+    --lx-brand-red: #B8252E;
+    --lx-aubergine: #4E1646;
+    --lx-bg: #F7F3FA;
+    --lx-surface: #FFFFFF;
+    --lx-surface-muted: #F1EDF4;
+    --lx-border: #DED6E3;
+    --lx-text: #2B2230;
+    --lx-text-secondary: #5C4F63;
+    --lx-text-tertiary: #8A7C91;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    background: var(--lx-bg);
+    color: var(--lx-text);
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--lx-border);
+    margin-bottom: 10px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand .name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--lx-brand-red);
+  }
+  .brand .sub {
+    font-size: 14px;
+    color: var(--lx-text-secondary);
+  }
+  .back-home {
+    font-size: 13px;
+    color: var(--lx-aubergine);
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid var(--lx-border);
+    border-radius: 6px;
+    background: var(--lx-surface);
+  }
+  .back-home:hover { background: var(--lx-surface-muted); }
+
+  .meta-line {
+    font-size: 12px;
+    color: var(--lx-text-tertiary);
+    padding: 10px 0 24px;
+  }
+  .meta-line .legend-row { margin-top: 8px; }
+  .meta-line .legend-row .badge { margin-right: 8px; }
+
+  .section { margin: 32px 0; }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--lx-aubergine);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--lx-border);
+  }
+  .sub-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--lx-text-secondary);
+    margin: 20px 0 10px;
+  }
+  .sub-title:first-child { margin-top: 0; }
+
+  /* 徽章 */
+  .badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 10px; line-height: 1.7; white-space: nowrap; }
+  .badge-pri.pri-p0 { background: var(--lx-brand-red); color: #fff; font-weight: 600; }
+  .badge-pri.pri-p1 { background: #fff; border: 1px solid var(--lx-brand-red); color: var(--lx-brand-red); }
+  .badge-pri.pri-p2 { background: var(--lx-surface-muted); color: var(--lx-text-tertiary); border: 1px solid var(--lx-border); }
+  .badge-unclaimed { background: var(--lx-brand-red); color: #fff; }
+  .badge-owner { background: #F1E4F5; color: var(--lx-aubergine); border-radius: 4px; padding: 2px 8px; font-size: 12px; display: inline-block; }
+  .badge-lead { background: #fff; border: 1px solid var(--lx-aubergine); color: var(--lx-aubergine); }
+  .badge-lead.unclaimed { background: var(--lx-brand-red); color: #fff; border-color: var(--lx-brand-red); }
+
+  /* 板块一：功能 × 场景矩阵 */
+  .matrix-wrap {
+    overflow-x: auto;
+    background: var(--lx-surface);
+    border: 1px solid var(--lx-border);
+    border-radius: 10px;
+    padding: 6px;
+  }
+  table.matrix { border-collapse: collapse; width: 100%; }
+  .matrix th, .matrix td { border: 1px solid var(--lx-border); padding: 8px 10px; text-align: left; vertical-align: top; min-width: 108px; }
+  .matrix thead th { background: var(--lx-surface-muted); text-align: center; }
+  .matrix .corner { text-align: left; font-size: 12px; color: var(--lx-text-tertiary); min-width: 150px; }
+  .matrix .zhangyi-col { background: #EFE3F5; }
+  .colname { font-weight: 700; font-size: 13px; }
+  .colpm { font-size: 11px; color: var(--lx-text-tertiary); margin-top: 2px; }
+  .mx-rowhead { background: var(--lx-surface-muted); min-width: 150px; }
+  .mx-rowhead.rowhead-p0 { border-left: 3px solid var(--lx-brand-red); }
+  .rowname { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .cell-item { font-size: 12px; }
+  .cell-item + .cell-item { margin-top: 3px; }
+  .cell-empty { text-align: center; color: var(--lx-text-tertiary); vertical-align: middle; }
+
+  /* 板块二：官网侧 */
+  .subsite-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .subsite-card { background: var(--lx-surface); border: 1px solid var(--lx-border); border-radius: 10px; padding: 16px; }
+  .subsite-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--lx-border); }
+  .subsite-name { font-weight: 700; font-size: 15px; }
+  .tab-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+  .tab-row:not(:last-child) { border-bottom: 1px dashed var(--lx-border); }
+
+  .pages-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+  table.pages-table { width: 100%; border-collapse: collapse; }
+  .pages-table td { padding: 8px 6px; border-bottom: 1px solid var(--lx-surface-muted); font-size: 13px; }
+  .pages-table td:last-child { text-align: right; }
+
+  /* 板块三：按人看工作量 */
+  .people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .person-card { background: var(--lx-surface); border: 1px solid var(--lx-border); border-radius: 10px; padding: 14px 16px; }
+  .person-name { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .person-groups { font-size: 12px; color: var(--lx-text-secondary); margin-bottom: 8px; min-height: 32px; }
+  .person-count { font-size: 13px; color: var(--lx-text); }
+  .person-count b { color: var(--lx-aubergine); font-size: 16px; }
+  .pool-note { font-size: 12px; color: var(--lx-text-tertiary); margin-top: 18px; }
+  .pool-flag { color: var(--lx-brand-red); font-weight: 600; }
+
+  /* 板块四：待定案作战项 */
+  .tbd-section {
+    background: #FDF0F0; border-left: 4px solid var(--lx-brand-red); border-radius: 8px;
+    padding: 20px 24px; margin: 32px 0;
+  }
+  .tbd-section .section-title { border-bottom: none; margin-bottom: 10px; padding-bottom: 0; color: var(--lx-brand-red); }
+  .tbd-item { padding: 12px 0; border-bottom: 1px dashed rgba(184,37,46,.25); }
+  .tbd-item:last-child { border-bottom: none; }
+  .tbd-name { font-weight: 700; color: var(--lx-brand-red); margin-bottom: 4px; font-size: 14px; }
+  .tbd-why { font-size: 13px; color: var(--lx-text-secondary); margin-bottom: 6px; }
+
+  .foot-note { margin-top: 28px; font-size: 12px; color: var(--lx-text-tertiary); text-align: center; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="brand">
+        <span class="name">联想乐享</span>
+        <span class="sub">乐享+ 5.0 人力作战地图</span>
+      </div>
+      <a class="back-home" href="/">返回首页</a>
+    </div>
+    <div class="meta-line" id="metaLine"></div>
+
+    <section class="section" id="matrixSection">
+      <div class="section-title">乐享侧 · 平台功能 × 场景</div>
+      <div class="matrix-wrap">
+        <table class="matrix" id="matrixTable"></table>
+      </div>
+    </section>
+
+    <section class="section" id="webSection">
+      <div class="section-title">官网侧 · 三子站首页 &amp; 功能页面</div>
+      <div class="sub-title">三子站首页</div>
+      <div class="subsite-grid" id="subsiteGrid"></div>
+      <div class="sub-title">功能页面</div>
+      <div class="pages-wrap" id="pagesWrap"></div>
+    </section>
+
+    <section class="section" id="peopleSection">
+      <div class="section-title">按人看工作量</div>
+      <div class="sub-title">乐享侧</div>
+      <div class="people-grid" id="lxPeopleGrid"></div>
+      <div class="sub-title">官网侧</div>
+      <div class="people-grid" id="webPeopleGrid"></div>
+      <div class="pool-note" id="poolNote"></div>
+    </section>
+
+    <section class="tbd-section" id="tbdSection">
+      <div class="section-title">待定案作战项 — 定了才能排期</div>
+      <div id="tbdList"></div>
+    </section>
+
+    <p class="foot-note">数据源飞书「乐享+」人力作战地图 · 本页由 AI 同步生成，如有出入以飞书表为准。</p>
+  </div>
+
+<script>
+var DATA = {
+  "updated": "2026-07-27",
+  "source": "飞书「乐享+」人力作战地图（乐享pm / 官网pm sheet，07-27 拉取）· PRD v2.4 辅助",
+  "lxScenes": [
+    { "id": "consult", "name": "超级咨询", "pm": "王雅婷" },
+    { "id": "presale", "name": "电商售前", "pm": "申燕" },
+    { "id": "aftersale", "name": "电商售中售后", "pm": "董兹毓" },
+    { "id": "store", "name": "门店", "pm": "董兹毓" },
+    { "id": "member", "name": "会员", "pm": "陈百科" },
+    { "id": "service", "name": "服务", "pm": "陈百科" },
+    { "id": "leads", "name": "线索孵化", "pm": "王雅婷" },
+    { "id": "multimodal", "name": "多模态", "pm": "王蕊" },
+    { "id": "device", "name": "端侧", "pm": "张伟业" },
+    { "id": "zhangyi", "name": "横向收集", "pm": "张熠" }
+  ],
+  "lxFuncs": [
+    { "name": "按需展示左右结构", "pri": "P0", "cells": {
+      "consult": "股价咨询｜未来中心预约",
+      "presale": "商品推荐｜商品咨询｜商品详情页展示｜多商品对比",
+      "aftersale": "订单｜购物车",
+      "store": "门店列表｜门店导航",
+      "member": "个人中心/会员中心｜乐豆商品推荐｜企业积分商品推荐",
+      "service": "服务商品推荐｜驱动下载列表｜设备预约维修",
+      "leads": "方案推荐｜方案咨询｜方案对比",
+      "device": "各子站入口"
+    } },
+    { "name": "弹窗逻辑", "pri": "P0", "cells": {
+      "aftersale": "结算弹窗",
+      "member": "学生认证弹窗｜企业会员认证｜企业钻石会员升级｜职场认证弹窗",
+      "leads": "留资弹窗",
+      "device": "登录弹窗"
+    } },
+    { "name": "主站快捷入口", "pri": "P0", "cells": { "device": "暂时保持不变" } },
+    { "name": "对话脉络竖轴", "pri": "P1", "cells": { "device": "端侧展示和交互逻辑" } },
+    { "name": "客服快捷入口", "pri": "P1", "cells": { "leads": "转IS功能入口", "device": "退出客服等功能按钮" } },
+    { "name": "对话即操作", "pri": "P1", "cells": { "multimodal": "语音转文字", "zhangyi": "各场景收集快捷指令" } },
+    { "name": "悬停智能提示", "pri": "P1", "cells": { "device": "端侧展示和交互逻辑" } },
+    { "name": "suggest 输入补全", "pri": "P1", "cells": { "zhangyi": "1期各场景提供常见内容" } },
+    { "name": "评论总结", "pri": "P1", "cells": { "presale": "评价总结功能" } },
+    { "name": "各站点跳转逻辑", "pri": "P1", "cells": { "zhangyi": "各站点跳转时带 session 记录" } },
+    { "name": "商用子站引导逻辑", "pri": "P1", "cells": { "presale": "如非企业认证跳转企业子站的引导等" } },
+    { "name": "猜你想干", "pri": "P2", "cells": { "zhangyi": "各场景收集主要流程，大模型学习" } },
+    { "name": "千人千面", "pri": "P2", "cells": { "presale": "商品详情页推荐话术｜商品对比推荐话术", "member": "个人中心展示排序" } },
+    { "name": "划词提问", "pri": "P2", "cells": { "device": "划词提问功能", "zhangyi": "各场景丰富知识" } },
+    { "name": "社区内容接入", "pri": "P2", "cells": { "consult": "社区类知识接入", "presale": "社区类知识接入" } }
+  ],
+  "webSubsites": [
+    { "name": "个人及家庭", "owner": "张雪莹", "tabs": [
+      { "name": "推荐", "owner": "珊珊" },
+      { "name": "国补", "owner": "双凤" },
+      { "name": "教育特惠", "owner": "新婷" },
+      { "name": "会员", "owner": "维芸/雪莹" },
+      { "name": "私人定制", "owner": "张雪莹" },
+      { "name": "以旧换新", "owner": "维芸/雪莹" },
+      { "name": "今日秒杀", "owner": "夏岩" },
+      { "name": "服务", "owner": "维芸/雪莹" },
+      { "name": "门店", "owner": "婵娟" }
+    ] },
+    { "name": "中小企业", "owner": "张蕊", "tabs": [
+      { "name": "推荐", "owner": "张蕊" },
+      { "name": "企业会员权益", "owner": "张蕊" },
+      { "name": "企业定制", "owner": "张蕊" },
+      { "name": "积分商城", "owner": "张蕊" },
+      { "name": "门店", "owner": "婵娟" }
+    ] },
+    { "name": "政教及大企业", "owner": "张蕊", "tabs": [
+      { "name": "推荐", "owner": "张蕊" },
+      { "name": "行业解决方案", "owner": "张蕊" },
+      { "name": "行业资料", "owner": "张蕊" },
+      { "name": "品牌", "owner": "张蕊" }
+    ] }
+  ],
+  "webPages": [
+    { "name": "购物车", "owner": "新婷" },
+    { "name": "订单 & 订单详情页", "owner": "新婷" },
+    { "name": "个人中心", "owner": "维芸/雪莹" },
+    { "name": "企业工作台", "owner": "张蕊" },
+    { "name": "商详页", "owner": "张雪莹" },
+    { "name": "商详页（b/biz）", "owner": "张蕊" },
+    { "name": "解决方案详情页", "owner": "张蕊" },
+    { "name": "活动页", "owner": "复用现有官网活动页" },
+    { "name": "活动页（b/biz）", "owner": "张蕊" },
+    { "name": "支付 & 结算页", "owner": "双凤&新婷" },
+    { "name": "直播", "owner": "国炎" },
+    { "name": "各子站快捷入口功能", "owner": "张蕊/雪莹" },
+    { "name": "商品 SPU 整合", "owner": "张雪莹" },
+    { "name": "商品名称聚合", "owner": "张雪莹" },
+    { "name": "子站商品展示逻辑", "owner": "张蕊/雪莹" }
+  ],
+  "webPool": ["张雪莹", "张蕊", "王双凤", "王新婷", "国炎", "刘康", "夏岩", "管峰", "毕蔚云", "王曹颖", "张婵娟"],
+  "webPoolNote": "官网侧人员池（飞书表 Sheet1 列头，名称按表原样）。分工表中的简称（双凤/新婷/婵娟/维芸/珊珊等）未做归并，以团队确认为准。",
+  "tbd": [
+    { "name": "支付 & 结算流程载体", "why": "PRD 3 处标 TBD；官网侧已定负责人，乐享侧结算弹窗归售中售后，需对齐定案", "lead": "双凤 & 新婷 × 董兹毓" },
+    { "name": "国补叠加规则建模（顺序/上限/可叠项）", "why": "国补价展示、会员权益叠加均被卡", "lead": "双凤" },
+    { "name": "留资工单后台", "why": "前端留资弹窗已排（线索孵化），后台无人认领", "lead": "王雅婷" },
+    { "name": "运营支撑后台（PRD 5.12 整章）", "why": "飞书分工表未覆盖：商品内容管理/营销配置/看板/A-B 实验", "lead": "待定" },
+    { "name": "刘康、管峰暂无分工条目", "why": "在 Sheet1 人员池中，但两张分工 sheet 均未出现", "lead": "白羽确认" },
+    { "name": "分期机制 / 晒单返现规则", "why": "PRD 标待核实，影响售前排期", "lead": "雪莹 / 双凤" }
+  ]
+};
+(function () {
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function priBadge(pri) {
+    var cls = pri === 'P0' ? 'pri-p0' : (pri === 'P1' ? 'pri-p1' : 'pri-p2');
+    return '<span class="badge badge-pri ' + cls + '">' + esc(pri) + '</span>';
+  }
+  function unclaimedBadge() {
+    return '<span class="badge badge-unclaimed">待认领</span>';
+  }
+  function ownerBadge(name) {
+    if (!name) return unclaimedBadge();
+    return '<span class="badge badge-owner">' + esc(name) + '</span>';
+  }
+
+  /* ---- 基线行 + 图例 ---- */
+  function renderMeta() {
+    var legend = '图例：' + priBadge('P0') + priBadge('P1') + priBadge('P2');
+    document.getElementById('metaLine').innerHTML =
+      '<div>数据源：' + esc(DATA.source) + ' · 更新于 ' + esc(DATA.updated) + '</div>' +
+      '<div class="legend-row">' + legend + '</div>';
+  }
+
+  /* ---- 板块一：乐享侧功能 × 场景矩阵 ---- */
+  function renderMatrix() {
+    var thead = '<thead><tr><th class="corner">平台功能 × 场景</th>' +
+      DATA.lxScenes.map(function (scene) {
+        var cls = 'mx-colhead' + (scene.id === 'zhangyi' ? ' zhangyi-col' : '');
+        return '<th class="' + cls + '"><div class="colname">' + esc(scene.name) + '</div><div class="colpm">' + esc(scene.pm) + '</div></th>';
+      }).join('') + '</tr></thead>';
+
+    var tbody = '<tbody>' + DATA.lxFuncs.map(function (func) {
+      var rowCls = 'mx-rowhead' + (func.pri === 'P0' ? ' rowhead-p0' : '');
+      var tds = DATA.lxScenes.map(function (scene) {
+        var val = func.cells && func.cells[scene.id];
+        if (val) {
+          var items = val.split('｜').map(function (t) {
+            return '<div class="cell-item">· ' + esc(t) + '</div>';
+          }).join('');
+          return '<td>' + items + '</td>';
+        }
+        return '<td class="cell-empty">·</td>';
+      }).join('');
+      return '<tr><th class="' + rowCls + '"><div class="rowname">' + esc(func.name) + '</div>' + priBadge(func.pri) + '</th>' + tds + '</tr>';
+    }).join('') + '</tbody>';
+
+    document.getElementById('matrixTable').innerHTML = thead + tbody;
+  }
+
+  /* ---- 板块二 a：三子站首页 ---- */
+  function renderSubsites() {
+    var html = DATA.webSubsites.map(function (site) {
+      var tabs = site.tabs.map(function (tab) {
+        return '<div class="tab-row"><span>' + esc(tab.name) + '</span>' + ownerBadge(tab.owner) + '</div>';
+      }).join('');
+      return '<div class="subsite-card">' +
+        '<div class="subsite-head"><span class="subsite-name">' + esc(site.name) + '</span>' + ownerBadge(site.owner) + '</div>' +
+        tabs + '</div>';
+    }).join('');
+    document.getElementById('subsiteGrid').innerHTML = html;
+  }
+
+  /* ---- 板块二 b：功能页面 ---- */
+  function pagesTable(list) {
+    return '<table class="pages-table"><tbody>' + list.map(function (p) {
+      return '<tr><td>' + esc(p.name) + '</td><td>' + ownerBadge(p.owner) + '</td></tr>';
+    }).join('') + '</tbody></table>';
+  }
+  function renderPages() {
+    var mid = Math.ceil(DATA.webPages.length / 2);
+    var left = DATA.webPages.slice(0, mid);
+    var right = DATA.webPages.slice(mid);
+    document.getElementById('pagesWrap').innerHTML = pagesTable(left) + pagesTable(right);
+  }
+
+  /* ---- 板块三：按人看工作量 ---- */
+  function renderLxPeople() {
+    var map = {}, order = [];
+    DATA.lxScenes.forEach(function (scene) {
+      if (!map[scene.pm]) { map[scene.pm] = { name: scene.pm, scenes: [], sceneIds: [] }; order.push(scene.pm); }
+      map[scene.pm].scenes.push(scene.name);
+      map[scene.pm].sceneIds.push(scene.id);
+    });
+    var html = order.map(function (pm) {
+      var person = map[pm];
+      var count = 0;
+      DATA.lxFuncs.forEach(function (func) {
+        person.sceneIds.forEach(function (sid) {
+          var val = func.cells && func.cells[sid];
+          if (val) count += val.split('｜').length;
+        });
+      });
+      return '<div class="person-card">' +
+        '<div class="person-name">' + esc(person.name) + '</div>' +
+        '<div class="person-groups">' + esc(person.scenes.join('、')) + '</div>' +
+        '<div class="person-count">落地点条目数 <b>' + count + '</b></div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('lxPeopleGrid').innerHTML = html;
+  }
+
+  function collectWebOwners() {
+    var list = [];
+    DATA.webSubsites.forEach(function (site) {
+      if (site.owner) list.push(site.owner);
+      site.tabs.forEach(function (tab) { if (tab.owner) list.push(tab.owner); });
+    });
+    DATA.webPages.forEach(function (p) { if (p.owner) list.push(p.owner); });
+    return list;
+  }
+  function renderWebPeople() {
+    var list = collectWebOwners();
+    var map = {}, order = [];
+    list.forEach(function (name) {
+      if (!map[name]) { map[name] = 0; order.push(name); }
+      map[name]++;
+    });
+    var html = order.map(function (name) {
+      return '<div class="person-card">' +
+        '<div class="person-name">' + esc(name) + '</div>' +
+        '<div class="person-count">分工条目数 <b>' + map[name] + '</b></div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('webPeopleGrid').innerHTML = html;
+
+    var poolHtml = DATA.webPool.map(function (fullName) {
+      var found = list.some(function (x) {
+        return x.indexOf(fullName) >= 0 || fullName.indexOf(x) >= 0;
+      });
+      if (found) return esc(fullName);
+      return '<span class="pool-flag">' + esc(fullName) + '</span>';
+    }).join('、');
+    document.getElementById('poolNote').innerHTML = esc(DATA.webPoolNote) + ' 人员池：' + poolHtml;
+  }
+
+  /* ---- 板块四：待定案作战项 ---- */
+  function leadBadge(lead) {
+    var cls = (lead === '待认领' || lead === '待定') ? ' unclaimed' : '';
+    return '<span class="badge badge-lead' + cls + '">' + esc(lead) + '</span>';
+  }
+  function renderTbd() {
+    var html = (DATA.tbd || []).map(function (t) {
+      return '<div class="tbd-item">' +
+        '<div class="tbd-name">' + esc(t.name) + '</div>' +
+        '<div class="tbd-why">' + esc(t.why) + '</div>' +
+        '<div>建议牵头：' + leadBadge(t.lead) + '</div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('tbdList').innerHTML = html || '<p>暂无待定案事项。</p>';
+  }
+
+  renderMeta();
+  renderMatrix();
+  renderSubsites();
+  renderPages();
+  renderLxPeople();
+  renderWebPeople();
+  renderTbd();
+})();
+</script>
+</body>
+</html>

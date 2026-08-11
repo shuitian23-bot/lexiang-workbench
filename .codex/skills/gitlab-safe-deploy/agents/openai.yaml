@@ -1,4 +1,0 @@
-interface:
-  display_name: "GitLab Safe Deploy"
-  short_description: "Conflict-aware GitLab build and staging deploy"
-  default_prompt: "Use $gitlab-safe-deploy to run a conflict-aware GitLab development, build, and public.new deployment workflow."

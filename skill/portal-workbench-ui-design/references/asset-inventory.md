@@ -18,27 +18,29 @@
 
 ## Logo
 
-横版（Horizontal，1600×321）：
+品牌横版（Horizontal，1600×321）：
 
 | 文件 | 说明 | 使用场景 |
 |------|------|---------|
-| `assets/logos/lenovo-logo-red-h.png`    | 红底品牌主标（POS-Red） | 品牌强调、封面、白底之外的强展示 |
-| `assets/logos/lenovo-logo-black-h.png`  | 正黑版（POS-Black） | 浅色背景的标准锁版 |
-| `assets/logos/lenovo-logo-1color-h.png` | 单色版（POS-1Color） | 单色印刷 / 受限场景 |
-| `assets/logos/lenovo-logo-rev-h.png`    | 反白版（REV-1Color） | **深色背景**（深色模式顶栏/侧栏） |
+| `assets/logos/LenovoLogo-Chinese_POS-Red-H.png` | 红底品牌主标（POS-Red） | 品牌强调、封面、白底之外的强展示 |
+| `assets/logos/LenovoLogo-Chinese_POS-Black-H.png` | 正黑版（POS-Black） | 浅色背景的标准锁版 |
+| `assets/logos/LenovoLogo-Chinese_POS-1Color-H.png` | 单色版（POS-1Color） | 单色印刷 / 受限场景 |
+| `assets/logos/LenovoLogo-Chinese_REV-1Color-H.png` | 反白版（REV-1Color） | 局部深色承载背景；未来明确恢复深色主题后可用于顶栏/侧栏 |
 
-竖版与紧凑：
+产品锁版与紧凑资产：
 
 | 文件 | 说明 | 使用场景 |
 |------|------|---------|
-| `assets/logos/lenovo-logo-rev-v.png` | 竖版反白（REV-1Color-V，1600×7869） | 竖向排布、窄栏 |
-| `assets/logos/lenovo-logo-small.jpg` | 紧凑小标（200×200） | 收起侧栏的缩略标、favicon 级场景 |
+| `assets/logo-full.png` | 乐享工作台产品横版锁定标（702×144） | 当前工作台展开侧栏和产品级品牌露出 |
+| `assets/logo-icon.png` | 乐享工作台产品图标（64×64，透明背景） | 当前工作台收起侧栏和紧凑入口 |
+| `assets/logos/LenovoLogo-w.jpg` | Lenovo 方形紧凑标（200×200） | Lenovo 品牌独立小尺寸场景；不能替代产品图标 |
 
 使用约定：
-- 浅色背景用 `black-h` 或 `red-h`；深色背景用 `rev-h` / `rev-v`，保证对比度。
-- 侧栏展开用横版，收起（56px）用紧凑小标。
+- 浅色背景用 `POS-Black-H` 或 `POS-Red-H`；深色承载面用 `REV-1Color-H`，保证对比度。
+- 当前产品侧栏展开优先用 `logo-full.png`，收起（58px）用 `logo-icon.png`；不得用 Lenovo 方形品牌标替换产品图标。
 - 不拉伸变形、不重新着色、不替换字体，保持锁版完整。
 - 生成 HTML 原型时把用到的 Logo 复制进输出目录，用相对路径引用。
+- 本 Skill 未提供竖版 Logo；需要竖版时先登记缺口，不得虚构路径或旋转横版替代。
 
 > ⚠️ 品牌色提醒：当前 UI 设计 token 主色为蓝色 `#3370FF`，而以上为联想红品牌标识。
 > 二者并存时，建议：Logo 用品牌红，功能性 UI（按钮/选中/链接）仍用 `#3370FF`，
@@ -46,10 +48,34 @@
 
 ---
 
-## 缺口登记（待补）
+## 内容槽模板
 
-以下类别尚未随包提供，需要时补充：
+七类基础页型与两个专项变体均在 `assets/` 中提供静态设计参考，并统一引用 `content-template.css`：
 
-- ⬅ UI 图标集（搜索/新建/发送/删除/复制/重试/更多等线性图标 SVG）
-- ⬅ 助手 / 产品头像（如有对话或 AI 生成内容场景）
-- ⬅ 空状态 / 引导插画
+- `assets/content-list-template.html`
+- `assets/content-long-filter-list-template.html`
+- `assets/content-dashboard-template.html`
+- `assets/content-form-template.html`
+- `assets/content-task-import-template.html`
+- `assets/content-split-settings-template.html`
+- `assets/content-config-list-template.html`
+- `assets/content-workflow-template.html`
+- `assets/content-report-detail-template.html`
+
+这些文件只用于结构、状态和视觉校准；最终实现必须映射到当前 Vue 项目，不作为独立 HTML/JS 交付。
+
+壳层静态参考与共享样式：
+
+- `assets/page-template.html`：静态壳层快照，仅用于外壳关系校准。
+- `assets/base.css`：壳层静态快照使用的基础样式。
+- `assets/content-template.css`：九个内容槽页型模板共享样式和 Container Query 合同。
+
+---
+
+## 随包范围与按需资产
+
+本 Skill 不重复打包项目完整图标库、头像库和插画库。这不等于项目设计资产存在缺口；页面应先复用当前 0803 项目和 Figma 项目资产，并按 `icon-rules.md` 的顺序处理。
+
+- UI 图标：当前项目已确认 SVG / 组件 → Figma 项目 icon 库 → 用户确认后补充的新 SVG。
+- 助手 / 产品头像：优先复用项目现有资产；确实不存在时使用中性占位并登记。
+- 空状态 / 引导插画：默认使用项目现有线性图标或简洁线性占位；只有明确业务需求才新增插画。
