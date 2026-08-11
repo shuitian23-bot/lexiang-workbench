@@ -370,86 +370,45 @@
                   <b>评估验证</b>
                   <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.60。</p>
                 </div>
-                <button class="btn btn-secondary" type="button" :disabled="tuneControlsDisabled" @click="beginReevaluation('overall')">重新评估</button>
+                <button class="btn btn-secondary" type="button" @click="toast('已发起重新评估')">重新评估</button>
               </div>
-              <div class="skill-eval-stage" :class="{ 'is-reevaluating': isReevaluating }">
-                <div id="skill-create-eval-scores" class="skill-score-grid">
-                  <div
-                    v-for="score in scores"
-                    :key="score.label"
-                    class="skill-score-card"
-                    :class="{ featured: score.featured, pass: score.pass, warn: score.warn, tuned: score.tuned }"
-                  >
-                    <span>{{ score.label }}</span>
-                    <b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
+              <div id="skill-create-eval-scores" class="skill-score-grid">
+                <div v-for="score in scores" :key="score.label" class="skill-score-card" :class="{ featured: score.featured, pass: score.pass }">
+                  <span>{{ score.label }}</span><b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
+                </div>
+              </div>
+              <div id="skill-create-eval-gate" class="skill-eval-gate pass">
+                <b>评估通过</b>
+                <span>{{ evalGateText }}</span>
+              </div>
+              <div id="skill-create-eval-list" class="skill-eval-list">
+                <div v-for="item in evalItems" :key="item.title">
+                  <span class="pass">PASS</span><b>{{ item.title }}<small v-if="item.detail">{{ item.detail }}</small></b><em>{{ item.score }}</em>
+                </div>
+              </div>
+              <div id="skill-create-optimization-panel" class="skill-optimization-panel" :class="{ tuned: aiTuned }">
+                <div class="skill-optimization-head">
+                  <div>
+                    <b>{{ aiTuned ? 'AI 助手已同步评估' : 'AI 可继续优化' }}</b>
+                    <span>{{ aiTuned ? '可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。' : '当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。' }}</span>
+                  </div>
+                  <button v-if="!aiTuned" id="skill-ai-tune-btn" class="btn btn-primary" type="button" :disabled="aiTuning" @click="startAiTune">
+                    {{ aiTuneButtonText }}
+                  </button>
+                </div>
+                <div class="skill-optimization-list">
+                  <div v-for="item in optimizationItems" :key="item.title">
+                    <span>{{ item.index }}</span>
+                    <b>{{ item.title }}</b>
+                    <p>{{ item.desc }}</p>
                   </div>
                 </div>
-                <div id="skill-create-eval-gate" class="skill-eval-gate pass">
-                  <b>评估通过</b>
-                  <span>{{ evalGateText }}</span>
-                </div>
-                <div id="skill-create-eval-list" class="skill-eval-list">
-                  <div
-                    v-for="item in evalItems"
-                    :key="item.key"
-                    :class="{ 'needs-fix': item.needsFix, tuned: item.tuned }"
-                  >
-                    <span :class="item.statusClass">{{ item.statusText }}</span>
-                    <b>{{ item.title }}<small v-if="item.detail">{{ item.detail }}</small></b>
-                    <div class="skill-eval-action">
-                      <button
-                        v-if="item.tunable"
-                        class="skill-inline-tune"
-                        type="button"
-                        :disabled="tuneControlsDisabled"
-                        @click="startAiTune(item)"
-                      >{{ item.tuned ? '继续微调' : 'AI 微调' }}</button>
-                      <span v-else class="skill-eval-action-spacer" aria-hidden="true"></span>
-                      <em>{{ item.score }}</em>
-                    </div>
-                  </div>
-                </div>
-                <div v-if="hasRemainingTuneItems" id="skill-create-optimization-panel" class="skill-optimization-panel">
-                  <div class="skill-optimization-head">
-                    <div>
-                      <b>AI 可继续优化</b>
-                      <span>当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。</span>
-                    </div>
-                    <button id="skill-ai-tune-btn" class="btn btn-primary" type="button" :disabled="tuneControlsDisabled" @click="startAiTune()">
-                      {{ aiTuneButtonText }}
-                    </button>
-                  </div>
-                  <div class="skill-optimization-list">
-                    <div v-for="item in optimizationItems" :key="item.title">
-                      <span>{{ item.index }}</span>
-                      <b>{{ item.title }}</b>
-                      <p>{{ item.desc }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="skill-case-list">
-                  <b>用例对比</b>
-                  <div v-for="testCase in evalCases" :key="testCase.key" :class="{ tuned: testCase.tuned }">
-                    <b>
-                      {{ testCase.title }}
-                      <small>{{ testCase.duration }}</small>
-                    </b>
-                    <div class="skill-case-action">
-                      <button
-                        class="skill-inline-tune"
-                        type="button"
-                        :disabled="tuneControlsDisabled"
-                        @click="startCaseAiTune(testCase)"
-                      >{{ testCase.tuned ? '继续微调' : 'AI 微调' }}</button>
-                      <em>得分 {{ testCase.score }}</em>
-                    </div>
-                  </div>
-                </div>
-                <div v-if="isReevaluating" class="skill-reevaluate-overlay" role="status" aria-live="polite">
-                  <span class="skill-reevaluate-spinner" aria-hidden="true"></span>
-                  <b>正在重新评估</b>
-                  <p>大模型正在回读微调结果，刷新评分项、综合评分和提交审核门槛状态。</p>
-                </div>
+              </div>
+              <div class="skill-case-list">
+                <b>用例对比</b>
+                <div><span>case-1 · 20.9s</span><em>得分 0.88</em></div>
+                <div><span>case-2 · 25.6s</span><em>得分 0.82</em></div>
+                <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
               </div>
 
             </div>
@@ -520,45 +479,6 @@ type ContextItem = { code: string; name: string; subtitle: string; source: strin
 type ContextSubtitleTooltip = { code: string; text: string; left: number; top: number; width: number; placement: 'top' | 'bottom' }
 type StateStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked'
 type SkillStateItem = { kind: string; status: StateStatus; title: string; detail: string }
-type EvalBaselineItem = {
-  key: string
-  title: string
-  score: string
-  detail?: string
-  tunedScore?: string
-  tunedDetail?: string
-  tunePrompt?: string
-  tuneResult?: string[]
-}
-type EvalDisplayItem = EvalBaselineItem & {
-  statusText: string
-  statusClass: string
-  tuned: boolean
-  tunable: boolean
-  needsFix: boolean
-}
-type EvalScoreCard = {
-  label: string
-  value: string
-  percent: string
-  featured?: boolean
-  pass?: boolean
-  note?: string
-  warn?: boolean
-  tuneKey?: 'overall' | string
-  tuned?: boolean
-}
-type EvalCaseItem = {
-  key: string
-  title: string
-  duration: string
-  score: string
-  tunedDuration: string
-  tunedScore: string
-  tunePrompt: string
-  tuneResult: string[]
-}
-type EvalCaseDisplayItem = EvalCaseItem & { tuned: boolean }
 type SkillTodoList = {
   title: string
   done: number
@@ -674,14 +594,8 @@ const summaryRefreshing = ref(false)
 const aiTuning = ref(false)
 const aiTuned = ref(false)
 const aiTuneRequestKey = ref('')
-const aiTuneRequestTargets = ref<Record<string, 'overall' | string>>({})
-const tunedEvalKeys = ref<string[]>([])
-const tunedCaseKeys = ref<string[]>([])
-const isReevaluating = ref(false)
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
-let aiTuneResponseTimer: number | undefined
-let reevaluationTimer: number | undefined
 
 const form = ref({
   name: '',
@@ -748,11 +662,12 @@ watch(
 watch(
   () => aiStore.skillTuneConfirmation?.confirmedAt,
   () => {
-    const key = aiStore.skillTuneConfirmation?.key || ''
-    if (!key) return
-    const targetKey = aiTuneRequestTargets.value[key]
-    if (!targetKey) return
-    beginReevaluation(targetKey, key)
+    if (!aiTuning.value || !aiTuneRequestKey.value) return
+    if (aiStore.skillTuneConfirmation?.key !== aiTuneRequestKey.value) return
+    aiTuning.value = false
+    aiTuned.value = true
+    workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · AI 微调结果已确认`
+    toast('AI 微调结果已确认，评分与提交审核状态已同步')
   }
 )
 
@@ -901,194 +816,61 @@ ${selectedContextItems.value.map(item => `    - ${item.source}/${item.name} (${i
     - modules/briefing.md
     - tests/acceptance.md`)
 
-const evalBaselineItems: EvalBaselineItem[] = [
-  { key: 'basic', title: '基本信息规范', score: '1.00' },
-  {
-    key: 'flow',
-    title: '流程步骤清晰',
-    detail: '可继续补充参数确认、异常兜底和结果交付的分步描述',
-    score: '0.72',
-    tunedScore: '0.92',
-    tunedDetail: 'AI 已补充分步执行顺序、参数确认和结果交付路径',
-    tunePrompt: '请针对“流程步骤清晰”做 AI 微调：补齐查询、分析、异常兜底、结果输出和确认动作的分步流程，并重新评估该项。',
-    tuneResult: [
-      '已将流程拆为「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。',
-      '补齐无数据、字段缺失、无权限、时间范围无效时的执行分支。',
-      '已准备重新评估“流程步骤清晰”，确认后左侧该项会刷新评分。'
-    ]
-  },
-  { key: 'exception', title: '异常处理完善', detail: '已覆盖无数据、字段缺失、权限不足时的兜底话术', score: '0.90' },
-  {
-    key: 'confirm',
-    title: '关键节点确认',
-    detail: '可继续明确权限降级和明细导出前的确认范围、字段清单和脱敏方式',
-    score: '0.74',
-    tunedScore: '0.86',
-    tunedDetail: '时间解析回显、权限降级、明细导出前均有 STOP 确认节点',
-    tunePrompt: '请针对“关键节点确认”做 AI 微调：补齐权限降级、明细导出、发布或配置变更前的确认范围、字段清单和脱敏方式，并重新评估该项。',
-    tuneResult: [
-      '已补齐三类 STOP 节点：时间口径回显、权限降级提示、脱敏 CSV 或明文字段导出确认。',
-      '导出前会展示行数、字段清单、脱敏方式和影响范围，等待用户确认后再继续。',
-      '已准备重新评估“关键节点确认”，确认后左侧该项会刷新评分。'
-    ]
-  },
-  { key: 'instruction', title: '指令具体明确', score: '1.00' },
-  { key: 'resource', title: '资源引用有效', score: '1.00' },
-  { key: 'platform', title: '平台适配合规', score: '1.00' },
-  { key: 'cases', title: '测试用例充分', score: '1.00' }
-]
-const evalBaselineCases: EvalCaseItem[] = [
-  {
-    key: 'case-1',
-    title: 'case-1 · 标准时间范围查询',
-    duration: '20.9s',
-    score: '0.88',
-    tunedDuration: '18.8s',
-    tunedScore: '0.93',
-    tunePrompt: '请微调验收案例 case-1“标准时间范围查询”：优化时间解析、批量查询和结果汇总步骤，保持只读边界，并重新运行该案例。',
-    tuneResult: [
-      '已合并重复的时间解析与查询步骤，保留时间口径回显。',
-      '批量查询改为并行取数，并补齐无数据时的结果说明。',
-      '重新运行后预计耗时 18.8s，案例得分更新为 0.93。'
-    ]
-  },
-  {
-    key: 'case-2',
-    title: 'case-2 · 权限降级与脱敏导出',
-    duration: '25.6s',
-    score: '0.82',
-    tunedDuration: '22.7s',
-    tunedScore: '0.91',
-    tunePrompt: '请微调验收案例 case-2“权限降级与脱敏导出”：明确授权不足时的降级路径、导出字段和脱敏确认，并重新运行该案例。',
-    tuneResult: [
-      '已将权限不足、仅可脱敏导出和拒绝导出三种路径拆分处理。',
-      '导出前新增字段清单、行数和脱敏方式确认，避免重复询问。',
-      '重新运行后预计耗时 22.7s，案例得分更新为 0.91。'
-    ]
-  },
-  {
-    key: 'case-3',
-    title: 'case-3 · 无数据与异常兜底',
-    duration: '26.6s',
-    score: '0.90',
-    tunedDuration: '23.9s',
-    tunedScore: '0.94',
-    tunePrompt: '请微调验收案例 case-3“无数据与异常兜底”：减少无效重试，补齐字段缺失和接口失败时的可执行反馈，并重新运行该案例。',
-    tuneResult: [
-      '已减少无数据场景的重复请求，并保留可追溯的异常说明。',
-      '字段缺失和接口失败时会返回原因、可重试条件及下一步建议。',
-      '重新运行后预计耗时 23.9s，案例得分更新为 0.94。'
-    ]
-  }
-]
-const tunedCaseKeySet = computed(() => new Set(tunedCaseKeys.value))
-const evalCases = computed<EvalCaseDisplayItem[]>(() => evalBaselineCases.map(testCase => {
-  const tuned = tunedCaseKeySet.value.has(testCase.key)
-  return {
-    ...testCase,
-    duration: tuned ? testCase.tunedDuration : testCase.duration,
-    score: tuned ? testCase.tunedScore : testCase.score,
-    tuned
-  }
-}))
-const lowScoreThreshold = 0.8
-const tunableEvalKeys = computed(() => evalBaselineItems.filter(item => Number(item.score) < lowScoreThreshold).map(item => item.key))
-const tunedEvalKeySet = computed(() => new Set(tunedEvalKeys.value))
-const tunedEvalCount = computed(() => tunableEvalKeys.value.filter(key => tunedEvalKeySet.value.has(key)).length)
-const allTuneItemsDone = computed(() => tunedEvalCount.value >= tunableEvalKeys.value.length)
-const evalProgressStage = computed(() => aiTuned.value || allTuneItemsDone.value ? 'complete' : tunedEvalCount.value > 0 ? 'partial' : 'base')
-const tuneControlsDisabled = computed(() => aiTuning.value || isReevaluating.value)
-const hasRemainingTuneItems = computed(() => !aiTuned.value && !allTuneItemsDone.value)
-const scoreWarningThreshold = 0.85
-const scoreTuneKeyMap: Record<string, 'overall' | string> = {
-  静态评分: 'overall',
-  结果评分: 'confirm',
-  过程评分: 'flow',
-  效率评分: 'overall',
-  综合评分: 'overall'
-}
-
-function decorateScoreCards(cards: EvalScoreCard[]) {
-  return cards.map(card => {
-    const tuneKey = card.tuneKey || scoreTuneKeyMap[card.label] || 'overall'
-    const numericScore = Number(card.value)
-    const warn = card.warn ?? (!card.featured && numericScore > 0 && numericScore < scoreWarningThreshold)
-    const tuned = tuneKey === 'overall'
-      ? aiTuned.value || tunedEvalCount.value > 0
-      : aiTuned.value || tunedEvalKeySet.value.has(tuneKey)
-    return { ...card, warn, tuneKey, tuned }
-  })
-}
-
-const scores = computed<EvalScoreCard[]>(() => {
-  if (evalProgressStage.value === 'complete') {
-    return decorateScoreCards([
-      { label: '静态评分', value: '0.872', percent: '87.2%', tuneKey: 'overall' },
-      { label: '结果评分', value: '0.846', percent: '84.6%', tuneKey: 'confirm' },
-      { label: '过程评分', value: '0.831', percent: '83.1%', tuneKey: 'flow' },
-      { label: '效率评分', value: '0.888', percent: '88.8%', tuneKey: 'overall' },
+const scores = computed(() => aiTuned.value
+  ? [
+      { label: '静态评分', value: '0.872', percent: '87.2%' },
+      { label: '结果评分', value: '0.846', percent: '84.6%' },
+      { label: '过程评分', value: '0.831', percent: '83.1%' },
+      { label: '效率评分', value: '0.888', percent: '88.8%' },
       { label: '综合评分', value: '0.859', percent: '85.9%', featured: true, pass: true, note: '已达及格线 0.60' }
+    ]
+  : [
+      { label: '静态评分', value: '0.872', percent: '87.2%' },
+      { label: '结果评分', value: '0.804', percent: '80.4%' },
+      { label: '过程评分', value: '0.742', percent: '74.2%' },
+      { label: '效率评分', value: '0.831', percent: '83.1%' },
+      { label: '综合评分', value: '0.782', percent: '78.2%', featured: true, pass: true, note: '已达及格线 0.60' }
     ])
-  }
-  if (evalProgressStage.value === 'partial') {
-    return decorateScoreCards([
-      { label: '静态评分', value: '0.872', percent: '87.2%', tuneKey: 'overall' },
-      { label: '结果评分', value: '0.825', percent: '82.5%', tuneKey: 'confirm' },
-      { label: '过程评分', value: '0.796', percent: '79.6%', tuneKey: 'flow' },
-      { label: '效率评分', value: '0.856', percent: '85.6%', tuneKey: 'overall' },
-      { label: '综合评分', value: '0.826', percent: '82.6%', featured: true, pass: true, note: '已达及格线 0.60' }
+
+const evalGateText = computed(() => aiTuned.value
+  ? 'AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。'
+  : '综合评分 0.782，已达到提交审核门槛。仍可由 AI 助手微调流程步骤和关键确认节点，进一步优化草稿质量。')
+const reviewScoreText = computed(() => aiTuned.value ? 'AI 微调后综合评分 0.859，已达到审核门槛' : '当前综合评分 0.782，已达到审核门槛')
+
+const evalItems = computed(() => aiTuned.value
+  ? [
+      { title: '基本信息规范', score: '1.00' },
+      { title: '流程步骤清晰', detail: 'AI 已补充分步执行顺序、参数确认和结果交付路径', score: '0.92' },
+      { title: '异常处理完善', detail: '已覆盖无数据、字段缺失、权限不足时的兜底话术', score: '0.90' },
+      { title: '关键节点确认', detail: '时间解析回显、权限降级、明细导出前均有 STOP 确认节点', score: '0.86' },
+      { title: '指令具体明确', score: '1.00' },
+      { title: '资源引用有效', score: '1.00' },
+      { title: '平台适配合规', score: '1.00' },
+      { title: '测试用例充分', score: '1.00' }
+    ]
+  : [
+      { title: '基本信息规范', score: '1.00' },
+      { title: '流程步骤清晰', detail: '可继续补充参数确认、异常兜底和结果交付的分步描述', score: '0.72' },
+      { title: '异常处理完善', detail: '已覆盖无数据、字段缺失、权限不足时的兜底话术', score: '0.90' },
+      { title: '关键节点确认', detail: '可继续明确权限降级和明细导出前的确认范围、字段清单和脱敏方式', score: '0.74' },
+      { title: '指令具体明确', score: '1.00' },
+      { title: '资源引用有效', score: '1.00' },
+      { title: '平台适配合规', score: '1.00' },
+      { title: '测试用例充分', score: '1.00' }
     ])
-  }
-  return decorateScoreCards([
-    { label: '静态评分', value: '0.872', percent: '87.2%', tuneKey: 'overall' },
-    { label: '结果评分', value: '0.804', percent: '80.4%', tuneKey: 'confirm' },
-    { label: '过程评分', value: '0.742', percent: '74.2%', tuneKey: 'flow' },
-    { label: '效率评分', value: '0.831', percent: '83.1%', tuneKey: 'overall' },
-    { label: '综合评分', value: '0.782', percent: '78.2%', featured: true, pass: true, note: '已达及格线 0.60' }
-  ])
-})
 
-const currentCompositeScore = computed(() => scores.value.find(score => score.label === '综合评分')?.value || '0.782')
-const evalGateText = computed(() => {
-  if (evalProgressStage.value === 'complete') {
-    return 'AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。'
-  }
-  if (evalProgressStage.value === 'partial') {
-    return `已完成 ${tunedEvalCount.value}/${tunableEvalKeys.value.length} 个低分项微调，综合评分刷新到 ${currentCompositeScore.value}。可继续点击下一个低分项的 AI 微调，完成后再次重新评估。`
-  }
-  return '综合评分 0.782，已达到提交审核门槛。仍可由 AI 助手微调流程步骤和关键确认节点，进一步优化草稿质量。'
-})
-const reviewScoreText = computed(() => evalProgressStage.value === 'complete'
-  ? 'AI 微调后综合评分 0.859，已达到审核门槛'
-  : `当前综合评分 ${currentCompositeScore.value}，已达到审核门槛`)
-
-const evalItems = computed<EvalDisplayItem[]>(() => evalBaselineItems.map(item => {
-  const tuned = aiTuned.value || tunedEvalKeySet.value.has(item.key)
-  const tunable = Boolean(item.tunedScore)
-  const score = tuned && item.tunedScore ? item.tunedScore : item.score
-  const needsFix = tunable && !tuned
-  return {
-    ...item,
-    score,
-    detail: tuned && item.tunedDetail ? item.tunedDetail : item.detail,
-    tuned,
-    tunable,
-    needsFix,
-    statusText: needsFix ? '可优化' : 'PASS',
-    statusClass: needsFix ? 'warn' : 'pass'
-  }
-}))
-
-const aiTuneButtonText = computed(() => {
-  if (isReevaluating.value) return '正在重新评估...'
-  if (aiTuning.value) return 'AI 助手处理中...'
-  return '整体 AI 微调'
-})
-const optimizationItems = computed(() => [
-  { index: 1, title: '补齐流程步骤', desc: '需要把查询、分析、异常兜底、结果输出和确认动作拆成可执行步骤。' },
-  { index: 2, title: '明确确认节点', desc: '权限降级、明文导出和脱敏导出前，需要展示范围、字段、脱敏方式和等待回复。' },
-  { index: 3, title: '刷新评分结果', desc: 'AI 完成草稿微调后，自动回写评估列表、综合评分和提交审核门槛状态。' }
-])
+const aiTuneButtonText = computed(() => aiTuning.value ? '等待 AI 助手确认...' : '打开 AI 助手微调')
+const optimizationItems = computed(() => aiTuned.value
+  ? [
+      { index: 1, title: '流程步骤已拆清', desc: '补充参数确认、查询执行、异常兜底、结果生成、导出确认五段流程。' },
+      { index: 2, title: '关键节点已补齐', desc: '权限降级、明文导出和脱敏 CSV 导出前，都会先展示影响范围并等待确认。' },
+      { index: 3, title: '测试样例已更新', desc: '新增参照区间、权限降级、无数据、无明文导出权限和时间范围无效等样例。' }
+    ]
+  : [
+      { index: 1, title: '补齐流程步骤', desc: '需要把查询、分析、异常兜底、结果输出和确认动作拆成可执行步骤。' },
+      { index: 2, title: '明确确认节点', desc: '权限降级、明文导出和脱敏导出前，需要展示范围、字段、脱敏方式和等待回复。' },
+      { index: 3, title: '刷新评分结果', desc: 'AI 完成草稿微调后，自动回写评估列表、综合评分和提交审核门槛状态。' }
+    ])
 
 function switchTab(tab: TabKey) {
   activeTab.value = tab
@@ -1742,115 +1524,22 @@ function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
   }
 }
 
-function evalTitleByKey(key: string) {
-  return evalBaselineItems.find(item => item.key === key)?.title || '当前评估项'
-}
-
-function startAiTune(item?: EvalDisplayItem) {
-  if (tuneControlsDisabled.value) return
-  const target = item?.tunable ? item : null
-  const targetKey = target?.key || 'overall'
-  const isCaseTarget = targetKey.startsWith('case:')
+function startAiTune() {
+  if (aiTuned.value) {
+    aiStore.toggleOpen(true)
+    return
+  }
+  if (aiTuning.value) return
   aiTuning.value = true
-  aiTuneRequestKey.value = `skill-tune-${targetKey}-${form.value.name || 'draft'}-${Date.now()}`
-  aiTuneRequestTargets.value = {
-    ...aiTuneRequestTargets.value,
-    [aiTuneRequestKey.value]: targetKey
-  }
+  aiTuneRequestKey.value = `skill-tune-${form.value.name || 'draft'}-${Date.now()}`
   aiStore.toggleOpen(true)
-  const lowItems = evalItems.value.filter(entry => entry.tunable && !entry.tuned)
-  const targetTitles = target ? `${target.title} ${target.score}` : lowItems.map(entry => `${entry.title} ${entry.score}`).join('、')
+  aiStore.messages.push({ role: 'user', text: '请针对 Skill 创建评估验证中的可优化项做 AI 微调：流程步骤清晰 0.72、关键节点确认 0.74。请调整 Skill 草稿并刷新评分结果。', at: new Date().toISOString() })
   aiStore.messages.push({
-    role: 'user',
-    text: target?.tunePrompt || `请针对 Skill 创建评估验证中的可优化项做整体 AI 微调：${targetTitles || '当前草稿质量'}。请调整 Skill 草稿并刷新评分结果。`,
-    at: new Date().toISOString()
+    role: 'assistant',
+    text: ['已定位 2 个可优化项，并生成 Skill 微调建议：', '', '- 将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。', '- 补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。', '- 更新验收用例，覆盖参照区间、权限降级、无数据、模糊时间和时间范围无效。', '', '请确认是否采用本轮微调结果；确认后左侧才会刷新评分并开放提交审核。'].join('\n'),
+    at: new Date().toISOString(),
+    actionItems: [{ type: 'skill_tune_confirm', label: '确认微调完成', value: aiTuneRequestKey.value }]
   })
-  const resultLines = target?.tuneResult || [
-    '已定位当前仍可优化的评估项，并按 Skill 九要素更新流程、边界、依赖和验收用例。',
-    '将认证与转化简报流程拆成「时间解析回显 → 批量取数 → LenovoID 去重 → 聚合分析 → 简报生成 → STOP 确认」。',
-    '补充无 SMB 数据权限、无明文导出权限、导出脱敏 CSV 前的固定确认节点，明确行数、字段清单和脱敏方式。',
-    '更新验收用例，覆盖参照区间、权限降级、无数据、模糊时间和时间范围无效。'
-  ]
-  const requestKey = aiTuneRequestKey.value
-  if (aiTuneResponseTimer) window.clearTimeout(aiTuneResponseTimer)
-  aiTuneResponseTimer = window.setTimeout(() => {
-    aiStore.messages.push({
-      role: 'assistant',
-      text: [
-        target
-          ? `已定位${isCaseTarget ? '验收案例' : '低分项'}「${target.title}」，并生成单项 AI 微调建议：`
-          : '已定位全部可优化项，并生成整体 AI 微调建议：',
-        '',
-        ...resultLines.map(line => `- ${line}`),
-        '',
-        `你可以继续微调其他${isCaseTarget ? '验收案例' : '低分项'}，也可以确认采用本轮微调结果。确认后左侧会进入重新评估。`
-      ].join('\n'),
-      at: new Date().toISOString(),
-      actionItems: [{ type: 'skill_tune_confirm', label: '确认微调完成', value: requestKey }]
-    })
-    aiTuning.value = false
-    aiTuneResponseTimer = undefined
-  }, 900)
-}
-
-function startCaseAiTune(testCase: EvalCaseDisplayItem) {
-  if (tuneControlsDisabled.value) return
-  startAiTune({
-    key: `case:${testCase.key}`,
-    title: testCase.title,
-    score: testCase.score,
-    tunedScore: testCase.tunedScore,
-    tunePrompt: testCase.tunePrompt,
-    tuneResult: testCase.tuneResult,
-    statusText: testCase.tuned ? '已微调' : '可优化',
-    statusClass: testCase.tuned ? 'pass' : 'warn',
-    tuned: testCase.tuned,
-    tunable: true,
-    needsFix: !testCase.tuned
-  })
-}
-
-function beginReevaluation(targetKey: 'overall' | string, requestKey = '') {
-  if (isReevaluating.value) return
-  if (aiTuneResponseTimer) {
-    window.clearTimeout(aiTuneResponseTimer)
-    aiTuneResponseTimer = undefined
-  }
-  aiTuning.value = false
-  isReevaluating.value = true
-  workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · 正在重新评估`
-  if (reevaluationTimer) window.clearTimeout(reevaluationTimer)
-  reevaluationTimer = window.setTimeout(() => {
-    if (targetKey.startsWith('case:')) {
-      const caseKey = targetKey.slice(5)
-      tunedCaseKeys.value = tunedCaseKeys.value.includes(caseKey)
-        ? tunedCaseKeys.value
-        : [...tunedCaseKeys.value, caseKey]
-      const testCase = evalBaselineCases.find(item => item.key === caseKey)
-      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · ${testCase?.title || caseKey} 已重新运行`
-      toast(`${testCase?.title || caseKey}：AI 微调完成，案例结果已刷新`)
-    } else if (targetKey === 'overall') {
-      tunedEvalKeys.value = [...tunableEvalKeys.value]
-      aiTuned.value = true
-      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · 整体 AI 微调结果已确认`
-      toast('整体 AI 微调已完成，评分与提交审核状态已同步')
-    } else {
-      const nextKeys = tunedEvalKeys.value.includes(targetKey)
-        ? tunedEvalKeys.value
-        : [...tunedEvalKeys.value, targetKey]
-      tunedEvalKeys.value = nextKeys
-      if (tunableEvalKeys.value.every(key => nextKeys.includes(key))) aiTuned.value = true
-      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · ${evalTitleByKey(targetKey)} 已重新评估`
-      toast(`${evalTitleByKey(targetKey)}：AI 微调完成，已重新评估`)
-    }
-    if (requestKey) {
-      const remainingRequests = { ...aiTuneRequestTargets.value }
-      delete remainingRequests[requestKey]
-      aiTuneRequestTargets.value = remainingRequests
-    }
-    isReevaluating.value = false
-    reevaluationTimer = undefined
-  }, 3000)
 }
 
 function formatBeijingTime(value: Date) {
@@ -2064,8 +1753,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   hideContextSubtitleTooltip()
-  if (aiTuneResponseTimer) window.clearTimeout(aiTuneResponseTimer)
-  if (reevaluationTimer) window.clearTimeout(reevaluationTimer)
   document.removeEventListener('click', closeContextDropdowns)
 })
 </script>

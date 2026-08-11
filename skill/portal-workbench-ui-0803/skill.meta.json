@@ -1,0 +1,20 @@
+{
+  "projectId": "lexiang-workbench",
+  "skillId": "portal-workbench-ui",
+  "skillVersion": "2026-08-03",
+  "skillRelease": "0803",
+  "baselineName": "0803-unified-pm-ui-development",
+  "updatedAt": "2026-08-03",
+  "referenceBaseline": {
+    "projectRelease": "0803",
+    "appRootHint": "vue-app"
+  },
+  "audiences": [
+    "pm",
+    "ui-ux",
+    "frontend-development",
+    "review-qa"
+  ],
+  "distributionPolicy": "single-authoritative-skill",
+  "compatibilityPolicy": "portable-target-repository"
+}

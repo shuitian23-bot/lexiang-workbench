@@ -1,55 +1,46 @@
-# 项目级维护规范
+# 联想门户工作台项目维护规范
 
-本项目服务 `https://leaibot.cn/`（生产正式版），前端静态页面位于 `/opt/projects/lexiang/public`。
+本目录是 `lexiang-new-0803` 门户工作台可移植交付版。当前主实现位于 `vue-app/`，用于本地 POC、设计走查、研发实现与交互验收，不是 `leaibot.cn` 生产购物助手代码。
 
-> 注：2026-06-10 完成目录与域名归位后，本仓库（/opt/projects/lexiang，next 分支）即 leaibot.cn 正式版代码；
-> new.leaibot.cn 由 /opt/projects/lexiang-new（main 分支）提供，是另一代代码线，两边不要混改。
+## 统一设计规范
 
-## 必须读取的设计规范
+设计、修改或评审页面前，读取项目随附的统一设计 Skill：
 
-在设计、修改、评审或发布 `leaibot.cn` 的页面样式、交互、组件、中文文案前，必须先读取并遵循（本仓库内路径）：
+`skill/portal-workbench-ui-0803/SKILL.md`
 
-`/opt/projects/lexiang/.codex/skills/lenovo-leai-pc-design/SKILL.md`
+再按任务读取其中对应 reference。项目内 Skill 是统一 0803 Skill 的分发副本，PM、UI 与研发共用；不得在项目内单独维护研发版、PM 版或 UI 版。
 
-按该 skill 的 workflow 继续读取相关引用文件，尤其是：
+不要依赖个人用户名、固定检出目录或项目/Skill 哈希。先将 `vue-app/` 解析为 `<app-root>`，再使用仓库相对路径。
 
-- `references/pc-design-system.md`
-- `references/layout-rules.md`
-- `references/component-patterns.md`
-- `references/interaction-states.md`
-- `references/content-voice.md`
-- `references/real-pc-dialog-reference.md`
-- `references/real-pc-dialog-states.md`
-- `references/asset-inventory.md`
+## 当前产品边界
 
-## 实施要求
+- 左侧导航、顶部静态页签、中间业务内容槽与右侧 Agent 构成统一外壳。
+- Agent 首次进入默认收起；只有用户点击右上角“AI 助手”后才展开。
+- AI 结果报告通过 Topbar 单一选择器进入内容槽，不恢复第二行动态页签。
+- AI 结果详情页退出按钮统一显示“关闭”，关闭当前结果后切换相邻结果或返回当前静态页面。
+- 静态页签均可关闭；关闭最后一个页签后回到“首页 / 联想门户工作台”。
+- 弹窗底部操作按钮统一右对齐；弹窗支持焦点进入、Tab 循环、Esc 关闭和焦点返回。
+- 页面适配以中间内容槽实际宽度为准；Agent 展开和拖宽后不得产生页面级横向滚动。
+- 权限管理左侧二级菜单使用常驻分组导航，菜单超出时仅内部滚动。
+- 当前交付界面保持浅色模式，主题切换入口隐藏。
 
-- UI 必须使用联想乐享超级智能体 PC 端规范，不要自行引入不在规范内的主色、紫色渐变、玻璃拟态或营销页式大背景。
-- 修改 `public/index.html` 或相关静态资源前，先对照 skill 中的色彩、字体、间距、圆角、导航、输入框、状态与中文文案规则。
-- 线上发布前至少检查 `/`、`/shop-chat`、`/b-chat`、`/biz-chat` 四个路径。
-- 如需替换静态页面，先备份 `/opt/projects/lexiang/public`。
+## 修改与验证
 
-## 版本管理与更新日志（强制，所有人 / 所有 AI session 适用）
+在 `vue-app/` 中执行：
 
-线上更新日志页：`https://leaibot.cn/changelog.html`，数据源 `public/changelog.json`，页面自动渲染、无需重启服务。
+```bash
+pnpm guard:design-skill
+pnpm lint
+pnpm typecheck
+pnpm build
+pnpm smoke:shell
+```
 
-**任何上线到 leaibot.cn 的改动（功能、页面、文案、数据、修复），发布后必须在 `public/changelog.json` 追加当日条目——不管改动出自哪个人、哪个 AI 工具/session。代他人补录也算数：发现已上线的改动没有记录，先补记再继续自己的工作。**
+guard 只检查 Skill 类型、旧版本风险、全局 CSS 和封板表面，不要求项目或 Skill 哈希一致。涉及界面或交互的修改还需验证 Agent 收起/默认/最大宽度、页签关闭、弹窗键盘行为、目标页面响应式以及相关数据和权限状态。
 
-格式约定：
+## 文件与归档
 
-- `days` 数组按日期倒序（最新的一天在最前）。
-- 当天（北京时间）已存在条目 → 在该天 `items` 末尾追加，编号由页面自动续接；新的一天 → 新建 `{ "date": "YYYY-MM-DD", "items": [...] }`，编号自动从 1 开始。
-- **描述必须是不懂代码、不懂开发的人能看懂的大白话**：写「用户能感知到什么变了、对他有什么用」，不写文件名、函数名、技术词。仅影响内部运营的改动，句尾注明「（内部功能，不影响购物体验）」。
-- **同一天内对同一功能块的多次迭代要合并展示**：当天已有该功能条目时，更新那条为最终状态，不要重复追加；重要新功能排前、修复类排后。
-- **每条末尾署名改动人 + token**：格式「——观（约2万 token）」。本地开发者在 commit message 末尾附 `[tokens:12345]`（自己 AI 会话的消耗量），服务器自动解析进日志；服务器端 session 由 token-stats.js 自动计算。
-- **每日自动合并**：当天最后一次提交或新一天首次提交时，当班 AI 主动按合并规则整理条目为最终状态（无需提醒）。
-- **范围限定（强制）**：只记录乐享 POC 前台体验及直接配套内容；GEO 看板、workbench 通用后台、基础设施等不写入。
-- changelog.json 的改动随当次代码提交一起 commit。
-
-## 多人协作与防覆盖（强制）
-
-1. git 唯一事实源：改完立即 commit+push；他人未提交改动先 `checkpoint:` 快照保护再开工。
-2. 改共享热点文件（public/index.html、public/admin/*、server.js、core/*）前先 `scripts/edit-lock.sh claim <标识> <文件>`，BLOCKED 则先沟通；完工 release（锁 2 小时自动过期）。
-3. 整文件覆盖（cp 部署/AI 重写）前必须 diff 现场 vs 编辑基线，不一致 = 有人并行改过 → 停止覆盖，对方改动入库后重取基线重放。
-4. AI 编辑循环：取基线 → 编辑副本 → 部署前 diff 校验 → 覆盖 → commit+push → 释放锁。
-5. 领域分工：前台 index.html / 后台 workbench 不跨域同时开工，跨域先打招呼。
+- 不修改旧历史归档；新的需求从最新版本复制后继续。
+- 归档前移除 `node_modules`、`.vite`、`dist`、`public/admin-vue`、`tsconfig.tsbuildinfo`、`__pycache__` 和 `.DS_Store` 等可重建或本机产物。
+- 项目内设计 Skill 只作为随项目交付的生成副本；设计规则变更先更新权威 Skill，再重新分发。
+- 验收证据与需求日志放在项目外的历史需求日志目录，不混入源码归档。

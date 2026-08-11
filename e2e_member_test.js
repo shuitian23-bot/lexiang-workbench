@@ -1,4 +1,5 @@
-const { chromium } = require('/home/baiyu/.npm/_npx/e41f203b7505f1fb/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const BASE_URL = process.env.E2E_BASE_URL || 'http://127.0.0.1:3001';
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -12,7 +13,7 @@ const { chromium } = require('/home/baiyu/.npm/_npx/e41f203b7505f1fb/node_module
   });
 
   console.log('=== 导航到首页 ===');
-  await page.goto('http://127.0.0.1:3001', { waitUntil: 'networkidle', timeout: 10000 });
+  await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 10000 });
 
   // 检查 openMemberCenter 是否存在
   const hasMemberCenter = await page.evaluate(() => {

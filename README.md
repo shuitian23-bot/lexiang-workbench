@@ -1,112 +1,51 @@
-# leaibot
+# 联想乐享 AI 工作台 0803
 
-## 门户工作台源码边界
+本目录是门户工作台 0803 可移植源码交付版，以 0730 已确认项目及 2026-08-03 的最新修改为基础，并统一使用项目随附的 `portal-workbench-ui-0803` 设计 Skill。
 
-当前门户工作台以 `vue-app/` 作为 Vue 架构源码主入口。后续功能、交互和样式调整优先修改这里，并通过 Vite 构建生成线上 `/admin-vue/` 运行产物。
+## 主要入口
 
-| 路径 | 状态 | 用途 |
-| --- | --- | --- |
-| `vue-app/` | 主维护源码 | Vue 3 工作台源码。功能页面、AI 助手、权限管理、Skill 创建和样式规范都在这里维护。 |
-| `vue-app/src/assets/` | 主维护样式 | Vue 工作台当前样式层。设计规范覆盖、壳层适配和页面样式调整放这里。 |
-| `vue-app/public/admin-runtime/` | 运行时适配资源 | Vue 工作台复用的旧模块数据和页面运行时文件，需要随 Vue 源码一起维护。 |
-| `public/admin/` | Legacy HTML 版本 | 旧 HTML 工作台和历史预览链路，仅作为兼容、回查和样式参考。不要把新功能优先改在这里。 |
-| `public/admin-vue/` | 构建产物 | Vue 构建输出目录，不入 Git，不作为源码修改入口。 |
+| 路径 | 用途 |
+|---|---|
+| `vue-app/` | Vue 3 工作台主维护源码与工程命令入口 |
+| `vue-app/src/` | 页面、壳层、Agent、store、router、composable 和 service |
+| `vue-app/public/admin-runtime/` | 已登记的兼容运行时资源 |
+| `skill/portal-workbench-ui-0803/` | PM、UI 与研发共用的统一设计 Skill 分发副本 |
+| `public/admin/` | Legacy HTML 历史兼容与对照 |
+| `public/admin-vue/` | 构建生成目录，不是源码，不进入归档 |
 
-重要约定：
+## 使用方式
 
-- 新增或修复门户工作台功能时，先改 `vue-app/src` 或 `vue-app/public/admin-runtime`。
-- 不直接提交 `public/admin-vue/`，该目录由构建生成，已在 `.gitignore` 中排除。
-- `public/admin/*.js`、`public/admin/*.css` 仍保留给旧 HTML 链路和历史对照使用，但不是当前 Vue 工作台的主维护对象。
-- 如果需要清理旧 HTML 链路，应先确认线上不再访问 `/admin/workbench.html`，再单独做归档或删除。
+1. 先读取 `AGENTS.md` 和 `skill/portal-workbench-ui-0803/SKILL.md`。
+2. 将 `vue-app/` 作为 `<app-root>`，使用仓库相对路径，不依赖个人机器目录。
+3. 在 `vue-app/` 中安装依赖、开发和验证。
+4. 使用源码检查、规则对比和工程命令判断兼容性，不使用项目或 Skill 哈希作为门槛。
 
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.xpaas.lenovo.com/lcpoc/leaibot.git
-git branch -M main
-git push -uf origin main
+```bash
+cd vue-app
+pnpm install --frozen-lockfile
+pnpm guard:design-skill
+pnpm lint
+pnpm typecheck
+pnpm build
+pnpm smoke:shell
 ```
 
-## Integrate with your tools
+## 源码与归档边界
 
-* [Set up project integrations](https://gitlab.xpaas.lenovo.com/lcpoc/leaibot/-/settings/integrations)
+- 新功能优先修改 `vue-app/src/`；兼容运行时仅在明确需要时修改。
+- 不直接维护 `public/admin-vue/`。
+- 不在项目内单独维护研发版、PM 版或 UI 版 Skill。
+- 归档不包含 `node_modules`、缓存、构建输出、`.DS_Store` 或个人工具配置。
+- 本项目用于 POC、设计验证和研发交付，不代表生产部署授权。
 
-## Collaborate with your team
+## 可选兼容工具配置
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+根目录中的旧数据流水线和会员中心 E2E 脚本不依赖任何个人机器路径；仅在使用这些可选工具时配置：
 
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- `PYTHON_SKILLS_DIR`：外部 Python Skill 根目录；未配置时使用项目内 `external-skills/` 约定目录。
+- `CLAUDE_PROJECTS_DIR`：运行 `scripts/token-stats.js` 时必填的会话目录。
+- `E2E_BASE_URL`：会员中心 E2E 地址，默认 `http://127.0.0.1:3001`。
+- `PLAYWRIGHT_MODULE`：可选 Playwright 模块入口；未配置时使用当前环境已安装的 `playwright` 包。
+- `GEO_DIANLIANG_USERNAME`、`GEO_DIANLIANG_PASSWORD`、`GEO_DIANLIANG_UID`：GEO 点亮接口登录信息；仅在启用对应代理路由时配置。
+- `GEO_EXTERNAL_API_TOKEN`：GEO 外部接口令牌；仅在启用对应代理路由时配置。
+- `GEO_EXTERNAL_CLIENT_CODE`：GEO 外部接口客户端标识，未配置时使用 `lenovo`。

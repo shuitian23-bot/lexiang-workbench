@@ -1,76 +1,57 @@
-# 乐享 AI 工作台 — Vue 3 源码包
+# 乐享 AI 工作台 0803 — Vue 3 源码包
 
-本包是门户工作台当前主维护源码，不是 `public/admin-vue` 运行产物。0703 版本已把权限管理 POC 回写到 `src/views/agent/AgentPermissionsView.vue`，并在源码侧应用 0703 设计规范调整。
-
-## 源码边界
-
-- 当前新功能、交互、页面样式都优先维护在 `vue-app/`。
-- `src/views/` 存放 Vue 页面。
-- `src/components/` 存放壳层、侧栏、右侧 Agent 等组件。
-- `src/assets/` 存放 Vue 工作台样式覆盖层和设计规范样式。
-- `public/admin-runtime/` 存放 Vue 工作台复用的旧运行时数据和页面模块。
-- 仓库根目录的 `public/admin/` 是 Legacy HTML 版本，只做兼容和历史参考。
-- 仓库根目录的 `public/admin-vue/` 是构建产物，不入 Git，也不作为源码修改入口。
-
-## 快速启动（本地预览）
-
-```bash
-# 进入项目目录
-cd vue-app
-
-# 安装依赖（首次）
-npm install
-
-# 启动开发服务器（热更新）
-npm run dev
-# → 浏览器打开 http://localhost:5173
-
-# 生产构建
-npm run build
-```
+本目录是门户工作台主维护源码。仓库根目录的 `public/admin-vue/` 是构建产物，不是源码入口。
 
 ## 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| 框架 | Vue 3 (Composition API / \`<script setup>\`) |
-| 构建 | Vite 5 |
-| 路由 | vue-router 4（History 模式） |
-| 状态 | Pinia |
-| 图表 | ECharts 5 |
-| 样式 | 复用原版 CSS，并叠加 0703 设计规范样式 |
+- Vue 3 + Vite 5
+- Vue Router 4
+- Pinia
+- TypeScript strict mode
+- ECharts 5
+- 基础路径 `/admin-vue/`
 
-## 目录结构
+## 设计合同
 
-```
-vue-app/
-├── index.html              # 入口（含 data-product="leaibot"）
-├── vite.config.js          # Vite 配置（/api 代理 → localhost:3000）
-├── src/
-│   ├── main.ts             # 挂载 App + 导入全部 CSS
-│   ├── App.vue             # 根组件
-│   ├── router/index.ts     # 路由表（所有页面路由）
-│   ├── stores/
-│   │   ├── app.js          # 全局状态（用户/菜单/页签/侧栏）
-│   │   └── ai.js           # AI 面板状态
-│   ├── components/
-│   │   ├── AppLayout.vue   # 三栏布局容器
-│   │   ├── AppSidebar.vue  # 侧边导航（含 peek 模式）
-│   │   ├── AppTopbar.vue   # 面包屑 + 静态页签栏
-│   │   ├── AppAIPanel.vue  # AI 助手面板（含拖拽调宽）
-│   │   └── TempTabView.vue # AI 报告临时页签内容区
-│   ├── views/              # 各模块页面（按分组目录）
-│   └── assets/             # 原版 CSS + 设计规范覆盖层
-└── public/assets/          # 静态图片资源
+开始页面设计、实现或评审前，读取：
+
+```text
+../skill/portal-workbench-ui-0803/SKILL.md
 ```
 
-## 本次源码侧变更
+该 Skill 是 PM、UI 和研发共用的可移植分发副本。将当前目录作为 `<app-root>`；不依赖个人机器路径、固定项目目录名或项目/Skill 哈希。
 
-- `src/views/agent/AgentPermissionsView.vue`：权限管理从占位页补成可操作 POC，包含权限申请五步链路、审批列表、角色管理、用户管理、组织管理、数据源管理、功能管理和删除备份。
-- `src/components/shell/sidebar/WorkbenchSidebar.vue`：账号入口中的权限管理改为进入 `/agent/permissions`，并补充调整日志记录。
-- `src/components/sidebar/SidebarFooter.vue`：权限管理入口说明改为当前可用能力描述。
-- `src/main.ts`：使用封板样式栈 `workbench.css`、`workbench-original-lock.css`、`workbench-prd-modules.css`、`workbench-ui-polish.css`、`workbench-preview-overrides.css`、`vue-shell-adapter.css`；不再引入未登记的 `ui-*-design-skill.css` 运行时样式。
+## 快速启动
 
-## 后端接口代理
+```bash
+pnpm install --frozen-lockfile
+pnpm dev
+```
 
-开发时 Vite 将 `/api/*` 代理到 `http://localhost:3000`，与原版保持一致。
+默认访问 `/admin-vue/`。代理后端不可用时，部分页面会使用预览或回退数据；这不代表真实 API 状态已经验收。
+
+## 验证
+
+```bash
+pnpm guard:design-skill
+pnpm lint
+pnpm typecheck
+pnpm build
+pnpm smoke:shell
+```
+
+如默认 smoke 端口被占用，可指定其他空闲端口：
+
+```bash
+PORTAL_SMOKE_PORT=4174 pnpm smoke:shell
+```
+
+guard 检查统一 Skill 类型、建议版本、全局 CSS 和封板表面；它不计算或要求内容哈希。
+
+## 维护边界
+
+- 页面和壳层实现位于 `src/`。
+- 公共 token 与已登记全局样式位于 `src/assets/`；页面私有样式优先放在对应 Vue SFC。
+- `public/admin-runtime/` 只承载已登记兼容资源，不新增散落的全局 DOM bridge。
+- `NativeWorkbenchPage` 只用于页面矩阵中登记的隐藏/详情兼容路由。
+- `public/admin-vue/`、`node_modules/`、`.vite/`、`dist/` 和 `tsconfig.tsbuildinfo` 不进入归档。

@@ -1,27 +1,8 @@
 {
   "skillSearchDirs": [
-    "../../portal-workbench-ui-0729",
-    "../../portal-workbench-ui-0728",
-    "../../portal-workbench-ui-0727",
-    "../../../skill历史版本/portal-workbench-ui-0727",
-    "../../skill历史版本/portal-workbench-ui-0716",
-    "../portal-workbench-ui-0729",
-    "../portal-workbench-ui",
-    "../portal-workbench-ui-0709",
-    "../portal-workbench-ui-0708",
-    "../portal-workbench-ui-0707",
-    "../portal-workbench-ui-0706",
-    "../../portal-workbench-ui-0729",
-    "../../portal-workbench-ui",
-    "../../portal-workbench-ui-0709",
-    "../../portal-workbench-ui-0708",
-    "../../portal-workbench-ui-0707",
-    "../../portal-workbench-ui-0706",
-    "../../../skill历史版本/portal-workbench-ui-0729",
-    "../../../skill历史版本/portal-workbench-ui",
-    "../../../skill历史版本/portal-workbench-ui-0709",
-    "../../../skill历史版本/portal-workbench-ui-0708",
-    "../../../skill历史版本/portal-workbench-ui-0707",
-    "../../../skill历史版本/portal-workbench-ui-0706"
+    "../skill/portal-workbench-ui-0803",
+    "../skill/portal-workbench-ui",
+    "../../portal-workbench-ui-0803",
+    "../../portal-workbench-ui"
   ]
 }

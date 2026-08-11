@@ -1,0 +1,10 @@
+{
+  "projectId": "lexiang-workbench",
+  "projectVersion": "2026-08-03",
+  "projectRelease": "0803",
+  "referenceProjectRelease": "0730",
+  "appRoot": "vue-app",
+  "designSkill": "skill/portal-workbench-ui-0803",
+  "compatibilityPolicy": "portable-rule-based",
+  "distributionPolicy": "self-contained-source-with-generated-skill-copy"
+}

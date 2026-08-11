@@ -3,7 +3,12 @@ const router = express.Router();
 const https = require('https');
 
 const BASE = 'https://ai.idianliang.com';
-const CREDENTIALS = { username: '联想乐享', password: 'lianxiang' };
+
+function requireEnv(name) {
+  const value = process.env[name];
+  if (!value) throw new Error(`缺少环境变量 ${name}`);
+  return value;
+}
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -13,7 +18,10 @@ async function getToken() {
   const res = await fetchJSON(`${BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(CREDENTIALS)
+    body: JSON.stringify({
+      username: requireEnv('GEO_DIANLIANG_USERNAME'),
+      password: requireEnv('GEO_DIANLIANG_PASSWORD')
+    })
   });
   if (res.code === 200 && res.data?.token) {
     cachedToken = res.data.token;
@@ -52,22 +60,25 @@ async function proxyGet(apiPath, query) {
   const params = new URLSearchParams(query).toString();
   const url = `${BASE}${apiPath}${params ? '?' + params : ''}`;
   return fetchJSON(url, {
-    headers: { Cookie: `token=${token}; uid=62` }
+    headers: { Cookie: `token=${token}; uid=${requireEnv('GEO_DIANLIANG_UID')}` }
   });
 }
 
 // 外部API代理（overview等），替代nginx proxy
 const EXT_BASE = 'https://api.dianliang.ai/api/external/geo';
-const EXT_HEADERS = {
-  'X-Client-Code': 'lenovo',
-  'Authorization': 'Bearer 828c1e338a6297b45286ee676b8b8cfd',
-  'Content-Type': 'application/json'
-};
+
+function getExternalHeaders() {
+  return {
+    'X-Client-Code': process.env.GEO_EXTERNAL_CLIENT_CODE || 'lenovo',
+    'Authorization': `Bearer ${requireEnv('GEO_EXTERNAL_API_TOKEN')}`,
+    'Content-Type': 'application/json'
+  };
+}
 
 function proxyExternalPost(endpoint, body) {
   return fetchJSON(`${EXT_BASE}/${endpoint}`, {
     method: 'POST',
-    headers: EXT_HEADERS,
+    headers: getExternalHeaders(),
     body: JSON.stringify(body)
   });
 }

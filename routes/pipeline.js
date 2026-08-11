@@ -10,7 +10,7 @@ const db = require('../db/schema');
 const registry = require('../core/skill-registry');
 
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
-const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
+const SKILLS_DIR = path.resolve(process.env.PYTHON_SKILLS_DIR || path.join(__dirname, '..', 'external-skills'));
 const DATA_DIR = path.join(__dirname, '..', 'data', 'pipeline');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 const RESULT_DIR = path.join(DATA_DIR, 'results');

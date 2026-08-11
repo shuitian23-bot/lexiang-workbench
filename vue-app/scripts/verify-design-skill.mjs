@@ -1,18 +1,18 @@
-import { createHash } from 'node:crypto'
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { basename, dirname, join, relative, resolve } from 'node:path'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const projectPackageRoot = dirname(projectRoot)
 const mainFile = join(projectRoot, 'src/main.ts')
 const assetsDir = join(projectRoot, 'src/assets')
-const lockFile = join(projectRoot, 'design-baseline.lock.json')
+const contractFile = join(projectRoot, 'design-baseline.lock.json')
 const warnings = []
 const notices = []
 const config = loadJson(join(projectRoot, 'design-skill.guard.json'), {})
-const baseline = loadJson(lockFile, null)
+const contract = loadJson(contractFile, null)
 
-const allowedCssImports = baseline?.allowedGlobalCssImports || [
+const allowedCssImports = contract?.allowedGlobalCssImports || [
   './assets/workbench.css',
   './assets/workbench-original-lock.css',
   './assets/workbench-prd-modules.css',
@@ -20,18 +20,18 @@ const allowedCssImports = baseline?.allowedGlobalCssImports || [
   './assets/workbench-preview-overrides.css',
   './assets/vue-shell-adapter.css',
 ]
-const approvedDesignSkillCssFiles = baseline?.approvedDesignSkillCssFiles || []
+const approvedDesignSkillCssFiles = contract?.approvedDesignSkillCssFiles || []
 
-if (!baseline) {
-  warnings.push('未找到 design-baseline.lock.json，无法确认当前项目的封板设计基线。')
+if (!contract) {
+  warnings.push('未找到 design-baseline.lock.json，无法确认封板表面和全局样式合同。')
 } else {
-  for (const field of ['projectId', 'requiredSkillId', 'requiredSkillVersion']) {
-    if (!baseline[field]) warnings.push(`design-baseline.lock.json 缺少 ${field}。`)
+  for (const field of ['projectId', 'requiredSkillId', 'compatibilityPolicy']) {
+    if (!contract[field]) warnings.push(`design-baseline.lock.json 缺少 ${field}。`)
   }
 }
 
 const mainText = readFileSync(mainFile, 'utf8')
-const blockedCssPatterns = (baseline?.blockedGlobalCssPatterns || ['ui-*-design-skill.css']).map(globToRegExp)
+const blockedCssPatterns = (contract?.blockedGlobalCssPatterns || ['ui-*-design-skill.css']).map(globToRegExp)
 const cssImports = [...mainText.matchAll(/import\s+['"]([^'"]+\.css)['"]/g)].map(match => match[1])
 
 for (const cssImport of cssImports) {
@@ -40,7 +40,7 @@ for (const cssImport of cssImports) {
     warnings.push(`src/main.ts 引入了未登记的 design-skill 全局 CSS：${cssImport}。`)
   }
   if (!allowedCssImports.includes(cssImport)) {
-    warnings.push(`发现未登记的全局 CSS import：${cssImport}。新增样式建议优先放入 Vue scoped style；确需全局时请更新设计基线锁并说明影响 selector。`)
+    warnings.push(`发现未登记的全局 CSS import：${cssImport}。新增样式优先放入 Vue scoped style；确需全局时请更新允许清单并说明影响 selector。`)
   }
 }
 
@@ -50,7 +50,7 @@ if (cssImports.join('\n') !== allowedCssImports.join('\n')) {
 
 for (const fileName of listCssFiles(assetsDir)) {
   if (isDesignSkillCss(fileName) && !approvedDesignSkillCssFiles.includes(fileName)) {
-    notices.push(`src/assets 中存在未登记的 design-skill CSS：${fileName}。如需运行时使用，建议登记到 design-baseline.lock.json 并说明影响范围。`)
+    notices.push(`src/assets 中存在未登记的 design-skill CSS：${fileName}。如需运行时使用，请加入目标项目允许清单并说明影响范围。`)
   }
 }
 
@@ -58,10 +58,10 @@ const skillMatches = findDesignSkillMetas()
 const preferredSkill = selectPreferredSkill(skillMatches)
 
 if (skillMatches.length === 0) {
-  warnings.push('未检测到外部设计 skill 元信息 skill.meta.json；请确认 PM 是否同时拿到了项目文件夹和设计 skill 文件夹。')
+  warnings.push('未检测到设计 Skill 元信息；请确认项目随附 Skill 或通过 PORTAL_WORKBENCH_UI_SKILL_DIR 指定 Skill 目录。')
 } else {
   if (skillMatches.length > 1) {
-    notices.push(`检测到 ${skillMatches.length} 个设计 skill 元信息，当前使用：${preferredSkill.dir}。如不符合预期，可通过 PORTAL_WORKBENCH_UI_SKILL_DIR 指定。`)
+    notices.push(`检测到 ${skillMatches.length} 个设计 Skill，当前使用：${portablePath(preferredSkill.dir)}。可通过 PORTAL_WORKBENCH_UI_SKILL_DIR 显式指定。`)
   }
   compareSkillMeta(preferredSkill)
 }
@@ -69,39 +69,37 @@ if (skillMatches.length === 0) {
 for (const notice of notices) console.warn(`[Design Skill Notice] ${notice}`)
 
 if (warnings.length > 0) {
-  console.warn('\n[Design Skill Warning] 当前项目存在设计 skill / 封板样式风险：')
+  console.warn('\n[Design Skill Warning] 当前项目存在设计合同或封板样式风险：')
   for (const warning of warnings) console.warn(`- ${warning}`)
-  const protectedSurfaces = (baseline?.protectedSurfaces || []).join(', ')
-  console.warn(`\n项目会继续启动；继续新增需求前，请确认是否使用了项目随附的最新设计 skill，并避免影响封板样式：${protectedSurfaces || 'topbar, sidebar, Agent, tabs, shared components'}。\n`)
+  const protectedSurfaces = (contract?.protectedSurfaces || []).join(', ')
+  console.warn(`\n项目会继续启动；继续新增需求前请检查目标源码和统一设计合同，并避免影响封板表面：${protectedSurfaces || 'topbar, sidebar, Agent, tabs, shared components'}。\n`)
 } else {
-  const baselineLabel = baseline?.baselineName || baseline?.requiredSkillVersion || 'unknown'
-  console.log(`[Design Skill Check] OK: ${baseline?.requiredSkillId || 'design-skill'} ${baselineLabel}`)
+  const contractLabel = contract?.baselineName || contract?.recommendedSkillVersion || 'portable-design-contract'
+  console.log(`[Design Skill Check] OK: ${contract?.requiredSkillId || 'design-skill'} ${contractLabel}`)
 }
 
 function compareSkillMeta(skillMatch) {
-  if (!baseline || !skillMatch?.meta) return
+  if (!contract || !skillMatch?.meta) return
 
-  const { meta, dir } = skillMatch
-  if (meta.projectId && meta.projectId !== baseline.projectId) {
-    warnings.push(`外部设计 skill projectId=${meta.projectId}，与项目基线 ${baseline.projectId} 不一致。`)
+  const { meta } = skillMatch
+  if (meta.projectId && meta.projectId !== contract.projectId) {
+    warnings.push(`设计 Skill projectId=${meta.projectId}，与项目类型 ${contract.projectId} 不一致。`)
   }
-  if (meta.skillId !== baseline.requiredSkillId) {
-    warnings.push(`设计 skill 类型不一致：项目要求 ${baseline.requiredSkillId}，检测到 ${meta.skillId || '未声明'}。`)
+  if (meta.skillId !== contract.requiredSkillId) {
+    warnings.push(`设计 Skill 类型不一致：项目需要 ${contract.requiredSkillId}，检测到 ${meta.skillId || '未声明'}。`)
   }
-  if (meta.skillVersion !== baseline.requiredSkillVersion) {
-    warnings.push(`设计 skill 版本不一致：项目建议 ${baseline.requiredSkillVersion}，检测到 ${meta.skillVersion || '未声明'}。`)
+
+  const recommended = contract.recommendedSkillVersion
+  if (!meta.skillVersion) {
+    warnings.push('设计 Skill 未声明 skillVersion，无法判断是否早于当前建议版本。')
+  } else if (recommended && meta.skillVersion < recommended) {
+    warnings.push(`设计 Skill 版本较旧：项目建议不早于 ${recommended}，检测到 ${meta.skillVersion}。`)
+  } else if (recommended && meta.skillVersion !== recommended) {
+    notices.push(`检测到可移植设计 Skill ${meta.skillVersion}；项目参考版本为 ${recommended}，已按规则兼容继续。`)
   }
-  if (baseline.requiredSkillFingerprint) {
-    const actualFingerprint = getSkillFingerprint(dir)
-    const metaFingerprint = meta.fingerprint
-    if (actualFingerprint && actualFingerprint !== baseline.requiredSkillFingerprint) {
-      warnings.push(`设计 skill 内容指纹不一致：项目绑定 ${baseline.requiredSkillFingerprint}，实际检测 ${actualFingerprint}。请确认 skill 内容是否被改过或是否需要更新项目基线锁。`)
-    }
-    if (metaFingerprint && metaFingerprint !== baseline.requiredSkillFingerprint) {
-      const message = `设计 skill 元信息指纹不一致：项目绑定 ${baseline.requiredSkillFingerprint}，meta 声明 ${metaFingerprint}。`
-      if (actualFingerprint === baseline.requiredSkillFingerprint) notices.push(`${message} 已按实际内容指纹通过校验。`)
-      else warnings.push(message)
-    }
+
+  if (meta.compatibilityPolicy !== 'portable-target-repository') {
+    notices.push('设计 Skill 未声明 portable-target-repository；继续前请确认其不依赖个人路径或固定仓库名称。')
   }
 }
 
@@ -127,14 +125,8 @@ function findDesignSkillMetas() {
   const explicitDir = process.env.PORTAL_WORKBENCH_UI_SKILL_DIR
 
   if (explicitDir) candidateFiles.push(join(resolve(explicitDir), 'skill.meta.json'))
-
   for (const dir of config.skillSearchDirs || []) {
     candidateFiles.push(join(resolve(projectRoot, dir), 'skill.meta.json'))
-  }
-
-  const siblingRoot = dirname(dirname(projectRoot))
-  for (const entry of safeReadDir(siblingRoot)) {
-    if (entry.isDirectory()) candidateFiles.push(join(siblingRoot, entry.name, 'skill.meta.json'))
   }
 
   return unique(candidateFiles)
@@ -145,69 +137,22 @@ function findDesignSkillMetas() {
 
 function selectPreferredSkill(matches) {
   if (matches.length === 0) return null
-  if (!baseline) return matches[0]
-
-  const exact = matches.find(match =>
-    match.meta.skillId === baseline.requiredSkillId &&
-    match.meta.skillVersion === baseline.requiredSkillVersion
-  )
+  const compatible = matches.filter(match => match.meta.skillId === contract?.requiredSkillId)
+  const pool = compatible.length > 0 ? compatible : matches
+  const exact = pool.find(match => match.meta.skillVersion === contract?.recommendedSkillVersion)
   if (exact) return exact
-
-  return matches.find(match => match.meta.skillId === baseline.requiredSkillId) || matches[0]
-}
-
-function getSkillFingerprint(skillDir) {
-  const files = listSkillFingerprintFiles(skillDir)
-  if (files.length === 0) return null
-
-  const hash = createHash('sha256')
-  for (const file of files) {
-    hash.update(relative(skillDir, file))
-    hash.update('\n')
-    hash.update(normalizeFingerprintContent(file))
-    hash.update('\n')
-  }
-  return `sha256-${hash.digest('hex').slice(0, 16)}`
-}
-
-function listSkillFingerprintFiles(skillDir) {
-  const result = []
-  walk(skillDir, result)
-  return result
-    .filter(file => /\.(md|json|ya?ml)$/i.test(file))
-    .filter(file => !file.includes('/node_modules/'))
-    .sort()
-}
-
-function walk(dir, result) {
-  for (const entry of safeReadDir(dir)) {
-    const fullPath = join(dir, entry.name)
-    if (entry.isDirectory()) {
-      if (!['.git', 'node_modules'].includes(entry.name)) walk(fullPath, result)
-    } else if (entry.isFile()) {
-      result.push(fullPath)
-    }
-  }
-}
-
-function normalizeFingerprintContent(file) {
-  if (basename(file) !== 'skill.meta.json') return readFileSync(file, 'utf8')
-  const meta = loadJson(file, {})
-  delete meta.fingerprint
-  return JSON.stringify(meta, Object.keys(meta).sort(), 2)
-}
-
-function safeReadDir(dirPath) {
-  try {
-    statSync(dirPath)
-    return readdirSync(dirPath, { withFileTypes: true })
-  } catch {
-    return []
-  }
+  return [...pool].sort((a, b) => String(b.meta.skillVersion || '').localeCompare(String(a.meta.skillVersion || '')))[0]
 }
 
 function unique(values) {
   return [...new Set(values)]
+}
+
+function portablePath(value) {
+  if (value.startsWith(projectPackageRoot)) {
+    return `<project-root>${value.slice(projectPackageRoot.length)}`
+  }
+  return '<external-skill>'
 }
 
 function globToRegExp(pattern) {

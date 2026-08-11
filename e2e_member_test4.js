@@ -1,11 +1,12 @@
-const { chromium } = require('/home/baiyu/.npm/_npx/e41f203b7505f1fb/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const BASE_URL = process.env.E2E_BASE_URL || 'http://127.0.0.1:3001';
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  await page.goto('http://127.0.0.1:3001', { waitUntil: 'networkidle', timeout: 10000 });
+  await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 10000 });
 
   await page.evaluate(() => {
     window.__lxMember = { guest: false, memberLevel: '金钻会员', loginName: '15901234903' };

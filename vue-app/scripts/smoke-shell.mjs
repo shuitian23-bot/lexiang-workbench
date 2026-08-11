@@ -1,7 +1,10 @@
 import { spawn } from 'node:child_process'
 
 const host = '127.0.0.1'
-const port = 4173
+const port = Number(process.env.PORTAL_SMOKE_PORT || 4173)
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error(`Invalid PORTAL_SMOKE_PORT: ${process.env.PORTAL_SMOKE_PORT}`)
+}
 const baseUrl = `http://${host}:${port}/admin-vue`
 const routes = ['/', '/portal/home', '/dashboard/overview']
 

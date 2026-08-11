@@ -271,7 +271,7 @@ function readFileAsDataUrl(file) {
 </script>
 
 <style scoped>
-/* 0803 design skill: keep the composer editable row visually active. */
+/* Keep the composer as one shared group while making its editable row read as active. */
 :global(html[data-product="leaibot"] body:not(.dark-mode) .ai-composer-box) {
   background: var(--color-surface) !important;
 }

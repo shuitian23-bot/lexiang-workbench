@@ -1,11 +1,11 @@
 {
   "projectId": "lexiang-workbench",
   "requiredSkillId": "portal-workbench-ui",
-  "requiredSkillVersion": "2026-07-29",
-  "requiredSkillRelease": "0729",
-  "requiredSkillFingerprint": "sha256-37adb0a9b6ccbb4c",
+  "recommendedSkillVersion": "2026-08-03",
+  "recommendedSkillRelease": "0803",
+  "compatibilityPolicy": "portable-rule-based",
   "warningOnly": true,
-  "baselineName": "0729-ai-result-report-selector",
+  "baselineName": "0803-unified-portable-design-contract",
   "protectedSurfaces": [
     "topbar",
     "left-sidebar",
@@ -14,7 +14,7 @@
     "agent-header",
     "agent-composer",
     "static-tabs",
-    "dynamic-tabs",
+    "ai-result-selector",
     "account-entry",
     "shared-components"
   ],

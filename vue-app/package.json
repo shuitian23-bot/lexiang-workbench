@@ -13,12 +13,6 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "test:application-info": "node scripts/test-application-info.mjs",
-    "test:permission-scope": "node --experimental-strip-types scripts/test-permission-scope.mjs",
-    "test:user-management": "node scripts/test-user-management.mjs",
-    "test:user-management:browser": "node scripts/verify-user-management-browser.mjs",
-    "test:permission-scope:browser": "node scripts/verify-permission-scope-browser.mjs",
-    "test:login-password-recovery:browser": "node scripts/verify-login-password-recovery-browser.mjs",
     "smoke:shell": "node scripts/smoke-shell.mjs",
     "format": "prettier --write ."
   },

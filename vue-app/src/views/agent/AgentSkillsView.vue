@@ -153,7 +153,7 @@
               </tr>
               <tr>
                 <th>绑定平台</th><td>{{ detailItem.platform }}</td>
-                <th>所属菜单</th><td>{{ skillCategoryLabel(detailItem) }}</td>
+                <th>所属菜单</th><td>{{ detailItem.category }}</td>
               </tr>
               <tr>
                 <th>描述</th><td colspan="3">{{ detailItem.desc }}</td>
@@ -209,7 +209,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { MENU_TREE, useAppStore } from '@/stores/app'
+import { useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { skillHubStatusLabel, useSkillHubStore, type SkillHubItem, type SkillStatus } from '@/stores/skillHub'
 
@@ -232,20 +232,7 @@ const pageDesc = computed(() => role.value === 'admin'
   ? '管理员可查看草稿，并审批、驳回、发布、启用或禁用 Skill；草稿可返回需求澄清继续编辑。'
   : 'PM 查看自己保存或提交的 Skill；草稿和被驳回的 Skill 可返回创建流程继续修改。')
 
-const firstLevelCategories = Object.values(MENU_TREE).map(group => group.label)
-
-function skillCategoryLabel(item: SkillHubItem) {
-  const rawCategory = item.category || ''
-  if (firstLevelCategories.includes(rawCategory)) return rawCategory
-
-  const text = `${rawCategory} ${item.cnName || ''} ${item.name || ''} ${item.desc || ''} ${(item.tags || []).join(' ')}`
-  if (/职场|员工|认证|审核|在职/.test(text)) return '在职员工管理'
-  if (/GEO|信源|意图|引用/.test(text)) return 'GEO 看板'
-  if (/线索|客户|商机|打分/.test(text)) return '企业客户管理'
-  return '乐享运营'
-}
-
-const categories = computed(() => firstLevelCategories)
+const categories = computed(() => [...new Set(items.value.map(item => item.category))])
 const statusOptions: SkillStatus[] = ['draft', 'review', 'approved', 'published', 'disabled', 'rejected']
 
 const filteredItems = computed(() => {
@@ -253,7 +240,7 @@ const filteredItems = computed(() => {
   return items.value.filter(item => {
     const matchKeyword = !q || [item.name, item.cnName, item.desc].some(text => text.toLowerCase().includes(q))
     const matchStatus = statusFilter.value === 'all' || item.status === statusFilter.value
-    const matchCategory = categoryFilter.value === 'all' || skillCategoryLabel(item) === categoryFilter.value
+    const matchCategory = categoryFilter.value === 'all' || item.category === categoryFilter.value
     return matchKeyword && matchStatus && matchCategory
   })
 })
@@ -264,7 +251,7 @@ const summaryItems = computed(() => {
   const publishedCount = items.value.filter(item => item.status === 'published').length
   const disabledCount = items.value.filter(item => item.status === 'disabled').length
   return [
-    { key: 'all', label: '全部 Skill', code: 'ALL', value: items.value.length, desc: `按 ${categories.value.length} 个一级菜单归类`, tone: 'stat--primary' },
+    { key: 'all', label: '全部 Skill', code: 'ALL', value: items.value.length, desc: `覆盖 ${categories.value.length} 个业务分类`, tone: 'stat--primary' },
     { key: 'own', label: '我的 Skill', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '含当前账号草稿与已提交' : '含草稿与已提交记录', tone: 'stat--info' },
     { key: 'review', label: '待审批', code: 'TODO', value: reviewCount, desc: '需管理员审核处理', tone: 'stat--warning' },
     { key: 'published', label: '已发布', code: 'LIVE', value: publishedCount, desc: '线上可被工作台调用', tone: 'stat--success' },

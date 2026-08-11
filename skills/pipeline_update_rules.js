@@ -2,7 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const SKILLS_DIR = process.env.PYTHON_SKILLS_DIR || '/home/zhouyue118';
+const SKILLS_DIR = path.resolve(process.env.PYTHON_SKILLS_DIR || path.join(__dirname, '..', 'external-skills'));
 const RULES_FILE = path.join(SKILLS_DIR, 'lexiang-query-classify', 'references', 'rules.md');
 const SCENE_FILE = path.join(SKILLS_DIR, 'lexiang-query-classify', '场景分类定义.md');
 
