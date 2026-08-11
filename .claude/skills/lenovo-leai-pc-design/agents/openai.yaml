@@ -1,8 +1,8 @@
 interface:
   display_name: "联想乐享超级智能体 PC 设计"
-  short_description: "生成和评审联想乐享 PC 端智能体界面与全屏对话页"
+  short_description: "按联想乐享 PC 端规范生成 POC、评审界面并沉淀可复用组件"
   brand_color: "#B8252E"
-  default_prompt: "Use $lenovo-leai-pc-design to design a Lenovo Lexiang Super Agent PC assistant screen or fullscreen dialog page."
+  default_prompt: "Use $lenovo-leai-pc-design. Start with README.md and standards/design-system-complete.html. For new or updated product features, create a POC first with existing templates, components, and icons; do not update the skill unless reusable patterns need to be governed."
 
 policy:
   allow_implicit_invocation: true

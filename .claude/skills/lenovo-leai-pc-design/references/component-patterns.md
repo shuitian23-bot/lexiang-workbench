@@ -15,7 +15,8 @@
 - Send button uses brand red or red gradient only when active.
 - Disabled send state appears when input is empty or invalid.
 - Long placeholder text must not overflow.
-- For the PC dialog shopping-guide page, the composer is anchored at the bottom of the left assistant panel, uses an 8px radius, a thin red/aubergine emphasis border, placeholder `最近有什么优惠活动？`, chips `深度思考(自动)` and `联网搜索`, an image/file action, and a circular aubergine send button.
+- For the home fullscreen dialog composer, the mode area defaults to `深度思考` only. Scope labels use `visibleCount = 3`: `商品导购 / 解决方案 / 门店查询` stay visible, and `更多` contains only `职场认证 / 服务预约`.
+- For the PC dialog shopping-guide page, the composer is anchored at the bottom of the left assistant panel, uses an 8px radius, a thin red/aubergine emphasis border, placeholder `最近有什么优惠活动？`, an image/file action, and a circular aubergine send button.
 - In the integrated live shell, `.composer textarea` uses 14px type for compact density. Homepage hero composer placeholder/input can be one step larger, but long placeholder text must remain on one clean line without overflowing.
 
 ## Chat Messages
@@ -33,6 +34,17 @@
 - More menu rows: `乐豆商城`, `0元试用`, `私人订制`, `会员中心`, `拉新返利`, `门店闪送`.
 - Active/hover menu row uses pale lavender background and aubergine or red icon/text emphasis.
 - The split/fullscreen assistant toggle uses the shared double-pane sidebar icon. In the split assistant panel it is positioned at `top:27px; right:28px`, with a `26px` square control and `17px` icon.
+
+## Shopping-Guide Hover Recommendation Popover
+
+- The hover recommendation popover replaces the old inline recommendation text plus capsule question tags inside the assistant panel.
+- It is a card, not a free-floating text group: white-to-lavender gradient body, deep aubergine product header, 16px radius, 1px lavender border, hidden overflow, and `0 16px 44px rgba(91,20,82,.20)` shadow.
+- Header contents are fixed: product thumbnail synced from the current product main image, product name with single-line ellipsis, pink price such as `¥14,999 起`, `你在看` badge with star icon, and a 22px translucent circular close button.
+- Summary copy uses 13px text at 1.7 line-height. Product strengths can be emphasized with red bold text, for example `配置拉满`.
+- The divider label is exactly `乐享建议你问问`, followed by a horizontal hairline.
+- Question rows are full-width tappable rows with a lavender 26px star icon square, concise question copy, and a right `›` arrow. Hover state changes border/fill/arrow to the Aubergine family.
+- Hover timing: 6 seconds dwell to open with a small expand animation, then 8 seconds visible before auto-closing with a small collapse animation. Manual close uses the same collapse motion.
+- Question clicks submit that question to the active assistant conversation; they must not navigate or reset the page.
 
 ## Floating Menus
 

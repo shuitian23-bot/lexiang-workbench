@@ -92,9 +92,11 @@ Use this reference for the latest real Lenovo Lexiang PC dialog shopping-guide s
 - Composer border uses a subtle red-to-aubergine emphasis. Keep it thin and clean.
 - Placeholder: `最近有什么优惠活动？`
 - Composer text input should use a multiline textarea behavior. As text wraps or the user enters new lines, the input area grows upward from the bottom composer, with a sensible max height and internal scrolling after the limit. Do not keep this as a single-line input that clips long text.
-- Bottom composer chips:
-  - `深度思考(自动)`
-  - `联网搜索`
+- Bottom composer chips in the current home fullscreen scheme:
+  - mode area only keeps `深度思考`
+  - scope visible pills are `商品导购 / 解决方案 / 门店查询`
+  - `更多` menu only contains `职场认证 / 服务预约`
+  - 1920px+ screens still keep the `3 visible + 更多` structure
 - Right composer actions:
   - image/file icon
   - circular aubergine send button with upward arrow.

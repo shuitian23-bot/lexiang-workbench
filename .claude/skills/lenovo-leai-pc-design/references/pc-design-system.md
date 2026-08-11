@@ -1,6 +1,6 @@
 # PC Design System
 
-This file is the visual source of truth for 联想乐享 PC 端 screens. It is derived from `assets/templates/design-framework.html`; use the same color, spacing, typography, icon, and layout patterns unless a product page provides a newer real reference.
+This file is the visual source of truth for 联想乐享 PC 端 screens. Use it with `standards/design-system-complete.html` and the current page templates; do not use removed historical framework files as the visual baseline.
 
 ## Identity
 
@@ -115,6 +115,18 @@ Use these tokens for PC prototypes and frontend mapping.
 - Product grid: `repeat(4, minmax(210px, 1fr))`, gap `clamp(16px, 1.25vw, 24px)`.
 - Product cards: min-height `clamp(286px, 31.5vh, 390px)`, radius 8px, white surface.
 
+### Homepage Hero
+
+- Homepage headline is `联想乐享帮你` plus one rotating phrase. Default phrase is `找商品` and must render on first paint; never show a blank rotating-word slot after refresh.
+- Keep `联想乐享帮你` and the rotating phrase on the same horizontal baseline. The rotating phrase width follows the active word, with no artificial blank gap between the static and rotating text.
+- Supported rotating phrases: `找商品 / 找门店 / 找服务 / 职场认证 / 教育优惠 / 找解决方案 / 定制电脑`.
+- The entire headline group stays horizontally centered relative to the hero composer for every phrase length.
+- The production homepage hero can hide the subtitle `联想乐享，可以问我关于联想的任何问题`; when hidden, remove its layout footprint.
+- `.hero-composer-bar` uses `margin-top: 16px`.
+- Homepage suggestion chips send their text into the fullscreen conversation state. They must not navigate to or reset the homepage.
+- Category tabs keep the same white surface before and after sticky positioning; do not add an extra white blank spacer on the right.
+- Desktop and tablet footer navigation/customer-case sections keep the desktop multi-column layout. Collapse to stacked/mobile layout only on true mobile widths.
+
 ## Spacing
 
 - Base rhythm remains 4px, but the PC framework uses precise bounded values for browser-fit rendering.
@@ -219,17 +231,29 @@ background:
 - Brand mini: 20px high, 10px bold; orange brand uses `--lx-orange`, 14px.
 - Price uses `--lx-price-red`.
 
+### Shopping-Guide Hover Recommendation Popover
+
+- Replace the old inline recommendation copy plus capsule question tags with a card popover when product hover recommendation is needed.
+- Hover dwell before opening: 6 seconds. Visible duration before auto-close: 8 seconds. Both opening and closing use a small scale/opacity animation; closing collapses rather than disappearing abruptly.
+- The popover product thumbnail must synchronize with the current product main image.
+- Popover container: `linear-gradient(165deg,#fff,#FBF6FC)`, `1px solid #EBDEEF`, 16px radius, `overflow:hidden`, shadow `0 16px 44px rgba(91,20,82,.20)`.
+- Header: `linear-gradient(120deg,#2B0F28,#5b1452)`, padding `12px 40px 12px 14px`, gap 11px, with 42px thumbnail, one-line product name, pink price, and a `你在看` badge.
+- Close button: absolute top/right 10px, 22px circle, `rgba(255,255,255,.18)` background, white `✕`, brightens on hover.
+- Summary: 13px, line-height 1.7, `#2E2738`; the phrase `配置拉满` is highlighted red `#C8161E`, weight 700.
+- Divider label: `乐享建议你问问`, 10.5px/700, `#A99FB4`, letter spacing .5px, followed by a 1px `#ECE3F0` line.
+- Question rows: vertical gap 7px; each row uses padding `9px 12px`, 10px radius, `1px solid #ECE4F0`, white background, 12.5px/600 text, 26px lavender star icon block, and a right `›` arrow. Hover changes border to `#5b1452`, background to `#F4F2F8`, arrow to `#5b1452`.
+
 ## Icons
 
 All framework icons are image assets under `assets/icons/`. Keep icons as real `<img class="icon">` assets rather than redrawing them in CSS when matching this page.
 
 - Global icon class: width/height `1em`, `object-fit: contain`, `display: block`.
-- Topbar utilities: `mall-cart.svg`, `mall-orders.svg`, `mall-profile.svg`.
-- Assistant tools: `sidebar-new-chat.svg`, `sidebar-history.svg`, `sidebar-toggle.svg`, `swap.svg`.
-- Quick row arrow: `chevron-right.svg`.
-- Shortcuts: `shortcut-customer-service.svg`, `shortcut-education-subsidy.svg`, `shortcut-trade-in.svg`, `arrow-down.svg`.
-- More menu: `sidebar-points-mall.svg`, `sidebar-free-trial.svg`, `sidebar-custom-service.svg`, `sidebar-member-center.svg`, `sidebar-referral-rewards.svg`, `sidebar-store-delivery.svg`.
-- Composer: `composer-deep-think.svg`, `composer-web-search.svg`, `composer-image.svg`, `composer-send.svg`.
+- Topbar utilities: `mall-cart.svg`, `mall-orders.svg`, `mall-account.svg`.
+- Assistant tools: `sidebar-create.svg`, `sidebar-history.svg`, `sidebar-toggle.svg`, `global-switch.svg`.
+- Quick row arrow: `global-next.svg`.
+- Shortcuts: `shortcut-support.svg`, `shortcut-education.svg`, `shortcut-tradein.svg`, `shortcut-rewards.svg`, `shortcut-trial.svg`, `shortcut-customization.svg`, `shortcut-membership.svg`, `shortcut-referrals.svg`, `shortcut-delivery.svg`, `shortcut-live.svg`.
+- Basic navigation helpers: `global-next.svg`, `global-expand.svg`, `global-collapse.svg`, `global-switch.svg`, `global-refresh.svg`, `global-sparkle.svg`.
+- Composer: `composer-reasoning.svg`, `composer-search.svg`, `composer-image.svg`, `composer-send.svg`.
 - Icon-only buttons require accessible labels and should preserve 24-34px hit targets depending on context.
 
 ## Interaction States

@@ -54,6 +54,31 @@ check_url "$entry_path"
 check_url '/lexiang-admin-extension/closed-loop-menu.js?v=release-check'
 check_url '/lexiang-dashboard/lenovo-joy-closed-loop-dashboard.html?embedded=1'
 check_url '/lexiang-dashboard/index.html?embedded=1'
+
+internal_dashboard_html="$(curl -fsSL "$base_url/lexiang-dashboard/index.html?embedded=1&release-check=1")"
+summary_dashboard_html="$(curl -fsSL "$base_url/lexiang-dashboard/lenovo-joy-closed-loop-dashboard.html?embedded=1&release-check=1")"
+grep -q "window.__DASHBOARD_MODE__ = 'internal'" <<<"$internal_dashboard_html" || fail 'internal dashboard is not the Vue entry page'
+grep -q "window.__DASHBOARD_MODE__ = 'summary'" <<<"$summary_dashboard_html" || fail 'summary dashboard is not the Vue entry page'
+vue_entry_path="$(grep -oE '/lexiang-dashboard/assets/main-[A-Za-z0-9_-]+\.js' <<<"$internal_dashboard_html" | head -1)"
+[[ -n "$vue_entry_path" ]] || fail 'could not find the Vue dashboard entry asset'
+grep -q "$vue_entry_path" <<<"$summary_dashboard_html" || fail 'the two dashboards do not share the Vue entry asset'
+check_url "$vue_entry_path"
+check_url '/lexiang-dashboard/orders-data.js?v=release-check'
+vue_entry_js="$(curl -fsSL "$base_url$vue_entry_path")"
+grep -q '（内部）联想乐享闭环交易数据' <<<"$vue_entry_js" || fail 'internal dashboard title is incorrect'
+! grep -q '（内部）联系乐享闭环交易数据' <<<"$vue_entry_js" || fail 'legacy internal dashboard title is still present'
+grep -q 'getMetricTrends' <<<"$vue_entry_js" || fail 'metric trend data contract is missing'
+grep -q 'getMetricChartData' <<<"$vue_entry_js" || fail 'combined metric chart data contract is missing'
+grep -q '总金额趋势' <<<"$vue_entry_js" || fail 'total amount trend chart is missing'
+grep -q '订单类型金额' <<<"$vue_entry_js" || fail 'order type amount chart is missing'
+grep -q '饼状图' <<<"$vue_entry_js" || fail 'order type pie chart is missing'
+grep -q '订单类型' <<<"$vue_entry_js" || fail 'order type detail field is missing'
+grep -q 'metric-trend-tooltip' <<<"$vue_entry_js" || fail 'metric trend hover tooltip is missing'
+grep -q 'order-type-tooltip' <<<"$vue_entry_js" || fail 'order type hover tooltip is missing'
+grep -q '移动光标或使用左右方向键查看每日金额' <<<"$vue_entry_js" || fail 'metric trend hover and keyboard guidance is missing'
+printf 'OK: internal title, six trends, and four order-type pie charts are present\n'
+printf 'OK: both dashboards use the shared Vue application\n'
+
 check_url '/admin-vue/ops/closed-loop-dashboard'
 check_url '/admin-vue/ops/internal-closed-loop-dashboard'
 

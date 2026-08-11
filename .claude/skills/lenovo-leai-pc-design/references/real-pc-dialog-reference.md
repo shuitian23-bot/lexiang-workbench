@@ -1,6 +1,6 @@
 # Real PC Dialog Reference
 
-Use `examples/pc-assistant/lexiang-dialog-page.jpg` as the first real Lenovo Lexiang PC dialog and shopping-guide reference. For the latest strict default, conversation-start, hover, and floating-menu states, also read `real-pc-dialog-states.md`.
+Use this file as historical PC dialog and shopping-guide behavior guidance only. The old example screenshot has been removed because it no longer represents the current product baseline. For current page reproduction, start from `assets/templates/home-fullscreen-dialog-template.html`, `assets/templates/shop-chat-page-template.html`, or `assets/templates/product-detail-page-template.html`; for strict default, conversation-start, hover, and floating-menu states, also read `real-pc-dialog-states.md`.
 
 ## Use Case
 

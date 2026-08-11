@@ -1,12 +1,14 @@
 # Fullscreen Dialog Framework
 
-Use this reference when creating, replacing, or reviewing the 联想乐享 fullscreen conversation page. It covers the full-screen chat state that replaces the standard split commerce shell.
+Use this reference when creating, replacing, or reviewing the 联想乐享 fullscreen conversation rules. It covers the full-screen chat state that replaces the standard split commerce shell.
+
+This file is a rule reference only. The old standalone fullscreen framework template and its preview image are deprecated and removed. For current POC and page reproduction, start from `assets/templates/home-fullscreen-dialog-template.html`.
 
 ## Shell Rules
 
 - The fullscreen page is an app surface, not a marketing hero. It must lock `html` and `body` to 100% height with no outer vertical scroll.
 - The main stage uses `height:100vh`, `min-height:100vh`, and `overflow:hidden`. Only the conversation thread scrolls internally.
-- The canonical template is `assets/templates/fullscreen-dialog-framework.html`; use `assets/templates/fullscreen-dialog-framework.png` for a quick visual check.
+- The canonical current template is `assets/templates/home-fullscreen-dialog-template.html`. Do not use the removed standalone fullscreen framework template or its outdated preview image as the current baseline.
 - Production integrations may mount the fullscreen surface as an overlay, but the active state must hide the old page shell and prevent body scrolling.
 - Use the exact token family from the template: brand red `#e42b20`, aubergine `#5b1452`, aubergine dark `#4e1646`, lavender background `rgba(247,243,250,.5)`, border `#e6dfea`, and the three shadow levels `--sh-1`, `--sh-2`, `--sh-3`.
 
@@ -32,6 +34,7 @@ Use this reference when creating, replacing, or reviewing the 联想乐享 fulls
 
 - The rail is fixed at `top:78px; left:18px; bottom:18px`, width `268px`, radius `20px`, glass material, and slides in with `transform`.
 - Wide screens (`innerWidth >= 1280`) open the rail by default and shift the stage left padding to `316px`.
+- The integrated production fullscreen chat may open with the history rail collapsed by default when entered from the commerce homepage. Respect the user's current rail state; sending a message must not auto-expand a rail that the user had already collapsed.
 - Narrow screens use the same rail as an overlay with a scrim. Collapsed state shows two glass FABs: expand rail at `top:80px`, new chat at `top:134px`.
 - The new-chat button is `height:46px`, radius `14px`, white translucent fill, 1px lavender border, centered plus icon and text. Keep it separate from the 42px rail-toggle square.
 - History rows are 38px high, single-line ellipsis, 10px radius; hover/active uses lavender tint and aubergine text, with a 3px left active indicator.
@@ -76,7 +79,11 @@ Use this reference when creating, replacing, or reviewing the 联想乐享 fulls
 - Only the outer composer owns the focus affordance. The textarea itself must not draw a separate outline, border, or box-shadow.
 - Textarea is transparent, auto-growing, min-height 30px, max-height 148px, and uses placeholder `最近有什么优惠活动？`. Standalone fullscreen templates may use 16px; the integrated production `.composer textarea` uses 14px to match the live shell density.
 - Bottom action row uses `margin-top:10px`, `justify-content:space-between`.
-- Toggle buttons are 34px high, 7px radius, white fill, 1px border, 14px type, `gap:8px`, and icon size `1em`. `深度思考` is on by default, with lavender active fill. `联网搜索` is off by default.
+- Toggle buttons are 34px high, 7px radius, white fill, 1px border, 14px type, `gap:8px`, and icon size `1em`. 首页全屏输入框 mode 区默认仅保留 `深度思考`，并默认开启；不要展示 `联网搜索`。
+- 首页全屏输入框 scope 标签默认 `visibleCount = 3`：常驻展示 `商品导购 / 解决方案 / 门店查询`，`更多` 菜单只展示剩余能力 `职场认证 / 服务预约`。
+- `更多` 菜单必须等于全部能力标签减去当前常驻标签，不得重复展示 `商品导购 / 解决方案 / 门店查询`。
+- 1920px 及以上大屏仍保持 `3 个常驻标签 + 更多` 结构，不自动展开全部能力标签。
+- 点击常驻标签或 `更多` 菜单项时，直接进入对话并发送对应意图。
 - Image button is 38px square, 11px radius, white fill, 1px border.
 - Send button is 40px circular with `--grad-brand`, inner highlight, and shadow. Empty input adds `.idle`: opacity `.4`, disabled cursor, no shadow.
 - All icon buttons need `aria-label`; toggles need `aria-pressed`.
@@ -87,6 +94,8 @@ Use this reference when creating, replacing, or reviewing the 联想乐享 fulls
 - Textarea auto-sizes on input. Empty input keeps the send button idle.
 - Enter sends unless Shift is held or IME composition is active. Shift+Enter inserts a new line.
 - Clicking a suggestion chip, quick button, or follow-up sends that text as a user message.
+- Homepage suggestion chips and assistant shortcut pills submit directly into the fullscreen conversation state with their own text. They must not route to `/` or reinitialize the homepage.
+- Disable the text-selection helper/word-selection overlay inside the integrated agent conversation page unless the user explicitly enables it for debugging.
 - Submitting hides welcome, shows thread, updates the conversation title truncated to 15 characters, appends the user turn, renders the right turn index, clears the textarea, shows typing, and after 1100ms replaces typing with the standard answer.
 - New chat clears thread and turns, hides the turn index, restores welcome, resets the title to `新对话`, clears input, and focuses the textarea.
 
