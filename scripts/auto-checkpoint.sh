@@ -7,6 +7,11 @@
 # 由 baiyu crontab 每 5 分钟执行
 cd /opt/projects/lexiang || exit 0
 
+# 和 auto-merge-incoming.sh 抢同一个工作区，必须互斥：一个在 merge、另一个
+# 在 stash+ff，工作区会被搅成半吊子状态。抢不到锁就跳过，5 分钟后自然重来。
+exec 9>/tmp/.lexiang-worktree.lock
+flock -n 9 || exit 0
+
 PATHS="public routes core skills config db docs server.js CLAUDE.md AGENTS.md"
 
 # 1) 先同步远端：本地落后且可 ff 就先 ff（拿到别人/别 session 刚 push 的最新），不覆盖
