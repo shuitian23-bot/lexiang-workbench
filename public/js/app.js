@@ -7486,7 +7486,7 @@ function openOrderDetail(orderId) {
           const cfg = LX_SITE_PROMPTS[state.page] || LX_SITE_PROMPTS.home;
           const list = document.querySelector(".quick-list");
           if (list) {
-            list.innerHTML = cfg.quick.slice(0, 5).map((text, index) => `<button class="quick-item" type="button"${index === 0 ? " data-start-chat" : ""}><span>${esc(text)}</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>`).join("");
+            list.innerHTML = cfg.quick.slice(0, 5).map((text, index) => `<button class="quick-item" type="button"${index === 0 ? " data-start-chat" : ""}><span>${esc(text)}</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>`).join("");
           }
           // 全屏欢迎四问
           const prompts = document.querySelectorAll(".fullscreen-prompt span");

@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function(){
+        var raw = location.pathname || "/";
+        var path = raw === "/" ? "/" : raw.replace(/\/+$/, "/");
+        var map = {"/shop-chat/":"personal","/b-chat/":"business","/biz-chat/":"enterprise","/brand/":"brand"};
+        window.__LX_TEMPLATE_PATH = path;
+        window.__LX_TEMPLATE_PAGE = map[path] || "home";
+      })();
+    </script>
     <title>联想乐享AI-联想官方AI助手-懂你所需更方便-企业超级智能体-企业智能体解决方案</title>
     <script>
       (function(){
@@ -88,7 +97,7 @@
     <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-1.webp">
     <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-2.webp">
     <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-3.webp">
-    <link rel="stylesheet" href="/css/main.css?v=202607150210">
+    <link rel="stylesheet" href="/css/main.css?v=2026081203">
     <link rel="stylesheet" href="/css/assistant-panel-ng-skin.css?v=202606222610">
   </head>
   <body data-state="default">
@@ -105,7 +114,7 @@
         <img src="/assets/logos/logo-full-red.png" alt="联想乐享" />
       </a>
 
-      <nav class="main-nav" aria-label="主导航">
+      <nav class="main-nav" aria-label="主导航" data-current-label="新对话" data-shop-current-label="新对话">
         <button class="active" type="button" data-page="home">首页</button>
         <button type="button" data-page="personal">个人及家庭</button>
         <button type="button" data-page="business">中小企业</button>
@@ -176,20 +185,20 @@
             <h1 class="fullscreen-title">你好，我是联想乐享</h1>
             <p class="fullscreen-subtitle">有什么能帮你的吗？</p>
             <div class="fullscreen-prompt-grid">
-              <button class="fullscreen-prompt quick-item" type="button"><span>我想要一款性能不错的游戏本</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-              <button class="fullscreen-prompt quick-item" type="button"><span>日常办公用，价格5000内电脑该怎么选？</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-              <button class="fullscreen-prompt quick-item" type="button"><span>我都有哪些会员权益？</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-              <button class="fullscreen-prompt quick-item" type="button"><span>拯救者Y7000和Y9000差别大么？</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-              <button class="fullscreen-prompt quick-item" type="button"><span>哪里有卖ThinkPad笔记本电脑门店</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>我想要一款性能不错的游戏本</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>日常办公用，价格5000内电脑该怎么选？</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>我都有哪些会员权益？</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>拯救者Y7000和Y9000差别大么？</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>哪里有卖ThinkPad笔记本电脑门店</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
             </div>
           </div>
           <h1 class="headline">我是联想乐享<br />有任何问题随时告诉我</h1>
           <div class="quick-list">
-            <button class="quick-item" type="button" data-start-chat><span>我要找商品</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-            <button class="quick-item" type="button"><span>我要找优惠和活动</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-            <button class="quick-item" type="button"><span>我要查保修和售后</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-            <button class="quick-item" type="button"><span>我要找附近门店</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
-            <button class="quick-item" type="button"><span>我要企业批量采购</span><img class="arrow" src="/assets/icons/chevron-right.svg" alt="" /></button>
+            <button class="quick-item" type="button" data-start-chat><span>我要找商品</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要找优惠和活动</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要查保修和售后</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要找附近门店</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要企业批量采购</span><img class="arrow" src="/assets/icons/global-next.svg" alt="" /></button>
           </div>
         </section>
 
@@ -238,7 +247,7 @@
             <div class="composer-actions">
               <div class="chip-row">
                 <span class="chip primary" data-mode-chip="think" role="button" tabindex="0" aria-pressed="false" title="开启后回答更审慎，但不展示商品卡片等内容；默认自动模式">
-                  <img class="icon" src="/assets/icons/composer-deep-think.svg" alt="" />
+                  <img class="icon" src="/assets/icons/composer-reasoning.svg" alt="" />
                   深度思考(自动)
                 </span>
               </div>
@@ -246,7 +255,7 @@
                 <button class="image-btn" type="button" aria-label="添加图片">
                   <img class="icon" src="/assets/icons/composer-image.svg" alt="" />
                 </button>
-                <button class="send-btn" type="submit" aria-label="发送"><img class="icon" src="/assets/icons/send.svg" alt="" /></button>
+                <button class="send-btn" type="submit" aria-label="发送"><img class="icon" src="/assets/icons/composer-send.svg" alt="" /></button>
               </div>
             </div>
           </form>
@@ -625,7 +634,7 @@
       <main class="lxfd-stage shift lxfd-gallery-home" id="lxfdStage">
         <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle"><span>联想乐享帮你</span><span class="rotating-word">找商品</span></h1><div class="lxfd-chips" id="lxfdChips"></div></section>
         <section class="lxfd-thread" id="lxfdThread" aria-live="polite"></section>
-        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="推荐一款适合我的笔记本电脑" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="/assets/icons/composer-deep-think.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="/assets/icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><img class="icon" src="/assets/icons/composer-send.svg" alt="" /></button></div></div></form><p class="lxfd-footnote">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p></div>
+        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="推荐一款适合我的笔记本电脑" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="/assets/icons/composer-reasoning.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="/assets/icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><img class="icon" src="/assets/icons/composer-send.svg" alt="" /></button></div></div></form><p class="lxfd-footnote">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p></div>
         <section class="lxfd-home-gallery" aria-label="首页内容推荐">
           <div class="gallery-tabs" role="tablist" aria-label="内容分类">
             <button class="gallery-tab is-active" type="button" data-gallery-tab="new">新品</button>
@@ -648,7 +657,7 @@
     <script src="/js/portal.js?v=202606183100"></script>
     <script src="/js/app-intent.js?v=202607151558"></script>
     <script src="/js/app-conv.js?v=202607101745"></script>
-    <script src="/js/app.js?v=202607151945"></script>
+    <script src="/js/app.js?v=2026081203"></script>
     <script src="/js/app-lxfd.js?v=202607150005"></script>
     <script src="/js/app-voice.js?v=202607142230"></script>
     <script src="/js/app-agent.js?v=202607131544"></script>
