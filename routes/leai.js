@@ -68,31 +68,6 @@ router.post('/chat', async (req, res) => {
   }
 });
 
-// ── 会话槽位保底 ─────────────────────────────────────────────────────────────
-// 官方模型多轮拆解会概率性丢数字条件（说了"7000左右"，追问"要结合学习"后预算没了）。
-// per-session 记住用户提过的预算，追问没提新预算时替他拼回提醒。内存态，重启即清（POC 够用）。
-const SESSION_SLOTS = new Map(); // sessionId → { budget: '7000', ts }
-function slotExtractBudget(msg) {
-  const m = String(msg || '').match(/(?:预算|价位)\s*(?:大概|大约|约|在)?\s*(?<![a-zA-Z0-9])(\d{3,6})|(?<![a-zA-Z0-9])(\d{3,6})\s*(?:块钱|块|元)?\s*(?:左右|以内|以下|上下|之内)|(?<![a-zA-Z0-9])(\d{3,6})\s*(?:块钱|块|元)(?![a-zA-Z0-9])/);
-  const n = Number(m && (m[1] || m[2] || m[3]));
-  return n >= 500 && n <= 200000 ? String(n) : null;
-}
-
-// ── 商品槽位保底（件2 F2）─────────────────────────────────────────────────
-// 真机诊断（puppeteer 抓包，见 f2Diagnosis）：sessionId 前端确实带对了、值是 32hex、和上一轮
-// status/done 返回的 conv_id 完全一致——前端链路没断。问题在官方端：同一 sessionId 下"对比一下/
-// 第二款怎么样"这类不点名具体商品的短追问，官方经常调用错误的 Skill（如「商品知识技能」而非
-// 「商品推荐服务」）、答非所问，等同于"失忆"。这里 per-session 记住上一轮官方实际返回的商品名，
-// 短追问且自己没点名具体商品时拼回提醒，让官方能对齐"我说的对比是指这几款"。
-const SESSION_PRODUCTS = new Map(); // sessionId → { names: string[], ts }
-function isShortFollowupNeedingProductContext(msg) {
-  const t = String(msg || '').trim();
-  if (!t || t.length > 20) return false;
-  // 已经点名具体商品/型号（含数字型号如 Y9000P/R7000）的不算"没头没脑的追问"，官方自己接得住
-  if (/[a-zA-Z]{2,}\d|拯救者|小新|thinkpad|thinkbook|yoga|legion/i.test(t)) return false;
-  return /^(对比|比较|比一比|比一下)(一下)?(它们|这些)?$|^第?[一二三四五六1-9]\s*[个款台]?(怎么样|如何|好吗|好不好)?$|^(这|那|哪)[个款台](怎么样|好|更好|好一些|如何)?[吗呢]?$|^(还有)?(别的|其他)(推荐|选择|款)?[吗呢]?$|^哪(个|款)(更?好|更?值)/.test(t);
-}
-
 // POST /api/leai/stream — 翻译官方 SSE 为前端 chunk/status/display/done 格式
 router.post('/stream', async (req, res) => {
   const { message, sessionId: bodySessionId, lng, lat, enableThinking } = req.body;
@@ -137,31 +112,6 @@ router.post('/stream', async (req, res) => {
     let auth = await getAuth();
     let sessionId = safeBodySessionId || auth.sessionId;
 
-    // 槽位保底：本轮提了预算→记住；没提且是延续会话的选购类短追问→拼回预算提醒
-    let qaInput = message;
-    const _newBudget = slotExtractBudget(message);
-    if (_newBudget) {
-      SESSION_SLOTS.set(sessionId, { budget: _newBudget, ts: Date.now() });
-    } else if (safeBodySessionId) {
-      const _slot = SESSION_SLOTS.get(safeBodySessionId);
-      if (_slot && Date.now() - _slot.ts < 30 * 60 * 1000 && String(message).length <= 40 &&
-          /学习|办公|游戏|轻薄|便携|大屏|续航|学生|上学|设计|剪辑|编程|推荐|适合|换个?|再来?|还是|要|买|选/.test(message)) {
-        qaInput = message + '（补充：预算仍是之前说的' + _slot.budget + '元左右，推荐请继续满足）';
-      }
-    }
-    if (SESSION_SLOTS.size > 1000) SESSION_SLOTS.clear(); // ponytail: 简单上限防内存涨,够POC用
-
-    // 商品槽位保底：短追问（对比一下/第N款/这个怎么样）没点名具体商品 → 拼回上一轮官方实际
-    // 推荐过的商品名，防官方反问"想对比什么"（诊断见上方注释）。budget 槽位和这条互不冲突，
-    // 都是在 qaInput 后面追加说明，官方模型能一起读到。
-    if (safeBodySessionId && isShortFollowupNeedingProductContext(message)) {
-      const _prodSlot = SESSION_PRODUCTS.get(safeBodySessionId);
-      if (_prodSlot && Date.now() - _prodSlot.ts < 30 * 60 * 1000 && _prodSlot.names.length) {
-        qaInput = qaInput + '（补充：你上一轮给我推荐的是：' + _prodSlot.names.join('、') + '，我这句就是针对这几款说的）';
-      }
-    }
-    if (SESSION_PRODUCTS.size > 1000) SESSION_PRODUCTS.clear();
-
     const callQa = (token, sid) => fetch(`${AIGC_BASE}/api/chat/qa`, {
       method: 'POST',
       headers: {
@@ -171,7 +121,7 @@ router.post('/stream', async (req, res) => {
         ...HEADERS,
       },
       body: JSON.stringify({
-        input: qaInput,
+        input: message,
         sessionId: sid,
         entrySource: 'pc',
         timestamp: Date.now(),
@@ -200,11 +150,6 @@ router.post('/stream', async (req, res) => {
     let sentProducts = false;
     let sentClicks = false;
     let retried = false;
-    // 多意图补缺：官方跑了门店/权益 skill 但只回文本不发前端组件（实测多意图一轮只带 1 个
-    // action + 1 个 display），从 thinking_trace 嗅探到对应 skill 就代发 action，前端现成
-    // handler 开门店/优惠 tab。member/商品官方自己会发，不代发防重复。
-    let sentStoresAction = false;
-    let sentCouponAction = false;
 
     // 首次进入前先回传当前 sessionId（重试时在重试分支里更新并重发）
     res.write('event: status\ndata:' + JSON.stringify({ conv_id: sessionId, sessionId }) + '\n\n');
@@ -257,15 +202,6 @@ router.post('/stream', async (req, res) => {
             const last = steps[steps.length - 1];
             const tip = last && last.thinking ? String(last.thinking).slice(0, 60) : '';
             if (tip) res.write('event: status\ndata:' + JSON.stringify({ text: tip }) + '\n\n');
-            const allThinking = steps.map((s) => s && s.thinking ? String(s.thinking) : '').join('\n');
-            if (!sentStoresAction && allThinking.indexOf('Skill(联想门店服务)') >= 0) {
-              sentStoresAction = true;
-              res.write('event: action\ndata:' + JSON.stringify({ op: 'stores' }) + '\n\n');
-            }
-            if (!sentCouponAction && allThinking.indexOf('Skill(会员权益服务)') >= 0) {
-              sentCouponAction = true;
-              res.write('event: action\ndata:' + JSON.stringify({ op: 'coupon' }) + '\n\n');
-            }
           }
 
           // 文本增量（官方是全量累积，必须切 delta）
@@ -280,8 +216,6 @@ router.post('/stream', async (req, res) => {
             const products = mapProductList(r.product_list, 6);
             if (products.length) {
               sentProducts = true;
-              const _names = products.map((p) => p && p.name).filter(Boolean);
-              if (_names.length) SESSION_PRODUCTS.set(sessionId, { names: _names, ts: Date.now() });
               res.write('event: display\ndata:' + JSON.stringify({ products, title: '为你推荐' }) + '\n\n');
             }
           }
@@ -358,7 +292,7 @@ router.post('/followups', (req, res) => {
   const a = String((req.body && req.body.a) || '').trim().slice(0, 300);
   if (!q) return res.json({ rc: 0, questions: [] });
 
-  const sys = '你是联想乐享购物助手的「猜你想干」生成器。基于问答生成3个用户下一步最可能想做或想问的事，每个≤15字、口语化、不重复原问题。优先生成可直接执行的操作句（如"帮我算到手价""看看有什么优惠""支持分期吗""对比一下这几款"），其次才是咨询问题。只围绕联想自家产品、政策、服务、优惠、门店、认证等，绝不提及苹果/小米/华为/华硕/戴尔等任何竞品品牌。只返回JSON数组如["句1","句2","句3"]，不要其它文字。';
+  const sys = '你是联想乐享购物助手的追问生成器。基于问答生成3个用户可能接着问的简短追问，每个≤15字、口语化、不重复原问题。追问只围绕联想自家产品、政策、服务、优惠、门店、认证等，绝不提及苹果/小米/华为/华硕/戴尔等任何竞品品牌（用户购机语境聚焦联想）。只返回JSON数组如["问题1","问题2","问题3"]，不要其它文字。';
   const userContent = `问:${q}\n答:${a}`;
   const body = JSON.stringify({
     model: 'doubao-seed-2.0-lite',
@@ -447,54 +381,37 @@ router.post('/compare-advice', (req, res) => {
 });
 
 // POST /api/leai/intent — 火山 lite 意图路由（control vs chat）
-// 意图路由：function calling 强制结构化输出（比 prompt 列枚举+正则抠 JSON 稳），网关/模型不支持 tools 时自动降级老路
-const INTENT_OPS = ['close_all_tabs', 'close_other_tabs', 'close_tab', 'go_home', 'switch_site', 'open_member', 'open_coupon', 'open_orders', 'open_cart', 'open_stores', 'open_edu_zone', 'open_compare', 'clear_compare', 'start_student_auth', 'start_enterprise_auth', 'open_product', 'enter_fullscreen', 'exit_fullscreen', 'buy_current', 'buy_nth', 'compare_nth'];
-const INTENT_RULES = `你是联想乐享 PC 助手的意图路由器，判断用户输入是"页面操作指令"(control)还是"问答/咨询"(chat)，调用 route_intent 上报。
-判断规则：
-1. 只有明确要求"操作界面/页面/标签/全屏"或"明确要下单/购买当前/某序号商品"才是 control。
-2. 商品咨询、推荐、参数、价格、政策、闲聊，以及"我想买X、预算多少、帮我推荐"这类【表达购买需求但没指定具体某款下单】的，一律 chat（要推荐，不是下单）。
-3. 打开具体商品是 control："打开XX/帮我打开XX/看下XX/帮我看看XX"且XX是具体商品名或型号（如"帮我打开拯救者Y9000P"→op=open_product,target="拯救者Y9000P"；"看下小新Pro16"→op=open_product,target="小新Pro16"）。注意与咨询区分："XX怎么样/XX多少钱"是 chat。
-4. "全屏/放大/沉浸" → enter_fullscreen；"退出全屏/分屏/缩小/展开右侧/边聊边逛" → exit_fullscreen。
-5. "关所有标签/清空标签" → close_all_tabs；"只留当前/关其他/留一排" → close_other_tabs；"关这个/关闭XX标签" → close_tab，target=标签名。
-6. 下单重点区分：
-   - "下单/就买它/买这个/这个不错下单吧/嗯那就这台吧帮我领券" 等【确认购买当前在看的】 → buy_current。
-   - "第三个下单/买第二个/第3个加购/打开第二个" 等【按序号操作】 → buy_nth，target="序号|动作"（buy/cart/open），如"3|buy"。序号限1-20。
-   - "对比下1 2 3/把1和3对比/1和2哪个好" → compare_nth，target="1,3" 逗号分隔，至少2个序号。
-   - "我想买笔记本预算1万到2万" → chat！金额不是序号，没指定具体某款绝不判 buy_*。
-7. 拿不准一律 chat（下单是重操作，不确定绝不误触发）。`;
-const INTENT_TOOLS = [{
-  type: 'function',
-  function: {
-    name: 'route_intent',
-    description: '上报用户输入的意图路由结果',
-    parameters: {
-      type: 'object',
-      properties: {
-        type: { type: 'string', enum: ['control', 'chat'], description: '页面操作=control，问答咨询=chat' },
-        op: { type: 'string', enum: INTENT_OPS.concat(['']), description: 'control 时的操作码，chat 时为空字符串' },
-        target: { type: 'string', description: '操作目标：open_product=商品名；buy_nth="序号|动作"；compare_nth="1,2,3"；close_tab=标签名；其余留空' }
-      },
-      required: ['type']
-    }
-  }
-}];
-function normalizeIntent(obj) {
-  const type = obj && obj.type === 'control' ? 'control' : 'chat';
-  const op = String((obj && obj.op) || '');
-  // 服务端白名单校验：模型自造的 op 一律不认，宁可降级 chat 也不误执行
-  if (type === 'control' && !INTENT_OPS.includes(op)) return { type: 'chat', op: '', target: '' };
-  return { type, op: type === 'control' ? op : '', target: String((obj && obj.target) || '') };
-}
 router.post('/intent', (req, res) => {
   const { message } = req.body || {};
   const fallback = { type: 'chat', op: '', target: '' };
   if (!message) return res.json(fallback);
+  const sys = `你是联想乐享 PC 助手的意图路由器。分析用户输入，判断是"页面操作指令"还是"问答/咨询"，严格按以下 JSON 格式返回，不输出任何其他文字：
+{"type":"control","op":"<操作码>","target":"<目标或空字符串>"}
+或
+{"type":"chat","op":"","target":""}
+
+操作码枚举（从以下选一个，不能自造）：
+close_all_tabs / close_other_tabs / close_tab / go_home / switch_site / open_member / open_coupon / open_orders / open_cart / open_stores / open_edu_zone / open_compare / clear_compare / start_student_auth / start_enterprise_auth / open_product / enter_fullscreen / exit_fullscreen / buy_current / buy_nth / compare_nth
+
+判断规则：
+1. 只有用户明确要求"操作界面/页面/标签/全屏"或"明确要下单/购买当前/某序号商品"时才返回 type=control，选最贴切的 op。
+2. 商品咨询、推荐、参数、价格、政策、闲聊、比较，以及"我想买X、预算多少、用途、帮我推荐、想要一台"这类【表达购买需求但没指定具体某款下单】的，一律 type=chat（这是要推荐，不是下单！op和target留空字符串）。
+3. "打开/帮我看/看下 XX 商品""帮我打开拯救者Y9000P" → op=open_product，target填商品名/型号。
+4. "全屏/放大/沉浸/专注模式" → op=enter_fullscreen；"退出全屏/缩小/分屏/恢复窗口/打开右侧/展开右侧/打开浏览区/边聊边逛" → op=exit_fullscreen（退出全屏=展开右侧浏览分屏，是同一动作）。
+5. "关所有标签/关掉所有页面/清空标签/全部关掉" → op=close_all_tabs。
+   "关闭其他标签/只留当前/留一个/留一排/关掉多余的标签/关掉除当前外的/把标签关成剩余一排" → op=close_other_tabs（保留当前页面，关其余）。
+   "关闭这个标签/关掉当前页/关闭XX标签" → op=close_tab，target填要关的标签名（没明确名就留空）。
+6. "回首页/去首页" → op=go_home；"打开购物车" → op=open_cart；"看我的订单" → op=open_orders。
+7. 【下单意图，重点区分】：
+   - "下单/就买它/买这个/这个不错下单吧/帮我下单/就这台了" 等【对当前正在看的某个商品确认购买】 → op=buy_current，target留空。
+   - "第三个下单/买第二个/选第一款下单/第3个加购/打开第二个" 等【按列表序号操作】 → op=buy_nth，target填"序号|动作"，动作是 buy(下单)/cart(加购)/open(打开)，例如"第三个下单"→target="3|buy"，"第二个加购"→target="2|cart"，"打开第一个"→target="1|open"。序号只取 1-20 的小整数。
+   - **严格区分**："我想买一台笔记本，预算1万到2万" → 这是表达需求要推荐，判 type=chat！不是 buy_nth（"1万""2万"是金额不是序号）。只有明确"第N个/这个/它"指向具体某款时才判 buy_*。
+   - "对比下1 2 3/对比第一个第二个第三个/把1和3对比一下/1和2哪个好" 等【按列表序号对比多款】 → op=compare_nth，target填逗号分隔序号如"1,2,3"。序号只取 1-20。至少 2 个序号才算。
+8. 拿不准的一律判 type=chat（宁可走问答，不误触发操作；下单是重操作，不确定绝不误触发）。`;
   const body = JSON.stringify({
     model: 'doubao-seed-2.0-lite',
-    messages: [{ role: 'system', content: INTENT_RULES }, { role: 'user', content: String(message).slice(0, 500) }],
-    tools: INTENT_TOOLS,
-    tool_choice: { type: 'function', function: { name: 'route_intent' } },
-    max_tokens: 150, temperature: 0, stream: false, thinking: { type: 'disabled' }
+    messages: [{ role: 'system', content: sys }, { role: 'user', content: String(message).slice(0, 500) }],
+    max_tokens: 100, temperature: 0, stream: false, thinking: { type: 'disabled' }
   });
   try {
     const ar = https.request({
@@ -512,13 +429,13 @@ router.post('/intent', (req, res) => {
       r.on('end', () => {
         try {
           const j = JSON.parse(buf);
-          const msg = j.choices?.[0]?.message || {};
-          // 首选 tool_calls 结构化参数；网关/模型不支持 tools 时降级解析 content 里的 JSON
-          const tc = msg.tool_calls?.[0]?.function?.arguments;
-          if (tc) return res.json(normalizeIntent(JSON.parse(tc)));
-          const raw = (msg.content || '').trim();
+          const raw = (j.choices?.[0]?.message?.content || '').trim();
           const m = raw.match(/\{[\s\S]*?\}/);
-          return res.json(normalizeIntent(m ? JSON.parse(m[0]) : null));
+          const obj = m ? JSON.parse(m[0]) : {};
+          const type = obj.type === 'control' ? 'control' : 'chat';
+          const op = String(obj.op || '');
+          const target = String(obj.target || '');
+          res.json({ type, op, target });
         } catch (_) { try { res.json(fallback); } catch (__) {} }
       });
       r.on('error', () => { try { res.json(fallback); } catch (_) {} });

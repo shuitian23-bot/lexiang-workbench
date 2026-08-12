@@ -1,1 +1,0 @@
-var e={admin:`超级管理员`,reviewer:`审核员`,operator:`运营`},t=[{id:`1`,username:`admin`,password:`admin123`,role:`admin`},{id:`2`,username:`reviewer`,password:`review123`,role:`reviewer`},{id:`3`,username:`operator`,password:`oper123`,role:`operator`}];export{e as n,t};

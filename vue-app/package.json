@@ -1,0 +1,37 @@
+{
+  "name": "leaibot-workbench",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "guard:design-skill": "node scripts/verify-design-skill.mjs",
+    "predev": "node scripts/verify-design-skill.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/verify-design-skill.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint .",
+    "smoke:shell": "node scripts/smoke-shell.mjs",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.3.0",
+    "pinia": "^2.1.0",
+    "echarts": "^5.4.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.48.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/tsconfig": "^0.5.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.33.0",
+    "prettier": "^3.3.3",
+    "sass": "^1.77.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.0.0",
+    "vue-tsc": "^2.0.29"
+  }
+}

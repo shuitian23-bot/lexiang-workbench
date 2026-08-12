@@ -93,22 +93,8 @@ if (!window.__lxCreateTypewriter) {
         };
         const API_SITE = { personal: "shop", business: "b", enterprise: "biz", home: "default" };
         const PATH_BY_PAGE = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
-        const LX_PAGE_LABELS = { home: "首页", personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
-        const LX_SOURCE_PAGE_KEY = "lexiang.conversation.sourcePage.v1";
-        function lxPageFromPath(path = location.pathname) {
-          const normalized = String(path || "/").replace(/\/+$/, "") || "/";
-          return SITE_BY_PATH[normalized] || SITE_BY_PATH[`${normalized}/`] || "home";
-        }
-        function lxSetConversationSourcePage(page) {
-          const sourcePage = LX_PAGE_LABELS[page] ? page : lxPageFromPath();
-          state.conversationSourcePage = sourcePage;
-          window.__lxConversationSourcePage = sourcePage;
-          try { localStorage.setItem(LX_SOURCE_PAGE_KEY, sourcePage); } catch (_e) {}
-          return sourcePage;
-        }
         function hardNavigatePage(page) {
           const path = PATH_BY_PAGE[page || "home"] || "/";
-          try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
           const currentPath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
           const targetPath = path.endsWith("/") ? path : `${path}/`;
           if (currentPath === targetPath) {
@@ -140,162 +126,80 @@ if (!window.__lxCreateTypewriter) {
           hoverPromptAutoCloseTimer: null,
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
-          conversationSourcePage: lxPageFromPath(),
-          refProducts: [],
-          localArchiveId: null // 件3：当前对话在共享历史侧栏(lexiang.lxfd.convs.v1)里的稳定条目id，反复覆盖同一条不新增
+          refProducts: []
         };
         window.__lxState = state;
-        // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
-        window.__lxAgentAPI = {
-          openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
-          addAiMessage: (html) => addMessage("ai", "", html),
-          lxRevealContent, getState: () => state,
-          lxResolveRecommendedProduct,
-          // 正文视觉稳定信号：最后一条 AI 消息 1.5s 内容不再变化且不在 loading 态（通吃官方流/
-          // 火山兜底流/打字动画）。代买链数据到位后等这个再推进，否则「上面还在输出、下面已领券」
-          waitAnswerSettled: () => new Promise((resolve) => {
-            let last = ""; let still = 0; const t0 = Date.now();
-            const timer = setInterval(() => {
-              const ais = document.querySelectorAll(".lx-p0-messages .lx-p0-message.ai");
-              const el = ais[ais.length - 1];
-              const loading = el && (el.classList.contains("loading") || el.querySelector(".loading-line, .typing-text, .typing-cursor"));
-              // snap 必须含 textContent 长度：打字机逐字往同一文本节点里加字，_raw 早已拼完、
-              // DOM 节点数也不变，只看那两项会在打字刚开始就误判「已展示稳定」（真机反馈：
-              // 正文还在输出、链已经跑到下单）
-              const snap = el ? `${(el._raw || "").length}:${el.querySelectorAll("*").length}:${(el.textContent || "").length}` : "";
-              if (!loading && snap === last) still += 1; else { still = 0; last = snap; }
-              if (still >= 3 || Date.now() - t0 > 60000) { clearInterval(timer); resolve(); }
-            }, 500);
-          }),
-        };
-
-        function lxPrepareRootSplitState() {
-          document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-          document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
-          document.body.classList.add("lx-home-split", "lxfd-split-entered");
-          document.body.dataset.page = "personal";
-          document.body.dataset.state = "chat";
-          state.autoFs = false;
-          window.__LXFD_FORCE = false;
-          const lxfdLayer = document.querySelector(".lxfd");
-          if (lxfdLayer) {
-            lxfdLayer.style.display = "";
-            lxfdLayer.style.visibility = "";
-          }
-          state.page = "personal";
-          if (!Array.isArray(state.siteProducts) || !state.siteProducts.length) loadProductsForPage();
-        }
-
-        function lxIsRootFullscreenReveal() {
-          return (location.pathname || "/").replace(/\/+$/, "/") === "/" &&
-            !document.body.classList.contains("lx-home-split") &&
-            (state.page === "home" || !state.page || document.body.dataset.page === "home") &&
-            (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
-        }
-
-        function lxRunWithRevealMotion(fn) {
-          if (lxIsRootFullscreenReveal() && typeof window.__lxfdExitWithReveal === "function") {
-            window.__lxfdExitWithReveal(() => {
-              lxPrepareRootSplitState();
-              fn();
-            });
-            return;
-          }
-          if (state.page === "home" || !state.page || document.body.dataset.page === "home") {
-            lxPrepareRootSplitState();
-          }
-          fn();
-        }
 
         // ── 双对话桥接接口（lxfd IIFE ↔ 主面板 IIFE 跨作用域通信） ────────────
         window.__lxBridge = {
-          // 全屏欢迎态首问=新对话：清掉 boot 时 restore 的旧对话上下文（DOM/convId/持久化键/
-          // 提问历史/归档id），否则首问桥接进分屏带着"以上为历史对话"的旧账（真机反馈）。
-          // 旧对话已被归档进侧栏历史（convs.v1），随时可找回；归档id一并重置防新对话覆盖旧条目。
-          resetConversationContext: function() {
-            state.convId = null;
-            state.localArchiveId = null;
-            state.queryHistory = [];
-            state.queryAnchors = [];
-            const list = $(".lx-p0-messages");
-            if (list) list.innerHTML = "";
-            try { localStorage.removeItem(LX_CONV_KEY); } catch (_e) {}
-            try { renderQueryHistory(); } catch (_e) {}
-          },
-          // 全屏首页空白态顶栏历史入口用：与分屏 .history-button 同一个「历史记录」弹窗
-          openHistoryModal: function() { lxOpenHistoryModal(); },
           // 把 lxfd 收集的消息写进主面板对话列表
-          importConversation: function(messages, convId, meta) {
+          importConversation: function(messages, convId) {
             const list = ensureChat();
             list.innerHTML = "";
             messages.forEach(function(m) {
               addMessage(m.role, m.role === "user" ? m.text : "", m.role === "ai" ? m.html : "");
             });
             if (convId) state.convId = convId;
-            // 件3：沿用 lxfd 那边的本地归档id，桥接后主面板 upsert 覆盖的是同一条历史记录，
-            // 不会因为两边各自开了不同id而在侧栏里出现同一通对话的两条重复条目
-            if (meta && meta.localId) state.localArchiveId = meta.localId;
-            if (meta && meta.sourcePage) lxSetConversationSourcePage(meta.sourcePage);
             // 立即持久化（不靠防抖）——桥接后可能马上切站，防抖会被吞
             try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
           },
           // 退全屏 + 右侧显示商品/页面
           revealProducts: function(products, opts) {
-            lxRunWithRevealMotion(() => {
-              lxRevealContent();
-              // 件2 F1：桥接瞬间主面板刚从 display:none 变为可见，此前 addMessage 里的
-              // list.scrollTop=list.scrollHeight 发生在隐藏期间是空操作（隐藏元素布局塌陷为0），
-              // 面板留在顶部，答后追问 chip（如「对比第1、2、3款」）被压到composer下方点不到；
-              // 这里刚显影就补一次，此时布局已强制重算，滚动到底才是真值。
-              const _list = ensureChat();
-              if (_list) _list.scrollTop = _list.scrollHeight;
-              if (products && products.length === 1 && products[0] && products[0].sku) {
-                openProduct(products[0].sku);
-                return;
-              }
-              if (products && products.length) {
-                const recoTab = {
-                  id: "reco",
-                  kind: "reco",
-                  label: (opts && opts.title) || "AI 推荐",
-                  products: products,
-                  grouped: !!(opts && opts.grouped)
-                };
-                lxUpsertTab(recoTab);
-                lxRunTab(recoTab);
-              }
-            });
+            // 若当前在首页（URL=/），原地展开分屏而不跳 /shop-chat/。
+            // 复用 /shop-chat/ 那套已在所有人缓存里的成熟分屏布局：把 data-page 切到 personal（仅改 CSS 布局，
+            // 不 pushState、不改 URL、不点导航——顶部仍高亮"首页"、网址仍是 /）。免疫 main.css 新规则的缓存问题。
+            if (state.page === "home" || !state.page || document.body.dataset.page === "home") {
+              // 移除首页预绘制类：它用 !important 把整个 .shell 藏死（仅为开屏直接显示全屏对话），不移除分屏永远撑不开
+              document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+              document.body.classList.add("lx-home-split");
+              document.body.dataset.page = "personal";
+              document.body.dataset.state = "chat";
+              // state.page 也切 personal（不改 URL/不 pushState），否则推荐墙楼层数据源认作 home、
+              // 不加载真实货盘 → 露出 index.html 里的静态占位卡（小新AIR13 ¥9799 那批）
+              state.page = "personal";
+              if (!Array.isArray(state.siteProducts) || !state.siteProducts.length) loadProductsForPage();
+            }
+            lxRevealContent();
+            if (products && products.length === 1 && products[0] && products[0].sku) {
+              openProduct(products[0].sku);
+              return;
+            }
+            if (products && products.length) {
+              const recoTab = {
+                id: "reco",
+                kind: "reco",
+                label: (opts && opts.title) || "AI 推荐",
+                products: products,
+                grouped: !!(opts && opts.grouped)
+              };
+              lxUpsertTab(recoTab);
+              lxRunTab(recoTab);
+            }
           },
           // 只聚焦已有推荐页：用于全屏 CTA 数据兜底，避免点击后停留在全屏首页
           focusReco: function() {
-            lxRunWithRevealMotion(() => {
-              lxRevealContent();
-              const _list = ensureChat();
-              if (_list) _list.scrollTop = _list.scrollHeight; // 同 revealProducts，桥接刚显影补一次滚底
-              const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
-              if (tab) {
-                state.activeTabId = tab.id;
-                lxRenderTabbar();
-                lxRunTab(tab);
-              }
-            });
+            if (state.page === "home" || !state.page || document.body.dataset.page === "home") {
+              document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+              document.body.classList.add("lx-home-split");
+              document.body.dataset.page = "personal";
+              document.body.dataset.state = "chat";
+              state.page = "personal";
+              if (!Array.isArray(state.siteProducts) || !state.siteProducts.length) loadProductsForPage();
+            }
+            lxRevealContent();
+            const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
+            if (tab) {
+              state.activeTabId = tab.id;
+              lxRenderTabbar();
+              lxRunTab(tab);
+            }
           },
           // 退出全屏（带动画）
           exitFullscreen: function() { lxSetAutoFs(false); },
           // 当前是否有右侧 tab
           hasTabs: function() { return !!(state.tabs && state.tabs.length > 0); },
           // 让 lxfd IIFE 调主面板 lxExecControl（跨 IIFE 桥）
-          execControl: function(op, target) { lxExecControl(op, target); },
-          // 件2 全屏接入：代买意图桥接到分屏后，把原句交给主面板 sendChat 重新走一遍
-          // （官方推荐 promise+超预算 fallback 阶梯+链前置已在这完整实现，全屏不重造）
-          sendChat: function(text) { return sendChat(text); },
-          // 件2 全屏接入：思考时间线渲染函数只留一份，全屏 IIFE 挂桥调用，不复制实现
-          renderSkillTrace: function(lines, opts) { return renderSkillTrace(lines, opts); },
-          // 件2 代买链桥接真机踩坑修复：多步任务链的 addAiMessage 走的是裸 addMessage，不经过
-          // lxRunWithRevealMotion，不会像 revealProducts 那样自动把根路径首页切进分屏布局——
-          // 桥接完退全屏后背景停留在首页欢迎门户，链卡/下单弹窗虽在DOM里但看不见。这里让
-          // lxfd 那边退全屏回调里显式补一次（复用已验证的 lxPrepareRootSplitState，不重造）。
-          prepareRootSplitState: function() { lxPrepareRootSplitState(); }
+          execControl: function(op, target) { lxExecControl(op, target); }
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);
@@ -312,26 +216,7 @@ if (!window.__lxCreateTypewriter) {
           const id = "reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
           window.__lxRecoPayloads = window.__lxRecoPayloads || {};
           window.__lxRecoPayloads[id] = products;
-          // 同步持久化（裁剪字段+只留最近8组）：恢复历史对话后「查看推荐商品」CTA 还能取回
-          // 那一轮的商品——之前只存内存，刷新/恢复后点击静默没反应（真机反馈）
-          try {
-            const key = "lexiang.recoPayloads.v1";
-            const store = JSON.parse(localStorage.getItem(key) || "[]");
-            store.push({ id, products: products.slice(0, 8).map((p) => ({ sku: p.sku, name: p.name, price: p.price, image_url: p.image_url || p.image, specs: p.specs, description: (p.description || "").slice(0, 400) })) });
-            localStorage.setItem(key, JSON.stringify(store.slice(-8)));
-          } catch (_e) {}
           return id;
-        }
-        function lxReadRecoPayload(id) {
-          if (!id) return null;
-          const mem = window.__lxRecoPayloads && window.__lxRecoPayloads[id];
-          if (mem && mem.length) return mem;
-          try {
-            const store = JSON.parse(localStorage.getItem("lexiang.recoPayloads.v1") || "[]");
-            const hit = store.find((row) => row && row.id === id);
-            if (hit && Array.isArray(hit.products) && hit.products.length) return hit.products;
-          } catch (_e) {}
-          return null;
         }
         const imgUrl = (url) => {
           if (!url) return "/assets/product-placeholder.svg";
@@ -423,19 +308,16 @@ if (!window.__lxCreateTypewriter) {
           const mask = ensureModal();
           const isOrderSkin = options.skin === "order";
           const isAddrSkin = options.skin === "address";
-          const isLeadSkin = options.skin === "lead";
           const modal = $(".lx-p0-modal", mask);
           const head = $(".lx-p0-modal-head", mask);
           mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
           mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
-          mask.classList.toggle("lx-lead-modal-mask", isLeadSkin);
           if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : "lx-p0-modal";
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : "lx-p0-modal";
             if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
-          // 行内样式兜底：CSS 文件屡被并发覆盖丢掉 [hidden] 规则，行内 display 优先级最高盖不掉（订单弹窗双×回归根治）
-          if (head) { head.hidden = isOrderSkin || isAddrSkin; head.style.display = (isOrderSkin || isAddrSkin) ? "none" : ""; }
+          if (head) head.hidden = isOrderSkin || isAddrSkin;
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
@@ -443,7 +325,6 @@ if (!window.__lxCreateTypewriter) {
 
         function closeModal() {
           $(".lx-p0-modal-mask")?.classList.remove("show");
-          try { lxCloseHistoryButtonState(); } catch (_e) {}
         }
 
         function updateBadges() {
@@ -791,24 +672,6 @@ if (!window.__lxCreateTypewriter) {
           is_ai: "AI 商品"
         };
 
-        // 本地货盘 specs 只有运营字段（brand/lvl1/mtm），硬件参数在 description 配置串里
-        // （「英特尔® 酷睿™ Ultra 7 251HX丨Windows 11丨16英寸丨16GB丨1TB SSD丨RTX5060 8G丨碳晶黑」）。
-        // 对比页参数行靠 specs 白名单键渲染，本地候选不解析就整块消失（真机反馈）——按段归类补齐。
-        function lxSpecsFromDescription(product) {
-          const specs = { ...(product.specs || {}) };
-          const segs = String(product.description || "").split(/丨|\||\//).map(s => s.trim()).filter(s => s && s.length <= 40);
-          for (const seg of segs) {
-            if (!specs.cpu && /酷睿|锐龙|Ultra\s*[3579X]|i[3579]-|R[3579]-|骁龙|龙芯/i.test(seg)) { specs.cpu = seg; continue; }
-            if (!specs.gpu && /RTX|GTX|显卡|锐炫|Arc|集显|独显/i.test(seg)) { specs.gpu = seg; continue; }
-            if (!specs.os && /Windows|Win\s*1[01]|麒麟|UOS/i.test(seg)) { specs.os = seg; continue; }
-            if (!specs.screen_size && /英寸/.test(seg)) { specs.screen_size = seg; continue; }
-            if (!specs.storage && /SSD|固态|[12468]TB(?!\s*内存)|512G[B]?(?!\s*内存)/i.test(seg)) { specs.storage = seg; continue; }
-            if (!specs.ram && /^\d{1,3}\s*GB?$|内存/i.test(seg)) { specs.ram = seg; continue; }
-            if (!specs.color && /^[^\d]{1,6}(黑|白|灰|银|紫|蓝|绿|贝|金)$/.test(seg)) { specs.color = seg; continue; }
-          }
-          return specs;
-        }
-
         function normalizeProductSpecs(rawSpecs) {
           if (!rawSpecs) return {};
           if (typeof rawSpecs === "string") {
@@ -913,9 +776,6 @@ if (!window.__lxCreateTypewriter) {
             if (!product) product = (state.officialProducts || {})[productOrSku] || null;
           }
           if (!product) return toast("未找到该商品，可能已下架或仅官网在售");
-          const detailTabId = product.sku ? `detail:${product.sku}` : "";
-          const detailIsNewTab = !!detailTabId && !opts.noTab && !(state.tabs || []).some((tab) => tab.id === detailTabId);
-          let detailGenToken = null;
           state.currentProduct = product;
           lxRevealContent();
           if (product.sku && opts.noTab) {
@@ -924,7 +784,6 @@ if (!window.__lxCreateTypewriter) {
             if (active) { active.sku = product.sku; active.label = product.name || active.label; lxRenderTabbar(); }
           } else if (product.sku) {
             lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku });
-            if (detailIsNewTab) detailGenToken = lxBeginTabGeneration((state.tabs || []).find((tab) => tab.id === detailTabId));
           }
           document.querySelector(".content")?.setAttribute("data-view", "detail");
           document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
@@ -949,7 +808,6 @@ if (!window.__lxCreateTypewriter) {
           loadReviewSummary(product);
           loadFitReason(product);
           loadSpuVariants(product);
-          lxEndTabGeneration(detailGenToken);
           lxHintOnDetail(product);
         }
 
@@ -1195,6 +1053,15 @@ if (!window.__lxCreateTypewriter) {
           actions.appendChild(btn);
         }
 
+        function ensureDetailBenefitButton() {
+          const actions = $(".detail-actions");
+          if (!actions || $(".lx-p0-detail-benefit", actions)) return;
+          const btn = document.createElement("button");
+          btn.className = "detail-secondary lx-p0-detail-benefit";
+          btn.type = "button";
+          btn.textContent = "算到手价";
+          actions.appendChild(btn);
+        }
 
         function lxFindSimilarViaChat() {
           const p = state.currentProduct;
@@ -1207,7 +1074,28 @@ if (!window.__lxCreateTypewriter) {
           sendChat(ask);
         }
 
+        async function openSimilarProducts() {
+          const sku = state.currentProduct?.sku;
+          if (!sku) return toast("请先选择商品");
+          try {
+            const response = await fetch(`/api/products?similar=${encodeURIComponent(sku)}&limit=6`, { cache: "no-store" });
+            const items = await response.json();
+            if (!Array.isArray(items) || !items.length) return toast("暂未找到同类相近价位的商品");
+            openModal("相似商品推荐", `<div class="lx-sim-grid">${items.slice(0, 6).map((p) => `<div class="lx-sim-card" data-open-product="${esc(p.sku)}"><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" /><div class="lx-sim-name">${esc(p.name)}</div><div class="lx-sim-price">¥${Number(p.price || 0).toLocaleString()}</div></div>`).join("")}</div><p class="lx-p0-disclaimer">基于同类目、相近价位推荐，点击卡片查看详情。</p>`);
+          } catch {
+            toast("相似商品加载失败，请稍后再试");
+          }
+        }
 
+        function ensureDetailCompareButton() {
+          const actions = $(".detail-actions");
+          if (!actions || $(".lx-p0-detail-compare", actions)) return;
+          const btn = document.createElement("button");
+          btn.className = "detail-secondary lx-p0-detail-compare";
+          btn.type = "button";
+          btn.textContent = "加入对比";
+          actions.appendChild(btn);
+        }
 
         function addCart(product = state.currentProduct) {
           if (!product) return toast("请先选择商品");
@@ -1432,7 +1320,7 @@ if (!window.__lxCreateTypewriter) {
           const claimCard = node.querySelector('.cl[data-v="D"].lx-claim-skin');
           lxRunClaimProgressCard(claimCard, claimed, Math.abs(discount), () => {
             state._buyFlowRunning = false;
-            try { window.__lxSaveConversationNow(); } catch (_e) {} // 优惠卡动画跑完(计数器停)再存一次，保住最终态——用真·立即存，不吃400ms防抖
+            try { lxSaveConversation(); } catch (_e) {} // 优惠卡动画跑完(计数器停)再存一次，保住最终态
             lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
           });
         }
@@ -1489,7 +1377,7 @@ if (!window.__lxCreateTypewriter) {
           updateBadges();
           toast("下单成功（演示订单）");
           addMessage("assistant", `已下单成功（演示）：${order.name}，实付 ¥${Number(order.price || 0).toLocaleString()}，订单号 ${order.orderId}。${order.benefitNote ? `已用优惠：${order.benefitNote}。` : ""}`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-floor-action="orders">查看订单</button><button class="lx-p0-btn" type="button" data-quick-ask="刚买了${esc(order.name)}，帮我配个合适的鼠标或包">顺手配个配件</button></div>`);
-          try { window.__lxSaveConversationNow(); } catch (_e) {} // 下单成功是关键节点，显式保存进历史——用真·立即存（原先误调了防抖版save，用户看到消息秒刷新会来不及落盘）
+          try { lxSaveConversation(); } catch (_e) {} // 下单成功是关键节点，显式保存进历史（不只靠防抖）
           if (state.user) openOrders();
         }
 
@@ -1599,7 +1487,7 @@ if (!window.__lxCreateTypewriter) {
                       <div class="recv">收货：${esc(address)}</div>
                     </div>
                     <div class="acts">
-                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，${st.label}，¥${item.price}，下单时间 ${item.createdAt || "未知"}）`)}">问订单</button>
+                      <button class="obtn order-ghost" type="button" data-ask-order="${esc(item.name)}">问订单</button>
                       <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}">订单详情</button>
                     </div>
                   </div>`;
@@ -1625,21 +1513,8 @@ if (!window.__lxCreateTypewriter) {
             state.autoFs = false;
           };
           const prepareSplit = () => {
-            // 首页语境(URL=/)：留在原地分屏，不 navigate 到 /shop-chat/ 子站、不建"个人及家庭"标签
-            // （真机反馈：开我的订单/购物车会连带把人拽进 shop 子站还多冒个个人及家庭标签）。
-            // lxPrepareRootSplitState 已含 lx-home-split/dataset/加载货盘，且不走 routeTo 的 nav.click 副作用。
-            const onRoot = (location.pathname || "/").replace(/\/+$/, "/") === "/";
-            if (onRoot && typeof lxPrepareRootSplitState === "function") {
-              lxPrepareRootSplitState();
-              return;
-            }
             document.documentElement.classList.remove("lx-root-lxfd-prepaint");
             window.__LXFD_FORCE = false;
-            const lxfdLayer = document.querySelector(".lxfd");
-            if (lxfdLayer) {
-              lxfdLayer.style.display = "";
-              lxfdLayer.style.visibility = "";
-            }
             document.body.classList.add("lx-home-split");
             document.body.dataset.page = "personal";
             document.body.dataset.state = "chat";
@@ -1729,6 +1604,7 @@ function openOrderDetail(orderId) {
         <div class="steps">${steps}</div>
       </div>
       <div class="acts">
+        <button class="obtn ghost" data-ask-order="${esc(item.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>问订单</button>
         <button class="obtn solid" data-buy-sku="${esc(item.sku || "")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>再次购买</button>
       </div>
       <p class="foot-tip">物流状态为演示数据，正式上线对接真实物流接口。</p>
@@ -1813,7 +1689,7 @@ function openOrderDetail(orderId) {
             return;
           }
           pageBox.innerHTML = `<div class="reco-head"><h2>${esc(title)}</h2><span>正在加载参数明细...</span></div>`;
-          const fullRaw = await Promise.all(source.slice(0, 8).map(async (item) => {
+          const full = await Promise.all(source.slice(0, 8).map(async (item) => {
             if (item.specs && Object.keys(item.specs).length) return item;
             try {
               const response = await fetch(`/api/products/${encodeURIComponent(item.sku)}`, { cache: "no-store" });
@@ -1821,8 +1697,6 @@ function openOrderDetail(orderId) {
             } catch {}
             return item;
           }));
-          // 本地货盘 specs 缺硬件参数（只有运营字段）→ 从 description 配置串解析补齐，参数行才有内容
-          const full = fullRaw.map((item) => ({ ...item, specs: lxSpecsFromDescription({ ...item, specs: normalizeProductSpecs(item.specs) }) }));
           state._comparePageItems = full;
           const manage = isCustom ? "" : `<div class="lx-cmp-manage">${full.map((item) => `<span class="lx-cmp-chip">${esc(item.name?.slice(0, 22) || item.sku)}<button type="button" data-remove-compare="${esc(item.sku)}" aria-label="移除">×</button></span>`).join("")}</div>`;
           const body = full.length >= 2
@@ -1843,15 +1717,13 @@ function openOrderDetail(orderId) {
               if (!r.ok) return;
               const d = await r.json();
               if (!d.pick || !d.reason) return;
-              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">乐享建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
+              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#2d1580">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
               adviceEl.style.display = 'block';
               // 把 AI 最推荐那款整列高亮（区别于单项「优」）。按 pick 商品名匹配列 index
               const pick = String(d.pick || "").trim();
               let pickIdx = full.findIndex((p) => String(p.name || "").trim() === pick);
               if (pickIdx < 0) pickIdx = full.findIndex((p) => pick && (String(p.name || "").includes(pick) || pick.includes(String(p.name || "").trim())));
               if (pickIdx >= 0) {
-                state._compareRecommendedSku = full[pickIdx]?.sku || "";
-                state._compareRecommendedProduct = full[pickIdx] || null;
                 const tbl = pageBox.querySelector(".lx-cmp-skin .tbl");
                 if (tbl) {
                   tbl.querySelectorAll(`[data-col="${pickIdx}"]`).forEach((cell) => cell.classList.add("lx-cmp-pick"));
@@ -1929,31 +1801,84 @@ function openOrderDetail(orderId) {
         }
 
         // ── 对话持久化：切站点/刷新后从 localStorage 恢复（不碰导航软切，靠整页重载后恢复兜底）──
-        // 对话持久化已拆到 app-conv.js（工厂注入）：这里只接线。函数声明有提升，传引用安全。
-        const LX_CONV_KEY = "lexiang.conversation.v1"; // 仍有少量本文件内直接读 key 的调用点
-        const __lxConv = window.__lxConvFactory
-          ? window.__lxConvFactory({ getState: () => state, ensureChat, addMessage, lxEnsureAiBody, mdLite })
-          : { save: function () {}, saveNow: function () {}, restore: function () {} };
-        const lxSaveConversation = __lxConv.save;
-        const lxRestoreConversation = __lxConv.restore;
-        // 挂 window：lxfd 桥接退全屏后立即 flush，避免防抖被切站/卸载吞掉
-        // 件3 刷新找回：每次强制flush当前会话快照，同步把（可能是桥接进来的）分屏对话
-        // upsert 进共享历史侧栏（lexiang.lxfd.convs.v1，与全屏 lxfdRenderHist 同一份数据源）。
-        // 不改 __lxConv.saveNow 本身（round1已验证的分屏内刷新恢复零改动），只是外面多包一层。
-        window.__lxSaveConversationNow = function() {
-          try { __lxConv.saveNow(); } catch (_e) {}
-          try { lxArchiveCurrentConversation(); } catch (_e) {}
-        };
-        // 修复：分屏下单流程刷新后整段操作记录丢失——根因是「已下单成功」等关键结果消息只靠
-        // 400ms 防抖持久化，用户看到消息就立刻刷新（人之常情，尤其是在验证「会不会丢」时）会
-        // 打断防抖 timer，那批消息从未落盘过（不是 restore 阶段丢弃，是根本没存进去）。
-        // pagehide 覆盖手动刷新/关标签/前进后退；visibilitychange(hidden) 兜住移动端切后台等
-        // 不一定触发 pagehide 的场景。两个都只是同步 flush 已有的 doSave，不改防抖/过滤逻辑本身。
-        const _lxFlushConversationOnHide = () => { try { window.__lxSaveConversationNow(); } catch (_e) {} };
-        window.addEventListener("pagehide", _lxFlushConversationOnHide);
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "hidden") _lxFlushConversationOnHide();
-        });
+        const LX_CONV_KEY = "lexiang.conversation.v1";
+        let _lxConvSaveTimer = null;
+        // 立即把主面板对话写进 localStorage（不防抖）——桥接退全屏后可能马上切站，防抖 timer 会被页面卸载吞掉
+        function _lxDoSaveConversation() {
+          try {
+            const listEl = document.querySelector(".chat-state .lx-p0-messages");
+            if (!listEl) return;
+            const messages = [];
+            listEl.querySelectorAll(":scope > .lx-p0-message").forEach(function (el) {
+              const isUser = el.classList.contains("user");
+              // AI 消息：class 可能是 "ai" 或 "assistant"（下单成功等系统消息用 assistant），都算 AI
+              const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
+              if (!isUser && !isAi) return; // 跳过非用户/非AI节点
+              if (el._lxTransient || el.dataset.lxTransient === "1" || el.querySelector(".lx-op-steps")) return; // 跳过操作过渡气泡（步骤进度）
+              // 跳过未完成的 loading 态 AI 消息（class 含 loading 或 body 仍是生成中占位），否则刷新后会卡在「生成中…」
+              if (isAi && (el.classList.contains("loading") || !el._raw || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
+              const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || "");
+              let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
+              // 双保险：html 仍残留 loading 标记则丢弃 html，只留文本（恢复时用 mdLite 重渲染）
+              if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor/.test(html)) html = "";
+              if (!text && !html) return;
+              messages.push({ role: isUser ? "user" : "ai", text, html });
+            });
+            // 去掉末尾「孤立的用户提问」（AI 还没回答就保存了）——否则刷新后只剩一条没回答的提问，体验怪
+            while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
+            if (!messages.length) return;
+            localStorage.setItem(LX_CONV_KEY, JSON.stringify({
+              convId: state.convId || null,
+              messages: messages.slice(-50),
+              ts: Date.now()
+            }));
+          } catch (_e) { /* localStorage 写满等，静默 */ }
+        }
+        function lxSaveConversation() {
+          clearTimeout(_lxConvSaveTimer);
+          _lxConvSaveTimer = setTimeout(_lxDoSaveConversation, 400);
+        }
+        // 挂 window：lxfd 全屏 IIFE 桥接退全屏后立即 flush，避免防抖被切站/卸载吞掉
+        window.__lxSaveConversationNow = function () { clearTimeout(_lxConvSaveTimer); _lxDoSaveConversation(); };
+        function lxRestoreConversation() {
+          try {
+            const raw = localStorage.getItem(LX_CONV_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (!data || !Array.isArray(data.messages) || !data.messages.length) return;
+            if (data.ts && Date.now() - data.ts > 7 * 24 * 3600 * 1000) { localStorage.removeItem(LX_CONV_KEY); return; }
+            // 兜底：去掉末尾孤立用户提问（老坏数据），没有有效内容就不恢复，避免只剩一条没回答的提问
+            const _msgs = data.messages.slice();
+            while (_msgs.length && _msgs[_msgs.length - 1].role === "user") _msgs.pop();
+            if (!_msgs.length) { localStorage.removeItem(LX_CONV_KEY); return; }
+            state.convId = data.convId || state.convId;
+            const list = ensureChat();
+            if (!list) return;
+            list.innerHTML = "";
+            // 顶部插「历史对话」分隔条，让用户明确这是上次的记录（而非当前出错）
+            const _histDivider = document.createElement("div");
+            _histDivider.className = "lx-conv-hist-divider";
+            _histDivider.innerHTML = `<span>以上为历史对话</span>`;
+            _msgs.forEach(function (m) {
+              if (m.role === "user") {
+                addMessage("user", m.text || "");
+              } else {
+                const _badHtml = /正在生成中|正在处理|lx-generating|loading-line|typing-cursor|typing-text|lx-op-steps/.test(m.html || "");
+                // 坏 html（loading/进度残留）但有正文 → 丢弃 html 用 text 重渲染；text 也空才整条跳过
+                if (_badHtml && !m.text) return;
+                if (!m.text && !m.html) return;
+                const node = document.createElement("div");
+                node.className = "lx-p0-message msg ai lx-chat-skin";
+                node._raw = m.text || "";
+                const body = lxEnsureAiBody(node);
+                body.innerHTML = (_badHtml || !m.html) ? mdLite(m.text || "") : m.html;
+                list.appendChild(node);
+              }
+            });
+            if (list.children.length) list.appendChild(_histDivider); // 历史末尾加分隔，往下是新对话
+            list.scrollTop = list.scrollHeight;
+          } catch (_e) { /* 恢复失败静默，不影响首屏 */ }
+        }
 
         function ensureChat() {
           document.body.dataset.state = "chat";
@@ -1964,18 +1889,6 @@ function openOrderDetail(orderId) {
           return $(".lx-p0-messages", chatState);
         }
 
-        // 操作确认气泡：固定短句秒显，不走 5s 打字动画（动作已经立即执行了，文字不能慢吞吞）
-        function lxAddInstantAi(text, extraHtml) {
-          const list = ensureChat();
-          const node = document.createElement("div");
-          node.className = "lx-p0-message msg ai lx-chat-skin";
-          node._raw = String(text || "");
-          lxEnsureAiBody(node).innerHTML = mdLite(node._raw) + (extraHtml || "");
-          list.appendChild(node);
-          list.scrollTop = list.scrollHeight;
-          lxSaveConversation();
-          return node;
-        }
         function addMessage(role, text, extraHtml = "") {
           const list = ensureChat();
           const node = document.createElement("div");
@@ -1992,11 +1905,8 @@ function openOrderDetail(orderId) {
             const body = lxEnsureAiBody(node);
             if (text) {
               node._raw = String(text);
-              // 打字动画最长拖 5s，落地后再存一次——否则下单成功等消息存的是「生成中…」占位被丢弃，刷新就没了。
-              // 这里必须用立即存（不能是400ms防抖版）：内容刚落地即是用户能看到消息的那一刻，
-              // 真机上用户看到「已下单成功」就立刻刷新验证是否保存是常见操作，防抖窗口来不及跑完
-              // 这条消息就没进过 localStorage——不是 restore 阶段丢弃，是根本没存进去。
-              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`).then(() => { try { window.__lxSaveConversationNow(); } catch (_e) {} });
+              // 打字动画最长拖 5s，落地后再存一次——否则下单成功等消息存的是「生成中…」占位被丢弃，刷新就没了
+              lxAnimateAiFinal(node, `${mdLite(node._raw)}${extraHtml}`).then(() => { try { lxSaveConversation(); } catch (_e) {} });
             } else {
               body.innerHTML = extraHtml;
             }
@@ -2016,47 +1926,12 @@ function openOrderDetail(orderId) {
             </div>`;
         }
 
-        // ── 思考过程时间线（联想乐享官方 SKILL 调用轨迹可视化）─────────────────────
-        // 生成阶段实时追加每条 status 文案；首个 chunk 到达即折叠成一行摘要条，点击可展开/收起。
-        // 类名 .lx-skill-trace 系列避开 app-conv.js doSave/restore 的 .lx-op-steps / loading 关键词
-        // 跳过正则，确保能正常存档、刷新后按折叠态恢复。
-        function renderSkillTrace(lines, opts = {}) {
-          const collapsed = !!opts.collapsed;
-          const foldable = !!opts.foldable;
-          const skillCount = Number(opts.skillCount) || 0;
-          const foldText = skillCount > 0 ? `已完成 ${skillCount} 个 Skill 调用` : "已完成意图判断";
-          const itemsHtml = (lines || []).map((line, idx) => {
-            const isLast = idx === (lines || []).length - 1;
-            return `<div class="lx-skill-trace-item${!collapsed && isLast ? " current" : ""}">${esc(line)}</div>`;
-          }).join("");
-          const cls = "lx-skill-trace" + (foldable ? " is-foldable" : "") + (collapsed ? " is-collapsed" : "");
-          return `<div class="${cls}">` +
-            `<button type="button" class="lx-skill-trace-fold" data-lx-trace-toggle aria-expanded="${collapsed ? "false" : "true"}">` +
-            `<span class="lx-skill-trace-fold-ic">✓</span><span class="lx-skill-trace-fold-text">${esc(foldText)}</span><span class="lx-skill-trace-fold-caret">⌄</span>` +
-            `</button>` +
-            `<div class="lx-skill-trace-list">${itemsHtml}</div>` +
-            `</div>`;
-        }
-
-        // 生成阶段（Phase 1，真实 SSE 进行中）实时刷新时间线 DOM——此时 ai-body 里只有这一个结构，
-        // 全量重绘最简单；lxAnimateAiFinal 收尾时会把 ai-body 整体替换掉，届时再把这份时间线的
-        // 折叠态 HTML 拼进 finalHtml，不依赖这里的实时 DOM。
-        function lxRenderTraceLive(ai) {
-          const body = ai && ai.querySelector && ai.querySelector(".ai-body");
-          if (!body) return;
-          body.innerHTML = renderSkillTrace(ai._traceLines, { collapsed: ai._traceCollapsed, foldable: ai._traceCollapsed, skillCount: ai._traceSkills ? ai._traceSkills.size : 0 });
-          const list = ensureChat();
-          if (list) list.scrollTop = list.scrollHeight;
-        }
-
         function renderProductsInMessage(products) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
           const recoId = lxStoreRecoPayload(products);
-          // 单品也带 recoId：官方 sku 在自有库 404，恢复历史后 officialProducts 缓存也空，
-          // 点击时优先用持久化 payload 里的完整商品对象兜底（真机反馈：历史里点 CTA 没反应）
           const action = products.length === 1 && first.sku
-            ? `data-open-product="${esc(first.sku)}" data-lxfd-reco-id="${esc(recoId)}"`
+            ? `data-open-product="${esc(first.sku)}"`
             : `data-lx-focus-reco="1" data-lxfd-reco-id="${esc(recoId)}"`;
           const desc = products.length === 1
             ? `${esc(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
@@ -2190,6 +2065,16 @@ function openOrderDetail(orderId) {
           fn();
         }
 
+        function lxTypeText(el, text, speed, done) {
+          let index = 0;
+          const tick = () => {
+            el.textContent = String(text).slice(0, index);
+            index += 1;
+            if (index <= String(text).length) window.setTimeout(tick, speed);
+            else if (done) done();
+          };
+          tick();
+        }
 
         function lxTypeNodes(sourceParent, targetParent, speed, done) {
           const cursor = document.createElement("span");
@@ -2271,193 +2156,6 @@ function openOrderDetail(orderId) {
           });
         }
 
-        const LX_CONV_HISTORY_KEY = "lexiang.lxfd.convs.v1";
-
-        function lxLoadConversationHistoryStore() {
-          try {
-            const list = JSON.parse(localStorage.getItem(LX_CONV_HISTORY_KEY) || "[]");
-            return Array.isArray(list) ? list.filter(Boolean) : [];
-          } catch (_e) { return []; }
-        }
-
-        function lxSaveConversationHistoryStore(list) {
-          try { localStorage.setItem(LX_CONV_HISTORY_KEY, JSON.stringify((list || []).slice(0, 20))); } catch (_e) {}
-        }
-
-        function lxMainConversationMessages() {
-          const listEl = document.querySelector(".chat-state .lx-p0-messages");
-          if (!listEl) return [];
-          const messages = [];
-          listEl.querySelectorAll(":scope > .lx-p0-message").forEach((el) => {
-            const isUser = el.classList.contains("user");
-            const isAi = el.classList.contains("ai") || el.classList.contains("assistant");
-            if (!isUser && !isAi) return;
-            if (el._lxTransient || el.dataset.lxTransient === "1" || (el.querySelector(".lx-op-steps") && !el.querySelector(".lx-agent-chain-head"))) return; // agent多步卡(.lx-agent-chain-head)要存为执行记录,只跳lxBuyWithIntro临时进度卡
-            // 跳过未完成的 loading 态 AI 消息——但 _raw 已落地最终文本时例外，理由同 app-conv.js 的
-            // doSave()：下单成功等关键节点 addMessage 后是立即同步调 saveNow，lxAnimateAiFinal 的
-            // 5s+ 占位动画这时候根本没跑完，只看 DOM loading 标记会把已经确定的最终内容整条误杀。
-            const _hasFinalRaw = isAi && typeof el._raw === "string" && el._raw.trim().length > 0;
-            if (isAi && !_hasFinalRaw && (el.classList.contains("loading") || el.querySelector(".lx-generating, .loading-line, .typing-text"))) return;
-            const text = isUser ? (el.querySelector(".user-bubble")?.textContent || "").trim() : (el._raw || el.textContent || "").trim();
-            let html = isAi ? (el.querySelector(".ai-body")?.innerHTML || "") : "";
-            if (isAi && /正在生成中|lx-generating|loading-line|typing-text|typing-cursor|lx-op-steps/.test(html) && !/lx-agent-chain-head/.test(html)) html = "";
-            if (!text && !html) return;
-            messages.push({ role: isUser ? "user" : "ai", text, html });
-          });
-          while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
-          return messages.slice(-50);
-        }
-
-        function lxMessagesToLxfdHtml(messages) {
-          return (messages || []).map((m) => {
-            if (m.role === "user") return `<div class="lxfd-msg-user">${esc(m.text || "")}</div>`;
-            return `<div class="lxfd-msg-ai"><div class="lxfd-ai-body">${m.html || mdLite(m.text || "")}</div></div>`;
-          }).join("");
-        }
-
-        function lxParseLxfdThreadHtml(threadHtml) {
-          const box = document.createElement("div");
-          box.innerHTML = String(threadHtml || "");
-          const messages = [];
-          Array.from(box.children || []).forEach((el) => {
-            if (el.classList?.contains("lxfd-msg-user")) {
-              const text = (el.textContent || "").trim();
-              if (text) messages.push({ role: "user", text, html: "" });
-            } else if (el.classList?.contains("lxfd-msg-ai")) {
-              const body = el.querySelector(".lxfd-ai-body") || el;
-              const html = body.innerHTML || "";
-              const text = (body.textContent || "").trim();
-              if (html || text) messages.push({ role: "ai", text, html });
-            }
-          });
-          while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
-          return messages;
-        }
-
-        function lxConversationTitle(messages) {
-          const firstUser = (messages || []).find((m) => m.role === "user" && String(m.text || "").trim());
-          return (firstUser ? String(firstUser.text || "") : "新对话").trim().slice(0, 24) || "新对话";
-        }
-
-        // 件3 刷新找回：id 稳定复用（state.localArchiveId）而不是每次新开一条——分屏对话进行中
-        // 会被 window.__lxSaveConversationNow 反复调用（答完/链每步/桥接导入时），同一通对话
-        // 只覆盖同一条历史记录，不会刷屏式地在侧栏里刷出一堆重复条目。
-        function lxArchiveCurrentConversation() {
-          const messages = lxMainConversationMessages();
-          if (!messages.length) return;
-          const title = lxConversationTitle(messages);
-          const id = state.localArchiveId || ("lc" + Date.now() + Math.random().toString(36).slice(2, 6));
-          state.localArchiveId = id;
-          const item = { id, title, convId: state.convId || null, messages, threadHtml: lxMessagesToLxfdHtml(messages), ts: Date.now() };
-          const store = lxLoadConversationHistoryStore().filter((entry) => entry && entry.id !== id);
-          store.unshift(item);
-          lxSaveConversationHistoryStore(store);
-        }
-
-        function lxRestoreConversationRecord(id) {
-          const record = lxLoadConversationHistoryStore().find((entry) => entry && entry.id === id);
-          if (!record) return;
-          lxArchiveCurrentConversation();
-          state.conversationNonce += 1;
-          state.localArchiveId = record.id; // 继续聊这条恢复的对话，仍覆盖同一条记录
-          state.convId = record.convId || null;
-          state.sending = false;
-          state.queryHistory = [];
-          state.queryAnchors = [];
-          const messages = Array.isArray(record.messages) && record.messages.length ? record.messages : lxParseLxfdThreadHtml(record.threadHtml);
-          const list = ensureChat();
-          if (!list) return;
-          list.innerHTML = "";
-          messages.forEach((m) => {
-            if (m.role === "user") {
-              const node = document.createElement("div");
-              node.className = "lx-p0-message msg user";
-              node.innerHTML = `<div class="user-bubble">${esc(m.text || "")}</div>`;
-              list.appendChild(node);
-              state.queryHistory.push(m.text || "");
-              state.queryAnchors.push(list.children.length - 1);
-            } else {
-              const node = document.createElement("div");
-              node.className = "lx-p0-message msg ai lx-chat-skin";
-              node._raw = m.text || "";
-              const body = lxEnsureAiBody(node);
-              body.innerHTML = m.html || mdLite(m.text || "");
-              list.appendChild(node);
-            }
-          });
-          document.body.dataset.state = "chat";
-          list.scrollTop = list.scrollHeight;
-          try { localStorage.setItem(LX_CONV_KEY, JSON.stringify({ convId: state.convId || null, messages, ts: Date.now() })); } catch (_e) {}
-          renderQueryHistory();
-          closeModal();
-          lxCloseHistoryButtonState();
-        }
-
-        function lxRebuildQueryHistoryFromDom() {
-          const existing = Array.isArray(state.queryHistory) ? state.queryHistory.filter(Boolean) : [];
-          if (existing.length) return;
-          const history = [];
-          const anchors = [];
-          const chat = document.querySelector(".lx-p0-messages");
-          if (chat) {
-            Array.from(chat.children || []).forEach((node, index) => {
-              const isUser = node.classList?.contains("user") || !!node.querySelector?.(".user-bubble");
-              if (!isUser) return;
-              const text = (node.querySelector(".user-bubble")?.innerText || node.innerText || "").trim();
-              if (!text) return;
-              history.push(text);
-              anchors.push(index);
-            });
-          }
-          if (!history.length) {
-            try {
-              const data = JSON.parse(localStorage.getItem(LX_CONV_KEY) || "null");
-              const messages = Array.isArray(data?.messages) ? data.messages : [];
-              messages.forEach((msg, index) => {
-                if (msg?.role !== "user") return;
-                const text = String(msg.text || "").trim();
-                if (!text) return;
-                history.push(text);
-                anchors.push(index);
-              });
-            } catch (_e) {}
-          }
-          state.queryHistory = history;
-          state.queryAnchors = anchors;
-        }
-
-        function lxHistoryModalHtml() {
-          const store = lxLoadConversationHistoryStore();
-          const rows = store.length
-            ? store.slice(0, 20).map((item) => {
-                const title = item?.title || "新对话";
-                return `<button class="lx-history-row" type="button" data-conv-id="${esc(item.id || "")}" title="${esc(title)}"><span>${esc(title)}</span><em>历史</em></button>`;
-              }).join("")
-            : `<div class="lx-history-empty">还没有历史对话</div>`;
-          return `<div class="lx-history-modal"><div class="lx-history-section">历史记录</div><div class="lx-history-list">${rows}</div></div>`;
-        }
-
-        function lxOpenHistoryModal() {
-          openModal("历史记录", lxHistoryModalHtml());
-          document.querySelector(".history-button")?.classList.add("is-active");
-          document.querySelector(".history-button")?.setAttribute("aria-expanded", "true");
-        }
-
-        function lxCloseHistoryButtonState() {
-          document.querySelector(".history-button")?.classList.remove("is-active");
-          document.querySelector(".history-button")?.setAttribute("aria-expanded", "false");
-        }
-
-        function lxScrollToQueryAnchor(anchor) {
-          const chatBox = document.querySelector(".lx-p0-messages");
-          const node = Number.isFinite(anchor) ? chatBox?.children[anchor] : null;
-          if (node) {
-            node.scrollIntoView({ behavior: "smooth", block: "center" });
-            node.classList.add("lx-flash-msg");
-            setTimeout(() => node.classList.remove("lx-flash-msg"), 1800);
-          }
-        }
-
         function renderQueryHistory() {
           const dots = $(".page-dots");
           const menu = $(".prompt-menu", dots);
@@ -2479,8 +2177,6 @@ function openOrderDetail(orderId) {
         }
 
         function resetConversation() {
-          lxArchiveCurrentConversation();
-          state.localArchiveId = null; // 新对话另起一条稳定id，不再覆盖刚归档的这条
           state.conversationNonce += 1;
           state.convId = null;
           state.sending = false;
@@ -2527,37 +2223,14 @@ function openOrderDetail(orderId) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
           const nonce = state.conversationNonce;
-          let _turnProdCount = 0; // 本轮官方返回的商品数（答后动作预判用）
-          let _turnProducts = []; // 本轮官方返回的商品对象数组（代买 pending 时 done 回调要用它接管自研执行）
           const textarea = $(".composer textarea");
           if (textarea) textarea.value = "";
           lxHideSuggest();
           state.lastUserText = text;
           lxClearFollowups();
           addMessage("user", text);
-          // 多步任务链代买意图（收口 app-intent.matchAutoBuy，主面板/全屏共用一份 = 一套机制）
-          // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
-          // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
-          const _autoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
-          if (_autoBuy) {
-            // 代买链前置（件2）：不再等官方答案气泡"完事"才起链——这里就同步起跑 auto_buy_official
-            // （runChain 首段同步 addAiMessage 先插卡，DOM 序 = 用户气泡→链卡→官方回答气泡）。
-            // 官方推荐结果走 promise 交给链 step1：done 回调 resolve，出错/50s 超时 reject，
-            // 链自己按预算落地或走本地货盘 fallback，绝不会因为这里提前 return 而卡死等不到结果。
-            let _resolveOfficial, _rejectOfficial;
-            const _officialWait = new Promise((resolve, reject) => { _resolveOfficial = resolve; _rejectOfficial = reject; });
-            // 75s：官方 session 失效时是 假done(~10s)+火山兜底流(30-45s) 两段,50s 会在兜底跑一半时误判超时
-            const _officialTimeoutId = setTimeout(() => { try { _rejectOfficial(new Error("官方 SKILL 响应超时")); } catch (_e) {} }, 75000);
-            state._autoBuyPending = {
-              maxPrice: _autoBuy.params.maxPrice || 0,
-              promise: _officialWait, resolve: _resolveOfficial, reject: _rejectOfficial, timeoutId: _officialTimeoutId,
-            };
-            if (window.__lxRunChain) {
-              window.__lxRunChain("auto_buy_official", { maxPrice: _autoBuy.params.maxPrice || 0, minPrice: _autoBuy.params.minPrice || 0, officialWait: _officialWait, rawText: text });
-            }
-          }
           if (Array.isArray(state.refProducts) && state.refProducts.length) {
-            ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 18)).join("、"))}</div>`);
+            ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProducts.map(p => p.name.slice(0, 10)).join("、"))}</div>`);
           } else if (state.refProduct) {
             ensureChat()?.lastElementChild?.insertAdjacentHTML("beforeend", `<div class="lx-ref-chip">引用：${esc(state.refProduct.name.slice(0, 22))}</div>`);
           }
@@ -2567,94 +2240,59 @@ function openOrderDetail(orderId) {
             lxRevealContent();
             lxUpsertCompareTab(_cmpRefs, "商品对比");
           }
-          // 清引用前先快照：下面的意图路由要 await 后端几百毫秒~4.5s，100ms 定时器会先把
-          // 引用清掉，等构造 builtMsg 时引用已空 → 官方收到裸文本反问"这款是指哪款"
-          const _refsSnap = Array.isArray(state.refProducts) ? state.refProducts.slice() : [];
-          const _refSnap = state.refProduct;
-          const _refMsgSnap = state.refMsg;
           setTimeout(() => lxSetRef(null), 100);
           if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
-          if (lxHandleEntPointsQuery(text)) return;
-          if (/^教育特惠$|^教育特惠专区$|^国补教育特惠$/.test(text)) {
-            lxAddInstantAi("好的，已为你打开教育特惠专区。右侧展示教育认证权益和可享教育价商品，你也可以继续问我如何认证、如何叠加国补。");
-            window.setTimeout(() => { lxRevealContent(); openEduZone(); }, 260);
-            return;
-          }
-          // 认证：点名了具体身份直接开对应表单，不再让用户二选身份（真机反馈"我打了职场认证就别再问了"）
-          if (/^(职场认证|职场人认证)$/.test(text)) { lxAddInstantAi("好的，已为你打开职场身份认证。"); window.setTimeout(() => openWorkplaceAuth(), 260); return; }
-          if (/^(学生认证|在校生认证)$/.test(text)) { lxAddInstantAi("好的，已为你打开在校生教育认证。"); window.setTimeout(() => openStudentAuth("college"), 260); return; }
-          if (/^(高考生认证)$/.test(text)) { lxAddInstantAi("好的，已为你打开高考生教育认证。"); window.setTimeout(() => openStudentAuth("gaokao"), 260); return; }
-          // 泛认证词才弹身份选择卡（官方 SKILL 通道 8s+ 起步，演示/真实体验都等不起）；
-          // 三个按钮同样式（曾一红两白被当成"推荐在校生"，真机反馈），职场放最后不夹中间
-          if (/^(认证|我要认证|身份认证|办认证|做认证|教育认证)$/.test(text)) {
-            lxAddInstantAi("好的，选择你的身份，我直接带你进对应的认证流程（学生 / 高考生认证通过后可享教育专享价，还能叠加国补）：",
-              '<div class="lx-p0-actions">' +
-              '<button class="lx-p0-btn" type="button" data-open-stuauth="college">🎓 在校生认证</button>' +
-              '<button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">📝 高考生认证</button>' +
-              '<button class="lx-p0-btn" type="button" data-open-wpa>💼 职场人认证</button>' +
-              '</div>');
-            return;
-          }
-          // 认证引导浮层拼出的句子 / 常见问法：直接秒开对应表单，不送官方慢通道
-          if (/怎么完成学生教育认证|我是在校学生.{0,10}认证/.test(text)) { lxAddInstantAi("好的，已为你打开在校生教育认证。"); window.setTimeout(() => openStudentAuth("college"), 260); return; }
-          if (/怎么完成职场认证|我是职场人.{0,10}认证/.test(text)) { lxAddInstantAi("好的，已为你打开职场身份认证。"); window.setTimeout(() => openWorkplaceAuth(), 260); return; }
-          if (/怎么完成高考生教育认证|我是高考生.{0,10}认证/.test(text)) { lxAddInstantAi("好的，已为你打开高考生教育认证。"); window.setTimeout(() => openStudentAuth("gaokao"), 260); return; }
-          // 人工：秒进人工客服模式（官方转人工 Skill 实测 12-18s 才回；本地直切人设+专属菜单，lxSetHumanMode 自带接入卡）
-          if (/^(人工|转人工|人工客服|找人工|真人客服|转接人工|人工服务)$/.test(text)) {
-            lxSetHumanMode(true);
-            return;
-          }
-          if (/^项目合作$|^合作项目$|^提交项目需求$|^我要项目合作$/.test(text)) {
-            lxAddInstantAi("好的，已为你生成项目合作解决方案列表。右侧会展示可合作的行业方案，选择合适方案后点击「我要合作」填写信息。");
-            window.setTimeout(() => { lxRevealContent(); openProjectCooperationList(); }, 260);
-            return;
-          }
-          const _projectLeadMatch = text.match(/^我要合作(.{2,40})$/);
-          if (_projectLeadMatch) {
-            const projectName = _projectLeadMatch[1].trim();
-            lxAddInstantAi(`好的，已为你锁定「${projectName}」合作意向。正在校验项目类型、生成留资单并准备对接顾问，请在弹窗中补充联系信息。`);
-            window.setTimeout(() => openLeadPanel(`project:${projectName}`), 520);
-            return;
-          }
-          // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端（正则统一收口 app-intent.js，主面板/全屏共用一份）──
-          // 代买 pending 时跳过：避免"选/下单"字样被误判成 buy_current/buy_recommended 抢断，官方推荐流程要走完
-          const _localCtrl = !_autoBuy && window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
+          // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端 ──────────────
+          const _localCtrl = (function(_t) {
+            // 关其他/留当前/留一排——必须在 close_all 之前判（更具体）
+            if (/(关闭?|关掉)(其他|其它|多余|别的|除当前外?的?)(标签|页面|页签)?|只留(当前|这个|一个|一排)|留(当前|这个|一个|一排)(标签|页面)?|关成(剩余|只剩)?一(排|个)|剩(余|下)一(排|个)/.test(_t)) return { op: "close_other_tabs", msg: "好的，已关闭其他标签，只留当前页面。" };
+            if (/^\s*(关闭?|清空)(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)\s*$/i.test(_t) || /(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)/.test(_t)) return { op: "close_all_tabs", msg: "好的，已为你关闭所有页面标签。" };
+            if (/^\s*(进入|开启|切换?到?|变成?|开|恢复|回到?)?全屏(模式|对话|查看)?\s*$|^\s*(放大|沉浸|专注)(模式|对话|查看)?\s*$/.test(_t)) return { op: "enter_fullscreen", msg: "好的，已切换到全屏对话模式。" };
+            if (/^\s*(退出|关闭|取消|结束)(全屏|沉浸|专注)|^\s*(分屏|窗口|缩小)(模式)?\s*$|^\s*恢复(分屏|窗口)(模式)?\s*$|^\s*(打开|展开)(右侧|浏览区|浏览|分屏)(面板)?\s*$|^\s*(右侧|浏览区)(展开|打开)\s*$/.test(_t)) return { op: "exit_fullscreen", msg: "好的，已展开右侧浏览区。" };
+            if (/^\s*(回|返回|去|到)(首页|主页)\s*$/.test(_t)) return { op: "go_home", msg: "好的，已为你回到首页。" };
+            if (/^\s*(打开|查看|看看?)(我的)?购物车\s*$/.test(_t)) return { op: "open_cart", msg: "好的，已为你打开购物车。" };
+            if (/^\s*(打开|查看|看看?)(我的)?订单(列表|页面|中心)?\s*$/.test(_t)) return { op: "open_orders", msg: "好的，已为你打开订单页面。" };
+            // 高频导航单词/短语本地秒判（不扔给小模型赌——「门店」「会员」这类短词小模型常误判成咨询）
+            if (/^\s*(打开|查看?|看看?|去|进)?(附近)?(门店|实体店|线下店|体验店|专卖店|服务网点|服务中心)(查询|页面|列表)?\s*$/.test(_t)) return { op: "open_stores", msg: "好的，已为你打开门店查询。" };
+            if (/^\s*(打开|查看?|看看?|去|进)?(我的)?(会员(中心|页面|权益)?|会员卡|乐豆|积分(中心|商城)?)\s*$/.test(_t)) return { op: "open_member", msg: "好的，已为你打开会员中心。" };
+            if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", msg: "好的，已为你打开优惠券中心。" };
+            if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", msg: "好的，已为你打开教育特惠专区。" };
+            if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", msg: "好的，已为你打开商品对比。" };
+            // 「对比下 1 2 3」「对比第一个第二个第三个」「把1和3对比一下」——按当前列表序号取商品对比（本地取，不丢给AI瞎检索）
+            if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
+              const _nths = lxParseOrdinals(_t);
+              if (_nths.length >= 2) return { op: "compare_nth", target: _nths.join(","), msg: `好的，正在为你对比第 ${_nths.join("、")} 个商品。` };
+            }
+            // 选第 N 个 + 动作（更具体，先判）
+            const _ord = lxParseOrdinal(_t);
+            if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
+              const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
+              const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
+              return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
+            }
+            // 下单当前正在看的商品
+            if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这[个款台件本]?|那[个款台件本]?|它|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买(这[个款台件本]|它|那[个款台件本])?)(吧|呀|啊|喽|咯)?(?:[，,、。\s].*?(优惠|券|领|结算).*)?$/.test(_t)) return { op: "buy_current", msg: "好的，正在为你下单当前商品。" };
+            return null;
+          })(text);
           if (_localCtrl) {
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
-            if (_localCtrl.op !== "buy_current" && _localCtrl.op !== "buy_recommended" && _localCtrl.op !== "buy_nth") lxAddInstantAi(_localCtrl.msg);
+            addMessage("ai", _localCtrl.msg);
             // state.sending 此时仍为 false（还没设置），直接 return 即可
             return;
           }
           // ── 本地快路径结束 ───────────────────────────────────────────────
-          // 思考过程时间线（PRD：把"联想乐享正在判断/正在调用 XX SKILL"展示出来）：固定首行 +
-          // 本地意图判断结果一行，随后 status 事件逐行追加，首个 chunk 到达时折叠成一行摘要条。
-          const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
-          const ai = addMessage("ai loading", "", renderSkillTrace(_traceLines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const ai = addMessage("ai loading", "", renderGenerating("联想乐享正在处理你的请求…"));
           ai._raw = "";
           ai._pendingExtras = "";
           ai._afterAnswer = [];
-          ai._traceLines = _traceLines;
-          ai._traceSkills = new Set();
-          ai._traceCollapsed = false;
-          ai._traceLastRaw = "";
-          // "已判断"一行不和首行同帧蹦出：走远程意图路由的等路由落定（天然 0.5~4.5s 节奏），
-          // 跳过路由的分支给 500ms 微延迟。幂等，status/chunk 到达时兜底先补，保证顺序。
-          const _pushJudgedLine = () => {
-            if (ai._judgedPushed) return;
-            ai._judgedPushed = true;
-            _traceLines.push(_autoBuy ? "已判断：多步代买任务，已拆解执行步骤" : "已判断：商品咨询 → 调用联想乐享官方 SKILL");
-            lxRenderTraceLive(ai);
-          };
           state.sending = true;
           state._fallbackFired = false;
           try {
             // ── 远程意图路由（非多模态、无媒体附件时先问后端意图，3秒超时降级）──
-            // 代买 pending 时跳过：远程意图分类器可能把"选/下单"误判成 control 操作，抢断官方推荐流
-            const _ranIntent = !_autoBuy && !state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch;
-            if (_ranIntent) {
+            if (!state.pendingImageUrl && !state.pendingAudioUrl && !window.__lxWebSearch) {
               let _intentResult = null;
               try {
                 const _intentAbort = new AbortController();
@@ -2670,10 +2308,10 @@ function openOrderDetail(orderId) {
               } catch (_intentErr) { /* 超时/失败 → 降级 chat */ }
               if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
                 ai.remove(); // 移除 loading 气泡
-                const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
+                const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
                 // 下单类操作不加这条提示气泡（lxExecControl 里 lxBuyWithIntro 自带分步进度卡，避免重复）
-                if (_intentResult.op !== "buy_current" && _intentResult.op !== "buy_recommended" && _intentResult.op !== "buy_nth") {
-                  lxAddInstantAi(`好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
+                if (_intentResult.op !== "buy_current" && _intentResult.op !== "buy_nth") {
+                  addMessage("ai", `好的，已为你${_opNames[_intentResult.op] || "执行了操作"}。`);
                 }
                 lxExecControl(_intentResult.op, _intentResult.target || "");
                 state.sending = false;
@@ -2681,22 +2319,13 @@ function openOrderDetail(orderId) {
               }
             }
             // ── 远程意图路由结束 ─────────────────────────────────────────────
-            if (_ranIntent) _pushJudgedLine(); else setTimeout(_pushJudgedLine, 500);
             // 多模态路由：有图/语音或开联网搜索时走火山 /api/chat/stream，否则走官方 /api/leai/stream
             const hasMedia = !!(state.pendingImageUrl || state.pendingAudioUrl);
-            // 引用了本地演示订单时强制走火山：官方对演示订单一无所知，只会回「需要登录」（真机反馈）；
-            // 火山带着引用里的订单号/状态/金额上下文能正面回答物流、发票、退换货
-            const useHuoshan = hasMedia || !!window.__lxWebSearch || /^订单\s/.test(_refMsgSnap || "");
-            const _refProductsPrefix = _refsSnap.length
-              ? `[用户正在咨询这些商品: ${_refsSnap.map(p => `${p.name}${p.sku ? ` (SKU:${p.sku})` : ""}`).join("、")}]\n\n`
-              : (_refSnap ? `[用户正在咨询商品: ${_refSnap.name}${_refSnap.sku ? ` (SKU:${_refSnap.sku})` : ""}]\n\n` : "");
-            // 代买链：发给官方的句子剥掉成交短语（「直接购买/下单吧」会触发官方下单 Skill，只回
-            // 「已为您生成订单」不给商品清单，链拿不到候选被迫翻本地货盘）。官方只负责推荐，
-            // 下单由链自己执行；界面上用户气泡仍显示原句（addMessage 早已发生）
-            const _askText = state._autoBuyPending && window.__lxIntent && window.__lxIntent.stripPurchasePhrase
-              ? window.__lxIntent.stripPurchasePhrase(text)
-              : text;
-            const builtMsg = _refProductsPrefix + (_refMsgSnap ? `[用户引用了此前对话内容作为上下文: ${_refMsgSnap}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${_askText}` : _askText);
+            const useHuoshan = hasMedia || !!window.__lxWebSearch;
+            const _refProductsPrefix = (Array.isArray(state.refProducts) && state.refProducts.length)
+              ? `[用户正在咨询这些商品: ${state.refProducts.map(p => `${p.name}${p.sku ? ` (SKU:${p.sku})` : ""}`).join("、")}]\n\n`
+              : (state.refProduct ? `[用户正在咨询商品: ${state.refProduct.name}${state.refProduct.sku ? ` (SKU:${state.refProduct.sku})` : ""}]\n\n` : "");
+            const builtMsg = _refProductsPrefix + (state.refMsg ? `[用户引用了此前对话内容作为上下文: ${state.refMsg}]\n\n` : "") + (state.humanMode ? `[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ${text}` : text);
             const response = useHuoshan
               ? await fetch("/api/chat/stream", {
                   method: "POST",
@@ -2742,7 +2371,7 @@ function openOrderDetail(orderId) {
                 ai._rightPanelCtaAdded = true;
                 lxAppendAiHtml(ai, renderPageCta(cta));
               }
-              lxAfterAiAnswer(ai, () => lxRunWithRevealMotion(fn));
+              lxAfterAiAnswer(ai, fn);
             };
             const handlers = {
               chunk: (data) => {
@@ -2751,8 +2380,6 @@ function openOrderDetail(orderId) {
                 const content = payload.text || data || "";
                 if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
                 if (!content) return;
-                // 首个 chunk 到达：思考过程时间线收起成一行摘要条，把舞台让给正文
-                if (!ai._traceCollapsed) { _pushJudgedLine(); ai._traceCollapsed = true; lxRenderTraceLive(ai); }
                 revealAi();
                 ai._raw += content;
               },
@@ -2761,31 +2388,14 @@ function openOrderDetail(orderId) {
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
                 if (payload.text) {
-                  const raw = String(payload.text);
-                  if (raw !== ai._traceLastRaw) { // 去重相邻重复（官方 status 流常见连续重复 ping）
-                    _pushJudgedLine(); // 兜底：保证"已判断"行始终排在官方状态行之前
-                    ai._traceLastRaw = raw;
-                    const skillMatch = raw.match(/^(正在获取数据|已获取数据):(Skill\(.+\))$/);
-                    let line = raw; // 非 Skill(...) 的通用状态行原样透传，不过度加工
-                    if (skillMatch) {
-                      ai._traceSkills.add(skillMatch[2]);
-                      line = skillMatch[1] === "正在获取数据"
-                        ? `联想乐享官方 SKILL：正在调用 ${skillMatch[2]}`
-                        : `联想乐享官方 SKILL：${skillMatch[2]} 已完成`;
-                    }
-                    ai._traceLines.push(line);
-                    lxRenderTraceLive(ai);
-                  }
+                  const head = $(".loading-line .typing-text", ai);
+                  if (head) head.textContent = "联想乐享正在生成中...";
                 }
               },
               products: (data) => {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
-                let products = payload.products || [];
-                const _wantNp = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(state.lastUserText || "") : null;
-                if (_wantNp && products.length > _wantNp) products = products.slice(0, _wantNp);
-                _turnProdCount = Math.max(_turnProdCount, products.length);
-                _turnProducts = products;
+                const products = payload.products || [];
                 revealAi();
                 lxAppendAiHtml(ai, renderProductsInMessage(products));
                 if (products.length === 1 && products[0].sku) {
@@ -2819,10 +2429,6 @@ function openOrderDetail(orderId) {
                 // 意图忠实于形态：单品意图（推荐一台/哪个最值）收敛到 1 款直开；对比意图直开对比表
                 const lastAsk = state.lastUserText || "";
                 if (products.length >= 2 && /对比|比较|哪个好|怎么选(?!购)/.test(lastAsk)) {
-                  // 这条早退分支也必须记录本轮商品——代买句常带"顺便对比一下"，官方只发 display
-                  // 不发 products，漏记则 done 时链拿空数组误报"官方暂未返回"翻本地货盘（真机反馈）
-                  _turnProdCount = Math.max(_turnProdCount, products.length);
-                  _turnProducts = products;
                   if (payload.title && !ai._raw) {
                     ai._raw = payload.title;
                   }
@@ -2833,16 +2439,9 @@ function openOrderDetail(orderId) {
                   });
                   return;
                 }
-                // 代买链跳过单品收敛：「挑一款最好的直接下单」意图是链自己从候选里选一款，
-                // 截成 1 款会让对比页空转、正文却继续列多款（真机反馈）
-                if (!state._autoBuyPending && products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
+                if (products.length > 1 && /推荐一[台款部个]|最值得|哪[个款台]最|帮我定一/.test(lastAsk)) {
                   products = products.slice(0, 1);
                 }
-                // 用户点名要N款(2-6)而官方固定回5-6款 → 按要求截断
-                const _wantN = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(lastAsk) : null;
-                if (_wantN && products.length > _wantN) products = products.slice(0, _wantN);
-                _turnProdCount = Math.max(_turnProdCount, products.length);
-                _turnProducts = products;
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
                 }
@@ -2896,7 +2495,7 @@ function openOrderDetail(orderId) {
                   deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
                 }
                 else if (op === 'edu') {
-                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">教育认证</button></div>');
+                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">在校生认证</button><button class="lx-p0-btn" type="button" data-open-stuauth="gaokao">高考生认证</button></div>');
                   deferRightPanel(() => { lxRevealContent(); openEduZone(); }, { title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" });
                 }
                 else if (op === 'stores') deferRightPanel(() => { lxRevealContent(); openStoresPanel(); }, { title: "查看附近门店", desc: "已为你打开门店查询页面" });
@@ -2927,7 +2526,6 @@ function openOrderDetail(orderId) {
                 // 官方商品缓存到 state，供点击时按 sku 取对象传给 openProduct
                 state.officialProducts = state.officialProducts || {};
                 products.forEach((p) => { if (p.sku) state.officialProducts[p.sku] = p; });
-                _turnProducts = products;
                 lxAppendAiHtml(ai, `<div class="lx-p0-suggest">${products.slice(0, 3).map((p) => `<button class="lx-p0-suggest-chip" type="button" data-open-product="${esc(p.sku)}">${esc(p.name)} ¥${Number(p.price || 0).toLocaleString()}</button>`).join("")}</div>`);
                 deferRightPanel(() => {
                   lxRevealContent();
@@ -3036,52 +2634,21 @@ function openOrderDetail(orderId) {
                 if (nonce !== state.conversationNonce) return;
                 const payload = parseJson(data);
                 if (payload.conv_id || payload.convId) state.convId = payload.conv_id || payload.convId;
-                // 追问 chips「猜你想干」：动作预判确定性前置（对比第1、2款/打开第1款走本地意图闭环，
-                // 生成器收口 app-intent.actionChips 主/全屏共用），咨询型 LLM 异步补齐；无论 LLM
-                // 成败都保证凑满 3 个（静态兜底），不能只孤零零一条（真机反馈）
+                // 追问 chips：异步生成，不阻塞主流程
                 const _q = state.lastUserText || "";
                 const _a = (ai._raw || "").slice(0, 300);
-                const _acts = (window.__lxIntent && window.__lxIntent.actionChips) ? window.__lxIntent.actionChips((_turnProducts || []).slice(0, _turnProdCount || 3)) : [];
-                const _fb = (window.__lxIntent && window.__lxIntent.FOLLOWUP_FALLBACKS) || [];
-                const _fill3 = (arr) => {
-                  const out = [];
-                  arr.concat(_fb).forEach((x) => { if (x && out.indexOf(x) < 0 && out.length < 3) out.push(x); });
-                  return out;
-                };
-                // chips 渲染收敛：动画没完只记账（ai._chipsQs），动画收尾统一渲染一次。
-                // 之前首渲进 _pendingExtras → finalHtml 快照带旧份，LLM 补齐无论删 DOM 还是改
-                // 字符串都够不着快照，最终两排 6 个（真机两轮反馈），根修=chips 永不进 finalHtml。
-                const _renderChips = (qs) => {
-                  ai._chipsQs = qs;
-                  if (!ai._chipsRendered) return; // 等 done 收尾的统一渲染点
-                  lxClearFollowups();
-                  ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
-                  lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
-                };
-                ai._renderChipsFn = _renderChips;
-                _renderChips(_fill3(_acts)); // 动作 chip + 静态兜底先记账，答案动画完成即显 3 个，不等 LLM
                 if (_q && _a) {
                   fetch("/api/leai/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: _q, a: _a }) })
                     .then(r => r.json()).then(d => {
                       if (nonce !== state.conversationNonce) return;
-                      const qs = _fill3(_acts.concat(Array.isArray(d && d.questions) ? d.questions.filter(Boolean) : []));
-                      if (qs.length) _renderChips(qs);
+                      const qs = Array.isArray(d && d.questions) ? d.questions.filter(Boolean).slice(0, 3) : [];
+                      if (qs.length) {
+                        // 移除已有追问块（避免重复/叠加）
+                        lxClearFollowups(ai);
+                        ai.querySelectorAll(".followups, .lxfd-followups, .lx-p0-suggest[data-followups]").forEach(el => el.remove());
+                        lxAppendAiHtml(ai, `<div class="lx-p0-suggest" data-followups="1">${qs.map(sug => `<button class="lx-p0-suggest-chip" type="button" data-quick-ask="${esc(sug)}">${esc(sug)}</button>`).join("")}</div>`);
+                      }
                     }).catch(() => {});
-                }
-                // 代买 pending → 链早在 sendChat 一开始就已插卡起跑，step1 正等这个 promise；
-                // 官方推荐到位，resolve 交给链自己去接管「对比→选款→下单」（件2：链前置）
-                if (state._autoBuyPending) {
-                  const _pendingBuy = state._autoBuyPending;
-                  // 官方 session 失效走兜底时，后端在 fallback 事件后紧跟一个「假 done」（此刻火山
-                  // 兜底流才刚起步，_turnProducts 必空）——跳过这一次，等兜底流的真 done 带着它
-                  // 收集到的商品来 resolve；否则链 10s 就拿空结果去翻本地货盘，和正文推荐两张皮（真机反馈）
-                  if (state._fallbackFired && !_pendingBuy._skippedFakeDone) {
-                    _pendingBuy._skippedFakeDone = true;
-                  } else {
-                    state._autoBuyPending = null;
-                    clearTimeout(_pendingBuy.timeoutId);
-                    _pendingBuy.resolve(_turnProducts.slice());
-                  }
                 }
               },
               fallback: async () => {
@@ -3108,23 +2675,12 @@ function openOrderDetail(orderId) {
               ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
             }
             if (!state.humanMode) lxAppendAiHtml(ai, `<div class="lx-p0-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</div>`);
-            // 收尾把时间线折叠态 HTML 拼进最终正文——lxAnimateAiFinal 会整体替换 ai-body，
-            // 生成阶段的实时 DOM 保不住，得随 finalHtml 一起进去才能存档/恢复时保持折叠。
-            const _traceFinalHtml = renderSkillTrace(ai._traceLines, { collapsed: true, foldable: true, skillCount: ai._traceSkills ? ai._traceSkills.size : 0 });
-            const finalHtml = `${_traceFinalHtml}${ai._raw ? mdLite(ai._raw) : ""}${ai._pendingExtras || ""}`;
+            const finalHtml = `${ai._raw ? mdLite(ai._raw) : ""}${ai._pendingExtras || ""}`;
             ai._pendingExtras = "";
             await lxAnimateAiFinal(ai, finalHtml);
             const delayedExtras = ai._pendingExtras || "";
             ai._pendingExtras = null;
             if (delayedExtras) lxAppendAiHtml(ai, delayedExtras);
-            // chips 统一渲染点：动画期间只记账（_chipsQs 可能已被 LLM 补齐更新过），这里一次性上屏
-            ai._chipsRendered = true;
-            if (ai._chipsQs && typeof ai._renderChipsFn === "function") { try { ai._renderChipsFn(ai._chipsQs); } catch (_e) {} }
-            // 本节点 addMessage("ai loading","",...) 创建时 text=""，走 else 分支直接
-            // body.innerHTML=extraHtml，不会触发 addMessage 内 lxAnimateAiFinal.then() 的
-            // 完成态保存回调（那个回调只在 text 非空分支才注册）；这里显式补一次，同「下单
-            // 成功」节点做法一致，不只靠 400ms 防抖——否则技能链/思考时间线回答刷新即丢。
-            try { window.__lxSaveConversationNow(); } catch (_e) {} // 真·立即存，不吃400ms防抖（同下单成功节点）
             const afterAnswer = Array.isArray(ai._afterAnswer) ? ai._afterAnswer.splice(0) : [];
             ai._afterAnswer = null;
             afterAnswer.forEach((fn) => {
@@ -3136,21 +2692,11 @@ function openOrderDetail(orderId) {
             if (state.officialCompare) callOfficialAI(text);
           } catch (error) {
             if (nonce !== state.conversationNonce) return;
-            // 代买 pending 若卡在这轮官方流出错（网络/解析异常）：reject 掉 promise，让链 step1
-            // 走本地货盘 fallback 阶梯，而不是让链永远停在「等待官方推荐结果…」；同时清掉标记，
-            // 防止遗留到用户下一句完全无关的话，被误当成代买执行触发
-            if (state._autoBuyPending) {
-              const _pendingBuy = state._autoBuyPending;
-              state._autoBuyPending = null;
-              clearTimeout(_pendingBuy.timeoutId);
-              try { _pendingBuy.reject(error); } catch (_e) {}
-            }
             ai.className = "lx-p0-message msg ai lx-chat-skin";
             ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
             ai._pendingExtras = null;
             ai._afterAnswer = null;
             await lxAnimateAiFinal(ai, mdLite(ai._raw));
-            try { window.__lxSaveConversationNow(); } catch (_e) {} // 同上：错误兜底态也要显式存一次，不靠防抖
           } finally {
             clearTimeout(state._sendTimeout);
             if (nonce === state.conversationNonce) state.sending = false;
@@ -3160,46 +2706,11 @@ function openOrderDetail(orderId) {
         // ── 企业账户认证 mock（PRD 5.8.1/5.13.1：认证是企业专享价/对公能力前置，POC 状态机）──
         const LX_ENT_KEY = "lexiang.enterprise.v1";
         const LX_ENT_REVIEW_MS = 12000;
-        const LX_ENT_DEFAULT_POINTS = 260716;
-        const LX_ENT_POINTS_SEED = "20260705-260716";
-        const LX_ENT_REDEEM_ITEMS = [
-          { id: "coupon-100", name: "100元企业采购券", cost: 1200, desc: "企业电脑、配件与服务采购可用", tag: "采购券", image: "/assets/img/shop-1.jpg" },
-          { id: "onsite-care", name: "上门服务抵扣券", cost: 1800, desc: "上门部署、调试与保养服务抵扣", tag: "服务", image: "/assets/img/shop-2.jpg" },
-          { id: "mouse-pack", name: "办公外设礼包", cost: 2600, desc: "键鼠、扩展坞等常用办公外设", tag: "外设", image: "/assets/img/shop-3.jpg" },
-          { id: "warranty-pack", name: "延保服务权益", cost: 4200, desc: "企业设备延保或高级支持咨询", tag: "延保", image: "/assets/img/shop-4.jpg" },
-          { id: "thinkpad-bag", name: "ThinkPad 商务双肩包", cost: 1600, desc: "通勤收纳，多隔层办公背包", tag: "配件", image: "/assets/img/shop-5.jpg" },
-          { id: "usb-dock", name: "USB-C 多功能扩展坞", cost: 3200, desc: "会议投屏、网口与多屏扩展", tag: "办公", image: "/assets/img/shop-6.jpg" },
-          { id: "meeting-mouse", name: "无线蓝牙办公鼠标", cost: 900, desc: "轻量便携，适合移动办公", tag: "外设", image: "/assets/img/shop-7.jpg" },
-          { id: "clean-care", name: "企业设备清洁保养", cost: 1500, desc: "键盘、屏幕与整机清洁服务", tag: "保养", image: "/assets/img/shop-8.jpg" },
-          { id: "setup-service", name: "新机开荒服务包", cost: 2200, desc: "系统初始化、软件安装与数据迁移", tag: "服务", image: "/assets/img/shop-9.jpg" },
-          { id: "privacy-film", name: "笔记本防窥贴膜", cost: 1100, desc: "商务差旅与开放工位隐私防护", tag: "配件", image: "/assets/img/shop-10.jpg" },
-          { id: "it-check", name: "企业 IT 巡检权益", cost: 3600, desc: "设备健康检查与办公环境建议", tag: "运维", image: "/assets/img/shop-11.jpg" },
-          { id: "training-seat", name: "AI 办公培训名额", cost: 5000, desc: "面向团队的 AIPC 办公效率课程", tag: "培训", image: "/assets/img/shop-12.jpg" },
-          { id: "asset-check", name: "资产盘点服务", cost: 2800, desc: "办公终端资产清点与台账整理", tag: "运维", image: "/assets/img/shop-1.jpg" },
-          { id: "cloud-credit", name: "云资源抵扣券", cost: 3800, desc: "云桌面、备份与协同资源抵扣", tag: "云服务", image: "/assets/img/shop-2.jpg" },
-          { id: "keyboard-pack", name: "无线键盘套装", cost: 1300, desc: "企业办公常用无线键盘套装", tag: "外设", image: "/assets/img/shop-3.jpg" },
-          { id: "screen-clean", name: "显示器清洁套装", cost: 800, desc: "屏幕与办公桌面清洁用品", tag: "保养", image: "/assets/img/shop-4.jpg" },
-          { id: "vip-hotline", name: "专属热线权益", cost: 2400, desc: "企业客户专线咨询与响应权益", tag: "服务", image: "/assets/img/shop-5.jpg" },
-          { id: "deployment-hour", name: "部署工程师工时", cost: 4600, desc: "终端部署与迁移工程师服务", tag: "部署", image: "/assets/img/shop-6.jpg" },
-          { id: "ai-template", name: "AI 办公模板包", cost: 700, desc: "会议纪要、报告与表格模板", tag: "办公", image: "/assets/img/shop-7.jpg" },
-          { id: "backup-care", name: "数据备份咨询", cost: 1900, desc: "企业终端数据备份方案咨询", tag: "数据", image: "/assets/img/shop-8.jpg" },
-          { id: "meeting-kit", name: "会议协作礼包", cost: 3100, desc: "会议室协作与投屏外设组合", tag: "会议", image: "/assets/img/shop-9.jpg" },
-          { id: "security-check", name: "终端安全体检", cost: 3300, desc: "办公终端安全策略检查建议", tag: "安全", image: "/assets/img/shop-10.jpg" },
-          { id: "spare-adapter", name: "备用电源适配器", cost: 2100, desc: "ThinkPad 常用备用电源适配器", tag: "配件", image: "/assets/img/shop-11.jpg" },
-          { id: "onsite-training", name: "上门培训权益", cost: 5200, desc: "AIPC 与企业办公效率上门培训", tag: "培训", image: "/assets/img/shop-12.jpg" }
-        ];
 
         function lxEntState() {
           try {
             const raw = JSON.parse(localStorage.getItem(LX_ENT_KEY) || "null");
             const ent = raw && typeof raw === "object" ? raw : { status: "none" };
-            if (ent.pointsSeed !== LX_ENT_POINTS_SEED) {
-              ent.points = LX_ENT_DEFAULT_POINTS;
-              ent.pointsSeed = LX_ENT_POINTS_SEED;
-            }
-            if (!Number.isFinite(Number(ent.points))) ent.points = LX_ENT_DEFAULT_POINTS;
-            if (!Array.isArray(ent.redeems)) ent.redeems = [];
-            try { localStorage.setItem(LX_ENT_KEY, JSON.stringify(ent)); } catch {}
             if (ent.status === "pending" && ent.submittedAt && Date.now() - ent.submittedAt > LX_ENT_REVIEW_MS) {
               ent.status = "verified";
               localStorage.setItem(LX_ENT_KEY, JSON.stringify(ent));
@@ -3229,150 +2740,8 @@ function openOrderDetail(orderId) {
         }
 
         function lxSaveEntState(ent) {
-          if (!Number.isFinite(Number(ent.points))) ent.points = LX_ENT_DEFAULT_POINTS;
-          ent.pointsSeed = LX_ENT_POINTS_SEED;
-          if (!Array.isArray(ent.redeems)) ent.redeems = [];
           try { localStorage.setItem(LX_ENT_KEY, JSON.stringify(ent)); } catch {}
           lxRenderEnterpriseBanner();
-        }
-
-        function lxEntPointsValue() {
-          const ent = lxEntState();
-          const value = Number(ent.points);
-          return Number.isFinite(value) ? value : LX_ENT_DEFAULT_POINTS;
-        }
-
-        function lxFormatEntPoints(value) {
-          return Number(value || 0).toLocaleString("zh-CN");
-        }
-
-        function lxRenderEntPointsMallHtml() {
-          const ent = lxEntState();
-          const points = lxEntPointsValue();
-          const redeemed = new Set((ent.redeems || []).map((item) => item.id));
-          const availableItems = LX_ENT_REDEEM_ITEMS.filter((item) => !redeemed.has(item.id));
-          const cards = availableItems.map((item) => {
-            const afford = points >= item.cost;
-            return `<article class="lx-ent-redeem-card lx-ent-product-card"><div class="product-visual"><span class="lx-cat-badge">${esc(item.tag || "权益")}</span><img src="${esc(item.image || "/assets/product-placeholder.svg")}" alt="${esc(item.name)}" loading="lazy" /></div><h3 class="product-title">${esc(item.name)}</h3><div class="product-promos"><span class="product-promo">企业积分兑换</span><span class="product-promo">企业权益</span></div><div class="price">${lxFormatEntPoints(item.cost)}<span class="price-from"> 企业积分</span></div><button class="lx-p0-btn${afford ? " primary" : ""}" type="button" data-ent-redeem="${esc(item.id)}"${!afford ? " disabled" : ""}>${afford ? "立即兑换" : "积分不足"}</button></article>`;
-          }).join("");
-          const records = (ent.redeems || []).slice().reverse().slice(0, 4).map((entry) => {
-            const when = entry.redeemedAt ? new Date(entry.redeemedAt).toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" }) : "刚刚";
-            return `<div class="lx-ent-redeem-record"><span>兑换成功</span><strong>${esc(entry.name || "企业权益")}</strong><em>${lxFormatEntPoints(entry.cost)} 企业积分 · ${esc(when)}</em></div>`;
-          }).join("");
-          const recordHtml = records ? `<section class="lx-ent-redeem-records"><div class="lx-ent-redeem-record-head"><h3>兑换成功记录</h3><span>最近 ${Math.min((ent.redeems || []).length, 4)} 条</span></div><div class="lx-ent-redeem-record-list">${records}</div></section>` : "";
-          const empty = `<div class="lx-ent-redeem-empty"><strong>暂无可兑换商品</strong><span>当前积分商城商品均已兑换，可稍后查看新权益上架。</span></div>`;
-          return `<section class="lx-ent-redeem-page"><div class="lx-ent-redeem-hero"><div><span>当前企业积分</span><strong>${lxFormatEntPoints(points)}</strong><em>积分可用</em></div><button class="lx-p0-btn" type="button" data-quick-ask="企业积分怎么获取和使用？">积分规则</button></div>${recordHtml}<div class="lx-ent-redeem-grid lx-floor-products">${cards || empty}</div><p class="lx-p0-disclaimer">仅展示当前未兑换的商品。兑换后会从当前企业账号积分中扣减，并记录在企业账号状态中。</p></section>`;
-        }
-
-        function lxOpenEntPointsMall() {
-          lxRevealContent();
-          lxOpenInfoTab("ent-points", "企业积分兑换", lxRenderEntPointsMallHtml());
-        }
-
-        function lxRenderEntRedeemProgressCard(item, points) {
-          const steps = [
-            `核验积分余额 ${lxFormatEntPoints(points)}`,
-            `锁定兑换权益`,
-            `生成兑换订单`
-          ];
-          const chips = steps.map((label) => `<span class="chip"><span class="od"></span>${esc(label)}</span>`).join("");
-          return `<div class="cl lx-claim-skin lx-ent-redeem-steps" data-v="D" data-state="claiming" data-ent-redeem-progress="1"><div class="drow"><span class="ic">${lxClaimTicketSvg()}</span><span class="mid"><div class="t1" data-t1>正在为你执行积分兑换</div><div class="t2">${esc(item.name)} · ${lxFormatEntPoints(item.cost)} 企业积分</div></span><span class="cnt"><span class="n" data-cnt>0</span>/${steps.length}</span><span class="done-amt"><span class="ok">${lxClaimCheckSvg()}</span>待确认订单</span></div><div class="track"><span class="fill" style="width:0%"></span></div><div class="chips">${chips}</div></div>`;
-        }
-
-        function lxRunEntRedeemProgressCard(root, item, onDone) {
-          if (!root) { if (typeof onDone === "function") onDone(); return; }
-          const chips = Array.from(root.querySelectorAll(".chip"));
-          const t1 = root.querySelector("[data-t1]");
-          const cnt = root.querySelector("[data-cnt]");
-          const fill = root.querySelector(".fill");
-          const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-          const labels = ["正在核验企业积分", "正在锁定兑换权益", "正在生成兑换订单"];
-          const finish = () => {
-            root.setAttribute("data-state", "done");
-            if (t1) t1.textContent = "兑换订单已生成";
-            if (cnt) cnt.textContent = String(chips.length);
-            if (fill) fill.style.width = "100%";
-            chips.forEach((chip) => chip.classList.add("on"));
-            ensureChat().scrollTop = ensureChat().scrollHeight;
-            setTimeout(() => { if (typeof onDone === "function") onDone(); }, reduced ? 0 : 260);
-          };
-          if (!chips.length || reduced) { finish(); return; }
-          chips.forEach((chip) => chip.classList.remove("on"));
-          root.setAttribute("data-state", "claiming");
-          if (fill) fill.style.width = "0%";
-          chips.forEach((chip, i) => {
-            setTimeout(() => {
-              const pct = Math.round(((i + 1) / chips.length) * 100);
-              if (t1) t1.textContent = labels[i] || "正在为你执行积分兑换";
-              if (cnt) cnt.textContent = String(i + 1);
-              if (fill) fill.style.width = `${pct}%`;
-              chip.classList.add("on");
-              ensureChat().scrollTop = ensureChat().scrollHeight;
-            }, 420 + i * 580);
-          });
-          setTimeout(finish, 420 + chips.length * 580 + 160);
-        }
-
-        function lxFindEntRedeemItem(text) {
-          const ask = String(text || "");
-          if (!/兑换|下单|领取/.test(ask)) return null;
-          return LX_ENT_REDEEM_ITEMS.find((item) => ask.includes(item.name) || ask.includes(item.id));
-        }
-
-        function lxOpenEntRedeemOrder(item) {
-          if (!item) return;
-          const points = lxEntPointsValue();
-          const remain = points - Number(item.cost || 0);
-          openModal("确认兑换订单", `<div class="lx-ent-order"><button class="lx-p0-close lx-ent-order-close" type="button" aria-label="关闭">×</button><div class="lx-ent-order-product"><img src="${esc(item.image || "/assets/product-placeholder.svg")}" alt="${esc(item.name)}"><div><strong>${esc(item.name)}</strong><span>${esc(item.desc || "企业积分兑换权益")}</span></div></div><div class="lx-ent-order-rows"><div><span>兑换账号</span><b>当前企业账号</b></div><div><span>兑换数量</span><b>1</b></div><div><span>消耗积分</span><b>${lxFormatEntPoints(item.cost)} 企业积分</b></div><div><span>兑换后余额</span><b>${lxFormatEntPoints(Math.max(0, remain))} 企业积分</b></div></div><button class="lx-p0-btn primary lx-ent-order-confirm" type="button" data-ent-redeem-confirm="${esc(item.id)}">确认兑换</button><p class="lx-p0-disclaimer">确认后将从企业账号积分中扣减，并生成企业积分兑换记录。</p></div>`, { skin: "order" });
-        }
-
-        function lxStartEntRedeemFlow(id) {
-          const item = LX_ENT_REDEEM_ITEMS.find((entry) => entry.id === id);
-          if (!item) return false;
-          const ent = lxEntState();
-          const points = lxEntPointsValue();
-          ent.redeems = Array.isArray(ent.redeems) ? ent.redeems : [];
-          if (ent.redeems.some((entry) => entry.id === id)) { lxAddInstantAi(`「${item.name}」已经兑换过了，我已在右侧为你保留兑换记录。`); lxOpenEntPointsMall(); return true; }
-          if (points < item.cost) { lxAddInstantAi(`当前企业积分不足，兑换「${item.name}」还差 ${lxFormatEntPoints(item.cost - points)} 企业积分。`); lxOpenEntPointsMall(); return true; }
-          const tip = addMessage("ai", "");
-          lxEnsureAiBody(tip).innerHTML = `<p>好的！为你处理企业积分兑换：</p>${lxRenderEntRedeemProgressCard(item, points)}`;
-          tip._raw = `好的！为你处理企业积分兑换：${item.name}`;
-          const progressCard = tip.querySelector('.lx-ent-redeem-steps[data-v="D"]');
-          lxRunEntRedeemProgressCard(progressCard, item, () => {
-            try { window.__lxSaveConversationNow(); } catch (_e) {} // 真·立即存，不吃400ms防抖（同下单成功节点）
-            lxOpenEntRedeemOrder(item);
-          });
-          return true;
-        }
-
-        function lxHandleEntPointsQuery(text) {
-          const redeemItem = lxFindEntRedeemItem(text);
-          if (redeemItem) return lxStartEntRedeemFlow(redeemItem.id);
-          if (!/(积分兑换|积分商城|企业积分)/.test(text || "")) return false;
-          lxAddInstantAi("好的，已为你打开企业积分兑换。右侧展示当前可兑换权益，可直接选择兑换。");
-          lxOpenEntPointsMall();
-          return true;
-        }
-
-        function lxRedeemEntPoints(id) {
-          const item = LX_ENT_REDEEM_ITEMS.find((entry) => entry.id === id);
-          if (!item) return;
-          const ent = lxEntState();
-          ent.points = lxEntPointsValue();
-          ent.redeems = Array.isArray(ent.redeems) ? ent.redeems : [];
-          if (ent.redeems.some((entry) => entry.id === id)) { toast("该权益已兑换"); return; }
-          if (ent.points < item.cost) { toast("企业积分不足"); return; }
-          ent.points -= item.cost;
-          ent.redeems.push({ id: item.id, name: item.name, cost: item.cost, redeemedAt: Date.now() });
-          lxSaveEntState(ent);
-          const freshHtml = lxRenderEntPointsMallHtml();
-          const pointsTab = (state.tabs || []).find((tab) => tab.id === "info:ent-points");
-          if (pointsTab) pointsTab.html = freshHtml;
-          const infoBox = document.querySelector(".content[data-view=info] .info-page");
-          if (state.activeTabId === "info:ent-points" && infoBox) infoBox.innerHTML = freshHtml;
-          toast(`已兑换：${item.name}`);
-          lxOpenEntPointsMall();
-          if (state.page === "business") setTimeout(() => { try { lxRunTab(state.tabs.find((t) => t.id === state.activeTabId) || state.tabs[0]); } catch {} }, 120);
         }
 
         function openEnterpriseAuth() {
@@ -3473,19 +2842,23 @@ function openOrderDetail(orderId) {
             { name: "远程支持", desc: "远程协助排障，快速恢复办公", icon: "remote", ask: "我需要企业远程支持服务" },
             { name: "清洁保养", desc: "定期上门清洁保养，延长设备寿命", icon: "clean", ask: "我需要企业设备清洁保养服务" }
           ];
+          const keeps = [
+            { name: "积分商城", desc: "乐豆兑好礼", icon: "shop", ask: "积分商城和乐豆兑换规则是什么" },
+            { name: "教育特惠", desc: "师生专属价", icon: "edu", ask: "教育特惠怎么认证和享受师生专属价" },
+            { name: "以旧换新", desc: "旧机抵现购新", icon: "recycle", ask: "以旧换新怎么估价和下单" }
+          ];
           const section = (title, extra = "") => `<div class="sect"><span class="st">${esc(title)}</span>${extra}<span class="ln"></span></div>`;
           const benefitCards = benefits.map((item) => `<div class="ben${item.hl ? " hl" : ""}"><span class="ic tile">${icon[item.icon]}</span><div><div class="bt">${esc(item.title)}</div><div class="bd">${esc(item.desc)}</div></div></div>`).join("");
           const stepItems = steps.map(([title, desc], index) => `<div class="step"><span class="sn">${index + 1}</span><div class="sk">${esc(title)}</div><div class="sd">${esc(desc)}</div></div>`).join("");
-          const toolCards = tools.map((item) => `<div class="tool" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="tt"><div class="tn">${esc(item.name)}</div><div class="td">${esc(item.desc)}</div><span class="trigger">${icon.chat} 对话中说出需求即可触发</span></div><span class="tool-go">${icon.arrow}</span></div>`).join("");
-          return `<section class="qy lx-qybenefit-skin" data-v="2" data-floor-cat="企业会员权益">
-            <div class="qy-hero"><div><span class="eyebrow">企业会员权益</span><h3>认证企业身份，采购报价和服务流程更清晰</h3><p>围绕企业价、批量补贴、会员折扣、首购礼包与账期申请，帮助中小企业完成从选型到下单的采购闭环。</p></div><button class="cert" type="button" data-open-ent>${icon.cert} 立即认证</button></div>
+          const toolCards = tools.map((item) => `<div class="tool" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="tt"><div class="tn">${esc(item.name)}</div><div class="td">${esc(item.desc)}</div><span class="trigger">${icon.chat} 对话中说出需求即可触发</span></div></div>`).join("");
+          const keepCards = keeps.map((item) => `<div class="keep-item" data-quick-ask="${esc(item.ask)}"><span class="ic tile">${icon[item.icon]}</span><div class="kt"><div class="kn">${esc(item.name)}</div><div class="kd">${esc(item.desc)}</div></div><span class="karr">${icon.arrow}</span></div>`).join("");
+          return `<section class="qy lx-qybenefit-skin" data-v="1" data-floor-cat="企业会员权益">
             ${section("核心权益")}
             <div class="grid4">${benefitCards}</div>
-            <div class="qy-main">
-              <div class="qy-account">${section("企业账期")}<div class="acct"><div class="ah"><span class="ic tile">${icon.wallet}</span><div class="at"><div class="atitle">企业账期 · 先采购后付款</div><div class="adesc">接通 b.lenovo 官网账期申请流程，授信后可享账期下单</div></div><button class="abtn" type="button" data-quick-ask="企业账期怎么申请，帮我准备资料">申请企业账期 ${icon.ext}</button></div><div class="steps">${stepItems}</div></div></div>
-              <div class="qy-service">${section("服务工具", `<span class="pill chat">${icon.chat} 对话可触发</span>`)}<div class="tool-list">${toolCards}</div></div>
-            </div>
-            <div class="qfoot"><span>认证即享企业价</span><span class="d"></span><span>服务工具可在对话中触发</span><span class="d"></span><span>账期额度以官网审核结果为准</span></div>
+            ${section("企业账期")}
+            <div class="acct"><div class="ah"><span class="ic tile">${icon.wallet}</span><div class="at"><div class="atitle">企业账期 · 先采购后付款</div><div class="adesc">接通 b.lenovo 官网账期申请流程，授信后可享账期下单</div></div><button class="abtn" type="button" data-quick-ask="企业账期怎么申请，帮我准备资料">申请企业账期 ${icon.ext}</button></div><div class="steps">${stepItems}</div></div>
+            <div class="cols"><div>${section("服务工具", `<span class="pill chat">${icon.chat} 对话可触发</span>`) + toolCards}</div><div>${section("现有功能", `<span class="pill keep">${icon.keep} 保留</span>`) + keepCards}</div></div>
+            <div class="qfoot"><span>认证即享企业价</span><span class="d"></span><span>服务工具可在对话中触发</span><span class="d"></span><span>积分 / 教育 / 以旧换新沿用现有功能</span></div>
           </section>`;
         }
 
@@ -3665,10 +3038,10 @@ function openOrderDetail(orderId) {
             const sku = lxFindEntCustomSku(series);
             const actionAttr = sku ? `data-open-product="${esc(sku)}"` : `data-quick-ask="帮我选配${esc(series.name)}企业定制方案"`;
             return `<article class="scard" data-cat="${esc(series.cat.join(" "))}" data-series="${esc(series.id)}">
-              <div class="card-top"><span class="ico">${ico[series.icon]}</span><span class="scene">${esc(series.scene)}</span></div>
-              <div class="sn">${esc(series.name)}</div>
+              <span class="ico">${ico[series.icon]}</span>
+              <div class="sn">${esc(series.name)}</div><div class="scn">${esc(series.scene)}</div>
               <div class="price"><span class="pl">参考价</span><span class="pv"><span class="cur">¥</span>${esc(series.price)}<span class="up">起</span></span></div>
-              <div class="specs" aria-label="配置上限">
+              <div class="specs">
                 <div class="srow"><span class="sk">处理器</span><span class="sv">${esc(series.cpu)}</span></div>
                 <div class="srow"><span class="sk">内存</span><span class="sv">${esc(series.ram)}</span></div>
                 <div class="srow"><span class="sk">硬盘</span><span class="sv">${esc(series.ssd)}</span></div>
@@ -3678,10 +3051,9 @@ function openOrderDetail(orderId) {
               <button class="pick" type="button" ${actionAttr}>立即选配 ${ico.arrow}</button>
             </article>`;
           }).join("");
-          const filterButtons = LX_ENT_CUSTOM_FILTERS.map(([key, label], index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-entcustom-filter="${esc(key)}">${esc(label)}</button>`).join("");
-          return `<section class="ec lx-entcustom-skin" data-v="2" data-floor-cat="企业定制">
-            <div class="ec-hero"><div><span class="eyebrow">企业定制</span><h3>按业务场景选择系列，专业人员协助搭配</h3><p>保留当前 7 大系列、多配置自由定制、A 面定制 / C 面刻字能力，帮助企业从轻薄商务、移动工作站到台式办公快速进入选配。</p></div><div class="merits"><span class="merit">${ico.chat}<b>30分钟内响应</b></span><span class="merit">${ico.sliders}<b>多配置定制</b></span><span class="merit">${ico.shield}<b>原厂质保</b></span></div></div>
-            <div class="filters"><span class="flabel">按场景</span>${filterButtons}</div>
+          return `<section class="ec lx-entcustom-skin" data-v="1" data-floor-cat="企业定制">
+            <div class="ehead"><h3>企业定制</h3><span class="slogan">一句话提需求，专业人员搭配</span><span class="sp"></span><div class="merits"><span class="merit">${ico.chat}<b>30分钟内响应</b></span><span class="merit">${ico.sliders}多配置定制</span><span class="merit">${ico.shield}原厂质保</span></div></div>
+            <div class="filters"><span class="flabel">按场景</span>${LX_ENT_CUSTOM_FILTERS.map(([key, label], index) => `<button class="chip${index === 0 ? " on" : ""}" type="button" data-entcustom-filter="${esc(key)}">${esc(label)}</button>`).join("")}</div>
             <div class="grid">${cards}</div>
             <div class="efoot"><span>7 大系列 · 多配置自由定制</span><span class="d"></span><span>A面定制 / C面刻字按系列支持</span><span class="d"></span><span>参考价为标品起价，最终以选配页为准</span></div>
           </section>`;
@@ -3690,8 +3062,8 @@ function openOrderDetail(orderId) {
         function lxGetSiteTabLabels(page = state.page) {
           const categoryLabels = ["personal", "business", "enterprise"].includes(page) ? [] : (LX_CATEGORY_MATCHERS[page] || []).map((m) => m.label || m[0]);
           const activityLabels = {
-            personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "服务", "门店"],
-            business: ["企业会员权益", "企业定制", "积分商城", "门店"],
+            personal: ["国补", "教育特惠", "会员", "私人定制", "以旧换新", "今日秒杀", "种草", "服务", "门店"],
+            business: ["企业会员权益", "企业定制", "门店"],
             enterprise: ["行业解决方案", "行业资料"],
           }[page] || [];
           return ["推荐", ...categoryLabels, ...activityLabels];
@@ -4470,33 +3842,47 @@ function openOrderDetail(orderId) {
               ["button", "一键领取", "领券中心", "新人券、品类券一键领取", "现在有哪些优惠券可以领？"]
             ].map(([num, unit, title, desc, ask]) => `<article class="lx-member-card" data-quick-ask="${esc(ask)}" tabindex="0"><div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div><strong>${esc(num)}<small>${esc(unit)}</small></strong></article>`).join("");
             const seckillEnd = lxSeckillCountdown();
-            // 国补楼层：城市定位/切换 + 国补领取 + 国补商品两排展示
+            // 国补楼层：LBS 定位 + 步骤卡 + 叠加入口 + 商品（2 态：未认证 / 已认证已领取）
+            const gbCityBar = `<div class="lx-gb-city-bar"><span class="lx-gb-city-label">当前城市：</span><span class="lx-gb-city-name" data-gb-city>正在定位你所在城市…</span><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>`;
+            const gbSteps = [
+              ["01", "确认资格", "北京/上海等参与城市用户，需有有效身份证", "查资格", "我怎么确认是否有国补购机资格？"],
+              ["02", "平台领券", "登录联想商城，在国补专区领取补贴券", "去领券", "怎么在联想商城领取国补券？"],
+              ["03", "下单核销", "选购参与国补商品，结算时自动核销补贴", "去购买", "国补下单核销的完整流程是什么？"]
+            ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
+            const gbStacking = `<div class="lx-gb-stack-row">${[
+              ["教育特惠叠加", "学生/教师可叠加教育价", "国补和教育特惠能叠加吗？"],
+              ["以旧换新叠加", "旧机折价抵扣再叠国补", "国补和以旧换新怎么叠加？"],
+              ["私人定制叠加", "定制机型参与国补", "定制机可以享受国补吗？"],
+              ["保值焕新叠加", "保值焕新入门门槛更低", "保值焕新和国补可以同时享受吗？"]
+            ].map(([t, d, a]) => `<div class="lx-floor-card" data-quick-ask="${esc(a)}"><strong>${esc(t)}</strong><span>${esc(d)}</span></div>`).join("")}</div>`;
             const gbProductPool = (state.products || []).filter((p) => /小新|YOGA|ThinkPad|ThinkBook|拯救者|LEGION|GeekPro|轻薄|昭阳|台式|天逸|扬天|开天|启天|平板|Tab|moto|ThinkVision|显示器/.test(p.name || ""));
+            // 国补态判断
             const gbSt = lxGbState();
             const gbVerified = gbSt.realVerified && gbSt.claimed;
-            const gbCityBlock = `<section class="lx-gb-block lx-gb-location" aria-label="城市定位与切换">
-              <div class="lx-gb-block-copy"><span class="lx-gb-kicker">01 城市定位</span><h4>按你所在城市匹配国补资格</h4><p>当前城市会影响可领取资格、补贴目录和可核销商品。</p></div>
-              <div class="lx-gb-city-card"><span>当前城市</span><strong data-gb-city>${esc(gbSt.city || "正在定位你所在城市…")}</strong><button class="lx-p0-btn" type="button" data-city-picker>切换城市</button></div>
-            </section>`;
-            const gbClaimBlock = gbVerified
-              ? `<section class="lx-gb-block lx-gb-claim is-verified" aria-label="国补领取状态">
-                <div class="lx-gb-block-copy"><span class="lx-gb-kicker">02 国补领取</span><h4>资格已绑定，可直接选购核销</h4><p><strong>${esc(gbSt.city || "当前城市")}</strong> · ${esc(gbSt.boundCat || "笔记本")} 类目 · 结算时按活动规则自动抵扣。</p></div>
-                <div class="lx-gb-claim-actions"><span class="lx-auth-badge ok">已领取</span><button type="button" class="lx-auth-reset" data-gb-reset>重置认证（演示）</button></div>
-              </section>`
-              : `<section class="lx-gb-block lx-gb-claim" aria-label="国补领取">
-                <div class="lx-gb-block-copy"><span class="lx-gb-kicker">02 国补领取</span><h4>完成实名后领取国补资格</h4><p>领取后会按城市与类目匹配可核销商品，最高补贴 20%。</p></div>
-                <div class="lx-gb-claim-actions"><span class="lx-auth-badge">未领取</span><button class="lx-p0-btn primary" type="button" data-gb-auth>立即实名认证领资格</button></div>
-              </section>`;
+            // 认证状态卡
+            const gbAuthCard = gbVerified
+              ? `<div class="lx-gb-auth-card verified"><span class="lx-auth-badge ok">已认证</span><span>实名认证已通过，国补资格已绑定</span><button type="button" class="lx-auth-reset" data-gb-reset>重置认证（演示）</button></div>`
+              : `<div class="lx-gb-auth-card unverified"><span class="lx-auth-badge">未认证</span><span>完成实名认证后方可领取国补资格</span><button class="lx-p0-btn primary" type="button" data-gb-auth>立即实名认证领资格</button></div>`;
+            // 态B 额外：绑定资格卡
+            const gbBoundCard = gbVerified
+              ? `<div class="lx-gb-bound-card"><span class="lx-gb-bound-city">${esc(gbSt.city || "当前城市")}</span>国补资格已绑定 · <strong>${esc(gbSt.boundCat || "笔记本")}</strong></div>`
+              : "";
+            // 商品：态B 优先 boundCat，两态均按 cart 品类调序
             const gbSortedPool = lxSortByCartCat(gbProductPool, gbVerified ? (gbSt.boundCat || "") : "");
-            const gbProductGrid = `<section class="lx-gb-block lx-gb-products-block" aria-label="国补对应商品列表">
-              <div class="lx-gb-products-head"><div><span class="lx-gb-kicker">03 商品列表</span><h4>${gbVerified ? "支持该资格的商品" : "参与国补商品"}</h4></div><p>按推荐商品卡片的 4 / 5 / 6 列规则展示两排。</p></div>
-              <div class="lx-floor-products lx-guobu-products">${gbSortedPool.slice(0, 12).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>
-            </section>`;
-            const gbBody = `<div class="lx-guobu-redesign">${gbCityBlock}${gbClaimBlock}${gbProductGrid}</div>`;
+            const gbProductGrid = `<div class="lx-floor-products">${gbSortedPool.slice(0, 6).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>`;
+            // 态A 内容：城市栏 + 认证卡 + 步骤 + 叠加 + 商品
+            // 态B 内容：城市栏 + 认证卡 + 绑定资格卡 + 叠加 + 商品
+            const gbBody = gbCityBar
+              + gbAuthCard
+              + (gbVerified ? gbBoundCard : `<h4 class="lx-gb-sub-title">按你所在城市领取国补资格</h4><div class="lx-ia-cards-row">${gbSteps}</div>`)
+              + `<h4 class="lx-gb-sub-title">叠加优惠入口</h4>` + gbStacking
+              + `<h4 class="lx-gb-sub-title">${gbVerified ? "支持该资格的商品" : "参与国补商品"}</h4>` + gbProductGrid;
             const guobuSection = lxFloorSection("国补",
-              gbVerified ? "国补资格已绑定 · 最高补贴 20%" : "国家补贴 · 最高补贴 20%",
+              gbVerified ? "国补资格已绑定 · 最高补贴 20%" : "国家以旧换新 · 最高补贴 20%",
               gbBody,
-              ""
+              gbVerified
+                ? `<button class="lx-p0-btn" type="button" data-quick-ask="帮我找支持我国补资格的联想笔记本">找匹配商品</button>`
+                : `<button class="lx-p0-btn primary" type="button" data-gb-auth>立即认证领资格</button>`
             );
 
             // 教育特惠楼层：3 态（未认证/已认证/已失效）
@@ -4513,43 +3899,55 @@ function openOrderDetail(orderId) {
               ? new Date(_eduExpiry).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
               : "2027年6月21日";
             const _eduRemainDays = _eduExpiry > _eduNow ? Math.ceil((_eduExpiry - _eduNow) / 86400000) : 0;
-            // 教育特惠楼层：教育认证 + 符合教育认证商品两排展示
-            const eduStatusLabel = isEduVerified ? "已认证" : (isEduExpired ? "已失效" : (eduAuthMode === "pending" ? "审核中" : "未认证"));
-            const eduStatusClass = isEduVerified ? "ok" : (isEduExpired ? "expired" : (eduAuthMode === "pending" ? "pending" : ""));
-            const eduAuthTitle = isEduVerified ? "教育认证已生效" : (isEduExpired ? "教育认证已失效" : (eduAuthMode === "pending" ? "认证资料审核中" : "完成教育认证后享专属价"));
-            const eduAuthDesc = isEduVerified
-              ? `认证有效期至 ${esc(eduVerifiedDate)}，剩余 <strong>${_eduRemainDays}</strong> 天，教育专享价已生效。`
-              : (isEduExpired
-                ? `认证已于 ${esc(eduVerifiedDate)} 到期，重新认证后恢复教育专享商品权益。`
+            // banner
+            const eduAuthBanner = isEduVerified
+              ? `<div class="lx-edu-verified-banner"><span class="lx-edu-badge ok">已认证</span><span>认证有效期至 ${esc(eduVerifiedDate)}，剩余 <strong>${_eduRemainDays}</strong> 天，教育专享价已生效</span><button type="button" class="lx-auth-reset" data-stu-reset>重置认证（演示）</button></div>`
+              : isEduExpired
+                ? `<div class="lx-edu-verified-banner expired"><span class="lx-edu-badge expired">已失效</span><span>认证已于 ${esc(eduVerifiedDate)} 到期，教育专享价暂停</span><button class="lx-p0-btn primary" type="button" data-stu-auth>重新认证</button></div>`
                 : (eduAuthMode === "pending"
-                  ? "资料已提交，审核通过后自动解锁教育专享价与学生/教师专属商品。"
-                  : "学生/教师完成认证后，可查看并购买符合教育认证的专享商品。"));
-            const eduAuthAction = isEduVerified
-              ? `<button type="button" class="lx-auth-reset" data-stu-reset>重置认证（演示）</button>`
-              : `<button class="lx-p0-btn primary" type="button" data-stu-auth>${isEduExpired ? "重新认证" : (eduAuthMode === "pending" ? "查看进度" : "立即认证")}</button>`;
-            const eduAuthBlock = `<section class="lx-edu-block lx-edu-auth-block" aria-label="教育认证模块">
-              <div class="lx-edu-block-copy"><span class="lx-edu-kicker">01 教育认证</span><h4>${eduAuthTitle}</h4><p>${eduAuthDesc}</p></div>
-              <div class="lx-edu-auth-actions"><span class="lx-edu-status ${eduStatusClass}">${eduStatusLabel}</span>${eduAuthAction}</div>
-            </section>`;
-            const eduProductSource = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...Object.values(state.officialProducts || {})];
-            const eduSeenSku = new Set();
-            const eduProductPool = eduProductSource.filter((p) => {
-              const sku = p && (p.sku || p.id || p.name);
-              if (!p || !sku || eduSeenSku.has(sku)) return false;
-              eduSeenSku.add(sku);
-              const text = `${p.name || ""} ${p.description || ""} ${(p.promotion_tags || []).join(" ")} ${p.category || ""}`;
-              return /教育|学生|小新|YOGA|Yoga|平板|Pad|轻薄|ThinkPad|ThinkBook|拯救者|LEGION|昭阳|笔记本|AI PC|AIPC|Air|Pro/i.test(text);
-            });
+                  ? `<div class="lx-edu-verified-banner pending"><span class="lx-edu-badge pending">审核中</span><span>认证资料已提交，审核通过后自动解锁教育专享价（演示约 12 秒）</span><button class="lx-p0-btn" type="button" data-stu-auth>查看进度</button></div>`
+                  : `<div class="lx-edu-verified-banner unverified"><span class="lx-edu-badge">未认证</span><span>学生/教师认证后享教育专享价，可与国补叠加</span><button class="lx-p0-btn primary" type="button" data-stu-auth>立即认证</button></div>`);
+            // 认证后待发权益（未认证/已失效共用，标注"认证后解锁"）
+            const eduPendingRights = [
+              ["教育专享价", "认证后解锁 · 小新/YOGA/平板均有教育专区", "教育专享价比普通价优惠多少？"],
+              ["教育券包", "认证后解锁 · 每月可领专属券包", "教育特惠有哪些优惠券可以领？"],
+              ["12期免息", "认证后解锁 · 学生用户专属分期政策", "教育用户如何申请12期免息？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 已认证权益
+            const eduVerifiedRights = [
+              ["可领权益", "当月教育专属券未领取", "帮我领取教育专属优惠券"],
+              ["国补叠加", "认证后可与国补同时享用", "教育价和国补怎么叠加计算？"],
+              ["12期免息", "部分机型支持12期免息", "哪些机型支持教育+12期免息？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 叠加优惠（3 态共用）
+            const eduStackCards = [
+              ["国补叠加", "学生认证可与国家补贴叠加享用", "国补和教育特惠能叠加吗？"],
+              ["以旧换新", "旧机折价抵扣可叠加教育价", "教育价和以旧换新怎么叠？"],
+              ["保值焕新", "学生用户保值焕新门槛更低", "保值焕新和教育特惠能同时享受吗？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 学生任务（3 态共用）
+            const eduTaskCards = [
+              ["每日打卡", "打卡领积分，积分兑换礼品", "学生打卡任务怎么参与？"],
+              ["校园大使", "邀同学解锁额外礼品券", "校园大使活动怎么参加？"],
+              ["晒单返现", "晒单赢专属返现", "教育用户晒单返现怎么操作？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
+            // 商品：按行为调序
+            const eduProductPool = (state.products || []).filter((p) => /小新|YOGA|平板|轻薄/.test(p.name || ""));
             const eduSortedPool = lxSortByCartCat(eduProductPool);
-            const eduProductGrid = `<section class="lx-edu-block lx-edu-products-block" aria-label="符合教育认证的商品列表">
-              <div class="lx-edu-products-head"><div><span class="lx-edu-kicker">02 商品列表</span><h4>符合教育认证的商品</h4></div><p>按推荐商品卡片的 4 / 5 / 6 列规则展示两排。</p></div>
-              <div class="lx-floor-products lx-edu-products">${eduSortedPool.slice(0, 12).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>
-            </section>`;
-            const eduBody = `<div class="lx-edu-redesign">${eduAuthBlock}${eduProductGrid}</div>`;
+            const eduProductGrid = `<div class="lx-floor-products">${eduSortedPool.slice(0, 4).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="padding:16px 0">货盘加载中（POC 演示）</div>`}</div>`;
+            // 态A 未认证：banner + 待发权益 + 叠加 + 学生任务 + 商品
+            // 态B 已认证：banner(剩余天数) + 已获权益 + 叠加 + 学生任务 + 商品
+            // 态C 已失效：banner(红警示) + 待发权益 + 叠加 + 学生任务 + 商品
+            const eduRightsCards = isEduVerified ? eduVerifiedRights : eduPendingRights;
+            const eduBody = eduAuthBanner
+              + `<h4 class="lx-gb-sub-title">${isEduVerified ? "已获权益" : "认证后待发权益"}</h4><div class="lx-ia-cards-row">${eduRightsCards}</div>`
+              + `<h4 class="lx-gb-sub-title">可叠加优惠</h4><div class="lx-ia-cards-row">${eduStackCards}</div>`
+              + `<h4 class="lx-gb-sub-title">学生任务</h4><div class="lx-ia-cards-row">${eduTaskCards}</div>`
+              + `<h4 class="lx-gb-sub-title">教育友好商品</h4>` + eduProductGrid;
             const eduSection = lxFloorSection("教育特惠",
-              isEduVerified ? "教育专享价已生效" : (isEduExpired ? "认证已失效 · 重新认证恢复权益" : "学生教师专属价 · 认证即享"),
+              isEduVerified ? "教育专享价已生效 · 国补可叠加" : (isEduExpired ? "认证已失效 · 重新认证恢复权益" : "学生教师专属价 · 认证即享"),
               eduBody,
-              ""
+              `<button class="lx-p0-btn" type="button" data-edu-zone>进入教育专区</button>`
             );
 
             const memberFloorSection = lxRenderVipSkin();
@@ -4564,24 +3962,22 @@ function openOrderDetail(orderId) {
               ["限定联名", "与艺术家/品牌联名限定款", "联想现在有哪些限定联名款可以购买？"]
             ].map(([t, d, a]) => quickCard(t, d, a)).join("");
 
-            const customProductSource = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || []), ...Object.values(state.officialProducts || {})];
-            const customSeenSku = new Set();
-            const customProductPool = customProductSource.filter((p) => {
-              const sku = p && (p.sku || p.id || p.name);
-              if (!p || !sku || customSeenSku.has(sku)) return false;
-              customSeenSku.add(sku);
-              const text = `${p.name || ""} ${p.description || ""} ${(p.promotion_tags || []).join(" ")} ${p.category || ""}`;
-              return /定制|CTO|高配|拯救者|LEGION|ThinkPad|ThinkBook|YOGA|小新|昭阳|笔记本|AI PC|AIPC|Ultra|Pro|Air/i.test(text);
-            });
-            const customSortedPool = lxSortByCartCat(customProductPool);
-            const customProductGrid = `<section class="lx-custom-products-block" aria-label="热门定制商品">
-              <div class="lx-custom-products-head"><div><span class="lx-custom-kicker">热门定制商品</span><h4>适合外观与配置定制的机型</h4></div><p>按推荐商品卡片的 4 / 5 / 6 列规则展示两排。</p></div>
-              <div class="lx-floor-products lx-custom-products">${customSortedPool.slice(0, 12).map(lxProductMiniCard).join("") || `<div class="lx-p0-disclaimer" style="grid-column:1/-1;padding:16px 0;text-align:center">货盘加载中（POC 演示）</div>`}</div>
-            </section>`;
+            const customSteps = [
+              ["01", "选机型", "从全系机型中选定基础款", "发起定制", "帮我挑一款适合做定制的联想机型"],
+              ["02", "选定制项", "外观/硬件/软件按需勾选", "开始配置", "私人定制具体有哪些定制项目？"],
+              ["03", "确认预览", "3D预览效果图，满意再下单", "看效果", "定制机下单前能预览效果图吗？"],
+              ["04", "下单交付", "专属生产，15个工作日内交付", "查进度", "私人定制从下单到收货要多久？"]
+            ].map(([num, title, desc, action, ask]) => `<article class="lx-benefit-card" data-quick-ask="${esc(ask)}" tabindex="0"><span class="lx-step-watermark">${num}</span><i class="lx-benefit-icon" aria-hidden="true">${num}</i><div><h4>${esc(title)}</h4><p>${esc(desc)}</p><b>${esc(action)}</b></div></article>`).join("");
+
+            const customCases = [
+              ["毕业纪念款", "刻上母校名称+毕业年份，送给自己的礼物", "我想做毕业纪念款定制，有什么推荐方案？"],
+              ["企业Logo定制", "公司logo喷绘，商务礼品首选", "企业批量定制喷绘Logo怎么操作？"],
+              ["游戏联名款", "拯救者x热门IP联名，限量发售", "拯救者联名款现在有哪些，怎么购买？"]
+            ].map(([t, d, a]) => quickCard(t, d, a)).join("");
 
             const customSection = lxFloorSection("私人定制",
               "外观喷绘 · 刻字 · 配色 · 高配升级",
-              `<h4 class="lx-gb-sub-title">定制类型</h4><div class="lx-pale-grid">${customTypes}</div>${customProductGrid}`,
+              `<h4 class="lx-gb-sub-title">定制类型</h4><div class="lx-pale-grid">${customTypes}</div><h4 class="lx-gb-sub-title">定制流程</h4><div class="lx-ia-cards-row lx-custom-steps">${customSteps}</div><h4 class="lx-gb-sub-title">热门案例</h4><div class="lx-ia-cards-row">${customCases}</div>`,
               `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我设计一个私人定制方案">发起定制方案</button><button class="lx-p0-btn" type="button" data-quick-ask="私人定制的价格和时间是多少">了解定制价格</button>`
             );
 
@@ -4655,6 +4051,7 @@ function openOrderDetail(orderId) {
               "私人定制": customSection,
               "以旧换新": tradeInSection,
               "今日秒杀": seckillSection,
+              "种草": discoverSection,
               "服务": lxFloorSection("服务", "官方售后 · 原厂配件 · 全国联保", serviceCards, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我预约联想售后服务">预约服务</button><button class="lx-p0-btn" type="button" data-floor-action="service">服务中心</button>`),
               "门店": lxFloorSection("门店", "附近门店 · 到店体验 · 专属权益", storeCards, `<button class="lx-p0-btn primary" type="button" data-quick-ask="帮我查询并推荐最近的联想门店">找附近门店</button>`),
             };
@@ -4710,7 +4107,6 @@ function openOrderDetail(orderId) {
             const activitySections = {
 	              "企业会员权益": lxRenderQyBenefitSkin(),
 	              "企业定制": lxRenderEnterpriseCustomSkin(),
-	              "积分商城": lxRenderEntPointsMallHtml(),
 	              "门店": lxRenderStoreZone(lxFallbackStores(), {}),
 	            };
             box.innerHTML = activitySections[activeFloorTab] || "";
@@ -4806,144 +4202,100 @@ function openOrderDetail(orderId) {
           if (!kind) kind = 'college';
           const stu = lxStuState();
           if (stu.status === "verified") {
-            openModal("教育认证已通过", `
-              <div class="lx-edu-success-modal">
-                <section class="lx-edu-success-card">
-                  <div class="lx-edu-success-icon" aria-hidden="true">✓</div>
-                  <div class="lx-edu-success-main">
-                    <span class="lx-edu-success-pill">已认证</span>
-                    <strong><em>${esc(stu.name || "用户")}</em> 已通过教育身份认证</strong>
-                    <p>教育专享价已生效，身份权益已同步到教育特惠专区。</p>
-                  </div>
-                </section>
-                <div class="lx-edu-success-benefits" aria-label="已生效权益">
-                  <div><span>教育专享价</span><strong>已生效</strong></div>
-                  <div><span>国家补贴叠加</span><strong>可使用</strong></div>
-                  <div><span>身份权益</span><strong>已绑定</strong></div>
-                </div>
-                <ul class="lx-edu-success-list">
-                  <li>在校生、教师、高考生身份均可享受对应教育权益</li>
-                  <li>购买教育价商品时可直接按认证后价格下单</li>
-                </ul>
-                <button class="lx-edu-success-cta" type="button" data-edu-zone>逛教育特惠专区</button>
-                <p class="lx-edu-success-note">POC 演示环境：认证为模拟流程，正式上线对接对应身份核验。</p>
-              </div>`);
+            openModal("学生认证已通过", `<div class="lx-ent-status ok"><strong>${esc(stu.name || "同学")}</strong> 已通过学生身份认证</div><ul class="lx-md-list"><li>教育专享价已生效，可与国家补贴叠加</li><li>部分机型支持 12 期免息与赠原装配件</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-edu-zone>逛教育特惠专区</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线对接学信网核验。</p>`);
             return;
           }
           if (stu.status === "pending") {
-            openModal("教育认证审核中", `<div class="lx-ent-status pending">「${esc(stu.name || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境约 12 秒自动通过；正式环境 1-5 天，结果在教育专区与本弹窗回显。</p>`);
+            openModal("学生认证审核中", `<div class="lx-ent-status pending">「${esc(stu.name || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境约 12 秒自动通过；正式环境 1-5 天，结果在教育专区与本弹窗回显。</p>`);
             return;
           }
 
-          let authRole = kind === 'gaokao' ? 'gaokao' : (kind === 'teacher' ? 'teacher' : 'college');
-          function defaultTabForRole(role) {
-            if (role === 'teacher') return 'teacherEmail';
-            if (role === 'gaokao') return 'real';
-            return 'email';
-          }
-          let stuTab = defaultTabForRole(authRole);
-          const stuData = { name: '', idcard: '', phone: '18910864473', email: '', school: '', gradYear: '', degree: '', cardNo: '', stage: '', examNo: '', teacherNo: '', subject: '', agree: false };
+          // ── 多 tab 向导 ───────────────────────────────────────────────
+          let stuTab = kind === 'gaokao' ? 'real' : 'email'; // gaokao: real/skip; college: email/card/wechat
+          const stuData = { name: '', idcard: '', phone: '18910864473', email: '', school: '', gradYear: '', degree: '', cardNo: '', stage: '', examNo: '', agree: false };
 
           function stuTabsHtml() {
-            const roles = [
-              { id: 'college', label: '在校生认证', desc: '学生身份核验，解锁学生专享价' },
-              { id: 'teacher', label: '教师认证', desc: '教师身份核验，享教师专属权益' },
-              { id: 'gaokao', label: '高考生认证', desc: '高考生身份核验，享升学购机优惠' },
-            ];
-            const roleMeta = roles.find(r => r.id === authRole) || roles[0];
-            const roleSwitch = '<div class="lx-stuauth-roles" role="tablist" aria-label="教育认证身份类型">' + roles.map(r =>
-              `<button class="lx-stuauth-role${authRole === r.id ? ' active' : ''}" type="button" role="tab" aria-selected="${authRole === r.id ? 'true' : 'false'}" data-stuauth-role="${r.id}"><strong>${r.label}</strong><span>${r.desc}</span></button>`
-            ).join('') + '</div>';
+            if (kind === 'college') {
+              const tabs = [
+                { id: 'email', label: 'edu邮箱认证' },
+                { id: 'card', label: '学生证' },
+                { id: 'wechat', label: '微信学籍' },
+              ];
+              const tabBar = '<div class="lx-stuauth-tabs">' + tabs.map(t =>
+                `<button class="lx-stuauth-tab${stuTab === t.id ? ' active' : ''}" type="button" data-stuauth-tab="${t.id}">${t.label}</button>`
+              ).join('') + '</div>';
 
-            const tabMap = {
-              college: [
-                { id: 'email', label: 'edu邮箱认证', desc: '使用学校 edu 邮箱收取验证邮件' },
-                { id: 'card', label: '学生证认证', desc: '上传学生证信息完成校验' },
-                { id: 'wechat', label: '微信学籍', desc: '通过微信授权核验学籍状态' },
-              ],
-              teacher: [
-                { id: 'teacherEmail', label: '单位邮箱认证', desc: '使用学校或教育机构邮箱收取验证邮件' },
-                { id: 'teacherCard', label: '教师证认证', desc: '上传教师资格证或工牌信息' },
-                { id: 'teacherWechat', label: '微信认证', desc: '通过微信授权核验教师身份' },
-              ],
-              gaokao: [
-                { id: 'real', label: '实名认证', desc: '填写实名信息与考生号' },
-                { id: 'skip', label: '考生号认证', desc: '跳过实名，仅凭考生号完成认证' },
-              ],
-            };
-            const tabs = tabMap[authRole] || tabMap.college;
-            if (!tabs.some(t => t.id === stuTab)) stuTab = defaultTabForRole(authRole);
-            const activeTab = tabs.find(t => t.id === stuTab) || tabs[0];
-            const tabBar = '<div class="lx-stuauth-tabs" role="tablist" aria-label="认证方式">' + tabs.map(t =>
-              `<button class="lx-stuauth-tab${stuTab === t.id ? ' active' : ''}" type="button" role="tab" aria-selected="${stuTab === t.id ? 'true' : 'false'}" data-stuauth-tab="${t.id}"><strong>${t.label}</strong><span>${t.desc}</span></button>`
-            ).join('') + '</div>';
+              let body = '';
+              if (stuTab === 'email') {
+                body = '<div class="lx-wpa-section">' +
+                  '<input class="lx-p0-field" id="saSchool" placeholder="学校名称（必填）" value="' + esc(stuData.school) + '">' +
+                  '<input class="lx-p0-field" id="saGradYear" placeholder="毕业时间，如 2026-07" value="' + esc(stuData.gradYear) + '">' +
+                  '<select class="lx-p0-field lx-wpa-select" id="saDegree"><option value="">学历（必填）</option>' +
+                  ['专科','本科','硕士','博士'].map(d => `<option value="${d}"${stuData.degree===d?' selected':''}>${d}</option>`).join('') +
+                  '</select>' +
+                  '<input class="lx-p0-field" id="saEmail" placeholder="edu邮箱（必填）" value="' + esc(stuData.email) + '">' +
+                  '<p class="lx-p0-disclaimer">验证邮件将发送至上述 edu 邮箱，请注意查收。</p>' +
+                  '</div>';
+              } else if (stuTab === 'card') {
+                body = '<div class="lx-wpa-section">' +
+                  '<input class="lx-p0-field" id="saName" placeholder="真实姓名（必填）" value="' + esc(stuData.name) + '">' +
+                  '<input class="lx-p0-field" id="saIdcard" placeholder="身份证号（必填）" value="' + esc(stuData.idcard) + '">' +
+                  '<input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly style="color:#aaa">' +
+                  '<input class="lx-p0-field" id="saCardNo" placeholder="学生证号（必填）" value="' + esc(stuData.cardNo) + '">' +
+                  '<select class="lx-p0-field lx-wpa-select" id="saStage"><option value="">教育阶段（必填）</option>' +
+                  ['小学','初中','高中','专科','本科','硕士','博士'].map(d => `<option value="${d}"${stuData.stage===d?' selected':''}>${d}</option>`).join('') +
+                  '</select>' +
+                  '<input class="lx-p0-field" id="saGradYear2" placeholder="毕业时间，如 2026-07" value="' + esc(stuData.gradYear) + '">' +
+                  '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-plus">+</span><span>学生证照片</span><span class="lx-p0-disclaimer" style="margin:0">仅为示例</span></div>' +
+                  '</div>';
+              } else {
+                body = '<div class="lx-wpa-section">' +
+                  '<p style="color:#4A4453;font-size:13px;line-height:1.6;margin:0 0 16px">授权微信获取学籍状态，系统反馈验证结果。扫描下方小程序或 App 二维码完成授权。</p>' +
+                  '<div class="lx-stuauth-qr-row">' +
+                  '<div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><span>乐享小程序</span></div>' +
+                  '<div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><span>联想 App</span></div>' +
+                  '</div>' +
+                  '<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn" type="button" data-stuauth-wechat-done>我已认证，查看认证状态</button></div>' +
+                  '</div>';
+              }
 
-            let body = '';
-            if (authRole === 'college' && stuTab === 'email') {
-              body = '<div class="lx-stuauth-form">' +
-                '<label class="lx-stuauth-field"><span>学校名称</span><input class="lx-p0-field" id="saSchool" placeholder="请输入学校名称" value="' + esc(stuData.school) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>毕业时间</span><input class="lx-p0-field" id="saGradYear" placeholder="如 2026-07" value="' + esc(stuData.gradYear) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>学历</span><select class="lx-p0-field lx-wpa-select" id="saDegree"><option value="">请选择学历</option>' +
-                ['专科','本科','硕士','博士'].map(d => `<option value="${d}"${stuData.degree===d?' selected':''}>${d}</option>`).join('') +
-                '</select></label>' +
-                '<label class="lx-stuauth-field"><span>edu 邮箱</span><input class="lx-p0-field" id="saEmail" placeholder="name@school.edu.cn" value="' + esc(stuData.email) + '"></label>' +
-                '<div class="lx-stuauth-note"><strong>验证提醒</strong><span>验证邮件将发送至上述 edu 邮箱，请注意查收。</span></div>' +
-                '</div>';
-            } else if (authRole === 'college' && stuTab === 'card') {
-              body = '<div class="lx-stuauth-form two-col">' +
-                '<label class="lx-stuauth-field"><span>真实姓名</span><input class="lx-p0-field" id="saName" placeholder="请输入真实姓名" value="' + esc(stuData.name) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>身份证号</span><input class="lx-p0-field" id="saIdcard" placeholder="请输入身份证号" value="' + esc(stuData.idcard) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>手机号</span><input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly></label>' +
-                '<label class="lx-stuauth-field"><span>学生证号</span><input class="lx-p0-field" id="saCardNo" placeholder="请输入学生证号" value="' + esc(stuData.cardNo) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>教育阶段</span><select class="lx-p0-field lx-wpa-select" id="saStage"><option value="">请选择教育阶段</option>' +
-                ['小学','初中','高中','专科','本科','硕士','博士'].map(d => `<option value="${d}"${stuData.stage===d?' selected':''}>${d}</option>`).join('') +
-                '</select></label>' +
-                '<label class="lx-stuauth-field"><span>毕业时间</span><input class="lx-p0-field" id="saGradYear2" placeholder="如 2026-07" value="' + esc(stuData.gradYear) + '"></label>' +
-                '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-icon">+</span><strong>上传学生证照片</strong><em>支持 JPG/PNG，仅用于演示</em></div>' +
-                '</div>';
-            } else if (authRole === 'college' && stuTab === 'wechat') {
-              body = '<div class="lx-stuauth-wechat"><p>授权微信获取学籍状态，系统反馈验证结果。扫描下方小程序或 App 二维码完成授权。</p><div class="lx-stuauth-qr-row"><div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><strong>乐享小程序</strong><span>扫码进入认证</span></div><div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><strong>联想 App</strong><span>授权学籍信息</span></div></div><button class="lx-p0-btn lx-stuauth-status-btn" type="button" data-stuauth-wechat-done>我已认证，查看认证状态</button></div>';
-            } else if (authRole === 'teacher' && stuTab === 'teacherEmail') {
-              body = '<div class="lx-stuauth-form">' +
-                '<label class="lx-stuauth-field"><span>学校 / 机构名称</span><input class="lx-p0-field" id="saSchool" placeholder="请输入任教学校或机构" value="' + esc(stuData.school) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>任教学科</span><input class="lx-p0-field" id="saSubject" placeholder="如 计算机 / 数学" value="' + esc(stuData.subject) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>教师姓名</span><input class="lx-p0-field" id="saName" placeholder="请输入教师姓名" value="' + esc(stuData.name) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>单位邮箱</span><input class="lx-p0-field" id="saEmail" placeholder="name@school.edu.cn" value="' + esc(stuData.email) + '"></label>' +
-                '<div class="lx-stuauth-note"><strong>教师权益</strong><span>认证后可享教师专属教育价、采购咨询和服务权益。</span></div>' +
-                '</div>';
-            } else if (authRole === 'teacher' && stuTab === 'teacherCard') {
-              body = '<div class="lx-stuauth-form two-col">' +
-                '<label class="lx-stuauth-field"><span>教师姓名</span><input class="lx-p0-field" id="saName" placeholder="请输入教师姓名" value="' + esc(stuData.name) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>身份证号</span><input class="lx-p0-field" id="saIdcard" placeholder="请输入身份证号" value="' + esc(stuData.idcard) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>手机号</span><input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly></label>' +
-                '<label class="lx-stuauth-field"><span>教师资格证号</span><input class="lx-p0-field" id="saTeacherNo" placeholder="请输入教师资格证号" value="' + esc(stuData.teacherNo) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>学校 / 机构名称</span><input class="lx-p0-field" id="saSchool" placeholder="请输入任教学校或机构" value="' + esc(stuData.school) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>任教学科</span><input class="lx-p0-field" id="saSubject" placeholder="如 计算机 / 数学" value="' + esc(stuData.subject) + '"></label>' +
-                '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-icon">+</span><strong>上传教师资格证或工牌</strong><em>支持 JPG/PNG，仅用于演示</em></div>' +
-                '</div>';
-            } else if (authRole === 'teacher' && stuTab === 'teacherWechat') {
-              body = '<div class="lx-stuauth-wechat"><p>授权微信获取教师身份状态，系统反馈验证结果。扫描下方小程序或 App 二维码完成授权。</p><div class="lx-stuauth-qr-row"><div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><strong>乐享小程序</strong><span>扫码进入教师认证</span></div><div class="lx-stuauth-qr"><div class="lx-stuauth-qr-box"></div><strong>联想 App</strong><span>授权教师信息</span></div></div><button class="lx-p0-btn lx-stuauth-status-btn" type="button" data-stuauth-wechat-done>我已认证，查看认证状态</button></div>';
-            } else if (authRole === 'gaokao' && stuTab === 'real') {
-              body = '<div class="lx-stuauth-form two-col">' +
-                '<div class="lx-stuauth-validity">高考生认证有效期至 10 月 31 日</div>' +
-                '<label class="lx-stuauth-field"><span>真实姓名</span><input class="lx-p0-field" id="saName" placeholder="请输入真实姓名" value="' + esc(stuData.name) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>身份证号</span><input class="lx-p0-field" id="saIdcard" placeholder="请输入身份证号" value="' + esc(stuData.idcard) + '"></label>' +
-                '<label class="lx-stuauth-field"><span>手机号</span><input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly></label>' +
-                '<label class="lx-stuauth-field"><span>考生号 / 准考证号</span><input class="lx-p0-field" id="saExamNo" placeholder="请输入考生号或准考证号" value="' + esc(stuData.examNo) + '"></label>' +
-                '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-icon">+</span><strong>上传准考证照片</strong><em>支持 JPG/PNG，仅用于演示</em></div>' +
-                '</div>';
+              const agree = '<label class="lx-wpa-agree" style="margin-top:8px"><input type="checkbox" id="saAgree"' + (stuData.agree ? ' checked' : '') + '> 已阅读并同意联想<a href="#" onclick="return false">《服务须知》</a>和<a href="#" onclick="return false">《活动规则》</a></label>';
+              const btns = '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-modal-close>取消</button><button class="lx-p0-btn primary" type="button" data-stuauth-submit>立即认证</button></div>';
+              const disclaimer = '<p class="lx-p0-disclaimer" style="margin-top:8px">POC 演示流程，不真实提交，演示约 12 秒自动通过。</p>';
+              return tabBar + body + agree + btns + disclaimer;
+
             } else {
-              body = '<div class="lx-stuauth-form"><div class="lx-stuauth-note"><strong>轻量认证</strong><span>可跳过实名验证，直接凭考生号认证高考生身份，享教育专享价。</span></div><label class="lx-stuauth-field"><span>考生号 / 准考证号</span><input class="lx-p0-field" id="saExamNo" placeholder="请输入考生号或准考证号" value="' + esc(stuData.examNo) + '"></label></div>';
-            }
+              // gaokao: 2 tabs
+              const tabs = [
+                { id: 'real', label: '实名认证' },
+                { id: 'skip', label: '跳过实名' },
+              ];
+              const tabBar = '<div class="lx-stuauth-tabs">' + tabs.map(t =>
+                `<button class="lx-stuauth-tab${stuTab === t.id ? ' active' : ''}" type="button" data-stuauth-tab="${t.id}">${t.label}</button>`
+              ).join('') + '</div>';
 
-            const agree = '<label class="lx-stuauth-agree"><input type="checkbox" id="saAgree"' + (stuData.agree ? ' checked' : '') + '> <span>已阅读并同意联想<a href="#" onclick="return false">《服务须知》</a>和<a href="#" onclick="return false">《活动规则》</a></span></label>';
-            const btns = '<div class="lx-stuauth-actions"><button class="lx-p0-btn" type="button" data-modal-close>取消</button><button class="lx-p0-btn primary" type="button" data-stuauth-submit>立即认证</button></div>';
-            const disclaimer = '<p class="lx-stuauth-disclaimer">POC 演示流程，不真实提交，演示约 12 秒自动通过。</p>';
-            return '<div class="lx-stuauth-modal">' +
-              roleSwitch + tabBar +
-              '<div class="lx-stuauth-panel"><div class="lx-stuauth-panel-head"><strong>' + roleMeta.label + ' · ' + activeTab.label + '</strong><span>' + activeTab.desc + '</span></div>' + body + '</div>' +
-              agree + btns + disclaimer +
-              '</div>';
+              let body = '';
+              if (stuTab === 'real') {
+                body = '<div class="lx-wpa-section" style="position:relative">' +
+                  '<div class="lx-stuauth-gaokao-hint">高考生认证有效期至 10 月 31 日</div>' +
+                  '<input class="lx-p0-field" id="saName" placeholder="真实姓名（必填）" value="' + esc(stuData.name) + '">' +
+                  '<input class="lx-p0-field" id="saIdcard" placeholder="身份证号（必填）" value="' + esc(stuData.idcard) + '">' +
+                  '<input class="lx-p0-field" id="saPhone" placeholder="手机号" value="18910864473" readonly style="color:#aaa">' +
+                  '<input class="lx-p0-field" id="saExamNo" placeholder="考生号 / 准考证号（必填）" value="' + esc(stuData.examNo) + '">' +
+                  '<div class="lx-stuauth-upload"><span class="lx-stuauth-upload-plus">+</span><span>准考证照片</span><span class="lx-p0-disclaimer" style="margin:0">仅为示例</span></div>' +
+                  '</div>';
+              } else {
+                body = '<div class="lx-wpa-section">' +
+                  '<p style="color:#4A4453;font-size:13px;line-height:1.6;margin:0 0 12px">可跳过实名验证，直接凭考生号认证高考生身份，享教育专享价。</p>' +
+                  '<input class="lx-p0-field" id="saExamNo" placeholder="考生号 / 准考证号（必填）" value="' + esc(stuData.examNo) + '">' +
+                  '</div>';
+              }
+
+              const agree = '<label class="lx-wpa-agree" style="margin-top:8px"><input type="checkbox" id="saAgree"' + (stuData.agree ? ' checked' : '') + '> 已阅读并同意联想<a href="#" onclick="return false">《服务须知》</a>和<a href="#" onclick="return false">《活动规则》</a></label>';
+              const btns = '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-modal-close>取消</button><button class="lx-p0-btn primary" type="button" data-stuauth-submit>立即认证</button></div>';
+              const disclaimer = '<p class="lx-p0-disclaimer" style="margin-top:8px">POC 演示流程，不真实提交，演示约 12 秒自动通过。</p>';
+              return tabBar + body + agree + btns + disclaimer;
+            }
           }
 
           function stuCollect() {
@@ -4957,25 +4309,18 @@ function openOrderDetail(orderId) {
             stuData.cardNo = (document.getElementById('saCardNo')?.value || '').trim();
             stuData.stage = (document.getElementById('saStage')?.value || '').trim();
             stuData.examNo = (document.getElementById('saExamNo')?.value || '').trim();
-            stuData.teacherNo = (document.getElementById('saTeacherNo')?.value || '').trim();
-            stuData.subject = (document.getElementById('saSubject')?.value || '').trim();
           }
 
           function stuRender() {
-            openModal('教育认证', stuTabsHtml());
+            const title = kind === 'gaokao' ? '高考生认证' : '在校生认证';
+            openModal(title, stuTabsHtml());
+            // 挂 tab 切换委托
             const mask = document.querySelector('.lx-p0-modal-mask');
             if (mask) mask.addEventListener('click', stuHandleClick, true);
           }
 
           function stuHandleClick(e) {
-            const roleBtn = e.target.closest('[data-stuauth-role]');
-            if (roleBtn) {
-              stuCollect();
-              authRole = roleBtn.getAttribute('data-stuauth-role') || 'college';
-              stuTab = defaultTabForRole(authRole);
-              stuRender();
-              return;
-            }
+            // tab 切换
             const tabBtn = e.target.closest('[data-stuauth-tab]');
             if (tabBtn) {
               stuCollect();
@@ -4983,43 +4328,44 @@ function openOrderDetail(orderId) {
               stuRender();
               return;
             }
+            // 取消
             if (e.target.closest('[data-modal-close]')) {
               const mask = document.querySelector('.lx-p0-modal-mask');
               if (mask) mask.removeEventListener('click', stuHandleClick, true);
               closeModal();
               return;
             }
+            // 微信学籍：查看认证状态（demo：直接关弹窗给 toast）
             if (e.target.closest('[data-stuauth-wechat-done]')) {
               const mask = document.querySelector('.lx-p0-modal-mask');
               if (mask) mask.removeEventListener('click', stuHandleClick, true);
               closeModal();
               toast('认证状态确认中，演示约 12 秒自动通过');
-              lxSaveStuState({ status: 'pending', name: '演示用户', kind: authRole, submittedAt: Date.now() });
+              lxSaveStuState({ status: 'pending', name: '演示同学', submittedAt: Date.now() });
               setTimeout(() => {
                 if (lxStuState().status === 'verified') {
-                  toast('教育认证已通过，教育专享价已生效');
+                  toast('学生认证已通过，教育专享价已生效');
                   if (state.activeTabId === 'info:edu') openEduZone();
                 }
               }, LX_STU_REVIEW_MS + 500);
               return;
             }
+            // 提交
             if (e.target.closest('[data-stuauth-submit]')) {
               stuCollect();
               if (!stuData.agree) { toast('请勾选服务须知'); return; }
-              const nameVal = stuData.name || (stuData.email ? stuData.email.split('@')[0] : '用户');
-              if (authRole === 'gaokao' && !stuData.examNo) { toast('请填写考生号'); return; }
-              if (authRole === 'college' && stuTab === 'email' && !stuData.email) { toast('请填写 edu 邮箱'); return; }
-              if (authRole === 'college' && stuTab === 'card' && !stuData.name) { toast('请填写真实姓名'); return; }
-              if (authRole === 'teacher' && stuTab === 'teacherEmail' && (!stuData.school || !stuData.email)) { toast('请填写学校/机构和单位邮箱'); return; }
-              if (authRole === 'teacher' && stuTab === 'teacherCard' && (!stuData.name || !stuData.teacherNo)) { toast('请填写教师姓名和教师资格证号'); return; }
+              const nameVal = stuData.name || (kind === 'gaokao' ? '' : stuData.email ? stuData.email.split('@')[0] : '');
+              if (kind === 'gaokao' && !stuData.examNo) { toast('请填写考生号'); return; }
+              if (kind === 'college' && stuTab === 'email' && !stuData.email) { toast('请填写 edu 邮箱'); return; }
+              if (kind === 'college' && stuTab === 'card' && !stuData.name) { toast('请填写真实姓名'); return; }
               const mask = document.querySelector('.lx-p0-modal-mask');
               if (mask) mask.removeEventListener('click', stuHandleClick, true);
-              lxSaveStuState({ status: 'pending', name: nameVal, kind: authRole, submittedAt: Date.now() });
+              lxSaveStuState({ status: 'pending', name: nameVal || '同学', kind, submittedAt: Date.now() });
               closeModal();
               toast('认证资料已提交，审核中（演示约 12 秒自动通过）');
               setTimeout(() => {
                 if (lxStuState().status === 'verified') {
-                  toast('教育认证已通过，教育专享价已生效');
+                  toast('学生认证已通过，教育专享价已生效');
                   if (state.activeTabId === 'info:edu') openEduZone();
                 }
               }, LX_STU_REVIEW_MS + 500);
@@ -5224,14 +4570,12 @@ function openOrderDetail(orderId) {
           const cards = pool.map((p) => {
             const rawPrice = Number(p.price || 0);
             const eduPrice = Math.round(rawPrice * 0.95);
-            const cardAction = _eduOk ? `data-open-product="${esc(p.sku)}"` : `data-open-stuauth="college"`;
-            const buttonAction = _eduOk ? `data-edu-buy="${esc(p.sku)}"` : `data-open-stuauth="college"`;
-            return `<div class="card lx-edu-card" data-sku="${esc(p.sku)}" ${cardAction}>
+            return `<div class="card lx-edu-card" data-sku="${esc(p.sku)}" data-open-product="${esc(p.sku)}">
               <div class="shot"><div class="ph">${icn.laptop}</div><img src="${esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'" /><div class="wm">${esc(markName(p.name))}</div></div>
               <div class="nm">${esc(p.name)}</div>
               <div class="etag">${icn.spark}<span>${_eduOk ? "教育价已生效" : "认证后享教育价"}</span></div>
               <div class="eduprice"><span class="now"><span class="cur">¥</span>${eduPrice.toLocaleString()}</span><span class="was">¥${rawPrice.toLocaleString()}</span></div>
-              <button class="lcta" type="button" ${buttonAction}>${_eduOk ? "立即购买" : "立即认证购买"}</button>
+              <button class="lcta" type="button" data-open-product="${esc(p.sku)}">${_eduOk ? "立即购买" : "立即认证购买"}</button>
             </div>`;
           }).join("");
           const html = `<div class="edu lx-edu-skin" data-v="4">
@@ -5277,37 +4621,19 @@ function openOrderDetail(orderId) {
         function openSolutionCenter(industry) {
           if (industry && LX_SOLUTIONS[industry]) {
             const s = LX_SOLUTIONS[industry];
-            const featureCards = (s.features || []).map((f, idx) => `<li><span>${String(idx + 1).padStart(2, "0")}</span><p>${esc(f)}</p></li>`).join("");
-            const advantageCards = (s.advantages || []).map((a) => `<span>${esc(a)}</span>`).join("");
-            const caseCards = (s.cases || []).map((c) => `<button class="lx-solution-case-card" type="button" data-quick-ask="详细介绍这个案例：${esc(c)}"><strong>${esc(c)}</strong><em>让乐享详细介绍</em></button>`).join("");
+            const section = (title, body) => `<div class="lx-floor" style="margin-top:12px"><div class="lx-floor-head"><h3>${title}</h3></div>${body}</div>`;
             const html = `
-              <section class="lx-solution-detail">
-                <div class="lx-solution-hero">
-                  <div>
-                    <span class="lx-solution-kicker">行业解决方案</span>
-                    <h2>${esc(industry)}解决方案</h2>
-                    <p>${esc(s.overview)}</p>
-                  </div>
-                  <button class="lx-solution-cta" type="button" data-floor-action="lead">提交合作意向</button>
-                </div>
-                <div class="lx-solution-section">
-                  <div class="lx-solution-section-head"><h3>方案功能</h3><p>围绕部署、资源、信创与运维形成一体化交付。</p></div>
-                  <ul class="lx-solution-feature-list">${featureCards}</ul>
-                </div>
-                <div class="lx-solution-band">
-                  <div><h3>方案优势</h3><div class="lx-solution-tags">${advantageCards}</div></div>
-                  <div class="lx-solution-gain"><span>客户收益</span><strong>${esc(s.gains)}</strong></div>
-                </div>
-                <div class="lx-solution-section">
-                  <div class="lx-solution-section-head"><h3>成功案例</h3><p>选择案例后可继续让联想乐享展开项目背景、交付范围和收益。</p></div>
-                  <div class="lx-solution-case-grid">${caseCards}</div>
-                </div>
-                <div class="lx-solution-actions">
-                  <button class="lx-project-primary" type="button" data-floor-action="lead">提交合作意向</button>
-                  <button class="lx-project-secondary" type="button" data-whitepaper>下载相关白皮书</button>
-                  <button class="lx-project-secondary" type="button" data-quick-ask="按${esc(industry)}方案给我推荐具体产品配置">推荐配置</button>
-                </div>
-              </section>`;
+              <button class="lx-p0-btn" type="button" data-solution-center style="margin-bottom:12px">← 返回方案中心</button>
+              <p class="lx-md-p" style="font-size:14px">${esc(s.overview)}</p>
+              ${section("方案功能", `<ul class="lx-md-list">${s.features.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`)}
+              ${section("方案优势", `<ul class="lx-md-list">${s.advantages.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>`)}
+              ${section("客户收益", `<p class="lx-md-p">${esc(s.gains)}</p>`)}
+              ${section("成功案例", s.cases.map((c) => `<div class="lx-floor-card" data-quick-ask="详细介绍这个案例：${esc(c)}"><strong>${esc(c)}</strong><span>点击让乐享详细介绍</span></div>`).join(""))}
+              <div class="lx-p0-actions" style="margin-top:14px">
+                <button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交合作意向</button>
+                <button class="lx-p0-btn" type="button" data-whitepaper>下载相关白皮书</button>
+                <button class="lx-p0-btn" type="button" data-quick-ask="按${esc(industry)}方案给我推荐具体产品配置">让乐享推荐配置</button>
+              </div>`;
             lxOpenInfoTab("solution", `${industry}解决方案`, html);
             return;
           }
@@ -5333,31 +4659,6 @@ function openOrderDetail(orderId) {
           lxOpenInfoTab("solution", "行业解决方案中心", `<div class="lx-floor-body">${cards}</div><p class="lx-p0-disclaimer">六大行业整体方案，点击查看「概述/功能/优势/收益」与同行案例。</p>`);
         }
 
-        function openProjectCooperationList() {
-          const solutionMeta = {
-            "智慧教育": ["EDU", "智慧校园与教学终端", "面向学校、教培和教育主管单位，提供教学终端、智慧教室与教育信创方案。"],
-            "数字政府": ["GOV", "安全可信政务办公", "面向政务办公、基层窗口和公共服务场景，提供国产化替代与统一运维方案。"],
-            "智慧医疗": ["MED", "院内终端与边缘算力", "面向医院门诊、病区、影像和移动查房，提供稳定终端与边缘智能方案。"],
-            "智能制造": ["MFG", "产线工控与 AI 质检", "面向工厂、园区和研发制造组织，提供工业终端、工作站与边缘 AI 方案。"],
-            "智慧金融": ["FIN", "金融信创与网点智能化", "面向银行、证券、保险及网点数字化，提供可信终端和智能服务方案。"],
-            "智能基础设施": ["INF", "算力、存储与统一交付", "面向数据中心、AI 训练推理和混合云底座，提供服务器与基础设施方案。"]
-          };
-          const cards = Object.entries(LX_SOLUTIONS).map(([name, s]) => {
-            const [code, scope, desc] = solutionMeta[name] || ["SOL", "行业解决方案", s.overview || ""];
-            const points = (s.features || []).slice(0, 3).map((item) => `<li>${esc(item)}</li>`).join("");
-            return `<article class="lx-project-card">
-              <div class="lx-project-card-head"><span>${esc(code)}</span><div><h3>${esc(name)}</h3><p>${esc(scope)}</p></div></div>
-              <p class="lx-project-desc">${esc(desc)}</p>
-              <ul>${points}</ul>
-              <div class="lx-project-actions">
-                <button class="lx-project-primary" type="button" data-project-lead="${esc(name)}">我要合作</button>
-                <button class="lx-project-secondary" type="button" data-solution="${esc(name)}">查看方案</button>
-              </div>
-            </article>`;
-          }).join("");
-          lxOpenInfoTab("project", "项目合作", `<section class="lx-project-coop-page"><div class="lx-project-grid">${cards}</div><p class="lx-p0-disclaimer">AI 生成的合作方案仅供演示参考，正式项目以联想商务团队沟通结果为准。</p></section>`);
-        }
-
         async function openXinchuangZone() {
           let pool = [];
           try {
@@ -5373,15 +4674,8 @@ function openOrderDetail(orderId) {
         }
 
         function openWhitepaperLib() {
-          const rows = LX_WHITEPAPERS.map(([name, desc], index) => {
-            const tag = /教育/.test(name) ? "教育" : /政务|信创/.test(name) ? "信创" : /金融/.test(name) ? "金融" : /制造/.test(name) ? "制造" : /服务器/.test(name) ? "基础设施" : "指南";
-            return `<article class="lx-wp-card">
-              <div class="lx-wp-code">${String(index + 1).padStart(2, "0")}</div>
-              <div class="lx-wp-main"><div class="lx-wp-meta"><span>${esc(tag)}</span><em>PDF 资料</em></div><h3>${esc(name)}</h3><p>${esc(desc)}</p></div>
-              <button class="lx-wp-download" type="button" data-wp-download="${esc(name)}">下载</button>
-            </article>`;
-          }).join("");
-          lxOpenInfoTab("whitepaper", "白皮书资料库", `<section class="lx-wp-page"><div class="lx-wp-head"><h2>白皮书资料库</h2><p>精选政企、教育、信创与行业解决方案资料，下载后将发送至您的邮箱或手机。</p></div><div class="lx-wp-grid">${rows}</div><p class="lx-p0-disclaimer">资料内容为演示环境示例，正式资料以联想官方交付版本为准。</p></section>`);
+          const rows = LX_WHITEPAPERS.map(([name, desc]) => `<div class="lx-p0-row"><div class="lx-p0-row-main"><strong>${esc(name)}</strong><span>${esc(desc)}</span></div><button class="lx-p0-btn primary" type="button" data-wp-download="${esc(name)}">下载</button></div>`).join("");
+          lxOpenInfoTab("whitepaper", "白皮书资料库", `${rows}<p class="lx-p0-disclaimer">下载需留下联系方式，资料将发送至您的邮箱/手机（演示环境）。</p>`);
         }
 
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
@@ -5431,7 +4725,6 @@ function openOrderDetail(orderId) {
           const idx = state.tabs.findIndex((item) => item.id === tab.id);
           if (idx >= 0) state.tabs[idx] = { ...state.tabs[idx], ...tab };
           else {
-            tab.__fresh = true;
             state.tabs.push(tab);
             if (state.tabs.length > 8) {
               const evict = state.tabs.findIndex((item) => item.id !== state.activeTabId && item.id !== tab.id);
@@ -5451,53 +4744,8 @@ function openOrderDetail(orderId) {
           lxRenderTabbar();
         }
 
-        function lxTabGeneratingText(tab) {
-          const label = String(tab?.label || "页面");
-          if (tab?.kind === "detail") return { title: "正在生成商品页", desc: "联想乐享正在整理商品信息、优惠和推荐理由" };
-          if (tab?.kind === "reco") return { title: "正在生成推荐结果", desc: "正在筛选适合你的商品与关键参数" };
-          if (tab?.kind === "compare") return { title: "正在生成对比页", desc: "正在汇总配置差异与选购建议" };
-          if (tab?.kind === "info" && tab?.id === "info:edu") return { title: "正在生成教育特惠专区", desc: "正在加载认证权益和教育专享商品" };
-          if (tab?.kind === "info") return { title: `正在生成${label}`, desc: "正在为你整理页面内容" };
-          return { title: `正在打开${label}`, desc: "正在准备页面内容" };
-        }
-
-        function lxBeginTabGeneration(tab) {
-          if (!tab || !tab.__fresh) return null;
-          delete tab.__fresh;
-          const stateTab = (state.tabs || []).find((item) => item.id === tab.id);
-          if (stateTab) delete stateTab.__fresh;
-          const content = document.querySelector(".content");
-          if (!content) return null;
-          content.querySelectorAll(".lx-page-generating").forEach((node) => node.remove());
-          const copy = lxTabGeneratingText(tab);
-          const overlay = document.createElement("div");
-          overlay.className = "lx-page-generating";
-          overlay.setAttribute("role", "status");
-          overlay.setAttribute("aria-live", "polite");
-          overlay.innerHTML = `<div class="lx-page-gen-card"><div class="lx-page-gen-mark"><span></span><i></i></div><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div><div class="lx-page-gen-bar"><span></span></div></div>`;
-          content.appendChild(overlay);
-          content.classList.add("is-generating-tab");
-          const token = { overlay, startedAt: Date.now(), done: false };
-          requestAnimationFrame(() => overlay.classList.add("is-show"));
-          return token;
-        }
-
-        function lxEndTabGeneration(token) {
-          if (!token || token.done) return;
-          token.done = true;
-          const elapsed = Date.now() - token.startedAt;
-          const wait = Math.max(820 - elapsed, 180);
-          setTimeout(() => {
-            token.overlay.classList.add("is-done");
-            token.overlay.classList.remove("is-show");
-            document.querySelector(".content")?.classList.remove("is-generating-tab");
-            setTimeout(() => token.overlay.remove(), 260);
-          }, wait);
-        }
-
         function lxRunTab(tab) {
           if (!tab) return;
-          const genToken = lxBeginTabGeneration(tab);
           if (tab.kind === "site") {
             routeTo(tab.page);
           } else if (tab.kind === "detail") {
@@ -5518,14 +4766,12 @@ function openOrderDetail(orderId) {
             const isEduInfo = tab.id === "info:edu";
             const isCartInfo = tab.id === "info:cart";
             const isOrdersInfo = tab.id === "info:orders";
-            const isEntPointsInfo = tab.id === "info:ent-points";
-            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo);
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "info");
             content?.scrollTo({ top: 0, behavior: "smooth" });
           }
-          lxEndTabGeneration(genToken);
         }
 
         // ── 输入实时联想（设计稿：根据输入预测后续，逐级点选补全需求；槽位齐则不出）──
@@ -5606,33 +4852,9 @@ function openOrderDetail(orderId) {
               ["运动颈挂式", "", "要运动颈挂式的，"],
             ],
           },
-          // 预算按品类分档（真机反馈：手机/平板/显示器不该套用笔记本的万元档）
-          // 手机、平板：中低价位（含 moto razr 折叠屏顶配约 6000）
-          budget_mobile: {
-            test: (t) => /手机|平板/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
-            title: "预算大概多少？",
-            options: [
-              ["2000 元以下", "", "预算2000元以下，"],
-              ["2000 ~ 4000 元", "", "预算2000到4000元，"],
-              ["4000 ~ 6000 元", "", "预算4000到6000元，"],
-              ["价格不限", "", "价格不限，"],
-            ],
-          },
-          // 显示器：低中价位
-          budget_monitor: {
-            test: (t) => /显示器/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
-            title: "预算大概多少？",
-            options: [
-              ["1000 元以下", "", "预算1000元以下，"],
-              ["1000 ~ 2000 元", "", "预算1000到2000元，"],
-              ["2000 ~ 4000 元", "", "预算2000到4000元，"],
-              ["价格不限", "", "价格不限，"],
-            ],
-          },
-          // 预算（电脑类；兜底——说了买什么没提预算就问）。收窄：不含手机/平板/显示器，
-          // 让它们各走上面专属档；"平板电脑"含"电脑"，靠 !/平板/ 排除 + budget_mobile 排在前双保险
+          // 预算（主品类；兜底——说了买什么没提预算就问）
           budget: {
-            test: (t) => /笔记本|游戏本|轻薄本|电脑|台式|主机/.test(t) && !/手机|平板|显示器|耳机|键盘|鼠标/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
+            test: (t) => /笔记本|游戏本|轻薄本|电脑|台式|主机|手机|平板|显示器/.test(t) && !/耳机|键盘|鼠标/.test(t) && !/\d+\s*(元|块|千|万|k|K|W)|预算|价格不限|不限/.test(t),
             title: "预算大概多少？",
             options: [
               ["5000 元以下", "", "预算5000元以下，"],
@@ -5699,8 +4921,7 @@ function openOrderDetail(orderId) {
         // 短词即触发（不受购物漏斗 length<3 限制），选完直接发出对应能力的口语句
         const LX_SERVICE_SUGGEST = {
           repair: {
-            // 「电脑卡」也是故障（曾落到"买电脑"用途套问"主要用来做什么"，真机反馈），卡/很卡/卡顿都算
-            test: (t) => /^(维修|修电脑|修一下|售后|保修|清灰|换电池|进水|开不了?机|蓝屏|卡顿|死机|系统重装|重装系统|数据迁移|坏了|出问题)$/.test(t) || /^(电脑|笔记本|台式|主机)?(坏了|进水|开不了?机|蓝屏|卡顿?|很卡|变卡|死机)$/.test(t),
+            test: (t) => /^(维修|修电脑|修一下|售后|保修|清灰|换电池|进水|开不了?机|蓝屏|卡顿|死机|系统重装|重装系统|数据迁移|坏了|出问题)$/.test(t) || /^(电脑|笔记本|台式|主机)?(坏了|进水|开不了?机|蓝屏|卡顿|死机)$/.test(t),
             title: "你的设备遇到什么问题？",
             options: [
               ["清灰除尘 / 散热差", "", "我的电脑要清灰除尘，散热不太好，怎么处理？"],
@@ -5712,14 +4933,13 @@ function openOrderDetail(orderId) {
             replace: true,
           },
           auth: {
-            // 已点名具体身份（学生/职场/高考生认证）不再弹泛身份选择——回车直开对应表单（真机反馈）
-            test: (t) => /^(认证|教育认证|怎么认证|如何认证|认证状态|重新认证|认证失败)$/.test(t),
+            test: (t) => /^(认证|教育认证|学生认证|职场认证|高考生认证|怎么认证|如何认证|认证状态|重新认证|认证失败)$/.test(t),
             title: "你要做哪种认证？",
             options: [
-              ["🎓 在校生认证（学生）", "", "我是在校学生，怎么完成学生教育认证？"],
-              ["📝 高考生认证", "", "我是高考生，怎么完成高考生教育认证？"],
-              ["💼 职场人认证", "", "我是职场人，怎么完成职场认证？"],
-              ["🔍 查认证状态 / 重新认证", "", "帮我查认证状态，认证失败了怎么重新认证？"],
+              ["在校生认证（学生）", "", "我是在校学生，怎么完成学生教育认证？"],
+              ["职场人认证", "", "我是职场人，怎么完成职场认证？"],
+              ["高考生认证", "", "我是高考生，怎么完成高考生教育认证？"],
+              ["查认证状态 / 重新认证", "", "帮我查认证状态，认证失败了怎么重新认证？"],
             ],
             replace: true,
           },
@@ -5740,67 +4960,24 @@ function openOrderDetail(orderId) {
             options: [
               ["会员权益 / 等级", "", "帮我看看我的会员权益和等级。"],
               ["智享金 / 乐豆余额", "", "帮我看看我的智享金和乐豆余额怎么用。"],
-              ["会员活动 / 0元试用", "联想新款IoT设备免费试用", "最近有什么会员活动和0元试用？"],
-              ["积分兑换 / 商城", "一球千金活动进行中", "帮我打开积分兑换商城。"],
-            ],
-            replace: true,
-          },
-          tradein: {
-            test: (t) => /^(以旧换新|旧机回收|换新|回收|旧电脑回收|旧机抵扣)$/.test(t),
-            title: "以旧换新想了解什么？",
-            options: [
-              ["旧机能抵多少钱", "", "我想以旧换新，旧机能抵多少钱？怎么估价？"],
-              ["换新流程怎么走", "", "以旧换新的流程怎么走？在哪里操作？"],
-              ["能和国补/教育叠加吗", "", "以旧换新能和国家补贴、教育优惠叠加吗？"],
-              ["哪些旧机可以回收", "", "哪些品牌和型号的旧机可以回收换新？"],
-            ],
-            replace: true,
-          },
-          guobu: {
-            test: (t) => /^(国补|国家补贴|政府补贴|消费补贴)$/.test(t),
-            title: "国补想了解什么？",
-            options: [
-              ["怎么领取国补资格", "", "国家补贴怎么领取？需要实名认证吗？"],
-              ["哪些商品参与国补", "", "哪些商品参与国家补贴？帮我看看。"],
-              ["能叠加什么优惠", "", "国补能和教育优惠、以旧换新叠加吗？"],
-              ["我的城市能用吗", "", "我所在的城市能用国家补贴吗？"],
+              ["会员活动 / 0元试用", "", "最近有什么会员活动和0元试用？"],
+              ["积分兑换 / 商城", "", "帮我打开积分兑换商城。"],
             ],
             replace: true,
           },
         };
 
-        // 情境预判：结合右侧当前打开的页面，把模糊短词补全成可执行指令（点选即发，本地意图闭环）
-        function lxContextSuggest(t) {
-          if (/^(结算|买单|付款|结账)$/.test(t)) {
-            if (!(state.cart || []).length) return null;
-            return { key: "ctx_pay", isService: true, replace: true, title: `购物车里有 ${state.cart.length} 件，去结算？`, options: [["打开购物车去结算", "", "打开购物车"]] };
-          }
-          if (!/^(买|购买|下单|入手|要了)$/.test(t)) return null;
-          const tab = (state.tabs || []).find((x) => x.id === state.activeTabId);
-          if (tab && tab.id === "compare" && (state.compare || []).length >= 2) {
-            return { key: "ctx_buy_cmp", isService: true, replace: true, title: "对比表里买哪个？", options: state.compare.slice(0, 4).map((p, i) => [`第${i + 1}个：${(p.name || "").slice(0, 14)}`, "", `买第${i + 1}个`]) };
-          }
-          if (tab && tab.kind === "detail") {
-            return { key: "ctx_buy_cur", isService: true, replace: true, title: "买当前打开的这款？", options: [["就买这个", "", "买这个"], ["先看看有什么券", "", "优惠券"]] };
-          }
-          return null;
-        }
-
         function lxDetectSuggest(text) {
           const t = (text || "").trim();
           if (t.length > 80) return null;
-          // 情境预判最优先（比服务引导更具体：知道用户此刻开着什么页）
-          const ctx = lxContextSuggest(t);
-          if (ctx) return ctx;
           // 服务引导优先（短词精确匹配，覆盖售后/认证/门店/会员）
-          for (const key of ["repair", "auth", "store", "member", "tradein", "guobu"]) {
+          for (const key of ["repair", "auth", "store", "member"]) {
             if (LX_SERVICE_SUGGEST[key].test(t)) return { key, isService: true, ...LX_SERVICE_SUGGEST[key] };
           }
           // 明确的 2 字购物意图词（推荐/想买/选购/入手/换个）直接放行，否则要打第 3 个字才弹引导——体验差
           const _short = /^(推荐|想买|选购|入手|换个|想要)$/.test(t);
           if (t.length < 3 && !_short) return null; // 其余仍要 ≥3 字，避免误触
-          if (t.length > 40) return null; // 用户已在完整表达（长句），逐级引导反而碍事。阈值必须容得下引导链自己拼出的句子——24 时「…设计、剪辑和AI创作，」25字被误杀，预算级弹不出来（彩排 blocker）
-          for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget_mobile", "budget_monitor", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
+          for (const key of ["category", "usage", "usage_desktop", "usage_phone", "usage_pad", "usage_monitor", "earphone_form", "budget", "budget_acc", "portable", "desktop_form", "phone_form", "pad_acc", "monitor_size"]) {
             if (LX_SUGGEST_TREE[key].test(t)) return { key, ...LX_SUGGEST_TREE[key] };
           }
           return null;
@@ -5809,8 +4986,6 @@ function openOrderDetail(orderId) {
         function lxHideSuggest() {
           document.querySelector(".lx-suggest-panel")?.remove();
         }
-        // 全屏 lxfd 发送后程序性清空输入框不触发 input，浮层会残留——暴露给 app-lxfd.js 发送时收掉
-        window.__lxHideSuggest = lxHideSuggest;
 
         let lxSuggestTimer = null;
         function lxComposerSuggest(ta) {
@@ -5843,10 +5018,7 @@ function openOrderDetail(orderId) {
             const v = ta.value.trim();
             ta.value = "";
             ta.dispatchEvent(new Event("input", { bubbles: true }));
-            if (typeof window.lxfdSubmit === "function" && ta.closest(".hero-composer, .lxfd-composer")) {
-              lxSetConversationSourcePage(lxPageFromPath());
-              window.lxfdSubmit(v);
-            }
+            if (typeof window.lxfdSubmit === "function" && ta.closest(".hero-composer, .lxfd-composer")) window.lxfdSubmit(v);
             else sendChat(v);
             return;
           }
@@ -6150,7 +5322,65 @@ function openOrderDetail(orderId) {
           if (floorBox) requestAnimationFrame(() => lxClampFloors(floorBox));
         }
 
-        // 序号解析已收口到 app-intent.js（window.__lxParseOrdinal / __lxParseOrdinals），此处不再重复定义
+        // 序号解析：第一/二/三…/N 个、阿拉伯数字，返回 1-based 序号或 null
+        const LX_CN_NUM = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+        function lxParseOrdinal(text) {
+          const t = String(text || "");
+          // 序号必须有明确标志：①「第N个/第N款/第N台/第N件」 ②「N个/N款」紧跟量词（不含金额）。
+          // 严防把「预算10000」「20000元」「16G」这类金额/规格数字误当序号。范围限 1-20。
+          // 先排除：数字紧跟金额/规格单位（元/块/万/千/价/G/GB/寸/英寸/Hz/年），这些不是序号
+          const isAmount = (numStr, idx) => {
+            const after = t.slice(idx + numStr.length, idx + numStr.length + 4);
+            return /^(元|块|万|千|价|G|GB|TB|寸|英寸|Hz|年|月|号机|%|度)/.test(after) || /到\d/.test(t.slice(idx, idx + numStr.length + 6));
+          };
+          // 阿拉伯：必须「第N(个/款/台/件)?」或「N(个/款/台/件)」量词，且非金额
+          let m = t.match(/第\s*(\d{1,2})\s*(个|款|台|件|号)?/);
+          if (m && !isAmount(m[1], m.index + (m[0].indexOf(m[1])))) { const n = Number(m[1]); if (n >= 1 && n <= 20) return n; }
+          m = t.match(/(?:^|[^\d.])(\d{1,2})\s*(个|款|台|件)(?![\d元])/);
+          if (m) { const n = Number(m[1]); const idx = t.indexOf(m[1], m.index); if (!isAmount(m[1], idx) && n >= 1 && n <= 20) return n; }
+          // 中文：必须带「第」前缀（第一台/第三个），光「一台/两个」是量词不是序号，不匹配
+          const cn = t.match(/第\s*([一二两三四五六七八九十]+)\s*(个|款|台|件)?/);
+          if (cn) {
+            const s = cn[1];
+            let n = null;
+            if (s === "十") n = 10;
+            else if (s.length === 1) n = LX_CN_NUM[s] || null;
+            else if (s[0] === "十") n = 10 + (LX_CN_NUM[s[1]] || 0);
+            else if (s[1] === "十") n = (LX_CN_NUM[s[0]] || 0) * 10 + (LX_CN_NUM[s[2]] || 0);
+            if (n && n >= 1 && n <= 20) return n;
+          }
+          return null;
+        }
+        // 挂 window 供 lxfd 全屏 IIFE 跨作用域调用（序号解析）
+        window.__lxParseOrdinal = lxParseOrdinal;
+
+        // 多序号解析（对比场景）：从「1 2 3」「第一个第二个第三个」「1和2和3」抽出一组序号，去重保序，范围 1-20
+        function lxParseOrdinals(text) {
+          const t = String(text || "");
+          const nums = [];
+          const push = (n) => { if (n >= 1 && n <= 20 && !nums.includes(n)) nums.push(n); };
+          // 中文序号：第一/二/三…（不含「两」——「两款」是量词不是序号）
+          const cnMap = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+          const cnRe = /第?\s*([一二三四五六七八九十])\s*(?:个|款|台|件)?/g;
+          let m;
+          while ((m = cnRe.exec(t))) push(cnMap[m[1]] || 0);
+          // 阿拉伯：先抓数字串。连写如「123」= 逐位拆成 1,2,3（列表商品少，很少两位数序号）；
+          // 但带量词/两位如「12个」「第15」当整体。排除金额/规格数字。
+          const arRe = /(\d{1,2})/g;
+          while ((m = arRe.exec(t))) {
+            const numStr = m[1];
+            const after = t.slice(m.index + numStr.length, m.index + numStr.length + 3);
+            if (/^(元|块|万|千|价|G|GB|TB|寸|Hz|年|月|%|度|k|K|W)/i.test(after)) continue;
+            // 两位数：紧跟量词(个/款/台/件)或前有「第」才当整体序号，否则逐位拆（如「123」→1,2,3）
+            if (numStr.length === 2 && !/^(个|款|台|件)/.test(after) && t[m.index - 1] !== "第") {
+              numStr.split("").forEach((d) => push(Number(d)));
+            } else {
+              push(Number(numStr));
+            }
+          }
+          return nums;
+        }
+        window.__lxParseOrdinals = lxParseOrdinals;
         // 当前浏览上下文：用户正在看什么 → 决定下单/选N个操作谁
         function lxCurrentContext() {
           const activeTab = (state.tabs || []).find((t) => t.id === state.activeTabId);
@@ -6167,9 +5397,7 @@ function openOrderDetail(orderId) {
           if (activeTab && Array.isArray(activeTab.products) && activeTab.products.length) {
             return { type: "list", product: null, products: activeTab.products.slice() };
           }
-          // 注意：currentProduct 残留兜底挪到可见卡枚举之后——用户开过商详再逛楼层页时，
-          // 残留的 currentProduct 曾把上下文短路成 detail（products 空），「打开第三个/对比123」
-          // 对着满屏楼层卡还是提示没商品（真机反馈）。可见卡优先 = 视觉顺序原则。
+          if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
           // 「第N个」候选列表：完全按用户屏幕上看到的卡片顺序（DOM 顺序）枚举，序号 = 视觉顺序。
           // 之前用 reco tab 拼接导致「第一个」点到另一个列表的第一项、楼层卡又选不到（只有3个）——弃用。
           const merged = [];
@@ -6194,7 +5422,6 @@ function openOrderDetail(orderId) {
             .filter((el) => el.offsetParent !== null); // 只数可见的
           cards.forEach((el) => pushBySku(String(el.getAttribute("data-open-product") || ""), el));
           if (merged.length) return { type: "list", product: null, products: merged };
-          if (state.currentProduct) return { type: "detail", product: state.currentProduct, products: [] };
           const visible = [...(state.products || []), ...(state.siteProducts || [])];
           if (visible.length) return { type: "list", product: null, products: visible.slice() };
           return { type: "other", product: null, products: [] };
@@ -6232,31 +5459,6 @@ function openOrderDetail(orderId) {
           if (!card) { cb(); return; } // 找不到卡（如当前商详页）直接执行
           lxPressEl(card, cb);
         }
-        function lxResolveRecommendedProduct() {
-          const pool = [
-            ...(state._comparePageItems || []),
-            ...(state.compare || []),
-            ...(state.products || []),
-            ...(state.siteProducts || []),
-            ...(state.floorProducts || []),
-          ];
-          (state.tabs || []).forEach((tab) => { if (Array.isArray(tab.products)) pool.push(...tab.products); });
-          const bySku = (sku) => sku ? pool.find((item) => item && item.sku === sku) || null : null;
-          const colFromDom = () => {
-            const marked = document.querySelector('.lx-cmp-skin[data-v="1"] .phead.lx-cmp-pick[data-col], .lx-cmp-skin[data-v="1"] .lx-cmp-pick-flag')?.closest?.('[data-col]');
-            const idx = marked ? Number(marked.getAttribute('data-col')) : -1;
-            if (Number.isInteger(idx) && idx >= 0) return (state._comparePageItems || [])[idx] || null;
-            return null;
-          };
-          return state._compareRecommendedProduct || bySku(state._compareRecommendedSku) || colFromDom() || (() => {
-            const activeTab = (state.tabs || []).find((tab) => tab.id === state.activeTabId);
-            if (activeTab && Array.isArray(activeTab.products) && activeTab.products.length) return activeTab.products[0];
-            if (state.currentProduct) return state.currentProduct;
-            const ctx = lxCurrentContext();
-            return ctx.product || (ctx.products && ctx.products.length ? ctx.products[0] : null);
-          })();
-        }
-
         // 对话下单：分步「看得见」——打开商品详情(先稳住) → 核对优惠 → 进下单领券，节奏放慢，弹窗在商详页之后
         function lxBuyWithIntro(prod) {
           if (!prod) return;
@@ -6291,24 +5493,10 @@ function openOrderDetail(orderId) {
         }
 
         // AI 页面操作执行器：对话即操作（用户要求关页面/切站/开功能时真实执行）
-        function lxKeepHomeFullscreenAfterTabClose() {
-          const isRootHome = (location.pathname || "/").replace(/\/+$/, "/") === "/";
-          const isFsContext = document.body.classList.contains("assistant-fullscreen") ||
-            document.body.classList.contains("lx-auto-fs") ||
-            document.body.classList.contains("lx-root-home") ||
-            document.documentElement.classList.contains("lx-root-lxfd-prepaint");
-          if (!isRootHome || !isFsContext) return;
-          document.documentElement.classList.add("lx-root-lxfd-prepaint");
-          document.body.classList.remove("lx-home-split", "lxfd-split-returning", "lxfd-exiting");
-          document.body.classList.add("lx-root-home");
-          document.body.dataset.page = "home";
-          document.body.dataset.state = "chat";
-          lxSetAutoFs(true);
-        }
         function lxExecControl(op, target) {
           const siteMap = { shop: "personal", b: "business", biz: "enterprise" };
           const ops = {
-            close_all_tabs: () => { state.tabs = []; state.activeTabId = null; state.pageTrail = []; lxRenderTabbar(); document.querySelector(".content")?.setAttribute("data-view", "list"); lxKeepHomeFullscreenAfterTabClose(); toast("已关闭所有页面"); },
+            close_all_tabs: () => { state.tabs = []; state.activeTabId = null; state.pageTrail = []; lxRenderTabbar(); document.querySelector(".content")?.setAttribute("data-view", "list"); toast("已关闭所有页面"); },
             close_other_tabs: () => {
               // 关其他/留当前一个（「留一排」「只留这个」「关多余」都走这里）
               const keep = state.activeTabId || (state.tabs && state.tabs[state.tabs.length - 1]?.id);
@@ -6317,44 +5505,16 @@ function openOrderDetail(orderId) {
               state.activeTabId = keep;
               lxRenderTabbar();
               lxActivateTab(keep);
-              lxKeepHomeFullscreenAfterTabClose();
               toast("已关闭其他标签，只留当前页面");
             },
             close_tab: () => {
               // 指定标签名匹配；匹配不到（如「右侧标签」这类泛指）则退化为关其他、留当前
               const tab = (state.tabs || []).find((t) => target && (t.label || "").includes(target));
-              if (tab) { lxCloseTab(tab.id); lxKeepHomeFullscreenAfterTabClose(); toast(`已关闭「${tab.label}」`); }
+              if (tab) { lxCloseTab(tab.id); toast(`已关闭「${tab.label}」`); }
               else { ops.close_other_tabs(); }
             },
-            go_home: () => {
-              // 原地分屏(URL=/)里说「回首页」= 回到真首页：全屏单屏形态，带着对话回去
-              // （不是右侧换货架——那是「个人及家庭」站不是首页）。不能点顶部"首页"导航：
-              // state.page 切 home 会让楼层数据源早退，曾致右侧白屏
-              if (document.body.classList.contains("lx-home-split")) {
-                state.tabs = []; state.activeTabId = null; state.pageTrail = [];
-                lxRenderTabbar();
-                document.querySelector(".content")?.setAttribute("data-view", "list");
-                if (typeof window.__lxfdEnterFromSplit === "function") {
-                  window.__lxfdEnterFromSplit();
-                  return;
-                }
-                // 兜底（lxfd 未就绪）：右侧回货架初始态
-                if (state.page === "home" || !state.page) state.page = "personal";
-                if (document.body.dataset.page === "home" || !document.body.dataset.page) document.body.dataset.page = "personal";
-                loadProductsForPage();
-                document.querySelector(".content")?.scrollTo({ top: 0, behavior: "smooth" });
-                return;
-              }
-              document.querySelector('.main-nav [data-page="home"]')?.click();
-            },
-            switch_site: () => {
-              // target 兼容两种来源：后端小模型给 shop/b/biz，本地意图给 personal/business/enterprise/brand
-              const page = siteMap[target] || (["personal", "business", "enterprise", "brand"].includes(target) ? target : "personal");
-              const lab = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" }[page] || "该板块";
-              routeTo(page);
-              // 已在该站时 routeTo 的 URL 不变、可能无视觉变化——补一个可见提示，别让用户觉得"没执行"
-              toast("已为你打开" + lab);
-            },
+            go_home: () => document.querySelector('.main-nav [data-page="home"]')?.click(),
+            switch_site: () => routeTo(siteMap[target] || "personal"),
             open_member: () => openMemberCenter(),
             open_coupon: () => openCouponCenter(),
             open_orders: () => lxOpenCommerceEntry("orders"),
@@ -6369,37 +5529,12 @@ function openOrderDetail(orderId) {
               const t = String(target || "").trim();
               const pool = [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || [])];
               const hit = t && pool.find((p) => p && (p.sku === t || (p.name || "").includes(t) || t.includes(p.name || "__none__")));
-              if (hit && hit.sku) { lxRevealContent(); openProduct(hit.sku); return; }
-              if (!t) { toast("没说要打开哪款商品"); return; }
-              // 当前列表没有（如刚回首页）→ 先查本地商品库秒开，查不到才退回官方检索
-              lxRevealContent();
-              lxAddInstantAi(`好的，正在为你打开「${t}」。`);
-              fetch("/api/products?q=" + encodeURIComponent(t) + "&limit=1")
-                .then((r) => r.json())
-                .then((arr) => {
-                  if (Array.isArray(arr) && arr[0] && arr[0].sku) openProduct(arr[0].sku);
-                  else sendChat("帮我找" + t);
-                })
-                .catch(() => sendChat("帮我找" + t));
+              if (hit && hit.sku) { lxRevealContent(); openProduct(hit.sku); }
+              else if (t) { lxRevealContent(); sendChat("帮我找" + t); }
+              else toast("没说要打开哪款商品");
             },
-            enter_fullscreen: () => {
-              // 说「全屏」= 进 lxfd 门户全屏（带着对话导入，同「回首页」路径）。不限根路径分屏——
-              // /shop-chat/ 等子站没有 lx-home-split 类，但 lxfd 层存在且导入正常（彩排实证），
-              // 走遮罩式 lxSetAutoFs 会把对话留在原地、观众看到陌生欢迎页（彩排 blocker）
-              if (typeof window.__lxfdEnterFromSplit === "function") {
-                window.__lxfdEnterFromSplit();
-                return;
-              }
-              lxSetAutoFs(true);
-            },
+            enter_fullscreen: () => lxSetAutoFs(true),
             exit_fullscreen: () => { if (state.autoFs) lxSetAutoFs(false); else document.body.classList.remove("assistant-fullscreen"); },
-            // 下单乐享推荐商品：优先取对比页「乐享最推荐」列，其次取当前推荐结果第一款
-            buy_recommended: () => {
-              const prod = lxResolveRecommendedProduct();
-              if (!prod) { toast("还没有明确的推荐商品，请先查看推荐结果或点选一款商品"); return; }
-              lxRevealContent();
-              lxFlashCard(prod.sku, () => lxBuyWithIntro(prod));
-            },
             // 下单当前正在看的商品（多商详页时是当前激活的那个）
             buy_current: () => {
               const ctx = lxCurrentContext();
@@ -6439,42 +5574,18 @@ function openOrderDetail(orderId) {
               lxUpsertCompareTab(null, null, true);
               if (bad.length) toast(`第 ${bad.join("、")} 个超出列表范围，已对比其余 ${picks.length} 款`);
             },
-            // 裸对比（「对比一下吧」）：取当前可见/最近推荐列表前 4 款直接开对比
-            compare_recent: () => {
-              const ctx = lxCurrentContext();
-              const list = (ctx.products && ctx.products.length ? ctx.products : (ctx.product ? [ctx.product] : [])).slice(0, 4);
-              if (list.length < 2) { toast("当前没有可对比的商品列表，先让我推荐几款吧"); return; }
-              state.compare = list;
-              save("lexiang.compare.v1", state.compare);
-              lxRevealContent();
-              lxUpsertCompareTab(null, null, true);
-            },
           };
           (ops[op] || (() => toast("暂不支持该页面操作")))();
         }
 
         // AI 产出可看内容时退出全屏（含手动全屏）、按需展开右侧；若仍在首页语境则此时才切到个人及家庭
         function lxRevealContent() {
-          const wasFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
-          if (wasFullscreen) {
-            if (state.autoFs || document.body.classList.contains("lx-auto-fs")) lxSetAutoFs(false);
-            else document.body.classList.remove("assistant-fullscreen", "lx-auto-fs");
+          if (document.body.classList.contains("assistant-fullscreen")) {
+            if (state.autoFs) lxSetAutoFs(false);
+            else document.body.classList.remove("assistant-fullscreen");
           }
           // 若已进入首页原地分屏模式，布局已就位，跳过 routeTo 避免 URL 变化
-          if (document.body.classList.contains("lx-home-split")) {
-            document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-            document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
-            document.body.classList.add("lxfd-split-entered");
-            document.body.dataset.state = "chat";
-            state.autoFs = false;
-            window.__LXFD_FORCE = false;
-            const lxfdLayer = document.querySelector(".lxfd");
-            if (lxfdLayer) {
-              lxfdLayer.style.display = "";
-              lxfdLayer.style.visibility = "";
-            }
-            return;
-          }
+          if (document.body.classList.contains("lx-home-split")) return;
           if (state.page === "home" || !state.page) routeTo("personal");
         }
 
@@ -6640,9 +5751,7 @@ function openOrderDetail(orderId) {
         }
 
         function mdLite(text) {
-          // 官方文本常自带 HTML 实体（「我的」&gt;「设置」），不先解码会被 esc 二次转义显示成字面 &gt;（真机反馈）
-          const src = String(text || "").replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ")
-            .replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+          const src = String(text || "").replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ");
           const lines = src.split("\n");
           const out = [];
           let listOpen = false;
@@ -6727,14 +5836,11 @@ function openOrderDetail(orderId) {
         function renderCompareTable(products, opts = {}) {
           const keys = [];
           const seen = new Set();
-          const seenLabel = new Set(); // ram/memory、storage/disk 中文标签相同，只留先见的一个，防「内存」行出现两次
           products.forEach((product) => Object.keys(product.specs || {}).forEach((key) => {
             // 白名单：只展示有中文映射的参数；内部字段（materialNumber/screen_res 等）与分类行不外露
             if (DETAIL_SPEC_SKIP_KEYS.has(key) || seen.has(key)) return;
             if (!DETAIL_SPEC_LABELS[key] || /^lvl\d/.test(key)) return;
-            if (seenLabel.has(DETAIL_SPEC_LABELS[key])) return;
             seen.add(key);
-            seenLabel.add(DETAIL_SPEC_LABELS[key]);
             keys.push(key);
           }));
           const cmpPriceNum = (value) => Number(String(value ?? "").replace(/[^\d.]/g, "")) || 0;
@@ -7121,15 +6227,6 @@ function openOrderDetail(orderId) {
         function lxStoreAddr(store) { return store.address || store.addr || ""; }
         function lxStoreTel(store) { return store.tel || store.phone || store.telephone || ""; }
         function lxStoreHours(store) { return store.hours || store.openingHours || "10:00–20:00"; }
-        // 营业状态按当前时间算，深夜不再挂着"营业中"（真机反馈：23 点半官方都说已打烊了）
-        function lxStoreOpenState(store) {
-          const m = String(lxStoreHours(store)).match(/(\d{1,2}):(\d{2})\s*[-–—~至]\s*(\d{1,2}):(\d{2})/);
-          if (!m) return { open: true, label: "营业中" };
-          const now = new Date();
-          const cur = now.getHours() * 60 + now.getMinutes();
-          const open = cur >= (+m[1]) * 60 + (+m[2]) && cur < (+m[3]) * 60 + (+m[4]);
-          return { open, label: open ? "营业中" : "已打烊" };
-        }
         function lxStoreDistance(store) {
           const raw = store.distance ?? store.dist;
           if (raw == null || raw === "") return "";
@@ -7137,6 +6234,10 @@ function openOrderDetail(orderId) {
           const n = Number(raw);
           if (!Number.isFinite(n)) return "";
           return n >= 1000 ? `${(n / 1000).toFixed(1)}km` : `${Math.round(n)}m`;
+        }
+        function lxStoreTags(store) {
+          const tags = store.tags || store.rights || store.services || ["优先体验", "贴膜安装", "以旧换新"];
+          return Array.isArray(tags) ? tags.slice(0, 3) : ["优先体验", "贴膜安装", "以旧换新"];
         }
         function lxStoreLat(store, fallback) { return store.lat ?? store.latitude ?? fallback ?? 39.9042; }
         function lxStoreLng(store, fallback) { return store.lng ?? store.longitude ?? fallback ?? 116.4074; }
@@ -7152,7 +6253,7 @@ function openOrderDetail(orderId) {
             <div class="head"><span class="nm">${esc(name)}</span>${dist ? `<span class="dist">${esc(dist)}</span>` : ""}</div>
             <div class="meta">
               <div class="addr">${esc(addr)}</div>
-              <div class="hours">${(() => { const st = lxStoreOpenState(store); return `<span class="od${st.open ? "" : " closed"}">${st.label}</span>`; })()}<span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
+              <div class="hours"><span class="od">营业中</span><span>${esc(lxStoreHours(store))}</span>${tel ? `<span class="tel">${esc(tel)}</span>` : ""}</div>
             </div>
             <div class="acts">
               <button class="btn ghost store-ghost" type="button" data-store-nav="${esc(lat + "," + lng)}" data-store-name="${esc(name)}" data-store-addr="${esc(addr)}" data-store-tel="${esc(tel)}">${lxStoreIcon("nav")}导航</button>
@@ -7334,7 +6435,7 @@ function openOrderDetail(orderId) {
           business: [
             ["客服", "/assets/icons/shortcut-customer-service.svg"],
             ["企业认证", "/assets/icons/sidebar-custom-service.svg"],
-            ["积分兑换", "/assets/icons/sidebar-points-mall.svg"],
+            ["批量询价", "/assets/icons/sidebar-points-mall.svg"],
             ["对公开票", "/assets/icons/sidebar-free-trial.svg"],
             ["上门售后", "/assets/icons/shortcut-trade-in.svg"],
             ["会员中心", "/assets/icons/sidebar-member-center.svg"],
@@ -7342,7 +6443,7 @@ function openOrderDetail(orderId) {
           enterprise: [
             ["客服", "/assets/icons/shortcut-customer-service.svg"],
             ["方案中心", "/assets/icons/sidebar-custom-service.svg"],
-            ["项目合作", "/assets/icons/sidebar-free-trial.svg"],
+            ["信创专区", "/assets/icons/sidebar-free-trial.svg"],
             ["白皮书", "/assets/icons/sidebar-points-mall.svg"],
             ["批量报价", "/assets/icons/shortcut-education-subsidy.svg"],
             ["客户经理", "/assets/icons/sidebar-member-center.svg"],
@@ -7529,44 +6630,15 @@ function openOrderDetail(orderId) {
 
         function openLeadPanel(scenario) {
           state.leadScenario = scenario || (state.page === "enterprise" ? "biz_intent" : "b_purchase");
-          const projectName = String(state.leadScenario || "").startsWith("project:") ? String(state.leadScenario).replace(/^project:/, "") : "";
-          const messagePlaceholder = projectName ? `请填写您期望的合作内容或想了解到相关方案，如：${projectName}落地范围、终端数量、交付周期` : "请填写您期望的合作内容或想了解到相关方案";
-          openModal("项目合作", `
-            <div class="lx-lead-modal">
-              <p class="lx-lead-subtitle">请填写表单，我们会尽快与您联系${projectName ? `，当前意向：${esc(projectName)}` : ""}</p>
-              <div class="lx-lead-form">
-                <label class="lx-lead-row"><span><i>*</i>姓名</span><input id="lxLeadName" autocomplete="name" placeholder="请输入姓名"></label>
-                <label class="lx-lead-row"><span><i>*</i>邮箱</span><input id="lxLeadEmail" type="email" autocomplete="email" placeholder="请输入邮箱"></label>
-                <label class="lx-lead-row"><span><i>*</i>手机</span><input id="lxLeadPhone" inputmode="tel" autocomplete="tel" placeholder="请输入手机号"></label>
-                <label class="lx-lead-row lx-lead-code"><span><i>*</i>验证码</span><input id="lxLeadCode" inputmode="numeric" placeholder="请输入短信验证码"><button type="button" data-lead-code>获取验证码</button></label>
-                <label class="lx-lead-row"><span><i>*</i>公司</span><input id="lxLeadCompany" autocomplete="organization" placeholder="请输入公司名称"></label>
-                <label class="lx-lead-row"><span><i>*</i>城市</span><input id="lxLeadCity" placeholder="请输入所在城市"></label>
-                <label class="lx-lead-row"><span><i>*</i>职务</span><select id="lxLeadJob"><option value="">请选择职务</option><option>企业负责人</option><option>IT/信息化负责人</option><option>采购负责人</option><option>项目负责人</option><option>其他</option></select></label>
-                <label class="lx-lead-row"><span><i>*</i>行业</span><select id="lxLeadIndustry"><option value="">请选择行业</option><option>政府/公共事业</option><option>教育</option><option>医疗</option><option>制造</option><option>金融</option><option>能源</option><option>服务业</option><option>其他</option></select></label>
-                <label class="lx-lead-row"><span>预算</span><select id="lxLeadBudget"><option value="">请选择预算</option><option>10万以内</option><option>10万-50万</option><option>50万-100万</option><option>100万以上</option><option>暂不确定</option></select></label>
-                <label class="lx-lead-row lx-lead-message"><span><i>*</i>留言</span><textarea id="lxLeadNeed" rows="3" placeholder="${esc(messagePlaceholder)}"></textarea></label>
-              </div>
-              <div class="lx-lead-actions">
-                <button class="lx-lead-cancel" type="button" data-modal-close>取消</button>
-                <button class="lx-lead-submit" type="button" data-submit-lead>提交</button>
-              </div>
-            </div>`, { skin: "lead" });
-        }
-
-        function lxAppendLeadSuccessCard(data = {}) {
-          const chat = ensureChat();
-          if (!chat) return;
-          const scenario = String(state.leadScenario || "").replace(/^project:/, "") || "项目合作";
-          const rows = [
-            ["留资信息", `${data.company || "已提交"}${data.name ? " · " + data.name : ""}`],
-            ["合作意向", scenario],
-            ["项目画像", [data.industry, data.budget, data.city].filter(Boolean).join(" / ") || "已记录"],
-            ["下一步", "顾问将在 1 个工作日内联系确认方案范围"]
-          ];
-          const steps = ["校验联系信息", "生成项目合作线索", "同步顾问跟进队列"];
-          const html = `<div class="lx-lead-success-card"><div class="lx-lead-success-head"><span>✓</span><div><strong>留资成功</strong><p>项目合作信息已收到，联想乐享已为您生成跟进记录。</p></div></div><div class="lx-lead-success-steps">${steps.map((step) => `<div class="lx-op-step done"><span class="lx-op-step-ic">✓</span><span>${esc(step)}</span></div>`).join("")}</div><div class="lx-lead-success-rows">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div>`;
-          chat.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai">${html}</div>`);
-          chat.scrollTop = chat.scrollHeight;
+          const isBiz = state.page === "enterprise";
+          openModal(isBiz ? "政企项目意向" : "企业采购咨询", `
+            <p class="lx-p0-disclaimer">${isBiz ? "提交行业、规模和交付要求，联想乐享会整理成 BD 对接信息。" : "提交采购品类、台量和到货时间，联想乐享会整理批量报价需求。"}</p>
+            <input class="lx-p0-field" id="lxLeadCompany" placeholder="企业/机构名称">
+            <input class="lx-p0-field" id="lxLeadNeed" placeholder="采购需求，例如 50 台 ThinkPad / 政教信创项目">
+            <input class="lx-p0-field" id="lxLeadContact" placeholder="联系人和电话">
+            <div class="lx-p0-actions">
+              <button class="lx-p0-btn primary" data-submit-lead>${isBiz ? "生成政企意向单" : "生成采购需求单"}</button>
+            </div>`);
         }
 
         function openUploadControls() {
@@ -7615,6 +6687,11 @@ function openOrderDetail(orderId) {
           note.classList.toggle("show", !!parts.length);
         }
 
+        function toggleOfficialCompare() {
+          state.officialCompare = !state.officialCompare;
+          $(".lx-p1-compare-toggle")?.classList.toggle("is-active", state.officialCompare);
+          toast(state.officialCompare ? "已开启官方 AI 对比" : "已关闭官方 AI 对比");
+        }
 
         async function callOfficialAI(text) {
           const bubble = addMessage("ai loading", "", renderGenerating("正在获取联想官方 AI 对比结果..."));
@@ -7720,7 +6797,6 @@ function openOrderDetail(orderId) {
               if (!value) value = placeholderQuery(textarea.placeholder);
               if (!value || state.sending) { textarea.focus(); return; }
               if (typeof window.lxfdSubmit === "function") {
-                lxSetConversationSourcePage(lxPageFromPath());
                 window.lxfdSubmit(value);
                 textarea.value = "";
                 textarea.dispatchEvent(new Event("input", { bubbles: true }));
@@ -7831,11 +6907,6 @@ function openOrderDetail(orderId) {
           });
 
           document.addEventListener("click", (event) => {
-            const entRedeemButton = event.target.closest?.("[data-ent-redeem], [data-ent-redeem-confirm]");
-            if (entRedeemButton) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
             const storeMotionTarget = event.target.closest?.(".lx-store-skin .btn, .lx-store-skin .band, .lx-store-skin .map .ctrl button");
             if (storeMotionTarget?.animate) {
               storeMotionTarget.animate([
@@ -7843,29 +6914,10 @@ function openOrderDetail(orderId) {
                 { transform: "scale(1)" },
               ], { duration: 180, easing: "cubic-bezier(.34,1.4,.4,1)" });
             }
-            const historyButton = event.target.closest(".history-button");
-            if (historyButton && !document.body.classList.contains("assistant-fullscreen")) {
-              event.preventDefault();
-              event.stopImmediatePropagation();
-              lxOpenHistoryModal();
-              return;
-            }
-            const convHistoryRow = event.target.closest(".lx-history-modal .lx-history-row[data-conv-id]");
-            if (convHistoryRow) {
-              event.preventDefault();
-              lxRestoreConversationRecord(convHistoryRow.dataset.convId || "");
-              // 全屏欢迎态从弹窗点开历史：对话恢复进的是被全屏层盖住的主面板，必须切分屏
-              // 布局才看得见（否则视觉上点了没反应，真机反馈）
-              if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) lxPrepareRootSplitState();
-              return;
-            }
             if (event.target.closest(".new-chat-button")) {
               event.preventDefault();
               event.stopImmediatePropagation();
               resetConversation();
-              // 根路径分屏：新建 = 回全屏首页开新会话（lxfd 版 reset 已做完整初始态还原：
-              // prepaint 类/分屏类/欢迎页）；子站没有 lxfd 全屏形态，保持分屏内新建不变（真机反馈）
-              if (location.pathname.replace(/\/+$/, "/") === "/" && typeof window.lxfdReset === "function") window.lxfdReset(true);
               return;
             }
             const sendButton = event.target.closest(".send-btn, .hero-send-btn");
@@ -8163,7 +7215,14 @@ function openOrderDetail(orderId) {
             // 脉络菜单的历史提问行：锚点滚回当时的对话位置（不重发消息）
             const qRow = event.target.closest(".prompt-menu .menu-row");
             if (qRow) {
-              lxScrollToQueryAnchor(Number(qRow.dataset.qAnchor));
+              const anchor = Number(qRow.dataset.qAnchor);
+              const chatBox = document.querySelector(".lx-p0-messages");
+              const node = Number.isFinite(anchor) ? chatBox?.children[anchor] : null;
+              if (node) {
+                node.scrollIntoView({ behavior: "smooth", block: "center" });
+                node.classList.add("lx-flash-msg");
+                setTimeout(() => node.classList.remove("lx-flash-msg"), 1800);
+              }
             }
 
             const quick = event.target.closest(".quick-item, .hero-suggestion, .shortcut, .more-menu .menu-row");
@@ -8173,14 +7232,10 @@ function openOrderDetail(orderId) {
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation();
-                if (text && typeof window.lxfdSubmit === "function") {
-                  lxSetConversationSourcePage(lxPageFromPath());
-                  window.lxfdSubmit(text);
-                }
+                if (text && typeof window.lxfdSubmit === "function") window.lxfdSubmit(text);
                 return;
               }
-              if (text.includes("教育特惠")) sendChat("教育特惠");
-              else if (text.includes("积分兑换") || text.includes("积分商城")) sendChat(text.includes("积分兑换") ? text : "积分兑换");
+              if (text.includes("教育特惠")) openEduZone();
               else if (text.includes("国补")) sendChat(text);
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
               else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
@@ -8191,7 +7246,6 @@ function openOrderDetail(orderId) {
               else if (text.includes("我的订单")) openOrders();
               else if (text.includes("白皮书")) openWhitepaperLib();
               else if (text.includes("方案中心")) openSolutionCenter();
-              else if (text.includes("项目合作")) sendChat("项目合作");
               else if (text.includes("信创专区")) openXinchuangZone();
               else if (text.includes("企业采购")) sendChat("我要企业批量采购，介绍下企业购的价格和流程");
               else if (text.includes("上门售后")) sendChat("企业设备的上门售后服务怎么约？");
@@ -8278,11 +7332,12 @@ function openOrderDetail(orderId) {
               if (!lxfdCommerce) return "";
               if (lxfdCommerce.dataset.lxfdOpen) return lxfdCommerce.dataset.lxfdOpen;
               const label = lxfdCommerce.getAttribute("aria-label") || "";
-              if (label.includes("历史")) return ""; // 首页空白态胶囊里的历史入口，归 app-lxfd 处理
               if (label.includes("购物车")) return "cart";
               if (label.includes("订单")) return "orders";
-              // 按位置兜底(index 1/2=购物车/订单)因新增历史按钮会错位误伤——购物车/订单
-              // 都带 data-lxfd-open，dataset 分支已可靠覆盖，这里不再按位置猜
+              const buttons = [...lxfdCommerce.closest(".lxfd-actions")?.querySelectorAll(".lxfd-ic") || []];
+              const index = buttons.indexOf(lxfdCommerce);
+              if (index === 1) return "cart";
+              if (index === 2) return "orders";
               return "";
             })();
             if (lxfdCommerceKind === "cart") {
@@ -8327,27 +7382,14 @@ function openOrderDetail(orderId) {
               if (text === "会员") openInfo("member");
             }
 
-            const eduBuySku = event.target.closest("[data-edu-buy]")?.dataset.eduBuy;
-            if (eduBuySku) {
-              event.preventDefault();
-              event.stopPropagation();
-              const product = (state.officialProducts || {})[eduBuySku] || [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || [])].find((p) => p && p.sku === eduBuySku) || lxCardToProduct(event.target, eduBuySku);
-              lxRevealContent();
-              lxBuyWithIntro(product);
-              return;
-            }
-
-            const openEl = event.target.closest("[data-open-product]");
-            const openSku = openEl?.dataset.openProduct;
+            const openSku = event.target.closest("[data-open-product]")?.dataset.openProduct;
             if (openSku) {
               event.preventDefault();
               event.stopPropagation();
               closeModal();
-              // 官方商品对象优先（避免 fetch 官方 sku 404）；恢复的历史消息里 officialProducts
-              // 缓存已空，再兜持久化 recoPayload 里的完整对象（真机反馈：历史里点 CTA 没反应）
+              // 官方商品对象优先（避免 fetch 官方 sku 404），其次走普通路径
               const officialObj = (state.officialProducts || {})[openSku];
-              const payloadObj = officialObj ? null : (lxReadRecoPayload(openEl.getAttribute("data-lxfd-reco-id")) || []).find((p) => p && p.sku === openSku);
-              openProduct(officialObj || payloadObj || openSku);
+              openProduct(officialObj || openSku);
               return;
             }
 
@@ -8413,12 +7455,7 @@ function openOrderDetail(orderId) {
             const askOrder = event.target.closest("[data-ask-order]")?.dataset.askOrder;
             if (askOrder) {
               closeModal();
-              // 引用模式：订单摘要挂到输入框上方（同商品引用），用户自己问发票/物流/退换——
-              // 之前是替用户发一句泛泛的"帮我查询订单"，没法针对性咨询（真机反馈：客服常见场景）
-              lxSetRef(askOrder);
-              const _askTa = $(".composer textarea");
-              if (_askTa) { _askTa.focus(); _askTa.placeholder = "针对这笔订单想问什么？物流、发票、退换货都可以…"; }
-              toast("已引用该订单，直接输入你的问题");
+              sendChat(`帮我查询订单和售后服务：${askOrder}`);
             }
             if (event.target.closest("[data-city-picker]")) { lxOpenCityPicker(); return; }
             const cityPick = event.target.closest("[data-city-pick]");
@@ -8429,15 +7466,6 @@ function openOrderDetail(orderId) {
               lxRenderSiteFloors();
               return;
             }
-            const entRedeemConfirm = event.target.closest("[data-ent-redeem-confirm]")?.dataset.entRedeemConfirm;
-            if (entRedeemConfirm) { closeModal(); lxRedeemEntPoints(entRedeemConfirm); addMessage("ai", "", "兑换成功，已为你更新企业积分余额和兑换记录。右侧兑换列表也同步刷新了。"); return; }
-            const entRedeemId = event.target.closest("[data-ent-redeem]")?.dataset.entRedeem;
-            if (entRedeemId) {
-              const item = LX_ENT_REDEEM_ITEMS.find((entry) => entry.id === entRedeemId);
-              sendChat(item ? `兑换${item.name}` : "兑换企业积分权益");
-              return;
-            }
-            if (event.target.closest("[data-ent-points-mall]")) { sendChat("积分兑换"); return; }
             const quickAsk = event.target.closest("[data-quick-ask]")?.dataset.quickAsk;
             if (quickAsk) {
               // ponytail: 会员楼层点击写 localStorage，用于行为驱动模块排序（POC 轻量实现）
@@ -8463,38 +7491,14 @@ function openOrderDetail(orderId) {
               }
               return;
             }
-            const traceToggle = event.target.closest("[data-lx-trace-toggle]");
-            if (traceToggle) {
-              event.preventDefault();
-              const box = traceToggle.closest(".lx-skill-trace");
-              if (box) {
-                const collapsed = box.classList.toggle("is-collapsed");
-                traceToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-              }
-              return;
-            }
-            // 推荐CTA：兼容主面板生成(data-lx-focus-reco)与全屏桥接来的(data-lxfd-reveal-products)两种；
-            // 多轮推荐共用一个reco tab互相覆盖，按消息上的recoId取回"那一轮"的商品重建，点旧消息回旧推荐
-            const _recoCta = event.target.closest("[data-lx-focus-reco], [data-lxfd-reveal-products]");
-            if (_recoCta) {
+            if (event.target.closest("[data-lx-focus-reco]")) {
               if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) return;
               lxRevealContent();
-              const _recoId = _recoCta.getAttribute("data-lxfd-reco-id") || "";
-              const _recoPayload = lxReadRecoPayload(_recoId); // 内存→localStorage 两级（恢复历史后内存已空）
-              if (_recoPayload && _recoPayload.length) {
-                const recoTab = { id: "reco", kind: "reco", label: "AI 推荐", products: _recoPayload };
-                lxUpsertTab(recoTab);
-                lxRunTab(recoTab);
-                return;
-              }
-              // payload 彻底丢失 → 退回打开当前reco tab；连 tab 都没有则明确提示，不再静默没反应
               const tab = (state.tabs || []).find((item) => item.kind === "reco" || item.id === "reco");
               if (tab) {
                 state.activeTabId = tab.id;
                 lxRenderTabbar();
                 lxRunTab(tab);
-              } else {
-                toast("这轮推荐的清单已过期，跟我说「再推荐一次」马上补上");
               }
               return;
             }
@@ -8520,52 +7524,25 @@ function openOrderDetail(orderId) {
               closeModal();
               sendChat(`${serviceAsk}${sn ? "，主机编号：" + sn : ""}`);
             }
-            if (event.target.closest("[data-lead-code]")) {
-              event.preventDefault();
-              toast("验证码已发送（演示）");
-              return;
-            }
-            if (event.target.closest("[data-modal-close]")) {
-              event.preventDefault();
-              closeModal();
-              return;
-            }
             if (event.target.closest("[data-submit-lead]")) {
-              const name = $("#lxLeadName")?.value.trim() || "";
-              const email = $("#lxLeadEmail")?.value.trim() || "";
-              const phone = $("#lxLeadPhone")?.value.trim() || "";
-              const code = $("#lxLeadCode")?.value.trim() || "";
-              const company = $("#lxLeadCompany")?.value.trim() || "";
-              const city = $("#lxLeadCity")?.value.trim() || "";
-              const job = $("#lxLeadJob")?.value || "";
-              const industry = $("#lxLeadIndustry")?.value || "";
-              const budget = $("#lxLeadBudget")?.value || "";
-              const need = $("#lxLeadNeed")?.value.trim() || "";
-              const contact = [name, phone, email].filter(Boolean).join(" / ");
-              const missing = [];
-              if (!name) missing.push("姓名");
-              if (!email) missing.push("邮箱");
-              if (!phone) missing.push("手机");
-              if (!code) missing.push("验证码");
-              if (!company) missing.push("公司");
-              if (!city) missing.push("城市");
-              if (!job) missing.push("职务");
-              if (!industry) missing.push("行业");
-              if (!need) missing.push("留言");
-              if (missing.length) { toast(`请填写：${missing.join("、")}`); return; }
+              const company = $("#lxLeadCompany")?.value.trim();
+              const need = $("#lxLeadNeed")?.value.trim();
+              const contact = $("#lxLeadContact")?.value.trim();
               closeModal();
-              fetch("/api/leads", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  scenario: state.leadScenario || "",
-                  site_type: API_SITE[state.page] || "default",
-                  company, contact, need,
-                  name, email, phone, city, job, industry, budget,
-                  conv_id: state.convId || null
-                })
-              }).then(() => toast("信息已提交，顾问会尽快与您联系")).catch(() => {});
-              lxAppendLeadSuccessCard({ name, company, city, job, industry, budget, need });
+              // 线索落库（不阻塞对话回显，失败静默——对话流仍是兜底记录）
+              if (company || need || contact) {
+                fetch("/api/leads", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    scenario: state.leadScenario || "",
+                    site_type: API_SITE[state.page] || "default",
+                    company, contact, need,
+                    conv_id: state.convId || null
+                  })
+                }).then(() => toast("需求已提交，顾问会尽快与您联系")).catch(() => {});
+              }
+              sendChat(`请整理企业/政企线索并给下一步对接建议。企业：${company || "未填写"}；需求：${need || "未填写"}；联系人：${contact || "未填写"}`);
             }
             const recoCompare = event.target.closest("[data-reco-compare]");
             if (recoCompare) {
@@ -8612,12 +7589,6 @@ function openOrderDetail(orderId) {
               matAction.animate?.([{ transform: "scale(.96)" }, { transform: "scale(1)" }], { duration: 180, easing: "cubic-bezier(.34,1.4,.4,1)" });
             }
 
-            const projectLead = event.target.closest("[data-project-lead]");
-            if (projectLead) {
-              const name = projectLead.dataset.projectLead || "项目合作";
-              sendChat(`我要合作${name}`);
-              return;
-            }
             const solBtn = event.target.closest("[data-solution]");
             if (solBtn) openSolutionCenter(solBtn.dataset.solution);
             else if (event.target.closest("[data-solution-center]")) openSolutionCenter();
@@ -8758,7 +7729,7 @@ function openOrderDetail(orderId) {
             const floorAction = event.target.closest("[data-floor-action]")?.dataset.floorAction;
             const entCustomFilter = event.target.closest("[data-entcustom-filter]");
             if (entCustomFilter) {
-              const root = entCustomFilter.closest(".ec");
+              const root = entCustomFilter.closest(".ec[data-v='1']");
               const key = entCustomFilter.dataset.entcustomFilter || "all";
               root?.querySelectorAll(".chip").forEach((chip) => chip.classList.toggle("on", chip === entCustomFilter));
               root?.querySelectorAll(".scard").forEach((card) => {
@@ -8771,7 +7742,6 @@ function openOrderDetail(orderId) {
             else if (floorAction === "service") openServicePanel();
             else if (floorAction === "member") openMemberCenter();
             else if (floorAction === "coupon") openCouponCenter();
-            else if (floorAction === "orders") lxOpenCommerceEntry("orders");
             else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
@@ -8892,13 +7862,1718 @@ function openOrderDetail(orderId) {
             const _convData = JSON.parse(_convRaw);
             if (_convData && Array.isArray(_convData.messages) && _convData.messages.length) {
               lxRestoreConversation();
-              lxRebuildQueryHistoryFromDom();
-              renderQueryHistory();
             }
           }
         } catch (_e) {}
       })();
 
+// Lexiang fullscreen dialog replacement behavior
+(function(){
+  "use strict";
+  if (window.__lxfdInstalled) return;
+  window.__lxfdInstalled = true;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const root = $(".lxfd");
+  if (!root) return;
+
+  const navCluster = $("#lxfdNavCluster");
+  const convoPill = $("#lxfdConvoPill");
+  const convoName = $("#lxfdConvoName");
+  const rail = $("#lxfdRail");
+  const railFab = $("#lxfdRailFab");
+  const railNewFab = $("#lxfdRailNewFab");
+  const scrim = $("#lxfdScrim");
+  const stage = $("#lxfdStage");
+  const welcome = $("#lxfdWelcome");
+  const thread = $("#lxfdThread");
+  const ta = $("#lxfdTa");
+  const send = $("#lxfdSend");
+  const chips = $("#lxfdChips");
+  const quick = $("#lxfdQuick");
+  const turnIndex = $("#lxfdTurnIndex");
+  const turnDots = $("#lxfdTurnDots");
+  const turnList = $("#lxfdTurnList");
+  const helloTitle = $("#lxfdHelloTitle");
+  const isWindowsRuntime = (() => {
+    const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+    const ua = navigator.userAgent || "";
+    return /Win/i.test(platform) || /Windows/i.test(ua);
+  })();
+  const forceFullscreenMotion = isWindowsRuntime;
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches && !forceFullscreenMotion;
+  document.body.classList.toggle("lxfd-force-motion", forceFullscreenMotion);
+  let hoverTimer = null;
+  let turns = [];
+  let helloIndex = 0;
+  let helloAnimating = false;
+  let helloTimer = null;
+  let railManuallyCollapsed = true;
+  const chatState = { convId: null, sending: false, conversationNonce: 0, localId: null };
+  const navPaths = { home: "/", personal: "/shop-chat/", business: "/b-chat/", enterprise: "/biz-chat/", brand: "/brand/" };
+  const LXFD_DEFAULT_HELLO_WORDS = ["找商品", "找门店", "找服务", "职场认证", "教育优惠", "找解决方案"];
+  let helloWords = LXFD_DEFAULT_HELLO_WORDS.slice();
+  const questions = ["想买游戏本，预算8000怎么选？", "学生买轻薄本，国补和教育优惠能省多少？", "小新和YOGA系列怎么选？", "旧电脑换新能抵多少钱？", "哪里有卖ThinkPad笔记本电脑门店"];
+  const quicks = ["教育特惠", "以旧换新", "乐豆商城", "0元试用", "私人订制", "会员中心", "拉新返利"];
+  const arrow = '<span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  // actionbar 按钮 label → 有意义的 query 示例（避免直接发 label 体验差）
+  const LXFD_ACTION_Q = {
+    "商品导购": "帮我推荐一款适合我的笔记本电脑",
+    "解决方案": "我想了解适合企业的行业解决方案",
+    "门店查询": "帮我查询附近的联想门店",
+    "职场认证": "职场人群认证怎么做，能享哪些专属优惠？",
+    "服务预约": "我想预约售后维修或上门服务",
+    "我的订单": "帮我查最近的订单状态和物流",
+    "售后服务": "我的设备保修和售后服务怎么办理？",
+    "评价服务": "给本次客服服务打个五星好评",
+    "需求清单": "我整理一份采购需求清单发你确认",
+  };
+  const answer = '<p>我是联想官方AI助手，主要可以帮您完成以下事情：</p>'
+    + '<h4>产品选购</h4><ul><li>推荐最适合的联想产品&lt;笔记本、台式机、平板、手机、配件等&gt;</li><li>产品参数对比、性价比分析</li></ul>'
+    + '<h4>优惠查询</h4><ul><li>最新优惠政策:国补、教育优惠、企业补贴、学生价等</li><li>计算到手价、叠加各种优惠</li><li>推荐最适合您身份的优惠券</li></ul>'
+    + '<h4>服务支持</h4><ul><li>查询保修状态、推荐延保方案</li><li>售后流程:退换货、维修、清洁保养、以旧换新估价</li><li>服务站地址和技术支持联系方式</li></ul>'
+    + '<h4>订单辅助</h4><ul><li>处理订单、发货物流、发票等</li><li>会员权益、乐豆积分的使用</li></ul>'
+    + '<p>有什么具体需求，随时可以和我说~</p>'
+    + '<div class="lxfd-followups"><button type="button">可以推荐适合学生的笔记本吗？</button><button type="button">怎么查询我的产品保修状态？</button><button type="button">现在有哪些可以叠加的优惠政策？</button></div>'
+    + '<p class="lxfd-disclaimer">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p>';
+
+  function escapeHtml(text) { return String(text).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])); }
+  function escapeAttr(text) { return escapeHtml(text).replace(/`/g, "&#96;"); }
+  function lxfdDetectPage() {
+    const path = location.pathname;
+    for (const [page, p] of Object.entries(navPaths)) {
+      if (path === p || path === p.replace(/\/$/, "") || path.startsWith(p === "/" ? "/_" : p)) {
+        if (p !== "/" || path === "/") return page;
+      }
+    }
+    // 精确匹配
+    for (const [page, p] of Object.entries(navPaths)) {
+      const normalized = p.endsWith("/") ? p : p + "/";
+      const pathNorm = path.endsWith("/") ? path : path + "/";
+      if (pathNorm === normalized) return page;
+    }
+    return "home";
+  }
+  function lxfdApplySite() {
+    const prompts = window.__lxSitePrompts;
+    if (!prompts) {
+      // 兜底：用写死默认值渲染
+      if (chips) chips.innerHTML = questions.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+      if (quick) quick.innerHTML = quicks.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
+      return;
+    }
+    const page = (window.__lxState && window.__lxState.page) || lxfdDetectPage();
+    const cfg = prompts[page] || prompts.home;
+    if (!cfg) return;
+    // 欢迎 chips
+    const welcomeList = cfg.welcome || questions;
+    if (chips) chips.innerHTML = welcomeList.map((q, i) => `<button class="lxfd-chip-q anim-rise" style="animation-delay:${0.3 + i * 0.07}s" type="button" data-q="${escapeAttr(q)}">${escapeHtml(q)}${arrow}</button>`).join("");
+    // 底部 actionbar
+    const actionbarList = cfg.actionbar || quicks;
+    if (quick) quick.innerHTML = actionbarList.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
+    // 滚动标题词固定使用默认词组，不随频道话术重新读取。
+    helloWords = LXFD_DEFAULT_HELLO_WORDS.slice();
+    helloIndex = helloIndex % helloWords.length;
+    // 输入框 placeholder
+    if (ta && cfg.placeholder) ta.placeholder = cfg.placeholder;
+  }
+  lxfdApplySite();
+  function shortText(text, max) { return text.length > max ? text.slice(0, max) + "…" : text; }
+
+  // ── 能力 B：localStorage 多会话历史 ──────────────────────────────────────
+  function lxfdLoadStore() { try { return JSON.parse(localStorage.getItem("lexiang.lxfd.convs.v1") || "[]"); } catch (_) { return []; } }
+  function lxfdSaveStore(a) { try { localStorage.setItem("lexiang.lxfd.convs.v1", JSON.stringify(a.slice(0, 20))); } catch (_) {} }
+  function lxfdNewLocalConv() { chatState.localId = "lc" + Date.now() + Math.random().toString(36).slice(2, 6); }
+  function lxfdPersistCurrent() {
+    if (!thread || !thread.children.length) return;
+    if (!chatState.localId) lxfdNewLocalConv();
+    const firstUser = thread.querySelector(".lxfd-msg-user");
+    const title = (firstUser ? firstUser.textContent : "新对话").trim().slice(0, 24) || "新对话";
+    const store = lxfdLoadStore().filter(c => c.id !== chatState.localId);
+    store.unshift({ id: chatState.localId, title, convId: chatState.convId || null, threadHtml: thread.innerHTML, ts: Date.now() });
+    lxfdSaveStore(store);
+    // 同步一份到子站切换/刷新恢复用的 key（lexiang.conversation.v1）——否则首页对话切子站后丢失
+    lxfdSyncToMainConvKey();
+  }
+  // 首页 lxfd 对话 → 写进主对话持久化 key，让切子站(整页重载)后能恢复到同一段历史
+  function lxfdSyncToMainConvKey() {
+    try {
+      if (!thread) return;
+      const nodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai"));
+      const messages = [];
+      nodes.forEach(function (el) {
+        if (el.classList.contains("lxfd-msg-user")) {
+          const text = (el.textContent || "").trim();
+          if (text) messages.push({ role: "user", text: text, html: "" });
+        } else {
+          const body = el.querySelector(".lxfd-ai-body");
+          const html = body ? body.innerHTML : "";
+          const text = body ? (body.textContent || "").trim() : "";
+          if (/正在生成中|lx-generating|loading-line|typing-cursor|typing-text/.test(html)) return; // 跳过生成中
+          if (html || text) messages.push({ role: "ai", text: text, html: html });
+        }
+      });
+      while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
+      if (!messages.length) return;
+      localStorage.setItem("lexiang.conversation.v1", JSON.stringify({
+        convId: chatState.convId || null,
+        messages: messages.slice(-50),
+        ts: Date.now()
+      }));
+    } catch (_e) {}
+  }
+  function lxfdRenderHist() {
+    const store = lxfdLoadStore();
+    const hist = $("#lxfdHist");
+    if (!hist) return;
+    if (!store.length) { hist.innerHTML = '<div class="lxfd-hist-empty" style="padding:12px;color:#9a93a6;font-size:12px;">还没有历史对话</div>'; return; }
+    hist.innerHTML = store.map(c => '<a href="#" data-conv="' + escapeAttr(c.id) + '" class="' + (c.id === chatState.localId ? "active" : "") + '" title="' + escapeAttr(c.title) + '">' + escapeHtml(c.title) + '</a>').join("");
+  }
+  function lxfdLoadConv(id) {
+    const c = lxfdLoadStore().find(x => x.id === id);
+    if (!c) return;
+    lxfdPersistCurrent();
+    chatState.localId = c.id;
+    chatState.convId = c.convId || null;
+    chatState.conversationNonce += 1;
+    if (thread) { thread.innerHTML = c.threadHtml; thread.classList.add("show"); }
+    if (welcome) welcome.style.display = "none";
+    lxfdSetGalleryChatting(true);
+    if (convoName) { convoName.textContent = shortText(c.title, 15); convoName.title = c.title; }
+    turns = [];
+    renderTurnIndex("");
+    lxfdRenderHist();
+  }
+
+  // ── 能力 A：从主面板导入已有对话 ─────────────────────────────────────────
+  function lxfdMainGenerating() {
+    // 主面板是否仍在流式生成（state.sending 或最后一条 AI 消息里还挂着生成骨架）
+    return !!((window.__lxState && window.__lxState.sending) ||
+      document.querySelector(".lx-p0-messages > .lx-p0-message.ai .lx-generating"));
+  }
+  function lxfdNormalizeImportedAiHtml(html) {
+    const box = document.createElement("div");
+    box.innerHTML = String(html || "");
+    box.querySelectorAll("[data-lx-focus-reco]").forEach((node) => {
+      node.removeAttribute("data-lx-focus-reco");
+      node.setAttribute("data-lxfd-reveal-products", "1");
+    });
+    return box.innerHTML;
+  }
+  function lxfdDoImport() {
+    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    if (!msgs.length) return false;
+    thread.innerHTML = "";
+    turns = [];
+    msgs.forEach(function(el) {
+      const isUser = el.classList.contains("user");
+      if (isUser) {
+        const text = el.textContent.trim();
+        const turnId = "turn-" + Date.now() + "-" + turns.length;
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-user" id="' + turnId + '">' + escapeHtml(text) + '</div>');
+        turns.push({ id: turnId, text: text });
+      } else {
+        thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">' + lxfdNormalizeImportedAiHtml(el.innerHTML) + '</div></div>');
+      }
+    });
+    renderTurnIndex("");
+    chatState.convId = (window.__lxState && window.__lxState.convId) || null;
+    if (welcome) welcome.style.display = "none";
+    thread.classList.add("show");
+    chatState.started = true;
+    lxfdSetGalleryChatting(true);
+    if (quick) quick.style.display = "none";
+    const lastUser = thread.querySelector(".lxfd-msg-user:last-of-type");
+    const titleText = lastUser ? lastUser.textContent.trim() : "导入的对话";
+    if (convoName) { convoName.textContent = shortText(titleText, 15); convoName.title = titleText; }
+    lxfdNewLocalConv();
+    lxfdPersistCurrent();
+    lxfdRenderHist();
+    return true;
+  }
+  function lxfdImportFromMain() {
+    const msgs = document.querySelectorAll(".lx-p0-messages > .lx-p0-message");
+    if (!msgs.length) return false;
+    const generating = lxfdMainGenerating();
+    // 先把当前所有消息（含那条还在生成、内容只有一半的 AI）原样克隆过来——带一半过来
+    lxfdDoImport();
+    if (generating) {
+      // 主面板仍在流式输出：实时把最后一条 AI 消息镜像到全屏，主面板每蹦一段、全屏跟着更新，
+      // 直到生成结束——边进边继续往外输出，不再干等（流式 SSE 只发给主面板 DOM，这里做镜像）。
+      const aiNodes = Array.prototype.slice.call(document.querySelectorAll(".lx-p0-messages > .lx-p0-message.ai"));
+      const mainAi = aiNodes[aiNodes.length - 1];
+      const fsBodies = thread.querySelectorAll(".lxfd-msg-ai .lxfd-ai-body");
+      const fsAiBody = fsBodies[fsBodies.length - 1];
+      if (mainAi && fsAiBody) {
+        let tries = 0;
+        const iv = setInterval(function() {
+          tries++;
+          fsAiBody.innerHTML = lxfdNormalizeImportedAiHtml(mainAi.innerHTML);          // 镜像最新流式内容
+          thread.scrollTop = thread.scrollHeight;
+          if (!lxfdMainGenerating() || tries > 400) {     // 60s 上限兜底
+            clearInterval(iv);
+            fsAiBody.innerHTML = lxfdNormalizeImportedAiHtml(mainAi.innerHTML);          // 收尾再同步最终一帧
+            lxfdPersistCurrent();
+            lxfdRenderHist();
+          }
+        }, 150);
+      }
+    }
+    return true;
+  }
+  // ── 能力 C：把 lxfd 当前对话导出到主面板 ──────────────────────────────────
+  function lxfdExportToMain() {
+    if (!thread || !window.__lxBridge) return;
+    const messages = [];
+    const allNodes = Array.from(thread.querySelectorAll(".lxfd-msg-user, .lxfd-msg-ai"));
+    const lastAi = allNodes.filter(function(el) { return el.classList.contains("lxfd-msg-ai"); }).pop();
+    allNodes.forEach(function(el) {
+      if (el.classList.contains("lxfd-msg-user")) {
+        messages.push({ role: "user", text: el.textContent.trim(), html: "" });
+      } else {
+        const body = el.querySelector(".lxfd-ai-body");
+        let html;
+        if (body) {
+          // 剥掉 lxfd 专属商品区和免责；追问需要保留，并转成主对话可点击的链接样式。
+          // 商品已在右侧 reco 页正常展示，左侧对话保留文字答案 + 最新追问。
+          const clone = body.cloneNode(true);
+          clone.querySelectorAll(".lxfd-products, .lxfd-disclaimer").forEach(function(n) { n.remove(); });
+          if (el !== lastAi) clone.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach(function(n) { n.remove(); });
+          clone.querySelectorAll(".lxfd-followups").forEach(function(n) {
+            n.classList.remove("lxfd-followups");
+            n.classList.add("followups");
+            n.setAttribute("data-followups", "1");
+            n.querySelectorAll("button").forEach(function(btn) {
+              const text = (btn.textContent || "").replace(/→\s*$/, "").trim();
+              if (text) btn.setAttribute("data-quick-ask", text);
+            });
+          });
+          html = clone.innerHTML;
+        } else {
+          html = el.innerHTML;
+        }
+        messages.push({ role: "ai", text: "", html: html });
+      }
+    });
+    if (!messages.length) return;
+    window.__lxBridge.importConversation(messages, chatState.convId);
+  }
+  function parseJson(data) {
+    try { return JSON.parse(data); } catch (_) { return {}; }
+  }
+  function money(value) {
+    const n = Number(value || 0);
+    return n ? "¥" + n.toLocaleString("zh-CN") : "咨询价";
+  }
+  function imgUrl(src) {
+    const value = String(src || "").trim();
+    if (!value) return "/assets/product-placeholder.svg";
+    return value.startsWith("http") || value.startsWith("/") ? value : "/" + value;
+  }
+  function mdLite(text) {
+    const src = String(text || "").replace(/<br\s*\/?>/gi, "\n").replace(/[ \t]*_\._[ \t]*/g, " ");
+    let html = escapeHtml(src);
+    html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/(?:^|\n)####?\s*(.+)/g, "\n<h4>$1</h4>");
+    html = html.replace(/(?:^|\n)-\s+(.+)/g, "\n<ul><li>$1</li></ul>");
+    html = html.replace(/<\/ul>\s*<ul>/g, "");
+    return html.split(/\n{2,}/).map((block) => {
+      const clean = block.trim();
+      if (!clean) return "";
+      if (/^<(h4|ul)/.test(clean)) return clean;
+      return `<p>${clean.replace(/\n/g, "<br>")}</p>`;
+    }).join("");
+  }
+  async function readSse(response, handlers) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split(/\n\n/);
+      buffer = blocks.pop() || "";
+      blocks.forEach((block) => {
+        let event = "message";
+        const data = [];
+        block.split(/\n/).forEach((line) => {
+          if (line.startsWith("event:")) event = line.slice(6).trim();
+          if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+        });
+        const payload = data.join("\n");
+        if (payload && handlers[event]) handlers[event](payload);
+      });
+    }
+    if (buffer.trim()) {
+      let event = "message";
+      const data = [];
+      buffer.split(/\n/).forEach((line) => {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+      });
+      const payload = data.join("\n");
+      if (payload && handlers[event]) handlers[event](payload);
+    }
+  }
+  function wide() { return window.innerWidth >= 1280; }
+  function finishMotionClass(name, delay = 520) {
+    window.setTimeout(() => document.body.classList.remove(name), reduceMotion ? 0 : delay);
+  }
+  function runMotionPanel(layer) {
+    if (!layer) return;
+    const runCssMotion = () => {
+      if (forceFullscreenMotion) {
+        layer.getBoundingClientRect();
+        requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("run")));
+      } else {
+        requestAnimationFrame(() => layer.classList.add("run"));
+      }
+    };
+    // Windows 11 + Chromium 149 may skip the left/top/size transition when the
+    // fullscreen layer is inserted and the body class changes in the same frame.
+    // Drive that environment with WAAPI, while leaving the existing CSS path
+    // untouched for systems where the original animation already works.
+    if (!forceFullscreenMotion || typeof layer.animate !== "function") {
+      runCssMotion();
+      return;
+    }
+    const isExit = layer.classList.contains("lxfd-motion-panel-exit");
+    const ease = "cubic-bezier(.22,.61,.36,1)";
+    const start = layer.getBoundingClientRect();
+    const toPx = (value, fallback) => {
+      const n = parseFloat(String(value || ""));
+      return Number.isFinite(n) ? n : fallback;
+    };
+    const target = isExit
+      ? {
+          left: toPx(layer.style.getPropertyValue("--lxfd-target-left"), start.left),
+          top: toPx(layer.style.getPropertyValue("--lxfd-target-top"), start.top),
+          width: toPx(layer.style.getPropertyValue("--lxfd-target-width"), start.width),
+          height: toPx(layer.style.getPropertyValue("--lxfd-target-height"), start.height),
+          radius: 8,
+          opacity: 0,
+      }
+      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight, radius: 0, opacity: 0 };
+    if (isExit) {
+      const scaleX = target.width > 0 && start.width > 0 ? target.width / start.width : 1;
+      const scaleY = target.height > 0 && start.height > 0 ? target.height / start.height : 1;
+      const moveX = target.left - start.left;
+      const moveY = target.top - start.top;
+      layer.style.transformOrigin = "top left";
+      layer.style.backfaceVisibility = "hidden";
+      layer.style.transform = "translate3d(0,0,0) scale(1,1)";
+      const first = {
+        transform: "translate3d(0,0,0) scale(1,1)",
+        borderRadius: "0px",
+        opacity: "1",
+      };
+      const last = {
+        transform: `translate3d(${moveX}px,${moveY}px,0) scale(${scaleX},${scaleY})`,
+        borderRadius: `${target.radius}px`,
+        opacity: `${target.opacity}`,
+      };
+      const anim = layer.animate([
+        first,
+        { ...first, offset: 0.08 },
+        { ...last, opacity: "1", offset: 0.72 },
+        last
+      ], { duration: 720, easing: ease, fill: "forwards" });
+      anim.addEventListener("finish", () => {
+        layer.style.left = `${target.left}px`;
+        layer.style.top = `${target.top}px`;
+        layer.style.width = `${target.width}px`;
+        layer.style.height = `${target.height}px`;
+        layer.style.borderRadius = `${target.radius}px`;
+        layer.style.opacity = `${target.opacity}`;
+        layer.style.transform = "translate3d(0,0,0) scale(1,1)";
+        layer.classList.add("run");
+      }, { once: true });
+      return;
+    }
+    const first = {
+      left: `${start.left}px`,
+      top: `${start.top}px`,
+      width: `${start.width}px`,
+      height: `${start.height}px`,
+      borderRadius: isExit ? "0px" : "8px",
+      opacity: "1",
+    };
+    const hold = { ...first, offset: isExit ? 0.72 : 0.67 };
+    const last = {
+      left: `${target.left}px`,
+      top: `${target.top}px`,
+      width: `${target.width}px`,
+      height: `${target.height}px`,
+      borderRadius: `${target.radius}px`,
+      opacity: `${target.opacity}`,
+    };
+    const anim = layer.animate([first, hold, last], { duration: 720, easing: ease, fill: "forwards" });
+    anim.addEventListener("finish", () => {
+      Object.assign(layer.style, last);
+      layer.classList.add("run");
+    }, { once: true });
+  }
+  function createPanelStretchLayer() {
+    const source = document.querySelector(".assistant-panel");
+    if (!source || reduceMotion) return null;
+    const rect = source.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel";
+    layer.setAttribute("aria-hidden", "true");
+    layer.style.left = `${rect.left}px`;
+    layer.style.top = `${rect.top}px`;
+    layer.style.width = `${rect.width}px`;
+    layer.style.height = `${rect.height}px`;
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    runMotionPanel(layer);
+    return layer;
+  }
+  function getSplitPanelRect() {
+    const wasFullscreen = document.body.classList.contains("assistant-fullscreen");
+    if (wasFullscreen) setFullscreen(false);
+    const source = document.querySelector(".assistant-panel");
+    const rect = source?.getBoundingClientRect();
+    if (wasFullscreen) setFullscreen(true);
+    if (!rect || !rect.width || !rect.height) return null;
+    return rect;
+  }
+  function createFullscreenShrinkLayer(targetRect) {
+    const source = document.querySelector(".lxfd");
+    if (!source || !targetRect || reduceMotion) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel lxfd-motion-panel-exit";
+    layer.setAttribute("aria-hidden", "true");
+    layer.style.setProperty("--lxfd-target-left", `${targetRect.left}px`);
+    layer.style.setProperty("--lxfd-target-top", `${targetRect.top}px`);
+    layer.style.setProperty("--lxfd-target-width", `${targetRect.width}px`);
+    layer.style.setProperty("--lxfd-target-height", `${targetRect.height}px`);
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    runMotionPanel(layer);
+    return layer;
+  }
+  function createFullscreenExitLayer() {
+    const source = document.querySelector(".lxfd");
+    if (!source || reduceMotion) return null;
+    const layer = document.createElement("div");
+    layer.className = "lxfd-motion-panel lxfd-motion-panel-exit";
+    layer.setAttribute("aria-hidden", "true");
+    const clone = source.cloneNode(true);
+    clone.classList.add("lxfd-motion-clone");
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    layer.appendChild(clone);
+    document.body.appendChild(layer);
+    return layer;
+  }
+  function setFullscreenExitLayerTarget(layer, targetRect) {
+    if (!layer || !targetRect || !targetRect.width || !targetRect.height) return false;
+    layer.style.setProperty("--lxfd-target-left", `${targetRect.left}px`);
+    layer.style.setProperty("--lxfd-target-top", `${targetRect.top}px`);
+    layer.style.setProperty("--lxfd-target-width", `${targetRect.width}px`);
+    layer.style.setProperty("--lxfd-target-height", `${targetRect.height}px`);
+    runMotionPanel(layer);
+    return true;
+  }
+  function normalizeFullscreenEntryState() {
+    document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+    document.body.classList.remove("lxfd-exiting", "lxfd-split-returning");
+    if (document.body.classList.contains("lx-home-split")) {
+      document.body.dataset.page = "home";
+      const content = document.querySelector(".content");
+      if (content) content.setAttribute("data-view", "home");
+      document.body.classList.remove("lx-home-split");
+    }
+    stage?.classList.remove("shift");
+    openRail(false);
+  }
+  function enterFullscreen() {
+    normalizeFullscreenEntryState();
+    lxfdApplySite();
+    if (thread && !thread.children.length) lxfdImportFromMain();
+    const motionLayer = createPanelStretchLayer();
+    document.body.classList.remove("lxfd-exiting");
+    document.body.classList.remove("lxfd-split-returning");
+    document.body.classList.add("lxfd-entering");
+    document.body.classList.add("lxfd-split-entered");
+    setFullscreen(true);
+    window.setTimeout(() => motionLayer?.remove(), reduceMotion ? 0 : 760);
+    finishMotionClass("lxfd-entering", 760);
+  }
+  function exitFullscreen(afterExit) {
+    const onAfterExit = typeof afterExit === "function" ? afterExit : null;
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) {
+      onAfterExit?.();
+      return;
+    }
+    const targetRect = getSplitPanelRect();
+    const motionLayer = createFullscreenShrinkLayer(targetRect);
+    document.body.classList.remove("lxfd-entering");
+    document.body.classList.add("lxfd-exiting");
+    setFullscreen(false);
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
+    document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    if (onAfterExit) requestAnimationFrame(onAfterExit);
+    window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
+    window.setTimeout(() => {
+      document.body.classList.remove("lxfd-exiting");
+      document.body.classList.remove("lxfd-split-returning");
+      motionLayer?.remove();
+    }, reduceMotion ? 0 : 760);
+  }
+  function exitFullscreenWithReveal(afterReveal) {
+    const onAfterReveal = typeof afterReveal === "function" ? afterReveal : null;
+    if (!document.body.classList.contains("assistant-fullscreen") && !document.body.classList.contains("lx-auto-fs")) {
+      onAfterReveal?.();
+      return;
+    }
+    const motionLayer = createFullscreenExitLayer();
+    document.body.classList.remove("lxfd-entering");
+    document.body.classList.add("lxfd-exiting");
+    setFullscreen(false);
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
+    document.body.dataset.state = thread?.classList.contains("show") ? "chat" : "default";
+    onAfterReveal?.();
+    requestAnimationFrame(() => {
+      const rect = document.querySelector(".assistant-panel")?.getBoundingClientRect();
+      if (!setFullscreenExitLayerTarget(motionLayer, rect)) motionLayer?.remove();
+    });
+    window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
+    window.setTimeout(() => {
+      document.body.classList.remove("lxfd-exiting");
+      document.body.classList.remove("lxfd-split-returning");
+      motionLayer?.remove();
+    }, reduceMotion ? 0 : 760);
+  }
+  window.__lxfdExitWithReveal = exitFullscreenWithReveal;
+  function setFullscreen(on) {
+    document.body.classList.toggle("assistant-fullscreen", !!on);
+    document.body.classList.toggle("lx-auto-fs", !!on);
+    if (!on) document.body.classList.remove("lxfd-split-entered");
+    if (on) document.body.dataset.state = "chat";
+    if (on) {
+      const hasThread = !!(thread && (thread.classList.contains("show") || thread.children.length));
+      if (hasThread || chatState.started) {
+        if (welcome) welcome.style.display = "none";
+        if (thread) thread.classList.add("show");
+        if (quick) quick.style.display = "none";
+        lxfdSetGalleryChatting(true);
+      }
+      requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); ta?.focus(); });
+    }
+  }
+  function setNav(open) {
+    navCluster?.classList.toggle("open", open);
+    convoPill?.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  function openRail(open) {
+    rail?.classList.toggle("open", open);
+    railFab?.classList.toggle("hide", open);
+    railNewFab?.classList.toggle("hide", open);
+    stage?.classList.toggle("shift", open && wide());
+    scrim?.classList.remove("show");
+  }
+  function setRailManual(open) {
+    railManuallyCollapsed = !open;
+    document.body.classList.toggle("lxfd-rail-user-open", !!open);
+    openRail(open);
+  }
+  function syncRailForViewport() {
+    openRail(wide() && !railManuallyCollapsed);
+  }
+  function fit() {
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 148) + "px";
+  }
+  function syncSend() { send?.classList.toggle("idle", !ta?.value.trim()); }
+  function setRotatingTitle(word) { if (helloTitle) helloTitle.innerHTML = `<span>联想乐享帮你</span><span class="rotating-word">${escapeHtml(word)}</span>`; }
+  async function rotateTitleWordForWindows(word) {
+    if (helloAnimating || !word || typeof word.animate !== "function") return;
+    helloAnimating = true;
+    const ease = "cubic-bezier(.22,.61,.36,1)";
+    try {
+      word.style.willChange = "opacity, transform, filter";
+      await word.animate([
+        { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" },
+        { opacity: 0, transform: "translate3d(0,-18px,0)", filter: "blur(5px)" }
+      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      helloIndex = (helloIndex + 1) % helloWords.length;
+      word.textContent = helloWords[helloIndex];
+      await word.animate([
+        { opacity: 0, transform: "translate3d(0,18px,0)", filter: "blur(5px)" },
+        { opacity: 1, transform: "translate3d(0,0,0)", filter: "blur(0px)" }
+      ], { duration: 340, easing: ease, fill: "forwards" }).finished;
+      word.style.opacity = "";
+      word.style.transform = "";
+      word.style.filter = "";
+      word.style.willChange = "";
+    } catch (_) {
+      word.style.opacity = "";
+      word.style.transform = "";
+      word.style.filter = "";
+      word.style.willChange = "";
+    } finally {
+      helloAnimating = false;
+    }
+  }
+  function rotateTitleWord() {
+    if (!helloTitle || welcome.style.display === "none") return;
+    const word = helloTitle.querySelector(".rotating-word");
+    if (!word) { setRotatingTitle(helloWords[helloIndex]); return; }
+    if (forceFullscreenMotion && typeof word.animate === "function") {
+      rotateTitleWordForWindows(word);
+      return;
+    }
+    word.classList.add("out");
+    window.setTimeout(() => {
+      helloIndex = (helloIndex + 1) % helloWords.length;
+      word.textContent = helloWords[helloIndex];
+      word.classList.remove("out");
+      word.classList.add("in");
+      requestAnimationFrame(() => word.classList.remove("in"));
+    }, reduceMotion ? 0 : 340);
+  }
+  function startRotatingTitle() {
+    setRotatingTitle(helloWords[helloIndex]);
+    if (reduceMotion) return;
+    if (helloTimer) window.clearTimeout(helloTimer);
+    if (!forceFullscreenMotion) {
+      helloTimer = window.setInterval(rotateTitleWord, 2000);
+      return;
+    }
+    const tick = () => {
+      rotateTitleWord();
+      helloTimer = window.setTimeout(tick, 2000);
+    };
+    helloTimer = window.setTimeout(tick, 2000);
+  }
+  function renderTurnIndex(activeId) {
+    turnIndex?.classList.toggle("show", turns.length > 0);
+    if (turnDots) turnDots.innerHTML = turns.map(t => `<i class="${t.id === activeId ? "active" : ""}"></i>`).join("");
+    if (turnList) turnList.innerHTML = turns.map(t => `<button type="button" class="${t.id === activeId ? "active" : ""}" data-target="${escapeAttr(t.id)}" title="${escapeAttr(t.text)}">${escapeHtml(shortText(t.text, 18))}</button>`).join("");
+  }
+  function lxfdEnterHuman() {
+    chatState.human = true;
+    if (thread) {
+      thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body"><b>专属客服小联</b> 已为您接入人工服务，下方已切换为客服快捷入口。订单、售后、发票问题可直接发我。（演示：由乐享 AI 以专属客服身份接待）</div></div>');
+      thread.scrollTop = thread.scrollHeight;
+    }
+    if (quick) { quick.innerHTML = ["退出人工", "我的订单", "售后服务", "评价服务", "需求清单"].map(t => '<button type="button">' + escapeHtml(t) + '</button>').join(""); quick.style.display = ""; }
+    if (ta) { if (!ta.dataset.origPh) ta.dataset.origPh = ta.placeholder; ta.placeholder = "向专属客服小联提问..."; }
+  }
+
+  function lxfdExitHuman() {
+    chatState.human = false;
+    if (thread) {
+      thread.insertAdjacentHTML("beforeend", '<div class="lxfd-msg-ai"><div class="lxfd-ai-body">已退出人工服务，继续由联想乐享 AI 为您服务。</div></div>');
+      thread.scrollTop = thread.scrollHeight;
+    }
+    lxfdApplySite();
+    // 退出客服后若仍在聊天态则继续隐藏 actionbar
+    if (chatState.started && quick) quick.style.display = "none";
+    if (ta && ta.dataset.origPh) ta.placeholder = ta.dataset.origPh;
+  }
+
+  function lxfdSetGalleryChatting(on) {
+    stage?.classList.toggle("is-chatting", !!on);
+  }
+
+  function resetConversation(collapseRail) {
+    lxfdPersistCurrent();
+    chatState.conversationNonce += 1;
+    chatState.convId = null;
+    chatState.localId = null;
+    chatState.sending = false;
+    chatState.human = false;
+    chatState.started = false; // 新建对话回到欢迎态，恢复 actionbar
+    if (thread) { thread.innerHTML = ""; thread.classList.remove("show"); }
+    turns = [];
+    renderTurnIndex("");
+    if (welcome) welcome.style.display = "flex";
+    lxfdSetGalleryChatting(false);
+    if (convoName) { convoName.textContent = "新对话"; convoName.title = "新对话"; }
+    if (ta) { if (ta.dataset.origPh) ta.placeholder = ta.dataset.origPh; ta.value = ""; fit(); syncSend(); }
+    if (collapseRail && !wide()) openRail(false);
+    // 恢复 actionbar（lxfdApplySite 会重渲内容）
+    if (quick) { quick.style.display = ""; lxfdApplySite(); }
+    ta?.focus();
+    lxfdRenderHist();
+  }
+  function renderLxfdProducts(products) {
+    if (!Array.isArray(products) || !products.length) return "";
+    const first = products[0] || {};
+    const recoId = "lxfd-reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+    window.__lxRecoPayloads = window.__lxRecoPayloads || {};
+    window.__lxRecoPayloads[recoId] = products;
+    const desc = products.length === 1
+      ? `${escapeHtml(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
+      : `已为你筛选 ${products.length} 款候选商品`;
+    return `<button class="answer-cta lx-answer-reco" type="button" data-lxfd-reveal-products="1" data-lxfd-reco-id="${escapeHtml(recoId)}">
+      <span class="answer-cta-copy">
+        <span class="answer-cta-title">查看推荐商品</span>
+        <span class="answer-cta-desc">${desc}</span>
+      </span>
+      <span class="answer-cta-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+      </span>
+    </button>`;
+  }
+
+  function lxfdPageCtaMeta(op) {
+    const key = String(op || "");
+    const map = {
+      edu: { feature: "edu", title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" },
+      open_edu_zone: { feature: "edu", title: "查看教育特惠专区", desc: "已为你打开认证权益和专享商品" },
+      solution: { feature: "solution", title: "查看方案中心", desc: "已为你打开行业解决方案" },
+      open_solution: { feature: "solution", title: "查看方案中心", desc: "已为你打开行业解决方案" },
+      stores: { feature: "stores", title: "查看附近门店", desc: "已为你打开门店查询页面" },
+      open_stores: { feature: "stores", title: "查看附近门店", desc: "已为你打开门店查询页面" },
+      member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
+      open_member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
+      coupon: { feature: "coupon", title: "查看优惠与活动", desc: "已在右侧打开可领取权益" },
+      open_coupon: { feature: "coupon", title: "查看优惠与活动", desc: "已在右侧打开可领取权益" },
+      cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
+      open_cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
+      orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" },
+      open_orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" }
+    };
+    return map[key] || null;
+  }
+
+  function renderLxfdPageCta(meta) {
+    if (!meta) return "";
+    return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}">
+      <span class="answer-cta-copy">
+        <span class="answer-cta-title">${escapeHtml(meta.title || "查看页面")}</span>
+        <span class="answer-cta-desc">${escapeHtml(meta.desc || "已在右侧为你打开相关内容")}</span>
+      </span>
+      <span class="answer-cta-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+      </span>
+    </button>`;
+  }
+
+  function renderLxfdLeadCta() {
+    return '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>';
+  }
+
+  function lxfdRevealFeature(feature) {
+    if (document.body.dataset.page === "home" || !document.body.dataset.page) {
+      document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+      document.body.classList.add("lx-home-split");
+      document.body.dataset.page = "personal";
+      document.body.dataset.state = "chat";
+    }
+    if (typeof window.__lxOpenFeature === "function") window.__lxOpenFeature(feature);
+  }
+
+  function appendLxfdSuggestions(ai, suggestions) {
+    const list = Array.isArray(suggestions) ? suggestions.slice(0, 3) : [];
+    if (!list.length) return;
+    thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => {
+      if (!ai.contains(el)) el.remove();
+    });
+    ai.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
+    const host = ai.querySelector(".lxfd-ai-body") || ai;
+    host.insertAdjacentHTML("beforeend", `<div class="lxfd-followups">${list.map((sug) => `<button type="button">${escapeHtml(sug)}</button>`).join("")}</div>`);
+  }
+
+  function lxfdClaimTicketSvg() {
+    return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4 2 2 0 0 0 0-4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 2"/></svg>';
+  }
+
+  function lxfdClaimCheckSvg(width) {
+    return '<svg' + (width ? ' class="ck"' : '') + ' viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 5 5L20 6" stroke="currentColor" stroke-width="' + (width || "2.6") + '" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function lxfdClaimInfoFromCard(card) {
+    const productName = (card && card.dataset && card.dataset.claimProduct) || (card && card.querySelector(".t2") && card.querySelector(".t2").textContent.trim()) || "商品";
+    const chips = Array.prototype.slice.call(card ? card.querySelectorAll(".chip") : []);
+    const claimed = chips.map(function(chip) {
+      const amount = Number((chip.dataset && chip.dataset.claimAmount) || String((chip.querySelector(".cv") || {}).textContent || "").replace(/[^0-9.]/g, "")) || 0;
+      const label = (chip.dataset && chip.dataset.claimName) || String(chip.textContent || "").replace(/¥\s?[\d,]+(?:\.\d+)?/g, "").trim() || "优惠券";
+      return { label: label, amount: amount };
+    });
+    const domTotal = String((card && card.querySelector(".done-amt") || {}).textContent || "").replace(/[^0-9.]/g, "");
+    const totalSaved = Number((card && card.dataset && card.dataset.claimTotal) || domTotal) || claimed.reduce(function(sum, item) { return sum + Math.abs(Number(item.amount || 0)); }, 0);
+    return { productName: productName, claimed: claimed, totalSaved: totalSaved };
+  }
+
+  function lxfdRenderClaimedStaticCard(info) {
+    const offers = Array.isArray(info.claimed) ? info.claimed : [];
+    const chips = offers.map(function(coupon) {
+      const amount = Math.abs(Number(coupon.amount || 0));
+      return '<span class="chip">' + lxfdClaimCheckSvg("3.2") + escapeHtml(coupon.label || "优惠券") + ' <span class="cv">¥' + amount.toLocaleString("zh-CN") + '</span></span>';
+    }).join("");
+    return '<div class="gc lx-claimed-skin" data-v="I" aria-disabled="true">'
+      + '<div class="irow"><span class="ic">' + lxfdClaimTicketSvg() + '</span>'
+      + '<span class="mid"><div class="t1">已领取 ' + offers.length + ' 项优惠 <span class="doneflag df">' + lxfdClaimCheckSvg("2.6") + '已领取</span></div>'
+      + '<div class="t2">' + escapeHtml(info.productName || "商品") + ' · 已收进卡包</div></span>'
+      + '<span class="sa">已省 ¥' + Math.abs(Number(info.totalSaved || 0)).toLocaleString("zh-CN") + '</span></div>'
+      + '<div class="chips">' + chips + '</div></div>';
+  }
+
+  function lxfdArchiveClaimProgressCards(root) {
+    (root || document).querySelectorAll('.cl[data-v="D"].lx-claim-skin').forEach(function(card) {
+      card.outerHTML = lxfdRenderClaimedStaticCard(lxfdClaimInfoFromCard(card));
+    });
+  }
+
+  function lxfdTypeNodes(sourceParent, targetParent, speed, done) {
+    const cursor = document.createElement("span");
+    cursor.className = "typing-cursor";
+    const scroll = () => { if (thread) thread.scrollTop = thread.scrollHeight; };
+    const moveCursor = (parent) => { cursor.remove(); parent.appendChild(cursor); scroll(); };
+    const typeTextNode = (text, parent, next) => {
+      const textNode = document.createTextNode("");
+      let index = 0;
+      parent.appendChild(textNode);
+      moveCursor(parent);
+      const tick = () => {
+        textNode.nodeValue = String(text).slice(0, index);
+        index += 1;
+        if (index <= String(text).length) window.setTimeout(tick, speed);
+        else next();
+      };
+      tick();
+    };
+    const typeChildList = (children, parent, next) => {
+      let index = 0;
+      const step = () => {
+        if (index >= children.length) { next(); return; }
+        typeNode(children[index], parent, () => { index += 1; step(); });
+      };
+      step();
+    };
+    const typeNode = (node, parent, next) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (!node.nodeValue) { next(); return; }
+        typeTextNode(node.nodeValue, parent, next);
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) { next(); return; }
+      const clone = node.cloneNode(false);
+      parent.appendChild(clone);
+      moveCursor(clone);
+      typeChildList(Array.from(node.childNodes), clone, next);
+    };
+    targetParent.innerHTML = "";
+    typeChildList(Array.from(sourceParent.childNodes), targetParent, () => {
+      cursor.remove();
+      scroll();
+      if (done) done();
+    });
+  }
+
+  function lxfdAnimateFinal(ai, rawText) {
+    const body = ai?.querySelector(".lxfd-ai-body");
+    if (!body) return Promise.resolve();
+    const html = mdLite(String(rawText || "").trim() || "我先为你整理好了相关内容。");
+    ai.classList.add("lx-chat-skin");
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      body.innerHTML = html;
+      return Promise.resolve();
+    }
+    const loadingStarted = ai._loadingStarted || Date.now();
+    if (!body.querySelector(".loading-line")) {
+      body.innerHTML = '<div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div>';
+    } else {
+      const typing = body.querySelector(".loading-line .typing-text");
+      if (typing) typing.textContent = "联想乐享正在生成中...";
+    }
+    return new Promise((resolve) => {
+      const waitTime = Math.max(0, 5000 - (Date.now() - loadingStarted));
+      window.setTimeout(() => {
+        const source = document.createElement("div");
+        source.innerHTML = html;
+        lxfdTypeNodes(source, body, 18, () => {
+          window.setTimeout(() => {
+            body.innerHTML = html;
+            if (thread) thread.scrollTop = thread.scrollHeight;
+            resolve();
+          }, 140);
+        });
+      }, waitTime);
+    });
+  }
+
+  function lxfdFetchFollowups(question, answer) {
+    const q = String(question || "").trim();
+    const a = String(answer || "").trim().slice(0, 300);
+    if (!q || !a) return Promise.resolve([]);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 2200);
+    return fetch("/api/leai/followups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q, a }),
+      signal: controller.signal
+    }).then((r) => r.json()).then((d) => {
+      window.clearTimeout(timer);
+      return Array.isArray(d && d.questions) ? d.questions.filter(Boolean).slice(0, 3) : [];
+    }).catch(() => {
+      window.clearTimeout(timer);
+      return [];
+    });
+  }
+
+  async function submit(text) {
+    const value = String(text || "").trim();
+    if (!value || chatState.sending) return;
+    // 本轮桥接状态（全屏→分屏）
+    let turnProducts = null;
+    let turnTitle = "";
+    let turnGrouped = false;
+    let turnAction = null; // 本轮意图操作（action 事件带来的 op）
+    let pendingExtras = "";
+    let pendingFollowups = [];
+    let finalized = false;
+    let finalizePromise = null;
+    lxfdArchiveClaimProgressCards(thread);
+    thread?.querySelectorAll(".lxfd-followups, .followups, .lx-p0-suggest[data-followups]").forEach((el) => el.remove());
+    // 开始聊天后隐藏 actionbar（对齐官方；客服模式下 enterHuman 会恢复）
+    if (!chatState.started && !chatState.human) {
+      chatState.started = true;
+      if (quick) quick.style.display = "none";
+    }
+    setFullscreen(true);
+    lxfdSetGalleryChatting(true);
+    if (welcome) welcome.style.display = "none";
+    thread?.classList.add("show");
+    if (convoName) { convoName.textContent = shortText(value, 15); convoName.title = value; }
+    const turnId = "turn-" + Date.now() + "-" + turns.length;
+    const user = document.createElement("div");
+    user.className = "lxfd-msg-user";
+    user.id = turnId;
+    user.textContent = value;
+    thread?.appendChild(user);
+    turns.push({ id: turnId, text: value });
+    renderTurnIndex(turnId);
+    if (ta) { ta.value = ""; fit(); syncSend(); }
+    // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
+    try { lxfdPersistCurrent(); } catch (_e) {}
+
+    // ── lxfd 意图路由分流 ──────────────────────────────────────────────
+    // 1. 本地快路径
+    const _lxfdLocalCtrl = (function() {
+      const _t = value;
+      if (/关闭?(所有|全部|这些|当前)?(标签|页面|分页|tab|页签)|清空(标签|页面|分页|页签)|(把|将)?(所有|全部)(标签|页面).{0,4}关(掉|闭)?/.test(_t)) return { op: "close_all_tabs", target: "", msg: "好的，已为你关闭所有页面标签。" };
+      if (/^(进入|开启|切换?到?|变成?|开|恢复|回到?)?全屏(模式|对话|查看)?$|^(放大|沉浸|专注)(模式|对话|查看)?$/.test(_t)) return { op: "enter_fullscreen", target: "", msg: "好的，已切换到全屏对话模式。" };
+      if (/^(退出|关闭|取消|结束)(全屏|沉浸|专注)(模式|对话|查看)?$|^(分屏|窗口|缩小)(模式|对话|查看)?$|^恢复(分屏|窗口)(模式|对话|查看)?$/.test(_t)) return { op: "exit_fullscreen", target: "", msg: "好的，已退出全屏模式。" };
+      if (/^(回|返回|去|到)(首页|主页)$/.test(_t)) return { op: "go_home", target: "", msg: "好的，已为你回到首页。" };
+      if (/^(打开|查看|看看?)(我的)?购物车$/.test(_t)) return { op: "open_cart", target: "", msg: "好的，已为你打开购物车。" };
+      if (/^(打开|查看|看看?)(我的)?订单(列表|页面|中心)?$/.test(_t)) return { op: "open_orders", target: "", msg: "好的，已为你打开订单页面。" };
+      // 高频导航单词本地秒判（与主面板对齐，「门店」「会员」等短词不扔小模型赌）
+      if (/^\s*(打开|查看?|看看?|去|进)?(附近)?(门店|实体店|线下店|体验店|专卖店|服务网点|服务中心)(查询|页面|列表)?\s*$/.test(_t)) return { op: "open_stores", target: "", msg: "好的，已为你打开门店查询。" };
+      if (/^\s*(打开|查看?|看看?|去|进)?(我的)?(会员(中心|页面|权益)?|会员卡|乐豆|积分(中心|商城)?)\s*$/.test(_t)) return { op: "open_member", target: "", msg: "好的，已为你打开会员中心。" };
+      if (/^\s*(打开|查看?|看看?|领|去|进)?(我的)?(优惠券|领券|券中心|卡券)(中心|页面)?\s*$/.test(_t)) return { op: "open_coupon", target: "", msg: "好的，已为你打开优惠券中心。" };
+      if (/^\s*(打开|查看?|看看?|去|进)?(教育(特惠|优惠|认证)?(专区|页面)?|学生(优惠|特惠)(专区)?)\s*$/.test(_t)) return { op: "open_edu_zone", target: "", msg: "好的，已为你打开教育特惠专区。" };
+      if (/^\s*(打开|查看?|看看?|去|进)?(商品)?对比(页|页面|清单)?\s*$/.test(_t)) return { op: "open_compare", target: "", msg: "好的，已为你打开商品对比。" };
+      if (/对比|比一?比|比较|哪个好|哪款好/.test(_t)) {
+        const _nths = (window.__lxParseOrdinals || (() => []))(_t);
+        if (_nths.length >= 2) return { op: "compare_nth", target: _nths.join(","), msg: `好的，正在为你对比第 ${_nths.join("、")} 个商品。` };
+      }
+      const _ord = (window.__lxParseOrdinal || (() => null))(_t);
+      if (_ord && /第|个|款|台|件/.test(_t) && /(下单|购买|买|加购|加入购物车|打开|看)/.test(_t)) {
+        const _act = /加购|加入购物车/.test(_t) ? "cart" : /(下单|购买|要买|买它|买这|买第|买下)/.test(_t) ? "buy" : /打开|查看|看看/.test(_t) ? "open" : "buy";
+        const _actWord = _act === "cart" ? "加入购物车" : _act === "open" ? "打开" : "下单";
+        return { op: "buy_nth", target: `${_ord}|${_act}`, msg: `好的，正在为你${_actWord}第 ${_ord} 个商品。` };
+      }
+      if (/^(?!.*(不下单|别下单|先不|不要|不买|取消|暂不))\s*((不错|可以|好的?|行|嗯|可|就|这[个款台件本]?|那[个款台件本]?|它|对|我?要|帮我|给我|我?想)[，,、。\s]*)*(下单|购买|下个单|买(这[个款台件本]|它|那[个款台件本])?)(吧|呀|啊|喽|咯)?(?:[，,、。\s].*?(优惠|券|领|结算).*)?$/.test(_t)) return { op: "buy_current", target: "", msg: "好的，正在为你下单当前商品。" };
+      return null;
+    })();
+    if (_lxfdLocalCtrl) {
+      const _lxfdCtrlAi = document.createElement("div");
+      _lxfdCtrlAi.className = "lxfd-msg-ai";
+      const _lxfdCtrlBody = document.createElement("div");
+      _lxfdCtrlBody.className = "lxfd-ai-body";
+      const _lxfdCtrlText = document.createElement("div");
+      _lxfdCtrlText.className = "lxfd-ai-text";
+      _lxfdCtrlText.textContent = _lxfdLocalCtrl.msg;
+      _lxfdCtrlBody.appendChild(_lxfdCtrlText);
+      _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
+      thread?.appendChild(_lxfdCtrlAi);
+      _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      // 执行操作：通过 __lxExecControl 桥（全屏态 lxExecControl 不在此作用域）
+      const _execOp = _lxfdLocalCtrl.op;
+      const _execTarget = _lxfdLocalCtrl.target;
+      const _execPageMeta = lxfdPageCtaMeta(_execOp);
+      if (_execPageMeta) {
+        _lxfdCtrlBody.insertAdjacentHTML("beforeend", renderLxfdPageCta(_execPageMeta));
+        lxfdExportToMain();
+        exitFullscreenWithReveal(() => {
+          lxfdRevealFeature(_execPageMeta.feature);
+        });
+        return;
+      }
+      if (_execOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
+      else if (_execOp === "exit_fullscreen") {
+        if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
+      } else if (typeof window.__lxBridge?.execControl === "function") {
+        window.__lxBridge.execControl(_execOp, _execTarget);
+      }
+      return;
+    }
+
+    // 2. 远程意图路由器
+    let _lxfdIntentResult = null;
+    try {
+      const _lxfdIntentAbort = new AbortController();
+      const _lxfdIntentTimer = setTimeout(() => _lxfdIntentAbort.abort(), 4500);
+      const _lxfdIntentRes = await fetch("/api/leai/intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: value }),
+        signal: _lxfdIntentAbort.signal
+      });
+      clearTimeout(_lxfdIntentTimer);
+      if (_lxfdIntentRes.ok) _lxfdIntentResult = await _lxfdIntentRes.json();
+    } catch (_lxfdIntentErr) { /* 超时/失败 → 降级 chat */ }
+    if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
+      const _lxfdCtrlAi = document.createElement("div");
+      _lxfdCtrlAi.className = "lxfd-msg-ai";
+      const _lxfdCtrlBody = document.createElement("div");
+      _lxfdCtrlBody.className = "lxfd-ai-body";
+      const _lxfdCtrlText = document.createElement("div");
+      _lxfdCtrlText.className = "lxfd-ai-text";
+      const _lxfdOpNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_lxfdIntentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式（当前已在全屏）", exit_fullscreen: "退出了全屏模式" };
+      _lxfdCtrlText.textContent = `好的，已为你${_lxfdOpNames[_lxfdIntentResult.op] || "执行了操作"}。`;
+      _lxfdCtrlBody.appendChild(_lxfdCtrlText);
+      _lxfdCtrlAi.appendChild(_lxfdCtrlBody);
+      thread?.appendChild(_lxfdCtrlAi);
+      _lxfdCtrlAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      const _lxfdExecOp = _lxfdIntentResult.op;
+      const _lxfdExecTarget = _lxfdIntentResult.target || "";
+      const _lxfdPageMeta = lxfdPageCtaMeta(_lxfdExecOp);
+      if (_lxfdPageMeta) {
+        _lxfdCtrlBody.insertAdjacentHTML("beforeend", renderLxfdPageCta(_lxfdPageMeta));
+        lxfdExportToMain();
+        exitFullscreenWithReveal(() => {
+          lxfdRevealFeature(_lxfdPageMeta.feature);
+        });
+        return;
+      }
+      if (_lxfdExecOp === "enter_fullscreen") { /* 全屏态已全屏，无需操作 */ }
+      else if (_lxfdExecOp === "exit_fullscreen") {
+        if (typeof window.__lxBridge?.exitFullscreen === "function") window.__lxBridge.exitFullscreen();
+      } else if (typeof window.__lxBridge?.execControl === "function") {
+        window.__lxBridge.execControl(_lxfdExecOp, _lxfdExecTarget);
+      }
+      return;
+    }
+    // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
+
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai";
+    ai.innerHTML = '<div class="lxfd-ai-body"><div class="loading-line lx-generating" role="status" aria-live="polite"><span class="typing-text">联想乐享正在生成中...</span><span class="typing-cursor"></span></div></div>';
+    ai._raw = "";
+    ai._loadingStarted = Date.now();
+    thread?.appendChild(ai);
+    ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+    const body = ai.querySelector(".lxfd-ai-body");
+    const nonce = chatState.conversationNonce;
+    chatState.sending = true;
+    let hasContent = false;
+    const revealAi = () => {
+      if (hasContent) return;
+      hasContent = true;
+      body?.querySelector(".lxfd-typing, .loading-line")?.remove();
+      ai._textBox = document.createElement("div");
+      ai._textBox.className = "lxfd-ai-text";
+      if (body) body.insertBefore(ai._textBox, body.firstChild);
+      ai._raw = "";
+      ai._writer = window.__lxCreateTypewriter(ai._textBox, {
+        charsPerTick: 1,
+        interval: 24,
+        scroll: () => {
+          if (thread) thread.scrollTop = thread.scrollHeight;
+        }
+      });
+    };
+    // lxfd 前端兜底超时：50秒后强制解锁
+    const _lxfdSendTimeout = setTimeout(() => {
+      if (chatState.sending && chatState.conversationNonce === nonce) {
+        chatState.sending = false;
+        ai._raw = "响应超时，请重试。";
+        lxfdAnimateFinal(ai, ai._raw);
+      }
+    }, 50000);
+    try {
+      chatState._fallbackFired = false;
+      const sendMsg = chatState.human
+        ? ('[系统提示: 请以"专属客服小联"身份回复, 像人工客服一样亲切自然简短直接, 不用 markdown/列表/标题, 不暴露 AI 身份, 严禁输出"QA对""知识库""参考资料"等内部字样或📎等标记。]\n\n用户问: ' + value)
+        : value;
+      const lxfdImgUrl = window.__lxfdPendingImage || undefined;
+      window.__lxfdPendingImage = null;
+      const imgTipEl = document.querySelector('.lxfd-img-tip');
+      if (imgTipEl) imgTipEl.remove();
+      const lxfdUseHuoshan = !!lxfdImgUrl || !!window.__lxWebSearch;
+      const response = lxfdUseHuoshan
+        ? await fetch("/api/chat/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: sendMsg,
+              image_url: lxfdImgUrl,
+              web_search: !!window.__lxWebSearch,
+              thinking_mode: !!window.__lxThinking,
+              conv_id: chatState.convId || undefined
+            })
+          })
+        : await fetch("/api/leai/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: sendMsg,
+              sessionId: chatState.convId || undefined,
+              enableThinking: !!window.__lxThinking,
+              ...(window.__lxGeo || {})
+            })
+          });
+      if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
+      const lxfdHandlers = {
+        chunk: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data);
+          const content = payload.text || data || "";
+          if (/^\s*params\s*error\.?\s*$/i.test(content)) return;
+          if (!content) return;
+          hasContent = true;
+          ai._raw += content;
+        },
+        status: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data);
+          if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
+          if (payload.text && !hasContent && body) {
+            const typing = body.querySelector(".loading-line .typing-text");
+            if (typing) typing.textContent = "联想乐享正在生成中...";
+          }
+        },
+        products: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data);
+          const products = payload.products || [];
+          if (!products.length) return;
+          hasContent = true;
+          pendingExtras += renderLxfdProducts(products);
+          // 记录本轮商品以便 done 时桥接到主面板
+          turnProducts = products;
+          chatState.lastProducts = products;
+          chatState.lastProductsMeta = { title: "AI 推荐", grouped: false };
+        },
+        display: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data);
+          const products = payload.products || payload.items || [];
+          if (products.length || payload.title) hasContent = true;
+          if (payload.title && !ai._raw) {
+            ai._raw = payload.title;
+          }
+          pendingExtras += renderLxfdProducts(products);
+          // 记录本轮商品及展示元信息以便 done 时桥接到主面板
+          if (products.length) {
+            turnProducts = products;
+            turnTitle = payload.title || "";
+            turnGrouped = !!payload.grouped;
+            chatState.lastProducts = products;
+            chatState.lastProductsMeta = { title: turnTitle, grouped: turnGrouped };
+          }
+        },
+        clicks: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const list = (parseJson(data).clicks) || [];
+          if (!list.length || !body) return;
+          pendingExtras += '<div class="leai-clicks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">' + list.map((c) =>
+            `<button type="button" class="leai-click-btn" data-leai-url="${escapeAttr(c.link_url || "")}" data-leai-cb="${escapeAttr(c.callback_data || "")}" data-leai-event="${escapeAttr(c.event_type || "")}">${escapeHtml(c.display_text)}</button>`
+          ).join("") + "</div>";
+        },
+        suggestions: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data);
+          pendingFollowups = (payload.suggestions || []).filter(Boolean).slice(0, 3);
+        },
+        action: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const { op } = parseJson(data) || {};
+          const pageMeta = lxfdPageCtaMeta(op);
+          if (pageMeta) {
+            if (pageMeta.feature === "solution") pendingExtras += renderLxfdLeadCta();
+            pendingExtras += renderLxfdPageCta(pageMeta);
+            turnAction = pageMeta.feature;
+          } else if (op === 'auth') {
+            // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
+            pendingExtras += '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>';
+          } else if (op) {
+            turnAction = op; // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
+          }
+        },
+        control: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          const payload = parseJson(data) || {};
+          // 页面操作（关标签/回首页/开订单等）：桥接到主面板执行
+          if (payload.op && typeof window.__lxExecControl === 'function') window.__lxExecControl(payload.op, payload.target);
+        },
+        done: (data) => {
+          if (nonce !== chatState.conversationNonce) return;
+          if (finalized) return;
+          finalized = true;
+          finalizePromise = (async () => {
+            window.clearTimeout(_lxfdSendTimeout);
+            const payload = parseJson(data);
+            if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
+            await lxfdAnimateFinal(ai, ai._raw);
+            const finalBody = ai.querySelector(".lxfd-ai-body");
+            if (pendingExtras && finalBody) finalBody.insertAdjacentHTML("beforeend", pendingExtras);
+            if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
+            if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);
+            lxfdPersistCurrent();
+            lxfdRenderHist();
+            const isFullscreen = document.body.classList.contains("assistant-fullscreen");
+            // 全屏→分屏桥接：本轮有商品且当前仍处于全屏态 → 搬对话到主面板+退全屏+右侧展示
+            if (turnProducts && turnProducts.length && isFullscreen && window.__lxBridge) {
+              lxfdExportToMain();
+              exitFullscreenWithReveal(() => {
+                window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+                if (turnAction) lxfdRevealFeature(turnAction);
+                // 清空 lxfd thread，下次回全屏会从主面板重新 import
+                if (thread) thread.innerHTML = "";
+              });
+            } else if (turnAction && isFullscreen && window.__lxBridge) {
+              // 本轮只有意图无商品：同样桥接退全屏，再开功能标签
+              lxfdExportToMain();
+              exitFullscreenWithReveal(() => {
+                // 首页布局设置（和商品桥接一致）：不做这步 .shell 仍 display:none → 功能标签渲染了但主面板隐藏=空白
+                if (document.body.dataset.page === "home" || !document.body.dataset.page) {
+                  document.documentElement.classList.remove("lx-root-lxfd-prepaint");
+                  document.body.classList.add("lx-home-split");
+                  document.body.dataset.page = "personal";
+                  document.body.dataset.state = "chat";
+                }
+                lxfdRevealFeature(turnAction);
+                if (thread) thread.innerHTML = "";
+              });
+            }
+          })();
+        },
+        fallback: async () => {
+          if (nonce !== chatState.conversationNonce) return;
+          if (chatState._fallbackFired) return;
+          chatState._fallbackFired = true;
+          try {
+            const huoRes = await fetch('/api/chat/stream', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: sendMsg, conv_id: chatState.convId || undefined })
+            });
+            if (!huoRes.ok || !huoRes.body) throw new Error('fallback upstream ' + huoRes.status);
+            await readSse(huoRes, lxfdHandlers);
+          } catch (_e) {
+            ai._raw = '当前服务暂时不可用，请稍后再试。';
+            if (!finalized) {
+              finalized = true;
+              finalizePromise = lxfdAnimateFinal(ai, ai._raw);
+            }
+          }
+        }
+      };
+      await readSse(response, lxfdHandlers);
+      if (nonce !== chatState.conversationNonce) return;
+      if (finalizePromise) {
+        await finalizePromise;
+      } else if (!finalized) {
+        finalized = true;
+        if (!hasContent && !ai._raw && !pendingExtras) {
+          ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
+        }
+        await lxfdAnimateFinal(ai, ai._raw);
+        const finalBody = ai.querySelector(".lxfd-ai-body");
+        if (pendingExtras && finalBody) finalBody.insertAdjacentHTML("beforeend", pendingExtras);
+        if (!pendingFollowups.length) pendingFollowups = await lxfdFetchFollowups(value, ai._raw);
+        if (pendingFollowups.length) appendLxfdSuggestions(ai, pendingFollowups);
+        lxfdPersistCurrent();
+        lxfdRenderHist();
+        const isFullscreen = document.body.classList.contains("assistant-fullscreen");
+        if (turnProducts && turnProducts.length && isFullscreen && window.__lxBridge) {
+          lxfdExportToMain();
+          exitFullscreenWithReveal(() => {
+            window.__lxBridge.revealProducts(turnProducts, { title: turnTitle, grouped: turnGrouped });
+            if (turnAction) lxfdRevealFeature(turnAction);
+            if (thread) thread.innerHTML = "";
+          });
+        }
+      }
+    } catch (error) {
+      if (nonce !== chatState.conversationNonce) return;
+      ai._raw = "当前 AI 服务暂时不可用，请稍后重试。";
+      await lxfdAnimateFinal(ai, ai._raw);
+    } finally {
+      clearTimeout(_lxfdSendTimeout);
+      if (nonce === chatState.conversationNonce) chatState.sending = false;
+      ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+    }
+  }
+
+  window.lxfdSubmit = submit;
+  window.lxfdReset = resetConversation;
+  // 分屏→全屏回退：关空右侧 tab 时带入主面板对话回全屏
+  window.__lxfdEnterFromSplit = function() {
+    if (thread) thread.innerHTML = "";
+    enterFullscreen();  // enterFullscreen 内检测到 thread 空会自动 lxfdImportFromMain
+  };
+  // 新建对话回全屏欢迎态
+  window.__lxfdNewFullscreen = function() {
+    resetConversation(true);
+    enterFullscreen();
+  };
+
+  convoPill?.addEventListener("click", () => setNav(!navCluster.classList.contains("open")));
+  navCluster?.addEventListener("mouseenter", () => { clearTimeout(hoverTimer); setNav(true); });
+  navCluster?.addEventListener("mouseleave", () => { hoverTimer = setTimeout(() => setNav(false), 260); });
+  $$("#lxfdNavSheet a").forEach(a => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    $$("#lxfdNavSheet a").forEach(x => x.classList.remove("active"));
+    a.classList.add("active");
+    setNav(false);
+    const path = navPaths[a.dataset.page] || "/";
+    const currentPath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
+    const targetPath = path.endsWith("/") ? path : `${path}/`;
+    if (currentPath === targetPath) location.reload();
+    else location.assign(path);
+  }));
+  document.addEventListener("click", (e) => { if (navCluster && !navCluster.contains(e.target)) setNav(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNav(false); if (!wide()) setRailManual(false); } });
+  railFab?.addEventListener("click", () => setRailManual(true));
+  $("#lxfdRailClose")?.addEventListener("click", () => setRailManual(false));
+  $(".lxfd-actions")?.addEventListener("click", (e) => {
+    const button = e.target.closest(".lxfd-ic");
+    if (!button) return;
+    const label = button.getAttribute("aria-label") || "";
+    if (button.dataset.lxfdOpen === "cart" || label.includes("购物车")) {
+      e.preventDefault();
+      window.lxOpenCommerceEntry?.("cart");
+      return;
+    }
+    if (button.dataset.lxfdOpen === "orders" || label.includes("订单")) {
+      e.preventDefault();
+      window.lxOpenCommerceEntry?.("orders");
+      return;
+    }
+    e.preventDefault();
+    exitFullscreen();
+  });
+  scrim?.addEventListener("click", () => setRailManual(false));
+  $("#lxfdNewChat")?.addEventListener("click", () => resetConversation(true));
+  railNewFab?.addEventListener("click", () => resetConversation(false));
+  $("#lxfdHist")?.addEventListener("click", (e) => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); const id = a.dataset.conv; if (id) lxfdLoadConv(id); });
+  $$(".lxfd-comp-left .lxfd-toggle").forEach(btn => btn.addEventListener("click", () => { const on = btn.classList.toggle("on"); btn.setAttribute("aria-pressed", on ? "true" : "false"); if (btn.textContent.includes("深度思考")) window.__lxThinking = on; if (btn.textContent.includes("联网")) window.__lxWebSearch = on; }));
+  // lxfd 图片上传
+  const lxfdImgBtn = document.querySelector('.lxfd-img-btn');
+  if (lxfdImgBtn) {
+    const lxfdFileInput = document.createElement('input');
+    lxfdFileInput.type = 'file';
+    lxfdFileInput.accept = 'image/*';
+    lxfdFileInput.style.display = 'none';
+    lxfdFileInput.id = 'lxfdFileInput';
+    document.body.appendChild(lxfdFileInput);
+    lxfdImgBtn.addEventListener('click', () => lxfdFileInput.click());
+    lxfdFileInput.addEventListener('change', async () => {
+      const file = lxfdFileInput.files && lxfdFileInput.files[0];
+      if (!file) return;
+      lxfdFileInput.value = '';
+      try {
+        lxfdImgBtn.disabled = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/chat/upload-image', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data && data.url) {
+          window.__lxfdPendingImage = data.url;
+          const dock = document.querySelector('.lxfd-dock');
+          let imgTip = dock && dock.querySelector('.lxfd-img-tip');
+          if (!imgTip && dock) {
+            imgTip = document.createElement('div');
+            imgTip.className = 'lxfd-img-tip';
+            imgTip.style.cssText = 'font-size:12px;color:#888;padding:4px 12px;display:flex;align-items:center;gap:6px';
+            dock.insertBefore(imgTip, dock.querySelector('.lxfd-composer'));
+          }
+          if (imgTip) {
+            imgTip.innerHTML = '<span>已添加图片</span><button type="button" style="border:none;background:none;cursor:pointer;color:#c8161e;font-size:12px" id="lxfdImgClear">×</button>';
+            const clearBtn = imgTip.querySelector('#lxfdImgClear');
+            if (clearBtn) clearBtn.addEventListener('click', () => { window.__lxfdPendingImage = null; imgTip.remove(); });
+          }
+        }
+      } catch (_e) {
+        // 上传失败静默处理
+      } finally {
+        lxfdImgBtn.disabled = false;
+      }
+    });
+  }
+
+  (function initLxfdHomeGallery() {
+    const data = {
+      new: [
+        { nm: "拯救者 Y9000P 2026", ds: "i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏", price: "15,098", badge: "新品首发", wm: "LEGION Y9000P", img: "/assets/img/lxfd-gallery-1-1.jpg", g: "linear-gradient(135deg,#1d1630,#3a2156 58%,#6b2f4e)", q: "请解读这款商品：拯救者 Y9000P 2026，配置是 i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏，价格约 ¥15,098，适合什么人买？" },
+        { nm: "YOGA Air 14c 2026", ds: "酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控", price: "8,999", badge: "轻薄旗舰", wm: "YOGA Air 14c", img: "/assets/img/lxfd-gallery-1-2.jpg", g: "linear-gradient(135deg,#2a1646,#5b2a8a 58%,#a06ad0)", q: "请解读这款商品：YOGA Air 14c 2026，配置是酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控，价格约 ¥8,999，适合什么人买？" },
+        { nm: "小新Pad Pro 13英寸", ds: "酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄", price: "7,299", badge: "全能之选", wm: "Xiaoxin Pro16", img: "/assets/img/lxfd-gallery-1-3.jpg", g: "linear-gradient(135deg,#16324f,#1f6f8b 58%,#4fb3a3)", q: "请解读这款商品：小新Pad Pro 13英寸，配置是酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄，价格约 ¥7,299，适合什么人买？" }
+      ],
+      act: [
+        { nm: "618 年中钜惠", ds: "全场至高省 2000，下单再享 12 期免息", price: "省 2000", isText: true, badge: "限时", wm: "618 SALE", g: "linear-gradient(135deg,#3a1020,#8a1f2e 56%,#e1432e)", q: "618 年中钜惠有什么优惠？怎么参加？" },
+        { nm: "教育优惠季", ds: "学生 / 教师认证，专属机型至高 9 折", price: "享 9 折", isText: true, badge: "进行中", wm: "EDU SEASON", g: "linear-gradient(135deg,#15233f,#2f5aa0 58%,#6a9fe0)", q: "教育优惠季怎么参加？学生认证有哪些优惠？" },
+        { nm: "以旧换新", ds: "旧机抵扣 + 平台补贴，至高补 800 元", price: "补 800", isText: true, badge: "可叠加", wm: "TRADE-IN", g: "linear-gradient(135deg,#143028,#1f6e54 58%,#56b78c)", q: "以旧换新怎么操作？旧机能抵多少钱？" }
+      ],
+      news: [
+        { nm: "联想 2026 拯救者全系发布", ds: "搭载新一代 AI 引擎与超频引擎，性能再进阶", price: "查看全文", isText: true, badge: "官方", wm: "PRESS", g: "linear-gradient(135deg,#241b3a,#4a2d6e 58%,#8a3f5e)", q: "联想 2026 拯救者全系发布了哪些新品？有什么亮点？" },
+        { nm: "联想 AI PC 出货领跑行业", ds: "IDC 最新报告：中国 AI PC 市场份额持续第一", price: "查看全文", isText: true, badge: "行业", wm: "INSIGHT", g: "linear-gradient(135deg,#1b2a3f,#36608f 58%,#74a8d0)", q: "联想 AI PC 有哪些优势？为什么市场份额第一？" },
+        { nm: "联想乐享门店破 5000 家", ds: "线下服务网络全面升级，到店体验更进一步", price: "查看全文", isText: true, badge: "动态", wm: "RETAIL", g: "linear-gradient(135deg,#2a2410,#7a6320 58%,#d0a84a)", q: "联想门店能提供哪些服务？帮我找附近门店。" }
+      ],
+      case: [
+        { nm: "某重点高校机房方案", ds: "1200 台统一部署与运维，开机即用，集中管理", price: "教育行业", isText: true, badge: "已交付", wm: "CAMPUS", g: "linear-gradient(135deg,#1a2740,#2f5e8f 58%,#6f9fd0)", q: "教育行业的机房统一部署方案是怎么做的？" },
+        { nm: "设计工作室创作方案", ds: "ThinkStation + 校色屏整体方案，效率提升 40%", price: "创意设计", isText: true, badge: "标杆", wm: "STUDIO", g: "linear-gradient(135deg,#2a1640,#5b2f8a 58%,#9a6ad0)", q: "设计创作行业有什么整体方案？ThinkStation 怎么配？" },
+        { nm: "连锁零售 POS 升级", ds: "300+ 门店终端统一焕新，稳定支撑高峰交易", price: "零售行业", isText: true, badge: "规模化", wm: "RETAIL POS", g: "linear-gradient(135deg,#301622,#7a2740 58%,#d04a5a)", q: "连锁零售门店终端怎么统一升级？有什么方案？" }
+      ]
+    };
+    const root = document.querySelector(".lxfd-home-gallery");
+    const grid = document.getElementById("lxfdGalleryGrid");
+    const tabs = Array.from(document.querySelectorAll("[data-gallery-tab]"));
+    const ink = document.getElementById("lxfdGalleryInk");
+    if (!root || !grid || !tabs.length) return;
+    const price = (item) => item.isText ? escapeHtml(item.price) : "¥" + escapeHtml(item.price);
+    const card = (item) => {
+      const shotClass = item.img ? "gallery-shot has-image" : "gallery-shot";
+      const inner = item.img
+        ? '<img class="gallery-img" src="' + escapeAttr(item.img) + '" alt="" loading="eager" />'
+        : '<span class="gallery-lid"></span><span class="gallery-wm">' + escapeHtml(item.wm) + '</span>';
+      return '<article class="gallery-card" role="button" tabindex="0" data-gallery-q="' + escapeAttr(item.q || ("帮我介绍下" + item.nm)) + '"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
+        + '<div class="gallery-meta"><span class="gallery-badge">' + escapeHtml(item.badge) + '</span><strong class="gallery-name">' + escapeHtml(item.nm) + '</strong><span class="gallery-desc">' + escapeHtml(item.ds) + '</span>'
+        + '<div class="gallery-foot"><span class="gallery-price">' + price(item) + '</span><button class="gallery-go" type="button">了解 →</button></div></div></article>';
+    };
+    // 卡片点击 → 发对应 query 进对话（事件委托，覆盖换 tab 后新卡片）
+    const fireCard = (cardEl) => {
+      const q = cardEl && cardEl.getAttribute("data-gallery-q");
+      if (!q) return;
+      if (typeof window.lxfdSubmit === "function") window.lxfdSubmit(q);
+    };
+    grid.addEventListener("click", (e) => {
+      const cardEl = e.target.closest(".gallery-card");
+      if (cardEl) fireCard(cardEl);
+    });
+    grid.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const cardEl = e.target.closest(".gallery-card");
+      if (cardEl) { e.preventDefault(); fireCard(cardEl); }
+    });
+    const moveInk = () => {
+      const active = root.querySelector(".gallery-tab.is-active");
+      if (active && ink) {
+        ink.style.left = active.offsetLeft + "px";
+        ink.style.width = active.offsetWidth + "px";
+      }
+    };
+    const render = (key, animate) => {
+      if (!data[key]) key = "new";
+      if (!animate) {
+        grid.innerHTML = data[key].map(card).join("");
+        grid.classList.remove("is-loading");
+        grid.classList.remove("is-switching");
+        return;
+      }
+      grid.classList.add("is-switching");
+      window.setTimeout(() => {
+        grid.innerHTML = data[key].map(card).join("");
+        grid.classList.remove("is-loading");
+        grid.classList.remove("is-switching");
+      }, 120);
+    };
+    tabs.forEach((tab) => tab.addEventListener("click", () => {
+      if (tab.classList.contains("is-active")) return;
+      tabs.forEach((item) => item.classList.remove("is-active"));
+      tab.classList.add("is-active");
+      moveInk();
+      render(tab.dataset.galleryTab, true);
+    }));
+    render("new", false);
+    requestAnimationFrame(moveInk);
+    window.addEventListener("resize", moveInk);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveInk);
+  })();
+
+  (function initLxfdScopeActions() {
+    const scope = document.getElementById("lxfdScopeActions");
+    const more = document.getElementById("lxfdScopeMore");
+    const moreBtn = more?.querySelector(".lxfd-scope-more-btn");
+    const close = () => {
+      more?.classList.remove("open");
+      moreBtn?.setAttribute("aria-expanded", "false");
+    };
+    if (scope) {
+      scope.addEventListener("click", (event) => {
+        const chip = event.target.closest(".lxfd-scope-chip");
+        if (!chip) return;
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        const label = chip.textContent.trim();
+        if (!label) return;
+        submit(LXFD_ACTION_Q[label] || label);
+      });
+    }
+    if (more && moreBtn) {
+      moreBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const open = !more.classList.contains("open");
+        more.classList.toggle("open", open);
+        moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      document.addEventListener("click", (event) => { if (!more.contains(event.target)) close(); });
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
+    }
+  })();
+
+  ta?.addEventListener("input", () => { fit(); syncSend(); });
+  ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
+  $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
+  chips?.addEventListener("click", (e) => {
+    const b = e.target.closest(".lxfd-chip-q");
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    submit(b.dataset.q || b.textContent);
+  });
+  quick?.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (b.textContent.trim() === "退出人工") { lxfdExitHuman(); return; }
+    submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
+  });
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco], .lxfd [data-lxfd-open-feature], .lxfd [data-lx-focus-active]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const feature = btn.getAttribute("data-lxfd-open-feature") || "";
+    if (feature && document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => {
+        lxfdRevealFeature(feature);
+        if (thread) thread.innerHTML = "";
+      });
+      return;
+    }
+    if (btn.hasAttribute("data-lx-focus-active") && !btn.hasAttribute("data-lx-focus-reco") && document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => {
+        window.__lxBridge.focusReco?.();
+        if (thread) thread.innerHTML = "";
+      });
+      return;
+    }
+    const recoId = btn.getAttribute("data-lxfd-reco-id") || "";
+    const storedProducts = recoId && window.__lxRecoPayloads && Array.isArray(window.__lxRecoPayloads[recoId])
+      ? window.__lxRecoPayloads[recoId]
+      : [];
+    const recoTab = (window.__lxState?.tabs || []).find((item) => item && (item.kind === "reco" || item.id === "reco") && Array.isArray(item.products) && item.products.length);
+    const products = storedProducts.length
+      ? storedProducts
+      : ((chatState.lastProducts && chatState.lastProducts.length) ? chatState.lastProducts : (recoTab?.products || []));
+    if (document.body.classList.contains("assistant-fullscreen") && window.__lxBridge) {
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => {
+        if (products.length) {
+          window.__lxBridge.revealProducts(products, chatState.lastProductsMeta || { title: recoTab?.label || "AI 推荐", grouped: !!recoTab?.grouped });
+        } else {
+          window.__lxBridge.focusReco?.();
+        }
+        if (thread) thread.innerHTML = "";
+      });
+    }
+  }, true);
+  thread?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lxfd-followups button, .lxfd-ai-body .followups button, .lxfd-ai-body .lx-p0-suggest[data-followups] button, .lxfd-ai-body [data-quick-ask]");
+    if (!btn) return;
+    e.preventDefault();
+    const text = btn.getAttribute("data-quick-ask") || btn.textContent.replace(/→\s*$/, "").trim();
+    if (text) submit(text);
+  });
+  turnList?.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; const target = document.getElementById(b.dataset.target); if (!target) return; renderTurnIndex(target.id); target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); });
+  window.addEventListener("resize", () => { if (document.body.classList.contains("assistant-fullscreen")) syncRailForViewport(); });
+
+  // 职场认证按钮（lxfd 内的 data-open-wpa 委托）
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-open-wpa]")) {
+      if (typeof window.openWorkplaceAuth === "function") window.openWorkplaceAuth();
+    }
+  });
+
+  // 官方动作按钮（转人工/在线客服等）点击：human_access→进客服模式，有链接开新窗口，否则把 callback_data 当问题继续问
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-leai-url], [data-leai-cb]");
+    if (!btn) return;
+    e.preventDefault();
+    const ev = btn.getAttribute("data-leai-event");
+    if (ev === "human_access") {
+      if (document.body.classList.contains("assistant-fullscreen")) {
+        lxfdEnterHuman();
+      } else if (typeof window.__lxSetHuman === "function") {
+        window.__lxSetHuman(true);
+      }
+      return;
+    }
+    const url = btn.getAttribute("data-leai-url");
+    const cb = btn.getAttribute("data-leai-cb");
+    if (url) { window.open(url, "_blank", "noopener"); return; }
+    if (cb && typeof window.lxfdSubmit === "function" && document.body.classList.contains("assistant-fullscreen")) window.lxfdSubmit(cb);
+  });
+
+  setTimeout(startRotatingTitle, reduceMotion ? 0 : 2000);
+  syncSend();
+  lxfdRenderHist();
+  // 注：首页自动导入历史对话的钩子已移除——它会让首页进对话态但渲染不全，首页崩成只剩一条用户消息。
+  // 首页保持欢迎态；对话恢复仅在分屏主面板生效（用户从首页发问/进分屏自然能看到）。
+
+  document.addEventListener("click", (e) => {
+    const fsToggle = e.target.closest(".assistant-toggle");
+    if (fsToggle) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      enterFullscreen();
+      return;
+    }
+    const heroChip = e.target.closest(".hero-suggestion");
+    const fullPrompt = e.target.closest(".fullscreen-prompt");
+    if (heroChip || fullPrompt) {
+      const target = heroChip || fullPrompt;
+      const text = (target.querySelector("span")?.textContent || target.textContent).trim();
+      if (text) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); submit(text); }
+    }
+  }, true);
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest?.(".hero-composer");
+    if (!form) return;
+    const txt = form.querySelector("textarea")?.value.trim() || form.querySelector("textarea")?.placeholder || "最近有什么优惠活动？";
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); submit(txt);
+  }, true);
+
+  const observer = new MutationObserver(() => {
+    if (document.body.classList.contains("assistant-fullscreen")) requestAnimationFrame(() => { syncRailForViewport(); fit(); syncSend(); });
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+})();
 
 // Test hook: open fullscreen dialog with ?lxfd=1 without affecting normal entry.
 (function(){
@@ -8986,6 +9661,7 @@ function openOrderDetail(orderId) {
       + '</defs></svg>';
   }
   function arrowSVG(){ return '<svg class="arrow" width="22" height="26" viewBox="-1 -1 17 24" aria-hidden="true"><path class="ar-body" d="' + ARROW + '"/></svg>'; }
+  function starSVG(){ return '<span class="star"><svg class="sx" viewBox="0 0 30 30" aria-hidden="true"><path d="' + STAR + '" fill="url(#irisFill)"/><ellipse class="sheen" cx="11" cy="10" rx="3.4" ry="2.5" fill="#fff"/></svg></span>'; }
   function fxHTML(label){ return '<div class="fx"><div class="label"><span class="lx-icon"><img src="/assets/img/lx-icon-0016.png" alt=""/></span><span class="ltxt">' + label + '</span></div></div>'; }
   function init(opts){
     opts = opts || {};
@@ -9044,336 +9720,3 @@ function openOrderDetail(orderId) {
   function boot(){ init({ variant:"A", delay:3000, label:"乐享正在帮你", target:".content .product-card, .content .lx-floor-product" }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
-
-// LXFD home nav intro: show on refresh for 2s, then ease closed.
-(function(){
-  function init(){
-    if (location.pathname.replace(/\/+$/, "") !== "") return;
-    var nav = document.getElementById("lxfdNavCluster");
-    var pill = document.getElementById("lxfdConvoPill");
-    if (!nav || nav.dataset.lxfdNavIntroReady === "1") return;
-    nav.dataset.lxfdNavIntroReady = "1";
-    var hoverTimer = null;
-    var introTimer = null;
-    var pointerInside = false;
-    function clearIntro(){
-      if (!introTimer) return;
-      window.clearTimeout(introTimer);
-      introTimer = null;
-    }
-    function setNav(open, intro){
-      if (!intro) clearIntro();
-      nav.classList.toggle("open", !!open);
-      if (pill) pill.setAttribute("aria-expanded", open ? "true" : "false");
-    }
-    if (pill) pill.addEventListener("click", function(){ setNav(!nav.classList.contains("open")); });
-    nav.addEventListener("mouseenter", function(){ pointerInside = true; if (hoverTimer) window.clearTimeout(hoverTimer); setNav(true); });
-    nav.addEventListener("mouseleave", function(){ pointerInside = false; hoverTimer = window.setTimeout(function(){ setNav(false); }, 320); });
-    document.addEventListener("click", function(e){ if (!nav.contains(e.target)) setNav(false); });
-    document.addEventListener("keydown", function(e){ if (e.key === "Escape") setNav(false); });
-    window.requestAnimationFrame(function(){
-      setNav(true, true);
-      introTimer = window.setTimeout(function(){
-        introTimer = null;
-        if (!pointerInside) setNav(false, true);
-      }, 2000);
-    });
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-})();
-
-// Business channel banner assets: keep SME page aligned with approved 2026 visuals.
-(function(){
-  var B1 = "/assets/img/business-banner-1.jpg";
-  var B2 = "/assets/img/business-banner-2.jpg";
-  function isBusinessPage(){
-    return /\/b-chat\/?$/.test(location.pathname || "") ||
-      (window.__lxState && window.__lxState.page === "business") ||
-      document.body.dataset.page === "business";
-  }
-  function applyBusinessBanner(){
-    if (!isBusinessPage()) return;
-    var slides = document.querySelectorAll(".content > .hero .hero-slide, .hero .hero-slide");
-    if (slides[0] && slides[0].getAttribute("src") !== B1) slides[0].setAttribute("src", B1);
-    if (slides[1] && slides[1].getAttribute("src") !== B2) slides[1].setAttribute("src", B2);
-    if (slides[0]) slides[0].classList.add("is-active");
-    var kicker = document.querySelector("[data-page-kicker]");
-    var title = document.querySelector("[data-page-title]");
-    if (kicker) kicker.textContent = "联想中小企业智能办公方案";
-    if (title) title.textContent = "高效办公 灵活成长";
-  }
-  function boot(){
-    applyBusinessBanner();
-    var runs = 0;
-    var timer = window.setInterval(function(){
-      applyBusinessBanner();
-      runs += 1;
-      if (runs > 12) window.clearInterval(timer);
-    }, 250);
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
-  window.addEventListener("popstate", function(){ window.setTimeout(boot, 0); });
-  document.addEventListener("click", function(event){
-    if (event.target.closest && event.target.closest(".main-nav [data-page=\"business\"]")) window.setTimeout(boot, 0);
-  }, true);
-})();
-
-// Enterprise channel banner assets: keep government/education/large-enterprise page aligned with approved 2026 visuals.
-(function(){
-  var B1 = "/assets/img/enterprise-banner-1.jpg";
-  var B2 = "/assets/img/enterprise-banner-2.jpg";
-  function isEnterprisePage(){
-    return /\/biz-chat\/?$/.test(location.pathname || "") ||
-      (window.__lxState && window.__lxState.page === "enterprise") ||
-      document.body.dataset.page === "enterprise";
-  }
-  function applyEnterpriseBanner(){
-    if (!isEnterprisePage()) return;
-    var slides = document.querySelectorAll(".content > .hero .hero-slide, .hero .hero-slide");
-    if (slides[0] && slides[0].getAttribute("src") !== B1) slides[0].setAttribute("src", B1);
-    if (slides[1] && slides[1].getAttribute("src") !== B2) slides[1].setAttribute("src", B2);
-    if (slides[0]) slides[0].classList.add("is-active");
-    var kicker = document.querySelector("[data-page-kicker]");
-    var title = document.querySelector("[data-page-title]");
-    if (kicker) kicker.textContent = "政教及大企业数字化终端方案";
-    if (title) title.textContent = "安全可信 规模交付";
-  }
-  function boot(){
-    applyEnterpriseBanner();
-    var runs = 0;
-    var timer = window.setInterval(function(){
-      applyEnterpriseBanner();
-      runs += 1;
-      if (runs > 12) window.clearInterval(timer);
-    }, 250);
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
-  window.addEventListener("popstate", function(){ window.setTimeout(boot, 0); });
-  document.addEventListener("click", function(event){
-    if (event.target.closest && event.target.closest(".main-nav [data-page=\"enterprise\"]")) window.setTimeout(boot, 0);
-  }, true);
-})();
-
-// Demo reset: make education certification unverified once so the flow can be replayed.
-(function(){
-  try {
-    var resetKey = "lexiang.student.reset.20260706.unverified.v1";
-    if (!localStorage.getItem(resetKey)) {
-      localStorage.removeItem("lexiang.student.v1");
-      localStorage.setItem(resetKey, "1");
-    }
-  } catch (_) {}
-})();
-
-
-// Remove deprecated static portal homepage from production root rendering.
-(function(){
-  function isRootPath(){
-    return (location.pathname || "/").replace(/\/+$/, "/") === "/";
-  }
-  function removePortalHome(){
-    var portal = document.querySelector(".portal-home");
-    if (portal && portal.parentNode) portal.parentNode.removeChild(portal);
-  }
-  function forceRootFullscreen(){
-    removePortalHome();
-    var splitActive = document.body.classList.contains("lx-home-split") ||
-      document.body.classList.contains("lxfd-split-entered") ||
-      // 退全屏→分屏的过渡动画期间(约760ms)分屏类还没就位，此时强制回全屏会造成
-      // 全屏类+分屏类共存的混合态(load后的50/200/600ms定时器正撞用户手快输指令的窗口)
-      document.body.classList.contains("lxfd-exiting") ||
-      document.body.classList.contains("lxfd-split-returning") ||
-      (document.body.dataset && document.body.dataset.page && document.body.dataset.page !== "home") ||
-      (window.__lxState && window.__lxState.page && window.__lxState.page !== "home");
-    if (!isRootPath() || splitActive) return;
-    document.documentElement.classList.add("lx-root-lxfd-prepaint");
-    document.body.classList.add("assistant-fullscreen", "lx-auto-fs", "lx-root-home");
-    document.body.dataset.page = "home";
-    document.body.dataset.state = "chat";
-    var lxfd = document.querySelector(".lxfd");
-    if (lxfd) {
-      lxfd.style.display = "block";
-      lxfd.style.visibility = "visible";
-    }
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", forceRootFullscreen);
-  } else {
-    forceRootFullscreen();
-  }
-  window.addEventListener("pageshow", forceRootFullscreen);
-  window.addEventListener("popstate", function(){ setTimeout(forceRootFullscreen, 0); });
-  document.addEventListener("click", function(event){
-    var target = event.target && event.target.closest ? event.target.closest("[data-page=\"home\"]") : null;
-    if (target) setTimeout(forceRootFullscreen, 0);
-  }, true);
-  [50, 200, 600, 1200].forEach(function(delay){ setTimeout(forceRootFullscreen, delay); });
-})();
-
-// Channel top navigation title state.
-(function(){
-  var CONV_KEY = "lexiang.conversation.v1";
-  var SOURCE_PAGE_KEY = "lexiang.conversation.sourcePage.v1";
-  var PAGE_LABELS = { home: "首页", personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
-  var syncTimer = 0;
-  function pageFromLocation(){
-    var path = (location.pathname || "/").replace(/\/+$/, "") || "/";
-    if (path === "/") return "home";
-    if (path === "/shop-chat") return "personal";
-    if (path === "/b-chat") return "business";
-    if (path === "/biz-chat") return "enterprise";
-    if (path === "/brand") return "brand";
-    return "home";
-  }
-  function sourcePage(){
-    var page = (window.__lxState && window.__lxState.conversationSourcePage) || window.__lxConversationSourcePage || "";
-    if (!PAGE_LABELS[page]) {
-      try { page = localStorage.getItem(SOURCE_PAGE_KEY) || ""; } catch (_e) {}
-    }
-    return PAGE_LABELS[page] ? page : pageFromLocation();
-  }
-  function isTopNavTitlePage(){
-    var page = (window.__lxState && window.__lxState.page) ||
-      (document.body && document.body.dataset && document.body.dataset.page) ||
-      pageFromLocation();
-    return page === "personal" || page === "business" || page === "enterprise" || page === "brand" ||
-      /^\/(shop-chat|b-chat|biz-chat|brand)\/?$/.test(location.pathname || "");
-  }
-  function cap6(text){
-    return Array.from(String(text || "").trim()).slice(0, 6).join("") || "新对话";
-  }
-  function cleanText(text){
-    return String(text || "")
-      .replace(/\s+/g, "")
-      .replace(/[，。！？、,.!?;；:："'“”‘’（）()【】\[\]<>《》]/g, "")
-      .trim();
-  }
-  function summarize(text){
-    var s = cleanText(text);
-    if (!s) return "新对话";
-    var rules = [
-      [/关闭.*标签|标签.*关闭|关.*页面标签/, "关闭标签"],
-      [/教育|学生|教师|认证/, "教育优惠"],
-      [/国补|国家补贴|补贴/, "国补商品"],
-      [/以旧换新|旧机|回收|估算/, "以旧换新"],
-      [/门店|附近|到店/, "门店查询"],
-      [/客服|售后|维修|保修/, "售后服务"],
-      [/订单|物流|发货/, "订单查询"],
-      [/会员|积分|权益/, "会员权益"],
-      [/私人|定制|订制|刻字|喷绘|配色/, "私人定制"],
-      [/对比|比较/, "商品对比"],
-      [/下单|购买|买|领券|优惠券/, "购买商品"],
-      [/活动|优惠|秒杀|促销/, "优惠活动"],
-      [/笔记本|电脑|轻薄本|游戏本|工作站|YOGA|ThinkPad|拯救者|小新/i, "笔记本推荐"]
-    ];
-    for (var i = 0; i < rules.length; i += 1) {
-      if (rules[i][0].test(s)) return cap6(rules[i][1]);
-    }
-    s = s.replace(/^(请)?帮我|^我要|^我想|^给我|^推荐|^找一?款|^一款|适合我的?/g, "");
-    return cap6(s || text);
-  }
-  function currentUserTexts(){
-    var texts = [];
-    document.querySelectorAll(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user, .lxfd-thread .lxfd-msg.user, .lxfd-thread .lxfd-msg-user").forEach(function(node){
-      var text = (node.textContent || "").trim();
-      if (text) texts.push(text);
-    });
-    if (!texts.length) {
-      try {
-        var data = JSON.parse(localStorage.getItem(CONV_KEY) || "null");
-        if (data && Array.isArray(data.messages)) {
-          data.messages.forEach(function(msg){
-            if (msg && msg.role === "user" && String(msg.text || "").trim()) texts.push(String(msg.text).trim());
-          });
-        }
-      } catch (_e) {}
-    }
-    return texts;
-  }
-  function conversationLabel(){
-    var texts = currentUserTexts();
-    if (!texts.length) return "新对话";
-    return summarize(texts[0] || texts[texts.length - 1]);
-  }
-  function sync(){
-    var hasFullscreenNav = !!document.getElementById("lxfdConvoName");
-    if (!isTopNavTitlePage() && !hasFullscreenNav) return;
-    var nav = document.querySelector(".main-nav");
-    // 前缀取"当前所在页"而非"对话起源页"：URL=/ 的首页(含原地分屏)显「首页」，真navigate到
-    // 子站(/shop-chat 等)就显子站名。原用 sourcePage() 会把首页起的对话在子站里仍标「首页」，
-    // 造成"人在 shop 子站却标首页"的矛盾(真机反馈)。原始需求「有对话保持首页:xxx」只针对 URL=/。
-    var source = pageFromLocation();
-    var isHomeFullscreenNav = pageFromLocation() === "home" && hasFullscreenNav;
-    var isHomeFullscreenMode = isHomeFullscreenNav &&
-      (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
-    var hasFullscreenUserMessage = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
-    var hasSplitUserMessage = !!document.querySelector(".lx-p0-messages .lx-p0-message.user, .lx-p0-messages .msg.user");
-    var hasCurrentUserMessage = isHomeFullscreenMode ? hasFullscreenUserMessage : (hasSplitUserMessage || hasFullscreenUserMessage);
-    // leaibot.cn(URL=/)：没聊过 =「开启新对话」（不带"首页："前缀）；有对话保持「首页：xxx」（真机反馈）
-    var label = isHomeFullscreenNav && !hasCurrentUserMessage
-      ? "开启新对话"
-      : (isHomeFullscreenNav ? PAGE_LABELS.home : (PAGE_LABELS[source] || PAGE_LABELS.home)) + "：" + conversationLabel();
-    // 当前就在首页时，导航列表里的「首页」项是重复入口，藏掉（子站仍显示，用于回首页）
-    var onHomePage = pageFromLocation() === "home";
-    if (nav) {
-      nav.setAttribute("data-current-label", label);
-      nav.style.setProperty("--lx-personal-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
-      var chip = nav.querySelector(".lx-current-topic-chip");
-      if (!chip) {
-        chip = document.createElement("span");
-        chip.className = "lx-current-topic-chip";
-        chip.setAttribute("aria-hidden", "true");
-        nav.insertBefore(chip, nav.firstElementChild || null);
-      }
-      chip.textContent = label;
-      Object.keys(PAGE_LABELS).forEach(function(page){
-        var btn = nav.querySelector('[data-page="' + page + '"]');
-        if (btn) btn.textContent = PAGE_LABELS[page];
-      });
-      var navHomeBtn = nav.querySelector('[data-page="home"]');
-      if (navHomeBtn) { if (onHomePage) navHomeBtn.style.setProperty("display", "none", "important"); else navHomeBtn.style.removeProperty("display"); }
-    }
-    var lxfdName = document.getElementById("lxfdConvoName");
-    if (lxfdName) {
-      lxfdName.textContent = label;
-      lxfdName.title = label;
-      var lxfdCluster = document.getElementById("lxfdNavCluster");
-      if (lxfdCluster) lxfdCluster.style.setProperty("--lxfd-nav-label-half", Math.ceil(label.length * 7.5 + 14) + "px");
-    }
-    var lxfdNav = document.getElementById("lxfdNavSheet");
-    if (lxfdNav) {
-      Array.prototype.forEach.call(lxfdNav.querySelectorAll("[data-page]"), function(item){
-        item.classList.toggle("active", item.getAttribute("data-page") === pageFromLocation());
-      });
-      var lxfdHomeItem = lxfdNav.querySelector('[data-page="home"]');
-      // 加 important：.lxfd-nav-sheet 的 display 规则带 !important，普通 inline 压不过
-      if (lxfdHomeItem) { if (onHomePage) lxfdHomeItem.style.setProperty("display", "none", "important"); else lxfdHomeItem.style.removeProperty("display"); }
-    }
-  }
-  function scheduleSync(){
-    window.clearTimeout(syncTimer);
-    syncTimer = window.setTimeout(sync, 40);
-  }
-  window.__lxSyncPersonalNavTitle = scheduleSync;
-  window.__lxSyncTopNavTitle = scheduleSync;
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync); else sync();
-  if (window.MutationObserver) {
-    var observer = new MutationObserver(scheduleSync);
-    if (document.body) observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-state"] });
-    else document.addEventListener("DOMContentLoaded", function(){
-      observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-state"] });
-    });
-  }
-  document.addEventListener("click", function(event){
-    if (!event.target || !event.target.closest) return;
-    if (event.target.closest(".category-tabs button, .main-nav [data-page], [data-site-floor-tab], [data-floor-tab], .new-chat-button, .send-btn, .hero-send-btn")) {
-      window.setTimeout(scheduleSync, 0);
-      window.setTimeout(scheduleSync, 120);
-    }
-  });
-  window.addEventListener("popstate", sync);
-  window.addEventListener("storage", function(event){
-    if (!event || event.key === CONV_KEY) scheduleSync();
-  });
-  [80, 300, 900].forEach(function(delay){ window.setTimeout(sync, delay); });
-})();

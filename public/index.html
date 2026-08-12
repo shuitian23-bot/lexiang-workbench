@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>联想乐享AI-联想官方AI助手-懂你所需更方便-企业超级智能体-企业智能体解决方案</title>
+    <title>联想乐享 PC 端对话导购首页</title>
     <script>
       (function(){
         var path = location.pathname.replace(/\/+$|^$/, "/");
@@ -21,18 +21,10 @@
       html.lx-root-lxfd-prepaint .lxfd .anim-rise,
       html.lx-root-lxfd-prepaint .lxfd .anim-fade{opacity:1!important;animation:none!important;transform:none!important}
       html.lx-root-lxfd-prepaint .lxfd-actions .lxfd-ic:first-child{display:none!important}
-      /* 首页(URL=/)首帧就藏导航里重复的「首页」项，不等 app.js 的 sync 跑（防 FOUC 闪变） */
-      html.lx-root-lxfd-prepaint #lxfdNavSheet [data-page="home"]{display:none!important}
-      /* 首页空白态：历史入口并入顶栏 actions 胶囊排（同购物车样式）、左侧悬浮 fab 藏起；
-         进对话(body.lxfd-chatting)胶囊里的藏起、fab 回左上原位 */
-      html.lx-root-lxfd-prepaint body:not(.lxfd-chatting) .lxfd-rail-fab{display:none!important}
-      html.lx-root-lxfd-prepaint body.lxfd-chatting .lxfd-ic-history{display:none!important}
-      html:not(.lx-root-lxfd-prepaint) .lxfd-ic-history{display:none!important}
       html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail{transform:translate3d(calc(-100% - 26px),0,0)!important}
       html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail.open{transform:translate3d(0,0,0)!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-fab{opacity:1!important;visibility:visible!important;transform:none!important}
-      html.lx-root-lxfd-prepaint body.lxfd-chatting:not(.lxfd-rail-user-open) .lxfd-rail-new-fab{opacity:1!important;visibility:visible!important;transform:none!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-chatting) .lxfd-rail-new-fab{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
+      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-fab,
+      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-new-fab{opacity:1!important;visibility:visible!important;transform:none!important}
       html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail-fab,
       html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail-new-fab{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
       html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-stage{padding-left:40px!important}
@@ -43,29 +35,6 @@
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(3){grid-column:5/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(4){grid-column:2/span 2}
       html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(5){grid-column:4/span 2}
-      /* Root fullscreen gallery critical layout: prevents first-paint fallback layout while main.css is still parsing. */
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home{align-items:center!important;padding-top:clamp(78px,9vh,104px)!important;padding-bottom:18px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-welcome{flex:0 0 auto!important;justify-content:flex-start!important;min-height:auto!important;padding-bottom:0!important;margin-top:clamp(82px,12vh,124px)!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-hello{font-size:clamp(30px,2.55vw,42px)!important;line-height:1.08!important;letter-spacing:0!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-chips{display:none!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting){--lxfd-gallery-shell:clamp(520px,calc(72.22vw - 194px),920px);}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-dock{position:relative!important;bottom:auto!important;width:var(--lxfd-gallery-shell)!important;max-width:var(--lxfd-gallery-shell)!important;margin:clamp(26px,3.4vh,42px) auto 0!important;padding-top:0!important;transform:none!important;z-index:3!important;box-sizing:border-box!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-composer{width:100%!important;margin:0 auto!important;padding:18px 14px 10px 14px!important;border-radius:18px!important;box-sizing:border-box!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-composer textarea{min-height:35px!important;font-size:16px!important;transform:translateY(3px)!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-actions{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;margin-top:8px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-left,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-right,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-actions{gap:8px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-left{flex:0 0 auto!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-right{flex:0 0 auto!important;margin-left:auto!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-quick,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-footnote{display:none!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-toggle,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-more-btn{padding:0 10px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-more{display:inline-flex!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip:nth-child(n+3){display:none!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-menu .lxfd-scope-chip{display:flex!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-home-gallery{position:relative!important;z-index:1!important;width:var(--lxfd-gallery-shell)!important;max-width:var(--lxfd-gallery-shell)!important;box-sizing:border-box!important;margin:0 auto!important;padding:clamp(24px,3vh,34px) 0 clamp(24px,3.4vh,40px)!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-legal-line{position:fixed!important;left:50%!important;right:auto!important;bottom:18px!important;transform:translateX(-50%)!important;width:auto!important;max-width:calc(100vw - 48px)!important;margin:0!important;padding:0!important;text-align:center!important;color:#f6f1f8!important;font-size:12px!important;line-height:1.5!important;font-weight:400!important;letter-spacing:0!important;pointer-events:none!important;}
-      @media (max-height:860px){html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home{padding-top:72px!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-welcome{margin-top:60px!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-dock{margin-top:22px!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-home-gallery{padding-top:20px!important;padding-bottom:22px!important;}}
-      @media (min-width:1920px){html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting){--lxfd-gallery-shell:clamp(520px,calc(68.75vw - 150px),1000px);}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip:nth-child(n+3){display:inline-flex!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-more{display:none!important;}}
-      @media (min-width:1280px) and (max-width:1739px){html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting){--lxfd-gallery-shell:clamp(520px,calc(68.75vw - 150px),920px);}}
       html.lx-route-prepaint body{background:#fbf8fc}
       html.lx-route-prepaint body>.topbar,
       html.lx-route-prepaint body>.shell,
@@ -75,20 +44,11 @@
       .lx-route-loading .lx-rl-spin{width:34px;height:34px;border:3px solid #ead9f5;border-top-color:#7a1f6e;border-radius:50%;animation:lxRlSpin .8s linear infinite}
       .lx-route-loading .lx-rl-txt{color:#9a8aa8;font-size:14px;letter-spacing:.04em}
       @keyframes lxRlSpin{to{transform:rotate(360deg)}}
-      /* Deprecated portal fallback must never render. Root uses fullscreen dialog only. */
-      .portal-home{display:none!important}
-      html.lx-root-lxfd-prepaint body>.topbar,
-      html.lx-root-lxfd-prepaint body>.shell,
-      body.lx-root-home:not(.lx-home-split)>.topbar,
-      body.lx-root-home:not(.lx-home-split)>.shell{display:none!important}
-      html.lx-root-lxfd-prepaint .lxfd,
-      body.lx-root-home:not(.lx-home-split)>.lxfd{display:block!important;visibility:visible!important}
     </style>
-    <link rel="preload" as="image" href="/assets/logos/logo-full-red.png">
-    <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-1.webp">
-    <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-2.webp">
-    <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-3.webp">
-    <link rel="stylesheet" href="/css/main.css?v=202607150210">
+    <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-1.jpg">
+    <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-2.jpg">
+    <link rel="preload" as="image" href="/assets/img/lxfd-gallery-1-3.jpg">
+    <link rel="stylesheet" href="/css/main.css?v=2026070202">
     <link rel="stylesheet" href="/css/assistant-panel-ng-skin.css?v=202606222610">
   </head>
   <body data-state="default">
@@ -100,8 +60,7 @@
     </script>
     <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
     <header class="topbar">
-      <!-- 整页跳回 / = 初始全屏欢迎态（非分屏首页），配合全屏首问重置旧对话上下文（真机反馈） -->
-      <a class="brand" href="/" aria-label="联想乐享首页">
+      <a class="brand" href="#" aria-label="联想乐享首页">
         <img src="/assets/logos/logo-full-red.png" alt="联想乐享" />
       </a>
 
@@ -114,14 +73,14 @@
       </nav>
 
       <div class="utility" aria-label="快捷入口">
-        <button class="utility-btn" type="button" aria-label="购物车" title="购物车">
+        <button class="utility-btn" type="button" aria-label="购物车">
           <img class="icon" src="/assets/icons/mall-cart.svg?v=2026062518" alt="" />
         </button>
-        <button class="utility-btn" type="button" aria-label="订单" title="订单">
+        <button class="utility-btn" type="button" aria-label="订单">
           <img class="icon" src="/assets/icons/mall-orders.svg?v=2026062518" alt="" />
         </button>
         <div class="account-wrap">
-          <button class="utility-btn" type="button" aria-label="账号" title="个人中心">
+          <button class="utility-btn" type="button" aria-label="账号">
             <img class="icon" src="/assets/icons/mall-profile.svg" alt="" />
           </button>
           <div class="account-menu" role="menu">
@@ -143,7 +102,7 @@
             <img class="icon" src="/assets/icons/sidebar-new-chat.svg" alt="" />
           </button>
           <span class="history-wrap">
-            <button class="tool-btn history-button" type="button" aria-label="历史记录" title="对话记录">
+            <button class="tool-btn history-button" type="button" aria-label="历史记录">
               <img class="icon" src="/assets/icons/sidebar-history.svg?v=20260622083305" alt="" />
             </button>
           </span>
@@ -260,9 +219,248 @@
       </button>
 
       <section class="content" aria-label="导购内容">
-        
-        <!-- Deprecated portal-home removed: root uses fullscreen dialog only. -->
+        <section class="portal-home" aria-label="联想乐享门户首页">
+          <section class="portal-section portal-agent" aria-label="乐享智能体">
+            <div class="portal-bg-container" aria-hidden="true">
+              <div class="portal-bg-filter">
+                <img class="portal-bg" src="/assets/img/paico-diffuse-bg.png" alt="" />
+              </div>
+            </div>
+            <div class="agent-copy">
+              <h1 class="agent-title hero-reveal">
+                <span class="title-static">联想乐享帮你</span>
+                <span class="rotating-title" data-default="找商品" style="--rotating-title-width: 3em;" aria-label="找商品、找门店、找解决方案、职场认证、教育优惠、定制电脑">
+                  <span class="word is-active">找商品</span>
+                  <span class="word">找门店</span>
+                  <span class="word">找解决方案</span>
+                  <span class="word">职场认证</span>
+                  <span class="word">教育优惠</span>
+                  <span class="word">定制电脑</span>
+                </span>
+              </h1>
+              <form class="hero-composer hero-reveal" aria-label="首页智能体输入框">
+                <textarea rows="2" placeholder="输入您的需求，例如：帮我推荐一台适合设计办公的 AI PC"></textarea>
+                <div class="hero-composer-bar">
+                  <div class="hero-chip-row">
+                    <div class="hero-mode-toggle" role="group" aria-label="回答模式">
+                      <button class="hero-mode-option is-active" type="button" aria-pressed="true">快速</button>
+                      <button class="hero-mode-option" type="button" aria-pressed="false">思考</button>
+                    </div>
+                  </div>
+                  <div class="hero-composer-actions">
+                    <button class="hero-icon-btn" type="button" aria-label="添加图片">
+                      <img class="icon" src="/assets/icons/composer-image.svg" alt="" />
+                    </button>
+                    <button class="hero-send-btn" type="submit" aria-label="发送">
+                      <img class="icon" src="/assets/icons/send.svg" alt="" />
+                    </button>
+                  </div>
+                </div>
+              </form>
+              <div class="hero-suggestion-cloud hero-reveal" aria-label="推荐问题">
+                <div class="hero-suggestion-row">
+                  <button class="hero-suggestion" type="button">如何加入“乐享慧”产品体验官？</button>
+                  <button class="hero-suggestion" type="button">乐享补贴立减68元，购新品返至高618</button>
+                  <button class="hero-suggestion" type="button">职场人群认证</button>
+                </div>
+                <div class="hero-suggestion-row">
+                  <button class="hero-suggestion" type="button">乐享AI抽平板，世界杯好礼享不停</button>
+                  <button class="hero-suggestion" type="button">高考生有什么优惠？</button>
+                </div>
+              </div>
+            </div>
+          </section>
 
+          <section class="portal-section product-recommendation" aria-label="商品推荐">
+            <div class="portal-grid">
+              <article class="portal-product">
+                <div class="product-visual"><img src="/assets/img/sy-xx1.jpg" alt="小新 AIR 系列" /></div>
+                <h3>小新 AIR 系列</h3>
+                <p>轻薄便携，高分高刷屏幕，适合学习、办公与移动创作。</p>
+                <span class="portal-price">¥ 9799 起</span>
+              </article>
+              <article class="portal-product">
+                <div class="product-visual"><img src="/assets/img/sy-zjz2.jpg" alt="拯救者 LEGION" /></div>
+                <h3>拯救者 LEGION</h3>
+                <p>面向游戏、性能创作与高负载场景，释放旗舰性能。</p>
+                <span class="portal-price">热门推荐</span>
+              </article>
+              <article class="portal-product">
+                <div class="product-visual"><img src="/assets/img/sy-th3.jpg" alt="ThinkPad 商务系列" /></div>
+                <h3>ThinkPad 商务系列</h3>
+                <p>可靠、安全、专业，适配高频办公和企业标准化采购。</p>
+                <span class="portal-price">企业优选</span>
+              </article>
+              <article class="portal-product">
+                <div class="product-visual"><img src="/assets/img/sy-thb4.jpg" alt="AI 办公套装" /></div>
+                <h3>AI 办公套装</h3>
+                <p>从终端、显示到服务组合，打造高效的一站式办公体验。</p>
+                <span class="portal-price">组合方案</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="portal-section" aria-label="解决方案">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">解决方案</h2>
+              </div>
+              <button class="section-link" type="button">联系方案顾问</button>
+            </div>
+            <div class="solution-grid">
+              <article class="solution-card featured">
+                <img class="solution-image" src="/assets/img/fanan1.jpg" alt="" />
+                <span class="solution-meta">AI PC + 服务 + 场景</span>
+                <h3>企业智能办公解决方案</h3>
+                <p>覆盖设备选型、批量部署、运维服务和智能办公工具，帮助组织提升效率与管理确定性。</p>
+              </article>
+              <article class="solution-card">
+                <img class="solution-image" src="/assets/img/fangan2.jpg" alt="" />
+                <span class="solution-meta">SMB</span>
+                <h3>中小企业成长套装</h3>
+                <p>以 ThinkBook、ThinkCentre 和服务包构建灵活、可扩展的办公底座。</p>
+              </article>
+              <article class="solution-card">
+                <img class="solution-image" src="/assets/img/fangan3.jpg" alt="" />
+                <span class="solution-meta">GOV / EDU</span>
+                <h3>政教及大企业交付</h3>
+                <p>支持安全可信、集中管控、批量交付与行业定制需求。</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="portal-section" aria-label="客户案例">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">客户案例</h2>
+              </div>
+              <button class="section-link" type="button">查看更多案例</button>
+            </div>
+            <div class="case-grid">
+              <article class="case-card">
+                <img class="case-image" src="/assets/img/anli1.jpg" alt="" />
+                <span class="case-stat">500+</span>
+                <h3>大型组织终端更新</h3>
+                <p>通过标准化选型和统一服务策略，降低采购与运维复杂度。</p>
+              </article>
+              <article class="case-card">
+                <img class="case-image" src="/assets/img/anli2.jpg" alt="" />
+                <span class="case-stat">AI</span>
+                <h3>智能办公效率升级</h3>
+                <p>围绕会议、文档、检索和知识管理，构建员工日常 AI 助手入口。</p>
+              </article>
+              <article class="case-card">
+                <img class="case-image" src="/assets/img/anli3.jpg" alt="" />
+                <span class="case-stat">全域</span>
+                <h3>门店与线上服务协同</h3>
+                <p>用户可在门户完成咨询、导购、门店服务和会员权益联动。</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="portal-section" aria-label="新闻中心">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">新闻中心</h2>
+              </div>
+              <button class="section-link" type="button">进入新闻中心</button>
+            </div>
+            <div class="news-grid">
+              <article class="news-card lead">
+                <span class="news-date">2026.06</span>
+                <h3>联想乐享门户升级，智能体体验贯穿导购与服务全流程</h3>
+                <p>以更统一的产品、服务、会员与解决方案入口，呈现高品质 PC 品牌门户体验。</p>
+              </article>
+              <div class="news-list">
+                <article class="news-card"><span class="news-date">品牌动态</span><h3>AI PC 体验持续升级</h3></article>
+                <article class="news-card"><span class="news-date">服务公告</span><h3>门店服务与线上咨询联动更新</h3></article>
+                <article class="news-card"><span class="news-date">企业方案</span><h3>面向政企客户的批量交付能力发布</h3></article>
+              </div>
+            </div>
+          </section>
+
+          <section class="portal-section" aria-label="热门推荐">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">热门推荐</h2>
+              </div>
+              <button class="section-link" type="button">查看全部</button>
+            </div>
+            <div class="hot-grid">
+              <article class="hot-card"><span class="hot-rank">01</span><h3>618 官方活动</h3><p>查看近期优惠、活动与组合权益。</p></article>
+              <article class="hot-card"><span class="hot-rank">02</span><h3>教育特惠</h3><p>学生与教育场景适配的购机权益。</p></article>
+              <article class="hot-card"><span class="hot-rank">03</span><h3>以旧换新</h3><p>旧机估值、补贴权益与换新推荐。</p></article>
+              <article class="hot-card"><span class="hot-rank">04</span><h3>附近门店</h3><p>快速查询门店、库存和到店服务。</p></article>
+            </div>
+          </section>
+
+          <footer class="portal-section portal-footer" aria-label="底部导航">
+            <div class="footer-grid">
+              <div class="footer-col">
+                <strong>关于联想</strong>
+                <a href="#">投资者关系</a>
+                <a href="#">加入我们</a>
+                <a href="#">联系我们</a>
+                <a href="#">参观联想</a>
+                <a href="#">销售网点查询</a>
+                <a href="#">服务网点查询</a>
+                <a href="#">环境信息</a>
+              </div>
+              <div class="footer-col">
+                <strong>联想商城</strong>
+                <a href="#">今日秒杀</a>
+                <a href="#">联想合伙人</a>
+                <a href="#">私人定制</a>
+                <a href="#">以旧换新</a>
+                <a href="#">积分商城</a>
+                <a href="#">平台规则和收费标准</a>
+              </div>
+              <div class="footer-col">
+                <strong>联想服务</strong>
+                <div class="footer-link-columns">
+                  <div>
+                    <a href="#">驱动与软件下载</a>
+                    <a href="#">热门解决方案</a>
+                    <a href="#">Lenovo Quick Fix工具</a>
+                    <a href="#">24小时智能客服</a>
+                    <a href="#">保修配置查询</a>
+                  </div>
+                  <div>
+                    <a href="#">服务政策查询</a>
+                    <a href="#">延长保修</a>
+                    <a href="#">更多服务</a>
+                  </div>
+                </div>
+              </div>
+              <div class="footer-col">
+                <strong>联想网站群</strong>
+                <div class="footer-link-columns">
+                  <div>
+                    <a href="#">联想创投</a>
+                    <a href="#">聚享汇</a>
+                    <a href="#">联想电脑管家</a>
+                    <a href="#">联想AIO云计算</a>
+                    <a href="#">联想研究院</a>
+                  </div>
+                  <div>
+                    <a href="#">联想 Filez</a>
+                    <a href="#">联想百应平台</a>
+                    <a href="#">联想E采</a>
+                    <a href="#">lecoo商城</a>
+                    <a href="#">大联想伙伴网</a>
+                  </div>
+                  <div>
+                    <a href="#">ThinkPad官网</a>
+                    <a href="#">联想基金会官网</a>
+                    <a href="#">联想全球学习中心</a>
+                    <a href="#">联想云网融合</a>
+                    <a href="#">联想wiki</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </section>
 
         <section class="brand-page brand lx-brand-skin" data-v="3" aria-label="联想品牌">
           <section class="hero">
@@ -341,8 +539,8 @@
 
         <div class="hero">
           <div class="hero-slides" aria-hidden="true">
-            <img loading="lazy" class="hero-slide is-active" src="/assets/img/banner1.jpg" alt="" />
-            <img loading="lazy" class="hero-slide" src="/assets/img/banner2.jpg" alt="" />
+            <img class="hero-slide is-active" src="/assets/img/banner1.jpg" alt="" />
+            <img class="hero-slide" src="/assets/img/banner2.jpg" alt="" />
           </div>
           <div class="hero-copy">
             <p class="hero-kicker" data-page-kicker>2026 拯救者PC新品震撼来袭</p>
@@ -367,7 +565,7 @@
         <div class="product-grid">
           <article class="product-card">
             <div class="brand-mini">联想小新</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-1.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-1.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <div class="product-promos" aria-label="促销标签"><span class="product-promo">教育特惠</span><span class="product-promo">国补优惠</span></div>
@@ -375,91 +573,91 @@
           </article>
           <article class="product-card">
             <div class="brand-mini"></div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-2.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-2.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini orange">Lecoo</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-3.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-3.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini">拯救者 LEGION</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-4.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-4.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">国补后￥9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini"></div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-5.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-5.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini"></div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-7.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-7.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini">拯救者 LEGION</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-8.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-8.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini"></div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-9.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-9.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini">联想小新</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-10.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-10.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini"></div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-11.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-11.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini orange">Lecoo</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-12.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-12.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini">拯救者 LEGION</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-13.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-13.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">国补后￥9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini"></div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-14.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-14.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
           </article>
           <article class="product-card">
             <div class="brand-mini">联想小新</div>
-            <div class="product-visual"><img loading="lazy" src="/assets/img/shop-14.jpg" alt="商品图片" /></div>
+            <div class="product-visual"><img src="/assets/img/shop-14.jpg" alt="商品图片" /></div>
             <h3 class="product-title">小新AIR13</h3>
             <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
             <p class="price">¥ 9799</p>
@@ -513,7 +711,7 @@
               <div class="detail-review-ai-glow" aria-hidden="true"></div>
               <div class="detail-review-ai-inner">
                 <div class="detail-review-ai-badge">
-                  <div class="detail-review-ai-pill"><span class="detail-review-ai-dot"></span><span>✨ 乐享建议</span></div>
+                  <div class="detail-review-ai-pill"><span class="detail-review-ai-dot"></span><span>✨ 乐享 AI 总结</span></div>
                   <span class="detail-review-ai-note">智能摘要 · 仅供参考</span>
                 </div>
                 <p class="detail-review-ai-text" data-review-sum>大多数用户认为<span class="highlight">屏幕素质高、性能强、做工精致</span>，适合创作办公；少数用户提到机身偏重、续航和风扇噪音仍有提升空间。</p>
@@ -576,13 +774,13 @@
 
     <div class="lxfd" aria-label="联想乐享全屏对话">
       <header class="lxfd-topbar">
-        <a class="lxfd-logo-pill anim-fade" href="/" data-page="home" aria-label="返回首页">
+        <div class="lxfd-logo-pill anim-fade" aria-label="联想乐享">
           <img class="lxfd-logo-full" src="/assets/logos/logo-full-red.png" alt="联想乐享" />
-        </a>
+        </div>
         <nav class="lxfd-nav-cluster anim-fade" id="lxfdNavCluster" aria-label="全屏导航">
           <button class="lxfd-convo-pill lxfd-glass" id="lxfdConvoPill" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="lxfdNavSheet" aria-haspopup="true">
             <span class="dot" aria-hidden="true"></span>
-            <span class="lxfd-convo-name" id="lxfdConvoName" title="开启新对话">开启新对话</span>
+            <span class="lxfd-convo-name" id="lxfdConvoName" title="新对话">新对话</span>
             <span class="lxfd-expand-btn" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5.5 8.5 12 15l6.5-6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </button>
           <div class="lxfd-nav-sheet lxfd-glass" id="lxfdNavSheet" role="menu">
@@ -594,13 +792,12 @@
           </div>
         </nav>
         <div class="lxfd-actions lxfd-glass anim-fade" aria-label="快捷入口">
-          <button class="lxfd-ic" type="button" aria-label="收起" title="收起全屏"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M14.5 8.5 11 12l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 4.5v15" stroke="currentColor" stroke-width="1.8"/></svg></button>
-          <button class="lxfd-ic lxfd-ic-history" id="lxfdTopHistBtn" type="button" aria-label="历史对话" title="对话记录"><img class="icon" src="/assets/icons/sidebar-history.svg?v=20260622083305" alt="" /></button>
-          <button class="lxfd-ic" type="button" aria-label="购物车，2 件商品" title="购物车" data-lxfd-open="cart"><img class="icon" src="/assets/icons/mall-cart.svg?v=2026062518" alt="" /><span class="lxfd-badge">2</span></button>
-          <button class="lxfd-ic" type="button" aria-label="订单，3 个订单" title="订单" data-lxfd-open="orders"><img class="icon" src="/assets/icons/mall-orders.svg?v=2026062518" alt="" /><span class="lxfd-badge">3</span></button>
+          <button class="lxfd-ic" type="button" aria-label="收起"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M14.5 8.5 11 12l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 4.5v15" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="lxfd-ic" type="button" aria-label="购物车，2 件商品" data-lxfd-open="cart"><img class="icon" src="/assets/icons/mall-cart.svg?v=2026062518" alt="" /><span class="lxfd-badge">2</span></button>
+          <button class="lxfd-ic" type="button" aria-label="订单，3 个订单" data-lxfd-open="orders"><img class="icon" src="/assets/icons/mall-orders.svg?v=2026062518" alt="" /><span class="lxfd-badge">3</span></button>
           <span class="lxfd-divider" aria-hidden="true"></span>
           <div class="lxfd-account-wrap">
-            <button class="lxfd-avatar" type="button" aria-label="个人中心" title="个人中心"><img class="icon" src="/assets/icons/mall-profile.svg" alt="" /></button>
+            <button class="lxfd-avatar" type="button" aria-label="个人中心">乐</button>
             <div class="account-menu lxfd-account-menu" role="menu">
               <div class="menu-row">我的账号</div>
               <div class="menu-row active">我的服务</div>
@@ -625,7 +822,7 @@
       <main class="lxfd-stage shift lxfd-gallery-home" id="lxfdStage">
         <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle"><span>联想乐享帮你</span><span class="rotating-word">找商品</span></h1><div class="lxfd-chips" id="lxfdChips"></div></section>
         <section class="lxfd-thread" id="lxfdThread" aria-live="polite"></section>
-        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="推荐一款适合我的笔记本电脑" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="/assets/icons/composer-deep-think.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="/assets/icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><img class="icon" src="/assets/icons/composer-send.svg" alt="" /></button></div></div></form><p class="lxfd-footnote">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p></div>
+        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="推荐一款适合我的笔记本电脑" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="/assets/icons/composer-deep-think.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="/assets/icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 19V6M6 11.2 12 5.2l6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></form><p class="lxfd-footnote">内容由联想乐享基于当前信息生成，请在使用前核对关键信息。</p></div>
         <section class="lxfd-home-gallery" aria-label="首页内容推荐">
           <div class="gallery-tabs" role="tablist" aria-label="内容分类">
             <button class="gallery-tab is-active" type="button" data-gallery-tab="new">新品</button>
@@ -635,9 +832,9 @@
             <span class="gallery-ink" id="lxfdGalleryInk" aria-hidden="true"></span>
           </div>
           <div class="gallery-grid" id="lxfdGalleryGrid">
-            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="/assets/img/lxfd-gallery-1-1.webp" alt="" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">新品首发</span><strong class="gallery-name">拯救者 Y9000P 2026</strong><span class="gallery-desc">i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏</span><div class="gallery-foot"><span class="gallery-price">¥15,098</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
-            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="/assets/img/lxfd-gallery-1-2.webp" alt="" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">轻薄旗舰</span><strong class="gallery-name">YOGA Air 14c 2026</strong><span class="gallery-desc">酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控</span><div class="gallery-foot"><span class="gallery-price">¥8,999</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
-            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="/assets/img/lxfd-gallery-1-3.webp" alt="" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">全能之选</span><strong class="gallery-name">小新Pad Pro 13英寸</strong><span class="gallery-desc">酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄</span><div class="gallery-foot"><span class="gallery-price">¥7,299</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
+            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="/assets/img/lxfd-gallery-1-1.jpg" alt="" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">新品首发</span><strong class="gallery-name">拯救者 Y9000P 2026</strong><span class="gallery-desc">i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏</span><div class="gallery-foot"><span class="gallery-price">¥15,098</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
+            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="/assets/img/lxfd-gallery-1-2.jpg" alt="" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">轻薄旗舰</span><strong class="gallery-name">YOGA Air 14c 2026</strong><span class="gallery-desc">酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控</span><div class="gallery-foot"><span class="gallery-price">¥8,999</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
+            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="/assets/img/lxfd-gallery-1-3.jpg" alt="" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">全能之选</span><strong class="gallery-name">小新Pad Pro 13英寸</strong><span class="gallery-desc">酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄</span><div class="gallery-foot"><span class="gallery-price">¥7,299</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
           </div>
         </section>
         <p class="lxfd-legal-line">京ICP备11035381-2 | 京公网安备110108007970号 | 营业执照：91110108700000458B</p>
@@ -646,21 +843,13 @@
 
     <script>window.__LXFD_FORCE = new URLSearchParams(location.search).has("lxfd") || location.pathname.replace(/\/+$|^$/, "/") === "/";</script>
     <script src="/js/portal.js?v=202606183100"></script>
-    <script src="/js/app-intent.js?v=202607151558"></script>
-    <script src="/js/app-conv.js?v=202607101745"></script>
-    <script src="/js/app.js?v=202607151945"></script>
-    <script src="/js/app-lxfd.js?v=202607150005"></script>
-    <script src="/js/app-voice.js?v=202607142230"></script>
-    <script src="/js/app-agent.js?v=202607131544"></script>
+    <script src="/js/app.js?v=2026070201"></script>
     <script>
       (function(){
         try {
           if (!window.__LXFD_FORCE && !new URLSearchParams(location.search).has("lxfd")) return;
           var force = function(){
             if (!window.__LXFD_FORCE && !new URLSearchParams(location.search).has("lxfd")) return;
-            // 分屏已成形/正在退全屏过渡时不得强制回全屏：资源慢时本脚本执行晚，
-            // 四连定时器会落在用户已进分屏之后，把两种布局叠成花屏
-            if (document.body.classList.contains("lx-home-split") || document.body.classList.contains("lxfd-exiting") || document.body.classList.contains("lxfd-split-returning")) return;
             document.body.classList.add("assistant-fullscreen", "lx-auto-fs");
             document.body.dataset.state = "chat";
             var stage = document.getElementById("lxfdStage");

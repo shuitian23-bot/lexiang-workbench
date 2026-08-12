@@ -7,8 +7,8 @@ const db = require('../db/schema');
 const { embedTexts, DIMENSION } = require('./embed');
 const { addVector } = require('./vector_index');
 
-const BATCH = 64;    // 每批条数：喂满 embed.js 内部16并发池（火山单请求单向量）
-const DELAY = 100;   // 批次间延迟ms
+const BATCH = 10;    // DashScope 限制每批最多10条
+const DELAY = 300;   // 批次间延迟ms（避免限流）
 
 let jobState = { status: 'idle', total: 0, done: 0, failed: 0, logs: [] };
 

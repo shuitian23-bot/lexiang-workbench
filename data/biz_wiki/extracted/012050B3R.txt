@@ -1,0 +1,56 @@
+Lenovo ThinkSystem SD550 V3
+
+Lenovo ThinkSystem SD550 V3，高密度服务器、intel、英特尔
+
+关键词：Lenovo ThinkSystem SD550 V3，服务器、intel、英特尔
+
+产品特性  
+• 支持双路第四代/第五代Intel® Xeon® Scalable处理器（Sapphire Rapids/Emerald Rapids），单颗最高60核，支持Intel® Advanced Matrix Extensions (AMX)、Intel® Data Streaming Accelerator (DSA)、Intel® In-Memory Analytics Accelerator (IAA) 等全新加速引擎  
+• 高密度2U设计，单机箱最多支持4个独立计算节点（Node），每个Node为1U高度，可独立运行、独立管理、独立供电与散热  
+• 每个Node支持最高12个DDR5 RDIMM/LRDIMM内存插槽，最大支持6TB内存（LRDIMM），支持Intel® Optane™ Persistent Memory 300系列（需BIOS启用）  
+• 每个Node提供2个PCIe 5.0 x16全高全长插槽（物理x16，电气x16），支持GPU/Accelerator直连部署；另提供1个OCP 3.0 x16网卡插槽（PCIe 5.0）  
+• 全机箱共享高速背板：支持PCIe 5.0 x8上行至管理模块及后置I/O模块，实现节点间低延迟通信与统一网络/存储接入  
+• 内置Lenovo XClarity Controller（XCC）高级版，支持带外远程管理、固件更新、健康监控、自动化部署及RESTful API集成  
+• 支持Lenovo Intelligent Cooling（智能散热）技术，根据各Node实时功耗与温度动态调节风扇策略，降低整机PUE  
+• 支持热插拔2.5英寸NVMe/SATA/SAS SSD/HDD，每个Node前置最多8个2.5英寸热插拔驱动器（含2个NVMe U.2专用槽位），支持RAID 0/1/10（通过Lenovo RAID 730-8i或930-16i控制器）  
+• 符合全球主流能效标准：ENERGY STAR® certified，80 PLUS Titanium认证电源（最高效率达96%），支持直流输入（-48V DC）选项  
+
+规格参数  
+| 项目 | 规格说明 |
+|------|----------|
+| 外形尺寸 | 2U机架式，宽448 mm × 高87.2 mm × 深815 mm（不含导轨）；含满配导轨深度为845 mm |
+| 重量 | 空机箱约18.5 kg；满配4节点+12×DDR5 LRDIMM+8×NVMe SSD+双钛金电源约42.3 kg |
+| 处理器 | 每Node支持2颗Intel® Xeon® Scalable处理器（第四代Sapphire Rapids / 第五代Emerald Rapids），TDP范围120W–350W；支持AVX-512、AMX、DSA、IAA、BFloat16等指令集 |
+| 内存 | 每Node支持12×DDR5 RDIMM（最大384GB）或LRDIMM（最大6TB）；速率支持4800MT/s（RDIMM）、4400MT/s（LRDIMM）；支持ECC、内存镜像、内存备用（Spare）模式；支持Intel® Optane™ PMem 300系列（256GB/512GB/1TB模块，需搭配特定CPU及BIOS版本） |
+| 存储 | 每Node前置8×2.5英寸热插拔驱动器托架（兼容NVMe U.2、SATA、SAS SSD/HDD）；其中2个为NVMe U.2专用槽位（PCIe 5.0 x4），其余6个支持SATA/SAS/NVMe（通过板载HBA或RAID控制器）；支持Lenovo RAID 730-8i（8端口，缓存2GB）或930-16i（16端口，缓存4GB）；支持NVMe Boot（U.2）及Legacy BIOS/UEFI混合启动 |
+| 扩展插槽 | 每Node：2×PCIe 5.0 x16（全高全长，物理x16，电气x16）；1×OCP 3.0 x16（PCIe 5.0，支持10/25/50/100GbE及SmartNIC）；无PCIe 4.0或更早代际插槽 |
+| 网络 | 标配每Node 2×1GbE RJ45（板载，Intel i350-AM2）；可选OCP 3.0模块提供1×100GbE（QSFP28）、2×25GbE（SFP28）或4×10GbE（RJ45/SFP+）；支持NC-SI、IPMI over LAN、Wake-on-LAN |
+| 电源 | 标配2×2400W 80 PLUS Titanium冗余电源（交流200–240V或直流-48V）；支持电源热插拔与N+1冗余；整机最大输出功率4800W；支持PSU在线固件升级 |
+| 散热 | 6×智能调速风扇模组（N+1冗余），支持节点级温度感知与PWM动态调控；支持进风温度范围5°C–40°C（ASHRAE Class A3/A4）；噪音值≤62.5 dBA（半载，ISO 7779） |
+| 管理 | 内置Lenovo XClarity Controller（XCC）Advanced，支持IPMI 2.0、Redfish RESTful API、SNMP v3、KVM over IP、虚拟媒体挂载、批量固件部署、安全启动策略配置；支持TPM 2.0（fTPM或dTPM可选） |
+| 合规认证 | 安全：UL 62368-1、IEC 62368-1、EN 62368-1；EMC：FCC Part 15 Subpart B、ICES-003 Class A、EN 55032 Class A、EN 55035；环保：RoHS、WEEE、ENERGY STAR®、TCO Certified Edge 3.0、EPEAT Gold |
+
+常见问题  
+Q: ThinkSystem SD550 V3是否支持第五代Intel® Xeon® Scalable处理器？  
+A: 是的，ThinkSystem SD550 V3全面支持第五代Intel® Xeon® Scalable处理器（Emerald Rapids），需配合最新版BIOS（V2.10或更高版本）及XCC固件（V6.10或更高版本），并满足对应内存、散热及电源配置要求。
+
+Q: 单个Node最多可安装多少内存？使用什么类型内存能达到最大容量？  
+A: 单个Node最多支持6TB内存，需使用12条128GB DDR5 LRDIMM（4400MT/s）；若使用RDIMM，最大容量为384GB（12×32GB DDR5 RDIMM，4800MT/s）。
+
+Q: 是否支持Intel® Optane™ Persistent Memory 300系列？有哪些前提条件？  
+A: 支持，但需同时满足以下条件：使用第四代或第五代Intel® Xeon® Scalable处理器（Sapphire Rapids/Emerald Rapids）、启用BIOS中“Persistent Memory”选项、安装兼容的Optane™ PMem 300系列模块（256GB/512GB/1TB）、且系统运行支持DAX的Linux内核（如RHEL 9.2+或SLES 15 SP5+）。
+
+Q: 每个Node的PCIe插槽是否全部为PCIe 5.0？能否安装双宽GPU？  
+A: 是的，每个Node的2个PCIe 5.0 x16插槽均为全高全长、物理x16、电气x16规格，支持双宽加速卡（如NVIDIA H100 SXM5需配合专用载板，而PCIe接口型H100 PCIe Gen5可直接安装）；但需注意机箱整体散热与供电能力，满配4节点+多GPU时建议启用智能散热策略并选用2400W钛金电源。
+
+Q: SD550 V3的RAID功能由哪个控制器提供？是否支持NVMe U.2启动？  
+A: RAID功能由可选的Lenovo RAID 730-8i（8端口）或930-16i（16端口）控制器提供，均支持RAID 0/1/10/5/6/50/60及缓存保护；NVMe U.2启动完全支持，2个专用U.2槽位均可设为启动设备，支持UEFI NVMe驱动及安全启动（Secure Boot）。
+
+Q: XClarity Controller（XCC）在SD550 V3中是否支持跨节点统一管理？如何实现节点隔离？  
+A: 是的，XCC Advanced支持全机箱统一管理视图，可同时监控4个Node的硬件状态、日志、固件版本及电源策略；同时支持基于IPMI用户角色与Redfish权限模型的节点级隔离——管理员可为不同Node分配独立的管理IP子网、用户账户及API访问范围，确保多租户环境下的逻辑隔离与审计合规。
+
+Q: 该服务器是否支持-48V直流输入？对数据中心基础设施有何特殊要求？  
+A: 支持，SD550 V3提供-48V DC电源选项（需订购专用DC PSU型号），适用于电信级或超大规模直流供电数据中心；要求配电系统具备-48V±10%稳定输出、过流/短路/反接保护，并推荐采用双路DC输入以实现N+1冗余；机柜需配备符合IEC 62368-1的直流配电单元（DCPD）及专用接地规范。
+
+Q: 在高密度部署场景下，SD550 V3如何保障长期运行的可靠性？  
+A: 通过多重机制保障可靠性：全组件工业级选料（包括105℃固态电容、高寿命SSD及双倍MTBF风扇）；XCC持续监控200+项传感器数据并自动触发预警与降频保护；支持内存ECC+Patrol Scrub+Demand Scrub三级纠错；电源与风扇N+1冗余设计；并通过Lenovo Factory Integration完成出厂前72小时高温老化与压力测试（Burn-in）。

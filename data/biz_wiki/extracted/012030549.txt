@@ -1,0 +1,62 @@
+ThinkStation P358 AMD
+
+ThinkStation P358 AMD 革新之作 卓越性能
+
+Windows 11 家庭中文版 / 民族语言使用商用 Windows 11 专业版
+
+AMD 锐龙 PRO 专业处理器
+超凡速度，卓越能效
+最大 64 核心 128 线程
+85W 功耗设计
+支持 DDR5 内存
+
+|型号|核心数|线程数|主频|最大加速频率|缓存|
+|---|---|---|---|---|---|
+|AMD Ryzen 9 PRO 5950X|16|32|3.9 GHz|4.9 GHz|64 MB|
+|AMD Ryzen 7 PRO 5850U|8|16|3.4 GHz|4.4 GHz|16 MB|
+|AMD Ryzen 5 PRO 4650G|6|12|3.3 GHz|4.2 GHz|12 MB|
+
+高性能独显，双重选择给创作加速
+
+ISV 全功能认证，打造专业平台
+
+应用场景
+
+体育实训分析
+使用 Adobe、Cinema 4D 等软件进行数据分析和模拟。
+
+工程建模/仿真
+使用 AutoCAD、SolidWorks 等软件进行复杂模型的创建和仿真。
+
+工业设计 CAD 应用
+使用 CATIA、NX、Inventor 等软件进行工业设计和制造。
+
+联想 Premier Support 专享服务
+
+10000+ 个全球服务网点
+2300+ 个技术支持工程师
+30 天快速响应
+
+Q: ThinkStation P358 AMD 最高支持多少核心和线程？
+A: ThinkStation P358 AMD 最高支持 64 核心 128 线程，对应可选的 AMD 锐龙 PRO 处理器规格上限。
+
+Q: 该机型是否支持 DDR5 内存？
+A: 是的，ThinkStation P358 AMD 明确支持 DDR5 内存，这是其 AMD 锐龙 PRO 专业处理器平台的重要特性之一。
+
+Q: P358 AMD 预装的操作系统版本有哪些？
+A: 预装 Windows 11 家庭中文版；如需民族语言支持或商用环境部署，则使用商用 Windows 11 专业版。
+
+Q: 哪些专业软件在该机型上获得 ISV 认证？
+A: 该机型通过 ISV 全功能认证，支持 Adobe、Cinema 4D、AutoCAD、SolidWorks、CATIA、NX、Inventor 等主流专业应用。
+
+Q: 联想 Premier Support 服务在全球有多少个服务网点和技术支持工程师？
+A: 联想 Premier Support 提供 10000+ 个全球服务网点和 2300+ 个技术支持工程师，保障用户服务覆盖与响应能力。
+
+Q: P358 AMD 的处理器功耗设计是多少瓦？
+A: 该机型采用 85W 功耗设计的 AMD 锐龙 PRO 专业处理器，兼顾高性能与能效平衡。
+
+Q: 在工程建模/仿真场景中，P358 AMD 主要适配哪些软件？
+A: 在工程建模/仿真场景中，P358 AMD 主要适配 AutoCAD 和 SolidWorks 等软件，用于复杂模型的创建和仿真任务。
+
+Q: 该机型是否适用于工业设计领域的 CAD 应用？具体支持哪些软件？
+A: 是的，P358 AMD 专为工业设计 CAD 应用优化，支持 CATIA、NX、Inventor 等高端工业设计与制造软件。

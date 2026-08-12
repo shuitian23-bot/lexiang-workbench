@@ -1,0 +1,116 @@
+ThinkSmart Core G2
+
+Intel® Core™ Ultra 5/7处理器  
+内置NPU（神经网络单元）  
+支持Copilot等人工智能平台  
+内置视频采集功能  
+单/双流屏显  
+内置BYOM一键切换  
+丰富接口扩展音视频外设  
+智慧中控随心切换  
+
+强芯聚力，高效运行  
+搭载Intel® CoreTM Ultra 5 135H/7 165H processor on Intel vPro® platform，AI运行更从容，远程管理更便捷  
+
+Intel CORE ULTRA 7  
+
+内置NPU  
+(神经网络单元)  
+
+支持Copilot等  
+人工智能平台  
+
+16GB / 32GB(可选)  
+256GB PCIe SSD  
+
+丰富接口，超强扩展  
+覆盖USB、HDMI、网口等多类型接口适配，设备连接更自由  
+
+- 1x HDMI-In  
+- 3x USB-C  
+- 2x HDMI-Out  
+- 1x Gigabit Ethernet  
+- 4x USB-A  
+- 1x Power  
+
+立挂随需，超远传输  
+支持桌面和壁挂两种安装方式，搭配POE供电编解码盒，超百米远距离控制。  
+
+多云会议，无界畅联  
+可选预装业界主流认证云视频会议平台，Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms，  
+智慧中控，多平台切换，助力高效远程协作  
+
+- Teams Room  
+- 腾讯会议ROOMS  
+- ZOOM Rooms  
+- 智慧服务，全球覆盖  
+
+标题：  
+- 百思服务，全球覆盖  
+
+描述：  
+- 三年上门保修服务，智慧服务一部到位  
+
+| 接口类型 | 数量 | 说明 |
+|----------|------|------|
+| HDMI-In | 1x | 支持视频信号输入 |
+| USB-C | 3x | 支持数据传输、视频输出及供电 |
+| HDMI-Out | 2x | 支持双流显示输出 |
+| Gigabit Ethernet | 1x | 千兆以太网接口，支持网络连接与POE供电（配合编解码盒） |
+| USB-A | 4x | 支持外接键盘、鼠标、U盘等USB设备 |
+| Power | 1x | 电源接口 |
+
+产品特性：  
+- 搭载Intel® Core™ Ultra 5 135H / Ultra 7 165H处理器，基于Intel vPro®平台  
+- 内置NPU（神经网络单元），专为AI工作负载优化  
+- 原生支持Microsoft Copilot等人工智能平台  
+- 内置视频采集功能，无需额外采集卡  
+- 支持单流或双流屏显输出  
+- 内置BYOM（Bring Your Own Meeting）一键切换功能  
+- 智慧中控能力，实现多云会议平台间随心切换  
+- 支持桌面放置与壁挂两种安装方式  
+- 配合POE供电编解码盒，实现超百米远距离音视频控制与传输  
+- 可选预装Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms等主流认证云视频会议平台  
+- 提供三年上门保修服务，覆盖全球  
+
+规格参数：  
+- 处理器：Intel® Core™ Ultra 5 135H 或 Intel® Core™ Ultra 7 165H  
+- 神经网络单元：内置NPU（Neural Processing Unit）  
+- 内存：16GB / 32GB（可选）  
+- 存储：256GB PCIe SSD  
+- 视频输入：1x HDMI-In  
+- 视频输出：2x HDMI-Out  
+- 数据/视频/供电接口：3x USB-C（支持DisplayPort Alt Mode、USB 3.2 Gen 2、PD供电）  
+- 网络接口：1x Gigabit Ethernet（支持标准以太网连接；配合POE编解码盒时支持远距离POE供电与控制）  
+- 通用接口：4x USB-A（USB 3.2 Gen 1）  
+- 电源接口：1x Power（专用直流输入）  
+- AI平台支持：Microsoft Copilot、Windows Studio Effects、第三方AI应用生态  
+- 认证云会议平台：Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms（可选预装）  
+- 安装方式：桌面支架兼容 / VESA壁挂（75×75 mm & 100×100 mm）  
+- 服务保障：三年上门保修服务  
+
+常见问题  
+
+Q: ThinkSmart Core G2是否支持同时连接并输出到两个显示器？  
+A: 是的，ThinkSmart Core G2配备2x HDMI-Out接口，原生支持双流屏显输出，可同时驱动两个独立显示器，满足主讲画面+内容共享、双摄像头画中画等多场景需求。
+
+Q: 内置NPU具体能带来哪些实际应用提升？  
+A: 内置NPU专为AI推理任务优化，可加速Windows Studio Effects（如背景虚化、眼神接触、语音增强）、实时字幕生成、会议智能摘要、本地化AI模型运行等，显著降低CPU/GPU负载，提升AI响应速度与能效比。
+
+Q: “BYOM一键切换”功能如何使用？用户需要提前准备什么？  
+A: BYOM（Bring Your Own Meeting）一键切换允许用户通过物理按键或软件快捷入口，在已预装的不同云会议平台（如Teams Rooms、ZOOM Rooms、腾讯会议Rooms）之间即时切换会议环境，无需重启设备或手动退出登录；用户仅需确保各平台账号已完成初始配置并保持在线状态。
+
+Q: 是否必须搭配POE供电编解码盒才能实现“超百米远距离控制”？该编解码盒是否为标配？  
+A: 是的，“超百米远距离控制”依赖于专用POE供电编解码盒实现音视频信号长距离无损传输与反向供电控制；该编解码盒为可选配件，非整机标配，需根据部署距离与布线环境单独选配。
+
+Q: ThinkSmart Core G2的HDMI-In接口是否支持4K@60Hz视频采集？是否支持HDR？  
+A: HDMI-In接口支持最高4K@60Hz（YUV 4:2:0）视频输入，兼容主流会议摄像头与PC投屏信号；支持HDR10元数据传递，但HDR画面处理效果取决于所连接源设备及上层会议软件的兼容性。
+
+Q: 内存与固态硬盘是否支持用户自行升级？  
+A: ThinkSmart Core G2采用板载内存设计（16GB/32GB不可拆卸），SSD为M.2 2280 PCIe Gen4 x4插槽，支持用户在保修期外自行更换或升级至更大容量PCIe NVMe SSD（建议使用符合联想兼容性列表的型号）。
+
+Q: 预装的云会议平台是否包含许可证？是否需要用户另行购买订阅服务？  
+A: 预装平台为软件环境部署，不包含云会议服务许可证；Microsoft Teams Rooms、ZOOM Rooms、腾讯会议Rooms的商用使用均需用户按各自厂商政策单独采购对应订阅许可及会议室授权。
+
+Q: “三年上门保修服务”覆盖哪些具体服务内容？是否包含全球所有国家和地区？  
+A: 三年上门保修服务涵盖硬件故障诊断、备件更换、现场技术支持；服务范围覆盖中国大陆及联想官方宣布提供智慧服务的海外国家和地区（具体以联想官网“服务支持→服务网点查询”为准），部分偏远地区可能转为寄修或中心维修，详情可咨询联想服务热线。
