@@ -1,4 +1,4 @@
-# 乐享 AI 工作台 0803 — Vue 3 源码包
+# 乐享 AI 工作台 0812 — Vue 3 源码包
 
 本目录是门户工作台主维护源码。仓库根目录的 `public/admin-vue/` 是构建产物，不是源码入口。
 
@@ -16,7 +16,7 @@
 开始页面设计、实现或评审前，读取：
 
 ```text
-../skill/portal-workbench-ui-0803/SKILL.md
+../skill/portal-workbench-ui-0812/SKILL.md
 ```
 
 该 Skill 是 PM、UI 和研发共用的可移植分发副本。将当前目录作为 `<app-root>`；不依赖个人机器路径、固定项目目录名或项目/Skill 哈希。

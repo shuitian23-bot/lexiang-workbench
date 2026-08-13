@@ -1,0 +1,22 @@
+{
+  "projectId": "lexiang-workbench",
+  "skillId": "portal-workbench-ui",
+  "skillVersion": "2026-08-12",
+  "skillRelease": "0812",
+  "baselineName": "0812-unified-design-and-shared-vue-component-baseline",
+  "updatedAt": "2026-08-12",
+  "referenceBaseline": {
+    "projectRelease": "0812",
+    "appRootHint": "vue-app"
+  },
+  "audiences": [
+    "pm",
+    "ui-ux",
+    "frontend-development",
+    "review-qa"
+  ],
+  "distributionPolicy": "single-authoritative-skill",
+  "compatibilityPolicy": "portable-target-repository",
+  "sharedRoleComponentLibrary": "assets/vue-content-slot-components",
+  "productSourceWritePolicy": "development-request-with-identified-target-authorizes-in-scope-edits"
+}
