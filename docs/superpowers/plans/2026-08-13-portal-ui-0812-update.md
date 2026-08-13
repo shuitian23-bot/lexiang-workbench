@@ -78,7 +78,7 @@ node skill/portal-workbench-ui-0812/scripts/check-consistency.mjs --project vue-
   --changed-file src/views/order/OrderPurchaseOrdersView.vue
 ```
 
-Expected: non-zero exit because the old order page still contains hardcoded colors and page-local spacing that violate the 0812 changed-file contract. This is the RED evidence for the generated style integration.
+Expected: non-zero exit. The baseline contains 76 order-page findings and 215 pre-existing Skill creation findings. The same 0812 Guard reports 215 findings against the approved package's Skill creation page and zero against its order page, so the 215 Skill findings are recorded historical debt outside this change.
 
 - [ ] **Step 2: Apply the reviewed Skill creation diff**
 
@@ -95,11 +95,11 @@ Apply only the package hunks that:
 - use content-container breakpoints at `1039px` and `719px`;
 - preserve all service, query, pagination, export and route functions unchanged.
 
-- [ ] **Step 4: Re-run the incremental design guard**
+- [ ] **Step 4: Re-run the incremental design guard by page**
 
-Run the command from Step 1 again.
+Run the guard separately for the order page and Skill creation page.
 
-Expected: exit `0`, with no new hardcoded color, invalid spacing, radius, or font-size findings in the two changed files.
+Expected: the order page exits `0` with zero findings. The Skill creation page remains at exactly 215 historical findings, matching the approved 0812 package; the eight-line spacing change must not add a finding. Do not expand this task into a full refactor of the sealed Skill creation flow.
 
 - [ ] **Step 5: Review the behavioral diff and commit**
 
