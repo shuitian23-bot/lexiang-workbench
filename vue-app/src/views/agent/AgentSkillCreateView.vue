@@ -1,5 +1,5 @@
 <template>
-  <div class="skill-create-page">
+  <div class="skill-create-page" data-page-flow="skill-create">
     <div class="page-header">
       <div>
         <div class="page-title">Skill 创建</div>
@@ -1758,6 +1758,14 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+.skill-create-page[data-page-flow="skill-create"] {
+  gap: 16px;
+}
+
+.skill-create-page[data-page-flow="skill-create"] > .page-header {
+  margin-bottom: 0;
+}
+
 .skill-state-summary {
   display: flex;
   align-items: center;
