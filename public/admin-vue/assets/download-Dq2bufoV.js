@@ -1,0 +1,1 @@
+function l({content:t,fileName:n,mimeType:c}){const d=new Blob([t],{type:c}),o=URL.createObjectURL(d),e=document.createElement("a");e.href=o,e.download=n,document.body.appendChild(e),e.click(),e.remove(),URL.revokeObjectURL(o)}export{l as d};
