@@ -112,6 +112,14 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-08-13 14:34',
+    operator: 'Codex（协作代理）',
+    title: '0812 工作台样式规范更新',
+    scope: '设计基线 / Skill 创建 / 订单管理 / 协议采购单管理',
+    detail: '接入 portal-workbench-ui-0812 统一设计规范，保留 0803 历史版本；Skill 创建页统一页面标题与首个业务区块的间距；协议采购单列表和详情统一设计变量、KPI、筛选区、表格、状态标签及内容槽响应式样式。查询、筛选、分页、导出、详情路由、右侧 Agent、权限管理和其他业务页面保持原有逻辑。',
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-07-24 13:44',
     operator: 'Codex（协作代理）',
     title: 'Skill 创建评估页微调收口调整',
