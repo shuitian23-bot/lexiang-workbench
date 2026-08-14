@@ -1,4 +1,4 @@
-import{I as l,g as v,i as r,v as c,j as n,c as k,o as h}from"./index-KNSQFYHc.js";const u=`
+import{I as l,g as v,i as r,v as c,j as n,c as k,o as h}from"./index-Bw3ZyomB.js";const u=`
 <div class="page-header">
   <div>
     <div class="page-title">质量分析</div>
