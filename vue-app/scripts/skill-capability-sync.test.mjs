@@ -192,6 +192,45 @@ test('Skill Hub exposes independent update discovery and change actions', async 
   assert.match(view, /canUpdateSkill/)
 })
 
+test('preview Skill Hub exposes explicit capability demo activation and reset', async () => {
+  const service = await source('../src/services/skillCapabilityChanges.js')
+  const store = await source('../src/stores/skillHub.ts')
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.match(service, /export function activateCapabilityDemo/)
+  assert.match(service, /export function resetCapabilityDemo/)
+  assert.match(store, /activateCapabilityDemo/)
+  assert.match(store, /resetCapabilityDemos/)
+  assert.match(view, /模拟能力变化/)
+  assert.match(view, /new\.leaibot\.cn/)
+  assert.match(view, /接口和字段新增/)
+  assert.match(view, /权限点变化/)
+  assert.match(view, /重置演示数据/)
+})
+
+test('capability demo activation and reset preserve the published baseline', async () => {
+  const { activateCapabilityDemo, getSeedCapabilityUpdate, resetCapabilityDemo } = await import('../src/services/skillCapabilityChanges.js')
+  const baseline = {
+    name: 'product-knowledge',
+    cnName: '产品知识问答',
+    version: 'v1.0.7',
+    online: 'v1.0.7',
+    status: 'published',
+    statusText: '已发布',
+    owner: 'product-pm'
+  }
+  const activated = activateCapabilityDemo(baseline, getSeedCapabilityUpdate(baseline.name), '2026-08-14 12:00')
+  assert.equal(activated.capabilityUpdate.status, 'available')
+  assert.equal(activated.online, 'v1.0.7')
+  assert.equal(activated.owner, 'product-pm')
+  assert.equal(activated.updated, '2026-08-14 12:00')
+
+  const reset = resetCapabilityDemo(activated)
+  assert.equal(reset.capabilityUpdate, undefined)
+  assert.equal(reset.version, 'v1.0.7')
+  assert.equal(reset.status, 'published')
+  assert.equal(reset.owner, 'product-pm')
+})
+
 test('skill store preserves online version while an update draft is edited', async () => {
   const store = await source('../src/stores/skillHub.ts')
   assert.match(store, /capabilityUpdate\?: SkillCapabilityUpdate/)

@@ -48,6 +48,38 @@ export function getSeedCapabilityUpdate(skillName) {
   return clone(seedUpdates[skillName])
 }
 
+export function activateCapabilityDemo(item, seededUpdate, updatedAt = formatShanghaiMinute()) {
+  const target = clone(item)
+  if (!target || !seededUpdate) return target
+
+  target.capabilityUpdate = {
+    ...clone(seededUpdate),
+    status: 'available'
+  }
+  target.version = target.online !== '未发布' ? target.online : target.version
+  target.editVersion = undefined
+  target.editStatus = undefined
+  target.draft = undefined
+  target.updated = updatedAt
+  return target
+}
+
+export function resetCapabilityDemo(item) {
+  const target = clone(item)
+  if (!target) return target
+
+  delete target.capabilityUpdate
+  delete target.editVersion
+  delete target.editStatus
+  delete target.draft
+  if (target.online !== '未发布') {
+    target.version = target.online
+    target.status = 'published'
+    target.statusText = '已发布'
+  }
+  return target
+}
+
 export function nextPatchVersion(version) {
   const match = String(version || '').match(/^v?(\d+)\.(\d+)\.(\d+)$/)
   if (!match) return 'v1.0.0'

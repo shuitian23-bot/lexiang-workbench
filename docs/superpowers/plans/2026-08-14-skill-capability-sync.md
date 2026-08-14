@@ -81,3 +81,17 @@
 - [ ] 运行 `pnpm guard:design-skill`、功能测试、`pnpm lint`、`pnpm typecheck`、`pnpm build`、`pnpm smoke:shell`。
 - [ ] 检查 `git diff` 与 `admin-runtime`，确认无无关变更。
 - [ ] 提交本次分支，保留 `new`、正式和 GitLab 推送为独立确认步骤。
+
+### Task 5: 预览环境 Mock 演示入口
+
+**Files:**
+- Modify: `vue-app/src/services/skillCapabilityChanges.js`
+- Modify: `vue-app/src/stores/skillHub.ts`
+- Modify: `vue-app/src/views/agent/AgentSkillsView.vue`
+- Modify: `vue-app/src/assets/workbench.css`
+- Test: `vue-app/scripts/skill-capability-sync.test.mjs`
+
+- [ ] 先编写失败测试，要求显式场景注入、重置和仅预览域名展示入口。
+- [ ] 实现“模拟能力变化”弹窗，提供接口/字段增强与权限变化两个场景。
+- [ ] 初始 Skill Hub 不静默注入 Mock；触发后持久化，重置后恢复无更新状态。
+- [ ] 重新运行完整验证并只发布到 `new`。

@@ -6127,6 +6127,56 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
   border-color:#fecaca;
 }
 
+html[data-product="leaibot"] .skill-capability-demo-panel {
+  width:min(560px, calc(100vw - 48px));
+  border-radius:8px;
+}
+
+html[data-product="leaibot"] .skill-capability-demo-panel .skill-hub-confirm-head {
+  align-items:flex-start;
+}
+
+html[data-product="leaibot"] .skill-capability-demo-panel .skill-hub-confirm-head p {
+  margin:5px 0 0;
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.5;
+}
+
+html[data-product="leaibot"] .skill-capability-demo-list {
+  display:grid;
+  gap:10px;
+  padding:2px 20px 20px;
+}
+
+html[data-product="leaibot"] .skill-capability-demo-list button {
+  display:grid;
+  gap:5px;
+  width:100%;
+  padding:14px;
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  background:#fff;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+}
+
+html[data-product="leaibot"] .skill-capability-demo-list button:hover {
+  border-color:var(--color-primary-border, #b7c8ff);
+  background:var(--primary-light);
+}
+
+html[data-product="leaibot"] .skill-capability-demo-list strong {
+  font-size:13px;
+}
+
+html[data-product="leaibot"] .skill-capability-demo-list span {
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.55;
+}
+
 html[data-product="leaibot"] .skill-capability-change-panel {
   width:min(780px, calc(100vw - 48px));
   max-height:min(760px, calc(100vh - 48px));
