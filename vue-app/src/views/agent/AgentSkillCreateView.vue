@@ -11,19 +11,6 @@
       </div>
     </div>
 
-    <div v-if="activeCapabilityUpdate" class="skill-capability-update-banner" role="status">
-      <div class="skill-capability-update-mark">更新</div>
-      <div class="skill-capability-update-copy">
-        <b>能力上下文已变化</b>
-        <p aria-live="polite">已选能力受影响 {{ affectedSelectedContextItems.length }} 项，可选新增 {{ optionalNewContextItems.length }} 项。</p>
-        <div>
-          <span>目标能力版本 {{ activeCapabilityUpdate.targetCapabilityVersion }}</span>
-          <span>检测于 {{ activeCapabilityUpdate.detectedAt }}</span>
-        </div>
-      </div>
-      <button class="btn btn-secondary" type="button" @click="focusCapabilityContext">查看能力上下文</button>
-    </div>
-
     <div class="skill-create-studio">
       <aside class="skill-context-pane">
         <div class="skill-context-fixed-head">
@@ -216,6 +203,13 @@
                       <div>
                         <b>能力上下文</b>
                         <p>已读取当前选择，并发现相关能力变化，请确认本次 Skill 使用的能力范围。</p>
+                        <div v-if="activeCapabilityUpdate" class="skill-capability-context-meta" role="status" aria-live="polite">
+                          <span class="skill-capability-context-meta-mark">更新</span>
+                          <span>已选能力受影响 <strong>{{ affectedSelectedContextItems.length }}</strong> 项</span>
+                          <span>可选新增 <strong>{{ optionalNewContextItems.length }}</strong> 项</span>
+                          <span class="skill-capability-context-meta-detail">目标能力版本 {{ activeCapabilityUpdate.targetCapabilityVersion }}</span>
+                          <span class="skill-capability-context-meta-detail">检测于 {{ activeCapabilityUpdate.detectedAt }}</span>
+                        </div>
                       </div>
                       <span>{{ selectedContextItems.length }} 已选</span>
                     </div>
@@ -1904,60 +1898,6 @@ onBeforeUnmount(() => {
   margin-bottom: 0;
 }
 
-.skill-capability-update-banner {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid #fed7aa;
-  border-radius: 8px;
-  background: #fffbf3;
-}
-
-.skill-capability-update-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 38px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 6px;
-  background: #fff1d6;
-  color: #9a6700;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.skill-capability-update-copy {
-  min-width: 0;
-}
-
-.skill-capability-update-copy b {
-  display: block;
-  color: var(--color-text, #1f2329);
-  font-size: 14px;
-}
-
-.skill-capability-update-copy p {
-  margin: 3px 0 0;
-  color: var(--color-text-secondary, #646a73);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.skill-capability-update-copy > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 14px;
-  margin-top: 7px;
-}
-
-.skill-capability-update-copy span {
-  color: #8a5a00;
-  font-size: 11px;
-}
-
 .skill-capability-context-panel {
   flex: 0 0 auto;
   width: 100%;
@@ -1995,6 +1935,40 @@ onBeforeUnmount(() => {
 
 .skill-capability-context-head p {
   margin-top: 4px;
+}
+
+.skill-capability-context-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 12px;
+  margin-top: 8px;
+  color: #8a5a00;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.skill-capability-context-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.skill-capability-context-meta strong {
+  color: inherit;
+  font-size: inherit;
+}
+
+.skill-capability-context-meta-mark {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: #fff1d6;
+  font-weight: 700;
+}
+
+.skill-capability-context-meta-detail {
+  color: var(--color-text-tertiary, #8f959e);
 }
 
 .skill-capability-context-head > span,
@@ -2135,18 +2109,6 @@ onBeforeUnmount(() => {
   color: var(--color-text-tertiary, #8f959e);
   cursor: not-allowed;
   opacity: .65;
-}
-
-@media (max-width: 760px) {
-  .skill-capability-update-banner {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .skill-capability-update-banner > .btn {
-    grid-column: 1 / -1;
-    justify-self: end;
-  }
-
 }
 
 @container (max-width: 480px) {

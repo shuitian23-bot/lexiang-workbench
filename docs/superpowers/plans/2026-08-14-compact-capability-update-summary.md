@@ -23,7 +23,7 @@
 
 - [ ] Assert the page-level `skill-capability-update-banner` is absent.
 - [ ] Assert `skill-capability-context-meta` is rendered inside `skill-capability-context-panel`.
-- [ ] Assert `focusCapabilityContext` and “查看能力上下文” are absent.
+- [ ] Assert “查看能力上下文” is absent while the existing card-to-context focus behavior remains.
 - [ ] Run `node scripts/skill-capability-sync.test.mjs` and confirm RED.
 
 ### Task 2: Move And Compact The Summary
@@ -33,7 +33,7 @@
 
 - [ ] Remove the page-level banner markup.
 - [ ] Add a conditional metadata row under the context module title.
-- [ ] Remove the unused focus function and banner CSS.
+- [ ] Keep the focus function used by capability cards and remove only the banner CSS.
 - [ ] Add wrapping compact metadata styles and a narrow container layout.
 - [ ] Run the targeted test and confirm GREEN.
 

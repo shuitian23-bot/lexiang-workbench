@@ -240,8 +240,13 @@ test('skill store preserves online version while an update draft is edited', asy
 
 test('Skill create keeps capability context changes visible and gates review at 0.80', async () => {
   const view = await source('../src/views/agent/AgentSkillCreateView.vue')
-  assert.match(view, /能力上下文已变化/)
+  assert.doesNotMatch(view, /class="skill-capability-update-banner"/)
+  assert.doesNotMatch(view, /查看能力上下文/)
+  assert.match(view, /class="skill-chat-context skill-capability-context-panel"[\s\S]*class="skill-capability-context-meta"/)
+  assert.match(view, /已选能力受影响/)
+  assert.match(view, /可选新增/)
   assert.match(view, /目标能力版本/)
+  assert.match(view, /检测于/)
   assert.match(view, /REVIEW_SCORE_THRESHOLD = 0\.80/)
   assert.match(view, /currentScore\.value < REVIEW_SCORE_THRESHOLD/)
   assert.match(view, /综合评分 ≥ 0\.80/)
