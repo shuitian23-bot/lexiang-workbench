@@ -32,7 +32,7 @@ test('capability change service returns isolated updates and increments patch ve
 })
 
 test('capability update clones current context and invalidates stale evaluation once', async () => {
-  const { beginCapabilityUpdate, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const { beginCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilityDraft } = await import('../src/services/skillCapabilityChanges.js')
   const update = getSeedCapabilityUpdate('product-knowledge')
   const item = {
     name: 'product-knowledge',
@@ -64,12 +64,21 @@ test('capability update clones current context and invalidates stale evaluation 
   assert.deepEqual(started.draft.selectedContextCodes, ['dashboard.geoKnowledge'])
   assert.equal(started.draft.aiTuned, false)
   assert.equal(started.draft.evaluationCapabilityVersion, undefined)
+  assert.equal(started.capabilityUpdate.hasDraftEdits, false)
 
   started.draft.aiTuned = true
   started.draft.evaluationCapabilityVersion = update.targetCapabilityVersion
   const continued = beginCapabilityUpdate(started, '2026-08-14 11:05')
   assert.equal(continued.editVersion, 'v1.0.8')
   assert.equal(continued.draft.aiTuned, true)
+
+  const saved = mergeCapabilityDraft(continued, {
+    cnName: continued.cnName,
+    desc: continued.desc,
+    category: continued.category,
+    tags: []
+  }, continued.draft, '2026-08-14 11:06')
+  assert.equal(saved.capabilityUpdate.hasDraftEdits, true)
 })
 
 test('legacy processing drafts receive missing seeded context once', async () => {
@@ -171,6 +180,7 @@ test('capability submission preserves online lifecycle and owner until approved 
   assert.equal(submitted.status, 'published')
   assert.equal(submitted.editStatus, 'review')
   assert.equal(submitted.online, 'v1.0.7')
+  assert.equal(submitted.capabilityUpdate.hasDraftEdits, true)
 
   const approved = transitionCapabilityEdit(submitted, 'approved', 'admin', '2026-08-14 11:20')
   assert.equal(approved.status, 'published')
@@ -190,6 +200,9 @@ test('Skill Hub exposes independent update discovery and change actions', async 
   assert.match(view, /能力变化详情/)
   assert.match(view, /startCapabilityUpdate/)
   assert.match(view, /canUpdateSkill/)
+  assert.match(view, /function capabilityUpdateActionLabel/)
+  assert.match(view, /capabilityUpdateActionLabel\(capabilityChangeItem\)/)
+  assert.match(view, /capabilityUpdateActionLabel\(item\)/)
 })
 
 test('Skill Hub loads fixed capability updates without user-side demo controls', async () => {

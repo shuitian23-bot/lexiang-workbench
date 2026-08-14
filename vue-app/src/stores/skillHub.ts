@@ -27,6 +27,7 @@ export interface SkillCapabilityChange {
 export interface SkillCapabilityUpdate {
   recordId: string
   status: CapabilityUpdateStatus
+  hasDraftEdits?: boolean
   contextId: string
   menuPath: string
   baseMenu: string

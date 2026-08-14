@@ -74,6 +74,7 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
   if (!update || update.status === 'resolved') return target
 
   const isNewUpdate = update.status !== 'processing'
+  update.hasDraftEdits = Boolean(update.hasDraftEdits)
   target.editVersion ||= nextPatchVersion(target.online !== '未发布' ? target.online : target.version)
   target.version = target.editVersion
   target.editStatus ||= 'draft'
@@ -178,6 +179,9 @@ export function mergeCapabilityDraft(current, nextItem, draft, updatedAt = forma
     tags: nextItem.tags,
     updated: updatedAt,
     draft,
+    capabilityUpdate: current.capabilityUpdate
+      ? { ...current.capabilityUpdate, hasDraftEdits: true }
+      : current.capabilityUpdate,
     editStatus: 'draft',
     version: current.editVersion || current.version,
     editVersion: current.editVersion || current.version,
@@ -196,6 +200,9 @@ export function mergeCapabilitySubmission(current, nextItem, updatedAt = formatS
     submittedAt: updatedAt,
     score: nextItem.score,
     draft: nextItem.draft,
+    capabilityUpdate: current.capabilityUpdate
+      ? { ...current.capabilityUpdate, hasDraftEdits: true }
+      : current.capabilityUpdate,
     editStatus: 'review',
     version: current.editVersion || current.version,
     editVersion: current.editVersion || current.version,

@@ -281,7 +281,7 @@
         <div class="skill-hub-detail-foot">
           <button class="btn btn-secondary" type="button" @click="capabilityChangeItem = null">关闭</button>
           <button v-if="canUpdateSkill(capabilityChangeItem)" class="btn btn-primary" type="button" @click="openCapabilityUpdate(capabilityChangeItem)">
-            {{ capabilityChangeItem.capabilityUpdate?.status === 'processing' ? '继续更新' : '更新' }}
+            {{ capabilityUpdateActionLabel(capabilityChangeItem) }}
           </button>
         </div>
       </div>
@@ -401,7 +401,7 @@ function skillHubActions(item: SkillHubItem) {
       ? ['发布更新']
       : []
   const updateActions = hasCapabilityUpdate(item)
-    ? ['查看变化', ...governanceActions, ...(canUpdateSkill(item) && item.editStatus !== 'approved' ? [item.capabilityUpdate?.status === 'processing' ? '继续更新' : '更新'] : [])]
+    ? ['查看变化', ...governanceActions, ...(canUpdateSkill(item) && item.editStatus !== 'approved' ? [capabilityUpdateActionLabel(item)] : [])]
     : []
   if (item.status === 'draft') return [...updateActions, ...baseActions]
   return [...updateActions, ...baseActions.filter(action => action !== '测试'), '测试']
@@ -450,6 +450,10 @@ function hasCapabilityUpdate(item: SkillHubItem) {
 
 function capabilityUpdateStatusLabel(item: SkillHubItem) {
   return item.capabilityUpdate?.status === 'processing' ? '更新处理中' : '有更新'
+}
+
+function capabilityUpdateActionLabel(item: SkillHubItem) {
+  return item.capabilityUpdate?.hasDraftEdits ? '继续更新' : '更新'
 }
 
 function capabilityChangeKindLabel(kind: string) {
