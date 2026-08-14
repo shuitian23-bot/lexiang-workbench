@@ -11,8 +11,23 @@
       </div>
     </div>
 
+    <div v-if="activeCapabilityUpdate" class="skill-capability-update-banner" role="status">
+      <div class="skill-capability-update-mark">更新</div>
+      <div class="skill-capability-update-copy">
+        <b>能力上下文已变化</b>
+        <p>{{ activeCapabilityUpdate.summary }}</p>
+        <div>
+          <span>目标能力版本 {{ activeCapabilityUpdate.targetCapabilityVersion }}</span>
+          <span>检测于 {{ activeCapabilityUpdate.detectedAt }}</span>
+          <span>线上版本继续生效，新增能力不会自动勾选</span>
+          <span>保存前请检查应用场景、输入输出、异常处理和测试用例</span>
+        </div>
+      </div>
+      <button class="btn btn-secondary" type="button" @click="focusCapabilityContext">查看能力上下文</button>
+    </div>
+
     <div class="skill-create-studio">
-      <aside class="skill-context-pane">
+      <aside ref="contextPaneEl" class="skill-context-pane">
         <div class="skill-context-fixed-head">
           <div class="skill-context-search">
             <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.25"></circle><path d="m16 16 4 4"></path></svg>
@@ -147,6 +162,7 @@
               type="button"
               class="skill-create-tab"
               :class="{ active: activeTab === tab.key }"
+              :disabled="tab.key === 'review' && !canSubmitReview"
               :data-skill-create-tab="tab.key"
               @click="switchTab(tab.key)"
             >
@@ -368,7 +384,7 @@
               <div class="skill-eval-head">
                 <div>
                   <b>评估验证</b>
-                  <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。及格线：综合评分 ≥ 0.60。</p>
+                  <p>第 1 轮（最多 5 轮）：静态评估 + A/B 动态 + LLM 打分。提审门槛：综合评分 ≥ 0.80。</p>
                 </div>
                 <button class="btn btn-secondary" type="button" @click="toast('已发起重新评估')">重新评估</button>
               </div>
@@ -377,20 +393,20 @@
                   <span>{{ score.label }}</span><b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
                 </div>
               </div>
-              <div id="skill-create-eval-gate" class="skill-eval-gate pass">
-                <b>评估通过</b>
+              <div id="skill-create-eval-gate" class="skill-eval-gate" :class="canSubmitReview ? 'pass' : 'warn'">
+                <b>{{ canSubmitReview ? '评估通过' : '评估未通过' }}</b>
                 <span>{{ evalGateText }}</span>
               </div>
               <div id="skill-create-eval-list" class="skill-eval-list">
                 <div v-for="item in evalItems" :key="item.title">
-                  <span class="pass">PASS</span><b>{{ item.title }}<small v-if="item.detail">{{ item.detail }}</small></b><em>{{ item.score }}</em>
+                  <span :class="Number(item.score) >= REVIEW_SCORE_THRESHOLD ? 'pass' : 'warn'">{{ Number(item.score) >= REVIEW_SCORE_THRESHOLD ? 'PASS' : '待优化' }}</span><b>{{ item.title }}<small v-if="item.detail">{{ item.detail }}</small></b><em>{{ item.score }}</em>
                 </div>
               </div>
               <div id="skill-create-optimization-panel" class="skill-optimization-panel" :class="{ tuned: aiTuned }">
                 <div class="skill-optimization-head">
                   <div>
                     <b>{{ aiTuned ? 'AI 助手已同步评估' : 'AI 可继续优化' }}</b>
-                    <span>{{ aiTuned ? '可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。' : '当前已达到 0.60 及格线；仍可唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。' }}</span>
+                    <span>{{ aiTuned ? '可优化项已优化，评分结果已刷新。核心风险已补齐，可提交审核。' : '当前未达到 0.80 提审门槛；请唤起右侧 AI 助手优化流程步骤、关键节点确认，并刷新评分结果。' }}</span>
                   </div>
                   <button v-if="!aiTuned" id="skill-ai-tune-btn" class="btn btn-primary" type="button" :disabled="aiTuning" @click="startAiTune">
                     {{ aiTuneButtonText }}
@@ -416,7 +432,7 @@
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('draft')">上一步</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('clarify')">返回修改</button>
-              <button id="skill-create-next-review-btn" class="btn btn-primary" :class="{ disabled: !aiTuned }" :disabled="!aiTuned" type="button" @click="goNext('verify')">下一步：提交审核</button>
+              <button id="skill-create-next-review-btn" class="btn btn-primary" :class="{ disabled: !canSubmitReview }" :disabled="!canSubmitReview" type="button" @click="goNext('verify')">下一步：提交审核</button>
             </div>
           </div>
 
@@ -429,7 +445,7 @@
                   <button class="btn btn-secondary" type="button" @click="switchTab('verify')">返回评估验证</button>
                 </div>
                 <div class="skill-doc-list">
-                  <div><span>门槛</span><b>综合评分 ≥ 0.60</b></div>
+                  <div><span>门槛</span><b>综合评分 ≥ 0.80</b></div>
                   <div><span>状态</span><b>{{ reviewScoreText }}</b></div>
                   <div><span>动作</span><b id="skill-create-review-status">{{ reviewStatus }}</b></div>
                   <div><span>后续</span><b>审核通过后才可上传发布</b></div>
@@ -440,7 +456,7 @@
               <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('verify')">上一步</button>
               <button v-if="reviewSubmitted" class="btn btn-secondary" type="button" @click="openSkills">查看 Skill Hub</button>
-              <button id="skill-create-submit-review-btn" class="btn btn-primary" :class="{ disabled: reviewSubmitted }" :disabled="reviewSubmitted" type="button" @click="submitReview">
+              <button id="skill-create-submit-review-btn" class="btn btn-primary" :class="{ disabled: reviewSubmitted || !canSubmitReview }" :disabled="reviewSubmitted || !canSubmitReview" type="button" @click="submitReview">
                 {{ reviewSubmitted ? '已提交审核' : '提交审核' }}
               </button>
             </div>
@@ -471,7 +487,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
-import { useSkillHubStore, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
+import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
@@ -596,6 +612,9 @@ const aiTuned = ref(false)
 const aiTuneRequestKey = ref('')
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
+const activeCapabilityUpdate = ref<SkillCapabilityUpdate | null>(null)
+const contextPaneEl = ref<HTMLElement | null>(null)
+const REVIEW_SCORE_THRESHOLD = 0.80
 
 const form = ref({
   name: '',
@@ -673,7 +692,7 @@ watch(
 
 function createMenuContextItems(activeMenu: string) {
   const recommendedCodes = RECOMMENDED_CONTEXT_CODES_BY_MENU[activeMenu] || new Set<string>()
-  return menuGroups.flatMap(group =>
+  const baseItems = menuGroups.flatMap(group =>
     Object.entries(group.children).map(([pageId, page]) => {
       const recommended = recommendedCodes.has(pageId)
       return {
@@ -686,6 +705,20 @@ function createMenuContextItems(activeMenu: string) {
       }
     })
   )
+  const update = activeCapabilityUpdate.value
+  if (!update || baseItems.some(item => item.code === update.contextId)) return baseItems
+  const pathParts = update.menuPath.split('/').map(part => part.trim()).filter(Boolean)
+  return [
+    ...baseItems,
+    {
+      name: `${pathParts[pathParts.length - 1] || update.contextId}（变化项）`,
+      code: update.contextId,
+      subtitle: `${update.summary} 需负责人确认后手动采用`,
+      source: pathParts[0] || '能力变化',
+      selected: false,
+      recommended: true
+    }
+  ]
 }
 
 function syncMenuContext() {
@@ -822,20 +855,23 @@ const scores = computed(() => aiTuned.value
       { label: '结果评分', value: '0.846', percent: '84.6%' },
       { label: '过程评分', value: '0.831', percent: '83.1%' },
       { label: '效率评分', value: '0.888', percent: '88.8%' },
-      { label: '综合评分', value: '0.859', percent: '85.9%', featured: true, pass: true, note: '已达及格线 0.60' }
+      { label: '综合评分', value: '0.859', percent: '85.9%', featured: true, pass: true, note: '已达提审门槛 0.80' }
     ]
   : [
       { label: '静态评分', value: '0.872', percent: '87.2%' },
       { label: '结果评分', value: '0.804', percent: '80.4%' },
       { label: '过程评分', value: '0.742', percent: '74.2%' },
       { label: '效率评分', value: '0.831', percent: '83.1%' },
-      { label: '综合评分', value: '0.782', percent: '78.2%', featured: true, pass: true, note: '已达及格线 0.60' }
+      { label: '综合评分', value: '0.782', percent: '78.2%', featured: true, pass: false, note: '未达提审门槛 0.80' }
     ])
+
+const currentScore = computed(() => aiTuned.value ? 0.859 : 0.782)
+const canSubmitReview = computed(() => currentScore.value >= REVIEW_SCORE_THRESHOLD)
 
 const evalGateText = computed(() => aiTuned.value
   ? 'AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。'
-  : '综合评分 0.782，已达到提交审核门槛。仍可由 AI 助手微调流程步骤和关键确认节点，进一步优化草稿质量。')
-const reviewScoreText = computed(() => aiTuned.value ? 'AI 微调后综合评分 0.859，已达到审核门槛' : '当前综合评分 0.782，已达到审核门槛')
+  : '综合评分 0.782，未达到 0.80 提交审核门槛。请返回修改或由 AI 助手微调后重新评估。')
+const reviewScoreText = computed(() => aiTuned.value ? 'AI 微调后综合评分 0.859，已达到审核门槛' : '当前综合评分 0.782，未达到审核门槛')
 
 const evalItems = computed(() => aiTuned.value
   ? [
@@ -873,6 +909,10 @@ const optimizationItems = computed(() => aiTuned.value
     ])
 
 function switchTab(tab: TabKey) {
+  if (tab === 'review' && !canSubmitReview.value) {
+    toast('综合评分需达到 0.80 才能进入提交审核')
+    return
+  }
   activeTab.value = tab
 }
 
@@ -1512,6 +1552,12 @@ function saveDraft() {
   toast(`${form.value.name}：草稿已保存并同步到 Skill Hub`)
 }
 
+function focusCapabilityContext() {
+  activeTab.value = 'config'
+  contextSearch.value = activeCapabilityUpdate.value?.contextId || ''
+  void nextTick(() => contextPaneEl.value?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+}
+
 function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
   return {
     form: { ...form.value },
@@ -1520,6 +1566,8 @@ function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
     summaryItems: summaryItems.value.map(item => ({ ...item })),
     summaryUpdated: summaryUpdated.value,
     aiTuned: aiTuned.value,
+    evaluationCapabilityVersion: aiTuned.value ? activeCapabilityUpdate.value?.targetCapabilityVersion : undefined,
+    baselineContextSeeded: activeCapabilityUpdate.value ? true : undefined,
     savedAt: formatBeijingTime(now)
   }
 }
@@ -1556,6 +1604,11 @@ function formatBeijingTime(value: Date) {
 }
 
 function submitReview() {
+  if (currentScore.value < REVIEW_SCORE_THRESHOLD) {
+    toast(`当前综合评分 ${currentScore.value.toFixed(3)}，需达到 0.80 才能提交审核`)
+    switchTab('verify')
+    return
+  }
   if (reviewSubmitted.value) {
     toast(`${form.value.name}：已在审核中，可前往 Skill Hub 查看`)
     return
@@ -1633,8 +1686,11 @@ function loadEditDraft() {
       return
     }
     restoreSkillItem(item)
+    activeCapabilityUpdate.value = item.capabilityUpdate?.status === 'resolved' ? null : item.capabilityUpdate || null
     const isDraft = item.status === 'draft' || route.query.edit === 'draft'
-    workspaceSub.value = parsed.rejected
+    workspaceSub.value = parsed.capabilityUpdate && activeCapabilityUpdate.value
+      ? `${item.cnName || item.name} · 能力更新处理中 · ${item.editVersion || item.version}`
+      : parsed.rejected
       ? `${item.cnName || item.name} · 已驳回 · 修改中`
       : isDraft
         ? `${item.cnName || item.name} · 草稿编辑中`
@@ -1653,6 +1709,7 @@ function loadEditDraft() {
 }
 
 function restoreSkillItem(item: SkillHubItem) {
+  activeCapabilityUpdate.value = item.capabilityUpdate?.status === 'resolved' ? null : item.capabilityUpdate || null
   const snapshot = item.draft
   if (snapshot) {
     form.value = { ...snapshot.form }
@@ -1668,7 +1725,9 @@ function restoreSkillItem(item: SkillHubItem) {
     clarifyMessages.value = JSON.parse(JSON.stringify(snapshot.clarifyMessages || [])) as ChatMessage[]
     summaryItems.value = (snapshot.summaryItems || []).map(summary => ({ ...summary }))
     summaryUpdated.value = snapshot.summaryUpdated || '根据已保存草稿恢复'
-    aiTuned.value = Boolean(snapshot.aiTuned)
+    const evaluationMatchesCapability = !activeCapabilityUpdate.value
+      || snapshot.evaluationCapabilityVersion === activeCapabilityUpdate.value.targetCapabilityVersion
+    aiTuned.value = Boolean(snapshot.aiTuned && evaluationMatchesCapability)
     return
   }
   form.value.name = item.name
@@ -1686,7 +1745,9 @@ function loadEditDraftFromQuery() {
   if (storedItem) {
     restoreSkillItem(storedItem)
     const isDraft = storedItem.status === 'draft' || route.query.edit === 'draft'
-    workspaceSub.value = isDraft
+    workspaceSub.value = route.query.capabilityUpdate === '1' && activeCapabilityUpdate.value
+      ? `${storedItem.cnName || storedItem.name} · 能力更新处理中 · ${storedItem.editVersion || storedItem.version}`
+      : isDraft
       ? `${storedItem.cnName || storedItem.name} · 草稿编辑中`
       : `${storedItem.cnName || storedItem.name} · 编辑中`
     if (isDraft) {
@@ -1764,6 +1825,77 @@ onBeforeUnmount(() => {
 
 .skill-create-page[data-page-flow="skill-create"] > .page-header {
   margin-bottom: 0;
+}
+
+.skill-capability-update-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  background: #fffbf3;
+}
+
+.skill-capability-update-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #fff1d6;
+  color: #9a6700;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.skill-capability-update-copy {
+  min-width: 0;
+}
+
+.skill-capability-update-copy b {
+  display: block;
+  color: var(--color-text, #1f2329);
+  font-size: 14px;
+}
+
+.skill-capability-update-copy p {
+  margin: 3px 0 0;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.skill-capability-update-copy > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  margin-top: 7px;
+}
+
+.skill-capability-update-copy span {
+  color: #8a5a00;
+  font-size: 11px;
+}
+
+.skill-create-tab:disabled {
+  color: var(--color-text-tertiary, #8f959e);
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+@media (max-width: 760px) {
+  .skill-capability-update-banner {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .skill-capability-update-banner > .btn {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
 }
 
 .skill-state-summary {

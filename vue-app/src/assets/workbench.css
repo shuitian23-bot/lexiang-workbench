@@ -5734,7 +5734,7 @@ html[data-product="leaibot"] .skill-hub-stat.stat--muted {
 
 html[data-product="leaibot"] .skill-hub-toolbar {
   display:grid !important;
-  grid-template-columns:minmax(260px,1.6fr) minmax(140px,.8fr) minmax(140px,.8fr) auto;
+  grid-template-columns:minmax(240px,1.5fr) minmax(130px,.72fr) minmax(130px,.72fr) auto auto;
   gap:10px;
   align-items:center;
   padding:14px;
@@ -5742,6 +5742,61 @@ html[data-product="leaibot"] .skill-hub-toolbar {
   border:1px solid var(--border-light);
   border-radius:12px;
   box-shadow:var(--shadow);
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:36px;
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle input {
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle i {
+  position:relative;
+  width:32px;
+  height:18px;
+  flex:0 0 auto;
+  border-radius:999px;
+  background:#d9dee8;
+  transition:background .16s ease;
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle i::after {
+  content:"";
+  position:absolute;
+  top:2px;
+  left:2px;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(15,23,42,.24);
+  transition:transform .16s ease;
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle input:checked + i {
+  background:var(--primary);
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle input:checked + i::after {
+  transform:translateX(14px);
+}
+
+html[data-product="leaibot"] .skill-hub-update-toggle input:focus-visible + i {
+  box-shadow:0 0 0 3px var(--primary-light);
 }
 
 html[data-product="leaibot"] .skill-hub-toolbar input,
@@ -5864,6 +5919,40 @@ html[data-product="leaibot"] .skill-hub-desc {
   overflow:hidden;
 }
 
+html[data-product="leaibot"] .skill-hub-change-summary {
+  display:grid;
+  gap:3px;
+  max-width:340px;
+  margin-top:8px;
+  padding-left:9px;
+  border-left:2px solid var(--orange);
+}
+
+html[data-product="leaibot"] .skill-hub-change-summary b,
+html[data-product="leaibot"] .skill-hub-change-summary span {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-product="leaibot"] .skill-hub-change-summary b {
+  color:#8a5a00;
+  font-size:12px;
+  font-weight:600;
+}
+
+html[data-product="leaibot"] .skill-hub-change-summary span,
+html[data-product="leaibot"] .skill-hub-edit-version {
+  color:var(--text-tertiary);
+  font-size:11px;
+}
+
+html[data-product="leaibot"] .skill-hub-edit-version {
+  display:block;
+  margin-top:5px;
+  white-space:nowrap;
+}
+
 html[data-product="leaibot"] .skill-hub-version,
 html[data-product="leaibot"] .skill-hub-online,
 html[data-product="leaibot"] .skill-hub-status,
@@ -5919,6 +6008,46 @@ html[data-product="leaibot"] .skill-hub-status.status-disabled {
 html[data-product="leaibot"] .skill-hub-status.status-rejected {
   background:#fef2f2;
   color:#ef4444;
+}
+
+html[data-product="leaibot"] .skill-hub-status-stack {
+  display:flex;
+  align-items:flex-start;
+  flex-direction:column;
+  gap:6px;
+}
+
+html[data-product="leaibot"] .skill-hub-update-status {
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:0 7px;
+  border-radius:6px;
+  background:#fff7e6;
+  color:#a16207;
+  font-size:12px;
+  line-height:1;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+html[data-product="leaibot"] .skill-hub-edit-status {
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:0 7px;
+  border-radius:6px;
+  background:#f1f5f9;
+  color:#475569;
+  font-size:12px;
+  line-height:1;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+html[data-product="leaibot"] .skill-hub-update-status.is-processing {
+  background:#eef4ff;
+  color:var(--primary);
 }
 
 html[data-product="leaibot"] .skill-hub-tags {
@@ -5998,6 +6127,189 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
   border-color:#fecaca;
 }
 
+html[data-product="leaibot"] .skill-capability-change-panel {
+  width:min(780px, calc(100vw - 48px));
+  max-height:min(760px, calc(100vh - 48px));
+}
+
+html[data-product="leaibot"] .skill-capability-change-panel .skill-hub-detail-head > div {
+  min-width:0;
+}
+
+html[data-product="leaibot"] .skill-capability-change-panel .skill-hub-detail-head p {
+  margin:4px 0 0;
+  color:var(--text-secondary);
+  font-size:12px;
+}
+
+html[data-product="leaibot"] .skill-capability-overview {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1px;
+  overflow:hidden;
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  background:var(--border-light);
+}
+
+html[data-product="leaibot"] .skill-capability-overview > div {
+  display:grid;
+  gap:5px;
+  min-width:0;
+  padding:13px 14px;
+  background:#fff;
+}
+
+html[data-product="leaibot"] .skill-capability-overview span,
+html[data-product="leaibot"] .skill-capability-overview small {
+  color:var(--text-tertiary);
+  font-size:11px;
+}
+
+html[data-product="leaibot"] .skill-capability-overview b {
+  color:var(--text);
+  font-size:13px;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+
+html[data-product="leaibot"] .skill-capability-summary-card {
+  display:grid;
+  gap:6px;
+  margin-top:14px;
+  padding:13px 14px;
+  border:1px solid #fed7aa;
+  border-radius:8px;
+  background:#fffbf3;
+}
+
+html[data-product="leaibot"] .skill-capability-summary-card b {
+  color:#8a5a00;
+  font-size:13px;
+}
+
+html[data-product="leaibot"] .skill-capability-summary-card span {
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.55;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list {
+  display:grid;
+  gap:10px;
+  margin-top:14px;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list article {
+  padding:14px;
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  background:#fff;
+}
+
+html[data-product="leaibot"] .skill-capability-change-head {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+html[data-product="leaibot"] .skill-capability-change-head span {
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:0 7px;
+  border-radius:5px;
+  background:#eef4ff;
+  color:var(--primary);
+  font-size:11px;
+  font-weight:600;
+}
+
+html[data-product="leaibot"] .skill-capability-change-head span.kind-breaking,
+html[data-product="leaibot"] .skill-capability-change-head span.kind-permission {
+  background:#fff7e6;
+  color:#a16207;
+}
+
+html[data-product="leaibot"] .skill-capability-change-head b {
+  color:var(--text);
+  font-size:13px;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list dl {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:12px 0 0;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list dl > div {
+  min-width:0;
+  padding:10px;
+  border-radius:7px;
+  background:#f8fafc;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list dt {
+  color:var(--text-tertiary);
+  font-size:11px;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list dd {
+  margin:4px 0 0;
+  color:var(--text);
+  font-size:12px;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+
+html[data-product="leaibot"] .skill-capability-change-list p {
+  margin:10px 0 0;
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.55;
+}
+
+html[data-product="leaibot"] .skill-capability-history {
+  margin-top:14px;
+  padding:12px 14px;
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  background:#f8fafc;
+}
+
+html[data-product="leaibot"] .skill-capability-history summary {
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+html[data-product="leaibot"] .skill-capability-history article {
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--border-light);
+}
+
+html[data-product="leaibot"] .skill-capability-history article > div {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+html[data-product="leaibot"] .skill-capability-history article span,
+html[data-product="leaibot"] .skill-capability-history article small {
+  color:var(--text-tertiary);
+  font-size:11px;
+}
+
+html[data-product="leaibot"] .skill-capability-history article p {
+  margin:6px 0;
+  color:var(--text-secondary);
+  font-size:12px;
+}
+
 @media (max-width:1400px) {
   html[data-product="leaibot"] .skill-hub-summary {
     grid-template-columns:repeat(3,minmax(0,1fr));
@@ -6005,6 +6317,13 @@ html[data-product="leaibot"] .skill-hub-action.danger:hover {
 
   html[data-product="leaibot"] .skill-hub-toolbar {
     grid-template-columns:1fr 1fr;
+  }
+}
+
+@media (max-width:920px) {
+  html[data-product="leaibot"] .skill-capability-overview,
+  html[data-product="leaibot"] .skill-capability-change-list dl {
+    grid-template-columns:minmax(0,1fr);
   }
 }
 

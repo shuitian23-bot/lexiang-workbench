@@ -1,7 +1,54 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import {
+  beginCapabilityUpdate,
+  formatShanghaiMinute,
+  getSeedCapabilityUpdate,
+  hydrateCapabilityUpdate,
+  mergeCapabilityDraft,
+  mergeCapabilitySubmission,
+  transitionCapabilityEdit
+} from '@/services/skillCapabilityChanges.js'
 
 export type SkillStatus = 'draft' | 'review' | 'approved' | 'published' | 'disabled' | 'rejected'
+export type CapabilityUpdateStatus = 'available' | 'processing' | 'resolved'
+export type CapabilityChangeKind = 'enhancement' | 'breaking' | 'permission'
+
+export interface SkillCapabilityChange {
+  id: string
+  kind: CapabilityChangeKind
+  objectType: 'API' | '字段' | '数据维度' | '操作' | '工具' | '权限点'
+  name: string
+  before: string
+  after: string
+  impact: string
+}
+
+export interface SkillCapabilityUpdate {
+  recordId: string
+  status: CapabilityUpdateStatus
+  contextId: string
+  menuPath: string
+  baseMenu: string
+  currentContextCodes: string[]
+  currentCapabilityVersion: string
+  targetCapabilityVersion: string
+  detectedAt: string
+  summary: string
+  count: number
+  notificationState: string
+  changes: SkillCapabilityChange[]
+  history?: SkillCapabilityHistoryRecord[]
+}
+
+export interface SkillCapabilityHistoryRecord {
+  recordId: string
+  currentCapabilityVersion: string
+  targetCapabilityVersion: string
+  detectedAt: string
+  summary: string
+  changes: SkillCapabilityChange[]
+}
 
 export interface SkillDraftForm {
   name: string
@@ -19,6 +66,8 @@ export interface SkillDraftSnapshot {
   summaryItems: Array<{ label: string; text: string }>
   summaryUpdated: string
   aiTuned: boolean
+  evaluationCapabilityVersion?: string
+  baselineContextSeeded?: boolean
   savedAt: string
 }
 
@@ -28,6 +77,8 @@ export interface SkillHubItem {
   platform: string
   desc: string
   version: string
+  editVersion?: string
+  editStatus?: SkillStatus
   online: string
   status: SkillStatus
   statusText: string
@@ -41,6 +92,7 @@ export interface SkillHubItem {
   submittedAt?: string
   score?: string
   draft?: SkillDraftSnapshot
+  capabilityUpdate?: SkillCapabilityUpdate
 }
 
 type SkillCreatePayload = {
@@ -82,21 +134,25 @@ export function skillHubStatusLabel(status: SkillStatus) {
 }
 
 function nowMinute() {
-  const parts = new Intl.DateTimeFormat('zh-CN', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).formatToParts(new Date())
-  const map = Object.fromEntries(parts.map(part => [part.type, part.value]))
-  return `${map.year}-${map.month}-${map.day} ${map.hour}:${map.minute}`
+  return formatShanghaiMinute(new Date())
 }
 
 function cloneDefaultItems() {
-  return defaultItems.map(item => ({ ...item, tags: [...item.tags] }))
+  return defaultItems.map(item => hydrateItem({ ...item, tags: [...item.tags] }))
+}
+
+function hydrateItem(item: SkillHubItem) {
+  const seededUpdate = getSeedCapabilityUpdate(item.name) as SkillCapabilityUpdate | undefined
+  const { capabilityUpdate, draft, status, editStatus } = hydrateCapabilityUpdate(item, seededUpdate)
+  return {
+    ...item,
+    status,
+    statusText: skillHubStatusLabel(status),
+    editStatus,
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    draft,
+    capabilityUpdate
+  }
 }
 
 function loadItems() {
@@ -106,12 +162,7 @@ function loadItems() {
     if (!raw) return cloneDefaultItems()
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return cloneDefaultItems()
-    return parsed.map(item => ({
-      ...item,
-      statusText: skillHubStatusLabel(item.status),
-      tags: Array.isArray(item.tags) ? item.tags : [],
-      draft: item.draft && typeof item.draft === 'object' ? item.draft : undefined
-    }))
+    return parsed.map(item => hydrateItem(item as SkillHubItem))
   } catch {
     return cloneDefaultItems()
   }
@@ -150,7 +201,11 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     }
     const index = items.value.findIndex(item => item.name === name)
     if (index >= 0) {
-      items.value[index] = { ...items.value[index], ...nextItem }
+      const current = items.value[index]
+      const isCapabilityUpdate = current.capabilityUpdate?.status === 'processing' && current.online !== '未发布'
+      items.value[index] = isCapabilityUpdate
+        ? mergeCapabilitySubmission(current, nextItem, updated)
+        : { ...current, ...nextItem }
     } else {
       items.value.unshift(nextItem)
     }
@@ -183,7 +238,11 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     }
     const index = items.value.findIndex(item => item.name === name)
     if (index >= 0) {
-      items.value[index] = { ...items.value[index], ...nextItem }
+      const current = items.value[index]
+      const isCapabilityUpdate = current.capabilityUpdate?.status === 'processing' && current.online !== '未发布'
+      items.value[index] = isCapabilityUpdate
+        ? mergeCapabilityDraft(current, nextItem, payload.draft, updated)
+        : { ...current, ...nextItem }
     } else {
       items.value.unshift(nextItem)
     }
@@ -193,6 +252,22 @@ export const useSkillHubStore = defineStore('skillHub', () => {
 
   function findSkill(name: string) {
     return items.value.find(item => item.name === name)
+  }
+
+  function startCapabilityUpdate(name: string) {
+    const target = findSkill(name)
+    if (!target?.capabilityUpdate || target.capabilityUpdate.status === 'resolved') return target
+    const index = items.value.findIndex(item => item.name === name)
+    items.value[index] = beginCapabilityUpdate(target, nowMinute())
+    persist()
+    return items.value[index]
+  }
+
+  function updateCapabilityEditStatus(item: SkillHubItem, status: 'approved' | 'rejected' | 'published', reviewer = 'admin') {
+    const index = items.value.findIndex(row => row.name === item.name)
+    if (index < 0) return
+    items.value[index] = transitionCapabilityEdit(items.value[index], status, reviewer, nowMinute())
+    persist()
   }
 
   function updateStatus(item: SkillHubItem, status: SkillStatus, reviewer = 'admin') {
@@ -225,6 +300,8 @@ export const useSkillHubStore = defineStore('skillHub', () => {
   return {
     items,
     findSkill,
+    startCapabilityUpdate,
+    updateCapabilityEditStatus,
     upsertDraftSkill,
     upsertSubmittedSkill,
     updateStatus

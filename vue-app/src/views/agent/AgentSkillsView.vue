@@ -37,6 +37,11 @@
         <option value="all">分类</option>
         <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
       </select>
+      <label class="skill-hub-update-toggle">
+        <span>只看有更新</span>
+        <input v-model="onlyCapabilityUpdates" type="checkbox">
+        <i aria-hidden="true"></i>
+      </label>
       <button class="btn btn-primary" type="button">搜索</button>
     </div>
 
@@ -71,10 +76,27 @@
             </td>
             <td><div class="skill-hub-cn">{{ item.cnName || '-' }}</div></td>
             <td>{{ item.platform }}</td>
-            <td><div class="skill-hub-desc">{{ item.desc }}</div></td>
-            <td><span class="skill-hub-version">{{ item.version }}</span></td>
+            <td>
+              <div class="skill-hub-desc">{{ item.desc }}</div>
+              <div v-if="hasCapabilityUpdate(item)" class="skill-hub-change-summary">
+                <b>{{ item.capabilityUpdate?.summary }}</b>
+                <span>{{ item.capabilityUpdate?.detectedAt }} 检测</span>
+              </div>
+            </td>
+            <td>
+              <span class="skill-hub-version">{{ item.editVersion || item.version }}</span>
+              <small v-if="item.editVersion" class="skill-hub-edit-version">编辑版本</small>
+            </td>
             <td><span class="skill-hub-online" :class="{ empty: item.online === '未发布' }">{{ item.online }}</span></td>
-            <td><span class="skill-hub-status" :class="`status-${item.status}`">{{ item.statusText }}</span></td>
+            <td>
+              <div class="skill-hub-status-stack">
+                <span class="skill-hub-status" :class="`status-${item.status}`">{{ item.statusText }}</span>
+                <span v-if="item.editStatus" class="skill-hub-edit-status">编辑版{{ skillHubStatusLabel(item.editStatus) }}</span>
+                <span v-if="hasCapabilityUpdate(item)" class="skill-hub-update-status" :class="`is-${item.capabilityUpdate?.status}`">
+                  {{ capabilityUpdateStatusLabel(item) }}
+                </span>
+              </div>
+            </td>
             <td>{{ item.updated }}</td>
             <td>
               <div class="skill-hub-actions">
@@ -193,12 +215,70 @@
             <div class="skill-score-card"><span>静态评分</span><b>0.872</b><i style="--score:87.2%"></i></div>
             <div class="skill-score-card"><span>结果评分</span><b>0.804</b><i style="--score:80.4%"></i></div>
             <div class="skill-score-card"><span>过程评分</span><b>0.742</b><i style="--score:74.2%"></i></div>
-            <div class="skill-score-card featured pass"><span>综合评分</span><b>0.782</b><i style="--score:78.2%"></i><em>已达及格线 0.60</em></div>
+            <div class="skill-score-card featured"><span>综合评分</span><b>0.782</b><i style="--score:78.2%"></i><em>未达门槛 0.80</em></div>
           </div>
-          <div class="skill-eval-gate pass">
-            <b>评估通过</b>
-            <span>综合评分 0.782，已达到提交审核门槛。</span>
+          <div class="skill-eval-gate warn">
+            <b>评估未通过</b>
+            <span>综合评分 0.782，未达到 0.80 提交审核门槛，请返回编辑并完成 AI 微调。</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="capabilityChangeItem"
+      class="skill-hub-detail-modal open"
+      @click.self="capabilityChangeItem = null"
+    >
+      <div class="skill-hub-detail-panel skill-capability-change-panel" role="dialog" aria-modal="true" aria-label="能力变化详情">
+        <div class="skill-hub-detail-head">
+          <div>
+            <h3>能力变化详情</h3>
+            <p>{{ capabilityChangeItem.cnName }} · {{ capabilityChangeItem.name }}</p>
+          </div>
+          <button type="button" class="skill-hub-detail-close" aria-label="关闭" @click="capabilityChangeItem = null">×</button>
+        </div>
+        <div v-if="capabilityChangeItem.capabilityUpdate" class="skill-hub-detail-body">
+          <div class="skill-capability-overview">
+            <div><span>菜单 / 上下文</span><b>{{ capabilityChangeItem.capabilityUpdate.menuPath }}</b><small>{{ capabilityChangeItem.capabilityUpdate.contextId }}</small></div>
+            <div><span>能力版本</span><b>{{ capabilityChangeItem.capabilityUpdate.currentCapabilityVersion }} → {{ capabilityChangeItem.capabilityUpdate.targetCapabilityVersion }}</b><small>当前 Skill {{ capabilityChangeItem.online }} · 编辑 {{ capabilityChangeItem.editVersion || '尚未创建' }}</small></div>
+            <div><span>检测时间</span><b>{{ capabilityChangeItem.capabilityUpdate.detectedAt }}</b><small>Asia/Shanghai</small></div>
+            <div><span>通知状态</span><b>{{ capabilityChangeItem.capabilityUpdate.notificationState }}</b><small>POC 未连接真实通知服务</small></div>
+          </div>
+          <div class="skill-capability-summary-card">
+            <b>{{ capabilityChangeItem.capabilityUpdate.summary }}</b>
+            <span>共 {{ capabilityChangeItem.capabilityUpdate.count }} 项变化。系统仅提示影响，不会自动覆盖线上 Skill 或自动勾选新增能力。</span>
+          </div>
+          <div class="skill-capability-change-list">
+            <article v-for="change in capabilityChangeItem.capabilityUpdate.changes" :key="change.id">
+              <div class="skill-capability-change-head">
+                <span :class="`kind-${change.kind}`">{{ capabilityChangeKindLabel(change.kind) }}</span>
+                <b>{{ change.objectType }} · {{ change.name }}</b>
+              </div>
+              <dl>
+                <div><dt>变化前</dt><dd>{{ change.before }}</dd></div>
+                <div><dt>变化后</dt><dd>{{ change.after }}</dd></div>
+              </dl>
+              <p><b>影响：</b>{{ change.impact }}</p>
+            </article>
+          </div>
+          <details v-if="capabilityChangeItem.capabilityUpdate.history?.length" class="skill-capability-history">
+            <summary>历史能力快照（{{ capabilityChangeItem.capabilityUpdate.history.length }}）</summary>
+            <article v-for="record in capabilityChangeItem.capabilityUpdate.history" :key="record.recordId">
+              <div>
+                <b>{{ record.currentCapabilityVersion }} → {{ record.targetCapabilityVersion }}</b>
+                <span>{{ record.detectedAt }} · {{ record.recordId }}</span>
+              </div>
+              <p>{{ record.summary }}</p>
+              <small>包含 {{ record.changes?.length || 0 }} 项变化明细</small>
+            </article>
+          </details>
+        </div>
+        <div class="skill-hub-detail-foot">
+          <button class="btn btn-secondary" type="button" @click="capabilityChangeItem = null">关闭</button>
+          <button v-if="canUpdateSkill(capabilityChangeItem)" class="btn btn-primary" type="button" @click="openCapabilityUpdate(capabilityChangeItem)">
+            {{ capabilityChangeItem.capabilityUpdate?.status === 'processing' ? '继续更新' : '更新' }}
+          </button>
         </div>
       </div>
     </div>
@@ -223,8 +303,10 @@ const { items } = storeToRefs(skillHubStore)
 const keyword = ref('')
 const statusFilter = ref<'all' | SkillStatus>('all')
 const categoryFilter = ref('all')
+const onlyCapabilityUpdates = ref(false)
 const detailItem = ref<SkillHubItem | null>(null)
 const evalItem = ref<SkillHubItem | null>(null)
+const capabilityChangeItem = ref<SkillHubItem | null>(null)
 const confirmState = ref<{ item: SkillHubItem; action: string } | null>(null)
 
 const role = computed(() => permissions.value.includes('*') ? 'admin' : 'pm')
@@ -239,23 +321,25 @@ const filteredItems = computed(() => {
   const q = keyword.value.trim().toLowerCase()
   return items.value.filter(item => {
     const matchKeyword = !q || [item.name, item.cnName, item.desc].some(text => text.toLowerCase().includes(q))
-    const matchStatus = statusFilter.value === 'all' || item.status === statusFilter.value
+    const matchStatus = statusFilter.value === 'all' || item.status === statusFilter.value || item.editStatus === statusFilter.value
     const matchCategory = categoryFilter.value === 'all' || item.category === categoryFilter.value
-    return matchKeyword && matchStatus && matchCategory
+    const matchCapabilityUpdate = !onlyCapabilityUpdates.value || hasCapabilityUpdate(item)
+    return matchKeyword && matchStatus && matchCategory && matchCapabilityUpdate
   })
 })
 
 const summaryItems = computed(() => {
   const ownCount = items.value.filter(item => item.owner === (user.value || 'admin')).length
-  const reviewCount = items.value.filter(item => item.status === 'review').length
-  const publishedCount = items.value.filter(item => item.status === 'published').length
+  const reviewCount = items.value.filter(item => item.status === 'review' || item.editStatus === 'review').length
+  const publishedCount = items.value.filter(item => item.online !== '未发布' && item.status !== 'disabled').length
   const disabledCount = items.value.filter(item => item.status === 'disabled').length
+  const capabilityCount = items.value.filter(hasCapabilityUpdate).length
   return [
     { key: 'all', label: '全部 Skill', code: 'ALL', value: items.value.length, desc: `覆盖 ${categories.value.length} 个业务分类`, tone: 'stat--primary' },
     { key: 'own', label: '我的 Skill', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '含当前账号草稿与已提交' : '含草稿与已提交记录', tone: 'stat--info' },
     { key: 'review', label: '待审批', code: 'TODO', value: reviewCount, desc: '需管理员审核处理', tone: 'stat--warning' },
     { key: 'published', label: '已发布', code: 'LIVE', value: publishedCount, desc: '线上可被工作台调用', tone: 'stat--success' },
-    { key: 'disabled', label: '已禁用', code: 'OFF', value: disabledCount, desc: '暂停参与任务匹配', tone: 'stat--muted' }
+    { key: 'updates', label: '能力更新', code: 'NEW', value: capabilityCount, desc: `${disabledCount} 个已禁用 Skill 不计入更新`, tone: 'stat--muted' }
   ]
 })
 
@@ -263,6 +347,9 @@ const confirmMeta = computed(() => {
   const action = confirmState.value?.action || ''
   return {
     发布: { title: '确认发布 Skill', desc: '发布后该 Skill 将进入线上可用状态，业务用户可在授权范围内调用。', confirmText: '确认发布', tone: 'success' },
+    审批更新: { title: '确认审批更新版本', desc: '审批通过后编辑版本可进入发布，当前线上版本仍继续服务。', confirmText: '审批更新', tone: 'success' },
+    驳回更新: { title: '确认驳回更新版本', desc: '驳回只影响编辑版本，当前线上版本不会改变。', confirmText: '驳回更新', tone: 'danger' },
+    发布更新: { title: '确认发布更新版本', desc: '发布后编辑版本将替换当前线上版本，并关闭本次能力更新记录。', confirmText: '发布更新', tone: 'success' },
     禁用: { title: '确认禁用 Skill', desc: '禁用后该 Skill 将暂不可用，已配置的调用入口会停止响应。', confirmText: '确认禁用', tone: 'danger' },
     启用: { title: '确认启用 Skill', desc: '启用后该 Skill 将恢复线上可用状态，操作列会切换为“禁用”。', confirmText: '确认启用', tone: 'success' },
     审批: { title: '确认审批通过', desc: '审批通过后该 Skill 可进入后续发布或上传流程。', confirmText: '审批通过', tone: 'success' },
@@ -288,20 +375,36 @@ function skillHubActions(item: SkillHubItem) {
     rejected: ['查看']
   }
   const baseActions = (role.value === 'admin' ? adminActions : pmActions)[item.status] || ['查看']
-  if (item.status === 'draft') return baseActions
-  return [...baseActions.filter(action => action !== '测试'), '测试']
+  const governanceActions = role.value === 'admin' && item.editStatus === 'review'
+    ? ['审批更新', '驳回更新']
+    : role.value === 'admin' && item.editStatus === 'approved'
+      ? ['发布更新']
+      : []
+  const updateActions = hasCapabilityUpdate(item)
+    ? ['查看变化', ...governanceActions, ...(canUpdateSkill(item) && item.editStatus !== 'approved' ? [item.capabilityUpdate?.status === 'processing' ? '继续更新' : '更新'] : [])]
+    : []
+  if (item.status === 'draft') return [...updateActions, ...baseActions]
+  return [...updateActions, ...baseActions.filter(action => action !== '测试'), '测试']
 }
 
 function actionTone(action: string) {
   if (action === '测试') return 'test'
-  if (action === '删除' || action === '驳回') return 'danger'
-  if (action === '审批' || action === '发布' || action === '启用') return 'success'
+  if (action === '删除' || action === '驳回' || action === '驳回更新') return 'danger'
+  if (action === '审批' || action === '审批更新' || action === '发布' || action === '发布更新' || action === '启用') return 'success'
   if (action === '提交审核' || action === '被驳回去修改') return 'warning'
   return 'normal'
 }
 
 function handleAction(item: SkillHubItem, action: string) {
   if (action === '测试') return testSkill(item)
+  if (action === '查看变化') {
+    capabilityChangeItem.value = item
+    return
+  }
+  if (action === '更新' || action === '继续更新') {
+    openCapabilityUpdate(item)
+    return
+  }
   if (action === '评估') {
     evalItem.value = item
     return
@@ -314,11 +417,39 @@ function handleAction(item: SkillHubItem, action: string) {
     openSkillCreateForItem(item, action === '被驳回去修改')
     return
   }
-  if (['发布', '启用', '禁用', '审批', '驳回'].includes(action)) {
+  if (['发布', '启用', '禁用', '审批', '驳回', '审批更新', '驳回更新', '发布更新'].includes(action)) {
     openConfirm(item, action)
     return
   }
   toast(`${item.name}：${action}操作已记录`)
+}
+
+function hasCapabilityUpdate(item: SkillHubItem) {
+  return Boolean(item.capabilityUpdate && item.capabilityUpdate.status !== 'resolved')
+}
+
+function capabilityUpdateStatusLabel(item: SkillHubItem) {
+  return item.capabilityUpdate?.status === 'processing' ? '更新处理中' : '有更新'
+}
+
+function capabilityChangeKindLabel(kind: string) {
+  return ({ enhancement: '增强', breaking: '破坏性变化', permission: '权限 / 配置' })[kind] || '变化'
+}
+
+function canUpdateSkill(item: SkillHubItem) {
+  return role.value === 'admin' || item.owner === (user.value || 'admin')
+}
+
+function openCapabilityUpdate(item: SkillHubItem) {
+  const updated = skillHubStore.startCapabilityUpdate(item.name)
+  if (!updated) return
+  capabilityChangeItem.value = null
+  sessionStorage.setItem('leai.skillCreateDraft', JSON.stringify({ item: updated, capabilityUpdate: true }))
+  void router.push({
+    path: '/agent/skill-create',
+    query: { skill: updated.name, edit: 'draft', capabilityUpdate: '1' }
+  })
+  toast(`${updated.cnName || updated.name}：已进入能力更新草稿，线上版本继续生效`)
 }
 
 function openConfirm(item: SkillHubItem, action: string) {
@@ -330,6 +461,9 @@ function confirmAction() {
   const { item, action } = confirmState.value
   if (action === '审批') updateStatus(item, 'approved')
   else if (action === '驳回') updateStatus(item, 'rejected')
+  else if (action === '审批更新') updateCapabilityStatus(item, 'approved')
+  else if (action === '驳回更新') updateCapabilityStatus(item, 'rejected')
+  else if (action === '发布更新') updateCapabilityStatus(item, 'published')
   else if (action === '发布') updateStatus(item, 'published')
   else if (action === '启用') updateStatus(item, 'published')
   else if (action === '禁用') updateStatus(item, 'disabled')
@@ -339,6 +473,12 @@ function confirmAction() {
 function updateStatus(item: SkillHubItem, status: SkillStatus) {
   skillHubStore.updateStatus(item, status, user.value || 'admin')
   toast(`${item.name}：状态已更新为${item.statusText}`)
+}
+
+function updateCapabilityStatus(item: SkillHubItem, status: 'approved' | 'rejected' | 'published') {
+  skillHubStore.updateCapabilityEditStatus(item, status, user.value || 'admin')
+  const label = status === 'published' ? '更新版本已发布' : `编辑版${skillHubStatusLabel(status)}`
+  toast(`${item.name}：${label}`)
 }
 
 function testSkill(item: SkillHubItem) {
