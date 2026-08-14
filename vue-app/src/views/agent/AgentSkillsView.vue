@@ -6,18 +6,21 @@
         <div class="page-desc">{{ pageDesc }}</div>
       </div>
       <div class="agent-skill-page-actions">
-        <button v-if="showCapabilityDemo" class="btn btn-secondary" type="button" @click="capabilityDemoVisible = true">模拟能力变化</button>
         <button class="btn btn-primary" type="button" @click="openSkillCreate">创建 Skill</button>
         <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
       </div>
     </div>
 
     <div class="skill-hub-summary" aria-label="Skill Hub 重点指标">
-      <div
+      <component
+        :is="item.filter ? 'button' : 'div'"
         v-for="item in summaryItems"
         :key="item.key"
+        :type="item.filter ? 'button' : undefined"
         class="skill-hub-stat"
-        :class="item.tone"
+        :class="[item.tone, { 'is-filterable': item.filter, 'is-active': item.filter && summaryFilter === item.filter }]"
+        :aria-pressed="item.filter ? summaryFilter === item.filter : undefined"
+        @click="item.filter && setSummaryFilter(item.filter)"
       >
         <div class="skill-hub-stat-head">
           <span>{{ item.label }}</span>
@@ -25,7 +28,7 @@
         </div>
         <strong>{{ item.value }}</strong>
         <em>{{ item.desc }}</em>
-      </div>
+      </component>
     </div>
 
     <div class="skill-hub-toolbar">
@@ -123,36 +126,6 @@
   </div>
 
   <Teleport to="body">
-    <div
-      v-if="capabilityDemoVisible"
-      class="skill-hub-confirm-modal open"
-      @click.self="capabilityDemoVisible = false"
-    >
-      <div class="skill-hub-confirm-panel skill-capability-demo-panel" role="dialog" aria-modal="true" aria-label="模拟能力变化">
-        <div class="skill-hub-confirm-head">
-          <div>
-            <h3>模拟能力变化</h3>
-            <p>选择一个场景，在 Skill Hub 中生成待处理的能力变化记录。</p>
-          </div>
-          <button type="button" class="skill-hub-confirm-close" aria-label="关闭" @click="capabilityDemoVisible = false">×</button>
-        </div>
-        <div class="skill-capability-demo-list">
-          <button type="button" @click="activateCapabilityDemoScenario('product-knowledge')">
-            <strong>接口和字段新增</strong>
-            <span>为“产品知识问答”模拟商品对比接口及结构化字段变化。</span>
-          </button>
-          <button type="button" @click="activateCapabilityDemoScenario('voucher-recommend')">
-            <strong>权限点变化</strong>
-            <span>为“券包权益推荐”模拟适用人群查询权限拆分。</span>
-          </button>
-        </div>
-        <div class="skill-hub-confirm-foot">
-          <button class="btn btn-secondary" type="button" @click="resetCapabilityDemoScenarios">重置演示数据</button>
-          <button class="btn btn-primary" type="button" @click="capabilityDemoVisible = false">关闭</button>
-        </div>
-      </div>
-    </div>
-
     <div
       v-if="confirmState"
       class="skill-hub-confirm-modal open"
@@ -334,18 +307,20 @@ const { items } = storeToRefs(skillHubStore)
 const keyword = ref('')
 const statusFilter = ref<'all' | SkillStatus>('all')
 const categoryFilter = ref('all')
-const onlyCapabilityUpdates = ref(false)
-const capabilityDemoVisible = ref(false)
+const summaryFilter = ref<'all' | 'updates' | 'disabled'>('all')
+const onlyCapabilityUpdates = computed({
+  get: () => summaryFilter.value === 'updates',
+  set: (checked: boolean) => {
+    summaryFilter.value = checked ? 'updates' : 'all'
+    if (checked) statusFilter.value = 'all'
+  }
+})
 const detailItem = ref<SkillHubItem | null>(null)
 const evalItem = ref<SkillHubItem | null>(null)
 const capabilityChangeItem = ref<SkillHubItem | null>(null)
 const confirmState = ref<{ item: SkillHubItem; action: string } | null>(null)
 
 const role = computed(() => permissions.value.includes('*') ? 'admin' : 'pm')
-const showCapabilityDemo = computed(() => {
-  if (typeof window === 'undefined') return false
-  return import.meta.env.DEV || ['new.leaibot.cn', 'localhost', '127.0.0.1'].includes(window.location.hostname)
-})
 const pageDesc = computed(() => role.value === 'admin'
   ? '管理员可查看草稿，并审批、驳回、发布、启用或禁用 Skill；草稿可返回需求澄清继续编辑。'
   : 'PM 查看自己保存或提交的 Skill；草稿和被驳回的 Skill 可返回创建流程继续修改。')
@@ -360,7 +335,8 @@ const filteredItems = computed(() => {
     const matchStatus = statusFilter.value === 'all' || item.status === statusFilter.value || item.editStatus === statusFilter.value
     const matchCategory = categoryFilter.value === 'all' || item.category === categoryFilter.value
     const matchCapabilityUpdate = !onlyCapabilityUpdates.value || hasCapabilityUpdate(item)
-    return matchKeyword && matchStatus && matchCategory && matchCapabilityUpdate
+    const matchSummaryFilter = summaryFilter.value !== 'disabled' || item.status === 'disabled'
+    return matchKeyword && matchStatus && matchCategory && matchCapabilityUpdate && matchSummaryFilter
   })
 })
 
@@ -375,9 +351,17 @@ const summaryItems = computed(() => {
     { key: 'own', label: '我的 Skill', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '含当前账号草稿与已提交' : '含草稿与已提交记录', tone: 'stat--info' },
     { key: 'review', label: '待审批', code: 'TODO', value: reviewCount, desc: '需管理员审核处理', tone: 'stat--warning' },
     { key: 'published', label: '已发布', code: 'LIVE', value: publishedCount, desc: '线上可被工作台调用', tone: 'stat--success' },
-    { key: 'updates', label: '能力更新', code: 'NEW', value: capabilityCount, desc: `${disabledCount} 个已禁用 Skill 不计入更新`, tone: 'stat--muted' }
+    { key: 'updates', label: '能力更新', code: 'NEW', value: capabilityCount, desc: `${capabilityCount} 个 Skill 待确认影响`, tone: 'stat--primary', filter: 'updates' as const },
+    { key: 'disabled', label: '已禁用', code: 'OFF', value: disabledCount, desc: '暂停参与任务匹配', tone: 'stat--muted', filter: 'disabled' as const }
   ]
 })
+
+function setSummaryFilter(filter: 'updates' | 'disabled') {
+  summaryFilter.value = summaryFilter.value === filter ? 'all' : filter
+  keyword.value = ''
+  statusFilter.value = 'all'
+  categoryFilter.value = 'all'
+}
 
 const confirmMeta = computed(() => {
   const action = confirmState.value?.action || ''
@@ -486,21 +470,6 @@ function openCapabilityUpdate(item: SkillHubItem) {
     query: { skill: updated.name, edit: 'draft', capabilityUpdate: '1' }
   })
   toast(`${updated.cnName || updated.name}：已进入能力更新草稿，线上版本继续生效`)
-}
-
-function activateCapabilityDemoScenario(name: string) {
-  const item = skillHubStore.activateCapabilityDemoForSkill(name)
-  if (!item) return
-  onlyCapabilityUpdates.value = true
-  capabilityDemoVisible.value = false
-  toast(`${item.cnName}：已生成模拟能力变化`)
-}
-
-function resetCapabilityDemoScenarios() {
-  skillHubStore.resetCapabilityDemos()
-  onlyCapabilityUpdates.value = false
-  capabilityDemoVisible.value = false
-  toast('能力变化演示数据已重置')
 }
 
 function openConfirm(item: SkillHubItem, action: string) {

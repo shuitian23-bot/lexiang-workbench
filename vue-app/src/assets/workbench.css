@@ -1777,7 +1777,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   border:1px dashed var(--border); background:#fff; border-radius:8px; padding:18px; color:var(--text-secondary); font-size:13px;
 }
 .skill-hub-page { display:flex; flex-direction:column; gap:16px; }
-.skill-hub-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
+.skill-hub-summary { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
 .skill-hub-summary div { background:#fff; border:1px solid var(--border-light); border-radius:8px; padding:14px 16px; }
 .skill-hub-summary strong { display:block; font-size:22px; line-height:1.2; color:var(--text); }
 .skill-hub-summary span { display:block; margin-top:6px; font-size:12px; color:var(--text-secondary); }
@@ -5602,7 +5602,7 @@ html[data-product="leaibot"] .skill-hub-page .page-title {
 
 html[data-product="leaibot"] .skill-hub-summary {
   display:grid !important;
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  grid-template-columns:repeat(6,minmax(0,1fr));
   gap:14px;
   align-items:stretch;
   margin:12px 0 16px;
@@ -5635,6 +5635,25 @@ html[data-product="leaibot"] .skill-hub-stat:hover {
   transform:translateY(-1px);
   border-color:color-mix(in srgb, var(--skill-hub-stat-accent) 36%, var(--border-light));
   box-shadow:0 14px 34px rgba(15,23,42,.09);
+}
+
+html[data-product="leaibot"] .skill-hub-stat.is-filterable {
+  width:100%;
+  appearance:none;
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.is-filterable:focus-visible {
+  outline:2px solid var(--primary);
+  outline-offset:2px;
+}
+
+html[data-product="leaibot"] .skill-hub-stat.is-active {
+  border-color:var(--skill-hub-stat-accent);
+  box-shadow:0 0 0 2px color-mix(in srgb, var(--skill-hub-stat-accent) 18%, transparent), 0 14px 34px rgba(15,23,42,.09);
 }
 
 html[data-product="leaibot"] .skill-hub-stat-head {
@@ -6125,56 +6144,6 @@ html[data-product="leaibot"] .skill-hub-action.danger {
 html[data-product="leaibot"] .skill-hub-action.danger:hover {
   background:var(--red-light);
   border-color:#fecaca;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-panel {
-  width:min(560px, calc(100vw - 48px));
-  border-radius:8px;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-panel .skill-hub-confirm-head {
-  align-items:flex-start;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-panel .skill-hub-confirm-head p {
-  margin:5px 0 0;
-  color:var(--text-secondary);
-  font-size:12px;
-  line-height:1.5;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-list {
-  display:grid;
-  gap:10px;
-  padding:2px 20px 20px;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-list button {
-  display:grid;
-  gap:5px;
-  width:100%;
-  padding:14px;
-  border:1px solid var(--border-light);
-  border-radius:8px;
-  background:#fff;
-  color:var(--text);
-  text-align:left;
-  cursor:pointer;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-list button:hover {
-  border-color:var(--color-primary-border, #b7c8ff);
-  background:var(--primary-light);
-}
-
-html[data-product="leaibot"] .skill-capability-demo-list strong {
-  font-size:13px;
-}
-
-html[data-product="leaibot"] .skill-capability-demo-list span {
-  color:var(--text-secondary);
-  font-size:12px;
-  line-height:1.55;
 }
 
 html[data-product="leaibot"] .skill-capability-change-panel {

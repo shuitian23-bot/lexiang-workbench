@@ -4,7 +4,7 @@
 
 **Goal:** 在现有门户工作台 POC 中实现 Skill 能力变化发现、人工更新、重新评估和发布闭环。
 
-**Architecture:** 由独立 mock/service 模块定义能力变化记录和版本计算，Pinia store 负责把更新元数据合并到 Skill 数据并维持线上/编辑版本并存。Skill Hub 负责筛选、变化详情和更新入口，Skill 创建页复用现有五步流程并增加更新提醒和 0.80 提审门槛。
+**Architecture:** 由独立 service 模块定义固定能力变化记录和版本计算，Pinia store 负责把更新元数据合并到 Skill 数据并维持线上/编辑版本并存。Skill Hub 负责卡片筛选、变化详情和更新入口，Skill 创建页复用现有五步流程并增加更新提醒和 0.80 提审门槛。
 
 **Tech Stack:** Vue 3、TypeScript、Pinia、Vue Router、Node.js 内置测试、Vite。
 
@@ -82,16 +82,46 @@
 - [ ] 检查 `git diff` 与 `admin-runtime`，确认无无关变更。
 - [ ] 提交本次分支，保留 `new`、正式和 GitLab 推送为独立确认步骤。
 
-### Task 5: 预览环境 Mock 演示入口
+### Task 5: 默认能力更新与禁用卡片筛选
 
 **Files:**
 - Modify: `vue-app/src/services/skillCapabilityChanges.js`
 - Modify: `vue-app/src/stores/skillHub.ts`
 - Modify: `vue-app/src/views/agent/AgentSkillsView.vue`
 - Modify: `vue-app/src/assets/workbench.css`
+- Modify: `vue-app/src/components/shell/sidebar/WorkbenchSidebar.vue`
 - Test: `vue-app/scripts/skill-capability-sync.test.mjs`
 
-- [ ] 先编写失败测试，要求显式场景注入、重置和仅预览域名展示入口。
-- [ ] 实现“模拟能力变化”弹窗，提供接口/字段增强与权限变化两个场景。
-- [ ] 初始 Skill Hub 不静默注入 Mock；触发后持久化，重置后恢复无更新状态。
-- [ ] 重新运行完整验证并只发布到 `new`。
+**Interfaces:**
+- Consumes: `getSeedCapabilityUpdate(skillName)`、`SkillHubItem.capabilityUpdate`、`SkillStatus`。
+- Produces: `summaryFilter: 'all' | 'updates' | 'disabled'`、`setSummaryFilter(filter)`，以及默认两条能力更新记录。
+
+- [ ] **Step 1: 写失败测试**
+
+  在 `skill-capability-sync.test.mjs` 中要求 Store 初始化始终为 `product-knowledge` 和 `voucher-recommend` 合并固定能力变化；要求页面存在“能力更新”和“已禁用”卡片筛选，不存在“模拟能力变化”“重置演示数据”及对应 service/store 方法。
+
+- [ ] **Step 2: 运行测试确认失败**
+
+  Run: `node --test vue-app/scripts/skill-capability-sync.test.mjs`
+
+  Expected: FAIL，当前源码仍包含 Mock 激活/重置入口，且 Store 不会为无缓存记录合并固定变化。
+
+- [ ] **Step 3: 实现默认记录和卡片筛选**
+
+  `hydrateItem()` 无论首次数据还是已有本地数据都读取 `getSeedCapabilityUpdate(item.name)`，使两条固定记录直接参与能力更新统计。删除 `activateCapabilityDemo()`、`resetCapabilityDemo()` 及 Store 包装方法。Skill Hub 删除预览域名判断、Mock 按钮、弹窗和样式；增加 `summaryFilter`，点击“能力更新”时筛选 `hasCapabilityUpdate(item)`，点击“已禁用”时筛选 `item.status === 'disabled'`，再次点击当前卡片恢复全部并清除冲突条件。
+
+- [ ] **Step 4: 保留生命周期操作并更新日志**
+
+  保留 `published: ['禁用', ...]` 与 `disabled: ['启用', ...]` 映射；在原 Skill 能力变更日志记录中说明默认能力更新卡片和禁用卡片筛选，不新增重复日志。
+
+- [ ] **Step 5: 运行完整验证**
+
+  Run: `node --test vue-app/scripts/skill-capability-sync.test.mjs`
+
+  Run: `pnpm lint && pnpm typecheck && pnpm guard:design-skill && pnpm build && pnpm smoke:shell`
+
+  Expected: 测试全部通过；浏览器首次进入显示能力更新 `2`、已禁用 `1`，两张卡片分别筛出 `2` 和 `1` 条记录，控制台无错误。
+
+- [ ] **Step 6: 提交并只发布到 new**
+
+  显式暂存本任务源码和测试，提交信息使用 `fix: restore skill update and disabled filters`。备份 `/opt/projects/lexiang-new/public/admin-vue`，非删除式同步构建产物并排除整个 `admin-runtime/`；验证正式入口未变化。

@@ -1,14 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import {
-  activateCapabilityDemo,
   beginCapabilityUpdate,
   formatShanghaiMinute,
   getSeedCapabilityUpdate,
   hydrateCapabilityUpdate,
   mergeCapabilityDraft,
   mergeCapabilitySubmission,
-  resetCapabilityDemo,
   transitionCapabilityEdit
 } from '@/services/skillCapabilityChanges.js'
 
@@ -144,9 +142,7 @@ function cloneDefaultItems() {
 }
 
 function hydrateItem(item: SkillHubItem) {
-  const seededUpdate = item.capabilityUpdate
-    ? getSeedCapabilityUpdate(item.name) as SkillCapabilityUpdate | undefined
-    : undefined
+  const seededUpdate = getSeedCapabilityUpdate(item.name) as SkillCapabilityUpdate | undefined
   const { capabilityUpdate, draft, status, editStatus } = hydrateCapabilityUpdate(item, seededUpdate)
   return {
     ...item,
@@ -267,22 +263,6 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     return items.value[index]
   }
 
-  function activateCapabilityDemoForSkill(name: string) {
-    const index = items.value.findIndex(item => item.name === name)
-    const seededUpdate = getSeedCapabilityUpdate(name) as SkillCapabilityUpdate | undefined
-    if (index < 0 || !seededUpdate) return
-    items.value[index] = activateCapabilityDemo(items.value[index], seededUpdate, nowMinute())
-    persist()
-    return items.value[index]
-  }
-
-  function resetCapabilityDemos() {
-    items.value = items.value.map(item => getSeedCapabilityUpdate(item.name)
-      ? resetCapabilityDemo(item)
-      : item)
-    persist()
-  }
-
   function updateCapabilityEditStatus(item: SkillHubItem, status: 'approved' | 'rejected' | 'published', reviewer = 'admin') {
     const index = items.value.findIndex(row => row.name === item.name)
     if (index < 0) return
@@ -319,9 +299,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
 
   return {
     items,
-    activateCapabilityDemoForSkill,
     findSkill,
-    resetCapabilityDemos,
     startCapabilityUpdate,
     updateCapabilityEditStatus,
     upsertDraftSkill,
