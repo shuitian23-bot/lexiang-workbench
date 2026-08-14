@@ -2,7 +2,7 @@
   <div class="ai-messages" id="ai-messages" ref="messagesEl">
     <template v-if="showWelcome">
       <div class="ai-msg assistant ai-welcome-msg">
-        <div class="bubble">
+        <div class="bubble ai-message-bubble">
           <div class="ai-empty-state ai-doc-flow">
             <div class="ai-doc-message">
               <p>你好！我是乐享 AI 助手。</p>
@@ -23,10 +23,10 @@
               </button>
             </div>
           </div>
+          <time class="time ai-message-time ai-welcome-time" :datetime="welcomeAt">
+            {{ formatMessageTimestamp(welcomeAt) }}
+          </time>
         </div>
-        <time class="time ai-message-time ai-welcome-time" :datetime="welcomeAt">
-          {{ formatMessageTimestamp(welcomeAt) }}
-        </time>
       </div>
     </template>
 
@@ -43,7 +43,7 @@
         }]"
       >
         <AgentConversationStates v-if="hasExternalState(msg)" :items="msg.activityItems || []" />
-        <div class="bubble">
+        <div class="bubble ai-message-bubble">
           <div v-html="renderMsg(msg, idx)"></div>
           <div v-if="msg.authRequest && canShowStructuredContent(msg, idx)" class="ai-auth-card">
             <div class="ai-auth-head">
@@ -116,10 +116,10 @@
               </button>
             </div>
           </div>
+          <time class="time ai-message-time" :datetime="messageTime(msg).datetime">
+            {{ messageTime(msg).label }}
+          </time>
         </div>
-        <time class="time ai-message-time" :datetime="messageTime(msg).datetime">
-          {{ messageTime(msg).label }}
-        </time>
       </div>
     </template>
 
@@ -426,20 +426,29 @@ function renderMarkdownTable(lines, startIndex) {
 </script>
 
 <style lang="scss" scoped>
+.ai-message-bubble {
+  position: relative;
+  margin-bottom: 20px;
+}
+
 .ai-message-time {
-  display: block;
+  position: absolute;
+  top: 100%;
   margin-top: 4px;
   color: var(--text-tertiary, #8f959e);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   line-height: 16px;
+  white-space: nowrap;
 }
 
 .ai-msg.user .ai-message-time {
+  right: 0;
   text-align: right;
 }
 
 .ai-msg.assistant .ai-message-time {
+  left: 0;
   text-align: left;
 }
 

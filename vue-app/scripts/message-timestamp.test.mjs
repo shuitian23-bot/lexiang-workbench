@@ -42,3 +42,13 @@ test('message list renders timestamps for welcome and stored messages', async ()
   assert.match(source, /class="time ai-message-time"/)
   assert.match(source, /:datetime="messageTime\(msg\)\.datetime"/)
 })
+
+test('timestamps stay attached beneath their message bubbles without wrapping', async () => {
+  const source = await readFile(new URL('../src/components/agent/AgentMessageList.vue', import.meta.url), 'utf8')
+  assert.match(source, /<div class="bubble ai-message-bubble">[\s\S]*?<time class="time ai-message-time ai-welcome-time"/)
+  assert.match(source, /<div class="bubble ai-message-bubble">[\s\S]*?<time class="time ai-message-time"/)
+  assert.match(source, /\.ai-message-bubble\s*\{[\s\S]*?position:\s*relative/)
+  assert.match(source, /\.ai-message-time\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?top:\s*100%;[\s\S]*?white-space:\s*nowrap/)
+  assert.match(source, /\.ai-msg\.user \.ai-message-time\s*\{[\s\S]*?right:\s*0/)
+  assert.match(source, /\.ai-msg\.assistant \.ai-message-time\s*\{[\s\S]*?left:\s*0/)
+})
