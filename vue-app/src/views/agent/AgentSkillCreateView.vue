@@ -15,19 +15,17 @@
       <div class="skill-capability-update-mark">更新</div>
       <div class="skill-capability-update-copy">
         <b>能力上下文已变化</b>
-        <p>{{ activeCapabilityUpdate.summary }}</p>
+        <p>已选能力受影响 {{ affectedSelectedContextItems.length }} 项，可选新增 {{ optionalNewContextItems.length }} 项。</p>
         <div>
           <span>目标能力版本 {{ activeCapabilityUpdate.targetCapabilityVersion }}</span>
           <span>检测于 {{ activeCapabilityUpdate.detectedAt }}</span>
-          <span>线上版本继续生效，新增能力不会自动勾选</span>
-          <span>保存前请检查应用场景、输入输出、异常处理和测试用例</span>
         </div>
       </div>
       <button class="btn btn-secondary" type="button" @click="focusCapabilityContext">查看能力上下文</button>
     </div>
 
     <div class="skill-create-studio">
-      <aside ref="contextPaneEl" class="skill-context-pane">
+      <aside class="skill-context-pane">
         <div class="skill-context-fixed-head">
           <div class="skill-context-search">
             <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.25"></circle><path d="m16 16 4 4"></path></svg>
@@ -213,13 +211,64 @@
               <div class="skill-step-banner">当前阶段：基于基础配置、左侧能力上下文和附件材料，通过与 AI 对话补齐应用场景、约束条件和执行边界。</div>
               <div class="skill-clarify-layout">
                 <div id="skill-clarify-chat" ref="chatEl" class="skill-chat-sim">
-                  <div class="skill-chat-context">
-                    <b>我已理解你选择的能力上下文</b>
-                    <div id="skill-selected-tags" class="skill-ai-tags">
-                      <span v-for="item in selectedContextItems" :key="item.code" :title="item.code">{{ item.name }}</span>
-                      <span v-if="!selectedContextItems.length" class="muted">请先从左侧选择能力上下文</span>
+                  <div ref="capabilityContextEl" class="skill-chat-context skill-capability-context-panel">
+                    <div class="skill-capability-context-head">
+                      <div>
+                        <b>能力上下文</b>
+                        <p>已读取当前选择，并发现相关能力变化，请确认本次 Skill 使用的能力范围。</p>
+                      </div>
+                      <span>{{ selectedContextItems.length }} 已选</span>
                     </div>
-                    <p id="skill-context-summary">{{ contextSummary }}</p>
+
+                    <section class="skill-capability-context-section" aria-labelledby="skill-selected-context-title">
+                      <div class="skill-capability-context-title">
+                        <b id="skill-selected-context-title">已选择</b>
+                        <span>{{ selectedContextItems.length }} 项</span>
+                      </div>
+                      <div id="skill-selected-tags" class="skill-capability-selected-list">
+                        <span
+                          v-for="item in selectedContextItems"
+                          :key="item.code"
+                          class="skill-capability-selected-item"
+                          :title="item.code"
+                        >
+                          <span>{{ item.name }}</span>
+                          <em v-if="isSelectedContextAffected(item.code)">有更新</em>
+                          <em v-else-if="isSelectedContextAddition(item.code)" class="is-added">本次新增</em>
+                        </span>
+                        <span v-if="!selectedContextItems.length" class="skill-capability-context-empty">请先从左侧选择能力上下文</span>
+                      </div>
+                    </section>
+
+                    <section v-if="activeCapabilityUpdate" class="skill-capability-context-section" aria-labelledby="skill-context-change-title">
+                      <div class="skill-capability-context-title">
+                        <b id="skill-context-change-title">本次变化</b>
+                        <span>{{ activeCapabilityUpdate.changes.length }} 项</span>
+                      </div>
+
+                      <div v-if="affectedSelectedContextItems.length" class="skill-capability-change-row">
+                        <div class="skill-capability-change-copy">
+                          <div><b>已选能力受影响</b><span>{{ affectedSelectedContextItems.map(item => item.name).join('、') }}</span></div>
+                          <p>{{ activeCapabilityUpdate.summary }}</p>
+                          <small>{{ capabilityChangeObjectLabels }}</small>
+                        </div>
+                        <span class="skill-capability-change-state is-affected">有更新</span>
+                      </div>
+
+                      <div v-if="capabilityAdditionContextItem" class="skill-capability-change-row">
+                        <div class="skill-capability-change-copy">
+                          <div><b>{{ capabilityAdditionContextItem.name }}</b><span>{{ capabilityAdditionContextItem.source }}</span></div>
+                          <p>{{ capabilityAdditionContextItem.subtitle }}</p>
+                        </div>
+                        <button
+                          v-if="optionalNewContextItems.length"
+                          class="btn btn-secondary skill-capability-add-button"
+                          type="button"
+                          @click="addOptionalContext(capabilityAdditionContextItem.code)"
+                        ><span aria-hidden="true">+</span> 加入上下文</button>
+                        <span v-else class="skill-capability-change-state is-added">已加入</span>
+                      </div>
+                    </section>
                   </div>
                   <div v-if="!clarifyMessages.length" class="skill-chat-ai">
                     <div>请在下方输入框补充本轮 Skill 创建需求。需求澄清智能体会基于你的描述、基础配置和已选子菜单上下文，按九要素收敛能力定义、输入输出、执行边界和验收用例。</div>
@@ -613,7 +662,7 @@ const aiTuneRequestKey = ref('')
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
 const activeCapabilityUpdate = ref<SkillCapabilityUpdate | null>(null)
-const contextPaneEl = ref<HTMLElement | null>(null)
+const capabilityContextEl = ref<HTMLElement | null>(null)
 const REVIEW_SCORE_THRESHOLD = 0.80
 
 const form = ref({
@@ -629,6 +678,22 @@ const menuGroups = Object.values(MENU_TREE)
 const menuGroupLabels = menuGroups.map(group => group.label)
 const contextItems = ref<ContextItem[]>(createMenuContextItems(form.value.menu))
 const selectedContextItems = computed(() => contextItems.value.filter(item => item.selected))
+const affectedSelectedContextItems = computed(() => {
+  const currentCodes = new Set(activeCapabilityUpdate.value?.currentContextCodes || [])
+  return selectedContextItems.value.filter(item => currentCodes.has(item.code))
+})
+const capabilityAdditionContextItem = computed(() => {
+  const contextId = activeCapabilityUpdate.value?.contextId
+  return contextId ? contextItems.value.find(item => item.code === contextId) || null : null
+})
+const optionalNewContextItems = computed(() => {
+  const item = capabilityAdditionContextItem.value
+  return item && !item.selected ? [item] : []
+})
+const capabilityChangeObjectLabels = computed(() => {
+  const labels = [...new Set(activeCapabilityUpdate.value?.changes.map(change => change.objectType) || [])]
+  return labels.length ? `涉及${labels.join('、')}` : ''
+})
 const contextSearch = ref('')
 const contextSourceFilter = ref('全部')
 const selectedOnly = ref(false)
@@ -653,18 +718,6 @@ const contextResourceMetrics = [
   { label: 'Tool', value: 2 },
   { label: '权限点', value: 10 }
 ]
-const contextSummary = computed(() => {
-  if (!selectedContextItems.value.length) return '尚未选择能力上下文。请从能力目录中勾选可被 Skill 编排的页面能力。'
-  const grouped = menuGroups
-    .map(group => {
-      const names = selectedContextItems.value.filter(item => item.source === group.label).map(item => item.name)
-      return names.length ? `${group.label}：${names.join('、')}` : ''
-    })
-    .filter(Boolean)
-    .join('；')
-  return `已选择 ${selectedContextItems.value.length} 个子菜单上下文：${grouped}。AI 将继续核对应用场景、输入输出、执行边界、依赖能力和验收用例。`
-})
-
 watch(
   () => form.value.menu,
   () => syncMenuContext()
@@ -940,6 +993,20 @@ function validateConfig() {
 function toggleContext(code: string) {
   const item = contextItems.value.find(entry => entry.code === code)
   if (item) item.selected = !item.selected
+}
+
+function isSelectedContextAffected(code: string) {
+  return activeCapabilityUpdate.value?.currentContextCodes.includes(code) || false
+}
+
+function isSelectedContextAddition(code: string) {
+  return activeCapabilityUpdate.value?.contextId === code
+}
+
+function addOptionalContext(code: string) {
+  const item = optionalNewContextItems.value.find(entry => entry.code === code)
+  if (!item) return
+  toggleContext(code)
 }
 
 function fillTemplate(type: 'query' | 'generate' | 'action') {
@@ -1553,9 +1620,8 @@ function saveDraft() {
 }
 
 function focusCapabilityContext() {
-  activeTab.value = 'config'
-  contextSearch.value = activeCapabilityUpdate.value?.contextId || ''
-  void nextTick(() => contextPaneEl.value?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  activeTab.value = 'clarify'
+  void nextTick(() => capabilityContextEl.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
 }
 
 function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
@@ -1881,6 +1947,166 @@ onBeforeUnmount(() => {
   font-size: 11px;
 }
 
+.skill-capability-context-panel {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.skill-capability-context-head,
+.skill-capability-context-section {
+  padding: 12px 14px;
+}
+
+.skill-capability-context-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.skill-capability-context-head > div {
+  min-width: 0;
+}
+
+.skill-capability-context-head b {
+  margin: 0;
+  font-size: 14px;
+}
+
+.skill-capability-context-head p {
+  margin-top: 4px;
+}
+
+.skill-capability-context-head > span,
+.skill-capability-context-title > span {
+  flex: 0 0 auto;
+  color: var(--color-text-tertiary, #8f959e);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.skill-capability-context-section {
+  border-top: 1px solid var(--border-light, #e5e6eb);
+}
+
+.skill-capability-context-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skill-capability-context-title b {
+  margin: 0;
+}
+
+.skill-capability-selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.skill-capability-selected-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: var(--green-light, #e8f7ef);
+  color: var(--green, #2f8f5b);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.skill-capability-selected-item > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.skill-capability-selected-item em,
+.skill-capability-change-state {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #fff1d6;
+  color: #9a6700;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.skill-capability-selected-item em.is-added,
+.skill-capability-change-state.is-added {
+  background: rgba(51, 112, 255, .09);
+  color: var(--primary, #3370ff);
+}
+
+.skill-capability-context-empty {
+  color: var(--color-text-tertiary, #8f959e);
+  font-size: 11px;
+}
+
+.skill-capability-change-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0 0;
+}
+
+.skill-capability-change-row + .skill-capability-change-row {
+  margin-top: 10px;
+  border-top: 1px dashed var(--border-light, #e5e6eb);
+}
+
+.skill-capability-change-copy {
+  min-width: 0;
+}
+
+.skill-capability-change-copy > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px 8px;
+}
+
+.skill-capability-change-copy b {
+  display: inline;
+  margin: 0;
+}
+
+.skill-capability-change-copy span,
+.skill-capability-change-copy small {
+  color: var(--color-text-tertiary, #8f959e);
+  font-size: 10px;
+}
+
+.skill-capability-change-copy p {
+  margin-top: 4px;
+}
+
+.skill-capability-change-copy small {
+  display: block;
+  margin-top: 3px;
+}
+
+.skill-capability-add-button {
+  min-height: 30px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.skill-capability-add-button > span {
+  font-size: 16px;
+  line-height: 1;
+}
+
 .skill-create-tab:disabled {
   color: var(--color-text-tertiary, #8f959e);
   cursor: not-allowed;
@@ -1895,6 +2121,21 @@ onBeforeUnmount(() => {
   .skill-capability-update-banner > .btn {
     grid-column: 1 / -1;
     justify-self: end;
+  }
+
+  .skill-capability-context-head,
+  .skill-capability-change-row {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-capability-context-head {
+    display: grid;
+    gap: 6px;
+  }
+
+  .skill-capability-add-button,
+  .skill-capability-change-state {
+    justify-self: start;
   }
 }
 

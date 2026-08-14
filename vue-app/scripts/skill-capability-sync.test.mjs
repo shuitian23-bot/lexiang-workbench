@@ -234,3 +234,17 @@ test('Skill create keeps capability context changes visible and gates review at 
   assert.match(view, /综合评分 ≥ 0\.80/)
   assert.doesNotMatch(view, /综合评分 ≥ 0\.60|已达到 0\.60|及格线 0\.60/)
 })
+
+test('Skill update combines selected context and capability changes without auto-selecting additions', async () => {
+  const view = await source('../src/views/agent/AgentSkillCreateView.vue')
+  assert.match(view, /已选能力受影响/)
+  assert.match(view, /可选新增/)
+  assert.match(view, /加入上下文/)
+  assert.match(view, /affectedSelectedContextItems/)
+  assert.match(view, /optionalNewContextItems/)
+  assert.match(view, /function addOptionalContext/)
+  assert.match(view, /activeTab\.value = 'clarify'/)
+  assert.match(view, /ref="capabilityContextEl"/)
+  assert.match(view, /selected: false/)
+  assert.match(view, /\.skill-capability-context-panel\s*\{[^}]*flex:\s*0 0 auto;/s)
+})
