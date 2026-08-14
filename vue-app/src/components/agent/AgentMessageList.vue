@@ -24,6 +24,9 @@
             </div>
           </div>
         </div>
+        <time class="time ai-message-time ai-welcome-time" :datetime="welcomeAt">
+          {{ formatMessageTimestamp(welcomeAt) }}
+        </time>
       </div>
     </template>
 
@@ -114,6 +117,9 @@
             </div>
           </div>
         </div>
+        <time class="time ai-message-time" :datetime="messageTime(msg).datetime">
+          {{ messageTime(msg).label }}
+        </time>
       </div>
     </template>
 
@@ -164,6 +170,10 @@ import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 import { AI_REPORT_ARTIFACTS } from '@/stores/ai'
 import { getPageLabel } from '@/stores/app'
+import {
+  createMessageTimestampResolver,
+  formatMessageTimestamp
+} from '@/utils/messageTimestamp'
 
 const props = defineProps({
   messages: { type: Array, default: () => [] },
@@ -179,6 +189,8 @@ const typewriterText = reactive({})
 const typewriterDone = reactive({})
 const typewriterTimers = new Map()
 const todoExpanded = ref(true)
+const welcomeAt = ref(new Date().toISOString())
+const messageTime = createMessageTimestampResolver()
 const showWelcome = computed(() => !props.messages.some(msg => msg.role === 'user' && !msg.demoReportQuery))
 const latestTodoMessage = computed(() => [...props.messages]
   .reverse()
@@ -203,6 +215,9 @@ function scrollToBottom() {
 watch(() => props.messages, scrollToBottom, { deep: true })
 watch(() => props.loading, scrollToBottom)
 watch(() => props.messages, syncTypewriterMessages, { deep: true, immediate: true })
+watch(() => props.messages, (next, previous) => {
+  if (next !== previous && !next.length) welcomeAt.value = new Date().toISOString()
+})
 watch(isTodoComplete, complete => { todoExpanded.value = !complete }, { immediate: true })
 
 onBeforeUnmount(() => {
@@ -411,6 +426,23 @@ function renderMarkdownTable(lines, startIndex) {
 </script>
 
 <style lang="scss" scoped>
+.ai-message-time {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-tertiary, #8f959e);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+}
+
+.ai-msg.user .ai-message-time {
+  text-align: right;
+}
+
+.ai-msg.assistant .ai-message-time {
+  text-align: left;
+}
+
 .ai-todo-card,
 .ai-auth-card {
   border: 1px solid rgba(31, 35, 41, .1);

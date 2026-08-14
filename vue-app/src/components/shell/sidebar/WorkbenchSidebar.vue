@@ -112,6 +112,14 @@ const pocLogVisible = ref(false)
 
 const pocLogRecords = [
   {
+    time: '2026-08-14 09:57',
+    operator: 'Codex（协作代理）',
+    title: 'AI 助手逐条消息时间戳',
+    scope: '右侧 AI 助手 / 当前会话 / 历史会话',
+    detail: '为欢迎语、用户消息和 AI 回复统一增加年月日时分秒时间戳；结构化授权、报告和操作卡跟随所属消息共用一个时间，保留原有消息、历史会话、报告和输入流程。',
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-13 14:34',
     operator: 'Codex（协作代理）',
     title: '0812 工作台样式规范更新',
