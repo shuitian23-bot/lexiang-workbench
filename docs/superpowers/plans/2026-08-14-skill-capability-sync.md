@@ -125,3 +125,40 @@
 - [ ] **Step 6: 提交并只发布到 new**
 
   显式暂存本任务源码和测试，提交信息使用 `fix: restore skill update and disabled filters`。备份 `/opt/projects/lexiang-new/public/admin-vue`，非删除式同步构建产物并排除整个 `admin-runtime/`；验证正式入口未变化。
+
+### Task 6: 更新页能力上下文两层展示
+
+**Files:**
+- Modify: `vue-app/src/views/agent/AgentSkillCreateView.vue`
+- Modify: `vue-app/scripts/skill-capability-sync.test.mjs`
+- Modify: `docs/superpowers/specs/2026-08-14-skill-capability-sync-design.md`
+
+**Interfaces:**
+- Consumes: `selectedContextItems`、`activeCapabilityUpdate.currentContextCodes`、`activeCapabilityUpdate.changes` 与变化项生成的推荐上下文。
+- Produces: `affectedSelectedContextItems`、`optionalNewContextItems`、`addOptionalContext(code)`，以及统一的“能力上下文”展示模块。
+
+- [ ] **Step 1: 写失败测试**
+
+  在 `skill-capability-sync.test.mjs` 中要求更新页包含“已选择”“本次变化”“已选能力受影响”“可选新增”“加入上下文”，并要求顶部概览显示两类数量；测试同时约束“加入上下文”必须通过显式点击调用，不允许初始化时自动选中推荐变化项。
+
+- [ ] **Step 2: 运行测试确认失败**
+
+  Run: `node --test vue-app/scripts/skill-capability-sync.test.mjs`
+
+  Expected: FAIL，当前页面只有独立的顶部变化提醒和“我已理解你选择的能力上下文”，不存在两层分组与显式加入动作。
+
+- [ ] **Step 3: 实现两层上下文和顶部概览**
+
+  将顶部提醒压缩为变化概览，按钮切换到“需求澄清”并定位统一模块。统一模块展示当前已选能力，命中 `currentContextCodes` 的已选项标记“有更新”；变化区列出 `changes` 摘要，并把尚未选择的变化上下文归入“可选新增”。`addOptionalContext(code)` 仅在用户点击后调用现有 `toggleContext(code)`。
+
+- [ ] **Step 4: 完成响应式和状态验证**
+
+  保持模块为一个容器内的无嵌套分组；在窄内容槽中标签和操作自动换行。验证无更新、新增已加入、已选能力被移除三种状态下数量和文案同步。
+
+- [ ] **Step 5: 运行完整验证**
+
+  Run: `node --test vue-app/scripts/skill-capability-sync.test.mjs`
+
+  Run: `pnpm lint && pnpm typecheck && pnpm guard:design-skill && pnpm build && pnpm smoke:shell`
+
+  Expected: 功能测试与项目检查全部通过，构建不修改 `public/admin-vue/admin-runtime/`。
