@@ -15,7 +15,7 @@
       <div class="skill-capability-update-mark">更新</div>
       <div class="skill-capability-update-copy">
         <b>能力上下文已变化</b>
-        <p>已选能力受影响 {{ affectedSelectedContextItems.length }} 项，可选新增 {{ optionalNewContextItems.length }} 项。</p>
+        <p aria-live="polite">已选能力受影响 {{ affectedSelectedContextItems.length }} 项，可选新增 {{ optionalNewContextItems.length }} 项。</p>
         <div>
           <span>目标能力版本 {{ activeCapabilityUpdate.targetCapabilityVersion }}</span>
           <span>检测于 {{ activeCapabilityUpdate.detectedAt }}</span>
@@ -129,7 +129,7 @@
             @mouseleave="hideContextSubtitleTooltip"
             @focus="showContextSubtitleTooltip($event, item)"
             @blur="hideContextSubtitleTooltip"
-            @click="toggleContext(item.code)"
+            @click="handleContextCardClick(item.code)"
           >
             <span v-if="item.recommended" class="skill-context-card-recommend">推荐</span>
             <b>{{ item.name }}</b>
@@ -211,7 +211,7 @@
               <div class="skill-step-banner">当前阶段：基于基础配置、左侧能力上下文和附件材料，通过与 AI 对话补齐应用场景、约束条件和执行边界。</div>
               <div class="skill-clarify-layout">
                 <div id="skill-clarify-chat" ref="chatEl" class="skill-chat-sim">
-                  <div ref="capabilityContextEl" class="skill-chat-context skill-capability-context-panel">
+                  <div ref="capabilityContextEl" class="skill-chat-context skill-capability-context-panel" tabindex="-1">
                     <div class="skill-capability-context-head">
                       <div>
                         <b>能力上下文</b>
@@ -225,7 +225,7 @@
                         <b id="skill-selected-context-title">已选择</b>
                         <span>{{ selectedContextItems.length }} 项</span>
                       </div>
-                      <div id="skill-selected-tags" class="skill-capability-selected-list">
+                      <div id="skill-selected-tags" class="skill-capability-selected-list" aria-live="polite">
                         <span
                           v-for="item in selectedContextItems"
                           :key="item.code"
@@ -261,12 +261,12 @@
                           <p>{{ capabilityAdditionContextItem.subtitle }}</p>
                         </div>
                         <button
-                          v-if="optionalNewContextItems.length"
                           class="btn btn-secondary skill-capability-add-button"
+                          :class="{ 'is-added': !optionalNewContextItems.length }"
+                          :aria-disabled="!optionalNewContextItems.length"
                           type="button"
                           @click="addOptionalContext(capabilityAdditionContextItem.code)"
-                        ><span aria-hidden="true">+</span> 加入上下文</button>
-                        <span v-else class="skill-capability-change-state is-added">已加入</span>
+                        ><span aria-hidden="true">{{ optionalNewContextItems.length ? '+' : '✓' }}</span> {{ optionalNewContextItems.length ? '加入上下文' : '已加入' }}</button>
                       </div>
                     </section>
                   </div>
@@ -995,6 +995,14 @@ function toggleContext(code: string) {
   if (item) item.selected = !item.selected
 }
 
+function handleContextCardClick(code: string) {
+  if (optionalNewContextItems.value.some(item => item.code === code)) {
+    focusCapabilityContext()
+    return
+  }
+  toggleContext(code)
+}
+
 function isSelectedContextAffected(code: string) {
   return activeCapabilityUpdate.value?.currentContextCodes.includes(code) || false
 }
@@ -1621,7 +1629,10 @@ function saveDraft() {
 
 function focusCapabilityContext() {
   activeTab.value = 'clarify'
-  void nextTick(() => capabilityContextEl.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
+  void nextTick(() => {
+    capabilityContextEl.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    capabilityContextEl.value?.focus({ preventScroll: true })
+  })
 }
 
 function createDraftSnapshot(now = new Date()): SkillDraftSnapshot {
@@ -1953,6 +1964,12 @@ onBeforeUnmount(() => {
   max-width: 100%;
   padding: 0;
   overflow: hidden;
+  container-type: inline-size;
+}
+
+.skill-capability-context-panel:focus {
+  outline: 2px solid rgba(51, 112, 255, .24);
+  outline-offset: 2px;
 }
 
 .skill-capability-context-head,
@@ -2107,6 +2124,13 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
+.skill-capability-add-button.is-added {
+  border-color: rgba(51, 112, 255, .16);
+  background: rgba(51, 112, 255, .06);
+  color: var(--primary, #3370ff);
+  cursor: default;
+}
+
 .skill-create-tab:disabled {
   color: var(--color-text-tertiary, #8f959e);
   cursor: not-allowed;
@@ -2123,14 +2147,16 @@ onBeforeUnmount(() => {
     justify-self: end;
   }
 
-  .skill-capability-context-head,
-  .skill-capability-change-row {
-    grid-template-columns: 1fr;
-  }
+}
 
+@container (max-width: 480px) {
   .skill-capability-context-head {
     display: grid;
     gap: 6px;
+  }
+
+  .skill-capability-change-row {
+    grid-template-columns: 1fr;
   }
 
   .skill-capability-add-button,
