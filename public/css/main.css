@@ -13695,3 +13695,106 @@ body[data-page="personal"] .lx-store-skin .store .acts .btn:hover{ box-shadow:no
     transform: translate3d(0,0,0) scale(1) !important;
   }
 }
+/* v0.14.10-stage SMB product detail commerce */
+body[data-page="business"] .content[data-view="detail"] .lx-spu-selector { display: grid; gap: 20px; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option-group { display: grid; gap: 10px; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option-group h3 { margin: 0; color: #201a23; font-size: 14px; font-weight: 700; line-height: 1.4; letter-spacing: 0; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option { width: 100%; min-width: 0; min-height: 48px; padding: 10px 12px; border: 1px solid #e6dfea; border-radius: 6px; background: #fff; color: #201a23; font-size: 12px; font-weight: 500; line-height: 1.45; letter-spacing: 0; text-align: center; overflow-wrap: anywhere; transition: border-color .16s ease, background-color .16s ease, color .16s ease; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option:hover:not(:disabled):not(.is-active) { border-color: #bda9c2; background: #fbf9fc; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option.is-active { border-color: #5b1452; background: #f6f1f8; color: #5b1452; font-weight: 700; box-shadow: inset 0 0 0 1px #5b1452; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option:disabled { border-color: #eee9f1; background: #faf9fb; color: #b7b0bb; cursor: not-allowed; opacity: 1; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-option:focus-visible { outline: 2px solid #5b1452; outline-offset: 2px; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-final-price { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 58px; padding: 14px 16px; border-top: 1px solid #e6dfea; border-bottom: 1px solid #e6dfea; color: #5f5365; font-size: 13px; letter-spacing: 0; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-final-price strong { display: inline-flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; color: #c8161e; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0; text-align: right; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-final-price s { color: #9a929f; font-size: 12px; font-weight: 400; }
+body[data-page="business"] .content[data-view="detail"] .lx-spu-selector > .lx-spu-compare { justify-self: end; }
+.content[data-view="detail"] .lx-enterprise-price-label { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 7px; border-radius: 4px; background: #f6eaf3; color: #6d3260; font-size: 12px; font-weight: 700; letter-spacing: 0; line-height: 1; white-space: nowrap; vertical-align: middle; }
+.content[data-view="detail"] .lx-spu-head b, .content[data-view="detail"] .lx-spu-chip-price, .content[data-view="detail"] .lx-buybar-info b { display: inline-flex; align-items: center; gap: 6px; }
+.content[data-view="detail"] .lx-spu-head .lx-enterprise-price-label, .content[data-view="detail"] .lx-spu-chip-price .lx-enterprise-price-label, .content[data-view="detail"] .lx-buybar-info .lx-enterprise-price-label { min-height: 20px; padding: 0 6px; font-size: 11px; }
+.content[data-view="detail"] .detail-gallery.has-smb-assurances { gap: 16px; justify-content: flex-start; }
+.content[data-view="detail"] .detail-gallery.has-smb-assurances > .detail-service { width: 100%; margin-top: 2px; padding-top: 16px; border-top: 1px solid #e6dfea; }
+.content[data-view="detail"] .detail-gallery.has-smb-assurances > .detail-itemcode { width: 100%; margin-top: 0; }
+
+body[data-page="business"] .content[data-view="detail"] .lx-smb-commerce,
+body[data-page="business"] .lx-order-options { --lx-aubergine: #4d144a; --lx-surface: #ffffff; --lx-surface-muted: #fcfaff; --lx-surface-hover: #f3f0f7; --lx-border: #e2ddeb; --lx-text-primary: #252525; --lx-text-secondary: #625b68; --lx-text-tertiary: #979797; --lx-focus: #4d144a; --lx-price-red: #ff2f2f; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-commerce { display: grid; gap: 16px; margin: 18px 0; color: var(--lx-text-primary); }
+body[data-page="business"] .content[data-view="detail"] .detail-price.is-smb-leading { padding-top: 0; border-top: 0; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-promotions { display: grid; gap: 9px; padding: 10px 0 12px; border: 1px solid #e6dfea; border-left: 0; border-right: 0; border-radius: 0; background: #fff; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-promo-line,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-head,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-total-row { display: flex; align-items: center; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-promo-line { gap: 8px; min-height: 24px; min-width: 0; flex-wrap: wrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-points,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-gift-label { flex: none; display: inline-flex; align-items: center; min-height: 24px; padding: 3px 7px; border-radius: 3px; font-size: 12px; line-height: 1; white-space: nowrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-points { background: #f6f1f8; color: #5b1452; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-points b { margin: 0 1px; font-weight: 700; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-gift-label { background: #fff3ed; color: #ff6b21; font-weight: 700; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-gift-list,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-list { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-gift-list { gap: 5px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-gift-list span { min-height: 22px; display: inline-flex; align-items: center; padding: 2px 7px; border: 1px solid #e6dfea; border-radius: 3px; background: #fafafa; color: #5f5a64; font-size: 12px; line-height: 1; white-space: nowrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-gift-count { flex: none; color: #5f5a64; font-size: 12px; white-space: nowrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-line { gap: 12px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-label { flex: none; color: #101010; font-size: 12px; font-weight: 600; white-space: nowrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-list { gap: 0; color: #5f5a64; font-size: 12px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-list span { display: inline-flex; align-items: center; color: #5b1452; white-space: nowrap; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-list span + span::before { content: "·"; margin: 0 8px; color: #5f5a64; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-group { display: grid; gap: 10px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-head { justify-content: space-between; gap: 12px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-head strong { font-size: 14px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-head span { color: var(--lx-text-tertiary); font-size: 12px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-bundle-grid,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-service-grid,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-installment-grid { display: grid; gap: 10px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-bundle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-installment-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body[data-page="business"] .content[data-view="detail"] :is(.lx-smb-bundle-grid, .lx-smb-service-grid, .lx-smb-installment-grid) button { min-width: 0; border: 1px solid var(--lx-border); border-radius: 8px; background: var(--lx-surface); color: var(--lx-text-primary); font: inherit; cursor: pointer; box-sizing: border-box; transition: border-color 160ms ease, background-color 160ms ease; }
+body[data-page="business"] .content[data-view="detail"] :is(.lx-smb-bundle-grid, .lx-smb-service-grid, .lx-smb-installment-grid) button:hover,
+body[data-page="business"] .content[data-view="detail"] :is(.lx-smb-bundle-grid, .lx-smb-service-grid, .lx-smb-installment-grid) button.is-selected { border-color: var(--lx-aubergine); background: var(--lx-surface-hover); }
+body[data-page="business"] .content[data-view="detail"] :is(.lx-smb-bundle-grid, .lx-smb-service-grid, .lx-smb-installment-grid) button:focus-visible { outline: 2px solid var(--lx-focus); outline-offset: 2px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-bundle-grid button { display: grid; grid-template-rows: 48px minmax(68px, auto); padding: 0; overflow: hidden; text-align: left; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-bundle-code { display: grid; place-items: center; background: var(--lx-surface-muted); color: var(--lx-aubergine); font-size: 16px; font-weight: 700; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-copy { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-width: 0; padding: 10px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-copy strong { display: -webkit-box; overflow: hidden; color: var(--lx-text-primary); font-size: 12px; font-weight: 600; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-option-copy b { color: var(--lx-price-red); font-size: 13px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-service-grid button,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-installment-grid button { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 10px 12px; text-align: left; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-service-grid button span,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-installment-grid button strong { min-width: 0; overflow-wrap: anywhere; font-size: 12px; font-weight: 600; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-service-grid button b,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-installment-grid button span { flex: none; color: var(--lx-text-secondary); font-size: 12px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-total-row { justify-content: space-between; gap: 20px; padding-top: 14px; border-top: 1px solid var(--lx-border); }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-total-row > span { display: grid; gap: 4px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-total-row strong { font-size: 14px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-total-row small,
+body[data-page="business"] .content[data-view="detail"] .lx-smb-settlement-note { color: var(--lx-text-tertiary); font-size: 12px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-total-row > b { color: var(--lx-price-red); font-size: 24px; }
+body[data-page="business"] .content[data-view="detail"] .lx-smb-settlement-note { margin: -6px 0 0; line-height: 1.5; }
+body[data-page="business"] .product-detail .detail-primary[data-purchase-state="working"] { cursor: wait; opacity: .72; }
+body[data-page="business"] .lx-order-options { display: grid; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--lx-border); border-bottom: 1px solid var(--lx-border); background: var(--lx-surface-muted); }
+body[data-page="business"] .lx-order-options h4,
+body[data-page="business"] .lx-order-options p { margin: 0; }
+body[data-page="business"] .lx-order-options h4 { font-size: 13px; }
+body[data-page="business"] .lx-order-options > div { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; font-size: 12px; line-height: 1.45; }
+body[data-page="business"] .lx-order-options > div span,
+body[data-page="business"] .lx-order-options p { color: var(--lx-text-tertiary); }
+body[data-page="business"] .lx-order-options > div strong { min-width: 0; overflow-wrap: anywhere; color: var(--lx-text-secondary); font-weight: 600; }
+body[data-page="business"] .lx-order-options p { font-size: 11px; }
+
+@media (max-width: 1180px) {
+  body[data-page="business"] .content[data-view="detail"] .lx-smb-bundle-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  body[data-page="business"] .content[data-view="detail"] .lx-smb-service-grid,
+  body[data-page="business"] .content[data-view="detail"] .lx-smb-installment-grid { grid-template-columns: minmax(0, 1fr); }
+  body[data-page="business"] .content[data-view="detail"] .lx-smb-promo-line { align-items: flex-start; }
+  body[data-page="business"] .content[data-view="detail"] .lx-smb-benefit-label { flex-basis: 100%; }
+}
+@media (max-width: 560px) {
+  .content[data-view="detail"] .detail-gallery.has-smb-assurances > .detail-service { grid-template-columns: minmax(0, 1fr); }
+  body[data-page="business"] .content[data-view="detail"] .lx-spu-option-grid { grid-template-columns: minmax(0, 1fr); }
+  body[data-page="business"] .content[data-view="detail"] .lx-spu-final-price { align-items: flex-start; flex-direction: column; gap: 6px; }
+  body[data-page="business"] .content[data-view="detail"] .lx-spu-final-price strong { justify-content: flex-start; text-align: left; }
+}
