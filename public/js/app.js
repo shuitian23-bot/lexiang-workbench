@@ -1125,14 +1125,19 @@ if (!window.__lxCreateTypewriter) {
             if (variants.length < 2) return;
             state.spuVariants = variants;
             if (lxIsSmbDetail() && window.LxSmbConfig) {
-              state.spuVariantMatrix = window.LxSmbConfig.buildMatrix(variants);
-              const current = state.spuVariantMatrix.records.find((record) => record.sku === String(product.sku));
-              state.spuSelection = current
-                ? { os: current.os, version: current.version, config: current.config }
-                : { os: "", version: "", config: "" };
-              lxRenderSmbSpuSelector(product);
-              box.hidden = false;
-              return;
+              const matrix = window.LxSmbConfig.buildMatrix(variants);
+              if (matrix.records.length && matrix.options.os.length && matrix.options.version.length && matrix.options.config.length) {
+                state.spuVariantMatrix = matrix;
+                const current = matrix.records.find((record) => record.sku === String(product.sku));
+                state.spuSelection = current
+                  ? { os: current.os, version: current.version, config: current.config }
+                  : { os: "", version: "", config: "" };
+                lxRenderSmbSpuSelector(product);
+                box.hidden = false;
+                return;
+              }
+              state.spuVariantMatrix = null;
+              state.spuSelection = null;
             }
             const range = payload.price_min && payload.price_max && payload.price_min !== payload.price_max
               ? `¥${Number(payload.price_min).toLocaleString()} - ¥${Number(payload.price_max).toLocaleString()}`
