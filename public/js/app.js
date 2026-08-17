@@ -140,12 +140,19 @@ if (!window.__lxCreateTypewriter) {
           hoverPromptAutoCloseTimer: null,
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
+<<<<<<< HEAD
           conversationSourcePage: lxPageFromPath(),
           refProducts: [],
           smbPurchase: null,
           spuVariantMatrix: null,
           spuSelection: null,
           localArchiveId: null // 件3：当前对话在共享历史侧栏(lexiang.lxfd.convs.v1)里的稳定条目id，反复覆盖同一条不新增
+=======
+          refProducts: [],
+          smbPurchase: null,
+          spuVariantMatrix: null,
+          spuSelection: null
+>>>>>>> incoming/zhangrui
         };
         window.__lxState = state;
         // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
@@ -1462,8 +1469,12 @@ if (!window.__lxCreateTypewriter) {
             const response = await fetch(`/api/products/${encodeURIComponent(product.sku)}/reason`, { cache: "no-store" });
             const payload = await response.json();
             if (token !== fitReasonToken || !payload.reason) return;
+<<<<<<< HEAD
             const fitNote = lxIsSmbDetail() ? "乐享推荐理由 · 仅供参考" : "AI 生成 · 仅供参考";
             node.innerHTML = `<span class="lx-fit-icon" aria-hidden="true">✨</span><span class="lx-fit-text"><strong>适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">${esc(fitNote)}</span></span>`;
+=======
+            node.innerHTML = `<span class="lx-fit-icon" aria-hidden="true">✨</span><span class="lx-fit-text"><strong>适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">${lxIsSmbDetail() ? "乐享推荐理由" : "AI 生成"} · 仅供参考</span></span>`;
+>>>>>>> incoming/zhangrui
             node.hidden = false;
           } catch {}
         }
