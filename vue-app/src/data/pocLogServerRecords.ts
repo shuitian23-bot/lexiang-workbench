@@ -4,14 +4,16 @@ export const pocLogServerRecords = [
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
     "sourceRef": "回退来源：f6ca14c / b7afa98；恢复范围：登录账号生命周期、权限申请与用户管理、AI 授权与反馈、报告下载、Skill 创建路由、案例微调、Skill Hub 一级菜单分类及专项回归检查",
-    "traceStatus": "已在个人隔离 worktree 完成源码恢复；30 项产品契约回归、权限字段/范围/用户管理检查、Lint、类型检查和生产构建通过；登录、权限范围、用户管理浏览器验收通过。new、正式环境和 Git 尚未更新，等待独立确认。",
+    "traceStatus": "已在个人隔离 worktree 完成源码恢复；30 项产品契约回归、权限字段/范围/用户管理检查、Lint、类型检查和生产构建通过；登录、权限范围、用户管理浏览器验收通过。已通过 incoming/zhangrui 在服务器独立工作区构建并更新 new 预览；正式环境和 GitLab 尚未更新。",
     "overwriteImpact": "按提交差异和小范围补丁恢复，不整包覆盖；保留订单管理、AI 时间戳、Skill 能力更新/禁用、低分项独立微调和服务器日志；未修改受保护 admin-runtime。",
     "title": "0803 UI 同步引发的产品交互回退恢复",
     "scope": "登录与账号审批 / 权限管理 / AI 授权与反馈 / 报告下载 / Skill 创建与案例微调 / Skill Hub 分类 / 回归保护",
     "detail": "恢复内部 ADFS、外部登录、找回密码、账号创建审批、访问拒绝与邮件审批入口；恢复权限申请共享范围编辑、用户权限变更审批和管理员启停边界；报告卡与展开页移除保存并统一下载；授权卡改回业务语言并支持单项/批量只读授权；恢复自然语言直达 Skill 创建、调试种子过滤和回答反馈；案例微调按案例独立等待确认并在确认后重新评估，其他案例不置灰；Skill Hub 重新按工作台一级菜单归类。构建前新增产品契约检查，防止旧 UI 包再次带回已废弃逻辑。",
-    "deployTargets": [],
+    "deployTargets": [
+      "new"
+    ],
     "deployAccount": "zhangrui",
-    "status": "本地源码已修复，待更新 new"
+    "status": "已更新 new 预览"
   },
   {
     "time": "2026-08-17 11:30",
