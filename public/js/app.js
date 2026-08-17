@@ -142,6 +142,9 @@ if (!window.__lxCreateTypewriter) {
           activeSiteFloorTab: "推荐",
           conversationSourcePage: lxPageFromPath(),
           refProducts: [],
+          smbPurchase: null,
+          spuVariantMatrix: null,
+          spuSelection: null,
           localArchiveId: null // 件3：当前对话在共享历史侧栏(lexiang.lxfd.convs.v1)里的稳定条目id，反复覆盖同一条不新增
         };
         window.__lxState = state;
@@ -938,7 +941,7 @@ if (!window.__lxCreateTypewriter) {
             const currentPrice = money(product.price);
             const rawPrice = Number(product.price || 0);
             const oldPrice = rawPrice ? `¥${Math.round(rawPrice + 400).toLocaleString()}` : "¥7,299";
-            priceNode.innerHTML = `<span class="detail-price-main">${esc(currentPrice)}</span><span class="detail-price-side"><s>${esc(oldPrice)}</s><b>省 ¥400</b></span>`;
+            priceNode.innerHTML = `${lxEnterprisePriceLabel()}<span class="detail-price-main">${esc(currentPrice)}</span><span class="detail-price-side"><s>${esc(oldPrice)}</s><b>省 ¥400</b></span>`;
           }
           updateProductDetailPanels(product);
           loadProductDetailImages(product);
@@ -953,6 +956,23 @@ if (!window.__lxCreateTypewriter) {
           lxHintOnDetail(product);
         }
 
+        function lxPlaceDetailAssurances() {
+          const gallery = document.querySelector(".detail-gallery");
+          const info = document.querySelector(".detail-info");
+          const services = document.querySelector(".detail-service");
+          if (!gallery || !info || !services) return;
+          const itemCode = document.querySelector(".detail-itemcode");
+          const smbDetail = lxIsSmbDetail();
+          gallery.classList.toggle("has-smb-assurances", smbDetail);
+          if (smbDetail) {
+            gallery.append(services);
+            if (itemCode) gallery.append(itemCode);
+          } else {
+            info.append(services);
+            if (itemCode) info.append(itemCode);
+          }
+        }
+
         // 详情页官方商品编号（取 specs.materialNumber，如 83UE000HCD；无则不展示）
         function lxRenderItemCode(product) {
           const services = document.querySelector(".detail-service");
@@ -965,6 +985,7 @@ if (!window.__lxCreateTypewriter) {
           el.className = "detail-itemcode";
           el.innerHTML = `商品编号：<span>${esc(code)}</span>`;
           services.after(el);
+          lxPlaceDetailAssurances();
         }
 
         // SPU 体系：详情页展示同系列全部配置（SKU 选择器 + 价格区间 + 系列内对比）
@@ -1033,6 +1054,62 @@ if (!window.__lxCreateTypewriter) {
           return parts.length ? parts.join(" / ") : `配置 ${String(index + 1).padStart(2, "0")}`;
         }
 
+        function lxSyncSmbSpuSelection(record) {
+          const priceNode = $("[data-detail-price]");
+          const buybarPrice = $(".lx-buybar-info b");
+          const buttons = document.querySelectorAll(".product-detail .detail-primary");
+          if (!record) {
+            if (priceNode) priceNode.innerHTML = `${lxEnterprisePriceLabel()}<span class="detail-price-main" data-config-incomplete>请选择完整配置</span>`;
+            if (buybarPrice) buybarPrice.innerHTML = `${lxEnterprisePriceLabel()}请选择完整配置`;
+            buttons.forEach((button) => {
+              button.removeAttribute("data-config-loading");
+              button.setAttribute("data-config-incomplete", "1");
+              button.textContent = "请选择配置";
+              button.disabled = true;
+            });
+            return;
+          }
+          const currentPrice = `¥${Number(record.price || 0).toLocaleString("zh-CN")}`;
+          const oldPrice = record.originalPrice > record.price ? `¥${Number(record.originalPrice).toLocaleString("zh-CN")}` : "";
+          if (priceNode) priceNode.innerHTML = `${lxEnterprisePriceLabel()}<span class="detail-price-main">${esc(currentPrice)}</span>${oldPrice ? `<span class="detail-price-side"><s>${esc(oldPrice)}</s></span>` : ""}`;
+          if (buybarPrice) buybarPrice.innerHTML = `${lxEnterprisePriceLabel()}${esc(currentPrice)}`;
+          buttons.forEach((button) => {
+            button.removeAttribute("data-config-incomplete");
+            button.removeAttribute("data-config-loading");
+          });
+          lxSetSmbBuyButtonState("idle");
+        }
+
+        function lxSetSmbSpuLoadingState() {
+          document.querySelectorAll(".product-detail .detail-primary").forEach((button) => {
+            button.setAttribute("data-config-loading", "1");
+            button.textContent = "配置加载中…";
+            button.disabled = true;
+          });
+        }
+
+        function lxRenderSmbSpuSelector(product) {
+          const box = $("[data-detail-variants]");
+          const matrix = state.spuVariantMatrix;
+          const selection = state.spuSelection || { os: "", version: "", config: "" };
+          if (!box || !matrix || !window.LxSmbConfig) return;
+          const osAvailability = window.LxSmbConfig.availability(matrix, selection, "os");
+          const versionAvailability = window.LxSmbConfig.availability(matrix, selection, "version");
+          const configAvailability = window.LxSmbConfig.availability(matrix, selection, "config");
+          const resolved = window.LxSmbConfig.resolveVariant(matrix, selection, product?.sku);
+          const option = (dimension, value, enabled) => `<button class="lx-spu-option${selection[dimension] === value ? " is-active" : ""}" type="button" data-spu-dimension="${dimension}" data-spu-value="${esc(value)}" aria-pressed="${selection[dimension] === value}"${enabled ? "" : " disabled"}>${esc(value)}</button>`;
+          const originalPrice = resolved?.originalPrice > resolved?.price ? `<s>¥${Number(resolved.originalPrice).toLocaleString("zh-CN")}</s>` : "";
+          box.innerHTML = `
+            <div class="lx-spu-selector">
+              <section class="lx-spu-option-group" aria-label="操作系统"><h3>操作系统</h3><div class="lx-spu-option-grid" data-spu-dimension="os">${matrix.options.os.map((value) => option("os", value, osAvailability.get(value))).join("")}</div></section>
+              <section class="lx-spu-option-group" aria-label="版本"><h3>版本</h3><div class="lx-spu-option-grid" data-spu-dimension="version">${matrix.options.version.map((value) => option("version", value, versionAvailability.get(value))).join("")}</div></section>
+              <section class="lx-spu-option-group" aria-label="配置"><h3>配置</h3><div class="lx-spu-option-grid" data-spu-dimension="config">${matrix.options.config.map((value) => option("config", value, configAvailability.get(value))).join("")}</div></section>
+              <div class="lx-spu-final-price" aria-live="polite"><span>最终价格</span><strong>${resolved ? `${lxEnterprisePriceLabel()}¥${Number(resolved.price).toLocaleString("zh-CN")} ${originalPrice}` : "请选择完整配置"}</strong></div>
+              <button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button>
+            </div>`;
+          lxSyncSmbSpuSelection(resolved);
+        }
+
         async function loadSpuVariants(product) {
           const box = $("[data-detail-variants]");
           if (!box) return;
@@ -1047,6 +1124,16 @@ if (!window.__lxCreateTypewriter) {
             const variants = payload.variants || [];
             if (variants.length < 2) return;
             state.spuVariants = variants;
+            if (lxIsSmbDetail() && window.LxSmbConfig) {
+              state.spuVariantMatrix = window.LxSmbConfig.buildMatrix(variants);
+              const current = state.spuVariantMatrix.records.find((record) => record.sku === String(product.sku));
+              state.spuSelection = current
+                ? { os: current.os, version: current.version, config: current.config }
+                : { os: "", version: "", config: "" };
+              lxRenderSmbSpuSelector(product);
+              box.hidden = false;
+              return;
+            }
             const range = payload.price_min && payload.price_max && payload.price_min !== payload.price_max
               ? `¥${Number(payload.price_min).toLocaleString()} - ¥${Number(payload.price_max).toLocaleString()}`
               : "";
@@ -1060,10 +1147,155 @@ if (!window.__lxCreateTypewriter) {
               });
             }
             box.innerHTML = `
-              <div class="lx-spu-head"><span>本系列共 ${variants.length} 款配置${range ? ` · <b>${range}</b>` : ""}</span><button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button></div>
-              <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
+              <div class="lx-spu-head"><span>本系列共 ${variants.length} 款配置${range ? ` · <b>${lxEnterprisePriceLabel()}${range}</b>` : ""}</span><button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button></div>
+              <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">${lxEnterprisePriceLabel()}¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
             box.hidden = false;
           } catch {}
+        }
+
+        function lxIsSmbDetail() {
+          return state.page === "business" || document.body.dataset.page === "business";
+        }
+
+        function lxEnterprisePriceLabel() {
+          return lxIsSmbDetail() ? '<span class="lx-enterprise-price-label">企业价</span>' : "";
+        }
+
+        function lxSmbCommerceData(product) {
+          const price = Number(product?.price || 0);
+          return {
+            bundles: [
+              { id: "dock", code: "USB-C", name: "联想全能充电扩展坞", price: 339 },
+              { id: "power", code: "65W", name: "联想全能充电宝", price: 239 },
+              { id: "hub", code: "9合1", name: "联想多功能扩展器", price: 213 },
+              { id: "adapter", code: "100W", name: "联想口红电源", price: 196 }
+            ],
+            services: [
+              { id: "care3", name: "3年全面保", price: 729 },
+              { id: "onsite", name: "延长1年上门保", price: 339 },
+              { id: "accident", name: "延长1年意外保", price: 209 },
+              { id: "battery", name: "延长1年电池保", price: 189 }
+            ],
+            installments: [
+              { id: "huabei", name: "花呗分期", detail: "12期可选" },
+              { id: "baitiao", name: "白条分期", detail: "12期可选" },
+              { id: "credit", name: "信用卡分期", detail: "12期可选" }
+            ],
+            promotion: {
+              points: Math.max(0, Math.floor(price * 0.05)),
+              giftCount: 3,
+              gifts: ["无线鼠标", "电脑包", "清洁套装"],
+              labels: ["政府补贴", "折旧换新", "企业专享"]
+            }
+          };
+        }
+
+        function lxResetSmbPurchaseState(product) {
+          const sku = String(product?.sku || product?.name || "");
+          const data = lxSmbCommerceData(product);
+          if (!state.smbPurchase || state.smbPurchase.sku !== sku) {
+            state.smbPurchase = { sku, bundle: null, services: [], installment: null, promotion: data.promotion, data };
+            return;
+          }
+          state.smbPurchase.data = data;
+          state.smbPurchase.promotion = data.promotion;
+        }
+
+        function lxUpdateSmbCommerceSummary() {
+          const purchase = state.smbPurchase;
+          const product = state.currentProduct;
+          if (!purchase || !product) return;
+          const bundlePrice = Number(purchase.bundle?.price || 0);
+          const servicePrice = (purchase.services || []).reduce((sum, item) => sum + Number(item.price || 0), 0);
+          const total = Number(product.price || 0) + bundlePrice + servicePrice;
+          const totalNode = document.querySelector("[data-smb-total]");
+          if (totalNode) totalNode.textContent = `¥ ${total.toLocaleString("zh-CN")}`;
+          const selectedNode = document.querySelector("[data-smb-selected]");
+          if (selectedNode) {
+            const count = (purchase.bundle ? 1 : 0) + (purchase.services || []).length;
+            const installment = purchase.installment ? ` · ${purchase.installment.name}` : "";
+            selectedNode.textContent = count ? `已选 ${count} 项${installment}` : `尚未选择增值项${installment}`;
+          }
+          document.querySelectorAll("[data-smb-bundle]").forEach((button) => {
+            const selected = purchase.bundle?.id === button.dataset.smbBundle;
+            button.classList.toggle("is-selected", selected);
+            button.setAttribute("aria-pressed", selected ? "true" : "false");
+          });
+          document.querySelectorAll("[data-smb-service]").forEach((button) => {
+            const selected = (purchase.services || []).some((item) => item.id === button.dataset.smbService);
+            button.classList.toggle("is-selected", selected);
+            button.setAttribute("aria-pressed", selected ? "true" : "false");
+          });
+          document.querySelectorAll("[data-smb-installment]").forEach((button) => {
+            const selected = purchase.installment?.id === button.dataset.smbInstallment;
+            button.classList.toggle("is-selected", selected);
+            button.setAttribute("aria-pressed", selected ? "true" : "false");
+          });
+          const buybarPrice = document.querySelector(".lx-buybar-info b");
+          if (buybarPrice) buybarPrice.innerHTML = `${lxEnterprisePriceLabel()}¥${total.toLocaleString("zh-CN")}`;
+        }
+
+        function lxRenderSmbCommerce(product) {
+          const actions = document.querySelector(".detail-actions");
+          const price = document.querySelector("[data-detail-price]");
+          document.querySelector(".lx-smb-commerce")?.remove();
+          document.querySelector(".lx-smb-promotions")?.remove();
+          if (!actions || !price || !lxIsSmbDetail()) return;
+          lxResetSmbPurchaseState(product);
+          const data = state.smbPurchase.data;
+          price.insertAdjacentHTML("afterend", `
+            <div class="lx-smb-promotions" aria-label="促销信息">
+              <div class="lx-smb-promo-line lx-smb-promo-offers">
+                <span class="lx-smb-points">预计得<b>${data.promotion.points.toLocaleString("zh-CN")}</b>积分</span>
+                <span class="lx-smb-gift-label">赠品</span>
+                <div class="lx-smb-gift-list">${data.promotion.gifts.map((gift) => `<span>${esc(gift)}</span>`).join("")}</div>
+                <span class="lx-smb-gift-count">共 ${data.promotion.giftCount} 件</span>
+              </div>
+              <div class="lx-smb-promo-line lx-smb-benefit-line">
+                <span class="lx-smb-benefit-label">企业福利</span>
+                <div class="lx-smb-benefit-list">${data.promotion.labels.map((label) => `<span>${esc(label)}</span>`).join("")}</div>
+              </div>
+            </div>`);
+          actions.insertAdjacentHTML("beforebegin", `
+            <section class="lx-smb-commerce" aria-label="企业购选配">
+              <div class="lx-smb-option-group"><div class="lx-smb-option-head"><strong>选择搭售</strong><span>单选，可不选</span></div><div class="lx-smb-bundle-grid">${data.bundles.map((item) => `<button type="button" data-smb-bundle="${esc(item.id)}" aria-pressed="false"><span class="lx-smb-bundle-code">${esc(item.code)}</span><span class="lx-smb-option-copy"><strong>${esc(item.name)}</strong><b>¥ ${item.price.toLocaleString("zh-CN")}</b></span></button>`).join("")}</div></div>
+              <div class="lx-smb-option-group"><div class="lx-smb-option-head"><strong>选择服务</strong><span>支持多选</span></div><div class="lx-smb-service-grid">${data.services.map((item) => `<button type="button" data-smb-service="${esc(item.id)}" aria-pressed="false"><span>${esc(item.name)}</span><b>¥ ${item.price.toLocaleString("zh-CN")}</b></button>`).join("")}</div></div>
+              <div class="lx-smb-option-group"><div class="lx-smb-option-head"><strong>分期支付</strong><span>单选，可不选</span></div><div class="lx-smb-installment-grid">${data.installments.map((item) => `<button type="button" data-smb-installment="${esc(item.id)}" aria-pressed="false"><strong>${esc(item.name)}</strong><span>${esc(item.detail)}</span></button>`).join("")}</div></div>
+              <div class="lx-smb-total-row"><span><strong>购买合计</strong><small data-smb-selected>尚未选择增值项</small></span><b data-smb-total></b></div>
+              <p class="lx-smb-settlement-note">赠品、积分、补贴和分期资格以实际结算页为准。</p>
+            </section>`);
+          lxUpdateSmbCommerceSummary();
+        }
+
+        function lxBuildSmbPurchaseProduct(product = state.currentProduct) {
+          const base = normalizeProduct(product || {});
+          const purchase = state.smbPurchase || {};
+          const bundlePrice = Number(purchase.bundle?.price || 0);
+          const servicePrice = (purchase.services || []).reduce((sum, item) => sum + Number(item.price || 0), 0);
+          return {
+            ...base,
+            base_price: base.price,
+            option_total: bundlePrice + servicePrice,
+            price: base.price + bundlePrice + servicePrice,
+            purchase_options: {
+              bundle: purchase.bundle ? { ...purchase.bundle } : null,
+              services: (purchase.services || []).map((item) => ({ ...item })),
+              installment: purchase.installment ? { ...purchase.installment } : null,
+              promotion: purchase.promotion ? { ...purchase.promotion, gifts: [...(purchase.promotion.gifts || [])], labels: [...(purchase.promotion.labels || [])] } : null
+            }
+          };
+        }
+
+        function lxSetSmbBuyButtonState(status) {
+          if (!lxIsSmbDetail()) return;
+          const labels = { idle: "立即购买", working: "处理中…", success: "已进入结算", error: "重试购买" };
+          document.querySelectorAll(".product-detail .detail-primary").forEach((button) => {
+            const incomplete = button.dataset.configIncomplete === "1";
+            const loading = button.dataset.configLoading === "1";
+            button.textContent = incomplete ? "请选择配置" : loading ? "配置加载中…" : labels[status] || labels.idle;
+            button.disabled = incomplete || loading || status === "working";
+            button.dataset.purchaseState = status;
+          });
         }
 
         // biz 政企商品（服务器/工作站/方案型）不可直购：CTA 切换为咨询留资式（对齐 biz.lenovo.com.cn）
@@ -1078,16 +1310,17 @@ if (!window.__lxCreateTypewriter) {
           const actions = document.querySelector(".detail-actions");
           if (!host || !actions) return;
           document.querySelector(".lx-buybar")?.remove();
-          const biz = lxIsBizProduct(product);
+          const quoteOnly = state.page === "enterprise" && lxIsBizProduct(product);
+          const smbDirect = lxIsSmbDetail();
           host.insertAdjacentHTML("beforeend", `
             <div class="lx-buybar" hidden>
               <img src="${esc(imgUrl(product.image_url))}" alt="" />
-              <div class="lx-buybar-info"><strong>${esc((product.name || "").slice(0, 30))}</strong><b>¥${Number(product.price || 0).toLocaleString()}</b></div>
-              <button class="detail-primary" type="button"${biz ? ' data-biz-quote="1"' : ""}>${biz ? "获取报价方案" : "一键领优惠下单"}</button>
-              ${biz ? "" : `<button class="detail-secondary" type="button">加入购物车</button>`}
+              <div class="lx-buybar-info"><strong>${esc((product.name || "").slice(0, 30))}</strong><b>${lxEnterprisePriceLabel()}¥${Number(product.price || 0).toLocaleString()}</b></div>
+              <button class="detail-primary" type="button"${quoteOnly ? ' data-biz-quote="1"' : ""}>${smbDirect ? "立即购买" : quoteOnly ? "获取报价方案" : "一键领优惠下单"}</button>
+              ${quoteOnly || smbDirect ? "" : `<button class="detail-secondary" type="button">加入购物车</button>`}
             </div>`);
           const bar = host.querySelector(".lx-buybar");
-          if (bar && biz) bar.querySelector(".detail-primary").dataset.bizQuote = "1";
+          if (bar && quoteOnly) bar.querySelector(".detail-primary").dataset.bizQuote = "1";
           lxBuybarObserver?.disconnect();
           lxBuybarObserver = new IntersectionObserver(([entry]) => {
             if (bar) bar.hidden = entry.isIntersecting;
@@ -1095,16 +1328,54 @@ if (!window.__lxCreateTypewriter) {
           lxBuybarObserver.observe(actions);
         }
 
+        function lxArrangeDetailPrice() {
+          const summary = document.querySelector("[data-detail-summary]");
+          const tags = document.querySelector(".detail-tags");
+          const price = document.querySelector("[data-detail-price]");
+          if (!summary || !tags || !price) return;
+          const smbLeading = lxIsSmbDetail();
+          if (smbLeading) summary.insertAdjacentElement("afterend", price);
+          else tags.insertAdjacentElement("afterend", price);
+          price.classList.toggle("is-smb-leading", smbLeading);
+        }
+
         function lxApplyDetailCtaMode(product) {
           const actions = $(".detail-actions");
           if (!actions) return;
-          const biz = lxIsBizProduct(product);
+          const quoteOnly = state.page === "enterprise" && lxIsBizProduct(product);
+          const smbDirect = lxIsSmbDetail();
+          lxArrangeDetailPrice();
+          lxPlaceDetailAssurances();
+          if (!smbDirect) {
+            document.querySelector(".lx-smb-commerce")?.remove();
+            document.querySelector(".lx-smb-promotions")?.remove();
+          }
           const primary = $(".detail-primary", actions);
           const cart = [...actions.querySelectorAll(".detail-secondary")].find((b) => ![...b.classList].some((c) => c.startsWith("lx-p0-detail")));
           const benefit = $(".lx-p0-detail-benefit", actions);
           let quote = $(".lx-p0-detail-quote", actions);
           let wp = $(".lx-p0-detail-wp", actions);
-          if (biz) {
+          if (smbDirect) {
+            if (primary) { primary.textContent = "立即购买"; delete primary.dataset.bizQuote; primary.disabled = false; primary.dataset.purchaseState = "idle"; }
+            if (cart) cart.hidden = true;
+            if (benefit) benefit.hidden = true;
+            const similar = $(".lx-p0-detail-similar", actions);
+            if (similar) similar.hidden = true;
+            if (!quote) {
+              quote = document.createElement("button");
+              quote.className = "detail-secondary lx-p0-detail-quote"; quote.type = "button"; quote.textContent = "在线咨询顾问";
+              actions.appendChild(quote);
+            } else {
+              quote.hidden = false;
+              quote.textContent = "在线咨询顾问";
+            }
+            if (wp) wp.remove();
+            const price = $("[data-detail-price]");
+            price?.querySelectorAll(".lx-edu-hint").forEach((node) => {
+              if (node.textContent.includes("参考价")) node.remove();
+            });
+            lxRenderSmbCommerce(product);
+          } else if (quoteOnly) {
             if (primary) { primary.textContent = "获取报价方案"; primary.dataset.bizQuote = "1"; }
             if (cart) cart.hidden = true;
             if (benefit) benefit.hidden = true;
@@ -1114,10 +1385,16 @@ if (!window.__lxCreateTypewriter) {
               quote = document.createElement("button");
               quote.className = "detail-secondary lx-p0-detail-quote"; quote.type = "button"; quote.textContent = "在线咨询顾问";
               actions.appendChild(quote);
+            } else {
+              quote.hidden = false;
+            }
+            if (!wp) {
               wp = document.createElement("button");
               wp.className = "detail-secondary lx-p0-detail-wp"; wp.type = "button"; wp.textContent = "下载白皮书";
               actions.appendChild(wp);
-            } else { quote.hidden = false; if (wp) wp.hidden = false; }
+            } else {
+              wp.hidden = false;
+            }
             const price = $("[data-detail-price]");
             if (price && !price.textContent.includes("参考")) price.insertAdjacentHTML("beforeend", `<span class="lx-edu-hint" style="margin-left:8px">参考价 · 以正式报价为准</span>`);
           } else {
@@ -1180,7 +1457,8 @@ if (!window.__lxCreateTypewriter) {
             const response = await fetch(`/api/products/${encodeURIComponent(product.sku)}/reason`, { cache: "no-store" });
             const payload = await response.json();
             if (token !== fitReasonToken || !payload.reason) return;
-            node.innerHTML = `<span class="lx-fit-icon" aria-hidden="true">✨</span><span class="lx-fit-text"><strong>适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">AI 生成 · 仅供参考</span></span>`;
+            const fitNote = lxIsSmbDetail() ? "乐享推荐理由 · 仅供参考" : "AI 生成 · 仅供参考";
+            node.innerHTML = `<span class="lx-fit-icon" aria-hidden="true">✨</span><span class="lx-fit-text"><strong>适合你</strong>${esc(payload.reason)}<span class="lx-fit-note">${esc(fitNote)}</span></span>`;
             node.hidden = false;
           } catch {}
         }
@@ -1383,6 +1661,18 @@ if (!window.__lxCreateTypewriter) {
                 <span class="ov minus">-¥${fmt(Math.abs(c.amount))}</span>
               </div>`).join("");
           const emptyRows = '<p class="lx-order-empty">该商品暂无可叠加优惠，按标价下单。</p>';
+          const options = item.purchase_options || {};
+          const optionRows = [
+            options.bundle ? `<div><span>搭售</span><strong>${esc(options.bundle.name)} · ¥${fmt(options.bundle.price)}</strong></div>` : "",
+            options.services?.length ? `<div><span>服务</span><strong>${options.services.map((service) => `${esc(service.name)} · ¥${fmt(service.price)}`).join("、")}</strong></div>` : "",
+            options.installment ? `<div><span>分期</span><strong>${esc(options.installment.name)} · ${esc(options.installment.detail || "以结算页为准")}</strong></div>` : "",
+            options.promotion ? `<div><span>促销</span><strong>预计得 ${fmt(options.promotion.points)} 积分 · 赠品 ${fmt(options.promotion.giftCount)} 件</strong></div>` : ""
+          ].filter(Boolean).join("");
+          const optionSummary = optionRows ? `<div class="lx-order-options" aria-label="企业购选配摘要"><h4>本次购买选择</h4>${optionRows}<p>赠品、积分、补贴和分期资格以实际结算页为准。</p></div>` : "";
+          if (item.purchase_options) {
+            lxSetSmbBuyButtonState("success");
+            window.setTimeout(() => lxSetSmbBuyButtonState("idle"), 1200);
+          }
           openModal("", `
             <div class="order-head">
               <div class="title">确认订单${couponCount ? `<span class="gp">${lxClaimCheckSvg()}已领取 ${couponCount} 项优惠</span>` : ""}</div>
@@ -1394,6 +1684,7 @@ if (!window.__lxCreateTypewriter) {
               <span class="pic"><img src="${esc(imgUrl(item.image_url))}" alt="${esc(item.name || "商品图")}" /></span>
               <span class="pc"><span class="pn">${esc(item.name)}</span><span class="pp">标价 <s>¥${fmt(item.price)}</s></span></span>
             </div>
+            ${optionSummary}
             <div class="offers">${rows || emptyRows}</div>
             <div class="total">
               <span class="tl"><span class="tk">到手价</span>${saved ? `<span class="ts">已为你省 ¥${fmt(saved)}</span>` : ""}</span>
@@ -1412,8 +1703,9 @@ if (!window.__lxCreateTypewriter) {
         function oneClickBuy(product = state.currentProduct) {
           if (!product) return toast("请先选择商品");
           if (state._buyFlowRunning) return;
-          const item = normalizeProduct(product);
-          const { claimed, discount, finalPrice } = lxClaimBenefits(product);
+          const purchaseProduct = lxIsSmbDetail() && !product.purchase_options ? lxBuildSmbPurchaseProduct(product) : product;
+          const item = normalizeProduct(purchaseProduct);
+          const { claimed, discount, finalPrice } = lxClaimBenefits(purchaseProduct);
           let addr = lxAddresses()[0];
           if (!addr) {
             addr = { name: "演示用户", phone: "138****0000", region: "演示地址", detail: "可在订单中修改收货信息" };
@@ -1494,13 +1786,26 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function normalizeProduct(product) {
-          return {
+          const normalized = {
             sku: product.sku || product.name || String(Date.now()),
             name: product.name || "联想商品",
             price: Number(product.price) || 0,
             image_url: imgUrl(product.image_url),
             category: product.category || ""
           };
+          if (product.base_price !== undefined) normalized.base_price = Number(product.base_price) || 0;
+          if (product.option_total !== undefined) normalized.option_total = Number(product.option_total) || 0;
+          if (product.purchase_options) {
+            normalized.purchase_options = {
+              bundle: product.purchase_options.bundle ? { ...product.purchase_options.bundle } : null,
+              services: (product.purchase_options.services || []).map((item) => ({ ...item })),
+              installment: product.purchase_options.installment ? { ...product.purchase_options.installment } : null,
+              promotion: product.purchase_options.promotion
+                ? { ...product.purchase_options.promotion, gifts: [...(product.purchase_options.promotion.gifts || [])], labels: [...(product.purchase_options.promotion.labels || [])] }
+                : null
+            };
+          }
+          return normalized;
         }
 
         function openCart() {
@@ -8215,10 +8520,49 @@ function openOrderDetail(orderId) {
               return;
             }
 
+            const smbBundle = event.target.closest("[data-smb-bundle]");
+            if (smbBundle && state.smbPurchase) {
+              const item = state.smbPurchase.data.bundles.find((bundle) => bundle.id === smbBundle.dataset.smbBundle);
+              state.smbPurchase.bundle = state.smbPurchase.bundle?.id === item?.id ? null : item ? { ...item } : null;
+              lxUpdateSmbCommerceSummary();
+              return;
+            }
+            const smbService = event.target.closest("[data-smb-service]");
+            if (smbService && state.smbPurchase) {
+              const item = state.smbPurchase.data.services.find((service) => service.id === smbService.dataset.smbService);
+              if (item) {
+                const exists = state.smbPurchase.services.some((service) => service.id === item.id);
+                state.smbPurchase.services = exists
+                  ? state.smbPurchase.services.filter((service) => service.id !== item.id)
+                  : [...state.smbPurchase.services, { ...item }];
+                lxUpdateSmbCommerceSummary();
+              }
+              return;
+            }
+            const smbInstallment = event.target.closest("[data-smb-installment]");
+            if (smbInstallment && state.smbPurchase) {
+              const item = state.smbPurchase.data.installments.find((installment) => installment.id === smbInstallment.dataset.smbInstallment);
+              state.smbPurchase.installment = state.smbPurchase.installment?.id === item?.id ? null : item ? { ...item } : null;
+              lxUpdateSmbCommerceSummary();
+              return;
+            }
+
             const detailPrimary = event.target.closest(".detail-primary");
             if (detailPrimary) {
+              if (detailPrimary.dataset.configIncomplete === "1" || detailPrimary.dataset.configLoading === "1") {
+                toast(detailPrimary.dataset.configLoading === "1" ? "正在加载所选配置" : "请先选择完整配置");
+                return;
+              }
               if (detailPrimary.dataset.bizQuote) openLeadPanel("biz_quote");
-              else oneClickBuy();
+              else if (lxIsSmbDetail()) {
+                lxSetSmbBuyButtonState("working");
+                try {
+                  oneClickBuy(lxBuildSmbPurchaseProduct());
+                } catch (error) {
+                  lxSetSmbBuyButtonState("error");
+                  toast("下单信息生成失败，请重试");
+                }
+              } else oneClickBuy();
             }
             if (event.target.closest("[data-occ-confirm]")) {
               closeModal();
@@ -8641,6 +8985,23 @@ function openOrderDetail(orderId) {
 
             const variantBtn = event.target.closest("[data-variant-sku]");
             if (variantBtn) openProduct(variantBtn.dataset.variantSku, { noTab: true });
+            const spuOption = event.target.closest(".lx-spu-option[data-spu-dimension]");
+            if (spuOption && lxIsSmbDetail() && state.spuVariantMatrix && window.LxSmbConfig) {
+              event.preventDefault();
+              state.spuSelection = window.LxSmbConfig.applySelection(
+                state.spuVariantMatrix,
+                state.spuSelection || { os: "", version: "", config: "" },
+                spuOption.dataset.spuDimension,
+                spuOption.dataset.spuValue
+              );
+              const resolved = window.LxSmbConfig.resolveVariant(state.spuVariantMatrix, state.spuSelection, state.currentProduct?.sku);
+              lxRenderSmbSpuSelector(state.currentProduct);
+              if (resolved && resolved.sku !== String(state.currentProduct?.sku || "")) {
+                lxSetSmbSpuLoadingState();
+                openProduct(resolved.sku, { noTab: true });
+              }
+              return;
+            }
             if (event.target.closest("[data-spu-compare]")) {
               const variants = (state.spuVariants || []).slice(0, 4);
               if (variants.length >= 2) lxUpsertCompareTab(variants, "本系列配置对比");
