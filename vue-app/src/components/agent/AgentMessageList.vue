@@ -55,9 +55,27 @@
                 <em>{{ msg.authRequest.risk }}</em>
               </div>
             </div>
-            <div class="ai-auth-meta">namespace: {{ msg.authRequest.namespace }}</div>
-            <pre class="ai-auth-command"><code>{{ msg.authRequest.command }}</code></pre>
-            <p>{{ msg.authRequest.detail }}</p>
+            <section class="ai-auth-summary">
+              <span>授权内容</span>
+              <p>{{ msg.authRequest.summary || msg.authRequest.detail }}</p>
+            </section>
+            <div class="ai-auth-scope">
+              <section>
+                <span>授权范围</span>
+                <p>{{ msg.authRequest.scope || '当前会话、本次任务' }}</p>
+              </section>
+              <section>
+                <span>影响说明</span>
+                <p>{{ msg.authRequest.impact || msg.authRequest.detail }}</p>
+              </section>
+            </div>
+            <section v-if="msg.authRequest.steps?.length" class="ai-auth-steps">
+              <span>执行内容</span>
+              <ol>
+                <li v-for="step in msg.authRequest.steps" :key="step">{{ step }}</li>
+              </ol>
+            </section>
+            <p v-if="msg.authRequest.approveHint" class="ai-auth-hint">{{ msg.authRequest.approveHint }}</p>
             <div v-if="msg.authResult" class="ai-auth-result" :class="`is-${msg.authResult.status}`">
               <b>{{ msg.authResult.title }}</b>
               <span>{{ msg.authResult.detail }}</span>
@@ -69,6 +87,14 @@
                 @click="$emit('run-action', { type: 'auth_approve', label: msg.authRequest.approveLabel, value: msg.authRequest.command })"
               >
                 {{ msg.authRequest.approveLabel }}
+              </button>
+              <button
+                v-if="msg.authRequest.batchApproveLabel"
+                type="button"
+                class="ai-auth-batch"
+                @click="$emit('run-action', { type: 'auth_batch_approve', label: msg.authRequest.batchApproveLabel, value: msg.authRequest.command })"
+              >
+                {{ msg.authRequest.batchApproveLabel }}
               </button>
               <button
                 type="button"
@@ -95,9 +121,7 @@
                 <span class="ai-result-tags">
                   <span v-for="chip in reportChips(reportId)" :key="chip">{{ chip }}</span>
                 </span>
-                <button type="button" class="secondary" :disabled="reportArtifact(reportId)?.saved" @click="$emit('save-report', reportId)">
-                  {{ reportArtifact(reportId)?.saved ? '已保存' : '保存' }}
-                </button>
+                <button type="button" class="secondary" @click="$emit('download-report', reportId)">下载</button>
                 <button type="button" @click="$emit('open-report', reportId)">展开报告</button>
               </div>
             </div>
@@ -115,6 +139,30 @@
                 {{ item.label }}
               </button>
             </div>
+          </div>
+          <div v-if="shouldShowFeedback(msg, idx)" class="ai-reply-feedback" aria-label="回答反馈">
+            <button
+              type="button"
+              class="ai-feedback-btn"
+              :class="{ active: feedbackState(feedbackKey(msg, idx)) === 'up' }"
+              title="有帮助"
+              aria-label="有帮助"
+              :aria-pressed="feedbackState(feedbackKey(msg, idx)) === 'up'"
+              @click="setFeedback(msg, idx, 'up')"
+            >
+              <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 8.3v8.2"/><path d="M3.5 8.8h3v7.4h-3a1 1 0 0 1-1-1V9.8a1 1 0 0 1 1-1Z"/><path d="M6.5 9 10 3.8c.5-.7 1.6-.4 1.6.5v3h3.2a1.6 1.6 0 0 1 1.6 1.9l-1 5.5a2 2 0 0 1-2 1.6H6.5"/></svg>
+            </button>
+            <button
+              type="button"
+              class="ai-feedback-btn"
+              :class="{ active: feedbackState(feedbackKey(msg, idx)) === 'down' }"
+              title="没帮助"
+              aria-label="没帮助"
+              :aria-pressed="feedbackState(feedbackKey(msg, idx)) === 'down'"
+              @click="setFeedback(msg, idx, 'down')"
+            >
+              <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 11.7V3.5"/><path d="M16.5 11.2h-3V3.8h3a1 1 0 0 1 1 1v5.4a1 1 0 0 1-1 1Z"/><path d="M13.5 11 10 16.2c-.5.7-1.6.4-1.6-.5v-3H5.2a1.6 1.6 0 0 1-1.6-1.9l1-5.5a2 2 0 0 1 2-1.6h6.9"/></svg>
+            </button>
           </div>
           <time class="time ai-message-time" :datetime="messageTime(msg).datetime">
             {{ messageTime(msg).label }}
@@ -182,11 +230,12 @@ const props = defineProps({
   currentPageId: { type: String, default: '' }
 })
 
-defineEmits(['quick-send', 'open-report', 'save-report', 'run-action'])
+defineEmits(['quick-send', 'open-report', 'download-report', 'run-action'])
 
 const messagesEl = ref(null)
 const typewriterText = reactive({})
 const typewriterDone = reactive({})
+const messageFeedback = reactive({})
 const typewriterTimers = new Map()
 const todoExpanded = ref(true)
 const welcomeAt = ref(new Date().toISOString())
@@ -229,8 +278,9 @@ function renderMsg(msg, idx) {
   const text = isTypewriterMessage(msg)
     ? (typewriterText[typewriterKey(msg, idx)] ?? '')
     : msg.text
-  if (msg.role === 'assistant') return renderMarkdown(text)
-  return escapeHtml(msg.text)
+  const visibleText = stripSeedDebugBlocks(text)
+  if (msg.role === 'assistant') return renderMarkdown(visibleText)
+  return escapeHtml(stripSeedDebugBlocks(msg.text))
 }
 
 function hasExternalState(msg) {
@@ -254,6 +304,23 @@ function canShowStructuredContent(msg, idx) {
   return !isTypewriterMessage(msg) || isTypewriterDone(msg, idx)
 }
 
+function shouldShowFeedback(msg, idx) {
+  return msg?.role === 'assistant' && canShowStructuredContent(msg, idx)
+}
+
+function feedbackKey(msg, idx) {
+  return msg.id || `${idx}-${msg.at || ''}-${String(msg.text || '').slice(0, 24)}`
+}
+
+function feedbackState(key) {
+  return messageFeedback[key] || ''
+}
+
+function setFeedback(msg, idx, value) {
+  const key = feedbackKey(msg, idx)
+  messageFeedback[key] = messageFeedback[key] === value ? '' : value
+}
+
 function syncTypewriterMessages() {
   props.messages.forEach((msg, idx) => {
     if (!isTypewriterMessage(msg)) return
@@ -262,7 +329,7 @@ function syncTypewriterMessages() {
     typewriterText[key] = ''
     typewriterDone[key] = false
     let cursor = 0
-    const source = String(msg.text || '')
+    const source = stripSeedDebugBlocks(msg.text)
     const timer = window.setInterval(() => {
       cursor = Math.min(cursor + 2, source.length)
       typewriterText[key] = source.slice(0, cursor)
@@ -322,6 +389,13 @@ function escapeHtmlText(str) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+}
+
+function stripSeedDebugBlocks(str) {
+  return String(str || '')
+    .replace(/<seed:[^>]+\/>/g, '')
+    .replace(/<seed:[^>]+>[\s\S]*?(?:<\/seed:[^>]+>|$)/g, '')
+    .trim()
 }
 
 function escapeHtml(str) {
@@ -732,27 +806,41 @@ function renderMarkdownTable(lines, startIndex) {
   font-size: 12px;
 }
 
-.ai-auth-meta {
+.ai-auth-summary,
+.ai-auth-scope section,
+.ai-auth-steps {
   margin-top: 10px;
-  color: var(--color-text-secondary, #646a73);
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-size: 12px;
-}
-
-.ai-auth-command {
-  margin: 8px 0 0;
-  padding: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(183, 110, 0, .16);
   border-radius: 7px;
-  background: #1f2329;
-  color: #fff;
-  overflow-x: auto;
-  white-space: pre;
-  font-size: 12px;
-  line-height: 1.5;
+  background: rgba(255, 255, 255, .68);
 }
 
-.ai-auth-command code {
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+.ai-auth-summary > span,
+.ai-auth-scope span,
+.ai-auth-steps > span {
+  display: block;
+  color: #8a5a00;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.ai-auth-scope {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ai-auth-steps ol {
+  margin: 7px 0 0;
+  padding-left: 18px;
+  color: var(--color-text-secondary, #646a73);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.ai-auth-hint {
+  padding-left: 2px;
 }
 
 .ai-auth-card p {
@@ -788,7 +876,7 @@ function renderMarkdownTable(lines, startIndex) {
 
 .ai-auth-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -808,10 +896,42 @@ function renderMarkdownTable(lines, startIndex) {
   color: #fff;
 }
 
+.ai-auth-batch {
+  border: 1px solid rgba(51, 112, 255, .45);
+  background: #fff;
+  color: var(--color-primary, #3370ff);
+}
+
 .ai-auth-reject {
   border: 1px solid rgba(239, 68, 68, .5);
   background: #fff;
   color: #d92d20;
+}
+
+.ai-reply-feedback {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.ai-feedback-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-tertiary, #8f959e);
+  cursor: pointer;
+}
+
+.ai-feedback-btn:hover,
+.ai-feedback-btn.active {
+  border-color: rgba(51, 112, 255, .22);
+  background: rgba(51, 112, 255, .08);
+  color: var(--color-primary, #3370ff);
 }
 
 .ai-typewriter-msg .bubble > div:first-child::after {

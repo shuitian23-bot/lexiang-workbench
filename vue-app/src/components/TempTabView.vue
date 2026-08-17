@@ -6,7 +6,6 @@
         <div class="page-desc">{{ pageDescription }}</div>
       </div>
       <div class="workspace-report-actions">
-        <button class="btn btn-secondary btn-sm" @click="saveTab">{{ tab.saved ? '已保存' : '保存' }}</button>
         <button class="btn btn-secondary btn-sm" @click="copyTabLink">复制链接</button>
         <button class="btn btn-secondary btn-sm" @click="downloadTab">下载</button>
         <button class="btn btn-primary btn-sm" @click="closeTab">关闭</button>
@@ -166,12 +165,6 @@ function renderMarkdown(text: string) {
 
 function closeTab() {
   if (tab.value) appStore.closeTempTab(tab.value.id)
-}
-
-function saveTab() {
-  if (!tab.value) return
-  appStore.saveTempTab(tab.value.id)
-  appStore.notify('AI 报告已保存，可在本机继续查看')
 }
 
 function copyTabLink() {

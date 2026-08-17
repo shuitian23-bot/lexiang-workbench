@@ -477,9 +477,21 @@
               </div>
               <div class="skill-case-list">
                 <b>用例对比</b>
-                <div><span>case-1 · 20.9s</span><em>得分 0.88</em></div>
-                <div><span>case-2 · 25.6s</span><em>得分 0.82</em></div>
-                <div><span>case-3 · 26.6s</span><em>得分 0.90</em></div>
+                <div v-for="testCase in evalCases" :key="testCase.key" :class="{ tuned: testCase.tuned }">
+                  <b>
+                    {{ testCase.title }}
+                    <small>{{ testCase.duration }}</small>
+                  </b>
+                  <div class="skill-case-action">
+                    <button
+                      class="skill-inline-tune"
+                      type="button"
+                      :disabled="isCaseTunePending(testCase.key)"
+                      @click="startCaseAiTune(testCase)"
+                    >{{ caseTuneButtonText(testCase) }}</button>
+                    <em>得分 {{ testCase.score }}</em>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -664,8 +676,12 @@ const summaryUpdated = ref('根据当前对话生成')
 const summaryRefreshing = ref(false)
 const aiTuning = ref(false)
 const aiTuned = ref(false)
-const pendingTuneRequests = ref<Record<string, string | null>>({})
+type TuneRequestTarget = { kind: 'item' | 'case' | 'overall'; key: string }
+const pendingTuneRequests = ref<Record<string, TuneRequestTarget>>({})
 const tunedEvalItemTitles = ref(new Set<string>())
+const tunedCaseKeys = ref(new Set<string>())
+const reevaluatingCaseKeys = ref(new Set<string>())
+const caseReevaluationTimers = new Map<string, number>()
 const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
 const activeCapabilityUpdate = ref<SkillCapabilityUpdate | null>(null)
@@ -743,16 +759,31 @@ watch(
   () => {
     const requestKey = aiStore.skillTuneConfirmation?.key
     if (!requestKey || !(requestKey in pendingTuneRequests.value)) return
-    const itemTitle = pendingTuneRequests.value[requestKey]
+    const target = pendingTuneRequests.value[requestKey]
     const nextRequests = { ...pendingTuneRequests.value }
     delete nextRequests[requestKey]
     pendingTuneRequests.value = nextRequests
 
-    if (itemTitle) {
-      tunedEvalItemTitles.value = new Set([...tunedEvalItemTitles.value, itemTitle])
+    if (target.kind === 'case') {
+      reevaluatingCaseKeys.value = new Set([...reevaluatingCaseKeys.value, target.key])
+      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · ${target.key} 正在重新评估`
+      const timer = window.setTimeout(() => {
+        tunedCaseKeys.value = new Set([...tunedCaseKeys.value, target.key])
+        const nextKeys = new Set(reevaluatingCaseKeys.value)
+        nextKeys.delete(target.key)
+        reevaluatingCaseKeys.value = nextKeys
+        caseReevaluationTimers.delete(target.key)
+        toast(`${target.key}：AI 微调完成，案例耗时和评分已刷新`)
+      }, 3000)
+      caseReevaluationTimers.set(target.key, timer)
+      return
+    }
+
+    if (target.kind === 'item') {
+      tunedEvalItemTitles.value = new Set([...tunedEvalItemTitles.value, target.key])
       aiTuned.value = LOW_SCORE_TUNE_TITLES.every(title => tunedEvalItemTitles.value.has(title))
-      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · ${itemTitle}微调结果已确认`
-      toast(`${itemTitle}微调结果已确认，其他低分项可继续微调`)
+      workspaceSub.value = `${form.value.cnName || form.value.name || '当前 Skill'} · ${target.key}微调结果已确认`
+      toast(`${target.key}微调结果已确认，其他低分项可继续微调`)
       return
     }
 
@@ -968,6 +999,47 @@ const LOW_SCORE_TUNE_TITLES = Object.keys(TUNED_EVAL_ITEMS)
 const evalItems = computed(() => BASE_EVAL_ITEMS.map(item =>
   tunedEvalItemTitles.value.has(item.title) ? TUNED_EVAL_ITEMS[item.title] : item
 ))
+
+type EvalCaseItem = {
+  key: string
+  title: string
+  duration: string
+  score: string
+  tunedDuration: string
+  tunedScore: string
+  tunePrompt: string
+  tuneResult: string[]
+}
+
+type EvalCaseDisplayItem = EvalCaseItem & { tuned: boolean }
+
+const evalBaselineCases: EvalCaseItem[] = [
+  {
+    key: 'case-1', title: 'case-1', duration: '20.9s', score: '0.88', tunedDuration: '19.4s', tunedScore: '0.93',
+    tunePrompt: '请仅微调 case-1 的参数解析和执行步骤，确认后重新运行本案例。',
+    tuneResult: ['补充时间范围解析回显', '压缩重复的数据准备步骤', '保持其他案例不变']
+  },
+  {
+    key: 'case-2', title: 'case-2', duration: '25.6s', score: '0.82', tunedDuration: '23.1s', tunedScore: '0.89',
+    tunePrompt: '请仅微调 case-2 的权限降级和异常兜底，确认后重新运行本案例。',
+    tuneResult: ['补齐无 SMB 数据权限时的 STOP 确认', '明确降级后的输出范围', '保持其他案例不变']
+  },
+  {
+    key: 'case-3', title: 'case-3', duration: '26.6s', score: '0.90', tunedDuration: '24.8s', tunedScore: '0.94',
+    tunePrompt: '请仅微调 case-3 的导出确认与结果交付，确认后重新运行本案例。',
+    tuneResult: ['补齐字段清单和脱敏方式', '明确导出前二次确认', '保持其他案例不变']
+  }
+]
+
+const evalCases = computed<EvalCaseDisplayItem[]>(() => evalBaselineCases.map(testCase => {
+  const tuned = tunedCaseKeys.value.has(testCase.key)
+  return {
+    ...testCase,
+    tuned,
+    duration: tuned ? testCase.tunedDuration : testCase.duration,
+    score: tuned ? testCase.tunedScore : testCase.score
+  }
+}))
 
 const aiTuneButtonText = computed(() => aiTuning.value ? '等待 AI 助手确认...' : '打开 AI 助手微调')
 const optimizationItems = computed(() => aiTuned.value
@@ -1698,7 +1770,7 @@ function buildAiTuneResponse(item?: SkillEvalItem) {
 }
 
 function isTuneItemPending(title: string) {
-  return Object.values(pendingTuneRequests.value).includes(title)
+  return Object.values(pendingTuneRequests.value).some(target => target.kind === 'item' && target.key === title)
 }
 
 function startAiTune(item?: SkillEvalItem) {
@@ -1710,12 +1782,51 @@ function startAiTune(item?: SkillEvalItem) {
   if (!item && aiTuning.value) return
   if (!item) aiTuning.value = true
   const requestKey = `skill-tune-${form.value.name || 'draft'}-${item?.title || 'all'}-${Date.now()}`
-  pendingTuneRequests.value = { ...pendingTuneRequests.value, [requestKey]: item?.title || null }
+  pendingTuneRequests.value = {
+    ...pendingTuneRequests.value,
+    [requestKey]: item
+      ? { kind: 'item', key: item.title }
+      : { kind: 'overall', key: 'overall' }
+  }
   aiStore.toggleOpen(true)
   aiStore.messages.push({ role: 'user', text: buildAiTunePrompt(item), at: new Date().toISOString() })
   aiStore.messages.push({
     role: 'assistant',
     text: buildAiTuneResponse(item),
+    at: new Date().toISOString(),
+    actionItems: [{ type: 'skill_tune_confirm', label: '确认微调完成', value: requestKey }]
+  })
+}
+
+function isCaseTunePending(key: string) {
+  return reevaluatingCaseKeys.value.has(key)
+    || Object.values(pendingTuneRequests.value).some(target => target.kind === 'case' && target.key === key)
+}
+
+function caseTuneButtonText(testCase: EvalCaseDisplayItem) {
+  if (reevaluatingCaseKeys.value.has(testCase.key)) return '重新评估中'
+  if (Object.values(pendingTuneRequests.value).some(target => target.kind === 'case' && target.key === testCase.key)) return '等待确认'
+  return testCase.tuned ? '继续微调' : 'AI 微调'
+}
+
+function startCaseAiTune(testCase: EvalCaseDisplayItem) {
+  if (isCaseTunePending(testCase.key)) return
+  const requestKey = `skill-tune-case-${testCase.key}-${form.value.name || 'draft'}-${Date.now()}`
+  pendingTuneRequests.value = {
+    ...pendingTuneRequests.value,
+    [requestKey]: { kind: 'case', key: testCase.key }
+  }
+  aiStore.toggleOpen(true)
+  aiStore.messages.push({ role: 'user', text: testCase.tunePrompt, at: new Date().toISOString() })
+  aiStore.messages.push({
+    role: 'assistant',
+    text: [
+      `已定位验收案例“${testCase.title}”，并生成单项微调建议：`,
+      '',
+      ...testCase.tuneResult.map(line => `- ${line}`),
+      '',
+      '本轮只调整该案例，其他评分项和案例仍可独立微调。确认后将重新运行本案例并刷新耗时与评分。'
+    ].join('\n'),
     at: new Date().toISOString(),
     actionItems: [{ type: 'skill_tune_confirm', label: '确认微调完成', value: requestKey }]
   })
@@ -1947,12 +2058,63 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  caseReevaluationTimers.forEach(timer => window.clearTimeout(timer))
+  caseReevaluationTimers.clear()
   hideContextSubtitleTooltip()
   document.removeEventListener('click', closeContextDropdowns)
 })
 </script>
 
 <style lang="scss" scoped>
+.skill-case-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skill-case-list > div > b {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.skill-case-list > div > b small {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.skill-case-action {
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.skill-inline-tune {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--color-primary-border, #b7ccff);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--primary, #3370ff);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.skill-inline-tune:disabled {
+  color: var(--text-secondary);
+  cursor: wait;
+  opacity: .7;
+}
+
 .skill-create-page[data-page-flow="skill-create"] {
   gap: 16px;
 }

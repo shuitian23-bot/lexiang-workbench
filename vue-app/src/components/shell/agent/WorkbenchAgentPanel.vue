@@ -31,7 +31,7 @@
       :current-page-id="route.meta?.pageId || ''"
       @quick-send="quickSend"
       @open-report="openReportArtifact"
-      @save-report="saveReportArtifact"
+      @download-report="downloadReportArtifact"
       @run-action="runTaskAction"
     />
 
@@ -129,8 +129,9 @@
 import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useAIStore } from '@/stores/ai'
+import { AI_REPORT_ARTIFACTS, useAIStore } from '@/stores/ai'
 import { useAppStore, getPageLabel } from '@/stores/app'
+import { downloadTextFile } from '@/utils/download'
 import { ensureNativeWorkbenchRuntime } from '@/adapters/legacyWorkbench/nativeWorkbenchRuntime'
 import { useBodyClass } from '@/composables/useBodyClass'
 import { useAiPanelLayout } from '@/composables/useAiPanelLayout'
@@ -183,9 +184,15 @@ function openReportArtifact(id) {
   aiStore.openReportArtifact(id, appStore)
 }
 
-function saveReportArtifact(id) {
-  aiStore.saveReportArtifact(id, appStore)
-  appStore.notify('AI 报告已保存')
+function downloadReportArtifact(id) {
+  const report = AI_REPORT_ARTIFACTS[id]
+  if (!report) return
+  const isHtml = Boolean(report.previewHtml)
+  downloadTextFile({
+    content: isHtml ? report.previewHtml : `# ${report.title}\n\n${report.content || report.summary || ''}`,
+    fileName: `${String(report.title || 'AI 报告').replace(/[\\/:*?"<>|]/g, '_')}.${isHtml ? 'html' : 'md'}`,
+    mimeType: isHtml ? 'text/html;charset=utf-8' : 'text/markdown;charset=utf-8'
+  })
 }
 
 // ---- 发送消息 ----
