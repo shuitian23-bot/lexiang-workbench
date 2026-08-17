@@ -127,13 +127,9 @@
     return new Map(options.map((value) => {
       const available = records.some((record) => {
         if (dimension === "os") return record.os === value;
-<<<<<<< HEAD
         if (dimension === "version") {
           return record.version === value && (!selection.os || record.os === selection.os);
         }
-=======
-        if (dimension === "version") return record.version === value && (!selection.os || record.os === selection.os);
->>>>>>> incoming/zhangrui
         return record.config === value &&
           (!selection.os || record.os === selection.os) &&
           (!selection.version || record.version === selection.version);
