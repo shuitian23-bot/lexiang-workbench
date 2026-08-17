@@ -63,14 +63,30 @@
           <div v-for="item in pocLogRecords" :key="`${item.time}-${item.title}`" class="poc-log-item">
             <div class="poc-log-meta">
               <span>改动人</span>
-              <strong>{{ item.operator || '历史未记录' }}</strong>
+              <strong>{{ getPocOperator(item) }}</strong>
               <span>更新时间</span>
               <time>{{ item.time }}</time>
             </div>
-            <div>
+            <div class="poc-log-content">
               <b>{{ item.title }}</b>
               <p>{{ item.detail }}</p>
               <small><span>主要功能点</span>{{ item.scope }}</small>
+              <div v-if="getPocDeployTargets(item).length" class="poc-log-targets">
+                <span>部署范围</span>
+                <a
+                  v-for="target in getPocDeployTargets(item)"
+                  :key="target.key"
+                  :href="target.href"
+                  target="_blank"
+                  rel="noreferrer"
+                >{{ target.label }}</a>
+              </div>
+              <div v-if="getPocTraceFields(item).length" class="poc-log-trace">
+                <div v-for="field in getPocTraceFields(item)" :key="field.label">
+                  <span>{{ field.label }}</span>
+                  <p>{{ field.value }}</p>
+                </div>
+              </div>
             </div>
             <div class="poc-log-status">
               <span>状态</span>
@@ -89,6 +105,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAppStore, MENU_TREE } from '@/stores/app'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
+import { pocLogServerRecords } from '@/data/pocLogServerRecords'
 import SidebarHeader from '@/components/sidebar/SidebarHeader.vue'
 import SidebarNavGroup from '@/components/sidebar/SidebarNavGroup.vue'
 import SidebarFooter from '@/components/sidebar/SidebarFooter.vue'
@@ -110,7 +127,7 @@ const userMenuVisible = ref(false)
 const isPeeking = ref(false)
 const pocLogVisible = ref(false)
 
-const pocLogRecords = [
+const basePocLogRecords = [
   {
     time: '2026-08-14 17:12',
     operator: 'Codex（协作代理）',
@@ -427,6 +444,36 @@ const pocLogRecords = [
     status: '已合并正式'
   }
 ]
+
+const POC_DEPLOY_TARGETS = {
+  new: { key: 'new', label: 'new 预览', href: 'https://new.leaibot.cn/admin/' },
+  formal: { key: 'formal', label: '正式环境', href: 'https://leaibot.cn/admin/' }
+}
+
+const pocLogRecords = [...basePocLogRecords, ...pocLogServerRecords]
+  .sort((left, right) => right.time.localeCompare(left.time))
+
+function getPocOperator(record) {
+  return record.operator || record.deployAccount || '历史未记录'
+}
+
+function getPocDeployTargets(record) {
+  let targetKeys = Array.isArray(record.deployTargets) ? record.deployTargets : []
+  if (!targetKeys.length && record.status?.includes('正式')) targetKeys = ['formal']
+  if (!targetKeys.length && record.status?.includes('new')) targetKeys = ['new']
+  return [...new Set(targetKeys)]
+    .map(key => POC_DEPLOY_TARGETS[key])
+    .filter(Boolean)
+}
+
+function getPocTraceFields(record) {
+  return [
+    { label: '代码作者', value: record.codeAuthor },
+    { label: '来源与提交', value: record.sourceRef },
+    { label: '追溯状态', value: record.traceStatus },
+    { label: '覆盖影响', value: record.overwriteImpact }
+  ].filter(field => field.value)
+}
 
 // 侧栏 DOM 引用（用于响应式折叠和 peek 事件）
 const sidebarEl = ref(null)

@@ -1151,6 +1151,28 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   background:rgba(255,143,31,0.04);
 }
 .skill-eval-list em { color:var(--text-secondary); font-size:12px; font-style:normal; }
+.skill-eval-item-actions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  min-width:112px;
+}
+.skill-eval-item-tune {
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:var(--color-primary);
+  cursor:pointer;
+  font-size:11px;
+  font-weight:600;
+  line-height:1;
+  padding:5px 0;
+  white-space:nowrap;
+}
+.skill-eval-item-tune:hover { color:var(--color-primary-hover); }
+.skill-eval-item-tune:focus-visible { outline:2px solid var(--color-primary-border); outline-offset:3px; }
+.skill-eval-item-tune:disabled { color:var(--text-tertiary); cursor:not-allowed; }
 .skill-optimization-panel {
   border:1px solid rgba(51,112,255,0.16);
   border-radius:12px;
@@ -6573,6 +6595,57 @@ html[data-product="leaibot"] body.ai-open .account-hub-card {
   flex:none;
   color:var(--text-secondary);
   font-weight:600;
+}
+.poc-log-targets {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:9px;
+}
+.poc-log-targets > span {
+  margin-right:2px;
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+}
+.poc-log-targets a {
+  color:var(--primary);
+  font-size:12px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.poc-log-targets a + a::before {
+  content:'·';
+  margin-right:6px;
+  color:var(--text-tertiary);
+}
+.poc-log-targets a:hover { text-decoration:underline; }
+.poc-log-trace {
+  display:grid;
+  gap:6px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px dashed var(--border-light);
+}
+.poc-log-trace > div {
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr);
+  gap:8px;
+  align-items:start;
+}
+.poc-log-trace span {
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:600;
+  line-height:1.55;
+}
+.poc-log-trace p {
+  margin:0;
+  color:var(--text-tertiary);
+  font-size:11px;
+  line-height:1.55;
+  overflow-wrap:anywhere;
 }
 .poc-log-item em {
   align-self:flex-start;
