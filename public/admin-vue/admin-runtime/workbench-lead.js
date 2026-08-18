@@ -35,6 +35,7 @@
   // 3.7 线索二级来源：业务导入自定义，无预设（mock 给少量示例）
   const LEAD_SOURCES2 = ['企业购首页', '商品详情页', '活动落地页', '搜索', '客户经理录入', ''];
   const LEAD_SOURCES3 = ['SEM', '信息流', 'EDM', '社群', '转介绍', ''];
+  const CUSTOMER_MANAGER_CODES = ['CM001', 'CM002', 'CM003', 'CM004'];
   const SPS = [
     { itcode: 'l001', name: 'Leader张', team: 'beijing', role: 'leader' },
     { itcode: 'z001', name: '张三', team: 'beijing', role: 'sales' },
@@ -136,7 +137,12 @@
       source: LEAD_SOURCES[i % LEAD_SOURCES.length], source2: LEAD_SOURCES2[i % LEAD_SOURCES2.length], source3: LEAD_SOURCES3[i % LEAD_SOURCES3.length],
       assignLevel: level, assignStatus, leaderItcode, isMql: level >= 1 ? '是' : '否',
       assignedBy: level === 1 ? OPS_ITCODE : level === 2 ? LEADER_ITCODE : '',
-      owner, createdAt: ca, pushAt, assignedAt: aa, feedbackAt: fa, convertedAt: null,
+      owner,
+      customerManagerCode: i % 4 === 0 ? '' : CUSTOMER_MANAGER_CODES[i % CUSTOMER_MANAGER_CODES.length],
+      relGabIs: i % 3 === 0 ? 'GAB-' + String(1001 + i) : '',
+      relKabIs: i % 3 === 1 ? 'KAB-' + String(2001 + i) : '',
+      relEmergingMarketIs: i % 3 === 2 ? 'EM-' + String(3001 + i) : '',
+      createdAt: ca, pushAt, assignedAt: aa, feedbackAt: fa, convertedAt: null,
       scoreLogs: [], followLogs: [],
     };
   }
@@ -211,8 +217,8 @@
     leads: Array.from({ length: 20 }, (_, i) => mkLead(i)),
     // 线索池筛选
     fdFrom: '', fdTo: '', fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '',
-    fLeadNo: '', fLenovo: '', fPhone: '', fCompany: '', fName: '', fQuality: '', fSource2: '', fSource3: '',
-    fs: [], fAssign: [], fown: '', fdTeam: 'all', fdGrade: [], fSource: [], fMql: [], sf: null, page: 1,
+    fLeadNo: '', fLenovo: '', fPhone: '', fCompany: '', fName: '', fQuality: '', fScoreMin: '', fScoreMax: '', fSource2: '', fSource3: '',
+    fs: [], fAssign: [], fown: '', fCustomerManagerCodes: [], fdTeam: 'all', fdGrade: [], fSource: [], fMql: [], sf: null, page: 1,
     sk: 'createdAt', sd: 'desc', sel: new Set(),
     // 看板
     kbTab: 'funnel',
@@ -223,7 +229,7 @@
     // 弹窗临时表单
     ff: null, _modalCharts: [],
   };
-  const POOL_FILTER_KEYS = ['fdFrom', 'fdTo', 'fadFrom', 'fadTo', 'fpdFrom', 'fpdTo', 'ffdFrom', 'ffdTo', 'fcvFrom', 'fcvTo', 'fLeadNo', 'fLenovo', 'fPhone', 'fCompany', 'fName', 'fQuality', 'fSource2', 'fSource3', 'fs', 'fAssign', 'fown', 'fdTeam', 'fdGrade', 'fSource', 'fMql'];
+  const POOL_FILTER_KEYS = ['fdFrom', 'fdTo', 'fadFrom', 'fadTo', 'fpdFrom', 'fpdTo', 'ffdFrom', 'ffdTo', 'fcvFrom', 'fcvTo', 'fLeadNo', 'fLenovo', 'fPhone', 'fCompany', 'fName', 'fQuality', 'fScoreMin', 'fScoreMax', 'fSource2', 'fSource3', 'fs', 'fAssign', 'fown', 'fCustomerManagerCodes', 'fdTeam', 'fdGrade', 'fSource', 'fMql'];
   function capturePoolFilters() {
     const snapshot = {};
     POOL_FILTER_KEYS.forEach(key => { snapshot[key] = Array.isArray(LEAD[key]) ? [...LEAD[key]] : LEAD[key]; });
@@ -281,11 +287,14 @@
     if (filters.fName.trim()) list = list.filter(l => inc(l.name, filters.fName));        // 姓名 模糊
     if (filters.fCompany.trim()) list = list.filter(l => inc(l.company, filters.fCompany)); // 客户名称 模糊
     if (filters.fQuality.trim()) list = list.filter(l => inc(l.quality, filters.fQuality)); // Leads质量 模糊
+    if (filters.fScoreMin !== '') list = list.filter(l => Number(l.score) >= Number(filters.fScoreMin));
+    if (filters.fScoreMax !== '') list = list.filter(l => Number(l.score) < Number(filters.fScoreMax));
     if (filters.fSource2.trim()) list = list.filter(l => inc(l.source2, filters.fSource2)); // 二级来源
     if (filters.fSource3.trim()) list = list.filter(l => inc(l.source3, filters.fSource3)); // 三级来源
     if (filters.fs.length) list = list.filter(l => filters.fs.includes(l.status) || (filters.fs.includes('__none__') && !l.status)); // 线索状态（含"无"=状态为空）
     if (filters.fAssign.length) list = list.filter(l => filters.fAssign.includes(dispAssign(l, LEAD.role))); // 分配状态
     if (filters.fown.trim()) list = list.filter(l => inc(l.owner, filters.fown));         // 所属IS 模糊
+    if (filters.fCustomerManagerCodes.length) list = list.filter(l => filters.fCustomerManagerCodes.includes(l.customerManagerCode) || (filters.fCustomerManagerCodes.includes('__none__') && !l.customerManagerCode));
     if (filters.fdTeam && filters.fdTeam !== 'all') {                                      // 销售团队（仅运营）
       const codes = SPS.filter(s => s.team === filters.fdTeam).map(s => s.itcode);
       list = list.filter(l => codes.includes(l.owner));
@@ -643,6 +652,8 @@
 
   // ===================== 渲染：线索池 =====================
   function renderPool() {
+    Object.assign(LEAD, { fScoreMin: '', fScoreMax: '', fCustomerManagerCodes: [] });
+    LEAD.poolAppliedFilters = capturePoolFilters();
     return `
       <div class="page-header">
         <div><div class="page-title">线索池</div><div class="page-desc">企业客户管理 · 线索分配、跟进、触达与转商机</div></div>
@@ -654,6 +665,17 @@
       <div id="lead-pool-alloc"></div>
       <div id="lead-pool-table"></div>`;
   }
+
+  function clearGovernmentHiddenFilters() {
+    Object.assign(LEAD, { fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '', fQuality: '', fSource2: '', fSource3: '', fs: [], fAssign: [], fown: '', fdTeam: 'all', fSource: [], fMql: [], sf: null });
+    LEAD.poolAppliedFilters = capturePoolFilters();
+  }
+  function renderGovernmentPool() {
+    clearGovernmentHiddenFilters();
+    return `<div class="page-header"><div><div class="page-title">线索池-政企</div><div class="page-desc">企业客户管理 · 政企线索只读查询与导出</div></div></div>
+      ${governmentPoolToolbarHtml()}${governmentPoolFilterHtml()}<div id="lead-government-pool-table"></div>`;
+  }
+
   function poolStatsHtml() {
     // 2.1 运营/Leader/Sales 统一 6 张；计数基于筛选栏联动结果（poolBase）
     const cl = poolBase();
@@ -692,6 +714,9 @@
       <button class="btn btn-sm btn-secondary" style="margin-left:auto" onclick="leadExportCSV()">⬇ 导出（脱敏）</button>
       <button class="btn btn-sm btn-primary" onclick="leadExportApproval()">⬇ 导出（明文）</button></div>`;
   }
+  function governmentPoolToolbarHtml() {
+    return `<div class="lead-toolbar" style="justify-content:flex-end"><button class="btn btn-sm btn-secondary" onclick="leadExportCSV()">⬇ 导出（脱敏）</button><button class="btn btn-sm btn-primary" onclick="leadExportApproval()">⬇ 导出（明文）</button></div>`;
+  }
   // 12 个日期快捷键
   const DATE_SHORTCUTS = [
     { k: 'today', t: '今日', fn: () => { const d = new Date(); return [d, d]; } },
@@ -712,8 +737,9 @@
   const SOURCE_OPTS = LEAD_SOURCES.map(s => ({ value: s, label: s }));
   const MQL_OPTS = [{ value: '是', label: '是' }, { value: '否', label: '否' }];
   const ASSIGN_OPTS = [{ value: '已分配', label: '已分配' }, { value: '待分配', label: '待分配' }];
-  const POOL_MS_OPTS = { fs: STATUS_FILTER_OPTS, fdGrade: GRADE_OPTS, fSource: SOURCE_OPTS, fMql: MQL_OPTS, fAssign: ASSIGN_OPTS };
-  const POOL_MS_PH = { fs: '线索状态', fdGrade: '客户分级', fSource: '线索来源', fMql: '是否MQL', fAssign: '分配状态' }; // 未选时框内显示字段名
+  const CUSTOMER_MANAGER_CODE_OPTS = [...CUSTOMER_MANAGER_CODES.map(code => ({ value: code, label: code })), { value: '__none__', label: '无' }];
+  const POOL_MS_OPTS = { fs: STATUS_FILTER_OPTS, fdGrade: GRADE_OPTS, fSource: SOURCE_OPTS, fMql: MQL_OPTS, fAssign: ASSIGN_OPTS, fCustomerManagerCodes: CUSTOMER_MANAGER_CODE_OPTS };
+  const POOL_MS_PH = { fs: '线索状态', fdGrade: '客户分级', fSource: '线索来源', fMql: '是否MQL', fAssign: '分配状态', fCustomerManagerCodes: '客户经理编码' }; // 未选时框内显示字段名
   // 线索池自定义多选下拉（切换不重渲染，仅就地更新标签 + 刷新数据）
   function poolMs(key, opts, ph) {
     const sel = LEAD[key];
@@ -769,9 +795,16 @@
       <button class="btn btn-sm btn-secondary" onclick="leadResetFilter()">重置</button>
     </div>`;
   }
-  function poolTableHtml() {
+  function governmentPoolFilterHtml() {
+    const txt = (key, ph, w) => `<input class="ops-select" style="width:${w || 140}px" placeholder="${ph}" value="${esc(LEAD[key])}" oninput="leadSet('${key}',this.value);leadPoolPageReset()"/>`;
+    return `<div class="lead-filter card">${dateRangeCtl('create')}${txt('fLeadNo', '线索编号', 140)}${txt('fLenovo', 'Lenovo ID', 140)}${txt('fPhone', '手机号', 140)}${txt('fName', '姓名', 120)}${txt('fCompany', '客户名称', 140)}${poolMs('fCustomerManagerCodes', CUSTOMER_MANAGER_CODE_OPTS, '客户经理编码')}
+      <input id="lead-score-min" class="ops-select" style="width:120px" type="number" min="0" max="100" step="1" placeholder="线索分 ≥" value="${esc(LEAD.fScoreMin)}" oninput="leadSet('fScoreMin',this.value);leadPoolPageReset()"/>
+      <input id="lead-score-max" class="ops-select" style="width:120px" type="number" min="0" max="100" step="1" placeholder="线索分 <" value="${esc(LEAD.fScoreMax)}" oninput="leadSet('fScoreMax',this.value);leadPoolPageReset()"/>
+      ${poolMs('fdGrade', GRADE_OPTS, '客户分级')}<button class="btn btn-sm btn-primary" onclick="leadApplyPoolFilters()">查询</button><button class="btn btn-sm btn-secondary" onclick="leadResetFilter()">重置</button></div>`;
+  }
+  function poolTableHtml(government) {
     const rows = poolRows();
-    const isSL = LEAD.role === 'sales' || LEAD.role === 'leader';
+    const isSL = !government && (LEAD.role === 'sales' || LEAD.role === 'leader');
     // 分页：每页 20 条
     const total = rows.length, pageSize = 20, totalPages = Math.max(1, Math.ceil(total / pageSize));
     if (LEAD.page > totalPages) LEAD.page = totalPages;
@@ -780,13 +813,15 @@
     const selectable = pageRows.filter(canSelect);
     const allChk = selectable.length > 0 && selectable.every(l => LEAD.sel.has(l.rowId));
     const sortable = (k, t) => `<th class="lead-sort" onclick="leadSort('${k}')">${t}<span class="lead-si ${LEAD.sk === k ? 'on' : ''}">${LEAD.sk === k ? (LEAD.sd === 'asc' ? '▲' : '▼') : '↕'}</span></th>`;
-    const head = `<tr><th style="width:40px"><input type="checkbox" ${allChk ? 'checked' : ''} onchange="leadToggleAll(this)"/></th>
+    const governmentHead = `<tr><th style="min-width:96px;text-align:left">操作</th>${sortable('oneId', 'ONE ID')}${sortable('lenovoId', 'Lenovo ID')}${sortable('leadNo', '线索编号')}${sortable('name', '姓名')}${sortable('company', '客户名称')}${sortable('phone', '手机号')}${sortable('grade', '客户分级')}${sortable('score', '线索分')}${sortable('customerManagerCode', '客户经理编码')}${sortable('relGabIs', 'REL-GAB IS')}${sortable('relKabIs', 'REL-KAB IS')}${sortable('relEmergingMarketIs', 'REL-新兴市场 IS')}${sortable('createdAt', '创建时间')}</tr>`;
+    const regularHead = `<tr><th style="width:40px"><input type="checkbox" ${allChk ? 'checked' : ''} onchange="leadToggleAll(this)"/></th>
       <th style="min-width:${isSL ? 230 : 96}px;text-align:left">操作</th>
       ${sortable('oneId', 'ONE ID')}${sortable('lenovoId', 'Lenovo ID')}${sortable('leadNo', '线索编号')}${sortable('name', '姓名')}${sortable('company', '客户名称')}
       ${sortable('phone', '手机号')}${sortable('grade', '客户分级')}${sortable('status', '线索状态')}${sortable('assignStatus', '分配状态')}${sortable('isMql', '是否MQL')}${sortable('source', '线索一级来源')}${sortable('source2', '线索二级来源')}${sortable('source3', '线索三级来源')}${sortable('quality', 'Leads质量')}${SQL_AMOUNT_FIELDS.map(f => sortable(f.key, f.label)).join('')}${sortable('owner', '所属IS')}
       ${sortable('createdAt', '创建时间')}${sortable('pushAt', '推送销售时间')}${sortable('assignedAt', '分配时间')}${sortable('feedbackAt', '反馈时间')}${sortable('convertedAt', '转商机时间')}</tr>`;
+    const head = government ? governmentHead : regularHead;
     let body;
-    if (!total) body = `<tr><td colspan="26" style="text-align:center;color:var(--text-tertiary);padding:40px">暂无数据</td></tr>`;
+    if (!total) body = `<tr><td colspan="${government ? 14 : 26}" style="text-align:center;color:var(--text-tertiary);padding:40px">暂无数据</td></tr>`;
     else body = pageRows.map(l => {
       const ds = dispStatus(l, LEAD.role);
       // 3.2 已退回线索：Leader/Sales 只能查看不能操作（隐藏反馈/转商机），由运营重新分配
@@ -795,14 +830,10 @@
       const readonly = l.status === '已退回' || locked;
       // 已退回线索仅运营可重新分配：leader/sales 不可勾选分配
       const noAssign = locked || (l.status === '已退回' && LEAD.role !== 'ops');
-      const opCell = `<td style="white-space:nowrap;text-align:left">
-        <button class="btn btn-sm btn-secondary" onclick="leadShowDetail('${l.rowId}')">查看详情</button>
-        ${(isSL && l.status && !readonly) ? `<button class="btn btn-sm btn-secondary" onclick="leadOpenFollow('${l.rowId}')">反馈线索</button>` : ''}
-        ${(isSL && ['已接收', '跟进中'].includes(ds) && !readonly) ? `<button class="btn btn-sm btn-primary" onclick="leadOpenConvert('${l.rowId}')">转商机</button>` : ''}</td>`;
-      return `<tr class="${LEAD.sel.has(l.rowId) ? 'sel' : ''}">
-        <td><input type="checkbox" ${LEAD.sel.has(l.rowId) ? 'checked' : ''} ${noAssign ? `disabled title="${locked ? '已重新分配，锁定' : '已退回线索仅运营可重新分配'}"` : ''} onchange="leadToggleRow('${l.rowId}')"/></td>
-        ${opCell}
-        <td>${l.oneId}</td>
+      const detailAction = government ? `leadShowDetail('${l.rowId}', 'lead.governmentPool')` : `leadShowDetail('${l.rowId}')`;
+      const opCell = `<td style="white-space:nowrap;text-align:left"><button class="btn btn-sm btn-secondary" onclick="${detailAction}">查看详情</button>${government ? '' : `${(isSL && l.status && !readonly) ? `<button class="btn btn-sm btn-secondary" onclick="leadOpenFollow('${l.rowId}')">反馈线索</button>` : ''}${(isSL && ['已接收', '跟进中'].includes(ds) && !readonly) ? `<button class="btn btn-sm btn-primary" onclick="leadOpenConvert('${l.rowId}')">转商机</button>` : ''}`}</td>`;
+      const governmentCells = `<td>${l.oneId}</td><td>${l.lenovoId || '-'}</td><td>${l.leadNo || '-'}</td><td>${esc(l.name)}</td><td>${esc(l.company)}</td><td>${maskPhone(l.phone)}</td><td>${l.grade}</td><td>${l.score}</td><td>${l.customerManagerCode || '-'}</td><td>${l.relGabIs || '-'}</td><td>${l.relKabIs || '-'}</td><td>${l.relEmergingMarketIs || '-'}</td><td>${fmt(l.createdAt)}</td>`;
+      const regularCells = `<td>${l.oneId}</td>
         <td>${l.lenovoId || '-'}</td>
         <td>${l.leadNo || '-'}</td><td>${esc(l.name)}</td><td>${esc(l.company)}</td><td>${maskPhone(l.phone)}</td><td>${l.grade}</td>
         <td>${ds && ds !== '待接收' ? leadTag(ds) : '<span style="color:var(--text-tertiary)">-</span>'}</td>
@@ -810,7 +841,10 @@
         <td>${l.isMql === '是' ? '<span class="badge badge-green">是</span>' : '<span class="badge">否</span>'}</td>
         <td>${l.source || '-'}</td><td>${l.source2 || '-'}</td><td>${l.source3 || '-'}</td>
         <td>${l.quality ? `<span class="badge badge-blue" style="font-size:11px">${l.quality}</span>` : '-'}</td>${SQL_AMOUNT_FIELDS.map(f => `<td>${fmtSqlAmount(leadSqlAmount(l, f.key))}</td>`).join('')}
-        <td>${l.owner || '-'}</td><td>${fmt(l.createdAt)}</td><td>${fmt(l.pushAt)}</td><td>${fmt(l.assignedAt)}</td><td>${fmt(l.feedbackAt)}</td><td>${fmt(l.convertedAt)}</td></tr>`;
+        <td>${l.owner || '-'}</td><td>${fmt(l.createdAt)}</td><td>${fmt(l.pushAt)}</td><td>${fmt(l.assignedAt)}</td><td>${fmt(l.feedbackAt)}</td><td>${fmt(l.convertedAt)}</td>`;
+      return `<tr class="${!government && LEAD.sel.has(l.rowId) ? 'sel' : ''}">
+        ${government ? '' : `<td><input type="checkbox" ${LEAD.sel.has(l.rowId) ? 'checked' : ''} ${noAssign ? `disabled title="${locked ? '已重新分配，锁定' : '已退回线索仅运营可重新分配'}"` : ''} onchange="leadToggleRow('${l.rowId}')"/></td>`}
+        ${opCell}${government ? governmentCells : regularCells}</tr>`;
     }).join('');
     const pager = `<div class="employee-pagination in-card">
       <div>共 ${total} 条记录，当前第 ${LEAD.page} 页，共 ${totalPages} 页</div>
@@ -831,13 +865,17 @@
     const al = document.getElementById('lead-pool-alloc'); if (al) al.innerHTML = LEAD.sf === 'as' ? allocPanelHtml() : '';
     const tb = document.getElementById('lead-pool-table'); if (tb) tb.innerHTML = poolTableHtml();
   }
+  function governmentPoolRefresh() { const table = document.getElementById('lead-government-pool-table'); if (table) table.innerHTML = poolTableHtml(true); }
+  window.governmentPoolRefresh = governmentPoolRefresh;
+  function refreshActivePool() { if (document.getElementById('lead-government-pool-table')) governmentPoolRefresh(); else poolRefresh(); }
   // 通过 DOM 判定当前线索页（不依赖外壳的 STATE 全局，const STATE 不挂 window）
   function rerenderCurrent() {
-    const marker = document.getElementById('lead-kb') || document.getElementById('lead-pool-stats') || document.getElementById('lead-score-stats');
-    const host = marker && marker.closest('.lead-dashboard-native, .lead-pool-native, .lead-score-native');
+    const marker = document.getElementById('lead-kb') || document.getElementById('lead-pool-stats') || document.getElementById('lead-government-pool-table') || document.getElementById('lead-score-stats');
+    const host = marker && marker.closest('.lead-dashboard-native, .lead-pool-native, .lead-government-pool-native, .lead-score-native');
     if (!host) return;
     if (marker.id === 'lead-kb') { host.innerHTML = renderDashboard(); renderKbBody(); }
     else if (marker.id === 'lead-pool-stats') { host.innerHTML = renderPool(); poolRefresh(); }
+    else if (marker.id === 'lead-government-pool-table') { host.innerHTML = renderGovernmentPool(); governmentPoolRefresh(); }
     else if (marker.id === 'lead-score-stats') { host.innerHTML = renderScore(); scoreRefresh(); }
   }  function findLead(id) { return LEAD.leads.find(l => l.rowId === id); }
   // 可勾选（用于分配）：已重新分配锁定的旧线索、以及非运营下的已退回线索不可选
@@ -908,7 +946,7 @@
   // 线索池筛选
   window.leadPoolRefresh = function () { poolRefresh(); };
   window.leadPoolPageReset = function () { LEAD.page = 1; };
-  window.leadGoPage = function (p) { LEAD.page = p; poolRefresh(); };
+  window.leadGoPage = function (p) { LEAD.page = p; refreshActivePool(); };
   window.leadDateShortcut = function (scope, key) {
     if (!key) return;
     const sc = DATE_SHORTCUTS.find(s => s.k === key); if (!sc) return;
@@ -923,16 +961,20 @@
     LEAD.page = 1;
   };
   window.leadApplyPoolFilters = function () {
+    const scoreMin = LEAD.fScoreMin === '' ? null : Number(LEAD.fScoreMin), scoreMax = LEAD.fScoreMax === '' ? null : Number(LEAD.fScoreMax);
+    const invalidScore = score => score != null && (!Number.isInteger(score) || score < 0 || score > 100);
+    if (invalidScore(scoreMin) || invalidScore(scoreMax)) return toast('线索分请输入0-100的整数', 'warn');
+    if (scoreMin != null && scoreMax != null && scoreMin >= scoreMax) return toast('线索分最小值必须小于最大值', 'warn');
     for (const scope of Object.keys(DATE_SCOPES)) {
       const cfg = DATE_SCOPES[scope];
       if (LEAD[cfg.fk] && LEAD[cfg.tk] && new Date(LEAD[cfg.fk]) > new Date(LEAD[cfg.tk])) return toast(`${cfg.name}开始日期不能晚于结束日期`, 'warn');
     }
     LEAD.poolAppliedFilters = capturePoolFilters();
     LEAD.page = 1;
-    poolRefresh();
+    refreshActivePool();
   };
   window.leadResetFilter = function () {
-    Object.assign(LEAD, { fdFrom: '', fdTo: '', fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '', fLeadNo: '', fLenovo: '', fPhone: '', fCompany: '', fName: '', fQuality: '', fSource2: '', fSource3: '', fs: [], fAssign: [], fown: '', fdTeam: 'all', fdGrade: [], fSource: [], fMql: [], sf: null, page: 1 });
+    Object.assign(LEAD, { fdFrom: '', fdTo: '', fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '', fLeadNo: '', fLenovo: '', fPhone: '', fCompany: '', fName: '', fQuality: '', fScoreMin: '', fScoreMax: '', fSource2: '', fSource3: '', fs: [], fAssign: [], fown: '', fCustomerManagerCodes: [], fdTeam: 'all', fdGrade: [], fSource: [], fMql: [], sf: null, page: 1 });
     LEAD.poolAppliedFilters = capturePoolFilters();
     rerenderCurrent();
   };
@@ -941,7 +983,7 @@
     LEAD.sf = (LEAD.sf === k && k !== null) ? null : k;
     LEAD.page = 1; rerenderCurrent();
   };
-  window.leadSort = function (k) { if (LEAD.sk === k) LEAD.sd = LEAD.sd === 'asc' ? 'desc' : 'asc'; else { LEAD.sk = k; LEAD.sd = 'asc'; } poolRefresh(); };
+  window.leadSort = function (k) { if (LEAD.sk === k) LEAD.sd = LEAD.sd === 'asc' ? 'desc' : 'asc'; else { LEAD.sk = k; LEAD.sd = 'asc'; } refreshActivePool(); };
   window.leadToggleAll = function (cb) { poolRows().filter(canSelect).forEach(l => cb.checked ? LEAD.sel.add(l.rowId) : LEAD.sel.delete(l.rowId)); poolRefresh(); };
   window.leadToggleRow = function (id) { LEAD.sel.has(id) ? LEAD.sel.delete(id) : LEAD.sel.add(id); poolRefresh(); };
   window.leadGotoAssign = function () { switchPage('lead.pool'); setTimeout(() => { LEAD.sf = 'as'; poolRefresh(); }, 60); };
@@ -1325,14 +1367,17 @@
   };
 
   // 查看详情：应用内切换到详情页（保留左侧导航/外壳，样式同在职员工管理详情页）
-  window.leadShowDetail = function (id) {
+  window.leadShowDetail = function (id, backPage) {
     const d = findLead(id); if (!d) return;
     window.__leadDetail = d;
+    window.__leadDetailBackPage = backPage === 'lead.governmentPool' ? backPage : 'lead.pool';
     if (typeof switchPage === 'function') switchPage('lead.detail');
   };
   function renderLeadDetailPage() {
     const d = window.__leadDetail;
-    if (!d) return `<div class="empty-state"><div class="title">未选择线索</div><div><button class="btn btn-secondary" onclick="switchPage('lead.pool')">返回线索池</button></div></div>`;
+    const backPage = window.__leadDetailBackPage === 'lead.governmentPool' ? 'lead.governmentPool' : 'lead.pool';
+    const backLabel = backPage === 'lead.governmentPool' ? '线索池-政企' : '线索池';
+    if (!d) return `<div class="empty-state"><div class="title">未选择线索</div><div><button class="btn btn-secondary" onclick="switchPage('${backPage}')">返回${backLabel}</button></div></div>`;
     const pill = d.status === '已退回' ? 'danger' : (d.status === '已接收' || d.status === '跟进中') ? 'success' : 'muted';
     const fld = (lbl, v, strong) => `<div><div class="employee-field-label">${lbl}</div><div class="employee-field-value${strong ? ' strong' : ''}">${v == null || v === '' ? '-' : v}</div></div>`;
     const logs = d.followLogs && d.followLogs.length
@@ -1340,7 +1385,7 @@
       : '<div class="employee-field-label">暂无跟进记录</div>';
     return `
       <div class="employee-detail-page">
-        <button class="btn btn-secondary employee-back-btn" onclick="switchPage('lead.pool')">← 返回线索池</button>
+        <button class="btn btn-secondary employee-back-btn" onclick="switchPage('${backPage}')">← 返回${backLabel}</button>
         <div class="employee-detail-layout">
           <div class="card employee-profile-card">
             <div class="employee-avatar">${esc((d.name || '?').slice(0, 1))}</div>
@@ -1981,6 +2026,7 @@
     if (typeof PAGE_RENDERERS === 'undefined') return setTimeout(register, 50);
     PAGE_RENDERERS['lead.dashboard'] = renderDashboard;
     PAGE_RENDERERS['lead.pool'] = renderPool;
+    PAGE_RENDERERS['lead.governmentPool'] = renderGovernmentPool;
     PAGE_RENDERERS['lead.score'] = renderScore;
     PAGE_RENDERERS['lead.detail'] = renderLeadDetailPage;
     injectStyle();
@@ -1988,6 +2034,7 @@
       const pg = e.detail;
       if (pg === 'lead.dashboard') setTimeout(renderKbBody, 30);
       else if (pg === 'lead.pool') setTimeout(poolRefresh, 30);
+      else if (pg === 'lead.governmentPool') setTimeout(governmentPoolRefresh, 30);
       else if (pg === 'lead.score') setTimeout(scoreRefresh, 30);
     });
     window.addEventListener('resize', () => Object.values(charts).forEach(c => c && c.resize && c.resize()));

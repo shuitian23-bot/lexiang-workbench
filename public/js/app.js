@@ -140,6 +140,11 @@ if (!window.__lxCreateTypewriter) {
           hoverPromptAutoCloseTimer: null,
           hoverPromptSku: "",
           activeSiteFloorTab: "推荐",
+          smbSceneKey: "office",
+          smbSceneFocus: 0,
+          enterpriseIndustryIndex: 0,
+          enterpriseIndustryProducts: [],
+          enterpriseResourceReturnScroll: 0,
           conversationSourcePage: lxPageFromPath(),
           refProducts: [],
           smbPurchase: null,
@@ -472,7 +477,41 @@ if (!window.__lxCreateTypewriter) {
           badge.textContent = count > 99 ? "99+" : String(count);
         }
 
+
+        function lxApplyChannelVisuals(page = state.page) {
+          const nav = document.querySelector(".main-nav");
+          const label = page === "business" ? "中小企业：新对话" : "新对话";
+          if (nav) {
+            nav.dataset.currentLabel = label;
+            nav.dataset.shopCurrentLabel = label;
+          }
+          const slides = Array.from(document.querySelectorAll(".content > .hero .hero-slide"));
+          const bannerMap = {
+            personal: ["/assets/img/banner1.jpg", "/assets/img/banner2.jpg"],
+            business: ["/assets/img/business-banner-1.jpg", "/assets/img/business-banner-2.jpg"]
+          };
+          const banners = bannerMap[page];
+          if (banners && slides.length) {
+            slides.forEach((slide, index) => {
+              if (banners[index]) slide.setAttribute("src", banners[index]);
+            });
+          }
+          const kicker = document.querySelector("[data-page-kicker]");
+          const title = document.querySelector("[data-page-title]");
+          const cta = document.querySelector(".content > .hero .hero-btn");
+          if (page === "business") {
+            if (kicker) kicker.textContent = "中小企业专享采购方案";
+            if (title) title.textContent = "企业购省心配齐";
+            if (cta) cta.textContent = "了解企业采购";
+          } else if (page === "personal") {
+            if (kicker) kicker.textContent = "2026 拯救者PC新品震撼来袭";
+            if (title) title.textContent = "拯救驾临 执御客川";
+            if (cta) cta.textContent = "了解详情";
+          }
+        }
+
         function lxClearRouteLoading() {
+          lxApplyChannelVisuals(state.page);
           document.documentElement.classList.remove("lx-route-prepaint");
           document.querySelector(".lx-route-loading")?.remove();
         }
@@ -488,6 +527,7 @@ if (!window.__lxCreateTypewriter) {
           }
           const nav = $(`.main-nav [data-page="${state.page}"]`);
           nav?.click();
+          lxApplyChannelVisuals(state.page);
           loadProductsForPage();
         }
 
@@ -3688,11 +3728,11 @@ function openOrderDetail(orderId) {
         function openEnterpriseAuth() {
           const ent = lxEntState();
           if (ent.status === "verified") {
-            openModal("企业账户已认证", `<div class="lx-ent-status ok"><strong>${esc(ent.company || "贵公司")}</strong> 已通过企业采购负责人认证</div><ul class="lx-md-list"><li>企业专享价与采购补贴已生效</li><li>支持对公付款、增值税专票与企业账期咨询</li><li>专属客服与企业定制通道已开通</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="以企业身份帮我推荐办公采购方案并说明企业会员权益">看企业专享推荐</button></div><p class="lx-p0-disclaimer">POC 演示环境：认证为模拟流程，正式上线将对接联想企业购实名核验。</p>`);
+            openModal("企业账户已认证", `<div class="lx-ent-status ok"><strong>${esc(ent.company || "贵公司")}</strong> 已通过企业采购负责人认证</div><ul class="lx-md-list"><li>企业专享价与采购补贴已生效</li><li>支持对公付款、增值税专票与企业账期咨询</li><li>专属客服与企业定制通道已开通</li></ul><div class="lx-p0-actions"><button class="lx-p0-btn primary" data-quick-ask="以企业身份帮我推荐办公采购方案并说明企业会员权益">查看企业专享推荐</button></div>`);
             return;
           }
           if (ent.status === "pending") {
-            openModal("企业认证审核中", `<div class="lx-ent-status pending">「${esc(ent.company || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境审核约 10 秒自动完成；正式环境为 1-2 个工作日，结果会在本页面与账号菜单回显。</p>`);
+            openModal("企业认证审核中", `<div class="lx-ent-status pending">「${esc(ent.company || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">认证结果将在本页面与账号中心同步更新。</p>`);
             return;
           }
           openModal("企业采购负责人认证", `
@@ -4471,6 +4511,74 @@ function openOrderDetail(orderId) {
           }).join("");
         }
 
+        // === SMB scene recommendation ===
+        const LX_SMB_SCENES = {
+          office: {
+            label: "高效办公",
+            title: "日常办公稳定顺畅",
+            description: "面向文档处理、数据分析和多任务协作，兼顾性能稳定、桌面效率与企业服务。",
+            image: "/assets/img/fangan3.jpg",
+            needs: ["稳定多任务", "双屏效率", "企业级服务"],
+            focuses: [["商务笔记本", "ThinkPad / ThinkBook"], ["固定工位", "ThinkCentre / 显示器"], ["办公保障", "延保 / 上门服务"]],
+            ask: "公司日常办公需要稳定多任务、双屏效率和企业服务，帮我按岗位推荐一套设备组合"
+          },
+          mobile: {
+            label: "移动差旅",
+            title: "轻装出行，随时进入工作状态",
+            description: "适合经常出差、客户拜访与跨地点办公的团队，重点关注轻薄、续航和快速扩展。",
+            image: "/assets/img/fangan2.jpg",
+            needs: ["轻薄便携", "全天续航", "快速扩展"],
+            focuses: [["移动主机", "ThinkPad X / T"], ["随行供电", "适配器 / 充电宝"], ["快速连接", "扩展坞 / 便携屏"]],
+            ask: "团队经常移动差旅，需要轻薄续航和快速扩展，帮我推荐便携办公设备组合"
+          },
+          design: {
+            label: "专业设计",
+            title: "为专业创作保留持续性能",
+            description: "面向建筑、视觉、工业和内容创作团队，优先考虑专业图形能力、色彩显示与数据容量。",
+            image: "/assets/img/fanan1.jpg",
+            needs: ["专业图形", "高色准显示", "大容量存储"],
+            focuses: [["移动工作站", "ThinkPad P 系列"], ["桌面工作站", "ThinkStation"], ["专业显示", "ThinkVision"]],
+            ask: "设计团队需要专业图形性能、高色准显示和大容量存储，帮我推荐工作站方案"
+          },
+          meeting: {
+            label: "会议协作",
+            title: "让小会议室更快进入协作",
+            description: "覆盖远程会议、内容共享与团队沟通，减少连接和部署时间，保持音视频体验稳定。",
+            image: "/assets/img/business-banner-2.jpg",
+            needs: ["一键入会", "清晰音视频", "稳定连接"],
+            focuses: [["会议终端", "ThinkSmart"], ["内容显示", "ThinkVision 大屏"], ["音视频外设", "摄像头 / 耳麦"]],
+            ask: "公司小会议室需要一键入会、清晰音视频和稳定连接，帮我推荐会议协作方案"
+          },
+          team: {
+            label: "成长型团队",
+            title: "统一采购，陪团队持续扩展",
+            description: "适合快速扩员与分批采购，用统一配置、企业价格和持续服务降低采购及维护成本。",
+            image: "/assets/img/business-banner-1.jpg",
+            needs: ["批量采购", "统一配置", "持续服务"],
+            focuses: [["团队笔记本", "ThinkBook / ThinkPad"], ["商用台式机", "扬天 / ThinkCentre"], ["企业服务", "部署 / 延保 / 账期"]],
+            ask: "成长型团队要分批采购并统一配置，需要企业价格和持续服务，帮我整理采购方案"
+          }
+        };
+
+        function lxRenderBusinessSceneGuide() {
+          const sceneKey = LX_SMB_SCENES[state.smbSceneKey] ? state.smbSceneKey : "office";
+          const scene = LX_SMB_SCENES[sceneKey];
+          const focusIndex = Math.min(Math.max(Number(state.smbSceneFocus) || 0, 0), scene.focuses.length - 1);
+          const selectedFocus = scene.focuses[focusIndex][0];
+          const tabs = Object.entries(LX_SMB_SCENES).map(([key, item]) => `<button class="lx-smb-scene-tab" type="button" role="tab" data-smb-scene-key="${esc(key)}" aria-selected="${key === sceneKey ? "true" : "false"}">${esc(item.label)}</button>`).join("");
+          const needs = scene.needs.map((need) => `<span>${esc(need)}</span>`).join("");
+          const focuses = scene.focuses.map(([title, description], index) => `<button class="lx-smb-scene-focus" type="button" data-smb-focus-index="${index}" aria-pressed="${index === focusIndex ? "true" : "false"}"><strong>${esc(title)}</strong><span>${esc(description)}</span></button>`).join("");
+          const ask = `${scene.ask}，重点关注${selectedFocus}`;
+          return `<section class="lx-smb-scene-guide" data-smb-scene-guide aria-labelledby="lxSmbSceneTitle">
+            <div class="lx-smb-scene-head"><div><span>企业办公场景</span><h3 id="lxSmbSceneTitle">按业务场景，匹配合适的设备与服务</h3><p>覆盖日常办公、移动差旅、专业设计、会议协作与团队成长，满足不同岗位的设备与服务需求。</p></div></div>
+            <div class="lx-smb-scene-tabs" role="tablist" aria-label="办公场景">${tabs}</div>
+            <div class="lx-smb-scene-stage"><div class="lx-smb-scene-media"><img src="${esc(scene.image)}" alt="${esc(scene.label)}场景" loading="lazy"><span>${esc(scene.label)}</span></div>
+              <div class="lx-smb-scene-copy"><h4>${esc(scene.title)}</h4><p>${esc(scene.description)}</p><div class="lx-smb-scene-needs">${needs}</div><div class="lx-smb-scene-focuses">${focuses}</div><div class="lx-smb-scene-actions"><button type="button" data-quick-ask="${esc(ask)}">查看推荐方案</button></div></div>
+            </div>
+          </section>`;
+        }
+        // === End SMB scene recommendation ===
+
         async function lxRenderBusinessRecommendFloors() {
           const site = API_SITE.business || "b";
           const pool = await lxEnsureFloorProducts(site, 120);
@@ -4487,7 +4595,7 @@ function openOrderDetail(orderId) {
           const sectionByKey = Object.fromEntries(feedSections.map((section) => [section.key, Array.isArray(section.products) ? section.products : []]));
           const allFeedProducts = feedSections.flatMap((section) => Array.isArray(section.products) ? section.products : []);
           const basePool = [...allFeedProducts, ...pool, ...(Array.isArray(state.siteProducts) ? state.siteProducts : []), ...(Array.isArray(state.products) ? state.products : [])];
-          if (!basePool.length) return "";
+          if (!basePool.length) return lxRenderBusinessSceneGuide();
           const uniq = (items) => {
             const seen = new Set();
             return items.filter((item) => {
@@ -4525,11 +4633,12 @@ function openOrderDetail(orderId) {
           };
 
           if (!state.floorAllItems) state.floorAllItems = {};
-          return LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
+          const floorHtml = LX_BUSINESS_RECOMMEND_FLOORS.map(([label]) => {
             const items = floorItems[label] || [];
             if (!items.length) return "";  // 该类没货就不显示空楼层，不跨品类凑
             return lxRenderSiteCatFloor(label, "biz", items, "帮我推荐" + label + "里适合中小企业的产品");
           }).join("");
+          return lxRenderBusinessSceneGuide() + floorHtml;
         }
 
         // business/enterprise 品类楼层：与个人站一致（标题 + 换一换 + 两排网格），换一换分页取全集下一批
@@ -4543,6 +4652,376 @@ function openOrderDetail(orderId) {
           const cards = items.slice(0, 12).map(lxProductMiniCard).join("");
           return `<section class="lx-floor lx-cat-floor" data-floor-cat="${esc(label)}" data-cat-floor-key="${esc(key)}"><div class="lx-floor-head"><h3>${esc(label)}</h3>${shuffleBtn}</div><div class="lx-floor-products" data-cat-floor-grid="${esc(key)}">${cards}</div></section>`;
         }
+
+        // === Enterprise industry recommendation ===
+        const LX_ENTERPRISE_INDUSTRIES = [
+          {
+            key: "manufacturing",
+            name: "制造行业",
+            title: "贯通研发、生产与供应链的智能制造",
+            description: "围绕研发算力、产线数字化和供应链协同，构建端到端的制造业数字底座。",
+            needs: ["研发仿真", "AI 质检", "供应链协同"],
+            solutions: [
+              ["智慧研发", "研发仿真、数字孪生与算力平台"],
+              ["智慧生产", "产线数字化、AI 质检与智能工厂"],
+              ["智能供应链", "供应链运营与智能控制塔"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-manufacturing-solution.jpg",
+              title: "联想智能工厂解决方案",
+              description: "贯通生产要素与制造执行，提升工厂数字化协同能力。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-manufacturing-whitepaper.jpg",
+              title: "联想制造行业白皮书",
+              description: "从场景、技术与案例维度了解智能制造实践。"
+            },
+            productPatterns: [
+              { include: /ThinkStation|工作站|GPU|图形/i },
+              { include: /ThinkSystem|问天|Wentian|服务器|智算/i, exclude: /电源|阵列卡|扩容|安装服务/i },
+              { include: /ThinkPad|移动工作站|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkCentre|启天|开天|台式/i, exclude: /工作站|硬盘|延保|服务/i }
+            ]
+          },
+          {
+            key: "education",
+            name: "教育行业",
+            title: "覆盖教学、科研与校园管理的智慧教育",
+            description: "从师生终端到科研算力与校园信创，支撑教、学、研、管一体化升级。",
+            needs: ["智慧教室", "科研智算", "校园信创"],
+            solutions: [
+              ["智慧教学", "智慧教室、云桌面与教学终端"],
+              ["科研创新", "科研工作站与高性能计算"],
+              ["校园信创", "国产化终端与统一运维"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-education-solution.jpg",
+              title: "联想智慧教室解决方案",
+              description: "覆盖教学互动、云桌面与校园数字化建设。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-education-whitepaper.jpg",
+              title: "联想智慧教育技术白皮书",
+              description: "以科技助力高效、公平、优质的教育教学。"
+            },
+            productPatterns: [
+              { include: /云教室|教学|教育/i },
+              { include: /ThinkPad|ThinkBook|昭阳|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkStation|工作站/i },
+              { include: /ThinkSystem|问天|Wentian|服务器/i, exclude: /电源|阵列卡|扩容|安装服务/i }
+            ]
+          },
+          {
+            key: "government",
+            name: "政府行业",
+            title: "安全合规、集约高效的数字政府底座",
+            description: "面向政务办公、智算中心与信创替代，提供端边云网智一体化能力。",
+            needs: ["政务办公", "智算中心", "信创替代"],
+            solutions: [
+              ["政务信创", "国产化终端与安全办公"],
+              ["政府智算", "区域智算中心与算力调度"],
+              ["智慧城市", "城市治理与一体化服务平台"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-government-solution.jpg",
+              title: "政府智算中心解决方案",
+              description: "构建一体化算力底座，支撑区域数字政府建设。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-government-whitepaper.jpg",
+              title: "联想政府行业白皮书",
+              description: "汇集智慧城市、智慧园区与政务场景实践。"
+            },
+            productPatterns: [
+              { include: /开天|信创/i, exclude: /服务|扩容/i },
+              { include: /启天|ThinkCentre|台式/i, exclude: /工作站|硬盘|延保|服务/i },
+              { include: /ThinkSystem|问天|Wentian|服务器|存储/i, exclude: /电源|阵列卡|扩容|安装服务/i },
+              { include: /ThinkPad|昭阳|笔记本/i, exclude: /定制服务|内存升级|SSD/i }
+            ]
+          },
+          {
+            key: "healthcare",
+            name: "医疗行业",
+            title: "稳定连续、数据可信的智慧医疗",
+            description: "连接临床终端、医学影像与数据平台，保障关键业务连续运行。",
+            needs: ["临床终端", "医学影像", "数据保护"],
+            solutions: [
+              ["智慧临床", "诊疗终端与移动查房"],
+              ["医学影像", "影像后处理与专业工作站"],
+              ["医疗数据", "数据平台、存储与容灾"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-medical-solution.jpg",
+              title: "智慧医院整体解决方案",
+              description: "连接临床、影像与数据平台，改善诊疗服务体验。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-medical-whitepaper.jpg",
+              title: "联想医疗行业白皮书",
+              description: "聚焦医院信息化、互联网医院与智慧管理。"
+            },
+            productPatterns: [
+              { include: /ThinkStation|工作站|GPU|图形|影像/i },
+              { include: /ThinkSystem|问天|Wentian|服务器|存储/i, exclude: /电源|阵列卡|扩容|安装服务/i },
+              { include: /ThinkPad|移动工作站|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkCentre|启天|台式/i, exclude: /工作站|硬盘|延保|服务/i }
+            ]
+          },
+          {
+            key: "finance",
+            name: "金融行业",
+            title: "兼顾业务连续与合规替代的智慧金融",
+            description: "服务网点智能化、关键业务基础设施与金融信创，支撑稳健增长。",
+            needs: ["智能网点", "关键业务", "金融信创"],
+            solutions: [
+              ["智能网点", "柜面终端、自助设备与营销协同"],
+              ["关键业务", "高可用服务器与数据基础设施"],
+              ["金融信创", "国产化终端与安全合规"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-finance-solution.jpg",
+              title: "金融行业 DCM 数据中心管理平台",
+              description: "统一管理跨地域数据中心资源，提升运营韧性。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-finance-whitepaper.jpg",
+              title: "联想金融行业白皮书 2.0",
+              description: "洞见智慧金融趋势与垂直场景增长方法。"
+            },
+            productPatterns: [
+              { include: /ThinkPad|昭阳|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkCentre|启天|开天|台式/i, exclude: /工作站|硬盘|延保|服务/i },
+              { include: /ThinkSystem|问天|Wentian|服务器/i, exclude: /电源|阵列卡|扩容|安装服务/i },
+              { include: /存储|DE\d+/i, exclude: /硬盘|服务/i }
+            ]
+          },
+          {
+            key: "energy",
+            name: "能源行业",
+            title: "面向勘探、生产与现场作业的智慧能源",
+            description: "以高性能计算、边缘能力和移动终端支撑能源企业安全高效运营。",
+            needs: ["勘探计算", "边缘作业", "安全生产"],
+            solutions: [
+              ["勘探研发", "高性能计算与专业工作站"],
+              ["智能生产", "边缘计算与现场数据采集"],
+              ["运营管控", "数据中心与统一运维"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-energy-solution.jpg",
+              title: "联想智慧电厂解决方案",
+              description: "以数字技术支撑生产管理、安全巡检与高效运营。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-energy-whitepaper.jpg",
+              title: "联想能源行业白皮书",
+              description: "结合能源场景，梳理行业数字化转型路径。"
+            },
+            productPatterns: [
+              { include: /ThinkStation|工作站|GPU|图形/i },
+              { include: /ThinkPad|昭阳|移动工作站|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkSystem|问天|Wentian|服务器|边缘/i, exclude: /电源|阵列卡|扩容|安装服务/i },
+              { include: /存储|DE\d+/i, exclude: /硬盘|服务/i }
+            ]
+          },
+          {
+            key: "transportation",
+            name: "交通行业",
+            title: "连接调度中心与一线作业的智慧交通",
+            description: "覆盖智慧调度、边缘站点和移动作业，提升交通运营效率与韧性。",
+            needs: ["智慧调度", "边缘站点", "移动作业"],
+            solutions: [
+              ["智慧调度", "调度中心终端与可视化协同"],
+              ["边缘站点", "边缘计算与站点基础设施"],
+              ["移动作业", "便携终端与远程运维"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-traffic-solution.jpg",
+              title: "铁路车辆故障轨边图像检测解决方案",
+              description: "通过智能图像检测提升铁路运维效率与安全性。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-traffic-whitepaper.jpg",
+              title: "联想智能化转型行业白皮书",
+              description: "参考智慧交通、智慧城市与新 IT 的实践经验。"
+            },
+            productPatterns: [
+              { include: /ThinkPad|昭阳|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkCentre|启天|台式/i, exclude: /工作站|硬盘|延保|服务/i },
+              { include: /ThinkSystem|问天|Wentian|服务器|边缘/i, exclude: /电源|阵列卡|扩容|安装服务/i },
+              { include: /会议平板|摄像头|全向麦|会议/i }
+            ]
+          },
+          {
+            key: "services",
+            name: "服务行业",
+            title: "以终端体验和协同效率驱动服务创新",
+            description: "面向专业服务、零售与内容机构，打造灵活协同的数字化工作环境。",
+            needs: ["数字门店", "内容生产", "协同办公"],
+            solutions: [
+              ["数字门店", "门店终端与集中运营管理"],
+              ["内容生产", "创作终端与专业显示"],
+              ["协同办公", "移动办公与会议协作"]
+            ],
+            solutionResource: {
+              kind: "解决方案",
+              image: "/assets/img/industry-resource-service-solution.jpg",
+              title: "智慧零售连锁门店解决方案",
+              description: "连接门店终端与集中运营，提升服务与管理效率。"
+            },
+            whitepaperResource: {
+              kind: "白皮书",
+              image: "/assets/img/industry-resource-service-whitepaper.jpg",
+              title: "联想新零售行业白皮书",
+              description: "覆盖数字门店、电商平台与数字化营销实践。"
+            },
+            productPatterns: [
+              { include: /ThinkBook|ThinkPad|笔记本/i, exclude: /定制服务|内存升级|SSD/i },
+              { include: /ThinkCentre|台式|一体机/i, exclude: /工作站|硬盘|延保|服务/i },
+              { include: /会议平板|摄像头|全向麦|会议/i },
+              { include: /ThinkVision|显示器|外设/i }
+            ]
+          }
+        ];
+
+        function lxPickEnterpriseIndustryProducts(source, industry) {
+          const candidates = (Array.isArray(source) ? source : []).filter((product) => {
+            if (!product || !product.sku) return false;
+            const label = `${product.category || ""} ${product.name || ""}`;
+            return !/UI自动化|请勿修改|下单不发货|测试商品|IT管家|延保|保修服务|数据恢复|任性造|定制服务|内存升级|固态硬盘|SSD|专用电源|阵列卡|扩容方案|安装服务/i.test(label);
+          });
+          const selected = [];
+          const seen = new Set();
+          const add = (product) => {
+            const key = lxProductKey(product);
+            if (!key || seen.has(key) || selected.length >= 2) return;
+            seen.add(key);
+            selected.push(product);
+          };
+          const rules = industry.productPatterns || [];
+          for (let round = 0; round < 4 && selected.length < 2; round += 1) {
+            rules.forEach((rule) => {
+              if (selected.length >= 2) return;
+              const include = rule.include || rule;
+              const exclude = rule.exclude || null;
+              const matches = candidates.filter((product) => {
+                const text = `${product.category || ""} ${product.name || ""}`;
+                return include.test(text) && !(exclude && exclude.test(text));
+              });
+              if (matches[round]) add(matches[round]);
+            });
+          }
+          candidates.forEach(add);
+          return selected;
+        }
+
+        function lxEnterpriseIndustryResourceCard(resource, resourceIndex) {
+          if (!resource) return "";
+          const resourceKind = resource.kind === "白皮书" ? "whitepaper" : "solution";
+          return `<button class="lx-enterprise-industry-resource-card is-${resourceKind}" type="button" data-enterprise-resource="${resourceKind}" data-enterprise-resource-index="${resourceIndex}">
+            <span class="lx-enterprise-industry-resource-kind">${esc(resource.kind)}</span>
+            <span class="lx-enterprise-industry-resource-visual">
+              <img class="lx-enterprise-industry-resource-image" src="${esc(resource.image)}" alt="${esc(resource.title)}" decoding="async" />
+            </span>
+            <strong>${esc(resource.title)}</strong>
+            <p>${esc(resource.description)}</p>
+            <span class="lx-enterprise-industry-resource-link">${resourceKind === "whitepaper" ? "查看行业资料" : "查看行业方案"} <b aria-hidden="true">›</b></span>
+          </button>`;
+        }
+
+        function lxRenderEnterpriseResourceDetail(source, selected, resourceKind) {
+          state.enterpriseIndustryProducts = Array.isArray(source) ? source : [];
+          const index = Math.max(0, Math.min(Number(selected) || 0, LX_ENTERPRISE_INDUSTRIES.length - 1));
+          const industry = LX_ENTERPRISE_INDUSTRIES[index];
+          const isWhitepaper = resourceKind === "whitepaper";
+          const resource = isWhitepaper ? industry.whitepaperResource : industry.solutionResource;
+          const sectionLabels = isWhitepaper ? ["内容摘要", "核心章节", "你将了解"] : ["核心能力", "适用场景", "业务价值"];
+          const sections = industry.solutions.map(([name, desc], sectionIndex) => `<article class="lx-enterprise-resource-section">
+            <small>${esc(sectionLabels[sectionIndex] || sectionLabels[0])}</small>
+            <strong>${esc(name)}</strong>
+            <p>${esc(desc)}</p>
+          </article>`).join("");
+          const needs = industry.needs.map((need) => `<span>${esc(need)}</span>`).join("");
+          const products = lxPickEnterpriseIndustryProducts(state.enterpriseIndustryProducts, industry).slice(0, 2).map(lxProductMiniCard).join("");
+          return `<section class="lx-enterprise-resource-detail" data-enterprise-resource-detail="${isWhitepaper ? "whitepaper" : "solution"}" data-enterprise-industry-key="${esc(industry.key)}">
+            <button class="lx-enterprise-resource-back" type="button" data-enterprise-resource-back><span aria-hidden="true">‹</span> 返回行业推荐</button>
+            <header class="lx-enterprise-resource-hero">
+              <div><span>${esc(industry.name)} · ${esc(resource.kind)}</span><h3>${esc(resource.title)}</h3><p>${esc(resource.description)} ${esc(industry.description)}</p></div>
+              <b>${isWhitepaper ? "行业洞察" : "数字化方案"}</b>
+            </header>
+            <div class="lx-enterprise-resource-sections">${sections}</div>
+            <section class="lx-enterprise-resource-scenarios"><div><small>${isWhitepaper ? "适用对象" : "适用范围"}</small><h4>${esc(industry.name)}重点方向</h4></div><div class="lx-enterprise-resource-needs">${needs}</div></section>
+            <section class="lx-enterprise-resource-related"><header><div><small>相关设备</small><h4>支撑${esc(industry.name)}落地的设备组合</h4></div><span>相关产品与企业采购价</span></header><div class="lx-enterprise-resource-products">${products || `<p class="lx-p0-disclaimer">相关产品正在更新</p>`}</div></section>
+          </section>`;
+        }
+
+        function lxOpenEnterpriseResourceDetail(resourceKind) {
+          const content = document.querySelector(".content");
+          state.enterpriseResourceReturnScroll = content?.scrollTop || 0;
+          const industryIndex = state.enterpriseIndustryIndex || 0;
+          const industry = LX_ENTERPRISE_INDUSTRIES[industryIndex] || LX_ENTERPRISE_INDUSTRIES[0];
+          const kind = resourceKind === "whitepaper" ? "whitepaper" : "solution";
+          const resource = kind === "whitepaper" ? industry.whitepaperResource : industry.solutionResource;
+          const tab = {
+            id: `enterprise-resource:${industry.key}:${kind}`,
+            kind: "enterprise-resource",
+            label: resource.title,
+            industryIndex,
+            resourceKind: kind
+          };
+          lxUpsertTab(tab);
+          lxRunTab(tab);
+        }
+
+        function lxRenderEnterpriseIndustryGuide(source, selected = state.enterpriseIndustryIndex || 0) {
+          state.enterpriseIndustryProducts = Array.isArray(source) ? source : [];
+          const index = Math.max(0, Math.min(Number(selected) || 0, LX_ENTERPRISE_INDUSTRIES.length - 1));
+          const industry = LX_ENTERPRISE_INDUSTRIES[index];
+          const products = lxPickEnterpriseIndustryProducts(state.enterpriseIndustryProducts, industry);
+          const tabs = LX_ENTERPRISE_INDUSTRIES.map((item, itemIndex) => `
+            <button class="lx-enterprise-industry-tab" type="button" role="tab" data-enterprise-industry-index="${itemIndex}" aria-selected="${itemIndex === index}" tabindex="${itemIndex === index ? 0 : -1}">${esc(item.name)}</button>`).join("");
+          const needs = industry.needs.map((need) => `<span>${esc(need)}</span>`).join("");
+          const solutions = industry.solutions.map(([name, desc]) => {
+            const ask = `${industry.name}正在关注${name}，${desc}。请结合我们的规模和采购要求推荐方案与产品。`;
+            return `<button class="lx-enterprise-industry-solution" type="button" data-enterprise-industry-ask="${esc(ask)}"><strong>${esc(name)}</strong><span>${esc(desc)}</span><b aria-hidden="true">›</b></button>`;
+          }).join("");
+          const resourceCards = [industry.solutionResource, industry.whitepaperResource].map(lxEnterpriseIndustryResourceCard).join("");
+          const productCards = products.slice(0, 2).map(lxProductMiniCard).join("");
+          const primaryAsk = `${industry.name}需要${industry.needs.join("、")}相关建设，请先了解我们的规模与现状，再推荐整体方案和产品组合。`;
+          return `<section class="lx-enterprise-industry-guide" data-enterprise-industry-guide data-enterprise-industry-key="${esc(industry.key)}">
+            <header class="lx-enterprise-industry-head">
+              <div><span>行业解决方案</span><h3>行业数字化转型解决方案</h3><p>覆盖制造、教育、政府、医疗、金融、能源、交通与服务行业，提供从咨询规划、方案实施到设备部署的全周期支持。</p></div>
+            </header>
+            <div class="lx-enterprise-industry-tabs" role="tablist" aria-label="选择行业">${tabs}</div>
+            <div class="lx-enterprise-industry-stage">
+              <div class="lx-enterprise-industry-copy">
+                <div class="lx-enterprise-industry-title"><span>${String(index + 1).padStart(2, "0")}</span><div><small>${esc(industry.name)}</small><h4>${esc(industry.title)}</h4></div></div>
+                <p>${esc(industry.description)}</p>
+                <div class="lx-enterprise-industry-needs">${needs}</div>
+                <div class="lx-enterprise-industry-solutions">${solutions}</div>
+                <button class="lx-enterprise-industry-cta" type="button" data-enterprise-industry-ask="${esc(primaryAsk)}">咨询${esc(industry.name)}解决方案</button>
+              </div>
+              <div class="lx-enterprise-industry-products">
+                <div class="lx-enterprise-industry-products-head"><div><small>解决方案 · 行业资料 · 设备</small><h4>${esc(industry.name)}解决方案与产品</h4></div></div>
+                <div class="lx-enterprise-industry-product-grid">${resourceCards}${productCards || `<p class="lx-p0-disclaimer">产品数据加载中</p>`}</div>
+              </div>
+            </div>
+          </section>`;
+        }
+        // === End enterprise industry recommendation ===
 
         async function lxRenderEnterpriseRecommendFloors() {
           const site = API_SITE.enterprise || "biz";
@@ -4564,12 +5043,13 @@ function openOrderDetail(orderId) {
           if (!source.length) return "";
           const used = new Set();
           const floorCount = lxFloorProductCount();
-          return (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
+          const floorHtml = (LX_CATEGORY_MATCHERS.enterprise || []).map(([label, match]) => {
             // 换一换要能翻批，多取一些（不止两排），全集存起来分页
             const items = lxPickFloorProducts(source, match, used, Math.max(floorCount, 24));
             if (!items.length) return "";  // 该类没货就不显示空楼层
             return lxRenderSiteCatFloor(label, "gov", items, "帮我推荐" + label + "里适合政教及大企业的产品");
           }).join("");
+          return lxRenderEnterpriseIndustryGuide(source) + floorHtml;
         }
 
         async function lxRenderCategoryFloors(box, onlyLabel = "") {
@@ -5809,9 +6289,24 @@ function openOrderDetail(orderId) {
           if (!tab) return;
           const genToken = lxBeginTabGeneration(tab);
           if (tab.kind === "site") {
+            document.querySelector(".content")?.setAttribute("data-view", "list");
             routeTo(tab.page);
+            if (tab.page === "enterprise") {
+              const returnScroll = Number(state.enterpriseResourceReturnScroll) || 0;
+              requestAnimationFrame(() => document.querySelector(".content")?.scrollTo({ top: returnScroll, behavior: "auto" }));
+            }
           } else if (tab.kind === "detail") {
             openProduct(tab.sku);
+          } else if (tab.kind === "enterprise-resource") {
+            const pageBox = lxEnsureInfoPage();
+            const source = (state.enterpriseIndustryProducts || []).length
+              ? state.enterpriseIndustryProducts
+              : [...(state.siteProducts || []), ...(state.floorProducts || []), ...(state.products || [])];
+            pageBox.classList.add("is-wide");
+            pageBox.innerHTML = lxRenderEnterpriseResourceDetail(source, tab.industryIndex, tab.resourceKind);
+            const content = document.querySelector(".content");
+            content?.setAttribute("data-view", "info");
+            content?.scrollTo({ top: 0, behavior: "smooth" });
           } else if (tab.kind === "reco") {
             // 推荐结果专属视图：只展示推荐款，不混入站点货架（最短路径）
             lxRenderRecoPage(tab);
@@ -7575,7 +8070,7 @@ function openOrderDetail(orderId) {
               <div class="lx-cs-row"><span>服务时间</span><b>每天 9:00 - 21:00</b></div>
               <div class="lx-cs-row"><span>服务通道</span><b>${esc(cs.label)}</b></div>
               <div class="lx-p0-actions">
-                <button class="lx-p0-btn primary" type="button" data-human-on>进入人工应答</button>
+                <button class="lx-p0-btn primary" type="button" data-human-on>联系在线客服</button>
                 <button class="lx-p0-btn" type="button" data-quick-ask="帮我查保修、维修进度和驱动下载">保修与维修</button>
               </div>
             </div>`);
@@ -7643,19 +8138,16 @@ function openOrderDetail(orderId) {
           ],
           business: [
             ["客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["咨询热线", "/assets/icons/shortcut-customer-service.svg"],
+            ["批量采购", "/assets/icons/sidebar-points-mall.svg"],
             ["企业认证", "/assets/icons/sidebar-custom-service.svg"],
-            ["积分兑换", "/assets/icons/sidebar-points-mall.svg"],
-            ["对公开票", "/assets/icons/sidebar-free-trial.svg"],
-            ["上门售后", "/assets/icons/shortcut-trade-in.svg"],
-            ["会员中心", "/assets/icons/sidebar-member-center.svg"],
+            ["会员权益", "/assets/icons/sidebar-member-center.svg"],
           ],
           enterprise: [
-            ["客服", "/assets/icons/shortcut-customer-service.svg"],
-            ["方案中心", "/assets/icons/sidebar-custom-service.svg"],
-            ["项目合作", "/assets/icons/sidebar-free-trial.svg"],
-            ["白皮书", "/assets/icons/sidebar-points-mall.svg"],
-            ["批量报价", "/assets/icons/shortcut-education-subsidy.svg"],
-            ["客户经理", "/assets/icons/sidebar-member-center.svg"],
+            ["在线客服", "/assets/icons/shortcut-customer-service.svg"],
+            ["企业留资", "/assets/icons/sidebar-custom-service.svg"],
+            ["客服热线", "/assets/icons/shortcut-customer-service.svg"],
+            ["企业认证", "/assets/icons/sidebar-member-center.svg"],
           ],
           brand: [
             ["客服", "/assets/icons/shortcut-customer-service.svg"],
@@ -7772,14 +8264,14 @@ function openOrderDetail(orderId) {
             quick: ["我要企业批量采购", "我要企业认证享专享价", "我要对公开票和账期", "我要找商用电脑", "我要查售后和上门服务"],
             welcome: ["公司采购50台办公本，怎么拿企业价？", "ThinkBook和ThinkPad办公怎么选？", "企业购能开专票、走账期吗？", "中小企业有什么采购补贴？"],
             placeholder: "公司要配办公电脑，帮我推荐",
-            actionbar: ["企业认证", "对公开票", "账期申请", "批量采购", "上门服务", "专属客服"],
+            actionbar: ["客服", "咨询热线", "批量采购", "企业认证", "会员权益"],
             hello: ["企业采购", "专享价", "对公开票", "商用电脑", "上门服务"],
           },
           enterprise: {
             quick: ["我要看行业解决方案", "我要信创合规产品", "我要批量采购报价", "我要对接专属客户经理", "我要查售后服务"],
             welcome: ["信创服务器怎么选型？", "智慧教育解决方案有哪些案例？", "参与政采招投标需要什么资质？", "工作站和服务器怎么搭配？"],
             placeholder: "我们单位要采购信创设备，帮我推荐",
-            actionbar: ["信创合规", "解决方案", "招投标支持", "批量报价", "客户经理", "售后服务"],
+            actionbar: ["在线客服", "企业留资", "客服热线", "企业认证"],
             hello: ["信创选型", "行业方案", "招投标", "批量报价", "专属经理"],
           },
           brand: {
@@ -7824,7 +8316,7 @@ function openOrderDetail(orderId) {
           const cs = lxCsConfig();
           const composerTa = $(".composer textarea");
           if (on) {
-            chat?.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai lx-cs-human-card"><span class="lx-cs-avatar">联</span><span><b>专属客服小联</b> 已为您接入 <b>${esc(cs.queue)}</b> 队列，下方快捷菜单已切换为人工服务。订单、售后、发票问题可直接发我。（演示：由乐享 AI 以专属客服身份接待）</span></div>`);
+            chat?.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai lx-cs-human-card"><span class="lx-cs-avatar">联</span><span><b>专属客服小联</b> 已为您接入 <b>${esc(cs.queue)}</b> 服务。订单、售后及发票问题均可在线咨询。</span></div>`);
             if (composerTa) {
               if (!composerTa.dataset.origPh) composerTa.dataset.origPh = composerTa.placeholder;
               composerTa.placeholder = "向专属客服小联提问...";
@@ -8260,6 +8752,7 @@ function openOrderDetail(orderId) {
               if (PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               if (state.page !== page) state.activeSiteFloorTab = "推荐";
               state.page = page;
+              lxApplyChannelVisuals(page);
               if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
               // 用户主动切导航：退出自动全屏对话态；回首页时还原 portal 展示态
               if (state.autoFs) lxSetAutoFs(false);
@@ -8284,6 +8777,27 @@ function openOrderDetail(orderId) {
               return;
             }
             else document.querySelectorAll(".cat-more-wrap.open").forEach((node) => node.classList.remove("open"));
+
+            const smbSceneTab = event.target.closest("[data-smb-scene-key]");
+            if (smbSceneTab) {
+              event.preventDefault();
+              const sceneKey = smbSceneTab.dataset.smbSceneKey;
+              if (!LX_SMB_SCENES[sceneKey]) return;
+              state.smbSceneKey = sceneKey;
+              state.smbSceneFocus = 0;
+              const guide = document.querySelector("[data-smb-scene-guide]");
+              if (guide) guide.outerHTML = lxRenderBusinessSceneGuide();
+              return;
+            }
+
+            const smbSceneFocus = event.target.closest("[data-smb-focus-index]");
+            if (smbSceneFocus) {
+              event.preventDefault();
+              state.smbSceneFocus = Number(smbSceneFocus.dataset.smbFocusIndex) || 0;
+              const guide = document.querySelector("[data-smb-scene-guide]");
+              if (guide) guide.outerHTML = lxRenderBusinessSceneGuide();
+              return;
+            }
 
             const catTab = event.target.closest(".category-tabs button:not([data-cat-more])");
             if (catTab) {
@@ -8493,6 +9007,8 @@ function openOrderDetail(orderId) {
               else if (text.includes("积分兑换") || text.includes("积分商城")) sendChat(text.includes("积分兑换") ? text : "积分兑换");
               else if (text.includes("国补")) sendChat(text);
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
+              else if (text.includes("咨询热线") || text.includes("客服热线")) lxShowServiceCard();
+              else if (text.includes("企业留资")) openLeadPanel("biz_intent");
               else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
               else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
@@ -8921,6 +9437,35 @@ function openOrderDetail(orderId) {
               const recoTab = (state.tabs || []).find((tab) => tab.id === "reco");
               const product = (recoTab?.products || []).find((p) => p.sku === recoCompare.dataset.recoCompare);
               if (product) addCompare(product);
+            }
+
+            const enterpriseIndustryTab = event.target.closest("[data-enterprise-industry-index]");
+            if (enterpriseIndustryTab) {
+              event.preventDefault();
+              const index = Number(enterpriseIndustryTab.dataset.enterpriseIndustryIndex) || 0;
+              state.enterpriseIndustryIndex = index;
+              const root = enterpriseIndustryTab.closest("[data-enterprise-industry-guide]");
+              if (root) root.outerHTML = lxRenderEnterpriseIndustryGuide(state.enterpriseIndustryProducts || [], index);
+              return;
+            }
+            const enterpriseResource = event.target.closest("[data-enterprise-resource]");
+            if (enterpriseResource) {
+              event.preventDefault();
+              lxOpenEnterpriseResourceDetail(enterpriseResource.dataset.enterpriseResource || "solution");
+              return;
+            }
+            const enterpriseResourceBack = event.target.closest("[data-enterprise-resource-back]");
+            if (enterpriseResourceBack) {
+              event.preventDefault();
+              lxActivateTab("site:enterprise");
+              return;
+            }
+            const enterpriseIndustryAsk = event.target.closest("[data-enterprise-industry-ask]");
+            if (enterpriseIndustryAsk) {
+              event.preventDefault();
+              const text = enterpriseIndustryAsk.dataset.enterpriseIndustryAsk || "";
+              if (text.trim()) sendChat(text.trim());
+              return;
             }
 
             const industryTag = event.target.closest("[data-industry-index]");
