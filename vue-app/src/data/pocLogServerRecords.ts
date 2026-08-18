@@ -1,5 +1,21 @@
 export const pocLogServerRecords = [
   {
+    "time": "2026-08-18 11:46",
+    "operator": "zhangrui（协作工作区）",
+    "codeAuthor": "Codex（协作代理）",
+    "sourceRef": "dev/zhangrui-menu-additions；功能提交 3472234；需求来源 _0708_analysis (2).zip",
+    "traceStatus": "已在个人隔离 worktree 完成源码、构建产物和浏览器交互验证，并增量更新 new 预览；正式链接和远端源码主分支未更新。",
+    "overwriteImpact": "只新增企业客户管理中的“线索池-政企”和订单管理中的“协议产品订单管理”；保留原“线索池”“打分模型”“协议采购单管理”及其他公共功能；服务器受保护的 workbench-geo.js、workbench-pages.js 保持原样。",
+    "title": "企业客户与协议产品订单菜单新增",
+    "scope": "企业客户管理 / 线索池-政企 / 订单管理 / 协议产品订单管理 / 列表详情 / 查询导出",
+    "detail": "企业客户管理新增“线索池-政企”，提供政企线索只读查询、条件筛选、排序、分页、详情和脱敏/审批明文导出；订单管理保留“协议采购单管理”，新增“协议产品订单管理”，提供采购单号、订单号、状态查询，当前筛选结果导出、分页和独立订单详情。两项新增均使用隔离页面和运行模块，不修改其他菜单、右侧 AI 助手、权限管理或既有订单流程。",
+    "deployTargets": [
+      "new"
+    ],
+    "deployAccount": "zhangrui",
+    "status": "已更新 new 预览"
+  },
+  {
     "time": "2026-08-17 14:10",
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
