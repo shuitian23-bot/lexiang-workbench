@@ -149,6 +149,7 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
     children: {
       'lead.dashboard': { label: '线索看板', path: '/lead/dashboard' },
       'lead.pool':      { label: '线索池',   path: '/lead/pool' },
+      'lead.governmentPool': { label: '线索池-政企', path: '/lead/government-pool' },
       'lead.score':     { label: '打分模型', path: '/lead/score' }
     }
   },
@@ -156,7 +157,8 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
     icon: menuIcon('<rect x="3.4" y="4" width="13.2" height="12.4" rx="2.2"/><path d="M6.4 7.4h7.2M6.4 10h7.2M6.4 12.6h4.4"/>'),
     label: '订单管理',
     children: {
-      'order.purchaseOrders': { label: '协议采购单管理', path: '/order/purchase-orders' }
+      'order.purchaseOrders': { label: '协议采购单管理', path: '/order/purchase-orders' },
+      'order.agreement': { label: '协议产品订单管理', path: '/order/agreement' }
     }
   }
 }
@@ -180,6 +182,7 @@ export function pageIdToPath(pageId: PageId) {
     'employee.detail': '/hidden/employee/detail',
     'employee.cert-detail': '/hidden/employee/cert-detail',
     'lead.detail': '/hidden/lead/detail',
+    'order.agreement.detail': '/hidden/order/agreement-detail',
     'report.overview': '/hidden/report/overview',
     'report.quality': '/hidden/report/quality',
     'report.detail': '/hidden/report/detail'
@@ -210,6 +213,7 @@ export function getPageLabel(pageId: PageId) {
     'employee.detail': '员工详情',
     'employee.cert-detail': '认证详情',
     'lead.detail': '线索详情',
+    'order.agreement.detail': '协议产品订单详情',
     'report.overview': '报告总览',
     'report.quality': '质量报告',
     'report.detail': '报告详情'

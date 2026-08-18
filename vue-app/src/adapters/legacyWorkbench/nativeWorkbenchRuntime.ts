@@ -18,6 +18,7 @@ const RUNTIME_SCRIPTS = [
   legacyAssetUrl('admin-runtime/workbench-pages.js'),
   legacyAssetUrl('admin-runtime/workbench-lead.js'),
   legacyAssetUrl('admin-runtime/workbench-prd-modules.js'),
+  legacyAssetUrl('admin-runtime/workbench-agreement-orders.js'),
   legacyAssetUrl('admin-runtime/workbench-geo.js'),
   legacyAssetUrl('admin-runtime/workbench-data.js'),
   legacyAssetUrl('admin-runtime/workbench-employee.js'),
@@ -76,7 +77,9 @@ export function runNativeWorkbenchPageInit(pageId: string) {
   if (pageId === 'employee.certification') delayed(() => window.loadCertificationTable?.(1), 80)
   if (pageId === 'lead.dashboard') delayed(window.renderKbBody, 80)
   if (pageId === 'lead.pool') delayed(window.poolRefresh, 80)
+  if (pageId === 'lead.governmentPool') delayed(window.governmentPoolRefresh, 80)
   if (pageId === 'lead.score') delayed(window.scoreRefresh, 80)
+  if (pageId === 'order.agreement') delayed(window.agreementOrderRefresh, 80)
   scheduleNativeChartResize()
 }
 

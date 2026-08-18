@@ -65,6 +65,8 @@ declare global {
     loadCertificationTable?: (page?: number) => void
     renderKbBody?: () => void
     poolRefresh?: () => void
+    governmentPoolRefresh?: () => void
     scoreRefresh?: () => void
+    agreementOrderRefresh?: () => void
   }
 }

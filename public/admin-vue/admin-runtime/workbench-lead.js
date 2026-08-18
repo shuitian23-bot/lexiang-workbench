@@ -654,6 +654,157 @@
       <div id="lead-pool-alloc"></div>
       <div id="lead-pool-table"></div>`;
   }
+
+  const GOVERNMENT_MANAGER_CODES = ['CM001', 'CM002', 'CM003', 'CM004'];
+  const GOVERNMENT_EMPTY_FILTERS = {
+    createdFrom: '', createdTo: '', leadNo: '', lenovoId: '', phone: '', name: '', company: '',
+    owner: '', managerCode: '', scoreMin: '', scoreMax: '', grade: '',
+  };
+  const GOVERNMENT = {
+    draft: { ...GOVERNMENT_EMPTY_FILTERS },
+    applied: { ...GOVERNMENT_EMPTY_FILTERS },
+    page: 1,
+    sortKey: 'createdAt',
+    sortDirection: 'desc',
+  };
+  function governmentLeadRows() {
+    const filters = GOVERNMENT.applied;
+    const includes = (value, keyword) => String(value || '').toLowerCase().includes(String(keyword || '').toLowerCase());
+    const rows = LEAD.leads.map((lead, index) => ({
+      ...lead,
+      customerManagerCode: index % 4 === 0 ? '' : GOVERNMENT_MANAGER_CODES[index % GOVERNMENT_MANAGER_CODES.length],
+      relGabIs: index % 3 === 0 ? 'GAB-' + String(1001 + index) : '',
+      relKabIs: index % 3 === 1 ? 'KAB-' + String(2001 + index) : '',
+      relEmergingMarketIs: index % 3 === 2 ? 'EM-' + String(3001 + index) : '',
+    })).filter(lead => {
+      const created = lead.createdAt ? new Date(lead.createdAt) : null;
+      if (filters.createdFrom && (!created || created < new Date(filters.createdFrom + 'T00:00:00'))) return false;
+      if (filters.createdTo && (!created || created > new Date(filters.createdTo + 'T23:59:59'))) return false;
+      if (filters.leadNo && !includes(lead.leadNo, filters.leadNo)) return false;
+      if (filters.lenovoId && !includes(lead.lenovoId, filters.lenovoId)) return false;
+      if (filters.phone && !includes(lead.phone, filters.phone)) return false;
+      if (filters.name && !includes(lead.name, filters.name)) return false;
+      if (filters.company && !includes(lead.company, filters.company)) return false;
+      if (filters.owner && !includes(lead.owner, filters.owner)) return false;
+      if (filters.managerCode === '__none__' && lead.customerManagerCode) return false;
+      if (filters.managerCode && filters.managerCode !== '__none__' && lead.customerManagerCode !== filters.managerCode) return false;
+      if (filters.scoreMin !== '' && Number(lead.score) < Number(filters.scoreMin)) return false;
+      if (filters.scoreMax !== '' && Number(lead.score) >= Number(filters.scoreMax)) return false;
+      if (filters.grade && lead.grade !== filters.grade) return false;
+      return true;
+    });
+    return rows.sort((left, right) => {
+      const key = GOVERNMENT.sortKey;
+      const leftValue = left[key] instanceof Date ? left[key].getTime() : left[key] == null ? '' : left[key];
+      const rightValue = right[key] instanceof Date ? right[key].getTime() : right[key] == null ? '' : right[key];
+      const result = leftValue > rightValue ? 1 : leftValue < rightValue ? -1 : 0;
+      return GOVERNMENT.sortDirection === 'asc' ? result : -result;
+    });
+  }
+  function governmentPoolToolbarHtml() {
+    return `<div class="lead-toolbar" style="justify-content:flex-end">
+      <button class="btn btn-sm btn-secondary" onclick="governmentLeadExport(false)">导出（脱敏）</button>
+      <button class="btn btn-sm btn-primary" onclick="governmentLeadExportApproval()">导出（明文）</button>
+    </div>`;
+  }
+  function governmentPoolFilterHtml() {
+    const draft = GOVERNMENT.draft;
+    const input = (key, placeholder, width, type) => `<input class="ops-select" type="${type || 'text'}" style="width:${width || 140}px" placeholder="${placeholder}" value="${esc(draft[key])}" oninput="governmentLeadSet('${key}',this.value)"/>`;
+    const managerOptions = GOVERNMENT_MANAGER_CODES.map(code => `<option value="${code}" ${draft.managerCode === code ? 'selected' : ''}>${code}</option>`).join('');
+    const gradeOptions = GRADES.map(grade => `<option value="${grade}" ${draft.grade === grade ? 'selected' : ''}>${grade}</option>`).join('');
+    return `<div class="lead-filter card">
+      ${input('createdFrom', '创建日期起', 148, 'date')}<span class="filter-separator">至</span>${input('createdTo', '创建日期止', 148, 'date')}
+      ${input('leadNo', '线索编号', 140)}${input('lenovoId', 'Lenovo ID', 140)}${input('phone', '手机号', 140)}
+      ${input('name', '姓名', 120)}${input('company', '客户名称', 140)}${input('owner', '所属IS', 120)}
+      <select class="ops-select" style="width:150px" onchange="governmentLeadSet('managerCode',this.value)">
+        <option value="">客户经理编码</option>${managerOptions}<option value="__none__" ${draft.managerCode === '__none__' ? 'selected' : ''}>无</option>
+      </select>
+      ${input('scoreMin', '线索分 ≥', 120, 'number')}${input('scoreMax', '线索分 <', 120, 'number')}
+      <select class="ops-select" style="width:120px" onchange="governmentLeadSet('grade',this.value)">
+        <option value="">客户分级</option>${gradeOptions}
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="governmentLeadApplyFilters()">查询</button>
+      <button class="btn btn-sm btn-secondary" onclick="governmentLeadResetFilters()">重置</button>
+    </div>`;
+  }
+  function renderGovernmentPool() {
+    return `<div class="page-header"><div><div class="page-title">线索池-政企</div><div class="page-desc">企业客户管理 · 政企线索只读查询与导出</div></div></div>
+      ${governmentPoolToolbarHtml()}${governmentPoolFilterHtml()}<div id="lead-government-pool-table"></div>`;
+  }
+  function governmentPoolTableHtml() {
+    const rows = governmentLeadRows();
+    const pageSize = 20;
+    const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+    GOVERNMENT.page = Math.min(Math.max(1, GOVERNMENT.page), totalPages);
+    const pageRows = rows.slice((GOVERNMENT.page - 1) * pageSize, GOVERNMENT.page * pageSize);
+    const sortable = (key, label) => `<th class="lead-sort" onclick="governmentLeadSort('${key}')">${label}<span class="lead-si ${GOVERNMENT.sortKey === key ? 'on' : ''}">${GOVERNMENT.sortKey === key ? (GOVERNMENT.sortDirection === 'asc' ? '▲' : '▼') : '↕'}</span></th>`;
+    const head = `<tr><th style="min-width:96px;text-align:left">操作</th>${sortable('oneId', 'ONE ID')}${sortable('lenovoId', 'Lenovo ID')}${sortable('leadNo', '线索编号')}${sortable('name', '姓名')}${sortable('company', '客户名称')}${sortable('phone', '手机号')}${sortable('grade', '客户分级')}${sortable('score', '线索分')}${sortable('customerManagerCode', '客户经理编码')}${sortable('relGabIs', 'REL-GAB IS')}${sortable('relKabIs', 'REL-KAB IS')}${sortable('relEmergingMarketIs', 'REL-新兴市场 IS')}${sortable('createdAt', '创建时间')}</tr>`;
+    const body = pageRows.length ? pageRows.map(lead => `<tr>
+      <td><button class="btn btn-sm btn-secondary" onclick="leadShowDetail('${lead.rowId}','lead.governmentPool')">查看详情</button></td>
+      <td>${lead.oneId}</td><td>${lead.lenovoId || '-'}</td><td>${lead.leadNo || '-'}</td><td>${esc(lead.name)}</td><td>${esc(lead.company)}</td>
+      <td>${maskPhone(lead.phone)}</td><td>${lead.grade}</td><td>${lead.score}</td><td>${lead.customerManagerCode || '-'}</td>
+      <td>${lead.relGabIs || '-'}</td><td>${lead.relKabIs || '-'}</td><td>${lead.relEmergingMarketIs || '-'}</td><td>${fmt(lead.createdAt)}</td></tr>`).join('')
+      : '<tr><td colspan="14" style="text-align:center;color:var(--text-tertiary);padding:40px">暂无数据</td></tr>';
+    const pager = `<div class="employee-pagination in-card"><div>共 ${rows.length} 条记录，当前第 ${GOVERNMENT.page} 页，共 ${totalPages} 页</div>
+      <div class="pagination-actions"><button class="btn btn-sm btn-secondary" ${GOVERNMENT.page <= 1 ? 'disabled' : ''} onclick="governmentLeadPage(${GOVERNMENT.page - 1})">上一页</button>
+      <button class="btn btn-sm btn-secondary" ${GOVERNMENT.page >= totalPages ? 'disabled' : ''} onclick="governmentLeadPage(${GOVERNMENT.page + 1})">下一页</button></div></div>`;
+    return `<div class="card" style="padding:0"><div class="card-header" style="padding:13px 18px"><div class="card-title">政企线索列表</div><span style="font-size:13px;color:var(--text-tertiary)">共 ${rows.length} 条</span></div>
+      <div style="overflow-x:auto"><table class="lead-table">${head}${body}</table></div>${pager}</div>`;
+  }
+  function governmentPoolRefresh() {
+    const table = document.getElementById('lead-government-pool-table');
+    if (table) table.innerHTML = governmentPoolTableHtml();
+  }
+  window.governmentPoolRefresh = governmentPoolRefresh;
+  window.governmentLeadSet = function (key, value) { if (Object.prototype.hasOwnProperty.call(GOVERNMENT.draft, key)) GOVERNMENT.draft[key] = value; };
+  window.governmentLeadApplyFilters = function () {
+    const min = GOVERNMENT.draft.scoreMin === '' ? null : Number(GOVERNMENT.draft.scoreMin);
+    const max = GOVERNMENT.draft.scoreMax === '' ? null : Number(GOVERNMENT.draft.scoreMax);
+    if ((min != null && (!Number.isFinite(min) || min < 0 || min > 100)) || (max != null && (!Number.isFinite(max) || max < 0 || max > 101))) return toast('线索分请输入 0 至 100', 'warn');
+    if (min != null && max != null && min >= max) return toast('线索分上限需大于下限', 'warn');
+    if (GOVERNMENT.draft.createdFrom && GOVERNMENT.draft.createdTo && GOVERNMENT.draft.createdFrom > GOVERNMENT.draft.createdTo) return toast('创建日期起不能晚于止', 'warn');
+    GOVERNMENT.applied = { ...GOVERNMENT.draft };
+    GOVERNMENT.page = 1;
+    governmentPoolRefresh();
+  };
+  window.governmentLeadResetFilters = function () {
+    GOVERNMENT.draft = { ...GOVERNMENT_EMPTY_FILTERS };
+    GOVERNMENT.applied = { ...GOVERNMENT_EMPTY_FILTERS };
+    GOVERNMENT.page = 1;
+    const host = document.querySelector('.lead-government-pool-native');
+    if (host) { host.innerHTML = renderGovernmentPool(); governmentPoolRefresh(); }
+  };
+  window.governmentLeadSort = function (key) {
+    if (GOVERNMENT.sortKey === key) GOVERNMENT.sortDirection = GOVERNMENT.sortDirection === 'asc' ? 'desc' : 'asc';
+    else { GOVERNMENT.sortKey = key; GOVERNMENT.sortDirection = 'asc'; }
+    governmentPoolRefresh();
+  };
+  window.governmentLeadPage = function (page) { GOVERNMENT.page = page; governmentPoolRefresh(); };
+  function governmentLeadExportCsv(plain) {
+    const rows = governmentLeadRows();
+    if (!rows.length) { toast('暂无可导出数据', 'warn'); return 0; }
+    const csvCell = value => { const text = String(value == null ? '' : value); return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text; };
+    const headers = ['ONE ID', 'Lenovo ID', '线索编号', '姓名', '客户名称', '手机号', '客户分级', '线索分', '客户经理编码', 'REL-GAB IS', 'REL-KAB IS', 'REL-新兴市场 IS', '创建时间'];
+    const lines = [headers.join(',')];
+    rows.forEach(lead => lines.push([lead.oneId, lead.lenovoId, lead.leadNo, lead.name, lead.company, plain ? lead.phone : maskPhone(lead.phone), lead.grade, lead.score, lead.customerManagerCode, lead.relGabIs, lead.relKabIs, lead.relEmergingMarketIs, fmt(lead.createdAt)].map(csvCell).join(',')));
+    downloadCsv(lines.join('\n'), `政企线索${plain ? '_明文' : '_脱敏'}_${ts()}.csv`);
+    return rows.length;
+  }
+  window.governmentLeadExport = function (plain) { const count = governmentLeadExportCsv(!!plain); if (count) toast(`导出成功，共 ${count} 条`); };
+  window.governmentLeadExportApproval = function () {
+    const count = governmentLeadRows().length;
+    if (!count) return toast('暂无可导出数据', 'warn');
+    openModal('明文导出审批', `<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px">明文导出含<strong style="color:var(--text)">手机号等敏感信息</strong>，需提交审批。本次导出范围：<strong style="color:var(--primary)">${count}</strong> 条政企线索。</div>
+      ${field('导出事由', '<textarea class="lead-inp" id="gov-ex-reason" rows="3" placeholder="请说明明文导出用途（必填）"></textarea>')}`,
+      '<button class="btn btn-sm btn-secondary" onclick="leadCloseModal()">取消</button><button class="btn btn-sm btn-primary" onclick="governmentLeadSubmitExportApproval()">提交审批</button>', 480);
+  };
+  window.governmentLeadSubmitExportApproval = function () {
+    if (!val('gov-ex-reason')) return toast('请填写导出事由', 'warn');
+    leadCloseModal();
+    toast('明文导出申请已提交审批');
+    setTimeout(() => { const count = governmentLeadExportCsv(true); if (count) toast(`审批通过（demo），已下载明文 ${count} 条`); }, 1200);
+  };
+
   function poolStatsHtml() {
     // 2.1 运营/Leader/Sales 统一 6 张；计数基于筛选栏联动结果（poolBase）
     const cl = poolBase();
@@ -1325,14 +1476,17 @@
   };
 
   // 查看详情：应用内切换到详情页（保留左侧导航/外壳，样式同在职员工管理详情页）
-  window.leadShowDetail = function (id) {
+  window.leadShowDetail = function (id, backPage) {
     const d = findLead(id); if (!d) return;
     window.__leadDetail = d;
+    window.__leadDetailBackPage = backPage === 'lead.governmentPool' ? backPage : 'lead.pool';
     if (typeof switchPage === 'function') switchPage('lead.detail');
   };
   function renderLeadDetailPage() {
     const d = window.__leadDetail;
-    if (!d) return `<div class="empty-state"><div class="title">未选择线索</div><div><button class="btn btn-secondary" onclick="switchPage('lead.pool')">返回线索池</button></div></div>`;
+    const backPage = window.__leadDetailBackPage === 'lead.governmentPool' ? 'lead.governmentPool' : 'lead.pool';
+    const backLabel = backPage === 'lead.governmentPool' ? '线索池-政企' : '线索池';
+    if (!d) return `<div class="empty-state"><div class="title">未选择线索</div><div><button class="btn btn-secondary" onclick="switchPage('${backPage}')">返回${backLabel}</button></div></div>`;
     const pill = d.status === '已退回' ? 'danger' : (d.status === '已接收' || d.status === '跟进中') ? 'success' : 'muted';
     const fld = (lbl, v, strong) => `<div><div class="employee-field-label">${lbl}</div><div class="employee-field-value${strong ? ' strong' : ''}">${v == null || v === '' ? '-' : v}</div></div>`;
     const logs = d.followLogs && d.followLogs.length
@@ -1340,7 +1494,7 @@
       : '<div class="employee-field-label">暂无跟进记录</div>';
     return `
       <div class="employee-detail-page">
-        <button class="btn btn-secondary employee-back-btn" onclick="switchPage('lead.pool')">← 返回线索池</button>
+        <button class="btn btn-secondary employee-back-btn" onclick="switchPage('${backPage}')">← 返回${backLabel}</button>
         <div class="employee-detail-layout">
           <div class="card employee-profile-card">
             <div class="employee-avatar">${esc((d.name || '?').slice(0, 1))}</div>
@@ -1981,6 +2135,7 @@
     if (typeof PAGE_RENDERERS === 'undefined') return setTimeout(register, 50);
     PAGE_RENDERERS['lead.dashboard'] = renderDashboard;
     PAGE_RENDERERS['lead.pool'] = renderPool;
+    PAGE_RENDERERS['lead.governmentPool'] = renderGovernmentPool;
     PAGE_RENDERERS['lead.score'] = renderScore;
     PAGE_RENDERERS['lead.detail'] = renderLeadDetailPage;
     injectStyle();
@@ -1988,6 +2143,7 @@
       const pg = e.detail;
       if (pg === 'lead.dashboard') setTimeout(renderKbBody, 30);
       else if (pg === 'lead.pool') setTimeout(poolRefresh, 30);
+      else if (pg === 'lead.governmentPool') setTimeout(governmentPoolRefresh, 30);
       else if (pg === 'lead.score') setTimeout(scoreRefresh, 30);
     });
     window.addEventListener('resize', () => Object.values(charts).forEach(c => c && c.resize && c.resize()));

@@ -23,8 +23,10 @@ const EmployeeOverview = () => import('@/views/employee/EmployeeOverviewView.vue
 const EmployeeCert = () => import('@/views/employee/EmployeeCertView.vue')
 const LeadDashboard = () => import('@/views/lead/LeadDashboardView.vue')
 const LeadPool = () => import('@/views/lead/LeadPoolView.vue')
+const LeadGovernmentPool = () => import('@/views/lead/LeadGovernmentPoolView.vue')
 const LeadScore = () => import('@/views/lead/LeadScoreView.vue')
 const OrderPurchaseOrders = () => import('@/views/order/OrderPurchaseOrdersView.vue')
+const AgreementOrder = () => import('@/views/order/AgreementOrderView.vue')
 const AgentSkills = () => import('@/views/agent/AgentSkillsView.vue')
 const AgentSkillCreate = () => import('@/views/agent/AgentSkillCreateView.vue')
 const AgentPermissions = () => import('@/views/agent/AgentPermissionsView.vue')
@@ -85,11 +87,13 @@ const routes: RouteRecordRaw[] = [
       // 企业客户
       { path: 'lead/dashboard',       component: LeadDashboard, meta: { pageId: 'lead.dashboard', group: 'lead' } },
       { path: 'lead/pool',            component: LeadPool, meta: { pageId: 'lead.pool',      group: 'lead' } },
+      { path: 'lead/government-pool', component: LeadGovernmentPool, meta: { pageId: 'lead.governmentPool', group: 'lead' } },
       { path: 'lead/score',           component: LeadScore, meta: { pageId: 'lead.score',     group: 'lead' } },
 
       // 订单管理
       { path: 'order/purchase-orders',     component: OrderPurchaseOrders, meta: { pageId: 'order.purchaseOrders', group: 'order' } },
       { path: 'order/purchase-orders/:id', component: OrderPurchaseOrders, meta: { pageId: 'order.purchaseOrders', group: 'order' } },
+      { path: 'order/agreement',            component: AgreementOrder, meta: { pageId: 'order.agreement', group: 'order' } },
 
       // Agent 入口（从用户菜单进入，不在侧栏显示）
       { path: 'agent/skills',         component: AgentSkills, meta: { pageId: 'agent.skills' } },
@@ -110,6 +114,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'hidden/employee/detail',      component: NativeWorkbenchPage, meta: { pageId: 'employee.detail' } },
       { path: 'hidden/employee/cert-detail', component: NativeWorkbenchPage, meta: { pageId: 'employee.cert-detail' } },
       { path: 'hidden/lead/detail',          component: NativeWorkbenchPage, meta: { pageId: 'lead.detail' } },
+      { path: 'hidden/order/agreement-detail', component: NativeWorkbenchPage, meta: { pageId: 'order.agreement.detail' } },
       { path: 'hidden/report/overview',      component: NativeWorkbenchPage, meta: { pageId: 'report.overview' } },
       { path: 'hidden/report/quality',       component: NativeWorkbenchPage, meta: { pageId: 'report.quality' } },
       { path: 'hidden/report/detail',        component: NativeWorkbenchPage, meta: { pageId: 'report.detail' } },
