@@ -1075,9 +1075,10 @@
     return out;
   }
 
-  async function submit(text) {
+  async function submit(text, options = {}) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
+    const isSystemHandoff = options.system === true;
     // 本轮桥接状态（全屏→分屏）
     let turnProducts = null;
     let turnTitle = "";
@@ -1099,22 +1100,24 @@
     lxfdSetGalleryChatting(true);
     if (welcome) welcome.style.display = "none";
     thread?.classList.add("show");
-    if (convoName) { convoName.textContent = shortText(value, 15); convoName.title = value; }
+    if (!isSystemHandoff && convoName) { convoName.textContent = shortText(value, 15); convoName.title = value; }
     // 全屏欢迎态首问=新对话：thread 还没有任何消息（非历史恢复/非分屏回流）说明用户从初始
     // 首页重新开聊，清掉主面板 boot 时 restore 的旧对话上下文，首问不背"以上为历史对话"的
     // 旧账（真机反馈）；旧对话在侧栏历史归档里可找回。
-    if (thread && !thread.querySelector(".lxfd-msg-user, .lxfd-msg-ai")) {
+    if (!isSystemHandoff && thread && !thread.querySelector(".lxfd-msg-user, .lxfd-msg-ai")) {
       chatState.convId = null;
       if (window.__lxBridge && typeof window.__lxBridge.resetConversationContext === "function") window.__lxBridge.resetConversationContext();
     }
-    const turnId = "turn-" + Date.now() + "-" + turns.length;
-    const user = document.createElement("div");
-    user.className = "lxfd-msg-user";
-    user.id = turnId;
-    user.textContent = value;
-    thread?.appendChild(user);
-    turns.push({ id: turnId, text: value });
-    renderTurnIndex(turnId);
+    if (!isSystemHandoff) {
+      const turnId = "turn-" + Date.now() + "-" + turns.length;
+      const user = document.createElement("div");
+      user.className = "lxfd-msg-user";
+      user.id = turnId;
+      user.textContent = value;
+      thread?.appendChild(user);
+      turns.push({ id: turnId, text: value });
+      renderTurnIndex(turnId);
+    }
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {}
@@ -1834,7 +1837,7 @@
 
   // 职场认证按钮（lxfd 内的 data-open-wpa 委托）
   document.addEventListener("click", (e) => {
-    if (e.target.closest("[data-open-wpa]")) {
+    if (e.target.closest("[data-open-wpa]") && !document.querySelector(".lx-p0-modal-mask.show")) {
       if (typeof window.openWorkplaceAuth === "function") window.openWorkplaceAuth();
     }
   });
