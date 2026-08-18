@@ -263,6 +263,17 @@ export const CONTENT_SLOT_GROUPS = [
         interactions: ['filter leads', 'batch allocate', 'open lead detail']
       },
       {
+        pageId: 'lead.governmentPool',
+        label: '线索池-政企',
+        path: '/lead/government-pool',
+        layout: CONTENT_SLOT_LAYOUTS.tableWorkbench,
+        sourceRenderer: 'src/views/lead/LeadGovernmentPoolView.vue',
+        fixedStyles: ['filter toolbar', 'lead table', 'read-only actions'],
+        sharedCandidates: ['filter bar', 'data table', 'export action bar'],
+        customAreas: ['政企线索只读查询', 'REL关系字段'],
+        interactions: ['filter leads', 'export leads', 'open lead detail']
+      },
+      {
         pageId: 'lead.score',
         label: '打分模型',
         path: '/lead/score',
