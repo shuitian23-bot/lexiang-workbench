@@ -6848,10 +6848,11 @@ function openOrderDetail(orderId) {
           ],
           business: [
             ["客服", "/assets/icons/shortcut-customer-service.svg"],
-            ["咨询热线", "/assets/icons/shortcut-customer-service.svg"],
             ["企业认证", "/assets/icons/sidebar-custom-service.svg"],
-            ["职场认证", "/assets/icons/sidebar-member-center.svg"],
-            ["会员权益", "/assets/icons/sidebar-member-center.svg"],
+            ["批量询价", "/assets/icons/sidebar-points-mall.svg"],
+            ["对公开票", "/assets/icons/sidebar-free-trial.svg"],
+            ["上门售后", "/assets/icons/shortcut-trade-in.svg"],
+            ["会员中心", "/assets/icons/sidebar-member-center.svg"],
           ],
           enterprise: [
             ["客服", "/assets/icons/shortcut-customer-service.svg"],
@@ -7651,9 +7652,7 @@ function openOrderDetail(orderId) {
               if (text.includes("教育特惠")) openEduZone();
               else if (text.includes("国补")) sendChat(text);
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
-              else if (text.includes("咨询热线") || text.includes("客服热线")) lxShowServiceCard();
               else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
-              else if (text.includes("职场认证")) openWorkplaceAuth();
               else if (text.includes("企业认证")) openEnterpriseAuth();
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
