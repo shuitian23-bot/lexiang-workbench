@@ -589,7 +589,7 @@ type SkillClarifyDoc = {
   closing: string
 }
 type ChatMessage =
-  | { id: string; kind: 'user'; text: string }
+  | { id: string; kind: 'user'; text: string; autoExecute?: boolean }
   | { id: string; kind: 'assistant'; text: string; clarifyDoc?: SkillClarifyDoc; todoList?: SkillTodoList; authRequest?: SkillAuthRequest; authResult?: SkillAuthResult }
   | { id: string; kind: 'state'; states: SkillStateItem[] }
 
@@ -686,6 +686,7 @@ const reviewSubmitted = ref(false)
 const reviewStatus = ref('提交审核后停留当前页面，Skill Hub 状态变为待审批')
 const activeCapabilityUpdate = ref<SkillCapabilityUpdate | null>(null)
 const capabilityContextEl = ref<HTMLElement | null>(null)
+const runningCapabilityTaskIds = new Set<string>()
 const REVIEW_SCORE_THRESHOLD = 0.80
 
 const form = ref({
@@ -1181,6 +1182,78 @@ async function submitClarifyMessage() {
     ] })
     clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '大模型暂时没有返回结果。我已经保留当前输入和菜单子项上下文，你可以稍后重试，或先继续补充应用场景、数据范围、输出形式和验收用例。' })
     scrollChat()
+  }
+}
+
+function createCapabilityDecisionSummary(update: SkillCapabilityUpdate) {
+  const selected = new Set(selectedContextItems.value.map(item => item.code))
+  const adopted = update.affectedContexts.map(context => `${context.name} ${context.currentVersion} → ${context.targetVersion}`)
+  const adoptedOptional = update.optionalContexts.filter(context => selected.has(context.contextId)).map(context => context.name)
+  const skippedOptional = update.optionalContexts.filter(context => !selected.has(context.contextId)).map(context => context.name)
+  const parts = [
+    `采用：${[...adopted, ...adoptedOptional].join('、') || '无'}`,
+    `暂不采用：${skippedOptional.join('、') || '无'}`
+  ]
+  return { label: '能力更新采用结论', text: parts.join('；') }
+}
+
+async function runPendingCapabilityUpdate() {
+  const update = activeCapabilityUpdate.value
+  if (!update || update.status !== 'preparing' || update.task?.status !== 'generating') return
+  const taskId = update.task.id
+  if (!taskId || runningCapabilityTaskIds.has(taskId)) return
+  const scanMessage = clarifyMessages.value.find(
+    (message): message is Extract<ChatMessage, { kind: 'user' }> => message.kind === 'user' && Boolean(message.autoExecute)
+  )
+  if (!scanMessage) return
+
+  runningCapabilityTaskIds.add(taskId)
+  const stateId = `capability-${taskId}`
+  clarifyMessages.value.push({ id: stateId, kind: 'state', states: [
+    { kind: 'thinking', status: 'running', title: '读取能力版本变化', detail: `正在对比 ${update.currentCapabilityVersion} 与 ${update.targetCapabilityVersion}。` },
+    { kind: 'tool_call', status: 'running', title: '扫描 Skill 能力上下文', detail: '正在结合已选上下文、变化报告和当前草稿生成更新建议。' },
+    { kind: 'streaming', status: 'pending', title: '生成更新草稿', detail: '生成成功后才会建立编辑版本，当前线上版本保持不变。' }
+  ] })
+  scrollChat()
+
+  try {
+    const reply = await requestSkillModelReply(scanMessage.text)
+    clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
+    clarifyMessages.value.push({ id: `${stateId}-done`, kind: 'state', states: [
+      { kind: 'thinking', status: 'done', title: '能力版本变化已读取', detail: `已完成 ${update.currentCapabilityVersion} 到 ${update.targetCapabilityVersion} 的差异确认。` },
+      { kind: 'tool_call', status: 'done', title: '能力上下文扫描完成', detail: '已识别受影响能力与可选新增能力。' },
+      { kind: 'streaming', status: 'done', title: '更新草稿已生成', detail: '已保存首轮生成结果，可继续编辑并进入后续评估。' }
+    ] })
+    clarifyMessages.value.push({ id: `${stateId}-reply`, kind: 'assistant', text: '', clarifyDoc: reply })
+    updateClarifySummary(scanMessage.text, reply)
+    summaryItems.value = [
+      ...summaryItems.value.filter(item => item.label !== '能力更新采用结论'),
+      createCapabilityDecisionSummary(update)
+    ]
+    const snapshot = createDraftSnapshot()
+    const completed = skillHubStore.completeCapabilityUpdate(form.value.name, snapshot)
+    if (!completed) throw new Error('能力更新草稿保存失败')
+    activeCapabilityUpdate.value = completed.capabilityUpdate || null
+    workspaceSub.value = `${completed.cnName || completed.name} · 更新编辑中 · ${completed.editVersion || completed.version}`
+    sessionStorage.setItem('leai.skillCreateDraft', JSON.stringify({ item: completed, capabilityUpdate: true }))
+    toast(`${completed.cnName || completed.name}：能力上下文扫描完成，更新草稿已生成`)
+    scrollChat()
+  } catch (error) {
+    clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
+    const detail = error instanceof Error ? sanitizeModelVendorName(error.message) : '能力更新生成暂不可用'
+    clarifyMessages.value.push({ id: `${stateId}-failed`, kind: 'state', states: [
+      { kind: 'thinking', status: 'done', title: '能力版本变化已读取', detail: '当前线上版本和原草稿未被修改。' },
+      { kind: 'tool_call', status: 'failed', title: '能力上下文扫描失败', detail },
+      { kind: 'error', status: 'blocked', title: '可返回 Skill Hub 重试', detail: '本次生成未建立编辑版本，可重新点击“更新”。' }
+    ] })
+    const failed = skillHubStore.failCapabilityUpdate(form.value.name, detail)
+    activeCapabilityUpdate.value = failed?.capabilityUpdate || null
+    if (failed) sessionStorage.setItem('leai.skillCreateDraft', JSON.stringify({ item: failed, capabilityUpdate: true }))
+    workspaceSub.value = `${form.value.cnName || form.value.name} · 更新生成失败 · 可重试`
+    toast(`${form.value.cnName || form.value.name}：更新生成失败，原版本未受影响`)
+    scrollChat()
+  } finally {
+    runningCapabilityTaskIds.delete(taskId)
   }
 }
 
@@ -2055,6 +2128,7 @@ onMounted(() => {
   document.title = '联想门户工作台'
   resizeClarifyInput()
   document.addEventListener('click', closeContextDropdowns)
+  void nextTick(() => { void runPendingCapabilityUpdate() })
 })
 
 watch(
@@ -2066,6 +2140,7 @@ watch(
   (nextIntent, previousIntent) => {
     if (nextIntent.every((value, index) => value === previousIntent[index])) return
     loadEditDraft()
+    void nextTick(() => { void runPendingCapabilityUpdate() })
   },
   { flush: 'post' }
 )

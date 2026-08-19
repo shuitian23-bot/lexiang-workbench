@@ -533,3 +533,16 @@ test('Skill create reloads an update draft when route intent changes in an open 
   assert.match(view, /watch\(\s*\(\) => \[\s*String\(route\.query\.skill \|\| ''\),\s*String\(route\.query\.edit \|\| ''\),\s*String\(route\.query\.capabilityUpdate \|\| ''\)\s*\]/s)
   assert.match(view, /\(nextIntent, previousIntent\)[\s\S]*loadEditDraft\(\)/)
 })
+
+test('Skill update automatically runs the stable first clarification task and commits only after a model result', async () => {
+  const view = await source('../src/views/agent/AgentSkillCreateView.vue')
+  assert.match(view, /autoExecute/)
+  assert.match(view, /runPendingCapabilityUpdate/)
+  assert.match(view, /runningCapabilityTaskIds/)
+  assert.match(view, /requestSkillModelReply\(scanMessage\.text\)/)
+  assert.match(view, /createCapabilityDecisionSummary/)
+  assert.match(view, /能力更新采用结论/)
+  assert.match(view, /skillHubStore\.completeCapabilityUpdate/)
+  assert.match(view, /skillHubStore\.failCapabilityUpdate/)
+  assert.match(view, /sessionStorage\.setItem\('leai\.skillCreateDraft'/)
+})
