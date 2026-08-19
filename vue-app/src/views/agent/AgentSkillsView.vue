@@ -82,7 +82,7 @@
             <td>{{ item.platform }}</td>
             <td>
               <div class="skill-hub-desc">{{ item.desc }}</div>
-              <div v-if="hasCapabilityUpdate(item)" class="skill-hub-change-summary">
+              <div v-if="shouldShowCapabilityChangeSummary(item.capabilityUpdate)" class="skill-hub-change-summary">
                 <b>{{ item.capabilityUpdate?.summary }}</b>
                 <span>{{ item.capabilityUpdate?.detectedAt }} 检测</span>
               </div>
@@ -296,6 +296,7 @@ import { storeToRefs } from 'pinia'
 import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { skillHubStatusLabel, useSkillHubStore, type SkillHubItem, type SkillStatus } from '@/stores/skillHub'
+import { shouldShowCapabilityChangeSummary } from '@/services/skillCapabilityChanges'
 
 const router = useRouter()
 const appStore = useAppStore()

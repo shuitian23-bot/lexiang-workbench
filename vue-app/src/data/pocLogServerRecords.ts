@@ -1,14 +1,14 @@
 export const pocLogServerRecords = [
   {
-    "time": "2026-08-19 10:12",
+    "time": "2026-08-19 10:30",
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
-    "sourceRef": "dev/zhangrui-capability-update-selection；设计说明 2026-08-19-capability-update-context-selection-design.md",
+    "sourceRef": "dev/zhangrui-capability-update-selection；设计说明 2026-08-19-capability-update-context-selection-design.md、2026-08-19-capability-update-auto-scan-query-design.md",
     "traceStatus": "已在个人隔离 worktree 完成源码调整和能力更新契约测试；new 预览、正式链接和远端 Git 尚未更新。",
-    "overwriteImpact": "只调整 Skill Hub 能力更新草稿入口和 Skill 创建第二步的上下文恢复；不修改权限管理、其他 Skill 生命周期、右侧 AI 助手或受保护 admin-runtime。",
-    "title": "Skill 能力更新草稿上下文与操作状态修正",
-    "scope": "Skill Hub / 能力更新 / 编辑草稿 / 需求澄清 / 审批驳回",
-    "detail": "能力上下文有更新时，点击“更新”进入 Skill 创建第二步，保留草稿原选择并自动勾选本次受影响能力；已打开的 Skill 创建页签也会按路由重新恢复目标草稿。开始更新后操作改为“编辑”，不再显示“继续更新”或重复显示“更新”；提交审核后显示“审批、驳回”，审批通过后显示“发布”，驳回后恢复编辑且不丢失草稿。可选新增能力继续由用户手动加入，当前线上版本在正式发布前保持生效。",
+    "overwriteImpact": "只调整 Skill Hub 能力更新草稿入口、更新摘要展示和 Skill 创建第二步的上下文恢复；不修改权限管理、其他 Skill 生命周期、右侧 AI 助手或受保护 admin-runtime。",
+    "title": "Skill 能力更新草稿上下文、自动扫描与操作状态修正",
+    "scope": "Skill Hub / 能力更新 / 自动扫描 Query / 编辑草稿 / 需求澄清 / 审批驳回",
+    "detail": "能力上下文有更新时，点击“更新”进入 Skill 创建第二步，自动带出一次“基于最新能力上下文扫描并更新当前 Skill”的用户 Query，保留草稿原选择并自动勾选本次受影响能力；旧更新草稿会补齐一次且重新进入时不重复。开始更新后列表不再重复展示橙色新增摘要和检测时间，但保留“查看变化”和“更新处理中”；操作改为“编辑”，不再显示“继续更新”或重复显示“更新”。提交审核后显示“审批、驳回”，审批通过后显示“发布”，驳回后恢复编辑且不丢失草稿。可选新增能力继续由用户手动加入，当前线上版本在正式发布前保持生效。",
     "deployTargets": [],
     "deployAccount": "zhangrui",
     "status": "源码已完成，待更新 new"

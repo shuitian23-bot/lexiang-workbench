@@ -48,6 +48,28 @@ function mergeContextCodes(selectedCodes = [], requiredCodes = []) {
   return Array.from(new Set([...selectedCodes, ...requiredCodes]))
 }
 
+function capabilityScanMessageId(update) {
+  return `capability-scan-${update.recordId}`
+}
+
+export function buildCapabilityScanQuery(item) {
+  const skillLabel = item?.cnName || item?.name || '当前'
+  return `请基于最新能力上下文，自动扫描「${skillLabel}」Skill 受影响的能力，并更新本次草稿的能力上下文。`
+}
+
+function ensureCapabilityScanMessage(draft, item, update) {
+  const messages = Array.isArray(draft.clarifyMessages) ? draft.clarifyMessages : []
+  const messageId = capabilityScanMessageId(update)
+  if (!messages.some(message => message?.id === messageId)) {
+    messages.unshift({ id: messageId, kind: 'user', text: buildCapabilityScanQuery(item) })
+  }
+  draft.clarifyMessages = messages
+}
+
+export function shouldShowCapabilityChangeSummary(update) {
+  return update?.status === 'available'
+}
+
 export function getSeedCapabilityUpdate(skillName) {
   return clone(seedUpdates[skillName])
 }
@@ -110,6 +132,7 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
     delete target.draft.evaluationCapabilityVersion
   }
 
+  ensureCapabilityScanMessage(target.draft, target, update)
   target.draft.selectedContextCodes = mergeContextCodes(
     target.draft.selectedContextCodes,
     update.currentContextCodes
@@ -176,6 +199,9 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
       ? draft.selectedContextCodes
       : [...capabilityUpdate.currentContextCodes]
     draft.baselineContextSeeded = true
+  }
+  if (capabilityUpdate?.status === 'processing' && draft) {
+    ensureCapabilityScanMessage(draft, item, capabilityUpdate)
   }
   return { capabilityUpdate, draft, status, statusText, editStatus }
 }
