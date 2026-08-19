@@ -80,7 +80,7 @@
                 :key="item.code"
                 type="button"
                 class="skill-context-selected-chip"
-                :title="`移除 ${item.name}`"
+                :title="`${contextItemTitle(item)}；点击移除`"
                 @click="toggleContext(item.code)"
               ><span class="skill-context-selected-chip-label">{{ item.name }}</span><span class="skill-context-selected-chip-remove" aria-hidden="true">×</span></button>
             </div>
@@ -121,7 +121,7 @@
             <span v-if="item.recommended" class="skill-context-card-recommend">推荐</span>
             <b>{{ item.name }}</b>
             <span class="skill-context-card-subtitle">{{ item.subtitle }}</span>
-            <em>{{ item.source }}</em>
+            <em><span>{{ item.source }}</span><small v-if="contextVersionLabel(item)">{{ contextVersionLabel(item) }}</small></em>
           </button>
           <div v-if="!filteredContextItems.length" class="skill-context-empty-state">没有匹配的能力，请调整搜索或筛选条件。</div>
         </div>
@@ -224,9 +224,9 @@
                           v-for="item in selectedContextItems"
                           :key="item.code"
                           class="skill-capability-selected-item"
-                          :title="item.code"
+                          :title="contextItemTitle(item)"
                         >
-                          <span>{{ item.name }}</span>
+                          <span><b>{{ item.name }}</b><small>{{ item.menuPath }} · {{ item.code }}<template v-if="contextVersionLabel(item)"> · {{ contextVersionLabel(item) }}</template></small></span>
                           <em v-if="isSelectedContextAffected(item.code)">有更新</em>
                           <em v-else-if="isSelectedContextAddition(item.code)" class="is-added">本次新增</em>
                         </span>
@@ -240,27 +240,28 @@
                         <span>{{ activeCapabilityUpdate.changes.length }} 项</span>
                       </div>
 
-                      <div v-if="affectedSelectedContextItems.length" class="skill-capability-change-row">
+                      <div v-for="item in affectedSelectedContextItems" :key="`affected-${item.code}`" class="skill-capability-change-row">
                         <div class="skill-capability-change-copy">
-                          <div><b>已选能力受影响</b><span>{{ affectedSelectedContextItems.map(item => item.name).join('、') }}</span></div>
+                          <div><b>{{ item.name }}</b><span>{{ item.menuPath }}</span></div>
                           <p>{{ activeCapabilityUpdate.summary }}</p>
-                          <small>{{ capabilityChangeObjectLabels }}</small>
+                          <small>{{ item.code }} · {{ contextVersionLabel(item) }} · {{ capabilityChangeObjectLabels }}</small>
                         </div>
                         <span class="skill-capability-change-state is-affected">有更新</span>
                       </div>
 
-                      <div v-if="capabilityAdditionContextItem" class="skill-capability-change-row">
+                      <div v-for="item in optionalContextItems" :key="`optional-${item.code}`" class="skill-capability-change-row">
                         <div class="skill-capability-change-copy">
-                          <div><b>{{ capabilityAdditionContextItem.name }}</b><span>{{ capabilityAdditionContextItem.source }}</span></div>
-                          <p>{{ capabilityAdditionContextItem.subtitle }}</p>
+                          <div><b>{{ item.name }}</b><span>{{ item.menuPath }}</span></div>
+                          <p>{{ item.subtitle }}</p>
+                          <small>{{ item.code }} · {{ contextVersionLabel(item) }}</small>
                         </div>
                         <button
                           class="btn btn-secondary skill-capability-add-button"
-                          :class="{ 'is-added': !optionalNewContextItems.length }"
-                          :aria-disabled="!optionalNewContextItems.length"
+                          :class="{ 'is-added': item.selected }"
+                          :aria-disabled="item.selected"
                           type="button"
-                          @click="addOptionalContext(capabilityAdditionContextItem.code)"
-                        ><span aria-hidden="true">{{ optionalNewContextItems.length ? '+' : '✓' }}</span> {{ optionalNewContextItems.length ? '加入上下文' : '已加入' }}</button>
+                          @click="addOptionalContext(item.code)"
+                        ><span aria-hidden="true">{{ item.selected ? '✓' : '+' }}</span> {{ item.selected ? '已加入' : '加入上下文' }}</button>
                       </div>
                     </section>
                   </div>
@@ -558,7 +559,19 @@ import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, 
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
-type ContextItem = { code: string; name: string; subtitle: string; source: string; selected: boolean; recommended: boolean }
+type ContextItem = {
+  code: string
+  name: string
+  subtitle: string
+  source: string
+  menuPath: string
+  version?: string
+  currentVersion?: string
+  targetVersion?: string
+  changeRole?: 'affected' | 'optional'
+  selected: boolean
+  recommended: boolean
+}
 type ContextSubtitleTooltip = { code: string; text: string; left: number; top: number; width: number; placement: 'top' | 'bottom' }
 type StateStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked'
 type SkillStateItem = { kind: string; status: StateStatus; title: string; detail: string }
@@ -703,16 +716,15 @@ const menuGroupLabels = menuGroups.map(group => group.label)
 const contextItems = ref<ContextItem[]>(createMenuContextItems(form.value.menu))
 const selectedContextItems = computed(() => contextItems.value.filter(item => item.selected))
 const affectedSelectedContextItems = computed(() => {
-  const currentCodes = new Set(activeCapabilityUpdate.value?.currentContextCodes || [])
-  return selectedContextItems.value.filter(item => currentCodes.has(item.code))
+  const affectedCodes = new Set(activeCapabilityUpdate.value?.affectedContexts.map(context => context.contextId) || [])
+  return selectedContextItems.value.filter(item => affectedCodes.has(item.code))
 })
-const capabilityAdditionContextItem = computed(() => {
-  const contextId = activeCapabilityUpdate.value?.contextId
-  return contextId ? contextItems.value.find(item => item.code === contextId) || null : null
+const optionalContextItems = computed(() => {
+  const optionalCodes = new Set(activeCapabilityUpdate.value?.optionalContexts.map(context => context.contextId) || [])
+  return contextItems.value.filter(item => optionalCodes.has(item.code))
 })
 const optionalNewContextItems = computed(() => {
-  const item = capabilityAdditionContextItem.value
-  return item && !item.selected ? [item] : []
+  return optionalContextItems.value.filter(item => !item.selected)
 })
 const capabilityChangeObjectLabels = computed(() => {
   const labels = [...new Set(activeCapabilityUpdate.value?.changes.map(change => change.objectType) || [])]
@@ -798,33 +810,65 @@ watch(
 
 function createMenuContextItems(activeMenu: string) {
   const recommendedCodes = RECOMMENDED_CONTEXT_CODES_BY_MENU[activeMenu] || new Set<string>()
+  const update = activeCapabilityUpdate.value
+  const affected = new Map((update?.affectedContexts || []).map(context => [context.contextId, context]))
+  const optional = new Map((update?.optionalContexts || []).map(context => [context.contextId, context]))
   const baseItems = menuGroups.flatMap(group =>
     Object.entries(group.children).map(([pageId, page]) => {
-      const recommended = recommendedCodes.has(pageId)
+      const affectedContext = affected.get(pageId)
+      const optionalContext = optional.get(pageId)
       return {
-        name: page.label,
+        name: affectedContext?.name || optionalContext?.name || page.label,
         code: pageId,
-        subtitle: CONTEXT_SUBTITLE_BY_CODE[pageId] || `查看${page.label}相关业务数据与操作能力`,
+        subtitle: optionalContext?.summary || CONTEXT_SUBTITLE_BY_CODE[pageId] || `查看${page.label}相关业务数据与操作能力`,
         source: group.label,
+        menuPath: affectedContext?.menuPath || optionalContext?.menuPath || `${group.label} / ${page.label}`,
+        version: optionalContext?.version,
+        currentVersion: affectedContext?.currentVersion,
+        targetVersion: affectedContext?.targetVersion,
+        changeRole: affectedContext ? 'affected' as const : optionalContext ? 'optional' as const : undefined,
         selected: false,
-        recommended
+        recommended: recommendedCodes.has(pageId) || Boolean(affectedContext || optionalContext)
       }
     })
   )
-  const update = activeCapabilityUpdate.value
-  if (!update || baseItems.some(item => item.code === update.contextId)) return baseItems
-  const pathParts = update.menuPath.split('/').map(part => part.trim()).filter(Boolean)
-  return [
-    ...baseItems,
-    {
-      name: `${pathParts[pathParts.length - 1] || update.contextId}（变化项）`,
-      code: update.contextId,
-      subtitle: `${update.summary} 需负责人确认后手动采用`,
-      source: pathParts[0] || '能力变化',
+  if (!update) return baseItems
+  const knownCodes = new Set(baseItems.map(item => item.code))
+  const additions: ContextItem[] = [
+    ...update.affectedContexts.map(context => ({
+      name: context.name,
+      code: context.contextId,
+      subtitle: update.summary,
+      source: context.menuPath.split('/')[0]?.trim() || update.baseMenu,
+      menuPath: context.menuPath,
+      currentVersion: context.currentVersion,
+      targetVersion: context.targetVersion,
+      changeRole: 'affected' as const,
       selected: false,
       recommended: true
-    }
-  ]
+    })),
+    ...update.optionalContexts.map(context => ({
+      name: context.name,
+      code: context.contextId,
+      subtitle: context.summary,
+      source: context.menuPath.split('/')[0]?.trim() || update.baseMenu,
+      menuPath: context.menuPath,
+      version: context.version,
+      changeRole: 'optional' as const,
+      selected: false,
+      recommended: true
+    }))
+  ].filter(item => !knownCodes.has(item.code))
+  return [...baseItems, ...additions]
+}
+
+function contextVersionLabel(item: ContextItem) {
+  if (item.currentVersion && item.targetVersion) return `${item.currentVersion} → ${item.targetVersion}`
+  return item.version || ''
+}
+
+function contextItemTitle(item: ContextItem) {
+  return [item.name, item.menuPath, item.code, contextVersionLabel(item)].filter(Boolean).join(' · ')
 }
 
 function syncMenuContext() {
@@ -1098,11 +1142,11 @@ function handleContextCardClick(code: string) {
 }
 
 function isSelectedContextAffected(code: string) {
-  return activeCapabilityUpdate.value?.currentContextCodes.includes(code) || false
+  return activeCapabilityUpdate.value?.affectedContexts.some(context => context.contextId === code) || false
 }
 
 function isSelectedContextAddition(code: string) {
-  return activeCapabilityUpdate.value?.contextId === code
+  return activeCapabilityUpdate.value?.optionalContexts.some(context => context.contextId === code) || false
 }
 
 function addOptionalContext(code: string) {
@@ -2336,8 +2380,21 @@ onBeforeUnmount(() => {
 }
 
 .skill-capability-selected-item > span {
+  display: grid;
+  gap: 2px;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.skill-capability-selected-item > span b {
+  color: inherit;
+  font-size: 11px;
+}
+
+.skill-capability-selected-item > span small {
+  color: var(--color-text-tertiary, #8f959e);
+  font-size: 10px;
+  font-weight: 400;
 }
 
 .skill-capability-selected-item em,
@@ -3449,7 +3506,7 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 104px;
+  min-height: 122px;
   padding: 9px 10px 8px;
   border: 1px solid var(--border-light, #e5e6eb);
   border-radius: 10px;
@@ -3468,13 +3525,14 @@ onBeforeUnmount(() => {
   top: 13px;
   right: 10px;
   left: 10px;
-  display: block;
+  display: -webkit-box;
   overflow: hidden;
   color: var(--text, #1f2329);
   font-size: 12px;
   line-height: 18px;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .skill-context-card.selected b { top: 12px; right: 9px; left: 9px; }
@@ -3483,7 +3541,7 @@ onBeforeUnmount(() => {
 
 .skill-context-card-subtitle {
   position: absolute;
-  top: 35px;
+  top: 54px;
   right: 10px;
   left: 10px;
   display: -webkit-box;
@@ -3496,19 +3554,34 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 2;
 }
 
-.skill-context-card.selected .skill-context-card-subtitle { top: 34px; right: 9px; left: 9px; }
+.skill-context-card.selected .skill-context-card-subtitle { top: 53px; right: 9px; left: 9px; }
 
 .skill-context-card em {
   position: absolute;
   right: 10px;
   bottom: 9px;
   left: 10px;
-  overflow: hidden;
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+  overflow:hidden;
   color: var(--text-tertiary, #8f959e);
   font-size: 10px;
   font-style: normal;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+}
+
+.skill-context-card em span,
+.skill-context-card em small {
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.skill-context-card em small {
+  color:inherit;
+  font-size:9px;
+  font-style:normal;
 }
 
 .skill-context-card.selected em { right: 9px; bottom: 8px; left: 9px; color: var(--primary, #3370ff); }
