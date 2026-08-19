@@ -14,6 +14,24 @@ const seedUpdates = {
     summary: '新增商品对比接口，并补充能效、重量和接口类型字段。',
     count: 4,
     notificationState: '待服务接入',
+    affectedContexts: [
+      {
+        contextId: 'dashboard.geoKnowledge',
+        name: '手工上传知识',
+        menuPath: 'GEO 看板 / 手工上传知识',
+        currentVersion: 'cap-2026.08.03',
+        targetVersion: 'cap-2026.08.14'
+      }
+    ],
+    optionalContexts: [
+      {
+        contextId: 'product.knowledge',
+        name: '产品知识',
+        menuPath: '商品管理 / 产品知识',
+        version: 'cap-2026.08.14',
+        summary: '新增独立商品知识能力，可由负责人决定是否扩展当前 Skill。'
+      }
+    ],
     changes: [
       { id: 'compare-api', kind: 'enhancement', objectType: 'API', name: '商品参数对比', before: '仅支持单商品参数查询', after: '新增批量商品参数对比接口', impact: '可增加多机型横向对比能力，不影响原查询链路。' },
       { id: 'energy-field', kind: 'enhancement', objectType: '字段', name: 'energy_grade', before: '无', after: '新增能效等级字段', impact: '可补充节能维度回答，需要更新输出字段说明。' },
@@ -34,6 +52,16 @@ const seedUpdates = {
     summary: '券包适用人群权限点调整，原通用查询权限需拆分校验。',
     count: 1,
     notificationState: '待服务接入',
+    affectedContexts: [
+      {
+        contextId: 'dashboard.overview',
+        name: '运营总览',
+        menuPath: '乐享运营 / 运营总览',
+        currentVersion: 'cap-2026.08.05',
+        targetVersion: 'cap-2026.08.14'
+      }
+    ],
+    optionalContexts: [],
     changes: [
       { id: 'voucher-audience-permission', kind: 'permission', objectType: '权限点', name: 'voucher.audience.read', before: 'voucher.read', after: 'voucher.audience.read', impact: '缺少新权限时无法读取适用人群，更新前应保留原线上版本。' }
     ]
@@ -53,15 +81,28 @@ function capabilityScanMessageId(update) {
 }
 
 export function buildCapabilityScanQuery(item) {
-  const skillLabel = item?.cnName || item?.name || '当前'
-  return `请基于最新能力上下文，自动扫描「${skillLabel}」Skill 受影响的能力，并更新本次草稿的能力上下文。`
+  const update = item?.capabilityUpdate
+  const affected = update?.affectedContexts?.[0]
+  const menuPath = affected?.menuPath || update?.menuPath || update?.contextId || '当前能力'
+  const currentVersion = affected?.currentVersion || update?.currentCapabilityVersion || '当前版本'
+  const targetVersion = affected?.targetVersion || update?.targetCapabilityVersion || '目标版本'
+  const summary = update?.summary || '能力上下文发生变化'
+  return [
+    `检测到「${menuPath}」能力上下文由 ${currentVersion} 更新为 ${targetVersion}，主要变化为：${summary}`,
+    '请保留当前 Skill 的业务目标，基于最新能力重新梳理需求澄清、输入输出、权限边界、异常兜底和验收用例；对不应纳入本 Skill 的变化明确标记为“不采用”，不要直接发布。'
+  ].join('\n')
 }
 
 function ensureCapabilityScanMessage(draft, item, update) {
   const messages = Array.isArray(draft.clarifyMessages) ? draft.clarifyMessages : []
   const messageId = capabilityScanMessageId(update)
-  if (!messages.some(message => message?.id === messageId)) {
-    messages.unshift({ id: messageId, kind: 'user', text: buildCapabilityScanQuery(item) })
+  const existing = messages.find(message => message?.id === messageId)
+  if (existing) {
+    existing.kind = 'user'
+    existing.text = buildCapabilityScanQuery(item)
+    existing.autoExecute = true
+  } else {
+    messages.unshift({ id: messageId, kind: 'user', autoExecute: true, text: buildCapabilityScanQuery(item) })
   }
   draft.clarifyMessages = messages
 }
@@ -94,12 +135,44 @@ export function formatShanghaiMinute(value = new Date()) {
   return `${map.year}-${map.month}-${map.day} ${map.hour}:${map.minute}`
 }
 
+function createContextBindings(draft, update) {
+  const selectedCodes = mergeContextCodes(draft.selectedContextCodes, update.currentContextCodes)
+  const existing = new Map((draft.contextBindings || []).map(binding => [binding.contextId, binding]))
+  const affected = new Map((update.affectedContexts || []).map(context => [context.contextId, context]))
+  draft.selectedContextCodes = selectedCodes
+  draft.contextBindings = selectedCodes.map(contextId => {
+    const target = affected.get(contextId)
+    if (target) {
+      return {
+        contextId,
+        menuPath: target.menuPath,
+        name: target.name,
+        version: target.targetVersion
+      }
+    }
+    const current = existing.get(contextId)
+    return current
+      ? { ...current }
+      : { contextId, menuPath: '', name: contextId, version: 'unknown' }
+  })
+}
+
+function capabilityTaskId(update) {
+  return `capability-update-${update.recordId}`
+}
+
 export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) {
   const target = clone(item)
   const update = target?.capabilityUpdate
-  if (!update || update.status === 'resolved') return target
+  if (!update || update.status === 'resolved' || update.status === 'ignored') return target
+  if (update.status === 'preparing' || update.status === 'processing') return target
 
-  const isNewUpdate = update.status !== 'processing'
+  const rollback = {
+    draft: clone(target.draft),
+    editVersion: target.editVersion,
+    editStatus: target.editStatus,
+    version: target.version
+  }
   update.hasDraftEdits = Boolean(update.hasDraftEdits)
   target.editVersion ||= nextPatchVersion(target.online !== '未发布' ? target.online : target.version)
   target.version = target.editVersion
@@ -126,21 +199,88 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
       baselineContextSeeded: true,
       savedAt: updatedAt
     }
-  } else if (isNewUpdate) {
+  } else {
     target.draft.aiTuned = false
     target.draft.baselineContextSeeded = true
     delete target.draft.evaluationCapabilityVersion
   }
 
   ensureCapabilityScanMessage(target.draft, target, update)
-  target.draft.selectedContextCodes = mergeContextCodes(
-    target.draft.selectedContextCodes,
-    update.currentContextCodes
-  )
+  createContextBindings(target.draft, update)
   target.draft.baselineContextSeeded = true
 
-  update.status = 'processing'
+  update.status = 'preparing'
+  update.task = {
+    id: capabilityTaskId(update),
+    status: 'generating',
+    startedAt: updatedAt,
+    rollback
+  }
   target.updated = updatedAt
+  return target
+}
+
+export function completeCapabilityUpdate(item, draft, updatedAt = formatShanghaiMinute()) {
+  const target = clone(item)
+  const update = target?.capabilityUpdate
+  if (!update || update.status !== 'preparing' || update.task?.status !== 'generating') return target
+  target.draft = clone(draft)
+  target.editStatus = 'draft'
+  update.status = 'processing'
+  update.hasDraftEdits = true
+  update.task = {
+    id: update.task.id || capabilityTaskId(update),
+    status: 'succeeded',
+    startedAt: update.task.startedAt,
+    completedAt: updatedAt
+  }
+  target.updated = updatedAt
+  target.reviewNote = `能力更新首轮草稿已生成；${target.online} 继续在线服务。`
+  return target
+}
+
+export function failCapabilityUpdate(item, error, updatedAt = formatShanghaiMinute()) {
+  const target = clone(item)
+  const update = target?.capabilityUpdate
+  if (!update || update.status !== 'preparing') return target
+  const rollback = update.task?.rollback || {}
+  if (rollback.draft) target.draft = clone(rollback.draft)
+  else delete target.draft
+  if (rollback.editVersion) target.editVersion = rollback.editVersion
+  else delete target.editVersion
+  if (rollback.editStatus) target.editStatus = rollback.editStatus
+  else delete target.editStatus
+  target.version = rollback.version || target.online || target.version
+  update.status = 'available'
+  update.hasDraftEdits = false
+  update.task = {
+    id: update.task?.id || capabilityTaskId(update),
+    status: 'failed',
+    startedAt: update.task?.startedAt,
+    completedAt: updatedAt,
+    error: String(error || '更新生成失败')
+  }
+  target.updated = updatedAt
+  target.reviewNote = `能力更新生成失败：${update.task.error}；可重新发起更新。`
+  return target
+}
+
+export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = formatShanghaiMinute()) {
+  const target = clone(item)
+  const update = target?.capabilityUpdate
+  if (!update || update.status !== 'available') return target
+  const requiresDeferral = (update.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
+  update.status = 'ignored'
+  update.resolution = {
+    action: requiresDeferral ? 'deferred' : 'ignored',
+    operator: resolution.operator || 'admin',
+    handledAt: updatedAt,
+    reason: resolution.reason || ''
+  }
+  target.updated = updatedAt
+  target.reviewNote = requiresDeferral
+    ? '当前高风险能力变化已暂不处理，线上版本继续服务并保留风险记录。'
+    : '当前能力变化记录已忽略，后续新变化将重新提醒。'
   return target
 }
 
@@ -154,7 +294,7 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
     ? isNewRecord
       ? {
           ...seededUpdate,
-          status: storedUpdate.status === 'processing' ? 'processing' : 'available',
+          status: storedUpdate.status === 'processing' || storedUpdate.status === 'preparing' ? storedUpdate.status : 'available',
           history: [...storedHistory, storedSnapshot]
         }
       : {
@@ -169,14 +309,14 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
   let status = item.status
   let statusText = item.statusText
   let editStatus = item.editStatus
-  if (capabilityUpdate?.status === 'processing' && item.online !== '未发布' && !editStatus) {
+  if ((capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing') && item.online !== '未发布' && !editStatus) {
     editStatus = ['review', 'approved', 'rejected'].includes(status) ? status : 'draft'
     if (['review', 'approved', 'rejected'].includes(status)) {
       status = 'published'
       statusText = '已发布'
     }
   }
-  if (isNewRecord && capabilityUpdate?.status === 'processing') {
+  if (isNewRecord && (capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing')) {
     editStatus = 'draft'
     if (draft) {
       draft.aiTuned = false
@@ -194,13 +334,13 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
       draft.summaryUpdated = `能力变化已合并至 ${capabilityUpdate.targetCapabilityVersion}，检测于 ${capabilityUpdate.detectedAt}`
     }
   }
-  if (capabilityUpdate?.status === 'processing' && draft && !draft.baselineContextSeeded) {
+  if ((capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing') && draft && !draft.baselineContextSeeded) {
     draft.selectedContextCodes = draft.selectedContextCodes?.length
       ? draft.selectedContextCodes
       : [...capabilityUpdate.currentContextCodes]
     draft.baselineContextSeeded = true
   }
-  if (capabilityUpdate?.status === 'processing' && draft) {
+  if ((capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing') && draft) {
     ensureCapabilityScanMessage(draft, item, capabilityUpdate)
   }
   return { capabilityUpdate, draft, status, statusText, editStatus }

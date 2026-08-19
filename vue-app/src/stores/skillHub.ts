@@ -2,17 +2,52 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import {
   beginCapabilityUpdate,
+  completeCapabilityUpdate as completeCapabilityUpdateRecord,
+  failCapabilityUpdate as failCapabilityUpdateRecord,
   formatShanghaiMinute,
   getSeedCapabilityUpdate,
   hydrateCapabilityUpdate,
+  ignoreCapabilityUpdate as ignoreCapabilityUpdateRecord,
   mergeCapabilityDraft,
   mergeCapabilitySubmission,
   transitionCapabilityEdit
 } from '@/services/skillCapabilityChanges.js'
 
 export type SkillStatus = 'draft' | 'review' | 'approved' | 'published' | 'disabled' | 'rejected'
-export type CapabilityUpdateStatus = 'available' | 'processing' | 'resolved'
+export type CapabilityUpdateStatus = 'available' | 'preparing' | 'processing' | 'ignored' | 'resolved'
 export type CapabilityChangeKind = 'enhancement' | 'breaking' | 'permission'
+
+export interface SkillContextBinding {
+  contextId: string
+  menuPath: string
+  name: string
+  version: string
+}
+
+export interface SkillAffectedContext {
+  contextId: string
+  menuPath: string
+  name: string
+  currentVersion: string
+  targetVersion: string
+}
+
+export interface SkillOptionalContext {
+  contextId: string
+  menuPath: string
+  name: string
+  version: string
+  summary: string
+}
+
+export interface CapabilityUpdateTask {
+  id: string
+  status: 'generating' | 'succeeded' | 'failed'
+  startedAt?: string
+  completedAt?: string
+  error?: string
+  rollback?: Record<string, unknown>
+}
 
 export interface SkillCapabilityChange {
   id: string
@@ -38,7 +73,16 @@ export interface SkillCapabilityUpdate {
   summary: string
   count: number
   notificationState: string
+  affectedContexts: SkillAffectedContext[]
+  optionalContexts: SkillOptionalContext[]
   changes: SkillCapabilityChange[]
+  task?: CapabilityUpdateTask
+  resolution?: {
+    action: 'ignored' | 'deferred'
+    operator: string
+    handledAt: string
+    reason: string
+  }
   history?: SkillCapabilityHistoryRecord[]
 }
 
@@ -63,6 +107,7 @@ export interface SkillDraftForm {
 export interface SkillDraftSnapshot {
   form: SkillDraftForm
   selectedContextCodes: string[]
+  contextBindings?: SkillContextBinding[]
   clarifyMessages: unknown[]
   summaryItems: Array<{ label: string; text: string }>
   summaryUpdated: string
@@ -264,6 +309,30 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     return items.value[index]
   }
 
+  function completeCapabilityUpdate(name: string, draft: SkillDraftSnapshot) {
+    const index = items.value.findIndex(item => item.name === name)
+    if (index < 0) return
+    items.value[index] = completeCapabilityUpdateRecord(items.value[index], draft, nowMinute())
+    persist()
+    return items.value[index]
+  }
+
+  function failCapabilityUpdate(name: string, error: string) {
+    const index = items.value.findIndex(item => item.name === name)
+    if (index < 0) return
+    items.value[index] = failCapabilityUpdateRecord(items.value[index], error, nowMinute())
+    persist()
+    return items.value[index]
+  }
+
+  function ignoreCapabilityUpdate(name: string, operator: string, reason = '') {
+    const index = items.value.findIndex(item => item.name === name)
+    if (index < 0) return
+    items.value[index] = ignoreCapabilityUpdateRecord(items.value[index], { operator, reason }, nowMinute())
+    persist()
+    return items.value[index]
+  }
+
   function updateCapabilityEditStatus(item: SkillHubItem, status: 'approved' | 'rejected' | 'published', reviewer = 'admin') {
     const index = items.value.findIndex(row => row.name === item.name)
     if (index < 0) return
@@ -302,6 +371,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     items,
     findSkill,
     startCapabilityUpdate,
+    completeCapabilityUpdate,
+    failCapabilityUpdate,
+    ignoreCapabilityUpdate,
     updateCapabilityEditStatus,
     upsertDraftSkill,
     upsertSubmittedSkill,

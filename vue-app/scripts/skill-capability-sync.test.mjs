@@ -31,7 +31,7 @@ test('capability change service returns isolated updates and increments patch ve
   assert.match(formatShanghaiMinute(new Date('2026-08-14T01:05:00Z')), /^2026-08-14 09:05$/)
 })
 
-test('capability update clones current context and invalidates stale evaluation once', async () => {
+test('capability update prepares one versioned edit draft and invalidates stale evaluation once', async () => {
   const { beginCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilityDraft } = await import('../src/services/skillCapabilityChanges.js')
   const update = getSeedCapabilityUpdate('product-knowledge')
   const item = {
@@ -61,7 +61,16 @@ test('capability update clones current context and invalidates stale evaluation 
   assert.equal(started.editStatus, 'draft')
   assert.equal(started.online, 'v1.0.7')
   assert.equal(started.editVersion, 'v1.0.8')
+  assert.equal(started.capabilityUpdate.status, 'preparing')
+  assert.equal(started.capabilityUpdate.task.status, 'generating')
+  assert.equal(started.capabilityUpdate.task.id, `capability-update-${update.recordId}`)
   assert.deepEqual(started.draft.selectedContextCodes, ['dashboard.geoKnowledge'])
+  assert.deepEqual(started.draft.contextBindings, [{
+    contextId: 'dashboard.geoKnowledge',
+    menuPath: 'GEO 看板 / 手工上传知识',
+    name: '手工上传知识',
+    version: 'cap-2026.08.14'
+  }])
   assert.equal(started.draft.aiTuned, false)
   assert.equal(started.draft.evaluationCapabilityVersion, undefined)
   assert.equal(started.capabilityUpdate.hasDraftEdits, false)
@@ -71,6 +80,7 @@ test('capability update clones current context and invalidates stale evaluation 
   const continued = beginCapabilityUpdate(started, '2026-08-14 11:05')
   assert.equal(continued.editVersion, 'v1.0.8')
   assert.equal(continued.draft.aiTuned, true)
+  assert.equal(continued.capabilityUpdate.task.id, started.capabilityUpdate.task.id)
 
   const saved = mergeCapabilityDraft(continued, {
     cnName: continued.cnName,
@@ -81,7 +91,7 @@ test('capability update clones current context and invalidates stale evaluation 
   assert.equal(saved.capabilityUpdate.hasDraftEdits, true)
 })
 
-test('capability update preserves draft selections and adds affected contexts once', async () => {
+test('capability update preserves selections and upgrades affected context snapshots once', async () => {
   const { beginCapabilityUpdate, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
   const update = getSeedCapabilityUpdate('product-knowledge')
   const started = beginCapabilityUpdate({
@@ -110,9 +120,13 @@ test('capability update preserves draft selections and adds affected contexts on
   assert.deepEqual(started.draft.selectedContextCodes, ['dashboard.geoOverview', 'dashboard.geoKnowledge'])
   assert.equal(started.draft.selectedContextCodes.filter(code => code === 'dashboard.geoKnowledge').length, 1)
   assert.equal(started.draft.selectedContextCodes.includes('product.knowledge'), false)
+  assert.deepEqual(started.draft.contextBindings.map(binding => `${binding.contextId}@${binding.version}`), [
+    'dashboard.geoOverview@unknown',
+    'dashboard.geoKnowledge@cap-2026.08.14'
+  ])
 })
 
-test('capability update seeds one visible auto-scan query and never duplicates it', async () => {
+test('capability update seeds one complete visible update instruction and never duplicates it', async () => {
   const { beginCapabilityUpdate, getSeedCapabilityUpdate, hydrateCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
   const update = getSeedCapabilityUpdate('product-knowledge')
   const started = beginCapabilityUpdate({
@@ -131,7 +145,8 @@ test('capability update seeds one visible auto-scan query and never duplicates i
   assert.deepEqual(started.draft.clarifyMessages, [{
     id: `capability-scan-${update.recordId}`,
     kind: 'user',
-    text: '请基于最新能力上下文，自动扫描「产品知识问答」Skill 受影响的能力，并更新本次草稿的能力上下文。'
+    autoExecute: true,
+    text: '检测到「GEO 看板 / 手工上传知识」能力上下文由 cap-2026.08.03 更新为 cap-2026.08.14，主要变化为：新增商品对比接口，并补充能效、重量和接口类型字段。\n请保留当前 Skill 的业务目标，基于最新能力重新梳理需求澄清、输入输出、权限边界、异常兜底和验收用例；对不应纳入本 Skill 的变化明确标记为“不采用”，不要直接发布。'
   }])
   assert.deepEqual(started.draft.selectedContextCodes, ['dashboard.geoKnowledge'])
 
@@ -155,6 +170,79 @@ test('capability update seeds one visible auto-scan query and never duplicates i
   assert.equal(hydratedOnce.draft.clarifyMessages.length, 1)
   assert.equal(hydratedTwice.draft.clarifyMessages.length, 1)
   assert.equal(hydratedTwice.draft.clarifyMessages[0].id, `capability-scan-${update.recordId}`)
+})
+
+test('capability update completes only after the first clarification result is saved', async () => {
+  const { beginCapabilityUpdate, completeCapabilityUpdate, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const update = getSeedCapabilityUpdate('product-knowledge')
+  const started = beginCapabilityUpdate({
+    name: 'product-knowledge', cnName: '产品知识问答', category: 'GEO 看板', desc: '产品知识查询',
+    version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', owner: 'product-pm', capabilityUpdate: update
+  }, '2026-08-19 11:00')
+  const generatedDraft = {
+    ...started.draft,
+    clarifyMessages: [...started.draft.clarifyMessages, { id: 'generated-result', kind: 'assistant', text: '已生成首轮结果' }],
+    summaryItems: [{ label: '本轮能力更新', text: '采用 3 项，不采用 1 项' }]
+  }
+
+  const completed = completeCapabilityUpdate(started, generatedDraft, '2026-08-19 11:01')
+  assert.equal(completed.capabilityUpdate.status, 'processing')
+  assert.equal(completed.capabilityUpdate.task.status, 'succeeded')
+  assert.equal(completed.capabilityUpdate.task.completedAt, '2026-08-19 11:01')
+  assert.equal(completed.capabilityUpdate.hasDraftEdits, true)
+  assert.equal(completed.editStatus, 'draft')
+  assert.equal(completed.online, 'v1.0.7')
+  assert.equal(completed.draft.clarifyMessages.at(-1).id, 'generated-result')
+})
+
+test('capability update failure restores the previous draft and remains retryable', async () => {
+  const { beginCapabilityUpdate, failCapabilityUpdate, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const previousDraft = {
+    form: { name: 'product-knowledge', cnName: '产品知识问答', menu: 'GEO 看板', scene: '', input: '', output: '' },
+    selectedContextCodes: ['dashboard.geoOverview'], clarifyMessages: [], summaryItems: [], summaryUpdated: '', aiTuned: true,
+    evaluationCapabilityVersion: 'cap-2026.08.03', savedAt: '2026-08-18 10:00'
+  }
+  const started = beginCapabilityUpdate({
+    name: 'product-knowledge', cnName: '产品知识问答', category: 'GEO 看板', desc: '产品知识查询',
+    version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', owner: 'product-pm',
+    draft: previousDraft, capabilityUpdate: getSeedCapabilityUpdate('product-knowledge')
+  }, '2026-08-19 11:00')
+
+  const failed = failCapabilityUpdate(started, '模型服务暂不可用', '2026-08-19 11:02')
+  assert.equal(failed.capabilityUpdate.status, 'available')
+  assert.equal(failed.capabilityUpdate.task.status, 'failed')
+  assert.equal(failed.capabilityUpdate.task.error, '模型服务暂不可用')
+  assert.deepEqual(failed.draft, previousDraft)
+  assert.equal(failed.editVersion, undefined)
+  assert.equal(failed.editStatus, undefined)
+  assert.equal(failed.version, 'v1.0.7')
+
+  const retried = beginCapabilityUpdate(failed, '2026-08-19 11:03')
+  assert.equal(retried.capabilityUpdate.status, 'preparing')
+  assert.equal(retried.capabilityUpdate.task.id, started.capabilityUpdate.task.id)
+  assert.equal(retried.capabilityUpdate.task.status, 'generating')
+})
+
+test('ignore and defer close only the current record and a newer record is rediscovered', async () => {
+  const { getSeedCapabilityUpdate, hydrateCapabilityUpdate, ignoreCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const enhancement = { name: 'product-knowledge', online: 'v1.0.7', status: 'published', capabilityUpdate: getSeedCapabilityUpdate('product-knowledge') }
+  const ignored = ignoreCapabilityUpdate(enhancement, { operator: 'product-pm', reason: '本期不采用' }, '2026-08-19 11:10')
+  assert.equal(ignored.capabilityUpdate.status, 'ignored')
+  assert.deepEqual(ignored.capabilityUpdate.resolution, {
+    action: 'ignored', operator: 'product-pm', handledAt: '2026-08-19 11:10', reason: '本期不采用'
+  })
+  assert.equal(ignored.draft, undefined)
+  assert.equal(ignored.online, 'v1.0.7')
+
+  const permission = { name: 'voucher-recommend', online: 'v0.1.3', status: 'published', capabilityUpdate: getSeedCapabilityUpdate('voucher-recommend') }
+  const deferred = ignoreCapabilityUpdate(permission, { operator: 'growth-pm', reason: '' }, '2026-08-19 11:11')
+  assert.equal(deferred.capabilityUpdate.status, 'ignored')
+  assert.equal(deferred.capabilityUpdate.resolution.action, 'deferred')
+
+  const newer = { ...getSeedCapabilityUpdate('product-knowledge'), recordId: 'capability-change-product-knowledge-20260820', targetCapabilityVersion: 'cap-2026.08.20' }
+  const rediscovered = hydrateCapabilityUpdate(ignored, newer)
+  assert.equal(rediscovered.capabilityUpdate.status, 'available')
+  assert.equal(rediscovered.capabilityUpdate.recordId, newer.recordId)
 })
 
 test('Skill Hub change summary is visible only before an update starts', async () => {
@@ -238,8 +326,8 @@ test('a newer capability record is not hidden by a resolved cache', async () => 
 })
 
 test('capability submission preserves online lifecycle and owner until approved release', async () => {
-  const { beginCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilitySubmission, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
-  const current = beginCapabilityUpdate({
+  const { beginCapabilityUpdate, completeCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilitySubmission, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
+  const preparing = beginCapabilityUpdate({
     name: 'product-knowledge',
     cnName: '产品知识问答',
     category: '知识问答',
@@ -251,6 +339,7 @@ test('capability submission preserves online lifecycle and owner until approved 
     owner: 'product-pm',
     capabilityUpdate: getSeedCapabilityUpdate('product-knowledge')
   }, '2026-08-14 11:00')
+  const current = completeCapabilityUpdate(preparing, preparing.draft, '2026-08-14 11:05')
   const submitted = mergeCapabilitySubmission(current, {
     cnName: current.cnName,
     desc: current.desc,
