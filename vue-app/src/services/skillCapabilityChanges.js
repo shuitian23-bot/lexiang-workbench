@@ -44,6 +44,10 @@ function clone(value) {
   return value ? JSON.parse(JSON.stringify(value)) : undefined
 }
 
+function mergeContextCodes(selectedCodes = [], requiredCodes = []) {
+  return Array.from(new Set([...selectedCodes, ...requiredCodes]))
+}
+
 export function getSeedCapabilityUpdate(skillName) {
   return clone(seedUpdates[skillName])
 }
@@ -105,6 +109,12 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
     target.draft.baselineContextSeeded = true
     delete target.draft.evaluationCapabilityVersion
   }
+
+  target.draft.selectedContextCodes = mergeContextCodes(
+    target.draft.selectedContextCodes,
+    update.currentContextCodes
+  )
+  target.draft.baselineContextSeeded = true
 
   update.status = 'processing'
   target.updated = updatedAt

@@ -2057,6 +2057,19 @@ onMounted(() => {
   document.addEventListener('click', closeContextDropdowns)
 })
 
+watch(
+  () => [
+    String(route.query.skill || ''),
+    String(route.query.edit || ''),
+    String(route.query.capabilityUpdate || '')
+  ],
+  (nextIntent, previousIntent) => {
+    if (nextIntent.every((value, index) => value === previousIntent[index])) return
+    loadEditDraft()
+  },
+  { flush: 'post' }
+)
+
 onBeforeUnmount(() => {
   caseReevaluationTimers.forEach(timer => window.clearTimeout(timer))
   caseReevaluationTimers.clear()
