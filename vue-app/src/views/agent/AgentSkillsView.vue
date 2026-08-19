@@ -413,6 +413,10 @@ const confirmMeta = computed(() => {
   }[action] || { title: `确认${action}`, desc: '该操作会改变 Skill 当前状态，请确认后继续。', confirmText: '确认', tone: 'normal' }
 })
 
+function canUseStandardEdit(item: SkillHubItem) {
+  return item.owner === (user.value || 'admin') && !capabilityPresentation(item).visible
+}
+
 function skillHubActions(item: SkillHubItem) {
   const pmActions: Record<SkillStatus, string[]> = {
     draft: ['返回编辑', '查看'],
@@ -431,6 +435,8 @@ function skillHubActions(item: SkillHubItem) {
     rejected: ['查看']
   }
   const baseActions = (role.value === 'admin' ? adminActions : pmActions)[item.status] || ['查看']
+  const baseActionsWithoutEdit = baseActions.filter(action => !['返回编辑', '编辑', '被驳回去修改'].includes(action))
+  const standardEditActions = canUseStandardEdit(item) ? ['编辑'] : []
   const governanceActions = role.value === 'admin' && item.editStatus === 'review'
     ? ['审批更新', '驳回更新']
     : role.value === 'admin' && item.editStatus === 'approved'
@@ -445,8 +451,8 @@ function skillHubActions(item: SkillHubItem) {
         ...(canUpdateSkill(item) && canEditCapabilityUpdate(item) && presentation.actionLabel ? [presentation.actionLabel] : [])
       ]
     : []
-  if (item.status === 'draft') return [...updateActions, ...baseActions]
-  return [...updateActions, ...baseActions.filter(action => action !== '测试'), '测试']
+  if (item.status === 'draft') return [...updateActions, ...standardEditActions, ...baseActionsWithoutEdit]
+  return [...updateActions, ...standardEditActions, ...baseActionsWithoutEdit.filter(action => action !== '测试'), '测试']
 }
 
 function actionTone(action: string) {
@@ -493,7 +499,11 @@ function handleAction(item: SkillHubItem, action: string) {
     detailItem.value = item
     return
   }
-  if (action === '返回编辑' || action === '编辑' || action === '被驳回去修改') {
+  if (action === '编辑') {
+    openSkillCreateForItem(item, item.status === 'rejected')
+    return
+  }
+  if (action === '返回编辑' || action === '被驳回去修改') {
     openSkillCreateForItem(item, action === '被驳回去修改')
     return
   }

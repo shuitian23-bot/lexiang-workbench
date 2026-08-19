@@ -560,6 +560,17 @@ test('all Skill Hub summary cards filter the list with one shared predicate', as
   assert.match(styles, /\.skill-hub-table th:last-child[\s\S]*position:sticky/)
 })
 
+test('owned Skills expose one standard edit action outside controlled updates', async () => {
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.match(view, /function canUseStandardEdit\(item: SkillHubItem\)/)
+  assert.match(view, /item\.owner === \(user\.value \|\| 'admin'\)/)
+  assert.match(view, /!capabilityPresentation\(item\)\.visible/)
+  assert.match(view, /const standardEditActions = canUseStandardEdit\(item\) \? \['编辑'\] : \[\]/)
+  assert.match(view, /const baseActionsWithoutEdit = baseActions\.filter/)
+  assert.match(view, /'返回编辑', '编辑', '被驳回去修改'/)
+  assert.match(view, /openSkillCreateForItem\(item, item\.status === 'rejected'\)/)
+})
+
 test('skill store preserves online version while an update draft is edited', async () => {
   const store = await source('../src/stores/skillHub.ts')
   assert.match(store, /capabilityUpdate\?: SkillCapabilityUpdate/)

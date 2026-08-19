@@ -30,6 +30,16 @@ await context.addInitScript(() => {
 })
 
 const page = await context.newPage()
+await page.route('**/api/admin/me', route => route.fulfill({
+  status: 200,
+  contentType: 'application/json',
+  body: JSON.stringify({ admin: { username: 'admin' } })
+}))
+await page.route('**/api/harness/menu', route => route.fulfill({
+  status: 200,
+  contentType: 'application/json',
+  body: JSON.stringify({ permissions: ['*'], menus: ['dashboard', 'geo', 'employee', 'lead', 'order'] })
+}))
 await page.goto(`${baseUrl}/agent/skills`, { waitUntil: 'networkidle' })
 await page.locator('.skill-hub-page').waitFor()
 
@@ -64,6 +74,28 @@ await cards.nth(3).click()
 assert.equal(await keyword.inputValue(), '', '点击汇总卡应清空关键词')
 assert.equal(await status.inputValue(), 'all', '点击汇总卡应清空状态条件')
 assert.equal(await category.inputValue(), 'all', '点击汇总卡应清空分类条件')
+
+await cards.nth(1).click()
+const ownedRows = page.locator('.skill-hub-table tbody .skill-hub-row')
+assert.equal(await ownedRows.count(), Number(await cards.nth(1).locator('strong').innerText()), '我的 Skill 卡应只展示本人 Skill')
+for (let index = 0; index < await ownedRows.count(); index += 1) {
+  assert.equal(await ownedRows.nth(index).getByRole('button', { name: '编辑', exact: true }).count(), 1, '本人非更新 Skill 应有且只有一个编辑入口')
+}
+
+const rejectedRow = page.locator('.skill-hub-row[data-status="rejected"]').first()
+await rejectedRow.getByRole('button', { name: '编辑', exact: true }).click()
+await page.waitForURL(/\/admin-vue\/agent\/skill-create/)
+const rejectedDraft = await page.evaluate(() => JSON.parse(sessionStorage.getItem('leai.skillCreateDraft') || '{}'))
+assert.equal(rejectedDraft.rejected, true, '已驳回 Skill 点击编辑应保留驳回修改上下文')
+
+await page.goto(`${baseUrl}/agent/skills`, { waitUntil: 'networkidle' })
+await page.locator('.skill-hub-page').waitFor()
+for (const skillName of ['product-knowledge', 'voucher-recommend']) {
+  const updateRow = page.locator('.skill-hub-row').filter({ hasText: skillName })
+  assert.equal(await updateRow.getByRole('button', { name: '编辑', exact: true }).count(), 0, '能力更新 Skill 不得出现普通编辑入口')
+}
+const otherOwnerRow = page.locator('.skill-hub-row').filter({ hasText: 'lenovo-order-detail-query' })
+assert.equal(await otherOwnerRow.getByRole('button', { name: '编辑', exact: true }).count(), 0, '非本人 Skill 不得出现普通编辑入口')
 
 await context.close()
 await browser.close()
