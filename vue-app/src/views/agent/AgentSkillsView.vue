@@ -112,7 +112,7 @@
                   type="button"
                   @click="handleAction(item, action)"
                 >
-                  {{ action }}
+                  {{ actionLabel(action) }}
                 </button>
               </div>
             </td>
@@ -415,7 +415,7 @@ function skillHubActions(item: SkillHubItem) {
       ? ['发布更新']
       : []
   const updateActions = hasCapabilityUpdate(item)
-    ? ['查看变化', ...governanceActions, ...(canUpdateSkill(item) && item.editStatus !== 'approved' ? [capabilityUpdateActionLabel(item)] : [])]
+    ? ['查看变化', ...governanceActions, ...(canUpdateSkill(item) && canEditCapabilityUpdate(item) ? [capabilityUpdateActionLabel(item)] : [])]
     : []
   if (item.status === 'draft') return [...updateActions, ...baseActions]
   return [...updateActions, ...baseActions.filter(action => action !== '测试'), '测试']
@@ -429,13 +429,21 @@ function actionTone(action: string) {
   return 'normal'
 }
 
+function actionLabel(action: string) {
+  return ({
+    审批更新: '审批',
+    驳回更新: '驳回',
+    发布更新: '发布'
+  } as Record<string, string>)[action] || action
+}
+
 function handleAction(item: SkillHubItem, action: string) {
   if (action === '测试') return testSkill(item)
   if (action === '查看变化') {
     capabilityChangeItem.value = item
     return
   }
-  if (action === '更新' || action === '继续更新') {
+  if (action === '更新' || action === '编辑') {
     openCapabilityUpdate(item)
     return
   }
@@ -467,7 +475,13 @@ function capabilityUpdateStatusLabel(item: SkillHubItem) {
 }
 
 function capabilityUpdateActionLabel(item: SkillHubItem) {
-  return item.capabilityUpdate?.hasDraftEdits ? '继续更新' : '更新'
+  return item.capabilityUpdate?.status === 'available' ? '更新' : '编辑'
+}
+
+function canEditCapabilityUpdate(item: SkillHubItem) {
+  if (item.capabilityUpdate?.status === 'available') return true
+  return item.capabilityUpdate?.status === 'processing'
+    && (item.editStatus === 'draft' || item.editStatus === 'rejected')
 }
 
 function capabilityChangeKindLabel(kind: string) {
