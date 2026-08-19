@@ -1,14 +1,14 @@
 # 联想门户工作台项目维护规范
 
-本目录是 `lexiang-new-0803` 门户工作台可移植交付版。当前主实现位于 `vue-app/`，用于本地 POC、设计走查、研发实现与交互验收，不是 `leaibot.cn` 生产购物助手代码。
+本目录是 `lexiang-new-0818` 门户工作台可移植交付版。当前主实现位于 `vue-app/`，用于本地 POC、设计走查、研发实现与交互验收，不是 `leaibot.cn` 生产购物助手代码。
 
 ## 统一设计规范
 
 设计、修改或评审页面前，读取项目随附的统一设计 Skill：
 
-`skill/portal-workbench-ui-0803/SKILL.md`
+`skill/portal-workbench-ui-0818/SKILL.md`
 
-再按任务读取其中对应 reference。项目内 Skill 是统一 0803 Skill 的分发副本，PM、UI 与研发共用；不得在项目内单独维护研发版、PM 版或 UI 版。
+再按任务读取其中对应 reference。项目内 Skill 是统一 0818 Skill 的分发副本，PM、UI 与研发共用；不得在项目内单独维护研发版、PM 版或 UI 版。0803 与 0812 目录仅作为历史版本保留，不再作为默认规范。
 
 不要依赖个人用户名、固定检出目录或项目/Skill 哈希。先将 `vue-app/` 解析为 `<app-root>`，再使用仓库相对路径。
 
