@@ -1,5 +1,19 @@
 export const pocLogServerRecords = [
   {
+    "time": "2026-08-19 15:47",
+    "operator": "zhangrui（协作工作区）",
+    "codeAuthor": "Codex（协作代理）",
+    "sourceRef": "dev/zhangrui-ui-0818-capability；设计基线 portal-workbench-ui-0818；产品方案 portal-workbench-capability-context-controlled-update-product-plan-20260819.md；本地提交 3721fff、e093af0、65da5d0",
+    "traceStatus": "已基于 origin/dev/zhangrui 最新提交在独立 worktree 完成 0818 设计治理接入、P0 规则补齐、54 项产品契约测试、Lint、类型检查、生产构建、壳层冒烟和保护文件哈希检查；尚未更新 new、正式环境或远端 Git。",
+    "overwriteImpact": "只新增 0818 设计 Skill 与项目基线配置，并修复高风险能力变化暂缓后的可见状态及多上下文自动扫描 query；不修改公共导航、普通 Skill 生命周期、右侧 AI 助手、权限管理或受保护 admin-runtime。",
+    "title": "0818 设计基线与能力更新 P0 规则补齐",
+    "scope": "设计 Skill 0818 / Skill Hub / 高风险能力变化 / 多上下文扫描 / 回归保护",
+    "detail": "项目默认设计治理基线升级为 0818，并补齐当前 38 个 pageId 的页面矩阵与视觉验收记录；报告交互继续遵守已确认的下载与展开规则，不恢复保存。高风险权限或破坏性变化选择“暂不处理”后，线上版本和草稿保持不变，风险记录继续显示为“高风险待处理”并保留更新入口；普通增强变化的“忽略本次”仍只关闭当前记录。进入更新第二步时，自动 query 在单上下文下保持原文，多上下文下逐项列出菜单路径和原/目标版本，避免只扫描第一项。",
+    "deployTargets": [],
+    "deployAccount": "zhangrui",
+    "status": "本地验证完成，待发布确认"
+  },
+  {
     "time": "2026-08-19 15:04",
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
