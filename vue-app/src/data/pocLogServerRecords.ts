@@ -1,14 +1,14 @@
 export const pocLogServerRecords = [
   {
-    "time": "2026-08-19 12:15",
+    "time": "2026-08-19 14:31",
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
-    "sourceRef": "dev/zhangrui-capability-update-selection；产品方案 portal-workbench-capability-context-controlled-update-product-plan-20260819.md；本地发布提交 71b2ac5",
-    "traceStatus": "已在个人隔离 worktree 完成 P0 源码、契约测试、构建和冲突检查，并增量更新 new 预览；正式链接和远端 Git 均未更新。",
+    "sourceRef": "dev/zhangrui-capability-update-selection；产品方案 portal-workbench-capability-context-controlled-update-product-plan-20260819.md；P0 发布提交 71b2ac5；预览状态兼容修复 b3b5294",
+    "traceStatus": "已在个人隔离 worktree 完成 P0 源码、契约测试、构建和冲突检查，并增量更新 new 预览；随后修复旧浏览器状态隐藏变化标记的问题。正式链接和远端 Git 均未更新。",
     "overwriteImpact": "只调整 Skill Hub 能力变化报告、受控更新任务、忽略/暂不处理和 Skill 创建第二步的上下文版本展示；不修改权限管理、普通 Skill 生命周期、右侧 AI 助手或受保护 admin-runtime。",
     "title": "Skill 能力上下文受控更新 P0 闭环",
     "scope": "Skill Hub / Markdown 变化报告 / 更新任务 / 上下文快照 / 自动需求澄清 / 忽略与失败恢复 / 版本治理",
-    "detail": "能力变化按真实引用的 context ID 和版本快照定位 Skill；变化详情保留顶部元信息，主体改为安全 Markdown 报告并支持展开技术明细。点击“更新”后创建或复用唯一编辑草稿，自动升级已绑定且受影响的上下文版本，进入需求澄清并立即执行带菜单路径、原/目标版本和业务摘要的首轮更新指令；生成成功后才进入“更新编辑中”，失败恢复原草稿并保留“有更新”重试入口。增强变化支持二次确认后“忽略本次”，权限或破坏性变化仅允许“暂不处理”并保留风险记录。Skill Hub 按有更新、正在准备、更新编辑中、待审批、已驳回和发布完成联动状态与操作；线上版本在更新草稿评估、审核和发布前始终不变。第二步将已选择、受影响和可选新增能力分层展示，完整显示路径、编码和原/目标版本；可选新增能力不自动勾选，进入评估前记录采用与暂不采用结论。",
+    "detail": "能力变化按真实引用的 context ID 和版本快照定位 Skill；变化详情保留顶部元信息，主体改为安全 Markdown 报告并支持展开技术明细。点击“更新”后创建或复用唯一编辑草稿，自动升级已绑定且受影响的上下文版本，进入需求澄清并立即执行带菜单路径、原/目标版本和业务摘要的首轮更新指令；生成成功后才进入“更新编辑中”，失败恢复原草稿并保留“有更新”重试入口。增强变化支持二次确认后“忽略本次”，权限或破坏性变化仅允许“暂不处理”并保留风险记录。Skill Hub 按有更新、正在准备、更新编辑中、待审批、已驳回和发布完成联动状态与操作；线上版本在更新草稿评估、审核和发布前始终不变。第二步将已选择、受影响和可选新增能力分层展示，完整显示路径、编码和原/目标版本；可选新增能力不自动勾选，进入评估前记录采用与暂不采用结论。针对旧预览浏览器保存的 processing 状态增加一次性流程版本迁移，恢复变化摘要、“有更新”和“更新”入口，同时保留已有 Skill、草稿及审批信息；进入新版更新流程后不再重复重置。",
     "deployTargets": [
       "new"
     ],
