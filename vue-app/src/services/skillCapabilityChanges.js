@@ -125,13 +125,26 @@ function capabilityScanMessageId(update) {
 
 export function buildCapabilityScanQuery(item) {
   const update = item?.capabilityUpdate
-  const affected = update?.affectedContexts?.[0]
+  const affectedContexts = Array.isArray(update?.affectedContexts) ? update.affectedContexts.filter(Boolean) : []
+  const affected = affectedContexts[0]
   const menuPath = affected?.menuPath || update?.menuPath || update?.contextId || '当前能力'
   const currentVersion = affected?.currentVersion || update?.currentCapabilityVersion || '当前版本'
   const targetVersion = affected?.targetVersion || update?.targetCapabilityVersion || '目标版本'
   const summary = update?.summary || '能力上下文发生变化'
+  const updateDescription = affectedContexts.length > 1
+    ? [
+        `检测到 ${affectedContexts.length} 个能力上下文更新：`,
+        ...affectedContexts.map((context, index) => {
+          const contextPath = context.menuPath || context.name || context.contextId || '当前能力'
+          const contextCurrentVersion = context.currentVersion || update?.currentCapabilityVersion || '当前版本'
+          const contextTargetVersion = context.targetVersion || update?.targetCapabilityVersion || '目标版本'
+          return `${index + 1}. 「${contextPath}」由 ${contextCurrentVersion} 更新为 ${contextTargetVersion}`
+        }),
+        `主要变化为：${summary}`
+      ].join('\n')
+    : `检测到「${menuPath}」能力上下文由 ${currentVersion} 更新为 ${targetVersion}，主要变化为：${summary}`
   return [
-    `检测到「${menuPath}」能力上下文由 ${currentVersion} 更新为 ${targetVersion}，主要变化为：${summary}`,
+    updateDescription,
     '请保留当前 Skill 的业务目标，基于最新能力重新梳理需求澄清、输入输出、权限边界、异常兜底和验收用例；对不应纳入本 Skill 的变化明确标记为“不采用”，不要直接发布。'
   ].join('\n')
 }

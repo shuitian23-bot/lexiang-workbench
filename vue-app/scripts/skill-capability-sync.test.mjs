@@ -172,6 +172,26 @@ test('capability update seeds one complete visible update instruction and never 
   assert.equal(hydratedTwice.draft.clarifyMessages[0].id, `capability-scan-${update.recordId}`)
 })
 
+test('capability update scan query lists every affected context and version change', async () => {
+  const { buildCapabilityScanQuery, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const update = getSeedCapabilityUpdate('product-knowledge')
+  update.affectedContexts.push({
+    contextId: 'product.compare',
+    name: '商品参数对比',
+    menuPath: '商品管理 / 商品参数对比',
+    currentVersion: 'cap-2026.08.06',
+    targetVersion: 'cap-2026.08.14'
+  })
+
+  assert.equal(buildCapabilityScanQuery({ capabilityUpdate: update }), [
+    '检测到 2 个能力上下文更新：',
+    '1. 「GEO 看板 / 手工上传知识」由 cap-2026.08.03 更新为 cap-2026.08.14',
+    '2. 「商品管理 / 商品参数对比」由 cap-2026.08.06 更新为 cap-2026.08.14',
+    '主要变化为：新增商品对比接口，并补充能效、重量和接口类型字段。',
+    '请保留当前 Skill 的业务目标，基于最新能力重新梳理需求澄清、输入输出、权限边界、异常兜底和验收用例；对不应纳入本 Skill 的变化明确标记为“不采用”，不要直接发布。'
+  ].join('\n'))
+})
+
 test('capability update completes only after the first clarification result is saved', async () => {
   const { beginCapabilityUpdate, completeCapabilityUpdate, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
   const update = getSeedCapabilityUpdate('product-knowledge')
