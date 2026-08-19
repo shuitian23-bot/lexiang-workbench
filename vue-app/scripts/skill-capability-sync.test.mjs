@@ -380,6 +380,50 @@ test('a newer capability record is not hidden by a resolved cache', async () => 
   assert.match(processing.draft.summaryUpdated, /cap-2026\.08\.20/)
 })
 
+test('legacy processing state restores the P0 available marker without discarding the draft', async () => {
+  const {
+    capabilityUpdatePresentation,
+    getSeedCapabilityUpdate,
+    hydrateCapabilityUpdate
+  } = await import('../src/services/skillCapabilityChanges.js')
+  const seededUpdate = getSeedCapabilityUpdate('product-knowledge')
+  const legacyUpdate = { ...seededUpdate, status: 'processing' }
+  delete legacyUpdate.flowRevision
+  const draft = {
+    form: { name: 'product-knowledge', cnName: '产品知识问答', menu: 'GEO 看板', scene: '', input: '', output: '' },
+    selectedContextCodes: ['dashboard.geoKnowledge'],
+    clarifyMessages: [],
+    summaryItems: [],
+    summaryUpdated: '',
+    aiTuned: true,
+    savedAt: '2026-08-19 10:00'
+  }
+
+  const hydrated = hydrateCapabilityUpdate({
+    name: 'product-knowledge',
+    online: 'v1.0.7',
+    version: 'v1.0.8',
+    status: 'published',
+    statusText: '已发布',
+    editStatus: 'review',
+    draft,
+    capabilityUpdate: legacyUpdate
+  }, seededUpdate)
+
+  assert.equal(typeof seededUpdate.flowRevision, 'string')
+  assert.equal(hydrated.capabilityUpdate.status, 'available')
+  assert.equal(hydrated.editStatus, 'review')
+  assert.deepEqual(hydrated.draft, draft)
+  assert.equal(capabilityUpdatePresentation({
+    editStatus: hydrated.editStatus,
+    capabilityUpdate: hydrated.capabilityUpdate
+  }).statusLabel, '有更新')
+  assert.equal(capabilityUpdatePresentation({
+    editStatus: hydrated.editStatus,
+    capabilityUpdate: hydrated.capabilityUpdate
+  }).actionLabel, '更新')
+})
+
 test('capability submission preserves online lifecycle and owner until approved release', async () => {
   const { beginCapabilityUpdate, completeCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilitySubmission, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
   const preparing = beginCapabilityUpdate({

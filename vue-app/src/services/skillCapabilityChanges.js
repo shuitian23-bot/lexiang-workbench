@@ -1,8 +1,10 @@
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
+const CAPABILITY_FLOW_REVISION = 'p0-controlled-update-20260819'
 
 const seedUpdates = {
   'product-knowledge': {
     recordId: 'capability-change-product-knowledge-20260814',
+    flowRevision: CAPABILITY_FLOW_REVISION,
     status: 'available',
     contextId: 'product.knowledge',
     menuPath: '商品管理 / 产品知识',
@@ -62,6 +64,7 @@ const seedUpdates = {
   },
   'voucher-recommend': {
     recordId: 'capability-change-voucher-recommend-20260814',
+    flowRevision: CAPABILITY_FLOW_REVISION,
     status: 'available',
     contextId: 'benefit.voucher',
     menuPath: '权益管理 / 券包配置',
@@ -347,6 +350,13 @@ export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = format
 export function hydrateCapabilityUpdate(item, seededUpdate) {
   const storedUpdate = item.capabilityUpdate
   const isNewRecord = Boolean(seededUpdate && storedUpdate && seededUpdate.recordId !== storedUpdate.recordId)
+  const restoresP0AvailableState = Boolean(
+    seededUpdate?.flowRevision
+      && storedUpdate
+      && seededUpdate.recordId === storedUpdate.recordId
+      && (storedUpdate.status === 'processing' || storedUpdate.status === 'preparing')
+      && storedUpdate.flowRevision !== seededUpdate.flowRevision
+  )
   const storedHistory = storedUpdate?.history || []
   const storedSnapshot = storedUpdate ? clone(storedUpdate) : undefined
   if (storedSnapshot) delete storedSnapshot.history
@@ -357,6 +367,13 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
           status: storedUpdate.status === 'processing' || storedUpdate.status === 'preparing' ? storedUpdate.status : 'available',
           history: [...storedHistory, storedSnapshot]
         }
+      : restoresP0AvailableState
+        ? {
+            ...seededUpdate,
+            status: 'available',
+            hasDraftEdits: Boolean(storedUpdate.hasDraftEdits),
+            history: storedHistory
+          }
       : {
           ...seededUpdate,
           ...storedUpdate,

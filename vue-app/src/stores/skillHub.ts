@@ -61,6 +61,7 @@ export interface SkillCapabilityChange {
 
 export interface SkillCapabilityUpdate {
   recordId: string
+  flowRevision?: string
   status: CapabilityUpdateStatus
   hasDraftEdits?: boolean
   contextId: string
