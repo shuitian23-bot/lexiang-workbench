@@ -73,6 +73,8 @@ export interface SkillCapabilityUpdate {
   summary: string
   count: number
   notificationState: string
+  reportMarkdown: string
+  technicalDetails: string[]
   affectedContexts: SkillAffectedContext[]
   optionalContexts: SkillOptionalContext[]
   changes: SkillCapabilityChange[]

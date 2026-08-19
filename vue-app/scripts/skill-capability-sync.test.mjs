@@ -245,6 +245,61 @@ test('ignore and defer close only the current record and a newer record is redis
   assert.equal(rediscovered.capabilityUpdate.recordId, newer.recordId)
 })
 
+test('capability update presentation follows the P0 status and action matrix', async () => {
+  const { capabilityUpdatePresentation, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const update = getSeedCapabilityUpdate('product-knowledge')
+  const item = { status: 'published', online: 'v1.0.7', capabilityUpdate: update }
+
+  assert.deepEqual(capabilityUpdatePresentation(item), {
+    visible: true, statusLabel: '有更新', actionLabel: '更新', actionLoading: false, ignoreLabel: '忽略本次'
+  })
+  assert.deepEqual(capabilityUpdatePresentation({ ...item, capabilityUpdate: { ...update, status: 'preparing' } }), {
+    visible: true, statusLabel: '正在准备更新', actionLabel: '正在准备', actionLoading: true, ignoreLabel: ''
+  })
+  assert.deepEqual(capabilityUpdatePresentation({ ...item, editStatus: 'draft', capabilityUpdate: { ...update, status: 'processing' } }), {
+    visible: true, statusLabel: '更新编辑中', actionLabel: '继续更新', actionLoading: false, ignoreLabel: ''
+  })
+  assert.deepEqual(capabilityUpdatePresentation({ ...item, editStatus: 'review', capabilityUpdate: { ...update, status: 'processing' } }), {
+    visible: true, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: ''
+  })
+  assert.deepEqual(capabilityUpdatePresentation({ ...item, editStatus: 'approved', capabilityUpdate: { ...update, status: 'processing' } }), {
+    visible: true, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: ''
+  })
+  assert.deepEqual(capabilityUpdatePresentation({ ...item, editStatus: 'rejected', capabilityUpdate: { ...update, status: 'processing' } }), {
+    visible: true, statusLabel: '更新版本已驳回', actionLabel: '继续更新', actionLoading: false, ignoreLabel: ''
+  })
+  assert.equal(capabilityUpdatePresentation({ ...item, capabilityUpdate: { ...update, status: 'ignored' } }).visible, false)
+  assert.equal(capabilityUpdatePresentation({ ...item, capabilityUpdate: { ...update, status: 'resolved' } }).visible, false)
+
+  const permissionUpdate = getSeedCapabilityUpdate('voucher-recommend')
+  assert.equal(capabilityUpdatePresentation({ ...item, capabilityUpdate: permissionUpdate }).ignoreLabel, '暂不处理')
+})
+
+test('safe capability Markdown parser returns structured text without executing HTML', async () => {
+  const { parseCapabilityMarkdown } = await import('../src/services/safeCapabilityMarkdown.js')
+  const blocks = parseCapabilityMarkdown([
+    '## 变化摘要',
+    '新增来源字段。<img src=x onerror=alert(1)>',
+    '',
+    '## 受影响能力',
+    '| 能力上下文 | 变化类型 |',
+    '| --- | --- |',
+    '| GEO 来源 | 增强 |',
+    '',
+    '## 权限与风险',
+    '- 新增读取权限 geo.source.read'
+  ].join('\n'))
+
+  assert.deepEqual(blocks, [
+    { type: 'heading', level: 2, text: '变化摘要' },
+    { type: 'paragraph', text: '新增来源字段。<img src=x onerror=alert(1)>' },
+    { type: 'heading', level: 2, text: '受影响能力' },
+    { type: 'table', headers: ['能力上下文', '变化类型'], rows: [['GEO 来源', '增强']] },
+    { type: 'heading', level: 2, text: '权限与风险' },
+    { type: 'list', items: ['新增读取权限 geo.source.read'] }
+  ])
+})
+
 test('Skill Hub change summary is visible only before an update starts', async () => {
   const { shouldShowCapabilityChangeSummary } = await import('../src/services/skillCapabilityChanges.js')
   assert.equal(shouldShowCapabilityChangeSummary({ status: 'available' }), true)
@@ -369,24 +424,38 @@ test('Skill Hub exposes independent update discovery and change actions', async 
   const view = await source('../src/views/agent/AgentSkillsView.vue')
   assert.match(view, /只看有更新/)
   assert.match(view, /查看变化/)
-  assert.match(view, /更新处理中/)
+  assert.match(view, /\.statusLabel/)
   assert.match(view, /能力变化详情/)
   assert.match(view, /startCapabilityUpdate/)
   assert.match(view, /canUpdateSkill/)
-  assert.match(view, /function capabilityUpdateActionLabel/)
-  assert.match(view, /capabilityUpdateActionLabel\(capabilityChangeItem\)/)
-  assert.match(view, /capabilityUpdateActionLabel\(item\)/)
+  assert.match(view, /function capabilityPresentation/)
 })
 
-test('Skill Hub uses the approved capability update action lifecycle copy', async () => {
+test('Skill Hub uses the P0 controlled update action lifecycle copy', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
-  assert.doesNotMatch(view, /继续更新/)
-  assert.match(view, /capabilityUpdate\?\.status === 'available'\s*\? '更新'\s*: '编辑'/)
+  assert.match(view, /capabilityUpdatePresentation/)
+  assert.match(view, /presentation\.actionLabel/)
+  assert.match(view, /presentation\.actionLoading/)
+  assert.match(view, /presentation\.ignoreLabel/)
   assert.match(view, /function actionLabel\(action: string\)/)
   assert.match(view, /审批更新:\s*'审批'/)
   assert.match(view, /驳回更新:\s*'驳回'/)
   assert.match(view, /发布更新:\s*'发布'/)
   assert.match(view, /\{\{ actionLabel\(action\) \}\}/)
+})
+
+test('Skill Hub renders safe Markdown reports and confirmed ignore or defer actions', async () => {
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  const component = await source('../src/components/agent/SafeCapabilityMarkdown.vue')
+  assert.match(view, /SafeCapabilityMarkdown/)
+  assert.match(view, /reportMarkdown/)
+  assert.match(view, /technicalDetails/)
+  assert.match(view, /ignoreCapabilityUpdate/)
+  assert.match(view, /忽略只作用于当前变化记录/)
+  assert.match(view, /暂不处理会保留高风险标记/)
+  assert.doesNotMatch(component, /v-html/)
+  assert.match(component, /parseCapabilityMarkdown/)
+  assert.match(component, /block\.type === 'table'/)
 })
 
 test('Skill Hub loads fixed capability updates without user-side demo controls', async () => {

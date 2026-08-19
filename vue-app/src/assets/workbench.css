@@ -1938,6 +1938,31 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   background:#fff;
   font-weight:600;
 }
+.skill-hub-confirm-reason {
+  display:grid;
+  gap:7px;
+  margin-top:14px;
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+}
+.skill-hub-confirm-reason textarea {
+  width:100%;
+  min-height:74px;
+  resize:vertical;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:9px 11px;
+  color:var(--text);
+  font:inherit;
+  font-weight:400;
+  line-height:1.5;
+}
+.skill-hub-confirm-reason textarea:focus {
+  border-color:var(--primary);
+  outline:none;
+  box-shadow:0 0 0 2px rgba(47,107,255,.12);
+}
 .skill-hub-confirm-foot {
   display:flex;
   justify-content:flex-end;
@@ -6212,6 +6237,33 @@ html[data-product="leaibot"] .skill-capability-overview b {
   font-size:13px;
   line-height:1.5;
   overflow-wrap:anywhere;
+}
+
+html[data-product="leaibot"] .skill-capability-report {
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  background:#fff;
+}
+
+html[data-product="leaibot"] .skill-capability-technical {
+  margin-top:12px;
+  padding:12px 14px;
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  background:#f8fafc;
+}
+
+html[data-product="leaibot"] .skill-capability-technical summary {
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+html[data-product="leaibot"] .skill-capability-technical[open] summary {
+  margin-bottom:10px;
 }
 
 html[data-product="leaibot"] .skill-capability-summary-card {

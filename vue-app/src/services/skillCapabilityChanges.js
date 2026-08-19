@@ -14,6 +14,27 @@ const seedUpdates = {
     summary: '新增商品对比接口，并补充能效、重量和接口类型字段。',
     count: 4,
     notificationState: '待服务接入',
+    reportMarkdown: [
+      '## 变化摘要',
+      '产品知识能力新增多商品参数对比，并补充能效、重量和接口类型字段。',
+      '',
+      '## 受影响能力',
+      '| 能力上下文 | 变化类型 | 业务变化 | 对当前 Skill 的影响 |',
+      '| --- | --- | --- | --- |',
+      '| GEO 看板 / 手工上传知识 | 增强 | 新增批量对比和结构化参数 | 可扩展多机型对比，原查询链路继续可用 |',
+      '',
+      '## 权限与风险',
+      '- 本次为增强变化，不改变当前线上版本权限。',
+      '- 新字段进入输出前仍需完成评估和审核。',
+      '',
+      '## 建议处理',
+      '- 更新原 Skill：保留产品问答目标并补齐横向对比能力。',
+      '- 可选新能力：独立产品知识上下文由负责人决定是否加入。'
+    ].join('\n'),
+    technicalDetails: [
+      'API product.compare.batch：新增批量商品参数对比。',
+      '字段 energy_grade、weight_kg、port_types：新增或结构化。'
+    ],
     affectedContexts: [
       {
         contextId: 'dashboard.geoKnowledge',
@@ -52,6 +73,25 @@ const seedUpdates = {
     summary: '券包适用人群权限点调整，原通用查询权限需拆分校验。',
     count: 1,
     notificationState: '待服务接入',
+    reportMarkdown: [
+      '## 变化摘要',
+      '券包适用人群读取权限由通用权限拆分为独立权限点。',
+      '',
+      '## 受影响能力',
+      '| 能力上下文 | 变化类型 | 业务变化 | 对当前 Skill 的影响 |',
+      '| --- | --- | --- | --- |',
+      '| 乐享运营 / 运营总览 | 权限配置 | 适用人群需要独立读取权限 | 未授权时不能返回适用人群 |',
+      '',
+      '## 权限与风险',
+      '- 新权限点：voucher.audience.read。',
+      '- 该变化不能静默忽略，只能暂不处理并保留风险提示。',
+      '',
+      '## 建议处理',
+      '- 更新原 Skill：补齐权限校验和无权限兜底。'
+    ].join('\n'),
+    technicalDetails: [
+      '权限点由 voucher.read 调整为 voucher.audience.read。'
+    ],
     affectedContexts: [
       {
         contextId: 'dashboard.overview',
@@ -109,6 +149,26 @@ function ensureCapabilityScanMessage(draft, item, update) {
 
 export function shouldShowCapabilityChangeSummary(update) {
   return update?.status === 'available'
+}
+
+export function capabilityUpdatePresentation(item) {
+  const update = item?.capabilityUpdate
+  if (!update || update.status === 'ignored' || update.status === 'resolved') {
+    return { visible: false, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: '' }
+  }
+  const base = { visible: true, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: '' }
+  if (update.status === 'available') {
+    const highRisk = (update.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
+    return { ...base, statusLabel: '有更新', actionLabel: '更新', ignoreLabel: highRisk ? '暂不处理' : '忽略本次' }
+  }
+  if (update.status === 'preparing') {
+    return { ...base, statusLabel: '正在准备更新', actionLabel: '正在准备', actionLoading: true }
+  }
+  if (item.editStatus === 'review' || item.editStatus === 'approved') return base
+  if (item.editStatus === 'rejected') {
+    return { ...base, statusLabel: '更新版本已驳回', actionLabel: '继续更新' }
+  }
+  return { ...base, statusLabel: '更新编辑中', actionLabel: '继续更新' }
 }
 
 export function getSeedCapabilityUpdate(skillName) {
