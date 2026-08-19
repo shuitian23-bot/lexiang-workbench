@@ -112,6 +112,59 @@ test('capability update preserves draft selections and adds affected contexts on
   assert.equal(started.draft.selectedContextCodes.includes('product.knowledge'), false)
 })
 
+test('capability update seeds one visible auto-scan query and never duplicates it', async () => {
+  const { beginCapabilityUpdate, getSeedCapabilityUpdate, hydrateCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const update = getSeedCapabilityUpdate('product-knowledge')
+  const started = beginCapabilityUpdate({
+    name: 'product-knowledge',
+    cnName: '产品知识问答',
+    category: 'GEO 看板',
+    desc: '产品知识查询',
+    version: 'v1.0.7',
+    online: 'v1.0.7',
+    status: 'published',
+    statusText: '已发布',
+    owner: 'product-pm',
+    capabilityUpdate: update
+  }, '2026-08-19 10:30')
+
+  assert.deepEqual(started.draft.clarifyMessages, [{
+    id: `capability-scan-${update.recordId}`,
+    kind: 'user',
+    text: '请基于最新能力上下文，自动扫描「产品知识问答」Skill 受影响的能力，并更新本次草稿的能力上下文。'
+  }])
+  assert.deepEqual(started.draft.selectedContextCodes, ['dashboard.geoKnowledge'])
+
+  const legacy = {
+    name: 'product-knowledge',
+    cnName: '产品知识问答',
+    online: 'v1.0.7',
+    status: 'published',
+    statusText: '已发布',
+    editStatus: 'draft',
+    capabilityUpdate: { ...update, status: 'processing' },
+    draft: {
+      selectedContextCodes: ['dashboard.geoKnowledge'],
+      clarifyMessages: [],
+      aiTuned: false,
+      baselineContextSeeded: true
+    }
+  }
+  const hydratedOnce = hydrateCapabilityUpdate(legacy, update)
+  const hydratedTwice = hydrateCapabilityUpdate({ ...legacy, draft: hydratedOnce.draft }, update)
+  assert.equal(hydratedOnce.draft.clarifyMessages.length, 1)
+  assert.equal(hydratedTwice.draft.clarifyMessages.length, 1)
+  assert.equal(hydratedTwice.draft.clarifyMessages[0].id, `capability-scan-${update.recordId}`)
+})
+
+test('Skill Hub change summary is visible only before an update starts', async () => {
+  const { shouldShowCapabilityChangeSummary } = await import('../src/services/skillCapabilityChanges.js')
+  assert.equal(shouldShowCapabilityChangeSummary({ status: 'available' }), true)
+  assert.equal(shouldShowCapabilityChangeSummary({ status: 'processing' }), false)
+  assert.equal(shouldShowCapabilityChangeSummary({ status: 'resolved' }), false)
+  assert.equal(shouldShowCapabilityChangeSummary(undefined), false)
+})
+
 test('legacy processing drafts receive missing seeded context once', async () => {
   const { getSeedCapabilityUpdate, hydrateCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
   const seededUpdate = getSeedCapabilityUpdate('product-knowledge')
