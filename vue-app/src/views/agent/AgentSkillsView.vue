@@ -12,15 +12,14 @@
     </div>
 
     <div class="skill-hub-summary" aria-label="Skill Hub 重点指标">
-      <component
-        :is="item.filter ? 'button' : 'div'"
+      <button
         v-for="item in summaryItems"
         :key="item.key"
-        :type="item.filter ? 'button' : undefined"
-        class="skill-hub-stat"
-        :class="[item.tone, { 'is-filterable': item.filter, 'is-active': item.filter && summaryFilter === item.filter }]"
-        :aria-pressed="item.filter ? summaryFilter === item.filter : undefined"
-        @click="item.filter && setSummaryFilter(item.filter)"
+        type="button"
+        class="skill-hub-stat is-filterable"
+        :class="[item.tone, { 'is-active': summaryFilter === item.filter }]"
+        :aria-pressed="summaryFilter === item.filter"
+        @click="setSummaryFilter(item.filter)"
       >
         <div class="skill-hub-stat-head">
           <span>{{ item.label }}</span>
@@ -28,7 +27,7 @@
         </div>
         <strong>{{ item.value }}</strong>
         <em>{{ item.desc }}</em>
-      </component>
+      </button>
     </div>
 
     <div class="skill-hub-toolbar">
@@ -318,7 +317,8 @@ const { items } = storeToRefs(skillHubStore)
 const keyword = ref('')
 const statusFilter = ref<'all' | SkillStatus>('all')
 const categoryFilter = ref('all')
-const summaryFilter = ref<'all' | 'updates' | 'disabled'>('all')
+type SummaryFilter = 'all' | 'own' | 'review' | 'published' | 'updates' | 'disabled'
+const summaryFilter = ref<SummaryFilter>('all')
 const onlyCapabilityUpdates = computed({
   get: () => summaryFilter.value === 'updates',
   set: (checked: boolean) => {
@@ -354,35 +354,43 @@ function skillCategoryLabel(item: SkillHubItem) {
 const categories = computed(() => firstLevelCategories)
 const statusOptions: SkillStatus[] = ['draft', 'review', 'approved', 'published', 'disabled', 'rejected']
 
+function matchesSummaryFilter(item: SkillHubItem, filter: SummaryFilter) {
+  if (filter === 'all') return true
+  if (filter === 'own') return item.owner === (user.value || 'admin')
+  if (filter === 'review') return item.status === 'review' || item.editStatus === 'review'
+  if (filter === 'published') return item.online !== '未发布' && item.status !== 'disabled'
+  if (filter === 'updates') return hasCapabilityUpdate(item)
+  return item.status === 'disabled'
+}
+
 const filteredItems = computed(() => {
   const q = keyword.value.trim().toLowerCase()
   return items.value.filter(item => {
     const matchKeyword = !q || [item.name, item.cnName, item.desc].some(text => text.toLowerCase().includes(q))
     const matchStatus = statusFilter.value === 'all' || item.status === statusFilter.value || item.editStatus === statusFilter.value
     const matchCategory = categoryFilter.value === 'all' || skillCategoryLabel(item) === categoryFilter.value
-    const matchCapabilityUpdate = !onlyCapabilityUpdates.value || hasCapabilityUpdate(item)
-    const matchSummaryFilter = summaryFilter.value !== 'disabled' || item.status === 'disabled'
-    return matchKeyword && matchStatus && matchCategory && matchCapabilityUpdate && matchSummaryFilter
+    const matchSummary = matchesSummaryFilter(item, summaryFilter.value)
+    return matchKeyword && matchStatus && matchCategory && matchSummary
   })
 })
 
 const summaryItems = computed(() => {
-  const ownCount = items.value.filter(item => item.owner === (user.value || 'admin')).length
-  const reviewCount = items.value.filter(item => item.status === 'review' || item.editStatus === 'review').length
-  const publishedCount = items.value.filter(item => item.online !== '未发布' && item.status !== 'disabled').length
-  const disabledCount = items.value.filter(item => item.status === 'disabled').length
-  const capabilityCount = items.value.filter(hasCapabilityUpdate).length
+  const ownCount = items.value.filter(item => matchesSummaryFilter(item, 'own')).length
+  const reviewCount = items.value.filter(item => matchesSummaryFilter(item, 'review')).length
+  const publishedCount = items.value.filter(item => matchesSummaryFilter(item, 'published')).length
+  const disabledCount = items.value.filter(item => matchesSummaryFilter(item, 'disabled')).length
+  const capabilityCount = items.value.filter(item => matchesSummaryFilter(item, 'updates')).length
   return [
-    { key: 'all', label: '全部 Skill', code: 'ALL', value: items.value.length, desc: `按 ${categories.value.length} 个一级菜单归类`, tone: 'stat--primary' },
-    { key: 'own', label: '我的 Skill', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '含当前账号草稿与已提交' : '含草稿与已提交记录', tone: 'stat--info' },
-    { key: 'review', label: '待审批', code: 'TODO', value: reviewCount, desc: '需管理员审核处理', tone: 'stat--warning' },
-    { key: 'published', label: '已发布', code: 'LIVE', value: publishedCount, desc: '线上可被工作台调用', tone: 'stat--success' },
+    { key: 'all', label: '全部 Skill', code: 'ALL', value: items.value.length, desc: `按 ${categories.value.length} 个一级菜单归类`, tone: 'stat--primary', filter: 'all' as const },
+    { key: 'own', label: '我的 Skill', code: 'ME', value: ownCount, desc: role.value === 'admin' ? '含当前账号草稿与已提交' : '含草稿与已提交记录', tone: 'stat--info', filter: 'own' as const },
+    { key: 'review', label: '待审批', code: 'TODO', value: reviewCount, desc: '需管理员审核处理', tone: 'stat--warning', filter: 'review' as const },
+    { key: 'published', label: '已发布', code: 'LIVE', value: publishedCount, desc: '线上可被工作台调用', tone: 'stat--success', filter: 'published' as const },
     { key: 'updates', label: '能力更新', code: 'NEW', value: capabilityCount, desc: `${capabilityCount} 个 Skill 待确认影响`, tone: 'stat--primary', filter: 'updates' as const },
     { key: 'disabled', label: '已禁用', code: 'OFF', value: disabledCount, desc: '暂停参与任务匹配', tone: 'stat--muted', filter: 'disabled' as const }
   ]
 })
 
-function setSummaryFilter(filter: 'updates' | 'disabled') {
+function setSummaryFilter(filter: SummaryFilter) {
   summaryFilter.value = summaryFilter.value === filter ? 'all' : filter
   keyword.value = ''
   statusFilter.value = 'all'

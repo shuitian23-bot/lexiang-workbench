@@ -538,13 +538,20 @@ test('Skill Hub loads fixed capability updates without user-side demo controls',
   assert.doesNotMatch(view, /模拟能力变化|重置演示数据|new\.leaibot\.cn/)
 })
 
-test('Skill Hub summary cards filter capability updates and disabled skills independently', async () => {
+test('all Skill Hub summary cards filter the list with one shared predicate', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
   const styles = await source('../src/assets/workbench.css')
-  assert.match(view, /summaryFilter/)
-  assert.match(view, /setSummaryFilter/)
-  assert.match(view, /filter: 'updates'/)
-  assert.match(view, /filter: 'disabled'/)
+  assert.match(view, /type SummaryFilter = 'all' \| 'own' \| 'review' \| 'published' \| 'updates' \| 'disabled'/)
+  assert.match(view, /function matchesSummaryFilter\(item: SkillHubItem, filter: SummaryFilter\)/)
+  for (const filter of ['all', 'own', 'review', 'published', 'updates', 'disabled']) {
+    assert.match(view, new RegExp(`filter: '${filter}'`))
+  }
+  assert.match(view, /summaryFilter\.value === filter \? 'all' : filter/)
+  assert.match(view, /item\.owner === \(user\.value \|\| 'admin'\)/)
+  assert.match(view, /item\.status === 'review' \|\| item\.editStatus === 'review'/)
+  assert.match(view, /item\.online !== '未发布' && item\.status !== 'disabled'/)
+  assert.match(view, /return hasCapabilityUpdate\(item\)/)
+  assert.match(view, /item\.status === 'disabled'/)
   assert.match(view, /published: \['禁用'/)
   assert.match(view, /disabled: \['启用'/)
   assert.match(styles, /grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/)
