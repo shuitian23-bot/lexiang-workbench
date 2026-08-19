@@ -231,4 +231,3 @@ Stage only the task source, tests and regenerated `public/admin-vue` artifacts. 
 ```bash
 git commit -m "chore: build package-aligned workbench pages"
 ```
-

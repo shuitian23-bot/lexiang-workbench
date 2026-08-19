@@ -63,4 +63,3 @@ test('agreement order detail follows the package address and section styling', a
   assert.match(runtime, /\.apo-section h2:before/)
   assert.match(runtime, /@media\(max-width:900px\)[\s\S]*?\.apo-address-item\{grid-template-columns:1fr\}/)
 })
-
