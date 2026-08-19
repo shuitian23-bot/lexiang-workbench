@@ -162,6 +162,9 @@ export function capabilityUpdatePresentation(item) {
   const base = { visible: true, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: '' }
   if (update.status === 'available') {
     const highRisk = (update.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
+    if (highRisk && update.resolution?.action === 'deferred') {
+      return { ...base, statusLabel: '高风险待处理', actionLabel: '更新' }
+    }
     return { ...base, statusLabel: '有更新', actionLabel: '更新', ignoreLabel: highRisk ? '暂不处理' : '忽略本次' }
   }
   if (update.status === 'preparing') {
@@ -333,7 +336,7 @@ export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = format
   const update = target?.capabilityUpdate
   if (!update || update.status !== 'available') return target
   const requiresDeferral = (update.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
-  update.status = 'ignored'
+  update.status = requiresDeferral ? 'available' : 'ignored'
   update.resolution = {
     action: requiresDeferral ? 'deferred' : 'ignored',
     operator: resolution.operator || 'admin',

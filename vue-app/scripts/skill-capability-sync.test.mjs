@@ -224,7 +224,7 @@ test('capability update failure restores the previous draft and remains retryabl
 })
 
 test('ignore and defer close only the current record and a newer record is rediscovered', async () => {
-  const { getSeedCapabilityUpdate, hydrateCapabilityUpdate, ignoreCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const { capabilityUpdatePresentation, getSeedCapabilityUpdate, hydrateCapabilityUpdate, ignoreCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
   const enhancement = { name: 'product-knowledge', online: 'v1.0.7', status: 'published', capabilityUpdate: getSeedCapabilityUpdate('product-knowledge') }
   const ignored = ignoreCapabilityUpdate(enhancement, { operator: 'product-pm', reason: '本期不采用' }, '2026-08-19 11:10')
   assert.equal(ignored.capabilityUpdate.status, 'ignored')
@@ -236,8 +236,13 @@ test('ignore and defer close only the current record and a newer record is redis
 
   const permission = { name: 'voucher-recommend', online: 'v0.1.3', status: 'published', capabilityUpdate: getSeedCapabilityUpdate('voucher-recommend') }
   const deferred = ignoreCapabilityUpdate(permission, { operator: 'growth-pm', reason: '' }, '2026-08-19 11:11')
-  assert.equal(deferred.capabilityUpdate.status, 'ignored')
+  assert.equal(deferred.capabilityUpdate.status, 'available')
   assert.equal(deferred.capabilityUpdate.resolution.action, 'deferred')
+  assert.deepEqual(capabilityUpdatePresentation(deferred), {
+    visible: true, statusLabel: '高风险待处理', actionLabel: '更新', actionLoading: false, ignoreLabel: ''
+  })
+  assert.equal(deferred.online, 'v0.1.3')
+  assert.equal(deferred.draft, undefined)
 
   const newer = { ...getSeedCapabilityUpdate('product-knowledge'), recordId: 'capability-change-product-knowledge-20260820', targetCapabilityVersion: 'cap-2026.08.20' }
   const rediscovered = hydrateCapabilityUpdate(ignored, newer)
