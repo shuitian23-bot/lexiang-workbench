@@ -81,6 +81,37 @@ test('capability update clones current context and invalidates stale evaluation 
   assert.equal(saved.capabilityUpdate.hasDraftEdits, true)
 })
 
+test('capability update preserves draft selections and adds affected contexts once', async () => {
+  const { beginCapabilityUpdate, getSeedCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const update = getSeedCapabilityUpdate('product-knowledge')
+  const started = beginCapabilityUpdate({
+    name: 'product-knowledge',
+    cnName: '产品知识问答',
+    category: 'GEO 看板',
+    desc: '产品知识查询',
+    version: 'v1.0.7',
+    online: 'v1.0.7',
+    status: 'published',
+    statusText: '已发布',
+    owner: 'product-pm',
+    capabilityUpdate: update,
+    draft: {
+      form: { name: 'product-knowledge', cnName: '产品知识问答', menu: 'GEO 看板', scene: '', input: '', output: '' },
+      selectedContextCodes: ['dashboard.geoOverview'],
+      clarifyMessages: [],
+      summaryItems: [],
+      summaryUpdated: '',
+      aiTuned: false,
+      baselineContextSeeded: true,
+      savedAt: '2026-08-18 10:00'
+    }
+  }, '2026-08-19 09:00')
+
+  assert.deepEqual(started.draft.selectedContextCodes, ['dashboard.geoOverview', 'dashboard.geoKnowledge'])
+  assert.equal(started.draft.selectedContextCodes.filter(code => code === 'dashboard.geoKnowledge').length, 1)
+  assert.equal(started.draft.selectedContextCodes.includes('product.knowledge'), false)
+})
+
 test('legacy processing drafts receive missing seeded context once', async () => {
   const { getSeedCapabilityUpdate, hydrateCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
   const seededUpdate = getSeedCapabilityUpdate('product-knowledge')
@@ -205,6 +236,17 @@ test('Skill Hub exposes independent update discovery and change actions', async 
   assert.match(view, /capabilityUpdateActionLabel\(item\)/)
 })
 
+test('Skill Hub uses the approved capability update action lifecycle copy', async () => {
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.doesNotMatch(view, /继续更新/)
+  assert.match(view, /capabilityUpdate\?\.status === 'available'\s*\? '更新'\s*: '编辑'/)
+  assert.match(view, /function actionLabel\(action: string\)/)
+  assert.match(view, /审批更新:\s*'审批'/)
+  assert.match(view, /驳回更新:\s*'驳回'/)
+  assert.match(view, /发布更新:\s*'发布'/)
+  assert.match(view, /\{\{ actionLabel\(action\) \}\}/)
+})
+
 test('Skill Hub loads fixed capability updates without user-side demo controls', async () => {
   const service = await source('../src/services/skillCapabilityChanges.js')
   const store = await source('../src/stores/skillHub.ts')
@@ -273,4 +315,10 @@ test('Skill update combines selected context and capability changes without auto
   assert.match(view, /\.skill-capability-context-panel\s*\{[^}]*flex:\s*0 0 auto;/s)
   assert.match(view, /container-type:\s*inline-size/)
   assert.match(view, /@container \(max-width: 480px\)/)
+})
+
+test('Skill create reloads an update draft when route intent changes in an open tab', async () => {
+  const view = await source('../src/views/agent/AgentSkillCreateView.vue')
+  assert.match(view, /watch\(\s*\(\) => \[\s*String\(route\.query\.skill \|\| ''\),\s*String\(route\.query\.edit \|\| ''\),\s*String\(route\.query\.capabilityUpdate \|\| ''\)\s*\]/s)
+  assert.match(view, /\(nextIntent, previousIntent\)[\s\S]*loadEditDraft\(\)/)
 })
