@@ -3,12 +3,12 @@ export const pocLogServerRecords = [
     "time": "2026-08-19 15:47",
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
-    "sourceRef": "dev/zhangrui-ui-0818-capability；设计基线 portal-workbench-ui-0818；产品方案 portal-workbench-capability-context-controlled-update-product-plan-20260819.md；本地提交 3721fff、e093af0、65da5d0、c6737c3、6efd460",
-    "traceStatus": "已基于 origin/dev/zhangrui 最新提交在独立 worktree 完成 0818 设计治理接入、P0 规则补齐和 Skill Hub 汇总卡筛选；54 项产品契约、Lint、类型检查、生产构建、壳层冒烟、六卡浏览器点击验收及保护文件哈希检查通过；已通过增量资源方式更新 new 预览，正式环境与 GitLab 尚未更新。",
-    "overwriteImpact": "只新增 0818 设计 Skill 与项目基线配置，并修复高风险能力变化暂缓后的可见状态、多上下文自动扫描 query 及 Skill Hub 汇总卡筛选；不修改公共导航、普通 Skill 生命周期、右侧 AI 助手、权限管理或受保护 admin-runtime。",
+    "sourceRef": "dev/zhangrui-ui-0818-capability；设计基线 portal-workbench-ui-0818；产品方案 portal-workbench-capability-context-controlled-update-product-plan-20260819.md；本地提交 3721fff、e093af0、65da5d0、c6737c3、6efd460、f12e006、0f2bd35",
+    "traceStatus": "已基于 origin/dev/zhangrui 最新提交在独立 worktree 完成 0818 设计治理接入、P0 规则补齐、Skill Hub 汇总卡筛选和本人 Skill 编辑入口；55 项产品契约、Lint、类型检查、生产构建、壳层冒烟、汇总卡与编辑链路浏览器验收及保护文件哈希检查通过；已通过增量资源方式更新 new 预览，正式环境与 GitLab 尚未更新。",
+    "overwriteImpact": "只新增 0818 设计 Skill 与项目基线配置，并修复高风险能力变化暂缓后的可见状态、多上下文自动扫描 query、Skill Hub 汇总卡筛选及本人 Skill 编辑入口；不修改公共导航、能力更新状态机、右侧 AI 助手、权限管理或受保护 admin-runtime。",
     "title": "0818 设计基线与能力更新 P0 规则补齐",
-    "scope": "设计 Skill 0818 / Skill Hub 汇总卡筛选 / 高风险能力变化 / 多上下文扫描 / 回归保护",
-    "detail": "项目默认设计治理基线升级为 0818，并补齐当前 38 个 pageId 的页面矩阵与视觉验收记录；报告交互继续遵守已确认的下载与展开规则，不恢复保存。高风险权限或破坏性变化选择“暂不处理”后，线上版本和草稿保持不变，风险记录继续显示为“高风险待处理”并保留更新入口；普通增强变化的“忽略本次”仍只关闭当前记录。进入更新第二步时，自动 query 在单上下文下保持原文，多上下文下逐项列出菜单路径和原/目标版本，避免只扫描第一项。Skill Hub 六张汇总卡全部作为列表筛选入口，卡片数量与列表筛选复用同一口径；再次点击当前卡恢复全部，切换卡片时重置关键词、状态和分类条件。",
+    "scope": "设计 Skill 0818 / Skill Hub 汇总卡筛选 / 本人 Skill 编辑 / 高风险能力变化 / 多上下文扫描 / 回归保护",
+    "detail": "项目默认设计治理基线升级为 0818，并补齐当前 38 个 pageId 的页面矩阵与视觉验收记录；报告交互继续遵守已确认的下载与展开规则，不恢复保存。高风险权限或破坏性变化选择“暂不处理”后，线上版本和草稿保持不变，风险记录继续显示为“高风险待处理”并保留更新入口；普通增强变化的“忽略本次”仍只关闭当前记录。进入更新第二步时，自动 query 在单上下文下保持原文，多上下文下逐项列出菜单路径和原/目标版本，避免只扫描第一项。Skill Hub 六张汇总卡全部作为列表筛选入口，卡片数量与列表筛选复用同一口径；再次点击当前卡恢复全部，切换卡片时重置关键词、状态和分类条件。本人创建且未进入能力更新流程的 Skill 在草稿、待审批、已审批、已发布、已禁用和已驳回状态下统一展示一个“编辑”；已驳回项保留驳回修改上下文，能力更新 Skill 继续只走“更新/继续更新”等受控入口，非本人 Skill 不增加编辑权限。",
     "deployTargets": [
       "new"
     ],
