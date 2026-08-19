@@ -1,0 +1,21 @@
+.lx-product-data-state {
+  grid-column: 1 / -1;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.lx-product-data-state button {
+  min-height: 32px;
+  padding: 0 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.product-detail[data-detail-state="loading"] {
+  cursor: progress;
+}
