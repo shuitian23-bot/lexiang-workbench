@@ -1,0 +1,97 @@
+body.lx-template-file .lxfd-nav-cluster:not(.open) {
+        min-width: 360px !important;
+        height: 50px !important;
+        gap: 0 !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:not(.open) .lxfd-convo-pill {
+        order: 0 !important;
+        height: 50px !important;
+        margin: 0 !important;
+        padding: 0 24px 0 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #5b1452 !important;
+        transform: none !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:not(.open) .lxfd-convo-name {
+        max-width: 360px !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:not(:hover):not(:focus-within):not(.open)::after {
+        left: calc(50% + var(--lxfd-nav-label-half, 52px) - 19px) !important;
+        right: auto !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:hover,
+      body.lx-template-file .lxfd-nav-cluster:focus-within,
+      body.lx-template-file .lxfd-nav-cluster.open {
+        min-width: auto !important;
+        gap: 11px !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:hover .lxfd-convo-pill,
+      body.lx-template-file .lxfd-nav-cluster:focus-within .lxfd-convo-pill,
+      body.lx-template-file .lxfd-nav-cluster.open .lxfd-convo-pill {
+        order: -1 !important;
+        height: 38px !important;
+        margin: 0 !important;
+        padding: 0 18px !important;
+        border-radius: 7px !important;
+        background: #efe4f1 !important;
+        color: #5b1452 !important;
+        font-weight: 700 !important;
+        transform: translateY(0) scale(1) !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:hover .lxfd-convo-name,
+      body.lx-template-file .lxfd-nav-cluster:focus-within .lxfd-convo-name,
+      body.lx-template-file .lxfd-nav-cluster.open .lxfd-convo-name {
+        max-width: 320px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:hover .lxfd-nav-sheet,
+      body.lx-template-file .lxfd-nav-cluster:focus-within .lxfd-nav-sheet,
+      body.lx-template-file .lxfd-nav-cluster.open .lxfd-nav-sheet {
+        max-width: none !important;
+        gap: 11px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        overflow: visible !important;
+        transform: translateY(0) scale(1) !important;
+      }
+      body.lx-template-file .lxfd-nav-cluster:hover .lxfd-nav-sheet a,
+      body.lx-template-file .lxfd-nav-cluster:focus-within .lxfd-nav-sheet a,
+      body.lx-template-file .lxfd-nav-cluster.open .lxfd-nav-sheet a {
+        display: flex !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+
+      body.lx-template-file.lx-home-split .main-nav > button[data-page="home"] {
+        display: none !important;
+      }
+      body.lx-template-file.lx-home-split .main-nav .lx-current-topic-chip {
+        display: none !important;
+      }
+      body.lx-template-file.lx-home-split .main-nav:hover .lx-current-topic-chip,
+      body.lx-template-file.lx-home-split .main-nav:focus-within .lx-current-topic-chip {
+        order: -1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 38px !important;
+        margin: 0 !important;
+        padding: 0 18px !important;
+        border-radius: 7px !important;
+        background: #efe4f1 !important;
+        color: #5b1452 !important;
+        font-size: 14px !important;
+        line-height: 1 !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) scale(1) !important;
+        pointer-events: none !important;
+      }

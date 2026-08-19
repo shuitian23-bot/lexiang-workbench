@@ -1,0 +1,71 @@
+.ai-arrow { display: none !important; }
+      .content :is(.product-card,.lx-floor-product-card,[data-floor-product],.lx-floor-product,.lx-sim-card,.lx-p0-product-mini,.reco-row,.lx-edu-card) {
+        transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      }
+      .content :is(.product-card,.lx-floor-product-card,[data-floor-product],.lx-floor-product,.lx-sim-card,.lx-p0-product-mini,.reco-row,.lx-edu-card):hover {
+        border-color: var(--border-strong) !important;
+        box-shadow: var(--shadow) !important;
+        transform: translateY(-2px);
+        cursor: none !important;
+      }
+      .lx-template-smart-cursor {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 100000;
+        display: flex;
+        align-items: flex-start;
+        gap: 3px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate3d(-200px,-200px,0);
+        transition: opacity .12s ease;
+        will-change: transform;
+      }
+      .lx-template-smart-cursor.is-visible { opacity: 1; }
+.lx-template-smart-cursor > img {
+  width: 36px;
+  height: 26px;
+  display: block;
+  filter: drop-shadow(0 3px 6px rgba(155,142,182,.62));
+}
+      .lx-template-smart-cursor-label {
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 8px 0 0 -7px;
+        padding: 0 12px 0 8px;
+        border: 1px solid var(--border);
+        border-radius: 11px 16px 16px 4px;
+        background: #FFFFFF;
+        color: var(--aubergine);
+        box-shadow: var(--shadow);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateX(-6px) scale(.92);
+        transform-origin: left center;
+        transition: opacity .22s ease, transform .3s ease;
+      }
+      .lx-template-smart-cursor.is-helping .lx-template-smart-cursor-label {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+      .lx-template-smart-cursor-label img { width: 18px; height: 18px; display: block; }
+.hover-prompt-close {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+      .pop .badge img, .pop .act .ic img { width: 13px; height: 13px; display: block; }
+      @media (prefers-reduced-motion: reduce) {
+        .lx-template-smart-cursor,
+        .lx-template-smart-cursor-label,
+        .content :is(.product-card,.lx-floor-product-card,[data-floor-product],.lx-floor-product,.lx-sim-card,.lx-p0-product-mini,.reco-row,.lx-edu-card) { transition: none !important; }
+      }

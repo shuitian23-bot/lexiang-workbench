@@ -1,0 +1,39 @@
+body:not(.assistant-fullscreen) .shell > .content.lx-brand-home-empty {
+        display: grid !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+        overflow: hidden !important;
+      }
+
+      body:not(.assistant-fullscreen) .shell > .content.lx-brand-home-empty > :not(.lx-brand-channel-placeholder):not(.lx-tabbar) {
+        display: none !important;
+      }
+
+      .lx-brand-channel-placeholder {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        color: var(--lx-text-tertiary, #979797);
+        font-size: 13px;
+        line-height: 20px;
+        font-weight: 400;
+        text-align: center;
+      }
+
+      body:not(.assistant-fullscreen) .shell > .content.lx-brand-home-empty > .lx-brand-channel-placeholder {
+        display: flex !important;
+        grid-row: 2 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        align-self: stretch !important;
+        justify-self: stretch !important;
+      }
+
+      body:not(.assistant-fullscreen) .shell > .content.lx-brand-home-empty > .lx-tabbar:not([hidden]) {
+        display: flex !important;
+        grid-row: 1 !important;
+      }

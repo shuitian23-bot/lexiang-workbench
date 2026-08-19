@@ -1,0 +1,11 @@
+:root {
+        --lexiang-gradient-light: linear-gradient(96deg, #fcf2f8 22.83%, #e3eafd 98.41%);
+      }
+
+      /* 用户发出的消息统一使用 PC 5.0 规范浅色渐变。 */
+      .assistant-panel .user-bubble,
+      .lx-p0-message.user .user-bubble,
+      .lx-p0-message.msg.user .user-bubble,
+      .lxfd-msg-user {
+        background: var(--lexiang-gradient-light) !important;
+      }

@@ -1,0 +1,8 @@
+/* 全屏聊天态：输入框外缘距视口底部 10px。 */
+    body:is(.assistant-fullscreen, .lx-auto-fs) .lxfd-stage.lxfd-gallery-home.is-chatting {
+      padding-bottom: 10px !important;
+    }
+    body:is(.assistant-fullscreen, .lx-auto-fs) .lxfd-stage.lxfd-gallery-home.is-chatting .lxfd-dock {
+      bottom: 0 !important;
+      transform: none !important;
+    }

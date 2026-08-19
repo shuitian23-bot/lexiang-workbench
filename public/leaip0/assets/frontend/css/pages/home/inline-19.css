@@ -1,0 +1,7 @@
+.lxfd .lxfd-rail .lxfd-new-chat,
+    .lxfd .lxfd-rail .lxfd-new-chat:hover,
+    .lxfd .lxfd-rail .lxfd-new-chat:focus-visible,
+    .lxfd .lxfd-rail .lxfd-new-chat:active {
+      border: 1px solid #e2ddeb !important;
+      box-shadow: none !important;
+    }

@@ -1,0 +1,4 @@
+/* 左右布局中的生成状态保持短条，避免占满整条消息区。 */
+      body:not(.assistant-fullscreen) .assistant-panel .lx-p0-message.lx-chat-skin .loading-line {
+        width: min(300px, 100%);
+      }

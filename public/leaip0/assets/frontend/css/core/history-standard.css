@@ -1,0 +1,81 @@
+/* PC 5.0 两套历史记录的共享规范：全屏侧栏与顶部弹层。 */
+.lxfd-history-search {
+  width: 100%;
+  height: 38px;
+  margin: 12px 0 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: var(--menu-text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 38px;
+  transition: border-color .16s, box-shadow .16s, background-color .16s;
+}
+.lxfd-history-search::placeholder { color: var(--text-muted); }
+.lxfd-history-search:hover { border-color: var(--border-strong); background: var(--lavender-hover); }
+.lxfd-history-search:focus-visible { border-color: var(--aubergine); background: #FFFFFF; box-shadow: 0 0 0 2px rgba(77, 20, 74, 0.10); outline: 0; }
+.lxfd-hist-empty { padding: 12px; color: var(--text-muted); font-size: 12px; text-align: center; }
+.lxfd-hist-item { position: relative; height: 38px; flex: none; border-radius: 10px; }
+.lxfd-hist-item.is-pinned { order: -1; }
+.lxfd-hist-link { position: relative; width: 100%; height: 38px; padding: 0 42px 0 12px; border-radius: 10px; color: var(--menu-text); font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: background-color .15s, color .15s, padding-left .2s var(--ease); }
+.lxfd-hist-link:hover,
+.lxfd-hist-link:focus-visible { background: var(--lavender-hover); color: var(--aubergine-dark); padding-left: 15px; }
+.lxfd-hist-link.active { background: var(--lavender-hover); color: var(--aubergine-dark); font-weight: 600; }
+.lxfd-hist-link.active::before { content: ""; position: absolute; left: 0; top: 11px; bottom: 11px; width: 3px; border-radius: 3px; background: var(--grad-brand); }
+.lxfd-hist-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lxfd-hist-more { position: absolute; right: 5px; top: 5px; width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity .15s, visibility 0s linear .15s, background-color .15s; }
+.lxfd-hist-more img { width: 18px; height: 18px; }
+.lxfd-hist-item:hover .lxfd-hist-more,
+.lxfd-hist-item:focus-within .lxfd-hist-more,
+.lxfd-hist-item.menu-open .lxfd-hist-more { opacity: 1; visibility: visible; transition: opacity .15s, visibility 0s; }
+.lxfd-hist-more:hover,
+.lxfd-hist-more:focus-visible,
+.lxfd-hist-item.menu-open .lxfd-hist-more { background: var(--lavender-weak); }
+.lxfd-hist-menu { position: absolute; right: 4px; top: 32px; z-index: 65; width: 117px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: #FFFFFF; box-shadow: var(--sh-2); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s var(--ease), visibility 0s linear .15s; }
+.lxfd-hist-more:hover + .lxfd-hist-menu,
+.lxfd-hist-more:focus-visible + .lxfd-hist-menu,
+.lxfd-hist-menu:hover,
+.lxfd-hist-menu:focus-within,
+.lxfd-hist-item.menu-open .lxfd-hist-menu { opacity: 1; visibility: visible; transform: translateY(0); transition: opacity .15s, transform .15s var(--ease), visibility 0s; }
+.lxfd-hist-action { width: 100%; height: 32px; padding: 0 14px; display: flex; align-items: center; gap: 4px; border-radius: 6px; text-align: left; color: var(--menu-text); font-size: 13px; white-space: nowrap; }
+.lxfd-hist-action span { flex: none; white-space: nowrap; }
+.lxfd-hist-action img { width: 15px; height: 15px; flex: none; margin-left: 3px; }
+.lxfd-hist-action:hover,
+.lxfd-hist-action:focus-visible { background: var(--lavender-hover); color: var(--aubergine); }
+.lxfd-hist-action[data-action="delete"]:hover,
+.lxfd-hist-action[data-action="delete"]:focus-visible { color: var(--price-red); }
+
+.lx-p0-modal:has(.lx-history-modal) .lx-p0-modal-head { display: grid; grid-template-columns: auto minmax(220px, 1fr) auto; align-items: center; gap: 18px; padding: 18px 28px; }
+.lx-p0-modal:has(.lx-history-modal) .lx-p0-modal-body { padding: 18px 28px 24px; }
+.lx-p0-modal:has(.lx-history-modal) .lx-history-search-wrap { display: block; width: 50%; margin: 0; justify-self: start; }
+.lx-p0-modal:has(.lx-history-modal) .lx-history-search-input { box-sizing: border-box; display: block; width: 100%; height: 42px; margin: 0; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; outline: 0; background: #FFFFFF; color: var(--text); font: inherit; font-size: 14px; line-height: 40px; appearance: none; transition: border-color .16s, box-shadow .16s, background-color .16s; }
+.lx-p0-modal:has(.lx-history-modal) .lx-history-search-input::placeholder { color: var(--text-muted); }
+.lx-p0-modal:has(.lx-history-modal) .lx-history-search-input:hover { border-color: var(--border-strong); background: var(--lavender-hover); }
+.lx-p0-modal:has(.lx-history-modal) .lx-history-search-input:focus-visible { border-color: var(--aubergine); background: #FFFFFF; box-shadow: 0 0 0 2px rgba(77, 20, 74, 0.10); }
+.lx-history-modal .lx-history-section { margin: 0 2px 10px; color: var(--text-muted); font-size: 12px; line-height: 18px; font-weight: 700; letter-spacing: .08em; }
+.lx-history-modal .lx-history-row { box-sizing: border-box; position: relative; display: flex; align-items: center; width: 100%; height: 38px; min-height: 38px; margin: 0 0 10px; padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: #FFFFFF; color: var(--text); }
+.lx-history-modal .lx-history-row:hover,
+.lx-history-modal .lx-history-row:focus-within { border-color: var(--border-strong); background: var(--lavender-hover); }
+.lx-history-modal .lx-history-row-main { box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; height: 38px; min-height: 38px; margin: 0; padding: 8px 14px; border: 0; border-radius: 0; outline: 0; background: transparent; color: inherit; font: inherit; text-align: left; appearance: none; cursor: pointer; transition: padding-right .16s; }
+.lx-history-modal .lx-history-row-main span { flex: 1; min-width: 0; overflow: hidden; color: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.lx-history-modal .lx-history-actions { position: absolute; top: 50%; right: 10px; display: flex; align-items: center; gap: 4px; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-50%); transition: opacity .16s, visibility 0s linear .16s; }
+.lx-history-modal .lx-history-row:hover .lx-history-actions,
+.lx-history-modal .lx-history-row:focus-within .lx-history-actions { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .16s, visibility 0s; }
+.lx-history-modal .lx-history-actions button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; min-width: 28px; height: 28px; min-height: 28px; margin: 0; padding: 0; border: 0; border-radius: 7px; outline: 0; background: transparent; appearance: none; cursor: pointer; }
+.lx-history-modal .lx-history-actions button:hover,
+.lx-history-modal .lx-history-actions button:focus-visible { background: var(--lavender-weak); }
+.lx-history-modal .lx-history-actions img { display: block; width: 14.4px; height: 14.4px; }
+.lx-history-modal .lx-history-row:hover .lx-history-row-main,
+.lx-history-modal .lx-history-row:focus-within .lx-history-row-main { padding-right: 82px; }
+.lx-history-modal .lx-history-pagination-wrap:empty { display: none; }
+.lx-history-modal .lx-history-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; line-height: 20px; }
+.lx-history-modal .lx-history-pagination span { min-width: 48px; text-align: center; }
+.lx-history-modal .lx-history-pagination b { color: var(--aubergine); font-weight: 700; }
+.lx-history-modal .lx-history-pagination button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: #FFFFFF; cursor: pointer; }
+.lx-history-modal .lx-history-pagination button:hover:not(:disabled),
+.lx-history-modal .lx-history-pagination button:focus-visible:not(:disabled) { border-color: var(--border-strong); background: var(--lavender-hover); }
+.lx-history-modal .lx-history-pagination button:disabled { opacity: .36; cursor: default; }
+.lx-history-modal .lx-history-pagination img { display: block; width: 16px; height: 16px; }
+.lx-history-modal .lx-history-pagination img.is-prev { transform: rotate(180deg); }

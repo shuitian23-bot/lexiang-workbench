@@ -1,0 +1,13 @@
+/* 推荐结果卡选中态：统一为轻量细边框，不使用深紫描边和着色底。 */
+      .assistant-panel .answer-cta:is(.is-active, .is-selected, [aria-current="page"]),
+      .assistant-panel .answer-cta[data-shop-chat-product]:is(.is-active, .is-selected),
+      .assistant-panel .answer-cta[data-lx-open-tab]:is(.is-active, .is-selected) {
+        border-color: var(--answer-card-active-border, rgba(155, 142, 182, 0.86)) !important;
+        background: #FFFFFF !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+      .assistant-panel .answer-cta:is(.is-active, .is-selected, [aria-current="page"]) .answer-cta-icon {
+        border-color: var(--answer-card-icon-border, rgba(155, 142, 182, 0.62)) !important;
+        background: #FFFFFF !important;
+      }

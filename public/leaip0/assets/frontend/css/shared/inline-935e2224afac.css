@@ -1,0 +1,22 @@
+.lx-p0-modal:has(.lx-p0-category-waiting) {
+        width: min(560px, calc(100vw - 48px));
+      }
+      .lx-p0-modal:has(.lx-p0-category-waiting) .lx-p0-modal-body {
+        padding: 24px 30px 30px;
+      }
+      .lx-p0-category-waiting {
+        min-height: 180px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fcfaff;
+        text-align: center;
+      }
+      .lx-p0-category-waiting-title {
+        margin: 0;
+        color: var(--aubergine);
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 600;
+      }

@@ -1,0 +1,45 @@
+body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        flex: 0 0 36px !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+      body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send .icon,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send .icon,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send .icon {
+        width: 36px !important;
+        height: 36px !important;
+        filter: none !important;
+        opacity: 1 !important;
+      }
+      body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send.idle .icon,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send.idle .icon,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send.idle .icon,
+      body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lxfd-send:disabled .icon,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lxfd-send:disabled .icon,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-send:disabled .icon {
+        filter: none !important;
+        opacity: .5 !important;
+      }
+      body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn,
+      body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn.unsupported,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn.unsupported,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn.unsupported {
+        opacity: 1 !important;
+      }
+      body.assistant-fullscreen .lxfd-stage.lxfd-gallery-home .lx-voice-btn .lx-voice-icon,
+      body.lx-auto-fs .lxfd-stage.lxfd-gallery-home .lx-voice-btn .lx-voice-icon,
+      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lx-voice-btn .lx-voice-icon {
+        width: 20px !important;
+        height: 20px !important;
+        filter: none !important;
+        opacity: 1 !important;
+      }

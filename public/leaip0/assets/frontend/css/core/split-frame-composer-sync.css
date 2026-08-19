@@ -1,0 +1,168 @@
+/* Shared runtime contract for the PC left/right split-frame composer. */
+.assistant-bottom .shortcut-row::before {
+  border-radius: 0 !important;
+}
+.assistant-bottom .shortcut .icon {
+  width: 9px;
+  height: 9px;
+}
+.assistant-panel .assistant-bottom .more-wrap > .shortcut .icon {
+  width: 9px !important;
+  height: 9px !important;
+  min-width: 9px !important;
+  min-height: 9px !important;
+  max-width: 9px !important;
+  max-height: 9px !important;
+  transform: rotate(0deg) !important;
+  transform-origin: 50% 50% !important;
+  transition: transform .2s ease !important;
+}
+.assistant-panel .assistant-bottom .more-wrap:hover > .shortcut .icon,
+.assistant-panel .assistant-bottom .more-wrap:focus-within > .shortcut .icon,
+.assistant-panel .assistant-bottom .more-wrap.open > .shortcut .icon,
+.assistant-panel .assistant-bottom .more-wrap.sync-arrow-open > .shortcut .icon {
+  transform: rotate(180deg) !important;
+}
+.assistant-bottom .composer {
+  min-height: 114px;
+  padding: 11px 12px 6px;
+}
+.assistant-bottom .composer textarea {
+  min-height: 21px;
+  max-height: 90px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+.assistant-bottom .composer .send-group {
+  gap: 4px;
+}
+.assistant-bottom .composer .lx-voice-btn,
+.assistant-bottom .composer .image-btn {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.assistant-bottom .composer .lx-voice-btn {
+  border-radius: 0;
+}
+.assistant-bottom .composer .lx-voice-btn:hover,
+.assistant-bottom .composer .image-btn:hover {
+  border: 0;
+  border-radius: 11px;
+  background: #f3edf6;
+}
+.assistant-panel .assistant-bottom .composer .lx-voice-btn,
+.assistant-panel .assistant-bottom .composer .image-btn,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .lx-voice-btn,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .image-btn {
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 38px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.assistant-panel .assistant-bottom .composer .lx-voice-btn:hover,
+.assistant-panel .assistant-bottom .composer .image-btn:hover,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .lx-voice-btn:hover,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .image-btn:hover {
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: #f3edf6 !important;
+}
+.assistant-panel .assistant-bottom .composer .lx-voice-btn,
+.assistant-panel .assistant-bottom .composer .image-btn,
+.assistant-panel .assistant-bottom .composer .send-btn,
+.assistant-panel .assistant-bottom .composer .lx-voice-btn:hover,
+.assistant-panel .assistant-bottom .composer .image-btn:hover,
+.assistant-panel .assistant-bottom .composer .send-btn:hover,
+.assistant-panel .assistant-bottom .composer .send-btn:active,
+.assistant-panel .assistant-bottom .composer .send-btn:focus-visible {
+  transform: none !important;
+}
+.assistant-bottom .composer .lx-voice-btn .icon,
+.assistant-bottom .composer .image-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+.assistant-panel .assistant-bottom .composer .lx-voice-btn .icon,
+.assistant-panel .assistant-bottom .composer .lx-voice-btn .lx-voice-icon,
+.assistant-panel .assistant-bottom .composer .image-btn .icon {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  flex: 0 0 18px !important;
+}
+.assistant-bottom .composer .send-btn {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.assistant-bottom .composer .send-btn .icon {
+  width: 28px;
+  height: 28px;
+  filter: none;
+  opacity: 1;
+}
+.assistant-bottom .composer .send-btn:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.assistant-bottom .composer .send-btn:disabled .icon {
+  filter: none;
+  opacity: .5;
+}
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:hover,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:active,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:focus-visible,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:disabled {
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+  transform: none !important;
+  scale: 1 !important;
+  transition: opacity .2s ease !important;
+  box-shadow: none !important;
+}
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn .icon,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:hover .icon,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:active .icon,
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer .send-btn:focus-visible .icon {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  transform: none !important;
+  scale: 1 !important;
+  transition: opacity .2s ease !important;
+}
+
+/* Sub-site channel menus keep the same complete navigation set as personal/family. */
+body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enterprise"], [data-page="brand"])
+  .main-nav.lx-shop-nav:is(.is-expanded, :hover, :focus-within)
+  > button[data-page="home"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}

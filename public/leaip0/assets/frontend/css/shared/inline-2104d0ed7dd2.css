@@ -1,0 +1,24 @@
+.lx-p0-actions > .lx-p0-btn[data-cmp-local] {
+        box-shadow: none !important;
+      }
+      body:not(.assistant-fullscreen) .assistant-panel .composer .send-btn,
+      body:not(.assistant-fullscreen) .assistant-panel .composer .send-btn:hover,
+      body:not(.assistant-fullscreen) .assistant-panel .composer .send-btn:active,
+      body:not(.assistant-fullscreen) .assistant-panel .composer .send-btn:focus-visible {
+        box-shadow: none !important;
+      }
+      .assistant-panel .lx-p0-messages .typing-cursor {
+        display: none !important;
+      }
+
+      /* 新对话不提供空线程全屏；首条真实消息写入后再开放展开。 */
+      body:not(.assistant-fullscreen):not(.lx-auto-fs)[data-state="default"]
+        .assistant-panel > .assistant-toggle,
+      body:not(.assistant-fullscreen):not(.lx-auto-fs)[data-state="chat"]
+        .assistant-panel:not(:has(.chat-state .lx-p0-messages > *)) > .assistant-toggle {
+        display: none !important;
+      }
+      body:not(.assistant-fullscreen):not(.lx-auto-fs)[data-state="chat"]
+        .assistant-panel:has(.chat-state .lx-p0-messages > *) > .assistant-toggle {
+        display: inline-flex !important;
+      }

@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeAI Icon Park</title>
+    <style>
+      :root {
+        --brand-red: #e42b20;
+        --aubergine: #4d144a;
+        --aubergine-2: #7a286d;
+        --lavender: #f3f0f7;
+        --lavender-weak: #fcfaff;
+        --panel: #ffffff;
+        --bg: #fcfaff;
+        --border: #e2ddeb;
+        --border-strong: #d3bfd2;
+        --focus: #4d144a;
+        --hair: #f3f0f7;
+        --text: #252525;
+        --text-soft: #606060;
+        --text-muted: #979797;
+        --shadow: 0 8px 28px rgba(45, 20, 54, 0.08);
+        --grad-brand: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%);
+        --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+        font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--bg); color: var(--text); }
+      body { margin: 0; min-height: 100vh; }
+      button, input { font: inherit; }
+
+      .page {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+
+      .side {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 26px 22px;
+        border-right: 1px solid var(--border);
+        background:
+          radial-gradient(circle at 12% 0%, rgba(228, 43, 32, 0.08), transparent 26%),
+          linear-gradient(180deg, #fff, #fcfaff);
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 28px;
+      }
+
+      .brand-logo {
+        width: 132px;
+        height: auto;
+        display: block;
+      }
+
+      .brand p {
+        margin: 3px 0 0;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .search {
+        width: 100%;
+        height: 42px;
+        padding: 0 14px;
+        border: 1px solid var(--border-strong);
+        border-radius: 12px;
+        outline: none;
+        background: #fff;
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+      }
+
+      .search:focus {
+        border-color: var(--aubergine);
+        box-shadow: 0 0 0 3px rgba(77,20,74, 0.1);
+      }
+
+      .nav {
+        margin-top: 20px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .nav button {
+        height: 40px;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        background: transparent;
+        color: var(--text-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        cursor: pointer;
+        transition: background-color 0.16s var(--ease), color 0.16s var(--ease), border-color 0.16s var(--ease);
+      }
+
+      .nav button:hover { background: var(--lavender-weak); color: var(--text); }
+      .nav button.active {
+        color: var(--aubergine);
+        background: var(--lavender);
+        border-color: var(--border-strong);
+        font-weight: 800;
+      }
+
+      .nav small {
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .usage {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        bottom: 22px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--text-soft);
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      .usage b { color: var(--aubergine); }
+
+      main {
+        min-width: 0;
+        padding: 28px clamp(24px, 4vw, 48px) 48px;
+      }
+
+      .hero {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(28px, 3vw, 44px);
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      .hero p {
+        max-width: 720px;
+        margin: 10px 0 0;
+        color: var(--text-soft);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .stats {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .stat {
+        min-width: 112px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(45, 20, 54, 0.04);
+      }
+
+      .stat strong { display: block; color: var(--aubergine); font-size: 20px; }
+      .stat span { display: block; margin-top: 2px; color: var(--text-muted); font-size: 12px; }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 0;
+        margin-bottom: 12px;
+        background: linear-gradient(180deg, var(--bg) 72%, rgba(251, 248, 252, 0));
+      }
+
+      .chip {
+        height: 30px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--text-soft);
+        font-size: 12px;
+        cursor: pointer;
+        transition: transform 0.16s var(--ease), border-color 0.16s var(--ease), background-color 0.16s var(--ease);
+      }
+
+      .chip:hover { transform: translateY(-1px); border-color: var(--aubergine); }
+      .chip.active { background: var(--aubergine); color: #fff; border-color: var(--aubergine); }
+
+      .section {
+        margin-top: 28px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .section-head h3 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.35;
+      }
+
+      .section-head span {
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      .grid {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        min-width: 0;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 1px 2px rgba(45, 20, 54, 0.03);
+        overflow: hidden;
+        transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease), border-color 0.16s var(--ease);
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow);
+      }
+
+      .preview {
+        height: 116px;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(135deg, rgba(77,20,74, 0.05), rgba(228, 43, 32, 0.035)),
+          #fff;
+        border-bottom: 1px solid var(--hair);
+      }
+
+      .preview img {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 8px rgba(45, 20, 54, 0.08));
+      }
+
+      .preview.large img { width: 44px; height: 44px; }
+      .preview.wide img { width: 52px; height: 40px; }
+
+      .meta {
+        padding: 13px 14px 14px;
+      }
+
+      .name {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .name strong {
+        min-width: 0;
+        font-size: 14px;
+        line-height: 1.35;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tag {
+        flex: none;
+        height: 20px;
+        padding: 0 7px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 6px;
+        background: var(--lavender);
+        color: var(--aubergine);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .desc {
+        min-height: 38px;
+        color: var(--text-soft);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      code {
+        display: block;
+        margin-top: 10px;
+        padding: 8px 9px;
+        border: 1px solid var(--hair);
+        border-radius: 9px;
+        background: #fbfafd;
+        color: var(--aubergine);
+        font-size: 11px;
+        line-height: 1.45;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .copy {
+        height: 34px;
+        border: 1px solid var(--border-strong);
+        border-radius: 9px;
+        background: #fff;
+        color: var(--aubergine);
+        font-weight: 400;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.16s var(--ease), transform 0.16s var(--ease), border-color 0.16s var(--ease);
+      }
+
+      .copy:hover {
+        background: var(--lavender-weak);
+        border-color: var(--aubergine);
+        transform: translateY(-1px);
+      }
+
+      .copy.primary {
+        border-color: transparent;
+        background: var(--grad-brand);
+        color: #fff;
+      }
+
+      .empty {
+        display: none;
+        margin-top: 36px;
+        padding: 28px;
+        border: 1px dashed var(--border-strong);
+        border-radius: 16px;
+        color: var(--text-muted);
+        text-align: center;
+        background: #fff;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translate(-50%, 18px);
+        opacity: 0;
+        pointer-events: none;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(26, 19, 32, 0.92);
+        color: #fff;
+        font-size: 13px;
+        transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      @media (max-width: 900px) {
+        .page { grid-template-columns: 1fr; }
+        .side {
+          position: relative;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .usage { position: static; margin-top: 18px; }
+        .hero { align-items: flex-start; flex-direction: column; }
+        .stats { justify-content: flex-start; }
+        .toolbar { top: 0; overflow-x: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside class="side">
+        <div class="brand">
+          <img class="brand-logo" src="../logos/logo-full-red.png" alt="联想乐享" />
+          <div>
+            <p>全站 SVG Icon 看板</p>
+          </div>
+        </div>
+        <input class="search" id="searchInput" type="search" placeholder="搜索 icon 名称 / 用途" />
+        <nav class="nav" id="sideNav" aria-label="Icon 分类"></nav>
+        <div class="usage">
+          <b>调用方式</b><br />
+          当前 HTML 是设计体系的图标层，上游遵循 <code style="display:inline;padding:2px 5px;margin:0">standards/design-system-complete.html</code>，下游被 <code style="display:inline;padding:2px 5px;margin:0">leai-component.html</code> 和页面模板调用。组件内可用 <code style="display:inline;padding:2px 5px;margin:0">./icon-name.svg</code>；从 skill 根目录引用使用 <code style="display:inline;padding:2px 5px;margin:0">assets/icons/icon-name.svg</code>。
+        </div>
+      </aside>
+
+      <main>
+        <header class="hero">
+          <div>
+            <h2>LeAI Icon Park</h2>
+            <p>按全站使用场景分类展示当前 SVG 资产。支持搜索、分类筛选，并可一键复制相对路径、HTML 调用片段或 CSS mask 片段。图标文件由本页确定，尺寸、状态和出现位置由所属组件或页面模板确定。</p>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong id="totalCount">0</strong><span>SVG icons</span></div>
+            <div class="stat"><strong id="categoryCount">0</strong><span>分类</span></div>
+          </div>
+        </header>
+
+        <div class="toolbar" id="toolbar"></div>
+        <div id="sections"></div>
+        <div class="empty" id="emptyState">没有匹配的 icon。换个关键词试试。</div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast">已复制</div>
+
+    <script>
+      const icons = [
+        { file: "sidebar-create.svg", label: "新建会话（兼容）", category: "侧边栏 / 智能体", desc: "旧版左侧智能体新建会话入口；完成态模板优先使用 full-create.svg。" },
+        { file: "full-create.svg", label: "新建对话", category: "侧边栏 / 智能体", desc: "首页、全屏和分栏历史侧栏的新建对话入口。" },
+        { file: "arrow-left.svg", label: "收起侧栏", category: "侧边栏 / 智能体", desc: "历史侧栏展开态的收起操作。" },
+        { file: "sidebar-history.svg", label: "历史记录", category: "侧边栏 / 智能体", desc: "展开历史记录、最近会话列表。" },
+        { file: "sidebar-toggle.svg", label: "侧栏展开收起", category: "侧边栏 / 智能体", desc: "左右分屏或侧栏开合控制。" },
+        { file: "shortcut-customization.svg", label: "私人定制", category: "快捷入口", desc: "快捷入口：私人定制服务入口。" },
+        { file: "shortcut-trial.svg", label: "免费试用", category: "快捷入口", desc: "快捷入口：试用活动入口。" },
+        { file: "shortcut-live.svg", label: "直播", category: "快捷入口", desc: "快捷入口：直播、活动讲解或内容频道。" },
+        { file: "shortcut-membership.svg", label: "会员中心", category: "快捷入口", desc: "快捷入口：会员权益与账号中心。" },
+        { file: "shortcut-rewards.svg", label: "积分商城", category: "快捷入口", desc: "快捷入口：乐豆、积分兑换与会员商城。" },
+        { file: "shortcut-referrals.svg", label: "推荐有礼", category: "快捷入口", desc: "快捷入口：推荐奖励、邀请返利。" },
+        { file: "shortcut-delivery.svg", label: "门店配送", category: "快捷入口", desc: "快捷入口：门店、配送、到店服务。" },
+        { file: "composer-reasoning.svg", label: "深度思考", category: "输入框 / Composer", desc: "底部输入框深度思考模式。" },
+        { file: "composer-mic.svg", label: "语音输入", category: "输入框 / Composer", desc: "底部输入框语音输入入口。" },
+        { file: "composer-search.svg", label: "联网搜索", category: "输入框 / Composer", desc: "底部输入框联网检索模式。" },
+        { file: "composer-image.svg", label: "上传图片", category: "输入框 / Composer", desc: "图片上传、识图、附件入口。" },
+        { file: "composer-send.svg", label: "发送", category: "输入框 / Composer", desc: "圆形渐变发送按钮。" },
+        { file: "mall-cart.svg", label: "购物车", category: "商城顶部导航", desc: "商城顶部购物车入口。" },
+        { file: "mall-orders.svg", label: "订单", category: "商城顶部导航", desc: "商城顶部订单入口。" },
+        { file: "mall-account.svg", label: "个人中心", category: "商城顶部导航", desc: "商城顶部账号/个人中心入口。" },
+        { file: "global-cart.svg", label: "购物车通用", category: "商城动作", desc: "商品卡片、加购按钮或购物车动作。" },
+        { file: "global-check.svg", label: "确认勾选", category: "商城动作", desc: "订单、清单、权益确认及 Skill 调用完成状态。" },
+        { file: "shortcut-support.svg", label: "客服", category: "快捷入口", desc: "底部快捷入口：客服。" },
+        { file: "shortcut-education.svg", label: "教育特惠", category: "快捷入口", desc: "底部快捷入口：教育特惠。" },
+        { file: "shortcut-tradein.svg", label: "以旧换新", category: "快捷入口", desc: "底部快捷入口：以旧换新。" },
+        { file: "global-next.svg", label: "右箭头", category: "基础 / 导航", desc: "列表行、快捷问题、前进提示。" },
+        { file: "global-expand.svg", label: "向下箭头", category: "基础 / 导航", desc: "下拉菜单、更多展开。" },
+        { file: "global-collapse.svg", label: "向上箭头", category: "基础 / 导航", desc: "收起、返回顶部或 Skill 调用轨迹展开/收起。" },
+        { file: "global-switch.svg", label: "换位", category: "基础 / 导航", desc: "左右换位、面板位置切换。" },
+        { file: "global-refresh.svg", label: "刷新", category: "基础 / 导航", desc: "换一换、刷新结果、重新生成等动作。" },
+        { file: "global-sparkle.svg", label: "AI 高光", category: "基础 / 导航", desc: "AI 推荐、智能解读、技能中心等高光提示。" },
+        { file: "global-more.svg", label: "更多操作", category: "基础 / 导航", desc: "列表项悬停或聚焦后的三点操作菜单入口。" },
+        { file: "global-pin.svg", label: "置顶", category: "基础 / 导航", desc: "将历史对话或可管理列表项置顶。" },
+        { file: "global-unpin.svg", label: "取消置顶", category: "基础 / 导航", desc: "取消历史对话或可管理列表项的置顶状态。" },
+        { file: "global-delete.svg", label: "删除", category: "基础 / 导航", desc: "删除历史对话或可管理列表项。" },
+        { file: "global-pinned.svg", label: "已置顶", category: "基础 / 导航", desc: "显示历史对话或可管理列表项的已置顶状态。" },
+        { file: "smart-cursor.svg", label: "智能鼠标", category: "商城动作", desc: "商品停留期间的 AI 辅助跟随指针。" }
+      ];
+
+      const iconGovernance = {
+        "sidebar-create.svg": ["助手顶部、历史侧栏", "PC-侧栏-导购默认态智能体面板", "img", "禁止改作普通加号或商城新增按钮。"],
+        "full-create.svg": ["首页与历史侧栏新建对话入口", "PC-侧栏-历史记录抽屉、PC-侧栏-导购默认态智能体面板", "img", "用于完成态模板的新建对话，禁止替换为字符加号。"],
+        "arrow-left.svg": ["历史侧栏头部", "PC-侧栏-历史记录抽屉", "img", "仅表示收起展开的历史侧栏，不用于页面返回。"],
+        "sidebar-history.svg": ["助手顶部", "PC-侧栏-导购默认态智能体面板", "img", "禁止用于悬停展开菜单。"],
+        "sidebar-toggle.svg": ["助手面板右上角", "PC-侧栏-导购默认态智能体面板", "img", "仅表示面板分屏或收起。"],
+        "composer-send.svg": ["Composer 右下角", "PC-首页-首页新建对话输入框、PC-聊天-聊天态输入框", "img", "禁止再叠加圆形背景、自行绘制箭头或添加反色滤镜。"],
+        "mall-orders.svg": ["商城顶部、订单快捷入口", "PC-顶部-账号工具菜单", "img", "禁止用购物袋、旗帜或内联 SVG 替代。"],
+        "global-next.svg": ["快捷问题、列表行尾", "PC-侧栏-导购默认态智能体面板、PC-侧栏-商品悬浮推荐提问卡", "img", "禁止用字符方块、› 或运行时 SVG 替代。"],
+        "global-more.svg": ["历史记录及可管理列表的行尾", "PC-侧栏-历史记录抽屉", "img", "仅表示更多操作；禁止用文本省略号、字符点或展开箭头替代。"],
+        "global-pin.svg": ["历史记录操作菜单", "PC-侧栏-历史记录抽屉", "img", "仅用于执行置顶操作，不表示已经置顶。"],
+        "global-unpin.svg": ["已置顶历史的操作菜单", "PC-侧栏-历史记录抽屉", "img", "仅用于取消置顶操作，不替代删除或关闭。"],
+        "global-delete.svg": ["历史记录操作菜单", "PC-侧栏-历史记录抽屉", "img", "删除属于破坏性操作，必须配合文字标签和二次确认。"],
+        "global-pinned.svg": ["已置顶历史条目", "PC-侧栏-历史记录抽屉", "img", "仅表示已置顶状态，不作为可点击的置顶操作按钮。"],
+        "smart-cursor.svg": ["商品卡 hover 跟随层", "PC-商城-商品悬停智能鼠标", "img", "仅用于 AI 商品停留提示，不替代系统常规指针。"]
+      };
+      icons.forEach((icon) => {
+        const rule = iconGovernance[icon.file] || [
+          icon.category,
+          "由所属组件或页面模板声明",
+          "img",
+          "禁止改变语义、拉伸变形或绕过本图标板重绘。"
+        ];
+        [icon.location, icon.components, icon.usage, icon.misuse] = rule;
+      });
+
+      const categoryOrder = [
+        "全部",
+        "侧边栏 / 智能体",
+        "输入框 / Composer",
+        "商城顶部导航",
+        "商城动作",
+        "快捷入口",
+        "基础 / 导航"
+      ];
+
+      const state = { category: "全部", query: "" };
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+      const searchAliases = {
+        "sidebar-create.svg": "新建 新会话 创建 对话 加号 新任务 chat create add",
+        "full-create.svg": "新建对话 新建 加号 历史侧栏 create chat add",
+        "arrow-left.svg": "收起侧栏 收起 向左 历史记录 collapse left",
+        "sidebar-history.svg": "历史 历史记录 最近会话 会话列表 记录 history recent",
+        "sidebar-toggle.svg": "侧栏 侧边栏 展开 收起 分屏 合拢 面板 toggle sidebar",
+        "shortcut-customization.svg": "私人定制 私人订制 定制 企业采购 方案 定制款 customization",
+        "shortcut-trial.svg": "免费试用 0元试用 试用 活动 trial free",
+        "shortcut-live.svg": "直播 活动 内容频道 讲解 live stream",
+        "shortcut-membership.svg": "会员 会员中心 我的账号 我的服务 账号 权益 member account",
+        "shortcut-rewards.svg": "积分 乐豆 乐豆商城 积分商城 兑换 rewards points",
+        "shortcut-referrals.svg": "推荐有礼 拉新 返利 邀请 推荐 referral invite",
+        "shortcut-delivery.svg": "门店 配送 门店闪送 附近门店 到店 delivery store",
+        "composer-reasoning.svg": "深度思考 思考 推理 自动 reasoning think",
+        "composer-mic.svg": "语音 麦克风 录音 输入 mic microphone voice",
+        "composer-search.svg": "联网搜索 搜索 检索 网络 web search",
+        "composer-image.svg": "图片 上传图片 识图 附件 image upload",
+        "composer-send.svg": "发送 提交 上箭头 send submit",
+        "mall-cart.svg": "购物车 购物袋 顶部购物车 cart topbar",
+        "mall-orders.svg": "订单 我的订单 清单 order clipboard",
+        "mall-account.svg": "个人中心 账号 我的账号 用户 user account profile",
+        "global-cart.svg": "购物车 加购 加入购物车 商品卡 cart add",
+        "global-check.svg": "确认 勾选 完成 选中 清单 check done",
+        "shortcut-support.svg": "客服 客户服务 售后 支持 support service",
+        "shortcut-education.svg": "教育 教育优惠 教育特惠 学生 国补 subsidy education",
+        "shortcut-tradein.svg": "以旧换新 换新 回收 旧机 tradein trade",
+        "global-next.svg": "右箭头 下一步 前进 更多 next arrow",
+        "global-expand.svg": "下箭头 展开 下拉 更多 expand down",
+        "global-collapse.svg": "上箭头 收起 返回顶部 collapse up",
+        "global-switch.svg": "换位 切换 交换 左右 switch swap",
+        "global-refresh.svg": "刷新 换一换 重新生成 refresh shuffle",
+        "global-sparkle.svg": "AI 高光 智能 推荐 解读 星 sparkle ai",
+        "global-more.svg": "更多操作 三点 省略号 菜单 历史 more ellipsis menu",
+        "global-pin.svg": "置顶 固定 pin top",
+        "global-unpin.svg": "取消置顶 解除固定 unpin",
+        "global-delete.svg": "删除 移除 垃圾桶 delete remove trash",
+        "global-pinned.svg": "已置顶 置顶状态 pinned status"
+      };
+
+      function iconPath(file) {
+        return `./${file}`;
+      }
+
+      function rootPath(file) {
+        return `assets/icons/${file}`;
+      }
+
+      function copyText(text) {
+        navigator.clipboard?.writeText(text).then(showToast).catch(() => {
+          const input = document.createElement("textarea");
+          input.value = text;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand("copy");
+          input.remove();
+          showToast();
+        });
+      }
+
+      let toastTimer = null;
+      function showToast() {
+        const toast = $("#toast");
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1200);
+      }
+
+      function normalizeText(value) {
+        return String(value || "")
+          .toLowerCase()
+          .replace(/[\s\-_/|｜、，,。.:：;；()（）【】\\[\\]{}<>《》]+/g, "");
+      }
+
+      function queryTokens(value) {
+        const raw = String(value || "");
+        const compact = normalizeText(raw);
+        const loose = raw.split(/[\s,，、|｜/]+/).map(normalizeText).filter(Boolean);
+        return Array.from(new Set([compact, ...loose].filter(Boolean)));
+      }
+
+      function isSubsequence(query, text) {
+        let index = 0;
+        for (const char of text) {
+          if (char === query[index]) index += 1;
+          if (index === query.length) return true;
+        }
+        return false;
+      }
+
+      function iconSearchText(icon) {
+        return normalizeText(`${icon.file} ${icon.label} ${icon.category} ${icon.desc} ${searchAliases[icon.file] || ""}`);
+      }
+
+      function matchesToken(haystack, token) {
+        return haystack.includes(token) || (token.length >= 2 && isSubsequence(token, haystack));
+      }
+
+      function filteredIcons() {
+        const tokens = queryTokens(state.query);
+        return icons.filter((icon) => {
+          const inCategory = state.category === "全部" || icon.category === state.category;
+          const haystack = iconSearchText(icon);
+          return inCategory && (!tokens.length || tokens.every((token) => matchesToken(haystack, token)));
+        });
+      }
+
+      function renderNav() {
+        const nav = $("#sideNav");
+        const toolbar = $("#toolbar");
+        const counts = new Map();
+        icons.forEach((icon) => counts.set(icon.category, (counts.get(icon.category) || 0) + 1));
+        const buttonHtml = categoryOrder.map((category) => {
+          const count = category === "全部" ? icons.length : counts.get(category) || 0;
+          return `<button type="button" data-category="${category}" class="${state.category === category ? "active" : ""}"><span>${category}</span><small>${count}</small></button>`;
+        }).join("");
+        nav.innerHTML = buttonHtml;
+        toolbar.innerHTML = categoryOrder.map((category) => `<button type="button" class="chip ${state.category === category ? "active" : ""}" data-category="${category}">${category}</button>`).join("");
+      }
+
+      function card(icon) {
+        const sizeClass = /composer-send|cart|mall|order/.test(icon.file) ? "large" : (/composer-image/.test(icon.file) ? "wide" : "");
+        const imgSnippet = `<img src="${iconPath(icon.file)}" alt="${icon.label}" />`;
+        const maskSnippet = `.icon-${icon.file.replace(/\\.svg$/, "").replace(/[^a-z0-9-]/gi, "-")} { -webkit-mask: url("${iconPath(icon.file)}") center / contain no-repeat; mask: url("${iconPath(icon.file)}") center / contain no-repeat; background: currentColor; }`;
+        return `
+          <article class="card" data-name="${icon.file} ${icon.label} ${icon.desc}">
+            <div class="preview ${sizeClass}">
+              <img src="${iconPath(icon.file)}" alt="${icon.label}" loading="lazy" />
+            </div>
+            <div class="meta">
+              <div class="name">
+                <strong title="${icon.file}">${icon.file}</strong>
+                <span class="tag">SVG</span>
+              </div>
+              <div class="desc">${icon.label}｜${icon.desc}</div>
+              <div class="desc"><b>位置：</b>${icon.location}<br><b>关联组件：</b>${icon.components}<br><b>调用：</b>${icon.usage}<br><b>禁用：</b>${icon.misuse}</div>
+              <code title="${rootPath(icon.file)}">${rootPath(icon.file)}</code>
+              <div class="actions">
+                <button class="copy primary" type="button" data-copy="${rootPath(icon.file)}">复制路径</button>
+                <button class="copy" type="button" data-copy="${imgSnippet.replace(/"/g, "&quot;")}">复制 HTML</button>
+                <button class="copy" type="button" data-copy="${iconPath(icon.file)}">复制相对</button>
+                <button class="copy" type="button" data-copy="${maskSnippet.replace(/"/g, "&quot;")}">复制 CSS</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderSections() {
+        const list = filteredIcons();
+        const sections = $("#sections");
+        const empty = $("#emptyState");
+        const grouped = new Map();
+        list.forEach((icon) => {
+          if (!grouped.has(icon.category)) grouped.set(icon.category, []);
+          grouped.get(icon.category).push(icon);
+        });
+        const visibleCategories = categoryOrder.filter((category) => category !== "全部" && grouped.has(category));
+        sections.innerHTML = visibleCategories.map((category) => {
+          const items = grouped.get(category);
+          return `
+            <section class="section" id="${category}">
+              <div class="section-head">
+                <h3>${category}</h3>
+                <span>${items.length} 个 icon</span>
+              </div>
+              <div class="grid">${items.map(card).join("")}</div>
+            </section>
+          `;
+        }).join("");
+        empty.style.display = list.length ? "none" : "block";
+        $("#totalCount").textContent = icons.length;
+        $("#categoryCount").textContent = categoryOrder.length - 1;
+      }
+
+      function render() {
+        renderNav();
+        renderSections();
+      }
+
+      document.addEventListener("click", (event) => {
+        const categoryBtn = event.target.closest("[data-category]");
+        if (categoryBtn) {
+          state.category = categoryBtn.dataset.category;
+          render();
+          return;
+        }
+        const copyBtn = event.target.closest("[data-copy]");
+        if (copyBtn) copyText(copyBtn.dataset.copy);
+      });
+
+      $("#searchInput").addEventListener("input", (event) => {
+        state.query = event.target.value;
+        renderSections();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

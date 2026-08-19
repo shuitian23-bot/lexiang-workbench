@@ -1,0 +1,52 @@
+body.component-assistant-preview {
+        min-width: 1920px;
+        height: 100vh;
+        min-height: 680px;
+        overflow: hidden;
+        background: #FFFFFF;
+      }
+      body.component-assistant-preview > .topbar,
+      body.component-assistant-preview > .shell > .content,
+      body.component-assistant-preview > .shell > .assistant-restore {
+        display: none !important;
+      }
+      body.component-assistant-preview > .shell {
+        display: block !important;
+        width: 410px;
+        min-height: 100vh;
+        height: 100vh;
+        padding: 0 !important;
+      }
+      body.component-assistant-preview > .shell > .assistant-panel {
+        display: block !important;
+        width: 410px !important;
+        height: 100vh !important;
+        min-height: 680px !important;
+        max-height: none !important;
+      }
+      body.component-assistant-preview .assistant-panel .chat-state {
+        padding-bottom: 176px;
+        overflow: hidden;
+      }
+      body.component-assistant-preview .assistant-panel .lx-p0-messages {
+        height: 100%;
+        overflow-y: auto;
+        padding: 0 4px 18px;
+        scrollbar-width: none;
+      }
+      body.component-assistant-preview .assistant-panel .lx-p0-messages::-webkit-scrollbar { display: none; }
+      body.component-assistant-preview .assistant-panel .lx-p0-disclaimer,
+      body.component-assistant-preview .assistant-panel .lxfd-disclaimer {
+        display: none !important;
+      }
+      body.component-assistant-preview .assistant-panel .lx-preview-followups {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      body.component-assistant-preview .assistant-panel .lx-preview-followups .quick-item {
+        width: 100%;
+        min-height: 42px;
+        height: 42px;
+        font-size: 13px;
+      }
