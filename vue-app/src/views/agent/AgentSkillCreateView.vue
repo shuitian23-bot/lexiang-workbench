@@ -2070,6 +2070,14 @@ watch(
   { flush: 'post' }
 )
 
+watch(
+  () => [activeTab.value, activeCapabilityUpdate.value?.recordId || '', clarifyMessages.value.length] as const,
+  ([tab, updateId, messageCount]) => {
+    if (tab === 'clarify' && updateId && messageCount) window.setTimeout(scrollChat, 0)
+  },
+  { flush: 'post' }
+)
+
 onBeforeUnmount(() => {
   caseReevaluationTimers.forEach(timer => window.clearTimeout(timer))
   caseReevaluationTimers.clear()
