@@ -480,6 +480,8 @@ test('Skill Hub summary cards filter capability updates and disabled skills inde
   assert.match(view, /disabled: \['启用'/)
   assert.match(styles, /grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/)
   assert.match(styles, /\.skill-hub-stat\.is-active/)
+  assert.match(styles, /\.skill-hub-toolbar > input/)
+  assert.match(styles, /\.skill-hub-table th:last-child[\s\S]*position:sticky/)
 })
 
 test('skill store preserves online version while an update draft is edited', async () => {
