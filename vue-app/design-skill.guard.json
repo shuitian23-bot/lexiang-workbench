@@ -1,0 +1,10 @@
+{
+  "skillSearchDirs": [
+    "../skill/portal-workbench-ui-0818",
+    "../skill/portal-workbench-ui-0812",
+    "../skill/portal-workbench-ui",
+    "../../portal-workbench-ui-0818",
+    "../../portal-workbench-ui-0812",
+    "../../portal-workbench-ui"
+  ]
+}

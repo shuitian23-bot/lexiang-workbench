@@ -7,6 +7,12 @@
 
 ## 必须读取的设计规范
 
+门户工作台 `vue-app/` 的设计、修改或评审统一读取：
+
+`skill/portal-workbench-ui-0818/SKILL.md`
+
+再按任务读取其中对应 reference。项目内 Skill 是统一 0818 Skill 的分发副本，PM、UI 与研发共用；0803 与 0812 目录仅作为历史版本保留，不再作为默认规范。
+
 在设计、修改、评审或发布 `leaibot.cn` 的页面样式、交互、组件、中文文案前，必须先读取并遵循（本仓库内路径）：
 
 `/opt/projects/lexiang/.codex/skills/lenovo-leai-pc-design/SKILL.md`
@@ -21,6 +27,15 @@
 - `references/real-pc-dialog-reference.md`
 - `references/real-pc-dialog-states.md`
 - `references/asset-inventory.md`
+
+### 门户工作台 Vue 子项目边界
+
+- `vue-app/` 是门户工作台完整 Vue 工程，`public/admin-vue/` 是其构建产物；不得把正式站其他页面规则反向覆盖到门户工作台。
+- 左侧导航、顶部静态页签、中间业务内容槽与右侧 Agent 构成统一外壳。
+- AI 结果报告通过 Topbar 单一选择器进入内容槽；报告页退出按钮统一为“关闭”，不恢复“保存”。
+- 页面适配以中间内容槽实际宽度为准；Agent 展开和拖宽后不得产生页面级横向滚动。
+- 构建与发布时必须保留 `public/admin-vue/admin-runtime/`，尤其不得覆盖 `workbench-geo.js` 和 `workbench-pages.js`。
+- 在 `vue-app/` 中至少执行 `pnpm guard:design-skill`、`pnpm lint`、`pnpm typecheck`、`pnpm build` 和 `pnpm smoke:shell`。
 
 ## 实施要求
 

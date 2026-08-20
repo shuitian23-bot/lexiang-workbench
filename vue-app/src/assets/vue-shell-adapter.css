@@ -1,0 +1,102 @@
+/* Vue mount adapter: keep the current workbench shell nodes as direct flex items of body. */
+#app {
+  display: contents;
+}
+
+/* Collapsed sidebar peek: reveal labels without changing the main area's width. */
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking {
+  width: 168px;
+  margin-right: -110px;
+  z-index: 60;
+  box-shadow: 10px 0 24px rgba(15, 23, 42, 0.10);
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .sidebar-header {
+  justify-content: flex-start;
+  min-height: 48px;
+  height: 48px;
+  padding: 0 0 0 17px;
+  overflow: hidden;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .brand-lockup {
+  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 36px);
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .logo-full {
+  display: block;
+  height: 23px;
+  max-width: 114px;
+  flex: 0 1 auto;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .brand-suffix {
+  display: none !important;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .logo-icon-img {
+  display: none;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .sidebar-collapse-btn {
+  position: static;
+  z-index: auto;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  margin-left: 4px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-tertiary, #86909c);
+  box-shadow: none;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-item span:not(.ni),
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-item .arrow,
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .user-meta,
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .user-logout {
+  display: inline-flex;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-sub {
+  display: block;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-item {
+  justify-content: flex-start;
+  padding: 0 10px;
+  margin: 0 0 2px;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-item .ni {
+  width: 20px;
+  height: 20px;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .menu-icon {
+  width: 20px;
+  height: 20px;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-item[data-tip]:hover::before,
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .nav-item[data-tip]:hover::after {
+  display: none;
+}
+
+html[data-product="leaibot"] .sidebar.collapsed.is-peeking .sidebar-footer .user-info {
+  justify-content: flex-start;
+  padding: 4px 6px;
+}
+
+html[data-product="leaibot"] .ai-report-artifact-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
