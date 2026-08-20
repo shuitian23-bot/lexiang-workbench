@@ -49,6 +49,7 @@
     <script src="../frontend/js/shared/inline-1cbc376bb123.js"></script>
     <link rel="stylesheet" href="../frontend/css/shared/inline-91661584194a.css">
     <link rel="preload" as="image" href="../logos/logo-full-red.png">
+    <link rel="preload" as="image" href="../img/game-scene.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-1.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-2.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-3.jpg">
@@ -58,10 +59,11 @@
     <link rel="stylesheet" href="../frontend/css/shared/inline-2104d0ed7dd2.css">
     <link rel="stylesheet" data-category-waiting-modal href="../frontend/css/shared/inline-935e2224afac.css">
   <link rel="stylesheet" href="../frontend/css/core/split-frame-composer-sync.css" />
+  <link rel="stylesheet" href="../frontend/css/core/right-generation-aurora.css?v=0.15.17-top-layer" />
   <link rel="stylesheet" href="../frontend/css/core/history-standard.css" />
-  <link rel="stylesheet" href="../frontend/css/core/right-generation-aurora.css?v=0.15.22-p0-v1" />
+  <link rel="stylesheet" data-personal-home-no-hero href="../frontend/css/pages/shop/inline-22.css?v=0.15.25-personal-first-paint">
 </head>
-  <body data-page="personal" data-state="default">
+<body data-page="personal" data-state="default" data-personal-products-enabled="false">
     <script src="../frontend/js/shared/inline-54fe4c623706.js"></script>
     <script src="../frontend/js/shared/inline-dab1b3ae0743.js"></script>
     <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
@@ -319,11 +321,14 @@
             <h2 id="device-scene-title">沉浸竞技，性能全开</h2>
             <p class="device-scene-desc"><img src="../icons/global-sparkle-white.svg" alt="" aria-hidden="true" /><span data-device-scene-desc>从高帧对战到沉浸娱乐，为你搭配更流畅、更专注的游戏设备组合。</span></p>
             <p class="device-scene-price"><span>¥</span> <b data-device-scene-price>11,820</b> <small>起</small></p>
-            <button class="device-scene-buy" type="button" data-quick-ask="推荐适合电竞游戏的联想设备组合">让乐享推荐配置</button>
+            <button class="device-scene-buy" type="button">领优惠去下单</button>
           </div>
-          <button class="device-scene-hotspot" type="button" aria-label="了解拯救者 Y9000P 2026 推荐配置" data-quick-ask="详细介绍适合电竞游戏的联想设备配置">
+          <button class="device-scene-hotspot" type="button" aria-label="查看拯救者 Y9000P 2026 商品信息">
             <span class="device-scene-pulse" aria-hidden="true"></span>
-            <span class="device-scene-product-popover" role="tooltip"><strong>拯救者 Y9000P 2026</strong><span>RTX 5060 · 2.5K 240Hz · 32GB</span></span>
+            <span class="device-scene-product-popover" role="tooltip">
+              <strong>拯救者 Y9000P 2026</strong>
+              <span>RTX 5060 · 2.5K 240Hz · 32GB</span>
+            </span>
           </button>
           <div class="device-scene-controls" aria-label="设备场景切换">
             <details class="device-scene-picker">
@@ -335,12 +340,17 @@
               </div>
             </details>
             <span class="device-scene-count" aria-live="polite">1/3</span>
-            <button class="device-scene-arrow device-scene-prev" type="button" aria-label="上一个场景"><span aria-hidden="true"></span></button>
-            <button class="device-scene-arrow device-scene-next" type="button" aria-label="下一个场景"><span aria-hidden="true"></span></button>
+            <button class="device-scene-arrow device-scene-prev" type="button" aria-label="上一个场景">
+              <span aria-hidden="true"></span>
+            </button>
+            <button class="device-scene-arrow device-scene-next" type="button" aria-label="下一个场景">
+              <span aria-hidden="true"></span>
+            </button>
           </div>
         </section>
 
-        <nav class="category-tabs" aria-label="商品分类">
+          <!-- TEMP: 用户说“放开个人及家庭商品”时，移除下方两个 personal-products-temporarily-hidden 类。 -->
+          <nav class="category-tabs personal-products-temporarily-hidden" aria-label="商品分类">
           <button class="active" type="button">推荐</button>
           <button type="button">国补</button>
           <button type="button">教育特惠</button>
@@ -352,7 +362,7 @@
           <button type="button">门店</button>
         </nav>
 
-        <div class="product-grid" data-category-grid>
+          <div class="product-grid personal-products-temporarily-hidden" data-category-grid>
           <article class="product-card">
             <div class="brand-mini">联想小新</div>
             <div class="product-visual"><img loading="lazy" src="../img/shop-1.jpg" alt="商品图片" /></div>
@@ -637,22 +647,11 @@
     <script src="../frontend/js/core/portal.js?v=0.13.15-stage"></script>
     <script src="../frontend/js/core/app-intent.js?v=0.13.15-stage"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.15-stage"></script>
-  <script src="../frontend/js/core/app.js?v=0.14.63-solution"></script>
-  <script src="../frontend/js/core/p0-product-detail.js?v=0.14.57-detail-prd"></script>
-  <script src="../frontend/js/core/p0-order-flow.js?v=0.14.58-order-flow"></script>
-  <script src="../frontend/js/core/p0-member-svc.js?v=0.14.60-member-svc"></script>
-  <script src="../frontend/js/core/p0-store.js?v=0.14.61-store"></script>
-    <script src="../frontend/js/core/app-lxfd.js?v=0.14.34-channel-collapse-context"></script>
-    <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
+  <script src="../frontend/js/core/app.js?v=0.14.63-personal-products-gated-shell-voice"></script>
+    <script src="../frontend/js/core/app-lxfd.js?v=0.14.65-solution-lxfd-shell-voice"></script>
+    <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage-shell-voice"></script>
     <script src="../frontend/js/core/app-agent.js?v=0.13.16-unified-agent"></script>
-    <link rel="stylesheet" href="../frontend/css/core/product-data-runtime.css?v=3">
-    <link rel="stylesheet" href="../frontend/css/core/p0-product-detail.css?v=0.14.57-detail-prd">
-    <link rel="stylesheet" href="../frontend/css/core/p0-order-flow.css?v=0.14.58-order-flow">
-    <link rel="stylesheet" href="../frontend/css/core/p0-member-svc.css?v=0.14.60-member-svc">
-    <link rel="stylesheet" href="../frontend/css/core/p0-store.css?v=0.14.61-store">
-    <script src="../frontend/js/core/product-data-adapter.js?v=3"></script>
-    <script src="../frontend/js/core/product-catalog-runtime.js?v=3"></script>
-    <script data-shop-chat-template-behavior src="../frontend/js/pages/shop/inline-13.js?v=0.14.36-history-result-rebuild"></script>
+  <script data-shop-chat-template-behavior src="../frontend/js/pages/shop/inline-13.js?v=0.14.37-personal-products-gated"></script>
     <link rel="stylesheet" data-shop-smart-cursor-fix href="../frontend/css/shared/inline-592f8f851e1f.css">
     <script src="../frontend/js/shared/inline-6495b30fa986.js"></script>
     <link rel="stylesheet" href="../frontend/css/shared/inline-e75ae5be9405.css">
@@ -661,12 +660,13 @@
     <link rel="stylesheet" data-unified-answer-card-selected href="../frontend/css/shared/inline-77378062a204.css">
     <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="../frontend/css/shared/inline-a6719541b94f.css">
     <link rel="stylesheet" data-component-assistant-preview href="../frontend/css/pages/shop/inline-21.css">
-  <link rel="stylesheet" data-personal-scene-home href="../frontend/css/pages/shop/inline-22.css?v=0.15.22-p0-v1">
-    <script src="../frontend/js/pages/shop/inline-22.js?v=0.15.22-p0-v1"></script>
-  <link rel="stylesheet" href="../frontend/css/core/p0-solution.css?v=0.14.63-solution">
-  <script src="../frontend/js/core/p0-solution.js?v=0.14.63-solution"></script>
-  <link rel="stylesheet" data-solution-result-shared href="../frontend/css/core/solution-result.css?v=0.15.22-compare-layout">
+    <script src="../frontend/js/pages/shop/inline-22.js?v=0.15.21-mobile-price"></script>
+  <link rel="stylesheet" href="../frontend/css/core/p0-solution.css?v=0.14.65-solution-lxfd">
+  <script src="../frontend/js/core/p0-solution.js?v=0.14.65-solution-lxfd"></script>
+  <link rel="stylesheet" data-solution-result-shared href="../frontend/css/core/solution-result.css?v=0.15.11-compare-parity">
   <script src="../frontend/js/core/solution-result.js?v=0.15.4-generating-guard"></script>
   <script src="../frontend/js/core/split-frame-composer-sync.js"></script>
+  <link rel="stylesheet" href="../frontend/css/core/p0-shell.css?v=0.14.64-shell-voice">
+  <script src="../frontend/js/core/p0-shell.js?v=0.14.64-shell-voice"></script>
 </body>
 </html>

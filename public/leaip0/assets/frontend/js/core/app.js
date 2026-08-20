@@ -579,6 +579,12 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function closeModal() {
+          // 登录拦截：登录弹窗被关闭（暂不登录/点遮罩/×）而非登录成功时，清掉待跳转目标，
+          // 避免下次登录成功后误跳到旧场景；登录成功路径已在 login() 里先消费掉 pending，
+          // 这里是幂等兜底（pending 早已为 null 时不会有副作用）。
+          if (document.querySelector("#lxLoginPhone")) {
+            try { window.__lxShell && window.__lxShell.onLoginDismiss && window.__lxShell.onLoginDismiss(); } catch (_e) {}
+          }
           const mask = $(".lx-p0-modal-mask");
           if (mask && typeof mask._lxOnClose === "function") {
             const onClose = mask._lxOnClose;
@@ -1816,6 +1822,13 @@ if (!window.__lxCreateTypewriter) {
         }
 
         async function lxOpenCommerceEntry(kind, options = {}) {
+          // 登录拦截保存来源：未登录点购物车/订单入口先弹登录框，登录成功后自动跳回本次目标；
+          // 同一入口（cart/orders 分别计）弹窗展示期间重复点击不再堆叠弹窗。
+          if (window.__lxShell && window.__lxShell.requireLogin) {
+            const entryName = kind === "orders" ? "orders" : "cart";
+            const ok = window.__lxShell.requireLogin(entryName, () => lxOpenCommerceEntry(kind, options));
+            if (!ok) return;
+          }
           const clearFullscreenState = () => {
             document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
             state.autoFs = false;
@@ -2078,51 +2091,96 @@ function openOrderDetail(orderId) {
         }
 
         function lxOpenSolutionCompareTab(solutions, compareMeta = lxSolutionCompareMeta(solutions)) {
-          const items = (solutions || []).filter((item) => item?.type === "solution").slice(0, 3);
+          const productCompareContent = {
+            "多擎云桌面解决方案": {
+              sector: "教育",
+              scenario: "普教",
+              summary: "融合VDI、VOI、IDV、TCI四种云桌面架构，统一管理教学终端，兼顾安全、运维与教学资源，适配机房和办公等场景。",
+              pain: "机房分布广、终端难统一监管，权限复杂且运维压力大。",
+              value: "统一云化管理，强化终端安全与数据恢复，简化运维并提升教学效率。",
+              ability: "支持全校终端管理、安全防护、数据恢复、教学资源与智慧决策，并提供全国服务保障。",
+              products: "资料暂未提供",
+              cases: "资料暂未提供",
+              compareImage: "../img/solution/多擎云桌面解决方案4.jpg",
+            },
+            "智慧教室解决方案": {
+              sector: "教育",
+              scenario: "高校",
+              summary: "以云计算架构打通教室设备与教学数据，覆盖普通型、功能型和研讨型教室，支持互动教学与课堂管理。",
+              pain: "设备跨品牌难统一管理，数据分散，教学系统协同效率低。",
+              value: "打破信息壁垒，优化教学体验，提升课堂效率与管理效能。",
+              ability: "支持课件展示、智能板书、无线投屏、互动教学和课堂管理，实现数据共享与系统融合。",
+              products: "智慧黑板M1 Pro Gen2 智慧教育大屏M1 Pro Gen2",
+              cases: "资料暂未提供",
+              compareImage: "../img/solution/智慧教室解决方案.jpg",
+            },
+            "职教智慧校园解决方案": {
+              sector: "教育",
+              scenario: "职教",
+              summary: "以1+2+3架构建设一体化数智校园，覆盖教学、学习和实训场景，提升校园治理与数据协同能力。",
+              pain: "建设缺乏统筹、应用复杂，重复建设且数据扩展能力不足。",
+              value: "统筹校园建设，提升治理、教学和个性化学习能力。",
+              ability: "整合智能设备、教室与实训室，实现数据融通、安全管理和全场景协同。",
+              products: "智慧专业实训室 智慧教室 联想多擎云桌面",
+              cases: "郑州铁路职业技术学院 郑州轻工业学院",
+              compareImage: "../img/solution/智慧校园解决方案1.jpg",
+            },
+          };
+          const compact = (value, length = 190) => {
+            const clean = String(value || "").replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
+            return Array.from(clean).slice(0, length).join("") + (Array.from(clean).length > length ? "…" : "");
+          };
+          const items = (solutions || [])
+            .filter((item) => item?.type === "solution")
+            .slice(0, 3)
+            .map((item) => {
+              const itemName = String(item.name || "").trim();
+              const contentKey = Object.keys(productCompareContent).find((name) => itemName === name || itemName.includes(name) || name.includes(itemName));
+              return { ...item, ...(productCompareContent[contentKey] || {}) };
+            });
           if (items.length < 2) return;
-          // 行业中文标签 → LX_SOLUTIONS 详情 key 映射：复用既有 LX_SOLUTION_META，不新造第二份行业表。
-          const industryKeyByLabel = new Map((typeof LX_SOLUTION_META !== "undefined" ? LX_SOLUTION_META : []).map(([label, key]) => [label, key]));
-          const enrich = (item) => {
-            const key = industryKeyByLabel.get(item.sector) || item.sector;
-            return (typeof LX_SOLUTIONS !== "undefined" && LX_SOLUTIONS[key]) || {};
+          const compareSectors = [...new Set(items.map((item) => String(item.sector || "").trim()).filter(Boolean))];
+          const adviceScope = compareSectors.length === 1 ? `${compareSectors[0]}行业` : "不同应用场景";
+          const adviceText = `这几个方案均面向${adviceScope}，但侧重点不同。建议优先根据当前项目的建设对象与核心痛点确定场景，再由专家结合现网环境做进一步评估。`;
+          const cell = (value, cls = "") => `<div class="cell bodycell ${cls}">${esc(compact(value) || "资料暂未提供")}</div>`;
+          const row = (label, field) => `<div class="cell rowlabel">${esc(label)}</div>${items.map((item) => cell(item[field])).join("")}`;
+          const solutionHead = (item) => {
+            const context = [item.sector, item.scenario].filter(Boolean).join(" · ") || "行业解决方案";
+            const compareImage = item.compareImage || item.img;
+            const image = compareImage
+              ? `<img src="${esc(compareImage)}" alt="${esc(item.name || "解决方案")}场景图" loading="eager">`
+              : "";
+            return `<div class="cell bodycell phead"><div class="lx-cmp-solution-visual${image ? "" : " is-empty"}">${image}<span class="lx-cmp-solution-shade" aria-hidden="true"></span><div class="lx-cmp-solution-copy"><span class="lx-cmp-solution-tag">${esc(context)}</span><strong>${esc(item.name || "解决方案")}</strong></div></div></div>`;
           };
-          const cell = (value, cls = "") => `<div class="cell bodycell ${cls}">${esc(value || "—")}</div>`;
-          const row = (label, getter) => `<div class="cell rowlabel">${esc(label)}</div>${items.map((item) => cell(getter(item))).join("")}`;
-          const headCell = (item) => {
-            const key = industryKeyByLabel.get(item.sector) || item.sector;
-            const image = String(item.image_url || "").split("/").pop();
-            return `<button type="button" class="cell bodycell phead" data-open-solution-detail data-solution-title="${esc(item.name)}" data-solution-industry="${esc(key)}" data-solution-sector="${esc(item.sector)}" data-solution-scenario="${esc(item.scenario)}" data-solution-intro="${esc(item.description)}" data-solution-image="${esc(image)}" title="点击查看${esc(item.name)}详情">${esc(item.name)}</button>`;
-          };
-          const suggestion = items.map((item) => `「${item.name}」适合重点关注${item.scenario || item.sector || "对应行业场景"}的组织`).join("；");
           const html = `<section class="lx-solution-compare-page">
-            <div class="lx-wp-head"><h2>方案对比</h2><p>从方案介绍、解决重点、方案价值、产品推荐、客户案例和适用行业场景进行横向比较</p></div>
-            <div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="1" style="--lx-cmp-cols:${items.length}"><div class="tbl">
-              <div class="cell rowlabel">方案</div>${items.map((item) => headCell(item)).join("")}
-              ${row("方案介绍", (item) => item.description)}
-              ${row("解决重点", (item) => `围绕${item.scenario || item.sector || "核心业务"}场景的关键问题定位与部署重点`)}
-              ${row("方案价值", (item) => enrich(item).gains)}
-              ${row("产品推荐", (item) => (enrich(item).features || []).slice(0, 3).join("、"))}
-              ${row("客户案例", (item) => (enrich(item).cases || []).slice(0, 2).join("、"))}
-              ${row("适用行业场景", (item) => `${item.sector || ""}${item.scenario ? " · " + item.scenario : ""}`)}
-            </div></div>
-            <div class="lx-cmp-conclusion">
-              <h3>选型建议</h3>
-              <p>${esc(suggestion)}，具体选型仍建议结合预算、部署周期与既有 IT 环境由业务顾问确认。</p>
-              <div class="lx-p0-actions">
-                <button class="lx-p0-btn" type="button" data-quick-ask="商用产品及方案服务咨询热线是多少">拨打热线 400-813-6161</button>
-                <button class="lx-p0-btn" type="button" data-quick-ask="我想在线咨询顾问，帮我推荐合适的方案">在线咨询</button>
-                <button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button>
-              </div>
-            </div>
-            <div class="lx-cmp-append" data-solution-compare-append data-solution-compare-index="${compareMeta.index}" data-solution-compare-names="${esc(items.map((item) => item.name).join("|"))}"></div>
-            <p class="foot-note">方案信息基于当前方案资料整理，实际范围以业务顾问确认和项目交付方案为准。</p>
-          </div>
+            <div class="lx-wp-head"><div><h2>解决方案对比</h2></div></div>
+            <div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="1" data-cols="${items.length}" style="--lx-cmp-cols:${items.length}"><div class="tbl">
+              <div class="cell rowlabel lx-cmp-axis"><strong>对比维度</strong><span>6 个核心指标</span></div>${items.map(solutionHead).join("")}
+              <div class="lx-cmp-advice"><strong><img class="lx-cmp-advice-sparkle" src="../icons/global-sparkle.svg" alt="" aria-hidden="true"><span class="lx-cmp-advice-title">联想乐享建议</span></strong><span>${esc(adviceText)}</span></div>
+              ${row("方案介绍", "summary")}
+              ${row("解决重点", "pain")}
+              ${row("方案价值", "value")}
+              ${row("核心能力", "ability")}
+              ${row("推荐产品", "products")}
+              ${row("客户案例", "cases")}
+            </div></div></div>
           </section>`;
           lxOpenInfoTab(`solution-compare:${compareMeta.index}`, compareMeta.label, html);
+          lxSyncSolutionCompareFloatingCta(true);
           lxRemoveUnrequestedSiteTabFromSolutionFlow();
-          if (window.__lxSolution && typeof window.__lxSolution.mountCompareAppend === "function") {
-            window.__lxSolution.mountCompareAppend(compareMeta, items);
+        }
+
+        function lxSyncSolutionCompareFloatingCta(show) {
+          let button = document.querySelector(".lx-cmp-floating-cta");
+          if (!button) {
+            button = document.createElement("button");
+            button.className = "lx-cmp-floating-cta";
+            button.type = "button";
+            button.dataset.floorAction = "lead";
+            button.textContent = "请专家联系我";
+            document.body.appendChild(button);
           }
+          button.hidden = !show;
         }
 
         function openCompare() {
@@ -2279,6 +2337,8 @@ function openOrderDetail(orderId) {
           closeModal();
           updateUserArea();
           toast("登录成功");
+          // 登录拦截保存来源：closeModal() 先关登录框，这里再触发原目标（对话记录/购物车/订单跳详情）
+          try { window.__lxShell && window.__lxShell.onLoginSuccess && window.__lxShell.onLoginSuccess(); } catch (_e) {}
         }
 
         async function logout() {
@@ -2877,6 +2937,11 @@ function openOrderDetail(orderId) {
         }
 
         function lxOpenHistoryModal() {
+          // 登录拦截保存来源：未登录点「对话记录」先弹登录框，登录成功后自动回到历史记录弹窗。
+          if (window.__lxShell && window.__lxShell.requireLogin) {
+            const ok = window.__lxShell.requireLogin("history", lxOpenHistoryModal);
+            if (!ok) return;
+          }
           lxHistoryModalPage = 1;
           openModal("历史记录", lxHistoryModalHtml());
           const search = document.querySelector(".lx-history-modal .lx-history-search-input");
@@ -6394,6 +6459,7 @@ async function openEduZone() {
 
         function lxRunTab(tab) {
           if (!tab) return;
+          lxSyncSolutionCompareFloatingCta(tab.kind === "info" && tab.id.startsWith("info:solution-compare:"));
           const genToken = lxBeginTabGeneration(tab);
           if (tab.kind === "site") {
             const content = document.querySelector(".content");
@@ -10174,6 +10240,8 @@ async function openEduZone() {
         window.openCart = openCart;
         window.openOrders = openOrders;
         window.lxOpenCommerceEntry = lxOpenCommerceEntry;
+        window.openLogin = openLogin; // 登录拦截（p0-shell.js requireLogin）需要能主动弹登录框
+        window.__lxOpenHistoryModal = lxOpenHistoryModal;
         window.openCompare = openCompare;
         window.openMemberCenter = openMemberCenter;
         window.openCouponCenter = openCouponCenter;

@@ -357,6 +357,10 @@
     if (!messages.length) return;
     window.__lxBridge.importConversation(messages, chatState.convId, { localId: chatState.localId });
   }
+  // p0-solution.js 的 chip 澄清流点击时若仍处于全屏态，需要先把当前对话导出到分屏再继续
+  // （否则 a.addMessage 等分屏专用函数会写进隐藏的 .lx-p0-messages）；此前只有本文件内部
+  // 固定调用点用得到 lxfdExportToMain，这里补一个只读转发，不改函数本身。
+  window.__lxfdExportToMain = lxfdExportToMain;
   function parseJson(data) {
     try { return JSON.parse(data); } catch (_) { return {}; }
   }
@@ -808,14 +812,14 @@
     if (reduceMotion) return;
     if (helloTimer) window.clearTimeout(helloTimer);
     if (!forceFullscreenMotion) {
-      helloTimer = window.setInterval(rotateTitleWord, 2000);
+      helloTimer = window.setInterval(rotateTitleWord, 3000);
       return;
     }
     const tick = () => {
       rotateTitleWord();
-      helloTimer = window.setTimeout(tick, 2000);
+      helloTimer = window.setTimeout(tick, 3000);
     };
-    helloTimer = window.setTimeout(tick, 2000);
+    helloTimer = window.setTimeout(tick, 3000);
   }
   function renderTurnIndex(activeId) {
     turnIndex?.classList.toggle("show", turns.length > 0);
@@ -996,6 +1000,13 @@
     // 子频道即使误调用，也立即回退到其原有商务入口，不改变频道交互。
     if (logicalPath !== "/") {
       return window.lxOpenCommerceEntry?.(kind, { sendQuery: true });
+    }
+    // 登录拦截保存来源：根首页全屏态购物车/订单入口是独立实现（不经过 lxOpenCommerceEntry），
+    // 未登录先弹登录框，登录成功后自动重跑本次目标。
+    if (window.__lxShell && window.__lxShell.requireLogin) {
+      const entryName = kind === "orders" ? "orders" : "cart";
+      const ok = window.__lxShell.requireLogin(entryName, () => lxfdRunHomeCommerceEntry(kind));
+      if (!ok) return;
     }
     if (chatState.sending) return;
 
@@ -1668,7 +1679,14 @@
           if (nonce !== chatState.conversationNonce) return;
           const { op } = parseJson(data) || {};
           const pageMeta = lxfdPageCtaMeta(op);
-          if (pageMeta) {
+          // 咨询与线索场景补差：方案意图不再直接给「查看全集解决方案」卡+自动开全量目录页
+          // （done 时 turnActions.forEach(lxfdRevealFeature) 会径直调 openSolutionCenter()），
+          // 改走 p0-solution.js 的行业/场景 chip 澄清流；HTML 是纯字符串拼接，走本函数已有的
+          // pendingExtras 安全追加机制，不调 a.lxAppendAiHtml（其 lxEnsureAiBody 按 .ai-body
+          // 约定书写，找不到会把 lxfd 的 .lxfd-ai-body 气泡整体清空）。模块未加载时回退旧行为。
+          if (pageMeta && pageMeta.feature === "solution" && window.__lxSolution && typeof window.__lxSolution.lxfdChipsHtml === "function") {
+            pendingExtras += window.__lxSolution.lxfdChipsHtml(value);
+          } else if (pageMeta) {
             if (pageMeta.feature === "solution") pendingExtras += renderLxfdLeadCta();
             pendingExtras += renderLxfdPageCta(pageMeta);
             if (turnActions.indexOf(pageMeta.feature) < 0) turnActions.push(pageMeta.feature);
@@ -1997,25 +2015,36 @@
       const inner = item.img
         ? '<img class="gallery-img" src="' + escapeAttr(item.img) + '" alt="" loading="eager" />'
         : '<span class="gallery-lid"></span><span class="gallery-wm">' + escapeHtml(item.wm) + '</span>';
-      return '<article class="gallery-card is-preview-only" aria-disabled="true"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
+      return '<article class="gallery-card" tabindex="0" role="button" data-gallery-q="' + escapeAttr(item.q || "") + '" aria-label="' + escapeAttr(item.nm) + '"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
         + '<div class="gallery-meta"><span class="gallery-badge">' + escapeHtml(item.badge) + '</span><strong class="gallery-name">' + escapeHtml(item.nm) + '</strong><span class="gallery-desc">' + escapeHtml(item.ds) + '</span>'
         + '<div class="gallery-foot"><span class="gallery-price">' + price(item) + '</span><span class="gallery-go" aria-hidden="true">了解 →</span></div></div></article>';
     };
-    // 首页内容卡当前仅作预览：保留 CSS hover，点击与键盘操作均不发送对话。
+    // 点 Banner 创建会话回显对应 query 文案：把预置的 item.q 填进当前全屏输入框并走既有
+    // 提交链路（requestSubmit），与用户手动打字发送完全同一条路径，不另起 SendChat 调用。
+    const sendGalleryQuery = (q) => {
+      if (!q) return;
+      const ta = document.getElementById("lxfdTa");
+      const form = document.getElementById("lxfdComposer");
+      if (!ta || !form) return;
+      ta.value = q;
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+      if (typeof form.requestSubmit === "function") form.requestSubmit();
+      else form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    };
     grid.addEventListener("click", (e) => {
       const cardEl = e.target.closest(".gallery-card");
-      if (cardEl) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+      if (!cardEl) return;
+      e.preventDefault();
+      e.stopPropagation();
+      sendGalleryQuery(cardEl.getAttribute("data-gallery-q"));
     });
     grid.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       const cardEl = e.target.closest(".gallery-card");
-      if (cardEl) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+      if (!cardEl) return;
+      e.preventDefault();
+      e.stopPropagation();
+      sendGalleryQuery(cardEl.getAttribute("data-gallery-q"));
     });
     const moveInk = () => {
       const active = root.querySelector(".gallery-tab.is-active");
@@ -2039,13 +2068,19 @@
         grid.classList.remove("is-switching");
       }, 120);
     };
-    tabs.forEach((tab) => tab.addEventListener("click", () => {
+    const activateTab = (tab) => {
       if (tab.classList.contains("is-active")) return;
       tabs.forEach((item) => item.classList.remove("is-active"));
       tab.classList.add("is-active");
       moveInk();
       render(tab.dataset.galleryTab, true);
-    }));
+    };
+    // 悬停切换（PRD：4 个 Tab 悬停切换），键盘 focus 与触屏点击仍走 click，两者不冲突。
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => activateTab(tab));
+      tab.addEventListener("mouseenter", () => activateTab(tab));
+      tab.addEventListener("focus", () => activateTab(tab));
+    });
     render("new", false);
     requestAnimationFrame(moveInk);
     window.addEventListener("resize", moveInk);
