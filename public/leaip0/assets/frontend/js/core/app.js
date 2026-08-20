@@ -201,6 +201,8 @@ if (!window.__lxCreateTypewriter) {
         // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
         window.__lxAgentAPI = {
           openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
+          // P0 商详页结构对齐（p0-product-detail.js）复用统一弹窗组件，不重造新的弹窗 UI
+          openModal, closeModal,
           addAiMessage: (html) => addMessage("ai", "", html),
           lxRevealContent, getState: () => state,
           lxResolveRecommendedProduct,
@@ -1032,7 +1034,8 @@ if (!window.__lxCreateTypewriter) {
           setText("[data-detail-review-one]", `${name} 的核心配置清晰，适合结合预算、用途和服务需求继续比较。`);
           setText("[data-detail-review-two]", `用户关注点集中在${category}、做工质感和日常使用稳定性，可继续让联想乐享做同类对比。`);
           setText("[data-detail-review-three]", "购买前可继续查询教育特惠、以旧换新、门店服务和官方售后政策。");
-          renderProductReviews(product);
+          // 评价区（评分/分布/标签/评价卡）改由 p0-product-detail.js 监听 lx:product-detail-rendered
+          // 事件、按 SKU 读取独立 mock 数据渲染，不再用这里的通用占位内容（renderProductReviews 已废弃）
           const specGrid = $("[data-detail-spec-grid]", detailRoot);
           if (specGrid) {
             const rows = getDisplaySpecRows(product);
@@ -1101,6 +1104,9 @@ if (!window.__lxCreateTypewriter) {
           loadSpuVariants(product);
           lxEndTabGeneration(detailGenToken);
           lxHintOnDetail(product);
+          // P0 商详页结构对齐：商品标签/核心配置摘要/卖点标签/评价区/服务保障说明弹窗
+          // 交给独立文件 p0-product-detail.js 接管，这里只负责在渲染完成后广播一次
+          try { document.dispatchEvent(new CustomEvent("lx:product-detail-rendered", { detail: { product } })); } catch (_e) {}
         }
 
         // 详情页官方商品编号（取 specs.materialNumber，如 83UE000HCD；无则不展示）
@@ -3262,9 +3268,9 @@ function openOrderDetail(orderId) {
                 _turnProducts = products;
                 revealAi();
                 lxAppendAiHtml(ai, renderProductsInMessage(products));
-                const recoId = lxLatestRecoIdInMessage(ai);
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
+                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       openProduct(products[0], { recoId });
@@ -3272,6 +3278,7 @@ function openOrderDetail(orderId) {
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
+                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       const recoTab = lxCreateRecoTab(products, { label: "AI 推荐", recoId });
@@ -3326,10 +3333,10 @@ function openOrderDetail(orderId) {
                   ai._raw = payload.title;
                 }
                 lxAppendAiHtml(ai, renderProductsInMessage(products));
-                const recoId = lxLatestRecoIdInMessage(ai);
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
+                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       openProduct(products[0], { recoId });
@@ -3337,6 +3344,7 @@ function openOrderDetail(orderId) {
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
+                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       const recoTab = lxCreateRecoTab(products, { label: payload.title || "AI 推荐", grouped: payload.grouped, recoId });
