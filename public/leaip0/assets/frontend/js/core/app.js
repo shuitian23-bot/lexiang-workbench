@@ -6619,9 +6619,10 @@ async function openEduZone() {
             const isOrdersInfo = tab.id === "info:orders";
             const isEntPointsInfo = tab.id === "info:ent-points";
             const isDocumentInsight = tab.id.startsWith("info:document-insight:");
+            const isSolutionCompare = tab.id.startsWith("info:solution-compare:");
             pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isDocumentInsight);
             pageBox.classList.toggle("is-document-insight", isDocumentInsight);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isDocumentInsight ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             pageBox.querySelectorAll("[data-reader-action]").forEach((button) => {
               button.onclick = (event) => {
                 event.preventDefault();

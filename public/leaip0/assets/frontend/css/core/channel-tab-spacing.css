@@ -1,0 +1,33 @@
+/* Four-channel split shell: deterministic tab and first-floor spacing. */
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content > .lx-tabbar[hidden] {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content > .lx-tabbar:not([hidden]) {
+  position: relative !important;
+  top: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 18px 18px 0 0 !important;
+  border: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+body[data-page="personal"]:not(.assistant-fullscreen) .content > .device-scene-hall {
+  margin: 0 0 18px !important;
+}
+
+body[data-page="personal"]:not(.assistant-fullscreen) .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall {
+  margin: 18px 0 !important;
+}
