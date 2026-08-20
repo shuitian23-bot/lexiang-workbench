@@ -6487,6 +6487,7 @@ async function openEduZone() {
           bar.hidden = tabs.length <= 1;
           bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
+          document.body.classList.add("lx-tab-layout-ready");
           lxSyncAnswerCtaActiveState(tabs.some((tab) => tab.id === state.activeTabId) ? state.activeTabId : "");
           requestAnimationFrame(lxMoveTabInk);
         }

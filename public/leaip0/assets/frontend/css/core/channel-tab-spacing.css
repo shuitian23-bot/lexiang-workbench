@@ -28,6 +28,7 @@ body[data-page="personal"]:not(.assistant-fullscreen) .content > .device-scene-h
   margin: 0 0 18px !important;
 }
 
+body.lx-tab-layout-ready[data-page="personal"]:not(.assistant-fullscreen) .content > .device-scene-hall,
 body[data-page="personal"]:not(.assistant-fullscreen) .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall {
   margin: 18px 0 !important;
 }
