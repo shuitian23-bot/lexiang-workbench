@@ -1824,11 +1824,19 @@ if (!window.__lxCreateTypewriter) {
         async function lxOpenCommerceEntry(kind, options = {}) {
           // 登录拦截保存来源：未登录点购物车/订单入口先弹登录框，登录成功后自动跳回本次目标；
           // 同一入口（cart/orders 分别计）弹窗展示期间重复点击不再堆叠弹窗。
+          // 注意：Impl 才是真正干活的函数，这里只做门禁——requireLogin 已登录时会同步调用
+          // 一次 run()（即 Impl），若这里再调一次 Impl 就是重复执行；未登录时 run() 会在登录
+          // 成功后才触发。绝不能把 lxOpenCommerceEntry 自身传成 run，否则每次已登录调用都会
+          // 在“门禁通过→调用自己→门禁再次通过→再调用自己”里死循环（曾经真实触发过栈溢出）。
           if (window.__lxShell && window.__lxShell.requireLogin) {
             const entryName = kind === "orders" ? "orders" : "cart";
-            const ok = window.__lxShell.requireLogin(entryName, () => lxOpenCommerceEntry(kind, options));
-            if (!ok) return;
+            const ok = window.__lxShell.requireLogin(entryName, () => lxOpenCommerceEntryImpl(kind, options));
+            if (!ok) return; // 未登录，已弹登录框，等待登录成功后自动重跑
+            return; // 已登录，requireLogin 内部已经同步执行过 Impl 了
           }
+          return lxOpenCommerceEntryImpl(kind, options);
+        }
+        async function lxOpenCommerceEntryImpl(kind, options = {}) {
           const clearFullscreenState = () => {
             document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
             state.autoFs = false;
@@ -2334,11 +2342,13 @@ function openOrderDetail(orderId) {
           const data = await response.json().catch(() => ({}));
           if (!response.ok) return toast(data.error || "登录失败");
           state.user = data.user || { phone };
+          // 登录拦截保存来源：必须先于 closeModal() 消费 pending 目标——closeModal() 自己也会
+          // 检测登录框存在并清 pending（用于"暂不登录"关闭场景），先取用避免被那句清空吞掉；
+          // 目标回调本身延后到下一 tick 执行（见 p0-shell.js onLoginSuccess），躲开这句 closeModal()。
+          try { window.__lxShell && window.__lxShell.onLoginSuccess && window.__lxShell.onLoginSuccess(); } catch (_e) {}
           closeModal();
           updateUserArea();
           toast("登录成功");
-          // 登录拦截保存来源：closeModal() 先关登录框，这里再触发原目标（对话记录/购物车/订单跳详情）
-          try { window.__lxShell && window.__lxShell.onLoginSuccess && window.__lxShell.onLoginSuccess(); } catch (_e) {}
         }
 
         async function logout() {
@@ -2938,10 +2948,16 @@ function openOrderDetail(orderId) {
 
         function lxOpenHistoryModal() {
           // 登录拦截保存来源：未登录点「对话记录」先弹登录框，登录成功后自动回到历史记录弹窗。
+          // 同 lxOpenCommerceEntry：门禁与实现拆开，run 绝不能指回 lxOpenHistoryModal 自身，
+          // 否则已登录时 requireLogin 同步调用 run() 会立刻递归死循环。
           if (window.__lxShell && window.__lxShell.requireLogin) {
-            const ok = window.__lxShell.requireLogin("history", lxOpenHistoryModal);
+            const ok = window.__lxShell.requireLogin("history", lxOpenHistoryModalImpl);
             if (!ok) return;
+            return;
           }
+          return lxOpenHistoryModalImpl();
+        }
+        function lxOpenHistoryModalImpl() {
           lxHistoryModalPage = 1;
           openModal("历史记录", lxHistoryModalHtml());
           const search = document.querySelector(".lx-history-modal .lx-history-search-input");

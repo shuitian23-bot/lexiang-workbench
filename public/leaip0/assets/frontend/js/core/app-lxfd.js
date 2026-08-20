@@ -1002,12 +1002,17 @@
       return window.lxOpenCommerceEntry?.(kind, { sendQuery: true });
     }
     // 登录拦截保存来源：根首页全屏态购物车/订单入口是独立实现（不经过 lxOpenCommerceEntry），
-    // 未登录先弹登录框，登录成功后自动重跑本次目标。
+    // 未登录先弹登录框，登录成功后自动重跑本次目标。门禁与实现拆开——run 绝不能指回
+    // lxfdRunHomeCommerceEntry 自身，否则已登录时 requireLogin 同步调用 run() 会立刻死循环。
     if (window.__lxShell && window.__lxShell.requireLogin) {
       const entryName = kind === "orders" ? "orders" : "cart";
-      const ok = window.__lxShell.requireLogin(entryName, () => lxfdRunHomeCommerceEntry(kind));
+      const ok = window.__lxShell.requireLogin(entryName, () => lxfdRunHomeCommerceEntryImpl(kind));
       if (!ok) return;
+      return;
     }
+    return lxfdRunHomeCommerceEntryImpl(kind);
+  }
+  async function lxfdRunHomeCommerceEntryImpl(kind) {
     if (chatState.sending) return;
 
     const isOrders = kind === "orders";

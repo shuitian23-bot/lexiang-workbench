@@ -70,7 +70,10 @@
     function onLoginSuccess() {
       var p = pending;
       pending = null;
-      if (p && typeof p.run === "function") { try { p.run(); } catch (_e) {} }
+      // 延后到下一 tick 执行：调用方 login() 紧接着还会执行自己的 closeModal() 关登录框，
+      // 若目标回调（如历史记录）同步在这里弹出新弹层，会被那句 closeModal() 立即带走；
+      // 错开一拍，等登录框先关完，再安全地开新目标。
+      if (p && typeof p.run === "function") { setTimeout(function () { try { p.run(); } catch (_e) {} }, 0); }
     }
     function onLoginDismiss() { pending = null; }
     root.__lxShell = root.__lxShell || {};
