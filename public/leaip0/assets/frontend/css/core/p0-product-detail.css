@@ -1,0 +1,42 @@
+/* P0 商品详情页结构对齐补充样式（配合 assets/frontend/js/core/p0-product-detail.js）。
+   只新增选择器，不覆盖既有布局；颜色值全部复用页面已使用过的注册色，不引入新色号。 */
+
+/* 商品名称最多2行超出省略（原有 .detail-title 只有 line-height，没有截断） */
+.content[data-view="detail"] .detail-title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 商品标签：国补/教育优惠 —— 复用已存在的 .detail-badge-hot（红）/.detail-badge-ai（紫）配色，不新增色值 */
+.content[data-view="detail"] .detail-badge-guobu { display: inline-flex; align-items: center; height: 25px; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: #fcf2f8; color: #B8252E; }
+.content[data-view="detail"] .detail-badge-edu { display: inline-flex; align-items: center; height: 25px; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: #efe4f1; color: #5b1452; }
+
+/* 核心配置摘要：处理器/系统/尺寸/内存/硬盘/显卡等，缺失字段由 JS 端不渲染，这里只定样式 */
+.content[data-view="detail"] .detail-config-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
+.content[data-view="detail"] .detail-config-summary[hidden] { display: none !important; }
+.content[data-view="detail"] .detail-config-chip { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; background: #f6f6f6; color: #101010; font-size: 12px; line-height: 1; white-space: nowrap; }
+
+/* 服务保障卡片：可点查看说明 */
+.content[data-view="detail"] .detail-service .service-item { cursor: pointer; border-radius: 10px; transition: background-color .15s ease; }
+.content[data-view="detail"] .detail-service .service-item:hover { background: #f6f6f6; }
+.content[data-view="detail"] .detail-service .service-item:focus-visible { outline: 2px solid #5b1452; outline-offset: 2px; }
+
+/* 评价标签（"大家都在说"筛选行）不可点：只做展示，去掉按钮交互态 */
+.content[data-view="detail"] .detail-review-filter-tags .detail-review-filter { pointer-events: none; cursor: default; }
+
+/* 综合评分卡/评价卡轮播缺失评价数据时整卡隐藏（如政企/服务器类目暂无 C 端评价） */
+.content[data-view="detail"] .detail-review-rating-wrap[hidden],
+.content[data-view="detail"] .detail-review-rating-card[hidden],
+.content[data-view="detail"] .detail-review-cards-wrap[hidden] { display: none !important; }
+
+/* 评价卡横向轮播：到头置灰 */
+.content[data-view="detail"] .detail-review-arrow[disabled],
+.content[data-view="detail"] .detail-review-arrow.is-disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
+
+@media (max-width: 768px) {
+  .content[data-view="detail"] .detail-config-summary { gap: 6px; }
+  .content[data-view="detail"] .detail-config-chip { font-size: 11px; height: 24px; padding: 0 8px; }
+}
