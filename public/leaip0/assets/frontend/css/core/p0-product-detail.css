@@ -13,6 +13,9 @@
 /* 商品标签：国补/教育优惠 —— 复用已存在的 .detail-badge-hot（红）/.detail-badge-ai（紫）配色，不新增色值 */
 .content[data-view="detail"] .detail-badge-guobu { display: inline-flex; align-items: center; height: 25px; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: #fcf2f8; color: #B8252E; }
 .content[data-view="detail"] .detail-badge-edu { display: inline-flex; align-items: center; height: 25px; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: #efe4f1; color: #5b1452; }
+/* 商品标签整行：一个标签都不适用时（罕见）整行隐藏，不留空位；同样要 !important 防止
+   并发覆盖丢掉 [hidden] 规则后被 .detail-badges{display:flex} 之类的作者样式盖回来 */
+.content[data-view="detail"] .detail-badges[hidden] { display: none !important; }
 
 /* 核心配置摘要：处理器/系统/尺寸/内存/硬盘/显卡等，缺失字段由 JS 端不渲染，这里只定样式 */
 .content[data-view="detail"] .detail-config-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
