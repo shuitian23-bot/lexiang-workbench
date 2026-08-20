@@ -1855,7 +1855,10 @@ if (!window.__lxCreateTypewriter) {
               // 等待结果卡完成布局，确保用户先看到卡片，再看到右侧页面切换。
               await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             }
-            lxOpenInfoTab(kind, label, '<div class="lx-shop-making" role="status" aria-live="polite"><p class="lx-shop-making-copy">正在制作中...</p></div>');
+            // 购物车/订单页真实内容：此前这里长期只落一段「正在制作中...」占位且从不替换，
+            // openCart()/openOrders() 各自内部已经会 lxOpenInfoTab(kind,...) 写入同一个
+            // tabId（info:cart / info:orders）真实渲染，直接调用即可让入口可用。
+            if (isOrders) openOrders(); else openCart();
             const keepCommerceState = () => {
               const hasMessages = !!document.querySelector(".chat-state .lx-p0-messages > *");
               if (hasMessages) document.body.dataset.state = "chat";
