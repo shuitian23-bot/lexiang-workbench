@@ -610,6 +610,9 @@
       var modalRoot = radio.closest(".lxof-skin");
       if (modalRoot) {
         if (rgroup === "paymode") {
+          // 即时写回 draft：否则「选对公→去设置发票→保存普票」时发票门禁读到旧 mode，
+          // 且返回确认订单弹层重渲染会把支付方式静默显示回旧值
+          if (draft && draft.payment) draft.payment.mode = rvalue;
           ["online", "installment"].forEach(function (m) {
             var sub = modalRoot.querySelector('[data-lxof-pay-sub="' + m + '"]');
             if (sub) sub.classList.toggle("is-active", rvalue === m);
