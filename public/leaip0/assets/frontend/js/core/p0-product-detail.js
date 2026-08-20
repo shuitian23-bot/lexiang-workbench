@@ -172,6 +172,17 @@
     window.__lxAgentAPI.openModal(info.title, '<div class="lx-pd-service-modal"><p>' + escapeHtml(info.body) + "</p></div>");
   });
 
+  // ── 主视觉点击看大图（PRD：主视觉可点，无营销图时即为主图）──
+  document.addEventListener("click", function (event) {
+    var img = event.target.closest && event.target.closest(".product-detail img[data-detail-visual]");
+    if (!img || !img.src || !window.__lxAgentAPI || typeof window.__lxAgentAPI.openModal !== "function") return;
+    var name = "";
+    var root = img.closest(".product-detail");
+    var nameEl = root && root.querySelector(".detail-name");
+    if (nameEl) name = nameEl.textContent.trim();
+    window.__lxAgentAPI.openModal(name || "商品大图", '<div class="lx-pd-lightbox"><img src="' + img.src.replace(/"/g, "&quot;") + '" alt="' + escapeHtml(name || "商品大图") + '"></div>');
+  });
+
   // ── 用户评价区 mock 数据：按 SKU 生成评分/星级分布/标签/评价卡，含点赞数 ─────────
   var REVIEW_TEMPLATE_POOL = [
     { title: "办公体验顺滑", body: "日常办公、网页多开和视频会议都比较稳定，开机和应用启动速度也让人满意，整体响应很快。", tags: ["性能强", "办公流畅"] },

@@ -43,3 +43,8 @@
   .content[data-view="detail"] .detail-config-summary { gap: 6px; }
   .content[data-view="detail"] .detail-config-chip { font-size: 11px; height: 24px; padding: 0 8px; }
 }
+
+/* 主视觉点击看大图 */
+.content[data-view="detail"] img[data-detail-visual] { cursor: zoom-in; }
+.lx-pd-lightbox { display: flex; justify-content: center; align-items: center; padding: 8px 0; }
+.lx-pd-lightbox img { max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 12px; }
