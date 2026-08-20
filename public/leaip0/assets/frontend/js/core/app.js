@@ -201,8 +201,8 @@ if (!window.__lxCreateTypewriter) {
         // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
         window.__lxAgentAPI = {
           openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
-          // P0 商详页结构对齐（p0-product-detail.js）复用统一弹窗组件，不重造新的弹窗 UI
-          openModal, closeModal,
+          // P0 商详页结构对齐（p0-product-detail.js）复用统一弹窗组件和规格提取，不重造/不产生和参数规格 Tab 不一致的第二套解析
+          openModal, closeModal, getDisplaySpecRows,
           addAiMessage: (html) => addMessage("ai", "", html),
           lxRevealContent, getState: () => state,
           lxResolveRecommendedProduct,
@@ -9281,11 +9281,16 @@ async function openEduZone() {
             }
 
             const reviewTrack = $("[data-detail-review-grid]");
-            if (event.target.closest("[data-review-prev]") && reviewTrack) {
-              reviewTrack.scrollBy({ left: -320, behavior: "smooth" });
-            }
-            if (event.target.closest("[data-review-next]") && reviewTrack) {
-              reviewTrack.scrollBy({ left: 320, behavior: "smooth" });
+            const reviewPrevBtn = event.target.closest("[data-review-prev]");
+            const reviewNextBtn = event.target.closest("[data-review-next]");
+            if ((reviewPrevBtn || reviewNextBtn) && reviewTrack) {
+              // 评价卡横向轮播（含到头置灰）交给 p0-product-detail.js 的 lxProductDetail.handleReviewNav
+              // 统一处理；文件未加载时兜底退回原始整段滚动，不让按钮失灵
+              if (window.__lxProductDetail && typeof window.__lxProductDetail.handleReviewNav === "function") {
+                window.__lxProductDetail.handleReviewNav(reviewNextBtn ? "next" : "prev");
+              } else {
+                reviewTrack.scrollBy({ left: reviewNextBtn ? 320 : -320, behavior: "smooth" });
+              }
             }
 
             const lxfdCommerce = event.target.closest(".lxfd-actions .lxfd-ic");
