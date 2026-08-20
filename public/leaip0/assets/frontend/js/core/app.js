@@ -2153,12 +2153,7 @@ function openOrderDetail(orderId) {
         // 对比统一收口：所有对比（手动清单 / SPU 系列 / AI 触发）都落右侧「对比」标签页，不再弹窗
         function lxUpsertCompareTab(products, label, activate = true) {
           const isCustom = Array.isArray(products) && products.length > 0;
-          // 方案中心里的引用对比仍属于当前方案任务，不应根据残留的
-          // state.page 自动恢复“个人及家庭”等无关站点标签。
-          const isSolutionFlow = (state.tabs || []).some((tab) =>
-            tab?.id === "info:solution" || String(tab?.id || "").startsWith("info:solution-detail:")
-          );
-          if (isSolutionFlow) state.tabs = (state.tabs || []).filter((tab) => tab.kind !== "site");
+          // 四个频道的频道首页是可返回的真实右侧页面，方案/商品对比不得移除它。
           lxUpsertTab({
             id: "compare",
             kind: "compare",
@@ -6392,8 +6387,21 @@ async function openEduZone() {
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
 
         function lxEnsureCurrentSiteTab(activate = true) {
-          // PC 5.0：频道首页是右侧零标签默认视图，不登记为结果页。
-          return null;
+          const page = lxPageFromPath();
+          if (!LX_SITE_TAB_LABELS[page]) return null;
+          state.tabs = state.tabs || [];
+          const id = `site:${page}`;
+          let tab = state.tabs.find((item) => item?.id === id);
+          if (!tab) {
+            tab = { id, kind: "site", page, label: LX_SITE_TAB_LABELS[page] };
+            state.tabs.unshift(tab);
+          } else {
+            tab.kind = "site";
+            tab.page = page;
+            tab.label = LX_SITE_TAB_LABELS[page];
+          }
+          if (activate) state.activeTabId = id;
+          return tab;
         }
 
         function lxEnsureTabbar() {
@@ -6432,8 +6440,8 @@ async function openEduZone() {
         function lxRenderTabbar() {
           const bar = lxEnsureTabbar();
           state.tabs = state.tabs || [];
-          // 禁止频道/站点/首页占位标签；注册表只保留真实右侧结果页。
-          state.tabs = state.tabs.filter((tab) => tab?.kind !== "site" && !String(tab?.id || "").startsWith("site:"));
+          // 四个频道保留一个真实、不可关闭的频道首页。
+          if (lxPageFromPath() !== "home") lxEnsureCurrentSiteTab(false);
           // 根首页永远不是“个人及家庭”频道。首页分屏会复用 personal 商城内容，
           // 但历史会话、旧缓存、商品选择和异步恢复都不得把频道页登记为真实右侧页面。
           // 每次渲染前按真实模板路由净化注册表，彻底移除全部合成频道标签。
@@ -6473,7 +6481,7 @@ async function openEduZone() {
             return true;
           });
           const tabs = state.tabs;
-          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
+          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span>${tab.kind === "site" ? "" : `<button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button>`}</span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
           // 首次只有 1 个真实页面时不显示标签栏；第 2 个页面出现后一次展示
           // 两个真实标签，后续严格一页一标签；关闭回 1 页时只隐藏栏、不删页面。
           bar.hidden = tabs.length <= 1;
@@ -6485,7 +6493,7 @@ async function openEduZone() {
 
         function lxUpsertTab(tab, activate = true) {
           state.tabs = state.tabs || [];
-          state.tabs = state.tabs.filter((item) => item?.kind !== "site" && !String(item?.id || "").startsWith("site:"));
+          if (lxPageFromPath() !== "home") lxEnsureCurrentSiteTab(false);
           const idx = state.tabs.findIndex((item) => item.id === tab.id);
           if (idx >= 0) state.tabs[idx] = { ...state.tabs[idx], ...tab };
           else {
@@ -7674,8 +7682,10 @@ async function openEduZone() {
           state.autoFs = false;
           state.tabs = (state.tabs || []).filter((item, index, rows) => {
             const itemId = String(item?.id || "");
-            return itemId && item?.kind !== "site" && !itemId.startsWith("site:") && rows.findIndex((row) => String(row?.id || "") === itemId) === index;
+            const rootSiteTab = lxPageFromPath() === "home" && (item?.kind === "site" || itemId.startsWith("site:"));
+            return itemId && !rootSiteTab && rows.findIndex((row) => String(row?.id || "") === itemId) === index;
           });
+          if (lxPageFromPath() !== "home") lxEnsureCurrentSiteTab(false);
           if (tabId && state.tabs.some((item) => item.id === tabId)) state.activeTabId = tabId;
           lxRenderTabbar();
           lxSyncAnswerCtaActiveState(state.activeTabId || "");
