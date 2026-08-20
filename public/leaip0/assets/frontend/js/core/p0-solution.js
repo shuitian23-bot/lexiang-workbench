@@ -83,6 +83,34 @@
     a.lxAddInstantAi("已为你锁定「" + industry + "」行业，还有更具体的场景吗？也可以直接查看该行业全部方案：", scenarioChipsHtml(industry));
   }
 
+  // 纯 HTML 构造，不碰 DOM/不依赖 app.js 的 ensureChat/.ai-body 约定——专供 app-lxfd.js（首屏全屏
+  // 对话，气泡结构是 .lxfd-ai-body，不是 .ai-body）通过安全的 pendingExtras 机制自行拼接展示，
+  // 避免直接调 a.lxAppendAiHtml/a.addMessage 时 lxEnsureAiBody 找不到 .ai-body 而整体清空气泡。
+  function lxfdChipsHtml(text) {
+    var industry = detectIndustry(text);
+    if (!industry) {
+      return '<p class="lx-solution-chip-lead">为了给你推荐更精准的解决方案，先帮我选一下你所在或关注的行业：</p>' + industryChipsHtml();
+    }
+    return '<p class="lx-solution-chip-lead">已为你锁定「' + esc(industry) + '」行业，还有更具体的场景吗？也可以直接查看该行业全部方案：</p>' + scenarioChipsHtml(industry);
+  }
+
+  // chip 是在全屏 lxfd 气泡里渲染出来的：点击时若仍处于全屏态，先复用 app-lxfd.js 已验证的
+  // "导出对话到分屏 + 退出全屏"桥接（与商品/功能页自动展开同一条路径），再继续走分屏下的
+  // chip 续接逻辑（a.addMessage/askScenario/showResult 依赖 .lx-p0-messages 必须已激活）。
+  function bridgeToSplitIfFullscreen(callback) {
+    var inFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
+    if (!inFullscreen) { callback(); return; }
+    if (typeof window.__lxfdExportToMain === "function") { try { window.__lxfdExportToMain(); } catch (e) {} }
+    if (typeof window.__lxfdExitWithReveal === "function") {
+      window.__lxfdExitWithReveal(function () {
+        if (window.__lxBridge && typeof window.__lxBridge.prepareRootSplitState === "function") window.__lxBridge.prepareRootSplitState();
+        callback();
+      });
+    } else {
+      callback();
+    }
+  }
+
   // ---- 结果卡片 ----
   // 「解决方案对比」按钮直接带 data-pick-sku（与 app.js 自动注入的右上角勾选按钮同一个属性/同一份
   // 选中态），走 app.js 文档级委托里已验证的 pickBtn 分支——不再用捕获阶段转发到隐藏角标按钮
@@ -183,17 +211,21 @@
     if (scenarioChip) {
       var sIndustry = scenarioChip.getAttribute("data-solution-chip-industry") || "";
       var scenario = scenarioChip.getAttribute("data-solution-chip-scenario") || "";
-      var a2 = api();
-      if (a2.addMessage) a2.addMessage("user", scenario ? scenario : "查看全部" + sIndustry + "方案");
-      showResult(sIndustry, scenario);
+      bridgeToSplitIfFullscreen(function () {
+        var a2 = api();
+        if (a2.addMessage) a2.addMessage("user", scenario ? scenario : "查看全部" + sIndustry + "方案");
+        showResult(sIndustry, scenario);
+      });
       return;
     }
     var industryChip = event.target.closest && event.target.closest("[data-solution-chip-industry]");
     if (industryChip) {
       var industry = industryChip.getAttribute("data-solution-chip-industry") || "";
-      var a = api();
-      if (a.addMessage) a.addMessage("user", industry);
-      askScenario(industry);
+      bridgeToSplitIfFullscreen(function () {
+        var a = api();
+        if (a.addMessage) a.addMessage("user", industry);
+        askScenario(industry);
+      });
     }
   });
 
@@ -305,6 +337,7 @@
   window.__lxSolution = {
     route: route,
     handleAction: handleAction,
+    lxfdChipsHtml: lxfdChipsHtml,
     mountCompareAppend: mountCompareAppend,
     detectIndustry: detectIndustry,
     showNoMatch: showNoMatch
