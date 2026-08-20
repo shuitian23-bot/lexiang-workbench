@@ -1,0 +1,177 @@
+/* 门店页：查询-导航-预约-权益商品（P0）。独立文件，只新增 .lxst-* 类，不覆盖既有
+   .lx-store-skin / .store-list 等旧门店样式（openStoresPanel / openStoreMap 仍在用）。 */
+
+.info-page:has(.lxst-store-wrap) { width: 100%; max-width: none; }
+.info-page:has(.lxst-store-wrap) > .reco-head { display: none; }
+
+.lxst-store-wrap, .lxst-store-wrap * , .lxst-store-wrap *::before, .lxst-store-wrap *::after { box-sizing: border-box; }
+.lxst-store-wrap button { font: inherit; cursor: pointer; }
+
+/* 省市区三级联动 + 查询按钮 */
+.lxst-region-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.lxst-region-bar select {
+  height: 36px; padding: 0 10px; border: 1px solid var(--line, #e2ddeb); border-radius: 8px;
+  background: #FFFFFF; color: var(--text, #252525); font-size: 13px; min-width: 96px;
+}
+.lxst-region-bar select:disabled { color: #b7b1bd; background: #f7f5f9; cursor: not-allowed; }
+.lxst-region-bar .lx-p0-btn { height: 36px; }
+.lxst-region-bar .lx-p0-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* 地图 + 列表并排 */
+.lxst-split { display: flex; gap: 16px; align-items: flex-start; }
+.lxst-map { position: relative; flex: 1 1 56%; min-width: 320px; border-radius: 16px; overflow: hidden; background: #f3f0f7; border: 1px solid var(--line, #e2ddeb); }
+.lxst-map img { display: block; width: 100%; height: auto; }
+.lxst-pins { position: absolute; inset: 0; pointer-events: none; }
+.lxst-pin {
+  position: absolute; transform: translate(-50%, -100%); width: 26px; height: 26px; border-radius: 50% 50% 50% 2px;
+  background: var(--aubergine, #5b1452); color: #FFFFFF; font-size: 12px; font-weight: 800; line-height: 26px; text-align: center;
+  box-shadow: 0 6px 14px rgba(91,20,82,.35); border: 2px solid #FFFFFF; pointer-events: auto; transition: transform .15s ease, background-color .15s ease;
+}
+.lxst-pin::after { content: ""; }
+.lxst-pin.is-active, .lxst-pin:hover { background: #bb1836; transform: translate(-50%, -100%) scale(1.12); }
+.lxst-map-tip { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 12px; font-size: 12px; color: #FFFFFF; background: linear-gradient(0deg, rgba(77,20,74,.55), transparent); pointer-events: none; }
+
+/* 门店卡（地图底部居中） */
+.lxst-storecard {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(94%, 360px);
+  background: #FFFFFF; border-radius: 14px; box-shadow: 0 16px 40px rgba(50,29,57,.22); padding: 14px 14px 12px; z-index: 2;
+}
+.lxst-storecard[hidden] { display: none; }
+.lxst-card-top { display: flex; align-items: center; gap: 8px; }
+.lxst-card-name { font-size: 15px; font-weight: 800; color: var(--ink, #252525); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lxst-card-close { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #f3f0f7; color: #625b68; font-size: 15px; line-height: 22px; text-align: center; border: 0; }
+.lxst-card-close:hover { background: #e6e0ed; }
+.lxst-card-addr { margin-top: 6px; font-size: 12.5px; color: var(--text-soft, #625b68); line-height: 1.5; }
+.lxst-card-meta { margin-top: 6px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text-soft, #625b68); flex-wrap: wrap; }
+.lxst-card-row { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lxst-card-dist { font-size: 12px; font-weight: 700; color: var(--aubergine, #5b1452); background: var(--tint-2, #f3edf6); border-radius: 999px; padding: 3px 10px; }
+.lxst-card-acts { display: flex; gap: 8px; }
+.lxst-card-acts .lx-p0-btn { height: 32px; padding: 0 14px; font-size: 12.5px; }
+.lxst-card-divider { margin: 12px 0 10px; height: 1px; background: var(--hair, #efe4f1); }
+.lxst-card-preview { cursor: pointer; }
+.lxst-preview-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-soft, #625b68); margin-bottom: 8px; }
+.lxst-preview-list { display: flex; gap: 8px; }
+.lxst-preview-item { flex: 1; min-width: 0; text-align: center; }
+.lxst-preview-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 8px; background: #f7f5f9; display: block; }
+.lxst-preview-item span { display: block; margin-top: 4px; font-size: 11px; color: var(--text-soft, #625b68); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lxst-preview-empty { font-size: 12px; color: #979797; }
+
+/* 门店列表 */
+.lxst-col { flex: 1 1 44%; min-width: 260px; }
+.lxst-listhd { font-size: 13px; font-weight: 700; color: var(--text-soft, #625b68); margin-bottom: 8px; }
+.lxst-list { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 2px; }
+.lxst-row { border: 1px solid var(--line, #e2ddeb); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+.lxst-row:hover { border-color: var(--aubergine, #5b1452); }
+.lxst-row.is-active { border-color: var(--aubergine, #5b1452); background: var(--tint, #f3f0f7); }
+.lxst-row-top { display: flex; align-items: center; gap: 8px; }
+.lxst-row-idx { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--tint-2, #f3edf6); color: var(--aubergine, #5b1452); font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; }
+.lxst-row-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--ink, #252525); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lxst-row-type { flex: none; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; }
+.lxst-row-type.sales { background: var(--tint-2, #f3edf6); color: var(--aubergine, #5b1452); }
+.lxst-row-type.service { background: #eef2f6; color: #4a6072; }
+.lxst-row-dist { flex: none; font-size: 11px; font-weight: 700; color: var(--aubergine, #5b1452); }
+.lxst-row-addr { margin-top: 4px; font-size: 12px; color: var(--text-soft, #625b68); line-height: 1.5; }
+.lxst-row-meta { margin-top: 4px; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #979797; }
+.lxst-row-state { color: #3a8a4c; font-weight: 700; }
+.lxst-row-state.closed { color: #979797; }
+
+/* 门店详情页 */
+.lxst-detail-wrap { padding: 2px 2px 24px; }
+.lxst-detail-basic { padding-bottom: 14px; border-bottom: 1px solid var(--hair, #efe4f1); margin-bottom: 16px; }
+.lxst-detail-top { display: flex; align-items: center; gap: 10px; }
+.lxst-detail-name { font-size: 18px; font-weight: 800; color: var(--ink, #252525); }
+.lxst-detail-addr { margin-top: 6px; font-size: 13px; color: var(--text-soft, #625b68); }
+.lxst-detail-meta { margin-top: 6px; display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: var(--text-soft, #625b68); flex-wrap: wrap; }
+.lxst-detail-section { margin-bottom: 20px; }
+.lxst-detail-h { font-size: 14px; font-weight: 800; color: var(--ink, #252525); margin-bottom: 10px; }
+
+.lxst-coupon-list { display: flex; flex-direction: column; gap: 10px; }
+.lxst-coupon-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--line, #e2ddeb); border-radius: 12px; padding: 12px 14px; background: linear-gradient(90deg, #fcfaff, #FFFFFF); }
+.lxst-coupon-main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.lxst-coupon-type { flex: none; font-size: 11px; font-weight: 700; color: var(--aubergine, #5b1452); background: var(--tint-2, #f3edf6); border-radius: 6px; padding: 2px 8px; }
+.lxst-coupon-name { font-size: 13.5px; font-weight: 700; color: var(--ink, #252525); }
+.lxst-coupon-valid { font-size: 11.5px; color: #979797; }
+.lxst-coupon-acts { flex: none; display: flex; align-items: center; gap: 10px; }
+.lxst-coupon-detail { background: none; border: 0; color: var(--aubergine, #5b1452); font-size: 12.5px; font-weight: 700; padding: 0; }
+.lxst-coupon-use { background: #FFFFFF; border: 1px solid var(--aubergine, #5b1452); color: var(--aubergine, #5b1452); font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 999px; }
+.lxst-coupon-use:hover { background: var(--tint-2, #f3edf6); }
+
+.lxst-prod-grid { max-height: 336px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding-right: 2px; }
+.lxst-prod-card { border: 1px solid var(--line, #e2ddeb); border-radius: 12px; padding: 10px; text-align: center; }
+.lxst-prod-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; background: #f7f5f9; border-radius: 8px; display: block; }
+.lxst-prod-name { display: block; margin-top: 8px; font-size: 12.5px; color: var(--ink, #252525); line-height: 1.4; height: 2.8em; overflow: hidden; }
+.lxst-prod-price { display: block; margin-top: 4px; font-size: 13px; font-weight: 800; color: #bb1836; }
+
+/* 优惠券弹窗 */
+.lx-p0-modal:has(.lxst-coupon-detail-modal) { width: min(420px, calc(100vw - 48px)); }
+.lxst-coupon-detail-modal .lxst-cdm-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--hair, #efe4f1); font-size: 13.5px; }
+.lxst-coupon-detail-modal .lxst-cdm-row span { color: var(--text-soft, #625b68); }
+.lxst-coupon-detail-modal .lxst-cdm-row b { color: var(--ink, #252525); font-weight: 700; }
+.lxst-coupon-detail-modal .lxst-cdm-usage { margin-top: 10px; }
+.lxst-coupon-detail-modal .lxst-cdm-usage span { display: block; font-size: 12.5px; font-weight: 700; color: var(--text-soft, #625b68); margin-bottom: 6px; }
+.lxst-coupon-detail-modal .lxst-cdm-usage p { font-size: 12.5px; line-height: 1.7; color: var(--text-soft, #625b68); margin: 0; }
+
+/* 券码弹窗 */
+.lx-p0-modal:has(.lxst-coupon-code-modal) { width: min(420px, calc(100vw - 48px)); }
+.lxst-coupon-code-modal .lxst-ccm-head { display: flex; align-items: center; justify-content: space-between; }
+.lxst-coupon-code-modal .lxst-ccm-name { font-size: 15px; font-weight: 800; color: var(--ink, #252525); }
+.lxst-coupon-code-modal .lxst-ccm-state { font-size: 12px; font-weight: 700; color: #3a8a4c; background: #eaf6ec; border-radius: 999px; padding: 3px 10px; }
+.lxst-coupon-code-modal .lxst-ccm-row { margin-top: 8px; font-size: 12.5px; color: var(--text-soft, #625b68); }
+.lxst-barcode { margin-top: 16px; padding: 14px; border: 1px dashed var(--line, #e2ddeb); border-radius: 12px; text-align: center; background: #fcfaff; }
+.lxst-barcode-bars { height: 46px; background-image: repeating-linear-gradient(90deg, #1d1d1f 0 2px, transparent 2px 4px, #1d1d1f 4px 5px, transparent 5px 9px, #1d1d1f 9px 12px, transparent 12px 14px); }
+.lxst-barcode-code { display: block; margin-top: 8px; font-size: 13px; letter-spacing: .08em; font-weight: 700; color: var(--ink, #252525); }
+.lxst-coupon-code-modal .lxst-ccm-tip { margin-top: 12px; font-size: 12px; color: #979797; line-height: 1.6; }
+.lxst-coupon-code-modal .lxst-ccm-store { margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.lxst-coupon-code-modal .lxst-ccm-store span { color: var(--text-soft, #625b68); }
+.lxst-coupon-code-modal .lxst-ccm-store b { color: var(--ink, #252525); }
+.lxst-coupon-code-modal .lxst-ccm-store em { font-style: normal; color: var(--aubergine, #5b1452); font-weight: 700; }
+
+/* 预约确认弹窗（窄版） */
+.lx-p0-modal:has(.lxst-confirm) { width: min(420px, calc(100vw - 48px)); border-radius: 20px; }
+.lxst-confirm-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--hair, #efe4f1); font-size: 13.5px; }
+.lxst-confirm-row span { color: var(--text-soft, #625b68); }
+.lxst-confirm-row b { color: var(--ink, #252525); font-weight: 700; text-align: right; max-width: 68%; }
+.lxst-confirm-tip { margin-top: 12px; font-size: 12px; color: #979797; line-height: 1.6; }
+.lxst-confirm-acts { margin-top: 16px; display: flex; gap: 10px; }
+.lxst-confirm-acts .lx-p0-btn { flex: 1; }
+
+/* 修改预约向导（三步） */
+.lx-p0-modal:has(.lxst-wizard) { width: min(460px, calc(100vw - 48px)); border-radius: 20px; }
+.lxst-wiz-h { font-size: 15px; font-weight: 800; color: var(--ink, #252525); margin-bottom: 14px; }
+.lxst-wiz-store-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+.lxst-wiz-store { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line, #e2ddeb); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.lxst-wiz-store.is-sel { border-color: var(--aubergine, #5b1452); background: var(--tint, #f3f0f7); }
+.lxst-wiz-store input { accent-color: var(--aubergine, #5b1452); }
+.lxst-wiz-store .nm { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lxst-wiz-store .dist { flex: none; font-size: 11.5px; color: var(--aubergine, #5b1452); font-weight: 700; }
+.lxst-wiz-days { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.lxst-wiz-day { flex: none; width: 56px; padding: 8px 0; border: 1px solid var(--line, #e2ddeb); border-radius: 10px; text-align: center; background: #FFFFFF; }
+.lxst-wiz-day b { display: block; font-size: 12.5px; }
+.lxst-wiz-day span { display: block; margin-top: 2px; font-size: 10.5px; color: #979797; }
+.lxst-wiz-day.is-sel { border-color: var(--aubergine, #5b1452); background: var(--tint-2, #f3edf6); color: var(--aubergine, #5b1452); }
+.lxst-wiz-day.is-sel span { color: var(--aubergine, #5b1452); }
+.lxst-wiz-slots { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lxst-wiz-slot { padding: 9px 0; border: 1px solid var(--line, #e2ddeb); border-radius: 10px; font-size: 12px; background: #FFFFFF; }
+.lxst-wiz-slot.is-sel { border-color: var(--aubergine, #5b1452); background: var(--tint-2, #f3edf6); color: var(--aubergine, #5b1452); font-weight: 700; }
+.lxst-wiz-purpose { width: 100%; min-height: 96px; border: 1px solid var(--line, #e2ddeb); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13px; resize: vertical; }
+.lxst-wiz-acts { margin-top: 16px; display: flex; gap: 10px; }
+.lxst-wiz-acts .lx-p0-btn { flex: 1; }
+
+/* 预约成功弹窗 */
+.lx-p0-modal:has(.lxst-success) { width: min(440px, calc(100vw - 48px)); border-radius: 20px; }
+.lxst-success-route { height: 120px; border-radius: 14px; background: linear-gradient(150deg, #f3f0f7, #f3edf6); display: flex; align-items: center; justify-content: center; color: #979797; font-size: 12.5px; }
+.lxst-success-store { margin-top: 14px; }
+.lxst-success-store b { display: block; font-size: 15px; font-weight: 800; color: var(--ink, #252525); }
+.lxst-success-store span { display: block; margin-top: 4px; font-size: 12.5px; color: var(--text-soft, #625b68); }
+.lxst-success-nav { width: 100%; margin-top: 12px; }
+.lxst-success-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--hair, #efe4f1); font-size: 13px; }
+.lxst-success-row:last-child { border-bottom: 0; }
+.lxst-success-row span { color: var(--text-soft, #625b68); }
+.lxst-success-row b { color: var(--ink, #252525); font-weight: 700; text-align: right; max-width: 68%; }
+
+@media (max-width: 768px) {
+  .lxst-split { flex-direction: column; }
+  .lxst-map { min-width: 0; }
+  .lxst-region-bar select { min-width: 0; flex: 1; }
+  .lxst-prod-grid { grid-template-columns: repeat(2, 1fr); }
+}

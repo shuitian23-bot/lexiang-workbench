@@ -3132,6 +3132,12 @@ function openOrderDetail(orderId) {
             const _memHandled = await window.__lxMemberSvc.handleQuery(text);
             if (_memHandled) return;
           }
+          // 门店查询-导航-预约-权益商品（独立模块 p0-store.js）：默认/自然语言门店查询命中则
+          // 本轮由该模块自行完成 Skill 过程+逐字回答+右侧地图列表，不再走后续快路径。
+          if (window.__lxStore && typeof window.__lxStore.handleQuery === "function") {
+            const _storeHandled = await window.__lxStore.handleQuery(text);
+            if (_storeHandled) return;
+          }
           // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端（正则统一收口 app-intent.js，主面板/全屏共用一份）──
           // 代买 pending 时跳过：避免"选/下单"字样被误判成 buy_current/buy_recommended 抢断，官方推荐流程要走完
           const _localCtrl = !_autoBuy && window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
@@ -9253,7 +9259,7 @@ async function openEduZone() {
               else if (text.includes("企业采购")) sendChat("我要企业批量采购，介绍下企业购的价格和流程");
               else if (text.includes("上门售后")) sendChat("企业设备的上门售后服务怎么约？");
               else if (text.includes("客服")) lxShowServiceCard();
-              else if (text.includes("门店")) openStoresPanel();
+              else if (text.includes("门店")) { if (window.__lxStore && typeof window.__lxStore.runDefaultQuery === "function") window.__lxStore.runDefaultQuery(); else openStoresPanel(); }
               else if (text.includes("会员")) openMemberCenter();
               else if (text.includes("私人订制") || text.includes("定制")) sendChat("我想私人订制一台联想电脑，先按用途给我配置方案");
               else if (text) sendChat(text);
