@@ -175,16 +175,27 @@
     var detail = document.querySelector(".shell > .content .product-detail");
     if (!sku || !detail) return;
     var run = ++detailRequest;
+    var generationToken = window.__lxBridge && typeof window.__lxBridge.beginResultGeneration === "function"
+      ? window.__lxBridge.beginResultGeneration({ id: "detail:" + sku, kind: "detail", label: card.dataset.detailTitle || "商品详情" })
+      : null;
     detail.dataset.detailState = "loading";
     detail.setAttribute("aria-busy", "true");
     Promise.all([api.detail(sku), api.variants(sku), api.detailImages(sku)]).then(function (values) {
-      if (run !== detailRequest) return;
+      if (run !== detailRequest) {
+        if (window.__lxBridge && typeof window.__lxBridge.endResultGeneration === "function") window.__lxBridge.endResultGeneration(generationToken);
+        return;
+      }
       return waitForDetailVisible(detail, run).then(function () {
-        if (run !== detailRequest) return;
+        if (run !== detailRequest) {
+          if (window.__lxBridge && typeof window.__lxBridge.endResultGeneration === "function") window.__lxBridge.endResultGeneration(generationToken);
+          return;
+        }
         updateDetailSurface(detail, values[0], values[1].items, values[2]);
+        if (window.__lxBridge && typeof window.__lxBridge.endResultGeneration === "function") window.__lxBridge.endResultGeneration(generationToken);
       });
     }).catch(function (error) {
       if (run !== detailRequest) return;
+      if (window.__lxBridge && typeof window.__lxBridge.endResultGeneration === "function") window.__lxBridge.endResultGeneration(generationToken);
       detail.dataset.detailState = "error";
       detail.removeAttribute("aria-busy");
       var reason = detail.querySelector("[data-detail-reason]");

@@ -383,7 +383,13 @@ if (!window.__lxCreateTypewriter) {
           // lxRunWithRevealMotion，不会像 revealProducts 那样自动把根路径首页切进分屏布局——
           // 桥接完退全屏后背景停留在首页欢迎门户，链卡/下单弹窗虽在DOM里但看不见。这里让
           // lxfd 那边退全屏回调里显式补一次（复用已验证的 lxPrepareRootSplitState，不重造）。
-          prepareRootSplitState: function() { lxPrepareRootSplitState(); }
+          prepareRootSplitState: function() { lxPrepareRootSplitState(); },
+          // 生产数据适配器复用同一右侧生成器，避免商品详情另造加载动画。
+          beginResultGeneration: function(tab) {
+            if (document.querySelector(".lx-page-generating")) return null;
+            return lxBeginTabGeneration({ ...(tab || {}), __fresh: true });
+          },
+          endResultGeneration: function(token) { lxEndTabGeneration(token); }
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);
@@ -573,12 +579,6 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function closeModal() {
-          // 登录拦截：登录弹窗被关闭（暂不登录/点遮罩/×）而非登录成功时，清掉待跳转目标，
-          // 避免下次登录成功后误跳到旧场景；登录成功路径已在 login() 里先消费掉 pending，
-          // 这里是幂等兜底（pending 早已为 null 时不会有副作用）。
-          if (document.querySelector("#lxLoginPhone")) {
-            try { window.__lxShell && window.__lxShell.onLoginDismiss && window.__lxShell.onLoginDismiss(); } catch (_e) {}
-          }
           const mask = $(".lx-p0-modal-mask");
           if (mask && typeof mask._lxOnClose === "function") {
             const onClose = mask._lxOnClose;
@@ -1816,13 +1816,6 @@ if (!window.__lxCreateTypewriter) {
         }
 
         async function lxOpenCommerceEntry(kind, options = {}) {
-          // 登录拦截保存来源：未登录点购物车/订单入口先弹登录框，登录成功后自动跳回本次目标；
-          // 同一入口（cart/orders 分别计）弹窗展示期间重复点击不再堆叠弹窗。
-          if (window.__lxShell && window.__lxShell.requireLogin) {
-            const entryName = kind === "orders" ? "orders" : "cart";
-            const ok = window.__lxShell.requireLogin(entryName, () => lxOpenCommerceEntry(kind, options));
-            if (!ok) return;
-          }
           const clearFullscreenState = () => {
             document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
             state.autoFs = false;
@@ -2286,8 +2279,6 @@ function openOrderDetail(orderId) {
           closeModal();
           updateUserArea();
           toast("登录成功");
-          // 登录拦截保存来源：closeModal() 先关登录框，这里再触发原目标（对话记录/购物车/订单跳详情）
-          try { window.__lxShell && window.__lxShell.onLoginSuccess && window.__lxShell.onLoginSuccess(); } catch (_e) {}
         }
 
         async function logout() {
@@ -2886,11 +2877,6 @@ function openOrderDetail(orderId) {
         }
 
         function lxOpenHistoryModal() {
-          // 登录拦截保存来源：未登录点「对话记录」先弹登录框，登录成功后自动回到历史记录弹窗。
-          if (window.__lxShell && window.__lxShell.requireLogin) {
-            const ok = window.__lxShell.requireLogin("history", lxOpenHistoryModal);
-            if (!ok) return;
-          }
           lxHistoryModalPage = 1;
           openModal("历史记录", lxHistoryModalHtml());
           const search = document.querySelector(".lx-history-modal .lx-history-search-input");
@@ -6347,7 +6333,8 @@ async function openEduZone() {
           if (tab?.kind === "reco") return { title: "正在生成推荐结果", desc: "正在筛选适合你的商品与关键参数" };
           if (tab?.kind === "compare") return { title: "正在生成对比页", desc: "正在汇总配置差异与选购建议" };
           if (tab?.kind === "info" && tab?.id === "info:edu") return { title: "正在生成教育特惠专区", desc: "正在加载认证权益和教育专享商品" };
-          if (tab?.kind === "info") return { title: `正在生成${label}`, desc: "正在为你整理页面内容" };
+          if (tab?.kind === "info" && String(tab?.id || "").startsWith("info:solution-detail:")) return { title: `正在生成${label}`, desc: "正在理解方案内容，并组织概览、核心能力与应用场景" };
+          if (tab?.kind === "info") return { title: `正在生成${label}`, desc: "正在组织页面结构与关键信息" };
           return { title: `正在打开${label}`, desc: "正在准备页面内容" };
         }
 
@@ -6364,10 +6351,11 @@ async function openEduZone() {
           overlay.className = "lx-page-generating";
           overlay.setAttribute("role", "status");
           overlay.setAttribute("aria-live", "polite");
-          overlay.innerHTML = `<div class="lx-page-gen-card"><div class="lx-page-gen-mark"><span></span><i></i></div><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div><div class="lx-page-gen-bar"><span></span></div></div>`;
+          overlay.innerHTML = `<div class="lx-page-gen-card lx-page-gen-card--aurora"><div class="lx-page-gen-aurora-field" aria-hidden="true"><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--a"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--b"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--c"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--d"></i><span class="lx-page-gen-aurora-lens"></span></div><div class="lx-page-gen-head"><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div></div></div>`;
           content.appendChild(overlay);
           content.classList.add("is-generating-tab");
-          const token = { overlay, startedAt: Date.now(), done: false };
+          const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+          const token = { overlay, startedAt: Date.now(), minVisibleMs: reducedMotion ? 180 : 5200, done: false };
           requestAnimationFrame(() => overlay.classList.add("is-show"));
           return token;
         }
@@ -6376,7 +6364,7 @@ async function openEduZone() {
           if (!token || token.done) return;
           token.done = true;
           const elapsed = Date.now() - token.startedAt;
-          const wait = Math.max(820 - elapsed, 180);
+          const wait = Math.max((token.minVisibleMs || 5200) - elapsed, 180);
           setTimeout(() => {
             token.overlay.classList.add("is-done");
             token.overlay.classList.remove("is-show");
@@ -10186,8 +10174,6 @@ async function openEduZone() {
         window.openCart = openCart;
         window.openOrders = openOrders;
         window.lxOpenCommerceEntry = lxOpenCommerceEntry;
-        window.openLogin = openLogin; // 登录拦截（p0-shell.js requireLogin）需要能主动弹登录框
-        window.__lxOpenHistoryModal = lxOpenHistoryModal;
         window.openCompare = openCompare;
         window.openMemberCenter = openMemberCenter;
         window.openCouponCenter = openCouponCenter;

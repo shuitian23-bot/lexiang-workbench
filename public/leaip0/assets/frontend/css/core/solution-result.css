@@ -75,3 +75,47 @@ body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts)>.assistant-bottom.has-hover-prompts>.composer.has{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-content:normal!important}
 body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel:has(.assistant-bottom.has-hover-prompts)>.assistant-bottom.has-hover-prompts>.composer.has>textarea{flex:0 0 36px!important;height:36px!important;min-height:36px!important;max-height:36px!important}
 @media (prefers-reduced-motion:reduce){.lx-template-smart-cursor,.lx-template-smart-cursor-label,.content .lx-solution-card{transition:none!important}}
+
+/* 方案对比结果页是五入口共享组件：直接复用首页的网格、图片、建议行和响应式规则。 */
+.lx-cmp-wrap:has(.lx-cmp-skin[data-v="1"]){overflow-x:auto;padding-bottom:2px}
+.lx-cmp-skin[data-v="1"]{--border:#efe4f1;--border-strong:#e2ddeb;--hair:#f3edf6;--text:#101010;--text-soft:#625b68;--text-muted:#979797;--sh-1:0 1px 2px rgba(50,29,57,.08),0 2px 8px rgba(50,29,57,.08);min-width:max(100%,calc(108px + var(--lx-cmp-cols,5)*156px));background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--sh-1);overflow:hidden}
+.lx-cmp-skin[data-v="1"] *,.lx-cmp-skin[data-v="1"] *::before,.lx-cmp-skin[data-v="1"] *::after{box-sizing:border-box}
+.lx-cmp-skin[data-v="1"] .tbl{display:grid;grid-template-columns:108px repeat(var(--lx-cmp-cols,5),minmax(0,1fr))}
+.lx-cmp-skin[data-v="1"] .cell{padding:13px 14px;border-bottom:1px solid var(--hair);display:flex;align-items:center;min-width:0}
+.content[data-view="info"] .info-page:has(.lx-solution-compare-page){width:100%;max-width:none;padding:0 2px 40px}
+.content[data-view="info"]:has(.lx-solution-compare-page),.content[data-view="info"] .info-page:has(.lx-solution-compare-page),.lx-solution-compare-page .lx-cmp-wrap{scrollbar-width:thin;scrollbar-color:rgba(77,20,74,.16) transparent}
+.content[data-view="info"]:has(.lx-solution-compare-page)::-webkit-scrollbar,.content[data-view="info"] .info-page:has(.lx-solution-compare-page)::-webkit-scrollbar,.lx-solution-compare-page .lx-cmp-wrap::-webkit-scrollbar{width:4px;height:4px}
+.content[data-view="info"]:has(.lx-solution-compare-page)::-webkit-scrollbar-track,.content[data-view="info"] .info-page:has(.lx-solution-compare-page)::-webkit-scrollbar-track,.lx-solution-compare-page .lx-cmp-wrap::-webkit-scrollbar-track{background:transparent}
+.content[data-view="info"]:has(.lx-solution-compare-page)::-webkit-scrollbar-thumb,.content[data-view="info"] .info-page:has(.lx-solution-compare-page)::-webkit-scrollbar-thumb,.lx-solution-compare-page .lx-cmp-wrap::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(77,20,74,.16)}
+.lx-solution-compare-page{width:100%;color:#252525;font-family:"Source Han Sans CN","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.lx-solution-compare-page .lx-wp-head{display:flex;align-items:center;justify-content:space-between;min-height:0;margin:0 0 16px;padding:20px 0 0;border-bottom:0}
+.lx-solution-compare-page .lx-wp-head>div{position:static}
+.lx-solution-compare-page .lx-wp-head h2{margin:0;color:#252525;font-size:20px;line-height:1.25;font-weight:700}
+.lx-solution-compare-page .lx-cmp-wrap:has(.lx-cmp-skin[data-v="1"]){overflow-x:auto;padding:0 0 2px}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"]{--lx-cmp-axis-width:144px;min-width:max(100%,calc(var(--lx-cmp-axis-width) + var(--lx-cmp-cols,3)*250px));border:1px solid #e2ddeb;border-radius:16px;background:#fff;box-shadow:none;overflow:hidden}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .tbl{grid-template-columns:var(--lx-cmp-axis-width) repeat(var(--lx-cmp-cols,3),minmax(220px,1fr));align-items:stretch}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .cell{min-width:0;min-height:54px;padding:17px 16px;border-bottom:1px solid #e2ddeb}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"][data-cols="3"] .tbl>.cell:nth-last-child(-n+4){border-bottom:0}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .bodycell{align-items:flex-start;border-left:1px solid #e2ddeb;color:#625b68;font-size:14px;line-height:1.7}
+.lx-solution-compare-page .lx-cmp-advice{grid-column:1/-1;width:100%;box-sizing:border-box;display:grid;grid-template-columns:var(--lx-cmp-axis-width) minmax(0,1fr);align-items:center;min-height:64px;padding:0;border-bottom:1px solid #e2ddeb;background:linear-gradient(90deg,#fcf2f8 0%,#f3eff9 50%,#e5ebfc 100%);color:#625b68;font-size:14px;line-height:1.7;font-weight:400}
+.lx-solution-compare-page .lx-cmp-advice strong{align-self:stretch;display:flex;align-items:center;gap:7px;padding:14px 16px;font-weight:600}
+.lx-solution-compare-page .lx-cmp-advice-sparkle{flex:none;width:16px;height:16px;display:block;object-fit:contain;filter:invert(14%) sepia(29%) saturate(2777%) hue-rotate(278deg) brightness(78%) contrast(94%)}
+.lx-solution-compare-page .lx-cmp-advice-title{background:linear-gradient(90deg,#4d144a 0%,#841d3c 50%,#b2242f 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lx-solution-compare-page .lx-cmp-advice>span{min-width:0;align-self:stretch;display:flex;align-items:center;padding:14px 16px;border-left:1px solid #e2ddeb}
+.lx-cmp-floating-cta{position:fixed;right:clamp(34px,2.3vw,52px);bottom:clamp(38px,3vw,48px);z-index:88;height:40px;padding:0 18px;border:1px solid transparent;border-radius:10px;background:linear-gradient(90deg,#4d144a 0%,#841d3c 50%,#b2242f 100%);color:#fff;font:inherit;font-size:13px;line-height:38px;font-weight:400;white-space:nowrap;cursor:pointer;box-shadow:0 6px 18px rgba(77,20,74,.16)}
+.lx-cmp-floating-cta[hidden],body.assistant-fullscreen .lx-cmp-floating-cta{display:none!important}
+body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width) + clamp(42px,3.1vw,68px))}
+.lx-cmp-floating-cta:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .rowlabel{align-items:flex-start;background:#fcfaff;color:#4d144a;font-size:14px;line-height:1.55;font-weight:600}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .lx-cmp-axis{min-height:196px;flex-direction:column;justify-content:center;gap:7px}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .lx-cmp-axis strong{color:#4d144a;font-size:15px;line-height:1.4;font-weight:600}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .lx-cmp-axis span{color:#979797;font-size:12px;line-height:1.4;font-weight:400}
+.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .phead{min-height:196px;padding:0;border-bottom-color:#e2ddeb;background:#4d144a;overflow:hidden}
+.lx-solution-compare-page .lx-cmp-solution-visual{position:relative;width:100%;min-height:196px;overflow:hidden;background:#4d144a}
+.lx-solution-compare-page .lx-cmp-solution-visual>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.lx-solution-compare-page .lx-cmp-solution-shade{position:absolute;inset:0;background:rgba(77,20,74,.48);pointer-events:none}
+.lx-solution-compare-page .lx-cmp-solution-copy{position:absolute;inset:auto 16px 16px;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+.lx-solution-compare-page .lx-cmp-solution-tag{display:inline-flex;align-items:center;min-height:22px;padding:3px 9px;border:1px solid rgba(255,255,255,.72);border-radius:999px;background:rgba(255,255,255,.9);backdrop-filter:blur(4px);color:#4d144a;font-size:12px;line-height:1.35;font-weight:500}
+.lx-solution-compare-page .lx-cmp-solution-copy strong{color:#fff;font-size:18px;line-height:1.4;font-weight:600}
+.lx-solution-compare-page .lx-cmp-solution-copy small{color:rgba(255,255,255,.9);font-size:12px;line-height:1.35;font-weight:500}
+@media(max-width:1100px){.lx-solution-compare-page .lx-cmp-skin[data-v="1"]{--lx-cmp-axis-width:132px;min-width:calc(var(--lx-cmp-axis-width) + var(--lx-cmp-cols,3)*230px)}.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .tbl{grid-template-columns:var(--lx-cmp-axis-width) repeat(var(--lx-cmp-cols,3),minmax(230px,1fr))}}

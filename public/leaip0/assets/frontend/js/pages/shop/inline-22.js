@@ -110,3 +110,118 @@
           if (panel) panel.style.setProperty("width", width + "px", "important");
         });
       })();
+
+(function registerDeviceSceneHall() {
+  var hall = document.querySelector(".device-scene-hall");
+  if (!hall) return;
+
+  var scenes = [
+    {
+      name: "电竞游戏",
+      title: "沉浸竞技，性能全开",
+      description: "从高帧竞技到沉浸娱乐，为你搭配流畅专注的游戏设备组合。",
+      price: "11,820",
+      product: "拯救者 Y9000P 2026",
+      specs: "RTX 5060 · 2.5K 240Hz · 32GB",
+      image: "../img/game-scene.jpg",
+      overlay: "linear-gradient(90deg,#101010 0%,rgba(77,20,74,.48) 44%,transparent 72%)",
+      hotspotLeft: "76%",
+      hotspotTop: "38%"
+    },
+    {
+      name: "专业创作",
+      title: "灵感迸发，创作全开",
+      description: "从灵感创作到多任务渲染，为你搭配高效稳定的专业设备。",
+      price: "8,999",
+      product: "ThinkPad T14p 2026",
+      specs: "酷睿 Ultra 9 · 32GB · 2TB · 2.8K OLED",
+      image: "../img/creation-scene.jpg",
+      overlay: "linear-gradient(90deg,#101010 0%,rgba(77,20,74,.48) 44%,transparent 72%)",
+      hotspotLeft: "72%",
+      hotspotTop: "40%"
+    },
+    {
+      name: "移动办公",
+      title: "轻装随行，效率在线",
+      description: "从移动办公到差旅协同，为你搭配轻薄持久的高效设备组合。",
+      price: "1,299",
+      product: "小新Pad Pro 12.7英寸",
+      specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
+      image: "../img/working-scene.jpg",
+      overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 38%,rgba(73,126,214,.4) 68%,transparent 88%)",
+      hotspotLeft: "74%",
+      hotspotTop: "38%"
+    }
+  ];
+
+  var currentIndex = 0;
+  var title = hall.querySelector("#device-scene-title");
+  var description = hall.querySelector("[data-device-scene-desc]");
+  var price = hall.querySelector("[data-device-scene-price]");
+  var hotspot = hall.querySelector(".device-scene-hotspot");
+  var product = hall.querySelector(".device-scene-product-popover strong");
+  var specs = hall.querySelector(".device-scene-product-popover > span");
+  var currentLabel = hall.querySelector(".device-scene-current");
+  var sceneCount = hall.querySelector(".device-scene-count");
+  var picker = hall.querySelector(".device-scene-picker");
+  var buyButton = hall.querySelector(".device-scene-buy");
+  var menuButtons = hall.querySelectorAll("[data-device-scene]");
+  var pickerCloseTimer = 0;
+  var hotspotPreviewTimer = 0;
+
+  function previewHotspot() {
+    window.clearTimeout(hotspotPreviewTimer);
+    hotspot.classList.remove("is-auto-open");
+    void hotspot.offsetWidth;
+    hotspot.classList.add("is-auto-open");
+    hotspotPreviewTimer = window.setTimeout(function () {
+      hotspot.classList.remove("is-auto-open");
+    }, 2000);
+  }
+
+  function renderScene(index) {
+    currentIndex = (index + scenes.length) % scenes.length;
+    var scene = scenes[currentIndex];
+    title.textContent = scene.title;
+    description.textContent = scene.description;
+    price.textContent = scene.price;
+    product.textContent = scene.product;
+    specs.textContent = scene.specs;
+    currentLabel.textContent = "当前: " + scene.name + "场景";
+    sceneCount.textContent = (currentIndex + 1) + "/" + scenes.length;
+    hotspot.setAttribute("aria-label", "查看" + scene.product + "商品信息");
+    hotspot.dataset.quickAsk = "详细介绍" + scene.name + "场景的联想设备配置";
+    if (buyButton) buyButton.dataset.quickAsk = "推荐适合" + scene.name + "的联想设备组合";
+    hotspot.style.left = scene.hotspotLeft;
+    hotspot.style.top = scene.hotspotTop;
+    hall.style.backgroundImage = 'url("' + new URL(scene.image, document.baseURI).href + '")';
+    hall.style.setProperty("--device-scene-overlay", scene.overlay);
+    menuButtons.forEach(function (button) {
+      button.classList.toggle("is-active", Number(button.dataset.deviceScene) === currentIndex);
+    });
+    previewHotspot();
+  }
+
+  hall.querySelector(".device-scene-prev").addEventListener("click", function () {
+    renderScene(currentIndex - 1);
+  });
+  hall.querySelector(".device-scene-next").addEventListener("click", function () {
+    renderScene(currentIndex + 1);
+  });
+  menuButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      renderScene(Number(button.dataset.deviceScene));
+      picker.removeAttribute("open");
+    });
+  });
+  picker.addEventListener("mouseenter", function () {
+    window.clearTimeout(pickerCloseTimer);
+    picker.setAttribute("open", "");
+  });
+  picker.addEventListener("mouseleave", function () {
+    pickerCloseTimer = window.setTimeout(function () {
+      picker.removeAttribute("open");
+    }, 120);
+  });
+  previewHotspot();
+})();

@@ -221,9 +221,9 @@
     const bar = document.createElement("div");
     bar.className = "lx-voice-confirm";
     bar.innerHTML = '<span class="lx-vc-text">识别：<b></b></span>' +
-      '<button type="button" class="lx-vc-cancel">取消/修改</button>' +
+      '<button type="button" class="lx-vc-cancel">取消/改</button>' +
       '<button type="button" class="lx-vc-send">立即发送</button>' +
-      '<span class="lx-vc-tip"><span class="lx-vc-count"></span>秒后自动发送</span>';
+      '<span class="lx-vc-tip"><span class="lx-vc-count"></span> 秒后自动发送</span>';
     bar.querySelector(".lx-vc-text b").textContent = "「" + text + "」";
     document.body.appendChild(bar);
     confirmEl = bar; confirmTa = ta;
@@ -259,23 +259,13 @@
     killConfirm();                                     // 重新录音，清掉上一次没发的确认条
     btn.__ta = ta;
     if (btn.__phOrig == null) btn.__phOrig = ta.placeholder;
-    // 追加到光标位置而非覆盖：录音前如果输入框已有文字（如上一段识别后点了「取消/修改」），
-    // 识别结果插在光标处，光标前后原有内容都保留（不是简单拼在末尾，光标可能在文字中间）。
-    const selStart = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
-    const selEnd = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
-    const before = ta.value.slice(0, selStart);
-    const after = ta.value.slice(selEnd);
-    const placeCaret = (insertedLen) => {
-      const pos = before.length + insertedLen;
-      try { ta.setSelectionRange(pos, pos); } catch (_e) {}
-    };
+    // 追加而非覆盖：框里已有内容（如上一段识别后点了「取消/改」）时，新一段拼在后面（真机反馈）
+    const prefix = ta.value.trim() ? ta.value.replace(/\s+$/, "") : "";
     asr.start(
       (state) => {                                      // 状态：recording / interim:实时文字 / 识别中…
         if (state === "recording") { btn.classList.remove("thinking"); btn.classList.add("recording"); ta.placeholder = "🎤 请说话…"; }
-        else if (state.indexOf("interim:") === 0) {     // 边说边出字：实时把识别文本插入光标处
-          const seg = state.slice(8);
-          ta.value = before + seg + after;
-          placeCaret(seg.length);
+        else if (state.indexOf("interim:") === 0) {     // 边说边出字：实时把识别文本填进输入框
+          ta.value = prefix + state.slice(8);
           ta.dispatchEvent(new Event("input", { bubbles: true }));
         }
         else { btn.classList.remove("recording"); btn.classList.add("thinking"); ta.placeholder = "识别中…"; }
@@ -283,13 +273,12 @@
       (text) => {                                       // 识别结果 → 填框 + 确认条（不立即发，给用户看清）
         clearUI();
         if (discardNext) { discardNext = false; return; } // 用户已手动发过这句，结果作废
-        ta.value = before + text + after;
-        placeCaret(text.length);
+        ta.value = prefix + text;
         ta.dispatchEvent(new Event("input", { bubbles: true }));  // 先触发（确认条此刻还没挂监听）
         showConfirm(form, ta, form, ta.value);           // 确认条/自动发送都用拼接后的完整内容
       },
       (err) => { clearUI(); const m = errMsg(err); if (m) showTip(btn, m); },
-      (text) => { clearUI(); if (!text) showTip(btn, "没有识别到有效内容，请重试。"); }
+      (text) => { clearUI(); if (!text) showTip(btn, "没听清，请靠近麦克风再说一次。"); }
     );
   }
 
@@ -309,7 +298,7 @@
         btn.type = "button";
         btn.className = "lx-voice-btn" + (asr.supported ? "" : " unsupported");
         btn.setAttribute("aria-label", "语音输入");
-        btn.title = asr.supported ? "语音输入" : "当前环境不支持录音";
+        btn.title = asr.supported ? "点击说话，说完自动执行" : "当前环境不支持录音";
         const icon = document.createElement("img");
         icon.className = "lx-voice-icon";
         icon.src = MIC_ICON_SRC;

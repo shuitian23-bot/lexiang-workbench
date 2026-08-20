@@ -808,14 +808,14 @@
     if (reduceMotion) return;
     if (helloTimer) window.clearTimeout(helloTimer);
     if (!forceFullscreenMotion) {
-      helloTimer = window.setInterval(rotateTitleWord, 3000);
+      helloTimer = window.setInterval(rotateTitleWord, 2000);
       return;
     }
     const tick = () => {
       rotateTitleWord();
-      helloTimer = window.setTimeout(tick, 3000);
+      helloTimer = window.setTimeout(tick, 2000);
     };
-    helloTimer = window.setTimeout(tick, 3000);
+    helloTimer = window.setTimeout(tick, 2000);
   }
   function renderTurnIndex(activeId) {
     turnIndex?.classList.toggle("show", turns.length > 0);
@@ -1997,36 +1997,25 @@
       const inner = item.img
         ? '<img class="gallery-img" src="' + escapeAttr(item.img) + '" alt="" loading="eager" />'
         : '<span class="gallery-lid"></span><span class="gallery-wm">' + escapeHtml(item.wm) + '</span>';
-      return '<article class="gallery-card" tabindex="0" role="button" data-gallery-q="' + escapeAttr(item.q || "") + '" aria-label="' + escapeAttr(item.nm) + '"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
+      return '<article class="gallery-card is-preview-only" aria-disabled="true"><div class="' + shotClass + '" style="background:' + escapeAttr(item.g) + '">' + inner + '</div>'
         + '<div class="gallery-meta"><span class="gallery-badge">' + escapeHtml(item.badge) + '</span><strong class="gallery-name">' + escapeHtml(item.nm) + '</strong><span class="gallery-desc">' + escapeHtml(item.ds) + '</span>'
         + '<div class="gallery-foot"><span class="gallery-price">' + price(item) + '</span><span class="gallery-go" aria-hidden="true">了解 →</span></div></div></article>';
     };
-    // 点 Banner 创建会话回显对应 query 文案：把预置的 item.q 填进当前全屏输入框并走既有
-    // 提交链路（requestSubmit），与用户手动打字发送完全同一条路径，不另起 SendChat 调用。
-    const sendGalleryQuery = (q) => {
-      if (!q) return;
-      const ta = document.getElementById("lxfdTa");
-      const form = document.getElementById("lxfdComposer");
-      if (!ta || !form) return;
-      ta.value = q;
-      ta.dispatchEvent(new Event("input", { bubbles: true }));
-      if (typeof form.requestSubmit === "function") form.requestSubmit();
-      else form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-    };
+    // 首页内容卡当前仅作预览：保留 CSS hover，点击与键盘操作均不发送对话。
     grid.addEventListener("click", (e) => {
       const cardEl = e.target.closest(".gallery-card");
-      if (!cardEl) return;
-      e.preventDefault();
-      e.stopPropagation();
-      sendGalleryQuery(cardEl.getAttribute("data-gallery-q"));
+      if (cardEl) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     });
     grid.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       const cardEl = e.target.closest(".gallery-card");
-      if (!cardEl) return;
-      e.preventDefault();
-      e.stopPropagation();
-      sendGalleryQuery(cardEl.getAttribute("data-gallery-q"));
+      if (cardEl) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     });
     const moveInk = () => {
       const active = root.querySelector(".gallery-tab.is-active");
@@ -2050,19 +2039,13 @@
         grid.classList.remove("is-switching");
       }, 120);
     };
-    const activateTab = (tab) => {
+    tabs.forEach((tab) => tab.addEventListener("click", () => {
       if (tab.classList.contains("is-active")) return;
       tabs.forEach((item) => item.classList.remove("is-active"));
       tab.classList.add("is-active");
       moveInk();
       render(tab.dataset.galleryTab, true);
-    };
-    // 悬停切换（PRD：4 个 Tab 悬停切换），键盘 focus 与触屏点击仍走 click，两者不冲突。
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => activateTab(tab));
-      tab.addEventListener("mouseenter", () => activateTab(tab));
-      tab.addEventListener("focus", () => activateTab(tab));
-    });
+    }));
     render("new", false);
     requestAnimationFrame(moveInk);
     window.addEventListener("resize", moveInk);
