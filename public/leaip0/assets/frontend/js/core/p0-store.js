@@ -543,8 +543,9 @@
     var a = api();
     if (typeof a.lxOpenInfoTab === "function") a.lxOpenInfoTab("stores", "附近门店", renderStoreTabHtml());
   }
-  function runDefaultQuery() {
-    addMsgUser("附近有什么联想门店？");
+  function runDefaultQuery(fromChat) {
+    // 来自 sendChat 委托时用户气泡已由 sendChat 添加，重复 addMsgUser 会出双气泡
+    if (!fromChat) addMsgUser("附近有什么联想门店？");
     runSkillTrace("门店查询服务", function () {
       Promise.all([fetchDefaultStores(), ensureDemoProducts()]).then(function (results) {
         var ctx = results[0];
@@ -599,7 +600,7 @@
   async function handleQuery(text) {
     var t = String(text || "").trim();
     if (!t || t.length > 60) return false;
-    if (isDefaultStoreQuery(t)) { runDefaultQuery(); return true; }
+    if (isDefaultStoreQuery(t)) { runDefaultQuery(true); return true; }
     return false;
   }
 
