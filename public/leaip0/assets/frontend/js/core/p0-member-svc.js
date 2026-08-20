@@ -385,10 +385,39 @@
     return true;
   }
 
-  // ── 总入口：sendChat 在既有精确短句快路径之后、matchControl 本地快路径之前调用 ──────
-  async function handleQuery(text) {
-    var t = String(text || "").trim();
-    if (!t || t.length > 120) return false;
+  // 纯判定、零副作用：与下面各 handleXDomain 函数的命中条件逐一对齐，只用来回答「这句话本模块
+  // 要不要接手」，不写 DOM、不查登录、不读认证状态。用于在真正处理前决定是否需要先把全屏态
+  // 桥接到分屏（bridgeToSplitIfFullscreen），避免误判「不会处理」时白白触发一次全屏收起。
+  function willHandle(t) {
+    if (STUDENT_DOMAIN_RE.test(t)) return true;
+    if (ENTERPRISE_DOMAIN_RE.test(t)) return true;
+    if (DIAMOND_DOMAIN_RE.test(t)) return true;
+    if ((MC_TOPIC_RE.test(t) || COUPON_TOPIC_RE.test(t)) && MC_SELF_RE.test(t)) return true;
+    if (!FAULT_ONLY_RE.test(t) && SVC_ANY_RE.test(t)) return true;
+    return false;
+  }
+
+  // C-T3 回归修复：会员/服务状态编排原本只接在 app.js sendChat（分屏）里，首屏全屏对话
+  // （app-lxfd.js submit()）走的是完全独立的一套官方意图路由，永远不会经过这里，
+  // 于是官方 action:edu 等分支抢跑，出现"教育认证"官方按钮而不是本模块的"立即认证"。
+  // 与 p0-solution.js 的 bridgeToSplitIfFullscreen 同款：命中时先把全屏对话导出到分屏
+  // 并收起全屏，再在分屏里继续走既有处理逻辑（a.addMessage 等分屏专用函数才有正确挂载点）；
+  // 已在分屏时直接同步执行，不引入任何延迟或行为变化。
+  function bridgeToSplitIfFullscreen(callback) {
+    var inFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
+    if (!inFullscreen) { callback(); return; }
+    if (typeof window.__lxfdExportToMain === "function") { try { window.__lxfdExportToMain(); } catch (e) {} }
+    if (typeof window.__lxfdExitWithReveal === "function") {
+      window.__lxfdExitWithReveal(function () {
+        if (window.__lxBridge && typeof window.__lxBridge.prepareRootSplitState === "function") window.__lxBridge.prepareRootSplitState();
+        callback();
+      });
+    } else {
+      callback();
+    }
+  }
+
+  async function handleQueryImpl(t) {
     if (handleStudentDomain(t)) return true;
     if (handleEnterpriseDomain(t)) return true;
     if (handleDiamondDomain(t)) return true;
@@ -396,6 +425,19 @@
     var svcHandled = await handleSvcDomain(t);
     if (svcHandled) return true;
     return false;
+  }
+
+  // ── 总入口：app.js sendChat（分屏）与 app-lxfd.js submit()（首屏全屏）都在各自「精确短句快
+  // 路径之后、matchControl/官方意图路由之前」调用同一个入口，未命中时对两条路径都零副作用。
+  async function handleQuery(text) {
+    var t = String(text || "").trim();
+    if (!t || t.length > 120) return false;
+    if (!willHandle(t)) return false;
+    return new Promise(function (resolve) {
+      bridgeToSplitIfFullscreen(function () {
+        handleQueryImpl(t).then(resolve).catch(function () { resolve(false); });
+      });
+    });
   }
 
   window.__lxMemberSvc = { handleQuery: handleQuery, openDiamondUpgrade: openDiamondUpgrade };

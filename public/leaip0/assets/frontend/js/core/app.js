@@ -359,7 +359,28 @@ if (!window.__lxCreateTypewriter) {
             lxPrepareRootSplitState();
             lxRevealContent();
             lxActivateTab(tabId);
+            lxAssertGovernedSplitResultState(tabId);
             return true;
+          },
+          restoreResultTab: function(id) {
+            const tabId = String(id || "");
+            if (!tabId) return false;
+            lxPrepareRootSplitState();
+            lxRevealContent();
+            const existing = (state.tabs || []).find((item) => item && item.id === tabId);
+            if (existing) {
+              lxActivateTab(tabId);
+              lxAssertGovernedSplitResultState(tabId);
+              return true;
+            }
+            const registered = lxReadResultTab(tabId);
+            if (registered) {
+              lxUpsertTab(registered, false);
+              lxActivateTab(tabId);
+              lxAssertGovernedSplitResultState(tabId);
+              return true;
+            }
+            return false;
           },
           // 退出全屏（带动画）
           exitFullscreen: function() { lxSetAutoFs(false); },
@@ -429,6 +450,30 @@ if (!window.__lxCreateTypewriter) {
         }
         function lxRecoTabId(recoId) {
           return recoId ? `reco:${recoId}` : `reco:${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        }
+        const LX_RESULT_TAB_REGISTRY_KEY = "lexiang.resultTabs.v1";
+        const lxResultTabRegistry = new Map();
+        function lxRememberResultTab(tab) {
+          if (!tab || !tab.id || tab.kind === "site") return;
+          try {
+            const snapshot = JSON.parse(JSON.stringify(tab, (key, value) => key === "__fresh" ? undefined : value));
+            lxResultTabRegistry.set(snapshot.id, snapshot);
+            const stored = JSON.parse(localStorage.getItem(LX_RESULT_TAB_REGISTRY_KEY) || "[]");
+            const rows = Array.isArray(stored) ? stored.filter((row) => row?.id !== snapshot.id) : [];
+            rows.push(snapshot);
+            localStorage.setItem(LX_RESULT_TAB_REGISTRY_KEY, JSON.stringify(rows.slice(-20)));
+          } catch (_e) {}
+        }
+        function lxReadResultTab(id) {
+          const tabId = String(id || "");
+          if (!tabId) return null;
+          if (lxResultTabRegistry.has(tabId)) return { ...lxResultTabRegistry.get(tabId) };
+          try {
+            const rows = JSON.parse(localStorage.getItem(LX_RESULT_TAB_REGISTRY_KEY) || "[]");
+            const hit = Array.isArray(rows) ? rows.slice().reverse().find((row) => row?.id === tabId) : null;
+            if (hit) { lxResultTabRegistry.set(tabId, hit); return { ...hit }; }
+          } catch (_e) {}
+          return null;
         }
         function lxLatestRecoIdInMessage(message) {
           if (!message || !message.querySelectorAll) return "";
@@ -2496,8 +2541,8 @@ function openOrderDetail(orderId) {
           // 单品也带 recoId：官方 sku 在自有库 404，恢复历史后 officialProducts 缓存也空，
           // 点击时优先用持久化 payload 里的完整商品对象兜底（真机反馈：历史里点 CTA 没反应）
           const action = products.length === 1 && first.sku
-            ? `data-open-product="${esc(first.sku)}" data-lxfd-reco-id="${esc(recoId)}"`
-            : `data-lx-focus-reco="1" data-lxfd-reco-id="${esc(recoId)}"`;
+            ? `data-open-product="${esc(first.sku)}" data-lxfd-reco-id="${esc(recoId)}" data-lx-result-id="detail:${esc(first.sku)}"`
+            : `data-lx-focus-reco="1" data-lxfd-reco-id="${esc(recoId)}" data-lx-result-id="${esc(lxRecoTabId(recoId))}"`;
           const desc = products.length === 1
             ? `${esc(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
             : `已为你筛选 ${products.length} 款候选商品`;
@@ -2515,8 +2560,12 @@ function openOrderDetail(orderId) {
         function renderPageCta({ title = "查看页面", desc = "已在右侧为你打开相关内容", attr = 'data-lx-focus-active="1"' } = {}) {
           const boundTabId = String(attr).match(/data-lx-open-tab="([^"]+)"/)?.[1] || "";
           const feature = String(attr).match(/data-lxfd-open-feature="([^"]+)"/)?.[1] || "";
+          const solutionTitle = String(attr).match(/data-specific-solution-cta="([^"]+)"/)?.[1] || "";
+          const featureIds = { solution: "info:solution", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+          const resultId = boundTabId || (solutionTitle ? `info:solution-detail:${solutionTitle}` : (featureIds[feature] || ""));
+          const resultAttr = resultId && !/data-lx-result-id=/.test(String(attr)) ? ` data-lx-result-id="${esc(resultId)}"` : "";
           const active = boundTabId === state.activeTabId || (feature === "documents" && state.activeTabId === "documents");
-          return `<button class="answer-cta lx-answer-page${active ? " is-active is-selected" : ""}" type="button" ${attr}${active ? ' aria-current="page" aria-pressed="true"' : ' aria-pressed="false"'}>
+          return `<button class="answer-cta lx-answer-page${active ? " is-active is-selected" : ""}" type="button" ${attr}${resultAttr}${active ? ' aria-current="page" aria-pressed="true"' : ' aria-pressed="false"'}>
             <span class="answer-cta-copy">
               <span class="answer-cta-title">${esc(title)}</span>
               <span class="answer-cta-desc">${esc(desc)}</span>
@@ -2528,7 +2577,8 @@ function openOrderDetail(orderId) {
         }
 
         function lxSyncAnswerCtaActiveState(tabId) {
-          document.querySelectorAll('.answer-cta[data-lx-open-tab], .answer-cta[data-lxfd-open-feature], .answer-cta[data-specific-solution-cta]').forEach((card) => {
+          document.querySelectorAll('.answer-cta[data-lx-result-id], .answer-cta[data-lx-open-tab], .answer-cta[data-lxfd-open-feature], .answer-cta[data-specific-solution-cta]').forEach((card) => {
+            const resultId = card.getAttribute("data-lx-result-id") || "";
             const boundTabId = card.getAttribute("data-lx-open-tab") || "";
             const feature = card.getAttribute("data-lxfd-open-feature") || "";
             const solutionTitle = card.getAttribute("data-specific-solution-cta") || "";
@@ -2537,12 +2587,13 @@ function openOrderDetail(orderId) {
             // 全集页高亮“查看全集解决方案”，详情页只高亮对应的方案详情卡。
             const active = feature === "solution"
               ? tabId === "info:solution"
-              : boundTabId === tabId ||
+              : (resultId && resultId === tabId) || boundTabId === tabId ||
                 (feature === "documents" && tabId === "documents") ||
                 (solutionTabId && solutionTabId === tabId);
             card.classList.toggle("is-active", active);
             card.classList.toggle("is-selected", active);
-            card.setAttribute("aria-pressed", active ? "true" : "false");
+            const pressed = active ? "true" : "false";
+            if (card.getAttribute("aria-pressed") !== pressed) card.setAttribute("aria-pressed", pressed);
             if (active) card.setAttribute("aria-current", "page");
             else card.removeAttribute("aria-current");
           });
@@ -2557,10 +2608,29 @@ function openOrderDetail(orderId) {
             const active = (activeTab?.kind === "reco" && (activeRecoId ? recoId === activeRecoId : card === latestRecoCard)) ||
               (activeTab?.kind === "detail" && productSku && productSku === activeTab.sku);
             card.classList.toggle("is-active", active);
+            card.classList.toggle("is-selected", active);
+            const pressed = active ? "true" : "false";
+            if (card.getAttribute("aria-pressed") !== pressed) card.setAttribute("aria-pressed", pressed);
             if (active) card.setAttribute("aria-current", "page");
             else card.removeAttribute("aria-current");
           });
         }
+
+        let lxResultSelectionSyncQueued = false;
+        const lxQueueResultSelectionSync = () => {
+          if (lxResultSelectionSyncQueued) return;
+          lxResultSelectionSyncQueued = true;
+          queueMicrotask(() => {
+            lxResultSelectionSyncQueued = false;
+            const activeId = (state.tabs || []).some((tab) => tab.id === state.activeTabId) ? state.activeTabId : "";
+            lxSyncAnswerCtaActiveState(activeId);
+          });
+        };
+        new MutationObserver(lxQueueResultSelectionSync).observe(document.body, {
+          childList: true, subtree: true, attributes: true,
+          attributeFilter: ["aria-pressed", "data-lx-result-id", "data-lx-open-tab"]
+        });
+        lxQueueResultSelectionSync();
 
         function lxClearFollowups(exceptNode) {
           const root = ensureChat();
@@ -6274,14 +6344,8 @@ async function openEduZone() {
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
 
         function lxEnsureCurrentSiteTab(activate = true) {
-          // 站点身份标签只属于四个独立频道路由。根首页进入左右分屏后会临时复用
-          // personal 的商城状态，但它仍然是首页，不能因此生成“个人及家庭”标签。
-          const page = lxPageFromPath();
-          const label = LX_SITE_TAB_LABELS[page];
-          if (!label) return null;
-          const tab = { id: `site:${page}`, kind: "site", label, page };
-          lxUpsertTab(tab, activate);
-          return tab;
+          // PC 5.0：频道首页是右侧零标签默认视图，不登记为结果页。
+          return null;
         }
 
         function lxEnsureTabbar() {
@@ -6320,6 +6384,8 @@ async function openEduZone() {
         function lxRenderTabbar() {
           const bar = lxEnsureTabbar();
           state.tabs = state.tabs || [];
+          // 禁止频道/站点/首页占位标签；注册表只保留真实右侧结果页。
+          state.tabs = state.tabs.filter((tab) => tab?.kind !== "site" && !String(tab?.id || "").startsWith("site:"));
           // 根首页永远不是“个人及家庭”频道。首页分屏会复用 personal 商城内容，
           // 但历史会话、旧缓存、商品选择和异步恢复都不得把频道页登记为真实右侧页面。
           // 每次渲染前按真实模板路由净化注册表，彻底移除全部合成频道标签。
@@ -6365,22 +6431,13 @@ async function openEduZone() {
           bar.hidden = tabs.length <= 1;
           bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
+          lxSyncAnswerCtaActiveState(tabs.some((tab) => tab.id === state.activeTabId) ? state.activeTabId : "");
           requestAnimationFrame(lxMoveTabInk);
         }
 
         function lxUpsertTab(tab, activate = true) {
           state.tabs = state.tabs || [];
-          // 频道页打开任何结果时，都先保留一个独立、不可丢失的频道首页标签。
-          if (tab?.kind !== "site") {
-            // 根首页的分屏态也会把 body/state 标为 personal 以复用商城内容；频道身份
-            // 必须依据真实模板路由判断，否则首页首次结果会错误出现“个人及家庭”。
-            const page = lxPageFromPath();
-            const siteLabel = LX_SITE_TAB_LABELS[page];
-            const siteId = siteLabel ? `site:${page}` : "";
-            if (siteId && !state.tabs.some((item) => item.id === siteId)) {
-              state.tabs.unshift({ id: siteId, kind: "site", label: siteLabel, page });
-            }
-          }
+          state.tabs = state.tabs.filter((item) => item?.kind !== "site" && !String(item?.id || "").startsWith("site:"));
           const idx = state.tabs.findIndex((item) => item.id === tab.id);
           if (idx >= 0) state.tabs[idx] = { ...state.tabs[idx], ...tab };
           else {
@@ -6392,6 +6449,7 @@ async function openEduZone() {
             }
           }
           if (activate) state.activeTabId = tab.id;
+          lxRememberResultTab((state.tabs || []).find((item) => item.id === tab.id) || tab);
           if (activate) {
             lxSyncAnswerCtaActiveState(tab.id);
             requestAnimationFrame(() => lxSyncAnswerCtaActiveState(state.activeTabId));
@@ -7556,6 +7614,23 @@ async function openEduZone() {
           // 部分页面切换会在当前点击结束后补一次异步渲染；再次校准，避免它把标签栏判成单标签后隐藏。
           requestAnimationFrame(() => requestAnimationFrame(restoreTabsAfterSwitch));
           window.setTimeout(restoreTabsAfterSwitch, 120);
+        }
+
+        function lxAssertGovernedSplitResultState(activeId) {
+          const tabId = String(activeId || state.activeTabId || "");
+          document.documentElement.classList.remove("lx-root-lxfd-prepaint", "lx-route-prepaint");
+          document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lx-root-home", "lxfd-entering", "lxfd-exiting", "lxfd-split-returning", "assistant-collapsed");
+          document.body.classList.add("lx-home-split", "lxfd-split-entered");
+          document.body.dataset.state = "chat";
+          window.__LXFD_FORCE = false;
+          state.autoFs = false;
+          state.tabs = (state.tabs || []).filter((item, index, rows) => {
+            const itemId = String(item?.id || "");
+            return itemId && item?.kind !== "site" && !itemId.startsWith("site:") && rows.findIndex((row) => String(row?.id || "") === itemId) === index;
+          });
+          if (tabId && state.tabs.some((item) => item.id === tabId)) state.activeTabId = tabId;
+          lxRenderTabbar();
+          lxSyncAnswerCtaActiveState(state.activeTabId || "");
         }
 
         // 推荐结果页：按数量分形态——2-6 款决策型大卡列表（信息足、可对比可加购），7+ 款紧凑网格快速浏览
@@ -9119,7 +9194,7 @@ async function openEduZone() {
               if (location.protocol !== "file:" && PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               if (state.page !== page) state.activeSiteFloorTab = "推荐";
               state.page = page;
-              if (LX_SITE_TAB_LABELS[page]) lxUpsertTab({ id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page });
+              // 频道切换只改变右侧默认内容，不生成合成频道标签。
               // 用户主动切导航：退出自动全屏对话态；回首页时还原 portal 展示态
               if (state.autoFs) lxSetAutoFs(false);
               if (page === "home") document.body.dataset.state = "default";

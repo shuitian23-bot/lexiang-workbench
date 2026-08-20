@@ -1510,6 +1510,15 @@
       return;
     }
 
+    // 会员与服务场景状态编排（p0-member-svc.js）：与主面板 sendChat 同一委托，必须放在远程意图路由
+    // fetch 之前，否则官方 action:edu 等分支会抢跑，本地咨询/办理分流与状态检查永远不会命中
+    // （C-T3 回归）。模块内部会先判断是否命中，命中时自行处理全屏→分屏的导出与揭示，未命中
+    // 时不做任何 DOM/状态变更，原样往下走本函数已有的官方意图路由。
+    if (window.__lxMemberSvc && typeof window.__lxMemberSvc.handleQuery === "function") {
+      const _lxfdMemHandled = await window.__lxMemberSvc.handleQuery(value);
+      if (_lxfdMemHandled) return;
+    }
+
     // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
     // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
     // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
@@ -2228,28 +2237,6 @@
         else if (products.length) window.__lxBridge?.revealProducts?.(products, { title: "AI 推荐", recoId });
       };
       lxfdExitToResultAtomically(commitCapturedResult);
-      // 根首页有多组初始化/全屏守卫在动画窗口内校准页面。用一个有界稳定器守住
-      // 这段竞态：分屏类被撤回或目标卡失去选中时，幂等重放同一稳定 ID；3 秒后自动停止。
-      let stabilizeRuns = 0;
-      const stabilizeCapturedResult = () => {
-        stabilizeRuns += 1;
-        const splitMissing = !document.body.classList.contains("lx-home-split") || document.body.dataset.page === "home";
-        const importedCards = Array.from(document.querySelectorAll(".lx-p0-messages .answer-cta"));
-        const targetCard = importedCards.slice().reverse().find((card) =>
-          (resultId && card.getAttribute("data-lx-result-id") === resultId) ||
-          (boundTabId && card.getAttribute("data-lx-open-tab") === boundTabId) ||
-          (solutionTitle && card.getAttribute("data-specific-solution-cta") === solutionTitle) ||
-          (recoId && card.getAttribute("data-lxfd-reco-id") === recoId) ||
-          (openProduct && card.getAttribute("data-open-product") === openProduct) ||
-          (feature && card.getAttribute("data-lxfd-open-feature") === feature)
-        );
-        if (splitMissing || (targetCard && targetCard.getAttribute("aria-pressed") !== "true")) commitCapturedResult();
-        if (stabilizeRuns >= 25) {
-          window.clearInterval(stabilizeTimer);
-          commitCapturedResult();
-        }
-      };
-      const stabilizeTimer = window.setInterval(stabilizeCapturedResult, reduceMotion ? 1 : 120);
       return;
     }
     // 功能卡片在全屏态与左右分栏态都走同一入口；标签关闭后可重新创建。

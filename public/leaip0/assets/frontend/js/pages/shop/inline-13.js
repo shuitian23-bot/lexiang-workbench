@@ -180,6 +180,8 @@
 
 /* === Product detail controller === */
 (function () {
+  // 线上统一使用 app.js 共享结果页管理器，禁止第二套商品详情标签状态机争抢同一标签栏。
+  if (window.__lxBridge) return;
   var content = document.querySelector(".shell > .content");
   var detail = content && content.querySelector(".product-detail");
   if (!content || !detail || detail.dataset.shopDetailReady) return;
