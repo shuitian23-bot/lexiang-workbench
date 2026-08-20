@@ -544,25 +544,41 @@ if (!window.__lxCreateTypewriter) {
           const isOrderSkin = options.skin === "order";
           const isAddrSkin = options.skin === "address";
           const isLeadSkin = options.skin === "lead";
+          // P0 订单预览/修改商品/确认订单/发票/支付宝扫码支付统一皮肤，独立于旧 lx-order-skin
+          // 结构，样式在 p0-order-flow.css。options.flowVariant 可选窄版（"narrow"）。
+          const isFlowSkin = options.skin === "orderflow";
           const modal = $(".lx-p0-modal", mask);
           const head = $(".lx-p0-modal-head", mask);
           mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
           mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
           mask.classList.toggle("lx-lead-modal-mask", isLeadSkin);
+          mask.classList.toggle("lx-orderflow-modal-mask", isFlowSkin);
           if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : "lx-p0-modal";
-            if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : isFlowSkin ? `lx-p0-modal lxof-skin${options.flowVariant ? " lxof-" + options.flowVariant : ""}` : "lx-p0-modal";
+            if (isOrderSkin || isAddrSkin || isFlowSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
           // 行内样式兜底：CSS 文件屡被并发覆盖丢掉 [hidden] 规则，行内 display 优先级最高盖不掉（订单弹窗双×回归根治）
-          if (head) { head.hidden = isOrderSkin || isAddrSkin; head.style.display = (isOrderSkin || isAddrSkin) ? "none" : ""; }
+          if (head) { head.hidden = isOrderSkin || isAddrSkin || isFlowSkin; head.style.display = (isOrderSkin || isAddrSkin || isFlowSkin) ? "none" : ""; }
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
+          // 每次重新打开都先清掉上一个弹层留下的关闭回调，避免串到不相关的弹层里。
+          // p0-order-flow.js 打开子弹层（修改商品/确认订单/发票/支付）后会显式赋值，
+          // 使「取消/关闭/点遮罩」返回订单预览而不是直接整体退出下单流程。
+          mask._lxOnClose = null;
+          return mask;
         }
 
         function closeModal() {
-          $(".lx-p0-modal-mask")?.classList.remove("show");
+          const mask = $(".lx-p0-modal-mask");
+          if (mask && typeof mask._lxOnClose === "function") {
+            const onClose = mask._lxOnClose;
+            mask._lxOnClose = null;
+            onClose();
+            return;
+          }
+          mask?.classList.remove("show");
           try { lxCloseHistoryButtonState(); } catch (_e) {}
         }
 
@@ -1525,6 +1541,12 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr) {
+          // P0 订单预览弹层接管：5 分组（商品/规格/收货备注客户编码/支付发票/应付金额）+
+          // 修改商品/修改订单/立即支付 3 操作，取代下面这套单商品到手价确认层。
+          // 模块未加载（如脚本被拦截）时保留原弹层兜底，不阻断一键领优惠下单链路。
+          if (window.__lxOrderFlow && typeof window.__lxOrderFlow.openPreviewFromClaim === "function") {
+            return window.__lxOrderFlow.openPreviewFromClaim(item, claimed, discount, finalPrice, addr);
+          }
           const fmt = (value) => {
             const n = Number(value) || 0;
             return n.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
@@ -1902,6 +1924,11 @@ if (!window.__lxCreateTypewriter) {
 function openOrderDetail(orderId) {
   const item = (state.orders || []).find((o) => o.orderId === orderId);
   if (!item) return toast("找不到该订单");
+  // P0 订单详情两页签（订单信息/支付信息）+ 返回订单列表：接管渲染，模块未加载时
+  // 保留下面的旧单页详情兜底，不影响「我的订单」列表点「订单详情」的既有链路。
+  if (window.__lxOrderFlow && typeof window.__lxOrderFlow.renderOrderDetail === "function") {
+    return window.__lxOrderFlow.renderOrderDetail(item);
+  }
   const rawStatus = String(item.status || item.orderStatus || item.logisticsStatus || "备货中");
   const statusText = /待付款/.test(rawStatus)
     ? "待付款"
@@ -9233,6 +9260,9 @@ async function openEduZone() {
             const detailPrimary = event.target.closest(".detail-primary");
             if (detailPrimary) {
               if (detailPrimary.dataset.bizQuote) openLeadPanel("biz_quote");
+              // 「立即购买」接入 P0 自主下单：左侧追加购买 Query + Skill 过程展示，
+              // 右侧打开订单预览弹层；模块未加载时保留原占位提示兜底。
+              else if (window.__lxOrderFlow && typeof window.__lxOrderFlow.buyNow === "function") window.__lxOrderFlow.buyNow(state.currentProduct);
               else lxStartOrderPlaceholder();
             }
             if (event.target.closest("[data-occ-confirm]")) {
@@ -9382,7 +9412,14 @@ async function openEduZone() {
             }
 
             const buySku = event.target.closest("[data-buy-sku]")?.dataset.buySku;
-            if (buySku) buyNow(state.cart.find((item) => item.sku === buySku));
+            if (buySku) {
+              // 购物车单件「立即购买」/ 订单详情「再次购买」都可能命中不在购物车里的
+              // sku（如来自订单），先在购物车找，找不到再兜订单列表里的同款。
+              const buyProduct = state.cart.find((item) => item.sku === buySku) ||
+                (state.orders || []).find((order) => order.sku === buySku) || state.currentProduct;
+              if (window.__lxOrderFlow && typeof window.__lxOrderFlow.buyNow === "function") window.__lxOrderFlow.buyNow(buyProduct);
+              else buyNow(buyProduct);
+            }
 
             const cartToggleSku = event.target.closest("[data-cart-toggle]")?.dataset.cartToggle;
             if (cartToggleSku) {
@@ -9404,7 +9441,10 @@ async function openEduZone() {
             if (event.target.closest("[data-cart-checkout]")) {
               const selected = state.cart.filter((item) => !state.cartSelection || state.cartSelection[item.sku] !== false);
               if (!selected.length) return toast("请先选择要结算的商品");
-              buyNow(selected[0]);
+              // 多件合并结算：全部已勾选商品一起进订单预览商品分组，金额汇总；
+              // 模块未加载时兜底只结算第一件，不阻断旧链路。
+              if (window.__lxOrderFlow && typeof window.__lxOrderFlow.buyFromCart === "function") window.__lxOrderFlow.buyFromCart(selected);
+              else buyNow(selected[0]);
               return;
             }
 
@@ -10307,6 +10347,18 @@ async function openEduZone() {
         };
         // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
         window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
+
+        // P0 订单/购物车/自主下单（p0-order-flow.js）跨文件调用的操作原子桥接扩展。
+        // 放在这里（而不是文件顶部 window.__lxAgentAPI 初始化处）是因为 esc/money/imgUrl/
+        // lxOpenInfoTab/lxUpsertTab/lxRunTab 等都是 const/箭头函数，顶部赋值时它们还处于
+        // 暂时性死区，只有等整个 IIFE 顺序执行到这里（早已越过各自声明行）才能安全引用。
+        Object.assign(window.__lxAgentAPI, {
+          addMessage, toast, esc, money, imgUrl, save, load, updateBadges,
+          normalizeProduct, lxAddresses, lxClaimBenefits,
+          lxOpenInfoTab, lxUpsertTab, lxRunTab, ensureChat, lxEnsureAiBody,
+          renderPageCta, lxSyncAnswerCtaActiveState,
+          openOrderDetail, openOrders, openCart, ensureModal,
+        });
 
         openUploadControls();
         setupSelectionAsk();
