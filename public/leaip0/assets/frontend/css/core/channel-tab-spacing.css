@@ -1,11 +1,4 @@
 /* Four-channel split shell: deterministic tab and first-floor spacing. */
-body[data-page="personal"]:not(.assistant-fullscreen) > .shell > .content,
-body.lx-home-split[data-page="personal"]:not(.assistant-fullscreen) > .shell > .content.lx-shop-content,
-body.lx-home-split[data-page="personal"]:not(.assistant-fullscreen) > .shell > .content.lx-shop-content:has(> .lx-tabbar:not([hidden])) {
-  padding-top: 18px !important;
-  transition: none !important;
-}
-
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content > .lx-tabbar[hidden] {
   display: none !important;
   height: 0 !important;
@@ -24,7 +17,7 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
   min-height: 0 !important;
   height: auto !important;
   margin: 0 !important;
-  padding: 0 18px 0 0 !important;
+  padding: 18px 18px 0 0 !important;
   border: 0 !important;
   background: #fff !important;
   box-shadow: none !important;
@@ -32,13 +25,11 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 }
 
 body[data-page="personal"]:not(.assistant-fullscreen) .content > .device-scene-hall {
-  margin: 0 0 18px !important;
-  transition: none !important;
+  margin: 18px 0 !important;
 }
 
-/* 标签恢复的瞬时 hidden 变化不得推动频道首页首屏。 */
-body[data-page="personal"]:not(.assistant-fullscreen) .content > .lx-tabbar + .device-scene-hall {
-  margin-top: 0 !important;
+body[data-page="personal"]:not(.assistant-fullscreen) .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall {
+  margin: 18px 0 !important;
 }
 
 /* Regenerate is intentionally not exposed in the current answer action set. */

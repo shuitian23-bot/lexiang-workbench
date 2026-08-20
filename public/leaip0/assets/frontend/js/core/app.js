@@ -6484,18 +6484,8 @@ async function openEduZone() {
           bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span>${tab.kind === "site" ? "" : `<button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button>`}</span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
           // 首次只有 1 个真实页面时不显示标签栏；第 2 个页面出现后一次展示
           // 两个真实标签，后续严格一页一标签；关闭回 1 页时只隐藏栏、不删页面。
-          // 会话恢复会连续重建 tabs；中间结果不得让标签栏短暂参与布局。
-          // 先保持隐藏，等本轮恢复稳定后只提交一次最终可见性。
-          bar.hidden = true;
-          bar.setAttribute("aria-hidden", "true");
-          window.clearTimeout(window.__lxTabbarVisibilityTimer);
-          window.__lxTabbarVisibilityTimer = window.setTimeout(() => {
-            const currentTabs = state.tabs || [];
-            const shouldShow = currentTabs.length > 1;
-            bar.hidden = !shouldShow;
-            bar.setAttribute("aria-hidden", shouldShow ? "false" : "true");
-            if (shouldShow) requestAnimationFrame(lxMoveTabInk);
-          }, 120);
+          bar.hidden = tabs.length <= 1;
+          bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
           document.body.classList.add("lx-tab-layout-ready");
           lxSyncAnswerCtaActiveState(tabs.some((tab) => tab.id === state.activeTabId) ? state.activeTabId : "");
