@@ -427,6 +427,18 @@ if (!window.__lxCreateTypewriter) {
           const cards = message.querySelectorAll("[data-lxfd-reco-id]");
           return cards.length ? (cards[cards.length - 1].getAttribute("data-lxfd-reco-id") || "") : "";
         }
+        // 商品简易卡自动展开：3秒后自动打开右侧，除非用户已手动打开(opened)或已主动关闭该批次(closed)
+        window.__lxRecoAutoState = window.__lxRecoAutoState || {};
+        function lxScheduleAutoOpenReco(recoId, openFn) {
+          if (!recoId) { openFn(); return; }
+          window.__lxRecoAutoState[recoId] = { closed: false, opened: false };
+          setTimeout(() => {
+            const st = window.__lxRecoAutoState[recoId];
+            if (!st || st.closed || st.opened) return;
+            st.opened = true;
+            openFn();
+          }, 3000);
+        }
         function lxCreateRecoTab(products, options) {
           const opts = options || {};
           const recoId = opts.recoId || lxStoreRecoPayload(products);
@@ -1057,7 +1069,9 @@ if (!window.__lxCreateTypewriter) {
             const active = (state.tabs || []).find((tab) => tab.id === state.activeTabId && tab.kind === "detail");
             if (active) { active.sku = product.sku; active.label = product.name || active.label; lxRenderTabbar(); }
           } else if (product.sku) {
-            lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku, product: { ...product } });
+            const _detailTabPayload = { id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku, product: { ...product } };
+            if (opts.recoId) _detailTabPayload.recoId = opts.recoId;
+            lxUpsertTab(_detailTabPayload);
             if (detailIsNewTab) detailGenToken = lxBeginTabGeneration((state.tabs || []).find((tab) => tab.id === detailTabId));
           }
           document.querySelector(".content")?.setAttribute("data-view", "detail");
@@ -2874,6 +2888,7 @@ function openOrderDetail(orderId) {
           // `lx-home-split` 只表示当前采用左右结构，并不等于首页。
           // 商城模板同样使用该布局类；若据此判定首页，点击“新建对话”会误跳到
           // 全屏欢迎态，无法在商城右侧页面旁恢复左侧默认助手。
+          window.__lxRecoAutoState = {};
           const _onHome = _logicalPath === "/" || state.page === "home" || !state.page;
           if (_onHome && !document.body.classList.contains("assistant-fullscreen") &&
               typeof window.__lxfdNewFullscreen === "function") {
@@ -3250,15 +3265,19 @@ function openOrderDetail(orderId) {
                 const recoId = lxLatestRecoIdInMessage(ai);
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
-                    lxRevealContent();
-                    openProduct(products[0]);
+                    lxScheduleAutoOpenReco(recoId, () => {
+                      lxRevealContent();
+                      openProduct(products[0], { recoId });
+                    });
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
-                    lxRevealContent();
-                    const recoTab = lxCreateRecoTab(products, { label: "AI 推荐", recoId });
-                    lxUpsertTab(recoTab);
-                    lxRunTab(recoTab);
+                    lxScheduleAutoOpenReco(recoId, () => {
+                      lxRevealContent();
+                      const recoTab = lxCreateRecoTab(products, { label: "AI 推荐", recoId });
+                      lxUpsertTab(recoTab);
+                      lxRunTab(recoTab);
+                    });
                   });
                 }
               },
@@ -3311,15 +3330,19 @@ function openOrderDetail(orderId) {
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
-                    lxRevealContent();
-                    openProduct(products[0]);
+                    lxScheduleAutoOpenReco(recoId, () => {
+                      lxRevealContent();
+                      openProduct(products[0], { recoId });
+                    });
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
-                    lxRevealContent();
-                    const recoTab = lxCreateRecoTab(products, { label: payload.title || "AI 推荐", grouped: payload.grouped, recoId });
-                    lxUpsertTab(recoTab);
-                    lxRunTab(recoTab);
+                    lxScheduleAutoOpenReco(recoId, () => {
+                      lxRevealContent();
+                      const recoTab = lxCreateRecoTab(products, { label: payload.title || "AI 推荐", grouped: payload.grouped, recoId });
+                      lxUpsertTab(recoTab);
+                      lxRunTab(recoTab);
+                    });
                   });
                 }
               },
@@ -7434,6 +7457,11 @@ async function openEduZone() {
             if (state.solutionDetailTabs) delete state.solutionDetailTabs[id];
             lxSpecificSolutionTabCache.delete(id);
           }
+          const _closingRecoTab = (state.tabs || []).find((item) => item.id === id);
+          if (_closingRecoTab && _closingRecoTab.recoId) {
+            window.__lxRecoAutoState = window.__lxRecoAutoState || {};
+            (window.__lxRecoAutoState[_closingRecoTab.recoId] || (window.__lxRecoAutoState[_closingRecoTab.recoId] = {})).closed = true;
+          }
           state.tabs = (state.tabs || []).filter((item) => item.id !== id);
           if (state.activeTabId === id) {
             const next = state.tabs[state.tabs.length - 1] || null;
@@ -9330,7 +9358,12 @@ async function openEduZone() {
               // 官方商品对象优先（避免 fetch 官方 sku 404）；恢复的历史消息里 officialProducts
               // 缓存已空，再兜持久化 recoPayload 里的完整对象（真机反馈：历史里点 CTA 没反应）
               const officialObj = (state.officialProducts || {})[openSku];
-              const payloadObj = officialObj ? null : (lxReadRecoPayload(openEl.getAttribute("data-lxfd-reco-id")) || []).find((p) => p && p.sku === openSku);
+              const _openRecoId = openEl.getAttribute("data-lxfd-reco-id") || "";
+              if (_openRecoId) {
+                window.__lxRecoAutoState = window.__lxRecoAutoState || {};
+                (window.__lxRecoAutoState[_openRecoId] || (window.__lxRecoAutoState[_openRecoId] = {})).opened = true;
+              }
+              const payloadObj = officialObj ? null : (lxReadRecoPayload(_openRecoId) || []).find((p) => p && p.sku === openSku);
               openProduct(officialObj || payloadObj || openSku);
               return;
             }
@@ -9464,6 +9497,10 @@ async function openEduZone() {
               if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) return;
               lxRevealContent();
               const _recoId = _recoCta.getAttribute("data-lxfd-reco-id") || "";
+              if (_recoId) {
+                window.__lxRecoAutoState = window.__lxRecoAutoState || {};
+                (window.__lxRecoAutoState[_recoId] || (window.__lxRecoAutoState[_recoId] = {})).opened = true;
+              }
               const _recoPayload = lxReadRecoPayload(_recoId); // 内存→localStorage 两级（恢复历史后内存已空）
               if (_recoPayload && _recoPayload.length) {
                 const recoTab = lxCreateRecoTab(_recoPayload, { label: "AI 推荐", recoId: _recoId });
