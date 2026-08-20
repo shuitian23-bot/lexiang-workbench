@@ -1,0 +1,285 @@
+/* P0 订单 / 购物车 / 自主下单流程样式。独立文件，不改既有 lx-order-skin / lx-cart-skin /
+   lx-orderdetail-skin 结构，只服务 p0-order-flow.js 生成的新弹层与订单详情两页签。
+   颜色全部引用全站已注册的 --lx-* / --brand-red 等 :root token，不新增第 52 个界面颜色。 */
+
+@keyframes lxofFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lxofPop { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.lx-p0-modal.lxof-skin,
+.lxof-detail {
+  --lxof-ink: var(--lx-text-primary);
+  --lxof-soft: var(--lx-text-secondary);
+  --lxof-muted: var(--lx-text-tertiary);
+  --lxof-border: var(--lx-border);
+  --lxof-border-strong: var(--lx-border-strong);
+  --lxof-tint: var(--lavender-bg);
+  --lxof-tint-2: var(--lx-surface-muted);
+  --lxof-card: var(--lx-surface);
+  --lxof-red: var(--lx-brand-red);
+  --lxof-price: var(--lx-price-red);
+  --lxof-aubergine: var(--lx-aubergine);
+  --lxof-aubergine-2: var(--lx-aubergine-2);
+  --lxof-success-bg: var(--lx-success-bg);
+  --lxof-warn: var(--lx-warning);
+  --lxof-warn-bg: var(--lx-warning-bg);
+}
+
+/* ── 弹层壳（预览 / 修改商品 / 确认订单 / 发票 / 支付） ─────────────────────────── */
+.lx-p0-modal-mask.lx-orderflow-modal-mask {
+  background: rgba(155, 142, 182, .62);
+  animation: lxofFade .16s ease both;
+}
+.lx-p0-modal-mask.lx-orderflow-modal-mask .lx-p0-modal.lxof-skin {
+  position: relative;
+  width: min(640px, calc(100vw - 48px));
+  max-height: min(820px, 88vh);
+  padding: 24px 26px 22px;
+  background: var(--lxof-card);
+  border: 0;
+  border-radius: 20px;
+  overflow: auto;
+  box-shadow: 0 24px 70px rgba(155, 142, 182, .62), 0 4px 14px rgba(50, 29, 57, .08);
+  animation: lxofPop .22s cubic-bezier(.34, 1.4, .4, 1) both;
+}
+.lx-p0-modal-mask.lx-orderflow-modal-mask .lx-p0-modal.lxof-skin.lxof-narrow { width: min(460px, calc(100vw - 48px)); }
+.lx-p0-modal-mask.lx-orderflow-modal-mask .lx-p0-modal-body { padding: 0; overflow: visible; }
+
+.lxof-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--lxof-border);
+}
+.lxof-head h3 {
+  margin: 0;
+  color: var(--lxof-ink);
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lxof-head .lxof-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--lxof-tint);
+  color: var(--lxof-red);
+  font-size: 11px;
+  font-weight: 700;
+}
+.lxof-head .lx-p0-close { position: static; flex: none; }
+
+/* ── 分组通用 ─────────────────────────────────────────────────────────────── */
+.lxof-groups { display: flex; flex-direction: column; gap: 14px; }
+.lxof-group {
+  border: 1px solid var(--lxof-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--lxof-card);
+}
+.lxof-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 10px;
+  color: var(--lxof-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.lxof-group-title .bar { display: none; }
+
+/* 商品分组：不重复展示价格，只展示图/名/数量 */
+.lxof-prod-list { display: flex; flex-direction: column; gap: 10px; }
+.lxof-prod-row { display: flex; align-items: center; gap: 12px; }
+.lxof-prod-row .shot {
+  width: 56px; height: 56px; flex: none; border-radius: 10px; overflow: hidden; background: var(--lxof-tint-2);
+}
+.lxof-prod-row .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lxof-prod-row .mid { flex: 1; min-width: 0; }
+.lxof-prod-row .nm {
+  color: var(--lxof-ink); font-size: 13.5px; font-weight: 700; line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lxof-prod-row .qty { color: var(--lxof-muted); font-size: 12px; margin-top: 2px; }
+.lxof-prod-row .edit {
+  flex: none; height: 28px; padding: 0 12px; border: 1px solid var(--lxof-border-strong); border-radius: 8px;
+  background: var(--lxof-card); color: var(--lxof-aubergine); font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.lxof-prod-row .edit:hover { background: var(--lxof-tint-2); }
+
+/* 系列型号尺寸配置分组：只读规格摘要 */
+.lxof-spec-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.lxof-spec-chip {
+  display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px;
+  background: var(--lxof-tint-2); color: var(--lxof-soft); font-size: 12px; font-weight: 600;
+}
+.lxof-spec-chip b { color: var(--lxof-ink); font-weight: 700; margin-left: 3px; }
+
+/* 收货信息 / 支付发票分组：kv 行 */
+.lxof-kv { display: flex; flex-direction: column; gap: 8px; }
+.lxof-kv-row { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; line-height: 1.6; }
+.lxof-kv-row .k { flex: none; width: 68px; color: var(--lxof-muted); }
+.lxof-kv-row .v { flex: 1; color: var(--lxof-ink); font-weight: 600; word-break: break-all; }
+.lxof-group-foot {
+  display: flex; align-items: center; justify-content: flex-end; margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed var(--lxof-border);
+}
+.lxof-edit-link {
+  height: 26px; padding: 0 12px; border: 1px solid var(--lxof-border-strong); border-radius: 8px;
+  background: var(--lxof-card); color: var(--lxof-aubergine); font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.lxof-edit-link:hover { background: var(--lxof-tint-2); }
+.lxof-invoice-warn { margin-top: 8px; font-size: 11.5px; color: var(--lxof-warn); }
+
+/* 应付金额分组 */
+.lxof-total-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--lxof-soft); padding: 3px 0; }
+.lxof-total-row.minus .v { color: var(--lxof-price); }
+.lxof-total-row.grand { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--lxof-border); }
+.lxof-total-row.grand .k { font-size: 13.5px; font-weight: 800; color: var(--lxof-ink); }
+.lxof-total-row.grand .v { font-size: 20px; font-weight: 800; color: var(--lxof-price); }
+.lxof-total-row .v .cur { font-size: .7em; margin-right: 1px; }
+
+/* 3 主操作 */
+.lxof-actions3 { display: flex; gap: 10px; margin-top: 16px; }
+.lxof-actions3 .lx-p0-btn { flex: 1; min-height: 42px; }
+.lxof-actions3 .lx-p0-btn.primary { flex: 1.3; }
+
+/* ── 修改商品：颜色 / 尺寸 / 配置 chip + 数量步进 ────────────────────────────── */
+.lxof-field-label { margin: 14px 0 8px; color: var(--lxof-ink); font-size: 12.5px; font-weight: 700; }
+.lxof-field-label:first-child { margin-top: 0; }
+.lxof-chipgroup { display: flex; flex-wrap: wrap; gap: 8px; }
+.lxof-chip {
+  min-height: 34px; padding: 0 14px; border: 1px solid var(--lxof-border-strong); border-radius: 9px;
+  background: var(--lxof-card); color: var(--lxof-ink); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.lxof-chip:hover:not(.is-disabled) { border-color: var(--lxof-aubergine); }
+.lxof-chip.is-sel { border-color: var(--lxof-red); background: var(--lxof-tint); color: var(--lxof-red); font-weight: 700; }
+.lxof-chip.is-disabled { color: var(--lxof-muted); background: var(--lxof-tint-2); border-color: var(--lxof-border); cursor: not-allowed; text-decoration: line-through; }
+
+.lxof-qty { display: flex; align-items: center; gap: 0; }
+.lxof-qty-btn {
+  width: 32px; height: 32px; border: 1px solid var(--lxof-border-strong); background: var(--lxof-card);
+  color: var(--lxof-ink); font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1;
+}
+.lxof-qty-btn:first-child { border-radius: 8px 0 0 8px; }
+.lxof-qty-btn:last-child { border-radius: 0 8px 8px 0; }
+.lxof-qty-btn:disabled { color: var(--lxof-muted); cursor: not-allowed; }
+.lxof-qty-val {
+  width: 44px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+  border-top: 1px solid var(--lxof-border-strong); border-bottom: 1px solid var(--lxof-border-strong);
+  color: var(--lxof-ink); font-size: 13px; font-weight: 700;
+}
+.lxof-price-preview { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--lxof-tint-2); display: flex; align-items: center; justify-content: space-between; }
+.lxof-price-preview .k { font-size: 12px; color: var(--lxof-soft); }
+.lxof-price-preview .v { font-size: 16px; font-weight: 800; color: var(--lxof-price); }
+
+/* ── 确认订单（修改订单）：地址表单 / 支付方式卡 / 备注 / 客户编码 / 发票入口 ───── */
+.lxof-form-row { display: flex; gap: 10px; }
+.lxof-form-row .lx-p0-field { flex: 1; }
+.lxof-radiogroup { display: flex; gap: 10px; flex-wrap: wrap; }
+.lxof-radio-card {
+  flex: 1; min-width: 120px; border: 1px solid var(--lxof-border-strong); border-radius: 10px; padding: 10px 12px;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.lxof-radio-card.is-sel { border-color: var(--lxof-red); background: var(--lxof-tint); }
+.lxof-radio-card .t { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--lxof-ink); }
+.lxof-radio-card .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--lxof-border-strong); flex: none; position: relative; }
+.lxof-radio-card.is-sel .dot { border-color: var(--lxof-red); }
+.lxof-radio-card.is-sel .dot::after { content: ""; position: absolute; inset: 2.5px; border-radius: 50%; background: var(--lxof-red); }
+.lxof-pay-sub { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--lxof-border); display: none; }
+.lxof-pay-sub.is-active { display: block; }
+.lxof-pay-sub .lxof-chipgroup { margin-bottom: 8px; }
+.lxof-pay-period { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--lxof-soft); }
+.lxof-pay-period select { height: 30px; border: 1px solid var(--lxof-border-strong); border-radius: 7px; font: inherit; padding: 0 8px; }
+.lxof-invoice-entry {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px;
+  padding: 10px 12px; border-radius: 10px; background: var(--lxof-tint-2);
+}
+.lxof-invoice-entry .sm { font-size: 12px; color: var(--lxof-soft); }
+.lxof-invoice-entry .sm b { color: var(--lxof-ink); }
+
+/* ── 发票弹层 ─────────────────────────────────────────────────────────────── */
+.lxof-inv-type { display: flex; gap: 10px; margin-bottom: 4px; }
+.lxof-inv-error {
+  margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--lxof-warn-bg);
+  color: var(--lxof-warn); font-size: 12px; font-weight: 600; display: none;
+}
+.lxof-inv-error.is-show { display: block; }
+
+/* ── 支付宝 / 对公扫码弹层 ────────────────────────────────────────────────── */
+.lxof-pay-box { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 6px 0 2px; }
+.lxof-pay-qr { width: 168px; height: 168px; border-radius: 14px; background: var(--lxof-tint-2); position: relative; overflow: hidden; }
+.lxof-pay-qr::before {
+  content: ""; position: absolute; inset: 14px;
+  background-image:
+    linear-gradient(90deg, var(--lxof-border-strong) 2px, transparent 2px),
+    linear-gradient(0deg, var(--lxof-border-strong) 2px, transparent 2px);
+  background-size: 18px 18px;
+  opacity: .55;
+}
+.lxof-pay-qr::after {
+  content: ""; position: absolute; left: 14px; top: 14px; width: 32px; height: 32px;
+  border: 4px solid var(--lxof-ink); border-radius: 6px; box-shadow: 112px 0 0 var(--lxof-ink), 0 112px 0 var(--lxof-ink);
+  opacity: .85;
+}
+.lxof-pay-channel { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--lxof-ink); }
+.lxof-pay-meta { margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.lxof-pay-meta .row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--lxof-soft); }
+.lxof-pay-meta .row .v { color: var(--lxof-ink); font-weight: 700; }
+.lxof-pay-meta .row .v.amt { color: var(--lxof-price); font-size: 18px; }
+.lxof-pay-corp {
+  width: 100%; text-align: left; padding: 12px 14px; border-radius: 10px; background: var(--lxof-tint-2);
+  font-size: 12.5px; color: var(--lxof-soft); line-height: 1.8;
+}
+.lxof-pay-corp b { color: var(--lxof-ink); }
+.lxof-pay-confirm { margin-top: 18px; width: 100%; min-height: 44px; }
+
+/* 支付成功态 */
+.lxof-pay-success { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10px 0 4px; }
+.lxof-success-badge {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--lxof-success-bg); display: flex; align-items: center; justify-content: center;
+}
+.lxof-success-badge img,
+.lxof-success-badge .lx-approved-icon,
+.lxof-success-badge .lx-approved-icon-img { width: 28px; height: 28px; filter: brightness(0) invert(1); }
+.lxof-success-title { margin-top: 14px; font-size: 16px; font-weight: 800; color: var(--lxof-ink); }
+.lxof-success-meta { margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.lxof-success-meta .row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--lxof-soft); }
+.lxof-success-meta .row .v { color: var(--lxof-ink); font-weight: 700; }
+.lxof-success-meta .row .v.amt { color: var(--lxof-price); font-size: 18px; }
+.lxof-success-actions { display: flex; gap: 10px; width: 100%; margin-top: 18px; }
+.lxof-success-actions .lx-p0-btn { flex: 1; min-height: 42px; }
+
+/* ── 订单详情：订单信息 / 支付信息 两页签 ─────────────────────────────────────── */
+.lxof-detail-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.lxof-back {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border: 1px solid var(--lxof-border-strong);
+  border-radius: 9px; background: var(--lxof-card); color: var(--lxof-ink); font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.lxof-back:hover { background: var(--lxof-tint-2); }
+.lxof-detail-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 11px; background: var(--lxof-tint-2); width: fit-content; }
+.lxof-detail-tab {
+  min-width: 92px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--lxof-soft);
+  font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.lxof-detail-tab.is-active { background: var(--lxof-card); color: var(--lxof-red); box-shadow: 0 2px 6px rgba(50, 29, 57, .08); }
+.lxof-detail-pane { display: none; }
+.lxof-detail-pane.is-active { display: block; }
+
+/* ── 移动端退化（PC 优先，此处仅保证不劣化） ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .lx-p0-modal-mask.lx-orderflow-modal-mask .lx-p0-modal.lxof-skin { width: 94vw; padding: 18px 16px 16px; }
+  .lxof-actions3 { flex-direction: column; }
+  .lxof-form-row { flex-direction: column; }
+  .lxof-radiogroup { flex-direction: column; }
+  .lxof-success-actions { flex-direction: column; }
+}
