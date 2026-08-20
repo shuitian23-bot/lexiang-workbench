@@ -57,6 +57,10 @@
 
   function snapshotVisibleConversation() {
     try {
+      if (localStorage.getItem("lexiang.newChatEmpty.v1") === "1") {
+        localStorage.removeItem("lexiang.conversation.v1");
+        return;
+      }
       var fullscreenNodes = Array.from(document.querySelectorAll(".lxfd-thread > .lxfd-msg-user, .lxfd-thread > .lxfd-msg-ai"));
       var splitNodes = Array.from(document.querySelectorAll(".chat-state .lx-p0-messages > .lx-p0-message"));
       var fullscreenActive = currentPage() === "home" &&
@@ -162,36 +166,4 @@
     syncActiveState();
     observer.disconnect();
   }).observe(document.documentElement, { childList: true, subtree: true });
-})();
-
-// ── P0 六件套自愈加载器 ────────────────────────────────────────────────
-// index.html 多次被并行会话的旧 buffer 整写，静态 <script> 引用反复丢失
-// （事故：fdfbd41e / 6d777ebc）。p0-root-nav.js 的引用在对方 buffer 里也
-// 存在、始终存活，因此由它在运行时兜底注入六件套：静态标签在则跳过（幂等），
-// 不在则动态补挂。根治静态引用被覆盖抹除这一整类问题。
-(function () {
-  var V = "0.14.66-p0-merge";
-  var MODS = ["p0-product-detail", "p0-order-flow", "p0-member-svc", "p0-store", "p0-solution", "p0-shell"];
-  function base() {
-    var nav = document.querySelector('script[src*="p0-root-nav.js"]');
-    var src = nav ? nav.getAttribute("src") : "../frontend/js/core/p0-root-nav.js";
-    return src.replace(/js\/core\/p0-root-nav\.js.*$/, "");
-  }
-  function inject() {
-    var b = base();
-    MODS.forEach(function (m) {
-      if (!document.querySelector('link[href*="' + m + '.css"]')) {
-        var l = document.createElement("link");
-        l.rel = "stylesheet"; l.href = b + "css/core/" + m + ".css?v=" + V;
-        document.head.appendChild(l);
-      }
-      if (!document.querySelector('script[src*="' + m + '.js"]')) {
-        var s = document.createElement("script");
-        s.src = b + "js/core/" + m + ".js?v=" + V; s.async = false;
-        document.head.appendChild(s);
-      }
-    });
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", inject);
-  else inject();
 })();

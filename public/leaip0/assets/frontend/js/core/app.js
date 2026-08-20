@@ -201,8 +201,6 @@ if (!window.__lxCreateTypewriter) {
         // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
         window.__lxAgentAPI = {
           openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
-          // P0 商详页结构对齐（p0-product-detail.js）复用统一弹窗组件和规格提取，不重造/不产生和参数规格 Tab 不一致的第二套解析
-          openModal, closeModal, getDisplaySpecRows,
           addAiMessage: (html) => addMessage("ai", "", html),
           lxRevealContent, getState: () => state,
           lxResolveRecommendedProduct,
@@ -237,7 +235,7 @@ if (!window.__lxCreateTypewriter) {
           const splitPage = pageByPath[logicalPath] ||
             (["personal", "business", "enterprise", "brand"].includes(state.page) ? state.page : "personal");
           document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-          document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
+          document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering", "lx-root-home");
           document.body.classList.add("lx-home-split", "lxfd-split-entered");
           document.body.dataset.page = splitPage;
           document.body.dataset.state = "chat";
@@ -324,7 +322,13 @@ if (!window.__lxCreateTypewriter) {
                 return;
               }
               if (products && products.length) {
-                const recoId = lxStoreRecoPayload(products);
+                // 全屏历史推荐卡回放时沿用原 recoId，保证卡片与 Tab 仍是一一对应；
+                // 只有首次生成且没有稳定身份时才创建新 ID。
+                const recoId = (opts && opts.recoId) || lxStoreRecoPayload(products);
+                if (opts && opts.recoId) {
+                  window.__lxRecoPayloads = window.__lxRecoPayloads || {};
+                  window.__lxRecoPayloads[recoId] = products;
+                }
                 const recoTab = {
                   id: lxRecoTabId(recoId),
                   kind: "reco",
@@ -362,6 +366,8 @@ if (!window.__lxCreateTypewriter) {
             lxAssertGovernedSplitResultState(tabId);
             return true;
           },
+          // 全屏结果卡专用：既激活现存 Tab，也按稳定 ID 从缓存重建已关闭的结果页。
+          // 避免通过 DOM 二次 click 重新进入多个全局委托分支，引发首页/分屏状态竞争。
           restoreResultTab: function(id) {
             const tabId = String(id || "");
             if (!tabId) return false;
@@ -373,6 +379,8 @@ if (!window.__lxCreateTypewriter) {
               lxAssertGovernedSplitResultState(tabId);
               return true;
             }
+            // 通用注册表优先：五个入口、频道切换、Tab 关闭和全屏收起后，
+            // 都使用创建结果时的同一份 payload 与同一渲染器重建。
             const registered = lxReadResultTab(tabId);
             if (registered) {
               lxUpsertTab(registered, false);
@@ -380,10 +388,32 @@ if (!window.__lxCreateTypewriter) {
               lxAssertGovernedSplitResultState(tabId);
               return true;
             }
+            if (tabId === "info:solution") {
+              openSolutionCenter();
+              return true;
+            }
+            if (tabId.startsWith("info:solution-compare:")) {
+              const cached = lxSolutionCompareTabCache.get(tabId) || state.solutionCompareTabs?.[tabId] || null;
+              if (!cached) return false;
+              const restored = { ...cached };
+              lxUpsertTab(restored);
+              lxRunTab((state.tabs || []).find((item) => item.id === tabId) || restored);
+              lxRemoveUnrequestedSiteTabFromSolutionFlow();
+              lxAssertGovernedSplitResultState(tabId);
+              return true;
+            }
+            if (tabId.startsWith("info:solution-detail:")) {
+              const cached = state.solutionDetailTabs?.[tabId] || lxSpecificSolutionTabCache.get(tabId) || lxClosedSpecificSolutionTabCache.get(tabId) || null;
+              if (!cached) return false;
+              lxUpsertTab({ ...cached }, false);
+              lxActivateTab(tabId);
+              lxAssertGovernedSplitResultState(tabId);
+              return true;
+            }
             return false;
           },
-          // 五个入口的结果卡只走这一个分发器；同时存在旧属性时
-          // 一律以稳定 data-lx-result-id 为准。
+          // 五个入口的结果卡只走这一个分发器。卡片上若同时存在旧的
+          // data-lx-open-tab 和新的 data-lx-result-id，一律以稳定 resultId 为准。
           restoreResultCard: function(card) {
             if (!card) return false;
             const feature = card.getAttribute("data-lxfd-open-feature") || "";
@@ -395,6 +425,7 @@ if (!window.__lxCreateTypewriter) {
                 (card.getAttribute("data-lx-open-tab") ||
                   (feature === "solution" ? "info:solution" :
                     (feature === "documents" ? "documents" : ""))));
+
             if (resultId && window.__lxBridge.restoreResultTab(resultId)) return true;
             if (resultId.startsWith("info:solution-compare:") && lxMigrateLegacySolutionCompareCard(card, resultId)) {
               lxAssertGovernedSplitResultState(resultId);
@@ -452,13 +483,7 @@ if (!window.__lxCreateTypewriter) {
           // lxRunWithRevealMotion，不会像 revealProducts 那样自动把根路径首页切进分屏布局——
           // 桥接完退全屏后背景停留在首页欢迎门户，链卡/下单弹窗虽在DOM里但看不见。这里让
           // lxfd 那边退全屏回调里显式补一次（复用已验证的 lxPrepareRootSplitState，不重造）。
-          prepareRootSplitState: function() { lxPrepareRootSplitState(); },
-          // 生产数据适配器复用同一右侧生成器，避免商品详情另造加载动画。
-          beginResultGeneration: function(tab) {
-            if (document.querySelector(".lx-page-generating")) return null;
-            return lxBeginTabGeneration({ ...(tab || {}), __fresh: true });
-          },
-          endResultGeneration: function(token) { lxEndTabGeneration(token); }
+          prepareRootSplitState: function() { lxPrepareRootSplitState(); }
         };
 
         const $ = (sel, root = document) => root.querySelector(sel);
@@ -499,27 +524,45 @@ if (!window.__lxCreateTypewriter) {
         function lxRecoTabId(recoId) {
           return recoId ? `reco:${recoId}` : `reco:${Date.now()}-${Math.random().toString(36).slice(2)}`;
         }
+        // 所有“对话结果卡 ↔ 右侧页面”共用一份跨频道注册表。以前方案对比
+        // 只存当前页内存，切换频道后只剩卡片 ID，导致右侧空白。新结果类型只要
+        // 经过 lxUpsertTab 就自动持久化，不再按卡片类型打补丁。
         const LX_RESULT_TAB_REGISTRY_KEY = "lexiang.resultTabs.v1";
         const lxResultTabRegistry = new Map();
-        function lxRememberResultTab(tab) {
-          if (!tab || !tab.id || tab.kind === "site") return;
+        function lxSerializableResultTab(tab) {
+          if (!tab || !tab.id || tab.kind === "site") return null;
           try {
-            const snapshot = JSON.parse(JSON.stringify(tab, (key, value) => key === "__fresh" ? undefined : value));
-            lxResultTabRegistry.set(snapshot.id, snapshot);
+            const copy = JSON.parse(JSON.stringify(tab, (key, value) => key === "__fresh" ? undefined : value));
+            return copy && copy.id ? copy : null;
+          } catch (_e) { return null; }
+        }
+        function lxRememberResultTab(tab) {
+          const snapshot = lxSerializableResultTab(tab);
+          if (!snapshot) return;
+          lxResultTabRegistry.set(snapshot.id, snapshot);
+          try {
             const stored = JSON.parse(localStorage.getItem(LX_RESULT_TAB_REGISTRY_KEY) || "[]");
             const rows = Array.isArray(stored) ? stored.filter((row) => row?.id !== snapshot.id) : [];
             rows.push(snapshot);
-            localStorage.setItem(LX_RESULT_TAB_REGISTRY_KEY, JSON.stringify(rows.slice(-20)));
+            const compact = rows.slice(-20).map((row) => {
+              if (typeof row?.html !== "string" || row.html.length <= 240000) return row;
+              return { ...row, html: row.html.slice(0, 240000) };
+            });
+            localStorage.setItem(LX_RESULT_TAB_REGISTRY_KEY, JSON.stringify(compact));
           } catch (_e) {}
         }
         function lxReadResultTab(id) {
           const tabId = String(id || "");
           if (!tabId) return null;
-          if (lxResultTabRegistry.has(tabId)) return { ...lxResultTabRegistry.get(tabId) };
+          const live = lxResultTabRegistry.get(tabId);
+          if (live) return { ...live };
           try {
-            const rows = JSON.parse(localStorage.getItem(LX_RESULT_TAB_REGISTRY_KEY) || "[]");
-            const hit = Array.isArray(rows) ? rows.slice().reverse().find((row) => row?.id === tabId) : null;
-            if (hit) { lxResultTabRegistry.set(tabId, hit); return { ...hit }; }
+            const stored = JSON.parse(localStorage.getItem(LX_RESULT_TAB_REGISTRY_KEY) || "[]");
+            const hit = Array.isArray(stored) ? stored.slice().reverse().find((row) => row?.id === tabId) : null;
+            if (hit) {
+              lxResultTabRegistry.set(tabId, hit);
+              return { ...hit };
+            }
           } catch (_e) {}
           return null;
         }
@@ -527,20 +570,6 @@ if (!window.__lxCreateTypewriter) {
           if (!message || !message.querySelectorAll) return "";
           const cards = message.querySelectorAll("[data-lxfd-reco-id]");
           return cards.length ? (cards[cards.length - 1].getAttribute("data-lxfd-reco-id") || "") : "";
-        }
-        // 商品简易卡自动展开：3秒后自动打开右侧，除非用户已手动打开(opened)或已主动关闭该批次(closed)
-        window.__lxRecoAutoState = window.__lxRecoAutoState || {};
-        function lxScheduleAutoOpenReco(recoId, openFn) {
-          // 正常路径 recoId 现在由调用方在渲染前算好、闭包直传，不应该再走到这个早退分支；
-          // 留作最后兜底，命中即打印告警方便发现"3秒延迟又失效了"的回归。
-          if (!recoId) { console.warn("[lx] lxScheduleAutoOpenReco: recoId 为空，跳过3秒延迟直接展开（可能是回归，请检查调用方是否仍在闭包里传 recoId）"); openFn(); return; }
-          window.__lxRecoAutoState[recoId] = { closed: false, opened: false };
-          setTimeout(() => {
-            const st = window.__lxRecoAutoState[recoId];
-            if (!st || st.closed || st.opened) return;
-            st.opened = true;
-            openFn();
-          }, 3000);
         }
         function lxCreateRecoTab(products, options) {
           const opts = options || {};
@@ -645,47 +674,25 @@ if (!window.__lxCreateTypewriter) {
           const isOrderSkin = options.skin === "order";
           const isAddrSkin = options.skin === "address";
           const isLeadSkin = options.skin === "lead";
-          // P0 订单预览/修改商品/确认订单/发票/支付宝扫码支付统一皮肤，独立于旧 lx-order-skin
-          // 结构，样式在 p0-order-flow.css。options.flowVariant 可选窄版（"narrow"）。
-          const isFlowSkin = options.skin === "orderflow";
           const modal = $(".lx-p0-modal", mask);
           const head = $(".lx-p0-modal-head", mask);
           mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
           mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
           mask.classList.toggle("lx-lead-modal-mask", isLeadSkin);
-          mask.classList.toggle("lx-orderflow-modal-mask", isFlowSkin);
           if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : isFlowSkin ? `lx-p0-modal lxof-skin${options.flowVariant ? " lxof-" + options.flowVariant : ""}` : "lx-p0-modal";
-            if (isOrderSkin || isAddrSkin || isFlowSkin) modal.setAttribute("data-v", "1");
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : "lx-p0-modal";
+            if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
           // 行内样式兜底：CSS 文件屡被并发覆盖丢掉 [hidden] 规则，行内 display 优先级最高盖不掉（订单弹窗双×回归根治）
-          if (head) { head.hidden = isOrderSkin || isAddrSkin || isFlowSkin; head.style.display = (isOrderSkin || isAddrSkin || isFlowSkin) ? "none" : ""; }
+          if (head) { head.hidden = isOrderSkin || isAddrSkin; head.style.display = (isOrderSkin || isAddrSkin) ? "none" : ""; }
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
-          // 每次重新打开都先清掉上一个弹层留下的关闭回调，避免串到不相关的弹层里。
-          // p0-order-flow.js 打开子弹层（修改商品/确认订单/发票/支付）后会显式赋值，
-          // 使「取消/关闭/点遮罩」返回订单预览而不是直接整体退出下单流程。
-          mask._lxOnClose = null;
-          return mask;
         }
 
         function closeModal() {
-          // 登录拦截：登录弹窗被关闭（暂不登录/点遮罩/×）而非登录成功时，清掉待跳转目标，
-          // 避免下次登录成功后误跳到旧场景；登录成功路径已在 login() 里先消费掉 pending，
-          // 这里是幂等兜底（pending 早已为 null 时不会有副作用）。
-          if (document.querySelector("#lxLoginPhone")) {
-            try { window.__lxShell && window.__lxShell.onLoginDismiss && window.__lxShell.onLoginDismiss(); } catch (_e) {}
-          }
-          const mask = $(".lx-p0-modal-mask");
-          if (mask && typeof mask._lxOnClose === "function") {
-            const onClose = mask._lxOnClose;
-            mask._lxOnClose = null;
-            onClose();
-            return;
-          }
-          mask?.classList.remove("show");
+          $(".lx-p0-modal-mask")?.classList.remove("show");
           try { lxCloseHistoryButtonState(); } catch (_e) {}
         }
 
@@ -1157,8 +1164,7 @@ if (!window.__lxCreateTypewriter) {
           setText("[data-detail-review-one]", `${name} 的核心配置清晰，适合结合预算、用途和服务需求继续比较。`);
           setText("[data-detail-review-two]", `用户关注点集中在${category}、做工质感和日常使用稳定性，可继续让联想乐享做同类对比。`);
           setText("[data-detail-review-three]", "购买前可继续查询教育特惠、以旧换新、门店服务和官方售后政策。");
-          // 评价区（评分/分布/标签/评价卡）改由 p0-product-detail.js 监听 lx:product-detail-rendered
-          // 事件、按 SKU 读取独立 mock 数据渲染，不再用这里的通用占位内容（renderProductReviews 已废弃）
+          renderProductReviews(product);
           const specGrid = $("[data-detail-spec-grid]", detailRoot);
           if (specGrid) {
             const rows = getDisplaySpecRows(product);
@@ -1195,9 +1201,7 @@ if (!window.__lxCreateTypewriter) {
             const active = (state.tabs || []).find((tab) => tab.id === state.activeTabId && tab.kind === "detail");
             if (active) { active.sku = product.sku; active.label = product.name || active.label; lxRenderTabbar(); }
           } else if (product.sku) {
-            const _detailTabPayload = { id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku, product: { ...product } };
-            if (opts.recoId) _detailTabPayload.recoId = opts.recoId;
-            lxUpsertTab(_detailTabPayload);
+            lxUpsertTab({ id: `detail:${product.sku}`, kind: "detail", label: product.name || "商品详情", sku: product.sku, product: { ...product } });
             if (detailIsNewTab) detailGenToken = lxBeginTabGeneration((state.tabs || []).find((tab) => tab.id === detailTabId));
           }
           document.querySelector(".content")?.setAttribute("data-view", "detail");
@@ -1227,9 +1231,6 @@ if (!window.__lxCreateTypewriter) {
           loadSpuVariants(product);
           lxEndTabGeneration(detailGenToken);
           lxHintOnDetail(product);
-          // P0 商详页结构对齐：商品标签/核心配置摘要/卖点标签/评价区/服务保障说明弹窗
-          // 交给独立文件 p0-product-detail.js 接管，这里只负责在渲染完成后广播一次
-          try { document.dispatchEvent(new CustomEvent("lx:product-detail-rendered", { detail: { product } })); } catch (_e) {}
         }
 
         // 详情页官方商品编号（取 specs.materialNumber，如 83UE000HCD；无则不展示）
@@ -1648,12 +1649,6 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr) {
-          // P0 订单预览弹层接管：5 分组（商品/规格/收货备注客户编码/支付发票/应付金额）+
-          // 修改商品/修改订单/立即支付 3 操作，取代下面这套单商品到手价确认层。
-          // 模块未加载（如脚本被拦截）时保留原弹层兜底，不阻断一键领优惠下单链路。
-          if (window.__lxOrderFlow && typeof window.__lxOrderFlow.openPreviewFromClaim === "function") {
-            return window.__lxOrderFlow.openPreviewFromClaim(item, claimed, discount, finalPrice, addr);
-          }
           const fmt = (value) => {
             const n = Number(value) || 0;
             return n.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
@@ -1856,7 +1851,6 @@ if (!window.__lxCreateTypewriter) {
           const invoiceText = invoice && invoice.title ? `已设置开票抬头：${esc(invoice.title)}` : "未设置开票信息";
           const statusMeta = (item) => {
             const raw = String(item.status || item.orderStatus || item.state || item.payStatus || item.shippingStatus || "").toLowerCase();
-            if (/已支付|paid/.test(raw)) return { cls: "done", label: "已支付" };
             if (/待付|付款|unpaid|pending_pay|pay/.test(raw)) return { cls: "pay", label: "待付款" };
             if (/待收|收货|配送|发货|ship|delivery|delivering|shipping/.test(raw)) return { cls: "ship", label: "待收货" };
             return { cls: "done", label: "已完成" };
@@ -1915,21 +1909,6 @@ if (!window.__lxCreateTypewriter) {
         }
 
         async function lxOpenCommerceEntry(kind, options = {}) {
-          // 登录拦截保存来源：未登录点购物车/订单入口先弹登录框，登录成功后自动跳回本次目标；
-          // 同一入口（cart/orders 分别计）弹窗展示期间重复点击不再堆叠弹窗。
-          // 注意：Impl 才是真正干活的函数，这里只做门禁——requireLogin 已登录时会同步调用
-          // 一次 run()（即 Impl），若这里再调一次 Impl 就是重复执行；未登录时 run() 会在登录
-          // 成功后才触发。绝不能把 lxOpenCommerceEntry 自身传成 run，否则每次已登录调用都会
-          // 在“门禁通过→调用自己→门禁再次通过→再调用自己”里死循环（曾经真实触发过栈溢出）。
-          if (window.__lxShell && window.__lxShell.requireLogin) {
-            const entryName = kind === "orders" ? "orders" : "cart";
-            const ok = window.__lxShell.requireLogin(entryName, () => lxOpenCommerceEntryImpl(kind, options));
-            if (!ok) return; // 未登录，已弹登录框，等待登录成功后自动重跑
-            return; // 已登录，requireLogin 内部已经同步执行过 Impl 了
-          }
-          return lxOpenCommerceEntryImpl(kind, options);
-        }
-        async function lxOpenCommerceEntryImpl(kind, options = {}) {
           const clearFullscreenState = () => {
             document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
             state.autoFs = false;
@@ -1978,10 +1957,7 @@ if (!window.__lxCreateTypewriter) {
               // 等待结果卡完成布局，确保用户先看到卡片，再看到右侧页面切换。
               await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             }
-            // 购物车/订单页真实内容：此前这里长期只落一段「正在制作中...」占位且从不替换，
-            // openCart()/openOrders() 各自内部已经会 lxOpenInfoTab(kind,...) 写入同一个
-            // tabId（info:cart / info:orders）真实渲染，直接调用即可让入口可用。
-            if (isOrders) openOrders(); else openCart();
+            lxOpenInfoTab(kind, label, '<div class="lx-shop-making" role="status" aria-live="polite"><p class="lx-shop-making-copy">正在制作中...</p></div>');
             const keepCommerceState = () => {
               const hasMessages = !!document.querySelector(".chat-state .lx-p0-messages > *");
               if (hasMessages) document.body.dataset.state = "chat";
@@ -2050,11 +2026,6 @@ if (!window.__lxCreateTypewriter) {
 function openOrderDetail(orderId) {
   const item = (state.orders || []).find((o) => o.orderId === orderId);
   if (!item) return toast("找不到该订单");
-  // P0 订单详情两页签（订单信息/支付信息）+ 返回订单列表：接管渲染，模块未加载时
-  // 保留下面的旧单页详情兜底，不影响「我的订单」列表点「订单详情」的既有链路。
-  if (window.__lxOrderFlow && typeof window.__lxOrderFlow.renderOrderDetail === "function") {
-    return window.__lxOrderFlow.renderOrderDetail(item);
-  }
   const rawStatus = String(item.status || item.orderStatus || item.logisticsStatus || "备货中");
   const statusText = /待付款/.test(rawStatus)
     ? "待付款"
@@ -2153,7 +2124,12 @@ function openOrderDetail(orderId) {
         // 对比统一收口：所有对比（手动清单 / SPU 系列 / AI 触发）都落右侧「对比」标签页，不再弹窗
         function lxUpsertCompareTab(products, label, activate = true) {
           const isCustom = Array.isArray(products) && products.length > 0;
-          // 四个频道的频道首页是可返回的真实右侧页面，方案/商品对比不得移除它。
+          // 方案中心里的引用对比仍属于当前方案任务，不应根据残留的
+          // state.page 自动恢复“个人及家庭”等无关站点标签。
+          const isSolutionFlow = (state.tabs || []).some((tab) =>
+            tab?.id === "info:solution" || String(tab?.id || "").startsWith("info:solution-detail:")
+          );
+          if (isSolutionFlow) state.tabs = (state.tabs || []).filter((tab) => tab.kind !== "site");
           lxUpsertTab({
             id: "compare",
             kind: "compare",
@@ -2261,9 +2237,39 @@ function openOrderDetail(orderId) {
               ${row("客户案例", "cases")}
             </div></div></div>
           </section>`;
-          lxOpenInfoTab(`solution-compare:${compareMeta.index}`, compareMeta.label, html);
-          lxSyncSolutionCompareFloatingCta(true);
+          const compareTab = { id: compareMeta.id, kind: "info", label: compareMeta.label, html };
+          // 对比结果属于历史消息的稳定产物：关闭标签仅关闭当前视图，不能销毁结果。
+          // 左侧“查看方案对比”卡片再次点击时，依靠该快照重建同一标签和内容。
+          state.solutionCompareTabs = state.solutionCompareTabs || {};
+          state.solutionCompareTabs[compareTab.id] = { ...compareTab };
+          lxSolutionCompareTabCache.set(compareTab.id, { ...compareTab });
+          lxUpsertTab(compareTab);
+          lxRunTab(compareTab);
           lxRemoveUnrequestedSiteTabFromSolutionFlow();
+        }
+
+        // v0.14.35 之前已存档的方案对比卡只有 data-lx-open-tab，没有持久化页面快照。
+        // 从该卡所在的同一条 AI 结果中读取已显示的方案名，用正式对比渲染器迁移一次；
+        // 迁移完即进入通用结果注册表，后续换频道/关标签/全屏都不再依赖 DOM。
+        function lxMigrateLegacySolutionCompareCard(card, tabId) {
+          const host = card?.closest?.(".message, .lx-p0-message, .lxfd-msg, article") || card?.parentElement;
+          const text = String(host?.innerText || host?.textContent || "");
+          const names = [...text.matchAll(/「([^」]{2,40}解决方案)」/g)].map((match) => match[1]);
+          const unique = [...new Set(names)].slice(0, 3);
+          if (unique.length < 2) return false;
+          const index = Number(String(tabId || "").split(":").pop()) || 1;
+          lxOpenSolutionCompareTab(unique.map((name, itemIndex) => ({
+            type: "solution",
+            sku: `legacy-solution-${index}-${itemIndex + 1}`,
+            name,
+          })), {
+            signature: unique.slice().sort().join("|"),
+            index,
+            id: `info:solution-compare:${index}`,
+            label: `方案对比${index}`,
+            cardTitle: `查看方案对比${index}`,
+          });
+          return true;
         }
 
         function lxSyncSolutionCompareFloatingCta(show) {
@@ -2430,10 +2436,6 @@ function openOrderDetail(orderId) {
           const data = await response.json().catch(() => ({}));
           if (!response.ok) return toast(data.error || "登录失败");
           state.user = data.user || { phone };
-          // 登录拦截保存来源：必须先于 closeModal() 消费 pending 目标——closeModal() 自己也会
-          // 检测登录框存在并清 pending（用于"暂不登录"关闭场景），先取用避免被那句清空吞掉；
-          // 目标回调本身延后到下一 tick 执行（见 p0-shell.js onLoginSuccess），躲开这句 closeModal()。
-          try { window.__lxShell && window.__lxShell.onLoginSuccess && window.__lxShell.onLoginSuccess(); } catch (_e) {}
           closeModal();
           updateUserArea();
           toast("登录成功");
@@ -2574,13 +2576,10 @@ function openOrderDetail(orderId) {
           if (list) list.scrollTop = list.scrollHeight;
         }
 
-        function renderProductsInMessage(products, precomputedRecoId) {
+        function renderProductsInMessage(products) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
-          // recoId 优先用调用方在生成前已算好、握在闭包里的那份（见 products:/display: handler），
-          // 不再依赖之后从 DOM 读回——打字动画把这段 HTML 缓冲在 _pendingExtras 里，flush 进 DOM
-          // 有延迟，调用方若在 deferRightPanel 回调里才反查 DOM 会读到空串（recoId 时序根治）。
-          const recoId = precomputedRecoId || lxStoreRecoPayload(products);
+          const recoId = lxStoreRecoPayload(products);
           // 单品也带 recoId：官方 sku 在自有库 404，恢复历史后 officialProducts 缓存也空，
           // 点击时优先用持久化 payload 里的完整商品对象兜底（真机反馈：历史里点 CTA 没反应）
           const action = products.length === 1 && first.sku
@@ -2659,6 +2658,8 @@ function openOrderDetail(orderId) {
           });
         }
 
+        // 历史恢复、方案组件和频道脚本可能晚于主应用挂载卡片。无论挂载顺序如何，
+        // 卡片选中态都只能从当前真实结果页注册表派生，不能各脚本自行保留旧高亮。
         let lxResultSelectionSyncQueued = false;
         const lxQueueResultSelectionSync = () => {
           if (lxResultSelectionSyncQueued) return;
@@ -2669,8 +2670,11 @@ function openOrderDetail(orderId) {
             lxSyncAnswerCtaActiveState(activeId);
           });
         };
-        new MutationObserver(lxQueueResultSelectionSync).observe(document.body, {
-          childList: true, subtree: true, attributes: true,
+        const lxResultSelectionObserver = new MutationObserver(lxQueueResultSelectionSync);
+        lxResultSelectionObserver.observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
           attributeFilter: ["aria-pressed", "data-lx-result-id", "data-lx-open-tab"]
         });
         lxQueueResultSelectionSync();
@@ -2744,13 +2748,13 @@ function openOrderDetail(orderId) {
             <button type="button" data-msg-action="copy" aria-label="复制"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3"></rect><rect x="4" y="4" width="12" height="12" rx="3"></rect></svg></button>
             <button type="button" data-msg-action="up" aria-label="有帮助"><svg viewBox="0 0 24 24"><path d="M7 10v10"></path><path d="M11 10l1.2-5.2a2 2 0 0 1 3.7-.5L16 5.5V10h4a2 2 0 0 1 2 2.3l-1 6a2 2 0 0 1-2 1.7H9a2 2 0 0 1-2-2v-8"></path><path d="M3 10h4v10H3z"></path></svg></button>
             <button type="button" data-msg-action="down" aria-label="无帮助"><svg viewBox="0 0 24 24"><path d="M7 14V4"></path><path d="M11 14l1.2 5.2a2 2 0 0 0 3.7.5l.1-1.2V14h4a2 2 0 0 0 2-2.3l-1-6A2 2 0 0 0 19 4H9a2 2 0 0 0-2 2v8"></path><path d="M3 4h4v10H3z"></path></svg></button>
+            <button type="button" data-msg-action="regen" aria-label="重新生成">${window.__lxApprovedIcon("global-refresh")}</button>
           </div>`;
         }
 
         function lxWithAnswerActions(html) {
           const box = document.createElement("div");
           box.innerHTML = lxNormalizeAnswerHtml(html);
-          box.querySelectorAll('[data-msg-action="regen"]').forEach((button) => button.remove());
           if (!box.querySelector(".message-actions")) {
             const actions = document.createElement("div");
             actions.innerHTML = lxActionBarHtml();
@@ -3060,17 +3064,6 @@ function openOrderDetail(orderId) {
         }
 
         function lxOpenHistoryModal() {
-          // 登录拦截保存来源：未登录点「对话记录」先弹登录框，登录成功后自动回到历史记录弹窗。
-          // 同 lxOpenCommerceEntry：门禁与实现拆开，run 绝不能指回 lxOpenHistoryModal 自身，
-          // 否则已登录时 requireLogin 同步调用 run() 会立刻递归死循环。
-          if (window.__lxShell && window.__lxShell.requireLogin) {
-            const ok = window.__lxShell.requireLogin("history", lxOpenHistoryModalImpl);
-            if (!ok) return;
-            return;
-          }
-          return lxOpenHistoryModalImpl();
-        }
-        function lxOpenHistoryModalImpl() {
           lxHistoryModalPage = 1;
           openModal("历史记录", lxHistoryModalHtml());
           const search = document.querySelector(".lx-history-modal .lx-history-search-input");
@@ -3131,6 +3124,10 @@ function openOrderDetail(orderId) {
 
         function resetConversation() {
           lxArchiveCurrentConversation();
+          try {
+            localStorage.setItem("lexiang.newChatEmpty.v1", "1");
+            localStorage.removeItem(LX_CONV_KEY);
+          } catch (_e) {}
           state.localArchiveId = null; // 新对话另起一条稳定id，不再覆盖刚归档的这条
           state.conversationNonce += 1;
           state.convId = null;
@@ -3158,7 +3155,6 @@ function openOrderDetail(orderId) {
           // `lx-home-split` 只表示当前采用左右结构，并不等于首页。
           // 商城模板同样使用该布局类；若据此判定首页，点击“新建对话”会误跳到
           // 全屏欢迎态，无法在商城右侧页面旁恢复左侧默认助手。
-          window.__lxRecoAutoState = {};
           const _onHome = _logicalPath === "/" || state.page === "home" || !state.page;
           if (_onHome && !document.body.classList.contains("assistant-fullscreen") &&
               typeof window.__lxfdNewFullscreen === "function") {
@@ -3219,6 +3215,7 @@ function openOrderDetail(orderId) {
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
+          try { localStorage.removeItem("lexiang.newChatEmpty.v1"); } catch (_e) {}
           // 所有分屏发送入口（输入框、快捷问题、追问按钮、智能体代发）最终都进入 sendChat。
           // 标题必须在这里统一更新，否则只监听 form submit 会漏掉快捷问题。
           if (typeof window.__lxSetConversationQuery === "function") window.__lxSetConversationQuery(text);
@@ -3267,9 +3264,7 @@ function openOrderDetail(orderId) {
           const _refSnap = state.refProduct;
           const _refMsgSnap = state.refMsg;
           setTimeout(() => lxSetRef(null), 100);
-          // 旧版「提到学生认证/教育认证且短句即秒开表单」的兜底已废弃：不区分咨询/办理、不检查登录
-          // 与认证状态就无条件弹窗，违反 MEM-02 状态编排（p0-member-svc.js handleQuery 已完整覆盖
-          // 咨询说明 / 办理按钮 / 状态前置判断，含这里原来想兜的短句变体）。
+          if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
@@ -3354,25 +3349,12 @@ function openOrderDetail(orderId) {
             window.setTimeout(() => openLeadPanel(`project:${projectName}`), 520);
             return;
           }
-          // 会员与服务场景状态编排（独立模块 p0-member-svc.js）：学生/企业/钻石认证咨询与办理分流、
-          // 会员中心关注点聚焦、服务商品推荐 SVC-01。命中则本轮由该模块自行完成回答，不再走后续快路径/官方 SKILL。
-          if (window.__lxMemberSvc && typeof window.__lxMemberSvc.handleQuery === "function") {
-            const _memHandled = await window.__lxMemberSvc.handleQuery(text);
-            if (_memHandled) return;
-          }
-          // 门店查询-导航-预约-权益商品（独立模块 p0-store.js）：默认/自然语言门店查询命中则
-          // 本轮由该模块自行完成 Skill 过程+逐字回答+右侧地图列表，不再走后续快路径。
-          if (window.__lxStore && typeof window.__lxStore.handleQuery === "function") {
-            const _storeHandled = await window.__lxStore.handleQuery(text);
-            if (_storeHandled) return;
-          }
           // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端（正则统一收口 app-intent.js，主面板/全屏共用一份）──
           // 代买 pending 时跳过：避免"选/下单"字样被误判成 buy_current/buy_recommended 抢断，官方推荐流程要走完
           const _localCtrl = !_autoBuy && window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
           if (_localCtrl) {
             if (_localCtrl.op === "open_solution") {
-              if (window.__lxSolution && typeof window.__lxSolution.route === "function") await window.__lxSolution.route(text);
-              else await lxRunUnifiedSolutionAnswer();
+              await lxRunUnifiedSolutionAnswer();
               return;
             }
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
@@ -3423,8 +3405,7 @@ function openOrderDetail(orderId) {
               if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
                 ai.remove(); // 移除 loading 气泡
                 if (_intentResult.op === "open_solution") {
-                  if (window.__lxSolution && typeof window.__lxSolution.route === "function") await window.__lxSolution.route(text);
-                  else await lxRunUnifiedSolutionAnswer();
+                  await lxRunUnifiedSolutionAnswer();
                   return;
                 }
                 const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
@@ -3547,23 +3528,19 @@ function openOrderDetail(orderId) {
                 _turnProdCount = Math.max(_turnProdCount, products.length);
                 _turnProducts = products;
                 revealAi();
-                const recoId = products.length ? lxStoreRecoPayload(products) : "";
-                lxAppendAiHtml(ai, renderProductsInMessage(products, recoId));
+                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                const recoId = lxLatestRecoIdInMessage(ai);
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
-                    lxScheduleAutoOpenReco(recoId, () => {
-                      lxRevealContent();
-                      openProduct(products[0], { recoId });
-                    });
+                    lxRevealContent();
+                    openProduct(products[0]);
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
-                    lxScheduleAutoOpenReco(recoId, () => {
-                      lxRevealContent();
-                      const recoTab = lxCreateRecoTab(products, { label: "AI 推荐", recoId });
-                      lxUpsertTab(recoTab);
-                      lxRunTab(recoTab);
-                    });
+                    lxRevealContent();
+                    const recoTab = lxCreateRecoTab(products, { label: "AI 推荐", recoId });
+                    lxUpsertTab(recoTab);
+                    lxRunTab(recoTab);
                   });
                 }
               },
@@ -3611,24 +3588,20 @@ function openOrderDetail(orderId) {
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
                 }
-                const recoId = products.length ? lxStoreRecoPayload(products) : "";
-                lxAppendAiHtml(ai, renderProductsInMessage(products, recoId));
+                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                const recoId = lxLatestRecoIdInMessage(ai);
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
-                    lxScheduleAutoOpenReco(recoId, () => {
-                      lxRevealContent();
-                      openProduct(products[0], { recoId });
-                    });
+                    lxRevealContent();
+                    openProduct(products[0]);
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
-                    lxScheduleAutoOpenReco(recoId, () => {
-                      lxRevealContent();
-                      const recoTab = lxCreateRecoTab(products, { label: payload.title || "AI 推荐", grouped: payload.grouped, recoId });
-                      lxUpsertTab(recoTab);
-                      lxRunTab(recoTab);
-                    });
+                    lxRevealContent();
+                    const recoTab = lxCreateRecoTab(products, { label: payload.title || "AI 推荐", grouped: payload.grouped, recoId });
+                    lxUpsertTab(recoTab);
+                    lxRunTab(recoTab);
                   });
                 }
               },
@@ -3662,14 +3635,8 @@ function openOrderDetail(orderId) {
                 if (op === 'member') deferRightPanel(() => { lxRevealContent(); openMemberCenter(); }, { title: "查看会员中心", desc: "已为你打开会员权益与资产" });
                 else if (op === 'coupon') deferRightPanel(() => { lxRevealContent(); openCouponCenter(); }, { title: "查看优惠与活动", desc: "已在右侧打开可领取权益" });
                 else if (op === 'solution') {
-                  // 咨询与线索场景补差：不再无条件直接打开全集方案中心，先交给 p0-solution.js
-                  // 的行业/场景 chip 澄清流判断——文本已带行业则跳一级直接问二级场景，否则先问行业。
-                  if (window.__lxSolution && typeof window.__lxSolution.handleAction === "function") {
-                    window.__lxSolution.handleAction(text, ai);
-                  } else {
-                    lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>');
-                    deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
-                  }
+                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>');
+                  deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
                 }
                 else if (op === 'edu') {
                   lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">教育认证</button></div>');
@@ -3983,13 +3950,6 @@ function openOrderDetail(orderId) {
             }
             return ent;
           } catch { return { status: "none" }; }
-        }
-
-        // 学生认证权威回执回流对话（PRD S6）：与企业认证/钻石升级一致，不能只靠 toast
-        function lxAnnounceStuVerified(name) {
-          if (state._stuCongrats) return;
-          state._stuCongrats = true;
-          addMessage("assistant", `好消息：${name ? "「" + name + "」的" : ""}教育身份认证已通过权威回执确认！教育专享价已生效，选购时将自动展示教育优惠。`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="教育专享价有哪些值得买的笔记本">看教育特惠商品</button><button class="lx-p0-btn" type="button" data-quick-ask="我的学生认证权益都有哪些">看认证权益</button></div>`);
         }
 
         // 认证通过的黄金时刻：对话主动播报 + 企业价立即可见（说到做到）
@@ -5075,18 +5035,27 @@ function openOrderDetail(orderId) {
           }).join("");
         }
 
-        async function lxRenderSiteFloors() {
-          const grid = document.querySelector(".product-grid");
-          if (!grid) return;
-          let box = document.querySelector("[data-site-floors]");
+async function lxRenderSiteFloors() {
+  const grid = document.querySelector(".product-grid");
+  if (!grid) return;
+  const page = state.page;
+  if (page === "personal" && document.body?.dataset.personalProductsEnabled !== "true") {
+    grid.hidden = true;
+    const existingBox = document.querySelector("[data-site-floors]");
+    if (existingBox) {
+      existingBox.hidden = true;
+      existingBox.innerHTML = "";
+    }
+    return;
+  }
+  let box = document.querySelector("[data-site-floors]");
           if (!box) {
             box = document.createElement("div");
             box.className = "lx-site-floors";
             box.setAttribute("data-site-floors", "");
             grid.after(box);
           }
-          const page = state.page;
-          if (!["personal", "business", "enterprise"].includes(page)) { grid.hidden = false; box.hidden = true; return; }
+  if (!["personal", "business", "enterprise"].includes(page)) { grid.hidden = false; box.hidden = true; return; }
           const labels = lxGetSiteTabLabels(page);
           if (!labels.includes(state.activeSiteFloorTab)) state.activeSiteFloorTab = "推荐";
           const activeFloorTab = state.activeSiteFloorTab || "推荐";
@@ -5786,7 +5755,6 @@ function openOrderDetail(orderId) {
               setTimeout(() => {
                 if (lxStuState().status === 'verified') {
                   toast('教育认证已通过，教育专享价已生效');
-                  lxAnnounceStuVerified('演示用户');
                   if (state.activeTabId === 'info:edu') openEduZone();
                 }
               }, LX_STU_REVIEW_MS + 500);
@@ -5809,7 +5777,6 @@ function openOrderDetail(orderId) {
               setTimeout(() => {
                 if (lxStuState().status === 'verified') {
                   toast('教育认证已通过，教育专享价已生效');
-                  lxAnnounceStuVerified(nameVal);
                   if (state.activeTabId === 'info:edu') openEduZone();
                 }
               }, LX_STU_REVIEW_MS + 500);
@@ -6075,6 +6042,8 @@ async function openEduZone() {
 
         // 独立于 state.tabs 的方案详情标签缓存。页面切换可重建 state，但未点“×”的标签不能丢失。
         const lxSpecificSolutionTabCache = new Map();
+        // 方案对比页缓存独立于当前标签数组，用户关闭标签后仍允许由历史推荐卡重新打开。
+        const lxSolutionCompareTabCache = new Map();
         // 已被用户关闭的详情页只从标签栏移除，不销毁页面快照。
         // 历史对话里的推荐卡再次点击时，用该快照重新新建同名标签并恢复原内容；
         // 此缓存不参与 lxRenderTabbar 的自动补回，避免用户刚关闭标签就立即重现。
@@ -6171,81 +6140,6 @@ async function openEduZone() {
           }
         }
 
-        // 行业方案元数据与全量目录：从 openSolutionCenter 内联字面量提升至模块作用域，
-        // 供 p0-solution.js（咨询与线索 chip 澄清流）通过 window.__lxAgentAPI 复用同一份数据，
-        // 不重造第二份方案库（内容与下方 openSolutionCenter 引用保持完全一致）。
-        const LX_SOLUTION_META = [
-          ["教育", "智慧教育", "EDU"], ["医疗", "智慧医疗", "MED"], ["政府", "数字政府", "GOV"],
-          ["制造", "智能制造", "MFG"], ["金融", "智慧金融", "FIN"], ["能源", "智慧能源", "ENE"],
-          ["交通", "智慧交通", "TRA"], ["服务", "智能基础设施", "SER"]
-        ];
-        const LX_SOLUTION_CATALOG = {
-          "教育": [
-            ["多擎云桌面解决方案", "普教", "多擎云桌面解决方案：融合四大架构，统一云化管理，提升教学效率。", "多擎云桌面解决方案4.jpg"],
-            ["智慧教室解决方案", "高校", "智慧教室解决方案：打破信息壁垒，助力教育数字化转型。", "智慧教室解决方案.jpg"],
-            ["职教智慧校园解决方案", "职教", "职教智慧校园解决方案：以1+2+3架构打造一体化数智校园，覆盖全场景。", "智慧校园解决方案1.jpg"],
-            ["智慧校园解决方案", "高校", "智慧校园解决方案：构建数字底座，赋能教育治理现代化，实现提质减负。", "智慧校园解决方案2.jpg"],
-            ["高性能计算解决方案", "高校", "高性能计算解决方案：低门槛HPC+AI平台，降低30%-50%成本。", "高性能计算解决方案.jpg"],
-            ["教育存储解决方案", "高校", "教育存储解决方案：面向教学、科研与校园数据，提供稳定可靠的统一存储能力。", "教育存储解决方案.jpg"]
-          ],
-          "医疗": [
-            ["医共体/医联体解决方案", "区卫-智慧区卫", "医共体/医联体解决方案：统一管理协同，推动资源共享与医疗数字化转型。", "医共体/医联体解决方案.jpg"],
-            ["慢病与健康管理解决方案", "医院-服务", "慢病与健康管理解决方案：覆盖多种慢病及肿瘤患者，助力医院高质量发展。", "智慧医院整体解决方案.jpg"],
-            ["多院区/区域医疗中心基础设施解决方案", "医院-智慧管理", "多院区/区域医疗中心基础设施解决方案：统一管理多数据中心，提升运维服务质量。", "多院区/区域医疗中心基础设施解决方案.jpg"],
-            ["医疗数据灾备与管理解决方案", "医院-智慧管理", "医疗数据灾备与管理解决方案：覆盖存储、备份、容灾全流程，提升数据安全与运营效率。", "医疗数据灾备与管理解决方案.jpg"],
-            ["医疗云桌面解决方案", "医院-智慧管理", "医疗云桌面解决方案：集中管理分布式架构，支持多院区扩展。", "医疗云桌面解决方案.jpg"],
-            ["医院云盘解决方案", "医院-智慧服务", "医院云盘解决方案：统一汇聚院内文件与协作数据，兼顾便捷共享和安全管控。", "医院云盘解决方案.jpg"]
-          ],
-          "政府": [
-            ["联想LECP存算一体化平台", "政府官网", "联想LECP存算一体化平台：存算管一体，开放兼容异构设备，节省30%投资，性能提升2倍。", "联想LECP存算一体化平台.jpg"],
-            ["数字政府统一运维方案", "政府官网", "数字政府统一运维方案：四个统一提升工单解决率与满意度，降本增效。", "数字政府统一运维方案.jpg"],
-            ["政务大数据解决方案", "政府官网", "政务大数据解决方案：构建三大中台，打破信息壁垒，实现高效协同。", "政务大数据解决方案.jpg"],
-            ["政务云平台解决方案", "政府官网", "政务云平台解决方案：统一底座与能力平台，打造一站式政务服务平台。", "政务云平台解决方案.jpg"],
-            ["智慧园区综合解决方案", "政府官网", "智慧园区综合解决方案：聚焦四大痛点，提供一站式服务，助力园区可持续发展。", "智慧园区综合解决方案.jpg"],
-            ["政府移动电子政务解决方案", "移动政务", "政府移动电子政务解决方案：连接移动办公与政务应用，提升协同效率和终端安全。", "政府移动电子政务解决方案.jpg"]
-          ],
-          "制造": [
-            ["AI研发平台", "智慧研发", "AI研发平台：一站式MLOps平台，助力制造企业降本增效。", "AI研发平台.jpg"],
-            ["数字化研发平台", "智慧研发", "数字化研发平台：融合仿真与设计，结合多体系，多节点产品，帮助企业提升资源利用率。", "数字化研发平台.jpg"],
-            ["AR数字孪生", "智慧研发", "AR数字孪生：构建工业元宇宙产品体系，助力企业降本增效与智能化转型。", "AR数字孪生.jpg"],
-            ["产线数字化", "智慧生产", "产线数字化：覆盖MES配套、自动化控制、缺陷检测，助力高效数字化转型。", "产线数字化.jpg"],
-            ["Lenovo Edge AI 工业质检解决方案", "智慧生产", "Lenovo Edge AI 工业质检解决方案：小样本终身学习驱动边缘AI质检，提升效率与精度。", "Lenovo Edge AI工业质检解决方案.jpg"],
-            ["制造执行系统", "智慧生产", "制造执行系统：贯通计划、生产、质量与设备数据，提升工厂透明化运营能力。", "制造执行系统.jpg"]
-          ],
-          "金融": [
-            ["金融行业DCM数据中心管理平台", "数字基础设施", "金融行业DCM数据中心管理平台：带内外管理赋能全流程运维，提效降本增安绿色运营。", "金融行业DCM数据中心管理平台.jpg"],
-            ["联想IT设备再生服务", "数字基础设施", "可持续发展解决方案（ESG）IT设备再生服务：覆盖资产回收处置全环节，保障安全合规。", "联想IT设备再生服务.jpg"],
-            ["智能运维解决方案", "智能运维", "智能运维解决方案：全渠道全天候全生命周期数字化运维，助力金融机构高效创新发展 。", "智能运维解决方案.jpg"],
-            ["联想超融合解决方案", "智能运维", "联想超融合解决方案：整合资源一体化管理，提升利用率，支撑金融IT高效灵活升级。", "联想超融合解决方案.jpg"],
-            ["联想魔方客服智能体解决方案", "智能客服", "联想魔方客服智能体解决方案：无缝嵌入客服系统，私有化部署，助力企业客服升级。", "联想魔方客服智能体解决方案.jpg"],
-            ["智能混合云解决方案", "数字基础设施", "智能混合云解决方案：统一纳管多云资源，为金融业务提供弹性、安全的基础设施底座。", "智能混合云解决方案.jpg"]
-          ],
-          "能源": [
-            ["变电站智能巡检解决方案", "电力", "变电站智能巡检解决方案：融合机器人、AI，支持多场景智能巡检，提效降本。", "变电站智能巡检解决方案.jpg"],
-            ["智慧电厂解决方案", "电力", "智慧电厂解决方案：构建统一数据环境，推动电厂智能化运营。", "智慧电厂解决方案.jpg"],
-            ["智慧矿山数字孪生解决方案", "矿产", "智慧矿山数字孪生解决方案：提供建模、XR展示、仿真预测，提升矿山运营效率与安全。", "智慧矿山数字孪生解决方案.jpg"],
-            ["带式输送机工业质检解决方案", "矿产", "带式输送机工业质检解决方案：覆盖异物、跑偏及违规识别，降低模型成本，提升安全性。", "带式输送机工业质检解决方案.jpg"],
-            ["私有云建设及扩容解决方案", "油气", "私有云建设及扩容解决方案：依托Nutanix实现多地多中心统一管理与灵活容灾。", "私有云建设及扩容解决方案.jpg"],
-            ["虚拟电厂解决方案", "电力", "虚拟电厂解决方案：聚合分布式能源与负荷资源，提升调度协同和能源运营效率。", "虚拟电厂解决方案.jpg"]
-          ],
-          "交通": [
-            ["高速ETC HCI解决方案", "高速", "高速ETC HCI解决方案：云边端架构，提升资源利用率与运维效率。", "高速ETC HCI解决方案.jpg"],
-            ["高速云解决方案", "高速", "高速云解决方案：构建“端-边-云-网-智”架构，提升高速运营效率、安全与服务质量。", "高速云解决方案.jpg"],
-            ["轨交云解决方案", "轨交", "轨交云解决方案：提供城轨云与大数据平台，提升运维效率，推动智能化发展。", "轨交云解决方案.jpg"],
-            ["智能运维平台解决方案", "轨交", "智能运维平台解决方案：以边缘感知+智慧认知+人机协同架构，提升城轨智能运维能力。", "智能运维平台解决方案.jpg"],
-            ["机场云平台解决方案", "航空", "机场云平台解决方案：统一管理异构资源，助力智慧民航数字化升级。", "机场云平台解决方案.jpg"],
-            ["轨交智能运营解决方案", "轨交", "轨交智能运营解决方案：融合运营数据和智能分析能力，提升线网协同与服务水平。", "轨交智能运营解决方案.jpg"]
-          ],
-          "服务": [
-            ["非线编解决方案", "媒体", "非线编解决方案：解决超高清制作读写、并发与算力痛点，保障稳定扩展与数据安全。", "非线编解决方案.jpg"],
-            ["联想智能媒资解决方案", "媒体", "联想智能媒资解决方案：解决扩展适配存储风险，支撑媒资全生命周期管理。", "联想智能媒资解决方案.jpg"],
-            ["物流智能分拨中心解决方案", "物流", "物流智能分拨中心解决方案：打造四大智能场景，提升分拣效率与准确率，降低运营成本。", "物流智能分拨中心解决方案.jpg"],
-            ["物流中心云解决方案", "物流", "物流中心云解决方案：整合云计算等技术打通数据壁垒，支撑物流降本增效与数字化升级。", "物流中心云解决方案.jpg"],
-            ["智慧零售连锁门店解决方案", "数字门店", "智慧零售连锁门店解决方案：全链路数字化，助力快速开店与精细化管理。", "智慧零售连锁门店解决方案.jpg"],
-            ["企业出海数字化解决方案", "企业服务", "企业出海数字化解决方案：覆盖全球办公、设备交付与持续服务，支撑业务快速拓展。", "企业出海数字化解决方案.jpg"]
-          ]
-        };
-
         function openSolutionCenter(industry) {
           clearHoverPromptTimer();
           hideHoverPrompts();
@@ -6287,10 +6181,77 @@ async function openEduZone() {
             lxOpenInfoTab("solution", `${industry}解决方案`, html);
             return;
           }
-          // solutionMeta/solutionCatalog 已提升为模块级 LX_SOLUTION_META / LX_SOLUTION_CATALOG（见函数上方），
-          // 这里只做局部别名，内容与原字面量完全一致，避免维护两份数据。
-          const solutionMeta = LX_SOLUTION_META;
-          const solutionCatalog = LX_SOLUTION_CATALOG;
+          const solutionMeta = [
+            ["教育", "智慧教育", "EDU"], ["医疗", "智慧医疗", "MED"], ["政府", "数字政府", "GOV"],
+            ["制造", "智能制造", "MFG"], ["金融", "智慧金融", "FIN"], ["能源", "智慧能源", "ENE"],
+            ["交通", "智慧交通", "TRA"], ["服务", "智能基础设施", "SER"]
+          ];
+          const solutionCatalog = {
+            "教育": [
+              ["多擎云桌面解决方案", "普教", "多擎云桌面解决方案：融合四大架构，统一云化管理，提升教学效率。", "多擎云桌面解决方案4.jpg"],
+              ["智慧教室解决方案", "高校", "智慧教室解决方案：打破信息壁垒，助力教育数字化转型。", "智慧教室解决方案.jpg"],
+              ["职教智慧校园解决方案", "职教", "职教智慧校园解决方案：以1+2+3架构打造一体化数智校园，覆盖全场景。", "智慧校园解决方案1.jpg"],
+              ["智慧校园解决方案", "高校", "智慧校园解决方案：构建数字底座，赋能教育治理现代化，实现提质减负。", "智慧校园解决方案2.jpg"],
+              ["高性能计算解决方案", "高校", "高性能计算解决方案：低门槛HPC+AI平台，降低30%-50%成本。", "高性能计算解决方案.jpg"],
+              ["教育存储解决方案", "高校", "教育存储解决方案：面向教学、科研与校园数据，提供稳定可靠的统一存储能力。", "教育存储解决方案.jpg"]
+            ],
+            "医疗": [
+              ["医共体/医联体解决方案", "区卫-智慧区卫", "医共体/医联体解决方案：统一管理协同，推动资源共享与医疗数字化转型。", "医共体/医联体解决方案.jpg"],
+              ["慢病与健康管理解决方案", "医院-服务", "慢病与健康管理解决方案：覆盖多种慢病及肿瘤患者，助力医院高质量发展。", "智慧医院整体解决方案.jpg"],
+              ["多院区/区域医疗中心基础设施解决方案", "医院-智慧管理", "多院区/区域医疗中心基础设施解决方案：统一管理多数据中心，提升运维服务质量。", "多院区/区域医疗中心基础设施解决方案.jpg"],
+              ["医疗数据灾备与管理解决方案", "医院-智慧管理", "医疗数据灾备与管理解决方案：覆盖存储、备份、容灾全流程，提升数据安全与运营效率。", "医疗数据灾备与管理解决方案.jpg"],
+              ["医疗云桌面解决方案", "医院-智慧管理", "医疗云桌面解决方案：集中管理分布式架构，支持多院区扩展。", "医疗云桌面解决方案.jpg"],
+              ["医院云盘解决方案", "医院-智慧服务", "医院云盘解决方案：统一汇聚院内文件与协作数据，兼顾便捷共享和安全管控。", "医院云盘解决方案.jpg"]
+            ],
+            "政府": [
+              ["联想LECP存算一体化平台", "政府官网", "联想LECP存算一体化平台：存算管一体，开放兼容异构设备，节省30%投资，性能提升2倍。", "联想LECP存算一体化平台.jpg"],
+              ["数字政府统一运维方案", "政府官网", "数字政府统一运维方案：四个统一提升工单解决率与满意度，降本增效。", "数字政府统一运维方案.jpg"],
+              ["政务大数据解决方案", "政府官网", "政务大数据解决方案：构建三大中台，打破信息壁垒，实现高效协同。", "政务大数据解决方案.jpg"],
+              ["政务云平台解决方案", "政府官网", "政务云平台解决方案：统一底座与能力平台，打造一站式政务服务平台。", "政务云平台解决方案.jpg"],
+              ["智慧园区综合解决方案", "政府官网", "智慧园区综合解决方案：聚焦四大痛点，提供一站式服务，助力园区可持续发展。", "智慧园区综合解决方案.jpg"],
+              ["政府移动电子政务解决方案", "移动政务", "政府移动电子政务解决方案：连接移动办公与政务应用，提升协同效率和终端安全。", "政府移动电子政务解决方案.jpg"]
+            ],
+            "制造": [
+              ["AI研发平台", "智慧研发", "AI研发平台：一站式MLOps平台，助力制造企业降本增效。", "AI研发平台.jpg"],
+              ["数字化研发平台", "智慧研发", "数字化研发平台：融合仿真与设计，结合多体系，多节点产品，帮助企业提升资源利用率。", "数字化研发平台.jpg"],
+              ["AR数字孪生", "智慧研发", "AR数字孪生：构建工业元宇宙产品体系，助力企业降本增效与智能化转型。", "AR数字孪生.jpg"],
+              ["产线数字化", "智慧生产", "产线数字化：覆盖MES配套、自动化控制、缺陷检测，助力高效数字化转型。", "产线数字化.jpg"],
+              ["Lenovo Edge AI 工业质检解决方案", "智慧生产", "Lenovo Edge AI 工业质检解决方案：小样本终身学习驱动边缘AI质检，提升效率与精度。", "Lenovo Edge AI工业质检解决方案.jpg"],
+              ["制造执行系统", "智慧生产", "制造执行系统：贯通计划、生产、质量与设备数据，提升工厂透明化运营能力。", "制造执行系统.jpg"]
+            ],
+            "金融": [
+              ["金融行业DCM数据中心管理平台", "数字基础设施", "金融行业DCM数据中心管理平台：带内外管理赋能全流程运维，提效降本增安绿色运营。", "金融行业DCM数据中心管理平台.jpg"],
+              ["联想IT设备再生服务", "数字基础设施", "可持续发展解决方案（ESG）IT设备再生服务：覆盖资产回收处置全环节，保障安全合规。", "联想IT设备再生服务.jpg"],
+              ["智能运维解决方案", "智能运维", "智能运维解决方案：全渠道全天候全生命周期数字化运维，助力金融机构高效创新发展 。", "智能运维解决方案.jpg"],
+              ["联想超融合解决方案", "智能运维", "联想超融合解决方案：整合资源一体化管理，提升利用率，支撑金融IT高效灵活升级。", "联想超融合解决方案.jpg"],
+              ["联想魔方客服智能体解决方案", "智能客服", "联想魔方客服智能体解决方案：无缝嵌入客服系统，私有化部署，助力企业客服升级。", "联想魔方客服智能体解决方案.jpg"],
+              ["智能混合云解决方案", "数字基础设施", "智能混合云解决方案：统一纳管多云资源，为金融业务提供弹性、安全的基础设施底座。", "智能混合云解决方案.jpg"]
+            ],
+            "能源": [
+              ["变电站智能巡检解决方案", "电力", "变电站智能巡检解决方案：融合机器人、AI，支持多场景智能巡检，提效降本。", "变电站智能巡检解决方案.jpg"],
+              ["智慧电厂解决方案", "电力", "智慧电厂解决方案：构建统一数据环境，推动电厂智能化运营。", "智慧电厂解决方案.jpg"],
+              ["智慧矿山数字孪生解决方案", "矿产", "智慧矿山数字孪生解决方案：提供建模、XR展示、仿真预测，提升矿山运营效率与安全。", "智慧矿山数字孪生解决方案.jpg"],
+              ["带式输送机工业质检解决方案", "矿产", "带式输送机工业质检解决方案：覆盖异物、跑偏及违规识别，降低模型成本，提升安全性。", "带式输送机工业质检解决方案.jpg"],
+              ["私有云建设及扩容解决方案", "油气", "私有云建设及扩容解决方案：依托Nutanix实现多地多中心统一管理与灵活容灾。", "私有云建设及扩容解决方案.jpg"],
+              ["虚拟电厂解决方案", "电力", "虚拟电厂解决方案：聚合分布式能源与负荷资源，提升调度协同和能源运营效率。", "虚拟电厂解决方案.jpg"]
+            ],
+            "交通": [
+              ["高速ETC HCI解决方案", "高速", "高速ETC HCI解决方案：云边端架构，提升资源利用率与运维效率。", "高速ETC HCI解决方案.jpg"],
+              ["高速云解决方案", "高速", "高速云解决方案：构建“端-边-云-网-智”架构，提升高速运营效率、安全与服务质量。", "高速云解决方案.jpg"],
+              ["轨交云解决方案", "轨交", "轨交云解决方案：提供城轨云与大数据平台，提升运维效率，推动智能化发展。", "轨交云解决方案.jpg"],
+              ["智能运维平台解决方案", "轨交", "智能运维平台解决方案：以边缘感知+智慧认知+人机协同架构，提升城轨智能运维能力。", "智能运维平台解决方案.jpg"],
+              ["机场云平台解决方案", "航空", "机场云平台解决方案：统一管理异构资源，助力智慧民航数字化升级。", "机场云平台解决方案.jpg"],
+              ["轨交智能运营解决方案", "轨交", "轨交智能运营解决方案：融合运营数据和智能分析能力，提升线网协同与服务水平。", "轨交智能运营解决方案.jpg"]
+            ],
+            "服务": [
+              ["非线编解决方案", "媒体", "非线编解决方案：解决超高清制作读写、并发与算力痛点，保障稳定扩展与数据安全。", "非线编解决方案.jpg"],
+              ["联想智能媒资解决方案", "媒体", "联想智能媒资解决方案：解决扩展适配存储风险，支撑媒资全生命周期管理。", "联想智能媒资解决方案.jpg"],
+              ["物流智能分拨中心解决方案", "物流", "物流智能分拨中心解决方案：打造四大智能场景，提升分拣效率与准确率，降低运营成本。", "物流智能分拨中心解决方案.jpg"],
+              ["物流中心云解决方案", "物流", "物流中心云解决方案：整合云计算等技术打通数据壁垒，支撑物流降本增效与数字化升级。", "物流中心云解决方案.jpg"],
+              ["智慧零售连锁门店解决方案", "数字门店", "智慧零售连锁门店解决方案：全链路数字化，助力快速开店与精细化管理。", "智慧零售连锁门店解决方案.jpg"],
+              ["企业出海数字化解决方案", "企业服务", "企业出海数字化解决方案：覆盖全球办公、设备交付与持续服务，支撑业务快速拓展。", "企业出海数字化解决方案.jpg"]
+            ]
+          };
           const tabs = `<nav class="lx-solution-tabs" aria-label="行业筛选"><button class="active" type="button" data-solution-filter="all" aria-pressed="true">全部行业</button>${solutionMeta.map(([label]) => `<button type="button" data-solution-filter="${esc(label)}" aria-pressed="false">${esc(label)}</button>`).join("")}</nav>`;
           const floors = solutionMeta.map(([label, key, code]) => {
             const items = solutionCatalog[label] || [];
@@ -6321,16 +6282,6 @@ async function openEduZone() {
           lxRenderTabbar();
           lxSyncAnswerCtaActiveState(state.activeTabId);
         }
-
-        // 咨询与线索场景补差（p0-solution.js，chip 澄清流/方案对比维度重排/留资固定文案）跨文件调用桥接。
-        // 只追加新键，不覆盖 window.__lxAgentAPI 已有键；放在这里是因为下面这些函数/常量在此刻均已定义。
-        Object.assign(window.__lxAgentAPI, {
-          addMessage, lxAddInstantAi, lxAppendAiHtml, renderPageCta,
-          lxOpenInfoTab, lxSyncAnswerCtaActiveState, toast, esc,
-          openSolutionCenter, lxOpenSolutionCompareTab, lxSolutionCompareMeta,
-          lxOpenSpecificSolutionDetail, openLeadPanel,
-          solutionMeta: LX_SOLUTION_META, solutionCatalog: LX_SOLUTION_CATALOG, solutionDetail: LX_SOLUTIONS,
-        });
 
         function openProjectCooperationList() {
           const solutionMeta = {
@@ -6387,21 +6338,8 @@ async function openEduZone() {
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
 
         function lxEnsureCurrentSiteTab(activate = true) {
-          const page = lxPageFromPath();
-          if (!LX_SITE_TAB_LABELS[page]) return null;
-          state.tabs = state.tabs || [];
-          const id = `site:${page}`;
-          let tab = state.tabs.find((item) => item?.id === id);
-          if (!tab) {
-            tab = { id, kind: "site", page, label: LX_SITE_TAB_LABELS[page] };
-            state.tabs.unshift(tab);
-          } else {
-            tab.kind = "site";
-            tab.page = page;
-            tab.label = LX_SITE_TAB_LABELS[page];
-          }
-          if (activate) state.activeTabId = id;
-          return tab;
+          // PC 5.0 频道首页是右侧零标签默认视图，不登记为结果页，也不生成占位标签。
+          return null;
         }
 
         function lxEnsureTabbar() {
@@ -6440,8 +6378,6 @@ async function openEduZone() {
         function lxRenderTabbar() {
           const bar = lxEnsureTabbar();
           state.tabs = state.tabs || [];
-          // 四个频道保留一个真实、不可关闭的频道首页。
-          if (lxPageFromPath() !== "home") lxEnsureCurrentSiteTab(false);
           // 根首页永远不是“个人及家庭”频道。首页分屏会复用 personal 商城内容，
           // 但历史会话、旧缓存、商品选择和异步恢复都不得把频道页登记为真实右侧页面。
           // 每次渲染前按真实模板路由净化注册表，彻底移除全部合成频道标签。
@@ -6481,20 +6417,23 @@ async function openEduZone() {
             return true;
           });
           const tabs = state.tabs;
-          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span>${tab.kind === "site" ? "" : `<button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button>`}</span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
+          bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
           // 首次只有 1 个真实页面时不显示标签栏；第 2 个页面出现后一次展示
           // 两个真实标签，后续严格一页一标签；关闭回 1 页时只隐藏栏、不删页面。
           bar.hidden = tabs.length <= 1;
           bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
-          document.body.classList.add("lx-tab-layout-ready");
+          // 页面注册表是选中态唯一真相；零页面时必须清除历史恢复留下的虚假卡片高亮。
           lxSyncAnswerCtaActiveState(tabs.some((tab) => tab.id === state.activeTabId) ? state.activeTabId : "");
           requestAnimationFrame(lxMoveTabInk);
         }
 
         function lxUpsertTab(tab, activate = true) {
           state.tabs = state.tabs || [];
-          if (lxPageFromPath() !== "home") lxEnsureCurrentSiteTab(false);
+          // PC 5.0：右侧注册表只保存真实结果页。商城/频道首页是零标签默认视图，
+          // 不能为了让标签栏常驻而合成 site/home 占位页。第一个真实结果页打开时
+          // 标签栏仍隐藏；创建第二个真实结果页后才同时显示两个标签。
+          state.tabs = state.tabs.filter((item) => item?.kind !== "site" && !String(item?.id || "").startsWith("site:"));
           const idx = state.tabs.findIndex((item) => item.id === tab.id);
           if (idx >= 0) state.tabs[idx] = { ...state.tabs[idx], ...tab };
           else {
@@ -6506,6 +6445,7 @@ async function openEduZone() {
             }
           }
           if (activate) state.activeTabId = tab.id;
+          // 结果页的唯一通用创建入口同时是持久化入口。
           lxRememberResultTab((state.tabs || []).find((item) => item.id === tab.id) || tab);
           if (activate) {
             lxSyncAnswerCtaActiveState(tab.id);
@@ -6550,8 +6490,7 @@ async function openEduZone() {
           overlay.innerHTML = `<div class="lx-page-gen-card lx-page-gen-card--aurora"><div class="lx-page-gen-aurora-field" aria-hidden="true"><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--a"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--b"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--c"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--d"></i><span class="lx-page-gen-aurora-lens"></span></div><div class="lx-page-gen-head"><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div></div></div>`;
           content.appendChild(overlay);
           content.classList.add("is-generating-tab");
-          const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-          const token = { overlay, startedAt: Date.now(), minVisibleMs: reducedMotion ? 180 : 5200, done: false };
+          const token = { overlay, startedAt: Date.now(), minVisibleMs: 5200, done: false };
           requestAnimationFrame(() => overlay.classList.add("is-show"));
           return token;
         }
@@ -7077,7 +7016,7 @@ async function openEduZone() {
           const isSolution = data.type === "solution";
           const solutionCount = state.refProducts.filter(p => p.type === "solution").length;
           if ((isSolution && solutionCount >= 3) || (!isSolution && state.refProducts.length >= 5)) {
-            toast(isSolution ? "最多支持3个解决方案对比哦" : "最多引用 5 个商品哦");
+            toast(isSolution ? "最多引用 3 个方案哦" : "最多引用 5 个商品哦");
             return;
           }
           const item = {
@@ -7674,20 +7613,29 @@ async function openEduZone() {
           window.setTimeout(restoreTabsAfterSwitch, 120);
         }
 
+        // 结果页切换后的唯一结构断言。它只校准状态，不重放点击或业务渲染：
+        // 左右框架、真实页面注册表、活动 Tab 与左侧卡片在同一次提交中保持一致。
         function lxAssertGovernedSplitResultState(activeId) {
           const tabId = String(activeId || state.activeTabId || "");
           document.documentElement.classList.remove("lx-root-lxfd-prepaint", "lx-route-prepaint");
-          document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lx-root-home", "lxfd-entering", "lxfd-exiting", "lxfd-split-returning", "assistant-collapsed");
+          document.body.classList.remove(
+            "assistant-fullscreen", "lx-auto-fs", "lx-root-home", "lxfd-entering",
+            "lxfd-exiting", "lxfd-split-returning", "assistant-collapsed"
+          );
           document.body.classList.add("lx-home-split", "lxfd-split-entered");
           document.body.dataset.state = "chat";
           window.__LXFD_FORCE = false;
           state.autoFs = false;
+          const fullscreenLayer = document.querySelector(".lxfd");
+          if (fullscreenLayer) {
+            fullscreenLayer.style.display = "";
+            fullscreenLayer.style.visibility = "";
+          }
           state.tabs = (state.tabs || []).filter((item, index, rows) => {
             const itemId = String(item?.id || "");
-            const rootSiteTab = lxPageFromPath() === "home" && (item?.kind === "site" || itemId.startsWith("site:"));
-            return itemId && !rootSiteTab && rows.findIndex((row) => String(row?.id || "") === itemId) === index;
+            return itemId && item?.kind !== "site" && !itemId.startsWith("site:") &&
+              rows.findIndex((row) => String(row?.id || "") === itemId) === index;
           });
-          if (lxPageFromPath() !== "home") lxEnsureCurrentSiteTab(false);
           if (tabId && state.tabs.some((item) => item.id === tabId)) state.activeTabId = tabId;
           lxRenderTabbar();
           lxSyncAnswerCtaActiveState(state.activeTabId || "");
@@ -7801,10 +7749,14 @@ async function openEduZone() {
             if (state.solutionDetailTabs) delete state.solutionDetailTabs[id];
             lxSpecificSolutionTabCache.delete(id);
           }
-          const _closingRecoTab = (state.tabs || []).find((item) => item.id === id);
-          if (_closingRecoTab && _closingRecoTab.recoId) {
-            window.__lxRecoAutoState = window.__lxRecoAutoState || {};
-            (window.__lxRecoAutoState[_closingRecoTab.recoId] || (window.__lxRecoAutoState[_closingRecoTab.recoId] = {})).closed = true;
+          if (String(id || "").startsWith("info:solution-compare:")) {
+            const closingTab = (state.tabs || []).find((item) => item.id === id) ||
+              state.solutionCompareTabs?.[id] || lxSolutionCompareTabCache.get(id) || null;
+            if (closingTab) {
+              state.solutionCompareTabs = state.solutionCompareTabs || {};
+              state.solutionCompareTabs[id] = { ...closingTab };
+              lxSolutionCompareTabCache.set(id, { ...closingTab });
+            }
           }
           state.tabs = (state.tabs || []).filter((item) => item.id !== id);
           if (state.activeTabId === id) {
@@ -8811,8 +8763,7 @@ async function openEduZone() {
             ["下一步", "顾问将在 1 个工作日内联系确认方案范围"]
           ];
           const steps = ["校验联系信息", "生成项目合作线索", "同步顾问跟进队列"];
-          // 左侧固定文案（PRD 留资弹窗提交成功态硬性要求，所有留资场景统一这一句，不按 scenario 改写）
-          const html = `<div class="lx-lead-success-card"><div class="lx-lead-success-head"><span>✓</span><div><strong>提交成功</strong><p>已提交项目需求，我们的客户经理会尽快与您联系。</p></div></div><div class="lx-lead-success-steps">${steps.map((step) => `<div class="lx-op-step done"><span class="lx-op-step-ic">✓</span><span>${esc(step)}</span></div>`).join("")}</div><div class="lx-lead-success-rows">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div>`;
+          const html = `<div class="lx-lead-success-card"><div class="lx-lead-success-head"><span>✓</span><div><strong>留资成功</strong><p>项目合作信息已收到，联想乐享已为您生成跟进记录。</p></div></div><div class="lx-lead-success-steps">${steps.map((step) => `<div class="lx-op-step done"><span class="lx-op-step-ic">✓</span><span>${esc(step)}</span></div>`).join("")}</div><div class="lx-lead-success-rows">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div>`;
           chat.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai">${html}</div>`);
           chat.scrollTop = chat.scrollHeight;
         }
@@ -9097,6 +9048,13 @@ async function openEduZone() {
           });
 
           document.addEventListener("click", (event) => {
+            // 全屏结果卡由后注册的 app-lxfd 捕获监听器统一执行“收起 → 分屏 → 恢复目标”。
+            // 本监听器注册更早；若不在入口让行，会先按普通分屏卡执行 lxRevealContent，
+            // 把页面带入既非全屏也非分屏的中间态，并错误激活默认个人频道内容。
+            const fullscreenResultCard = event.target.closest?.(
+              ".lxfd .answer-cta, .lxfd [data-lx-result-id], .lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco], .lxfd [data-lxfd-open-feature], .lxfd [data-lx-open-tab], .lxfd [data-specific-solution-cta]"
+            );
+            if (fullscreenResultCard && (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"))) return;
             const readerButton = event.target.closest?.("[data-reader-action]");
             if (readerButton && !readerButton.disabled) {
               if (readerButton.closest(".lx-document-article")) {
@@ -9254,7 +9212,7 @@ async function openEduZone() {
               if (location.protocol !== "file:" && PATH_BY_PAGE[page]) history.pushState(null, "", PATH_BY_PAGE[page]);
               if (state.page !== page) state.activeSiteFloorTab = "推荐";
               state.page = page;
-              // 频道切换只改变右侧默认内容，不生成合成频道标签。
+              // 频道切换只改变默认右侧内容；禁止把频道身份注册成结果标签。
               // 用户主动切导航：退出自动全屏对话态；回首页时还原 portal 展示态
               if (state.autoFs) lxSetAutoFs(false);
               if (page === "home") document.body.dataset.state = "default";
@@ -9548,7 +9506,7 @@ async function openEduZone() {
               else if (text.includes("企业采购")) sendChat("我要企业批量采购，介绍下企业购的价格和流程");
               else if (text.includes("上门售后")) sendChat("企业设备的上门售后服务怎么约？");
               else if (text.includes("客服")) lxShowServiceCard();
-              else if (text.includes("门店")) { if (window.__lxStore && typeof window.__lxStore.runDefaultQuery === "function") window.__lxStore.runDefaultQuery(); else openStoresPanel(); }
+              else if (text.includes("门店")) openStoresPanel();
               else if (text.includes("会员")) openMemberCenter();
               else if (text.includes("私人订制") || text.includes("定制")) sendChat("我想私人订制一台联想电脑，先按用途给我配置方案");
               else if (text) sendChat(text);
@@ -9570,9 +9528,6 @@ async function openEduZone() {
             const detailPrimary = event.target.closest(".detail-primary");
             if (detailPrimary) {
               if (detailPrimary.dataset.bizQuote) openLeadPanel("biz_quote");
-              // 「立即购买」接入 P0 自主下单：左侧追加购买 Query + Skill 过程展示，
-              // 右侧打开订单预览弹层；模块未加载时保留原占位提示兜底。
-              else if (window.__lxOrderFlow && typeof window.__lxOrderFlow.buyNow === "function") window.__lxOrderFlow.buyNow(state.currentProduct);
               else lxStartOrderPlaceholder();
             }
             if (event.target.closest("[data-occ-confirm]")) {
@@ -9621,16 +9576,11 @@ async function openEduZone() {
             }
 
             const reviewTrack = $("[data-detail-review-grid]");
-            const reviewPrevBtn = event.target.closest("[data-review-prev]");
-            const reviewNextBtn = event.target.closest("[data-review-next]");
-            if ((reviewPrevBtn || reviewNextBtn) && reviewTrack) {
-              // 评价卡横向轮播（含到头置灰）交给 p0-product-detail.js 的 lxProductDetail.handleReviewNav
-              // 统一处理；文件未加载时兜底退回原始整段滚动，不让按钮失灵
-              if (window.__lxProductDetail && typeof window.__lxProductDetail.handleReviewNav === "function") {
-                window.__lxProductDetail.handleReviewNav(reviewNextBtn ? "next" : "prev");
-              } else {
-                reviewTrack.scrollBy({ left: reviewNextBtn ? 320 : -320, behavior: "smooth" });
-              }
+            if (event.target.closest("[data-review-prev]") && reviewTrack) {
+              reviewTrack.scrollBy({ left: -320, behavior: "smooth" });
+            }
+            if (event.target.closest("[data-review-next]") && reviewTrack) {
+              reviewTrack.scrollBy({ left: 320, behavior: "smooth" });
             }
 
             const lxfdCommerce = event.target.closest(".lxfd-actions .lxfd-ic");
@@ -9711,25 +9661,13 @@ async function openEduZone() {
               // 官方商品对象优先（避免 fetch 官方 sku 404）；恢复的历史消息里 officialProducts
               // 缓存已空，再兜持久化 recoPayload 里的完整对象（真机反馈：历史里点 CTA 没反应）
               const officialObj = (state.officialProducts || {})[openSku];
-              const _openRecoId = openEl.getAttribute("data-lxfd-reco-id") || "";
-              if (_openRecoId) {
-                window.__lxRecoAutoState = window.__lxRecoAutoState || {};
-                (window.__lxRecoAutoState[_openRecoId] || (window.__lxRecoAutoState[_openRecoId] = {})).opened = true;
-              }
-              const payloadObj = officialObj ? null : (lxReadRecoPayload(_openRecoId) || []).find((p) => p && p.sku === openSku);
+              const payloadObj = officialObj ? null : (lxReadRecoPayload(openEl.getAttribute("data-lxfd-reco-id")) || []).find((p) => p && p.sku === openSku);
               openProduct(officialObj || payloadObj || openSku);
               return;
             }
 
             const buySku = event.target.closest("[data-buy-sku]")?.dataset.buySku;
-            if (buySku) {
-              // 购物车单件「立即购买」/ 订单详情「再次购买」都可能命中不在购物车里的
-              // sku（如来自订单），先在购物车找，找不到再兜订单列表里的同款。
-              const buyProduct = state.cart.find((item) => item.sku === buySku) ||
-                (state.orders || []).find((order) => order.sku === buySku) || state.currentProduct;
-              if (window.__lxOrderFlow && typeof window.__lxOrderFlow.buyNow === "function") window.__lxOrderFlow.buyNow(buyProduct);
-              else buyNow(buyProduct);
-            }
+            if (buySku) buyNow(state.cart.find((item) => item.sku === buySku));
 
             const cartToggleSku = event.target.closest("[data-cart-toggle]")?.dataset.cartToggle;
             if (cartToggleSku) {
@@ -9751,10 +9689,7 @@ async function openEduZone() {
             if (event.target.closest("[data-cart-checkout]")) {
               const selected = state.cart.filter((item) => !state.cartSelection || state.cartSelection[item.sku] !== false);
               if (!selected.length) return toast("请先选择要结算的商品");
-              // 多件合并结算：全部已勾选商品一起进订单预览商品分组，金额汇总；
-              // 模块未加载时兜底只结算第一件，不阻断旧链路。
-              if (window.__lxOrderFlow && typeof window.__lxOrderFlow.buyFromCart === "function") window.__lxOrderFlow.buyFromCart(selected);
-              else buyNow(selected[0]);
+              buyNow(selected[0]);
               return;
             }
 
@@ -9860,10 +9795,6 @@ async function openEduZone() {
               if (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs")) return;
               lxRevealContent();
               const _recoId = _recoCta.getAttribute("data-lxfd-reco-id") || "";
-              if (_recoId) {
-                window.__lxRecoAutoState = window.__lxRecoAutoState || {};
-                (window.__lxRecoAutoState[_recoId] || (window.__lxRecoAutoState[_recoId] = {})).opened = true;
-              }
               const _recoPayload = lxReadRecoPayload(_recoId); // 内存→localStorage 两级（恢复历史后内存已空）
               if (_recoPayload && _recoPayload.length) {
                 const recoTab = lxCreateRecoTab(_recoPayload, { label: "AI 推荐", recoId: _recoId });
@@ -9942,14 +9873,6 @@ async function openEduZone() {
               }
               return;
             }
-            const _resultCta = event.target.closest("[data-lx-result-id]");
-            if (_resultCta) {
-              event.preventDefault();
-              event.stopPropagation();
-              lxRevealContent();
-              window.__lxBridge.restoreResultCard(_resultCta);
-              return;
-            }
             const _featureCta = event.target.closest("[data-lxfd-open-feature]");
             if (_featureCta) {
               const feature = _featureCta.getAttribute("data-lxfd-open-feature") || "";
@@ -9978,6 +9901,16 @@ async function openEduZone() {
                 return;
               }
             }
+            const _resultCta = event.target.closest("[data-lx-result-id]");
+            if (_resultCta) {
+              event.preventDefault();
+              event.stopPropagation();
+              lxRevealContent();
+              // 稳定 resultId 卡片必须在这里终止，不得再落入旧的
+              // data-lx-open-tab / feature 分支打开无关页或弹错误提示。
+              window.__lxBridge.restoreResultCard(_resultCta);
+              return;
+            }
             const _boundTabCta = event.target.closest("[data-lx-open-tab]");
             if (_boundTabCta) {
               lxRevealContent();
@@ -9989,6 +9922,19 @@ async function openEduZone() {
           lxRunTab(targetTab);
         } else if (targetTabId === "info:edu") {
           openEduZone();
+        } else if (targetTabId.startsWith("info:solution-compare:")) {
+          const cachedCompareTab = lxSolutionCompareTabCache.get(targetTabId) ||
+            state.solutionCompareTabs?.[targetTabId] || null;
+          if (cachedCompareTab) {
+            const restoredTab = { ...cachedCompareTab };
+            lxUpsertTab(restoredTab);
+            lxRunTab((state.tabs || []).find((item) => item.id === targetTabId) || restoredTab);
+            lxRemoveUnrequestedSiteTabFromSolutionFlow();
+          } else if (lxMigrateLegacySolutionCompareCard(_boundTabCta, targetTabId)) {
+            // 旧会话卡片已使用通用渲染器重建并登记。
+          } else {
+            toast("对应的方案对比已关闭，请重新选择方案生成");
+          }
         } else if (targetTabId.startsWith("info:document-insight:") && typeof window.__lxRestoreDocumentInsightTab === "function") {
           window.__lxRestoreDocumentInsightTab(targetTabId);
               } else {
@@ -10040,38 +9986,17 @@ async function openEduZone() {
               const budget = $("#lxLeadBudget")?.value || "";
               const need = $("#lxLeadNeed")?.value.trim() || "";
               const contact = [name, phone, email].filter(Boolean).join(" / ");
-              // 必填校验失败：字段级红字提示，不关弹窗（PRD LEAD-04 异常态）。先清掉上一次的错误标记，
-              // 再对每个缺失字段单独打上 invalid 态 + 行内错误文案，不再只靠一条 toast 笼统提示。
-              const fieldChecks = [
-                ["lxLeadName", name, "请填写姓名"],
-                ["lxLeadEmail", email, "请填写邮箱"],
-                ["lxLeadPhone", phone, "请填写手机号"],
-                ["lxLeadCode", code, "请填写短信验证码"],
-                ["lxLeadCompany", company, "请填写公司名称"],
-                ["lxLeadCity", city, "请填写所在城市"],
-                ["lxLeadJob", job, "请选择职务"],
-                ["lxLeadIndustry", industry, "请选择行业"],
-                ["lxLeadNeed", need, "请填写留言"],
-              ];
-              document.querySelectorAll(".lx-lead-row.lx-field-invalid").forEach((row) => {
-                row.classList.remove("lx-field-invalid");
-                row.querySelector(".lx-lead-field-error")?.remove();
-              });
               const missing = [];
-              fieldChecks.forEach(([id, value, message]) => {
-                if (value) return;
-                missing.push(message.replace(/^请(填写|选择)/, ""));
-                const field = document.getElementById(id);
-                const row = field?.closest(".lx-lead-row");
-                if (!row) return;
-                row.classList.add("lx-field-invalid");
-                row.insertAdjacentHTML("beforeend", `<small class="lx-lead-field-error">${esc(message)}</small>`);
-              });
-              if (missing.length) {
-                toast(`请完善标红字段：${missing.join("、")}`);
-                document.getElementById(fieldChecks.find(([, value]) => !value)?.[0] || "")?.focus();
-                return;
-              }
+              if (!name) missing.push("姓名");
+              if (!email) missing.push("邮箱");
+              if (!phone) missing.push("手机");
+              if (!code) missing.push("验证码");
+              if (!company) missing.push("公司");
+              if (!city) missing.push("城市");
+              if (!job) missing.push("职务");
+              if (!industry) missing.push("行业");
+              if (!need) missing.push("留言");
+              if (missing.length) { toast(`请填写：${missing.join("、")}`); return; }
               closeModal();
               fetch("/api/leads", {
                 method: "POST",
@@ -10081,27 +10006,10 @@ async function openEduZone() {
                   site_type: API_SITE[state.page] || "default",
                   company, contact, need,
                   name, email, phone, city, job, industry, budget,
-                  // 数据来源标记（PRD LEAD-04：留资来源标识统一为"联想乐享/AI 解决方案"）
-                  source: "联想乐享/AI 解决方案",
                   conv_id: state.convId || null
                 })
-              })
-                .then((res) => { if (!res.ok) throw new Error("lead submit failed"); return res.json().catch(() => ({})); })
-                .then(() => {
-                  lxAppendLeadSuccessCard({ name, company, city, job, industry, budget, need });
-                  // 相关方案页留资 CTA 同步变「已提交」：只在收到提交成功回执后才标记，只在当前可见
-                  // 的右侧内容里找，不误伤其它标签页；不在失败分支执行，避免把失败包装成成功。
-                  document.querySelectorAll(".content [data-floor-action='lead']:not([data-lead-done]), .content [data-biz-quote]:not([data-lead-done])").forEach((btn) => {
-                    btn.textContent = "已提交";
-                    btn.setAttribute("data-lead-done", "1");
-                    btn.disabled = true;
-                  });
-                })
-                .catch(() => {
-                  // 提交失败：不能包装成成功（PRD S6）。弹窗已关闭，改在左侧给出重试与热线/在线咨询入口。
-                  lxAddInstantAi("抱歉，本次提交遇到问题，结果待确认。你可以稍后重试，或直接拨打商用产品及方案服务咨询热线 400-813-6161，也可以继续在线咨询。",
-                    '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-project-lead="' + esc(String(state.leadScenario || "").replace(/^project:/, "") || "项目合作") + '">重新提交</button></div>');
-                });
+              }).then(() => toast("信息已提交，顾问会尽快与您联系")).catch(() => {});
+              lxAppendLeadSuccessCard({ name, company, city, job, industry, budget, need });
             }
             const recoCompare = event.target.closest("[data-reco-compare]");
             if (recoCompare) {
@@ -10357,7 +10265,6 @@ async function openEduZone() {
                 setTimeout(() => {
                   if (lxStuState().status === "verified") {
                     toast("学生认证已通过，教育专享价已生效");
-                    lxAnnounceStuVerified(name);
                     if (state.activeTabId === "info:edu") openEduZone();
                   }
                 }, LX_STU_REVIEW_MS + 500);
@@ -10399,8 +10306,6 @@ async function openEduZone() {
         window.openCart = openCart;
         window.openOrders = openOrders;
         window.lxOpenCommerceEntry = lxOpenCommerceEntry;
-        window.openLogin = openLogin; // 登录拦截（p0-shell.js requireLogin）需要能主动弹登录框
-        window.__lxOpenHistoryModal = lxOpenHistoryModal;
         window.openCompare = openCompare;
         window.openMemberCenter = openMemberCenter;
         window.openCouponCenter = openCouponCenter;
@@ -10706,22 +10611,6 @@ async function openEduZone() {
         };
         // 页面操作桥接（全屏 lxfd 收到 control 事件后桥接到主面板执行，如关标签/回首页）
         window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
-
-        // P0 订单/购物车/自主下单（p0-order-flow.js）跨文件调用的操作原子桥接扩展。
-        // 放在这里（而不是文件顶部 window.__lxAgentAPI 初始化处）是因为 esc/money/imgUrl/
-        // lxOpenInfoTab/lxUpsertTab/lxRunTab 等都是 const/箭头函数，顶部赋值时它们还处于
-        // 暂时性死区，只有等整个 IIFE 顺序执行到这里（早已越过各自声明行）才能安全引用。
-        Object.assign(window.__lxAgentAPI, {
-          addMessage, toast, esc, money, imgUrl, save, load, updateBadges,
-          normalizeProduct, lxAddresses, lxClaimBenefits,
-          lxOpenInfoTab, lxUpsertTab, lxRunTab, ensureChat, lxEnsureAiBody,
-          renderPageCta, lxSyncAnswerCtaActiveState,
-          openOrderDetail, openOrders, openCart, ensureModal,
-          // p0-member-svc.js（会员/服务场景状态编排）跨文件桥接扩展：只暴露既有弹窗/状态读写函数，
-          // 不重复实现学生/企业认证表单和会员中心渲染。
-          openEnterpriseAuth, openMemberCenter, openCouponCenter, openLogin,
-          lxEntState, lxSaveEntState, lxStuState,
-        });
 
         openUploadControls();
         setupSelectionAsk();

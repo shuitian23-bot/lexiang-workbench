@@ -7,6 +7,7 @@
 (function (root) {
   "use strict";
   const LX_CONV_KEY = "lexiang.conversation.v1";
+  const LX_NEW_CHAT_EMPTY_KEY = "lexiang.newChatEmpty.v1";
 
   function createConv(deps) {
     const getState = deps.getState;         // () => state（convId 读写）
@@ -19,6 +20,11 @@
     // 立即写（不防抖）——桥接退全屏后可能马上切站，防抖 timer 会被页面卸载吞掉
     function doSave() {
       try {
+        // 新建对话后的欢迎空态必须跨刷新保持；拒绝 pagehide 把旧 DOM 写回来。
+        if (localStorage.getItem(LX_NEW_CHAT_EMPTY_KEY) === "1") {
+          localStorage.removeItem(LX_CONV_KEY);
+          return;
+        }
         const listEl = document.querySelector(".chat-state .lx-p0-messages");
         if (!listEl) return;
         const messages = [];
@@ -63,6 +69,10 @@
 
     function restore() {
       try {
+        if (localStorage.getItem(LX_NEW_CHAT_EMPTY_KEY) === "1") {
+          localStorage.removeItem(LX_CONV_KEY);
+          return;
+        }
         const raw = localStorage.getItem(LX_CONV_KEY);
         if (!raw) return;
         const data = JSON.parse(raw);
