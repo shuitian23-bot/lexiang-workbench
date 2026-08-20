@@ -2744,13 +2744,13 @@ function openOrderDetail(orderId) {
             <button type="button" data-msg-action="copy" aria-label="复制"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3"></rect><rect x="4" y="4" width="12" height="12" rx="3"></rect></svg></button>
             <button type="button" data-msg-action="up" aria-label="有帮助"><svg viewBox="0 0 24 24"><path d="M7 10v10"></path><path d="M11 10l1.2-5.2a2 2 0 0 1 3.7-.5L16 5.5V10h4a2 2 0 0 1 2 2.3l-1 6a2 2 0 0 1-2 1.7H9a2 2 0 0 1-2-2v-8"></path><path d="M3 10h4v10H3z"></path></svg></button>
             <button type="button" data-msg-action="down" aria-label="无帮助"><svg viewBox="0 0 24 24"><path d="M7 14V4"></path><path d="M11 14l1.2 5.2a2 2 0 0 0 3.7.5l.1-1.2V14h4a2 2 0 0 0 2-2.3l-1-6A2 2 0 0 0 19 4H9a2 2 0 0 0-2 2v8"></path><path d="M3 4h4v10H3z"></path></svg></button>
-            <button type="button" data-msg-action="regen" aria-label="重新生成">${window.__lxApprovedIcon("global-refresh")}</button>
           </div>`;
         }
 
         function lxWithAnswerActions(html) {
           const box = document.createElement("div");
           box.innerHTML = lxNormalizeAnswerHtml(html);
+          box.querySelectorAll('[data-msg-action="regen"]').forEach((button) => button.remove());
           if (!box.querySelector(".message-actions")) {
             const actions = document.createElement("div");
             actions.innerHTML = lxActionBarHtml();

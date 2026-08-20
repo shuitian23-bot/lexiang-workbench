@@ -32,3 +32,8 @@ body.lx-tab-layout-ready[data-page="personal"]:not(.assistant-fullscreen) .conte
 body[data-page="personal"]:not(.assistant-fullscreen) .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall {
   margin: 18px 0 !important;
 }
+
+/* Regenerate is intentionally not exposed in the current answer action set. */
+[data-msg-action="regen"] {
+  display: none !important;
+}
