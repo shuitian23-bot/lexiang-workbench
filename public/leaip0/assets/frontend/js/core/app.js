@@ -1751,6 +1751,7 @@ if (!window.__lxCreateTypewriter) {
           const invoiceText = invoice && invoice.title ? `已设置开票抬头：${esc(invoice.title)}` : "未设置开票信息";
           const statusMeta = (item) => {
             const raw = String(item.status || item.orderStatus || item.state || item.payStatus || item.shippingStatus || "").toLowerCase();
+            if (/已支付|paid/.test(raw)) return { cls: "done", label: "已支付" };
             if (/待付|付款|unpaid|pending_pay|pay/.test(raw)) return { cls: "pay", label: "待付款" };
             if (/待收|收货|配送|发货|ship|delivery|delivering|shipping/.test(raw)) return { cls: "ship", label: "待收货" };
             return { cls: "done", label: "已完成" };
