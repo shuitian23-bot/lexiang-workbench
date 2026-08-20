@@ -3749,6 +3749,13 @@ function openOrderDetail(orderId) {
           } catch { return { status: "none" }; }
         }
 
+        // 学生认证权威回执回流对话（PRD S6）：与企业认证/钻石升级一致，不能只靠 toast
+        function lxAnnounceStuVerified(name) {
+          if (state._stuCongrats) return;
+          state._stuCongrats = true;
+          addMessage("assistant", `好消息：${name ? "「" + name + "」的" : ""}教育身份认证已通过权威回执确认！教育专享价已生效，选购时将自动展示教育优惠。`, `<div class="lx-p0-actions" style="margin-top:8px"><button class="lx-p0-btn primary" type="button" data-quick-ask="教育专享价有哪些值得买的笔记本">看教育特惠商品</button><button class="lx-p0-btn" type="button" data-quick-ask="我的学生认证权益都有哪些">看认证权益</button></div>`);
+        }
+
         // 认证通过的黄金时刻：对话主动播报 + 企业价立即可见（说到做到）
         function lxOnEntVerified(ent) {
           if (state._entCongrats) return;
@@ -5543,6 +5550,7 @@ function openOrderDetail(orderId) {
               setTimeout(() => {
                 if (lxStuState().status === 'verified') {
                   toast('教育认证已通过，教育专享价已生效');
+                  lxAnnounceStuVerified('演示用户');
                   if (state.activeTabId === 'info:edu') openEduZone();
                 }
               }, LX_STU_REVIEW_MS + 500);
@@ -5565,6 +5573,7 @@ function openOrderDetail(orderId) {
               setTimeout(() => {
                 if (lxStuState().status === 'verified') {
                   toast('教育认证已通过，教育专享价已生效');
+                  lxAnnounceStuVerified(nameVal);
                   if (state.activeTabId === 'info:edu') openEduZone();
                 }
               }, LX_STU_REVIEW_MS + 500);
@@ -10022,6 +10031,7 @@ async function openEduZone() {
                 setTimeout(() => {
                   if (lxStuState().status === "verified") {
                     toast("学生认证已通过，教育专享价已生效");
+                    lxAnnounceStuVerified(name);
                     if (state.activeTabId === "info:edu") openEduZone();
                   }
                 }, LX_STU_REVIEW_MS + 500);
