@@ -36,10 +36,13 @@
   function extractVersion(specs, text) {
     const source = [pick(specs, ["model", "productModel", "product_model", "型号", "lvl5"]), text].join(" ");
     const match = source.match(/(?:ThinkPad\s*)?([A-Za-z]+\d{1,2}[A-Za-z-]*\s+20\d{2})/i);
-    if (!match) return "当前版本";
-    const parts = clean(match[1]).split(" ");
-    const model = parts[0].replace(/^([a-z]+)/i, (prefix) => prefix.toUpperCase());
-    return `${model} ${parts[1]}`;
+    if (match) {
+      const parts = clean(match[1]).split(" ");
+      const model = parts[0].replace(/^([a-z]+)/i, (prefix) => prefix.toUpperCase());
+      return `${model} ${parts[1]}`;
+    }
+    const aura = source.match(/(?:ThinkPad\s*)?(X9)[-\s]+(14|15)\s+Aura/i);
+    return aura ? `${aura[1].toUpperCase()}-${aura[2]} Aura` : "当前版本";
   }
 
   function extractPart(specs, keys, segments, pattern) {
@@ -63,11 +66,43 @@
     return candidates.sort((a, b) => b.length - a.length)[0] || structured;
   }
 
+  function normalizeCpu(value) {
+    return clean(value)
+      .replace(/(?:英特尔|Intel)[®™]?/gi, "")
+      .replace(/酷睿[®™]?/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function extractMemory(specs, text) {
     const structured = pick(specs, ["memory", "ram", "内存"]);
     if (structured) return structured;
-    const matches = clean(text).match(/\d{1,3}\s*GB(?:\s+\d+\s*MT\/s)?\s*(?:LPDDR5X?|DDR[45])/gi) || [];
+    const matches = clean(text).match(/\d{1,3}\s*G(?:B)?(?:\s+\d+\s*MT\/s)?(?:\s*(?:LPDDR5X?|DDR[45]))?/gi) || [];
     return matches.map(clean).sort((a, b) => b.length - a.length)[0] || "";
+  }
+
+  function normalizeCapacity(value) {
+    const match = clean(value).match(/(\d+(?:\.\d+)?)\s*(TB|T|GB|G)\b/i);
+    if (!match) return clean(value);
+    const amount = String(Number(match[1]));
+    const unit = /^T/i.test(match[2]) ? "TB" : "GB";
+    return `${amount}${unit}`;
+  }
+
+  function normalizeGpu(value) {
+    const source = clean(value)
+      .replace(/(?:英特尔|Intel|NVIDIA)[®™]?/gi, "")
+      .replace(/ARC@/gi, "Arc")
+      .replace(/\bARC\b/gi, "Arc")
+      .replace(/显卡$/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const arc = source.match(/Arc\s*(Xe\d+|\d{3,4}V)/i);
+    if (arc) return `Arc ${arc[1]}`;
+    const rtx = source.match(/((?:RTX|GTX)\s*\d{3,4})(?:\s*(\d{1,2})\s*G(?:B)?)?/i);
+    if (rtx) return `${rtx[1].toUpperCase()}${rtx[2] ? ` ${rtx[2]}GB` : ""}`;
+    if (/集成/.test(source)) return "集成显卡";
+    return source;
   }
 
   function normalizeVariant(variant, index = 0) {
@@ -82,7 +117,12 @@
     const memory = extractMemory(specs, text);
     const disk = extractPart(specs, ["disk", "storage", "硬盘", "存储"], segments, /\d+(?:\.\d+)?\s*(?:TB|T|GB|G).*(?:SSD|固态|NVMe)/i);
     const gpu = extractPart(specs, ["gpu", "graphics", "显卡"], segments, /(?:RTX|GTX|Arc|Radeon|集成显卡|独显)/i);
-    const config = [cpu, memory, disk, gpu].map(clean).filter(Boolean).join(" / ") || `配置 ${String(index + 1).padStart(2, "0")}`;
+    const config = [
+      normalizeCpu(cpu),
+      normalizeCapacity(memory),
+      normalizeCapacity(disk),
+      normalizeGpu(gpu)
+    ].filter(Boolean).join(" / ") || `配置 ${String(index + 1).padStart(2, "0")}`;
     return {
       sku: clean(variant?.sku),
       os,
@@ -159,5 +199,20 @@
     })[0];
   }
 
-  return { normalizeVariant, buildMatrix, applySelection, availability, resolveVariant };
+  function defaultRecord(matrix, preferredSku = "") {
+    const records = matrix?.records || [];
+    const preferred = records.find((record) => record.sku === String(preferredSku || ""));
+    if (preferred) return preferred;
+    const businessRecords = records.filter(isBusinessRecord);
+    const candidates = businessRecords.length ? businessRecords : records;
+    const amount = (record) => {
+      const value = Number(record?.price);
+      return Number.isFinite(value) && value > 0 ? value : Number.POSITIVE_INFINITY;
+    };
+    return candidates.reduce((lowest, record) => (
+      !lowest || amount(record) < amount(lowest) ? record : lowest
+    ), null);
+  }
+
+  return { normalizeVariant, buildMatrix, applySelection, availability, resolveVariant, defaultRecord };
 });

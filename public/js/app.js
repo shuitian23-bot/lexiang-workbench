@@ -1139,13 +1139,11 @@ if (!window.__lxCreateTypewriter) {
           const configAvailability = window.LxSmbConfig.availability(matrix, selection, "config");
           const resolved = window.LxSmbConfig.resolveVariant(matrix, selection, product?.sku);
           const option = (dimension, value, enabled) => `<button class="lx-spu-option${selection[dimension] === value ? " is-active" : ""}" type="button" data-spu-dimension="${dimension}" data-spu-value="${esc(value)}" aria-pressed="${selection[dimension] === value}"${enabled ? "" : " disabled"}>${esc(value)}</button>`;
-          const originalPrice = resolved?.originalPrice > resolved?.price ? `<s>¥${Number(resolved.originalPrice).toLocaleString("zh-CN")}</s>` : "";
           box.innerHTML = `
             <div class="lx-spu-selector">
               <section class="lx-spu-option-group" aria-label="操作系统"><h3>操作系统</h3><div class="lx-spu-option-grid" data-spu-dimension="os">${matrix.options.os.map((value) => option("os", value, osAvailability.get(value))).join("")}</div></section>
               <section class="lx-spu-option-group" aria-label="版本"><h3>版本</h3><div class="lx-spu-option-grid" data-spu-dimension="version">${matrix.options.version.map((value) => option("version", value, versionAvailability.get(value))).join("")}</div></section>
               <section class="lx-spu-option-group" aria-label="配置"><h3>配置</h3><div class="lx-spu-option-grid" data-spu-dimension="config">${matrix.options.config.map((value) => option("config", value, configAvailability.get(value))).join("")}</div></section>
-              <div class="lx-spu-final-price" aria-live="polite"><span>最终价格</span><strong>${resolved ? `${lxEnterprisePriceLabel()}¥${Number(resolved.price).toLocaleString("zh-CN")} ${originalPrice}` : "请选择完整配置"}</strong></div>
               <button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button>
             </div>`;
           lxSyncSmbSpuSelection(resolved);
@@ -1169,12 +1167,14 @@ if (!window.__lxCreateTypewriter) {
               const matrix = window.LxSmbConfig.buildMatrix(variants);
               if (matrix.records.length && matrix.options.os.length && matrix.options.version.length && matrix.options.config.length) {
                 state.spuVariantMatrix = matrix;
-                const current = matrix.records.find((record) => record.sku === String(product.sku));
-                state.spuSelection = current
-                  ? { os: current.os, version: current.version, config: current.config }
-                  : { os: "", version: "", config: "" };
+                const current = window.LxSmbConfig.defaultRecord(matrix, product.sku);
+                state.spuSelection = { os: current.os, version: current.version, config: current.config };
                 lxRenderSmbSpuSelector(product);
                 box.hidden = false;
+                if (current.sku !== String(product.sku)) {
+                  lxSetSmbSpuLoadingState();
+                  openProduct(current.sku, { noTab: true });
+                }
                 return;
               }
               state.spuVariantMatrix = null;
