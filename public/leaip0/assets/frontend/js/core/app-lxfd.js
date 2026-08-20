@@ -665,6 +665,30 @@
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
   }
+  // 结果卡需要从全屏对话直接落到“左对话 + 右结果”。
+  // 这里不走通用退出动画：通用动画会在两帧之间暴露裸商城和
+  // 全屏层/商城混合态。所有布局类、页面态和目标内容在同一个点击任务内提交，
+  // 浏览器下一次绘制只能看到最终左右框架。
+  function lxfdExitToResultAtomically(commitResult) {
+    const hasConversation = !!(thread && thread.children.length && window.__lxBridge);
+    if (hasConversation) lxfdExportToMain();
+    document.body.classList.remove(
+      "assistant-fullscreen", "lx-auto-fs", "lx-root-home", "lxfd-entering",
+      "lxfd-exiting", "lxfd-split-returning"
+    );
+    document.querySelectorAll(".lxfd-motion-panel").forEach((node) => node.remove());
+    try { window.__lxBridge?.exitFullscreen?.(); } catch {}
+    lxfdEnsureRootSplitState();
+    document.body.dataset.state = "chat";
+    if (typeof commitResult === "function") commitResult();
+    lxfdEnsureRootSplitState();
+    lxfdAssertSplitEndState();
+    if (hasConversation && thread) thread.innerHTML = "";
+    requestAnimationFrame(() => {
+      lxfdEnsureRootSplitState();
+      lxfdAssertSplitEndState();
+    });
+  }
   // 退出动画收尾断言：分屏已成形则全屏类必须不在。防御外部"回全屏"钩子在动画窗口内
   // (补分屏类之前的一瞬守卫失效)把全屏类加回来，造成两态共存的混合花屏
   function lxfdAssertSplitEndState() {
@@ -2203,7 +2227,7 @@
         if (feature) lxfdRevealFeature(feature);
         else if (products.length) window.__lxBridge?.revealProducts?.(products, { title: "AI 推荐", recoId });
       };
-      exitFullscreen(commitCapturedResult, { skipGenericFocus: true });
+      lxfdExitToResultAtomically(commitCapturedResult);
       // 根首页有多组初始化/全屏守卫在动画窗口内校准页面。用一个有界稳定器守住
       // 这段竞态：分屏类被撤回或目标卡失去选中时，幂等重放同一稳定 ID；3 秒后自动停止。
       let stabilizeRuns = 0;
