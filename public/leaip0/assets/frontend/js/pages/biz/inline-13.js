@@ -180,6 +180,7 @@
 
 /* === Product detail controller === */
 (function () {
+  if (window.__lxBridge) return;
   var content = document.querySelector(".shell > .content");
   var detail = content && content.querySelector(".product-detail");
   if (!content || !detail || detail.dataset.shopDetailReady) return;

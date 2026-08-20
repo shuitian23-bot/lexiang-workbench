@@ -2230,6 +2230,7 @@
     if (inFullscreen) {
       const commitCapturedResult = () => {
         lxfdEnsureRootSplitState();
+        if (window.__lxBridge?.restoreResultCard?.(btn)) return;
         if (targetTabId && window.__lxBridge?.restoreResultTab?.(targetTabId)) return;
         if (lfxdReplayImportedResultCard({ resultId, boundTabId, solutionTitle, recoId, openProduct, feature })) return;
         if (targetTabId && window.__lxBridge?.activateTab?.(targetTabId)) return;

@@ -382,6 +382,54 @@ if (!window.__lxCreateTypewriter) {
             }
             return false;
           },
+          // 五个入口的结果卡只走这一个分发器；同时存在旧属性时
+          // 一律以稳定 data-lx-result-id 为准。
+          restoreResultCard: function(card) {
+            if (!card) return false;
+            const feature = card.getAttribute("data-lxfd-open-feature") || "";
+            const solutionTitle = card.getAttribute("data-specific-solution-cta") || "";
+            const recoId = card.getAttribute("data-lxfd-reco-id") || "";
+            const productSku = card.getAttribute("data-open-product") || "";
+            const resultId = card.getAttribute("data-lx-result-id") ||
+              (solutionTitle ? `info:solution-detail:${solutionTitle}` :
+                (card.getAttribute("data-lx-open-tab") ||
+                  (feature === "solution" ? "info:solution" :
+                    (feature === "documents" ? "documents" : ""))));
+            if (resultId && window.__lxBridge.restoreResultTab(resultId)) return true;
+            if (resultId.startsWith("info:solution-compare:") && lxMigrateLegacySolutionCompareCard(card, resultId)) {
+              lxAssertGovernedSplitResultState(resultId);
+              return true;
+            }
+            if (resultId.startsWith("info:document-insight:")) {
+              if (typeof window.__lxRestoreDocumentInsightTab !== "function") openDocumentCenter();
+              if (typeof window.__lxRestoreDocumentInsightTab === "function" && window.__lxRestoreDocumentInsightTab(resultId)) {
+                lxAssertGovernedSplitResultState(resultId);
+                return true;
+              }
+            }
+            if (feature === "solution") {
+              openSolutionCenter();
+              lxAssertGovernedSplitResultState("info:solution");
+              return true;
+            }
+            if (feature === "documents") {
+              openDocumentCenter();
+              lxAssertGovernedSplitResultState("documents");
+              return true;
+            }
+            if (productSku) {
+              openProduct(productSku);
+              return true;
+            }
+            if (recoId) {
+              const products = lxReadRecoPayload(recoId);
+              if (products?.length) {
+                window.__lxBridge.revealProducts(products, { title: "AI 推荐", recoId });
+                return true;
+              }
+            }
+            return false;
+          },
           // 退出全屏（带动画）
           exitFullscreen: function() { lxSetAutoFs(false); },
           // 当前是否有右侧 tab
@@ -9880,6 +9928,14 @@ async function openEduZone() {
                 }
                 lxOpenSpecificSolutionDetail(restoredPayload);
               }
+              return;
+            }
+            const _resultCta = event.target.closest("[data-lx-result-id]");
+            if (_resultCta) {
+              event.preventDefault();
+              event.stopPropagation();
+              lxRevealContent();
+              window.__lxBridge.restoreResultCard(_resultCta);
               return;
             }
             const _featureCta = event.target.closest("[data-lxfd-open-feature]");
