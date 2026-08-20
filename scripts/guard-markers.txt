@@ -70,3 +70,8 @@ public/battle-map.html|乐享+ 5.0 人力作战地图|人力作战地图页
 /opt/projects/lexiang-new/public/admin-vue/admin-runtime/workbench-geo.js|geoIsAbortError|GEO2.0-new环境-并发治理
 /opt/projects/lexiang-new/public/admin-vue/admin-runtime/workbench-pages.js|geo-source-top10|GEO2.0-new环境-Top10面板
 public/leaip0/assets/frontend/js/core/app.js|function lxScheduleAutoOpenReco|商品简易卡3秒自动展开
+public/leaip0/index.html|p0-shell.js|P0端侧模块引用(首页)
+public/leaip0/shop-chat/index.html|p0-member-svc.js|P0会员模块引用(个人及家庭)
+public/leaip0/b-chat/index.html|p0-order-flow.js|P0订单模块引用(中小企业)
+public/leaip0/biz-chat/index.html|p0-solution.js|P0方案模块引用(政教大企业)
+public/leaip0/brand/index.html|p0-store.js|P0门店模块引用(品牌)
