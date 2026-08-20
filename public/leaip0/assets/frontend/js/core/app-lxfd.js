@@ -631,6 +631,9 @@
     // 不对称恢复的话对话会藏在隐藏的 lxfd thread 里，用户看到 hero 首页以为对话丢了。
     // 先恢复分屏布局（复用 focusReco 配方）再量收缩动画落点，动画才有真实目标矩形。
     const hasConvo = !!(thread && thread.classList.contains("show") && thread.children.length && window.__lxBridge);
+    // 带回调退出只用于“结果卡打开右侧内容”，即使历史 thread 的 show 标记在恢复时
+    // 暂时缺失，也必须强制回左右框架，不能依赖 hasConvo 这一项视觉标记。
+    const returnToSplit = hasConvo || !!onAfterExit;
     if (hasConvo) {
       lxfdExportToMain();
       try {
@@ -644,13 +647,20 @@
     document.body.classList.add("lxfd-exiting");
     setFullscreen(false);
     try { window.__lxBridge?.exitFullscreen?.(); } catch {}
+    // 全屏类清理/主应用退出钩子都可能重算页面态。必须在它们之后再次落定分屏，
+    // 否则会出现既无 assistant-fullscreen、也无 lx-home-split 的半退出页面。
+    if (returnToSplit) lxfdEnsureRootSplitState();
     document.body.dataset.state = hasConvo ? "chat" : "default";
     if (hasConvo && thread) thread.innerHTML = "";
-    if (onAfterExit) requestAnimationFrame(onAfterExit);
+    if (onAfterExit) requestAnimationFrame(() => {
+      if (returnToSplit) lxfdEnsureRootSplitState();
+      onAfterExit();
+    });
     window.setTimeout(() => document.body.classList.add("lxfd-split-returning"), reduceMotion ? 0 : 320);
     window.setTimeout(() => {
       document.body.classList.remove("lxfd-exiting");
       document.body.classList.remove("lxfd-split-returning");
+      if (returnToSplit) lxfdEnsureRootSplitState();
       lxfdAssertSplitEndState();
       motionLayer?.remove();
     }, reduceMotion ? 0 : 760);
@@ -960,20 +970,37 @@
   // 旧逻辑只处理 URL=/：当目标 Tab 已被关闭或缓存中尚未登记时，卡片会走
   // lxfdRevealFeature 兜底；子频道因没有补分屏类，最终只剩右侧独立页面。
   function lxfdEnsureRootSplitState() {
-    if (!document.body.classList.contains("lx-home-split")) {
-      if (typeof window.__lxBridge?.prepareRootSplitState === "function") {
-        window.__lxBridge.prepareRootSplitState();
-      } else {
+    // 这是“最终态提交”而不是仅缺类时补一次。全屏进入/首页守卫可能在动画窗口内
+    // 写回 lx-root-home 或移除 split；每次调用都重放主应用唯一的分屏归一化函数。
+    if (typeof window.__lxBridge?.prepareRootSplitState === "function") {
+      window.__lxBridge.prepareRootSplitState();
+    } else if (!document.body.classList.contains("lx-home-split")) {
         document.documentElement.classList.remove("lx-root-lxfd-prepaint");
-        document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
+        document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering", "lx-root-home");
         document.body.classList.add("lx-home-split", "lxfd-split-entered");
         document.body.dataset.page = "personal";
         document.body.dataset.state = "chat";
         window.__LXFD_FORCE = false;
         const _lxfdLayer = document.querySelector(".lxfd");
         if (_lxfdLayer) { _lxfdLayer.style.display = ""; _lxfdLayer.style.visibility = ""; }
-      }
     }
+  }
+
+  // 全屏消息会先导回主面板。结果卡收起后优先点击导回的同一张卡，
+  // 让主面板唯一的结果路由器负责 Tab 激活、关闭后重建和内容恢复。
+  function lxfdReplayImportedResultCard(target) {
+    const cards = Array.from(document.querySelectorAll(".lx-p0-messages .answer-cta"));
+    const hit = cards.slice().reverse().find((card) => {
+      if (target.resultId && card.getAttribute("data-lx-result-id") === target.resultId) return true;
+      if (target.boundTabId && card.getAttribute("data-lx-open-tab") === target.boundTabId) return true;
+      if (target.solutionTitle && card.getAttribute("data-specific-solution-cta") === target.solutionTitle) return true;
+      if (target.recoId && card.getAttribute("data-lxfd-reco-id") === target.recoId) return true;
+      if (target.openProduct && card.getAttribute("data-open-product") === target.openProduct) return true;
+      return !!target.feature && card.getAttribute("data-lxfd-open-feature") === target.feature;
+    });
+    if (!hit) return false;
+    hit.click();
+    return true;
   }
 
   function lxfdRevealFeature(feature) {
@@ -2144,24 +2171,61 @@
     submit(LXFD_ACTION_Q[b.textContent.trim()] || b.textContent);
   });
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lxfd .answer-cta, .lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco], .lxfd [data-lxfd-open-feature], .lxfd [data-lx-focus-active], .lxfd [data-lx-open-tab], .lxfd [data-specific-solution-cta]");
+    const btn = e.target.closest(".lxfd .answer-cta, .lxfd [data-lx-result-id], .lxfd [data-lxfd-reveal-products], .lxfd [data-lx-focus-reco], .lxfd [data-lxfd-open-feature], .lxfd [data-lx-focus-active], .lxfd [data-lx-open-tab], .lxfd [data-specific-solution-cta]");
     if (!btn) return;
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
     const feature = btn.getAttribute("data-lxfd-open-feature") || "";
     const boundTabId = btn.getAttribute("data-lx-open-tab") || "";
+    const resultId = btn.getAttribute("data-lx-result-id") || "";
     const solutionTitle = btn.getAttribute("data-specific-solution-cta") || "";
-    const targetTabId = solutionTitle
+    const recoId = btn.getAttribute("data-lxfd-reco-id") || "";
+    const openProduct = btn.getAttribute("data-open-product") || "";
+    const targetTabId = resultId || (solutionTitle
       ? `info:solution-detail:${solutionTitle}`
-      : (boundTabId || (feature === "solution" ? "info:solution" : ""));
+      : (boundTabId || (feature === "solution" ? "info:solution" : "")));
+    const storedProducts = recoId && window.__lxRecoPayloads && Array.isArray(window.__lxRecoPayloads[recoId])
+      ? window.__lxRecoPayloads[recoId]
+      : [];
+    const recoTab = (window.__lxState?.tabs || []).find((item) => item && (item.kind === "reco" || item.id === "reco") && Array.isArray(item.products) && item.products.length);
+    const products = storedProducts.length
+      ? storedProducts
+      : ((chatState.lastProducts && chatState.lastProducts.length) ? chatState.lastProducts : (recoTab?.products || []));
     // 收起前先锁定卡片目标。分屏恢复后精确激活对应标签，不能再由 focusReco 猜测当前页。
     const inFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
     if (inFullscreen) {
-      exitFullscreen(() => {
+      const commitCapturedResult = () => {
+        lxfdEnsureRootSplitState();
+        if (targetTabId && window.__lxBridge?.restoreResultTab?.(targetTabId)) return;
+        if (lfxdReplayImportedResultCard({ resultId, boundTabId, solutionTitle, recoId, openProduct, feature })) return;
         if (targetTabId && window.__lxBridge?.activateTab?.(targetTabId)) return;
         if (feature) lxfdRevealFeature(feature);
-      }, { skipGenericFocus: true });
+        else if (products.length) window.__lxBridge?.revealProducts?.(products, { title: "AI 推荐", recoId });
+      };
+      exitFullscreen(commitCapturedResult, { skipGenericFocus: true });
+      // 根首页有多组初始化/全屏守卫在动画窗口内校准页面。用一个有界稳定器守住
+      // 这段竞态：分屏类被撤回或目标卡失去选中时，幂等重放同一稳定 ID；3 秒后自动停止。
+      let stabilizeRuns = 0;
+      const stabilizeCapturedResult = () => {
+        stabilizeRuns += 1;
+        const splitMissing = !document.body.classList.contains("lx-home-split") || document.body.dataset.page === "home";
+        const importedCards = Array.from(document.querySelectorAll(".lx-p0-messages .answer-cta"));
+        const targetCard = importedCards.slice().reverse().find((card) =>
+          (resultId && card.getAttribute("data-lx-result-id") === resultId) ||
+          (boundTabId && card.getAttribute("data-lx-open-tab") === boundTabId) ||
+          (solutionTitle && card.getAttribute("data-specific-solution-cta") === solutionTitle) ||
+          (recoId && card.getAttribute("data-lxfd-reco-id") === recoId) ||
+          (openProduct && card.getAttribute("data-open-product") === openProduct) ||
+          (feature && card.getAttribute("data-lxfd-open-feature") === feature)
+        );
+        if (splitMissing || (targetCard && targetCard.getAttribute("aria-pressed") !== "true")) commitCapturedResult();
+        if (stabilizeRuns >= 25) {
+          window.clearInterval(stabilizeTimer);
+          commitCapturedResult();
+        }
+      };
+      const stabilizeTimer = window.setInterval(stabilizeCapturedResult, reduceMotion ? 1 : 120);
       return;
     }
     // 功能卡片在全屏态与左右分栏态都走同一入口；标签关闭后可重新创建。
@@ -2170,14 +2234,6 @@
       return;
     }
     if (btn.hasAttribute("data-lx-focus-active") && !btn.hasAttribute("data-lx-focus-reco")) return;
-    const recoId = btn.getAttribute("data-lxfd-reco-id") || "";
-    const storedProducts = recoId && window.__lxRecoPayloads && Array.isArray(window.__lxRecoPayloads[recoId])
-      ? window.__lxRecoPayloads[recoId]
-      : [];
-    const recoTab = (window.__lxState?.tabs || []).find((item) => item && (item.kind === "reco" || item.id === "reco") && Array.isArray(item.products) && item.products.length);
-    const products = storedProducts.length
-      ? storedProducts
-      : ((chatState.lastProducts && chatState.lastProducts.length) ? chatState.lastProducts : (recoTab?.products || []));
   }, true);
   thread?.addEventListener("click", (e) => {
     const btn = e.target.closest(".lxfd-followups button, .lxfd-ai-body .followups button, .lxfd-ai-body .lx-p0-suggest[data-followups] button, .lxfd-ai-body [data-quick-ask]");
