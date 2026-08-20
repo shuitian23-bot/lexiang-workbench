@@ -25,10 +25,9 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 }
 
 body[data-page="personal"]:not(.assistant-fullscreen) .content > .device-scene-hall {
-  margin: 0 0 18px !important;
+  margin: 18px 0 !important;
 }
 
-body.lx-tab-layout-ready[data-page="personal"]:not(.assistant-fullscreen) .content > .device-scene-hall,
 body[data-page="personal"]:not(.assistant-fullscreen) .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall {
   margin: 18px 0 !important;
 }
