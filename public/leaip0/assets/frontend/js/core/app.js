@@ -3123,6 +3123,12 @@ function openOrderDetail(orderId) {
             window.setTimeout(() => openLeadPanel(`project:${projectName}`), 520);
             return;
           }
+          // 会员与服务场景状态编排（独立模块 p0-member-svc.js）：学生/企业/钻石认证咨询与办理分流、
+          // 会员中心关注点聚焦、服务商品推荐 SVC-01。命中则本轮由该模块自行完成回答，不再走后续快路径/官方 SKILL。
+          if (window.__lxMemberSvc && typeof window.__lxMemberSvc.handleQuery === "function") {
+            const _memHandled = await window.__lxMemberSvc.handleQuery(text);
+            if (_memHandled) return;
+          }
           // ── 本地快路径：高频明确操作指令 0 延迟秒回，不调后端（正则统一收口 app-intent.js，主面板/全屏共用一份）──
           // 代买 pending 时跳过：避免"选/下单"字样被误判成 buy_current/buy_recommended 抢断，官方推荐流程要走完
           const _localCtrl = !_autoBuy && window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
@@ -10364,6 +10370,10 @@ async function openEduZone() {
           lxOpenInfoTab, lxUpsertTab, lxRunTab, ensureChat, lxEnsureAiBody,
           renderPageCta, lxSyncAnswerCtaActiveState,
           openOrderDetail, openOrders, openCart, ensureModal,
+          // p0-member-svc.js（会员/服务场景状态编排）跨文件桥接扩展：只暴露既有弹窗/状态读写函数，
+          // 不重复实现学生/企业认证表单和会员中心渲染。
+          openEnterpriseAuth, openMemberCenter, openCouponCenter, openLogin,
+          lxEntState, lxSaveEntState, lxStuState,
         });
 
         openUploadControls();

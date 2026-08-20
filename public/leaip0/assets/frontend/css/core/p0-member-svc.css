@@ -1,0 +1,138 @@
+/* 会员与服务场景 AUI 触发与状态编排（P0）样式。独立文件，不改既有 lx-vip-skin / lx-p0-modal /
+   reco-page 结构，只服务 p0-member-svc.js 新增的钻石升级弹窗内容、服务商品推荐横向列表与会员
+   中心关注点高亮。颜色全部引用全站已注册的 --lx-* 等 :root token，不新增第 52 个界面颜色。 */
+
+@keyframes lxmsFocusPulse {
+  0% { box-shadow: 0 0 0 0 rgba(184, 37, 46, .28); }
+  70% { box-shadow: 0 0 0 10px rgba(184, 37, 46, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(184, 37, 46, 0); }
+}
+
+.lx-mem-diamond-compare,
+.lx-svc-list {
+  --lxms-ink: var(--lx-text-primary);
+  --lxms-soft: var(--lx-text-secondary);
+  --lxms-muted: var(--lx-text-tertiary);
+  --lxms-border: var(--lx-border);
+  --lxms-card: var(--lx-surface);
+  --lxms-tint: var(--lx-surface-muted);
+  --lxms-red: var(--lx-brand-red);
+  --lxms-price: var(--lx-price-red);
+  --lxms-aubergine: var(--lx-aubergine);
+}
+
+/* ── 企业钻石会员升级：当前等级 / 升级后权益 对比两栏 ────────────────────────── */
+.lx-mem-diamond-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+.lx-mem-diamond-compare .col {
+  border: 1px solid var(--lxms-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--lxms-card);
+}
+.lx-mem-diamond-compare .col.hl {
+  border-color: var(--lxms-aubergine);
+  background: var(--lxms-tint);
+}
+.lx-mem-diamond-compare .hd {
+  font-weight: 600;
+  color: var(--lxms-ink);
+  margin-bottom: 8px;
+}
+.lx-mem-diamond-compare .col.hl .hd { color: var(--lxms-aubergine); }
+.lx-mem-diamond-compare ul {
+  margin: 0;
+  padding: 0 0 0 18px;
+  color: var(--lxms-soft);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* ── 服务商品推荐（SVC-01）：3 条横向 List，序号 / 图 / 说明 / 价格 / 操作 ──────────── */
+.lx-svc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.lx-svc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--lxms-border);
+  border-radius: 14px;
+  background: var(--lxms-card);
+}
+.lx-svc-row .idx {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--lxms-tint);
+  color: var(--lxms-aubergine);
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lx-svc-row .shot {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--lxms-tint);
+}
+.lx-svc-row .main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lx-svc-row .main strong {
+  color: var(--lxms-ink);
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lx-svc-row .main .desc {
+  color: var(--lxms-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.lx-svc-row .side {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.lx-svc-row .price {
+  color: var(--lxms-price);
+  font-weight: 600;
+  font-size: 15px;
+}
+.lx-svc-row .acts {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .lx-mem-diamond-compare { grid-template-columns: 1fr; }
+  .lx-svc-row { flex-wrap: wrap; }
+  .lx-svc-row .side { align-items: flex-start; width: 100%; flex-direction: row; justify-content: space-between; }
+}
+
+/* ── 会员中心关注点聚焦：滚动定位后短暂高亮命中的模块区块 ───────────────────────── */
+.lx-mem-floor.lx-mem-focus-hl {
+  animation: lxmsFocusPulse 1.6s ease-out 1;
+  border-radius: 14px;
+}
