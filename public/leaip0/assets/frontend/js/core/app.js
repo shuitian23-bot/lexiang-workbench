@@ -3073,7 +3073,6 @@ function openOrderDetail(orderId) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
-          console.log("[DEBUG-CMP]", JSON.stringify({ isSolutionComparison: _isSolutionComparison, cmpRefsLen: _cmpRefs.length, types: _cmpRefs.map(x => x.type), hasCompareIntent: _hasCompareIntent, text }));
           if (_isSolutionComparison) {
             const compareMeta = lxSolutionCompareMeta(_cmpRefs);
             const names = _cmpRefs.map((item) => `「${item.name}」`).join("、");
@@ -5936,7 +5935,6 @@ async function openEduZone() {
         }
 
         async function lxRunSpecificSolutionFlow(card) {
-          console.log("[DEBUG-FLOW] lxRunSpecificSolutionFlow called", card && card.dataset && card.dataset.solutionTitle, new Error().stack.split("\n").slice(0,6).join(" | "));
           if (!card || state.sending) return;
           const payload = {
             title: card.dataset.solutionTitle || "解决方案",

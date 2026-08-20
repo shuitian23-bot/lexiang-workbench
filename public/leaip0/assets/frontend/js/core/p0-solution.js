@@ -84,16 +84,20 @@
   }
 
   // ---- 结果卡片 ----
+  // 「解决方案对比」按钮直接带 data-pick-sku（与 app.js 自动注入的右上角勾选按钮同一个属性/同一份
+  // 选中态），走 app.js 文档级委托里已验证的 pickBtn 分支——不再用捕获阶段转发到隐藏角标按钮
+  // 再合成 click()：合成点击会重新触发一整轮捕获+冒泡，容易和同一事件循环里的其它委托互相踩踏。
   function cardHtml(industry, key, row, picked) {
     var name = row[0], scenario = row[1], intro = row[2], image = row[3];
     var img = image ? "../img/solution/" + esc(image) : "";
+    var sku = "solution:" + name;
     return '<article class="lx-floor-card lx-solution-card lx-solution-result-card" data-solution="' + esc(key) + '" data-solution-title="' + esc(name) + '" data-solution-industry="' + esc(key) + '" data-solution-sector="' + esc(industry) + '" data-solution-scenario="' + esc(scenario) + '" data-solution-intro="' + esc(intro) + '" data-solution-image="' + esc(image) + '" role="button" tabindex="0" aria-label="查看' + esc(name) + '详情">' +
       (img ? '<img class="lx-solution-card-image" src="' + img + '" alt="' + esc(name) + '方案场景图">' : "") +
       '<div class="lx-solution-card-head"><div><strong>' + esc(name) + '</strong><div class="lx-solution-card-tags"><small>' + esc(industry) + '</small><small>' + esc(scenario) + '</small></div></div></div>' +
       '<span>' + esc(intro) + '</span>' +
       '<div class="lx-solution-card-actions">' +
-      '<button type="button" class="lx-solution-action-btn">了解详情</button>' +
-      '<button type="button" class="lx-solution-action-btn lx-solution-compare-btn' + (picked ? " is-picked" : "") + '" data-solution-compare-toggle aria-pressed="' + (picked ? "true" : "false") + '">' + (picked ? "已选择 · 对比" : "解决方案对比") + "</button>" +
+      '<button type="button" class="lx-solution-action-btn" data-solution-view-detail>了解详情</button>' +
+      '<button type="button" class="lx-solution-action-btn lx-solution-compare-btn" data-pick-sku="' + esc(sku) + '" aria-pressed="' + (picked ? "true" : "false") + '">解决方案对比</button>' +
       "</div>" +
       "</article>";
   }
@@ -192,18 +196,6 @@
       askScenario(industry);
     }
   });
-
-  // ---- 卡片内“解决方案对比”按钮：转发到 app.js 自动注入的右上角勾选按钮，
-  // 复用同一份选中态（README：商品卡与方案卡统一常驻勾选控件），不维护第二份状态 ----
-  document.addEventListener("click", function (event) {
-    var toggle = event.target.closest && event.target.closest("[data-solution-compare-toggle]");
-    if (!toggle) return;
-    event.preventDefault();
-    event.stopPropagation();
-    var card = toggle.closest(".lx-solution-card");
-    var pick = card && card.querySelector(":scope > .lx-pick-btn");
-    if (pick) pick.click();
-  }, true);
 
   // ---- 列表底部“解决方案对比”按钮：≥2 个已勾选方案时复用现有 sendChat 对比链路 ----
   document.addEventListener("click", function (event) {
