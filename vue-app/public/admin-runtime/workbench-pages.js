@@ -2857,7 +2857,7 @@ const PAGE_RENDERERS = {
         <div class="geo-pill" data-model="deepseek" onclick="geoTogglePlatform(this)">DeepSeek</div>
         <div class="geo-pill" data-model="yuanbao" onclick="geoTogglePlatform(this)">元宝</div>
         <div class="geo-pill" data-model="kimi" onclick="geoTogglePlatform(this)">Kimi</div>
-        <span class="geo-pill-disabled" title="项目未开启该平台">千问 (未开启)</span>
+        <div class="geo-pill" data-model="qwen" onclick="geoTogglePlatform(this)">千问</div>
         <span class="geo-pill-disabled" title="项目未开启该平台">文心 (未开启)</span>
         <span class="geo-pill-disabled" title="项目未开启该平台">夸克 (未开启)</span>
       </div>
@@ -2867,8 +2867,8 @@ const PAGE_RENDERERS = {
         <span style="font-size:12px;color:#6b7280">至</span>
         <input type="date" id="geo-date-end" style="padding:4px 8px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer" onchange="geoDateRangeChanged()">
         <div style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;margin-left:4px">
-          <button onclick="geoQuickPeriod('7d')" class="geo-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#fff;color:#374151;transition:all .15s">近7天</button>
-          <button onclick="geoQuickPeriod('30d')" class="geo-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#2563eb;color:#fff;transition:all .15s">近30天</button>
+          <button onclick="geoQuickPeriod('7d')" class="geo-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;transition:all .15s">近7天</button>
+          <button onclick="geoQuickPeriod('30d')" class="geo-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;transition:all .15s">近30天</button>
         </div>
         <span class="geo-label" style="margin-left:12px;">意图筛选</span>
         <select id="geo-questions-select" onchange="geoSetQuestionFromSelect(this.value)" style="padding:5px 10px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;min-width:200px;max-width:320px;cursor:pointer">
@@ -2878,7 +2878,7 @@ const PAGE_RENDERERS = {
       <div class="geo-status-line" id="geo-status">加载中...</div>
       <div class="geo-context-line" id="geo-context-line">当前口径：加载中...</div>
       <div class="geo-interface-note" id="geo-overview-gap-note">
-        接口说明：0605 已支持稳定意图、分竞品可见性趋势、wiki 引用累计和信源 page_size/brands；转化与分竞品推荐类指标未提供时显示“待接口提供数据”。
+        接口说明：0605 已支持稳定意图、分竞品可见性趋势、wiki 引用累计和信源 page_size/brands；转化与分竞品推荐类指标未提供时显示“待接口提供数据”。整体口径 = 联想官网 ∪ 联想乐享品牌词合并统计，与单 tab 口径存在差异属正常，两口径对齐待服务商排期。
       </div>
 
       <!-- 对比视角 + 竞品选择器 -->
@@ -2886,8 +2886,8 @@ const PAGE_RENDERERS = {
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:12px;color:#6b7280;white-space:nowrap">分析模式</span>
           <div id="geo-compare-toggle" style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden">
-            <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#2563eb;color:#fff">品牌表现</button>
-            <button onclick="geoSetCompare('compare')" class="geo-cmp-btn" data-cmp="compare" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s;background:#fff;color:#374151">竞品对比</button>
+            <button onclick="geoSetCompare('brand')" class="geo-cmp-btn active" data-cmp="brand" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s">品牌表现</button>
+            <button onclick="geoSetCompare('compare')" class="geo-cmp-btn" data-cmp="compare" style="padding:5px 16px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:all .15s">竞品对比</button>
           </div>
         </div>
         <div class="geo-comp-divider" style="width:1px;height:20px;background:#e5e7eb"></div>
@@ -2938,12 +2938,8 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 对比横条卡 + 趋势折线图 -->
+      <!-- 趋势折线图 -->
       <div class="geo-row geo-compare-trend-row single" id="geo-trend-row" style="margin-bottom:12px">
-        <div class="geo-panel geo-compare-bars-panel" id="geo-compare-detail-panel" style="display:none">
-          <div class="gpnl-title">品牌 vs 竞品 对比</div>
-          <div id="geo-trend-chart" class="geo-compare-bars-body"><div style="color:#9ca3af;font-size:12px;padding:12px">请选择竞品</div></div>
-        </div>
         <div class="geo-panel" style="flex:2;min-width:0">
           <div style="margin-bottom:8px">
             <div class="gpnl-title" id="geo-trend-title" style="margin:0">可见性趋势</div>
@@ -2975,16 +2971,12 @@ const PAGE_RENDERERS = {
       <div class="geo-row wide-right">
         <div class="geo-panel">
           <div class="gpnl-title">各 AI 平台引用次数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 联想链接 + 各 wiki 页面</span></div>
-          <div class="geo-kpi-grid cols-3" style="margin-bottom:12px">
-            <div class="geo-kpi"><div class="gk-val" id="gv-lenovo-link-cite">--</div><div class="gk-label">联想链接引用次数</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-lenovo-wiki-cite">--</div><div class="gk-label">联想wiki引用次数</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-wiki-shop-cite">--</div><div class="gk-label">联想wiki-商城引用次数</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-wiki-c-cite">--</div><div class="gk-label">联想wiki-消费引用次数</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-wiki-b-cite">--</div><div class="gk-label">联想wiki-SMB引用次数</div></div>
-            <div class="geo-kpi"><div class="gk-val" id="gv-wiki-biz-cite">--</div><div class="gk-label">联想wiki-政企引用次数</div></div>
-          </div>
-          <div class="geo-interface-note" id="geo-citation-gap-note">接口缺口：官网/乐享品牌词引用口径、wiki-商城、wiki-消费、wiki-SMB、wiki-政企引用次数需服务商返回；未返回时显示待接口提供数据或当前接口结果。</div>
-          <div class="geo-plat-grid" id="geo-plat-dist"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+          <div id="gc-cite-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px"></div>
+          <div style="font-size:13px;font-weight:600;margin:4px 0 8px">各 AI 平台引用次数明细</div>
+          <div id="gc-cite-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+          <div class="geo-interface-note" style="margin-top:8px">说明：总引用次数 = 联想链接引用次数 + 联想 wiki 引用次数 + 联想 wiki-商城 + 联想 wiki-消费 + 联想 wiki-SMB + 联想 wiki-政企（演示数据，服务商接口接入后替换）</div>
+          <div class="gpnl-title" style="margin-top:14px">6 页面引用趋势 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 联想链接 + 5 类 wiki 页面（演示数据）</span></div>
+          <div id="gc-cite-trend" style="height:220px"></div>
         </div>
         <div class="geo-panel">
           <div class="gpnl-title">联想域名 AI 引用 Top50 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-sites-total">--</span> 个联想站点</span></div>
@@ -2994,19 +2986,13 @@ const PAGE_RENDERERS = {
         </div>
       </div>
 
-      <!-- 各优化平台意图总数 -->
-      <div class="geo-panel" style="margin-bottom:12px">
-        <div class="gpnl-title">各优化平台意图总数 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 每平台覆盖意图数量</span></div>
-        <div class="geo-interface-note">接口说明：稳定覆盖意图及官网/乐享品牌词意图总数需服务商按平台返回；当前为前端基于现有字段推导。</div>
-        <div id="geo-intent-platform-summary"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
-      </div>
 
     </div>
   `,
 
   'dashboard.geoSource': () => `
     <div class="page-header">
-      <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">各 AI 模型引用的内容发布平台分布及占比</div></div>
+      <div><div class="page-title">GEO · 各平台信源分布</div><div class="page-desc">AI 检索场景下的站点信源分布与占比</div></div>
       <div class="geo-source-controls">
         <select id="geo-source-scope" onchange="geoLoadSourcePage(1)">
           <option value="all">整体</option>
@@ -3019,12 +3005,9 @@ const PAGE_RENDERERS = {
           <option value="deepseek">DeepSeek</option>
           <option value="yuanbao">元宝</option>
           <option value="kimi">Kimi</option>
-        </select>
-        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)">
-          <option value="10" selected>10条/页</option>
-          <option value="20">20条/页</option>
-          <option value="50">50条/页</option>
-          <option value="100">100条/页</option>
+          <option value="qwen">千问</option>
+          <option value="wenxin" disabled>文心（未开启）</option>
+          <option value="kuake" disabled>夸克（未开启）</option>
         </select>
       </div>
     </div>
@@ -3033,7 +3016,16 @@ const PAGE_RENDERERS = {
         <div class="geo-source-meta" id="geo-source-status">加载中...</div>
       </div>
       <div id="geo-source-list"><div style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">加载中...</div></div>
-      <div id="geo-source-pager"></div>
+      <div class="geo-source-footer" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px">
+        <div id="geo-source-total" style="font-size:12px;color:#6b7280">共 0 条</div>
+        <div id="geo-source-pager"></div>
+        <select id="geo-source-page-size" onchange="geoLoadSourcePage(1)">
+          <option value="10" selected>10条/页</option>
+          <option value="20">20条/页</option>
+          <option value="50">50条/页</option>
+          <option value="100">100条/页</option>
+        </select>
+      </div>
     </div>
   `,
 
@@ -3052,14 +3044,21 @@ const PAGE_RENDERERS = {
       <!-- 意图列表 -->
       <div class="geo-panel" style="margin-bottom:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性</span></div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <div id="geo-intent-visibility-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
-            <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
-          </div>
+          <div class="gpnl-title" style="margin:0">GEO 意图列表 <span style="font-size:11px;color:#9ca3af;font-weight:400">· 共 <span id="gv-q-count">--</span> 个意图 · 按模型展示可见性 · 数据日期 <span id="gv-q-date">--</span></span></div>
+          <div id="geo-intent-plat-filter" style="display:inline-flex;gap:4px;flex-wrap:wrap"></div>
         </div>
+        <div id="geo-intent-visibility-filter" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
         <div class="geo-scroll-wrap" style="max-height:600px">
           <div id="geo-questions-table"><div style="color:#9ca3af;font-size:12px;padding:12px">加载中...</div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px">
+          <div id="geo-intent-total" style="font-size:12px;color:#6b7280">共 0 条</div>
+          <div id="geo-intent-pager"></div>
+          <select id="geo-intent-page-size" onchange="geoIntentSetPageSize(this.value)">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
         </div>
       </div>
     </div>
@@ -3076,116 +3075,16 @@ const PAGE_RENDERERS = {
         <span style="font-size:12px;color:#6b7280">至</span>
         <input type="date" id="geo-conv-date-end" style="padding:4px 8px;border-radius:8px;font-size:12px;background:#f9fafb;color:#374151;border:1px solid #d1d5db;cursor:pointer" onchange="geoConversionDateRangeChanged()">
         <div style="display:inline-flex;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;margin-left:4px">
-          <button onclick="geoConversionQuickPeriod('7d')" class="geo-conv-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#fff;color:#374151;transition:all .15s">近7天</button>
-          <button onclick="geoConversionQuickPeriod('30d')" class="geo-conv-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;background:#2563eb;color:#fff;transition:all .15s">近30天</button>
+          <button onclick="geoConversionQuickPeriod('7d')" class="geo-conv-period-btn" data-period="7d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;transition:all .15s">近7天</button>
+          <button onclick="geoConversionQuickPeriod('30d')" class="geo-conv-period-btn active" data-period="30d" style="padding:4px 12px;font-size:12px;border:none;cursor:pointer;transition:all .15s">近30天</button>
         </div>
-        <span class="geo-label" style="margin-left:8px">数据T+1更新</span>
+        <button onclick="geoLoadConversionPage()" style="margin-left:auto;padding:5px 14px;font-size:12px;border:none;border-radius:8px;background:#3f78c5;color:#fff;cursor:pointer">刷新</button>
       </div>
-      <div class="geo-status-line" id="geo-conversion-status">待接口提供数据 · 数据T+1更新</div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">UV 趋势</div>
-        <div id="gc-uv-trend"><div class="geo-pending"><div class="geo-pending-title">UV 趋势待接口提供数据</div></div></div>
-      </div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">GEO看板 · 整体（URL 包含 lenovo，排除 wiki.lenovo.com.cn）</div>
-        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；访问、登录、注册、购买和乐享下单转化数据接入后替换占位。</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想UV</div><div class="gcc-val" id="gc-all-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想域名的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户</div><div class="gcc-val" id="gc-all-login">--</div><div class="gcc-def">访问联想的用户中，有Lenovoid登录行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户</div><div class="gcc-val" id="gc-all-newreg">--</div><div class="gcc-def">访问联想的登录用户中，是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">付费用户</div><div class="gcc-val" id="gc-all-paid">--</div><div class="gcc-def">用户入站后，发生了购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-all-ca">--</div><div class="gcc-def">购买用户产生的订单销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-all-gmv">--</div><div class="gcc-def">购买用户产生的订单交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-all-newpaid">--</div><div class="gcc-def">购买用户中，是首次发生购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-all-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-all-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-all-leai-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-all-leai-ca">--</div><div class="gcc-def">通过乐享自主下单功能，发生购买行为的用户产生的销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-all-leai-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，发生购买行为的用户产生的交易额</div></div>
-        </div>
-      </div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">GEO看板 · 联想乐享（URL 包含 leai.lenovo.com.cn / wiki.lenovo.com.cn）</div>
-        <div class="geo-interface-note">接口待提供：当前仅展示字段结构；乐享访问、互动、购买和自主下单数据接入后替换占位。</div>
-        <div class="geo-conv-grid">
-          <div class="geo-conv-cell"><div class="gcc-label">访问联想乐享UV</div><div class="gcc-val" id="gc-leai-uv">--</div><div class="gcc-def">通过AI搜索平台访问联想乐享的用户</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录用户-乐享</div><div class="gcc-val" id="gc-leai-login">--</div><div class="gcc-def">访问联想乐享的用户中，有Lenovoid登录行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新注册用户-乐享</div><div class="gcc-val" id="gc-leai-newreg">--</div><div class="gcc-def">访问联想乐享的登录用户中，是新注册的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">互动用户数</div><div class="gcc-val" id="gc-leai-interact">--</div><div class="gcc-def">访问联想乐享的用户中，至少有1次会话的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">登录状态下互动人数</div><div class="gcc-val" id="gc-leai-login-interact">--</div><div class="gcc-def">互动用户中，是有登录状态的互动用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">付费用户数</div><div class="gcc-val" id="gc-leai-paid">--</div><div class="gcc-def">访问联想乐享后，在站内发生了购买行为的用户数</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">CA</div><div class="gcc-val" id="gc-leai-ca">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">GMV</div><div class="gcc-val" id="gc-leai-gmv">--</div><div class="gcc-def">访问联想乐享后的购买用户，产生的订单交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费用户</div><div class="gcc-val" id="gc-leai-newpaid">--</div><div class="gcc-def">访问联想乐享后发生购买的用户中，首次购买的用户</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费CA</div><div class="gcc-val" id="gc-leai-newca">--</div><div class="gcc-def">首次购买用户，产生的订单销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">新付费GMV</div><div class="gcc-val" id="gc-leai-newgmv">--</div><div class="gcc-def">首次购买用户，产生的交易额</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享·下单用户</div><div class="gcc-val" id="gc-leai-order-user">--</div><div class="gcc-def">付费用户中，通过乐享自主下单功能，发生购买行为的用户</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享-CA</div><div class="gcc-val" id="gc-leai-order-ca">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的销量</div></div>
-          <div class="geo-conv-cell"><div class="gcc-label">乐享-GMV</div><div class="gcc-val" id="gc-leai-order-gmv">--</div><div class="gcc-def">通过乐享自主下单功能，购买用户产生的交易额</div></div>
-        </div>
-      </div>
-
-      <div class="geo-conv-section">
-        <div class="geo-conv-title">联想官网 · 总数看板</div>
-        <div class="geo-interface-note">接口待提供：UV 站点拆分、Top5 页面、销量/销售额总数及业务拆分接入后替换占位。</div>
-        <div class="geo-official-board">
-          <div class="geo-official-total-card">
-            <div class="gcc-label">总 UV（不含挂奖页面）</div>
-            <div class="gcc-val" id="gc-official-uv">--</div>
-            <div class="gcc-def">按被触点归属统计后的联想官网访问用户数</div>
-          </div>
-          <div class="geo-official-donut-card">
-            <div class="gcc-label">UV 按站点拆分</div>
-            <div class="geo-official-donut">
-              <div class="geo-donut-placeholder">待接口提供数据</div>
-              <div class="geo-donut-list">
-                <span>联想首页 <strong id="gc-official-home-uv">--</strong></span>
-                <span>联想商城 <strong id="gc-official-shop-uv">--</strong></span>
-                <span>消费业务 <strong id="gc-official-c-uv">--</strong></span>
-                <span>SMB业务 <strong id="gc-official-b-uv">--</strong></span>
-                <span>政企业务 <strong id="gc-official-biz-uv">--</strong></span>
-                <span>服务 <strong id="gc-official-service-uv">--</strong></span>
-                <span>其他 <strong id="gc-official-other-uv">--</strong></span>
-              </div>
-            </div>
-          </div>
-          <div class="geo-official-trend-card">
-            <div class="gcc-label">UV 趋势（不含挂奖页面）</div>
-            <div class="geo-pending compact">待接口提供数据</div>
-          </div>
-          <div class="geo-official-top-card">
-            <div class="gcc-label">用户访问 Top5 页面</div>
-            <div class="geo-conv-top-pages" id="gc-official-top-pages"></div>
-          </div>
-          <div class="geo-official-sales-card">
-            <div class="gcc-label">销量概览</div>
-            <div class="gcc-val" id="gc-official-total-ca">--</div>
-            <div class="geo-business-split"><span>消费商品 <strong id="gc-official-c-ca">--</strong></span><span>SMB商品 <strong id="gc-official-b-ca">--</strong></span><span>政企商品 <strong id="gc-official-biz-ca">--</strong></span></div>
-          </div>
-          <div class="geo-official-sales-card">
-            <div class="gcc-label">销售额概览（元）</div>
-            <div class="gcc-val" id="gc-official-total-gmv">--</div>
-            <div class="geo-business-split"><span>消费商品 <strong id="gc-official-c-gmv">--</strong></span><span>SMB商品 <strong id="gc-official-b-gmv">--</strong></span><span>政企商品 <strong id="gc-official-biz-gmv">--</strong></span></div>
-          </div>
-        </div>
-        <div class="geo-business-title">分业务模块</div>
-        <div class="geo-business-modules">
-          ${['消费业务','SMB业务（含企业购）','政企业务'].map((name, idx) => `
-            <div class="geo-business-module">
-              <div class="geo-business-name">${name}</div>
-              <div class="geo-business-grid">
-                <div><span>业务归属 UV</span><strong>待接口提供数据</strong></div>
-                <div><span>UV 趋势</span><strong>待接口提供数据</strong></div>
-                <div class="wide"><span>业务 UV Top5 页面</span><strong>待接口提供数据</strong></div>
-                <div><span>业务销量</span><strong>待接口提供数据</strong></div>
-                <div><span>业务销售额</span><strong>待接口提供数据</strong></div>
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>
+      <div class="geo-status-line" id="geo-conversion-status">加载中...</div>
+      <div id="gc-section-all" style="display:none"></div>
+      <div id="gc-section-official"></div>
+      <div id="gc-section-biz"></div>
+      <div id="gc-section-leai"></div>
     </div>
   `,
 
@@ -3363,7 +3262,7 @@ const PAGE_RENDERERS = {
       <div class="kpi-card employee-kpi-card purple" onclick="filterAndNavigate('pending')">
         <div class="kpi-label">本月新增</div>
         <div class="kpi-value" id="kpi-pending">169</div>
-        <div class="kpi-sub"><span class="down">↓ 88.23%</span> 环比</div>
+        <div class="kpi-sub"><span class="up">↓ -88.23%</span> 环比</div>
       </div>
     </div>
 
