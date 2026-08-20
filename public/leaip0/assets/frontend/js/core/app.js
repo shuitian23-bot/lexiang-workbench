@@ -2074,21 +2074,49 @@ function openOrderDetail(orderId) {
         function lxOpenSolutionCompareTab(solutions, compareMeta = lxSolutionCompareMeta(solutions)) {
           const items = (solutions || []).filter((item) => item?.type === "solution").slice(0, 3);
           if (items.length < 2) return;
+          // 行业中文标签 → LX_SOLUTIONS 详情 key 映射：复用既有 LX_SOLUTION_META，不新造第二份行业表。
+          const industryKeyByLabel = new Map((typeof LX_SOLUTION_META !== "undefined" ? LX_SOLUTION_META : []).map(([label, key]) => [label, key]));
+          const enrich = (item) => {
+            const key = industryKeyByLabel.get(item.sector) || item.sector;
+            return (typeof LX_SOLUTIONS !== "undefined" && LX_SOLUTIONS[key]) || {};
+          };
           const cell = (value, cls = "") => `<div class="cell bodycell ${cls}">${esc(value || "—")}</div>`;
           const row = (label, getter) => `<div class="cell rowlabel">${esc(label)}</div>${items.map((item) => cell(getter(item))).join("")}`;
+          const headCell = (item) => {
+            const key = industryKeyByLabel.get(item.sector) || item.sector;
+            const image = String(item.image_url || "").split("/").pop();
+            return `<button type="button" class="cell bodycell phead" data-open-solution-detail data-solution-title="${esc(item.name)}" data-solution-industry="${esc(key)}" data-solution-sector="${esc(item.sector)}" data-solution-scenario="${esc(item.scenario)}" data-solution-intro="${esc(item.description)}" data-solution-image="${esc(image)}" title="点击查看${esc(item.name)}详情">${esc(item.name)}</button>`;
+          };
+          const suggestion = items.map((item) => `「${item.name}」适合重点关注${item.scenario || item.sector || "对应行业场景"}的组织`).join("；");
           const html = `<section class="lx-solution-compare-page">
-            <div class="lx-wp-head"><h2>方案对比</h2><p>从适用行业、核心场景、方案能力和落地重点进行横向比较</p></div>
+            <div class="lx-wp-head"><h2>方案对比</h2><p>从方案介绍、解决重点、方案价值、产品推荐、客户案例和适用行业场景进行横向比较</p></div>
             <div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="1" style="--lx-cmp-cols:${items.length}"><div class="tbl">
-              <div class="cell rowlabel">方案</div>${items.map((item) => cell(item.name, "phead")).join("")}
-              ${row("所属行业", (item) => item.sector)}
-              ${row("核心场景", (item) => item.scenario)}
-              ${row("方案能力", (item) => item.description)}
-              ${row("落地重点", (item) => `${item.scenario || "业务场景"}适配、终端部署与持续服务`)}
-              ${row("选择建议", (item) => `适合重点关注${item.scenario || item.sector || "对应行业场景"}的组织`) }
-            </div></div><p class="foot-note">方案能力基于当前方案资料整理，实际范围以业务顾问确认和项目交付方案为准。</p></div>
+              <div class="cell rowlabel">方案</div>${items.map((item) => headCell(item)).join("")}
+              ${row("方案介绍", (item) => item.description)}
+              ${row("解决重点", (item) => `围绕${item.scenario || item.sector || "核心业务"}场景的关键问题定位与部署重点`)}
+              ${row("方案价值", (item) => enrich(item).gains)}
+              ${row("产品推荐", (item) => (enrich(item).features || []).slice(0, 3).join("、"))}
+              ${row("客户案例", (item) => (enrich(item).cases || []).slice(0, 2).join("、"))}
+              ${row("适用行业场景", (item) => `${item.sector || ""}${item.scenario ? " · " + item.scenario : ""}`)}
+            </div></div>
+            <div class="lx-cmp-conclusion">
+              <h3>选型建议</h3>
+              <p>${esc(suggestion)}，具体选型仍建议结合预算、部署周期与既有 IT 环境由业务顾问确认。</p>
+              <div class="lx-p0-actions">
+                <button class="lx-p0-btn" type="button" data-quick-ask="商用产品及方案服务咨询热线是多少">拨打热线 400-813-6161</button>
+                <button class="lx-p0-btn" type="button" data-quick-ask="我想在线咨询顾问，帮我推荐合适的方案">在线咨询</button>
+                <button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button>
+              </div>
+            </div>
+            <div class="lx-cmp-append" data-solution-compare-append data-solution-compare-index="${compareMeta.index}" data-solution-compare-names="${esc(items.map((item) => item.name).join("|"))}"></div>
+            <p class="foot-note">方案信息基于当前方案资料整理，实际范围以业务顾问确认和项目交付方案为准。</p>
+          </div>
           </section>`;
           lxOpenInfoTab(`solution-compare:${compareMeta.index}`, compareMeta.label, html);
           lxRemoveUnrequestedSiteTabFromSolutionFlow();
+          if (window.__lxSolution && typeof window.__lxSolution.mountCompareAppend === "function") {
+            window.__lxSolution.mountCompareAppend(compareMeta, items);
+          }
         }
 
         function openCompare() {
@@ -3045,6 +3073,7 @@ function openOrderDetail(orderId) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          console.log("[DEBUG-CMP]", JSON.stringify({ isSolutionComparison: _isSolutionComparison, cmpRefsLen: _cmpRefs.length, types: _cmpRefs.map(x => x.type), hasCompareIntent: _hasCompareIntent, text }));
           if (_isSolutionComparison) {
             const compareMeta = lxSolutionCompareMeta(_cmpRefs);
             const names = _cmpRefs.map((item) => `「${item.name}」`).join("、");
@@ -3143,7 +3172,8 @@ function openOrderDetail(orderId) {
           const _localCtrl = !_autoBuy && window.__lxIntent ? window.__lxIntent.matchControl(text) : null;
           if (_localCtrl) {
             if (_localCtrl.op === "open_solution") {
-              await lxRunUnifiedSolutionAnswer();
+              if (window.__lxSolution && typeof window.__lxSolution.route === "function") await window.__lxSolution.route(text);
+              else await lxRunUnifiedSolutionAnswer();
               return;
             }
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
@@ -3194,7 +3224,8 @@ function openOrderDetail(orderId) {
               if (_intentResult && _intentResult.type === "control" && _intentResult.op) {
                 ai.remove(); // 移除 loading 气泡
                 if (_intentResult.op === "open_solution") {
-                  await lxRunUnifiedSolutionAnswer();
+                  if (window.__lxSolution && typeof window.__lxSolution.route === "function") await window.__lxSolution.route(text);
+                  else await lxRunUnifiedSolutionAnswer();
                   return;
                 }
                 const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
@@ -3432,8 +3463,14 @@ function openOrderDetail(orderId) {
                 if (op === 'member') deferRightPanel(() => { lxRevealContent(); openMemberCenter(); }, { title: "查看会员中心", desc: "已为你打开会员权益与资产" });
                 else if (op === 'coupon') deferRightPanel(() => { lxRevealContent(); openCouponCenter(); }, { title: "查看优惠与活动", desc: "已在右侧打开可领取权益" });
                 else if (op === 'solution') {
-                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>');
-                  deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
+                  // 咨询与线索场景补差：不再无条件直接打开全集方案中心，先交给 p0-solution.js
+                  // 的行业/场景 chip 澄清流判断——文本已带行业则跳一级直接问二级场景，否则先问行业。
+                  if (window.__lxSolution && typeof window.__lxSolution.handleAction === "function") {
+                    window.__lxSolution.handleAction(text, ai);
+                  } else {
+                    lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-floor-action="lead">提交项目需求</button></div>');
+                    deferRightPanel(() => { lxRevealContent(); openSolutionCenter(); }, { title: "查看方案中心", desc: "已为你打开行业解决方案" });
+                  }
                 }
                 else if (op === 'edu') {
                   lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-stuauth="college">教育认证</button></div>');
@@ -5899,6 +5936,7 @@ async function openEduZone() {
         }
 
         async function lxRunSpecificSolutionFlow(card) {
+          console.log("[DEBUG-FLOW] lxRunSpecificSolutionFlow called", card && card.dataset && card.dataset.solutionTitle, new Error().stack.split("\n").slice(0,6).join(" | "));
           if (!card || state.sending) return;
           const payload = {
             title: card.dataset.solutionTitle || "解决方案",
@@ -5934,6 +5972,81 @@ async function openEduZone() {
             try { window.__lxSaveConversationNow(); } catch (_e) {}
           }
         }
+
+        // 行业方案元数据与全量目录：从 openSolutionCenter 内联字面量提升至模块作用域，
+        // 供 p0-solution.js（咨询与线索 chip 澄清流）通过 window.__lxAgentAPI 复用同一份数据，
+        // 不重造第二份方案库（内容与下方 openSolutionCenter 引用保持完全一致）。
+        const LX_SOLUTION_META = [
+          ["教育", "智慧教育", "EDU"], ["医疗", "智慧医疗", "MED"], ["政府", "数字政府", "GOV"],
+          ["制造", "智能制造", "MFG"], ["金融", "智慧金融", "FIN"], ["能源", "智慧能源", "ENE"],
+          ["交通", "智慧交通", "TRA"], ["服务", "智能基础设施", "SER"]
+        ];
+        const LX_SOLUTION_CATALOG = {
+          "教育": [
+            ["多擎云桌面解决方案", "普教", "多擎云桌面解决方案：融合四大架构，统一云化管理，提升教学效率。", "多擎云桌面解决方案4.jpg"],
+            ["智慧教室解决方案", "高校", "智慧教室解决方案：打破信息壁垒，助力教育数字化转型。", "智慧教室解决方案.jpg"],
+            ["职教智慧校园解决方案", "职教", "职教智慧校园解决方案：以1+2+3架构打造一体化数智校园，覆盖全场景。", "智慧校园解决方案1.jpg"],
+            ["智慧校园解决方案", "高校", "智慧校园解决方案：构建数字底座，赋能教育治理现代化，实现提质减负。", "智慧校园解决方案2.jpg"],
+            ["高性能计算解决方案", "高校", "高性能计算解决方案：低门槛HPC+AI平台，降低30%-50%成本。", "高性能计算解决方案.jpg"],
+            ["教育存储解决方案", "高校", "教育存储解决方案：面向教学、科研与校园数据，提供稳定可靠的统一存储能力。", "教育存储解决方案.jpg"]
+          ],
+          "医疗": [
+            ["医共体/医联体解决方案", "区卫-智慧区卫", "医共体/医联体解决方案：统一管理协同，推动资源共享与医疗数字化转型。", "医共体/医联体解决方案.jpg"],
+            ["慢病与健康管理解决方案", "医院-服务", "慢病与健康管理解决方案：覆盖多种慢病及肿瘤患者，助力医院高质量发展。", "智慧医院整体解决方案.jpg"],
+            ["多院区/区域医疗中心基础设施解决方案", "医院-智慧管理", "多院区/区域医疗中心基础设施解决方案：统一管理多数据中心，提升运维服务质量。", "多院区/区域医疗中心基础设施解决方案.jpg"],
+            ["医疗数据灾备与管理解决方案", "医院-智慧管理", "医疗数据灾备与管理解决方案：覆盖存储、备份、容灾全流程，提升数据安全与运营效率。", "医疗数据灾备与管理解决方案.jpg"],
+            ["医疗云桌面解决方案", "医院-智慧管理", "医疗云桌面解决方案：集中管理分布式架构，支持多院区扩展。", "医疗云桌面解决方案.jpg"],
+            ["医院云盘解决方案", "医院-智慧服务", "医院云盘解决方案：统一汇聚院内文件与协作数据，兼顾便捷共享和安全管控。", "医院云盘解决方案.jpg"]
+          ],
+          "政府": [
+            ["联想LECP存算一体化平台", "政府官网", "联想LECP存算一体化平台：存算管一体，开放兼容异构设备，节省30%投资，性能提升2倍。", "联想LECP存算一体化平台.jpg"],
+            ["数字政府统一运维方案", "政府官网", "数字政府统一运维方案：四个统一提升工单解决率与满意度，降本增效。", "数字政府统一运维方案.jpg"],
+            ["政务大数据解决方案", "政府官网", "政务大数据解决方案：构建三大中台，打破信息壁垒，实现高效协同。", "政务大数据解决方案.jpg"],
+            ["政务云平台解决方案", "政府官网", "政务云平台解决方案：统一底座与能力平台，打造一站式政务服务平台。", "政务云平台解决方案.jpg"],
+            ["智慧园区综合解决方案", "政府官网", "智慧园区综合解决方案：聚焦四大痛点，提供一站式服务，助力园区可持续发展。", "智慧园区综合解决方案.jpg"],
+            ["政府移动电子政务解决方案", "移动政务", "政府移动电子政务解决方案：连接移动办公与政务应用，提升协同效率和终端安全。", "政府移动电子政务解决方案.jpg"]
+          ],
+          "制造": [
+            ["AI研发平台", "智慧研发", "AI研发平台：一站式MLOps平台，助力制造企业降本增效。", "AI研发平台.jpg"],
+            ["数字化研发平台", "智慧研发", "数字化研发平台：融合仿真与设计，结合多体系，多节点产品，帮助企业提升资源利用率。", "数字化研发平台.jpg"],
+            ["AR数字孪生", "智慧研发", "AR数字孪生：构建工业元宇宙产品体系，助力企业降本增效与智能化转型。", "AR数字孪生.jpg"],
+            ["产线数字化", "智慧生产", "产线数字化：覆盖MES配套、自动化控制、缺陷检测，助力高效数字化转型。", "产线数字化.jpg"],
+            ["Lenovo Edge AI 工业质检解决方案", "智慧生产", "Lenovo Edge AI 工业质检解决方案：小样本终身学习驱动边缘AI质检，提升效率与精度。", "Lenovo Edge AI工业质检解决方案.jpg"],
+            ["制造执行系统", "智慧生产", "制造执行系统：贯通计划、生产、质量与设备数据，提升工厂透明化运营能力。", "制造执行系统.jpg"]
+          ],
+          "金融": [
+            ["金融行业DCM数据中心管理平台", "数字基础设施", "金融行业DCM数据中心管理平台：带内外管理赋能全流程运维，提效降本增安绿色运营。", "金融行业DCM数据中心管理平台.jpg"],
+            ["联想IT设备再生服务", "数字基础设施", "可持续发展解决方案（ESG）IT设备再生服务：覆盖资产回收处置全环节，保障安全合规。", "联想IT设备再生服务.jpg"],
+            ["智能运维解决方案", "智能运维", "智能运维解决方案：全渠道全天候全生命周期数字化运维，助力金融机构高效创新发展 。", "智能运维解决方案.jpg"],
+            ["联想超融合解决方案", "智能运维", "联想超融合解决方案：整合资源一体化管理，提升利用率，支撑金融IT高效灵活升级。", "联想超融合解决方案.jpg"],
+            ["联想魔方客服智能体解决方案", "智能客服", "联想魔方客服智能体解决方案：无缝嵌入客服系统，私有化部署，助力企业客服升级。", "联想魔方客服智能体解决方案.jpg"],
+            ["智能混合云解决方案", "数字基础设施", "智能混合云解决方案：统一纳管多云资源，为金融业务提供弹性、安全的基础设施底座。", "智能混合云解决方案.jpg"]
+          ],
+          "能源": [
+            ["变电站智能巡检解决方案", "电力", "变电站智能巡检解决方案：融合机器人、AI，支持多场景智能巡检，提效降本。", "变电站智能巡检解决方案.jpg"],
+            ["智慧电厂解决方案", "电力", "智慧电厂解决方案：构建统一数据环境，推动电厂智能化运营。", "智慧电厂解决方案.jpg"],
+            ["智慧矿山数字孪生解决方案", "矿产", "智慧矿山数字孪生解决方案：提供建模、XR展示、仿真预测，提升矿山运营效率与安全。", "智慧矿山数字孪生解决方案.jpg"],
+            ["带式输送机工业质检解决方案", "矿产", "带式输送机工业质检解决方案：覆盖异物、跑偏及违规识别，降低模型成本，提升安全性。", "带式输送机工业质检解决方案.jpg"],
+            ["私有云建设及扩容解决方案", "油气", "私有云建设及扩容解决方案：依托Nutanix实现多地多中心统一管理与灵活容灾。", "私有云建设及扩容解决方案.jpg"],
+            ["虚拟电厂解决方案", "电力", "虚拟电厂解决方案：聚合分布式能源与负荷资源，提升调度协同和能源运营效率。", "虚拟电厂解决方案.jpg"]
+          ],
+          "交通": [
+            ["高速ETC HCI解决方案", "高速", "高速ETC HCI解决方案：云边端架构，提升资源利用率与运维效率。", "高速ETC HCI解决方案.jpg"],
+            ["高速云解决方案", "高速", "高速云解决方案：构建“端-边-云-网-智”架构，提升高速运营效率、安全与服务质量。", "高速云解决方案.jpg"],
+            ["轨交云解决方案", "轨交", "轨交云解决方案：提供城轨云与大数据平台，提升运维效率，推动智能化发展。", "轨交云解决方案.jpg"],
+            ["智能运维平台解决方案", "轨交", "智能运维平台解决方案：以边缘感知+智慧认知+人机协同架构，提升城轨智能运维能力。", "智能运维平台解决方案.jpg"],
+            ["机场云平台解决方案", "航空", "机场云平台解决方案：统一管理异构资源，助力智慧民航数字化升级。", "机场云平台解决方案.jpg"],
+            ["轨交智能运营解决方案", "轨交", "轨交智能运营解决方案：融合运营数据和智能分析能力，提升线网协同与服务水平。", "轨交智能运营解决方案.jpg"]
+          ],
+          "服务": [
+            ["非线编解决方案", "媒体", "非线编解决方案：解决超高清制作读写、并发与算力痛点，保障稳定扩展与数据安全。", "非线编解决方案.jpg"],
+            ["联想智能媒资解决方案", "媒体", "联想智能媒资解决方案：解决扩展适配存储风险，支撑媒资全生命周期管理。", "联想智能媒资解决方案.jpg"],
+            ["物流智能分拨中心解决方案", "物流", "物流智能分拨中心解决方案：打造四大智能场景，提升分拣效率与准确率，降低运营成本。", "物流智能分拨中心解决方案.jpg"],
+            ["物流中心云解决方案", "物流", "物流中心云解决方案：整合云计算等技术打通数据壁垒，支撑物流降本增效与数字化升级。", "物流中心云解决方案.jpg"],
+            ["智慧零售连锁门店解决方案", "数字门店", "智慧零售连锁门店解决方案：全链路数字化，助力快速开店与精细化管理。", "智慧零售连锁门店解决方案.jpg"],
+            ["企业出海数字化解决方案", "企业服务", "企业出海数字化解决方案：覆盖全球办公、设备交付与持续服务，支撑业务快速拓展。", "企业出海数字化解决方案.jpg"]
+          ]
+        };
 
         function openSolutionCenter(industry) {
           clearHoverPromptTimer();
@@ -5976,77 +6089,10 @@ async function openEduZone() {
             lxOpenInfoTab("solution", `${industry}解决方案`, html);
             return;
           }
-          const solutionMeta = [
-            ["教育", "智慧教育", "EDU"], ["医疗", "智慧医疗", "MED"], ["政府", "数字政府", "GOV"],
-            ["制造", "智能制造", "MFG"], ["金融", "智慧金融", "FIN"], ["能源", "智慧能源", "ENE"],
-            ["交通", "智慧交通", "TRA"], ["服务", "智能基础设施", "SER"]
-          ];
-          const solutionCatalog = {
-            "教育": [
-              ["多擎云桌面解决方案", "普教", "多擎云桌面解决方案：融合四大架构，统一云化管理，提升教学效率。", "多擎云桌面解决方案4.jpg"],
-              ["智慧教室解决方案", "高校", "智慧教室解决方案：打破信息壁垒，助力教育数字化转型。", "智慧教室解决方案.jpg"],
-              ["职教智慧校园解决方案", "职教", "职教智慧校园解决方案：以1+2+3架构打造一体化数智校园，覆盖全场景。", "智慧校园解决方案1.jpg"],
-              ["智慧校园解决方案", "高校", "智慧校园解决方案：构建数字底座，赋能教育治理现代化，实现提质减负。", "智慧校园解决方案2.jpg"],
-              ["高性能计算解决方案", "高校", "高性能计算解决方案：低门槛HPC+AI平台，降低30%-50%成本。", "高性能计算解决方案.jpg"],
-              ["教育存储解决方案", "高校", "教育存储解决方案：面向教学、科研与校园数据，提供稳定可靠的统一存储能力。", "教育存储解决方案.jpg"]
-            ],
-            "医疗": [
-              ["医共体/医联体解决方案", "区卫-智慧区卫", "医共体/医联体解决方案：统一管理协同，推动资源共享与医疗数字化转型。", "医共体/医联体解决方案.jpg"],
-              ["慢病与健康管理解决方案", "医院-服务", "慢病与健康管理解决方案：覆盖多种慢病及肿瘤患者，助力医院高质量发展。", "智慧医院整体解决方案.jpg"],
-              ["多院区/区域医疗中心基础设施解决方案", "医院-智慧管理", "多院区/区域医疗中心基础设施解决方案：统一管理多数据中心，提升运维服务质量。", "多院区/区域医疗中心基础设施解决方案.jpg"],
-              ["医疗数据灾备与管理解决方案", "医院-智慧管理", "医疗数据灾备与管理解决方案：覆盖存储、备份、容灾全流程，提升数据安全与运营效率。", "医疗数据灾备与管理解决方案.jpg"],
-              ["医疗云桌面解决方案", "医院-智慧管理", "医疗云桌面解决方案：集中管理分布式架构，支持多院区扩展。", "医疗云桌面解决方案.jpg"],
-              ["医院云盘解决方案", "医院-智慧服务", "医院云盘解决方案：统一汇聚院内文件与协作数据，兼顾便捷共享和安全管控。", "医院云盘解决方案.jpg"]
-            ],
-            "政府": [
-              ["联想LECP存算一体化平台", "政府官网", "联想LECP存算一体化平台：存算管一体，开放兼容异构设备，节省30%投资，性能提升2倍。", "联想LECP存算一体化平台.jpg"],
-              ["数字政府统一运维方案", "政府官网", "数字政府统一运维方案：四个统一提升工单解决率与满意度，降本增效。", "数字政府统一运维方案.jpg"],
-              ["政务大数据解决方案", "政府官网", "政务大数据解决方案：构建三大中台，打破信息壁垒，实现高效协同。", "政务大数据解决方案.jpg"],
-              ["政务云平台解决方案", "政府官网", "政务云平台解决方案：统一底座与能力平台，打造一站式政务服务平台。", "政务云平台解决方案.jpg"],
-              ["智慧园区综合解决方案", "政府官网", "智慧园区综合解决方案：聚焦四大痛点，提供一站式服务，助力园区可持续发展。", "智慧园区综合解决方案.jpg"],
-              ["政府移动电子政务解决方案", "移动政务", "政府移动电子政务解决方案：连接移动办公与政务应用，提升协同效率和终端安全。", "政府移动电子政务解决方案.jpg"]
-            ],
-            "制造": [
-              ["AI研发平台", "智慧研发", "AI研发平台：一站式MLOps平台，助力制造企业降本增效。", "AI研发平台.jpg"],
-              ["数字化研发平台", "智慧研发", "数字化研发平台：融合仿真与设计，结合多体系，多节点产品，帮助企业提升资源利用率。", "数字化研发平台.jpg"],
-              ["AR数字孪生", "智慧研发", "AR数字孪生：构建工业元宇宙产品体系，助力企业降本增效与智能化转型。", "AR数字孪生.jpg"],
-              ["产线数字化", "智慧生产", "产线数字化：覆盖MES配套、自动化控制、缺陷检测，助力高效数字化转型。", "产线数字化.jpg"],
-              ["Lenovo Edge AI 工业质检解决方案", "智慧生产", "Lenovo Edge AI 工业质检解决方案：小样本终身学习驱动边缘AI质检，提升效率与精度。", "Lenovo Edge AI工业质检解决方案.jpg"],
-              ["制造执行系统", "智慧生产", "制造执行系统：贯通计划、生产、质量与设备数据，提升工厂透明化运营能力。", "制造执行系统.jpg"]
-            ],
-            "金融": [
-              ["金融行业DCM数据中心管理平台", "数字基础设施", "金融行业DCM数据中心管理平台：带内外管理赋能全流程运维，提效降本增安绿色运营。", "金融行业DCM数据中心管理平台.jpg"],
-              ["联想IT设备再生服务", "数字基础设施", "可持续发展解决方案（ESG）IT设备再生服务：覆盖资产回收处置全环节，保障安全合规。", "联想IT设备再生服务.jpg"],
-              ["智能运维解决方案", "智能运维", "智能运维解决方案：全渠道全天候全生命周期数字化运维，助力金融机构高效创新发展 。", "智能运维解决方案.jpg"],
-              ["联想超融合解决方案", "智能运维", "联想超融合解决方案：整合资源一体化管理，提升利用率，支撑金融IT高效灵活升级。", "联想超融合解决方案.jpg"],
-              ["联想魔方客服智能体解决方案", "智能客服", "联想魔方客服智能体解决方案：无缝嵌入客服系统，私有化部署，助力企业客服升级。", "联想魔方客服智能体解决方案.jpg"],
-              ["智能混合云解决方案", "数字基础设施", "智能混合云解决方案：统一纳管多云资源，为金融业务提供弹性、安全的基础设施底座。", "智能混合云解决方案.jpg"]
-            ],
-            "能源": [
-              ["变电站智能巡检解决方案", "电力", "变电站智能巡检解决方案：融合机器人、AI，支持多场景智能巡检，提效降本。", "变电站智能巡检解决方案.jpg"],
-              ["智慧电厂解决方案", "电力", "智慧电厂解决方案：构建统一数据环境，推动电厂智能化运营。", "智慧电厂解决方案.jpg"],
-              ["智慧矿山数字孪生解决方案", "矿产", "智慧矿山数字孪生解决方案：提供建模、XR展示、仿真预测，提升矿山运营效率与安全。", "智慧矿山数字孪生解决方案.jpg"],
-              ["带式输送机工业质检解决方案", "矿产", "带式输送机工业质检解决方案：覆盖异物、跑偏及违规识别，降低模型成本，提升安全性。", "带式输送机工业质检解决方案.jpg"],
-              ["私有云建设及扩容解决方案", "油气", "私有云建设及扩容解决方案：依托Nutanix实现多地多中心统一管理与灵活容灾。", "私有云建设及扩容解决方案.jpg"],
-              ["虚拟电厂解决方案", "电力", "虚拟电厂解决方案：聚合分布式能源与负荷资源，提升调度协同和能源运营效率。", "虚拟电厂解决方案.jpg"]
-            ],
-            "交通": [
-              ["高速ETC HCI解决方案", "高速", "高速ETC HCI解决方案：云边端架构，提升资源利用率与运维效率。", "高速ETC HCI解决方案.jpg"],
-              ["高速云解决方案", "高速", "高速云解决方案：构建“端-边-云-网-智”架构，提升高速运营效率、安全与服务质量。", "高速云解决方案.jpg"],
-              ["轨交云解决方案", "轨交", "轨交云解决方案：提供城轨云与大数据平台，提升运维效率，推动智能化发展。", "轨交云解决方案.jpg"],
-              ["智能运维平台解决方案", "轨交", "智能运维平台解决方案：以边缘感知+智慧认知+人机协同架构，提升城轨智能运维能力。", "智能运维平台解决方案.jpg"],
-              ["机场云平台解决方案", "航空", "机场云平台解决方案：统一管理异构资源，助力智慧民航数字化升级。", "机场云平台解决方案.jpg"],
-              ["轨交智能运营解决方案", "轨交", "轨交智能运营解决方案：融合运营数据和智能分析能力，提升线网协同与服务水平。", "轨交智能运营解决方案.jpg"]
-            ],
-            "服务": [
-              ["非线编解决方案", "媒体", "非线编解决方案：解决超高清制作读写、并发与算力痛点，保障稳定扩展与数据安全。", "非线编解决方案.jpg"],
-              ["联想智能媒资解决方案", "媒体", "联想智能媒资解决方案：解决扩展适配存储风险，支撑媒资全生命周期管理。", "联想智能媒资解决方案.jpg"],
-              ["物流智能分拨中心解决方案", "物流", "物流智能分拨中心解决方案：打造四大智能场景，提升分拣效率与准确率，降低运营成本。", "物流智能分拨中心解决方案.jpg"],
-              ["物流中心云解决方案", "物流", "物流中心云解决方案：整合云计算等技术打通数据壁垒，支撑物流降本增效与数字化升级。", "物流中心云解决方案.jpg"],
-              ["智慧零售连锁门店解决方案", "数字门店", "智慧零售连锁门店解决方案：全链路数字化，助力快速开店与精细化管理。", "智慧零售连锁门店解决方案.jpg"],
-              ["企业出海数字化解决方案", "企业服务", "企业出海数字化解决方案：覆盖全球办公、设备交付与持续服务，支撑业务快速拓展。", "企业出海数字化解决方案.jpg"]
-            ]
-          };
+          // solutionMeta/solutionCatalog 已提升为模块级 LX_SOLUTION_META / LX_SOLUTION_CATALOG（见函数上方），
+          // 这里只做局部别名，内容与原字面量完全一致，避免维护两份数据。
+          const solutionMeta = LX_SOLUTION_META;
+          const solutionCatalog = LX_SOLUTION_CATALOG;
           const tabs = `<nav class="lx-solution-tabs" aria-label="行业筛选"><button class="active" type="button" data-solution-filter="all" aria-pressed="true">全部行业</button>${solutionMeta.map(([label]) => `<button type="button" data-solution-filter="${esc(label)}" aria-pressed="false">${esc(label)}</button>`).join("")}</nav>`;
           const floors = solutionMeta.map(([label, key, code]) => {
             const items = solutionCatalog[label] || [];
@@ -6077,6 +6123,16 @@ async function openEduZone() {
           lxRenderTabbar();
           lxSyncAnswerCtaActiveState(state.activeTabId);
         }
+
+        // 咨询与线索场景补差（p0-solution.js，chip 澄清流/方案对比维度重排/留资固定文案）跨文件调用桥接。
+        // 只追加新键，不覆盖 window.__lxAgentAPI 已有键；放在这里是因为下面这些函数/常量在此刻均已定义。
+        Object.assign(window.__lxAgentAPI, {
+          addMessage, lxAddInstantAi, lxAppendAiHtml, renderPageCta,
+          lxOpenInfoTab, lxSyncAnswerCtaActiveState, toast, esc,
+          openSolutionCenter, lxOpenSolutionCompareTab, lxSolutionCompareMeta,
+          lxOpenSpecificSolutionDetail, openLeadPanel,
+          solutionMeta: LX_SOLUTION_META, solutionCatalog: LX_SOLUTION_CATALOG, solutionDetail: LX_SOLUTIONS,
+        });
 
         function openProjectCooperationList() {
           const solutionMeta = {
@@ -6817,7 +6873,7 @@ async function openEduZone() {
           const isSolution = data.type === "solution";
           const solutionCount = state.refProducts.filter(p => p.type === "solution").length;
           if ((isSolution && solutionCount >= 3) || (!isSolution && state.refProducts.length >= 5)) {
-            toast(isSolution ? "最多引用 3 个方案哦" : "最多引用 5 个商品哦");
+            toast(isSolution ? "最多支持3个解决方案对比哦" : "最多引用 5 个商品哦");
             return;
           }
           const item = {
@@ -8532,7 +8588,8 @@ async function openEduZone() {
             ["下一步", "顾问将在 1 个工作日内联系确认方案范围"]
           ];
           const steps = ["校验联系信息", "生成项目合作线索", "同步顾问跟进队列"];
-          const html = `<div class="lx-lead-success-card"><div class="lx-lead-success-head"><span>✓</span><div><strong>留资成功</strong><p>项目合作信息已收到，联想乐享已为您生成跟进记录。</p></div></div><div class="lx-lead-success-steps">${steps.map((step) => `<div class="lx-op-step done"><span class="lx-op-step-ic">✓</span><span>${esc(step)}</span></div>`).join("")}</div><div class="lx-lead-success-rows">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div>`;
+          // 左侧固定文案（PRD 留资弹窗提交成功态硬性要求，所有留资场景统一这一句，不按 scenario 改写）
+          const html = `<div class="lx-lead-success-card"><div class="lx-lead-success-head"><span>✓</span><div><strong>提交成功</strong><p>已提交项目需求，我们的客户经理会尽快与您联系。</p></div></div><div class="lx-lead-success-steps">${steps.map((step) => `<div class="lx-op-step done"><span class="lx-op-step-ic">✓</span><span>${esc(step)}</span></div>`).join("")}</div><div class="lx-lead-success-rows">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div>`;
           chat.insertAdjacentHTML("beforeend", `<div class="lx-p0-message ai">${html}</div>`);
           chat.scrollTop = chat.scrollHeight;
         }
@@ -9752,17 +9809,38 @@ async function openEduZone() {
               const budget = $("#lxLeadBudget")?.value || "";
               const need = $("#lxLeadNeed")?.value.trim() || "";
               const contact = [name, phone, email].filter(Boolean).join(" / ");
+              // 必填校验失败：字段级红字提示，不关弹窗（PRD LEAD-04 异常态）。先清掉上一次的错误标记，
+              // 再对每个缺失字段单独打上 invalid 态 + 行内错误文案，不再只靠一条 toast 笼统提示。
+              const fieldChecks = [
+                ["lxLeadName", name, "请填写姓名"],
+                ["lxLeadEmail", email, "请填写邮箱"],
+                ["lxLeadPhone", phone, "请填写手机号"],
+                ["lxLeadCode", code, "请填写短信验证码"],
+                ["lxLeadCompany", company, "请填写公司名称"],
+                ["lxLeadCity", city, "请填写所在城市"],
+                ["lxLeadJob", job, "请选择职务"],
+                ["lxLeadIndustry", industry, "请选择行业"],
+                ["lxLeadNeed", need, "请填写留言"],
+              ];
+              document.querySelectorAll(".lx-lead-row.lx-field-invalid").forEach((row) => {
+                row.classList.remove("lx-field-invalid");
+                row.querySelector(".lx-lead-field-error")?.remove();
+              });
               const missing = [];
-              if (!name) missing.push("姓名");
-              if (!email) missing.push("邮箱");
-              if (!phone) missing.push("手机");
-              if (!code) missing.push("验证码");
-              if (!company) missing.push("公司");
-              if (!city) missing.push("城市");
-              if (!job) missing.push("职务");
-              if (!industry) missing.push("行业");
-              if (!need) missing.push("留言");
-              if (missing.length) { toast(`请填写：${missing.join("、")}`); return; }
+              fieldChecks.forEach(([id, value, message]) => {
+                if (value) return;
+                missing.push(message.replace(/^请(填写|选择)/, ""));
+                const field = document.getElementById(id);
+                const row = field?.closest(".lx-lead-row");
+                if (!row) return;
+                row.classList.add("lx-field-invalid");
+                row.insertAdjacentHTML("beforeend", `<small class="lx-lead-field-error">${esc(message)}</small>`);
+              });
+              if (missing.length) {
+                toast(`请完善标红字段：${missing.join("、")}`);
+                document.getElementById(fieldChecks.find(([, value]) => !value)?.[0] || "")?.focus();
+                return;
+              }
               closeModal();
               fetch("/api/leads", {
                 method: "POST",
@@ -9772,10 +9850,27 @@ async function openEduZone() {
                   site_type: API_SITE[state.page] || "default",
                   company, contact, need,
                   name, email, phone, city, job, industry, budget,
+                  // 数据来源标记（PRD LEAD-04：留资来源标识统一为"联想乐享/AI 解决方案"）
+                  source: "联想乐享/AI 解决方案",
                   conv_id: state.convId || null
                 })
-              }).then(() => toast("信息已提交，顾问会尽快与您联系")).catch(() => {});
-              lxAppendLeadSuccessCard({ name, company, city, job, industry, budget, need });
+              })
+                .then((res) => { if (!res.ok) throw new Error("lead submit failed"); return res.json().catch(() => ({})); })
+                .then(() => {
+                  lxAppendLeadSuccessCard({ name, company, city, job, industry, budget, need });
+                  // 相关方案页留资 CTA 同步变「已提交」：只在收到提交成功回执后才标记，只在当前可见
+                  // 的右侧内容里找，不误伤其它标签页；不在失败分支执行，避免把失败包装成成功。
+                  document.querySelectorAll(".content [data-floor-action='lead']:not([data-lead-done]), .content [data-biz-quote]:not([data-lead-done])").forEach((btn) => {
+                    btn.textContent = "已提交";
+                    btn.setAttribute("data-lead-done", "1");
+                    btn.disabled = true;
+                  });
+                })
+                .catch(() => {
+                  // 提交失败：不能包装成成功（PRD S6）。弹窗已关闭，改在左侧给出重试与热线/在线咨询入口。
+                  lxAddInstantAi("抱歉，本次提交遇到问题，结果待确认。你可以稍后重试，或直接拨打商用产品及方案服务咨询热线 400-813-6161，也可以继续在线咨询。",
+                    '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-project-lead="' + esc(String(state.leadScenario || "").replace(/^project:/, "") || "项目合作") + '">重新提交</button></div>');
+                });
             }
             const recoCompare = event.target.closest("[data-reco-compare]");
             if (recoCompare) {

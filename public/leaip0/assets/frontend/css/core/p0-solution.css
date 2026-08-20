@@ -1,0 +1,167 @@
+/* v0.14.63 咨询与线索场景补差：行业/场景 chip 澄清流、结果卡操作按钮、对比表结论区/追加对比、
+   留资弹窗字段级校验提示。配套 assets/frontend/js/core/p0-solution.js，五页共用。 */
+
+/* ── chip 澄清流（AC-LEAD-01/02） ───────────────────────────────────────── */
+.lx-solution-chip-lead {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #252525;
+}
+.lx-solution-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.lx-solution-chip {
+  padding: 7px 16px;
+  border: 1px solid #e2ddeb;
+  border-radius: 999px;
+  background: #fff;
+  color: #4d144a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .16s ease, background-color .16s ease, color .16s ease;
+}
+.lx-solution-chip:hover {
+  border-color: #5b1452;
+  background: #fcf2f8;
+}
+.lx-solution-chip-skip {
+  color: #625b68;
+  border-style: dashed;
+}
+
+/* ── 结果卡片操作区（了解详情 / 解决方案对比） ─────────────────────────── */
+.lx-solution-result-card {
+  position: relative;
+}
+.lx-solution-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.lx-solution-action-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #e2ddeb;
+  border-radius: 6px;
+  background: #fff;
+  color: #4d144a;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .16s ease, background-color .16s ease, color .16s ease;
+}
+.lx-solution-action-btn:hover {
+  border-color: #5b1452;
+  background: #fcf2f8;
+}
+.lx-solution-compare-btn.is-picked,
+.lx-solution-compare-btn[aria-pressed="true"] {
+  border-color: #5b1452;
+  background: #5b1452;
+  color: #fff;
+}
+.lx-solution-result-footer {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0 6px;
+}
+.lx-solution-result-footer .lx-p0-btn {
+  min-width: 200px;
+}
+
+/* ── 对比表：结论区 + 追加/替换 ─────────────────────────────────────────── */
+.lx-cmp-conclusion {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid #e2ddeb;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fcfaff, #fff);
+}
+.lx-cmp-conclusion h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #101010;
+}
+.lx-cmp-conclusion p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #625b68;
+}
+.lx-cmp-append {
+  margin-top: 14px;
+}
+.lx-cmp-append:empty {
+  display: none;
+}
+.lx-cmp-append-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #979797;
+}
+.lx-cmp-replace-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.lx-cmp-replace-targets .lx-p0-btn.is-active {
+  border-color: #5b1452;
+  color: #5b1452;
+}
+.lx-cmp-append-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #625b68;
+}
+.lx-cmp-append-select {
+  padding: 6px 10px;
+  border: 1px solid #e2ddeb;
+  border-radius: 6px;
+  background: #fff;
+  color: #252525;
+  font-size: 12px;
+}
+
+/* 对比表列标题改为可点击按钮（PRD：列标题可跳回方案详情），复位按钮默认外观、保留原 .phead 视觉 */
+.lx-cmp-skin button.phead {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  margin: 0;
+}
+.lx-cmp-skin button.phead:hover {
+  color: #5b1452;
+  text-decoration: underline;
+}
+
+/* ── 留资弹窗：必填校验失败字段级提示（不关弹窗） ───────────────────────── */
+.lx-lead-row.lx-field-invalid input,
+.lx-lead-row.lx-field-invalid select,
+.lx-lead-row.lx-field-invalid textarea {
+  border-color: #e42b20 !important;
+}
+.lx-lead-row.lx-field-invalid {
+  border-bottom-color: #e42b20 !important;
+}
+.lx-lead-field-error {
+  display: block;
+  margin-top: 2px;
+  color: #e42b20;
+  font-size: 11px;
+  line-height: 1.4;
+}
