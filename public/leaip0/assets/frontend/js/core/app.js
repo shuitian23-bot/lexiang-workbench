@@ -3038,7 +3038,9 @@ function openOrderDetail(orderId) {
           const _refSnap = state.refProduct;
           const _refMsgSnap = state.refMsg;
           setTimeout(() => lxSetRef(null), 100);
-          if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
+          // 旧版「提到学生认证/教育认证且短句即秒开表单」的兜底已废弃：不区分咨询/办理、不检查登录
+          // 与认证状态就无条件弹窗，违反 MEM-02 状态编排（p0-member-svc.js handleQuery 已完整覆盖
+          // 咨询说明 / 办理按钮 / 状态前置判断，含这里原来想兜的短句变体）。
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
