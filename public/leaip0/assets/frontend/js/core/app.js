@@ -432,7 +432,9 @@ if (!window.__lxCreateTypewriter) {
         // 商品简易卡自动展开：3秒后自动打开右侧，除非用户已手动打开(opened)或已主动关闭该批次(closed)
         window.__lxRecoAutoState = window.__lxRecoAutoState || {};
         function lxScheduleAutoOpenReco(recoId, openFn) {
-          if (!recoId) { openFn(); return; }
+          // 正常路径 recoId 现在由调用方在渲染前算好、闭包直传，不应该再走到这个早退分支；
+          // 留作最后兜底，命中即打印告警方便发现"3秒延迟又失效了"的回归。
+          if (!recoId) { console.warn("[lx] lxScheduleAutoOpenReco: recoId 为空，跳过3秒延迟直接展开（可能是回归，请检查调用方是否仍在闭包里传 recoId）"); openFn(); return; }
           window.__lxRecoAutoState[recoId] = { closed: false, opened: false };
           setTimeout(() => {
             const st = window.__lxRecoAutoState[recoId];
@@ -2379,10 +2381,13 @@ function openOrderDetail(orderId) {
           if (list) list.scrollTop = list.scrollHeight;
         }
 
-        function renderProductsInMessage(products) {
+        function renderProductsInMessage(products, precomputedRecoId) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
-          const recoId = lxStoreRecoPayload(products);
+          // recoId 优先用调用方在生成前已算好、握在闭包里的那份（见 products:/display: handler），
+          // 不再依赖之后从 DOM 读回——打字动画把这段 HTML 缓冲在 _pendingExtras 里，flush 进 DOM
+          // 有延迟，调用方若在 deferRightPanel 回调里才反查 DOM 会读到空串（recoId 时序根治）。
+          const recoId = precomputedRecoId || lxStoreRecoPayload(products);
           // 单品也带 recoId：官方 sku 在自有库 404，恢复历史后 officialProducts 缓存也空，
           // 点击时优先用持久化 payload 里的完整商品对象兜底（真机反馈：历史里点 CTA 没反应）
           const action = products.length === 1 && first.sku
@@ -3297,10 +3302,10 @@ function openOrderDetail(orderId) {
                 _turnProdCount = Math.max(_turnProdCount, products.length);
                 _turnProducts = products;
                 revealAi();
-                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                const recoId = products.length ? lxStoreRecoPayload(products) : "";
+                lxAppendAiHtml(ai, renderProductsInMessage(products, recoId));
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
-                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       openProduct(products[0], { recoId });
@@ -3308,7 +3313,6 @@ function openOrderDetail(orderId) {
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
-                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       const recoTab = lxCreateRecoTab(products, { label: "AI 推荐", recoId });
@@ -3362,11 +3366,11 @@ function openOrderDetail(orderId) {
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
                 }
-                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                const recoId = products.length ? lxStoreRecoPayload(products) : "";
+                lxAppendAiHtml(ai, renderProductsInMessage(products, recoId));
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
-                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       openProduct(products[0], { recoId });
@@ -3374,7 +3378,6 @@ function openOrderDetail(orderId) {
                   });
                 } else if (products.length) {
                   deferRightPanel(() => {
-                    const recoId = lxLatestRecoIdInMessage(ai);
                     lxScheduleAutoOpenReco(recoId, () => {
                       lxRevealContent();
                       const recoTab = lxCreateRecoTab(products, { label: payload.title || "AI 推荐", grouped: payload.grouped, recoId });
