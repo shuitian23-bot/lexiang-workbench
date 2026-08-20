@@ -164,6 +164,23 @@
       return sess;
     }
     function wireBar(sess, ta, form) {
+      // 品类/用途/预算选项写草稿、返回修改清空后续槽位，都会把 ta.value 程序性改写成
+      // 任意内容——包括返回第 0 轮时清空成空字符串。这个改写会 dispatch "input" 事件，
+      // 而 checkTrigger 的空值分支是给「用户真的清空了输入框」用的，会同步调 closeFunnel()
+      // 把 sess.bar 置 null；随后本函数再调 renderBar() 就会对 null.innerHTML 赋值报错，
+      // 引导条整个消失而不是停在目标轮。用 sess.internalUpdate 标记本次改写是程序性的，
+      // checkTrigger 见到这个标记直接跳过自动关闭判断。
+      function rewriteDraft() {
+        sess.internalUpdate = true;
+        ta.value = draftText(sess.slots);
+        ta.dispatchEvent(new Event("input", { bubbles: true }));
+        sess.internalUpdate = false;
+      }
+      // 防御性兜底：万一 bar 因为其它路径已被关闭（sess.bar 为 null），重开一个而不是崩溃。
+      function renderBarSafe() {
+        if (!sess.bar) openFunnel(ta, form);
+        else renderBar(sess, ta, form);
+      }
       sess.bar.addEventListener("click", function (e) {
         var optBtn = e.target.closest("[data-funnel-opt]");
         if (optBtn) {
@@ -171,10 +188,9 @@
           if (!round) return;
           sess.slots[round.key] = optBtn.getAttribute("data-funnel-opt");
           sess.round = firstUnsetRound(sess.slots);
-          ta.value = draftText(sess.slots);
-          ta.dispatchEvent(new Event("input", { bubbles: true }));
+          rewriteDraft();
           try { ta.focus(); var L = ta.value.length; ta.setSelectionRange(L, L); } catch (_e) {}
-          renderBar(sess, ta, form);
+          renderBarSafe();
           return;
         }
         var stepBtn = e.target.closest("[data-funnel-step]");
@@ -183,9 +199,8 @@
           // 返回修改前置答案：清空该轮及之后所有槽位，禁止静默覆盖，重新逐轮提问
           for (var k = i; k < ROUNDS.length; k++) delete sess.slots[ROUNDS[k].key];
           sess.round = i;
-          ta.value = draftText(sess.slots);
-          ta.dispatchEvent(new Event("input", { bubbles: true }));
-          renderBar(sess, ta, form);
+          rewriteDraft();
+          renderBarSafe();
           return;
         }
         if (e.target.closest(".lx-funnel-close")) { sess.closed = true; closeFunnel(ta); }
@@ -212,6 +227,7 @@
     }
     function checkTrigger(ta, form) {
       var sess = sessions.get(ta);
+      if (sess && sess.internalUpdate) return; // 引导条自己改写草稿触发的 input，不当用户清空处理
       var val = ta.value || "";
       if (!val.trim()) {
         if (sess) { sess.closed = false; sess.round = 0; sess.slots = {}; }
