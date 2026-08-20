@@ -573,6 +573,12 @@ if (!window.__lxCreateTypewriter) {
         }
 
         function closeModal() {
+          // 登录拦截：登录弹窗被关闭（暂不登录/点遮罩/×）而非登录成功时，清掉待跳转目标，
+          // 避免下次登录成功后误跳到旧场景；登录成功路径已在 login() 里先消费掉 pending，
+          // 这里是幂等兜底（pending 早已为 null 时不会有副作用）。
+          if (document.querySelector("#lxLoginPhone")) {
+            try { window.__lxShell && window.__lxShell.onLoginDismiss && window.__lxShell.onLoginDismiss(); } catch (_e) {}
+          }
           const mask = $(".lx-p0-modal-mask");
           if (mask && typeof mask._lxOnClose === "function") {
             const onClose = mask._lxOnClose;
@@ -1810,6 +1816,13 @@ if (!window.__lxCreateTypewriter) {
         }
 
         async function lxOpenCommerceEntry(kind, options = {}) {
+          // 登录拦截保存来源：未登录点购物车/订单入口先弹登录框，登录成功后自动跳回本次目标；
+          // 同一入口（cart/orders 分别计）弹窗展示期间重复点击不再堆叠弹窗。
+          if (window.__lxShell && window.__lxShell.requireLogin) {
+            const entryName = kind === "orders" ? "orders" : "cart";
+            const ok = window.__lxShell.requireLogin(entryName, () => lxOpenCommerceEntry(kind, options));
+            if (!ok) return;
+          }
           const clearFullscreenState = () => {
             document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
             state.autoFs = false;
@@ -2273,6 +2286,8 @@ function openOrderDetail(orderId) {
           closeModal();
           updateUserArea();
           toast("登录成功");
+          // 登录拦截保存来源：closeModal() 先关登录框，这里再触发原目标（对话记录/购物车/订单跳详情）
+          try { window.__lxShell && window.__lxShell.onLoginSuccess && window.__lxShell.onLoginSuccess(); } catch (_e) {}
         }
 
         async function logout() {
@@ -2871,6 +2886,11 @@ function openOrderDetail(orderId) {
         }
 
         function lxOpenHistoryModal() {
+          // 登录拦截保存来源：未登录点「对话记录」先弹登录框，登录成功后自动回到历史记录弹窗。
+          if (window.__lxShell && window.__lxShell.requireLogin) {
+            const ok = window.__lxShell.requireLogin("history", lxOpenHistoryModal);
+            if (!ok) return;
+          }
           lxHistoryModalPage = 1;
           openModal("历史记录", lxHistoryModalHtml());
           const search = document.querySelector(".lx-history-modal .lx-history-search-input");
@@ -10166,6 +10186,8 @@ async function openEduZone() {
         window.openCart = openCart;
         window.openOrders = openOrders;
         window.lxOpenCommerceEntry = lxOpenCommerceEntry;
+        window.openLogin = openLogin; // 登录拦截（p0-shell.js requireLogin）需要能主动弹登录框
+        window.__lxOpenHistoryModal = lxOpenHistoryModal;
         window.openCompare = openCompare;
         window.openMemberCenter = openMemberCenter;
         window.openCouponCenter = openCouponCenter;

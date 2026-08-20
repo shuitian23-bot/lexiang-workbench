@@ -1,0 +1,112 @@
+/* ── P0 端侧功能交互补差样式（配 p0-shell.js）───────────────────────────── */
+
+/* A4 快捷入口「更多」浮层移出延时收起：JS 维护 .lx-more-open，延时窗口内继续显示浮层，
+   与现有 :hover 展开规则叠加互不冲突（本规则只在延时期内兜底显示，:hover 命中时天然一致）。 */
+.more-wrap.lx-more-open > .more-menu {
+  display: block !important;
+}
+
+/* A5 猜你干嘛分步导购条 */
+.lx-funnel-bar {
+  position: fixed;
+  z-index: 9999;
+  box-sizing: border-box;
+  padding: 12px 40px 12px 14px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--border, #e6e0ed);
+  box-shadow: 0 14px 36px rgba(146, 86, 214, 0.18);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .18s ease, transform .18s ease;
+  pointer-events: none;
+}
+.lx-funnel-bar.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.lx-funnel-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.lx-funnel-step {
+  border: 1px solid var(--border, #e6e0ed);
+  background: #f8f6fa;
+  color: var(--text-muted, #979797);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: default;
+  font-family: inherit;
+}
+.lx-funnel-step:not([disabled]) {
+  cursor: pointer;
+  color: var(--text-soft, #625b68);
+  background: #f3edf6;
+}
+.lx-funnel-step:not([disabled]):hover {
+  filter: brightness(.97);
+}
+.lx-funnel-step.cur {
+  color: #fff;
+  background: var(--aubergine, #5b1452);
+  border-color: var(--aubergine, #5b1452);
+}
+.lx-funnel-step.done {
+  color: var(--aubergine, #5b1452);
+  border-color: var(--aubergine, #5b1452);
+}
+.lx-funnel-q {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #101010;
+  margin-bottom: 8px;
+}
+.lx-funnel-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lx-funnel-opt {
+  border: 1px solid var(--border, #e6e0ed);
+  background: #fff;
+  color: #101010;
+  border-radius: 9px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease;
+}
+.lx-funnel-opt:hover {
+  background: var(--lavender-hover, #f3edf6);
+  border-color: var(--aubergine, #5b1452);
+}
+.lx-funnel-done {
+  font-size: 13px;
+  color: var(--text-soft, #625b68);
+}
+.lx-funnel-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #979797);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.lx-funnel-close:hover {
+  color: #101010;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-funnel-bar {
+    transition: none;
+  }
+}
