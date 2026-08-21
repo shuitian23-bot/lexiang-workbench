@@ -1,5 +1,7 @@
 .ai-arrow { display: none !important; }
+      /* 商品楼层卡片使用无描边容器；勾选框、促销标签等内部控件保留各自描边。 */
       .content :is(.product-card,.lx-floor-product-card,[data-floor-product],.lx-floor-product,.lx-sim-card,.lx-p0-product-mini,.reco-row,.lx-edu-card) {
+        border: 0 !important;
         transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
       }
       .content :is(.product-card,.lx-floor-product-card,[data-floor-product],.lx-floor-product,.lx-sim-card,.lx-p0-product-mini,.reco-row,.lx-edu-card):hover {
