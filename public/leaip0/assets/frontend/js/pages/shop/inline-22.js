@@ -158,7 +158,7 @@
       {
         name: "高效办公",
         title: "高效办公 灵活成长",
-        description: "从日常办公到业务拓展 为中小企业搭配稳定高效的智能办公设备。",
+        description: "助力中小企业构建高效智能办公体系",
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
@@ -175,7 +175,7 @@
       {
         name: "移动差旅",
         title: "轻装随行，效率在线",
-        description: "兼顾轻薄便携 长效续航与安全管理 让差旅办公随时高效展开。",
+        description: "轻薄长续航让差旅办公高效无忧",
         price: "13,999",
         product: "ThinkPad X1 Carbon AI",
         specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
@@ -192,7 +192,7 @@
       {
         name: "专业设计",
         title: "专业设计 创意高效",
-        description: "覆盖视觉设计 建模渲染与多任务创作 为专业团队提供稳定算力支持。",
+        description: "稳定专业算力助力创意高效落地",
         price: "16,299",
         product: "ThinkPad P16s 2025",
         specs: "酷睿 Ultra 7 · 32GB · 1TB",
@@ -209,7 +209,7 @@
       {
         name: "会议协作",
         title: "会议协作 沟通无界",
-        description: "联动音视频会议 内容共享与远程协作 让企业沟通更清晰更高效。",
+        description: "智慧协作互联让企业沟通更高效",
         price: "16,299",
         product: "ThinkSmart 会议协作方案",
         specs: "智能会议 · 内容共享 · 远程协作",
@@ -226,7 +226,7 @@
       {
         name: "成长型团队",
         title: "成长型团队 稳健扩展",
-        description: "从团队协作到设备管理 为快速成长的企业搭建灵活可扩展的生产力基础。",
+        description: "灵活扩展生产力陪伴成长型团队",
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
@@ -245,7 +245,7 @@
       {
         name: "制造行业",
           title: "贯通研产 智链制造",
-        description: "面向核心业务与大规模算力场景 提供稳定 安全 可持续演进的基础设施。",
+        description: "稳定算力底座支撑智能制造升级",
         price: "28,500",
         product: "ThinkStation P 系列工作站",
         specs: "专业算力 · 集中管理 · 安全可靠",
@@ -257,7 +257,7 @@
       {
         name: "教育行业",
         title: "智慧教育 协同创新",
-        description: "连接教学 科研与校园管理场景 构建安全高效的数字教育基础设施。",
+        description: "数字技术赋能教学科研协同创新",
         price: "30,299",
         product: "联想智慧教育解决方案",
         specs: "智慧教学 · 科研计算 · 校园管理",
@@ -269,7 +269,7 @@
       {
         name: "政府行业",
         title: "数字政务 安全高效",
-        description: "围绕政务服务 数据治理与统一运维 提升数字政府的协同和服务能力。",
+        description: "安全数字底座提升政务协同效能",
         price: "34,799",
         product: "联想数字政府解决方案",
         specs: "政务云 · 数据治理 · 统一运维",
@@ -281,7 +281,7 @@
       {
         name: "医疗行业",
         title: "智慧医疗 稳健守护",
-        description: "贯通诊疗 数据与运营场景 为医疗机构提供可靠的数字化基础能力。",
+        description: "可靠数字能力守护智慧医疗运营",
         price: "34,799",
         product: "联想智慧医院解决方案",
         specs: "智慧诊疗 · 数据安全 · 高效运营",
@@ -293,7 +293,7 @@
       {
         name: "金融行业",
         title: "金融智算 安全敏捷",
-        description: "面向核心业务 数据中心与智能应用 构建安全弹性的金融数字底座。",
+        description: "安全弹性智算赋能金融业务创新",
         price: "34,799",
         product: "联想金融行业解决方案",
         specs: "核心业务 · 数据中心 · 智能应用",
@@ -305,7 +305,7 @@
       {
         name: "能源行业",
         title: "智慧能源 绿色发展",
-        description: "服务能源生产 巡检与运营管理 推动安全生产和绿色低碳转型。",
+        description: "数智赋能能源生产与绿色低碳转型",
         price: "34,799",
         product: "联想智慧能源解决方案",
         specs: "智能巡检 · 安全生产 · 绿色运营",
@@ -317,7 +317,7 @@
       {
         name: "交通行业",
         title: "智慧交通 畅行协同",
-        description: "覆盖轨道 机场与高速场景 以云平台和智能运营能力提升通行效率。",
+        description: "云智融合运营提升智慧交通效率",
         price: "34,799",
         product: "联想智慧交通解决方案",
         specs: "轨道交通 · 机场云 · 高速运营",
@@ -329,7 +329,7 @@
       {
         name: "服务行业",
         title: "智慧服务 体验升级",
-        description: "连接门店 客服与供应链场景 以智能化能力提升运营与客户体验。",
+        description: "智能连接服务场景提升客户体验",
         price: "34,799",
         product: "联想智慧服务解决方案",
         specs: "智慧门店 · 智能客服 · 供应链协同",
