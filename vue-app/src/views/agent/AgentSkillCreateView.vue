@@ -423,7 +423,7 @@
               </div>
             </div>
             <div class="skill-create-step-actions">
-              <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
+              <button class="btn btn-secondary skill-draft-save" type="button" :disabled="!canEditCurrentSkill" @click="saveDraft">保存草稿</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('clarify')">上一步</button>
               <button class="btn btn-primary" type="button" @click="goNext('draft')">下一步：评估验证</button>
             </div>
@@ -503,7 +503,7 @@
 
             </div>
             <div class="skill-create-step-actions">
-              <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
+              <button class="btn btn-secondary skill-draft-save" type="button" :disabled="!canEditCurrentSkill" @click="saveDraft">保存草稿</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('draft')">上一步</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('clarify')">返回修改</button>
               <button id="skill-create-next-review-btn" class="btn btn-primary" :class="{ disabled: !canSubmitReview }" :disabled="!canSubmitReview" type="button" @click="goNext('verify')">下一步：提交审核</button>
@@ -527,7 +527,7 @@
               </div>
             </div>
             <div class="skill-create-step-actions">
-              <button class="btn btn-secondary skill-draft-save" type="button" @click="saveDraft">保存草稿</button>
+              <button class="btn btn-secondary skill-draft-save" type="button" :disabled="!canEditCurrentSkill" @click="saveDraft">保存草稿</button>
               <button class="btn btn-secondary" type="button" @click="switchTab('verify')">上一步</button>
               <button v-if="reviewSubmitted" class="btn btn-secondary" type="button" @click="openSkills">查看 Skill Hub</button>
               <button id="skill-create-submit-review-btn" class="btn btn-primary" :class="{ disabled: reviewSubmitted || !canSubmitReview }" :disabled="reviewSubmitted || !canSubmitReview" type="button" @click="submitReview">
@@ -562,6 +562,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
+import { skillHubMutationDecision } from '@/services/skillCapabilityChanges.js'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
 type TabKey = 'config' | 'clarify' | 'draft' | 'verify' | 'review'
@@ -1026,12 +1027,25 @@ const scores = computed(() => aiTuned.value
     ])
 
 const currentScore = computed(() => aiTuned.value ? 0.859 : 0.782)
-const canSubmitReview = computed(() => currentScore.value >= REVIEW_SCORE_THRESHOLD)
+const currentSkillRecord = computed(() => form.value.name ? skillHubStore.findSkill(form.value.name) : undefined)
+const editMutationDecision = computed(() => skillHubMutationDecision(currentSkillRecord.value, appStore.user || 'admin', 'edit'))
+const submitMutationDecision = computed(() => skillHubMutationDecision(
+  currentSkillRecord.value,
+  appStore.user || 'admin',
+  'submit_review',
+  currentScore.value
+))
+const canEditCurrentSkill = computed(() => editMutationDecision.value.allowed)
+const canSubmitReview = computed(() => submitMutationDecision.value.allowed)
 
 const evalGateText = computed(() => aiTuned.value
-  ? 'AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。'
+  ? canSubmitReview.value
+    ? 'AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。'
+    : submitMutationDecision.value.reason
   : '综合评分 0.782，未达到 0.80 提交审核门槛。请返回修改或由 AI 助手微调后重新评估。')
-const reviewScoreText = computed(() => aiTuned.value ? 'AI 微调后综合评分 0.859，已达到审核门槛' : '当前综合评分 0.782，未达到审核门槛')
+const reviewScoreText = computed(() => canSubmitReview.value
+  ? 'AI 微调后综合评分 0.859，已达到审核门槛'
+  : submitMutationDecision.value.reason)
 
 const BASE_EVAL_ITEMS: SkillEvalItem[] = [
   { title: '基本信息规范', score: '1.00' },
@@ -1844,17 +1858,26 @@ function refreshSummary() {
 
 function saveDraft() {
   if (!validateConfig()) return
+  if (!canEditCurrentSkill.value) {
+    toast(editMutationDecision.value.reason)
+    return
+  }
   const now = new Date()
   const snapshot = createDraftSnapshot(now)
-  skillHubStore.upsertDraftSkill({
-    name: form.value.name,
-    cnName: form.value.cnName,
-    desc: form.value.scene,
-    category: form.value.menu,
-    owner: appStore.user || 'admin',
-    tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
-    draft: snapshot
-  })
+  try {
+    skillHubStore.upsertDraftSkill({
+      name: form.value.name,
+      cnName: form.value.cnName,
+      desc: form.value.scene,
+      category: form.value.menu,
+      owner: appStore.user || 'admin',
+      tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
+      draft: snapshot
+    })
+  } catch (error) {
+    toast(error instanceof Error ? error.message : '当前 Skill 无法保存')
+    return
+  }
   workspaceSub.value = `${form.value.cnName || form.value.name} · 草稿已保存 ${snapshot.savedAt.slice(-8, -3)}`
   reviewSubmitted.value = false
   reviewStatus.value = '草稿已同步到 Skill Hub，可返回需求澄清继续编辑'
@@ -1987,9 +2010,9 @@ function formatBeijingTime(value: Date) {
 }
 
 function submitReview() {
-  if (currentScore.value < REVIEW_SCORE_THRESHOLD) {
-    toast(`当前综合评分 ${currentScore.value.toFixed(3)}，需达到 0.80 才能提交审核`)
-    switchTab('verify')
+  if (!canSubmitReview.value) {
+    toast(submitMutationDecision.value.reason)
+    if (currentScore.value < REVIEW_SCORE_THRESHOLD) switchTab('verify')
     return
   }
   if (reviewSubmitted.value) {
@@ -1997,16 +2020,21 @@ function submitReview() {
     return
   }
   const score = aiTuned.value ? '0.859' : '0.782'
-  skillHubStore.upsertSubmittedSkill({
-    name: form.value.name,
-    cnName: form.value.cnName,
-    desc: form.value.scene,
-    category: form.value.menu,
-    owner: appStore.user || 'admin',
-    score,
-    tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
-    draft: createDraftSnapshot()
-  })
+  try {
+    skillHubStore.upsertSubmittedSkill({
+      name: form.value.name,
+      cnName: form.value.cnName,
+      desc: form.value.scene,
+      category: form.value.menu,
+      owner: appStore.user || 'admin',
+      score,
+      tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
+      draft: createDraftSnapshot()
+    })
+  } catch (error) {
+    toast(error instanceof Error ? error.message : '当前 Skill 无法提交审核')
+    return
+  }
   reviewSubmitted.value = true
   reviewStatus.value = '已提交审核，当前 Skill Hub 状态为待审批'
   toast(`${form.value.name}：已提交审核，已同步到 Skill Hub 待审批列表`)

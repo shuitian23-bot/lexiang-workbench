@@ -780,6 +780,37 @@ test('submit review is available only to an eligible owner with a passing score'
   assert.match(view, /action === 'submit_review'[\s\S]*updateStatus\(item, 'review'\)/)
 })
 
+test('Skill mutation policy enforces owner score and pending-change gates at the write boundary', async () => {
+  const { getSeedCapabilityUpdate, skillHubMutationDecision } = await import('../src/services/skillCapabilityChanges.js')
+  const draft = {
+    name: 'owned-draft', owner: 'product-pm', workflowStatus: 'draft', status: 'draft',
+    onlineStatus: 'unpublished', online: '未发布'
+  }
+  assert.equal(skillHubMutationDecision(draft, 'admin', 'edit').allowed, false)
+  assert.equal(skillHubMutationDecision(draft, 'product-pm', 'edit').allowed, true)
+  assert.equal(skillHubMutationDecision(draft, 'product-pm', 'submit_review', 0.799).allowed, false)
+  assert.equal(skillHubMutationDecision(draft, 'product-pm', 'submit_review', 0.800).allowed, true)
+  assert.equal(skillHubMutationDecision({
+    ...draft,
+    capabilityUpdate: { ...getSeedCapabilityUpdate('product-knowledge'), status: 'processing_with_available' }
+  }, 'product-pm', 'submit_review', 0.900).allowed, false)
+  assert.equal(skillHubMutationDecision({
+    ...draft,
+    capabilityUpdate: {
+      ...getSeedCapabilityUpdate('product-knowledge'),
+      status: 'processing',
+      task: { id: 'additional-task', kind: 'additional_change', status: 'failed' }
+    }
+  }, 'product-pm', 'submit_review', 0.900).allowed, false)
+
+  const store = await source('../src/stores/skillHub.ts')
+  const view = await source('../src/views/agent/AgentSkillCreateView.vue')
+  assert.match(store, /skillHubMutationDecision\(current, payload\.owner[^)]*'submit_review'/)
+  assert.match(store, /skillHubMutationDecision\(current, payload\.owner[^)]*'edit'/)
+  assert.match(view, /canEditCurrentSkill/)
+  assert.match(view, /submitMutationDecision/)
+})
+
 test('an update review can be withdrawn to the same update draft', async () => {
   const { getSeedCapabilityUpdate, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
   const current = {
@@ -929,6 +960,46 @@ test('a failed later-change scan retries inside the same update draft', async ()
   const createView = await source('../src/views/agent/AgentSkillCreateView.vue')
   assert.match(createView, /isCapabilityScanRetryAvailable/)
   assert.match(createView, /retryActiveCapabilityScan/)
+})
+
+test('a queued later change cannot replace the failed scan ahead of it', async () => {
+  const {
+    beginCapabilityUpdate,
+    completeCapabilityUpdate,
+    failCapabilityUpdate,
+    getSeedCapabilityUpdate,
+    hydrateCapabilityUpdate,
+    resolveSkillHubAllowedActions
+  } = await import('../src/services/skillCapabilityChanges.js')
+  const active = getSeedCapabilityUpdate('product-knowledge')
+  const current = {
+    name: 'product-knowledge', owner: 'product-pm', version: 'v1.0.8', editVersion: 'v1.0.8',
+    online: 'v1.0.7', status: 'published', statusText: '已发布', workflowStatus: 'draft', editStatus: 'draft',
+    draft: { selectedContextCodes: ['dashboard.geoKnowledge'], clarifyMessages: [], summaryItems: [], aiTuned: true, baselineContextSeeded: true },
+    capabilityUpdate: { ...active, status: 'processing', activeUpdateChangeRecordIds: [active.recordId] }
+  }
+  const pendingA = { ...active, recordId: 'failed-A', targetCapabilityVersion: 'cap-2026.08.24' }
+  const pendingB = { ...active, recordId: 'queued-B', targetCapabilityVersion: 'cap-2026.08.25' }
+  const first = hydrateCapabilityUpdate(current, pendingA)
+  const queued = { ...current, ...hydrateCapabilityUpdate({ ...current, ...first }, pendingB) }
+  const acceptedA = beginCapabilityUpdate(queued, '2026-08-24 10:00')
+  const failedA = failCapabilityUpdate(acceptedA, '扫描 A 超时', '2026-08-24 10:01')
+
+  assert.equal(failedA.capabilityUpdate.pendingUpdate.recordId, pendingB.recordId)
+  assert.equal(failedA.capabilityUpdate.task.id, `capability-update-${pendingA.recordId}`)
+  assert.deepEqual(
+    resolveSkillHubAllowedActions(failedA, { role: 'pm', user: 'product-pm' }).map(action => action.code),
+    ['view_change', 'view_update_error', 'retry_update']
+  )
+
+  const retriedA = beginCapabilityUpdate(failedA, '2026-08-24 10:02')
+  assert.equal(retriedA.capabilityUpdate.task.id, `capability-update-${pendingA.recordId}`)
+  assert.equal(retriedA.capabilityUpdate.task.status, 'generating')
+  assert.equal(retriedA.capabilityUpdate.pendingUpdate.recordId, pendingB.recordId)
+
+  const completedA = completeCapabilityUpdate(retriedA, retriedA.draft, '2026-08-24 10:03')
+  assert.equal(completedA.capabilityUpdate.status, 'processing_with_available')
+  assert.equal(completedA.capabilityUpdate.pendingUpdate.recordId, pendingB.recordId)
 })
 
 test('multiple later capability records remain queued in detection order', async () => {

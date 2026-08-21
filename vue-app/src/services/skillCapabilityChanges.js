@@ -236,6 +236,9 @@ function onlineStatusOf(item) {
 }
 
 function decisionUpdateOf(update) {
+  if (update?.task?.kind === 'additional_change' && update.task.status !== 'succeeded' && update.activeTaskUpdate) {
+    return update.activeTaskUpdate
+  }
   return update?.status === 'processing_with_available' && pendingUpdatesOf(update).length
     ? pendingUpdatesOf(update)[0]
     : update
@@ -300,6 +303,26 @@ export function skillHubRowPresentation(item) {
   }
 }
 
+export function skillHubMutationDecision(item, actorUser, intent = 'edit', score = 0) {
+  if (!item) return { allowed: true, reason: '' }
+  if (!actorUser || item.owner !== actorUser) {
+    return { allowed: false, reason: '只有当前 Skill 负责人可以保存或提交该 Skill。' }
+  }
+  if (intent !== 'submit_review') return { allowed: true, reason: '' }
+  if (Number(score || 0) < 0.8) {
+    return { allowed: false, reason: `当前综合评分 ${Number(score || 0).toFixed(3)}，需达到 0.80 才能提交审核。` }
+  }
+  const update = item.capabilityUpdate
+  if (
+    ['available', 'preparing', 'processing_with_available', 'failed'].includes(update?.status)
+    || update?.task?.status === 'generating'
+    || update?.task?.status === 'failed'
+  ) {
+    return { allowed: false, reason: '仍有能力变化待处理或扫描待重试，完成后才能提交审核。' }
+  }
+  return { allowed: true, reason: '' }
+}
+
 export function resolveSkillHubAllowedActions(item, actor = {}) {
   const workflowStatus = workflowStatusOf(item)
   const updateStatus = item?.capabilityUpdate?.status || 'none'
@@ -313,6 +336,13 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
     return [
       action('view_change', true, changePayload),
       ...(canMaintain ? [action('start_update', false, changePayload)] : [])
+    ]
+  }
+  if (item?.capabilityUpdate?.task?.kind === 'additional_change' && item.capabilityUpdate.task.status === 'failed') {
+    return [
+      action('view_change', true, changePayload),
+      action('view_update_error', true, changePayload),
+      ...(canMaintain ? [action('retry_update', true, changePayload)] : [])
     ]
   }
   if (updateStatus === 'failed') {
@@ -526,6 +556,7 @@ function acceptPendingCapabilityUpdate(target, updatedAt) {
     status: 'generating',
     startedAt: updatedAt
   }
+  update.activeTaskUpdate = clone(pendingUpdate)
   target.editStatus = 'draft'
   target.workflowStatus = 'draft'
   target.submittedAt = undefined
@@ -540,6 +571,9 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
   const target = clone(item)
   const update = target?.capabilityUpdate
   if (!update || update.status === 'resolved' || update.status === 'ignored') return target
+  if (update.task?.kind === 'additional_change' && update.task.status === 'failed') {
+    return retryCapabilityUpdateTask(target, updatedAt)
+  }
   if (update.status === 'processing_with_available') return acceptPendingCapabilityUpdate(target, updatedAt)
   if (update.status === 'preparing' || update.status === 'processing') return target
 
@@ -620,6 +654,7 @@ export function completeCapabilityUpdate(item, draft, updatedAt = formatShanghai
     startedAt: update.task.startedAt,
     completedAt: updatedAt
   }
+  delete update.activeTaskUpdate
   target.updated = updatedAt
   target.reviewNote = `能力更新首轮草稿已生成；${target.online} 继续在线服务。`
   return target

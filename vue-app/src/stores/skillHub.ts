@@ -12,6 +12,7 @@ import {
   mergeCapabilitySubmission,
   resolveSkillHubAllowedActions,
   retryCapabilityUpdateTask as retryCapabilityUpdateTaskRecord,
+  skillHubMutationDecision,
   transitionCapabilityEdit
 } from '@/services/skillCapabilityChanges.js'
 
@@ -100,6 +101,7 @@ export interface SkillCapabilityUpdate {
   changes: SkillCapabilityChange[]
   pendingUpdate?: Partial<SkillCapabilityUpdate>
   pendingUpdates?: Array<Partial<SkillCapabilityUpdate>>
+  activeTaskUpdate?: Partial<SkillCapabilityUpdate>
   task?: CapabilityUpdateTask
   resolution?: {
     action: 'ignored'
@@ -269,6 +271,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     const index = items.value.findIndex(item => item.name === name)
     if (index >= 0) {
       const current = items.value[index]
+      const decision = skillHubMutationDecision(current, payload.owner, 'submit_review', Number(payload.score || 0))
+      if (!decision.allowed) throw new Error(decision.reason)
+      nextItem.owner = current.owner
       const isCapabilityUpdate = current.capabilityUpdate?.status === 'processing' && current.online !== '未发布'
       items.value[index] = isCapabilityUpdate
         ? mergeCapabilitySubmission(current, nextItem, updated)
@@ -308,6 +313,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     const index = items.value.findIndex(item => item.name === name)
     if (index >= 0) {
       const current = items.value[index]
+      const decision = skillHubMutationDecision(current, payload.owner, 'edit')
+      if (!decision.allowed) throw new Error(decision.reason)
+      nextItem.owner = current.owner
       const isCapabilityUpdate = current.capabilityUpdate?.status === 'processing' && current.online !== '未发布'
       items.value[index] = isCapabilityUpdate
         ? mergeCapabilityDraft(current, nextItem, payload.draft, updated)
