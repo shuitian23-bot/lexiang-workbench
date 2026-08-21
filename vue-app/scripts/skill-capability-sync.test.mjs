@@ -771,7 +771,8 @@ test('processing updates always expose change and continue actions while retaini
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'draft-update', owner: 'admin', workflowStatus: 'draft', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'approve', 'reject'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'continue_update', 'view', 'withdraw_review'])
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'publish'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'test'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'test', 'publish'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'rejected-update', owner: 'admin', workflowStatus: 'rejected', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'published-update', owner: 'product-pm', workflowStatus: 'published', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'disable'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'disabled-update', owner: 'product-pm', workflowStatus: 'disabled', status: 'disabled', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])
@@ -846,6 +847,17 @@ test('Skill mutation policy enforces owner score and pending-change gates at the
   assert.equal(skillHubMutationDecision(draft, 'product-pm', 'edit').allowed, true)
   assert.equal(skillHubMutationDecision(draft, 'product-pm', 'submit_review', 0.799).allowed, false)
   assert.equal(skillHubMutationDecision(draft, 'product-pm', 'submit_review', 0.800).allowed, true)
+  const processingUpdate = {
+    ...draft,
+    capabilityUpdate: {
+      ...getSeedCapabilityUpdate('product-knowledge'),
+      status: 'processing',
+      task: { id: 'completed-update', kind: 'initial', status: 'succeeded' }
+    }
+  }
+  assert.equal(skillHubMutationDecision(processingUpdate, { role: 'admin', user: 'admin' }, 'submit_review', 0.800).allowed, true)
+  assert.equal(skillHubMutationDecision(processingUpdate, { role: 'admin', user: 'admin' }, 'submit_review', 0.799).allowed, false)
+  assert.equal(skillHubMutationDecision(processingUpdate, { role: 'pm', user: 'other-pm' }, 'submit_review', 0.900).allowed, false)
   assert.equal(skillHubMutationDecision({
     ...draft,
     capabilityUpdate: { ...getSeedCapabilityUpdate('product-knowledge'), status: 'processing_with_available' }
@@ -861,10 +873,12 @@ test('Skill mutation policy enforces owner score and pending-change gates at the
 
   const store = await source('../src/stores/skillHub.ts')
   const view = await source('../src/views/agent/AgentSkillCreateView.vue')
-  assert.match(store, /skillHubMutationDecision\(current, payload\.owner[^)]*'submit_review'/)
-  assert.match(store, /skillHubMutationDecision\(current, payload\.owner[^)]*'edit'/)
+  assert.match(store, /skillHubMutationDecision\(current, payload\.actor \|\| payload\.owner[^)]*'submit_review'/)
+  assert.match(store, /skillHubMutationDecision\(current, payload\.actor \|\| payload\.owner[^)]*'edit'/)
   assert.match(view, /canEditCurrentSkill/)
   assert.match(view, /submitMutationDecision/)
+  assert.match(view, /const mutationActor = computed/)
+  assert.match(view, /actor:\s*mutationActor\.value/)
 })
 
 test('an update review can be withdrawn to the same update draft', async () => {
@@ -1143,7 +1157,7 @@ test('the initial mock also keeps one standalone sample for every original POC l
   const samples = [
     ['operations-insight-draft', 'draft', 'admin', ['view', 'edit']],
     ['driver-download-guide', 'review', 'service-pm', ['view', 'evaluate', 'approve', 'reject']],
-    ['customer-profile-export', 'approved', 'admin', ['view', 'publish']],
+    ['customer-profile-export', 'approved', 'admin', ['view', 'evaluate', 'test', 'publish']],
     ['gmv-daily-summary', 'published', 'admin', ['view', 'edit', 'evaluate', 'test', 'disable']],
     ['legacy-inventory-alert', 'disabled', 'admin', ['view', 'edit', 'evaluate', 'test', 'enable']],
     ['workplace-employee-review-analysis', 'rejected', 'admin', ['view', 'edit', 'evaluate', 'test']]

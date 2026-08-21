@@ -178,6 +178,7 @@ type SkillCreatePayload = {
   score: string
   tags?: string[]
   draft?: SkillDraftSnapshot
+  actor?: SkillHubActor
 }
 
 type SkillDraftPayload = Omit<SkillCreatePayload, 'score'> & {
@@ -278,7 +279,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     }
     const index = items.value.findIndex(item => item.name === name)
     const current = index >= 0 ? items.value[index] : undefined
-    const decision = skillHubMutationDecision(current, payload.owner, 'submit_review', Number(payload.score || 0))
+    const decision = skillHubMutationDecision(current, payload.actor || payload.owner, 'submit_review', Number(payload.score || 0))
     if (!decision.allowed) throw new Error(decision.reason)
     if (index >= 0) {
       const existing = current as SkillHubItem
@@ -321,7 +322,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     }
     const index = items.value.findIndex(item => item.name === name)
     const current = index >= 0 ? items.value[index] : undefined
-    const decision = skillHubMutationDecision(current, payload.owner, 'edit')
+    const decision = skillHubMutationDecision(current, payload.actor || payload.owner, 'edit')
     if (!decision.allowed) throw new Error(decision.reason)
     if (index >= 0) {
       const existing = current as SkillHubItem

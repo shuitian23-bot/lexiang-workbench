@@ -561,7 +561,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
-import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, type SkillHubItem } from '@/stores/skillHub'
+import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, type SkillHubActor, type SkillHubItem } from '@/stores/skillHub'
 import { skillHubMutationDecision } from '@/services/skillCapabilityChanges.js'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
@@ -1028,10 +1028,14 @@ const scores = computed(() => aiTuned.value
 
 const currentScore = computed(() => aiTuned.value ? 0.859 : 0.782)
 const currentSkillRecord = computed(() => form.value.name ? skillHubStore.findSkill(form.value.name) : undefined)
-const editMutationDecision = computed(() => skillHubMutationDecision(currentSkillRecord.value, appStore.user || 'admin', 'edit'))
+const mutationActor = computed<SkillHubActor>(() => ({
+  role: appStore.permissions.includes('*') ? 'admin' : 'pm',
+  user: appStore.user || 'admin'
+}))
+const editMutationDecision = computed(() => skillHubMutationDecision(currentSkillRecord.value, mutationActor.value, 'edit'))
 const submitMutationDecision = computed(() => skillHubMutationDecision(
   currentSkillRecord.value,
-  appStore.user || 'admin',
+  mutationActor.value,
   'submit_review',
   currentScore.value
 ))
@@ -1870,6 +1874,7 @@ function saveDraft() {
       desc: form.value.scene,
       category: form.value.menu,
       owner: appStore.user || 'admin',
+      actor: mutationActor.value,
       tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
       draft: snapshot
     })
@@ -2026,6 +2031,7 @@ function submitReview() {
       desc: form.value.scene,
       category: form.value.menu,
       owner: appStore.user || 'admin',
+      actor: mutationActor.value,
       score,
       tags: selectedContextItems.value.slice(0, 3).map(item => item.name),
       draft: createDraftSnapshot()

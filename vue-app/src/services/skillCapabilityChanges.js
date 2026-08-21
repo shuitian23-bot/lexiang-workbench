@@ -293,9 +293,15 @@ export function skillHubRowPresentation(item) {
   }
 }
 
-export function skillHubMutationDecision(item, actorUser, intent = 'edit', score = 0) {
-  if (item && (!actorUser || item.owner !== actorUser)) {
-    return { allowed: false, reason: '只有当前 Skill 负责人可以保存或提交该 Skill。' }
+export function skillHubMutationDecision(item, actorInput, intent = 'edit', score = 0) {
+  const actor = typeof actorInput === 'string'
+    ? { role: 'pm', user: actorInput }
+    : { role: actorInput?.role || 'pm', user: actorInput?.user || '' }
+  const canMaintain = !item
+    || item.owner === actor.user
+    || (actor.role === 'admin' && item.capabilityUpdate?.status === 'processing')
+  if (!canMaintain) {
+    return { allowed: false, reason: '只有当前 Skill 负责人或更新管理员可以保存或提交该 Skill。' }
   }
   if (intent !== 'submit_review') return { allowed: true, reason: '' }
   if (Number(score || 0) < 0.8) {
@@ -318,7 +324,7 @@ function standardSkillActionCodes(item, actor, workflowStatus = workflowStatusOf
   const ownerActions = {
     draft: ['view', 'edit'],
     review: ['view', 'withdraw_review'],
-    approved: ['view'],
+    approved: ['view', 'evaluate', 'test'],
     published: ['view', 'edit', 'evaluate', 'test'],
     disabled: ['view', 'edit', 'evaluate', 'test'],
     rejected: ['view', 'edit', 'evaluate', 'test']
@@ -326,7 +332,7 @@ function standardSkillActionCodes(item, actor, workflowStatus = workflowStatusOf
   const adminActions = {
     draft: ['view'],
     review: ['view', 'evaluate', 'approve', 'reject'],
-    approved: ['view', 'publish'],
+    approved: ['view', 'evaluate', 'test', 'publish'],
     published: ['view', 'disable'],
     disabled: ['view', 'enable'],
     rejected: ['view']
