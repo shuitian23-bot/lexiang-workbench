@@ -214,6 +214,103 @@ body[data-page="business"]:not(.assistant-fullscreen) .content > .category-tabs 
   display: none !important;
 }
 
+/* SME + government/education/large-enterprise scene hall:
+   track roughly one third of the browser height and scale its typography. */
+body:is([data-page="business"],[data-page="enterprise"]) .content > .device-scene-hall{
+  --scene-type-scale:clamp(.82,calc(100dvh / 900),1.18);
+  height:clamp(240px,33.333dvh,480px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy{
+  padding-top:clamp(16px,2.4dvh,38px);
+  padding-bottom:clamp(16px,2.4dvh,38px);
+  transform:none;
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy h2{
+  font-size:clamp(22px,calc(17px + 1.45vmin),42px);
+  line-height:1.14;
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-industry-tag{
+  min-height:clamp(20px,2.5dvh,28px);
+  margin-bottom:clamp(7px,1.2dvh,14px);
+  padding:2px clamp(8px,.7vw,12px);
+  font-size:clamp(10px,calc(8px + .35vmin),13px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-desc{
+  max-width:min(32vw,510px);
+  gap:clamp(5px,.5vw,9px);
+  margin:clamp(8px,1.4dvh,18px) 0;
+  font-size:clamp(11px,calc(8px + .55vmin),16px);
+  line-height:1.55;
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-desc img{
+  width:clamp(12px,1.3vmin,17px);
+  height:clamp(12px,1.3vmin,17px);
+  flex-basis:clamp(12px,1.3vmin,17px);
+  margin-top:clamp(2px,.35dvh,5px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-buy{
+  height:clamp(30px,4.2dvh,42px);
+  min-height:clamp(30px,4.2dvh,42px);
+  max-height:clamp(30px,4.2dvh,42px);
+  flex-basis:clamp(30px,4.2dvh,42px);
+  padding:0 clamp(14px,1.5vw,24px);
+  font-size:clamp(11px,calc(8px + .5vmin),15px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-cards{
+  top:clamp(14px,2.4dvh,34px);
+  bottom:clamp(54px,7.5dvh,76px);
+  gap:clamp(7px,.8vw,16px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card{
+  gap:clamp(4px,.7dvh,9px);
+  padding:clamp(8px,1.2vmin,18px);
+  border-radius:clamp(10px,1.1vmin,16px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card-visual{
+  min-height:0;
+  height:auto;
+  aspect-ratio:auto;
+  flex:1 1 auto;
+}
+body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card strong{
+  min-height:0;
+  font-size:clamp(10px,calc(8px + .42vmin),14px);
+  line-height:1.3;
+}
+body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card-product{
+  min-height:0;
+  margin-top:0;
+  font-size:clamp(9px,calc(7px + .32vmin),12px);
+  line-height:1.3;
+}
+body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card-label{
+  min-height:clamp(19px,2.4dvh,25px);
+  padding:2px clamp(7px,.65vw,10px);
+  font-size:clamp(9px,calc(7px + .32vmin),12px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-controls{
+  right:clamp(12px,1.5vw,28px);
+  bottom:clamp(10px,1.6dvh,20px);
+  gap:clamp(6px,.55vw,10px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-picker summary{
+  height:clamp(30px,4.2dvh,40px);
+  padding:0 clamp(12px,1.2vw,20px);
+  font-size:clamp(10px,calc(8px + .38vmin),14px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-count{
+  font-size:clamp(10px,calc(8px + .38vmin),14px);
+  line-height:clamp(30px,4.2dvh,40px);
+}
+body:is([data-page="business"],[data-page="enterprise"]) .device-scene-arrow{
+  width:clamp(32px,4.2dvh,42px);
+  height:clamp(30px,4.2dvh,40px);
+}
+@media(max-height:720px){
+  body:is([data-page="business"],[data-page="enterprise"]) .content > .device-scene-hall{height:max(220px,33.333dvh)}
+  body:is([data-page="business"],[data-page="enterprise"]) .device-scene-desc{margin:7px 0;line-height:1.42}
+}
+
 /* 中小企业推荐楼层：旧商品网格仅作为数据源，隐藏状态不得被网格布局覆盖。 */
 body[data-page="business"]:not(.assistant-fullscreen)
   .content > .product-grid[data-category-grid][hidden] {
