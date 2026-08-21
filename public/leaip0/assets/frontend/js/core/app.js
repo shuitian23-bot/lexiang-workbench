@@ -10848,7 +10848,7 @@ async function openEduZone() {
         window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
 
         openUploadControls();
-        setupSelectionAsk();
+        // 已下线划词“问乐享 / 带入对话”：不创建浮层，也不注册选区监听。
         bindEvents();
         updateBadges();
         updateUserArea();

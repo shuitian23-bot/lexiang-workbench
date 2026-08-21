@@ -224,7 +224,7 @@ body:is([data-page="business"],[data-page="enterprise"]) .content > .device-scen
 body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy{
   padding-top:clamp(16px,2.4dvh,38px);
   padding-bottom:clamp(16px,2.4dvh,38px);
-  transform:none;
+  transform:translateY(-10px);
 }
 body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy h2{
   font-size:clamp(32px,10cqh,58px);
@@ -261,7 +261,9 @@ body:is([data-page="business"],[data-page="enterprise"]) .device-scene-buy{
 }
 body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-cards{
   top:clamp(14px,2.4dvh,34px);
-  bottom:clamp(54px,7.5dvh,76px);
+  bottom:auto;
+  align-items:start;
+  grid-auto-rows:max-content;
   gap:clamp(7px,.8vw,16px);
 }
 body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card{
