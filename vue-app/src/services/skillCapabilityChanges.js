@@ -316,7 +316,7 @@ function standardSkillActionCodes(item, actor, workflowStatus = workflowStatusOf
   const canMaintain = item?.owner === actor.user
   const isAdmin = actor.role === 'admin'
   const ownerActions = {
-    draft: ['edit', 'evaluate', 'test', 'delete'],
+    draft: ['view', 'edit'],
     review: ['view', 'withdraw_review'],
     approved: ['view'],
     published: ['view', 'edit', 'evaluate', 'test'],
@@ -332,7 +332,7 @@ function standardSkillActionCodes(item, actor, workflowStatus = workflowStatusOf
     rejected: ['view']
   }
   const maintainerActions = canMaintain ? [...(ownerActions[workflowStatus] || ['view'])] : ['view']
-  if (canMaintain && (workflowStatus === 'draft' || workflowStatus === 'rejected') && Number(item?.score || 0) >= 0.8) {
+  if (canMaintain && workflowStatus === 'rejected' && Number(item?.score || 0) >= 0.8) {
     const deleteIndex = maintainerActions.indexOf('delete')
     maintainerActions.splice(deleteIndex >= 0 ? deleteIndex : maintainerActions.length, 0, 'submit_review')
   }
@@ -348,6 +348,7 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
   const canMaintain = item?.owner === actor.user
   const isAdmin = actor.role === 'admin'
   const publishedLifecycleActions = workflowStatus === 'published' && isAdmin ? [action('disable')] : []
+  const draftLifecycleActions = workflowStatus === 'draft' ? [action('view')] : []
   const changePayload = item?.capabilityUpdate?.recordId
     ? { changeRecordId: decisionUpdateOf(item.capabilityUpdate)?.recordId || item.capabilityUpdate.recordId }
     : undefined
@@ -356,7 +357,8 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
     return [
       action('view_change', true, changePayload),
       ...(canMaintain ? [action('start_update', false, changePayload)] : []),
-      ...publishedLifecycleActions
+      ...publishedLifecycleActions,
+      ...draftLifecycleActions
     ]
   }
   if (item?.capabilityUpdate?.task?.kind === 'additional_change' && item.capabilityUpdate.task.status === 'failed') {
@@ -364,7 +366,8 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       action('view_change', true, changePayload),
       action('view_update_error', true, changePayload),
       ...(canMaintain ? [action('retry_update', true, changePayload)] : []),
-      ...publishedLifecycleActions
+      ...publishedLifecycleActions,
+      ...draftLifecycleActions
     ]
   }
   if (updateStatus === 'failed') {
@@ -372,7 +375,8 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       action('view_change', true, changePayload),
       action('view_update_error', true, changePayload),
       ...(canMaintain ? [action('retry_update', true, changePayload), action('ignore_update', true, changePayload)] : []),
-      ...publishedLifecycleActions
+      ...publishedLifecycleActions,
+      ...draftLifecycleActions
     ]
   }
   if (updateStatus === 'available' && workflowStatus === 'published') {
@@ -391,18 +395,25 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       action('continue_update', true),
       action('start_update', true, changePayload),
       action('ignore_update', true, changePayload),
-      ...publishedLifecycleActions
+      ...publishedLifecycleActions,
+      ...draftLifecycleActions
     ]
   }
   if (updateStatus === 'available') {
     return [
       action('view_change', true, changePayload),
       action('start_update', true, changePayload),
-      action('ignore_update', true, changePayload)
+      action('ignore_update', true, changePayload),
+      ...draftLifecycleActions
     ]
   }
   if (updateStatus === 'processing') {
-    const updateActions = [action('view_change', true, changePayload), action('continue_update', true), ...publishedLifecycleActions]
+    const updateActions = [
+      action('view_change', true, changePayload),
+      action('continue_update', true),
+      ...publishedLifecycleActions,
+      ...draftLifecycleActions
+    ]
     if (workflowStatus === 'review' || workflowStatus === 'approved') {
       return [
         ...updateActions,

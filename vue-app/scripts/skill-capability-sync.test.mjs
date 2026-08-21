@@ -735,6 +735,8 @@ test('available capability changes always expose update and ignore actions until
       actions.map(action => action.code),
       workflowStatus === 'published'
         ? ['view_change', 'start_update', 'ignore_update', 'evaluate', 'test', 'disable']
+        : workflowStatus === 'draft'
+          ? ['view_change', 'start_update', 'ignore_update', 'view']
         : ['view_change', 'start_update', 'ignore_update']
     )
   }
@@ -758,7 +760,7 @@ test('processing updates always expose change and continue actions while retaini
   const update = { ...getSeedCapabilityUpdate('product-knowledge'), status: 'processing' }
   const admin = { role: 'admin', user: 'admin' }
 
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'draft-update', owner: 'admin', workflowStatus: 'draft', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'draft-update', owner: 'admin', workflowStatus: 'draft', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'approve', 'reject'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'continue_update', 'view', 'withdraw_review'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'publish'])
@@ -809,18 +811,18 @@ test('Skill Hub keeps the original Test and Apply labels with their original beh
   assert.match(view, /if \(action === 'test'\) return testSkill\(item\)/)
 })
 
-test('submit review is available only to an eligible owner with a passing score', async () => {
+test('standalone draft exposes only view and edit while submission remains inside the edit flow', async () => {
   const { resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
   const owner = { role: 'pm', user: 'owner-pm' }
   const draft = {
     name: 'draft-skill', owner: 'owner-pm', workflowStatus: 'draft', status: 'draft',
     onlineStatus: 'unpublished', online: '未发布'
   }
-  assert.equal(resolveSkillHubAllowedActions({ ...draft, score: '0.799' }, owner).some(action => action.code === 'submit_review'), false)
-  assert.equal(resolveSkillHubAllowedActions({ ...draft, score: '0.800' }, owner).some(action => action.code === 'submit_review'), true)
+  assert.deepEqual(resolveSkillHubAllowedActions({ ...draft, score: '0.799' }, owner).map(action => action.code), ['view', 'edit'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ ...draft, score: '0.800' }, owner).map(action => action.code), ['view', 'edit'])
 
   const view = await source('../src/views/agent/AgentSkillsView.vue')
-  assert.match(view, /action === 'submit_review'[\s\S]*updateStatus\(item, 'review'\)/)
+  assert.match(view, /action === 'edit'[\s\S]*openSkillCreateForItem\(item/)
 })
 
 test('Skill mutation policy enforces owner score and pending-change gates at the write boundary', async () => {
@@ -1034,7 +1036,7 @@ test('a queued later change cannot replace the failed scan ahead of it', async (
   assert.equal(failedA.capabilityUpdate.task.id, `capability-update-${pendingA.recordId}`)
   assert.deepEqual(
     resolveSkillHubAllowedActions(failedA, { role: 'pm', user: 'product-pm' }).map(action => action.code),
-    ['view_change', 'view_update_error', 'retry_update']
+    ['view_change', 'view_update_error', 'retry_update', 'view']
   )
 
   const retriedA = beginCapabilityUpdate(failedA, '2026-08-24 10:02')
@@ -1091,7 +1093,7 @@ test('publishing an update preserves a disabled online state', async () => {
 })
 
 test('the initial mock keeps rejected clean while five other lifecycles expose available updates', async () => {
-  const { getSeedCapabilityUpdate, skillHubRowPresentation } = await import('../src/services/skillCapabilityChanges.js')
+  const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions, skillHubRowPresentation } = await import('../src/services/skillCapabilityChanges.js')
   const service = await source('../src/services/skillCapabilityChanges.js')
   const store = await source('../src/stores/skillHub.ts')
   for (const skillName of [
@@ -1117,6 +1119,10 @@ test('the initial mock keeps rejected clean while five other lifecycles expose a
     updateStatusLabel: ''
   })
   assert.match(store, /name:\s*'capability-draft-demo'[\s\S]*status:\s*'draft'/)
+  assert.deepEqual(resolveSkillHubAllowedActions({
+    name: 'capability-draft-demo', owner: 'admin', workflowStatus: 'draft', status: 'draft',
+    onlineStatus: 'unpublished', online: '未发布', capabilityUpdate: getSeedCapabilityUpdate('capability-draft-demo')
+  }, { role: 'admin', user: 'admin' }).map(action => action.code), ['view_change', 'start_update', 'ignore_update', 'view'])
   assert.match(store, /name:\s*'workplace-employee-review-analysis'[\s\S]*status:\s*'rejected'/)
   assert.match(store, /function loadItems\(\) \{\s*return cloneDefaultItems\(\)\s*\}/)
 })
@@ -1126,7 +1132,7 @@ test('the initial mock also keeps one standalone sample for every original POC l
   const store = await source('../src/stores/skillHub.ts')
   const admin = { role: 'admin', user: 'admin' }
   const samples = [
-    ['operations-insight-draft', 'draft', 'admin', ['edit', 'evaluate', 'test', 'delete', 'view']],
+    ['operations-insight-draft', 'draft', 'admin', ['view', 'edit']],
     ['driver-download-guide', 'review', 'service-pm', ['view', 'evaluate', 'approve', 'reject']],
     ['customer-profile-export', 'approved', 'admin', ['view', 'publish']],
     ['gmv-daily-summary', 'published', 'admin', ['view', 'edit', 'evaluate', 'test', 'disable']],
