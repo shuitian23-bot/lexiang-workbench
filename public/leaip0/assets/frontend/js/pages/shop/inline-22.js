@@ -162,7 +162,8 @@
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
-        image: "/assets/img/business-banner-1.jpg",
+        cards: ["商务笔记本", "固定工位", "办公保障"],
+        image: "/assets/img/business/smb-efficient-office-hero.webp",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
@@ -174,7 +175,8 @@
         price: "13,999",
         product: "ThinkPad X1 Carbon AI",
         specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
-        image: "/assets/img/working-scene.jpg",
+        cards: ["移动主机", "随行供电", "快速链接"],
+        image: "/assets/img/business/smb-mobile-travel-hero.webp",
         overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -186,6 +188,7 @@
         price: "16,299",
         product: "ThinkPad P16s 2025",
         specs: "酷睿 Ultra 7 · 32GB · 1TB",
+        cards: ["移动工作站", "桌面工作站", "专业显示"],
         image: "/assets/img/creation-scene.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
@@ -198,7 +201,8 @@
         price: "16,299",
         product: "ThinkSmart 会议协作方案",
         specs: "智能会议 · 内容共享 · 远程协作",
-        image: "/assets/img/business-banner-2.jpg",
+        cards: ["会议终端", "内容显示", "音视频外设"],
+        image: "/assets/img/business/smb-meeting-collaboration-hero.webp",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
@@ -210,6 +214,7 @@
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
+        cards: ["团队笔记本", "商用台式机", "企业服务"],
         image: "/assets/img/business-banner-1.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
@@ -331,6 +336,7 @@
   var sceneCount = hall.querySelector(".device-scene-count");
   var picker = hall.querySelector(".device-scene-picker");
   var menuButtons = hall.querySelectorAll("[data-device-scene]");
+  var recommendationCards = hall.querySelectorAll(".enterprise-scene-card");
   var hotspotPreviewTimer = 0;
 
   function previewHotspot() {
@@ -356,6 +362,21 @@
     currentLabel.textContent = "当前: " + scene.name;
     if (sceneAction) sceneAction.textContent = "咨询" + scene.name + "解决方案";
     sceneCount.textContent = (currentIndex + 1) + "/" + scenes.length;
+    if (scene.cards && recommendationCards.length) {
+      recommendationCards.forEach(function (card, cardIndex) {
+        var cardName = scene.cards[cardIndex];
+        if (!cardName) return;
+        var cardTitle = card.querySelector("strong");
+        var cardLabel = card.querySelector(".enterprise-scene-card-label");
+        var cardImage = card.querySelector("img");
+        if (cardTitle) cardTitle.textContent = cardName;
+        if (cardLabel) cardLabel.textContent = "了解详情";
+        if (cardImage) cardImage.alt = cardName;
+        card.dataset.brandAsk = "介绍" + scene.name + "场景的" + cardName;
+      });
+      var cardsRegion = hall.querySelector(".enterprise-scene-cards");
+      if (cardsRegion) cardsRegion.setAttribute("aria-label", scene.name + "推荐内容");
+    }
     if (hotspot) {
       hotspot.setAttribute("aria-label", "查看" + scene.product + "商品信息");
       hotspot.style.left = scene.hotspotLeft;
