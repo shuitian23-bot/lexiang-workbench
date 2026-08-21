@@ -1,0 +1,70 @@
+/* 商品楼层卡片最终无描边规则。放在页面所有商城/结果样式之后加载。 */
+.content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card
+),
+.content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card
+):hover,
+.content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card
+):focus,
+.content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card
+):focus-visible {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card
+)::before,
+.content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card
+)::after {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
