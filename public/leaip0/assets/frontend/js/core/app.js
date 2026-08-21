@@ -2740,6 +2740,8 @@ function openOrderDetail(orderId) {
           box.querySelectorAll(".lx-p0-actions").forEach((el) => {
             el.classList.add("answer-actions");
           });
+          // 当前对话规则暂不展示“重新生成”；同时清理历史消息中的旧按钮。
+          box.querySelectorAll('[data-msg-action="regen"]').forEach((el) => el.remove());
           return box.innerHTML;
         }
 
@@ -2748,7 +2750,6 @@ function openOrderDetail(orderId) {
             <button type="button" data-msg-action="copy" aria-label="复制"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3"></rect><rect x="4" y="4" width="12" height="12" rx="3"></rect></svg></button>
             <button type="button" data-msg-action="up" aria-label="有帮助"><svg viewBox="0 0 24 24"><path d="M7 10v10"></path><path d="M11 10l1.2-5.2a2 2 0 0 1 3.7-.5L16 5.5V10h4a2 2 0 0 1 2 2.3l-1 6a2 2 0 0 1-2 1.7H9a2 2 0 0 1-2-2v-8"></path><path d="M3 10h4v10H3z"></path></svg></button>
             <button type="button" data-msg-action="down" aria-label="无帮助"><svg viewBox="0 0 24 24"><path d="M7 14V4"></path><path d="M11 14l1.2 5.2a2 2 0 0 0 3.7.5l.1-1.2V14h4a2 2 0 0 0 2-2.3l-1-6A2 2 0 0 0 19 4H9a2 2 0 0 0-2 2v8"></path><path d="M3 4h4v10H3z"></path></svg></button>
-            <button type="button" data-msg-action="regen" aria-label="重新生成">${window.__lxApprovedIcon("global-refresh")}</button>
           </div>`;
         }
 
@@ -6338,8 +6339,16 @@ async function openEduZone() {
         const LX_SITE_TAB_LABELS = { personal: "个人及家庭", business: "中小企业", enterprise: "政教及大企业", brand: "品牌" };
 
         function lxEnsureCurrentSiteTab(activate = true) {
-          // PC 5.0 频道首页是右侧零标签默认视图，不登记为结果页，也不生成占位标签。
-          return null;
+          const page = lxPageFromPath();
+          if (!["personal", "business", "enterprise", "brand"].includes(page)) return null;
+          const siteTab = { id: `site:${page}`, kind: "site", label: LX_SITE_TAB_LABELS[page], page };
+          state.tabs = (state.tabs || []).filter((item) =>
+            item?.kind !== "site" && !String(item?.id || "").startsWith("site:")
+          );
+          state.tabs.unshift(siteTab);
+          if (activate) state.activeTabId = siteTab.id;
+          lxRenderTabbar();
+          return siteTab;
         }
 
         function lxEnsureTabbar() {
@@ -6418,9 +6427,9 @@ async function openEduZone() {
           });
           const tabs = state.tabs;
           bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
-          // 全入口统一：频道首页是零标签默认视图；任何结果页一旦创建，
-          // 立即显示它自己的真实标签。后续严格一页一标签，不添加合成首页标签。
-          bar.hidden = tabs.length === 0;
+          // 频道首页和结果页都是真实页面；只有首页一页时隐藏标签栏，
+          // 打开结果后同时显示“频道首页 + 结果页”，并保持一页一标签。
+          bar.hidden = tabs.length <= 1;
           bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
           // 页面注册表是选中态唯一真相；零页面时必须清除历史恢复留下的虚假卡片高亮。
@@ -6430,10 +6439,10 @@ async function openEduZone() {
 
         function lxUpsertTab(tab, activate = true) {
           state.tabs = state.tabs || [];
-          // PC 5.0：右侧注册表只保存真实结果页。商城/频道首页是零标签默认视图，
-          // 不能为了让标签栏常驻而合成 site/home 占位页。第一个真实结果页打开时
-          // 标签栏仍隐藏；创建第二个真实结果页后才同时显示两个标签。
-          state.tabs = state.tabs.filter((item) => item?.kind !== "site" && !String(item?.id || "").startsWith("site:"));
+          // 根首页不注册频道标签；四个频道页必须保留各自的真实首页标签。
+          if (lxPageFromPath() === "home") {
+            state.tabs = state.tabs.filter((item) => item?.kind !== "site" && !String(item?.id || "").startsWith("site:"));
+          }
           const idx = state.tabs.findIndex((item) => item.id === tab.id);
           if (idx >= 0) state.tabs[idx] = { ...state.tabs[idx], ...tab };
           else {
@@ -7735,7 +7744,7 @@ async function openEduZone() {
           window.__LXFD_FORCE = false;
           const content = document.querySelector(".content");
           content?.setAttribute("data-view", "list");
-          lxRenderTabbar();
+          lxEnsureCurrentSiteTab(true);
           renderProductCards();
           lxRenderSiteFloors();
           content?.scrollTo({ top: 0, behavior: "smooth" });
