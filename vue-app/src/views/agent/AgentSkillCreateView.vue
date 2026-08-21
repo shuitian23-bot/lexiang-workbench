@@ -209,6 +209,12 @@
                           <span>可选新增 <strong>{{ optionalNewContextItems.length }}</strong> 项</span>
                           <span class="skill-capability-context-meta-detail">目标能力版本 {{ activeCapabilityUpdate.targetCapabilityVersion }}</span>
                           <span class="skill-capability-context-meta-detail">检测于 {{ activeCapabilityUpdate.detectedAt }}</span>
+                          <button
+                            v-if="isCapabilityScanRetryAvailable"
+                            class="skill-capability-retry-button"
+                            type="button"
+                            @click="retryActiveCapabilityScan"
+                          >重试扫描</button>
                         </div>
                       </div>
                       <span>{{ selectedContextItems.length }} 已选</span>
@@ -726,6 +732,10 @@ const optionalContextItems = computed(() => {
 const optionalNewContextItems = computed(() => {
   return optionalContextItems.value.filter(item => !item.selected)
 })
+const isCapabilityScanRetryAvailable = computed(() => (
+  activeCapabilityUpdate.value?.task?.kind === 'additional_change'
+  && activeCapabilityUpdate.value.task.status === 'failed'
+))
 const capabilityChangeObjectLabels = computed(() => {
   const labels = [...new Set(activeCapabilityUpdate.value?.changes.map(change => change.objectType) || [])]
   return labels.length ? `涉及${labels.join('、')}` : ''
@@ -1243,7 +1253,8 @@ function createCapabilityDecisionSummary(update: SkillCapabilityUpdate) {
 
 async function runPendingCapabilityUpdate() {
   const update = activeCapabilityUpdate.value
-  if (!update || update.status !== 'preparing' || update.task?.status !== 'generating') return
+  const isAdditionalChangeTask = update?.task?.kind === 'additional_change'
+  if (!update || update.task?.status !== 'generating' || (update.status !== 'preparing' && !isAdditionalChangeTask)) return
   const taskId = update.task.id
   if (!taskId || runningCapabilityTaskIds.has(taskId)) return
   const scanMessage = clarifyMessages.value.find(
@@ -1286,19 +1297,32 @@ async function runPendingCapabilityUpdate() {
     clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
     const detail = error instanceof Error ? sanitizeModelVendorName(error.message) : '能力更新生成暂不可用'
     clarifyMessages.value.push({ id: `${stateId}-failed`, kind: 'state', states: [
-      { kind: 'thinking', status: 'done', title: '能力版本变化已读取', detail: '当前线上版本和原草稿未被修改。' },
+      { kind: 'thinking', status: 'done', title: '能力版本变化已读取', detail: isAdditionalChangeTask ? '当前更新草稿已保留，旧评估结果继续保持失效。' : '当前线上版本和原草稿未被修改。' },
       { kind: 'tool_call', status: 'failed', title: '能力上下文扫描失败', detail },
-      { kind: 'error', status: 'blocked', title: '可返回 Skill Hub 重试', detail: '本次生成未建立编辑版本，可重新点击“更新”。' }
+      { kind: 'error', status: 'blocked', title: isAdditionalChangeTask ? '请在当前编辑页重试' : '可返回 Skill Hub 重试', detail: isAdditionalChangeTask ? '后续变化已写入当前更新草稿，不重新开放“忽略更新”。' : '本次生成未建立编辑版本，可重新点击“更新”。' }
     ] })
     const failed = skillHubStore.failCapabilityUpdate(form.value.name, detail)
     activeCapabilityUpdate.value = failed?.capabilityUpdate || null
     if (failed) sessionStorage.setItem('leai.skillCreateDraft', JSON.stringify({ item: failed, capabilityUpdate: true }))
-    workspaceSub.value = `${form.value.cnName || form.value.name} · 更新生成失败 · 可重试`
-    toast(`${form.value.cnName || form.value.name}：更新生成失败，原版本未受影响`)
+    workspaceSub.value = isAdditionalChangeTask
+      ? `${form.value.cnName || form.value.name} · 更新编辑中 · 扫描待重试`
+      : `${form.value.cnName || form.value.name} · 更新生成失败 · 可重试`
+    toast(isAdditionalChangeTask
+      ? `${form.value.cnName || form.value.name}：后续变化扫描失败，当前更新草稿已保留`
+      : `${form.value.cnName || form.value.name}：更新生成失败，原版本未受影响`)
     scrollChat()
   } finally {
     runningCapabilityTaskIds.delete(taskId)
   }
+}
+
+function retryActiveCapabilityScan() {
+  const retried = skillHubStore.retryCapabilityUpdateTask(form.value.name)
+  if (!retried?.capabilityUpdate) return
+  activeCapabilityUpdate.value = retried.capabilityUpdate
+  sessionStorage.setItem('leai.skillCreateDraft', JSON.stringify({ item: retried, capabilityUpdate: true }))
+  workspaceSub.value = `${retried.cnName || retried.name} · 更新编辑中 · 正在重试扫描`
+  void nextTick(() => { void runPendingCapabilityUpdate() })
 }
 
 function tryClarifyStructuredDemo(value: string) {
@@ -2334,6 +2358,21 @@ onBeforeUnmount(() => {
 
 .skill-capability-context-meta-detail {
   color: var(--color-text-tertiary, #8f959e);
+}
+
+.skill-capability-retry-button {
+  min-height: 24px;
+  padding: 3px 9px;
+  border: 1px solid #f0b44d;
+  border-radius: 5px;
+  background: #fff;
+  color: #8a5a00;
+  font: inherit;
+  cursor: pointer;
+}
+
+.skill-capability-retry-button:hover {
+  background: #fff8ea;
 }
 
 .skill-capability-context-head > span,

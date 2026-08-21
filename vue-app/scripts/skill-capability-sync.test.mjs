@@ -752,6 +752,34 @@ test('processing updates expose only the actions for their current update workfl
   }, admin).map(action => action.code), ['view_change', 'start_update', 'ignore_update'])
 })
 
+test('administrator governance does not grant maintainer actions for another owner', async () => {
+  const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
+  const admin = { role: 'admin', user: 'admin' }
+  const published = {
+    name: 'owned-by-pm', owner: 'product-pm', workflowStatus: 'published', status: 'published',
+    onlineStatus: 'published', online: 'v1.0.0'
+  }
+  assert.deepEqual(resolveSkillHubAllowedActions(published, admin).map(action => action.code), ['view', 'disable'])
+  assert.deepEqual(resolveSkillHubAllowedActions({
+    ...published,
+    capabilityUpdate: getSeedCapabilityUpdate('product-knowledge')
+  }, admin).map(action => action.code), ['view_change'])
+})
+
+test('submit review is available only to an eligible owner with a passing score', async () => {
+  const { resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
+  const owner = { role: 'pm', user: 'owner-pm' }
+  const draft = {
+    name: 'draft-skill', owner: 'owner-pm', workflowStatus: 'draft', status: 'draft',
+    onlineStatus: 'unpublished', online: '未发布'
+  }
+  assert.equal(resolveSkillHubAllowedActions({ ...draft, score: '0.799' }, owner).some(action => action.code === 'submit_review'), false)
+  assert.equal(resolveSkillHubAllowedActions({ ...draft, score: '0.800' }, owner).some(action => action.code === 'submit_review'), true)
+
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.match(view, /action === 'submit_review'[\s\S]*updateStatus\(item, 'review'\)/)
+})
+
 test('an update review can be withdrawn to the same update draft', async () => {
   const { getSeedCapabilityUpdate, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
   const current = {
@@ -833,6 +861,102 @@ test('a later capability record creates one decision gate on the existing update
   assert.equal(ignored.capabilityUpdate.status, 'processing')
   assert.equal(ignored.editVersion, 'v1.0.8')
   assert.deepEqual(ignored.capabilityUpdate.activeUpdateChangeRecordIds, [active.recordId])
+})
+
+test('accepting a later change from review returns the same edit version to draft and reruns its scan', async () => {
+  const { beginCapabilityUpdate, getSeedCapabilityUpdate, hydrateCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const active = getSeedCapabilityUpdate('product-knowledge')
+  const later = {
+    ...getSeedCapabilityUpdate('product-knowledge'),
+    recordId: 'capability-change-review-later',
+    targetCapabilityVersion: 'cap-2026.08.22',
+    detectedAt: '2026-08-22 09:00'
+  }
+  const current = {
+    name: 'product-knowledge', cnName: '产品知识问答', category: 'GEO 看板', desc: '产品知识查询', owner: 'product-pm',
+    version: 'v1.0.8', editVersion: 'v1.0.8', online: 'v1.0.7', onlineStatus: 'published',
+    status: 'published', statusText: '已发布', workflowStatus: 'review', editStatus: 'review', submittedAt: '2026-08-21 11:00',
+    draft: { selectedContextCodes: ['dashboard.geoKnowledge'], clarifyMessages: [], summaryItems: [], aiTuned: true, evaluationCapabilityVersion: active.targetCapabilityVersion, baselineContextSeeded: true },
+    capabilityUpdate: { ...active, status: 'processing', activeUpdateChangeRecordIds: [active.recordId] }
+  }
+  const discovered = hydrateCapabilityUpdate(current, later)
+  const accepted = beginCapabilityUpdate({ ...current, ...discovered }, '2026-08-22 09:01')
+  assert.equal(accepted.editVersion, 'v1.0.8')
+  assert.equal(accepted.workflowStatus, 'draft')
+  assert.equal(accepted.editStatus, 'draft')
+  assert.equal(accepted.submittedAt, undefined)
+  assert.equal(accepted.draft.evaluationCapabilityVersion, undefined)
+  assert.equal(accepted.capabilityUpdate.status, 'processing')
+  assert.equal(accepted.capabilityUpdate.task.kind, 'additional_change')
+  assert.equal(accepted.capabilityUpdate.task.status, 'generating')
+  assert.equal(accepted.capabilityUpdate.history?.some(record => record.recordId === later.recordId && record.status === 'resolved'), false)
+
+  const createView = await source('../src/views/agent/AgentSkillCreateView.vue')
+  assert.match(createView, /task\?\.kind === 'additional_change'/)
+})
+
+test('a failed later-change scan retries inside the same update draft', async () => {
+  const {
+    beginCapabilityUpdate,
+    failCapabilityUpdate,
+    getSeedCapabilityUpdate,
+    hydrateCapabilityUpdate,
+    retryCapabilityUpdateTask
+  } = await import('../src/services/skillCapabilityChanges.js')
+  const active = getSeedCapabilityUpdate('product-knowledge')
+  const current = {
+    name: 'product-knowledge', cnName: '产品知识问答', category: 'GEO 看板', desc: '产品知识查询', owner: 'product-pm',
+    version: 'v1.0.8', editVersion: 'v1.0.8', online: 'v1.0.7', onlineStatus: 'published',
+    status: 'published', statusText: '已发布', workflowStatus: 'draft', editStatus: 'draft',
+    draft: { selectedContextCodes: ['dashboard.geoKnowledge'], clarifyMessages: [], summaryItems: [], aiTuned: true, baselineContextSeeded: true },
+    capabilityUpdate: { ...active, status: 'processing', activeUpdateChangeRecordIds: [active.recordId] }
+  }
+  const later = { ...active, recordId: 'capability-change-retry-later', targetCapabilityVersion: 'cap-2026.08.24' }
+  const accepted = beginCapabilityUpdate(hydrateCapabilityUpdate(current, later), '2026-08-24 09:00')
+  const failed = failCapabilityUpdate(accepted, '扫描超时', '2026-08-24 09:01')
+
+  assert.equal(failed.capabilityUpdate.status, 'processing')
+  assert.equal(failed.capabilityUpdate.task.status, 'failed')
+  assert.equal(failed.editVersion, 'v1.0.8')
+  assert.deepEqual(failed.draft, accepted.draft)
+
+  const retried = retryCapabilityUpdateTask(failed, '2026-08-24 09:02')
+  assert.equal(retried.capabilityUpdate.status, 'processing')
+  assert.equal(retried.capabilityUpdate.task.status, 'generating')
+  assert.equal(retried.capabilityUpdate.task.id, failed.capabilityUpdate.task.id)
+  assert.equal(retried.editVersion, 'v1.0.8')
+
+  const createView = await source('../src/views/agent/AgentSkillCreateView.vue')
+  assert.match(createView, /isCapabilityScanRetryAvailable/)
+  assert.match(createView, /retryActiveCapabilityScan/)
+})
+
+test('multiple later capability records remain queued in detection order', async () => {
+  const { getSeedCapabilityUpdate, hydrateCapabilityUpdate, ignoreCapabilityUpdate } = await import('../src/services/skillCapabilityChanges.js')
+  const active = getSeedCapabilityUpdate('product-knowledge')
+  const current = {
+    name: 'product-knowledge', owner: 'product-pm', version: 'v1.0.8', editVersion: 'v1.0.8',
+    online: 'v1.0.7', status: 'published', statusText: '已发布', workflowStatus: 'draft', editStatus: 'draft',
+    draft: { selectedContextCodes: ['dashboard.geoKnowledge'], clarifyMessages: [], summaryItems: [], aiTuned: true, baselineContextSeeded: true },
+    capabilityUpdate: { ...active, status: 'processing', activeUpdateChangeRecordIds: [active.recordId] }
+  }
+  const pendingA = { ...active, recordId: 'pending-A', targetCapabilityVersion: 'cap-2026.08.22', detectedAt: '2026-08-22 09:00' }
+  const pendingB = { ...active, recordId: 'pending-B', targetCapabilityVersion: 'cap-2026.08.23', detectedAt: '2026-08-23 09:00' }
+  const first = hydrateCapabilityUpdate(current, pendingA)
+  const second = hydrateCapabilityUpdate({ ...current, ...first }, pendingB)
+  assert.equal(second.capabilityUpdate.pendingDecisionCount, 2)
+  assert.deepEqual(second.capabilityUpdate.pendingUpdates.map(update => update.recordId), ['pending-A', 'pending-B'])
+  assert.equal(second.capabilityUpdate.pendingUpdate.recordId, 'pending-A')
+
+  const ignoredFirst = ignoreCapabilityUpdate(second, { operator: 'product-pm', reason: '' }, '2026-08-23 09:01')
+  assert.equal(ignoredFirst.capabilityUpdate.status, 'processing_with_available')
+  assert.equal(ignoredFirst.capabilityUpdate.pendingDecisionCount, 1)
+  assert.equal(ignoredFirst.capabilityUpdate.pendingUpdate.recordId, 'pending-B')
+
+  const ignoredSecond = ignoreCapabilityUpdate(ignoredFirst, { operator: 'product-pm', reason: '' }, '2026-08-23 09:02')
+  assert.equal(ignoredSecond.capabilityUpdate.status, 'processing')
+  assert.equal(ignoredSecond.capabilityUpdate.pendingDecisionCount, 0)
+  assert.equal(ignoredSecond.capabilityUpdate.pendingUpdate, undefined)
 })
 
 test('publishing an update preserves a disabled online state', async () => {

@@ -11,6 +11,7 @@ import {
   mergeCapabilityDraft,
   mergeCapabilitySubmission,
   resolveSkillHubAllowedActions,
+  retryCapabilityUpdateTask as retryCapabilityUpdateTaskRecord,
   transitionCapabilityEdit
 } from '@/services/skillCapabilityChanges.js'
 
@@ -57,6 +58,7 @@ export interface SkillOptionalContext {
 
 export interface CapabilityUpdateTask {
   id: string
+  kind?: 'initial' | 'additional_change'
   status: 'generating' | 'succeeded' | 'failed'
   startedAt?: string
   completedAt?: string
@@ -97,6 +99,7 @@ export interface SkillCapabilityUpdate {
   optionalContexts: SkillOptionalContext[]
   changes: SkillCapabilityChange[]
   pendingUpdate?: Partial<SkillCapabilityUpdate>
+  pendingUpdates?: Array<Partial<SkillCapabilityUpdate>>
   task?: CapabilityUpdateTask
   resolution?: {
     action: 'ignored'
@@ -345,6 +348,14 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     return items.value[index]
   }
 
+  function retryCapabilityUpdateTask(name: string) {
+    const index = items.value.findIndex(item => item.name === name)
+    if (index < 0) return
+    items.value[index] = retryCapabilityUpdateTaskRecord(items.value[index], nowMinute())
+    persist()
+    return items.value[index]
+  }
+
   function ignoreCapabilityUpdate(name: string, operator: string, reason = '') {
     const index = items.value.findIndex(item => item.name === name)
     if (index < 0) return
@@ -380,6 +391,18 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     target.workflowStatus = status
     target.statusText = skillHubStatusLabel(status)
     target.updated = updated
+    if (status === 'draft') {
+      target.submittedAt = undefined
+      target.reviewer = undefined
+      target.reviewTime = undefined
+      target.reviewNote = '已撤回为草稿，可继续编辑、评估并重新提交。'
+    }
+    if (status === 'review') {
+      target.submittedAt = updated
+      target.reviewer = undefined
+      target.reviewTime = undefined
+      target.reviewNote = `提交审核：综合评分 ${target.score || '-'}，等待管理员审批。`
+    }
     if (status === 'approved') {
       target.reviewer = reviewer
       target.reviewTime = updated
@@ -408,6 +431,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     startCapabilityUpdate,
     completeCapabilityUpdate,
     failCapabilityUpdate,
+    retryCapabilityUpdateTask,
     ignoreCapabilityUpdate,
     updateCapabilityEditStatus,
     allowedActionsFor,

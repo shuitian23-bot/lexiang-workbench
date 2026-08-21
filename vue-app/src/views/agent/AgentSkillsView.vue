@@ -512,8 +512,12 @@ function handleAction(item: SkillHubItem, action: SkillHubActionCode) {
     detailItem.value = item
     return
   }
-  if (action === 'edit' || action === 'submit_review') {
+  if (action === 'edit') {
     openSkillCreateForItem(item, item.workflowStatus === 'rejected')
+    return
+  }
+  if (action === 'submit_review') {
+    updateStatus(item, 'review')
     return
   }
   if (action === 'withdraw_review') {

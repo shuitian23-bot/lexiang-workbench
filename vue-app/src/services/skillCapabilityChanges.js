@@ -236,9 +236,31 @@ function onlineStatusOf(item) {
 }
 
 function decisionUpdateOf(update) {
-  return update?.status === 'processing_with_available' && update.pendingUpdate
-    ? update.pendingUpdate
+  return update?.status === 'processing_with_available' && pendingUpdatesOf(update).length
+    ? pendingUpdatesOf(update)[0]
     : update
+}
+
+function pendingUpdatesOf(update) {
+  const candidates = [update?.pendingUpdate, ...(update?.pendingUpdates || [])].filter(Boolean)
+  const unique = new Map()
+  candidates.forEach(candidate => {
+    if (candidate.recordId && !unique.has(candidate.recordId)) unique.set(candidate.recordId, candidate)
+  })
+  return [...unique.values()]
+}
+
+function queuePendingCapabilityUpdate(storedUpdate, seededUpdate) {
+  const queue = pendingUpdatesOf(storedUpdate).map(clone)
+  if (!queue.some(update => update.recordId === seededUpdate.recordId)) queue.push(clone(seededUpdate))
+  return {
+    ...storedUpdate,
+    status: 'processing_with_available',
+    pendingUpdate: clone(queue[0]),
+    pendingUpdates: queue,
+    pendingDecisionCount: queue.length,
+    activeUpdateChangeRecordIds: mergeContextCodes(storedUpdate.activeUpdateChangeRecordIds, [storedUpdate.recordId])
+  }
 }
 
 export function capabilityDecisionUpdate(item) {
@@ -281,13 +303,13 @@ export function skillHubRowPresentation(item) {
 export function resolveSkillHubAllowedActions(item, actor = {}) {
   const workflowStatus = workflowStatusOf(item)
   const updateStatus = item?.capabilityUpdate?.status || 'none'
-  const canMaintain = actor.role === 'admin' || item?.owner === actor.user
+  const canMaintain = item?.owner === actor.user
   const isAdmin = actor.role === 'admin'
   const changePayload = item?.capabilityUpdate?.recordId
     ? { changeRecordId: decisionUpdateOf(item.capabilityUpdate)?.recordId || item.capabilityUpdate.recordId }
     : undefined
 
-  if (updateStatus === 'preparing') {
+  if (updateStatus === 'preparing' || item?.capabilityUpdate?.task?.status === 'generating') {
     return [
       action('view_change', true, changePayload),
       ...(canMaintain ? [action('start_update', false, changePayload)] : [])
@@ -321,12 +343,12 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
   }
 
   const ownerActions = {
-    draft: ['edit', 'evaluate', 'test', 'submit_review', 'delete'],
+    draft: ['edit', 'evaluate', 'test', 'delete'],
     review: ['view', 'withdraw_review'],
     approved: ['view'],
     published: ['view', 'edit', 'evaluate', 'test'],
     disabled: ['view', 'edit', 'evaluate', 'test'],
-    rejected: ['view', 'edit', 'evaluate', 'test', 'submit_review']
+    rejected: ['view', 'edit', 'evaluate', 'test']
   }
   const adminActions = {
     draft: ['view'],
@@ -336,8 +358,13 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
     disabled: ['view', 'enable'],
     rejected: ['view']
   }
+  const maintainerActions = canMaintain ? [...(ownerActions[workflowStatus] || ['view'])] : ['view']
+  if (canMaintain && (workflowStatus === 'draft' || workflowStatus === 'rejected') && Number(item?.score || 0) >= 0.8) {
+    const deleteIndex = maintainerActions.indexOf('delete')
+    maintainerActions.splice(deleteIndex >= 0 ? deleteIndex : maintainerActions.length, 0, 'submit_review')
+  }
   const codes = new Set([
-    ...(canMaintain ? ownerActions[workflowStatus] || ['view'] : ['view']),
+    ...maintainerActions,
     ...(isAdmin ? adminActions[workflowStatus] || ['view'] : [])
   ])
   return [...codes].map(code => action(code))
@@ -469,7 +496,8 @@ function capabilityTaskId(update) {
 
 function acceptPendingCapabilityUpdate(target, updatedAt) {
   const update = target.capabilityUpdate
-  const pendingUpdate = clone(update.pendingUpdate)
+  const queue = pendingUpdatesOf(update).map(clone)
+  const pendingUpdate = queue.shift()
   if (!pendingUpdate || !target.draft) return target
   ensureCapabilityScanMessage(target.draft, { ...target, capabilityUpdate: pendingUpdate }, pendingUpdate)
   createContextBindings(target.draft, pendingUpdate)
@@ -477,17 +505,34 @@ function acceptPendingCapabilityUpdate(target, updatedAt) {
   delete target.draft.evaluationCapabilityVersion
   target.draft.summaryUpdated = `能力变化已同步至 ${pendingUpdate.targetCapabilityVersion}，检测于 ${pendingUpdate.detectedAt}`
   update.activeUpdateChangeRecordIds = mergeContextCodes(update.activeUpdateChangeRecordIds, [pendingUpdate.recordId])
-  update.pendingDecisionCount = 0
+  update.pendingDecisionCount = queue.length
   update.currentCapabilityVersion = pendingUpdate.currentCapabilityVersion
   update.targetCapabilityVersion = pendingUpdate.targetCapabilityVersion
   update.affectedContexts = clone(pendingUpdate.affectedContexts) || []
   update.changes = [...(update.changes || []), ...(clone(pendingUpdate.changes) || [])]
   update.summary = `${update.summary}；后续变化：${pendingUpdate.summary}`
-  update.history = [...(update.history || []), { ...pendingUpdate, status: 'resolved' }]
-  delete update.pendingUpdate
-  update.status = 'processing'
+  if (queue.length) {
+    update.pendingUpdate = clone(queue[0])
+    update.pendingUpdates = queue
+    update.status = 'processing_with_available'
+  } else {
+    delete update.pendingUpdate
+    delete update.pendingUpdates
+    update.status = 'processing'
+  }
+  update.task = {
+    id: capabilityTaskId(pendingUpdate),
+    kind: 'additional_change',
+    status: 'generating',
+    startedAt: updatedAt
+  }
+  target.editStatus = 'draft'
+  target.workflowStatus = 'draft'
+  target.submittedAt = undefined
+  target.reviewer = undefined
+  target.reviewTime = undefined
   target.updated = updatedAt
-  target.reviewNote = '后续能力变化已同步至当前更新草稿，旧评估结果已失效。'
+  target.reviewNote = '后续能力变化已同步至当前更新草稿，旧评估结果已失效，需要重新提交审核。'
   return target
 }
 
@@ -545,6 +590,7 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
   update.status = 'preparing'
   update.task = {
     id: update.task?.id || capabilityTaskId(update),
+    kind: 'initial',
     status: 'generating',
     startedAt: updatedAt,
     rollback
@@ -556,17 +602,20 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
 export function completeCapabilityUpdate(item, draft, updatedAt = formatShanghaiMinute()) {
   const target = clone(item)
   const update = target?.capabilityUpdate
-  if (!update || update.status !== 'preparing' || update.task?.status !== 'generating') return target
+  const isAdditionalChange = update?.task?.kind === 'additional_change'
+  if (!update || update.task?.status !== 'generating' || (update.status !== 'preparing' && !isAdditionalChange)) return target
   target.draft = clone(draft)
   target.editStatus = 'draft'
   target.workflowStatus = 'draft'
   target.onlineStatus = onlineStatusOf(target)
-  update.status = 'processing'
+  const pendingDecisionCount = pendingUpdatesOf(update).length
+  update.status = pendingDecisionCount ? 'processing_with_available' : 'processing'
   update.hasDraftEdits = true
-  update.pendingDecisionCount = 0
+  update.pendingDecisionCount = pendingDecisionCount
   update.activeUpdateChangeRecordIds = mergeContextCodes(update.activeUpdateChangeRecordIds, [update.recordId])
   update.task = {
     id: update.task.id || capabilityTaskId(update),
+    kind: update.task.kind,
     status: 'succeeded',
     startedAt: update.task.startedAt,
     completedAt: updatedAt
@@ -579,7 +628,20 @@ export function completeCapabilityUpdate(item, draft, updatedAt = formatShanghai
 export function failCapabilityUpdate(item, error, updatedAt = formatShanghaiMinute()) {
   const target = clone(item)
   const update = target?.capabilityUpdate
-  if (!update || update.status !== 'preparing') return target
+  if (!update) return target
+  if (update.task?.kind === 'additional_change' && update.task.status === 'generating') {
+    update.task = {
+      ...update.task,
+      status: 'failed',
+      completedAt: updatedAt,
+      error: String(error || '后续能力变化分析失败')
+    }
+    update.status = update.pendingDecisionCount ? 'processing_with_available' : 'processing'
+    target.updated = updatedAt
+    target.reviewNote = '后续能力变化已写入当前更新草稿，但分析生成失败；请在编辑页内重试。'
+    return target
+  }
+  if (update.status !== 'preparing') return target
   const rollback = update.task?.rollback || {}
   if (rollback.draft) target.draft = clone(rollback.draft)
   else delete target.draft
@@ -605,6 +667,26 @@ export function failCapabilityUpdate(item, error, updatedAt = formatShanghaiMinu
   return target
 }
 
+export function retryCapabilityUpdateTask(item, updatedAt = formatShanghaiMinute()) {
+  const target = clone(item)
+  const update = target?.capabilityUpdate
+  if (
+    !update
+    || update.task?.kind !== 'additional_change'
+    || update.task.status !== 'failed'
+    || !['processing', 'processing_with_available'].includes(update.status)
+  ) return target
+  update.task = {
+    id: update.task.id,
+    kind: update.task.kind,
+    status: 'generating',
+    startedAt: updatedAt
+  }
+  target.updated = updatedAt
+  target.reviewNote = '正在当前更新草稿内重试后续能力变化扫描。'
+  return target
+}
+
 export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = formatShanghaiMinute()) {
   const target = clone(item)
   const update = target?.capabilityUpdate
@@ -620,10 +702,19 @@ export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = format
     reason: String(resolution.reason || '').trim()
   }
   if (update.status === 'processing_with_available') {
-    update.history = [...(update.history || []), { ...clone(decisionUpdate), status: 'ignored', resolution: decision }]
-    update.pendingDecisionCount = 0
-    delete update.pendingUpdate
-    update.status = 'processing'
+    const queue = pendingUpdatesOf(update).map(clone)
+    const ignoredUpdate = queue.shift() || clone(decisionUpdate)
+    update.history = [...(update.history || []), { ...ignoredUpdate, status: 'ignored', resolution: decision }]
+    update.pendingDecisionCount = queue.length
+    if (queue.length) {
+      update.pendingUpdate = clone(queue[0])
+      update.pendingUpdates = queue
+      update.status = 'processing_with_available'
+    } else {
+      delete update.pendingUpdate
+      delete update.pendingUpdates
+      update.status = 'processing'
+    }
   } else {
     update.status = 'ignored'
     update.resolution = decision
@@ -652,11 +743,7 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
     ? isNewRecord
       ? storedUpdate.status === 'processing' || storedUpdate.status === 'processing_with_available'
         ? {
-            ...storedUpdate,
-            status: 'processing_with_available',
-            pendingUpdate: clone(seededUpdate),
-            pendingDecisionCount: 1,
-            activeUpdateChangeRecordIds: mergeContextCodes(storedUpdate.activeUpdateChangeRecordIds, [storedUpdate.recordId]),
+            ...queuePendingCapabilityUpdate(storedUpdate, seededUpdate),
             history: storedHistory
           }
         : {
