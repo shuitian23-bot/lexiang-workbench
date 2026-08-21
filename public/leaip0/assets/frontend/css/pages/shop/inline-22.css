@@ -318,16 +318,16 @@ body:is([data-page="business"],[data-page="enterprise"]) .device-scene-arrow{
 
 /* 政教及大企业场景馆：严格复刻 manufacturing-industry-premium.html。 */
 body[data-page="enterprise"] .content > .device-scene-hall{
-  container-type:inline-size;
-  height:540px;
-  min-height:540px;
+  container-type:size;
+  height:38.889dvh;
+  min-height:0;
   margin:18px 0 22px;
   border:1px solid rgba(154,166,255,.36);
   border-radius:28px;
   background-color:#0a0a16;
   background-size:cover;
   background-position:center;
-  box-shadow:0 28px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow:none;
 }
 body[data-page="enterprise"] .device-scene-hall::before{
   z-index:0;
@@ -355,12 +355,12 @@ body[data-page="enterprise"] .device-scene-copy{
   width:36%;
   box-sizing:border-box;
   justify-content:center;
-  padding:58px 44px 64px 76px;
+  padding:10.74cqh 44px 11.85cqh 76px;
   transform:none;
 }
 body[data-page="enterprise"] .device-scene-industry-tag{
-  height:38px;
-  min-height:38px;
+  height:clamp(28px,7.04cqh,38px);
+  min-height:clamp(28px,7.04cqh,38px);
   margin:0;
   padding:0 16px;
   border:1px solid rgba(255,255,255,.24);
@@ -368,13 +368,13 @@ body[data-page="enterprise"] .device-scene-industry-tag{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
-  font-size:14px;
+  font-size:clamp(11px,2.6cqh,14px);
   font-weight:600;
 }
 body[data-page="enterprise"] .device-scene-copy h2{
   max-width:none;
-  margin:20px 0 14px;
-  font-size:clamp(36px,3.05cqw,62px);
+  margin:clamp(12px,3.7cqh,20px) 0 clamp(9px,2.6cqh,14px);
+  font-size:clamp(28px,min(3.05cqw,7.15cqh),62px);
   line-height:1.08;
   letter-spacing:-.035em;
   font-weight:800;
@@ -384,10 +384,10 @@ body[data-page="enterprise"] .device-scene-copy h2{
 body[data-page="enterprise"] .device-scene-desc{
   width:auto;
   max-width:none;
-  margin:0 0 30px;
-  gap:11px;
+  margin:0 0 clamp(16px,5.56cqh,30px);
+  gap:clamp(7px,2.04cqh,11px);
   color:rgba(255,255,255,.86);
-  font-size:clamp(14px,1.18cqw,17px);
+  font-size:clamp(11px,min(1.18cqw,2.78cqh),17px);
   line-height:1.55;
   white-space:nowrap;
 }
@@ -396,10 +396,10 @@ body[data-page="enterprise"] .device-scene-desc img{
 }
 body[data-page="enterprise"] .device-scene-desc::before{
   content:"";
-  width:15px;
-  height:15px;
-  flex:0 0 15px;
-  margin-top:5px;
+  width:clamp(10px,2.78cqh,15px);
+  height:clamp(10px,2.78cqh,15px);
+  flex:0 0 clamp(10px,2.78cqh,15px);
+  margin-top:clamp(3px,.93cqh,5px);
   border:1px solid rgba(213,226,255,.92);
   border-radius:3px;
   background:linear-gradient(135deg,#6c58ff,#2ec5ff);
@@ -408,11 +408,11 @@ body[data-page="enterprise"] .device-scene-desc::before{
 }
 body[data-page="enterprise"] .device-scene-buy{
   width:auto;
-  min-width:260px;
-  height:56px;
-  min-height:56px;
-  max-height:56px;
-  flex-basis:56px;
+  min-width:clamp(190px,20.49cqw,260px);
+  height:clamp(40px,10.37cqh,56px);
+  min-height:clamp(40px,10.37cqh,56px);
+  max-height:clamp(40px,10.37cqh,56px);
+  flex-basis:clamp(40px,10.37cqh,56px);
   justify-content:flex-start;
   padding:0 20px 0 24px;
   border:1px solid rgba(159,150,255,.55);
@@ -422,23 +422,23 @@ body[data-page="enterprise"] .device-scene-buy{
   box-shadow:0 14px 34px rgba(70,46,174,.24),inset 0 1px 0 rgba(255,255,255,.18);
   backdrop-filter:blur(18px);
   -webkit-backdrop-filter:blur(18px);
-  font-size:17px;
+  font-size:clamp(13px,3.15cqh,17px);
   font-weight:650;
 }
 body[data-page="enterprise"] .device-scene-buy::after{
   content:"›";
   margin-left:auto;
-  font-size:28px;
+  font-size:clamp(20px,5.19cqh,28px);
   line-height:1;
 }
 body[data-page="enterprise"] .enterprise-scene-cards{
-  top:48px;
+  top:8.89cqh;
   right:48px;
-  bottom:86px;
+  bottom:15.93cqh;
   left:36%;
   align-items:stretch;
   grid-auto-rows:1fr;
-  gap:16px;
+  gap:clamp(10px,1.26cqw,16px);
 }
 body[data-page="enterprise"] .enterprise-scene-card{
   height:100%;
@@ -465,15 +465,15 @@ body[data-page="enterprise"] .enterprise-scene-card-visual,
 body[data-page="enterprise"] .enterprise-scene-card.is-product .enterprise-scene-card-visual{
   width:calc(100% - 28px);
   max-height:none;
-  margin:14px 14px 0;
+  margin:clamp(9px,2.59cqh,14px) 14px 0;
   border-radius:13px;
   background:#173250;
 }
 body[data-page="enterprise"] .enterprise-scene-card strong{
-  min-height:48px;
-  margin:15px 14px 0;
+  min-height:clamp(32px,8.89cqh,48px);
+  margin:clamp(9px,2.78cqh,15px) 14px 0;
   color:#fff;
-  font-size:clamp(13px,1.04cqw,16px);
+  font-size:clamp(11px,min(1.04cqw,2.96cqh),16px);
   line-height:1.45;
   font-weight:650;
 }
@@ -481,25 +481,25 @@ body[data-page="enterprise"] .enterprise-scene-card-product{
   min-height:18px;
   margin:-5px 14px 0;
   color:rgba(255,255,255,.72);
-  font-size:clamp(11px,.86cqw,13px);
+  font-size:clamp(10px,min(.86cqw,2.41cqh),13px);
 }
 body[data-page="enterprise"] .enterprise-scene-card-label{
-  height:36px;
-  min-height:36px;
-  margin:auto 14px 16px;
+  height:clamp(28px,6.67cqh,36px);
+  min-height:clamp(28px,6.67cqh,36px);
+  margin:auto 14px clamp(10px,2.96cqh,16px);
   padding:0 13px;
   border:1px solid rgba(255,255,255,.22);
   background:rgba(255,255,255,.08);
-  font-size:13px;
+  font-size:clamp(10px,2.41cqh,13px);
   font-weight:600;
 }
 body[data-page="enterprise"] .device-scene-controls{
   right:48px;
-  bottom:24px;
-  gap:12px;
+  bottom:4.44cqh;
+  gap:clamp(8px,2.22cqh,12px);
 }
 body[data-page="enterprise"] .device-scene-picker summary{
-  height:46px;
+  height:clamp(34px,8.52cqh,46px);
   padding:0 18px;
   border:1px solid rgba(173,183,255,.35);
   background:rgba(6,12,28,.58);
@@ -507,16 +507,16 @@ body[data-page="enterprise"] .device-scene-picker summary{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
-  font-size:14px;
+  font-size:clamp(11px,2.6cqh,14px);
 }
 body[data-page="enterprise"] .device-scene-count{
   min-width:44px;
-  font-size:14px;
-  line-height:46px;
+  font-size:clamp(11px,2.6cqh,14px);
+  line-height:clamp(34px,8.52cqh,46px);
 }
 body[data-page="enterprise"] .device-scene-arrow{
-  width:46px;
-  height:46px;
+  width:clamp(34px,8.52cqh,46px);
+  height:clamp(34px,8.52cqh,46px);
   border:1px solid rgba(255,255,255,.20);
   background:rgba(255,255,255,.06);
   color:#fff;
