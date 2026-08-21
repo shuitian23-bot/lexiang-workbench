@@ -786,6 +786,8 @@ test('Skill mutation policy enforces owner score and pending-change gates at the
     name: 'owned-draft', owner: 'product-pm', workflowStatus: 'draft', status: 'draft',
     onlineStatus: 'unpublished', online: '未发布'
   }
+  assert.equal(skillHubMutationDecision(undefined, 'product-pm', 'submit_review', 0.782).allowed, false)
+  assert.equal(skillHubMutationDecision(undefined, 'product-pm', 'submit_review', 0.800).allowed, true)
   assert.equal(skillHubMutationDecision(draft, 'admin', 'edit').allowed, false)
   assert.equal(skillHubMutationDecision(draft, 'product-pm', 'edit').allowed, true)
   assert.equal(skillHubMutationDecision(draft, 'product-pm', 'submit_review', 0.799).allowed, false)

@@ -304,15 +304,14 @@ export function skillHubRowPresentation(item) {
 }
 
 export function skillHubMutationDecision(item, actorUser, intent = 'edit', score = 0) {
-  if (!item) return { allowed: true, reason: '' }
-  if (!actorUser || item.owner !== actorUser) {
+  if (item && (!actorUser || item.owner !== actorUser)) {
     return { allowed: false, reason: '只有当前 Skill 负责人可以保存或提交该 Skill。' }
   }
   if (intent !== 'submit_review') return { allowed: true, reason: '' }
   if (Number(score || 0) < 0.8) {
     return { allowed: false, reason: `当前综合评分 ${Number(score || 0).toFixed(3)}，需达到 0.80 才能提交审核。` }
   }
-  const update = item.capabilityUpdate
+  const update = item?.capabilityUpdate
   if (
     ['available', 'preparing', 'processing_with_available', 'failed'].includes(update?.status)
     || update?.task?.status === 'generating'

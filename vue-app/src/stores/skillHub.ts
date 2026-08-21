@@ -269,15 +269,16 @@ export const useSkillHubStore = defineStore('skillHub', () => {
       reviewNote: `提交审核：综合评分 ${payload.score}，等待管理员审批。`
     }
     const index = items.value.findIndex(item => item.name === name)
+    const current = index >= 0 ? items.value[index] : undefined
+    const decision = skillHubMutationDecision(current, payload.owner, 'submit_review', Number(payload.score || 0))
+    if (!decision.allowed) throw new Error(decision.reason)
     if (index >= 0) {
-      const current = items.value[index]
-      const decision = skillHubMutationDecision(current, payload.owner, 'submit_review', Number(payload.score || 0))
-      if (!decision.allowed) throw new Error(decision.reason)
-      nextItem.owner = current.owner
-      const isCapabilityUpdate = current.capabilityUpdate?.status === 'processing' && current.online !== '未发布'
+      const existing = current as SkillHubItem
+      nextItem.owner = existing.owner
+      const isCapabilityUpdate = existing.capabilityUpdate?.status === 'processing' && existing.online !== '未发布'
       items.value[index] = isCapabilityUpdate
-        ? mergeCapabilitySubmission(current, nextItem, updated)
-        : { ...current, ...nextItem }
+        ? mergeCapabilitySubmission(existing, nextItem, updated)
+        : { ...existing, ...nextItem }
     } else {
       items.value.unshift(nextItem)
     }
@@ -311,15 +312,16 @@ export const useSkillHubStore = defineStore('skillHub', () => {
       reviewNote: '草稿已保存：可从 Skill Hub 返回需求澄清阶段继续编辑。'
     }
     const index = items.value.findIndex(item => item.name === name)
+    const current = index >= 0 ? items.value[index] : undefined
+    const decision = skillHubMutationDecision(current, payload.owner, 'edit')
+    if (!decision.allowed) throw new Error(decision.reason)
     if (index >= 0) {
-      const current = items.value[index]
-      const decision = skillHubMutationDecision(current, payload.owner, 'edit')
-      if (!decision.allowed) throw new Error(decision.reason)
-      nextItem.owner = current.owner
-      const isCapabilityUpdate = current.capabilityUpdate?.status === 'processing' && current.online !== '未发布'
+      const existing = current as SkillHubItem
+      nextItem.owner = existing.owner
+      const isCapabilityUpdate = existing.capabilityUpdate?.status === 'processing' && existing.online !== '未发布'
       items.value[index] = isCapabilityUpdate
-        ? mergeCapabilityDraft(current, nextItem, payload.draft, updated)
-        : { ...current, ...nextItem }
+        ? mergeCapabilityDraft(existing, nextItem, payload.draft, updated)
+        : { ...existing, ...nextItem }
     } else {
       items.value.unshift(nextItem)
     }
