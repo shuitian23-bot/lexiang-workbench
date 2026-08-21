@@ -1963,6 +1963,11 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
   outline:none;
   box-shadow:0 0 0 2px rgba(47,107,255,.12);
 }
+.skill-hub-confirm-error {
+  color:#dc2626;
+  font-size:12px;
+  font-weight:500;
+}
 .skill-hub-confirm-foot {
   display:flex;
   justify-content:flex-end;
@@ -6092,6 +6097,11 @@ html[data-product="leaibot"] .skill-hub-status.status-rejected {
   color:#ef4444;
 }
 
+html[data-product="leaibot"] .skill-hub-status.status-processing {
+  background:#eef4ff;
+  color:var(--primary);
+}
+
 html[data-product="leaibot"] .skill-hub-status-stack {
   display:flex;
   align-items:flex-start;
@@ -6130,6 +6140,11 @@ html[data-product="leaibot"] .skill-hub-edit-status {
 html[data-product="leaibot"] .skill-hub-update-status.is-processing {
   background:#eef4ff;
   color:var(--primary);
+}
+
+html[data-product="leaibot"] .skill-hub-update-status.is-failed {
+  background:#fef2f2;
+  color:#dc2626;
 }
 
 html[data-product="leaibot"] .skill-hub-tags {
@@ -6261,6 +6276,27 @@ html[data-product="leaibot"] .skill-capability-report {
   border:1px solid var(--border-light);
   border-radius:8px;
   background:#fff;
+}
+
+html[data-product="leaibot"] .skill-capability-error {
+  display:grid;
+  gap:5px;
+  margin-top:14px;
+  padding:12px 14px;
+  border:1px solid #fecaca;
+  border-radius:8px;
+  background:#fef2f2;
+  color:#991b1b;
+  font-size:12px;
+  line-height:1.5;
+}
+
+html[data-product="leaibot"] .skill-capability-error b {
+  font-size:13px;
+}
+
+html[data-product="leaibot"] .skill-capability-error small {
+  color:#b91c1c;
 }
 
 html[data-product="leaibot"] .skill-capability-technical {

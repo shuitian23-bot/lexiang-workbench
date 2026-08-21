@@ -486,39 +486,42 @@ test('capability submission preserves online lifecycle and owner until approved 
   assert.equal(published.editStatus, undefined)
 })
 
-test('Skill Hub exposes independent update discovery and change actions', async () => {
+test('Skill Hub exposes controlled update discovery and change actions', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
   assert.match(view, /只看有更新/)
   assert.match(view, /查看变化/)
-  assert.match(view, /\.statusLabel/)
+  assert.match(view, /rowPresentation/)
   assert.match(view, /能力变化详情/)
   assert.match(view, /startCapabilityUpdate/)
-  assert.match(view, /canUpdateSkill/)
-  assert.match(view, /function capabilityPresentation/)
+  assert.match(view, /allowedActionsFor/)
+  assert.match(view, /decisionCapabilityUpdate/)
 })
 
-test('Skill Hub uses the P0 controlled update action lifecycle copy', async () => {
+test('Skill Hub renders the controlled update lifecycle from action codes', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
-  assert.match(view, /capabilityUpdatePresentation/)
-  assert.match(view, /presentation\.actionLabel/)
-  assert.match(view, /presentation\.actionLoading/)
-  assert.match(view, /presentation\.ignoreLabel/)
-  assert.match(view, /function actionLabel\(action: string\)/)
-  assert.match(view, /审批更新:\s*'审批'/)
-  assert.match(view, /驳回更新:\s*'驳回'/)
-  assert.match(view, /发布更新:\s*'发布'/)
-  assert.match(view, /\{\{ actionLabel\(action\) \}\}/)
+  assert.match(view, /allowedActionsFor\(item, actor\.value\)/)
+  assert.match(view, /action\.code/)
+  assert.match(view, /action\.enabled/)
+  assert.match(view, /function actionLabel\(action: SkillHubActionCode\)/)
+  assert.match(view, /ignore_update:\s*'忽略更新'/)
+  assert.match(view, /retry_update:\s*'重试更新'/)
+  assert.match(view, /continue_update:\s*'继续更新'/)
+  assert.doesNotMatch(view, /const pmActions:/)
+  assert.doesNotMatch(view, /const adminActions:/)
 })
 
-test('Skill Hub renders safe Markdown reports and confirmed ignore or defer actions', async () => {
+test('Skill Hub renders safe Markdown reports and validates one ignore action', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
   const component = await source('../src/components/agent/SafeCapabilityMarkdown.vue')
   assert.match(view, /SafeCapabilityMarkdown/)
   assert.match(view, /reportMarkdown/)
   assert.match(view, /technicalDetails/)
   assert.match(view, /ignoreCapabilityUpdate/)
-  assert.match(view, /忽略只作用于当前变化记录/)
-  assert.match(view, /暂不处理会保留高风险标记/)
+  assert.match(view, /忽略更新只作用于当前变化记录/)
+  assert.match(view, /confirmRequiresReason/)
+  assert.match(view, /confirmError/)
+  assert.doesNotMatch(view, /暂不处理/)
+  assert.doesNotMatch(view, /忽略本次/)
   assert.doesNotMatch(component, /v-html/)
   assert.match(component, /parseCapabilityMarkdown/)
   assert.match(component, /block\.type === 'table'/)
@@ -545,12 +548,10 @@ test('all Skill Hub summary cards filter the list with one shared predicate', as
   }
   assert.match(view, /summaryFilter\.value === filter \? 'all' : filter/)
   assert.match(view, /item\.owner === \(user\.value \|\| 'admin'\)/)
-  assert.match(view, /item\.status === 'review' \|\| item\.editStatus === 'review'/)
-  assert.match(view, /item\.online !== '未发布' && item\.status !== 'disabled'/)
+  assert.match(view, /item\.workflowStatus === 'review'/)
+  assert.match(view, /item\.onlineStatus === 'published'/)
   assert.match(view, /return hasCapabilityUpdate\(item\)/)
-  assert.match(view, /item\.status === 'disabled'/)
-  assert.match(view, /published: \['禁用'/)
-  assert.match(view, /disabled: \['启用'/)
+  assert.match(view, /item\.onlineStatus === 'disabled'/)
   assert.match(styles, /grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/)
   assert.match(styles, /\.skill-hub-stat\.is-active/)
   assert.match(styles, /\.skill-hub-toolbar > input/)
@@ -559,13 +560,11 @@ test('all Skill Hub summary cards filter the list with one shared predicate', as
 
 test('owned Skills expose one standard edit action outside controlled updates', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
-  assert.match(view, /function canUseStandardEdit\(item: SkillHubItem\)/)
-  assert.match(view, /item\.owner === \(user\.value \|\| 'admin'\)/)
-  assert.match(view, /!capabilityPresentation\(item\)\.visible/)
-  assert.match(view, /const standardEditActions = canUseStandardEdit\(item\) \? \['编辑'\] : \[\]/)
-  assert.match(view, /const baseActionsWithoutEdit = baseActions\.filter/)
-  assert.match(view, /'返回编辑', '编辑', '被驳回去修改'/)
-  assert.match(view, /openSkillCreateForItem\(item, item\.status === 'rejected'\)/)
+  const service = await source('../src/services/skillCapabilityChanges.js')
+  assert.match(view, /allowedActionsFor\(item, actor\.value\)/)
+  assert.match(service, /published:\s*\['view', 'edit', 'evaluate', 'test'\]/)
+  assert.match(service, /disabled:\s*\['view', 'edit', 'evaluate', 'test'\]/)
+  assert.match(view, /openSkillCreateForItem\(item, item\.workflowStatus === 'rejected'\)/)
 })
 
 test('skill store preserves online version while an update draft is edited', async () => {
@@ -584,11 +583,12 @@ test('Skill Hub mock state resets to the seeded records after a full page refres
   assert.doesNotMatch(store, /localStorage\.setItem\(STORAGE_KEY/)
 })
 
-test('Skill Hub shows only the controlled update status while an update draft is edited', async () => {
+test('Skill Hub shows one main status and at most one update prompt', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
-  assert.match(view, /v-if="!capabilityPresentation\(item\)\.statusLabel" class="skill-hub-status"/)
-  assert.match(view, /v-if="item\.editStatus && !capabilityPresentation\(item\)\.statusLabel" class="skill-hub-edit-status"/)
-  assert.match(view, /v-if="capabilityPresentation\(item\)\.statusLabel" class="skill-hub-update-status"/)
+  assert.match(view, /rowPresentation\(item\)\.mainStatusLabel/)
+  assert.match(view, /rowPresentation\(item\)\.updateStatusLabel/)
+  assert.match(view, /v-if="rowPresentation\(item\)\.updateStatusLabel"/)
+  assert.doesNotMatch(view, /class="skill-hub-edit-status"/)
 })
 
 test('Skill create keeps capability context changes visible and gates review at 0.80', async () => {
@@ -750,6 +750,24 @@ test('processing updates expose only the actions for their current update workfl
     name: 'later-change', owner: 'admin', workflowStatus: 'review', status: 'published', online: 'v1.0.7',
     capabilityUpdate: { ...update, status: 'processing_with_available' }
   }, admin).map(action => action.code), ['view_change', 'start_update', 'ignore_update'])
+})
+
+test('an update review can be withdrawn to the same update draft', async () => {
+  const { getSeedCapabilityUpdate, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
+  const current = {
+    name: 'product-knowledge', owner: 'product-pm', version: 'v1.0.8', editVersion: 'v1.0.8',
+    online: 'v1.0.7', onlineStatus: 'published', status: 'published', statusText: '已发布',
+    workflowStatus: 'review', editStatus: 'review', submittedAt: '2026-08-21 11:20', reviewer: 'admin', reviewTime: '2026-08-21 11:21',
+    capabilityUpdate: { ...getSeedCapabilityUpdate('product-knowledge'), status: 'processing' }
+  }
+  const withdrawn = transitionCapabilityEdit(current, 'draft', 'product-pm', '2026-08-21 11:25')
+  assert.equal(withdrawn.workflowStatus, 'draft')
+  assert.equal(withdrawn.editStatus, 'draft')
+  assert.equal(withdrawn.online, 'v1.0.7')
+  assert.equal(withdrawn.capabilityUpdate.status, 'processing')
+  assert.equal(withdrawn.submittedAt, undefined)
+  assert.equal(withdrawn.reviewer, undefined)
+  assert.equal(withdrawn.reviewTime, undefined)
 })
 
 test('high-risk updates require an ignore reason while enhancements do not', async () => {

@@ -241,6 +241,10 @@ function decisionUpdateOf(update) {
     : update
 }
 
+export function capabilityDecisionUpdate(item) {
+  return clone(decisionUpdateOf(item?.capabilityUpdate))
+}
+
 function isHighRiskUpdate(update) {
   return (update?.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
 }
@@ -757,6 +761,17 @@ export function mergeCapabilitySubmission(current, nextItem, updatedAt = formatS
 export function transitionCapabilityEdit(current, status, reviewer, updatedAt = formatShanghaiMinute()) {
   const target = clone(current)
   if (!target?.capabilityUpdate || target.capabilityUpdate.status !== 'processing') return target
+
+  if (status === 'draft' && target.workflowStatus === 'review') {
+    target.editStatus = 'draft'
+    target.workflowStatus = 'draft'
+    target.submittedAt = undefined
+    target.reviewer = undefined
+    target.reviewTime = undefined
+    target.updated = updatedAt
+    target.reviewNote = '能力更新已撤回：继续保留当前更新草稿，线上版本不变。'
+    return target
+  }
 
   if (status === 'approved' || status === 'rejected') {
     target.editStatus = status

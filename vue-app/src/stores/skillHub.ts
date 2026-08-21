@@ -189,14 +189,14 @@ const defaultItems: SeedSkillHubItem[] = [
   { name: 'voucher-recommend', cnName: '券包权益推荐', platform: 'lexiang', desc: '识别虚拟品充值、会员充值和券包权益推荐需求，输出推荐卡片。', version: 'v0.1.3', online: 'v0.1.3', status: 'published', statusText: '已发布', category: '乐享运营', tags: ['权益', '推荐'], owner: 'growth-pm', updated: '2026-06-06 12:13' },
   { name: 'driver-download-guide', cnName: '驱动下载指导', platform: 'lexiang', desc: '联想驱动下载指导 Skill，支持驱动查询、版本差异对比和安装说明生成。', version: 'v1.0.0', online: '未发布', status: 'review', statusText: '待审批', category: '乐享运营', tags: ['下载', '驱动'], owner: 'service-pm', updated: '2026-06-05 16:45', submittedAt: '2026-06-05 16:45', score: '0.801' },
   { name: 'lenovo-order-detail-query', cnName: '订单明细查询', platform: 'lexiang,aiadmin', desc: '联想商城订单明细查询助手，支持自然语言查询订单状态和售后发货信息。', version: 'v1.0.0', online: '未发布', status: 'approved', statusText: '已审批', category: '乐享运营', tags: ['订单'], owner: 'ops-pm', updated: '2026-06-02 17:15' },
-  { name: 'weather-query', cnName: '实时天气查询', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: '未发布', status: 'disabled', statusText: '已禁用', category: '乐享运营', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
+  { name: 'weather-query', cnName: '实时天气查询', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: 'v1.0.0', status: 'disabled', statusText: '已禁用', category: '乐享运营', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' }
 ]
 
 export function skillHubStatusLabel(status: SkillStatus) {
   return {
     draft: '草稿',
     review: '待审批',
-    approved: '已审批',
+    approved: '已审批待发布',
     published: '已发布',
     disabled: '已禁用',
     rejected: '已驳回'
@@ -353,7 +353,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     return items.value[index]
   }
 
-  function updateCapabilityEditStatus(item: SkillHubItem, status: 'approved' | 'rejected' | 'published', reviewer = 'admin') {
+  function updateCapabilityEditStatus(item: SkillHubItem, status: 'draft' | 'approved' | 'rejected' | 'published', reviewer = 'admin') {
     const index = items.value.findIndex(row => row.name === item.name)
     if (index < 0) return
     items.value[index] = transitionCapabilityEdit(items.value[index], status, reviewer, nowMinute())
@@ -362,6 +362,14 @@ export const useSkillHubStore = defineStore('skillHub', () => {
 
   function allowedActionsFor(item: SkillHubItem, actor: SkillHubActor) {
     return resolveSkillHubAllowedActions(item, actor) as SkillHubAllowedAction[]
+  }
+
+  function removeSkill(name: string) {
+    const index = items.value.findIndex(item => item.name === name)
+    if (index < 0) return false
+    items.value.splice(index, 1)
+    persist()
+    return true
   }
 
   function updateStatus(item: SkillHubItem, status: SkillStatus, reviewer = 'admin') {
@@ -403,6 +411,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     ignoreCapabilityUpdate,
     updateCapabilityEditStatus,
     allowedActionsFor,
+    removeSkill,
     upsertDraftSkill,
     upsertSubmittedSkill,
     updateStatus
