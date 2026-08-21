@@ -93,6 +93,7 @@ body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card:
 }
 body[data-page="business"] .enterprise-scene-card{box-shadow:0 3px 10px rgba(16,16,16,.32),inset 0 1px 0 rgba(255,255,255,.36)}
 body[data-page="business"] .enterprise-scene-card:hover{box-shadow:0 4px 12px rgba(16,16,16,.32),inset 0 1px 0 rgba(255,255,255,.72)}
+body[data-page="business"] .enterprise-scene-card strong{min-height:18px}
 body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card:hover::before{opacity:.5}
 body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card:focus-visible{
   outline:2px solid #FFFFFF;
@@ -115,6 +116,7 @@ body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card:
 .enterprise-scene-card.is-product .enterprise-scene-card-visual img{object-fit:contain}
 .enterprise-scene-card:hover .enterprise-scene-card-visual img{transform:scale(1.035)}
 .enterprise-scene-card strong{min-height:36px;font-size:13px;line-height:1.4;font-weight:400}
+.enterprise-scene-card-product{display:block;min-height:17px;margin-top:-8px;font-size:11px;line-height:1.45;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body[data-page="personal"] .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall{
   margin:18px 0 18px 0;
 }

@@ -162,7 +162,11 @@
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
-        cards: ["ThinkPad", "ThinkBook", "ThinkCentre"],
+        cards: [
+          { title: "商务笔记本", product: "ThinkPad", image: "/assets/img/business/products/smb-thinkpad-t14.jpg" },
+          { title: "固定工位", product: "ThinkBook", image: "/assets/img/business/products/smb-thinkbook.jpg" },
+          { title: "办公保障", product: "ThinkCentre", image: "/assets/img/business/products/smb-thinkcentre.jpg" }
+        ],
         image: "/assets/img/business/smb-efficient-office-purple-hero.webp",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
@@ -175,7 +179,11 @@
         price: "13,999",
         product: "ThinkPad X1 Carbon AI",
         specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
-        cards: ["ThinkPad X", "充电宝", "扩展坞"],
+        cards: [
+          { title: "移动主机", product: "ThinkPad X", image: "/assets/img/business/products/smb-thinkpad-x.jpg" },
+          { title: "随行供电", product: "充电宝", image: "/assets/img/business/products/smb-power-bank.jpg" },
+          { title: "快速链接", product: "扩展坞", image: "/assets/img/business/products/smb-dock.jpg" }
+        ],
         image: "/assets/img/business/smb-mobile-travel-hero.webp",
         overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
         hotspotLeft: "74%",
@@ -188,7 +196,11 @@
         price: "16,299",
         product: "ThinkPad P16s 2025",
         specs: "酷睿 Ultra 7 · 32GB · 1TB",
-        cards: ["ThinkPad P系列", "ThinkStation", "ThinkVision"],
+        cards: [
+          { title: "移动工作站", product: "ThinkPad P系列", image: "/assets/img/business/products/smb-thinkpad-p.jpg" },
+          { title: "桌面工作站", product: "ThinkStation", image: "/assets/img/business/products/smb-thinkstation.jpg" },
+          { title: "专业显示", product: "ThinkVision", image: "/assets/img/business/products/smb-thinkvision.jpg" }
+        ],
         image: "/assets/img/creation-scene.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
@@ -201,7 +213,11 @@
         price: "16,299",
         product: "ThinkSmart 会议协作方案",
         specs: "智能会议 · 内容共享 · 远程协作",
-        cards: ["ThinkSmart", "ThinkVision", "耳麦"],
+        cards: [
+          { title: "会议终端", product: "ThinkSmart", image: "/assets/img/business/products/smb-thinksmart.jpg" },
+          { title: "内容显示", product: "ThinkVision", image: "/assets/img/business/products/smb-thinkvision.jpg" },
+          { title: "音视频外设", product: "耳麦", image: "/assets/img/business/products/smb-headset.jpg" }
+        ],
         image: "/assets/img/business/smb-meeting-collaboration-hero.webp",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
@@ -214,7 +230,11 @@
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
-        cards: ["ThinkBook", "扬天", "ThinkVision"],
+        cards: [
+          { title: "团队笔记本", product: "ThinkBook", image: "/assets/img/business/products/smb-thinkbook.jpg" },
+          { title: "商用台式机", product: "扬天", image: "/assets/img/business/products/smb-yangtian.jpg" },
+          { title: "企业服务", product: "ThinkVision", image: "/assets/img/business/products/smb-thinkvision.jpg" }
+        ],
         image: "/assets/img/business-banner-1.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
@@ -364,15 +384,27 @@
     sceneCount.textContent = (currentIndex + 1) + "/" + scenes.length;
     if (scene.cards && recommendationCards.length) {
       recommendationCards.forEach(function (card, cardIndex) {
-        var cardName = scene.cards[cardIndex];
-        if (!cardName) return;
+        var cardData = scene.cards[cardIndex];
+        if (!cardData) return;
+        var cardTitleText = typeof cardData === "string" ? cardData : cardData.title;
+        var cardProductText = typeof cardData === "string" ? "" : cardData.product;
         var cardTitle = card.querySelector("strong");
         var cardLabel = card.querySelector(".enterprise-scene-card-label");
+        var cardProduct = card.querySelector(".enterprise-scene-card-product");
         var cardImage = card.querySelector("img");
-        if (cardTitle) cardTitle.textContent = cardName;
+        if (cardTitle) cardTitle.textContent = cardTitleText;
+        if (!cardProduct && cardTitle) {
+          cardProduct = document.createElement("span");
+          cardProduct.className = "enterprise-scene-card-product";
+          cardTitle.insertAdjacentElement("afterend", cardProduct);
+        }
+        if (cardProduct) cardProduct.textContent = cardProductText;
         if (cardLabel) cardLabel.textContent = "了解详情";
-        if (cardImage) cardImage.alt = cardName;
-        card.dataset.brandAsk = "介绍" + scene.name + "场景的" + cardName;
+        if (cardImage) {
+          cardImage.alt = cardProductText || cardTitleText;
+          if (typeof cardData !== "string" && cardData.image) cardImage.src = new URL(cardData.image, document.baseURI).href;
+        }
+        card.dataset.brandAsk = "介绍" + scene.name + "场景的" + cardTitleText + " " + cardProductText;
       });
       var cardsRegion = hall.querySelector(".enterprise-scene-cards");
       if (cardsRegion) cardsRegion.setAttribute("aria-label", scene.name + "推荐内容");
