@@ -213,3 +213,18 @@ body[data-page="personal"][data-personal-products-enabled="false"] .content > .l
 body[data-page="business"]:not(.assistant-fullscreen) .content > .category-tabs {
   display: none !important;
 }
+
+/* 中小企业推荐楼层：旧商品网格仅作为数据源，隐藏状态不得被网格布局覆盖。 */
+body[data-page="business"]:not(.assistant-fullscreen)
+  .content > .product-grid[data-category-grid][hidden] {
+  display: none !important;
+}
+
+/* 中小企业推荐楼层：去掉商品卡片外层描边，保留勾选框与内部标签描边。 */
+body[data-page="business"]:not(.assistant-fullscreen)
+  .lx-business-rec-floors
+  .lx-floor-products > [data-floor-product],
+body[data-page="business"]:not(.assistant-fullscreen)
+  .content > .product-grid[data-category-grid] > .product-card {
+  border: 0 !important;
+}
