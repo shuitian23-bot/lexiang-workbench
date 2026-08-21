@@ -163,7 +163,7 @@
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
         cards: ["商务笔记本", "固定工位", "办公保障"],
-        image: "/assets/img/business/smb-efficient-office-hero.webp",
+        image: "/assets/img/business/smb-efficient-office-purple-hero.webp",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
