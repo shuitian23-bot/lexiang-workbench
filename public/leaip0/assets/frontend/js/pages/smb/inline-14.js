@@ -78,6 +78,11 @@
 
 /* === Personal recommendation floors === */
 (function () {
+  // 中小企业「推荐」楼层统一由 core/app.js 从正式货盘接口渲染：
+  // /api/products?site=b、/api/site/feed?site=b，以及 /api/products/:sku 商详。
+  // 禁止此处的历史演示数据覆盖接口返回的真实商品。
+  if (document.body && document.body.dataset.page === "business") return;
+
   var sourceGrid = document.querySelector(".content > .product-grid[data-category-grid]");
   var existingFloors = document.querySelector(".content > .lx-site-floors.lx-personal-rec-floors");
   var recommendationHost = sourceGrid || existingFloors;
@@ -190,7 +195,6 @@
 
   /* 上游商品接口会在首屏加载后刷新旧卡片；楼层模板在其后重新同步展示数据。 */
   function syncFloorCatalog() {
-    if (window.__lxProductCatalogActive) return;
     Array.from(floors.querySelectorAll("[data-floor-product]")).forEach(function (card, index) {
       if (catalog[index]) hydrate(card, catalog[index]);
     });
@@ -215,6 +219,7 @@
 
 /* === Product detail controller === */
 (function () {
+  // 线上五入口统一由 app.js 管理商详结果页与标签；此处仅供静态模板预览。
   if (window.__lxBridge) return;
   var content = document.querySelector(".shell > .content");
   var detail = content && content.querySelector(".product-detail");
@@ -286,7 +291,6 @@
   }
 
   function tabIdFor(product) {
-    if (product.sku) return "shop-detail:sku:" + product.sku;
     var key = product.title + "|" + product.price;
     var hash = 0;
     for (var index = 0; index < key.length; index += 1) hash = ((hash << 5) - hash + key.charCodeAt(index)) | 0;
@@ -312,7 +316,6 @@
 
   function detailProduct(card) {
     return {
-      sku: card.dataset.detailSku || "",
       brand: card.dataset.detailBrand || "Lenovo",
       title: card.dataset.detailTitle || card.querySelector(".product-title")?.textContent.trim() || "联想商品",
       summary: card.dataset.detailSummary || card.querySelector(".spec")?.textContent.trim() || "联想官方商品",
@@ -329,7 +332,7 @@
       openDetail(card);
       return;
     }
-    var sku = product.sku || tabIdFor(product).replace("shop-detail:", "template-");
+    var sku = tabIdFor(product).replace("shop-detail:", "template-");
     sharedDetailCards.set(sku, card);
     var amount = priceNumber(product.price);
     Promise.resolve(window.__lxOpenProductTab({
@@ -498,13 +501,19 @@
   function renderVariants(product) {
     var host = detail.querySelector("[data-detail-variants]");
     if (!host) return;
+    var base = priceNumber(product.price);
+    var prices = [base, base + 1200, base + 2500, base + 4200];
+    var variants = ["标准配置｜32GB｜1TB SSD", "进阶配置｜32GB｜2TB SSD", "高性能配置｜32GB｜独立显卡", "旗舰配置｜64GB｜2TB SSD"];
     host.hidden = false;
-    host.innerHTML = '<div class="lx-product-data-state" role="status">正在获取真实配置…</div>';
+    host.innerHTML = '<div class="lx-spu-head"><span>本系列共 4 款配置 · <b>' + (base ? "¥" + base.toLocaleString("zh-CN") + " - ¥" + prices[3].toLocaleString("zh-CN") : "价格以页面为准") + '</b></span><button class="lx-spu-compare" type="button">对比本系列 →</button></div><div class="lx-spu-chips">' + variants.map(function (label, index) {
+      var amount = prices[index] ? "¥" + prices[index].toLocaleString("zh-CN") : product.price;
+      return '<button class="lx-spu-chip' + (index === 0 ? " is-active" : "") + '" type="button" data-detail-price-value="' + escapeHtml(amount) + '"><span class="lx-spu-chip-label">' + escapeHtml(label) + '</span><span class="lx-spu-chip-price">' + escapeHtml(amount) + "</span></button>";
+    }).join("") + "</div>";
   }
 
   function setPrice(value) {
     var node = detail.querySelector("[data-detail-price]");
-    if (node) node.innerHTML = '<span class="detail-price-main">' + escapeHtml(value) + '</span>';
+    if (node) node.innerHTML = '<span class="detail-price-main">' + escapeHtml(value) + '</span><span class="detail-price-side"><s>官方指导价</s><b>限时优惠</b></span>';
     detail.querySelectorAll(".lx-buybar-info b").forEach(function (item) { item.textContent = value; });
   }
 
@@ -524,14 +533,14 @@
     }
     renderVariants(product);
     var tags = detail.querySelector(".detail-tags");
-    if (tags) tags.innerHTML = '<span class="detail-tag">' + escapeHtml(product.brand) + '</span>';
+    if (tags) tags.innerHTML = '<span class="detail-tag">' + escapeHtml(product.brand) + '</span><span class="detail-tag">教育特惠</span><span class="detail-tag">官方优惠</span><span class="detail-tag">以旧换新</span>';
     setPrice(product.price);
     var actions = detail.querySelector(".detail-actions");
     if (actions) actions.innerHTML = '<button class="detail-primary" type="button">一键领优惠下单</button><button class="detail-secondary lx-p0-detail-compare" type="button">加入对比</button><button class="detail-secondary" type="button">加入购物车</button>';
     var services = detail.querySelector(".detail-service");
     if (services) services.innerHTML = '<div class="service-item"><strong>联想官方正品</strong><span>官方渠道与原厂保障</span></div><div class="service-item"><strong>180 天只换不修</strong><span>符合规则可享换新服务</span></div><div class="service-item"><strong>14 天无理由退换</strong><span>购买前请核对适用规则</span></div>';
     detail.querySelector(".detail-itemcode")?.remove();
-    services?.insertAdjacentHTML("afterend", '<div class="detail-itemcode">商品编号：<span>' + escapeHtml(product.sku || "数据同步中") + "</span></div>");
+    services?.insertAdjacentHTML("afterend", '<div class="detail-itemcode">商品编号：<span>LX-' + String(Math.abs(product.title.split("").reduce(function (sum, char) { return sum + char.charCodeAt(0); }, 0))).padStart(8, "0") + "</span></div>");
     text("[data-review-sum]", "用户普遍认可这款产品的性能表现、使用体验与官方服务，适合结合实际用途和预算继续比较；购买前请核对具体配置与权益。");
     renderReviews();
     var imagePanel = detail.querySelector("[data-detail-images-panel]");
