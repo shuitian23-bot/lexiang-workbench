@@ -59,6 +59,7 @@ body[data-page="personal"] .content:has(> .lx-tabbar .lx-tab.is-active:not([data
 .device-scene-price{margin:15px 0 12px;color:#FFFFFF;font-size:24px;line-height:1;font-weight:700}
 .device-scene-price b{font:inherit}
 .device-scene-price span,.device-scene-price small{font-size:13px;font-weight:500}
+body[data-page="enterprise"] .device-scene-price{display:none}
 .device-scene-buy{height:38px;min-height:38px;max-height:38px;display:inline-flex;flex:0 0 38px;align-items:center;justify-content:center;box-sizing:border-box;padding:0 22px;border:0;border-radius:8px;background:linear-gradient(96deg,#fcf2f8 22.83%,#e3eafd 98.41%);color:#4d144a;font-size:14px;line-height:1;font-weight:500;cursor:pointer;transition:filter .18s ease,transform .18s ease}
 .device-scene-buy:hover{filter:brightness(.96);transform:translateY(-1px)}
 .device-scene-buy:focus-visible{outline:2px solid #FFFFFF;outline-offset:3px}

@@ -194,37 +194,97 @@
     ],
     enterprise: [
       {
-        name: "智算中心",
+        name: "制造行业",
         title: "智算驱动，规模增长",
         description: "面向核心业务与大规模算力场景，提供稳定、安全、可持续演进的基础设施。",
         price: "28,500",
         product: "ThinkStation P 系列工作站",
         specs: "专业算力 · 集中管理 · 安全可靠",
-        image: "../img/enterprise-banner-1.jpg",
+        image: "../img/industry/produce.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
       },
       {
-        name: "行业方案",
-        title: "行业融合，稳健落地",
-        description: "围绕政务、教育与重点行业场景，整合终端、平台和全周期服务能力。",
+        name: "教育行业",
+        title: "智慧教育，协同创新",
+        description: "连接教学、科研与校园管理场景，构建安全高效的数字教育基础设施。",
         price: "30,299",
-        product: "联想行业智能解决方案",
-        specs: "全栈方案 · 安全部署 · 持续服务",
-        image: "../img/enterprise-banner-2.jpg",
+        product: "联想智慧教育解决方案",
+        specs: "智慧教学 · 科研计算 · 校园管理",
+        image: "../img/solution/智慧教室解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
       },
       {
-        name: "智能制造",
-        title: "端边云协同，生产提效",
-        description: "连接研发、生产与运维环节，以智能算力和行业服务推动业务提质增效。",
+        name: "政府行业",
+        title: "数字政务，安全高效",
+        description: "围绕政务服务、数据治理与统一运维，提升数字政府的协同和服务能力。",
         price: "34,799",
-        product: "ThinkStation P16 移动工作站",
-        specs: "专业显卡 · 企业安全 · 全周期服务",
-        image: "../img/industry/produce.jpg",
+        product: "联想数字政府解决方案",
+        specs: "政务云 · 数据治理 · 统一运维",
+        image: "../img/solution/数字政府统一运维方案.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "医疗行业",
+        title: "智慧医疗，稳健守护",
+        description: "贯通诊疗、数据与运营场景，为医疗机构提供可靠的数字化基础能力。",
+        price: "34,799",
+        product: "联想智慧医院解决方案",
+        specs: "智慧诊疗 · 数据安全 · 高效运营",
+        image: "../img/solution/智慧医院整体解决方案.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "金融行业",
+        title: "金融智算，安全敏捷",
+        description: "面向核心业务、数据中心与智能应用，构建安全弹性的金融数字底座。",
+        price: "34,799",
+        product: "联想金融行业解决方案",
+        specs: "核心业务 · 数据中心 · 智能应用",
+        image: "../img/solution/金融行业DCM数据中心管理平台.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "能源行业",
+        title: "智慧能源，绿色发展",
+        description: "服务能源生产、巡检与运营管理，推动安全生产和绿色低碳转型。",
+        price: "34,799",
+        product: "联想智慧能源解决方案",
+        specs: "智能巡检 · 安全生产 · 绿色运营",
+        image: "../img/solution/智慧电厂解决方案.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "交通行业",
+        title: "智慧交通，畅行协同",
+        description: "覆盖轨道、机场与高速场景，以云平台和智能运营能力提升通行效率。",
+        price: "34,799",
+        product: "联想智慧交通解决方案",
+        specs: "轨道交通 · 机场云 · 高速运营",
+        image: "../img/solution/轨交智能运营解决方案.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "服务行业",
+        title: "智慧服务，体验升级",
+        description: "连接门店、客服与供应链场景，以智能化能力提升运营与客户体验。",
+        price: "34,799",
+        product: "联想智慧服务解决方案",
+        specs: "智慧门店 · 智能客服 · 供应链协同",
+        image: "../img/solution/智慧零售连锁门店解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -242,6 +302,7 @@
   var product = hall.querySelector(".device-scene-product-popover strong");
   var specs = hall.querySelector(".device-scene-product-popover > span");
   var currentLabel = hall.querySelector(".device-scene-current");
+  var sceneAction = hall.querySelector(".device-scene-buy");
   var sceneCount = hall.querySelector(".device-scene-count");
   var picker = hall.querySelector(".device-scene-picker");
   var menuButtons = hall.querySelectorAll("[data-device-scene]");
@@ -249,6 +310,7 @@
   var hotspotPreviewTimer = 0;
 
   function previewHotspot() {
+    if (!hotspot) return;
     window.clearTimeout(hotspotPreviewTimer);
     hotspot.classList.remove("is-auto-open");
     void hotspot.offsetWidth;
@@ -263,14 +325,17 @@
     var scene = scenes[currentIndex];
     title.textContent = scene.title;
     description.textContent = scene.description;
-    price.textContent = scene.price;
-    product.textContent = scene.product;
-    specs.textContent = scene.specs;
+    if (price) price.textContent = scene.price;
+    if (product) product.textContent = scene.product;
+    if (specs) specs.textContent = scene.specs;
     currentLabel.textContent = "当前: " + scene.name + "场景";
+    if (sceneAction) sceneAction.textContent = "咨询" + scene.name + "解决方案";
     sceneCount.textContent = (currentIndex + 1) + "/" + scenes.length;
-    hotspot.setAttribute("aria-label", "查看" + scene.product + "商品信息");
-    hotspot.style.left = scene.hotspotLeft;
-    hotspot.style.top = scene.hotspotTop;
+    if (hotspot) {
+      hotspot.setAttribute("aria-label", "查看" + scene.product + "商品信息");
+      hotspot.style.left = scene.hotspotLeft;
+      hotspot.style.top = scene.hotspotTop;
+    }
     hall.style.backgroundImage = 'url("' + new URL(scene.image, document.baseURI).href + '")';
     hall.style.setProperty("--device-scene-overlay", scene.overlay);
     menuButtons.forEach(function (button) {
