@@ -124,7 +124,7 @@
       price: "11,820",
       product: "拯救者 Y9000P 2026",
       specs: "RTX 5060 · 2.5K 240Hz · 32GB",
-      image: "../img/game-scene.jpg",
+      image: "/assets/img/game-scene.jpg",
       overlay: "linear-gradient(90deg,#101010 0%,rgba(77,20,74,.48) 44%,transparent 72%)",
       hotspotLeft: "76%",
       hotspotTop: "38%"
@@ -136,7 +136,7 @@
       price: "8,999",
       product: "ThinkPad T14p 2026",
       specs: "酷睿 Ultra 9 · 32GB · 2TB · 2.8K OLED",
-      image: "../img/creation-scene.jpg",
+      image: "/assets/img/creation-scene.jpg",
       overlay: "linear-gradient(90deg,#101010 0%,rgba(77,20,74,.48) 44%,transparent 72%)",
       hotspotLeft: "72%",
       hotspotTop: "40%"
@@ -148,7 +148,7 @@
       price: "1,299",
       product: "小新Pad Pro 12.7英寸",
       specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
-      image: "../img/working-scene.jpg",
+      image: "/assets/img/working-scene.jpg",
       overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 38%,rgba(73,126,214,.4) 68%,transparent 88%)",
       hotspotLeft: "74%",
       hotspotTop: "38%"
@@ -162,7 +162,7 @@
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
-        image: "../img/business-banner-1.jpg",
+        image: "/assets/img/business-banner-1.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
@@ -174,7 +174,7 @@
         price: "16,299",
         product: "ThinkPad P16s 2025",
         specs: "酷睿 Ultra 7 · 32GB · 1TB",
-        image: "../img/business-banner-2.jpg",
+        image: "/assets/img/business-banner-2.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
@@ -186,7 +186,7 @@
         price: "13,999",
         product: "ThinkPad X1 Carbon AI",
         specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
-        image: "../img/working-scene.jpg",
+        image: "/assets/img/working-scene.jpg",
         overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -200,7 +200,7 @@
         price: "28,500",
         product: "ThinkStation P 系列工作站",
         specs: "专业算力 · 集中管理 · 安全可靠",
-        image: "../img/industry/produce.jpg",
+        image: "/assets/img/industry/produce.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
@@ -212,7 +212,7 @@
         price: "30,299",
         product: "联想智慧教育解决方案",
         specs: "智慧教学 · 科研计算 · 校园管理",
-        image: "../img/solution/智慧教室解决方案.jpg",
+        image: "/assets/img/solution/智慧教室解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
@@ -224,7 +224,7 @@
         price: "34,799",
         product: "联想数字政府解决方案",
         specs: "政务云 · 数据治理 · 统一运维",
-        image: "../img/solution/数字政府统一运维方案.jpg",
+        image: "/assets/img/solution/数字政府统一运维方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -236,7 +236,7 @@
         price: "34,799",
         product: "联想智慧医院解决方案",
         specs: "智慧诊疗 · 数据安全 · 高效运营",
-        image: "../img/solution/智慧医院整体解决方案.jpg",
+        image: "/assets/img/solution/智慧医院整体解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -248,7 +248,7 @@
         price: "34,799",
         product: "联想金融行业解决方案",
         specs: "核心业务 · 数据中心 · 智能应用",
-        image: "../img/solution/金融行业DCM数据中心管理平台.jpg",
+        image: "/assets/img/solution/金融行业DCM数据中心管理平台.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -260,7 +260,7 @@
         price: "34,799",
         product: "联想智慧能源解决方案",
         specs: "智能巡检 · 安全生产 · 绿色运营",
-        image: "../img/solution/智慧电厂解决方案.jpg",
+        image: "/assets/img/solution/智慧电厂解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -272,7 +272,7 @@
         price: "34,799",
         product: "联想智慧交通解决方案",
         specs: "轨道交通 · 机场云 · 高速运营",
-        image: "../img/solution/轨交智能运营解决方案.jpg",
+        image: "/assets/img/solution/轨交智能运营解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -284,7 +284,7 @@
         price: "34,799",
         product: "联想智慧服务解决方案",
         specs: "智慧门店 · 智能客服 · 供应链协同",
-        image: "../img/solution/智慧零售连锁门店解决方案.jpg",
+        image: "/assets/img/solution/智慧零售连锁门店解决方案.jpg",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -328,7 +328,7 @@
     if (price) price.textContent = scene.price;
     if (product) product.textContent = scene.product;
     if (specs) specs.textContent = scene.specs;
-    currentLabel.textContent = "当前: " + scene.name + "场景";
+    currentLabel.textContent = "当前: " + scene.name;
     if (sceneAction) sceneAction.textContent = "咨询" + scene.name + "解决方案";
     sceneCount.textContent = (currentIndex + 1) + "/" + scenes.length;
     if (hotspot) {

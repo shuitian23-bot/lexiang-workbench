@@ -29,6 +29,10 @@ body[data-page="enterprise"] .content > .device-scene-hall{
   background:#101010 center/cover no-repeat;
   color:#FFFFFF;
 }
+/* 政教及大企业：头图在原自适应高度基础上整体增加 25%。 */
+body[data-page="enterprise"] .content > .device-scene-hall{
+  height:clamp(350px,41.666dvh,525px);
+}
 body[data-page="personal"] .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall{
   margin:18px 0 18px 0;
 }
