@@ -446,8 +446,8 @@ test('legacy processing state restores the P0 available marker without discardin
   }).actionLabel, '更新')
 })
 
-test('capability submission preserves online lifecycle and owner until approved release', async () => {
-  const { beginCapabilityUpdate, completeCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilitySubmission, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
+test('capability submission enters review workflow without retaining the update editor action', async () => {
+  const { beginCapabilityUpdate, completeCapabilityUpdate, getSeedCapabilityUpdate, mergeCapabilitySubmission, resolveSkillHubAllowedActions, transitionCapabilityEdit } = await import('../src/services/skillCapabilityChanges.js')
   const preparing = beginCapabilityUpdate({
     name: 'product-knowledge',
     cnName: '产品知识问答',
@@ -475,6 +475,13 @@ test('capability submission preserves online lifecycle and owner until approved 
   assert.equal(submitted.editStatus, 'review')
   assert.equal(submitted.online, 'v1.0.7')
   assert.equal(submitted.capabilityUpdate.hasDraftEdits, true)
+  assert.deepEqual(resolveSkillHubAllowedActions(submitted, { role: 'admin', user: 'admin' }).map(action => action.code), [
+    'view_change',
+    'view',
+    'evaluate',
+    'approve',
+    'reject'
+  ])
 
   const approved = transitionCapabilityEdit(submitted, 'approved', 'admin', '2026-08-14 11:20')
   assert.equal(approved.status, 'published')
@@ -763,16 +770,16 @@ test('available capability changes always expose update and ignore actions until
   }, actor).map(action => action.code), ['view_change', 'view_update_error', 'retry_update', 'ignore_update'])
 })
 
-test('processing updates always expose change and continue actions while retaining workflow actions', async () => {
+test('processing updates expose continue only while editable and otherwise retain workflow actions', async () => {
   const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
   const update = { ...getSeedCapabilityUpdate('product-knowledge'), status: 'processing' }
   const admin = { role: 'admin', user: 'admin' }
 
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'draft-update', owner: 'admin', workflowStatus: 'draft', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view'])
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'approve', 'reject'])
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'continue_update', 'view', 'withdraw_review'])
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'test'])
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'view', 'evaluate', 'test', 'publish'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'view', 'evaluate', 'approve', 'reject'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'view', 'withdraw_review'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'view', 'evaluate', 'test'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'view', 'evaluate', 'test', 'publish'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'rejected-update', owner: 'admin', workflowStatus: 'rejected', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'published-update', owner: 'product-pm', workflowStatus: 'published', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update', 'disable'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'disabled-update', owner: 'product-pm', workflowStatus: 'disabled', status: 'disabled', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])

@@ -414,18 +414,18 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
     ]
   }
   if (updateStatus === 'processing') {
+    if (workflowStatus === 'review' || workflowStatus === 'approved') {
+      return [
+        action('view_change', true, changePayload),
+        ...standardSkillActionCodes(item, actor, workflowStatus).map(code => action(code))
+      ]
+    }
     const updateActions = [
       action('view_change', true, changePayload),
       action('continue_update', true),
       ...publishedLifecycleActions,
       ...draftLifecycleActions
     ]
-    if (workflowStatus === 'review' || workflowStatus === 'approved') {
-      return [
-        ...updateActions,
-        ...standardSkillActionCodes(item, actor, workflowStatus).map(code => action(code))
-      ]
-    }
     return updateActions
   }
 
