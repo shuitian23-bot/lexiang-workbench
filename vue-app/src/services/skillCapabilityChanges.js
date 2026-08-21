@@ -147,15 +147,6 @@ Object.assign(seedUpdates, {
     targetVersion: 'cap-2026.08.21',
     detectedAt: '2026-08-21 09:50',
     summary: '天气能力新增预警等级和运营活动建议字段。'
-  }),
-  'workplace-employee-review-analysis': createLifecycleSeedUpdate({
-    skillName: 'workplace-employee-review-analysis',
-    contextId: 'employee.review',
-    menuPath: '在职员工管理 / 职场员工审核',
-    currentVersion: 'cap-2026.08.07',
-    targetVersion: 'cap-2026.08.21',
-    detectedAt: '2026-08-21 10:00',
-    summary: '审核结果新增失败原因分组和处理时长字段。'
   })
 })
 

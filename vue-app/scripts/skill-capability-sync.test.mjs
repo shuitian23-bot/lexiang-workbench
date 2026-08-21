@@ -1047,7 +1047,8 @@ test('publishing an update preserves a disabled online state', async () => {
   assert.equal(published.capabilityUpdate.status, 'resolved')
 })
 
-test('the initial mock covers all six lifecycles with fixed available updates', async () => {
+test('the initial mock keeps rejected clean while five other lifecycles expose available updates', async () => {
+  const { getSeedCapabilityUpdate, skillHubRowPresentation } = await import('../src/services/skillCapabilityChanges.js')
   const service = await source('../src/services/skillCapabilityChanges.js')
   const store = await source('../src/stores/skillHub.ts')
   for (const skillName of [
@@ -1055,12 +1056,24 @@ test('the initial mock covers all six lifecycles with fixed available updates', 
     'low-stock-auto-offline',
     'lenovo-order-detail-query',
     'product-knowledge',
-    'weather-query',
-    'workplace-employee-review-analysis'
+    'weather-query'
   ]) {
     assert.match(service, new RegExp(`['\"]${skillName}['\"]`))
+    assert.equal(getSeedCapabilityUpdate(skillName)?.status, 'available')
   }
+  assert.equal(getSeedCapabilityUpdate('workplace-employee-review-analysis'), undefined)
+  assert.deepEqual(skillHubRowPresentation({
+    name: 'workplace-employee-review-analysis',
+    online: '未发布',
+    status: 'rejected',
+    workflowStatus: 'rejected'
+  }), {
+    mainStatus: 'rejected',
+    mainStatusLabel: '已驳回',
+    updateStatus: 'none',
+    updateStatusLabel: ''
+  })
   assert.match(store, /name:\s*'capability-draft-demo'[\s\S]*status:\s*'draft'/)
-  assert.match(store, /name:\s*'driver-download-guide'[\s\S]*status:\s*'review'/)
+  assert.match(store, /name:\s*'workplace-employee-review-analysis'[\s\S]*status:\s*'rejected'/)
   assert.match(store, /function loadItems\(\) \{\s*return cloneDefaultItems\(\)\s*\}/)
 })
