@@ -476,7 +476,7 @@ function actionLabel(action: SkillHubActionCode) {
     view_update_error: '查看失败原因',
     retry_update: '重试更新',
     edit: '编辑',
-    view: '查看',
+    view: '详情',
     evaluate: '测试',
     test: '应用',
     submit_review: '提交审核',

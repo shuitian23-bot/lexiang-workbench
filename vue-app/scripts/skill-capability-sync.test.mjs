@@ -805,6 +805,7 @@ test('published Skills always retain disable across capability update states', a
 
 test('Skill Hub keeps the original Test and Apply labels with their original behaviors', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.match(view, /view:\s*'详情'/)
   assert.match(view, /evaluate:\s*'测试'/)
   assert.match(view, /test:\s*'应用'/)
   assert.match(view, /if \(action === 'evaluate'\) \{\s*evalItem\.value = item/)
