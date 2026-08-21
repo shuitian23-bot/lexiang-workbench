@@ -195,7 +195,7 @@
     enterprise: [
       {
         name: "制造行业",
-        title: "智算驱动，规模增长",
+          title: "贯通研产，智链制造",
         description: "面向核心业务与大规模算力场景，提供稳定、安全、可持续演进的基础设施。",
         price: "28,500",
         product: "ThinkStation P 系列工作站",
