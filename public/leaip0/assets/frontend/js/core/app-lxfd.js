@@ -1363,6 +1363,7 @@
   async function submit(text) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
+    if (typeof window.__lxRequireQueryAccess === "function" && !window.__lxRequireQueryAccess()) return;
     // 用户真正发出下一条消息后，新会话成立，恢复正常持久化。
     try { localStorage.removeItem("lexiang.newChatEmpty.v1"); } catch (_e) {}
     // 发送问题时强制收起顶部灵动岛，保持与首页项目一致的紧凑标题态：
