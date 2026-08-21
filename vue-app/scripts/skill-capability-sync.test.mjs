@@ -578,7 +578,15 @@ test('skill store preserves online version while an update draft is edited', asy
 
 test('Skill Hub mock state resets to the seeded records after a full page refresh', async () => {
   const store = await source('../src/stores/skillHub.ts')
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
   assert.match(store, /function loadItems\(\) \{\s*return cloneDefaultItems\(\)\s*\}/)
+  assert.match(store, /name:\s*'product-knowledge'[^\n]*status:\s*'published'/)
+  assert.match(store, /name:\s*'voucher-recommend'[^\n]*status:\s*'published'/)
+  assert.match(store, /function resetToInitialMock\(\) \{\s*items\.value = cloneDefaultItems\(\)\s*\}/)
+  assert.match(store, /resetToInitialMock,?/)
+  assert.match(view, /navigation\.type === 'reload'/)
+  assert.match(view, /sessionStorage\.removeItem\('leai\.skillCreateDraft'\)/)
+  assert.match(view, /skillHubStore\.resetToInitialMock\(\)/)
   assert.doesNotMatch(store, /localStorage\.getItem\(STORAGE_KEY\)/)
   assert.doesNotMatch(store, /localStorage\.setItem\(STORAGE_KEY/)
 })

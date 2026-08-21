@@ -247,6 +247,10 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     // POC changes stay in memory so a full refresh restores the seeded demo.
   }
 
+  function resetToInitialMock() {
+    items.value = cloneDefaultItems()
+  }
+
   function upsertSubmittedSkill(payload: SkillCreatePayload) {
     const updated = nowMinute()
     const name = payload.name.trim()
@@ -449,6 +453,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     ignoreCapabilityUpdate,
     updateCapabilityEditStatus,
     allowedActionsFor,
+    resetToInitialMock,
     removeSkill,
     upsertDraftSkill,
     upsertSubmittedSkill,

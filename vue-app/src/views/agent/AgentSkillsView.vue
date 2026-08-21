@@ -653,6 +653,11 @@ function toast(message: string) {
 }
 
 onMounted(() => {
+  const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+  if (navigation && navigation.type === 'reload') {
+    sessionStorage.removeItem('leai.skillCreateDraft')
+    skillHubStore.resetToInitialMock()
+  }
   appStore.ensureStaticTab('agent.skills')
   appStore.setActiveStaticTab('agent.skills')
   document.title = '联想门户工作台'
