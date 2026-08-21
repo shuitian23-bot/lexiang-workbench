@@ -167,7 +167,7 @@
           { title: "固定工位", product: "ThinkBook", image: "/assets/img/business/products/smb-thinkbook.jpg" },
           { title: "办公保障", product: "ThinkCentre", image: "/assets/img/business/products/smb-thinkcentre.jpg" }
         ],
-        image: "/assets/img/business/smb-efficient-office-purple-hero.webp",
+        image: "/assets/img/business/scenes/smb-scene-bg-1.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
@@ -184,7 +184,7 @@
           { title: "随行供电", product: "充电宝", image: "/assets/img/business/products/smb-power-bank.jpg" },
           { title: "快速链接", product: "扩展坞", image: "/assets/img/business/products/smb-dock.jpg" }
         ],
-        image: "/assets/img/business/smb-mobile-travel-hero.webp",
+        image: "/assets/img/business/scenes/smb-scene-bg-2.jpg",
         overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -201,7 +201,7 @@
           { title: "桌面工作站", product: "ThinkStation", image: "/assets/img/business/products/smb-thinkstation.jpg" },
           { title: "专业显示", product: "ThinkVision", image: "/assets/img/business/products/smb-thinkvision.jpg" }
         ],
-        image: "/assets/img/creation-scene.jpg",
+        image: "/assets/img/business/scenes/smb-scene-bg-3.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
@@ -218,7 +218,7 @@
           { title: "内容显示", product: "ThinkVision", image: "/assets/img/business/products/smb-thinkvision.jpg" },
           { title: "音视频外设", product: "耳麦", image: "/assets/img/business/products/smb-headset.jpg" }
         ],
-        image: "/assets/img/business/smb-meeting-collaboration-hero.webp",
+        image: "/assets/img/business/scenes/smb-scene-bg-4.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
@@ -235,7 +235,7 @@
           { title: "商用台式机", product: "扬天", image: "/assets/img/business/products/smb-yangtian.jpg" },
           { title: "企业服务", product: "ThinkVision", image: "/assets/img/business/products/smb-thinkvision.jpg" }
         ],
-        image: "/assets/img/business-banner-1.jpg",
+        image: "/assets/img/business/scenes/smb-scene-bg-5.jpg",
         overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
