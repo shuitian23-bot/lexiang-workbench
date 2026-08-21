@@ -209,3 +209,7 @@ body[data-page="personal"][data-personal-products-enabled="false"] .content > .l
 body[data-page="personal"][data-personal-products-enabled="false"] .content > .lx-personal-rec-floors {
   display: none !important;
 }
+/* 中小企业频道首页：阶段性隐藏商品楼层 Tab 选择条，保留楼层内容与数据交互。 */
+body[data-page="business"]:not(.assistant-fullscreen) .content > .category-tabs {
+  display: none !important;
+}
