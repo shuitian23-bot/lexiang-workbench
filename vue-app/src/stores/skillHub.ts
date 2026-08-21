@@ -10,12 +10,27 @@ import {
   ignoreCapabilityUpdate as ignoreCapabilityUpdateRecord,
   mergeCapabilityDraft,
   mergeCapabilitySubmission,
+  resolveSkillHubAllowedActions,
   transitionCapabilityEdit
 } from '@/services/skillCapabilityChanges.js'
 
 export type SkillStatus = 'draft' | 'review' | 'approved' | 'published' | 'disabled' | 'rejected'
-export type CapabilityUpdateStatus = 'available' | 'preparing' | 'processing' | 'ignored' | 'resolved'
+export type OnlineStatus = 'unpublished' | 'published' | 'disabled'
+export type WorkflowStatus = SkillStatus
+export type CapabilityUpdateStatus = 'none' | 'available' | 'preparing' | 'processing' | 'processing_with_available' | 'failed' | 'ignored' | 'resolved'
 export type CapabilityChangeKind = 'enhancement' | 'breaking' | 'permission'
+export type SkillHubActionCode = 'view_change' | 'start_update' | 'ignore_update' | 'continue_update' | 'view_update_error' | 'retry_update' | 'edit' | 'view' | 'evaluate' | 'test' | 'submit_review' | 'withdraw_review' | 'approve' | 'reject' | 'publish' | 'enable' | 'disable' | 'delete'
+
+export interface SkillHubAllowedAction {
+  code: SkillHubActionCode
+  enabled: boolean
+  payload?: Record<string, string>
+}
+
+export interface SkillHubActor {
+  role: 'admin' | 'pm'
+  user: string
+}
 
 export interface SkillContextBinding {
   contextId: string
@@ -64,6 +79,8 @@ export interface SkillCapabilityUpdate {
   flowRevision?: string
   status: CapabilityUpdateStatus
   hasDraftEdits?: boolean
+  pendingDecisionCount?: number
+  activeUpdateChangeRecordIds?: string[]
   contextId: string
   menuPath: string
   baseMenu: string
@@ -79,9 +96,10 @@ export interface SkillCapabilityUpdate {
   affectedContexts: SkillAffectedContext[]
   optionalContexts: SkillOptionalContext[]
   changes: SkillCapabilityChange[]
+  pendingUpdate?: Partial<SkillCapabilityUpdate>
   task?: CapabilityUpdateTask
   resolution?: {
-    action: 'ignored' | 'deferred'
+    action: 'ignored'
     operator: string
     handledAt: string
     reason: string
@@ -128,6 +146,8 @@ export interface SkillHubItem {
   version: string
   editVersion?: string
   editStatus?: SkillStatus
+  workflowStatus: WorkflowStatus
+  onlineStatus: OnlineStatus
   online: string
   status: SkillStatus
   statusText: string
@@ -159,7 +179,10 @@ type SkillDraftPayload = Omit<SkillCreatePayload, 'score'> & {
   draft: SkillDraftSnapshot
 }
 
-const defaultItems: SkillHubItem[] = [
+type SeedSkillHubItem = Omit<SkillHubItem, 'workflowStatus' | 'onlineStatus'>
+
+const defaultItems: SeedSkillHubItem[] = [
+  { name: 'capability-draft-demo', cnName: '运营查询草稿', platform: 'lexiang', desc: '聚合运营查询条件并输出业务标签、异常原因和处理建议。', version: 'v0.1.0', online: '未发布', status: 'draft', statusText: '草稿', category: '乐享运营', tags: ['查询', '草稿'], owner: 'admin', updated: '2026-08-21 09:10' },
   { name: 'workplace-employee-review-analysis', cnName: '职场员工审核数据分析', platform: 'lexiang', desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '在职员工管理', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
   { name: 'low-stock-auto-offline', cnName: '低库存自动下架', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '乐享运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36', submittedAt: '2026-06-10 11:36', score: '0.782' },
   { name: 'product-knowledge', cnName: '产品知识问答', platform: 'lexiang', desc: '识别用户产品知识查询需求，返回配置参数、性能差异和可选机型说明。', version: 'v1.0.7', online: 'v1.0.7', status: 'published', statusText: '已发布', category: '乐享运营', tags: ['查询', '商品', '+2'], owner: 'product-pm', updated: '2026-06-06 18:42' },
@@ -188,14 +211,16 @@ function cloneDefaultItems() {
   return defaultItems.map(item => hydrateItem({ ...item, tags: [...item.tags] }))
 }
 
-function hydrateItem(item: SkillHubItem) {
+function hydrateItem(item: SeedSkillHubItem | SkillHubItem): SkillHubItem {
   const seededUpdate = getSeedCapabilityUpdate(item.name) as SkillCapabilityUpdate | undefined
-  const { capabilityUpdate, draft, status, editStatus } = hydrateCapabilityUpdate(item, seededUpdate)
+  const { capabilityUpdate, draft, status, editStatus, workflowStatus, onlineStatus } = hydrateCapabilityUpdate(item, seededUpdate)
   return {
     ...item,
     status,
     statusText: skillHubStatusLabel(status),
     editStatus,
+    workflowStatus,
+    onlineStatus,
     tags: Array.isArray(item.tags) ? item.tags : [],
     draft,
     capabilityUpdate
@@ -223,7 +248,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
       desc: payload.desc.trim() || `${payload.cnName || name} Skill，已从 Skill 创建流程提交审核。`,
       version: 'v1.0.0',
       online: '未发布',
+      onlineStatus: 'unpublished',
       status: 'review',
+      workflowStatus: 'review',
       statusText: skillHubStatusLabel('review'),
       category: payload.category || '未分类',
       tags: payload.tags?.length ? payload.tags : ['待审批'],
@@ -260,7 +287,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
       desc: payload.desc.trim() || `${payload.cnName || name} Skill 草稿，可返回需求澄清继续编辑。`,
       version: 'v0.1.0',
       online: '未发布',
+      onlineStatus: 'unpublished',
       status: 'draft',
+      workflowStatus: 'draft',
       statusText: skillHubStatusLabel('draft'),
       category: payload.category || '未分类',
       tags: payload.tags?.length ? payload.tags : ['草稿'],
@@ -331,11 +360,16 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     persist()
   }
 
+  function allowedActionsFor(item: SkillHubItem, actor: SkillHubActor) {
+    return resolveSkillHubAllowedActions(item, actor) as SkillHubAllowedAction[]
+  }
+
   function updateStatus(item: SkillHubItem, status: SkillStatus, reviewer = 'admin') {
     const target = items.value.find(row => row.name === item.name)
     if (!target) return
     const updated = nowMinute()
     target.status = status
+    target.workflowStatus = status
     target.statusText = skillHubStatusLabel(status)
     target.updated = updated
     if (status === 'approved') {
@@ -350,9 +384,11 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     }
     if (status === 'published') {
       target.online = target.online && target.online !== '未发布' ? target.online : target.version
+      target.onlineStatus = 'published'
       target.reviewNote = '已发布：当前版本可被工作台调用。'
     }
     if (status === 'disabled') {
+      target.onlineStatus = 'disabled'
       target.reviewNote = '已禁用：暂停参与任务匹配。'
     }
     persist()
@@ -366,6 +402,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     failCapabilityUpdate,
     ignoreCapabilityUpdate,
     updateCapabilityEditStatus,
+    allowedActionsFor,
     upsertDraftSkill,
     upsertSubmittedSkill,
     updateStatus

@@ -1,5 +1,5 @@
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
-const CAPABILITY_FLOW_REVISION = 'p0-controlled-update-20260819'
+const CAPABILITY_FLOW_REVISION = 'controlled-update-20260821'
 
 const seedUpdates = {
   'product-knowledge': {
@@ -111,8 +111,232 @@ const seedUpdates = {
   }
 }
 
+Object.assign(seedUpdates, {
+  'capability-draft-demo': createLifecycleSeedUpdate({
+    skillName: 'capability-draft-demo',
+    contextId: 'dashboard.query',
+    menuPath: '乐享运营 / Query 分析',
+    currentVersion: 'cap-2026.08.10',
+    targetVersion: 'cap-2026.08.21',
+    detectedAt: '2026-08-21 09:10',
+    summary: 'Query 结果新增业务标签和异常原因字段。'
+  }),
+  'low-stock-auto-offline': createLifecycleSeedUpdate({
+    skillName: 'low-stock-auto-offline',
+    contextId: 'inventory.stock-policy',
+    menuPath: '乐享运营 / 库存策略',
+    currentVersion: 'cap-2026.08.11',
+    targetVersion: 'cap-2026.08.21',
+    detectedAt: '2026-08-21 09:20',
+    summary: '库存策略新增活动排除条件和下架原因字段。'
+  }),
+  'lenovo-order-detail-query': createLifecycleSeedUpdate({
+    skillName: 'lenovo-order-detail-query',
+    contextId: 'order.detail',
+    menuPath: '订单管理 / 订单明细',
+    currentVersion: 'cap-2026.08.09',
+    targetVersion: 'cap-2026.08.21',
+    detectedAt: '2026-08-21 09:40',
+    summary: '订单明细新增履约节点和售后状态字段。'
+  }),
+  'weather-query': createLifecycleSeedUpdate({
+    skillName: 'weather-query',
+    contextId: 'operations.weather',
+    menuPath: '乐享运营 / 实时天气',
+    currentVersion: 'cap-2026.08.08',
+    targetVersion: 'cap-2026.08.21',
+    detectedAt: '2026-08-21 09:50',
+    summary: '天气能力新增预警等级和运营活动建议字段。'
+  }),
+  'workplace-employee-review-analysis': createLifecycleSeedUpdate({
+    skillName: 'workplace-employee-review-analysis',
+    contextId: 'employee.review',
+    menuPath: '在职员工管理 / 职场员工审核',
+    currentVersion: 'cap-2026.08.07',
+    targetVersion: 'cap-2026.08.21',
+    detectedAt: '2026-08-21 10:00',
+    summary: '审核结果新增失败原因分组和处理时长字段。'
+  })
+})
+
+function createLifecycleSeedUpdate({ skillName, contextId, menuPath, currentVersion, targetVersion, detectedAt, summary }) {
+  const contextName = menuPath.split(' / ').at(-1) || menuPath
+  return {
+    recordId: `capability-change-${skillName}-20260821`,
+    flowRevision: CAPABILITY_FLOW_REVISION,
+    status: 'available',
+    contextId,
+    menuPath,
+    baseMenu: menuPath.split(' / ')[0],
+    currentContextCodes: [contextId],
+    currentCapabilityVersion: currentVersion,
+    targetCapabilityVersion: targetVersion,
+    detectedAt,
+    summary,
+    count: 1,
+    notificationState: '待服务接入',
+    reportMarkdown: [
+      '## 变化摘要',
+      summary,
+      '',
+      '## 受影响能力',
+      '| 能力上下文 | 变化类型 | 业务变化 | 对当前 Skill 的影响 |',
+      '| --- | --- | --- | --- |',
+      `| ${menuPath} | 增强 | ${summary} | 需要重新确认输入输出和测试用例 |`,
+      '',
+      '## 权限与风险',
+      '- 当前线上或候选版本不会被自动修改。',
+      '- 选择更新后需要重新完成评估、审核和发布。',
+      '',
+      '## 建议处理',
+      '- 查看业务影响后选择更新或忽略更新。'
+    ].join('\n'),
+    technicalDetails: [`上下文 ${contextId}：${currentVersion} -> ${targetVersion}。`],
+    affectedContexts: [{
+      contextId,
+      name: contextName,
+      menuPath,
+      currentVersion,
+      targetVersion
+    }],
+    optionalContexts: [],
+    changes: [{
+      id: `${skillName}-enhancement`,
+      kind: 'enhancement',
+      objectType: '字段',
+      name: contextName,
+      before: currentVersion,
+      after: targetVersion,
+      impact: summary
+    }]
+  }
+}
+
 function clone(value) {
   return value ? JSON.parse(JSON.stringify(value)) : undefined
+}
+
+const WORKFLOW_STATUS_LABELS = {
+  draft: '草稿',
+  review: '待审批',
+  approved: '已审批待发布',
+  published: '已发布',
+  disabled: '已禁用',
+  rejected: '已驳回'
+}
+
+function workflowStatusOf(item) {
+  return item?.workflowStatus || item?.editStatus || item?.status || 'draft'
+}
+
+function onlineStatusOf(item) {
+  if (item?.onlineStatus) return item.onlineStatus
+  if (item?.status === 'disabled') return 'disabled'
+  return item?.online && item.online !== '未发布' ? 'published' : 'unpublished'
+}
+
+function decisionUpdateOf(update) {
+  return update?.status === 'processing_with_available' && update.pendingUpdate
+    ? update.pendingUpdate
+    : update
+}
+
+function isHighRiskUpdate(update) {
+  return (update?.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
+}
+
+function action(code, enabled = true, payload) {
+  return payload ? { code, enabled, payload } : { code, enabled }
+}
+
+export function skillHubRowPresentation(item) {
+  const workflowStatus = workflowStatusOf(item)
+  const updateStatus = item?.capabilityUpdate?.status || 'none'
+  if (updateStatus === 'processing' || updateStatus === 'processing_with_available') {
+    const mainStatus = workflowStatus === 'draft' ? 'processing' : workflowStatus
+    return {
+      mainStatus,
+      mainStatusLabel: mainStatus === 'processing' ? '更新中' : WORKFLOW_STATUS_LABELS[mainStatus],
+      updateStatus: updateStatus === 'processing_with_available' ? 'available' : 'none',
+      updateStatusLabel: updateStatus === 'processing_with_available' ? '有更新' : ''
+    }
+  }
+  const updateStatusLabel = {
+    available: '有更新',
+    preparing: '正在准备更新',
+    failed: '更新失败'
+  }[updateStatus] || ''
+  return {
+    mainStatus: workflowStatus,
+    mainStatusLabel: WORKFLOW_STATUS_LABELS[workflowStatus],
+    updateStatus: updateStatusLabel ? updateStatus : 'none',
+    updateStatusLabel
+  }
+}
+
+export function resolveSkillHubAllowedActions(item, actor = {}) {
+  const workflowStatus = workflowStatusOf(item)
+  const updateStatus = item?.capabilityUpdate?.status || 'none'
+  const canMaintain = actor.role === 'admin' || item?.owner === actor.user
+  const isAdmin = actor.role === 'admin'
+  const changePayload = item?.capabilityUpdate?.recordId
+    ? { changeRecordId: decisionUpdateOf(item.capabilityUpdate)?.recordId || item.capabilityUpdate.recordId }
+    : undefined
+
+  if (updateStatus === 'preparing') {
+    return [
+      action('view_change', true, changePayload),
+      ...(canMaintain ? [action('start_update', false, changePayload)] : [])
+    ]
+  }
+  if (updateStatus === 'failed') {
+    return [
+      action('view_change', true, changePayload),
+      action('view_update_error', true, changePayload),
+      ...(canMaintain ? [action('retry_update', true, changePayload), action('ignore_update', true, changePayload)] : [])
+    ]
+  }
+  if (updateStatus === 'available' || updateStatus === 'processing_with_available') {
+    return [
+      action('view_change', true, changePayload),
+      ...(canMaintain ? [action('start_update', true, changePayload), action('ignore_update', true, changePayload)] : [])
+    ]
+  }
+  if (updateStatus === 'processing') {
+    if (workflowStatus === 'draft' || workflowStatus === 'rejected') {
+      return [action('view_change', true, changePayload), ...(canMaintain ? [action('continue_update', true)] : [])]
+    }
+    if (workflowStatus === 'review') {
+      return isAdmin
+        ? [action('view_change', true, changePayload), action('evaluate'), action('approve'), action('reject')]
+        : [action('view_change', true, changePayload), action('view'), ...(canMaintain ? [action('withdraw_review')] : [])]
+    }
+    if (workflowStatus === 'approved') {
+      return [action('view'), ...(isAdmin ? [action('publish')] : [])]
+    }
+  }
+
+  const ownerActions = {
+    draft: ['edit', 'evaluate', 'test', 'submit_review', 'delete'],
+    review: ['view', 'withdraw_review'],
+    approved: ['view'],
+    published: ['view', 'edit', 'evaluate', 'test'],
+    disabled: ['view', 'edit', 'evaluate', 'test'],
+    rejected: ['view', 'edit', 'evaluate', 'test', 'submit_review']
+  }
+  const adminActions = {
+    draft: ['view'],
+    review: ['view', 'evaluate', 'approve', 'reject'],
+    approved: ['view', 'publish'],
+    published: ['view', 'disable'],
+    disabled: ['view', 'enable'],
+    rejected: ['view']
+  }
+  const codes = new Set([
+    ...(canMaintain ? ownerActions[workflowStatus] || ['view'] : ['view']),
+    ...(isAdmin ? adminActions[workflowStatus] || ['view'] : [])
+  ])
+  return [...codes].map(code => action(code))
 }
 
 function mergeContextCodes(selectedCodes = [], requiredCodes = []) {
@@ -164,7 +388,7 @@ function ensureCapabilityScanMessage(draft, item, update) {
 }
 
 export function shouldShowCapabilityChangeSummary(update) {
-  return update?.status === 'available'
+  return ['available', 'preparing', 'processing_with_available', 'failed'].includes(update?.status)
 }
 
 export function capabilityUpdatePresentation(item) {
@@ -173,21 +397,20 @@ export function capabilityUpdatePresentation(item) {
     return { visible: false, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: '' }
   }
   const base = { visible: true, statusLabel: '', actionLabel: '', actionLoading: false, ignoreLabel: '' }
-  if (update.status === 'available') {
-    const highRisk = (update.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
-    if (highRisk && update.resolution?.action === 'deferred') {
-      return { ...base, statusLabel: '高风险待处理', actionLabel: '更新' }
-    }
-    return { ...base, statusLabel: '有更新', actionLabel: '更新', ignoreLabel: highRisk ? '暂不处理' : '忽略本次' }
+  if (update.status === 'available' || update.status === 'processing_with_available') {
+    return { ...base, statusLabel: '有更新', actionLabel: '更新', ignoreLabel: '忽略更新' }
   }
   if (update.status === 'preparing') {
     return { ...base, statusLabel: '正在准备更新', actionLabel: '正在准备', actionLoading: true }
   }
+  if (update.status === 'failed') {
+    return { ...base, statusLabel: '更新失败', actionLabel: '重试更新', actionLoading: false, ignoreLabel: '忽略更新' }
+  }
   if (item.editStatus === 'review' || item.editStatus === 'approved') return base
   if (item.editStatus === 'rejected') {
-    return { ...base, statusLabel: '更新版本已驳回', actionLabel: '继续更新' }
+    return { ...base, statusLabel: '已驳回', actionLabel: '继续更新' }
   }
-  return { ...base, statusLabel: '更新编辑中', actionLabel: '继续更新' }
+  return { ...base, statusLabel: '更新中', actionLabel: '继续更新' }
 }
 
 export function getSeedCapabilityUpdate(skillName) {
@@ -240,17 +463,44 @@ function capabilityTaskId(update) {
   return `capability-update-${update.recordId}`
 }
 
+function acceptPendingCapabilityUpdate(target, updatedAt) {
+  const update = target.capabilityUpdate
+  const pendingUpdate = clone(update.pendingUpdate)
+  if (!pendingUpdate || !target.draft) return target
+  ensureCapabilityScanMessage(target.draft, { ...target, capabilityUpdate: pendingUpdate }, pendingUpdate)
+  createContextBindings(target.draft, pendingUpdate)
+  target.draft.aiTuned = false
+  delete target.draft.evaluationCapabilityVersion
+  target.draft.summaryUpdated = `能力变化已同步至 ${pendingUpdate.targetCapabilityVersion}，检测于 ${pendingUpdate.detectedAt}`
+  update.activeUpdateChangeRecordIds = mergeContextCodes(update.activeUpdateChangeRecordIds, [pendingUpdate.recordId])
+  update.pendingDecisionCount = 0
+  update.currentCapabilityVersion = pendingUpdate.currentCapabilityVersion
+  update.targetCapabilityVersion = pendingUpdate.targetCapabilityVersion
+  update.affectedContexts = clone(pendingUpdate.affectedContexts) || []
+  update.changes = [...(update.changes || []), ...(clone(pendingUpdate.changes) || [])]
+  update.summary = `${update.summary}；后续变化：${pendingUpdate.summary}`
+  update.history = [...(update.history || []), { ...pendingUpdate, status: 'resolved' }]
+  delete update.pendingUpdate
+  update.status = 'processing'
+  target.updated = updatedAt
+  target.reviewNote = '后续能力变化已同步至当前更新草稿，旧评估结果已失效。'
+  return target
+}
+
 export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) {
   const target = clone(item)
   const update = target?.capabilityUpdate
   if (!update || update.status === 'resolved' || update.status === 'ignored') return target
+  if (update.status === 'processing_with_available') return acceptPendingCapabilityUpdate(target, updatedAt)
   if (update.status === 'preparing' || update.status === 'processing') return target
 
   const rollback = {
     draft: clone(target.draft),
     editVersion: target.editVersion,
     editStatus: target.editStatus,
-    version: target.version
+    version: target.version,
+    workflowStatus: workflowStatusOf(target),
+    onlineStatus: onlineStatusOf(target)
   }
   update.hasDraftEdits = Boolean(update.hasDraftEdits)
   target.editVersion ||= nextPatchVersion(target.online !== '未发布' ? target.online : target.version)
@@ -290,7 +540,7 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
 
   update.status = 'preparing'
   update.task = {
-    id: capabilityTaskId(update),
+    id: update.task?.id || capabilityTaskId(update),
     status: 'generating',
     startedAt: updatedAt,
     rollback
@@ -305,8 +555,12 @@ export function completeCapabilityUpdate(item, draft, updatedAt = formatShanghai
   if (!update || update.status !== 'preparing' || update.task?.status !== 'generating') return target
   target.draft = clone(draft)
   target.editStatus = 'draft'
+  target.workflowStatus = 'draft'
+  target.onlineStatus = onlineStatusOf(target)
   update.status = 'processing'
   update.hasDraftEdits = true
+  update.pendingDecisionCount = 0
+  update.activeUpdateChangeRecordIds = mergeContextCodes(update.activeUpdateChangeRecordIds, [update.recordId])
   update.task = {
     id: update.task.id || capabilityTaskId(update),
     status: 'succeeded',
@@ -330,14 +584,17 @@ export function failCapabilityUpdate(item, error, updatedAt = formatShanghaiMinu
   if (rollback.editStatus) target.editStatus = rollback.editStatus
   else delete target.editStatus
   target.version = rollback.version || target.online || target.version
-  update.status = 'available'
+  target.workflowStatus = rollback.workflowStatus || workflowStatusOf(target)
+  target.onlineStatus = rollback.onlineStatus || onlineStatusOf(target)
+  update.status = 'failed'
   update.hasDraftEdits = false
   update.task = {
     id: update.task?.id || capabilityTaskId(update),
     status: 'failed',
     startedAt: update.task?.startedAt,
     completedAt: updatedAt,
-    error: String(error || '更新生成失败')
+    error: String(error || '更新生成失败'),
+    rollback
   }
   target.updated = updatedAt
   target.reviewNote = `能力更新生成失败：${update.task.error}；可重新发起更新。`
@@ -347,18 +604,29 @@ export function failCapabilityUpdate(item, error, updatedAt = formatShanghaiMinu
 export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = formatShanghaiMinute()) {
   const target = clone(item)
   const update = target?.capabilityUpdate
-  if (!update || update.status !== 'available') return target
-  const requiresDeferral = (update.changes || []).some(change => change.kind === 'breaking' || change.kind === 'permission')
-  update.status = requiresDeferral ? 'available' : 'ignored'
-  update.resolution = {
-    action: requiresDeferral ? 'deferred' : 'ignored',
+  if (!update || !['available', 'failed', 'processing_with_available'].includes(update.status)) return target
+  const decisionUpdate = decisionUpdateOf(update)
+  if (isHighRiskUpdate(decisionUpdate) && !String(resolution.reason || '').trim()) {
+    throw new Error('破坏性或权限变化必须填写处理原因')
+  }
+  const decision = {
+    action: 'ignored',
     operator: resolution.operator || 'admin',
     handledAt: updatedAt,
-    reason: resolution.reason || ''
+    reason: String(resolution.reason || '').trim()
+  }
+  if (update.status === 'processing_with_available') {
+    update.history = [...(update.history || []), { ...clone(decisionUpdate), status: 'ignored', resolution: decision }]
+    update.pendingDecisionCount = 0
+    delete update.pendingUpdate
+    update.status = 'processing'
+  } else {
+    update.status = 'ignored'
+    update.resolution = decision
   }
   target.updated = updatedAt
-  target.reviewNote = requiresDeferral
-    ? '当前高风险能力变化已暂不处理，线上版本继续服务并保留风险记录。'
+  target.reviewNote = update.status === 'processing'
+    ? '后续能力变化已忽略，当前更新草稿继续处理。'
     : '当前能力变化记录已忽略，后续新变化将重新提醒。'
   return target
 }
@@ -366,7 +634,7 @@ export function ignoreCapabilityUpdate(item, resolution = {}, updatedAt = format
 export function hydrateCapabilityUpdate(item, seededUpdate) {
   const storedUpdate = item.capabilityUpdate
   const isNewRecord = Boolean(seededUpdate && storedUpdate && seededUpdate.recordId !== storedUpdate.recordId)
-  const restoresP0AvailableState = Boolean(
+  const restoresAvailableState = Boolean(
     seededUpdate?.flowRevision
       && storedUpdate
       && seededUpdate.recordId === storedUpdate.recordId
@@ -378,12 +646,21 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
   if (storedSnapshot) delete storedSnapshot.history
   const capabilityUpdate = seededUpdate
     ? isNewRecord
-      ? {
-          ...seededUpdate,
-          status: storedUpdate.status === 'processing' || storedUpdate.status === 'preparing' ? storedUpdate.status : 'available',
-          history: [...storedHistory, storedSnapshot]
-        }
-      : restoresP0AvailableState
+      ? storedUpdate.status === 'processing' || storedUpdate.status === 'processing_with_available'
+        ? {
+            ...storedUpdate,
+            status: 'processing_with_available',
+            pendingUpdate: clone(seededUpdate),
+            pendingDecisionCount: 1,
+            activeUpdateChangeRecordIds: mergeContextCodes(storedUpdate.activeUpdateChangeRecordIds, [storedUpdate.recordId]),
+            history: storedHistory
+          }
+        : {
+            ...seededUpdate,
+            status: 'available',
+            history: [...storedHistory, storedSnapshot]
+          }
+      : restoresAvailableState
         ? {
             ...seededUpdate,
             status: 'available',
@@ -402,29 +679,14 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
   let status = item.status
   let statusText = item.statusText
   let editStatus = item.editStatus
+  let workflowStatus = item.workflowStatus || editStatus || status
+  const onlineStatus = item.onlineStatus || onlineStatusOf(item)
   if ((capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing') && item.online !== '未发布' && !editStatus) {
     editStatus = ['review', 'approved', 'rejected'].includes(status) ? status : 'draft'
+    workflowStatus = editStatus
     if (['review', 'approved', 'rejected'].includes(status)) {
-      status = 'published'
-      statusText = '已发布'
-    }
-  }
-  if (isNewRecord && (capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing')) {
-    editStatus = 'draft'
-    if (draft) {
-      draft.aiTuned = false
-      delete draft.evaluationCapabilityVersion
-      const summaryItems = Array.isArray(draft.summaryItems) ? draft.summaryItems.map(item => ({ ...item })) : []
-      const changeSummary = summaryItems.find(item => item.label === '能力变化')
-      if (changeSummary) {
-        changeSummary.text = changeSummary.text && changeSummary.text !== capabilityUpdate.summary
-          ? `${changeSummary.text}；后续变化：${capabilityUpdate.summary}`
-          : capabilityUpdate.summary
-      } else {
-        summaryItems.unshift({ label: '能力变化', text: capabilityUpdate.summary })
-      }
-      draft.summaryItems = summaryItems
-      draft.summaryUpdated = `能力变化已合并至 ${capabilityUpdate.targetCapabilityVersion}，检测于 ${capabilityUpdate.detectedAt}`
+      status = onlineStatus === 'disabled' ? 'disabled' : 'published'
+      statusText = onlineStatus === 'disabled' ? '已禁用' : '已发布'
     }
   }
   if ((capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing') && draft && !draft.baselineContextSeeded) {
@@ -436,7 +698,16 @@ export function hydrateCapabilityUpdate(item, seededUpdate) {
   if ((capabilityUpdate?.status === 'processing' || capabilityUpdate?.status === 'preparing') && draft) {
     ensureCapabilityScanMessage(draft, item, capabilityUpdate)
   }
-  return { capabilityUpdate, draft, status, statusText, editStatus }
+  return {
+    capabilityUpdate,
+    draft,
+    status,
+    statusText,
+    editStatus,
+    editVersion: item.editVersion,
+    workflowStatus,
+    onlineStatus
+  }
 }
 
 export function mergeCapabilityDraft(current, nextItem, draft, updatedAt = formatShanghaiMinute()) {
@@ -452,6 +723,8 @@ export function mergeCapabilityDraft(current, nextItem, draft, updatedAt = forma
       ? { ...current.capabilityUpdate, hasDraftEdits: true }
       : current.capabilityUpdate,
     editStatus: 'draft',
+    workflowStatus: 'draft',
+    onlineStatus: onlineStatusOf(current),
     version: current.editVersion || current.version,
     editVersion: current.editVersion || current.version,
     reviewNote: `能力更新草稿已保存；${current.online} 继续在线服务。`
@@ -473,6 +746,8 @@ export function mergeCapabilitySubmission(current, nextItem, updatedAt = formatS
       ? { ...current.capabilityUpdate, hasDraftEdits: true }
       : current.capabilityUpdate,
     editStatus: 'review',
+    workflowStatus: 'review',
+    onlineStatus: onlineStatusOf(current),
     version: current.editVersion || current.version,
     editVersion: current.editVersion || current.version,
     reviewNote: `能力更新提交审核：综合评分 ${nextItem.score}；${current.online} 继续在线服务。`
@@ -485,6 +760,7 @@ export function transitionCapabilityEdit(current, status, reviewer, updatedAt = 
 
   if (status === 'approved' || status === 'rejected') {
     target.editStatus = status
+    target.workflowStatus = status
     target.reviewer = reviewer
     target.reviewTime = updatedAt
     target.updated = updatedAt
@@ -495,10 +771,13 @@ export function transitionCapabilityEdit(current, status, reviewer, updatedAt = 
   }
 
   if (status === 'published' && target.editStatus === 'approved') {
+    const remainsDisabled = onlineStatusOf(target) === 'disabled'
     target.online = target.editVersion || target.version
     target.version = target.online
-    target.status = 'published'
-    target.statusText = '已发布'
+    target.onlineStatus = remainsDisabled ? 'disabled' : 'published'
+    target.workflowStatus = remainsDisabled ? 'disabled' : 'published'
+    target.status = remainsDisabled ? 'disabled' : 'published'
+    target.statusText = remainsDisabled ? '已禁用' : '已发布'
     target.editVersion = undefined
     target.editStatus = undefined
     target.capabilityUpdate.status = 'resolved'
