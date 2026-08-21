@@ -1,0 +1,13 @@
+/* Channel home right pane only; left-side conversation state must not change it. */
+body:is(
+  [data-page="personal"],
+  [data-page="business"],
+  [data-page="enterprise"]
+):not(.assistant-fullscreen):not(.lx-auto-fs)
+  > .shell
+  > .content:has(> .device-scene-hall),
+body[data-page="brand"]:not(.assistant-fullscreen):not(.lx-auto-fs)
+  > .shell
+  > .content.lx-brand-home-empty {
+  background: #FAFAFA !important;
+}
