@@ -6418,9 +6418,9 @@ async function openEduZone() {
           });
           const tabs = state.tabs;
           bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
-          // 首次只有 1 个真实页面时不显示标签栏；第 2 个页面出现后一次展示
-          // 两个真实标签，后续严格一页一标签；关闭回 1 页时只隐藏栏、不删页面。
-          bar.hidden = tabs.length <= 1;
+          // 全入口统一：频道首页是零标签默认视图；任何结果页一旦创建，
+          // 立即显示它自己的真实标签。后续严格一页一标签，不添加合成首页标签。
+          bar.hidden = tabs.length === 0;
           bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
           // 页面注册表是选中态唯一真相；零页面时必须清除历史恢复留下的虚假卡片高亮。
@@ -7419,7 +7419,7 @@ async function openEduZone() {
         function lxExecControl(op, target) {
           const siteMap = { shop: "personal", b: "business", biz: "enterprise" };
           const ops = {
-            close_all_tabs: () => { lxRestorePersonalSplitHome(); toast("已关闭所有页面"); },
+            close_all_tabs: () => { lxRestoreChannelSplitHome(); toast("已关闭所有页面"); },
             close_other_tabs: () => {
               // 关其他/留当前一个（「留一排」「只留这个」「关多余」都走这里）
               const keep = state.activeTabId || (state.tabs && state.tabs[state.tabs.length - 1]?.id);
@@ -7717,16 +7717,20 @@ async function openEduZone() {
           }
         }
 
-        function lxRestorePersonalSplitHome() {
+        function lxRestoreChannelSplitHome() {
+          const channelPage = lxPageFromPath();
+          const targetPage = ["personal", "business", "enterprise", "brand"].includes(channelPage)
+            ? channelPage
+            : "personal";
           state.tabs = [];
           state.activeTabId = null;
           state.pageTrail = [];
-          state.page = "personal";
+          state.page = targetPage;
           state.activeSiteFloorTab = "推荐";
           document.documentElement.classList.remove("lx-root-lxfd-prepaint");
           document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering", "lxfd-exiting", "lxfd-split-returning");
           document.body.classList.add("lx-home-split", "lxfd-split-entered");
-          document.body.dataset.page = "personal";
+          document.body.dataset.page = targetPage;
           document.body.dataset.state = "default";
           window.__LXFD_FORCE = false;
           const content = document.querySelector(".content");
@@ -7765,9 +7769,8 @@ async function openEduZone() {
             if (next) lxRunTab(next);
           }
           lxRenderTabbar();
-          // 个人及家庭删除最后一个页面标签后，回到左右结构默认首页；
-          // 不进入全屏，也不保留上一个信息页的“正在制作中...”内容。
-          if ((state.tabs || []).length === 0) lxRestorePersonalSplitHome();
+          // 删除最后一个结果标签后，统一回到当前 URL 对应的频道首页。
+          if ((state.tabs || []).length === 0) lxRestoreChannelSplitHome();
         }
 
         // ── 标签栏右键菜单 ──
@@ -7788,7 +7791,7 @@ async function openEduZone() {
                 lxActivateTab(tabId);
               }, disabled: tabs.length < 2 },
             { label: "关闭全部标签", action: () => {
-                lxRestorePersonalSplitHome();
+                lxRestoreChannelSplitHome();
               } },
           ];
           items.forEach(({ label, action, disabled }) => {
