@@ -422,15 +422,41 @@
     previewHotspot();
   }
 
+  var sceneTransitionTimer = 0;
+  var sceneTransitionCleanupTimer = 0;
+  var sceneTransitioning = false;
+
+  function transitionScene(index, direction) {
+    var nextIndex = (index + scenes.length) % scenes.length;
+    if (nextIndex === currentIndex || sceneTransitioning) return;
+    sceneTransitioning = true;
+    hall.dataset.sceneDirection = direction;
+    hall.classList.remove("is-scene-entering");
+    hall.classList.add("is-scene-leaving");
+    window.clearTimeout(sceneTransitionTimer);
+    window.clearTimeout(sceneTransitionCleanupTimer);
+    sceneTransitionTimer = window.setTimeout(function () {
+      renderScene(nextIndex);
+      hall.classList.remove("is-scene-leaving");
+      hall.classList.add("is-scene-entering");
+      sceneTransitionCleanupTimer = window.setTimeout(function () {
+        hall.classList.remove("is-scene-entering");
+        hall.removeAttribute("data-scene-direction");
+        sceneTransitioning = false;
+      }, 340);
+    }, 140);
+  }
+
   hall.querySelector(".device-scene-prev").addEventListener("click", function () {
-    renderScene(currentIndex - 1);
+    transitionScene(currentIndex - 1, "prev");
   });
   hall.querySelector(".device-scene-next").addEventListener("click", function () {
-    renderScene(currentIndex + 1);
+    transitionScene(currentIndex + 1, "next");
   });
   menuButtons.forEach(function (button) {
     button.addEventListener("click", function () {
-      renderScene(Number(button.dataset.deviceScene));
+      var nextIndex = Number(button.dataset.deviceScene);
+      transitionScene(nextIndex, nextIndex < currentIndex ? "prev" : "next");
       picker.removeAttribute("open");
     });
   });
