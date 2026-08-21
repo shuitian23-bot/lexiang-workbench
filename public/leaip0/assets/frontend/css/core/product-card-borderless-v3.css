@@ -1,0 +1,33 @@
+/* 商品卡：白色卡片底，保留原圆角，不绘制外层描边或阴影。 */
+html body[data-page] .shell > .content .lx-site-floors .lx-floor-products > .lx-floor-product-card[data-floor-product],
+html body[data-page] .shell > .content .lx-site-floors .lx-floor-products > [data-floor-product],
+html body[data-page] .shell > .content > .product-grid[data-category-grid] > .product-card,
+html body[data-page] .content .lx-floor-product,
+html body[data-page] .content .lx-sim-card,
+html body[data-page] .content .lx-p0-product-mini,
+html body[data-page] .content .reco-row,
+html body[data-page] .content .lx-edu-card {
+  border: 0 none transparent !important;
+  outline: 0 none transparent !important;
+  box-shadow: none !important;
+  background: #FFFFFF !important;
+  border-radius: 14px !important;
+}
+
+html body[data-page] .shell > .content .lx-site-floors .lx-floor-products > .lx-floor-product-card[data-floor-product]:is(:hover, :focus, :focus-visible, :active),
+html body[data-page] .shell > .content .lx-site-floors .lx-floor-products > [data-floor-product]:is(:hover, :focus, :focus-visible, :active),
+html body[data-page] .shell > .content > .product-grid[data-category-grid] > .product-card:is(:hover, :focus, :focus-visible, :active) {
+  border: 0 none transparent !important;
+  outline: 0 none transparent !important;
+  box-shadow: none !important;
+  background: #FFFFFF !important;
+}
+
+html body[data-page] .shell > .content .lx-site-floors .lx-floor-products > [data-floor-product]::before,
+html body[data-page] .shell > .content .lx-site-floors .lx-floor-products > [data-floor-product]::after,
+html body[data-page] .shell > .content > .product-grid[data-category-grid] > .product-card::before,
+html body[data-page] .shell > .content > .product-grid[data-category-grid] > .product-card::after {
+  border: 0 none transparent !important;
+  outline: 0 none transparent !important;
+  box-shadow: none !important;
+}
