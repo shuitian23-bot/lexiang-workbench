@@ -347,6 +347,7 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
   const updateStatus = item?.capabilityUpdate?.status || 'none'
   const canMaintain = item?.owner === actor.user
   const isAdmin = actor.role === 'admin'
+  const publishedLifecycleActions = workflowStatus === 'published' && isAdmin ? [action('disable')] : []
   const changePayload = item?.capabilityUpdate?.recordId
     ? { changeRecordId: decisionUpdateOf(item.capabilityUpdate)?.recordId || item.capabilityUpdate.recordId }
     : undefined
@@ -354,21 +355,24 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
   if (updateStatus === 'preparing' || item?.capabilityUpdate?.task?.status === 'generating') {
     return [
       action('view_change', true, changePayload),
-      ...(canMaintain ? [action('start_update', false, changePayload)] : [])
+      ...(canMaintain ? [action('start_update', false, changePayload)] : []),
+      ...publishedLifecycleActions
     ]
   }
   if (item?.capabilityUpdate?.task?.kind === 'additional_change' && item.capabilityUpdate.task.status === 'failed') {
     return [
       action('view_change', true, changePayload),
       action('view_update_error', true, changePayload),
-      ...(canMaintain ? [action('retry_update', true, changePayload)] : [])
+      ...(canMaintain ? [action('retry_update', true, changePayload)] : []),
+      ...publishedLifecycleActions
     ]
   }
   if (updateStatus === 'failed') {
     return [
       action('view_change', true, changePayload),
       action('view_update_error', true, changePayload),
-      ...(canMaintain ? [action('retry_update', true, changePayload), action('ignore_update', true, changePayload)] : [])
+      ...(canMaintain ? [action('retry_update', true, changePayload), action('ignore_update', true, changePayload)] : []),
+      ...publishedLifecycleActions
     ]
   }
   if (updateStatus === 'available' && workflowStatus === 'published') {
@@ -377,7 +381,8 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       action('start_update', true, changePayload),
       action('ignore_update', true, changePayload),
       action('evaluate'),
-      action('test')
+      action('test'),
+      ...publishedLifecycleActions
     ]
   }
   if (updateStatus === 'processing_with_available') {
@@ -385,7 +390,8 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       action('view_change', true, changePayload),
       action('continue_update', true),
       action('start_update', true, changePayload),
-      action('ignore_update', true, changePayload)
+      action('ignore_update', true, changePayload),
+      ...publishedLifecycleActions
     ]
   }
   if (updateStatus === 'available') {
@@ -396,7 +402,7 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
     ]
   }
   if (updateStatus === 'processing') {
-    const updateActions = [action('view_change', true, changePayload), action('continue_update', true)]
+    const updateActions = [action('view_change', true, changePayload), action('continue_update', true), ...publishedLifecycleActions]
     if (workflowStatus === 'review' || workflowStatus === 'approved') {
       return [
         ...updateActions,
