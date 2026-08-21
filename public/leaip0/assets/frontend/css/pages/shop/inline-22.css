@@ -261,6 +261,16 @@ body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy h2{
   font-size:clamp(32px,10cqh,58px);
   line-height:1.14;
 }
+/* 中小企业标题始终单行：左区与右侧三卡的 52% 分界严格对齐。 */
+body[data-page="business"] .device-scene-copy{
+  width:52%;
+  box-sizing:border-box;
+}
+body[data-page="business"] .device-scene-copy h2{
+  max-width:100%;
+  font-size:clamp(26px,min(3.2cqw,10cqh),58px);
+  white-space:nowrap;
+}
 body:is([data-page="business"],[data-page="enterprise"]) .device-scene-industry-tag{
   min-height:clamp(26px,3.4dvh,36px);
   margin-bottom:clamp(7px,1.2dvh,14px);
