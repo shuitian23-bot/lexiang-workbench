@@ -1051,6 +1051,10 @@ function compactProductSpec(description, category) {
         }
 
         function startHoverPromptTimer(card) {
+          // Product-card dwell assistance is temporarily disabled site-wide.
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          return;
           const product = getProductFromCard(card);
           const key = String(product?.sku || product?.name || "");
           clearHoverPromptTimer();
@@ -4814,7 +4818,7 @@ function lxProductMiniCard(product) {
           }],
           ["Thinkplus", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return /Thinkplus|ThinkPlus|thinkplus|think\+|会议|耳机|口红电源|扩展坞|随身充|蓝牙/i.test(text);
+            return /Thinkplus|ThinkPlus|thinkplus|think\+/i.test(text);
           }],
           ["ThinkCentre", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -4822,7 +4826,7 @@ function lxProductMiniCard(product) {
           }],
           ["扬天&瑞天", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
-            return !/ThinkCentre/i.test(text) && (p.category === "台式机" || /扬天|瑞天|YangTian|启天|商用台式|台式机|主机|一体机/i.test(text));
+            return /扬天|瑞天|YangTian/i.test(text) && !/服务|延保|保修|适用/i.test(text);
           }],
           ["配件&外设", (p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
@@ -5092,6 +5096,11 @@ function lxProductMiniCard(product) {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
             return p.category === "台式机" || /ThinkCentre|扬天|瑞天|天逸|商用台式|台式机|主机|一体机/i.test(text);
           });
+          const thinkCentreProducts = matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`));
+          const yangtianProducts = uniq([...(sectionByKey.tianyi || []), ...basePool]).filter((p) => {
+            const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
+            return /扬天|瑞天|YangTian/i.test(text) && !/服务|延保|保修|适用/i.test(text);
+          });
           const accessoryProducts = uniq(basePool).filter((p) => {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
             return ["键鼠相关", "包袋", "打印机及配件", "配件", "显示器"].includes(p.category) || /配件|外设|鼠标|键盘|键鼠|扩展坞|ThinkVision|电源|适配器|背包|包|耳机|打印机|支架|会议屏/i.test(text);
@@ -5100,12 +5109,24 @@ function lxProductMiniCard(product) {
             const text = `${p.category || ""} ${p.name || ""} ${p.description || ""}`;
             return p.category === "服务产品" || p.category === "存储" || /存储|Storage|DE\d+|DM\d+|ThinkSystem.*DM|数据恢复|保修|延保|上门|Lenovo Care|Care|服务产品|云智|流量|部署/i.test(text);
           });
+          // The B-site API currently has no explicit Thinkplus assortment. Keep
+          // this floor brand-pure instead of filling it with generic accessories.
+          const thinkplusProducts = [
+            { sku: "1012369", category: "电脑外设与配件", name: "thinkplus USB 五合一扩展坞", description: "USB 多功能扩展｜轻巧便携｜办公连接", price: 299, image_url: "https://p3.lefile.cn/product/adminweb/2020/12/17/ldjSd0oBKiwWCK7G83Dsefdib-6841.w520.jpg", url: "https://item.lenovo.com.cn/product/1012369.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1044410", category: "充电设备", name: "thinkplus 光影系列 140W 氮化镓多口充电器", description: "2C+A 三口输出｜PD 3.1｜140W 高功率", price: 499, image_url: "https://p2.lefile.cn/product/adminweb/2025/03/28/4wuaeYU6mZEYNjB3WLJ7kBKkU-5419.w520.JPEG", url: "https://item.lenovo.com.cn/product/1044410.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1051753", category: "充电设备", name: "thinkplus 65W 氮化镓三口充电器套装", description: "2C1A 三口输出｜含 1.5 米 100W 线", price: 199, image_url: "https://p3.lefile.cn/product/adminweb/2025/12/16/OEJYZZLkmjro93JhwA4XmwNJa-1106.w520.jpg", url: "https://item.lenovo.com.cn/product/1051753.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1046577", category: "键鼠相关", name: "thinkplus KM210 Pro 无线键鼠套装", description: "104 键全尺寸键盘｜无线鼠标｜黑色", price: 129, image_url: "https://p4.lefile.cn/product/adminweb/2025/06/09/X89QvGWr1Q0rMTFRk3QqSvIlM-5155.w520.png", url: "https://item.lenovo.com.cn/product/1046577.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1044432", category: "充电设备", name: "thinkplus GaN 二合一随身充 Pro 30W 黑色", description: "5000mAh 移动电源｜30W 快充｜充电器二合一", price: 299, image_url: "https://p3.lefile.cn/product/adminweb/2025/03/28/FtVtnhIXOGM6PDFa6FjBkRmUc-7655.w520.JPEG", url: "https://item.lenovo.com.cn/product/1044432.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1038217", category: "充电设备", name: "thinkplus USB-C 30W 氮化镓迷你充电器套装", description: "迷你便携｜USB-C 快充｜白色", price: 109, image_url: "https://p2.lefile.cn/product/adminweb/2024/06/28/AM5gjKTVwi9KAsvEtiovvF7Q4-5100.w520.jpg", url: "https://item.lenovo.com.cn/product/1038217.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1044370", category: "充电设备", name: "thinkplus 100W GaN USB-C 迷你适配器", description: "100W 高功率｜氮化镓技术｜笔记本快充", price: 349, image_url: "https://p3.lefile.cn/product/adminweb/2025/03/27/eQzXyIeuzYWQHxp54V975nX4B-6315.w520.jpg", url: "https://item.lenovo.com.cn/product/1044370.html", promotion_tags: ["联想官方", "Thinkplus"] },
+            { sku: "1044430", category: "充电设备", name: "thinkplus GaN 二合一随身充 Pro 30W 紫色", description: "5000mAh 移动电源｜30W 快充｜充电器二合一", price: 299, image_url: "https://p1.lefile.cn/product/adminweb/2025/03/28/1piBTS51GUVs8cadzfAmNwmNW-9223.w520.JPEG", url: "https://item.lenovo.com.cn/product/1044430.html", promotion_tags: ["联想官方", "Thinkplus"] },
+          ];
           const floorItems = {
             "ThinkPad": lxFillFloorProducts([...(sectionByKey.thinkpad || []), ...matching((p) => /ThinkPad/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, poolCount),
             "ThinkBook": lxFillFloorProducts([...(sectionByKey.thinkbook || []), ...matching((p) => /ThinkBook/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`))], basePool, poolCount),
-            "Thinkplus": lxFillFloorProducts(accessoryProducts, basePool, poolCount),
-            "ThinkCentre": lxFillFloorProducts([...matching((p) => /ThinkCentre/i.test(`${p.category || ""} ${p.name || ""} ${p.description || ""}`)), ...desktopProducts], basePool, poolCount),
-            "扬天&瑞天": lxFillFloorProducts([...(sectionByKey.tianyi || []), ...desktopProducts], basePool, poolCount),
+            "Thinkplus": lxFillFloorProducts(thinkplusProducts, [], poolCount),
+            "ThinkCentre": lxFillFloorProducts(thinkCentreProducts, [], poolCount),
+            "扬天&瑞天": lxFillFloorProducts(yangtianProducts, [], poolCount),
             "配件&外设": lxFillFloorProducts(accessoryProducts, basePool, poolCount),
             "服务存储": lxFillFloorProducts(serviceStorageProducts, basePool, poolCount),
             "企业服务": lxFillFloorProducts([...serviceProducts, ...serviceStorageProducts], basePool, poolCount),
@@ -11000,7 +11021,14 @@ async function openEduZone() {
   global.ARROWCURSOR = global.ARROWCURSOR || {};
   global.ARROWCURSOR.init = init;
   global.ARROWCURSOR.__lxProductDwell = true;
-  function boot(){ init({ variant:"A", delay:3000, label:"乐享正在帮你", target:".content .product-card, .content .lx-floor-product-card, .content [data-floor-product], .content .lx-floor-product, .content .lx-sim-card, .content .lx-p0-product-mini, .content .reco-row, .content .lx-edu-card" }); }
+  function boot(){
+    document.querySelectorAll(".ai-arrow,.lx-template-smart-cursor").forEach(function(node){ node.remove(); });
+    document.body.classList.remove("cursor-awake");
+    document.querySelector(".assistant-bottom")?.classList.remove("has-hover-prompts");
+    document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active", "assistant-glass-active");
+    var list = document.querySelector("[data-hover-prompt-list]");
+    if (list) list.innerHTML = "";
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
 

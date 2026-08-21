@@ -1,6 +1,15 @@
 /* 商品卡智能光标独立兜底：不依赖商城主运行时的初始化结果。 */
       (function () {
         "use strict";
+        /* The product dwell assistant is disabled site-wide. Keep the real
+           assistant content intact and remove any state left by an old cache. */
+        document.querySelectorAll(".ai-arrow,.lx-template-smart-cursor").forEach(function (node) { node.remove(); });
+        document.querySelector(".assistant-bottom")?.classList.remove("has-hover-prompts");
+        document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active", "assistant-glass-active");
+        var stalePromptList = document.querySelector("[data-hover-prompt-list]");
+        if (stalePromptList) stalePromptList.innerHTML = "";
+        document.body.classList.remove("cursor-awake");
+        return;
         var selector = ".content .product-card,.content .lx-floor-product-card,.content [data-floor-product],.content .lx-floor-product,.content .lx-sim-card,.content .lx-p0-product-mini,.content .reco-row,.content .lx-edu-card";
         var cursor = document.createElement("div");
         cursor.className = "lx-template-smart-cursor";

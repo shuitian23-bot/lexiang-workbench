@@ -1,0 +1,56 @@
+/* Product-card dwell cursor and composer recommendation overlay are disabled site-wide. */
+.ai-arrow,
+.lx-template-smart-cursor,
+.hover-prompt-panel,
+[data-hover-prompt-list] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Never blur or veil the assistant panel when a legacy hover state survives. */
+html body .assistant-panel > .assistant-glass-veil,
+html body .assistant-panel > .assistant-glass-snapshot {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  pointer-events: none !important;
+}
+
+html body .assistant-panel:is(.assistant-hover-active, .assistant-glass-active) > :not(.assistant-glass-veil):not(.assistant-glass-snapshot),
+html body .assistant-panel:has(.assistant-bottom.has-hover-prompts) > :not(.assistant-glass-veil):not(.assistant-glass-snapshot) {
+  filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+html body .content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card,
+  .lx-solution-card
+),
+html body .content :is(
+  .product-card,
+  .lx-floor-product-card,
+  [data-floor-product],
+  .lx-floor-product,
+  .lx-sim-card,
+  .lx-p0-product-mini,
+  .reco-row,
+  .lx-edu-card,
+  .lx-solution-card
+) * {
+  cursor: pointer !important;
+}

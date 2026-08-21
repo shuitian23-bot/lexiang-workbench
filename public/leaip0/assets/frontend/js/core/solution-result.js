@@ -21,6 +21,13 @@
     button.classList.remove("is-spinning");void button.offsetWidth;button.classList.add("is-spinning");grid.appendChild(grid.firstElementChild);
     window.setTimeout(function(){button.classList.remove("is-spinning")},500);
   });
+  /* Product/solution-card dwell assistance is temporarily disabled site-wide. */
+  document.querySelectorAll(".ai-arrow,.lx-template-smart-cursor").forEach(function(node){node.remove()});
+  document.body.classList.remove("cursor-awake");
+  document.querySelector(".assistant-bottom")?.classList.remove("has-hover-prompts");
+  document.querySelector(".assistant-panel")?.classList.remove("assistant-hover-active","assistant-glass-active");
+  var promptList=document.querySelector("[data-hover-prompt-list]");if(promptList)promptList.innerHTML="";
+  return;
   var cursor=document.querySelector(".lx-template-smart-cursor");
   if(!cursor){cursor=document.createElement("div");cursor.className="lx-template-smart-cursor";cursor.setAttribute("aria-hidden","true");cursor.innerHTML='<img src="../icons/smart-cursor.svg" alt=""><span class="lx-template-smart-cursor-label"><img src="../img/lx-icon-0016.png" alt="">乐享正在帮你</span>';document.body.appendChild(cursor)}
   var activeCard=null,dwellTimer=0,closeTimer=0;
