@@ -6137,7 +6137,8 @@ html[data-product="leaibot"] .skill-hub-edit-status {
   white-space:nowrap;
 }
 
-html[data-product="leaibot"] .skill-hub-update-status.is-processing {
+html[data-product="leaibot"] .skill-hub-update-status.is-processing,
+html[data-product="leaibot"] .skill-hub-update-status.is-processing_with_available {
   background:#eef4ff;
   color:var(--primary);
 }

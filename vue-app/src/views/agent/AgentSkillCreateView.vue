@@ -443,8 +443,8 @@
                   <span>{{ score.label }}</span><b>{{ score.value }}</b><i :style="{ '--score': score.percent }"></i><em v-if="score.note">{{ score.note }}</em>
                 </div>
               </div>
-              <div id="skill-create-eval-gate" class="skill-eval-gate" :class="canSubmitReview ? 'pass' : 'warn'">
-                <b>{{ canSubmitReview ? '评估通过' : '评估未通过' }}</b>
+              <div id="skill-create-eval-gate" class="skill-eval-gate" :class="evaluationPassed ? 'pass' : 'warn'">
+                <b>{{ evaluationPassed ? '评估通过' : '评估未通过' }}</b>
                 <span>{{ evalGateText }}</span>
               </div>
               <div id="skill-create-eval-list" class="skill-eval-list">
@@ -1037,15 +1037,14 @@ const submitMutationDecision = computed(() => skillHubMutationDecision(
 ))
 const canEditCurrentSkill = computed(() => editMutationDecision.value.allowed)
 const canSubmitReview = computed(() => submitMutationDecision.value.allowed)
+const evaluationPassed = computed(() => currentScore.value >= REVIEW_SCORE_THRESHOLD)
 
-const evalGateText = computed(() => aiTuned.value
-  ? canSubmitReview.value
-    ? 'AI 微调后综合评分 0.859，已达到提交审核门槛。可进入提交审核，等待管理员审批后再进入上传或发布链路。'
-    : submitMutationDecision.value.reason
+const evalGateText = computed(() => evaluationPassed.value
+  ? 'AI 微调后综合评分 0.859，已达到提交审核门槛。评分结论不受当前账号操作权限影响。'
   : '综合评分 0.782，未达到 0.80 提交审核门槛。请返回修改或由 AI 助手微调后重新评估。')
-const reviewScoreText = computed(() => canSubmitReview.value
+const reviewScoreText = computed(() => evaluationPassed.value
   ? 'AI 微调后综合评分 0.859，已达到审核门槛'
-  : submitMutationDecision.value.reason)
+  : '综合评分 0.782，未达到 0.80 审核门槛')
 
 const BASE_EVAL_ITEMS: SkillEvalItem[] = [
   { title: '基本信息规范', score: '1.00' },
@@ -1125,7 +1124,7 @@ const optimizationItems = computed(() => aiTuned.value
 
 function switchTab(tab: TabKey) {
   if (tab === 'review' && !canSubmitReview.value) {
-    toast('综合评分需达到 0.80 才能进入提交审核')
+    toast(submitMutationDecision.value.reason || '综合评分需达到 0.80 才能进入提交审核')
     return
   }
   activeTab.value = tab

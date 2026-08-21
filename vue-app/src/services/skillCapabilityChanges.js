@@ -273,12 +273,11 @@ export function skillHubRowPresentation(item) {
   const workflowStatus = workflowStatusOf(item)
   const updateStatus = item?.capabilityUpdate?.status || 'none'
   if (updateStatus === 'processing' || updateStatus === 'processing_with_available') {
-    const mainStatus = workflowStatus === 'draft' ? 'processing' : workflowStatus
     return {
-      mainStatus,
-      mainStatusLabel: mainStatus === 'processing' ? '更新中' : WORKFLOW_STATUS_LABELS[mainStatus],
-      updateStatus: updateStatus === 'processing_with_available' ? 'available' : 'none',
-      updateStatusLabel: updateStatus === 'processing_with_available' ? '有更新' : ''
+      mainStatus: workflowStatus,
+      mainStatusLabel: WORKFLOW_STATUS_LABELS[workflowStatus],
+      updateStatus,
+      updateStatusLabel: updateStatus === 'processing_with_available' ? '更新中（有新变化）' : '更新中'
     }
   }
   const updateStatusLabel = {
@@ -381,7 +380,15 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       action('test')
     ]
   }
-  if (updateStatus === 'available' || updateStatus === 'processing_with_available') {
+  if (updateStatus === 'processing_with_available') {
+    return [
+      action('view_change', true, changePayload),
+      action('continue_update', true),
+      action('start_update', true, changePayload),
+      action('ignore_update', true, changePayload)
+    ]
+  }
+  if (updateStatus === 'available') {
     return [
       action('view_change', true, changePayload),
       action('start_update', true, changePayload),
@@ -389,18 +396,14 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
     ]
   }
   if (updateStatus === 'processing') {
-    if (workflowStatus === 'draft' || workflowStatus === 'rejected') {
-      return [action('view_change', true, changePayload), ...(canMaintain ? [action('continue_update', true)] : [])]
-    }
-    if (workflowStatus === 'review') {
+    const updateActions = [action('view_change', true, changePayload), action('continue_update', true)]
+    if (workflowStatus === 'review' || workflowStatus === 'approved') {
       return [
-        action('view_change', true, changePayload),
+        ...updateActions,
         ...standardSkillActionCodes(item, actor, workflowStatus).map(code => action(code))
       ]
     }
-    if (workflowStatus === 'approved') {
-      return [action('view'), ...(isAdmin ? [action('publish')] : [])]
-    }
+    return updateActions
   }
 
   return standardSkillActionCodes(item, actor, workflowStatus).map(code => action(code))
