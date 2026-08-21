@@ -195,8 +195,8 @@
     enterprise: [
       {
         name: "制造行业",
-          title: "贯通研产，智链制造",
-        description: "面向核心业务与大规模算力场景，提供稳定、安全、可持续演进的基础设施。",
+          title: "贯通研产 智链制造",
+        description: "面向核心业务与大规模算力场景 提供稳定 安全 可持续演进的基础设施。",
         price: "28,500",
         product: "ThinkStation P 系列工作站",
         specs: "专业算力 · 集中管理 · 安全可靠",
@@ -207,8 +207,8 @@
       },
       {
         name: "教育行业",
-        title: "智慧教育，协同创新",
-        description: "连接教学、科研与校园管理场景，构建安全高效的数字教育基础设施。",
+        title: "智慧教育 协同创新",
+        description: "连接教学 科研与校园管理场景 构建安全高效的数字教育基础设施。",
         price: "30,299",
         product: "联想智慧教育解决方案",
         specs: "智慧教学 · 科研计算 · 校园管理",
@@ -219,8 +219,8 @@
       },
       {
         name: "政府行业",
-        title: "数字政务，安全高效",
-        description: "围绕政务服务、数据治理与统一运维，提升数字政府的协同和服务能力。",
+        title: "数字政务 安全高效",
+        description: "围绕政务服务 数据治理与统一运维 提升数字政府的协同和服务能力。",
         price: "34,799",
         product: "联想数字政府解决方案",
         specs: "政务云 · 数据治理 · 统一运维",
@@ -231,8 +231,8 @@
       },
       {
         name: "医疗行业",
-        title: "智慧医疗，稳健守护",
-        description: "贯通诊疗、数据与运营场景，为医疗机构提供可靠的数字化基础能力。",
+        title: "智慧医疗 稳健守护",
+        description: "贯通诊疗 数据与运营场景 为医疗机构提供可靠的数字化基础能力。",
         price: "34,799",
         product: "联想智慧医院解决方案",
         specs: "智慧诊疗 · 数据安全 · 高效运营",
@@ -243,8 +243,8 @@
       },
       {
         name: "金融行业",
-        title: "金融智算，安全敏捷",
-        description: "面向核心业务、数据中心与智能应用，构建安全弹性的金融数字底座。",
+        title: "金融智算 安全敏捷",
+        description: "面向核心业务 数据中心与智能应用 构建安全弹性的金融数字底座。",
         price: "34,799",
         product: "联想金融行业解决方案",
         specs: "核心业务 · 数据中心 · 智能应用",
@@ -255,8 +255,8 @@
       },
       {
         name: "能源行业",
-        title: "智慧能源，绿色发展",
-        description: "服务能源生产、巡检与运营管理，推动安全生产和绿色低碳转型。",
+        title: "智慧能源 绿色发展",
+        description: "服务能源生产 巡检与运营管理 推动安全生产和绿色低碳转型。",
         price: "34,799",
         product: "联想智慧能源解决方案",
         specs: "智能巡检 · 安全生产 · 绿色运营",
@@ -267,8 +267,8 @@
       },
       {
         name: "交通行业",
-        title: "智慧交通，畅行协同",
-        description: "覆盖轨道、机场与高速场景，以云平台和智能运营能力提升通行效率。",
+        title: "智慧交通 畅行协同",
+        description: "覆盖轨道 机场与高速场景 以云平台和智能运营能力提升通行效率。",
         price: "34,799",
         product: "联想智慧交通解决方案",
         specs: "轨道交通 · 机场云 · 高速运营",
@@ -279,8 +279,8 @@
       },
       {
         name: "服务行业",
-        title: "智慧服务，体验升级",
-        description: "连接门店、客服与供应链场景，以智能化能力提升运营与客户体验。",
+        title: "智慧服务 体验升级",
+        description: "连接门店 客服与供应链场景 以智能化能力提升运营与客户体验。",
         price: "34,799",
         product: "联想智慧服务解决方案",
         specs: "智慧门店 · 智能客服 · 供应链协同",
@@ -296,6 +296,7 @@
 
   var currentIndex = 0;
   var title = hall.querySelector(".device-scene-copy h2");
+  var industryTag = hall.querySelector("[data-device-scene-industry]");
   var description = hall.querySelector("[data-device-scene-desc]");
   var price = hall.querySelector("[data-device-scene-price]");
   var hotspot = hall.querySelector(".device-scene-hotspot");
@@ -306,7 +307,6 @@
   var sceneCount = hall.querySelector(".device-scene-count");
   var picker = hall.querySelector(".device-scene-picker");
   var menuButtons = hall.querySelectorAll("[data-device-scene]");
-  var pickerCloseTimer = 0;
   var hotspotPreviewTimer = 0;
 
   function previewHotspot() {
@@ -324,6 +324,7 @@
     currentIndex = (index + scenes.length) % scenes.length;
     var scene = scenes[currentIndex];
     title.textContent = scene.title;
+    if (industryTag) industryTag.textContent = scene.name;
     description.textContent = scene.description;
     if (price) price.textContent = scene.price;
     if (product) product.textContent = scene.product;
@@ -356,14 +357,16 @@
       picker.removeAttribute("open");
     });
   });
-  picker.addEventListener("mouseenter", function () {
-    window.clearTimeout(pickerCloseTimer);
-    picker.setAttribute("open", "");
-  });
-  picker.addEventListener("mouseleave", function () {
-    pickerCloseTimer = window.setTimeout(function () {
+  document.addEventListener("click", function (event) {
+    if (picker.hasAttribute("open") && !picker.contains(event.target)) {
       picker.removeAttribute("open");
-    }, 120);
+    }
+  });
+  picker.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && picker.hasAttribute("open")) {
+      picker.removeAttribute("open");
+      picker.querySelector("summary").focus();
+    }
   });
   renderScene(0);
 })();
