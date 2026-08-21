@@ -58,6 +58,7 @@
     <link rel="stylesheet" data-category-waiting-modal href="../frontend/css/shared/inline-935e2224afac.css">
   <link rel="stylesheet" href="../frontend/css/core/split-frame-composer-sync.css" />
   <link rel="stylesheet" href="../frontend/css/core/right-generation-aurora.css?v=0.15.17-top-layer" />
+  <link rel="stylesheet" href="../frontend/css/core/auth-dialog.css?v=1" />
   <link rel="stylesheet" id="lx-history-modal-standard" href="../frontend/css/pages/home/inline-07.css">
 </head>
   <body data-state="default">
@@ -90,12 +91,8 @@
             <img class="icon" src="../icons/mall-account.svg" alt="" />
           </button>
           <div class="account-menu" role="menu">
-            <div class="menu-row">我的账号</div>
-            <div class="menu-row active">我的服务</div>
-            <div class="menu-row">会员中心</div>
-            <div class="menu-row">企业认证</div>
-            <div class="menu-row">优化日志</div>
-            <div class="menu-row">退出</div>
+            <div class="menu-row" data-account-action="member">会员中心</div>
+            <div class="menu-row" data-account-action="logout">退出登录</div>
           </div>
         </div>
       </div>
@@ -564,12 +561,8 @@
           <div class="lxfd-account-wrap">
             <button class="lxfd-avatar" type="button" aria-label="个人中心" title="个人中心"><img class="icon" src="../icons/mall-account.svg" alt="" /></button>
             <div class="account-menu lxfd-account-menu" role="menu">
-              <div class="menu-row">我的账号</div>
-              <div class="menu-row active">我的服务</div>
-              <div class="menu-row">会员中心</div>
-              <div class="menu-row">企业认证</div>
-              <div class="menu-row">优化日志</div>
-              <div class="menu-row">退出</div>
+              <div class="menu-row" data-account-action="member">会员中心</div>
+              <div class="menu-row" data-account-action="logout">退出登录</div>
             </div>
           </div>
         </div>
@@ -614,7 +607,7 @@
     <script src="../frontend/js/core/app-intent.js?v=0.13.14-stage"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
     <link rel="stylesheet" data-document-insight-module href="../frontend/css/pages/home/inline-12.css">
-  <script src="../frontend/js/core/app.js?v=0.14.77-hide-regenerate"></script>
+  <script src="../frontend/js/core/app.js?v=0.14.83-logout-immediate"></script>
     <link rel="stylesheet" id="lxfd-home-composer-control-sync" href="../frontend/css/pages/home/inline-13.css">
     <script src="../frontend/js/core/app-lxfd.js?v=0.15.31-new-chat-refresh"></script>
     <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
