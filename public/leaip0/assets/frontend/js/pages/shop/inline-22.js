@@ -157,8 +157,8 @@
     business: [
       {
         name: "高效办公",
-        title: "高效办公，灵活成长",
-        description: "从团队协作到业务拓展，为成长型企业搭配稳定高效的智能办公设备。",
+        title: "高效办公 灵活成长",
+        description: "从日常办公到业务拓展 为中小企业搭配稳定高效的智能办公设备。",
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
@@ -168,27 +168,51 @@
         hotspotTop: "38%"
       },
       {
-        name: "企业协同",
-        title: "稳定协同，业务加速",
-        description: "覆盖会议、协作与集中管理，为企业团队提供可靠顺畅的生产力体验。",
-        price: "16,299",
-        product: "ThinkPad P16s 2025",
-        specs: "酷睿 Ultra 7 · 32GB · 1TB",
-        image: "/assets/img/business-banner-2.jpg",
-        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
-        hotspotLeft: "75%",
-        hotspotTop: "40%"
-      },
-      {
-        name: "移动办公",
+        name: "移动差旅",
         title: "轻装随行，效率在线",
-        description: "兼顾轻薄便携、长效续航与安全管理，让工作随时随地高效展开。",
+        description: "兼顾轻薄便携 长效续航与安全管理 让差旅办公随时高效展开。",
         price: "13,999",
         product: "ThinkPad X1 Carbon AI",
         specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
         image: "/assets/img/working-scene.jpg",
         overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
         hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "专业设计",
+        title: "专业设计 创意高效",
+        description: "覆盖视觉设计 建模渲染与多任务创作 为专业团队提供稳定算力支持。",
+        price: "16,299",
+        product: "ThinkPad P16s 2025",
+        specs: "酷睿 Ultra 7 · 32GB · 1TB",
+        image: "/assets/img/creation-scene.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
+        hotspotLeft: "75%",
+        hotspotTop: "40%"
+      },
+      {
+        name: "会议协作",
+        title: "会议协作 沟通无界",
+        description: "联动音视频会议 内容共享与远程协作 让企业沟通更清晰更高效。",
+        price: "16,299",
+        product: "ThinkSmart 会议协作方案",
+        specs: "智能会议 · 内容共享 · 远程协作",
+        image: "/assets/img/business-banner-2.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
+        hotspotLeft: "75%",
+        hotspotTop: "40%"
+      },
+      {
+        name: "成长型团队",
+        title: "成长型团队 稳健扩展",
+        description: "从团队协作到设备管理 为快速成长的企业搭建灵活可扩展的生产力基础。",
+        price: "11,799",
+        product: "ThinkPad T14 2025",
+        specs: "锐龙 AI 7 PRO · 32GB · 512GB",
+        image: "/assets/img/business-banner-1.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
+        hotspotLeft: "76%",
         hotspotTop: "38%"
       }
     ],
@@ -200,7 +224,7 @@
         price: "28,500",
         product: "ThinkStation P 系列工作站",
         specs: "专业算力 · 集中管理 · 安全可靠",
-        image: "/assets/img/industry/produce.jpg",
+        image: "/assets/img/industry/produce-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
         hotspotLeft: "76%",
         hotspotTop: "38%"
@@ -212,7 +236,7 @@
         price: "30,299",
         product: "联想智慧教育解决方案",
         specs: "智慧教学 · 科研计算 · 校园管理",
-        image: "/assets/img/solution/智慧教室解决方案.jpg",
+        image: "/assets/img/solution/智慧教室解决方案-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
         hotspotLeft: "75%",
         hotspotTop: "40%"
@@ -224,7 +248,7 @@
         price: "34,799",
         product: "联想数字政府解决方案",
         specs: "政务云 · 数据治理 · 统一运维",
-        image: "/assets/img/solution/数字政府统一运维方案.jpg",
+        image: "/assets/img/solution/数字政府统一运维方案-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -236,7 +260,7 @@
         price: "34,799",
         product: "联想智慧医院解决方案",
         specs: "智慧诊疗 · 数据安全 · 高效运营",
-        image: "/assets/img/solution/智慧医院整体解决方案.jpg",
+        image: "/assets/img/solution/智慧医院整体解决方案-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -248,7 +272,7 @@
         price: "34,799",
         product: "联想金融行业解决方案",
         specs: "核心业务 · 数据中心 · 智能应用",
-        image: "/assets/img/solution/金融行业DCM数据中心管理平台.jpg",
+        image: "/assets/img/solution/金融行业DCM数据中心管理平台-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -260,7 +284,7 @@
         price: "34,799",
         product: "联想智慧能源解决方案",
         specs: "智能巡检 · 安全生产 · 绿色运营",
-        image: "/assets/img/solution/智慧电厂解决方案.jpg",
+        image: "/assets/img/solution/智慧电厂解决方案-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -272,7 +296,7 @@
         price: "34,799",
         product: "联想智慧交通解决方案",
         specs: "轨道交通 · 机场云 · 高速运营",
-        image: "/assets/img/solution/轨交智能运营解决方案.jpg",
+        image: "/assets/img/solution/轨交智能运营解决方案-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
@@ -284,7 +308,7 @@
         price: "34,799",
         product: "联想智慧服务解决方案",
         specs: "智慧门店 · 智能客服 · 供应链协同",
-        image: "/assets/img/solution/智慧零售连锁门店解决方案.jpg",
+        image: "/assets/img/solution/智慧零售连锁门店解决方案-hero.webp",
         overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
         hotspotLeft: "74%",
         hotspotTop: "38%"
