@@ -1,7 +1,8 @@
 /*
  * Channel surface scope:
  * - the four original channel home panes fade from white to #FAFAFA;
- * - once a real content tab is visible, the pane is always white;
+ * - channel identity/navigation tabs may coexist with the home pane;
+ * - once the real home pane is replaced by a result/detail pane, it is white;
  * - conversation/result/detail states must not inherit the home surface.
  */
 body:is(
@@ -21,10 +22,10 @@ body:is(
   [data-page="enterprise"]
 ):not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell
-  > .content:has(> .device-scene-hall):not(:has(> .lx-tabbar:not([hidden]))),
+  > .content:has(> .device-scene-hall),
 body[data-page="brand"]:not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell
-  > .content.lx-brand-home-empty:not(:has(> .lx-tabbar:not([hidden]))) {
+  > .content.lx-brand-home-empty {
   background: linear-gradient(
     180deg,
     #FFFFFF 0%,
