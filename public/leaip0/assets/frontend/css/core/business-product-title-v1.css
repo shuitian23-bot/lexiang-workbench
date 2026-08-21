@@ -1,0 +1,12 @@
+/* 中小企业商品卡：精简名称仅显示一行，不重复展示规格描述。 */
+body[data-page="business"] .content :is(.product-card, .lx-floor-product, .lx-floor-product-card, [data-floor-product]) .product-title {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+body[data-page="business"] .content :is(.product-card, .lx-floor-product, .lx-floor-product-card, [data-floor-product]) .spec {
+  display: none !important;
+}

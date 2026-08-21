@@ -1,0 +1,12 @@
+/* 中小企业商品卡：精简名称和关键描述各一行。 */
+body[data-page="business"] .content :is(.product-card, .lx-floor-product, .lx-floor-product-card, [data-floor-product]) :is(.product-title, .spec) {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+body[data-page="business"] .content :is(.product-card, .lx-floor-product, .lx-floor-product-card, [data-floor-product]) .spec {
+  margin: 0 0 9px !important;
+}
