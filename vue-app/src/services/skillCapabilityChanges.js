@@ -313,6 +313,36 @@ export function skillHubMutationDecision(item, actorUser, intent = 'edit', score
   return { allowed: true, reason: '' }
 }
 
+function standardSkillActionCodes(item, actor, workflowStatus = workflowStatusOf(item)) {
+  const canMaintain = item?.owner === actor.user
+  const isAdmin = actor.role === 'admin'
+  const ownerActions = {
+    draft: ['edit', 'evaluate', 'test', 'delete'],
+    review: ['view', 'withdraw_review'],
+    approved: ['view'],
+    published: ['view', 'edit', 'evaluate', 'test'],
+    disabled: ['view', 'edit', 'evaluate', 'test'],
+    rejected: ['view', 'edit', 'evaluate', 'test']
+  }
+  const adminActions = {
+    draft: ['view'],
+    review: ['view', 'evaluate', 'approve', 'reject'],
+    approved: ['view', 'publish'],
+    published: ['view', 'disable'],
+    disabled: ['view', 'enable'],
+    rejected: ['view']
+  }
+  const maintainerActions = canMaintain ? [...(ownerActions[workflowStatus] || ['view'])] : ['view']
+  if (canMaintain && (workflowStatus === 'draft' || workflowStatus === 'rejected') && Number(item?.score || 0) >= 0.8) {
+    const deleteIndex = maintainerActions.indexOf('delete')
+    maintainerActions.splice(deleteIndex >= 0 ? deleteIndex : maintainerActions.length, 0, 'submit_review')
+  }
+  return [...new Set([
+    ...maintainerActions,
+    ...(isAdmin ? adminActions[workflowStatus] || ['view'] : [])
+  ])]
+}
+
 export function resolveSkillHubAllowedActions(item, actor = {}) {
   const workflowStatus = workflowStatusOf(item)
   const updateStatus = item?.capabilityUpdate?.status || 'none'
@@ -342,10 +372,20 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       ...(canMaintain ? [action('retry_update', true, changePayload), action('ignore_update', true, changePayload)] : [])
     ]
   }
+  if (updateStatus === 'available' && workflowStatus === 'published') {
+    return [
+      action('view_change', true, changePayload),
+      action('start_update', true, changePayload),
+      action('ignore_update', true, changePayload),
+      action('evaluate'),
+      action('test')
+    ]
+  }
   if (updateStatus === 'available' || updateStatus === 'processing_with_available') {
     return [
       action('view_change', true, changePayload),
-      ...(canMaintain ? [action('start_update', true, changePayload), action('ignore_update', true, changePayload)] : [])
+      action('start_update', true, changePayload),
+      action('ignore_update', true, changePayload)
     ]
   }
   if (updateStatus === 'processing') {
@@ -353,41 +393,17 @@ export function resolveSkillHubAllowedActions(item, actor = {}) {
       return [action('view_change', true, changePayload), ...(canMaintain ? [action('continue_update', true)] : [])]
     }
     if (workflowStatus === 'review') {
-      return isAdmin
-        ? [action('view_change', true, changePayload), action('evaluate'), action('approve'), action('reject')]
-        : [action('view_change', true, changePayload), action('view'), ...(canMaintain ? [action('withdraw_review')] : [])]
+      return [
+        action('view_change', true, changePayload),
+        ...standardSkillActionCodes(item, actor, workflowStatus).map(code => action(code))
+      ]
     }
     if (workflowStatus === 'approved') {
       return [action('view'), ...(isAdmin ? [action('publish')] : [])]
     }
   }
 
-  const ownerActions = {
-    draft: ['edit', 'evaluate', 'test', 'delete'],
-    review: ['view', 'withdraw_review'],
-    approved: ['view'],
-    published: ['view', 'edit', 'evaluate', 'test'],
-    disabled: ['view', 'edit', 'evaluate', 'test'],
-    rejected: ['view', 'edit', 'evaluate', 'test']
-  }
-  const adminActions = {
-    draft: ['view'],
-    review: ['view', 'evaluate', 'approve', 'reject'],
-    approved: ['view', 'publish'],
-    published: ['view', 'disable'],
-    disabled: ['view', 'enable'],
-    rejected: ['view']
-  }
-  const maintainerActions = canMaintain ? [...(ownerActions[workflowStatus] || ['view'])] : ['view']
-  if (canMaintain && (workflowStatus === 'draft' || workflowStatus === 'rejected') && Number(item?.score || 0) >= 0.8) {
-    const deleteIndex = maintainerActions.indexOf('delete')
-    maintainerActions.splice(deleteIndex >= 0 ? deleteIndex : maintainerActions.length, 0, 'submit_review')
-  }
-  const codes = new Set([
-    ...maintainerActions,
-    ...(isAdmin ? adminActions[workflowStatus] || ['view'] : [])
-  ])
-  return [...codes].map(code => action(code))
+  return standardSkillActionCodes(item, actor, workflowStatus).map(code => action(code))
 }
 
 function mergeContextCodes(selectedCodes = [], requiredCodes = []) {

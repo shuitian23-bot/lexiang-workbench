@@ -703,7 +703,7 @@ test('Skill Hub row presentation separates workflow status from capability updat
   })
 })
 
-test('capability decisions override every lifecycle action until handled', async () => {
+test('available capability changes always expose update and ignore actions until handled', async () => {
   const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
   const update = getSeedCapabilityUpdate('product-knowledge')
   const actor = { role: 'admin', user: 'admin' }
@@ -712,14 +712,19 @@ test('capability decisions override every lifecycle action until handled', async
   for (const workflowStatus of workflows) {
     const actions = resolveSkillHubAllowedActions({
       name: `skill-${workflowStatus}`,
-      owner: 'admin',
+      owner: 'product-pm',
       workflowStatus,
       status: workflowStatus,
       onlineStatus: workflowStatus === 'disabled' ? 'disabled' : workflowStatus === 'published' ? 'published' : 'unpublished',
       online: workflowStatus === 'published' || workflowStatus === 'disabled' ? 'v1.0.0' : '未发布',
       capabilityUpdate: { ...update, recordId: `change-${workflowStatus}` }
     }, actor)
-    assert.deepEqual(actions.map(action => action.code), ['view_change', 'start_update', 'ignore_update'])
+    assert.deepEqual(
+      actions.map(action => action.code),
+      workflowStatus === 'published'
+        ? ['view_change', 'start_update', 'ignore_update', 'evaluate', 'test']
+        : ['view_change', 'start_update', 'ignore_update']
+    )
   }
 
   assert.deepEqual(resolveSkillHubAllowedActions({
@@ -742,17 +747,18 @@ test('processing updates expose only the actions for their current update workfl
   const admin = { role: 'admin', user: 'admin' }
 
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'draft-update', owner: 'admin', workflowStatus: 'draft', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])
-  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'evaluate', 'approve', 'reject'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'view', 'evaluate', 'approve', 'reject'])
+  assert.deepEqual(resolveSkillHubAllowedActions({ name: 'owned-review-update', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, { role: 'pm', user: 'product-pm' }).map(action => action.code), ['view_change', 'view', 'withdraw_review'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'approved-update', owner: 'product-pm', workflowStatus: 'approved', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view', 'publish'])
   assert.deepEqual(resolveSkillHubAllowedActions({ name: 'rejected-update', owner: 'admin', workflowStatus: 'rejected', status: 'published', online: 'v1.0.7', capabilityUpdate: update }, admin).map(action => action.code), ['view_change', 'continue_update'])
 
   assert.deepEqual(resolveSkillHubAllowedActions({
-    name: 'later-change', owner: 'admin', workflowStatus: 'review', status: 'published', online: 'v1.0.7',
+    name: 'later-change', owner: 'product-pm', workflowStatus: 'review', status: 'published', online: 'v1.0.7',
     capabilityUpdate: { ...update, status: 'processing_with_available' }
   }, admin).map(action => action.code), ['view_change', 'start_update', 'ignore_update'])
 })
 
-test('administrator governance does not grant maintainer actions for another owner', async () => {
+test('published updates retain decision test and application actions for a non-owner administrator', async () => {
   const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
   const admin = { role: 'admin', user: 'admin' }
   const published = {
@@ -763,7 +769,15 @@ test('administrator governance does not grant maintainer actions for another own
   assert.deepEqual(resolveSkillHubAllowedActions({
     ...published,
     capabilityUpdate: getSeedCapabilityUpdate('product-knowledge')
-  }, admin).map(action => action.code), ['view_change'])
+  }, admin).map(action => action.code), ['view_change', 'start_update', 'ignore_update', 'evaluate', 'test'])
+})
+
+test('Skill Hub keeps the original Test and Apply labels with their original behaviors', async () => {
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.match(view, /evaluate:\s*'测试'/)
+  assert.match(view, /test:\s*'应用'/)
+  assert.match(view, /if \(action === 'evaluate'\) \{\s*evalItem\.value = item/)
+  assert.match(view, /if \(action === 'test'\) return testSkill\(item\)/)
 })
 
 test('submit review is available only to an eligible owner with a passing score', async () => {
@@ -1076,4 +1090,31 @@ test('the initial mock keeps rejected clean while five other lifecycles expose a
   assert.match(store, /name:\s*'capability-draft-demo'[\s\S]*status:\s*'draft'/)
   assert.match(store, /name:\s*'workplace-employee-review-analysis'[\s\S]*status:\s*'rejected'/)
   assert.match(store, /function loadItems\(\) \{\s*return cloneDefaultItems\(\)\s*\}/)
+})
+
+test('the initial mock also keeps one standalone sample for every original POC lifecycle', async () => {
+  const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions } = await import('../src/services/skillCapabilityChanges.js')
+  const store = await source('../src/stores/skillHub.ts')
+  const admin = { role: 'admin', user: 'admin' }
+  const samples = [
+    ['operations-insight-draft', 'draft', 'admin', ['edit', 'evaluate', 'test', 'delete', 'view']],
+    ['driver-download-guide', 'review', 'service-pm', ['view', 'evaluate', 'approve', 'reject']],
+    ['customer-profile-export', 'approved', 'admin', ['view', 'publish']],
+    ['gmv-daily-summary', 'published', 'admin', ['view', 'edit', 'evaluate', 'test', 'disable']],
+    ['legacy-inventory-alert', 'disabled', 'admin', ['view', 'edit', 'evaluate', 'test', 'enable']],
+    ['workplace-employee-review-analysis', 'rejected', 'admin', ['view', 'edit', 'evaluate', 'test']]
+  ]
+
+  for (const [name, workflowStatus, owner, expectedActions] of samples) {
+    assert.match(store, new RegExp(`name:\\s*'${name}'[^\\n]*status:\\s*'${workflowStatus}'`))
+    assert.equal(getSeedCapabilityUpdate(name), undefined)
+    assert.deepEqual(resolveSkillHubAllowedActions({
+      name,
+      owner,
+      workflowStatus,
+      status: workflowStatus,
+      onlineStatus: workflowStatus === 'published' ? 'published' : workflowStatus === 'disabled' ? 'disabled' : 'unpublished',
+      online: workflowStatus === 'published' || workflowStatus === 'disabled' ? 'v1.0.0' : '未发布'
+    }, admin).map(action => action.code), expectedActions)
+  }
 })
