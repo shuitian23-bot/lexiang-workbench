@@ -1,5 +1,7 @@
 /* 个人及家庭频道首页：去除首屏广告横幅，分类导航与商品楼层自然上移。 */
 body[data-page="personal"] .content > .hero{display:none!important}
+body[data-page="business"] .content > .hero,
+body[data-page="enterprise"] .content > .hero{display:none!important}
 
 .device-scene-hall{display:none}
 body[data-page="personal"] .content > .device-scene-hall{
@@ -12,6 +14,19 @@ body[data-page="personal"] .content > .device-scene-hall{
   overflow:hidden;
   border-radius:16px;
   background:#101010 url("../../../../img/game-scene.jpg") center/cover no-repeat;
+  color:#FFFFFF;
+}
+body[data-page="business"] .content > .device-scene-hall,
+body[data-page="enterprise"] .content > .device-scene-hall{
+  position:relative;
+  height:clamp(280px,33.333dvh,420px);
+  min-height:0;
+  display:flex;
+  align-items:stretch;
+  margin:18px 0;
+  overflow:hidden;
+  border-radius:16px;
+  background:#101010 center/cover no-repeat;
   color:#FFFFFF;
 }
 body[data-page="personal"] .content:has(> .lx-tabbar:not([hidden])) > .device-scene-hall{

@@ -115,7 +115,8 @@
   var hall = document.querySelector(".device-scene-hall");
   if (!hall) return;
 
-  var scenes = [
+  var sceneProfiles = {
+    personal: [
     {
       name: "电竞游戏",
       title: "沉浸竞技，性能全开",
@@ -152,10 +153,89 @@
       hotspotLeft: "74%",
       hotspotTop: "38%"
     }
-  ];
+    ],
+    business: [
+      {
+        name: "高效办公",
+        title: "高效办公，灵活成长",
+        description: "从团队协作到业务拓展，为成长型企业搭配稳定高效的智能办公设备。",
+        price: "11,799",
+        product: "ThinkPad T14 2025",
+        specs: "锐龙 AI 7 PRO · 32GB · 512GB",
+        image: "../img/business-banner-1.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
+        hotspotLeft: "76%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "企业协同",
+        title: "稳定协同，业务加速",
+        description: "覆盖会议、协作与集中管理，为企业团队提供可靠顺畅的生产力体验。",
+        price: "16,299",
+        product: "ThinkPad P16s 2025",
+        specs: "酷睿 Ultra 7 · 32GB · 1TB",
+        image: "../img/business-banner-2.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
+        hotspotLeft: "75%",
+        hotspotTop: "40%"
+      },
+      {
+        name: "移动办公",
+        title: "轻装随行，效率在线",
+        description: "兼顾轻薄便携、长效续航与安全管理，让工作随时随地高效展开。",
+        price: "13,999",
+        product: "ThinkPad X1 Carbon AI",
+        specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
+        image: "../img/working-scene.jpg",
+        overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      }
+    ],
+    enterprise: [
+      {
+        name: "智算中心",
+        title: "智算驱动，规模增长",
+        description: "面向核心业务与大规模算力场景，提供稳定、安全、可持续演进的基础设施。",
+        price: "28,500",
+        product: "ThinkStation P 系列工作站",
+        specs: "专业算力 · 集中管理 · 安全可靠",
+        image: "../img/enterprise-banner-1.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
+        hotspotLeft: "76%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "行业方案",
+        title: "行业融合，稳健落地",
+        description: "围绕政务、教育与重点行业场景，整合终端、平台和全周期服务能力。",
+        price: "30,299",
+        product: "联想行业智能解决方案",
+        specs: "全栈方案 · 安全部署 · 持续服务",
+        image: "../img/enterprise-banner-2.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.58) 48%,transparent 80%)",
+        hotspotLeft: "75%",
+        hotspotTop: "40%"
+      },
+      {
+        name: "智能制造",
+        title: "端边云协同，生产提效",
+        description: "连接研发、生产与运维环节，以智能算力和行业服务推动业务提质增效。",
+        price: "34,799",
+        product: "ThinkStation P16 移动工作站",
+        specs: "专业显卡 · 企业安全 · 全周期服务",
+        image: "../img/industry/produce.jpg",
+        overlay: "linear-gradient(90deg,rgba(18,7,28,.96) 0%,rgba(77,20,74,.62) 48%,transparent 82%)",
+        hotspotLeft: "74%",
+        hotspotTop: "38%"
+      }
+    ]
+  };
+  var profile = hall.dataset.sceneProfile || document.body.dataset.page || "personal";
+  var scenes = sceneProfiles[profile] || sceneProfiles.personal;
 
   var currentIndex = 0;
-  var title = hall.querySelector("#device-scene-title");
+  var title = hall.querySelector(".device-scene-copy h2");
   var description = hall.querySelector("[data-device-scene-desc]");
   var price = hall.querySelector("[data-device-scene-price]");
   var hotspot = hall.querySelector(".device-scene-hotspot");
@@ -164,7 +244,6 @@
   var currentLabel = hall.querySelector(".device-scene-current");
   var sceneCount = hall.querySelector(".device-scene-count");
   var picker = hall.querySelector(".device-scene-picker");
-  var buyButton = hall.querySelector(".device-scene-buy");
   var menuButtons = hall.querySelectorAll("[data-device-scene]");
   var pickerCloseTimer = 0;
   var hotspotPreviewTimer = 0;
@@ -190,8 +269,6 @@
     currentLabel.textContent = "当前: " + scene.name + "场景";
     sceneCount.textContent = (currentIndex + 1) + "/" + scenes.length;
     hotspot.setAttribute("aria-label", "查看" + scene.product + "商品信息");
-    hotspot.dataset.quickAsk = "详细介绍" + scene.name + "场景的联想设备配置";
-    if (buyButton) buyButton.dataset.quickAsk = "推荐适合" + scene.name + "的联想设备组合";
     hotspot.style.left = scene.hotspotLeft;
     hotspot.style.top = scene.hotspotTop;
     hall.style.backgroundImage = 'url("' + new URL(scene.image, document.baseURI).href + '")';
@@ -223,5 +300,5 @@
       picker.removeAttribute("open");
     }, 120);
   });
-  previewHotspot();
+  renderScene(0);
 })();
