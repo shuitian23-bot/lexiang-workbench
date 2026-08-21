@@ -1,13 +1,35 @@
-/* Channel home right pane only; left-side conversation state must not change it. */
+/*
+ * Channel surface scope:
+ * - the four original channel home panes fade from white to #FAFAFA;
+ * - once a real content tab is visible, the pane is always white;
+ * - conversation/result/detail states must not inherit the home surface.
+ */
+body:is(
+  [data-page="personal"],
+  [data-page="business"],
+  [data-page="enterprise"],
+  [data-page="brand"]
+):not(.assistant-fullscreen):not(.lx-auto-fs)
+  > .shell
+  > .content {
+  background: #FFFFFF !important;
+}
+
 body:is(
   [data-page="personal"],
   [data-page="business"],
   [data-page="enterprise"]
 ):not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell
-  > .content:has(> .device-scene-hall),
+  > .content:has(> .device-scene-hall):not(:has(> .lx-tabbar:not([hidden]))),
 body[data-page="brand"]:not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell
-  > .content.lx-brand-home-empty {
-  background: #FAFAFA !important;
+  > .content.lx-brand-home-empty:not(:has(> .lx-tabbar:not([hidden]))) {
+  background: linear-gradient(
+    180deg,
+    #FFFFFF 0%,
+    #FFFFFF 33.333%,
+    #FAFAFA 46%,
+    #FAFAFA 100%
+  ) !important;
 }
