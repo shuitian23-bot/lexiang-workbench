@@ -6420,7 +6420,10 @@ async function openEduZone() {
           bar.innerHTML = tabs.map((tab) => `<span class="lx-tab${tab.id === state.activeTabId ? " is-active" : ""}" data-tab-id="${esc(tab.id)}" role="tab" aria-selected="${tab.id === state.activeTabId}"><span class="lx-tab-label">${esc(tab.label || "")}</span><button class="lx-tab-close" type="button" data-tab-close="${esc(tab.id)}" aria-label="关闭标签">×</button></span>`).join("") + `<span class="lx-tab-ink" aria-hidden="true"></span>`;
           // 首次只有 1 个真实页面时不显示标签栏；第 2 个页面出现后一次展示
           // 两个真实标签，后续严格一页一标签；关闭回 1 页时只隐藏栏、不删页面。
-          bar.hidden = tabs.length <= 1;
+          // 政教频道的首页是明确的返回入口；用户从智能体打开第一个结果页后，
+          // 也需要看到当前结果标签，避免已进入解决方案页却看不到页面身份。
+          const showSingleEnterpriseResult = lxPageFromPath() === "enterprise" && tabs.length === 1;
+          bar.hidden = tabs.length === 0 || (tabs.length === 1 && !showSingleEnterpriseResult);
           bar.setAttribute("aria-hidden", bar.hidden ? "true" : "false");
           bar.dataset.pageCount = String(tabs.length);
           // 页面注册表是选中态唯一真相；零页面时必须清除历史恢复留下的虚假卡片高亮。

@@ -33,6 +33,10 @@ body[data-page="enterprise"] .content > .device-scene-hall{
 body[data-page="enterprise"] .content > .device-scene-hall{
   height:clamp(350px,41.666dvh,525px);
 }
+/* 行业四卡首屏只属于政教频道首页；打开智能体结果页后必须退场。 */
+body[data-page="enterprise"] .content[data-view]:not([data-view="list"]) > .device-scene-hall{
+  display:none;
+}
 body[data-page="enterprise"] .device-scene-copy{
   width:38%;
   padding-right:clamp(24px,2.4vw,46px);
