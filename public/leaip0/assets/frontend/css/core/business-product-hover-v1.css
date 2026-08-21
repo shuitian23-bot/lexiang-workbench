@@ -1,0 +1,12 @@
+/* 中小企业商品楼层：保留两排数据夹断，但允许悬浮阴影越过网格边界显示。 */
+body[data-page="business"] .content .lx-site-floors .lx-cat-floor,
+body[data-page="business"] .content .lx-site-floors .lx-floor-products {
+  overflow: visible !important;
+}
+
+html body[data-page="business"] .shell > .content .lx-site-floors .lx-floor-products > :is(.lx-floor-product, .lx-floor-product-card, [data-floor-product]):hover,
+html body[data-page="business"] .shell > .content .lx-site-floors .lx-floor-products > :is(.lx-floor-product, .lx-floor-product-card, [data-floor-product]):focus-visible {
+  position: relative !important;
+  z-index: 6 !important;
+  box-shadow: var(--shadow) !important;
+}

@@ -674,18 +674,20 @@ if (!window.__lxCreateTypewriter) {
           const isOrderSkin = options.skin === "order";
           const isAddrSkin = options.skin === "address";
           const isLeadSkin = options.skin === "lead";
+          const isAuthSkin = options.skin === "auth";
           const modal = $(".lx-p0-modal", mask);
           const head = $(".lx-p0-modal-head", mask);
           mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
           mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
           mask.classList.toggle("lx-lead-modal-mask", isLeadSkin);
+          mask.classList.toggle("lx-auth-modal-mask", isAuthSkin);
           if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : "lx-p0-modal";
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : isAuthSkin ? "lx-p0-modal lx-auth-modal" : "lx-p0-modal";
             if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
           // 行内样式兜底：CSS 文件屡被并发覆盖丢掉 [hidden] 规则，行内 display 优先级最高盖不掉（订单弹窗双×回归根治）
-          if (head) { head.hidden = isOrderSkin || isAddrSkin; head.style.display = (isOrderSkin || isAddrSkin) ? "none" : ""; }
+          if (head) { head.hidden = isOrderSkin || isAddrSkin || isAuthSkin; head.style.display = (isOrderSkin || isAddrSkin || isAuthSkin) ? "none" : ""; }
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
@@ -787,7 +789,7 @@ if (!window.__lxCreateTypewriter) {
           return "";
         }
         // 清洗成干净 SPU 名：去营销词(【xx同款】【定制款】企业购)、品牌(联想/Lenovo)、子品牌(已用角标展示)
-        function cleanSpuName(name) {
+function cleanSpuName(name) {
           const orig = String(name || "").trim();
           let s = orig;
           s = s.replace(/【[^】]*】/g, "");                              // 【定制款】【张凌赫同款】
@@ -797,8 +799,45 @@ if (!window.__lxCreateTypewriter) {
           s = s.replace(LX_SUBBRAND_RE, "");                             // 子品牌(角标已展示)
           s = s.replace(/企业购|官方旗舰店?|官方直营|官方授权/g, "");      // 无用词
           s = s.replace(/\s{2,}/g, " ").replace(/^[·、,，\-—\s]+/, "").trim();
-          return s || orig;  // 清空兜底回原名
-        }
+  return s || orig;  // 清空兜底回原名
+}
+
+function compactSpuDisplayName(name) {
+  const original = cleanSpuName(name) || "联想商品";
+  let value = String(original).replace(/\s+/g, " ").trim();
+  const yearMatch = value.match(/20\d{2}/);
+
+  if (yearMatch && Number.isInteger(yearMatch.index)) {
+    const end = yearMatch.index + yearMatch[0].length;
+    let display = value.slice(0, end).trim();
+    const edition = value.slice(end).match(/(?:锐龙版|酷睿版|AI版|高性能版|轻薄版)/);
+    if (edition && /^(?:锐龙版|酷睿版)$/.test(edition[0])) display += ` ${edition[0]}`;
+    return display;
+  }
+
+  value = value
+    .split(/[（(【\[]/)[0]
+    .split(/\s*[|｜/]\s*/)[0]
+    .replace(/\s+(?:英特尔|AMD|酷睿|锐龙|Ultra|Windows|AI\s*\d).*$/i, "")
+    .trim();
+  return Array.from(value || original).slice(0, 32).join("");
+}
+
+function compactProductSpec(description, category) {
+  const source = String(description || category || "联想官方正品").replace(/\s+/g, " ").trim();
+  const parts = [];
+  const add = (value) => {
+    const text = String(value || "").replace(/英特尔/gi, "").replace(/Windows\s*11/gi, "Win 11").replace(/\s+/g, " ").trim();
+    if (text && !parts.some((item) => item.toLowerCase() === text.toLowerCase())) parts.push(text);
+  };
+  add(source.match(/(?:酷睿\s*)?Ultra\s*[3579X]\s*[A-Z]?\d{3,4}[A-Z]*|锐龙\s*(?:AI\s*)?[3579]\s*[A-Z]*\s*\d{3,4}[A-Z]*|i[3579]-?\d{4,5}[A-Z]*/i)?.[0]);
+  add(source.match(/\b(?:16|24|32|64|128)\s*G(?:B)?\b/i)?.[0]);
+  add(source.match(/\b(?:512\s*G(?:B)?|[124]\s*T(?:B)?)\s*(?:SSD)?\b/i)?.[0]);
+  add(source.match(/RTX\s*\d{4}(?:\s*Ti)?/i)?.[0]);
+  add(source.match(/Windows\s*11/i)?.[0]);
+  if (!parts.length) source.split(/\s*[|｜/,，；;]\s*/).filter(Boolean).slice(0, 3).forEach(add);
+  return Array.from(parts.slice(0, 4).join("｜") || source).slice(0, 44).join("");
+}
 
         function renderProductCards() {
           const cards = $$(".product-card");
@@ -821,9 +860,23 @@ if (!window.__lxCreateTypewriter) {
               promos.setAttribute("aria-label", "促销标签");
               price?.before(promos);
             }
-            if (brand) brand.textContent = product.category || "联想";
-            if (title) title.textContent = cleanSpuName(product.name) || "联想商品";
-            if (spec) spec.textContent = product.description || product.category || "官方正品｜联想服务";
+    if (brand) brand.textContent = product.category || "联想";
+    if (title && state.page === "business") {
+      const fullName = cleanSpuName(product.name) || "联想商品";
+      title.textContent = compactSpuDisplayName(fullName);
+      title.title = fullName;
+    } else if (title) title.textContent = cleanSpuName(product.name) || "联想商品";
+    if (spec && state.page === "business") {
+      const fullSpec = product.description || product.category || "联想官方正品";
+      spec.hidden = false;
+      spec.textContent = compactProductSpec(fullSpec, product.category);
+      spec.title = fullSpec;
+    } else if (spec) {
+      const fullSpec = product.description || product.category || "官方正品｜联想服务";
+      spec.hidden = false;
+      spec.textContent = fullSpec;
+      spec.title = fullSpec;
+    }
             if (promos) {
               const tags = Array.isArray(product.promotion_tags) && product.promotion_tags.length ? product.promotion_tags : ["官方优惠", "限时优惠"];
               promos.innerHTML = tags.slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("");
@@ -2391,23 +2444,111 @@ function openOrderDetail(orderId) {
         function updateUserArea() {
           const account = $(".account-wrap .utility-btn");
           if (!account) return;
-          account.title = state.user ? `${state.user.nickname || state.user.phone || "已登录"}` : "登录 / 注册";
-          const rows = $$(".account-menu .menu-row");
-          if (rows[0]) rows[0].textContent = "类目文案";
+          account.title = state.user ? `${state.user.nickname || state.user.phone || "已登录"}` : "登录";
+          $$(".account-menu").forEach((menu) => {
+            menu.innerHTML = state.user
+              ? `<div class="menu-row" data-account-action="member">会员中心</div>
+                 <div class="menu-row" data-account-action="logout">退出登录</div>`
+              : `<div class="menu-row" data-account-action="login">登录</div>`;
+          });
         }
 
         function openLogin() {
           openModal("登录 / 注册", `
-            <p class="lx-p0-disclaimer">登录后可同步会员、订单和个性化导购信息。</p>
-            <input class="lx-p0-field" id="lxLoginPhone" placeholder="手机号" inputmode="tel">
-            <div class="lx-p0-actions">
-              <input class="lx-p0-field" id="lxLoginCode" placeholder="短信验证码" inputmode="numeric" style="flex:1;margin:0">
-              <button class="lx-p0-btn" data-send-code>获取验证码</button>
+            <button class="lx-auth-close" type="button" data-auth-close aria-label="关闭">×</button>
+            <div class="lx-auth-logo-wrap">
+              <img class="lx-auth-logo-img" src="../logos/logo-full-red.png" alt="联想乐享" />
             </div>
-            <div class="lx-p0-actions">
-              <button class="lx-p0-btn primary" data-login-submit>登录</button>
-              <button class="lx-p0-btn" data-login-guest>暂不登录</button>
-            </div>`);
+            <div class="lx-auth-tabs" role="tablist">
+              <button class="lx-auth-tab active" type="button" data-auth-tab="login" role="tab" aria-selected="true">登录</button>
+              <button class="lx-auth-tab" type="button" data-auth-tab="register" role="tab" aria-selected="false">注册</button>
+            </div>
+            <form class="lx-auth-form-panel active" data-auth-panel="login" novalidate>
+              <label class="lx-auth-field">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <input type="text" placeholder="手机号 / 邮箱" autocomplete="username" required />
+              </label>
+              <label class="lx-auth-field">
+                <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <input type="password" placeholder="密码" autocomplete="current-password" required />
+                <button class="lx-auth-eye" type="button" data-auth-eye aria-label="显示或隐藏密码">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" stroke-width="1.7"/><circle cx="12" cy="12" r="2.3" stroke-width="1.7"/></svg>
+                </button>
+              </label>
+              <label class="lx-auth-agree"><input type="checkbox" required />我已阅读并同意《用户协议》和《隐私政策》</label>
+              <button class="lx-auth-primary" type="submit">立即登录</button>
+            </form>
+            <form class="lx-auth-form-panel" data-auth-panel="register" novalidate>
+              <label class="lx-auth-field">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <input type="text" placeholder="手机号 / 邮箱" autocomplete="username" required />
+              </label>
+              <div class="lx-auth-code-row">
+                <label class="lx-auth-field">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke-width="1.7"/><path d="m4 8 8 6 8-6" stroke-width="1.7"/></svg>
+                  <input type="text" placeholder="验证码" inputmode="numeric" required />
+                </label>
+                <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
+              </div>
+              <label class="lx-auth-agree"><input type="checkbox" required />我已阅读并同意《用户协议》和《隐私政策》</label>
+              <button class="lx-auth-primary" type="submit">立即注册</button>
+            </form>`, { skin: "auth" });
+        }
+
+        function lxOpenAuthTab(name) {
+          const modal = document.querySelector(".lx-auth-modal");
+          if (!modal) return;
+          modal.querySelectorAll("[data-auth-tab]").forEach((button) => {
+            const active = button.dataset.authTab === name;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-selected", String(active));
+          });
+          modal.querySelector(".lx-auth-tabs")?.classList.toggle("register-active", name === "register");
+          modal.querySelectorAll("[data-auth-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.authPanel === name));
+        }
+
+        function lxClearAuthError(input) {
+          input.closest(".lx-auth-field, .lx-auth-agree")?.classList.remove("invalid");
+          input.closest("form")?.querySelector(".lx-auth-error-message")?.remove();
+        }
+
+        function lxAuthErrorText(input) {
+          if (input.type === "checkbox") return "请先阅读并同意用户协议和隐私政策";
+          if (input.type === "password") return "请输入密码";
+          if (input.placeholder?.includes("验证码")) return "请输入验证码";
+          return "请输入手机号或邮箱";
+        }
+
+        function lxSubmitAuthForm(form) {
+          const required = [...form.querySelectorAll("[required]")];
+          required.forEach(lxClearAuthError);
+          const invalid = required.filter((input) => !input.checkValidity());
+          if (invalid.length) {
+            invalid.forEach((input) => input.closest(".lx-auth-field, .lx-auth-agree")?.classList.add("invalid"));
+            const error = document.createElement("div");
+            error.className = "lx-auth-error-message";
+            error.textContent = invalid.map(lxAuthErrorText).join("；");
+            form.querySelector(".lx-auth-primary")?.insertAdjacentElement("beforebegin", error);
+            invalid[0].focus();
+            return;
+          }
+          const submit = form.querySelector(".lx-auth-primary");
+          const isRegister = form.dataset.authPanel === "register";
+          submit.textContent = "处理中…";
+          submit.disabled = true;
+          window.setTimeout(() => {
+            const identity = form.querySelector('input[autocomplete="username"]')?.value.trim() || "会员";
+            state.user = { phone: identity, nickname: identity };
+            updateUserArea();
+            const success = document.createElement("div");
+            success.className = "lx-auth-success-message";
+            success.setAttribute("role", "status");
+            success.innerHTML = `<div class="lx-auth-success-icon"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></svg></div><div class="lx-auth-success-title">${isRegister ? "注册成功" : "登录成功"}</div><div class="lx-auth-success-subtitle">欢迎使用联想乐享</div>`;
+            form.appendChild(success);
+            form.classList.add("success");
+            form.closest(".lx-auth-modal")?.classList.add("success-view");
+            window.setTimeout(() => closeModal(), 2000);
+          }, 700);
         }
 
         function openCategoryPlaceholder() {
@@ -2441,11 +2582,13 @@ function openOrderDetail(orderId) {
           toast("登录成功");
         }
 
-        async function logout() {
-          await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+        function logout() {
           state.user = null;
+          window.__lxMember = { guest: true };
           updateUserArea();
+          document.querySelectorAll(".account-wrap.open, .lxfd-account-wrap.open").forEach((node) => node.classList.remove("open"));
           toast("已退出登录");
+          fetch("/api/auth/logout", { method: "POST", keepalive: true }).catch(() => {});
         }
 
         // ── 对话持久化：切站点/刷新后从 localStorage 恢复（不碰导航软切，靠整页重载后恢复兜底）──
@@ -4552,10 +4695,15 @@ function openOrderDetail(orderId) {
           ],
         };
 
-        function lxProductMiniCard(product) {
-          const _sub = lxSubBrand(product.name, product.description);
-          const _badge = _sub ? `<span class="lx-cat-badge">${esc(_sub)}</span>` : "";
-          const _clean = cleanSpuName(product.name) || "联想商品";
+function lxProductMiniCard(product) {
+  const _sub = lxSubBrand(product.name, product.description);
+  const _badge = _sub ? `<span class="lx-cat-badge">${esc(_sub)}</span>` : "";
+  const _clean = cleanSpuName(product.name) || "联想商品";
+  const _displayName = state.page === "business" ? compactSpuDisplayName(_clean) : _clean;
+  const _spec = product.description || product.category || "官方正品｜联想服务";
+  const _specLine = state.page === "business"
+    ? `<p class="spec" title="${esc(_spec)}">${esc(compactProductSpec(_spec, product.category))}</p>`
+    : `<p class="spec" title="${esc(_spec)}">${esc(_spec)}</p>`;
           const _fallbackImage = location.protocol === "file:" ? "../img/shop-1.jpg" : "/assets/img/shop-1.jpg";
           const _image = imgUrl(product.image_url);
           const _pick = `<button class="lx-pick-btn${(Array.isArray(state.refProducts) && state.refProducts.some(p => p.sku === product.sku)) ? " picked" : ""}" type="button" data-pick-sku="${esc(product.sku)}" title="引用这个商品提问" aria-label="引用商品" aria-pressed="${(Array.isArray(state.refProducts) && state.refProducts.some(p => p.sku === product.sku)) ? "true" : "false"}"><img src="../icons/global-check.svg" alt="" aria-hidden="true"></button>`;
@@ -4563,8 +4711,8 @@ function openOrderDetail(orderId) {
             return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
             ${_pick}
             <div class="product-visual">${_badge}<img src="${esc(_image)}" alt="${esc(product.name || _clean)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(_fallbackImage)}'" /></div>
-            <h3 class="product-title">${esc(_clean)}<span class="lx-official-tag">官方在售</span></h3>
-            <p class="spec">${esc(product.description || "")}</p>
+    <h3 class="product-title" title="${esc(_clean)}">${esc(_displayName)}<span class="lx-official-tag">官方在售</span></h3>
+    ${_specLine}
             <div class="price">${money(product.price)}${product.variants > 1 ? `<span class="price-from">${product.variants} 款配置</span>` : ""}</div>
             <button class="lx-p0-btn primary" type="button" data-open-product="${esc(product.sku)}" style="margin-top:8px;width:100%">立即购买</button>
           </div>`;
@@ -4574,8 +4722,8 @@ function openOrderDetail(orderId) {
           return `<div class="lx-floor-product" data-open-product="${esc(product.sku)}">
             ${_pick}
             <div class="product-visual">${_badge}<img src="${esc(_image)}" alt="${esc(product.name || _clean)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(_fallbackImage)}'" /></div>
-            <h3 class="product-title">${esc(_clean)}</h3>
-            <p class="spec">${esc(product.description || product.category || "官方正品｜联想服务")}</p>
+    <h3 class="product-title" title="${esc(_clean)}">${esc(_displayName)}</h3>
+    ${_specLine}
             <div class="product-promos" aria-label="促销标签">${promos}</div>
             <div class="price">${money(product.price)}<span class="price-from">起</span></div>
           </div>`;
@@ -9533,7 +9681,11 @@ async function openEduZone() {
               clearHoverPromptTimer();
               hideHoverPrompts();
               const cardOfficialObj = (state.officialProducts || {})[cardSku];
-              openProduct(cardOfficialObj || cardSku);
+              const cardProduct = cardOfficialObj || getProductFromCard(card) || lxCardToProduct(card, cardSku);
+              const productRef = lxProductRefPayload(cardProduct, card);
+              state.refProduct = productRef;
+              state.refProducts = [productRef];
+              sendChat(`请详细介绍一下${cardProduct?.name || "这款联想商品"}`);
               return;
             }
 
@@ -9629,11 +9781,45 @@ async function openEduZone() {
               lxOpenCommerceEntry("orders", { sendQuery: true });
               return;
             }
-            if (utility?.getAttribute("aria-label") === "账号" && !state.user) openLogin();
-
             const accountBtn = event.target.closest(".account-wrap > .utility-btn");
-            if (accountBtn) accountBtn.parentElement.classList.toggle("open");
+            if (accountBtn && !state.user) {
+              event.preventDefault();
+              accountBtn.parentElement.classList.remove("open");
+              openLogin();
+            }
+            else if (accountBtn) accountBtn.parentElement.classList.toggle("open");
             else if (!event.target.closest(".account-menu")) document.querySelector(".account-wrap.open")?.classList.remove("open");
+
+            const authTab = event.target.closest("[data-auth-tab]");
+            if (authTab) lxOpenAuthTab(authTab.dataset.authTab);
+            const authEye = event.target.closest("[data-auth-eye]");
+            if (authEye) {
+              const input = authEye.closest(".lx-auth-field")?.querySelector("input");
+              if (input) {
+                input.type = input.type === "password" ? "text" : "password";
+                authEye.style.opacity = input.type === "text" ? ".55" : "1";
+              }
+            }
+            const authCode = event.target.closest("[data-auth-code]");
+            if (authCode && !authCode.dataset.running) {
+              authCode.dataset.running = "1";
+              authCode.disabled = true;
+              authCode.style.opacity = ".65";
+              let left = 60;
+              authCode.textContent = `${left}s 后重试`;
+              const timer = window.setInterval(() => {
+                left -= 1;
+                authCode.textContent = `${left}s 后重试`;
+                if (left <= 0) {
+                  window.clearInterval(timer);
+                  authCode.disabled = false;
+                  authCode.style.opacity = "1";
+                  authCode.textContent = "获取验证码";
+                  delete authCode.dataset.running;
+                }
+              }, 1000);
+            }
+            if (event.target.closest("[data-auth-close]")) closeModal();
 
             const menuRow = event.target.closest(".account-menu .menu-row");
             if (menuRow) {
@@ -9641,6 +9827,8 @@ async function openEduZone() {
               const action = menuRow.dataset.accountAction || "";
               menuRow.closest(".account-wrap")?.classList.remove("open");
               if (action === "logout" || text.includes("退出")) logout();
+              else if (action === "login" || text === "登录") openLogin();
+              else if (action === "member" || text === "会员中心") openMemberCenter();
               else openCategoryPlaceholder();
             }
 
@@ -10313,6 +10501,20 @@ async function openEduZone() {
             if (event.target.closest("[data-login-submit]")) login();
             if (event.target.closest("[data-login-guest]")) closeModal();
           }, true);
+
+          document.addEventListener("submit", (event) => {
+            const form = event.target.closest(".lx-auth-form-panel");
+            if (!form) return;
+            event.preventDefault();
+            lxSubmitAuthForm(form);
+          }, true);
+
+          document.addEventListener("input", (event) => {
+            if (event.target.matches(".lx-auth-form-panel input[required]")) lxClearAuthError(event.target);
+          }, true);
+          document.addEventListener("change", (event) => {
+            if (event.target.matches('.lx-auth-form-panel input[type="checkbox"][required]')) lxClearAuthError(event.target);
+          }, true);
         }
 
         window.openCart = openCart;
@@ -10628,6 +10830,7 @@ async function openEduZone() {
         setupSelectionAsk();
         bindEvents();
         updateBadges();
+        updateUserArea();
         checkAuth();
         initRoute();
         // 当前商城站点是右侧标签体系的首页，首屏就必须显示，后续结果页从其右侧追加。
