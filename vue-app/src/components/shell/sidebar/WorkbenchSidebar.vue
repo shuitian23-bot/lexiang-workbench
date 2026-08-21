@@ -129,6 +129,14 @@ const pocLogVisible = ref(false)
 
 const basePocLogRecords = [
   {
+    time: '2026-08-21 10:13',
+    operator: 'Codex（协作代理）',
+    title: 'Skill 能力更新草稿状态收敛',
+    scope: 'Skill Hub / 能力更新草稿',
+    detail: '保存能力更新草稿并返回 Skill Hub 后，状态栏只保留“更新编辑中”，不再同时叠加“草稿”和“编辑版草稿”；普通 Skill 草稿、能力更新审批与驳回、线上版本和其他操作保持不变。Skill Hub 演示数据改为单次页面会话内生效，完整走完流程后刷新页面会恢复初始 Mock 状态，便于重复演示。',
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-14 17:12',
     operator: 'Codex（协作代理）',
     title: 'Skill 能力变更同步人工闭环',

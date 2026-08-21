@@ -93,8 +93,8 @@
             <td><span class="skill-hub-online" :class="{ empty: item.online === '未发布' }">{{ item.online }}</span></td>
             <td>
               <div class="skill-hub-status-stack">
-                <span class="skill-hub-status" :class="`status-${item.status}`">{{ item.statusText }}</span>
-                <span v-if="item.editStatus" class="skill-hub-edit-status">编辑版{{ skillHubStatusLabel(item.editStatus) }}</span>
+                <span v-if="!capabilityPresentation(item).statusLabel" class="skill-hub-status" :class="`status-${item.status}`">{{ item.statusText }}</span>
+                <span v-if="item.editStatus && !capabilityPresentation(item).statusLabel" class="skill-hub-edit-status">编辑版{{ skillHubStatusLabel(item.editStatus) }}</span>
                 <span v-if="capabilityPresentation(item).statusLabel" class="skill-hub-update-status" :class="`is-${item.capabilityUpdate?.status}`">
                   {{ capabilityPresentation(item).statusLabel }}
                 </span>

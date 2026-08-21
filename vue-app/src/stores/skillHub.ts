@@ -159,8 +159,6 @@ type SkillDraftPayload = Omit<SkillCreatePayload, 'score'> & {
   draft: SkillDraftSnapshot
 }
 
-const STORAGE_KEY = 'leai.skillHub.items.v1'
-
 const defaultItems: SkillHubItem[] = [
   { name: 'workplace-employee-review-analysis', cnName: '职场员工审核数据分析', platform: 'lexiang', desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '在职员工管理', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
   { name: 'low-stock-auto-offline', cnName: '低库存自动下架', platform: 'lexiang', desc: '低库存自动下架 Skill，根据库存阈值和活动排除条件生成下架建议。', version: 'v0.3.0', online: '未发布', status: 'review', statusText: '待审批', category: '乐享运营', tags: ['库存', '商品'], owner: 'admin', updated: '2026-06-10 11:36', submittedAt: '2026-06-10 11:36', score: '0.782' },
@@ -205,24 +203,14 @@ function hydrateItem(item: SkillHubItem) {
 }
 
 function loadItems() {
-  if (typeof localStorage === 'undefined') return cloneDefaultItems()
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return cloneDefaultItems()
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return cloneDefaultItems()
-    return parsed.map(item => hydrateItem(item as SkillHubItem))
-  } catch {
-    return cloneDefaultItems()
-  }
+  return cloneDefaultItems()
 }
 
 export const useSkillHubStore = defineStore('skillHub', () => {
   const items = ref<SkillHubItem[]>(loadItems())
 
   function persist() {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value))
+    // POC changes stay in memory so a full refresh restores the seeded demo.
   }
 
   function upsertSubmittedSkill(payload: SkillCreatePayload) {

@@ -580,6 +580,20 @@ test('skill store preserves online version while an update draft is edited', asy
   assert.match(store, /mergeCapabilitySubmission/)
 })
 
+test('Skill Hub mock state resets to the seeded records after a full page refresh', async () => {
+  const store = await source('../src/stores/skillHub.ts')
+  assert.match(store, /function loadItems\(\) \{\s*return cloneDefaultItems\(\)\s*\}/)
+  assert.doesNotMatch(store, /localStorage\.getItem\(STORAGE_KEY\)/)
+  assert.doesNotMatch(store, /localStorage\.setItem\(STORAGE_KEY/)
+})
+
+test('Skill Hub shows only the controlled update status while an update draft is edited', async () => {
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+  assert.match(view, /v-if="!capabilityPresentation\(item\)\.statusLabel" class="skill-hub-status"/)
+  assert.match(view, /v-if="item\.editStatus && !capabilityPresentation\(item\)\.statusLabel" class="skill-hub-edit-status"/)
+  assert.match(view, /v-if="capabilityPresentation\(item\)\.statusLabel" class="skill-hub-update-status"/)
+})
+
 test('Skill create keeps capability context changes visible and gates review at 0.80', async () => {
   const view = await source('../src/views/agent/AgentSkillCreateView.vue')
   assert.doesNotMatch(view, /class="skill-capability-update-banner"/)
