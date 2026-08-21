@@ -1,6 +1,6 @@
 /*
  * Channel surface scope:
- * - the four original channel home panes fade from white to #FAFAFA;
+ * - the four original channel home panes fade from white to #F6F6F6;
  * - channel identity/navigation tabs may coexist with the home pane;
  * - once the real home pane is replaced by a result/detail pane, it is white;
  * - conversation/result/detail states must not inherit the home surface.
@@ -26,20 +26,20 @@ body:is(
 body[data-page="brand"]:not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell
   > .content.lx-brand-home-empty {
-  background-color: #FAFAFA !important;
+  background-color: #F6F6F6 !important;
   background-image: linear-gradient(
     180deg,
     #FFFFFF 0%,
     #FFFFFF 34%,
-    #FAFAFA 100%
+    #F6F6F6 100%
   ) !important;
   background-position: top left !important;
   background-size: 100% 760px !important;
   background-repeat: no-repeat !important;
-  background-attachment: scroll !important;
+  background-attachment: local !important;
 }
 
-/* 渐变只属于顶部首屏；760px 以下的长页内容统一使用 #FAFAFA。 */
+/* 渐变只属于顶部首屏；760px 以下的长页内容统一使用 #F6F6F6。 */
 body:is(
   [data-page="personal"],
   [data-page="business"],
@@ -47,7 +47,7 @@ body:is(
   [data-page="brand"]
 ):not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell {
-  background-color: #FAFAFA !important;
+  background-color: #F6F6F6 !important;
   background-image: none !important;
-  background-attachment: scroll !important;
+  background-attachment: local !important;
 }
