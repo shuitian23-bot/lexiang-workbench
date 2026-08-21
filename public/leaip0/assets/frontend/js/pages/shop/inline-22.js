@@ -157,8 +157,8 @@
     business: [
       {
         name: "高效办公",
-        title: "高效办公，灵活成长",
-        description: "从团队协作到业务拓展，为成长型企业搭配稳定高效的智能办公设备。",
+        title: "高效办公 灵活成长",
+        description: "从日常办公到业务拓展 为中小企业搭配稳定高效的智能办公设备。",
         price: "11,799",
         product: "ThinkPad T14 2025",
         specs: "锐龙 AI 7 PRO · 32GB · 512GB",
@@ -168,27 +168,51 @@
         hotspotTop: "38%"
       },
       {
-        name: "企业协同",
-        title: "稳定协同，业务加速",
-        description: "覆盖会议、协作与集中管理，为企业团队提供可靠顺畅的生产力体验。",
-        price: "16,299",
-        product: "ThinkPad P16s 2025",
-        specs: "酷睿 Ultra 7 · 32GB · 1TB",
-        image: "/assets/img/business-banner-2.jpg",
-        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
-        hotspotLeft: "75%",
-        hotspotTop: "40%"
-      },
-      {
-        name: "移动办公",
+        name: "移动差旅",
         title: "轻装随行，效率在线",
-        description: "兼顾轻薄便携、长效续航与安全管理，让工作随时随地高效展开。",
+        description: "兼顾轻薄便携 长效续航与安全管理 让差旅办公随时高效展开。",
         price: "13,999",
         product: "ThinkPad X1 Carbon AI",
         specs: "酷睿 Ultra 7 · 轻薄商务 · 长续航",
         image: "/assets/img/working-scene.jpg",
         overlay: "linear-gradient(90deg,rgba(12,35,66,.94) 0%,rgba(24,72,148,.78) 42%,transparent 86%)",
         hotspotLeft: "74%",
+        hotspotTop: "38%"
+      },
+      {
+        name: "专业设计",
+        title: "专业设计 创意高效",
+        description: "覆盖视觉设计 建模渲染与多任务创作 为专业团队提供稳定算力支持。",
+        price: "16,299",
+        product: "ThinkPad P16s 2025",
+        specs: "酷睿 Ultra 7 · 32GB · 1TB",
+        image: "/assets/img/creation-scene.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
+        hotspotLeft: "75%",
+        hotspotTop: "40%"
+      },
+      {
+        name: "会议协作",
+        title: "会议协作 沟通无界",
+        description: "联动音视频会议 内容共享与远程协作 让企业沟通更清晰更高效。",
+        price: "16,299",
+        product: "ThinkSmart 会议协作方案",
+        specs: "智能会议 · 内容共享 · 远程协作",
+        image: "/assets/img/business-banner-2.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.55) 48%,transparent 78%)",
+        hotspotLeft: "75%",
+        hotspotTop: "40%"
+      },
+      {
+        name: "成长型团队",
+        title: "成长型团队 稳健扩展",
+        description: "从团队协作到设备管理 为快速成长的企业搭建灵活可扩展的生产力基础。",
+        price: "11,799",
+        product: "ThinkPad T14 2025",
+        specs: "锐龙 AI 7 PRO · 32GB · 512GB",
+        image: "/assets/img/business-banner-1.jpg",
+        overlay: "linear-gradient(90deg,rgba(24,7,33,.96) 0%,rgba(77,20,74,.58) 48%,transparent 78%)",
+        hotspotLeft: "76%",
         hotspotTop: "38%"
       }
     ],

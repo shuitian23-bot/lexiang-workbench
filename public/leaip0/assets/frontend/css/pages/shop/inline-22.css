@@ -54,6 +54,7 @@ body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-cards
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:clamp(10px,1vw,18px);
 }
+body[data-page="business"] .enterprise-scene-cards{left:52%;grid-template-columns:repeat(3,minmax(0,1fr))}
 body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card{
   position:relative;
   isolation:isolate;
@@ -172,6 +173,7 @@ body:is([data-page="business"],[data-page="enterprise"]) .device-scene-price{dis
 .device-scene-picker summary::after{content:"";width:5px;height:5px;border-right:1.5px solid #101010;border-bottom:1.5px solid #101010;transform:translateY(-1px) rotate(45deg)}
 .device-scene-picker[open] summary::after{transform:translateY(2px) rotate(225deg)}
 .device-scene-menu{position:absolute;right:0;bottom:46px;width:284px;display:grid;grid-template-rows:repeat(4,34px);grid-auto-flow:column;grid-auto-columns:1fr;column-gap:6px;padding:6px;border:1px solid #e2ddeb;border-radius:8px;background:#FFFFFF}
+body[data-page="business"] .device-scene-menu{grid-template-rows:repeat(3,34px)}
 .device-scene-menu button{height:34px;padding:0 10px;border:0;border-radius:6px;background:#FFFFFF;color:#252525;text-align:left;font-size:13px;cursor:pointer}
 .device-scene-menu button:hover,.device-scene-menu button:focus-visible{background:#f3f0f7;outline:none}
 .device-scene-menu button.is-active{background:#f3f0f7;color:#4d144a;font-weight:600}
@@ -180,12 +182,14 @@ body:is([data-page="business"],[data-page="enterprise"]) .device-scene-price{dis
   .device-scene-desc{margin:12px 0 14px}
   body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy{width:38%;padding:28px 20px 28px 32px;transform:translateY(-8px)}
   body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-cards{left:38%;right:14px;gap:8px}
+  body[data-page="business"] .enterprise-scene-cards{left:52%}
   body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card{padding:12px 10px}
   .enterprise-scene-card strong{font-size:12px}
 }
 @media(max-width:1100px){
   body:is([data-page="business"],[data-page="enterprise"]) .device-scene-copy{width:40%}
   body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-cards{left:40%;overflow-x:auto;grid-template-columns:repeat(4,minmax(140px,1fr));padding-bottom:4px}
+  body[data-page="business"] .enterprise-scene-cards{left:52%;grid-template-columns:repeat(3,minmax(140px,1fr))}
 }
 @media(prefers-reduced-motion:reduce){
   body:is([data-page="business"],[data-page="enterprise"]) .enterprise-scene-card,.enterprise-scene-card-visual img{transition:none}
