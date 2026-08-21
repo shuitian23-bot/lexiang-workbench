@@ -476,6 +476,9 @@ body[data-page="enterprise"] .enterprise-scene-card strong{
   font-size:clamp(11px,min(1.04cqw,2.96cqh),16px);
   line-height:1.45;
   font-weight:650;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 body[data-page="enterprise"] .enterprise-scene-card-product{
   min-height:18px;
@@ -525,6 +528,14 @@ body[data-page="enterprise"] .device-scene-arrow{
 body[data-page="enterprise"] .device-scene-picker summary::after,
 body[data-page="enterprise"] .device-scene-arrow>span{border-color:#fff}
 body[data-page="enterprise"] .device-scene-arrow:hover{background:rgba(255,255,255,.12)}
+@media(min-width:2200px){
+  body[data-page="enterprise"] .device-scene-copy h2{
+    font-size:clamp(48px,min(3.5cqw,8.5cqh),86px);
+  }
+  body[data-page="enterprise"] .device-scene-desc{
+    font-size:clamp(17px,min(1.4cqw,3.35cqh),26px);
+  }
+}
 @media(max-width:1280px){
   body[data-page="enterprise"] .device-scene-copy{width:36%;padding:58px 28px 64px 40px;transform:none}
   body[data-page="enterprise"] .enterprise-scene-cards{left:36%;right:28px;gap:12px}
