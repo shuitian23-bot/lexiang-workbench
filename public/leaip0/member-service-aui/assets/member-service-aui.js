@@ -381,6 +381,13 @@
     document.addEventListener("keydown", handleKeydown);
     document.addEventListener("change", handlePageChange, true);
     document.addEventListener("submit", handlePageSubmit);
+    window.addEventListener("message", function (event) {
+      if (event.origin !== window.location.origin) return;
+      var payload = event.data;
+      if (!payload || payload.type !== "lexiang:profile-updated" || !payload.profile) return;
+      Object.assign(state.profile, payload.profile);
+      refreshRightView();
+    });
     renderSug("");
   }
 
@@ -418,7 +425,7 @@
     }
     if (event.target.closest("[data-ledou-more]")) { openRightView("ledou"); return; }
     var ledouProduct = event.target.closest("[data-ledou-product]");
-    if (ledouProduct) { openRightView("ledou-product:" + ledouProduct.dataset.ledouProduct); return; }
+    if (ledouProduct) { state.ledouProductOrigin = state.rightView === "ledou" ? "ledou" : "member"; openRightView("ledou-product:" + ledouProduct.dataset.ledouProduct); return; }
     var memberInsight = event.target.closest("[data-member-insight]");
     if (memberInsight) {
       if (memberInsight.dataset.memberInsight === "coupons") openMemberAsset("coupons", memberInsight);
@@ -1124,6 +1131,7 @@
     if (!deviceCatalog[deviceId]) return;
     var host = el("#leaiAuiView");
     state.deviceListScrollTop = host ? host.scrollTop : 0;
+    state.deviceDetailOrigin = state.rightView === "devices" ? "devices" : "member";
     state.deviceFocusId = deviceId;
     openRightView("devices");
   }
@@ -1460,6 +1468,10 @@
   }
 
   function openProfileEditorModal(trigger) {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: "lexiang:open-profile-editor", profile: state.profile }, window.location.origin);
+      return;
+    }
     state.modalType = "profile-editor";
     var mask = el("#leaiModal");
     var dialog = mask.querySelector(".leai-modal");
@@ -1792,7 +1804,7 @@
     if (!view) return "";
     if (view.indexOf("asset:") === 0 || view === "profile" || view === "devices" || view === "ledou" || view === "education" || view === "checkin") return "member";
     if (view.indexOf("device:") === 0) return "devices";
-    if (view.indexOf("ledou-product:") === 0) return "ledou";
+    if (view.indexOf("ledou-product:") === 0) return state.ledouProductOrigin === "member" ? "member" : "ledou";
     if (view.indexOf("service-detail:") === 0 || view.indexOf("selection:") === 0) return "service";
     if (view === "appointment-code") return "orders";
     return "";
@@ -1801,7 +1813,7 @@
   function returnFromSecondary(parentView) {
     var parent = parentView || secondaryParentView(state.rightView);
     if (!parent) return;
-    if (parent === "devices") state.deviceFocusId = "";
+    if (state.deviceFocusId && (parent === "devices" || parent === "member")) state.deviceFocusId = "";
     var current = state.rightView;
     state.rightTabs = state.rightTabs.filter(function (view) { return view !== current; });
     if (state.rightTabs.indexOf(parent) < 0) state.rightTabs.push(parent);
@@ -2066,7 +2078,9 @@
 
   function memberDeviceDetailPage(id) {
     var device = deviceCatalog[id] || deviceCatalog.thinkbook16p;
-    return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="devices" aria-label="返回我的设备"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
+    var deviceBackView = state.deviceDetailOrigin === "member" ? "member" : "devices";
+    var deviceBackLabel = deviceBackView === "member" ? "会员中心" : "我的设备";
+    return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(deviceBackView) + '" aria-label="返回' + escapeHtml(deviceBackLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
       '<section class="leai-panel leai-device-detail-hero"><div class="leai-device-detail-visual"><img src="' + device.image + '" alt="' + escapeHtml(device.name) + '"></div><div class="leai-device-detail-summary"><span>已绑定当前 Lenovo ID</span><h2>' + escapeHtml(device.product) + '</h2><p>设备编号 ' + escapeHtml(device.sn) + '</p><strong>' + escapeHtml(device.warranty) + '</strong>' + (device.extensionEligible ? '<button class="leai-secondary" type="button" data-device-warranty="' + device.id + '">查看维保方案</button>' : '') + '</div></section>' +
       '<section class="leai-panel leai-device-detail-sections"><div><h2 class="leai-panel-title">设备资产信息</h2><dl class="leai-device-detail-list"><div><dt>产品型号</dt><dd>' + escapeHtml(device.product) + '</dd></div><div><dt>设备编号</dt><dd>' + escapeHtml(device.sn) + '</dd></div><div><dt>购买时间</dt><dd>' + escapeHtml(device.purchased) + '</dd></div><div><dt>绑定关系</dt><dd>已绑定当前 Lenovo ID</dd></div></dl></div><div><h2 class="leai-panel-title">官方保障与服务</h2><dl class="leai-device-detail-list"><div><dt>保障信息</dt><dd>' + escapeHtml(device.service) + '</dd></div><div><dt>基础保修</dt><dd>' + escapeHtml(device.warranty.replace("基础保修至 ", "至 ")) + '</dd></div><div><dt>保障范围</dt><dd>以设备资产服务实时回执为准</dd></div><div><dt>可用服务</dt><dd>' + (device.extensionEligible ? "维保方案、官方维修与支持" : "官方维修与支持") + '</dd></div></dl></div></section>' +
       '<p class="leai-device-capability-note">联想乐享当前展示的是账号设备资产信息，不代表对设备实时硬件状态的检测结果。</p><p class="leai-member-disclaimer">当前为 Mock 设备数据，设备关系与保障信息以 Lenovo ID 设备资产服务实时结果为准。</p></section>';

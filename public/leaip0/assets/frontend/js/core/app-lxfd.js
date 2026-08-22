@@ -1939,6 +1939,17 @@
   railFab?.addEventListener("click", () => setRailManual(true));
   $("#lxfdRailClose")?.addEventListener("click", () => setRailManual(false));
   $(".lxfd-actions")?.addEventListener("click", (e) => {
+    const accountAction = e.target.closest(".lxfd-account-menu [data-account-action]");
+    if (accountAction) {
+      const action = accountAction.dataset.accountAction || "";
+      accountAction.closest(".lxfd-account-wrap")?.classList.remove("open");
+      if (action === "member") {
+        e.preventDefault();
+        e.stopPropagation();
+        submit("会员中心");
+        return;
+      }
+    }
     const button = e.target.closest(".lxfd-ic");
     if (!button) return;
     const label = button.getAttribute("aria-label") || "";

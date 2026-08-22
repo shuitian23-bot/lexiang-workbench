@@ -5821,11 +5821,16 @@ async function lxRenderSiteFloors() {
             openModal("教育认证已通过", `
               <div class="lx-lead-modal lx-edu-success-lead">
                 <p class="lx-lead-subtitle">认证信息已同步，以下教育权益现已生效。</p>
-                <div class="lx-lead-form" aria-label="教育认证结果">
-                  <div class="lx-lead-row"><span>认证用户</span><strong>${esc(stu.name || "用户")}</strong></div>
-                  <div class="lx-lead-row"><span>认证状态</span><strong>已通过</strong></div>
-                  <div class="lx-lead-row"><span>教育专享价</span><strong>已生效</strong></div>
-                  <div class="lx-lead-row"><span>身份权益</span><strong>已绑定</strong></div>
+                <div class="lx-edu-success-summary" aria-label="教育认证结果">
+                  <div class="lx-edu-success-user">
+                    <span class="lx-edu-success-mark" aria-hidden="true">✓</span>
+                    <div><small>认证用户</small><strong>${esc(stu.name || "用户")}</strong><p>教育身份权益已绑定至当前会员账号</p></div>
+                    <span class="lx-edu-success-status"><i></i>认证已通过</span>
+                  </div>
+                  <div class="lx-edu-success-benefits">
+                    <div><span>教育专享价</span><strong>已生效</strong></div>
+                    <div><span>身份权益</span><strong>已绑定</strong></div>
+                  </div>
                 </div>
                 <p class="lx-edu-success-disclaimer">认证结果以正式身份核验信息为准。</p>
                 <div class="lx-lead-actions">
@@ -6034,12 +6039,60 @@ async function lxRenderSiteFloors() {
           stuRender();
         }
 
+        function openGlobalProfileEditor(profile, targetWindow) {
+          const data = Object.assign({ nickname: "联小想", gender: "secret", birthday: "1998-05-18", phone: "182****4919", customAvatar: "" }, profile || {});
+          const avatar = data.customAvatar || "/assets/icons/shortcut-membership.svg";
+          openModal("编辑个人资料", `<form class="lx-global-profile-form" data-global-profile-form>
+            <div class="lx-global-profile-grid">
+              <section class="lx-global-profile-avatar">
+                <div class="lx-global-profile-avatar-copy"><strong>会员头像</strong><span>支持 JPG、JPEG、PNG，图片大小不超过 4MB。</span></div>
+                <img data-global-profile-preview src="${esc(avatar)}" alt="会员头像预览">
+                <label class="lx-global-profile-upload" for="lxGlobalProfileFile">更换头像</label>
+                <input id="lxGlobalProfileFile" type="file" accept="image/jpeg,image/png" hidden>
+                <p data-global-profile-file-status></p>
+              </section>
+              <section class="lx-global-profile-fields">
+                <label><span>会员昵称</span><input id="lxGlobalProfileNickname" value="${esc(data.nickname)}" maxlength="20" required></label>
+                <div class="lx-global-profile-row"><label><span>性别</span><select id="lxGlobalProfileGender"><option value="secret"${data.gender === "secret" ? " selected" : ""}>保密</option><option value="male"${data.gender === "male" ? " selected" : ""}>男</option><option value="female"${data.gender === "female" ? " selected" : ""}>女</option></select></label><label><span>生日</span><input id="lxGlobalProfileBirthday" type="date" value="${esc(data.birthday)}"></label></div>
+                <label><span>绑定手机号</span><input id="lxGlobalProfilePhone" value="${esc(data.phone)}" maxlength="11" inputmode="tel"></label>
+                <div class="lx-global-profile-note"><strong>账号安全</strong><span>手机号修改后需完成短信验证，当前页面为交互演示。</span></div>
+              </section>
+            </div>
+            <div class="lx-global-profile-actions"><span data-global-profile-status></span><button type="button" data-modal-close>取消</button><button type="submit">保存</button></div>
+          </form>`, { skin: "lead" });
+          const mask = ensureModal();
+          const modal = $(".lx-p0-modal", mask);
+          modal.classList.add("lx-global-profile-shell");
+          let customAvatar = data.customAvatar || "";
+          const form = $("[data-global-profile-form]", mask);
+          const file = $("#lxGlobalProfileFile", form);
+          file.addEventListener("change", () => {
+            const selected = file.files && file.files[0];
+            const status = $("[data-global-profile-file-status]", form);
+            if (!selected) return;
+            if (!["image/jpeg", "image/png"].includes(selected.type) || selected.size > 4 * 1024 * 1024) { status.textContent = "请选择 4MB 以内的 JPG 或 PNG 图片"; file.value = ""; return; }
+            const reader = new FileReader();
+            reader.onload = () => { customAvatar = String(reader.result || ""); $("[data-global-profile-preview]", form).src = customAvatar; status.textContent = "头像已载入"; };
+            reader.readAsDataURL(selected);
+          });
+          form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            const updated = { nickname: $("#lxGlobalProfileNickname", form).value.trim(), gender: $("#lxGlobalProfileGender", form).value, birthday: $("#lxGlobalProfileBirthday", form).value, phone: $("#lxGlobalProfilePhone", form).value.trim(), customAvatar };
+            if (targetWindow && targetWindow.postMessage) targetWindow.postMessage({ type: "lexiang:profile-updated", profile: updated }, window.location.origin);
+            closeModal();
+            toast("个人资料已保存");
+          });
+          setTimeout(() => $("#lxGlobalProfileNickname", form)?.focus(), 0);
+        }
+
         // ── 职场认证 demo 向导（4步 modal）────────────────────────────────────────
         window.addEventListener("message", (event) => {
           if (event.origin !== window.location.origin) return;
           const payload = event.data;
-          if (!payload || payload.type !== "lexiang:open-student-auth") return;
-          openStudentAuth(payload.kind || "college");
+          if (!payload) return;
+          if (payload.type === "lexiang:open-student-auth") { openStudentAuth(payload.kind || "college"); return; }
+          if (payload.type === "lexiang:open-profile-editor") { openGlobalProfileEditor(payload.profile, event.source); }
         });
 
         function openWorkplaceAuth() {
@@ -8531,7 +8584,7 @@ async function openEduZone() {
                 .content[data-view="info"] .info-page:has(.lx-member-service-frame)::after{display:none!important;content:none!important}
               </style>
               <div class="lx-member-service-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260823-profile-fullscreen-modal" title="会员中心完整内容" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
+                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260823-global-profile-modal" title="会员中心完整内容" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
               </div>`;
           lxOpenInfoTab("member", "会员中心", html);
         }
@@ -9969,7 +10022,7 @@ async function openEduZone() {
               menuRow.closest(".account-wrap")?.classList.remove("open");
               if (action === "logout" || text.includes("退出")) logout();
               else if (action === "login" || text === "登录") openLogin();
-              else if (action === "member" || text === "会员中心") openMemberCenter();
+              else if (action === "member" || text === "会员中心") sendChat("会员中心");
               else openCategoryPlaceholder();
             }
 
