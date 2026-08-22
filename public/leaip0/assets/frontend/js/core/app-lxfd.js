@@ -977,7 +977,10 @@
 
   function renderLxfdPageCta(meta) {
     if (!meta) return "";
-    return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}" aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
+    const resultIds = { solution: "info:solution", member: "info:member", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+    const resultId = resultIds[meta.feature] || "";
+    const resultAttr = resultId ? ` data-lx-result-id="${escapeAttr(resultId)}" data-lx-open-tab="${escapeAttr(resultId)}" aria-pressed="false"` : "";
+    return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}"${resultAttr} aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
       <span class="answer-cta-copy">
         <span class="answer-cta-title">${escapeHtml(meta.title || "查看页面")}</span>
         <span class="answer-cta-desc">${escapeHtml(meta.desc || "已在右侧为你打开相关内容")}</span>
@@ -1410,6 +1413,31 @@
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {}
+
+    if (/会员/.test(value)) {
+      chatState.sending = true;
+      const profile = typeof window.__lxMemberQueryProfile === "function"
+        ? window.__lxMemberQueryProfile()
+        : { copy: "当前为**铂金会员**，乐豆余额**8,860豆**，可用于抵现和兑换好礼；等级权益、任务与会员活动已为你整理。", cardDesc: "会员等级 · 乐豆 · 权益与任务" };
+      const memberAi = document.createElement("div");
+      memberAi.className = "lxfd-msg-ai";
+      memberAi._loadingStarted = Date.now() - 5000;
+      memberAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(memberAi);
+      memberAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdAnimateFinal(memberAi, profile.copy);
+      const memberBody = memberAi.querySelector(".lxfd-ai-body");
+      if (memberBody) {
+        memberBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "member", title: "查看会员中心", desc: profile.cardDesc }));
+        memberBody.querySelector('[data-lx-result-id="info:member"]')?.classList.add("lx-document-card-enter");
+      }
+      lxfdPersistCurrent();
+      await lxfdWait(reduceMotion ? 0 : 720);
+      chatState.sending = false;
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => lxfdRevealFeature("member"));
+      return;
+    }
 
     // 文档解读是全屏对话内的生成任务，不走 open_documents 页面跳转快路径。
     if (lxfdIsDocumentInsight(value)) {

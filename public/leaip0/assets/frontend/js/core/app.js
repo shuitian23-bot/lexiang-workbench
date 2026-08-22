@@ -403,6 +403,10 @@ if (!window.__lxCreateTypewriter) {
               openSolutionCenter();
               return true;
             }
+            if (tabId === "info:member") {
+              openMemberCenter();
+              return true;
+            }
             if (tabId.startsWith("info:solution-compare:")) {
               const cached = lxSolutionCompareTabCache.get(tabId) || state.solutionCompareTabs?.[tabId] || null;
               if (!cached) return false;
@@ -2792,7 +2796,7 @@ function openOrderDetail(orderId) {
           const boundTabId = String(attr).match(/data-lx-open-tab="([^"]+)"/)?.[1] || "";
           const feature = String(attr).match(/data-lxfd-open-feature="([^"]+)"/)?.[1] || "";
           const solutionTitle = String(attr).match(/data-specific-solution-cta="([^"]+)"/)?.[1] || "";
-          const featureIds = { solution: "info:solution", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+          const featureIds = { solution: "info:solution", member: "info:member", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
           const resultId = boundTabId || (solutionTitle ? `info:solution-detail:${solutionTitle}` : (featureIds[feature] || ""));
           const resultAttr = resultId && !/data-lx-result-id=/.test(String(attr)) ? ` data-lx-result-id="${esc(resultId)}"` : "";
           const active = boundTabId === state.activeTabId || (feature === "documents" && state.activeTabId === "documents");
@@ -3402,6 +3406,40 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedMemberAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const profile = lxMemberQueryProfile();
+          const memberCard = renderPageCta({
+            title: "查看会员中心",
+            desc: profile.cardDesc,
+            attr: 'data-lx-open-tab="info:member" data-lxfd-open-feature="member" aria-label="查看会员中心页面"'
+          });
+          try {
+            const answerNode = addMessage("assistant", profile.copy);
+            if (answerNode?._typingDone) await answerNode._typingDone;
+            lxAppendAiHtml(answerNode, memberCard);
+            const cardNode = answerNode?.querySelector('[data-lx-result-id="info:member"]');
+            cardNode?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!cardNode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              cardNode.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxRevealContent();
+            openMemberCenter();
+            lxSyncAnswerCtaActiveState("info:member");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -3459,6 +3497,10 @@ function openOrderDetail(orderId) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          if (/会员/.test(text)) {
+            await lxRunUnifiedMemberAnswer();
+            return;
+          }
           if (_isSolutionComparison) {
             const compareMeta = lxSolutionCompareMeta(_cmpRefs);
             const names = _cmpRefs.map((item) => `「${item.name}」`).join("、");
@@ -8314,6 +8356,25 @@ async function openEduZone() {
           };
         }
 
+        function lxMemberQueryProfile() {
+          const enterprise = state.page === "business" || state.page === "enterprise";
+          if (enterprise) {
+            const points = Number(lxEntState().points || 0).toLocaleString("zh-CN");
+            return {
+              enterprise: true,
+              copy: `当前企业会员账户可用**${points}积分**，可兑换采购券、办公外设和企业服务；**企业价、采购补贴与账期权益**已为你集中整理。`,
+              cardDesc: `${points}积分 · 企业价 · 采购补贴 · 账期权益`
+            };
+          }
+          const model = lxVipModel();
+          return {
+            enterprise: false,
+            copy: `联小想当前为**${model.tierName}**，已加入会员2679天，乐豆余额**${model.beanBalance}豆**，可用于抵现、兑换好礼；等级权益、任务和活动已为你整理。`,
+            cardDesc: `${model.tierName} · ${model.beanBalance}乐豆 · 等级权益与任务`
+          };
+        }
+        window.__lxMemberQueryProfile = lxMemberQueryProfile;
+
         // ponytail: 行为驱动排序 — 无真埋点，用 localStorage + 对话关键词近似；
         // 要真行为排序需接入埋点系统，现在是 POC 轻量实现。
         function lxMemberModuleOrder() {
@@ -8458,7 +8519,11 @@ async function openEduZone() {
         }
 
         function openMemberCenter() {
-          lxOpenInfoTab("member", "会员", lxRenderVipSkin());
+          const enterprise = state.page === "business" || state.page === "enterprise";
+          const html = enterprise
+            ? `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`
+            : lxRenderVipSkin();
+          lxOpenInfoTab("member", "会员中心", html);
         }
 
         function openCouponCenter() {
