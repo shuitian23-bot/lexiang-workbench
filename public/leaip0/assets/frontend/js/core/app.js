@@ -8523,8 +8523,13 @@ async function openEduZone() {
           const enterprise = state.page === "business" || state.page === "enterprise";
           const html = enterprise
             ? `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`
-            : `<div class="lx-member-service-frame" style="height:calc(100vh - 154px);min-height:680px;overflow:hidden;border-radius:8px;background:#FFFFFF">
-                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260822-member-insights-gradient" title="会员中心完整内容" loading="eager" style="display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
+            : `<style>
+                .content[data-view="info"] .info-page:has(.lx-member-service-frame){width:100%!important;max-width:none!important;padding:0!important;overflow:hidden!important}
+                .content[data-view="info"] .info-page:has(.lx-member-service-frame)::before,
+                .content[data-view="info"] .info-page:has(.lx-member-service-frame)::after{display:none!important;content:none!important}
+              </style>
+              <div class="lx-member-service-frame" style="height:calc(100vh - 112px);min-height:0;overflow:hidden;background:#FFFFFF">
+                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260822-member-bottom-strip-removed" title="会员中心完整内容" loading="eager" style="display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
               </div>`;
           lxOpenInfoTab("member", "会员中心", html);
         }

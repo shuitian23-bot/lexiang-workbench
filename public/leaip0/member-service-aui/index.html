@@ -1122,7 +1122,7 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
       }
       html.leai-member-embed .shell > .content,
       html.leai-member-embed .shell > .content.leai-aui-active {
-        position: static !important;
+        position: relative !important;
         display: block !important;
         width: 100% !important;
         height: 100vh !important;
@@ -1137,11 +1137,13 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         background: #FFFFFF !important;
       }
       html.leai-member-embed .content.leai-aui-active > .leai-aui-view {
+        position: absolute !important;
+        inset: 0 !important;
         display: block !important;
         width: 100% !important;
-        height: 100vh !important;
-        min-height: 100vh !important;
-        padding: 24px 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 24px 0 0 !important;
         border: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
@@ -1149,6 +1151,13 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         overflow: auto !important;
         user-select: text !important;
         background: #FFFFFF !important;
+      }
+      html.leai-member-embed .shell > .content::before,
+      html.leai-member-embed .shell > .content::after,
+      html.leai-member-embed .content.leai-aui-active > .leai-aui-view::before,
+      html.leai-member-embed .content.leai-aui-active > .leai-aui-view::after {
+        display: none !important;
+        content: none !important;
       }
       html.leai-member-embed .leai-page {
         width: 100% !important;
