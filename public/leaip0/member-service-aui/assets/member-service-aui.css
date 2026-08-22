@@ -833,3 +833,11 @@ textarea {
   .leai-member-identity { grid-template-columns: 150px minmax(0, 1fr); }
   .leai-identity-pane { grid-template-columns: 1fr; }
 }
+
+/* LX_MEMBER_RIGHT_RESULT_H1_STANDARD_20260822: iframe right generated-area page-level title */
+.leai-orders-page .ohead > h2 {
+  padding-inline-start: 10px !important;
+  font-size: 22px !important;
+  line-height: 32px !important;
+  font-weight: 500 !important;
+}

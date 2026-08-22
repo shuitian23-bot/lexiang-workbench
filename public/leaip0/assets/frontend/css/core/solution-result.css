@@ -125,3 +125,18 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 .lx-solution-compare-page .lx-cmp-solution-copy strong{color:#fff;font-size:18px;line-height:1.4;font-weight:600}
 .lx-solution-compare-page .lx-cmp-solution-copy small{color:rgba(255,255,255,.9);font-size:12px;line-height:1.35;font-weight:500}
 @media(max-width:1100px){.lx-solution-compare-page .lx-cmp-skin[data-v="1"]{--lx-cmp-axis-width:132px;min-width:calc(var(--lx-cmp-axis-width) + var(--lx-cmp-cols,3)*230px)}.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .tbl{grid-template-columns:var(--lx-cmp-axis-width) repeat(var(--lx-cmp-cols,3),minmax(230px,1fr))}}
+
+/* LX_RIGHT_RESULT_H1_STANDARD_20260822: right generated-area page-level title */
+.content > :is(.info-page,.compare-page,.reco-page) > .reco-head > h2,
+.content .lx-cart-wrap > .chead > h2,
+.content .lx-orders-wrap > .ohead > h2,
+.content .edu.lx-edu-skin > .e-head > h2,
+.content .lx-wp-page > .lx-wp-head > h2,
+.content .lx-solution-compare-page > .lx-wp-head h2,
+.content .lx-document-reco-head > h2,
+.content .lx-document-insight-title h2 {
+  padding-inline-start: 10px !important;
+  font-size: 22px !important;
+  line-height: 32px !important;
+  font-weight: 500 !important;
+}
