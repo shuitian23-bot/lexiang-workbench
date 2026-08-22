@@ -71,3 +71,16 @@
 .lx-auth-modal .lx-auth-success-subtitle{margin-top:7px;color:#8b828e;font-size:13px}
 @keyframes lx-auth-success-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:760px){.lx-p0-modal-mask.lx-auth-modal-mask .lx-p0-modal.lx-auth-modal{padding:28px 24px 40px;border-radius:20px}.lx-auth-modal .lx-auth-logo-img{width:172px}}
+.lx-auth-limit-notice{
+  display:grid;
+  gap:4px;
+  margin:0 0 18px;
+  padding:12px 14px;
+  border:1px solid #e2ddeb;
+  border-radius:10px;
+  background:#f3f0f7;
+  color:#4d144a;
+  text-align:left;
+}
+.lx-auth-limit-notice strong{font-size:14px;line-height:1.5;font-weight:700}
+.lx-auth-limit-notice span{color:#625b68;font-size:12px;line-height:1.5}

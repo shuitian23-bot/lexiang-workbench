@@ -148,11 +148,22 @@ if (!window.__lxCreateTypewriter) {
           }
           location.assign(path);
         }
+        const LX_AUTH_USER_KEY = "lexiang.auth.user.v1";
+        const LX_GUEST_QUERY_COUNT_KEY = "lexiang.guestQueryCount.v1";
+        function lxReadStoredAuthUser() {
+          try { return JSON.parse(localStorage.getItem(LX_AUTH_USER_KEY) || "null"); } catch (_e) { return null; }
+        }
+        function lxStoreAuthUser(user) {
+          try {
+            if (user) localStorage.setItem(LX_AUTH_USER_KEY, JSON.stringify(user));
+            else localStorage.removeItem(LX_AUTH_USER_KEY);
+          } catch (_e) {}
+        }
         const state = {
           page: lxPageFromPath(),
           convId: null,
           sending: false,
-          user: null,
+          user: lxReadStoredAuthUser(),
           products: [],
           currentProduct: null,
           cart: load("lexiang.cart.v1"),
@@ -2440,7 +2451,8 @@ function openOrderDetail(orderId) {
           try {
             const response = await fetch("/api/auth/me", { cache: "no-store" });
             const data = await response.json();
-            state.user = data.user || null;
+            state.user = data.user || state.user || lxReadStoredAuthUser();
+            if (data.user) lxStoreAuthUser(data.user);
             updateUserArea();
           } catch {}
         }
@@ -2499,6 +2511,32 @@ function openOrderDetail(orderId) {
             </form>`, { skin: "auth" });
         }
 
+        function lxOpenGuestLimitLogin() {
+          openLogin();
+          const modal = document.querySelector(".lx-auth-modal");
+          if (!modal || modal.querySelector(".lx-auth-limit-notice")) return;
+          const tabs = modal.querySelector(".lx-auth-tabs");
+          const notice = document.createElement("div");
+          notice.className = "lx-auth-limit-notice";
+          notice.setAttribute("role", "alert");
+          notice.innerHTML = "<strong>免费对话次数已用完</strong><span>登录后即可继续与联想乐享对话</span>";
+          tabs?.insertAdjacentElement("beforebegin", notice);
+        }
+
+        function lxRequireQueryAccess() {
+          const authenticated = Boolean(state.user || lxReadStoredAuthUser() || window.__lxMember?.guest === false);
+          if (authenticated) return true;
+          let used = 0;
+          try { used = Math.max(0, Number(localStorage.getItem(LX_GUEST_QUERY_COUNT_KEY) || 0)); } catch (_e) {}
+          if (used >= 2) {
+            lxOpenGuestLimitLogin();
+            return false;
+          }
+          try { localStorage.setItem(LX_GUEST_QUERY_COUNT_KEY, String(used + 1)); } catch (_e) {}
+          return true;
+        }
+        window.__lxRequireQueryAccess = lxRequireQueryAccess;
+
         function lxOpenAuthTab(name) {
           const modal = document.querySelector(".lx-auth-modal");
           if (!modal) return;
@@ -2543,6 +2581,7 @@ function openOrderDetail(orderId) {
           window.setTimeout(() => {
             const identity = form.querySelector('input[autocomplete="username"]')?.value.trim() || "会员";
             state.user = { phone: identity, nickname: identity };
+            lxStoreAuthUser(state.user);
             updateUserArea();
             const success = document.createElement("div");
             success.className = "lx-auth-success-message";
@@ -2581,6 +2620,7 @@ function openOrderDetail(orderId) {
           const data = await response.json().catch(() => ({}));
           if (!response.ok) return toast(data.error || "登录失败");
           state.user = data.user || { phone };
+          lxStoreAuthUser(state.user);
           closeModal();
           updateUserArea();
           toast("登录成功");
@@ -2588,6 +2628,8 @@ function openOrderDetail(orderId) {
 
         function logout() {
           state.user = null;
+          lxStoreAuthUser(null);
+          try { localStorage.removeItem(LX_GUEST_QUERY_COUNT_KEY); } catch (_e) {}
           window.__lxMember = { guest: true };
           updateUserArea();
           document.querySelectorAll(".account-wrap.open, .lxfd-account-wrap.open").forEach((node) => node.classList.remove("open"));
@@ -3363,6 +3405,7 @@ function openOrderDetail(orderId) {
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
+          if (!lxRequireQueryAccess()) return;
           try { localStorage.removeItem("lexiang.newChatEmpty.v1"); } catch (_e) {}
           // 所有分屏发送入口（输入框、快捷问题、追问按钮、智能体代发）最终都进入 sendChat。
           // 标题必须在这里统一更新，否则只监听 form submit 会漏掉快捷问题。
@@ -6283,6 +6326,7 @@ async function openEduZone() {
             intro: card.dataset.solutionIntro || "",
             image: card.dataset.solutionImage || ""
           };
+          if (!lxRequireQueryAccess()) return;
           state.sending = true;
           const query = `${payload.title}的方案详情`;
           if (typeof window.__lxSetConversationQuery === "function") window.__lxSetConversationQuery(query);
@@ -9502,6 +9546,7 @@ async function openEduZone() {
               ];
               // 先发一条用户 query 气泡，让用户清楚自己问的是什么（之前直接 AI 播报，显得像凭空生成）
               const bannerQuery = `我想了解一下「${(title || kicker || "当前活动").trim()}」这个活动，有什么优惠？`;
+              if (!lxRequireQueryAccess()) return;
               addMessage("user", bannerQuery);
               // 首页点 banner：先切到个人站再定位活动楼层（首页本身没有活动楼层可跳）
               if (state.page === "home" && typeof routeTo === "function") {
@@ -10748,6 +10793,7 @@ async function openEduZone() {
             if (event.target.closest("[data-insight-document]")) {
               const doc = documents.find((item) => item.title === row.dataset.documentTitle);
               if (!doc) return;
+              if (!lxRequireQueryAccess()) return;
               const trigger = event.target.closest("[data-insight-document]");
               if (trigger.disabled) return;
               trigger.disabled = true;
@@ -10848,7 +10894,7 @@ async function openEduZone() {
         window.__lxExecControl = function(op, target) { lxExecControl(op, target); };
 
         openUploadControls();
-        setupSelectionAsk();
+        // 已下线划词“问乐享 / 带入对话”：不创建浮层，也不注册选区监听。
         bindEvents();
         updateBadges();
         updateUserArea();
