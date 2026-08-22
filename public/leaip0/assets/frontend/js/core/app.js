@@ -2811,6 +2811,15 @@ function openOrderDetail(orderId) {
           </button>`;
         }
 
+        function renderStoreAppointmentCta(storeId) {
+          return `<button class="answer-cta lx-store-appointment-cta" type="button" data-lx-store-appointment-confirm="${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
+            <span class="answer-cta-title">预约信息待确认</span>
+            <span class="answer-cta-icon" aria-hidden="true">
+              ${window.__lxApprovedIcon("global-next")}
+            </span>
+          </button>`;
+        }
+
         function lxSyncAnswerCtaActiveState(tabId) {
           document.querySelectorAll('.answer-cta[data-lx-result-id], .answer-cta[data-lx-open-tab], .answer-cta[data-lxfd-open-feature], .answer-cta[data-specific-solution-cta]').forEach((card) => {
             const resultId = card.getAttribute("data-lx-result-id") || "";
@@ -3452,6 +3461,36 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedStoreAppointmentAnswer(store) {
+          const currentStore = store && typeof store === "object" ? store : {};
+          const storeName = currentStore.name || "所选联想门店";
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在识别你的到店预约需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(360);
+            skills.add("Skill(门店预约服务)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(门店预约服务)");
+            paint();
+            await wait(620);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(门店预约服务) 已调用";
+            paint();
+            const copy = `已为你准备前往 **${storeName}** 的到店预约，请在右侧确认或修改门店、到店时间与预约目的。\n\n- **门店：** ${storeName}\n- **营业时间：** ${currentStore.hours || "以门店实际营业时间为准"}\n- **联系电话：** ${currentStore.tel || "以门店公布信息为准"}`;
+            body.innerHTML = renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }) + mdLite(copy) + renderStoreAppointmentCta(currentStore.id);
+            ai.classList.remove("loading");
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function lxRunUnifiedMemberAnswer() {
           state.sending = true;
           clearHoverPromptTimer();
@@ -3543,6 +3582,12 @@ function openOrderDetail(orderId) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          const _storeAppointment = window.__lxPendingStoreAppointment;
+          if (_storeAppointment && /预约|到店/.test(text)) {
+            window.__lxPendingStoreAppointment = null;
+            await lxRunUnifiedStoreAppointmentAnswer(_storeAppointment);
+            return;
+          }
           if (lxIsNearbyStoreQuery(text)) {
             await lxRunUnifiedStoreAnswer();
             return;
@@ -8863,8 +8908,37 @@ async function openEduZone() {
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
             </style>
             <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
-              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-card-up" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
+              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-booking-flow" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
             </div>`);
+        }
+
+        function lxStoreExactFrame() {
+          return document.querySelector(".lx-store-exact-frame iframe");
+        }
+
+        function lxOpenStoreAppointmentInFrame(storeId) {
+          const send = () => {
+            const frame = lxStoreExactFrame();
+            if (!frame?.contentWindow) return false;
+            frame.contentWindow.postMessage({ type: "lx-store-open-appointment", storeId: String(storeId || "") }, window.location.origin);
+            return true;
+          };
+          lxRevealContent();
+          if (send()) return;
+          openStoresPanel();
+          window.setTimeout(send, 420);
+        }
+
+        if (!window.__lxStoreAppointmentBridgeBound) {
+          window.__lxStoreAppointmentBridgeBound = true;
+          window.addEventListener("message", (event) => {
+            const frame = lxStoreExactFrame();
+            if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
+            if (event.data?.type !== "lx-store-appointment-query" || !event.data.store) return;
+            const store = event.data.store;
+            window.__lxPendingStoreAppointment = store;
+            sendChat(`预约${store.name || "联想门店"}到店`);
+          });
         }
 
         function openServicePanel() {
@@ -10279,6 +10353,13 @@ async function openEduZone() {
                 const collapsed = box.classList.toggle("is-collapsed");
                 traceToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
               }
+              return;
+            }
+            const _storeAppointmentCta = event.target.closest("[data-lx-store-appointment-confirm]");
+            if (_storeAppointmentCta) {
+              event.preventDefault();
+              event.stopPropagation();
+              lxOpenStoreAppointmentInFrame(_storeAppointmentCta.getAttribute("data-lx-store-appointment-confirm"));
               return;
             }
             // 推荐CTA：兼容主面板生成(data-lx-focus-reco)与全屏桥接来的(data-lxfd-reveal-products)两种；

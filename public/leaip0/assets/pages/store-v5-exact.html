@@ -1439,6 +1439,20 @@ body.lx-store-poc .lx-map-card{bottom:64px!important;max-height:calc(100% - 96px
           });
           provinceSelect.addEventListener("change", function () { updateCityOptions("", ""); });
           citySelect.addEventListener("change", function () { updateDistrictOptions(""); });
+          document.addEventListener("click", function (event) {
+            var appointmentTrigger = event.target.closest('[data-prototype-action="预约"], [data-detail-action="预约"]');
+            if (!appointmentTrigger) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.parent.postMessage({ type: "lx-store-appointment-query", store: activeStore }, window.location.origin);
+          }, true);
+          window.addEventListener("message", function (event) {
+            if (event.source !== window.parent || event.origin !== window.location.origin || event.data?.type !== "lx-store-open-appointment") return;
+            var targetStore = stores.find(function (store) { return String(store.id) === String(event.data.storeId || ""); }) || activeStore;
+            if (!targetStore) return;
+            activeStore = targetStore;
+            beginAppointment(targetStore);
+          });
           chat.querySelector("form").addEventListener("submit", function (event) { event.preventDefault(); var textarea = event.currentTarget.querySelector("textarea"); var value = textarea.value.trim(); if (value) { textarea.value = ""; applyAddressQuery(value, true); } });
         }
 

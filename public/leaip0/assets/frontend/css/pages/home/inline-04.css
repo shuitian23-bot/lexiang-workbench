@@ -5379,6 +5379,28 @@
         stroke-linejoin: round;
       }
 
+      .lx-p0-message.lx-chat-skin .answer-cta.lx-store-appointment-cta {
+        width: min(100%, 270px);
+        min-height: 52px;
+        padding: 9px 11px 9px 14px;
+        border-radius: 12px;
+      }
+
+      .lx-p0-message.lx-chat-skin .answer-cta.lx-store-appointment-cta .answer-cta-title {
+        font-size: 13.5px;
+        line-height: 20px;
+        font-weight: 600;
+      }
+
+      .lx-p0-message.lx-chat-skin .answer-cta.lx-store-appointment-cta .answer-cta-icon {
+        width: 26px;
+        height: 26px;
+      }
+
+      .lxfd-ai-body .answer-cta.lx-store-appointment-cta{width:min(100%,270px);min-height:52px;padding:9px 11px 9px 14px;border-radius:12px}
+      .lxfd-ai-body .answer-cta.lx-store-appointment-cta .answer-cta-title{font-size:13.5px;line-height:20px;font-weight:600}
+      .lxfd-ai-body .answer-cta.lx-store-appointment-cta .answer-cta-icon{width:26px;height:26px}
+
       @keyframes ctaSweep {
         0% { transform: translateX(-120%) skewX(-18deg); }
         100% { transform: translateX(130%) skewX(-18deg); }
