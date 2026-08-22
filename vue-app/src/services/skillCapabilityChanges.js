@@ -297,9 +297,15 @@ export function skillHubMutationDecision(item, actorInput, intent = 'edit', scor
   const actor = typeof actorInput === 'string'
     ? { role: 'pm', user: actorInput }
     : { role: actorInput?.role || 'pm', user: actorInput?.user || '' }
+  const workflowStatus = workflowStatusOf(item)
+  const updateStatus = item?.capabilityUpdate?.status || 'none'
+  const canAdminMaintainStableOnlineSkill = actor.role === 'admin'
+    && ['published', 'disabled'].includes(workflowStatus)
+    && ['none', 'ignored', 'resolved'].includes(updateStatus)
   const canMaintain = !item
     || item.owner === actor.user
     || (actor.role === 'admin' && item.capabilityUpdate?.status === 'processing')
+    || canAdminMaintainStableOnlineSkill
   if (!canMaintain) {
     return { allowed: false, reason: '只有当前 Skill 负责人或更新管理员可以保存或提交该 Skill。' }
   }
@@ -333,8 +339,8 @@ function standardSkillActionCodes(item, actor, workflowStatus = workflowStatusOf
     draft: ['view'],
     review: ['view', 'evaluate', 'approve', 'reject'],
     approved: ['view', 'evaluate', 'test', 'publish'],
-    published: ['view', 'disable'],
-    disabled: ['view', 'enable'],
+    published: ['view', 'edit', 'evaluate', 'test', 'disable'],
+    disabled: ['view', 'edit', 'evaluate', 'test', 'enable'],
     rejected: ['view']
   }
   const maintainerActions = canMaintain ? [...(ownerActions[workflowStatus] || ['view'])] : ['view']

@@ -805,7 +805,7 @@ test('published Skills always retain disable across capability update states', a
     name: 'owned-by-pm', owner: 'product-pm', workflowStatus: 'published', status: 'published',
     onlineStatus: 'published', online: 'v1.0.0'
   }
-  assert.deepEqual(resolveSkillHubAllowedActions(published, admin).map(action => action.code), ['view', 'disable'])
+  assert.deepEqual(resolveSkillHubAllowedActions(published, admin).map(action => action.code), ['view', 'edit', 'evaluate', 'test', 'disable'])
   assert.deepEqual(resolveSkillHubAllowedActions({
     ...published,
     capabilityUpdate: getSeedCapabilityUpdate('product-knowledge')
@@ -817,6 +817,47 @@ test('published Skills always retain disable across capability update states', a
       capabilityUpdate: { ...getSeedCapabilityUpdate('product-knowledge'), status: updateStatus }
     }, admin).some(action => action.code === 'disable'), true)
   }
+})
+
+test('ignored capability updates restore the standalone action matrix in every lifecycle', async () => {
+  const { getSeedCapabilityUpdate, resolveSkillHubAllowedActions, skillHubMutationDecision } = await import('../src/services/skillCapabilityChanges.js')
+  const admin = { role: 'admin', user: 'admin' }
+  const ignoredUpdate = { ...getSeedCapabilityUpdate('product-knowledge'), status: 'ignored' }
+  const samples = [
+    ['draft', 'admin', '未发布', ['view', 'edit']],
+    ['review', 'admin', '未发布', ['view', 'withdraw_review', 'evaluate', 'approve', 'reject']],
+    ['approved', 'ops-pm', '未发布', ['view', 'evaluate', 'test', 'publish']],
+    ['published', 'product-pm', 'v1.0.7', ['view', 'edit', 'evaluate', 'test', 'disable']],
+    ['disabled', 'admin', 'v1.0.7', ['view', 'edit', 'evaluate', 'test', 'enable']],
+    ['rejected', 'admin', '未发布', ['view', 'edit', 'evaluate', 'test']]
+  ]
+
+  for (const [workflowStatus, owner, online, expectedActions] of samples) {
+    const item = {
+      name: `${workflowStatus}-ignored-update`,
+      owner,
+      workflowStatus,
+      status: workflowStatus,
+      onlineStatus: workflowStatus === 'published' ? 'published' : workflowStatus === 'disabled' ? 'disabled' : 'unpublished',
+      online
+    }
+    assert.deepEqual(resolveSkillHubAllowedActions(item, admin).map(action => action.code), expectedActions)
+    assert.deepEqual(resolveSkillHubAllowedActions({ ...item, capabilityUpdate: ignoredUpdate }, admin).map(action => action.code), expectedActions)
+  }
+
+  const published = {
+    name: 'published-admin-maintenance',
+    owner: 'product-pm',
+    workflowStatus: 'published',
+    status: 'published',
+    onlineStatus: 'published',
+    online: 'v1.0.7'
+  }
+  assert.equal(skillHubMutationDecision(published, admin, 'edit').allowed, true)
+  assert.equal(skillHubMutationDecision({ ...published, capabilityUpdate: ignoredUpdate }, admin, 'edit').allowed, true)
+  const disabled = { ...published, name: 'disabled-admin-maintenance', workflowStatus: 'disabled', status: 'disabled', onlineStatus: 'disabled' }
+  assert.equal(skillHubMutationDecision(disabled, admin, 'edit').allowed, true)
+  assert.equal(skillHubMutationDecision({ ...disabled, capabilityUpdate: ignoredUpdate }, admin, 'edit').allowed, true)
 })
 
 test('Skill Hub keeps the original Test and Apply labels with their original behaviors', async () => {
