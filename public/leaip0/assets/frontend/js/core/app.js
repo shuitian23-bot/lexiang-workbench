@@ -6822,11 +6822,12 @@ async function openEduZone() {
             const isCartInfo = tab.id === "info:cart";
             const isOrdersInfo = tab.id === "info:orders";
             const isEntPointsInfo = tab.id === "info:ent-points";
+            const isMemberInfo = tab.id === "info:member";
             const isDocumentInsight = tab.id.startsWith("info:document-insight:");
             const isSolutionCompare = tab.id.startsWith("info:solution-compare:");
-            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isDocumentInsight);
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isDocumentInsight);
             pageBox.classList.toggle("is-document-insight", isDocumentInsight);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             pageBox.querySelectorAll("[data-reader-action]").forEach((button) => {
               button.onclick = (event) => {
                 event.preventDefault();
@@ -8522,7 +8523,9 @@ async function openEduZone() {
           const enterprise = state.page === "business" || state.page === "enterprise";
           const html = enterprise
             ? `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`
-            : lxRenderVipSkin();
+            : `<div class="lx-member-service-frame" style="height:calc(100vh - 154px);min-height:680px;overflow:hidden;border-radius:8px;background:#FFFFFF">
+                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260822-member-insights-gradient" title="会员中心完整内容" loading="eager" style="display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
+              </div>`;
           lxOpenInfoTab("member", "会员中心", html);
         }
 
