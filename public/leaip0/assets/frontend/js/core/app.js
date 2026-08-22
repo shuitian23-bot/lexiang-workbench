@@ -8798,24 +8798,73 @@ async function openEduZone() {
             <div class="lx-p0-row" style="margin-top:14px"><div class="lx-p0-row-main"><strong>${esc(name || "门店位置")}</strong><span>${meta}</span></div>${tel ? `<a class="lx-p0-btn" href="tel:${esc(String(tel).replace(/[^0-9,]/g, ""))}">致电</a>` : ""}<button class="lx-p0-btn" type="button" data-quick-ask="预约${esc(name || "该门店")}到店服务">预约</button><a class="lx-p0-btn primary" href="${esc(baiduUrl)}" target="_blank" rel="noopener">导航</a></div>`);
         }
 
+        const LX_STORE_V5_DATA = [
+          {id:1,name:"联想官方体验店（西单大悦城直营店）",distance:"0.5km",hours:"10:00–22:00",tel:"010 5971 6888",address:"北京市西城区西单北大街131号西单大悦城5层",type:"联想直营店",kind:"销售门店",lat:39.9106,lng:116.3721,business:["个人&家庭产品","商用产品及方案","Think产品"]},
+          {id:2,name:"联想来酷智生活（西单商场店）",distance:"0.7km",hours:"09:30–21:30",tel:"010 6605 1888",address:"北京市西城区西单北大街120号西单商场4层",type:"联想授权店",kind:"销售门店",lat:39.9125,lng:116.3748,business:["个人&家庭产品","智能生态","配件"]},
+          {id:3,name:"联想体验店（金融街购物中心店）",distance:"1.0km",hours:"10:00–21:30",tel:"010 6622 0668",address:"北京市西城区金城坊街2号金融街购物中心B1层",type:"联想Think体验店",kind:"销售门店",lat:39.9167,lng:116.3633,business:["Think产品","商用产品及方案"]},
+          {id:4,name:"联想服务中心（宣武门店）",distance:"1.6km",hours:"09:00–18:00",tel:"010 6315 6088",address:"北京市西城区宣武门外大街20号",type:"联想官方直营客服",kind:"服务门店",lat:39.8998,lng:116.3746,business:["检测维修","清灰保养","数据迁移"]},
+          {id:5,name:"联想服务中心（广安门店）",distance:"3.3km",hours:"09:00–18:00",tel:"010 6345 7788",address:"北京市西城区广安门内大街315号",type:"联想官方直营客服",kind:"服务门店",lat:39.8893,lng:116.3545,business:["检测维修","延保服务","数据恢复"]},
+          {id:6,name:"联想智选店（王府井店）",distance:"3.6km",hours:"10:00–22:00",tel:"010 6528 1188",address:"北京市东城区王府井大街255号",type:"联想Think专卖店",kind:"销售门店",lat:39.9152,lng:116.4116,business:["Think产品","新品体验","企业采购"]},
+          {id:7,name:"联想体验店（崇文门新世界店）",distance:"4.2km",hours:"10:00–21:30",tel:"010 6708 6688",address:"北京市东城区崇文门外大街3号",type:"联想授权店",kind:"销售门店",lat:39.9001,lng:116.4183,business:["个人&家庭产品","智能生态"]},
+          {id:8,name:"联想服务中心（朝阳门店）",distance:"4.8km",hours:"09:00–18:00",tel:"010 6552 9988",address:"北京市朝阳区朝阳门外大街乙12号",type:"联想官方服务站",kind:"服务门店",lat:39.9241,lng:116.4336,business:["检测维修","上门服务","延保服务"]}
+        ];
+        const lxStoreV5State = {selected:1,business:"",kind:"",keyword:""};
+        function lxStoreV5Filtered(){
+          const q=lxStoreV5State.keyword.trim().toLowerCase();
+          return LX_STORE_V5_DATA.filter(s=>(!lxStoreV5State.business||s.business.includes(lxStoreV5State.business))&&(!lxStoreV5State.kind||s.kind===lxStoreV5State.kind)&&(!q||`${s.name} ${s.address} ${s.type}`.toLowerCase().includes(q)));
+        }
+        function lxStoreV5Card(s,index){
+          const active=s.id===lxStoreV5State.selected;
+          const st=lxStoreOpenState(s);
+          return `<button class="lxsv5-card${active?' is-active':''}" type="button" data-lxsv5-select="${s.id}"><span class="lxsv5-index">${index+1}</span><span class="lxsv5-card-main"><strong>${esc(s.name)}</strong><span class="lxsv5-card-meta"><b class="${st.open?'':'closed'}">${st.label}</b>${esc(s.hours)}</span><span class="lxsv5-tags"><i>${esc(s.type)}</i><i>${esc(s.kind)}</i></span></span><span class="lxsv5-distance">${esc(s.distance)}</span></button>`;
+        }
+        function lxRenderStoreV5(){
+          const stores=lxStoreV5Filtered();
+          if(!stores.some(s=>s.id===lxStoreV5State.selected)) lxStoreV5State.selected=stores[0]?.id||0;
+          const selected=stores.find(s=>s.id===lxStoreV5State.selected)||stores[0];
+          const mapUrl=selected?`/api/stores/staticmap?lng=${encodeURIComponent(selected.lng)}&lat=${encodeURIComponent(selected.lat)}`:"";
+          const pins=stores.map((s,i)=>`<button type="button" class="lxsv5-pin${s.id===lxStoreV5State.selected?' is-active':''}" style="left:${16+(i%4)*23}%;top:${22+Math.floor(i/4)*35}%" data-lxsv5-select="${s.id}">${i+1}</button>`).join("");
+          const detail=selected?`<div class="lxsv5-float"><button class="lxsv5-float-close" type="button" data-lxsv5-float-close>×</button><div class="lxsv5-float-head"><strong>${esc(selected.name)}</strong><span>${esc(selected.type)}</span><span>${esc(selected.kind)}</span><button type="button" data-lxsv5-detail="${selected.id}">进入门店</button></div><p>${esc(selected.address)}</p><div class="lxsv5-float-meta"><b>${lxStoreOpenState(selected).label}</b><span>${esc(selected.hours)}</span><span>电话 ${esc(selected.tel)}</span></div><div class="lxsv5-business"><b>业务</b>${selected.business.map(x=>`<span>${esc(x)}</span>`).join("")}</div><div class="lxsv5-float-actions"><strong>距离 ${esc(selected.distance)}</strong><button type="button" data-lxsv5-appointment="${selected.id}">预约到店</button><button class="primary" type="button" data-lxsv5-nav="${selected.id}">导航</button></div><div class="lxsv5-stock"><span><b>券</b> 价值39元手机背膜免费贴</span><span><b>商品</b> 在售 ThinkPad X1 Carbon / 小新 Pro 14</span></div></div>`:"";
+          return `<div class="lxsv5" data-store-v5-root><div class="lxsv5-toolbar"><button type="button" data-lxsv5-city>北京⌄</button><select data-lxsv5-business><option value="">选择业务</option><option>个人&家庭产品</option><option>商用产品及方案</option><option>Think产品</option><option>检测维修</option></select><select data-lxsv5-kind><option value="">选择门店类型</option><option>销售门店</option><option>服务门店</option></select><input data-lxsv5-keyword value="${esc(lxStoreV5State.keyword)}" placeholder="请输入门店名称"><button class="primary" type="button" data-lxsv5-search>查询</button></div><div class="lxsv5-location">当前位置：北京市西城区复兴门内大街49号</div><div class="lxsv5-workspace"><div class="lxsv5-map" style="${mapUrl?`background-image:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),url('${mapUrl}')`:''}"><span class="lxsv5-me">●<em>我的位置</em></span>${pins}${detail}</div><aside class="lxsv5-list"><div class="lxsv5-list-head"><strong>门店列表</strong><span>共 ${stores.length} 家</span></div>${stores.length?stores.map(lxStoreV5Card).join(""):`<div class="lxsv5-empty">没有找到符合条件的门店，请调整筛选条件。</div>`}</aside></div></div>`;
+        }
+        function lxStoreV5ById(id){return LX_STORE_V5_DATA.find(s=>s.id===Number(id));}
+        function lxOpenStoreV5(){lxOpenInfoTab("stores","附近门店",lxRenderStoreV5());requestAnimationFrame(lxBindStoreV5);}
+        function lxBindStoreV5(){
+          const root=document.querySelector("[data-store-v5-root]"); if(!root)return;
+          const rerender=()=>lxOpenStoreV5();
+          root.querySelectorAll("[data-lxsv5-select]").forEach(el=>el.addEventListener("click",()=>{lxStoreV5State.selected=Number(el.dataset.lxsv5Select);rerender();}));
+          root.querySelector("[data-lxsv5-business]")?.addEventListener("change",e=>{lxStoreV5State.business=e.target.value;rerender();});
+          root.querySelector("[data-lxsv5-kind]")?.addEventListener("change",e=>{lxStoreV5State.kind=e.target.value;rerender();});
+          root.querySelector("[data-lxsv5-search]")?.addEventListener("click",()=>{lxStoreV5State.keyword=root.querySelector("[data-lxsv5-keyword]")?.value||"";rerender();});
+          root.querySelector("[data-lxsv5-keyword]")?.addEventListener("keydown",e=>{if(e.key==='Enter'){lxStoreV5State.keyword=e.target.value;rerender();}});
+          root.querySelector("[data-lxsv5-city]")?.addEventListener("click",lxOpenCityPicker);
+          root.querySelector("[data-lxsv5-float-close]")?.addEventListener("click",()=>{lxStoreV5State.selected=0;root.querySelector('.lxsv5-float')?.remove();});
+          root.querySelectorAll("[data-lxsv5-detail]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();lxOpenStoreDetailV5(lxStoreV5ById(el.dataset.lxsv5Detail));}));
+          root.querySelectorAll("[data-lxsv5-appointment]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();lxOpenStoreAppointmentV5(lxStoreV5ById(el.dataset.lxsv5Appointment));}));
+          root.querySelectorAll("[data-lxsv5-nav]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();const s=lxStoreV5ById(el.dataset.lxsv5Nav);openStoreMap(`${s.lat},${s.lng}`,s.name,s.address,s.tel);}));
+        }
+        function lxOpenStoreDetailV5(s){
+          if(!s)return;
+          lxOpenInfoTab("store-detail",s.name,`<div class="lxsv5-detail" data-store-v5-detail><button class="lxsv5-back" type="button" data-lxsv5-back>‹ 返回门店列表</button><div class="lxsv5-detail-hero"><div><span>${esc(s.type)} · ${esc(s.kind)}</span><h2>${esc(s.name)}</h2><p>${esc(s.address)}</p><div>${s.business.map(x=>`<i>${esc(x)}</i>`).join("")}</div></div><img src="/api/stores/staticmap?lng=${encodeURIComponent(s.lng)}&lat=${encodeURIComponent(s.lat)}" alt="${esc(s.name)}地图"></div><div class="lxsv5-detail-grid"><section><h3>门店详情</h3><p><b>营业时间</b>${esc(s.hours)}</p><p><b>联系电话</b>${esc(s.tel)}</p><p><b>服务说明</b>支持产品体验、门店咨询、到店服务与库存查询，实际服务以门店确认为准。</p></section><section><h3>到店权益</h3><p>手机背膜免费贴 · 新机体验 · 专属顾问接待</p><div class="lxsv5-detail-actions"><button type="button" data-lxsv5-detail-appointment>预约到店</button><button class="primary" type="button" data-lxsv5-detail-nav>导航</button></div></section></div></div>`);
+          requestAnimationFrame(()=>{const root=document.querySelector('[data-store-v5-detail]');root?.querySelector('[data-lxsv5-back]')?.addEventListener('click',lxOpenStoreV5);root?.querySelector('[data-lxsv5-detail-appointment]')?.addEventListener('click',()=>lxOpenStoreAppointmentV5(s));root?.querySelector('[data-lxsv5-detail-nav]')?.addEventListener('click',()=>openStoreMap(`${s.lat},${s.lng}`,s.name,s.address,s.tel));});
+        }
+        function lxOpenStoreAppointmentV5(s){
+          if(!s)return;
+          openModal("预约到店",`<form class="lxsv5-appointment" data-lxsv5-appointment-form><div class="lxsv5-appoint-store"><strong>${esc(s.name)}</strong><span>${esc(s.address)}</span></div><label>到店日期<input name="date" type="date" required></label><label>到店时段<select name="time" required><option value="">请选择</option><option>10:00–12:00</option><option>14:00–16:00</option><option>16:00–18:00</option></select></label><label>到店目的<select name="purpose" required><option>产品体验</option><option>购买咨询</option><option>售后服务</option><option>企业采购</option></select></label><label>手机号码<input name="phone" type="tel" placeholder="请输入预约手机号" required></label><p>提交后由门店确认预约时间，实际服务以门店回访为准。</p><div class="lxsv5-appoint-actions"><button type="button" data-modal-close>取消</button><button class="primary" type="submit">提交预约</button></div></form>`);
+          requestAnimationFrame(()=>document.querySelector('[data-lxsv5-appointment-form]')?.addEventListener('submit',e=>{e.preventDefault();const mask=e.currentTarget.closest('.lx-p0-modal-mask');mask?.remove();openModal('预约已提交',`<div class="lxsv5-success"><strong>预约申请已提交</strong><p>${esc(s.name)}将在营业时间内与你确认到店安排。</p><button class="lx-p0-btn primary" type="button" data-modal-close>完成</button></div>`);}));
+        }
+
         async function openStoresPanel(address = "北京海淀") {
-          lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone([], { loading: true }));
-          try {
-            const me = await lxRequestGeo();
-            let lat, lng;
-            if (me && me.lat && me.lng) {
-              lat = me.lat; lng = me.lng;
-            } else {
-              const geo = await fetch(`/api/stores/geocode?address=${encodeURIComponent(address)}`).then((r) => r.json());
-              if (!geo.lat || !geo.lng) throw new Error(geo.error || "无法定位");
-              lat = geo.lat; lng = geo.lng;
-            }
-            const data = await fetch(`/api/stores/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&limit=5`).then((r) => r.json());
-            const stores = Array.isArray(data.stores) ? data.stores : (Array.isArray(data) ? data : []);
-            lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone(stores.length ? stores.slice(0, 3) : lxFallbackStores(), { lat, lng }));
-          } catch (error) {
-            lxOpenInfoTab("stores", "附近门店", lxRenderStoreZone(lxFallbackStores(), {}));
-          }
+          lxOpenInfoTab("stores", "附近门店", `
+            <style>
+              .content[data-view="info"]:has(.lx-store-exact-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+              .content[data-view="info"]:has(.lx-store-exact-frame)>.lx-tabbar{flex:0 0 auto!important}
+              .content[data-view="info"] .info-page:has(.lx-store-exact-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+              .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
+            </style>
+            <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
+              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-card-up" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
+            </div>`);
         }
 
         function openServicePanel() {
