@@ -428,6 +428,11 @@
     }
     var memberAsset = event.target.closest("[data-member-asset]");
     if (memberAsset) { openMemberAsset(memberAsset.dataset.memberAsset, memberAsset); return; }
+    var secondaryBack = event.target.closest("[data-secondary-back]");
+    if (secondaryBack) {
+      returnFromSecondary(secondaryBack.dataset.secondaryBack || secondaryParentView(state.rightView));
+      return;
+    }
     var educationBenefit = event.target.closest("[data-education-benefit]");
     if (educationBenefit) {
       if (educationBenefit.dataset.educationBenefit === "coupons") openMemberAsset("coupons", educationBenefit);
@@ -441,12 +446,6 @@
       state.deviceFilter = deviceFilter.dataset.deviceFilter;
       state.deviceFocusId = "";
       refreshRightView();
-      return;
-    }
-    if (event.target.closest("[data-device-back]")) {
-      state.deviceFocusId = "";
-      refreshRightView();
-      el("#leaiAuiView").scrollTop = state.deviceListScrollTop;
       return;
     }
     var deviceScroll = event.target.closest("[data-device-scroll]");
@@ -1761,6 +1760,32 @@
     syncResultCardSelection(view);
   }
 
+  function secondaryParentView(view) {
+    if (!view) return "";
+    if (view.indexOf("asset:") === 0 || view === "profile" || view === "devices" || view === "ledou" || view === "education" || view === "checkin") return "member";
+    if (view.indexOf("device:") === 0) return "devices";
+    if (view.indexOf("ledou-product:") === 0) return "ledou";
+    if (view.indexOf("service-detail:") === 0 || view.indexOf("selection:") === 0) return "service";
+    if (view === "appointment-code") return "orders";
+    return "";
+  }
+
+  function returnFromSecondary(parentView) {
+    var parent = parentView || secondaryParentView(state.rightView);
+    if (!parent) return;
+    if (parent === "devices") state.deviceFocusId = "";
+    var current = state.rightView;
+    state.rightTabs = state.rightTabs.filter(function (view) { return view !== current; });
+    if (state.rightTabs.indexOf(parent) < 0) state.rightTabs.push(parent);
+    state.rightView = parent;
+    renderRightTabs();
+    var host = el("#leaiAuiView");
+    host.innerHTML = rightViewHtml(parent);
+    host.scrollTop = 0;
+    if (parent === "member" || parent === "devices") setupDeviceBrowser(0);
+    syncResultCardSelection(parent);
+  }
+
   function renderRightTabs() {
     var tabs = el("#leaiAuiTabs");
     tabs.setAttribute("role", "tablist");
@@ -1794,21 +1819,32 @@
   }
 
   function rightViewHtml(view) {
-    if (view.indexOf("asset:") === 0) return memberAssetPage(view.split(":")[1]);
-    if (view.indexOf("device:") === 0) return memberDeviceDetailPage(view.split(":")[1]);
-    if (view.indexOf("service-detail:") === 0) return serviceDetailPage(view.split(":")[1]);
-    if (view.indexOf("ledou-product:") === 0) return ledouProductPage(view.split(":")[1]);
-    if (view.indexOf("selection:") === 0) return selectionPage(view.split(":")[1]);
-    if (view === "member") return memberPage();
-    if (view === "profile") return memberProfilePage();
-    if (view === "devices") return memberDevicesPage();
-    if (view === "ledou") return ledouPage();
-    if (view === "service") return servicePage();
-    if (view === "orders") return serviceOrdersPage();
-    if (view === "education") return educationPage();
-    if (view === "checkin") return checkinPage();
-    if (view === "appointment-code") return appointmentCodePage();
-    return memberPage();
+    var html = "";
+    if (view.indexOf("asset:") === 0) html = memberAssetPage(view.split(":")[1]);
+    else if (view.indexOf("device:") === 0) html = memberDeviceDetailPage(view.split(":")[1]);
+    else if (view.indexOf("service-detail:") === 0) html = serviceDetailPage(view.split(":")[1]);
+    else if (view.indexOf("ledou-product:") === 0) html = ledouProductPage(view.split(":")[1]);
+    else if (view.indexOf("selection:") === 0) html = selectionPage(view.split(":")[1]);
+    else if (view === "member") html = memberPage();
+    else if (view === "profile") html = memberProfilePage();
+    else if (view === "devices") html = memberDevicesPage();
+    else if (view === "ledou") html = ledouPage();
+    else if (view === "service") html = servicePage();
+    else if (view === "orders") html = serviceOrdersPage();
+    else if (view === "education") html = educationPage();
+    else if (view === "checkin") html = checkinPage();
+    else if (view === "appointment-code") html = appointmentCodePage();
+    else html = memberPage();
+    return decorateSecondaryPage(view, html);
+  }
+
+  function decorateSecondaryPage(view, html) {
+    var parent = secondaryParentView(view);
+    if (!parent || /data-secondary-back/.test(html)) return html;
+    var parentLabel = rightViewLabel(parent);
+    return html.replace(/<h1 class="([^"]*\bleai-page-title\b[^"]*)"([^>]*)>([\s\S]*?)<\/h1>/, function (_, classes, attributes, title) {
+      return '<div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(parent) + '" aria-label="返回' + escapeHtml(parentLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="' + classes + '"' + attributes + '>' + title + '</h1></div>';
+    });
   }
 
   function refreshRightView() {
@@ -1894,14 +1930,15 @@
       }
     };
     var page = pages[type] || pages.points;
-    return '<section class="leai-page leai-member-asset-page" data-member-asset-page="' + type + '" aria-labelledby="leaiAssetTitle-' + type + '"><header class="leai-page-header"><div><h1 class="leai-page-title" id="leaiAssetTitle-' + type + '">' + page.label + '</h1><p class="leai-page-desc">' + page.description + '</p></div></header>' +
+    return '<section class="leai-page leai-member-asset-page" data-member-asset-page="' + type + '" aria-labelledby="leaiAssetTitle-' + type + '"><header class="leai-page-header"><div><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="member" aria-label="返回会员中心"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiAssetTitle-' + type + '">' + page.label + '</h1></div><p class="leai-page-desc">' + page.description + '</p></div></header>' +
       '<div class="leai-summary-grid"><article class="leai-summary-card leai-member-main"><span class="leai-summary-label">' + page.unit + '</span><strong class="leai-summary-value">' + page.value + '</strong><span class="leai-summary-sub">数据更新时间：刚刚</span></article>' + page.metrics.map(function (metric) { return '<article class="leai-summary-card"><span class="leai-summary-label">' + metric[0] + '</span><strong class="leai-summary-value">' + metric[1] + '</strong><span class="leai-summary-sub">以账户实时资产为准</span></article>'; }).join("") + '</div>' +
       '<section class="leai-panel"><div class="leai-panel-head"><div><h2 class="leai-panel-title">最近明细</h2><p>展示当前账户最近的资产变动与可用状态。</p></div><span class="leai-section-meta">会员资产服务</span></div><div class="leai-asset-ledger">' + page.records.map(function (record) { return '<div><span><strong>' + record[0] + '</strong><small>' + record[2] + '</small></span><em>' + record[1] + '</em></div>'; }).join("") + '</div></section>' +
       '<div class="leai-asset-page-columns"><section class="leai-panel"><div class="leai-panel-head"><div><h2 class="leai-panel-title">使用范围</h2><p>常见可用场景与处理方式。</p></div></div><div class="leai-asset-usage">' + page.usage.map(function (item) { return '<div><strong>' + item[0] + '</strong><span>' + item[1] + '</span></div>'; }).join("") + '</div></section><section class="leai-panel"><div class="leai-panel-head"><div><h2 class="leai-panel-title">规则说明</h2><p>使用前请核对当前业务规则。</p></div></div><p class="leai-detail-copy">' + page.rule + '</p><p class="leai-member-disclaimer">当前页面数据为 Mock，实际余额、资产状态和规则以会员服务实时结果为准。</p></section></div></section>';
   }
 
   function memberPage() {
-    return '<section class="leai-page leai-member-page" aria-label="会员中心">' +
+    return '<section class="leai-page leai-member-page" aria-labelledby="leaiMemberTitle">' +
+      '<header class="leai-member-main-header"><h1 class="leai-page-title" id="leaiMemberTitle">会员中心</h1></header>' +
       memberInsights() +
       '<section class="leai-panel leai-member-overview" data-member-overview data-member-identities data-member-section="overview"><div class="leai-panel-head"><div><h2 class="leai-panel-title">会员身份</h2><p>个人资料、会员等级与教育身份权益集中展示。</p></div><span class="leai-section-meta">身份服务</span></div>' +
       memberIdentityHub() + identityBenefits() + '</section>' +
@@ -2001,7 +2038,7 @@
 
   function memberDeviceDetailPage(id) {
     var device = deviceCatalog[id] || deviceCatalog.thinkbook16p;
-    return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><button class="leai-device-back" type="button" data-device-back><img src="' + icons.next + '" alt="">返回我的设备</button><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
+    return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="devices" aria-label="返回我的设备"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
       '<section class="leai-panel leai-device-detail-hero"><div class="leai-device-detail-visual"><img src="' + device.image + '" alt="' + escapeHtml(device.name) + '"></div><div class="leai-device-detail-summary"><span>已绑定当前 Lenovo ID</span><h2>' + escapeHtml(device.product) + '</h2><p>设备编号 ' + escapeHtml(device.sn) + '</p><strong>' + escapeHtml(device.warranty) + '</strong>' + (device.extensionEligible ? '<button class="leai-secondary" type="button" data-device-warranty="' + device.id + '">查看维保方案</button>' : '') + '</div></section>' +
       '<section class="leai-panel leai-device-detail-sections"><div><h2 class="leai-panel-title">设备资产信息</h2><dl class="leai-device-detail-list"><div><dt>产品型号</dt><dd>' + escapeHtml(device.product) + '</dd></div><div><dt>设备编号</dt><dd>' + escapeHtml(device.sn) + '</dd></div><div><dt>购买时间</dt><dd>' + escapeHtml(device.purchased) + '</dd></div><div><dt>绑定关系</dt><dd>已绑定当前 Lenovo ID</dd></div></dl></div><div><h2 class="leai-panel-title">官方保障与服务</h2><dl class="leai-device-detail-list"><div><dt>保障信息</dt><dd>' + escapeHtml(device.service) + '</dd></div><div><dt>基础保修</dt><dd>' + escapeHtml(device.warranty.replace("基础保修至 ", "至 ")) + '</dd></div><div><dt>保障范围</dt><dd>以设备资产服务实时回执为准</dd></div><div><dt>可用服务</dt><dd>' + (device.extensionEligible ? "维保方案、官方维修与支持" : "官方维修与支持") + '</dd></div></dl></div></section>' +
       '<p class="leai-device-capability-note">联想乐享当前展示的是账号设备资产信息，不代表对设备实时硬件状态的检测结果。</p><p class="leai-member-disclaimer">当前为 Mock 设备数据，设备关系与保障信息以 Lenovo ID 设备资产服务实时结果为准。</p></section>';
@@ -2032,7 +2069,7 @@
       ["设备校验", "下单前核对型号与服务适用性"],
       ["预约到店", "购买后在订单中选择门店与时间"]
     ];
-    return '<section class="leai-page leai-service-detail-page" data-service-detail-page aria-labelledby="leaiServiceDetailTitle"><div class="detail-main"><div class="detail-gallery"><div class="detail-badges"><span class="detail-badge-ai">乐享推荐</span><span class="detail-badge-hot">服务商品</span></div><div class="detail-visual"><img class="detail-product-image" src="' + service.image + '" alt="' + escapeHtml(service.name) + '"></div></div><div class="detail-info"><h1 class="detail-title" id="leaiServiceDetailTitle">' + escapeHtml(service.name) + '</h1><p class="detail-summary">' + escapeHtml(service.description) + '</p><div class="detail-fit-reason"><span><strong>适合你</strong> 已关联' + escapeHtml(device.name) + '，购买前仍会校验设备与服务适用性。<small>由联想乐享 AI 生成 · 仅供参考</small></span></div><div class="detail-tags"><span class="detail-tag">' + escapeHtml(service.tag) + '</span><span class="detail-tag">官方服务</span><span class="detail-tag">购买后预约</span></div><p class="detail-price">' + escapeHtml(service.price) + '</p><div class="detail-actions"><button class="detail-primary" type="button" data-service-buy="' + escapeHtml(service.id) + '">一键领优惠下单</button></div><div class="leai-service-detail-device"><strong>关联设备：' + escapeHtml(device.name) + '</strong><small>' + escapeHtml(device.product) + ' · ' + escapeHtml(device.sn) + '</small></div><div class="detail-service">' + guarantees.map(function (item) { return '<div class="service-item"><strong>' + item[0] + '</strong><span>' + item[1] + '</span></div>'; }).join("") + '</div></div></div><section class="leai-service-detail-section"><h2>服务内容</h2><p>' + escapeHtml(service.description) + '</p></section><section class="leai-service-detail-section"><h2>适用范围</h2><p>' + escapeHtml(service.scope) + '</p></section><section class="leai-service-detail-section"><h2>预约说明</h2><p>下单后可在订单中预约服务；实际门店、时间、价格与履约结果以服务系统及微信小程序回执为准。</p></section><p class="leai-member-disclaimer">当前服务商品、关联设备、价格与适用性均为 Mock 评审数据，请在购买前核对关键信息。</p></section>';
+    return '<section class="leai-page leai-service-detail-page" data-service-detail-page aria-labelledby="leaiServiceDetailTitle"><div class="detail-main"><div class="detail-gallery"><div class="detail-badges"><span class="detail-badge-ai">乐享推荐</span><span class="detail-badge-hot">服务商品</span></div><div class="detail-visual"><img class="detail-product-image" src="' + service.image + '" alt="' + escapeHtml(service.name) + '"></div></div><div class="detail-info"><h1 class="leai-page-title detail-title" id="leaiServiceDetailTitle">' + escapeHtml(service.name) + '</h1><p class="detail-summary">' + escapeHtml(service.description) + '</p><div class="detail-fit-reason"><span><strong>适合你</strong> 已关联' + escapeHtml(device.name) + '，购买前仍会校验设备与服务适用性。<small>由联想乐享 AI 生成 · 仅供参考</small></span></div><div class="detail-tags"><span class="detail-tag">' + escapeHtml(service.tag) + '</span><span class="detail-tag">官方服务</span><span class="detail-tag">购买后预约</span></div><p class="detail-price">' + escapeHtml(service.price) + '</p><div class="detail-actions"><button class="detail-primary" type="button" data-service-buy="' + escapeHtml(service.id) + '">一键领优惠下单</button></div><div class="leai-service-detail-device"><strong>关联设备：' + escapeHtml(device.name) + '</strong><small>' + escapeHtml(device.product) + ' · ' + escapeHtml(device.sn) + '</small></div><div class="detail-service">' + guarantees.map(function (item) { return '<div class="service-item"><strong>' + item[0] + '</strong><span>' + item[1] + '</span></div>'; }).join("") + '</div></div></div><section class="leai-service-detail-section"><h2>服务内容</h2><p>' + escapeHtml(service.description) + '</p></section><section class="leai-service-detail-section"><h2>适用范围</h2><p>' + escapeHtml(service.scope) + '</p></section><section class="leai-service-detail-section"><h2>预约说明</h2><p>下单后可在订单中预约服务；实际门店、时间、价格与履约结果以服务系统及微信小程序回执为准。</p></section><p class="leai-member-disclaimer">当前服务商品、关联设备、价格与适用性均为 Mock 评审数据，请在购买前核对关键信息。</p></section>';
   }
 
   function appointmentCodePage() {
