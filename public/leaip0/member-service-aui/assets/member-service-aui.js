@@ -50,6 +50,32 @@
     submitted: { student: false, purchase: false, appointment: false }
   };
 
+  var studentAuthStorageKey = "lexiang.student.v1";
+  var studentAuthReviewMs = 12000;
+
+  function syncStudentAuthState() {
+    var stored;
+    try {
+      stored = JSON.parse(window.localStorage.getItem(studentAuthStorageKey) || "null");
+    } catch (error) {
+      return false;
+    }
+    if (!stored || typeof stored !== "object") return false;
+    if (stored.status === "pending" && stored.submittedAt && Date.now() - Number(stored.submittedAt) >= studentAuthReviewMs) {
+      stored.status = "verified";
+      try { window.localStorage.setItem(studentAuthStorageKey, JSON.stringify(stored)); } catch (error) {}
+    }
+    var nextStatus = stored.status === "verified" ? "verified" : stored.status === "pending" ? "reviewing" : "unverified";
+    if (state.identityStatus.student === nextStatus) return false;
+    state.identityStatus.student = nextStatus;
+    return true;
+  }
+
+  function refreshStudentAuthState() {
+    if (!syncStudentAuthState()) return;
+    if (state.rightView === "member" || state.rightView === "education") refreshRightView();
+  }
+
   var serviceCatalog = {
     clean: { id: "clean", name: "笔记本深度清灰", tag: "清灰/清洁", description: "拆机深度清洁，包含风扇、主板、键盘与机身表面等部位。", price: "¥169起", image: "/assets/img/shop-8.jpg", scope: "适用于多数联想笔记本；使用超过 5 年或存在进液、异物、磕碰时需先检测。" },
     thermal: { id: "thermal", name: "深度清灰 + 更换硅脂", tag: "清灰/换硅脂", description: "在深度清灰基础上更换散热硅脂，并完成清洁后开机检测。", price: "¥299起", image: "/assets/img/shop-1.jpg", scope: "适合游戏本或散热压力较高的设备；具体可用性以设备型号和门店能力为准。" },
@@ -2058,10 +2084,11 @@
   }
 
   function educationIdentityTrack() {
+    syncStudentAuthState();
     var status = state.identityStatus.student;
     var reviewing = status === "reviewing";
     var verified = status === "verified";
-    var title = verified ? "学生身份已认证" : reviewing ? "学生认证审核中" : "学生身份未认证";
+    var title = verified ? "已经认证" : reviewing ? "学生认证审核中" : "学生身份未认证";
     var description = verified ? "教育权益已生效" : reviewing ? (state.educationPath ? state.educationPath + "申请已提交" : "申请已提交，以审核结果为准") : "认证后解锁教育特惠";
     var action = verified ? '<div class="leai-identity-track-actions"><button type="button" data-education-benefit="coupons">教育优惠券</button><button type="button" data-education-benefit="products">教育特惠商品</button></div>' : reviewing ? "" : identityTrackAction("student", "办理学生认证", "");
     return '<section class="leai-identity-card leai-identity-track leai-education-track is-' + status + '" data-identity-track="education" data-identity-card="student" data-identity-status="' + status + '"><div class="leai-identity-track-head"><span>教育身份</span><em>' + (verified ? "已认证" : reviewing ? "审核中" : "优先认证") + '</em></div><h3>' + title + '</h3><p>' + description + '</p>' + action + '</section>';
@@ -2176,7 +2203,13 @@
   function nextFrame() { return new Promise(function (resolve) { window.requestAnimationFrame(function () { window.requestAnimationFrame(resolve); }); }); }
 
   function bootMemberEmbed() {
+    syncStudentAuthState();
     boot();
+    window.addEventListener("storage", function (event) {
+      if (event.key === studentAuthStorageKey) refreshStudentAuthState();
+    });
+    window.addEventListener("focus", refreshStudentAuthState);
+    window.setInterval(refreshStudentAuthState, 1000);
     if (new URLSearchParams(location.search).get("embed") === "member") {
       window.setTimeout(function () { openRightView("member"); }, 0);
     }

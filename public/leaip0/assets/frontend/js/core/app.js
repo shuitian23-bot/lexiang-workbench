@@ -5819,27 +5819,20 @@ async function lxRenderSiteFloors() {
           const stu = lxStuState();
           if (stu.status === "verified") {
             openModal("教育认证已通过", `
-              <div class="lx-edu-success-modal">
-                <section class="lx-edu-success-card">
-                  <div class="lx-edu-success-icon" aria-hidden="true">✓</div>
-                  <div class="lx-edu-success-main">
-                    <span class="lx-edu-success-pill">已认证</span>
-                    <strong><em>${esc(stu.name || "用户")}</em> 已通过教育身份认证</strong>
-                    <p>教育专享价已生效，身份权益已同步到教育特惠专区。</p>
-                  </div>
-                </section>
-                <div class="lx-edu-success-benefits" aria-label="已生效权益">
-                  <div><span>教育专享价</span><strong>已生效</strong></div>
-                  <div><span>国家补贴叠加</span><strong>可使用</strong></div>
-                  <div><span>身份权益</span><strong>已绑定</strong></div>
+              <div class="lx-lead-modal lx-edu-success-lead">
+                <p class="lx-lead-subtitle">认证信息已同步，以下教育权益现已生效。</p>
+                <div class="lx-lead-form" aria-label="教育认证结果">
+                  <div class="lx-lead-row"><span>认证用户</span><strong>${esc(stu.name || "用户")}</strong></div>
+                  <div class="lx-lead-row"><span>认证状态</span><strong>已通过</strong></div>
+                  <div class="lx-lead-row"><span>教育专享价</span><strong>已生效</strong></div>
+                  <div class="lx-lead-row"><span>身份权益</span><strong>已绑定</strong></div>
                 </div>
-                <ul class="lx-edu-success-list">
-                  <li>在校生、教师、高考生身份均可享受对应教育权益</li>
-                  <li>购买教育价商品时可直接按认证后价格下单</li>
-                </ul>
-                <button class="lx-edu-success-cta" type="button" data-edu-zone>逛教育特惠专区</button>
-                <p class="lx-edu-success-note">POC 演示环境：认证为模拟流程，正式上线对接对应身份核验。</p>
-              </div>`);
+                <p class="lx-edu-success-disclaimer">认证结果以正式身份核验信息为准。</p>
+                <div class="lx-lead-actions">
+                  <button class="lx-lead-cancel" type="button" data-modal-close>关闭</button>
+                  <button class="lx-lead-submit" type="button" data-edu-zone>进入教育特惠专区</button>
+                </div>
+              </div>`, { skin: "lead" });
             return;
           }
           if (stu.status === "pending") {
