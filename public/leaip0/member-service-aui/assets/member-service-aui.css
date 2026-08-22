@@ -239,7 +239,7 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-device-nav:disabled { background: var(--ms-soft); cursor: not-allowed; }
 .leai-device-nav img { width: 14px; height: 14px; }
 .leai-device-nav.is-previous img { transform: rotate(180deg); }
-.leai-device-grid { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 3); gap: 10px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-behavior: smooth; scroll-snap-type: inline mandatory; scrollbar-width: none; }
+.leai-device-grid { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 30px) / 4); gap: 10px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-behavior: smooth; scroll-snap-type: inline mandatory; scrollbar-width: none; }
 .leai-device-grid::-webkit-scrollbar { display: none; }
 .leai-device-grid:focus-visible { outline: 2px solid rgba(162, 98, 215, 0.10); outline-offset: 2px; }
 .leai-device-card { min-width: 0; height: 100%; overflow: hidden; scroll-snap-align: start; border: 1px solid var(--ms-line); border-radius: 12px; background: var(--ms-page); }
