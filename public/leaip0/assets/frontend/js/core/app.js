@@ -5974,7 +5974,7 @@ async function lxRenderSiteFloors() {
           }
 
           function stuRender() {
-            openModal('教育认证', stuTabsHtml());
+            openModal('教育认证', stuTabsHtml(), { skin: 'lead' });
             const mask = document.querySelector('.lx-p0-modal-mask');
             if (mask) mask.addEventListener('click', stuHandleClick, true);
           }
@@ -6042,6 +6042,13 @@ async function lxRenderSiteFloors() {
         }
 
         // ── 职场认证 demo 向导（4步 modal）────────────────────────────────────────
+        window.addEventListener("message", (event) => {
+          if (event.origin !== window.location.origin) return;
+          const payload = event.data;
+          if (!payload || payload.type !== "lexiang:open-student-auth") return;
+          openStudentAuth(payload.kind || "college");
+        });
+
         function openWorkplaceAuth() {
           let wpaStep = 1; // 当前步
           const wpaData = { type: '企业职工认证', name: '', idcard: '', phone: '13800138000', code: '', agree: false, company: '联想（北京）有限公司', industry: '', position: '', proofMethod: 'email', corpEmail: '' };

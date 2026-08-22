@@ -1491,6 +1491,16 @@
   }
 
   function openStudentModal(trigger) {
+    // 会员中心运行在右侧 iframe 中；全局认证弹窗由外层应用承载，
+    // 否则 position: fixed 也只能覆盖 iframe 自身。
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: "lexiang:open-student-auth",
+        kind: "college",
+        source: "member-service-aui"
+      }, window.location.origin);
+      return;
+    }
     state.modalType = "student";
     state.educationAudience = "college";
     state.educationMethod = "edu";
