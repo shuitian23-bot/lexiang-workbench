@@ -1990,7 +1990,7 @@
   }
 
   function ledouPage() {
-    return '<section class="leai-page" data-ledou-page aria-labelledby="leaiLedouTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">会员兑购</p><h1 class="leai-page-title" id="leaiLedouTitle">乐豆好物</h1><p class="leai-page-desc">使用乐豆加价换购精选好物，选择商品可查看完整兑购说明。</p></div><span class="leai-status-pill"><img src="' + icons.rewards + '" alt="">2,580 乐豆</span></header><section class="leai-panel"><div class="leai-ledou-products">' + ledouCatalog.map(ledouProductCard).join("") + '</div><p class="leai-member-disclaimer">当前商品、价格和库存均为 Mock 演示；实际可兑商品、乐豆额度和成交价格以乐豆商城实时页面为准。</p></section></section>';
+    return '<section class="leai-page" data-ledou-page aria-labelledby="leaiLedouTitle"><header class="leai-page-header"><div><h1 class="leai-page-title" id="leaiLedouTitle">乐豆好物</h1><p class="leai-page-desc">使用乐豆加价换购精选好物，选择商品可查看完整兑购说明。</p></div><span class="leai-status-pill"><img src="' + icons.rewards + '" alt="">2,580 乐豆</span></header><section class="leai-panel"><div class="leai-ledou-products">' + ledouCatalog.map(ledouProductCard).join("") + '</div><p class="leai-member-disclaimer">当前商品、价格和库存均为 Mock 演示；实际可兑商品、乐豆额度和成交价格以乐豆商城实时页面为准。</p></section></section>';
   }
 
   function ledouProductPage(id) {

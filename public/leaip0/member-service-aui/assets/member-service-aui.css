@@ -853,3 +853,8 @@ textarea {
   border-width: 0 0 1.5px 1.5px;
   transform: rotate(45deg);
 }
+
+/* LX_SIX_BENEFITS_SINGLE_ROW_20260822: keep the six current benefits on one row */
+.leai-benefit-grid-compact {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
