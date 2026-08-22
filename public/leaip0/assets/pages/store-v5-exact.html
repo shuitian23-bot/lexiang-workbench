@@ -755,7 +755,8 @@ body.lx-store-poc .lx-store-page{grid-template-rows:minmax(0,1fr)!important}
 body.lx-store-poc .lx-store-tabs{display:none!important}
 body.lx-store-poc .lx-store-workspace{padding:14px 18px 18px!important}
 body.lx-store-poc .lx-store-detail-page{inset:0!important}
-body.lx-store-poc .lx-appointment-mask{position:fixed!important;inset:0!important}
+body.lx-store-poc .lx-appointment-mask{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;z-index:2147483000!important;padding:24px!important;background:rgba(45,18,52,.48)!important}
+body.lx-store-poc .lx-appointment-dialog{width:min(640px,calc(100vw - 48px))!important;max-height:calc(100vh - 48px)!important;border:0!important;border-radius:20px!important;box-shadow:0 24px 70px rgba(45,18,52,.28),0 4px 14px rgba(45,18,52,.12)!important}
 body.lx-store-poc .lx-map-card{bottom:64px!important;max-height:calc(100% - 96px)!important;overflow:auto!important;overscroll-behavior:contain!important}
 @media(max-height:760px){body.lx-store-poc .lx-map-card{bottom:48px!important;max-height:calc(100% - 72px)!important}}
 </style>
@@ -1453,6 +1454,18 @@ body.lx-store-poc .lx-map-card{bottom:64px!important;max-height:calc(100% - 96px
             activeStore = targetStore;
             beginAppointment(targetStore);
           });
+          function syncEmbeddedModalState() {
+            var open = !appointmentMask.hidden || !couponMask.hidden;
+            document.documentElement.classList.toggle("lx-embedded-modal-open", open);
+            document.body.classList.toggle("lx-embedded-modal-open", open);
+            window.parent.postMessage({ type: "lx-embedded-modal-state", open: open }, window.location.origin);
+          }
+          new MutationObserver(syncEmbeddedModalState).observe(appointmentMask, { attributes: true, attributeFilter: ["hidden", "class", "style"] });
+          new MutationObserver(syncEmbeddedModalState).observe(couponMask, { attributes: true, attributeFilter: ["hidden", "class", "style"] });
+          window.addEventListener("pagehide", function () {
+            window.parent.postMessage({ type: "lx-embedded-modal-state", open: false }, window.location.origin);
+          });
+          syncEmbeddedModalState();
           chat.querySelector("form").addEventListener("submit", function (event) { event.preventDefault(); var textarea = event.currentTarget.querySelector("textarea"); var value = textarea.value.trim(); if (value) { textarea.value = ""; applyAddressQuery(value, true); } });
         }
 

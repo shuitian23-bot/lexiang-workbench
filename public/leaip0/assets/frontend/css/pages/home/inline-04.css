@@ -5511,14 +5511,22 @@
       }
 
       .lx-p0-modal-mask {
-        position: fixed;
-        inset: 0;
-        z-index: 10000;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 2147482000;
+        width: 100vw;
+        height: 100vh;
         display: none;
         align-items: center;
         justify-content: center;
         padding: 24px;
         background: rgba(155, 142, 182, 0.62);
+      }
+
+      /* 全站弹层统一：遮罩必须归属浏览器视口，不允许被内容区或分栏容器裁切。 */
+      html:has(.lx-p0-modal-mask.show),
+      body:has(.lx-p0-modal-mask.show) {
+        overflow: hidden !important;
       }
 
       .lx-p0-modal-mask.show {

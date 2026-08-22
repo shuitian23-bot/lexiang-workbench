@@ -8906,9 +8906,12 @@ async function openEduZone() {
               .content[data-view="info"]:has(.lx-store-exact-frame)>.lx-tabbar{flex:0 0 auto!important}
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
+              body.lx-embedded-modal-open{overflow:hidden!important}
+              .lx-store-exact-frame.is-global-modal{position:fixed!important;inset:0!important;z-index:2147483000!important;width:100vw!important;height:100vh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;overflow:hidden!important}
+              .lx-store-exact-frame.is-global-modal iframe{position:absolute!important;inset:0!important;width:100vw!important;height:100vh!important;background:transparent!important}
             </style>
             <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
-              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-booking-flow" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
+              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-global-modal-viewport" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
             </div>`);
         }
 
@@ -8934,6 +8937,13 @@ async function openEduZone() {
           window.addEventListener("message", (event) => {
             const frame = lxStoreExactFrame();
             if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
+            if (event.data?.type === "lx-embedded-modal-state") {
+              const open = event.data.open === true;
+              frame.toggleAttribute("data-lx-global-modal-open", open);
+              frame.closest(".lx-store-exact-frame")?.classList.toggle("is-global-modal", open);
+              document.body.classList.toggle("lx-embedded-modal-open", open);
+              return;
+            }
             if (event.data?.type !== "lx-store-appointment-query" || !event.data.store) return;
             const store = event.data.store;
             window.__lxPendingStoreAppointment = store;
