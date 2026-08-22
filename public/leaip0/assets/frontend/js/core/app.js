@@ -3406,6 +3406,52 @@ function openOrderDetail(orderId) {
           }
         }
 
+
+        function lxIsNearbyStoreQuery(text) {
+          const value = String(text || "").trim();
+          return value.length <= 24 && !/预约|库存|营业|电话|服务权益|导航/.test(value) && /附近门店|联想门店|门店查询|查.{0,4}门店|找.{0,4}门店|推荐.{0,4}门店|^(门店|实体店|体验店|专卖店)$/.test(value);
+        }
+
+        async function lxRunUnifiedStoreAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的门店需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要查询当前位置附近的联想授权门店");
+            paint();
+            await wait(520);
+            skills.add("Skill(附近门店查询)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(附近门店查询)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(附近门店查询) 已完成";
+            paint();
+            const copy = "我已结合**当前位置**为你整理附近的**联想授权门店**，优先推荐距离较近、营业时间明确且支持产品体验、库存咨询和到店服务的门店。你可以先查看下方推荐，再到右侧比较**地址、营业状态与联系方式**，并按需发起**导航或预约**。";
+            const cards = renderPageCta({
+              title: "查看附近门店",
+              desc: "已为你整理附近授权门店、距离与营业状态",
+              attr: 'data-lx-open-tab="info:stores" data-lxfd-open-feature="stores" aria-label="查看附近门店页面"'
+            });
+            body.innerHTML = renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }) + mdLite(copy) + cards;
+            ai.classList.remove("loading");
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+            await wait(680);
+            lxRevealContent();
+            await openStoresPanel();
+            lxSyncAnswerCtaActiveState("info:stores");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function lxRunUnifiedMemberAnswer() {
           state.sending = true;
           clearHoverPromptTimer();
@@ -3497,6 +3543,10 @@ function openOrderDetail(orderId) {
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          if (lxIsNearbyStoreQuery(text)) {
+            await lxRunUnifiedStoreAnswer();
+            return;
+          }
           if (/会员/.test(text)) {
             await lxRunUnifiedMemberAnswer();
             return;

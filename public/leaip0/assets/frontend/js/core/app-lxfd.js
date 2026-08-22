@@ -1363,6 +1363,43 @@
   }
 
 
+
+  function lxfdIsNearbyStoreQuery(text) {
+    const value = String(text || "").trim();
+    return value.length <= 24 && !/预约|库存|营业|电话|服务权益|导航/.test(value) && /附近门店|联想门店|门店查询|查.{0,4}门店|找.{0,4}门店|推荐.{0,4}门店|^(门店|实体店|体验店|专卖店)$/.test(value);
+  }
+
+  async function lxfdRunUnifiedStoreAnswer() {
+    chatState.sending = true;
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai";
+    ai._loadingStarted = Date.now();
+    ai._traceLines = ["联想乐享正在判断你的门店需求"];
+    ai._traceSkills = new Set();
+    ai.innerHTML = '<div class="lxfd-ai-body"></div>';
+    thread?.appendChild(ai);
+    lxfdRenderTraceLive(ai);
+    await lxfdWait(420);
+    ai._traceLines.push("已判断：需要查询当前位置附近的联想授权门店");
+    lxfdRenderTraceLive(ai);
+    await lxfdWait(520);
+    ai._traceSkills.add("Skill(附近门店查询)");
+    ai._traceLines.push("联想乐享官方 SKILL：正在调用 Skill(附近门店查询)");
+    lxfdRenderTraceLive(ai);
+    await lxfdWait(760);
+    ai._traceLines[ai._traceLines.length - 1] = "联想乐享官方 SKILL：Skill(附近门店查询) 已完成";
+    lxfdRenderTraceLive(ai);
+    const copy = "我已结合**当前位置**为你整理附近的**联想授权门店**，优先推荐距离较近、营业时间明确且支持产品体验、库存咨询和到店服务的门店。你可以先查看下方推荐，再到右侧比较**地址、营业状态与联系方式**，并按需发起**导航或预约**。";
+    await lxfdAnimateFinal(ai, copy);
+    const body = ai.querySelector(".lxfd-ai-body");
+    if (body) body.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "stores", title: "查看附近门店", desc: "已为你整理附近授权门店、距离与营业状态" }));
+    lxfdPersistCurrent();
+    await lxfdWait(reduceMotion ? 0 : 680);
+    chatState.sending = false;
+    lxfdExportToMain();
+    exitFullscreenWithReveal(() => lxfdRevealFeature("stores"));
+  }
+
   async function submit(text) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
@@ -1413,6 +1450,11 @@
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {}
+
+    if (lxfdIsNearbyStoreQuery(value)) {
+      await lxfdRunUnifiedStoreAnswer();
+      return;
+    }
 
     if (/会员/.test(value)) {
       chatState.sending = true;
