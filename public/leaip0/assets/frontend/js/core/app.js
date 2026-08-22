@@ -8531,7 +8531,7 @@ async function openEduZone() {
                 .content[data-view="info"] .info-page:has(.lx-member-service-frame)::after{display:none!important;content:none!important}
               </style>
               <div class="lx-member-service-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260822-remove-asset-header" title="会员中心完整内容" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
+                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260822-fill-member-frame" title="会员中心完整内容" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
               </div>`;
           lxOpenInfoTab("member", "会员中心", html);
         }

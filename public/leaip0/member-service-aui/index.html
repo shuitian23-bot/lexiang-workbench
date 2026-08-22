@@ -1116,9 +1116,16 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         padding: 0 !important;
       }
       html.leai-member-embed .shell {
+        position: fixed !important;
+        inset: 0 !important;
         display: block !important;
-        min-height: 100vh !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        margin: 0 !important;
         padding: 0 !important;
+        overflow: hidden !important;
       }
       html.leai-member-embed .shell > .content,
       html.leai-member-embed .shell > .content.leai-aui-active {
