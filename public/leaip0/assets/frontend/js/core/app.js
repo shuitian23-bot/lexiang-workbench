@@ -8906,12 +8906,9 @@ async function openEduZone() {
               .content[data-view="info"]:has(.lx-store-exact-frame)>.lx-tabbar{flex:0 0 auto!important}
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
-              body.lx-embedded-modal-open{overflow:hidden!important}
-              .lx-store-exact-frame.is-global-modal{position:fixed!important;inset:0!important;z-index:2147483000!important;width:100vw!important;height:100vh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;overflow:hidden!important}
-              .lx-store-exact-frame.is-global-modal iframe{position:absolute!important;inset:0!important;width:100vw!important;height:100vh!important;background:transparent!important}
             </style>
             <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
-              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-global-modal-viewport" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
+              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-parent-modal-shell" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
             </div>`);
         }
 
@@ -8920,16 +8917,24 @@ async function openEduZone() {
         }
 
         function lxOpenStoreAppointmentInFrame(storeId) {
-          const send = () => {
-            const frame = lxStoreExactFrame();
-            if (!frame?.contentWindow) return false;
-            frame.contentWindow.postMessage({ type: "lx-store-open-appointment", storeId: String(storeId || "") }, window.location.origin);
-            return true;
-          };
-          lxRevealContent();
-          if (send()) return;
-          openStoresPanel();
-          window.setTimeout(send, 420);
+          const store = window.__lxStoreAppointmentById?.[String(storeId || "")] || window.__lxPendingStoreAppointment;
+          if (!store) return;
+          const phone = store.phone || store.tel || "以门店公布信息为准";
+          openModal("预约到店", `<div class="lx-store-confirm-modal">
+            <p class="lx-store-confirm-subtitle">请确认预约信息</p>
+            <div class="lx-store-confirm-summary">
+              <div class="lx-store-confirm-row"><strong>预约门店</strong><span>${esc(store.name || "联想门店")}</span><i aria-hidden="true">›</i></div>
+              <div class="lx-store-confirm-row"><strong>到店时间</strong><span>2026-08-12 18:00</span><i aria-hidden="true">›</i></div>
+              <div class="lx-store-confirm-row"><strong>预约目的</strong><span>产品体验 · 用户想要去门店咨询商品信息</span><i aria-hidden="true">›</i></div>
+            </div>
+            <div class="lx-store-confirm-foot"><span>联系电话：${esc(phone)}</span><button class="lx-p0-btn primary" type="button" data-lx-store-confirm-submit>确认预约</button></div>
+          </div>`);
+          requestAnimationFrame(() => {
+            document.querySelector("[data-lx-store-confirm-submit]")?.addEventListener("click", () => {
+              closeModal();
+              toast("预约信息已提交，门店将在营业时间内与你确认");
+            }, { once: true });
+          });
         }
 
         if (!window.__lxStoreAppointmentBridgeBound) {
@@ -8937,15 +8942,10 @@ async function openEduZone() {
           window.addEventListener("message", (event) => {
             const frame = lxStoreExactFrame();
             if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
-            if (event.data?.type === "lx-embedded-modal-state") {
-              const open = event.data.open === true;
-              frame.toggleAttribute("data-lx-global-modal-open", open);
-              frame.closest(".lx-store-exact-frame")?.classList.toggle("is-global-modal", open);
-              document.body.classList.toggle("lx-embedded-modal-open", open);
-              return;
-            }
             if (event.data?.type !== "lx-store-appointment-query" || !event.data.store) return;
             const store = event.data.store;
+            window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
+            window.__lxStoreAppointmentById[String(store.id || "")] = store;
             window.__lxPendingStoreAppointment = store;
             sendChat(`预约${store.name || "联想门店"}到店`);
           });

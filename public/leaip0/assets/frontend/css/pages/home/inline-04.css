@@ -5401,6 +5401,18 @@
       .lxfd-ai-body .answer-cta.lx-store-appointment-cta .answer-cta-title{font-size:13.5px;line-height:20px;font-weight:600}
       .lxfd-ai-body .answer-cta.lx-store-appointment-cta .answer-cta-icon{width:26px;height:26px}
 
+      .lx-store-confirm-modal{display:grid;gap:16px}
+      .lx-store-confirm-subtitle{margin:0;color:#979797;font-size:13px;line-height:20px}
+      .lx-store-confirm-summary{overflow:hidden;border:1px solid #efe4f1;border-radius:12px;background:#fff}
+      .lx-store-confirm-row{min-height:62px;display:grid;grid-template-columns:100px minmax(0,1fr) 18px;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid #efe4f1}
+      .lx-store-confirm-row:last-child{border-bottom:0}
+      .lx-store-confirm-row strong{color:#252525;font-size:13px;font-weight:600}
+      .lx-store-confirm-row span{overflow:hidden;color:#625b68;font-size:13px;line-height:20px;text-align:right;text-overflow:ellipsis;white-space:nowrap}
+      .lx-store-confirm-row i{color:#9b8eb6;font-size:22px;font-style:normal;text-align:right}
+      .lx-store-confirm-foot{display:flex;align-items:center;justify-content:space-between;gap:20px}
+      .lx-store-confirm-foot>span{color:#625b68;font-size:12px}
+      .lx-store-confirm-foot .lx-p0-btn.primary{min-width:118px;height:44px;border-radius:12px}
+
       @keyframes ctaSweep {
         0% { transform: translateX(-120%) skewX(-18deg); }
         100% { transform: translateX(130%) skewX(-18deg); }
