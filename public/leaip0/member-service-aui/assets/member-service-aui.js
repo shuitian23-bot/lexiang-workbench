@@ -402,7 +402,7 @@
     var auiTab = event.target.closest("[data-aui-tab]");
     if (auiTab) { activateRightTab(auiTab.dataset.auiTab); return; }
     var profileOpen = event.target.closest("[data-member-profile-open]");
-    if (profileOpen) { openRightView("profile"); return; }
+    if (profileOpen) { openProfileEditorModal(profileOpen); return; }
     var profilePhone = event.target.closest("[data-profile-phone-rebind]");
     if (profilePhone) { openPhoneRebindModal(profilePhone); return; }
     var profileAvatar = event.target.closest("[data-profile-avatar]");
@@ -596,7 +596,8 @@
     if (avatarPreset) state.profile.avatar = avatarPreset.value;
     var customAvatar = profileForm.querySelector("#leaiProfileCustomAvatarValue");
     if (customAvatar) state.profile.customAvatar = customAvatar.value;
-    profileForm.querySelector("[data-profile-save-status]").textContent = "个人信息已保存（Mock）";
+    profileForm.querySelector("[data-profile-save-status]").textContent = "个人信息已保存";
+    if (profileForm.closest(".is-profile-editor")) { closeModal(); refreshRightView(); }
   }
 
   function handleKeydown(event) {
@@ -1443,7 +1444,7 @@
     }
     state.modalType = type;
     var mask = el("#leaiModal");
-    mask.querySelector(".leai-modal").classList.remove("is-student");
+    mask.querySelector(".leai-modal").classList.remove("is-student", "is-profile-editor");
     el("#leaiModalTitle").textContent = item.title;
     el("#leaiModalDesc").textContent = item.description;
     var fields = item.fields.map(function (field, index) {
@@ -1458,10 +1459,37 @@
     window.setTimeout(function () { el("#leaiModalForm input, #leaiModalForm select").focus(); }, 0);
   }
 
+  function openProfileEditorModal(trigger) {
+    state.modalType = "profile-editor";
+    var mask = el("#leaiModal");
+    var dialog = mask.querySelector(".leai-modal");
+    dialog.classList.remove("is-student", "is-wechat", "is-service-order");
+    dialog.classList.add("is-profile-editor");
+    el("#leaiModalTitle").textContent = "编辑个人资料";
+    el("#leaiModalDesc").textContent = "完善头像和基础信息，保存后同步更新会员中心。";
+    mask.querySelector(".leai-modal-close").textContent = "×";
+    mask.querySelector(".leai-modal-close").setAttribute("aria-label", "关闭编辑个人资料");
+    var holder = document.createElement("div");
+    holder.innerHTML = memberProfilePage();
+    var source = holder.querySelector("[data-member-profile-form]");
+    var form = el("#leaiModalForm");
+    form.innerHTML = source.innerHTML;
+    form.setAttribute("data-member-profile-form", "");
+    form.onsubmit = null;
+    var actions = form.querySelector(".leai-profile-actions");
+    actions.insertAdjacentHTML("afterbegin", "<button class=\"leai-secondary\" type=\"button\" data-modal-close>取消</button>");
+    var save = actions.querySelector(".leai-primary");
+    save.textContent = "保存";
+    mask.classList.add("is-open");
+    mask.setAttribute("aria-hidden", "false");
+    trigger.dataset.modalTrigger = "active";
+    window.setTimeout(function () { form.querySelector("#leaiProfileNickname").focus(); }, 0);
+  }
+
   function openPhoneRebindModal(trigger) {
     state.modalType = "phone-rebind";
     var mask = el("#leaiModal");
-    mask.querySelector(".leai-modal").classList.remove("is-student", "is-wechat", "is-service-order");
+    mask.querySelector(".leai-modal").classList.remove("is-student", "is-wechat", "is-service-order", "is-profile-editor");
     el("#leaiModalTitle").textContent = "更换绑定手机号";
     el("#leaiModalDesc").textContent = "完成新手机号验证后再更新绑定关系。";
     var form = el("#leaiModalForm");
@@ -1631,7 +1659,7 @@
   function closeModal() {
     var mask = el("#leaiModal");
     mask.classList.remove("is-open");
-    mask.querySelector(".leai-modal").classList.remove("is-student", "is-service-order");
+    mask.querySelector(".leai-modal").classList.remove("is-student", "is-service-order", "is-profile-editor");
     mask.setAttribute("aria-hidden", "true");
     var trigger = el('[data-modal-trigger="active"]');
     if (trigger) { delete trigger.dataset.modalTrigger; trigger.focus(); }
