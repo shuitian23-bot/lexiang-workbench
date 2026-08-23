@@ -862,6 +862,13 @@ textarea {
 /* LX_PROFILE_FULLSCREEN_MODAL_20260823 */
 .leai-modal-mask:has(.leai-modal.is-profile-editor) { padding: 24px; background: rgba(45, 18, 52, .22); }
 .leai-modal.is-profile-editor { width: calc(100vw - 48px); height: calc(100vh - 48px); max-width: none; max-height: none; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: 0; border-radius: 20px; background: #fff; box-shadow: 0 24px 70px rgba(45,18,52,.28), 0 4px 14px rgba(45,18,52,.12); }
+
+/* 全站弹窗规范：会员中心弹窗壳不使用外部投影。 */
+.leai-modal,
+.leai-modal.is-profile-editor {
+  box-shadow: none !important;
+  filter: none !important;
+}
 .leai-modal.is-profile-editor .leai-modal-head { min-height: 82px; align-items: center; padding: 18px 28px; border-bottom: 1px solid #efe4f1; }
 .leai-modal.is-profile-editor .leai-modal-title { color: #1f1822; font-size: 20px; line-height: 30px; font-weight: 700; }
 .leai-modal.is-profile-editor .leai-modal-desc { margin-top: 3px; color: #625b68; font-size: 13px; line-height: 20px; }

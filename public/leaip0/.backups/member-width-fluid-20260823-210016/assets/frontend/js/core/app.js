@@ -719,8 +719,6 @@ if (!window.__lxCreateTypewriter) {
           mask.classList.toggle("lx-auth-modal-mask", isAuthSkin);
           if (modal) {
             modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : isAuthSkin ? "lx-p0-modal lx-auth-modal" : "lx-p0-modal";
-            modal.style.setProperty("box-shadow", "none", "important");
-            modal.style.setProperty("filter", "none", "important");
             if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
             else modal.removeAttribute("data-v");
           }
@@ -2438,7 +2436,6 @@ function openOrderDetail(orderId) {
             .content[data-view="info"] .info-page:has(.lx-member-component-host){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
             .content[data-view="info"] .info-page:has(.lx-member-component-host)::before,.content[data-view="info"] .info-page:has(.lx-member-component-host)::after{display:none!important;content:none!important}
             .lx-member-component-host{width:100%;height:100%;min-height:0;overflow-y:auto;background:#fcfaff}
-            .lx-member-component-host>.leai-page{width:100%!important;max-width:none!important;margin-inline:0!important;padding-inline:12px!important;box-sizing:border-box!important}
             .lx-member-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
           </style><div class="lx-member-component-host" data-member-component-view="${esc(view)}"><div class="lx-member-component-loading" role="status">正在加载会员服务</div></div>`;
         }
