@@ -9115,44 +9115,19 @@ async function openEduZone() {
 
         function openMemberCenter() {
           const enterprise = state.page === "business" || state.page === "enterprise";
-          if (enterprise) {
-            lxOpenInfoTab("member", "会员中心", `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`);
-            return;
-          }
-          const html = `<style>
+          const html = enterprise
+            ? `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`
+            : `<style>
                 .content[data-view="info"]:has(.lx-member-service-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
                 .content[data-view="info"]:has(.lx-member-service-frame)>.lx-tabbar{flex:0 0 auto!important}
                 .content[data-view="info"] .info-page:has(.lx-member-service-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
                 .content[data-view="info"] .info-page:has(.lx-member-service-frame)::before,
                 .content[data-view="info"] .info-page:has(.lx-member-service-frame)::after{display:none!important;content:none!important}
-                .lx-member-center-loading{position:absolute;inset:0;z-index:1;padding:28px;background:#fff;overflow:hidden}
-                .lx-member-center-loading-line,.lx-member-center-loading-pill,.lx-member-center-loading-card{background:linear-gradient(90deg,#f6f1f8 25%,#fcfaff 50%,#f6f1f8 75%);background-size:200% 100%;animation:lxMemberLoading 1.15s ease-in-out infinite}
-                .lx-member-center-loading-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}.lx-member-center-loading-line{display:block;width:220px;height:18px;border-radius:6px}.lx-member-center-loading-pill{width:150px;height:34px;border-radius:17px}
-                .lx-member-center-loading-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:16px;margin-bottom:16px}.lx-member-center-loading-card{height:150px;border-radius:14px}.lx-member-center-loading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.lx-member-center-loading-grid .lx-member-center-loading-card{height:124px}
-                @keyframes lxMemberLoading{0%{background-position:100% 0}100%{background-position:-100% 0}}
-                @media(prefers-reduced-motion:reduce){.lx-member-center-loading-line,.lx-member-center-loading-pill,.lx-member-center-loading-card{animation:none}}
               </style>
               <div class="lx-member-service-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-                <div class="lx-member-center-loading" aria-label="正在加载会员中心"><div class="lx-member-center-loading-head"><span class="lx-member-center-loading-line"></span><span class="lx-member-center-loading-pill"></span></div><div class="lx-member-center-loading-hero"><div class="lx-member-center-loading-card"></div><div class="lx-member-center-loading-card"></div></div><div class="lx-member-center-loading-grid"><div class="lx-member-center-loading-card"></div><div class="lx-member-center-loading-card"></div><div class="lx-member-center-loading-card"></div></div></div>
-                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260823-member-fast-first-paint" title="会员中心完整内容" loading="eager" fetchpriority="high" onload="this.style.opacity='1';var n=this.previousElementSibling;if(n)n.remove()" style="position:absolute;inset:0;z-index:2;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF;opacity:0;transition:opacity .12s ease" allow="clipboard-read; clipboard-write"></iframe>
+                <iframe src="/member-service-aui/index.html?embed=member&amp;v=20260823-member-blank-fix" title="会员中心完整内容" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF" allow="clipboard-read; clipboard-write"></iframe>
               </div>`;
-          const tab = { id: "info:member", kind: "info", label: "会员中心", html };
-          let active = (state.tabs || []).find((item) => item?.id === "info:member");
-          if (!active) {
-            lxUpsertTab(tab);
-            active = (state.tabs || []).find((item) => item?.id === "info:member") || tab;
-            lxRememberResultTab(active);
-          }
-          const commit = (forceRender) => {
-            active = (state.tabs || []).find((item) => item?.id === "info:member") || active || tab;
-            state.activeTabId = "info:member";
-            const frameExists = !!document.querySelector('.lx-member-service-frame iframe');
-            if (forceRender || !frameExists) lxRunTab(active);
-            lxRenderTabbar();
-          };
-          commit(!document.querySelector('.lx-member-service-frame iframe'));
-          requestAnimationFrame(() => requestAnimationFrame(() => commit(false)));
-          window.setTimeout(() => commit(false), 220);
+          lxOpenInfoTab("member", "会员中心", html);
         }
 
         function openMemberDevicesCenter() {

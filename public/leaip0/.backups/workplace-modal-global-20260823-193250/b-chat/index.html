@@ -42,7 +42,7 @@
   <head>
     <base href="../assets/templates/">
     <script src="../frontend/js/core/p0-root-nav.js?v=0.14.38-new-chat-refresh"></script>
-    <script src="../frontend/js/pages/biz/inline-01.js"></script>
+    <script src="../frontend/js/pages/smb/inline-01.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>联想乐享 PC 端商城对话模板</title>
@@ -63,11 +63,10 @@
   <link rel="stylesheet" href="../frontend/css/core/hover-ai-disabled.css?v=0.14.86-no-glass-blur" />
   <link rel="stylesheet" href="../frontend/css/core/history-standard.css" />
   <link rel="stylesheet" href="../frontend/css/core/channel-home-surface.css?v=0.16.43-f6-surface" />
-  <link rel="stylesheet" data-device-scene-hall href="../frontend/css/pages/shop/inline-22.css?v=0.16.57-enterprise-scene-transition" />
+  <link rel="stylesheet" data-device-scene-hall href="../frontend/css/pages/shop/inline-22.css?v=0.16.50-smb-single-line-title" />
   <link rel="stylesheet" data-lx-modal-overlay-unified href="../frontend/css/core/modal-overlay-unified.css?v=20260823-auth-mask-unified">
-  <link rel="stylesheet" data-lx-workplace-auth-modal href="../frontend/css/core/workplace-auth-modal.css?v=20260823-global-standard">
 </head>
-  <body data-page="enterprise" data-state="default">
+  <body data-page="business" data-state="default">
     <script src="../frontend/js/shared/inline-54fe4c623706.js"></script>
     <script src="../frontend/js/shared/inline-dab1b3ae0743.js"></script>
     <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
@@ -77,11 +76,11 @@
         <img src="../logos/logo-full-red.png" alt="联想乐享" />
       </a>
 
-      <nav class="main-nav" aria-label="主导航" data-shop-current-label="政教及大企业：新对话">
+      <nav class="main-nav" aria-label="主导航" data-current-label="中小企业：新对话" data-shop-current-label="中小企业：新对话">
         <button type="button" data-page="home">首页</button>
         <button type="button" data-page="personal">个人及家庭</button>
-        <button type="button" data-page="business">中小企业</button>
-        <button class="active" type="button" data-page="enterprise">政教及大企业</button>
+        <button class="active" type="button" data-page="business">中小企业</button>
+        <button type="button" data-page="enterprise">政教及大企业</button>
         <button type="button" data-page="brand">品牌</button>
       </nav>
 
@@ -176,16 +175,20 @@
               客服
             </button>
   <button class="shortcut" type="button">
-    <img class="icon" src="../icons/shortcut-customization.svg" alt="" />
-    企业留资
-  </button>
-  <button class="shortcut" type="button">
     <img class="icon" src="../icons/shortcut-live.svg" alt="" />
     咨询热线
   </button>
   <button class="shortcut" type="button">
+    <img class="icon" src="../icons/shortcut-customization.svg" alt="" />
+    批量采购
+  </button>
+  <button class="shortcut" type="button">
     <img class="icon" src="../icons/shortcut-trial.svg" alt="" />
     企业认证
+  </button>
+  <button class="shortcut" type="button">
+    <img class="icon" src="../icons/shortcut-membership.svg" alt="" />
+    会员权益
   </button>
           </div>
 
@@ -300,8 +303,8 @@
 
         <div class="hero">
           <div class="hero-slides" aria-hidden="true">
-            <img loading="lazy" class="hero-slide is-active" src="../img/enterprise-banner-1.jpg" alt="" />
-            <img loading="lazy" class="hero-slide" src="../img/enterprise-banner-2.jpg" alt="" />
+            <img loading="lazy" class="hero-slide is-active" src="../img/business-banner-1.jpg" alt="" />
+            <img loading="lazy" class="hero-slide" src="../img/business-banner-2.jpg" alt="" />
           </div>
           <div class="hero-copy">
             <p class="hero-kicker" data-page-kicker>2026 拯救者PC新品震撼来袭</p>
@@ -320,45 +323,30 @@
           <div class="hero-carousel-dots" role="tablist" aria-label="横幅切换"></div>
         </div>
 
-        <section class="device-scene-hall" data-scene-profile="enterprise" aria-labelledby="enterprise-scene-title">
+        <section class="device-scene-hall" data-scene-profile="business" aria-labelledby="business-scene-title">
           <div class="device-scene-copy">
-            <span class="device-scene-industry-tag" data-device-scene-industry>制造行业</span>
-              <h2 id="enterprise-scene-title">贯通研产 智链制造</h2>
-            <p class="device-scene-desc"><img src="../icons/global-sparkle-white.svg" alt="" aria-hidden="true" /><span data-device-scene-desc>稳定算力底座支撑智能制造升级</span></p>
-            <button class="device-scene-buy" type="button">咨询制造行业解决方案</button>
+            <span class="device-scene-industry-tag" data-device-scene-industry>高效办公</span>
+            <h2 id="business-scene-title">高效办公 灵活成长</h2>
+            <p class="device-scene-desc"><img src="../icons/global-sparkle-white.svg" alt="" aria-hidden="true" /><span data-device-scene-desc>助力中小企业构建高效智能办公体系</span></p>
+            <button class="device-scene-buy" type="button">咨询高效办公解决方案</button>
           </div>
-          <div class="enterprise-scene-cards" aria-label="制造行业推荐内容">
-            <button class="enterprise-scene-card" type="button" data-brand-ask="介绍联想智能工厂解决方案">
-              <span class="enterprise-scene-card-visual"><img src="../img/solution/联想智能工厂解决方案.jpg" alt="联想智能工厂解决方案" loading="eager" /></span>
-              <strong>联想智能工厂解决方案</strong>
-              <span class="enterprise-scene-card-label">解决方案讲解</span>
-            </button>
-            <button class="enterprise-scene-card" type="button" data-brand-ask="解读联想绿色制造白皮书">
-              <span class="enterprise-scene-card-visual"><img src="../img/solution/联想绿色制造解决方案.jpg" alt="联想绿色制造白皮书" loading="eager" /></span>
-              <strong>绿色制造实践白皮书</strong>
-              <span class="enterprise-scene-card-label">白皮书解读</span>
-            </button>
-            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍 ThinkPad T14 2025 商用笔记本电脑">
-              <span class="enterprise-scene-card-visual"><img src="../img/thinkpad-transparent.png" alt="ThinkPad T14 2025 商用笔记本电脑" loading="eager" /></span>
-              <strong>ThinkPad T14 2025</strong>
-              <span class="enterprise-scene-card-label">了解详情</span>
-            </button>
-            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍联想 WR5220 G3 机架式服务器">
-              <span class="enterprise-scene-card-visual"><img src="../img/wr5220-g3-transparent.png" alt="联想 WR5220 G3 机架式服务器" loading="eager" /></span>
-              <strong>联想 WR5220 G3 服务器</strong>
-              <span class="enterprise-scene-card-label">了解详情</span>
-            </button>
+          <div class="enterprise-scene-cards" aria-label="高效办公推荐内容">
+            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍高效办公场景的商务笔记本 ThinkPad"><span class="enterprise-scene-card-visual"><img src="../img/business/products/smb-thinkpad-t14.jpg" alt="ThinkPad" loading="eager" /></span><strong>商务笔记本</strong><span class="enterprise-scene-card-product">ThinkPad</span><span class="enterprise-scene-card-label">了解详情</span></button>
+            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍高效办公场景的固定工位 ThinkBook"><span class="enterprise-scene-card-visual"><img src="../img/business/products/smb-thinkbook.jpg" alt="ThinkBook" loading="eager" /></span><strong>固定工位</strong><span class="enterprise-scene-card-product">ThinkBook</span><span class="enterprise-scene-card-label">了解详情</span></button>
+            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍高效办公场景的办公保障 ThinkCentre"><span class="enterprise-scene-card-visual"><img src="../img/business/products/smb-thinkcentre.jpg" alt="ThinkCentre" loading="eager" /></span><strong>办公保障</strong><span class="enterprise-scene-card-product">ThinkCentre</span><span class="enterprise-scene-card-label">了解详情</span></button>
           </div>
           <div class="device-scene-controls" aria-label="行业设备场景切换">
-            <details class="device-scene-picker"><summary><span class="device-scene-current">当前: 制造行业</span></summary><div class="device-scene-menu"><button class="is-active" type="button" data-device-scene="0">制造行业</button><button type="button" data-device-scene="1">教育行业</button><button type="button" data-device-scene="2">政府行业</button><button type="button" data-device-scene="3">医疗行业</button><button type="button" data-device-scene="4">金融行业</button><button type="button" data-device-scene="5">能源行业</button><button type="button" data-device-scene="6">交通行业</button><button type="button" data-device-scene="7">服务行业</button></div></details>
-            <span class="device-scene-count" aria-live="polite">1/8</span><button class="device-scene-arrow device-scene-prev" type="button" aria-label="上一个场景"><span aria-hidden="true"></span></button><button class="device-scene-arrow device-scene-next" type="button" aria-label="下一个场景"><span aria-hidden="true"></span></button>
+            <details class="device-scene-picker"><summary><span class="device-scene-current">当前: 高效办公</span></summary><div class="device-scene-menu"><button class="is-active" type="button" data-device-scene="0">高效办公</button><button type="button" data-device-scene="1">移动差旅</button><button type="button" data-device-scene="2">专业设计</button><button type="button" data-device-scene="3">会议协作</button><button type="button" data-device-scene="4">成长型团队</button></div></details>
+            <span class="device-scene-count" aria-live="polite">1/5</span><button class="device-scene-arrow device-scene-prev" type="button" aria-label="上一个场景"><span aria-hidden="true"></span></button><button class="device-scene-arrow device-scene-next" type="button" aria-label="下一个场景"><span aria-hidden="true"></span></button>
           </div>
         </section>
 
         <nav class="category-tabs" aria-label="商品分类">
           <button class="active" type="button">推荐</button>
-          <button type="button">行业解决方案</button>
-          <button type="button">行业资料</button>
+          <button type="button">企业会员权益</button>
+          <button type="button">企业定制</button>
+          <button type="button">积分商城</button>
+          <button type="button">门店</button>
         </nav>
 
         <div class="product-grid" data-category-grid>
@@ -642,22 +630,27 @@
     <script src="../frontend/js/core/portal.js?v=0.13.15-stage"></script>
     <script src="../frontend/js/core/app-intent.js?v=0.13.15-stage"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
+  <script src="../frontend/js/pages/smb/inline-13.js"></script>
   <script src="../frontend/js/core/app.js?v=20260823-workplace-modal-standard"></script>
     <script src="../frontend/js/core/app-lxfd.js?v=20260823-service-intent-expanded"></script>
     <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
     <script src="../frontend/js/core/app-agent.js?v=0.13.16-unified-agent"></script>
-    <script data-shop-chat-template-behavior src="../frontend/js/pages/biz/inline-13.js?v=0.14.39-five-channel-result-dispatch"></script>
+    <script data-shop-chat-template-behavior src="../frontend/js/pages/smb/inline-14.js?v=0.16.35-live-business-products"></script>
     <link rel="stylesheet" data-shop-smart-cursor-fix href="../frontend/css/shared/inline-592f8f851e1f.css?v=0.16.39-borderless-product-cards">
     <script src="../frontend/js/shared/inline-6495b30fa986.js?v=0.14.87-disable-dwell-state"></script>
     <link rel="stylesheet" href="../frontend/css/shared/inline-e75ae5be9405.css">
-    <script src="../frontend/js/pages/biz/inline-17.js"></script>
+    <script src="../frontend/js/pages/smb/inline-18.js"></script>
     <link rel="stylesheet" data-lexiang-user-bubble-token href="../frontend/css/shared/inline-c7bce3f5e8ce.css">
+    <script src="../frontend/js/pages/smb/inline-20.js"></script>
+    <script src="../frontend/js/pages/smb/inline-21.js"></script>
     <link rel="stylesheet" data-unified-answer-card-selected href="../frontend/css/shared/inline-77378062a204.css">
     <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="../frontend/css/shared/inline-a6719541b94f.css">
   <link rel="stylesheet" data-solution-result-shared href="../frontend/css/core/solution-result.css?v=0.15.12-no-glass-blur">
   <link rel="stylesheet" data-product-card-borderless-final href="../frontend/css/core/product-card-borderless-v3.css">
+  <link rel="stylesheet" data-business-product-title-final href="../frontend/css/core/business-product-title-v2.css">
+  <link rel="stylesheet" data-business-product-hover-final href="../frontend/css/core/business-product-hover-v1.css">
   <script src="../frontend/js/core/solution-result.js?v=0.15.5-disable-hover-ai"></script>
   <script src="../frontend/js/core/split-frame-composer-sync.js"></script>
-  <script src="../frontend/js/pages/shop/inline-22.js?v=0.16.57-enterprise-scene-transition"></script>
+  <script src="../frontend/js/pages/shop/inline-22.js?v=0.16.48-smb-scene-backgrounds"></script>
 </body>
 </html>

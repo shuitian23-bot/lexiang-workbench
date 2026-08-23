@@ -1,0 +1,237 @@
+/* 职场认证：全站统一采用 PC 5.0「票据雅序」事务弹窗。 */
+html body .lx-p0-modal-mask.lx-lead-modal-mask:has(.lx-wpa-modal) {
+  padding: 24px !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) {
+  width: min(680px, calc(100vw - 48px)) !important;
+  max-height: min(760px, calc(100vh - 48px)) !important;
+  display: grid !important;
+  grid-template-rows: 72px minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 24px 70px rgba(45,18,52,.28), 0 4px 14px rgba(45,18,52,.12) !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-head {
+  min-height: 72px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 28px !important;
+  border-bottom: 1px solid #efe4f1 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-title {
+  margin: 0 !important;
+  color: #1f1822 !important;
+  font-size: 17px !important;
+  line-height: 26px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-close {
+  width: 30px !important;
+  height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #f3edf6 !important;
+  color: #625b68 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-close:hover {
+  background: #efe4f1 !important;
+  color: #5b1452 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-body {
+  min-height: 0 !important;
+  padding: 24px 28px 28px !important;
+  overflow-y: auto !important;
+}
+
+html body .lx-wpa-modal {
+  color: #252525 !important;
+  font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-steps {
+  margin: 0 0 28px !important;
+  padding: 0 12px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-dot {
+  width: 28px !important;
+  height: 28px !important;
+  background: #f0ebf3 !important;
+  color: #979797 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step.active .lx-wpa-dot,
+html body .lx-wpa-modal .lx-wpa-step.done .lx-wpa-dot {
+  background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 14px rgba(91,20,82,.18) !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step > span {
+  max-width: 88px !important;
+  margin-top: 7px !important;
+  color: #979797 !important;
+  font-size: 12px !important;
+  line-height: 18px !important;
+  font-weight: 400 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step.active > span,
+html body .lx-wpa-modal .lx-wpa-step.done > span {
+  color: #5b1452 !important;
+  font-weight: 700 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-line {
+  top: 13px !important;
+  left: calc(50% + 18px) !important;
+  right: calc(-50% + 18px) !important;
+  height: 2px !important;
+  background: #e6dfea !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-line.done {
+  background: linear-gradient(90deg, #4d144a, #b8252e) !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-section h4 {
+  margin: 0 0 14px !important;
+  color: #1f1822 !important;
+  font-size: 15px !important;
+  line-height: 24px !important;
+  font-weight: 700 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio {
+  min-height: 68px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 0 0 10px !important;
+  padding: 14px 16px !important;
+  border: 1px solid #e6dfea !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio:hover {
+  border-color: #d8c8dd !important;
+  background: #fcfaff !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio.selected {
+  border-color: #5b1452 !important;
+  background: linear-gradient(96deg, #fcf2f8 22.83%, #e3eafd 98.41%) !important;
+  box-shadow: inset 0 0 0 1px rgba(91,20,82,.06) !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio input[type="radio"] {
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  accent-color: #5b1452 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio-body {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio-body strong {
+  color: #252525 !important;
+  font-size: 14px !important;
+  line-height: 22px !important;
+  font-weight: 700 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio-body span {
+  color: #625b68 !important;
+  font-size: 12px !important;
+  line-height: 19px !important;
+}
+
+html body .lx-wpa-modal .lx-p0-field {
+  width: 100% !important;
+  min-height: 44px !important;
+  margin-bottom: 10px !important;
+  padding: 0 13px !important;
+  border: 1px solid #e6dfea !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #252525 !important;
+  font-size: 13px !important;
+  outline: none !important;
+}
+
+html body .lx-wpa-modal .lx-p0-field:focus {
+  border-color: #5b1452 !important;
+  box-shadow: 0 0 0 3px rgba(91,20,82,.08) !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-code-row {
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+html body .lx-wpa-modal .lx-p0-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 12px !important;
+  margin: 22px 0 0 !important;
+}
+
+html body .lx-wpa-modal .lx-p0-actions:has([data-wpa-back]) {
+  grid-template-columns: 120px minmax(0, 1fr) !important;
+}
+
+html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn {
+  width: 100% !important;
+  height: 50px !important;
+  min-height: 50px !important;
+  border: 1px solid #d8c8dd !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: #5b1452 !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn.primary {
+  border: 0 !important;
+  background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 26px rgba(91,20,82,.18) !important;
+}
+
+html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn:hover {
+  transform: translateY(-2px) !important;
+}
+
+html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn:active {
+  transform: translateY(0) !important;
+}
+
+@media (max-width: 720px) {
+  html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-body { padding: 20px !important; }
+  html body .lx-wpa-modal .lx-wpa-steps { padding: 0 !important; }
+  html body .lx-wpa-modal .lx-p0-actions:has([data-wpa-back]) { grid-template-columns: 96px minmax(0, 1fr) !important; }
+}
+

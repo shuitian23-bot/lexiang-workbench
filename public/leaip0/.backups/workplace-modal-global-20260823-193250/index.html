@@ -1,18 +1,17 @@
 <!--
-  Lenovo Lexiang shop chat page template snapshot
-  Source: https://leaibot.cn/shop-chat/
-  Refreshed: 2026-08-10
-  Pinned live resources (CSS and JavaScript vendored into this Skill):
+  Lenovo Lexiang home fullscreen dialog template snapshot
+  Source: https://leaibot.cn/
+  Refreshed: 2026-08-05
+  Pinned live resources (CSS inlined; JavaScript vendored into this Skill):
   - https://leaibot.cn/css/main.css?v=202607150210
   - https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610
-  - Main, assistant, template CSS, and template-only JavaScript are inlined in this HTML snapshot
   - assets/frontend/js/core/model-knowledge-runtime.js
   - assets/frontend/js/core/portal.js, app-intent.js, app-conv.js, app.js
   - assets/frontend/js/core/app-lxfd.js, app-voice.js, app-agent.js
   Role in design system:
-  - Page-template layer for the current Lenovo Lexiang personal shopping conversation.
+  - Page-template layer for the current root/home fullscreen Lenovo Lexiang conversation.
   - Includes the reusable document center and AI document-insight interaction baseline.
-  - Shares the current home fullscreen shell, split-layout conversation, gallery, composer, navigation, history rail, intent routing, voice mode, and agent runtime.
+  - Refresh this file from the live root whenever the production shell, gallery, composer, navigation, history rail, conversation state, intent routing, voice mode, or agent runtime changes.
   Scope:
   - This is a standalone production snapshot inside lenovo-leai-pc-5.0-design.
   - It does not modify or deploy leaibot.cn business code.
@@ -25,50 +24,47 @@
   - PC-首页-首页新建对话输入框
   - PC-聊天-聊天态输入框
   - PC-顶部-悬浮主导航
-  - PC-对话-商品推荐结果卡
   Icon dependencies:
-  - assets/icons/full-create.svg, arrow-left.svg, sidebar-history.svg, sidebar-toggle.svg
+  - assets/icons/full-create.svg, arrow-left.svg, sidebar-history.svg, sidebar-toggle.svg, global-more.svg
+  - assets/icons/global-pin.svg, global-unpin.svg, global-delete.svg
   - assets/icons/global-next.svg, global-expand.svg, global-check.svg, global-collapse.svg, composer-send.svg
   Validation:
-  - Local assets resolve; no media/ dependency; runtime scripts parse; welcome, history, navigation, composer and gallery states are present.
+  - Local assets resolve; no media/ dependency; runtime scripts parse; welcome, searchable history, pin/delete actions, navigation, composer and gallery states are present.
   - Gallery art is synchronized across first paint, dynamic rendering and bundled knowledge; approved SVGs render trace completion, collapse and send actions.
   - Document filters, pagination, staged AI response, result-card/tab synchronization and reader pagination are operational.
+  - For inline CSS maintenance, scripts/optimize-home-inline-css.mjs reports zero safe-cleanup findings; structural cleanup preserves zero-pixel default/result screenshots, query behavior and the 51-color inventory.
   Notes:
-  - Open directly for the bundled shopping knowledge fallback; the logical route remains /shop-chat/.
+  - Open directly for bundled knowledge fallback, or run scripts/serve-home-template.mjs for official model + knowledge streaming.
   - The template supports direct local-file opening with its bundled runtime assets.
+  - Keep the governed single-HTML and inline-CSS architecture unless an explicit architecture review approves a split; browser-normalized but source-different rules are not auto-deletion candidates.
 -->
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <base href="../assets/templates/">
+    <base href="./assets/templates/">
     <script src="../frontend/js/core/p0-root-nav.js?v=0.14.38-new-chat-refresh"></script>
-    <script src="../frontend/js/pages/biz/inline-01.js"></script>
+    <script src="../frontend/js/pages/home/inline-01.js?v=0.14.56-clear-history-once"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>联想乐享 PC 端商城对话模板</title>
-    <script src="../frontend/js/shared/inline-1cbc376bb123.js"></script>
-    <link rel="stylesheet" href="../frontend/css/shared/inline-91661584194a.css">
+    <title>联想乐享 PC 端首页全屏对话模板</title>
+    <script src="../frontend/js/pages/home/inline-02.js"></script>
+    <link rel="stylesheet" href="../frontend/css/pages/home/inline-03.css">
     <link rel="preload" as="image" href="../logos/logo-full-red.png">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-1.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-2.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-3.jpg">
-    <link rel="stylesheet" data-template-file="shop-chat-page-template-main.css" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="../frontend/css/shared/inline-3bc2eb74f360.css">
-    <link rel="stylesheet" data-template-file="shop-chat-page-template-assistant.css" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="../frontend/css/shared/inline-d52d38244aa9.css">
-    <link rel="stylesheet" data-template-file="shop-chat-page-template.css" data-shop-template-styles href="../frontend/css/shared/inline-642ec9aa4eee.css?v=0.16.40-borderless-source">
-    <link rel="stylesheet" href="../frontend/css/shared/inline-2104d0ed7dd2.css">
+    <link rel="stylesheet" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="../frontend/css/pages/home/inline-04.css?v=20260823-store-reuse-lead-modal">
+    <link rel="stylesheet" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="../frontend/css/pages/home/inline-05.css">
     <link rel="stylesheet" data-category-waiting-modal href="../frontend/css/shared/inline-935e2224afac.css">
   <link rel="stylesheet" href="../frontend/css/core/split-frame-composer-sync.css" />
   <link rel="stylesheet" href="../frontend/css/core/right-generation-aurora.css?v=0.15.17-top-layer" />
   <link rel="stylesheet" href="../frontend/css/core/auth-dialog.css?v=2-guest-query-limit" />
   <link rel="stylesheet" href="../frontend/css/core/hover-ai-disabled.css?v=0.14.86-no-glass-blur" />
-  <link rel="stylesheet" href="../frontend/css/core/history-standard.css" />
-  <link rel="stylesheet" href="../frontend/css/core/channel-home-surface.css?v=0.16.43-f6-surface" />
-  <link rel="stylesheet" data-device-scene-hall href="../frontend/css/pages/shop/inline-22.css?v=0.16.57-enterprise-scene-transition" />
+  <link rel="stylesheet" id="lx-history-modal-standard" href="../frontend/css/pages/home/inline-07.css">
   <link rel="stylesheet" data-lx-modal-overlay-unified href="../frontend/css/core/modal-overlay-unified.css?v=20260823-auth-mask-unified">
-  <link rel="stylesheet" data-lx-workplace-auth-modal href="../frontend/css/core/workplace-auth-modal.css?v=20260823-global-standard">
 </head>
-  <body data-page="enterprise" data-state="default">
-    <script src="../frontend/js/shared/inline-54fe4c623706.js"></script>
+  <body data-state="default">
+    <script src="../frontend/js/pages/home/inline-08.js"></script>
     <script src="../frontend/js/shared/inline-dab1b3ae0743.js"></script>
     <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
     <header class="topbar">
@@ -77,19 +73,19 @@
         <img src="../logos/logo-full-red.png" alt="联想乐享" />
       </a>
 
-      <nav class="main-nav" aria-label="主导航" data-shop-current-label="政教及大企业：新对话">
-        <button type="button" data-page="home">首页</button>
+      <nav class="main-nav" aria-label="主导航">
+        <button class="active" type="button" data-page="home">首页</button>
         <button type="button" data-page="personal">个人及家庭</button>
         <button type="button" data-page="business">中小企业</button>
-        <button class="active" type="button" data-page="enterprise">政教及大企业</button>
+        <button type="button" data-page="enterprise">政教及大企业</button>
         <button type="button" data-page="brand">品牌</button>
       </nav>
 
       <div class="utility" aria-label="快捷入口">
-        <button class="utility-btn" type="button" aria-label="购物车" title="购物车" data-commerce-entry="cart">
+        <button class="utility-btn" type="button" aria-label="购物车" title="购物车">
           <img class="icon" src="../icons/mall-cart.svg" alt="" />
         </button>
-        <button class="utility-btn" type="button" aria-label="订单" title="订单" data-commerce-entry="orders">
+        <button class="utility-btn" type="button" aria-label="订单" title="订单">
           <img class="icon" src="../icons/mall-orders.svg" alt="" />
         </button>
         <div class="account-wrap">
@@ -102,7 +98,6 @@
           </div>
         </div>
       </div>
-      <script src="../frontend/js/shared/inline-f6883bac7348.js"></script>
     </header>
 
     <main class="shell">
@@ -151,15 +146,18 @@
           </div>
           <h1 class="headline">我是联想乐享<br />有任何问题随时告诉我</h1>
           <div class="quick-list">
-            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
-            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
-            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
-            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
-            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button" data-start-chat><span>我要找商品</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要找优惠和活动</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要查保修和售后</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要找附近门店</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button"><span>我要企业批量采购</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
           </div>
         </section>
 
-        <section class="panel-state chat-state"></section>
+        <section class="panel-state chat-state">
+          <div class="user-bubble">帮我推荐一款商品</div>
+          <div class="assistant-answer">直接给你 3 款 2026 年最值得买的联想机型，覆盖轻薄办公 / 全能 AI / 游戏创作 你按预算和用途选就行</div>
+        </section>
 
         <div class="page-dots is-empty" aria-label="当前对话历史">
           <div class="prompt-menu" role="menu"></div>
@@ -175,18 +173,25 @@
               <img class="icon" src="../icons/shortcut-support.svg" alt="" />
               客服
             </button>
-  <button class="shortcut" type="button">
-    <img class="icon" src="../icons/shortcut-customization.svg" alt="" />
-    企业留资
-  </button>
-  <button class="shortcut" type="button">
-    <img class="icon" src="../icons/shortcut-live.svg" alt="" />
-    咨询热线
-  </button>
-  <button class="shortcut" type="button">
-    <img class="icon" src="../icons/shortcut-trial.svg" alt="" />
-    企业认证
-  </button>
+            <button class="shortcut" type="button">
+              <img class="icon" src="../icons/shortcut-education.svg" alt="" />
+              教育特惠
+            </button>
+            <button class="shortcut" type="button">
+              <img class="icon" src="../icons/shortcut-tradein.svg" alt="" />
+              以旧换新
+            </button>
+            <span class="more-wrap">
+              <button class="shortcut" type="button">更多<img class="icon" src="../icons/global-expand.svg" alt="" /></button>
+              <div class="more-menu" role="menu">
+                <div class="menu-row"><img class="icon" src="../icons/shortcut-rewards.svg" alt="" />乐豆商城</div>
+                <div class="menu-row active"><img class="icon" src="../icons/shortcut-trial.svg" alt="" />0元试用</div>
+                <div class="menu-row"><img class="icon" src="../icons/shortcut-customization.svg" alt="" />私人订制</div>
+                <div class="menu-row"><img class="icon" src="../icons/shortcut-membership.svg" alt="" />会员中心</div>
+                <div class="menu-row"><img class="icon" src="../icons/shortcut-referrals.svg" alt="" />拉新返利</div>
+                <div class="menu-row"><img class="icon" src="../icons/shortcut-delivery.svg" alt="" />门店闪送</div>
+              </div>
+            </span>
           </div>
 
           <form class="composer">
@@ -199,9 +204,6 @@
                 </span>
               </div>
               <div class="send-group">
-                <button class="lx-voice-btn" type="button" aria-label="语音输入" title="当前环境不支持录音">
-                  <img class="icon" src="../icons/composer-mic.svg" alt="" />
-                </button>
                 <button class="image-btn" type="button" aria-label="添加图片">
                   <img class="icon" src="../icons/composer-image.svg" alt="" />
                 </button>
@@ -219,7 +221,7 @@
       </button>
 
       <section class="content" aria-label="导购内容">
-
+        
         <!-- Deprecated portal-home removed: root uses fullscreen dialog only. -->
 
 
@@ -300,8 +302,8 @@
 
         <div class="hero">
           <div class="hero-slides" aria-hidden="true">
-            <img loading="lazy" class="hero-slide is-active" src="../img/enterprise-banner-1.jpg" alt="" />
-            <img loading="lazy" class="hero-slide" src="../img/enterprise-banner-2.jpg" alt="" />
+            <img loading="lazy" class="hero-slide is-active" src="../img/banner1.jpg" alt="" />
+            <img loading="lazy" class="hero-slide" src="../img/banner2.jpg" alt="" />
           </div>
           <div class="hero-copy">
             <p class="hero-kicker" data-page-kicker>2026 拯救者PC新品震撼来袭</p>
@@ -311,57 +313,19 @@
           <button class="hero-panel-collapse" type="button" aria-label="收起横幅面板">
             <img class="icon" src="../icons/global-collapse.svg" alt="" />
           </button>
-          <button class="hero-carousel-arrow hero-carousel-prev" type="button" aria-label="上一张横幅">
-            <img class="icon" src="../icons/global-collapse.svg?v=0.13.33-stage" alt="" aria-hidden="true" />
-          </button>
-          <button class="hero-carousel-arrow hero-carousel-next" type="button" aria-label="下一张横幅">
-            <img class="icon" src="../icons/global-collapse.svg?v=0.13.33-stage" alt="" aria-hidden="true" />
-          </button>
-          <div class="hero-carousel-dots" role="tablist" aria-label="横幅切换"></div>
         </div>
-
-        <section class="device-scene-hall" data-scene-profile="enterprise" aria-labelledby="enterprise-scene-title">
-          <div class="device-scene-copy">
-            <span class="device-scene-industry-tag" data-device-scene-industry>制造行业</span>
-              <h2 id="enterprise-scene-title">贯通研产 智链制造</h2>
-            <p class="device-scene-desc"><img src="../icons/global-sparkle-white.svg" alt="" aria-hidden="true" /><span data-device-scene-desc>稳定算力底座支撑智能制造升级</span></p>
-            <button class="device-scene-buy" type="button">咨询制造行业解决方案</button>
-          </div>
-          <div class="enterprise-scene-cards" aria-label="制造行业推荐内容">
-            <button class="enterprise-scene-card" type="button" data-brand-ask="介绍联想智能工厂解决方案">
-              <span class="enterprise-scene-card-visual"><img src="../img/solution/联想智能工厂解决方案.jpg" alt="联想智能工厂解决方案" loading="eager" /></span>
-              <strong>联想智能工厂解决方案</strong>
-              <span class="enterprise-scene-card-label">解决方案讲解</span>
-            </button>
-            <button class="enterprise-scene-card" type="button" data-brand-ask="解读联想绿色制造白皮书">
-              <span class="enterprise-scene-card-visual"><img src="../img/solution/联想绿色制造解决方案.jpg" alt="联想绿色制造白皮书" loading="eager" /></span>
-              <strong>绿色制造实践白皮书</strong>
-              <span class="enterprise-scene-card-label">白皮书解读</span>
-            </button>
-            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍 ThinkPad T14 2025 商用笔记本电脑">
-              <span class="enterprise-scene-card-visual"><img src="../img/thinkpad-transparent.png" alt="ThinkPad T14 2025 商用笔记本电脑" loading="eager" /></span>
-              <strong>ThinkPad T14 2025</strong>
-              <span class="enterprise-scene-card-label">了解详情</span>
-            </button>
-            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍联想 WR5220 G3 机架式服务器">
-              <span class="enterprise-scene-card-visual"><img src="../img/wr5220-g3-transparent.png" alt="联想 WR5220 G3 机架式服务器" loading="eager" /></span>
-              <strong>联想 WR5220 G3 服务器</strong>
-              <span class="enterprise-scene-card-label">了解详情</span>
-            </button>
-          </div>
-          <div class="device-scene-controls" aria-label="行业设备场景切换">
-            <details class="device-scene-picker"><summary><span class="device-scene-current">当前: 制造行业</span></summary><div class="device-scene-menu"><button class="is-active" type="button" data-device-scene="0">制造行业</button><button type="button" data-device-scene="1">教育行业</button><button type="button" data-device-scene="2">政府行业</button><button type="button" data-device-scene="3">医疗行业</button><button type="button" data-device-scene="4">金融行业</button><button type="button" data-device-scene="5">能源行业</button><button type="button" data-device-scene="6">交通行业</button><button type="button" data-device-scene="7">服务行业</button></div></details>
-            <span class="device-scene-count" aria-live="polite">1/8</span><button class="device-scene-arrow device-scene-prev" type="button" aria-label="上一个场景"><span aria-hidden="true"></span></button><button class="device-scene-arrow device-scene-next" type="button" aria-label="下一个场景"><span aria-hidden="true"></span></button>
-          </div>
-        </section>
 
         <nav class="category-tabs" aria-label="商品分类">
           <button class="active" type="button">推荐</button>
-          <button type="button">行业解决方案</button>
-          <button type="button">行业资料</button>
+          <button type="button">小新</button>
+          <button type="button">拯救者</button>
+          <button type="button">YOGA</button>
+          <button type="button">ThinkPad</button>
+          <button type="button">手机</button>
+          <button type="button">配件</button>
         </nav>
 
-        <div class="product-grid" data-category-grid>
+        <div class="product-grid">
           <article class="product-card">
             <div class="brand-mini">联想小新</div>
             <div class="product-visual"><img loading="lazy" src="../img/shop-1.jpg" alt="商品图片" /></div>
@@ -593,8 +557,8 @@
         <div class="lxfd-actions lxfd-glass anim-fade" aria-label="快捷入口">
           <button class="lxfd-ic" type="button" aria-label="收起" title="收起全屏"><img class="icon" src="../icons/sidebar-toggle.svg" alt="" aria-hidden="true" /></button>
           <button class="lxfd-ic lxfd-ic-history" id="lxfdTopHistBtn" type="button" aria-label="历史对话" title="对话记录"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
-          <button class="lxfd-ic" type="button" aria-label="购物车，2 件商品" title="购物车" data-lxfd-open="cart" data-commerce-entry="cart"><img class="icon" src="../icons/mall-cart.svg" alt="" /><span class="lxfd-badge">2</span></button>
-          <button class="lxfd-ic" type="button" aria-label="订单，3 个订单" title="订单" data-lxfd-open="orders" data-commerce-entry="orders"><img class="icon" src="../icons/mall-orders.svg" alt="" /><span class="lxfd-badge">3</span></button>
+          <button class="lxfd-ic" type="button" aria-label="购物车，2 件商品" title="购物车" data-lxfd-open="cart"><img class="icon" src="../icons/mall-cart.svg" alt="" /><span class="lxfd-badge">2</span></button>
+          <button class="lxfd-ic" type="button" aria-label="订单，3 个订单" title="订单" data-lxfd-open="orders"><img class="icon" src="../icons/mall-orders.svg" alt="" /><span class="lxfd-badge">3</span></button>
           <span class="lxfd-divider" aria-hidden="true"></span>
           <div class="lxfd-account-wrap">
             <button class="lxfd-avatar" type="button" aria-label="个人中心" title="个人中心"><img class="icon" src="../icons/mall-account.svg" alt="" /></button>
@@ -619,7 +583,7 @@
       <main class="lxfd-stage shift lxfd-gallery-home" id="lxfdStage">
         <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle"><span>联想乐享帮你</span><span class="rotating-word">找商品</span></h1><div class="lxfd-chips" id="lxfdChips"></div></section>
         <section class="lxfd-thread" id="lxfdThread" aria-live="polite"></section>
-        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="文档解读" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="../icons/composer-reasoning.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">文档解读</button><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="../icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><img class="icon" src="../icons/composer-send.svg" alt="" /></button></div></div></form></div>
+        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="文档解读" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="../icons/composer-reasoning.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">文档解读</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">文档解读</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="../icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送" disabled><img class="icon" src="../icons/composer-send.svg" alt="" /></button></div></div></form></div>
         <section class="lxfd-home-gallery" aria-label="首页内容推荐">
           <div class="gallery-tabs" role="tablist" aria-label="内容分类">
             <button class="gallery-tab is-active" type="button" data-gallery-tab="new">新品</button>
@@ -637,27 +601,28 @@
         <p class="lxfd-legal-line">京ICP备11035381-2 | 京公网安备110108007970号 | 营业执照：91110108700000458B</p>
       </main>
     </div>
-    <script src="../frontend/js/core/model-knowledge-runtime.js?v=0.13.15-stage"></script>
+
+    <link rel="stylesheet" data-template-file-top-nav href="../frontend/css/pages/home/inline-10.css">
+    <script src="../frontend/js/core/model-knowledge-runtime.js?v=0.13.14-stage"></script>
     <script src="../frontend/js/shared/inline-5faa7877c846.js"></script>
-    <script src="../frontend/js/core/portal.js?v=0.13.15-stage"></script>
-    <script src="../frontend/js/core/app-intent.js?v=0.13.15-stage"></script>
+    <script src="../frontend/js/core/portal.js?v=0.13.14-stage"></script>
+    <script src="../frontend/js/core/app-intent.js?v=0.13.14-stage"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
+    <link rel="stylesheet" data-document-insight-module href="../frontend/css/pages/home/inline-12.css">
   <script src="../frontend/js/core/app.js?v=20260823-workplace-modal-standard"></script>
+    <link rel="stylesheet" id="lxfd-home-composer-control-sync" href="../frontend/css/pages/home/inline-13.css">
     <script src="../frontend/js/core/app-lxfd.js?v=20260823-service-intent-expanded"></script>
     <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
     <script src="../frontend/js/core/app-agent.js?v=0.13.16-unified-agent"></script>
-    <script data-shop-chat-template-behavior src="../frontend/js/pages/biz/inline-13.js?v=0.14.39-five-channel-result-dispatch"></script>
-    <link rel="stylesheet" data-shop-smart-cursor-fix href="../frontend/css/shared/inline-592f8f851e1f.css?v=0.16.39-borderless-product-cards">
-    <script src="../frontend/js/shared/inline-6495b30fa986.js?v=0.14.87-disable-dwell-state"></script>
-    <link rel="stylesheet" href="../frontend/css/shared/inline-e75ae5be9405.css">
-    <script src="../frontend/js/pages/biz/inline-17.js"></script>
-    <link rel="stylesheet" data-lexiang-user-bubble-token href="../frontend/css/shared/inline-c7bce3f5e8ce.css">
-    <link rel="stylesheet" data-unified-answer-card-selected href="../frontend/css/shared/inline-77378062a204.css">
-    <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="../frontend/css/shared/inline-a6719541b94f.css">
+    <script data-template-file-top-nav src="../frontend/js/pages/home/inline-14.js"></script>
+    <script src="../frontend/js/pages/home/inline-15.js"></script>
+
+    <script data-template-nav-init src="../frontend/js/pages/home/inline-16.js"></script>
+    <link rel="stylesheet" data-lexiang-user-bubble-token href="../frontend/css/pages/home/inline-17.css">
+  <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="../frontend/css/pages/home/inline-18.css">
+  <link rel="stylesheet" data-lxfd-new-chat-border-final href="../frontend/css/pages/home/inline-19.css">
   <link rel="stylesheet" data-solution-result-shared href="../frontend/css/core/solution-result.css?v=0.15.12-no-glass-blur">
-  <link rel="stylesheet" data-product-card-borderless-final href="../frontend/css/core/product-card-borderless-v3.css">
   <script src="../frontend/js/core/solution-result.js?v=0.15.5-disable-hover-ai"></script>
   <script src="../frontend/js/core/split-frame-composer-sync.js"></script>
-  <script src="../frontend/js/pages/shop/inline-22.js?v=0.16.57-enterprise-scene-transition"></script>
 </body>
 </html>
