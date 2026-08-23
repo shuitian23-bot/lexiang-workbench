@@ -50,7 +50,7 @@
     submitted: { student: false, purchase: false, appointment: false }
   };
 
-  var studentAuthStorageKey = "lexiang.student.v1";
+  var studentAuthStorageKey = "lexiang.student.v2";
   var studentAuthReviewMs = 12000;
 
   function syncStudentAuthState() {
@@ -1880,8 +1880,6 @@
 
   function decorateSecondaryPage(view, html) {
     var parent = secondaryParentView(view);
-    var queryOrigin = new URLSearchParams(location.search).get("origin") === "query";
-    if (queryOrigin && view === "devices") return html;
     if (!parent || /data-secondary-back/.test(html)) return html;
     var parentLabel = rightViewLabel(parent);
     return html.replace(/<h1 class="([^"]*\bleai-page-title\b[^"]*)"([^>]*)>([\s\S]*?)<\/h1>/, function (_, classes, attributes, title) {
@@ -2174,10 +2172,10 @@
     var status = state.identityStatus.student;
     var reviewing = status === "reviewing";
     var verified = status === "verified";
-    var title = verified ? "已经认证" : reviewing ? "学生认证审核中" : "学生身份未认证";
+    var title = verified ? "已经认证" : reviewing ? "学生认证审核中" : "未认证";
     var description = verified ? "教育权益已生效" : reviewing ? (state.educationPath ? state.educationPath + "申请已提交" : "申请已提交，以审核结果为准") : "认证后解锁教育特惠";
     var action = verified ? '<div class="leai-identity-track-actions"><button type="button" data-education-benefit="coupons">教育优惠券</button><button type="button" data-education-benefit="products">教育特惠商品</button></div>' : reviewing ? "" : identityTrackAction("student", "办理学生认证", "");
-    return '<section class="leai-identity-card leai-identity-track leai-education-track is-' + status + '" data-identity-track="education" data-identity-card="student" data-identity-status="' + status + '"><div class="leai-identity-track-head"><span>教育身份</span><em>' + (verified ? "已认证" : reviewing ? "审核中" : "优先认证") + '</em></div><h3>' + title + '</h3><p>' + description + '</p>' + action + '</section>';
+    return '<section class="leai-identity-card leai-identity-track leai-education-track is-' + status + '" data-identity-track="education" data-identity-card="student" data-identity-status="' + status + '"><div class="leai-identity-track-head"><span>教育身份</span><em>' + (verified ? "已认证" : reviewing ? "审核中" : "未认证") + '</em></div><h3>' + title + '</h3><p>' + description + '</p>' + action + '</section>';
   }
 
   function identityTrackAction(type, title, className) {

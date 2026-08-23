@@ -1,0 +1,19 @@
+/*
+ * 全站弹层蒙层统一规范
+ * 基准：注册 / 登录弹层当前蒙层色。
+ * 仅统一视口遮罩，不改变弹层尺寸、内容或交互。
+ */
+:root {
+  --lx-modal-overlay-background: rgba(155, 142, 182, 0.62);
+}
+
+html body .lx-p0-modal-mask,
+html body .lx-p0-modal-mask.lx-auth-modal-mask,
+html body .lx-p0-modal-mask.lx-order-modal-mask,
+html body .lx-p0-modal-mask.lx-addr-modal-mask,
+html body .lx-p0-modal-mask.lx-lead-modal-mask,
+html body .lx-p0-modal-mask:has(.lx-global-profile-shell),
+html body .lx-p0-modal-mask:has(.lx-service-region-dialog) {
+  background: var(--lx-modal-overlay-background) !important;
+}
+

@@ -9137,23 +9137,36 @@ async function openEduZone() {
               .content[data-view="info"] .info-page:has(.lx-member-devices-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
               .content[data-view="info"] .info-page:has(.lx-member-devices-frame)::before,
               .content[data-view="info"] .info-page:has(.lx-member-devices-frame)::after{display:none!important;content:none!important}
+              .lx-member-devices-loading{position:absolute;inset:0;z-index:1;padding:28px;background:#fff;overflow:hidden}
+              .lx-member-devices-loading-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+              .lx-member-devices-loading-line,.lx-member-devices-loading-pill,.lx-member-devices-loading-row{background:linear-gradient(90deg,#f6f1f8 25%,#fcfaff 50%,#f6f1f8 75%);background-size:200% 100%;animation:lxDeviceLoading 1.15s ease-in-out infinite}
+              .lx-member-devices-loading-line{width:240px;height:18px;border-radius:6px}.lx-member-devices-loading-pill{width:180px;height:34px;border-radius:17px}
+              .lx-member-devices-loading-panel{padding:22px;border:1px solid #e6dfea;border-radius:14px}.lx-member-devices-loading-row{height:92px;margin-top:12px;border-radius:12px}
+              @keyframes lxDeviceLoading{0%{background-position:100% 0}100%{background-position:-100% 0}}
+              @media(prefers-reduced-motion:reduce){.lx-member-devices-loading-line,.lx-member-devices-loading-pill,.lx-member-devices-loading-row{animation:none}}
             </style>
             <div class="lx-member-devices-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-              <iframe src="/member-service-aui/index.html?embed=devices&amp;origin=query&amp;v=20260823-devices-content-only" title="我的设备列表" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+              <div class="lx-member-devices-loading" aria-label="正在加载设备列表"><div class="lx-member-devices-loading-head"><span class="lx-member-devices-loading-line"></span><span class="lx-member-devices-loading-pill"></span></div><div class="lx-member-devices-loading-panel"><span class="lx-member-devices-loading-line" style="display:block;width:160px"></span><div class="lx-member-devices-loading-row"></div><div class="lx-member-devices-loading-row"></div><div class="lx-member-devices-loading-row"></div></div></div>
+              <iframe src="/member-service-aui/index.html?embed=devices&amp;origin=query&amp;v=20260823-devices-fast-first-paint" title="我的设备列表" loading="eager" fetchpriority="high" onload="this.style.opacity='1';var n=this.previousElementSibling;if(n)n.remove()" style="position:absolute;inset:0;z-index:2;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF;opacity:0;transition:opacity .12s ease"></iframe>
             </div>`;
           const tab = { id: "info:devices", kind: "info", label: "我的设备", html };
-          lxUpsertTab(tab);
-          lxRememberResultTab((state.tabs || []).find((item) => item.id === tab.id) || tab);
-          const commit = () => {
-            const active = (state.tabs || []).find((item) => item?.id === "info:devices") || tab;
+          let active = (state.tabs || []).find((item) => item?.id === "info:devices");
+          if (!active) {
+            lxUpsertTab(tab);
+            active = (state.tabs || []).find((item) => item?.id === "info:devices") || tab;
+            lxRememberResultTab(active);
+          }
+          const commit = (forceRender) => {
+            active = (state.tabs || []).find((item) => item?.id === "info:devices") || active || tab;
             state.activeTabId = "info:devices";
-            lxRunTab(active);
+            const frameExists = !!document.querySelector('.lx-member-devices-frame iframe');
+            if (forceRender || !frameExists) lxRunTab(active);
             lxRenderTabbar();
           };
-          commit();
-          requestAnimationFrame(() => requestAnimationFrame(commit));
-          window.setTimeout(commit, 180);
-          window.setTimeout(commit, 520);
+          commit(!document.querySelector('.lx-member-devices-frame iframe'));
+          // 仅在外部状态竞争真正移除了设备页时补渲染，禁止重复重载 iframe。
+          requestAnimationFrame(() => requestAnimationFrame(() => commit(false)));
+          window.setTimeout(() => commit(false), 220);
         }
         window.__lxOpenDevicesResult = openMemberDevicesCenter;
 
