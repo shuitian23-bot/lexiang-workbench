@@ -5521,7 +5521,7 @@
         align-items: center;
         justify-content: center;
         padding: 24px;
-        background: rgba(155, 142, 182, 0.62);
+        background: #190e21d1;
       }
 
       /* 全站弹层统一：遮罩必须归属浏览器视口，不允许被内容区或分栏容器裁切。 */
@@ -5598,7 +5598,7 @@
       }
 
       .lx-p0-modal-mask.lx-order-modal-mask {
-        background: rgba(155, 142, 182, 0.62);
+        background: #190e21d1;
         animation: lxOrderFade .16s ease both;
       }
 
@@ -5976,7 +5976,7 @@
       }
 
       .lx-p0-modal-mask.lx-addr-modal-mask {
-        background: rgba(155, 142, 182, 0.62);
+        background: #190e21d1;
         animation: lxOrderFade .16s ease both;
       }
 

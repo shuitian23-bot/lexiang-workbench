@@ -2399,65 +2399,6 @@ function openOrderDetail(orderId) {
           lxRunTab(tab);
         }
 
-        let lxMemberRuntimePromise = null;
-        function lxEnsureMemberComponentRuntime() {
-          if (window.LXMemberService?.mount) return Promise.resolve(window.LXMemberService);
-          if (lxMemberRuntimePromise) return lxMemberRuntimePromise;
-          lxMemberRuntimePromise = new Promise((resolve, reject) => {
-            const cssId = "lx-member-component-css";
-            if (!document.getElementById(cssId)) {
-              const link = document.createElement("link");
-              link.id = cssId;
-              link.rel = "stylesheet";
-              link.href = "/member-service-aui/assets/member-service-aui.css?v=20260823-shared-component-v1";
-              document.head.appendChild(link);
-            }
-            const existing = document.getElementById("lx-member-component-runtime");
-            if (existing) {
-              existing.addEventListener("load", () => resolve(window.LXMemberService), { once: true });
-              existing.addEventListener("error", reject, { once: true });
-              return;
-            }
-            const script = document.createElement("script");
-            script.id = "lx-member-component-runtime";
-            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-shared-component-v1";
-            script.async = true;
-            script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
-            script.onerror = () => reject(new Error("会员组件加载失败"));
-            document.head.appendChild(script);
-          });
-          return lxMemberRuntimePromise;
-        }
-
-        function lxMemberComponentShell(view) {
-          return `<style>
-            .content[data-view="info"]:has(.lx-member-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
-            .content[data-view="info"]:has(.lx-member-component-host)>.lx-tabbar{flex:0 0 auto!important}
-            .content[data-view="info"] .info-page:has(.lx-member-component-host){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
-            .content[data-view="info"] .info-page:has(.lx-member-component-host)::before,.content[data-view="info"] .info-page:has(.lx-member-component-host)::after{display:none!important;content:none!important}
-            .lx-member-component-host{width:100%;height:100%;min-height:0;overflow-y:auto;background:#fcfaff}
-            .lx-member-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
-          </style><div class="lx-member-component-host" data-member-component-view="${esc(view)}"><div class="lx-member-component-loading" role="status">正在加载会员服务</div></div>`;
-        }
-
-        function lxOpenMemberComponentTab(key, label, view, displayMode = "tab") {
-          const tab = { id: `info:${key}`, kind: "info", label, html: lxMemberComponentShell(view), memberComponentView: view, memberComponentDisplayMode: displayMode };
-          lxUpsertTab(tab);
-          lxRunTab(tab);
-        }
-
-        async function lxMountMemberComponentTab(tab, pageBox) {
-          const host = pageBox?.querySelector(".lx-member-component-host");
-          if (!host || !tab?.memberComponentView) return;
-          try {
-            const runtime = await lxEnsureMemberComponentRuntime();
-            if (!host.isConnected || state.activeTabId !== tab.id) return;
-            runtime.mount(host, tab.memberComponentView, { displayMode: tab.memberComponentDisplayMode || "tab" });
-          } catch (_error) {
-            if (host.isConnected) host.innerHTML = '<div class="lx-member-component-loading" role="alert">会员服务暂时无法加载，请稍后重试</div>';
-          }
-        }
-
         function lxEnsureComparePage() {
           let pageBox = document.querySelector(".compare-page");
           if (!pageBox) {
@@ -7485,13 +7426,11 @@ async function openEduZone() {
             const isOrdersInfo = tab.id === "info:orders";
             const isEntPointsInfo = tab.id === "info:ent-points";
             const isMemberInfo = tab.id === "info:member";
-            const isMemberComponent = Boolean(tab.memberComponentView);
             const isDocumentInsight = tab.id.startsWith("info:document-insight:");
             const isSolutionCompare = tab.id.startsWith("info:solution-compare:");
-            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isDocumentInsight);
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isDocumentInsight);
             pageBox.classList.toggle("is-document-insight", isDocumentInsight);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
-            if (isMemberComponent) lxMountMemberComponentTab(tab, pageBox);
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             pageBox.querySelectorAll("[data-reader-action]").forEach((button) => {
               button.onclick = (event) => {
                 event.preventDefault();
@@ -9193,8 +9132,6 @@ async function openEduZone() {
             lxOpenInfoTab("member", "会员中心", `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`);
             return;
           }
-          lxOpenMemberComponentTab("member", "会员中心", "member", "secondary");
-          return;
           const html = `<style>
                 .content[data-view="info"]:has(.lx-member-service-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
                 .content[data-view="info"]:has(.lx-member-service-frame)>.lx-tabbar{flex:0 0 auto!important}
@@ -9232,8 +9169,6 @@ async function openEduZone() {
         }
 
         function openMemberDevicesCenter() {
-          lxOpenMemberComponentTab("devices", "我的设备", "devices", "tab");
-          return;
           const html = `<style>
               .content[data-view="info"]:has(.lx-member-devices-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
               .content[data-view="info"]:has(.lx-member-devices-frame)>.lx-tabbar{flex:0 0 auto!important}
@@ -9274,8 +9209,6 @@ async function openEduZone() {
         window.__lxOpenDevicesResult = openMemberDevicesCenter;
 
         function openCouponCenter() {
-          lxOpenMemberComponentTab("coupon", "优惠券", "asset:coupons", "tab");
-          return;
           const html = `<style>
               .content[data-view="info"]:has(.lx-coupon-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
               .content[data-view="info"]:has(.lx-coupon-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
@@ -9290,8 +9223,6 @@ async function openEduZone() {
         }
 
         function openPointsCenter() {
-          lxOpenMemberComponentTab("points", "乐豆", "asset:points", "tab");
-          return;
           const html = `<style>
               .content[data-view="info"]:has(.lx-points-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
               .content[data-view="info"]:has(.lx-points-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
@@ -9306,8 +9237,6 @@ async function openEduZone() {
         }
 
         function openVoucherCenter() {
-          lxOpenMemberComponentTab("vouchers", "代金券", "asset:vouchers", "tab");
-          return;
           const html = `<style>
               .content[data-view="info"]:has(.lx-voucher-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
               .content[data-view="info"]:has(.lx-voucher-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
@@ -9322,8 +9251,6 @@ async function openEduZone() {
         }
 
         function openRedPacketCenter() {
-          lxOpenMemberComponentTab("redpacket", "限时红包", "asset:redpacket", "tab");
-          return;
           const html = `<style>
               .content[data-view="info"]:has(.lx-redpacket-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
               .content[data-view="info"]:has(.lx-redpacket-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
