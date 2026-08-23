@@ -967,6 +967,7 @@
       coupon: { feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" },
       open_coupon: { feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" },
       points: { feature: "points", title: "查看乐豆详情", desc: "可用 2,580 · 近 30 天 +860 / -300" },
+      vouchers: { feature: "vouchers", title: "查看代金券详情", desc: "2 张可用 · 教育认证 / 以旧换新" },
       cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
       open_cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
       orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" },
@@ -978,7 +979,7 @@
 
   function renderLxfdPageCta(meta) {
     if (!meta) return "";
-    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", points: "info:points", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
     const resultId = resultIds[meta.feature] || "";
     const resultAttr = resultId ? ` data-lx-result-id="${escapeAttr(resultId)}" data-lx-open-tab="${escapeAttr(resultId)}" aria-pressed="false"` : "";
     return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}"${resultAttr} aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
@@ -1457,7 +1458,29 @@
       return;
     }
 
-    if (/优惠券|代金券|限时红包/.test(value)) {
+    if (/代金券/.test(value)) {
+      chatState.sending = true;
+      const voucherAi = document.createElement("div");
+      voucherAi.className = "lxfd-msg-ai";
+      voucherAi._loadingStarted = Date.now() - 5000;
+      voucherAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(voucherAi);
+      voucherAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdAnimateFinal(voucherAi, "已为你查询当前账户的**代金券资产**：共有 2 张可用券，分别适用于教育认证与以旧换新场景。你可以继续查看券面金额、适用范围和使用条件。");
+      const voucherBody = voucherAi.querySelector(".lxfd-ai-body");
+      if (voucherBody) {
+        voucherBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "vouchers", title: "查看代金券详情", desc: "2 张可用 · 教育认证 / 以旧换新" }));
+        voucherBody.querySelector('[data-lx-result-id="info:vouchers"]')?.classList.add("lx-document-card-enter");
+      }
+      lxfdPersistCurrent();
+      await lxfdWait(reduceMotion ? 0 : 720);
+      chatState.sending = false;
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => lxfdRevealFeature("vouchers"));
+      return;
+    }
+
+    if (/优惠券|限时红包/.test(value)) {
       chatState.sending = true;
       const couponAi = document.createElement("div");
       couponAi.className = "lxfd-msg-ai";

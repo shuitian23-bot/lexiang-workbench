@@ -46,7 +46,9 @@
       (function(){
         var isLocalFile = location.protocol === "file:";
         var isTemplateRoute = /\/assets\/templates(?:\/|$)/.test(location.pathname);
-        var assetBase = new URLSearchParams(location.search).get("embed") === "member" ? "/member-service-aui/" : "./assets/templates/";
+        var embedView = new URLSearchParams(location.search).get("embed");
+        var isMemberAssetEmbed = ["member", "coupons", "points", "vouchers"].indexOf(embedView) >= 0;
+        var assetBase = isMemberAssetEmbed ? "/member-service-aui/" : "./assets/templates/";
         document.write('<base href="' + assetBase + '">');
       })();
     </script>

@@ -3593,6 +3593,40 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedVoucherAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const voucherCopy = "已为你查询当前账户的**代金券资产**：共有 2 张可用券，分别适用于教育认证与以旧换新场景。你可以继续查看券面金额、适用范围和使用条件。";
+          const voucherCard = renderPageCta({
+            title: "查看代金券详情",
+            desc: "2 张可用 · 教育认证 / 以旧换新",
+            attr: 'data-lx-open-tab="info:vouchers" data-lxfd-open-feature="vouchers" aria-label="查看代金券详情页面"'
+          });
+          try {
+            const answerNode = addMessage("assistant", voucherCopy);
+            if (answerNode?._typingDone) await answerNode._typingDone;
+            lxAppendAiHtml(answerNode, voucherCard);
+            const cardNode = answerNode?.querySelector('[data-lx-result-id="info:vouchers"]');
+            cardNode?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!cardNode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              cardNode.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxRevealContent();
+            openVoucherCenter();
+            lxSyncAnswerCtaActiveState("info:vouchers");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -3660,7 +3694,11 @@ function openOrderDetail(orderId) {
             await lxRunUnifiedStoreAnswer();
             return;
           }
-          if (/优惠券|代金券|限时红包/.test(text)) {
+          if (/代金券/.test(text)) {
+            await lxRunUnifiedVoucherAnswer();
+            return;
+          }
+          if (/优惠券|限时红包/.test(text)) {
             await lxRunUnifiedCouponAnswer();
             return;
           }
@@ -8796,6 +8834,20 @@ async function openEduZone() {
           lxOpenInfoTab("points", "乐豆", html);
         }
 
+        function openVoucherCenter() {
+          const html = `<style>
+              .content[data-view="info"]:has(.lx-voucher-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+              .content[data-view="info"]:has(.lx-voucher-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
+              .content[data-view="info"] .info-page:has(.lx-voucher-detail-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+              .content[data-view="info"] .info-page:has(.lx-voucher-detail-frame)::before,
+              .content[data-view="info"] .info-page:has(.lx-voucher-detail-frame)::after{display:none!important;content:none!important}
+            </style>
+            <div class="lx-voucher-detail-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
+              <iframe src="/member-service-aui/index.html?embed=vouchers&amp;v=20260823-voucher-detail" title="代金券详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+            </div>`;
+          lxOpenInfoTab("vouchers", "代金券", html);
+        }
+
         // 取浏览器真实定位（没有就现场请求一次，弹授权框）；失败返回 null
         function lxRequestGeo(timeoutMs = 8000) {
           if (window.__lxGeo && window.__lxGeo.lat) return Promise.resolve(window.__lxGeo);
@@ -11308,6 +11360,7 @@ async function openEduZone() {
           if (op === 'member') openMemberCenter();
           else if (op === 'coupon') openCouponCenter();
           else if (op === 'points') openPointsCenter();
+          else if (op === 'vouchers') openVoucherCenter();
           else if (op === 'solution') openSolutionCenter();
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
