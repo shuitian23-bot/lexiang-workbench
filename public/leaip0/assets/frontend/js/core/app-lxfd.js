@@ -1428,6 +1428,72 @@
     return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco" type="button" data-open-stuauth="${escapeAttr(kind)}" data-lx-result-id="modal:education-auth:${escapeAttr(kind)}" aria-label="打开${escapeAttr(label)}弹窗" aria-pressed="false"><span class="answer-cta-title">${escapeHtml(label)}</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
   }
 
+  function lxfdIsDiscountOrderQuery(text) {
+    const value = String(text || "").trim();
+    return /(?:领取|使用).{0,8}(?:全部|所有|可用)?.{0,8}优惠|(?:全部|所有|可用).{0,8}优惠.{0,8}(?:下单|订单)|待支付订单/.test(value) && /购买|下单|订单|支付/.test(value);
+  }
+
+  function lxfdPaymentRecommendationCard() {
+    return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-payment-confirm-reco" type="button" data-open-payment-confirm data-lx-result-id="modal:pending-payment" aria-label="打开待支付订单弹窗" aria-pressed="false"><span class="answer-cta-title">待支付订单</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+  }
+
+  async function lxfdRunUnifiedDiscountOrderAnswer() {
+    const product = window.__lxState?._pendingDiscountOrderProduct || window.__lxState?.currentProduct;
+    if (!product || !window.__lxAgentAPI?.lxPreparePendingPayment) {
+      const ai = document.createElement("div");
+      ai.className = "lxfd-msg-ai lx-chat-skin";
+      ai.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(ai);
+      await lxfdAnimateFinal(ai, "请先打开一款商品详情，我再为你领取全部可用优惠并生成待支付订单。");
+      return;
+    }
+    chatState.sending = true;
+    const prepared = window.__lxAgentAPI.lxPreparePendingPayment(product);
+    const claimed = Array.isArray(prepared?.claimed) ? prepared.claimed : [];
+    const item = prepared?.item || product;
+    const saved = Math.abs(Number(prepared?.discount) || 0).toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai lx-chat-skin lx-payment-confirm-answer";
+    ai._loadingStarted = Date.now();
+    ai._traceLines = ["联想乐享正在判断你的优惠下单需求"];
+    ai._traceSkills = new Set();
+    ai.innerHTML = '<div class="lxfd-ai-body"></div>';
+    thread?.appendChild(ai);
+    lxfdRenderTraceLive(ai);
+    try {
+      await lxfdWait(reduceMotion ? 0 : 420);
+      ai._traceLines.push(`已判断：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
+      lxfdRenderTraceLive(ai);
+      await lxfdWait(reduceMotion ? 0 : 520);
+      ai._traceSkills.add("Skill(优惠领取与订单生成)");
+      ai._traceLines.push("联想乐享官方 SKILL：正在调用 Skill(优惠领取与订单生成)");
+      lxfdRenderTraceLive(ai);
+      await lxfdWait(reduceMotion ? 0 : 760);
+      ai._traceLines[ai._traceLines.length - 1] = `联想乐享官方 SKILL：已自动领取全部 ${claimed.length} 项可用优惠`;
+      ai._traceCollapsed = true;
+      lxfdRenderTraceLive(ai);
+      const copy = claimed.length
+        ? `已为你自动领取**${claimed.length}项可用优惠**，共节省¥${saved}。商品、优惠与收货信息已核对，请在**待支付订单**中确认后继续。`
+        : "当前商品暂无可叠加优惠，已按现价生成订单。商品与收货信息已核对，请在**待支付订单**中确认后继续。";
+      await lxfdAnimateFinal(ai, copy);
+      const body = ai.querySelector(".lxfd-ai-body");
+      if (body) body.insertAdjacentHTML("beforeend", lxfdPaymentRecommendationCard());
+      const card = body?.querySelector(".lx-payment-confirm-reco");
+      card?.classList.add("lx-document-card-enter");
+      lxfdPersistCurrent();
+      await new Promise((resolve) => {
+        if (!card || reduceMotion) { requestAnimationFrame(() => requestAnimationFrame(resolve)); return; }
+        const done = () => resolve();
+        card.addEventListener("animationend", done, { once: true });
+        window.setTimeout(done, 700);
+      });
+      window.__lxAgentAPI?.lxOpenPendingPaymentModal?.();
+    } finally {
+      chatState.sending = false;
+      lxfdPersistCurrent();
+    }
+  }
+
   async function lxfdRunUnifiedAuthAnswer(type, kind = "college") {
     chatState.sending = true;
     const isWorkplace = type === "workplace";
@@ -1528,6 +1594,10 @@
     try { lxfdPersistCurrent(); } catch (_e) {}
 
     const educationAuthKind = lxfdEducationAuthKind(value);
+    if (lxfdIsDiscountOrderQuery(value)) {
+      await lxfdRunUnifiedDiscountOrderAnswer();
+      return;
+    }
     if (educationAuthKind) {
       await lxfdRunUnifiedAuthAnswer("education", educationAuthKind);
       return;
@@ -2538,6 +2608,10 @@
     }
     if (btn.hasAttribute("data-open-wpa")) {
       window.openWorkplaceAuth?.();
+      return;
+    }
+    if (btn.hasAttribute("data-open-payment-confirm")) {
+      window.__lxAgentAPI?.lxOpenPendingPaymentModal?.();
       return;
     }
     const feature = btn.getAttribute("data-lxfd-open-feature") || "";

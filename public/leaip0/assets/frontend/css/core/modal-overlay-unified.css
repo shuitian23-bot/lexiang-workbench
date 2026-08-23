@@ -67,6 +67,8 @@ html body .lx-p0-modal-mask .lx-wpa-modal {
 
 /* Education-auth recommendation: title + arrow, half-size result card. */
 .lx-p0-message .lx-edu-auth-copy strong { font-weight:600!important; }
+.lx-p0-message .lx-payment-confirm-copy strong,
+.lxfd-msg-ai.lx-payment-confirm-answer .lxfd-ai-body strong { font-weight:600!important; }
 html body .lx-p0-message.ai .lx-edu-auth-reco,
 html body .lx-p0-message.assistant .lx-edu-auth-reco { width:50%!important; min-width:190px!important; max-width:240px!important; min-height:48px!important; display:flex!important; align-items:center!important; justify-content:space-between!important; gap:16px!important; margin-top:14px!important; padding:0 14px 0 16px!important; border:1px solid var(--answer-card-border,#e2ddeb)!important; border-radius:8px!important; background:#fff!important; box-shadow:none!important; }
 html body .lx-p0-message.ai .lx-edu-auth-reco .answer-cta-title,

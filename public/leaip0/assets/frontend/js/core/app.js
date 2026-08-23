@@ -212,6 +212,7 @@ if (!window.__lxCreateTypewriter) {
         // 多步任务链框架（app-agent.js，独立 IIFE）跨文件调用的操作原子桥接——只暴露必要函数，不暴露整个闭包
         window.__lxAgentAPI = {
           openProduct, addCart, lxBuyWithIntro, lxClaimBenefits, lxUpsertCompareTab, openStudentAuth,
+          lxPreparePendingPayment, lxOpenPendingPaymentModal, lxRunUnifiedDiscountOrderAnswer,
           addAiMessage: (html) => addMessage("ai", "", html),
           lxRevealContent, getState: () => state,
           lxResolveRecommendedProduct,
@@ -451,6 +452,7 @@ if (!window.__lxCreateTypewriter) {
             // 兼容升级前已经保存在历史对话里的认证结果卡。
             if (resultId.startsWith("modal:education-auth:")) return lxOpenRecommendedModal("education-auth", resultId.slice("modal:education-auth:".length));
             if (resultId === "modal:workplace-auth") return lxOpenRecommendedModal("workplace-auth");
+            if (resultId === "modal:pending-payment") return lxOpenRecommendedModal("pending-payment");
             if (resultId && window.__lxBridge.restoreResultTab(resultId)) return true;
             if (resultId.startsWith("info:solution-compare:") && lxMigrateLegacySolutionCompareCard(card, resultId)) {
               lxAssertGovernedSplitResultState(resultId);
@@ -763,6 +765,7 @@ if (!window.__lxCreateTypewriter) {
         lxRegisterRecommendedModal("education-auth", (kind) => openStudentAuth(kind || "college"));
         lxRegisterRecommendedModal("workplace-auth", () => openWorkplaceAuth());
         lxRegisterRecommendedModal("store-appointment", (storeId) => lxOpenStoreAppointmentInFrame(storeId));
+        lxRegisterRecommendedModal("pending-payment", () => lxOpenPendingPaymentModal());
         window.__lxRecommendedModalRule = Object.freeze({
           register: lxRegisterRecommendedModal,
           open: lxOpenRecommendedModal,
@@ -1793,7 +1796,7 @@ function compactProductSpec(description, category) {
           const emptyRows = '<p class="lx-order-empty">该商品暂无可叠加优惠，按标价下单。</p>';
           openModal("", `
             <div class="order-head">
-              <div class="title">确认订单${couponCount ? `<span class="gp">${lxClaimCheckSvg()}已领取 ${couponCount} 项优惠</span>` : ""}</div>
+              <div class="title">待支付订单${couponCount ? `<span class="gp">${lxClaimCheckSvg()}已领取 ${couponCount} 项优惠</span>` : ""}</div>
               <button class="x lx-p0-close" type="button" aria-label="关闭">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
               </button>
@@ -1812,7 +1815,7 @@ function compactProductSpec(description, category) {
               <span class="ut"><span class="un">${esc(addr.name)} ${esc(addr.phone)}</span><span class="ud">${esc(addr.region || "")}${esc(addr.detail || "")}</span></span>
               <button class="edit" type="button" data-occ-addr>修改</button>
             </div>
-            <button class="cta" type="button" data-occ-confirm>确认下单 · <span class="amt">¥${fmt(payable)}</span></button>
+            <button class="cta" type="button" data-occ-confirm>确认支付 · <span class="amt">¥${fmt(payable)}</span></button>
             <p class="foot-tip">演示环境：订单仅保存在本机浏览器，不会真实发货。</p>`, { skin: "order" });
         }
 
@@ -1845,13 +1848,99 @@ function compactProductSpec(description, category) {
           });
         }
 
-        // POC 占位流程：详情页主下单按钮先进入对话，正式下单能力后续接入。
+        function lxPreparePendingPayment(product = state.currentProduct) {
+          if (!product) return null;
+          const item = normalizeProduct(product);
+          const { claimed, discount, finalPrice } = lxClaimBenefits(product);
+          let addr = lxAddresses()[0];
+          if (!addr) {
+            addr = { name: "演示用户", phone: "138****0000", region: "演示地址", detail: "可在订单中修改收货信息" };
+            save("lexiang.addresses.v1", [addr]);
+          }
+          state.pendingOrderProduct = { ...item, benefits: claimed, original_price: item.price, price: finalPrice || item.price };
+          state.pendingOrderAddr = addr;
+          return { item, claimed, discount, finalPrice, addr };
+        }
+
+        function lxOpenPendingPaymentModal() {
+          const pending = state.pendingOrderProduct;
+          if (!pending) return toast("待支付订单已失效，请重新领取优惠");
+          const item = normalizeProduct({ ...pending, price: pending.original_price || pending.price });
+          const claimed = Array.isArray(pending.benefits) ? pending.benefits : [];
+          const finalPrice = Number(pending.price || item.price || 0);
+          const discount = finalPrice - Number(pending.original_price || item.price || 0);
+          const addr = state.pendingOrderAddr || lxAddresses()[0] || { name: "演示用户", phone: "138****0000", region: "演示地址", detail: "可在订单中修改收货信息" };
+          lxOpenOrderConfirm(item, claimed, discount, finalPrice, addr);
+        }
+
+        function lxDiscountOrderRecommendationCard() {
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-payment-confirm-reco" type="button" data-lx-recommended-modal="pending-payment" data-open-payment-confirm data-lx-result-id="modal:pending-payment" aria-label="打开待支付订单弹窗" aria-pressed="false"><span class="answer-cta-title">待支付订单</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedDiscountOrderAnswer(product = state._pendingDiscountOrderProduct || state.currentProduct) {
+          if (!product) {
+            addMessage("assistant", "请先选择要购买的商品，我再为你领取可用优惠并生成待支付订单。");
+            return;
+          }
+          if (state._buyFlowRunning) return;
+          state._buyFlowRunning = true;
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const prepared = lxPreparePendingPayment(product);
+          const { item, claimed, discount } = prepared;
+          const lines = ["联想乐享正在判断你的优惠下单需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push(`已判断：需要核对${item.name}与当前账户可用优惠`);
+            paint();
+            await wait(520);
+            skills.add("Skill(优惠领取与订单生成)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(优惠领取与订单生成)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = `联想乐享官方 SKILL：已自动领取全部 ${claimed.length} 项可用优惠`;
+            paint();
+            const saved = Math.abs(Number(discount) || 0).toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+            const copy = claimed.length
+              ? `已为你自动领取**${claimed.length}项可用优惠**，共节省¥${saved}。商品、优惠与收货信息已核对，请在**待支付订单**中确认后继续。`
+              : `当前商品暂无可叠加优惠，已按现价生成订单。商品与收货信息已核对，请在**待支付订单**中确认后继续。`;
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, `<div class="lx-payment-confirm-copy">${mdLite(copy)}</div>`);
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxDiscountOrderRecommendationCard());
+            const card = ai.querySelector(".lx-payment-confirm-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxOpenPendingPaymentModal();
+          } finally {
+            state._buyFlowRunning = false;
+            state._pendingDiscountOrderProduct = null;
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
+        // 详情页主按钮统一发送 Query，由同一对话路由执行 Skill 并生成待支付订单。
         function lxStartOrderPlaceholder(product = state.currentProduct) {
           if (!product) return toast("请先选择商品");
           const item = normalizeProduct(product);
-          addMessage("user", `我要立即下单 ${item.name}`);
-          addMessage("assistant", "下单流程等待制作...");
-          try { window.__lxSaveConversationNow(); } catch (_e) {}
+          state._pendingDiscountOrderProduct = product;
+          sendChat(`我要购买${item.name}，请帮我自动领取所有可用优惠并生成待支付订单`);
         }
 
         // 收货地址（PRD 5.0.2 弹窗层场景：地址新增/编辑；下单前置选择）
@@ -4313,9 +4402,14 @@ function openOrderDetail(orderId) {
           setTimeout(() => lxSetRef(null), 100);
           const _educationAuthKind = lxEducationAuthKind(text);
           const _workplaceAuthRequested = lxIsWorkplaceAuthQuery(text);
+          const _discountOrderRequested = /(?:领取|使用).{0,8}(?:全部|所有|可用)?.{0,8}优惠|(?:全部|所有|可用).{0,8}优惠.{0,8}(?:下单|订单)|待支付订单/.test(text) && /购买|下单|订单|支付/.test(text);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          if (_discountOrderRequested) {
+            await lxRunUnifiedDiscountOrderAnswer(state._pendingDiscountOrderProduct || state.currentProduct);
+            return;
+          }
           if (_educationAuthKind) {
             await lxRunUnifiedEducationAuthAnswer(_educationAuthKind);
             return;
