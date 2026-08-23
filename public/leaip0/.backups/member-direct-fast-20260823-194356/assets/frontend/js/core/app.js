@@ -7356,8 +7356,7 @@ async function openEduZone() {
           overlay.innerHTML = `<div class="lx-page-gen-card lx-page-gen-card--aurora"><div class="lx-page-gen-aurora-field" aria-hidden="true"><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--a"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--b"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--c"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--d"></i><span class="lx-page-gen-aurora-lens"></span></div><div class="lx-page-gen-head"><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div></div></div>`;
           content.appendChild(overlay);
           content.classList.add("is-generating-tab");
-          const minVisibleMs = tab?.id === "info:member" ? 120 : 520;
-          const token = { overlay, startedAt: Date.now(), minVisibleMs, done: false };
+          const token = { overlay, startedAt: Date.now(), minVisibleMs: 5200, done: false };
           requestAnimationFrame(() => overlay.classList.add("is-show"));
           return token;
         }
@@ -7366,7 +7365,7 @@ async function openEduZone() {
           if (!token || token.done) return;
           token.done = true;
           const elapsed = Date.now() - token.startedAt;
-          const wait = Math.max((token.minVisibleMs ?? 520) - elapsed, 80);
+          const wait = Math.max((token.minVisibleMs || 5200) - elapsed, 180);
           setTimeout(() => {
             token.overlay.classList.add("is-done");
             token.overlay.classList.remove("is-show");
@@ -9132,10 +9131,6 @@ async function openEduZone() {
             lxOpenInfoTab("member", "会员中心", `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`);
             return;
           }
-          // 会员中心已有完整的站内组件，直接渲染；不再先载入商城 iframe 再异步切页。
-          // 原 iframe 入口约 15MB，且脚本末尾才处理 embed=member，会造成商城闪现、空白和明显延迟。
-          lxOpenInfoTab("member", "会员中心", lxRenderVipSkin());
-          return;
           const html = `<style>
                 .content[data-view="info"]:has(.lx-member-service-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
                 .content[data-view="info"]:has(.lx-member-service-frame)>.lx-tabbar{flex:0 0 auto!important}

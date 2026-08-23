@@ -19,6 +19,7 @@
     modalType: "",
     rightView: "",
     rightTabs: [],
+    rightViewDisplayMode: {},
     sugKey: "",
     serviceCompare: [],
     serviceRecommended: "",
@@ -1118,12 +1119,14 @@
 
   async function openMemberAsset(type, trigger) {
     if (!memberAssets[type]) return;
-    openRightView("asset:" + type);
+    var displayMode = !trigger || trigger.matches(".leai-action-card") ? "tab" : "secondary";
+    openRightView("asset:" + type, displayMode);
     if (trigger && trigger.matches(".leai-action-card")) setSelected(trigger);
   }
 
   async function openMemberDevices(trigger) {
-    openRightView("devices");
+    var displayMode = !trigger || trigger.matches(".leai-action-card") ? "tab" : "secondary";
+    openRightView("devices", displayMode);
     if (trigger) setSelected(trigger);
   }
 
@@ -1421,7 +1424,7 @@
     if (action === "member") { openRightView("member"); setSelected(button); return; }
     if (action === "service") { openRightView("service"); setSelected(button); return; }
     if (action === "orders") { openRightView("orders"); setSelected(button); return; }
-    if (action === "education") { openRightView("education"); setSelected(button); return; }
+    if (action === "education") { openRightView("education", "tab"); setSelected(button); return; }
     if (action === "service-context") {
       var turn = appendTurn("拯救者游戏本，北京地区");
       serviceFlow(turn, "我想给拯救者游戏本清灰换硅脂，北京地区");
@@ -1773,11 +1776,12 @@
     } else refreshRightView();
   }
 
-  function openRightView(view) {
+  function openRightView(view, displayMode) {
     var content = el(".shell > .content");
     var tabs = el("#leaiAuiTabs");
     var host = el("#leaiAuiView");
     if (state.rightTabs.indexOf(view) < 0) state.rightTabs.push(view);
+    state.rightViewDisplayMode[view] = displayMode || "secondary";
     state.rightView = view;
     content.classList.add("leai-aui-active");
     tabs.hidden = false;
@@ -1816,6 +1820,7 @@
     if (state.deviceFocusId && (parent === "devices" || parent === "member")) state.deviceFocusId = "";
     var current = state.rightView;
     state.rightTabs = state.rightTabs.filter(function (view) { return view !== current; });
+    delete state.rightViewDisplayMode[current];
     if (state.rightTabs.indexOf(parent) < 0) state.rightTabs.push(parent);
     state.rightView = parent;
     renderRightTabs();
@@ -1880,7 +1885,14 @@
 
   function decorateSecondaryPage(view, html) {
     var parent = secondaryParentView(view);
-    if (!parent || /data-secondary-back/.test(html)) return html;
+    if (!parent) return html;
+    var openedAsIndependentTab = state.rightViewDisplayMode[view] === "tab";
+    if (openedAsIndependentTab) {
+      var pageLabel = rightViewLabel(view);
+      html = html.replace(/(<section\b[^>]*?)\s+aria-labelledby="[^"]*"([^>]*>)/, '$1 aria-label="' + escapeHtml(pageLabel) + '"$2');
+      return html.replace(/<header class="[^"]*\bleai-page-header\b[^"]*">[\s\S]*?<\/header>/, "");
+    }
+    if (/data-secondary-back/.test(html)) return html;
     var parentLabel = rightViewLabel(parent);
     return html.replace(/<h1 class="([^"]*\bleai-page-title\b[^"]*)"([^>]*)>([\s\S]*?)<\/h1>/, function (_, classes, attributes, title) {
       return '<div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(parent) + '" aria-label="返回' + escapeHtml(parentLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="' + classes + '"' + attributes + '>' + title + '</h1></div>';
@@ -1905,6 +1917,7 @@
       var closingIndex = state.rightTabs.indexOf(closingView);
       var closingActive = closingView === state.rightView;
       state.rightTabs = state.rightTabs.filter(function (view) { return view !== closingView; });
+      delete state.rightViewDisplayMode[closingView];
       if (closingActive) state.rightView = state.rightTabs[Math.max(0, closingIndex - 1)] || state.rightTabs[0];
       renderRightTabs();
       if (closingActive) {
@@ -1921,6 +1934,7 @@
     el("#leaiAuiView").hidden = true;
     state.rightView = "";
     state.rightTabs = [];
+    state.rightViewDisplayMode = {};
     document.querySelectorAll(".leai-action-card[aria-pressed]").forEach(function (item) { item.setAttribute("aria-pressed", "false"); });
   }
 
@@ -2295,11 +2309,11 @@
     window.setInterval(refreshStudentAuthState, 1000);
     var embedView = new URLSearchParams(location.search).get("embed");
     if (embedView === "member") window.setTimeout(function () { openRightView("member"); }, 0);
-    if (embedView === "devices") window.setTimeout(function () { openRightView("devices"); }, 0);
-    if (embedView === "coupons") window.setTimeout(function () { openRightView("asset:coupons"); }, 0);
-    if (embedView === "points") window.setTimeout(function () { openRightView("asset:points"); }, 0);
-    if (embedView === "vouchers") window.setTimeout(function () { openRightView("asset:vouchers"); }, 0);
-    if (embedView === "redpacket") window.setTimeout(function () { openRightView("asset:redpacket"); }, 0);
+    if (embedView === "devices") window.setTimeout(function () { openRightView("devices", "tab"); }, 0);
+    if (embedView === "coupons") window.setTimeout(function () { openRightView("asset:coupons", "tab"); }, 0);
+    if (embedView === "points") window.setTimeout(function () { openRightView("asset:points", "tab"); }, 0);
+    if (embedView === "vouchers") window.setTimeout(function () { openRightView("asset:vouchers", "tab"); }, 0);
+    if (embedView === "redpacket") window.setTimeout(function () { openRightView("asset:redpacket", "tab"); }, 0);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootMemberEmbed);
