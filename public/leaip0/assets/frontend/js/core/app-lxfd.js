@@ -1406,6 +1406,76 @@
     exitFullscreenWithReveal(() => lxfdRevealFeature("stores"));
   }
 
+  function lxfdEducationAuthKind(text) {
+    const value = String(text || "").trim();
+    if (!value || value.length > 36) return "";
+    if (!/教育|学生|在校生|教师|高考生/.test(value) || !/认证|认定|核验|教育认$/.test(value)) return "";
+    if (/高考生/.test(value)) return "gaokao";
+    if (/教师/.test(value)) return "teacher";
+    return "college";
+  }
+
+  function lxfdIsWorkplaceAuthQuery(text) {
+    const value = String(text || "").trim();
+    return !!value && value.length <= 36 && /职场|职场人|在职|工作|员工|企业职工/.test(value) && /认证|认定|核验|职场认$/.test(value);
+  }
+
+  function lxfdAuthRecommendationCard(type, kind) {
+    if (type === "workplace") {
+      return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+    }
+    const label = kind === "gaokao" ? "高考生教育认证" : (kind === "teacher" ? "教师教育认证" : "教育认证");
+    return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco" type="button" data-open-stuauth="${escapeAttr(kind)}" data-lx-result-id="modal:education-auth:${escapeAttr(kind)}" aria-label="打开${escapeAttr(label)}弹窗" aria-pressed="false"><span class="answer-cta-title">${escapeHtml(label)}</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+  }
+
+  async function lxfdRunUnifiedAuthAnswer(type, kind = "college") {
+    chatState.sending = true;
+    const isWorkplace = type === "workplace";
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai lx-chat-skin";
+    ai._loadingStarted = Date.now();
+    ai._traceLines = [isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求"];
+    ai._traceSkills = new Set();
+    ai.innerHTML = '<div class="lxfd-ai-body"></div>';
+    thread?.appendChild(ai);
+    lxfdRenderTraceLive(ai);
+    try {
+      await lxfdWait(reduceMotion ? 0 : 420);
+      ai._traceLines.push(isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程");
+      lxfdRenderTraceLive(ai);
+      await lxfdWait(reduceMotion ? 0 : 520);
+      const skillName = isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)";
+      ai._traceSkills.add(skillName);
+      ai._traceLines.push(`联想乐享官方 SKILL：正在调用 ${skillName}`);
+      lxfdRenderTraceLive(ai);
+      await lxfdWait(reduceMotion ? 0 : 760);
+      ai._traceLines[ai._traceLines.length - 1] = `联想乐享官方 SKILL：${skillName} 已完成`;
+      ai._traceCollapsed = true;
+      lxfdRenderTraceLive(ai);
+      const copy = isWorkplace
+        ? "**职场认证**可用于核验企业在职身份，并解锁员工购机优惠、会员权益及相关服务。请按真实情况填写个人与企业资料，提交前核对**企业信息与在职材料**，认证结果以正式身份核验信息为准。"
+        : "**教育认证**可用于核验在校生、教师或高考生身份，并解锁教育专享价格与会员权益。请按真实身份选择认证方式并填写资料，提交前核对**适用范围、有效期和材料**，结果以正式核验信息为准。";
+      ai.classList.add("lx-auth-flow-answer");
+      await lxfdAnimateFinal(ai, copy);
+      const body = ai.querySelector(".lxfd-ai-body");
+      if (body) body.insertAdjacentHTML("beforeend", lxfdAuthRecommendationCard(type, kind));
+      const card = body?.querySelector(".lx-edu-auth-reco");
+      card?.classList.add("lx-document-card-enter");
+      lxfdPersistCurrent();
+      await new Promise((resolve) => {
+        if (!card || reduceMotion) { requestAnimationFrame(() => requestAnimationFrame(resolve)); return; }
+        const done = () => resolve();
+        card.addEventListener("animationend", done, { once: true });
+        window.setTimeout(done, 700);
+      });
+      if (isWorkplace) window.openWorkplaceAuth?.();
+      else window.__lxAgentAPI?.openStudentAuth?.(kind);
+    } finally {
+      chatState.sending = false;
+      lxfdPersistCurrent();
+    }
+  }
+
   async function submit(text) {
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
@@ -1456,6 +1526,16 @@
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {}
+
+    const educationAuthKind = lxfdEducationAuthKind(value);
+    if (educationAuthKind) {
+      await lxfdRunUnifiedAuthAnswer("education", educationAuthKind);
+      return;
+    }
+    if (lxfdIsWorkplaceAuthQuery(value)) {
+      await lxfdRunUnifiedAuthAnswer("workplace");
+      return;
+    }
 
     const serviceProductFollowup = /^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(value);
     if (serviceProductFollowup) {
@@ -2451,6 +2531,15 @@
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
+    const studentAuthKind = btn.getAttribute("data-open-stuauth");
+    if (studentAuthKind) {
+      window.__lxAgentAPI?.openStudentAuth?.(studentAuthKind);
+      return;
+    }
+    if (btn.hasAttribute("data-open-wpa")) {
+      window.openWorkplaceAuth?.();
+      return;
+    }
     const feature = btn.getAttribute("data-lxfd-open-feature") || "";
     const boundTabId = btn.getAttribute("data-lx-open-tab") || "";
     const resultId = btn.getAttribute("data-lx-result-id") || "";

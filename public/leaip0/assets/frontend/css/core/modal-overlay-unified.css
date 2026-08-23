@@ -79,3 +79,12 @@ html body .lx-p0-message.ai .lx-edu-auth-reco:hover,
 html body .lx-p0-message.ai .lx-edu-auth-reco:focus-visible,
 html body .lx-p0-message.assistant .lx-edu-auth-reco:hover,
 html body .lx-p0-message.assistant .lx-edu-auth-reco:focus-visible { border-color:#4d144a!important; background:#fcfaff!important; outline:none!important; }
+
+/* Fullscreen assistant reuses the same authentication recommendation card. */
+.lxfd-msg-ai.lx-auth-flow-answer .lxfd-ai-body strong { font-weight:600!important; }
+html body .lxfd-msg-ai .lx-edu-auth-reco { width:50%!important; min-width:190px!important; max-width:240px!important; min-height:48px!important; display:flex!important; align-items:center!important; justify-content:space-between!important; gap:16px!important; margin-top:14px!important; padding:0 14px 0 16px!important; border:1px solid var(--answer-card-border,#e2ddeb)!important; border-radius:8px!important; background:#fff!important; box-shadow:none!important; }
+html body .lxfd-msg-ai .lx-edu-auth-reco .answer-cta-title { overflow:hidden!important; color:#4d144a!important; font-size:14px!important; line-height:20px!important; font-weight:600!important; white-space:nowrap!important; text-overflow:ellipsis!important; }
+html body .lxfd-msg-ai .lx-edu-auth-reco .answer-cta-icon { flex:0 0 24px!important; width:24px!important; height:24px!important; display:grid!important; place-items:center!important; }
+html body .lxfd-msg-ai .lx-edu-auth-reco .answer-cta-icon img { width:16px!important; height:16px!important; }
+html body .lxfd-msg-ai .lx-edu-auth-reco:hover,
+html body .lxfd-msg-ai .lx-edu-auth-reco:focus-visible { border-color:#4d144a!important; background:#fcfaff!important; outline:none!important; }

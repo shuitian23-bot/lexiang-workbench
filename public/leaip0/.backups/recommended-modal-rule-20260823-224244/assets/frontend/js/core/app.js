@@ -445,6 +445,17 @@ if (!window.__lxCreateTypewriter) {
                   (feature === "solution" ? "info:solution" :
                     (feature === "documents" ? "documents" : ""))));
 
+            // 认证结果卡是可重复打开的弹层入口，不属于右侧结果 Tab。
+            // 关闭弹层后再次点击时直接复用原认证弹层生成器，避免稳定
+            // resultId 分支将事件提前截断后没有任何响应。
+            if (resultId.startsWith("modal:education-auth:")) {
+              openStudentAuth(resultId.slice("modal:education-auth:".length) || "college");
+              return true;
+            }
+            if (resultId === "modal:workplace-auth") {
+              openWorkplaceAuth();
+              return true;
+            }
             if (resultId && window.__lxBridge.restoreResultTab(resultId)) return true;
             if (resultId.startsWith("info:solution-compare:") && lxMigrateLegacySolutionCompareCard(card, resultId)) {
               lxAssertGovernedSplitResultState(resultId);
@@ -2411,7 +2422,7 @@ function openOrderDetail(orderId) {
               const link = document.createElement("link");
               link.id = cssId;
               link.rel = "stylesheet";
-              link.href = "/member-service-aui/assets/member-service-aui.css?v=20260823-shared-component-v1";
+              link.href = "/member-service-aui/assets/member-service-aui.css?v=20260823-profile-modal-compact-v1";
               document.head.appendChild(link);
             }
             const existing = document.getElementById("lx-member-component-runtime");
@@ -2427,7 +2438,7 @@ function openOrderDetail(orderId) {
               else window.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
               return sendChat(query);
             };
-            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-device-actions-v7";
+            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-device-actions-v9";
             script.async = true;
             script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
             script.onerror = () => reject(new Error("会员组件加载失败"));
@@ -2443,6 +2454,7 @@ function openOrderDetail(orderId) {
             .content[data-view="info"] .info-page:has(.lx-member-component-host){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
             .content[data-view="info"] .info-page:has(.lx-member-component-host)::before,.content[data-view="info"] .info-page:has(.lx-member-component-host)::after{display:none!important;content:none!important}
             .lx-member-component-host{width:100%;height:100%;min-height:0;overflow-y:auto;background:#fcfaff}
+            .lx-member-component-host>.leai-page{width:100%!important;max-width:none!important;margin-inline:0!important;padding-inline:12px!important;box-sizing:border-box!important}
             .lx-member-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
           </style><div class="lx-member-component-host" data-member-component-view="${esc(view)}"><div class="lx-member-component-loading" role="status">正在加载会员服务</div></div>`;
         }
@@ -2462,6 +2474,70 @@ function openOrderDetail(orderId) {
             runtime.mount(host, tab.memberComponentView, { displayMode: tab.memberComponentDisplayMode || "tab" });
           } catch (_error) {
             if (host.isConnected) host.innerHTML = '<div class="lx-member-component-loading" role="alert">会员服务暂时无法加载，请稍后重试</div>';
+          }
+        }
+
+        let lxStoreRuntimePromise = null;
+        function lxEnsureStoreComponentRuntime() {
+          if (window.LXStoreService?.mount) return Promise.resolve(window.LXStoreService);
+          if (lxStoreRuntimePromise) return lxStoreRuntimePromise;
+          lxStoreRuntimePromise = new Promise((resolve, reject) => {
+            const existing = document.getElementById("lx-store-component-runtime");
+            if (existing) {
+              existing.addEventListener("load", () => resolve(window.LXStoreService), { once: true });
+              existing.addEventListener("error", reject, { once: true });
+              return;
+            }
+            const script = document.createElement("script");
+            script.id = "lx-store-component-runtime";
+            script.src = "/assets/pages/store-v5-embed.js?v=20260823-store-direct-v1";
+            script.async = true;
+            script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
+            script.onerror = () => reject(new Error("门店组件加载失败"));
+            document.head.appendChild(script);
+          });
+          return lxStoreRuntimePromise;
+        }
+
+        function lxStoreComponentShell() {
+          return `<style>
+            .content[data-view="info"]:has(.lx-store-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+            .content[data-view="info"]:has(.lx-store-component-host)>.lx-tabbar{flex:0 0 auto!important}
+            .content[data-view="info"] .info-page:has(.lx-store-component-host){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+            .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
+            .content[data-view="info"] .info-page:has(.lx-store-component-host)::before,.content[data-view="info"] .info-page:has(.lx-store-component-host)::after{display:none!important;content:none!important}
+            .lx-store-component-host{display:block;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff}
+            .lx-store-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
+          </style><div class="lx-store-component-host"><div class="lx-store-component-loading" role="status">正在加载门店服务</div></div>`;
+        }
+
+        function lxOpenStoreComponentTab() {
+          const tab = { id: "info:stores", kind: "info", label: "附近门店", html: lxStoreComponentShell(), storeComponentView: "stores" };
+          lxUpsertTab(tab);
+          lxRunTab(tab);
+        }
+
+        async function lxMountStoreComponentTab(tab, pageBox) {
+          const host = pageBox?.querySelector(".lx-store-component-host");
+          if (!host || !tab?.storeComponentView) return;
+          try {
+            const runtime = await lxEnsureStoreComponentRuntime();
+            if (!host.isConnected || state.activeTabId !== tab.id) return;
+            const api = runtime.mount(host, { view: tab.storeComponentView });
+            host.addEventListener("lx-store-detail-state", (event) => {
+              pageBox.classList.toggle("lx-store-detail-active", event.detail?.active === true);
+            });
+            host.addEventListener("lx-store-appointment-query", (event) => {
+              const store = event.detail?.store;
+              if (!store) return;
+              window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
+              window.__lxStoreAppointmentById[String(store.id || "")] = store;
+              window.__lxPendingStoreAppointment = store;
+              sendChat(`预约${store.name || "联想门店"}到店`);
+            });
+            host.__lxStoreApi = api;
+          } catch (_error) {
+            if (host.isConnected) host.innerHTML = '<div class="lx-store-component-loading" role="alert">门店服务暂时无法加载，请稍后重试</div>';
           }
         }
 
@@ -3801,8 +3877,6 @@ function openOrderDetail(orderId) {
           state.sending = true;
           clearHoverPromptTimer();
           hideHoverPrompts();
-          // 先在当前不可见/右侧结果层创建设备页，避免生成完成后短暂露出商城首页。
-          openMemberDevicesCenter();
           const lines = ["联想乐享正在判断你的设备资产需求"];
           const skills = new Set();
           const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
@@ -3836,6 +3910,29 @@ function openOrderDetail(orderId) {
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
           }
+        }
+
+        async function lxRunDeviceActionBridge(kind, device) {
+          const current = device || {}, isBind = kind === "bind", bridgeKey = isBind ? "__lxPendingDeviceBindBridge" : "__lxPendingDeviceWarrantyBridge";
+          const bridge = window[bridgeKey], name = current.name || (isBind ? "小新 Pro 16" : "拯救者 Y7000P"), skillName = isBind ? "设备资产绑定" : "保修商品推荐";
+          state.sending = true;
+          const lines = [isBind ? "联想乐享正在校验设备订单与当前 Lenovo ID" : "联想乐享正在核验设备保障状态与可购买节点"], skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines,{collapsed:false,foldable:false,skillCount:0})), body = lxEnsureAiBody(ai);
+          const paint=()=>{body.innerHTML=renderSkillTrace(lines,{collapsed:false,foldable:false,skillCount:skills.size});}, wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+          try {
+            await wait(420); lines.push(isBind?`已识别：${name} · 联想官方订单待绑定`:`已定位：${name} · ${current.warranty||"当前保障信息已读取"}`); paint();
+            await wait(520); skills.add(`Skill(${skillName})`); lines.push(`联想乐享官方 SKILL：正在调用 Skill(${skillName})`); paint();
+            await wait(760); lines[lines.length-1]=`联想乐享官方 SKILL：Skill(${skillName}) 已完成`;
+            const copy=isBind?`绑定成功！**${name}** 已加入当前 Lenovo ID，设备信息与保障服务已同步，可在右侧“我的设备”列表中查看详情。`:`已根据 **${name}** 的型号、购买时间和当前保障节点，匹配到 3 款可购买保修商品，涵盖一年整机延保、两年整机延保及延保上门服务升级。建议结合使用年限、服务地区与预算选择，具体价格及适用范围以实时校验为准。`;
+            await lxAnimateAiFinal(ai,mdLite(copy)); const finalBody=lxEnsureAiBody(ai); finalBody.insertAdjacentHTML("afterbegin",renderSkillTrace(lines,{collapsed:true,foldable:true,skillCount:skills.size}));
+            if(!isBind) finalBody.insertAdjacentHTML("beforeend",renderPageCta({title:"查看推荐保修商品",desc:`3 款可购买方案 · 已关联${name}`,attr:"data-lx-warranty-result-card"}));
+            ai.classList.remove("loading"); await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+            if (isBind && typeof window.__lxCompleteDeviceBind === "function") window.__lxCompleteDeviceBind(current.id || "xiaoxinpro16");
+            else if (!isBind) {
+              window.__lxPendingWarrantyDeviceId = current.id || "legiony7000p";
+              lxOpenMemberComponentTab("warranty-products", "保修商品推荐", "service", "tab");
+            } else window.postMessage({type:"lexiang:device-bind-success",deviceId:current.id||"xiaoxinpro16"},location.origin);
+          } finally { window[bridgeKey]=null; state.sending=false; try{window.__lxSaveConversationNow();}catch(_e){} }
         }
 
         async function lxRunUnifiedMemberAnswer() {
@@ -4141,6 +4238,15 @@ function openOrderDetail(orderId) {
           state.lastUserText = text;
           lxClearFollowups();
           addMessage("user", text);
+          // 设备绑定/维保是单一设备 Skill：在代买意图前截获，彻底停用旧多步任务调用面板。
+          if (/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(text)) {
+            await lxRunDeviceActionBridge("bind", window.__lxPendingDeviceBindBridge?.device);
+            return;
+          }
+          if (/^为.+推荐可购买的(?:保修|延保)商品[。！!]?$/.test(text)) {
+            await lxRunDeviceActionBridge("warranty", window.__lxPendingDeviceWarrantyBridge?.device);
+            return;
+          }
           // 多步任务链代买意图（收口 app-intent.matchAutoBuy，主面板/全屏共用一份 = 一套机制）
           // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
           // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
@@ -4213,6 +4319,8 @@ function openOrderDetail(orderId) {
             await lxRunUnifiedDevicesAnswer();
             return;
           }
+          if (/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(text)) { await lxRunDeviceActionBridge("bind",window.__lxPendingDeviceBindBridge?.device); return; }
+          if (/^为.+推荐可购买的(?:保修|延保)商品[。！!]?$/.test(text)) { await lxRunDeviceActionBridge("warranty",window.__lxPendingDeviceWarrantyBridge?.device); return; }
           if (/代金券/.test(text)) {
             await lxRunUnifiedVoucherAnswer();
             return;
@@ -7531,8 +7639,40 @@ async function openEduZone() {
           return { title: `正在打开${label}`, desc: "正在准备页面内容" };
         }
 
+        function lxHasVisibleResultCard(tab) {
+          const tabId = String(tab?.id || "");
+          if (!tabId) return false;
+          const featureIds = { solution: "info:solution", member: "info:member", devices: "info:devices", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket" };
+          return Array.from(document.querySelectorAll(".lx-p0-messages .answer-cta")).some((card) => {
+            const resultId = card.getAttribute("data-lx-result-id") || card.getAttribute("data-lx-open-tab") || "";
+            if (resultId === tabId) return true;
+            const feature = card.getAttribute("data-lxfd-open-feature") || "";
+            return featureIds[feature] === tabId;
+          });
+        }
+
+        function lxWaitForTabReady(tab) {
+          return new Promise((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              const content = document.querySelector(".content");
+              const frame = content?.querySelector(".info-page iframe");
+              if (!frame || tab?.kind !== "info") { resolve(); return; }
+              try {
+                const expectedUrl = new URL(frame.src, window.location.href).href;
+                const currentUrl = frame.contentWindow?.location?.href || "";
+                if (currentUrl === expectedUrl && frame.contentDocument?.readyState === "complete" && frame.contentDocument?.body?.children?.length) { resolve(); return; }
+              } catch (_e) {}
+              const done = () => resolve();
+              frame.addEventListener("load", done, { once: true });
+              frame.addEventListener("error", done, { once: true });
+            }));
+          });
+        }
+
         function lxBeginTabGeneration(tab) {
           if (!tab || !tab.__fresh) return null;
+          // 生成动画只属于“左侧结果卡 → 右侧结果页”链路；普通标签切换不播放。
+          if (!lxHasVisibleResultCard(tab)) return null;
           delete tab.__fresh;
           const stateTab = (state.tabs || []).find((item) => item.id === tab.id);
           if (stateTab) delete stateTab.__fresh;
@@ -7547,8 +7687,8 @@ async function openEduZone() {
           overlay.innerHTML = `<div class="lx-page-gen-card lx-page-gen-card--aurora"><div class="lx-page-gen-aurora-field" aria-hidden="true"><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--a"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--b"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--c"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--d"></i><span class="lx-page-gen-aurora-lens"></span></div><div class="lx-page-gen-head"><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div></div></div>`;
           content.appendChild(overlay);
           content.classList.add("is-generating-tab");
-          const minVisibleMs = tab?.id === "info:member" ? 120 : 520;
-          const token = { overlay, startedAt: Date.now(), minVisibleMs, done: false };
+          const minVisibleMs = 2000 + Math.floor(Math.random() * 2001);
+          const token = { overlay, startedAt: Date.now(), minVisibleMs, tab, done: false };
           requestAnimationFrame(() => overlay.classList.add("is-show"));
           return token;
         }
@@ -7557,13 +7697,16 @@ async function openEduZone() {
           if (!token || token.done) return;
           token.done = true;
           const elapsed = Date.now() - token.startedAt;
-          const wait = Math.max((token.minVisibleMs ?? 520) - elapsed, 80);
-          setTimeout(() => {
+          const wait = Math.max((token.minVisibleMs ?? 2000) - elapsed, 0);
+          Promise.all([
+            new Promise((resolve) => setTimeout(resolve, wait)),
+            lxWaitForTabReady(token.tab)
+          ]).then(() => {
             token.overlay.classList.add("is-done");
             token.overlay.classList.remove("is-show");
             document.querySelector(".content")?.classList.remove("is-generating-tab");
             setTimeout(() => token.overlay.remove(), 260);
-          }, wait);
+          });
         }
 
         function lxStepDocumentReader(readerButton) {
@@ -7618,12 +7761,14 @@ async function openEduZone() {
             const isEntPointsInfo = tab.id === "info:ent-points";
             const isMemberInfo = tab.id === "info:member";
             const isMemberComponent = Boolean(tab.memberComponentView);
+            const isStoreComponent = Boolean(tab.storeComponentView);
             const isDocumentInsight = tab.id.startsWith("info:document-insight:");
             const isSolutionCompare = tab.id.startsWith("info:solution-compare:");
-            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isDocumentInsight);
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isStoreComponent || isDocumentInsight);
             pageBox.classList.toggle("is-document-insight", isDocumentInsight);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isStoreComponent || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             if (isMemberComponent) lxMountMemberComponentTab(tab, pageBox);
+            if (isStoreComponent) lxMountStoreComponentTab(tab, pageBox);
             pageBox.querySelectorAll("[data-reader-action]").forEach((button) => {
               button.onclick = (event) => {
                 event.preventDefault();
@@ -9669,21 +9814,11 @@ async function openEduZone() {
         }
 
         async function openStoresPanel(address = "北京海淀") {
-          lxOpenInfoTab("stores", "附近门店", `
-            <style>
-              .content[data-view="info"]:has(.lx-store-exact-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
-              .content[data-view="info"]:has(.lx-store-exact-frame)>.lx-tabbar{flex:0 0 auto!important}
-              .content[data-view="info"] .info-page:has(.lx-store-exact-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
-              .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
-              .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
-            </style>
-            <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
-              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-products-flat" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
-            </div>`);
+          lxOpenStoreComponentTab();
         }
 
         function lxStoreExactFrame() {
-          return document.querySelector(".lx-store-exact-frame iframe");
+          return document.querySelector(".lx-store-component-host");
         }
 
         function lxOpenStoreAppointmentInFrame(storeId) {
@@ -9709,24 +9844,6 @@ async function openEduZone() {
               closeModal();
               toast("预约信息已提交，门店将在营业时间内与你确认");
             }, { once: true });
-          });
-        }
-
-        if (!window.__lxStoreAppointmentBridgeBound) {
-          window.__lxStoreAppointmentBridgeBound = true;
-          window.addEventListener("message", (event) => {
-            const frame = lxStoreExactFrame();
-            if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
-            if (event.data?.type === "lx-store-detail-state") {
-              frame.closest(".info-page")?.classList.toggle("lx-store-detail-active", event.data.active === true);
-              return;
-            }
-            if (event.data?.type !== "lx-store-appointment-query" || !event.data.store) return;
-            const store = event.data.store;
-            window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
-            window.__lxStoreAppointmentById[String(store.id || "")] = store;
-            window.__lxPendingStoreAppointment = store;
-            sendChat(`预约${store.name || "联想门店"}到店`);
           });
         }
 

@@ -439,23 +439,18 @@ if (!window.__lxCreateTypewriter) {
             const solutionTitle = card.getAttribute("data-specific-solution-cta") || "";
             const recoId = card.getAttribute("data-lxfd-reco-id") || "";
             const productSku = card.getAttribute("data-open-product") || "";
+            const recommendedModalAction = card.getAttribute("data-lx-recommended-modal") || "";
+            const recommendedModalPayload = card.getAttribute("data-lx-recommended-modal-payload") || "";
             const resultId = card.getAttribute("data-lx-result-id") ||
               (solutionTitle ? `info:solution-detail:${solutionTitle}` :
                 (card.getAttribute("data-lx-open-tab") ||
                   (feature === "solution" ? "info:solution" :
                     (feature === "documents" ? "documents" : ""))));
 
-            // 认证结果卡是可重复打开的弹层入口，不属于右侧结果 Tab。
-            // 关闭弹层后再次点击时直接复用原认证弹层生成器，避免稳定
-            // resultId 分支将事件提前截断后没有任何响应。
-            if (resultId.startsWith("modal:education-auth:")) {
-              openStudentAuth(resultId.slice("modal:education-auth:".length) || "college");
-              return true;
-            }
-            if (resultId === "modal:workplace-auth") {
-              openWorkplaceAuth();
-              return true;
-            }
+            if (recommendedModalAction && lxOpenRecommendedModal(recommendedModalAction, recommendedModalPayload)) return true;
+            // 兼容升级前已经保存在历史对话里的认证结果卡。
+            if (resultId.startsWith("modal:education-auth:")) return lxOpenRecommendedModal("education-auth", resultId.slice("modal:education-auth:".length));
+            if (resultId === "modal:workplace-auth") return lxOpenRecommendedModal("workplace-auth");
             if (resultId && window.__lxBridge.restoreResultTab(resultId)) return true;
             if (resultId.startsWith("info:solution-compare:") && lxMigrateLegacySolutionCompareCard(card, resultId)) {
               lxAssertGovernedSplitResultState(resultId);
@@ -746,6 +741,33 @@ if (!window.__lxCreateTypewriter) {
           $(".lx-p0-modal-mask")?.classList.remove("show");
           try { lxCloseHistoryButtonState(); } catch (_e) {}
         }
+
+        // 推荐弹层卡统一交互契约：生成后自动打开一次；关闭后可由原卡
+        // 重复打开；全站复用同一个弹层容器，避免叠加多个实例。
+        const lxRecommendedModalOpeners = new Map();
+        function lxRegisterRecommendedModal(action, opener) {
+          if (!action || typeof opener !== "function") return;
+          lxRecommendedModalOpeners.set(String(action), opener);
+        }
+        function lxOpenRecommendedModal(action, payload = "") {
+          const opener = lxRecommendedModalOpeners.get(String(action || ""));
+          if (!opener) return false;
+          opener(String(payload || ""));
+          return true;
+        }
+        function lxAutoOpenRecommendedModal(action, payload = "") {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => lxOpenRecommendedModal(action, payload));
+          });
+        }
+        lxRegisterRecommendedModal("education-auth", (kind) => openStudentAuth(kind || "college"));
+        lxRegisterRecommendedModal("workplace-auth", () => openWorkplaceAuth());
+        lxRegisterRecommendedModal("store-appointment", (storeId) => lxOpenStoreAppointmentInFrame(storeId));
+        window.__lxRecommendedModalRule = Object.freeze({
+          register: lxRegisterRecommendedModal,
+          open: lxOpenRecommendedModal,
+          autoOpen: lxAutoOpenRecommendedModal,
+        });
 
         function updateBadges() {
           const buttons = $$(".utility-btn");
@@ -2433,7 +2455,12 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-member-component-runtime";
-            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-student-auth-direct-v1";
+            window.__lxSubmitDeviceActionQuery = function (kind, query, device) {
+              if (kind === "bind") window.__lxPendingDeviceBindBridge = { source: window, device: device };
+              else window.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
+              return sendChat(query);
+            };
+            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-device-actions-v9";
             script.async = true;
             script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
             script.onerror = () => reject(new Error("会员组件加载失败"));
@@ -2973,7 +3000,7 @@ function openOrderDetail(orderId) {
         }
 
         function renderStoreAppointmentCta(storeId) {
-          return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-store-appointment-confirm="${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
+          return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-recommended-modal="store-appointment" data-lx-recommended-modal-payload="${esc(storeId || "")}" data-lx-store-appointment-confirm="${esc(storeId || "")}" data-lx-result-id="modal:store-appointment:${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
             <span class="answer-cta-title">预约信息待确认</span>
             <span class="answer-cta-icon" aria-hidden="true">
               ${window.__lxApprovedIcon("global-next")}
@@ -3862,6 +3889,7 @@ function openOrderDetail(orderId) {
             body.innerHTML = renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }) + mdLite(copy) + renderStoreAppointmentCta(currentStore.id);
             ai.classList.remove("loading");
             ensureChat().scrollTop = ensureChat().scrollHeight;
+            lxAutoOpenRecommendedModal("store-appointment", currentStore.id);
           } finally {
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
@@ -3905,6 +3933,29 @@ function openOrderDetail(orderId) {
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
           }
+        }
+
+        async function lxRunDeviceActionBridge(kind, device) {
+          const current = device || {}, isBind = kind === "bind", bridgeKey = isBind ? "__lxPendingDeviceBindBridge" : "__lxPendingDeviceWarrantyBridge";
+          const bridge = window[bridgeKey], name = current.name || (isBind ? "小新 Pro 16" : "拯救者 Y7000P"), skillName = isBind ? "设备资产绑定" : "保修商品推荐";
+          state.sending = true;
+          const lines = [isBind ? "联想乐享正在校验设备订单与当前 Lenovo ID" : "联想乐享正在核验设备保障状态与可购买节点"], skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines,{collapsed:false,foldable:false,skillCount:0})), body = lxEnsureAiBody(ai);
+          const paint=()=>{body.innerHTML=renderSkillTrace(lines,{collapsed:false,foldable:false,skillCount:skills.size});}, wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+          try {
+            await wait(420); lines.push(isBind?`已识别：${name} · 联想官方订单待绑定`:`已定位：${name} · ${current.warranty||"当前保障信息已读取"}`); paint();
+            await wait(520); skills.add(`Skill(${skillName})`); lines.push(`联想乐享官方 SKILL：正在调用 Skill(${skillName})`); paint();
+            await wait(760); lines[lines.length-1]=`联想乐享官方 SKILL：Skill(${skillName}) 已完成`;
+            const copy=isBind?`绑定成功！**${name}** 已加入当前 Lenovo ID，设备信息与保障服务已同步，可在右侧“我的设备”列表中查看详情。`:`已根据 **${name}** 的型号、购买时间和当前保障节点，匹配到 3 款可购买保修商品，涵盖一年整机延保、两年整机延保及延保上门服务升级。建议结合使用年限、服务地区与预算选择，具体价格及适用范围以实时校验为准。`;
+            await lxAnimateAiFinal(ai,mdLite(copy)); const finalBody=lxEnsureAiBody(ai); finalBody.insertAdjacentHTML("afterbegin",renderSkillTrace(lines,{collapsed:true,foldable:true,skillCount:skills.size}));
+            if(!isBind) finalBody.insertAdjacentHTML("beforeend",renderPageCta({title:"查看推荐保修商品",desc:`3 款可购买方案 · 已关联${name}`,attr:"data-lx-warranty-result-card"}));
+            ai.classList.remove("loading"); await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+            if (isBind && typeof window.__lxCompleteDeviceBind === "function") window.__lxCompleteDeviceBind(current.id || "xiaoxinpro16");
+            else if (!isBind) {
+              window.__lxPendingWarrantyDeviceId = current.id || "legiony7000p";
+              lxOpenMemberComponentTab("warranty-products", "保修商品推荐", "service", "tab");
+            } else window.postMessage({type:"lexiang:device-bind-success",deviceId:current.id||"xiaoxinpro16"},location.origin);
+          } finally { window[bridgeKey]=null; state.sending=false; try{window.__lxSaveConversationNow();}catch(_e){} }
         }
 
         async function lxRunUnifiedMemberAnswer() {
@@ -4090,7 +4141,7 @@ function openOrderDetail(orderId) {
 
         function lxEducationAuthRecommendationCard(kind) {
           const label = kind === "gaokao" ? "高考生教育认证" : (kind === "teacher" ? "教师教育认证" : "教育认证");
-          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco" type="button" data-open-stuauth="${esc(kind)}" data-lx-result-id="modal:education-auth:${esc(kind)}" aria-label="打开${esc(label)}弹窗" aria-pressed="false"><span class="answer-cta-title">${esc(label)}</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco" type="button" data-lx-recommended-modal="education-auth" data-lx-recommended-modal-payload="${esc(kind)}" data-open-stuauth="${esc(kind)}" data-lx-result-id="modal:education-auth:${esc(kind)}" aria-label="打开${esc(label)}弹窗" aria-pressed="false"><span class="answer-cta-title">${esc(label)}</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
         }
 
         async function lxRunUnifiedEducationAuthAnswer(kind = "college") {
@@ -4131,7 +4182,7 @@ function openOrderDetail(orderId) {
               card.addEventListener("animationend", done, { once: true });
               window.setTimeout(done, 700);
             });
-            openStudentAuth(kind);
+            lxAutoOpenRecommendedModal("education-auth", kind);
           } finally {
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
@@ -4145,7 +4196,7 @@ function openOrderDetail(orderId) {
         }
 
         function lxWorkplaceAuthRecommendationCard() {
-          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-lx-recommended-modal="workplace-auth" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
         }
 
         async function lxRunUnifiedWorkplaceAuthAnswer() {
@@ -4186,7 +4237,7 @@ function openOrderDetail(orderId) {
               card.addEventListener("animationend", done, { once: true });
               window.setTimeout(done, 700);
             });
-            openWorkplaceAuth();
+            lxAutoOpenRecommendedModal("workplace-auth");
           } finally {
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
@@ -4210,6 +4261,15 @@ function openOrderDetail(orderId) {
           state.lastUserText = text;
           lxClearFollowups();
           addMessage("user", text);
+          // 设备绑定/维保是单一设备 Skill：在代买意图前截获，彻底停用旧多步任务调用面板。
+          if (/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(text)) {
+            await lxRunDeviceActionBridge("bind", window.__lxPendingDeviceBindBridge?.device);
+            return;
+          }
+          if (/^为.+推荐可购买的(?:保修|延保)商品[。！!]?$/.test(text)) {
+            await lxRunDeviceActionBridge("warranty", window.__lxPendingDeviceWarrantyBridge?.device);
+            return;
+          }
           // 多步任务链代买意图（收口 app-intent.matchAutoBuy，主面板/全屏共用一份 = 一套机制）
           // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
           // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
@@ -4282,6 +4342,8 @@ function openOrderDetail(orderId) {
             await lxRunUnifiedDevicesAnswer();
             return;
           }
+          if (/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(text)) { await lxRunDeviceActionBridge("bind",window.__lxPendingDeviceBindBridge?.device); return; }
+          if (/^为.+推荐可购买的(?:保修|延保)商品[。！!]?$/.test(text)) { await lxRunDeviceActionBridge("warranty",window.__lxPendingDeviceWarrantyBridge?.device); return; }
           if (/代金券/.test(text)) {
             await lxRunUnifiedVoucherAnswer();
             return;
@@ -11220,6 +11282,18 @@ async function openEduZone() {
                 const collapsed = box.classList.toggle("is-collapsed");
                 traceToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
               }
+              return;
+            }
+            // 所有推荐弹窗小卡统一走这一入口：关闭后点击原卡可再次打开。
+            // 新功能只需注册 opener，并在卡片上声明 action / payload。
+            const _recommendedModalCta = event.target.closest("[data-lx-recommended-modal]");
+            if (_recommendedModalCta) {
+              event.preventDefault();
+              event.stopPropagation();
+              lxOpenRecommendedModal(
+                _recommendedModalCta.getAttribute("data-lx-recommended-modal"),
+                _recommendedModalCta.getAttribute("data-lx-recommended-modal-payload") || ""
+              );
               return;
             }
             const _storeAppointmentCta = event.target.closest("[data-lx-store-appointment-confirm]");

@@ -394,11 +394,35 @@
     window.addEventListener("message", function (event) {
       if (event.origin !== window.location.origin) return;
       var payload = event.data;
-      if (!payload || payload.type !== "lexiang:profile-updated" || !payload.profile) return;
-      Object.assign(state.profile, payload.profile);
-      refreshRightView();
+      if (!payload) return;
+      if (payload.type === "lexiang:profile-updated" && payload.profile) { Object.assign(state.profile, payload.profile); refreshRightView(); return; }
+      if (payload.type === "lexiang:device-bind-success" && payload.deviceId === pendingPurchasedDevice.id) {
+        completePurchasedDeviceBindTransition(); return;
+      }
+      if (payload.type === "lexiang:device-warranty-success" && payload.deviceId) {
+        state.serviceMode = "warranty"; state.serviceDeviceId = payload.deviceId; state.warrantyDevicePickerOpen = false;
+        state.serviceCompare = []; state.serviceRecommended = "warrantyYear1"; openRightView("service");
+      }
     });
+    window.__lxCompleteDeviceBind = completePurchasedDeviceBindTransition;
     renderSug("");
+  }
+
+  function completePurchasedDeviceBindTransition() {
+    if (state.pendingDeviceBound) return;
+    var button = document.querySelector("[data-device-bind-purchased]");
+    if (button && button.dataset.bindSuccess !== "true") {
+      button.dataset.bindSuccess = "true";
+      button.disabled = true;
+      button.setAttribute("aria-label", "绑定成功");
+      button.innerHTML = '<img src="' + icons.check + '" alt="" style="display:block;width:20px;height:20px;margin:auto">';
+    }
+    window.setTimeout(function () {
+      state.pendingDeviceBound = true;
+      state.recentDeviceId = pendingPurchasedDevice.id;
+      deviceCatalog[pendingPurchasedDevice.id] = Object.assign({}, pendingPurchasedDevice);
+      refreshRightView();
+    }, 1000);
   }
 
   function handleClick(event) {
@@ -1073,7 +1097,12 @@
   async function runPurchasedDeviceBind(button) {
     if (state.pendingDeviceBound || button.disabled) return;
     button.disabled = true;
-    button.textContent = "正在绑定";
+    button.textContent = "正在调用 Skill";
+    var bindDevice = { id: pendingPurchasedDevice.id, name: pendingPurchasedDevice.name, product: pendingPurchasedDevice.product, sn: pendingPurchasedDevice.sn };
+    if (typeof window.__lxSubmitDeviceActionQuery === "function") {
+      window.__lxSubmitDeviceActionQuery("bind", "一键绑定小新 Pro 16", bindDevice);
+      return;
+    }
     var task = taskEnvelope("device-bind-purchased", { deviceId: pendingPurchasedDevice.id, source: "recognized-order" });
     document.body.dataset.activeRequest = task.requestId;
     enterChat();
@@ -1094,6 +1123,13 @@
   async function runWarrantyRecommendation(deviceId) {
     var device = deviceCatalog[deviceId];
     if (!device || !device.extensionEligible) return;
+    var warrantyButton = document.querySelector('[data-device-warranty="' + device.id + '"]');
+    if (warrantyButton) { warrantyButton.disabled = true; warrantyButton.textContent = "正在调用 Skill"; }
+    var warrantyDevice = { id: device.id, name: device.name, product: device.product, sn: device.sn, warranty: device.warranty, maintenanceReason: device.maintenanceReason || "保障节点推荐" };
+    if (typeof window.__lxSubmitDeviceActionQuery === "function") {
+      window.__lxSubmitDeviceActionQuery("warranty", "为" + device.name + "推荐可购买的保修商品", warrantyDevice);
+      return;
+    }
     var task = taskEnvelope("service-warranty-recommend", { deviceId: device.id, source: "member-device-card" });
     document.body.dataset.activeRequest = task.requestId;
     enterChat();
@@ -2364,6 +2400,13 @@
     embeddedHost.id = "leaiAuiView";
     embeddedHost.classList.add("leai-aui-view", "leai-aui-embedded");
     embeddedHost.hidden = false;
+    if (view === "service" && window.__lxPendingWarrantyDeviceId) {
+      state.serviceMode = "warranty";
+      state.serviceDeviceId = window.__lxPendingWarrantyDeviceId;
+      state.warrantyDevicePickerOpen = false;
+      state.serviceCompare = [];
+      state.serviceRecommended = "warrantyYear1";
+    }
     if (!document.querySelector("#leaiModal")) document.body.insertAdjacentHTML("beforeend", modalHtml());
     bindEmbeddedListeners();
     state.rightTabs = [view];
