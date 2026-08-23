@@ -673,7 +673,7 @@ if (!window.__lxCreateTypewriter) {
           node._timer = setTimeout(() => node.classList.remove("show"), 2400);
         }
 
-        const LX_MODAL_OVERLAY_BACKGROUND = "rgba(155, 142, 182, 0.62)";
+        const LX_MODAL_OVERLAY_BACKGROUND = "#190e21d1";
 
         function applyUnifiedModalOverlay(mask) {
           if (!mask) return mask;
