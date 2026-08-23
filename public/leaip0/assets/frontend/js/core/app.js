@@ -8905,10 +8905,11 @@ async function openEduZone() {
               .content[data-view="info"]:has(.lx-store-exact-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
               .content[data-view="info"]:has(.lx-store-exact-frame)>.lx-tabbar{flex:0 0 auto!important}
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+              .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
               .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
             </style>
             <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
-              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-parent-modal-shell" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
+              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-products-flat" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
             </div>`);
         }
 
@@ -8920,15 +8921,20 @@ async function openEduZone() {
           const store = window.__lxStoreAppointmentById?.[String(storeId || "")] || window.__lxPendingStoreAppointment;
           if (!store) return;
           const phone = store.phone || store.tel || "以门店公布信息为准";
-          openModal("预约到店", `<div class="lx-store-confirm-modal">
-            <p class="lx-store-confirm-subtitle">请确认预约信息</p>
-            <div class="lx-store-confirm-summary">
-              <div class="lx-store-confirm-row"><strong>预约门店</strong><span>${esc(store.name || "联想门店")}</span><i aria-hidden="true">›</i></div>
-              <div class="lx-store-confirm-row"><strong>到店时间</strong><span>2026-08-12 18:00</span><i aria-hidden="true">›</i></div>
-              <div class="lx-store-confirm-row"><strong>预约目的</strong><span>产品体验 · 用户想要去门店咨询商品信息</span><i aria-hidden="true">›</i></div>
+          openModal("预约到店", `<div class="lx-lead-modal">
+            <p class="lx-lead-subtitle">请确认预约信息，门店将在营业时间内与你联系。</p>
+            <div class="lx-lead-form">
+              <label class="lx-lead-row"><span>预约门店</span><select aria-label="预约门店"><option selected>${esc(store.name || "联想门店")}</option></select></label>
+              <label class="lx-lead-row"><span>到店日期</span><input type="date" value="2026-08-12" aria-label="到店日期"></label>
+              <label class="lx-lead-row"><span>到店时段</span><select aria-label="到店时段"><option>10:00–12:00</option><option>14:00–16:00</option><option selected>16:00–18:00</option></select></label>
+              <label class="lx-lead-row"><span>预约目的</span><select aria-label="预约目的"><option selected>产品体验</option><option>购买咨询</option><option>售后服务</option><option>企业采购</option></select></label>
+              <label class="lx-lead-row"><span>联系电话</span><input value="${esc(phone)}" aria-label="联系电话"></label>
             </div>
-            <div class="lx-store-confirm-foot"><span>联系电话：${esc(phone)}</span><button class="lx-p0-btn primary" type="button" data-lx-store-confirm-submit>确认预约</button></div>
-          </div>`);
+            <div class="lx-lead-actions">
+              <button class="lx-lead-cancel" type="button" data-modal-close>取消</button>
+              <button class="lx-lead-submit" type="button" data-lx-store-confirm-submit>确认预约</button>
+            </div>
+          </div>`, { skin: "lead" });
           requestAnimationFrame(() => {
             document.querySelector("[data-lx-store-confirm-submit]")?.addEventListener("click", () => {
               closeModal();
@@ -8942,6 +8948,10 @@ async function openEduZone() {
           window.addEventListener("message", (event) => {
             const frame = lxStoreExactFrame();
             if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
+            if (event.data?.type === "lx-store-detail-state") {
+              frame.closest(".info-page")?.classList.toggle("lx-store-detail-active", event.data.active === true);
+              return;
+            }
             if (event.data?.type !== "lx-store-appointment-query" || !event.data.store) return;
             const store = event.data.store;
             window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
@@ -10043,8 +10053,8 @@ async function openEduZone() {
               else if (text.includes("企业采购")) sendChat("我要企业批量采购，介绍下企业购的价格和流程");
               else if (text.includes("上门售后")) sendChat("企业设备的上门售后服务怎么约？");
               else if (text.includes("客服")) lxShowServiceCard();
-              else if (text.includes("门店")) openStoresPanel();
-              else if (text.includes("会员")) openMemberCenter();
+              else if (text.includes("门店")) sendChat("门店");
+              else if (text.includes("会员")) sendChat("会员中心");
               else if (text.includes("私人订制") || text.includes("定制")) sendChat("我想私人订制一台联想电脑，先按用途给我配置方案");
               else if (text) sendChat(text);
             }
