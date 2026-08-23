@@ -966,6 +966,7 @@
       open_member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
       coupon: { feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" },
       open_coupon: { feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" },
+      points: { feature: "points", title: "查看乐豆详情", desc: "可用 2,580 · 近 30 天 +860 / -300" },
       cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
       open_cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
       orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" },
@@ -977,7 +978,7 @@
 
   function renderLxfdPageCta(meta) {
     if (!meta) return "";
-    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", points: "info:points", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
     const resultId = resultIds[meta.feature] || "";
     const resultAttr = resultId ? ` data-lx-result-id="${escapeAttr(resultId)}" data-lx-open-tab="${escapeAttr(resultId)}" aria-pressed="false"` : "";
     return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}"${resultAttr} aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
@@ -1475,6 +1476,28 @@
       chatState.sending = false;
       lxfdExportToMain();
       exitFullscreenWithReveal(() => lxfdRevealFeature("coupon"));
+      return;
+    }
+
+    if (/乐豆|积分余额|乐豆余额/.test(value)) {
+      chatState.sending = true;
+      const pointsAi = document.createElement("div");
+      pointsAi.className = "lxfd-msg-ai";
+      pointsAi._loadingStarted = Date.now() - 5000;
+      pointsAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(pointsAi);
+      pointsAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdAnimateFinal(pointsAi, "已为你查询当前账户的**乐豆资产**：现有 2,580 乐豆，近 30 天获得 860、使用 300。你可以继续查看获取与使用记录，以及当前适用规则。");
+      const pointsBody = pointsAi.querySelector(".lxfd-ai-body");
+      if (pointsBody) {
+        pointsBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "points", title: "查看乐豆详情", desc: "可用 2,580 · 近 30 天 +860 / -300" }));
+        pointsBody.querySelector('[data-lx-result-id="info:points"]')?.classList.add("lx-document-card-enter");
+      }
+      lxfdPersistCurrent();
+      await lxfdWait(reduceMotion ? 0 : 720);
+      chatState.sending = false;
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => lxfdRevealFeature("points"));
       return;
     }
 

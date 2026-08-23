@@ -3559,6 +3559,40 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedPointsAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const pointsCopy = "已为你查询当前账户的**乐豆资产**：现有 2,580 乐豆，近 30 天获得 860、使用 300。你可以继续查看获取与使用记录，以及当前适用规则。";
+          const pointsCard = renderPageCta({
+            title: "查看乐豆详情",
+            desc: "可用 2,580 · 近 30 天 +860 / -300",
+            attr: 'data-lx-open-tab="info:points" data-lxfd-open-feature="points" aria-label="查看乐豆详情页面"'
+          });
+          try {
+            const answerNode = addMessage("assistant", pointsCopy);
+            if (answerNode?._typingDone) await answerNode._typingDone;
+            lxAppendAiHtml(answerNode, pointsCard);
+            const cardNode = answerNode?.querySelector('[data-lx-result-id="info:points"]');
+            cardNode?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!cardNode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              cardNode.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxRevealContent();
+            openPointsCenter();
+            lxSyncAnswerCtaActiveState("info:points");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -3628,6 +3662,10 @@ function openOrderDetail(orderId) {
           }
           if (/优惠券|代金券|限时红包/.test(text)) {
             await lxRunUnifiedCouponAnswer();
+            return;
+          }
+          if (/乐豆|积分余额|乐豆余额/.test(text)) {
+            await lxRunUnifiedPointsAnswer();
             return;
           }
           if (/会员/.test(text)) {
@@ -8744,6 +8782,20 @@ async function openEduZone() {
           lxOpenInfoTab("coupon", "优惠券", html);
         }
 
+        function openPointsCenter() {
+          const html = `<style>
+              .content[data-view="info"]:has(.lx-points-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+              .content[data-view="info"]:has(.lx-points-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
+              .content[data-view="info"] .info-page:has(.lx-points-detail-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+              .content[data-view="info"] .info-page:has(.lx-points-detail-frame)::before,
+              .content[data-view="info"] .info-page:has(.lx-points-detail-frame)::after{display:none!important;content:none!important}
+            </style>
+            <div class="lx-points-detail-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
+              <iframe src="/member-service-aui/index.html?embed=points&amp;v=20260823-points-detail" title="乐豆详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+            </div>`;
+          lxOpenInfoTab("points", "乐豆", html);
+        }
+
         // 取浏览器真实定位（没有就现场请求一次，弹授权框）；失败返回 null
         function lxRequestGeo(timeoutMs = 8000) {
           if (window.__lxGeo && window.__lxGeo.lat) return Promise.resolve(window.__lxGeo);
@@ -11255,6 +11307,7 @@ async function openEduZone() {
         window.__lxOpenFeature = function(op) {
           if (op === 'member') openMemberCenter();
           else if (op === 'coupon') openCouponCenter();
+          else if (op === 'points') openPointsCenter();
           else if (op === 'solution') openSolutionCenter();
           else if (op === 'edu') openEduZone();
           else if (op === 'stores') openStoresPanel();
