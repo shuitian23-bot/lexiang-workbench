@@ -8815,7 +8815,7 @@ async function openEduZone() {
               .content[data-view="info"] .info-page:has(.lx-coupon-detail-frame)::after{display:none!important;content:none!important}
             </style>
             <div class="lx-coupon-detail-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-              <iframe src="/member-service-aui/index.html?embed=coupons&amp;v=20260823-coupon-detail" title="优惠券详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+              <iframe src="/member-service-aui/index.html?embed=coupons&amp;v=20260823-asset-content-only" title="优惠券详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
             </div>`;
           lxOpenInfoTab("coupon", "优惠券", html);
         }
@@ -8829,7 +8829,7 @@ async function openEduZone() {
               .content[data-view="info"] .info-page:has(.lx-points-detail-frame)::after{display:none!important;content:none!important}
             </style>
             <div class="lx-points-detail-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-              <iframe src="/member-service-aui/index.html?embed=points&amp;v=20260823-points-detail" title="乐豆详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+              <iframe src="/member-service-aui/index.html?embed=points&amp;v=20260823-asset-content-only" title="乐豆详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
             </div>`;
           lxOpenInfoTab("points", "乐豆", html);
         }
@@ -8843,7 +8843,7 @@ async function openEduZone() {
               .content[data-view="info"] .info-page:has(.lx-voucher-detail-frame)::after{display:none!important;content:none!important}
             </style>
             <div class="lx-voucher-detail-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
-              <iframe src="/member-service-aui/index.html?embed=vouchers&amp;v=20260823-voucher-detail" title="代金券详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+              <iframe src="/member-service-aui/index.html?embed=vouchers&amp;v=20260823-asset-content-only" title="代金券详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
             </div>`;
           lxOpenInfoTab("vouchers", "代金券", html);
         }
