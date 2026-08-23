@@ -1485,8 +1485,6 @@
 
     if (/^我的设备[。！!]?$/.test(value)) {
       chatState.sending = true;
-      // 全屏层仍可见时先在其下方创建并加载设备结果页，退出时不会闪出商城首页。
-      if (typeof window.__lxOpenDevicesResult === "function") window.__lxOpenDevicesResult();
       const deviceAi = document.createElement("div");
       deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
       deviceAi._loadingStarted = Date.now();

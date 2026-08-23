@@ -2411,7 +2411,7 @@ function openOrderDetail(orderId) {
               const link = document.createElement("link");
               link.id = cssId;
               link.rel = "stylesheet";
-              link.href = "/member-service-aui/assets/member-service-aui.css?v=20260823-profile-modal-compact-v1";
+              link.href = "/member-service-aui/assets/member-service-aui.css?v=20260823-shared-component-v1";
               document.head.appendChild(link);
             }
             const existing = document.getElementById("lx-member-component-runtime");
