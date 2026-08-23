@@ -964,8 +964,8 @@
       open_stores: { feature: "stores", title: "查看附近门店", desc: "已为你打开门店查询页面" },
       member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
       open_member: { feature: "member", title: "查看会员中心", desc: "已为你打开会员权益与资产" },
-      coupon: { feature: "coupon", title: "查看优惠与活动", desc: "已在右侧打开可领取权益" },
-      open_coupon: { feature: "coupon", title: "查看优惠与活动", desc: "已在右侧打开可领取权益" },
+      coupon: { feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" },
+      open_coupon: { feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" },
       cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
       open_cart: { feature: "cart", title: "查看购物车", desc: "已为你打开购物车" },
       orders: { feature: "orders", title: "查看我的订单", desc: "已为你打开订单页面" },
@@ -977,7 +977,7 @@
 
   function renderLxfdPageCta(meta) {
     if (!meta) return "";
-    const resultIds = { solution: "info:solution", member: "info:member", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
     const resultId = resultIds[meta.feature] || "";
     const resultAttr = resultId ? ` data-lx-result-id="${escapeAttr(resultId)}" data-lx-open-tab="${escapeAttr(resultId)}" aria-pressed="false"` : "";
     return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}"${resultAttr} aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
@@ -1453,6 +1453,28 @@
 
     if (lxfdIsNearbyStoreQuery(value)) {
       await lxfdRunUnifiedStoreAnswer();
+      return;
+    }
+
+    if (/优惠券|代金券|限时红包/.test(value)) {
+      chatState.sending = true;
+      const couponAi = document.createElement("div");
+      couponAi.className = "lxfd-msg-ai";
+      couponAi._loadingStarted = Date.now() - 5000;
+      couponAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(couponAi);
+      couponAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdAnimateFinal(couponAi, "已为你查询当前账户的**优惠券资产**：共有 3 张可用券，其中 1 张将在 7 天后到期。你可以查看每张券的使用门槛、适用范围和有效期。");
+      const couponBody = couponAi.querySelector(".lxfd-ai-body");
+      if (couponBody) {
+        couponBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "coupon", title: "查看优惠券详情", desc: "3 张可用 · 1 张即将到期" }));
+        couponBody.querySelector('[data-lx-result-id="info:coupon"]')?.classList.add("lx-document-card-enter");
+      }
+      lxfdPersistCurrent();
+      await lxfdWait(reduceMotion ? 0 : 720);
+      chatState.sending = false;
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => lxfdRevealFeature("coupon"));
       return;
     }
 

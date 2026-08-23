@@ -2289,9 +2289,9 @@
     });
     window.addEventListener("focus", refreshStudentAuthState);
     window.setInterval(refreshStudentAuthState, 1000);
-    if (new URLSearchParams(location.search).get("embed") === "member") {
-      window.setTimeout(function () { openRightView("member"); }, 0);
-    }
+    var embedView = new URLSearchParams(location.search).get("embed");
+    if (embedView === "member") window.setTimeout(function () { openRightView("member"); }, 0);
+    if (embedView === "coupons") window.setTimeout(function () { openRightView("asset:coupons"); }, 0);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootMemberEmbed);

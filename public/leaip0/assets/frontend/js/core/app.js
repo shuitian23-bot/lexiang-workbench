@@ -3525,6 +3525,40 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedCouponAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const couponCopy = "已为你查询当前账户的**优惠券资产**：共有 3 张可用券，其中 1 张将在 7 天后到期。你可以查看每张券的使用门槛、适用范围和有效期。";
+          const couponCard = renderPageCta({
+            title: "查看优惠券详情",
+            desc: "3 张可用 · 1 张即将到期",
+            attr: 'data-lx-open-tab="info:coupon" data-lxfd-open-feature="coupon" aria-label="查看优惠券详情页面"'
+          });
+          try {
+            const answerNode = addMessage("assistant", couponCopy);
+            if (answerNode?._typingDone) await answerNode._typingDone;
+            lxAppendAiHtml(answerNode, couponCard);
+            const cardNode = answerNode?.querySelector('[data-lx-result-id="info:coupon"]');
+            cardNode?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!cardNode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              cardNode.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxRevealContent();
+            openCouponCenter();
+            lxSyncAnswerCtaActiveState("info:coupon");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -3590,6 +3624,10 @@ function openOrderDetail(orderId) {
           }
           if (lxIsNearbyStoreQuery(text)) {
             await lxRunUnifiedStoreAnswer();
+            return;
+          }
+          if (/优惠券|代金券|限时红包/.test(text)) {
+            await lxRunUnifiedCouponAnswer();
             return;
           }
           if (/会员/.test(text)) {
@@ -3685,6 +3723,10 @@ function openOrderDetail(orderId) {
               await lxRunUnifiedSolutionAnswer();
               return;
             }
+            if (_localCtrl.op === "open_coupon") {
+              await lxRunUnifiedCouponAnswer();
+              return;
+            }
             lxExecControl(_localCtrl.op, _localCtrl.target || "");
             if (_localCtrl.op !== "buy_current" && _localCtrl.op !== "buy_recommended" && _localCtrl.op !== "buy_nth") lxAddInstantAi(_localCtrl.msg);
             // state.sending 此时仍为 false（还没设置），直接 return 即可
@@ -3734,6 +3776,10 @@ function openOrderDetail(orderId) {
                 ai.remove(); // 移除 loading 气泡
                 if (_intentResult.op === "open_solution") {
                   await lxRunUnifiedSolutionAnswer();
+                  return;
+                }
+                if (_intentResult.op === "open_coupon") {
+                  await lxRunUnifiedCouponAnswer();
                   return;
                 }
                 const _opNames = { close_all_tabs: "关闭了所有页面标签", close_other_tabs: "关闭了其他标签，只留当前", go_home: "回到了首页", open_cart: "打开了购物车", open_orders: "打开了订单页面", open_member: "打开了会员中心", open_coupon: "打开了优惠券中心", open_stores: "打开了门店查询", open_edu_zone: "打开了教育专区", open_product: `正在帮你打开「${_intentResult.target || "该商品"}」`, enter_fullscreen: "切换到全屏对话模式", exit_fullscreen: "退出了全屏模式", buy_current: "正在为你下单当前商品", buy_recommended: "正在为你下单乐享推荐商品", buy_nth: "正在为你处理所选商品", compare_nth: `正在为你对比第 ${String(_intentResult.target || "").split(",").join("、")} 个商品` };
@@ -8685,19 +8731,17 @@ async function openEduZone() {
         }
 
         function openCouponCenter() {
-          const defaults = [
-            { name: "国补教育特惠", desc: "按学生/教师/地区判断可叠加优惠", value: "最高 15%" },
-            { name: "以旧换新补贴", desc: "旧机估值后抵扣新机订单", value: "估值抵扣" },
-            { name: "会员新人券", desc: "注册登录后自动进入券包", value: "¥200" },
-            { name: "12 期免息", desc: "以结算页显示为准", value: "免息" }
-          ];
-          lxOpenInfoTab("coupon", "优惠与活动", `
-            <div class="lx-p1-grid">
-              ${defaults.map((item) => `<div class="lx-p1-card"><strong>${item.name}</strong><span>${item.value} · ${item.desc}</span><button class="lx-p0-btn" style="margin-top:10px" data-claim-coupon="${esc(item.name)}">领取/咨询</button></div>`).join("")}
-            </div>
-            <div class="lx-p0-actions">
-              <button class="lx-p0-btn primary" data-quick-ask="帮我按当前商品、身份和地区计算可叠加优惠">AI 计算叠加优惠</button>
-            </div>`);
+          const html = `<style>
+              .content[data-view="info"]:has(.lx-coupon-detail-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+              .content[data-view="info"]:has(.lx-coupon-detail-frame)>.lx-tabbar{flex:0 0 auto!important}
+              .content[data-view="info"] .info-page:has(.lx-coupon-detail-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+              .content[data-view="info"] .info-page:has(.lx-coupon-detail-frame)::before,
+              .content[data-view="info"] .info-page:has(.lx-coupon-detail-frame)::after{display:none!important;content:none!important}
+            </style>
+            <div class="lx-coupon-detail-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
+              <iframe src="/member-service-aui/index.html?embed=coupons&amp;v=20260823-coupon-detail" title="优惠券详情" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+            </div>`;
+          lxOpenInfoTab("coupon", "优惠券", html);
         }
 
         // 取浏览器真实定位（没有就现场请求一次，弹授权框）；失败返回 null
