@@ -9132,6 +9132,10 @@ async function openEduZone() {
             lxOpenInfoTab("member", "会员中心", `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`);
             return;
           }
+          // 会员中心已有完整的站内组件，直接渲染；不再先载入商城 iframe 再异步切页。
+          // 原 iframe 入口约 15MB，且脚本末尾才处理 embed=member，会造成商城闪现、空白和明显延迟。
+          lxOpenInfoTab("member", "会员中心", lxRenderVipSkin());
+          return;
           const html = `<style>
                 .content[data-view="info"]:has(.lx-member-service-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
                 .content[data-view="info"]:has(.lx-member-service-frame)>.lx-tabbar{flex:0 0 auto!important}
