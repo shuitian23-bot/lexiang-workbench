@@ -1027,10 +1027,6 @@
 
   function runMemberTask(type, trigger) {
     if (type !== "student") return;
-    if (embeddedHost) {
-      openStudentModal(trigger);
-      return;
-    }
     runRightIdentityTask(trigger);
   }
 
@@ -1572,14 +1568,6 @@
   }
 
   function openStudentModal(trigger) {
-    if (embeddedHost) {
-      window.postMessage({
-        type: "lexiang:open-student-auth",
-        kind: "college",
-        source: "member-service-component"
-      }, window.location.origin);
-      return;
-    }
     // 会员中心运行在右侧 iframe 中；全局认证弹窗由外层应用承载，
     // 否则 position: fixed 也只能覆盖 iframe 自身。
     if (window.parent && window.parent !== window) {

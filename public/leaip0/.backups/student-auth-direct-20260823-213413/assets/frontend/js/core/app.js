@@ -2422,7 +2422,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-member-component-runtime";
-            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-student-auth-direct-v1";
+            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-shared-component-v1";
             script.async = true;
             script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
             script.onerror = () => reject(new Error("会员组件加载失败"));
