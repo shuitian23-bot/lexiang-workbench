@@ -2769,7 +2769,7 @@ function openOrderDetail(orderId) {
           if (list) list.scrollTop = list.scrollHeight;
         }
 
-        function renderProductsInMessage(products) {
+        function renderProductsInMessage(products, options = {}) {
           if (!Array.isArray(products) || !products.length) return "";
           const first = products[0] || {};
           const recoId = lxStoreRecoPayload(products);
@@ -2778,12 +2778,15 @@ function openOrderDetail(orderId) {
           const action = products.length === 1 && first.sku
             ? `data-open-product="${esc(first.sku)}" data-lxfd-reco-id="${esc(recoId)}" data-lx-result-id="detail:${esc(first.sku)}"`
             : `data-lx-focus-reco="1" data-lxfd-reco-id="${esc(recoId)}" data-lx-result-id="${esc(lxRecoTabId(recoId))}"`;
-          const desc = products.length === 1
+          const isServiceProduct = !!options.serviceProduct;
+          const desc = isServiceProduct
+            ? `已为你推荐 ${products.length} 款服务商品`
+            : products.length === 1
             ? `${esc(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
             : `已为你筛选 ${products.length} 款候选商品`;
           return `<button class="answer-cta lx-answer-reco" type="button" ${action}>
             <span class="answer-cta-copy">
-              <span class="answer-cta-title">查看推荐商品</span>
+              <span class="answer-cta-title">${isServiceProduct ? "查看推荐服务商品" : "查看推荐商品"}</span>
               <span class="answer-cta-desc">${desc}</span>
             </span>
             <span class="answer-cta-icon" aria-hidden="true">
@@ -3473,8 +3476,8 @@ function openOrderDetail(orderId) {
 
         function lxServiceIntakeChoicesHtml() {
           return `<style data-lx-service-intake-style>
-            .lx-service-intake{width:100%;max-width:760px;margin:16px 0 0;border-top:1px solid #E2DDEB;border-bottom:1px solid #E2DDEB;background:#FFFFFF}
-            .lx-service-intake .lx-service-intake-item{display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:12px;padding:14px 4px;border:0;border-bottom:1px solid #E2DDEB;border-radius:0;background:#FFFFFF}
+            .lx-service-intake{width:100%;max-width:760px;margin:16px 0 0;border:1px solid #E2DDEB;border-radius:10px;background:#FFFFFF;overflow:hidden}
+            .lx-service-intake .lx-service-intake-item{display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:12px;padding:16px;border:0;border-bottom:1px solid #E2DDEB;border-radius:0;background:#FFFFFF}
             .lx-service-intake .lx-service-intake-item:last-child{border-bottom:0}
             .lx-service-intake .lx-service-intake-index{display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#F3F0F7;color:#4D144A;font-size:12px;line-height:18px;font-weight:500}
             .lx-service-intake .lx-service-intake-copy{display:grid;grid-template-columns:minmax(168px,.72fr) minmax(0,1.28fr);align-items:center;gap:20px;min-width:0}
@@ -3490,7 +3493,7 @@ function openOrderDetail(orderId) {
             .lx-service-region-picker{display:grid;grid-template-rows:auto minmax(0,1fr) auto;width:100%;min-height:0;background:#FFFFFF}.lx-service-region-summary{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 22px;border-bottom:1px solid #E2DDEB;color:#606060;font-size:14px;line-height:22px}.lx-service-region-summary strong{color:#4D144A;font-weight:500}
             .lx-service-region-columns{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:0}.lx-service-provinces{padding:12px;border-right:1px solid #E2DDEB;overflow:auto;background:#FCFAFF}.lx-service-cities{padding:18px 20px;overflow:auto}.lx-service-region-section-title{display:block;margin:0 0 10px;color:#606060;font-size:13px;line-height:20px;font-weight:500}
             .lx-service-province-list{display:grid;gap:4px}.lx-service-province,.lx-service-city{font-family:inherit;font-weight:500;cursor:pointer}.lx-service-province{display:flex;align-items:center;width:100%;min-height:38px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#252525;font-size:14px;line-height:20px;text-align:left}.lx-service-province:hover,.lx-service-province:focus-visible{background:#F3F0F7;color:#4D144A;outline:none}.lx-service-province.is-current{background:#F3F0F7;color:#4D144A}
-            .lx-service-city-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.lx-service-city{min-height:42px;padding:0 12px;border:1px solid #E2DDEB;border-radius:7px;background:#FFFFFF;color:#252525;font-size:14px;line-height:20px}.lx-service-city:hover,.lx-service-city:focus-visible{border-color:#4D144A;background:#F3F0F7;outline:none}.lx-service-city.is-current{border-color:#D3BFD2;background:linear-gradient(96deg,#FCF2F8 22.83%,#E3EAFD 98.41%);color:#4D144A}
+            .lx-service-city-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.lx-service-city{min-height:42px;padding:0 12px;border:1px solid #E2DDEB;border-radius:7px;background:#FFFFFF;color:#252525;font-size:14px;line-height:20px}.lx-service-city:hover,.lx-service-city:focus-visible{border-color:#4D144A;background:#F3F0F7;outline:none}.lx-service-city.is-current{border-color:#D3BFD2;background:#F3F0F7;color:#4D144A}
             .lx-service-region-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #E2DDEB}.lx-service-region-action{min-width:76px;height:36px;padding:0 14px;border:1px solid #D3BFD2;border-radius:7px;background:#FFFFFF;color:#4D144A;font-family:inherit;font-size:14px;line-height:20px;font-weight:500;cursor:pointer}.lx-service-region-action:hover,.lx-service-region-action:focus-visible{border-color:#4D144A;background:#F3F0F7;outline:none}.lx-service-region-action.primary{border-color:#4D144A;background:#4D144A;color:#FFFFFF}
             @media(max-width:720px){.lx-service-intake .lx-service-intake-copy{grid-template-columns:1fr;gap:8px}.lx-service-region-columns{grid-template-columns:160px minmax(0,1fr)}.lx-service-city-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
           </style><section class="lx-service-intake" aria-label="清灰换硅脂服务信息确认">
@@ -3831,7 +3834,8 @@ function openOrderDetail(orderId) {
           // 多步任务链代买意图（收口 app-intent.matchAutoBuy，主面板/全屏共用一份 = 一套机制）
           // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
           // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
-          const _autoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
+          const _isServiceProductFollowup = /^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(text);
+          const _autoBuy = !_isServiceProductFollowup && window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
           if (_autoBuy) {
             // 代买链前置（件2）：不再等官方答案气泡"完事"才起链——这里就同步起跑 auto_buy_official
             // （runChain 首段同步 addAiMessage 先插卡，DOM 序 = 用户气泡→链卡→官方回答气泡）。
@@ -4170,7 +4174,7 @@ function openOrderDetail(orderId) {
                 _turnProdCount = Math.max(_turnProdCount, products.length);
                 _turnProducts = products;
                 revealAi();
-                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                lxAppendAiHtml(ai, renderProductsInMessage(products, { serviceProduct: _isServiceProductFollowup }));
                 const recoId = lxLatestRecoIdInMessage(ai);
                 if (products.length === 1 && products[0].sku) {
                   deferRightPanel(() => {
@@ -4210,7 +4214,7 @@ function openOrderDetail(orderId) {
                   if (payload.title && !ai._raw) {
                     ai._raw = payload.title;
                   }
-                  lxAppendAiHtml(ai, renderProductsInMessage(products));
+                  lxAppendAiHtml(ai, renderProductsInMessage(products, { serviceProduct: _isServiceProductFollowup }));
                   deferRightPanel(() => {
                     lxRevealContent();
                     lxUpsertCompareTab(products.slice(0, 8), payload.title || "商品参数对比");
@@ -4230,7 +4234,7 @@ function openOrderDetail(orderId) {
                 if (payload.title && !ai._raw) {
                   ai._raw = payload.title;
                 }
-                lxAppendAiHtml(ai, renderProductsInMessage(products));
+                lxAppendAiHtml(ai, renderProductsInMessage(products, { serviceProduct: _isServiceProductFollowup }));
                 const recoId = lxLatestRecoIdInMessage(ai);
                 // 所推即所见 + 最短路径：1 款直接打开商详，多款落「AI 推荐」专属结果页（PRD 5.2/6.5）
                 if (products.length === 1 && products[0].sku) {

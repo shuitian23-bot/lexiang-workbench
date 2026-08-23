@@ -926,7 +926,7 @@
     ta?.focus();
     lxfdRenderHist();
   }
-  function renderLxfdProducts(products) {
+  function renderLxfdProducts(products, options = {}) {
     if (!Array.isArray(products) || !products.length) return "";
     const first = products[0] || {};
     const recoId = "lxfd-reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
@@ -939,12 +939,15 @@
       store.push({ id: recoId, products: products.slice(0, 8).map((p) => ({ sku: p.sku, name: p.name, price: p.price, image_url: p.image_url || p.image, specs: p.specs, description: (p.description || "").slice(0, 400) })) });
       localStorage.setItem(key, JSON.stringify(store.slice(-8)));
     } catch (_e) {}
-    const desc = products.length === 1
+    const isServiceProduct = !!options.serviceProduct;
+    const desc = isServiceProduct
+      ? `已为你推荐 ${products.length} 款服务商品`
+      : products.length === 1
       ? `${escapeHtml(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
       : `已为你筛选 ${products.length} 款候选商品`;
     return `<button class="answer-cta lx-answer-reco" type="button" data-lxfd-reveal-products="1" data-lxfd-reco-id="${escapeHtml(recoId)}">
       <span class="answer-cta-copy">
-        <span class="answer-cta-title">查看推荐商品</span>
+        <span class="answer-cta-title">${isServiceProduct ? "查看推荐服务商品" : "查看推荐商品"}</span>
         <span class="answer-cta-desc">${desc}</span>
       </span>
       <span class="answer-cta-icon" aria-hidden="true">
@@ -1617,7 +1620,8 @@
     //    结构，右侧只有个光秃秃商城首页很突兀）。改为和普通提问一致——留在全屏走官方流式，
     //    用户看完整推荐回答；done 桥接分屏时才起链（officialWait 直接给已到手的商品，链 step1
     //    秒过），「对比→选款→下单」的执行视图在有内容可看时才出现。
-    const _lxfdAutoBuy = window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(value) : null;
+    const _lxfdServiceProductFollowup = /^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(value);
+    const _lxfdAutoBuy = !_lxfdServiceProductFollowup && window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(value) : null;
 
     // 1. 本地快路径（正则统一收口 app-intent.js，主面板/全屏共用一份，改一处两边同时生效）
     // 代买时跳过：句里"对比/下单"字样会被误判成 control 操作抢断官方推荐流（同主面板 _autoBuy 防护）
@@ -1883,7 +1887,7 @@
           if (_wantN && products.length > _wantN) products = products.slice(0, _wantN);
           if (!products.length) return;
           hasContent = true;
-          pendingExtras += renderLxfdProducts(products);
+          pendingExtras += renderLxfdProducts(products, { serviceProduct: _lxfdServiceProductFollowup });
           // 记录本轮商品以便 done 时桥接到主面板
           turnProducts = products;
           chatState.lastProducts = products;
@@ -1899,7 +1903,7 @@
           if (payload.title && !ai._raw) {
             ai._raw = payload.title;
           }
-          pendingExtras += renderLxfdProducts(products);
+          pendingExtras += renderLxfdProducts(products, { serviceProduct: _lxfdServiceProductFollowup });
           // 记录本轮商品及展示元信息以便 done 时桥接到主面板
           if (products.length) {
             turnProducts = products;
