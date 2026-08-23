@@ -3466,6 +3466,34 @@ function openOrderDetail(orderId) {
 
         const LX_SERVICE_INTAKE_REGION_KEY = "lexiang.serviceIntake.region.v1";
 
+        function lxInstallServiceIntakeSplitStyles() {
+          if (document.getElementById("lx-service-intake-split-styles")) return;
+          const style = document.createElement("style");
+          style.id = "lx-service-intake-split-styles";
+          style.textContent = `
+            html body .lx-service-intake{width:100%!important;max-width:820px!important;margin-top:18px!important;border:1px solid #E2DDEB!important;border-radius:8px!important;background:#FCFAFF!important;overflow:hidden!important}
+            html body .lx-service-intake .lx-service-intake-item{display:grid!important;grid-template-columns:28px minmax(0,1fr)!important;align-items:center!important;gap:16px!important;min-height:78px!important;padding:18px 22px!important;border-bottom:1px solid #E2DDEB!important;background:#FFFFFF!important}
+            html body .lx-service-intake .lx-service-intake-item:last-child{border-bottom:0!important}
+            html body .lx-service-intake .lx-service-intake-index{display:grid!important;place-items:center!important;width:28px!important;height:28px!important;border-radius:8px!important;background:#F3F0F7!important;color:#4D144A!important;font-size:13px!important;line-height:20px!important;font-weight:500!important}
+            html body .lx-service-intake .lx-service-intake-copy{display:grid!important;grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr)!important;align-items:center!important;gap:24px!important;min-width:0!important}
+            html body .lx-service-intake .lx-service-intake-copy>strong{display:block!important;color:#252525!important;font-size:15px!important;line-height:22px!important;font-weight:500!important;white-space:normal!important}
+            html body .lx-service-intake .lx-service-intake-actions{display:flex!important;align-items:center!important;flex-wrap:wrap!important;width:100%!important;min-width:0!important;gap:10px!important}
+            html body .lx-service-intake .lx-service-intake-btn{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;width:auto!important;max-width:100%!important;min-width:0!important;min-height:40px!important;height:auto!important;margin:0!important;padding:9px 14px!important;border:1px solid #E2DDEB!important;border-radius:8px!important;background:#FFFFFF!important;color:#4D144A!important;font-family:inherit!important;font-size:14px!important;line-height:20px!important;font-weight:500!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important;box-shadow:none!important;transition:background-color .16s ease,border-color .16s ease!important}
+            html body .lx-service-intake .lx-service-intake-btn.primary{border-color:#D3BFD2!important;background:#F3F0F7!important}
+            html body .lx-service-intake .lx-service-intake-btn:hover{border-color:#4D144A!important;background:#F3F0F7!important}
+            html body .lx-service-intake .lx-service-intake-btn:focus-visible{border-color:#4D144A!important;outline:2px solid #4D144A!important;outline-offset:2px!important}
+            .assistant-panel .lx-service-intake{max-width:none!important}
+            .assistant-panel .lx-service-intake .lx-service-intake-item{grid-template-columns:28px minmax(0,1fr)!important;align-items:start!important;gap:14px!important;min-height:0!important;padding:16px!important}
+            .assistant-panel .lx-service-intake .lx-service-intake-copy{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+            .assistant-panel .lx-service-intake .lx-service-intake-actions{gap:8px!important}
+            .assistant-panel .lx-service-intake [data-lx-service-region-open]{width:100%!important}
+            .reco-page.lx-service-reco-page .reco-head h2{margin:0 0 0 10px!important;font-size:22px!important;line-height:32px!important;font-weight:500!important;color:#252525!important;letter-spacing:0!important}
+            .reco-page.lx-service-reco-page .reco-row-main>strong{font-weight:500!important}
+          `;
+          document.head.appendChild(style);
+        }
+        lxInstallServiceIntakeSplitStyles();
+
         function lxIsServiceIntakeQuery(text) {
           return /^我想给拯救者游戏本清灰换硅脂[。！!]?$/.test(String(text || "").trim());
         }
@@ -3486,7 +3514,9 @@ function openOrderDetail(orderId) {
             .lxfd-ai-body .lx-service-intake .lx-service-intake-btn,.ai-body .lx-service-intake .lx-service-intake-btn,.lx-service-intake .lx-service-intake-btn{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;min-height:38px!important;margin:0!important;padding:0 13px!important;border:1px solid #D3BFD2!important;border-radius:7px!important;background:#FFFFFF!important;color:#4D144A!important;font-family:inherit!important;font-size:14px!important;line-height:20px!important;font-weight:500!important;cursor:pointer!important;text-align:left!important;box-shadow:none!important;transform:none!important}
             .lxfd-ai-body .lx-service-intake .lx-service-intake-btn:hover,.ai-body .lx-service-intake .lx-service-intake-btn:hover,.lx-service-intake .lx-service-intake-btn:hover{border-color:#4D144A!important;background:#F3F0F7!important}
             .lxfd-ai-body .lx-service-intake .lx-service-intake-btn:focus-visible,.ai-body .lx-service-intake .lx-service-intake-btn:focus-visible,.lx-service-intake .lx-service-intake-btn:focus-visible{border-color:#4D144A!important;outline:2px solid #4D144A!important;outline-offset:2px!important}
-            .lxfd-ai-body .lx-service-intake .lx-service-intake-btn.primary,.ai-body .lx-service-intake .lx-service-intake-btn.primary,.lx-service-intake .lx-service-intake-btn.primary{background:linear-gradient(96deg,#FCF2F8 22.83%,#E3EAFD 98.41%)!important}
+            .lxfd-ai-body .lx-service-intake .lx-service-intake-btn.primary,.ai-body .lx-service-intake .lx-service-intake-btn.primary,.lx-service-intake .lx-service-intake-btn.primary{background:#F3F0F7!important}
+            .assistant-panel .lx-service-intake .lx-service-intake-copy{grid-template-columns:1fr;gap:8px}
+            .assistant-panel .lx-service-intake .lx-service-intake-btn{max-width:100%;white-space:normal!important;word-break:keep-all}
             .lx-p0-modal.lx-service-region-dialog{display:flex!important;flex-direction:column!important;width:min(960px,calc(100vw - 64px))!important;height:min(620px,calc(100vh - 96px))!important;max-width:none!important;max-height:none!important;border:1px solid #E2DDEB!important;border-radius:8px!important;background:#FFFFFF!important;overflow:hidden!important}
             .lx-p0-modal.lx-service-region-dialog .lx-p0-modal-head{flex:0 0 72px;padding:0 24px;border-bottom:1px solid #E2DDEB}.lx-p0-modal.lx-service-region-dialog .lx-p0-modal-title{font-size:22px;line-height:32px;font-weight:500;color:#252525}
             .lx-p0-modal.lx-service-region-dialog .lx-p0-modal-body{display:flex;flex:1 1 auto;min-height:0;padding:0!important;overflow:hidden!important}
@@ -3568,6 +3598,38 @@ function openOrderDetail(orderId) {
           const query = `我的设备是拯救者 Y7000P 2025，所在地区是${lxServiceIntakeRegion()}，请推荐可购买、可预约的清灰换硅脂服务商品`;
           if (document.body.classList.contains("assistant-fullscreen") && typeof window.lxfdSubmit === "function") window.lxfdSubmit(query);
           else sendChat(query);
+        }
+
+        function lxServiceRecommendationProducts() {
+          return [
+            { sku:"SERVICE-CLEAN-169", name:"笔记本深度清灰", price:169, image_url:"/assets/img/shop-1.jpg", description:"拆机深度清洁，包含风扇、主板、键盘与机身表面等部位。", promotion_tags:["清灰/清洁"], official:true, category:"服务产品" },
+            { sku:"SERVICE-PASTE-299", name:"深度清灰 + 更换硅脂", price:299, image_url:"/assets/img/shop-2.jpg", description:"在深度清灰基础上更换散热硅脂，并完成清洁后开机检测。", promotion_tags:["清灰/换硅脂"], official:true, category:"服务产品" },
+            { sku:"SERVICE-CARE-129", name:"整机清洁保养服务", price:129, image_url:"/assets/img/shop-8.jpg", description:"完成外观、键盘、接口和散热风道基础清洁，并提供设备健康检查。", promotion_tags:["日常保养"], official:true, category:"服务产品" }
+          ];
+        }
+        window.__lxServiceRecommendationProducts = lxServiceRecommendationProducts;
+
+        async function lxRunServiceProductRecommendation(text) {
+          state.sending = true;
+          const region = (String(text || "").match(/所在地区是(.+?)，请推荐/) || [])[1] || lxServiceIntakeRegion();
+          const products = lxServiceRecommendationProducts();
+          const ai = addMessage("ai loading", "", renderGenerating("正在匹配可购买、可预约的服务商品…"));
+          try {
+            const reply = `已按“拯救者游戏本 + **${region}** + **深度清灰/换硅脂**”匹配服务商品。你可以比较服务内容、适用性与预约方式。`;
+            await lxAnimateAiFinal(ai, mdLite(reply));
+            const body = lxEnsureAiBody(ai);
+            body.insertAdjacentHTML("beforeend", renderProductsInMessage(products, { serviceProduct: true }));
+            const recoId = lxLatestRecoIdInMessage(ai);
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            lxRevealContent();
+            const recoTab = lxCreateRecoTab(products, { label: "推荐服务产品", recoId });
+            lxUpsertTab(recoTab);
+            lxRunTab(recoTab);
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
         }
 
         window.__lxServiceIntake = { renderChoices: lxServiceIntakeChoicesHtml, openRegion: lxOpenServiceRegionPicker, fillOtherDevice: lxFillServiceOtherDevice, sendSelectedDevice: lxSendSelectedServiceDevice };
@@ -3835,6 +3897,10 @@ function openOrderDetail(orderId) {
           // 推荐环节改走官方推荐流（走下面正常的 /api/leai/stream，商品由 products/display 事件带回），
           // 不再本地拉商品库；这里只标记 pending，SSE done 时自研接管「对比→选款→下单」。
           const _isServiceProductFollowup = /^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(text);
+          if (_isServiceProductFollowup) {
+            await lxRunServiceProductRecommendation(text);
+            return;
+          }
           const _autoBuy = !_isServiceProductFollowup && window.__lxIntent && window.__lxIntent.matchAutoBuy ? window.__lxIntent.matchAutoBuy(text) : null;
           if (_autoBuy) {
             // 代买链前置（件2）：不再等官方答案气泡"完事"才起链——这里就同步起跑 auto_buy_official
@@ -8386,7 +8452,9 @@ async function openEduZone() {
         function lxRenderRecoPage(tab) {
           const pageBox = lxEnsureRecoPage();
           const products = Array.isArray(tab.products) ? tab.products : [];
-          const disclaimer = `<p class="lx-p0-disclaimer">推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。</p>`;
+          const isServiceReco = products.length > 0 && products.every((p) => String(p?.sku || "").startsWith("SERVICE-"));
+          pageBox.classList.toggle("lx-service-reco-page", isServiceReco);
+          const disclaimer = `<p class="lx-p0-disclaimer">${isServiceReco ? "推荐由联想乐享基于当前设备与地区条件生成；价格、适用性、库存与履约范围以服务商品详情页和结算页为准。" : "推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。"}</p>`;
           // 官方商品存入缓存，供 data-open-product 点击时取对象（避免 sku fetch 404）
           state.officialProducts = state.officialProducts || {};
           products.forEach((p) => { if (p && p.official && p.sku) state.officialProducts[p.sku] = p; });
@@ -8414,10 +8482,10 @@ async function openEduZone() {
             return;
           }
 
-          const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>根据你的需求挑出 ${products.length} 款，可继续追问缩小范围</span></div>`;
+          const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>${isServiceReco ? `已按设备与地区匹配 ${products.length} 款服务商品` : `根据你的需求挑出 ${products.length} 款，可继续追问缩小范围`}</span></div>`;
           if (products.length <= 6) {
             const cmpN = Math.min(products.length, 8);
-            const compareAll = products.length >= 2
+            const compareAll = !isServiceReco && products.length >= 2
               ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, cmpN).map((p) => p.sku).join(","))}">对比这 ${cmpN} 款</button></div>`
               : "";
             pageBox.innerHTML = intro + products.map((p) => `
@@ -8437,7 +8505,9 @@ async function openEduZone() {
                 <div class="reco-row-side">
                   <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
                   <div class="reco-row-actions">
-                    ${p.official
+                    ${isServiceReco
+                      ? `<button class="lx-p0-btn" type="button" data-open-product="${esc(p.sku)}">查看详情</button><button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">立即购买</button>`
+                      : p.official
                       ? `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">立即购买</button>`
                       : `<button class="lx-p0-btn primary" type="button" data-open-product="${esc(p.sku)}">看详情</button><button class="lx-p0-btn" type="button" data-reco-compare="${esc(p.sku)}">加对比</button>`}
                   </div>

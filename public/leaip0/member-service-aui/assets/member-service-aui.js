@@ -1880,6 +1880,8 @@
 
   function decorateSecondaryPage(view, html) {
     var parent = secondaryParentView(view);
+    var queryOrigin = new URLSearchParams(location.search).get("origin") === "query";
+    if (queryOrigin && view === "devices") return html;
     if (!parent || /data-secondary-back/.test(html)) return html;
     var parentLabel = rightViewLabel(parent);
     return html.replace(/<h1 class="([^"]*\bleai-page-title\b[^"]*)"([^>]*)>([\s\S]*?)<\/h1>/, function (_, classes, attributes, title) {
@@ -2293,6 +2295,7 @@
     window.setInterval(refreshStudentAuthState, 1000);
     var embedView = new URLSearchParams(location.search).get("embed");
     if (embedView === "member") window.setTimeout(function () { openRightView("member"); }, 0);
+    if (embedView === "devices") window.setTimeout(function () { openRightView("devices"); }, 0);
     if (embedView === "coupons") window.setTimeout(function () { openRightView("asset:coupons"); }, 0);
     if (embedView === "points") window.setTimeout(function () { openRightView("asset:points"); }, 0);
     if (embedView === "vouchers") window.setTimeout(function () { openRightView("asset:vouchers"); }, 0);

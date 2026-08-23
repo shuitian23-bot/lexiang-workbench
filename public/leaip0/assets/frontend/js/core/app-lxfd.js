@@ -983,7 +983,7 @@
 
   function renderLxfdPageCta(meta) {
     if (!meta) return "";
-    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+    const resultIds = { solution: "info:solution", member: "info:member", devices: "info:devices", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
     const resultId = resultIds[meta.feature] || "";
     const resultAttr = resultId ? ` data-lx-result-id="${escapeAttr(resultId)}" data-lx-open-tab="${escapeAttr(resultId)}" aria-pressed="false"` : "";
     return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}"${resultAttr} aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
@@ -1456,6 +1456,69 @@
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {}
+
+    const serviceProductFollowup = /^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(value);
+    if (serviceProductFollowup) {
+      chatState.sending = true;
+      const products = typeof window.__lxServiceRecommendationProducts === "function" ? window.__lxServiceRecommendationProducts() : [];
+      const region = (value.match(/所在地区是(.+?)，请推荐/) || [])[1] || "当前地区";
+      const serviceAi = document.createElement("div");
+      serviceAi.className = "lxfd-msg-ai lx-chat-skin";
+      serviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(serviceAi);
+      try {
+        await lxfdAnimateFinal(serviceAi, `已按“拯救者游戏本 + **${region}** + **深度清灰/换硅脂**”匹配服务商品。你可以比较服务内容、适用性与预约方式。`);
+        const body = serviceAi.querySelector(".lxfd-ai-body");
+        if (body) body.insertAdjacentHTML("beforeend", renderLxfdProducts(products, { serviceProduct: true }));
+        const card = body?.querySelector("[data-lxfd-reco-id]");
+        const recoId = card?.getAttribute("data-lxfd-reco-id") || "";
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        lxfdPersistCurrent();
+        lxfdExportToMain();
+        await lxfdWait(reduceMotion ? 0 : 560);
+        exitFullscreenWithReveal(() => window.__lxBridge?.revealProducts?.(products, { title: "推荐服务产品", recoId }));
+      } finally {
+        chatState.sending = false;
+      }
+      return;
+    }
+
+    if (/^我的设备[。！!]?$/.test(value)) {
+      chatState.sending = true;
+      const deviceAi = document.createElement("div");
+      deviceAi.className = "lxfd-msg-ai lx-chat-skin";
+      deviceAi.classList.add("lx-device-query-answer");
+      deviceAi._loadingStarted = Date.now();
+      deviceAi._traceLines = ["联想乐享正在判断你的设备资产需求"];
+      deviceAi._traceSkills = new Set();
+      deviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(deviceAi);
+      lxfdRenderTraceLive(deviceAi);
+      deviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdWait(reduceMotion ? 0 : 420);
+      deviceAi._traceLines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+      lxfdRenderTraceLive(deviceAi);
+      await lxfdWait(reduceMotion ? 0 : 520);
+      deviceAi._traceSkills.add("Skill(设备资产查询)");
+      deviceAi._traceLines.push("联想乐享官方 SKILL：正在调用 Skill(设备资产查询)");
+      lxfdRenderTraceLive(deviceAi);
+      await lxfdWait(reduceMotion ? 0 : 760);
+      deviceAi._traceLines[deviceAi._traceLines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产查询) 已完成";
+      deviceAi._traceCollapsed = true;
+      lxfdRenderTraceLive(deviceAi);
+      await lxfdAnimateFinal(deviceAi, "当前账号共有**8 台已绑定设备**，另有**1 台待绑定**。最近使用的是 ThinkBook 16p、拯救者 Y7000P、YOGA Air 14s；右侧已打开设备列表。");
+      const deviceBody = deviceAi.querySelector(".lxfd-ai-body");
+      if (deviceBody) {
+        deviceBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "devices", title: "查看我的设备", desc: "8 台已绑定 · 1 台待绑定" }));
+        deviceBody.querySelector('[data-lx-result-id="info:devices"]')?.classList.add("lx-document-card-enter");
+      }
+      lxfdPersistCurrent();
+      await lxfdWait(reduceMotion ? 0 : 720);
+      chatState.sending = false;
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => lxfdRevealFeature("devices"));
+      return;
+    }
 
     if (lxfdIsNearbyStoreQuery(value)) {
       await lxfdRunUnifiedStoreAnswer();
