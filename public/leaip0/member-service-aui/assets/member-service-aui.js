@@ -401,6 +401,20 @@
       if (payload.type === "lexiang:device-bind-failed" && payload.deviceId === pendingPurchasedDevice.id) {
         var retry = document.querySelector("[data-device-bind-purchased]");
         if (retry) { retry.disabled = false; retry.textContent = "一键绑定"; }
+        return;
+      }
+      if (payload.type === "lexiang:device-warranty-success" && payload.deviceId) {
+        state.serviceMode = "warranty";
+        state.serviceDeviceId = payload.deviceId;
+        state.warrantyDevicePickerOpen = false;
+        state.serviceCompare = [];
+        state.serviceRecommended = "warrantyYear1";
+        openRightView("service");
+        return;
+      }
+      if (payload.type === "lexiang:device-warranty-failed" && payload.deviceId) {
+        var warrantyRetry = document.querySelector('[data-device-warranty="' + payload.deviceId + '"]');
+        if (warrantyRetry) { warrantyRetry.disabled = false; warrantyRetry.textContent = "查看维保方案"; }
       }
     });
     renderSug("");
@@ -1076,16 +1090,10 @@
     button.disabled = true;
     button.textContent = "正在调用 Skill";
     if (window.parent !== window) {
-      window.parent.postMessage({
-        type: "lexiang:device-bind-query",
-        query: "一键绑定小新 Pro 16",
-        device: {
-          id: pendingPurchasedDevice.id,
-          name: pendingPurchasedDevice.name,
-          product: pendingPurchasedDevice.product,
-          sn: pendingPurchasedDevice.sn
-        }
-      }, window.location.origin);
+      var bindDevice = { id: pendingPurchasedDevice.id, name: pendingPurchasedDevice.name, product: pendingPurchasedDevice.product, sn: pendingPurchasedDevice.sn };
+      if (!sendDeviceQueryToParent("bind", "一键绑定小新 Pro 16", bindDevice)) {
+        window.parent.postMessage({ type: "lexiang:device-bind-query", query: "一键绑定小新 Pro 16", device: bindDevice }, window.location.origin);
+      }
       return;
     }
     var task = taskEnvelope("device-bind-purchased", { deviceId: pendingPurchasedDevice.id, source: "recognized-order" });
@@ -1108,6 +1116,17 @@
   async function runWarrantyRecommendation(deviceId) {
     var device = deviceCatalog[deviceId];
     if (!device || !device.extensionEligible) return;
+    var bridgeButton = document.querySelector('[data-device-warranty="' + device.id + '"]');
+    if (bridgeButton && bridgeButton.disabled) return;
+    if (window.parent !== window) {
+      if (bridgeButton) { bridgeButton.disabled = true; bridgeButton.textContent = "正在调用 Skill"; }
+      var warrantyDevice = { id: device.id, name: device.name, product: device.product, sn: device.sn, warranty: device.warranty, maintenanceReason: device.maintenanceReason || "保障节点推荐" };
+      var warrantyQuery = "为" + device.name + "推荐可购买的保修商品";
+      if (!sendDeviceQueryToParent("warranty", warrantyQuery, warrantyDevice)) {
+        window.parent.postMessage({ type: "lexiang:device-warranty-query", query: warrantyQuery, device: warrantyDevice }, window.location.origin);
+      }
+      return;
+    }
     var task = taskEnvelope("service-warranty-recommend", { deviceId: device.id, source: "member-device-card" });
     document.body.dataset.activeRequest = task.requestId;
     enterChat();
@@ -1127,6 +1146,23 @@
     state.serviceRecommended = "warrantyYear1";
     task.state = "ready_to_select";
     openRightView("service");
+  }
+
+  function sendDeviceQueryToParent(kind, query, device) {
+    try {
+      var parentDoc = window.parent.document;
+      var composer = parentDoc.querySelector(".composer");
+      var textarea = composer && composer.querySelector("textarea");
+      if (!composer || !textarea || typeof composer.requestSubmit !== "function") return false;
+      if (kind === "bind") window.parent.__lxPendingDeviceBindBridge = { source: window, device: device };
+      else window.parent.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
+      textarea.value = query;
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      composer.requestSubmit();
+      return true;
+    } catch (_error) {
+      return false;
+    }
   }
 
   async function runAddDeviceTask() {

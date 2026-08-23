@@ -445,6 +445,17 @@ if (!window.__lxCreateTypewriter) {
                   (feature === "solution" ? "info:solution" :
                     (feature === "documents" ? "documents" : ""))));
 
+            // 认证结果卡是可重复打开的弹层入口，不属于右侧结果 Tab。
+            // 关闭弹层后再次点击时直接复用原认证弹层生成器，避免稳定
+            // resultId 分支将事件提前截断后没有任何响应。
+            if (resultId.startsWith("modal:education-auth:")) {
+              openStudentAuth(resultId.slice("modal:education-auth:".length) || "college");
+              return true;
+            }
+            if (resultId === "modal:workplace-auth") {
+              openWorkplaceAuth();
+              return true;
+            }
             if (resultId && window.__lxBridge.restoreResultTab(resultId)) return true;
             if (resultId.startsWith("info:solution-compare:") && lxMigrateLegacySolutionCompareCard(card, resultId)) {
               lxAssertGovernedSplitResultState(resultId);
@@ -2461,6 +2472,70 @@ function openOrderDetail(orderId) {
           }
         }
 
+        let lxStoreRuntimePromise = null;
+        function lxEnsureStoreComponentRuntime() {
+          if (window.LXStoreService?.mount) return Promise.resolve(window.LXStoreService);
+          if (lxStoreRuntimePromise) return lxStoreRuntimePromise;
+          lxStoreRuntimePromise = new Promise((resolve, reject) => {
+            const existing = document.getElementById("lx-store-component-runtime");
+            if (existing) {
+              existing.addEventListener("load", () => resolve(window.LXStoreService), { once: true });
+              existing.addEventListener("error", reject, { once: true });
+              return;
+            }
+            const script = document.createElement("script");
+            script.id = "lx-store-component-runtime";
+            script.src = "/assets/pages/store-v5-embed.js?v=20260823-store-direct-v1";
+            script.async = true;
+            script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
+            script.onerror = () => reject(new Error("门店组件加载失败"));
+            document.head.appendChild(script);
+          });
+          return lxStoreRuntimePromise;
+        }
+
+        function lxStoreComponentShell() {
+          return `<style>
+            .content[data-view="info"]:has(.lx-store-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+            .content[data-view="info"]:has(.lx-store-component-host)>.lx-tabbar{flex:0 0 auto!important}
+            .content[data-view="info"] .info-page:has(.lx-store-component-host){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+            .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
+            .content[data-view="info"] .info-page:has(.lx-store-component-host)::before,.content[data-view="info"] .info-page:has(.lx-store-component-host)::after{display:none!important;content:none!important}
+            .lx-store-component-host{display:block;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff}
+            .lx-store-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
+          </style><div class="lx-store-component-host"><div class="lx-store-component-loading" role="status">正在加载门店服务</div></div>`;
+        }
+
+        function lxOpenStoreComponentTab() {
+          const tab = { id: "info:stores", kind: "info", label: "附近门店", html: lxStoreComponentShell(), storeComponentView: "stores" };
+          lxUpsertTab(tab);
+          lxRunTab(tab);
+        }
+
+        async function lxMountStoreComponentTab(tab, pageBox) {
+          const host = pageBox?.querySelector(".lx-store-component-host");
+          if (!host || !tab?.storeComponentView) return;
+          try {
+            const runtime = await lxEnsureStoreComponentRuntime();
+            if (!host.isConnected || state.activeTabId !== tab.id) return;
+            const api = runtime.mount(host, { view: tab.storeComponentView });
+            host.addEventListener("lx-store-detail-state", (event) => {
+              pageBox.classList.toggle("lx-store-detail-active", event.detail?.active === true);
+            });
+            host.addEventListener("lx-store-appointment-query", (event) => {
+              const store = event.detail?.store;
+              if (!store) return;
+              window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
+              window.__lxStoreAppointmentById[String(store.id || "")] = store;
+              window.__lxPendingStoreAppointment = store;
+              sendChat(`预约${store.name || "联想门店"}到店`);
+            });
+            host.__lxStoreApi = api;
+          } catch (_error) {
+            if (host.isConnected) host.innerHTML = '<div class="lx-store-component-loading" role="alert">门店服务暂时无法加载，请稍后重试</div>';
+          }
+        }
+
         function lxEnsureComparePage() {
           let pageBox = document.querySelector(".compare-page");
           if (!pageBox) {
@@ -2898,7 +2973,7 @@ function openOrderDetail(orderId) {
         }
 
         function renderStoreAppointmentCta(storeId) {
-          return `<button class="answer-cta lx-store-appointment-cta" type="button" data-lx-store-appointment-confirm="${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
+          return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-store-appointment-confirm="${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
             <span class="answer-cta-title">预约信息待确认</span>
             <span class="answer-cta-icon" aria-hidden="true">
               ${window.__lxApprovedIcon("global-next")}
@@ -3814,7 +3889,7 @@ function openOrderDetail(orderId) {
             await wait(760);
             lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产查询) 已完成";
             const copy = "当前账号共有**8 台已绑定设备**，另有**1 台待绑定**。最近使用的是 ThinkBook 16p、拯救者 Y7000P、YOGA Air 14s；右侧已打开设备列表。";
-            await lxAnimateAiFinal(ai, mdLite(copy));
+            await lxAnimateAiFinal(ai, `<div class="lx-edu-auth-copy">${mdLite(copy)}</div>`);
             const finalBody = lxEnsureAiBody(ai);
             finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
             finalBody.insertAdjacentHTML("beforeend", renderPageCta({
@@ -3827,46 +3902,6 @@ function openOrderDetail(orderId) {
             lxSyncAnswerCtaActiveState("info:devices");
             ensureChat().scrollTop = ensureChat().scrollHeight;
           } finally {
-            state.sending = false;
-            try { window.__lxSaveConversationNow(); } catch (_e) {}
-          }
-        }
-
-        async function lxRunUnifiedDeviceBindAnswer(device) {
-          const current = device && typeof device === "object" ? device : {};
-          const deviceName = current.name || "小新 Pro 16";
-          const bridge = window.__lxPendingDeviceBindBridge;
-          state.sending = true;
-          clearHoverPromptTimer();
-          hideHoverPrompts();
-          const lines = ["联想乐享正在校验设备订单与当前 Lenovo ID"];
-          const skills = new Set();
-          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
-          const body = lxEnsureAiBody(ai);
-          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
-          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-          try {
-            await wait(420);
-            lines.push(`已识别：${deviceName} · 联想官方订单待绑定`);
-            paint();
-            await wait(520);
-            skills.add("Skill(设备资产绑定)");
-            lines.push("联想乐享官方 SKILL：正在调用 Skill(设备资产绑定)");
-            paint();
-            await wait(760);
-            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产绑定) 已完成";
-            const copy = `绑定成功！**${deviceName}** 已加入当前 Lenovo ID，设备信息与保障服务已同步，可在右侧“我的设备”列表中查看详情。`;
-            await lxAnimateAiFinal(ai, mdLite(copy));
-            const finalBody = lxEnsureAiBody(ai);
-            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
-            ai.classList.remove("loading");
-            if (bridge?.source?.postMessage) bridge.source.postMessage({ type: "lexiang:device-bind-success", deviceId: current.id || "xiaoxinpro16" }, window.location.origin);
-            ensureChat().scrollTop = ensureChat().scrollHeight;
-          } catch (error) {
-            if (bridge?.source?.postMessage) bridge.source.postMessage({ type: "lexiang:device-bind-failed", deviceId: current.id || "xiaoxinpro16" }, window.location.origin);
-            throw error;
-          } finally {
-            window.__lxPendingDeviceBindBridge = null;
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
           }
@@ -4042,6 +4077,122 @@ function openOrderDetail(orderId) {
           }
         }
 
+        function lxEducationAuthKind(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 36) return "";
+          const hasEducationIdentity = /教育|学生|在校生|教师|高考生/.test(value);
+          const hasAuthIntent = /认证|认定|核验|教育认$/.test(value);
+          if (!hasEducationIdentity || !hasAuthIntent) return "";
+          if (/高考生/.test(value)) return "gaokao";
+          if (/教师/.test(value)) return "teacher";
+          return "college";
+        }
+
+        function lxEducationAuthRecommendationCard(kind) {
+          const label = kind === "gaokao" ? "高考生教育认证" : (kind === "teacher" ? "教师教育认证" : "教育认证");
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco" type="button" data-open-stuauth="${esc(kind)}" data-lx-result-id="modal:education-auth:${esc(kind)}" aria-label="打开${esc(label)}弹窗" aria-pressed="false"><span class="answer-cta-title">${esc(label)}</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedEducationAuthAnswer(kind = "college") {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的教育认证需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要进入教育身份认证流程");
+            paint();
+            await wait(520);
+            skills.add("Skill(教育身份认证)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(教育身份认证)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(教育身份认证) 已完成";
+            paint();
+            const copy = "**教育认证**可用于核验在校生、教师或高考生身份，并解锁教育专享价格与会员权益。请按真实身份选择认证方式并填写资料，提交前核对**适用范围、有效期和材料**，结果以正式核验信息为准。";
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, mdLite(copy));
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxEducationAuthRecommendationCard(kind));
+            const card = ai.querySelector(".lx-edu-auth-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            openStudentAuth(kind);
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
+        function lxIsWorkplaceAuthQuery(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 36) return false;
+          return /职场|职场人|在职|工作|员工|企业职工/.test(value) && /认证|认定|核验|职场认$/.test(value);
+        }
+
+        function lxWorkplaceAuthRecommendationCard() {
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedWorkplaceAuthAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的职场认证需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要进入企业在职身份认证流程");
+            paint();
+            await wait(520);
+            skills.add("Skill(职场身份认证)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(职场身份认证)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(职场身份认证) 已完成";
+            paint();
+            const copy = "**职场认证**可用于核验企业在职身份，并解锁员工购机优惠、会员权益及相关服务。请按真实情况填写个人与企业资料，提交前核对**企业信息与在职材料**，认证结果以正式身份核验信息为准。";
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, `<div class="lx-edu-auth-copy lx-workplace-auth-copy">${mdLite(copy)}</div>`);
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxWorkplaceAuthRecommendationCard());
+            const card = ai.querySelector(".lx-workplace-auth-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            openWorkplaceAuth();
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -4100,10 +4251,19 @@ function openOrderDetail(orderId) {
           const _refSnap = state.refProduct;
           const _refMsgSnap = state.refMsg;
           setTimeout(() => lxSetRef(null), 100);
-          if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
+          const _educationAuthKind = lxEducationAuthKind(text);
+          const _workplaceAuthRequested = lxIsWorkplaceAuthQuery(text);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          if (_educationAuthKind) {
+            await lxRunUnifiedEducationAuthAnswer(_educationAuthKind);
+            return;
+          }
+          if (_workplaceAuthRequested) {
+            await lxRunUnifiedWorkplaceAuthAnswer();
+            return;
+          }
           const _storeAppointment = window.__lxPendingStoreAppointment;
           if (_storeAppointment && /预约|到店/.test(text)) {
             window.__lxPendingStoreAppointment = null;
@@ -4120,11 +4280,6 @@ function openOrderDetail(orderId) {
           }
           if (/^我的设备[。！!]?$/.test(text)) {
             await lxRunUnifiedDevicesAnswer();
-            return;
-          }
-          if (/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(text)) {
-            const bindBridge = window.__lxPendingDeviceBindBridge;
-            await lxRunUnifiedDeviceBindAnswer(bindBridge?.device);
             return;
           }
           if (/代金券/.test(text)) {
@@ -6747,11 +6902,6 @@ async function lxRenderSiteFloors() {
           if (!payload) return;
           if (payload.type === "lexiang:open-student-auth") { openStudentAuth(payload.kind || "college"); return; }
           if (payload.type === "lexiang:open-profile-editor") { openGlobalProfileEditor(payload.profile, event.source); }
-          if (payload.type === "lexiang:device-bind-query" && payload.device) {
-            if (window.__lxPendingDeviceBindBridge || state.sending) return;
-            window.__lxPendingDeviceBindBridge = { source: event.source, device: payload.device };
-            sendChat(payload.query || ("一键绑定" + (payload.device.name || "小新 Pro 16")));
-          }
         });
 
         function openWorkplaceAuth() {
@@ -7572,12 +7722,14 @@ async function openEduZone() {
             const isEntPointsInfo = tab.id === "info:ent-points";
             const isMemberInfo = tab.id === "info:member";
             const isMemberComponent = Boolean(tab.memberComponentView);
+            const isStoreComponent = Boolean(tab.storeComponentView);
             const isDocumentInsight = tab.id.startsWith("info:document-insight:");
             const isSolutionCompare = tab.id.startsWith("info:solution-compare:");
-            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isDocumentInsight);
+            pageBox.classList.toggle("is-wide", isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isStoreComponent || isDocumentInsight);
             pageBox.classList.toggle("is-document-insight", isDocumentInsight);
-            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
+            pageBox.innerHTML = `${isEduInfo || isCartInfo || isOrdersInfo || isEntPointsInfo || isMemberInfo || isMemberComponent || isStoreComponent || isDocumentInsight || isSolutionCompare ? "" : `<div class="reco-head"><h2>${esc(tab.label || "")}</h2></div>`}${tab.html || ""}`;
             if (isMemberComponent) lxMountMemberComponentTab(tab, pageBox);
+            if (isStoreComponent) lxMountStoreComponentTab(tab, pageBox);
             pageBox.querySelectorAll("[data-reader-action]").forEach((button) => {
               button.onclick = (event) => {
                 event.preventDefault();
@@ -9623,21 +9775,11 @@ async function openEduZone() {
         }
 
         async function openStoresPanel(address = "北京海淀") {
-          lxOpenInfoTab("stores", "附近门店", `
-            <style>
-              .content[data-view="info"]:has(.lx-store-exact-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
-              .content[data-view="info"]:has(.lx-store-exact-frame)>.lx-tabbar{flex:0 0 auto!important}
-              .content[data-view="info"] .info-page:has(.lx-store-exact-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
-              .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
-              .content[data-view="info"] .info-page:has(.lx-store-exact-frame)::before,.content[data-view="info"] .info-page:has(.lx-store-exact-frame)::after{display:none!important;content:none!important}
-            </style>
-            <div class="lx-store-exact-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff">
-              <iframe src="/assets/pages/store-v5-exact.html?v=20260823-store-products-flat" title="附近门店" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#fff" allow="geolocation; clipboard-read; clipboard-write"></iframe>
-            </div>`);
+          lxOpenStoreComponentTab();
         }
 
         function lxStoreExactFrame() {
-          return document.querySelector(".lx-store-exact-frame iframe");
+          return document.querySelector(".lx-store-component-host");
         }
 
         function lxOpenStoreAppointmentInFrame(storeId) {
@@ -9663,24 +9805,6 @@ async function openEduZone() {
               closeModal();
               toast("预约信息已提交，门店将在营业时间内与你确认");
             }, { once: true });
-          });
-        }
-
-        if (!window.__lxStoreAppointmentBridgeBound) {
-          window.__lxStoreAppointmentBridgeBound = true;
-          window.addEventListener("message", (event) => {
-            const frame = lxStoreExactFrame();
-            if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
-            if (event.data?.type === "lx-store-detail-state") {
-              frame.closest(".info-page")?.classList.toggle("lx-store-detail-active", event.data.active === true);
-              return;
-            }
-            if (event.data?.type !== "lx-store-appointment-query" || !event.data.store) return;
-            const store = event.data.store;
-            window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
-            window.__lxStoreAppointmentById[String(store.id || "")] = store;
-            window.__lxPendingStoreAppointment = store;
-            sendChat(`预约${store.name || "联想门店"}到店`);
           });
         }
 

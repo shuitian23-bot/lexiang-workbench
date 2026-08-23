@@ -2897,7 +2897,7 @@ function openOrderDetail(orderId) {
         }
 
         function renderStoreAppointmentCta(storeId) {
-          return `<button class="answer-cta lx-store-appointment-cta" type="button" data-lx-store-appointment-confirm="${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
+          return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-store-appointment-confirm="${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
             <span class="answer-cta-title">预约信息待确认</span>
             <span class="answer-cta-icon" aria-hidden="true">
               ${window.__lxApprovedIcon("global-next")}
@@ -3815,7 +3815,7 @@ function openOrderDetail(orderId) {
             await wait(760);
             lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产查询) 已完成";
             const copy = "当前账号共有**8 台已绑定设备**，另有**1 台待绑定**。最近使用的是 ThinkBook 16p、拯救者 Y7000P、YOGA Air 14s；右侧已打开设备列表。";
-            await lxAnimateAiFinal(ai, mdLite(copy));
+            await lxAnimateAiFinal(ai, `<div class="lx-edu-auth-copy">${mdLite(copy)}</div>`);
             const finalBody = lxEnsureAiBody(ai);
             finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
             finalBody.insertAdjacentHTML("beforeend", renderPageCta({
@@ -4003,6 +4003,122 @@ function openOrderDetail(orderId) {
           }
         }
 
+        function lxEducationAuthKind(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 36) return "";
+          const hasEducationIdentity = /教育|学生|在校生|教师|高考生/.test(value);
+          const hasAuthIntent = /认证|认定|核验|教育认$/.test(value);
+          if (!hasEducationIdentity || !hasAuthIntent) return "";
+          if (/高考生/.test(value)) return "gaokao";
+          if (/教师/.test(value)) return "teacher";
+          return "college";
+        }
+
+        function lxEducationAuthRecommendationCard(kind) {
+          const label = kind === "gaokao" ? "高考生教育认证" : (kind === "teacher" ? "教师教育认证" : "教育认证");
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco" type="button" data-open-stuauth="${esc(kind)}" data-lx-result-id="modal:education-auth:${esc(kind)}" aria-label="打开${esc(label)}弹窗" aria-pressed="false"><span class="answer-cta-title">${esc(label)}</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedEducationAuthAnswer(kind = "college") {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的教育认证需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要进入教育身份认证流程");
+            paint();
+            await wait(520);
+            skills.add("Skill(教育身份认证)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(教育身份认证)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(教育身份认证) 已完成";
+            paint();
+            const copy = "**教育认证**可用于核验在校生、教师或高考生身份，并解锁教育专享价格与会员权益。请按真实身份选择认证方式并填写资料，提交前核对**适用范围、有效期和材料**，结果以正式核验信息为准。";
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, mdLite(copy));
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxEducationAuthRecommendationCard(kind));
+            const card = ai.querySelector(".lx-edu-auth-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            openStudentAuth(kind);
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
+        function lxIsWorkplaceAuthQuery(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 36) return false;
+          return /职场|职场人|在职|工作|员工|企业职工/.test(value) && /认证|认定|核验|职场认$/.test(value);
+        }
+
+        function lxWorkplaceAuthRecommendationCard() {
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedWorkplaceAuthAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的职场认证需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要进入企业在职身份认证流程");
+            paint();
+            await wait(520);
+            skills.add("Skill(职场身份认证)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(职场身份认证)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(职场身份认证) 已完成";
+            paint();
+            const copy = "**职场认证**可用于核验企业在职身份，并解锁员工购机优惠、会员权益及相关服务。请按真实情况填写个人与企业资料，提交前核对**企业信息与在职材料**，认证结果以正式身份核验信息为准。";
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, `<div class="lx-edu-auth-copy lx-workplace-auth-copy">${mdLite(copy)}</div>`);
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxWorkplaceAuthRecommendationCard());
+            const card = ai.querySelector(".lx-workplace-auth-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            openWorkplaceAuth();
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -4061,10 +4177,19 @@ function openOrderDetail(orderId) {
           const _refSnap = state.refProduct;
           const _refMsgSnap = state.refMsg;
           setTimeout(() => lxSetRef(null), 100);
-          if (/学生认证|教育认证/.test(text) && text.length <= 14) setTimeout(openStudentAuth, 400);
+          const _educationAuthKind = lxEducationAuthKind(text);
+          const _workplaceAuthRequested = lxIsWorkplaceAuthQuery(text);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
           renderQueryHistory();
+          if (_educationAuthKind) {
+            await lxRunUnifiedEducationAuthAnswer(_educationAuthKind);
+            return;
+          }
+          if (_workplaceAuthRequested) {
+            await lxRunUnifiedWorkplaceAuthAnswer();
+            return;
+          }
           const _storeAppointment = window.__lxPendingStoreAppointment;
           if (_storeAppointment && /预约|到店/.test(text)) {
             window.__lxPendingStoreAppointment = null;
