@@ -2294,6 +2294,7 @@
     if (embedView === "coupons") window.setTimeout(function () { openRightView("asset:coupons"); }, 0);
     if (embedView === "points") window.setTimeout(function () { openRightView("asset:points"); }, 0);
     if (embedView === "vouchers") window.setTimeout(function () { openRightView("asset:vouchers"); }, 0);
+    if (embedView === "redpacket") window.setTimeout(function () { openRightView("asset:redpacket"); }, 0);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootMemberEmbed);
