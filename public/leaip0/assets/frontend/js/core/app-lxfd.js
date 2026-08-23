@@ -983,7 +983,7 @@
 
   function renderLxfdPageCta(meta) {
     if (!meta) return "";
-    const resultIds = { solution: "info:solution", member: "info:member", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+    const resultIds = { solution: "info:solution", member: "info:member", devices: "info:devices", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
     const resultId = resultIds[meta.feature] || "";
     const resultAttr = resultId ? ` data-lx-result-id="${escapeAttr(resultId)}" data-lx-open-tab="${escapeAttr(resultId)}" aria-pressed="false"` : "";
     return `<button class="answer-cta lx-answer-page" type="button" data-lx-focus-active="1" data-lxfd-open-feature="${escapeHtml(meta.feature || "")}"${resultAttr} aria-label="${escapeAttr(meta.title || "查看页面")}，展开左右框架" title="展开左右框架">
@@ -1485,6 +1485,8 @@
 
     if (/^我的设备[。！!]?$/.test(value)) {
       chatState.sending = true;
+      // 全屏层仍可见时先在其下方创建并加载设备结果页，退出时不会闪出商城首页。
+      if (typeof window.__lxOpenDevicesResult === "function") window.__lxOpenDevicesResult();
       const deviceAi = document.createElement("div");
       deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
       deviceAi._loadingStarted = Date.now();
@@ -1512,7 +1514,7 @@
       await lxfdWait(reduceMotion ? 0 : 720);
       chatState.sending = false;
       lxfdExportToMain();
-      exitFullscreenWithReveal(() => {
+      lxfdExitToResultAtomically(() => {
         lxfdEnsureRootSplitState();
         if (typeof window.__lxOpenDevicesResult === "function") window.__lxOpenDevicesResult();
         else lxfdRevealFeature("devices");

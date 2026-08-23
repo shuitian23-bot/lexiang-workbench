@@ -407,6 +407,10 @@ if (!window.__lxCreateTypewriter) {
               openMemberCenter();
               return true;
             }
+            if (tabId === "info:devices") {
+              openMemberDevicesCenter();
+              return true;
+            }
             if (tabId.startsWith("info:solution-compare:")) {
               const cached = lxSolutionCompareTabCache.get(tabId) || state.solutionCompareTabs?.[tabId] || null;
               if (!cached) return false;
@@ -461,6 +465,11 @@ if (!window.__lxCreateTypewriter) {
             if (feature === "documents") {
               openDocumentCenter();
               lxAssertGovernedSplitResultState("documents");
+              return true;
+            }
+            if (feature === "devices") {
+              openMemberDevicesCenter();
+              lxAssertGovernedSplitResultState("info:devices");
               return true;
             }
             if (productSku) {
@@ -2799,7 +2808,7 @@ function openOrderDetail(orderId) {
           const boundTabId = String(attr).match(/data-lx-open-tab="([^"]+)"/)?.[1] || "";
           const feature = String(attr).match(/data-lxfd-open-feature="([^"]+)"/)?.[1] || "";
           const solutionTitle = String(attr).match(/data-specific-solution-cta="([^"]+)"/)?.[1] || "";
-          const featureIds = { solution: "info:solution", member: "info:member", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
+          const featureIds = { solution: "info:solution", member: "info:member", devices: "info:devices", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders" };
           const resultId = boundTabId || (solutionTitle ? `info:solution-detail:${solutionTitle}` : (featureIds[feature] || ""));
           const resultAttr = resultId && !/data-lx-result-id=/.test(String(attr)) ? ` data-lx-result-id="${esc(resultId)}"` : "";
           const active = boundTabId === state.activeTabId || (feature === "documents" && state.activeTabId === "documents");
@@ -3710,6 +3719,47 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedDevicesAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          // 先在当前不可见/右侧结果层创建设备页，避免生成完成后短暂露出商城首页。
+          openMemberDevicesCenter();
+          const lines = ["联想乐享正在判断你的设备资产需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+            paint();
+            await wait(520);
+            skills.add("Skill(设备资产查询)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(设备资产查询)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产查询) 已完成";
+            const copy = "当前账号共有**8 台已绑定设备**，另有**1 台待绑定**。最近使用的是 ThinkBook 16p、拯救者 Y7000P、YOGA Air 14s；右侧已打开设备列表。";
+            await lxAnimateAiFinal(ai, mdLite(copy));
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            finalBody.insertAdjacentHTML("beforeend", renderPageCta({
+              title: "查看我的设备",
+              desc: "8 台已绑定 · 1 台待绑定",
+              attr: 'data-lx-open-tab="info:devices" data-lxfd-open-feature="devices" aria-label="查看我的设备列表"'
+            }));
+            ai.classList.remove("loading");
+            openMemberDevicesCenter();
+            lxSyncAnswerCtaActiveState("info:devices");
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function lxRunUnifiedMemberAnswer() {
           state.sending = true;
           clearHoverPromptTimer();
@@ -3954,6 +4004,10 @@ function openOrderDetail(orderId) {
           }
           if (lxIsServiceIntakeQuery(text)) {
             await lxRunServiceIntakeAnswer();
+            return;
+          }
+          if (/^我的设备[。！!]?$/.test(text)) {
+            await lxRunUnifiedDevicesAnswer();
             return;
           }
           if (/代金券/.test(text)) {
@@ -9089,6 +9143,7 @@ async function openEduZone() {
             </div>`;
           const tab = { id: "info:devices", kind: "info", label: "我的设备", html };
           lxUpsertTab(tab);
+          lxRememberResultTab((state.tabs || []).find((item) => item.id === tab.id) || tab);
           const commit = () => {
             const active = (state.tabs || []).find((item) => item?.id === "info:devices") || tab;
             state.activeTabId = "info:devices";
