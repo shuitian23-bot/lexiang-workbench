@@ -1420,7 +1420,17 @@
     return !!value && value.length <= 36 && /职场|职场人|在职|工作|员工|企业职工/.test(value) && /认证|认定|核验|职场认$/.test(value);
   }
 
+  function lxfdIsEnterpriseMemberAuthQuery(text) {
+    const value = String(text || "").trim();
+    return !!value && value.length <= 48
+      && /企业会员|企业身份|企业账户|企业采购负责人|企业认证/.test(value)
+      && /认证|申请|开通|办理|核验|加入/.test(value);
+  }
+
   function lxfdAuthRecommendationCard(type, kind) {
+    if (type === "enterprise") {
+      return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span><span class="answer-cta-desc">点击后才打开企业认证弹窗</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+    }
     if (type === "workplace") {
       return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
     }
@@ -1497,20 +1507,21 @@
   async function lxfdRunUnifiedAuthAnswer(type, kind = "college") {
     chatState.sending = true;
     const isWorkplace = type === "workplace";
+    const isEnterprise = type === "enterprise";
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin";
     ai._loadingStarted = Date.now();
-    ai._traceLines = [isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求"];
+    ai._traceLines = [isEnterprise ? "联想乐享正在判断你的企业会员认证需求" : (isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求")];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await lxfdWait(reduceMotion ? 0 : 420);
-      ai._traceLines.push(isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程");
+      ai._traceLines.push(isEnterprise ? "已判断：需要进入企业采购负责人认证流程" : (isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程"));
       lxfdRenderTraceLive(ai);
       await lxfdWait(reduceMotion ? 0 : 520);
-      const skillName = isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)";
+      const skillName = isEnterprise ? "Skill(企业会员身份认证)" : (isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)");
       ai._traceSkills.add(skillName);
       ai._traceLines.push(`联想乐享官方 SKILL：正在调用 ${skillName}`);
       lxfdRenderTraceLive(ai);
@@ -1518,7 +1529,9 @@
       ai._traceLines[ai._traceLines.length - 1] = `联想乐享官方 SKILL：${skillName} 已完成`;
       ai._traceCollapsed = true;
       lxfdRenderTraceLive(ai);
-      const copy = isWorkplace
+      const copy = isEnterprise
+        ? "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称与采购负责人信息，提交后以正式核验结果为准。"
+        : isWorkplace
         ? "**职场认证**可用于核验企业在职身份，并解锁员工购机优惠、会员权益及相关服务。请按真实情况填写个人与企业资料，提交前核对**企业信息与在职材料**，认证结果以正式身份核验信息为准。"
         : "**教育认证**可用于核验在校生、教师或高考生身份，并解锁教育专享价格与会员权益。请按真实身份选择认证方式并填写资料，提交前核对**适用范围、有效期和材料**，结果以正式核验信息为准。";
       ai.classList.add("lx-auth-flow-answer");
@@ -1604,6 +1617,10 @@
     }
     if (lxfdIsWorkplaceAuthQuery(value)) {
       await lxfdRunUnifiedAuthAnswer("workplace");
+      return;
+    }
+    if (lxfdIsEnterpriseMemberAuthQuery(value)) {
+      await lxfdRunUnifiedAuthAnswer("enterprise");
       return;
     }
 
@@ -2608,6 +2625,10 @@
     }
     if (btn.hasAttribute("data-open-wpa")) {
       window.openWorkplaceAuth?.();
+      return;
+    }
+    if (btn.hasAttribute("data-open-enterprise-auth-modal")) {
+      window.__lxOpenEnterpriseAuthModal?.();
       return;
     }
     if (btn.hasAttribute("data-open-payment-confirm")) {

@@ -90,3 +90,74 @@ html body .lxfd-msg-ai .lx-edu-auth-reco .answer-cta-icon { flex:0 0 24px!import
 html body .lxfd-msg-ai .lx-edu-auth-reco .answer-cta-icon img { width:16px!important; height:16px!important; }
 html body .lxfd-msg-ai .lx-edu-auth-reco:hover,
 html body .lxfd-msg-ai .lx-edu-auth-reco:focus-visible { border-color:#4d144a!important; background:#fcfaff!important; outline:none!important; }
+
+/* Pending-payment modal: final governed color layer, shared by every channel. */
+html body .lx-p0-modal-mask.lx-order-modal-mask {
+  background:#190e21d1!important;
+  background-color:#190e21d1!important;
+  background-image:none!important;
+  opacity:1!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+html body .lx-p0-modal-mask.lx-order-modal-mask > .lx-p0-modal.co[data-v="1"].lx-order-skin {
+  --brand-red:#B8252E!important;
+  --brand-red-deep:#B8252E!important;
+  --price-red:#B8252E!important;
+  --aubergine:#4D144A!important;
+  --aubergine-soft:#5B1452!important;
+  --grad-cta:linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%)!important;
+  --ok:#5B1452!important;
+  --ink:#252525!important;
+  --text:#252525!important;
+  --text-soft:#625B68!important;
+  --text-muted:#979797!important;
+  --line:#EFE4F1!important;
+  --line-2:#E2DDEB!important;
+  --dashed:#E2DDEB!important;
+  --tint:#FCFAFF!important;
+  --tint-2:#F3F0F7!important;
+  --card:#FFFFFF!important;
+  background:#FFFFFF!important;
+  border:1px solid #E2DDEB!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .order-head { border-bottom-color:#EFE4F1!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .title,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .prod .pn,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .ofr .on,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .total .tl .tk,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .un { color:#252525!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .title .gp,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .x,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .prod .pic,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .ofr .ck,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .ui { background:#F3F0F7!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .title .gp,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .title .gp svg,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .ofr .ck svg,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .ui,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .edit { color:#4D144A!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .x { color:#625B68!important; box-shadow:none!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .x:hover { color:#4D144A!important; background:#EFE4F1!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .prod { border-bottom-color:#E2DDEB!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .prod .pp,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .prod .pp s,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .ofr .od,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .ud,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .foot-tip { color:#979797!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .minus,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .total .tl .ts { color:#B8252E!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .total { background:#F3F0F7!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .total .tp { color:#4D144A!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .edit { border-color:#E2DDEB!important; background:#FFFFFF!important; box-shadow:none!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .user .edit:hover { border-color:#4D144A!important; background:#FCFAFF!important; }
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta {
+  background:linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%)!important;
+  color:#FFFFFF!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta:hover,
+html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta:active { box-shadow:none!important; filter:none!important; }

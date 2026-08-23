@@ -764,6 +764,7 @@ if (!window.__lxCreateTypewriter) {
         }
         lxRegisterRecommendedModal("education-auth", (kind) => openStudentAuth(kind || "college"));
         lxRegisterRecommendedModal("workplace-auth", () => openWorkplaceAuth());
+        lxRegisterRecommendedModal("enterprise-member-auth", () => openEnterpriseAuth());
         lxRegisterRecommendedModal("store-appointment", (storeId) => lxOpenStoreAppointmentInFrame(storeId));
         lxRegisterRecommendedModal("pending-payment", () => lxOpenPendingPaymentModal());
         window.__lxRecommendedModalRule = Object.freeze({
@@ -4333,6 +4334,63 @@ function openOrderDetail(orderId) {
           }
         }
 
+        function lxIsEnterpriseMemberAuthQuery(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 48) return false;
+          const hasEnterpriseIdentity = /企业会员|企业身份|企业账户|企业采购负责人|企业认证/.test(value);
+          const hasAuthIntent = /认证|申请|开通|办理|核验|加入/.test(value);
+          return hasEnterpriseIdentity && hasAuthIntent;
+        }
+
+        function lxEnterpriseMemberAuthRecommendationCard() {
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-lx-recommended-modal="enterprise-member-auth" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span><span class="answer-cta-desc">点击后才打开企业认证弹窗</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedEnterpriseMemberAuthAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的企业会员认证需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要进入企业采购负责人认证流程");
+            paint();
+            await wait(520);
+            skills.add("Skill(企业会员身份认证)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(企业会员身份认证)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(企业会员身份认证) 已完成";
+            paint();
+            const copy = "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称与采购负责人信息，提交后以正式核验结果为准。";
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, `<div class="lx-edu-auth-copy lx-enterprise-auth-copy">${mdLite(copy)}</div>`);
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxEnterpriseMemberAuthRecommendationCard());
+            const card = ai.querySelector(".lx-enterprise-auth-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            // 企业会员认证按本地原型保持显式确认：推荐卡出现后，用户点击卡片才打开弹窗。
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function sendChat(message) {
           const text = (message || $(".composer textarea")?.value || "").trim();
           if (!text || state.sending) return;
@@ -4402,6 +4460,7 @@ function openOrderDetail(orderId) {
           setTimeout(() => lxSetRef(null), 100);
           const _educationAuthKind = lxEducationAuthKind(text);
           const _workplaceAuthRequested = lxIsWorkplaceAuthQuery(text);
+          const _enterpriseMemberAuthRequested = lxIsEnterpriseMemberAuthQuery(text);
           const _discountOrderRequested = /(?:领取|使用).{0,8}(?:全部|所有|可用)?.{0,8}优惠|(?:全部|所有|可用).{0,8}优惠.{0,8}(?:下单|订单)|待支付订单/.test(text) && /购买|下单|订单|支付/.test(text);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
@@ -4416,6 +4475,10 @@ function openOrderDetail(orderId) {
           }
           if (_workplaceAuthRequested) {
             await lxRunUnifiedWorkplaceAuthAnswer();
+            return;
+          }
+          if (_enterpriseMemberAuthRequested) {
+            await lxRunUnifiedEnterpriseMemberAuthAnswer();
             return;
           }
           const _storeAppointment = window.__lxPendingStoreAppointment;
@@ -5326,13 +5389,28 @@ function openOrderDetail(orderId) {
             openModal("企业认证审核中", `<div class="lx-ent-status pending">「${esc(ent.company || "")}」的认证资料已提交，正在审核</div><p class="lx-p0-disclaimer">演示环境审核约 10 秒自动完成；正式环境为 1-2 个工作日，结果会在本页面与账号菜单回显。</p>`);
             return;
           }
-          openModal("企业采购负责人认证", `
-            <p class="lx-p0-disclaimer">认证后解锁企业专享价、采购补贴、对公付款与专票账期等权益。</p>
-            <input class="lx-p0-field" id="lxEntCompany" placeholder="企业/机构名称（必填）">
-            <input class="lx-p0-field" id="lxEntCode" placeholder="统一社会信用代码（选填）">
-            <input class="lx-p0-field" id="lxEntContact" placeholder="采购负责人姓名和电话">
-            <div class="lx-p0-actions"><button class="lx-p0-btn primary" data-ent-submit>提交认证</button></div>`);
+          openModal("企业会员认证", `
+            <div class="lx-lead-modal lx-enterprise-lead">
+              <p class="lx-lead-subtitle">请填写企业会员注册信息，企业邮箱将用于接收激活邮件。申请是否通过以企业会员服务回执为准。</p>
+              <form class="lx-lead-form" id="lxEnterpriseAuthForm" novalidate>
+                <label class="lx-lead-row"><span><i>*</i>企业名称</span><input id="lxEntCompany" autocomplete="organization" placeholder="请输入企业名称" required></label>
+                <label class="lx-lead-row"><span><i>*</i>企业税号</span><input id="lxEntCode" placeholder="请输入统一社会信用代码" required></label>
+                <label class="lx-lead-row"><span><i>*</i>企业邮箱</span><input id="lxEntEmail" type="email" autocomplete="email" placeholder="用于接收激活邮件，请正确填写" required></label>
+                <p class="lx-enterprise-lead-note">当前为交互 POC。提交只表示资料已送审；认证结果必须以权威企业会员服务回执为准。</p>
+                <div class="lx-lead-actions"><button class="lx-lead-cancel" type="button" data-enterprise-auth-cancel>取消</button><button class="lx-lead-submit" type="button" data-ent-submit disabled>提交认证申请</button></div>
+              </form>
+            </div>`, { skin: "lead" });
+          const form = document.querySelector("#lxEnterpriseAuthForm");
+          const submit = form?.querySelector("[data-ent-submit]");
+          const syncSubmit = () => { if (submit) submit.disabled = !form.checkValidity(); };
+          form?.querySelectorAll("input").forEach((control) => {
+            control.addEventListener("input", syncSubmit);
+            control.addEventListener("change", syncSubmit);
+          });
+          syncSubmit();
+          window.setTimeout(() => document.querySelector("#lxEntCompany")?.focus(), 0);
         }
+        window.__lxOpenEnterpriseAuthModal = openEnterpriseAuth;
 
         function lxRenderEnterpriseBanner() {
           // 页面横幅已废弃：认证邀请改在乐享对话内完成（右侧只是对话的辅助呈现）
@@ -11879,21 +11957,25 @@ async function openEduZone() {
                 }, LX_STU_REVIEW_MS + 500);
               }
             }
-            if (event.target.closest("[data-open-ent]")) openEnterpriseAuth();
+            if (event.target.closest("[data-open-enterprise-auth-modal]")) { openEnterpriseAuth(); return; }
+            if (event.target.closest("[data-open-ent]")) { sendChat("认证企业会员"); return; }
+            if (event.target.closest("[data-enterprise-auth-cancel]")) { closeModal(); return; }
             if (event.target.closest("[data-ent-submit]")) {
+              const form = document.querySelector("#lxEnterpriseAuthForm");
               const company = $("#lxEntCompany")?.value.trim();
               const code = $("#lxEntCode")?.value.trim();
-              const contact = $("#lxEntContact")?.value.trim();
-              if (!company) { toast("请填写企业/机构名称"); }
+              const email = $("#lxEntEmail")?.value.trim();
+              if (form && !form.checkValidity()) { form.reportValidity(); return; }
+              if (!company) { toast("请填写企业名称"); }
               else {
-                lxSaveEntState({ status: "pending", company, code, contact, submittedAt: Date.now() });
+                lxSaveEntState({ status: "pending", company, code, contact: email, email, submittedAt: Date.now() });
                 lxWatchEntPending();
                 closeModal();
-                toast("认证资料已提交，审核中");
+                toast("企业会员认证申请已提交，当前状态：审核中");
                 fetch("/api/leads", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ scenario: "enterprise_auth", site_type: API_SITE[state.page] || "default", company, contact, need: `企业认证申请${code ? "，信用代码：" + code : ""}`, conv_id: state.convId || null })
+                  body: JSON.stringify({ scenario: "enterprise_auth", site_type: API_SITE[state.page] || "default", company, contact: email, need: `企业会员认证申请，信用代码：${code}，企业邮箱：${email}`, conv_id: state.convId || null })
                 }).catch(() => {});
                 setTimeout(() => {
                   const ent = lxEntState();
