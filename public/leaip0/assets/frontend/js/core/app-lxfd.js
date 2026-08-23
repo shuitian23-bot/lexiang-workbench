@@ -1459,6 +1459,40 @@
       return;
     }
 
+    if (/^我想给拯救者游戏本清灰换硅脂[。！!]?$/.test(value)) {
+      chatState.sending = true;
+      const serviceAi = document.createElement("div");
+      serviceAi.className = "lxfd-msg-ai lx-chat-skin";
+      serviceAi._loadingStarted = Date.now();
+      serviceAi._traceLines = ["联想乐享正在判断你的设备服务需求"];
+      serviceAi._traceSkills = new Set();
+      serviceAi._traceCollapsed = false;
+      serviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(serviceAi);
+      lxfdRenderTraceLive(serviceAi);
+      serviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdWait(reduceMotion ? 0 : 420);
+      serviceAi._traceLines.push("已判断：清灰/换硅脂服务商品匹配");
+      lxfdRenderTraceLive(serviceAi);
+      await lxfdWait(reduceMotion ? 0 : 520);
+      serviceAi._traceSkills.add("Skill(服务产品推荐)");
+      serviceAi._traceLines.push("联想乐享官方 SKILL：正在调用 Skill(服务产品推荐)");
+      lxfdRenderTraceLive(serviceAi);
+      await lxfdWait(reduceMotion ? 0 : 760);
+      serviceAi._traceLines[serviceAi._traceLines.length - 1] = "联想乐享官方 SKILL：Skill(服务产品推荐) 已完成";
+      serviceAi._traceCollapsed = true;
+      lxfdRenderTraceLive(serviceAi);
+      await lxfdAnimateFinal(serviceAi, "已经明确是**清灰/换硅脂服务**。还需要确认**目标设备和所在地区**，才能匹配可购买、可预约的服务商品。");
+      const serviceBody = serviceAi.querySelector(".lxfd-ai-body");
+      const choices = window.__lxServiceIntake && window.__lxServiceIntake.renderChoices ? window.__lxServiceIntake.renderChoices() : "";
+      if (serviceBody && choices) serviceBody.insertAdjacentHTML("beforeend", choices);
+      lxfdPersistCurrent();
+      lxfdRenderHist();
+      chatState.sending = false;
+      serviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      return;
+    }
+
     if (/代金券/.test(value)) {
       chatState.sending = true;
       const voucherAi = document.createElement("div");

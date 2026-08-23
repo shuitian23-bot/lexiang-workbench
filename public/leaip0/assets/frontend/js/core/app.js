@@ -3461,6 +3461,116 @@ function openOrderDetail(orderId) {
           }
         }
 
+        const LX_SERVICE_INTAKE_REGION_KEY = "lexiang.serviceIntake.region.v1";
+
+        function lxIsServiceIntakeQuery(text) {
+          return /^我想给拯救者游戏本清灰换硅脂[。！!]?$/.test(String(text || "").trim());
+        }
+
+        function lxServiceIntakeRegion() {
+          try { return localStorage.getItem(LX_SERVICE_INTAKE_REGION_KEY) || "北京"; } catch (_e) { return "北京"; }
+        }
+
+        function lxServiceIntakeChoicesHtml() {
+          return `<style data-lx-service-intake-style>
+            .lx-service-intake{margin-top:18px;display:grid;gap:12px;max-width:720px}
+            .lx-service-intake-item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:16px;border:1px solid #E3DDE9;border-radius:14px;background:#FFFFFF}
+            .lx-service-intake-index{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#F5EFF8;color:#5B165D;font-size:13px;font-weight:600}
+            .lx-service-intake-copy{display:grid;gap:10px;min-width:0}.lx-service-intake-copy>strong{font-size:15px;line-height:22px;font-weight:600;color:#171417}
+            .lx-service-intake-actions{display:flex;flex-wrap:wrap;gap:8px}.lx-service-intake-btn{min-height:36px;padding:7px 12px;border:1px solid #D7CFDF;border-radius:10px;background:#FFFFFF;color:#3F1641;font:500 14px/20px inherit;cursor:pointer;text-align:left}
+            .lx-service-intake-btn:hover,.lx-service-intake-btn:focus-visible{border-color:#9B8EB6;background:#FAF7FB;outline:none}.lx-service-intake-btn.primary{border-color:#7B397D;background:#F7EFF8}
+            .lx-service-region-mask{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:24px;background:rgba(23,20,23,.42)}
+            .lx-service-region-dialog{display:flex;flex-direction:column;width:min(1120px,calc(100vw - 48px));height:min(760px,calc(100vh - 48px));border-radius:18px;background:#FFFFFF;box-shadow:0 24px 64px rgba(42,19,44,.18);overflow:hidden}
+            .lx-service-region-head{display:flex;align-items:center;justify-content:space-between;padding:22px 26px;border-bottom:1px solid #EEE8F1}.lx-service-region-head h2{margin:0;font-size:22px;line-height:32px;font-weight:500}.lx-service-region-close{width:36px;height:36px;border:0;border-radius:9px;background:#F7F3F8;font-size:22px;cursor:pointer}
+            .lx-service-region-body{padding:26px;overflow:auto}.lx-service-region-current{margin:0 0 18px;color:#6E6870}.lx-service-region-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.lx-service-region-option{min-height:54px;border:1px solid #E3DDE9;border-radius:12px;background:#FFFFFF;color:#2B222C;font:500 15px/22px inherit;cursor:pointer}.lx-service-region-option:hover,.lx-service-region-option:focus-visible,.lx-service-region-option.is-current{border-color:#7B397D;background:#F7EFF8;outline:none;color:#5B165D}
+            @media(max-width:720px){.lx-service-region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+          </style><section class="lx-service-intake" aria-label="清灰换硅脂服务信息确认">
+            <div class="lx-service-intake-item"><span class="lx-service-intake-index">1</span><div class="lx-service-intake-copy"><strong>请选择所在地区</strong><div class="lx-service-intake-actions"><button class="lx-service-intake-btn primary" type="button" data-lx-service-region-open>当前地区：<span data-lx-service-region-label>${esc(lxServiceIntakeRegion())}</span> · 修改</button></div></div></div>
+            <div class="lx-service-intake-item"><span class="lx-service-intake-index">2</span><div class="lx-service-intake-copy"><strong>请选择需要服务的设备</strong><div class="lx-service-intake-actions"><button class="lx-service-intake-btn primary" type="button" data-lx-service-device-send>拯救者 Y7000P 2025</button><button class="lx-service-intake-btn" type="button" data-lx-service-other-device>其他设备</button></div></div></div>
+          </section>`;
+        }
+
+        function lxOpenServiceRegionPicker() {
+          document.querySelector(".lx-service-region-mask")?.remove();
+          const current = lxServiceIntakeRegion();
+          const cities = ["北京", "上海", "广州", "深圳", "成都", "杭州", "武汉", "西安", "南京", "重庆", "天津", "苏州"];
+          const mask = document.createElement("div");
+          mask.className = "lx-service-region-mask";
+          mask.innerHTML = `<section class="lx-service-region-dialog" role="dialog" aria-modal="true" aria-labelledby="lxServiceRegionTitle"><header class="lx-service-region-head"><h2 id="lxServiceRegionTitle">选择所在地区</h2><button class="lx-service-region-close" type="button" data-lx-service-region-close aria-label="关闭">×</button></header><div class="lx-service-region-body"><p class="lx-service-region-current">当前地区：${esc(current)}。地区会影响服务商品的可购买与可预约范围。</p><div class="lx-service-region-grid">${cities.map((city) => `<button class="lx-service-region-option${city === current ? " is-current" : ""}" type="button" data-lx-service-region-option="${esc(city)}">${esc(city)}</button>`).join("")}</div></div></section>`;
+          mask.addEventListener("click", (event) => {
+            if (event.target === mask || event.target.closest("[data-lx-service-region-close]")) { mask.remove(); return; }
+            const option = event.target.closest("[data-lx-service-region-option]");
+            if (!option) return;
+            const city = option.dataset.lxServiceRegionOption || "北京";
+            try { localStorage.setItem(LX_SERVICE_INTAKE_REGION_KEY, city); } catch (_e) {}
+            document.querySelectorAll("[data-lx-service-region-label]").forEach((node) => { node.textContent = city; });
+            mask.remove();
+          });
+          document.body.appendChild(mask);
+          mask.querySelector(".lx-service-region-option.is-current, .lx-service-region-option")?.focus();
+        }
+
+        function lxFillServiceOtherDevice() {
+          const value = "我想为其他笔记本查询清灰服务，设备是";
+          const fullscreen = document.body.classList.contains("assistant-fullscreen");
+          const textarea = fullscreen ? document.querySelector("#lxfdTa") : document.querySelector(".composer textarea");
+          if (!textarea) return;
+          textarea.value = value;
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          textarea.focus();
+          textarea.setSelectionRange(value.length, value.length);
+        }
+
+        function lxSendSelectedServiceDevice() {
+          const query = `我的设备是拯救者 Y7000P 2025，所在地区是${lxServiceIntakeRegion()}，请推荐可购买、可预约的清灰换硅脂服务商品`;
+          if (document.body.classList.contains("assistant-fullscreen") && typeof window.lxfdSubmit === "function") window.lxfdSubmit(query);
+          else sendChat(query);
+        }
+
+        window.__lxServiceIntake = { renderChoices: lxServiceIntakeChoicesHtml, openRegion: lxOpenServiceRegionPicker, fillOtherDevice: lxFillServiceOtherDevice, sendSelectedDevice: lxSendSelectedServiceDevice };
+        if (!window.__lxServiceIntakeClickInstalled) {
+          window.__lxServiceIntakeClickInstalled = true;
+          document.addEventListener("click", (event) => {
+            if (event.target.closest("[data-lx-service-region-open]")) { event.preventDefault(); lxOpenServiceRegionPicker(); return; }
+            if (event.target.closest("[data-lx-service-device-send]")) { event.preventDefault(); lxSendSelectedServiceDevice(); return; }
+            if (event.target.closest("[data-lx-service-other-device]")) { event.preventDefault(); lxFillServiceOtherDevice(); }
+          });
+        }
+
+        async function lxRunServiceIntakeAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的设备服务需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：清灰/换硅脂服务商品匹配");
+            paint();
+            await wait(520);
+            skills.add("Skill(服务产品推荐)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(服务产品推荐)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(服务产品推荐) 已完成";
+            paint();
+            await lxAnimateAiFinal(ai, mdLite("已经明确是**清灰/换硅脂服务**。还需要确认**目标设备和所在地区**，才能匹配可购买、可预约的服务商品。"));
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            const actions = finalBody.querySelector(".message-actions");
+            if (actions) actions.insertAdjacentHTML("beforebegin", lxServiceIntakeChoicesHtml());
+            else finalBody.insertAdjacentHTML("beforeend", lxServiceIntakeChoicesHtml());
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function lxRunUnifiedStoreAppointmentAnswer(store) {
           const currentStore = store && typeof store === "object" ? store : {};
           const storeName = currentStore.name || "所选联想门店";
@@ -3726,6 +3836,10 @@ function openOrderDetail(orderId) {
           }
           if (lxIsNearbyStoreQuery(text)) {
             await lxRunUnifiedStoreAnswer();
+            return;
+          }
+          if (lxIsServiceIntakeQuery(text)) {
+            await lxRunServiceIntakeAnswer();
             return;
           }
           if (/代金券/.test(text)) {
