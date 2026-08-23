@@ -1483,6 +1483,43 @@
       return;
     }
 
+    if (/^我的设备[。！!]?$/.test(value)) {
+      chatState.sending = true;
+      const deviceAi = document.createElement("div");
+      deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
+      deviceAi._loadingStarted = Date.now();
+      deviceAi._traceLines = ["联想乐享正在判断你的设备资产需求"];
+      deviceAi._traceSkills = new Set();
+      deviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(deviceAi);
+      lxfdRenderTraceLive(deviceAi);
+      deviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      await lxfdWait(reduceMotion ? 0 : 420);
+      deviceAi._traceLines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+      lxfdRenderTraceLive(deviceAi);
+      await lxfdWait(reduceMotion ? 0 : 520);
+      deviceAi._traceSkills.add("Skill(设备资产查询)");
+      deviceAi._traceLines.push("联想乐享官方 SKILL：正在调用 Skill(设备资产查询)");
+      lxfdRenderTraceLive(deviceAi);
+      await lxfdWait(reduceMotion ? 0 : 760);
+      deviceAi._traceLines[deviceAi._traceLines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产查询) 已完成";
+      deviceAi._traceCollapsed = true;
+      lxfdRenderTraceLive(deviceAi);
+      await lxfdAnimateFinal(deviceAi, "当前账号共有**8 台已绑定设备**，另有**1 台待绑定**。最近使用的是 ThinkBook 16p、拯救者 Y7000P、YOGA Air 14s；右侧已打开设备列表。");
+      const deviceBody = deviceAi.querySelector(".lxfd-ai-body");
+      if (deviceBody) deviceBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "devices", title: "查看我的设备", desc: "8 台已绑定 · 1 台待绑定" }));
+      lxfdPersistCurrent();
+      await lxfdWait(reduceMotion ? 0 : 720);
+      chatState.sending = false;
+      lxfdExportToMain();
+      exitFullscreenWithReveal(() => {
+        lxfdEnsureRootSplitState();
+        if (typeof window.__lxOpenDevicesResult === "function") window.__lxOpenDevicesResult();
+        else lxfdRevealFeature("devices");
+      });
+      return;
+    }
+
     if (lxfdIsNearbyStoreQuery(value)) {
       await lxfdRunUnifiedStoreAnswer();
       return;
@@ -1961,8 +1998,14 @@
             pendingExtras += renderLxfdPageCta(pageMeta);
             if (turnActions.indexOf(pageMeta.feature) < 0) turnActions.push(pageMeta.feature);
           } else if (op === 'auth') {
-            // 职场认证：直接往 lxfd AI 气泡末尾插入触发按钮（不走全屏→分屏桥接）
-            pendingExtras += '<div class="lx-p0-actions answer-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>';
+            // 职场认证与教育认证统一使用标准结果卡，点击后直接打开认证弹窗。
+            pendingExtras += `<button class="answer-cta lx-answer-page lx-auth-answer-card" type="button" data-open-wpa aria-label="打开职场身份认证弹窗">
+              <span class="answer-cta-copy">
+                <span class="answer-cta-title">职场身份认证</span>
+                <span class="answer-cta-desc">认证后享购机优惠、AI 资源与专属权益</span>
+              </span>
+              <span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span>
+            </button>`;
           } else if (op) {
             if (turnActions.indexOf(op) < 0) turnActions.push(op); // 记录意图，done 时桥接后再执行（全屏下直接开标签会被遮盖）
           }

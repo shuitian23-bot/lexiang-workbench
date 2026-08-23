@@ -4360,8 +4360,8 @@ function openOrderDetail(orderId) {
                 }
                 else if (op === 'stores') deferRightPanel(() => { lxRevealContent(); openStoresPanel(); }, { title: "查看附近门店", desc: "已为你打开门店查询页面" });
                 else if (op === 'auth') {
-                  // 职场认证：往当前 AI 气泡末尾插入触发按钮
-                  lxAppendAiHtml(ai, '<div class="lx-p0-actions"><button class="lx-p0-btn primary" type="button" data-open-wpa>立即认证职场身份</button></div>');
+                  // 职场认证与教育认证统一使用标准结果卡，点击后直接打开认证弹窗。
+                  lxAppendAiHtml(ai, `<button class="answer-cta lx-answer-page lx-auth-answer-card" type="button" data-open-wpa aria-label="打开职场身份认证弹窗"><span class="answer-cta-copy"><span class="answer-cta-title">职场身份认证</span><span class="answer-cta-desc">认证后享购机优惠、AI 资源与专属权益</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`);
                 }
               },
               tradein: (data) => {
@@ -6633,11 +6633,11 @@ async function lxRenderSiteFloors() {
                 '</div>' +
                 '<div class="lx-p0-actions"><button class="lx-p0-btn" type="button" data-wpa-back>返回</button><button class="lx-p0-btn primary lx-wpa-submit-btn" type="button" data-wpa-submit>提交认证</button></div>';
             }
-            return progressHtml + body;
+            return '<div class="lx-wpa-modal" data-wpa-step="' + wpaStep + '">' + progressHtml + body + '</div>';
           }
 
           function wpaRender() {
-            openModal('职场身份认证 · 获取更多权益', wpaStepHtml());
+            openModal('职场身份认证', wpaStepHtml(), { skin: "lead" });
             // 绑定倒计时按钮（如果在第2步且有倒计时需要恢复）
             if (wpaStep === 2 && wpaCountdown > 0) {
               const btn = document.getElementById('wpaSendCode');
@@ -8486,7 +8486,7 @@ async function openEduZone() {
             return;
           }
 
-          const intro = `<div class="reco-head"><h2>${esc(tab.label || "AI 推荐")}</h2><span>${isServiceReco ? `已按设备与地区匹配 ${products.length} 款服务商品` : `根据你的需求挑出 ${products.length} 款，可继续追问缩小范围`}</span></div>`;
+          const intro = `<div class="reco-head"><h2${isServiceReco ? ' style="font-weight:500!important"' : ""}>${esc(tab.label || "AI 推荐")}</h2><span>${isServiceReco ? `已按设备与地区匹配 ${products.length} 款服务商品` : `根据你的需求挑出 ${products.length} 款，可继续追问缩小范围`}</span></div>`;
           if (products.length <= 6) {
             const cmpN = Math.min(products.length, 8);
             const compareAll = !isServiceReco && products.length >= 2
@@ -8496,7 +8496,7 @@ async function openEduZone() {
               <div class="reco-row">
                 <img src="${p.official ? esc(p.image_url) : esc(imgUrl(p.image_url))}" alt="${esc(p.name)}" loading="lazy" data-open-product="${esc(p.sku)}" />
                 <div class="reco-row-main" data-open-product="${esc(p.sku)}">
-                  <strong>${esc(p.name)}</strong>
+                  <strong${isServiceReco ? ' style="font-weight:500!important"' : ""}>${esc(p.name)}</strong>
                   <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
                   <div class="reco-row-tags">${(p.promotion_tags || []).slice(0, 2).map((tag) => `<span class="product-promo">${esc(tag)}</span>`).join("")}</div>
                   ${(() => {
@@ -9075,6 +9075,32 @@ async function openEduZone() {
               </div>`;
           lxOpenInfoTab("member", "会员中心", html);
         }
+
+        function openMemberDevicesCenter() {
+          const html = `<style>
+              .content[data-view="info"]:has(.lx-member-devices-frame){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+              .content[data-view="info"]:has(.lx-member-devices-frame)>.lx-tabbar{flex:0 0 auto!important}
+              .content[data-view="info"] .info-page:has(.lx-member-devices-frame){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+              .content[data-view="info"] .info-page:has(.lx-member-devices-frame)::before,
+              .content[data-view="info"] .info-page:has(.lx-member-devices-frame)::after{display:none!important;content:none!important}
+            </style>
+            <div class="lx-member-devices-frame" style="position:relative;width:100%;height:100%;min-height:0;overflow:hidden;background:#FFFFFF">
+              <iframe src="/member-service-aui/index.html?embed=devices&amp;origin=query&amp;v=20260823-devices-content-only" title="我的设备列表" loading="eager" style="position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;background:#FFFFFF"></iframe>
+            </div>`;
+          const tab = { id: "info:devices", kind: "info", label: "我的设备", html };
+          lxUpsertTab(tab);
+          const commit = () => {
+            const active = (state.tabs || []).find((item) => item?.id === "info:devices") || tab;
+            state.activeTabId = "info:devices";
+            lxRunTab(active);
+            lxRenderTabbar();
+          };
+          commit();
+          requestAnimationFrame(() => requestAnimationFrame(commit));
+          window.setTimeout(commit, 180);
+          window.setTimeout(commit, 520);
+        }
+        window.__lxOpenDevicesResult = openMemberDevicesCenter;
 
         function openCouponCenter() {
           const html = `<style>
@@ -11642,6 +11668,7 @@ async function openEduZone() {
         window.__lxOpenProductTab = function(product) { return openProduct(product); };
         window.__lxOpenFeature = function(op) {
           if (op === 'member') openMemberCenter();
+          else if (op === 'devices') openMemberDevicesCenter();
           else if (op === 'coupon') openCouponCenter();
           else if (op === 'points') openPointsCenter();
           else if (op === 'vouchers') openVoucherCenter();

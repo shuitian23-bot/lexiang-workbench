@@ -47,7 +47,7 @@
         var isLocalFile = location.protocol === "file:";
         var isTemplateRoute = /\/assets\/templates(?:\/|$)/.test(location.pathname);
         var embedView = new URLSearchParams(location.search).get("embed");
-        var isMemberAssetEmbed = ["member", "coupons", "points", "vouchers", "redpacket"].indexOf(embedView) >= 0;
+      var isMemberAssetEmbed = ["member", "coupons", "points", "vouchers", "redpacket", "devices"].indexOf(embedView) >= 0;
         var assetBase = isMemberAssetEmbed ? "/member-service-aui/" : "./assets/templates/";
         document.write('<base href="' + assetBase + '">');
       })();
@@ -1085,7 +1085,7 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
     </style>
     <link rel="stylesheet" href="./assets/member-service-aui.css?v=20260823-profile-fullscreen-modal" />
     <script>
-      if (["member", "coupons", "points", "vouchers", "redpacket"].indexOf(new URLSearchParams(location.search).get("embed")) >= 0) {
+        if (["member", "coupons", "points", "vouchers", "redpacket", "devices"].indexOf(new URLSearchParams(location.search).get("embed")) >= 0) {
         document.documentElement.classList.add("leai-member-embed");
       }
     </script>

@@ -2054,6 +2054,7 @@
 
   function memberDevicesPage() {
     var keys = orderedDeviceKeys();
+    var isQueryEmbed = new URLSearchParams(window.location.search).get("origin") === "query";
     if (state.deviceFocusId && deviceCatalog[state.deviceFocusId]) return memberDeviceDetailPage(state.deviceFocusId);
     var eligibleKeys = keys.filter(function (key) { return Boolean(deviceCatalog[key].extensionEligible); });
     var normalKeys = keys.filter(function (key) { return !deviceCatalog[key].extensionEligible; });
@@ -2072,7 +2073,9 @@
     });
     var pending = !state.pendingDeviceBound && (filter === "all" || filter === "attention") ? pendingDeviceListRow() : "";
     var list = pending + visibleKeys.map(function (key) { return memberDeviceListRow(deviceCatalog[key]); }).join("");
-    return '<section class="leai-page" data-member-device-page aria-labelledby="leaiDevicesTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备资产</p><h1 class="leai-page-title" id="leaiDevicesTitle">我的设备</h1><p class="leai-page-desc">查看 Lenovo ID 下的绑定设备、保修信息和可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + keys.length + ' 台已绑定 · ' + pendingCount + ' 台待绑定</span></header>' +
+    var pageHeading = isQueryEmbed ? '' : '<p class="leai-page-kicker">设备资产</p><h1 class="leai-page-title" id="leaiDevicesTitle">我的设备</h1>';
+    var pageLabel = isQueryEmbed ? ' aria-label="我的设备列表"' : ' aria-labelledby="leaiDevicesTitle"';
+    return '<section class="leai-page" data-member-device-page' + pageLabel + '><header class="leai-page-header"><div>' + pageHeading + '<p class="leai-page-desc">查看 Lenovo ID 下的绑定设备、保修信息和可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + keys.length + ' 台已绑定 · ' + pendingCount + ' 台待绑定</span></header>' +
       '<section class="leai-panel leai-device-center"><div class="leai-panel-head"><div><h2 class="leai-panel-title">设备列表</h2><p>按节点筛选设备，查看完整详情或维保方案。</p></div><button class="leai-secondary" type="button" data-device-add>绑定新设备</button></div>' +
       '<div class="leai-device-filters" role="group" aria-label="设备筛选">' + Object.keys(filterLabels).map(function (key) { return deviceFilterButton(key, filterLabels[key][0], filterLabels[key][1], filter); }).join("") + '</div>' +
       '<div class="leai-device-list" data-device-unified-list aria-live="polite">' + list + '</div>' +
