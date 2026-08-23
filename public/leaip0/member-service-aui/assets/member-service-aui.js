@@ -385,9 +385,23 @@
     window.addEventListener("message", function (event) {
       if (event.origin !== window.location.origin) return;
       var payload = event.data;
-      if (!payload || payload.type !== "lexiang:profile-updated" || !payload.profile) return;
-      Object.assign(state.profile, payload.profile);
-      refreshRightView();
+      if (!payload) return;
+      if (payload.type === "lexiang:profile-updated" && payload.profile) {
+        Object.assign(state.profile, payload.profile);
+        refreshRightView();
+        return;
+      }
+      if (payload.type === "lexiang:device-bind-success" && payload.deviceId === pendingPurchasedDevice.id) {
+        state.pendingDeviceBound = true;
+        state.recentDeviceId = pendingPurchasedDevice.id;
+        deviceCatalog[pendingPurchasedDevice.id] = Object.assign({}, pendingPurchasedDevice);
+        refreshRightView();
+        return;
+      }
+      if (payload.type === "lexiang:device-bind-failed" && payload.deviceId === pendingPurchasedDevice.id) {
+        var retry = document.querySelector("[data-device-bind-purchased]");
+        if (retry) { retry.disabled = false; retry.textContent = "一键绑定"; }
+      }
     });
     renderSug("");
   }
@@ -1060,7 +1074,20 @@
   async function runPurchasedDeviceBind(button) {
     if (state.pendingDeviceBound || button.disabled) return;
     button.disabled = true;
-    button.textContent = "正在绑定";
+    button.textContent = "正在调用 Skill";
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        type: "lexiang:device-bind-query",
+        query: "一键绑定小新 Pro 16",
+        device: {
+          id: pendingPurchasedDevice.id,
+          name: pendingPurchasedDevice.name,
+          product: pendingPurchasedDevice.product,
+          sn: pendingPurchasedDevice.sn
+        }
+      }, window.location.origin);
+      return;
+    }
     var task = taskEnvelope("device-bind-purchased", { deviceId: pendingPurchasedDevice.id, source: "recognized-order" });
     document.body.dataset.activeRequest = task.requestId;
     enterChat();

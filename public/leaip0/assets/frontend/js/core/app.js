@@ -3832,6 +3832,46 @@ function openOrderDetail(orderId) {
           }
         }
 
+        async function lxRunUnifiedDeviceBindAnswer(device) {
+          const current = device && typeof device === "object" ? device : {};
+          const deviceName = current.name || "小新 Pro 16";
+          const bridge = window.__lxPendingDeviceBindBridge;
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在校验设备订单与当前 Lenovo ID"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push(`已识别：${deviceName} · 联想官方订单待绑定`);
+            paint();
+            await wait(520);
+            skills.add("Skill(设备资产绑定)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(设备资产绑定)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(设备资产绑定) 已完成";
+            const copy = `绑定成功！**${deviceName}** 已加入当前 Lenovo ID，设备信息与保障服务已同步，可在右侧“我的设备”列表中查看详情。`;
+            await lxAnimateAiFinal(ai, mdLite(copy));
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            ai.classList.remove("loading");
+            if (bridge?.source?.postMessage) bridge.source.postMessage({ type: "lexiang:device-bind-success", deviceId: current.id || "xiaoxinpro16" }, window.location.origin);
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+          } catch (error) {
+            if (bridge?.source?.postMessage) bridge.source.postMessage({ type: "lexiang:device-bind-failed", deviceId: current.id || "xiaoxinpro16" }, window.location.origin);
+            throw error;
+          } finally {
+            window.__lxPendingDeviceBindBridge = null;
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         async function lxRunUnifiedMemberAnswer() {
           state.sending = true;
           clearHoverPromptTimer();
@@ -4080,6 +4120,11 @@ function openOrderDetail(orderId) {
           }
           if (/^我的设备[。！!]?$/.test(text)) {
             await lxRunUnifiedDevicesAnswer();
+            return;
+          }
+          if (/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(text)) {
+            const bindBridge = window.__lxPendingDeviceBindBridge;
+            await lxRunUnifiedDeviceBindAnswer(bindBridge?.device);
             return;
           }
           if (/代金券/.test(text)) {
@@ -6702,6 +6747,11 @@ async function lxRenderSiteFloors() {
           if (!payload) return;
           if (payload.type === "lexiang:open-student-auth") { openStudentAuth(payload.kind || "college"); return; }
           if (payload.type === "lexiang:open-profile-editor") { openGlobalProfileEditor(payload.profile, event.source); }
+          if (payload.type === "lexiang:device-bind-query" && payload.device) {
+            if (window.__lxPendingDeviceBindBridge || state.sending) return;
+            window.__lxPendingDeviceBindBridge = { source: event.source, device: payload.device };
+            sendChat(payload.query || ("一键绑定" + (payload.device.name || "小新 Pro 16")));
+          }
         });
 
         function openWorkplaceAuth() {

@@ -554,7 +554,7 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-secondary { border: 1px solid var(--ms-line); background: var(--ms-surface); color: var(--ms-brand); }
 .leai-secondary:hover, .leai-secondary:focus-visible { background: var(--ms-hover); outline: none; }
 
-.leai-modal-mask { position: fixed; inset: 0; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(255, 255, 255, 0.72); }
+.leai-modal-mask { position: fixed; inset: 0; z-index: 10020; display: none; place-items: center; padding: 24px; background: #190e21d1; }
 .leai-modal-mask.is-open { display: grid; }
 .leai-modal { width: min(600px, calc(100vw - 48px)); max-height: calc(100vh - 48px); overflow-y: auto; border: 1px solid var(--ms-line); border-radius: 18px; background: var(--ms-surface); box-shadow: var(--ms-shadow); }
 .leai-modal.is-student { width: min(720px, calc(100vw - 48px)); }
@@ -860,7 +860,7 @@ textarea {
 }
 
 /* LX_PROFILE_FULLSCREEN_MODAL_20260823 */
-.leai-modal-mask:has(.leai-modal.is-profile-editor) { padding: 24px; background: rgba(45, 18, 52, .22); }
+.leai-modal-mask:has(.leai-modal.is-profile-editor) { padding: 24px; background: #190e21d1; }
 .leai-modal.is-profile-editor { width: min(860px, calc(100vw - 48px)); height: auto; max-width: 860px; max-height: min(680px, calc(100vh - 48px)); display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: 1px solid #e2ddeb; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(45,18,52,.28), 0 4px 14px rgba(45,18,52,.12); }
 
 /* 全站弹窗规范：会员中心弹窗壳不使用外部投影。 */
