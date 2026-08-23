@@ -3495,8 +3495,12 @@ function openOrderDetail(orderId) {
         lxInstallServiceIntakeSplitStyles();
 
         function lxIsServiceIntakeQuery(text) {
-          return /^我想给拯救者游戏本清灰换硅脂[。！!]?$/.test(String(text || "").trim());
+          const value = String(text || "").trim();
+          if (!value) return false;
+          if (/^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(value)) return false;
+          return /清灰|除尘|换硅脂|散热保养/.test(value);
         }
+        window.__lxIsServiceIntakeQuery = lxIsServiceIntakeQuery;
 
         function lxServiceIntakeRegion() {
           try { return localStorage.getItem(LX_SERVICE_INTAKE_REGION_KEY) || "北京"; } catch (_e) { return "北京"; }
