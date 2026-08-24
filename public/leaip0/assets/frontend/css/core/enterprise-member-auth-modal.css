@@ -14,6 +14,33 @@
   background: transparent !important;
 }
 
+/* 四个频道与首页全屏使用完全相同的显式表单栅格。
+   后加载的频道响应式规则不得重新自动排列企业邮箱和操作按钮。 */
+html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+  column-gap: 16px !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-row:nth-of-type(1) {
+  grid-area: 1 / 1 / 2 / 2 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-row:nth-of-type(2) {
+  grid-area: 1 / 2 / 2 / 3 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-row:nth-of-type(3) {
+  grid-area: 2 / 1 / 3 / 2 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-actions {
+  grid-area: 3 / 1 / 4 / 3 !important;
+  grid-column: 1 / 3 !important;
+  grid-row: 3 !important;
+}
+
 .lx-enterprise-lead .lx-lead-actions > button {
   width: 100% !important;
   min-width: 0 !important;
@@ -30,6 +57,17 @@
 }
 
 @media (max-width: 720px) {
+  html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm {
+    grid-template-columns: 1fr !important;
+  }
+  html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-row:nth-of-type(1),
+  html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-row:nth-of-type(2),
+  html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-row:nth-of-type(3),
+  html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-actions {
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
   .lx-enterprise-lead .lx-lead-actions {
     grid-template-columns: 1fr !important;
   }

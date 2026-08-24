@@ -2060,7 +2060,7 @@
 
   function memberPage() {
     return '<section class="leai-page leai-member-page" aria-labelledby="leaiMemberTitle">' +
-      '<header class="leai-member-main-header"><h1 class="leai-page-title" id="leaiMemberTitle">会员中心</h1></header>' +
+          '<header class="leai-member-main-header"><h1 class="leai-page-title" id="leaiMemberTitle">会员中心</h1><p class="leai-member-adjustment-note">整个会员中心相关样式正在调整，预计8月26日完成</p></header>' +
       memberInsights() +
       '<section class="leai-panel leai-member-overview" data-member-overview data-member-identities data-member-section="overview"><div class="leai-panel-head"><div><h2 class="leai-panel-title">会员身份</h2><p>个人资料、会员等级与教育身份权益集中展示。</p></div><span class="leai-section-meta">身份服务</span></div>' +
       memberIdentityHub() + identityBenefits() + '</section>' +

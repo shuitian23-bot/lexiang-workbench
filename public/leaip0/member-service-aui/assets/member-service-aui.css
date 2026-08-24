@@ -144,6 +144,14 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-page-title { margin: 0; padding-inline-start: 10px; color: var(--ms-text); font-size: 22px; line-height: 32px; font-weight: 500; }
 .leai-member-main-header { display: block; margin: 0 0 18px; }
 .leai-member-main-header .leai-page-title { display: block; }
+.leai-member-adjustment-note {
+  margin: 4px 0 0;
+  padding-inline-start: 10px;
+  color: #252525;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 400;
+}
 .leai-page-desc { margin: 8px 0 0; color: var(--ms-text-soft); font-size: 13px; line-height: 21px; }
 .leai-status-pill { min-height: 30px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border-radius: 999px; background: var(--ms-hover); color: var(--ms-brand); font-size: 12px; white-space: nowrap; }
 .leai-status-pill img { width: 14px; height: 14px; }

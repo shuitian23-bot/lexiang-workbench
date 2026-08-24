@@ -10056,10 +10056,10 @@ async function openEduZone() {
           const stores=lxStoreV5Filtered();
           if(!stores.some(s=>s.id===lxStoreV5State.selected)) lxStoreV5State.selected=stores[0]?.id||0;
           const selected=stores.find(s=>s.id===lxStoreV5State.selected)||stores[0];
-          const mapUrl=selected?`/api/stores/staticmap?lng=${encodeURIComponent(selected.lng)}&lat=${encodeURIComponent(selected.lat)}`:"";
+          const mapUrl=selected?`/api/stores/staticmap?lng=${encodeURIComponent(selected.lng)}&lat=${encodeURIComponent(selected.lat)}&view=wide30`:"";
           const pins=stores.map((s,i)=>`<button type="button" class="lxsv5-pin${s.id===lxStoreV5State.selected?' is-active':''}" style="left:${16+(i%4)*23}%;top:${22+Math.floor(i/4)*35}%" data-lxsv5-select="${s.id}">${i+1}</button>`).join("");
           const detail=selected?`<div class="lxsv5-float"><button class="lxsv5-float-close" type="button" data-lxsv5-float-close>×</button><div class="lxsv5-float-head"><strong>${esc(selected.name)}</strong><span>${esc(selected.type)}</span><span>${esc(selected.kind)}</span><button type="button" data-lxsv5-detail="${selected.id}">进入门店</button></div><p>${esc(selected.address)}</p><div class="lxsv5-float-meta"><b>${lxStoreOpenState(selected).label}</b><span>${esc(selected.hours)}</span><span>电话 ${esc(selected.tel)}</span></div><div class="lxsv5-business"><b>业务</b>${selected.business.map(x=>`<span>${esc(x)}</span>`).join("")}</div><div class="lxsv5-float-actions"><strong>距离 ${esc(selected.distance)}</strong><button type="button" data-lxsv5-appointment="${selected.id}">预约到店</button><button class="primary" type="button" data-lxsv5-nav="${selected.id}">导航</button></div><div class="lxsv5-stock"><span><b>券</b> 价值39元手机背膜免费贴</span><span><b>商品</b> 在售 ThinkPad X1 Carbon / 小新 Pro 14</span></div></div>`:"";
-          return `<div class="lxsv5" data-store-v5-root><div class="lxsv5-toolbar"><button type="button" data-lxsv5-city>北京⌄</button><select data-lxsv5-business><option value="">选择业务</option><option>个人&家庭产品</option><option>商用产品及方案</option><option>Think产品</option><option>检测维修</option></select><select data-lxsv5-kind><option value="">选择门店类型</option><option>销售门店</option><option>服务门店</option></select><input data-lxsv5-keyword value="${esc(lxStoreV5State.keyword)}" placeholder="请输入门店名称"><button class="primary" type="button" data-lxsv5-search>查询</button></div><div class="lxsv5-location">当前位置：北京市西城区复兴门内大街49号</div><div class="lxsv5-workspace"><div class="lxsv5-map" style="${mapUrl?`background-image:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),url('${mapUrl}')`:''}"><span class="lxsv5-me">●<em>我的位置</em></span>${pins}${detail}</div><aside class="lxsv5-list"><div class="lxsv5-list-head"><strong>门店列表</strong><span>共 ${stores.length} 家</span></div>${stores.length?stores.map(lxStoreV5Card).join(""):`<div class="lxsv5-empty">没有找到符合条件的门店，请调整筛选条件。</div>`}</aside></div></div>`;
+          return `<div class="lxsv5" data-store-v5-root><h1 class="lxsv5-page-title">附近门店</h1><div class="lxsv5-toolbar"><button type="button" data-lxsv5-city>北京⌄</button><select data-lxsv5-business><option value="">选择业务</option><option>个人&家庭产品</option><option>商用产品及方案</option><option>Think产品</option><option>检测维修</option></select><select data-lxsv5-kind><option value="">选择门店类型</option><option>销售门店</option><option>服务门店</option></select><input data-lxsv5-keyword value="${esc(lxStoreV5State.keyword)}" placeholder="请输入门店名称"><button class="primary" type="button" data-lxsv5-search>查询</button></div><div class="lxsv5-location">当前位置：北京市西城区复兴门内大街49号</div><div class="lxsv5-workspace"><div class="lxsv5-map" style="${mapUrl?`background-image:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),url('${mapUrl}')`:''}"><span class="lxsv5-me">●<em>我的位置</em></span>${pins}${detail}</div><aside class="lxsv5-list"><div class="lxsv5-list-head"><strong>门店列表</strong><span>共 ${stores.length} 家</span></div>${stores.length?stores.map(lxStoreV5Card).join(""):`<div class="lxsv5-empty">没有找到符合条件的门店，请调整筛选条件。</div>`}</aside></div></div>`;
         }
         function lxStoreV5ById(id){return LX_STORE_V5_DATA.find(s=>s.id===Number(id));}
         function lxOpenStoreV5(){lxOpenInfoTab("stores","附近门店",lxRenderStoreV5());requestAnimationFrame(lxBindStoreV5);}
@@ -10222,8 +10222,8 @@ async function openEduZone() {
           business: [
             ["客服", "../icons/shortcut-support.svg"],
             ["咨询热线", "../icons/shortcut-live.svg"],
-            ["批量采购", "../icons/shortcut-customization.svg"],
             ["企业认证", "../icons/shortcut-trial.svg"],
+            ["批量采购", "../icons/shortcut-customization.svg"],
             ["会员权益", "../icons/shortcut-membership.svg"],
           ],
           enterprise: [
@@ -11202,7 +11202,7 @@ async function openEduZone() {
               else if (text.includes("国补")) sendChat(text);
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
               else if (text.includes("对公") || text.includes("批量采购") || text.includes("信创") || text.includes("解决方案") || text.includes("客户经理")) sendChat(text);
-              else if (text.includes("企业认证")) openEnterpriseAuth();
+              else if (text.includes("企业认证")) sendChat("认证企业会员");
               else if (text.includes("优惠") || text.includes("0元试用") || text.includes("乐豆")) openCouponCenter();
               else if (text.includes("以旧换新")) sendChat("帮我估算以旧换新补贴，并说明流程");
               else if (state.humanMode && (text.includes("退出人工") || text.includes("我的订单") || text.includes("发图片") || text.includes("评价服务") || text.includes("需求清单"))) { /* 人工模式按钮走 data-* 委托 */ }

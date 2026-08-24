@@ -9830,8 +9830,8 @@ async function openEduZone() {
           business: [
             ["客服", "../icons/shortcut-support.svg"],
             ["咨询热线", "../icons/shortcut-live.svg"],
-            ["批量采购", "../icons/shortcut-customization.svg"],
             ["企业认证", "../icons/shortcut-trial.svg"],
+            ["批量采购", "../icons/shortcut-customization.svg"],
             ["会员权益", "../icons/shortcut-membership.svg"],
           ],
           enterprise: [
