@@ -664,8 +664,10 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         margin:-26px -28px 18px!important;
         padding:20px 28px 16px!important;
         border-radius:20px 20px 0 0!important;
-        background:linear-gradient(90deg,var(--tint) 0%,var(--tint-2) 100%)!important;
+        /* 设计稿：粉→浅紫可见渐变（原 var(--tint) 两端几乎同白，视觉上看不出） */
+        background:linear-gradient(90deg,#FBE9EF 0%,#EFE9F9 100%)!important;
       }
+      .co[data-v="1"].lx-order-skin .order-head .title{color:var(--brand-red);font-weight:700}
       .co[data-v="1"].lx-order-skin .order-head .title{display:flex;align-items:center;gap:8px}
       .co[data-v="1"].lx-order-skin .order-head .title .hic{display:inline-flex;width:16px;height:16px}
       .co[data-v="1"].lx-order-skin .order-head .title .hic .lx-approved-icon{background:var(--brand-red)!important;width:16px!important;height:16px!important}
