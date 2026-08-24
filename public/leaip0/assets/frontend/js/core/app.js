@@ -7576,7 +7576,7 @@ async function openEduZone() {
             : image;
           const heroImage = `../img/solution/${esc(heroImageFile)}`;
           const architectureImage = title === "多擎云桌面解决方案"
-            ? "../img/solution/多擎云桌面解决方案-智慧校园架构图.png"
+            ? "../img/solution/多擎云桌面解决方案-智慧校园架构图.webp"
             : heroImage;
           const advantagesText = advantages.join("；");
           const productCards = products.map((item, index) => {
@@ -7633,7 +7633,7 @@ async function openEduZone() {
               <div class="lx-sd-architecture-layout">
                 <p class="lx-sd-ability"><strong><img class="lx-sd-label-icon" src="../icons/global-sparkle.svg" alt="" aria-hidden="true" /><span>能力概览</span></strong><span>${esc(features.join("；"))}</span></p>
                 <div class="lx-sd-architecture">
-                  <figure class="lx-sd-architecture-visual"><img src="${architectureImage}" alt="${esc(title)}核心架构图" /></figure>
+                  <figure class="lx-sd-architecture-visual"><img src="${architectureImage}" alt="${esc(title)}核心架构图" decoding="async" fetchpriority="high" /></figure>
                 </div>
               </div>
             </section>
@@ -10355,7 +10355,7 @@ async function openEduZone() {
             ["客服", "../icons/shortcut-support.svg"],
             ["咨询热线", "../icons/shortcut-live.svg"],
             ["企业认证", "../icons/shortcut-trial.svg"],
-            ["批量采购", "../icons/shortcut-customization.svg"],
+            ["职场认证", "../icons/shortcut-customization.svg"],
             ["会员权益", "../icons/shortcut-membership.svg"],
           ],
           enterprise: [
@@ -10492,7 +10492,7 @@ async function openEduZone() {
             quick: ["推荐问题待定制", "推荐问题待定制", "推荐问题待定制", "推荐问题待定制", "推荐问题待定制"],
             welcome: ["公司采购50台办公本，怎么拿企业价？", "ThinkBook和ThinkPad办公怎么选？", "企业购能开专票、走账期吗？", "中小企业有什么采购补贴？"],
             placeholder: "公司要配办公电脑，帮我推荐",
-            actionbar: ["企业认证", "对公开票", "账期申请", "批量采购", "上门服务", "专属客服"],
+            actionbar: ["企业认证", "对公开票", "账期申请", "职场认证", "上门服务", "专属客服"],
             hello: ["企业采购", "专享价", "对公开票", "商用电脑", "上门服务"],
           },
           enterprise: {
