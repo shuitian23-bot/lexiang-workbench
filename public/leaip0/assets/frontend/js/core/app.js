@@ -7537,39 +7537,116 @@ async function openEduZone() {
 
         function lxOpenSpecificSolutionDetail({ title, industry, sector, scenario, intro, image }) {
           const s = LX_SOLUTIONS[industry] || {};
-          const featureCards = (s.features || [
+          const cleanText = (value) => String(value || "").replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
+          const features = (s.features || [
             `围绕${scenario || sector || "核心业务"}场景完成需求梳理与方案规划`,
             "提供软硬件、平台与服务的一体化部署能力",
             "支持分阶段建设、统一管理与持续运维",
             "结合实际业务目标持续优化交付效果"
-          ]).map((item, index) => `<li><span>${String(index + 1).padStart(2, "0")}</span><p>${esc(item)}</p></li>`).join("");
-          const advantages = (s.advantages || ["端到端方案规划", "统一部署与运维", "全国服务网络支持"])
-            .map((item) => `<span>${esc(item)}</span>`).join("");
-          const cases = (s.cases || []).map((item) => `<button class="lx-solution-case-card" type="button" data-quick-ask="详细介绍这个案例：${esc(item)}"><strong>${esc(item)}</strong><em>让乐享详细介绍</em></button>`).join("");
-          const html = `<section class="lx-solution-detail lx-specific-solution-detail">
-            <div class="lx-solution-hero">
-              <div>
-                <div class="lx-solution-card-tags"><small>${esc(sector)}</small><small>${esc(scenario)}</small></div>
-                <h2>${esc(title)}</h2>
-                <p>${esc(intro)}</p>
+          ]).map(cleanText).filter(Boolean);
+          const advantages = (s.advantages || ["端到端方案规划", "统一部署与运维", "全国服务网络支持"]).map(cleanText).filter(Boolean);
+          const caseItems = (s.cases || [`${sector || industry || "行业"}${scenario || "核心场景"}示范项目`]).map(cleanText).filter(Boolean);
+          const productMap = {
+            "智慧教育": ["联想多擎云桌面", "ThinkVision 智慧黑板", "联想智慧教育大屏", "ThinkCentre 教学终端"],
+            "智慧医疗": ["ThinkStation 医疗工作站", "ThinkSystem SR650 V3", "联想医疗云桌面", "ThinkVision 专业显示器"],
+            "数字政府": ["联想开天政务终端", "ThinkSystem 服务器", "联想超融合平台", "政务云桌面"],
+            "智能制造": ["ThinkStation 图形工作站", "Lenovo Edge AI", "联想工业平板", "ThinkSystem 边缘服务器"],
+            "智慧金融": ["联想开天金融终端", "ThinkCentre 网点终端", "ThinkSystem 服务器", "联想超融合平台"],
+            "智慧能源": ["联想边缘计算网关", "ThinkSystem 服务器", "ThinkStation 工作站", "联想智慧运维平台"],
+            "智慧交通": ["联想边缘计算平台", "ThinkSystem 服务器", "ThinkStation 工作站", "联想智能运维平台"],
+            "智能基础设施": ["ThinkSystem 服务器", "联想企业级存储", "联想超融合平台", "联想混合云平台"]
+          };
+          const products = productMap[industry] || ["联想行业终端", "ThinkSystem 服务器", "联想统一运维平台"];
+          const official1456ProductVisuals = [
+            { src: "../img/solution/official-1456/01-hero.jpg", position: "76% 50%" },
+            { src: "../img/solution/official-1456/02-platform.jpg", position: "50% 88%" },
+            { src: "../img/solution/official-1456/03-features.jpg", position: "50% 88%" },
+            { src: "../img/solution/official-1456/04-architecture.jpg", position: "50% 60%" }
+          ];
+          const specificProductMeta = {
+            "联想多擎云桌面": { badge: "联想方案", spec: "统一桌面交付｜集中管理｜安全运维" },
+            "ThinkVision 智慧黑板": { badge: "ThinkVision", spec: "智慧教学｜互动协作｜统一管理" },
+            "联想智慧教育大屏": { badge: "联想教育", spec: "课件展示｜无线投屏｜互动课堂" },
+            "ThinkCentre 教学终端": { badge: "ThinkCentre", spec: "稳定终端｜集中部署｜便捷运维" }
+          };
+          const heroSummary = cleanText(s.overview || intro || `${title}围绕${scenario || sector || "核心业务"}场景，提供一体化建设与持续服务能力。`);
+          const valueText = cleanText(s.gains || intro || "通过统一规划、平台建设与持续运营，提升业务效率并降低全生命周期成本。");
+          const heroImageFile = title === "多擎云桌面解决方案"
+            ? "多擎云桌面解决方案-原创科技头图.png"
+            : image;
+          const heroImage = `../img/solution/${esc(heroImageFile)}`;
+          const architectureImage = title === "多擎云桌面解决方案"
+            ? "../img/solution/多擎云桌面解决方案-智慧校园架构图.png"
+            : heroImage;
+          const advantagesText = advantages.join("；");
+          const productCards = products.map((item, index) => {
+            const officialVisual = title === "多擎云桌面解决方案" ? official1456ProductVisuals[index % official1456ProductVisuals.length] : null;
+            const visualSrc = officialVisual ? officialVisual.src : heroImage;
+            const visualPosition = officialVisual ? officialVisual.position : "center";
+            const productMeta = specificProductMeta[item] || {
+              badge: "联想方案",
+              spec: `${sector || industry || "行业"}场景适配｜平台能力｜持续服务`
+            };
+            return `<button class="lx-sd-entity-card${officialVisual ? " has-official-visual" : ""}" type="button" data-quick-ask="详细介绍${esc(item)}，并说明它在${esc(title)}中的作用"><span class="lx-sd-entity-card-media"><b>${esc(productMeta.badge)}</b><img src="${visualSrc}" alt="${esc(item)}产品与平台能力示意图" loading="lazy" style="object-position:${visualPosition}"></span><span class="lx-sd-entity-card-copy"><strong>${esc(item)}</strong><small>${esc(productMeta.spec)}</small><span class="lx-sd-entity-card-tags"><i>${esc(sector || industry || "行业方案")}</i><i>官方服务</i></span><em>查看详情 <i aria-hidden="true">→</i></em></span></button>`;
+          }).join("");
+          const educationCaseFallbacks = [
+            "某高校教学终端统一运维示范项目",
+            "某区县教育资源云平台升级项目"
+          ];
+          const visibleCaseItems = title === "多擎云桌面解决方案"
+            ? [...caseItems, ...educationCaseFallbacks.filter((item) => !caseItems.includes(item))].slice(0, 4)
+            : caseItems.slice(0, 4);
+          const educationCaseImages = [
+            "../img/solution/智慧校园解决方案1.jpg",
+            "../img/solution/智慧教室解决方案2.jpg",
+            "../img/solution/智慧校园解决方案2.jpg",
+            "../img/solution/多擎云桌面解决方案-原创科技头图.png"
+          ];
+          const caseCards = visibleCaseItems.slice(0, 4).map((item, index) => {
+            const caseImage = industry === "智慧教育" ? educationCaseImages[index % educationCaseImages.length] : heroImage;
+            const viewCount = 67 + index * 13;
+            return `<button class="lx-sd-case-card" type="button" data-quick-ask="详细介绍这个案例：${esc(item)}"><img src="${caseImage}" alt="${esc(item)}案例场景图" /><span class="lx-sd-case-card-body"><strong>${esc(item)}</strong><span class="lx-sd-case-card-meta"><small>${esc(sector || industry || "行业")}案例</small><time datetime="2026-08-10">2026年08月10日</time><em>浏览 ${viewCount} · 查看案例 →</em></span></span></button>`;
+          }).join("");
+          const html = `<section class="lx-specific-solution-detail lx-sd-page">
+            <section class="lx-sd-hero">
+              <div class="lx-sd-hero-copy">
+                <div class="lx-sd-hero-main">
+                  <div class="lx-sd-tags"><small>${esc(sector)}</small><small>${esc(scenario)}</small></div>
+                  <h1>${esc(title)}</h1>
+                  <p>${esc(heroSummary)}</p>
+                </div>
+                <div class="lx-sd-actions"><button class="primary" type="button" data-floor-action="lead">提交项目需求</button></div>
               </div>
-              <img class="lx-specific-solution-image" src="../img/solution/${esc(image)}" alt="${esc(title)}方案场景图" />
-            </div>
-            <div class="lx-solution-section">
-              <div class="lx-solution-section-head"><h3>方案能力</h3><p>围绕业务场景、平台部署与持续服务形成一体化交付。</p></div>
-              <ul class="lx-solution-feature-list">${featureCards}</ul>
-            </div>
-            <div class="lx-solution-band">
-              <div><h3>方案优势</h3><div class="lx-solution-tags">${advantages}</div></div>
-              <div class="lx-solution-gain"><span>方案价值</span><strong>${esc(s.gains || intro)}</strong></div>
-            </div>
-            ${cases ? `<div class="lx-solution-section"><div class="lx-solution-section-head"><h3>相关案例</h3><p>可继续让联想乐享展开项目背景、交付范围和业务收益。</p></div><div class="lx-solution-case-grid">${cases}</div></div>` : ""}
-            <div class="lx-solution-actions">
-              <button class="lx-project-primary" type="button" data-floor-action="lead">提交合作意向</button>
-              <button class="lx-project-secondary" type="button" data-whitepaper>下载相关白皮书</button>
-              <button class="lx-project-secondary" type="button" data-quick-ask="按${esc(title)}给我推荐具体产品配置">推荐配置</button>
-            </div>
-            <p class="lx-p0-disclaimer">以上内容由联想乐享生成，仅供参考，实际交付范围以业务顾问确认结果为准。</p>
+              <figure><img src="${heroImage}" alt="${esc(title)}方案场景图" /></figure>
+            </section>
+            <section class="lx-sd-section" id="lx-sd-overview">
+              <header><h2>方案概览</h2><p>聚焦痛点、价值与优势</p></header>
+              <div class="lx-sd-industry"><strong><img class="lx-sd-label-icon" src="../icons/global-sparkle.svg" alt="" aria-hidden="true" /><span>行业洞察</span></strong><p>${esc(heroSummary)}</p><button type="button" data-quick-ask="继续分析${esc(title)}的行业趋势和建设机会">继续咨询</button></div>
+              <div class="lx-sd-insights">
+                <button type="button" data-quick-ask="${esc(title)}主要解决哪些业务痛点"><span>01</span><strong>业务痛点</strong><p>${esc(intro || "业务系统分散、终端难以统一管理，建设与运维成本较高。")}</p></button>
+                <button type="button" data-quick-ask="${esc(title)}能带来哪些方案价值"><span>02</span><strong>方案价值</strong><p>${esc(valueText)}</p></button>
+                <button type="button" data-quick-ask="${esc(title)}相比其他方案有什么优势"><span>03</span><strong>方案优势</strong><p>${esc(advantagesText)}</p></button>
+              </div>
+            </section>
+            <section class="lx-sd-section" id="lx-sd-architecture">
+              <header><h2>核心架构与能力</h2><p>梳理核心能力与落地架构</p></header>
+              <div class="lx-sd-architecture-layout">
+                <p class="lx-sd-ability"><strong><img class="lx-sd-label-icon" src="../icons/global-sparkle.svg" alt="" aria-hidden="true" /><span>能力概览</span></strong><span>${esc(features.join("；"))}</span></p>
+                <div class="lx-sd-architecture">
+                  <figure class="lx-sd-architecture-visual"><img src="${architectureImage}" alt="${esc(title)}核心架构图" /></figure>
+                </div>
+              </div>
+            </section>
+            <section class="lx-sd-section lx-sd-products-section" id="lx-sd-products"><header><h2>推荐产品</h2><p>匹配场景产品与平台</p></header><div class="lx-sd-entity-grid">${productCards}</div></section>
+            <section class="lx-sd-section" id="lx-sd-cases"><header><h2>客户案例</h2><p>参考项目实践与业务收益</p></header><div class="lx-sd-case-grid">${caseCards}</div></section>
+            <section class="lx-sd-section" id="lx-sd-resources">
+              <header><h2>相关资料与下一步</h2><p>获取资料与下一步建议</p></header>
+              <div class="lx-sd-resource-grid">
+                <button type="button" data-quick-ask="查看${esc(title)}的官方方案原文"><span>官方网站</span><strong>查看方案原文</strong><small>联想企业解决方案官网</small></button>
+                <button type="button" data-whitepaper><span>方案资料</span><strong>${esc(sector)}行业解决方案白皮书</strong><small>PDF / 官方资料</small></button>
+                <div><strong>需要结合现网环境评估？</strong><p>提交行业、建设目标和业务痛点，联想客户经理将进一步与你沟通。</p><button type="button" data-floor-action="lead">请专家联系我</button></div>
+              </div>
+            </section>
           </section>`;
           lxOpenInfoTab(`solution-detail:${title}`, title, html);
           state.solutionDetailTabs = state.solutionDetailTabs || {};
