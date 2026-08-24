@@ -1,10 +1,19 @@
-/* SMB 快捷入口仅展示 hover；在业务运行时注册事件前阻止点击和键盘执行。 */
+/* SMB 待开放快捷入口仅展示 hover；职场认证已开放并交由主业务运行时发送。 */
     (function () {
-      function getDisabledSmbShortcut(event) {
+      function getSmbShortcut(event) {
         return event.target.closest?.(
           ".shortcut-row > .shortcut, " +
           ".shortcut-row > .more-wrap > .more-menu .menu-row"
         );
+      }
+
+      function getDisabledSmbShortcut(event) {
+        var shortcut = getSmbShortcut(event);
+        if (!shortcut) return null;
+
+        /* “职场认证”必须继续冒泡到 app.js，由统一 sendChat 流程发送 query。 */
+        if ((shortcut.textContent || "").trim() === "职场认证") return null;
+        return shortcut;
       }
 
       document.addEventListener("click", function (event) {

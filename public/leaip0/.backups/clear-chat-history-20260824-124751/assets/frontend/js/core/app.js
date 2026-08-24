@@ -1,18 +1,3 @@
-// 2026-08-24 全站一次性清空历史对话：每个浏览器仅执行一次，后续新对话仍可正常保存。
-(function lxClearConversationHistoryOnce() {
-  const cleanupKey = "lexiang.history.cleanup.20260824.v1";
-  try {
-    if (localStorage.getItem(cleanupKey)) return;
-    [
-      "lexiang.conversation.v1",
-      "lexiang.lxfd.convs.v1",
-      "lexiang.conversation.sourcePage.v1",
-      "lexiang.newChatEmpty.v1"
-    ].forEach((key) => localStorage.removeItem(key));
-    localStorage.setItem(cleanupKey, "1");
-  } catch (_error) {}
-})();
-
 // 真实浏览器定位：只允许站点首页首次进入时自动请求。
 // file:// 下每个 HTML 都可能被浏览器视为独立文件来源；子频道不得在页面切换时重复弹权限框。
 // Icon Board 统一渲染入口：一般图标使用 mask 继承当前文字颜色；
