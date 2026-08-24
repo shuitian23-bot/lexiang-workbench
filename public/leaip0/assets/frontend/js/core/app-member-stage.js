@@ -2411,7 +2411,7 @@ function openOrderDetail(orderId) {
               const link = document.createElement("link");
               link.id = cssId;
               link.rel = "stylesheet";
-              link.href = "/member-service-aui/assets/member-service-aui.css?v=20260823-shared-component-v1";
+              link.href = "/assets/frontend/css/components/member-service.css?v=20260824-member-component-v1";
               document.head.appendChild(link);
             }
             const existing = document.getElementById("lx-member-component-runtime");
@@ -2427,7 +2427,7 @@ function openOrderDetail(orderId) {
               else window.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
               return sendChat(query);
             };
-            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-device-actions-v7";
+            script.src = "/assets/frontend/js/components/member-service.js?v=20260824-member-component-v1";
             script.async = true;
             script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
             script.onerror = () => reject(new Error("会员组件加载失败"));
