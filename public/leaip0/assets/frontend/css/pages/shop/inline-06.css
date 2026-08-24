@@ -656,6 +656,114 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         box-shadow:none!important;
         filter:none!important;
       }
+
+      /* === 待支付订单弹窗新版式（2026-08 改造）：渐变头 / 商品数量+详情 / 规格组 /
+         收货组 / 支付方式 / 国补条 / 价格区 / 操作按钮。颜色全部复用本弹层已注册的
+         --brand-red/--tint/--tint-2/--aubergine 等 var，或全站 :root token，不新增第 52 色。 */
+      .co[data-v="1"].lx-order-skin .order-head{
+        margin:-26px -28px 18px!important;
+        padding:20px 28px 16px!important;
+        border-radius:20px 20px 0 0!important;
+        background:linear-gradient(90deg,var(--tint) 0%,var(--tint-2) 100%)!important;
+      }
+      .co[data-v="1"].lx-order-skin .order-head .title{display:flex;align-items:center;gap:8px}
+      .co[data-v="1"].lx-order-skin .order-head .title .hic{display:inline-flex;width:16px;height:16px}
+      .co[data-v="1"].lx-order-skin .order-head .title .hic .lx-approved-icon{background:var(--brand-red)!important;width:16px!important;height:16px!important}
+
+      .co[data-v="1"].lx-order-skin .prod-list{display:flex;flex-direction:column;gap:14px;padding-bottom:18px;border-bottom:1px dashed var(--dashed)}
+      .co[data-v="1"].lx-order-skin .prod-list .prod{padding-bottom:0;border-bottom:0}
+      .co[data-v="1"].lx-order-skin .prod{position:relative}
+      .co[data-v="1"].lx-order-skin .prod .pc{padding-right:76px}
+      .co[data-v="1"].lx-order-skin .prod .pqty{display:inline-flex;align-items:center;height:20px;padding:0 7px;margin-top:6px;border-radius:6px;background:var(--tint-2);color:var(--text-soft);font-size:11.5px;font-weight:700}
+      .co[data-v="1"].lx-order-skin .prod .pview{position:absolute;top:2px;right:0;background:none;border:0;padding:0;font-size:12px;font-weight:700;color:var(--aubergine);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+      .co[data-v="1"].lx-order-skin .prod .pview:hover{color:var(--brand-red)}
+
+      .co[data-v="1"].lx-order-skin .spec-group{display:flex;flex-wrap:wrap;gap:8px 18px;padding:14px 0;border-bottom:1px dashed var(--dashed);font-size:12.5px}
+      .co[data-v="1"].lx-order-skin .spec-group .sp{color:var(--text-muted)}
+      .co[data-v="1"].lx-order-skin .spec-group .sp b{margin-left:4px;color:var(--ink);font-weight:700}
+
+      .co[data-v="1"].lx-order-skin .addr-group{padding:14px 0;border-bottom:1px dashed var(--dashed)}
+      .co[data-v="1"].lx-order-skin .addr-group .al1{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:700;color:var(--ink)}
+      .co[data-v="1"].lx-order-skin .addr-group .al2{margin-top:6px;font-size:12px;color:var(--text-muted);line-height:1.6}
+
+      .co[data-v="1"].lx-order-skin .pay-row{display:flex;align-items:center;width:100%;padding:14px 0;border-bottom:1px dashed var(--dashed);background:none;border-left:0;border-right:0;border-top:0;cursor:pointer;font:inherit}
+      .co[data-v="1"].lx-order-skin .pay-row .k{flex:none;font-size:13px;color:var(--text-soft)}
+      .co[data-v="1"].lx-order-skin .pay-row .v{flex:1;text-align:right;margin-right:6px;font-size:13px;font-weight:700;color:var(--ink)}
+      .co[data-v="1"].lx-order-skin .pay-row .chev{width:12px;height:12px;color:var(--text-muted);transform:rotate(90deg)}
+      .co[data-v="1"].lx-order-skin .pay-picker{display:none;flex-wrap:wrap;gap:8px;padding:0 0 14px;border-bottom:1px dashed var(--dashed)}
+      .co[data-v="1"].lx-order-skin .pay-picker.is-open{display:flex}
+      .co[data-v="1"].lx-order-skin .pay-opt{height:30px;padding:0 14px;border:1px solid var(--line-2);border-radius:9px;background:#fff;color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer}
+      .co[data-v="1"].lx-order-skin .pay-opt.is-sel{border-color:var(--brand-red);background:var(--tint);color:var(--brand-red);font-weight:700}
+
+      .co[data-v="1"].lx-order-skin .subsidy-bar{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 14px;border-radius:11px;background:linear-gradient(90deg,rgba(72,211,158,.16),rgba(72,211,158,.05))}
+      .co[data-v="1"].lx-order-skin .subsidy-bar .sic{flex:none;width:14px;height:14px}
+      .co[data-v="1"].lx-order-skin .subsidy-bar .sic .lx-approved-icon{background:var(--lx-success-bg)!important;width:14px!important;height:14px!important}
+      .co[data-v="1"].lx-order-skin .subsidy-bar .stxt{flex:1;font-size:12px;color:var(--text-soft)}
+      .co[data-v="1"].lx-order-skin .subsidy-bar .stxt b{color:var(--price-red)}
+      .co[data-v="1"].lx-order-skin .subsidy-bar .slink{flex:none;font-size:12px;font-weight:700;color:var(--aubergine);text-decoration:underline;text-underline-offset:2px;background:none;border:0;cursor:pointer}
+      .co[data-v="1"].lx-order-skin .subsidy-bar.is-claimed .stxt{color:var(--lx-success-bg);font-weight:700}
+
+      .co[data-v="1"].lx-order-skin .price-section{margin-top:14px}
+      .co[data-v="1"].lx-order-skin .price-section .pwait{display:flex;align-items:baseline;gap:10px}
+      .co[data-v="1"].lx-order-skin .price-section .pwait .k{font-size:13px;font-weight:700;color:var(--ink)}
+      .co[data-v="1"].lx-order-skin .price-section .pwait .amt{font-size:26px;font-weight:800;color:var(--price-red);font-variant-numeric:tabular-nums}
+      .co[data-v="1"].lx-order-skin .price-section .pwait .amt .cur{font-size:.6em;margin-right:1px}
+      .co[data-v="1"].lx-order-skin .price-section .psaved{margin-top:2px;font-size:12px;font-weight:700;color:var(--price-red)}
+      .co[data-v="1"].lx-order-skin .price-section .pdetail-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+      .co[data-v="1"].lx-order-skin .price-section .pdetail-link{font-size:12px;font-weight:700;color:var(--aubergine);text-decoration:underline;text-underline-offset:2px;background:none;border:0;cursor:pointer}
+      .co[data-v="1"].lx-order-skin .price-section .pdetail-hint{font-size:11.5px;color:var(--price-red);opacity:.72}
+      .co[data-v="1"].lx-order-skin .price-detail-panel{display:none;margin-top:10px;padding:12px 14px;border-radius:11px;background:var(--hair)}
+      .co[data-v="1"].lx-order-skin .price-detail-panel.is-open{display:block}
+      .co[data-v="1"].lx-order-skin .price-detail-panel .lx-discount-detail-list{margin-top:0}
+
+      .co[data-v="1"].lx-order-skin .actions-row{display:flex;gap:10px;margin-top:18px}
+      .co[data-v="1"].lx-order-skin .occ-btn{flex:1;height:48px;border-radius:13px;font-size:15px;font-weight:800;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+      .co[data-v="1"].lx-order-skin .occ-btn-outline{border:1px solid var(--line-2);background:#fff;color:var(--aubergine)}
+      .co[data-v="1"].lx-order-skin .occ-btn-outline:hover{border-color:var(--aubergine);background:var(--tint)}
+      .co[data-v="1"].lx-order-skin .occ-btn-primary{border:0;background:var(--grad-cta);color:#fff}
+      .co[data-v="1"].lx-order-skin .occ-btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(155,142,182,.62);filter:brightness(1.04)}
+      .co[data-v="1"].lx-order-skin .foot-note{margin:12px 0 0;text-align:center;font-size:11px;color:var(--text-muted)}
+
+      /* 对话内优惠明细列表（PRD A.4），与弹窗「查看价格明细」共用同一份渲染函数，
+         金额与文案同源；不在 .lx-order-skin 作用域内，颜色改用全站 :root token。 */
+      .lx-discount-detail-list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+      .lx-discount-row{display:flex;align-items:flex-start;gap:10px}
+      .lx-discount-ck{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:var(--lavender-weak);display:flex;align-items:center;justify-content:center}
+      .lx-discount-ck .lx-approved-icon,.lx-discount-ck .lx-approved-icon-img{width:11px!important;height:11px!important;background:var(--aubergine)!important}
+      .lx-discount-mid{flex:1;min-width:0}
+      .lx-discount-name{display:block;font-size:13.5px;font-weight:700;color:var(--text)}
+      .lx-discount-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--text-muted)}
+      .lx-discount-amt{flex:none;font-size:13.5px;font-weight:700;color:var(--price-red)}
+
+      /* 修改订单弹层：并入商品配置修改能力，复用地址/表单输入风格 */
+      .lx-mo-skin{display:flex;flex-direction:column;gap:14px}
+      .lx-mo-skin .lx-mo-label{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:6px}
+      .lx-mo-skin .lx-mo-chiprow{display:flex;flex-wrap:wrap;gap:8px}
+      .lx-mo-skin .lx-mo-chip{height:32px;padding:0 14px;border:1px solid var(--border-strong);border-radius:9px;background:#fff;color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer}
+      .lx-mo-skin .lx-mo-chip.is-sel{border-color:var(--brand-red);background:var(--lavender-bg);color:var(--brand-red);font-weight:700}
+      .lx-mo-skin .lx-mo-row{display:flex;gap:10px}
+      .lx-mo-skin input.lx-mo-field,.lx-mo-skin textarea.lx-mo-field{flex:1;height:40px;padding:0 12px;border:1px solid var(--border-strong);border-radius:9px;font-size:13px;color:var(--text);font:inherit}
+      .lx-mo-skin textarea.lx-mo-field{height:64px;padding:10px 12px;resize:none}
+      .lx-mo-skin .lx-mo-actions{display:flex;gap:10px;margin-top:4px}
+      .lx-mo-skin .lx-mo-actions .lx-p0-btn{flex:1;min-height:44px;border-radius:12px}
+
+      /* 扫码支付弹层：复用学籍认证二维码占位视觉思路 */
+      .lx-scanpay-skin{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 2px}
+      .lx-scanpay-skin .sp-qr{width:168px;height:168px;border-radius:14px;background:var(--lavender-weak);position:relative;overflow:hidden}
+      .lx-scanpay-skin .sp-qr::before{content:"";position:absolute;inset:14px;background-image:linear-gradient(90deg,var(--border-strong) 2px,transparent 2px),linear-gradient(0deg,var(--border-strong) 2px,transparent 2px);background-size:18px 18px;opacity:.6}
+      .lx-scanpay-skin .sp-qr::after{content:"";position:absolute;left:14px;top:14px;width:32px;height:32px;border:4px solid var(--text);border-radius:6px;box-shadow:112px 0 0 var(--text),0 112px 0 var(--text);opacity:.85}
+      .lx-scanpay-skin .sp-channel{margin-top:12px;font-size:13px;font-weight:700;color:var(--text)}
+      .lx-scanpay-skin .sp-meta{margin-top:10px;width:100%;display:flex;flex-direction:column;gap:6px}
+      .lx-scanpay-skin .sp-meta .row{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--text-soft)}
+      .lx-scanpay-skin .sp-meta .row .v{color:var(--text);font-weight:700}
+      .lx-scanpay-skin .sp-meta .row .v.amt{color:var(--price-red);font-size:18px}
+      .lx-scanpay-skin .sp-confirm{margin-top:18px;width:100%;min-height:46px;border-radius:13px}
+
+      @media (max-width:768px){
+        .co[data-v="1"].lx-order-skin .actions-row{flex-direction:column}
+        .lx-mo-skin .lx-mo-row{flex-direction:column}
+      }
+
       .lx-tabbar[data-shop-detail-tabs] .lx-tab-close:hover{color:#e42b20!important;background:#f3edf6!important;transform:none!important}
       .lx-tabbar[data-shop-detail-tabs] .lx-tab-ink{display:none!important}
 
