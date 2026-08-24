@@ -5435,12 +5435,62 @@ function openOrderDetail(orderId) {
           return true;
         }
 
+        async function lxRunUnifiedEntPointsAnswer() {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = ["联想乐享正在判断你的企业积分兑换需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push("已判断：需要查询企业积分余额与当前可兑换权益");
+            paint();
+            await wait(520);
+            skills.add("Skill(企业积分兑换)");
+            lines.push("联想乐享官方 SKILL：正在调用 Skill(企业积分兑换)");
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(企业积分兑换) 已完成";
+            paint();
+            const points = lxEntPointsValue();
+            const copy = `已为你核验当前企业账户的**积分余额与可兑换权益**，现有 **${lxFormatEntPoints(points)} 企业积分**可用。你可以在推荐页面查看采购券、服务、外设、延保等权益，并根据所需积分直接选择兑换；实际库存与兑换结果以提交时校验为准。`;
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, mdLite(copy));
+            const finalBody = lxEnsureAiBody(ai);
+            finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, renderPageCta({
+              title: "查看企业积分兑换",
+              desc: `${lxFormatEntPoints(points)} 企业积分可用 · 采购券、服务、外设与延保权益`,
+              attr: 'data-lx-open-tab="info:ent-points" aria-label="查看企业积分兑换页面"'
+            }));
+            const card = ai.querySelector('[data-lx-result-id="info:ent-points"]');
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxOpenEntPointsMall();
+            lxSyncAnswerCtaActiveState("info:ent-points");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
         function lxHandleEntPointsQuery(text) {
           const redeemItem = lxFindEntRedeemItem(text);
           if (redeemItem) return lxStartEntRedeemFlow(redeemItem.id);
           if (!/(积分兑换|积分商城|企业积分)/.test(text || "")) return false;
-          lxAddInstantAi("好的，已为你打开企业积分兑换。右侧展示当前可兑换权益，可直接选择兑换。");
-          lxOpenEntPointsMall();
+          void lxRunUnifiedEntPointsAnswer();
           return true;
         }
 
