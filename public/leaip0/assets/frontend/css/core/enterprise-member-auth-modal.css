@@ -1,11 +1,7 @@
-/* 企业会员认证严格复用站内 .lx-lead-shell / .lx-lead-* 留资弹窗规范；
-   此处只补充该业务独有的回执提示与禁用态，不另建弹窗视觉体系。 */
-.lx-p0-modal.lx-lead-shell .lx-enterprise-lead-note {
-  margin: 18px 0 0;
-  color: #979797;
-  font-size: 12px;
-  line-height: 20px;
-  font-weight: 500;
+/* 企业会员认证严格复用站内 .lx-lead-shell / .lx-lead-* 留资弹窗规范。 */
+.lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
 }
 
 .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-submit:disabled {

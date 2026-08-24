@@ -161,3 +161,94 @@ html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta {
 }
 html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta:hover,
 html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta:active { box-shadow:none!important; filter:none!important; }
+
+/* Shipping-address modal: one governed template for Home, Personal, SMB and Enterprise. */
+html body .lx-p0-modal-mask.lx-addr-modal-mask {
+  background:#190e21d1!important;
+  background-color:#190e21d1!important;
+  background-image:none!important;
+  opacity:1!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask > .lx-p0-modal.ad[data-v="1"].lx-addr-skin {
+  --brand-red:#B8252E!important;
+  --aubergine:#4D144A!important;
+  --aubergine-soft:#5B1452!important;
+  --ok:#5B1452!important;
+  --grad-brand:linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%)!important;
+  --grad-cta:linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%)!important;
+  --ink:#252525!important;
+  --text:#252525!important;
+  --text-soft:#625B68!important;
+  --text-muted:#979797!important;
+  --text-faint:#BCB4C1!important;
+  --line:#EFE4F1!important;
+  --line-2:#E2DDEB!important;
+  --hair:#F3F0F7!important;
+  --field:#FFFFFF!important;
+  --tint:#FCFAFF!important;
+  --tint-2:#F3F0F7!important;
+  background:#FFFFFF!important;
+  border:1px solid #E2DDEB!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .head .pin { color:#4D144A!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .head h3,
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .saved .nm { color:#252525!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .x {
+  color:#625B68!important;
+  background:#F3F0F7!important;
+  box-shadow:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .x:hover { color:#4D144A!important; background:#EFE4F1!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .saved {
+  background:#FCFAFF!important;
+  border-color:#E2DDEB!important;
+  box-shadow:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .saved::after { display:none!important; background:none!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .saved .deftag {
+  background:linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%)!important;
+  color:#FFFFFF!important;
+  box-shadow:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .saved .nm .ph { color:#5B1452!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .saved .ds { color:#625B68!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .divider { color:#979797!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .divider::before,
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .divider::after { background:#F3F0F7!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .field {
+  background:#FFFFFF!important;
+  border:1px solid #E2DDEB!important;
+  box-shadow:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .field:focus-within {
+  background:#FFFFFF!important;
+  border-color:#4D144A!important;
+  box-shadow:0 0 0 2px #F3F0F7!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .field .fi { color:#979797!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .field input { color:#252525!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .field input::placeholder { color:#BCB4C1!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .acta {
+  background:linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%)!important;
+  color:#FFFFFF!important;
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .acta:hover,
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .acta:active { box-shadow:none!important; filter:none!important; }
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .acta.addr-ghost {
+  background:#FFFFFF!important;
+  color:#4D144A!important;
+  border:1px solid #E2DDEB!important;
+  box-shadow:none!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .acta.addr-ghost:hover {
+  background:#FCFAFF!important;
+  border-color:#4D144A!important;
+}
+html body .lx-p0-modal-mask.lx-addr-modal-mask .lx-addr-skin .foot-tip { color:#979797!important; }

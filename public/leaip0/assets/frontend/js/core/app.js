@@ -448,6 +448,10 @@ if (!window.__lxCreateTypewriter) {
                   (feature === "solution" ? "info:solution" :
                     (feature === "documents" ? "documents" : ""))));
 
+            // 企业认证卡可能来自旧会话，必须优先于残留的教育认证属性处理。
+            if (card.hasAttribute("data-open-enterprise-auth-modal") || resultId === "modal:enterprise-member-auth") {
+              return lxOpenRecommendedModal("enterprise-member-auth");
+            }
             if (recommendedModalAction && lxOpenRecommendedModal(recommendedModalAction, recommendedModalPayload)) return true;
             // 兼容升级前已经保存在历史对话里的认证结果卡。
             if (resultId.startsWith("modal:education-auth:")) return lxOpenRecommendedModal("education-auth", resultId.slice("modal:education-auth:".length));
@@ -2550,7 +2554,7 @@ function openOrderDetail(orderId) {
               else window.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
               return sendChat(query);
             };
-            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260823-device-actions-v9";
+            script.src = "/member-service-aui/assets/member-service-embed.js?v=20260824-modal-card-copy-v10";
             script.async = true;
             script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
             script.onerror = () => reject(new Error("会员组件加载失败"));
@@ -4343,7 +4347,7 @@ function openOrderDetail(orderId) {
         }
 
         function lxEnterpriseMemberAuthRecommendationCard() {
-          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-lx-recommended-modal="enterprise-member-auth" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span><span class="answer-cta-desc">点击后才打开企业认证弹窗</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-lx-recommended-modal="enterprise-member-auth" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
         }
 
         async function lxRunUnifiedEnterpriseMemberAuthAnswer() {
@@ -4384,7 +4388,8 @@ function openOrderDetail(orderId) {
               card.addEventListener("animationend", done, { once: true });
               window.setTimeout(done, 700);
             });
-            // 企业会员认证按本地原型保持显式确认：推荐卡出现后，用户点击卡片才打开弹窗。
+            // 推荐卡完成入场后自动打开；首页与所有频道统一遵循相同首轮弹窗规则。
+            lxAutoOpenRecommendedModal("enterprise-member-auth");
           } finally {
             state.sending = false;
             try { window.__lxSaveConversationNow(); } catch (_e) {}
@@ -5396,7 +5401,6 @@ function openOrderDetail(orderId) {
                 <label class="lx-lead-row"><span><i>*</i>企业名称</span><input id="lxEntCompany" autocomplete="organization" placeholder="请输入企业名称" required></label>
                 <label class="lx-lead-row"><span><i>*</i>企业税号</span><input id="lxEntCode" placeholder="请输入统一社会信用代码" required></label>
                 <label class="lx-lead-row"><span><i>*</i>企业邮箱</span><input id="lxEntEmail" type="email" autocomplete="email" placeholder="用于接收激活邮件，请正确填写" required></label>
-                <p class="lx-enterprise-lead-note">当前为交互 POC。提交只表示资料已送审；认证结果必须以权威企业会员服务回执为准。</p>
                 <div class="lx-lead-actions"><button class="lx-lead-cancel" type="button" data-enterprise-auth-cancel>取消</button><button class="lx-lead-submit" type="button" data-ent-submit disabled>提交认证申请</button></div>
               </form>
             </div>`, { skin: "lead" });
@@ -11932,6 +11936,13 @@ async function openEduZone() {
               toast("已重置教育认证（演示）");
               document.querySelector('[data-floor-tab="教育特惠"]')?.click();
             }
+            const _enterpriseAuthEl = event.target.closest("[data-open-enterprise-auth-modal], [data-lx-result-id='modal:enterprise-member-auth']");
+            if (_enterpriseAuthEl) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              openEnterpriseAuth();
+              return;
+            }
             const _stuAuthEl = event.target.closest("[data-open-stuauth]");
             if (_stuAuthEl) openStudentAuth(_stuAuthEl.dataset.openStuauth);
             if (event.target.closest("[data-edu-zone]")) { closeModal(); openEduZone(); }
@@ -11957,7 +11968,6 @@ async function openEduZone() {
                 }, LX_STU_REVIEW_MS + 500);
               }
             }
-            if (event.target.closest("[data-open-enterprise-auth-modal]")) { openEnterpriseAuth(); return; }
             if (event.target.closest("[data-open-ent]")) { sendChat("认证企业会员"); return; }
             if (event.target.closest("[data-enterprise-auth-cancel]")) { closeModal(); return; }
             if (event.target.closest("[data-ent-submit]")) {

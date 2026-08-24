@@ -1429,7 +1429,7 @@
 
   function lxfdAuthRecommendationCard(type, kind) {
     if (type === "enterprise") {
-      return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span><span class="answer-cta-desc">点击后才打开企业认证弹窗</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+      return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
     }
     if (type === "workplace") {
       return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
@@ -1547,7 +1547,8 @@
         card.addEventListener("animationend", done, { once: true });
         window.setTimeout(done, 700);
       });
-      if (isWorkplace) window.openWorkplaceAuth?.();
+      if (isEnterprise) window.__lxOpenEnterpriseAuthModal?.();
+      else if (isWorkplace) window.openWorkplaceAuth?.();
       else window.__lxAgentAPI?.openStudentAuth?.(kind);
     } finally {
       chatState.sending = false;
@@ -2618,6 +2619,10 @@
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
+    if (btn.hasAttribute("data-open-enterprise-auth-modal") || btn.getAttribute("data-lx-result-id") === "modal:enterprise-member-auth") {
+      window.__lxOpenEnterpriseAuthModal?.();
+      return;
+    }
     const studentAuthKind = btn.getAttribute("data-open-stuauth");
     if (studentAuthKind) {
       window.__lxAgentAPI?.openStudentAuth?.(studentAuthKind);
@@ -2625,10 +2630,6 @@
     }
     if (btn.hasAttribute("data-open-wpa")) {
       window.openWorkplaceAuth?.();
-      return;
-    }
-    if (btn.hasAttribute("data-open-enterprise-auth-modal")) {
-      window.__lxOpenEnterpriseAuthModal?.();
       return;
     }
     if (btn.hasAttribute("data-open-payment-confirm")) {

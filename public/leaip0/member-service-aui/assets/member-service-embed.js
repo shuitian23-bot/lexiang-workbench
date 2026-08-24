@@ -1001,7 +1001,7 @@
     }
     await streamAnswer(turn, '<p>我会先核验登录态、当前认证/等级状态与办理资格。当前演示账号未提交该申请，可以继续办理。</p>');
     appendTrace(turn, "已完成状态与资格校验");
-    turn.insertAdjacentHTML("beforeend", actionCard("modal:student", item.button, "点击后才打开办理弹窗"));
+    turn.insertAdjacentHTML("beforeend", actionCard("modal:student", item.button, "打开办理弹窗"));
     appendDisclaimer(turn);
   }
 
