@@ -737,7 +737,12 @@ if (!window.__lxCreateTypewriter) {
             else modal.removeAttribute("data-v");
           }
           // 行内样式兜底：CSS 文件屡被并发覆盖丢掉 [hidden] 规则，行内 display 优先级最高盖不掉（订单弹窗双×回归根治）
-          if (head) { head.hidden = isOrderSkin || isAddrSkin || isAuthSkin; head.style.display = (isOrderSkin || isAddrSkin || isAuthSkin) ? "none" : ""; }
+          if (head) {
+            // 历史记录搜索仅属于历史弹窗；共享弹窗复用时必须先清理，避免串入教育认证等弹窗。
+            head.querySelectorAll(".lx-history-search-wrap").forEach((node) => node.remove());
+            head.hidden = isOrderSkin || isAddrSkin || isAuthSkin;
+            head.style.display = (isOrderSkin || isAddrSkin || isAuthSkin) ? "none" : "";
+          }
           $(".lx-p0-modal-title", mask).textContent = title;
           $(".lx-p0-modal-body", mask).innerHTML = html;
           mask.classList.add("show");
@@ -11170,9 +11175,11 @@ async function openEduZone() {
 
             const quick = event.target.closest(".quick-item, .hero-suggestion, .shortcut, .more-menu .menu-row");
             if (quick && !event.target.closest(".more-wrap > button")) {
-              if (state.page === "business" && quick.closest(".shortcut-row")) {
+              const quickText = (quick.querySelector("span")?.textContent || quick.textContent).trim();
+              if (["personal", "business", "enterprise"].includes(state.page) && quick.closest(".shortcut-row") && quickText === "客服") {
                 event.preventDefault();
                 event.stopPropagation();
+                event.stopImmediatePropagation();
                 return;
               }
               if (quick.hasAttribute("data-waiting-feature")) {
@@ -11186,7 +11193,7 @@ async function openEduZone() {
                 event.stopImmediatePropagation();
                 return;
               }
-              const text = (quick.querySelector("span")?.textContent || quick.textContent).trim();
+              const text = quickText;
               if (quick.classList.contains("hero-suggestion") || quick.classList.contains("fullscreen-prompt") || quick.classList.contains("lxfd-chip-q")) {
                 event.preventDefault();
                 event.stopPropagation();
