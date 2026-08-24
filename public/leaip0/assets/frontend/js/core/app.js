@@ -2586,11 +2586,11 @@ function openOrderDetail(orderId) {
 
         function lxMemberComponentShell(view) {
           return `<style>
-            .content[data-view="info"]:has(.lx-member-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
-            .content[data-view="info"]:has(.lx-member-component-host)>.lx-tabbar{flex:0 0 auto!important}
-            .content[data-view="info"] .info-page:has(.lx-member-component-host){display:flex!important;flex:0 0 calc(100% - 44px)!important;flex-direction:column!important;width:100%!important;height:calc(100% - 44px)!important;min-height:0!important;max-width:none!important;max-height:calc(100% - 44px)!important;padding:0!important;margin:0!important;overflow:hidden!important}
+            .content[data-view="info"]:has(.lx-member-component-host){display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;height:100%!important;min-height:0!important;overflow:hidden!important;padding-bottom:0!important}
+            .content[data-view="info"]:has(.lx-member-component-host)>.lx-tabbar{grid-row:1!important;position:relative!important;top:auto!important;min-height:0!important}
+            .content[data-view="info"] .info-page:has(.lx-member-component-host){display:flex!important;grid-row:2!important;flex-direction:column!important;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;max-height:100%!important;padding:0!important;margin:0!important;overflow:hidden!important}
             .content[data-view="info"] .info-page:has(.lx-member-component-host)::before,.content[data-view="info"] .info-page:has(.lx-member-component-host)::after{display:none!important;content:none!important}
-            .lx-member-component-host{display:block;flex:1 1 auto;width:100%;height:100%!important;min-height:0;max-height:100%;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;scrollbar-gutter:stable;-webkit-overflow-scrolling:touch;pointer-events:auto;background:#fcfaff}
+            .lx-member-component-host{display:block;flex:1 1 0;width:100%;height:100%!important;min-height:0!important;max-height:100%!important;overflow-x:hidden!important;overflow-y:scroll!important;overscroll-behavior:contain;scrollbar-gutter:stable;-webkit-overflow-scrolling:touch;touch-action:pan-y;pointer-events:auto;background:#fcfaff}
             .lx-member-component-host>.leai-page{width:100%!important;max-width:none!important;margin-inline:0!important;padding-inline:12px!important;box-sizing:border-box!important}
             .lx-member-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
           </style><div class="lx-member-component-host" data-member-component-view="${esc(view)}"><div class="lx-member-component-loading" role="status">正在加载会员服务</div></div>`;
@@ -9889,7 +9889,13 @@ async function openEduZone() {
         function openMemberCenter() {
           const enterprise = state.page === "business" || state.page === "enterprise";
           if (enterprise) {
-            lxOpenInfoTab("member", "会员中心", `<div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`);
+            lxOpenInfoTab("member", "会员中心", `<style>
+              .content[data-view="info"]:has(.lx-enterprise-member-center){display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;height:100%!important;min-height:0!important;overflow:hidden!important;padding-bottom:0!important}
+              .content[data-view="info"]:has(.lx-enterprise-member-center)>.lx-tabbar{grid-row:1!important;position:relative!important;top:auto!important;min-height:0!important}
+              .content[data-view="info"] .info-page:has(.lx-enterprise-member-center){display:block!important;grid-row:2!important;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;max-height:100%!important;padding:0!important;margin:0!important;overflow-x:hidden!important;overflow-y:scroll!important;overscroll-behavior:contain;scrollbar-gutter:stable;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+              .content[data-view="info"] .info-page:has(.lx-enterprise-member-center)::before,.content[data-view="info"] .info-page:has(.lx-enterprise-member-center)::after{display:none!important;content:none!important}
+              .lx-enterprise-member-center{width:100%!important;min-height:max-content;box-sizing:border-box}
+            </style><div class="lx-enterprise-member-center">${lxRenderQyBenefitSkin()}${lxRenderEntPointsMallHtml()}</div>`);
             return;
           }
           lxOpenMemberComponentTab("member", "会员中心", "member", "secondary");
