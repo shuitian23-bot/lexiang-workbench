@@ -769,6 +769,7 @@ if (!window.__lxCreateTypewriter) {
         lxRegisterRecommendedModal("education-auth", (kind) => openStudentAuth(kind || "college"));
         lxRegisterRecommendedModal("workplace-auth", () => openWorkplaceAuth());
         lxRegisterRecommendedModal("enterprise-member-auth", () => openEnterpriseAuth());
+        lxRegisterRecommendedModal("enterprise-lead", () => openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase"));
         lxRegisterRecommendedModal("store-appointment", (storeId) => lxOpenStoreAppointmentInFrame(storeId));
         lxRegisterRecommendedModal("pending-payment", () => lxOpenPendingPaymentModal());
         window.__lxRecommendedModalRule = Object.freeze({
@@ -4346,15 +4347,30 @@ function openOrderDetail(orderId) {
           return hasEnterpriseIdentity && hasAuthIntent;
         }
 
-        function lxEnterpriseMemberAuthRecommendationCard() {
-          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-lx-recommended-modal="enterprise-member-auth" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">立即认证企业会员</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        function lxIsEnterpriseDiamondMemberAuthQuery(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 56) return false;
+          return /企业钻石会员|钻石企业会员|企业会员.{0,6}钻石/.test(value)
+            && /认证|升级|申请|开通|办理|核验|加入/.test(value);
         }
 
-        async function lxRunUnifiedEnterpriseMemberAuthAnswer() {
+        function lxIsEnterpriseLeadQuery(text) {
+          const value = String(text || "").trim();
+          if (!value || value.length > 48) return false;
+          const directLead = /^(?:我要|我想|帮我|现在)?(?:进行|提交|填写|办理|发起)?(?:企业|采购|项目)?留资(?:申请|信息|表单)?$/.test(value);
+          const enterpriseIntent = /企业留资|企业咨询|采购留资|项目留资|提交(?:企业|采购|项目)需求|联系企业顾问|企业合作咨询/.test(value);
+          return directLead || enterpriseIntent;
+        }
+
+        function lxEnterpriseLeadRecommendationCard() {
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-enterprise-lead-reco" type="button" data-lx-recommended-modal="enterprise-lead" data-open-enterprise-lead data-lx-result-id="modal:enterprise-lead" aria-label="打开企业留资弹窗" aria-pressed="false"><span class="answer-cta-title">提交企业留资</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedEnterpriseLeadAnswer() {
           state.sending = true;
           clearHoverPromptTimer();
           hideHoverPrompts();
-          const lines = ["联想乐享正在判断你的企业会员认证需求"];
+          const lines = ["联想乐享正在判断你的企业留资需求"];
           const skills = new Set();
           const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
           const body = lxEnsureAiBody(ai);
@@ -4362,21 +4378,71 @@ function openOrderDetail(orderId) {
           const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
           try {
             await wait(420);
-            lines.push("已判断：需要进入企业采购负责人认证流程");
+            lines.push("已判断：需要进入企业采购需求留资流程");
             paint();
             await wait(520);
-            skills.add("Skill(企业会员身份认证)");
-            lines.push("联想乐享官方 SKILL：正在调用 Skill(企业会员身份认证)");
+            const skillName = "Skill(企业采购需求留资)";
+            skills.add(skillName);
+            lines.push(`联想乐享官方 SKILL：正在调用 ${skillName}`);
             paint();
             await wait(760);
-            lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(企业会员身份认证) 已完成";
+            lines[lines.length - 1] = `联想乐享官方 SKILL：${skillName} 已完成`;
             paint();
-            const copy = "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称与采购负责人信息，提交后以正式核验结果为准。";
+            const copy = "提交**企业采购需求**后，联想企业顾问可结合采购规模、预算、应用场景与交付周期提供进一步支持。请准备**联系人、联系方式及需求说明**，提交前核对关键信息，后续沟通以企业顾问联系为准。";
+            ai._raw = copy;
+            await lxAnimateAiFinal(ai, `<div class="lx-enterprise-lead-copy">${mdLite(copy)}</div>`);
+            lxEnsureAiBody(ai).insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
+            lxAppendAiHtml(ai, lxEnterpriseLeadRecommendationCard());
+            const card = ai.querySelector(".lx-enterprise-lead-reco");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { requestAnimationFrame(() => requestAnimationFrame(resolve)); return; }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxAutoOpenRecommendedModal("enterprise-lead");
+          } finally {
+            state.sending = false;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          }
+        }
+
+        function lxEnterpriseMemberAuthRecommendationCard(isDiamond = false) {
+          const label = isDiamond ? "认证企业钻石会员" : "立即认证企业会员";
+          return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-lx-recommended-modal="enterprise-member-auth" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">${label}</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+        }
+
+        async function lxRunUnifiedEnterpriseMemberAuthAnswer(isDiamond = false) {
+          state.sending = true;
+          clearHoverPromptTimer();
+          hideHoverPrompts();
+          const lines = [isDiamond ? "联想乐享正在判断你的企业钻石会员升级需求" : "联想乐享正在判断你的企业会员认证需求"];
+          const skills = new Set();
+          const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
+          const body = lxEnsureAiBody(ai);
+          const paint = () => { body.innerHTML = renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: skills.size }); };
+          const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+          try {
+            await wait(420);
+            lines.push(isDiamond ? "已判断：需要进入企业钻石会员升级认证流程" : "已判断：需要进入企业采购负责人认证流程");
+            paint();
+            await wait(520);
+            const skillName = isDiamond ? "Skill(企业钻石会员升级认证)" : "Skill(企业会员身份认证)";
+            skills.add(skillName);
+            lines.push(`联想乐享官方 SKILL：正在调用 ${skillName}`);
+            paint();
+            await wait(760);
+            lines[lines.length - 1] = `联想乐享官方 SKILL：${skillName} 已完成`;
+            paint();
+            const copy = isDiamond
+              ? "完成**企业钻石会员升级认证**后，可进一步解锁企业专享采购权益、专属服务与会员支持。请准备**企业名称、统一社会信用代码及企业邮箱**，提交后以正式核验结果为准。"
+              : "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称与采购负责人信息，提交后以正式核验结果为准。";
             ai._raw = copy;
             await lxAnimateAiFinal(ai, `<div class="lx-edu-auth-copy lx-enterprise-auth-copy">${mdLite(copy)}</div>`);
             const finalBody = lxEnsureAiBody(ai);
             finalBody.insertAdjacentHTML("afterbegin", renderSkillTrace(lines, { collapsed: true, foldable: true, skillCount: skills.size }));
-            lxAppendAiHtml(ai, lxEnterpriseMemberAuthRecommendationCard());
+            lxAppendAiHtml(ai, lxEnterpriseMemberAuthRecommendationCard(isDiamond));
             const card = ai.querySelector(".lx-enterprise-auth-reco");
             card?.classList.add("lx-document-card-enter");
             await new Promise((resolve) => {
@@ -4465,7 +4531,9 @@ function openOrderDetail(orderId) {
           setTimeout(() => lxSetRef(null), 100);
           const _educationAuthKind = lxEducationAuthKind(text);
           const _workplaceAuthRequested = lxIsWorkplaceAuthQuery(text);
+          const _enterpriseDiamondAuthRequested = lxIsEnterpriseDiamondMemberAuthQuery(text);
           const _enterpriseMemberAuthRequested = lxIsEnterpriseMemberAuthQuery(text);
+          const _enterpriseLeadRequested = lxIsEnterpriseLeadQuery(text);
           const _discountOrderRequested = /(?:领取|使用).{0,8}(?:全部|所有|可用)?.{0,8}优惠|(?:全部|所有|可用).{0,8}优惠.{0,8}(?:下单|订单)|待支付订单/.test(text) && /购买|下单|订单|支付/.test(text);
           state.queryHistory.push(text);
           (state.queryAnchors = state.queryAnchors || []).push(($(".lx-p0-messages")?.children.length || 1) - 1);
@@ -4480,6 +4548,14 @@ function openOrderDetail(orderId) {
           }
           if (_workplaceAuthRequested) {
             await lxRunUnifiedWorkplaceAuthAnswer();
+            return;
+          }
+          if (_enterpriseLeadRequested) {
+            await lxRunUnifiedEnterpriseLeadAnswer();
+            return;
+          }
+          if (_enterpriseDiamondAuthRequested) {
+            await lxRunUnifiedEnterpriseMemberAuthAnswer(true);
             return;
           }
           if (_enterpriseMemberAuthRequested) {
@@ -11911,7 +11987,7 @@ async function openEduZone() {
             else if (floorAction === "member") openMemberCenter();
             else if (floorAction === "coupon") openCouponCenter();
             else if (floorAction === "orders") lxOpenCommerceEntry("orders");
-            else if (floorAction === "lead") openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase");
+            else if (floorAction === "lead") { sendChat("企业留资"); return; }
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }

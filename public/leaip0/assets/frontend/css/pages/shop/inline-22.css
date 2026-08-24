@@ -4,6 +4,14 @@ body[data-page="business"] .content > .hero,
 body[data-page="enterprise"] .content > .hero{display:none!important}
 
 .device-scene-hall{display:none}
+.poc-design-status-note{display:none;margin:14px 8px 0;color:#252525;font-size:12px;line-height:18px;font-weight:400}
+body[data-page="personal"] .content[data-view="list"] > .poc-design-status-note{display:block}
+.poc-adjust-status-note{display:none;margin:14px 8px 0;color:#252525;font-size:12px;line-height:18px;font-weight:400}
+body:is([data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content[data-view="list"] > .poc-adjust-status-note{display:block}
+body:is([data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content[data-view="list"] > .category-tabs,
+body:is([data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content[data-view="list"] > .product-grid,
+body:is([data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content[data-view="list"] > [data-site-floors],
+body:is([data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content[data-view="list"] > .lx-site-floors{display:none!important}
 body[data-page="personal"] .content > .device-scene-hall{
   position:relative;
   height:clamp(280px,33.333dvh,420px);

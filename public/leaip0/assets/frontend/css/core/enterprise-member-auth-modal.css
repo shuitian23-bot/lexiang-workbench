@@ -1,14 +1,36 @@
-/* 企业会员认证严格复用站内 .lx-lead-shell / .lx-lead-* 留资弹窗规范。 */
-.lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions {
+/* 企业会员认证统一复用首页全屏留资弹窗规范。
+   选择器直接落在组件上，避免分屏频道因外层容器不同而退化成两列内联按钮。 */
+.lx-enterprise-lead .lx-lead-actions {
   grid-column: 1 / -1 !important;
   width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 138px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+  margin: 20px 0 0 !important;
+  position: static !important;
+  inset: auto !important;
+  padding: 0 !important;
+  background: transparent !important;
 }
 
-.lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-submit:disabled {
+.lx-enterprise-lead .lx-lead-actions > button {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 50px !important;
+}
+
+.lx-enterprise-lead .lx-lead-submit:disabled {
   background: #e6e0ed !important;
   color: #9a929f !important;
   box-shadow: none !important;
   cursor: not-allowed !important;
   transform: none !important;
   filter: none !important;
+}
+
+@media (max-width: 720px) {
+  .lx-enterprise-lead .lx-lead-actions {
+    grid-template-columns: 1fr !important;
+  }
 }
