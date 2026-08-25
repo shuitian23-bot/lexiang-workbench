@@ -771,6 +771,14 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
 
 /* === Direct-open split layout === */
 /* The shop template is a split-layout page, never the root welcome page. */
+      /*
+       * 个人频道首帧与稳定 list 状态共用同一顶部几何。
+       * 公共样式会先给 content 18px padding；商品楼层异步生成后才归零，
+       * 因此必须在 data-view 尚未写入时就使用稳定态的 0px，避免 36px → 18px 跳动。
+       */
+      body[data-page="personal"]:not(.assistant-fullscreen) > .shell > .content:is(:not([data-view]), [data-view="list"]):has(> .device-scene-hall) {
+        padding-top: 0 !important;
+      }
       body[data-page="personal"] > .shell {
         display: grid !important;
         visibility: visible !important;
