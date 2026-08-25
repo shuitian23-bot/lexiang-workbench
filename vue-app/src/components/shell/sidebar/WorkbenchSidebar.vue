@@ -129,6 +129,14 @@ const pocLogVisible = ref(false)
 
 const basePocLogRecords = [
   {
+    time: '2026-08-25 10:08',
+    operator: 'Codex（协作代理）',
+    title: '0825 页面标题样式统一',
+    scope: 'Skill Hub / Skill 创建 / 权限管理 / 权限清理邮件预览',
+    detail: '按 0825 页面标题视觉规范新增共享标题组件，统一四个页面的 18px 标记、19px 主标题、12px 说明文字、标题与操作区对齐及首个业务区块间距；保留现有按钮文案、点击行为、Skill 状态流转、权限操作、Mock 数据、路由、导航和右侧 AI 助手逻辑，不引入压缩包中的线索池、订单页面重构或其他功能变化。',
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-22 09:25',
     operator: 'Codex（协作代理）',
     title: 'Skill Hub 能力上下文受控更新状态机',
