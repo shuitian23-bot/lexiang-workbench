@@ -1,15 +1,16 @@
 <template>
   <div class="skill-create-page" data-page-flow="skill-create">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Skill 创建</div>
-        <div class="page-desc">从业务场景出发定义 Skill 能力、输入输出、权限边界和验收用例。</div>
-      </div>
-      <div class="agent-skill-page-actions">
-        <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
-        <button class="btn btn-secondary" type="button" @click="openSkills">查看 Skills 管理</button>
-      </div>
-    </div>
+    <ContentPageHeader
+      title="Skill 创建"
+      description="从业务场景出发定义 Skill 能力、输入输出、权限边界和验收用例。"
+    >
+      <template #actions>
+        <div class="agent-skill-page-actions">
+          <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
+          <button class="btn btn-secondary" type="button" @click="openSkills">查看 Skills 管理</button>
+        </div>
+      </template>
+    </ContentPageHeader>
 
     <div class="skill-create-studio">
       <aside class="skill-context-pane">
@@ -559,6 +560,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, type SkillHubActor, type SkillHubItem } from '@/stores/skillHub'
@@ -2314,10 +2316,6 @@ onBeforeUnmount(() => {
 
 .skill-create-page[data-page-flow="skill-create"] {
   gap: 16px;
-}
-
-.skill-create-page[data-page-flow="skill-create"] > .page-header {
-  margin-bottom: 0;
 }
 
 .skill-capability-context-panel {

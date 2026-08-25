@@ -1,15 +1,13 @@
 <template>
-  <div class="skill-hub-page" role="region" aria-label="Skill Hub">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Skill Hub</div>
-        <div class="page-desc">{{ pageDesc }}</div>
-      </div>
-      <div class="agent-skill-page-actions">
-        <button class="btn btn-primary" type="button" @click="openSkillCreate">创建 Skill</button>
-        <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
-      </div>
-    </div>
+  <div class="skill-hub-page" data-page-flow="skill-hub" role="region" aria-label="Skill Hub">
+    <ContentPageHeader title="Skill Hub" :description="pageDesc">
+      <template #actions>
+        <div class="agent-skill-page-actions">
+          <button class="btn btn-primary" type="button" @click="openSkillCreate">创建 Skill</button>
+          <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
+        </div>
+      </template>
+    </ContentPageHeader>
 
     <div class="skill-hub-summary" aria-label="Skill Hub 重点指标">
       <button
@@ -311,6 +309,7 @@ import {
   type SkillStatus
 } from '@/stores/skillHub'
 import SafeCapabilityMarkdown from '@/components/agent/SafeCapabilityMarkdown.vue'
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import {
   capabilityDecisionUpdate,
   shouldShowCapabilityChangeSummary,
@@ -663,3 +662,13 @@ onMounted(() => {
   document.title = '联想门户工作台'
 })
 </script>
+
+<style scoped>
+.skill-hub-page[data-page-flow="skill-hub"] {
+  gap: 16px;
+}
+
+.skill-hub-page[data-page-flow="skill-hub"] > .skill-hub-summary {
+  margin-block: 0;
+}
+</style>

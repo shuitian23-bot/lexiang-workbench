@@ -1,29 +1,30 @@
 <template>
   <div class="permission-page-vue">
-    <div class="page-header permission-page-header">
-      <div>
-        <div class="page-title">权限管理</div>
-        <div class="page-desc">按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。</div>
-      </div>
-      <div class="hero-actions">
-        <div class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
-          <button type="button" class="ghost-btn demo-reset-trigger" @click="demoIdentityMenuOpen = !demoIdentityMenuOpen">
-            重置演示：{{ currentDemoIdentity.label }}
-            <span>⌄</span>
-          </button>
-          <div v-if="demoIdentityMenuOpen" class="demo-reset-options">
-            <button
-              v-for="identity in demoIdentityOptions"
-              :key="identity.key"
-              type="button"
-              :class="{ active: demoIdentityKey === identity.key }"
-              @click="resetDemo(identity.key)"
-            >{{ identity.label }}</button>
+    <ContentPageHeader
+      title="权限管理"
+      description="按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。"
+    >
+      <template #actions>
+        <div class="hero-actions">
+          <div class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
+            <button type="button" class="ghost-btn demo-reset-trigger" @click="demoIdentityMenuOpen = !demoIdentityMenuOpen">
+              重置演示：{{ currentDemoIdentity.label }}
+              <span>⌄</span>
+            </button>
+            <div v-if="demoIdentityMenuOpen" class="demo-reset-options">
+              <button
+                v-for="identity in demoIdentityOptions"
+                :key="identity.key"
+                type="button"
+                :class="{ active: demoIdentityKey === identity.key }"
+                @click="resetDemo(identity.key)"
+              >{{ identity.label }}</button>
+            </div>
           </div>
+          <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
         </div>
-        <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
-      </div>
-    </div>
+      </template>
+    </ContentPageHeader>
 
     <div class="permission-layout">
       <aside class="permission-module-rail" aria-label="权限管理菜单">
@@ -2244,6 +2245,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { MENU_TREE } from '@/stores/app'
 import PermissionCopyRoleModal from '@/components/permissions/PermissionCopyRoleModal.vue'
 import PermissionDataDirectoryList from '@/components/permissions/PermissionDataDirectoryList.vue'
@@ -8620,20 +8622,13 @@ onUnmounted(() => {
 .permission-page-vue {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   min-height: 100%;
   width: 100%;
   max-width: none;
   min-width: 0;
   padding: 0;
   color: #111827;
-}
-
-.permission-page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .demo-reset-menu {

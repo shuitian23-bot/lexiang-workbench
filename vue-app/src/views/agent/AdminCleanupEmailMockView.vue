@@ -1,15 +1,16 @@
 <template>
   <div class="admin-cleanup-email-page">
-    <div class="page-header permission-page-header">
-      <div>
-        <div class="page-title">权限清理邮件预览</div>
-        <div class="page-desc">展示 admin 权限清理前一天自动发送的提醒邮件，用于 POC 演示流程追溯。</div>
-      </div>
-      <div class="email-page-actions">
-        <button type="button" class="ghost-btn" @click="goBack">返回权限管理</button>
-        <button type="button" class="primary-btn" @click="openUserList">查看用户权限</button>
-      </div>
-    </div>
+    <ContentPageHeader
+      title="权限清理邮件预览"
+      description="展示 admin 权限清理前一天自动发送的提醒邮件，用于 POC 演示流程追溯。"
+    >
+      <template #actions>
+        <div class="email-page-actions">
+          <button type="button" class="ghost-btn" @click="goBack">返回权限管理</button>
+          <button type="button" class="primary-btn" @click="openUserList">查看用户权限</button>
+        </div>
+      </template>
+    </ContentPageHeader>
 
     <section class="email-preview-layout">
       <aside class="email-meta-panel">
@@ -46,7 +47,7 @@
 
         <div class="email-subject-row">
           <span>主题</span>
-          <h1>admin 权限清理前提醒</h1>
+          <h2>admin 权限清理前提醒</h2>
         </div>
 
         <div class="email-body">
@@ -95,6 +96,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -125,7 +127,7 @@ onMounted(() => {
 .admin-cleanup-email-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   min-height: 100%;
   width: 100%;
   min-width: 0;
@@ -312,7 +314,7 @@ onMounted(() => {
   font-size: 12px;
 }
 
-.email-subject-row h1 {
+.email-subject-row h2 {
   margin: 6px 0 0;
   color: var(--color-text, #1f2329);
   font-size: 20px;

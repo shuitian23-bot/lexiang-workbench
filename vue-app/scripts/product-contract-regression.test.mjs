@@ -107,3 +107,23 @@ test('specialized permission and login checks remain part of the project contrac
     assert.match(packageJson, new RegExp(script.replace(':', '\\:')))
   }
 })
+
+test('approved pages share the presentation-only content header', async () => {
+  const [header, ...views] = await Promise.all([
+    source('../src/components/content/ContentPageHeader.vue'),
+    source('../src/views/agent/AgentSkillsView.vue'),
+    source('../src/views/agent/AgentSkillCreateView.vue'),
+    source('../src/views/agent/AgentPermissionsView.vue'),
+    source('../src/views/agent/AdminCleanupEmailMockView.vue')
+  ])
+
+  assert.match(header, /<h1 class="content-page-header__title">/)
+  assert.match(header, /<slot name="actions"/)
+  assert.doesNotMatch(header, /useRouter|useRoute|use[A-Z]\w*Store/)
+
+  for (const view of views) {
+    assert.match(view, /<ContentPageHeader/)
+    assert.match(view, /import ContentPageHeader from '@\/components\/content\/ContentPageHeader\.vue'/)
+  }
+  assert.doesNotMatch(views[3], /<h1>/)
+})
