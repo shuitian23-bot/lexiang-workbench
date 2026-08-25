@@ -3006,7 +3006,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-embed.js?v=20260825-store-appointment-flow-v5";
+            script.src = "/assets/pages/store-v5-embed.js?v=20260825-store-appointment-flow-v7";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -3043,20 +3043,7 @@ function openOrderDetail(orderId) {
             host.addEventListener("lx-store-detail-state", (event) => {
               pageBox.classList.toggle("lx-store-detail-active", event.detail?.active === true);
             });
-            host.addEventListener("lx-store-appointment-query", (event) => {
-              const store = event.detail?.store;
-              if (!store) return;
-              window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
-              window.__lxStoreAppointmentById[String(store.id || "")] = store;
-              window.__lxPendingStoreAppointment = store;
-              sendChat(`预约${store.name || "联想门店"}到店`);
-            });
-            host.addEventListener("lx-store-appointment-success", (event) => {
-              lxAppendStoreAppointmentSuccess(event.detail);
-            });
-            host.addEventListener("lx-store-navigation-start", (event) => {
-              lxAppendStoreNavigationResult(event.detail?.store);
-            });
+            lxInstallStoreBridge();
             host.__lxStoreApi = api;
           } catch (_error) {
             if (host.isConnected) host.innerHTML = '<div class="lx-store-component-loading" role="alert">门店服务暂时无法加载，请稍后重试</div>';
@@ -10741,6 +10728,42 @@ async function openEduZone() {
           return document.querySelector(".lx-store-component-host");
         }
 
+        function lxInstallStoreBridge() {
+          if (window.__lxStoreBridgeInstalled) return;
+          window.__lxStoreBridgeInstalled = true;
+          const handleBridge = (detail = {}) => {
+            if (detail.type === "lx-store-appointment-query") {
+              const store = detail.store;
+              if (!store) return;
+              window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
+              window.__lxStoreAppointmentById[String(store.id || "")] = store;
+              window.__lxPendingStoreAppointment = store;
+              sendChat(`预约${store.name || "联想门店"}到店`);
+              return;
+            }
+            if (detail.type === "lx-store-appointment-success") {
+              lxAppendStoreAppointmentSuccess(detail);
+              return;
+            }
+            if (detail.type === "lx-store-navigation-start") {
+              lxAppendStoreNavigationResult(detail.store);
+            }
+          };
+          window.__lxHandleStoreBridge = handleBridge;
+          document.addEventListener("lx-store-appointment-query", (event) => {
+            const store = event.detail?.store;
+            if (!store) return;
+            handleBridge(event.detail);
+          });
+          document.addEventListener("lx-store-appointment-success", (event) => {
+            handleBridge(event.detail);
+          });
+          document.addEventListener("lx-store-navigation-start", (event) => {
+            handleBridge(event.detail);
+          });
+        }
+        lxInstallStoreBridge();
+
         function lxOpenStoreAppointmentInFrame(storeId) {
           const store = window.__lxStoreAppointmentById?.[String(storeId || "")] || window.__lxPendingStoreAppointment;
           if (!store) return;
@@ -10754,8 +10777,9 @@ async function openEduZone() {
 
         function lxInvokeStoreComponent(method, storeId, attempt = 0) {
           const host = lxStoreExactFrame();
-          if (host?.__lxStoreApi && typeof host.__lxStoreApi[method] === "function") {
-            host.__lxStoreApi[method](storeId);
+          const api = host?.__lxStoreApi || window.LXStoreService?.getApi?.(host);
+          if (api && typeof api[method] === "function") {
+            api[method](storeId);
             return true;
           }
           if (attempt === 0) lxOpenStoreComponentTab();
