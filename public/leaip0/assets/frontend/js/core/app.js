@@ -836,6 +836,7 @@ if (!window.__lxCreateTypewriter) {
 .lx-auth-modal .lx-auth-tabs--compact .lx-auth-tab.active{color:#2b2430}
 .lx-auth-modal .lx-auth-tabs--compact .lx-auth-tab.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px;background:linear-gradient(90deg,#4d144a,#b8252e)}
 .lx-auth-modal .lx-auth-register-title{margin:0 0 24px;font-size:18px;font-weight:800;color:#2b2430}
+.lx-auth-modal .lx-auth-demo-hint{margin:-6px 0 12px;font-size:11.5px;color:#a39ba7}
 .lx-auth-modal [hidden]{display:none!important}
 .lx-auth-modal .lx-auth-switch-row{display:flex;justify-content:flex-end;margin-top:4px}
 .lx-auth-modal .lx-auth-switch-link{border:0;background:transparent;padding:2px 0;font-size:12.5px;font-weight:600;color:#a39ba7;display:inline-flex;align-items:center;gap:2px}
@@ -3173,6 +3174,7 @@ function openOrderDetail(orderId) {
                 </label>
                 <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
               </div>
+              <p class="lx-auth-demo-hint">演示环境验证码固定为 123456</p>
               <label class="lx-auth-agree"><input type="checkbox" required />如果您输入的手机号未注册，将为您进行注册，注册即表示您同意 <a href="javascript:void(0)">注册协议</a>、<a href="javascript:void(0)">隐私政策</a>、<a href="javascript:void(0)">销售条款</a></label>
               <button class="lx-auth-primary" type="submit">登录</button>
             </form>
@@ -3203,6 +3205,7 @@ function openOrderDetail(orderId) {
                 </label>
                 <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
               </div>
+              <p class="lx-auth-demo-hint">演示环境验证码固定为 123456</p>
               <label class="lx-auth-agree"><input type="checkbox" required />已阅读并同意 <a href="javascript:void(0)">注册协议</a>、<a href="javascript:void(0)">隐私政策</a>、<a href="javascript:void(0)">销售条款</a></label>
               <button class="lx-auth-primary" type="submit">注册</button>
             </form>
@@ -3299,7 +3302,7 @@ function openOrderDetail(orderId) {
           submit.textContent = "处理中…";
           submit.disabled = true;
           window.setTimeout(() => {
-            const identity = form.querySelector('input[autocomplete="username"]')?.value.trim() || "会员";
+            const identity = (form.querySelector('input[autocomplete="username"]') || form.querySelector('[data-auth-phone]'))?.value.trim() || "会员";
             state.user = { phone: identity, nickname: identity };
             lxStoreAuthUser(state.user);
             updateUserArea();
@@ -3330,8 +3333,8 @@ function openOrderDetail(orderId) {
           form.querySelector(".lx-auth-primary")?.insertAdjacentElement("beforebegin", error);
         }
 
-        // 快捷登录/注册共用「获取验证码」：真调 /api/auth/send-code（创蓝253 真实短信），手机号非法不发。
-        async function lxSendAuthCode(button) {
+        // 快捷登录/注册共用「获取验证码」：演示环境全 mock，不调后端，固定码 123456；手机号非法不发。
+        function lxSendAuthCode(button) {
           const form = button.closest("form");
           const phoneInput = form?.querySelector("[data-auth-phone]");
           const phone = phoneInput?.value.trim() || "";
@@ -3359,18 +3362,12 @@ function openOrderDetail(orderId) {
             }
             button.textContent = `${left}s 后重发`;
           }, 1000);
-          try {
-            const response = await fetch("/api/auth/send-code", {
-              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone })
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!data.success && form) lxAuthInsertError(form, data.error || "验证码发送失败");
-          } catch (_e) {
-            if (form) lxAuthInsertError(form, "验证码发送失败，请重试");
-          }
+          toast("演示环境已发送验证码：123456");
         }
 
-        // 快捷登录表单校验：手机号/验证码格式 + 必须勾选协议（未勾选=红字提示+抖动，不发请求）。
+        // 快捷登录/注册表单校验：手机号/验证码格式 + 必须勾选协议（未勾选=红字提示+抖动，不发请求）；
+        // 演示环境验证码固定 123456，校验通过后复用与账号密码登录同一套 lxSubmitAuthForm 模拟成功回调
+        // （同样写入本地登录态），码错就地红字提示，不关弹窗。
         function lxSubmitCodeAuthForm(form, isRegister) {
           form.querySelector(".lx-auth-error-message")?.remove();
           const phoneInput = form.querySelector("[data-auth-phone]");
@@ -3395,37 +3392,13 @@ function openOrderDetail(orderId) {
             (!phoneOk ? phoneInput : !codeOk ? codeInput : agreeInput)?.focus();
             return;
           }
-          lxRunAuthCodeLogin(form, phoneInput.value.trim(), codeInput.value.trim(), isRegister);
-        }
-
-        // 快捷登录=注册共用同一后端 /api/auth/login（验证码校验通过即自动注册），成功后走现有登录
-        // 成功回调（state.user/lxStoreAuthUser/updateUserArea/closeModal），失败就地红字不关弹窗。
-        async function lxRunAuthCodeLogin(form, phone, code, isRegister) {
-          const submit = form.querySelector(".lx-auth-primary");
-          const originalText = submit.textContent;
-          submit.disabled = true;
-          submit.textContent = "处理中…";
-          try {
-            const response = await fetch("/api/auth/login", {
-              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone, code })
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!data.success) {
-              lxAuthInsertError(form, data.error || (isRegister ? "注册失败，请重试" : "登录失败，请重试"));
-              submit.disabled = false;
-              submit.textContent = originalText;
-              return;
-            }
-            state.user = data.user || { phone };
-            lxStoreAuthUser(state.user);
-            updateUserArea();
-            closeModal();
-            toast(isRegister ? "注册成功" : "登录成功");
-          } catch (_e) {
-            lxAuthInsertError(form, "网络异常，请重试");
-            submit.disabled = false;
-            submit.textContent = originalText;
+          if (codeInput.value.trim() !== "123456") {
+            codeInput.closest(".lx-auth-field")?.classList.add("invalid");
+            lxAuthInsertError(form, "验证码错误，演示码为 123456");
+            codeInput.focus();
+            return;
           }
+          lxSubmitAuthForm(form);
         }
 
         function logout() {
