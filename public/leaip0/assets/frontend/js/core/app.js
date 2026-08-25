@@ -821,8 +821,34 @@ if (!window.__lxCreateTypewriter) {
           (document.head || document.documentElement).appendChild(style);
         }
 
+        // 登录弹窗改版（快捷登录/账号密码登录小 Tab + 弹窗内切注册子视图）新增样式，随 ensureModal
+        // 一起幂等挂载 JS 注入，五页统一生效，免疫 auth-dialog.css 引用被并发覆盖或加载时序问题
+        // （同思路先例见上方 ensureOrderFlowStyles）。选择器都叠加 .lx-auth-tabs--compact 等修饰类
+        // 拉高特异性，即使 auth-dialog.css 后加载也能稳定盖掉旧的大 Tab 渐变下划线样式。
+        function ensureLoginStyles() {
+          if (document.getElementById("lx-login-style")) return;
+          const style = document.createElement("style");
+          style.id = "lx-login-style";
+          style.textContent = `
+.lx-auth-modal .lx-auth-tabs.lx-auth-tabs--compact{display:flex;gap:28px;border-bottom:1px solid #ebe6ee;margin-bottom:24px;padding-bottom:0}
+.lx-auth-modal .lx-auth-tabs.lx-auth-tabs--compact:after{display:none}
+.lx-auth-modal .lx-auth-tabs--compact .lx-auth-tab{position:relative;height:auto;padding:0 0 12px;font-size:14px;font-weight:700;color:#8f8794}
+.lx-auth-modal .lx-auth-tabs--compact .lx-auth-tab.active{color:#2b2430}
+.lx-auth-modal .lx-auth-tabs--compact .lx-auth-tab.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px;background:linear-gradient(90deg,#4d144a,#b8252e)}
+.lx-auth-modal .lx-auth-register-title{margin:0 0 24px;font-size:18px;font-weight:800;color:#2b2430}
+.lx-auth-modal [hidden]{display:none!important}
+.lx-auth-modal .lx-auth-switch-row{display:flex;justify-content:flex-end;margin-top:4px}
+.lx-auth-modal .lx-auth-switch-link{border:0;background:transparent;padding:2px 0;font-size:12.5px;font-weight:600;color:#a39ba7;display:inline-flex;align-items:center;gap:2px}
+.lx-auth-modal .lx-auth-switch-link:hover{color:#8f8794}
+.lx-auth-modal .lx-auth-agree a{color:#5b1452;text-decoration:underline;text-underline-offset:2px}
+@keyframes lx-auth-shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+.lx-auth-modal .lx-auth-agree.lx-auth-shake{animation:lx-auth-shake .5s cubic-bezier(.36,.07,.19,.97) both}`;
+          (document.head || document.documentElement).appendChild(style);
+        }
+
         function ensureModal() {
           ensureOrderFlowStyles();
+          ensureLoginStyles();
           let mask = $(".lx-p0-modal-mask");
           if (mask) return applyUnifiedModalOverlay(mask);
           mask = document.createElement("div");
@@ -3125,16 +3151,32 @@ function openOrderDetail(orderId) {
         }
 
         function openLogin() {
-          openModal("登录 / 注册", `
+          openModal("", `
             <button class="lx-auth-close" type="button" data-auth-close aria-label="关闭">×</button>
             <div class="lx-auth-logo-wrap">
               <img class="lx-auth-logo-img" src="../logos/logo-full-red.png" alt="联想乐享" />
             </div>
-            <div class="lx-auth-tabs" role="tablist">
-              <button class="lx-auth-tab active" type="button" data-auth-tab="login" role="tab" aria-selected="true">登录</button>
-              <button class="lx-auth-tab" type="button" data-auth-tab="register" role="tab" aria-selected="false">注册</button>
+            <div class="lx-auth-tabs lx-auth-tabs--compact" role="tablist" data-auth-tabs>
+              <button class="lx-auth-tab active" type="button" data-auth-tab="quick" role="tab" aria-selected="true">快捷登录</button>
+              <button class="lx-auth-tab" type="button" data-auth-tab="password" role="tab" aria-selected="false">账号密码登录</button>
             </div>
-            <form class="lx-auth-form-panel active" data-auth-panel="login" novalidate>
+            <h3 class="lx-auth-register-title" data-auth-register-title hidden>注册联想账号</h3>
+            <form class="lx-auth-form-panel active" data-auth-panel="quick" novalidate>
+              <label class="lx-auth-field">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <input type="tel" id="lxLoginPhone" data-auth-phone placeholder="请输入手机号" autocomplete="tel" inputmode="numeric" maxlength="11" required />
+              </label>
+              <div class="lx-auth-code-row">
+                <label class="lx-auth-field">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke-width="1.7"/><path d="m4 8 8 6 8-6" stroke-width="1.7"/></svg>
+                  <input type="text" id="lxLoginCode" data-auth-code-input placeholder="请输入验证码" inputmode="numeric" maxlength="6" required />
+                </label>
+                <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
+              </div>
+              <label class="lx-auth-agree"><input type="checkbox" required />如果您输入的手机号未注册，将为您进行注册，注册即表示您同意 <a href="javascript:void(0)">注册协议</a>、<a href="javascript:void(0)">隐私政策</a>、<a href="javascript:void(0)">销售条款</a></label>
+              <button class="lx-auth-primary" type="submit">登录</button>
+            </form>
+            <form class="lx-auth-form-panel" data-auth-panel="password" novalidate>
               <label class="lx-auth-field">
                 <svg viewBox="0 0 24 24" fill="none"><path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke-width="1.8" stroke-linecap="round"/></svg>
                 <input type="text" placeholder="手机号 / 邮箱" autocomplete="username" required />
@@ -3147,23 +3189,27 @@ function openOrderDetail(orderId) {
                 </button>
               </label>
               <label class="lx-auth-agree"><input type="checkbox" required />我已阅读并同意《用户协议》和《隐私政策》</label>
-              <button class="lx-auth-primary" type="submit">立即登录</button>
+              <button class="lx-auth-primary" type="submit">登录</button>
             </form>
             <form class="lx-auth-form-panel" data-auth-panel="register" novalidate>
               <label class="lx-auth-field">
                 <svg viewBox="0 0 24 24" fill="none"><path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke-width="1.8" stroke-linecap="round"/></svg>
-                <input type="text" placeholder="手机号 / 邮箱" autocomplete="username" required />
+                <input type="tel" data-auth-phone placeholder="请输入手机号" autocomplete="tel" inputmode="numeric" maxlength="11" required />
               </label>
               <div class="lx-auth-code-row">
                 <label class="lx-auth-field">
                   <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke-width="1.7"/><path d="m4 8 8 6 8-6" stroke-width="1.7"/></svg>
-                  <input type="text" placeholder="验证码" inputmode="numeric" required />
+                  <input type="text" data-auth-code-input placeholder="请输入验证码" inputmode="numeric" maxlength="6" required />
                 </label>
                 <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
               </div>
-              <label class="lx-auth-agree"><input type="checkbox" required />我已阅读并同意《用户协议》和《隐私政策》</label>
-              <button class="lx-auth-primary" type="submit">立即注册</button>
-            </form>`, { skin: "auth" });
+              <label class="lx-auth-agree"><input type="checkbox" required />已阅读并同意 <a href="javascript:void(0)">注册协议</a>、<a href="javascript:void(0)">隐私政策</a>、<a href="javascript:void(0)">销售条款</a></label>
+              <button class="lx-auth-primary" type="submit">注册</button>
+            </form>
+            <div class="lx-auth-switch-row">
+              <button class="lx-auth-switch-link" type="button" data-auth-switch="register">注册账号<span aria-hidden="true">›</span></button>
+              <button class="lx-auth-switch-link" type="button" data-auth-switch="login" hidden>立即登录<span aria-hidden="true">›</span></button>
+            </div>`, { skin: "auth" });
         }
 
         function lxOpenGuestLimitLogin() {
@@ -3200,8 +3246,27 @@ function openOrderDetail(orderId) {
             button.classList.toggle("active", active);
             button.setAttribute("aria-selected", String(active));
           });
-          modal.querySelector(".lx-auth-tabs")?.classList.toggle("register-active", name === "register");
           modal.querySelectorAll("[data-auth-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.authPanel === name));
+        }
+
+        // 登录/注册在同一弹窗内切视图：login=小 Tab（快捷登录/账号密码登录）区，register=标题「注册联想账号」区。
+        function lxSetAuthView(view) {
+          const modal = document.querySelector(".lx-auth-modal");
+          if (!modal) return;
+          const isRegister = view === "register";
+          const tabs = modal.querySelector("[data-auth-tabs]");
+          const title = modal.querySelector("[data-auth-register-title]");
+          if (tabs) tabs.hidden = isRegister;
+          if (title) title.hidden = !isRegister;
+          modal.querySelector('[data-auth-switch="register"]').hidden = isRegister;
+          modal.querySelector('[data-auth-switch="login"]').hidden = !isRegister;
+          if (isRegister) {
+            modal.querySelectorAll("[data-auth-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.authPanel === "register"));
+          } else {
+            lxOpenAuthTab(modal.querySelector("[data-auth-tab].active")?.dataset.authTab || "quick");
+          }
+          modal.querySelectorAll(".lx-auth-error-message").forEach((node) => node.remove());
+          modal.querySelectorAll(".invalid").forEach((node) => node.classList.remove("invalid"));
         }
 
         function lxClearAuthError(input) {
@@ -3256,29 +3321,111 @@ function openOrderDetail(orderId) {
             </section>`);
         }
 
-        async function sendCode() {
-          const phone = $("#lxLoginPhone")?.value.trim();
-          if (!phone) return toast("请输入手机号");
-          const response = await fetch("/api/auth/send-code", {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone })
-          });
-          toast(response.ok ? "验证码已发送" : "验证码发送失败");
+        // 就地红字错误提示，复用登录/注册表单公用的 .lx-auth-error-message 样式（不关弹窗）。
+        function lxAuthInsertError(form, message) {
+          form.querySelector(".lx-auth-error-message")?.remove();
+          const error = document.createElement("div");
+          error.className = "lx-auth-error-message";
+          error.textContent = message;
+          form.querySelector(".lx-auth-primary")?.insertAdjacentElement("beforebegin", error);
         }
 
-        async function login() {
-          const phone = $("#lxLoginPhone")?.value.trim();
-          const code = $("#lxLoginCode")?.value.trim();
-          if (!phone || !code) return toast("请输入手机号和验证码");
-          const response = await fetch("/api/auth/login", {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone, code })
-          });
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok) return toast(data.error || "登录失败");
-          state.user = data.user || { phone };
-          lxStoreAuthUser(state.user);
-          closeModal();
-          updateUserArea();
-          toast("登录成功");
+        // 快捷登录/注册共用「获取验证码」：真调 /api/auth/send-code（创蓝253 真实短信），手机号非法不发。
+        async function lxSendAuthCode(button) {
+          const form = button.closest("form");
+          const phoneInput = form?.querySelector("[data-auth-phone]");
+          const phone = phoneInput?.value.trim() || "";
+          form?.querySelector(".lx-auth-error-message")?.remove();
+          if (!/^1[3-9]\d{9}$/.test(phone)) {
+            phoneInput?.closest(".lx-auth-field")?.classList.add("invalid");
+            if (form) lxAuthInsertError(form, "请输入正确的手机号");
+            phoneInput?.focus();
+            return;
+          }
+          phoneInput?.closest(".lx-auth-field")?.classList.remove("invalid");
+          if (button.dataset.running) return;
+          button.dataset.running = "1";
+          button.disabled = true;
+          let left = 59;
+          button.textContent = `${left}s 后重发`;
+          const timer = window.setInterval(() => {
+            left -= 1;
+            if (left <= 0) {
+              window.clearInterval(timer);
+              button.disabled = false;
+              button.textContent = "获取验证码";
+              delete button.dataset.running;
+              return;
+            }
+            button.textContent = `${left}s 后重发`;
+          }, 1000);
+          try {
+            const response = await fetch("/api/auth/send-code", {
+              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!data.success && form) lxAuthInsertError(form, data.error || "验证码发送失败");
+          } catch (_e) {
+            if (form) lxAuthInsertError(form, "验证码发送失败，请重试");
+          }
+        }
+
+        // 快捷登录表单校验：手机号/验证码格式 + 必须勾选协议（未勾选=红字提示+抖动，不发请求）。
+        function lxSubmitCodeAuthForm(form, isRegister) {
+          form.querySelector(".lx-auth-error-message")?.remove();
+          const phoneInput = form.querySelector("[data-auth-phone]");
+          const codeInput = form.querySelector("[data-auth-code-input]");
+          const agreeInput = form.querySelector('.lx-auth-agree input[type="checkbox"]');
+          phoneInput?.closest(".lx-auth-field")?.classList.remove("invalid");
+          codeInput?.closest(".lx-auth-field")?.classList.remove("invalid");
+          agreeInput?.closest(".lx-auth-agree")?.classList.remove("invalid", "lx-auth-shake");
+
+          const messages = [];
+          const phoneOk = /^1[3-9]\d{9}$/.test(phoneInput?.value.trim() || "");
+          const codeOk = /^\d{6}$/.test(codeInput?.value.trim() || "");
+          if (!phoneOk) { phoneInput?.closest(".lx-auth-field")?.classList.add("invalid"); messages.push("请输入正确的手机号"); }
+          if (!codeOk) { codeInput?.closest(".lx-auth-field")?.classList.add("invalid"); messages.push("请输入验证码"); }
+          if (agreeInput && !agreeInput.checked) {
+            const wrap = agreeInput.closest(".lx-auth-agree");
+            wrap?.classList.add("invalid", "lx-auth-shake");
+            messages.push(isRegister ? "请先阅读并同意注册协议、隐私政策、销售条款" : "请先阅读并同意相关协议");
+          }
+          if (messages.length) {
+            lxAuthInsertError(form, messages.join("；"));
+            (!phoneOk ? phoneInput : !codeOk ? codeInput : agreeInput)?.focus();
+            return;
+          }
+          lxRunAuthCodeLogin(form, phoneInput.value.trim(), codeInput.value.trim(), isRegister);
+        }
+
+        // 快捷登录=注册共用同一后端 /api/auth/login（验证码校验通过即自动注册），成功后走现有登录
+        // 成功回调（state.user/lxStoreAuthUser/updateUserArea/closeModal），失败就地红字不关弹窗。
+        async function lxRunAuthCodeLogin(form, phone, code, isRegister) {
+          const submit = form.querySelector(".lx-auth-primary");
+          const originalText = submit.textContent;
+          submit.disabled = true;
+          submit.textContent = "处理中…";
+          try {
+            const response = await fetch("/api/auth/login", {
+              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone, code })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!data.success) {
+              lxAuthInsertError(form, data.error || (isRegister ? "注册失败，请重试" : "登录失败，请重试"));
+              submit.disabled = false;
+              submit.textContent = originalText;
+              return;
+            }
+            state.user = data.user || { phone };
+            lxStoreAuthUser(state.user);
+            updateUserArea();
+            closeModal();
+            toast(isRegister ? "注册成功" : "登录成功");
+          } catch (_e) {
+            lxAuthInsertError(form, "网络异常，请重试");
+            submit.disabled = false;
+            submit.textContent = originalText;
+          }
         }
 
         function logout() {
@@ -11930,24 +12077,9 @@ async function openEduZone() {
               }
             }
             const authCode = event.target.closest("[data-auth-code]");
-            if (authCode && !authCode.dataset.running) {
-              authCode.dataset.running = "1";
-              authCode.disabled = true;
-              authCode.style.opacity = ".65";
-              let left = 60;
-              authCode.textContent = `${left}s 后重试`;
-              const timer = window.setInterval(() => {
-                left -= 1;
-                authCode.textContent = `${left}s 后重试`;
-                if (left <= 0) {
-                  window.clearInterval(timer);
-                  authCode.disabled = false;
-                  authCode.style.opacity = "1";
-                  authCode.textContent = "获取验证码";
-                  delete authCode.dataset.running;
-                }
-              }, 1000);
-            }
+            if (authCode) lxSendAuthCode(authCode);
+            const authSwitch = event.target.closest("[data-auth-switch]");
+            if (authSwitch) lxSetAuthView(authSwitch.dataset.authSwitch);
             if (event.target.closest("[data-auth-close]")) closeModal();
 
             const menuRow = event.target.closest(".account-menu .menu-row");
@@ -12656,16 +12788,15 @@ async function openEduZone() {
             }
             if (event.target.closest("[data-open-wpa]")) openWorkplaceAuth();
             if (event.target.closest("[data-open-login]")) openLogin();
-            if (event.target.closest("[data-send-code]")) sendCode();
-            if (event.target.closest("[data-login-submit]")) login();
-            if (event.target.closest("[data-login-guest]")) closeModal();
           }, true);
 
           document.addEventListener("submit", (event) => {
             const form = event.target.closest(".lx-auth-form-panel");
             if (!form) return;
             event.preventDefault();
-            lxSubmitAuthForm(form);
+            const panel = form.dataset.authPanel;
+            if (panel === "quick" || panel === "register") lxSubmitCodeAuthForm(form, panel === "register");
+            else lxSubmitAuthForm(form);
           }, true);
 
           document.addEventListener("input", (event) => {
