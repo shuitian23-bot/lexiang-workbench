@@ -929,6 +929,7 @@ if (!window.__lxCreateTypewriter) {
         lxRegisterRecommendedModal("enterprise-member-auth", () => openEnterpriseAuth());
         lxRegisterRecommendedModal("enterprise-lead", () => openLeadPanel(state.page === "enterprise" ? "biz_intent" : "b_purchase"));
         lxRegisterRecommendedModal("store-appointment", (storeId) => lxOpenStoreAppointmentInFrame(storeId));
+        lxRegisterRecommendedModal("store-appointment-success", (storeId) => lxOpenStoreAppointmentSuccessInFrame(storeId));
         lxRegisterRecommendedModal("pending-payment", () => lxOpenPendingPaymentModal());
         window.__lxRecommendedModalRule = Object.freeze({
           register: lxRegisterRecommendedModal,
@@ -3005,7 +3006,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-embed.js?v=20260825-store-map-inline-driving-compact-v4";
+            script.src = "/assets/pages/store-v5-embed.js?v=20260825-store-appointment-flow-v5";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -3049,6 +3050,12 @@ function openOrderDetail(orderId) {
               window.__lxStoreAppointmentById[String(store.id || "")] = store;
               window.__lxPendingStoreAppointment = store;
               sendChat(`预约${store.name || "联想门店"}到店`);
+            });
+            host.addEventListener("lx-store-appointment-success", (event) => {
+              lxAppendStoreAppointmentSuccess(event.detail);
+            });
+            host.addEventListener("lx-store-navigation-start", (event) => {
+              lxAppendStoreNavigationResult(event.detail?.store);
             });
             host.__lxStoreApi = api;
           } catch (_error) {
@@ -3588,6 +3595,18 @@ function openOrderDetail(orderId) {
         function renderStoreAppointmentCta(storeId) {
           return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-recommended-modal="store-appointment" data-lx-recommended-modal-payload="${esc(storeId || "")}" data-lx-store-appointment-confirm="${esc(storeId || "")}" data-lx-result-id="modal:store-appointment:${esc(storeId || "")}" aria-label="打开预约信息确认弹窗">
             <span class="answer-cta-title">预约信息待确认</span>
+            <span class="answer-cta-icon" aria-hidden="true">
+              ${window.__lxApprovedIcon("global-next")}
+            </span>
+          </button>`;
+        }
+
+        function renderStoreAppointmentSuccessCta(storeId) {
+          return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-recommended-modal="store-appointment-success" data-lx-recommended-modal-payload="${esc(storeId || "")}" data-lx-result-id="modal:store-appointment-success:${esc(storeId || "")}" aria-label="打开预约成功详情">
+            <span class="answer-cta-copy">
+              <span class="answer-cta-title">预约成功 · 编号 0001</span>
+              <span class="answer-cta-desc">查看门店、到店时间与预约目的</span>
+            </span>
             <span class="answer-cta-icon" aria-hidden="true">
               ${window.__lxApprovedIcon("global-next")}
             </span>
@@ -10708,8 +10727,10 @@ async function openEduZone() {
         }
         function lxOpenStoreAppointmentV5(s){
           if(!s)return;
-          openModal("预约到店",`<form class="lxsv5-appointment" data-lxsv5-appointment-form><div class="lxsv5-appoint-store"><strong>${esc(s.name)}</strong><span>${esc(s.address)}</span></div><label>到店日期<input name="date" type="date" required></label><label>到店时段<select name="time" required><option value="">请选择</option><option>10:00–12:00</option><option>14:00–16:00</option><option>16:00–18:00</option></select></label><label>到店目的<select name="purpose" required><option>产品体验</option><option>购买咨询</option><option>售后服务</option><option>企业采购</option></select></label><label>手机号码<input name="phone" type="tel" placeholder="请输入预约手机号" required></label><p>提交后由门店确认预约时间，实际服务以门店回访为准。</p><div class="lxsv5-appoint-actions"><button type="button" data-modal-close>取消</button><button class="primary" type="submit">提交预约</button></div></form>`);
-          requestAnimationFrame(()=>document.querySelector('[data-lxsv5-appointment-form]')?.addEventListener('submit',e=>{e.preventDefault();const mask=e.currentTarget.closest('.lx-p0-modal-mask');mask?.remove();openModal('预约已提交',`<div class="lxsv5-success"><strong>预约申请已提交</strong><p>${esc(s.name)}将在营业时间内与你确认到店安排。</p><button class="lx-p0-btn primary" type="button" data-modal-close>完成</button></div>`);}));
+          window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
+          window.__lxStoreAppointmentById[String(s.id)] = s;
+          window.__lxPendingStoreAppointment = s;
+          lxOpenStoreAppointmentInFrame(s.id);
         }
 
         async function openStoresPanel(address = "北京海淀") {
@@ -10723,27 +10744,49 @@ async function openEduZone() {
         function lxOpenStoreAppointmentInFrame(storeId) {
           const store = window.__lxStoreAppointmentById?.[String(storeId || "")] || window.__lxPendingStoreAppointment;
           if (!store) return;
-          const phone = store.phone || store.tel || "以门店公布信息为准";
-          openModal("预约到店", `<div class="lx-lead-modal">
-            <p class="lx-lead-subtitle">请确认预约信息，门店将在营业时间内与你联系。</p>
-            <div class="lx-lead-form">
-              <label class="lx-lead-row"><span>预约门店</span><select aria-label="预约门店"><option selected>${esc(store.name || "联想门店")}</option></select></label>
-              <label class="lx-lead-row"><span>到店日期</span><input type="date" value="2026-08-12" aria-label="到店日期"></label>
-              <label class="lx-lead-row"><span>到店时段</span><select aria-label="到店时段"><option>10:00–12:00</option><option>14:00–16:00</option><option selected>16:00–18:00</option></select></label>
-              <label class="lx-lead-row"><span>预约目的</span><select aria-label="预约目的"><option selected>产品体验</option><option>购买咨询</option><option>售后服务</option><option>企业采购</option></select></label>
-              <label class="lx-lead-row"><span>联系电话</span><input value="${esc(phone)}" aria-label="联系电话"></label>
-            </div>
-            <div class="lx-lead-actions">
-              <button class="lx-lead-cancel" type="button" data-modal-close>取消</button>
-              <button class="lx-lead-submit" type="button" data-lx-store-confirm-submit>确认预约</button>
-            </div>
-          </div>`, { skin: "lead" });
-          requestAnimationFrame(() => {
-            document.querySelector("[data-lx-store-confirm-submit]")?.addEventListener("click", () => {
-              closeModal();
-              toast("预约信息已提交，门店将在营业时间内与你确认");
-            }, { once: true });
-          });
+          lxInvokeStoreComponent("openAppointment", store.id || storeId);
+        }
+
+        function lxOpenStoreAppointmentSuccessInFrame(storeId) {
+          const latest = window.__lxLatestStoreAppointment;
+          lxInvokeStoreComponent("openAppointmentSuccess", storeId || latest?.store?.id || "");
+        }
+
+        function lxInvokeStoreComponent(method, storeId, attempt = 0) {
+          const host = lxStoreExactFrame();
+          if (host?.__lxStoreApi && typeof host.__lxStoreApi[method] === "function") {
+            host.__lxStoreApi[method](storeId);
+            return true;
+          }
+          if (attempt === 0) lxOpenStoreComponentTab();
+          if (attempt < 30) window.setTimeout(() => lxInvokeStoreComponent(method, storeId, attempt + 1), 80);
+          else toast("门店预约暂时无法加载，请稍后重试");
+          return false;
+        }
+
+        function lxAppendStoreAppointmentSuccess(detail = {}) {
+          const store = detail.store || window.__lxPendingStoreAppointment || {};
+          const appointment = detail.appointment || {};
+          window.__lxLatestStoreAppointment = { store, appointment };
+          addMessage("user", `帮我预约去${store.name || "所选联想门店"}`);
+          const dateTime = [appointment.date, appointment.time].filter(Boolean).join(" ") || "预约时间";
+          const number = appointment.number || "0001";
+          const copy = `好的，已为你成功预约！**${dateTime}** 前往 **${store.name || "所选联想门店"}**，预约编号 **${number}**。如需修改时间或门店，直接告诉我就好。`;
+          const trace = renderSkillTrace(["联想乐享官方 SKILL：Skill(门店预约服务) 已完成"], { collapsed: true, foldable: true, skillCount: 1 });
+          const ai = addMessage("ai", "", trace + mdLite(copy) + renderStoreAppointmentSuccessCta(store.id));
+          ai._raw = copy;
+          ensureChat().scrollTop = ensureChat().scrollHeight;
+          try { window.__lxSaveConversationNow(); } catch (_e) {}
+        }
+
+        function lxAppendStoreNavigationResult(store = {}) {
+          addMessage("user", `导航去${store.name || "所选联想门店"}`);
+          const copy = `已在右侧百度地图内规划从“我的位置”前往 **${store.name || "所选联想门店"}** 的驾车路线，可直接在当前地图缩放和拖动查看。`;
+          const trace = renderSkillTrace(["联想乐享官方 SKILL：Skill(门店导航服务) 已完成"], { collapsed: true, foldable: true, skillCount: 1 });
+          const ai = addMessage("ai", "", trace + mdLite(copy) + renderPageCta({ title: "地图内驾车路线已生成", desc: "在右侧地图查看路线与预计用时", attr: 'data-lx-open-tab="info:stores"' }));
+          ai._raw = copy;
+          ensureChat().scrollTop = ensureChat().scrollHeight;
+          try { window.__lxSaveConversationNow(); } catch (_e) {}
         }
 
         function openServicePanel() {
